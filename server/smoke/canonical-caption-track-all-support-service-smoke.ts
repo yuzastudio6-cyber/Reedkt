@@ -44,11 +44,27 @@ import {
   sealCanonicalTrackAllSam31PrivateSceneReview,
 } from '../services/canonical-track-all-sam3_1-task-qa-owner'
 import {
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest,
+  createCanonicalTrackAllSam31TaskQaCandidateRepository,
+  createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime,
+  parseTrackAllSam31TaskQaEvidenceFinalizationResult,
+  sealCanonicalTrackAllSam31L4MaskQaWorkerResult,
+  sealCanonicalTrackAllSam31PrivateReviewResult,
+} from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
+import {
   buildTrackAllSam31CaptionEvidenceFinalizationRequest,
   createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime,
   parseTrackAllSam31CaptionEvidenceFinalizationRequest,
   parseTrackAllSam31CaptionEvidenceFinalizationResult,
 } from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import {
+  canonicalProfessionalGpuExecutionEnvelopeSchema,
+  canonicalProfessionalGpuJobLaunchSchema,
+  canonicalProfessionalGpuJobTerminalSchema,
+} from '../services/canonical-professional-gpu-job-lifecycle-service'
+import {
+  createCanonicalProfessionalGpuDurableLifecycleStore,
+} from '../services/canonical-professional-gpu-durable-lifecycle-store'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -102,6 +118,7 @@ const evidenceRepository = createCanonicalCaptionTrackAllEvidenceRepository({
   objectPort: controlPort,
   prefix: 'private/smoke/caption-track-all/records/v2',
 })
+let assertions = 0
 
 const backendSupport = createSkillSupportRequest({
   schemaVersion: ORCHESTRA_SKILL_SUPPORT_REQUEST_VERSION,
@@ -300,6 +317,15 @@ const captionResultRef = rawRef(
   captionResult.schemaVersion,
   captionResult.resultAdmissionHash,
 )
+const l4ApprovedWorkItemRef = rawRef(
+  'track-all-l4-qa-work-item',
+  '1',
+)
+const l4WorkerLeaseRef = rawRef('track-all-l4-qa-worker-lease', '1')
+const l4ExecutionAttemptRef = rawRef('track-all-l4-qa-attempt', '1')
+const l4CurrentPriceRef = rawRef('track-all-l4-price-authority', '1')
+const l4WorkerUsageRef = rawRef('track-all-l4-worker-usage', '1')
+const l4AttemptCostRef = rawRef('track-all-l4-attempt-cost', '1')
 const measurement = sealCanonicalTrackAllSam31L4MaskQaMeasurement({
   schemaVersion: 'canonical-track-all-sam3_1-l4-mask-qa-measurement-v1',
   measurementId: 'caption-track-all-l4-mask-qa-measurement',
@@ -320,12 +346,12 @@ const measurement = sealCanonicalTrackAllSam31L4MaskQaMeasurement({
     routeId: 'l4_standard_primary',
     gpuProfileId: 'quality_l4_user_triggered_standard_media_job_v1',
     accelerator: 'nvidia_l4',
-    approvedWorkItemRef: rawRef('track-all-l4-qa-work-item'),
-    workerLeaseRef: rawRef('track-all-l4-qa-worker-lease'),
-    executionAttemptRef: rawRef('track-all-l4-qa-attempt'),
-    currentAccountPriceAuthorityRef: rawRef('track-all-l4-price-authority'),
-    workerUsageEvidenceRef: rawRef('track-all-l4-worker-usage'),
-    attemptCostReceiptRef: rawRef('track-all-l4-attempt-cost'),
+    approvedWorkItemRef: l4ApprovedWorkItemRef,
+    workerLeaseRef: l4WorkerLeaseRef,
+    executionAttemptRef: l4ExecutionAttemptRef,
+    currentAccountPriceAuthorityRef: l4CurrentPriceRef,
+    workerUsageEvidenceRef: l4WorkerUsageRef,
+    attemptCostReceiptRef: l4AttemptCostRef,
     korniaCudaExecutionEvidenceRef: korniaExecutionRef,
     opencvCrosscheckExecutionEvidenceRef: opencvExecutionRef,
     actualL4GpuExecutionObserved: true,
@@ -349,9 +375,6 @@ const measurement = sealCanonicalTrackAllSam31L4MaskQaMeasurement({
   productionAuthorityGranted: false,
   measuredAt: '2026-08-05T18:01:00.000Z',
 })
-assert.equal(await taskQaRepository.persistMeasurementCreateOnly({
-  measurement,
-}), 'created')
 const privateReview = sealCanonicalTrackAllSam31PrivateSceneReview({
   schemaVersion: 'canonical-track-all-sam3_1-private-scene-review-v1',
   reviewId: 'caption-track-all-private-scene-review',
@@ -387,9 +410,304 @@ const privateReview = sealCanonicalTrackAllSam31PrivateSceneReview({
   productionAuthorityGranted: false,
   reviewedAt: '2026-08-05T18:02:00.000Z',
 })
-assert.equal(await taskQaRepository.persistReviewCreateOnly({
-  review: privateReview,
+
+const l4EnvelopePayload = {
+  schemaVersion: 'canonical-professional-gpu-execution-envelope-v1' as const,
+  source: 'canonical_professional_gpu_job_lifecycle_owner' as const,
+  envelopeId: 'caption-track-all-l4-qa-envelope',
+  admissionRef: backendRef('caption-track-all-l4-qa-admission'),
+  admissionConsumptionRef:
+    backendRef('caption-track-all-l4-qa-admission-consumption'),
+  runtimeReleaseRef: backendRef('caption-track-all-l4-qa-runtime-release'),
+  approvedSnapshotRef: backendRef('caption-track-all-l4-approved-snapshot'),
+  confirmedOutputFrameRef: structuredClone(
+    captionContext.confirmedOutputFrameRef,
+  ),
+  masterTimingRef: backendRef('caption-track-all-l4-master-timing'),
+  approvedWorkItemRef: prefixedRef(l4ApprovedWorkItemRef),
+  workerLeaseRef: prefixedRef(l4WorkerLeaseRef),
+  fundedReservationRef: backendRef('caption-track-all-l4-reservation'),
+  userTriggerRecordRef: backendRef('caption-track-all-l4-user-trigger'),
+  executionAttemptRef: prefixedRef(l4ExecutionAttemptRef),
+  fixedServerTaskContractRef:
+    backendRef('caption-track-all-l4-fixed-task-contract'),
+  toolId: 'kornia',
+  operationId: 'tool.kornia.refine_mask.v1',
+  routeId: 'l4_standard_primary' as const,
+  immutableImageDigest:
+    `sha256:${hash('caption-track-all-l4-image')}` as const,
+  byteFreeEnvelope: true as const,
+  privateWorkerRereadsEnvelopeByExactRef: true as const,
+  callerCodeCommandImageModelPathUrlOrEnvironmentIncluded: false as const,
+  rawChatMediaBytesCredentialsOrSecretsIncluded: false as const,
+  runtimeDownloadAllowed: false as const,
+  cpuOnlySubstantiveExecutionAllowed: false as const,
+  createdBeforeCloudJob: true as const,
+  createOnlyAndExactRereadRequired: true as const,
+}
+const l4Envelope = canonicalProfessionalGpuExecutionEnvelopeSchema.parse({
+  ...l4EnvelopePayload,
+  envelopeHash: sha256AuthorityValue(l4EnvelopePayload),
+})
+const l4LaunchPayload = {
+  schemaVersion: 'canonical-professional-gpu-job-launch-v1' as const,
+  source: 'canonical_professional_gpu_job_lifecycle_owner' as const,
+  launchRecordId: 'caption-track-all-l4-qa-launch',
+  admissionRef: l4Envelope.admissionRef,
+  admissionConsumptionRef: l4Envelope.admissionConsumptionRef,
+  runtimeReleaseRef: l4Envelope.runtimeReleaseRef,
+  executionEnvelopeRef: backendRef(
+    l4Envelope.envelopeId,
+    l4Envelope.envelopeHash,
+  ),
+  toolId: l4Envelope.toolId,
+  operationId: l4Envelope.operationId,
+  routeId: l4Envelope.routeId,
+  runtimeRegion: 'us-central1' as const,
+  executionTarget: 'google_cloud_run_l4_job' as const,
+  accelerator: 'nvidia_l4' as const,
+  immutableImageDigest: l4Envelope.immutableImageDigest,
+  cloudJobCreateRequestRef: backendRef('caption-track-all-l4-create'),
+  cloudJobExecutionRef: backendRef('caption-track-all-l4-execution'),
+  launchDisposition: 'job_created' as const,
+  providerInferenceOrSubstantiveWorkKnownExecuted: 'not_executed' as const,
+  createOnlyAdmissionConsumedBeforeLaunch: true as const,
+  duplicateLaunchAllowed: false as const,
+  unknownOutcomeRetryAllowed: false as const,
+  noApprovedAdmissionMeansZeroGpuJobs: true as const,
+  minimumIdleInstances: 0 as const,
+  prewarmingKeepaliveOrAlwaysOnPoolAllowed: false as const,
+  cpuOnlySubstantiveExecutionAllowed: false as const,
+  customerCreditsMutated: false as const,
+  qaApproved: false as const,
+  publicDeliveryAuthorized: false as const,
+  productionAuthorityGranted: false as const,
+  launchedAt: '2026-08-05T18:00:30.000Z',
+}
+const l4Launch = canonicalProfessionalGpuJobLaunchSchema.parse({
+  ...l4LaunchPayload,
+  launchHash: sha256AuthorityValue(l4LaunchPayload),
+})
+const l4TerminalPayload = {
+  schemaVersion: 'canonical-professional-gpu-job-terminal-v1' as const,
+  source: 'canonical_professional_gpu_job_lifecycle_owner' as const,
+  terminalRecordId: 'caption-track-all-l4-qa-terminal',
+  launchRef: backendRef(l4Launch.launchRecordId, l4Launch.launchHash),
+  admissionRef: l4Launch.admissionRef,
+  cloudJobExecutionRef: l4Launch.cloudJobExecutionRef,
+  cloudTerminalObservationRef: backendRef('caption-track-all-l4-terminal'),
+  cloudCapacityTeardownObservationRef:
+    backendRef('caption-track-all-l4-scale-zero'),
+  workerUsageEvidenceRef: prefixedRef(l4WorkerUsageRef),
+  currentAccountPriceAuthorityRef: prefixedRef(l4CurrentPriceRef),
+  attemptCostReceiptRef: prefixedRef(l4AttemptCostRef),
+  terminalOutcome: 'completed' as const,
+  providerInferenceOrSubstantiveWorkOutcome: 'executed' as const,
+  cloudJobTerminalStateReread: true as const,
+  workerStoppedVerified: true as const,
+  activeGpuInstancesAfterTerminalObservation: 0 as const,
+  minimumIdleInstances: 0 as const,
+  retryAllowedWithoutCanonicalReconciliation: false as const,
+  unknownOutcomeBlocksRetry: false,
+  exactPlatformUsageAndAccountPriceReread: true as const,
+  costReceiptPersistedBeforeSettlement: true as const,
+  systemFailureOrUnknownCostChargedToCustomer: false as const,
+  unapprovedOverageChargedToCustomer: false as const,
+  customerWalletOrLedgerMutated: false as const,
+  qaApproved: false as const,
+  publicDeliveryAuthorized: false as const,
+  productionAuthorityGranted: false as const,
+  observedAt: '2026-08-05T18:01:30.000Z',
+}
+const l4Terminal = canonicalProfessionalGpuJobTerminalSchema.parse({
+  ...l4TerminalPayload,
+  terminalHash: sha256AuthorityValue(l4TerminalPayload),
+})
+const l4LifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+  objectPort: controlPort,
+  prefix: 'private/smoke/caption-track-all/l4-lifecycle/v1',
+})
+assert.equal(await l4LifecycleStore.createExecutionEnvelopeOnly({
+  record: l4Envelope,
 }), 'created')
+assert.equal(await l4LifecycleStore.createLaunchRecordOnly({
+  record: l4Launch,
+}), 'created')
+assert.equal(await l4LifecycleStore.createTerminalRecordOnly({
+  record: l4Terminal,
+}), 'created')
+
+const taskQaCandidateRepository =
+  createCanonicalTrackAllSam31TaskQaCandidateRepository({
+    objectPort: gpuPort,
+    prefix: 'private/smoke/caption-track-all/task-qa-candidates/v1',
+  })
+const workerServiceIdentityRef = rawRef(
+  'caption-track-all-l4-worker-service',
+)
+const l4WorkerResult = sealCanonicalTrackAllSam31L4MaskQaWorkerResult({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v1',
+  workerResultId: 'caption-track-all-l4-worker-result',
+  invocationId: captionTask.invocationId,
+  workerServiceIdentityRef,
+  l4LaunchRef: rawRef(
+    l4Launch.launchRecordId,
+    l4Launch.schemaVersion,
+    l4Launch.launchHash,
+  ),
+  l4ExecutionEnvelopeRef: rawRef(
+    l4Envelope.envelopeId,
+    l4Envelope.schemaVersion,
+    l4Envelope.envelopeHash,
+  ),
+  l4TerminalRef: rawRef(
+    l4Terminal.terminalRecordId,
+    l4Terminal.schemaVersion,
+    l4Terminal.terminalHash,
+  ),
+  measurement,
+  privateCreateOnlyWorkerOutput: true,
+  actualKorniaCudaAndOpenCvExecutionReportedByWorker: true,
+  callerOrBrowserOutputAccepted: false,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
+})
+assert.equal(await taskQaCandidateRepository.persistWorkerResultCreateOnly({
+  result: l4WorkerResult,
+}), 'created')
+const independentReviewResult = sealCanonicalTrackAllSam31PrivateReviewResult({
+  schemaVersion: 'canonical-track-all-sam3_1-private-review-result-v1',
+  reviewResultId: 'caption-track-all-independent-review-result',
+  invocationId: captionTask.invocationId,
+  reviewerServiceIdentityRef: privateReview.reviewerIdentityRef,
+  workerResultRef: rawRef(
+    l4WorkerResult.workerResultId,
+    l4WorkerResult.schemaVersion,
+    l4WorkerResult.workerResultDigestSha256,
+  ),
+  review: privateReview,
+  privateCreateOnlyReviewOutput: true,
+  completeIntervalPlaybackRereadByIndependentReviewOwner: true,
+  callerOrBrowserReviewAccepted: false,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
+})
+assert.equal(await taskQaCandidateRepository.persistReviewResultCreateOnly({
+  result: independentReviewResult,
+}), 'created')
+const taskQaEvidenceFinalizationRuntime =
+  createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime({
+    candidateRepository: taskQaCandidateRepository,
+    lifecycleReadPort: l4LifecycleStore,
+    sam31ResultStore: resultStore,
+    sam31TaskStore: taskStore,
+    taskQaRepository,
+  })
+const taskQaEvidenceFinalizationRequest =
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest({
+    requestId: 'caption-track-all-task-qa-finalization',
+    invocationId: captionTask.invocationId,
+    sam31RuntimeResultAdmissionRef: captionResultRef,
+    l4MaskQaWorkerResultRef: rawRef(
+      l4WorkerResult.workerResultId,
+      l4WorkerResult.schemaVersion,
+      l4WorkerResult.workerResultDigestSha256,
+    ),
+    independentPrivateReviewResultRef: rawRef(
+      independentReviewResult.reviewResultId,
+      independentReviewResult.schemaVersion,
+      independentReviewResult.reviewResultDigestSha256,
+    ),
+  })
+const taskQaEvidenceFinalization =
+  await taskQaEvidenceFinalizationRuntime.finalizeTaskQaEvidence({
+    authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+    workspaceId: payload.canonicalScope.workspaceId,
+    idempotencyKey: taskQaEvidenceFinalizationRequest.requestId,
+    request: taskQaEvidenceFinalizationRequest,
+  })
+assert.equal(
+  parseTrackAllSam31TaskQaEvidenceFinalizationResult(
+    taskQaEvidenceFinalization,
+  ).disposition,
+  'ready_for_caption_evidence_finalization',
+)
+const taskQaEvidenceFinalizationReplay =
+  await taskQaEvidenceFinalizationRuntime.finalizeTaskQaEvidence({
+    authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+    workspaceId: payload.canonicalScope.workspaceId,
+    idempotencyKey: taskQaEvidenceFinalizationRequest.requestId,
+    request: taskQaEvidenceFinalizationRequest,
+  })
+check(
+  taskQaEvidenceFinalizationReplay.resultDigestSha256
+    === taskQaEvidenceFinalization.resultDigestSha256,
+  'The task-QA finalizer must replay to one immutable result.',
+)
+assert.throws(() =>
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest({
+    ...taskQaEvidenceFinalizationRequest,
+    requestId: 'caption-track-all-task-qa-raw-claim',
+    measurement: { minimumIouBasisPoints: 10_000 },
+  } as never))
+assertions += 1
+await assert.rejects(() =>
+  taskQaEvidenceFinalizationRuntime.finalizeTaskQaEvidence({
+    authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+    workspaceId: 'workspace-crossed',
+    idempotencyKey: taskQaEvidenceFinalizationRequest.requestId,
+    request: taskQaEvidenceFinalizationRequest,
+  }))
+assertions += 1
+const {
+  reviewDigestSha256: discardedPrivateReviewDigest,
+  ...sameWorkerReviewPayload
+} = structuredClone(privateReview)
+assert.equal(typeof discardedPrivateReviewDigest, 'string')
+sameWorkerReviewPayload.reviewId =
+  'caption-track-all-non-independent-private-scene-review'
+sameWorkerReviewPayload.reviewerIdentityRef = workerServiceIdentityRef
+const sameWorkerReview = sealCanonicalTrackAllSam31PrivateSceneReview(
+  sameWorkerReviewPayload,
+)
+const sameWorkerReviewResult = sealCanonicalTrackAllSam31PrivateReviewResult({
+  schemaVersion: 'canonical-track-all-sam3_1-private-review-result-v1',
+  reviewResultId: 'caption-track-all-non-independent-review-result',
+  invocationId: captionTask.invocationId,
+  reviewerServiceIdentityRef: workerServiceIdentityRef,
+  workerResultRef: rawRef(
+    l4WorkerResult.workerResultId,
+    l4WorkerResult.schemaVersion,
+    l4WorkerResult.workerResultDigestSha256,
+  ),
+  review: sameWorkerReview,
+  privateCreateOnlyReviewOutput: true,
+  completeIntervalPlaybackRereadByIndependentReviewOwner: true,
+  callerOrBrowserReviewAccepted: false,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
+})
+assert.equal(await taskQaCandidateRepository.persistReviewResultCreateOnly({
+  result: sameWorkerReviewResult,
+}), 'created')
+const sameWorkerRequest =
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest({
+    requestId: 'caption-track-all-task-qa-same-worker-reviewer',
+    invocationId: captionTask.invocationId,
+    sam31RuntimeResultAdmissionRef: captionResultRef,
+    l4MaskQaWorkerResultRef:
+      taskQaEvidenceFinalizationRequest.l4MaskQaWorkerResultRef,
+    independentPrivateReviewResultRef: rawRef(
+      sameWorkerReviewResult.reviewResultId,
+      sameWorkerReviewResult.schemaVersion,
+      sameWorkerReviewResult.reviewResultDigestSha256,
+    ),
+  })
+await assert.rejects(() =>
+  taskQaEvidenceFinalizationRuntime.finalizeTaskQaEvidence({
+    authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+    workspaceId: payload.canonicalScope.workspaceId,
+    idempotencyKey: sameWorkerRequest.requestId,
+    request: sameWorkerRequest,
+  }))
+assertions += 1
 
 const taskContextRepository = {
   async rereadTaskContext() {
@@ -504,7 +822,6 @@ const serviceInput = {
   ),
 }
 const record = await service.projectAuthenticatedEvidence(serviceInput)
-let assertions = 0
 check(
   record.captionEvidencePacket.selectedSegmentationRoute === 'sam3_1'
     && record.captionEvidencePacket.actualSam31GpuExecutionObserved
@@ -700,6 +1017,10 @@ console.log(JSON.stringify({
   userTriggeredScaleFromZeroTerminalVerified: true,
   taskLevelIndependentL4KorniaCudaAndOpenCvMaskQaRequired: true,
   taskLevelPrivateVisualReviewRequired: true,
+  authenticatedTaskQaFinalizerRereadsSamTaskResultAndL4Lifecycle: true,
+  taskQaFinalizerRequiresZeroActiveGpuInstancesAndExactCostLineage: true,
+  taskQaFinalizerRejectsWorkerAsIndependentReviewer: true,
+  rawTaskQaMeasurementOrReviewAcceptedFromRoute: false,
   completeRequestedSceneRangeRequired: true,
   exactSubjectThresholdsApplied: true,
   genericSequentialResumeProjectionPersisted: true,
@@ -987,6 +1308,12 @@ function backendRef(id: string, contentHash = hash(id), version = 1) {
       ? contentHash
       : `sha256:${contentHash}`,
   }
+}
+
+function prefixedRef(reference: CaptionDomainRef) {
+  const version = Number(reference.version)
+  assert.equal(Number.isSafeInteger(version) && version > 0, true)
+  return backendRef(reference.id, reference.contentHash, version)
 }
 
 function callRef(call: CaptionOrchestraSkillCall): SkillContractRef {

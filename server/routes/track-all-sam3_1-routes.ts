@@ -6,6 +6,9 @@ import {
 import {
   TRACK_ALL_SAM3_1_CAPTION_EVIDENCE_FINALIZATION_ROUTE,
 } from '../../src/types/track-all-sam3_1-caption-evidence-finalization'
+import {
+  TRACK_ALL_SAM3_1_TASK_QA_EVIDENCE_FINALIZATION_ROUTE,
+} from '../../src/types/track-all-sam3_1-task-qa-evidence-finalization'
 import { ApiError } from '../errors/api-error'
 import { requireAuth } from '../middleware/auth'
 import { requireIdempotency } from '../middleware/idempotency'
@@ -18,6 +21,9 @@ import {
 import {
   parseTrackAllSam31CaptionEvidenceFinalizationRequest,
 } from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import {
+  parseTrackAllSam31TaskQaEvidenceFinalizationRequest,
+} from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import {
   asyncRoute,
   getIdempotencyKey,
@@ -69,6 +75,44 @@ export function createTrackAllSam31Routes(): Router {
       sendOk(response, { start: result }, [
         'The canonical backend reread the approved Track All work, funding, account-effective prices, qualified SAM 3.1 release, and server-owned task material before starting one scale-from-zero GPU job. No browser-selected model, media, command, GPU route, or price was accepted.',
       ], 202)
+    }),
+  )
+  router.post(
+    TRACK_ALL_SAM3_1_TASK_QA_EVIDENCE_FINALIZATION_ROUTE,
+    requireAuth,
+    requireStrictInternalServiceAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = parseTaskQaFinalizationRequestBody(request.body)
+      const context = getServiceContext(request)
+      const runtime =
+        context.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+      if (!runtime) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The canonical Track All SAM 3.1 task-QA evidence finalizer is not released.',
+        503,
+        { requiredGate: 'track_all_sam3_1_task_qa_evidence_release' },
+      )
+      if (!context.auth?.userId) throw new ApiError(
+        'AUTH_REQUIRED',
+        'Authenticated user context is required.',
+        401,
+      )
+      const idempotencyKey = getIdempotencyKey(request)
+      if (body.requestId !== idempotencyKey) throw new ApiError(
+        'IDEMPOTENCY_KEY_MISMATCH',
+        'The Track All task-QA finalization request must use its exact request ID as the idempotency key.',
+        409,
+      )
+      const result = await runtime.finalizeTaskQaEvidence({
+        authenticatedOwnerUserId: context.auth.userId,
+        workspaceId: getRouteParam(request, 'workspaceId'),
+        idempotencyKey,
+        request: body,
+      })
+      sendOk(response, { taskQaEvidence: result }, [
+        'The canonical backend accepted only immutable references, then reread the admitted SAM 3.1 result, private L4 worker output, exact L4 launch/envelope/terminal usage and cost lineage, and independent private review before persisting the final measurement and review. It performed no GPU work, asset mutation, billing, QA approval, or delivery.',
+      ])
     }),
   )
   router.post(
@@ -131,6 +175,18 @@ function parseFinalizationRequestBody(value: unknown) {
     throw new ApiError(
       'VALIDATION_FAILED',
       'The Track All SAM 3.1 Caption evidence finalization request is invalid.',
+      400,
+    )
+  }
+}
+
+function parseTaskQaFinalizationRequestBody(value: unknown) {
+  try {
+    return parseTrackAllSam31TaskQaEvidenceFinalizationRequest(value)
+  } catch {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'The Track All SAM 3.1 task-QA evidence finalization request is invalid.',
       400,
     )
   }

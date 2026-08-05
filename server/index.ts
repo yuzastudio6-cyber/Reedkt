@@ -39,6 +39,9 @@ const app = createReeditProApiApp(env, {
         trackAllSam31CaptionEvidenceFinalizationRuntimePort:
           trackAllSam31Runtime
             .trackAllSam31CaptionEvidenceFinalizationRuntimePort,
+        trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
+          trackAllSam31Runtime
+            .trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
       }
     : {}),
 })

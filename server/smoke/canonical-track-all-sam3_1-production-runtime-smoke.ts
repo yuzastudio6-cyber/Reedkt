@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v4')
+  'canonical-track-all-sam3_1-production-runtime-v5')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -95,6 +95,25 @@ assert.equal(
     .performsRuntimeOrAssetMutation,
   false,
 )
+assert.equal(
+  runtime.trackAllSam31TaskQaCandidateRepository.schemaVersion,
+  'canonical-track-all-sam3_1-task-qa-candidate-repository-v1',
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaEvidenceFinalizationRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-task-qa-evidence-finalization-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+    .acceptsRawMeasurementReviewMediaOrCloudClaims,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+    .performsRuntimeAssetQaBillingOrDeliveryMutation,
+  false,
+)
+assert.equal(runtime.rawTaskQaMeasurementReviewOrCloudClaimAccepted, false)
 
 assert.throws(() => createCanonicalTrackAllSam31ProductionRuntime({
   ...cloud,
@@ -115,11 +134,15 @@ assert.match(
   entrypoint,
   /trackAllSam31CaptionEvidenceFinalizationRuntimePort/u,
 )
+assert.match(
+  entrypoint,
+  /trackAllSam31TaskQaEvidenceFinalizationRuntimePort/u,
+)
 assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 40,
+  checks: 46,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -132,6 +155,9 @@ console.log(JSON.stringify({
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,
   captionTrackAllRequiresPrivateVisualReview: true,
   captionTrackAllAuthenticatedFinalizerMounted: true,
+  taskQaCandidateRepositoryMountedInPrivateGpuObjectStore: true,
+  taskQaEvidenceFinalizerMounted: true,
+  rawTaskQaMeasurementReviewOrCloudClaimAccepted: false,
   a100HeavyPrimary: true,
   l4HeavyFallbackSeparatelyQualified: true,
   userTriggeredScaleFromZero: true,

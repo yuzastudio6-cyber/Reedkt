@@ -93,6 +93,9 @@ export function getServiceContext(request: Request): ServiceContext {
     trackAllSam31CaptionEvidenceFinalizationRuntimePort:
       runtimeRequest.runtime
         .trackAllSam31CaptionEvidenceFinalizationRuntimePort,
+    trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
+      runtimeRequest.runtime
+        .trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
   }
 }
 

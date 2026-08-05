@@ -66,6 +66,9 @@ import type {
 import type {
   CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
 } from './services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import type {
+  CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+} from './services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 
 export interface AuthContext {
   userId: string
@@ -162,6 +165,8 @@ export interface RuntimeState {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -232,4 +237,6 @@ export interface ServiceContext {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
 }

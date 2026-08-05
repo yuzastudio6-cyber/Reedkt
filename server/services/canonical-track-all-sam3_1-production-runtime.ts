@@ -73,9 +73,15 @@ import {
   createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime,
   type CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
 } from './canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import {
+  createCanonicalTrackAllSam31TaskQaCandidateRepository,
+  createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime,
+  type CanonicalTrackAllSam31TaskQaCandidateRepository,
+  type CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+} from './canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v4' as const
+  'canonical-track-all-sam3_1-production-runtime-v5' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -87,6 +93,10 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   readonly trackAllSam31CaptionEvidenceFinalizationRuntimePort:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  readonly trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
+  readonly trackAllSam31TaskQaCandidateRepository:
+    CanonicalTrackAllSam31TaskQaCandidateRepository
   readonly specialistSupportResumeRepository:
     CanonicalSpecialistSupportResumeRepository
   readonly captionTrackAllSceneEvidenceRepository:
@@ -106,6 +116,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly minimumIdleGpuInstances: 0
   readonly cpuOnlySubstantiveExecutionAllowed: false
   readonly callerGpuRouteModelImageCommandOrPriceAccepted: false
+  readonly rawTaskQaMeasurementReviewOrCloudClaimAccepted: false
   readonly rawCloudLaunchPortExposed: false
 }
 
@@ -199,6 +210,13 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
       objectPort: privateGpuJsonObjectPort,
     })
+  const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+    objectPort: controlPlaneObjectPort,
+  })
+  const trackAllSam31TaskQaCandidateRepository =
+    createCanonicalTrackAllSam31TaskQaCandidateRepository({
+      objectPort: privateGpuJsonObjectPort,
+    })
   const specialistSupportResumeRepository =
     createCanonicalSpecialistSupportResumeRepository({
       objectPort: controlPlaneObjectPort,
@@ -219,6 +237,14 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       resultStore: sam31RuntimeResultStore,
       qaRepository: captionTrackAllTaskQaRepository,
       sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
+    })
+  const trackAllSam31TaskQaEvidenceFinalizationRuntimePort =
+    createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime({
+      candidateRepository: trackAllSam31TaskQaCandidateRepository,
+      lifecycleReadPort: lifecycleStore,
+      sam31ResultStore: sam31RuntimeResultStore,
+      sam31TaskStore: taskStore,
+      taskQaRepository: captionTrackAllTaskQaRepository,
     })
   const captionTrackAllEvidenceRepository =
     createCanonicalCaptionTrackAllEvidenceRepository({
@@ -253,9 +279,6 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     taskStore,
     rawCloudLaunchPort,
   })
-  const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
-    objectPort: controlPlaneObjectPort,
-  })
   const runtimeContextReadPort = Object.freeze({
     rereadQualifiedRuntimeRelease:
       releasePairRegistry.rereadQualifiedRuntimeRelease.bind(
@@ -283,6 +306,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero' as const,
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
     trackAllSam31CaptionEvidenceFinalizationRuntimePort,
+    trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+    trackAllSam31TaskQaCandidateRepository,
     specialistSupportResumeRepository,
     captionTrackAllSceneEvidenceRepository,
     captionTrackAllTaskQaRepository,
@@ -297,6 +322,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     minimumIdleGpuInstances: 0 as const,
     cpuOnlySubstantiveExecutionAllowed: false as const,
     callerGpuRouteModelImageCommandOrPriceAccepted: false as const,
+    rawTaskQaMeasurementReviewOrCloudClaimAccepted: false as const,
     rawCloudLaunchPortExposed: false as const,
   })
 }

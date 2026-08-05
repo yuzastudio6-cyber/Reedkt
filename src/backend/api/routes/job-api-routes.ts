@@ -90,6 +90,27 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     ],
   },
   {
+    id: 'trackAll.sam31.taskQaEvidence.finalize',
+    domain: 'jobs',
+    method: 'POST',
+    path: '/internal/v1/workspaces/:workspaceId/track-all/sam3_1/task-qa-evidence/finalize',
+    description:
+      'Finalize private L4 mask-QA and independent-review evidence against the canonical SAM 3.1 GPU lifecycle.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'finalizeTrackAllSam31TaskQaEvidence',
+    notes: [
+      'Requires authenticated user scope, strict internal-service authentication, exact request idempotency, and create-only rereads of the admitted SAM 3.1 result plus private L4 worker and independent-review outputs.',
+      'The route rereads and cross-binds the exact L4 execution envelope, launch, terminal stop, zero active instances, platform usage, billing-account-effective price authority, and attempt-cost receipt before admitting evidence.',
+      'The request carries references only; raw masks, measurements, review findings, cloud-job claims, prices, costs, assets, paths, credentials, billing mutations, and QA approval are rejected.',
+    ],
+  },
+  {
     id: 'trackAll.sam31.captionEvidence.finalize',
     domain: 'jobs',
     method: 'POST',

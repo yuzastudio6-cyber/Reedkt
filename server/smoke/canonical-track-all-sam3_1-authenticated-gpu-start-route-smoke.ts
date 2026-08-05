@@ -12,6 +12,11 @@ import {
   type TrackAllSam31CaptionEvidenceFinalizationRequest,
   type TrackAllSam31CaptionEvidenceFinalizationResult,
 } from '../../src/types/track-all-sam3_1-caption-evidence-finalization'
+import {
+  TRACK_ALL_SAM3_1_TASK_QA_EVIDENCE_FINALIZATION_ROUTE_ID,
+  type TrackAllSam31TaskQaEvidenceFinalizationRequest,
+  type TrackAllSam31TaskQaEvidenceFinalizationResult,
+} from '../../src/types/track-all-sam3_1-task-qa-evidence-finalization'
 import { getApiRouteById } from '../../src/backend/api/api-route-registry'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
@@ -21,6 +26,9 @@ import {
 import {
   buildTrackAllSam31CaptionEvidenceFinalizationRequest,
 } from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import {
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest,
+} from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -46,8 +54,18 @@ const finalizationRequest =
     l4MaskQaMeasurementRef: evidenceRef('l4-mask-qa-measurement'),
     privateSceneReviewRef: evidenceRef('private-scene-review'),
   })
+const taskQaFinalizationRequest =
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest({
+    requestId: 'track-all-sam31-task-qa-finalization-1',
+    invocationId: 'sam31-invocation-1',
+    sam31RuntimeResultAdmissionRef: evidenceRef('sam31-result-admission'),
+    l4MaskQaWorkerResultRef: evidenceRef('l4-mask-qa-worker-result'),
+    independentPrivateReviewResultRef:
+      evidenceRef('independent-private-review-result'),
+  })
 let runtimeCalls = 0
 let finalizationRuntimeCalls = 0
+let taskQaFinalizationRuntimeCalls = 0
 const app = createReeditProApiApp(loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'mock',
@@ -91,6 +109,25 @@ const app = createReeditProApiApp(loadRuntimeEnv({
       assert.equal(input.idempotencyKey, finalizationRequest.requestId)
       assert.deepEqual(input.request, finalizationRequest)
       return finalizationResultFor(finalizationRequest)
+    },
+  }),
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort: Object.freeze({
+    schemaVersion:
+      'canonical-track-all-sam3_1-task-qa-evidence-finalization-runtime-v1',
+    acceptsRawMeasurementReviewMediaOrCloudClaims: false,
+    performsRuntimeAssetQaBillingOrDeliveryMutation: false,
+    async finalizeTaskQaEvidence(input: {
+      authenticatedOwnerUserId: string
+      workspaceId: string
+      idempotencyKey: string
+      request: unknown
+    }) {
+      taskQaFinalizationRuntimeCalls += 1
+      assert.equal(input.authenticatedOwnerUserId, 'mock-user-runtime')
+      assert.equal(input.workspaceId, workspaceId)
+      assert.equal(input.idempotencyKey, taskQaFinalizationRequest.requestId)
+      assert.deepEqual(input.request, taskQaFinalizationRequest)
+      return taskQaFinalizationResultFor(taskQaFinalizationRequest)
     },
   }),
 })
@@ -157,6 +194,60 @@ try {
   assert.match(route?.notes.join(' ') ?? '', /A100 80GB/u)
   assert.match(route?.notes.join(' ') ?? '', /L4/u)
 
+  const taskQaFinalized = await postTaskQaFinalization(
+    taskQaFinalizationRequest,
+    taskQaFinalizationRequest.requestId,
+    internalToken,
+  )
+  assert.equal(taskQaFinalized.status, 200)
+  const taskQaFinalizedJson = await taskQaFinalized.json() as
+    Record<string, unknown>
+  assert.equal(taskQaFinalizedJson.ok, true)
+  assert.equal(taskQaFinalizationRuntimeCalls, 1)
+
+  const injectedTaskQaSource =
+    buildTrackAllSam31TaskQaEvidenceFinalizationRequest({
+      requestId: 'track-all-sam31-task-qa-injected-measurement',
+      invocationId: taskQaFinalizationRequest.invocationId,
+      sam31RuntimeResultAdmissionRef:
+        taskQaFinalizationRequest.sam31RuntimeResultAdmissionRef,
+      l4MaskQaWorkerResultRef:
+        taskQaFinalizationRequest.l4MaskQaWorkerResultRef,
+      independentPrivateReviewResultRef:
+        taskQaFinalizationRequest.independentPrivateReviewResultRef,
+    })
+  const injectedRawMeasurement = await postTaskQaFinalization({
+    ...injectedTaskQaSource,
+    measurement: { minimumIouBasisPoints: 10_000 },
+  }, injectedTaskQaSource.requestId, internalToken)
+  assert.equal(injectedRawMeasurement.status, 400)
+  assert.equal(taskQaFinalizationRuntimeCalls, 1)
+
+  const taskQaIdempotencyMismatch = await postTaskQaFinalization(
+    taskQaFinalizationRequest,
+    'different-task-qa-finalization-key',
+    internalToken,
+  )
+  assert.equal(taskQaIdempotencyMismatch.status, 409)
+  assert.equal(taskQaFinalizationRuntimeCalls, 1)
+
+  const taskQaInvalidToken = await postTaskQaFinalization(
+    taskQaFinalizationRequest,
+    taskQaFinalizationRequest.requestId,
+    'invalid-internal-token',
+  )
+  assert.equal(taskQaInvalidToken.status, 403)
+  assert.equal(taskQaFinalizationRuntimeCalls, 1)
+
+  const taskQaRoute = getApiRouteById(
+    TRACK_ALL_SAM3_1_TASK_QA_EVIDENCE_FINALIZATION_ROUTE_ID,
+  )
+  assert.equal(taskQaRoute?.securityLevel, 'backend_service_role')
+  assert.equal(taskQaRoute?.runtimeMode, 'backend_required')
+  assert.equal(taskQaRoute?.requiresServiceRole, true)
+  assert.match(taskQaRoute?.notes.join(' ') ?? '', /references only/u)
+  assert.match(taskQaRoute?.notes.join(' ') ?? '', /zero active instances/u)
+
   const finalized = await postFinalization(
     finalizationRequest,
     finalizationRequest.requestId,
@@ -212,7 +303,7 @@ try {
 
   console.log(JSON.stringify({
     smoke: 'canonical-track-all-sam3_1-authenticated-gpu-start-route',
-    checks: 42,
+    checks: 57,
     authenticatedOwnerScopeRequired: true,
     strictInternalServiceAuthRequired: true,
     exactIdempotencyRequired: true,
@@ -222,13 +313,35 @@ try {
     accountEffectivePriceAcceptedFromRequest: false,
     runtimeCalls,
     finalizationRuntimeCalls,
+    taskQaFinalizationRuntimeCalls,
     rawMeasurementOrReviewAcceptedFromRequest: false,
+    taskQaCloudUsagePriceOrCostClaimAcceptedFromRequest: false,
+    authenticatedTaskQaEvidenceFinalizerMounted: true,
     authenticatedSpecialistResumeProjectionCreated: true,
     productionReady: false,
   }, null, 2))
 } finally {
   server.close()
   await once(server, 'close')
+}
+
+async function postTaskQaFinalization(
+  body: unknown,
+  idempotencyKey: string,
+  token: string,
+) {
+  return fetch(
+    `${url}/internal/v1/workspaces/${workspaceId}/track-all/sam3_1/task-qa-evidence/finalize`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': idempotencyKey,
+        'x-reeditpro-internal-token': token,
+      },
+      body: JSON.stringify(body),
+    },
+  )
 }
 
 async function postFinalization(
@@ -335,6 +448,42 @@ function finalizationResultFor(
     authenticatedProjectionPersistedAndReread: true as const,
     browserLocalStateUsed: false as const,
     directPeerDispatchPerformed: false as const,
+    runtimeExecutionPerformedByFinalizer: false as const,
+    assetMutationPerformed: false as const,
+    customerCreditsMutated: false as const,
+    finalQaApprovalGranted: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
+}
+
+function taskQaFinalizationResultFor(
+  source: TrackAllSam31TaskQaEvidenceFinalizationRequest,
+): TrackAllSam31TaskQaEvidenceFinalizationResult {
+  const payload = {
+    schemaVersion:
+      'track-all-sam3_1-task-qa-evidence-finalization-result-v1' as const,
+    requestRef: {
+      id: source.requestId,
+      version: source.schemaVersion,
+      contentHash: source.requestDigestSha256,
+    },
+    workspaceId,
+    invocationId: source.invocationId,
+    l4MaskQaWorkerResultRef: source.l4MaskQaWorkerResultRef,
+    independentPrivateReviewResultRef:
+      source.independentPrivateReviewResultRef,
+    l4MaskQaMeasurementRef: evidenceRef('l4-mask-qa-measurement'),
+    privateSceneReviewRef: evidenceRef('private-scene-review'),
+    disposition: 'ready_for_caption_evidence_finalization' as const,
+    authenticatedPrincipalVerified: true as const,
+    exactSamResultWorkerOutputLaunchEnvelopeTerminalAndReviewReread:
+      true as const,
+    l4TerminalUsageAccountPriceAndCostReread: true as const,
+    workerStoppedAndScaleBackToZeroVerified: true as const,
+    createOnlyMeasurementAndReviewPersistedAndReread: true as const,
+    browserLocalStateUsed: false as const,
     runtimeExecutionPerformedByFinalizer: false as const,
     assetMutationPerformed: false as const,
     customerCreditsMutated: false as const,

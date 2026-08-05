@@ -206,29 +206,29 @@ function assertAuthorities(input: z.infer<typeof inputSchema>): void {
   uniqueRole(input.maskSequences.map((value) => value.trackId), 'mask sequence')
   for (const track of graph.tracks) {
     const box = input.boxSequences.find((value) => value.trackId === track.trackId)
-    if (!box || box.artifactHash !== track.boxSequenceRef.sha256) {
+    if (!box || hashSkillValue(box) !== track.boxSequenceRef.sha256) {
       throw new Error(`Cross-skill track ${track.trackId} lacks its exact box sequence.`)
     }
     if (track.maskSequenceRef) {
       const mask = input.maskSequences.find((value) => value.trackId === track.trackId)
-      if (!mask || mask.artifactHash !== track.maskSequenceRef.sha256) {
+      if (!mask || hashSkillValue(mask) !== track.maskSequenceRef.sha256) {
         throw new Error(`Cross-skill track ${track.trackId} lacks its exact private mask manifest.`)
       }
     }
     if (track.anchorGraphRef) {
       const anchor = input.anchorGraphs.find((value) =>
-        value.artifactHash === track.anchorGraphRef?.sha256)
+        hashSkillValue(value) === track.anchorGraphRef?.sha256)
       if (!anchor) throw new Error(`Cross-skill track ${track.trackId} lacks its exact anchor graph.`)
     }
     if (track.planarGeometryRef) {
       const planar = input.planarTrackGraphs.find((value) =>
-        value.artifactHash === track.planarGeometryRef?.sha256)
+        hashSkillValue(value) === track.planarGeometryRef?.sha256)
       if (!planar) throw new Error(`Cross-skill track ${track.trackId} lacks its exact planar graph.`)
     }
   }
   if (
     graph.cameraMotionRef &&
-    input.cameraMotionGraph?.artifactHash !== graph.cameraMotionRef.sha256
+    hashSkillValue(input.cameraMotionGraph) !== graph.cameraMotionRef.sha256
   ) throw new Error('Cross-skill camera motion graph does not match Track Graph V2.')
 }
 

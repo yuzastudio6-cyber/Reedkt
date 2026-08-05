@@ -41,6 +41,7 @@
     "test:track-all-independent-qa-repair": "tsx server/smoke/track-all-independent-qa-repair-smoke.ts",
     "test:track-all-runtime-bindings": "tsx server/smoke/track-all-runtime-bindings-work-graph-smoke.ts",
     "test:track-all-canonical-private-runtime": "tsx server/smoke/track-all-canonical-private-runtime-smoke.ts",
+    "test:track-all-canonical-private-public-e2e": "tsx server/smoke/track-all-canonical-private-public-e2e-smoke.ts",
     "test:track-all-public-plugin-e2e": "tsx server/smoke/track-all-public-plugin-e2e-smoke.ts",
     "test:track-all-qualification-evidence": "tsx server/smoke/track-all-qualification-evidence-smoke.ts",
     "test:track-all-retirement": "tsx server/cli/validate-track-all-active-route-retirement.ts",

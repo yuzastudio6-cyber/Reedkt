@@ -394,7 +394,7 @@
       ]
     }
   ],
-  "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
+  "manifestHash": "405b1193ed9609befc9362bce4022bf664567d23fd22564c62271779a220064e",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -908,6 +908,11 @@
       "minimumStatus": "planning_qualified"
     },
     {
+      "description": "Track All canonical private public e2e evidence.",
+      "fixtureKey": "track_all.fixture.canonical_private_public_e2e",
+      "minimumStatus": "planning_qualified"
+    },
+    {
       "description": "Track All legacy retirement evidence.",
       "fixtureKey": "track_all.fixture.legacy_retirement",
       "minimumStatus": "planning_qualified"
@@ -1372,6 +1377,26 @@
         "track_all.produce_scene_geometry_graph",
         "track_all.track_planar_region",
         "track_all.validate_track_graph"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Inspect exact decoded private redaction pixels and fail closed on exposure.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.opencv.inspect_track_all_privacy_preview.v1"
+      ],
+      "priority": 4,
+      "requiredArtifactTypes": [
+        "tracked_redaction_plan_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "opencv_privacy_qa",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "track_all.apply_privacy_redaction"
       ]
     },
     {

@@ -22,6 +22,7 @@ export const TRACK_ALL_QUALIFICATION_SCRIPTS = [
   'test:track-all-independent-qa-repair',
   'test:track-all-runtime-bindings',
   'test:track-all-canonical-private-runtime',
+  'test:track-all-canonical-private-public-e2e',
   'test:track-all-public-plugin-e2e',
   'test:track-all-qualification-evidence',
   'test:track-all-retirement',
@@ -60,6 +61,7 @@ export const TRACK_ALL_FIXTURE_COMMAND = {
   'track_all.fixture.runtime_security': 'npm.test:track-all-sam3.1-operation-authority',
   'track_all.fixture.public_plugin_lifecycle': 'npm.test:track-all-public-plugin-e2e',
   'track_all.fixture.canonical_private_runtime': 'npm.test:track-all-canonical-private-runtime',
+  'track_all.fixture.canonical_private_public_e2e': 'npm.test:track-all-canonical-private-public-e2e',
   'track_all.fixture.legacy_retirement': 'npm.test:track-all-retirement',
   'track_all.fixture.qualification_integrity': 'npm.test:track-all-qualification-evidence',
 } as const satisfies Record<(typeof TRACK_ALL_QUALIFICATION_FIXTURE_KEYS)[number], string>
@@ -74,19 +76,34 @@ export const TRACK_ALL_ROUTE_COMMANDS = {
   deterministic_geometry_route: [
     'npm.test:track-all-deterministic-geometry',
     'npm.test:track-all-canonical-private-runtime',
+    'npm.test:track-all-canonical-private-public-e2e',
   ],
   planar_tracking_route: [
     'npm.test:track-all-deterministic-geometry',
     'npm.test:track-all-evidence-route-coherence',
     'npm.test:track-all-canonical-private-runtime',
+    'npm.test:track-all-canonical-private-public-e2e',
   ],
-  existing_track_repair_route: ['npm.test:track-all-independent-qa-repair'],
-  privacy_redaction_route: ['npm.test:track-all-privacy-redaction'],
-  focus_route: ['npm.test:track-all-focus-reframe'],
-  reframe_route: ['npm.test:track-all-focus-reframe'],
+  existing_track_repair_route: [
+    'npm.test:track-all-independent-qa-repair',
+    'npm.test:track-all-canonical-private-public-e2e',
+  ],
+  privacy_redaction_route: [
+    'npm.test:track-all-privacy-redaction',
+    'npm.test:track-all-canonical-private-public-e2e',
+  ],
+  focus_route: [
+    'npm.test:track-all-focus-reframe',
+    'npm.test:track-all-canonical-private-public-e2e',
+  ],
+  reframe_route: [
+    'npm.test:track-all-focus-reframe',
+    'npm.test:track-all-canonical-private-public-e2e',
+  ],
   public_plugin_lifecycle_route: [
     'npm.test:track-all-public-plugin-e2e',
     'npm.test:track-all-canonical-private-runtime',
+    'npm.test:track-all-canonical-private-public-e2e',
   ],
   sam3_1_masklet_route: [
     'npm.test:track-all-sam3.1-operation-authority',

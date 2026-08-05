@@ -529,10 +529,10 @@ function assertExactQaLineage(input: QaInput): void {
   const boxes = new Map(input.boxSequences.map((value) => [value.trackId, value]))
   const masks = new Map(input.maskSequences.map((value) => [value.trackId, value]))
   for (const track of graph.tracks) {
-    if (!samples.has(track.trackId) || boxes.get(track.trackId)?.artifactHash !== track.boxSequenceRef.sha256) {
+    if (!samples.has(track.trackId) || hashSkillValue(boxes.get(track.trackId)) !== track.boxSequenceRef.sha256) {
       throw new Error(`Track All QA lacks exact samples or boxes for ${track.trackId}.`)
     }
-    if (track.maskSequenceRef && masks.get(track.trackId)?.artifactHash !== track.maskSequenceRef.sha256) {
+    if (track.maskSequenceRef && hashSkillValue(masks.get(track.trackId)) !== track.maskSequenceRef.sha256) {
       throw new Error(`Track All QA lacks the exact private mask manifest for ${track.trackId}.`)
     }
   }

@@ -444,7 +444,8 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
       ...root,
       stage('direct_track_repair', 'track_all.repair_track', 'track_all.direct_repair.v1', 'track_all_repair_worker', ['track_graph_v2', 'prior_track_repair_evidence_v1'], 'track_all_repair_receipt_v1', ['validate_target_authority']),
       stage('run_repair_qa', 'track_all.validate_track_graph', 'track_all.validate_repaired_track.v1', 'track_all_qa_worker', ['track_all_repair_receipt_v1'], 'track_all_temporal_qa_report_v1', ['direct_track_repair']),
-      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_all_repair_receipt_v1', 'track_all_temporal_qa_report_v1'], 'track_all_result_receipt_v1', ['run_repair_qa']),
+      stage('prepare_composition_layer', 'track_all.prepare_composition_layer', 'track_all.prepare_composition_layer.v1', 'track_all_handoff_worker', ['track_graph_v2'], 'track_all_cross_skill_handoff_v1', ['run_repair_qa']),
+      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_all_repair_receipt_v1', 'track_all_temporal_qa_report_v1'], 'track_all_result_receipt_v1', ['run_repair_qa', 'prepare_composition_layer']),
     ]
   }
   if (plan.decision === 'produce_track_graph' && !plan.samWorkPlanned) {
@@ -501,7 +502,7 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
 function treatmentTemplates(plan: TrackAllPlan, graphDependency: string): AtomicTemplate[] {
   if (plan.decision === 'apply_privacy_redaction') return [
     stage('build_redaction_plan', 'track_all.apply_privacy_redaction', 'track_all.build_redaction_plan.v1', 'track_all_treatment_worker', ['track_graph_v2', 'privacy_policy_snapshot_v1'], 'tracked_redaction_plan_v1', [graphDependency]),
-    stage('compile_redaction_effect', 'track_all.apply_privacy_redaction', 'tool.ffmpeg.execute_approved_media_recipe.v1', 'track_all_private_media_worker', ['tracked_redaction_plan_v1'], 'tracked_redaction_result_v1', ['build_redaction_plan'], true),
+    stage('compile_redaction_effect', 'track_all.apply_privacy_redaction', 'track_all.compile_redaction_effect.v1', 'track_all_treatment_worker', ['tracked_redaction_plan_v1'], 'tracked_redaction_plan_v1', ['build_redaction_plan']),
     stage('render_private_redaction_preview', 'track_all.integrate_preview', 'tool.ffmpeg.execute_approved_media_recipe.v1', 'track_all_private_media_worker', ['tracked_redaction_plan_v1'], 'tracked_redaction_plan_v1', ['compile_redaction_effect'], true),
     stage('run_flattened_privacy_qa', 'track_all.validate_track_graph', 'track_all.validate_flattened_privacy.v1', 'track_all_qa_worker', ['tracked_redaction_plan_v1'], 'track_all_privacy_qa_report_v1', ['render_private_redaction_preview']),
     stage('project_redaction_result', 'track_all.apply_privacy_redaction', 'track_all.project_redaction_result.v1', 'track_all_result_worker', ['track_all_privacy_qa_report_v1'], 'tracked_redaction_result_v1', ['run_flattened_privacy_qa']),

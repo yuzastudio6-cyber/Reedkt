@@ -471,7 +471,7 @@ function fixture(sourceSha256: string, uncertainty: boolean) {
   })
   const boxRef = ref(
     'track_box_sequence_v1',
-    boxSequence.artifactHash,
+    hashSkillValue(boxSequence),
     Buffer.byteLength(canonicalSkillJson(boxSequence)),
   )
   const graph = createTrackGraphV2({

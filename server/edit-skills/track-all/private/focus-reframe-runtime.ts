@@ -413,7 +413,7 @@ function exactSequenceMap(
     const track = graph.tracks.find((candidate) => candidate.trackId === trackId)!
     const sequence = sequences.get(trackId)
     if (
-      !sequence || sequence.artifactHash !== track.boxSequenceRef.sha256 ||
+      !sequence || hashSkillValue(sequence) !== track.boxSequenceRef.sha256 ||
       sequence.ownerUserId !== graph.ownerUserId || sequence.workspaceId !== graph.workspaceId ||
       sequence.projectId !== graph.projectId || sequence.assignmentId !== graph.assignmentId ||
       sequence.assignmentHash !== graph.assignmentHash || sequence.planHash !== graph.planHash ||

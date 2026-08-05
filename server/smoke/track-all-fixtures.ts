@@ -381,6 +381,7 @@ export async function createTrackAllPriorGraphFixture(input: {
   nextAssignmentId: string
   authorizedRange?: SkillFrameRange
   sourceSha256?: string
+  boxConfidence?: number
 }) {
   const range = input.authorizedRange ?? {
     startFrameInclusive: 24, endFrameExclusive: 144, fps: 24,
@@ -416,7 +417,7 @@ export async function createTrackAllPriorGraphFixture(input: {
         width: 0.22,
         height: 0.5,
       },
-      confidence: 0.94,
+      confidence: input.boxConfidence ?? 0.94,
     })),
   }
   const boxSequenceRef = await input.runtime.artifactStore.putJson({

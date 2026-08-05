@@ -175,7 +175,7 @@ function makeFixture(options: FixtureOptions = {}) {
     authorizedRangeHash: hashSkillValue(range),
     shots: [{ shotId: 'shot-a', range, sceneCutResetsIdentity: true }],
     chunks,
-    cameraMotionRef: ref('camera_motion_graph_v1', cameraMotionGraph.artifactHash),
+    cameraMotionRef: ref('camera_motion_graph_v1', hashSkillValue(cameraMotionGraph)),
     targets: [
       {
         targetId: 'person-target',
@@ -503,8 +503,8 @@ function graphTrack(
     startFrameInclusive: 0,
     endFrameExclusive: 24,
     visibilitySpans: [{ startFrameInclusive: 0, endFrameExclusive: 24, state: 'active' as const }],
-    boxSequenceRef: ref('track_box_sequence_v1', boxSequence.artifactHash),
-    maskSequenceRef: ref('track_mask_sequence_v1', maskSequence.artifactHash),
+    boxSequenceRef: ref('track_box_sequence_v1', hashSkillValue(boxSequence)),
+    maskSequenceRef: ref('track_mask_sequence_v1', hashSkillValue(maskSequence)),
     confidenceSequenceHash: hashSkillValue({ trackId, confidence: 'qa' }),
     reentryEventHashes: [],
     identitySwitchWarnings: [],

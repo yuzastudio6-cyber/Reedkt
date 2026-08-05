@@ -1571,3 +1571,58 @@ qualification, runtime-factory validation, and the Track All public plugin
 E2E using only the frozen generated receipts. No real SAM/model/GPU call,
 public artifact, production mutation, peer-skill execution, or orchestra work
 occurred.
+
+## TRACK-24 — canonical-private public E2E
+
+Status: implementation and focused validation complete; source and regenerated
+evidence commit SHAs are recorded below after the clean-commit qualification
+run.
+
+Implemented:
+
+- added a seven-scenario canonical-private lifecycle suite covering no-action,
+  planar geometry, deterministic repair, existing-graph privacy, existing-graph
+  focus, existing-graph reframe, and an externally blocked SAM assignment;
+- drove every scenario through the public Track All plugin, generic runtime
+  registry and dispatcher, approved public graph, canonical coordinator, and
+  concrete private adapter, while keeping private setup out of the future
+  orchestra boundary;
+- proved all public outputs were created during adapter execution from exact
+  artifact references, with zero accepted pre-persisted outputs, zero public
+  artifacts, zero production bindings, zero SAM requests, and zero GPU work;
+- proved actual FFprobe, PySceneDetect, OpenCV, FFmpeg, independent decoded-pixel
+  privacy inspection, and Remotion operations in the applicable routes;
+- corrected durable Track Graph reference validation to compare the exact
+  stored artifact content digest rather than an artifact's nested core hash;
+- restored the missing repair-to-handoff atomic stage and corrected the
+  privacy compile stage's declared output and operation ownership;
+- versioned the decoded-pixel solid-cover validator and required a substantial
+  pixel delta, bounded residual edge energy, and majority-dark coverage in
+  addition to complete frame/range coverage;
+- registered the independent OpenCV privacy inspection route and bound this
+  canonical public E2E into the manifest, fixture catalog, command catalog, and
+  every deterministic route receipt that it proves.
+
+Actual focused checks passed before source freeze:
+
+```text
+npm run test:track-all-canonical-private-public-e2e
+npm run test:track-all-capability-manifest
+npm run test:track-all-cross-skill-handoffs
+npm run test:track-all-independent-qa-repair
+npm run test:track-all-focus-reframe
+npm run test:track-all-privacy-redaction
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-runtime-bindings
+npm run test:track-all-canonical-private-runtime
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-public-plugin-e2e
+REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-qualification-evidence
+NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server
+npm run lint
+git diff --check
+```
+
+The manifest aggregate validator correctly rejected the prior B-Roll receipt
+after the shared Track Graph checksum-authority changes. Both qualification
+artifacts are regenerated from the clean TRACK-24 source commit before this
+milestone closes. No real SAM/model/GPU call, public artifact, production
+mutation, peer-skill implementation, or head-orchestra action occurred.

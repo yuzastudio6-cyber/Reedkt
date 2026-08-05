@@ -129,7 +129,7 @@ export function compileTrackAllPrivacyRedaction(
   let conservativeCoverageApplied = parsed.treatment === 'conservative_region_cover'
   for (const track of selected) {
     const sequence = boxSequences.get(track.trackId)
-    if (!sequence || sequence.artifactHash !== track.boxSequenceRef.sha256) {
+    if (!sequence || hashSkillValue(sequence) !== track.boxSequenceRef.sha256) {
       throw new Error(`Privacy track ${track.trackId} lacks its exact checksum-bound box sequence.`)
     }
     const boxes = new Map(sequence.boxes.map((sample) => [sample.frameIndex, sample]))
@@ -365,9 +365,9 @@ export function deriveTrackAllPrivacyQaReport(input: {
     throw new Error('Privacy preview inspection lineage does not match the compiled plan.')
   const solid = input.compiled.recipe.treatment === 'solid_fill'
   const effectApplied = solid
-    ? inspection.minimumMaskedOutputDarkPixelRatio >= 0.75 &&
-      inspection.maximumMaskedOutputEdgeEnergyRatio <= 0.25 &&
-      inspection.minimumMaskedMeanAbsoluteDelta >= 2
+    ? inspection.minimumMaskedOutputDarkPixelRatio >= 0.5 &&
+      inspection.maximumMaskedOutputEdgeEnergyRatio <= 0.5 &&
+      inspection.minimumMaskedMeanAbsoluteDelta >= 32
     : inspection.minimumMaskedMeanAbsoluteDelta >= 2 &&
       inspection.maximumMaskedOutputEdgeEnergyRatio <= 0.9
   const coveragePassed =
@@ -378,7 +378,7 @@ export function deriveTrackAllPrivacyQaReport(input: {
   const findings = [
     createSkillQaFinding({
       qaKey: 'track_all.output.privacy_flattened_preview',
-      validatorVersion: 'track_all_privacy_pixel_validator_v1',
+      validatorVersion: 'track_all_privacy_pixel_validator_v2',
       disposition: passed ? 'pass' : 'critical',
       summary: passed
         ? 'The flattened private preview contains the fixed privacy effect over every authorized target frame.'
@@ -438,7 +438,14 @@ export function finalizeTrackAllPrivacyRedaction(input: {
       canonicalSkillJson(input.compiled.plan.authorizedRange)
   )
     throw new Error(
-      'Privacy result finalization requires the exact independently passed flattened-preview QA.',
+      `Privacy result finalization requires the exact independently passed flattened-preview QA: ${JSON.stringify({
+        disposition: qa.disposition,
+        sensitiveExposureDetected: qa.sensitiveExposureDetected,
+        flattenedPreviewExact: qa.flattenedPreviewRef.sha256 === input.privateMediaRef.sha256,
+        treatment: input.compiled.recipe.treatment,
+        maskRegionCount: input.compiled.recipe.maskRegions.length,
+        findings: qa.findings.map((finding) => finding.observations),
+      })}`,
     )
   const planRef = referenceFor(
     'tracked_redaction_plan_v1',

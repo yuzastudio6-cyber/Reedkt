@@ -876,8 +876,9 @@ implements TrackAllCanonicalPrivateOperationDriver {
     const prior = priorTrackRepairEvidenceSchema.parse(
       await this.#readInitial('prior_track_repair_evidence_v1', execution),
     )
+    const graphRef = oneRef('track_graph_v2', execution)
     if (
-      prior.trackGraphRef.sha256 !== graph.graphHash ||
+      prior.trackGraphRef.sha256 !== graphRef.sha256 ||
       prior.repairCount >= 2 ||
       !graph.tracks.some((track) => track.trackId === prior.trackId)
     ) throw new Error('Track All canonical deterministic repair lacks exact bounded prior evidence.')
@@ -887,7 +888,7 @@ implements TrackAllCanonicalPrivateOperationDriver {
     const core = {
       schemaVersion: 'track_all_repair_receipt_v1' as const,
       ...lineage(execution),
-      priorTrackGraphRef: oneRef('track_graph_v2', execution),
+      priorTrackGraphRef: graphRef,
       repairIndex: prior.repairCount + 1,
       action,
       repairedRange: execution.assignment.authorizedRange,

@@ -331,7 +331,7 @@ function graphFixture(
     startFrameInclusive: 0,
     endFrameExclusive: 24,
     visibilitySpans: [{ startFrameInclusive: 0, endFrameExclusive: 24, state: 'active' as const }],
-    boxSequenceRef: ref('track_box_sequence_v1', sequence.artifactHash),
+    boxSequenceRef: ref('track_box_sequence_v1', hashSkillValue(sequence)),
     confidenceSequenceHash: hashSkillValue({ trackId, confidence: 'fixture' }),
     reentryEventHashes: [],
     identitySwitchWarnings: [],

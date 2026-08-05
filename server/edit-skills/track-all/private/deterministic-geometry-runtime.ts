@@ -87,7 +87,7 @@ const geometryDocumentSchema = z.object({
   ) context.addIssue({ code: 'custom', message: 'Track All geometry output does not match the requested fixed profile.' })
 })
 
-const ffprobeDocumentSchema = z.object({
+const rawFfprobeDocumentSchema = z.object({
   streams: z.array(z.object({
     index: z.number().int().nonnegative(),
     codec_type: z.string(),
@@ -101,6 +101,25 @@ const ffprobeDocumentSchema = z.object({
   }).passthrough()).min(1),
   format: z.object({ duration: z.string().optional() }).passthrough().optional(),
 }).passthrough()
+
+const normalizedFfprobeDocumentSchema = z.object({
+  durationSeconds: z.number().positive(),
+  streams: z.array(z.object({
+    index: z.number().int().nonnegative(),
+    codecType: z.string(),
+    codecName: z.string(),
+    width: z.number().int().positive().optional(),
+    height: z.number().int().positive().optional(),
+    fps: z.number().positive().optional(),
+    readFrameCount: z.number().int().positive().optional(),
+    durationSeconds: z.number().positive().optional(),
+  }).passthrough()).min(1),
+}).passthrough()
+
+const ffprobeDocumentSchema = z.union([
+  rawFfprobeDocumentSchema,
+  normalizedFfprobeDocumentSchema,
+])
 
 const sceneDetectionDocumentSchema = z.object({
   profileId: z.literal('track_all_content_detector_v1'),
@@ -282,18 +301,47 @@ export function normalizeTrackAllFfprobeSourceTruth(input: {
   document: unknown
 }) {
   const document = ffprobeDocumentSchema.parse(input.document)
-  const stream = document.streams.find((candidate) => candidate.codec_type === 'video')
+  const stream = document.streams.find((candidate) =>
+    'codecType' in candidate
+      ? candidate.codecType === 'video'
+      : candidate.codec_type === 'video')
   if (!stream?.width || !stream.height) throw new Error('Track All FFprobe observation has no exact video stream.')
-  const fps = parseFraction(stream.avg_frame_rate)
-  const durationSeconds = parsePositiveNumber(stream.duration ?? document.format?.duration)
-  const frameCount = stream.nb_read_frames ? parsePositiveInteger(stream.nb_read_frames) : Math.round(durationSeconds * fps)
-  const rotationDegrees = stream.side_data_list?.find((entry) => typeof entry.rotation === 'number')?.rotation ?? 0
+  let fps: number
+  let durationSeconds: number
+  let frameCount: number
+  let rotationDegrees: number
+  let codec: string
+  if ('codecType' in stream) {
+    const normalizedDocument = normalizedFfprobeDocumentSchema.parse(document)
+    const normalizedStream = normalizedDocument.streams.find((candidate) =>
+      candidate.codecType === 'video')!
+    if (!normalizedStream.fps) {
+      throw new Error('Track All normalized FFprobe observation lacks video FPS.')
+    }
+    fps = normalizedStream.fps
+    durationSeconds = normalizedStream.durationSeconds ?? normalizedDocument.durationSeconds
+    frameCount = normalizedStream.readFrameCount ?? Math.round(durationSeconds * fps)
+    rotationDegrees = 0
+    codec = normalizedStream.codecName
+  } else {
+    const rawDocument = rawFfprobeDocumentSchema.parse(document)
+    const rawStream = rawDocument.streams.find((candidate) =>
+      candidate.codec_type === 'video')!
+    fps = parseFraction(rawStream.avg_frame_rate)
+    durationSeconds = parsePositiveNumber(rawStream.duration ?? rawDocument.format?.duration)
+    frameCount = rawStream.nb_read_frames
+      ? parsePositiveInteger(rawStream.nb_read_frames)
+      : Math.round(durationSeconds * fps)
+    rotationDegrees = rawStream.side_data_list?.find((entry) =>
+      typeof entry.rotation === 'number')?.rotation ?? 0
+    codec = rawStream.codec_name
+  }
   const core = sourceTruthCoreSchema.parse({
     schemaVersion: 'track_all_ffprobe_source_truth_v1',
     operationId: 'tool.ffprobe.inspect_approved_media.v1',
     sourceSha256: input.sourceSha256,
     streamIndex: stream.index,
-    codec: stream.codec_name,
+    codec,
     width: stream.width,
     height: stream.height,
     frameCount,

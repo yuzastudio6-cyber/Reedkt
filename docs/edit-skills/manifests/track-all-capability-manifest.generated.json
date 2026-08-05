@@ -394,7 +394,7 @@
       ]
     }
   ],
-  "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+  "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -802,7 +802,9 @@
     "track_all_integration_qa_report_v1",
     "track_all_repair_receipt_v1",
     "track_all_cross_skill_handoff_v1",
-    "track_all_result_receipt_v1"
+    "track_all_result_receipt_v1",
+    "track_all_atomic_execution_evidence_v1",
+    "track_all_public_work_projection_evidence_v1"
   ],
   "qualificationFixtures": [
     {
@@ -898,6 +900,11 @@
     {
       "description": "Track All public plugin lifecycle evidence.",
       "fixtureKey": "track_all.fixture.public_plugin_lifecycle",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All canonical private runtime evidence.",
+      "fixtureKey": "track_all.fixture.canonical_private_runtime",
       "minimumStatus": "planning_qualified"
     },
     {
@@ -1307,7 +1314,7 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Inspect exact source facts.",
+      "description": "Inspect exact source facts during approved canonical-private execution.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "tool.ffprobe.inspect_approved_media.v1"
@@ -1320,7 +1327,9 @@
       "routeKey": "source_truth",
       "routeKind": "tool",
       "supportedJobTypes": [
-        "track_all.plan_assignment"
+        "track_all.produce_scene_geometry_graph",
+        "track_all.track_planar_region",
+        "track_all.apply_privacy_redaction"
       ]
     },
     {
@@ -1391,7 +1400,7 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Apply deterministic private redaction.",
+      "description": "Apply and flatten deterministic private redaction.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "tool.ffmpeg.execute_approved_media_recipe.v1"
@@ -1404,14 +1413,15 @@
       "routeKey": "ffmpeg_treatments",
       "routeKind": "tool",
       "supportedJobTypes": [
-        "track_all.apply_privacy_redaction"
+        "track_all.apply_privacy_redaction",
+        "track_all.integrate_preview"
       ]
     },
     {
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Render an approved private integration preview.",
+      "description": "Render an approved private focus or reframe integration preview.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "tool.remotion.render_approved_composition.v1"
@@ -1424,6 +1434,8 @@
       "routeKey": "remotion_preview",
       "routeKind": "tool",
       "supportedJobTypes": [
+        "track_all.apply_tracked_focus",
+        "track_all.prepare_tracked_reframe",
         "track_all.integrate_preview"
       ]
     }

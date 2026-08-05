@@ -151,3 +151,50 @@ export function createTrackAllInternalRouteQualificationCandidateReceipts(input:
     })
   })
 }
+
+export function createTrackAllCanonicalRouteQualificationCandidateReceipts(input: {
+  bindings: readonly SkillJobRuntimeBindingDefinition[]
+}): readonly SkillRouteQualificationReceipt[] {
+  const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
+  const routes = new Set(input.bindings.filter((binding) =>
+    binding.environmentClass === 'canonical_private').map((binding) => binding.routeKey))
+  return [...routes].map((routeKey) => {
+    const bindings = input.bindings.filter((binding) =>
+      binding.environmentClass === 'canonical_private' && binding.routeKey === routeKey)
+    const candidateHash = hashSkillValue({
+      schemaVersion: 'track_all_canonical_route_qualification_candidate_v1',
+      manifestRef,
+      routeKey,
+      bindingHashes: bindings.map((binding) => binding.bindingHash),
+      canonicalPrivateExecutionRequired: true,
+    })
+    const blocked = routeKey === 'sam3_1_masklet_route'
+    return createSkillRouteQualificationReceipt({
+      schemaVersion: 'edit-skill-route-qualification-receipt-v1',
+      manifestRef,
+      routeKey,
+      environmentClass: 'canonical_private',
+      qualificationStatus: blocked
+        ? 'blocked'
+        : routeKey === 'planning_core_route'
+          ? 'planning_qualified'
+          : 'internal_execution_qualified',
+      qualifiedBindings: qualifiedBindings(bindings),
+      requiredGateKeys: ['qualification_candidate_execution'],
+      gateEvidenceRefs: [{
+        gateKey: 'qualification_candidate_execution',
+        disposition: blocked ? 'blocked' : 'passed',
+        evidenceHash: candidateHash,
+      }],
+      testedCommitSha: '0000000000000000000000000000000000000000',
+      sourceTreeHash: candidateHash,
+      dependencyAuthorityHashes: [],
+      evidenceClass: 'qualification_candidate_execution',
+      fixtureEvidenceOnly: false,
+      qualificationCandidateOnly: true,
+      providerRequestCount: 0,
+      gpuExecutionCount: 0,
+      productionWorkerObserved: false,
+    })
+  })
+}

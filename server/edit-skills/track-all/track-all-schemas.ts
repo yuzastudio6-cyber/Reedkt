@@ -19,6 +19,7 @@ import { trackGraphV1Schema, trackGraphV2Schema } from '../shared/track-graph/tr
 import {
   cameraMotionGraphSchema,
   planarTrackGraphSchema,
+  trackAllAtomicExecutionEvidenceSchema,
   trackAllChunkSeamQaReportSchema,
   trackAllContextManifestSchema,
   trackAllCrossSkillHandoffSchema,
@@ -26,6 +27,7 @@ import {
   trackAllIntegrationQaReportSchema,
   trackAllMaskQaReportSchema,
   trackAllPrivacyQaReportSchema,
+  trackAllPublicWorkProjectionEvidenceSchema,
   trackAllRepairReceiptSchema,
   trackAllTargetQaReportSchema,
   trackAllTemporalQaReportSchema,
@@ -627,6 +629,9 @@ export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchem
     track_all_integration_qa_report_v1: trackAllIntegrationQaReportSchema,
     track_all_repair_receipt_v1: trackAllRepairReceiptSchema,
     track_all_cross_skill_handoff_v1: trackAllCrossSkillHandoffSchema,
+    track_all_atomic_execution_evidence_v1: trackAllAtomicExecutionEvidenceSchema,
+    track_all_public_work_projection_evidence_v1:
+      trackAllPublicWorkProjectionEvidenceSchema,
   }
   for (const [artifactType, schema] of Object.entries(schemas)) {
     if (!registry.has(artifactType)) registry.register(artifactType, schema)

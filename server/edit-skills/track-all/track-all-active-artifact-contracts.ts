@@ -163,6 +163,92 @@ export const trackAllWorkGraphArtifactSchema = addressed(z.object({
   }
 })
 
+const canonicalAtomicExecutionRecordSchema = z.object({
+  workItemKey: safeId,
+  workItemHash: skillSha256Schema,
+  stageId: skillIdentitySchema,
+  parentJobType: skillIdentitySchema,
+  operationId: skillIdentitySchema,
+  workerClass: skillIdentitySchema,
+  inputArtifactRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  dependencyOutputRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  outputArtifactRef: editSkillArtifactReferenceSchema,
+  evidenceHashes: z.array(skillSha256Schema).min(1).max(100),
+  status: z.literal('succeeded'),
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict()
+
+export const trackAllAtomicExecutionEvidenceSchema = addressed(z.object({
+  schemaVersion: z.literal('track_all_atomic_execution_evidence_v1'),
+  ...lineageFields,
+  approvedWorkGraphHash: skillSha256Schema,
+  pluginWorkGraphHash: skillSha256Schema,
+  publicWorkItemKey: safeId,
+  publicWorkItemHash: skillSha256Schema,
+  routeQualificationReceiptHash: skillSha256Schema,
+  atomicResults: z.array(canonicalAtomicExecutionRecordSchema).min(1).max(1_000),
+  atomicWorkItemHashes: z.array(skillSha256Schema).min(1).max(1_000),
+  actualToolOperationIds: z.array(skillIdentitySchema).max(100),
+  actualSamRequestCount: z.literal(0),
+  actualGpuExecutionCount: z.literal(0),
+  prePersistedOutputAccepted: z.literal(false),
+  privateArtifactsOnly: z.literal(true),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict()).superRefine((value, context) => {
+  if (
+    value.atomicResults.length !== value.atomicWorkItemHashes.length ||
+    value.atomicResults.some((result, index) =>
+      result.workItemHash !== value.atomicWorkItemHashes[index])
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Track All canonical execution evidence has stale atomic ordering.',
+  })
+  if (new Set(value.atomicWorkItemHashes).size !== value.atomicWorkItemHashes.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All canonical execution evidence contains duplicate atomic work.',
+    })
+  }
+})
+
+export const trackAllPublicWorkProjectionEvidenceSchema = addressed(z.object({
+  schemaVersion: z.literal('track_all_public_work_projection_evidence_v1'),
+  ...lineageFields,
+  approvedWorkGraphHash: skillSha256Schema,
+  publicWorkItemKey: safeId,
+  publicWorkItemHash: skillSha256Schema,
+  operationId: skillIdentitySchema,
+  workerClass: skillIdentitySchema,
+  runtimeDispatchReceiptHash: skillSha256Schema,
+  routeQualificationReceiptHash: skillSha256Schema,
+  atomicExecutionEvidenceRef: typedRef('track_all_atomic_execution_evidence_v1'),
+  exactInputArtifactRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  exactDependencyOutputRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  exactOutputArtifactRefs: z.array(editSkillArtifactReferenceSchema).min(1).max(100),
+  outputCreatedByExecutingAdapter: z.literal(true),
+  callerQualificationAccepted: z.literal(false),
+  privateArtifactsOnly: z.literal(true),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict()).superRefine((value, context) => {
+  const refs = [
+    value.atomicExecutionEvidenceRef,
+    ...value.exactInputArtifactRefs,
+    ...value.exactDependencyOutputRefs,
+    ...value.exactOutputArtifactRefs,
+  ]
+  if (refs.some((reference) =>
+    reference.ownerUserId !== value.ownerUserId ||
+    reference.workspaceId !== value.workspaceId ||
+    reference.projectId !== value.projectId)) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All public work projection contains a cross-tenant artifact.',
+    })
+  }
+})
+
 function canonicalRange(value: z.infer<typeof skillFrameRangeSchema>): string {
   return `${value.startFrameInclusive}:${value.endFrameExclusive}:${value.fps}`
 }

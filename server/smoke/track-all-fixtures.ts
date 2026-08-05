@@ -65,7 +65,10 @@ export async function createTrackAllAuthorityFixture(input: {
   authorizedRange?: SkillFrameRange
   analysisContextRange?: SkillFrameRange
   masterAssignmentRange?: SkillFrameRange
+  sourceChecksum?: string
   sourceFrameChecksum?: string
+  sourceWidth?: number
+  sourceHeight?: number
   targetAssignmentId?: string
   targetEditSessionId?: string
   requestedJobType?: string
@@ -108,7 +111,8 @@ export async function createTrackAllAuthorityFixture(input: {
   if (input.groundingKind === 'existing_track_reference' && !input.groundingArtifactRef) {
     throw new Error('Existing-track fixture grounding requires an exact artifact reference.')
   }
-  const sourceChecksum = hashSkillValue({ fixture: input.assignmentId, source: true })
+  const sourceChecksum = input.sourceChecksum ??
+    hashSkillValue({ fixture: input.assignmentId, source: true })
   const sourceRef: EditSkillArtifactReference = {
     artifactType: 'source_media_artifact_v1', sha256: sourceChecksum,
     byteLength: 4096, ...scope,
@@ -151,7 +155,10 @@ export async function createTrackAllAuthorityFixture(input: {
     schemaVersion: 'source_frame_authority_v1', ...scope,
     sourceId: 'track-all-source',
     sourceChecksum: input.sourceFrameChecksum ?? sourceChecksum,
-    range: analysisContextRange, width: 1920, height: 1080, pixelAspectRatio: 1,
+    range: analysisContextRange,
+    width: input.sourceWidth ?? 1920,
+    height: input.sourceHeight ?? 1080,
+    pixelAspectRatio: 1,
   })
   const sourceFramesRef = await input.runtime.artifactStore.putJson({
     artifactType: 'source_frame_authority_v1', value: sourceFrames, ...scope,
@@ -373,6 +380,7 @@ export async function createTrackAllPriorGraphFixture(input: {
   runtime: EditSkillRuntime
   nextAssignmentId: string
   authorizedRange?: SkillFrameRange
+  sourceSha256?: string
 }) {
   const range = input.authorizedRange ?? {
     startFrameInclusive: 24, endFrameExclusive: 144, fps: 24,
@@ -381,16 +389,50 @@ export async function createTrackAllPriorGraphFixture(input: {
     artifactType, sha256: hashSkillValue({ artifactType, key }),
     byteLength: 1_024, ...TRACK_ALL_FIXTURE_SCOPE,
   })
+  const assignmentHash = hashSkillValue({ assignment: input.nextAssignmentId, prior: true })
+  const planHash = hashSkillValue({ plan: input.nextAssignmentId, prior: true })
+  const sourceSha256 = input.sourceSha256 ??
+    hashSkillValue({ fixture: input.nextAssignmentId, source: true })
+  const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
   const qaRef = ref('track_all_temporal_qa_report_v1', `${input.nextAssignmentId}-prior-qa`)
+  const boxCore = {
+    schemaVersion: 'track_box_sequence_v1' as const,
+    ...TRACK_ALL_FIXTURE_SCOPE,
+    editSessionId: 'track-all-session',
+    assignmentId: 'prior-assignment',
+    assignmentHash,
+    planHash,
+    manifestRef,
+    sourceSha256,
+    authorizedRange: range,
+    trackId: 'person_001',
+    boxes: Array.from({
+      length: range.endFrameExclusive - range.startFrameInclusive,
+    }, (_, index) => ({
+      frameIndex: range.startFrameInclusive + index,
+      box: {
+        x: 0.3 + Math.min(0.12, index * 0.001),
+        y: 0.2,
+        width: 0.22,
+        height: 0.5,
+      },
+      confidence: 0.94,
+    })),
+  }
+  const boxSequenceRef = await input.runtime.artifactStore.putJson({
+    artifactType: 'track_box_sequence_v1',
+    value: { ...boxCore, artifactHash: hashSkillValue(boxCore) },
+    ...TRACK_ALL_FIXTURE_SCOPE,
+  })
   const graph = createTrackGraphV2({
     schemaVersion: 'track_graph_v2', modelNeutral: true,
     ...TRACK_ALL_FIXTURE_SCOPE,
     editSessionId: 'track-all-session', assignmentId: 'prior-assignment',
-    assignmentHash: hashSkillValue({ assignment: input.nextAssignmentId, prior: true }),
-    planHash: hashSkillValue({ plan: input.nextAssignmentId, prior: true }),
-    manifestRef: skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST),
+    assignmentHash,
+    planHash,
+    manifestRef,
     sourceId: 'track-all-source',
-    sourceSha256: hashSkillValue({ fixture: input.nextAssignmentId, source: true }),
+    sourceSha256,
     timingHash: hashSkillValue({ timing: input.nextAssignmentId, prior: true }),
     authorizedRange: range, authorizedRangeHash: hashSkillValue(range),
     shots: [{ shotId: 'prior-shot', range, sceneCutResetsIdentity: true }],
@@ -409,7 +451,7 @@ export async function createTrackAllPriorGraphFixture(input: {
         startFrameInclusive: range.startFrameInclusive,
         endFrameExclusive: range.endFrameExclusive, state: 'active',
       }],
-      boxSequenceRef: ref('track_box_sequence_v1', `${input.nextAssignmentId}-prior-boxes`),
+      boxSequenceRef,
       confidenceSequenceHash: hashSkillValue({ confidence: input.nextAssignmentId }),
       reentryEventHashes: [], identitySwitchWarnings: [], depthOrder: 1,
       qaRefs: [qaRef], repairRefs: [],

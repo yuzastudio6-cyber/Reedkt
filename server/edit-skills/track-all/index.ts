@@ -31,12 +31,14 @@ import { computeTrackAllQualificationDependencyAuthorityHashes } from './track-a
 import { computeTrackAllRelevantSourceTreeHash } from './track-all-qualification-source-hash'
 import {
   createTrackAllInternalRouteQualificationCandidateReceipts,
+  createTrackAllCanonicalRouteQualificationCandidateReceipts,
   createTrackAllRouteQualificationReceipts,
 } from './track-all-route-qualification'
 
 export * from './track-all-artifact-types'
 export * from './track-all-active-artifact-contracts'
 export * from './track-all-capability-manifest'
+export * from './track-all-canonical-private-runtime'
 export * from './track-all-edit-skill-plugin'
 export * from './track-all-plan-compiler'
 export * from './track-all-planning-authorities'
@@ -139,9 +141,17 @@ export function registerTrackAllSkill(input: {
       bindings: routeBindingDefinitions,
     })
   } else {
-    for (const receipt of createTrackAllInternalRouteQualificationCandidateReceipts({
-      bindings: routeBindingDefinitions,
-    })) input.routeQualifications.register({ receipt, bindings: routeBindingDefinitions })
+    const candidates = [
+      ...createTrackAllInternalRouteQualificationCandidateReceipts({
+        bindings: routeBindingDefinitions,
+      }),
+      ...createTrackAllCanonicalRouteQualificationCandidateReceipts({
+        bindings: routeBindingDefinitions,
+      }),
+    ]
+    for (const receipt of candidates) {
+      input.routeQualifications.register({ receipt, bindings: routeBindingDefinitions })
+    }
   }
   registerTrackAllArtifactSchemas(input.artifacts)
   registerTrackAllQaPolicies(input.qa)

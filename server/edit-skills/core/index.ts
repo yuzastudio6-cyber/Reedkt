@@ -1,4 +1,5 @@
 export * from './edit-skill-artifact-store'
+export * from './durable-private-edit-skill-artifact-store'
 export * from './edit-skill-dependency-request'
 export * from './edit-skill-ids'
 export * from './edit-skill-invocation-service'

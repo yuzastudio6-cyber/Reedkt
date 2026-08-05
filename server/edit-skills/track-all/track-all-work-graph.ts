@@ -28,7 +28,7 @@ export const TRACK_ALL_PUBLIC_WORK_DEFINITIONS = Object.freeze({
   'track_all.repair_track': { operationId: 'track_all.repair_track.v1', workerClass: 'track_all_repair_worker', output: 'track_all_repair_receipt_v1', phase: 'identity_reconciliation' },
   'track_all.validate_track_graph': { operationId: 'track_all.validate_track_graph.v1', workerClass: 'track_all_qa_worker', output: 'track_all_temporal_qa_report_v1', phase: 'skill_output_qa' },
   'track_all.prepare_composition_layer': { operationId: 'track_all.prepare_composition_layer.v1', workerClass: 'track_all_handoff_worker', output: 'track_all_cross_skill_handoff_v1', phase: 'treatment_compilation' },
-  'track_all.integrate_preview': { operationId: 'tool.remotion.render_approved_composition.v1', workerClass: 'track_all_private_render_worker', output: 'track_all_integration_qa_report_v1', phase: 'private_preview_render' },
+  'track_all.integrate_preview': { operationId: 'track_all.integrate_private_preview.v1', workerClass: 'track_all_private_render_worker', output: 'track_all_integration_qa_report_v1', phase: 'private_preview_render' },
   'track_all.no_action': { operationId: 'track_all.no_action.v1', workerClass: 'track_all_no_action_worker', output: 'track_all_result_receipt_v1', phase: 'result_projection' },
   'track_all.project_result': { operationId: 'track_all.project_result.v1', workerClass: 'track_all_result_worker', output: 'track_all_result_receipt_v1', phase: 'result_projection' },
 } as const)
@@ -232,8 +232,7 @@ function jobsForPlan(plan: TrackAllPlan): TrackAllPublicJobType[] {
       'track_all.plan_assignment',
       'track_all.produce_scene_geometry_graph',
       'track_all.track_planar_region',
-      'track_all.validate_track_graph',
-      'track_all.prepare_composition_layer', 'track_all.project_result',
+      'track_all.project_result',
     ]
   }
   if (plan.decision === 'repair_existing_track') {
@@ -252,11 +251,13 @@ function jobsForPlan(plan: TrackAllPlan): TrackAllPublicJobType[] {
   }
   if (['apply_privacy_redaction', 'apply_tracked_focus', 'prepare_tracked_reframe'].includes(plan.decision) && !plan.samWorkPlanned) {
     const jobs: TrackAllPublicJobType[] = ['track_all.plan_assignment']
+    if (plan.decision === 'apply_privacy_redaction') {
+      jobs.push('track_all.produce_scene_geometry_graph')
+    }
     if (plan.decision === 'apply_privacy_redaction') jobs.push('track_all.apply_privacy_redaction')
     if (plan.decision === 'apply_tracked_focus') jobs.push('track_all.apply_tracked_focus')
     if (plan.decision === 'prepare_tracked_reframe') jobs.push('track_all.prepare_tracked_reframe')
-    jobs.push('track_all.validate_track_graph', 'track_all.prepare_composition_layer')
-    if (plan.visibleTreatmentPlanned) jobs.push('track_all.integrate_preview')
+    jobs.push('track_all.prepare_composition_layer')
     jobs.push('track_all.project_result')
     return jobs
   }
@@ -459,6 +460,7 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
     const finalDependency = treatment.at(-1)?.stageId ?? 'validate_existing_track_graph'
     return [
       ...root,
+      ...(plan.decision === 'apply_privacy_redaction' ? source : []),
       stage('validate_existing_track_graph', 'track_all.validate_track_graph', 'track_all.validate_track_graph.v1', 'track_all_qa_worker', ['track_graph_v2'], 'track_all_temporal_qa_report_v1', ['validate_target_authority']),
       ...treatment,
       stage('prepare_composition_layer', 'track_all.prepare_composition_layer', 'track_all.prepare_composition_layer.v1', 'track_all_handoff_worker', ['track_graph_v2'], 'track_all_cross_skill_handoff_v1', ['validate_existing_track_graph']),
@@ -500,20 +502,22 @@ function treatmentTemplates(plan: TrackAllPlan, graphDependency: string): Atomic
   if (plan.decision === 'apply_privacy_redaction') return [
     stage('build_redaction_plan', 'track_all.apply_privacy_redaction', 'track_all.build_redaction_plan.v1', 'track_all_treatment_worker', ['track_graph_v2', 'privacy_policy_snapshot_v1'], 'tracked_redaction_plan_v1', [graphDependency]),
     stage('compile_redaction_effect', 'track_all.apply_privacy_redaction', 'tool.ffmpeg.execute_approved_media_recipe.v1', 'track_all_private_media_worker', ['tracked_redaction_plan_v1'], 'tracked_redaction_result_v1', ['build_redaction_plan'], true),
-    stage('render_private_redaction_preview', 'track_all.integrate_preview', 'tool.remotion.render_approved_composition.v1', 'track_all_private_render_worker', ['tracked_redaction_result_v1'], 'tracked_redaction_result_v1', ['compile_redaction_effect'], true),
-    stage('run_flattened_privacy_qa', 'track_all.validate_track_graph', 'track_all.validate_flattened_privacy.v1', 'track_all_qa_worker', ['tracked_redaction_result_v1'], 'track_all_privacy_qa_report_v1', ['render_private_redaction_preview']),
+    stage('render_private_redaction_preview', 'track_all.integrate_preview', 'tool.ffmpeg.execute_approved_media_recipe.v1', 'track_all_private_media_worker', ['tracked_redaction_plan_v1'], 'tracked_redaction_plan_v1', ['compile_redaction_effect'], true),
+    stage('run_flattened_privacy_qa', 'track_all.validate_track_graph', 'track_all.validate_flattened_privacy.v1', 'track_all_qa_worker', ['tracked_redaction_plan_v1'], 'track_all_privacy_qa_report_v1', ['render_private_redaction_preview']),
     stage('project_redaction_result', 'track_all.apply_privacy_redaction', 'track_all.project_redaction_result.v1', 'track_all_result_worker', ['track_all_privacy_qa_report_v1'], 'tracked_redaction_result_v1', ['run_flattened_privacy_qa']),
   ]
   if (plan.decision === 'apply_tracked_focus') return [
     stage('compile_focus_treatment', 'track_all.apply_tracked_focus', 'track_all.compile_focus_treatment.v1', 'track_all_treatment_worker', ['track_graph_v2'], 'tracked_focus_plan_v1', [graphDependency]),
     stage('render_focus_preview', 'track_all.integrate_preview', 'tool.remotion.render_approved_composition.v1', 'track_all_private_render_worker', ['tracked_focus_plan_v1'], 'tracked_focus_result_v1', ['compile_focus_treatment'], true),
     stage('run_focus_integration_qa', 'track_all.validate_track_graph', 'track_all.validate_focus_integration.v1', 'track_all_qa_worker', ['tracked_focus_result_v1'], 'track_all_integration_qa_report_v1', ['render_focus_preview']),
+    stage('project_focus_result', 'track_all.apply_tracked_focus', 'track_all.project_focus_result.v1', 'track_all_result_worker', ['track_all_integration_qa_report_v1'], 'tracked_focus_result_v1', ['run_focus_integration_qa']),
   ]
   if (plan.decision === 'prepare_tracked_reframe') return [
     stage('calculate_reframe_trajectory', 'track_all.prepare_tracked_reframe', 'track_all.calculate_reframe_trajectory.v1', 'track_all_geometry_worker', ['track_graph_v2', 'caption_reserved_zones_v1'], 'tracked_reframe_plan_v1', [graphDependency]),
     stage('validate_crop_and_safe_zones', 'track_all.validate_track_graph', 'track_all.validate_reframe_safe_zones.v1', 'track_all_qa_worker', ['tracked_reframe_plan_v1'], 'track_all_integration_qa_report_v1', ['calculate_reframe_trajectory']),
     stage('render_reframe_preview', 'track_all.integrate_preview', 'tool.remotion.render_approved_composition.v1', 'track_all_private_render_worker', ['tracked_reframe_plan_v1'], 'tracked_reframe_result_v1', ['validate_crop_and_safe_zones'], true),
     stage('run_reframe_integration_qa', 'track_all.validate_track_graph', 'track_all.validate_reframe_integration.v1', 'track_all_qa_worker', ['tracked_reframe_result_v1'], 'track_all_integration_qa_report_v1', ['render_reframe_preview']),
+    stage('project_reframe_result', 'track_all.prepare_tracked_reframe', 'track_all.project_reframe_result.v1', 'track_all_result_worker', ['track_all_integration_qa_report_v1'], 'tracked_reframe_result_v1', ['run_reframe_integration_qa']),
   ]
   return []
 }

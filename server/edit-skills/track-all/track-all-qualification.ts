@@ -20,6 +20,7 @@ export const TRACK_ALL_QUALIFICATION_FIXTURE_KEYS = [
   'track_all.fixture.session_terminal_close',
   'track_all.fixture.runtime_security',
   'track_all.fixture.public_plugin_lifecycle',
+  'track_all.fixture.canonical_private_runtime',
   'track_all.fixture.legacy_retirement',
   'track_all.fixture.qualification_integrity',
 ] as const

@@ -234,6 +234,8 @@
     "smoke:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-private-capsule-builder": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-private-capsule-builder-smoke.ts",
     "build:track-all-sam3_1-l4-task-qa-private-capsule": "bash scripts/gcp/prod/18-build-track-all-l4-task-qa-private-capsule.sh",
+    "smoke:track-all-sam3_1-l4-task-qa-private-capsule-review": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-private-capsule-review-smoke.ts",
+    "publish:track-all-sam3_1-l4-task-qa-cloud-image-build-authority": "tsx server/cli/publish-track-all-sam3_1-l4-task-qa-cloud-image-build-authority.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-authority": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-service": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-service-smoke.ts",
     "start:track-all-sam3_1-l4-task-qa-cloud-image-build": "tsx server/cli/start-track-all-sam3_1-l4-task-qa-cloud-image-build.ts",

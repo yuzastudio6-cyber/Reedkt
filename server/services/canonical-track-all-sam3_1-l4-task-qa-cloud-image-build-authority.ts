@@ -8,6 +8,20 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
+import {
+  TRACK_ALL_L4_TASK_QA_MAXIMUM_BUILD_SOURCE_BYTES,
+  TRACK_ALL_L4_TASK_QA_MAXIMUM_BUILD_SOURCE_ENTRIES,
+  TRACK_ALL_L4_TASK_QA_MAXIMUM_UNCOMPRESSED_BUILD_SOURCE_BYTES,
+  TRACK_ALL_L4_TASK_QA_PROJECT_ID,
+  canonicalTrackAllSam31L4TaskQaBuildSourceEntrySchema,
+  canonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinateSchema,
+  type CanonicalTrackAllSam31L4TaskQaBuildSourceEntry,
+  type CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinate,
+} from './canonical-track-all-sam3_1-l4-task-qa-private-capsule-source-contract'
+import {
+  assertCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews,
+  type CanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviewReadPort,
+} from './canonical-track-all-sam3_1-l4-task-qa-private-capsule-review'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_BUILD_CAPSULE_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-private-build-capsule-v1' as const
@@ -16,12 +30,8 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_IMAGE_BUILD_AUTHORITY_V
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_BUILD_REQUEST_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-cloud-build-request-v1' as const
 
-const PROJECT_ID = 'reeditpro' as const
+const PROJECT_ID = TRACK_ALL_L4_TASK_QA_PROJECT_ID
 const REGION = 'us-central1' as const
-const BUILD_INPUT_BUCKET =
-  'reeditpro-production-reeditpro-image-build-inputs' as const
-const BUILD_INPUT_PREFIX =
-  'private/image-build-inputs/track-all-l4-task-qa/' as const
 const IMAGE_REPOSITORY =
   'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers' as const
 const IMAGE_NAME = 'reeditpro-track-all-l4-task-qa' as const
@@ -35,9 +45,12 @@ const CLOUD_BUILD_SERVICE_ACCOUNT =
   'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com' as const
 const BUILDER_IMAGE =
   'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147' as const
-const MAXIMUM_BUILD_SOURCE_BYTES = 16 * 1024 * 1024 * 1024
-const MAXIMUM_UNCOMPRESSED_BUILD_SOURCE_BYTES = 24 * 1024 * 1024 * 1024
-const MAXIMUM_BUILD_SOURCE_ENTRIES = 10_000
+const MAXIMUM_BUILD_SOURCE_BYTES =
+  TRACK_ALL_L4_TASK_QA_MAXIMUM_BUILD_SOURCE_BYTES
+const MAXIMUM_UNCOMPRESSED_BUILD_SOURCE_BYTES =
+  TRACK_ALL_L4_TASK_QA_MAXIMUM_UNCOMPRESSED_BUILD_SOURCE_BYTES
+const MAXIMUM_BUILD_SOURCE_ENTRIES =
+  TRACK_ALL_L4_TASK_QA_MAXIMUM_BUILD_SOURCE_ENTRIES
 
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
@@ -51,24 +64,10 @@ const evidenceRefSchema = z.object({
   version: z.literal(1),
   contentHash: prefixedSha256,
 }).strict()
-const privateBuildSourceCoordinateSchema = z.object({
-  projectId: z.literal(PROJECT_ID),
-  bucketName: z.literal(BUILD_INPUT_BUCKET),
-  objectName: z.string().min(1).max(1_024)
-    .refine((value) => value.startsWith(BUILD_INPUT_PREFIX))
-    .refine((value) => value.endsWith('.tar.gz'))
-    .refine((value) => !value.includes('..') && !value.includes('\\')),
-  generation: z.string().regex(/^[1-9][0-9]{0,30}$/u),
-  etag: z.string().trim().min(1).max(512),
-  byteLength: z.number().int().positive().max(MAXIMUM_BUILD_SOURCE_BYTES),
-  sha256: rawSha256,
-}).strict()
-const buildSourceEntrySchema = z.object({
-  path: z.string().min(1).max(512).refine(isSafeArchivePath),
-  byteLength: z.number().int().positive()
-    .max(MAXIMUM_UNCOMPRESSED_BUILD_SOURCE_BYTES),
-  sha256: rawSha256,
-}).strict()
+const privateBuildSourceCoordinateSchema =
+  canonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinateSchema
+const buildSourceEntrySchema =
+  canonicalTrackAllSam31L4TaskQaBuildSourceEntrySchema
 
 const capsuleWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -125,7 +124,7 @@ const capsuleWithoutHashSchema = z.object({
   securityBoundary: z.object({
     archiveEntrySafetyScanPassed: z.literal(true),
     symlinkDeviceSocketAndTraversalEntriesAbsent: z.literal(true),
-    malwareScanRef: evidenceRefSchema,
+    archiveSafetyReviewRef: evidenceRefSchema,
     dependencyReviewRef: evidenceRefSchema,
     licenseReviewRef: evidenceRefSchema,
     callerPathUrlCommandImageTagOrBuildArgsAccepted: z.literal(false),
@@ -325,6 +324,8 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
     readonly capsule: CanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule
     readonly privateBuildSourceReadPort:
       CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceReadPort
+    readonly privateCapsuleReviewReadPort?:
+      CanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviewReadPort
     readonly preparedAt: string
   },
 ): Promise<CanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthority> {
@@ -341,6 +342,51 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
     || sha256AuthorityValue(observedEntries)
       !== capsule.buildSourceArchiveEntrySetSha256) {
     throw new Error('Track All L4 private build source entries changed.')
+  }
+  if (canonical) {
+    const reviewReadPort = input.privateCapsuleReviewReadPort
+    if (!reviewReadPort) {
+      throw new Error('Track All L4 private capsule reviews missing.')
+    }
+    const [archiveSafetyReview, dependencyReview, licenseReview] =
+      await Promise.all([
+      reviewReadPort.rereadArchiveSafetyReview({
+        reviewRef: capsule.securityBoundary.archiveSafetyReviewRef,
+      }),
+      reviewReadPort.rereadDependencyReview({
+        reviewRef: capsule.securityBoundary.dependencyReviewRef,
+      }),
+      reviewReadPort.rereadLicenseReview({
+        reviewRef: capsule.securityBoundary.licenseReviewRef,
+      }),
+      ])
+    const reviews =
+      assertCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
+        archiveSafetyReview,
+        dependencyReview,
+        licenseReview,
+        buildSourceCoordinate: capsule.buildSourceCoordinate,
+        buildSourceArtifactRef: capsule.buildSourceArtifactRef,
+        buildSourceArchiveEntries: capsule.buildSourceArchiveEntries,
+        buildSourceArchiveEntrySetSha256:
+          capsule.buildSourceArchiveEntrySetSha256,
+        requirementsLockSha256: capsule.privateInput.requirementsLockSha256,
+        opencvBuildInformationSha256:
+          capsule.privateInput.opencvBuildInformationSha256,
+        opencvLicenseSha256: capsule.privateInput.opencvLicenseSha256,
+        opencvContribLicenseSha256:
+          capsule.privateInput.opencvContribLicenseSha256,
+      })
+    if (
+      stableAuthorityStringify(reviews.archiveSafetyReviewRef) !==
+        stableAuthorityStringify(
+          capsule.securityBoundary.archiveSafetyReviewRef,
+        )
+      || stableAuthorityStringify(reviews.dependencyReviewRef) !==
+        stableAuthorityStringify(capsule.securityBoundary.dependencyReviewRef)
+      || stableAuthorityStringify(reviews.licenseReviewRef) !==
+        stableAuthorityStringify(capsule.securityBoundary.licenseReviewRef)
+    ) throw new Error('Track All L4 private capsule review refs changed.')
   }
   const tag =
     `track-all-l4-qa-${capsule.buildSourceCoordinate.sha256.slice(0, 16)}`
@@ -582,6 +628,16 @@ async function verifyPrivateBuildSource(
     throw new Error('Track All L4 private build source identity mismatch.')
   }
   return entries
+}
+
+export async function inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSource(
+  coordinate: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinate,
+  port: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceReadPort,
+): Promise<readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[]> {
+  return verifyPrivateBuildSource(
+    privateBuildSourceCoordinateSchema.parse(coordinate),
+    port,
+  )
 }
 
 function assertBuildSourceEntries(

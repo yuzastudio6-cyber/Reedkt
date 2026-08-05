@@ -156,7 +156,7 @@ const capsule = createCanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule({
   securityBoundary: {
     archiveEntrySafetyScanPassed: true,
     symlinkDeviceSocketAndTraversalEntriesAbsent: true,
-    malwareScanRef: ref('track-all-l4-capsule-malware-scan'),
+    archiveSafetyReviewRef: ref('track-all-l4-capsule-archive-safety-review'),
     dependencyReviewRef: ref('track-all-l4-dependency-review'),
     licenseReviewRef: ref('track-all-l4-license-review'),
     callerPathUrlCommandImageTagOrBuildArgsAccepted: false,

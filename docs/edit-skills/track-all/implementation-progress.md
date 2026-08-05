@@ -992,3 +992,21 @@ routes have internal fixture evidence. The actual SAM 3.1 masklet route remains
 zero GPU executions, and no A100/L4 result exist. The production-worker route
 also remains blocked. No public artifact, production mutation, paid call,
 database mutation, or head-orchestra implementation occurred.
+
+Foundation compatibility follow-up:
+
+- combined-runtime fixture correction commit:
+  `192b6f2538d7b257400a5114ba9970d06c53359d` (pushed and remotely
+  confirmed); the B-Roll canonical-private fixture now supplies the complete
+  registered Track All tool-operation catalog required by the shared runtime;
+- frozen B-Roll was requalified from the clean correction commit with all 29
+  actual commands passing;
+- B-Roll status: `internal_execution_qualified`;
+- B-Roll relevant source-tree hash:
+  `3ffd6b1d87fffb18101bfd7e73b516a6b37a3c0426246643672aa519366b34e1`;
+- B-Roll dependency authority-set hash:
+  `c110d0edaf48d988eccb382e397bc419d1838448e0f6927e167fc10e95156a9f`;
+- B-Roll receipt hash:
+  `15d6da4a3a654b51ec32b0ac5e313d8974fb61377d1219235b82679db04e1217`;
+- B-Roll generated artifact hash:
+  `d792b3e793b5c40e1e9b1fccde99ad973eed37e6ce604c8b5f214f504a2883a5`.

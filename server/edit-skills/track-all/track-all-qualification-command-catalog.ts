@@ -15,6 +15,8 @@ export const TRACK_ALL_QUALIFICATION_SCRIPTS = [
   'test:track-all-sam3.1-operation-authority',
   'test:track-all-sam3.1-route-gates',
   'test:track-all-sam3.1-injected-session',
+  'test:track-all-sam3.1-real-private-runtime',
+  'test:track-all-sam3.1-private-canary',
   'test:track-all-chunk-identity',
   'test:track-all-privacy-redaction',
   'test:track-all-focus-reframe',
@@ -109,6 +111,8 @@ export const TRACK_ALL_ROUTE_COMMANDS = {
     'npm.test:track-all-sam3.1-operation-authority',
     'npm.test:track-all-sam3.1-route-gates',
     'npm.test:track-all-sam3.1-injected-session',
+    'npm.test:track-all-sam3.1-real-private-runtime',
+    'npm.test:track-all-sam3.1-private-canary',
   ],
   production_worker_route: ['npm.test:track-all-runtime-bindings'],
 } as const satisfies Record<TrackAllRouteQualificationKey, readonly string[]>

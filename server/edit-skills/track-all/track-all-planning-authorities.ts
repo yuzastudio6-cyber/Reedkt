@@ -15,6 +15,12 @@ import {
   trackAllSam31V2RouteGateReportSchema,
   type TrackAllSam31V2RouteGateReport,
 } from './private/sam3_1-v2-route-qualification-gate'
+import {
+  TRACK_ALL_SAM31_REAL_PRIVATE_DOCKER_TARGET,
+  TRACK_ALL_SAM31_REAL_PRIVATE_RUNTIME_AUTHORITY,
+  TRACK_ALL_SAM31_REAL_PRIVATE_SESSION_OWNER_VERSION,
+  TRACK_ALL_SAM31_REAL_PRIVATE_WORKER_PROTOCOL_VERSION,
+} from './private/sam3_1-real-private-runtime-identity'
 
 export { createCurrentTrackAllSam31V2RouteGateReport } from './private/sam3_1-v2-route-qualification-gate'
 
@@ -104,7 +110,25 @@ const runtimeProfileCoreSchema = z.object({
   checkpointRevision: z.literal('daa63191845a41281374e725f4c9e51c7a824460'),
   runtimeImage: z.object({
     candidateImage: z.literal('pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca'),
+    candidateBuildTarget: z.literal(
+      TRACK_ALL_SAM31_REAL_PRIVATE_DOCKER_TARGET,
+    ),
     immutableImageQualified: z.boolean(),
+    immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+      .nullable(),
+  }).strict(),
+  realPrivateRuntime: z.object({
+    workerProtocolVersion: z.literal(
+      TRACK_ALL_SAM31_REAL_PRIVATE_WORKER_PROTOCOL_VERSION,
+    ),
+    sessionOwnerVersion: z.literal(
+      TRACK_ALL_SAM31_REAL_PRIVATE_SESSION_OWNER_VERSION,
+    ),
+    runtimeAuthorityHash: z.literal(
+      TRACK_ALL_SAM31_REAL_PRIVATE_RUNTIME_AUTHORITY.authorityHash,
+    ),
+    callerSelectedExecutableAccepted: z.literal(false),
+    actualExecutionRequiresAllRouteGates: z.literal(true),
   }).strict(),
   maximumFramesPerSession: z.number().int().positive().max(10_000),
   supportedFps: z.array(z.union([
@@ -171,6 +195,12 @@ const runtimeProfileCoreSchema = z.object({
   if ((value.qualification.status === 'blocked') !== (value.qualification.missingGateKeys.length > 0)) {
     context.addIssue({ code: 'custom', message: 'SAM profile blocked gates are incoherent.' })
   }
+  if (value.runtimeImage.immutableImageQualified !==
+    (value.runtimeImage.immutableImageDigest !== null)) {
+    context.addIssue({
+      code: 'custom', message: 'SAM profile immutable image evidence is incoherent.',
+    })
+  }
 })
 
 export const trackAllSam31RuntimeProfileV2Schema =
@@ -215,8 +245,20 @@ export function createTrackAllSam31RuntimeProfileV2(input: {
     checkpointRevision: gate.checkpointRevision,
     runtimeImage: {
       candidateImage: 'pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
+      candidateBuildTarget: TRACK_ALL_SAM31_REAL_PRIVATE_DOCKER_TARGET,
       immutableImageQualified: gate.findings.some((finding) =>
         finding.gateKey === 'immutable_signed_runtime_image' && finding.disposition === 'passed'),
+      immutableImageDigest: gate.runtimeImageDigest,
+    },
+    realPrivateRuntime: {
+      workerProtocolVersion:
+        TRACK_ALL_SAM31_REAL_PRIVATE_WORKER_PROTOCOL_VERSION,
+      sessionOwnerVersion:
+        TRACK_ALL_SAM31_REAL_PRIVATE_SESSION_OWNER_VERSION,
+      runtimeAuthorityHash:
+        TRACK_ALL_SAM31_REAL_PRIVATE_RUNTIME_AUTHORITY.authorityHash,
+      callerSelectedExecutableAccepted: false,
+      actualExecutionRequiresAllRouteGates: true,
     },
     maximumFramesPerSession: TRACK_ALL_SAM31_V2_MAXIMUM_FRAMES_PER_SESSION,
     supportedFps: [24, 25, 30, 50, 60],

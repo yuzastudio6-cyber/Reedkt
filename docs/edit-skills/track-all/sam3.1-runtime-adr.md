@@ -72,3 +72,35 @@ object/range/geometry metadata. It accepts no path or URL and emits zero model
 requests, public artifacts, or production mutations. A separate
 canonical-private availability guard parses the exact V2 route-gate report and
 rejects construction while the route is blocked or storage is not durable.
+
+## TRACK-26 real-private implementation
+
+The real owner is now separate from the injected owner:
+
+- `track_all_sam3_1_real_private_session_owner_v1` accepts only durable private
+  persistence, the exact qualified runtime profile, the exact qualified route
+  gate, and a fixed `canonical_private_execution_adapter`.
+- `track_all_sam3_1_real_private_worker_protocol_v1` binds the exact source and
+  checkpoint revisions, immutable image digest, accelerator class, assignment,
+  session plan, route gate, runtime profile, private object references, terminal
+  disposition, strict-load/CUDA observations, and mandatory close evidence.
+- A transport failure invokes exact reconciliation-and-close once. It never
+  resubmits model work.
+- The worker response schema requires close evidence for completion, failure,
+  timeout, cancellation, partial output, and reconciliation dispositions.
+- A completed response is the only disposition that can become
+  `real_private_sam3_1_inference` evidence. Failed or uncertain responses cannot
+  receive a masklet output manifest or inference receipt.
+
+The fixed Linux worker is
+`docker/prod/gpu-worker/sam3_1/track_all_runner.py`, built only through the
+`track_all_v2_candidate` Docker target. It maps the official start, prompt,
+forward/backward/both propagation, remove, reset, cancel, and idempotent close
+APIs. It has one fixed task mount and one fixed checkpoint mount, uses
+create-only private output, and contains no stdin, runtime download, subprocess,
+or caller-selected executable path. The default Dockerfile target remains the
+historical V1 candidate, preserving V1 behavior.
+
+The real owner cannot currently be constructed: the checked-in gate report is
+blocked and the generated SAM route receipt is blocked. Source-complete code is
+not execution authority.

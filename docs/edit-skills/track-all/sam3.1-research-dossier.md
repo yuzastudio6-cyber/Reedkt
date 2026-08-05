@@ -2,6 +2,14 @@
 
 Status: verified against official source on 2026-08-04. This document records research; it does not authorize inference.
 
+TRACK-26 reverified the official repository on 2026-08-05 UTC. `HEAD` and
+`refs/heads/main` both still resolved to
+`96914d2425f90a64f45ca977c2b5165418099543`; the pinned source is therefore
+still current and no forward source revision is proposed. The official release
+notes still identify Object Multiplex as the SAM 3.1 multi-object video path,
+and the official checkpoint page still requires authenticated human access and
+offers no hosted inference provider.
+
 ## Exact official authority inspected
 
 - Meta repository: `facebookresearch/sam3`
@@ -32,6 +40,14 @@ The public request interface supports:
 - `propagate_in_video` in `forward`, `backward`, or `both` direction with a start frame and maximum tracked-frame count;
 - idempotent `close_session` with explicit state clearing and optional CUDA cache reclamation.
 
+TRACK-26 reread the exact pinned `Sam3BasePredictor` dispatcher. Its request
+keys remain `frame_index`, `points`, `point_labels`, `bounding_boxes`,
+`bounding_box_labels`, `obj_id`, `propagation_direction`,
+`start_frame_index`, and `max_frame_num_to_track`. The Track All V2 worker maps
+only server-compiled normalized prompts to those fields and translates global
+authorized frames to the fixed chunk-local source proxy. It accepts no raw
+request map from a caller.
+
 The public notebook proves text prompting, point prompting, session reset, object removal, propagation, and close. The base predictor code proves box requests, cancellation, non-zero initialization, and bidirectional propagation. Mask tensors exist inside lower-level tracking code and the checkpoint card describes mask prompts generally, but the public multiplex request dispatcher does not accept a caller mask field. ReeditPro therefore accepts an approved brush-mask artifact only as grounding evidence and does not claim direct multiplex mask prompting until a versioned public entry point is qualified.
 
 The runtime requires Python 3.12+, PyTorch 2.7+, and CUDA 12.6+. The current README example pins PyTorch 2.10/CUDA 12.8. The predictor enters CUDA bfloat16 autocast. FlashAttention 3 and `torch.compile` are optional optimizations and remain disabled in ReeditPro until separately qualified.
@@ -50,3 +66,8 @@ The runtime requires Python 3.12+, PyTorch 2.7+, and CUDA 12.6+. The current REA
 ## Track All conclusion
 
 SAM 3.1 is the primary masklet engine behind model-neutral Track All artifacts, but the real route remains blocked until exact gated artifact ingest, strict source/checkpoint compatibility, immutable image, security, private-store, A100/L4, quality, performance, and cost evidence exist. Injected masklets may qualify the public lifecycle and deterministic downstream system only; they never qualify SAM inference.
+
+TRACK-26 added a source-complete V2 private worker and server session owner but
+did not run inference. The explicit canary preflight found 10 blocked external
+gates, made zero SAM requests, performed zero GPU executions, incurred no paid
+action, and produced no public artifact or production mutation.

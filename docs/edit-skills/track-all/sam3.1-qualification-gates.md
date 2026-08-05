@@ -42,3 +42,21 @@ evidence, A100 inference, and all active route gates are not present. An L4
 gate can be `not_applicable` only when that fallback is explicitly inactive;
 it cannot be skipped while advertised. Evidence marked missing or injected
 cannot satisfy a real route gate.
+
+TRACK-26 adds a second, conjunctive admission boundary. Even a canonically
+reread route-evidence set cannot execute by itself: the runtime profile must
+bind that exact gate report and a current canonical-private SAM route receipt,
+and both must independently authorize internal execution. The real owner then
+requires durable private persistence and the fixed V2 worker protocol. There is
+no fixture or in-memory constructor path.
+
+The safe canary command is:
+
+`npm run canary:track-all:sam3.1:private`
+
+Default mode only produces a content-addressed preflight receipt. Execution
+mode additionally requires the exact operator confirmation and an authorized
+backend-injected bootstrap; it accepts no caller path, URL, model, checkpoint,
+GPU, command, credential, retry, fallback, or price. On 2026-08-05 UTC the
+preflight remained `blocked_external_prerequisites` with 10 missing gates, zero
+SAM requests, zero GPU execution, and no paid action. It was not promoted.

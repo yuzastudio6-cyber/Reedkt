@@ -6,7 +6,7 @@
 # A resulting image is not dispatch-admissible until the separate A100 and L4
 # runtime-release qualifications are persisted and reread.
 
-FROM pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca
+FROM pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca AS sam31_runtime_base
 
 ARG SAM31_DEPENDENCY_LOCK_SHA256
 ARG SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256
@@ -195,3 +195,29 @@ USER 65532:65532
 WORKDIR /nonexistent
 
 ENTRYPOINT ["/opt/reeditpro/sam3_1/entrypoint.sh"]
+
+# Forward-only Track All V2 candidate. This target reuses the exact closed
+# source/checkpoint/dependency base but has a distinct fixed operation and
+# entrypoint. It is not admissible until the V2 image and real canary gates
+# are separately qualified. Building the file without --target still yields
+# the historical V1 candidate in the final stage below.
+FROM sam31_runtime_base AS track_all_v2_candidate
+
+LABEL io.reeditpro.operation.id="tool.sam3_1.track_masklets.v2" \
+  io.reeditpro.runtime.qualification="candidate-only" \
+  io.reeditpro.runtime.protocol="track_all_sam3_1_real_private_worker_protocol_v1"
+
+USER 0:0
+COPY docker/prod/gpu-worker/sam3_1/track_all_runner.py \
+  /opt/reeditpro/sam3_1/track_all_runner.py
+COPY docker/prod/gpu-worker/sam3_1/track_all_entrypoint.sh \
+  /opt/reeditpro/sam3_1/track_all_entrypoint.sh
+RUN python -I -B -m py_compile /opt/reeditpro/sam3_1/track_all_runner.py \
+  && chmod 0555 \
+    /opt/reeditpro/sam3_1/track_all_runner.py \
+    /opt/reeditpro/sam3_1/track_all_entrypoint.sh
+USER 65532:65532
+WORKDIR /nonexistent
+ENTRYPOINT ["/opt/reeditpro/sam3_1/track_all_entrypoint.sh"]
+
+FROM sam31_runtime_base AS historical_v1_candidate

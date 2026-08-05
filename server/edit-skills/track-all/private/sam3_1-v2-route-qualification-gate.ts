@@ -13,7 +13,7 @@ import { TRACK_ALL_SAM_OPERATION_V2 } from '../track-all-capability-manifest'
 import { TRACK_ALL_SAM31_MASKLET_OPERATION_AUTHORITY } from './sam3_1-track-masklets-operation'
 
 export const TRACK_ALL_SAM31_V2_ROUTE_GATE_REPORT_VERSION =
-  'track_all_sam3_1_v2_route_gate_report_v1' as const
+  'track_all_sam3_1_v2_route_gate_report_v2' as const
 
 export const TRACK_ALL_SAM31_V2_REQUIRED_GATE_KEYS = [
   'human_terms_and_commercial_legal_approval',
@@ -30,6 +30,7 @@ export const TRACK_ALL_SAM31_V2_REQUIRED_GATE_KEYS = [
 ] as const
 
 const gateKeySchema = z.enum(TRACK_ALL_SAM31_V2_REQUIRED_GATE_KEYS)
+const prefixedSha256Schema = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
 
 const gateFindingSchema = z.object({
   gateKey: gateKeySchema,
@@ -69,6 +70,7 @@ const routeGateReportCoreSchema = z.object({
     'daa63191845a41281374e725f4c9e51c7a824460',
   ),
   checkpointSha256: skillSha256Schema.nullable(),
+  runtimeImageDigest: prefixedSha256Schema.nullable(),
   findings: z.array(gateFindingSchema).length(
     TRACK_ALL_SAM31_V2_REQUIRED_GATE_KEYS.length,
   ),
@@ -100,7 +102,8 @@ const routeGateReportCoreSchema = z.object({
     finding.disposition === 'passed' || finding.disposition === 'not_applicable')
   const realInternal = value.actualCheckpointBytesObserved &&
     value.actualStrictLoadObserved && value.actualA100InferenceObserved &&
-    value.actualSamRequestCount > 0
+    value.actualSamRequestCount > 0 && value.checkpointSha256 !== null &&
+    value.runtimeImageDigest !== null
   if (value.internalExecutionAuthorized !== (allRequiredPassed && realInternal)) {
     context.addIssue({
       code: 'custom', message: 'SAM 3.1 internal authority exceeds actual gates.',
@@ -135,6 +138,128 @@ export const trackAllSam31V2RouteGateReportSchema =
 export type TrackAllSam31V2RouteGateReport = z.infer<
   typeof trackAllSam31V2RouteGateReportSchema
 >
+
+const canonicalEvidenceSetCoreSchema = z.object({
+  schemaVersion: z.literal(
+    'track_all_sam3_1_v2_canonical_route_evidence_set_v1',
+  ),
+  operationId: z.literal(TRACK_ALL_SAM_OPERATION_V2),
+  operationAuthorityHash: z.literal(
+    TRACK_ALL_SAM31_MASKLET_OPERATION_AUTHORITY.authorityHash,
+  ),
+  checkpointSha256: skillSha256Schema,
+  runtimeImageDigest: prefixedSha256Schema,
+  findings: z.array(gateFindingSchema.safeExtend({
+    disposition: z.enum(['passed', 'not_applicable']),
+    evidenceClass: z.literal('canonical_private_reread'),
+    evidenceHashes: z.array(skillSha256Schema).min(1).max(20),
+  }).strict()).length(TRACK_ALL_SAM31_V2_REQUIRED_GATE_KEYS.length),
+  actualCheckpointBytesObserved: z.literal(true),
+  actualStrictLoadObserved: z.literal(true),
+  actualA100InferenceObserved: z.literal(true),
+  actualL4InferenceObserved: z.boolean(),
+  actualSamRequestCount: z.number().int().positive().max(100),
+  productionEvidenceAccepted: z.literal(false),
+  rereadAt: z.string().datetime({ offset: true }),
+}).strict().superRefine((value, context) => {
+  const keys = value.findings.map((finding) => finding.gateKey)
+  if (new Set(keys).size !== keys.length ||
+    TRACK_ALL_SAM31_V2_REQUIRED_GATE_KEYS.some((key) => !keys.includes(key))) {
+    context.addIssue({
+      code: 'custom', message: 'Canonical SAM route evidence is incomplete.',
+    })
+  }
+  const l4 = value.findings.find((finding) =>
+    finding.gateKey ===
+      'l4_private_runtime_and_quality_if_fallback_active')
+  if (value.actualL4InferenceObserved !== (l4?.disposition === 'passed')) {
+    context.addIssue({
+      code: 'custom', message: 'Canonical SAM L4 evidence is incoherent.',
+    })
+  }
+})
+
+export const trackAllSam31V2CanonicalRouteEvidenceSetSchema =
+  canonicalEvidenceSetCoreSchema.extend({ evidenceSetHash: skillSha256Schema })
+    .strict().superRefine((value, context) => {
+      const { evidenceSetHash, ...core } = value
+      if (evidenceSetHash !== hashSkillValue(core)) context.addIssue({
+        code: 'custom', message: 'Canonical SAM route evidence is stale or forged.',
+      })
+    })
+
+export type TrackAllSam31V2CanonicalRouteEvidenceSet = z.infer<
+  typeof trackAllSam31V2CanonicalRouteEvidenceSetSchema
+>
+
+const canonicalEvidenceRefSchema = z.object({
+  id: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/u),
+  version: z.literal(1),
+  contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+}).strict()
+
+export interface TrackAllSam31V2CanonicalRouteEvidenceReadPort {
+  readonly storageClass: 'durable_private'
+  readonly evidenceClass: 'canonical_private_reread'
+  readExact(input: {
+    reference: z.infer<typeof canonicalEvidenceRefSchema>
+  }): Promise<unknown>
+}
+
+/**
+ * Compiles a runnable route gate only from a separately persisted and reread
+ * canonical evidence set. The generated Track All route receipt remains an
+ * additional mandatory gate, so this function cannot promote runtime by
+ * itself.
+ */
+export async function createTrackAllSam31V2RouteGateReportFromCanonicalEvidence(
+  input: {
+    reference: unknown
+    readPort: TrackAllSam31V2CanonicalRouteEvidenceReadPort
+  },
+): Promise<TrackAllSam31V2RouteGateReport> {
+  if (input.readPort.storageClass !== 'durable_private' ||
+    input.readPort.evidenceClass !== 'canonical_private_reread') {
+    throw new Error('SAM route evidence requires a durable canonical reader.')
+  }
+  const reference = canonicalEvidenceRefSchema.parse(input.reference)
+  const evidence = trackAllSam31V2CanonicalRouteEvidenceSetSchema.parse(
+    await input.readPort.readExact({ reference }),
+  )
+  if (reference.contentHash !== `sha256:${evidence.evidenceSetHash}`) {
+    throw new Error('SAM route evidence reread differs from its exact reference.')
+  }
+  const candidate = createCanonicalSam31SourceRuntimeCandidate()
+  const core = routeGateReportCoreSchema.parse({
+    schemaVersion: TRACK_ALL_SAM31_V2_ROUTE_GATE_REPORT_VERSION,
+    operationId: TRACK_ALL_SAM_OPERATION_V2,
+    historicalOperationId: CANONICAL_SAM3_1_OPERATION_ID,
+    operationAuthorityHash: evidence.operationAuthorityHash,
+    sourceCandidateHash: candidate.candidateHash,
+    sourceRevision: candidate.officialSource.sourceRevision,
+    sourceArchiveSha256:
+      candidate.officialSource.deterministicGitArchiveSha256,
+    checkpointRevision: candidate.officialCheckpoint.repositoryRevision,
+    checkpointSha256: evidence.checkpointSha256,
+    runtimeImageDigest: evidence.runtimeImageDigest,
+    findings: evidence.findings,
+    planningAuthorityValid: true,
+    actualCheckpointBytesObserved: true,
+    actualStrictLoadObserved: true,
+    actualA100InferenceObserved: true,
+    actualL4InferenceObserved: evidence.actualL4InferenceObserved,
+    actualSamRequestCount: evidence.actualSamRequestCount,
+    routeQualificationStatus: 'internal_execution_qualified',
+    internalExecutionAuthorized: true,
+    productionExecutionAuthorized: false,
+    injectedEvidenceMaySatisfyRealSamGate: false,
+    generatedAt: evidence.rereadAt,
+  })
+  return deepFreezeSkillValue(trackAllSam31V2RouteGateReportSchema.parse({
+    ...core,
+    reportHash: hashSkillValue(core),
+  }))
+}
 
 /**
  * Derives the current route truth only from the repository's canonical source
@@ -206,6 +331,7 @@ export function createCurrentTrackAllSam31V2RouteGateReport(input?: {
       candidate.officialSource.deterministicGitArchiveSha256,
     checkpointRevision: candidate.officialCheckpoint.repositoryRevision,
     checkpointSha256: candidate.officialCheckpoint.exactDownloadedSha256,
+    runtimeImageDigest: null,
     findings,
     planningAuthorityValid: true,
     actualCheckpointBytesObserved: false,

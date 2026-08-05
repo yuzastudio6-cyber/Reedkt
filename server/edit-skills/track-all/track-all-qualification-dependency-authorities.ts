@@ -114,11 +114,14 @@ const DEFINITIONS = [
   },
   {
     authorityKey: 'sam3_1_track_masklets_v2_operation',
-    profileVersion: 'track_all_dependency_authority.sam3_1_track_masklets_v2.v1',
+    profileVersion: 'track_all_dependency_authority.sam3_1_track_masklets_v2.v2',
     files: [
       'server/edit-skills/track-all/private/sam3_1-track-masklets-operation.ts',
       'server/edit-skills/track-all/private/sam3_1-v2-route-qualification-gate.ts',
       'server/edit-skills/track-all/private/sam3_1-injected-session-owner.ts',
+      'server/edit-skills/track-all/private/sam3_1-real-private-runtime-identity.ts',
+      'server/edit-skills/track-all/private/sam3_1-real-private-session-owner.ts',
+      'server/edit-skills/track-all/private/sam3_1-private-canary.ts',
     ],
   },
   {
@@ -132,10 +135,12 @@ const DEFINITIONS = [
   },
   {
     authorityKey: 'sam3_1_runtime_image_authority',
-    profileVersion: 'track_all_dependency_authority.sam3_1_runtime_image.v1',
+    profileVersion: 'track_all_dependency_authority.sam3_1_runtime_image.v2',
     files: [
       'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate',
       'docker/prod/gpu-worker/sam3_1/runner.py',
+      'docker/prod/gpu-worker/sam3_1/track_all_runner.py',
+      'docker/prod/gpu-worker/sam3_1/track_all_entrypoint.sh',
       'server/workers/masks/canonical-sam3_1-gpu-runtime-contract.ts',
       'server/workers/masks/canonical-sam3_1-gpu-runtime-release.ts',
     ],

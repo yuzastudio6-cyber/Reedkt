@@ -1,0 +1,116 @@
+import type { CaptionDomainRef } from './caption-domain-contracts'
+import type { CaptionsSupportedJobType } from './captions-specialist'
+
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION =
+  'canonical-caption-specialist-planning-binding-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION =
+  'canonical-caption-specialist-planning-projection-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION =
+  'canonical-caption-specialist-estimate-binding-v1' as const
+
+export type CanonicalCaptionTrackingJobType =
+  | 'resolve_subject_occluded_typography'
+  | 'resolve_object_anchored_typography'
+  | 'resolve_environmental_typography'
+
+export interface CanonicalCaptionSpecialistPlanningBinding {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION
+  bindingId: string
+  bindingDigestSha256: string
+  canonicalScope: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    planningRequestId: string
+    outputId: string
+  }
+  confirmedOutputFrame: {
+    width: number
+    height: number
+    fpsNumerator: number
+    fpsDenominator: number
+    confirmedOutputFrameRef: CaptionDomainRef
+  }
+  professionalSkillCompositionTraceRef: CaptionDomainRef
+  earlyPlanningBundleRef: CaptionDomainRef
+  canonicalTranscriptRef: CaptionDomainRef
+  masterTimingRef: CaptionDomainRef
+  captionEstimateInputRef: CaptionDomainRef
+  scenePolicies: Array<{
+    sceneId: string
+    trackingJobType: CanonicalCaptionTrackingJobType | null
+    crossSystemTarget:
+      | 'broll'
+      | 'living_frame'
+      | 'map'
+      | 'chart'
+      | 'diagram'
+      | 'transition'
+      | null
+  }>
+  privateArtifact: true
+  byteFree: true
+  rawChatIncluded: false
+  transcriptTextIncluded: false
+  mediaBytesIncluded: false
+  pathsUrlsOrCredentialsIncluded: false
+  approvedSnapshotPredictedOrInjected: false
+  workCreationAuthorityGrantedToCaption: false
+  operationDispatchAuthorityGranted: false
+  providerRuntimeAuthorityGranted: false
+  assetMutationAuthorityGranted: false
+  finalQaApprovalAuthorityGranted: false
+  billingAuthorityGranted: false
+  publicDeliveryGranted: false
+  productionAuthorityGranted: false
+}
+
+export interface CanonicalCaptionSpecialistEstimateBindingMetadata {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION
+  outputId: string
+  compositionTraceRef: CaptionDomainRef
+  earlyPlanningBundleRef: CaptionDomainRef
+  captionEstimateInputRef: CaptionDomainRef
+  selectedComponentKeys: ['caption_design', 'caption_render_qa']
+  estimateOwnerRemainsCanonical: true
+  serviceFeeIncludedInCaptionWorkCost: false
+  billingAuthorityGrantedToCaption: false
+}
+
+export interface CanonicalCaptionSpecialistPlanningProjection {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION
+  projectionId: string
+  projectionDigestSha256: string
+  disposition:
+    | 'planning_work_projected_downstream_caption_execution_required'
+    | 'no_caption_work_owner_restraint_preserved'
+  planningBindingRef: CaptionDomainRef
+  compositionTraceRef: CaptionDomainRef
+  earlyPlanningBundleRef: CaptionDomainRef
+  outputId: string
+  captionEstimateLineKey: string | null
+  projectedWorkItemKeys: string[]
+  projectedJobTypes: CaptionsSupportedJobType[]
+  projectedSceneIds: string[]
+  postapprovalTranscriptBindingRequired: boolean
+  authenticatedOwnerResumeRequired: boolean
+  downstreamCaptionRenderWorkRequired: boolean
+  deterministicRenderedCaptionQaRequired: boolean
+  qualifiedCompleteTimeVisualReviewRequired: boolean
+  independentPrivateReviewRequired: boolean
+  planningJobsClaimFinishedCaptionMedia: false
+  fullyApprovedCaptionExecutionCoverageClaimed: false
+  captionWorkItemsCreatedByCanonicalPlanner: true
+  captionWorkItemsCreatedByBrowser: false
+  directPeerDispatchGranted: false
+  providerRuntimeAuthorityGranted: false
+  assetMutationAuthorityGranted: false
+  finalQaApprovalAuthorityGranted: false
+  billingAuthorityGranted: false
+  publicDeliveryGranted: false
+  productionAuthorityGranted: false
+}

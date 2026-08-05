@@ -1,0 +1,524 @@
+import assert from 'node:assert/strict'
+
+import type {
+  CanonicalCaptionSpecialistEstimateBindingMetadata,
+  CanonicalCaptionSpecialistPlanningBinding,
+} from '../../src/types/canonical-caption-specialist-planning'
+import {
+  CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
+} from '../../src/types/canonical-caption-specialist-planning'
+import type { CaptionEarlyPlanningInput } from
+  '../../src/types/caption-early-planning'
+import type { ProfessionalSkillSelection } from
+  '../../src/types/professional-skills'
+import type {
+  CanonicalEstimateInput,
+  CanonicalPlanComponentsInput,
+  CanonicalWorkItemInput,
+} from '../validation/edit-planning-authority-schemas'
+import {
+  calculateCanonicalCaptionSpecialistPlanningBindingDigest,
+  parseCanonicalCaptionSpecialistPlanningBinding,
+  parseCanonicalCaptionSpecialistPlanningProjection,
+  prepareCanonicalCaptionSpecialistPlanningProjection,
+} from '../captions-specialist/caption-canonical-work-planning'
+import { CAPTION_DESIGN_COMPOSITE } from
+  '../captions-specialist/caption-design-composite'
+import { createCaptionEarlyPlanningBundle } from
+  '../captions-specialist/caption-early-planning'
+import { createProfessionalSkillCompositionTrace } from
+  '../../src/lib/professional-skills/professional-skill-composition-trace'
+import { sha256AuthorityValue } from
+  '../services/private-edit-authority-store'
+
+let checks = 0
+function check(value: unknown, message: string): void {
+  assert.ok(value, message)
+  checks += 1
+}
+function domainRef(id: string, contentHash = sha256AuthorityValue(id)) {
+  return { id, version: `${id}.v1`, contentHash }
+}
+function selection(
+  skillId: string,
+): ProfessionalSkillSelection {
+  return {
+    skillId,
+    family: 'captions',
+    userFacingName: 'Captions',
+    userFacingActivity: 'Design readable captions',
+    selectionSources: ['user_prompt'],
+    selectionEvidence: [{
+      source: 'user_prompt',
+      label: 'Caption direction',
+      summary: 'Captions were selected explicitly.',
+    }],
+    reason: 'Explicit Caption selection.',
+    requiredInputs: ['planning_context'],
+    outputArtifacts: ['caption_plan'],
+    hiddenAdapterToolNames: [],
+    backendIntents: [],
+    qaGates: ['caption_readability'],
+    executionModes: ['plan_only'],
+    readiness: 'ready_for_plan',
+    blockers: [],
+  }
+}
+
+const scope = {
+  ownerUserId: 'owner.caption.plan.1',
+  workspaceId: 'workspace.caption.plan.1',
+  projectId: 'project.caption.plan.1',
+  editSessionId: 'edit.caption.plan.1',
+  planningRequestId: 'planning.caption.plan.1',
+  outputId: 'output.caption.plan.1',
+}
+const selectedTrace = createProfessionalSkillCompositionTrace({
+  planId: 'professional.caption.plan.1',
+  selectedSkills: [selection('captions.semantic_captioning')],
+})
+const masterTimingPlan = {
+  schemaVersion: 'master-timing-plan-v1',
+  fps: 30,
+  totalFrames: 360,
+}
+const masterTimingRef = domainRef(
+  'master.timing.caption.plan.1',
+  sha256AuthorityValue(masterTimingPlan),
+)
+const transcriptRef = domainRef('canonical.transcript.caption.plan.1')
+const frameDigest = sha256AuthorityValue({
+  outputId: scope.outputId,
+  width: 1920,
+  height: 1080,
+  fps: 30,
+})
+const confirmedFrameRef = domainRef(
+  'confirmed.frame.caption.plan.1', frameDigest)
+
+function earlyInput(input: {
+  trace: typeof selectedTrace
+  noCaptions?: boolean
+}): CaptionEarlyPlanningInput {
+  return {
+    bundleId: input.noCaptions
+      ? 'caption.early.plan.restrained.1'
+      : 'caption.early.plan.selected.1',
+    canonicalScope: {
+      ownerUserId: scope.ownerUserId,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+      outputId: scope.outputId,
+      planVersionId: scope.planningRequestId,
+      approvedSnapshotRef: null,
+      sceneId: null,
+      authorizedFrameRanges: [{ startFrame: 0, endFrameExclusive: 360 }],
+    },
+    captionCompositeRef: {
+      id: CAPTION_DESIGN_COMPOSITE.compositeId,
+      version: CAPTION_DESIGN_COMPOSITE.compositeVersion,
+      contentHash: CAPTION_DESIGN_COMPOSITE.compositeDigestSha256,
+    },
+    compiledIntentRef: domainRef('compiled.intent.caption.plan.1'),
+    professionalSkillTraceRef: {
+      id: input.trace.traceId,
+      version: input.trace.schemaVersion,
+      contentHash: input.trace.traceDigestSha256,
+    },
+    confirmedOutputFrame: {
+      outputId: scope.outputId,
+      width: 1920,
+      height: 1080,
+      aspectRatioNumerator: 16,
+      aspectRatioDenominator: 9,
+      confirmedOutputFrameDigestSha256: frameDigest,
+    },
+    canonicalTranscriptRef: transcriptRef,
+    sourceSpeechEvidenceRef: domainRef('speech.caption.plan.1'),
+    sourceVisualUnderstandingRef: domainRef('visual.caption.plan.1'),
+    editPreferencesRef: domainRef('preferences.caption.plan.1'),
+    referenceDnaRef: null,
+    planningTimingBasisRef: masterTimingRef,
+    directive: input.noCaptions ? {
+      disposition: 'no_captions',
+      reasonCodes: ['owner_requested_no_captions'],
+      ownerApprovedRestraintRef: domainRef('restraint.caption.plan.1'),
+    } : {
+      disposition: 'caption_design_selected',
+      reasonCodes: ['caption_design_selected_by_professional_trace'],
+      ownerApprovedRestraintRef: null,
+    },
+    projectMode: 'clean_long_form',
+    primaryLanguage: 'en-US',
+    requestedLanguages: ['en-US'],
+    accessibleOutputKinds: input.noCaptions ? [] : ['srt', 'webvtt'],
+    constraints: {
+      allowedTypographyRoles: ['primary_speech'],
+      maximumMotionLevel: input.noCaptions ? 'none' : 'moderate',
+      maximumHeroMoments: 0,
+      subjectOverlapAllowed: false,
+      objectAnchoringAllowed: false,
+      captionToVisualAllowed: false,
+      captionSoundAllowed: false,
+      allowedTextTransformations: ['exact', 'punctuation_cleanup'],
+      requestedMaximumCaptionCredits: input.noCaptions ? 0 : 40,
+      fallbackIds: ['fallback.stable_libass'],
+    },
+    scenes: [{
+      sceneId: 'scene.caption.plan.1',
+      planningFrameRange: { startFrame: 0, endFrameExclusive: 360 },
+      sourcePhraseIds: ['phrase.caption.plan.1'],
+      speechRole: 'primary',
+      semanticImportanceBasisPoints: 8_000,
+      visualDensity: 'low',
+      multiTrackLikely: false,
+      depthMaskOrTrackingLikely: false,
+      requestedTreatment: input.noCaptions ? 'auto' : 'late_overlay',
+      crossSystemTarget: null,
+      candidateSafeRegions: [{
+        regionId: 'region.caption.plan.1',
+        regionBasisPoints: {
+          x: 1_000, y: 7_000, width: 8_000, height: 1_500,
+        },
+        confidenceBasisPoints: 9_000,
+        protectedRegionIds: ['face.primary'],
+        evidenceRef: domainRef('safe.region.caption.plan.1'),
+      }],
+      reasonCodes: ['speech_requires_readable_caption'],
+    }],
+  }
+}
+
+function planningBinding(input: {
+  trace: typeof selectedTrace
+  bundle: ReturnType<typeof createCaptionEarlyPlanningBundle>
+}): CanonicalCaptionSpecialistPlanningBinding {
+  const withoutDigest: Omit<CanonicalCaptionSpecialistPlanningBinding,
+  'bindingDigestSha256'> = {
+    schemaVersion: CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
+    bindingId: `${input.bundle.bundleId}.canonical-binding`,
+    canonicalScope: { ...scope },
+    confirmedOutputFrame: {
+      width: 1920,
+      height: 1080,
+      fpsNumerator: 30,
+      fpsDenominator: 1,
+      confirmedOutputFrameRef: confirmedFrameRef,
+    },
+    professionalSkillCompositionTraceRef: {
+      id: input.trace.traceId,
+      version: input.trace.schemaVersion,
+      contentHash: input.trace.traceDigestSha256,
+    },
+    earlyPlanningBundleRef: {
+      id: input.bundle.bundleId,
+      version: input.bundle.schemaVersion,
+      contentHash: input.bundle.bundleDigestSha256,
+    },
+    canonicalTranscriptRef: transcriptRef,
+    masterTimingRef,
+    captionEstimateInputRef: {
+      id: input.bundle.estimateInput.componentId,
+      version: input.bundle.estimateInput.componentVersion,
+      contentHash: input.bundle.estimateInput.componentDigestSha256,
+    },
+    scenePolicies: input.bundle.opportunityMap.opportunities.map((item) => ({
+      sceneId: item.sceneId,
+      trackingJobType: null,
+      crossSystemTarget: item.handoffTarget,
+    })),
+    privateArtifact: true,
+    byteFree: true,
+    rawChatIncluded: false,
+    transcriptTextIncluded: false,
+    mediaBytesIncluded: false,
+    pathsUrlsOrCredentialsIncluded: false,
+    approvedSnapshotPredictedOrInjected: false,
+    workCreationAuthorityGrantedToCaption: false,
+    operationDispatchAuthorityGranted: false,
+    providerRuntimeAuthorityGranted: false,
+    assetMutationAuthorityGranted: false,
+    finalQaApprovalAuthorityGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  return parseCanonicalCaptionSpecialistPlanningBinding({
+    ...withoutDigest,
+    bindingDigestSha256:
+      calculateCanonicalCaptionSpecialistPlanningBindingDigest(withoutDigest),
+  })
+}
+
+function components(input: {
+  trace: typeof selectedTrace
+  bundle: ReturnType<typeof createCaptionEarlyPlanningBundle>
+  binding: CanonicalCaptionSpecialistPlanningBinding
+}): CanonicalPlanComponentsInput {
+  return {
+    professionalSkillPlan: { compositionTrace: input.trace },
+    captionEarlyPlanningBundle: input.bundle,
+    captionSpecialistPlanningBinding: input.binding,
+    confirmedSettings: {
+      outputFrame: { width: 1920, height: 1080, fps: 30 },
+    },
+    masterTimingPlan,
+    timingSummary: {
+      validationStatus: 'passed', approvalBlocked: false,
+      fps: 30, totalFrames: 360,
+    },
+    segments: [{
+      segmentId: 'scene.caption.plan.1',
+      startFrame: 0,
+      endFrameExclusive: 360,
+      operationIds: ['caption.operation.1'],
+    }],
+    sourceSequence: [{
+      sourceSequenceItemId: 'source.caption.plan.1',
+      mediaAssetId: 'media.caption.plan.1',
+      uploadedOrder: 1,
+      checksumSha256: sha256AuthorityValue('source.caption.plan.1'),
+      required: true,
+    }],
+    sourceCleanupPlan: {
+      status: 'confirmed',
+      decisions: [{
+        decisionId: 'cleanup.caption.plan.1',
+        sourceSequenceItemId: 'source.caption.plan.1',
+        action: 'preserve',
+        startFrame: 0,
+        endFrameExclusive: 360,
+        reason: 'Preserve the complete approved source meaning.',
+        confidence: 1,
+        meaningPreservationStatus: 'passed',
+        userReviewStatus: 'not_required',
+      }],
+    },
+  } as unknown as CanonicalPlanComponentsInput
+}
+
+const snapshotValidation: CanonicalWorkItemInput = {
+  workItemKey: 'snapshot-validation',
+  workItemType: 'validate_approved_snapshot',
+  workerClass: 'authority_worker',
+  executionInput: { operation: 'validate_snapshot_manifest' },
+  sourceSequenceItemIds: [],
+  sourceCleanupDecisionIds: [],
+  expectedOutputs: [{
+    outputKey: 'snapshot-validation-evidence',
+    artifactType: 'authority_validation_evidence',
+    assetRole: 'qa',
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'application/json',
+    segmentIds: [], timingIds: [], rendererLayerIds: [],
+  }],
+  dependencyKeys: [],
+  approvedToolIds: [],
+  providerExecutionMode: 'none',
+  fallbackPolicy: {},
+  maxAttempts: 1,
+  attemptTimeoutSeconds: 60,
+  scheduledDelaySeconds: 0,
+  maximumCreditBudget: 1,
+  required: true,
+}
+
+const selectedBundle = createCaptionEarlyPlanningBundle(earlyInput({
+  trace: selectedTrace,
+}))
+const selectedBinding = planningBinding({
+  trace: selectedTrace,
+  bundle: selectedBundle,
+})
+const traceRef = selectedBinding.professionalSkillCompositionTraceRef
+const bundleRef = selectedBinding.earlyPlanningBundleRef
+const estimateMetadata: CanonicalCaptionSpecialistEstimateBindingMetadata = {
+  schemaVersion: CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION,
+  outputId: scope.outputId,
+  compositionTraceRef: traceRef,
+  earlyPlanningBundleRef: bundleRef,
+  captionEstimateInputRef: selectedBinding.captionEstimateInputRef,
+  selectedComponentKeys: ['caption_design', 'caption_render_qa'],
+  estimateOwnerRemainsCanonical: true,
+  serviceFeeIncludedInCaptionWorkCost: false,
+  billingAuthorityGrantedToCaption: false,
+}
+const estimate: CanonicalEstimateInput = {
+  lineItems: [{
+    lineKey: 'caption-specialist-private-work',
+    label: 'Caption design, rendering, and private review',
+    category: 'caption_specialist',
+    estimatedCredits: 12,
+    removable: false,
+    metadata: estimateMetadata as unknown as Record<string, unknown>,
+  }],
+  fallbackAllowanceCredits: 2,
+  validForSeconds: 3_600,
+}
+const selected = prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: selectedTrace,
+    bundle: selectedBundle,
+    binding: selectedBinding,
+  }),
+  estimate,
+  existingWorkItems: [snapshotValidation],
+})
+check(selected.projection?.disposition ===
+  'planning_work_projected_downstream_caption_execution_required',
+'Selected Caption composition must create an honest planning projection.')
+check(selected.workItems.length === 7,
+  'One simple scene must create the bounded continuity and scene planning set.')
+check(selected.workItems.every((item) =>
+  item.workerClass === 'canonical_caption_specialist_worker_v1'
+  && item.maximumCreditBudget === 0
+  && item.approvedToolIds.length === 0),
+'Canonical Caption planning jobs must not smuggle tool, provider, or cost authority.')
+check(selected.workItems[0]?.dependencyKeys[0] === 'snapshot-validation',
+  'Caption planning must remain downstream of exact snapshot validation.')
+check(selected.workItems.some((item) =>
+  item.executionInput.captionJobType === 'compile_caption_render_spec'),
+'Selected work must include a real render-spec planning assignment.')
+check(selected.projection?.planningJobsClaimFinishedCaptionMedia === false
+  && selected.projection.fullyApprovedCaptionExecutionCoverageClaimed === false
+  && selected.projection.downstreamCaptionRenderWorkRequired,
+'Planning projection must not masquerade as rendered-caption completion.')
+check(parseCanonicalCaptionSpecialistPlanningProjection(selected.projection)
+  .projectionDigestSha256 === selected.projection?.projectionDigestSha256,
+'The canonical planning projection must verify its own digest.')
+
+const restrainedTrace = createProfessionalSkillCompositionTrace({
+  planId: 'professional.caption.plan.restrained.1',
+  selectedSkills: [selection('captions.no_caption_policy')],
+})
+const restrainedBundle = createCaptionEarlyPlanningBundle(earlyInput({
+  trace: restrainedTrace,
+  noCaptions: true,
+}))
+const restrainedBinding = planningBinding({
+  trace: restrainedTrace,
+  bundle: restrainedBundle,
+})
+const restrained = prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: restrainedTrace,
+    bundle: restrainedBundle,
+    binding: restrainedBinding,
+  }),
+  estimate: {
+    lineItems: [{
+      lineKey: 'base-planning', label: 'Base planning', category: 'planning',
+      estimatedCredits: 2, removable: false, metadata: {},
+    }],
+    fallbackAllowanceCredits: 0,
+    validForSeconds: 3_600,
+  },
+  existingWorkItems: [snapshotValidation],
+})
+check(restrained.projection?.disposition ===
+  'no_caption_work_owner_restraint_preserved'
+  && restrained.workItems.length === 0,
+'Exact no_captions restraint must create no hidden Caption work.')
+
+assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: {
+    ...components({
+      trace: selectedTrace,
+      bundle: selectedBundle,
+      binding: selectedBinding,
+    }),
+    captionEarlyPlanningBundle: undefined,
+  },
+  estimate,
+  existingWorkItems: [snapshotValidation],
+}), /requires the professional plan, early bundle, and planning binding/u)
+checks += 1
+
+assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: selectedTrace,
+    bundle: selectedBundle,
+    binding: selectedBinding,
+  }),
+  estimate,
+  existingWorkItems: [{
+    ...snapshotValidation,
+    workerClass: 'canonical_caption_specialist_worker_v1',
+  }],
+}), /only by the canonical planner/u)
+checks += 1
+
+assert.throws(() => parseCanonicalCaptionSpecialistPlanningBinding({
+  ...selectedBinding,
+  bindingDigestSha256: sha256AuthorityValue('tampered-binding'),
+}), /digest failed/u)
+checks += 1
+
+assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: selectedTrace,
+    bundle: selectedBundle,
+    binding: {
+      ...selectedBinding,
+      masterTimingRef: domainRef('crossed-master-timing'),
+      bindingDigestSha256: selectedBinding.bindingDigestSha256,
+    },
+  }),
+  estimate,
+  existingWorkItems: [snapshotValidation],
+}), /digest failed|stale or crossed/u)
+checks += 1
+
+const trackingEarlyInput = earlyInput({ trace: selectedTrace })
+trackingEarlyInput.scenes[0]!.depthMaskOrTrackingLikely = true
+trackingEarlyInput.scenes[0]!.requestedTreatment = 'reserved_composition'
+const trackingBundle = createCaptionEarlyPlanningBundle(trackingEarlyInput)
+const trackingBindingWithoutPurpose = planningBinding({
+  trace: selectedTrace,
+  bundle: trackingBundle,
+})
+assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: selectedTrace,
+    bundle: trackingBundle,
+    binding: trackingBindingWithoutPurpose,
+  }),
+  estimate,
+  existingWorkItems: [snapshotValidation],
+}), /scene policy or timing is inconsistent/u)
+checks += 1
+
+assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: restrainedTrace,
+    bundle: restrainedBundle,
+    binding: restrainedBinding,
+  }),
+  estimate,
+  existingWorkItems: [snapshotValidation],
+}), /cannot retain hidden Caption estimate work/u)
+checks += 1
+
+console.log(JSON.stringify({
+  smoke: 'canonical-caption-specialist-planning',
+  status: 'passed',
+  checks,
+  selectedWorkItemCount: selected.workItems.length,
+  selectedProjectionDigestSha256:
+    selected.projection?.projectionDigestSha256,
+  restrainedWorkItemCount: restrained.workItems.length,
+  planningJobsClaimFinishedCaptionMedia: false,
+  fullyApprovedCaptionExecutionCoverageClaimed: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}, null, 2))

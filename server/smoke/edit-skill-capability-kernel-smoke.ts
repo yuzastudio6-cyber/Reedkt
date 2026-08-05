@@ -27,6 +27,14 @@ import {
 } from '../edit-skills/core/index'
 
 const SHA = hashSkillValue('evidence')
+const TOOL_ROUTE_HASH = hashSkillValue({
+  routeKey: 'fixture_tool',
+  routeVersion: '1.0.0',
+})
+const NO_ACTION_ROUTE_HASH = hashSkillValue({
+  routeKey: 'fixture_no_action',
+  routeVersion: '1.0.0',
+})
 
 function fixtureManifest() {
   return createSkillCapabilityManifest({
@@ -68,8 +76,22 @@ function fixtureManifest() {
       alternateProviderFallbackAllowed: false,
       unknownOutcomeRequiresReconciliation: true,
     },
-    toolRoutes: [{ routeKey: 'fixture_tool', routeKind: 'tool', operationRef: 'tool.fixture.v1', priority: 1, requiresApproval: true, description: 'Fixture.' }],
-    fallbackRoutes: [{ routeKey: 'fixture_no_action', routeKind: 'no_action', operationRef: 'no_action.fixture.v1', priority: 2, requiresApproval: false, description: 'Fixture.' }],
+    toolRoutes: [{
+      routeKey: 'fixture_tool', routeKind: 'tool',
+      operationRef: 'tool.fixture.v1', priority: 1, requiresApproval: true,
+      description: 'Fixture.', routeVersion: '1.0.0',
+      routeHash: TOOL_ROUTE_HASH, supportedJobTypes: ['fixture_job'],
+      requiredInputs: ['fixture_input'], producedArtifactTypes: ['fixture_output'],
+      costClass: 'local',
+    }],
+    fallbackRoutes: [{
+      routeKey: 'fixture_no_action', routeKind: 'no_action',
+      operationRef: 'no_action.fixture.v1', priority: 2,
+      requiresApproval: false, description: 'Fixture.', routeVersion: '1.0.0',
+      routeHash: NO_ACTION_ROUTE_HASH, supportedJobTypes: ['fixture_job'],
+      requiredInputs: ['fixture_input'], producedArtifactTypes: ['fixture_output'],
+      costClass: 'zero',
+    }],
     lowerCostRoutes: [],
     planningQa: [{ qaKey: 'fixture_planning_qa', severity: 'blocking', description: 'Planning.' }],
     outputQa: [{ qaKey: 'fixture_output_qa', severity: 'blocking', description: 'Output.' }],

@@ -40,9 +40,17 @@ import {
 import type { CaptionDomainRef } from '../../src/types/caption-domain-contracts'
 import {
   calculateSkillContractDigest,
+  parseOrchestraSkillCall,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
-import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from '../captions-specialist/captions-specialist-runtime'
+import {
+  CAPTIONS_CLOSED_AUTHORITY_BOUNDARY,
+  runCaptionsSpecialistJob,
+} from '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsHarnessCall,
+  resumeCaptionsHarnessCall,
+} from '../internal-testing/captions-specialist-harness'
 import {
   CAP_11_CONFIRMED_FRAME_REF,
   CAP_11_MASTER_TIMING_REF,
@@ -618,6 +626,122 @@ const compatibilityReceipt = runCaptionLivingFrameCompatibilitySmoke({
   v2Response: lfResponse,
 })
 assertions += compatibilityReceipt.assertions
+const runtimeCallCandidate = createCaptionsHarnessCall({
+  callId: 'caption.living-frame.runtime.cap12',
+  jobType: 'plan_caption_to_visual_handoff',
+  scopeLevel: 'scene',
+  approvedSnapshotRef: lfRequest.canonicalScope.approvedSnapshotRef,
+  outputId: lfRequest.canonicalScope.outputId,
+  sceneId: lfRequest.canonicalScope.sceneId,
+  inputArtifactTypes: [
+    'canonical_transcript',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+  ],
+})
+runtimeCallCandidate.canonicalScope = {
+  ...runtimeCallCandidate.canonicalScope,
+  ownerUserId: lfRequest.canonicalScope.ownerUserId,
+  workspaceId: lfRequest.canonicalScope.workspaceId,
+  projectId: lfRequest.canonicalScope.projectId,
+  editSessionId: lfRequest.canonicalScope.editSessionId,
+  approvedSnapshotRef: structuredClone(
+    lfRequest.canonicalScope.approvedSnapshotRef),
+  outputId: lfRequest.canonicalScope.outputId,
+  sceneId: lfRequest.canonicalScope.sceneId,
+  authorizedFrameRanges: structuredClone(
+    lfRequest.canonicalScope.authorizedFrameRanges),
+}
+runtimeCallCandidate.inputArtifactRefs =
+  runtimeCallCandidate.inputArtifactRefs.map((artifact) => {
+    if (artifact.artifactType === 'canonical_transcript') {
+      return { ...artifact, ...lfRequest.canonicalTranscript.artifactRef }
+    }
+    if (artifact.artifactType === 'confirmed_output_frame') {
+      return { ...artifact, ...CAP_11_CONFIRMED_FRAME_REF }
+    }
+    if (artifact.artifactType === 'master_timing_or_planning_timing') {
+      return { ...artifact, ...lfRequest.timing.masterTimingRef }
+    }
+    return artifact
+  })
+const runtimeCall = parseOrchestraSkillCall(withDigest({
+  ...runtimeCallCandidate,
+  callDigestSha256: '',
+}, 'callDigestSha256'))
+const runtimeInitial = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  livingFrameRequest: lfRequest,
+})
+check(runtimeInitial.disposition === 'needs_followup'
+  && runtimeInitial.supportRequests.length === 1
+  && runtimeInitial.supportRequests[0].targetSkillKey === 'living_frame'
+  && runtimeInitial.supportRequests[0].typedPayloadType
+    === CAPTION_LIVING_FRAME_REQUEST_V2_VERSION
+  && runtimeInitial.supportRequests[0].requestedArtifactTypes.join('|')
+    === 'living_frame_caption_direction_response',
+'The runtime emits the exact Caption-owned Living Frame V2 request.')
+const runtimeSupportRequest = runtimeInitial.supportRequests[0]
+const runtimeResumedCandidate = resumeCaptionsHarnessCall(
+  runtimeCall, runtimeSupportRequest)
+runtimeResumedCandidate.injectedSupportArtifactRefs[0] = {
+  ...runtimeResumedCandidate.injectedSupportArtifactRefs[0],
+  id: lfResponse.responseId,
+  version: lfResponse.schemaVersion,
+  contentHash: lfResponse.responseDigestSha256,
+  artifactType: 'living_frame_caption_direction_response',
+  producerSkillKey: 'living_frame',
+}
+const runtimeResumedCall = parseOrchestraSkillCall(withDigest({
+  ...runtimeResumedCandidate,
+  callDigestSha256: '',
+}, 'callDigestSha256'))
+const runtimeAdmission = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  livingFrameRequest: lfRequest,
+  livingFrameResponse: lfResponse,
+})
+check(runtimeAdmission.disposition === 'completed'
+  && runtimeAdmission.reasonCodes.includes(
+    'living_frame.contract_admission.accepted'),
+'The exact Living Frame response admits the Caption planning job.')
+const missingRuntimeResponse = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  livingFrameRequest: lfRequest,
+})
+check(missingRuntimeResponse.disposition === 'blocked'
+  && missingRuntimeResponse.reasonCodes.join('|')
+    === 'input.living_frame.response.admission.failed',
+'A Living Frame response reference alone cannot satisfy Caption admission.')
+const referenceOnlyInitial = runCaptionsSpecialistJob({ call: runtimeCall })
+const referenceOnlyRequest = referenceOnlyInitial.supportRequests[0]
+const referenceOnlyCall = resumeCaptionsHarnessCall(
+  runtimeCall, referenceOnlyRequest)
+const referenceOnlyResult = runCaptionsSpecialistJob({
+  call: referenceOnlyCall,
+  resumeSupportRequest: referenceOnlyRequest,
+})
+check(referenceOnlyResult.disposition === 'blocked'
+  && referenceOnlyResult.reasonCodes.join('|')
+    === 'input.living_frame.request.missing',
+'A CAP-11 receipt reference cannot impersonate the exact Living Frame request.')
+const crossedRuntimeResponse = structuredClone(lfResponse)
+crossedRuntimeResponse.canonicalScope.sceneId = 'scene.living-frame.crossed'
+const crossedRuntimeAdmission = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  livingFrameRequest: lfRequest,
+  livingFrameResponse: withDigest({
+    ...crossedRuntimeResponse,
+    responseDigestSha256: '',
+  }, 'responseDigestSha256'),
+})
+check(crossedRuntimeAdmission.disposition === 'blocked'
+  && crossedRuntimeAdmission.reasonCodes.join('|')
+    === 'input.living_frame.response.admission.failed',
+'A digest-valid cross-scene Living Frame response fails Caption admission.')
 const lfV1Support = createSupportRequest({
   id: 'support.cap12.living-frame.v1.compatibility',
   target: 'living_frame',

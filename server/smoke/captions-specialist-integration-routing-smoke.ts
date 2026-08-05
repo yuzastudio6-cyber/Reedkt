@@ -162,9 +162,11 @@ check(soundRun.initialResult.supportRequests[0].typedPayloadType
   && (soundRun.initialResult.supportRequests[0].typedPayload as
     Record<string, unknown>).typedPayloadEmbedded === false,
 'Sound support carries a byte-free typed-payload reference requirement')
-check(soundRun.finalResult.disposition === 'completed'
-  && soundRun.completedWithoutDirectPeerDispatch,
-'Sound integration resumes only after exact mediated evidence injection')
+check(soundRun.finalResult.disposition === 'blocked'
+  && soundRun.finalResult.reasonCodes.join('|')
+    === 'input.soundsync.payload.missing'
+  && !soundRun.completedWithoutDirectPeerDispatch,
+'a reference-only SoundSync injection cannot impersonate typed audio evidence')
 
 const brollCall = createCaptionsHarnessCall({
   callId: 'captions.integration.broll',
@@ -212,9 +214,11 @@ const safeRegionRun = runCaptionsInternalHarnessToCompletion({
 check(safeRegionRun.initialResult.supportRequests.map((request) =>
   request.targetSkillKey).join('|') === 'track_all|visual_intelligence',
 'safe-region planning requests both exact Track All and Visual Intelligence evidence')
-check(safeRegionRun.resumeSteps.length === 2
-  && safeRegionRun.finalResult.disposition === 'completed',
-'two-owner safe-region integration completes through bounded sequential resume')
+check(safeRegionRun.resumeSteps.length === 1
+  && safeRegionRun.finalResult.disposition === 'blocked'
+  && safeRegionRun.finalResult.reasonCodes.join('|')
+    === 'input.track_all.payload.missing',
+'safe-region integration stops at the first owner lacking exact typed evidence')
 
 const missingTranscriptCall = createCaptionsHarnessCall({
   callId: 'captions.integration.missing-transcript',

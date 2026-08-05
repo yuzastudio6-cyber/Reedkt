@@ -214,8 +214,10 @@ check(
   'Support requests cannot execute peers directly.',
 )
 check(
-  followupRun.resumedResult?.disposition === 'completed',
-  'Exact approved dependency injection must allow resume.',
+  followupRun.resumedResult?.disposition === 'blocked'
+    && followupRun.resumedResult.reasonCodes.join('|')
+      === 'input.visual_intelligence.payload.missing',
+  'A reference-only Visual Intelligence injection must fail closed.',
 )
 check(
   followupRun.resumedCall !== null

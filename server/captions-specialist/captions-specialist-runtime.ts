@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import {
   CAPTIONS_CAP_01_ARTIFACT_TYPE,
+  CAPTIONS_LIVING_FRAME_JOB_TYPES,
   CAPTIONS_SPECIALIST_SKILL_KEY,
   CAPTIONS_SUPPORTED_JOB_TYPES,
   CAPTIONS_UNSUPPORTED_JOB_TYPES,
@@ -49,6 +50,10 @@ import type {
 } from '../../src/types/caption-canonical-transcript-authenticated-read'
 import type { CaptionCanonicalTranscript } from
   '../../src/types/caption-transcript-lineage'
+import type {
+  CaptionLivingFrameRequestV2,
+  LivingFrameCaptionResponseV2,
+} from '../../src/types/caption-living-frame-boundary'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -100,6 +105,10 @@ import {
   admitCaptionCanonicalTranscriptFromAuthenticatedRead,
   parseCaptionCanonicalTranscriptAuthenticatedReadBinding,
 } from './caption-canonical-transcript-authenticated-read'
+import {
+  parseCaptionLivingFrameRequestV2,
+  parseLivingFrameCaptionResponseV2,
+} from './caption-living-frame-boundary'
 
 interface CaptionRuntimeProfile {
   manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
@@ -108,6 +117,8 @@ interface CaptionRuntimeProfile {
 
 const BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE =
   'b_roll_caption_owner_read_result' as const
+const LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE =
+  'living_frame_caption_direction_response' as const
 
 export { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
@@ -261,6 +272,38 @@ function makeBrollOwnerReadSupportRequest(
     canonicalScope: structuredClone(call.canonicalScope),
     typedPayloadType: BROLL_CAPTION_OWNER_READ_REQUEST_VERSION,
     typedPayload: structuredClone(ownerRequest),
+    mediationPolicy: {
+      hqMediated: true,
+      directPeerDispatchAllowed: false,
+      assigneeMayOnlyResumeAfterInjection: true,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseSkillSupportRequest({
+    ...requestWithoutDigest,
+    requestDigestSha256: calculateSkillContractDigest(
+      { ...requestWithoutDigest, requestDigestSha256: '' },
+      'requestDigestSha256',
+    ),
+  })
+}
+
+function makeLivingFrameSupportRequest(
+  call: OrchestraSkillCall,
+  livingFrameRequest: CaptionLivingFrameRequestV2,
+): SkillSupportRequest {
+  const requestWithoutDigest: Omit<SkillSupportRequest,
+  'requestDigestSha256'> = {
+    schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
+    requestId: `${call.callId}.support.living_frame`,
+    originalCallRef: callRef(call),
+    requestingSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
+    targetSkillKey: 'living_frame',
+    reasonCode: 'missing.caption_living_frame_handoff_binding',
+    requestedArtifactTypes: [LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE],
+    canonicalScope: structuredClone(call.canonicalScope),
+    typedPayloadType: livingFrameRequest.schemaVersion,
+    typedPayload: structuredClone(livingFrameRequest),
     mediationPolicy: {
       hqMediated: true,
       directPeerDispatchAllowed: false,
@@ -595,6 +638,68 @@ function canonicalTranscriptArtifactsMatch(
     })
 }
 
+function exactSingleInputArtifactHash(
+  call: OrchestraSkillCall,
+  artifactType: string,
+  contentHash: string,
+): boolean {
+  const matches = call.inputArtifactRefs.filter(
+    (artifact) => artifact.artifactType === artifactType)
+  return matches.length === 1 && matches[0].contentHash === contentHash
+}
+
+function livingFrameRequestMatchesCall(
+  call: OrchestraSkillCall,
+  request: CaptionLivingFrameRequestV2,
+): boolean {
+  const scope = request.canonicalScope
+  const callSnapshot = call.canonicalScope.approvedSnapshotRef
+  return (CAPTIONS_LIVING_FRAME_JOB_TYPES as readonly string[])
+    .includes(call.job.jobType)
+    && call.job.scopeLevel === 'scene'
+    && call.canonicalScope.boundaryId === null
+    && call.canonicalScope.ownerUserId === scope.ownerUserId
+    && call.canonicalScope.workspaceId === scope.workspaceId
+    && call.canonicalScope.projectId === scope.projectId
+    && call.canonicalScope.editSessionId === scope.editSessionId
+    && call.canonicalScope.outputId === scope.outputId
+    && call.canonicalScope.sceneId === scope.sceneId
+    && JSON.stringify(call.canonicalScope.authorizedFrameRanges)
+      === JSON.stringify(scope.authorizedFrameRanges)
+    && ((callSnapshot === null && scope.approvedSnapshotRef === null)
+      || (callSnapshot !== null && scope.approvedSnapshotRef !== null
+        && exactRef(callSnapshot, scope.approvedSnapshotRef)))
+    && exactSingleInputArtifactRef(
+      call, 'canonical_transcript', request.canonicalTranscript.artifactRef)
+    && exactSingleInputArtifactHash(
+      call, 'confirmed_output_frame',
+      request.confirmedFrame.confirmedOutputFrameDigestSha256)
+    && exactSingleInputArtifactRef(
+      call, 'master_timing_or_planning_timing', request.timing.masterTimingRef)
+}
+
+function livingFrameResponseArtifactMatches(
+  call: OrchestraSkillCall,
+  supportRequest: SkillSupportRequest,
+  response: LivingFrameCaptionResponseV2,
+): boolean {
+  const injected = call.injectedSupportArtifactRefs
+  if (injected.length !== 1) return false
+  const artifact = injected[0]
+  const supportRequestRef: SkillContractRef = {
+    id: supportRequest.requestId,
+    version: supportRequest.schemaVersion,
+    contentHash: supportRequest.requestDigestSha256,
+  }
+  return artifact.id === response.responseId
+    && artifact.version === response.schemaVersion
+    && artifact.contentHash === response.responseDigestSha256
+    && artifact.artifactType === LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE
+    && artifact.producerSkillKey === 'living_frame'
+    && artifact.sourceSupportRequestRef !== null
+    && exactRef(artifact.sourceSupportRequestRef, supportRequestRef)
+}
+
 function qualificationEntry(
   snapshot: SkillQualificationSnapshot,
   jobType: string,
@@ -620,6 +725,8 @@ export function runCaptionsSpecialistJob(input: {
   brollOwnerReadResult?: unknown
   canonicalTranscript?: unknown
   canonicalTranscriptAuthenticatedReadBinding?: unknown
+  livingFrameRequest?: unknown
+  livingFrameResponse?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationProfile = call.manifestRef.id
@@ -701,6 +808,8 @@ export function runCaptionsSpecialistJob(input: {
   let brollRequest: BrollCaptionOwnerReadRequest | null = null
   let admittedBrollBinding: CaptionBrollOwnerReadBinding | null = null
   let admittedCanonicalTranscript: CaptionCanonicalTranscript | null = null
+  let livingFrameRequest: CaptionLivingFrameRequestV2 | null = null
+  let admittedLivingFrameResponse: LivingFrameCaptionResponseV2 | null = null
   if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
     if (input.visualIntelligenceSupportPayload !== undefined
       || input.visualIntelligenceEvidencePacket !== undefined) {
@@ -852,6 +961,23 @@ export function runCaptionsSpecialistJob(input: {
       )
     }
   }
+  if (input.livingFrameRequest !== undefined) {
+    try {
+      livingFrameRequest = parseCaptionLivingFrameRequestV2(
+        input.livingFrameRequest)
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.living_frame.request.invalid'],
+        'The Caption-to-Living-Frame request is invalid.',
+      )
+    }
+    if (!livingFrameRequestMatchesCall(call, livingFrameRequest)) {
+      return makeResult(profile,
+        call, 'blocked', ['input.living_frame.request.scope_or_job.mismatch'],
+        'The Living Frame request does not match the assigned Caption scene.',
+      )
+    }
+  }
 
   if (call.resumeOfSupportRequestRef !== null) {
     let request: SkillSupportRequest
@@ -927,11 +1053,10 @@ export function runCaptionsSpecialistJob(input: {
           ], 'The Visual Intelligence packet does not match its injected artifact.',
         )
       }
-    } else if (request.targetSkillKey === 'visual_intelligence'
-      && input.visualIntelligenceEvidencePacket !== undefined) {
+    } else if (request.targetSkillKey === 'visual_intelligence') {
       return makeResult(profile,
         call, 'blocked', ['input.visual_intelligence.payload.missing'],
-        'Visual Intelligence evidence requires its exact Caption payload.',
+        'Visual Intelligence resume requires its exact Caption payload and evidence.',
       )
     } else if (input.visualIntelligenceEvidencePacket !== undefined) {
       return makeResult(profile,
@@ -977,8 +1102,7 @@ export function runCaptionsSpecialistJob(input: {
           'The Track All packet is not authenticated or does not match its artifact.',
         )
       }
-    } else if (request.targetSkillKey === 'track_all'
-      && request.typedPayloadType === 'caption-track-all-support-payload-v1') {
+    } else if (request.targetSkillKey === 'track_all') {
       return makeResult(profile,
         call, 'blocked', ['input.track_all.payload.missing'],
         'Typed Track All resume requires its exact Caption payload and packet.',
@@ -1010,8 +1134,7 @@ export function runCaptionsSpecialistJob(input: {
           'The SoundSync result is not authenticated or does not match its artifact.',
         )
       }
-    } else if (request.targetSkillKey === 'soundsync'
-      && request.typedPayloadType === 'caption-sound-cue-request-v1') {
+    } else if (request.targetSkillKey === 'soundsync') {
       return makeResult(profile,
         call, 'blocked', ['input.soundsync.payload.missing'],
         'Typed SoundSync resume requires its exact context, payload, and result.',
@@ -1072,6 +1195,48 @@ export function runCaptionsSpecialistJob(input: {
         'B-roll owner evidence does not match the current follow-up owner.',
       )
     }
+    if (request.targetSkillKey === 'living_frame') {
+      let embeddedLivingFrameRequest: CaptionLivingFrameRequestV2
+      try {
+        embeddedLivingFrameRequest = parseCaptionLivingFrameRequestV2(
+          request.typedPayload)
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.living_frame.request.missing'],
+          'Living Frame resume requires the exact embedded Caption request.',
+        )
+      }
+      if (!livingFrameRequestMatchesCall(call, embeddedLivingFrameRequest)
+        || (livingFrameRequest !== null
+          && livingFrameRequest.requestDigestSha256
+            !== embeddedLivingFrameRequest.requestDigestSha256)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.living_frame.request.mismatch'],
+          'The Living Frame request does not match the resumed Caption job.',
+        )
+      }
+      try {
+        admittedLivingFrameResponse = parseLivingFrameCaptionResponseV2(
+          input.livingFrameResponse, embeddedLivingFrameRequest)
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.living_frame.response.admission.failed'],
+          'The Living Frame response failed exact Caption admission.',
+        )
+      }
+      if (!livingFrameResponseArtifactMatches(
+        call, request, admittedLivingFrameResponse)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.living_frame.response.artifact.mismatch'],
+          'The Living Frame response does not match its injected artifact.',
+        )
+      }
+    } else if (input.livingFrameResponse !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.living_frame.response.unexpected'],
+        'Living Frame evidence does not match the current follow-up owner.',
+      )
+    }
   } else if (input.resumeSupportRequest !== undefined) {
     return makeResult(profile,
       call, 'blocked', ['resume.request.unexpected'],
@@ -1107,12 +1272,19 @@ export function runCaptionsSpecialistJob(input: {
       call, 'blocked', ['input.broll_owner.result.unexpected'],
       'B-roll owner evidence was supplied outside an exact resume.',
     )
+  } else if (input.livingFrameResponse !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.living_frame.response.unexpected'],
+      'Living Frame evidence was supplied outside an exact resume.',
+    )
   }
 
   const additionallySatisfied = [
     ...(admittedVisualPacket === null ? [] : ['visual_intelligence_report']),
     ...(admittedBrollBinding === null
       ? [] : ['caption_broll_owner_read_binding']),
+    ...(admittedLivingFrameResponse === null
+      ? [] : ['caption_living_frame_handoff_binding']),
   ]
   const missing = missingArtifacts(profile, call, additionallySatisfied)
   if (missing.includes('canonical_transcript')) {
@@ -1170,6 +1342,9 @@ export function runCaptionsSpecialistJob(input: {
       if (target === 'broll_owner' && brollRequest !== null) {
         return makeBrollOwnerReadSupportRequest(call, brollRequest)
       }
+      if (target === 'living_frame' && livingFrameRequest !== null) {
+        return makeLivingFrameSupportRequest(call, livingFrameRequest)
+      }
       return makeSupportRequest(call, target, items)
     })
     return makeResult(profile,
@@ -1196,6 +1371,8 @@ export function runCaptionsSpecialistJob(input: {
       admittedBrollBinding?.bindingDigestSha256 ?? 'no-broll-binding',
       admittedCanonicalTranscript?.transcriptDigestSha256
         ?? 'no-canonical-transcript-payload',
+      admittedLivingFrameResponse?.responseDigestSha256
+        ?? 'no-living-frame-response',
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -1218,6 +1395,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['broll_owner.contract_admission.accepted']),
       ...(admittedCanonicalTranscript === null ? []
         : ['canonical_transcript.contract_admission.accepted']),
+      ...(admittedLivingFrameResponse === null ? []
+        : ['living_frame.contract_admission.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

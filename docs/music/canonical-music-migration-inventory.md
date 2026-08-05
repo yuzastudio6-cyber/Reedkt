@@ -1,8 +1,8 @@
 # Canonical Music Migration Inventory
 
-Status: `migration_frozen`
+Status: `v2_migration_frozen`
 
-This inventory freezes the legacy Music surfaces before the canonical Music department is introduced. It is implementation evidence, not an Orchestra implementation or a live-provider activation record.
+This inventory freezes the legacy Music surfaces before the canonical Music v2 execution-integrity closure. It is implementation evidence, not an Orchestra implementation or a live-provider activation record. The detailed v1 gap audit and v2 migration decisions are recorded in `canonical-music-v2-execution-integrity-audit.md` and `adr-0001-canonical-music-v2-versioning-and-boundaries.md`.
 
 ## Canonical baseline
 
@@ -10,12 +10,15 @@ This inventory freezes the legacy Music surfaces before the canonical Music depa
 - Sound dependency: canonical Sound `4.0.0`, contract `sound.skill_contract.v4`.
 - Shared kernel: `server/edit-skills/core`.
 - Music branch: `codex/canonical-music-skill`.
+- Music v1 baseline: `908f0ea327aa9db57367a829ccfb68f7fdea23e1`.
+- Music v2 target: skill `2.0.0`, contract `music.skill_contract.v2`.
 - Global Orchestra, final mux, render, export, delivery, and publishing remain out of scope.
 
 ## Migration map
 
 | Legacy surface | Classification | Canonical treatment |
 | --- | --- | --- |
+| `server/music/*` and `server/edit-skills/music/*` canonical Music v1 | migrate | Preserve working private analysis, provider, Sound-port, scope, rational timing, registry, and acceptance foundations; publish materially changed v2 identities rather than silently mutating v1 contracts. |
 | `src/types/audio-music.ts` | adapt | Preserve useful Music domain vocabulary, but replace execution authority with canonical request/result, rational frames, immutable artifacts, rights, QA, revision, and handoff contracts. |
 | `src/backend/contracts/audio-music-contracts.ts` | compatibility_only | Project canonical Music artifacts for old planning callers; it may not admit execution or create a handoff. |
 | `src/backend/contracts/sound-music-audio-contracts.ts` | retire | `SOUND_MUSIC_AUDIO` cannot own Music or authorize provider, worker, Sound, or artifact execution. |

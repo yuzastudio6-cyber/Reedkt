@@ -16,6 +16,14 @@ import { sha256AuthorityValue } from
 const root = 'track_all_task_qa_private_build_input'
 const entries = [
   [`${root}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`, 37_945_232, 'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'],
+  [`${root}/cuda-npp/NGC-DL-CONTAINER-LICENSE`, 20_000, 'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684'],
+  [`${root}/cuda-npp/cuda-npp-runtime-receipt.json`, 2_000, 'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd'],
+  [`${root}/cuda-npp/lib/libnppc.so.12`, 1_656_080, '69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7'],
+  [`${root}/cuda-npp/lib/libnppial.so.12`, 22_046_288, 'd37c9d285930dca5da32ccce15594bccdadde6da71fd1c297f79d7b435b50ce6'],
+  [`${root}/cuda-npp/lib/libnppidei.so.12`, 13_633_464, '8397ce991612229cf673dce3b594187c61ada782d5cf61f4a7212cdd84e1e552'],
+  [`${root}/cuda-npp/lib/libnppig.so.12`, 55_871_152, 'f24d72d82ceea1b0833a2429cebd6903f0d9ca961841ee413cf6bdea7d0d1129'],
+  [`${root}/cuda-npp/lib/libnppist.so.12`, 49_739_688, 'adcaf330d4ba448d5b9f9e8e269d97e05e9c888720ee19cbbd484170fb59ac36'],
+  [`${root}/cuda-npp/lib/libnppitc.so.12`, 6_686_096, 'cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9'],
   [`${root}/opencv/CONTRIB_LICENSE`, 11_358, 'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30'],
   [`${root}/opencv/LICENSE`, 11_358, 'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30'],
   [`${root}/opencv/opencv-build-information.txt`, 6_465, 'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae'],
@@ -82,7 +90,12 @@ assert.equal(reviews.archiveSafetyReview.directoryEntryCount,
 assert.equal(reviews.archiveSafetyReview.malwareContentClassificationClaimed,
   false)
 assert.equal(reviews.dependencyReview.pythonDependencies.length, 6)
+assert.equal(reviews.dependencyReview.schemaVersion,
+  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v2')
 assert.equal(reviews.dependencyReview.runtimePackageDownloadsAllowed, false)
+assert.equal(reviews.dependencyReview.cudaNppRuntime.libraryCount, 6)
+assert.equal(reviews.dependencyReview.cudaNppRuntime.completeCudaToolkitCopied,
+  false)
 assert.equal(
   reviews.dependencyReview.opencvCuda.runtimeArtifactSetSha256,
   createHash('sha256').update(
@@ -91,11 +104,17 @@ assert.equal(
   ).digest('hex'),
 )
 assert.equal(reviews.licenseReview.privateCandidateImageBuildAllowed, true)
+assert.equal(reviews.licenseReview.schemaVersion,
+  'canonical-track-all-sam3_1-l4-task-qa-license-review-v2')
 assert.equal(reviews.licenseReview.runtimeReleaseAllowed, false)
 assert.equal(reviews.licenseReview.legalApprovalClaimed, false)
 assert.equal(
   reviews.licenseReview.cudaForwardCompatibilityLicense
     .publicRedistributionAuthorized,
+  false,
+)
+assert.equal(
+  reviews.licenseReview.cudaNppRuntimeLicense.publicRedistributionAuthorized,
   false,
 )
 
@@ -221,6 +240,28 @@ assert.notEqual(
   reviews.dependencyReview.reviewHash,
 )
 
+const changedNppEntries = entries.map((entry) => entry.path ===
+  `${root}/cuda-npp/lib/libnppc.so.12`
+  ? { ...entry, sha256: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee' }
+  : entry)
+assert.throws(() =>
+  createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
+    buildSourceCoordinate: coordinate,
+    buildSourceArtifactRef,
+    buildSourceArchiveEntries: changedNppEntries,
+    buildSourceArchiveEntrySetSha256: sha256AuthorityValue(changedNppEntries),
+    buildSourceArchiveDirectoryEntries: directories,
+    requirementsLockSha256:
+      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+    opencvBuildInformationSha256:
+      'd691f963c6132152b4c7f450550bf0ab458f0d89eabaadbaa6e5be8ecbd827ae',
+    opencvLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    opencvContribLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    preparedAt: '2026-08-05T17:20:00.000Z',
+  }))
+
 assert.throws(() =>
   createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
     buildSourceCoordinate: coordinate,
@@ -257,12 +298,13 @@ assert.equal(getterInvoked, false)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-review',
-  checks: 26,
+  checks: 27,
   exactArchiveEntrySetBound: true,
   cloudBuildSourceDirectoryEnvelopeBound: true,
   missingParentDirectoryRejected: true,
   exactHashLockedPythonDependencySetBound: true,
   exactOpenCvCudaRuntimeArtifactSetBound: true,
+  exactCudaNppElfDependencySetBound: true,
   exactWheelMetadataAndLicenseEvidenceBound: true,
   proprietaryCudaLicenseNarrowedToPrivateNvidiaInfrastructureUse: true,
   malwareContentClassificationClaimed: false,

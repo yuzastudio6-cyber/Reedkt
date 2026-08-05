@@ -26,6 +26,8 @@ REQUIRED_ROLES = {
     "opencv_cuda_shared_library", "opencv_source_license",
     "opencv_contrib_source_license",
     "cuda_forward_compat_package", "cuda_forward_compat_ingest_receipt",
+    "cuda_npp_shared_library", "cuda_npp_ingest_receipt",
+    "cuda_npp_license",
 }
 MANIFEST_KEYS = {
     "schemaVersion", "capsuleId", "artifacts", "runtimeDownloadsAllowed",
@@ -65,6 +67,17 @@ CUDA_RECEIPT = {
     "containsCustomerMedia": False,
     "containsModelWeights": False,
 }
+CUDA_NPP_LIBRARIES = {
+    "libnppc.so.12": (1656080, "69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7"),
+    "libnppial.so.12": (22046288, "d37c9d285930dca5da32ccce15594bccdadde6da71fd1c297f79d7b435b50ce6"),
+    "libnppidei.so.12": (13633464, "8397ce991612229cf673dce3b594187c61ada782d5cf61f4a7212cdd84e1e552"),
+    "libnppig.so.12": (55871152, "f24d72d82ceea1b0833a2429cebd6903f0d9ca961841ee413cf6bdea7d0d1129"),
+    "libnppist.so.12": (49739688, "adcaf330d4ba448d5b9f9e8e269d97e05e9c888720ee19cbbd484170fb59ac36"),
+    "libnppitc.so.12": (6686096, "cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9"),
+}
+CUDA_NPP_LICENSE_SHA256 = (
+    "e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684"
+)
 
 
 def read_regular(path: Path, maximum: int, retain: bool = False) -> tuple[int, str, bytes | None]:
@@ -145,7 +158,87 @@ def expected_role(relative: str) -> str:
         "cuda-forward-compat-ingest-receipt.json"
     ):
         return "cuda_forward_compat_ingest_receipt"
+    if relative == "cuda-npp/cuda-npp-runtime-receipt.json":
+        return "cuda_npp_ingest_receipt"
+    if relative == "cuda-npp/NGC-DL-CONTAINER-LICENSE":
+        return "cuda_npp_license"
+    if relative.startswith("cuda-npp/lib/"):
+        soname = relative.removeprefix("cuda-npp/lib/")
+        if soname in CUDA_NPP_LIBRARIES:
+            return "cuda_npp_shared_library"
     raise ValueError("capsule artifact path is not allowlisted")
+
+
+def validate_cuda_npp_receipt(expected: dict[str, object]) -> None:
+    receipt_path = "cuda-npp/cuda-npp-runtime-receipt.json"
+    _length, _digest, body = read_regular(
+        ROOT / receipt_path, 1024 * 1024, True
+    )
+    if body is None:
+        raise ValueError("CUDA NPP receipt body missing")
+    value = json.loads(body.decode("utf-8"))
+    expected_keys = {
+        "schemaVersion", "builderImage", "runtimeBaseImage",
+        "cudaToolkitVersion", "architecture", "sourceDirectory",
+        "opencvNeededSonames", "libraries", "licensePath",
+        "licenseSha256", "runtimeNetworkDownloadsAllowed",
+        "containsCredentials", "containsCustomerMedia",
+        "containsModelWeights",
+    }
+    if not isinstance(value, dict) or set(value) != expected_keys:
+        raise ValueError("CUDA NPP receipt shape invalid")
+    exact = {
+        "schemaVersion": "weeditpro-cuda-npp-runtime-receipt-v1",
+        "builderImage": "pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081",
+        "runtimeBaseImage": "pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca",
+        "cudaToolkitVersion": "12.8",
+        "architecture": "x86_64",
+        "sourceDirectory": "/usr/local/cuda-12.8/targets/x86_64-linux/lib",
+        "opencvNeededSonames": sorted(CUDA_NPP_LIBRARIES),
+        "licensePath": "/NGC-DL-CONTAINER-LICENSE",
+        "licenseSha256": CUDA_NPP_LICENSE_SHA256,
+        "runtimeNetworkDownloadsAllowed": False,
+        "containsCredentials": False,
+        "containsCustomerMedia": False,
+        "containsModelWeights": False,
+    }
+    if any(value.get(key) != item for key, item in exact.items()):
+        raise ValueError("CUDA NPP receipt authority invalid")
+    libraries = value["libraries"]
+    if not isinstance(libraries, list) or len(libraries) != len(CUDA_NPP_LIBRARIES):
+        raise ValueError("CUDA NPP library set invalid")
+    expected_library_records = []
+    for soname in sorted(CUDA_NPP_LIBRARIES):
+        byte_length, sha256 = CUDA_NPP_LIBRARIES[soname]
+        path = f"cuda-npp/lib/{soname}"
+        artifact = expected.get(path)
+        if not isinstance(artifact, dict) or (
+            artifact.get("byteLength"), artifact.get("sha256")
+        ) != (byte_length, sha256):
+            raise ValueError("CUDA NPP manifest lineage invalid")
+        expected_library_records.append({
+            "soname": soname,
+            "sourcePath": (
+                "/usr/local/cuda-12.8/targets/x86_64-linux/lib/"
+                + {
+                    "libnppc.so.12": "libnppc.so.12.3.3.100",
+                    "libnppial.so.12": "libnppial.so.12.3.3.100",
+                    "libnppidei.so.12": "libnppidei.so.12.3.3.100",
+                    "libnppig.so.12": "libnppig.so.12.3.3.100",
+                    "libnppist.so.12": "libnppist.so.12.3.3.100",
+                    "libnppitc.so.12": "libnppitc.so.12.3.3.100",
+                }[soname]
+            ),
+            "byteLength": byte_length,
+            "sha256": sha256,
+        })
+    if libraries != expected_library_records:
+        raise ValueError("CUDA NPP library receipt changed")
+    license_artifact = expected.get("cuda-npp/NGC-DL-CONTAINER-LICENSE")
+    if not isinstance(license_artifact, dict) or (
+        license_artifact.get("sha256") != CUDA_NPP_LICENSE_SHA256
+    ):
+        raise ValueError("CUDA NPP license lineage invalid")
 
 
 def validate_opencv_receipt(expected: dict[str, object]) -> None:
@@ -283,6 +376,7 @@ def main() -> None:
     )
     if cuda_receipt is None or json.loads(cuda_receipt.decode("utf-8")) != CUDA_RECEIPT:
         raise ValueError("CUDA forward-compatibility receipt changed")
+    validate_cuda_npp_receipt(artifact_by_path)
 
 
 if __name__ == "__main__":

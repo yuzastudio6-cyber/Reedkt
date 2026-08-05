@@ -186,6 +186,12 @@ async function main(): Promise<void> {
       cudaForwardCompatPackageSha256: required(
         `${PRIVATE_DIRECTORY}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
       ).sha256,
+      cudaNppRuntimeReceiptSha256: required(
+        `${PRIVATE_DIRECTORY}/cuda-npp/cuda-npp-runtime-receipt.json`,
+      ).sha256,
+      cudaNppLicenseSha256: required(
+        `${PRIVATE_DIRECTORY}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
+      ).sha256,
       artifactCount: entries.filter((entry) =>
         entry.path.startsWith(`${PRIVATE_DIRECTORY}/`)).length,
       exactArtifactSetReread: true,

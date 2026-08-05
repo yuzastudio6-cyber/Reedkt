@@ -48,7 +48,10 @@ finalize fresh task-QA evidence.
 
 The private Cloud Build capsule contains only a hash-locked wheelhouse, the
 reviewed OpenCV-CUDA receipt/build, and the exact NVIDIA CUDA 12.8
-forward-compatibility package/receipt. It contains no SAM checkpoint, model
+forward-compatibility package/receipt. It also carries only the six
+hash-and-size-bound CUDA 12.8 NPP SONAMEs proven necessary by the compiled
+OpenCV `cudaarithm` ELF, their NGC container license, and a closed NPP receipt;
+the complete CUDA toolkit is not copied. It contains no SAM checkpoint, model
 weight, credential, or customer media. Build source alone grants no image
 release, L4 dispatch, QA approval, credit settlement, delivery, or production
 authority.

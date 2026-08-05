@@ -37,6 +37,21 @@ const buildFiles = new Map<string, Buffer>([
     Buffer.from('synthetic-contract-cuda-package', 'utf8')],
   [`${privateDirectory}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     Buffer.from('fixed-cuda-receipt', 'utf8')],
+  [`${privateDirectory}/cuda-npp/cuda-npp-runtime-receipt.json`,
+    Buffer.from('fixed-cuda-npp-receipt', 'utf8')],
+  [`${privateDirectory}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
+    Buffer.from('fixed-nvidia-container-license', 'utf8')],
+  ...[
+    'libnppc.so.12',
+    'libnppial.so.12',
+    'libnppidei.so.12',
+    'libnppig.so.12',
+    'libnppist.so.12',
+    'libnppitc.so.12',
+  ].map((name) => [
+    `${privateDirectory}/cuda-npp/lib/${name}`,
+    Buffer.from(`synthetic-${name}`, 'utf8'),
+  ] as [string, Buffer]),
   [`${privateDirectory}/opencv/opencv-cuda-receipt.json`,
     Buffer.from('fixed-opencv-cuda-receipt', 'utf8')],
   [`${privateDirectory}/opencv/opencv-build-information.txt`,
@@ -143,7 +158,14 @@ const capsule = createCanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule({
     cudaForwardCompatPackageSha256: sha256(buildFiles.get(
       `${privateDirectory}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     )!),
-    artifactCount: 11,
+    cudaNppRuntimeReceiptSha256: sha256(buildFiles.get(
+      `${privateDirectory}/cuda-npp/cuda-npp-runtime-receipt.json`,
+    )!),
+    cudaNppLicenseSha256: sha256(buildFiles.get(
+      `${privateDirectory}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
+    )!),
+    artifactCount: [...buildFiles.keys()].filter((path) =>
+      path.startsWith(`${privateDirectory}/`)).length,
     exactArtifactSetReread: true,
     hashLockedWheelhouse: true,
     reviewedOpenCvCudaBuild: true,
@@ -226,6 +248,12 @@ assert.ok(body.steps[0]?.args.includes('--network=none'))
 assert.ok(body.steps[0]?.args.includes('--platform=linux/amd64'))
 assert.ok(body.steps[0]?.args.includes(
   'docker/prod/gpu-worker/track-all-task-qa/Dockerfile.candidate',
+))
+assert.ok(body.steps[0]?.args.includes(
+  `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256=${capsule.privateInput.cudaNppRuntimeReceiptSha256}`,
+))
+assert.ok(body.steps[0]?.args.includes(
+  `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256=${capsule.privateInput.cudaNppLicenseSha256}`,
 ))
 assert.equal(body.images[0], authority.imageDestination.taggedUri)
 assert.equal(body.serviceAccount,

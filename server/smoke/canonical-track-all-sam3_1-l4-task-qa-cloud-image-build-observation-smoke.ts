@@ -29,7 +29,7 @@ const ref = (id: string) => ({
 const sourceSha = hash('observation-source')
 const authorityPayload = {
   schemaVersion:
-    'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v1' as const,
+    'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v2' as const,
   source:
     'canonical_track_all_sam3_1_l4_task_qa_cloud_image_build_authority_owner' as const,
   evidenceClass: 'canonical_private_reread' as const,
@@ -76,6 +76,8 @@ const authorityPayload = {
     opencvLicenseSha256: hash('opencv-license'),
     opencvContribLicenseSha256: hash('opencv-contrib-license'),
     cudaForwardCompatReceiptSha256: hash('cuda'),
+    cudaNppRuntimeReceiptSha256: hash('cuda-npp'),
+    cudaNppLicenseSha256: hash('cuda-npp-license'),
   },
   cloudBuildPolicy: {
     projectId: 'reeditpro' as const,

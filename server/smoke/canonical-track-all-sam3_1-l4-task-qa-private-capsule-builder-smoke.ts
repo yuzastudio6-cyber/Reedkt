@@ -47,6 +47,7 @@ for (const expected of [
   'verify-private-build-input.py',
   'source-provenance.lock',
   'build-private-capsule.sh',
+  'readelf',
 ] as const) assert.ok(dockerfile.includes(expected), `builder Dockerfile lost ${expected}`)
 
 for (const expected of [
@@ -61,6 +62,15 @@ for (const expected of [
   'bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5',
   'f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8',
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
+  'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+  'libnppc.so.12',
+  'libnppial.so.12',
+  'libnppidei.so.12',
+  'libnppig.so.12',
+  'libnppist.so.12',
+  'libnppitc.so.12',
+  'weeditpro-cuda-npp-runtime-receipt-v1',
+  'OpenCV CUDA NPP dependency closure changed',
   '-DBUILD_LIST=core,imgproc,cudev,cudaarithm,python3',
   '-DOPENCV_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE}/modules"',
   '-DCUDA_ARCH_BIN=8.9',
@@ -135,6 +145,9 @@ for (const expected of [
   "test \"$(command -v python)\" = '/usr/bin/python'",
   '/usr/bin/python -m pip install',
   'opencv-build-information.txt',
+  '/opt/weeditpro/cuda-npp/lib',
+  'WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256',
+  'WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256',
   "assert PIL.__version__ == '12.1.0'",
 ] as const) assert.ok(candidate.includes(expected), `runtime candidate lost ${expected}`)
 assert.doesNotMatch(candidate, /python -m venv|\/venv\/bin\//u)
@@ -146,6 +159,10 @@ for (const expected of [
   'opencv_cuda_shared_library',
   'opencv_source_license',
   'opencv_contrib_source_license',
+  'cuda_npp_shared_library',
+  'cuda_npp_ingest_receipt',
+  'cuda_npp_license',
+  'CUDA NPP library receipt changed',
   'OpenCV CUDA runtime artifact set changed',
   'capsule requirements lock changed',
 ] as const) assert.ok(verifier.includes(expected), `capsule verifier lost ${expected}`)

@@ -18,9 +18,9 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION
 const LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-archive-safety-review-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPENDENCY_REVIEW_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_LICENSE_REVIEW_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-license-review-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-license-review-v2' as const
 
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
@@ -202,6 +202,24 @@ const dependencyWithoutHashSchema = z.object({
       'c99dfe723c276cc4915446ec4341ab0f5eeae2d8cee0dd1f9234b19ce5121e57',
     ),
   }).strict(),
+  cudaNppRuntime: z.object({
+    cudaToolkitVersion: z.literal('12.8'),
+    architecture: z.literal('x86_64'),
+    libraryCount: z.literal(6),
+    requiredSonames: z.tuple([
+      z.literal('libnppc.so.12'),
+      z.literal('libnppial.so.12'),
+      z.literal('libnppidei.so.12'),
+      z.literal('libnppig.so.12'),
+      z.literal('libnppist.so.12'),
+      z.literal('libnppitc.so.12'),
+    ]),
+    runtimeReceiptSha256: rawSha256,
+    runtimeArtifactSetSha256: rawSha256,
+    exactOpenCvElfNeededClosure: z.literal(true),
+    copiedAsUnmodifiedRegularFiles: z.literal(true),
+    completeCudaToolkitCopied: z.literal(false),
+  }).strict(),
   dependencySetSha256: rawSha256,
   exactWheelSetMatchesHashLockedRequirements: z.literal(true),
   runtimePackageDownloadsAllowed: z.literal(false),
@@ -274,6 +292,16 @@ const licenseWithoutHashSchema = z.object({
       '89b836340d5217ad1aca3097c0c7d00c85de24a2cc956361f755e08ae91df26e',
     ),
     proprietaryBinaryUnmodified: z.literal(true),
+    privateUseOnOwnedOrLeasedNvidiaInfrastructureOnly: z.literal(true),
+    publicRedistributionAuthorized: z.literal(false),
+  }).strict(),
+  cudaNppRuntimeLicense: z.object({
+    runtimeReceiptSha256: rawSha256,
+    expression: z.literal('LicenseRef-NVIDIA-NGC-Container'),
+    sourceLicenseSha256: z.literal(
+      'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+    ),
+    proprietaryBinariesUnmodified: z.literal(true),
     privateUseOnOwnedOrLeasedNvidiaInfrastructureOnly: z.literal(true),
     publicRedistributionAuthorized: z.literal(false),
   }).strict(),
@@ -525,6 +553,27 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
       packageSha256: 'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
       debianControlSha256: 'c99dfe723c276cc4915446ec4341ab0f5eeae2d8cee0dd1f9234b19ce5121e57',
     },
+    cudaNppRuntime: {
+      cudaToolkitVersion: '12.8',
+      architecture: 'x86_64',
+      libraryCount: 6,
+      requiredSonames: [
+        'libnppc.so.12',
+        'libnppial.so.12',
+        'libnppidei.so.12',
+        'libnppig.so.12',
+        'libnppist.so.12',
+        'libnppitc.so.12',
+      ],
+      runtimeReceiptSha256: requiredEntrySha256(
+        entries,
+        'track_all_task_qa_private_build_input/cuda-npp/cuda-npp-runtime-receipt.json',
+      ),
+      runtimeArtifactSetSha256: cudaNppRuntimeArtifactSetHash(entries),
+      exactOpenCvElfNeededClosure: true,
+      copiedAsUnmodifiedRegularFiles: true,
+      completeCudaToolkitCopied: false,
+    },
   } as const
   const dependencyPayload = dependencyWithoutHashSchema.parse({
     schemaVersion:
@@ -572,6 +621,17 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
       expression: 'LicenseRef-NVIDIA-Driver',
       debianCopyrightSha256: '89b836340d5217ad1aca3097c0c7d00c85de24a2cc956361f755e08ae91df26e',
       proprietaryBinaryUnmodified: true,
+      privateUseOnOwnedOrLeasedNvidiaInfrastructureOnly: true,
+      publicRedistributionAuthorized: false,
+    },
+    cudaNppRuntimeLicense: {
+      runtimeReceiptSha256: requiredEntrySha256(
+        entries,
+        'track_all_task_qa_private_build_input/cuda-npp/cuda-npp-runtime-receipt.json',
+      ),
+      expression: 'LicenseRef-NVIDIA-NGC-Container',
+      sourceLicenseSha256: 'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+      proprietaryBinariesUnmodified: true,
       privateUseOnOwnedOrLeasedNvidiaInfrastructureOnly: true,
       publicRedistributionAuthorized: false,
     },
@@ -739,6 +799,7 @@ function dependencySetHash(value: z.infer<typeof dependencyWithoutHashSchema>) {
     inheritedRuntime: value.inheritedRuntime,
     opencvCuda: value.opencvCuda,
     cudaForwardCompatibility: value.cudaForwardCompatibility,
+    cudaNppRuntime: value.cudaNppRuntime,
   })
 }
 
@@ -747,6 +808,7 @@ function licenseSetHash(value: z.infer<typeof licenseWithoutHashSchema>) {
     pythonLicenses: value.pythonLicenses,
     opencvLicense: value.opencvLicense,
     cudaForwardCompatibilityLicense: value.cudaForwardCompatibilityLicense,
+    cudaNppRuntimeLicense: value.cudaNppRuntimeLicense,
   })
 }
 
@@ -785,6 +847,34 @@ function assertExactReviewedDependencies(
       'track_all_task_qa_private_build_input/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb',
       'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
     ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/NGC-DL-CONTAINER-LICENSE',
+      'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+    ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/lib/libnppc.so.12',
+      '69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7',
+    ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/lib/libnppial.so.12',
+      'd37c9d285930dca5da32ccce15594bccdadde6da71fd1c297f79d7b435b50ce6',
+    ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/lib/libnppidei.so.12',
+      '8397ce991612229cf673dce3b594187c61ada782d5cf61f4a7212cdd84e1e552',
+    ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/lib/libnppig.so.12',
+      'f24d72d82ceea1b0833a2429cebd6903f0d9ca961841ee413cf6bdea7d0d1129',
+    ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/lib/libnppist.so.12',
+      'adcaf330d4ba448d5b9f9e8e269d97e05e9c888720ee19cbbd484170fb59ac36',
+    ],
+    [
+      'track_all_task_qa_private_build_input/cuda-npp/lib/libnppitc.so.12',
+      'cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9',
+    ],
   ])
   if (input.opencvBuildInformationSha256 !== requiredNative.values().next().value
     || input.opencvLicenseSha256 !==
@@ -805,6 +895,32 @@ function assertExactReviewedDependencies(
       throw new Error(`Track All L4 wheel ${dependency.normalizedName} changed.`)
     }
   }
+}
+
+function requiredEntrySha256(
+  entries: readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[],
+  path: string,
+): string {
+  const entry = entries.find((candidate) => candidate.path === path)
+  if (!entry) throw new Error(`Track All L4 reviewed artifact ${path} missing.`)
+  return entry.sha256
+}
+
+function cudaNppRuntimeArtifactSetHash(
+  entries: readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[],
+): string {
+  const prefix = 'track_all_task_qa_private_build_input/cuda-npp/lib/'
+  const runtimeEntries = entries
+    .filter((entry) => entry.path.startsWith(prefix))
+    .sort((left, right) => left.path < right.path ? -1 : 1)
+  if (runtimeEntries.length !== 6) {
+    throw new Error('Track All L4 CUDA NPP runtime set is incomplete.')
+  }
+  return sha256AuthorityValue(runtimeEntries.map((entry) => ({
+    soname: entry.path.slice(prefix.length),
+    byteLength: entry.byteLength,
+    sha256: entry.sha256,
+  })))
 }
 
 function opencvRuntimeArtifactSetHash(

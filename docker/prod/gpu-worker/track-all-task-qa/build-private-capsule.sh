@@ -15,6 +15,7 @@ readonly BUILDER_IMAGE='pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f9
 readonly RUNTIME_IMAGE='pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca'
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
 readonly CUDA_COMPAT_BYTES='37945232'
+readonly CUDA_NPP_LICENSE_SHA256='e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684'
 
 # OpenCV records its configure time inside both the human-readable build
 # information and the compiled runtime. Pin the source epoch and the explicit
@@ -114,6 +115,7 @@ mkdir -p \
   "${PRIVATE_ROOT}/python/wheelhouse" \
   "${PRIVATE_ROOT}/opencv/install" \
   "${PRIVATE_ROOT}/cuda-forward-compat" \
+  "${PRIVATE_ROOT}/cuda-npp/lib" \
   "${WORK}/build-source/docker/prod/gpu-worker/track-all-task-qa" \
   /output
 
@@ -305,6 +307,111 @@ readonly OPENCV_RUNTIME_SET_SHA256="$(
     | cut -d' ' -f1
 )"
 
+# The lean pinned runtime image intentionally omits NVIDIA NPP. OpenCV's
+# cudaarithm module needs exactly these six CUDA 12 SONAMEs. Derive the needed
+# set from the compiled ELF, then copy only the reviewed regular-file closure
+# from the pinned devel image. This keeps the final image offline and avoids
+# silently inheriting the complete CUDA toolkit.
+python - \
+  "${PRIVATE_ROOT}/opencv/install/lib/libopencv_cudaarithm.so.4.12.0" \
+  "${PRIVATE_ROOT}/cuda-npp" <<'PY'
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import stat
+import subprocess
+import sys
+
+opencv_library = Path(sys.argv[1])
+destination = Path(sys.argv[2])
+source_root = Path("/usr/local/cuda-12.8/targets/x86_64-linux/lib")
+expected = {
+    "libnppc.so.12": (1656080, "69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7"),
+    "libnppial.so.12": (22046288, "d37c9d285930dca5da32ccce15594bccdadde6da71fd1c297f79d7b435b50ce6"),
+    "libnppidei.so.12": (13633464, "8397ce991612229cf673dce3b594187c61ada782d5cf61f4a7212cdd84e1e552"),
+    "libnppig.so.12": (55871152, "f24d72d82ceea1b0833a2429cebd6903f0d9ca961841ee413cf6bdea7d0d1129"),
+    "libnppist.so.12": (49739688, "adcaf330d4ba448d5b9f9e8e269d97e05e9c888720ee19cbbd484170fb59ac36"),
+    "libnppitc.so.12": (6686096, "cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9"),
+}
+
+needed_text = subprocess.run(
+    ["readelf", "--dynamic", str(opencv_library)],
+    check=True,
+    capture_output=True,
+    text=True,
+).stdout
+needed = {
+    line.split("[", 1)[1].split("]", 1)[0]
+    for line in needed_text.splitlines()
+    if "(NEEDED)" in line and "[libnpp" in line
+}
+if needed != set(expected):
+    raise SystemExit("OpenCV CUDA NPP dependency closure changed")
+
+
+def digest_file(path: Path) -> tuple[int, str]:
+    digest = hashlib.sha256()
+    observed = 0
+    with path.open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            observed += len(chunk)
+            digest.update(chunk)
+    return observed, digest.hexdigest()
+
+
+libraries = []
+for soname in sorted(expected):
+    source_link = source_root / soname
+    source = source_link.resolve(strict=True)
+    source_stat = source.stat()
+    if not stat.S_ISREG(source_stat.st_mode) or source.parent != source_root:
+        raise SystemExit("NPP source is not a reviewed regular file")
+    byte_length, sha256 = digest_file(source)
+    if (byte_length, sha256) != expected[soname]:
+        raise SystemExit(f"NPP identity changed: {soname}")
+    target = destination / "lib" / soname
+    shutil.copyfile(source, target, follow_symlinks=False)
+    os.chmod(target, 0o444)
+    target_length, target_sha256 = digest_file(target)
+    if (target_length, target_sha256) != expected[soname]:
+        raise SystemExit(f"copied NPP identity changed: {soname}")
+    libraries.append({
+        "soname": soname,
+        "sourcePath": str(source),
+        "byteLength": byte_length,
+        "sha256": sha256,
+    })
+
+receipt = {
+    "schemaVersion": "weeditpro-cuda-npp-runtime-receipt-v1",
+    "builderImage": "pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081",
+    "runtimeBaseImage": "pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca",
+    "cudaToolkitVersion": "12.8",
+    "architecture": "x86_64",
+    "sourceDirectory": str(source_root),
+    "opencvNeededSonames": sorted(expected),
+    "libraries": libraries,
+    "licensePath": "/NGC-DL-CONTAINER-LICENSE",
+    "licenseSha256": "e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684",
+    "runtimeNetworkDownloadsAllowed": False,
+    "containsCredentials": False,
+    "containsCustomerMedia": False,
+    "containsModelWeights": False,
+}
+(destination / "cuda-npp-runtime-receipt.json").write_text(
+    json.dumps(receipt, ensure_ascii=False, allow_nan=False,
+               sort_keys=True, separators=(",", ":")) + "\n",
+    encoding="utf-8",
+)
+PY
+
+printf '%s  %s\n' "${CUDA_NPP_LICENSE_SHA256}" \
+  /NGC-DL-CONTAINER-LICENSE | sha256sum --check --strict
+install --mode=0444 /NGC-DL-CONTAINER-LICENSE \
+  "${PRIVATE_ROOT}/cuda-npp/NGC-DL-CONTAINER-LICENSE"
+
 python - "${PRIVATE_ROOT}/opencv/opencv-cuda-receipt.json" \
   "${OPENCV_BUILD_INFO_SHA256}" "${OPENCV_RUNTIME_SET_SHA256}" <<'PY'
 import json
@@ -417,6 +524,12 @@ for path in sorted(
         role = "cuda_forward_compat_package"
     elif relative.endswith("cuda-forward-compat-ingest-receipt.json"):
         role = "cuda_forward_compat_ingest_receipt"
+    elif relative == "cuda-npp/cuda-npp-runtime-receipt.json":
+        role = "cuda_npp_ingest_receipt"
+    elif relative == "cuda-npp/NGC-DL-CONTAINER-LICENSE":
+        role = "cuda_npp_license"
+    elif relative.startswith("cuda-npp/lib/") and relative.endswith(".so.12"):
+        role = "cuda_npp_shared_library"
     else:
         raise SystemExit(f"unclassified private capsule file: {relative}")
     body = path.read_bytes()
@@ -428,7 +541,7 @@ for path in sorted(
     })
 manifest = {
     "schemaVersion": "weeditpro-track-all-sam3_1-l4-task-qa-private-build-capsule-v1",
-    "capsuleId": "track-all-l4-task-qa-opencv-4.12.0-kornia-0.8.3-v1",
+    "capsuleId": "track-all-l4-task-qa-opencv-4.12.0-kornia-0.8.3-npp-12.8-v2",
     "artifacts": artifacts,
     "runtimeDownloadsAllowed": False,
     "containsCredentials": False,

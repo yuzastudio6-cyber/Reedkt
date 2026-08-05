@@ -24,11 +24,11 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-private-capsule-review'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_BUILD_CAPSULE_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-private-build-capsule-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-private-build-capsule-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_BUILD_REQUEST_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-cloud-build-request-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-cloud-build-request-v2' as const
 
 const PROJECT_ID = TRACK_ALL_L4_TASK_QA_PROJECT_ID
 const REGION = 'us-central1' as const
@@ -111,6 +111,8 @@ const capsuleWithoutHashSchema = z.object({
     opencvContribLicenseSha256: rawSha256,
     cudaForwardCompatReceiptSha256: rawSha256,
     cudaForwardCompatPackageSha256: rawSha256,
+    cudaNppRuntimeReceiptSha256: rawSha256,
+    cudaNppLicenseSha256: rawSha256,
     artifactCount: z.number().int().min(5).max(10_000),
     exactArtifactSetReread: z.literal(true),
     hashLockedWheelhouse: z.literal(true),
@@ -148,6 +150,8 @@ const capsuleWithoutHashSchema = z.object({
       ? value.status !== 'private_capsule_verified'
         || value.privateInput.cudaForwardCompatPackageSha256 !==
           'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
+        || value.privateInput.cudaNppLicenseSha256 !==
+          'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684'
       : value.status !== 'contract_only') {
       throw new Error('Track All L4 capsule disposition is invalid.')
     }
@@ -209,6 +213,8 @@ const authorityWithoutHashSchema = z.object({
     opencvLicenseSha256: rawSha256,
     opencvContribLicenseSha256: rawSha256,
     cudaForwardCompatReceiptSha256: rawSha256,
+    cudaNppRuntimeReceiptSha256: rawSha256,
+    cudaNppLicenseSha256: rawSha256,
   }).strict(),
   cloudBuildPolicy: z.object({
     projectId: z.literal(PROJECT_ID),
@@ -439,6 +445,9 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
         capsule.privateInput.opencvContribLicenseSha256,
       cudaForwardCompatReceiptSha256:
         capsule.privateInput.cudaForwardCompatReceiptSha256,
+      cudaNppRuntimeReceiptSha256:
+        capsule.privateInput.cudaNppRuntimeReceiptSha256,
+      cudaNppLicenseSha256: capsule.privateInput.cudaNppLicenseSha256,
     },
     cloudBuildPolicy: {
       projectId: PROJECT_ID,
@@ -519,6 +528,10 @@ export function compileCanonicalTrackAllSam31L4TaskQaCloudBuildRequest(
         `WEEDITPRO_TRACK_ALL_TASK_QA_OPENCV_CUDA_RECEIPT_SHA256=${authority.buildClosure.opencvCudaReceiptSha256}`,
         '--build-arg',
         `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_FORWARD_COMPAT_RECEIPT_SHA256=${authority.buildClosure.cudaForwardCompatReceiptSha256}`,
+        '--build-arg',
+        `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256=${authority.buildClosure.cudaNppRuntimeReceiptSha256}`,
+        '--build-arg',
+        `WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256=${authority.buildClosure.cudaNppLicenseSha256}`,
         '--build-arg',
         `WEEDITPRO_TRACK_ALL_TASK_QA_PRIVATE_CAPSULE_MANIFEST_SHA256=${authority.buildClosure.privateCapsuleManifestSha256}`,
         '.',
@@ -727,6 +740,14 @@ function assertBuildSourceEntries(
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     value.privateInput.cudaForwardCompatReceiptSha256,
   )
+  required(
+    `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/cuda-npp-runtime-receipt.json`,
+    value.privateInput.cudaNppRuntimeReceiptSha256,
+  )
+  required(
+    `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
+    value.privateInput.cudaNppLicenseSha256,
+  )
   const privateEntries = entries.filter((entry) =>
     entry.path.startsWith(`${PRIVATE_INPUT_DIRECTORY}/`))
   const wheels = entries.filter((entry) =>
@@ -753,6 +774,8 @@ function isAllowedBuildSourcePath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/opencv/CONTRIB_LICENSE`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/cuda-npp-runtime-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/NGC-DL-CONTAINER-LICENSE`,
   ].includes(path)) return true
   const wheelPrefix = `${PRIVATE_INPUT_DIRECTORY}/python/wheelhouse/`
   if (path.startsWith(wheelPrefix)) return (
@@ -762,6 +785,15 @@ function isAllowedBuildSourcePath(path: string): boolean {
   )
   const opencvRuntimePrefix =
     `${PRIVATE_INPUT_DIRECTORY}/opencv/install/`
+  const cudaNppRuntimePrefix = `${PRIVATE_INPUT_DIRECTORY}/cuda-npp/lib/`
+  if (path.startsWith(cudaNppRuntimePrefix)) return [
+    'libnppc.so.12',
+    'libnppial.so.12',
+    'libnppidei.so.12',
+    'libnppig.so.12',
+    'libnppist.so.12',
+    'libnppitc.so.12',
+  ].includes(path.slice(cudaNppRuntimePrefix.length))
   return path.startsWith(opencvRuntimePrefix)
     && /^[A-Za-z0-9][A-Za-z0-9._+/-]{0,399}$/u.test(
       path.slice(opencvRuntimePrefix.length),

@@ -128,11 +128,11 @@ const fundingPayload = {
   callerApprovalEstimateOrReservationAccepted: false as const,
   observedAt,
 }
-const funding = canonicalProfessionalGpuApprovedFundingObservationSchema.parse({
+export const funding = canonicalProfessionalGpuApprovedFundingObservationSchema.parse({
   ...fundingPayload,
   observationHash: sha256AuthorityValue(fundingPayload),
 })
-const attempt = createCanonicalProfessionalGpuAttemptStartAuthority({
+export const attempt = createCanonicalProfessionalGpuAttemptStartAuthority({
   attemptAuthorityId: 'track-all-attempt-authority-1',
   scope: sourceScope,
   approvedSnapshotRef: admission.scope.approvedSnapshotRef,

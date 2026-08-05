@@ -9,6 +9,12 @@ export const CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION =
   'caption-terminal-per-job-qualification-projection-v1' as const
 export const CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION =
   'caption-terminal-qualification-preflight-v1' as const
+export const CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V2 =
+  'caption-terminal-qualification-evidence-input-v2' as const
+export const CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION_V2 =
+  'caption-terminal-per-job-qualification-projection-v2' as const
+export const CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION_V2 =
+  'caption-terminal-qualification-preflight-v2' as const
 
 export interface CaptionTerminalQualificationCanonicalScope {
   ownerUserId: string
@@ -204,4 +210,24 @@ export interface CaptionTerminalQualificationPreflight {
   creditOrBillingAuthority: false
   publicDeliveryAuthority: false
   productionAuthority: false
+}
+
+/**
+ * Version-safe terminal lane bound to the mount-audited V3 readiness record.
+ * The evidence fields remain structurally identical to V1; only the exact
+ * contract and readiness lineage advance.
+ */
+export interface CaptionTerminalQualificationEvidenceInputV2
+  extends Omit<CaptionTerminalQualificationEvidenceInput, 'schemaVersion'> {
+  schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V2
+}
+
+export interface CaptionTerminalQualificationProjectionV2
+  extends Omit<CaptionTerminalQualificationProjection, 'schemaVersion'> {
+  schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION_V2
+}
+
+export interface CaptionTerminalQualificationPreflightV2
+  extends Omit<CaptionTerminalQualificationPreflight, 'schemaVersion'> {
+  schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION_V2
 }

@@ -3,7 +3,9 @@ import { createHash } from 'node:crypto'
 
 import {
   CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION,
+  CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V2,
   type CaptionTerminalQualificationEvidenceInput,
+  type CaptionTerminalQualificationEvidenceInputV2,
 } from '../../src/types/caption-terminal-qualification'
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
@@ -39,6 +41,7 @@ import {
 } from '../orchestra/orchestra-skill-contracts'
 import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V2,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V3,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
@@ -54,6 +57,14 @@ import {
   parseCaptionTerminalQualificationPreflight,
   parseCaptionTerminalQualificationProjection,
 } from '../captions-specialist/caption-terminal-qualification'
+import {
+  CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT_V2,
+  createCaptionTerminalQualificationPreflightV2,
+  createCaptionTerminalQualificationProjectionV2,
+  parseCaptionTerminalQualificationEvidenceInputV2,
+  parseCaptionTerminalQualificationPreflightV2,
+  parseCaptionTerminalQualificationProjectionV2,
+} from '../captions-specialist/caption-terminal-qualification-v2'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
 } from '../captions-specialist/captions-specialist-integration-manifest'
@@ -89,6 +100,14 @@ function redigestInput(value: unknown): CaptionTerminalQualificationEvidenceInpu
   record.inputDigestSha256 = calculateSkillContractDigest(
     record, 'inputDigestSha256')
   return record as unknown as CaptionTerminalQualificationEvidenceInput
+}
+function redigestInputV2(
+  value: unknown,
+): CaptionTerminalQualificationEvidenceInputV2 {
+  const record = structuredClone(value) as Record<string, unknown>
+  record.inputDigestSha256 = calculateSkillContractDigest(
+    record, 'inputDigestSha256')
+  return record as unknown as CaptionTerminalQualificationEvidenceInputV2
 }
 
 const ownerEvidence: Record<CaptionSharedOwnerKey, CaptionDomainRef> = {
@@ -414,6 +433,58 @@ invalidPreflight.preflightDigestSha256 = calculateSkillContractDigest(
 expectThrow(() => parseCaptionTerminalQualificationPreflight(
   invalidPreflight))
 
+const contractShapeFixtureV2 = redigestInputV2({
+  ...structuredClone(inputWithoutDigest),
+  schemaVersion: CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V2,
+  sourceCurrentReadinessRef: refFrom(
+    CAPTION_CURRENT_INTEGRATION_READINESS_V3.readinessId,
+    CAPTION_CURRENT_INTEGRATION_READINESS_V3.schemaVersion,
+    CAPTION_CURRENT_INTEGRATION_READINESS_V3.readinessDigestSha256),
+  inputId: 'captions.terminal.mount-audited-contract-shape-fixture',
+  inputDigestSha256: '',
+})
+const currentV2 = parseCaptionTerminalQualificationPreflightV2(
+  CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT_V2)
+check(currentV2.disposition === 'blocked_missing_canonical_evidence'
+  && currentV2.blockingGapIds.length === 9
+  && currentV2.sourceCurrentReadinessRef.version
+    === CAPTION_CURRENT_INTEGRATION_READINESS_V3.schemaVersion,
+'The current V2 terminal lane binds the corrected mount-audited readiness.')
+const parsedInputV2 = parseCaptionTerminalQualificationEvidenceInputV2(
+  contractShapeFixtureV2)
+const shapeOnlyPreflightV2 = createCaptionTerminalQualificationPreflightV2(
+  parsedInputV2)
+check(shapeOnlyPreflightV2.disposition
+  === 'blocked_missing_canonical_evidence'
+  && shapeOnlyPreflightV2.sourceQualificationInputRef === null,
+'A V2 truth-shaped input remains blocked without private-review projections.')
+const acceptedPrivateReviewProjectionsV2 = parsedInputV2.outputEvidence.map(
+  (output) => privateReviewProjection(parsedInputV2, output))
+const readyPreflightV2 = createCaptionTerminalQualificationPreflightV2(
+  parsedInputV2, acceptedPrivateReviewProjectionsV2)
+check(readyPreflightV2.disposition === 'ready_for_terminal_projection'
+  && readyPreflightV2.sourceQualificationInputRef?.version
+    === CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V2,
+'The V2 preflight accepts only exact V2 evidence and private-review lineage.')
+const projectionV2 = createCaptionTerminalQualificationProjectionV2(
+  parsedInputV2, acceptedPrivateReviewProjectionsV2)
+check(projectionV2.jobs.length === 41
+  && projectionV2.outputs.length === 2
+  && projectionV2.sourceCurrentReadinessRef.version
+    === CAPTION_CURRENT_INTEGRATION_READINESS_V3.schemaVersion,
+'The additive V2 terminal projection preserves private qualification semantics.')
+check(parseCaptionTerminalQualificationProjectionV2(
+  projectionV2, parsedInputV2).projectionDigestSha256
+    === projectionV2.projectionDigestSha256,
+'The V2 terminal projection rereads against the exact V2 input.')
+const staleV2Readiness = structuredClone(parsedInputV2)
+staleV2Readiness.sourceCurrentReadinessRef = refFrom(
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessId,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2.schemaVersion,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessDigestSha256)
+expectThrow(() => parseCaptionTerminalQualificationEvidenceInputV2(
+  redigestInputV2(staleV2Readiness)))
+
 console.log(JSON.stringify({
   smoke: 'captions_specialist_terminal_qualification',
   assertions,
@@ -430,7 +501,8 @@ console.log(JSON.stringify({
 }, null, 2))
 
 function privateReviewProjection(
-  input: CaptionTerminalQualificationEvidenceInput,
+  input: CaptionTerminalQualificationEvidenceInput
+    | CaptionTerminalQualificationEvidenceInputV2,
   output: CaptionTerminalQualificationEvidenceInput['outputEvidence'][number],
 ): CanonicalCaptionPrivateReviewEvidenceProjection {
   const withoutDigest: Omit<

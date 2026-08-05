@@ -3,8 +3,10 @@ import assert from 'node:assert/strict'
 import {
   CAPTION_CURRENT_INTEGRATION_READINESS,
   CAPTION_CURRENT_INTEGRATION_READINESS_V2,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V3,
   parseCaptionCurrentIntegrationReadiness,
   parseCaptionCurrentIntegrationReadinessV2,
+  parseCaptionCurrentIntegrationReadinessV3,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
@@ -157,23 +159,66 @@ v2Evidence.actualPrivateOwnerRuntimeEvidenceConsumed = true
 expectThrow(() => parseCaptionCurrentIntegrationReadinessV2(
   redigest(v2Overclaim)))
 
+const readinessV3 = parseCaptionCurrentIntegrationReadinessV3(
+  CAPTION_CURRENT_INTEGRATION_READINESS_V3)
+check(readinessV3.correctsSupersededReadinessOverclaim
+  && readinessV3.supersedesReadinessRef.contentHash
+    === readinessV2.readinessDigestSha256
+  && readinessV3.currentStatus
+    === 'caption_source_complete_with_two_owner_mount_gaps',
+'V3 preserves V2 while correcting its source-mount overclaim.')
+check(readinessV3.counts.captionSharedOwnerBridgeImplementations === 5
+  && readinessV3.counts.canonicalSharedOwnerCompositionMounts === 3
+  && readinessV3.counts.sharedOwnerCompositionMountGaps === 2
+  && readinessV3.counts.terminalProjectionContractsPublished === 2
+  && readinessV3.counts.actualAuthenticatedPrivateSharedOwnerIntegrations
+    === 0,
+'V3 separates complete Caption bridges from actual canonical compositions.')
+check(readinessV3.gapStates.slice(0, 3).every((gap) =>
+  gap.canonicalSourceMountImplemented)
+  && readinessV3.gapStates.slice(3, 5).every((gap) =>
+    !gap.canonicalSourceMountImplemented
+    && gap.sourceIntegrationState
+      === 'caption_bridge_complete_waiting_on_canonical_owner_mount'),
+'Only transcript, Visual Intelligence, and Track All are canonically mounted.')
+check(readinessV3.currentEvidence.soundSyncSupportBridgeImplemented
+  && !readinessV3.currentEvidence.soundSyncCanonicalOwnerMountImplemented
+  && readinessV3.currentEvidence.brollSupportBridgeImplemented
+  && !readinessV3.currentEvidence.brollCanonicalOwnerMountImplemented,
+'SoundSync and B-roll remain exact owner-mount gaps without losing bridge work.')
+const v3MountOverclaim = structuredClone(readinessV3) as unknown as
+  Record<string, unknown>
+const v3Evidence = v3MountOverclaim.currentEvidence as Record<string, unknown>
+v3Evidence.soundSyncCanonicalOwnerMountImplemented = true
+expectThrow(() => parseCaptionCurrentIntegrationReadinessV3(
+  redigest(v3MountOverclaim)))
+const v3CountOverclaim = structuredClone(readinessV3) as unknown as
+  Record<string, unknown>
+const v3Counts = v3CountOverclaim.counts as Record<string, unknown>
+v3Counts.canonicalSharedOwnerCompositionMounts = 5
+v3Counts.sharedOwnerCompositionMountGaps = 0
+expectThrow(() => parseCaptionCurrentIntegrationReadinessV3(
+  redigest(v3CountOverclaim)))
+
 console.log(JSON.stringify({
   smoke: 'captions_specialist_current_integration_readiness',
   assertions,
   historicalReadinessVersion: readiness.schemaVersion,
-  readinessVersion: readinessV2.schemaVersion,
-  readinessDigestSha256: readinessV2.readinessDigestSha256,
+  readinessVersion: readinessV3.schemaVersion,
+  readinessDigestSha256: readinessV3.readinessDigestSha256,
   captionOwnedSharedOwnerBoundariesComplete:
     readiness.counts.captionOwnedSharedOwnerBoundariesComplete,
   strictAuthenticatedMultiOwnerSourceFixturePaths:
     readiness.counts.strictAuthenticatedMultiOwnerSourceFixturePaths,
   actualAuthenticatedPrivateSharedOwnerIntegrations:
-    readinessV2.counts.actualAuthenticatedPrivateSharedOwnerIntegrations,
+    readinessV3.counts.actualAuthenticatedPrivateSharedOwnerIntegrations,
   canonicalSharedOwnerSourceMounts:
-    readinessV2.counts.canonicalSharedOwnerSourceMounts,
+    readinessV3.counts.canonicalSharedOwnerCompositionMounts,
+  sharedOwnerCompositionMountGaps:
+    readinessV3.counts.sharedOwnerCompositionMountGaps,
   canonicalBackendExecutionMounts:
     readinessV2.counts.canonicalBackendExecutionMounts,
-  remainingTerminalGaps: readinessV2.counts.remainingPrivateEvidenceGaps,
-  terminalStatusClaimed: readinessV2.terminalStatusClaimed,
+  remainingTerminalGaps: readinessV3.counts.remainingPrivateEvidenceGaps,
+  terminalStatusClaimed: readinessV3.terminalStatusClaimed,
   result: 'passed',
 }, null, 2))

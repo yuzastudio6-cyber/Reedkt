@@ -9,6 +9,16 @@ import {
   type CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission,
   type CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildTerminal,
 } from '../services/canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build'
+import {
+  compileCanonicalTrackAllSam31L4TaskQaCloudBuildRequest,
+} from '../services/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority'
+import {
+  assertCanonicalSam31ImageSupplyChainGoogleReadUrl,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-evidence-read-service'
+import {
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequest,
+  canonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequestSchema,
+} from '../services/canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-evidence-read'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -115,17 +125,136 @@ assert.equal(JSON.stringify(body).includes('customer'), false)
 assert.equal(JSON.stringify(body).includes('checkpoint'), false)
 assert.equal(JSON.stringify(body).includes('gpu'), false)
 
+assert.doesNotThrow(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  `https://artifactregistry.googleapis.com/v1/projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/dockerImages/reeditpro-track-all-l4-task-qa@${digest}`,
+))
+assert.doesNotThrow(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  'https://containeranalysis.googleapis.com/v1/projects/reeditpro/occurrences?pageSize=1000&filter='
+    + encodeURIComponent(
+      `kind="VULNERABILITY" AND resourceUrl="https://us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa@${digest}"`,
+    ),
+))
+assert.throws(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  `https://artifactregistry.googleapis.com/v1/projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/dockerImages/reeditpro-track-all-l4-task-qa:mutable-${'a'.repeat(8)}`,
+))
+assert.equal(
+  canonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequestSchema
+    .safeParse({ callerImageUri: 'injected' }).success,
+  false,
+)
+
+const reconciledImageAuthority = imageBuildAuthorityFixture()
+const reconciledImageSubmission = imageBuildSubmissionFixture()
+const reconciledImageTerminal = imageBuildTerminalFixture()
 const reconciledAdmission =
   createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmission({
     admissionId: 'track-all-l4-reconciled-admission-smoke',
-    authority: imageBuildAuthorityFixture(),
-    imageBuildSubmission: imageBuildSubmissionFixture(),
-    imageBuildTerminal: imageBuildTerminalFixture(),
+    authority: reconciledImageAuthority,
+    imageBuildSubmission: reconciledImageSubmission,
+    imageBuildTerminal: reconciledImageTerminal,
     admittedAt: '2026-08-05T22:40:30.000Z',
   })
 assert.equal(
   reconciledAdmission.immutableImageDigest,
   `sha256:${'9'.repeat(64)}`,
+)
+
+const reconciledBody =
+  compileCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildBody(
+    reconciledAdmission,
+  )
+const reconciledBuildId = '44444444-4444-4444-8444-444444444444'
+let reconciledConsumed = false
+const reconciledService =
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService({
+    readPort: {
+      async rereadAdmission() { return reconciledAdmission },
+    },
+    statePort: {
+      async consumeAdmissionCreateOnly() {
+        if (reconciledConsumed) return false
+        reconciledConsumed = true
+        return true
+      },
+      async persistSubmissionCreateOnly() { return true },
+      async persistTerminalCreateOnly() { return true },
+    },
+    transport: {
+      async request(request) {
+        if (request.method === 'POST') return {
+          status: 200,
+          json: {
+            name: `operations/build/reeditpro/us-central1/${reconciledBuildId}`,
+            metadata: { build: { id: reconciledBuildId } },
+          },
+        }
+        return {
+          status: 200,
+          json: {
+            id: reconciledBuildId,
+            name:
+              `projects/390722338345/locations/us-central1/builds/${reconciledBuildId}`,
+            status: 'SUCCESS',
+            warnings: [],
+            steps: (reconciledBody.steps as ReadonlyArray<
+              Record<string, unknown>
+            >).map((step) => ({
+              id: step.id,
+              name: step.name,
+              status: 'SUCCESS',
+            })),
+            serviceAccount: reconciledAdmission.buildPolicy.serviceAccount,
+            timeout: reconciledAdmission.buildPolicy.timeout,
+            queueTtl: reconciledAdmission.buildPolicy.queueTtl,
+            options: {
+              machineType: reconciledAdmission.buildPolicy.machineType,
+              diskSizeGb: String(reconciledAdmission.buildPolicy.diskSizeGb),
+              requestedVerifyOption:
+                reconciledAdmission.buildPolicy.requestedVerifyOption,
+              logging: reconciledAdmission.buildPolicy.logging,
+            },
+            artifacts: reconciledBody.artifacts,
+            results: {
+              artifactManifest:
+                `gs://reeditpro-production-reeditpro-image-supply-chain-evidence/${reconciledAdmission.evidencePrefix}/artifacts-${reconciledBuildId}.json#1`,
+              numArtifacts: '3',
+            },
+          },
+        }
+      },
+    },
+    now: () => '2026-08-05T22:40:45.000Z',
+  })
+const reconciledSubmission = await reconciledService.start({
+  admissionRef: imageSupplyChainAdmissionRef(reconciledAdmission),
+})
+const reconciledTerminal = await reconciledService.observe({
+  admission: reconciledAdmission,
+  submission: reconciledSubmission,
+})
+const evidenceReadRequest =
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequest({
+    imageBuildAuthority: reconciledImageAuthority,
+    imageBuildSubmission: reconciledImageSubmission,
+    imageBuildTerminal: reconciledImageTerminal,
+    supplyChainAdmission: reconciledAdmission,
+    supplyChainSubmission: reconciledSubmission,
+    supplyChainTerminal: reconciledTerminal,
+  })
+assert.equal(evidenceReadRequest.immutableImageDigest, `sha256:${'9'.repeat(64)}`)
+assert.equal(evidenceReadRequest.supplyChainCloudBuildId, reconciledBuildId)
+assert.throws(() =>
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequest({
+    imageBuildAuthority: reconciledImageAuthority,
+    imageBuildSubmission: reconciledImageSubmission,
+    imageBuildTerminal: reconciledImageTerminal,
+    supplyChainAdmission: reconciledAdmission,
+    supplyChainSubmission: reconciledSubmission,
+    supplyChainTerminal: {
+      ...reconciledTerminal,
+      immutableImageDigest: `sha256:${'8'.repeat(64)}`,
+    },
+  }),
 )
 
 let consumed = false
@@ -272,7 +401,7 @@ assert.throws(() =>
 
 process.stdout.write(`${JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build',
-  checks: 21,
+  checks: 28,
   immutableDigestBound: true,
   pinnedSbomAndKmsToolchain: true,
   exactCloudBuildEchoRequired: true,
@@ -379,6 +508,9 @@ function imageBuildAuthorityFixture() {
 
 function imageBuildSubmissionFixture() {
   const authority = imageBuildAuthorityFixture()
+  const request = compileCanonicalTrackAllSam31L4TaskQaCloudBuildRequest(
+    authority,
+  )
   const payload = {
     schemaVersion:
       'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-submission-v1' as const,
@@ -391,8 +523,12 @@ function imageBuildSubmissionFixture() {
       version: 1 as const,
       contentHash: `sha256:${authority.authorityHash}` as const,
     },
-    buildRequestRef: ref('image-build-request', '2'),
-    buildRequestHash: '2'.repeat(64),
+    buildRequestRef: {
+      id: `track-all-l4-cloud-build-request-${request.requestHash.slice(0, 24)}`,
+      version: 1 as const,
+      contentHash: `sha256:${request.requestHash}` as const,
+    },
+    buildRequestHash: request.requestHash,
     providerHttpStatus: 200,
     cloudBuildOperationName: null,
     cloudBuildId: null,

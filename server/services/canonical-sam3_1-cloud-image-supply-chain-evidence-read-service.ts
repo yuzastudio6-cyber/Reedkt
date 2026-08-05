@@ -368,46 +368,46 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
         vulnerabilityOccurrences,
         buildOccurrences,
       ] = await Promise.all([
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          artifactRegistryImageUrl(imageDigest, IMAGE_NAME),
+          canonicalArtifactRegistryImageUrl(imageDigest, IMAGE_NAME),
           'sam3_1_artifact_registry_image_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(imageTerminal.cloudBuildResource),
+          canonicalCloudBuildReadUrl(imageTerminal.cloudBuildResource),
           'sam3_1_original_cloud_build_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(supplyObservation.cloudBuildResource),
+          canonicalCloudBuildReadUrl(supplyObservation.cloudBuildResource),
           'sam3_1_supply_chain_cloud_build_reread_failed',
         ),
-        rereadEvidenceArtifacts({
+        rereadCanonicalImageSupplyChainEvidenceArtifacts({
           observation: supplyObservation,
           admission: supplyAdmission,
           artifactPaths: ARTIFACT_PATHS,
           privateObjectReadPort: input.privateObjectReadPort,
         }),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="DISCOVERY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="VULNERABILITY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           'kind="BUILD" AND '
             + 'build.inTotoSlsaProvenanceV1.predicate.runDetails.metadata.'
-            + `invocationId="${provenanceInvocationId(
+            + `invocationId="${canonicalCloudBuildProvenanceInvocationId(
               imageTerminal.cloudBuildResource,
             )}"`,
         ),
       ])
 
-      const imageMetadata = verifyImageMetadata(
+      const imageMetadata = verifyCanonicalImageMetadata(
         imageMetadataResponse,
         imageUri,
         imageDigest,
@@ -424,12 +424,12 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
         admission: supplyAdmission,
         observation: supplyObservation,
       })
-      const sbom = verifySpdxSbom({
+      const sbom = verifyCanonicalImageSpdxSbom({
         body: evidenceArtifacts.byPath.get('sam31.spdx.json')?.body,
         imageDigest,
         syftImage: supplyAdmission.toolchain.syftImage,
       })
-      const signature = verifyCosignEvidence({
+      const signature = verifyCanonicalImageCosignEvidence({
         bundleBody:
           evidenceArtifacts.byPath.get('cosign-signature.bundle.json')?.body,
         verificationBody:
@@ -440,7 +440,7 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
         supplyChainObservationRef:
           imageSupplyChainBuildObservationReference(supplyObservation),
       })
-      const vulnerabilityScan = verifyVulnerabilityOccurrences({
+      const vulnerabilityScan = verifyCanonicalImageVulnerabilityOccurrences({
         imageDigest,
         resourceUri,
         discoveryOccurrences,
@@ -456,11 +456,11 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
           severityCounts: vulnerabilityScan.severityCounts,
         }),
       )
-      assertSecurityReviewMatches(securityReview, {
+      assertCanonicalImageSecurityReviewMatches(securityReview, {
         imageDigest,
         ...vulnerabilityScan,
       })
-      const provenance = verifyBuildProvenance({
+      const provenance = verifyCanonicalImageBuildProvenance({
         occurrences: buildOccurrences,
         imageUri,
         imageDigest,
@@ -498,7 +498,7 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
             vulnerabilityScan.occurrenceSnapshotUpdatedAt,
           ...vulnerabilityScan.severityCounts,
           exactOccurrencesReread: true,
-          securityReviewRef: securityReviewRef(securityReview),
+          securityReviewRef: canonicalImageSecurityReviewRef(securityReview),
           securityReviewApprovedForPrivateGpuQualification: true,
         },
         signature: {
@@ -650,46 +650,49 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
         vulnerabilityOccurrences,
         buildOccurrences,
       ] = await Promise.all([
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          artifactRegistryImageUrl(imageDigest, QUALIFICATION_IMAGE_NAME),
+          canonicalArtifactRegistryImageUrl(
+            imageDigest,
+            QUALIFICATION_IMAGE_NAME,
+          ),
           'sam3_1_qualification_image_registry_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(imageTerminal.cloudBuildResource),
+          canonicalCloudBuildReadUrl(imageTerminal.cloudBuildResource),
           'sam3_1_qualification_original_build_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(supplyObservation.cloudBuildResource),
+          canonicalCloudBuildReadUrl(supplyObservation.cloudBuildResource),
           'sam3_1_qualification_supply_build_reread_failed',
         ),
-        rereadEvidenceArtifacts({
+        rereadCanonicalImageSupplyChainEvidenceArtifacts({
           observation: supplyObservation,
           admission: supplyAdmission,
           artifactPaths: supplyAdmission.evidenceArtifactPaths,
           privateObjectReadPort: input.privateObjectReadPort,
         }),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="DISCOVERY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="VULNERABILITY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           'kind="BUILD" AND '
             + 'build.inTotoSlsaProvenanceV1.predicate.runDetails.metadata.'
-            + `invocationId="${provenanceInvocationId(
+            + `invocationId="${canonicalCloudBuildProvenanceInvocationId(
               imageTerminal.cloudBuildResource,
             )}"`,
         ),
       ])
 
-      const imageMetadata = verifyImageMetadata(
+      const imageMetadata = verifyCanonicalImageMetadata(
         imageMetadataResponse,
         imageUri,
         imageDigest,
@@ -708,12 +711,12 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
       })
       const [sbomPath, bundlePath, verificationPath] =
         supplyAdmission.evidenceArtifactPaths
-      const sbom = verifySpdxSbom({
+      const sbom = verifyCanonicalImageSpdxSbom({
         body: evidenceArtifacts.byPath.get(sbomPath)?.body,
         imageDigest,
         syftImage: supplyAdmission.toolchain.syftImage,
       })
-      const signature = verifyCosignEvidence({
+      const signature = verifyCanonicalImageCosignEvidence({
         bundleBody: evidenceArtifacts.byPath.get(bundlePath)?.body,
         verificationBody: evidenceArtifacts.byPath.get(verificationPath)?.body,
         imageUri,
@@ -724,7 +727,7 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
             supplyObservation,
           ),
       })
-      const vulnerabilityScan = verifyVulnerabilityOccurrences({
+      const vulnerabilityScan = verifyCanonicalImageVulnerabilityOccurrences({
         imageDigest,
         resourceUri,
         discoveryOccurrences,
@@ -740,11 +743,11 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
           severityCounts: vulnerabilityScan.severityCounts,
         }),
       )
-      assertSecurityReviewMatches(securityReview, {
+      assertCanonicalImageSecurityReviewMatches(securityReview, {
         imageDigest,
         ...vulnerabilityScan,
       })
-      const provenance = verifyBuildProvenance({
+      const provenance = verifyCanonicalImageBuildProvenance({
         occurrences: buildOccurrences,
         imageUri,
         imageDigest,
@@ -798,7 +801,7 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
             vulnerabilityScan.occurrenceSnapshotUpdatedAt,
           ...vulnerabilityScan.severityCounts,
           exactOccurrencesReread: true,
-          securityReviewRef: securityReviewRef(securityReview),
+          securityReviewRef: canonicalImageSecurityReviewRef(securityReview),
           securityReviewApprovedForPrivateGpuQualification: true,
         },
         signature: {
@@ -1122,7 +1125,7 @@ function assertRequestLineage(
   ) throw conflict('sam3_1_supply_chain_read_request_lineage_mismatch')
 }
 
-async function rereadEvidenceArtifacts(input: {
+export async function rereadCanonicalImageSupplyChainEvidenceArtifacts(input: {
   observation: {
     readonly evidenceArtifactManifestUri: string | null
     readonly cloudBuildId: string
@@ -1199,7 +1202,7 @@ function parseArtifactManifest(body: Buffer) {
   }))
 }
 
-function verifySpdxSbom(input: {
+export function verifyCanonicalImageSpdxSbom(input: {
   body: Buffer | undefined
   imageDigest: string
   syftImage: string
@@ -1266,7 +1269,7 @@ function verifySpdxSbom(input: {
   }
 }
 
-function verifyCosignEvidence(input: {
+export function verifyCanonicalImageCosignEvidence(input: {
   bundleBody: Buffer | undefined
   verificationBody: Buffer | undefined
   imageUri: string
@@ -1330,7 +1333,7 @@ function verifyCosignEvidence(input: {
   }
 }
 
-function verifyVulnerabilityOccurrences(input: {
+export function verifyCanonicalImageVulnerabilityOccurrences(input: {
   imageDigest: string
   resourceUri: string
   discoveryOccurrences: readonly unknown[]
@@ -1416,13 +1419,15 @@ function verifyVulnerabilityOccurrences(input: {
   }
 }
 
-function verifyBuildProvenance(input: {
+export function verifyCanonicalImageBuildProvenance(input: {
   occurrences: readonly unknown[]
   imageUri: string
   imageDigest: string
   cloudBuildResource: string
 }) {
-  const invocationId = provenanceInvocationId(input.cloudBuildResource)
+  const invocationId = canonicalCloudBuildProvenanceInvocationId(
+    input.cloudBuildResource,
+  )
   const candidates = input.occurrences.flatMap((value) => {
     const root = occurrenceRecord(value, 'BUILD', `https://${input.imageUri}`)
     const build = record(root.build)
@@ -1498,11 +1503,11 @@ function verifyProvenanceStatement(value: unknown, input: {
   ) throw conflict('sam3_1_slsa_v1_lineage_invalid')
 }
 
-function verifyImageMetadata(
+export function verifyCanonicalImageMetadata(
   value: unknown,
   imageUri: string,
   imageDigest: string,
-  imageName: typeof IMAGE_NAME | typeof QUALIFICATION_IMAGE_NAME,
+  imageName: string,
 ) {
   assertBoundedPlainJson(value, 'sam3_1_artifact_registry_image')
   const root = record(value)
@@ -1737,7 +1742,7 @@ function verifyQualificationImageSupplyChainBuild(input: {
   ) throw conflict('sam3_1_qualification_supply_build_echo_invalid')
 }
 
-async function listAllOccurrences(
+export async function listCanonicalImageArtifactAnalysisOccurrences(
   transport: CanonicalSam31ImageSupplyChainGoogleReadTransport,
   filter: string,
 ): Promise<readonly unknown[]> {
@@ -1747,7 +1752,7 @@ async function listAllOccurrences(
   for (let page = 0; page < MAXIMUM_OCCURRENCE_PAGES; page += 1) {
     const parameters = new URLSearchParams({ filter, pageSize: '1000' })
     if (pageToken) parameters.set('pageToken', pageToken)
-    const response = await getRequiredJson(
+    const response = await getRequiredCanonicalImageSupplyChainJson(
       transport,
       `${OCCURRENCES_ENDPOINT}?${parameters.toString()}`,
       'sam3_1_artifact_analysis_occurrences_reread_failed',
@@ -1779,7 +1784,7 @@ async function listAllOccurrences(
   throw notReady('sam3_1_artifact_analysis_pagination_incomplete')
 }
 
-async function getRequiredJson(
+export async function getRequiredCanonicalImageSupplyChainJson(
   transport: CanonicalSam31ImageSupplyChainGoogleReadTransport,
   url: string,
   gate: string,
@@ -1790,7 +1795,7 @@ async function getRequiredJson(
   return response.json
 }
 
-function assertSecurityReviewMatches(
+export function assertCanonicalImageSecurityReviewMatches(
   review: CanonicalSam31ImageSecurityReview,
   input: {
     imageDigest: string
@@ -1810,7 +1815,9 @@ function assertSecurityReviewMatches(
   ) throw conflict('sam3_1_image_security_review_scan_mismatch')
 }
 
-function securityReviewRef(review: CanonicalSam31ImageSecurityReview) {
+export function canonicalImageSecurityReviewRef(
+  review: CanonicalSam31ImageSecurityReview,
+) {
   return contentRef(review.reviewId, review.reviewHash)
 }
 
@@ -1891,9 +1898,9 @@ function parseGcsGenerationUri(value: string) {
   }
 }
 
-function artifactRegistryImageUrl(
+export function canonicalArtifactRegistryImageUrl(
   imageDigest: string,
-  imageName: typeof IMAGE_NAME | typeof QUALIFICATION_IMAGE_NAME,
+  imageName: string,
 ): string {
   const imageId = encodeURIComponent(`${imageName}@${imageDigest}`)
   return 'https://artifactregistry.googleapis.com/v1/projects/reeditpro/'
@@ -1901,11 +1908,13 @@ function artifactRegistryImageUrl(
     + imageId
 }
 
-function cloudBuildUrl(resource: string): string {
+export function canonicalCloudBuildReadUrl(resource: string): string {
   return `https://cloudbuild.googleapis.com/v1/${resource}`
 }
 
-function provenanceInvocationId(resource: string): string {
+export function canonicalCloudBuildProvenanceInvocationId(
+  resource: string,
+): string {
   return `https://cloudbuild.googleapis.com/v1/${resource}`
 }
 
@@ -1928,13 +1937,13 @@ export function assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
   const decodedPath = safelyDecodePath(url.pathname)
   const artifactRegistry =
     url.origin === 'https://artifactregistry.googleapis.com'
-    && /^\/v1\/projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/dockerImages\/reeditpro-sam31-(?:gpu|qualification)@sha256:[a-f0-9]{64}$/u
+    && /^\/v1\/projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/dockerImages\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}$/u
       .test(decodedPath)
     && !url.search
   const filter = url.searchParams.get('filter') ?? ''
   const occurrenceFilterAllowed = [
-    /^kind="DISCOVERY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-(?:gpu|qualification)@sha256:[a-f0-9]{64}"$/u,
-    /^kind="VULNERABILITY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-(?:gpu|qualification)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="DISCOVERY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="VULNERABILITY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
     /^kind="BUILD" AND build\.inTotoSlsaProvenanceV1\.predicate\.runDetails\.metadata\.invocationId="https:\/\/cloudbuild\.googleapis\.com\/v1\/projects\/reeditpro\/locations\/us-central1\/builds\/[0-9a-f-]{36}"$/u,
   ].some((pattern) => pattern.test(filter))
   const occurrenceKeys = [...url.searchParams.keys()]

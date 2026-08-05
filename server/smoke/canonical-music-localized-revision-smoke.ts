@@ -48,9 +48,62 @@ assert.equal(revised.finalCompositionHandoff?.placementManifestRefs.length, 2)
 assert.equal(new Set(revised.artifacts.map((artifact) => `${artifact.artifactId}:${artifact.artifactHash}`)).size,
   revised.artifacts.length)
 
+const generatedRuntime = await createCanonicalMusicTestRuntime()
+const generatedCueOne = makeMusicCue({ cueId: 'generated-revision-cue-1', range: rangeOne,
+  acquisitionPreference: 'generate_original', motifRole: 'introduce' })
+const generatedCueTwo = makeMusicCue({ cueId: 'generated-revision-cue-2', range: rangeTwo,
+  acquisitionPreference: 'generate_original', motifRole: 'return' })
+const generatedRequest = makeCanonicalMusicRequest({
+  requestId: 'music-localized-generated-revision', mode: 'fixture', cues: [generatedCueOne, generatedCueTwo],
+  allowGeneration: true,
+})
+const generatedPrevious = await generatedRuntime.music.execute(generatedRequest)
+assert.equal(generatedPrevious.status, 'completed')
+assert.equal(generatedPrevious.providerAttemptRefs.length, 6)
+const generatedCueOneCandidates = generatedPrevious.candidateArtifactRefs.filter((candidate) =>
+  candidate.artifactId.includes(generatedCueOne.cueId))
+const generatedCueTwoCandidates = generatedPrevious.candidateArtifactRefs.filter((candidate) =>
+  candidate.artifactId.includes(generatedCueTwo.cueId))
+const generatedCueOneAttempts = generatedPrevious.artifacts.filter((artifact) =>
+  artifact.cueId === generatedCueOne.cueId && artifact.artifactType === 'music_provider_attempt_v2')
+const generatedCueTwoAttempts = generatedPrevious.artifacts.filter((artifact) =>
+  artifact.cueId === generatedCueTwo.cueId && artifact.artifactType === 'music_provider_attempt_v2')
+assert.equal(generatedCueOneCandidates.length, 3)
+assert.equal(generatedCueTwoCandidates.length, 3)
+assert.equal(generatedCueOneAttempts.length, 3)
+assert.equal(generatedCueTwoAttempts.length, 3)
+const generatedRevisedRequest = structuredClone(generatedRequest)
+generatedRevisedRequest.cueConstraints.requestedCues[1]!.instrumentation = ['restrained strings', 'subtle piano']
+const generatedRevised = await generatedRuntime.music.executeRevision({
+  request: generatedRevisedRequest, previousResult: generatedPrevious, invalidatedRanges: [rangeTwo],
+  reason: 'Approved generated cue-two instrumentation revision.',
+  approvedRevisionSnapshotId: generatedRevisedRequest.approvedSnapshotRef.snapshotId,
+  approvedRevisionSnapshotHash: generatedRevisedRequest.approvedSnapshotRef.snapshotHash,
+  revisionIdempotencyKey: 'music-generated-localized-revision-2',
+})
+assert.equal(generatedRevised.status, 'completed')
+const revisedCueOneCandidates = generatedRevised.candidateArtifactRefs.filter((candidate) =>
+  candidate.artifactId.includes(generatedCueOne.cueId))
+const revisedCueTwoCandidates = generatedRevised.candidateArtifactRefs.filter((candidate) =>
+  candidate.artifactId.includes(generatedCueTwo.cueId))
+assert.deepEqual(revisedCueOneCandidates, generatedCueOneCandidates)
+assert.equal(revisedCueTwoCandidates.length, 3)
+assert.ok(revisedCueTwoCandidates.every((candidate) => !generatedCueTwoCandidates.some((previousCandidate) =>
+  previousCandidate.artifactId === candidate.artifactId || previousCandidate.storageObjectId === candidate.storageObjectId)))
+const revisedCueOneAttempts = generatedRevised.artifacts.filter((artifact) =>
+  artifact.cueId === generatedCueOne.cueId && artifact.artifactType === 'music_provider_attempt_v2')
+const revisedCueTwoAttempts = generatedRevised.artifacts.filter((artifact) =>
+  artifact.cueId === generatedCueTwo.cueId && artifact.artifactType === 'music_provider_attempt_v2')
+assert.deepEqual(revisedCueOneAttempts.map((artifact) => artifact.artifactHash),
+  generatedCueOneAttempts.map((artifact) => artifact.artifactHash))
+assert.ok(revisedCueTwoAttempts.every((artifact) => !generatedCueTwoAttempts.some((previousAttempt) =>
+  previousAttempt.artifactId === artifact.artifactId)))
+assert.equal(generatedRevised.providerAttemptRefs.length, 6)
+
 console.log(JSON.stringify({
   status: 'ok', preservedCueCount: revisionPlan.preservedCueIds.length,
   replacedCueCount: revisionPlan.replacementCueIds.length,
   preservedSoundUnchanged: true, affectedSoundRerun: true,
   finalPlacementCount: revised.finalCompositionHandoff?.placementManifestRefs.length,
+  generatedUnaffectedCuePreserved: true, generatedAffectedCueReattempted: true,
 }, null, 2))

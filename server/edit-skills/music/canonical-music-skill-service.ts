@@ -417,8 +417,12 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       requestId: input.request.requestId,
       status: replacement.status === 'blocked' ? 'partial' : replacement.status,
       providerAttemptRefs: [...new Set([
-        ...input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
-          .map((receipt) => receipt.providerAttemptId).filter((value): value is string => Boolean(value)),
+        ...input.previousResult.artifacts.filter((artifact) => artifact.cueId &&
+          revisionPlan.preservedCueIds.includes(artifact.cueId) && artifact.artifactType === 'music_provider_attempt_v2')
+          .map((artifact) => {
+            const attemptId = (artifact.payload as { attemptId?: unknown }).attemptId
+            return typeof attemptId === 'string' ? attemptId : undefined
+          }).filter((value): value is string => Boolean(value)),
         ...replacement.providerAttemptRefs,
       ])],
       soundSupportReceipts, selectedMusicAssetRefs, processedMusicAssetRefs, musicStemAssetRefs,

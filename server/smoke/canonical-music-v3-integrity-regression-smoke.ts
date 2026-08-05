@@ -116,7 +116,8 @@ await check('sound_parameters_applied', async () => {
     assert.ok(unit.outputBindings.length > 0, `${unit.unitId} has named outputs`)
     assert.equal(unit.stepReceipts.length, route.steps.length)
     for (const binding of unit.outputBindings) {
-      const published = route.outputBindings.find((candidate) => candidate.bindingKey === binding.bindingKey)
+      const published: (typeof route.outputBindings)[number] | undefined = route.outputBindings
+        .find((candidate) => candidate.bindingKey === binding.bindingKey)
       assert.ok(published)
       assert.equal(binding.producerStepKey, published.producerStepKey)
       assert.equal(binding.artifactType, published.artifactType)

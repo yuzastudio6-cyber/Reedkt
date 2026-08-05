@@ -4,6 +4,8 @@ import { basename, join, relative, resolve, sep } from 'node:path'
 import type { TimelineRate } from '../edit-skills/core/timeline-rate'
 import {
   readPrivateFileIfExistsWithinRoot,
+  withPrivateCooperativeFileLockWithinRoot,
+  writePrivateFileAtomicWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
 import type { CanonicalMusicArtifactResolver } from './music-analysis'
@@ -127,6 +129,9 @@ export interface MusicProviderAttempt {
   compositionBriefHash: string
   promptPlanHash: string
   candidateCount: number
+  candidateOrdinal: number
+  candidateGroupSize: number
+  candidateGroupId: string
   approvedSnapshotId: string
   creditReservationId: string
   idempotencyKey: string
@@ -137,11 +142,50 @@ export interface MusicProviderAttempt {
   submittedAt?: string
   timeoutMilliseconds: number
   providerRequestId?: string
+  providerOutputId?: string
   reconciliationState: 'not_required' | 'required' | 'in_progress' | 'resolved' | 'blocked'
   candidateArtifacts: MusicArtifactRef[]
+  candidateIdentities: MusicGeneratedCandidateIdentity[]
+}
+
+export interface MusicGeneratedCandidateIdentity {
+  providerProfileKey: string
+  providerProfileVersion: string
+  routeKey: string
+  routeVersion: string
+  routeHash: string
+  providerAttemptId: string
+  providerAttemptFingerprint: string
+  compositionBriefHash: string
+  promptPlanHash: string
+  approvedSnapshotId: string
+  cueId: string
+  candidateOrdinal: number
+  providerOutputId: string
+  checksumSha256: string
+  revisionIdentity: string
+  storageObjectId: string
+  identityHash: string
+}
+
+export interface MusicProviderAttemptGroup {
+  groupId: string
+  requestId: string
+  cueId: string
+  candidateCount: number
+  providerProfileKey: string
+  providerProfileVersion: string
+  status: MusicProviderAttemptStatus
+  reconciliationState: MusicProviderAttempt['reconciliationState']
+  attempts: MusicProviderAttempt[]
+  candidateArtifacts: MusicArtifactRef[]
+  estimatedCostUsd: number
+  actualCostUsd: number
+  groupHash: string
 }
 
 export interface MusicProviderAttemptStore {
+  readonly durability?: 'fixture_memory' | 'durable'
   getByIdempotencyKey(key: string): Promise<MusicProviderAttempt | undefined>
   put(attempt: MusicProviderAttempt): Promise<void>
 }
@@ -157,6 +201,7 @@ export interface LyriaLiveActivationEvidence {
 }
 
 export class InMemoryMusicProviderAttemptStore implements MusicProviderAttemptStore {
+  readonly durability = 'fixture_memory' as const
   readonly #attempts = new Map<string, MusicProviderAttempt>()
   async getByIdempotencyKey(key: string): Promise<MusicProviderAttempt | undefined> {
     const value = this.#attempts.get(key)
@@ -168,6 +213,42 @@ export class InMemoryMusicProviderAttemptStore implements MusicProviderAttemptSt
       throw new Error('Music provider idempotency collision.')
     }
     this.#attempts.set(attempt.idempotencyKey, structuredClone(attempt))
+  }
+}
+
+export class PrivateFileMusicProviderAttemptStore implements MusicProviderAttemptStore {
+  readonly durability = 'durable' as const
+  readonly #rootPath: string
+
+  constructor(rootPath: string) {
+    this.#rootPath = resolve(rootPath)
+  }
+
+  #relativePath(key: string): string {
+    return join('music-provider-attempts', `${stableHash(key)}.json`)
+  }
+
+  async getByIdempotencyKey(key: string): Promise<MusicProviderAttempt | undefined> {
+    const bytes = await readPrivateFileIfExistsWithinRoot({ rootPath: this.#rootPath, relativePath: this.#relativePath(key) })
+    if (!bytes) return undefined
+    const parsed = JSON.parse(bytes.toString('utf8')) as MusicProviderAttempt
+    if (parsed.idempotencyKey !== key) throw new Error('Durable Music provider-attempt identity mismatch.')
+    return structuredClone(parsed)
+  }
+
+  async put(attempt: MusicProviderAttempt): Promise<void> {
+    const relativePath = this.#relativePath(attempt.idempotencyKey)
+    await withPrivateCooperativeFileLockWithinRoot({
+      rootPath: this.#rootPath, relativePath: `${relativePath}.lock`, operation: async () => {
+        const existing = await this.getByIdempotencyKey(attempt.idempotencyKey)
+        if (existing && (existing.attemptId !== attempt.attemptId ||
+          existing.attemptFingerprint !== attempt.attemptFingerprint)) {
+          throw new Error('Durable Music provider idempotency collision.')
+        }
+        await writePrivateFileAtomicWithinRoot({ rootPath: this.#rootPath, relativePath,
+          content: Buffer.from(JSON.stringify(attempt), 'utf8') })
+      },
+    })
   }
 }
 
@@ -259,23 +340,16 @@ export class CanonicalLyria3ProviderAdapter {
     brief: MusicCompositionBrief
     candidateCount: number
     mode: 'fixture' | 'private_canary' | 'production'
-  }): Promise<MusicProviderAttempt> {
+  }): Promise<MusicProviderAttemptGroup> {
     const compiled = compileLyria3InteractionRequest({ brief: input.brief })
-    const attemptFingerprint = stableHash({
+    const groupCore = {
       requestId: input.request.requestId, cueId: input.cueId, route: input.route,
       providerProfileKey: LYRIA_3_PROVIDER_PROFILE.profileKey,
       providerProfileVersion: LYRIA_3_PROVIDER_PROFILE.profileVersion,
       compositionBriefHash: input.brief.briefHash, promptPlanHash: compiled.promptPlanHash,
       candidateCount: input.candidateCount, snapshot: input.request.approvedSnapshotRef,
       reservationRef: input.request.approvalAndBudget.reservationRef, mode: input.mode,
-    })
-    const replay = await this.#attempts.getByIdempotencyKey(`${input.request.idempotencyKey}:${input.cueId}`)
-    if (replay) {
-      if (replay.attemptFingerprint !== attemptFingerprint) {
-        throw new Error('Music provider idempotency collision: the key is bound to a different attempt fingerprint.')
-      }
-      if (replay.status === 'unknown_outcome') return this.#reconcile(replay, input.request)
-      return replay
+      parentIdempotencyKey: input.request.idempotencyKey,
     }
     if (input.mode === 'production') {
       const activation = this.liveActivationStatus()
@@ -286,65 +360,109 @@ export class CanonicalLyria3ProviderAdapter {
       const blockers = activation.blockingReasons.filter((reason) => reason !== 'privateCanaryPassed')
       if (blockers.length > 0) throw new Error(`Private Lyria 3 canary is fail-closed: ${blockers.join(',')}`)
     }
+    if (input.mode !== 'fixture' && this.#attempts.durability !== 'durable') {
+      throw new Error('Live Lyria 3 execution requires a durable provider-attempt store.')
+    }
     const reservation = input.request.approvalAndBudget.reservationRef
     if (!reservation) throw new Error('Lyria execution requires an approved credit reservation.')
     if (input.candidateCount < 1 || input.candidateCount > input.request.approvalAndBudget.maximumCandidates) {
       throw new Error('Lyria candidate count exceeds approved Music policy.')
     }
-    if (input.mode !== 'fixture' && input.candidateCount !== LYRIA_3_PROVIDER_PROFILE.maximumClipsPerPrompt) {
-      throw new Error('Live Lyria 3 requests are limited to the official one-output interaction contract.')
-    }
-    const attempt: MusicProviderAttempt = {
-      attemptId: `music.provider.${input.request.requestId}.${input.cueId}.1`,
-      requestId: input.request.requestId,
-      cueId: input.cueId,
-      routeKey: input.route.routeKey,
-      routeVersion: input.route.routeVersion,
-      routeHash: input.route.routeHash,
-      providerProfileKey: LYRIA_3_PROVIDER_PROFILE.profileKey,
-      providerProfileVersion: LYRIA_3_PROVIDER_PROFILE.profileVersion,
-      compositionBriefHash: input.brief.briefHash,
-      promptPlanHash: compiled.promptPlanHash,
-      candidateCount: input.candidateCount,
-      approvedSnapshotId: input.request.approvedSnapshotRef.snapshotId,
-      creditReservationId: reservation,
-      idempotencyKey: `${input.request.idempotencyKey}:${input.cueId}`,
-      attemptFingerprint,
-      estimatedCostUsd: LYRIA_3_PROVIDER_PROFILE.pricing.proTrackUpToThreeMinutes * input.candidateCount,
-      actualCostUsd: 0,
-      status: 'submitted',
-      submittedAt: new Date().toISOString(),
-      timeoutMilliseconds: 180_000,
-      reconciliationState: 'not_required',
-      candidateArtifacts: [],
-    }
-    await this.#attempts.put(attempt)
-    const projectId = this.#projectId ?? 'fixture-project'
-    let response: LyriaTransportResult
-    try {
-      response = await this.#transport.execute({
+    const groupId = `music.provider-group.${stableHash(groupCore).slice(0, 24)}`
+    const attempts: MusicProviderAttempt[] = []
+    for (let candidateOrdinal = 1; candidateOrdinal <= input.candidateCount; candidateOrdinal += 1) {
+      const attemptFingerprint = stableHash({ ...groupCore, candidateOrdinal, oneProviderInteractionPerCandidate: true })
+      const attemptIdempotencyKey = `${input.request.idempotencyKey}:${input.cueId}:candidate-${candidateOrdinal}`
+      const replay = await this.#attempts.getByIdempotencyKey(attemptIdempotencyKey)
+      if (replay) {
+        if (replay.attemptFingerprint !== attemptFingerprint) {
+          throw new Error('Music provider idempotency collision: the key is bound to a different attempt fingerprint.')
+        }
+        attempts.push(replay.status === 'unknown_outcome' ? await this.#reconcile(replay, input.request) : replay)
+        continue
+      }
+      const attempt: MusicProviderAttempt = {
+        attemptId: `music.provider.${attemptFingerprint.slice(0, 24)}.${candidateOrdinal}`,
+        requestId: input.request.requestId,
+        cueId: input.cueId,
+        routeKey: input.route.routeKey,
+        routeVersion: input.route.routeVersion,
+        routeHash: input.route.routeHash,
+        providerProfileKey: LYRIA_3_PROVIDER_PROFILE.profileKey,
+        providerProfileVersion: LYRIA_3_PROVIDER_PROFILE.profileVersion,
+        compositionBriefHash: input.brief.briefHash,
+        promptPlanHash: compiled.promptPlanHash,
+        candidateCount: 1,
+        candidateOrdinal,
+        candidateGroupSize: input.candidateCount,
+        candidateGroupId: groupId,
+        approvedSnapshotId: input.request.approvedSnapshotRef.snapshotId,
+        creditReservationId: reservation,
+        idempotencyKey: attemptIdempotencyKey,
+        attemptFingerprint,
+        estimatedCostUsd: LYRIA_3_PROVIDER_PROFILE.pricing.proTrackUpToThreeMinutes,
+        actualCostUsd: 0,
+        status: 'submitted',
+        submittedAt: new Date().toISOString(),
+        timeoutMilliseconds: 180_000,
+        reconciliationState: 'not_required',
+        candidateArtifacts: [],
+        candidateIdentities: [],
+      }
+      await this.#attempts.put(attempt)
+      const projectId = this.#projectId ?? 'fixture-project'
+      let response: LyriaTransportResult
+      try {
+        response = await this.#transport.execute({
         endpoint: LYRIA_3_PROVIDER_PROFILE.endpointTemplate.replace('{project}', projectId),
         request: compiled.request,
         idempotencyKey: attempt.idempotencyKey,
         timeoutMilliseconds: attempt.timeoutMilliseconds,
       })
-    } catch {
-      attempt.status = 'unknown_outcome'
-      attempt.reconciliationState = 'required'
+      } catch {
+        attempt.status = 'unknown_outcome'
+        attempt.reconciliationState = 'required'
+        await this.#attempts.put(attempt)
+        attempts.push(attempt)
+        continue
+      }
+      attempt.providerRequestId = response.providerRequestId
+      attempt.actualCostUsd = response.actualCostUsd
+      attempt.status = response.status
+      attempt.reconciliationState = response.status === 'unknown_outcome' ? 'required' : 'not_required'
+      if (response.status === 'succeeded') {
+        if (response.candidates.length !== LYRIA_3_PROVIDER_PROFILE.maximumClipsPerPrompt) {
+          throw new Error('Lyria interaction must return exactly one provider output per candidate attempt.')
+        }
+        attempt.providerOutputId = response.candidates[0]!.providerOutputId
+        const ingested = await this.#ingestCandidate({ request: input.request, cueId: input.cueId,
+          candidate: response.candidates[0]!, candidateOrdinal, attemptFingerprint })
+        attempt.candidateArtifacts = [ingested.artifact]
+        attempt.candidateIdentities = [this.#candidateIdentity({ request: input.request, attempt,
+          artifact: ingested.artifact, providerOutputId: response.candidates[0]!.providerOutputId })]
+      }
       await this.#attempts.put(attempt)
-      return attempt
+      attempts.push(attempt)
     }
-    attempt.providerRequestId = response.providerRequestId
-    attempt.actualCostUsd = response.actualCostUsd
-    attempt.status = response.status
-    attempt.reconciliationState = response.status === 'unknown_outcome' ? 'required' : 'not_required'
-    if (response.status === 'succeeded') {
-      if (response.candidates.length !== input.candidateCount) throw new Error('Lyria fixture candidate count mismatch.')
-      attempt.candidateArtifacts = await Promise.all(response.candidates.map((candidate, index) =>
-        this.#ingestCandidate({ request: input.request, cueId: input.cueId, candidate, index })))
+    const candidateArtifacts = attempts.flatMap((attempt) => attempt.candidateArtifacts)
+    const status: MusicProviderAttemptStatus = attempts.every((attempt) => attempt.status === 'succeeded') ? 'succeeded'
+      : attempts.some((attempt) => attempt.status === 'unknown_outcome') ? 'unknown_outcome'
+        : attempts.some((attempt) => attempt.status === 'reconciling') ? 'reconciling'
+          : attempts.some((attempt) => attempt.status === 'failed') ? 'failed' : 'blocked'
+    const reconciliationState: MusicProviderAttempt['reconciliationState'] =
+      attempts.some((attempt) => attempt.reconciliationState === 'required') ? 'required'
+        : attempts.some((attempt) => attempt.reconciliationState === 'in_progress') ? 'in_progress'
+          : attempts.some((attempt) => attempt.reconciliationState === 'blocked') ? 'blocked'
+            : attempts.some((attempt) => attempt.reconciliationState === 'resolved') ? 'resolved' : 'not_required'
+    const groupWithoutHash = {
+      groupId, requestId: input.request.requestId, cueId: input.cueId, candidateCount: input.candidateCount,
+      providerProfileKey: LYRIA_3_PROVIDER_PROFILE.profileKey,
+      providerProfileVersion: LYRIA_3_PROVIDER_PROFILE.profileVersion,
+      status, reconciliationState, attempts, candidateArtifacts,
+      estimatedCostUsd: attempts.reduce((sum, attempt) => sum + attempt.estimatedCostUsd, 0),
+      actualCostUsd: attempts.reduce((sum, attempt) => sum + attempt.actualCostUsd, 0),
     }
-    await this.#attempts.put(attempt)
-    return attempt
+    return { ...groupWithoutHash, groupHash: stableHash(groupWithoutHash) }
   }
 
   async #reconcile(attempt: MusicProviderAttempt, request: CanonicalMusicSkillRequest): Promise<MusicProviderAttempt> {
@@ -359,11 +477,16 @@ export class CanonicalLyria3ProviderAdapter {
     attempt.actualCostUsd = response.actualCostUsd
     attempt.reconciliationState = response.status === 'unknown_outcome' ? 'required' : 'resolved'
     if (response.status === 'succeeded') {
-      if (response.candidates.length !== attempt.candidateCount) {
-        throw new Error('Reconciled Lyria candidate count does not match the approved attempt.')
+      if (response.candidates.length !== 1) {
+        throw new Error('Reconciled Lyria candidate attempt must return exactly one output.')
       }
-      attempt.candidateArtifacts = await Promise.all(response.candidates.map((candidate, index) =>
-        this.#ingestCandidate({ request, cueId: attempt.cueId, candidate, index })))
+      attempt.providerOutputId = response.candidates[0]!.providerOutputId
+      const ingested = await this.#ingestCandidate({ request, cueId: attempt.cueId,
+        candidate: response.candidates[0]!, candidateOrdinal: attempt.candidateOrdinal,
+        attemptFingerprint: attempt.attemptFingerprint })
+      attempt.candidateArtifacts = [ingested.artifact]
+      attempt.candidateIdentities = [this.#candidateIdentity({ request, attempt, artifact: ingested.artifact,
+        providerOutputId: response.candidates[0]!.providerOutputId })]
     }
     await this.#attempts.put(attempt)
     return attempt
@@ -373,12 +496,15 @@ export class CanonicalLyria3ProviderAdapter {
     request: CanonicalMusicSkillRequest
     cueId: string
     candidate: LyriaProviderCandidateBytes
-    index: number
-  }): Promise<MusicArtifactRef> {
+    candidateOrdinal: number
+    attemptFingerprint: string
+  }): Promise<{ artifact: MusicArtifactRef }> {
     const root = await realpath(await this.#artifacts.privateOutputRoot(input.request.privateOutputScopeId!))
     const extension = input.candidate.contentType === 'audio/mpeg' ? 'mp3' : 'wav'
-    const filename = safeOutputName(`candidate-${input.index + 1}.${extension}`)
-    const relativePath = join('music', input.request.requestId, input.cueId, filename)
+    const providerOutputFingerprint = stableHash(input.candidate.providerOutputId).slice(0, 16)
+    const filename = safeOutputName(`candidate-${input.candidateOrdinal}-${providerOutputFingerprint}.${extension}`)
+    const relativePath = join('music', input.request.requestId, input.cueId,
+      `attempt-${input.attemptFingerprint.slice(0, 24)}`, filename)
     const path = resolve(root, relativePath)
     if (!within(path, root)) throw new Error('Music provider output escaped private root.')
     const write = await writePrivateFileCreateOnlyWithinRoot({
@@ -389,8 +515,8 @@ export class CanonicalLyria3ProviderAdapter {
     const bytes = await readPrivateFileIfExistsWithinRoot({ rootPath: root, relativePath })
     if (!bytes) throw new Error('Music provider candidate was not readable after private create-only ingest.')
     const checksumSha256 = createHash('sha256').update(bytes).digest('hex')
-    return {
-      artifactId: `music-candidate-${input.request.requestId}-${input.cueId}-${input.index + 1}`,
+    return { artifact: {
+      artifactId: `music-candidate-${input.request.requestId}-${input.cueId}-${input.attemptFingerprint.slice(0, 16)}-${input.candidateOrdinal}`,
       artifactType: 'untrusted_music_candidate',
       version: 1,
       checksumSha256,
@@ -399,7 +525,24 @@ export class CanonicalLyria3ProviderAdapter {
       contentType: input.candidate.contentType,
       byteSize: bytes.byteLength,
       timelineRate: input.request.timelineBinding.rationalTimelineRate,
+      lineageArtifactIds: [input.request.approvedSnapshotRef.snapshotId, input.cueId],
+    } }
+  }
+
+  #candidateIdentity(input: { request: CanonicalMusicSkillRequest; attempt: MusicProviderAttempt;
+    artifact: MusicArtifactRef; providerOutputId: string }): MusicGeneratedCandidateIdentity {
+    const base = {
+      providerProfileKey: input.attempt.providerProfileKey,
+      providerProfileVersion: input.attempt.providerProfileVersion,
+      routeKey: input.attempt.routeKey, routeVersion: input.attempt.routeVersion, routeHash: input.attempt.routeHash,
+      providerAttemptId: input.attempt.attemptId, providerAttemptFingerprint: input.attempt.attemptFingerprint,
+      compositionBriefHash: input.attempt.compositionBriefHash, promptPlanHash: input.attempt.promptPlanHash,
+      approvedSnapshotId: input.attempt.approvedSnapshotId, cueId: input.attempt.cueId,
+      candidateOrdinal: input.attempt.candidateOrdinal, providerOutputId: input.providerOutputId,
+      checksumSha256: input.artifact.checksumSha256, revisionIdentity: input.request.idempotencyKey,
+      storageObjectId: input.artifact.storageObjectId,
     }
+    return { ...base, identityHash: stableHash(base) }
   }
 }
 
@@ -433,13 +576,15 @@ export class DeterministicInjectedLyriaTransport implements LyriaTransport {
       candidates: [], actualCostUsd: this.#outcome === 'unknown_outcome' ? 0.08 : 0,
       failureCode: this.#outcome,
     }
+    const fixtureIndex = (this.calls.length - 1) % this.#fixtures.length
     return {
       status: 'succeeded',
       providerRequestId: `lyria-fixture-${stableHash(input.idempotencyKey).slice(0, 12)}`,
-      candidates: this.#fixtures.map((bytes, index) => ({
-        bytes, contentType: this.#contentType, providerOutputId: `fixture-${index + 1}`,
-      })),
-      actualCostUsd: LYRIA_3_PROVIDER_PROFILE.pricing.proTrackUpToThreeMinutes * this.#fixtures.length,
+      candidates: [{
+        bytes: this.#fixtures[fixtureIndex]!, contentType: this.#contentType,
+        providerOutputId: `fixture-${fixtureIndex + 1}-${stableHash(input.idempotencyKey).slice(0, 8)}`,
+      }],
+      actualCostUsd: LYRIA_3_PROVIDER_PROFILE.pricing.proTrackUpToThreeMinutes,
     }
   }
 }

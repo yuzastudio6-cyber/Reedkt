@@ -8,6 +8,7 @@ import {
   createMusicCompositionBrief,
   CanonicalLyria3ProviderAdapter,
   LYRIA_3_PROVIDER_PROFILE,
+  PrivateFileMusicProviderAttemptStore,
 } from '../music/lyria-provider'
 import { GoogleLyria3InteractionsTransport } from '../music/lyria-live-transport'
 import {
@@ -164,6 +165,7 @@ const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v2'
 if (!route) throw new Error('Canonical Lyria route is unavailable.')
 const provider = new CanonicalLyria3ProviderAdapter({
   transport: new GoogleLyria3InteractionsTransport({ getAccessToken: accessToken }),
+  attempts: new PrivateFileMusicProviderAttemptStore(root),
   artifacts: new CanaryArtifactResolver(root), projectId,
   liveEvidence: {
     accountApproved: true, privacyApproved: true, retentionApproved: true,
@@ -180,9 +182,10 @@ if (attempt.status !== 'succeeded' || attempt.candidateArtifacts.length !== 1) {
 }
 console.log(JSON.stringify({
   status: 'private_canary_succeeded', providerProfile: attempt.providerProfileKey,
-  providerRequestIdPresent: Boolean(attempt.providerRequestId), candidateChecksum: attempt.candidateArtifacts[0].checksumSha256,
+  providerRequestIdPresent: Boolean(attempt.attempts[0]?.providerRequestId), candidateChecksum: attempt.candidateArtifacts[0].checksumSha256,
   candidateByteSize: attempt.candidateArtifacts[0].byteSize, actualCostUsd: attempt.actualCostUsd,
   store: false, customerMediaUsed: false, productionQualificationPromoted: false,
-  evidenceHash: hashMusicValue({ attemptId: attempt.attemptId, providerRequestId: attempt.providerRequestId,
+  evidenceHash: hashMusicValue({ attemptGroupId: attempt.groupId, attemptId: attempt.attempts[0]?.attemptId,
+    providerRequestId: attempt.attempts[0]?.providerRequestId,
     candidateChecksum: attempt.candidateArtifacts[0].checksumSha256, actualCostUsd: attempt.actualCostUsd }),
 }, null, 2))

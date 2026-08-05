@@ -14,16 +14,33 @@ const request = makeCanonicalMusicRequest({
 const result = await runtime.music.execute(request)
 
 assert.equal(result.status, 'completed')
-assert.equal(result.providerAttemptRefs.length, 1)
+assert.equal(result.providerAttemptRefs.length, 3)
 assert.equal(result.candidateArtifactRefs.length, 3)
 assert.equal(result.candidateAnalysisRefs.length, 3)
 assert.equal(result.selectionDecisionRefs.length, 1)
 assert.equal(result.selectedMusicAssetRefs.length, 1)
-assert.equal(result.selectedMusicAssetRefs[0]?.artifactId, 'music-candidate-music-lyria-e2e-generated-cue-2')
+assert.ok(result.candidateArtifactRefs.some((candidate) =>
+  candidate.artifactId === result.selectedMusicAssetRefs[0]?.artifactId))
+assert.equal(new Set(result.candidateArtifactRefs.map((candidate) => candidate.storageObjectId)).size, 3)
 assert.ok(result.processedMusicAssetRefs.length > 0)
 assert.ok(result.soundSupportReceipts.length > 0)
 assert.equal(result.costEvidence.actualMusicCredits, 2.4)
 assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_composition_brief_v2'))
+const providerAttempts = result.artifacts.filter((artifact) => artifact.artifactType === 'music_provider_attempt_v2')
+assert.equal(providerAttempts.length, 3)
+assert.ok(providerAttempts.every((artifact) => {
+  const attempt = artifact.payload as { candidateCount: number; candidateGroupSize: number; candidateOrdinal: number;
+    candidateIdentities: Array<Record<string, unknown>> }
+  const identity = attempt.candidateIdentities[0]
+  return attempt.candidateCount === 1 && attempt.candidateGroupSize === 3 && attempt.candidateOrdinal >= 1 &&
+    Boolean(identity?.providerProfileKey && identity.routeHash && identity.providerAttemptFingerprint &&
+      identity.compositionBriefHash && identity.promptPlanHash && identity.approvedSnapshotId && identity.cueId &&
+      identity.providerOutputId && identity.checksumSha256 && identity.revisionIdentity && identity.identityHash)
+}))
+assert.equal(new Set(providerAttempts.map((artifact) =>
+  (artifact.payload as { providerRequestId: string }).providerRequestId)).size, 3)
+assert.equal(new Set(providerAttempts.map((artifact) =>
+  (artifact.payload as { attemptFingerprint: string }).attemptFingerprint)).size, 3)
 assert.ok(result.artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_analysis_v2').length === 3)
 assert.equal(result.qualificationStatusUsed, 'planning_qualified')
 assert.equal(LYRIA_3_PROVIDER_PROFILE.requestStore, false)
@@ -48,7 +65,7 @@ const variationRequest = makeCanonicalMusicRequest({
 })
 const variationResult = await variationRuntime.music.execute(variationRequest)
 assert.equal(variationResult.status, 'completed')
-assert.equal(variationResult.providerAttemptRefs.length, 1)
+assert.equal(variationResult.providerAttemptRefs.length, 3)
 assert.ok(variationResult.artifacts.some((artifact) => artifact.artifactType === 'music_composition_brief_v2' &&
   (artifact.payload as { sourceEvidenceRefs: string[] }).sourceEvidenceRefs.includes(original.checksumSha256)))
 

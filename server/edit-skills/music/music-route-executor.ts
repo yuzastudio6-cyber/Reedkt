@@ -584,24 +584,29 @@ export class CanonicalMusicRouteExecutor {
         ],
         approvalRef: request.approvedSnapshotRef.snapshotId,
       })
-      const attempt = await this.#provider.execute({
+      const attemptGroup = await this.#provider.execute({
         request, cueId, route: input.unit.route, brief,
         candidateCount: request.approvalAndBudget.maximumCandidates,
         mode: request.requestedExecutionMode === 'production' ? 'production' : 'fixture',
       })
-      input.state.providerAttempts.push(attempt)
-      if (attempt.status !== 'succeeded') throw new Error(`Music provider attempt ${attempt.status}; reconciliation required before retry.`)
-      input.state.candidatesByCue.set(cueId, attempt.candidateArtifacts)
+      input.state.providerAttempts.push(...attemptGroup.attempts)
+      if (attemptGroup.status !== 'succeeded') {
+        throw new Error(`Music provider attempt group ${attemptGroup.status}; reconciliation required before retry.`)
+      }
+      input.state.candidatesByCue.set(cueId, attemptGroup.candidateArtifacts)
       const briefArtifact = artifactFromPayload({ request, artifactType: 'music_composition_brief_v2', artifactId: brief.briefId,
         cueId, payload: brief, evidence: ['provider_neutral_brief'] })
-      const attemptArtifact = artifactFromPayload({ request, artifactType: 'music_provider_attempt_v2',
-        artifactId: attempt.attemptId, cueId, payload: attempt,
-        evidence: ['cue_specific_attempt', 'idempotent_provider_lifecycle', 'unknown_outcome_requires_reconciliation'] })
-      input.state.artifacts.push(briefArtifact, attemptArtifact)
+      const attemptArtifacts = attemptGroup.attempts.map((attempt) => artifactFromPayload({ request,
+        artifactType: 'music_provider_attempt_v2', artifactId: attempt.attemptId, cueId, payload: attempt,
+        evidence: ['cue_specific_attempt', 'one_provider_interaction_per_candidate',
+          'idempotent_provider_lifecycle', 'unknown_outcome_requires_reconciliation'] }))
+      input.state.artifacts.push(briefArtifact, ...attemptArtifacts)
       return {
-        outputArtifacts: attempt.candidateArtifacts, outputHashes: [brief.briefHash],
-        runtimeEvidence: ['lyria3_injected_transport_same_route_graph', 'private_output_ingest', 'store_false'],
-        providerAttemptId: attempt.attemptId, providerCostUsd: attempt.actualCostUsd,
+        outputArtifacts: attemptGroup.candidateArtifacts, outputHashes: [briefArtifact.artifactHash,
+          ...attemptArtifacts.map((artifact) => artifact.artifactHash)],
+        runtimeEvidence: ['lyria3_injected_transport_same_route_graph', 'private_output_ingest', 'store_false',
+          'one_provider_interaction_per_candidate'],
+        providerAttemptId: attemptGroup.groupId, providerCostUsd: attemptGroup.actualCostUsd,
       }
     }
     if (input.handler.kind === 'private_audio_analysis' && input.step.operationKey === 'analyze_audio_bytes' &&

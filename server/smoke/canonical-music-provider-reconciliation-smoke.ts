@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import {
   CanonicalLyria3ProviderAdapter,
   LYRIA_3_PROVIDER_PROFILE,
+  PrivateFileMusicProviderAttemptStore,
   createMusicCompositionBrief,
   type LyriaTransport,
   type LyriaTransportResult,
@@ -32,11 +33,12 @@ class ReconciledTransport implements LyriaTransport {
 }
 
 const transport = new ReconciledTransport()
-const provider = new CanonicalLyria3ProviderAdapter({ transport, artifacts: runtime.resolver })
+const attemptStore = new PrivateFileMusicProviderAttemptStore(runtime.root)
+const provider = new CanonicalLyria3ProviderAdapter({ transport, attempts: attemptStore, artifacts: runtime.resolver })
 const range = { rangeId: 'reconcile-range', startFrame: 0, endFrameExclusive: 96 }
 const cue = makeMusicCue({ cueId: 'reconcile-cue', range, acquisitionPreference: 'generate_original' })
 const request = makeCanonicalMusicRequest({ requestId: 'music-provider-reconcile', mode: 'fixture', cues: [cue], allowGeneration: true })
-const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v2')!
+const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v3')!
 const brief = createMusicCompositionBrief({
   briefId: 'brief-reconcile', briefVersion: '2.0.0', cueId: cue.cueId, exactRange: range,
   timelineRate: request.timelineBinding.rationalTimelineRate, narrativeFunction: cue.narrativeFunction,
@@ -62,6 +64,13 @@ assert.equal(reconciled.candidateArtifacts.length, 1)
 assert.equal(transport.executeCalls, 1)
 assert.equal(transport.reconcileCalls, 1)
 assert.equal(reconciled.providerProfileKey, LYRIA_3_PROVIDER_PROFILE.profileKey)
+const reconstructedTransport = new ReconciledTransport()
+const reconstructedProvider = new CanonicalLyria3ProviderAdapter({ transport: reconstructedTransport,
+  attempts: new PrivateFileMusicProviderAttemptStore(runtime.root), artifacts: runtime.resolver })
+const durableReplay = await reconstructedProvider.execute({ request, cueId: cue.cueId, route, brief,
+  candidateCount: 1, mode: 'fixture' })
+assert.equal(durableReplay.status, 'succeeded')
+assert.equal(reconstructedTransport.executeCalls, 0)
 const { briefHash: _previousBriefHash, ...briefInput } = brief
 void _previousBriefHash
 const changedBrief = createMusicCompositionBrief({ ...briefInput, energyArc: `${brief.energyArc}-material-change` })

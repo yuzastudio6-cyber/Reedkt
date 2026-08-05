@@ -24,24 +24,24 @@ const coordinate = {
   projectId: 'reeditpro' as const,
   bucketName: 'reeditpro-production-reeditpro-image-build-inputs' as const,
   objectName:
-    'private/image-build-inputs/track-all-l4-task-qa/3485bd6de732a6cdc098f6bd20bf839374e18e2a158eedce9ef3884b42c4af54.tar.gz',
-  generation: '1785956262630423',
-  etag: 'CJeo+cSVipYDEAE=',
-  byteLength: 101_988_203,
-  sha256: '3485bd6de732a6cdc098f6bd20bf839374e18e2a158eedce9ef3884b42c4af54',
+    'private/image-build-inputs/track-all-l4-task-qa/reproducibility/e0607667-51fe-47e6-bbf6-67f9570aa2db/435aa995378a1718d4a6d44265b2843c16ab9f9ae0f5b49399c678606c9f0e42.tar.gz',
+  generation: '1785959093072312',
+  etag: 'CLjjzYqgipYDEAE=',
+  byteLength: 101_987_702,
+  sha256: '435aa995378a1718d4a6d44265b2843c16ab9f9ae0f5b49399c678606c9f0e42',
 }
 const independentRebuildCoordinate = {
   projectId: 'reeditpro' as const,
   bucketName: 'reeditpro-production-reeditpro-image-build-inputs' as const,
   objectName:
-    'private/image-build-inputs/track-all-l4-task-qa/reproducibility/a98e648b-56bc-4dee-8b0e-3e139bda211e/3485bd6de732a6cdc098f6bd20bf839374e18e2a158eedce9ef3884b42c4af54.tar.gz',
-  generation: '1785957766424225',
-  etag: 'CKHNgZKbipYDEAE=',
-  byteLength: 101_988_203,
-  sha256: '3485bd6de732a6cdc098f6bd20bf839374e18e2a158eedce9ef3884b42c4af54',
+    'private/image-build-inputs/track-all-l4-task-qa/reproducibility/5694667d-cc6c-4521-8d5c-3c23de42da55/435aa995378a1718d4a6d44265b2843c16ab9f9ae0f5b49399c678606c9f0e42.tar.gz',
+  generation: '1785959671342358',
+  etag: 'CJbKrJ6iipYDEAE=',
+  byteLength: 101_987_702,
+  sha256: '435aa995378a1718d4a6d44265b2843c16ab9f9ae0f5b49399c678606c9f0e42',
 }
-const sourceCommitSha = 'd2aef7bae01b24f0c0bb8dcf5ecde8fd5b3d603a'
-const sourceTreeSha = '99a1462e754462a950129858cb0b71f1da7aa50e'
+const sourceCommitSha = 'ee2944fbf4bca0199bf3b0471ffa5d51ae8d8d75'
+const sourceTreeSha = 'ce7f841d6472b8cf92c179e213790fcc22eb628a'
 
 async function main(): Promise<void> {
   if (process.env.WEEDITPRO_CONFIRM_TRACK_ALL_L4_TASK_QA_BUILD_AUTHORITY
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
     return entry
   }
   const buildSourceArtifactRef = {
-    id: 'track-all-l4-task-qa-private-build-source-3485bd6de732a6cd',
+    id: 'track-all-l4-task-qa-private-build-source-435aa995378a1718',
     version: 1 as const,
     contentHash: `sha256:${coordinate.sha256}` as const,
   }
@@ -122,7 +122,7 @@ async function main(): Promise<void> {
   })) throw new Error('track_all_l4_persisted_review_refs_changed')
 
   const capsule = createCanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule({
-    capsuleId: 'track-all-l4-task-qa-private-build-capsule-3485bd6de732a6cd',
+    capsuleId: 'track-all-l4-task-qa-private-build-capsule-435aa995378a1718',
     capsuleVersion: 1,
     evidenceClass: 'canonical_private_reread',
     status: 'private_capsule_verified',

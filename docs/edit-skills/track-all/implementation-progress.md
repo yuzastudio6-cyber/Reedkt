@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_14_qa_repair_implemented_qualification_receipt_pending`
+Status: `track_17_planning_qualified_sam_route_externally_blocked`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -930,3 +930,65 @@ internal evidence and are not represented as real SAM inference. Track All
 remains `implementation_pending`, the SAM route remains `blocked`, and no
 checkpoint/model/GPU/paid/public/production/database/head-orchestra action
 occurred.
+
+## TRACK-17 — evidence-backed qualification and legacy retirement
+
+Status: complete locally; source commit remotely confirmed and generated
+evidence pending this ledger commit.
+
+- implementation commit: `9bf9a80c004dbf30f7c66096ef54350ae3df3dfb`
+- source remote confirmation: `origin/codex/track-all-skill-end-to-end`
+  resolved to `9bf9a80c004dbf30f7c66096ef54350ae3df3dfb` after
+  `git push -u origin HEAD`.
+- tested source commit: `9bf9a80c004dbf30f7c66096ef54350ae3df3dfb`
+- manifest schema: `skill-capability-manifest-v2`
+- manifest hash:
+  `2125de0ac813dca9e6c8211639131fc389cd70979cb8344904e66fa58e94bf9d`
+- relevant source-tree hash:
+  `0386421ada43b97ffb7258a9a2b08dad9469e5f1fe636bef7ed3ac6f38cef65a`
+- shared authority-set hash:
+  `f2c0669e5b56838a6d13da574aaa95ec8dfa2dfade27af40ea0e60f8f53a738b`
+- qualification receipt hash:
+  `b52bf5ebf7a210f38787e9fab1a714f058ae30aeee8fce0fb090629e35535d67`
+- generated qualification artifact hash:
+  `4b42960ae73bd657790d02ebd0ed4475fac1bfbbc973004bf3e264432523ec7e`
+
+Implemented and evidenced:
+
+- one actual clean-tree aggregate issuer, `npm run qualify:track-all:internal`,
+  that records exact command exit status, timestamps, stdout/stderr digests,
+  commit, source tree, ordered dependency authorities, and fixture lineage;
+- 25 actual passed command evidence records, 21 exact passed fixture evidence
+  records, 14 dependency authorities, and ten route-level records;
+- runtime loading of the frozen generated receipt with stale manifest, source,
+  authority, fixture, command, route, hash, and overclaim rejection;
+- independently tested rejection of failed commands, missing/duplicate
+  fixtures, wrong commit/source/manifest/authority, reordered authority sets,
+  forged hashes, a higher runtime claim, SAM overclaim, and production
+  overclaim;
+- static retirement enforcement proving zero active SAM2 imports/routes, zero
+  superseded orchestra-binding imports, zero legacy planning-skill imports,
+  zero production bindings, one Track All registration, no public-plugin
+  private-mini-skill import, and the forward-only SAM 3.1 V2 operation.
+
+Actual aggregate qualification result:
+
+- `npm run qualify:track-all:internal` — passed all 25 commands, including all
+  17 Track All/manifest/kernel/retirement commands, two shared security
+  commands, full build, server typecheck, lint, and frontend/server boundary;
+- full build evidence hash:
+  `33c1ce62246a625af0fe3966470fcafb47d95b65ffa2928bb39d12138e05fce6`;
+- server typecheck evidence hash:
+  `4475ba3adf50c3c3b885793e7547d14ad6cd1d0d8e22022ac10661ba094aa5f7`;
+- lint evidence hash:
+  `7404cba1c8f8e1ccfe9ce1f2081218659571d1132c02b21b46af41a5c27b26aa`;
+- frontend boundary evidence hash:
+  `2241804fd1911a3c409d9095f665f89952381073805ecc3ce703459d3084baa8`.
+
+Qualification truth is `planning_qualified`. Deterministic geometry, planar,
+existing-track repair, privacy, focus, reframe, and injected public lifecycle
+routes have internal fixture evidence. The actual SAM 3.1 masklet route remains
+`blocked`: zero checkpoint bytes, zero strict loads, zero actual SAM requests,
+zero GPU executions, and no A100/L4 result exist. The production-worker route
+also remains blocked. No public artifact, production mutation, paid call,
+database mutation, or head-orchestra implementation occurred.

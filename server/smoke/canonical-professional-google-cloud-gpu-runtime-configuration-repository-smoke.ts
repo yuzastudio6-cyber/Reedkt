@@ -24,6 +24,7 @@ const repository =
   createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRepository({
     objectPort: memoryObjectPort(objects),
     prefix: 'private/smoke/canonical-gpu/runtime-configurations/v1',
+    expectedPrivateObjectBucketName: 'reeditpro-private-professional-gpu',
   })
 
 const a100Published = await repository.persistRuntimeConfigurationCreateOnly({
@@ -58,6 +59,12 @@ const rereadL4 = await repository.rereadPrivateRelease({
   target: sam31L4Target,
 })
 assert.deepEqual(rereadL4, sam31L4Release)
+assert.deepEqual(await repository.rereadPrivateLaunchTarget({
+  admission: a100Admission,
+}), a100Target)
+assert.deepEqual(await repository.rereadPrivateLaunchTarget({
+  admission: sam31L4Admission,
+}), sam31L4Target)
 const rereadTransport = await repository.rereadPrivateObjectTransport({
   admission: sam31L4Admission,
   target: sam31L4Target,
@@ -132,6 +139,7 @@ console.log(JSON.stringify({
   a100CompiledMountAndL4PreconfiguredMountPreserved: true,
   identicalReplayAccepted: true,
   detachedExactReread: true,
+  admissionOnlyLaunchTargetReconstructedFromImmutableRelease: true,
   crossRouteReleaseAndTransportRejected: true,
   hostileAccessorRejectedWithoutInvocation: true,
   createOnlyCollisionAndTamperingRejected: true,

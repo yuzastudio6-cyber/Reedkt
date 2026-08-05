@@ -229,6 +229,7 @@
     "smoke:current-gpu-rate-authority-repository": "tsx server/smoke/canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts",
     "smoke:professional-gpu-runtime-configuration-repository": "tsx server/smoke/canonical-professional-google-cloud-gpu-runtime-configuration-repository-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
+    "smoke:track-all-sam3_1-production-runtime": "tsx server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",
     "smoke:visual-intelligence-orchestra-manifest": "tsx server/smoke/visual-intelligence-orchestra-capability-manifest-smoke.ts",
     "smoke:visual-intelligence-orchestra-compiler": "tsx server/smoke/visual-intelligence-orchestra-invocation-compiler-smoke.ts",

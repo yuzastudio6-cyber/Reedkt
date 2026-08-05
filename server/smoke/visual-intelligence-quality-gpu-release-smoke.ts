@@ -58,6 +58,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-professional-google-cloud-gpu-runtime-configuration-repository-smoke.ts',
   'canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts',
   'canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts',
+  'canonical-track-all-sam3_1-production-runtime-smoke.ts',
   'canonical-sam3_1-prepared-mask-proxy-repository-smoke.ts',
   'production-tool-cost-smoke.ts',
 ] as const

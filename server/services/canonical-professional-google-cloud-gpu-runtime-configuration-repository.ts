@@ -14,6 +14,7 @@ import {
 import {
   assertCanonicalProfessionalGpuRuntimeLaunchTarget,
   assertPlainSerializedData,
+  type CanonicalProfessionalGpuRuntimeReleaseReadPort,
   type CanonicalProfessionalGpuRuntimeLaunchTarget,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
@@ -48,6 +49,9 @@ const safePrefix = z.string().trim().min(1).max(512)
     && !value.includes('//') && !value.endsWith('/'))
 const timestamp = z.string().datetime({ offset: true })
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const privateBucketName = z.string().trim().min(3).max(222).regex(
+  /^[a-z0-9][a-z0-9._-]+[a-z0-9]$/u,
+)
 const recordWithoutHashSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_RUNTIME_CONFIGURATION_RECORD_VERSION,
@@ -82,6 +86,9 @@ export interface CanonicalProfessionalGoogleCloudGpuRuntimeConfigurationReposito
     typeof CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_RUNTIME_CONFIGURATION_REPOSITORY_VERSION
   readonly evidenceClass:
     'gcs_create_only_exact_reread_gpu_runtime_configuration'
+  rereadPrivateLaunchTarget(input: {
+    readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
+  }): Promise<CanonicalProfessionalGpuRuntimeLaunchTarget | null>
   persistRuntimeConfigurationCreateOnly(input: {
     readonly release: CanonicalProfessionalGoogleCloudGpuRelease
     readonly privateObjectTransport:
@@ -112,6 +119,11 @@ type TransportReadInput = Parameters<
     'rereadPrivateObjectTransport'
   ]
 >[0]
+type LaunchTargetReadInput = Parameters<
+  CanonicalProfessionalGpuRuntimeReleaseReadPort[
+    'rereadPrivateLaunchTarget'
+  ]
+>[0]
 
 /**
  * Immutable one-writer boundary for the exact A100/L4 release and private
@@ -122,10 +134,15 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
   input: {
     readonly objectPort: CanonicalCreateOnlyJsonObjectPort
     readonly prefix?: string
+    readonly expectedPrivateObjectBucketName?: string
   },
 ): CanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRepository {
   assertObjectPort(input.objectPort)
   const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
+  const expectedPrivateObjectBucketName =
+    input.expectedPrivateObjectBucketName === undefined
+      ? null
+      : privateBucketName.parse(input.expectedPrivateObjectBucketName)
   return Object.freeze({
     schemaVersion:
       CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_RUNTIME_CONFIGURATION_REPOSITORY_VERSION,
@@ -146,7 +163,11 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
         : assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
             request.privateObjectTransport,
           )
-      assertReleaseAndTransportBinding(release, transport)
+      assertReleaseAndTransportBinding(
+        release,
+        transport,
+        expectedPrivateObjectBucketName,
+      )
       const payload = recordWithoutHashSchema.parse({
         schemaVersion:
           CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_RUNTIME_CONFIGURATION_RECORD_VERSION,
@@ -180,6 +201,7 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
         input.objectPort,
         prefix,
         release.releaseRef,
+        expectedPrivateObjectBucketName,
       )
       if (!reread || reread.recordHash !== record.recordHash) {
         throw conflict('runtime_configuration_create_only_reread_mismatch')
@@ -202,10 +224,29 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
         input.objectPort,
         prefix,
         target.releaseRef,
+        expectedPrivateObjectBucketName,
       )
       if (!record) return null
       assertReleaseMatchesScope(record.release, admission, target)
       return structuredClone(record.release)
+    },
+    async rereadPrivateLaunchTarget(untrusted: LaunchTargetReadInput) {
+      assertPlainSerializedData(untrusted, 'gpu_private_launch_target_read')
+      const request = z.object({ admission: z.unknown() }).strict()
+        .parse(untrusted)
+      const admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+        request.admission,
+      )
+      const record = await readRecord(
+        input.objectPort,
+        prefix,
+        admission.runtimeReleaseRef,
+        expectedPrivateObjectBucketName,
+      )
+      if (!record) return null
+      const target = targetFromRelease(record.release)
+      assertReleaseMatchesScope(record.release, admission, target)
+      return structuredClone(target)
     },
     async rereadPrivateObjectTransport(untrusted: TransportReadInput) {
       assertPlainSerializedData(untrusted, 'gpu_private_transport_read')
@@ -227,6 +268,7 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
         input.objectPort,
         prefix,
         target.releaseRef,
+        expectedPrivateObjectBucketName,
       )
       if (!record) return null
       assertReleaseMatchesScope(record.release, admission, target)
@@ -239,6 +281,7 @@ export function createCanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRep
       assertReleaseAndTransportBinding(
         record.release,
         record.privateObjectTransport,
+        expectedPrivateObjectBucketName,
       )
       return structuredClone(record.privateObjectTransport)
     },
@@ -251,7 +294,8 @@ export function createCanonicalGcsProfessionalGoogleCloudGpuRuntimeConfiguration
     readonly projectId?: string
     readonly bucketName?: string
     readonly prefix?: string
-  } = {},
+    readonly privateObjectTransportBucketName: string
+  },
 ): CanonicalProfessionalGoogleCloudGpuRuntimeConfigurationRepository {
   const projectId = input.projectId ?? PROJECT_ID
   if (projectId !== PROJECT_ID) {
@@ -264,6 +308,8 @@ export function createCanonicalGcsProfessionalGoogleCloudGpuRuntimeConfiguration
       bucketName: input.bucketName ?? CONTROL_PLANE_STATE_BUCKET,
     }),
     prefix: input.prefix,
+    expectedPrivateObjectBucketName:
+      input.privateObjectTransportBucketName,
   })
 }
 
@@ -312,6 +358,7 @@ function assertReleaseMatchesScope(
 function assertReleaseAndTransportBinding(
   release: CanonicalProfessionalGoogleCloudGpuRelease,
   transport: CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport | null,
+  expectedPrivateObjectBucketName: string | null = null,
 ): void {
   if (release.toolId === 'sam3_1' && !transport) {
     throw conflict('sam3_1_private_object_transport_required')
@@ -326,6 +373,8 @@ function assertReleaseAndTransportBinding(
     || !same(transport.serviceIdentityRef, release.serviceIdentityRef)
     || transport.routeId !== release.routeId
     || transport.projectId !== release.projectId
+    || (expectedPrivateObjectBucketName !== null
+      && transport.privateBucketName !== expectedPrivateObjectBucketName)
     || transport.cloudRunJobResource !== cloudRunJobResource) {
     throw conflict('runtime_release_private_transport_mismatch')
   }
@@ -335,6 +384,7 @@ async function readRecord(
   port: CanonicalCreateOnlyJsonObjectPort,
   prefix: string,
   releaseRef: CanonicalProfessionalGoogleCloudGpuRelease['releaseRef'],
+  expectedPrivateObjectBucketName: string | null = null,
 ): Promise<RuntimeConfigurationRecord | null> {
   const bytes = await port.readExact(recordPath(prefix, releaseRef))
   if (!bytes) return null
@@ -365,8 +415,42 @@ async function readRecord(
   assertReleaseAndTransportBinding(
     record.release,
     record.privateObjectTransport,
+    expectedPrivateObjectBucketName,
   )
   return record
+}
+
+function targetFromRelease(
+  release: CanonicalProfessionalGoogleCloudGpuRelease,
+): CanonicalProfessionalGpuRuntimeLaunchTarget {
+  return assertCanonicalProfessionalGpuRuntimeLaunchTarget({
+    releaseRef: release.releaseRef,
+    releaseEvidenceClass: release.evidenceClass,
+    privateInternalQualified: true,
+    toolId: release.toolId,
+    operationId: release.operationId,
+    routeId: release.routeId,
+    runtimeRegion: release.runtimeRegion,
+    executionTarget: release.executionTarget,
+    machineType: release.machineType,
+    accelerator: release.accelerator,
+    immutableImageRef: release.immutableImageRef,
+    immutableImageDigest: release.immutableImageDigest,
+    fixedServerTaskContractRef: release.fixedServerTaskContractRef,
+    serviceIdentityRef: release.serviceIdentityRef,
+    privateNetworkAndArtifactTransportRef:
+      release.privateNetworkAndArtifactTransportRef,
+    minimumIdleInstances: release.minimumIdleInstances,
+    maximumConcurrentAttemptsPerInstance: 1,
+    runtimeNetworkDownloadAllowed: release.runtimeDownloadAllowed,
+    callerCommandImageModelOrEnvironmentAccepted:
+      release.callerCommandImageModelPathUrlOrEnvironmentAccepted,
+    cpuOnlySubstantiveExecutionAllowed:
+      release.cpuOnlySubstantiveExecutionAllowed,
+    startsOnlyFromConsumedApprovedAdmission:
+      release.oneConsumedAdmissionCreatesAtMostOneJob,
+    stopsAtTerminalAttempt: true,
+  })
 }
 
 function recordPath(

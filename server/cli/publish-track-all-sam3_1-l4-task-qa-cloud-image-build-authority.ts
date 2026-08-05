@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import {
   createCanonicalTrackAllSam31L4TaskQaPrivateBuildCapsule,
-  inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSource,
+  inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSourceEnvelope,
   prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthority,
 } from '../services/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority'
 import {
@@ -45,11 +45,12 @@ async function main(): Promise<void> {
   const preparedAt = new Date().toISOString()
   const reviewRuntime =
     createCanonicalTrackAllSam31L4TaskQaGcpPrivateCapsuleReviewRuntime()
-  const entries =
-    await inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSource(
+  const inspection =
+    await inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSourceEnvelope(
       coordinate,
       reviewRuntime.privateBuildSourceReadPort,
     )
+  const entries = inspection.regularFileEntries
   const entrySetSha256 = sha256AuthorityValue(entries)
   const byPath = new Map(entries.map((entry) => [entry.path, entry]))
   const required = (path: string): (typeof entries)[number] => {
@@ -67,6 +68,7 @@ async function main(): Promise<void> {
     buildSourceArtifactRef,
     buildSourceArchiveEntries: [...entries],
     buildSourceArchiveEntrySetSha256: entrySetSha256,
+    buildSourceArchiveDirectoryEntries: inspection.directoryEntries,
     requirementsLockSha256: required(
       `${PRIVATE_DIRECTORY}/python/requirements.lock.txt`,
     ).sha256,

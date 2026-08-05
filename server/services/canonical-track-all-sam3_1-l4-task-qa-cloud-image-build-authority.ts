@@ -333,13 +333,13 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
     input.capsule,
   )
   const canonical = capsule.evidenceClass === 'canonical_private_reread'
-  const observedEntries = await verifyPrivateBuildSource(
+  const observed = await verifyPrivateBuildSource(
     capsule.buildSourceCoordinate,
     input.privateBuildSourceReadPort,
   )
-  if (stableAuthorityStringify(observedEntries)
+  if (stableAuthorityStringify(observed.regularFileEntries)
     !== stableAuthorityStringify(capsule.buildSourceArchiveEntries)
-    || sha256AuthorityValue(observedEntries)
+    || sha256AuthorityValue(observed.regularFileEntries)
       !== capsule.buildSourceArchiveEntrySetSha256) {
     throw new Error('Track All L4 private build source entries changed.')
   }
@@ -370,6 +370,7 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
         buildSourceArchiveEntries: capsule.buildSourceArchiveEntries,
         buildSourceArchiveEntrySetSha256:
           capsule.buildSourceArchiveEntrySetSha256,
+        buildSourceArchiveDirectoryEntries: observed.directoryEntries,
         requirementsLockSha256: capsule.privateInput.requirementsLockSha256,
         opencvBuildInformationSha256:
           capsule.privateInput.opencvBuildInformationSha256,
@@ -591,7 +592,11 @@ export function assertCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthority(
 async function verifyPrivateBuildSource(
   coordinate: z.infer<typeof privateBuildSourceCoordinateSchema>,
   port: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceReadPort,
-): Promise<readonly z.infer<typeof buildSourceEntrySchema>[]> {
+): Promise<{
+  readonly regularFileEntries:
+    readonly z.infer<typeof buildSourceEntrySchema>[]
+  readonly directoryEntries: readonly string[]
+}> {
   const observed = await port.readExact(coordinate)
   if (!observed) throw new Error('Track All L4 private build source missing.')
   if (
@@ -634,6 +639,20 @@ export async function inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSource(
   coordinate: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinate,
   port: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceReadPort,
 ): Promise<readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[]> {
+  return (await verifyPrivateBuildSource(
+    privateBuildSourceCoordinateSchema.parse(coordinate),
+    port,
+  )).regularFileEntries
+}
+
+export async function inspectCanonicalTrackAllSam31L4TaskQaPrivateBuildSourceEnvelope(
+  coordinate: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinate,
+  port: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceReadPort,
+): Promise<{
+  readonly regularFileEntries:
+    readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[]
+  readonly directoryEntries: readonly string[]
+}> {
   return verifyPrivateBuildSource(
     privateBuildSourceCoordinateSchema.parse(coordinate),
     port,
@@ -758,7 +777,11 @@ function isSafeArchivePath(path: string): boolean {
 
 async function inspectCanonicalTarStream(
   stream: AsyncIterable<Uint8Array>,
-): Promise<readonly z.infer<typeof buildSourceEntrySchema>[]> {
+): Promise<{
+  readonly regularFileEntries:
+    readonly z.infer<typeof buildSourceEntrySchema>[]
+  readonly directoryEntries: readonly string[]
+}> {
   let pending = Buffer.alloc(0)
   let totalUncompressed = 0
   let zeroBlocks = 0
@@ -770,6 +793,8 @@ async function inspectCanonicalTarStream(
     digest: ReturnType<typeof createHash>
   } | null = null
   const entries: z.infer<typeof buildSourceEntrySchema>[] = []
+  const directories: string[] = []
+  let lastEntryPath: string | null = null
   const completeCurrent = (): void => {
     if (!current || current.remaining !== 0 || current.padding !== 0) return
     entries.push(buildSourceEntrySchema.parse({
@@ -817,21 +842,35 @@ async function inspectCanonicalTarStream(
       if (zeroBlocks > 0) {
         throw new Error('Track All L4 tar has data after terminator.')
       }
-      if (entries.length >= MAXIMUM_BUILD_SOURCE_ENTRIES) {
+      if (entries.length + directories.length >= MAXIMUM_BUILD_SOURCE_ENTRIES) {
         throw new Error('Track All L4 tar has too many entries.')
       }
       verifyTarHeaderChecksum(header)
       const type = header[156]
-      if (type !== 0 && type !== 48) {
+      if (type !== 0 && type !== 48 && type !== 53) {
         throw new Error('Track All L4 tar contains non-regular entry.')
       }
       const name = readTarString(header.subarray(0, 100))
       const prefix = readTarString(header.subarray(345, 500))
-      const path = prefix ? `${prefix}/${name}` : name
+      const rawPath = prefix ? `${prefix}/${name}` : name
+      const directory = type === 53
+      const path = directory && rawPath.endsWith('/')
+        ? rawPath.slice(0, -1) : rawPath
       if (!isSafeArchivePath(path)) {
         throw new Error('Track All L4 tar entry path is unsafe.')
       }
+      if (lastEntryPath !== null && !(lastEntryPath < path)) {
+        throw new Error('Track All L4 tar entries are not canonical.')
+      }
+      lastEntryPath = path
       const byteLength = readTarOctal(header.subarray(124, 136))
+      if (directory) {
+        if (byteLength !== 0) {
+          throw new Error('Track All L4 tar directory is not empty.')
+        }
+        directories.push(path)
+        continue
+      }
       if (byteLength <= 0
         || byteLength > MAXIMUM_UNCOMPRESSED_BUILD_SOURCE_BYTES) {
         throw new Error('Track All L4 tar entry length is invalid.')
@@ -848,12 +887,19 @@ async function inspectCanonicalTarStream(
   if (current || pending.length !== 0 || zeroBlocks < 2) {
     throw new Error('Track All L4 tar is truncated.')
   }
-  for (let index = 1; index < entries.length; index += 1) {
-    if (!(entries[index - 1].path < entries[index].path)) {
-      throw new Error('Track All L4 tar entries are not canonical.')
+  const directorySet = new Set(directories)
+  for (const entry of entries) {
+    const parts = entry.path.split('/')
+    for (let index = 1; index < parts.length; index += 1) {
+      if (!directorySet.has(parts.slice(0, index).join('/'))) {
+        throw new Error('Track All L4 tar parent directory is missing.')
+      }
     }
   }
-  return entries
+  return Object.freeze({
+    regularFileEntries: Object.freeze(entries),
+    directoryEntries: Object.freeze(directories),
+  })
 }
 
 function readTarString(value: Uint8Array): string {

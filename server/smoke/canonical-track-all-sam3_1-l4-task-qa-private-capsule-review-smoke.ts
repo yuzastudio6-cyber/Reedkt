@@ -30,6 +30,11 @@ const entries = [
   byteLength: Number(byteLength),
   sha256: String(sha256),
 })).sort((left, right) => left.path < right.path ? -1 : 1)
+const directories = [...new Set(entries.flatMap((entry) => {
+  const parts = entry.path.split('/')
+  return parts.slice(0, -1).map((_, index) =>
+    parts.slice(0, index + 1).join('/'))
+}))].sort()
 
 const coordinate = {
   projectId: 'reeditpro' as const,
@@ -51,6 +56,7 @@ const reviews = createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
   buildSourceArtifactRef,
   buildSourceArchiveEntries: entries,
   buildSourceArchiveEntrySetSha256: sha256AuthorityValue(entries),
+  buildSourceArchiveDirectoryEntries: directories,
   requirementsLockSha256:
     '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
   opencvBuildInformationSha256:
@@ -62,7 +68,15 @@ const reviews = createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
   preparedAt: '2026-08-05T17:20:00.000Z',
 })
 
-assert.equal(reviews.archiveSafetyReview.archiveEntryCount, entries.length)
+assert.equal(reviews.archiveSafetyReview.schemaVersion,
+  'canonical-track-all-sam3_1-l4-task-qa-archive-safety-review-v2')
+if (reviews.archiveSafetyReview.schemaVersion !==
+  'canonical-track-all-sam3_1-l4-task-qa-archive-safety-review-v2') {
+  throw new Error('expected v2 archive review')
+}
+assert.equal(reviews.archiveSafetyReview.regularFileEntryCount, entries.length)
+assert.equal(reviews.archiveSafetyReview.directoryEntryCount,
+  directories.length)
 assert.equal(reviews.archiveSafetyReview.malwareContentClassificationClaimed,
   false)
 assert.equal(reviews.dependencyReview.pythonDependencies.length, 6)
@@ -130,6 +144,7 @@ assert.doesNotThrow(() =>
     buildSourceArtifactRef,
     buildSourceArchiveEntries: entries,
     buildSourceArchiveEntrySetSha256: sha256AuthorityValue(entries),
+    buildSourceArchiveDirectoryEntries: directories,
     requirementsLockSha256:
       '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
     opencvBuildInformationSha256:
@@ -154,6 +169,26 @@ assert.throws(() =>
     buildSourceArtifactRef,
     buildSourceArchiveEntries: reordered,
     buildSourceArchiveEntrySetSha256: sha256AuthorityValue(reordered),
+    buildSourceArchiveDirectoryEntries: directories,
+    requirementsLockSha256:
+      '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
+    opencvBuildInformationSha256:
+      'f20e691913bbb7725b8eb46a1b277d241ea0d7728dc2fe484787318f896ab54a',
+    opencvLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    opencvContribLicenseSha256:
+      'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30',
+    preparedAt: '2026-08-05T17:20:00.000Z',
+  }))
+
+assert.throws(() =>
+  createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
+    buildSourceCoordinate: coordinate,
+    buildSourceArtifactRef,
+    buildSourceArchiveEntries: entries,
+    buildSourceArchiveEntrySetSha256: sha256AuthorityValue(entries),
+    buildSourceArchiveDirectoryEntries: directories.filter((directory) =>
+      directory !== `${root}/python/wheelhouse`),
     requirementsLockSha256:
       '604f3858bb13b333d99c51aaf1a4c4a668b6a25408fc48fad37ca9778f58e5ac',
     opencvBuildInformationSha256:
@@ -182,8 +217,10 @@ assert.equal(getterInvoked, false)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-review',
-  checks: 22,
+  checks: 24,
   exactArchiveEntrySetBound: true,
+  cloudBuildSourceDirectoryEnvelopeBound: true,
+  missingParentDirectoryRejected: true,
   exactHashLockedPythonDependencySetBound: true,
   exactWheelMetadataAndLicenseEvidenceBound: true,
   proprietaryCudaLicenseNarrowedToPrivateNvidiaInfrastructureUse: true,

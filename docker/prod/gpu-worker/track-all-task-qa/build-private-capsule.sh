@@ -432,7 +432,7 @@ find "${WORK}/build-source" -type f -exec touch -d '@0' {} +
 readonly UNCOMPRESSED_TAR="${WORK}/track-all-l4-task-qa-build-source.tar"
 (
   cd "${WORK}/build-source"
-  find . -type f -printf '%P\0' \
+  find . -mindepth 1 \( -type d -o -type f \) -printf '%P\0' \
     | sort -z \
     | tar --create --format=ustar --mtime='@0' \
         --owner=0 --group=0 --numeric-owner --no-recursion \

@@ -12,6 +12,8 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-archive-safety-review-v2' as const
+const LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-archive-safety-review-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPENDENCY_REVIEW_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-dependency-review-v1' as const
@@ -30,9 +32,9 @@ const evidenceRefSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 
-const archiveSafetyWithoutHashSchema = z.object({
+const legacyArchiveSafetyWithoutHashSchema = z.object({
   schemaVersion: z.literal(
-    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION,
+    LEGACY_CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION,
   ),
   source: z.literal(
     'canonical_track_all_sam3_1_l4_task_qa_archive_safety_review_owner',
@@ -68,8 +70,57 @@ const archiveSafetyWithoutHashSchema = z.object({
   })
 })
 
-export const canonicalTrackAllSam31L4TaskQaArchiveSafetyReviewSchema =
-  archiveSafetyWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict()
+const archiveSafetyWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_ARCHIVE_SAFETY_REVIEW_VERSION,
+  ),
+  source: z.literal(
+    'canonical_track_all_sam3_1_l4_task_qa_archive_safety_review_owner',
+  ),
+  evidenceClass: z.literal('canonical_private_reread'),
+  status: z.literal('passed_for_private_candidate_image_build'),
+  reviewId: safeId,
+  reviewVersion: z.literal(1),
+  operationId: z.literal('tool.kornia.refine_mask.v1'),
+  buildSourceCoordinate:
+    canonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinateSchema,
+  buildSourceArtifactRef: evidenceRefSchema,
+  regularFileEntrySetSha256: rawSha256,
+  regularFileEntryCount: z.number().int().min(10).max(10_000),
+  directoryEntrySetSha256: rawSha256,
+  directoryEntryCount: z.number().int().min(2).max(10_000),
+  totalArchiveEntryCount: z.number().int().min(12).max(10_000),
+  totalUncompressedRegularFileBytes: z.number().int().positive().safe()
+    .max(24 * 1024 * 1024 * 1024),
+  exactCompressedBytesGenerationEtagAndSha256Reread: z.literal(true),
+  canonicalUstarRegularFilesAndRequiredDirectoriesOnly: z.literal(true),
+  parentDirectoryEntriesComplete: z.literal(true),
+  duplicateEntriesAbsent: z.literal(true),
+  absoluteTraversalBackslashAndControlPathsAbsent: z.literal(true),
+  symlinkHardlinkDeviceFifoSocketAndSparseEntriesAbsent: z.literal(true),
+  nonZeroTrailingDataAbsent: z.literal(true),
+  archiveEntryAllowlistPassed: z.literal(true),
+  cloudBuildGcsSourceFetcherCompatible: z.literal(true),
+  malwareContentClassificationClaimed: z.literal(false),
+  postBuildArtifactAnalysisRequired: z.literal(true),
+  customerMediaOrModelWeightsPresent: z.literal(false),
+  preparedAt: timestamp,
+}).strict().superRefine((value, context) => {
+  if (value.buildSourceArtifactRef.contentHash !==
+    `sha256:${value.buildSourceCoordinate.sha256}`
+    || value.totalArchiveEntryCount !==
+      value.regularFileEntryCount + value.directoryEntryCount) context.addIssue({
+    code: 'custom',
+    message: 'Track All L4 archive review lost source identity.',
+  })
+})
+
+export const canonicalTrackAllSam31L4TaskQaArchiveSafetyReviewSchema = z.union([
+  legacyArchiveSafetyWithoutHashSchema.extend({
+    reviewHash: rawSha256,
+  }).strict(),
+  archiveSafetyWithoutHashSchema.extend({ reviewHash: rawSha256 }).strict(),
+])
 export type CanonicalTrackAllSam31L4TaskQaArchiveSafetyReview = z.infer<
   typeof canonicalTrackAllSam31L4TaskQaArchiveSafetyReviewSchema
 >
@@ -370,6 +421,7 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
     readonly buildSourceArchiveEntries:
       readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[]
     readonly buildSourceArchiveEntrySetSha256: string
+    readonly buildSourceArchiveDirectoryEntries: readonly string[]
     readonly requirementsLockSha256: string
     readonly opencvBuildInformationSha256: string
     readonly opencvLicenseSha256: string
@@ -383,11 +435,16 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
     )
   const entries = z.array(canonicalTrackAllSam31L4TaskQaBuildSourceEntrySchema)
     .min(10).max(10_000).parse(input.buildSourceArchiveEntries)
+  const directories = z.array(z.string().min(1).max(512)
+    .refine(isSafeArchivePath)).min(2).max(10_000)
+    .parse(input.buildSourceArchiveDirectoryEntries)
   if (!isStrictlyOrderedUnique(entries.map((entry) => entry.path))
+    || !isStrictlyOrderedUnique(directories)
     || sha256AuthorityValue(entries) !==
       input.buildSourceArchiveEntrySetSha256) {
     throw new Error('Track All L4 reviewed archive entry set changed.')
   }
+  assertCompleteParentDirectories(entries, directories)
   assertExactReviewedDependencies({
     entries,
     requirementsLockSha256: input.requirementsLockSha256,
@@ -408,19 +465,24 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
     operationId: 'tool.kornia.refine_mask.v1',
     buildSourceCoordinate: coordinate,
     buildSourceArtifactRef: input.buildSourceArtifactRef,
-    archiveEntrySetSha256: input.buildSourceArchiveEntrySetSha256,
-    archiveEntryCount: entries.length,
-    totalUncompressedBytes: entries.reduce(
+    regularFileEntrySetSha256: input.buildSourceArchiveEntrySetSha256,
+    regularFileEntryCount: entries.length,
+    directoryEntrySetSha256: sha256AuthorityValue(directories),
+    directoryEntryCount: directories.length,
+    totalArchiveEntryCount: entries.length + directories.length,
+    totalUncompressedRegularFileBytes: entries.reduce(
       (total, entry) => total + entry.byteLength,
       0,
     ),
     exactCompressedBytesGenerationEtagAndSha256Reread: true,
-    canonicalUstarRegularFileEntriesOnly: true,
+    canonicalUstarRegularFilesAndRequiredDirectoriesOnly: true,
+    parentDirectoryEntriesComplete: true,
     duplicateEntriesAbsent: true,
     absoluteTraversalBackslashAndControlPathsAbsent: true,
     symlinkHardlinkDeviceFifoSocketAndSparseEntriesAbsent: true,
     nonZeroTrailingDataAbsent: true,
     archiveEntryAllowlistPassed: true,
+    cloudBuildGcsSourceFetcherCompatible: true,
     malwareContentClassificationClaimed: false,
     postBuildArtifactAnalysisRequired: true,
     customerMediaOrModelWeightsPresent: false,
@@ -562,6 +624,7 @@ export function assertCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
     readonly buildSourceArchiveEntries:
       readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[]
     readonly buildSourceArchiveEntrySetSha256: string
+    readonly buildSourceArchiveDirectoryEntries: readonly string[]
     readonly requirementsLockSha256: string
     readonly opencvBuildInformationSha256: string
     readonly opencvLicenseSha256: string
@@ -577,6 +640,8 @@ export function assertCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews(
     buildSourceArchiveEntries: input.buildSourceArchiveEntries,
     buildSourceArchiveEntrySetSha256:
       input.buildSourceArchiveEntrySetSha256,
+    buildSourceArchiveDirectoryEntries:
+      input.buildSourceArchiveDirectoryEntries,
     requirementsLockSha256: input.requirementsLockSha256,
     opencvBuildInformationSha256: input.opencvBuildInformationSha256,
     opencvLicenseSha256: input.opencvLicenseSha256,
@@ -747,6 +812,32 @@ function isStrictlyOrderedUnique(values: readonly string[]): boolean {
     if (!(values[index - 1] < values[index])) return false
   }
   return new Set(values).size === values.length
+}
+
+function isSafeArchivePath(path: string): boolean {
+  return !path.startsWith('/')
+    && !path.includes('\\')
+    && [...path].every((character) => {
+      const codePoint = character.codePointAt(0) ?? -1
+      return codePoint > 31 && codePoint !== 127
+    })
+    && path.split('/').every((part) =>
+      part.length > 0 && part !== '.' && part !== '..')
+}
+
+function assertCompleteParentDirectories(
+  entries: readonly CanonicalTrackAllSam31L4TaskQaBuildSourceEntry[],
+  directories: readonly string[],
+): void {
+  const directorySet = new Set(directories)
+  for (const entry of entries) {
+    const parts = entry.path.split('/')
+    for (let index = 1; index < parts.length; index += 1) {
+      if (!directorySet.has(parts.slice(0, index).join('/'))) {
+        throw new Error('Track All L4 archive parent directory missing.')
+      }
+    }
+  }
 }
 
 function assertClosedPlainData(value: unknown, label: string): void {

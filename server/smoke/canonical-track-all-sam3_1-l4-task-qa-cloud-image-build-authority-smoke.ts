@@ -332,19 +332,31 @@ console.log(JSON.stringify({
 
 function createCanonicalTar(files: ReadonlyMap<string, Buffer>): Buffer {
   const parts: Buffer[] = []
-  for (const [path, body] of [...files.entries()].sort(
+  const entries = new Map<string, { readonly directory: boolean, body: Buffer }>()
+  for (const [path, body] of files) {
+    const pathParts = path.split('/')
+    for (let index = 1; index < pathParts.length; index += 1) {
+      entries.set(pathParts.slice(0, index).join('/'), {
+        directory: true,
+        body: Buffer.alloc(0),
+      })
+    }
+    entries.set(path, { directory: false, body })
+  }
+  for (const [path, entry] of [...entries.entries()].sort(
     ([left], [right]) => left < right ? -1 : left > right ? 1 : 0,
   )) {
+    const body = entry.body
     const header = Buffer.alloc(512)
-    const split = splitTarPath(path)
+    const split = splitTarPath(entry.directory ? `${path}/` : path)
     writeTarText(header, 0, 100, split.name)
-    writeTarOctal(header, 100, 8, 0o444)
+    writeTarOctal(header, 100, 8, entry.directory ? 0o755 : 0o444)
     writeTarOctal(header, 108, 8, 0)
     writeTarOctal(header, 116, 8, 0)
     writeTarOctal(header, 124, 12, body.byteLength)
     writeTarOctal(header, 136, 12, 0)
     header.fill(32, 148, 156)
-    header[156] = 48
+    header[156] = entry.directory ? 53 : 48
     writeTarText(header, 257, 6, 'ustar')
     writeTarText(header, 263, 2, '00')
     writeTarText(header, 345, 155, split.prefix)

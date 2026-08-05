@@ -68,6 +68,7 @@ for (const expected of [
   'runtimeNetworkDownloadsAllowed',
   'weeditpro-track-all-sam3_1-l4-task-qa-private-build-capsule-v1',
   '--format=ustar',
+  "find . -mindepth 1 \\( -type d -o -type f \\) -printf '%P\\0'",
   "--mtime='@0'",
   '--file="${UNCOMPRESSED_TAR}" --null --files-from=-',
   'gzip --no-name --best',

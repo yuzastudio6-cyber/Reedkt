@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
 const workflow = await readFile('.github/workflows/ui-qa.yml', 'utf8')
-const installName = '      - name: Install and verify media runtime'
+const installName = '      - name: Install private-pipeline media runtime'
 const browserName = '      - name: Browser E2E'
 const serverTypecheckName = '      - name: Server typecheck'
 const installIndex = workflow.indexOf(installName)
@@ -14,7 +14,7 @@ assert.ok(browserIndex > installIndex, 'Media runtime installation must precede 
 assert.ok(serverTypecheckIndex > browserIndex, 'Server and private pipeline validation must remain after browser E2E.')
 
 const installStep = workflow.slice(installIndex, browserIndex)
-assert.match(installStep, /sudo apt-get install --yes ffmpeg/u)
+assert.match(installStep, /sudo [^\n]*apt-get install --yes ffmpeg/u)
 assert.match(installStep, /ffmpeg -version/u)
 assert.match(installStep, /ffprobe -version/u)
 assert.doesNotMatch(installStep, /continue-on-error|if:\s*failure|\|\|\s*true/u)

@@ -35,10 +35,20 @@ import type {
   EditSkillArtifactStore,
 } from '../edit-skills/core/edit-skill-artifact-store'
 import {
+  editSkillApprovedWorkGraphSchema,
+  editSkillPublicPlanSchema,
+  type EditSkillApprovedWorkGraph,
+  type EditSkillPublicPlan,
+} from '../edit-skills/core/edit-skill-plugin'
+import {
   hashSkillValue,
   skillManifestReference,
 } from '../edit-skills/core/skill-capability-manifest-hash'
 import { editSkillWorkResultSchema } from '../edit-skills/core/edit-skill-work-result'
+import { skillAssignmentSchema } from
+  '../edit-skills/core/skill-assignment-schema'
+import type { SkillAssignment } from
+  '../edit-skills/core/skill-assignment-types'
 import { createCanonicalCaptionBrollOwnerReadPort } from
   './canonical-caption-broll-support-service'
 import type { CanonicalCreateOnlyJsonObjectPort } from
@@ -130,6 +140,9 @@ export interface CanonicalBrollCaptionOwnerService {
   readonly ownerReadPort: CanonicalCaptionBrollOwnerReadPort
   finalizeFromCanonicalWork(input: {
     readonly request: BrollCaptionOwnerReadRequest
+    readonly publicAssignment: SkillAssignment
+    readonly publicPlan: EditSkillPublicPlan
+    readonly approvedWorkGraph: EditSkillApprovedWorkGraph
     readonly assignment: BrollSkillAssignment
     readonly plan: unknown
     readonly workItemResults: readonly unknown[]
@@ -207,12 +220,25 @@ export function createCanonicalBrollCaptionOwnerService(input: {
     async finalizeFromCanonicalWork(untrusted) {
       assertClosedContractTree(untrusted, 'Canonical B-roll Caption owner finalization')
       const request = parseBrollCaptionOwnerReadRequest(untrusted.request)
+      const publicAssignment = skillAssignmentSchema.parse(
+        untrusted.publicAssignment)
+      const publicPlan = editSkillPublicPlanSchema.parse(untrusted.publicPlan)
+      const approvedWorkGraph = editSkillApprovedWorkGraphSchema.parse(
+        untrusted.approvedWorkGraph)
       const assignment = brollSkillAssignmentSchema.parse(untrusted.assignment)
       const plan = brollPlanArtifactSchema.parse(untrusted.plan)
       const workItemResults = untrusted.workItemResults.map((value) =>
         editSkillWorkResultSchema.parse(value))
       await assertSnapshotAuthority(input.approvedSnapshotReadPort, request)
-      assertBrollExecutionLineage({ request, assignment, plan, workItemResults })
+      assertBrollExecutionLineage({
+        request,
+        publicAssignment,
+        publicPlan,
+        approvedWorkGraph,
+        assignment,
+        plan,
+        workItemResults,
+      })
       const refs = exactOutputRefs(workItemResults)
       const scope = {
         ownerUserId: request.canonicalScope.ownerUserId,
@@ -357,14 +383,50 @@ export function createCanonicalBrollCaptionOwnerService(input: {
 
 function assertBrollExecutionLineage(input: {
   request: BrollCaptionOwnerReadRequest
+  publicAssignment: SkillAssignment
+  publicPlan: EditSkillPublicPlan
+  approvedWorkGraph: EditSkillApprovedWorkGraph
   assignment: BrollSkillAssignment
   plan: z.infer<typeof brollPlanArtifactSchema>
   workItemResults: z.infer<typeof editSkillWorkResultSchema>[]
 }): void {
-  const { request, assignment, plan, workItemResults } = input
+  const {
+    request,
+    publicAssignment,
+    publicPlan,
+    approvedWorkGraph,
+    assignment,
+    plan,
+    workItemResults,
+  } = input
   const scope = request.canonicalScope
   const exactRange = assignment.writeRangeAuthority.authorizedRange
+  const workItemByKey = new Map(approvedWorkGraph.workItems.map((item) =>
+    [item.workItemKey, item]))
   if (
+    publicAssignment.assignmentId !== assignment.assignmentId ||
+    publicAssignment.ownerUserId !== assignment.ownerUserId ||
+    publicAssignment.workspaceId !== assignment.workspaceId ||
+    publicAssignment.projectId !== assignment.projectId ||
+    publicAssignment.editSessionId !== assignment.editSessionId ||
+    hashSkillValue(publicAssignment.authorizedRange) !== hashSkillValue(exactRange) ||
+    publicAssignment.reason !== assignment.reason ||
+    publicAssignment.intendedViewerBenefit !== assignment.expectedViewerBenefit ||
+    publicAssignment.visualOwnership !== assignment.requestedVisualOwnership ||
+    hashSkillValue(publicAssignment.manifestRef)
+      !== hashSkillValue(assignment.manifestRef) ||
+    publicPlan.envelope.assignmentId !== publicAssignment.assignmentId ||
+    publicPlan.envelope.assignmentHash !== publicAssignment.assignmentHash ||
+    publicPlan.envelope.planId !== plan.planId ||
+    publicPlan.payloadRef.artifactType !== 'b_roll_plan_v1' ||
+    publicPlan.payloadRef.sha256 !== hashSkillValue(plan) ||
+    approvedWorkGraph.assignmentId !== publicAssignment.assignmentId ||
+    approvedWorkGraph.assignmentHash !== publicAssignment.assignmentHash ||
+    approvedWorkGraph.planId !== publicPlan.envelope.planId ||
+    approvedWorkGraph.planHash !== publicPlan.envelope.planHash ||
+    approvedWorkGraph.approvedWorkGraphHash.length !== 64 ||
+    approvedWorkGraph.workItems.length !== workItemResults.length ||
+    workItemByKey.size !== approvedWorkGraph.workItems.length ||
     assignment.ownerUserId !== scope.ownerUserId ||
     assignment.workspaceId !== scope.workspaceId ||
     assignment.projectId !== scope.projectId ||
@@ -383,10 +445,12 @@ function assertBrollExecutionLineage(input: {
     workItemResults.some((result) =>
       result.status !== 'succeeded' ||
       result.assignmentId !== assignment.assignmentId ||
-      result.assignmentHash !== assignment.assignmentHash ||
+      result.assignmentHash !== publicAssignment.assignmentHash ||
       result.planId !== plan.planId ||
-      result.planHash !== plan.planHash ||
+      result.planHash !== publicPlan.envelope.planHash ||
       result.manifestRef.manifestHash !== BROLL_CAPABILITY_MANIFEST.manifestHash ||
+      !workItemByKey.has(result.workItemKey) ||
+      workItemByKey.get(result.workItemKey)?.workItemHash !== result.workItemHash ||
       result.outsideAuthorizedRangeModified ||
       result.authorizedRange.startFrameInclusive !== exactRange.startFrameInclusive ||
       result.authorizedRange.endFrameExclusive !== exactRange.endFrameExclusive ||

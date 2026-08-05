@@ -42,6 +42,7 @@ import {
   type EditSkillPublicPlan,
   type EditSkillWorkResult,
   type SkillAssignment,
+  type SkillAssignmentInput,
 } from '../edit-skills/core'
 import {
   createEditSkillRuntime,
@@ -1145,12 +1146,32 @@ try {
       })
       const ownerResult = await ownerService.finalizeFromCanonicalWork({
         request: ownerRequest,
+        publicAssignment: sourceFixture.assignment,
+        publicPlan: sourceLifecycle.plan,
+        approvedWorkGraph: sourceLifecycle.graph,
         assignment: sourceFixture.brollAssignment,
         plan: sourceAuthority.plan,
         workItemResults: sourceResults,
       })
       assert.equal(ownerResult.authenticatedOwnerEvidenceRef.contentHash,
         privateVisualReview.reviewDigestSha256)
+      const publicAssignmentCore = Object.fromEntries(
+        Object.entries(sourceFixture.assignment).filter(([key]) =>
+          key !== 'assignmentHash'),
+      ) as SkillAssignmentInput
+      const crossedPublicAssignmentCore = {
+        ...publicAssignmentCore,
+        editSessionId: 'session-caption-broll-crossed',
+      }
+      await assert.rejects(() => ownerService.finalizeFromCanonicalWork({
+        request: ownerRequest,
+        publicAssignment: createSkillAssignment(crossedPublicAssignmentCore),
+        publicPlan: sourceLifecycle.plan,
+        approvedWorkGraph: sourceLifecycle.graph,
+        assignment: sourceFixture.brollAssignment,
+        plan: sourceAuthority.plan,
+        workItemResults: sourceResults,
+      }))
       const evidenceRepository = createCanonicalCaptionBrollEvidenceRepository({
         objectPort,
         prefix: 'private/internal/caption-broll-evidence/v1',
@@ -1213,6 +1234,7 @@ try {
         actualLibassCaptionOverlayExecuted: true,
         completeTimePrivateVisualInspectionBound: true,
         captionResumeCompleted: true,
+        crossedPublicAssignmentRejected: true,
         sourceSelectionPerformedByCaption: false,
         cropOrTimingPerformedByCaption: false,
         directPeerDispatchPerformed: false,

@@ -48,7 +48,7 @@ export function validateCanonicalMusicPublication(
       const resolved = getMusicToolRouteManifest(fallback.routeKey, fallback.routeVersion)
       if (!resolved) throw new Error(`Music route ${identity} has unresolved fallback ${fallback.routeKey}.`)
       const incompatibleInput = resolved.requiredInputs.find((required) =>
-        !route.requiredInputs.includes(required) && required !== 'music_assignment_v1')
+        !route.requiredInputs.includes(required) && required !== 'music_assignment_v2')
       if (incompatibleInput) throw new Error(
         `Music route ${identity} fallback cannot accept required input ${incompatibleInput}.`,
       )

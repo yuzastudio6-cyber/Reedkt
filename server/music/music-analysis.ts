@@ -224,7 +224,7 @@ export interface MusicCandidateSelectionDecision {
   blockingFailures: Record<string, string[]>
   reviewRequiredFindings: Record<string, string[]>
   selectedCandidateId: string | null
-  selectionPolicyVersion: 'music.candidate_selection.v1'
+  selectionPolicyVersion: 'music.candidate_selection.v2'
   evidenceHash: string
 }
 
@@ -265,7 +265,7 @@ export function selectMusicCandidate(input: {
     candidateHashes: input.analyses.map((analysis) => analysis.candidateArtifact.checksumSha256),
     measuredScores, blockingFailures, reviewRequiredFindings,
     selectedCandidateId: selected?.candidateArtifact.artifactId ?? null,
-    selectionPolicyVersion: 'music.candidate_selection.v1' as const,
+    selectionPolicyVersion: 'music.candidate_selection.v2' as const,
   }
   return {
     ...base,

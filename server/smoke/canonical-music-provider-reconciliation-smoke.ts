@@ -36,7 +36,7 @@ const provider = new CanonicalLyria3ProviderAdapter({ transport, artifacts: runt
 const range = { rangeId: 'reconcile-range', startFrame: 0, endFrameExclusive: 96 }
 const cue = makeMusicCue({ cueId: 'reconcile-cue', range, acquisitionPreference: 'generate_original' })
 const request = makeCanonicalMusicRequest({ requestId: 'music-provider-reconcile', mode: 'fixture', cues: [cue], allowGeneration: true })
-const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v1')!
+const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v2')!
 const brief = createMusicCompositionBrief({
   briefId: 'brief-reconcile', briefVersion: '1.0.0', cueId: cue.cueId, exactRange: range,
   timelineRate: request.timelineBinding.rationalTimelineRate, narrativeFunction: cue.narrativeFunction,

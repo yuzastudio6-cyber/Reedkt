@@ -21,18 +21,18 @@ import {
 import { validateCanonicalMusicPublication } from './music-publication-validation'
 
 const musicPlanSchema = z.custom<CanonicalMusicPlanResult>((value) => Boolean(
-  value && typeof value === 'object' && (value as CanonicalMusicPlanResult).schemaVersion === 'canonical-music-plan-result-v1',
+  value && typeof value === 'object' && (value as CanonicalMusicPlanResult).schemaVersion === 'canonical-music-plan-result-v2',
 ), 'Canonical Music plan result required.')
 const musicResultSchema = z.custom<CanonicalMusicSkillResult>((value) => Boolean(
-  value && typeof value === 'object' && (value as CanonicalMusicSkillResult).schemaVersion === 'canonical-music-result-v1',
+  value && typeof value === 'object' && (value as CanonicalMusicSkillResult).schemaVersion === 'canonical-music-result-v2',
 ), 'Canonical Music result required.')
 
 export function registerMusicArtifactSchemas(registry: EditSkillArtifactSchemaRegistry): void {
   for (const artifactType of [...MUSIC_ACCEPTED_ARTIFACT_TYPES, ...MUSIC_PRODUCED_ARTIFACT_TYPES]) {
     if (registry.has(artifactType)) continue
-    if (artifactType === 'music_assignment_v1') registry.register(artifactType, canonicalMusicRequestSchema)
-    else if (artifactType === 'music_plan_v1') registry.register(artifactType, musicPlanSchema)
-    else if (artifactType === 'music_result_v1') registry.register(artifactType, musicResultSchema)
+    if (artifactType === 'music_assignment_v2') registry.register(artifactType, canonicalMusicRequestSchema)
+    else if (artifactType === 'music_plan_v2') registry.register(artifactType, musicPlanSchema)
+    else if (artifactType === 'music_result_v2') registry.register(artifactType, musicResultSchema)
     else registry.register(artifactType, z.unknown())
   }
 }
@@ -66,8 +66,8 @@ export class MusicSharedKernelPlanningHandler implements EditSkillHandler {
   }
 
   async plan(invocation: EditSkillInvocationContext): Promise<SkillPlanEnvelope> {
-    const requestRef = invocation.assignment.contextArtifactRefs.find((ref) => ref.artifactType === 'music_assignment_v1')
-    if (!requestRef) throw new Error('Shared Music invocation requires a canonical music_assignment_v1 artifact.')
+    const requestRef = invocation.assignment.contextArtifactRefs.find((ref) => ref.artifactType === 'music_assignment_v2')
+    if (!requestRef) throw new Error('Shared Music invocation requires a canonical music_assignment_v2 artifact.')
     const tenant = {
       ownerUserId: invocation.assignment.ownerUserId,
       workspaceId: invocation.assignment.workspaceId,
@@ -75,14 +75,14 @@ export class MusicSharedKernelPlanningHandler implements EditSkillHandler {
     }
     const request = canonicalMusicRequestSchema.parse(await this.#artifacts.readJson({ reference: requestRef, ...tenant }))
     const plan = await this.#music.plan(request)
-    const stored = await this.#artifacts.putJson({ artifactType: 'music_plan_v1', value: plan, ...tenant })
+    const stored = await this.#artifacts.putJson({ artifactType: 'music_plan_v2', value: plan, ...tenant })
     return createSkillPlanEnvelope({
       schemaVersion: 'edit-skill-plan-envelope-v1', planId: `music.plan.${request.requestId}`,
       assignmentId: invocation.assignment.assignmentId, assignmentHash: invocation.assignment.assignmentHash,
       manifestRef: invocation.assignment.manifestRef, authorizedRange: invocation.assignment.authorizedRange,
       disposition: plan.plannedResult.status === 'no_music' || plan.plannedResult.status === 'ambience_only'
         ? 'use_no_action' : plan.plannedResult.status === 'blocked' ? 'blocked' : 'use_skill',
-      payloadArtifactType: 'music_plan_v1', payloadHash: stored.sha256,
+      payloadArtifactType: 'music_plan_v2', payloadHash: stored.sha256,
     })
   }
 }
@@ -100,14 +100,14 @@ export function registerMusicSkill(input: {
   validateCanonicalMusicPublication()
   registerMusicArtifactSchemas(input.artifacts)
   registerMusicQaPolicies(input.qa)
-  input.estimators.registerTime('music.time.v1', (estimateInput) => {
+  input.estimators.registerTime('music.time.v2', (estimateInput) => {
     const durationFrames = typeof estimateInput.durationFrames === 'number' ? estimateInput.durationFrames : 0
     const cueCount = typeof estimateInput.cueCount === 'number' ? estimateInput.cueCount : 1
     const expectedSeconds = Math.max(1, Math.ceil(durationFrames / 24 / 60) * 15 + cueCount * 45)
     return { minimumSeconds: Math.max(1, Math.floor(expectedSeconds / 2)), expectedSeconds,
       maximumSeconds: expectedSeconds * 3, evidence: ['exact_range_duration', 'cue_count', 'route_specific_work'] }
   })
-  input.estimators.registerCredit('music.credit.v1', (estimateInput) => {
+  input.estimators.registerCredit('music.credit.v2', (estimateInput) => {
     const generatedCandidates = typeof estimateInput.generatedCandidates === 'number' ? estimateInput.generatedCandidates : 0
     const expectedCredits = generatedCandidates + (estimateInput.noAction === true ? 0 : 1)
     return { minimumCredits: expectedCredits === 0 ? 0 : 1, expectedCredits,
@@ -131,9 +131,9 @@ export function registerMusicSkill(input: {
     schemaVersion: 'skill-qualification-receipt-v1', manifestRef: skillManifestReference(musicSkillCapabilityManifest),
     qualificationStatus: musicSkillCapabilityManifest.qualificationStatus,
     fixtureResults: [
-      { fixtureKey: 'music.shared_kernel.v1', status: 'passed', evidenceHash, summary: 'Music validates in the neutral edit-skill kernel.' },
-      { fixtureKey: 'music.private_audio_analysis.v1', status: 'passed', evidenceHash, summary: 'Music private analysis, MusicSync, and Sound v4 boundary are implemented.' },
-      { fixtureKey: 'music.lyria3.injected.v1', status: 'passed', evidenceHash, summary: 'Lyria 3 remains fixture-qualified through real-byte injected transport.' },
+      { fixtureKey: 'music.shared_kernel.v2', status: 'passed', evidenceHash, summary: 'Music validates in the neutral edit-skill kernel.' },
+      { fixtureKey: 'music.private_audio_analysis.v2', status: 'passed', evidenceHash, summary: 'Music private analysis, MusicSync, and Sound v4 boundary are implemented.' },
+      { fixtureKey: 'music.lyria3.injected.v2', status: 'passed', evidenceHash, summary: 'Lyria 3 remains fixture-qualified through real-byte injected transport.' },
     ],
     buildEvidenceHashes: [evidenceHash], testEvidenceHashes: [evidenceHash], securityEvidenceHashes: [evidenceHash],
     providerEvidenceHashes: [evidenceHash], issuedAt: '2026-08-04T12:00:00.000Z',

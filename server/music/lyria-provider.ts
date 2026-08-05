@@ -10,8 +10,8 @@ import type { CanonicalMusicArtifactResolver } from './music-analysis'
 import type { CanonicalMusicSkillRequest, MusicArtifactRef, MusicFrameRange } from './music-contracts'
 
 export const LYRIA_3_PROVIDER_PROFILE = Object.freeze({
-  profileKey: 'music.provider.google_lyria_3_pro_preview.v1',
-  profileVersion: '1.0.0',
+  profileKey: 'music.provider.google_lyria_3_pro_preview.v2',
+  profileVersion: '2.0.0',
   provider: 'google_cloud',
   modelId: 'lyria-3-pro-preview',
   clipModelId: 'lyria-3-clip-preview',
@@ -45,7 +45,7 @@ export const LYRIA_3_PROVIDER_PROFILE = Object.freeze({
 
 export interface MusicCompositionBrief {
   briefId: string
-  briefVersion: '1.0.0'
+  briefVersion: '2.0.0'
   briefHash: string
   cueId: string
   exactRange: MusicFrameRange
@@ -130,6 +130,7 @@ export interface MusicProviderAttempt {
   approvedSnapshotId: string
   creditReservationId: string
   idempotencyKey: string
+  attemptFingerprint: string
   estimatedCostUsd: number
   actualCostUsd: number
   status: MusicProviderAttemptStatus
@@ -163,7 +164,9 @@ export class InMemoryMusicProviderAttemptStore implements MusicProviderAttemptSt
   }
   async put(attempt: MusicProviderAttempt): Promise<void> {
     const existing = this.#attempts.get(attempt.idempotencyKey)
-    if (existing && existing.attemptId !== attempt.attemptId) throw new Error('Music provider idempotency collision.')
+    if (existing && (existing.attemptId !== attempt.attemptId || existing.attemptFingerprint !== attempt.attemptFingerprint)) {
+      throw new Error('Music provider idempotency collision.')
+    }
     this.#attempts.set(attempt.idempotencyKey, structuredClone(attempt))
   }
 }
@@ -257,8 +260,20 @@ export class CanonicalLyria3ProviderAdapter {
     candidateCount: number
     mode: 'fixture' | 'private_canary' | 'production'
   }): Promise<MusicProviderAttempt> {
+    const compiled = compileLyria3InteractionRequest({ brief: input.brief })
+    const attemptFingerprint = stableHash({
+      requestId: input.request.requestId, cueId: input.cueId, route: input.route,
+      providerProfileKey: LYRIA_3_PROVIDER_PROFILE.profileKey,
+      providerProfileVersion: LYRIA_3_PROVIDER_PROFILE.profileVersion,
+      compositionBriefHash: input.brief.briefHash, promptPlanHash: compiled.promptPlanHash,
+      candidateCount: input.candidateCount, snapshot: input.request.approvedSnapshotRef,
+      reservationRef: input.request.approvalAndBudget.reservationRef, mode: input.mode,
+    })
     const replay = await this.#attempts.getByIdempotencyKey(`${input.request.idempotencyKey}:${input.cueId}`)
     if (replay) {
+      if (replay.attemptFingerprint !== attemptFingerprint) {
+        throw new Error('Music provider idempotency collision: the key is bound to a different attempt fingerprint.')
+      }
       if (replay.status === 'unknown_outcome') return this.#reconcile(replay, input.request)
       return replay
     }
@@ -279,7 +294,6 @@ export class CanonicalLyria3ProviderAdapter {
     if (input.mode !== 'fixture' && input.candidateCount !== LYRIA_3_PROVIDER_PROFILE.maximumClipsPerPrompt) {
       throw new Error('Live Lyria 3 requests are limited to the official one-output interaction contract.')
     }
-    const compiled = compileLyria3InteractionRequest({ brief: input.brief })
     const attempt: MusicProviderAttempt = {
       attemptId: `music.provider.${input.request.requestId}.${input.cueId}.1`,
       requestId: input.request.requestId,
@@ -295,6 +309,7 @@ export class CanonicalLyria3ProviderAdapter {
       approvedSnapshotId: input.request.approvedSnapshotRef.snapshotId,
       creditReservationId: reservation,
       idempotencyKey: `${input.request.idempotencyKey}:${input.cueId}`,
+      attemptFingerprint,
       estimatedCostUsd: LYRIA_3_PROVIDER_PROFILE.pricing.proTrackUpToThreeMinutes * input.candidateCount,
       actualCostUsd: 0,
       status: 'submitted',

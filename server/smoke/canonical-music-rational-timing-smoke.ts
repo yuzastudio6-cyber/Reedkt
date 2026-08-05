@@ -35,8 +35,8 @@ for (const rate of rates) {
     rights: [makeMusicRights({ asset: source, source: 'user_upload' })] })
   const result = await runtime.music.execute(request)
   assert.equal(result.status, 'completed')
-  const placement = result.artifacts.find((artifact) => artifact.artifactType === 'music_placement_manifest_v1')
-  const analysisArtifact = result.artifacts.find((artifact) => artifact.artifactType === 'music_candidate_analysis_v1')
+  const placement = result.artifacts.find((artifact) => artifact.artifactType === 'music_placement_manifest_v2')
+  const analysisArtifact = result.artifacts.find((artifact) => artifact.artifactType === 'music_candidate_analysis_v2')
   assert.ok(placement && analysisArtifact)
   const placementPayload = placement.payload as { targetStartFrame: number; targetEndFrameExclusive: number;
     timelineRate: TimelineRate; sourceStartSample: number; sourceEndSampleExclusive: number; residualAlignmentFrames: number }
@@ -48,7 +48,7 @@ for (const rate of rates) {
   const exactTargetSamples = framesToSamples({ frames: endFrame, rate, sampleRate: 48_000, rounding: 'nearest_half_up' })
   assert.ok(sourceSamples <= exactTargetSamples)
   assert.ok(exactTargetSamples - sourceSamples <= 200)
-  assert.equal((result.artifacts.find((artifact) => artifact.artifactType === 'music_cue_sheet_v1')!.payload as {
+  assert.equal((result.artifacts.find((artifact) => artifact.artifactType === 'music_cue_sheet_v2')!.payload as {
     cues: Array<{ fadeInFrames: number; fadeOutFrames: number; entryHandleFrames: number; exitHandleFrames: number }>
   }).cues[0]?.fadeOutFrames, 6)
   const offBeat = compileMusicSync({ cue, analysis: analysisArtifact.payload as MusicCandidateAnalysis,

@@ -1,10 +1,27 @@
-import { MUSIC_TOOL_ROUTE_MANIFESTS } from '../../music/music-tool-routes'
+import { hashMusicValue } from '../../music/music-contracts'
+import {
+  MUSIC_TOOL_ROUTE_MANIFESTS,
+  type MusicRouteStep,
+} from '../../music/music-tool-routes'
 
 export type MusicOperationHandlerKind =
   | 'supervision' | 'private_audio_analysis' | 'private_asset_binding'
   | 'lyria_provider' | 'music_sync' | 'music_qa' | 'sound_public_port' | 'handoff'
 
-const HANDLERS: Readonly<Record<string, MusicOperationHandlerKind>> = Object.freeze({
+export interface MusicExactOperationHandler {
+  handlerIdentity: string
+  handlerVersion: '2.0.0'
+  toolKey: string
+  toolVersion: string
+  operationKey: string
+  operationVersion: string
+  operationProfileKey: string
+  operationProfileVersion: string
+  kind: MusicOperationHandlerKind
+  identityHash: string
+}
+
+const HANDLER_KINDS: Readonly<Record<string, MusicOperationHandlerKind>> = Object.freeze({
   analyze_audio_bytes: 'private_audio_analysis',
   select_qualified_candidate: 'private_audio_analysis',
   preserve_source_music: 'private_asset_binding',
@@ -22,17 +39,60 @@ const HANDLERS: Readonly<Record<string, MusicOperationHandlerKind>> = Object.fre
   create_ambience_only_handoff: 'handoff',
 })
 
+function identity(step: MusicRouteStep): string {
+  return [
+    `${step.toolKey}@${step.toolVersion}`,
+    `${step.operationKey}@${step.operationVersion}`,
+    `${step.operationProfileKey}@${step.operationProfileVersion}`,
+  ].join('/')
+}
+
+function handlerForStep(step: MusicRouteStep): MusicExactOperationHandler | undefined {
+  const kind = HANDLER_KINDS[step.operationKey] ??
+    (step.toolKey === 'music_supervision_engine' ? 'supervision' : undefined)
+  if (!kind) return undefined
+  const base = {
+    handlerIdentity: identity(step), handlerVersion: '2.0.0' as const,
+    toolKey: step.toolKey, toolVersion: step.toolVersion,
+    operationKey: step.operationKey, operationVersion: step.operationVersion,
+    operationProfileKey: step.operationProfileKey,
+    operationProfileVersion: step.operationProfileVersion,
+    kind,
+  }
+  return Object.freeze({ ...base, identityHash: hashMusicValue(base) })
+}
+
+const handlers = new Map<string, MusicExactOperationHandler>()
+for (const route of MUSIC_TOOL_ROUTE_MANIFESTS) {
+  for (const step of route.steps) {
+    const handler = handlerForStep(step)
+    if (!handler) continue
+    const existing = handlers.get(handler.handlerIdentity)
+    if (existing && existing.identityHash !== handler.identityHash) {
+      throw new Error(`Immutable Music handler collision ${handler.handlerIdentity}.`)
+    }
+    handlers.set(handler.handlerIdentity, handler)
+  }
+}
+
+export const MUSIC_EXACT_OPERATION_HANDLERS = Object.freeze([...handlers.values()])
+
+export function resolveMusicExactOperationHandler(step: MusicRouteStep): MusicExactOperationHandler | undefined {
+  return handlers.get(identity(step))
+}
+
 export function resolveMusicOperationHandlerKind(operationKey: string): MusicOperationHandlerKind | undefined {
-  return HANDLERS[operationKey] ?? (operationKey.length > 0 && MUSIC_TOOL_ROUTE_MANIFESTS.some((route) =>
-    route.steps.some((step) => step.operationKey === operationKey && step.toolKey === 'music_supervision_engine'))
-    ? 'supervision' : undefined)
+  return MUSIC_EXACT_OPERATION_HANDLERS.find((handler) => handler.operationKey === operationKey)?.kind
 }
 
 export function validateMusicOperationHandlerCoverage(): void {
   for (const route of MUSIC_TOOL_ROUTE_MANIFESTS) {
     for (const step of route.steps) {
-      if (!resolveMusicOperationHandlerKind(step.operationKey)) {
-        throw new Error(`Music route ${route.routeKey} lacks a handler for ${step.operationKey}.`)
+      const handler = resolveMusicExactOperationHandler(step)
+      if (!handler) throw new Error(`Music route ${route.routeKey} lacks an exact handler for ${step.operationKey}.`)
+      if (handler.toolVersion !== step.toolVersion || handler.operationVersion !== step.operationVersion ||
+        handler.operationProfileVersion !== step.operationProfileVersion) {
+        throw new Error(`Music route ${route.routeKey} handler identity is stale for ${step.stepKey}.`)
       }
     }
   }

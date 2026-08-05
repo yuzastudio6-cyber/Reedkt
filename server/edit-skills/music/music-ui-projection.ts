@@ -45,7 +45,7 @@ function safeQa(input: {
 }): CanonicalMusicUiProjection['qa'] {
   const qaPayload = artifactPayload<{ findings?: MusicQaFinding[]; status?: string }>(
     input.result.artifacts,
-    'music_qa_report_v1',
+    'music_qa_report_v2',
   )
   const categories = (qaPayload?.findings ?? []).map((finding) => ({
     key: finding.qaClass,
@@ -88,23 +88,23 @@ export function projectCanonicalMusicResultForUi(input: {
   qa?: MusicQaResult
 }): CanonicalMusicUiProjection {
   const { result } = input
-  const context = input.plan?.context.payload ?? artifactPayload<MusicContextStudyPayload>(result.artifacts, 'music_context_study_v1')
-  const need = input.plan?.need.payload ?? artifactPayload<MusicNeedDecisionPayload>(result.artifacts, 'music_need_decision_v1')
-  const arc = input.plan?.arc.payload ?? artifactPayload<MusicNarrativeArcPayload>(result.artifacts, 'music_narrative_arc_v1')
-  const cueSheet = input.plan?.cueSheet.payload ?? artifactPayload<MusicCueSheetPayload>(result.artifacts, 'music_cue_sheet_v1')
-  const routeBindings = artifactPayload<MusicRouteBinding[]>(result.artifacts, 'music_acquisition_plan_v1') ??
+  const context = input.plan?.context.payload ?? artifactPayload<MusicContextStudyPayload>(result.artifacts, 'music_context_study_v2')
+  const need = input.plan?.need.payload ?? artifactPayload<MusicNeedDecisionPayload>(result.artifacts, 'music_need_decision_v2')
+  const arc = input.plan?.arc.payload ?? artifactPayload<MusicNarrativeArcPayload>(result.artifacts, 'music_narrative_arc_v2')
+  const cueSheet = input.plan?.cueSheet.payload ?? artifactPayload<MusicCueSheetPayload>(result.artifacts, 'music_cue_sheet_v2')
+  const routeBindings = artifactPayload<MusicRouteBinding[]>(result.artifacts, 'music_acquisition_plan_v2') ??
     input.plan?.routeBindings ?? []
   const completedUnits = result.unitReceipts.filter((receipt) => receipt.status === 'completed').length
   const totalUnits = input.plan?.executionGraph.units.length ?? result.unitReceipts.length
   const attemptCount = result.providerAttemptRefs.length
   const providerLive = result.unitReceipts.some((receipt) => receipt.runtimeEvidence.includes('live_provider_transport'))
   const selectedCueIds = new Set(result.artifacts.filter((artifact) =>
-    artifact.artifactType === 'music_candidate_selection_decision_v1' && artifact.cueId).map((artifact) => artifact.cueId))
+    artifact.artifactType === 'music_candidate_selection_decision_v2' && artifact.cueId).map((artifact) => artifact.cueId))
   const unitByCue = new Map(result.unitReceipts.filter((receipt) => receipt.cueId)
     .map((receipt) => [receipt.cueId!, receipt]))
   const routeByCue = new Map(routeBindings.map((binding) => [binding.cueId, binding]))
   const projection: CanonicalMusicUiProjection = {
-    schemaVersion: 'canonical-music-ui-projection-v1',
+    schemaVersion: 'canonical-music-ui-projection-v2',
     requestId: result.requestId,
     skillVersion: result.musicSkillVersion,
     manifestHash: result.musicManifestHash,

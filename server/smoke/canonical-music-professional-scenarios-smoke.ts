@@ -39,8 +39,8 @@ const noMusic = await noMusicRuntime.music.execute(makeCanonicalMusicRequest({
 assert.equal(noMusic.status, 'no_music')
 assert.equal(noMusic.selectedMusicAssetRefs.length, 0)
 assert.equal(noMusic.finalCompositionHandoff?.intentionalNoMusic, true)
-assert.ok(noMusic.artifacts.some((artifact) => artifact.artifactType === 'intentional_silence_decision_v1'))
-assert.ok(noMusic.artifacts.some((artifact) => artifact.artifactType === 'intentional_no_music_handoff_v1'))
+assert.ok(noMusic.artifacts.some((artifact) => artifact.artifactType === 'intentional_silence_decision_v2'))
+assert.ok(noMusic.artifacts.some((artifact) => artifact.artifactType === 'intentional_no_music_handoff_v2'))
 
 const ambienceRuntime = await createCanonicalMusicTestRuntime()
 const ambienceRange = { rangeId: 'ambience-range', startFrame: 0, endFrameExclusive: 120 }
@@ -50,7 +50,7 @@ const ambience = await ambienceRuntime.music.execute(makeCanonicalMusicRequest({
 }))
 assert.equal(ambience.status, 'ambience_only')
 assert.equal(ambience.finalCompositionHandoff?.ambienceOnly, true)
-const ambienceHandoff = ambience.artifacts.find((artifact) => artifact.artifactType === 'music_ambience_only_handoff_v1')
+const ambienceHandoff = ambience.artifacts.find((artifact) => artifact.artifactType === 'music_ambience_only_handoff_v2')
 assert.ok(ambienceHandoff)
 assert.equal((ambienceHandoff.payload as { soundSupportRequirement: { musicMayGenerateAmbience: boolean } })
   .soundSupportRequirement.musicMayGenerateAmbience, false)
@@ -80,7 +80,7 @@ const referenceRequest = makeCanonicalMusicRequest({ requestId: 'music-reference
   rights: [makeMusicRights({ asset: reference, source: 'user_upload' })] })
 referenceRequest.referenceMusicRefs = [reference]
 const referenceResult = await referenceRuntime.music.execute(referenceRequest)
-const dna = referenceResult.artifacts.find((artifact) => artifact.artifactType === 'music_reference_dna_v1')
+const dna = referenceResult.artifacts.find((artifact) => artifact.artifactType === 'music_reference_dna_v2')
 assert.ok(dna)
 assert.equal((dna.payload as { automaticCopyrightClearanceClaimed: boolean }).automaticCopyrightClearanceClaimed, false)
 assert.ok((dna.payload as { doNotCopyRules: string[] }).doNotCopyRules.includes('no_artist_imitation'))

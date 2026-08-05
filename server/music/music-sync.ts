@@ -41,6 +41,10 @@ export interface MusicEditorialPlan {
   timeStretchRatio: number
   timeStretchAcceptable: boolean
   requiresDifferentCue: boolean
+  sourceSectionDecision: 'full_track_start' | 'skip_intro_phrase' | 'preserve_outro_ending' | 'best_available_section'
+  endingPolicy: 'preserve_original' | 'editorial_fade' | 'loop_crossfade' | 'reject_candidate'
+  loopPolicy: 'not_required' | 'measured_loop_allowed' | 'loop_rejected'
+  rejectionReasons: string[]
   silenceRanges: MusicFrameRange[]
   technicalOperations: string[]
   planHash: string
@@ -58,6 +62,7 @@ export interface MusicPlacementManifest {
   timelineHash: string
   timelineRate: TimelineRate
   syncAnchorFrames: number[]
+  anchorResiduals: Array<{ targetFrame: number; sourceBoundaryFrame: number | null; residualFrames: number }>
   residualAlignmentFrames: number
   syncConfidence: number
   needsReviewFindings: string[]
@@ -71,6 +76,31 @@ function hashRecord<T extends Record<string, unknown>>(value: T, key: keyof T): 
 
 function nearestFrame(target: number, candidates: readonly number[]): number | undefined {
   return [...candidates].sort((left, right) => Math.abs(left - target) - Math.abs(right - target) || left - right)[0]
+}
+
+function sourceStartForCue(input: {
+  cue: CanonicalMusicCueIntent
+  beatMap: MusicBeatAndPhraseMap
+  availableFrames: number
+  targetDurationFrames: number
+}): { sourceStartFrame: number; decision: MusicEditorialPlan['sourceSectionDecision'] } {
+  const maximumStart = Math.max(0, input.availableFrames - input.targetDurationFrames)
+  const structural = [...new Set([...input.beatMap.sectionBoundaryFrames, ...input.beatMap.phraseBoundaryFrames])]
+    .filter((frame) => frame >= 0 && frame <= maximumStart).sort((left, right) => left - right)
+  if (input.cue.cueRole === 'outro' && maximumStart > 0) {
+    return {
+      sourceStartFrame: nearestFrame(maximumStart, structural.filter((frame) => frame <= maximumStart)) ?? maximumStart,
+      decision: 'preserve_outro_ending',
+    }
+  }
+  const nonZero = structural.filter((frame) => frame > 0)
+  if (nonZero.length > 0 && input.availableFrames >= input.targetDurationFrames + nonZero[0]!) {
+    const preferred = input.cue.cueRole === 'montage' || input.cue.cueRole === 'chapter'
+      ? nonZero[Math.min(1, nonZero.length - 1)]! : nonZero[0]!
+    return { sourceStartFrame: preferred, decision: 'skip_intro_phrase' }
+  }
+  if (structural.length > 0) return { sourceStartFrame: structural[0]!, decision: 'best_available_section' }
+  return { sourceStartFrame: 0, decision: 'full_track_start' }
 }
 
 export function buildMusicBeatAndPhraseMap(input: {
@@ -107,8 +137,15 @@ export function compileMusicSync(input: {
   const intent = input.intent ?? (input.cue.protectedSpeechRanges.length > 0
     ? 'dialogue_aligned' : input.cue.cueRole === 'silence' ? 'free_time' : 'phrase_aligned')
   const targetDurationFrames = input.cue.exactRange.endFrameExclusive - input.cue.exactRange.startFrame
-  const sourceStartFrame = intent === 'phrase_aligned'
-    ? nearestFrame(0, beatMap.phraseBoundaryFrames) ?? 0 : 0
+  const availableSamples = Math.floor(input.analysis.durationSeconds * input.analysis.sampleRate)
+  const fullAvailableFrames = samplesToFrames({
+    samples: availableSamples, rate: input.timelineRate,
+    sampleRate: input.analysis.sampleRate, rounding: 'nearest_half_up',
+  })
+  const section = sourceStartForCue({
+    cue: input.cue, beatMap, availableFrames: fullAvailableFrames, targetDurationFrames,
+  })
+  const sourceStartFrame = ['free_time', 'ambient'].includes(intent) ? 0 : section.sourceStartFrame
   const sourceStartSample = framesToSamples({
     frames: sourceStartFrame, rate: input.timelineRate,
     sampleRate: input.analysis.sampleRate, rounding: 'nearest_half_up',
@@ -117,7 +154,6 @@ export function compileMusicSync(input: {
     frames: targetDurationFrames, rate: input.timelineRate,
     sampleRate: input.analysis.sampleRate, rounding: 'nearest_half_up',
   })
-  const availableSamples = Math.floor(input.analysis.durationSeconds * input.analysis.sampleRate)
   const sourceEndSampleExclusive = Math.min(availableSamples, sourceStartSample + durationSamples)
   const availableFrames = samplesToFrames({
     samples: Math.max(0, sourceEndSampleExclusive - sourceStartSample), rate: input.timelineRate,
@@ -126,6 +162,13 @@ export function compileMusicSync(input: {
   const timeStretchRatio = targetDurationFrames / Math.max(1, availableFrames)
   const loop = availableFrames < targetDurationFrames && input.analysis.loopQuality.score >= 0.5
   const requiresDifferentCue = availableFrames < targetDurationFrames && !loop && (timeStretchRatio < 0.8 || timeStretchRatio > 1.25)
+  const preserveOriginalEnding = input.cue.cueRole === 'outro' && input.analysis.endingQuality.score >= 0.5 &&
+    sourceEndSampleExclusive >= availableSamples - Math.max(1, Math.floor(input.analysis.sampleRate * 0.05))
+  const rejectionReasons = [
+    ...(requiresDifferentCue ? ['candidate_duration_cannot_be_fitted_safely'] : []),
+    ...(input.cue.cueRole === 'outro' && !preserveOriginalEnding && input.analysis.endingQuality.score < 0.25
+      ? ['candidate_ending_not_qualified_for_outro'] : []),
+  ]
   const editorialBase = {
     planId: `music.editorial.${input.cue.cueId}.${input.analysis.candidateArtifact.artifactId}`,
     cueId: input.cue.cueId,
@@ -138,10 +181,16 @@ export function compileMusicSync(input: {
     skipIntro: sourceStartFrame > 0,
     loop,
     repeatMotif: input.cue.motifRole === 'return' || input.cue.motifRole === 'develop',
-    preserveOriginalEnding: input.cue.cueRole === 'outro' && input.analysis.endingQuality.score >= 0.5,
+    preserveOriginalEnding,
     timeStretchRatio: Number(timeStretchRatio.toFixed(8)),
     timeStretchAcceptable: timeStretchRatio >= 0.8 && timeStretchRatio <= 1.25,
-    requiresDifferentCue,
+    requiresDifferentCue: requiresDifferentCue || rejectionReasons.includes('candidate_ending_not_qualified_for_outro'),
+    sourceSectionDecision: sourceStartFrame === 0 ? 'full_track_start' : section.decision,
+    endingPolicy: rejectionReasons.length > 0 ? 'reject_candidate' as const
+      : preserveOriginalEnding ? 'preserve_original' as const : loop ? 'loop_crossfade' as const : 'editorial_fade' as const,
+    loopPolicy: loop ? 'measured_loop_allowed' as const
+      : availableFrames < targetDurationFrames ? 'loop_rejected' as const : 'not_required' as const,
+    rejectionReasons,
     silenceRanges: input.cue.intentionalNoMusicRanges,
     technicalOperations: [
       'trim', ...(loop ? ['loop'] : []),
@@ -153,11 +202,14 @@ export function compileMusicSync(input: {
   const editorial = hashRecord(editorialBase, 'planHash')
   const anchorCandidates = intent === 'beat_aligned' ? beatMap.beatFrames
     : intent === 'phrase_aligned' || intent === 'transition_aligned' ? beatMap.phraseBoundaryFrames : []
-  const desiredAnchor = input.cue.syncAnchorFrames[0] ?? input.cue.exactRange.startFrame
-  const relativeDesired = Math.max(0, desiredAnchor - input.cue.exactRange.startFrame)
-  const nearest = nearestFrame(relativeDesired, anchorCandidates)
-  const residual = nearest === undefined || intent === 'intentionally_off_beat' || intent === 'free_time' || intent === 'ambient'
-    ? 0 : nearest - relativeDesired
+  const anchorResiduals = input.cue.syncAnchorFrames.map((targetFrame) => {
+    const relativeDesired = Math.max(0, targetFrame - input.cue.exactRange.startFrame)
+    const nearest = nearestFrame(sourceStartFrame + relativeDesired, anchorCandidates)
+    const residualFrames = nearest === undefined || intent === 'intentionally_off_beat' || intent === 'free_time' || intent === 'ambient'
+      ? 0 : nearest - (sourceStartFrame + relativeDesired)
+    return { targetFrame, sourceBoundaryFrame: nearest ?? null, residualFrames }
+  })
+  const residual = anchorResiduals.length === 0 ? 0 : Math.max(...anchorResiduals.map((item) => Math.abs(item.residualFrames)))
   const placementBase = {
     placementId: `music.placement.${input.cue.cueId}.${input.analysis.candidateArtifact.artifactId}`,
     cueId: input.cue.cueId,
@@ -170,8 +222,11 @@ export function compileMusicSync(input: {
     timelineHash: input.timelineHash,
     timelineRate: input.timelineRate,
     syncAnchorFrames: input.cue.syncAnchorFrames,
+    anchorResiduals,
     residualAlignmentFrames: residual,
-    syncConfidence: requiresDifferentCue ? 0.2 : nearest === undefined && ['beat_aligned', 'phrase_aligned', 'transition_aligned'].includes(intent) ? 0.45 : 0.9,
+    syncConfidence: requiresDifferentCue ? 0.2
+      : anchorResiduals.some((item) => item.sourceBoundaryFrame === null) && ['beat_aligned', 'phrase_aligned', 'transition_aligned'].includes(intent)
+        ? 0.45 : residual <= 2 ? 0.92 : residual <= 5 ? 0.75 : 0.55,
     needsReviewFindings: [
       ...(requiresDifferentCue ? ['candidate_duration_cannot_be_fitted_safely'] : []),
       ...(beatMap.measuredTempoBpm === null && ['beat_aligned', 'phrase_aligned', 'transition_aligned'].includes(intent) ? ['tempo_evidence_missing'] : []),

@@ -9,10 +9,17 @@ import {
 } from '../edit-skills/core/timeline-rate'
 import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
 
-export const MUSIC_SKILL_VERSION = '1.0.0' as const
-export const MUSIC_CONTRACT_VERSION = 'music.skill_contract.v1' as const
-export const CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION = 'canonical-music-request-v1' as const
-export const CANONICAL_MUSIC_RESULT_SCHEMA_VERSION = 'canonical-music-result-v1' as const
+export const MUSIC_SKILL_VERSION = '2.0.0' as const
+export const MUSIC_CONTRACT_VERSION = 'music.skill_contract.v2' as const
+export const CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION = 'canonical-music-request-v2' as const
+export const CANONICAL_MUSIC_RESULT_SCHEMA_VERSION = 'canonical-music-result-v2' as const
+export const RETIRED_MUSIC_V1_IDENTITY = Object.freeze({
+  skillVersion: '1.0.0',
+  contractVersion: 'music.skill_contract.v1',
+  requestSchemaVersion: 'canonical-music-request-v1',
+  resultSchemaVersion: 'canonical-music-result-v1',
+  status: 'compatibility_only',
+} as const)
 
 export const musicSafeIdSchema = z.string().trim().min(1).max(220)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -72,6 +79,9 @@ export const musicRightsBindingSchema = z.object({
   crossProjectReuse: z.enum(['allowed', 'not_allowed', 'unknown']),
   crossUserReuse: z.literal(false),
   projectOnly: z.boolean(),
+  authorizedProjectIds: z.array(musicSafeIdSchema).max(256),
+  authorizedWorkspaceIds: z.array(musicSafeIdSchema).max(256),
+  authorizedPlatformIds: z.array(musicSafeIdSchema).max(256),
   expiresAt: z.string().datetime({ offset: true }).optional(),
   evidenceRefs: z.array(musicEvidenceRefSchema).max(64),
 }).strict()
@@ -213,7 +223,7 @@ const contextRefsSchema = z.object({
 export const canonicalMusicRequestSchema = z.object({
   schemaVersion: z.literal(CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION),
   requestId: musicSafeIdSchema,
-  requestVersion: z.literal('1.0.0'),
+  requestVersion: z.literal('2.0.0'),
   caller: callerSchema,
   jobType: z.enum(MUSIC_JOB_TYPES),
   requestedExecutionMode: z.enum(['planning', 'fixture', 'private_internal', 'production']),
@@ -221,6 +231,12 @@ export const canonicalMusicRequestSchema = z.object({
   approvedSnapshotRef: approvedSnapshotSchema,
   timelineBinding: timelineBindingSchema,
   scopeAuthority: musicAssignmentScopeSchema,
+  projectBinding: z.object({
+    projectId: musicSafeIdSchema,
+    workspaceId: musicSafeIdSchema,
+    ownerUserId: musicSafeIdSchema,
+    platformIds: z.array(musicSafeIdSchema).min(1).max(32),
+  }).strict(),
   contextRefs: contextRefsSchema,
   contextEvidence: z.array(musicEvidenceRefSchema).max(2_000),
   userMusicPolicy: z.object({
@@ -237,7 +253,12 @@ export const canonicalMusicRequestSchema = z.object({
   inputAssetRefs: z.array(musicArtifactRefSchema).max(2_000),
   referenceMusicRefs: z.array(musicArtifactRefSchema).max(64),
   rightsAndProvenanceRefs: z.array(musicRightsBindingSchema).max(2_000),
-  proposedCues: z.array(musicCueIntentSchema).max(512),
+  cueConstraints: z.object({
+    requestedCues: z.array(musicCueIntentSchema).max(512),
+    lockedCueIds: z.array(musicSafeIdSchema).max(512),
+    allowMusicToCombineUnlockedCues: z.boolean(),
+  }).strict(),
+  proposedCues: z.array(musicCueIntentSchema).max(512).optional().default([]),
   approvalAndBudget: z.object({
     estimateRef: musicSafeIdSchema.optional(),
     reservationRef: musicSafeIdSchema.optional(),
@@ -276,11 +297,23 @@ export const canonicalMusicRequestSchema = z.object({
   if (request.caller.ancestorSkillKeys.includes('music')) {
     context.addIssue({ code: 'custom', message: 'Circular Music dependency is not allowed.' })
   }
-  if (request.proposedCues.length > request.userMusicPolicy.maximumCueCount) {
-    context.addIssue({ code: 'custom', message: 'Proposed Music cue count exceeds the approved policy.' })
+  const requestedCues = [...request.cueConstraints.requestedCues, ...request.proposedCues]
+  if (requestedCues.length > request.userMusicPolicy.maximumCueCount) {
+    context.addIssue({ code: 'custom', message: 'Music cue constraints exceed the approved policy.' })
+  }
+  const cueIds = new Set(requestedCues.map((cue) => cue.cueId))
+  if (cueIds.size !== requestedCues.length) {
+    context.addIssue({ code: 'custom', message: 'Music cue constraint identities must be unique.' })
+  }
+  if (request.cueConstraints.lockedCueIds.some((cueId) => !cueIds.has(cueId))) {
+    context.addIssue({ code: 'custom', message: 'Locked Music cue identity has no matching cue constraint.' })
   }
 })
 export type CanonicalMusicSkillRequest = z.infer<typeof canonicalMusicRequestSchema>
+
+export function requestedMusicCueConstraints(request: CanonicalMusicSkillRequest): CanonicalMusicCueIntent[] {
+  return [...request.cueConstraints.requestedCues, ...request.proposedCues]
+}
 
 export type MusicNeedDecisionKind =
   | 'no_music' | 'intentional_silence' | 'ambience_only' | 'preserve_source_music'
@@ -346,6 +379,10 @@ export interface MusicCandidateAnalysis {
 
 export interface MusicSoundSupportReceipt {
   cueId: string
+  musicSoundSupportRequestHash: string
+  requiredMusicOperations: string[]
+  mappedSoundOperations: string[]
+  technicalMixDirectiveHash: string
   soundSkillVersion: string
   soundManifestHash: string
   soundCapabilityKey: string
@@ -436,8 +473,34 @@ export interface MusicExecutionUnitReceipt {
   runtimeEvidence: string[]
   costEvidence: { actualCredits: number; internalToolCostUsd: number; providerCostUsd: number }
   qaEvidence: string[]
+  stepReceipts: MusicRouteStepReceipt[]
   providerAttemptId?: string
   reason?: string
+}
+
+export interface MusicRouteStepReceipt {
+  stepKey: string
+  handlerIdentity: string
+  toolKey: string
+  toolVersion: string
+  operationKey: string
+  operationVersion: string
+  operationProfileKey: string
+  operationProfileVersion: string
+  status: 'completed' | 'skipped' | 'blocked' | 'failed'
+  startedAt: string
+  completedAt: string
+  elapsedMilliseconds: number
+  inputArtifactIds: string[]
+  inputArtifactHashes: string[]
+  outputArtifactIds: string[]
+  outputArtifactHashes: string[]
+  runtimeEvidence: string[]
+  costEvidence: { actualCredits: number; internalToolCostUsd: number; providerCostUsd: number }
+  qaEvidence: string[]
+  providerAttemptId?: string
+  reason?: string
+  receiptHash: string
 }
 
 export interface CanonicalMusicSkillResult {
@@ -476,7 +539,19 @@ export interface CanonicalMusicSkillResult {
   artifacts: MusicArtifactEnvelope[]
   unitReceipts: MusicExecutionUnitReceipt[]
   routeReceipts: string[]
-  costEvidence: { estimatedCredits: number; actualMusicCredits: number; nestedSoundCredits: number; totalActualCredits: number }
+  executionFingerprint: string
+  costEvidence: {
+    estimatedCredits: number
+    actualMusicCredits: number
+    nestedSoundCredits: number
+    totalActualCredits: number
+    providerCostUsd: number
+    rateCardVersion: string
+    rateCardHash: string
+    serviceFeeIncluded: false
+    walletMutationExecuted: false
+    evidenceHash: string
+  }
   elapsedTimeEvidence: { startedAt?: string; completedAt?: string; actualMilliseconds: number }
   unresolvedDependencies: string[]
   reviewRequiredItems: string[]

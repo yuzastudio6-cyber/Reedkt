@@ -24,48 +24,48 @@ export const MUSIC_UNSUPPORTED_JOB_TYPES = [
 ] as const
 
 export const MUSIC_ACCEPTED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
-  'music_assignment_v1', 'music_context_manifest_v1', 'approved_timeline_manifest',
-  'approved_private_music_audio', 'untrusted_music_candidate', 'music_composition_brief_v1',
-  'music_candidate_analysis_v1', 'music_cue_sheet_v1', 'music_editorial_plan_v1',
-  'music_placement_manifest_v1', 'music_qa_report_v1', 'transcript_speech_evidence',
+  'music_assignment_v2', 'music_context_manifest_v2', 'approved_timeline_manifest',
+  'approved_private_music_audio', 'untrusted_music_candidate', 'music_composition_brief_v2',
+  'music_candidate_analysis_v2', 'music_cue_sheet_v2', 'music_editorial_plan_v2',
+  'music_placement_manifest_v2', 'music_qa_report_v2', 'transcript_speech_evidence',
   'visual_intelligence_evidence', 'scene_map_evidence', 'existing_sound_plan_evidence',
   ...MUSIC_TOOL_ROUTE_MANIFESTS.flatMap((route) => route.requiredInputs),
 ])))
 
 export const MUSIC_PRODUCED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
-  'music_plan_v1', 'music_result_v1', 'music_context_study_v1', 'music_need_decision_v1',
-  'intentional_silence_decision_v1', 'music_narrative_arc_v1', 'music_cue_strategy_v1',
-  'music_cue_sheet_v1', 'canonical_music_cue_v1', 'music_motif_plan_v1',
-  'music_continuity_plan_v1', 'music_existing_study_v1', 'music_user_intake_v1',
-  'music_rights_decision_v1', 'music_reference_study_v1', 'music_reference_dna_v1',
-  'music_acquisition_plan_v1', 'music_cue_route_decision_v1', 'music_composition_brief_v1',
-  'music_provider_prompt_plan_v1', 'music_provider_attempt_v1', 'untrusted_music_candidate',
-  'music_candidate_analysis_v1', 'music_candidate_selection_decision_v1',
-  'music_beat_phrase_map_v1', 'music_editorial_plan_v1', 'music_placement_manifest_v1',
-  'music_mix_intent_manifest_v1', 'music_sound_support_request_v1',
-  'music_sound_support_receipt_v1', 'music_technical_qa_v1', 'music_qa_report_v1',
-  'music_continuity_report_v1', 'music_revision_plan_v1', 'music_revision_receipt_v1',
-  'music_project_asset_v1', 'music_library_candidate_v1',
-  'music_final_composition_handoff_v1', 'intentional_no_music_handoff_v1',
-  'music_ambience_only_handoff_v1', 'approved_music_selection_v1',
-  'processed_music_audio_v1', 'music_stem_audio_v1',
+  'music_plan_v2', 'music_result_v2', 'music_context_study_v2', 'music_need_decision_v2',
+  'intentional_silence_decision_v2', 'music_narrative_arc_v2', 'music_cue_strategy_v2',
+  'music_cue_sheet_v2', 'canonical_music_cue_v2', 'music_motif_plan_v2',
+  'music_continuity_plan_v2', 'music_existing_study_v2', 'music_user_intake_v2',
+  'music_rights_decision_v2', 'music_reference_study_v2', 'music_reference_dna_v2',
+  'music_acquisition_plan_v2', 'music_cue_route_decision_v2', 'music_composition_brief_v2',
+  'music_provider_prompt_plan_v2', 'music_provider_attempt_v2', 'untrusted_music_candidate',
+  'music_candidate_analysis_v2', 'music_candidate_selection_decision_v2',
+  'music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+  'music_mix_intent_manifest_v2', 'music_sound_support_request_v2',
+  'music_sound_support_receipt_v2', 'music_technical_qa_v2', 'music_qa_report_v2',
+  'music_continuity_report_v2', 'music_revision_plan_v2', 'music_revision_receipt_v2',
+  'music_project_asset_v2', 'music_library_candidate_v2',
+  'music_final_composition_handoff_v2', 'intentional_no_music_handoff_v2',
+  'music_ambience_only_handoff_v2', 'approved_music_selection_v2',
+  'processed_music_audio_v2', 'music_stem_audio_v2',
   ...MUSIC_TOOL_ROUTE_MANIFESTS.flatMap((route) => route.producedArtifactTypes),
 ])))
 
 const PLANNING_QA = [
-  'music.qa.planning.authority.v1', 'music.qa.planning.need_and_silence.v1',
-  'music.qa.planning.rights.v1', 'music.qa.planning.route.v1', 'music.qa.planning.cost.v1',
+  'music.qa.planning.authority.v2', 'music.qa.planning.need_and_silence.v2',
+  'music.qa.planning.rights.v2', 'music.qa.planning.route.v2', 'music.qa.planning.cost.v2',
 ] as const
 const OUTPUT_QA = [
-  'music.qa.output.technical.v1', 'music.qa.output.structural_sync.v1',
-  'music.qa.output.speech_safety.v1', 'music.qa.output.narrative_fit_needs_review.v1',
-  'music.qa.output.vocal_lyric.v1', 'music.qa.output.reference_copy_risk.v1',
-  'music.qa.output.culture_needs_review.v1', 'music.qa.output.continuity.v1',
-  'music.qa.output.provenance.v1', 'music.qa.output.subjective_needs_review.v1',
+  'music.qa.output.technical.v2', 'music.qa.output.structural_sync.v2',
+  'music.qa.output.speech_safety.v2', 'music.qa.output.narrative_fit_needs_review.v2',
+  'music.qa.output.vocal_lyric.v2', 'music.qa.output.reference_copy_risk.v2',
+  'music.qa.output.culture_needs_review.v2', 'music.qa.output.continuity.v2',
+  'music.qa.output.provenance.v2', 'music.qa.output.subjective_needs_review.v2',
 ] as const
 const INTEGRATION_QA = [
-  'music.qa.integration.authority.v1', 'music.qa.integration.timeline.v1',
-  'music.qa.integration.sound_boundary.v1', 'music.qa.integration.handoff.v1',
+  'music.qa.integration.authority.v2', 'music.qa.integration.timeline.v2',
+  'music.qa.integration.sound_boundary.v2', 'music.qa.integration.handoff.v2',
 ] as const
 
 function routeKind(route: MusicToolRouteManifest): SkillRouteDefinition['routeKind'] {
@@ -167,7 +167,7 @@ export const musicCapabilityEntries: readonly SkillCapabilityEntryDefinition[] =
       supportedJobTypes: [job],
       supportedScopes: ['clip', 'range', 'multi_range', 'scene', 'boundary', 'sequence', 'video'],
       acceptedCallerTypes: ['orchestra', 'motion_studio', 'living_frame', 'three_d', 'transitions', 'graphic_design', 'typed_peer_skill'],
-      requiredInputs: ['music_assignment_v1', 'approved_timeline_manifest'],
+      requiredInputs: ['music_assignment_v2', 'approved_timeline_manifest'],
       optionalInputs: ['approved_private_music_audio', 'transcript_speech_evidence', 'visual_intelligence_evidence', 'scene_map_evidence'],
       acceptedArtifactTypes: MUSIC_ACCEPTED_ARTIFACT_TYPES,
       producedArtifactTypes: MUSIC_PRODUCED_ARTIFACT_TYPES,
@@ -211,7 +211,7 @@ export const musicSkillCapabilityManifest = createSkillCapabilityManifest({
   supportedJobTypes: MUSIC_JOB_TYPES,
   unsupportedJobTypes: MUSIC_UNSUPPORTED_JOB_TYPES,
   requiredInputs: [
-    { key: 'assignment', artifactType: 'music_assignment_v1', description: 'Hash-bound canonical Music request and exact authority.', minimumCount: 1, maximumCount: 1 },
+    { key: 'assignment', artifactType: 'music_assignment_v2', description: 'Hash-bound canonical Music request and exact authority.', minimumCount: 1, maximumCount: 1 },
     { key: 'timeline', artifactType: 'approved_timeline_manifest', description: 'Approved exact rational timeline binding.', minimumCount: 1, maximumCount: 1 },
   ],
   optionalInputs: [
@@ -236,8 +236,8 @@ export const musicSkillCapabilityManifest = createSkillCapabilityManifest({
   conflictsWith: [],
   mayOverlapWith: ['sound', 'b_roll', 'captions', 'color', 'graphic_design', 'real_motion', 'render', 'stroke_motion', 'track_all', 'transition'],
   ownershipRequirements: ['music_write_ranges_are_exact', 'whole_video_context_is_read_only', 'sound_technical_execution_via_public_port', 'final_render_outside_music'],
-  timeEstimator: 'music.time.v1',
-  creditEstimator: 'music.credit.v1',
+  timeEstimator: 'music.time.v2',
+  creditEstimator: 'music.credit.v2',
   attemptPolicy: {
     maximumInitialAttempts: 1, maximumRefinements: 2, automaticRetryAllowed: false,
     alternateProviderFallbackAllowed: false, unknownOutcomeRequiresReconciliation: true,
@@ -262,9 +262,9 @@ export const musicSkillCapabilityManifest = createSkillCapabilityManifest({
     { ruleKey: 'music_exact_replay', changeClass: 'non_material', requiresReestimate: false, requiresNewApproval: false, description: 'Replay an identical admitted deterministic local unit.' },
   ],
   qualificationFixtures: [
-    { fixtureKey: 'music.shared_kernel.v1', minimumStatus: 'planning_qualified', description: 'Music publishes through the neutral shared skill kernel.' },
-    { fixtureKey: 'music.private_audio_analysis.v1', minimumStatus: 'internal_execution_qualified', description: 'Real private decoded audio analysis, rational MusicSync, Sound v4 support, and measured QA.' },
-    { fixtureKey: 'music.lyria3.injected.v1', minimumStatus: 'planning_qualified', description: 'Current Lyria 3 contract with real private fixture bytes through the canonical graph.' },
+    { fixtureKey: 'music.shared_kernel.v2', minimumStatus: 'planning_qualified', description: 'Music publishes through the neutral shared skill kernel.' },
+    { fixtureKey: 'music.private_audio_analysis.v2', minimumStatus: 'internal_execution_qualified', description: 'Real private decoded audio analysis, rational MusicSync, Sound v4 support, and measured QA.' },
+    { fixtureKey: 'music.lyria3.injected.v2', minimumStatus: 'planning_qualified', description: 'Current Lyria 3 contract with real private fixture bytes through the canonical graph.' },
   ],
   knownLimitations: [
     'Lyria 3 is public preview and live activation remains blocked pending external account, privacy, retention, commercial, rate, deployment, and private-canary evidence.',

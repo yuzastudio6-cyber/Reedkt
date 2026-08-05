@@ -96,7 +96,7 @@ export function runCanonicalMusicQa(input: {
   findings.push(finding({
     qaClass: 'planning', status: input.request.userMusicPolicy.musicEnabled ? 'pass' : 'pass',
     code: 'planning.no_music_considered', summary: 'No-Music and silence remain valid professional outcomes.',
-    evidenceRefs: ['music.route.no_music.v1'],
+    evidenceRefs: ['music.route.no_music.v2'],
   }))
   for (const analysis of input.analyses) {
     findings.push(finding({
@@ -162,7 +162,7 @@ export function runCanonicalMusicQa(input: {
       qaClass: 'provenance', status: rights && rights.commercialUse === 'allowed' && rights.platformUse === 'allowed' || generated ? 'pass' : 'blocking',
       code: `provenance.${assetId}`, summary: rights ? 'Selected Music is bound to explicit rights evidence.'
         : generated ? 'Generated fixture Music is provider-profile-bound and project-only; live terms remain pending.' : 'Selected Music rights are missing.',
-      evidenceRefs: rights?.evidenceRefs.map((item) => item.evidenceHash) ?? (generated ? ['music.provider.google_lyria_3_pro_preview.v1'] : []),
+      evidenceRefs: rights?.evidenceRefs.map((item) => item.evidenceHash) ?? (generated ? ['music.provider.google_lyria_3_pro_preview.v2'] : []),
     }))
   }
   findings.push(finding({

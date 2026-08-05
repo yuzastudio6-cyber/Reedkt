@@ -11,9 +11,35 @@ import { StandaloneCanonicalMusicSkillService } from '../edit-skills/music/canon
 import type { CanonicalMusicArtifactResolver, ResolvedPrivateMusicArtifact } from '../music/music-analysis'
 import { CanonicalLyria3ProviderAdapter, DeterministicInjectedLyriaTransport } from '../music/lyria-provider'
 import type { MusicArtifactRef } from '../music/music-contracts'
+import { hashMusicValue, type MusicEvidenceRef } from '../music/music-contracts'
+import type { MusicContextArtifactResolver, ResolvedMusicContextEvidence } from '../music/music-context'
 import { CanonicalSoundV4MusicSupportAdapter } from '../music/music-sound-support-port'
 
 const execFileAsync = promisify(execFile)
+
+class CanonicalMusicFixtureContextResolver implements MusicContextArtifactResolver {
+  async resolve(reference: MusicEvidenceRef): Promise<ResolvedMusicContextEvidence> {
+    const payload = {
+      storyPurpose: 'Tell a coherent story while protecting dialogue and natural Sound.',
+      audience: 'approved project audience', platform: 'platform-test',
+      scenes: [{
+        sceneId: `scene-${reference.evidenceId}`, exactRange: { rangeId: `scene-range-${reference.evidenceId}`,
+          startFrame: 0, endFrameExclusive: 1_000_000 },
+        storyFunction: 'montage' as const, currentStoryState: 'establishing context',
+        targetStoryState: 'coherent forward movement', importantSpeech: false, speechDensity: 0.15,
+        naturalAmbienceValue: 'neutral' as const, visualPacing: 'measured' as const,
+        visualRhythmAnchors: [0, 48, 96, 144], emotionalPauseRanges: [],
+        transitionBoundaryIds: [],
+      }],
+      protectedSpeechRanges: [], sourceMusicArtifactIds: [], existingSoundPlanArtifactIds: [],
+      declaredMusicDirection: ['Use professional restraint and do not infer genre from location.'],
+    }
+    return {
+      reference: structuredClone(reference), payload, payloadHash: hashMusicValue(payload),
+      resolverEvidence: ['deterministic_private_fixture_context', 'version_and_hash_bound_reference'],
+    }
+  }
+}
 
 type SharedArtifactRef = MusicArtifactRef | SoundArtifactRef
 
@@ -125,6 +151,7 @@ export async function createCanonicalMusicTestRuntime(): Promise<CanonicalMusicT
   const sound = new StandaloneCanonicalSoundSkillService({ artifacts: resolver })
   const music = new StandaloneCanonicalMusicSkillService({
     artifacts: resolver, provider, sound: new CanonicalSoundV4MusicSupportAdapter(sound),
+    context: new CanonicalMusicFixtureContextResolver(),
   })
   return { root, resolver, music, sound, makeWav }
 }

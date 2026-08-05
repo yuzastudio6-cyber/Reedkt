@@ -3,7 +3,7 @@ import { getMusicToolRouteManifest, MUSIC_TOOL_ROUTE_MANIFESTS } from '../../mus
 
 export interface MusicMiniSkillManifest {
   miniSkillKey: string
-  version: '1.0.0'
+  version: '2.0.0'
   supportedOperations: string[]
   requiredInputs: string[]
   optionalInputs: string[]
@@ -92,19 +92,19 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       ? 'internal_execution_qualified' : 'planning_qualified'
     return {
       miniSkillKey: `music.mini.${key}`,
-      version: '1.0.0',
+      version: '2.0.0',
       supportedOperations: [key],
-      requiredInputs: ['music_assignment_v1', 'approved_timeline_manifest'],
+      requiredInputs: ['music_assignment_v2', 'approved_timeline_manifest'],
       optionalInputs: ['approved_private_music_audio', 'structured_story_evidence', 'speech_evidence'],
-      acceptedArtifactTypes: ['music_assignment_v1', 'approved_private_music_audio'],
+      acceptedArtifactTypes: ['music_assignment_v2', 'approved_private_music_audio'],
       producedArtifactTypes: routes.flatMap((route) => route.producedArtifactTypes),
       toolRouteRefs: primary.length > 0 ? primary : routes.map(ref),
       fallbackRouteRefs: fallback,
       lowerCostRouteRefs: lower,
-      attemptPolicyKey: fixtureKeys.has(key) ? 'music.attempt.provider_reconciled.v1' : 'music.attempt.local_idempotent.v1',
+      attemptPolicyKey: fixtureKeys.has(key) ? 'music.attempt.provider_reconciled.v2' : 'music.attempt.local_idempotent.v2',
       qualification,
       evidenceLevel: fixtureKeys.has(key) ? 'fixture' : internalKeys.has(key) ? 'internal_execution' : 'planning',
-      qaKeys: ['music.qa.planning.authority.v1', 'music.qa.integration.authority.v1'],
+      qaKeys: ['music.qa.planning.authority.v2', 'music.qa.integration.authority.v2'],
       invalidationRules: ['timeline_changed', 'source_changed', 'rights_changed'],
       limitations: displayName.includes('Culture') || displayName.includes('Emotional')
         ? ['Subjective output remains confidence-scored and review-aware.'] : [],

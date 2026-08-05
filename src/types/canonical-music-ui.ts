@@ -41,7 +41,7 @@ export interface CanonicalMusicUiQaProjection {
  * payloads, credentials, Sound operation parameters, and signed URLs.
  */
 export interface CanonicalMusicUiProjection {
-  schemaVersion: 'canonical-music-ui-projection-v1'
+  schemaVersion: 'canonical-music-ui-projection-v2'
   requestId: string
   skillVersion: string
   manifestHash: string

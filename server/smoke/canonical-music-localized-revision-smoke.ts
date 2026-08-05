@@ -21,7 +21,7 @@ const preservedSoundHash = previous.soundSupportReceipts.find((receipt) => recei
 const affectedSoundHash = previous.soundSupportReceipts.find((receipt) => receipt.cueId === cueTwo.cueId)!.soundResultHash
 
 const revisedRequest = structuredClone(request)
-revisedRequest.proposedCues[1]!.instrumentation = ['restrained piano', 'subtle pulse']
+revisedRequest.cueConstraints.requestedCues[1]!.instrumentation = ['restrained piano', 'subtle pulse']
 const revisionPlan = await runtime.music.planRevision({ request: revisedRequest, previousResult: previous,
   invalidatedRanges: [rangeTwo], reason: 'Approved cue-two instrumentation revision.' })
 assert.deepEqual(revisionPlan.preservedCueIds, [cueOne.cueId])
@@ -42,7 +42,7 @@ assert.notEqual(revised.soundSupportReceipts.find((receipt) => receipt.cueId ===
 assert.equal(revised.soundSupportReceipts.length, 2)
 assert.equal(revised.actualMusicMutationRanges.length, 2)
 assert.ok(revised.revisionEvidenceRef)
-assert.ok(revised.artifacts.some((artifact) => artifact.artifactType === 'music_revision_receipt_v1'))
+assert.ok(revised.artifacts.some((artifact) => artifact.artifactType === 'music_revision_receipt_v2'))
 assert.ok(revised.finalCompositionHandoff)
 assert.equal(revised.finalCompositionHandoff?.placementManifestRefs.length, 2)
 assert.equal(new Set(revised.artifacts.map((artifact) => `${artifact.artifactId}:${artifact.artifactHash}`)).size,

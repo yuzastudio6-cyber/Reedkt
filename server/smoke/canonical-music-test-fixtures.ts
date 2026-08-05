@@ -58,6 +58,8 @@ export function makeMusicRights(input: {
     commercialUse: 'allowed', platformUse: 'allowed', editingPermission: 'allowed',
     attributionRequired: false, crossProjectReuse: 'not_allowed', crossUserReuse: false,
     projectOnly: input.projectOnly ?? true,
+    authorizedProjectIds: ['project-test'], authorizedWorkspaceIds: ['workspace-test'],
+    authorizedPlatformIds: ['platform-test'],
     evidenceRefs: [{ evidenceId: `rights-evidence-${input.asset.artifactId}`, evidenceType: 'rights_declaration',
       version: 1, evidenceHash: testHash(`rights:${input.asset.artifactId}`), evidenceLevel: 'user_declared' }],
   }
@@ -93,14 +95,14 @@ export function makeCanonicalMusicRequest(input: {
   const executing = input.mode !== 'planning'
   const allowGeneration = input.allowGeneration ?? false
   return parseCanonicalMusicRequest({
-    schemaVersion: 'canonical-music-request-v1', requestId: input.requestId, requestVersion: '1.0.0',
+    schemaVersion: 'canonical-music-request-v2', requestId: input.requestId, requestVersion: '2.0.0',
     caller: input.caller ?? {
       callerType: 'head_of_orchestra', callerSkillKey: 'head_of_orchestra', callerSkillVersion: 'future-contract-v1',
       parentWorkItemId: `work-${input.requestId}`, authorityRef: `authority-${input.requestId}`,
       ancestorSkillKeys: [],
     },
     jobType: input.jobType ?? 'full_video_music_pass', requestedExecutionMode: input.mode,
-    requestedDeliverables: ['music_final_composition_handoff_v1'],
+    requestedDeliverables: ['music_final_composition_handoff_v2'],
     approvedSnapshotRef: { snapshotId: `snapshot-${input.requestId}`, snapshotVersion: 1,
       snapshotHash: testHash(`snapshot:${input.requestId}`) },
     timelineBinding: { timelineManifestId: timelineArtifact.artifactId, timelineManifestVersion: 1,
@@ -114,6 +116,10 @@ export function makeCanonicalMusicRequest(input: {
       lockedMusicTrackIds: [], lockedRanges: [], contextHandleFrames: 24,
       approvedTimelineRef: timelineArtifact, timelineRate: rate,
       parentAuthorityRef: `authority-${input.requestId}`, parentAuthorityHash: testHash(`authority:${input.requestId}`),
+    },
+    projectBinding: {
+      projectId: 'project-test', workspaceId: 'workspace-test', ownerUserId: 'user-test',
+      platformIds: ['platform-test'],
     },
     contextRefs: {
       storyPlanRef: { evidenceId: `story-${input.requestId}`, evidenceType: 'structured_story_plan', version: 1,
@@ -136,7 +142,10 @@ export function makeCanonicalMusicRequest(input: {
       customDirectives: ['Use professional restraint; prioritize dialogue and story continuity.'],
     },
     inputAssetRefs: assets, referenceMusicRefs: [], rightsAndProvenanceRefs: input.rights ?? [],
-    proposedCues: input.cues,
+    cueConstraints: {
+      requestedCues: input.cues, lockedCueIds: input.cues.map((cue) => cue.cueId),
+      allowMusicToCombineUnlockedCues: false,
+    },
     approvalAndBudget: {
       approvalStatus: executing ? 'approved' : 'not_required_for_planning',
       ...(executing ? { estimateRef: `estimate-${input.requestId}`, reservationRef: `reservation-${input.requestId}` } : {}),

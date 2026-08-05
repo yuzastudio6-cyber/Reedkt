@@ -5,6 +5,7 @@ import { resolveMusicCapabilityEntry, qualificationSupportsMusicRequest } from '
 import {
   MUSIC_SKILL_VERSION,
   parseCanonicalMusicRequest,
+  requestedMusicCueConstraints,
   type CanonicalMusicSkillRequest,
   type CanonicalMusicSkillResult,
   type MusicFrameRange,
@@ -63,6 +64,15 @@ function rightsErrors(request: CanonicalMusicSkillRequest): string[] {
     if (!rights) errors.push(`missing_rights:${asset.artifactId}`)
     else if (rights.commercialUse !== 'allowed' || rights.platformUse !== 'allowed' || rights.editingPermission !== 'allowed') {
       errors.push(`unapproved_rights:${asset.artifactId}`)
+    } else if (rights.expiresAt && Date.parse(rights.expiresAt) <= Date.now()) {
+      errors.push(`expired_rights:${asset.artifactId}`)
+    } else if (!rights.authorizedProjectIds.includes(request.projectBinding.projectId)) {
+      errors.push(`project_scope_not_authorized:${asset.artifactId}`)
+    } else if (rights.source === 'workspace_library' &&
+      !rights.authorizedWorkspaceIds.includes(request.projectBinding.workspaceId)) {
+      errors.push(`workspace_scope_not_authorized:${asset.artifactId}`)
+    } else if (request.projectBinding.platformIds.some((platform) => !rights.authorizedPlatformIds.includes(platform))) {
+      errors.push(`platform_scope_not_authorized:${asset.artifactId}`)
     }
   }
   return errors
@@ -104,11 +114,12 @@ export function evaluateMusicScopeGuard(input: unknown): MusicScopeGuardResult {
     request.scopeAuthority.lockedMusicTrackIds.includes(track))) {
     return fail('locked_track_violation', ['target_music_track_is_locked'])
   }
-  if (request.proposedCues.some((cue) => !musicRangeIsSubset(
+  const cueConstraints = requestedMusicCueConstraints(request)
+  if (cueConstraints.some((cue) => !musicRangeIsSubset(
     cue.exactRange,
     request.scopeAuthority.authorizedMusicWriteRanges,
   ))) return fail('range_violation', ['music_cue_exceeds_write_authority'])
-  if (request.proposedCues.some((cue) => request.scopeAuthority.lockedRanges.some(
+  if (cueConstraints.some((cue) => request.scopeAuthority.lockedRanges.some(
     (locked) => musicRangesOverlap(cue.exactRange, locked),
   ))) return fail('range_violation', ['music_cue_overlaps_locked_range'])
   if (request.scopeAuthority.mayStudyWholeVideo && request.scopeAuthority.authorizedInspectRanges.length === 0) {

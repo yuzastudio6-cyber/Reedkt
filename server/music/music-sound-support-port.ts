@@ -49,10 +49,21 @@ export interface MusicSoundSupportRequest {
     'dialogue_ducking' | 'eq' | 'dynamics' | 'pan' | 'stem_rendering' | 'technical_qa'
   >
   operationParameters: {
+    sourceStartFrame: number
     targetDurationFrames: number
     fadeInFrames: number
     fadeOutFrames: number
     gainDb: number
+    gainEnvelope: Array<{ frame: number; gainDb: number }>
+    dialogueDuckingDb: number
+    duckAttackFrames: number
+    duckReleaseFrames: number
+    eqProfile: 'neutral' | 'speech_safe' | 'distance_rolloff' | 'impact_control' | 'room_match'
+    dynamicsProfile: 'none' | 'gentle_compression' | 'peak_limiter'
+    pan: number
+    distance: 'close' | 'medium' | 'distant'
+    roomMatch: 'dry' | 'source_room' | 'small_room' | 'large_room' | 'exterior'
+    headroomDb: number
     tempoRatio?: number
     pitchSemitones?: number
     loopCrossfadeFrames?: number
@@ -139,7 +150,7 @@ function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): Canonica
   const timeline = toSoundArtifact(request.timelineArtifact)
   const range = toSoundRange(request.delegatedRange)
   const requestedOperations = [...new Set(request.requiredOperations.map(soundOperation).filter(
-    (item): item is PublicSoundOperation => Boolean(item) && !['mix', 'render_stem', 'qa'].includes(item!),
+    (item): item is PublicSoundOperation => Boolean(item),
   ))]
   if (!requestedOperations.includes('trim')) requestedOperations.unshift('trim')
   const operationDirectives: CanonicalSoundRequest['operationDirectives'] = requestedOperations.map((operation, index) => ({
@@ -148,7 +159,10 @@ function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): Canonica
     targetRangeId: range.rangeId,
     sourceArtifactIds: [selected.artifactId],
     parameters: {
-      ...(operation === 'trim' ? { targetDurationFrames: request.operationParameters.targetDurationFrames } : {}),
+      ...(operation === 'trim' ? {
+        trimSourceStartFrame: request.operationParameters.sourceStartFrame,
+        targetDurationFrames: request.operationParameters.targetDurationFrames,
+      } : {}),
       ...(operation === 'fade' ? {
         fadeInFrames: request.operationParameters.fadeInFrames,
         fadeOutFrames: request.operationParameters.fadeOutFrames,
@@ -292,18 +306,26 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     if (result.status !== 'completed') throw new Error(`Canonical Sound v4 Music support did not complete: ${result.status}.`)
     const processed = result.selectedAssetVersions.map((artifact): MusicArtifactRef => ({
       ...artifact,
-      artifactType: 'processed_music_audio_v1',
+      artifactType: 'processed_music_audio_v2',
       lineageArtifactIds: [request.selectedMusicArtifact.artifactId],
     }))
     const stems = result.privateSoundStemArtifacts.map((artifact): MusicArtifactRef => ({
       ...artifact,
-      artifactType: 'music_stem_audio_v1',
+      artifactType: 'music_stem_audio_v2',
       lineageArtifactIds: [request.selectedMusicArtifact.artifactId],
     }))
     const mutationRanges = (result.mutationReceipts ?? []).map((item) => item.range)
     const soundResultHash = createHash('sha256').update(JSON.stringify(result)).digest('hex')
     const receipt: MusicSoundSupportReceipt = {
       cueId: request.musicCueId,
+      musicSoundSupportRequestHash: hashMusicValue(request),
+      requiredMusicOperations: [...request.requiredOperations],
+      mappedSoundOperations: [...soundRequest.requestedOperations],
+      technicalMixDirectiveHash: hashMusicValue({
+        exactMusicOperationParameters: request.operationParameters,
+        exactProtectedSpeechRanges: request.protectedSpeechRanges,
+        soundV4PublicOperationDirectives: soundRequest.operationDirectives,
+      }),
       soundSkillVersion: result.soundSkillVersion,
       soundManifestHash: result.soundManifestHash,
       soundCapabilityKey: result.capabilityEntryKey,
@@ -329,6 +351,15 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     if (receipt.soundManifestHash !== soundSkillCapabilityManifest.manifestHash) errors.push('sound_manifest_mismatch')
     if (receipt.soundSkillVersion !== soundSkillCapabilityManifest.skillVersion) errors.push('sound_version_mismatch')
     if (receipt.cueId !== request.supportRequest.musicCueId) errors.push('sound_cue_mismatch')
+    const expectedOperations = [...new Set(request.supportRequest.requiredOperations.map(soundOperation)
+      .filter((item): item is PublicSoundOperation => Boolean(item)))]
+    if (expectedOperations.some((operation) => !receipt.mappedSoundOperations.includes(operation))) {
+      errors.push('sound_operation_mapping_incomplete')
+    }
+    if (receipt.musicSoundSupportRequestHash !== hashMusicValue(request.supportRequest)) {
+      errors.push('sound_support_request_hash_mismatch')
+    }
+    if (receipt.technicalMixDirectiveHash.length !== 64) errors.push('sound_technical_mix_directive_missing')
     if (receipt.mutationRanges.some((range) =>
       range.startFrame < request.supportRequest.delegatedRange.startFrame ||
       range.endFrameExclusive > request.supportRequest.delegatedRange.endFrameExclusive)) errors.push('sound_range_escalation')
@@ -366,7 +397,7 @@ export function createMusicSoundSupportRequest(input: {
     protectedSpeechRanges: input.request.proposedCues.find((cue) => cue.cueId === input.cueId)?.protectedSpeechRanges ?? [],
     ambienceProtectionRanges: [],
     musicSfxCollisionPolicy: 'speech_and_story_first',
-    expectedOutputs: ['processed_music_audio_v1', 'music_stem_audio_v1', 'music_sound_support_receipt_v1'],
+    expectedOutputs: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'],
     maximumCredits: input.request.approvalAndBudget.maximumCredits,
     approvedSnapshotId: input.request.approvedSnapshotRef.snapshotId,
     approvedSnapshotHash: input.request.approvedSnapshotRef.snapshotHash,

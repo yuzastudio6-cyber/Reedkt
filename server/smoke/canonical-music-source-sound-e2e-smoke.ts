@@ -21,6 +21,9 @@ assert.ok(result.soundSupportReceipts[0]!.mutationRanges.every((mutation) =>
   mutation.startFrame >= range.startFrame && mutation.endFrameExclusive <= range.endFrameExclusive))
 assert.ok(result.soundSupportReceipts[0]!.technicalQaRefs.length > 0)
 assert.ok(result.unitReceipts.every((receipt) => receipt.status === 'completed'))
+assert.ok(result.unitReceipts.every((receipt) => receipt.stepReceipts.length === 1))
+assert.ok(result.unitReceipts.flatMap((receipt) => receipt.stepReceipts).every((step) =>
+  step.status === 'completed' && step.handlerIdentity.length > 0 && step.receiptHash.length === 64))
 assert.ok(result.unitReceipts.every((receipt) => receipt.elapsedMilliseconds >= 0))
 assert.ok(result.finalCompositionHandoff)
 assert.equal(result.finalCompositionHandoff?.selectedMusicAssets[0]?.artifactId, source.artifactId)
@@ -29,12 +32,19 @@ assert.equal(result.callerReceipt.musicDidNotOwnSoundTools, true)
 assert.equal(result.actualMusicMutationRanges.length > 0, true)
 assert.equal(result.costEvidence.totalActualCredits,
   result.costEvidence.actualMusicCredits + result.costEvidence.nestedSoundCredits)
+assert.equal(result.costEvidence.serviceFeeIncluded, false)
+assert.equal(result.costEvidence.walletMutationExecuted, false)
+assert.match(result.costEvidence.rateCardHash, /^[a-f0-9]{64}$/u)
+assert.match(result.executionFingerprint, /^[a-f0-9]{64}$/u)
 
 const qa = await runtime.music.qa({ result })
 assert.notEqual(qa.status, 'blocking')
 
 const replay = await runtime.music.execute(request)
 assert.deepEqual(replay, result)
+const collision = structuredClone(request)
+collision.userMusicPolicy.customDirectives.push('materially changed input under reused key')
+await assert.rejects(() => runtime.music.execute(collision), /idempotency collision/i)
 
 console.log(JSON.stringify({
   status: 'ok', resultStatus: result.status, selectedAssets: result.selectedMusicAssetRefs.length,

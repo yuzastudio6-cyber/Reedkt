@@ -26,9 +26,9 @@ assert.equal(result.status, 'completed')
 assert.equal(result.soundSupportReceipts.length, 3)
 assert.equal(result.actualMusicMutationRanges.length, 3)
 assert.ok(result.intentionalNoMusicRanges.some((range) => range.rangeId === 'whole-range-2'))
-assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_motif_plan_v1'))
-assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_continuity_plan_v1'))
-const continuity = result.artifacts.find((artifact) => artifact.artifactType === 'music_continuity_report_v1')
+assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_motif_plan_v2'))
+assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_continuity_plan_v2'))
+const continuity = result.artifacts.find((artifact) => artifact.artifactType === 'music_continuity_report_v2')
 assert.ok(continuity)
 const report = continuity.payload as {
   cueIds: string[]; cueFamilyContinuity: string[]; silenceFindings: string[];
@@ -36,7 +36,7 @@ const report = continuity.payload as {
 }
 assert.equal(report.cueIds.length, 4)
 assert.deepEqual(report.cueFamilyContinuity, [
-  'user_provided_music', 'no_music', 'generate_original_music', 'user_provided_music',
+  'user_provided_music', 'intentional_silence', 'generate_original_music', 'user_provided_music',
 ])
 assert.ok(report.silenceFindings.some((finding) => finding.includes('whole-cue-2')))
 assert.ok(report.speechPriorityFindings.some((finding) => finding.includes('whole-cue-2')))

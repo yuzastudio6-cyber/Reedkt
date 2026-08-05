@@ -6,8 +6,8 @@ Verified on 2026-08-04 against current official Google Cloud documentation.
 
 ## Frozen profile
 
-- Profile key: `music.provider.google_lyria_3_pro_preview.v1`
-- Profile version: `1.0.0`
+- Profile key: `music.provider.google_lyria_3_pro_preview.v2`
+- Profile version: `2.0.0`
 - Model: `lyria-3-pro-preview`
 - Clip model: `lyria-3-clip-preview`
 - API: `v1beta1` Interactions API
@@ -24,6 +24,11 @@ The canonical request uses only the documented `model`, `input`, `store`, and
 `background` fields. Legacy Lyria 2 `predict`, `negative_prompt`, `seed`, and
 `sample_count` request shapes are not treated as Lyria 3 authority.
 
+The provider cost is converted through immutable rate card
+`music.rate_card.v2.2026-08-04`; one ReEditPro credit is USD 0.10, the rate-card
+hash is retained in result evidence, service fees are excluded, and estimating
+or recording this internal cost does not mutate a wallet.
+
 ## Runtime boundary
 
 `GoogleLyria3InteractionsTransport` accepts only the exact Google HTTPS host,
@@ -38,6 +43,11 @@ HTTP 5xx, timeout, abort, and ambiguous transport failures become
 `unknown_outcome`; Music does not blindly resubmit. The provider-attempt store
 requires reconciliation first and blocks when the provider supplies no safe
 reconciliation path.
+
+Each cue attempt also carries an immutable attempt fingerprint binding the
+cue, exact route, provider profile, composition brief, compiled prompt,
+candidate count, approved snapshot, reservation, and execution mode. Reusing
+an idempotency key with different immutable inputs fails closed.
 
 Provider audio is untrusted until it is written through the repository's
 private create-only artifact boundary, checksum-verified, decoded, analyzed,

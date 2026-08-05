@@ -23,8 +23,8 @@ assert.equal(result.selectedMusicAssetRefs[0]?.artifactId, 'music-candidate-musi
 assert.ok(result.processedMusicAssetRefs.length > 0)
 assert.ok(result.soundSupportReceipts.length > 0)
 assert.equal(result.costEvidence.actualMusicCredits, 2.4)
-assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_composition_brief_v1'))
-assert.ok(result.artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_analysis_v1').length === 3)
+assert.ok(result.artifacts.some((artifact) => artifact.artifactType === 'music_composition_brief_v2'))
+assert.ok(result.artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_analysis_v2').length === 3)
 assert.equal(result.qualificationStatusUsed, 'planning_qualified')
 assert.equal(LYRIA_3_PROVIDER_PROFILE.requestStore, false)
 assert.equal(LYRIA_3_PROVIDER_PROFILE.liveQualification, 'blocked_pending_external_evidence')
@@ -49,7 +49,7 @@ const variationRequest = makeCanonicalMusicRequest({
 const variationResult = await variationRuntime.music.execute(variationRequest)
 assert.equal(variationResult.status, 'completed')
 assert.equal(variationResult.providerAttemptRefs.length, 1)
-assert.ok(variationResult.artifacts.some((artifact) => artifact.artifactType === 'music_composition_brief_v1' &&
+assert.ok(variationResult.artifacts.some((artifact) => artifact.artifactType === 'music_composition_brief_v2' &&
   (artifact.payload as { sourceEvidenceRefs: string[] }).sourceEvidenceRefs.includes(original.checksumSha256)))
 
 console.log(JSON.stringify({

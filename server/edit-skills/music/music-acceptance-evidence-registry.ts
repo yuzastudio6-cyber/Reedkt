@@ -55,14 +55,14 @@ const peerJobs = [
 
 export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidence[] = Object.freeze([
   {
-    evidenceKey: 'music.acceptance.planning.all_supported_jobs.v1',
+    evidenceKey: 'music.acceptance.planning.all_supported_jobs.v2',
     sourceFile: 'server/smoke/canonical-music-supported-job-matrix-smoke.ts',
     mode: 'planning', coveredJobTypes: planningJobs,
     evidenceKinds: ['schema_validation', 'authority_validation'],
     limitations: ['Planning evidence does not authorize media execution.'],
   },
   {
-    evidenceKey: 'music.acceptance.fixture.generated_candidates.v1',
+    evidenceKey: 'music.acceptance.fixture.generated_candidates.v2',
     sourceFile: 'server/smoke/canonical-music-lyria-e2e-smoke.ts',
     mode: 'fixture',
     coveredJobTypes: ['generate_original_music', 'generate_music_variation',
@@ -72,7 +72,7 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: ['Injected transport is fixture evidence, not a live Google Lyria call.'],
   },
   {
-    evidenceKey: 'music.acceptance.fixture.whole_video.v1',
+    evidenceKey: 'music.acceptance.fixture.whole_video.v2',
     sourceFile: 'server/smoke/canonical-music-whole-video-continuity-smoke.ts',
     mode: 'fixture', coveredJobTypes: ['full_video_music_pass'],
     evidenceKinds: ['route_execution', 'provider_fixture_bytes', 'private_audio_bytes',
@@ -80,14 +80,14 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: ['Subjective narrative findings remain confidence-scored or review-required.'],
   },
   {
-    evidenceKey: 'music.acceptance.fixture.peer_support.v1',
+    evidenceKey: 'music.acceptance.fixture.peer_support.v2',
     sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
     mode: 'fixture', coveredJobTypes: peerJobs,
     evidenceKinds: ['route_execution', 'authority_validation', 'typed_handoff'],
     limitations: ['Peer calls are faithful standalone fixtures; global dispatch remains future Orchestra work.'],
   },
   {
-    evidenceKey: 'music.acceptance.fixture.localized_revision.v1',
+    evidenceKey: 'music.acceptance.fixture.localized_revision.v2',
     sourceFile: 'server/smoke/canonical-music-localized-revision-smoke.ts',
     mode: 'fixture', coveredJobTypes: ['revise_music'],
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
@@ -95,7 +95,7 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: [],
   },
   {
-    evidenceKey: 'music.acceptance.fixture.source_rights.v1',
+    evidenceKey: 'music.acceptance.fixture.source_rights.v2',
     sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
     mode: 'fixture', coveredJobTypes: sourceAndRightsJobs,
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'measured_qa',
@@ -103,7 +103,7 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: ['Library execution requires an actual rights-bound artifact; no synthetic library catalog is claimed.'],
   },
   {
-    evidenceKey: 'music.acceptance.fixture.sound_and_handoff.v1',
+    evidenceKey: 'music.acceptance.fixture.sound_and_handoff.v2',
     sourceFile: 'server/smoke/canonical-music-source-sound-e2e-smoke.ts',
     mode: 'fixture', coveredJobTypes: analysisSoundAndHandoffJobs,
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
@@ -111,7 +111,7 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: [],
   },
   {
-    evidenceKey: 'music.acceptance.private.source_rights.v1',
+    evidenceKey: 'music.acceptance.private.source_rights.v2',
     sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
     mode: 'private_internal', coveredJobTypes: sourceAndRightsJobs,
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'measured_qa',
@@ -119,7 +119,7 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: ['Library execution requires an actual rights-bound artifact and exact project/workspace scope.'],
   },
   {
-    evidenceKey: 'music.acceptance.private.analysis_sound_handoff.v1',
+    evidenceKey: 'music.acceptance.private.analysis_sound_handoff.v2',
     sourceFile: 'server/smoke/canonical-music-source-sound-e2e-smoke.ts',
     mode: 'private_internal', coveredJobTypes: analysisSoundAndHandoffJobs,
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
@@ -127,7 +127,7 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: [],
   },
   {
-    evidenceKey: 'music.acceptance.private.whole_video.v1',
+    evidenceKey: 'music.acceptance.private.whole_video.v2',
     sourceFile: 'server/smoke/canonical-music-whole-video-continuity-smoke.ts',
     mode: 'private_internal', coveredJobTypes: ['full_video_music_pass'],
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',
@@ -135,14 +135,14 @@ export const MUSIC_ACCEPTANCE_EVIDENCE_REGISTRY: readonly MusicAcceptanceEvidenc
     limitations: ['The injected generated cue remains fixture-qualified inside an otherwise private graph.'],
   },
   {
-    evidenceKey: 'music.acceptance.private.peer_support.v1',
+    evidenceKey: 'music.acceptance.private.peer_support.v2',
     sourceFile: 'server/smoke/canonical-music-professional-scenarios-smoke.ts',
     mode: 'private_internal', coveredJobTypes: peerJobs,
     evidenceKinds: ['route_execution', 'authority_validation', 'typed_handoff'],
     limitations: ['Global peer scheduling and persistence remain future Orchestra responsibilities.'],
   },
   {
-    evidenceKey: 'music.acceptance.private.localized_revision.v1',
+    evidenceKey: 'music.acceptance.private.localized_revision.v2',
     sourceFile: 'server/smoke/canonical-music-localized-revision-smoke.ts',
     mode: 'private_internal', coveredJobTypes: ['revise_music'],
     evidenceKinds: ['route_execution', 'private_audio_bytes', 'sound_v4_receipt',

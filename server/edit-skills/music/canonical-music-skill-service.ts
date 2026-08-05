@@ -4,6 +4,7 @@ import {
   createMusicFinalHandoff,
   hashMusicValue,
   parseCanonicalMusicRequest,
+  requestedMusicCueConstraints,
   type CanonicalMusicSkillRequest,
   type CanonicalMusicSkillResult,
   type MusicArtifactEnvelope,
@@ -20,8 +21,14 @@ import {
   type ApprovedMusicExecutionPackage,
 } from './music-route-executor'
 import type { CanonicalMusicArtifactResolver } from '../../music/music-analysis'
+import {
+  resolveCanonicalMusicContext,
+  type CanonicalMusicContextPackage,
+  type MusicContextArtifactResolver,
+} from '../../music/music-context'
 import type { CanonicalLyria3ProviderAdapter } from '../../music/lyria-provider'
 import type { MusicSoundSupportPort } from '../../music/music-sound-support-port'
+import { createMusicCostEvidence } from '../../music/music-rate-card'
 
 export interface MusicPeerCapabilityViewRequest {
   callerType: Exclude<CanonicalMusicSkillRequest['caller']['callerType'], 'head_of_orchestra'>
@@ -46,7 +53,7 @@ export interface MusicPeerCapabilityView {
 }
 
 export interface MusicEstimateResult {
-  estimatorVersion: 'music.estimator.v1'
+  estimatorVersion: 'music.estimator.v2'
   requestId: string
   minimumMinutes: number
   expectedMinutes: number
@@ -65,8 +72,9 @@ export interface MusicEstimateResult {
 }
 
 export interface CanonicalMusicPlanResult {
-  schemaVersion: 'canonical-music-plan-result-v1'
+  schemaVersion: 'canonical-music-plan-result-v2'
   request: CanonicalMusicSkillRequest
+  resolvedContext: CanonicalMusicContextPackage
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
@@ -85,7 +93,7 @@ export interface MusicRevisionRequest {
 }
 
 export interface MusicRevisionPlan {
-  schemaVersion: 'music-revision-plan-v1'
+  schemaVersion: 'music-revision-plan-v2'
   revisionRequestId: string
   previousRequestId: string
   invalidatedRanges: MusicFrameRange[]
@@ -128,13 +136,16 @@ export interface CanonicalMusicSkillService {
 
 export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkillService {
   readonly #executor: CanonicalMusicRouteExecutor
+  readonly #contextResolver?: MusicContextArtifactResolver
 
   constructor(input: {
     artifacts: CanonicalMusicArtifactResolver
     provider?: CanonicalLyria3ProviderAdapter
     sound?: MusicSoundSupportPort
+    context?: MusicContextArtifactResolver
   }) {
     this.#executor = new CanonicalMusicRouteExecutor(input)
+    this.#contextResolver = input.context
   }
 
   getCapabilityManifest(): Readonly<SkillCapabilityManifest> {
@@ -165,8 +176,9 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       sum + range.endFrameExclusive - range.startFrame, 0)
     const seconds = rangeFrames * request.timelineBinding.rationalTimelineRate.denominator /
       request.timelineBinding.rationalTimelineRate.numerator
-    const cueCount = Math.max(1, request.proposedCues.length)
-    const generatedCueCount = request.proposedCues.filter((cue) =>
+    const constraints = requestedMusicCueConstraints(request)
+    const cueCount = Math.max(1, constraints.length || request.scopeAuthority.authorizedMusicWriteRanges.length)
+    const generatedCueCount = constraints.filter((cue) =>
       cue.acquisitionPreference === 'generate_original').length
     const candidateCount = generatedCueCount * request.approvalAndBudget.maximumCandidates
     const planningMinutes = Math.ceil(seconds / 60 * 0.25 + cueCount * 0.5)
@@ -177,13 +189,13 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     const localCredits = cueCount
     const expectedCredits = providerCredits + localCredits
     return {
-      estimatorVersion: 'music.estimator.v1', requestId: request.requestId,
+      estimatorVersion: 'music.estimator.v2', requestId: request.requestId,
       minimumMinutes: Math.max(1, Math.floor((planningMinutes + analysisMinutes) / 2)),
       expectedMinutes: planningMinutes + analysisMinutes + soundMinutes + qaMinutes,
       maximumMinutes: (planningMinutes + analysisMinutes + soundMinutes + qaMinutes) * 3,
       minimumCredits: generatedCueCount > 0 ? Math.max(1, generatedCueCount) : 0,
       expectedCredits, maximumCredits: expectedCredits * 3,
-      confidence: request.proposedCues.length > 0 ? 0.8 : 0.55,
+      confidence: constraints.length > 0 ? 0.8 : 0.65,
       assumptions: ['exact_rational_duration', `${cueCount}_cue_units`, `${candidateCount}_provider_candidates`, 'nested_sound_cost_separate'],
       categories: { planning: planningMinutes, providerGeneration: providerCredits, analysis: analysisMinutes, soundChild: soundMinutes, qa: qaMinutes },
       approvalRequired: generatedCueCount > 0 || request.requestedExecutionMode !== 'planning',
@@ -198,14 +210,15 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     const request = parseCanonicalMusicRequest(input)
     const admission = evaluateMusicScopeGuard(request)
     if (!admission.ok) throw new Error(`Canonical Music request rejected: ${admission.code}:${admission.errors.join(',')}`)
-    const supervision = createSupervisionArtifacts(request)
+    const resolvedContext = await resolveCanonicalMusicContext({ request, resolver: this.#contextResolver })
+    const supervision = createSupervisionArtifacts({ request, context: resolvedContext })
     const executionGraph = compileCanonicalMusicExecutionGraph({
       request, need: supervision.need, cueSheet: supervision.cueSheet,
       routeBindings: supervision.routeBindings,
     })
     const estimate = await this.estimate(request)
     const plannedResult = this.#plannedResult(request, supervision, estimate)
-    return { schemaVersion: 'canonical-music-plan-result-v1', request, ...supervision, executionGraph, estimate, plannedResult }
+    return { schemaVersion: 'canonical-music-plan-result-v2', request, resolvedContext, ...supervision, executionGraph, estimate, plannedResult }
   }
 
   async execute(input: CanonicalMusicSkillRequest): Promise<CanonicalMusicSkillResult> {
@@ -214,11 +227,16 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       throw new Error('Canonical Music planning mode cannot execute directly.')
     }
     const executionPackage: ApprovedMusicExecutionPackage = {
-      schemaVersion: 'approved-music-execution-package-v1',
+      schemaVersion: 'approved-music-execution-package-v2',
       packageId: `music.package.${plan.request.requestId}`,
       approvedWorkItemId: plan.request.caller.parentWorkItemId,
-      request: plan.request, context: plan.context, need: plan.need, arc: plan.arc,
-      cueSheet: plan.cueSheet, routeBindings: plan.routeBindings,
+      request: {
+        ...plan.request,
+        cueConstraints: { requestedCues: [], lockedCueIds: [], allowMusicToCombineUnlockedCues: true },
+        proposedCues: plan.cueSheet.payload.cues,
+      },
+      context: plan.context, need: plan.need, arc: plan.arc,
+      cueSheet: plan.cueSheet, routeBindings: plan.routeBindings, resolvedContext: plan.resolvedContext,
       executionGraph: plan.executionGraph,
     }
     return this.#executor.execute(executionPackage)
@@ -227,13 +245,19 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
   async planRevision(input: MusicRevisionRequest): Promise<MusicRevisionPlan> {
     if (input.previousResult.requestId !== input.request.requestId) throw new Error('Music revision request/result mismatch.')
     if (input.invalidatedRanges.length === 0) throw new Error('Music revision requires exact invalidated ranges.')
-    const affectedCueIds = input.request.proposedCues.filter((cue) => input.invalidatedRanges.some((range) =>
+    const previousCueSheet = input.previousResult.artifacts.find((artifact) => artifact.artifactType === 'music_cue_sheet_v2')
+    const resolvedCues = previousCueSheet && typeof previousCueSheet.payload === 'object' && previousCueSheet.payload &&
+      'cues' in previousCueSheet.payload && Array.isArray((previousCueSheet.payload as { cues: unknown }).cues)
+      ? (previousCueSheet.payload as { cues: CanonicalMusicSkillRequest['proposedCues'] }).cues
+      : input.request.proposedCues
+    if (resolvedCues.length === 0) throw new Error('Music revision cannot resolve the previous canonical cue sheet.')
+    const affectedCueIds = resolvedCues.filter((cue) => input.invalidatedRanges.some((range) =>
       musicRangesOverlap(cue.exactRange, range))).map((cue) => cue.cueId)
-    const preservedCueIds = input.request.proposedCues.filter((cue) => !affectedCueIds.includes(cue.cueId)).map((cue) => cue.cueId)
-    const neighboring = input.request.proposedCues.filter((_cue, index, cues) =>
+    const preservedCueIds = resolvedCues.filter((cue) => !affectedCueIds.includes(cue.cueId)).map((cue) => cue.cueId)
+    const neighboring = resolvedCues.filter((_cue, index, cues) =>
       affectedCueIds.includes(cues[index - 1]?.cueId ?? '') || affectedCueIds.includes(cues[index + 1]?.cueId ?? '')).map((cue) => cue.cueId)
     const base = {
-      schemaVersion: 'music-revision-plan-v1' as const,
+      schemaVersion: 'music-revision-plan-v2' as const,
       revisionRequestId: `${input.request.requestId}.revision`,
       previousRequestId: input.previousResult.requestId,
       invalidatedRanges: structuredClone(input.invalidatedRanges),
@@ -254,10 +278,22 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       input.request.approvedSnapshotRef.snapshotHash !== input.approvedRevisionSnapshotHash) {
       throw new Error('Music revision approval binding mismatch.')
     }
-    const affectedCues = input.request.proposedCues.filter((cue) => revisionPlan.replacementCueIds.includes(cue.cueId))
+    const previousCueSheet = input.previousResult.artifacts.find((artifact) => artifact.artifactType === 'music_cue_sheet_v2')
+    const previousCues = previousCueSheet && typeof previousCueSheet.payload === 'object' && previousCueSheet.payload &&
+      'cues' in previousCueSheet.payload && Array.isArray((previousCueSheet.payload as { cues: unknown }).cues)
+      ? (previousCueSheet.payload as { cues: CanonicalMusicSkillRequest['proposedCues'] }).cues
+      : input.request.proposedCues
+    const requestedOverrides = new Map(requestedMusicCueConstraints(input.request).map((cue) => [cue.cueId, cue]))
+    const affectedCues = previousCues.filter((cue) => revisionPlan.replacementCueIds.includes(cue.cueId))
+      .map((cue) => requestedOverrides.get(cue.cueId) ?? cue)
     const revisionRequest: CanonicalMusicSkillRequest = {
       ...structuredClone(input.request),
-      proposedCues: affectedCues,
+      proposedCues: [],
+      cueConstraints: {
+        requestedCues: affectedCues,
+        lockedCueIds: affectedCues.map((cue) => cue.cueId),
+        allowMusicToCombineUnlockedCues: false,
+      },
       scopeAuthority: {
         ...structuredClone(input.request.scopeAuthority),
         authorizedMusicWriteRanges: affectedCues.map((cue) => cue.exactRange),
@@ -266,11 +302,11 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     }
     const replacement = await this.execute(revisionRequest)
     const preservedArtifacts = input.previousResult.artifacts.filter((artifact) =>
-      !artifact.cueId && !['music_qa_report_v1', 'music_continuity_report_v1', 'music_final_composition_handoff_v1']
+      !artifact.cueId && !['music_qa_report_v2', 'music_continuity_report_v2', 'music_final_composition_handoff_v2']
         .includes(artifact.artifactType) || Boolean(artifact.cueId && revisionPlan.preservedCueIds.includes(artifact.cueId)))
     const replacementArtifacts = replacement.artifacts.filter((artifact) =>
       Boolean(artifact.cueId && revisionPlan.replacementCueIds.includes(artifact.cueId)) ||
-      ['music_qa_report_v1', 'music_continuity_report_v1'].includes(artifact.artifactType))
+      ['music_qa_report_v2', 'music_continuity_report_v2'].includes(artifact.artifactType))
     const preservedSound = input.previousResult.soundSupportReceipts.filter((receipt) =>
       revisionPlan.preservedCueIds.includes(receipt.cueId))
     const preservedOutputIds = new Set(input.previousResult.unitReceipts.filter((receipt) =>
@@ -295,7 +331,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     ]
     const revisionArtifact = createMusicArtifact({
       artifactId: `music.revision.${input.request.requestId}.${input.revisionIdempotencyKey}`,
-      artifactVersion: 1, schemaVersion: 'music_revision_receipt_v1.schema.v1', artifactType: 'music_revision_receipt_v1',
+      artifactVersion: 1, schemaVersion: 'music_revision_receipt_v2.schema.v2', artifactType: 'music_revision_receipt_v2',
       requestId: input.request.requestId,
       sourceArtifactHashes: input.previousResult.artifacts.map((artifact) => artifact.artifactHash),
       timelineHash: input.request.timelineBinding.timelineManifestHash,
@@ -319,20 +355,20 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       timelineBinding: input.request.timelineBinding, selectedMusicAssets: selectedMusicAssetRefs,
       processedMusicAssets: processedMusicAssetRefs, musicStemAssets: musicStemAssetRefs,
       musicNarrativeArcRef: input.previousResult.musicNarrativeArcRef, cueSheetRef: input.previousResult.cueSheetRef,
-      placementManifestRefs: artifactPayloadHash('music_placement_manifest_v1', 'placementHash'),
-      beatAndPhraseMapRefs: artifactPayloadHash('music_beat_phrase_map_v1', 'mapHash'),
-      mixIntentManifestRef: artifacts.find((artifact) => artifact.artifactType === 'music_mix_intent_manifest_v1')?.artifactHash,
+      placementManifestRefs: artifactPayloadHash('music_placement_manifest_v2', 'placementHash'),
+      beatAndPhraseMapRefs: artifactPayloadHash('music_beat_phrase_map_v2', 'mapHash'),
+      mixIntentManifestRef: artifacts.find((artifact) => artifact.artifactType === 'music_mix_intent_manifest_v2')?.artifactHash,
       soundSupportReceiptRefs: soundSupportReceipts.map((receipt) => receipt.soundResultHash),
       cueQaRefs: soundSupportReceipts.flatMap((receipt) => receipt.technicalQaRefs),
       continuityQaRef, provenanceRefs: input.request.rightsAndProvenanceRefs.map((rights) => rights.rightsId),
-      usagePolicyRefs: selectedMusicAssetRefs.map(() => 'music.usage.project_only.v1'),
+      usagePolicyRefs: selectedMusicAssetRefs.map(() => 'music.usage.project_only.v2'),
       actualMusicMutationRanges, intentionalNoMusicRanges: input.previousResult.intentionalNoMusicRanges,
       unresolvedReviewItems: [...new Set([...input.previousResult.reviewRequiredItems, ...replacement.reviewRequiredItems])],
       intentionalNoMusic: false, ambienceOnly: false, createdAt: new Date().toISOString(),
     })
     const handoffArtifact = createMusicArtifact({
       artifactId: finalCompositionHandoff.handoffId, artifactVersion: 1,
-      schemaVersion: 'music_final_composition_handoff_v1.schema.v1', artifactType: 'music_final_composition_handoff_v1',
+      schemaVersion: 'music_final_composition_handoff_v2.schema.v2', artifactType: 'music_final_composition_handoff_v2',
       requestId: input.request.requestId, sourceArtifactHashes: artifacts.map((artifact) => artifact.artifactHash),
       timelineHash: input.request.timelineBinding.timelineManifestHash,
       timelineRate: input.request.timelineBinding.rationalTimelineRate,
@@ -353,9 +389,9 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       ])],
       soundSupportReceipts, selectedMusicAssetRefs, processedMusicAssetRefs, musicStemAssetRefs,
       candidateArtifactRefs,
-      candidateAnalysisRefs: artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_analysis_v1')
+      candidateAnalysisRefs: artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_analysis_v2')
         .map((artifact) => hashMusicValue(artifact.payload)),
-      selectionDecisionRefs: artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_selection_decision_v1')
+      selectionDecisionRefs: artifacts.filter((artifact) => artifact.artifactType === 'music_candidate_selection_decision_v2')
         .map((artifact) => {
           const payload = artifact.payload as { evidenceHash?: unknown }
           return typeof payload.evidenceHash === 'string' ? payload.evidenceHash : artifact.artifactHash
@@ -374,17 +410,13 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
         ...input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
           .map((receipt) => hashMusicValue(receipt)), ...replacement.routeReceipts,
       ],
-      costEvidence: {
+      costEvidence: createMusicCostEvidence({
         estimatedCredits: replacement.costEvidence.estimatedCredits,
-        actualMusicCredits: replacement.costEvidence.actualMusicCredits +
+        providerCostUsd: replacement.costEvidence.providerCostUsd +
           input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
-            .reduce((sum, receipt) => sum + receipt.costEvidence.providerCostUsd / 0.1, 0),
+            .reduce((sum, receipt) => sum + receipt.costEvidence.providerCostUsd, 0),
         nestedSoundCredits: soundSupportReceipts.reduce((sum, receipt) => sum + receipt.nestedActualCredits, 0),
-        totalActualCredits: replacement.costEvidence.actualMusicCredits +
-          input.previousResult.unitReceipts.filter((receipt) => receipt.cueId && revisionPlan.preservedCueIds.includes(receipt.cueId))
-            .reduce((sum, receipt) => sum + receipt.costEvidence.providerCostUsd / 0.1, 0) +
-          soundSupportReceipts.reduce((sum, receipt) => sum + receipt.nestedActualCredits, 0),
-      },
+      }),
       elapsedTimeEvidence: { actualMilliseconds: input.previousResult.elapsedTimeEvidence.actualMilliseconds +
         replacement.elapsedTimeEvidence.actualMilliseconds },
       revisionEvidenceRef: revisionArtifact.artifactHash,
@@ -397,7 +429,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
   }
 
   async qa(input: MusicQaRequest): Promise<MusicQaResult> {
-    const qaArtifact = input.result.artifacts.find((artifact) => artifact.artifactType === 'music_qa_report_v1')
+    const qaArtifact = input.result.artifacts.find((artifact) => artifact.artifactType === 'music_qa_report_v2')
     const errors: string[] = []
     if (!input.result.continuityQaRef) errors.push('music_continuity_qa_missing')
     const synchronizationOnly = input.result.status === 'completed' && input.result.selectedMusicAssetRefs.length > 0 &&
@@ -432,7 +464,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       finalRenderOutsideMusic: true as const, musicDidNotOwnSoundTools: true as const,
     }
     const result: CanonicalMusicSkillResult = {
-      schemaVersion: 'canonical-music-result-v1', requestId: request.requestId,
+      schemaVersion: 'canonical-music-result-v2', requestId: request.requestId,
       musicSkillKey: 'music', musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
       musicManifestHash: musicSkillCapabilityManifest.manifestHash,
       capabilityKey: `music.${request.jobType}`, capabilityVersion: musicSkillCapabilityManifest.skillVersion,
@@ -446,7 +478,11 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       actualMusicMutationRanges: [], intentionalNoMusicRanges: noMusic ? request.scopeAuthority.authorizedMusicWriteRanges : [],
       artifacts: [supervision.context, supervision.need, supervision.arc, supervision.cueSheet],
       unitReceipts: [], routeReceipts: [],
-      costEvidence: { estimatedCredits: estimate.expectedCredits, actualMusicCredits: 0, nestedSoundCredits: 0, totalActualCredits: 0 },
+      executionFingerprint: hashMusicValue({ request, supervision: {
+        context: supervision.context.artifactHash, need: supervision.need.artifactHash,
+        arc: supervision.arc.artifactHash, cueSheet: supervision.cueSheet.artifactHash,
+      }, mode: 'planning' }),
+      costEvidence: createMusicCostEvidence({ estimatedCredits: estimate.expectedCredits, providerCostUsd: 0, nestedSoundCredits: 0 }),
       elapsedTimeEvidence: { actualMilliseconds: 0 }, unresolvedDependencies: [],
       reviewRequiredItems: supervision.context.payload.reviewRequiredFindings,
       callerReceipt: receiptBase,

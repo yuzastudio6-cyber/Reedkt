@@ -90,9 +90,19 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=8192
         run: |
-          docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
-          npx tsx -e "import('./server/tool-execution/python-runner-execution/offline-python-structured-docker-runtime.ts').then(async ({ prepareOfflinePythonStructuredDockerRuntime }) => { const image = await prepareOfflinePythonStructuredDockerRuntime(); console.log(image.imageIdentityHash) })"
-          npx tsx -e "import('./server/tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime.ts').then(async ({ prepareOfflineRemotionDockerRuntime }) => { const image = await prepareOfflineRemotionDockerRuntime(); console.log(image.imageIdentityHash) })"
+          retry_build() {
+            local attempt
+            for attempt in 1 2 3; do
+              if "$@"; then
+                return 0
+              fi
+              echo "Immutable runtime build attempt ${attempt} failed." >&2
+            done
+            return 1
+          }
+          retry_build docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
+          retry_build npx tsx -e "import('./server/tool-execution/python-runner-execution/offline-python-structured-docker-runtime.ts').then(async ({ prepareOfflinePythonStructuredDockerRuntime }) => { const image = await prepareOfflinePythonStructuredDockerRuntime(); console.log(image.imageIdentityHash) })"
+          retry_build npx tsx -e "import('./server/tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime.ts').then(async ({ prepareOfflineRemotionDockerRuntime }) => { const image = await prepareOfflineRemotionDockerRuntime(); console.log(image.imageIdentityHash) })"
 
       - name: Verify committed manifest and receipts load normally
         env:

@@ -35,9 +35,10 @@ import type {
 } from '../../src/types/canonical-caption-track-all-support'
 import type { CaptionDomainCanonicalScope } from
   '../../src/types/caption-domain-contracts'
-import type {
-  CaptionSoundCueRequest,
-  CaptionSoundSupportResult,
+import {
+  CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE,
+  type CaptionSoundCueRequest,
+  type CaptionSoundSupportResult,
 } from '../../src/types/caption-sound-support'
 import {
   BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE,
@@ -164,7 +165,9 @@ function supportTargetForArtifact(
   if (artifactType === 'visual_intelligence_report') return 'visual_intelligence'
   if (artifactType === 'track_all_mask_binding') return 'track_all'
   if (artifactType === 'caption_living_frame_handoff_binding') return 'living_frame'
-  if (artifactType === 'caption_sound_support_result') return 'soundsync'
+  if (artifactType === CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE) {
+    return 'soundsync'
+  }
   if (artifactType === 'caption_broll_owner_read_binding') return 'broll_owner'
   if (artifactType === 'confirmed_output_frame') return 'canonical_layout_owner'
   if (artifactType === 'master_timing_or_planning_timing') {
@@ -537,7 +540,7 @@ function soundResultArtifactMatches(
   return artifact.id === result.resultId
     && artifact.version === result.schemaVersion
     && artifact.contentHash === result.resultDigestSha256
-    && artifact.artifactType === 'caption_sound_support_result'
+    && artifact.artifactType === CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE
     && artifact.producerSkillKey === 'soundsync'
     && artifact.sourceSupportRequestRef !== null
     && exactRef(artifact.sourceSupportRequestRef, requestRef)

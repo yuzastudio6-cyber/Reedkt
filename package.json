@@ -239,6 +239,7 @@
     "smoke:canonical-caption-specialist-execution": "tsx server/smoke/canonical-caption-specialist-execution-service-smoke.ts",
     "smoke:canonical-caption-transcript-support": "tsx server/smoke/canonical-caption-transcript-support-service-smoke.ts",
     "smoke:canonical-caption-broll-support": "tsx server/smoke/canonical-caption-broll-support-service-smoke.ts",
+    "smoke:canonical-caption-soundsync-support": "tsx server/smoke/canonical-caption-soundsync-support-service-smoke.ts",
     "smoke:canonical-caption-specialist-planning": "tsx server/smoke/canonical-caption-specialist-planning-smoke.ts",
     "smoke:canonical-caption-postrender-visual-qa-authenticated-read": "tsx server/smoke/canonical-caption-postrender-visual-qa-authenticated-read-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",

@@ -12,6 +12,8 @@ export const CAPTION_SOUND_SUPPORT_RESULT_VERSION =
   'caption-sound-support-result-v1' as const
 export const CAPTION_SOUND_ADMISSION_VERSION =
   'caption-sound-admission-v1' as const
+export const CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE =
+  'caption_sound_support_result' as const
 
 export type CaptionSoundEligibility = 'sound_required' | 'sound_optional' | 'sound_forbidden'
 export type CaptionSoundDecision = 'request_cue' | 'remain_silent'

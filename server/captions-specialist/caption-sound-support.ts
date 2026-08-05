@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   CAPTION_SOUND_ADMISSION_VERSION,
   CAPTION_SOUND_CUE_REQUEST_VERSION,
+  CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE,
   CAPTION_SOUND_SUPPORT_RESULT_VERSION,
   type CaptionSoundAdmission,
   type CaptionSoundCueIntent,
@@ -623,7 +624,7 @@ export function createCaptionSoundSupportRequest(input: {
     requestingSkillKey: 'captions',
     targetSkillKey: 'soundsync',
     reasonCode: 'caption_semantic_sound_support_requested',
-    requestedArtifactTypes: ['caption_sound_support_result'],
+    requestedArtifactTypes: [CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE],
     canonicalScope: skillScope,
     typedPayloadType: payload.schemaVersion,
     typedPayload: payload,

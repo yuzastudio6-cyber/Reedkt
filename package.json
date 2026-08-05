@@ -384,6 +384,7 @@
     "smoke:captions-specialist-cap-19": "tsx server/smoke/captions-specialist-cap-19-smoke.ts",
     "smoke:captions-specialist-cap-20": "tsx server/smoke/captions-specialist-cap-20-smoke.ts",
     "smoke:captions-specialist-cap-20-aggregate": "tsx server/smoke/captions-specialist-cap-20-aggregate-smoke.ts",
+    "smoke:captions-specialist-goal-completion-audit": "tsx server/smoke/captions-specialist-goal-completion-audit-smoke.ts",
     "smoke:captions-specialist-shared-owner-integration": "tsx server/smoke/captions-specialist-shared-owner-integration-smoke.ts",
     "smoke:captions-specialist-multi-support-resume": "tsx server/smoke/captions-specialist-multi-support-resume-smoke.ts"
   },

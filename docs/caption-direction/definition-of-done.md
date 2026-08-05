@@ -9,6 +9,12 @@ Current CAP-20 candidate status:
 because 12 enhanced jobs still require authenticated evidence from five shared
 owners.
 
+The machine-validated post-CAP-20 audit additionally freezes four downstream
+requirements after those owner results exist: canonical private-execution
+mounting and reread, qualified complete-time visual-AI review, independent
+final-QA reread, and the final Caption-owned per-job qualification projection.
+See [the exact audit](post-cap20-goal-completion-audit.md).
+
 This is not a claim that the whole ReeditPro SaaS is publicly production-ready.
 It means the Captions Specialist is complete inside its boundary, privately
 qualified with real media, and ready for dependency-safe integration by the
@@ -63,6 +69,8 @@ The final release manifest distinguishes:
 
 No source-only contract, historical untracked result, bounded fixture, or
 technical-only raster check may be relabeled as full private qualification.
+Direct sampled-frame inspection is required and valid, but it may not be
+relabeled as qualified complete-time visual-AI review.
 
 ## CAP-00R acceptance
 

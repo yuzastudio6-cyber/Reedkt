@@ -1,8 +1,8 @@
-# Captions Specialist — CAP-17 Chat and Authenticated Reload Checkpoint
+# Captions Specialist — Post-CAP-20 Integration Checkpoint
 
-Status: `cap_17_chat_snapshot_and_authenticated_reload_source_complete_shared_writers_external`
-Checkpoint: `CAP-17`
-Media runtime changes: none; CAP-17 is source/UI/integration-contract work
+Status: `ready_for_shared_pipeline_integration`
+Checkpoint: `POST-CAP-20-AUDIT`
+Media runtime changes: none; this checkpoint is a source-only completion audit
 Canonical goal SHA-256: `dda9772b3a503f4dcb1932159e8ff6b8299f3a5af401fec008028614f12dc5db`
 
 This package reconciles the historical Caption Direction architecture with the
@@ -90,6 +90,11 @@ The governing workflow invariant remains:
 - [CAP-15 accessibility, localization, and export report](cap-15-accessibility-localization-export-report.md)
 - [CAP-16 complete QA, repair, and fallback report](cap-16-complete-qa-repair-fallback-report.md)
 - [CAP-17 chat, persistence, and observability report](cap-17-chat-persistence-observability-report.md)
+- [CAP-18 private qualification report](cap-18-private-qualification-report.md)
+- [CAP-19 migration and retirement report](cap-19-migration-retirement-report.md)
+- [CAP-20 private internal release report](cap-20-private-internal-release-report.md)
+- [CAP-20 shared-owner integration handoff](cap-20-shared-owner-integration-handoff.md)
+- [Post-CAP-20 goal completion audit](post-cap20-goal-completion-audit.md)
 
 ### Historical architecture retained and amended
 
@@ -125,7 +130,7 @@ The governing workflow invariant remains:
 
 ## Progression
 
-CAP-00R through CAP-17 are source-complete on the clean specialist branch. CAP-08's
+CAP-00R through CAP-20 are source-complete on the clean specialist branch. CAP-08's
 support/occupancy/hierarchy contracts are complete with actual private visual
 runtime evidence explicitly gated. CAP-09's Track All boundary, temporal QA,
 cache, and fallback contracts are complete with actual Track All/SAM 3.1 media
@@ -246,11 +251,19 @@ no second approval, charge, provider dispatcher, persistence store, private
 review, or final-QA owner. `not_found`, `pending`, and `completed` remain exact
 canonical backend read states; the browser cannot promote completion.
 
-Implementation continues automatically into CAP-18 private real-media
-qualification and direct visual inspection.
-Registry/workflow integration will consume
-these frozen public artifacts at its dependency-safe milestone; no Caption
-milestone manufactures a second planner or a false backend coverage claim.
+CAP-18 freezes the controlled private real-media matrix and direct visual
+inspection. CAP-19 retires duplicate legacy owners while preserving explicit
+compatibility and rollback. CAP-20 publishes the 29-job admitted release
+candidate and excludes twelve shared-owner-dependent jobs rather than claiming
+false qualification. The post-CAP-20 handoff and sequential-resume proof give
+the backend exact, HQ-mediated integration seams.
+
+The completion audit now records nine exact terminal gaps: five authenticated
+shared-owner integrations, canonical private-execution mounting, qualified
+complete-time visual-AI review, independent final-QA reread, and the final
+per-job qualification projection. Registry/workflow integration must consume
+the frozen public artifacts without manufacturing a second planner, runtime,
+provider, or false backend coverage claim.
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

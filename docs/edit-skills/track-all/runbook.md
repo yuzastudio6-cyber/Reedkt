@@ -11,9 +11,9 @@ REEDITPRO_GIT_BIN=/absolute/path/to/git npm run qualify:track-all:internal
 
 The issuer supplies an 8 GB Node heap ceiling when the caller has not already
 set `NODE_OPTIONS`; this repository-wide TypeScript graph exceeds Node's local
-default heap on some hosts. The command executes the canonical 33-command
-catalog, captures exit status, timestamps and stdout/stderr digests, emits 24
-exact fixture evidence records, binds 26 ordered dependency authorities, and
+default heap on some hosts. The command executes the canonical 37-command
+catalog, captures exit status, timestamps and stdout/stderr digests, emits 26
+exact fixture evidence records, binds 33 ordered dependency authorities, and
 generates the content-addressed receipt
 under `server/edit-skills/track-all/generated/`. Raw logs and media are not
 committed. Any relevant source, manifest, shared authority, fixture catalog,
@@ -60,7 +60,12 @@ image with:
 docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
 ```
 
-The image remains private-internal and production-blocked.
+The wrapper downloads the exact official FFmpeg 8.1.2 archive over HTTPS with
+bounded retries, verifies the frozen SHA-256 before it enters the Docker
+context, and removes the archive after the build. The Dockerfile repeats the
+digest check before extraction. A missing or tampered archive fails closed;
+the archive must never be committed. The image remains private-internal and
+production-blocked.
 
 The pinned structured Python image verifies all 19 package imports and exact
 versions during the build, then loads only the native package set for the one
@@ -73,9 +78,13 @@ npm run smoke:offline-python-structured-execution
 
 The dedicated GitHub workflow installs and verifies system FFmpeg/FFprobe,
 builds the pinned FFmpeg, Python, and Remotion images, loads the committed
-receipts normally, runs the 33-command Track All qualifier, and reruns the
-canonical-private public lifecycle and actual B-Roll consumer acceptance. It
-does not replace or skip the repository-wide UI/browser workflow.
+receipts normally, verifies execution accounting, composite routing, the
+blocked SAM gate, canary and canonical-private E2E preflight, and protocol
+wiring, runs the 37-command Track All and 31-command B-Roll qualifiers in
+isolated clean-checkout phases, and reruns the canonical-private public
+lifecycle and actual B-Roll consumer acceptance. It restores generated
+artifacts between qualification phases and requires a clean checkout at the
+end. It does not replace or skip the repository-wide UI/browser workflow.
 
 The focus/reframe command builds the exact private Remotion source tree and
 executes actual tracked-magnification and speaker-reframe previews. It also
@@ -91,17 +100,30 @@ Run the SAM authority, qualification-gate, and injected lifecycle checks with:
 npm run test:track-all-sam3.1-operation-authority
 npm run test:track-all-sam3.1-route-gates
 npm run test:track-all-sam3.1-injected-session
+npm run test:track-all-canonical-private-accounting
+npm run test:track-all-canonical-private-composite
+npm run test:track-all-sam3.1-protocol-wiring
+npm run e2e:track-all-sam3.1-canonical-private
 ```
 
-These commands make no model or GPU request. The injected session command uses
-only ephemeral in-memory bytes and explicitly test-only evidence.
+With the current blocked gate, these commands make no model or GPU request.
+The injected session and protocol commands use only explicitly test-only
+evidence. The gated E2E command performs a non-executing preflight unless all
+external authorities and explicit human execution gates are present; it uses
+the same public plugin and canonical-private coordinator as the activation
+path.
 
 ## Real SAM route
 
 Do not start a V2 private SAM session unless the content-addressed route-gate
-report validates as `internal_execution_qualified`, internal execution is
-authorized, and the runtime has an explicitly injected durable private store.
-The current report is `blocked`.
+report validates as `internal_execution_qualified`, the exact generated
+canonical-private route receipt agrees with it, a completed non-injected real
+canary is present, internal execution is authorized, and the runtime has an
+explicitly injected durable private store. The current report is `blocked`.
+The public runtime factory accepts the report only as a validated injected
+authority; omitting it preserves blocked startup. A caller cannot select the
+executor. Once legitimate authorities exist, the existing composite driver
+constructs the real SAM stage executor without another source change.
 
 Before any real route can be activated, obtain authorized human checkpoint
 access and legal approval, ingest and reread exact source/checkpoint bytes,

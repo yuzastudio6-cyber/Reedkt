@@ -38,8 +38,11 @@ The current pure planning pipeline is:
 10. Derive 24 hashed planning QA findings from a strict evidence input and
     content-address the aggregate report.
 
-The private modules are not exported from the Track All package index and are
-not orchestra-callable skills.
+The private planning modules are not exposed through the public plugin
+lifecycle and are not orchestra-callable skills. Server-internal runtime and
+qualification exports remain callable only by the canonical private factory,
+dispatcher, and evidence harness; they are not public assignment inputs or
+consumer contracts.
 
 ## Deterministic geometry pipeline
 
@@ -149,16 +152,23 @@ instead of maintaining a competing Track All shape. See `public-plugin-e2e.md`.
 
 ## Qualification boundary
 
-The generated TRACK-27 V2 artifact is the only runtime-loadable qualification
+The generated V3 artifact is the only runtime-loadable qualification
 authority. It binds the exact tested commit, relevant source tree, manifest,
-26 ordered dependency authorities, 33 actual command results, 24 fixture
-results, all ten route receipts, current B-Roll consumer acceptance, the
-canonical-private public E2E, and the blocked SAM canary preflight. Runtime
-startup rejects bootstrap, stale, forged, reordered, or overclaimed evidence.
+33 ordered dependency authorities, 37 actual command results, 26 fixture
+results, all ten route receipts, current B-Roll consumer acceptance, execution
+accounting, the atomic composite driver, real SAM activation bridge,
+real-output Track Graph adapter, protocol wiring, the gated canonical-private
+SAM E2E, dedicated CI, and the blocked SAM canary preflight. Runtime startup
+rejects bootstrap, stale, forged, reordered, protocol-as-inference, or
+overclaimed evidence.
 
 Track All is therefore honestly `planning_qualified` at the top level.
 Deterministic geometry, planar tracking, bounded repair, privacy, focus,
 reframe, and the public canonical-private lifecycle are independently
 `internal_execution_qualified`. The SAM masklet and production-worker routes
 remain blocked on real checkpoint, image, GPU, quality, cost, private-store,
-security, and release evidence. Injected masklets never promote either route.
+security, and release evidence. Injected masklets and protocol-only wiring
+never promote either route. The activation bridge is source-complete: a
+legitimately qualified gate report plus its exact route receipt and completed
+real canary can activate the existing real private session path without a
+further code redesign.

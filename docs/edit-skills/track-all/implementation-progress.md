@@ -1669,7 +1669,7 @@ actual evidence in TRACK-27, with:
 - qualification receipt hash:
   `a9da22e76e15acb6eca5346c4a2567db66c4c605c003c2b40556794ef22d40c8`;
 - generated artifact hash:
-`37d1f89d8285fe6ebca867ce97137e09fe479ae84a2fcdcada95f838e3e3ba7f`;
+  `37d1f89d8285fe6ebca867ce97137e09fe479ae84a2fcdcada95f838e3e3ba7f`;
 - ten route receipts, zero actual SAM requests, zero actual GPU executions,
   and `productionQualified: false`.
 
@@ -2574,3 +2574,302 @@ and its 19-authority set remains
 `cbe53b157c7406cc03f4e88128f4c694bcb848fc059202229014186d920567dc`.
 All provider, Remotion, canonical-private, security, and idempotency checks
 passed with zero provider requests, public artifacts, or production mutations.
+
+The first dedicated GitHub execution against the preceding evidence head
+reached the B-Roll qualifier and exposed a genuine cross-platform fixture
+defect: Ubuntu FFmpeg produced a valid but highly compressed transparent PNG
+below the fixture's one-kilobyte minimum. The assertion was preserved. The
+fixture now draws a visible caption block before encoding, and the workflow
+trigger includes every `server/smoke/b-roll-*` source rather than only two
+named B-Roll smokes. The correction passed the same one-kilobyte assertion
+locally and did not skip, catch, or weaken any media check.
+
+TRACK-35 portable-fixture commit
+`1d80b6ec56c2a0c6bfd487cb81a076a46d64e7f4` was pushed and remotely
+confirmed. From that clean source, the Track All qualifier again completed
+all 37 commands and 26 fixtures twice and issued:
+
+- tested commit: `1d80b6ec56c2a0c6bfd487cb81a076a46d64e7f4`;
+- source tree:
+  `a51b91907dd38f1ebce2ad226ad962b7ffff87d35bf7855f44b1272d78bd92ab`;
+- ordered 33-authority set:
+  `f682c3624baf84085b7273a4866ee9471dc1c27d10e9e1feb7df5055d8ecb4ec`;
+- final authority binding:
+  `03a7aacc34d68916893c6224fd2d125ef0d71d207fd580e9711c51d479ca91f5`;
+- qualification receipt:
+  `6dfcacaeb6f76aa52102916b90ae929598f8060ca48264a73d231a98de241d22`;
+- generated artifact:
+  `b1203a98736fd4f1515314bae8006655c60cec9f04a35dd928d8a3ae432f25bf`.
+
+TRACK-35 portable Track evidence commit
+`6b0f4f9b7ff1c9a83b5322ba0bc9ed709e9ed49a` was pushed and remotely
+confirmed. From that clean exact authority, the B-Roll qualifier passed all
+31 commands and 36 fixtures and issued:
+
+- tested commit: `6b0f4f9b7ff1c9a83b5322ba0bc9ed709e9ed49a`;
+- source tree:
+  `97ed2d14a9f317c513b4c5fb0131fdcc4f6e885d1f10e140b2636355a86c3f8f`;
+- ordered 19-authority set:
+  `cbe53b157c7406cc03f4e88128f4c694bcb848fc059202229014186d920567dc`;
+- qualification receipt:
+  `413eb998dc50fa4e1ae99c3c2ec3aee7355e7fddcb6f7646328b8c14a438ebf9`;
+- generated artifact:
+  `1cd930d36dd9c1d662790862bdc4c2170d67cca6b246e1b38660d625b74b49a6`.
+
+TRACK-35 portable B-Roll evidence commit
+`f4dde75eb65dbee619a6e7a1d7ba3b3e043ee2b9` was pushed and remotely
+confirmed. Normal committed-receipt rereads then passed Track All and B-Roll
+qualification integrity, current-source Track All → B-Roll acceptance, the
+B-Roll public lifecycle, retirement enforcement, and `git diff --check`.
+Track All remains honestly `planning_qualified`; its deterministic and
+canonical-private lifecycle routes remain internally execution-qualified;
+the real SAM route remains blocked with zero actual requests and zero GPU
+executions. B-Roll remains `internal_execution_qualified`.
+
+The next exact-head dedicated push run cleared the earlier FFmpeg source
+download reset and every confined image build, then exposed a second genuine
+Linux timing defect inside B-Roll canonical-private QA. Exact-frame extraction
+streamed a verified MP4 into FFmpeg while also requiring FFmpeg to consume the
+complete stream. A decoder extracting an early frame may validly exit after
+that frame; on the faster hosted runner the upstream pipeline then observed an
+incomplete write even though the container exited zero. This was not ignored
+or retried. Exact-frame extraction now first consumes, hashes, length-checks,
+and privately spools the complete source, then mounts the exact file read-only
+at `/private-input/source.media` in the no-network, read-only container. The
+media smoke asserts the exact mount, byte length, and checksum.
+
+Actual correction validation:
+
+- `npm run smoke:offline-media-binary-execution`: passed the full pinned
+  FFmpeg/FFprobe execution matrix and new exact-frame read-only-mount check;
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:b-roll-canonical-private-runtime`:
+  passed 11 canonical work items with zero provider requests;
+- `npm run typecheck:server`: passed;
+- `git diff --check`: passed.
+
+TRACK-35 exact-frame verification commit
+`3439d525ab922281077b3b49108eb53ebcaacfea` was pushed and remotely
+confirmed. The clean Track qualifier then completed its bootstrap and
+current-source passes, all 37 commands and 26 fixtures twice, and issued:
+
+- tested commit: `3439d525ab922281077b3b49108eb53ebcaacfea`;
+- source tree:
+  `8292cab3236c40d9cbd9be9db2a7af2460658aedd3f2be678c12015ab11c0542`;
+- ordered 33-authority set:
+  `de9f04790bc0d383d16831da6305dcf007910596c484d960d1084df7ef0ddd98`;
+- final authority binding:
+  `1539ea32db433f9a853656cb0a3f5adeab03600a35a70b0483c2f18a8ebbb2c6`;
+- qualification receipt:
+  `c833ab2f9cf7c162bd1faf061257c2c197e46fa44c3a2a95da5128967125762d`;
+- generated artifact:
+  `e68498b8f126eb4ef077ad604f93445409756a240b70e176a7cf76ea83ddf3ab`.
+
+TRACK-35 exact-frame Track evidence commit
+`8eb59da79d970cb6c38592b9d268fd3f86b7895d` was pushed and remotely
+confirmed. The clean B-Roll qualifier then passed all 31 commands and 36
+fixtures and issued:
+
+- tested commit: `8eb59da79d970cb6c38592b9d268fd3f86b7895d`;
+- source tree:
+  `97ed2d14a9f317c513b4c5fb0131fdcc4f6e885d1f10e140b2636355a86c3f8f`;
+- ordered 19-authority set:
+  `744ca004712bdb8998d8b12b24091eb287536b8c2a4534a0c7bd4f486b7934de`;
+- qualification receipt:
+  `d96462fe93dac10ed4e1f06c375f5d4a7200aff012ddb903736f176d27a33633`;
+- generated artifact:
+  `8868e1e6397c0ee723ad03f9d53bdf24f950a6f4da22f89f66429fe8c49775f0`.
+
+TRACK-35 exact-frame B-Roll evidence commit
+`f7584483da6c1f4756b63fb6baaa3ae2813b134b` was pushed and remotely
+confirmed. Two exact-head dedicated attempts then failed before compilation
+because Docker's remote `ADD` connection to the official FFmpeg host reset or
+timed out. A preceding run had already proved that the same image could build,
+so this was isolated to an unreliable in-build network fetch rather than the
+pinned source, Dockerfile, or runtime verifier.
+
+The media build wrapper now downloads the exact official FFmpeg 8.1.2 archive
+over HTTPS with bounded retry and timeout policy, verifies frozen SHA-256
+`464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c`
+on the host, moves only the verified archive into the isolated Docker context,
+and removes it after the build. The Dockerfile uses a local `COPY` and repeats
+the exact digest check before extraction. A direct Docker build without that
+archive fails closed, and a pre-existing tampered archive was independently
+rejected before Docker ran. The archive and partial-download pattern are
+ignored and no source archive was committed.
+
+Actual hardening validation:
+
+- `docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build`: passed the complete
+  pinned FFmpeg 8.1.2 build and runtime verifier;
+- tampered prefetch fixture: rejected with exit 1 and the exact checksum
+  failure, before Docker invocation;
+- `npm run test:ui-qa-media-runtime-workflow`: passed with FFmpeg/FFprobe
+  verification, browser E2E unskipped, later private pipeline preserved, and
+  zero duplicate installations;
+- `sh -n docker/prod/ffmpeg-lgpl-runtime/smoke.sh`: passed;
+- post-build archive/partial cleanup: passed;
+- `git diff --check`: passed.
+
+TRACK-35 verified-source-prefetch commit
+`7f676a418fcba8258834ef66e680aaf50acdf91b` was pushed and remotely
+confirmed. The clean Track All qualifier then passed all 37 commands and 26
+fixtures twice. Its final run issued:
+
+- tested commit: `fe758e4941287340c57d7e14c80772f9306dba7a`;
+- source tree:
+  `8292cab3236c40d9cbd9be9db2a7af2460658aedd3f2be678c12015ab11c0542`;
+- ordered 33-authority set:
+  `de9f04790bc0d383d16831da6305dcf007910596c484d960d1084df7ef0ddd98`;
+- final authority binding:
+  `68e74e5e648ce295682ac6547faae6a209cdfaaa6f15bca240c09284445f46ce`;
+- qualification receipt:
+  `c422940bd935bb5da8053d754822559f8014b9ee1af423313fbe242e111a2823`;
+- generated artifact:
+  `faf2a9309ff1f31a4e79031bbd9125f30e100a0d22cf49063ab98ffdc6007afe`.
+
+The bootstrap Track receipt commit
+`fe758e4941287340c57d7e14c80772f9306dba7a` and final Track receipt commit
+`e3f57804de922c4c368702c05729ef2a098b0068` were each pushed and remotely
+confirmed. From the clean final Track authority, the B-Roll qualifier passed
+all 31 commands and 36 fixtures and issued:
+
+- tested commit: `e3f57804de922c4c368702c05729ef2a098b0068`;
+- source tree:
+  `97ed2d14a9f317c513b4c5fb0131fdcc4f6e885d1f10e140b2636355a86c3f8f`;
+- ordered 19-authority set:
+  `744ca004712bdb8998d8b12b24091eb287536b8c2a4534a0c7bd4f486b7934de`;
+- qualification receipt:
+  `be7553e05a24fea666f673ee35ba6d669dd635bd7584c9b8e99601c3192285fa`;
+- generated artifact:
+  `950dbad9039b2e71ed777fd10ef5bd6f584f56b664fde79410dc0b4583bc22b2`.
+
+TRACK-35 hardened-media B-Roll evidence commit
+`265cf52ef295df3c153f2cae7dbdfe0158f3b9ef` was pushed and remotely
+confirmed. Exact-head UI push run
+[`31018642312`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31018642312)
+and pull-request run
+[`31018648066`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31018648066)
+both installed and verified FFmpeg/FFprobe, passed secrets, dependency,
+frontend-boundary, lint, typecheck, build, and the full 131-passed/seven-skipped
+browser suite, then reproduced the frozen foundation's separate Current Edit
+Preferences result of two passed and three failed. No frontend or affected UI
+test file differs from foundation `f7208fead733e756e23272920d940b8c25b78900`.
+The failure is therefore recorded as an independently reproduced base issue,
+not a Track All, B-Roll, or media-runtime regression; no test was skipped or
+weakened. The exact-head dedicated workflow and final TRACK-36 freeze evidence
+follow below.
+
+Exact-head dedicated push run
+[`31018642236`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31018642236)
+and pull-request run
+[`31018647706`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31018647706)
+both proved the verified FFmpeg prefetch and all three confined image builds,
+normal committed-receipt loading, blocked-SAM activation gates, all 37 Track
+All commands, and the first 20 B-Roll commands. They then exposed a remaining
+portable-fixture defect in `b-roll-canonical-private-runtime`: that fixture and
+three sibling integration fixtures still generated a fully transparent PNG,
+whose compressed size can fall below the preserved one-kilobyte caption
+payload boundary on Ubuntu.
+
+All four canonical-private/public-lifecycle/existing-source/Remotion fixtures
+now render the same visible, byte-free caption block and independently assert
+the existing one-kilobyte boundary before dispatch. The production validator
+and its assertion were not changed. Actual targeted validation passed:
+
+- `npm run test:b-roll-canonical-private-runtime`;
+- `npm run test:b-roll-public-canonical-lifecycle`;
+- `npm run smoke:b-roll-remotion-integration`;
+- `npm run smoke:b-roll-existing-source`;
+- zero provider requests, public artifacts, or production mutations throughout;
+- `git diff --check`.
+
+TRACK-35 portable-caption fixture commit
+`66a09b45850904970198e72f4b5802a44f6b735f` was pushed and remotely
+confirmed. The Track All qualifier again passed all 37 commands and 26
+fixtures twice. Its final run issued:
+
+- tested commit: `a2f079de5eef4fd7eeadbe466e5512987524efe1`;
+- source tree:
+  `8292cab3236c40d9cbd9be9db2a7af2460658aedd3f2be678c12015ab11c0542`;
+- ordered 33-authority set:
+  `de9f04790bc0d383d16831da6305dcf007910596c484d960d1084df7ef0ddd98`;
+- final authority binding:
+  `ff8370cbe505f2dfe5f7e0efbe624d582ce31d66e31afd4c7a16034ec847a961`;
+- qualification receipt:
+  `b72b015772341c93e4898e1d5f7de8065123375678389940e4fc97a66b629d82`;
+- generated artifact:
+  `49d34023763d9804df39e5bbd1c9d3c289ba90eb52127e32192629da32ba64bf`.
+
+The portable-caption bootstrap Track receipt commit
+`a2f079de5eef4fd7eeadbe466e5512987524efe1` and final Track receipt commit
+`7ffbd85107b0ec5d035d0ebe0f933bfdbbf7bf34` were each pushed and remotely
+confirmed. The clean B-Roll qualifier then passed all 31 commands and 36
+fixtures and issued:
+
+- tested commit: `7ffbd85107b0ec5d035d0ebe0f933bfdbbf7bf34`;
+- source tree:
+  `e8574e47228503de782f0802d1221e75972f12dae27ffdd235491d99dd5cb06a`;
+- ordered 19-authority set:
+  `744ca004712bdb8998d8b12b24091eb287536b8c2a4534a0c7bd4f486b7934de`;
+- qualification receipt:
+  `21511923a86034da76fd9cfbf41940b365aa7a84909ac4041173a8bcadf5f10b`;
+- generated artifact:
+  `8987d6bcdf6b5b894b31245f406d84b2d376a5550a84f993c963b1a58b51aee8`.
+
+TRACK-35 portable-caption B-Roll evidence commit
+`aa8f7dc627e8369f7049d7472e59505f8604213f` was pushed and remotely
+confirmed. The final exact-head dedicated workflow and TRACK-36 freeze evidence
+follow below.
+
+## TRACK-36 — activation-ready final freeze
+
+Status: complete; freeze publication commit and remote confirmation are
+recorded in the immediate ledger follow-up below.
+
+Final implementation and generated-evidence head:
+`aa8f7dc627e8369f7049d7472e59505f8604213f`.
+
+Exact-head dedicated push run
+[`31021063983`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31021063983)
+completed successfully. Every step passed:
+
+- exact checkout, Node setup, and dependency installation;
+- system FFmpeg and FFprobe installation and version verification;
+- verified FFmpeg 8.1.2 source prefetch and all three confined image builds;
+- committed manifest and both generated receipt rereads;
+- receipt-bound execution accounting, atomic composite routing, blocked SAM
+  route, real-canary preflight, protocol wiring, and gated canonical-private
+  SAM E2E preflight;
+- all 37 Track All commands and 26 fixtures;
+- all 31 B-Roll commands and 36 fixtures;
+- canonical-private public lifecycle, current-source Track All → B-Roll
+  acceptance, frozen Caption type-only boundary, and retirement enforcement;
+- final checkout restoration and clean completion.
+
+Exact-head UI push run
+[`31021065361`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31021065361)
+and pull-request run
+[`31021068408`](https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/31021068408)
+both passed FFmpeg/FFprobe installation, lint, typecheck, build, and the full
+131-passed/seven-skipped browser suite, then reproduced the independently
+confirmed foundation-only Current Edit Preferences result of two passed and
+three failed. Later generic server/private-pipeline steps were skipped only
+after that unrelated assertion failure, never because of `ENOENT`.
+
+Final qualification truth:
+
+- Track All: `planning_qualified`;
+- deterministic geometry, planar, repair, privacy, focus, reframe, and public
+  canonical-private lifecycle routes: `internal_execution_qualified`;
+- SAM 3.1 masklet route: `blocked` solely by ten external evidence gates;
+- B-Roll: `internal_execution_qualified`;
+- production: false;
+- actual SAM requests: 0;
+- actual GPU executions: 0;
+- public artifacts, production mutations, and charges: 0.
+
+The freeze documents bind the exact manifest, source-tree, authority-set,
+route, receipt, artifact, SAM gate, cross-skill, and GitHub evidence. The head
+orchestra, global scheduler, Visual Intelligence implementation, Track All
+production worker, Caption runtime, public delivery, billing, and final export
+were not implemented or activated.

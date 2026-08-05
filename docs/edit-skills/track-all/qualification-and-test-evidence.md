@@ -34,18 +34,18 @@ summaries enter the generated artifact. No credential or raw log is stored.
 
 ## Honest route status
 
-| Route | Current evidence status | Evidence boundary |
-|---|---|---|
-| planning core | `planning_qualified` | actual authority/planning/QA commands |
-| deterministic geometry | `internal_execution_qualified` | actual private FFmpeg/FFprobe/OpenCV/PySceneDetect fixture |
-| planar tracking | `internal_execution_qualified` | actual private homography fixture |
-| existing-track repair | `internal_execution_qualified` | actual bounded repair fixture |
-| privacy redaction | `internal_execution_qualified` | actual private FFmpeg treatment plus injected graph geometry |
-| focus | `internal_execution_qualified` | actual private Remotion fixture with injected graph geometry |
-| reframe | `internal_execution_qualified` | actual private Remotion fixture with injected graph geometry |
+| Route                   | Current evidence status        | Evidence boundary                                                                                     |
+| ----------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| planning core           | `planning_qualified`           | actual authority/planning/QA commands                                                                 |
+| deterministic geometry  | `internal_execution_qualified` | actual private FFmpeg/FFprobe/OpenCV/PySceneDetect fixture                                            |
+| planar tracking         | `internal_execution_qualified` | actual private homography fixture                                                                     |
+| existing-track repair   | `internal_execution_qualified` | actual bounded repair fixture                                                                         |
+| privacy redaction       | `internal_execution_qualified` | actual private FFmpeg treatment plus injected graph geometry                                          |
+| focus                   | `internal_execution_qualified` | actual private Remotion fixture with injected graph geometry                                          |
+| reframe                 | `internal_execution_qualified` | actual private Remotion fixture with injected graph geometry                                          |
 | public plugin lifecycle | `internal_execution_qualified` | actual generic runtime dispatch through the canonical-private coordinator and current B-Roll consumer |
-| SAM 3.1 masklets | `blocked` | contracts/injected lifecycle only; no checkpoint or inference |
-| production worker | `blocked` | no production worker/store/release evidence |
+| SAM 3.1 masklets        | `blocked`                      | contracts/injected lifecycle only; no checkpoint or inference                                         |
+| production worker       | `blocked`                      | no production worker/store/release evidence                                                           |
 
 The top-level skill remains `planning_qualified` because it must not exceed
 the blocked SAM route required by selected-target and concept-group execution.
@@ -54,17 +54,17 @@ It is not production-qualified.
 ## Fail-closed verification
 
 The frozen Track All receipt is
-`292c21e15e616fb8593fcaf311d98dd907b49bf59c056992061a6dad5cec33d4`;
+`b72b015772341c93e4898e1d5f7de8065123375678389940e4fc97a66b629d82`;
 its artifact hash is
-`12a115686c649a730d19a64817327e85c231a01ce27aa169d609dddb563f444c`.
+`49d34023763d9804df39e5bbd1c9d3c289ba90eb52127e32192629da32ba64bf`.
 It binds manifest
 `cfb670fa8255af9112592e5a87ae19e8bc5045b9d418af6452e2eca94c5a0d8b`,
-tested source `a6e21b4825e3f8c90d10c1fa40147cf7222150d6`, relevant source-tree hash
-`a51b91907dd38f1ebce2ad226ad962b7ffff87d35bf7855f44b1272d78bd92ab`,
+tested source `a2f079de5eef4fd7eeadbe466e5512987524efe1`, relevant source-tree hash
+`8292cab3236c40d9cbd9be9db2a7af2460658aedd3f2be678c12015ab11c0542`,
 and ordered dependency-authority-set hash
-`d235c5171704f23d16bb6d3d1e75a5e1b5fa2f8c751b3da61ce2b23d274186e9`.
+`de9f04790bc0d383d16831da6305dcf007910596c484d960d1084df7ef0ddd98`.
 The exact final authority-binding hash is
-`197afba7bd275aa7a06688ee894a482561d80c4d64d6c5574ce39a30e7fe5555`.
+`ff8370cbe505f2dfe5f7e0efbe624d582ce31d66e31afd4c7a16034ec847a961`.
 
 `npm run test:track-all-qualification-evidence` rejects failed commands,
 missing or duplicate fixtures, wrong commit/source/manifest/shared authority,

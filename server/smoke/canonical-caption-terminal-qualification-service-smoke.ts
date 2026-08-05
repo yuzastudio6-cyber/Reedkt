@@ -39,6 +39,9 @@ import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V3,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
+  createCaptionTerminalQualificationProjectionV2,
+} from '../captions-specialist/caption-terminal-qualification-v2'
+import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
 } from '../captions-specialist/caption-goal-completion-audit'
 import {
@@ -59,7 +62,6 @@ import {
   createCanonicalCaptionTerminalQualificationRepository,
   createCanonicalCaptionTerminalQualificationRequest,
   createCanonicalCaptionTerminalQualificationService,
-  parseCanonicalCaptionTerminalQualificationRecord,
   parseCanonicalCaptionTerminalQualificationRequest,
 } from '../services/canonical-caption-terminal-qualification-service'
 import type { CanonicalCreateOnlyJsonObjectPort } from
@@ -414,28 +416,21 @@ async function run(): Promise<void> {
     repository,
     now: () => new Date('2026-08-05T23:55:00.000Z'),
   })
-  const qualified = await service.qualifyPrivateInternal(request)
-  check(qualified.disposition === 'qualified_private_internal'
-    && qualified.record !== null
-    && qualified.terminalProjection?.counts.qualifiedPrivateInternalJobs === 41
-    && qualified.terminalProjection.counts.qualifiedOutputs === 1,
-  'An admitted exact evidence reread can persist the terminal 41-job projection.')
-  check(qualified.record.qualificationRecordPersistedCreateOnlyAndReread
-    && qualified.record.exactCanonicalEvidenceReread
-    && qualified.record.allFortyOneJobsQualified
-    && qualified.record.allConfirmedOutputsQualified,
-  'Terminal qualification records exact create-only persistence and reread.')
-  check(parseCanonicalCaptionTerminalQualificationRecord(qualified.record)
-    .recordDigestSha256 === qualified.record.recordDigestSha256,
-  'The persisted terminal record validates as one closed canonical tree.')
-  const replay = await service.qualifyPrivateInternal(request)
-  check(replay.record?.recordDigestSha256 === qualified.record.recordDigestSha256
-    && ownerReads === 1,
-  'Exact replay rereads the persisted terminal record without rereading owners.')
-  check(!qualified.currentProductStatusChanged
-    && !qualified.publicOrProductionAuthorityGranted
-    && !qualified.terminalProjection?.productionAuthority,
-  'Private qualification does not promote product, public, or production state.')
+  const sourceBlocked = await service.qualifyPrivateInternal(request)
+  check(sourceBlocked.disposition === 'blocked_missing_canonical_evidence'
+    && sourceBlocked.record === null
+    && sourceBlocked.terminalProjection === null
+    && ownerReads === 0,
+  'The current four-job source-readiness gap must block before owner evidence is read.')
+  check(!sourceBlocked.currentProductStatusChanged
+    && !sourceBlocked.publicOrProductionAuthorityGranted,
+  'A source-readiness block cannot promote product, public, or production state.')
+
+  const projectionCandidate = createCaptionTerminalQualificationProjectionV2(
+    qualificationInput, [privateReviewProjection()])
+  check(projectionCandidate.counts.qualifiedPrivateInternalJobs === 41
+    && projectionCandidate.counts.qualifiedOutputs === 1,
+  'The terminal projection contract remains testable without certifying the current source state.')
 
   expectThrow(() => createCanonicalCaptionTerminalQualificationService({
     evidenceReadPort: {
@@ -481,11 +476,11 @@ async function run(): Promise<void> {
     blockedWithoutCanonicalEvidence: true,
     qualifiedCandidateWasContractShapeOnly: true,
     actualCanonicalEvidenceConsumedByThisSmoke: false,
-    persistedCandidateJobs:
-      qualified.terminalProjection?.counts.qualifiedPrivateInternalJobs,
-    persistedCandidateOutputs:
-      qualified.terminalProjection?.counts.qualifiedOutputs,
-    exactReplayWithoutOwnerReread: ownerReads === 1,
+    currentSourceReadinessBlockedBeforeOwnerRead: ownerReads === 0,
+    projectionCandidateJobs:
+      projectionCandidate.counts.qualifiedPrivateInternalJobs,
+    projectionCandidateOutputs:
+      projectionCandidate.counts.qualifiedOutputs,
     callerSuppliedEvidenceAccepted: false,
     browserLocalCompletionAccepted: false,
     productionAuthority: false,

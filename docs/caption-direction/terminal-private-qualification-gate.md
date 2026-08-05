@@ -35,6 +35,13 @@ service does not accept the evidence bundle in the caller request. Missing
 canonical evidence returns the blocked preflight and creates no qualification
 record.
 
+The service also checks the exact current per-job source-readiness ledger before
+reading owner evidence or replaying a terminal record. While any declared job
+still waits on a canonical owner composition mount, terminal qualification is
+blocked and the owner evidence port is not called. A structurally complete
+fixture bundle therefore cannot certify the current branch while its own ledger
+still reports the SoundSync and B-roll mount gaps.
+
 The terminal builder accepts only an exact private qualification record that
 contains:
 
@@ -77,11 +84,12 @@ and a source fixture cannot satisfy a canonical persisted owner result.
 - `terminalStatusClaimed: false`.
 
 The focused smokes construct valid in-memory contract-shape candidates only to
-exercise the parser, projection builder, admitted-read-port boundary, and
-create-only replay behavior. A terminal input without the exact per-output
-private-review projections remains blocked. The source fixture does not consume
-a provider/GPU/model result and does not change the current preflight. The
-smoke output names this distinction explicitly.
+exercise the parser and projection builder. The canonical service proves that
+the current four-job source-readiness gap blocks before its admitted owner-read
+port is called. A terminal input without the exact per-output private-review
+projections also remains blocked. The source fixture does not consume a
+provider/GPU/model result and does not change the current preflight. The smoke
+output names this distinction explicitly.
 
 ## Fail-closed coverage
 

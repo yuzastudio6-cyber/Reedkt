@@ -335,6 +335,18 @@ export function createCanonicalCaptionTerminalQualificationService(input: {
     Promise<CanonicalCaptionTerminalQualificationOutcome> {
       const request = parseCanonicalCaptionTerminalQualificationRequest(
         untrusted)
+      if (!currentSourceReadinessAllowsTerminalQualification()) {
+        return {
+          disposition: 'blocked_missing_canonical_evidence',
+          request,
+          preflight: structuredClone(
+            CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT_V2),
+          record: null,
+          terminalProjection: null,
+          currentProductStatusChanged: false,
+          publicOrProductionAuthorityGranted: false,
+        }
+      }
       const existing = await input.repository.rereadRecord({
         requestRef: requestRef(request),
       })
@@ -432,6 +444,18 @@ function currentJobReadinessRef(): CaptionDomainRef {
     version: CAPTION_CURRENT_JOB_READINESS_LEDGER.schemaVersion,
     contentHash: CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerDigestSha256,
   }
+}
+
+function currentSourceReadinessAllowsTerminalQualification(): boolean {
+  const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER
+  return ledger.counts.sourcePathsReadyForPrivateEvidenceRun
+      === ledger.counts.declaredSupportedJobs
+    && ledger.counts.jobsWaitingOnCanonicalOwnerMount === 0
+    && ledger.ownerMounts.every((owner) =>
+      owner.canonicalCompositionMountImplemented)
+    && ledger.jobs.every((job) =>
+      job.sourceReadiness === 'ready_for_private_internal_evidence_run'
+      && job.missingCanonicalOwnerMountKeys.length === 0)
 }
 
 function requestRef(

@@ -61,5 +61,12 @@ upstream private word-timing evidence. A real internal media qualification run
 must still prove that the canonical transcript owner writes the expected record
 before Caption work is released.
 
+The later bounded local CPU run documented in
+`cap-04-private-transcript-real-media-evidence-2026-08-05.md` proves actual
+offline model execution and exact Caption-side source-word lineage mechanics,
+but its transcript content was correctly rejected during direct inspection.
+It is not relabeled as authenticated canonical-owner evidence and does not
+release final phrase projection.
+
 All provider, runtime dispatch, timeline mutation, asset mutation, final-QA,
 billing, public-delivery, and production authorities remain outside Caption.

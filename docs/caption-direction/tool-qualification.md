@@ -6,7 +6,7 @@ CAP-00 selects no new dependency and downloads no model or font.
 
 | Tool/path | Intended role | Current evidence | Required before Caption Direction production use |
 | --- | --- | --- | --- |
-| faster-whisper | transcription/word timing foundation | CAP-04 bounded private route qualified for the accepted standard fixture; exact lineage remains required | shared canonical transcript integration, wider language/performance evidence, production image/license review |
+| faster-whisper | transcription/word timing foundation | pinned offline CPU runtime executed the complete internal MP4 and produced exact segment/ASR-native word lineage; direct text inspection rejected the output for final captions because 53/153 words were low-confidence and brand/semantic defects were visible | independently reviewed transcript correction or accepted canonical-owner evidence, wider language/performance evidence, production image/license review |
 | WhisperX | forced alignment candidate | not qualified in current Caption Direction path | dependency/model licenses, offline image, timestamp benchmarks, failure semantics, language coverage |
 | pyannote | diarization candidate | not qualified | model access/license, consent/privacy, speaker/overlap benchmarks, neutral-label policy |
 | FontTools | font metadata/metrics/subsetting | private build validation qualified at `4.38.0`; subset round trips passed for the reviewed Noto pack | canonical approved font registry and production dependency/legal review |

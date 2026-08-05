@@ -83,6 +83,17 @@ jobs:
           npm run smoke:private-local-persistence
           npm run smoke:supabase-security
 
+      - name: Install canonical private-pipeline database runtime
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.105.0
+
+      - name: Verify canonical private-pipeline database runtime
+        run: |
+          supabase --version
+          psql --version
+          jq --version
+
       - name: Authenticated private pipeline E2E
         run: npm run qa:internal-pipeline
 

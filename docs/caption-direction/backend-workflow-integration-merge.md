@@ -2,8 +2,8 @@
 
 Milestone: Dependency-complete backend integration base
 
-Status: Source integration complete; private execution and actual evidence gates
-remain closed
+Status: Source integration and the canonical Caption planning-job mount are
+complete; actual owner, media, and terminal evidence gates remain closed
 
 ## Integrated histories
 
@@ -57,11 +57,34 @@ started by this merge.
 
 The merge makes the complete Caption implementation and the backend's current
 canonical Visual Intelligence/Track All support owners coexist on one clean
-history. It does not claim the final internal status. The canonical backend
-must still mount Caption job execution and supply actual persisted/reread
-transcript, Visual Intelligence, Track All, SoundSync, B-roll, complete-time
-visual-review, and independent private-review evidence before the terminal
-projection can be created.
+history.
+
+The additive `canonical-caption-specialist-execution-receipt-v1` mount now:
+
+- exact-binds one approved snapshot, execution package, work item, derived job,
+  planned manifest entry, estimate, and reservation;
+- derives the postapproval Caption call identity on the server, so a caller
+  cannot predict or inject the immutable snapshot hash;
+- accepts only byte-free canonical transcript, confirmed-frame, and
+  MasterTiming references as starting evidence;
+- runs the existing Caption specialist planning contract and persists/rereads
+  the exact call/result pair through the shared create-only sequential-resume
+  repository; and
+- returns advanced owner needs as HQ-mediated support requests with every peer,
+  provider, media, timeline, asset, cost, final-QA, public, and production
+  authority closed.
+
+The mount deliberately does not treat Visual Intelligence, Track All,
+SoundSync, B-roll, or Living Frame results as ordinary input references. Those
+results must still pass their canonical owner adapter and the authenticated
+support/resume ledger.
+
+This does not claim the final internal status. The canonical planner still has
+to publish exact Caption work items into real approved plans, and the complete
+private path still needs actual persisted/reread transcript, Visual
+Intelligence, Track All, SoundSync, B-roll, complete-time visual-review, and
+independent private-review evidence before the terminal projection can be
+created.
 
 This is an internal-testing integration base, not a public or production SaaS
 release.

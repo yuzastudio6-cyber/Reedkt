@@ -1669,6 +1669,148 @@ actual evidence in TRACK-27, with:
 - qualification receipt hash:
   `a9da22e76e15acb6eca5346c4a2567db66c4c605c003c2b40556794ef22d40c8`;
 - generated artifact hash:
-  `37d1f89d8285fe6ebca867ce97137e09fe479ae84a2fcdcada95f838e3e3ba7f`;
+`37d1f89d8285fe6ebca867ce97137e09fe479ae84a2fcdcada95f838e3e3ba7f`;
 - ten route receipts, zero actual SAM requests, zero actual GPU executions,
   and `productionQualified: false`.
+
+## TRACK-25 — producer/consumer support bridge
+
+Status: complete, committed, pushed, remotely confirmed, and backed by an
+actual B-Roll consumer acceptance run.
+
+Implemented:
+
+- added generic, content-addressed `edit-skill-support-request-v1`,
+  `edit-skill-support-result-v1`, and `edit-skill-support-acceptance-v1`
+  contracts with exact consumer assignment/request, shared source/range,
+  producer assignment/plan/result, current skill receipt, and current route
+  receipt lineage;
+- expanded the generic public plugin lifecycle to accept either a direct
+  dependency acceptance or an authenticated owner-support acceptance without
+  adding an orchestra or peer dispatcher;
+- made B-Roll require a persisted Track All support result for
+  `track_graph_v1`, resolve the producer's current receipts from the runtime
+  registries, reject qualification-candidate/fixture/blocked routes, and stop
+  requiring the Track Graph assignment to equal the B-Roll assignment;
+- made the canonical Track All handoff persist an actual Track Graph V1
+  compatibility projection bound to the current Track producer assignment,
+  exact source checksum, and authorized range;
+- added the public Track All peer-support constructor and validator for
+  model-neutral Track Graph and cross-skill handoff artifacts;
+- proved one actual repair-route Track assignment through the public plugin,
+  generic dispatcher, canonical-private executor, Track result receipt,
+  persisted support request/result, and B-Roll public acceptance, with the
+  Track and B-Roll assignment IDs intentionally different;
+- rejected direct unauthenticated Track Graph input, cross-source authority,
+  cross-range authority, under-qualified producer authority, and a forged
+  support-result hash;
+- validated the frozen Caption Track All handoff contract through the same
+  source-only producer/consumer model while leaving Caption runtime readiness
+  false and importing no Caption implementation;
+- froze a B-Roll-to-Caption public type-only request/result adapter for exact
+  selected-media, layout-occupancy, crop-timing, and visible-text evidence
+  references. It grants no execution, asset mutation, QA approval, billing,
+  public delivery, or production authority and publishes no authenticated
+  owner evidence in this milestone.
+
+Frozen Caption interface authority:
+
+- Caption source commit:
+  `a97dc0a931d6364e154f9fab2bebf488e6f708b3`;
+- Caption contract:
+  `caption-shared-owner-integration-handoff-v1`;
+- Caption digest:
+  `12f6bfbb3316d3908b65a00d637ccb0d20cdcf42311ca95a22726c3e8726bd4c`;
+- B-Roll owner-read public type:
+  `server/edit-skills/b-roll/b-roll-caption-owner-read-contract.ts`;
+- B-Roll owner-read contract digest:
+  `9bf019f77e1c4483de1adbcca78ba539f0b84c2b14b0edc2ae787b2b06c57159`;
+- authenticated B-Roll owner evidence published: `false`;
+- Caption private internal specialist ready: `false`.
+
+Actual integrated evidence from `npm run test:b-roll-public-plugin`:
+
+- support request hash:
+  `46771f5093ddce37e83e81601419ba7294aa2b58a26dfecbcd5a542de618b133`;
+- B-Roll/Track support result hash:
+  `61c3ed1b121238c206791ebe008caa3ba0c87302fedc13a4c5c7d5d421907dfb`;
+- B-Roll acceptance hash:
+  `aab7f8fe72724b2f33b9e045de620b049c8a7c14b1ba0a02abbdaed9597711c4`;
+- Caption Track support validator result hash:
+  `b3fc1561099f80ef45f953091e54229792b2f0766cc77acd7b8eaab8802d1fa8`;
+- producer assignment: `track-25-owner-assignment`;
+- consumer assignment: `track-25-broll-consumer-assignment`;
+- actual SAM requests: zero;
+- actual GPU executions: zero;
+- public artifacts: zero;
+- production mutations: zero.
+
+Actual checks passed:
+
+```text
+NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server
+REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin
+REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-canonical-lifecycle
+REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING=1 npm run test:track-all-canonical-private-public-e2e
+npm run smoke:b-roll-retirement
+NODE_OPTIONS=--max-old-space-size=8192 npm run qualify:track-all:internal
+NODE_OPTIONS=--max-old-space-size=8192 npm run qualify:b-roll:internal
+git diff --check
+```
+
+Final TRACK-25 generated evidence:
+
+- Track All tested source commit:
+  `01e12c2d6eee70695d4dfb9eaa14c61f329f052e`;
+- Track All relevant source-tree hash:
+  `79515b281e489a084d98d3c358fb13eabeab2d588c51862e071150c8dc9a96d5`;
+- Track All shared authority-set hash:
+  `5d540a69d06eda8e9aa0216c5eeb74612b7c8d651c6f24ad8b99aa7c188cd0ee`;
+- Track All qualification receipt hash:
+  `70d3619d9b6044993416e53d9ac9703cab021967ea166829bf46d5e034cec9b3`;
+- Track All generated artifact hash:
+  `d3bee4aba9167015043b8415ce4373a4b02b72fd41b85de20cb869234d6b1764`;
+- Track All top-level status: `planning_qualified`;
+- deterministic canonical-private and public-plugin routes:
+  `internal_execution_qualified` from actual canonical evidence;
+- SAM 3.1 route: `blocked` with zero actual SAM/GPU evidence;
+- production qualification: `false`.
+
+B-Roll requalification tested source commit
+`fa16c0135278eb8a867e2bd2385f9af463af58a7`, passed 31 commands and 36
+fixtures, and issued:
+
+- relevant source-tree hash:
+  `08ca2cc384f64b15f2e0d4ed6ca463b645da51605261d7d00bbfd7a267f34fbb`;
+- dependency authority-set hash:
+  `cbe53b157c7406cc03f4e88128f4c694bcb848fc059202229014186d920567dc`;
+- receipt hash:
+  `6e8b8597f3f62852e705a0349fd3052dcd81f09856b59656c59cd35ff5fa4cab`;
+- generated artifact hash:
+  `4f0c5a83eda04a1b93346e7c3af04e0963a139b705728199ed454ff4e23fe243`;
+- actual status: `internal_execution_qualified`;
+- production qualification: `false`.
+
+Remote evidence closeout:
+
+- support kernel/source commit:
+  `45c85e22132198f8f581a3d7e69221a699e975dc`;
+- initial Track route-evidence commit:
+  `b0d249608a36b23d5b912d32a9923ad1503616ad`;
+- B-Roll retirement-boundary correction:
+  `c949f7e72e57dfd0603da7b1cb60cf9f5ef0317b`;
+- B-Roll bootstrap evidence:
+  `702cc54aaeb46cf41a82845c7dd1f185a8cc6699`;
+- Track producer-lineage correction:
+  `01e12c2d6eee70695d4dfb9eaa14c61f329f052e`;
+- final Track route-evidence commit:
+  `be5d9cf19d0a8fd24f609e2d42c55d21c9192bda`;
+- integrated E2E and frozen Caption type commit:
+  `fa16c0135278eb8a867e2bd2385f9af463af58a7`;
+- final B-Roll generated-evidence commit:
+  `4bb3ea4c761a9e62773e093418f03af95251a5bb`.
+
+Every listed commit was pushed and its remote branch head was confirmed during
+the milestone. No head orchestra, peer skill, Caption implementation, paid
+provider call, real SAM inference, GPU execution, public delivery, or
+production mutation was added.

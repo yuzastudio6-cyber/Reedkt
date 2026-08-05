@@ -2369,3 +2369,39 @@ was added.
 | M33 | full reconciled B-roll regression matrix and exact-base browser comparison | `59979f77fa2a7eb418846f0946c72f90df547a0f` | confirmed | all B-roll gates passed; three unrelated preference failures reproduced on exact base |
 | M34 | tested `59979f77fa2a7eb418846f0946c72f90df547a0f`; receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7` | `04f750cd93db21b1d0d9c50e560768aa9db4d256` | confirmed | `internal_execution_qualified` from 29 commands and 36 fixtures |
 | M35 | freeze record, current evidence document, final PR/remote audit | this freeze documentation commit | pending push and PR update | runtime receipt accepted; production qualification remains false |
+
+## Track All producer/consumer bridge requalification — 2026-08-05
+
+The frozen B-Roll runtime was extended only at its public dependency boundary:
+direct `track_graph_v1` substitution is now rejected, and Track All support
+must arrive through the generic content-addressed owner request/result contract
+with a current canonical-private route receipt. Track All preserves its own
+producer assignment; B-Roll preserves its distinct consumer assignment.
+
+`npm run qualify:b-roll:internal` passed all 31 commands and all 36 fixture
+records against source commit
+`fa16c0135278eb8a867e2bd2385f9af463af58a7`, including the public-plugin
+command that executes the actual Track owner/B-Roll consumer lifecycle.
+
+- manifest hash:
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`;
+- relevant source-tree hash:
+  `08ca2cc384f64b15f2e0d4ed6ca463b645da51605261d7d00bbfd7a267f34fbb`;
+- dependency-authority set hash:
+  `cbe53b157c7406cc03f4e88128f4c694bcb848fc059202229014186d920567dc`;
+- qualification receipt hash:
+  `6e8b8597f3f62852e705a0349fd3052dcd81f09856b59656c59cd35ff5fa4cab`;
+- generated artifact hash:
+  `4f0c5a83eda04a1b93346e7c3af04e0963a139b705728199ed454ff4e23fe243`;
+- actual status: `internal_execution_qualified`;
+- production qualification: `false`;
+- evidence commit:
+  `4bb3ea4c761a9e62773e093418f03af95251a5bb` (pushed and remotely
+  confirmed).
+
+The B-Roll-to-Caption public type-only request/result contract is frozen at
+`server/edit-skills/b-roll/b-roll-caption-owner-read-contract.ts` with digest
+`9bf019f77e1c4483de1adbcca78ba539f0b84c2b14b0edc2ae787b2b06c57159`.
+It publishes no authenticated owner evidence yet and grants no execution,
+asset mutation, QA approval, billing, public-delivery, or production authority.
+No Caption implementation or peer dispatcher was added.

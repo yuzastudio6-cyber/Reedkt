@@ -18,7 +18,9 @@ import {
 } from '../../src/types/canonical-caption-visual-intelligence-support'
 import {
   CANONICAL_AUTHENTICATED_SPECIALIST_SUPPORT_ARTIFACT_PROJECTION_VERSION,
+  CANONICAL_SPECIALIST_SUPPORT_RESUME_RECORD_VERSION,
   type CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  type CanonicalSpecialistSupportResumeRecord,
 } from '../../src/types/canonical-specialist-support-resume'
 import {
   createCaptionFinalVisualHierarchy,
@@ -35,6 +37,11 @@ import {
   parseCaptionCanonicalVisualIntelligenceEvidenceReadReceipt,
   parseCaptionCanonicalVisualIntelligenceEvidenceRecord,
 } from '../captions-specialist/caption-canonical-visual-intelligence-evidence-read'
+import {
+  CAPTION_CANONICAL_VISUAL_INTELLIGENCE_RESUME_ADMISSION_RECEIPT,
+  parseCaptionCanonicalVisualIntelligenceResumeAdmissionReceipt,
+  runCaptionCanonicalVisualIntelligenceResumeAdmission,
+} from '../captions-specialist/caption-canonical-visual-intelligence-resume'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import {
@@ -632,6 +639,94 @@ check(runtimeCompletedResult.disposition === 'completed'
     !== runtimeInitialResult.resultDigestSha256,
 'The Caption runtime completes only after admitting the exact authenticated packet.')
 
+const canonicalResumeWithoutDigest: Omit<
+  CanonicalSpecialistSupportResumeRecord,
+  'recordDigestSha256'
+> = {
+  schemaVersion: CANONICAL_SPECIALIST_SUPPORT_RESUME_RECORD_VERSION,
+  recordId: 'canonical.caption.visual.spatial.resume',
+  stepOrdinal: 1,
+  priorCall: structuredClone(runtimeCall),
+  priorResult: structuredClone(runtimeInitialResult),
+  selectedSupportRequest: structuredClone(runtimeRequest),
+  authenticatedOwnerProjection: structuredClone(canonicalProjection),
+  resumedCall: structuredClone(runtimeResumedCall),
+  resumedResult: structuredClone(runtimeCompletedResult),
+  promotedPriorSupportArtifactRefs: [],
+  persistedAt: '2026-08-05T00:00:00.000Z',
+  priorCallAndResultExactReread: true,
+  selectedRequestExactResultMember: true,
+  authenticatedOwnerProjectionExactReread: true,
+  onlyCurrentOwnerResultInjected: true,
+  priorOwnerResultsPromotedAsCanonicalInputs: true,
+  exactImmediateCallAndRequestLineage: true,
+  directPeerDispatchPerformed: false,
+  timelineMutationPerformed: false,
+  providerCallPerformedByResumeOwner: false,
+  runtimeExecutionPerformedByResumeOwner: false,
+  assetMutationPerformedByResumeOwner: false,
+  costOrBillingMutationPerformedByResumeOwner: false,
+  finalQaApprovalGrantedByResumeOwner: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+const canonicalResumeRecord = {
+  ...canonicalResumeWithoutDigest,
+  recordDigestSha256: calculateSkillContractDigest({
+    ...canonicalResumeWithoutDigest,
+    recordDigestSha256: '',
+  }, 'recordDigestSha256'),
+} satisfies CanonicalSpecialistSupportResumeRecord
+const canonicalReplayResult =
+  runCaptionCanonicalVisualIntelligenceResumeAdmission({
+    canonicalResumeRecord,
+    canonicalVisualIntelligenceEvidenceRecord: canonicalRecord,
+  })
+check(canonicalReplayResult.resultDigestSha256
+  === runtimeCompletedResult.resultDigestSha256,
+'The persisted resume and evidence records replay the exact Caption result.')
+const resumeAdmissionReceipt =
+  parseCaptionCanonicalVisualIntelligenceResumeAdmissionReceipt(
+    CAPTION_CANONICAL_VISUAL_INTELLIGENCE_RESUME_ADMISSION_RECEIPT)
+check(resumeAdmissionReceipt.sourceFixtureExercised
+  && !resumeAdmissionReceipt.actualBackendRecordPairConsumed
+  && resumeAdmissionReceipt.runtimeResultMustMatchPersistedResultDigest,
+'The replay receipt preserves the fixture-versus-actual backend distinction.')
+
+const changedPersistedResultRecord = structuredClone(canonicalResumeRecord)
+changedPersistedResultRecord.resumedResult.safeUserSummary =
+  'A crossed persisted result summary.'
+changedPersistedResultRecord.resumedResult.resultDigestSha256 =
+  calculateSkillContractDigest({
+    ...changedPersistedResultRecord.resumedResult,
+    resultDigestSha256: '',
+  }, 'resultDigestSha256')
+changedPersistedResultRecord.recordDigestSha256 = calculateSkillContractDigest({
+  ...changedPersistedResultRecord,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+expectThrow(() => runCaptionCanonicalVisualIntelligenceResumeAdmission({
+  canonicalResumeRecord: changedPersistedResultRecord,
+  canonicalVisualIntelligenceEvidenceRecord: canonicalRecord,
+}))
+
+const crossedProjectionResumeRecord = structuredClone(canonicalResumeRecord)
+crossedProjectionResumeRecord.authenticatedOwnerProjection.projectionId =
+  'canonical.caption.visual.spatial.projection.crossed'
+crossedProjectionResumeRecord.authenticatedOwnerProjection
+  .projectionDigestSha256 = calculateSkillContractDigest({
+    ...crossedProjectionResumeRecord.authenticatedOwnerProjection,
+    projectionDigestSha256: '',
+  }, 'projectionDigestSha256')
+crossedProjectionResumeRecord.recordDigestSha256 = calculateSkillContractDigest({
+  ...crossedProjectionResumeRecord,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+expectThrow(() => runCaptionCanonicalVisualIntelligenceResumeAdmission({
+  canonicalResumeRecord: crossedProjectionResumeRecord,
+  canonicalVisualIntelligenceEvidenceRecord: canonicalRecord,
+}))
+
 const canonicalReceipt =
   parseCaptionCanonicalVisualIntelligenceEvidenceReadReceipt(
     CAPTION_CANONICAL_VISUAL_INTELLIGENCE_EVIDENCE_READ_RECEIPT)
@@ -915,6 +1010,10 @@ console.log(JSON.stringify({
     canonicalReceipt.adapterDigestSha256,
   canonicalPublicTypeSha256: canonicalPublicTypeSha,
   canonicalRecordFixtureAdmitted: true,
+  canonicalResumeReplayAdmissionVersion: resumeAdmissionReceipt.schemaVersion,
+  canonicalResumeReplayAdmissionDigestSha256:
+    resumeAdmissionReceipt.receiptDigestSha256,
+  canonicalResumeReplayMatched: true,
   actualCanonicalEvidenceRecordConsumed: false,
   projectedObservationCount: output.packet.observations.length,
   semanticGeometryOnly: true,

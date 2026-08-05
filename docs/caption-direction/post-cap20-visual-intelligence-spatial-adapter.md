@@ -32,6 +32,13 @@ evidence packet, authenticated owner projection, create-only persistence
 claims, and all nested digests. The runtime accepts that record as the one
 canonical resume input; it does not import the backend service.
 
+The `caption-canonical-visual-intelligence-resume-admission-v1` entrypoint then
+joins that evidence record to the exact
+`canonical-specialist-support-resume-record-v1`, reruns the bounded Caption job,
+and requires the recomputed result digest to match the persisted result. A
+crossed projection or a changed persisted result fails closed even when each
+outer record has been redigested.
+
 The public `src/types/visual-intelligence.ts` file is byte-for-byte identical
 to the frozen backend source. Its SHA-256 is
 `59b71de0c66c97c3129920c38c39262b259fc0434895d029c3b430ab895ca5c1`.
@@ -102,13 +109,15 @@ independent final-QA paths.
 
 ## Verification
 
-The focused smoke passes 29 checks. It proves a five-role occupancy projection
+The focused smoke passes 33 checks. It proves a five-role occupancy projection
 and rejects crossed scenes, deterministic-pixel claims, invented contrast,
 unknown evidence refs, wrong output frames, stale snapshot rereads, missing
 required roles, and attempts to reuse spatial v1 as rendered-caption review.
 It also exercises the typed specialist request through authenticated resume,
 consumes the canonical backend evidence-record wire, and proves that missing,
 crossed, fixture-only, or digest-valid owner-result-crossed inputs fail closed.
+The replay checks additionally reject a crossed resume projection and a
+digest-valid persisted result that does not match deterministic Caption replay.
 
 The fixture is source evidence only. No provider, model, media, browser,
 container, billing, public, or production runtime is started.

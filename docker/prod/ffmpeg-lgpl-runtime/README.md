@@ -131,6 +131,12 @@ From the repository root:
 docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
 ```
 
+The build wrapper downloads the official FFmpeg 8.1.2 archive over HTTPS with
+bounded retries, verifies the frozen SHA-256 before adding it to the local
+Docker context, and removes the temporary archive after the build. The
+Dockerfile re-verifies the same digest before extraction. A direct Docker build
+without that exact preverified archive fails closed.
+
 The build wrapper removes AppleDouble `._*` sidecars only from this isolated
 build-context directory before invoking Docker. This avoids a Docker Desktop
 xattr failure seen on backup/APFS volumes; it does not touch product sources.

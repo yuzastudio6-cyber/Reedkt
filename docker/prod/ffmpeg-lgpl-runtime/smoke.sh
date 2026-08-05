@@ -3,11 +3,54 @@ set -eu
 
 IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SOURCE_ARCHIVE="$SCRIPT_DIR/ffmpeg-8.1.2.tar.xz"
+SOURCE_ARCHIVE_PARTIAL="$SOURCE_ARCHIVE.partial.$$"
+SOURCE_ARCHIVE_SHA256=464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c
+SOURCE_ARCHIVE_URL=https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz
+SOURCE_ARCHIVE_CREATED=false
+
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+cleanup_source_archive() {
+  rm -f "$SOURCE_ARCHIVE_PARTIAL"
+  if [ "$SOURCE_ARCHIVE_CREATED" = true ]; then
+    rm -f "$SOURCE_ARCHIVE"
+  fi
+}
+
+trap cleanup_source_archive EXIT HUP INT TERM
 
 if [ "${1:-}" = '--build' ]; then
   # Finder/backup volumes may synthesize AppleDouble sidecars whose xattrs make
   # Docker Desktop fail before .dockerignore is evaluated.
   find "$SCRIPT_DIR" -maxdepth 1 -type f -name '._*' -delete
+  if [ ! -f "$SOURCE_ARCHIVE" ]; then
+    curl \
+      --fail \
+      --location \
+      --proto '=https' \
+      --tlsv1.2 \
+      --connect-timeout 20 \
+      --max-time 300 \
+      --retry 8 \
+      --retry-all-errors \
+      --retry-delay 5 \
+      --retry-max-time 600 \
+      --output "$SOURCE_ARCHIVE_PARTIAL" \
+      "$SOURCE_ARCHIVE_URL"
+    [ "$(sha256_file "$SOURCE_ARCHIVE_PARTIAL")" = "$SOURCE_ARCHIVE_SHA256" ] \
+      || { printf '%s\n' 'FFmpeg source archive checksum verification failed.' >&2; exit 1; }
+    mv "$SOURCE_ARCHIVE_PARTIAL" "$SOURCE_ARCHIVE"
+    SOURCE_ARCHIVE_CREATED=true
+  fi
+  [ "$(sha256_file "$SOURCE_ARCHIVE")" = "$SOURCE_ARCHIVE_SHA256" ] \
+    || { printf '%s\n' 'Existing FFmpeg source archive checksum verification failed.' >&2; exit 1; }
   docker build \
     --file "$SCRIPT_DIR/Dockerfile" \
     --tag "$IMAGE_TAG" \

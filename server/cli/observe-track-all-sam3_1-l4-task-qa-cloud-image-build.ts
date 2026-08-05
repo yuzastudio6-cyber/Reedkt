@@ -16,7 +16,9 @@ async function main(): Promise<void> {
     !== CONFIRMATION) {
     throw new Error('track_all_l4_build_observation_confirmation_missing')
   }
-  const argumentsByName = parseArguments(process.argv.slice(2))
+  const argumentsByName = parseArguments(
+    process.argv.filter((value) => value.startsWith('--')),
+  )
   const runtime =
     createCanonicalTrackAllSam31L4TaskQaGcpCloudImageBuildObservationRuntime()
   if (argumentsByName.mode === 'reconcile') {

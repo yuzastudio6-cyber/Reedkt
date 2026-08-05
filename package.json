@@ -519,6 +519,7 @@
     "smoke:canonical-caption-qualification-run-evidence": "tsx server/smoke/canonical-caption-qualification-run-evidence-reader-smoke.ts",
     "smoke:canonical-caption-private-qualification-catalog": "tsx server/smoke/canonical-caption-private-qualification-catalog-service-smoke.ts",
     "smoke:canonical-caption-private-qualification-composition": "tsx server/smoke/canonical-caption-private-qualification-composition-smoke.ts",
+    "smoke:canonical-caption-direct-visual-inspection-evidence": "tsx server/smoke/canonical-caption-direct-visual-inspection-evidence-smoke.ts",
     "smoke:canonical-caption-terminal-qualification": "tsx server/smoke/canonical-caption-terminal-qualification-service-smoke.ts",
     "smoke:captions-specialist-integration-routing": "tsx server/smoke/captions-specialist-integration-routing-smoke.ts",
     "smoke:captions-specialist-shared-owner-integration": "tsx server/smoke/captions-specialist-shared-owner-integration-smoke.ts",

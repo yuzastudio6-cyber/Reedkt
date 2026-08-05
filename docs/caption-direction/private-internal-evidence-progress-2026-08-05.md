@@ -26,7 +26,7 @@ the evidence currently belongs to several independently scoped tests.
 | --- | --- |
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner is mounted; an independent complete audio-truth review has not supplied its actual correction artifact. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
-| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. Direct visual inspection accepted it with the explicit synthetic-fixture warning. Its scope is not the terminal talking-head edit scope. |
+| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. Its synthetic color-bar imagery is accepted only as technical integration evidence and is structurally ineligible for professional-appearance qualification. Its scope is not the terminal talking-head edit scope. |
 | Backend Caption execution | Two actual real-source Caption renders exist and were inspected, but all 41 Caption jobs have not completed through one canonical work graph/package. |
 | Complete-time visual review | Every rendered frame of the real talking-head full/reduced variants was represented and inspected. This proves Caption-owned professional appearance; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
@@ -104,3 +104,5 @@ or Docker runtime.
 
 The additive multi-run mount is documented in
 `canonical-multi-run-private-qualification-mount-2026-08-05.md`.
+The exact real-source-only appearance gate is documented in
+`canonical-direct-professional-appearance-gate-2026-08-05.md`.

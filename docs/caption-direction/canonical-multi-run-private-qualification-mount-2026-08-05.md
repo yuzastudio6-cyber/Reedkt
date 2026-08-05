@@ -14,8 +14,9 @@ jobs selected for its actual scenes and boundaries. The canonical path now:
 2. verifies every projected Caption planning artifact from private bytes;
 3. rereads artifact QA, reconciliation, the current specialist result head,
    the complete sequential support-resume chain, and exact owner evidence;
-4. binds the run to its rendered output, deterministic QA, complete-time visual
-   review, independent final QA, and accepted private-review decision;
+4. binds the run to its rendered output, deterministic QA, Caption-owned direct
+   inspection of real uploaded-source pixels, complete-time visual review,
+   independent final QA, and accepted private-review decision;
 5. persists that approved-run record create-only;
 6. aggregates several records from one private qualification tenant;
 7. requires exact coverage of all 41 supported Caption jobs and all required
@@ -44,9 +45,13 @@ have not yet been executed and collected together.
 
 ## Contracts added or changed
 
-- `canonical-caption-qualification-run-evidence-v1`
-- `canonical-caption-qualification-run-evidence-repository-v1`
-- `canonical-caption-qualification-run-evidence-assembly-v1`
+- historical `canonical-caption-qualification-run-evidence-v1` remains
+  decodable but is not terminally eligible;
+- `canonical-caption-direct-visual-inspection-evidence-v1`
+- `canonical-caption-direct-visual-inspection-repository-v1`
+- `canonical-caption-qualification-run-evidence-v2`
+- `canonical-caption-qualification-run-evidence-repository-v2`
+- `canonical-caption-qualification-run-evidence-assembly-v2`
 - `canonical-caption-private-qualification-catalog-request-v1`
 - `canonical-caption-private-qualification-catalog-v1`
 - `canonical-caption-private-qualification-catalog-repository-v1`
@@ -73,6 +78,7 @@ single approved snapshot should exercise all 41 jobs.
 - SoundSync authenticated evidence repository
 - B-roll authenticated owner-read evidence repository
 - canonical postrender complete-time visual review
+- Caption-owned direct professional-appearance inspection
 - independent final QA and private-review assembly
 
 ## Duplicate owners avoided
@@ -106,9 +112,10 @@ supplied run evidence.
 - targeted ESLint
 - `smoke:canonical-caption-specialist-execution` — 30 checks
 - `smoke:captions-specialist-terminal-qualification-v3` — 12 checks
-- `smoke:canonical-caption-qualification-run-evidence` — 20 checks
+- `smoke:canonical-caption-direct-visual-inspection-evidence` — 11 checks
+- `smoke:canonical-caption-qualification-run-evidence` — 25 checks
 - `smoke:canonical-caption-private-qualification-catalog` — 29 checks
-- `smoke:canonical-caption-private-qualification-composition` — 8 checks
+- `smoke:canonical-caption-private-qualification-composition` — 9 checks
 - `smoke:canonical-caption-shared-owner-composition` — 9 checks
 
 The catalog and final-record smoke uses contract fixtures only. It starts no
@@ -129,6 +136,10 @@ Not applicable. No new raster or video was generated.
 - made per-job planning-only status explicit;
 - added exact work-item/job/manifest/reservation digest checks;
 - required real owner records instead of projection-only substitutes;
+- required exact real-source direct-inspection evidence and rejected synthetic
+  engineering imagery structurally rather than by documentation alone;
+- preserved strict historical V1 decoding while making V2 the only eligible
+  approved-run record;
 - exposed the already-mounted Sound and B-roll evidence repositories for the
   terminal reread without creating another owner.
 

@@ -3,13 +3,15 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import {
-  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_VERSION,
-  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_VERSION,
-  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_VERSION,
-  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_VERSION,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_V2_VERSION,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_V2_VERSION,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_V2_VERSION,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V1_VERSION,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V2_VERSION,
   type CanonicalCaptionQualificationJobOccurrenceEvidence,
   type CanonicalCaptionQualificationOwnerEvidence,
   type CanonicalCaptionQualificationRunEvidence,
+  type CanonicalCaptionQualificationRunEvidenceV1,
   type CanonicalCaptionQualificationRunEvidenceAssembly,
   type CanonicalCaptionQualificationRunEvidenceReadPort,
   type CanonicalCaptionQualificationRunEvidenceRepository,
@@ -55,6 +57,13 @@ import {
 import type {
   CanonicalCaptionTranscriptEvidenceRepository,
 } from './canonical-caption-transcript-support-service'
+import {
+  isCanonicalCaptionDirectVisualInspectionRepository,
+  parseCanonicalCaptionDirectVisualInspectionEvidence,
+} from './canonical-caption-direct-visual-inspection-evidence-service'
+import type {
+  CanonicalCaptionDirectVisualInspectionRepository,
+} from '../../src/types/canonical-caption-direct-visual-inspection-evidence'
 import {
   createCanonicalCaptionPrivateReviewEvidenceService,
   parseCanonicalCaptionPrivateReviewEvidenceProjection,
@@ -178,7 +187,7 @@ const occurrenceSchema = z.object({
 }).strict()
 const recordSchema = z.object({
   schemaVersion: z.literal(
-    CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_VERSION),
+    CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V2_VERSION),
   recordId: safeKey,
   recordDigestSha256: sha256,
   requestRef: refSchema,
@@ -205,9 +214,13 @@ const recordSchema = z.object({
     confirmedOutputFrameRef: refSchema,
     renderedArtifactRef: refSchema,
     deterministicQaRef: refSchema,
+    captionOwnedDirectVisualInspectionRef: refSchema,
     qualifiedCompleteTimeVisualReviewRef: refSchema,
     independentFinalQaRef: refSchema,
     privateReviewDecisionRef: refSchema,
+    captionOwnedProfessionalAppearancePassed: z.literal(true),
+    realUploadedSourcePixelsInspected: z.literal(true),
+    syntheticEngineeringFixtureUsed: z.literal(false),
     actualCompleteTimeVisualReviewPassed: z.literal(true),
     independentFinalQaPassed: z.literal(true),
     privateReviewAccepted: z.literal(true),
@@ -235,6 +248,22 @@ const recordSchema = z.object({
   publicDeliveryAuthorityGrantedToCaption: z.literal(false),
   productionAuthorityGrantedToCaption: z.literal(false),
 }).strict()
+const legacyRecordV1Schema = recordSchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V1_VERSION),
+  outputEvidence: z.object({
+    outputId: safeKey,
+    confirmedOutputFrameRef: refSchema,
+    renderedArtifactRef: refSchema,
+    deterministicQaRef: refSchema,
+    qualifiedCompleteTimeVisualReviewRef: refSchema,
+    independentFinalQaRef: refSchema,
+    privateReviewDecisionRef: refSchema,
+    actualCompleteTimeVisualReviewPassed: z.literal(true),
+    independentFinalQaPassed: z.literal(true),
+    privateReviewAccepted: z.literal(true),
+  }).strict(),
+}).strict()
 
 const admittedReadPorts = new WeakSet<object>()
 const admittedRepositories = new WeakSet<object>()
@@ -248,6 +277,30 @@ export function parseCanonicalCaptionQualificationRunEvidence(
   rejectUnsafeText(value, 'Canonical Caption qualification run')
   const parsed = recordSchema.parse(value) as
     CanonicalCaptionQualificationRunEvidence
+  validateRunRecord(parsed)
+  return structuredClone(parsed)
+}
+
+/**
+ * Historical V1 records remain strictly decodable, but they do not contain
+ * direct real-source visual-inspection lineage and are therefore never
+ * accepted by the V2 terminal qualification repository or catalog.
+ */
+export function parseCanonicalCaptionQualificationRunEvidenceV1(
+  value: unknown,
+): CanonicalCaptionQualificationRunEvidenceV1 {
+  assertClosedContractTree(value, 'Canonical Caption qualification run V1')
+  rejectUnsafeText(value, 'Canonical Caption qualification run V1')
+  const parsed = legacyRecordV1Schema.parse(value) as
+    CanonicalCaptionQualificationRunEvidenceV1
+  validateRunRecord(parsed)
+  return structuredClone(parsed)
+}
+
+function validateRunRecord(
+  parsed: CanonicalCaptionQualificationRunEvidence
+    | CanonicalCaptionQualificationRunEvidenceV1,
+): void {
   if (parsed.recordDigestSha256 !== calculateSkillContractDigest(
     parsed as unknown as Record<string, unknown>, 'recordDigestSha256')) {
     throw new Error('Canonical Caption qualification run digest failed.')
@@ -267,7 +320,6 @@ export function parseCanonicalCaptionQualificationRunEvidence(
         owner.ownerEvidenceRef)))) {
     throw new Error('Canonical Caption qualification run lineage is invalid.')
   }
-  return structuredClone(parsed)
 }
 
 export function createCanonicalCaptionQualificationRunEvidenceReadPort(
@@ -278,7 +330,7 @@ export function createCanonicalCaptionQualificationRunEvidenceReadPort(
   }
   const port = Object.freeze({
     schemaVersion:
-      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_VERSION,
+      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_V2_VERSION,
     sourceAuthority:
       'canonical_backend_persisted_caption_qualification_run_evidence' as const,
     callerSuppliedEvidenceAccepted: false as const,
@@ -305,7 +357,7 @@ export function createCanonicalCaptionQualificationRunEvidenceRepository(
   const prefix = prefixSchema.parse(input.prefix ?? DEFAULT_RECORD_PREFIX)
   const repository = Object.freeze({
     schemaVersion:
-      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_VERSION,
+      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_V2_VERSION,
     async persistRecordCreateOnly(untrusted: unknown) {
       assertClosedContractTree(untrusted,
         'Canonical Caption qualification run write')
@@ -354,7 +406,7 @@ export function createCanonicalCaptionQualificationRunEvidenceAssembly(input: {
     input.sourceReadPort)
     || !admittedRepositories.has(input.repository)
     || input.repository.schemaVersion !==
-      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_VERSION) {
+      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_V2_VERSION) {
     throw new Error('Canonical Caption qualification run ports are invalid.')
   }
   const evidenceReadPort = createCanonicalCaptionQualificationRunEvidenceReadPort(
@@ -390,7 +442,7 @@ export function createCanonicalCaptionQualificationRunEvidenceAssembly(input: {
     })
   return Object.freeze({
     schemaVersion:
-      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_VERSION,
+      CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_V2_VERSION,
     evidenceReadPort,
     repository: input.repository,
     exactSourceRereadBeforePersistence: true,
@@ -425,6 +477,8 @@ export function createCanonicalCaptionQualificationRunEvidenceReader(input: {
     CanonicalCaptionSoundSyncEvidenceRepository
   readonly brollEvidenceRepository:
     CanonicalCaptionBrollEvidenceRepository
+  readonly directVisualInspectionRepository:
+    CanonicalCaptionDirectVisualInspectionRepository
 }): CanonicalCaptionQualificationRunEvidenceReadPort {
   assertDependencies(input)
   return createCanonicalCaptionQualificationRunEvidenceReadPort(
@@ -484,6 +538,31 @@ async function buildRunEvidence(
     || parsedReview.canonicalPrivateReview.decisionRef === null) {
     throw new MissingCanonicalRunEvidence()
   }
+  const renderedArtifactRef = evidenceRef(
+    parsedReview.output.renderedArtifactRef)
+  const deterministicQaRef = evidenceRef(
+    parsedReview.output.deterministicQaRef)
+  const directInspectionValue = await dependencies
+    .directVisualInspectionRepository.rereadEvidence({
+      ownerUserId,
+      workspaceId: request.canonicalScope.workspaceId,
+      approvedSnapshotRef: request.canonicalScope.approvedSnapshotRef,
+      outputId: projection.outputId,
+      renderedArtifactRef,
+    })
+  if (!directInspectionValue) throw new MissingCanonicalRunEvidence()
+  const directInspection =
+    parseCanonicalCaptionDirectVisualInspectionEvidence(
+      directInspectionValue)
+  assertDirectVisualInspectionAuthority({
+    evidence: directInspection,
+    request,
+    authority,
+    executionPackage,
+    renderedArtifactRef,
+    deterministicQaRef,
+    confirmedOutputFrameRef: parsedReview.output.confirmedOutputFrameRef,
+  })
   const assembly = await createCanonicalPrivateReviewAssemblyService(
     context).getCompleted({
       workspaceId: request.canonicalScope.workspaceId,
@@ -648,7 +727,7 @@ async function buildRunEvidence(
     throw new Error('Caption qualification did not reread every projected job.')
   }
   const withoutDigest = {
-    schemaVersion: CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_VERSION,
+    schemaVersion: CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V2_VERSION,
     recordId: `caption.qualification.run.${request.requestDigestSha256
       .slice(0, 40)}`,
     requestRef: requestRef(request),
@@ -690,8 +769,13 @@ async function buildRunEvidence(
       outputId: parsedReview.output.outputId,
       confirmedOutputFrameRef: structuredClone(
         parsedReview.output.confirmedOutputFrameRef),
-      renderedArtifactRef: evidenceRef(parsedReview.output.renderedArtifactRef),
-      deterministicQaRef: evidenceRef(parsedReview.output.deterministicQaRef),
+      renderedArtifactRef,
+      deterministicQaRef,
+      captionOwnedDirectVisualInspectionRef: {
+        id: directInspection.evidenceId,
+        version: directInspection.schemaVersion,
+        contentHash: directInspection.evidenceDigestSha256,
+      },
       qualifiedCompleteTimeVisualReviewRef: {
         id: parsedReview.sourceRefs.postrenderVisualQaEvidenceRef.id,
         version: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
@@ -705,6 +789,9 @@ async function buildRunEvidence(
       },
       privateReviewDecisionRef: structuredClone(
         parsedReview.canonicalPrivateReview.decisionRef),
+      captionOwnedProfessionalAppearancePassed: true,
+      realUploadedSourcePixelsInspected: true,
+      syntheticEngineeringFixtureUsed: false,
       actualCompleteTimeVisualReviewPassed: true,
       independentFinalQaPassed: true,
       privateReviewAccepted: true,
@@ -1017,8 +1104,73 @@ function assertDependencies(input: Parameters<
     || typeof input.soundSyncEvidenceRepository
       ?.rereadEvidenceRecord !== 'function'
     || typeof input.brollEvidenceRepository
-      ?.rereadEvidenceRecord !== 'function') {
+      ?.rereadEvidenceRecord !== 'function'
+    || !isCanonicalCaptionDirectVisualInspectionRepository(
+      input.directVisualInspectionRepository)) {
     throw new Error('Canonical Caption qualification reader is incomplete.')
+  }
+}
+
+function assertDirectVisualInspectionAuthority(input: {
+  evidence: ReturnType<
+    typeof parseCanonicalCaptionDirectVisualInspectionEvidence>
+  request: ReturnType<typeof createCanonicalCaptionTerminalQualificationRequest>
+  authority: CanonicalApprovedExecutionAuthority
+  executionPackage: Awaited<ReturnType<ReturnType<
+    typeof createCanonicalEditExecutionPackageService>['getPackage']>>[
+      'approvedEditExecutionPackage']
+  renderedArtifactRef: CaptionDomainRef
+  deterministicQaRef: CaptionDomainRef
+  confirmedOutputFrameRef: CaptionDomainRef
+}): void {
+  const { evidence, request, authority, executionPackage } = input
+  const source = authority.sourceAssetManifest
+  if (source.schemaVersion !== 'private-approved-source-binding-manifest-v1') {
+    throw new MissingCanonicalRunEvidence()
+  }
+  const expectedSourceAuthorityRef: CaptionDomainRef = {
+    id: `${authority.snapshot.snapshotId}.approved-source-media`,
+    version: source.schemaVersion,
+    contentHash: source.manifestHash,
+  }
+  const expectedBindingRefs: CaptionDomainRef[] = source.bindings.map(
+    (binding) => ({
+      id: binding.mediaAssetId,
+      version: 'private-approved-source-binding-v1',
+      contentHash: binding.bindingHash,
+    })).sort((left, right) => {
+      const leftKey = refKey(left)
+      const rightKey = refKey(right)
+      return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0
+    })
+  const scope = evidence.canonicalScope
+  if (scope.ownerUserId !== request.canonicalScope.ownerUserId
+    || scope.workspaceId !== request.canonicalScope.workspaceId
+    || scope.projectId !== request.canonicalScope.projectId
+    || scope.editSessionId !== request.canonicalScope.editSessionId
+    || scope.planVersionId !== request.canonicalScope.planVersionId
+    || refKey(scope.approvedSnapshotRef) !==
+      refKey(request.canonicalScope.approvedSnapshotRef)
+    || refKey(scope.executionPackageRef) !==
+      refKey(request.executionPackageRef)
+    || scope.outputId !== request.requiredOutputIds[0]
+    || refKey(evidence.confirmedOutputFrameRef) !==
+      refKey(input.confirmedOutputFrameRef)
+    || refKey(evidence.renderedArtifactRef) !==
+      refKey(input.renderedArtifactRef)
+    || refKey(evidence.deterministicQaRef) !==
+      refKey(input.deterministicQaRef)
+    || refKey(evidence.sourceMediaAuthorityRef) !==
+      refKey(expectedSourceAuthorityRef)
+    || evidence.sourceMediaBindingRefs.map(refKey).join('|') !==
+      expectedBindingRefs.map(refKey).join('|')
+    || executionPackage.approvedPlanSnapshotId !==
+      request.canonicalScope.approvedSnapshotRef.id
+    || !evidence.realUploadedSourcePixelsInspected
+    || evidence.syntheticEngineeringFixtureUsed
+    || !evidence.acceptedForCaptionOwnedProfessionalAppearance) {
+    throw new Error(
+      'Caption qualification direct visual inspection crossed authority.')
   }
 }
 

@@ -16,6 +16,7 @@ import {
   createCanonicalCaptionQualificationRunEvidenceReadPort,
   createCanonicalCaptionQualificationRunEvidenceRepository,
   parseCanonicalCaptionQualificationRunEvidence,
+  parseCanonicalCaptionQualificationRunEvidenceV1,
 } from '../services/canonical-caption-qualification-run-evidence-reader'
 import {
   createCanonicalCaptionTerminalQualificationRequest,
@@ -86,7 +87,7 @@ function buildRecord(): CanonicalCaptionQualificationRunEvidence {
     contentHash: request.requestDigestSha256,
   }
   const withoutDigest = {
-    schemaVersion: 'canonical-caption-qualification-run-evidence-v1' as const,
+    schemaVersion: 'canonical-caption-qualification-run-evidence-v2' as const,
     recordId: 'caption.qualification.run.record',
     requestRef,
     observedAt: '2026-08-05T20:30:00.000Z',
@@ -106,10 +107,15 @@ function buildRecord(): CanonicalCaptionQualificationRunEvidence {
       confirmedOutputFrameRef: ref('caption.run.output-frame'),
       renderedArtifactRef: ref('caption.run.rendered-output', '1'),
       deterministicQaRef: ref('caption.run.deterministic-qa', '1'),
+      captionOwnedDirectVisualInspectionRef: ref(
+        'caption.run.direct-visual-inspection'),
       qualifiedCompleteTimeVisualReviewRef: ref(
         'caption.run.complete-time-review'),
       independentFinalQaRef: ref('caption.run.independent-final-qa'),
       privateReviewDecisionRef: ref('caption.run.private-review-decision'),
+      captionOwnedProfessionalAppearancePassed: true as const,
+      realUploadedSourcePixelsInspected: true as const,
+      syntheticEngineeringFixtureUsed: false as const,
       actualCompleteTimeVisualReviewPassed: true as const,
       independentFinalQaPassed: true as const,
       privateReviewAccepted: true as const,
@@ -236,6 +242,41 @@ async function run(): Promise<void> {
   'A run record must refuse to relabel planning receipts as terminal job evidence.')
   check(!record.syntheticEngineeringFixtureClaimedProfessionalAppearance,
   'Synthetic engineering fixtures must never claim professional appearance.')
+  check(record.outputEvidence.captionOwnedProfessionalAppearancePassed
+    && record.outputEvidence.realUploadedSourcePixelsInspected
+    && !record.outputEvidence.syntheticEngineeringFixtureUsed,
+  'V2 must bind direct professional inspection of real source pixels.')
+
+  const legacy = structuredClone(record) as unknown as Record<string, unknown>
+  legacy.schemaVersion = 'canonical-caption-qualification-run-evidence-v1'
+  const legacyOutput = legacy.outputEvidence as Record<string, unknown>
+  delete legacyOutput.captionOwnedDirectVisualInspectionRef
+  delete legacyOutput.captionOwnedProfessionalAppearancePassed
+  delete legacyOutput.realUploadedSourcePixelsInspected
+  delete legacyOutput.syntheticEngineeringFixtureUsed
+  legacy.recordDigestSha256 = calculateSkillContractDigest(
+    legacy, 'recordDigestSha256')
+  check(parseCanonicalCaptionQualificationRunEvidenceV1(legacy)
+    .schemaVersion === 'canonical-caption-qualification-run-evidence-v1',
+  'Historical V1 records must remain strictly decodable.')
+  expectThrow(() => parseCanonicalCaptionQualificationRunEvidence(legacy))
+
+  const synthetic = structuredClone(record) as unknown as Record<
+    string, unknown>
+  ;(synthetic.outputEvidence as Record<string, unknown>)
+    .syntheticEngineeringFixtureUsed = true
+  synthetic.recordDigestSha256 = calculateSkillContractDigest(
+    synthetic, 'recordDigestSha256')
+  expectThrow(() => parseCanonicalCaptionQualificationRunEvidence(synthetic))
+
+  const missingDirectInspection = structuredClone(record) as unknown as Record<
+    string, unknown>
+  delete (missingDirectInspection.outputEvidence as Record<string, unknown>)
+    .captionOwnedDirectVisualInspectionRef
+  missingDirectInspection.recordDigestSha256 = calculateSkillContractDigest(
+    missingDirectInspection, 'recordDigestSha256')
+  expectThrow(() => parseCanonicalCaptionQualificationRunEvidence(
+    missingDirectInspection))
 
   const staleDigest = structuredClone(record)
   staleDigest.observedAt = '2026-08-05T20:31:00.000Z'

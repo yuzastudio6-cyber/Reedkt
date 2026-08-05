@@ -139,7 +139,7 @@ function buildRun(
 ): CanonicalCaptionQualificationRunEvidence {
   const outputId = `caption-catalog-output-${runIndex}`
   const withoutDigest = {
-    schemaVersion: 'canonical-caption-qualification-run-evidence-v1' as const,
+    schemaVersion: 'canonical-caption-qualification-run-evidence-v2' as const,
     recordId: `caption.qualification.catalog.run.${runIndex}`,
     requestRef: runRequestRef(runIndex),
     observedAt: `2026-08-05T2${runIndex}:00:00.000Z`,
@@ -171,12 +171,17 @@ function buildRun(
       renderedArtifactRef: ref(
         `caption-catalog-render-${runIndex}`, '1'),
       deterministicQaRef: ref(`caption-catalog-qa-${runIndex}`, '1'),
+      captionOwnedDirectVisualInspectionRef: ref(
+        `caption-catalog-direct-inspection-${runIndex}`),
       qualifiedCompleteTimeVisualReviewRef: ref(
         `caption-catalog-visual-review-${runIndex}`),
       independentFinalQaRef: ref(
         `caption-catalog-final-qa-${runIndex}`),
       privateReviewDecisionRef: ref(
         `caption-catalog-review-decision-${runIndex}`),
+      captionOwnedProfessionalAppearancePassed: true as const,
+      realUploadedSourcePixelsInspected: true as const,
+      syntheticEngineeringFixtureUsed: false as const,
       actualCompleteTimeVisualReviewPassed: true as const,
       independentFinalQaPassed: true as const,
       privateReviewAccepted: true as const,

@@ -84,8 +84,11 @@ check(composition.schemaVersion ===
   'canonical-caption-private-qualification-composition-v1',
 'The private qualification composition must expose one versioned root.')
 check(composition.runEvidenceAssembly.schemaVersion ===
-  'canonical-caption-qualification-run-evidence-assembly-v1',
+  'canonical-caption-qualification-run-evidence-assembly-v2',
 'The composition must mount exact approved-run evidence assembly.')
+check(composition.directVisualInspectionRepository.schemaVersion ===
+  'canonical-caption-direct-visual-inspection-repository-v1',
+'The composition must mount its create-only direct visual-inspection store.')
 check(composition.catalogAssembly.schemaVersion ===
   'canonical-caption-private-qualification-catalog-assembly-v1',
 'The composition must mount the multi-run 41-job catalog assembly.')

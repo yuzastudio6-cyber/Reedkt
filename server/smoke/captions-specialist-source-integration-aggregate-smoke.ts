@@ -41,6 +41,7 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-shared-owner-composition',
   'smoke:canonical-caption-postrender-visual-qa-authenticated-read',
   'smoke:canonical-caption-terminal-qualification',
+  'smoke:canonical-caption-direct-visual-inspection-evidence',
   'smoke:canonical-caption-qualification-run-evidence',
   'smoke:canonical-caption-private-qualification-catalog',
   'smoke:canonical-caption-private-qualification-composition',
@@ -97,6 +98,8 @@ console.log(JSON.stringify({
   terminalEvidenceGatesSatisfied:
     evidenceProgress.counts.terminalEvidenceGatesSatisfied,
   canonicalApprovedRunReaderImplemented: true,
+  captionOwnedDirectRealSourceInspectionRequired: true,
+  syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
   multiRunFortyOneJobCatalogImplemented: true,
   finalPrivateQualificationServiceImplemented: true,
   actualQualificationCatalogPersisted: false,

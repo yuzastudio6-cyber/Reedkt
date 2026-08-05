@@ -5,11 +5,17 @@ import type {
   CanonicalCaptionPrivateInternalQualificationService,
 } from '../../src/types/canonical-caption-private-internal-qualification'
 import type {
+  CanonicalCaptionDirectVisualInspectionRepository,
+} from '../../src/types/canonical-caption-direct-visual-inspection-evidence'
+import type {
   CanonicalCaptionQualificationRunEvidenceAssembly,
 } from '../../src/types/canonical-caption-qualification-run-evidence'
 import type { ServiceContext } from '../types'
 import type { CanonicalCaptionBrollEvidenceRepository } from
   './canonical-caption-broll-support-service'
+import {
+  createCanonicalCaptionDirectVisualInspectionRepository,
+} from './canonical-caption-direct-visual-inspection-evidence-service'
 import {
   createCanonicalCaptionPrivateQualificationCatalogAssembly,
   createCanonicalCaptionPrivateQualificationCatalogRepository,
@@ -50,6 +56,8 @@ export interface CanonicalCaptionPrivateQualificationComposition {
     typeof CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_VERSION
   readonly runEvidenceAssembly:
     CanonicalCaptionQualificationRunEvidenceAssembly
+  readonly directVisualInspectionRepository:
+    CanonicalCaptionDirectVisualInspectionRepository
   readonly catalogAssembly:
     CanonicalCaptionPrivateQualificationCatalogAssembly
   readonly qualificationService:
@@ -93,6 +101,11 @@ export function createCanonicalCaptionPrivateQualificationComposition(input: {
       objectPort: input.objectPort,
       prefix: `${prefix}/runs`,
     })
+  const directVisualInspectionRepository =
+    createCanonicalCaptionDirectVisualInspectionRepository({
+      objectPort: input.objectPort,
+      prefix: `${prefix}/direct-visual-inspection`,
+    })
   const runEvidenceAssembly =
     createCanonicalCaptionQualificationRunEvidenceAssembly({
       sourceReadPort: createCanonicalCaptionQualificationRunEvidenceReader({
@@ -104,6 +117,7 @@ export function createCanonicalCaptionPrivateQualificationComposition(input: {
         trackAllEvidenceRepository: input.trackAllEvidenceRepository,
         soundSyncEvidenceRepository: input.soundSyncEvidenceRepository,
         brollEvidenceRepository: input.brollEvidenceRepository,
+        directVisualInspectionRepository,
       }),
       repository: runEvidenceRepository,
     })
@@ -129,6 +143,7 @@ export function createCanonicalCaptionPrivateQualificationComposition(input: {
   return Object.freeze({
     schemaVersion: CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_VERSION,
     runEvidenceAssembly,
+    directVisualInspectionRepository,
     catalogAssembly,
     qualificationService,
     multipleApprovedRunsRequired: true,

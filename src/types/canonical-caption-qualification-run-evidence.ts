@@ -8,12 +8,22 @@ import type {
 
 export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_VERSION =
   'canonical-caption-qualification-run-evidence-v1' as const
+export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V1_VERSION =
+  CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_VERSION
+export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V2_VERSION =
+  'canonical-caption-qualification-run-evidence-v2' as const
 export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_VERSION =
   'canonical-caption-qualification-run-evidence-read-port-v1' as const
+export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_V2_VERSION =
+  'canonical-caption-qualification-run-evidence-read-port-v2' as const
 export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_VERSION =
   'canonical-caption-qualification-run-evidence-repository-v1' as const
+export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_V2_VERSION =
+  'canonical-caption-qualification-run-evidence-repository-v2' as const
 export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_VERSION =
   'canonical-caption-qualification-run-evidence-assembly-v1' as const
+export const CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_V2_VERSION =
+  'canonical-caption-qualification-run-evidence-assembly-v2' as const
 
 export type CanonicalCaptionQualificationOwnerKey =
   | 'canonical_transcript'
@@ -72,8 +82,11 @@ export interface CanonicalCaptionQualificationJobOccurrenceEvidence {
  * Caption jobs selected for its scenes, so terminal per-job qualification must
  * aggregate several such records rather than invent one all-purpose snapshot.
  */
-export interface CanonicalCaptionQualificationRunEvidence {
-  schemaVersion: typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_VERSION
+interface CanonicalCaptionQualificationRunEvidenceBase<
+  SchemaVersion extends string,
+  OutputEvidence,
+> {
+  schemaVersion: SchemaVersion
   recordId: string
   recordDigestSha256: string
   requestRef: CaptionDomainRef
@@ -95,18 +108,7 @@ export interface CanonicalCaptionQualificationRunEvidence {
   captionPlanningProjectionRef: CaptionDomainRef
   captionPrivateReviewProjectionRef: CaptionDomainRef
   privateReviewAssemblyRef: CaptionDomainRef
-  outputEvidence: {
-    outputId: string
-    confirmedOutputFrameRef: CaptionDomainRef
-    renderedArtifactRef: CaptionDomainRef
-    deterministicQaRef: CaptionDomainRef
-    qualifiedCompleteTimeVisualReviewRef: CaptionDomainRef
-    independentFinalQaRef: CaptionDomainRef
-    privateReviewDecisionRef: CaptionDomainRef
-    actualCompleteTimeVisualReviewPassed: true
-    independentFinalQaPassed: true
-    privateReviewAccepted: true
-  }
+  outputEvidence: OutputEvidence
   jobOccurrences: CanonicalCaptionQualificationJobOccurrenceEvidence[]
   exactRequestScopePackageAndOutputSetBound: true
   exactApprovedSnapshotAndExecutionPackageReread: true
@@ -131,9 +133,49 @@ export interface CanonicalCaptionQualificationRunEvidence {
   productionAuthorityGrantedToCaption: false
 }
 
+export interface CanonicalCaptionQualificationRunOutputEvidenceV1 {
+  outputId: string
+  confirmedOutputFrameRef: CaptionDomainRef
+  renderedArtifactRef: CaptionDomainRef
+  deterministicQaRef: CaptionDomainRef
+  qualifiedCompleteTimeVisualReviewRef: CaptionDomainRef
+  independentFinalQaRef: CaptionDomainRef
+  privateReviewDecisionRef: CaptionDomainRef
+  actualCompleteTimeVisualReviewPassed: true
+  independentFinalQaPassed: true
+  privateReviewAccepted: true
+}
+
+export type CanonicalCaptionQualificationRunEvidenceV1 =
+  CanonicalCaptionQualificationRunEvidenceBase<
+    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V1_VERSION,
+    CanonicalCaptionQualificationRunOutputEvidenceV1>
+
+export interface CanonicalCaptionQualificationRunOutputEvidenceV2 {
+  outputId: string
+  confirmedOutputFrameRef: CaptionDomainRef
+  renderedArtifactRef: CaptionDomainRef
+  deterministicQaRef: CaptionDomainRef
+  captionOwnedDirectVisualInspectionRef: CaptionDomainRef
+  qualifiedCompleteTimeVisualReviewRef: CaptionDomainRef
+  independentFinalQaRef: CaptionDomainRef
+  privateReviewDecisionRef: CaptionDomainRef
+  captionOwnedProfessionalAppearancePassed: true
+  realUploadedSourcePixelsInspected: true
+  syntheticEngineeringFixtureUsed: false
+  actualCompleteTimeVisualReviewPassed: true
+  independentFinalQaPassed: true
+  privateReviewAccepted: true
+}
+
+export type CanonicalCaptionQualificationRunEvidence =
+  CanonicalCaptionQualificationRunEvidenceBase<
+    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_V2_VERSION,
+    CanonicalCaptionQualificationRunOutputEvidenceV2>
+
 export interface CanonicalCaptionQualificationRunEvidenceReadPort {
   readonly schemaVersion:
-    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_VERSION
+    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_READ_PORT_V2_VERSION
   readonly sourceAuthority:
     'canonical_backend_persisted_caption_qualification_run_evidence'
   readonly callerSuppliedEvidenceAccepted: false
@@ -144,7 +186,7 @@ export interface CanonicalCaptionQualificationRunEvidenceReadPort {
 
 export interface CanonicalCaptionQualificationRunEvidenceRepository {
   readonly schemaVersion:
-    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_VERSION
+    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_REPOSITORY_V2_VERSION
   persistRecordCreateOnly(input: {
     readonly record: CanonicalCaptionQualificationRunEvidence
   }): Promise<'created' | 'identical_replay'>
@@ -155,7 +197,7 @@ export interface CanonicalCaptionQualificationRunEvidenceRepository {
 
 export interface CanonicalCaptionQualificationRunEvidenceAssembly {
   readonly schemaVersion:
-    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_VERSION
+    typeof CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_V2_VERSION
   readonly evidenceReadPort: CanonicalCaptionQualificationRunEvidenceReadPort
   readonly repository: CanonicalCaptionQualificationRunEvidenceRepository
   readonly exactSourceRereadBeforePersistence: true

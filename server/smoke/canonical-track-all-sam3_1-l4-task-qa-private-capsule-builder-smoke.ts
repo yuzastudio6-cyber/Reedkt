@@ -63,6 +63,7 @@ for (const expected of [
   '-DCUDA_FAST_MATH=OFF',
   '-DENABLE_FAST_MATH=OFF',
   '-DOPENCV_ENABLE_NONFREE=OFF',
+  '-DOPENCV_TIMESTAMP=1970-01-01T00:00:00Z',
   '-DOPENCV_SKIP_PYTHON_LOADER=ON',
   'sourceReleaseTagSignatureVerified',
   'runtimeNetworkDownloadsAllowed',
@@ -73,6 +74,16 @@ for (const expected of [
   '--file="${UNCOMPRESSED_TAR}" --null --files-from=-',
   'gzip --no-name --best',
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
+
+for (const expected of [
+  "export SOURCE_DATE_EPOCH='0'",
+  "export TZ='UTC'",
+  "export LANG='C'",
+  "export LC_ALL='C'",
+] as const) assert.ok(
+  builder.includes(expected),
+  `capsule builder lost deterministic environment ${expected}`,
+)
 
 assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 9)
 assert.doesNotMatch(builder, /apt-get|conda install|pip install [^\n]*https?:/u)
@@ -148,6 +159,7 @@ console.log(JSON.stringify({
   exactPinnedDownloadCount: 9,
   opencvVersion: '4.12.0',
   opencvCudaArchitecture: '8.9',
+  deterministicBuildTimestamp: '1970-01-01T00:00:00Z',
   runtimeNetworkDownloadsAllowed: false,
   checkpointOrModelWeightsIncluded: false,
   developerMachineInstallPerformed: false,

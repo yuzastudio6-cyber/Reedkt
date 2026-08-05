@@ -16,6 +16,14 @@ readonly RUNTIME_IMAGE='pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
 readonly CUDA_COMPAT_BYTES='37945232'
 
+# OpenCV records its configure time inside both the human-readable build
+# information and the compiled runtime. Pin the source epoch and the explicit
+# OpenCV timestamp so identical reviewed sources produce identical bytes.
+export SOURCE_DATE_EPOCH='0'
+export TZ='UTC'
+export LANG='C'
+export LC_ALL='C'
+
 download_exact() {
   local url="$1"
   local destination="$2"
@@ -228,6 +236,7 @@ cmake -S "${OPENCV_SOURCE}" -B "${WORK}/opencv-build" \
   -DOPENCV_ENABLE_NONFREE=OFF \
   -DOPENCV_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE}/modules" \
   -DOPENCV_GENERATE_PKGCONFIG=OFF \
+  -DOPENCV_TIMESTAMP=1970-01-01T00:00:00Z \
   -DOPENCV_SKIP_PYTHON_LOADER=ON \
   -DOPENCV_PYTHON3_INSTALL_PATH="${PRIVATE_ROOT}/opencv/install/python" \
   -DPYTHON3_EXECUTABLE="${PYTHON_EXECUTABLE}" \

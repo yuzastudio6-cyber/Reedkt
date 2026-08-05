@@ -70,6 +70,7 @@ const smokes = [
   'server/smoke/canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',
   'server/smoke/canonical-current-google-cloud-gpu-rate-authority-publisher-smoke.ts',
   'server/smoke/canonical-professional-google-cloud-gpu-runtime-configuration-repository-smoke.ts',
+  'server/smoke/canonical-sam3_1-google-cloud-runtime-configuration-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts',
   'server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts',
   'server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts',

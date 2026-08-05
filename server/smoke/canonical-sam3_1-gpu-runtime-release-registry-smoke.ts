@@ -78,7 +78,7 @@ const ownerInput = {
   qualificationCompilationAuthorityRef: canonicalAuthorityRef,
   qualificationCompilationAuthorityReadPort: canonicalOwner,
 }
-const record = await owner.preparePersistAndReread(ownerInput)
+export const record = await owner.preparePersistAndReread(ownerInput)
 
 assertCanonicalSam31GpuRuntimeReleaseRegistryRecord(record)
 assert.deepEqual(record.specializedRelease, released.observation)

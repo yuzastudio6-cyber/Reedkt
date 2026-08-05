@@ -22,6 +22,16 @@ import {
   type CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  createCanonicalCaptionVisualIntelligenceEvidenceRepository,
+  createCanonicalCaptionVisualIntelligenceSupportService,
+  type CanonicalCaptionVisualIntelligenceEvidenceRepository,
+  type CanonicalCaptionVisualIntelligenceSupportService,
+} from '../services/canonical-caption-visual-intelligence-support-service'
+import {
+  createCanonicalSpecialistSupportResumeRepository,
+  type CanonicalSpecialistSupportResumeRepository,
+} from '../services/canonical-specialist-support-resume-service'
+import {
   createCanonicalSourceAnalysisRequestAuthorityRepository,
   type CanonicalSourceAnalysisRequestAuthorityRepository,
 } from '../services/canonical-source-analysis-request-authority-repository'
@@ -130,6 +140,9 @@ import {
   type VisualIntelligenceAccountEffectiveCostOwner,
 } from './visual-intelligence-account-effective-cost-owner'
 import {
+  createVisualIntelligenceAuthenticatedReadService,
+} from './visual-intelligence-authenticated-read-service'
+import {
   createVisualIntelligenceCanonicalRequestPackageStore,
   type VisualIntelligenceCanonicalRequestPackageStore,
 } from './visual-intelligence-canonical-request-package-store'
@@ -182,7 +195,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v15' as const
+  'visual-intelligence-production-runtime-v16' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -190,6 +203,12 @@ export interface VisualIntelligenceProductionRuntime {
   readonly reportRepository: VisualIntelligenceDurableLifecycleStore
   readonly canonicalRequestPackageStore:
     VisualIntelligenceCanonicalRequestPackageStore
+  readonly specialistSupportResumeRepository:
+    CanonicalSpecialistSupportResumeRepository
+  readonly captionEvidenceRepository:
+    CanonicalCaptionVisualIntelligenceEvidenceRepository
+  readonly captionSupportService:
+    CanonicalCaptionVisualIntelligenceSupportService
   readonly canonicalPreparedEvidenceStore:
     VisualIntelligenceCanonicalPreparedEvidenceStore
   readonly orchestraDispatchPackageStore:
@@ -386,6 +405,10 @@ export async function createVisualIntelligenceProductionRuntime(
   const durableStore = createVisualIntelligenceDurableLifecycleStore({
     objectPort,
   })
+  const specialistSupportResumeRepository =
+    createCanonicalSpecialistSupportResumeRepository({ objectPort })
+  const captionEvidenceRepository =
+    createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
   const sourceCleanupAuthorityRepository =
     createCanonicalSourceCleanupAuthorityRepository({ objectPort })
   const sourceAnalysisRequestAuthorityRepository =
@@ -444,6 +467,17 @@ export async function createVisualIntelligenceProductionRuntime(
     createVisualIntelligenceCanonicalRequestPackageStore({
       objectPort,
       runtimeRelease,
+    })
+  const captionSupportService =
+    createCanonicalCaptionVisualIntelligenceSupportService({
+      supportResumeRepository: specialistSupportResumeRepository,
+      visualIntelligenceRequestStore: canonicalRequestPackageStore,
+      visualIntelligenceAuthenticatedReadService:
+        createVisualIntelligenceAuthenticatedReadService({
+          reportRepository: durableStore,
+        }),
+      visualIntelligenceSpatialEvidenceRepository: durableStore,
+      evidenceRepository: captionEvidenceRepository,
     })
   const canonicalPreparedEvidenceStore =
     createVisualIntelligenceCanonicalPreparedEvidenceStore({
@@ -687,6 +721,9 @@ export async function createVisualIntelligenceProductionRuntime(
     runtimeRelease,
     reportRepository: durableStore,
     canonicalRequestPackageStore,
+    specialistSupportResumeRepository,
+    captionEvidenceRepository,
+    captionSupportService,
     canonicalPreparedEvidenceStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,

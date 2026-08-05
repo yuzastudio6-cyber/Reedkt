@@ -6,6 +6,7 @@ import type {
   VisualIntelligencePreparedEvidence,
   VisualIntelligenceRequest,
 } from '../../src/types/visual-intelligence'
+import { assertClosedContractTree } from '../../src/lib/closed-contract-validation'
 import { ApiError } from '../errors/api-error'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
@@ -50,6 +51,9 @@ extends VisualIntelligenceAdmissionVerificationPort,
   VisualIntelligenceInspectionRequestOwner {
   readonly schemaVersion:
     typeof VISUAL_INTELLIGENCE_CANONICAL_REQUEST_PACKAGE_STORE_VERSION
+  rereadCanonicalRequestByRef(input: {
+    readonly requestRef: VisualIntelligenceEvidenceRef
+  }): Promise<VisualIntelligenceRequest | null>
   persistCreateOnly(input: {
     readonly ownerClass:
       VisualIntelligenceCanonicalRequestPackageOwnerClass
@@ -110,6 +114,21 @@ export function createVisualIntelligenceCanonicalRequestPackageStore(input: {
   const store: VisualIntelligenceCanonicalRequestPackageStore = {
     schemaVersion:
       VISUAL_INTELLIGENCE_CANONICAL_REQUEST_PACKAGE_STORE_VERSION,
+
+    async rereadCanonicalRequestByRef(value) {
+      assertClosedContractTree(
+        value,
+        'Visual Intelligence canonical request reread',
+      )
+      const expectedRef = requireRef(value.requestRef)
+      const record = await readByRequestId(expectedRef.id)
+      if (!record) return null
+      const actualRef = requestRef(record.request)
+      if (refKey(actualRef) !== refKey(expectedRef)) {
+        throw conflict('visual_intelligence_request_ref_mismatch')
+      }
+      return parseVisualIntelligenceRequest(record.request)
+    },
 
     async persistCreateOnly(value) {
       const ownerAuthorityRef = requireRef(value.ownerAuthorityRef)
@@ -248,6 +267,16 @@ function approvedInspectionRequestId(
 ): string {
   return `vi-inspection-request-${
     requirement.inspectionDigestSha256.slice(7, 55)}`
+}
+
+function requestRef(
+  request: VisualIntelligenceRequest,
+): VisualIntelligenceEvidenceRef {
+  return Object.freeze({
+    id: request.requestId,
+    version: 1,
+    contentHash: request.requestDigestSha256,
+  })
 }
 
 function assertOwnerSemantics(input: {

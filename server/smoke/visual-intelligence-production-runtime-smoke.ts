@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v15')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v16')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -370,6 +370,18 @@ assert.equal(runtime.apiKeyUsed, false)
 assert.equal(runtime.qwenFallbackAllowed, false)
 assert.equal(runtime.selfHostedVisualModelFallbackAllowed, false)
 assert.equal(runtime.substantiveCpuMediaProcessingAllowed, false)
+assert.equal(
+  runtime.specialistSupportResumeRepository.schemaVersion,
+  'canonical-specialist-support-resume-repository-v1',
+)
+assert.equal(
+  runtime.captionEvidenceRepository.schemaVersion,
+  'canonical-caption-visual-intelligence-evidence-repository-v1',
+)
+assert.equal(
+  runtime.captionSupportService.schemaVersion,
+  'canonical-caption-visual-intelligence-support-service-v1',
+)
 assert.equal(
   runtime.editReferenceBindingStore.schemaVersion,
   'edit-reference-visual-intelligence-orchestra-binding-store-v2',
@@ -1320,6 +1332,9 @@ console.log(JSON.stringify({
   canonicalPreparedEvidenceStoreMounted: true,
   orchestraCannotSelfAttestPreparedEvidence: true,
   canonicalRequestPackageConsumed: true,
+  captionAuthenticatedSupportServiceMounted: true,
+  captionEvidenceRepositoryMounted: true,
+  specialistSupportResumeRepositoryMounted: true,
   orchestraDispatchPackageConsumed: true,
   orchestraResultReturnedAndPersisted: true,
   editReferenceOrchestraBindingStoreMounted: true,

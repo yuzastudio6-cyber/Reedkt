@@ -175,7 +175,15 @@ const rereadPrepared = await store.prepare({
 })
 assert.deepEqual(rereadPrepared, sourcePrepared)
 assert.notEqual(rereadPrepared, sourcePrepared)
-
+const rereadRequest = await store.rereadCanonicalRequestByRef({
+  requestRef: {
+    id: sourceRequest.requestId,
+    version: 1,
+    contentHash: sourceRequest.requestDigestSha256,
+  },
+})
+assert.deepEqual(rereadRequest, sourceRequest)
+assert.notEqual(rereadRequest, sourceRequest)
 const noAudioRequest = buildSourceRequest(
   'visual-source-no-audio-idempotency-1',
   'visual-source-no-audio-request-1',
@@ -259,6 +267,21 @@ async function rejects(action: () => Promise<unknown>): Promise<void> {
   adversarialRefusals += 1
 }
 
+await rejects(() => store.rereadCanonicalRequestByRef({
+  requestRef: {
+    id: sourceRequest.requestId,
+    version: 1,
+    contentHash: ref('wrong-request-content').contentHash,
+  },
+}))
+const accessorRefRequest = {} as {
+  requestRef: VisualIntelligenceEvidenceRef
+}
+Object.defineProperty(accessorRefRequest, 'requestRef', {
+  enumerable: true,
+  get() { throw new Error('getter must not run') },
+})
+await rejects(() => store.rereadCanonicalRequestByRef(accessorRefRequest))
 await rejects(() => store.prepare({
   request: sourceRequest,
   admissionRef: ref('caller-invented-admission'),
@@ -437,12 +460,13 @@ tamperedRecord.directTimelineMutationAllowed = true
 objectPort.values.set(sourcePath, Buffer.from(JSON.stringify(tamperedRecord)))
 await rejects(() => store.verifyAndRereadExact(sourceRequest))
 
-assert.equal(adversarialRefusals, 17)
+assert.equal(adversarialRefusals, 19)
 console.log(JSON.stringify({
   status: 'visual_intelligence_canonical_request_package_store_smoke_passed',
   sourceCreateOnlyPersisted: true,
   identicalReplayAccepted: true,
   exactRereadVerified: true,
+  exactRequestRefRereadVerified: true,
   approvedInspectionOwnerVerified: true,
   privateGpuEvidenceOnly: true,
   canonicalNoAudioBypassVerified: true,

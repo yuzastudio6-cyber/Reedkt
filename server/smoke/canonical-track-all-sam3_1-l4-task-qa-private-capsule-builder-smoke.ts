@@ -29,6 +29,10 @@ const runner = readFileSync(
   'docker/prod/gpu-worker/track-all-task-qa/runner.py',
   'utf8',
 )
+const provenance = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/source-provenance.lock',
+  'utf8',
+)
 const iam = readFileSync('scripts/gcp/prod/06-configure-iam.sh', 'utf8')
 const foundation = readFileSync(
   'scripts/gcp/prod/17-provision-visual-intelligence-sam31-foundation.sh',
@@ -179,6 +183,19 @@ for (const source of [iam, foundation]) {
   )
 }
 assert.doesNotMatch(`${dockerfile}\n${candidate}`, /COPY .*checkpoint|ADD https?:/iu)
+
+for (const expected of [
+  'schema=weeditpro-track-all-sam3_1-l4-task-qa-runtime-candidate-v2',
+  'cuda_npp_runtime_receipt_required=true',
+  'cuda_npp_complete_toolkit_copied=false',
+  'cuda_npp_library_count=6',
+  'cuda_npp_license_sha256=e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+  'cuda_npp_libnppc_so_12_sha256=69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7',
+  'cuda_npp_libnppitc_so_12_sha256=cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9',
+] as const) assert.ok(
+  provenance.includes(expected),
+  `source provenance lost ${expected}`,
+)
 
 for (const expected of [
   "readonly PROJECT_ID='reeditpro'",

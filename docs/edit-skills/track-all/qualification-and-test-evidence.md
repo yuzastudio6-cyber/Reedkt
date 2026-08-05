@@ -54,17 +54,17 @@ It is not production-qualified.
 ## Fail-closed verification
 
 The frozen Track All receipt is
-`d4a7a56db0424ceed37e633f533fb24e7d611737ff6684a0f98eb27ec541f54f`;
+`292c21e15e616fb8593fcaf311d98dd907b49bf59c056992061a6dad5cec33d4`;
 its artifact hash is
-`000184e31e44df98c2992ea53b38c9d13db0244abdde851262fa9a87512205e7`.
+`12a115686c649a730d19a64817327e85c231a01ce27aa169d609dddb563f444c`.
 It binds manifest
 `cfb670fa8255af9112592e5a87ae19e8bc5045b9d418af6452e2eca94c5a0d8b`,
-tested source `ac0f6599f8d11fe3d717f9ae007ee68d8ba5bbb9`, relevant source-tree hash
+tested source `a6e21b4825e3f8c90d10c1fa40147cf7222150d6`, relevant source-tree hash
 `a51b91907dd38f1ebce2ad226ad962b7ffff87d35bf7855f44b1272d78bd92ab`,
 and ordered dependency-authority-set hash
-`04d169c097940f0601351ccb94946cd185e48591b57e96b11b8f67381c1e077c`.
+`d235c5171704f23d16bb6d3d1e75a5e1b5fa2f8c751b3da61ce2b23d274186e9`.
 The exact final authority-binding hash is
-`86f65ba0ca757c12d3752bdbfa9205f13e89a5ab7dcf97cd2bbc56d061472bc5`.
+`197afba7bd275aa7a06688ee894a482561d80c4d64d6c5574ce39a30e7fe5555`.
 
 `npm run test:track-all-qualification-evidence` rejects failed commands,
 missing or duplicate fixtures, wrong commit/source/manifest/shared authority,

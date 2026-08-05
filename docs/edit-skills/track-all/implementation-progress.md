@@ -2542,3 +2542,21 @@ Local workflow validation:
 The workflow edit intentionally changes the Track All dependency-authority set,
 so both generated receipts are stale until the clean post-commit qualification
 refresh. No stale receipt is being reported as current.
+
+TRACK-35 workflow commit
+`a6e21b4825e3f8c90d10c1fa40147cf7222150d6` was pushed and the remote branch
+was reread at that exact SHA. The clean post-workflow Track qualifier then
+passed all 37 commands and 26 fixtures in both bootstrap and current-source
+passes. It retained source tree
+`a51b91907dd38f1ebce2ad226ad962b7ffff87d35bf7855f44b1272d78bd92ab`
+and bound the changed 33-authority set
+`d235c5171704f23d16bb6d3d1e75a5e1b5fa2f8c751b3da61ce2b23d274186e9`.
+The final authority binding is
+`197afba7bd275aa7a06688ee894a482561d80c4d64d6c5574ce39a30e7fe5555`,
+the receipt is
+`292c21e15e616fb8593fcaf311d98dd907b49bf59c056992061a6dad5cec33d4`,
+and the artifact is
+`12a115686c649a730d19a64817327e85c231a01ce27aa169d609dddb563f444c`.
+The route remained honestly blocked with zero SAM requests and zero GPU
+executions. This generated evidence is committed before the final B-Roll
+requalification so that B-Roll can reread a clean exact Track authority.

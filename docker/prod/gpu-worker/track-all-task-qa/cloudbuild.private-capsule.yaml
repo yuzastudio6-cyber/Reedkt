@@ -33,7 +33,7 @@ timeout: 7200s
 queueTtl: 600s
 serviceAccount: projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com
 options:
-  machineType: E2_HIGHCPU_32
+  machineType: E2_HIGHCPU_8
   diskSizeGb: '200'
   logging: CLOUD_LOGGING_ONLY
   requestedVerifyOption: VERIFIED

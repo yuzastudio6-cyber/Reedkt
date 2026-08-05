@@ -77,7 +77,7 @@ for (const expected of [
   'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147',
   'gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/track-all-l4-task-qa/',
   'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
-  'E2_HIGHCPU_32',
+  'E2_HIGHCPU_8',
   'CLOUD_LOGGING_ONLY',
   'requestedVerifyOption: VERIFIED',
 ] as const) assert.ok(cloudBuild.includes(expected), `Cloud Build lost ${expected}`)

@@ -3,7 +3,11 @@ import { mkdtemp, realpath } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { GoogleAuth } from 'google-auth-library'
-import type { CanonicalMusicArtifactResolver, ResolvedPrivateMusicArtifact } from '../music/music-analysis'
+import {
+  analyzePrivateMusicArtifact,
+  type CanonicalMusicArtifactResolver,
+  type ResolvedPrivateMusicArtifact,
+} from '../music/music-analysis'
 import {
   createMusicCompositionBrief,
   CanonicalLyria3ProviderAdapter,
@@ -28,6 +32,11 @@ const REQUIRED_EVIDENCE = [
   'MUSIC_LYRIA_DEPLOYED_RUNTIME',
 ] as const
 
+const CANONICAL_LYRIA_CANARY_ROUTE = Object.freeze({
+  routeKey: 'music.route.generate.original.lyria.v3',
+  routeVersion: '3.0.0',
+})
+
 function sha(value: string): string {
   return createHash('sha256').update(value).digest('hex')
 }
@@ -48,8 +57,16 @@ class CanaryArtifactResolver implements CanonicalMusicArtifactResolver {
   constructor(root: string) { this.#root = root }
   async privateOutputRoot(): Promise<string> { return realpath(this.#root) }
   async resolve(artifact: MusicArtifactRef): Promise<ResolvedPrivateMusicArtifact> {
-    void artifact
-    throw new Error('The provider canary does not resolve caller-supplied artifacts.')
+    const approvedRoot = await realpath(this.#root)
+    const segments = artifact.storageObjectId.split(':')
+    if (segments.length === 0 || segments.some((segment) => !segment || segment === '.' || segment === '..')) {
+      throw new Error('The provider canary rejected an unsafe private artifact identity.')
+    }
+    return {
+      artifact,
+      absolutePath: await realpath(join(approvedRoot, ...segments)),
+      approvedRoot,
+    }
   }
 }
 
@@ -63,6 +80,11 @@ async function accessToken(): Promise<string> {
 }
 
 const verifyOnly = process.argv.includes('--verify-fail-closed')
+const route = getMusicToolRouteManifest(
+  CANONICAL_LYRIA_CANARY_ROUTE.routeKey,
+  CANONICAL_LYRIA_CANARY_ROUTE.routeVersion,
+)
+if (!route) throw new Error('Canonical Lyria canary route is unavailable.')
 const blockers = missingCanaryAuthority()
 if (verifyOnly) {
   if (blockers.length === 0) throw new Error('Fail-closed verification requires at least one absent external authority gate.')
@@ -80,6 +102,7 @@ if (blockers.length > 0) {
 }
 
 const root = await mkdtemp(join(tmpdir(), 'reeditpro-private-lyria-canary-'))
+const artifacts = new CanaryArtifactResolver(root)
 const projectId = process.env.GOOGLE_CLOUD_PROJECT!
 const range: MusicFrameRange = { rangeId: 'private-canary-range', startFrame: 0, endFrameExclusive: 720 }
 const timelineRate = { numerator: 24, denominator: 1 }
@@ -161,12 +184,10 @@ const briefBase = {
   approvalRef: request.approvedSnapshotRef.snapshotId,
 }
 const brief = createMusicCompositionBrief(briefBase)
-const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v2', '2.0.0')
-if (!route) throw new Error('Canonical Lyria route is unavailable.')
 const provider = new CanonicalLyria3ProviderAdapter({
   transport: new GoogleLyria3InteractionsTransport({ getAccessToken: accessToken }),
   attempts: new PrivateFileMusicProviderAttemptStore(root),
-  artifacts: new CanaryArtifactResolver(root), projectId,
+  artifacts, projectId,
   liveEvidence: {
     accountApproved: true, privacyApproved: true, retentionApproved: true,
     commercialApproved: true, rateApproved: true, deployedRuntime: true, privateCanaryPassed: false,
@@ -178,14 +199,37 @@ const attempt = await provider.execute({
   brief, candidateCount: 1, mode: 'private_canary',
 })
 if (attempt.status !== 'succeeded' || attempt.candidateArtifacts.length !== 1) {
-  throw new Error(`Private Lyria canary did not succeed: ${attempt.status}`)
+  const failureCode = attempt.attempts.find((candidateAttempt) => candidateAttempt.status !== 'succeeded')?.failureCode
+  throw new Error(`Private Lyria canary did not succeed: ${attempt.status}:${failureCode ?? 'unknown_failure'}`)
+}
+const candidate = attempt.candidateArtifacts[0]
+const analysis = await analyzePrivateMusicArtifact({
+  resolved: await artifacts.resolve(candidate),
+  timelineRate,
+})
+if (!analysis.decodeSucceeded || analysis.mediaEvidence.checksumSha256 !== candidate.checksumSha256 ||
+    analysis.sampleRate !== LYRIA_3_PROVIDER_PROFILE.sampleRateHz || analysis.durationSeconds <= 0 ||
+    analysis.durationSeconds > LYRIA_3_PROVIDER_PROFILE.maximumDurationSeconds) {
+  throw new Error('Private Lyria canary output failed measured audio qualification.')
 }
 console.log(JSON.stringify({
   status: 'private_canary_succeeded', providerProfile: attempt.providerProfileKey,
-  providerRequestIdPresent: Boolean(attempt.attempts[0]?.providerRequestId), candidateChecksum: attempt.candidateArtifacts[0].checksumSha256,
-  candidateByteSize: attempt.candidateArtifacts[0].byteSize, actualCostUsd: attempt.actualCostUsd,
+  providerRequestIdPresent: Boolean(attempt.attempts[0]?.providerRequestId), candidateChecksum: candidate.checksumSha256,
+  candidateByteSize: candidate.byteSize, actualCostUsd: attempt.actualCostUsd,
+  measuredAudioQa: {
+    decodeSucceeded: analysis.decodeSucceeded,
+    durationSeconds: analysis.durationSeconds,
+    sampleRate: analysis.sampleRate,
+    channels: analysis.channels,
+    integratedLoudnessLufs: analysis.integratedLoudnessLufs,
+    truePeakDbtp: analysis.truePeakDbtp,
+    clippedSampleCount: analysis.clippedSampleCount,
+    silenceRatio: analysis.silenceRatio,
+    measuredTempoBpm: analysis.measuredTempoBpm,
+  },
   store: false, customerMediaUsed: false, productionQualificationPromoted: false,
   evidenceHash: hashMusicValue({ attemptGroupId: attempt.groupId, attemptId: attempt.attempts[0]?.attemptId,
     providerRequestId: attempt.attempts[0]?.providerRequestId,
-    candidateChecksum: attempt.candidateArtifacts[0].checksumSha256, actualCostUsd: attempt.actualCostUsd }),
+    candidateChecksum: candidate.checksumSha256, actualCostUsd: attempt.actualCostUsd,
+    measuredAudioQa: analysis }),
 }, null, 2))

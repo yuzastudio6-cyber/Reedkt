@@ -77,6 +77,23 @@ const changedBrief = createMusicCompositionBrief({ ...briefInput, energyArc: `${
 await assert.rejects(() => provider.execute({ request, cueId: cue.cueId, route, brief: changedBrief,
   candidateCount: 1, mode: 'fixture' }), /idempotency collision/i)
 
+const failedRequest = makeCanonicalMusicRequest({
+  requestId: 'music-provider-failed', mode: 'fixture', cues: [cue], allowGeneration: true,
+})
+const failedProvider = new CanonicalLyria3ProviderAdapter({
+  transport: {
+    async execute(): Promise<LyriaTransportResult> {
+      return { status: 'failed', candidates: [], actualCostUsd: 0, failureCode: 'http_403' }
+    },
+  },
+  artifacts: runtime.resolver,
+})
+const failed = await failedProvider.execute({
+  request: failedRequest, cueId: cue.cueId, route, brief, candidateCount: 1, mode: 'fixture',
+})
+assert.equal(failed.status, 'failed')
+assert.equal(failed.attempts[0]?.failureCode, 'http_403')
+
 console.log(JSON.stringify({ status: 'ok', attemptStatus: reconciled.status,
   executeCalls: transport.executeCalls, reconcileCalls: transport.reconcileCalls,
-  candidateCount: reconciled.candidateArtifacts.length }, null, 2))
+  candidateCount: reconciled.candidateArtifacts.length, safeFailureCodePreserved: true }, null, 2))

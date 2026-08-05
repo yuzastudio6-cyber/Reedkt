@@ -139,6 +139,7 @@ export interface MusicProviderAttempt {
   estimatedCostUsd: number
   actualCostUsd: number
   status: MusicProviderAttemptStatus
+  failureCode?: string
   submittedAt?: string
   timeoutMilliseconds: number
   providerRequestId?: string
@@ -429,6 +430,7 @@ export class CanonicalLyria3ProviderAdapter {
       attempt.providerRequestId = response.providerRequestId
       attempt.actualCostUsd = response.actualCostUsd
       attempt.status = response.status
+      attempt.failureCode = response.failureCode
       attempt.reconciliationState = response.status === 'unknown_outcome' ? 'required' : 'not_required'
       if (response.status === 'succeeded') {
         if (response.candidates.length !== LYRIA_3_PROVIDER_PROFILE.maximumClipsPerPrompt) {
@@ -475,6 +477,7 @@ export class CanonicalLyria3ProviderAdapter {
     const response = await this.#transport.reconcile(attempt.providerRequestId)
     attempt.status = response.status
     attempt.actualCostUsd = response.actualCostUsd
+    attempt.failureCode = response.failureCode
     attempt.reconciliationState = response.status === 'unknown_outcome' ? 'required' : 'resolved'
     if (response.status === 'succeeded') {
       if (response.candidates.length !== 1) {

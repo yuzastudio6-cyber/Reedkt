@@ -1930,3 +1930,116 @@ The SAM 3.1 route remains `blocked`; deterministic canonical-private routes
 remain `internal_execution_qualified` only where actual canonical evidence
 supports them. No injected masklet or fixture adapter is represented as real
 SAM inference.
+
+## TRACK-27 — evidence-backed final qualification
+
+Status: complete, committed, pushed, remotely confirmed, and reread through
+normal runtime construction with no qualification-generation override.
+
+Implemented:
+
+- upgraded the generated Track All qualification artifact forward-only to V2
+  with an exact final-authority binding;
+- bound individually content-addressed shared assignment, route registry,
+  runtime dispatch resolver, runtime profile, preflight schema, route-coherent
+  planner, work graph, canonical executor, canonical coordinator,
+  producer/consumer support bridge, B-Roll consumer, and canonical-private E2E
+  authorities;
+- added a required B-Roll consumer-acceptance fixture and command, taking the
+  exact catalog to 24 fixtures and 33 commands;
+- bound the actual current-source B-Roll consumer command evidence, canonical-
+  private public E2E evidence, SAM canary preflight evidence, exact current SAM
+  route-gate report, tool-profile set, fixture catalog, exact route statuses,
+  and all ten route evidence hashes into the qualification receipt lineage;
+- implemented a two-pass issuance bootstrap for the unavoidable receipt cycle:
+  the temporary pass is accepted only inside qualification generation, normal
+  runtime rejects it, and the final pass must run the actual current-source
+  B-Roll public consumer before a runtime-loadable receipt can be issued;
+- retained B-Roll retirement enforcement unchanged by using a neutral Track
+  producer/consumer evidence filename;
+- regenerated and reread both Track All and B-Roll qualification artifacts.
+
+Actual Track All final qualification:
+
+- tested source commit:
+  `533d6261404e93c0aa3d274a6bd5027021d023b9`;
+- manifest hash:
+  `dcec1be579f9ff28a560ec1f37c01ca9afe0f874f9ac7e66894f8a8ea75b7061`;
+- relevant source-tree hash:
+  `3c0496c7fa6e73bd301d7f20c6079cb2d8fe1b989c4d986de3856098047de14d`;
+- shared authority-set hash:
+  `505bda311f777aa79f8c2f9821b680526013169cf021974203edeae32de5f228`;
+- dependency authority count: `26`;
+- final authority-binding hash:
+  `4785fe1c169bf56d33065e794c449998f5254f0a47aaefc034aa3724b6172b08`;
+- actual B-Roll consumer command evidence hash:
+  `f237329e0785db51a1a5ba5363d4cdc57c48cd2b39aceb4e0ca44bf97ee8bef4`;
+- canonical-private public E2E evidence hash:
+  `64e7e46ec911d3573cc684b84b1f76055ec823873b11336f540fb9e299c36ef1`;
+- SAM canary preflight evidence hash:
+  `12910b31394f8d334f3ed11d360873d146341452b25d8e0f291a76e43307e6d2`;
+- current blocked SAM route-gate report hash:
+  `88f69cb4780a497c5eb2945dc81a4a0789560f98ee6df043f557657441268971`;
+- tool-profile set hash:
+  `33ad9d4fc8d721cccb66e074375917a606a12b732774b670e9479a0d7ee902b6`;
+- fixture-catalog hash:
+  `7e94e29a2d50eaa6182a23d6ed1944af553b2da7691f8e883fcbba34dc8555ae`;
+- route-status set hash:
+  `000faf02ddd327da0aeff237b33de5616d977be52e99b97922c8429335c03e36`;
+- qualification receipt hash:
+  `832e0956fe9a1754851998a18fe095b4638c915bb4d0ce34b131796462ae2c24`;
+- generated artifact hash:
+  `95f7e80fe0fa7d16041111828d14df086280d61653d45e4d780a0e1cebf9a78d`;
+- actual top-level status: `planning_qualified`;
+- deterministic canonical-private routes:
+  `internal_execution_qualified`;
+- SAM 3.1 route: `blocked`;
+- production worker route: `blocked`;
+- actual SAM requests: `0`;
+- actual GPU executions: `0`;
+- production qualification: `false`.
+
+Actual B-Roll requalification passed 31 commands and 36 fixtures against
+clean tested source commit
+`000876256238fd3284f11154af400a83fd2af5ef` and issued:
+
+- manifest hash:
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`;
+- relevant source-tree hash:
+  `9453a8383e231f5d42913a7eafbc587c34542e80874a54c489395c2b15866d7a`;
+- dependency authority-set hash:
+  `cbe53b157c7406cc03f4e88128f4c694bcb848fc059202229014186d920567dc`;
+- qualification receipt hash:
+  `c7c76a414a040405a7589aeaf3ad9fb97a1874b30ba767a30e1d83c669cd0a62`;
+- generated artifact hash:
+  `b64ae720897a2817300ad577bf53cef37466509741319e09aa0a762de923cbfe`;
+- actual status: `internal_execution_qualified`;
+- production qualification: `false`.
+
+Normal runtime reread then passed both manifests, the seven-scenario canonical-
+private public E2E, qualification stale/forged/overclaim rejection, and actual
+B-Roll public acceptance. The normal B-Roll acceptance produced support-result
+hash `e4db7226b1b89e526eb64176977d0d14beff8cad7d0b7a1169923a26ee47d134`
+and acceptance hash
+`66d2a0273c9668af048fd6c57ef116518de4ed8461da44b7a67bb0484898199b`.
+Direct unauthenticated Track Graph input remained rejected.
+
+Remote evidence closeout:
+
+- final-authority source commit:
+  `483198bd52b651bc920c426cad7f94ba694902d3`;
+- first generated qualification proof:
+  `f5889314d1c2d5d8c637cefc04ae7edaf977481c`;
+- retirement-boundary naming correction:
+  `533d6261404e93c0aa3d274a6bd5027021d023b9`;
+- final Track All generated evidence:
+  `000876256238fd3284f11154af400a83fd2af5ef`;
+- final B-Roll generated evidence:
+  `2cdecf0149892fd01330e8f0b285865e13058990`;
+- TRACK-27 ledger commit: recorded by this commit and confirmed after push.
+
+Every focused Track All command, canonical-private public E2E, B-Roll consumer
+acceptance, stale/forged evidence test, build, server typecheck, lint,
+frontend/server boundary, security boundary, and retirement check passed. No
+head orchestra, peer implementation, paid provider/model call, real SAM/GPU
+execution, public artifact, or production mutation occurred.

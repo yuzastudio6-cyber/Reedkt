@@ -25,7 +25,10 @@ steps:
         trap - EXIT
 artifacts:
   objects:
-    location: gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/track-all-l4-task-qa/
+    # Every compiler run writes create-only evidence beneath its Cloud Build
+    # identity. A reproducibility check must never overwrite an earlier
+    # immutable capsule merely because both runs produce the same SHA-256.
+    location: gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/track-all-l4-task-qa/reproducibility/${BUILD_ID}/
     paths:
       - private-capsule-output/*.tar.gz
       - private-capsule-output/*.receipt.txt

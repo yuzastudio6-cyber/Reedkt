@@ -23,6 +23,7 @@ readonly MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 readonly IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 readonly IMAGE_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 readonly CONTROL_PLANE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+readonly MASK_BUCKET='reeditpro-production-reeditpro-masks'
 
 main() {
   assert_operator_boundary
@@ -43,6 +44,7 @@ main() {
   create_protected_bucket "${IMAGE_BUILD_INPUT_BUCKET}"
   create_protected_bucket "${IMAGE_EVIDENCE_BUCKET}"
   create_protected_bucket "${CONTROL_PLANE_BUCKET}"
+  create_protected_bucket "${MASK_BUCKET}"
 
   create_secret_placeholder HUGGINGFACE_TOKEN
   create_secret_placeholder MODEL_WEIGHT_ACCESS_TOKEN
@@ -54,7 +56,7 @@ main() {
   printf '  "projectId":"%s",\n' "${PROJECT_ID}"
   printf '  "region":"%s",\n' "${REGION}"
   printf '  "serviceIdentityCount":3,\n'
-  printf '  "privateBucketCount":4,\n'
+  printf '  "privateBucketCount":5,\n'
   printf '  "secretPlaceholderCount":2,\n'
   printf '  "hsmSigningKeyCreatedOrReread":true,\n'
   printf '  "secretVersionCreated":false,\n'
@@ -220,6 +222,14 @@ configure_least_privilege_iam() {
   grant_bucket_role \
     "${MODEL_ARTIFACT_BUCKET}" \
     "${GPU_WORKER_SA}" roles/storage.objectViewer
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${API_SA}" roles/storage.objectCreator
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${API_SA}" roles/storage.objectViewer
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${GPU_WORKER_SA}" roles/storage.objectCreator
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${GPU_WORKER_SA}" roles/storage.objectViewer
 
   grant_artifact_role \
     "${IMAGE_BUILDER_SA}" roles/artifactregistry.writer

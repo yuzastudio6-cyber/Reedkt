@@ -20,6 +20,7 @@ MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+MASK_BUCKET='reeditpro-production-reeditpro-masks'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
 PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-private-searxng@sha256:7f56a77c442601d249389e4cb4101da2046fd62c04818c69eabf8caa7f6957ee'
@@ -364,6 +365,7 @@ model_artifact_bucket="$(bucket_observation "${MODEL_ARTIFACT_BUCKET}")"
 image_build_input_bucket="$(bucket_observation "${IMAGE_BUILD_INPUT_BUCKET}")"
 image_supply_chain_evidence_bucket="$(bucket_observation "${IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET}")"
 control_plane_state_bucket="$(bucket_observation "${CONTROL_PLANE_STATE_BUCKET}")"
+mask_bucket="$(bucket_observation "${MASK_BUCKET}")"
 
 repository_metadata="$(read_json_or_empty gcloud artifacts repositories describe \
   "${ARTIFACT_REPOSITORY}" --project="${PROJECT_ID}" \
@@ -392,6 +394,8 @@ image_supply_chain_evidence_bucket_policy="$(read_json_or_empty gcloud storage b
   "gs://${IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 control_plane_state_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
   "gs://${CONTROL_PLANE_STATE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
+mask_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
+  "gs://${MASK_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 gpu_worker_model_artifact_reader="$(policy_has_member_role \
   "${model_artifact_bucket_policy}" 'roles/storage.objectViewer' \
   "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
@@ -415,6 +419,18 @@ api_control_plane_creator="$(policy_has_member_role \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
 api_control_plane_reader="$(policy_has_member_role \
   "${control_plane_state_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+gpu_worker_mask_reader="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
+gpu_worker_mask_creator="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectCreator' \
+  "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
+api_mask_reader="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+api_mask_creator="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectCreator' \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
 
 signing_key_metadata="$(read_json_or_empty gcloud kms keys describe \
@@ -530,6 +546,7 @@ jq -n \
   --argjson imageBuildInputBucket "${image_build_input_bucket}" \
   --argjson imageSupplyChainEvidenceBucket "${image_supply_chain_evidence_bucket}" \
   --argjson controlPlaneStateBucket "${control_plane_state_bucket}" \
+  --argjson maskBucket "${mask_bucket}" \
   --argjson gpuWorkerModelArtifactReader "${gpu_worker_model_artifact_reader}" \
   --argjson imageBuilderBuildInputReader "${image_builder_build_input_reader}" \
   --argjson apiBuildInputCreator "${api_build_input_creator}" \
@@ -538,6 +555,10 @@ jq -n \
   --argjson apiSupplyChainEvidenceReader "${api_supply_chain_evidence_reader}" \
   --argjson apiControlPlaneCreator "${api_control_plane_creator}" \
   --argjson apiControlPlaneReader "${api_control_plane_reader}" \
+  --argjson gpuWorkerMaskReader "${gpu_worker_mask_reader}" \
+  --argjson gpuWorkerMaskCreator "${gpu_worker_mask_creator}" \
+  --argjson apiMaskReader "${api_mask_reader}" \
+  --argjson apiMaskCreator "${api_mask_creator}" \
   --argjson artifactRepository "${artifact_repository}" \
   --argjson signingKey "${signing_key}" \
   --argjson cloudBuildCanUseBuilder "${cloud_build_can_use_builder}" \
@@ -607,6 +628,21 @@ jq -n \
     },
     artifactRepository: $artifactRepository,
     imageSigningKey: $signingKey,
+    trackAllMaskQaPrivateObjectTransport: {
+      bucket: $maskBucket,
+      gpuWorkerObjectReader: $gpuWorkerMaskReader,
+      gpuWorkerObjectCreator: $gpuWorkerMaskCreator,
+      apiObjectReader: $apiMaskReader,
+      apiObjectCreator: $apiMaskCreator,
+      mountPath: "/mnt/reeditpro",
+      ready: (
+        $maskBucket.ready
+        and $gpuWorkerMaskReader
+        and $gpuWorkerMaskCreator
+        and $apiMaskReader
+        and $apiMaskCreator
+      )
+    },
     retiredLegacyVisualRuntime: {
       matchingJobs: $legacyVisualJobs,
       matchingServices: $legacyVisualServices,

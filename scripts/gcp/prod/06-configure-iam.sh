@@ -135,6 +135,8 @@ done
 grant_bucket_role source-media "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role previews "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role final-exports "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
+grant_bucket_role masks "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_bucket_role masks "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
 grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator

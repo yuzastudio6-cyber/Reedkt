@@ -37,6 +37,29 @@ const runtimeConfigurationRepository =
     expectedPrivateObjectBucketName:
       'reeditpro-production-reeditpro-masks',
   })
+const productionMaskQaImageDigest =
+  `sha256:${sha256AuthorityValue({
+    image: 'weeditpro-track-all-l4-task-qa-immutable-production',
+  })}` as const
+const productionMaskQaImageRef = {
+  id: 'weeditpro-track-all-l4-task-qa-immutable-image',
+  version: 1,
+  contentHash: productionMaskQaImageDigest,
+}
+const productionMaskQaReleasePayload = {
+  ...maskQaRelease,
+  serviceAccountEmail:
+    'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
+  immutableImageUri:
+    `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa@${productionMaskQaImageDigest}`,
+  immutableImageRef: productionMaskQaImageRef,
+  immutableImageDigest: productionMaskQaImageDigest,
+}
+Reflect.deleteProperty(productionMaskQaReleasePayload, 'configurationHash')
+const productionMaskQaRelease = {
+  ...productionMaskQaReleasePayload,
+  configurationHash: sha256AuthorityValue(productionMaskQaReleasePayload),
+}
 
 const image = createCanonicalTrackAllSam31L4TaskQaImageQualification({
   schemaVersion:
@@ -52,9 +75,9 @@ const image = createCanonicalTrackAllSam31L4TaskQaImageQualification({
   sourceRevision: sha1('track-all-l4-task-qa-source-revision'),
   sourceTreeHash: sha1('track-all-l4-task-qa-source-tree'),
   sourceWorktreeClean: true,
-  immutableImageRef: maskQaRelease.immutableImageRef,
-  immutableImageUri: maskQaRelease.immutableImageUri,
-  immutableImageDigest: maskQaRelease.immutableImageDigest,
+  immutableImageRef: productionMaskQaRelease.immutableImageRef,
+  immutableImageUri: productionMaskQaRelease.immutableImageUri,
+  immutableImageDigest: productionMaskQaRelease.immutableImageDigest,
   baseImageRef: ref('track-all-l4-task-qa-base-image'),
   privateBuildCapsuleManifestRef: ref('track-all-l4-build-capsule'),
   requirementsLockRef: ref('track-all-l4-requirements-lock'),
@@ -108,7 +131,7 @@ const observation = createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
   observationId: 'track-all-l4-task-qa-deployment-observation-1',
   observationVersion: 1,
   imageQualificationRef,
-  release: maskQaRelease,
+  release: productionMaskQaRelease,
   privateObjectTransport,
   serviceIdentityObservationRef:
     ref('track-all-l4-service-identity-observation'),
@@ -147,7 +170,7 @@ assert.equal(await evidenceRepository.persistDeploymentObservationCreateOnly({
 
 const publisherInput = {
   imageQualificationRef,
-  runtimeReleaseRef: maskQaRelease.releaseRef,
+  runtimeReleaseRef: productionMaskQaRelease.releaseRef,
   evidenceRepository,
   runtimeConfigurationRepository,
   now: () => '2026-08-05T12:10:00.000Z',
@@ -160,7 +183,7 @@ assert.deepEqual(
   receipt,
 )
 assert.equal(receipt.disposition, 'created')
-assert.deepEqual(receipt.runtimeReleaseRef, maskQaRelease.releaseRef)
+assert.deepEqual(receipt.runtimeReleaseRef, productionMaskQaRelease.releaseRef)
 assert.deepEqual(receipt.privateObjectTransportRef,
   privateObjectTransport.transportRef)
 assert.equal(receipt.gpuJobStarted, false)
@@ -172,10 +195,10 @@ assert.equal((await publishCanonicalTrackAllSam31L4TaskQaRuntimeRelease(
 )).disposition, 'identical_replay')
 
 const crossedReleasePayload = {
-  ...maskQaRelease,
+  ...productionMaskQaRelease,
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/gpu/crossed-mask-qa@${
-      maskQaRelease.immutableImageDigest
+      productionMaskQaRelease.immutableImageDigest
     }`,
 }
 Reflect.deleteProperty(crossedReleasePayload, 'configurationHash')
@@ -206,8 +229,31 @@ await assert.rejects(
 const historicalSamTransport = structuredClone(maskQaPrivateTransport)
 assert.throws(() => createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
   ...crossedObservationPayload,
-  release: maskQaRelease,
+  release: productionMaskQaRelease,
   privateObjectTransport: historicalSamTransport,
+}))
+const wrongServiceReleasePayload = {
+  ...productionMaskQaRelease,
+  serviceAccountEmail:
+    'reeditpro-professional-gpu@reeditpro.iam.gserviceaccount.com',
+}
+Reflect.deleteProperty(wrongServiceReleasePayload, 'configurationHash')
+assert.throws(() => createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
+  ...crossedObservationPayload,
+  release: {
+    ...wrongServiceReleasePayload,
+    configurationHash: sha256AuthorityValue(wrongServiceReleasePayload),
+  },
+  privateObjectTransport,
+}))
+const wrongImageQualification = structuredClone(image)
+Reflect.deleteProperty(wrongImageQualification, 'qualificationHash')
+assert.throws(() => createCanonicalTrackAllSam31L4TaskQaImageQualification({
+  ...wrongImageQualification,
+  immutableImageUri:
+    `us-central1-docker.pkg.dev/reeditpro/gpu/wrong-image@${
+      productionMaskQaImageDigest
+    }`,
 }))
 
 await assert.rejects(
@@ -246,11 +292,12 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher',
-  checks: 41,
+  checks: 45,
   exactImmutableImageSupplyChainAndL4QualityEvidenceRequired: true,
   exactCloudRunL4GpuScaleZeroAndIamApiRereadRequired: true,
   separateSamReadAndL4TaskQaWriteRootsRequired: true,
   samModelArtifactAndL4QaArtifactCannotBeCast: true,
+  exactWorkerIdentityJobAndImageRepositoryRequired: true,
   exactCreateOnlyReplayAndRereadPassed: true,
   crossedImageStaleEvidenceAndTamperedReceiptRejected: true,
   identifierOnlyBoundedPublicationOperatorMounted: true,

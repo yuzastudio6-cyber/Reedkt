@@ -32,9 +32,11 @@ not call cloud-mutating scripts.
 7. `05-create-secret-placeholders.sh`
 8. `06-configure-iam.sh`
 9. `07-build-image-commands.sh` in a later image milestone
-10. `10-deploy-gpu-worker-job.example.sh` may define the two zero-idle L4
+10. `10-deploy-gpu-worker-job.example.sh` may define the three zero-idle L4
     jobs only from exact immutable image digests and a second exact
-    confirmation. Definition creation grants no execution authority.
+    confirmation: standard visual/media work, separately qualified SAM 3.1
+    fallback, and deterministic Track All mask QA. Definition creation grants
+    no execution authority.
 11. `15-retire-legacy-visual-runtimes.sh` only for the explicitly authorized
     Visual Intelligence cutover
 12. `16-audit-visual-intelligence-live-prerequisites.sh` at any later safe

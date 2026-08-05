@@ -39,6 +39,10 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_RUNTIME_RELEASE_EVIDENCE_REPO
 const OPERATION_ID = 'tool.kornia.refine_mask.v1' as const
 const ROUTE_ID = 'l4_standard_primary' as const
 const PRIVATE_BUCKET = 'reeditpro-production-reeditpro-masks' as const
+const GPU_WORKER_SERVICE_ACCOUNT =
+  'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com' as const
+const CLOUD_RUN_JOB_RESOURCE =
+  'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4' as const
 const DEFAULT_PREFIX =
   'private/track-all/sam3_1/v1/l4-task-qa/runtime-release-evidence'
 const MAXIMUM_RECORD_BYTES = 8 * 1024 * 1024
@@ -55,7 +59,7 @@ const evidenceRefSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 const immutableImageUriSchema = z.string().regex(
-  /^us-central1-docker\.pkg\.dev\/reeditpro\/[a-z0-9._-]+\/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$/u,
+  /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-track-all-l4-task-qa@sha256:[a-f0-9]{64}$/u,
 )
 
 const imageQualificationWithoutHashSchema = z.object({
@@ -170,10 +174,13 @@ const deploymentObservationWithoutHashSchema = z.object({
     || release.runtimeRegion !== 'us-central1'
     || release.executionTarget !== 'google_cloud_run_l4_job'
     || release.accelerator !== 'nvidia_l4'
+    || release.serviceAccountEmail !== GPU_WORKER_SERVICE_ACCOUNT
+    || release.cloudRunJobResource !== CLOUD_RUN_JOB_RESOURCE
     || release.minimumIdleInstances !== 0
     || stableAuthorityStringify(release.fixedServerTaskContractRef)
       !== stableAuthorityStringify(fixedTask)
     || transport.privateBucketName !== PRIVATE_BUCKET
+    || transport.cloudRunJobResource !== CLOUD_RUN_JOB_RESOURCE
     || transport.routeId !== release.routeId
     || transport.cloudRunJobResource !== release.cloudRunJobResource
     || stableAuthorityStringify(transport.transportRef)

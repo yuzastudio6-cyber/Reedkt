@@ -47,6 +47,29 @@ const unknown = await unknownTransport.execute({
 })
 check(unknown.status === 'unknown_outcome', 'Lyria 5xx must remain an unknown outcome requiring reconciliation.')
 
+let rejectionSummary = ''
+const rejectedTransport = new GoogleLyria3InteractionsTransport({
+  getAccessToken: async () => 'fixture-token-not-a-secret',
+  fetchImplementation: async () => new Response(JSON.stringify({
+    error: {
+      status: 'INVALID_ARGUMENT',
+      message: 'Rejected https://provider.invalid for owner@example.com with eyJsecret-token-value-that-must-not-leak.',
+      details: [{ reason: 'MODEL_NOT_AVAILABLE' }],
+    },
+  }), { status: 400 }),
+  onRejectedResponse: (summary) => { rejectionSummary = JSON.stringify(summary) },
+})
+const rejected = await rejectedTransport.execute({
+  endpoint, request, idempotencyKey: 'music-live-transport-rejected', timeoutMilliseconds: 5_000,
+})
+check(rejected.status === 'failed' && rejected.failureCode === 'http_400_model_not_available',
+  'Lyria deterministic provider rejection must preserve a safe exact failure reason.')
+check(rejectionSummary.includes('MODEL_NOT_AVAILABLE') && rejectionSummary.includes('[redacted-url]') &&
+  rejectionSummary.includes('[redacted-email]') && rejectionSummary.includes('[redacted-token]') &&
+  !rejectionSummary.includes('provider.invalid') && !rejectionSummary.includes('owner@example.com') &&
+  !rejectionSummary.includes('eyJsecret'),
+  'Lyria rejection diagnostics must preserve useful status without leaking sensitive values.')
+
 let unsafeEndpointRejected = false
 try {
   await successTransport.execute({
@@ -65,4 +88,5 @@ console.log(JSON.stringify({
   tokenNotReturned: true,
   outputBytesDecoded: success.candidates[0].bytes.byteLength,
   unknownOutcomePreserved: true,
+  rejectedResponseSafelyClassified: true,
 }, null, 2))

@@ -185,7 +185,12 @@ const briefBase = {
 }
 const brief = createMusicCompositionBrief(briefBase)
 const provider = new CanonicalLyria3ProviderAdapter({
-  transport: new GoogleLyria3InteractionsTransport({ getAccessToken: accessToken }),
+  transport: new GoogleLyria3InteractionsTransport({
+    getAccessToken: accessToken,
+    onRejectedResponse: (summary) => {
+      console.error(JSON.stringify({ event: 'lyria_provider_rejection', ...summary }))
+    },
+  }),
   attempts: new PrivateFileMusicProviderAttemptStore(root),
   artifacts, projectId,
   liveEvidence: {

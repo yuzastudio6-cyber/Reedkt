@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type {
   Lyria3InteractionRequest,
   LyriaProviderCandidateBytes,
@@ -8,6 +9,14 @@ import { LYRIA_3_PROVIDER_PROFILE } from './lyria-provider'
 
 const MAX_LYRIA_RESPONSE_BYTES = 32 * 1024 * 1024
 const PROJECT_ENDPOINT = /^\/v1beta1\/projects\/[a-z][a-z0-9-]{4,62}[a-z0-9]\/locations\/global\/interactions$/u
+
+export interface LyriaProviderRejectionSummary {
+  httpStatus: number
+  providerStatus?: string
+  providerReason?: string
+  safeMessage?: string
+  responseHash: string
+}
 
 type LyriaInteractionOutput = {
   type?: unknown
@@ -20,6 +29,57 @@ type LyriaInteractionResponse = {
   id?: unknown
   status?: unknown
   outputs?: unknown
+}
+
+function safeProviderToken(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !/^[A-Z][A-Z0-9_]{2,63}$/u.test(value)) return undefined
+  return value
+}
+
+function redactProviderMessage(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined
+  const redacted = value
+    .replace(/https?:\/\/\S+/giu, '[redacted-url]')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/giu, '[redacted-email]')
+    .replace(/\b(?:ya29\.|eyJ)[A-Za-z0-9._-]+\b/gu, '[redacted-token]')
+    .replace(/\b[A-Za-z0-9_-]{48,}\b/gu, '[redacted-identifier]')
+    .replace(/[\u0000-\u001f\u007f]+/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim()
+  return redacted ? redacted.slice(0, 320) : undefined
+}
+
+export function summarizeLyriaProviderRejection(input: {
+  httpStatus: number
+  responseText: string
+}): LyriaProviderRejectionSummary {
+  let providerStatus: string | undefined
+  let providerReason: string | undefined
+  let safeMessage: string | undefined
+  try {
+    const body = JSON.parse(input.responseText) as { error?: unknown }
+    const error = body.error && typeof body.error === 'object'
+      ? body.error as { status?: unknown; message?: unknown; details?: unknown }
+      : undefined
+    providerStatus = safeProviderToken(error?.status)
+    safeMessage = redactProviderMessage(error?.message)
+    if (Array.isArray(error?.details)) {
+      for (const detail of error.details) {
+        if (!detail || typeof detail !== 'object') continue
+        providerReason = safeProviderToken((detail as { reason?: unknown }).reason)
+        if (providerReason) break
+      }
+    }
+  } catch {
+    // A malformed provider error is still represented by its hash and HTTP status.
+  }
+  return {
+    httpStatus: input.httpStatus,
+    providerStatus,
+    providerReason,
+    safeMessage,
+    responseHash: createHash('sha256').update(input.responseText).digest('hex'),
+  }
 }
 
 function exactEndpoint(value: string): URL {
@@ -73,13 +133,16 @@ function decodeAudioOutput(output: LyriaInteractionOutput, index: number): Lyria
 export class GoogleLyria3InteractionsTransport implements LyriaTransport {
   readonly #getAccessToken: () => Promise<string>
   readonly #fetch: typeof fetch
+  readonly #onRejectedResponse?: (summary: LyriaProviderRejectionSummary) => void
 
   constructor(input: {
     getAccessToken: () => Promise<string>
     fetchImplementation?: typeof fetch
+    onRejectedResponse?: (summary: LyriaProviderRejectionSummary) => void
   }) {
     this.#getAccessToken = input.getAccessToken
     this.#fetch = input.fetchImplementation ?? fetch
+    this.#onRejectedResponse = input.onRejectedResponse
   }
 
   async execute(input: {
@@ -118,9 +181,13 @@ export class GoogleLyria3InteractionsTransport implements LyriaTransport {
         return { status: 'failed', candidates: [], actualCostUsd: 0, failureCode: 'response_too_large' }
       }
       if (!response.ok) {
+        const rejection = summarizeLyriaProviderRejection({ httpStatus: response.status, responseText: text })
+        this.#onRejectedResponse?.(rejection)
+        const providerCode = rejection.providerReason ?? rejection.providerStatus
         return {
           status: response.status >= 500 ? 'unknown_outcome' : 'failed',
-          candidates: [], actualCostUsd: 0, failureCode: `http_${response.status}`,
+          candidates: [], actualCostUsd: 0,
+          failureCode: `http_${response.status}${providerCode ? `_${providerCode.toLowerCase()}` : ''}`,
         }
       }
       const body = JSON.parse(text) as LyriaInteractionResponse

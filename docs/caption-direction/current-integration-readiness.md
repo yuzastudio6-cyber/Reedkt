@@ -85,6 +85,14 @@ These are internal end-to-end qualification gates. Public SaaS production,
 customer rollout, billing activation, and the central Orchestra are not needed
 for the target terminal status.
 
+## One source-only verification command
+
+`npm run smoke:captions-specialist-source-integration-aggregate` runs the
+historical CAP-01 through CAP-20 checks plus the current routing, owner bridge,
+canonical execution, postrender reread, per-job readiness, and terminal
+qualification service regressions. It deliberately starts no media, model, or
+Docker runtime and cannot claim the terminal private qualification status.
+
 ## Files changed
 
 - `src/types/caption-current-integration-readiness.ts`
@@ -95,6 +103,7 @@ for the target terminal status.
 - `server/captions-specialist/caption-terminal-qualification-v2.ts`
 - `server/smoke/captions-specialist-current-integration-readiness-smoke.ts`
 - `server/smoke/captions-specialist-current-job-readiness-smoke.ts`
+- `server/smoke/captions-specialist-source-integration-aggregate-smoke.ts`
 - `server/smoke/captions-specialist-terminal-qualification-smoke.ts`
 - this report
 

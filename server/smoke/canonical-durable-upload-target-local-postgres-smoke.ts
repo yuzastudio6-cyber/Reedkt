@@ -51,8 +51,14 @@ const ownerB = '22222222-2222-4222-8222-222222222222'
 const workspaceA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const workspaceB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const projectA = 'aaaaaaaa-1000-4000-8000-000000000001'
-const createdAt = '2026-07-29T15:00:00.000Z'
-const expiresAt = '2026-07-29T15:15:00.000Z'
+// Keep credential-expiry fixtures relative to the executing database clock. Fixed
+// calendar dates turn this durable-authority smoke into a time bomb once the date
+// passes and the escrow correctly refuses already-expired credentials.
+const fixtureEpochMs = Date.now()
+const createdAt = new Date(fixtureEpochMs - 60_000).toISOString()
+const expiresAt = new Date(fixtureEpochMs + 14 * 60_000).toISOString()
+const expiringAt = new Date(fixtureEpochMs + 60_000).toISOString()
+const expiredReadAt = new Date(fixtureEpochMs + 2 * 60_000).toISOString()
 const authorizationEvidenceHash = hash('authorized-user-a')
 const localEscrowKeyMaterial = Buffer.from(
   hashCanonicalUploadTargetValue({ fixture: 'local-envelope-key-v1' }),
@@ -389,7 +395,7 @@ assert.equal(
 
 const expiringCandidate = candidateFor(
   'expiring',
-  '2026-07-29T15:01:00.000Z',
+  expiringAt,
 )
 const expiringResult = await resolveCanonicalUploadIntentAndTarget({
   port: authorityA.port,
@@ -406,7 +412,7 @@ const expiringEscrowIdentity = {
   uploadIntentId: expiringResult.intent.uploadIntentId,
   attemptId: expiringResult.issuanceAttemptId,
 }
-escrowClock = '2026-07-29T15:02:00.000Z'
+escrowClock = expiredReadAt
 const expiryRecoveryEscrow = createEscrow(ownerA, jwtSecret)
 assert.equal(await expiryRecoveryEscrow.escrow.read(expiringEscrowIdentity), undefined)
 assert.equal(await expiryRecoveryEscrow.escrow.read(expiringEscrowIdentity), undefined)

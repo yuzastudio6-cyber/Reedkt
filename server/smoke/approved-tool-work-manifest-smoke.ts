@@ -47,6 +47,11 @@ const snapshot = createApprovedPlanSnapshot({
   plan: createMockEditPlan(plannerInput),
   projectId: 'approved-tool-work-manifest-smoke-project',
 })
+// This smoke owns the approved tool-work manifest boundary. Keep its fixture
+// independent from the separately tested professional-skill model-role trace so
+// a retired planning provider cannot turn it into an unrelated routing test.
+const executionSnapshot = structuredClone(snapshot) as ApprovedPlanSnapshot
+delete executionSnapshot.professionalSkillPlan
 const workspaceId = 'approved-tool-work-manifest-smoke-workspace'
 const creditReservationId = 'approved-tool-work-manifest-smoke-reservation'
 const sharedFfmpegProfile = getProductionToolProfile('ffmpeg')
@@ -54,10 +59,10 @@ const sharedFfmpegQaPolicy = getToolQAPolicy('ffmpeg')
 assert.ok(sharedFfmpegProfile)
 assert.equal(Object.isFrozen(sharedFfmpegProfile.inputTypes), false)
 assert.equal(Object.isFrozen(sharedFfmpegQaPolicy.gateTypes), false)
-const manifest = createApprovedToolWorkManifest({ workspaceId, approvedSnapshot: snapshot, creditReservationId })
+const manifest = createApprovedToolWorkManifest({ workspaceId, approvedSnapshot: executionSnapshot, creditReservationId })
 const blankScopeManifest = createApprovedToolWorkManifest({
   workspaceId: ' ',
-  approvedSnapshot: snapshot,
+  approvedSnapshot: executionSnapshot,
   creditReservationId: ' ',
 })
 
@@ -136,13 +141,13 @@ assert.throws(
 
 const executionPackage = createApprovedEditExecutionPackage({
   workspaceId,
-  approvedSnapshot: snapshot,
+  approvedSnapshot: executionSnapshot,
   creditReservationId,
 })
 assert.equal(executionPackage.toolWorkManifest.manifestId, manifest.manifestId)
 assert.equal(executionPackage.agentCallReady, true)
 
-const invalidSnapshot = structuredClone(snapshot) as ApprovedPlanSnapshot
+const invalidSnapshot = structuredClone(executionSnapshot) as ApprovedPlanSnapshot
 const invalidToolStrategyItem = invalidSnapshot.toolStrategyPlan?.items[0]
 assert.ok(invalidToolStrategyItem, 'Fixture should include a tool strategy item for fail-closed coverage.')
 invalidToolStrategyItem.segmentId = 'orphan-segment-for-fail-closed-smoke'

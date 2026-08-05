@@ -2,10 +2,27 @@ import { z } from 'zod'
 
 import { editSkillArtifactReferenceSchema, skillFrameRangeSchema } from '../core/skill-assignment-schema'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
-import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
+import { skillIdentitySchema, skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
 import { skillQaFindingSchema } from '../core/skill-qa-registry'
+import {
+  TRACK_ALL_ACCEPTED_ARTIFACT_TYPES,
+  TRACK_ALL_PRODUCED_ARTIFACT_TYPES,
+} from './track-all-artifact-types'
 
 const safeId = z.string().trim().min(1).max(180)
+const trackAllJobTypes = new Set([
+  'track_all.plan_assignment', 'track_all.produce_selected_target_graph',
+  'track_all.produce_concept_instance_graph',
+  'track_all.produce_scene_geometry_graph', 'track_all.track_planar_region',
+  'track_all.apply_privacy_redaction', 'track_all.apply_tracked_focus',
+  'track_all.prepare_tracked_reframe', 'track_all.repair_track',
+  'track_all.validate_track_graph', 'track_all.prepare_composition_layer',
+  'track_all.integrate_preview', 'track_all.no_action',
+])
+const trackAllArtifactTypes = new Set<string>([
+  ...TRACK_ALL_ACCEPTED_ARTIFACT_TYPES,
+  ...TRACK_ALL_PRODUCED_ARTIFACT_TYPES,
+])
 const unit = z.number().min(0).max(1)
 const normalizedBox = z.object({ x: unit, y: unit, width: unit, height: unit }).strict().superRefine((value, context) => {
   if (value.width <= 0 || value.height <= 0 || value.x + value.width > 1 || value.y + value.height > 1) {
@@ -48,13 +65,97 @@ export const trackAllContextManifestSchema = addressed(z.object({
   sceneContextRef: typedRef('track_all_scene_context_v1'), readOnlyContext: z.literal(true),
 }).strict())
 
+const trackAllAtomicWorkItemCoreSchema = z.object({
+  schemaVersion: z.literal('track_all_atomic_work_item_v1'),
+  workItemKey: safeId,
+  stageId: skillIdentitySchema,
+  parentJobType: skillIdentitySchema,
+  operationId: skillIdentitySchema,
+  workerClass: skillIdentitySchema,
+  authorizedRange: skillFrameRangeSchema,
+  dependencyKeys: z.array(safeId).max(100),
+  inputArtifactTypes: z.array(skillIdentitySchema).max(100),
+  outputArtifactType: skillIdentitySchema,
+  maximumCreditBudget: z.number().int().nonnegative().max(100_000),
+  maximumAttempts: z.number().int().min(1).max(3),
+  required: z.boolean(),
+  qaLineageKeys: z.array(skillIdentitySchema).min(1).max(100),
+  privateOutputRequired: z.boolean(),
+  createsMedia: z.boolean(),
+  createsGpuWork: z.boolean(),
+  callerSelectedExecutableAllowed: z.literal(false),
+  automaticRetryAllowed: z.literal(false),
+  alternateModelFallbackAllowed: z.literal(false),
+  mutatesOnlyAuthorizedRange: z.literal(true),
+}).strict()
+
+export const trackAllAtomicWorkItemSchema = trackAllAtomicWorkItemCoreSchema.extend({
+  workItemHash: skillSha256Schema,
+}).strict().superRefine((value, context) => {
+  const { workItemHash, ...core } = value
+  if (hashSkillValue(core) !== workItemHash) {
+    context.addIssue({ code: 'custom', message: 'Track All atomic work-item hash is stale or forged.' })
+  }
+  if (!trackAllJobTypes.has(value.parentJobType)) {
+    context.addIssue({ code: 'custom', message: 'Track All atomic work item has an unknown parent job.' })
+  }
+  if (
+    !trackAllArtifactTypes.has(value.outputArtifactType) ||
+    value.inputArtifactTypes.some((artifactType) => !trackAllArtifactTypes.has(artifactType))
+  ) context.addIssue({ code: 'custom', message: 'Track All atomic work item references an unknown artifact type.' })
+})
+
 export const trackAllWorkGraphArtifactSchema = addressed(z.object({
   schemaVersion: z.literal('track_all_work_graph_v1'), ...lineageFields,
+  assignmentRef: typedRef('track_all_assignment_v1'),
   approvedSnapshotHash: skillSha256Schema, planningQaReportHash: skillSha256Schema,
+  executionDisposition: z.enum(['selected', 'no_action']),
+  maximumCreditBudget: z.number().int().nonnegative().max(100_000),
+  atomicWorkItems: z.array(trackAllAtomicWorkItemSchema).min(1).max(10_000),
   workItemHashes: z.array(skillSha256Schema).min(1).max(10_000),
   dependencyRequestHashes: z.array(skillSha256Schema).max(100),
   callerSelectedExecutableAllowed: z.literal(false), outsideAuthorizedRangeModified: z.literal(false),
-}).strict())
+}).strict()).superRefine((value, context) => {
+  const keys = new Set(value.atomicWorkItems.map((item) => item.workItemKey))
+  const order = new Map(value.atomicWorkItems.map((item, index) => [item.workItemKey, index]))
+  if (keys.size !== value.atomicWorkItems.length) {
+    context.addIssue({ code: 'custom', message: 'Track All atomic work-item keys must be unique.' })
+  }
+  if (
+    value.assignmentRef.ownerUserId !== value.ownerUserId ||
+    value.assignmentRef.workspaceId !== value.workspaceId ||
+    value.assignmentRef.projectId !== value.projectId ||
+    new Set(value.dependencyRequestHashes).size !== value.dependencyRequestHashes.length
+  ) context.addIssue({ code: 'custom', message: 'Track All work graph has invalid assignment or dependency lineage.' })
+  if (
+    hashSkillValue(value.workItemHashes) !==
+    hashSkillValue(value.atomicWorkItems.map((item) => item.workItemHash))
+  ) context.addIssue({ code: 'custom', message: 'Track All work graph has stale atomic item hashes.' })
+  let totalCredits = 0
+  for (const item of value.atomicWorkItems) {
+    totalCredits += item.maximumCreditBudget
+    if (
+      canonicalRange(item.authorizedRange) !== canonicalRange(value.authorizedRange) ||
+      item.dependencyKeys.some((dependency) =>
+        !keys.has(dependency) || (order.get(dependency) ?? Number.MAX_SAFE_INTEGER) >=
+          (order.get(item.workItemKey) ?? -1))
+    ) context.addIssue({ code: 'custom', message: `Track All atomic work item ${item.workItemKey} has invalid range or dependency.` })
+    if (item.stageId === 'no_action' && (item.createsMedia || item.createsGpuWork)) {
+      context.addIssue({ code: 'custom', message: 'Track All no-action work cannot create media or GPU work.' })
+    }
+  }
+  if (totalCredits > value.maximumCreditBudget) {
+    context.addIssue({ code: 'custom', message: 'Track All atomic work exceeds the approved credit ceiling.' })
+  }
+  if (value.executionDisposition === 'no_action' && value.atomicWorkItems.some((item) =>
+    item.createsMedia || item.createsGpuWork || item.operationId.includes('sam3_1'))) {
+    context.addIssue({ code: 'custom', message: 'Track All no-action graph contains media or GPU work.' })
+  }
+})
+
+function canonicalRange(value: z.infer<typeof skillFrameRangeSchema>): string {
+  return `${value.startFrameInclusive}:${value.endFrameExclusive}:${value.fps}`
+}
 
 export const trackSampleSequenceSchema = addressed(z.object({
   schemaVersion: z.literal('track_sample_sequence_v1'), ...lineageFields, trackId: safeId,

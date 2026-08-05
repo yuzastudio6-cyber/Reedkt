@@ -139,6 +139,7 @@ const editSkillApprovedWorkGraphCoreSchema = z.object({
   approval: editSkillPlanApprovalSchema,
   pluginWorkGraphType: skillIdentitySchema,
   pluginWorkGraphHash: skillSha256Schema,
+  pluginWorkGraphRef: editSkillArtifactReferenceSchema.optional(),
   workItems: z.array(editSkillPublicWorkItemSchema).min(1).max(1_000),
   dependencyRequests: z.array(editSkillDependencyRequestSchema).max(100),
   outsideAuthorizedRangeModified: z.literal(false),
@@ -159,6 +160,15 @@ export const editSkillApprovedWorkGraphSchema = editSkillApprovedWorkGraphCoreSc
     if (item.dependencyKeys.some((dependencyKey) => !workItemKeys.has(dependencyKey))) {
       context.addIssue({ code: 'custom', message: `Work item ${item.workItemKey} has an unknown dependency.` })
     }
+  }
+  if (value.pluginWorkGraphRef && (
+    value.pluginWorkGraphRef.artifactType !== value.pluginWorkGraphType ||
+    value.pluginWorkGraphRef.sha256 !== value.pluginWorkGraphHash
+  )) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Approved work graph does not bind its exact plugin graph artifact.',
+    })
   }
 })
 

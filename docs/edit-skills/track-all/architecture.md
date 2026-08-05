@@ -126,6 +126,16 @@ automatic repair is allowed, a second needs exact manual authority, and a
 third is rejected. Post-repair acceptance requires fresh independently passed
 QA. See `qa-and-repair.md`.
 
+## Canonical work graph and runtime bindings
+
+TRACK-15 persists the exact `track_all_work_graph_v1` artifact and binds its
+reference into the generic approved public graph. This exposes the atomic
+route dependencies to the future orchestra without exposing private runtime
+modules. Every supported manifest job has one exact internal-fixture binding;
+canonical-private bindings require an injected executor and durable private
+authority, while production bindings remain absent. See
+`canonical-work-graph-and-bindings.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

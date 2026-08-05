@@ -41,7 +41,10 @@ import {
   visualIntelligenceTargetEvidenceSchema,
   type TrackAllPlan,
 } from './track-all-schemas'
-import { compileTrackAllPublicWorkItems, trackAllPublicWorkGraphHash } from './track-all-work-graph'
+import {
+  compileTrackAllCanonicalWorkGraph,
+  compileTrackAllPublicWorkItems,
+} from './track-all-work-graph'
 
 function same(left: unknown, right: unknown): boolean { return hashSkillValue(left) === hashSkillValue(right) }
 function scope(assignment: SkillAssignment) { return { ownerUserId: assignment.ownerUserId, workspaceId: assignment.workspaceId, projectId: assignment.projectId } }
@@ -98,11 +101,26 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const approval = editSkillPlanApprovalSchema.parse(input.approval)
     if (approval.assignmentId !== assignment.assignmentId || approval.assignmentHash !== assignment.assignmentHash || approval.planId !== input.plan.envelope.planId || approval.planHash !== input.plan.envelope.planHash || !same(approval.manifestRef, assignment.manifestRef) || !same(approval.authorizedRange, assignment.authorizedRange)) throw new Error('Track All work graph requires exact plan approval.')
     const workItems = compileTrackAllPublicWorkItems({ assignment, plan })
+    const authority = await this.#loadAuthority(assignment)
+    const pluginGraph = compileTrackAllCanonicalWorkGraph({
+      assignment,
+      plan,
+      approvalHash: approval.approvalHash,
+      dependencyRequestHashes: input.plan.dependencyRequests.map((request) => request.requestHash),
+      sourceSha256: authority.sourceFrames.sourceChecksum,
+    })
+    const pluginWorkGraphRef = await this.#artifacts.putJson({
+      artifactType: 'track_all_work_graph_v1',
+      value: pluginGraph,
+      ...scope(assignment),
+    })
     return createEditSkillApprovedWorkGraph({
       schemaVersion: 'edit-skill-approved-work-graph-v1', assignmentId: assignment.assignmentId,
       assignmentHash: assignment.assignmentHash, planId: input.plan.envelope.planId, planHash: input.plan.envelope.planHash,
       manifestRef: assignment.manifestRef, authorizedRange: assignment.authorizedRange, approval,
-      pluginWorkGraphType: 'track_all_work_graph_v1', pluginWorkGraphHash: trackAllPublicWorkGraphHash({ plan, workItems }),
+      pluginWorkGraphType: 'track_all_work_graph_v1',
+      pluginWorkGraphHash: pluginWorkGraphRef.sha256,
+      pluginWorkGraphRef,
       workItems, dependencyRequests: input.plan.dependencyRequests, outsideAuthorizedRangeModified: false,
     })
   }

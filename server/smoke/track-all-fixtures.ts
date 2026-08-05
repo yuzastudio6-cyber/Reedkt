@@ -82,6 +82,9 @@ export async function createTrackAllAuthorityFixture(input: {
   deterministicToolsAllowed?: boolean
   editorialExclusions?: readonly string[]
   targetExcludeRules?: readonly string[]
+  privacyClassification?: 'none' | 'personal' | 'sensitive' | 'child' | 'high_assurance'
+  targetCriticality?: 'normal' | 'important' | 'privacy_critical'
+  privacyCriticality?: 'none' | 'normal' | 'high'
 }): Promise<TrackAllAuthorityFixture> {
   const scope = TRACK_ALL_FIXTURE_SCOPE
   const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
@@ -159,11 +162,17 @@ export async function createTrackAllAuthorityFixture(input: {
     includeRules: ['selected target only'], excludeRules: [...(input.targetExcludeRules ?? [])],
     expectedMinimumCount: input.expectedMinimumCount ?? 1,
     expectedMaximumCount: input.expectedMaximumCount ?? 1,
-    privacyClassification: 'none', targetCriticality: 'normal',
+    privacyClassification: input.privacyClassification ?? 'none',
+    targetCriticality: input.targetCriticality ?? 'normal',
     initializationFramePreference: input.groundingFrame ?? authorizedRange.startFrameInclusive,
-    occlusionPolicy: 'hold_and_reacquire',
+    occlusionPolicy: input.targetCriticality === 'privacy_critical'
+      ? 'conservative_cover'
+      : 'hold_and_reacquire',
     reentryPolicy: 'confidence_qualified_reacquisition', crossShotPolicy: 'terminate',
-    lostTrackBehavior: 'manual_review', ambiguityBehavior: 'request_user_selection',
+    lostTrackBehavior: input.targetCriticality === 'privacy_critical'
+      ? 'conservative_cover'
+      : 'manual_review',
+    ambiguityBehavior: 'request_user_selection',
     treatmentIntent: input.intendedTreatment === 'no_action' || !input.intendedTreatment
       ? 'geometry_only'
       : input.intendedTreatment,
@@ -197,9 +206,12 @@ export async function createTrackAllAuthorityFixture(input: {
       targetDescription: 'Approved anonymous selected object.',
       intendedTreatment: input.intendedTreatment ?? 'no_action',
       viewerBenefit: 'Preserve clear and private visual storytelling.',
-      privacyCriticality: 'none', forbiddenTargets: [], expectedCount: input.expectedCount ?? 1,
+      privacyCriticality: input.privacyCriticality ?? 'none',
+      forbiddenTargets: [], expectedCount: input.expectedCount ?? 1,
       exclusions: [...(input.editorialExclusions ?? [])],
-      uncertaintyBehavior: 'request_selection',
+      uncertaintyBehavior: input.targetCriticality === 'privacy_critical'
+        ? 'conservative_cover'
+        : 'request_selection',
     },
     permissions: {
       analysisOnlyAllowed: true, directTreatmentAllowed: true,

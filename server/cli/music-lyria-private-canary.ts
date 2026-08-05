@@ -82,9 +82,9 @@ const root = await mkdtemp(join(tmpdir(), 'reeditpro-private-lyria-canary-'))
 const projectId = process.env.GOOGLE_CLOUD_PROJECT!
 const range: MusicFrameRange = { rangeId: 'private-canary-range', startFrame: 0, endFrameExclusive: 720 }
 const timelineRate = { numerator: 24, denominator: 1 }
-const timelineHash = sha('private-lyria-canary-timeline-v1')
+const timelineHash = sha('private-lyria-canary-timeline-v2')
 const request = parseCanonicalMusicRequest({
-  schemaVersion: 'canonical-music-request-v1', requestId: 'music-private-lyria-canary', requestVersion: '1.0.0',
+  schemaVersion: 'canonical-music-request-v2', requestId: 'music-private-lyria-canary', requestVersion: '2.0.0',
   caller: {
     callerType: 'head_of_orchestra', callerSkillKey: 'head_of_orchestra', callerSkillVersion: 'future-contract-v1',
     parentWorkItemId: 'music-private-canary-work-item', authorityRef: 'music-private-canary-authority', ancestorSkillKeys: [],
@@ -109,6 +109,10 @@ const request = parseCanonicalMusicRequest({
     },
     timelineRate, parentAuthorityRef: 'music-private-canary-authority', parentAuthorityHash: sha('private-canary-authority'),
   },
+  projectBinding: {
+    projectId: 'music-private-canary-project', workspaceId: 'music-private-canary-workspace',
+    ownerUserId: 'music-private-canary-user', platformIds: ['private-canary'],
+  },
   contextRefs: {},
   contextEvidence: [{
     evidenceId: 'music-private-canary-synthetic-evidence', evidenceType: 'synthetic_provider_canary', version: 1,
@@ -120,6 +124,7 @@ const request = parseCanonicalMusicRequest({
     maximumCueChangesPerMinute: 2, customDirectives: ['Synthetic instrumental provider canary; no customer media or personal data.'],
   },
   inputAssetRefs: [], referenceMusicRefs: [], rightsAndProvenanceRefs: [],
+  cueConstraints: { requestedCues: [], lockedCueIds: [], allowMusicToCombineUnlockedCues: false },
   proposedCues: [{
     cueId: 'music-private-canary-cue', exactRange: range, sceneIds: ['synthetic-canary-scene'], boundaryIds: [],
     narrativeFunction: 'hold_continuity', currentStoryState: 'synthetic neutral', targetStoryState: 'synthetic neutral',
@@ -155,7 +160,7 @@ const briefBase = {
   approvalRef: request.approvedSnapshotRef.snapshotId,
 }
 const brief = createMusicCompositionBrief(briefBase)
-const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v1', '1.0.0')
+const route = getMusicToolRouteManifest('music.route.generate.original.lyria.v2', '2.0.0')
 if (!route) throw new Error('Canonical Lyria route is unavailable.')
 const provider = new CanonicalLyria3ProviderAdapter({
   transport: new GoogleLyria3InteractionsTransport({ getAccessToken: accessToken }),

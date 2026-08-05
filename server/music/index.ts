@@ -1,11 +1,9 @@
-export * from './lyria-provider'
-export * from './lyria-live-transport'
-export * from './music-analysis'
 export * from './music-contracts'
-export * from './music-qa'
-export * from './music-scope-guard'
-export * from './music-sound-support-port'
-export * from './music-supervision'
-export * from './music-sync'
-export * from './music-tool-capability-manifests'
-export * from './music-tool-routes'
+export type {
+  MusicSoundCapabilityView,
+  MusicSoundCapabilityViewRequest,
+  MusicSoundSupportEstimate,
+  MusicSoundSupportPort,
+  MusicSoundSupportQaRequest,
+  MusicSoundSupportQaResult,
+} from './music-sound-support-port'

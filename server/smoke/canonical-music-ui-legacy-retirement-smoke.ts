@@ -33,6 +33,37 @@ for (const file of canonicalFiles) {
   }
 }
 
+const publicMusicBarrel = await readFile(resolve(root, 'server/edit-skills/music/index.ts'), 'utf8')
+for (const forbiddenExport of [
+  'music-admission',
+  'music-execution-graph',
+  'music-operation-handler-registry',
+  'music-route-executor',
+  'music-legacy-compatibility-adapter',
+  'lyria-provider',
+  'music-tool-routes',
+]) {
+  check(!publicMusicBarrel.includes(forbiddenExport),
+    `Public Music barrel must not expose internal authority ${forbiddenExport}.`)
+}
+check(publicMusicBarrel.trim() === "export * from './canonical-music-skill-service'",
+  'Public Music barrel must expose only the canonical Music service boundary.')
+
+const musicDomainBarrel = await readFile(resolve(root, 'server/music/index.ts'), 'utf8')
+for (const forbiddenExport of [
+  'lyria-provider',
+  'lyria-live-transport',
+  'music-analysis',
+  'music-scope-guard',
+  'music-supervision',
+  'music-sync',
+  'music-tool-capability-manifests',
+  'music-tool-routes',
+]) {
+  check(!musicDomainBarrel.includes(forbiddenExport),
+    `Music contract barrel must not expose execution implementation ${forbiddenExport}.`)
+}
+
 const activeUi = await readFile(resolve(root, 'src/components/editor/music/MusicPlanChatFlow.tsx'), 'utf8')
 check(!activeUi.includes('createMusicChatUiData'), 'Active Music UI must not use the Lake Como mock fixture.')
 check(!activeUi.includes('setTimeout'), 'Active Music UI must not simulate provider progress.')

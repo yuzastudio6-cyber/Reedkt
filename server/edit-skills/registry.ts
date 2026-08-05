@@ -10,7 +10,8 @@ import { SkillQualificationRegistry } from './core/skill-qualification-registry'
 import { registerBrollSkill } from './b-roll'
 import { StandaloneCanonicalSoundSkillService } from './sound'
 import { registerSoundSkill } from './sound/sound-shared-kernel-registration'
-import { StandaloneCanonicalMusicSkillService, registerMusicSkill } from './music'
+import { StandaloneCanonicalMusicSkillService } from './music'
+import { registerMusicSkill } from './music/music-shared-kernel-registration'
 
 export const editSkillCapabilityRegistry = new SkillCapabilityRegistry()
 export const editSkillEstimatorRegistry = new SkillEstimatorRegistry()

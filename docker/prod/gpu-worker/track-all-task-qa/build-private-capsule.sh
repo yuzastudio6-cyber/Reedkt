@@ -434,9 +434,9 @@ readonly UNCOMPRESSED_TAR="${WORK}/track-all-l4-task-qa-build-source.tar"
   cd "${WORK}/build-source"
   find . -type f -printf '%P\0' \
     | sort -z \
-    | tar --create --null --files-from=- --no-recursion \
-        --format=ustar --mtime='@0' --owner=0 --group=0 --numeric-owner \
-        --file="${UNCOMPRESSED_TAR}"
+    | tar --create --format=ustar --mtime='@0' \
+        --owner=0 --group=0 --numeric-owner --no-recursion \
+        --file="${UNCOMPRESSED_TAR}" --null --files-from=-
 )
 gzip --no-name --best "${UNCOMPRESSED_TAR}"
 readonly ARCHIVE="${UNCOMPRESSED_TAR}.gz"

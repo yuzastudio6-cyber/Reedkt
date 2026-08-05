@@ -69,6 +69,7 @@ for (const expected of [
   'weeditpro-track-all-sam3_1-l4-task-qa-private-build-capsule-v1',
   '--format=ustar',
   "--mtime='@0'",
+  '--file="${UNCOMPRESSED_TAR}" --null --files-from=-',
   'gzip --no-name --best',
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 

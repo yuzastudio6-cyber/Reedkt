@@ -2873,3 +2873,10 @@ route, receipt, artifact, SAM gate, cross-skill, and GitHub evidence. The head
 orchestra, global scheduler, Visual Intelligence implementation, Track All
 production worker, Caption runtime, public delivery, billing, and final export
 were not implemented or activated.
+
+TRACK-36 freeze publication commit
+`05673400af794849d409fad8ede81eb502160171` was pushed with
+`git push -u origin HEAD`; `origin/codex/track-all-skill-end-to-end` reread as
+that exact SHA. This ledger follow-up changes documentation only and does not
+change the frozen source tree, manifest, authority set, qualification receipt,
+route status, or exact-head GitHub evidence above.

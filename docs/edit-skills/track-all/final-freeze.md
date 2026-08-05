@@ -317,9 +317,10 @@ of `ffmpeg`/`ffprobe` availability or `ENOENT`.
   `7ffbd85107b0ec5d035d0ebe0f933bfdbbf7bf34`
 - TRACK-35 portable-caption B-Roll evidence:
   `aa8f7dc627e8369f7049d7472e59505f8604213f`
+- TRACK-36 activation-ready freeze publication:
+  `05673400af794849d409fad8ede81eb502160171`
 
-TRACK-36 commit and remote confirmation are recorded in
-`implementation-progress.md` after the freeze commit is published.
+TRACK-36 remote confirmation is recorded in `implementation-progress.md`.
 
 ## Frozen status
 

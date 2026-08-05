@@ -25,6 +25,8 @@ import {
   parseCanonicalCaptionSpecialistPlanningProjection,
   prepareCanonicalCaptionSpecialistPlanningProjection,
 } from '../captions-specialist/caption-canonical-work-planning'
+import { createCanonicalApprovedWorkGraphResourcePlacementAuthority } from
+  '../edit-architecture/canonical-private-resource-placement-authority'
 import { CAPTION_DESIGN_COMPOSITE } from
   '../captions-specialist/caption-design-composite'
 import { createCaptionEarlyPlanningBundle } from
@@ -380,6 +382,33 @@ check(selected.workItems.every((item) =>
   && item.maximumCreditBudget === 0
   && item.approvedToolIds.length === 0),
 'Canonical Caption planning jobs must not smuggle tool, provider, or cost authority.')
+const selectedResourcePlacement =
+  createCanonicalApprovedWorkGraphResourcePlacementAuthority({
+    workItems: selected.workItems.map((item) => ({
+      ...item,
+      approvedToolOperationIds: [],
+    })),
+    tools: [],
+  })
+check(selectedResourcePlacement.placements.every((placement) =>
+  placement.canonicalWorkerClass === 'canonical_caption_specialist_worker_v1'
+  && placement.workerType === 'cpu_analysis_worker'
+  && placement.placementSource === 'tool_free_control_plane_policy'
+  && placement.privateExecutionReady
+  && placement.providerExecutionMode === 'none'
+  && placement.approvedToolIds.length === 0
+  && placement.approvedToolOperationIds.length === 0),
+'Canonical Caption planning jobs must receive exact tool-free private CPU placement.')
+check(selectedResourcePlacement.summary.totalWorkItemCount ===
+  selected.workItems.length
+  && selectedResourcePlacement.summary.privatelyExecutableWorkItemCount ===
+    selected.workItems.length
+  && selectedResourcePlacement.summary.blockedWorkItemCount === 0
+  && selectedResourcePlacement.boundaries.privateInternalOnly
+  && !selectedResourcePlacement.boundaries.cloudDispatchAuthorized
+  && !selectedResourcePlacement.boundaries.customerBillingAuthorized
+  && !selectedResourcePlacement.boundaries.productionExecutionAuthorized,
+'Caption placement must cover every planning job while preserving closed authority.')
 check(selected.workItems[0]?.dependencyKeys[0] === 'snapshot-validation',
   'Caption planning must remain downstream of exact snapshot validation.')
 check(selected.workItems.some((item) =>
@@ -397,9 +426,9 @@ assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
   selected.workItems,
 )
 checks += 1
-check(canonicalCaptionSpecialistMissingApprovalGates(selected.projection)
+check(canonicalCaptionSpecialistMissingApprovalGates(
+  selected.projection ?? undefined)
   .join('|') === [
-    'caption_postapproval_artifact_execution',
     'caption_rendered_media_work_binding',
     'canonical_postrender_visual_qa_lifecycle_writer_and_result',
     'canonical_caption_independent_private_review_binding',
@@ -458,7 +487,8 @@ assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
   restrained.workItems,
 )
 checks += 1
-check(canonicalCaptionSpecialistMissingApprovalGates(restrained.projection)
+check(canonicalCaptionSpecialistMissingApprovalGates(
+  restrained.projection ?? undefined)
   .length === 0,
 'Owner-approved no_captions restraint must not create Caption approval gates.')
 

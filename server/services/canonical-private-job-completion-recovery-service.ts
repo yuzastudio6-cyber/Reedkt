@@ -1,5 +1,13 @@
 import { createHash } from 'node:crypto'
 
+import {
+  CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-specialist-execution'
+import {
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS,
+  CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+} from '../../src/types/living-frame-canonical-work-graph-projection'
 import { ApiError } from '../errors/api-error'
 import {
   readPrivateFileIfExistsWithinRoot,
@@ -527,7 +535,22 @@ function assertRecoveryInput(input: RecoverCanonicalPrivateJobCompletionInput): 
           operationId: 'internal.validate_approved_source_trim_plan.v1',
           runnerClass: 'canonical_source_trim_validation_runner_v1',
         }
-      : undefined
+      : input.readiness.job.workerClass ===
+          CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORKER_CLASS
+        ? {
+            operationId:
+              CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
+            runnerClass:
+              'canonical_living_frame_layer_manifest_runner_v1',
+          }
+        : input.readiness.job.workerClass ===
+            CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS
+          ? {
+              operationId: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+              runnerClass:
+                'canonical_caption_specialist_planning_runner_v1',
+            }
+          : undefined
   const provenCatalogIdentity = input.canonicalToolId
     ? listProvenToolIdentityCatalog().find((record) =>
         record.canonicalToolId === input.canonicalToolId)

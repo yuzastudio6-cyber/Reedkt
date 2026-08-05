@@ -103,6 +103,7 @@ The governing workflow invariant remains:
 - [Current Caption integration readiness](current-integration-readiness.md)
 - [Terminal private-qualification gate](terminal-private-qualification-gate.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
+- [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
 - [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended
@@ -312,6 +313,13 @@ boundaries are source-complete, while actual authenticated integrations,
 backend execution, complete-time visual review, independent final QA, and the
 terminal per-job projection remain explicitly open. See
 [`current-integration-readiness.md`](./current-integration-readiness.md).
+
+The canonical job adapter now executes completed Caption planning assignments
+through the approved package, lease, private artifact QA, and reconciliation
+owners. Missing owner evidence remains an HQ-mediated wait and cannot become a
+completed manifest asset. This closes the postapproval planning-artifact gate
+without claiming rendered Caption media or final visual QA. See
+[`canonical-postapproval-planning-execution.md`](./canonical-postapproval-planning-execution.md).
 
 The provider-neutral Visual Intelligence spatial companion now has a strict
 Caption consumer and a typed specialist-runtime admission path. The runtime

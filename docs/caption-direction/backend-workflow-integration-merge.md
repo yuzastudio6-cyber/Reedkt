@@ -102,12 +102,14 @@ speaker. A real internal run must supply the already-completed canonical
 worker's private word-timing reader before speaker-independent Caption jobs can
 claim authenticated transcript execution evidence.
 
-This does not claim the final internal status. The canonical planner still has
-to publish exact Caption work items into real approved plans, and the complete
-private path still needs actual worker-backed transcript projection, persisted
-Visual Intelligence, Track All, SoundSync, B-roll, complete-time visual-review,
-and independent private-review evidence before the terminal projection can be
-created.
+This does not claim the final internal status. The canonical planner now
+publishes exact Caption planning work, and the canonical private job adapter
+can commit completed planning receipts through the shared lease, manifest,
+artifact-QA, and reconciliation owners. The complete private path still needs
+actual rendered-caption media work, the qualified postrender visual-review
+writer/result lifecycle, and independent private-review evidence before the
+terminal projection can be created. Transcript and specialist-owner evidence
+remain fail-closed whenever their exact authenticated records are unavailable.
 
 This is an internal-testing integration base, not a public or production SaaS
 release.

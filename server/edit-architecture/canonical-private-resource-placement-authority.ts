@@ -21,6 +21,8 @@ import {
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import { CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS } from
+  '../../src/types/canonical-caption-specialist-execution'
 import type {
   CanonicalToolExecutionAuthority,
 } from './canonical-tool-execution-authority'
@@ -926,6 +928,9 @@ function toolFreeWorkerType(
     return 'api_service'
   }
   if (workerClass === 'provider_worker') return 'cpu_analysis_worker'
+  if (workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS) {
+    return 'cpu_analysis_worker'
+  }
   if (workerClass === 'qa_worker' || workItemType === 'run_final_qa' ||
     workItemType === 'run_asset_qa' || workItemType === 'run_timing_qa') {
     return 'qa_worker'

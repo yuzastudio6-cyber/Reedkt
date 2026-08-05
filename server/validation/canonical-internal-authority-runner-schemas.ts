@@ -25,6 +25,7 @@ export const runCanonicalInternalAuthorityJobSchema = z.object({
     'execute_canonical_internal_authority_validation',
     'execute_canonical_internal_source_trim_validation',
     'execute_canonical_internal_living_frame_layer_manifest',
+    'execute_canonical_internal_caption_specialist_planning',
   ]),
 }).strict()
 
@@ -39,11 +40,13 @@ export const canonicalInternalAuthorityRunnerResponseSchema = z.object({
     'canonical_internal_authority_validation_runner',
     'canonical_internal_source_trim_validation_runner',
     'canonical_internal_living_frame_layer_manifest_runner',
+    'canonical_internal_caption_specialist_planning_runner',
   ]),
   purpose: z.enum([
     'execute_canonical_internal_authority_validation',
     'execute_canonical_internal_source_trim_validation',
     'execute_canonical_internal_living_frame_layer_manifest',
+    'execute_canonical_internal_caption_specialist_planning',
   ]),
   identity: z.object({
     workspaceId: safeIdentitySchema,
@@ -72,11 +75,13 @@ export const canonicalInternalAuthorityRunnerResponseSchema = z.object({
       'canonical_authority_validation_runner_v1',
       'canonical_source_trim_validation_runner_v1',
       'canonical_living_frame_layer_manifest_runner_v1',
+      'canonical_caption_specialist_planning_runner_v1',
     ]),
     operation: z.enum([
       'validate_snapshot_manifest',
       'validate_approved_source_trim_plan',
       'compile_approved_living_frame_remotion_layer_manifest',
+      'internal.run_approved_caption_specialist_job.v1',
     ]),
     actualInternalOperationCompleted: z.literal(true),
     externalToolExecuted: z.literal(false),

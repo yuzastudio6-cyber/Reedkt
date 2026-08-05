@@ -9,6 +9,10 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
+  CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-specialist-execution'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
@@ -36,7 +40,10 @@ import {
   type ExecuteCanonicalPrivateJobAdapterBody,
 } from '../validation/canonical-private-job-execution-adapter-schemas'
 import type { CanonicalExecutionReadinessEnvelope } from '../validation/canonical-execution-readiness-schemas'
-import { createCanonicalInternalAuthorityRunnerService } from './canonical-internal-authority-runner-service'
+import {
+  createCanonicalInternalAuthorityRunnerService,
+  prepareCanonicalCaptionPlanningExecution,
+} from './canonical-internal-authority-runner-service'
 import { createCanonicalPrivateAiCapabilityExecutionService } from './canonical-private-ai-capability-execution-service'
 import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from './canonical-private-audioflux-analysis-execution-service'
 import { createCanonicalPrivateBrowserGraphicsExecutionService } from './canonical-private-browser-graphics-execution-service'
@@ -245,10 +252,17 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         workItem.workItemType === 'prepare_remotion_layer' &&
         workItem.executionInput.operation ===
           CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION
+      const internalCaptionSpecialistJob =
+        workItem.approvedToolIds.length === 0 &&
+        workItem.workItemType === 'custom' &&
+        workItem.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS &&
+        workItem.executionInput.operation ===
+          CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION
       const internalServerJob =
         internalAuthorityJob ||
         internalSourceTrimJob ||
-        internalLivingFrameLayerJob
+        internalLivingFrameLayerJob ||
+        internalCaptionSpecialistJob
       let resolvedProvenTool: ReturnType<typeof getProvenEndToEndToolIdentity>
       if (!internalServerJob) {
         if (workItem.approvedToolIds.length !== 1) {
@@ -277,14 +291,18 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
       }
       const canonicalToolId = internalServerJob ? null : resolvedProvenTool!.canonicalToolId
       const operationId = internalServerJob
-        ? internalLivingFrameLayerJob
+        ? internalCaptionSpecialistJob
+          ? CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION
+          : internalLivingFrameLayerJob
           ? 'internal.compile_approved_living_frame_remotion_layer_manifest.v1'
           : internalSourceTrimJob
             ? 'internal.validate_approved_source_trim_plan.v1'
             : 'internal.validate_snapshot_manifest.v1'
         : resolvedProvenTool!.operationId
       const runnerClass = internalServerJob
-        ? internalLivingFrameLayerJob
+        ? internalCaptionSpecialistJob
+          ? 'canonical_caption_specialist_planning_runner_v1'
+          : internalLivingFrameLayerJob
           ? 'canonical_living_frame_layer_manifest_runner_v1'
           : internalSourceTrimJob
             ? 'canonical_source_trim_validation_runner_v1'
@@ -404,6 +422,15 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           throw adapterFailureError(failure, originalError)
         }
       }
+      if (internalCaptionSpecialistJob) {
+        await prepareCanonicalCaptionPlanningExecution({
+          context,
+          actorUserId,
+          workspaceId: body.workspaceId,
+          authority,
+          jobId,
+        })
+      }
       const stageKey = (stage: string) => `job-adapter:${stage}:${sha256(`${idempotencyKey}\u0000${jobId}`).slice(0, 48)}`
       const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
       const claim = (await leaseService.claim({
@@ -496,7 +523,9 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
             editSessionId: body.editSessionId,
             jobId,
             expectedAssetId: expectedAsset.id,
-            purpose: internalLivingFrameLayerJob
+            purpose: internalCaptionSpecialistJob
+              ? 'execute_canonical_internal_caption_specialist_planning'
+              : internalLivingFrameLayerJob
               ? 'execute_canonical_internal_living_frame_layer_manifest'
               : internalSourceTrimJob
                 ? 'execute_canonical_internal_source_trim_validation'

@@ -174,7 +174,6 @@ export interface CanonicalCaptionPlanningProjectionWorkItem {
 }
 
 export const CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES = [
-  'caption_postapproval_artifact_execution',
   'caption_rendered_media_work_binding',
   'canonical_postrender_visual_qa_lifecycle_writer_and_result',
   'canonical_caption_independent_private_review_binding',

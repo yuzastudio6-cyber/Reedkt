@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 
 import {
   CAPTION_CURRENT_INTEGRATION_READINESS,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2,
   parseCaptionCurrentIntegrationReadiness,
+  parseCaptionCurrentIntegrationReadinessV2,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
@@ -120,18 +122,58 @@ const cyclic = structuredClone(readiness) as unknown as Record<string, unknown>
 cyclic.cycle = cyclic
 expectThrow(() => parseCaptionCurrentIntegrationReadiness(cyclic))
 
+const readinessV2 = parseCaptionCurrentIntegrationReadinessV2(
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2)
+check(readinessV2.currentStatus
+  === 'source_integration_complete_waiting_on_private_runtime_evidence'
+  && readinessV2.supersedesReadinessRef.contentHash
+    === readiness.readinessDigestSha256,
+'V2 advances the source-mount truth while preserving the frozen V1 checkpoint.')
+check(readinessV2.counts.canonicalSharedOwnerSourceMounts === 5
+  && readinessV2.counts.canonicalBackendExecutionMounts === 1
+  && readinessV2.counts.postrenderAndPrivateReviewSourceMounts === 2
+  && readinessV2.counts.terminalProjectionContractsPublished === 1
+  && readinessV2.counts.actualAuthenticatedPrivateSharedOwnerIntegrations === 0,
+'V2 distinguishes completed source mounts from missing actual private evidence.')
+check(readinessV2.gapStates.length === 9
+  && readinessV2.gapStates.every((gap) =>
+    gap.captionSourceImplementationComplete
+    && gap.canonicalSourceMountImplemented
+    && !gap.actualCanonicalOwnerRecordConsumed
+    && gap.blocksTerminalStatus),
+'Every source gap is closed while every corresponding evidence gate stays closed.')
+check(readinessV2.currentEvidence.canonicalTranscriptExecutionMountImplemented
+  && readinessV2.currentEvidence.visualIntelligenceSupportResumeMountImplemented
+  && readinessV2.currentEvidence.trackAllSupportResumeMountImplemented
+  && readinessV2.currentEvidence.soundSyncSupportResumeMountImplemented
+  && readinessV2.currentEvidence.brollSupportResumeMountImplemented
+  && readinessV2.currentEvidence.canonicalBackendPrivateExecutionMountImplemented
+  && readinessV2.currentEvidence.terminalPerJobProjectionContractPublished,
+'The complete Caption source integration surface is represented exactly.')
+const v2Overclaim = structuredClone(readinessV2) as unknown as
+  Record<string, unknown>
+const v2Evidence = v2Overclaim.currentEvidence as Record<string, unknown>
+v2Evidence.actualPrivateOwnerRuntimeEvidenceConsumed = true
+expectThrow(() => parseCaptionCurrentIntegrationReadinessV2(
+  redigest(v2Overclaim)))
+
 console.log(JSON.stringify({
   smoke: 'captions_specialist_current_integration_readiness',
   assertions,
-  readinessVersion: readiness.schemaVersion,
-  readinessDigestSha256: readiness.readinessDigestSha256,
+  historicalReadinessVersion: readiness.schemaVersion,
+  readinessVersion: readinessV2.schemaVersion,
+  readinessDigestSha256: readinessV2.readinessDigestSha256,
   captionOwnedSharedOwnerBoundariesComplete:
     readiness.counts.captionOwnedSharedOwnerBoundariesComplete,
   strictAuthenticatedMultiOwnerSourceFixturePaths:
     readiness.counts.strictAuthenticatedMultiOwnerSourceFixturePaths,
   actualAuthenticatedPrivateSharedOwnerIntegrations:
-    readiness.counts.actualAuthenticatedPrivateSharedOwnerIntegrations,
-  remainingTerminalGaps: readiness.counts.remainingTerminalGaps,
-  terminalStatusClaimed: readiness.terminalStatusClaimed,
+    readinessV2.counts.actualAuthenticatedPrivateSharedOwnerIntegrations,
+  canonicalSharedOwnerSourceMounts:
+    readinessV2.counts.canonicalSharedOwnerSourceMounts,
+  canonicalBackendExecutionMounts:
+    readinessV2.counts.canonicalBackendExecutionMounts,
+  remainingTerminalGaps: readinessV2.counts.remainingPrivateEvidenceGaps,
+  terminalStatusClaimed: readinessV2.terminalStatusClaimed,
   result: 'passed',
 }, null, 2))

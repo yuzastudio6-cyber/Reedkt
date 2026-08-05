@@ -38,7 +38,7 @@ import {
   calculateSkillContractDigest,
 } from '../orchestra/orchestra-skill-contracts'
 import {
-  CAPTION_CURRENT_INTEGRATION_READINESS,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
@@ -118,9 +118,9 @@ const inputWithoutDigest: Omit<CaptionTerminalQualificationEvidenceInput,
     approvedSnapshotRef: ref('private.caption.qualification.snapshot'),
   },
   sourceCurrentReadinessRef: refFrom(
-    CAPTION_CURRENT_INTEGRATION_READINESS.readinessId,
-    CAPTION_CURRENT_INTEGRATION_READINESS.schemaVersion,
-    CAPTION_CURRENT_INTEGRATION_READINESS.readinessDigestSha256),
+    CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessId,
+    CAPTION_CURRENT_INTEGRATION_READINESS_V2.schemaVersion,
+    CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessDigestSha256),
   sourcePrivateReleaseRef: structuredClone(
     CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT.sourceCap20ReleaseRef),
   integrationManifestRef: refFrom(

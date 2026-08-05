@@ -47,7 +47,7 @@ import { assertClosedContractTree } from
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 import {
-  CAPTION_CURRENT_INTEGRATION_READINESS,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2,
 } from './caption-current-integration-readiness'
 import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
@@ -310,9 +310,9 @@ function verifyDigest(
 }
 
 const currentReadinessRef = ref(
-  CAPTION_CURRENT_INTEGRATION_READINESS.readinessId,
-  CAPTION_CURRENT_INTEGRATION_READINESS.schemaVersion,
-  CAPTION_CURRENT_INTEGRATION_READINESS.readinessDigestSha256)
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessId,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2.schemaVersion,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessDigestSha256)
 const privateReleaseRef = structuredClone(
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT.sourceCap20ReleaseRef)
 const integrationManifestRef = ref(

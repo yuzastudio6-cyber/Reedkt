@@ -1,0 +1,124 @@
+name: Track All Skill QA
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/track-all-skill-qa.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/shared/assignment-authorities/**'
+      - 'server/edit-skills/shared/track-graph/**'
+      - 'server/edit-skills/track-all/**'
+      - 'server/edit-skills/b-roll/b-roll-edit-skill-plugin.ts'
+      - 'server/edit-skills/b-roll/b-roll-tracking-support-bridge.ts'
+      - 'server/model-artifacts/canonical-sam3_1*'
+      - 'server/tool-execution/media-binary-execution/**'
+      - 'server/tool-execution/python-runner-execution/**'
+      - 'server/tool-execution/remotion-render-execution/**'
+      - 'server/workers/masks/canonical-sam3_1*'
+      - 'server/smoke/track-all-*'
+      - 'server/smoke/b-roll-public-plugin-e2e-smoke.ts'
+      - 'server/smoke/b-roll-track-support-integration.ts'
+      - 'docker/prod/gpu-worker/sam3_1/**'
+      - 'docker/prod/offline-python-structured-execution/**'
+      - 'docker/prod/offline-remotion-render-execution/**'
+      - 'docs/edit-skills/manifests/track-all-capability-manifest.generated.json'
+  push:
+    branches:
+      - main
+      - master
+      - 'codex/**'
+    paths:
+      - '.github/workflows/track-all-skill-qa.yml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/shared/assignment-authorities/**'
+      - 'server/edit-skills/shared/track-graph/**'
+      - 'server/edit-skills/track-all/**'
+      - 'server/edit-skills/b-roll/b-roll-edit-skill-plugin.ts'
+      - 'server/edit-skills/b-roll/b-roll-tracking-support-bridge.ts'
+      - 'server/model-artifacts/canonical-sam3_1*'
+      - 'server/tool-execution/media-binary-execution/**'
+      - 'server/tool-execution/python-runner-execution/**'
+      - 'server/tool-execution/remotion-render-execution/**'
+      - 'server/workers/masks/canonical-sam3_1*'
+      - 'server/smoke/track-all-*'
+      - 'server/smoke/b-roll-public-plugin-e2e-smoke.ts'
+      - 'server/smoke/b-roll-track-support-integration.ts'
+      - 'docker/prod/gpu-worker/sam3_1/**'
+      - 'docker/prod/offline-python-structured-execution/**'
+      - 'docker/prod/offline-remotion-render-execution/**'
+      - 'docs/edit-skills/manifests/track-all-capability-manifest.generated.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: track-all-skill-qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  track-all-skill-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install and verify media runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
+      - name: Verify committed manifest and receipts load normally
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run validate:skill-capability-manifests
+          npm run test:track-all-qualification-evidence
+          npm run test:b-roll-public-plugin
+
+      - name: Run evidence-backed Track All qualification
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: npm run qualify:track-all:internal
+
+      - name: Verify canonical-private public lifecycle after qualification
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+          REEDITPRO_TRACK_ALL_BROLL_ACCEPTANCE_MODE: actual_current_source_acceptance
+        run: |
+          npm run test:track-all-canonical-private-public-e2e
+          npm run test:track-all-producer-consumer-acceptance
+          npm run test:track-all-retirement
+          git diff --check
+
+      - name: Write Track All qualification summary
+        if: always()
+        run: |
+          {
+            echo "## Track All Skill QA"
+            echo ""
+            echo "- Validates the committed Track All and B-Roll qualification receipts before generating fresh run evidence."
+            echo "- Runs the exact 33-command Track All aggregate qualification, including canonical-private media, Remotion, security, retirement, and actual B-Roll consumer acceptance evidence."
+            echo "- Installs and verifies FFmpeg and FFprobe before any media-dependent test."
+            echo "- The SAM 3.1 real-private route remains fail-closed unless its separately gated checkpoint, image, GPU, quality, cost, and privacy evidence exists."
+            echo "- This workflow performs no paid provider/model call, public delivery, or production mutation."
+            echo "- Repository-wide UI/browser QA remains independent and is not skipped or weakened here."
+          } >> "$GITHUB_STEP_SUMMARY"

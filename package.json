@@ -233,6 +233,7 @@
     "smoke:sam3_1-google-cloud-runtime-configuration-publisher": "tsx server/smoke/canonical-sam3_1-google-cloud-runtime-configuration-publisher-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke.ts",
     "publish:sam3_1-google-cloud-runtime-configuration": "tsx server/cli/publish-sam3_1-google-cloud-runtime-configuration.ts",
+    "publish:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/cli/publish-track-all-sam3_1-l4-task-qa-runtime-release.ts",
     "smoke:canonical-specialist-support-resume": "tsx server/smoke/canonical-specialist-support-resume-service-smoke.ts",
     "smoke:canonical-caption-visual-intelligence-support": "tsx server/smoke/canonical-caption-visual-intelligence-support-service-smoke.ts",
     "smoke:canonical-caption-track-all-support": "tsx server/smoke/canonical-caption-track-all-support-service-smoke.ts",

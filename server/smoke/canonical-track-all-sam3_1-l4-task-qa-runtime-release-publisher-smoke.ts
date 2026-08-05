@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import type {
   CanonicalCreateOnlyJsonObjectPort,
@@ -222,15 +223,37 @@ assert.throws(() =>
   assertCanonicalTrackAllSam31L4TaskQaRuntimeReleaseReceipt(tamperedReceipt),
 )
 
+const cliSource = readFileSync(new URL(
+  '../cli/publish-track-all-sam3_1-l4-task-qa-runtime-release.ts',
+  import.meta.url,
+), 'utf8')
+const packageJson = JSON.parse(readFileSync(
+  new URL('../../package.json', import.meta.url),
+  'utf8',
+)) as { scripts?: Record<string, string> }
+assert.match(cliSource,
+  /createCanonicalTrackAllSam31L4TaskQaRuntimeReleaseEvidenceRepository/u)
+assert.match(cliSource,
+  /createCanonicalGcsProfessionalGoogleCloudGpuRuntimeConfigurationRepository/u)
+assert.doesNotMatch(cliSource,
+  /WEEDITPRO_TRACK_ALL_L4_TASK_QA_(?:IMAGE_URI|IMAGE_DIGEST|COMMAND|PATH|BUCKET)/u)
+assert.equal(
+  packageJson.scripts?.[
+    'publish:track-all-sam3_1-l4-task-qa-runtime-release'
+  ],
+  'tsx server/cli/publish-track-all-sam3_1-l4-task-qa-runtime-release.ts',
+)
+
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher',
-  checks: 36,
+  checks: 41,
   exactImmutableImageSupplyChainAndL4QualityEvidenceRequired: true,
   exactCloudRunL4GpuScaleZeroAndIamApiRereadRequired: true,
   separateSamReadAndL4TaskQaWriteRootsRequired: true,
   samModelArtifactAndL4QaArtifactCannotBeCast: true,
   exactCreateOnlyReplayAndRereadPassed: true,
   crossedImageStaleEvidenceAndTamperedReceiptRejected: true,
+  identifierOnlyBoundedPublicationOperatorMounted: true,
   runtimeModelDownloadAllowed: false,
   cpuOnlySubstantiveMaskQaAllowed: false,
   liveGpuJobStarted: false,

@@ -128,6 +128,8 @@ try {
   })
   const noActionResult = await noActionCoordinator.executeApprovedGraph()
   assert.equal(noActionResult.finalResult.envelope.disposition, 'use_no_action')
+  assert.equal(noActionResult.executionCounts.actualSamRequestCount, 0)
+  assert.equal(noActionResult.executionCounts.actualGpuExecutionCount, 0)
   assert.equal(noActionResult.workItemResults.some((result) =>
     result.mutationRanges.length > 0), false)
 
@@ -185,6 +187,8 @@ try {
   })
   const planarResult = await planarCoordinator.executeApprovedGraph()
   assert.equal(planarResult.finalResult.envelope.disposition, 'selected')
+  assert.equal(planarResult.executionCounts.executionEvidenceClass,
+    'deterministic_private_execution')
   assert.equal(planarResult.workItemResults.some((result) =>
     result.outputArtifactRefs.some((reference) =>
       reference.artifactType === 'planar_track_graph_v1')), true)

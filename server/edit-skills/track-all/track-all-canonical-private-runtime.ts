@@ -36,6 +36,7 @@ import { assertSkillAssignment } from '../core/skill-range-authority'
 import type { SkillAssignment } from '../core/skill-assignment-types'
 import {
   trackAllAtomicExecutionEvidenceSchema,
+  trackAllCanonicalPrivateExecutionCountsSchema,
   trackAllPublicWorkProjectionEvidenceSchema,
   trackAllWorkGraphArtifactSchema,
 } from './track-all-active-artifact-contracts'
@@ -58,6 +59,7 @@ export interface TrackAllCanonicalPrivateAtomicResult {
   dependencyOutputRefs: readonly EditSkillArtifactReference[]
   outputArtifactRef: EditSkillArtifactReference
   evidenceHashes: readonly string[]
+  executionCounts: TrackAllCanonicalPrivateExecutionCounts
   status: 'succeeded'
   startedAt: string
   completedAt: string
@@ -68,9 +70,48 @@ export interface TrackAllCanonicalPrivateOperationResult {
   outputArtifact: { artifactType: string; value: unknown }
   atomicResults: readonly TrackAllCanonicalPrivateAtomicResult[]
   actualToolOperationIds: readonly string[]
-  providerRequestCount: 0
-  actualSamRequestCount: 0
-  actualGpuExecutionCount: 0
+  executionCounts: TrackAllCanonicalPrivateExecutionCounts
+}
+
+export type TrackAllCanonicalPrivateExecutionCounts = z.infer<
+  typeof trackAllCanonicalPrivateExecutionCountsSchema
+>
+
+export function deterministicTrackAllCanonicalPrivateExecutionCounts():
+TrackAllCanonicalPrivateExecutionCounts {
+  return trackAllCanonicalPrivateExecutionCountsSchema.parse({
+    providerRequestCount: 0,
+    actualSamRequestCount: 0,
+    actualGpuExecutionCount: 0,
+    samSessionReceiptRefs: [],
+    samAttemptEvidenceRefs: [],
+    executionEvidenceClass: 'deterministic_private_execution',
+  })
+}
+
+export function aggregateTrackAllCanonicalPrivateExecutionCounts(
+  values: readonly TrackAllCanonicalPrivateExecutionCounts[],
+): TrackAllCanonicalPrivateExecutionCounts {
+  const parsed = values.map((value) =>
+    trackAllCanonicalPrivateExecutionCountsSchema.parse(value))
+  const samSessionReceiptRefs = parsed.flatMap((value) =>
+    value.samSessionReceiptRefs)
+  const samAttemptEvidenceRefs = parsed.flatMap((value) =>
+    value.samAttemptEvidenceRefs)
+  const actualSamRequestCount = parsed.reduce((total, value) =>
+    total + value.actualSamRequestCount, 0)
+  const actualGpuExecutionCount = parsed.reduce((total, value) =>
+    total + value.actualGpuExecutionCount, 0)
+  return trackAllCanonicalPrivateExecutionCountsSchema.parse({
+    providerRequestCount: 0,
+    actualSamRequestCount,
+    actualGpuExecutionCount,
+    samSessionReceiptRefs,
+    samAttemptEvidenceRefs,
+    executionEvidenceClass: actualSamRequestCount === 0
+      ? 'deterministic_private_execution'
+      : 'real_sam3_1_private_execution',
+  })
 }
 
 export interface TrackAllCanonicalPrivateExecutionPackage {
@@ -104,6 +145,10 @@ implements TrackAllCanonicalPrivateWorkExecutor {
   readonly #artifactStore: EditSkillArtifactStore
   readonly #results = new Map<string, SkillJobRuntimeAdapterResult>()
   readonly #atomicEvidenceRefs = new Map<string, EditSkillArtifactReference>()
+  readonly #executionCounts = new Map<
+    string,
+    TrackAllCanonicalPrivateExecutionCounts
+  >()
 
   constructor(input: {
     execution: TrackAllCanonicalPrivateExecutionPackage
@@ -134,9 +179,6 @@ implements TrackAllCanonicalPrivateWorkExecutor {
     })
     if (
       operation.outputArtifact.artifactType !== definition.output ||
-      operation.providerRequestCount !== 0 ||
-      operation.actualSamRequestCount !== 0 ||
-      operation.actualGpuExecutionCount !== 0 ||
       operation.atomicResults.length === 0
     ) throw new Error('Track All canonical operation returned unapproved output or execution authority.')
     const graphItems = new Map(this.#execution.pluginWorkGraph.atomicWorkItems.map((item) => [
@@ -159,9 +201,27 @@ implements TrackAllCanonicalPrivateWorkExecutor {
       ) throw new Error('Track All atomic result differs from the exact approved plugin graph.')
       return result
     })
+    const executionCounts = trackAllCanonicalPrivateExecutionCountsSchema.parse(
+      operation.executionCounts,
+    )
+    const derivedCounts = aggregateTrackAllCanonicalPrivateExecutionCounts(
+      atomicResults.map((result) => result.executionCounts),
+    )
+    if (
+      hashSkillValue(executionCounts) !== hashSkillValue(derivedCounts) ||
+      executionCounts.actualSamRequestCount >
+        this.#execution.plan.objectBudget.sessionCount ||
+      (!this.#execution.plan.samWorkPlanned &&
+        executionCounts.actualSamRequestCount !== 0) ||
+      (executionCounts.actualSamRequestCount > 0 &&
+        !this.#execution.pluginWorkGraph.atomicWorkItems.some((item) =>
+          item.operationId === 'tool.sam3_1.track_masklets.v2'))
+    ) throw new Error(
+      'Track All canonical execution accounting differs from exact atomic or session-plan authority.',
+    )
     const lineage = executionLineage(this.#execution)
     const evidenceCore = {
-      schemaVersion: 'track_all_atomic_execution_evidence_v1' as const,
+      schemaVersion: 'track_all_atomic_execution_evidence_v2' as const,
       ...lineage,
       approvedWorkGraphHash: this.#execution.approvedWorkGraph.approvedWorkGraphHash,
       pluginWorkGraphHash: this.#execution.pluginWorkGraph.artifactHash,
@@ -171,8 +231,7 @@ implements TrackAllCanonicalPrivateWorkExecutor {
       atomicResults,
       atomicWorkItemHashes: atomicResults.map((result) => result.workItemHash),
       actualToolOperationIds: [...new Set(operation.actualToolOperationIds)],
-      actualSamRequestCount: 0 as const,
-      actualGpuExecutionCount: 0 as const,
+      executionCounts,
       prePersistedOutputAccepted: false as const,
       privateArtifactsOnly: true as const,
       outsideAuthorizedRangeModified: false as const,
@@ -182,7 +241,7 @@ implements TrackAllCanonicalPrivateWorkExecutor {
       artifactHash: hashSkillValue(evidenceCore),
     })
     const atomicEvidenceRef = await this.#artifactStore.putJson({
-      artifactType: 'track_all_atomic_execution_evidence_v1',
+      artifactType: 'track_all_atomic_execution_evidence_v2',
       value: atomicEvidence,
       ...artifactScope(this.#execution.assignment),
     })
@@ -199,6 +258,7 @@ implements TrackAllCanonicalPrivateWorkExecutor {
       outputArtifacts: [operation.outputArtifact],
     }
     this.#atomicEvidenceRefs.set(invocation.workItemKey, atomicEvidenceRef)
+    this.#executionCounts.set(invocation.workItemKey, executionCounts)
     this.#results.set(invocation.workItemKey, result)
     return result
   }
@@ -207,6 +267,12 @@ implements TrackAllCanonicalPrivateWorkExecutor {
     const reference = this.#atomicEvidenceRefs.get(workItemKey)
     if (!reference) throw new Error('Track All atomic execution evidence is unavailable for public projection.')
     return reference
+  }
+
+  executionCounts(workItemKey: string): TrackAllCanonicalPrivateExecutionCounts {
+    const counts = this.#executionCounts.get(workItemKey)
+    if (!counts) throw new Error('Track All execution counts are unavailable for public projection.')
+    return counts
   }
 
   #assertInvocation(
@@ -319,11 +385,13 @@ export class TrackAllCanonicalPrivateExecutionCoordinator {
     workItemResults: readonly EditSkillWorkResult[]
     runtimeDispatchReceiptHashes: readonly string[]
     finalResult: EditSkillResultReceipt
+    executionCounts: TrackAllCanonicalPrivateExecutionCounts
   }> {
     const plugin = this.#runtime.pluginRegistry.resolve(this.#execution.assignment.manifestRef)
     const outputs = new Map<string, EditSkillArtifactReference[]>()
     const results: EditSkillWorkResult[] = []
     const runtimeDispatchReceiptHashes: string[] = []
+    const executionCounts: TrackAllCanonicalPrivateExecutionCounts[] = []
     for (const workItem of this.#execution.approvedWorkGraph.workItems) {
       const missingDependency = workItem.dependencyKeys.find((key) => !outputs.has(key))
       if (missingDependency) {
@@ -373,8 +441,9 @@ export class TrackAllCanonicalPrivateExecutionCoordinator {
         }))
       }
       const atomicExecutionEvidenceRef = this.#executor.atomicEvidenceRef(workItem.workItemKey)
+      const workExecutionCounts = this.#executor.executionCounts(workItem.workItemKey)
       const projectionCore = {
-        schemaVersion: 'track_all_public_work_projection_evidence_v1' as const,
+        schemaVersion: 'track_all_public_work_projection_evidence_v2' as const,
         ...executionLineage(this.#execution),
         approvedWorkGraphHash: this.#execution.approvedWorkGraph.approvedWorkGraphHash,
         publicWorkItemKey: workItem.workItemKey,
@@ -387,6 +456,7 @@ export class TrackAllCanonicalPrivateExecutionCoordinator {
         exactInputArtifactRefs,
         exactDependencyOutputRefs: dependencyOutputRefs.map((value) => value.reference),
         exactOutputArtifactRefs: outputArtifactRefs,
+        executionCounts: workExecutionCounts,
         outputCreatedByExecutingAdapter: true as const,
         callerQualificationAccepted: false as const,
         privateArtifactsOnly: true as const,
@@ -397,7 +467,7 @@ export class TrackAllCanonicalPrivateExecutionCoordinator {
         artifactHash: hashSkillValue(projectionCore),
       })
       const projectionRef = await this.#runtime.artifactStore.putJson({
-        artifactType: 'track_all_public_work_projection_evidence_v1',
+        artifactType: 'track_all_public_work_projection_evidence_v2',
         value: projection,
         ...artifactScope(this.#execution.assignment),
       })
@@ -432,6 +502,7 @@ export class TrackAllCanonicalPrivateExecutionCoordinator {
       outputs.set(workItem.workItemKey, [...validated.outputArtifactRefs])
       results.push(validated)
       runtimeDispatchReceiptHashes.push(outcome.receipt.receiptHash)
+      executionCounts.push(workExecutionCounts)
     }
     const finalResult = await plugin.finalizeSkillResult({
       assignment: this.#execution.assignment,
@@ -444,6 +515,9 @@ export class TrackAllCanonicalPrivateExecutionCoordinator {
       workItemResults: Object.freeze(results),
       runtimeDispatchReceiptHashes: Object.freeze(runtimeDispatchReceiptHashes),
       finalResult,
+      executionCounts: aggregateTrackAllCanonicalPrivateExecutionCounts(
+        executionCounts,
+      ),
     }
   }
 }

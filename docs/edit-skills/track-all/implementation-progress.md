@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_30_activation_bridge_audit_complete`
+Status: `track_31_execution_accounting_complete`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -2217,3 +2217,44 @@ An initial parallel media-baseline attempt was deliberately not counted as a
 test result because two commands raced the same create/remove build-context
 path. Both commands passed when rerun sequentially. No source change, model
 call, GPU execution, public artifact, production mutation, or charge occurred.
+
+TRACK-30 implementation commit
+`dee2d904849679bcdf2142823157cbc091995288` was pushed and the remote branch
+was reread at that exact SHA.
+
+## TRACK-31 — receipt-bound canonical-private execution accounting
+
+Status: complete; commit and remote confirmation are recorded by the next
+evidence-ledger commit.
+
+Implemented forward-only execution evidence V2 while preserving historical
+literal-zero V1 parsing. The new canonical accounting contract distinguishes
+`deterministic_private_execution` from `real_sam3_1_private_execution` and
+binds exact SAM request/GPU counts to exact real session-receipt and completed-
+attempt references. Deterministic stages retain strict zero counts and empty
+SAM evidence. Non-SAM atomic operations cannot report real SAM activity.
+
+The canonical executor now independently derives public counts from the exact
+atomic results, rejects aggregate mismatches, rejects counts beyond the
+approved plan session budget, rejects SAM activity in a non-SAM plan, and
+projects the same accounting into content-addressed atomic and public work
+evidence. The coordinator returns an exact whole-lifecycle aggregate. Replayed
+or duplicated receipt evidence fails closed instead of increasing counts.
+
+Actual validation:
+
+- `npm run test:track-all-canonical-private-accounting`: passed; deterministic
+  forgery, non-SAM activity, aggregate mismatch, and duplicate/replay evidence
+  were rejected; two distinct approved-style session records aggregated to
+  exactly two requests/two GPU executions;
+- `npm run test:track-all-artifact-contracts`: passed;
+- `npm run test:track-all-canonical-private-runtime`: passed with zero SAM/GPU
+  activity;
+- `npm run test:track-all-canonical-private-public-e2e`: passed all seven
+  public scenarios with deterministic V2 evidence and zero SAM/GPU activity;
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server`: passed;
+- focused ESLint over all changed TypeScript sources: passed;
+- `git diff --check`: passed.
+
+No real route receipt was registered, no SAM stage became executable, and no
+model, GPU, public artifact, production mutation, or credit action occurred.

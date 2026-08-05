@@ -31,6 +31,10 @@ import type {
   TrackAllCanonicalPrivateOperationDriver,
   TrackAllCanonicalPrivateOperationResult,
 } from '../track-all-canonical-private-runtime'
+import {
+  aggregateTrackAllCanonicalPrivateExecutionCounts,
+  deterministicTrackAllCanonicalPrivateExecutionCounts,
+} from '../track-all-canonical-private-runtime'
 import type { TrackAllPublicJobType } from '../track-all-work-graph'
 import {
   trackAllContextManifestSchema,
@@ -325,9 +329,9 @@ implements TrackAllCanonicalPrivateOperationDriver {
       atomicResults: results,
       actualToolOperationIds: [...new Set(results.flatMap((result) =>
         this.#atomicToolOperations.get(result.workItemKey) ?? []))],
-      providerRequestCount: 0,
-      actualSamRequestCount: 0,
-      actualGpuExecutionCount: 0,
+      executionCounts: aggregateTrackAllCanonicalPrivateExecutionCounts(
+        results.map((result) => result.executionCounts),
+      ),
     }
   }
 
@@ -384,6 +388,7 @@ implements TrackAllCanonicalPrivateOperationDriver {
       dependencyOutputRefs: dependencies.map((value) => value.outputArtifactRef),
       outputArtifactRef,
       evidenceHashes: [...new Set([...stage.evidenceHashes, operationEvidenceHash])],
+      executionCounts: deterministicTrackAllCanonicalPrivateExecutionCounts(),
       status: 'succeeded',
       startedAt,
       completedAt,

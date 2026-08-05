@@ -57,6 +57,8 @@ export const TRACK_ALL_PRODUCED_ARTIFACT_TYPES = [
   'track_all_result_receipt_v1',
   'track_all_atomic_execution_evidence_v1',
   'track_all_public_work_projection_evidence_v1',
+  'track_all_atomic_execution_evidence_v2',
+  'track_all_public_work_projection_evidence_v2',
 ] as const
 
 export type TrackAllAcceptedArtifactType =

@@ -163,7 +163,7 @@ export const trackAllWorkGraphArtifactSchema = addressed(z.object({
   }
 })
 
-const canonicalAtomicExecutionRecordSchema = z.object({
+const canonicalAtomicExecutionRecordV1Schema = z.object({
   workItemKey: safeId,
   workItemHash: skillSha256Schema,
   stageId: skillIdentitySchema,
@@ -180,7 +180,7 @@ const canonicalAtomicExecutionRecordSchema = z.object({
   outsideAuthorizedRangeModified: z.literal(false),
 }).strict()
 
-export const trackAllAtomicExecutionEvidenceSchema = addressed(z.object({
+export const trackAllAtomicExecutionEvidenceV1Schema = addressed(z.object({
   schemaVersion: z.literal('track_all_atomic_execution_evidence_v1'),
   ...lineageFields,
   approvedWorkGraphHash: skillSha256Schema,
@@ -188,7 +188,7 @@ export const trackAllAtomicExecutionEvidenceSchema = addressed(z.object({
   publicWorkItemKey: safeId,
   publicWorkItemHash: skillSha256Schema,
   routeQualificationReceiptHash: skillSha256Schema,
-  atomicResults: z.array(canonicalAtomicExecutionRecordSchema).min(1).max(1_000),
+  atomicResults: z.array(canonicalAtomicExecutionRecordV1Schema).min(1).max(1_000),
   atomicWorkItemHashes: z.array(skillSha256Schema).min(1).max(1_000),
   actualToolOperationIds: z.array(skillIdentitySchema).max(100),
   actualSamRequestCount: z.literal(0),
@@ -213,7 +213,7 @@ export const trackAllAtomicExecutionEvidenceSchema = addressed(z.object({
   }
 })
 
-export const trackAllPublicWorkProjectionEvidenceSchema = addressed(z.object({
+export const trackAllPublicWorkProjectionEvidenceV1Schema = addressed(z.object({
   schemaVersion: z.literal('track_all_public_work_projection_evidence_v1'),
   ...lineageFields,
   approvedWorkGraphHash: skillSha256Schema,
@@ -247,6 +247,182 @@ export const trackAllPublicWorkProjectionEvidenceSchema = addressed(z.object({
       message: 'Track All public work projection contains a cross-tenant artifact.',
     })
   }
+})
+
+const samSessionReceiptRefSchema = typedRef(
+  'track_all_sam3_1_real_private_session_receipt_v1',
+)
+const samAttemptEvidenceRefSchema = typedRef(
+  'track_all_sam3_1_masklet_attempt_evidence_v2',
+)
+
+export const trackAllCanonicalPrivateExecutionCountsSchema = z.object({
+  providerRequestCount: z.literal(0),
+  actualSamRequestCount: z.number().int().nonnegative().max(1_000),
+  actualGpuExecutionCount: z.number().int().nonnegative().max(1_000),
+  samSessionReceiptRefs: z.array(samSessionReceiptRefSchema).max(1_000),
+  samAttemptEvidenceRefs: z.array(samAttemptEvidenceRefSchema).max(1_000),
+  executionEvidenceClass: z.enum([
+    'deterministic_private_execution',
+    'real_sam3_1_private_execution',
+  ]),
+}).strict().superRefine((value, context) => {
+  const deterministic =
+    value.executionEvidenceClass === 'deterministic_private_execution'
+  if (deterministic && (
+    value.actualSamRequestCount !== 0 ||
+    value.actualGpuExecutionCount !== 0 ||
+    value.samSessionReceiptRefs.length !== 0 ||
+    value.samAttemptEvidenceRefs.length !== 0
+  )) context.addIssue({
+    code: 'custom',
+    message: 'Deterministic execution cannot claim SAM or GPU evidence.',
+  })
+  if (!deterministic && (
+    value.actualSamRequestCount < 1 ||
+    value.actualGpuExecutionCount > value.actualSamRequestCount ||
+    value.samSessionReceiptRefs.length !== value.actualSamRequestCount ||
+    value.samAttemptEvidenceRefs.length !== value.actualGpuExecutionCount
+  )) context.addIssue({
+    code: 'custom',
+    message: 'Real SAM execution counts require exact session and completed-attempt references.',
+  })
+  const references = [
+    ...value.samSessionReceiptRefs,
+    ...value.samAttemptEvidenceRefs,
+  ]
+  if (new Set(references.map((reference) =>
+    `${reference.artifactType}:${reference.sha256}`)).size !== references.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical execution accounting contains duplicate SAM evidence.',
+    })
+  }
+})
+
+const canonicalAtomicExecutionRecordV2Schema = z.object({
+  workItemKey: safeId,
+  workItemHash: skillSha256Schema,
+  stageId: skillIdentitySchema,
+  parentJobType: skillIdentitySchema,
+  operationId: skillIdentitySchema,
+  workerClass: skillIdentitySchema,
+  inputArtifactRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  dependencyOutputRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  outputArtifactRef: editSkillArtifactReferenceSchema,
+  evidenceHashes: z.array(skillSha256Schema).min(1).max(100),
+  executionCounts: trackAllCanonicalPrivateExecutionCountsSchema,
+  status: z.literal('succeeded'),
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict().superRefine((value, context) => {
+  const isSam = value.operationId === 'tool.sam3_1.track_masklets.v2'
+  const real = value.executionCounts.executionEvidenceClass ===
+    'real_sam3_1_private_execution'
+  if (isSam !== real) context.addIssue({
+    code: 'custom',
+    message: 'Only the exact SAM V2 atomic operation may report real SAM execution.',
+  })
+})
+
+export const trackAllAtomicExecutionEvidenceSchema = addressed(z.object({
+  schemaVersion: z.literal('track_all_atomic_execution_evidence_v2'),
+  ...lineageFields,
+  approvedWorkGraphHash: skillSha256Schema,
+  pluginWorkGraphHash: skillSha256Schema,
+  publicWorkItemKey: safeId,
+  publicWorkItemHash: skillSha256Schema,
+  routeQualificationReceiptHash: skillSha256Schema,
+  atomicResults: z.array(canonicalAtomicExecutionRecordV2Schema).min(1).max(1_000),
+  atomicWorkItemHashes: z.array(skillSha256Schema).min(1).max(1_000),
+  actualToolOperationIds: z.array(skillIdentitySchema).max(100),
+  executionCounts: trackAllCanonicalPrivateExecutionCountsSchema,
+  prePersistedOutputAccepted: z.literal(false),
+  privateArtifactsOnly: z.literal(true),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict()).superRefine((value, context) => {
+  if (
+    value.atomicResults.length !== value.atomicWorkItemHashes.length ||
+    value.atomicResults.some((result, index) =>
+      result.workItemHash !== value.atomicWorkItemHashes[index])
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Track All canonical V2 execution evidence has stale atomic ordering.',
+  })
+  if (new Set(value.atomicWorkItemHashes).size !== value.atomicWorkItemHashes.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All canonical V2 execution evidence contains duplicate atomic work.',
+    })
+  }
+  const samRequests = value.atomicResults.reduce((total, result) =>
+    total + result.executionCounts.actualSamRequestCount, 0)
+  const gpuExecutions = value.atomicResults.reduce((total, result) =>
+    total + result.executionCounts.actualGpuExecutionCount, 0)
+  const sessionRefs = value.atomicResults.flatMap((result) =>
+    result.executionCounts.samSessionReceiptRefs)
+  const attemptRefs = value.atomicResults.flatMap((result) =>
+    result.executionCounts.samAttemptEvidenceRefs)
+  if (
+    value.executionCounts.actualSamRequestCount !== samRequests ||
+    value.executionCounts.actualGpuExecutionCount !== gpuExecutions ||
+    hashSkillValue(value.executionCounts.samSessionReceiptRefs) !==
+      hashSkillValue(sessionRefs) ||
+    hashSkillValue(value.executionCounts.samAttemptEvidenceRefs) !==
+      hashSkillValue(attemptRefs)
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Track All public execution accounting differs from atomic evidence.',
+  })
+  const scopes = [
+    ...value.executionCounts.samSessionReceiptRefs,
+    ...value.executionCounts.samAttemptEvidenceRefs,
+  ]
+  if (scopes.some((reference) =>
+    reference.ownerUserId !== value.ownerUserId ||
+    reference.workspaceId !== value.workspaceId ||
+    reference.projectId !== value.projectId)) context.addIssue({
+    code: 'custom',
+    message: 'Track All SAM execution evidence crosses assignment scope.',
+  })
+})
+
+export const trackAllPublicWorkProjectionEvidenceSchema = addressed(z.object({
+  schemaVersion: z.literal('track_all_public_work_projection_evidence_v2'),
+  ...lineageFields,
+  approvedWorkGraphHash: skillSha256Schema,
+  publicWorkItemKey: safeId,
+  publicWorkItemHash: skillSha256Schema,
+  operationId: skillIdentitySchema,
+  workerClass: skillIdentitySchema,
+  runtimeDispatchReceiptHash: skillSha256Schema,
+  routeQualificationReceiptHash: skillSha256Schema,
+  atomicExecutionEvidenceRef: typedRef('track_all_atomic_execution_evidence_v2'),
+  exactInputArtifactRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  exactDependencyOutputRefs: z.array(editSkillArtifactReferenceSchema).max(100),
+  exactOutputArtifactRefs: z.array(editSkillArtifactReferenceSchema).min(1).max(100),
+  executionCounts: trackAllCanonicalPrivateExecutionCountsSchema,
+  outputCreatedByExecutingAdapter: z.literal(true),
+  callerQualificationAccepted: z.literal(false),
+  privateArtifactsOnly: z.literal(true),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict()).superRefine((value, context) => {
+  const refs = [
+    value.atomicExecutionEvidenceRef,
+    ...value.exactInputArtifactRefs,
+    ...value.exactDependencyOutputRefs,
+    ...value.exactOutputArtifactRefs,
+    ...value.executionCounts.samSessionReceiptRefs,
+    ...value.executionCounts.samAttemptEvidenceRefs,
+  ]
+  if (refs.some((reference) =>
+    reference.ownerUserId !== value.ownerUserId ||
+    reference.workspaceId !== value.workspaceId ||
+    reference.projectId !== value.projectId)) context.addIssue({
+    code: 'custom',
+    message: 'Track All public V2 work projection crosses artifact scope.',
+  })
 })
 
 function canonicalRange(value: z.infer<typeof skillFrameRangeSchema>): string {

@@ -20,6 +20,7 @@ import {
   cameraMotionGraphSchema,
   planarTrackGraphSchema,
   trackAllAtomicExecutionEvidenceSchema,
+  trackAllAtomicExecutionEvidenceV1Schema,
   trackAllChunkSeamQaReportSchema,
   trackAllContextManifestSchema,
   trackAllCrossSkillHandoffSchema,
@@ -28,6 +29,7 @@ import {
   trackAllMaskQaReportSchema,
   trackAllPrivacyQaReportSchema,
   trackAllPublicWorkProjectionEvidenceSchema,
+  trackAllPublicWorkProjectionEvidenceV1Schema,
   trackAllRepairReceiptSchema,
   trackAllTargetQaReportSchema,
   trackAllTemporalQaReportSchema,
@@ -629,8 +631,11 @@ export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchem
     track_all_integration_qa_report_v1: trackAllIntegrationQaReportSchema,
     track_all_repair_receipt_v1: trackAllRepairReceiptSchema,
     track_all_cross_skill_handoff_v1: trackAllCrossSkillHandoffSchema,
-    track_all_atomic_execution_evidence_v1: trackAllAtomicExecutionEvidenceSchema,
+    track_all_atomic_execution_evidence_v1: trackAllAtomicExecutionEvidenceV1Schema,
     track_all_public_work_projection_evidence_v1:
+      trackAllPublicWorkProjectionEvidenceV1Schema,
+    track_all_atomic_execution_evidence_v2: trackAllAtomicExecutionEvidenceSchema,
+    track_all_public_work_projection_evidence_v2:
       trackAllPublicWorkProjectionEvidenceSchema,
   }
   for (const [artifactType, schema] of Object.entries(schemas)) {

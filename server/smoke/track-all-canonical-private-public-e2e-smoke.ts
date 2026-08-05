@@ -215,12 +215,18 @@ try {
         }),
       )
       assert.equal(atomic.prePersistedOutputAccepted, false)
-      assert.equal(atomic.actualSamRequestCount, 0)
-      assert.equal(atomic.actualGpuExecutionCount, 0)
+      assert.equal(atomic.executionCounts.actualSamRequestCount, 0)
+      assert.equal(atomic.executionCounts.actualGpuExecutionCount, 0)
+      assert.equal(
+        atomic.executionCounts.executionEvidenceClass,
+        'deterministic_private_execution',
+      )
       for (const operationId of atomic.actualToolOperationIds) {
         toolOperationIds.add(operationId)
       }
     }
+    assert.equal(result.executionCounts.actualSamRequestCount, 0)
+    assert.equal(result.executionCounts.actualGpuExecutionCount, 0)
     assertScenarioEvidence(scenario, toolOperationIds)
     summaries.push({
       scenario,

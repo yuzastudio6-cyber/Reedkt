@@ -343,7 +343,9 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmissi
     authority.evidenceClass !== 'canonical_private_reread'
     || authority.status !== 'authorized_for_private_cloud_build'
     || submission.disposition !== 'outcome_unknown'
-    || submission.providerOutcome !== 'executed'
+    || submission.providerOutcome !== 'unknown'
+    || submission.automaticRetryAllowed
+    || !terminal.reconciliationRef
     || terminal.disposition !== 'image_built_pending_supply_chain_release'
     || !terminal.immutableImageUri
     || !terminal.immutableImageDigest

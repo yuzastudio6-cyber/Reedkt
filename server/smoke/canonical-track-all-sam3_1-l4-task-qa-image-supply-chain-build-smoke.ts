@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   assertCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmission,
   compileCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildBody,
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmission,
   createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService,
   imageSupplyChainAdmissionRef,
   type CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission,
@@ -113,6 +114,19 @@ assert.deepEqual(steps.map((step) => step.id), [
 assert.equal(JSON.stringify(body).includes('customer'), false)
 assert.equal(JSON.stringify(body).includes('checkpoint'), false)
 assert.equal(JSON.stringify(body).includes('gpu'), false)
+
+const reconciledAdmission =
+  createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmission({
+    admissionId: 'track-all-l4-reconciled-admission-smoke',
+    authority: imageBuildAuthorityFixture(),
+    imageBuildSubmission: imageBuildSubmissionFixture(),
+    imageBuildTerminal: imageBuildTerminalFixture(),
+    admittedAt: '2026-08-05T22:40:30.000Z',
+  })
+assert.equal(
+  reconciledAdmission.immutableImageDigest,
+  `sha256:${'9'.repeat(64)}`,
+)
 
 let consumed = false
 let persistedSubmission: CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission | null = null
@@ -229,4 +243,184 @@ function ref(id: string, character: string) {
     version: 1 as const,
     contentHash: `sha256:${character.repeat(64)}` as const,
   }
+}
+
+function imageBuildAuthorityFixture() {
+  const payload = {
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-v2' as const,
+    source:
+      'canonical_track_all_sam3_1_l4_task_qa_cloud_image_build_authority_owner' as const,
+    evidenceClass: 'canonical_private_reread' as const,
+    status: 'authorized_for_private_cloud_build' as const,
+    authorityId: 'track-all-l4-image-authority-fixture',
+    authorityVersion: 1 as const,
+    operationId: 'tool.kornia.refine_mask.v1' as const,
+    capsuleRef: ref('capsule', '1'),
+    buildSourceCoordinate: admission.buildSourceCoordinate,
+    sourceCommitSha: '1'.repeat(40),
+    sourceTreeSha: '2'.repeat(40),
+    imageDestination: {
+      repository:
+        'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers' as const,
+      imageName: 'reeditpro-track-all-l4-task-qa' as const,
+      tag: `track-all-l4-qa-${admission.buildSourceCoordinate.sha256.slice(0, 16)}` as const,
+      taggedUri:
+        `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa:track-all-l4-qa-${admission.buildSourceCoordinate.sha256.slice(0, 16)}` as const,
+      callerSelectedTagAllowed: false as const,
+      tagMayAuthorizeRuntime: false as const,
+      terminalImmutableDigestRequired: true as const,
+    },
+    buildClosure: {
+      dockerfilePath:
+        'docker/prod/gpu-worker/track-all-task-qa/Dockerfile.candidate' as const,
+      dockerfileSha256: '3'.repeat(64),
+      runnerSha256: '4'.repeat(64),
+      entrypointSha256: '5'.repeat(64),
+      verifierSha256: '6'.repeat(64),
+      sourceProvenanceLockSha256: '7'.repeat(64),
+      privateCapsuleManifestSha256: '8'.repeat(64),
+      requirementsLockSha256: '9'.repeat(64),
+      opencvCudaReceiptSha256: 'a'.repeat(64),
+      opencvBuildInformationSha256: 'b'.repeat(64),
+      opencvLicenseSha256: 'c'.repeat(64),
+      opencvContribLicenseSha256: 'd'.repeat(64),
+      cudaForwardCompatReceiptSha256: 'e'.repeat(64),
+      cudaNppRuntimeReceiptSha256: 'f'.repeat(64),
+      cudaNppLicenseSha256:
+        'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+    },
+    cloudBuildPolicy: {
+      projectId: 'reeditpro' as const,
+      location: 'us-central1' as const,
+      regionalCreateEndpoint:
+        'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const,
+      builderImage:
+        'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147' as const,
+      serviceAccount:
+        'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com' as const,
+      machineType: 'E2_HIGHCPU_8' as const,
+      diskSizeGb: '200' as const,
+      timeout: '3600s' as const,
+      queueTtl: '600s' as const,
+      sourceFetcher: 'GCS_FETCHER' as const,
+      sourceProvenanceHashes: ['SHA256'] as const,
+      requestedVerifyOption: 'VERIFIED' as const,
+      logging: 'CLOUD_LOGGING_ONLY' as const,
+      noSecretsOrSubstitutions: true as const,
+      singleFixedOfflineBuildStep: true as const,
+    },
+    authority: {
+      exactPrivateBuildSourceReread: true as const,
+      generationAndEtagStableBeforeAndAfterRead: true as const,
+      cloudImageBuildAuthorized: true,
+      durableSingleUseConsumptionRequiredBeforeCloudCall: true as const,
+      browserOrCallerMaySubmitBuild: false as const,
+      checkpointOrModelWeightsIncluded: false as const,
+      imageBuildStarted: false as const,
+      imagePushed: false as const,
+      runtimeReleaseGranted: false as const,
+      gpuJobDispatched: false as const,
+      customerCreditMutationAllowed: false as const,
+      qaApproved: false as const,
+      productionReady: false as const,
+    },
+    preparedAt: '2026-08-05T22:00:00.000Z',
+  }
+  return { ...payload, authorityHash: sha256AuthorityValue(payload) }
+}
+
+function imageBuildSubmissionFixture() {
+  const authority = imageBuildAuthorityFixture()
+  const payload = {
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-submission-v1' as const,
+    source:
+      'canonical_track_all_sam3_1_l4_task_qa_cloud_image_build_owner' as const,
+    disposition: 'outcome_unknown' as const,
+    operationId: 'tool.kornia.refine_mask.v1' as const,
+    authorityRef: {
+      id: authority.authorityId,
+      version: 1 as const,
+      contentHash: `sha256:${authority.authorityHash}` as const,
+    },
+    buildRequestRef: ref('image-build-request', '2'),
+    buildRequestHash: '2'.repeat(64),
+    providerHttpStatus: 200,
+    cloudBuildOperationName: null,
+    cloudBuildId: null,
+    cloudBuildResource: null,
+    providerOutcome: 'unknown' as const,
+    durableAuthorityConsumptionCreated: true,
+    durableSubmissionObservationCreated: false,
+    imageBuildKnownStarted: false,
+    automaticRetryAllowed: false as const,
+    developerMachineModelInstallAllowed: false as const,
+    checkpointOrModelWeightsRead: false as const,
+    imagePushKnownCompleted: false as const,
+    runtimeReleaseGranted: false as const,
+    gpuJobDispatched: false as const,
+    customerCreditMutationCreated: false as const,
+    qaApproved: false as const,
+    productionReady: false as const,
+    observedAt: '2026-08-05T22:01:00.000Z',
+  }
+  return { ...payload, submissionHash: sha256AuthorityValue(payload) }
+}
+
+function imageBuildTerminalFixture() {
+  const authority = imageBuildAuthorityFixture()
+  const submission = imageBuildSubmissionFixture()
+  const payload = {
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-terminal-v1' as const,
+    source:
+      'canonical_track_all_sam3_1_l4_task_qa_cloud_image_build_terminal_owner' as const,
+    disposition: 'image_built_pending_supply_chain_release' as const,
+    terminalId: 'track-all-l4-image-terminal-fixture',
+    terminalVersion: 1 as const,
+    operationId: 'tool.kornia.refine_mask.v1' as const,
+    authorityRef: {
+      id: authority.authorityId,
+      version: 1 as const,
+      contentHash: `sha256:${authority.authorityHash}` as const,
+    },
+    submissionRef: {
+      id: `track-all-l4-cloud-build-submission-${submission.submissionHash.slice(0, 24)}`,
+      version: 1 as const,
+      contentHash: `sha256:${submission.submissionHash}` as const,
+    },
+    reconciliationRef: ref('image-build-reconciliation', '3'),
+    cloudBuildId: '33333333-3333-4333-8333-333333333333',
+    cloudBuildResource:
+      'projects/reeditpro/locations/us-central1/builds/33333333-3333-4333-8333-333333333333',
+    cloudBuildStatus: 'SUCCESS' as const,
+    cloudBuildCreateTime: '2026-08-05T22:02:00.000Z',
+    cloudBuildStartTime: '2026-08-05T22:02:01.000Z',
+    cloudBuildFinishTime: '2026-08-05T22:03:00.000Z',
+    exactFixedRequestEchoVerified: true as const,
+    exactStorageGenerationProvenanceVerified: true as const,
+    verifiedBuildRequested: true as const,
+    warningsAbsent: true,
+    taggedImageUri: authority.imageDestination.taggedUri,
+    immutableImageDigest: `sha256:${'9'.repeat(64)}` as const,
+    immutableImageUri:
+      `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa@sha256:${'9'.repeat(64)}`,
+    imageBuiltAndPushed: true,
+    cloudBuildFailureType: null,
+    cloudBuildFailureReason: null,
+    buildStepExecutionKnownStarted: true,
+    billableGpuExecutionKnownStarted: false as const,
+    spdxSbomReread: false as const,
+    artifactAnalysisScanPassed: false as const,
+    kmsSignatureVerified: false as const,
+    slsaProvenanceVerified: false as const,
+    runtimeReleaseGranted: false as const,
+    gpuJobDispatched: false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    productionReady: false as const,
+    observedAt: '2026-08-05T22:04:00.000Z',
+  }
+  return { ...payload, terminalHash: sha256AuthorityValue(payload) }
 }

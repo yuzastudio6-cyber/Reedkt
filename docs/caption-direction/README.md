@@ -110,6 +110,7 @@ The governing workflow invariant remains:
 - [Current Caption integration readiness](current-integration-readiness.md)
 - [Current private internal evidence progress](private-internal-evidence-progress-2026-08-05.md)
 - [Terminal private-qualification gate](terminal-private-qualification-gate.md)
+- [Canonical multi-run private-qualification mount](canonical-multi-run-private-qualification-mount-2026-08-05.md)
 - [Canonical terminal evidence assembly mount](canonical-terminal-evidence-assembly-mount-2026-08-05.md)
 - [Canonical resumed-chain execution mount](canonical-caption-resume-chain-execution-mount-2026-08-05.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)

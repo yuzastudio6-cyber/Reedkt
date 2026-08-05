@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 
 import type { CanonicalCaptionSpecialistWorkItemInput } from
   '../../src/types/canonical-caption-specialist-execution'
@@ -37,6 +40,12 @@ import {
 } from '../orchestra/orchestra-skill-contracts'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
+import {
+  canonicalInternalAuthorityArtifactRelativePath,
+  verifyCanonicalCaptionSpecialistPlanningArtifact,
+} from '../services/canonical-internal-authority-artifact-verifier'
+import type { PersistedArtifactResult } from
+  '../validation/private-artifact-qa-authority-schemas'
 
 let checks = 0
 function check(value: unknown, message: string): void {
@@ -322,6 +331,153 @@ check(first.receipt.directPeerDispatchPerformed === false
 check(parseCanonicalCaptionSpecialistExecutionReceipt(first.receipt)
   .receiptDigestSha256 === first.receipt.receiptDigestSha256,
   'The closed execution receipt must verify its own digest.')
+
+const artifactRoot = await mkdtemp(join(tmpdir(), 'caption-artifact-reader-'))
+const artifactIdentityHash = sha256AuthorityValue('caption-artifact-object')
+const executionAttemptId = 'caption-execution-attempt-1'
+const immutableLeaseHash = sha256AuthorityValue('caption-lease-1')
+const jobAuthorityHash = sha256AuthorityValue(job)
+const report = {
+  schemaVersion: 'canonical-caption-specialist-planning-artifact-v1',
+  source: 'immutable_canonical_edit_authority',
+  identity: {
+    workspaceId: snapshot.workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    snapshotId: snapshot.snapshotId,
+    jobId: job.id,
+    approvedWorkItemId: workItem.id,
+    expectedAssetId: manifestEntry.id,
+  },
+  authorityRevision: authority.authorityRevision,
+  executionFence: {
+    leaseId: 'caption-lease-1',
+    immutableLeaseHash,
+    leaseAttemptNumber: 1,
+    executionAttemptId,
+    runnerClass: 'canonical_caption_specialist_planning_runner_v1',
+  },
+  authorityHashes: {
+    snapshotHash: snapshot.snapshotHash,
+    approvedAssetManifestHash: snapshot.approvedAssetManifestHash,
+    jobAuthorityHash,
+  },
+  reservation: { reservationId: reservation.id, status: reservation.status },
+  checks: [
+    'approved_snapshot_manifest_integrity',
+    'plan_estimate_work_graph_hash_integrity',
+    'planning_preference_brief_binding_integrity',
+    'source_media_manifest_integrity',
+    'planned_asset_manifest_integrity',
+    'execution_package_integrity',
+    'funded_reservation_active',
+    'exact_root_work_item_and_expected_output',
+    'opaque_worker_execution_fence_started',
+  ].map((checkId) => ({ checkId, status: 'passed' })),
+  validationProfile: 'caption_specialist',
+  sourceTrim: null,
+  livingFrameLayer: null,
+  captionSpecialist: {
+    receipt: first.receipt,
+    callResultPairRef: {
+      id: first.pair.pairId,
+      version: first.pair.schemaVersion,
+      contentHash: first.pair.pairDigestSha256,
+    },
+    producedArtifactRefs: first.pair.result.producedArtifactRefs,
+    supportRequestCount: 0,
+    exactCreateOnlyRereadVerified: true,
+    planningOnly: true,
+    renderedMediaClaimed: false,
+    finalQaClaimed: false,
+  },
+  captionPostrenderVisualQa: null,
+  valid: true,
+}
+const reportBytes = Buffer.from(JSON.stringify(report), 'utf8')
+const reportPath = join(artifactRoot,
+  canonicalInternalAuthorityArtifactRelativePath(artifactIdentityHash))
+await mkdir(dirname(reportPath), { recursive: true })
+await writeFile(reportPath, reportBytes)
+const persistedArtifact: PersistedArtifactResult = {
+  artifactId: 'caption-planning-artifact-1',
+  identity: {
+    workspaceId: snapshot.workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    snapshotId: snapshot.snapshotId,
+    jobId: job.id,
+    expectedAssetId: manifestEntry.id,
+  },
+  lineage: {
+    assetId: manifestEntry.id,
+    outputKey: expectedOutput.outputKey,
+    artifactType: expectedOutput.artifactType,
+    assetRole: expectedOutput.assetRole,
+    required: true,
+    previewPlaceholderAllowed: false,
+    contentType: 'application/json',
+    segmentIds: [],
+    timingIds: ['master-timing-main'],
+    rendererLayerIds: [],
+    approvedWorkItemId: workItem.id,
+    workItemKey: workItem.workItemKey,
+    jobType: job.jobType,
+    jobAuthorityHash,
+    snapshotHash: snapshot.snapshotHash,
+    approvedAssetManifestHash: snapshot.approvedAssetManifestHash,
+  },
+  artifactVersion: 1,
+  attemptKind: 'initial',
+  content: {
+    sha256: createHash('sha256').update(reportBytes).digest('hex'),
+    byteLength: reportBytes.byteLength,
+    contentType: 'application/json',
+  },
+  storageIdentity: {
+    storageKind: 'private_local_test',
+    opaqueObjectIdentityHash: artifactIdentityHash,
+  },
+  placeholder: { isPlaceholder: false, scope: 'none' },
+  actualRunEvidence: {
+    state: 'actual_run_evidence_placeholder',
+    executionAttemptId,
+    runnerClass: 'canonical_caption_specialist_planning_runner_v1',
+    runnerEvidenceHash: sha256AuthorityValue('caption-runner-evidence'),
+    startedAt: first.receipt.persistedAt,
+    finishedAt: first.receipt.persistedAt,
+    exitCode: 0,
+    toolIds: [],
+    actualRunVerified: false,
+  },
+  resultEvidenceRef: {
+    sha256: sha256AuthorityValue('caption-result-evidence'),
+    byteLength: 64,
+  },
+  resultEvidenceHash: sha256AuthorityValue('caption-result-evidence'),
+  evidenceClass: 'private_internal_test_attested',
+  liveRuntimeEligible: false,
+  createdAt: first.receipt.persistedAt,
+}
+const verifiedArtifact =
+  await verifyCanonicalCaptionSpecialistPlanningArtifact({
+    localStorageRoot: artifactRoot,
+    artifact: persistedArtifact,
+  })
+check(verifiedArtifact.receipt.receiptDigestSha256
+  === first.receipt.receiptDigestSha256
+  && verifiedArtifact.callResultPairRef.contentHash
+    === first.pair.pairDigestSha256,
+'The terminal reader must reopen the persisted Caption artifact and recover its exact completed receipt.')
+await assert.rejects(() => verifyCanonicalCaptionSpecialistPlanningArtifact({
+  localStorageRoot: artifactRoot,
+  artifact: {
+    ...persistedArtifact,
+    lineage: { ...persistedArtifact.lineage, snapshotHash:
+      sha256AuthorityValue('crossed-caption-snapshot') },
+  },
+}), /semantic lineage is inconsistent/u)
+checks += 1
 
 const replay = await executeCanonicalCaptionSpecialistWorkItem({
   authority,

@@ -15,6 +15,12 @@ export const CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION_V2 =
   'caption-terminal-per-job-qualification-projection-v2' as const
 export const CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION_V2 =
   'caption-terminal-qualification-preflight-v2' as const
+export const CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V3 =
+  'caption-terminal-qualification-evidence-input-v3' as const
+export const CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION_V3 =
+  'caption-terminal-per-job-qualification-projection-v3' as const
+export const CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION_V3 =
+  'caption-terminal-qualification-preflight-v3' as const
 
 export interface CaptionTerminalQualificationCanonicalScope {
   ownerUserId: string
@@ -230,4 +236,35 @@ export interface CaptionTerminalQualificationProjectionV2
 export interface CaptionTerminalQualificationPreflightV2
   extends Omit<CaptionTerminalQualificationPreflight, 'schemaVersion'> {
   schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION_V2
+}
+
+/**
+ * V3 preserves every exact per-call/per-scene owner record. V2 remains a
+ * compatibility lane for historical single-record fixtures and must not be
+ * used to collapse a real multi-request owner evidence set.
+ */
+export interface CaptionTerminalQualificationEvidenceInputV3
+  extends Omit<CaptionTerminalQualificationEvidenceInput,
+    'schemaVersion' | 'canonicalSharedOwnerEvidence'> {
+  schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V3
+  canonicalSharedOwnerEvidence: {
+    canonicalTranscriptReadRefs: CaptionDomainRef[]
+    visualIntelligenceEvidenceRefs: CaptionDomainRef[]
+    trackAllEvidenceRefs: CaptionDomainRef[]
+    soundSyncEvidenceRefs: CaptionDomainRef[]
+    brollOwnerEvidenceRefs: CaptionDomainRef[]
+    actualCanonicalRecordsReread: true
+    sourceFixtureUsedAsRuntimeEvidence: false
+    referenceOnlyEvidenceAccepted: false
+  }
+}
+
+export interface CaptionTerminalQualificationProjectionV3
+  extends Omit<CaptionTerminalQualificationProjection, 'schemaVersion'> {
+  schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION_V3
+}
+
+export interface CaptionTerminalQualificationPreflightV3
+  extends Omit<CaptionTerminalQualificationPreflight, 'schemaVersion'> {
+  schemaVersion: typeof CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION_V3
 }

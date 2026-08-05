@@ -72,11 +72,24 @@ credentials, and raw chat are not part of the record.
 
 ## Next internal implementation step
 
-Supply the missing evidence through the existing owners, then bind it to one
-immutable snapshot, execution package, output set, work graph, and terminal
-request. The nearest hard prerequisite is a complete independent audio-truth
-review for the rejected real-source transcript. Visual Intelligence, Track
-All, complete-time listening review, shared postrender visual AI, and
+The canonical multi-run reader, create-only repository, 41-job catalog, and
+final private-qualification service are now source-complete. A normal approved
+edit is no longer expected to contain all 41 jobs. Each representative edit is
+recorded separately with its immutable snapshot, execution package, work graph,
+owner evidence, rendered output, complete-time visual review, independent final
+QA, and private-review decision. Several records must then cover the full job
+surface before terminal status can be published.
+
+When that real catalog is complete, the final record also publishes the
+standard 41-entry `SkillQualificationSnapshot` for `planning` and
+`private_internal`. It deliberately leaves generic whole-skill and production
+claims false; this is the future workflow-pipeline mounting seam, not a central
+Orchestra or production-release claim.
+
+Supply the missing evidence through those existing owners and populate that
+catalog. The nearest hard prerequisite remains a complete independent audio-
+truth review for the rejected real-source transcript. Visual Intelligence,
+Track All, complete-time listening review, shared postrender visual AI, and
 independent final QA remain separate owner evidence requirements.
 
 Public SaaS rollout, billing activation, production authority, and the central
@@ -88,3 +101,6 @@ Orchestra are not required for this private internal target.
 performs the focused 21-assertion closed-contract regression. The source-only
 Caption integration aggregate includes it and starts no media, model, provider,
 or Docker runtime.
+
+The additive multi-run mount is documented in
+`canonical-multi-run-private-qualification-mount-2026-08-05.md`.

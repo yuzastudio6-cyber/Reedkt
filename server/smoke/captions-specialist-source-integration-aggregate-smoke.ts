@@ -26,6 +26,7 @@ const sourceOnlyScripts = [
   'smoke:captions-specialist-current-integration-readiness',
   'smoke:captions-specialist-current-job-readiness',
   'smoke:captions-specialist-terminal-qualification',
+  'smoke:captions-specialist-terminal-qualification-v3',
   'smoke:canonical-caption-specialist-planning',
   'smoke:canonical-caption-specialist-execution',
   'smoke:canonical-specialist-support-resume',
@@ -40,6 +41,9 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-shared-owner-composition',
   'smoke:canonical-caption-postrender-visual-qa-authenticated-read',
   'smoke:canonical-caption-terminal-qualification',
+  'smoke:canonical-caption-qualification-run-evidence',
+  'smoke:canonical-caption-private-qualification-catalog',
+  'smoke:canonical-caption-private-qualification-composition',
 ] as const
 
 const results = sourceOnlyScripts.map((script) => {
@@ -92,6 +96,10 @@ console.log(JSON.stringify({
     evidenceProgress.counts.gatesWithActualPrivateEvidenceObserved,
   terminalEvidenceGatesSatisfied:
     evidenceProgress.counts.terminalEvidenceGatesSatisfied,
+  canonicalApprovedRunReaderImplemented: true,
+  multiRunFortyOneJobCatalogImplemented: true,
+  finalPrivateQualificationServiceImplemented: true,
+  actualQualificationCatalogPersisted: false,
   mediaRuntimeStarted: false,
   providerOrModelCallMade: false,
   dockerRuntimeStarted: false,

@@ -115,6 +115,11 @@ check(composition.brollOwner.schemaVersion
   && composition.brollSupport.schemaVersion
     === 'canonical-caption-broll-support-service-v1',
 'The existing B-roll owner and Caption support bridge must be mounted together.')
+check(composition.soundEvidenceRepository.schemaVersion
+  === 'canonical-caption-soundsync-evidence-repository-v1'
+  && composition.brollEvidenceRepository.schemaVersion
+    === 'canonical-caption-broll-evidence-repository-v1',
+'The same mounted owner-evidence repositories must be exposed for exact terminal reread.')
 check(!composition.soundExecutionOwnedByCaption
   && !composition.brollSelectionOwnedByCaption
   && !composition.directPeerDispatchMounted,

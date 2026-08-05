@@ -288,13 +288,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   const replay = await input.repository.rereadCallResultPair({
     callRef: captionCallRef,
   })
-  let pair: CanonicalSpecialistCallResultPair
   if (replay) {
     if (stableAuthorityStringify(replay.call)
       !== stableAuthorityStringify(call)) {
       throw new Error('Canonical Caption call replay crossed approved authority.')
     }
-    pair = replay
   } else {
     const transcriptEvidence = await readCanonicalTranscriptEvidence({
       authority,
@@ -313,7 +311,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         }),
       })
     const result = parseOrchestraSkillJobResult(rawResult)
-    pair = createCanonicalSpecialistCallResultPair({
+    const pair = createCanonicalSpecialistCallResultPair({
       call,
       result,
       persistedAt: (input.now ?? (() => new Date()))().toISOString(),
@@ -325,7 +323,6 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     if (!reread || reread.pairDigestSha256 !== pair.pairDigestSha256) {
       throw new Error('Canonical Caption call/result reread failed.')
     }
-    pair = reread
   }
   const resumeChain = await rereadCanonicalSpecialistSupportResumeChain({
     initialCallRef: captionCallRef,
@@ -334,7 +331,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   if (!resumeChain) {
     throw new Error('Canonical Caption call/result chain reread failed.')
   }
-  pair = resumeChain.currentPair
+  const pair = resumeChain.currentPair
   return {
     pair,
     receipt: createReceipt({

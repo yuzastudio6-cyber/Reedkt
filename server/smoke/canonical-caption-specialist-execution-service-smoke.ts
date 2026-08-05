@@ -322,6 +322,32 @@ check(replay.pair.pairDigestSha256 === first.pair.pairDigestSha256,
 check(replay.pair.persistedAt === first.pair.persistedAt,
   'An exact replay must not manufacture a later persistence time.')
 
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority,
+  executionPackage,
+  jobId: job.id,
+  repository,
+  canonicalTranscriptAuthenticatedReadBindingRef: {
+    id: 'transcript-binding-postapproval-1',
+    version: 'caption-canonical-transcript-authenticated-read-binding-v1',
+    contentHash: sha256AuthorityValue('postapproval-transcript-binding-1'),
+  },
+}), /authenticated transcript reader is unavailable/u)
+checks += 1
+
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority,
+  executionPackage,
+  jobId: job.id,
+  repository,
+  canonicalTranscriptAuthenticatedReadBindingRef: {
+    id: 'transcript-binding-postapproval-1',
+    version: 'caption-canonical-transcript-authenticated-read-binding-v1',
+    contentHash: 'not-a-digest',
+  },
+}), /Invalid string|invalid_format/u)
+checks += 1
+
 const visualWorkInput: CanonicalCaptionSpecialistWorkItemInput = {
   ...workInput,
   captionJobType: 'plan_caption_blocking_preview',

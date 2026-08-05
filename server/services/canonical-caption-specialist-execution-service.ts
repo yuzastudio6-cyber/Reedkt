@@ -228,6 +228,13 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly repository: CanonicalSpecialistSupportResumeRepository
   readonly canonicalTranscriptReadPort?:
     CanonicalCaptionTranscriptAuthenticatedReadPort
+  /**
+   * The authenticated transcript binding is snapshot-scoped and therefore
+   * cannot exist when the immutable planning work item is published. The
+   * canonical postapproval owner supplies its exact ref at execution time;
+   * this service binds it into the immutable call and refuses mismatches.
+   */
+  readonly canonicalTranscriptAuthenticatedReadBindingRef?: SkillContractRef
   readonly executionPort?: CanonicalCaptionSpecialistExecutionPort
   readonly now?: () => Date
 }): Promise<{
@@ -263,8 +270,19 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
     workItem.executionInput)
   assertExpectedOutputAndManifest(authority, workItem)
+  const initialArtifactRefs = resolveInitialArtifactRefs({
+    workInput,
+    postApprovalBindingRef:
+      input.canonicalTranscriptAuthenticatedReadBindingRef,
+  })
 
-  const call = createCaptionCall({ authority, workItem, job, workInput })
+  const call = createCaptionCall({
+    authority,
+    workItem,
+    job,
+    workInput,
+    initialArtifactRefs,
+  })
   const captionCallRef = callRef(call)
   const replay = await input.repository.rereadCallResultPair({
     callRef: captionCallRef,
@@ -280,6 +298,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     const transcriptEvidence = await readCanonicalTranscriptEvidence({
       authority,
       workInput,
+      initialArtifactRefs,
       readPort: input.canonicalTranscriptReadPort,
     })
     const rawResult = await (input.executionPort ?? defaultExecutionPort)
@@ -335,14 +354,57 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
   },
 }
 
+function resolveInitialArtifactRefs(input: {
+  workInput: CanonicalCaptionSpecialistWorkItemInput
+  postApprovalBindingRef?: SkillContractRef
+}): CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs'] {
+  const existing = input.workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType ===
+      'canonical_transcript_authenticated_read_binding')
+  if (!input.postApprovalBindingRef) {
+    return structuredClone(input.workInput.initialArtifactRefs)
+  }
+  const ref = refSchema.parse(input.postApprovalBindingRef)
+  if (existing && (
+    existing.id !== ref.id
+    || existing.version !== ref.version
+    || existing.contentHash !== ref.contentHash
+  )) {
+    throw new Error(
+      'Canonical Caption postapproval transcript binding conflicts with the approved input.',
+    )
+  }
+  if (existing) return structuredClone(input.workInput.initialArtifactRefs)
+  const bindingArtifact = initialArtifactSchema.parse({
+    ...ref,
+    artifactType: 'canonical_transcript_authenticated_read_binding',
+    producerSkillKey: 'canonical_transcript',
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: null,
+  })
+  const resolved = [
+    ...structuredClone(input.workInput.initialArtifactRefs),
+    bindingArtifact,
+  ]
+  if (resolved.length > 8) {
+    throw new Error(
+      'Canonical Caption postapproval transcript binding exceeds the evidence limit.',
+    )
+  }
+  return resolved
+}
+
 async function readCanonicalTranscriptEvidence(input: {
   authority: CanonicalApprovedExecutionAuthority
   workInput: CanonicalCaptionSpecialistWorkItemInput
+  initialArtifactRefs:
+    CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs']
   readPort?: CanonicalCaptionTranscriptAuthenticatedReadPort
 }) {
-  const transcriptRef = input.workInput.initialArtifactRefs.find(
+  const transcriptRef = input.initialArtifactRefs.find(
     (artifact) => artifact.artifactType === 'canonical_transcript')
-  const bindingRef = input.workInput.initialArtifactRefs.find(
+  const bindingRef = input.initialArtifactRefs.find(
     (artifact) => artifact.artifactType ===
       'canonical_transcript_authenticated_read_binding')
   if (!transcriptRef) {
@@ -428,6 +490,8 @@ function createCaptionCall(input: {
   workItem: CanonicalApprovedExecutionAuthority['workItems'][number]
   job: CanonicalApprovedExecutionAuthority['jobs'][number]
   workInput: CanonicalCaptionSpecialistWorkItemInput
+  initialArtifactRefs:
+    CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs']
 }): OrchestraSkillCall {
   const manifestRef: SkillContractRef = {
     id: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId,
@@ -449,6 +513,7 @@ function createCaptionCall(input: {
     canonicalJobId: input.job.id,
     executionInputHash: input.workItem.executionInputHash,
     captionJobType: input.workInput.captionJobType,
+    initialArtifactRefs: input.initialArtifactRefs,
   })
   const withoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
     schemaVersion: ORCHESTRA_SKILL_CALL_VERSION,
@@ -484,7 +549,7 @@ function createCaptionCall(input: {
     manifestRef,
     qualificationSnapshotRef: qualificationRef,
     inputArtifactRefs:
-      structuredClone(input.workInput.initialArtifactRefs),
+      structuredClone(input.initialArtifactRefs),
     injectedSupportArtifactRefs: [],
     resumeOfSupportRequestRef: null,
     resumeOriginCallRef: null,

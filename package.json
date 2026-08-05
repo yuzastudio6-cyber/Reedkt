@@ -460,6 +460,7 @@
     "smoke:captions-specialist-visual-intelligence-spatial-adapter": "tsx server/smoke/captions-specialist-visual-intelligence-spatial-adapter-smoke.ts",
     "smoke:captions-specialist-canonical-track-all-evidence-read": "tsx server/smoke/captions-specialist-canonical-track-all-evidence-read-smoke.ts",
     "smoke:captions-specialist-current-integration-readiness": "tsx server/smoke/captions-specialist-current-integration-readiness-smoke.ts",
+    "smoke:captions-specialist-current-job-readiness": "tsx server/smoke/captions-specialist-current-job-readiness-smoke.ts",
     "smoke:captions-specialist-terminal-qualification": "tsx server/smoke/captions-specialist-terminal-qualification-smoke.ts",
     "smoke:captions-specialist-integration-routing": "tsx server/smoke/captions-specialist-integration-routing-smoke.ts",
     "smoke:captions-specialist-shared-owner-integration": "tsx server/smoke/captions-specialist-shared-owner-integration-smoke.ts",

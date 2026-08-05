@@ -7,6 +7,19 @@ Status:
 
 Target: `caption_specialist_private_internal_qualified`
 
+Current per-job truth:
+
+- Caption-owned implementation: **41/41 supported jobs**
+- Source paths ready for a private evidence run: **37/41 jobs**
+- Waiting on a canonical owner composition mount: **4/41 jobs**
+  (three SoundSync-dependent jobs and one B-roll-dependent job)
+- Terminally qualified from current canonical private evidence: **0/41 jobs**
+
+The 0/41 terminal count is intentional until one fresh canonical private run
+rereads real results, rendered outputs, qualified complete-time visual review,
+and independent private review. It is not a regression of the Caption source
+implementation.
+
 ## Outcome
 
 The additive `caption-current-integration-readiness-v3` record provides the
@@ -72,10 +85,13 @@ for the target terminal status.
 ## Files changed
 
 - `src/types/caption-current-integration-readiness.ts`
+- `src/types/caption-current-job-readiness.ts`
 - `src/types/caption-terminal-qualification.ts`
 - `server/captions-specialist/caption-current-integration-readiness.ts`
+- `server/captions-specialist/caption-current-job-readiness.ts`
 - `server/captions-specialist/caption-terminal-qualification-v2.ts`
 - `server/smoke/captions-specialist-current-integration-readiness-smoke.ts`
+- `server/smoke/captions-specialist-current-job-readiness-smoke.ts`
 - `server/smoke/captions-specialist-terminal-qualification-smoke.ts`
 - this report
 

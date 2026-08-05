@@ -38,6 +38,12 @@ import type {
   CaptionSoundCueRequest,
   CaptionSoundSupportResult,
 } from '../../src/types/caption-sound-support'
+import type {
+  BrollCaptionOwnerReadRequest,
+  BrollCaptionOwnerReadResult,
+} from '../../src/types/caption-broll-owner-read-adapter'
+import type { CaptionBrollOwnerReadBinding } from
+  '../../src/types/caption-multi-track-scene-graph'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -55,6 +61,9 @@ import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT } from
 import {
   BROLL_CAPTION_PUBLIC_RECEIPT_DIGEST,
   CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT,
+  adaptBrollOwnerReadResultToCaptionBinding,
+  assertBrollCaptionOwnerReadResultForRequest,
+  parseBrollCaptionOwnerReadRequest,
 } from './caption-broll-owner-read-adapter'
 import { BROLL_CAPTION_OWNER_READ_REQUEST_VERSION } from
   '../../src/types/caption-broll-owner-read-adapter'
@@ -87,6 +96,9 @@ interface CaptionRuntimeProfile {
   manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
   qualification: SkillQualificationSnapshot
 }
+
+const BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE =
+  'b_roll_caption_owner_read_result' as const
 
 export { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
@@ -154,7 +166,7 @@ function typedPayloadTypeForTarget(target: SkillSupportTarget): string {
   }
   if (target === 'soundsync') return 'caption-sound-cue-request-ref-v1'
   if (target === 'broll_owner') {
-    return BROLL_CAPTION_OWNER_READ_REQUEST_VERSION
+    return 'caption-broll-owner-read-request-ref-v1'
   }
   return `captions-${target}-support-request-v1`
 }
@@ -208,6 +220,38 @@ function makeSupportRequest(
           requestIsByteFree: true,
           rawMediaOrChatIncluded: false,
         },
+    mediationPolicy: {
+      hqMediated: true,
+      directPeerDispatchAllowed: false,
+      assigneeMayOnlyResumeAfterInjection: true,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseSkillSupportRequest({
+    ...requestWithoutDigest,
+    requestDigestSha256: calculateSkillContractDigest(
+      { ...requestWithoutDigest, requestDigestSha256: '' },
+      'requestDigestSha256',
+    ),
+  })
+}
+
+function makeBrollOwnerReadSupportRequest(
+  call: OrchestraSkillCall,
+  ownerRequest: BrollCaptionOwnerReadRequest,
+): SkillSupportRequest {
+  const requestWithoutDigest: Omit<SkillSupportRequest,
+  'requestDigestSha256'> = {
+    schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
+    requestId: `${call.callId}.support.broll_owner`,
+    originalCallRef: callRef(call),
+    requestingSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
+    targetSkillKey: 'broll_owner',
+    reasonCode: 'missing.caption_broll_owner_read_binding',
+    requestedArtifactTypes: [BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE],
+    canonicalScope: structuredClone(call.canonicalScope),
+    typedPayloadType: BROLL_CAPTION_OWNER_READ_REQUEST_VERSION,
+    typedPayload: structuredClone(ownerRequest),
     mediationPolicy: {
       hqMediated: true,
       directPeerDispatchAllowed: false,
@@ -417,6 +461,93 @@ function soundResultArtifactMatches(
     && exactRef(artifact.sourceSupportRequestRef, requestRef)
 }
 
+function exactSingleInputArtifactRef(
+  call: OrchestraSkillCall,
+  artifactType: string,
+  expected: SkillContractRef,
+): boolean {
+  const matches = call.inputArtifactRefs.filter(
+    (artifact) => artifact.artifactType === artifactType)
+  return matches.length === 1 && exactRef(matches[0], expected)
+}
+
+function brollRequestMatchesCall(
+  call: OrchestraSkillCall,
+  request: BrollCaptionOwnerReadRequest,
+): boolean {
+  const scope = request.canonicalScope
+  const callSnapshot = call.canonicalScope.approvedSnapshotRef
+  return call.job.jobType === 'provide_caption_broll_composition_constraints'
+    && call.job.scopeLevel === 'scene'
+    && call.canonicalScope.boundaryId === null
+    && callSnapshot !== null
+    && call.canonicalScope.ownerUserId === scope.ownerUserId
+    && call.canonicalScope.workspaceId === scope.workspaceId
+    && call.canonicalScope.projectId === scope.projectId
+    && call.canonicalScope.editSessionId === scope.editSessionId
+    && exactRef(callSnapshot, scope.approvedSnapshotRef)
+    && call.canonicalScope.outputId === scope.outputId
+    && call.canonicalScope.sceneId === scope.sceneId
+    && call.canonicalScope.authorizedFrameRanges.length === 1
+    && call.canonicalScope.authorizedFrameRanges[0].startFrame
+      === scope.authorizedFrameRange.startFrameInclusive
+    && call.canonicalScope.authorizedFrameRanges[0].endFrameExclusive
+      === scope.authorizedFrameRange.endFrameExclusive
+    && exactSingleInputArtifactRef(
+      call, 'confirmed_output_frame', scope.outputFrameRef)
+    && exactSingleInputArtifactRef(
+      call, 'master_timing_or_planning_timing', scope.masterTimingRef)
+}
+
+function brollProjectionAuthority(
+  request: BrollCaptionOwnerReadRequest,
+) {
+  const scope = request.canonicalScope
+  return {
+    canonicalScope: {
+      ownerUserId: scope.ownerUserId,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+      planVersionId: scope.planVersionId,
+      approvedSnapshotRef: structuredClone(scope.approvedSnapshotRef),
+      outputId: scope.outputId,
+      sceneId: scope.sceneId,
+      authorizedFrameRanges: [{
+        startFrame: scope.authorizedFrameRange.startFrameInclusive,
+        endFrameExclusive: scope.authorizedFrameRange.endFrameExclusive,
+      }],
+    },
+    confirmedOutputFrameRef: structuredClone(scope.outputFrameRef),
+    masterTimingRef: structuredClone(scope.masterTimingRef),
+    masterTimingHash: scope.masterTimingHash,
+    authorizedFps: scope.authorizedFrameRange.fps,
+    planningConstraintRef: structuredClone(request.planningConstraintRef),
+  }
+}
+
+function brollResultArtifactMatches(
+  call: OrchestraSkillCall,
+  request: SkillSupportRequest,
+  result: BrollCaptionOwnerReadResult,
+): boolean {
+  const injected = call.injectedSupportArtifactRefs
+  if (injected.length !== 1) return false
+  const artifact = injected[0]
+  const requestRef: SkillContractRef = {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+  return artifact.id === result.resultId
+    && artifact.version === result.schemaVersion
+    && artifact.contentHash === result.resultDigestSha256
+    && artifact.artifactType === BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE
+    && artifact.producerSkillKey === 'broll_owner'
+    && artifact.sourceSupportRequestRef !== null
+    && exactRef(artifact.sourceSupportRequestRef, requestRef)
+}
+
 function qualificationEntry(
   snapshot: SkillQualificationSnapshot,
   jobType: string,
@@ -438,6 +569,8 @@ export function runCaptionsSpecialistJob(input: {
   soundSupportContext?: unknown
   soundSupportPayload?: unknown
   soundSupportResult?: unknown
+  brollOwnerReadRequest?: unknown
+  brollOwnerReadResult?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationProfile = call.manifestRef.id
@@ -516,6 +649,8 @@ export function runCaptionsSpecialistJob(input: {
   let soundContext: CaptionSoundContext | null = null
   let soundPayload: CaptionSoundCueRequest | null = null
   let admittedSoundResult: CaptionSoundSupportResult | null = null
+  let brollRequest: BrollCaptionOwnerReadRequest | null = null
+  let admittedBrollBinding: CaptionBrollOwnerReadBinding | null = null
   if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
     if (input.visualIntelligenceSupportPayload !== undefined
       || input.visualIntelligenceEvidencePacket !== undefined) {
@@ -613,6 +748,23 @@ export function runCaptionsSpecialistJob(input: {
       return makeResult(profile,
         call, 'blocked', ['input.soundsync.payload.scope_or_job.mismatch'],
         'The Caption SoundSync payload does not match the assigned job scope.',
+      )
+    }
+  }
+  if (input.brollOwnerReadRequest !== undefined) {
+    try {
+      brollRequest = parseBrollCaptionOwnerReadRequest(
+        input.brollOwnerReadRequest)
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.broll_owner.request.invalid'],
+        'The Caption B-roll owner-read request is invalid.',
+      )
+    }
+    if (!brollRequestMatchesCall(call, brollRequest)) {
+      return makeResult(profile,
+        call, 'blocked', ['input.broll_owner.request.scope_or_job.mismatch'],
+        'The B-roll owner-read request does not match the assigned scene.',
       )
     }
   }
@@ -786,6 +938,56 @@ export function runCaptionsSpecialistJob(input: {
         'SoundSync evidence does not match the current follow-up owner.',
       )
     }
+    if (request.targetSkillKey === 'broll_owner') {
+      let embeddedOwnerRequest: BrollCaptionOwnerReadRequest
+      try {
+        embeddedOwnerRequest = parseBrollCaptionOwnerReadRequest(
+          request.typedPayload)
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.broll_owner.request.missing'],
+          'Typed B-roll resume requires the exact embedded owner-read request.',
+        )
+      }
+      if (!brollRequestMatchesCall(call, embeddedOwnerRequest)
+        || (brollRequest !== null
+          && brollRequest.requestDigestSha256
+            !== embeddedOwnerRequest.requestDigestSha256)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.broll_owner.request.mismatch'],
+          'The B-roll owner-read request does not match the resumed Caption job.',
+        )
+      }
+      let admittedOwnerResult: BrollCaptionOwnerReadResult
+      try {
+        admittedOwnerResult = assertBrollCaptionOwnerReadResultForRequest({
+          request: embeddedOwnerRequest,
+          result: input.brollOwnerReadResult,
+        })
+        admittedBrollBinding = adaptBrollOwnerReadResultToCaptionBinding({
+          request: embeddedOwnerRequest,
+          result: admittedOwnerResult,
+          expected: brollProjectionAuthority(embeddedOwnerRequest),
+        })
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.broll_owner.result.admission.failed'],
+          'The B-roll owner result failed exact Caption admission.',
+        )
+      }
+      if (!brollResultArtifactMatches(
+        call, request, admittedOwnerResult)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.broll_owner.result.artifact.mismatch'],
+          'The B-roll owner result does not match its injected artifact.',
+        )
+      }
+    } else if (input.brollOwnerReadResult !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.broll_owner.result.unexpected'],
+        'B-roll owner evidence does not match the current follow-up owner.',
+      )
+    }
   } else if (input.resumeSupportRequest !== undefined) {
     return makeResult(profile,
       call, 'blocked', ['resume.request.unexpected'],
@@ -816,10 +1018,19 @@ export function runCaptionsSpecialistJob(input: {
       call, 'blocked', ['input.soundsync.result.unexpected'],
       'SoundSync evidence was supplied outside an exact resume.',
     )
+  } else if (input.brollOwnerReadResult !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.broll_owner.result.unexpected'],
+      'B-roll owner evidence was supplied outside an exact resume.',
+    )
   }
 
-  const missing = missingArtifacts(profile, call,
-    admittedVisualPacket === null ? [] : ['visual_intelligence_report'])
+  const additionallySatisfied = [
+    ...(admittedVisualPacket === null ? [] : ['visual_intelligence_report']),
+    ...(admittedBrollBinding === null
+      ? [] : ['caption_broll_owner_read_binding']),
+  ]
+  const missing = missingArtifacts(profile, call, additionallySatisfied)
   if (missing.includes('canonical_transcript')) {
     return makeResult(profile, call, 'blocked', [
       'input.canonical_transcript.authenticated_read.missing',
@@ -865,6 +1076,9 @@ export function runCaptionsSpecialistJob(input: {
           canonicalSkillScope: call.canonicalScope,
         })
       }
+      if (target === 'broll_owner' && brollRequest !== null) {
+        return makeBrollOwnerReadSupportRequest(call, brollRequest)
+      }
       return makeSupportRequest(call, target, items)
     })
     return makeResult(profile,
@@ -888,6 +1102,7 @@ export function runCaptionsSpecialistJob(input: {
       admittedVisualPacket?.packetDigestSha256 ?? 'no-visual-packet',
       admittedTrackAllPacket?.packetDigestSha256 ?? 'no-track-all-packet',
       admittedSoundResult?.resultDigestSha256 ?? 'no-sound-result',
+      admittedBrollBinding?.bindingDigestSha256 ?? 'no-broll-binding',
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -906,6 +1121,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['track_all.authenticated_admission.accepted']),
       ...(admittedSoundResult === null ? []
         : ['soundsync.authenticated_admission.accepted']),
+      ...(admittedBrollBinding === null ? []
+        : ['broll_owner.contract_admission.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

@@ -180,8 +180,8 @@ check(brollRun.initialResult.disposition === 'needs_followup'
     .join('|') === 'caption_broll_owner_read_binding',
 'B-roll co-composition cannot complete without its authenticated owner read')
 check(brollRun.initialResult.supportRequests[0].typedPayloadType
-  === 'b_roll_caption_owner_read_request_v1',
-'B-roll support requires the exact frozen owner-read request wire identity')
+  === 'caption-broll-owner-read-request-ref-v1',
+'B-roll support labels the receipt-only marker as a reference, not a request')
 const brollTypedPayload = brollRun.initialResult.supportRequests[0]
   .typedPayload as Record<string, unknown>
 const brollReceiptRef = brollTypedPayload.publicContractReceiptRef as
@@ -194,9 +194,11 @@ check(brollReceiptRef.contentHash === BROLL_CAPTION_PUBLIC_RECEIPT_DIGEST
   && brollTypedPayload.requestPayloadEmbedded === false
   && brollTypedPayload.exactScopeFrameTimingRereadRequired === true,
 'the support request freezes the B-roll receipt and Caption adapter without inventing authority fields')
-check(brollRun.finalResult.disposition === 'completed'
-  && brollRun.completedWithoutDirectPeerDispatch,
-'test-only B-roll injection proves the resume seam without owner execution')
+check(brollRun.finalResult.disposition === 'blocked'
+  && brollRun.finalResult.reasonCodes.join('|')
+    === 'input.broll_owner.request.missing'
+  && !brollRun.completedWithoutDirectPeerDispatch,
+'a reference-only B-roll injection cannot impersonate the frozen owner result')
 
 const safeRegionCall = createCaptionsHarnessCall({
   callId: 'captions.integration.safe-region',

@@ -22,6 +22,14 @@ import { parseCaptionBrollOwnerReadBinding } from
   '../captions-specialist/caption-multi-track-scene-graph'
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
+import { parseOrchestraSkillCall } from
+  '../orchestra/orchestra-skill-contracts'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsHarnessCall,
+  resumeCaptionsHarnessCall,
+} from '../internal-testing/captions-specialist-harness'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -225,6 +233,150 @@ check(!receipt.runtimeBindingDeclared
   && !receipt.directPeerDispatchAdded
   && !receipt.productionAuthorityGranted,
 'A source adapter receipt does not overclaim mounted owner runtime.')
+
+const runtimeSnapshotRef = ref(
+  'snapshot.broll.runtime.1', 'approved-plan-snapshot-v1')
+const runtimeCall = createCaptionsHarnessCall({
+  callId: 'caption.broll.runtime.1',
+  jobType: 'provide_caption_broll_composition_constraints',
+  scopeLevel: 'scene',
+  runtimeProfile: 'post_cap20_integration',
+  approvedSnapshotRef: runtimeSnapshotRef,
+  outputId: 'output.broll.runtime.1',
+  sceneId: 'scene.broll.runtime.1',
+})
+const runtimeOutputFrameRef = runtimeCall.inputArtifactRefs.find(
+  (artifact) => artifact.artifactType === 'confirmed_output_frame')
+const runtimeMasterTimingRef = runtimeCall.inputArtifactRefs.find(
+  (artifact) => artifact.artifactType
+    === 'master_timing_or_planning_timing')
+assert.ok(runtimeOutputFrameRef && runtimeMasterTimingRef)
+const runtimeOutputFrameContractRef = {
+  id: runtimeOutputFrameRef.id,
+  version: runtimeOutputFrameRef.version,
+  contentHash: runtimeOutputFrameRef.contentHash,
+}
+const runtimeMasterTimingContractRef = {
+  id: runtimeMasterTimingRef.id,
+  version: runtimeMasterTimingRef.version,
+  contentHash: runtimeMasterTimingRef.contentHash,
+}
+const runtimeRequest = createCaptionBrollOwnerReadRequest({
+  requestId: 'request.broll.runtime.1',
+  canonicalScope: {
+    ownerUserId: runtimeCall.canonicalScope.ownerUserId,
+    workspaceId: runtimeCall.canonicalScope.workspaceId,
+    projectId: runtimeCall.canonicalScope.projectId,
+    editSessionId: runtimeCall.canonicalScope.editSessionId,
+    planVersionId: 'plan.broll.runtime.1',
+    approvedSnapshotRef: runtimeSnapshotRef,
+    outputId: 'output.broll.runtime.1',
+    outputFrameRef: runtimeOutputFrameContractRef,
+    sceneId: 'scene.broll.runtime.1',
+    authorizedFrameRange: {
+      startFrameInclusive: 120,
+      endFrameExclusive: 240,
+      fps: 30,
+    },
+    masterTimingRef: runtimeMasterTimingContractRef,
+    masterTimingHash: runtimeMasterTimingRef.contentHash,
+  },
+  planningConstraintRef: ref(
+    'constraint.broll.runtime.1', 'caption-broll-planning-constraint-v1'),
+})
+const runtimeInitial = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  brollOwnerReadRequest: runtimeRequest,
+})
+check(runtimeInitial.disposition === 'needs_followup'
+  && runtimeInitial.supportRequests.length === 1
+  && runtimeInitial.supportRequests[0].targetSkillKey === 'broll_owner'
+  && runtimeInitial.supportRequests[0].requestedArtifactTypes.join('|')
+    === 'b_roll_caption_owner_read_result',
+'Runtime requests the B-roll-owned result rather than fabricating a Caption binding.')
+check(runtimeInitial.supportRequests[0].typedPayloadType
+  === runtimeRequest.schemaVersion
+  && (runtimeInitial.supportRequests[0].typedPayload as
+    Record<string, unknown>).requestDigestSha256
+      === runtimeRequest.requestDigestSha256,
+'Runtime embeds the exact byte-free owner request in the mediated support envelope.')
+
+const runtimeResultCandidate = structuredClone(result)
+runtimeResultCandidate.resultId = 'result.broll.runtime.1'
+runtimeResultCandidate.brollManifestRef = structuredClone(
+  runtimeRequest.brollManifestRef)
+runtimeResultCandidate.canonicalScope = structuredClone(
+  runtimeRequest.canonicalScope)
+runtimeResultCandidate.ownerRequestRef = {
+  id: runtimeRequest.requestId,
+  version: runtimeRequest.schemaVersion,
+  contentHash: runtimeRequest.requestDigestSha256,
+}
+const runtimeResult = parseBrollCaptionOwnerReadResult(redigest(
+  runtimeResultCandidate as unknown as Record<string, unknown>,
+  'resultDigestSha256'))
+const runtimeSupportRequest = runtimeInitial.supportRequests[0]
+const runtimeResumedCandidate = resumeCaptionsHarnessCall(
+  runtimeCall, runtimeSupportRequest)
+runtimeResumedCandidate.injectedSupportArtifactRefs[0] = {
+  ...runtimeResumedCandidate.injectedSupportArtifactRefs[0],
+  id: runtimeResult.resultId,
+  version: runtimeResult.schemaVersion,
+  contentHash: runtimeResult.resultDigestSha256,
+  artifactType: 'b_roll_caption_owner_read_result',
+  producerSkillKey: 'broll_owner',
+}
+const runtimeResumedCall = parseOrchestraSkillCall(redigest(
+  runtimeResumedCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256'))
+const runtimeCompleted = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  brollOwnerReadRequest: runtimeRequest,
+  brollOwnerReadResult: runtimeResult,
+})
+check(runtimeCompleted.disposition === 'completed'
+  && runtimeCompleted.reasonCodes.includes(
+    'broll_owner.contract_admission.accepted'),
+'Exact request, owner result, injected artifact, and Caption projection admit the runtime.')
+
+const missingRuntimeResult = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  brollOwnerReadRequest: runtimeRequest,
+})
+check(missingRuntimeResult.disposition === 'blocked'
+  && missingRuntimeResult.reasonCodes.join('|')
+    === 'input.broll_owner.result.admission.failed',
+'Typed B-roll resume fails closed without the exact owner result.')
+
+const referenceOnlyInitial = runCaptionsSpecialistJob({ call: runtimeCall })
+const referenceOnlyRequest = referenceOnlyInitial.supportRequests[0]
+const referenceOnlyCall = resumeCaptionsHarnessCall(
+  runtimeCall, referenceOnlyRequest)
+const referenceOnlyResult = runCaptionsSpecialistJob({
+  call: referenceOnlyCall,
+  resumeSupportRequest: referenceOnlyRequest,
+})
+check(referenceOnlyResult.disposition === 'blocked'
+  && referenceOnlyResult.reasonCodes.join('|')
+    === 'input.broll_owner.request.missing',
+'A receipt reference alone cannot satisfy the exact B-roll owner-read request.')
+
+const crossedRuntimeResult = structuredClone(runtimeResult)
+crossedRuntimeResult.canonicalScope.sceneId = 'scene.broll.crossed'
+const crossedRuntimeAdmission = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  brollOwnerReadRequest: runtimeRequest,
+  brollOwnerReadResult: redigest(
+    crossedRuntimeResult as unknown as Record<string, unknown>,
+    'resultDigestSha256'),
+})
+check(crossedRuntimeAdmission.disposition === 'blocked'
+  && crossedRuntimeAdmission.reasonCodes.join('|')
+    === 'input.broll_owner.result.admission.failed',
+'A digest-valid cross-scene B-roll owner result is rejected semantically.')
 
 const staleRequest = structuredClone(request)
 staleRequest.canonicalScope.workspaceId = 'workspace.forged'

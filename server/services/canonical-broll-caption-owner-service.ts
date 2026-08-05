@@ -256,7 +256,16 @@ export function createCanonicalBrollCaptionOwnerService(input: {
           brollPrivatePreviewMediaManifestSchema.parse),
       ])
       assertCanonicalArtifacts({
-        request, assignment, plan, media, layer, receipt, preview,
+        request,
+        publicAssignment,
+        publicPlan,
+        approvedWorkGraph,
+        assignment,
+        plan,
+        media,
+        layer,
+        receipt,
+        preview,
       })
       const selectedMediaManifestRef = opaqueRef(
         `broll.media.${media.mediaManifestHash.slice(0, 32)}`,
@@ -484,6 +493,9 @@ function exactOutputRefs(
 
 function assertCanonicalArtifacts(input: {
   request: BrollCaptionOwnerReadRequest
+  publicAssignment: SkillAssignment
+  publicPlan: EditSkillPublicPlan
+  approvedWorkGraph: EditSkillApprovedWorkGraph
   assignment: BrollSkillAssignment
   plan: z.infer<typeof brollPlanArtifactSchema>
   media: z.infer<typeof brollCandidateMediaManifestSchema>
@@ -491,7 +503,17 @@ function assertCanonicalArtifacts(input: {
   receipt: z.infer<typeof brollResultReceiptSchema>
   preview: z.infer<typeof brollPrivatePreviewMediaManifestSchema>
 }): void {
-  const { request, assignment, plan, media, layer, receipt, preview,
+  const {
+    request,
+    publicAssignment,
+    publicPlan,
+    approvedWorkGraph,
+    assignment,
+    plan,
+    media,
+    layer,
+    receipt,
+    preview,
   } = input
   const range = request.canonicalScope.authorizedFrameRange
   if (
@@ -500,13 +522,14 @@ function assertCanonicalArtifacts(input: {
     media.projectId !== request.canonicalScope.projectId ||
     media.editSessionId !== request.canonicalScope.editSessionId ||
     media.assignmentId !== assignment.assignmentId ||
-    media.assignmentHash !== assignment.assignmentHash ||
+    media.assignmentHash !== publicAssignment.assignmentHash ||
     media.planId !== plan.planId ||
-    media.planHash !== plan.planHash ||
+    media.planHash !== publicPlan.envelope.planHash ||
+    media.approvedWorkGraphHash !== approvedWorkGraph.approvedWorkGraphHash ||
     layer.assignmentReference.assignmentId !== assignment.assignmentId ||
-    layer.assignmentReference.assignmentHash !== assignment.assignmentHash ||
+    layer.assignmentReference.assignmentHash !== publicAssignment.assignmentHash ||
     layer.planReference.planId !== plan.planId ||
-    layer.planReference.planHash !== plan.planHash ||
+    layer.planReference.planHash !== publicPlan.envelope.planHash ||
     layer.exactTimelineRange.startFrameInclusive !== range.startFrameInclusive ||
     layer.exactTimelineRange.endFrameExclusive !== range.endFrameExclusive ||
     layer.exactTimelineRange.fps !== range.fps ||
@@ -515,6 +538,9 @@ function assertCanonicalArtifacts(input: {
     layer.finalCompositionOwnedByBroll ||
     receipt.layerManifestHash !== layer.layerManifestHash ||
     receipt.preview.sha256 !== preview.objectSha256 ||
+    preview.assignmentHash !== publicAssignment.assignmentHash ||
+    preview.planHash !== publicPlan.envelope.planHash ||
+    preview.approvedWorkGraphHash !== approvedWorkGraph.approvedWorkGraphHash ||
     receipt.outsideAuthorizedRangeModified ||
     preview.outsideAuthorizedRangeModified ||
     preview.finalCustomerExport ||

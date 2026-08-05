@@ -51,11 +51,7 @@ import {
   TRACK_ALL_SAM_OPERATION_V2,
   TRACK_ALL_TOOL_OPERATIONS,
 } from '../edit-skills/track-all/track-all-capability-manifest'
-import { GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT } from '../edit-skills/b-roll/generated/b-roll-internal-qualification.generated'
-import {
-  assertSkillQualificationReceipt,
-  skillQualificationReceiptSchema,
-} from '../edit-skills/core/skill-qualification-receipt'
+import { brollQualificationReceiptFixture } from './b-roll-qualification-receipt-fixture'
 import {
   BROLL_PROVIDER_ROUTE_ID,
   brollProviderExecutionPackageV5Schema,
@@ -122,6 +118,7 @@ const canonicalBindings = createBrollCanonicalPrivateRuntimeBindings({
 const runtime = createEditSkillRuntime({
   environmentClass: 'canonical_private',
   artifactStore,
+  privateArtifactAuthority: true,
   providerAuthority: {
     operations: new Map(BROLL_PROVIDER_OPERATIONS.map((operationId) => [
       operationId,
@@ -134,16 +131,20 @@ const runtime = createEditSkillRuntime({
       ...TRACK_ALL_TOOL_OPERATIONS,
       TRACK_ALL_SAM_OPERATION_V2,
     ]),
+    operationQualifications: new Map([
+      ...BROLL_TOOL_OPERATIONS,
+      ...TRACK_ALL_TOOL_OPERATIONS,
+      TRACK_ALL_SAM_OPERATION_V2,
+    ].map((operationId) => [
+      operationId,
+      'internal_execution_qualified' as const,
+    ])),
   },
   additionalRuntimeBindings: canonicalBindings,
   ...runtimeRegistries,
 })
 const plugin = runtime.pluginRegistry.resolve(manifestRef)
-const qualificationReceipt = assertSkillQualificationReceipt(
-  skillQualificationReceiptSchema.parse(
-    (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
-  ),
-)
+const qualificationReceipt = brollQualificationReceiptFixture()
 
 function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex')
@@ -432,6 +433,11 @@ async function dispatchItem(input: {
   approval: EditSkillPlanApproval
   graph: EditSkillApprovedWorkGraph
   item: EditSkillApprovedWorkGraph['workItems'][number]
+  availableRefs: Array<{
+    reference: EditSkillArtifactReference
+    producerWorkItemKey?: string
+    producerWorkItemHash?: string
+  }>
 }): Promise<EditSkillWorkResult> {
   const binding = runtime.runtimeBindingRegistry.resolve({
     manifestRef,
@@ -439,21 +445,30 @@ async function dispatchItem(input: {
     adapterClass: 'canonical_private_execution_adapter',
     environmentClass: 'canonical_private',
   }).definition
+  const exactInputArtifactRefs = binding.inputArtifactTypes.map((artifactType) => {
+    const available = [...input.availableRefs].reverse().find((entry) =>
+      entry.reference.artifactType === artifactType)
+    assert.ok(available, `Missing exact canonical input ${artifactType} for ${input.item.workItemKey}.`)
+    return available.reference
+  })
+  const dependencyOutputRefs = input.availableRefs.filter((entry) =>
+    entry.producerWorkItemKey && entry.producerWorkItemHash &&
+    input.item.dependencyKeys.includes(entry.producerWorkItemKey))
+    .map((entry) => ({
+      reference: entry.reference,
+      producerWorkItemKey: entry.producerWorkItemKey!,
+      producerWorkItemHash: entry.producerWorkItemHash!,
+    }))
   const outcome = await runtime.runtimeDispatcher.dispatchApprovedWorkItemToResult({
     manifestRef,
     workItem: input.item,
     approval: input.approval,
     authorizedPhase: binding.allowedPhases[0]!,
-    inputArtifactTypes: binding.inputArtifactTypes,
-    adapterClass: 'canonical_private_execution_adapter',
-    environmentClass: 'canonical_private',
-    runtimeQualification: 'internal_execution_qualified',
-    artifactStorageClass: artifactStore.storageClass,
+    expectedQualification: 'internal_execution_qualified',
+    exactInputArtifactRefs,
+    dependencyOutputRefs,
     artifactStore,
     artifactScope: scope,
-    privateArtifactAuthority: true,
-    providerAuthorityOperations: runtime.referenceCatalog.providerOperations,
-    toolAuthorityOperations: runtime.referenceCatalog.toolOperations,
     planId: input.plan.envelope.planId,
     planHash: input.plan.envelope.planHash,
     qaEvidenceArtifactRefs: [input.plan.evidenceRefs[0]!],
@@ -461,12 +476,32 @@ async function dispatchItem(input: {
   assert.equal(outcome.receipt.status, 'succeeded')
   assert.equal(outcome.receipt.publicArtifactCount, 0)
   assert.equal(outcome.receipt.productionMutationCount, 0)
+  input.availableRefs.push(...outcome.outputArtifactRefs.map((reference) => ({
+    reference,
+    producerWorkItemKey: input.item.workItemKey,
+    producerWorkItemHash: input.item.workItemHash,
+  })))
   return plugin.validateWorkItemResult({
     assignment: input.fixture.assignment,
     plan: input.plan,
     workGraph: input.graph,
     result: outcome.workResult,
   })
+}
+
+function initialRuntimeRefs(input: {
+  fixture: PublicFixture
+  plan: EditSkillPublicPlan
+  graph: EditSkillApprovedWorkGraph
+}) {
+  return [
+    ...input.fixture.assignment.contextArtifactRefs,
+    ...input.fixture.assignment.dependencyArtifactRefs,
+    input.plan.payloadRef,
+    ...input.plan.evidenceRefs,
+    ...(input.graph.pluginWorkGraphRef ? [input.graph.pluginWorkGraphRef] : []),
+    ...(input.fixture.source ? [input.fixture.source.reference] : []),
+  ].map((reference) => ({ reference }))
 }
 
 const root = await mkdtemp(join(tmpdir(), 'reeditpro-broll-public-canonical-'))
@@ -532,6 +567,11 @@ try {
     canonicalWorkItems: noActionAuthority.canonicalWorkItems,
   })
   const noActionResults: EditSkillWorkResult[] = []
+  const noActionRuntimeRefs = initialRuntimeRefs({
+    fixture: noActionFixture,
+    plan: noAction.plan,
+    graph: noAction.graph,
+  })
   for (const item of noAction.graph.workItems) {
     noActionResults.push(await dispatchItem({
       fixture: noActionFixture,
@@ -539,6 +579,7 @@ try {
       approval: noAction.approval,
       graph: noAction.graph,
       item,
+      availableRefs: noActionRuntimeRefs,
     }))
   }
   const noActionReceipt = await plugin.finalizeSkillResult({
@@ -620,6 +661,11 @@ try {
     now: () => '2026-08-05T12:15:00.000Z',
   })
   const sourceResults: EditSkillWorkResult[] = []
+  const sourceRuntimeRefs = initialRuntimeRefs({
+    fixture: sourceFixture,
+    plan: sourceLifecycle.plan,
+    graph: sourceLifecycle.graph,
+  })
   for (const item of sourceLifecycle.graph.workItems) {
     sourceResults.push(await dispatchItem({
       fixture: sourceFixture,
@@ -627,6 +673,7 @@ try {
       approval: sourceLifecycle.approval,
       graph: sourceLifecycle.graph,
       item,
+      availableRefs: sourceRuntimeRefs,
     }))
   }
   const sourceReceipt = await plugin.finalizeSkillResult({
@@ -789,6 +836,43 @@ try {
     now: () => '2026-08-05T12:25:00.000Z',
   })
   const generatedResults: EditSkillWorkResult[] = []
+  const generatedRuntimeRefs = initialRuntimeRefs({
+    fixture: generatedFixture,
+    plan: generated.plan,
+    graph: generated.graph,
+  })
+  const publicProviderWorkItem = generated.graph.workItems.find((item) =>
+    item.jobType === 'generate_b_roll_candidate')
+  assert.ok(publicProviderWorkItem)
+  const providerRequestSpecificationCore = {
+    schemaVersion: 'b_roll_provider_request_specification_v1' as const,
+    ...scope,
+    editSessionId: generatedFixture.assignment.editSessionId,
+    assignmentId: generatedFixture.brollAssignment.assignmentId,
+    assignmentHash: generatedFixture.brollAssignment.assignmentHash,
+    manifestRef,
+    planId: generatedAuthority.plan.planId,
+    planHash: generatedAuthority.plan.planHash,
+    approvedWorkGraphHash: generated.graph.approvedWorkGraphHash,
+    workItemKey: publicProviderWorkItem.workItemKey,
+    workItemHash: publicProviderWorkItem.workItemHash,
+    operationId: 'provider.google.generate_b_roll_candidate.v1' as const,
+    requestPackage,
+    callerSelectable: false as const,
+    automaticRetryAllowed: false as const,
+    alternateProviderFallbackAllowed: false as const,
+    approved: true as const,
+  }
+  generatedRuntimeRefs.push({
+    reference: await artifactStore.putJson({
+      artifactType: 'b_roll_provider_request_specification_v1',
+      ...scope,
+      value: {
+        ...providerRequestSpecificationCore,
+        specificationHash: hashSkillValue(providerRequestSpecificationCore),
+      },
+    }),
+  })
   const providerIndex = generated.graph.workItems.findIndex((item) =>
     item.jobType === 'generate_b_roll_candidate')
   assert.ok(providerIndex >= 0)
@@ -799,6 +883,7 @@ try {
       approval: generated.approval,
       graph: generated.graph,
       item,
+      availableRefs: generatedRuntimeRefs,
     }))
   }
   const providerResult = generatedResults.at(-1)!
@@ -869,6 +954,7 @@ try {
     ...scope,
     value: visualIntelligenceArtifact,
   })
+  generatedRuntimeRefs.push({ reference: visualIntelligenceRef })
   const visualIntelligenceRequest = generated.plan.dependencyRequests[0]!
   const dependencyAcceptance = await plugin.acceptDependencyArtifact({
     assignment: generatedFixture.assignment,
@@ -889,6 +975,7 @@ try {
       approval: generated.approval,
       graph: generated.graph,
       item,
+      availableRefs: generatedRuntimeRefs,
     }))
   }
   const generatedReceipt = await plugin.finalizeSkillResult({

@@ -24,6 +24,7 @@
     "generate:b-roll-capability-manifest": "tsx server/cli/generate-b-roll-capability-manifest-doc.ts",
     "generate:track-all-capability-manifest": "tsx server/cli/generate-track-all-capability-manifest-doc.ts",
     "test:edit-skill-shared-assignment-authorities": "tsx server/smoke/edit-skill-shared-assignment-authorities-smoke.ts",
+    "test:edit-skill-route-qualification": "tsx server/smoke/edit-skill-route-qualification-smoke.ts",
     "test:track-all-capability-manifest": "tsx server/smoke/track-all-capability-manifest-smoke.ts",
     "test:track-all-authority": "tsx server/smoke/track-all-authority-smoke.ts",
     "test:track-all-planning": "tsx server/smoke/track-all-planning-smoke.ts",

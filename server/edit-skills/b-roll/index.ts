@@ -12,6 +12,7 @@ import type { SkillReferenceCatalog } from '../core/skill-capability-validator'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
 import type { SkillQualificationRegistry } from '../core/skill-qualification-registry'
+import type { SkillRouteQualificationRegistry } from '../core/skill-route-qualification'
 import { registerBrollArtifactSchemas } from './b-roll-artifact-types'
 import {
   BROLL_CAPABILITY_MANIFEST,
@@ -25,6 +26,8 @@ import {
 import { registerBrollQaPolicies } from './b-roll-qa-policy'
 import {
   BROLL_WORK_GRAPH_JOB_DEFINITIONS,
+  BROLL_RUNTIME_BINDINGS,
+  createBrollCanonicalPrivateRuntimeBindings,
   registerBrollRuntimeBindings,
 } from './b-roll-runtime-bindings'
 import { tryLoadBrollGeneratedQualificationArtifact } from './b-roll-qualification-evidence'
@@ -32,6 +35,10 @@ import { computeBrollQualificationDependencyAuthorityHashes } from './b-roll-qua
 import { computeBrollRelevantSourceTreeHash } from './b-roll-qualification-source-hash'
 import { BrollEditSkillPlugin } from './b-roll-edit-skill-plugin'
 import { BrollSkillService } from './b-roll-skill-service'
+import {
+  createBrollRouteQualificationCandidateReceipts,
+  createBrollRouteQualificationReceipts,
+} from './b-roll-route-qualification'
 
 export * from './b-roll-artifact-types'
 export * from './b-roll-active-artifact-contracts'
@@ -55,6 +62,7 @@ export * from './b-roll-edit-skill-plugin'
 export * from './b-roll-input-authorities'
 export * from './b-roll-remotion-integration'
 export * from './b-roll-runtime-bindings'
+export * from './b-roll-route-qualification'
 export * from './b-roll-track-graph-dependency'
 export * from './b-roll-plan-compiler'
 export * from './b-roll-schemas'
@@ -71,6 +79,7 @@ export function registerBrollSkill(input: {
   runtimeBindings: SkillJobRuntimeBindingRegistry
   workGraphJobs: SkillWorkGraphJobDefinition[]
   qualifications: SkillQualificationRegistry
+  routeQualifications: SkillRouteQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
   const qualificationGenerationMode =
@@ -91,6 +100,32 @@ export function registerBrollSkill(input: {
     throw new Error(
       'B-roll runtime is unqualified: run npm run qualify:b-roll:internal for this exact source tree.',
     )
+  }
+  const canonicalRouteBindings = createBrollCanonicalPrivateRuntimeBindings({
+    execute: async () => {
+      throw new Error('Route qualification binding authority cannot execute work.')
+    },
+  })
+  const routeBindingDefinitions = [
+    ...BROLL_RUNTIME_BINDINGS,
+    ...canonicalRouteBindings,
+  ].map((binding) => binding.definition)
+  if (generatedQualification) {
+    input.qualifications.register(generatedQualification.receipt)
+    for (const receipt of createBrollRouteQualificationReceipts({
+      artifact: generatedQualification,
+      bindings: routeBindingDefinitions,
+    })) input.routeQualifications.register({
+      receipt,
+      bindings: routeBindingDefinitions,
+    })
+  } else {
+    for (const receipt of createBrollRouteQualificationCandidateReceipts({
+      bindings: routeBindingDefinitions,
+    })) input.routeQualifications.register({
+      receipt,
+      bindings: routeBindingDefinitions,
+    })
   }
   registerBrollArtifactSchemas(input.artifacts)
   registerBrollQaPolicies(input.qa)
@@ -152,7 +187,6 @@ export function registerBrollSkill(input: {
     qa: input.qa,
   }))
   if (generatedQualification) {
-    input.qualifications.register(generatedQualification.receipt)
     if (generatedQualification.receipt.qualificationStatus === 'internal_execution_qualified') {
       input.qualifications.assertClaim(
         input.capabilities.referenceFor('b_roll'),

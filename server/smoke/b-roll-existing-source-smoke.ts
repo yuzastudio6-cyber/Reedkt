@@ -28,17 +28,19 @@ import {
   hashSkillValue,
   skillManifestReference,
 } from '../edit-skills/core'
-import { GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT } from '../edit-skills/b-roll/generated/b-roll-internal-qualification.generated'
-import {
-  assertSkillQualificationReceipt,
-  skillQualificationReceiptSchema,
-} from '../edit-skills/core/skill-qualification-receipt'
+import { brollQualificationReceiptFixture } from './b-roll-qualification-receipt-fixture'
 import {
   editSkillArtifactSchemaRegistry,
   editSkillEstimatorRegistry,
+  editSkillQualificationRegistry,
   editSkillQaRegistry,
   editSkillReferenceCatalog,
+  editSkillRouteQualificationRegistry,
 } from '../edit-skills/internal-fixture-runtime'
+import {
+  DurableRuntimeInputFixtureStore,
+  seedExactRuntimeInputs,
+} from './edit-skill-runtime-input-fixtures'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import { readCanonicalPrivateMediaArtifact } from '../services/canonical-private-media-artifact-storage'
 import { readPrivateAuthorityJsonBlob } from '../services/private-edit-authority-store'
@@ -211,11 +213,7 @@ try {
     plan: compiled.plan,
     planningQaReport: compiled.planningQaReport,
     workGraph,
-    qualificationReceipt: assertSkillQualificationReceipt(
-      skillQualificationReceiptSchema.parse(
-        (GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT as { receipt: unknown }).receipt,
-      ),
-    ),
+    qualificationReceipt: brollQualificationReceiptFixture(),
   })
   const componentRef = persisted.componentRefs.bRollSkill
   const providerObserver = {
@@ -343,29 +341,72 @@ try {
     operations: editSkillReferenceCatalog,
     workGraphJobs: BROLL_WORK_GRAPH_JOB_DEFINITIONS,
   })
-  const dispatcher = new EditSkillRuntimeDispatcher(bindingRegistry, 'canonical_private')
+  const runtimeInputStore = new DurableRuntimeInputFixtureStore()
+  const runtimeScope = {
+    ownerUserId: assignment.ownerUserId,
+    workspaceId: assignment.workspaceId,
+    projectId: assignment.projectId,
+  }
+  const dispatcher = new EditSkillRuntimeDispatcher({
+    bindings: bindingRegistry,
+    environmentClass: 'canonical_private',
+    routeQualifications: editSkillRouteQualificationRegistry,
+    skillQualifications: editSkillQualificationRegistry,
+    artifactStore: runtimeInputStore,
+    privateArtifactAuthority: true,
+    providerAuthorityOperations: new Map([...editSkillReferenceCatalog.providerOperations]
+      .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+    toolAuthorityOperations: new Map([...editSkillReferenceCatalog.toolOperations]
+      .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+  })
   const bindingByJob = new Map(canonicalBindings.map((binding) => [
     binding.definition.jobType,
     binding.definition,
   ]))
   const dispatchReceipts = []
+  const canonicalOutputs: Array<{
+    reference: Awaited<ReturnType<typeof seedExactRuntimeInputs>>[number]
+    producerWorkItemKey: string
+    producerWorkItemHash: string
+  }> = []
   for (const workItem of workGraph.workItems) {
     const binding = bindingByJob.get(workItem.jobType)
     assert.ok(binding)
-    dispatchReceipts.push(await dispatcher.dispatchApprovedWorkItem({
+    const seededInputs = await seedExactRuntimeInputs({
+      store: runtimeInputStore,
+      binding,
+      scope: runtimeScope,
+      workItemHash: workItem.workItemHash,
+    })
+    const exactInputArtifactRefs = seededInputs.map((seeded) =>
+      [...canonicalOutputs].reverse().find((output) =>
+        output.reference.artifactType === seeded.artifactType)?.reference ?? seeded)
+    const dependencyOutputRefs = workItem.dependencyKeys.map((dependencyKey) => {
+      const output = canonicalOutputs.find((candidate) =>
+        candidate.producerWorkItemKey === dependencyKey)
+      assert.ok(output, `Missing canonical predecessor ${dependencyKey}.`)
+      return output
+    })
+    const outcome = await dispatcher.dispatchApprovedWorkItemToResult({
       manifestRef,
       workItem,
       approval,
       authorizedPhase: binding.allowedPhases[0]!,
-      inputArtifactTypes: binding.inputArtifactTypes,
-      adapterClass: 'canonical_private_execution_adapter',
-      environmentClass: 'canonical_private',
-      runtimeQualification: 'internal_execution_qualified',
-      artifactStorageClass: 'durable',
-      privateArtifactAuthority: true,
-      providerAuthorityOperations: editSkillReferenceCatalog.providerOperations,
-      toolAuthorityOperations: editSkillReferenceCatalog.toolOperations,
-    }))
+      expectedQualification: 'internal_execution_qualified',
+      exactInputArtifactRefs,
+      dependencyOutputRefs,
+      artifactStore: runtimeInputStore,
+      artifactScope: runtimeScope,
+      planId: compiled.plan.planId,
+      planHash: compiled.plan.planHash,
+      qaEvidenceArtifactRefs: [],
+    })
+    dispatchReceipts.push(outcome.receipt)
+    canonicalOutputs.push(...outcome.outputArtifactRefs.map((reference) => ({
+      reference,
+      producerWorkItemKey: workItem.workItemKey,
+      producerWorkItemHash: workItem.workItemHash,
+    })))
   }
   const canonicalSnapshot = coordinator.snapshot()
   assert.equal(dispatchReceipts.length, workGraph.workItems.length)

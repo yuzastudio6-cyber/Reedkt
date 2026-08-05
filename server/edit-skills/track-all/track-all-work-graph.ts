@@ -106,6 +106,9 @@ function createBinding(input: {
     throw new Error(`Track All work definition ${input.jobType} lacks a manifest capability.`)
   }
   const canonicalPrivate = input.adapterClass === 'canonical_private_execution_adapter'
+  const routeKey = canonicalPrivate
+    ? canonicalPrivateRouteKey(input.jobType)
+    : 'public_plugin_lifecycle_route'
   return createSkillJobRuntimeBinding({
     definition: {
       schemaVersion: 'edit-skill-runtime-binding-v2',
@@ -126,6 +129,7 @@ function createBinding(input: {
       runtimeAdapterId: canonicalPrivate
         ? `track_all.runtime.canonical_private.${input.jobType.split('.').at(-1)}.v1`
         : `track_all.runtime.internal_qualification.${input.jobType.split('.').at(-1)}.v1`,
+      routeKey,
       approvalRequired: true,
       providerAuthorityRequired: false,
       toolAuthorityRequired: operationKind(definition) === 'tool',
@@ -138,6 +142,23 @@ function createBinding(input: {
     },
     handler: input.handler,
   })
+}
+
+function canonicalPrivateRouteKey(
+  jobType: TrackAllPublicJobType,
+): string {
+  if (jobType === 'track_all.produce_selected_target_graph' ||
+    jobType === 'track_all.produce_concept_instance_graph') return 'sam3_1_masklet_route'
+  if (jobType === 'track_all.track_planar_region') return 'planar_tracking_route'
+  if (jobType === 'track_all.repair_track') return 'existing_track_repair_route'
+  if (jobType === 'track_all.apply_privacy_redaction') return 'privacy_redaction_route'
+  if (jobType === 'track_all.apply_tracked_focus') return 'focus_route'
+  if (jobType === 'track_all.prepare_tracked_reframe') return 'reframe_route'
+  if (jobType === 'track_all.produce_scene_geometry_graph') return 'deterministic_geometry_route'
+  if (jobType === 'track_all.plan_assignment' || jobType === 'track_all.no_action') {
+    return 'planning_core_route'
+  }
+  return 'public_plugin_lifecycle_route'
 }
 
 export const TRACK_ALL_RUNTIME_BINDINGS: readonly SkillJobRuntimeBinding[] =

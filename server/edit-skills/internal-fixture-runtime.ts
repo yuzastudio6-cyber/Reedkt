@@ -32,6 +32,14 @@ export function createInternalFixtureEditSkillRuntime(): EditSkillRuntime {
         ...TRACK_ALL_TOOL_OPERATIONS,
         TRACK_ALL_SAM_OPERATION_V2,
       ]),
+      operationQualifications: new Map([
+        ...BROLL_TOOL_OPERATIONS,
+        ...TRACK_ALL_TOOL_OPERATIONS,
+        TRACK_ALL_SAM_OPERATION_V2,
+      ].map((operationId) => [
+        operationId,
+        'internal_execution_qualified' as const,
+      ])),
     },
     ...registries,
   })
@@ -50,4 +58,5 @@ export const editSkillEstimatorRegistry = internalFixtureEditSkillRuntime.estima
 export const editSkillQaRegistry = internalFixtureEditSkillRuntime.qaRegistry
 export const editSkillArtifactSchemaRegistry = internalFixtureEditSkillRuntime.artifactSchemaRegistry
 export const editSkillQualificationRegistry = internalFixtureEditSkillRuntime.qualificationRegistry
+export const editSkillRouteQualificationRegistry = internalFixtureEditSkillRuntime.routeQualificationRegistry
 export const editSkillReferenceCatalog = internalFixtureEditSkillRuntime.referenceCatalog

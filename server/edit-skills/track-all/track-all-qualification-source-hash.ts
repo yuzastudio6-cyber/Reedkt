@@ -15,6 +15,8 @@ const RELEVANT_EXACT_FILES = [
   'package.json',
   'server/edit-skills/registry.ts',
   'server/edit-skills/internal-fixture-runtime.ts',
+  'server/smoke/edit-skill-route-qualification-smoke.ts',
+  'server/smoke/edit-skill-runtime-input-fixtures.ts',
   'server/cli/generate-track-all-capability-manifest-doc.ts',
   'server/cli/qualify-track-all-internal.ts',
   'server/cli/validate-track-all-active-route-retirement.ts',

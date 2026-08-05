@@ -21,6 +21,8 @@ const RELEVANT_EXACT_FILES = [
   'server/cli/validate-b-roll-active-route-retirement.ts',
   'server/edit-skills/registry.ts',
   'server/edit-skills/internal-fixture-runtime.ts',
+  'server/smoke/edit-skill-route-qualification-smoke.ts',
+  'server/smoke/edit-skill-runtime-input-fixtures.ts',
   'server/smoke/edit-skill-runtime-factory-smoke.ts',
   'server/smoke/ui-qa-media-runtime-workflow-smoke.ts',
   'server/services/canonical-broll-plan-component-service.ts',

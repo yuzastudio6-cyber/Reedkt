@@ -16,6 +16,7 @@ import type { SkillReferenceCatalog } from './core/skill-capability-validator'
 import { SkillEstimatorRegistry } from './core/skill-estimator-registry'
 import { SkillQaRegistry } from './core/skill-qa-registry'
 import { SkillQualificationRegistry } from './core/skill-qualification-registry'
+import { SkillRouteQualificationRegistry } from './core/skill-route-qualification'
 import { registerBrollSkill } from './b-roll'
 import { registerTrackAllSkill } from './track-all'
 
@@ -25,6 +26,7 @@ const REQUIRED_DEPENDENCIES = [
   'toolRegistry',
   'qaRegistry',
   'qualificationRegistry',
+  'routeQualificationRegistry',
   'estimatorRegistry',
   'artifactSchemaRegistry',
 ] as const
@@ -40,6 +42,10 @@ export function createEditSkillRuntime(
     artifactStore.storageClass !== 'durable'
   ) throw new Error(
     'Production edit-skill runtime rejects the internal in-memory artifact store.',
+  )
+  if (input.environmentClass !== 'internal_fixture' &&
+    input.privateArtifactAuthority !== true) throw new Error(
+    'Canonical and production edit-skill runtimes require explicit private artifact authority.',
   )
 
   const capabilityRegistry = new SkillCapabilityRegistry()
@@ -66,6 +72,7 @@ export function createEditSkillRuntime(
     runtimeBindings: runtimeBindingRegistry,
     workGraphJobs: workGraphJobDefinitions,
     qualifications: input.qualificationRegistry!,
+    routeQualifications: input.routeQualificationRegistry!,
     catalog: referenceCatalog,
   })
   registerTrackAllSkill({
@@ -78,6 +85,7 @@ export function createEditSkillRuntime(
     runtimeBindings: runtimeBindingRegistry,
     workGraphJobs: workGraphJobDefinitions,
     qualifications: input.qualificationRegistry!,
+    routeQualifications: input.routeQualificationRegistry!,
     catalog: referenceCatalog,
   })
   for (const binding of input.additionalRuntimeBindings ?? []) {
@@ -100,15 +108,22 @@ export function createEditSkillRuntime(
     capabilityRegistry,
     pluginRegistry,
     runtimeBindingRegistry,
-    runtimeDispatcher: new EditSkillRuntimeDispatcher(
-      runtimeBindingRegistry,
-      input.environmentClass,
-    ),
+    runtimeDispatcher: new EditSkillRuntimeDispatcher({
+      bindings: runtimeBindingRegistry,
+      environmentClass: input.environmentClass,
+      routeQualifications: input.routeQualificationRegistry!,
+      skillQualifications: input.qualificationRegistry!,
+      artifactStore,
+      privateArtifactAuthority: input.privateArtifactAuthority === true,
+      providerAuthorityOperations: input.providerAuthority!.operations,
+      toolAuthorityOperations: input.toolRegistry!.operationQualifications,
+    }),
     workGraphJobDefinitions: Object.freeze([...workGraphJobDefinitions]),
     estimatorRegistry: input.estimatorRegistry!,
     qaRegistry: input.qaRegistry!,
     artifactSchemaRegistry: input.artifactSchemaRegistry!,
     qualificationRegistry: input.qualificationRegistry!,
+    routeQualificationRegistry: input.routeQualificationRegistry!,
     referenceCatalog,
     providerAuthority: input.providerAuthority!,
     toolRegistry: input.toolRegistry!,
@@ -123,6 +138,9 @@ function assertExternallyConfiguredOperations(input: {
   for (const operationId of input.catalog.toolOperations) {
     if (!input.toolRegistry.operationIds.has(operationId)) {
       throw new Error(`Edit-skill runtime tool operation ${operationId} is not configured.`)
+    }
+    if (!input.toolRegistry.operationQualifications.has(operationId)) {
+      throw new Error(`Edit-skill runtime tool operation ${operationId} has no qualification authority.`)
     }
   }
   for (const operationId of input.catalog.providerOperations) {
@@ -139,9 +157,16 @@ function assertExternallyConfiguredOperations(input: {
 }
 
 export function createEditSkillRuntimeRegistries() {
+  const qualificationRegistry = new SkillQualificationRegistry()
   return {
     qaRegistry: new SkillQaRegistry(),
-    qualificationRegistry: new SkillQualificationRegistry(),
+    qualificationRegistry,
+    routeQualificationRegistry: new SkillRouteQualificationRegistry({
+      skillQualifications: qualificationRegistry,
+      qualificationIssuanceMode:
+        process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING === '1' ||
+        process.env.REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING === '1',
+    }),
     estimatorRegistry: new SkillEstimatorRegistry(),
     artifactSchemaRegistry: new EditSkillArtifactSchemaRegistry(),
   }

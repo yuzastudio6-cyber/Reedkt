@@ -28,6 +28,7 @@ const DEFINITIONS = [
       'server/edit-skills/core/edit-skill-plugin-registry.ts',
       'server/edit-skills/core/edit-skill-runtime-binding.ts',
       'server/edit-skills/core/edit-skill-runtime-dispatcher.ts',
+      'server/edit-skills/core/skill-route-qualification.ts',
       'server/edit-skills/core/skill-qualification-receipt.ts',
     ],
   },
@@ -52,7 +53,10 @@ const DEFINITIONS = [
   {
     authorityKey: 'track_all_work_graph_and_bindings',
     profileVersion: 'track_all_dependency_authority.work_graph_and_bindings.v1',
-    files: ['server/edit-skills/track-all/track-all-work-graph.ts'],
+    files: [
+      'server/edit-skills/track-all/track-all-work-graph.ts',
+      'server/edit-skills/track-all/track-all-route-qualification.ts',
+    ],
   },
   {
     authorityKey: 'shared_track_graph_v1_v2',

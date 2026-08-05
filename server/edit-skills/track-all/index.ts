@@ -6,6 +6,7 @@ import type { SkillReferenceCatalog } from '../core/skill-capability-validator'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
 import type { SkillQualificationRegistry } from '../core/skill-qualification-registry'
+import type { SkillRouteQualificationRegistry } from '../core/skill-route-qualification'
 import {
   TRACK_ALL_CAPABILITY_MANIFEST,
   TRACK_ALL_JOB_TYPES,
@@ -20,12 +21,18 @@ import { registerTrackAllArtifactSchemas } from './track-all-schemas'
 import { TrackAllSkillService } from './track-all-skill-service'
 import {
   registerTrackAllRuntimeBindings,
+  TRACK_ALL_RUNTIME_BINDINGS,
+  createTrackAllCanonicalPrivateRuntimeBindings,
   TRACK_ALL_WORK_GRAPH_JOB_DEFINITIONS,
 } from './track-all-work-graph'
 import { estimateTrackAllPlan } from './private/planning-mini-skills'
 import { tryLoadTrackAllGeneratedQualificationArtifact } from './track-all-qualification-evidence'
 import { computeTrackAllQualificationDependencyAuthorityHashes } from './track-all-qualification-dependency-authorities'
 import { computeTrackAllRelevantSourceTreeHash } from './track-all-qualification-source-hash'
+import {
+  createTrackAllInternalRouteQualificationCandidateReceipt,
+  createTrackAllRouteQualificationReceipts,
+} from './track-all-route-qualification'
 
 export * from './track-all-artifact-types'
 export * from './track-all-active-artifact-contracts'
@@ -38,6 +45,7 @@ export * from './track-all-qualification-command-catalog'
 export * from './track-all-qualification-dependency-authorities'
 export * from './track-all-qualification-evidence'
 export * from './track-all-qualification-source-hash'
+export * from './track-all-route-qualification'
 export * from './track-all-schemas'
 export * from './track-all-skill-service'
 export * from './track-all-work-graph'
@@ -82,6 +90,7 @@ export function registerTrackAllSkill(input: {
   runtimeBindings: SkillJobRuntimeBindingRegistry
   workGraphJobs: SkillWorkGraphJobDefinition[]
   qualifications: SkillQualificationRegistry
+  routeQualifications: SkillRouteQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
   const qualificationGenerationMode =
@@ -102,6 +111,39 @@ export function registerTrackAllSkill(input: {
     throw new Error(
       'Track All runtime is unqualified: run npm run qualify:track-all:internal for this exact source tree.',
     )
+  }
+  const canonicalRouteBindings = createTrackAllCanonicalPrivateRuntimeBindings({
+    execute: async (_jobType, definition) => ({
+      status: 'failed',
+      outputArtifactTypes: [definition.output],
+      evidenceHashes: [TRACK_ALL_CAPABILITY_MANIFEST.manifestHash],
+      providerRequestCount: 0,
+      publicArtifactCount: 0,
+      productionMutationCount: 0,
+      failureCode: 'route_qualification_binding_authority_cannot_execute',
+    }),
+  })
+  const routeBindingDefinitions = [
+    ...TRACK_ALL_RUNTIME_BINDINGS,
+    ...canonicalRouteBindings,
+  ].map((binding) => binding.definition)
+  if (generatedQualification) {
+    input.qualifications.register(generatedQualification.receipt)
+    for (const receipt of createTrackAllRouteQualificationReceipts({
+      artifact: generatedQualification,
+      bindings: routeBindingDefinitions,
+    })) input.routeQualifications.register({
+      receipt,
+      bindings: routeBindingDefinitions,
+    })
+  } else {
+    const receipt = createTrackAllInternalRouteQualificationCandidateReceipt({
+      bindings: routeBindingDefinitions,
+    })
+    input.routeQualifications.register({
+      receipt,
+      bindings: routeBindingDefinitions,
+    })
   }
   registerTrackAllArtifactSchemas(input.artifacts)
   registerTrackAllQaPolicies(input.qa)
@@ -125,7 +167,6 @@ export function registerTrackAllSkill(input: {
   input.plugins.register(plugin)
   input.capabilities.registerHandler({ skillKey: 'track_all', skillVersion: '1.0.0', handler: new TrackAllSkillService(plugin) })
   if (generatedQualification) {
-    input.qualifications.register(generatedQualification.receipt)
     input.qualifications.assertClaim(
       input.capabilities.referenceFor('track_all'),
       TRACK_ALL_CAPABILITY_MANIFEST.qualificationStatus,

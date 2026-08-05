@@ -48,11 +48,21 @@ function dependencies() {
         'internal_execution_qualified' as const,
       ])),
     },
-    toolRegistry: { operationIds: new Set([
-      ...BROLL_TOOL_OPERATIONS,
-      ...TRACK_ALL_TOOL_OPERATIONS,
-      TRACK_ALL_SAM_OPERATION_V2,
-    ]) },
+    toolRegistry: {
+      operationIds: new Set([
+        ...BROLL_TOOL_OPERATIONS,
+        ...TRACK_ALL_TOOL_OPERATIONS,
+        TRACK_ALL_SAM_OPERATION_V2,
+      ]),
+      operationQualifications: new Map([
+        ...BROLL_TOOL_OPERATIONS,
+        ...TRACK_ALL_TOOL_OPERATIONS,
+        TRACK_ALL_SAM_OPERATION_V2,
+      ].map((operationId) => [
+        operationId,
+        'internal_execution_qualified' as const,
+      ])),
+    },
     ...createEditSkillRuntimeRegistries(),
   }
 }
@@ -79,6 +89,7 @@ const providerMissing = dependencies()
 assert.throws(() => createEditSkillRuntime({
   environmentClass: 'production_server',
   artifactStore: new ExplicitDurableFixtureArtifactStore(),
+  privateArtifactAuthority: true,
   ...providerMissing,
   providerAuthority: { operations: new Map() },
 }), /provider operation .* missing or under-qualified/u)
@@ -87,6 +98,7 @@ const providerUnderQualified = dependencies()
 assert.throws(() => createEditSkillRuntime({
   environmentClass: 'production_server',
   artifactStore: new ExplicitDurableFixtureArtifactStore(),
+  privateArtifactAuthority: true,
   ...providerUnderQualified,
   providerAuthority: {
     operations: new Map(BROLL_PROVIDER_OPERATIONS.map((operationId) => [
@@ -100,13 +112,15 @@ const toolMissing = dependencies()
 assert.throws(() => createEditSkillRuntime({
   environmentClass: 'production_server',
   artifactStore: new ExplicitDurableFixtureArtifactStore(),
+  privateArtifactAuthority: true,
   ...toolMissing,
-  toolRegistry: { operationIds: new Set() },
+  toolRegistry: { operationIds: new Set(), operationQualifications: new Map() },
 }), /tool operation .* is not configured/u)
 
 const productionRuntime = createEditSkillRuntime({
   environmentClass: 'production_server',
   artifactStore: new ExplicitDurableFixtureArtifactStore(),
+  privateArtifactAuthority: true,
   ...dependencies(),
 })
 assert.equal(productionRuntime.status, 'configured')
@@ -123,6 +137,7 @@ assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 26)
 const canonicalPrivateRuntime = createEditSkillRuntime({
   environmentClass: 'canonical_private',
   artifactStore: new ExplicitDurableFixtureArtifactStore(),
+  privateArtifactAuthority: true,
   additionalRuntimeBindings: createBrollCanonicalPrivateRuntimeBindings({
     execute: async () => {
       throw new Error('Construction-only runtime executor must not be invoked.')

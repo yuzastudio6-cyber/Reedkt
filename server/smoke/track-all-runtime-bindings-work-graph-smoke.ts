@@ -57,6 +57,7 @@ function definitionCore(definition: SkillJobRuntimeBindingDefinition) {
     adapterClass: definition.adapterClass,
     environmentClass: definition.environmentClass,
     runtimeAdapterId: definition.runtimeAdapterId,
+    routeKey: definition.routeKey,
     approvalRequired: definition.approvalRequired,
     providerAuthorityRequired: definition.providerAuthorityRequired,
     toolAuthorityRequired: definition.toolAuthorityRequired,
@@ -176,7 +177,16 @@ assert.throws(() => registry().validateManifest({
   workGraphJobs: TRACK_ALL_WORK_GRAPH_JOB_DEFINITIONS,
 }), /unknown tool operation/iu)
 
-const dispatcher = new EditSkillRuntimeDispatcher(registry(), 'internal_fixture')
+const dispatcher = new EditSkillRuntimeDispatcher({
+  bindings: registry(),
+  environmentClass: 'internal_fixture',
+  routeQualifications: runtime.routeQualificationRegistry,
+  skillQualifications: runtime.qualificationRegistry,
+  artifactStore: runtime.artifactStore,
+  privateArtifactAuthority: false,
+  providerAuthorityOperations: runtime.providerAuthority.operations,
+  toolAuthorityOperations: runtime.toolRegistry.operationQualifications,
+})
 const dispatchReceipts = []
 for (const binding of TRACK_ALL_RUNTIME_BINDINGS) {
   const definition = binding.definition
@@ -215,14 +225,7 @@ for (const binding of TRACK_ALL_RUNTIME_BINDINGS) {
     workItem,
     approval,
     authorizedPhase: definition.allowedPhases[0]!,
-    inputArtifactTypes: definition.inputArtifactTypes,
-    adapterClass: 'internal_qualification_adapter',
-    environmentClass: 'internal_fixture',
-    runtimeQualification: 'internal_execution_qualified',
-    artifactStorageClass: 'internal_in_memory',
-    privateArtifactAuthority: false,
-    providerAuthorityOperations: new Set(),
-    toolAuthorityOperations: runtime.toolRegistry.operationIds,
+    expectedQualification: 'internal_execution_qualified',
   }))
 }
 assert.equal(dispatchReceipts.length, 13)

@@ -1200,3 +1200,66 @@ fixture records against clean commit
 After both generated receipts were committed, the B-Roll canonical public
 lifecycle, Track All public plugin E2E, and shared-authority boundary test all
 passed again with normal fail-closed receipt loading and no generation bypass.
+
+## TRACK-21 — route qualification and exact runtime authority
+
+Status: source implementation and local verification complete; the exact
+source/evidence commits and regenerated receipt hashes are recorded in the
+follow-up ledger after clean-tree qualification finishes.
+
+Implemented:
+
+- added one generic, content-addressed route-qualification receipt and registry
+  keyed by exact manifest, route, runtime environment, adapter class, job,
+  operation, and runtime-binding hash;
+- removed caller-supplied runtime qualification, adapter, environment, storage,
+  provider, and tool authority from the dispatch request; an optional expected
+  qualification is now an assertion against independently resolved authority
+  and cannot elevate it;
+- made the runtime factory inject exact skill qualification, route
+  qualification, durable artifact-store, private-output, provider-operation,
+  and tool-operation authorities into the dispatcher;
+- required canonical-private dispatch to reread exact ordered input artifact
+  references from the injected private store and independently verify tenant,
+  project, checksum, byte length, predecessor work lineage, and approved
+  dependency identity before invoking an adapter;
+- kept fixture candidate receipts usable only inside explicit aggregate
+  qualification issuance and prevented them from authorizing ordinary runtime
+  startup, canonical-private execution, or production execution;
+- bound all B-Roll internal/canonical bindings and every Track All
+  internal/canonical route to explicit route keys; Track All canonical routes
+  remain blocked until TRACK-23/TRACK-24 produce real canonical-private public
+  lifecycle evidence;
+- added adversarial coverage for caller elevation, missing routes, forged
+  receipts, stale manifests/bindings, fixture-to-canonical substitution,
+  missing exact inputs, duplicate/cross-workspace inputs, under-qualified
+  provider/tool authority, and production-store boundaries;
+- corrected B-Roll's no-action result binding so it requires only its plan and
+  planning-QA lineage, and removed generated-candidate semantic QA from the
+  existing-source route. The generated B-Roll manifest projection now binds
+  manifest hash
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`.
+
+Actual local checks passed before the source freeze:
+
+- `npm run test:edit-skill-route-qualification`;
+- `npm run test:edit-skill-runtime-factory`;
+- `npm run test:b-roll-runtime-bindings`;
+- `npm run test:track-all-runtime-bindings`;
+- `npm run test:track-all-public-plugin-e2e`;
+- `npm run test:b-roll-public-canonical-lifecycle`;
+- `npm run test:b-roll-canonical-private-runtime`;
+- `npm run smoke:b-roll-existing-source`;
+- `npm run test:b-roll-plan-invariants`;
+- `npm run test:b-roll-capability-manifest`;
+- `npm run validate:skill-capability-manifests`;
+- `npm run test:edit-skill-capability-kernel`;
+- `npm run typecheck:server`;
+- `git diff --check`.
+
+These tests used both qualification-generation gates only because this source
+change deliberately invalidates the previously generated receipts. That mode
+is constrained to aggregate issuance candidates and is not executable runtime
+evidence. B-Roll and Track All are requalified from the clean source commit
+before TRACK-21 closes. No provider/model/GPU call, public artifact,
+production mutation, peer-skill implementation, or head orchestra was added.

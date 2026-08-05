@@ -320,14 +320,7 @@ async function executePublicLifecycle(input: {
     const dispatch = await runtime.runtimeDispatcher.dispatchApprovedWorkItem({
       manifestRef, workItem: item, approval,
       authorizedPhase: binding.definition.allowedPhases[0]!,
-      inputArtifactTypes: binding.definition.inputArtifactTypes,
-      adapterClass: 'internal_qualification_adapter',
-      environmentClass: 'internal_fixture',
-      runtimeQualification: 'internal_execution_qualified',
-      artifactStorageClass: runtime.artifactStore.storageClass,
-      privateArtifactAuthority: false,
-      providerAuthorityOperations: new Set(),
-      toolAuthorityOperations: runtime.toolRegistry.operationIds,
+      expectedQualification: 'internal_execution_qualified',
     })
     assert.equal(dispatch.status, 'succeeded')
     assert.equal(dispatch.providerRequestCount, 0)

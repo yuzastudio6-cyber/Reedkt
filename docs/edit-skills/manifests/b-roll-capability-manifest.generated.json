@@ -521,7 +521,7 @@
       ]
     }
   ],
-  "manifestHash": "40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0",
+  "manifestHash": "2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad",
   "mayOverlapWith": [
     {
       "condition": "caption_safe_area_preserved",
@@ -1476,9 +1476,7 @@
       ],
       "requiredArtifactTypes": [
         "b_roll_plan_v1",
-        "b_roll_planning_qa_report_v1",
-        "b_roll_qa_report_v1",
-        "b_roll_remotion_layer_manifest_v1"
+        "b_roll_planning_qa_report_v1"
       ],
       "runtimeBindingRequired": true
     }

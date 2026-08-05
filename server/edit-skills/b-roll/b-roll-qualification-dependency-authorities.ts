@@ -151,7 +151,9 @@ const DEFINITIONS = [
     files: [
       'server/edit-skills/core/edit-skill-runtime-binding.ts',
       'server/edit-skills/core/edit-skill-runtime-dispatcher.ts',
+      'server/edit-skills/core/skill-route-qualification.ts',
       'server/edit-skills/b-roll/b-roll-runtime-bindings.ts',
+      'server/edit-skills/b-roll/b-roll-route-qualification.ts',
       'server/edit-skills/b-roll/b-roll-canonical-private-runtime.ts',
     ],
   },

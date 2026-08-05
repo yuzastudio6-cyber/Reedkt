@@ -139,7 +139,7 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
   },
   {
     jobType: 'project_b_roll_result_receipt', operationId: 'b_roll.internal.project_result.v1',
-    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_planning_qa_report_v1', 'b_roll_qa_report_v1', 'b_roll_remotion_layer_manifest_v1'],
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_planning_qa_report_v1'],
     output: 'b_roll_result_receipt_v1', allowedPhase: 'result_projection', toolOrProviderCredits: 0,
     qa: ['b_roll.integration.result_lineage'],
   },
@@ -177,7 +177,6 @@ const existingDefinitions = definitionsFor([
   'inspect_b_roll_candidate_with_ffprobe',
   'normalize_b_roll_candidate_with_ffmpeg',
   'run_b_roll_technical_qa',
-  'run_b_roll_semantic_visual_qa',
   'prepare_b_roll_remotion_layer',
   'render_b_roll_preview',
   'run_b_roll_preview_qa',

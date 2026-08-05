@@ -30,6 +30,7 @@ const gitExecutable = process.env.REEDITPRO_GIT_BIN?.trim() || 'git'
 
 const PHASE_A_SCRIPTS = [
   'test:edit-skill-shared-assignment-authorities',
+  'test:edit-skill-route-qualification',
   'test:b-roll-planning',
   'test:b-roll-planning-qa',
   'test:b-roll-qualification-evidence',

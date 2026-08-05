@@ -1,6 +1,10 @@
 import { z } from 'zod'
 
-import type { EditSkillArtifactSchemaRegistry } from './edit-skill-artifact-store'
+import type {
+  EditSkillArtifactReference,
+  EditSkillArtifactSchemaRegistry,
+  EditSkillArtifactStore,
+} from './edit-skill-artifact-store'
 import {
   ACTIVE_QUALIFICATION_RANK,
   EDIT_SKILL_KEYS,
@@ -32,6 +36,15 @@ export interface SkillJobRuntimeInvocation {
   workItemHash: string
   authorizedPhase: string
   inputArtifactTypes: readonly string[]
+  exactInputArtifactRefs: readonly EditSkillArtifactReference[]
+  dependencyOutputRefs: readonly {
+    reference: EditSkillArtifactReference
+    producerWorkItemKey: string
+    producerWorkItemHash: string
+  }[]
+  routeQualificationReceiptHash: string
+  resolvedQualificationStatus: SkillQualificationStatus
+  artifactStore: EditSkillArtifactStore
 }
 
 export interface SkillJobRuntimeAdapterResult {
@@ -79,6 +92,7 @@ const skillJobRuntimeBindingCoreSchema = z.object({
   ]),
   environmentClass: z.enum(['internal_fixture', 'canonical_private', 'production_server']),
   runtimeAdapterId: skillIdentitySchema,
+  routeKey: skillIdentitySchema,
   approvalRequired: z.boolean(),
   providerAuthorityRequired: z.boolean(),
   toolAuthorityRequired: z.boolean(),

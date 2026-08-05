@@ -10,17 +10,24 @@ import type {
   CaptionDomainRef,
 } from '../../src/types/caption-domain-contracts'
 import type {
-  CaptionTrackAllEvidencePacket,
   CaptionTrackAllSubjectEvidence,
 } from '../../src/types/caption-track-all-support'
 import type {
   CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  CanonicalSpecialistSupportResumeRecord,
 } from '../../src/types/canonical-specialist-support-resume'
 import {
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT,
   parseCaptionCanonicalTrackAllEvidenceReadReceipt,
   parseCaptionCanonicalTrackAllEvidenceRecord,
 } from '../captions-specialist/caption-canonical-track-all-evidence-read'
+import {
+  CAPTION_CANONICAL_TRACK_ALL_RESUME_ADMISSION_RECEIPT,
+  parseCaptionCanonicalTrackAllResumeAdmissionReceipt,
+  runCaptionCanonicalTrackAllResumeAdmission,
+} from '../captions-specialist/caption-canonical-track-all-resume'
+import { parseCaptionCanonicalSpecialistSupportResumeRecord } from
+  '../captions-specialist/caption-canonical-specialist-resume-read'
 import {
   createCaptionTrackAllAdmission,
   createCaptionTrackAllEvidencePacketForContractFixture,
@@ -207,7 +214,7 @@ const authenticatedPacket = parseCaptionTrackAllEvidencePacket(redigest({
   independentMaskArtifactQaCompleted: true,
   privateVisualReviewCompleted: true,
   packetDigestSha256: '',
-} as CaptionTrackAllEvidencePacket, 'packetDigestSha256'), {
+} as unknown as Record<string, unknown>, 'packetDigestSha256'), {
   payload: support.payload,
   supportRequest: support.supportRequest,
 })
@@ -349,6 +356,68 @@ check(completed.disposition === 'completed'
     'track_all.authenticated_admission.accepted'),
 'The canonical record satisfies the strict Track All runtime admission.')
 
+const resumeRecordWithoutDigest: Omit<
+  CanonicalSpecialistSupportResumeRecord,
+  'recordDigestSha256'
+> = {
+  schemaVersion: 'canonical-specialist-support-resume-record-v1',
+  recordId: 'caption.track.canonical.resume-record',
+  stepOrdinal: 1,
+  priorCall: structuredClone(runtimeCall),
+  priorResult: structuredClone(initial),
+  selectedSupportRequest: structuredClone(support.supportRequest),
+  authenticatedOwnerProjection: structuredClone(projection),
+  resumedCall: structuredClone(resumedCall),
+  resumedResult: structuredClone(completed),
+  promotedPriorSupportArtifactRefs: [],
+  persistedAt: '2026-08-05T20:00:00.000Z',
+  priorCallAndResultExactReread: true,
+  selectedRequestExactResultMember: true,
+  authenticatedOwnerProjectionExactReread: true,
+  onlyCurrentOwnerResultInjected: true,
+  priorOwnerResultsPromotedAsCanonicalInputs: true,
+  exactImmediateCallAndRequestLineage: true,
+  directPeerDispatchPerformed: false,
+  timelineMutationPerformed: false,
+  providerCallPerformedByResumeOwner: false,
+  runtimeExecutionPerformedByResumeOwner: false,
+  assetMutationPerformedByResumeOwner: false,
+  costOrBillingMutationPerformedByResumeOwner: false,
+  finalQaApprovalGrantedByResumeOwner: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+const resumeRecord = parseCaptionCanonicalSpecialistSupportResumeRecord(
+  redigest({
+    ...resumeRecordWithoutDigest,
+    recordDigestSha256: '',
+  }, 'recordDigestSha256'))
+const replayed = runCaptionCanonicalTrackAllResumeAdmission({
+  canonicalResumeRecord: resumeRecord,
+  canonicalTrackAllEvidenceRecord: record,
+})
+check(replayed.resultDigestSha256 === completed.resultDigestSha256,
+'Canonical Track All evidence replays to the exact persisted Caption result.')
+check(parseCaptionCanonicalTrackAllResumeAdmissionReceipt(
+  CAPTION_CANONICAL_TRACK_ALL_RESUME_ADMISSION_RECEIPT)
+  .runtimeResultMustMatchPersistedResultDigest,
+'The resume receipt freezes exact persisted-result replay.')
+
+const changedPersistedResult = structuredClone(resumeRecord)
+changedPersistedResult.resumedResult.safeUserSummary =
+  'A different persisted Caption result.'
+changedPersistedResult.resumedResult.resultDigestSha256 =
+  calculateSkillContractDigest(
+    changedPersistedResult.resumedResult as unknown as Record<string, unknown>,
+    'resultDigestSha256')
+changedPersistedResult.recordDigestSha256 = calculateSkillContractDigest(
+  changedPersistedResult as unknown as Record<string, unknown>,
+  'recordDigestSha256')
+expectThrow(() => runCaptionCanonicalTrackAllResumeAdmission({
+  canonicalResumeRecord: changedPersistedResult,
+  canonicalTrackAllEvidenceRecord: record,
+}))
+
 const crossedScene = structuredClone(record)
 crossedScene.trackAllSceneEvidenceRef = ref('track.scene.evidence.crossed')
 crossedScene.recordDigestSha256 = calculateSkillContractDigest(
@@ -399,6 +468,11 @@ console.log(JSON.stringify({
   adapterDigestSha256:
     CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterDigestSha256,
   canonicalRecordVersion: record.schemaVersion,
+  resumeAdmissionVersion:
+    CAPTION_CANONICAL_TRACK_ALL_RESUME_ADMISSION_RECEIPT.schemaVersion,
+  resumeAdmissionDigestSha256:
+    CAPTION_CANONICAL_TRACK_ALL_RESUME_ADMISSION_RECEIPT.receiptDigestSha256,
+  canonicalResumeReplayMatched: true,
   sourceFixtureAdmitted: true,
   actualCanonicalEvidenceRecordConsumed: false,
   actualSam31RuntimeStartedByCaption: false,

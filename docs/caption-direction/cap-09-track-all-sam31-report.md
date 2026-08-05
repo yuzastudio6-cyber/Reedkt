@@ -95,10 +95,12 @@ The focused smoke, server typecheck, and focused ESLint pass. The real
 SAM 3.1 + Track All + OpenCV/Kornia + Remotion text-behind-subject media
 fixture remains an explicit private-runtime gate for later bounded execution.
 
-`smoke:captions-specialist-canonical-track-all-evidence-read` adds 10 checks for
+`smoke:captions-specialist-canonical-track-all-evidence-read` adds 13 checks for
 the frozen public-file hash, complete canonical record admission, strict runtime
 consumption, crossed scene/projection rejection, ambiguous input rejection, and
-non-resume refusal.
+non-resume refusal. It also binds the record to the canonical sequential-resume
+ledger and requires a deterministic replay to match the persisted Caption
+result digest; altered persisted results fail closed.
 
 ## Next milestone
 

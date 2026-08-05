@@ -36,14 +36,22 @@ function safeProviderToken(value: unknown): string | undefined {
   return value
 }
 
+function replaceControlCharacters(value: string): string {
+  let output = ''
+  for (const character of value) {
+    const codePoint = character.codePointAt(0) ?? 0
+    output += codePoint <= 31 || codePoint === 127 ? ' ' : character
+  }
+  return output
+}
+
 function redactProviderMessage(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined
-  const redacted = value
+  const redacted = replaceControlCharacters(value
     .replace(/https?:\/\/\S+/giu, '[redacted-url]')
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/giu, '[redacted-email]')
     .replace(/\b(?:ya29\.|eyJ)[A-Za-z0-9._-]+\b/gu, '[redacted-token]')
-    .replace(/\b[A-Za-z0-9_-]{48,}\b/gu, '[redacted-identifier]')
-    .replace(/[\u0000-\u001f\u007f]+/gu, ' ')
+    .replace(/\b[A-Za-z0-9_-]{48,}\b/gu, '[redacted-identifier]'))
     .replace(/\s+/gu, ' ')
     .trim()
   return redacted ? redacted.slice(0, 320) : undefined

@@ -6,7 +6,8 @@ Branch: `codex/canonical-music-skill`
 
 Status: `standalone_skill_complete`, `orchestra_ready`,
 `orchestra_integration_pending_by_design`,
-`live_music_provider_activation_pending_external_evidence`
+`live_music_provider_private_canary_verified`,
+`live_music_provider_production_activation_pending_canonical_runtime_integration`
 
 ## Published identity and qualification
 
@@ -23,9 +24,11 @@ Status: `standalone_skill_complete`, `orchestra_ready`,
 - Production-qualified jobs: 0
 
 The top-level status is intentionally the lowest honest composite status. Deterministic private
-operations remain internally qualified, injected Lyria remains fixture evidence, subjective
-professional judgments remain confidence-scored or review-required, and production/live provider
-execution remains blocked. Each supported job has a unique planning evidence record. Direct
+operations remain internally qualified, injected Lyria remains fixture evidence, and a real
+deployed private Lyria canary is now verified. Subjective professional judgments remain
+confidence-scored or review-required, while production route promotion remains blocked until the
+canonical product runtime supplies all exact durable execution evidence. Each supported job has a
+unique planning evidence record. Direct
 execution qualification exists only where an exact job/mode test binds the request, capability,
 route, handler, inputs, outputs, assertions, and result-evidence hash.
 
@@ -124,6 +127,16 @@ future live execution. Live mode requires the durable private attempt store and 
 without account, privacy, retention, commercial, rate, deployed-runtime, project, confirmation, and
 private-canary evidence. CI reads no credential and makes no provider call.
 
+On 2026-08-05, the dedicated deployed private canary completed one real Lyria request from immutable
+image digest `sha256:794791f9e4f7bb64b66c415f0d9d4e7ed0d74841923a21a4d86b499cfe41a36e`.
+Execution `reeditpro-music-lyria-private-canary-w5nvh` returned a checksum-verified 1,476,245-byte
+MP3, 61.257083 seconds, 44.1 kHz stereo, with provider cost USD 0.08 and `store=false`. Measured raw
+output evidence included -12.9 LUFS, +0.1 dBTP, and 5,501 clipped samples; therefore the candidate
+still requires canonical Sound processing and final measured QA. The live evidence is recorded in
+`docs/music/canonical-music-lyria-live-canary-evidence-2026-08-05.md`. This verifies deployed live
+transport without falsely promoting the immutable route or top-level Music capability to production
+qualification.
+
 ## Canonical Sound 4.1 collaboration
 
 Music imports only `MusicSoundSupportPort`. The production adapter calls canonical Sound skill
@@ -215,8 +228,8 @@ exact acceptance records, real execution receipts, and the command matrix:
 - 43–51: user/reference/generated rights, project-only defaults, measured/inferred/declared DNA,
   speech-bound vocals, and review-aware language/culture — satisfied.
 - 52–62: provider-neutral brief, verified Lyria profile, server-only fail-closed live boundary,
-  real fixture bytes, cue-specific idempotent attempts, and reconciliation — satisfied at honest
-  fixture qualification; external live evidence remains pending.
+  real fixture bytes, cue-specific idempotent attempts, reconciliation, and deployed private live
+  canary — satisfied. Production-route promotion remains intentionally separate from canary proof.
 - 63–79: independent candidates, order-independent selection, actual-byte audio analysis, measured
   loudness/peak/clipping/timing evidence, and anchor-driven MusicSync/editorial — satisfied.
 - 80–92: public Sound 4.1 port only, exact delegated authority and cost, receipt-derived mutations,
@@ -242,10 +255,17 @@ exact acceptance records, real execution receipts, and the command matrix:
 - `a7211a94a` — isolate provider candidates and revisions
 - `80c979ab8` — bind exact acceptance and segmented QA
 - `21ec35aca` — qualify non-route service boundaries honestly
-- Closure evidence commit — this report, final validation record, and lint-quality correction
+- `9e4822cdc` — publish v3 standalone closure evidence
+- `62ad251bb` — restore live Lyria canary and measured QA
+- `250ceffb9` — make the private canary image readable
+- `741772bfe` — package shared canary dependencies
+- `3f1178621` — preserve safe Lyria rejection evidence
+- `170bc13d0` — align live Lyria prompts with provider policy
+- Live evidence commit — this report and immutable deployed canary record
 
 Music is safe to close because its public contract, manifest, route graph, handlers, real private
 artifacts, rights, exact timing, Sound collaboration, measured QA, localized revision, final handoff,
-qualification, and acceptance evidence now agree. The remaining live-provider activation and global
-Orchestra integration are explicit external/design boundaries, not unfinished Music code. No other
-top-level skill was started.
+qualification, and acceptance evidence now agree. Live provider transport is verified from the
+deployed private canary; production product routing and global Orchestra integration remain explicit
+runtime/design boundaries and cannot bypass canonical Music/Sound admission or QA. No other top-level
+skill was started.

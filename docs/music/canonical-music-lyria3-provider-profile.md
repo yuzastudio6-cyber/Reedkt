@@ -1,6 +1,7 @@
 # Canonical Music Lyria 3 provider profile
 
-Status: `fixture_qualified_live_activation_pending_external_evidence`
+Status: `fixture_qualified`, `live_private_canary_verified`,
+`production_activation_requires_canonical_runtime_evidence`
 
 Verified on 2026-08-04 against current official Google Cloud documentation.
 
@@ -65,6 +66,23 @@ candidate independently and proves that selection is not provider-array order.
 Fixture evidence does not prove a Google account, a live provider call,
 commercial approval, zero-retention entitlement, deployed IAM, live pricing,
 or production output quality.
+
+## Live private-canary evidence
+
+On 2026-08-05, the frozen profile completed a real call from the deployed private
+Cloud Run canary. Google returned one privately ingested MP3 candidate with a
+provider request ID. The output decoded at 44.1 kHz stereo, its checksum matched,
+and the provider cost was USD 0.08. The raw candidate also measured +0.1 dBTP and
+5,501 clipped samples, so it remains subject to canonical Sound processing and
+measured final QA rather than being treated as render-ready.
+
+The complete immutable-image, execution, audio, cost, privacy, IAM, failure, and
+retry evidence is recorded in
+`docs/music/canonical-music-lyria-live-canary-evidence-2026-08-05.md`.
+
+This live canary verifies the real external transport and deployed credential
+boundary. It does not mutate the published provider profile or automatically
+promote the Music route to production qualification.
 
 ## Controlled private canary
 

@@ -53,7 +53,8 @@ const rejectedTransport = new GoogleLyria3InteractionsTransport({
   fetchImplementation: async () => new Response(JSON.stringify({
     error: {
       status: 'INVALID_ARGUMENT',
-      message: 'Rejected https://provider.invalid for owner@example.com with eyJsecret-token-value-that-must-not-leak.',
+      message: `Rejected https://provider.invalid for owner@example.com with ` +
+        `eyJsecret-token-value-that-must-not-leak.${String.fromCharCode(0)} control marker.`,
       details: [{ reason: 'MODEL_NOT_AVAILABLE' }],
     },
   }), { status: 400 }),
@@ -67,7 +68,7 @@ check(rejected.status === 'failed' && rejected.failureCode === 'http_400_model_n
 check(rejectionSummary.includes('MODEL_NOT_AVAILABLE') && rejectionSummary.includes('[redacted-url]') &&
   rejectionSummary.includes('[redacted-email]') && rejectionSummary.includes('[redacted-token]') &&
   !rejectionSummary.includes('provider.invalid') && !rejectionSummary.includes('owner@example.com') &&
-  !rejectionSummary.includes('eyJsecret'),
+  !rejectionSummary.includes('eyJsecret') && !rejectionSummary.includes('\\u0000'),
   'Lyria rejection diagnostics must preserve useful status without leaking sensitive values.')
 
 let unsafeEndpointRejected = false

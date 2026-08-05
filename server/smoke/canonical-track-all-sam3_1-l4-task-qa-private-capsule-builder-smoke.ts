@@ -92,6 +92,11 @@ assert.match(builder, /from urllib\.request import HTTPRedirectHandler, Request,
 assert.match(builder, /class HttpsOnlyRedirectHandler/u)
 assert.match(builder, /observed_bytes > expected_bytes/u)
 assert.match(builder, /digest\.hexdigest\(\) != expected_sha256/u)
+assert.match(
+  builder,
+  /key=lambda item: item\.relative_to\(root\)\.as_posix\(\)/u,
+  'Capsule manifest paths must use the verifier\'s bytewise POSIX ordering.',
+)
 assert.doesNotMatch(`${dockerfile}\n${builder}`, /\bcurl\b/u)
 assert.match(builder, /builder-only NumPy wheel path policy failed/u)
 assert.match(builder, /file_type == stat\.S_IFLNK/u)

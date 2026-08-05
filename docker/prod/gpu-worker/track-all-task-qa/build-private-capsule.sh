@@ -387,7 +387,11 @@ import sys
 
 root = Path(sys.argv[1])
 artifacts = []
-for path in sorted(item for item in root.rglob("*") if item.is_file()):
+files = (item for item in root.rglob("*") if item.is_file())
+for path in sorted(
+    files,
+    key=lambda item: item.relative_to(root).as_posix(),
+):
     relative = path.relative_to(root).as_posix()
     if relative == "capsule-manifest.json" or path.is_symlink():
         raise SystemExit("private capsule path policy failed")

@@ -7,6 +7,8 @@
 - Track All branch: `codex/track-all-skill-end-to-end`
 - implementation, CI, and regenerated-evidence head before the TRACK-29
   documentation freeze: `c1d5e9c4db108c19ce5f78f8afadd434d91b3435`
+- TRACK-29 freeze-document commit:
+  `8561030fa1208b404e148812f5bcc7bb324112ae`, pushed and remotely confirmed
 - skill: `track_all@1.0.0`
 - contract: `track_all.skill_contract.v1`
 - manifest schema: `skill-capability-manifest-v2`

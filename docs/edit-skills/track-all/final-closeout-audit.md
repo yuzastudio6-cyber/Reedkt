@@ -17,6 +17,7 @@ final outcome column is updated with exact evidence.
 | Track All checkout | `/Users/macuser/Documents/REeditpro-track-all-skill-end-to-end` |
 | branch | `codex/track-all-skill-end-to-end` |
 | implementation, CI, and regenerated-evidence head before TRACK-29 docs | `c1d5e9c4db108c19ce5f78f8afadd434d91b3435`, pushed and remotely confirmed |
+| TRACK-29 freeze-document commit | `8561030fa1208b404e148812f5bcc7bb324112ae`, pushed and remotely confirmed |
 | stable foundation | `codex/edit-skills-foundation-v1@f7208fead733e756e23272920d940b8c25b78900` |
 | merge base with foundation | `f7208fead733e756e23272920d940b8c25b78900` |
 | B-Roll owner branch | `codex/reeditpro-b-roll-skill-end-to-end@59acac49dd41b78d9f274635fa1b5cfdd9de5b25` |

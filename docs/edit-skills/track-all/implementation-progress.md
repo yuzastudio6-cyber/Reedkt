@@ -2142,9 +2142,11 @@ FFprobe, native-runtime, planar, browser, or qualification failures.
 
 ## TRACK-29 — final acceptance and freeze
 
-Status: complete after the final dedicated workflow pass;
-the exact freeze commit and remote confirmation are recorded by the follow-up
-ledger commit that follows this section.
+Status: complete after the final dedicated workflow pass.
+
+The final freeze-document commit is
+`8561030fa1208b404e148812f5bcc7bb324112ae`; it was pushed and the exact remote
+branch ref was reread successfully.
 
 The final audit, architecture, runbook, tool matrix, qualification evidence,
 and freeze record now carry the exact manifest, tested source, source-tree,

@@ -11,17 +11,24 @@ REEDITPRO_GIT_BIN=/absolute/path/to/git npm run qualify:track-all:internal
 
 The issuer supplies an 8 GB Node heap ceiling when the caller has not already
 set `NODE_OPTIONS`; this repository-wide TypeScript graph exceeds Node's local
-default heap on some hosts. The command executes the canonical 25-command catalog, captures exit status,
-timestamps and stdout/stderr digests, emits 21 exact fixture evidence records,
-binds 14 dependency authorities, and generates the content-addressed receipt
+default heap on some hosts. The command executes the canonical 33-command
+catalog, captures exit status, timestamps and stdout/stderr digests, emits 24
+exact fixture evidence records, binds 26 ordered dependency authorities, and
+generates the content-addressed receipt
 under `server/edit-skills/track-all/generated/`. Raw logs and media are not
 committed. Any relevant source, manifest, shared authority, fixture catalog,
 or runtime-binding change invalidates runtime loading.
 
+Issuance uses a bounded two-pass bootstrap because actual B-Roll consumer
+acceptance must execute before a final Track receipt can be loaded. Bootstrap
+evidence is accepted only inside qualification generation and is rejected by
+normal runtime construction. The second pass executes current-source B-Roll
+acceptance and issues the runtime-loadable artifact.
+
 The aggregate status is intentionally `planning_qualified`. Actual
-deterministic/private fixtures have route-level internal evidence, while the
-SAM 3.1 masklet route and production worker route remain blocked. Injected
-session evidence is never promoted to real SAM inference.
+canonical-private deterministic routes have route-level internal evidence,
+while the SAM 3.1 masklet route and production worker route remain blocked.
+Injected session evidence is never promoted to real SAM inference.
 
 ```sh
 npm run test:track-all-retirement
@@ -39,7 +46,10 @@ npm run test:track-all-focus-reframe
 npm run test:track-all-cross-skill-handoffs
 npm run test:track-all-independent-qa-repair
 npm run test:track-all-runtime-bindings
+npm run test:track-all-canonical-private-runtime
+npm run test:track-all-canonical-private-public-e2e
 npm run test:track-all-public-plugin-e2e
+npm run test:track-all-producer-consumer-acceptance
 ```
 
 The privacy command runs all four fixed treatments and one attempt through the
@@ -51,6 +61,21 @@ docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
 ```
 
 The image remains private-internal and production-blocked.
+
+The pinned structured Python image verifies all 19 package imports and exact
+versions during the build, then loads only the native package set for the one
+authorized operation in each confined process. Verify the complete operation
+catalog with:
+
+```sh
+npm run smoke:offline-python-structured-execution
+```
+
+The dedicated GitHub workflow installs and verifies system FFmpeg/FFprobe,
+builds the pinned FFmpeg, Python, and Remotion images, loads the committed
+receipts normally, runs the 33-command Track All qualifier, and reruns the
+canonical-private public lifecycle and actual B-Roll consumer acceptance. It
+does not replace or skip the repository-wide UI/browser workflow.
 
 The focus/reframe command builds the exact private Remotion source tree and
 executes actual tracked-magnification and speaker-reframe previews. It also

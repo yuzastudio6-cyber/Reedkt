@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_17_planning_qualified_sam_route_externally_blocked`
+Status: `track_29_complete_sam_route_externally_blocked`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -2043,3 +2043,113 @@ acceptance, stale/forged evidence test, build, server typecheck, lint,
 frontend/server boundary, security boundary, and retirement check passed. No
 head orchestra, peer implementation, paid provider/model call, real SAM/GPU
 execution, public artifact, or production mutation occurred.
+
+## TRACK-28 — dedicated GitHub qualification and media-runtime hardening
+
+Status: complete, committed, pushed, and verified on GitHub-hosted x86.
+
+Implemented and proved:
+
+- added the path-aware `Track All Skill QA` workflow without changing or
+  skipping repository-wide UI/browser QA;
+- installed and verified system `ffmpeg` and `ffprobe` before any
+  media-dependent validation;
+- built the pinned confined FFmpeg 8.1.2, structured Python, and Remotion
+  images before qualification;
+- added bounded retry only around immutable image construction so a transient
+  source download cannot be confused with an execution retry;
+- fixed the pinned FFmpeg x86 build by installing the exact Debian
+  `nasm=2.16.01-1` build dependency; the resulting image remained LGPL,
+  networkless, non-root, read-only, and fixed-operation only;
+- replaced the structured Python runner's eager 19-library native load with
+  one exact operation-specific native package set per one-operation process.
+  All 19 imports and exact versions remain build requirements;
+- corrected planar QA so the fixed reprojection ceiling applies to frames
+  independently classified as reliable, the worst observed low-confidence
+  outlier remains recorded, and less than 75% reliable coverage still blocks.
+
+The intermediate failing runs were retained as diagnostic truth:
+
+- run `30990920197` proved pinned FFmpeg 8.1.2 built on x86 and exposed the
+  structured Python aggregate-import `SIGILL`;
+- run `30993245985` proved all three images built and isolated the runtime
+  aggregate native-load failure;
+- run `30994860267` proved the native-load correction and independently
+  exposed the contradictory planar QA aggregation (`maximumError=320`,
+  `reliableFrameRatio=0.8333333333333334`);
+- run `30995715098` passed the complete dedicated workflow on the final
+  pre-documentation source/evidence head.
+
+Actual local verification included:
+
+```text
+docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
+npm run smoke:prod-core-tool-install
+npm run smoke:offline-python-structured-execution
+npm run test:track-all-deterministic-geometry
+npm run test:track-all-canonical-private-runtime
+npm run test:track-all-independent-qa-repair
+NODE_OPTIONS=--max-old-space-size=8192 npm run qualify:track-all:internal
+NODE_OPTIONS=--max-old-space-size=8192 npm run qualify:b-roll:internal
+git diff --check
+```
+
+Final Track qualification evidence from clean source commit
+`411b3b597a4135142737fbca84e4120311924802`:
+
+- 33/33 commands and 24/24 fixtures passed;
+- manifest hash:
+  `dcec1be579f9ff28a560ec1f37c01ca9afe0f874f9ac7e66894f8a8ea75b7061`;
+- relevant source-tree hash:
+  `88f255b49d3aed48fe04e9547deaad0b52d72083be95fab187704bcd3c91b5b4`;
+- ordered authority-set hash:
+  `baa5720cf6e31949a4325e265e9d1320e7c26a350c9776f50c16a444067789a0`;
+- receipt hash:
+  `929eadb8d1bfe9f6be8969aa5e621c0d56babd9513dfb600a409e04a2c01978e`;
+- generated artifact hash:
+  `f9adc5c482c14952a69c935178aee81788bfa76c6500c6b7ada92a6be4b2fa88`;
+- top-level status: `planning_qualified`;
+- deterministic route status: `internal_execution_qualified` where exact
+  canonical-private evidence exists;
+- SAM requests/GPU executions/public artifacts/production mutations: zero.
+
+Final B-Roll requalification from clean source commit
+`9676ae44a9929c7528e1c5967c95225c75b81f3d` passed 31/31 commands and 36/36
+fixtures and issued receipt
+`e7d2b3a282648de4d765fd453b34322cb687b2797fd9ecf990d797f683ea505e`
+and generated artifact
+`416f59b3b7eec2dff8bbacc543db90c7f9922f222692871e294c7d32431c7727`.
+B-Roll remains `internal_execution_qualified`, not production qualified.
+
+Pushed TRACK-28 commits:
+
+- workflow: `2aa952bf7c50260ed58813fb13046e8c04d96981`;
+- confined-image preparation: `f5b5295c5e3123a1176b0b36a2baee4576f1ca97`;
+- bounded build retries: `117d231010a3d3060584b19baf0824355ae5f97c`;
+- FFmpeg x86 assembler fix: `96da5ebe19fce6ab6acafdafdcc679eb5ffcbb41`;
+- first refreshed Track evidence: `5946e02db98971d92d3c78c092b9acf2ec4ee1a7`;
+- first refreshed B-Roll evidence: `d243030a292428cf6dadf082bdaa852ae6da699d`;
+- isolated import diagnostics: `8a5557df13e4236d7cb19e1c2d3a27b65f64981b`;
+- operation-isolated Python runtime: `684cfa4e9ba680d430c4a46592d421619306c3e5`;
+- runtime-hardened Track evidence: `9676ae44a9929c7528e1c5967c95225c75b81f3d`;
+- runtime-hardened B-Roll evidence: `c4ad7f652f0b3c860c57b800d1235a3aa2750dad`;
+- coherent planar QA: `411b3b597a4135142737fbca84e4120311924802`;
+- final Track evidence: `c1d5e9c4db108c19ce5f78f8afadd434d91b3435`.
+
+Every listed commit was pushed and its remote branch head was confirmed. No
+test was skipped, marked continue-on-error, or changed to ignore FFmpeg,
+FFprobe, native-runtime, planar, browser, or qualification failures.
+
+## TRACK-29 — final acceptance and freeze
+
+Status: complete after the final dedicated workflow pass;
+the exact freeze commit and remote confirmation are recorded by the follow-up
+ledger commit that follows this section.
+
+The final audit, architecture, runbook, tool matrix, qualification evidence,
+and freeze record now carry the exact manifest, tested source, source-tree,
+authority-set, Track receipt, B-Roll receipt, route, CI, SAM gate, PR, and
+production-limitation truth. The head orchestra, global cross-skill scheduler,
+Visual Intelligence skill, Caption implementation, and peer dispatchers were
+not implemented. Track All made zero paid model/GPU requests, zero public
+artifacts, and zero production mutations.

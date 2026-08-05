@@ -51,6 +51,12 @@ Python image. It accepts exact source bytes, range, initialization, feature,
 RANSAC, and approved planar-corner authority; it accepts no caller executable,
 code, environment, path, URL, or derived-pixel output.
 
+The structured Python runner loads only the native package set required by the
+single authorized operation in that container. All 19 pinned imports and exact
+versions remain image-build requirements, while unrelated native libraries no
+longer share one process. This removes the x86 CPU-dispatch collision observed
+in GitHub Actions without skipping an operation or weakening confinement.
+
 Camera output contains frame-to-frame and stabilized transforms, motion class,
 confidence, discontinuity, and shot-reset evidence. Planar output propagates
 four-corner geometry forward and backward from the selected initialization
@@ -143,9 +149,16 @@ instead of maintaining a competing Track All shape. See `public-plugin-e2e.md`.
 
 ## Qualification boundary
 
-Track All is `planning_qualified` only when the generated TRACK-17 receipt
-binds the exact commit, source tree, manifest, shared authorities, command
-results, and fixture results. Deterministic/private fixture routes have
-route-level internal evidence, but the aggregate skill does not exceed the
-blocked SAM route. SAM inference remains separately blocked on real private
-checkpoint, image, GPU, quality, cost, and privacy evidence.
+The generated TRACK-27 V2 artifact is the only runtime-loadable qualification
+authority. It binds the exact tested commit, relevant source tree, manifest,
+26 ordered dependency authorities, 33 actual command results, 24 fixture
+results, all ten route receipts, current B-Roll consumer acceptance, the
+canonical-private public E2E, and the blocked SAM canary preflight. Runtime
+startup rejects bootstrap, stale, forged, reordered, or overclaimed evidence.
+
+Track All is therefore honestly `planning_qualified` at the top level.
+Deterministic geometry, planar tracking, bounded repair, privacy, focus,
+reframe, and the public canonical-private lifecycle are independently
+`internal_execution_qualified`. The SAM masklet and production-worker routes
+remain blocked on real checkpoint, image, GPU, quality, cost, private-store,
+security, and release evidence. Injected masklets never promote either route.

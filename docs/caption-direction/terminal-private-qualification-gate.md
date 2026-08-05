@@ -18,6 +18,23 @@ The additive contracts are:
 - `caption-terminal-qualification-preflight-v1`
 - `caption-terminal-per-job-qualification-projection-v1`
 
+The current mount-audited lane preserves those V1 records and adds:
+
+- `caption-terminal-qualification-evidence-input-v2`
+- `caption-terminal-qualification-preflight-v2`
+- `caption-terminal-per-job-qualification-projection-v2`
+- `canonical-caption-terminal-qualification-request-v1`
+- `canonical-caption-terminal-evidence-bundle-v1`
+- `canonical-caption-terminal-qualification-record-v1`
+
+The canonical terminal service accepts only a small request locator. It reads
+the evidence bundle through an admitted backend-only read port, validates the
+exact request/scope/package/output lineage, creates the V2 preflight and
+projection, and persists the final record create-only before returning it. The
+service does not accept the evidence bundle in the caller request. Missing
+canonical evidence returns the blocked preflight and creates no qualification
+record.
+
 The terminal builder accepts only an exact private qualification record that
 contains:
 
@@ -59,12 +76,12 @@ and a source fixture cannot satisfy a canonical persisted owner result.
 - `terminalProjectionCreated: false`;
 - `terminalStatusClaimed: false`.
 
-The focused smoke constructs valid in-memory contract-shape candidates only to
-exercise the parser and projection builder. A terminal input without the exact
-per-output private-review projections remains blocked. The smoke does not
-persist those candidates, does not consume a provider/GPU/model result, and
-does not change the current preflight. The smoke output names this distinction
-explicitly.
+The focused smokes construct valid in-memory contract-shape candidates only to
+exercise the parser, projection builder, admitted-read-port boundary, and
+create-only replay behavior. A terminal input without the exact per-output
+private-review projections remains blocked. The source fixture does not consume
+a provider/GPU/model result and does not change the current preflight. The
+smoke output names this distinction explicitly.
 
 ## Fail-closed coverage
 
@@ -79,8 +96,12 @@ inputs, missing/crossed private-review projections, and inconsistent preflights.
 Files changed:
 
 - `src/types/caption-terminal-qualification.ts`
+- `src/types/canonical-caption-terminal-qualification.ts`
 - `server/captions-specialist/caption-terminal-qualification.ts`
+- `server/captions-specialist/caption-terminal-qualification-v2.ts`
+- `server/services/canonical-caption-terminal-qualification-service.ts`
 - `server/smoke/captions-specialist-terminal-qualification-smoke.ts`
+- `server/smoke/canonical-caption-terminal-qualification-service-smoke.ts`
 - `src/types/canonical-caption-private-review-evidence-projection.ts`
 - `server/services/canonical-caption-private-review-evidence-service.ts`
 - `server/services/canonical-private-edit-preparation-coordinator-service.ts`

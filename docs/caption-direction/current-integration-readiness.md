@@ -50,7 +50,10 @@ B-roll owner result/snapshot composition. Those owners must supply the ports;
 Caption must not invent parallel selectors, mixers, clocks, or dispatchers.
 
 Postrender visual-QA persistence/authenticated read, independent private-review
-projection, and the terminal per-job qualification contracts are also mounted.
+projection, the terminal per-job qualification contracts, and the create-only
+terminal qualification service are also implemented. The terminal service
+accepts only a request locator and rereads its evidence through an admitted
+backend port; callers cannot submit a truth-shaped evidence bundle.
 The historical V1 terminal lane remains bound to readiness V2; the additive V2
 terminal lane binds readiness V3 and is the only current terminal lane.
 This is still not the same as an actual private qualification run: the count

@@ -1152,3 +1152,51 @@ source commit before TRACK-20 closes, and the final Track All receipt is
 regenerated after all closeout source milestones. No provider/model/GPU call,
 public artifact, production mutation, peer-skill implementation, or head
 orchestra was introduced.
+
+Remote evidence closeout:
+
+- shared-authority source commit:
+  `519a8968224ae18c7ca5f1c3427dcac886f0c4b5` (pushed and remotely
+  confirmed);
+- B-Roll generated-evidence commit:
+  `eac6dc0a049f641fb898cb9bb34220781b9b3c47` (pushed and remotely
+  confirmed);
+- Track All generated-evidence commit:
+  `c0afa7742228d289d8bc17cf47ffaeae647d6f8b` (pushed and remotely
+  confirmed).
+
+`npm run qualify:b-roll:internal` actually passed 30 commands and 36 fixture
+records against source commit
+`519a8968224ae18c7ca5f1c3427dcac886f0c4b5`. B-Roll remains exactly
+`internal_execution_qualified` with:
+
+- manifest hash:
+  `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`;
+- relevant source-tree hash:
+  `6e247d8a6071b25a9a859408b7260bad9dd1e7327dc1ff21fea7a4793e1c8197`;
+- dependency authority-set hash:
+  `1609daa017056b7999188707ce8463efcb0746e4b169618ec951f66df2507324`;
+- qualification receipt hash:
+  `7c21582c733c1d0007ecd0d00463c549072c73476d228b01e69e4d0069eaea5a`;
+- generated artifact hash:
+  `764bc23b710d943b9e76919a61e64941270b2bd4cf637ea53dd5e59386bbf4e7`.
+
+`npm run qualify:track-all:internal` then actually passed 26 commands and 21
+fixture records against clean commit
+`eac6dc0a049f641fb898cb9bb34220781b9b3c47`. Track All remains honestly
+`planning_qualified` with:
+
+- manifest hash:
+  `2125de0ac813dca9e6c8211639131fc389cd70979cb8344904e66fa58e94bf9d`;
+- relevant source-tree hash:
+  `9ea9f1ccf6b6eef7586b667c043b29dbe867cf03fd44d540b6d16867dad79bbc`;
+- shared authority-set hash:
+  `5877d7c0945ffd682f721212b44e1420d6ac91af771b5b6c5c80747d74030190`;
+- qualification receipt hash:
+  `0cc2e7c8792a8d4993eb421ce91eaa8b6a9624a8d5f2cd62d4d2303e138b7176`;
+- generated artifact hash:
+  `ed212359d89ef5f62d9da81e9db5369afa87929203db7ed2d78ff684b0e0e17b`.
+
+After both generated receipts were committed, the B-Roll canonical public
+lifecycle, Track All public plugin E2E, and shared-authority boundary test all
+passed again with normal fail-closed receipt loading and no generation bypass.

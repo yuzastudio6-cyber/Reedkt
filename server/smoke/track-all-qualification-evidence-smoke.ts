@@ -157,7 +157,7 @@ assert.equal(artifact.actualGpuExecutionCount, 0)
 assert.equal(artifact.productionQualified, false)
 assert.equal(
   artifact.finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
-  required('npm.test:track-all-b-roll-consumer-acceptance').evidenceHash,
+  required('npm.test:track-all-producer-consumer-acceptance').evidenceHash,
 )
 assert.equal(
   artifact.finalAuthorityBinding.canonicalPrivatePublicE2eEvidenceHash,

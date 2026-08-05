@@ -215,7 +215,7 @@ function createTrackAllFinalQualificationAuthorityBinding(input: {
     authorityRefs,
     brollConsumerEvidenceClass: input.brollConsumerEvidenceClass,
     actualBrollConsumerAcceptanceEvidenceHash:
-      commandHash('npm.test:track-all-b-roll-consumer-acceptance'),
+      commandHash('npm.test:track-all-producer-consumer-acceptance'),
     canonicalPrivatePublicE2eEvidenceHash:
       commandHash('npm.test:track-all-canonical-private-public-e2e'),
     samCanaryPreflightEvidenceHash:

@@ -2,6 +2,13 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 
 import {
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-specialist-execution'
+
+import {
+  CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION,
+  CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION,
   createCanonicalCaptionApprovedSnapshotReadPort,
   createCanonicalCaptionSourceWordTimingEvidence,
   createCanonicalCaptionSourceWordTimingReadPort,
@@ -17,6 +24,9 @@ import {
 } from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  resolveCanonicalCaptionTranscriptExecutionMount,
+} from '../services/canonical-internal-authority-runner-service'
 import type { CanonicalVisualIntelligenceSourceTranscriptResult } from
   '../services/canonical-source-visual-intelligence-analysis-contract'
 import { createCanonicalQualityFirstUserTriggeredGpuPolicy } from
@@ -216,6 +226,11 @@ const repository = createCanonicalCaptionTranscriptEvidenceRepository({
   objectPort: memoryObjectPort(objects),
   prefix: 'private/smoke/caption-transcript-support/v1',
 })
+check(CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION ===
+  'canonical-caption-transcript-evidence-repository-v1'
+  && repository.repositoryVersion ===
+    CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION,
+  'The frozen V1 repository identity must remain stable while the scope index uses V2.')
 const service = createCanonicalCaptionTranscriptSupportService({
   approvedSnapshotReadPort: createCanonicalCaptionApprovedSnapshotReadPort(
     async (scope) => structuredClone(scope)),
@@ -276,6 +291,118 @@ check(reread?.canonicalTranscript.transcriptDigestSha256 ===
 check(reread?.authenticatedReadBinding.bindingDigestSha256 ===
   record.authenticatedReadBinding.bindingDigestSha256,
   'The private repository must exact-reread the Caption binding.')
+
+const executionRecord = await repository.findExactForExecution({
+  canonicalReadScope: record.canonicalReadScope,
+  canonicalTranscriptRef:
+    record.authenticatedReadBinding.canonicalTranscriptRef,
+})
+check(executionRecord?.recordDigestSha256 === record.recordDigestSha256,
+  'The postapproval runner must discover the exact transcript from its scope and transcript ref.')
+check(await repository.findExactForExecution({
+  canonicalReadScope: record.canonicalReadScope,
+  canonicalTranscriptRef: {
+    ...record.authenticatedReadBinding.canonicalTranscriptRef,
+    contentHash: sha256AuthorityValue('crossed-transcript'),
+  },
+}) === null,
+  'A crossed transcript ref must not discover another postapproval record.')
+
+const mountWorkInput = {
+  schemaVersion: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+  operation: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+  captionJobType: 'plan_caption_strategy',
+  requestedMode: 'planning',
+  scopeLevel: 'video',
+  outputId: 'output.caption.transcript.1',
+  sceneId: null,
+  boundaryId: null,
+  authorizedFrameRanges: [{ startFrame: 0, endFrameExclusive: 90 }],
+  initialArtifactRefs: [{
+    ...record.authenticatedReadBinding.canonicalTranscriptRef,
+    artifactType: 'canonical_transcript',
+    producerSkillKey: 'canonical_transcript',
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: null,
+  }, {
+    id: 'frame.caption.transcript.1',
+    version: 'confirmed-output-frame-v1',
+    contentHash: sha256AuthorityValue('frame-caption-transcript-1'),
+    artifactType: 'confirmed_output_frame',
+    producerSkillKey: 'canonical_layout_owner',
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: null,
+  }, {
+    id: 'timing.caption.transcript.1',
+    version: 'master-timing-plan-v1',
+    contentHash: sha256AuthorityValue('timing-caption-transcript-1'),
+    artifactType: 'master_timing_or_planning_timing',
+    producerSkillKey: 'canonical_timing_owner',
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: null,
+  }],
+  rawChatIncluded: false,
+  transcriptTextIncluded: false,
+  mediaBytesIncluded: false,
+  pathsUrlsOrCredentialsIncluded: false,
+  directPeerDispatchRequested: false,
+  providerCallRequested: false,
+  timelineMutationRequested: false,
+  assetMutationRequested: false,
+  qaApprovalRequested: false,
+  billingAuthorityRequested: false,
+  publicDeliveryRequested: false,
+  productionAuthorityRequested: false,
+} as const
+const mountAuthority = {
+  snapshot: {
+    approvedByUserId: approvedScope.ownerUserId,
+    workspaceId: approvedScope.workspaceId,
+    projectId: approvedScope.projectId,
+    editSessionId: approvedScope.editSessionId,
+    planId: 'plan.caption.transcript.1',
+    planVersion: 1,
+    snapshotId: approvedScope.approvedSnapshotRef.id,
+    schemaVersion: approvedScope.approvedSnapshotRef.version,
+    snapshotHash: approvedScope.approvedSnapshotRef.contentHash,
+  },
+  jobs: [{ id: 'job.caption.transcript.1', approvedWorkItemId:
+    'work.caption.transcript.1' }],
+  workItems: [{
+    id: 'work.caption.transcript.1',
+    executionInput: mountWorkInput,
+  }],
+} as unknown as Parameters<
+  typeof resolveCanonicalCaptionTranscriptExecutionMount
+>[0]['authority']
+const executionMount =
+  await resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: mountAuthority,
+    jobId: 'job.caption.transcript.1',
+    transcriptRepository: repository,
+  })
+check(executionMount.recordDigestSha256 === record.recordDigestSha256
+  && executionMount.bindingRef.contentHash ===
+    record.authenticatedReadBinding.bindingDigestSha256,
+  'The internal Caption runner mount must inject the exact postapproval transcript binding.')
+await assert.rejects(
+  () => resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: {
+      ...mountAuthority,
+      snapshot: {
+        ...mountAuthority.snapshot,
+        snapshotHash: sha256AuthorityValue('crossed-approved-snapshot'),
+      },
+    },
+    jobId: 'job.caption.transcript.1',
+    transcriptRepository: repository,
+  }),
+  /exact postapproval transcript projection/u,
+)
+checks += 1
 
 const replay = await service.projectAuthenticatedTranscript({
   canonicalReadScope: approvedScope,

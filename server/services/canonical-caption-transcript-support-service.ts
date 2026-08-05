@@ -60,6 +60,10 @@ export const CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_VERSION =
   'canonical-caption-transcript-support-service-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION =
   'canonical-caption-transcript-evidence-repository-v1' as const
+export const CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION =
+  'canonical-caption-transcript-evidence-repository-v2' as const
+export const CANONICAL_CAPTION_TRANSCRIPT_SCOPE_INDEX_VERSION =
+  'canonical-caption-transcript-scope-index-v1' as const
 
 const DEFAULT_PREFIX = 'private/orchestra/v1/caption-transcript-support'
 const MAX_RECORD_BYTES = 64 * 1024 * 1024
@@ -201,6 +205,18 @@ const recordEnvelopeSchema = z.object({
   productionAuthorityGranted: z.literal(false),
 }).strict()
 
+const scopeIndexSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_TRANSCRIPT_SCOPE_INDEX_VERSION),
+  canonicalReadScope: readScopeSchema,
+  canonicalTranscriptRef: domainRefSchema,
+  authenticatedReadBindingRef: domainRefSchema,
+  recordDigestSha256: rawSha256,
+  indexDigestSha256: rawSha256,
+}).strict()
+
+type CanonicalCaptionTranscriptScopeIndex = z.infer<typeof scopeIndexSchema>
+
 export interface CanonicalCaptionSourceWordTimingReadPort {
   readonly schemaVersion:
     typeof CANONICAL_CAPTION_SOURCE_WORD_TIMING_READ_PORT_VERSION
@@ -231,7 +247,7 @@ export interface CanonicalCaptionApprovedSnapshotReadPort {
 export interface CanonicalCaptionTranscriptEvidenceRepository
   extends CanonicalCaptionTranscriptAuthenticatedReadPort {
   readonly repositoryVersion:
-    typeof CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION
+    typeof CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION
   persistCreateOnly(input: {
     readonly record: CanonicalCaptionTranscriptAuthenticatedEvidenceRecord
   }): Promise<'created' | 'identical_replay'>
@@ -239,6 +255,10 @@ export interface CanonicalCaptionTranscriptEvidenceRepository
     readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
     readonly canonicalTranscriptRef: CaptionDomainRef
     readonly authenticatedReadBindingRef: CaptionDomainRef
+  }): Promise<CanonicalCaptionTranscriptAuthenticatedEvidenceRecord | null>
+  findExactForExecution(input: {
+    readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    readonly canonicalTranscriptRef: CaptionDomainRef
   }): Promise<CanonicalCaptionTranscriptAuthenticatedEvidenceRecord | null>
 }
 
@@ -430,11 +450,59 @@ export function createCanonicalCaptionTranscriptEvidenceRepository(input: {
     }
     return record
   }
+  const findRecordForExecution = async (request: {
+    canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    canonicalTranscriptRef: CaptionDomainRef
+  }): Promise<CanonicalCaptionTranscriptAuthenticatedEvidenceRecord | null> => {
+    const canonicalReadScope = readScopeSchema.parse(request.canonicalReadScope)
+    const canonicalTranscriptRef = domainRefSchema.parse(
+      request.canonicalTranscriptRef)
+    const lookup = freeze({ canonicalReadScope, canonicalTranscriptRef })
+    assertClosedContractTree(
+      lookup, 'Canonical Caption transcript execution lookup')
+    rejectUnsafeText(lookup, 'Canonical Caption transcript execution lookup')
+    const body = await input.objectPort.readExact(scopeIndexPath(prefix, lookup))
+    if (!body) return null
+    if (!Buffer.isBuffer(body) || body.byteLength < 2
+      || body.byteLength > MAX_RECORD_BYTES) {
+      throw new Error('Canonical Caption transcript scope index bytes are invalid.')
+    }
+    const text = body.toString('utf8')
+    let untrusted: unknown
+    try {
+      untrusted = JSON.parse(text)
+    } catch {
+      throw new Error('Canonical Caption transcript scope index JSON is invalid.')
+    }
+    assertClosedContractTree(
+      untrusted, 'Canonical Caption transcript scope index')
+    rejectUnsafeText(untrusted, 'Canonical Caption transcript scope index')
+    const index = scopeIndexSchema.parse(untrusted)
+    if (text !== stableAuthorityStringify(index)
+      || index.indexDigestSha256 !== contractDigest(
+        index as unknown as Record<string, unknown>, 'indexDigestSha256')
+      || stableAuthorityStringify(index.canonicalReadScope)
+        !== stableAuthorityStringify(canonicalReadScope)
+      || !sameDomainRef(index.canonicalTranscriptRef, canonicalTranscriptRef)) {
+      throw new Error('Canonical Caption transcript scope index is invalid.')
+    }
+    const record = await readRecord({
+      canonicalReadScope,
+      canonicalTranscriptRef,
+      authenticatedReadBindingRef: index.authenticatedReadBindingRef,
+    })
+    if (!record || record.recordDigestSha256 !== index.recordDigestSha256) {
+      throw new Error(
+        'Canonical Caption transcript scope index did not resolve its exact record.',
+      )
+    }
+    return record
+  }
   const repository: CanonicalCaptionTranscriptEvidenceRepository = {
     schemaVersion:
       CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION,
     repositoryVersion:
-      CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION,
+      CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION,
     async persistCreateOnly({ record: value }) {
       const record =
         parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord(value)
@@ -452,9 +520,49 @@ export function createCanonicalCaptionTranscriptEvidenceRepository(input: {
       if (!reread || reread.recordDigestSha256 !== record.recordDigestSha256) {
         throw new Error('Canonical Caption transcript create-only reread failed.')
       }
+      const indexWithoutDigest: Omit<
+        CanonicalCaptionTranscriptScopeIndex,
+        'indexDigestSha256'
+      > = {
+        schemaVersion: CANONICAL_CAPTION_TRANSCRIPT_SCOPE_INDEX_VERSION,
+        canonicalReadScope: record.canonicalReadScope,
+        canonicalTranscriptRef: domainTranscriptRef(
+          record.canonicalTranscript),
+        authenticatedReadBindingRef: domainBindingRef(
+          record.authenticatedReadBinding),
+        recordDigestSha256: record.recordDigestSha256,
+      }
+      const index = scopeIndexSchema.parse({
+        ...indexWithoutDigest,
+        indexDigestSha256: contractDigest({
+          ...indexWithoutDigest,
+          indexDigestSha256: '',
+        }, 'indexDigestSha256'),
+      })
+      const indexBody = Buffer.from(stableAuthorityStringify(index), 'utf8')
+      await input.objectPort.createOnly({
+        objectPath: scopeIndexPath(prefix, {
+          canonicalReadScope: index.canonicalReadScope,
+          canonicalTranscriptRef: index.canonicalTranscriptRef,
+        }),
+        body: indexBody,
+        contentSha256: rawBufferDigest(indexBody),
+      })
+      const indexedRecord = await findRecordForExecution({
+        canonicalReadScope: record.canonicalReadScope,
+        canonicalTranscriptRef: domainTranscriptRef(
+          record.canonicalTranscript),
+      })
+      if (!indexedRecord
+        || indexedRecord.recordDigestSha256 !== record.recordDigestSha256) {
+        throw new Error(
+          'Canonical Caption transcript scope index create-only reread failed.',
+        )
+      }
       return disposition === 'created' ? 'created' : 'identical_replay'
     },
     rereadRecord: readRecord,
+    findExactForExecution: findRecordForExecution,
     async readExact(request) {
       const record = await readRecord(request)
       return record ? freeze({
@@ -1017,8 +1125,11 @@ function assertPorts(input: {
     || typeof input.sourceTranscriptReadPort.readCompleted !== 'function'
     || input.repository?.schemaVersion !==
       CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION
+    || input.repository.repositoryVersion !==
+      CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION
     || typeof input.repository.persistCreateOnly !== 'function'
     || typeof input.repository.rereadRecord !== 'function'
+    || typeof input.repository.findExactForExecution !== 'function'
     || typeof input.repository.readExact !== 'function') {
     throw new Error('Canonical Caption transcript support ports are invalid.')
   }
@@ -1119,6 +1230,16 @@ function recordPath(
   request: ReturnType<typeof parseReadRequest>,
 ): string {
   return `${prefix}/${sha256AuthorityValue(request)}.json`
+}
+
+function scopeIndexPath(
+  prefix: string,
+  lookup: {
+    canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    canonicalTranscriptRef: CaptionDomainRef
+  },
+): string {
+  return `${prefix}/by-scope/${sha256AuthorityValue(lookup)}.json`
 }
 
 function domainTranscriptRef(

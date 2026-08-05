@@ -52,6 +52,10 @@ import {
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
 import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
+import {
+  createCanonicalCaptionTranscriptEvidenceRepository,
+  type CanonicalCaptionTranscriptEvidenceRepository,
+} from './canonical-caption-transcript-support-service'
 import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import {
@@ -425,6 +429,78 @@ type CaptionVisualQaExecution = Awaited<ReturnType<
 
 type InternalValidationProfile = ReturnType<typeof internalValidationProfile>
 
+export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
+  authority: Authority
+  jobId: string
+  transcriptRepository: CanonicalCaptionTranscriptEvidenceRepository
+}) {
+  const workItem = input.authority.workItems.find((candidate) =>
+    candidate.id === input.authority.jobs.find((candidate) =>
+      candidate.id === input.jobId)?.approvedWorkItemId)
+  if (!workItem) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption work authority is unavailable.',
+      409,
+      { requiredGate: 'canonical_caption_work_item_reread' },
+    )
+  }
+  const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
+    workItem.executionInput)
+  const transcriptRef = workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'canonical_transcript')
+  if (!transcriptRef) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption transcript authority is unavailable.',
+      409,
+      { requiredGate: 'canonical_caption_transcript_ref' },
+    )
+  }
+  const snapshot = input.authority.snapshot
+  const canonicalReadScope = {
+    ownerUserId: snapshot.approvedByUserId,
+    workspaceId: snapshot.workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+    approvedSnapshotRef: {
+      id: snapshot.snapshotId,
+      version: snapshot.schemaVersion,
+      contentHash: snapshot.snapshotHash,
+    },
+  }
+  const transcriptRecord =
+    await input.transcriptRepository.findExactForExecution({
+      canonicalReadScope,
+      canonicalTranscriptRef: {
+        id: transcriptRef.id,
+        version: transcriptRef.version,
+        contentHash: transcriptRef.contentHash,
+      },
+    })
+  if (!transcriptRecord) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption planning is waiting for the exact postapproval transcript projection.',
+      409,
+      {
+        requiredGate: 'canonical_caption_authenticated_transcript_projection',
+      },
+    )
+  }
+  const binding = transcriptRecord.authenticatedReadBinding
+  return Object.freeze({
+    readPort: input.transcriptRepository,
+    bindingRef: Object.freeze({
+      id: binding.bindingId,
+      version: binding.schemaVersion,
+      contentHash: binding.bindingDigestSha256,
+    }),
+    recordDigestSha256: transcriptRecord.recordDigestSha256,
+  })
+}
+
 export async function prepareCanonicalCaptionPlanningExecution(input: {
   context: ServiceContext
   actorUserId: string
@@ -451,21 +527,32 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
     locator.packageRecordId,
     input.workspaceId,
   )
+  const objectPort = createCanonicalPrivateLocalJsonObjectPort({
+    localStorageRoot: input.context.env.localStorageRoot,
+  })
   const repository = createCanonicalSpecialistSupportResumeRepository({
-    objectPort: createCanonicalPrivateLocalJsonObjectPort({
-      localStorageRoot: input.context.env.localStorageRoot,
-    }),
+    objectPort,
     prefix: [
       'private-internal/captions-specialist/v1',
       input.actorUserId,
       input.workspaceId,
     ].join('/'),
   })
+  const transcriptRepository =
+    createCanonicalCaptionTranscriptEvidenceRepository({ objectPort })
+  const transcriptMount = await resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: input.authority,
+    jobId: input.jobId,
+    transcriptRepository,
+  })
   const execution = await executeCanonicalCaptionSpecialistWorkItem({
     authority: input.authority,
     executionPackage: packageRead.approvedEditExecutionPackage,
     jobId: input.jobId,
     repository,
+    canonicalTranscriptReadPort: transcriptMount.readPort,
+    canonicalTranscriptAuthenticatedReadBindingRef:
+      transcriptMount.bindingRef,
   })
   if (execution.pair.result.disposition !== 'completed') {
     const supportRequestRefs = execution.pair.result.supportRequests.map(

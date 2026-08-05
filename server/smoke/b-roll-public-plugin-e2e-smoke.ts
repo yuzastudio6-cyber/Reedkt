@@ -2,9 +2,13 @@ import assert from 'node:assert/strict'
 
 import {
   BROLL_CAPABILITY_MANIFEST,
+  BROLL_CAPTION_OWNER_READ_CONTRACT_DIGEST,
+  BROLL_CAPTION_OWNER_READ_INTERFACE_STATUS,
+  CAPTION_SHARED_OWNER_HANDOFF,
   assertBrollVisualIntelligenceCandidateQa,
   brollPlanArtifactSchema,
   createBrollCandidateMediaManifest,
+  createBrollCaptionOwnerReadRequest,
   createBrollCanonicalNoActionResultReceipt,
   createBrollMasterTimingPlan,
   createBrollPublicContextManifest,
@@ -28,6 +32,7 @@ import {
   editSkillArtifactStore,
   editSkillPluginRegistry,
 } from '../edit-skills/internal-fixture-runtime'
+import { runBrollTrackSupportIntegration } from './b-roll-track-support-integration'
 
 const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
 const range = { startFrameInclusive: 120, endFrameExclusive: 192, fps: 24 }
@@ -318,6 +323,49 @@ await assert.rejects(
   () => plugin.planAssignment({ assignment: duplicateContext }),
   /duplicate context artifact/iu,
 )
+
+const trackSupportIntegration = await runBrollTrackSupportIntegration()
+assert.notEqual(
+  trackSupportIntegration.trackAssignmentId,
+  trackSupportIntegration.brollAssignmentId,
+)
+assert.equal(trackSupportIntegration.adversarialCases, 5)
+const captionOwnerReadRequest = createBrollCaptionOwnerReadRequest({
+  schemaVersion: 'b_roll_caption_owner_read_request_v1',
+  requestId: 'caption-broll-frozen-type-only-request',
+  captionContract: {
+    sourceCommit: CAPTION_SHARED_OWNER_HANDOFF.sourceCommit,
+    contractVersion: CAPTION_SHARED_OWNER_HANDOFF.contractVersion,
+    contractDigest: CAPTION_SHARED_OWNER_HANDOFF.contractDigest,
+  },
+  consumerAssignmentHash: hashSkillValue({ assignment: 'caption-owner-read' }),
+  brollManifestRef: manifestRef,
+  outputLineage: {
+    ...scope,
+    editSessionId: 'public-session',
+    approvedSnapshotId: 'caption-approved-snapshot',
+    approvedSnapshotHash: hashSkillValue({ snapshot: 'caption-approved-snapshot' }),
+    outputId: 'caption-output',
+    sceneId: 'caption-scene',
+    frameRange: range,
+    masterTimingHash: hashSkillValue({ timing: 'caption-owner-read' }),
+  },
+  requestedArtifactTypes: [
+    'b_roll_selected_media_manifest_v1',
+    'b_roll_caption_layout_occupancy_v1',
+    'b_roll_caption_crop_timing_v1',
+    'b_roll_caption_visible_text_evidence_v1',
+  ],
+  readOnly: true,
+  executionAuthorityGranted: false,
+  assetMutationAuthorityGranted: false,
+  qaApprovalAuthorityGranted: false,
+  billingAuthorityGranted: false,
+  publicDeliveryAuthorityGranted: false,
+  productionAuthorityGranted: false,
+})
+assert.equal(BROLL_CAPTION_OWNER_READ_INTERFACE_STATUS.typeContractFrozen, true)
+assert.equal(BROLL_CAPTION_OWNER_READ_INTERFACE_STATUS.authenticatedOwnerEvidencePublished, false)
 requiredInputAdversarialCases += 1
 
 for (const [scopeKey, scopeValue] of [
@@ -912,6 +960,13 @@ console.log(JSON.stringify({
   approvedWorkGraphHash: workGraph.approvedWorkGraphHash,
   resultReceiptHash: receipt.receiptHash,
   directUnauthenticatedTrackGraphRejected: true,
+  trackSupportIntegration,
+  captionOwnerReadTypeOnly: {
+    requestHash: captionOwnerReadRequest.requestHash,
+    contractDigest: BROLL_CAPTION_OWNER_READ_CONTRACT_DIGEST,
+    authenticatedOwnerEvidencePublished: false,
+    runtimeRequested: false,
+  },
   visualIntelligenceDependencyRequestHash: visualIntelligenceRequest.requestHash,
   visualIntelligenceDependencyAcceptanceHash: visualIntelligenceAcceptance.acceptanceHash,
   generatedDependencyReceiptHash: dependencyReceipt.receiptHash,

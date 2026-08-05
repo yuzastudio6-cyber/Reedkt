@@ -258,6 +258,27 @@ check(
   'Forbidden owner work must be explicitly unsupported.',
 )
 
+const missingFrameCall = createCaptionsHarnessCall({
+  callId: 'call.missing.confirmed-frame',
+  jobType: 'plan_caption_strategy',
+  scopeLevel: 'video',
+  inputArtifactTypes: [
+    'canonical_transcript', 'master_timing_or_planning_timing',
+  ],
+})
+check(runCaptionsSpecialistJob({ call: missingFrameCall }).reasonCodes.join('|')
+  === 'input.confirmed_output_frame.canonical_ref.missing',
+'A missing confirmed frame must block instead of requesting a fabricated ref.')
+const missingTimingCall = createCaptionsHarnessCall({
+  callId: 'call.missing.master-timing',
+  jobType: 'plan_caption_strategy',
+  scopeLevel: 'video',
+  inputArtifactTypes: ['canonical_transcript', 'confirmed_output_frame'],
+})
+check(runCaptionsSpecialistJob({ call: missingTimingCall }).reasonCodes.join('|')
+  === 'input.master_timing.canonical_ref.missing',
+'Missing MasterTiming must block instead of requesting a fabricated ref.')
+
 const privateCall = createCaptionsHarnessCall({
   callId: 'call.private.blocked',
   jobType: 'plan_caption_strategy',

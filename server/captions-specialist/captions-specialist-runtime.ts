@@ -1297,6 +1297,16 @@ export function runCaptionsSpecialistJob(input: {
       'input.canonical_transcript.authenticated_read.binding.missing',
     ], 'Caption planning requires the exact canonical transcript reread binding.')
   }
+  if (missing.includes('confirmed_output_frame')) {
+    return makeResult(profile, call, 'blocked', [
+      'input.confirmed_output_frame.canonical_ref.missing',
+    ], 'Caption planning requires the canonical confirmed output frame.')
+  }
+  if (missing.includes('master_timing_or_planning_timing')) {
+    return makeResult(profile, call, 'blocked', [
+      'input.master_timing.canonical_ref.missing',
+    ], 'Caption planning requires canonical MasterTiming evidence.')
+  }
   if (requiredArtifactTypes(profile, call.job.jobType).includes(
     'canonical_transcript_authenticated_read_binding')
     && admittedCanonicalTranscript === null) {

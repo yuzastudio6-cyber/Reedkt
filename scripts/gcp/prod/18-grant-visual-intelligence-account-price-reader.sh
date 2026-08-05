@@ -19,7 +19,6 @@ main() {
   gcloud billing accounts add-iam-policy-binding "${billing_account_id}" \
     --member="serviceAccount:${API_SERVICE_ACCOUNT}" \
     --role=roles/billing.viewer \
-    --condition=None \
     --quiet \
     --format=none >/dev/null
 

@@ -97,6 +97,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 goal completion audit](post-cap20-goal-completion-audit.md)
 - [Post-CAP-20 shared-owner integration routing](post-cap20-integration-routing.md)
 - [Post-CAP-20 B-roll owner-read adapter](post-cap20-broll-owner-read-adapter.md)
+- [Post-CAP-20 canonical transcript authenticated read](post-cap20-canonical-transcript-authenticated-read.md)
 
 ### Historical architecture retained and amended
 
@@ -279,6 +280,12 @@ request/result and projects only exact opaque refs into Caption's existing
 binding. It does not claim that an authenticated owner result has been
 persisted, reread, or mounted. See
 [`post-cap20-broll-owner-read-adapter.md`](./post-cap20-broll-owner-read-adapter.md).
+
+The canonical transcript now has a separate byte-free authenticated-read
+binding. Transcript-dependent planning requires both the immutable transcript
+artifact and its exact approved-snapshot reread evidence; partial diarization
+or browser-local completion fails closed. See
+[`post-cap20-canonical-transcript-authenticated-read.md`](./post-cap20-canonical-transcript-authenticated-read.md).
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

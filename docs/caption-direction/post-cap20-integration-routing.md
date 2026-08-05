@@ -5,9 +5,9 @@ Milestone: `POST-CAP-20-INTEGRATION-ROUTING`
 Status: `source_complete_authenticated_owner_evidence_pending`
 
 - integration manifest hash:
-  `9048fc15cf5f010b90c80c58db8147ab8414fd93765a02a84b83d5003d8a7238`;
+  `fca6d23008b5a4cb1c3e5df6815d96e7f4bb2915a651befd9b63edcf8d1e1123`;
 - integration qualification digest:
-  `edce53db67e7b46e46fa82f0a0b48e60da0290b630f0619995cd8ba5735ef146`.
+  `6faf4db34d89e345587d5ee4c70ddb260683af27424ccca2817ce4186b9a60ef`.
 
 ## Outcome
 
@@ -36,8 +36,10 @@ blocked in both profiles instead of being misrouted to the timing owner.
   `b_roll_caption_owner_read_request_v1`;
 - `provide_caption_safe_region_constraints` requests both Track All and Visual
   Intelligence and resumes sequentially;
-- `canonical_transcript` remains an authenticated initial input and fails
-  closed if missing instead of being misrouted to the timing owner;
+- `canonical_transcript` and its exact
+  `canonical_transcript_authenticated_read_binding` remain initial inputs and
+  fail closed if either is missing instead of being misrouted to the timing
+  owner;
 - the exact immediate support request and origin call remain required on every
   resume; and
 - prior injected evidence becomes a canonical reread input for the next
@@ -86,9 +88,12 @@ Actual admission still requires authenticated backend rereads. The Caption
 public B-roll adapter is now frozen, while owner-result persistence, reread,
 and injection remain external.
 
+The Caption canonical-transcript authenticated-read adapter is also frozen.
+Actual transcript and binding persistence/reread/injection remain external.
+
 ## Tests
 
-The focused integration smoke passes 24 checks for frozen-hash compatibility,
+The focused integration smoke passes 27 checks for frozen-hash compatibility,
 all twelve
 conditional job requirements, SoundSync and B-roll routing, two-owner
 safe-region sequential resume, missing-transcript fail-closed behavior,

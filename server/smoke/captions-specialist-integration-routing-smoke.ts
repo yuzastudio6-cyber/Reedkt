@@ -89,6 +89,12 @@ check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.integrationQa.includes(
   && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.qualificationEvidenceRefs.some(
     (item) => item.evidenceId === 'captions.broll.owner-read.public-adapter'),
 'the integration profile binds the additive frozen B-roll adapter evidence')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.integrationQa.includes(
+  'canonical_transcript_authenticated_read_adapter_frozen')
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.qualificationEvidenceRefs.some(
+    (item) => item.evidenceId
+      === 'captions.canonical-transcript.authenticated-read-adapter'),
+'the integration profile binds the canonical transcript read adapter evidence')
 
 const legacySoundCall = createCaptionsHarnessCall({
   callId: 'captions.integration.legacy-sound',
@@ -203,6 +209,42 @@ check(missingTranscriptResult.disposition === 'blocked'
     === 'input.canonical_transcript.authenticated_read.missing'
   && missingTranscriptResult.supportRequests.length === 0,
 'missing canonical transcript fails closed as an authenticated initial-input gap')
+
+const missingTranscriptBindingCall = createCaptionsHarnessCall({
+  callId: 'captions.integration.missing-transcript-binding',
+  jobType: 'resolve_multi_track_caption_scene',
+  scopeLevel: 'scene',
+  runtimeProfile: 'post_cap20_integration',
+  inputArtifactTypes: [
+    'canonical_transcript',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+  ],
+})
+const missingTranscriptBindingResult = runCaptionsSpecialistJob({
+  call: missingTranscriptBindingCall,
+})
+check(missingTranscriptBindingResult.disposition === 'blocked'
+  && missingTranscriptBindingResult.reasonCodes.join('|')
+    === 'input.canonical_transcript.authenticated_read.binding.missing'
+  && missingTranscriptBindingResult.supportRequests.length === 0,
+'a transcript ref without its exact authenticated reread binding fails closed')
+const completeTranscriptInputCall = createCaptionsHarnessCall({
+  callId: 'captions.integration.complete-transcript-input',
+  jobType: 'resolve_multi_track_caption_scene',
+  scopeLevel: 'scene',
+  runtimeProfile: 'post_cap20_integration',
+  inputArtifactTypes: [
+    'canonical_transcript',
+    'canonical_transcript_authenticated_read_binding',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+    'visual_intelligence_report',
+  ],
+})
+check(runCaptionsSpecialistJob({ call: completeTranscriptInputCall })
+  .disposition === 'completed',
+'the planning seam accepts both transcript and authenticated-read evidence refs')
 
 const staleCrossProfileCall = structuredClone(soundCall)
 staleCrossProfileCall.qualificationSnapshotRef = {

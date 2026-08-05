@@ -387,6 +387,11 @@ export function runCaptionsSpecialistJob(input: {
       'input.canonical_transcript.authenticated_read.missing',
     ], 'Caption planning requires an authenticated canonical transcript input.')
   }
+  if (missing.includes('canonical_transcript_authenticated_read_binding')) {
+    return makeResult(profile, call, 'blocked', [
+      'input.canonical_transcript.authenticated_read.binding.missing',
+    ], 'Caption planning requires the exact canonical transcript reread binding.')
+  }
   if (missing.length > 0) {
     const grouped = new Map<SkillSupportTarget, string[]>()
     for (const artifactType of missing) {

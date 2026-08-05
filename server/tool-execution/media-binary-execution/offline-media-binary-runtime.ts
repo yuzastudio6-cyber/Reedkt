@@ -4316,7 +4316,7 @@ async function executeFfmpegRequest(
         colorMatchDeliveryPayload!.referenceSourceSha256,
       )
     : undefined
-  const privateInput = voiceDelivery || colorDelivery
+  const privateInput = voiceDelivery || colorDelivery || exactSourceFramePng
     ? await spoolVerifiedPrivateSeekableInput(source)
     : undefined
   let sourceColorAnalysis: ColorPixelAnalysis | undefined
@@ -5024,7 +5024,7 @@ function exactSourceFramePngCommand(
   return [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
     '-fflags', '+bitexact',
-    '-i', 'pipe:0',
+    '-i', PRIVATE_SEEKABLE_INPUT_PATH,
     '-map', '0:v:0',
     '-vf', `select=eq(n\\,${payload.sourceFrameIndex}),format=rgba`,
     '-frames:v', '1',

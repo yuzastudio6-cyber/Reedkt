@@ -248,6 +248,15 @@ assert.equal(exactSourceFrame.resultArtifact.channelCount, 4)
 assert.equal(exactSourceFrame.resultArtifact.hasAlphaChannel, true)
 assert.equal(exactSourceFrame.resultArtifact.opaquePixelCount, 320 * 180)
 assert.equal(exactSourceFrame.resultArtifact.nonOpaquePixelCount, 0)
+assert.deepEqual(
+  exactSourceFrame.evidence.confinement.serverOwnedReadOnlyInputMount,
+  {
+    destination: '/private-input/source.media',
+    readOnly: true,
+    byteLength: sourceBytes.byteLength,
+    sha256: sourceAuthority.sourceSha256,
+  },
+)
 assert.equal(
   exactSourceFrame.evidence.semanticEvidence.sourceFrameIndex,
   24,

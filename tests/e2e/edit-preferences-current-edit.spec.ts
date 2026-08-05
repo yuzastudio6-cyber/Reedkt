@@ -220,6 +220,8 @@ test.describe('saved and current Edit Preferences', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
     await expect(await findPlanReview(page)).toBeVisible()
+    const preferenceRevisionBeforeCleanupChange =
+      (await readHandoff(page))?.setup.preferenceRevision ?? 0
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
     await openAdvancedPreferences(page)
@@ -238,7 +240,7 @@ test.describe('saved and current Edit Preferences', () => {
       stage: 'source_uploaded',
       setup: {
         cleanupPreference: 'light_cleanup',
-        preferenceRevision: 1,
+        preferenceRevision: preferenceRevisionBeforeCleanupChange + 1,
       },
     })
     expect(invalidated?.approvedSnapshotId).toBeUndefined()

@@ -458,7 +458,14 @@ export async function completeRequiredEditorSetupBeforeFootagePrep(page: Page) {
     await expect(confirmCleanup).toBeHidden()
     await expect(page.getByTestId('edit-level-inline-card')).toHaveCount(0)
     await expect(page.getByRole('button', { name: /Use (Normal|Premium|Ultra Premium)/i })).toHaveCount(0)
-    await clickOptionalSetupAction(page.getByRole('button', { name: /Confirm direction/i }))
+    const visualDirection = page.getByTestId('visual-direction-control')
+    if (await visualDirection.count()) {
+      const sourceOnlyDirection = visualDirection.getByRole('radio', { name: /Source only/i })
+      if (await sourceOnlyDirection.getAttribute('aria-checked') !== 'true') {
+        await clickWhenReady(sourceOnlyDirection)
+      }
+      await clickWhenReady(visualDirection.getByRole('button', { name: /Confirm direction/i }))
+    }
     await clickOptionalSetupAction(page.getByRole('button', { name: /Skip reference/i }))
     return
   }
@@ -527,6 +534,8 @@ export async function openSFXFlow(page: Page) {
 }
 
 export async function openMusicFlow(page: Page) {
+  const url = new URL(page.url())
+  expect(url.searchParams.get('musicCompatibilityProjection')).toBe('1')
   await clickWhenReady(page.getByRole('button', { name: /^Plan music$/i }).first())
   await expect(page.getByTestId('music-flow')).toBeVisible()
   await expectNoHorizontalOverflow(page)

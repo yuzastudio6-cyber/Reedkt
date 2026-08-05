@@ -82,7 +82,7 @@ test.describe('Active product redesign screenshot QA artifacts', () => {
     await expectCardAttachedToAssistantMessage(page)
     await captureDocScreenshot(page, `${screenshotDir}/editor-copy-sfx-1440.png`)
 
-    await completeEditorSetup(page)
+    await completeEditorSetup(page, '/editor?musicCompatibilityProjection=1')
     await openMusicFlow(page)
     await expectChatRhythmStable(page)
     await expectCardAttachedToAssistantMessage(page)

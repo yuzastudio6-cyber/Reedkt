@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { completeEditorSetup, openMusicFlow } from './helpers/routes'
 
 test('Music chat is a read-only canonical artifact projection', async ({ page }, testInfo) => {
-  await completeEditorSetup(page)
+  await completeEditorSetup(page, '/editor?musicCompatibilityProjection=1')
   await openMusicFlow(page)
 
   const music = page.getByTestId('music-flow')

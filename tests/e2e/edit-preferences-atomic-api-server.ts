@@ -625,6 +625,7 @@ async function getOrCreateStateForScope(scope: {
     recordRevision: current.recordRevision + 1,
     confirmedAspectRatio: durableFrame,
   }
+  states.set(key, synchronized)
   await persistExactEditState(scope, synchronized)
   return synchronized
 }

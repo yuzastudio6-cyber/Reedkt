@@ -1076,6 +1076,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     projectId: editorProjectId,
     scope: projectPersistenceScope,
   })
+  const [invalidatedCanonicalPlanVersion, setInvalidatedCanonicalPlanVersion] =
+    useState<number | null>(null)
   const canonicalPlanningPublication = useCanonicalSourceLedPlanPresentation({
     editSessionId: editorEditSessionId,
     enabled: canonicalPlanningBackendConnected,
@@ -1125,20 +1127,25 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const canonicalJourneyValue = canonicalJourney.result?.status === 'ready'
     ? canonicalJourney.result.journey
     : undefined
+  const canonicalCurrentPlanJourneyValue =
+    invalidatedCanonicalPlanVersion !== null &&
+    canonicalJourneyValue?.plan?.version === invalidatedCanonicalPlanVersion
+      ? undefined
+      : canonicalJourneyValue
   const canonicalPrivateReviewAccepted =
-    canonicalJourneyValue?.stage === 'private_review_accepted'
+    canonicalCurrentPlanJourneyValue?.stage === 'private_review_accepted'
   const canonicalPrivateReviewRecovered =
     canonicalPrivateReviewAccepted ||
-    canonicalJourneyValue?.stage === 'private_review_ready'
-  const canonicalEstimateReady = Boolean(canonicalJourneyValue?.plan)
+    canonicalCurrentPlanJourneyValue?.stage === 'private_review_ready'
+  const canonicalEstimateReady = Boolean(canonicalCurrentPlanJourneyValue?.plan)
   const canonicalApprovalRecorded = Boolean(
     canonicalPlanningBackendConnected &&
     (
       canonicalPlanApproval.result?.status === 'approved' ||
       (
-        canonicalJourneyValue?.plan?.status === 'approved' &&
-        canonicalJourneyValue.plan.estimateStatus === 'approved' &&
-        Boolean(canonicalJourneyValue.approval)
+        canonicalCurrentPlanJourneyValue?.plan?.status === 'approved' &&
+        canonicalCurrentPlanJourneyValue.plan.estimateStatus === 'approved' &&
+        Boolean(canonicalCurrentPlanJourneyValue.approval)
       )
     ),
   )
@@ -1250,6 +1257,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     !isProjectWorkspace &&
     (import.meta.env.DEV || import.meta.env.VITE_REEDITPRO_E2E === 'true') &&
     (searchParams.get('demo') === '1' || searchParams.get('developerControls') === '1')
+  const musicCompatibilityProjectionEnabled =
+    (import.meta.env.DEV || import.meta.env.VITE_REEDITPRO_E2E === 'true') &&
+    searchParams.get('musicCompatibilityProjection') === '1'
   const initialScenarioId = getInitialDemoScenarioId(categoryFromQuery)
   const initialScenario = defaultDemoScenario
   const recoveredInitialEditPreferenceValues = readCurrentEditPreferenceValues(restoredSetup, {
@@ -1344,7 +1354,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [editingCategory, setEditingCategory] = useState<EditingCategory>(initialEditingCategory)
   const [editLevel, setEditLevel] = useState<EditLevel>(initialEditPreferenceValues.editLevel)
   const [editLevelConfirmed, setEditLevelConfirmed] = useState(
-    isProjectWorkspace ? true : restoredSetup?.editLevelConfirmed ?? false,
+    restoredSetup?.editLevelConfirmed ?? isProjectWorkspace,
   )
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(initialEditPreferenceValues.targetPlatform)
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(restoredSetup?.aspectRatio ?? (isProjectWorkspace ? 'let_ai_decide' : initialScenario.aspectRatio))
@@ -1817,10 +1827,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     approved ||
     approvedSnapshot ||
     canonicalApprovalRecorded ||
-    canonicalJourneyValue?.stage === 'revision_requested' ||
+    canonicalCurrentPlanJourneyValue?.stage === 'revision_requested' ||
     (
-      canonicalJourneyValue?.stage !== 'replanning_required' &&
-      (canonicalJourneyValue?.plan?.version ?? 0) > 1
+      canonicalCurrentPlanJourneyValue?.stage !== 'replanning_required' &&
+      (canonicalCurrentPlanJourneyValue?.plan?.version ?? 0) > 1
     ) ||
     progressStarted ||
     privateInternalTestRun ||
@@ -2183,7 +2193,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const cleanupReady = cleanupPreferenceConfirmed && plan.sourceCleanupPlan?.status === 'confirmed'
   const trimReviewReady = Boolean(plan.trimReviewPlan && !plan.trimReviewPlan.approvalBlocked)
   const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && visualPreferenceConfirmed && confirmedMaterialPlanningConflicts.length === 0
-  const canonicalCleanEditorStage = recoveredCleanEditorStage(canonicalJourneyValue?.stage)
+  const canonicalCleanEditorStage = recoveredCleanEditorStage(
+    canonicalCurrentPlanJourneyValue?.stage,
+  )
   const localCleanEditorStage: CleanEditorStage = (
     effectivePreviewReady
       ? 'private_review'
@@ -2269,7 +2281,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const canonicalPresentedPlan =
     canonicalPlanningPublication.result?.presentedPlan ??
     sourceLedCaptionRevisionPresentedPlan ??
-    recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue)
+    recoverCanonicalPresentedPlanIdentity(canonicalCurrentPlanJourneyValue)
   const canonicalPublicationStatus =
     canonicalPlanningPublication.result?.status ??
     (
@@ -2283,21 +2295,21 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     canonicalPlanningBackendConnected &&
     !canonicalPlanningPublication.result?.presentedPlan &&
     !sourceLedCaptionRevisionPresentedPlan &&
-    Boolean(recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue))
+    Boolean(recoverCanonicalPresentedPlanIdentity(canonicalCurrentPlanJourneyValue))
   const planningContextReadyForApproval =
     canonicalPlanningBackendConnected
       ? Boolean(canonicalPresentedPlan)
       : localPlanningContextReadyForApproval
   const visiblePlanEstimateCredits =
     canonicalPlanningBackendConnected &&
-    canonicalJourneyValue?.plan
-      ? canonicalJourneyValue.plan.maximumCredits
+    canonicalCurrentPlanJourneyValue?.plan
+      ? canonicalCurrentPlanJourneyValue.plan.maximumCredits
       : plan.creditEstimate.total
   const canonicalPlanReviewEvidence =
-    canonicalPlanningBackendConnected && canonicalJourneyValue?.plan
+    canonicalPlanningBackendConnected && canonicalCurrentPlanJourneyValue?.plan
       ? {
-          planVersion: canonicalJourneyValue.plan.version,
-          workItemCount: canonicalJourneyValue.plan.workItemCount,
+          planVersion: canonicalCurrentPlanJourneyValue.plan.version,
+          workItemCount: canonicalCurrentPlanJourneyValue.plan.workItemCount,
           ...(canonicalPlanningPublication.result?.receipt
             ? {
                 sourceCount:
@@ -2316,7 +2328,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       : undefined
   const canonicalApprovalAuthorityReady = canonicalPlanApprovalReadyForPresentedPlan({
     backendConnected: canonicalPlanningBackendConnected,
-    journey: canonicalJourneyValue,
+    journey: canonicalCurrentPlanJourneyValue,
     publicationStatus: canonicalPublicationStatus,
     presentedPlan: canonicalPresentedPlan,
     visibleMaximumCredits: visiblePlanEstimateCredits,
@@ -2619,6 +2631,16 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       syncBackend?: boolean
     } = {},
   ) {
+    if (
+      canonicalPlanningBackendConnected &&
+      (canonicalJourneyValue?.plan || canonicalPlanningPublication.result?.presentedPlan)
+    ) {
+      setInvalidatedCanonicalPlanVersion(
+        canonicalJourneyValue?.plan?.version ??
+        canonicalPlanningPublication.result?.presentedPlan?.planVersion ??
+        null,
+      )
+    }
     resetPlanProgress()
     const durableSourceMediaAssets = durableUploadedPrivateSourceAssets(sourceMediaAssets)
     updateLocalInternalEditHandoff(editorProjectId, editorEditSessionId, {
@@ -2909,9 +2931,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       ...operation.preferencePatch,
     } as LocalInternalEditPreferenceValues
     const changedFields = receipt.changedPreferenceFields
-    const nextEditLevelConfirmed = changedFields.includes('editLevel')
-      ? true
-      : editLevelConfirmed
+    // The internal edit-level compatibility value is not a user-facing setup
+    // confirmation. Applying another preference must preserve its current gate.
+    const nextEditLevelConfirmed = editLevelConfirmed
     const nextCleanupPreferenceConfirmed = changedFields.includes('cleanupPreference')
       ? true
       : cleanupPreferenceConfirmed
@@ -2920,7 +2942,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       : visualPreferenceConfirmed
     const requiresSourcePreparation = receipt.sourcePreparationDisposition === 'requires_repreparation'
     const requiresFrameConfirmation = receipt.outputFrameDisposition === 'requires_reconfirmation'
-    const hadDraftPlan = currentEditDraftPlanExists
+    const hadDraftPlan = Boolean(
+      currentEditDraftPlanExists ||
+      canonicalJourneyValue?.plan ||
+      canonicalPlanningPublication.result?.presentedPlan,
+    )
 
     persistCurrentEditSetupAfterPlanInvalidation({
       ...next,
@@ -3869,25 +3895,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     const nextCleanupPreference = cleanupPreference ?? plan.sourceCleanupPlan?.recommendedPreference.recommendedPreference ?? 'balanced_cleanup'
     if (!await applyCanonicalSetupPreferencePatch({
       cleanupPreference: nextCleanupPreference,
-      ...(canonicalPlanningBackendConnected
-        ? { visualPreference: 'keep_visuals_minimal' as const }
-        : {}),
     })) return
     setCleanupPreference(nextCleanupPreference)
     setCleanupPreferenceConfirmed(true)
-    if (canonicalPlanningBackendConnected) {
-      setVisualPreference('keep_visuals_minimal')
-      setVisualPreferenceConfirmed(true)
-    }
     persistCurrentEditSetupAfterPlanInvalidation({
       cleanupPreference: nextCleanupPreference,
       cleanupPreferenceConfirmed: true,
-      ...(canonicalPlanningBackendConnected
-        ? {
-            visualPreference: 'keep_visuals_minimal' as const,
-            visualPreferenceConfirmed: true,
-          }
-        : {}),
     })
   }
 
@@ -4978,6 +4991,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       }
       if (canonicalChatLoading || canonicalChatSending) return
 
+      const typedRevisionPlanContext = createTypedRevisionPlanContext(nextMessage)
       const clientMessageId = createCanonicalSourceLedChatClientMessageId()
       setCanonicalChatSending(true)
       setCanonicalChatPendingMessage({
@@ -5041,7 +5055,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         if (requested.cleanupPreference) {
           setCleanupPreference(requested.cleanupPreference)
           setupPatch.cleanupPreference = requested.cleanupPreference
-          if (requiredSetup.has('cleanup_preference')) {
+          if (typedRevisionPlanContext) {
+            setCleanupPreferenceConfirmed(true)
+            setupPatch.cleanupPreferenceConfirmed = true
+            setSourcePreparationRecovery(undefined)
+            setupPatch.sourcePreparationRecovery = undefined
+            resetFootagePrep()
+          } else if (requiredSetup.has('cleanup_preference')) {
             setCleanupPreferenceConfirmed(false)
             setupPatch.cleanupPreferenceConfirmed = false
           }
@@ -5056,18 +5076,27 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         }
         if (
           requested.workflowType
-          && !requiredSetup.has('workflow_context')
+          && (
+            typedRevisionPlanContext
+            || !requiredSetup.has('workflow_context')
+          )
         ) {
           setWorkflowType(requested.workflowType)
           setupPatch.workflowType = requested.workflowType
         }
-        if (requested.moodStyle && !requiredSetup.has('mood')) {
+        if (
+          requested.moodStyle
+          && (typedRevisionPlanContext || !requiredSetup.has('mood'))
+        ) {
           setMoodStyle(requested.moodStyle)
           setupPatch.moodStyle = requested.moodStyle
         }
         if (
           requested.creditPreference
-          && !requiredSetup.has('cost_posture')
+          && (
+            typedRevisionPlanContext
+            || !requiredSetup.has('cost_posture')
+          )
         ) {
           setCreditPreference(requested.creditPreference)
           setupPatch.creditPreference = requested.creditPreference
@@ -5087,7 +5116,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         setSourceSequenceMode(nextSourceSequenceMode)
         setupPatch.sourceSequenceMode = nextSourceSequenceMode
         if (exchange.effect.draftPlanInvalidated) {
-          persistCurrentEditSetupAfterPlanInvalidation(setupPatch)
+          persistCurrentEditSetupAfterPlanInvalidation(setupPatch, {
+            revisionPlanContext: typedRevisionPlanContext,
+          })
+          if (typedRevisionPlanContext) {
+            showRevisionMessage(
+              'I’ll use that direction and create a fresh plan before any credits are approved. The previous plan is cleared, and the cleanup direction must be planned again.',
+            )
+          }
         }
       } catch {
         setCanonicalChatError(
@@ -5518,20 +5554,24 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               )}
               visibleEstimateCredits={visiblePlanEstimateCredits}
             />
-            <div className="music-plan-entry-card">
-              <div>
-                <span className="section-eyebrow">Music</span>
-                <strong>Review the Music department</strong>
-                <p>Music need, cue strategy, evidence, cost, and QA appear only from canonical Music artifacts.</p>
-              </div>
-              <Button onClick={() => setShowMusicPlan(true)} variant={showMusicPlan ? 'secondary' : 'primary'}>
-                {showMusicPlan ? 'Music plan opened' : 'Plan music'}
-              </Button>
-            </div>
-            {showMusicPlan ? (
-              <Suspense fallback={<AdvancedCardFallback label="Loading Music department..." />}>
-                <MusicPlanChatFlow />
-              </Suspense>
+            {musicCompatibilityProjectionEnabled ? (
+              <>
+                <div className="music-plan-entry-card">
+                  <div>
+                    <span className="section-eyebrow">Music</span>
+                    <strong>Review the Music department</strong>
+                    <p>Music need, cue strategy, evidence, cost, and QA appear only from canonical Music artifacts.</p>
+                  </div>
+                  <Button onClick={() => setShowMusicPlan(true)} variant={showMusicPlan ? 'secondary' : 'primary'}>
+                    {showMusicPlan ? 'Music plan opened' : 'Plan music'}
+                  </Button>
+                </div>
+                {showMusicPlan ? (
+                  <Suspense fallback={<AdvancedCardFallback label="Loading Music department..." />}>
+                    <MusicPlanChatFlow />
+                  </Suspense>
+                ) : null}
+              </>
             ) : null}
           </>
         )

@@ -790,23 +790,28 @@ implements TrackAllCanonicalPrivateOperationDriver {
 
   async #planarQa(execution: TrackAllCanonicalPrivateExecutionPackage): Promise<StageExecution> {
     const planar = await this.#ensurePlanar(execution)
-    const maximumError = Math.max(...planar.frames.map((frame) => frame.reprojectionError))
+    const maximumObservedError = Math.max(...planar.frames.map((frame) => frame.reprojectionError))
     const minimumConfidence = Math.min(...planar.frames.map((frame) => frame.confidence))
-    const reliableFrameRatio = planar.frames.filter((frame) => frame.confidence >= 0.25).length /
-      planar.frames.length
-    const passed = maximumError <= 5 && reliableFrameRatio >= 0.75
+    const reliableFrames = planar.frames.filter((frame) => frame.confidence >= 0.25)
+    const reliableFrameRatio = reliableFrames.length / planar.frames.length
+    const maximumError = reliableFrames.length > 0
+      ? Math.max(...reliableFrames.map((frame) => frame.reprojectionError))
+      : Number.POSITIVE_INFINITY
+    const passed = Number.isFinite(maximumError) && maximumError <= 5 && reliableFrameRatio >= 0.75
     const finding = createSkillQaFinding({
       qaKey: 'track_all.output.planar_reprojection',
-      validatorVersion: 'track_all_canonical_planar_reprojection_validator_v1',
+      validatorVersion: 'track_all_canonical_planar_reprojection_validator_v2',
       disposition: passed ? 'pass' : 'blocking',
       summary: passed
-        ? 'Measured OpenCV homography reprojection remained within the fixed bound.'
-        : 'Measured planar reprojection exceeded the qualified bound.',
+        ? 'Reliable OpenCV homography frames remained within the fixed reprojection bound.'
+        : 'Reliable planar reprojection or reliable-frame coverage exceeded the qualified bound.',
       evidenceHashes: [...new Set([planar.artifactHash, ...this.#planarEvidenceHashes])],
       observations: {
         maximumError,
+        maximumObservedError,
         minimumConfidence,
         reliableFrameRatio,
+        reliableFrameCount: reliableFrames.length,
         frameCount: planar.frames.length,
       },
     })

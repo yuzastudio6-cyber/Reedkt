@@ -4,6 +4,7 @@ import {
   CanonicalLyria3ProviderAdapter,
   LYRIA_3_PROVIDER_PROFILE,
   PrivateFileMusicProviderAttemptStore,
+  compileLyria3InteractionRequest,
   createMusicCompositionBrief,
   type LyriaTransport,
   type LyriaTransportResult,
@@ -52,6 +53,10 @@ const brief = createMusicCompositionBrief({
   sfxRelationship: 'avoid collision', styleConstraints: [], doNotCopyConstraints: ['no_artist_imitation'],
   qualityRequirements: ['clean'], sourceEvidenceRefs: [], approvalRef: request.approvedSnapshotRef.snapshotId,
 })
+const compiledPrompt = compileLyria3InteractionRequest({ brief }).request.input[0].text
+assert.match(compiledPrompt, /approximately 4 seconds/u)
+assert.doesNotMatch(compiledPrompt, /[_]|imitat|copying|do not copy/iu)
+assert.match(compiledPrompt, /distinctive original/u)
 const call = () => provider.execute({ request, cueId: cue.cueId, route, brief, candidateCount: 1, mode: 'fixture' })
 const unknown = await call()
 assert.equal(unknown.status, 'unknown_outcome')
@@ -96,4 +101,5 @@ assert.equal(failed.attempts[0]?.failureCode, 'http_403')
 
 console.log(JSON.stringify({ status: 'ok', attemptStatus: reconciled.status,
   executeCalls: transport.executeCalls, reconcileCalls: transport.reconcileCalls,
-  candidateCount: reconciled.candidateArtifacts.length, safeFailureCodePreserved: true }, null, 2))
+  candidateCount: reconciled.candidateArtifacts.length, safeFailureCodePreserved: true,
+  providerPromptUsesNaturalMusicLanguage: true }, null, 2))

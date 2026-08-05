@@ -266,22 +266,28 @@ export function compileLyria3InteractionRequest(input: {
   model?: Lyria3InteractionRequest['model']
 }): { request: Lyria3InteractionRequest; promptPlanHash: string } {
   const brief = input.brief
+  const natural = (value: string): string => value.replace(/[_-]+/gu, ' ').replace(/\s+/gu, ' ').trim()
+  const durationSeconds = brief.durationFrames * brief.timelineRate.denominator / brief.timelineRate.numerator
   const instrumental = brief.vocalPolicy === 'instrumental_only' ? 'Instrumental only. No vocals or lyrics.' : ''
   const constraints = [
     ...brief.styleConstraints,
-    ...brief.doNotCopyConstraints,
     ...brief.qualityRequirements,
-  ].join('; ')
+  ].map(natural).join('; ')
+  const tempo = brief.tempoRange
+    ? `Tempo between ${brief.tempoRange.minimum} and ${brief.tempoRange.maximum} BPM.`
+    : ''
   const prompt = [
-    `Create an original ${brief.cueRole} composition for ${brief.narrativeFunction}.`,
-    `Duration target: ${brief.durationFrames} frames at ${brief.timelineRate.numerator}/${brief.timelineRate.denominator} fps.`,
-    `Energy: ${brief.energyArc}. Arrangement: ${brief.arrangementDensity}. Rhythm: ${brief.rhythmProfile}.`,
+    `Create distinctive original ${natural(brief.cueRole)} music that ${natural(brief.narrativeFunction)}.`,
+    `Mood: ${natural(brief.viewerEmotionTarget)}. Duration: approximately ${Number(durationSeconds.toFixed(3))} seconds.`,
+    `Energy: ${natural(brief.energyArc)}. Arrangement: ${natural(brief.arrangementDensity)}. Rhythm: ${natural(brief.rhythmProfile)}.`,
+    tempo,
     `Instrumentation: ${brief.instrumentation.join(', ') || 'restrained contextual instrumentation'}.`,
-    `Harmonic direction: ${brief.harmonicDirection}. Performance: ${brief.performanceFeel}.`,
-    `Structure: ${brief.introBehavior}; ${brief.developmentBehavior}; ${brief.transitionBehavior}; ${brief.endingBehavior}.`,
+    `Harmonic direction: ${natural(brief.harmonicDirection)}. Performance: ${natural(brief.performanceFeel)}.`,
+    `Structure: ${natural(brief.introBehavior)}; ${natural(brief.developmentBehavior)}; ${natural(brief.transitionBehavior)}; ${natural(brief.endingBehavior)}.`,
     instrumental,
-    `Speech safety: ${brief.speechSafety}. Ambience relationship: ${brief.ambienceRelationship}.`,
-    `Constraints: ${constraints}. Do not imitate an artist, melody, hook, lyric, or recognizable arrangement.`,
+    `Speech relationship: ${natural(brief.speechSafety)}. Ambience relationship: ${natural(brief.ambienceRelationship)}.`,
+    constraints ? `Production qualities: ${constraints}.` : '',
+    'Compose a new musical identity without referring to an existing artist or work.',
   ].filter(Boolean).join(' ')
   const request: Lyria3InteractionRequest = {
     model: input.model ?? LYRIA_3_PROVIDER_PROFILE.modelId,

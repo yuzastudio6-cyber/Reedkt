@@ -178,8 +178,8 @@ const briefBase = {
   speechSafety: 'instrumental synthetic canary with no speech input', introBehavior: 'clean bounded entrance',
   developmentBehavior: 'one restrained development', transitionBehavior: 'no visual timing ownership',
   endingBehavior: 'clean resolved ending', loopPolicy: 'not_required', ambienceRelationship: 'no source ambience supplied',
-  sfxRelationship: 'no SFX supplied', styleConstraints: ['original', 'synthetic canary'],
-  doNotCopyConstraints: ['no artist imitation', 'no melody or hook copying'],
+  sfxRelationship: 'no SFX supplied', styleConstraints: ['warm ambient electronic score', 'clean modern production'],
+  doNotCopyConstraints: ['distinctive musical identity', 'no reference asset supplied'],
   qualityRequirements: ['decodeable audio/mpeg', 'private ingest'], sourceEvidenceRefs: request.contextEvidence.map((item) => item.evidenceHash),
   approvalRef: request.approvedSnapshotRef.snapshotId,
 }

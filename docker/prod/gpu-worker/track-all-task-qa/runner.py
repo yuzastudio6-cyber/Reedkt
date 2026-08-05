@@ -11,6 +11,7 @@ or runtime download surface.
 from __future__ import annotations
 
 import hashlib
+from io import BytesIO
 import json
 import math
 import os
@@ -33,6 +34,7 @@ MAXIMUM_MASK_BYTES = 512 * 1024 * 1024
 MAXIMUM_RESPONSE_BYTES = 16 * 1024 * 1024
 MAXIMUM_SUBJECTS = 16
 MAXIMUM_FRAMES = 240
+MAXIMUM_PIXELS = 67_108_864
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
@@ -512,7 +514,7 @@ def admit_l4(torch: Any, cv2: Any, kornia: Any) -> dict[str, Any]:
     }
 
 
-def decode_mask(record: dict[str, Any], request: dict[str, Any], cv2: Any, np: Any) -> tuple[Any, bytes]:
+def decode_mask(record: dict[str, Any], request: dict[str, Any], np: Any) -> tuple[Any, bytes]:
     record = exact_object(
         record,
         {"frameIndex", "objectId", "relativeFileName", "width", "height", "byteLength", "sha256"},
@@ -530,8 +532,21 @@ def decode_mask(record: dict[str, Any], request: dict[str, Any], cv2: Any, np: A
     encoded = read_bounded(MASK_ROOT / expected_name, MAXIMUM_MASK_BYTES)
     if len(encoded) != expected_length or sha256_bytes(encoded) != expected_hash:
         raise RuntimeError("SAM mask PNG bytes changed")
-    image = cv2.imdecode(np.frombuffer(encoded, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
-    if image is None or image.shape != (request["sourceHeight"], request["sourceWidth"]) or image.dtype != np.uint8:
+    from PIL import Image, ImageFile
+
+    ImageFile.LOAD_TRUNCATED_IMAGES = False
+    Image.MAX_IMAGE_PIXELS = MAXIMUM_PIXELS
+    with Image.open(BytesIO(encoded)) as decoded:
+        if (
+            decoded.format != "PNG"
+            or decoded.mode != "L"
+            or getattr(decoded, "n_frames", 1) != 1
+            or decoded.size != (request["sourceWidth"], request["sourceHeight"])
+        ):
+            raise RuntimeError("SAM mask PNG encoding or geometry changed")
+        decoded.load()
+        image = np.asarray(decoded, dtype=np.uint8).copy()
+    if image.shape != (request["sourceHeight"], request["sourceWidth"]) or image.dtype != np.uint8:
         raise RuntimeError("SAM mask PNG decode changed")
     unique = np.unique(image)
     if unique.size > 2 or any(int(value) not in {0, 255} for value in unique):
@@ -583,7 +598,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         key = (record["frameIndex"], record["objectId"])
         if key in mask_by_key:
             raise RuntimeError("SAM mask manifest contains a duplicate mask")
-        image, encoded = decode_mask(record, request, cv2, np)
+        image, encoded = decode_mask(record, request, np)
         mask_by_key[key] = (image, encoded, record)
         total_png_bytes += len(encoded)
     decode_upload_ms = max(0, (time.monotonic_ns() - decode_started) // 1_000_000)

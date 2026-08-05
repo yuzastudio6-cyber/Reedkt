@@ -107,6 +107,8 @@ const capsuleWithoutHashSchema = z.object({
     capsuleManifestSha256: rawSha256,
     requirementsLockSha256: rawSha256,
     opencvCudaReceiptSha256: rawSha256,
+    opencvBuildInformationSha256: rawSha256,
+    opencvLicenseSha256: rawSha256,
     cudaForwardCompatReceiptSha256: rawSha256,
     cudaForwardCompatPackageSha256: rawSha256,
     artifactCount: z.number().int().min(5).max(10_000),
@@ -203,6 +205,8 @@ const authorityWithoutHashSchema = z.object({
     privateCapsuleManifestSha256: rawSha256,
     requirementsLockSha256: rawSha256,
     opencvCudaReceiptSha256: rawSha256,
+    opencvBuildInformationSha256: rawSha256,
+    opencvLicenseSha256: rawSha256,
     cudaForwardCompatReceiptSha256: rawSha256,
   }).strict(),
   cloudBuildPolicy: z.object({
@@ -379,6 +383,9 @@ export async function prepareCanonicalTrackAllSam31L4TaskQaCloudImageBuildAuthor
       requirementsLockSha256: capsule.privateInput.requirementsLockSha256,
       opencvCudaReceiptSha256:
         capsule.privateInput.opencvCudaReceiptSha256,
+      opencvBuildInformationSha256:
+        capsule.privateInput.opencvBuildInformationSha256,
+      opencvLicenseSha256: capsule.privateInput.opencvLicenseSha256,
       cudaForwardCompatReceiptSha256:
         capsule.privateInput.cudaForwardCompatReceiptSha256,
     },
@@ -622,6 +629,14 @@ function assertBuildSourceEntries(
     value.privateInput.opencvCudaReceiptSha256,
   )
   required(
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/opencv-build-information.txt`,
+    value.privateInput.opencvBuildInformationSha256,
+  )
+  required(
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/LICENSE`,
+    value.privateInput.opencvLicenseSha256,
+  )
+  required(
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     value.privateInput.cudaForwardCompatPackageSha256,
   )
@@ -650,14 +665,23 @@ function isAllowedBuildSourcePath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/capsule-manifest.json`,
     `${PRIVATE_INPUT_DIRECTORY}/python/requirements.lock.txt`,
     `${PRIVATE_INPUT_DIRECTORY}/opencv/opencv-cuda-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/opencv-build-information.txt`,
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/LICENSE`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
   ].includes(path)) return true
   const wheelPrefix = `${PRIVATE_INPUT_DIRECTORY}/python/wheelhouse/`
-  if (!path.startsWith(wheelPrefix)) return false
-  return /^[A-Za-z0-9][A-Za-z0-9._+-]{0,199}\.whl$/u.test(
-    path.slice(wheelPrefix.length),
+  if (path.startsWith(wheelPrefix)) return (
+    /^[A-Za-z0-9][A-Za-z0-9._+-]{0,199}\.whl$/u.test(
+      path.slice(wheelPrefix.length),
+    )
   )
+  const opencvRuntimePrefix =
+    `${PRIVATE_INPUT_DIRECTORY}/opencv/install/`
+  return path.startsWith(opencvRuntimePrefix)
+    && /^[A-Za-z0-9][A-Za-z0-9._+/-]{0,399}$/u.test(
+      path.slice(opencvRuntimePrefix.length),
+    )
 }
 
 function isSafeArchivePath(path: string): boolean {

@@ -215,6 +215,9 @@ configure_least_privilege_iam() {
     "${IMAGE_BUILD_INPUT_BUCKET}" \
     "${IMAGE_BUILDER_SA}" roles/storage.objectViewer
   grant_bucket_role \
+    "${IMAGE_BUILD_INPUT_BUCKET}" \
+    "${IMAGE_BUILDER_SA}" roles/storage.objectCreator
+  grant_bucket_role \
     "${IMAGE_EVIDENCE_BUCKET}" \
     "${IMAGE_SIGNER_SA}" roles/storage.objectCreator
   grant_bucket_role \

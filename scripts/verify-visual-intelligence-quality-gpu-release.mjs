@@ -77,6 +77,7 @@ const smokes = [
   'server/smoke/canonical-professional-google-cloud-gpu-runtime-configuration-repository-smoke.ts',
   'server/smoke/canonical-sam3_1-google-cloud-runtime-configuration-publisher-smoke.ts',
   'server/smoke/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke.ts',
+  'server/smoke/canonical-track-all-sam3_1-l4-task-qa-private-capsule-builder-smoke.ts',
   'server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-smoke.ts',
   'server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-service-smoke.ts',
   'server/smoke/canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts',

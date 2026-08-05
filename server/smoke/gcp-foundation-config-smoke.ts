@@ -320,7 +320,11 @@ check(iamScript.includes('roles/cloudkms.signerVerifier'), 'Image signer must us
 check(iamScript.includes('roles/containeranalysis.occurrences.viewer'), 'Supply-chain owner must reread Artifact Analysis occurrences.')
 check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
-  'Image builder must read only the checkpoint-free private build-input bucket.',
+  'Image builder must exact-reread the checkpoint-free private build-input bucket.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectCreator'),
+  'Image builder must create the fixed private build-source artifact without object deletion authority.',
 )
 check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')

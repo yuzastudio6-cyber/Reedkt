@@ -1,0 +1,32 @@
+# syntax=docker/dockerfile:1
+# Cloud-only builder for the fixed WeEditPro L4 task-QA image source capsule.
+# This image is never a runtime image. It contains compilers and performs the
+# only allowed network downloads, all from fixed URLs with exact SHA-256 pins.
+
+FROM pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
+
+ENV DEBIAN_FRONTEND=noninteractive \
+  PIP_DISABLE_PIP_VERSION_CHECK=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1
+
+WORKDIR /opt/weeditpro-capsule-builder
+
+COPY Dockerfile.candidate /opt/weeditpro-capsule-builder/source/Dockerfile.candidate
+COPY runner.py /opt/weeditpro-capsule-builder/source/runner.py
+COPY entrypoint.sh /opt/weeditpro-capsule-builder/source/entrypoint.sh
+COPY verify-private-build-input.py /opt/weeditpro-capsule-builder/source/verify-private-build-input.py
+COPY source-provenance.lock /opt/weeditpro-capsule-builder/source/source-provenance.lock
+COPY build-private-capsule.sh /opt/weeditpro-capsule-builder/build-private-capsule.sh
+
+RUN test "$(uname -m)" = 'x86_64' \
+  && command -v cmake >/dev/null \
+  && command -v curl >/dev/null \
+  && command -v g++ >/dev/null \
+  && command -v make >/dev/null \
+  && command -v python >/dev/null \
+  && chmod 0555 /opt/weeditpro-capsule-builder/build-private-capsule.sh \
+  && /opt/weeditpro-capsule-builder/build-private-capsule.sh
+
+ENTRYPOINT []
+CMD ["/bin/false"]

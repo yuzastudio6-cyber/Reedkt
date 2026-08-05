@@ -53,6 +53,22 @@ weight, credential, or customer media. Build source alone grants no image
 release, L4 dispatch, QA approval, credit settlement, delivery, or production
 authority.
 
+`Dockerfile.private-capsule-builder` is a cloud-build-only compiler boundary.
+It uses the digest-pinned PyTorch 2.10/CUDA 12.8 devel image, downloads only
+the exact hash-and-size-bound OpenCV 4.12.0 source, six reviewed Python wheels,
+and NVIDIA forward-compatibility package, and builds OpenCV for the L4's CUDA
+8.9 architecture without fast math or non-free algorithms. It emits one
+canonical regular-file-only image-build source archive with a recursively
+verified private capsule manifest. Compilers, source downloads, and build
+paths are absent from the final runtime image. The final image installs only
+from that offline capsule and cannot download packages at runtime.
+
+PNG decoding is a bounded CPU serialization task and uses the exact pinned
+Pillow wheel. Every substantive morphology, temporal measurement, and binary
+pixel-count cross-check remains CUDA-only through Kornia/Torch and OpenCV CUDA.
+This split avoids pulling image-codec development packages into the released
+worker without weakening the every-mask GPU cross-check.
+
 Operational release remains fail-closed until an immutable digest has an SPDX
 SBOM, zero critical/high/unknown vulnerability findings, KMS signature, SLSA
 provenance, real L4 device/kernel qualification, complete-frame adversarial

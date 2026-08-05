@@ -22,6 +22,8 @@ MAXIMUM_FILES = 10_000
 MAXIMUM_FILE_BYTES = 12 * 1024 * 1024 * 1024
 REQUIRED_ROLES = {
     "python_requirement_lock", "python_wheel", "opencv_cuda_receipt",
+    "opencv_cuda_build_information", "opencv_cuda_python_module",
+    "opencv_cuda_shared_library", "opencv_source_license",
     "cuda_forward_compat_package", "cuda_forward_compat_ingest_receipt",
 }
 MANIFEST_KEYS = {
@@ -29,6 +31,36 @@ MANIFEST_KEYS = {
     "containsCredentials", "containsCustomerMedia", "containsModelWeights",
 }
 ARTIFACT_KEYS = {"path", "role", "byteLength", "sha256"}
+REQUIREMENTS = (
+    "kornia==0.8.3 --hash=sha256:0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289\n"
+    "kornia-rs==0.1.14 --hash=sha256:396f84661fcf260885c3f9db717caf6904eafd44857dca17be09a835bd7da8d9\n"
+    "numpy==2.2.6 --hash=sha256:fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249\n"
+    "nvidia-ml-py==13.610.43 --hash=sha256:f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8\n"
+    "packaging==26.3 --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c\n"
+    "pillow==12.1.0 --hash=sha256:bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5\n"
+).encode("utf-8")
+OPENCV_RECEIPT_KEYS = {
+    "schemaVersion", "opencvVersion", "sourceRepository", "sourceCommitSha",
+    "sourceArchiveSha256", "sourceReleaseTag",
+    "sourceReleaseTagSignatureVerified", "licenseSpdx", "builderImage",
+    "runtimeBaseImage", "cudaToolkitVersion", "cudaArchitecture",
+    "buildList", "sharedLibraries", "fastMathEnabled",
+    "nonFreeAlgorithmsEnabled", "runtimeNetworkDownloadsAllowed",
+    "pythonImportPassed", "cudaPythonBindingsPresent",
+    "opencvBuildInformationSha256", "runtimeArtifactSetSha256",
+}
+CUDA_RECEIPT = {
+    "schemaVersion": "weeditpro-cuda-forward-compat-ingest-receipt-v1",
+    "packageName": "cuda-compat-12-8",
+    "packageVersion": "570.211.01-0ubuntu1",
+    "architecture": "amd64",
+    "source": "official_nvidia_cuda_ubuntu_2404_repository",
+    "sha256": "e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893",
+    "byteLength": 37945232,
+    "containsCredentials": False,
+    "containsCustomerMedia": False,
+    "containsModelWeights": False,
+}
 
 
 def read_regular(path: Path, maximum: int, retain: bool = False) -> tuple[int, str, bytes | None]:
@@ -77,6 +109,86 @@ def safe_relative_path(value: object) -> str:
     return value
 
 
+def expected_role(relative: str) -> str:
+    if relative == "python/requirements.lock.txt":
+        return "python_requirement_lock"
+    if relative.startswith("python/wheelhouse/") and re.fullmatch(
+        r"[A-Za-z0-9][A-Za-z0-9._+-]{0,199}\.whl",
+        relative.removeprefix("python/wheelhouse/"),
+    ):
+        return "python_wheel"
+    if relative == "opencv/opencv-cuda-receipt.json":
+        return "opencv_cuda_receipt"
+    if relative == "opencv/opencv-build-information.txt":
+        return "opencv_cuda_build_information"
+    if relative == "opencv/LICENSE":
+        return "opencv_source_license"
+    if relative.startswith("opencv/install/python/") and relative.endswith(".so"):
+        return "opencv_cuda_python_module"
+    if relative.startswith("opencv/install/lib/") and ".so" in relative:
+        return "opencv_cuda_shared_library"
+    if relative.startswith("opencv/install/"):
+        return "opencv_cuda_runtime_file"
+    if relative == (
+        "cuda-forward-compat/"
+        "cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb"
+    ):
+        return "cuda_forward_compat_package"
+    if relative == (
+        "cuda-forward-compat/"
+        "cuda-forward-compat-ingest-receipt.json"
+    ):
+        return "cuda_forward_compat_ingest_receipt"
+    raise ValueError("capsule artifact path is not allowlisted")
+
+
+def validate_opencv_receipt(expected: dict[str, object]) -> None:
+    _length, _digest, body = read_regular(
+        ROOT / "opencv/opencv-cuda-receipt.json", 1024 * 1024, True
+    )
+    if body is None:
+        raise ValueError("OpenCV CUDA receipt body missing")
+    value = json.loads(body.decode("utf-8"))
+    if not isinstance(value, dict) or set(value) != OPENCV_RECEIPT_KEYS:
+        raise ValueError("OpenCV CUDA receipt shape invalid")
+    exact = {
+        "schemaVersion": "weeditpro-opencv-cuda-runtime-receipt-v1",
+        "opencvVersion": "4.12.0",
+        "sourceRepository": "https://github.com/opencv/opencv",
+        "sourceCommitSha": "49486f61fb25722cbcf586b7f4320921d46fb38e",
+        "sourceArchiveSha256": "8f00b42869ab2836be36090f6631ae4c38ba59171e22a69a8e0f92f8ef1771d4",
+        "sourceReleaseTag": "4.12.0",
+        "sourceReleaseTagSignatureVerified": False,
+        "licenseSpdx": "Apache-2.0",
+        "builderImage": "pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081",
+        "runtimeBaseImage": "pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca",
+        "cudaToolkitVersion": "12.8",
+        "cudaArchitecture": "8.9",
+        "buildList": ["core", "imgproc", "cudaarithm", "python3"],
+        "sharedLibraries": True,
+        "fastMathEnabled": False,
+        "nonFreeAlgorithmsEnabled": False,
+        "runtimeNetworkDownloadsAllowed": False,
+        "pythonImportPassed": True,
+        "cudaPythonBindingsPresent": True,
+    }
+    if any(value[key] != item for key, item in exact.items()):
+        raise ValueError("OpenCV CUDA receipt authority invalid")
+    information = expected.get("opencv/opencv-build-information.txt")
+    if not isinstance(information, dict) or value["opencvBuildInformationSha256"] != information["sha256"]:
+        raise ValueError("OpenCV CUDA build-information lineage invalid")
+    runtime_lines = bytearray()
+    for relative, artifact in sorted(expected.items()):
+        if not relative.startswith("opencv/install/"):
+            continue
+        install_relative = relative.removeprefix("opencv/install/")
+        runtime_lines.extend(
+            f'{artifact["sha256"]}  ./{install_relative}\n'.encode("utf-8")
+        )
+    if hashlib.sha256(runtime_lines).hexdigest() != value["runtimeArtifactSetSha256"]:
+        raise ValueError("OpenCV CUDA runtime artifact set changed")
+
+
 def main() -> None:
     if RAW_SHA256.fullmatch(EXPECTED_MANIFEST_SHA256) is None:
         raise ValueError("expected capsule manifest digest missing")
@@ -102,6 +214,8 @@ def main() -> None:
         raise ValueError("capsule artifact list invalid")
     paths: set[str] = set()
     roles: set[str] = set()
+    artifact_by_path: dict[str, dict[str, object]] = {}
+    ordered_paths: list[str] = []
     for artifact in artifacts:
         if not isinstance(artifact, dict) or set(artifact) != ARTIFACT_KEYS:
             raise ValueError("capsule artifact shape invalid")
@@ -111,6 +225,7 @@ def main() -> None:
         if (
             not isinstance(artifact["role"], str)
             or SAFE_ID.fullmatch(artifact["role"]) is None
+            or artifact["role"] != expected_role(relative)
             or isinstance(artifact["byteLength"], bool)
             or not isinstance(artifact["byteLength"], int)
             or not 1 <= artifact["byteLength"] <= MAXIMUM_FILE_BYTES
@@ -123,6 +238,10 @@ def main() -> None:
             raise ValueError("capsule artifact identity mismatch")
         paths.add(relative)
         roles.add(artifact["role"])
+        artifact_by_path[relative] = artifact
+        ordered_paths.append(relative)
+    if ordered_paths != sorted(ordered_paths):
+        raise ValueError("capsule artifact list is not canonically ordered")
     if not REQUIRED_ROLES.issubset(roles):
         raise ValueError("capsule required artifact role missing")
     actual: set[str] = set()
@@ -140,6 +259,19 @@ def main() -> None:
             actual.add(path.relative_to(ROOT).as_posix())
     if actual != paths | {"capsule-manifest.json"}:
         raise ValueError("capsule contains undeclared or missing files")
+    _length, _digest, requirements = read_regular(
+        ROOT / "python/requirements.lock.txt", 1024 * 1024, True
+    )
+    if requirements != REQUIREMENTS:
+        raise ValueError("capsule requirements lock changed")
+    validate_opencv_receipt(artifact_by_path)
+    _length, _digest, cuda_receipt = read_regular(
+        ROOT / "cuda-forward-compat/cuda-forward-compat-ingest-receipt.json",
+        1024 * 1024,
+        True,
+    )
+    if cuda_receipt is None or json.loads(cuda_receipt.decode("utf-8")) != CUDA_RECEIPT:
+        raise ValueError("CUDA forward-compatibility receipt changed")
 
 
 if __name__ == "__main__":

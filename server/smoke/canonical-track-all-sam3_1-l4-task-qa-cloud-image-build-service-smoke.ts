@@ -75,6 +75,8 @@ const authorityPayload = {
     privateCapsuleManifestSha256: hash('manifest'),
     requirementsLockSha256: hash('requirements'),
     opencvCudaReceiptSha256: hash('opencv'),
+    opencvBuildInformationSha256: hash('opencv-build-information'),
+    opencvLicenseSha256: hash('opencv-license'),
     cudaForwardCompatReceiptSha256: hash('cuda'),
   },
   cloudBuildPolicy: {

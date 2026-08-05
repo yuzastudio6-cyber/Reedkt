@@ -115,6 +115,15 @@ The shared owner result does not replace deterministic Caption QA, direct
 visual inspection when media exists, complete-time qualified visual review, or
 independent final QA/private review.
 
+When one Caption job requires more than one owner, the internal harness proves
+sequential mediation rather than treating parallel peer calls as an implicit
+Orchestra. The first injected test artifact becomes a reread input to the next
+bounded call; only the currently approved support artifact is injected on each
+resume. The exact immediate call and support-request lineage is retained at
+every step. Real authenticated status still requires the shared owner and
+backend persistence/reread evidence. This is test-only coordination and grants
+no scheduling or dispatch authority to Caption.
+
 ## Authority boundary
 
 No provider/model, operation/runtime, asset, final-QA approval, billing,

@@ -50,6 +50,25 @@ export interface CaptionsHarnessRun {
   authorityStateAfter: CaptionsHarnessAuthorityState
 }
 
+export interface CaptionsHarnessSequentialResumeStep {
+  stepNumber: number
+  selectedSupportRequest: SkillSupportRequest
+  promotedPriorSupportArtifactRefs: SkillArtifactRef[]
+  resumedCall: OrchestraSkillCall
+  resumedResult: OrchestraSkillJobResult
+}
+
+export interface CaptionsHarnessSequentialRun {
+  harnessVersion: typeof CAPTIONS_INTERNAL_HARNESS_VERSION
+  initialCall: OrchestraSkillCall
+  initialResult: OrchestraSkillJobResult
+  resumeSteps: CaptionsHarnessSequentialResumeStep[]
+  finalResult: OrchestraSkillJobResult
+  authorityStateBefore: CaptionsHarnessAuthorityState
+  authorityStateAfter: CaptionsHarnessAuthorityState
+  completedWithoutDirectPeerDispatch: boolean
+}
+
 const EMPTY_AUTHORITY_STATE: Readonly<CaptionsHarnessAuthorityState> =
   Object.freeze({
     timelineMutations: 0,
@@ -185,6 +204,13 @@ export function resumeCaptionsHarnessCall(
       ...structuredClone(originalCall.job),
       jobId: `${originalCall.job.jobId}.resume`,
     },
+    inputArtifactRefs: [
+      ...structuredClone(originalCall.inputArtifactRefs),
+      ...originalCall.injectedSupportArtifactRefs.map((artifact) => ({
+        ...structuredClone(artifact),
+        sourceSupportRequestRef: null,
+      })),
+    ],
     injectedSupportArtifactRefs: request.requestedArtifactTypes.map(
       (artifactType) => ({
         ...createCaptionsHarnessArtifact(artifactType, request.targetSkillKey),
@@ -205,6 +231,68 @@ export function resumeCaptionsHarnessCall(
       'callDigestSha256',
     ),
   })
+}
+
+export function runCaptionsInternalHarnessToCompletion(input: {
+  call: OrchestraSkillCall
+  maximumResumeSteps?: number
+}): CaptionsHarnessSequentialRun {
+  const authorityStateBefore = structuredClone(EMPTY_AUTHORITY_STATE)
+  const initialCall = parseOrchestraSkillCall(input.call)
+  const initialResult = runCaptionsSpecialistJob({ call: initialCall })
+  const maximumResumeSteps = input.maximumResumeSteps ?? 8
+  if (!Number.isInteger(maximumResumeSteps)
+    || maximumResumeSteps < 1 || maximumResumeSteps > 32) {
+    throw new Error('Caption harness resume-step bound is invalid.')
+  }
+  const resumeSteps: CaptionsHarnessSequentialResumeStep[] = []
+  let currentCall = initialCall
+  let currentResult = initialResult
+  while (currentResult.disposition === 'needs_followup') {
+    if (resumeSteps.length >= maximumResumeSteps) {
+      throw new Error('Caption harness exceeded its bounded resume depth.')
+    }
+    const selectedSupportRequest = currentResult.supportRequests[0]
+    if (!selectedSupportRequest) {
+      throw new Error('Caption needs_followup result omitted its support request.')
+    }
+    const promotedPriorSupportArtifactRefs =
+      currentCall.injectedSupportArtifactRefs.map((artifact) => ({
+        ...structuredClone(artifact),
+        sourceSupportRequestRef: null,
+      }))
+    const resumedCall = resumeCaptionsHarnessCall(
+      currentCall, selectedSupportRequest)
+    const resumedResult = runCaptionsSpecialistJob({
+      call: resumedCall,
+      resumeSupportRequest: selectedSupportRequest,
+    })
+    resumeSteps.push({
+      stepNumber: resumeSteps.length + 1,
+      selectedSupportRequest: structuredClone(selectedSupportRequest),
+      promotedPriorSupportArtifactRefs,
+      resumedCall: structuredClone(resumedCall),
+      resumedResult: structuredClone(resumedResult),
+    })
+    currentCall = resumedCall
+    currentResult = resumedResult
+  }
+  const authorityStateAfter = structuredClone(EMPTY_AUTHORITY_STATE)
+  return {
+    harnessVersion: CAPTIONS_INTERNAL_HARNESS_VERSION,
+    initialCall: structuredClone(initialCall),
+    initialResult: structuredClone(initialResult),
+    resumeSteps,
+    finalResult: structuredClone(currentResult),
+    authorityStateBefore,
+    authorityStateAfter,
+    completedWithoutDirectPeerDispatch:
+      currentResult.disposition === 'completed'
+      && resumeSteps.every((step) =>
+        step.selectedSupportRequest.mediationPolicy.hqMediated
+        && !step.selectedSupportRequest.mediationPolicy
+          .directPeerDispatchAllowed),
+  }
 }
 
 export function runCaptionsInternalHarness(input: {

@@ -12,6 +12,7 @@ export interface EditSkillArtifactReference {
 }
 
 export interface EditSkillArtifactStore {
+  readonly storageClass: 'durable' | 'internal_in_memory'
   putJson(input: {
     artifactType: string
     ownerUserId: string
@@ -28,19 +29,39 @@ export interface EditSkillArtifactStore {
 }
 
 export class EditSkillArtifactSchemaRegistry {
-  readonly #schemas = new Map<string, z.ZodType>()
+  readonly #schemas = new Map<string, {
+    schema: z.ZodType
+    contractClass: 'strict_active' | 'legacy_read_only_generic'
+  }>()
 
-  register(artifactType: string, schema: z.ZodType): void {
+  register(
+    artifactType: string,
+    schema: z.ZodType,
+    options: {
+      contractClass?: 'strict_active' | 'legacy_read_only_generic'
+    } = {},
+  ): void {
     if (this.#schemas.has(artifactType)) throw new Error(`Duplicate skill artifact schema ${artifactType}.`)
-    this.#schemas.set(artifactType, schema)
+    this.#schemas.set(artifactType, {
+      schema,
+      contractClass: options.contractClass ?? 'strict_active',
+    })
   }
 
   has(artifactType: string): boolean { return this.#schemas.has(artifactType) }
 
   parse(artifactType: string, value: unknown): unknown {
-    const schema = this.#schemas.get(artifactType)
-    if (!schema) throw new Error(`Unknown skill artifact type ${artifactType}.`)
-    return schema.parse(value)
+    const registration = this.#schemas.get(artifactType)
+    if (!registration) throw new Error(`Unknown skill artifact type ${artifactType}.`)
+    return registration.schema.parse(value)
+  }
+
+  assertStrictActive(artifactType: string): void {
+    const registration = this.#schemas.get(artifactType)
+    if (!registration) throw new Error(`Unknown skill artifact type ${artifactType}.`)
+    if (registration.contractClass !== 'strict_active') {
+      throw new Error(`Active skill artifact ${artifactType} resolves only to a legacy generic schema.`)
+    }
   }
 }
 
@@ -50,6 +71,7 @@ interface InMemoryArtifactRecord {
 }
 
 export class InMemoryCreateOnlyEditSkillArtifactStore implements EditSkillArtifactStore {
+  readonly storageClass = 'internal_in_memory' as const
   readonly #schemas: EditSkillArtifactSchemaRegistry
   readonly #records = new Map<string, InMemoryArtifactRecord>()
 
@@ -65,6 +87,18 @@ export class InMemoryCreateOnlyEditSkillArtifactStore implements EditSkillArtifa
     value: unknown
   }): Promise<EditSkillArtifactReference> {
     const value = this.#schemas.parse(input.artifactType, input.value)
+    if (typeof value === 'object' && value !== null) {
+      const scoped = value as Record<string, unknown>
+      const declaredScope = [scoped.ownerUserId, scoped.workspaceId, scoped.projectId]
+      if (
+        declaredScope.some((entry) => entry !== undefined) &&
+        (
+          scoped.ownerUserId !== input.ownerUserId ||
+          scoped.workspaceId !== input.workspaceId ||
+          scoped.projectId !== input.projectId
+        )
+      ) throw new Error('Cross-tenant skill artifact content rejected at persistence.')
+    }
     const serialized = canonicalSkillJson(value)
     const reference: EditSkillArtifactReference = {
       artifactType: input.artifactType,

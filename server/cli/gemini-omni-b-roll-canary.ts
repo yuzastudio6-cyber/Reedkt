@@ -9,8 +9,8 @@ import {
   projectBrollCanonicalWorkItems,
 } from '../edit-skills/b-roll'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
-import { createBrollPlanningQualificationReceipt } from '../edit-skills/b-roll/b-roll-qualification'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import {
   BROLL_PROVIDER_ROUTE_ID,
@@ -139,8 +139,9 @@ const persisted = await persistCanonicalBrollPlanComponent({
   assignment,
   context,
   plan: compiled.plan,
+  planningQaReport: compiled.planningQaReport,
   workGraph,
-  qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
+  qualificationReceipt: loadBrollGeneratedQualificationReceiptForCurrentSource(BROLL_CAPABILITY_MANIFEST),
 })
 const componentRef = persisted.componentRefs.bRollSkill
 const requestPackage = buildBrollProviderRequestPackageV5({ assignment, context, plan: compiled.plan })

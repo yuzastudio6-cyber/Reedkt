@@ -4,7 +4,9 @@ import {
   editSkillEstimatorRegistry,
   editSkillQaRegistry,
   editSkillReferenceCatalog,
-} from '../edit-skills/registry'
+  editSkillRuntimeBindingRegistry,
+  editSkillWorkGraphJobDefinitions,
+} from '../edit-skills/internal-fixture-runtime'
 import { validateSkillCapabilityManifests } from '../edit-skills/core/skill-capability-validator'
 
 const result = validateSkillCapabilityManifests({
@@ -13,6 +15,8 @@ const result = validateSkillCapabilityManifests({
   qa: editSkillQaRegistry,
   artifacts: editSkillArtifactSchemaRegistry,
   catalog: editSkillReferenceCatalog,
+  runtimeBindings: editSkillRuntimeBindingRegistry,
+  workGraphJobs: editSkillWorkGraphJobDefinitions,
 })
 
 console.log(JSON.stringify({

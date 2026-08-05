@@ -6,7 +6,7 @@
     "master_timing_plan_v1",
     "visual_ownership_manifest_v1",
     "transcript_evidence_v1",
-    "visual_intelligence_report_v1",
+    "visual_intelligence_candidate_qa_v1",
     "edit_preference_snapshot_v1",
     "reference_dna_v1",
     "caption_reserved_zones_v1",
@@ -16,15 +16,60 @@
     "source_media_artifact_v1"
   ],
   "allowedExecutionPhases": [
-    "plan_validation",
-    "provider_generation",
-    "media_inspection",
-    "media_normalization",
-    "skill_output_qa",
-    "layer_preparation",
-    "private_preview_render",
-    "integration_qa",
-    "result_projection"
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "plan_validation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "provider_generation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "media_inspection"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "media_normalization"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "return_dependency",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "skill_output_qa"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "layer_preparation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "private_preview_render"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "integration_qa"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
+      "phase": "result_projection"
+    }
   ],
   "attemptPolicy": {
     "alternateProviderFallbackAllowed": false,
@@ -38,26 +83,115 @@
   "canOperateAtSceneLevel": "bounded_plan_and_execution",
   "canOperateAtVideoLevel": "context_read_only",
   "canOwnPrimaryVisual": true,
-  "conflictsWith": [],
+  "conflictsWith": [
+    {
+      "blockingBehavior": "block",
+      "condition": "another_exclusive_primary_owner_same_frames",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "preserve_existing_owner",
+      "ruleKey": "exclusive_primary_owner_conflict",
+      "target": "primary_visual_owner",
+      "targetKind": "ownership_window"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "user_preference_enabled",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "use_no_action",
+      "ruleKey": "no_extra_visuals_preference",
+      "target": "no_extra_visuals",
+      "targetKind": "preference"
+    },
+    {
+      "blockingBehavior": "needs_user_confirmation",
+      "condition": "evidence_cannot_be_hidden",
+      "ownershipBehavior": "preserve_existing_owner",
+      "resolution": "preserve_existing_owner",
+      "ruleKey": "locked_evidence_visibility",
+      "target": "locked_evidence_footage",
+      "targetKind": "artifact"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "other_skill_owns_hero_frames",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "preserve_existing_owner",
+      "ruleKey": "other_skill_hero_visual",
+      "target": "deliberate_full_frame_hero_visual",
+      "targetKind": "ownership_window"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "independent_assignment_same_frames",
+      "ownershipBehavior": "deny_primary_ownership",
+      "resolution": "reject_assignment",
+      "ruleKey": "independent_b_roll_assignment_overlap",
+      "target": "overlapping_b_roll_primary_assignment",
+      "targetKind": "assignment"
+    },
+    {
+      "blockingBehavior": "return_dependency",
+      "condition": "scene_boundary_owned_by_transition",
+      "ownershipBehavior": "reserve_target_area",
+      "resolution": "preserve_existing_owner",
+      "ruleKey": "transition_scene_boundary",
+      "target": "transition",
+      "targetKind": "skill"
+    },
+    {
+      "blockingBehavior": "block",
+      "condition": "caption_safe_area_reserved",
+      "ownershipBehavior": "reserve_target_area",
+      "resolution": "preserve_existing_owner",
+      "ruleKey": "caption_safe_area",
+      "target": "captions",
+      "targetKind": "skill"
+    }
+  ],
   "contractVersion": "b_roll.skill_contract.v1",
   "coordinationCritical": true,
   "creditEstimator": "b_roll.credit.v1",
   "fallbackRoutes": [
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Fallback to an eligible existing source without provider work.",
-      "operationRef": "b_roll.source.existing_project_clip.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "b_roll.source.existing_project_clip.v1"
+      ],
       "priority": 100,
+      "requiredArtifactTypes": [
+        "source_media_artifact_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "fallback_existing_source",
-      "routeKind": "source"
+      "routeKind": "source",
+      "supportedJobTypes": [
+        "prepare_b_roll_source"
+      ]
     },
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Keep the base footage when no professional candidate remains.",
-      "operationRef": "b_roll.no_action.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "b_roll.no_action.v1"
+      ],
       "priority": 101,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_planning_qa_report_v1"
+      ],
       "requiresApproval": false,
       "routeKey": "fallback_no_action",
-      "routeKind": "no_action"
+      "routeKind": "no_action",
+      "supportedJobTypes": [
+        "project_b_roll_result_receipt"
+      ]
     }
   ],
   "integrationQa": [
@@ -223,49 +357,238 @@
     }
   ],
   "knownLimitations": [
-    "Gemini Omni is a public preview model and production qualification requires a real private canary plus current account evidence.",
-    "Native Gemini Omni output aspect ratios are limited to 16:9 and 9:16; other confirmed frames require a crop-safe deterministic composition plan.",
-    "Uploaded-video editing is unavailable in EEA, Switzerland, and the United Kingdom and must fail closed when region eligibility is absent.",
-    "Reference-video inputs are not an active dependable route because preview documentation does not establish correct processing.",
-    "Multiple video inputs, video extension, video interpolation, voice editing, YouTube sources, and uploaded audio references are unsupported.",
-    "Only one initial provider submission and one eligible refinement are allowed; there is no automatic retry or alternate provider fallback.",
-    "Generated candidates are illustrative, contextual, atmospheric, or symbolic and can never be verified proof.",
-    "B-roll does not own final captions, sound mix, color grade, specialized transitions, tracking, final render composition, or export.",
-    "Tracking requires a separately produced model-neutral track_graph_v1 artifact.",
-    "No stock-library runtime route is qualified."
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "requires_production_qualification",
+      "limitationKey": "gemini_preview_production_gate",
+      "reason": "Gemini Omni production use requires a real private canary and current account evidence."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "native_aspect_ratios",
+      "reason": "Native provider output is bounded to 16:9 and 9:16; other frames require crop-safe deterministic composition."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "uploaded_video_region_gate",
+      "reason": "Uploaded-video editing fails closed where current provider region eligibility is absent."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "reference_image_ceiling",
+      "reason": "Reference-to-video accepts one to six exact approved images; the six-image ceiling is the bounded ReeditPro contract demonstrated by the current official provider guide."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "video_reference_not_active",
+      "reason": "Provider schema admission does not prove useful processing: current official guidance says video references up to three seconds are accepted but not processed correctly."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "uploaded_audio_reference_not_active",
+      "reason": "Current official guidance does not support uploaded audio references."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "unsupported_provider_transformations",
+      "reason": "Multiple-video reasoning, video extension, frame interpolation, voice editing, and YouTube sources are unsupported."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "provider_output_contract",
+      "reason": "Provider output is bounded to 3-10 seconds, 720p, 24 fps, and native 16:9 or 9:16."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "provider_person_identity_safety",
+      "reason": "Recognizable-person and minor-image availability remains provider- and region-limited; B-roll rights, privacy, proof, and production qualification gates remain mandatory."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "provider_interaction_retention",
+      "reason": "The initial interaction is stored only to authorize one conversational refinement; store-disabled or missing previous-interaction state cannot be refined."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate"
+      ],
+      "behavior": "bounded_support",
+      "limitationKey": "provider_attempt_ceiling",
+      "reason": "Only one initial provider submission and one eligible refinement are allowed."
+    },
+    {
+      "affectedJobTypes": [
+        "generate_b_roll_candidate",
+        "run_b_roll_semantic_visual_qa"
+      ],
+      "behavior": "fail_closed",
+      "limitationKey": "generated_media_not_proof",
+      "reason": "Generated candidates are illustrative and can never be verified proof."
+    },
+    {
+      "affectedJobTypes": [
+        "prepare_b_roll_remotion_layer",
+        "project_b_roll_result_receipt"
+      ],
+      "behavior": "delegate",
+      "limitationKey": "cross_skill_final_ownership",
+      "reason": "Captions, sound, color, transition, tracking, render, and export remain externally owned."
+    },
+    {
+      "affectedJobTypes": [
+        "prepare_b_roll_remotion_layer"
+      ],
+      "behavior": "delegate",
+      "limitationKey": "tracking_external_dependency",
+      "reason": "Tracking requires an exact model-neutral track_graph_v1 artifact from Track All."
+    },
+    {
+      "affectedJobTypes": [],
+      "behavior": "fail_closed",
+      "limitationKey": "stock_route_unqualified",
+      "reason": "No rights-aware stock-library runtime route is qualified."
+    }
   ],
   "lowerCostRoutes": [
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Prefer existing source with no provider request.",
-      "operationRef": "b_roll.source.existing_project_clip.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "b_roll.source.existing_project_clip.v1"
+      ],
       "priority": 1,
+      "requiredArtifactTypes": [
+        "source_media_artifact_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "lower_cost_existing_source",
-      "routeKind": "source"
+      "routeKind": "source",
+      "supportedJobTypes": [
+        "prepare_b_roll_source"
+      ]
     },
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Use no B-roll when the base scene is stronger.",
-      "operationRef": "b_roll.no_action.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "b_roll.no_action.v1"
+      ],
       "priority": 0,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_planning_qa_report_v1"
+      ],
       "requiresApproval": false,
       "routeKey": "lower_cost_no_action",
-      "routeKind": "no_action"
+      "routeKind": "no_action",
+      "supportedJobTypes": [
+        "project_b_roll_result_receipt"
+      ]
     }
   ],
-  "manifestHash": "c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c",
+  "manifestHash": "40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0",
   "mayOverlapWith": [
-    "captions",
-    "color",
-    "render",
-    "sound",
-    "track_all",
-    "transition"
+    {
+      "condition": "caption_safe_area_preserved",
+      "ownershipBehavior": "b_roll_primary",
+      "requiredLayerOrder": "b_roll_below_captions",
+      "ruleKey": "overlap_captions",
+      "targetSkill": "captions",
+      "visualDensityBehavior": "reserve_target_area"
+    },
+    {
+      "condition": "color_operates_on_composite",
+      "ownershipBehavior": "b_roll_primary",
+      "requiredLayerOrder": "color_after_b_roll",
+      "ruleKey": "overlap_color",
+      "targetSkill": "color",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "render_consumes_approved_layer",
+      "ownershipBehavior": "b_roll_primary",
+      "requiredLayerOrder": "b_roll_before_render",
+      "ruleKey": "overlap_render",
+      "targetSkill": "render",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "sound_handoff_preserves_voice",
+      "ownershipBehavior": "b_roll_primary",
+      "requiredLayerOrder": "visual_and_audio_independent",
+      "ruleKey": "overlap_sound",
+      "targetSkill": "sound",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "track_graph_consumed_as_dependency",
+      "ownershipBehavior": "b_roll_primary",
+      "requiredLayerOrder": "track_graph_before_b_roll_layer",
+      "ruleKey": "overlap_track_all",
+      "targetSkill": "track_all",
+      "visualDensityBehavior": "support_only"
+    },
+    {
+      "condition": "ranges_exclude_transition_boundary",
+      "ownershipBehavior": "target_primary",
+      "requiredLayerOrder": "transition_above_b_roll_at_boundary",
+      "ruleKey": "overlap_transition",
+      "targetSkill": "transition",
+      "visualDensityBehavior": "enforce_budget"
+    }
   ],
   "mustRunAfter": [
-    "orchestra_assignment"
+    {
+      "blockingBehavior": "block",
+      "condition": "always",
+      "ruleKey": "after_orchestra_assignment",
+      "target": "orchestra_assignment",
+      "targetKind": "phase"
+    }
   ],
   "mustRunBefore": [
-    "final_composition"
+    {
+      "blockingBehavior": "block",
+      "condition": "b_roll_result_selected",
+      "ruleKey": "before_final_composition",
+      "target": "final_composition",
+      "targetKind": "phase"
+    }
   ],
   "optionalInputs": [
     {
@@ -276,9 +599,9 @@
       "minimumCount": 0
     },
     {
-      "artifactType": "visual_intelligence_report_v1",
-      "description": "Validated semantic visual context.",
-      "key": "visual_intelligence",
+      "artifactType": "visual_intelligence_candidate_qa_v1",
+      "description": "Model-neutral semantic QA for an exact generated or provider-edited candidate.",
+      "key": "visual_intelligence_candidate_qa",
       "maximumCount": 1,
       "minimumCount": 0
     },
@@ -420,13 +743,43 @@
     }
   ],
   "ownershipRequirements": [
-    "one_exclusive_primary_visual_owner_per_frame",
-    "support_overlap_requires_density_budget",
-    "caption_reserved_zones_remain_caption_owned",
-    "write_range_must_be_subset_of_assignment",
-    "whole_video_context_is_read_only"
+    {
+      "condition": "primary_b_roll_requested",
+      "requiredBehavior": "one_primary_owner_per_frame",
+      "ruleKey": "exclusive_primary_visual_owner",
+      "violationBehavior": "block"
+    },
+    {
+      "condition": "support_layer_overlap",
+      "requiredBehavior": "visual_density_budget_must_pass",
+      "ruleKey": "support_density_budget",
+      "violationBehavior": "use_no_action"
+    },
+    {
+      "condition": "caption_reserved_zone_present",
+      "requiredBehavior": "caption_area_remains_caption_owned",
+      "ruleKey": "caption_zone_ownership",
+      "violationBehavior": "block"
+    },
+    {
+      "condition": "any_b_roll_mutation",
+      "requiredBehavior": "write_range_subset_of_assignment",
+      "ruleKey": "assignment_range_authority",
+      "violationBehavior": "block"
+    },
+    {
+      "condition": "whole_video_context_consumed",
+      "requiredBehavior": "no_whole_video_mutation",
+      "ruleKey": "whole_video_read_only",
+      "violationBehavior": "block"
+    }
   ],
-  "planningPhase": "skill_planning",
+  "planningPhase": {
+    "approvedPlanRequired": false,
+    "blockingBehavior": "block",
+    "condition": "assignment_received",
+    "phase": "skill_planning"
+  },
   "planningQa": [
     {
       "description": "B-roll range authority validation.",
@@ -439,8 +792,8 @@
       "severity": "blocking"
     },
     {
-      "description": "B-roll restraint considered validation.",
-      "qaKey": "b_roll.planning.restraint_considered",
+      "description": "B-roll professional restraint validation.",
+      "qaKey": "b_roll.planning.professional_restraint",
       "severity": "blocking"
     },
     {
@@ -454,13 +807,18 @@
       "severity": "blocking"
     },
     {
+      "description": "B-roll privacy validation.",
+      "qaKey": "b_roll.planning.privacy",
+      "severity": "blocking"
+    },
+    {
       "description": "B-roll proof safety validation.",
       "qaKey": "b_roll.planning.proof_safety",
       "severity": "blocking"
     },
     {
-      "description": "B-roll visual density validation.",
-      "qaKey": "b_roll.planning.visual_density",
+      "description": "B-roll visual density budget validation.",
+      "qaKey": "b_roll.planning.visual_density_budget",
       "severity": "blocking"
     },
     {
@@ -484,8 +842,13 @@
       "severity": "blocking"
     },
     {
-      "description": "B-roll approval credit readiness validation.",
-      "qaKey": "b_roll.planning.approval_credit_readiness",
+      "description": "B-roll approval readiness validation.",
+      "qaKey": "b_roll.planning.approval_readiness",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll credit ceiling validation.",
+      "qaKey": "b_roll.planning.credit_ceiling",
       "severity": "blocking"
     },
     {
@@ -494,25 +857,37 @@
       "severity": "blocking"
     },
     {
-      "description": "B-roll lower cost route validation.",
-      "qaKey": "b_roll.planning.lower_cost_route",
+      "description": "B-roll lower cost route evaluation validation.",
+      "qaKey": "b_roll.planning.lower_cost_route_evaluation",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll region eligibility validation.",
+      "qaKey": "b_roll.planning.region_eligibility",
+      "severity": "blocking"
+    },
+    {
+      "description": "B-roll generated media classification validation.",
+      "qaKey": "b_roll.planning.generated_media_classification",
       "severity": "blocking"
     }
   ],
   "producedArtifactTypes": [
     "b_roll_plan_v1",
+    "b_roll_planning_qa_report_v1",
     "b_roll_restraint_result_v1",
     "b_roll_provider_request_specification_v1",
+    "b_roll_candidate_media_manifest_v1",
     "b_roll_candidate_manifest_v1",
     "b_roll_candidate_version_v1",
-    "provider_b_roll_candidate_video_mp4",
     "b_roll_qa_report_v1",
     "b_roll_remotion_layer_manifest_v1",
+    "b_roll_private_preview_media_manifest_v1",
     "b_roll_sound_handoff_v1",
     "b_roll_color_handoff_v1",
     "b_roll_transition_handoff_v1",
     "b_roll_result_receipt_v1",
-    "skill_qualification_receipt_v1"
+    "skill_qualification_receipt_v2"
   ],
   "qualificationFixtures": [
     {
@@ -780,13 +1155,41 @@
     }
   ],
   "requiredSourceEvidence": [
-    "immutable_source_identity",
-    "source_sha256",
-    "source_generation_or_create_only_identity",
-    "rights_status",
-    "privacy_status",
-    "proof_classification",
-    "crop_feasibility"
+    {
+      "acceptedArtifactTypes": [
+        "source_inventory_v1",
+        "source_media_artifact_v1"
+      ],
+      "condition": "source_route_selected",
+      "missingBehavior": "block",
+      "requirementKey": "immutable_source_identity"
+    },
+    {
+      "acceptedArtifactTypes": [
+        "source_media_artifact_v1",
+        "approved_user_asset_v1"
+      ],
+      "condition": "source_or_reference_asset_selected",
+      "missingBehavior": "block",
+      "requirementKey": "source_checksum"
+    },
+    {
+      "acceptedArtifactTypes": [
+        "source_inventory_v1",
+        "approved_user_asset_v1"
+      ],
+      "condition": "non_project_or_generated_input_selected",
+      "missingBehavior": "needs_user_confirmation",
+      "requirementKey": "rights_privacy_and_proof"
+    },
+    {
+      "acceptedArtifactTypes": [
+        "source_inventory_v1"
+      ],
+      "condition": "existing_source_selected",
+      "missingBehavior": "use_no_action",
+      "requirementKey": "crop_feasibility"
+    }
   ],
   "revisionRules": [
     {
@@ -839,115 +1242,524 @@
       "ruleKey": "normalize_candidate"
     }
   ],
-  "schemaVersion": "skill-capability-manifest-v1",
+  "schemaVersion": "skill-capability-manifest-v2",
   "skillClass": "creative_visual_asset_skill",
   "skillKey": "b_roll",
   "skillVersion": "1.0.0",
   "supportedJobTypes": [
-    "validate_b_roll_assignment",
-    "validate_b_roll_range_authority",
-    "validate_b_roll_source",
-    "prepare_b_roll_source",
-    "generate_b_roll_candidate",
-    "inspect_b_roll_candidate_with_ffprobe",
-    "normalize_b_roll_candidate_with_ffmpeg",
-    "run_b_roll_technical_qa",
-    "run_b_roll_semantic_visual_qa",
-    "prepare_b_roll_remotion_layer",
-    "render_b_roll_preview",
-    "run_b_roll_preview_qa",
-    "project_b_roll_result_receipt"
+    {
+      "allowedPhases": [
+        "plan_validation"
+      ],
+      "executionAllowed": true,
+      "jobType": "validate_b_roll_assignment",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_assignment_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_assignment_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "plan_validation"
+      ],
+      "executionAllowed": true,
+      "jobType": "validate_b_roll_range_authority",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_plan_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_assignment_v1",
+        "b_roll_plan_v1",
+        "b_roll_planning_qa_report_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "plan_validation"
+      ],
+      "executionAllowed": true,
+      "jobType": "validate_b_roll_source",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "source_media_artifact_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "source_media_artifact_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "media_normalization"
+      ],
+      "executionAllowed": true,
+      "jobType": "prepare_b_roll_source",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "b_roll_candidate_media_manifest_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "source_media_artifact_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "provider_generation"
+      ],
+      "executionAllowed": true,
+      "jobType": "generate_b_roll_candidate",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "b_roll_candidate_media_manifest_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_provider_request_specification_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "media_inspection"
+      ],
+      "executionAllowed": true,
+      "jobType": "inspect_b_roll_candidate_with_ffprobe",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_candidate_manifest_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_media_manifest_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "media_normalization"
+      ],
+      "executionAllowed": true,
+      "jobType": "normalize_b_roll_candidate_with_ffmpeg",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "b_roll_candidate_version_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_media_manifest_v1",
+        "b_roll_candidate_manifest_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "skill_output_qa"
+      ],
+      "executionAllowed": true,
+      "jobType": "run_b_roll_technical_qa",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_qa_report_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "skill_output_qa"
+      ],
+      "executionAllowed": true,
+      "jobType": "run_b_roll_semantic_visual_qa",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_qa_report_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1",
+        "visual_intelligence_candidate_qa_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "layer_preparation"
+      ],
+      "executionAllowed": true,
+      "jobType": "prepare_b_roll_remotion_layer",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_remotion_layer_manifest_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_candidate_version_v1",
+        "b_roll_qa_report_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "private_preview_render"
+      ],
+      "executionAllowed": true,
+      "jobType": "render_b_roll_preview",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "b_roll_private_preview_media_manifest_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1",
+        "b_roll_remotion_layer_manifest_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "integration_qa"
+      ],
+      "executionAllowed": true,
+      "jobType": "run_b_roll_preview_qa",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_qa_report_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1",
+        "b_roll_remotion_layer_manifest_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "result_projection"
+      ],
+      "executionAllowed": true,
+      "jobType": "project_b_roll_result_receipt",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "b_roll_result_receipt_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_planning_qa_report_v1",
+        "b_roll_qa_report_v1",
+        "b_roll_remotion_layer_manifest_v1"
+      ],
+      "runtimeBindingRequired": true
+    }
   ],
   "timeEstimator": "b_roll.time.v1",
   "toolRoutes": [
     {
-      "description": "Inspect the exact private candidate.",
-      "operationRef": "tool.ffprobe.inspect_approved_media.v1",
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Inspect the exact private candidate represented by its strict media manifest.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.ffprobe.inspect_approved_media.v1"
+      ],
       "priority": 10,
+      "requiredArtifactTypes": [
+        "b_roll_candidate_media_manifest_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "inspect_candidate",
-      "routeKind": "tool"
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "inspect_b_roll_candidate_with_ffprobe"
+      ]
     },
     {
-      "description": "Normalize an approved bounded candidate.",
-      "operationRef": "tool.ffmpeg.execute_approved_media_recipe.v1",
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Normalize an approved bounded candidate without exposing private bytes.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.ffmpeg.execute_approved_media_recipe.v1"
+      ],
       "priority": 20,
+      "requiredArtifactTypes": [
+        "b_roll_candidate_media_manifest_v1",
+        "b_roll_candidate_manifest_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "normalize_candidate",
-      "routeKind": "tool"
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "normalize_b_roll_candidate_with_ffmpeg"
+      ]
     },
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Render the range-bounded private preview.",
-      "operationRef": "tool.remotion.render_approved_composition.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.remotion.render_approved_composition.v1"
+      ],
       "priority": 30,
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1",
+        "b_roll_remotion_layer_manifest_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "render_private_preview",
-      "routeKind": "tool"
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "render_b_roll_preview"
+      ]
     },
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Use meaning-matched project source.",
-      "operationRef": "b_roll.source.existing_project_clip.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "b_roll.source.existing_project_clip.v1"
+      ],
       "priority": 2,
+      "requiredArtifactTypes": [
+        "source_media_artifact_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "existing_project_source",
-      "routeKind": "source"
+      "routeKind": "source",
+      "supportedJobTypes": [
+        "prepare_b_roll_source"
+      ]
     },
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Use a rights/privacy-approved user asset.",
-      "operationRef": "b_roll.source.approved_user_asset.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "b_roll.source.approved_user_asset.v1"
+      ],
       "priority": 3,
+      "requiredArtifactTypes": [
+        "approved_user_asset_v1",
+        "source_media_artifact_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "approved_user_asset",
-      "routeKind": "source"
+      "routeKind": "source",
+      "supportedJobTypes": [
+        "prepare_b_roll_source"
+      ]
     },
     {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
       "description": "Edit one approved bounded video source where eligible.",
-      "operationRef": "provider.google.generate_b_roll_candidate.v1",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "provider.google.generate_b_roll_candidate.v1"
+      ],
       "priority": 4,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_provider_request_specification_v1",
+        "source_media_artifact_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "gemini_omni_edit",
-      "routeKind": "provider"
+      "routeKind": "provider",
+      "supportedJobTypes": [
+        "generate_b_roll_candidate"
+      ]
     },
     {
-      "description": "Create an illustrative candidate from approved images.",
-      "operationRef": "provider.google.generate_b_roll_candidate.v1",
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Create one illustrative candidate from one approved checksum-bound first-frame image.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "provider.google.generate_b_roll_candidate.v1"
+      ],
       "priority": 5,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_provider_request_specification_v1",
+        "approved_user_asset_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "gemini_omni_image_to_video",
-      "routeKind": "provider"
+      "routeKind": "provider",
+      "supportedJobTypes": [
+        "generate_b_roll_candidate"
+      ]
     },
     {
-      "description": "Create an illustrative candidate from the approved shot specification.",
-      "operationRef": "provider.google.generate_b_roll_candidate.v1",
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Create one illustrative candidate from one to six approved checksum-bound reference images.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "provider.google.generate_b_roll_candidate.v1"
+      ],
       "priority": 6,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_provider_request_specification_v1",
+        "approved_user_asset_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "gemini_omni_reference_to_video",
+      "routeKind": "provider",
+      "supportedJobTypes": [
+        "generate_b_roll_candidate"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Create an illustrative candidate from the approved shot specification.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "provider.google.generate_b_roll_candidate.v1"
+      ],
+      "priority": 7,
+      "requiredArtifactTypes": [
+        "b_roll_plan_v1",
+        "b_roll_provider_request_specification_v1"
+      ],
       "requiresApproval": true,
       "routeKey": "gemini_omni_text_to_video",
-      "routeKind": "provider"
+      "routeKind": "provider",
+      "supportedJobTypes": [
+        "generate_b_roll_candidate"
+      ]
     }
   ],
   "trackingRequirements": [
-    "consume_track_graph_v1_only",
-    "never_import_tracking_implementation",
-    "return_needs_other_skill_when_required_graph_missing"
+    {
+      "acceptedArtifactType": "track_graph_v1",
+      "condition": "motion_locked_placement_requires_tracking",
+      "missingDependencyBehavior": "needs_other_skill",
+      "modelSpecificDependencyAllowed": false,
+      "ownerSkill": "track_all",
+      "requiredForPhase": "layer_preparation",
+      "requirementKey": "model_neutral_track_graph"
+    }
   ],
   "unsupportedJobTypes": [
-    "generate_verified_proof",
-    "mutate_outside_authorized_range",
-    "author_final_captions",
-    "mix_final_audio",
-    "grade_final_color",
-    "execute_specialized_transition",
-    "perform_object_tracking",
-    "render_final_export",
-    "search_unqualified_stock_library",
-    "select_caller_provider_route",
-    "execute_caller_command"
+    {
+      "jobType": "generate_verified_proof",
+      "reason": "Generated media cannot establish verified proof.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "mutate_outside_authorized_range",
+      "reason": "B-roll write authority is bounded to the assigned range.",
+      "resolution": "reject"
+    },
+    {
+      "alternateOwnerSkillKey": "captions",
+      "jobType": "author_final_captions",
+      "reason": "Captions owns final caption authorship and layout.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "sound",
+      "jobType": "mix_final_audio",
+      "reason": "Sound owns final audio mix authority.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "color",
+      "jobType": "grade_final_color",
+      "reason": "Color owns final grade authority.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "transition",
+      "jobType": "execute_specialized_transition",
+      "reason": "Transition owns scene-boundary transition execution.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "track_all",
+      "jobType": "perform_object_tracking",
+      "reason": "Track All owns model-neutral tracking execution.",
+      "resolution": "delegate"
+    },
+    {
+      "alternateOwnerSkillKey": "render",
+      "jobType": "render_final_export",
+      "reason": "Render owns final composition and export.",
+      "resolution": "delegate"
+    },
+    {
+      "jobType": "search_unqualified_stock_library",
+      "reason": "No rights-aware stock integration is qualified.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "select_caller_provider_route",
+      "reason": "Provider and tool executables are selected only by the approved manifest.",
+      "resolution": "reject"
+    },
+    {
+      "jobType": "execute_caller_command",
+      "reason": "Caller-selected executables are prohibited.",
+      "resolution": "reject"
+    }
   ],
   "visualIntelligenceRequirements": [
-    "semantic_relevance",
-    "speaker_action_protection",
-    "scene_continuity",
-    "candidate_semantic_alignment",
-    "candidate_visual_integrity"
+    {
+      "condition": "generated_or_provider_edited_candidate",
+      "injectedTestOnlyBehavior": "reject_for_production",
+      "productionAcceptanceRequirement": "production_qualified_producer",
+      "requiredArtifactType": "visual_intelligence_candidate_qa_v1",
+      "requiredForPhase": "skill_output_qa",
+      "requirementKey": "candidate_semantic_acceptance",
+      "semanticQaRequirement": "required_for_generated_or_provider_edited",
+      "wholeVideoEvidencePermission": "read_only"
+    }
   ]
 }

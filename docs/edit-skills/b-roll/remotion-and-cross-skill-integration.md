@@ -101,6 +101,7 @@ actual private Docker-confined Remotion render. It proves the exact M9 source
 route, treatment mapping, preview, replay, dependency failure, and tamper
 failure with zero provider requests. It does not prove live provider output,
 production semantic visual intelligence, public delivery, final export,
-billing, wallet mutation, Supabase, or production qualification. Aggregate
-`internal_execution_qualified` promotion is reserved for the M11 end-to-end
-qualification receipt.
+billing, wallet mutation, Supabase, or production qualification. The current
+`internal_execution_qualified` status is backed by the generated exact-commit
+qualification receipt. Production qualification remains blocked by the five
+live production fixtures.

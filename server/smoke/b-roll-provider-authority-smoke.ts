@@ -22,8 +22,8 @@ import {
   hashSkillValue,
   skillManifestReference,
 } from '../edit-skills/core/skill-capability-manifest-hash'
-import { createBrollPlanningQualificationReceipt } from '../edit-skills/b-roll/b-roll-qualification'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import {
@@ -38,6 +38,7 @@ import {
   createBrollProviderLifecyclePolicyV5,
   createBrollProviderOperationRegistryV5,
   createBrollProviderWorkAuthorizationV5,
+  projectCanonicalBrollWorkItemForImmutableGeminiOmniV5,
   executePrivateInjectedBrollProviderLifecycleV5,
   readBrollProviderConsumerReceiptV5,
   reconcilePrivateInjectedBrollProviderUnknownV5,
@@ -138,15 +139,16 @@ try {
   const providerWorkItem = canonicalWorkItems.find((item) =>
     item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
   assert.ok(providerWorkItem)
-  assert.equal(providerWorkItem.expectedOutputs[0]?.artifactType, 'provider_b_roll_candidate_video_mp4')
-  assert.equal(providerWorkItem.expectedOutputs[0]?.contentType, 'video/mp4')
+  assert.equal(providerWorkItem.expectedOutputs[0]?.artifactType, 'b_roll_candidate_media_manifest_v1')
+  assert.equal(providerWorkItem.expectedOutputs[0]?.contentType, 'application/json')
   const persisted = await persistCanonicalBrollPlanComponent({
     localStorageRoot,
     assignment,
     context,
     plan: compiled.plan,
+    planningQaReport: compiled.planningQaReport,
     workGraph,
-    qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
+    qualificationReceipt: loadBrollGeneratedQualificationReceiptForCurrentSource(BROLL_CAPABILITY_MANIFEST),
   })
   const componentRef = persisted.componentRefs.bRollSkill
   const requestPackage = buildBrollProviderRequestPackageV5({
@@ -174,7 +176,10 @@ try {
     approvedMaximumCredits: 100,
     remainingReservedCredits: 100,
     approvedProviderRoutes: [BROLL_PROVIDER_ROUTE_ID],
-    approvedWorkItems: [{ id: 'provider-work-m6', ...providerWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-work-m6',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(providerWorkItem),
+    }],
     status: 'canonical_authority_packaged_runtime_blocked',
   })
   const rateAuthority = {

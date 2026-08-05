@@ -7,6 +7,10 @@ import {
   skillSha256Schema,
 } from './skill-capability-manifest-schema'
 import type { SkillManifestReference } from './skill-capability-manifest-types'
+import {
+  skillGitCommitShaSchema,
+  skillQualificationDependencyAuthorityHashSchema,
+} from './skill-qualification-evidence'
 
 const fixtureResultSchema = z.object({
   fixtureKey: z.string().trim().min(1).max(180),
@@ -15,7 +19,7 @@ const fixtureResultSchema = z.object({
   summary: z.string().trim().min(1).max(2_000),
 }).strict()
 
-const qualificationReceiptCoreSchema = z.object({
+const qualificationReceiptV1CoreSchema = z.object({
   schemaVersion: z.literal('skill-qualification-receipt-v1'),
   manifestRef: skillManifestReferenceSchema,
   qualificationStatus: z.enum(SKILL_QUALIFICATION_STATUSES),
@@ -27,17 +31,98 @@ const qualificationReceiptCoreSchema = z.object({
   issuedAt: z.string().datetime({ offset: true }),
 }).strict()
 
-export const skillQualificationReceiptSchema = qualificationReceiptCoreSchema.extend({
+export const skillQualificationReceiptV1Schema = qualificationReceiptV1CoreSchema.extend({
   receiptHash: skillSha256Schema,
 }).strict()
+
+const fixtureEvidenceRefSchema = z.object({
+  fixtureKey: z.string().trim().min(1).max(180),
+  commandId: z.string().trim().min(1).max(180),
+  evidenceHash: skillSha256Schema,
+}).strict()
+
+const qualificationReceiptV2CoreSchema = z.object({
+  schemaVersion: z.literal('skill-qualification-receipt-v2'),
+  manifestRef: skillManifestReferenceSchema,
+  qualificationStatus: z.enum(SKILL_QUALIFICATION_STATUSES),
+  testedCommitSha: skillGitCommitShaSchema,
+  relevantSourceTreeHash: skillSha256Schema,
+  dependencyAuthorityHashes: z.array(skillQualificationDependencyAuthorityHashSchema)
+    .min(1).max(100),
+  fixtureResults: z.array(fixtureResultSchema).min(1).max(500),
+  fixtureEvidenceRefs: z.array(fixtureEvidenceRefSchema).min(1).max(500),
+  buildEvidenceHashes: z.array(skillSha256Schema).min(1).max(100),
+  testEvidenceHashes: z.array(skillSha256Schema).min(1).max(500),
+  securityEvidenceHashes: z.array(skillSha256Schema).min(1).max(100),
+  providerEvidenceHashes: z.array(skillSha256Schema).max(100),
+  mediaEvidenceHashes: z.array(skillSha256Schema).max(100),
+  remotionEvidenceHashes: z.array(skillSha256Schema).max(100),
+  startedAt: z.string().datetime({ offset: true }),
+  completedAt: z.string().datetime({ offset: true }),
+  issuedAt: z.string().datetime({ offset: true }),
+}).strict().superRefine((value, context) => {
+  if (
+    Date.parse(value.completedAt) < Date.parse(value.startedAt) ||
+    Date.parse(value.issuedAt) < Date.parse(value.completedAt)
+  ) context.addIssue({ code: 'custom', message: 'Qualification receipt timestamps are out of order.' })
+  const resultKeys = value.fixtureResults.map((entry) => entry.fixtureKey)
+  const refKeys = value.fixtureEvidenceRefs.map((entry) => entry.fixtureKey)
+  if (
+    new Set(resultKeys).size !== resultKeys.length ||
+    new Set(refKeys).size !== refKeys.length ||
+    hashSkillValue(resultKeys) !== hashSkillValue(refKeys)
+  ) context.addIssue({ code: 'custom', message: 'Qualification receipt fixture results and evidence refs must match exactly.' })
+  for (let index = 0; index < value.fixtureResults.length; index += 1) {
+    if (value.fixtureResults[index]?.evidenceHash !== value.fixtureEvidenceRefs[index]?.evidenceHash) {
+      context.addIssue({ code: 'custom', message: 'Qualification fixture result is not bound to its evidence reference.' })
+    }
+  }
+  const authorityKeys = value.dependencyAuthorityHashes.map((entry) => entry.authorityKey)
+  if (new Set(authorityKeys).size !== authorityKeys.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Qualification receipt dependency authorities must have unique keys.',
+    })
+  }
+  if (
+    ['internal_execution_qualified', 'production_qualified'].includes(value.qualificationStatus) &&
+    (
+      value.providerEvidenceHashes.length === 0 ||
+      value.mediaEvidenceHashes.length === 0 ||
+      value.remotionEvidenceHashes.length === 0
+    )
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Execution qualification requires actual provider, media, and Remotion evidence.',
+  })
+})
+
+export const skillQualificationReceiptV2Schema = qualificationReceiptV2CoreSchema.extend({
+  receiptHash: skillSha256Schema,
+}).strict()
+
+export const skillQualificationReceiptSchema = z.union([
+  skillQualificationReceiptV1Schema,
+  skillQualificationReceiptV2Schema,
+])
 
 export type SkillQualificationReceipt = z.infer<typeof skillQualificationReceiptSchema>
 
 export function createSkillQualificationReceipt(
-  input: z.input<typeof qualificationReceiptCoreSchema>,
+  input: z.input<typeof qualificationReceiptV1CoreSchema>,
 ): SkillQualificationReceipt {
-  const core = qualificationReceiptCoreSchema.parse(input)
-  return skillQualificationReceiptSchema.parse({
+  const core = qualificationReceiptV1CoreSchema.parse(input)
+  return skillQualificationReceiptV1Schema.parse({
+    ...core,
+    receiptHash: hashSkillValue(core),
+  })
+}
+
+export function createSkillQualificationReceiptV2(
+  input: z.input<typeof qualificationReceiptV2CoreSchema>,
+): SkillQualificationReceipt {
+  const core = qualificationReceiptV2CoreSchema.parse(input)
+  return skillQualificationReceiptV2Schema.parse({
     ...core,
     receiptHash: hashSkillValue(core),
   })

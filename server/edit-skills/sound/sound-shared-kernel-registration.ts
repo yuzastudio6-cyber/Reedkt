@@ -5,6 +5,7 @@ import { hashSkillValue, skillManifestReference } from '../core/skill-capability
 import type { SkillReferenceCatalog } from '../core/skill-capability-validator'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
+import { createSkillQaFinding } from '../core/skill-qa-registry'
 import type { SkillQualificationRegistry } from '../core/skill-qualification-registry'
 import { createSkillQualificationReceipt } from '../core/skill-qualification-receipt'
 import { createSkillPlanEnvelope, type SkillPlanEnvelope } from '../core/skill-plan-envelope'
@@ -43,15 +44,21 @@ export function registerSoundQaPolicies(registry: SkillQaRegistry): void {
       const supplied = input[qaKey]
       const passed = supplied === true || supplied === 'pass'
       const perceptual = qaKey.includes('perceptual')
-      return {
+      const evidenceHashes = Array.isArray(input.evidenceHashes)
+        ? input.evidenceHashes.filter((value): value is string =>
+          typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value))
+        : []
+      return createSkillQaFinding({
         qaKey,
+        validatorVersion: 'sound-shared-kernel-qa-v1',
         disposition: passed ? 'pass' : perceptual ? 'needs_review' : 'blocking',
         summary: passed ? `${qaKey} passed with explicit evidence.`
           : perceptual ? `${qaKey} requires evidence-backed human or qualified perceptual review.`
             : `${qaKey} requires explicit passing evidence.`,
-        evidenceHashes: Array.isArray(input.evidenceHashes)
-          ? input.evidenceHashes.filter((value): value is string => typeof value === 'string') : [],
-      }
+        evidenceHashes: evidenceHashes.length > 0
+          ? evidenceHashes : [hashSkillValue({ qaKey, supplied: supplied ?? null })],
+        observations: { supplied: supplied ?? null, perceptual },
+      })
     })
   }
 }

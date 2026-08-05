@@ -755,6 +755,1580 @@ security/privacy release review, and the preview model alias lacking an
 immutable accepted revision. No paid provider, public delivery, final export,
 billing, wallet, Supabase, or production mutation occurred.
 
+## M12 — closeout reconciliation and base synchronization
+
+Status: completed and pushed.
+
+Implementation commit: `d9e220f048ec6127e6a1927c8276bc660fe4d2fd`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after push.
+
+Reconciled the existing B-roll head
+`cb6e55518d7ac4cda9e9325b38cb53bea5076080` and draft PR #2498 against the
+current integration-base tip
+`6423f12c1e62a252fc860ce5184888770411c62d`. The prior linked worktree used
+the read-only preservation repository's shared Git object store and emitted
+AppleDouble pack-index errors after fetch, so the closeout continued from a
+clean standalone clone at
+`/Users/macuser/Documents/REeditpro-b-roll-skill-closeout` on the same remote
+branch. The preservation checkout and its unrelated work were not changed.
+
+The integration base was 28 commits ahead and contained separately owned
+Visual Intelligence, GPU authority, and orchestra capability work. A normal
+`--no-ff` merge completed without conflicts. This milestone preserved that
+work but did not implement or use the orchestra, Visual Intelligence, Track
+All, SAM2, or SAM 3.1 as B-roll completion evidence.
+
+Baseline GitHub Actions evidence for B-roll head `cb6e55518`:
+
+- UI QA run `30847558149` passed secrets checks, install, frontend boundary,
+  production dependency audit, Chromium install, lint, typecheck, and build.
+- Browser E2E passed 114 tests, skipped 7, and failed 17 because every affected
+  fixture received `spawn ffmpeg ENOENT`.
+- The media-runtime, server-typecheck, security, and authenticated private
+  pipeline steps were consequently skipped. M22 owns the workflow correction.
+
+Post-merge validation:
+
+- `npm run build` — passed; existing Vite chunk-size and dynamic-import
+  warnings only.
+- `npm run typecheck:server`, `npm run lint`, and
+  `npm run check:frontend-boundary` — passed; boundary covered 1,045 files.
+- `npm run test:b-roll-capability-manifest`,
+  `npm run test:b-roll-planning`, and
+  `npm run test:b-roll-canonical-integration` — passed with manifest hash
+  `c916e4d2…`.
+- `npm run smoke:b-roll-retirement` — passed across 6,097 repository files,
+  one active B-roll runtime, zero alternate provider fallbacks, five rejected
+  retired routes, and no Track All implementation import.
+- `npm run smoke:professional-skill-planner` — passed after synchronization;
+  the prior retired-Qwen blocker is no longer present in the current base.
+- `npm run smoke:orchestra-skill-capability` — passed the separately owned base
+  contract regression. It was not used as B-roll qualification evidence.
+- One attempted local command used the non-existent name
+  `smoke:orchestra-skill-capability-contract`; the correct package script above
+  was immediately identified and passed.
+
+Qualification after M12 remains the existing
+`internal_execution_qualified` claim while the closeout audit is in progress.
+M17 will replace its synthetic startup receipt with actual generated run
+evidence, and M23 will issue the final source-tree-bound qualification.
+
+## M13 — public skill plugin boundary
+
+Status: completed and pushed.
+
+Implementation commit: `a9dd9d8acca74e4ed0334dfa4a3b19ed7cbdbb2e`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+Added the generic, version-bound public edit-skill plugin contract and registry
+with typed public plans, exact plan approvals, approved work graphs, dependency
+requests and acceptances, work results, and final skill result receipts. Every
+public authority object is strict, content-addressed, and bound to the exact
+manifest, assignment, plan, tenant/project scope, authorized frame range,
+approved graph, work item, output artifact, and QA lineage.
+
+Registered B-roll through that public boundary. The plugin now supports the
+complete independent lifecycle required by a future orchestra:
+
+- resolve `b_roll@1.0.0` by its exact manifest reference;
+- submit a generic `SkillAssignment` and receive a typed public `SkillPlan`;
+- require an exact immutable approval before compiling the canonical work
+  graph;
+- return and accept a typed model-neutral Track All dependency request;
+- reject stale manifests, stale private/public assignment pairings,
+  cross-workspace artifacts, out-of-range mutations, caller-selected
+  executables, unsupported work, altered graphs, missing work results, and
+  missing QA lineage; and
+- finalize only one exact successful result per approved work item into a
+  content-addressed `SkillResultReceipt`.
+
+The public B-roll barrel no longer exports private mini-skills. Existing private
+candidate-QA and aggregate fixtures now import those internals from their
+private module paths. The new public-boundary E2E imports neither B-roll
+mini-skills nor private plan/compiler/provider internals and proves planning,
+approved graph compilation, dependency intake, work-result validation, and
+finalization through the generic plugin registry.
+
+Validation:
+
+- `npm run test:b-roll-public-plugin` — passed public no-action lifecycle,
+  three manifest-supported work items, exact approval/QA lineage, result
+  finalization, typed `track_graph_v1` acceptance, stale-manifest rejection,
+  cross-workspace rejection, out-of-range rejection, missing-result rejection,
+  zero provider work, and zero private mini-skill imports.
+- `npm run test:edit-skill-capability-kernel`,
+  `npm run test:b-roll-capability-manifest`, `npm run test:b-roll-planning`, and
+  `npm run test:b-roll-canonical-integration` — passed. The canonical manifest
+  remains unchanged at
+  `c916e4d29dc91b71e2c16ac8f64fe55fa416e3dd10784e620d9d49d9ef254d6c`.
+- `npm run smoke:b-roll-candidate-qa` — passed one-refinement technical and
+  injected semantic QA with zero provider requests.
+- `npm run smoke:b-roll-end-to-end` — passed the complete private injected
+  lifecycle and real local Remotion preview with zero provider requests.
+- `npm run smoke:b-roll-retirement` — passed across 6,103 repository files and
+  41 active B-roll source files with one active runtime, zero alternate
+  provider fallbacks, and no Track All implementation import.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M13 remains the existing
+`internal_execution_qualified` claim pending M17 replacement of the synthetic
+receipt. This milestone did not implement or invoke the orchestra, Track All,
+Visual Intelligence, provider generation, public delivery, final export,
+billing, wallet mutation, Supabase, or production resources.
+
+## M14 — manifest job-to-runtime bindings
+
+Status: completed and pushed.
+
+Implementation commit: `5e4f1dc0d8c535947f2a39c7b7b6c076a3d13ebc`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+Replaced the prior string-set-only job claim with a generic runtime binding
+registry and dispatcher. Every `b_roll@1.0.0` supported job now has exactly one
+content-addressed `edit-skill-runtime-binding-v1` definition binding the exact
+manifest hash, contract version, job type, operation ID, operation kind,
+worker class, input/output artifact schemas, allowed phase, minimum
+qualification, adapter identity, approval requirement, assignment-range-only
+mutation authority, caller-executable prohibition, and media-creation
+classification to an actual adapter function.
+
+The canonical work-graph definitions are now one shared 13-job catalog used by
+both route compilation and static runtime validation. This removes the prior
+possibility that the manifest, graph, and runtime could silently maintain
+different copies of a job's operation, worker, output, or phase.
+
+The capability-manifest validator now proves manifest job -> runtime binding ->
+canonical work-graph job -> operation/worker -> registered artifact schemas ->
+allowed phase -> qualification -> executable adapter. Provider bindings also
+require an operation-specific qualification at or above the binding's minimum;
+tool/source/no-action operations must exist in their matching operation
+catalogs.
+
+Validation:
+
+- `npm run test:b-roll-runtime-bindings` — passed 13/13 unique bindings and
+  executed all 13 adapters through the generic dispatcher, producing 13 unique
+  content-addressed receipts with zero provider requests, public artifacts, or
+  production mutations.
+- The binding adversarial suite rejects a missing manifest binding, an extra
+  binding without a manifest job, duplicate binding, worker drift, output
+  drift, unknown input schema, under-qualified provider route, unknown tool
+  operation, caller-selected executable, outside-assignment mutation
+  authority, approval bypass, qualification bypass, no-action media creation,
+  missing adapter, and unknown dispatch job.
+- `npm run validate:skill-capability-manifests` — passed with one manifest and
+  complete runtime-binding proof.
+- `npm run test:edit-skill-capability-kernel`,
+  `npm run test:b-roll-capability-manifest`, `npm run test:b-roll-planning`,
+  `npm run test:b-roll-public-plugin`, and
+  `npm run test:b-roll-canonical-integration` — passed.
+- `npm run smoke:b-roll-retirement` — passed across 6,107 repository files and
+  42 active B-roll source files with one active runtime, zero alternate
+  provider fallbacks, and no Track All implementation import.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M14 remains the existing
+`internal_execution_qualified` claim pending M17 actual-run receipt issuance.
+Runtime binding fixtures are execution-contract tests, not synthetic
+qualification promotion. No orchestra, Track All, Visual Intelligence,
+provider call, public artifact, production mutation, final export, or billing
+work was performed.
+
+## M15 — coherent plan fallbacks and strict execution invariants
+
+Status: completed and pushed.
+
+Implementation commit: `588193497eb92b3eb308e4ff5732f4e2a5d96e07`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+The planner now resolves eligibility, time, and credit ceilings before
+freezing route-dependent state. When a provisional route exceeds either
+ceiling, it recompiles the concept, shot, timing, audio, coordination,
+provider-request authority, and estimates as one coherent zero-cost
+`use_no_broll` plan. Provider decisions bind the exact request-package hash,
+permission, route, native aspect ratio, shot specification, attempt limits,
+and provider credit estimate; source decisions bind one exact tenant-scoped,
+checksum-addressed source and cannot emit provider work.
+
+Strict schema and runtime assertions now reject contradictory no-action,
+blocked, confirmation, dependency, source, provider, uploaded-video-edit, and
+refinement state. Inert decisions require `no_display`, zero provider and
+total credits, no selected source, no shot or provider package, and a graph
+containing no media-creating work. `needs_other_skill` carries the exact
+model-neutral `track_all` / `track_graph_v1` requirement. Refinement is bound
+to the prior candidate and QA authority and can only produce candidate version
+two with exactly one allowed refinement.
+
+Validation:
+
+- `npm run test:b-roll-plan-invariants` — passed time- and credit-ceiling
+  fallbacks, zero-cost no-action work, source/provider separation, exact
+  provider authority and one provider job, inert dependency/blocked/review
+  graphs, eleven contradictory plans rejected, and the version-two refinement
+  ceiling.
+- `npm run test:b-roll-planning`, `npm run test:b-roll-public-plugin`, and
+  `npm run test:b-roll-canonical-integration` — passed.
+- `npm run smoke:b-roll-existing-source`,
+  `npm run smoke:b-roll-provider-authority`,
+  `npm run smoke:b-roll-provider-lifecycle`,
+  `npm run smoke:b-roll-candidate-qa`,
+  `npm run smoke:b-roll-remotion-integration`, and
+  `npm run smoke:b-roll-end-to-end` — passed. Provider authority retained the
+  exact historical V1-V4 hashes and the active V5/lifecycle hashes.
+- `npm run smoke:b-roll-retirement` — passed across 6,108 repository files
+  with one active B-roll runtime, zero alternate provider fallbacks, five
+  retired routes rejected, and no Track All implementation import.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M15 remains the existing
+`internal_execution_qualified` claim pending M17 actual-run receipt issuance.
+The milestone emitted no provider request, public media, production mutation,
+or billing activity and did not implement the orchestra, Track All, or Visual
+Intelligence.
+
+## M16 — independently derived planning QA evidence
+
+Status: completed and pushed.
+
+Implementation commit: `4eb0371e680fbdad9a92254deb264f58790d97ce`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end` resolved
+to the implementation commit after `git push -u origin HEAD`.
+
+Removed the planner's `qaInputs[qaKey] = true` self-attestation loop. Planning
+now emits strict, hash-verified `b_roll_planning_qa_plan_evidence_v1`, runs 18
+independent versioned validators through the generic QA registry, and derives
+the verdict from their findings. Every finding carries its validator version,
+derived observations, exact evidence hashes, disposition, summary, and its own
+content hash. Raw caller booleans cannot satisfy any planning validator.
+
+The validator set covers exact range authority, editorial purpose,
+professional restraint, source safety, provenance and rights, privacy, proof
+safety, visual-density budget, repetition, primary ownership, caption space,
+dependency completeness, approval readiness, time/credit ceilings, provider
+eligibility, lower-cost route evaluation, region eligibility, and generated
+media classification.
+
+The resulting `b_roll_planning_qa_report_v1` is content-addressed and bound to
+the plan evidence, assignment, context, manifest, and exact range. Its artifact
+hash is carried by the B-roll plan and canonical work graph, stored as public
+plugin evidence, propagated into atomic execution authority, included in final
+public result QA evidence, and persisted and revalidated as an immutable
+canonical component artifact. Stale or forged reports, findings, plan evidence,
+manifest/range lineage, and cross-context substitutions fail closed.
+
+Validation:
+
+- `npm run test:b-roll-planning-qa` — passed 18 validators; report hash
+  `2eea7e489d33a14eb1001f4842e21aecc538d1b64f9af3deae8e2daa17ae9485`
+  and content-addressed artifact hash
+  `4cd7a1b580e27fa0da0ce23741456dea81e73b45e828e088d17a121dc9e04f40`.
+  The suite rejected raw booleans, forged findings, stale reports and plan
+  evidence, and independently blocked range, proof, rights, privacy,
+  ownership, caption, dependency, credit, provider, and region contradictions.
+- `npm run test:b-roll-planning`, `npm run test:b-roll-plan-invariants`,
+  `npm run test:b-roll-public-plugin`, `npm run test:b-roll-runtime-bindings`,
+  and `npm run test:b-roll-canonical-integration` — passed with exact planning
+  QA report persistence and public evidence lineage.
+- `npm run test:edit-skill-capability-kernel`,
+  `npm run validate:skill-capability-manifests`, and
+  `npm run test:b-roll-capability-manifest` — passed. The generated manifest
+  projection is exact at
+  `a0e5ae901f47cd00b07eeb814059c7631012c5e424c072b10f1ebf1cd43c083d`
+  with 46 QA policies.
+- `npm run smoke:b-roll-existing-source`,
+  `npm run smoke:b-roll-provider-authority`,
+  `npm run smoke:b-roll-provider-lifecycle`,
+  `npm run smoke:b-roll-candidate-qa`,
+  `npm run smoke:b-roll-remotion-integration`,
+  `npm run smoke:b-roll-end-to-end`, and
+  `npm run smoke:b-roll-retirement` — passed. The aggregate lifecycle retained
+  zero actual provider requests and the retirement check retained zero Track
+  All implementation imports.
+- `npm run build`, `npm run typecheck:server`, `npm run lint`,
+  `npm run check:frontend-boundary`, and `git diff --check` — passed. Build
+  emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Qualification after M16 remains the existing
+`internal_execution_qualified` claim pending M17 replacement of synthetic
+startup qualification with actual command evidence. M16's planning QA report
+is actual derived planning evidence, but it is not itself a qualification
+receipt and does not promote production status. No orchestra, Track All,
+Visual Intelligence, paid provider, public delivery, production mutation, or
+billing work was performed.
+
+## M17 — evidence-backed internal qualification
+
+Status: completed and pushed.
+
+Qualification implementation commit:
+`a106dafd32c8937ba60bdbd768eaf1c71ae590d6`.
+
+Retirement-guard correction commit:
+`5ae78d139f63a720de994fcfd8ad502b6cbc0530`.
+
+Generated qualification artifact commit:
+`44bfb91982cd6c92b06f582ec810094019a64ce1`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to progress commit
+`d4c7fb498fcc72a01e60d5727614665ca12a4e7e` after
+`git push -u origin HEAD`.
+
+Removed all B-roll startup factories that declared planning or internal
+qualification from fixture names. Qualification receipt V2 and fixture
+evidence V1 now bind the exact manifest, tested commit, relevant source-tree
+hash, command, start/completion times, actual exit status, stdout/stderr
+digests, produced evidence hashes, environment class, and zero external/public/
+production-mutation counters. The runtime loads the frozen generated artifact,
+recomputes the relevant source-tree hash, validates every content hash and
+fixture-to-command edge, and fails closed when the artifact is missing, stale,
+forged, planning-only, or below the manifest claim.
+
+`npm run qualify:b-roll:internal` now runs a two-phase bootstrap from a clean
+Git tree. Phase A captures actual planning, contract, build, typecheck, lint,
+and boundary evidence and temporarily installs only a planning-qualified
+receipt. Phase B runs the provider-authority, retirement, candidate, source,
+lifecycle, canonical, Remotion, and security suites through that receipt. Only
+after all 36 required fixtures pass does it install the final
+`internal_execution_qualified` artifact. Raw logs, credentials, provider
+responses, media, caches, public artifacts, and production mutations are not
+stored.
+
+The first aggregate attempt correctly failed because the retirement allowlist
+had not yet classified the new canonical qualification CLI. It emitted no
+internal receipt and restored the fail-closed placeholder. Commit
+`5ae78d139f63a720de994fcfd8ad502b6cbc0530` corrected that guard without
+weakening retirement checks; the clean rerun then passed.
+
+Final evidence:
+
+- Tested commit:
+  `5ae78d139f63a720de994fcfd8ad502b6cbc0530`.
+- Relevant source-tree hash:
+  `b6abaa4a02e1e6335b0db6e10fc84aa01dd4c9faa19bef6ec2f10d8367377f60`.
+- Manifest hash:
+  `a0e5ae901f47cd00b07eeb814059c7631012c5e424c072b10f1ebf1cd43c083d`.
+- Qualification receipt hash:
+  `25032b7e9499895e0dd9beecfef0a4644455bb5a35f84a765971fa7619978e31`.
+- Generated artifact hash:
+  `2755e41c7e7b14570fa1fd5cf532a80b912524a42aaecc9b9ac7a0785e10689e`.
+- Evidence counts: 24 actual command records and 36 required fixture records;
+  all passed, with zero provider requests, public artifacts, or production
+  mutations.
+
+Commands captured by the aggregate qualifier:
+
+- `npm run test:b-roll-planning`
+- `npm run test:b-roll-planning-qa`
+- `npm run test:b-roll-qualification-evidence`
+- `npm run test:b-roll-plan-invariants`
+- `npm run test:b-roll-public-plugin`
+- `npm run test:b-roll-runtime-bindings`
+- `npm run test:b-roll-capability-manifest`
+- `npm run validate:skill-capability-manifests`
+- `npm run test:edit-skill-capability-kernel`
+- `npm run build`
+- `npm run typecheck:server`
+- `npm run lint`
+- `npm run check:frontend-boundary`
+- `npm run smoke:b-roll-provider-authority`
+- `npm run smoke:b-roll-retirement`
+- `npm run smoke:b-roll-end-to-end`
+- `npm run smoke:b-roll-candidate-qa`
+- `npm run smoke:b-roll-existing-source`
+- `npm run smoke:b-roll-provider-lifecycle`
+- `npm run test:b-roll-canonical-integration`
+- `npm run smoke:b-roll-remotion-integration`
+- `npm run smoke:runtime-api-security`
+- `npm run smoke:edit-execution-security-boundary`
+- `npm run smoke:idempotency-boundary`
+
+Normal-runtime verification of the frozen receipt also passed
+`test:b-roll-qualification-evidence`, `test:b-roll-capability-manifest`,
+`test:b-roll-planning`, `smoke:b-roll-end-to-end`, and
+`test:b-roll-canonical-integration`. Production qualification remains false;
+none of the five production fixtures ran. No orchestra, Track All, Visual
+Intelligence, paid provider call, public delivery, final export, production
+mutation, or billing work was performed.
+
+## M18 — structured capability manifest v2
+
+Status: completed and pushed.
+
+Implementation commit: `18c2b433519dd5ef162952977cbdf9ec301df91d`.
+
+Generated qualification artifact commit:
+`b8a9df42f4f2a0c513f51734b428230a30ea3dcb`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to progress commit
+`b508fe689dab5a1ecc06d206888e84efae51de2c` after
+`git push -u origin HEAD`.
+
+Upgraded the generic manifest contract forward-only to
+`skill-capability-manifest-v2` while preserving explicit v1 parsing for the
+existing kernel compatibility fixture. The canonical B-roll manifest now
+models all 13 supported jobs as executable capabilities with planning and
+execution permission, exact phases, input/output artifacts, primary-visual
+ownership potential, runtime-binding requirement, and minimum qualification.
+Every unsupported job now carries a reason and a fail-closed or delegated
+resolution.
+
+Phase order, source evidence, Visual Intelligence evidence, Track All
+dependency, seven conflict rules, six permitted overlap rules, five ownership
+rules, tool/provider/source/no-action routes, lower-cost and fallback routes,
+and known limitations are typed machine-actionable records. Route metadata
+binds supported jobs, operation IDs, required artifacts, qualification, exact
+approval, and literal prohibitions on caller selection, automatic retry, and
+alternate-provider fallback. The required primary-owner, `no_extra_visuals`,
+locked-evidence, other-skill hero, overlapping independent B-roll assignment,
+Transition boundary, and Captions safe-area conflicts are all explicit.
+
+The generic validator now normalizes v1/v2 manifests and proves v2 job,
+artifact, phase, route, provider qualification, conflict, dependency,
+tracking, Visual Intelligence, and ownership references. Runtime binding
+validation additionally proves exact equality between each manifest job's
+input/output/phase/qualification/ownership capability and its executable
+binding. Adversarial coverage rejects phase drift, duplicate conflict rules,
+unknown route jobs, model-specific tracking, caller-selectable routes, and
+manifest-job/runtime-binding drift.
+
+The generated projection was regenerated from canonical TypeScript, not
+hand-edited.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `2286d154c68eca75120d5d652ca4c78e4d572bfc250052a727db7b56d26da19b`.
+- Tested commit:
+  `18c2b433519dd5ef162952977cbdf9ec301df91d`.
+- Relevant source-tree hash:
+  `8de919daa91902ba831a9ec3665a35b7462005f4a9e81467a0d1d8644785cca1`.
+- Qualification receipt hash:
+  `adef15fdf409ad3445bacd184988b5df0e20207458de4d247c2c8e3f0870c524`.
+- Generated qualification artifact hash:
+  `284dc06609c85caad4c2e1af52c882e9d439ed74cb20ca43eccbec00887f5b1c`.
+- Aggregate qualification: 24 commands and 36 fixtures passed; zero provider
+  requests, public artifacts, and production mutations.
+
+Validation included `test:b-roll-capability-manifest`,
+`validate:skill-capability-manifests`, `test:edit-skill-capability-kernel`,
+`test:b-roll-runtime-bindings`, `test:b-roll-planning`,
+`test:b-roll-public-plugin`, `test:b-roll-canonical-integration`, all internal
+B-roll execution smokes, the three shared security smokes, `build`,
+`typecheck:server`, `lint`, `check:frontend-boundary`, and `git diff --check`.
+Build emitted only the existing Vite chunk-size and dynamic-import warnings.
+
+Production qualification remains false. This milestone changed only the
+generic skill/B-roll manifest boundary and its validators; it did not
+implement the orchestra, Track All, Visual Intelligence, a provider call,
+public delivery, final export, production mutation, or billing.
+
+## M19 — Visual Intelligence and Track All dependency contracts
+
+Status: completed and pushed.
+
+Implementation commit: `e13a99cd0c6a727fdecd64c9cd707f6154fd33a8`.
+
+Qualification-test correction commit:
+`387e3b7f5652846a134b75b6c57e19c28a9c8507`.
+
+Generated qualification artifact commit:
+`cd981cbdc024cbf860a45bddf7a75c729c02241f`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `cd981cbdc024cbf860a45bddf7a75c729c02241f` after
+`git push -u origin HEAD`.
+
+Added the model-neutral, content-addressed
+`visual_intelligence_candidate_qa_v1` dependency contract. It binds the exact
+candidate reference and checksum, tenant/project, public assignment and plan,
+authorized range, independently derived semantic/crop/safety/proof findings,
+defect findings, confidence and uncertainty, frame/time evidence, producer
+manifest, producer qualification, and artifact hash. Provider or model
+identity cannot cross the contract. Blocking or needs-review findings cannot
+be accepted, and production validation rejects any producer below
+`production_qualified`.
+
+Generated/provider-edited public plans now carry a typed post-generation
+Visual Intelligence request. After the one approved candidate succeeds,
+finalization without that artifact returns an evidence-backed
+`needs_other_skill` receipt; it does not project semantic acceptance. The
+plugin accepts evidence only against that exact approved candidate work result
+and revalidates the artifact during finalization. Internal injected semantic
+observations are now schema-literal `testOnly: true` and remain
+`productionQualified: false`.
+
+The Track All boundary remains exclusively `track_graph_v1`. Its strict schema
+now binds exact tenant/project, assignment ID/hash, authorized range/hash,
+frame rate, bounded track windows, source checksum, and content hash. Unknown
+or model-specific fields fail strict parsing, and both the public plugin and
+Remotion integration verify exact assignment/range lineage. No Track All
+runtime, tracker, SAM2, SAM 3.1, model selection, or tracking provider was
+added.
+
+The public plugin E2E now proves missing generated semantic evidence returns
+`needs_other_skill`; exact Visual Intelligence evidence is accepted; candidate
+checksum, assignment, plan, range, workspace, finding disposition, and
+qualification substitutions fail closed; internal evidence cannot be used for
+production validation; valid Track All evidence is accepted; and a direct
+tracking-model field is rejected. The E2E still imports no private B-roll
+mini-skill.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `2b67926842589aa75b2b530d36e998a1042afe7c3e8d2079631084d64d8bf97d`.
+- Tested commit:
+  `387e3b7f5652846a134b75b6c57e19c28a9c8507`.
+- Relevant source-tree hash:
+  `55239f73e92613c54214c8b35839c14b62e715bfdab89fd0f153be92a10fe4a4`.
+- Qualification receipt hash:
+  `6ffc59b1e681575378fbc2a21e4ff23a535752aea547dd7e25d91faa78eff0fb`.
+- Generated qualification artifact hash:
+  `44e6db25042715895876e142779ce8e4870bafae0863ad872d6e79d5da289358`.
+- Aggregate qualification: all 24 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+The aggregate commands covered planning, evidence-derived QA, qualification
+forgery/staleness, plan invariants, the public plugin lifecycle, all runtime
+bindings, manifest generation/validation, the shared capability kernel, full
+build, server typecheck, lint, frontend-boundary enforcement, provider
+authority and lifecycle, retirement enforcement, end-to-end candidate QA,
+existing-source execution, canonical integration, FFmpeg/FFprobe and Remotion
+integration, runtime API security, execution-boundary security, and
+idempotency. The first aggregate attempt stopped at a real unused-variable
+lint error and issued no receipt; the correction was committed and the entire
+qualification was rerun from the new exact commit.
+
+Production qualification remains false because the five production fixtures
+and a real Visual Intelligence producer were not run. This milestone did not
+implement the orchestra, Track All, Visual Intelligence, a paid provider call,
+public delivery, final export, production mutation, or billing.
+
+## M20 — Gemini Omni task capability reconciliation
+
+Status: completed and pushed.
+
+Implementation commit: `c34664df76bd91ffef8807a3aedee69de226acb3`.
+
+Generated qualification artifact commit:
+`85170208973c933e113d69675266f59d8ff9e71f`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `85170208973c933e113d69675266f59d8ff9e71f` after
+`git push -u origin HEAD`.
+
+Reconciled the active preview provider profile against Google's current
+Gemini Omni guide, Interactions API, model card, and changelog on 2026-08-03.
+The request boundary now distinguishes text-to-video, one approved
+`<FIRST_FRAME>` image-to-video, one-to-six approved `<IMAGE_REF_N>`
+reference-images-to-video, region-gated uploaded-video editing, and the single
+approved conversational refinement through `previous_interaction_id`.
+
+Reference images are unique, checksum-bound, tenant-bound, and independently
+approved for provenance, rights, privacy, proof safety, and user use. The plan,
+planning QA evidence, Omni request plan, provider package, and ephemeral
+transport all bind the exact ordered source hashes. The six-image product
+ceiling is conservative and matches the largest current official documented
+example. One candidate, one eligible refinement, zero automatic retries, and
+zero alternate-provider fallbacks remain exact.
+
+Video references, uploaded audio references, multiple-video reasoning,
+extension, interpolation, voice editing, and YouTube media remain unsupported
+and fail closed. Output remains 3–10 seconds, 720p, 24 fps, and 16:9 or 9:16.
+Recognizable-person, minor-image, region, storage, and prior-interaction
+limitations are explicit in the profile, manifest, and provider runbook.
+
+The V5 profile remains explicitly `preview_alias_unpinned` with no accepted
+immutable provider revision; its changed hash is
+`9f8090f938f14225c480b6f39862cac00ca3b5f6e2fe332c0f98842a91698a9f`.
+Historical canonical provider registry hashes remained exact:
+
+- V1: `17928478279cc8fd292db235286ae883db2434d79d015e7a16bfadc1a4bde1bd`.
+- V2: `6fbfdef538e3bc9ecb944892586e7eac154f518bdf1df1d3f15bbe3a9fb32d18`.
+- V3: `284b456da2610af6280e080bc9cb24c10989f2ee3401bd2711619622544bfd2b`.
+- V4: `91ea2d40a33f5198f124d6322b61e447bb29ea037dabb808b2f39887cd432eeb`.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `c34664df76bd91ffef8807a3aedee69de226acb3`.
+- Relevant source-tree hash:
+  `45ec8f725cafa1b87118411918c582bbbab05520e230e02081193dc6afe71d62`.
+- Qualification receipt hash:
+  `baa5338bb91f123d57f986edbdb23a5bd2bf4195f852581ba381665e43d54a77`.
+- Generated qualification artifact hash:
+  `2ca4fc4784928889f34348e996c0cb059338416a770c0de66ff04b817b1deb85`.
+- Aggregate qualification: all 24 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+The aggregate qualifier covered planning, evidence-derived QA, plan
+invariants, public plugin lifecycle, runtime bindings, manifest validation,
+the shared capability kernel, build, server typecheck, lint, frontend-boundary
+enforcement, historical provider authority, request/response parsing for every
+supported task, fail-closed unsupported tasks, retirement, candidate QA,
+existing-source execution, injected lifecycle, canonical integration,
+FFmpeg/FFprobe and Remotion integration, and the three shared security suites.
+
+Production qualification remains false and the paid real-provider canary was
+not run because the explicit execution gates and credentials were not supplied.
+No orchestra, Track All, Visual Intelligence, public delivery, final export,
+production mutation, or billing work was performed.
+
+## M21 — dependency-injected runtime factory and status cleanup
+
+Status: completed and pushed.
+
+Implementation commit: `cc516c651ba633bd62c1da40deb335edbc59d373`.
+
+Generated qualification artifact commit:
+`ae3dde20602671d3fcea02ea9ed49788a1640875`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `ae3dde20602671d3fcea02ea9ed49788a1640875` after
+`git push -u origin HEAD`.
+
+Replaced the process-global runtime in `registry.ts` with
+`createEditSkillRuntime(...)`. Construction now requires an explicit artifact
+store, provider authority, tool-operation registry, QA registry,
+qualification registry, estimator registry, and artifact-schema registry.
+Missing dependencies fail closed with the stable
+`edit_skill_runtime_unconfigured` code. Provider operations must meet their
+manifest qualification and every tool operation must be externally configured
+before the runtime is returned.
+
+Artifact stores now declare `storageClass`. Production-server construction
+requires `durable` and rejects the in-memory store. The sole convenience
+singleton moved to the explicit `internal-fixture-runtime.ts` boundary, and
+all smoke/validation/canary fixtures import that boundary by name. A future
+durable adapter can be injected without changing B-roll or its public plugin;
+no new GCS or Supabase adapter was built.
+
+The exact implementation status is now a structured record: skill complete,
+planning qualified, internal execution qualified, production blocked pending
+five live fixtures, live provider blocked pending explicit canary gates,
+public plugin available, and orchestra integration not implemented by design.
+The stale Remotion document claiming M11 promotion was still reserved was
+corrected, and candidate documentation now distinguishes internal injected QA
+from the external production Visual Intelligence contract.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `cc516c651ba633bd62c1da40deb335edbc59d373`.
+- Relevant source-tree hash:
+  `9e8f38c4fb7f75728709dfd65c391abcae381119a4ee5a3b1b835bb0913712f9`.
+- Qualification receipt hash:
+  `dd156d437fb96d277f26e571a87e946e0d56d69e11a2740f11f08c94855070e0`.
+- Generated qualification artifact hash:
+  `b535754eafeb930b51986f43d6dca1ad2e8292266cf78a923694781c355a1c07`.
+- Aggregate qualification: all 25 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+`test:edit-skill-runtime-factory` proves missing dependency rejection,
+production in-memory rejection, explicit durable construction, injected
+provider/tool validation, the isolated internal fixture runtime, and current
+status messaging. The full qualifier additionally passed public plugin,
+runtime binding, planning, evidence-derived QA, qualification, manifest,
+kernel, build, server typecheck, lint, frontend boundary, provider authority,
+retirement, candidate/source/lifecycle, canonical/Remotion, and shared
+security/idempotency suites.
+
+Production qualification remains false. No orchestra, Track All, Visual
+Intelligence, paid provider call, public delivery, final export, production
+mutation, durable storage implementation, or billing work was performed.
+
+## M22 — CI media-runtime correction
+
+Status: completed and pushed.
+
+Implementation commit: `c79d93e71c19e4bdc286a5385e76f5ebabdaca8b`.
+
+Generated qualification artifact commit:
+`a39b9feda86344acde9e7f3ca05c828ddd5f16f7`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `a39b9feda86344acde9e7f3ca05c828ddd5f16f7` after
+`git push -u origin HEAD`.
+
+The UI QA workflow now installs the system FFmpeg package once, before browser
+E2E, and explicitly executes `ffmpeg -version` and `ffprobe -version`. The
+same installation remains available to the later authenticated private
+pipeline, so the previous duplicate post-browser installer was removed. The
+browser command and its failure semantics were not changed: it remains the
+exact required `npm run test:e2e` step with no skip, conditional suppression,
+`continue-on-error`, fake media, or ignored `ENOENT` path.
+
+`test:ui-qa-media-runtime-workflow` enforces the installation order, both
+version probes, one installation, the unweakened browser command, and the
+continued presence of server/security/private-pipeline stages. The check is
+part of internal B-roll qualification and its source participates in the
+relevant source-tree hash.
+
+GitHub Actions pull-request run
+`https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/30869147578`
+proved the media-runtime step, lint, typecheck, and build all passed. Browser
+E2E then ran the full 138-test main Playwright suite: 131 passed, seven were
+the repository's declared skips, and none failed. In particular, the log no
+longer contains `spawn ffmpeg ENOENT`.
+
+The subsequent five-test Current Edit Preferences atomic suite reported the
+same three pre-existing failures as a detached worktree at exact PR base
+`6423f12c1e62a252fc860ce5184888770411c62d`: stale plan clearing, requested
+`no_extra_visuals`, and untouched `editLevelConfirmed`. Both base and branch
+produced two passes and those identical three failures. The B-roll branch does
+not modify those test files, and M22 does not weaken or change their
+assertions. Consequently GitHub correctly remains red on an unrelated base
+regression even though the FFmpeg environment defect is resolved.
+
+The nine downstream security-boundary commands were run independently and all
+passed. `qa:internal-pipeline` was also invoked locally; it passed its first
+five stages and then failed at the unchanged canonical V3 local-database
+fixture because temporary upload-target escrow persistence returned
+`temporary_target_escrow_write_failed`. A clean isolated rerun reproduced that
+failure, and there is no branch diff against the PR base under
+`database/canonical-v3-local`, `server/upload-target-authority`, or the failing
+smoke. This is recorded as separate base/environment evidence, not a B-roll or
+FFmpeg success claim.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `c79d93e71c19e4bdc286a5385e76f5ebabdaca8b`.
+- Relevant source-tree hash:
+  `728e4295235751484722887f588f00389727050a89c8c3650e3ed3c7c885db40`.
+- Qualification receipt hash:
+  `604fd71d06db678c51a8df95c68cb449057b8ecc90cae4865074cf1f57f7d90f`.
+- Generated qualification artifact hash:
+  `4f180d438fdf08da054f071f470319d19acf19cd65ce0e3e5187003fba3627d8`.
+- Aggregate qualification: all 26 actual commands and 36 required fixtures
+  passed with zero provider requests, public artifacts, and production
+  mutations.
+
+Production qualification remains false. No orchestra, Track All, Visual
+Intelligence, paid provider call, public delivery, final export, production
+mutation, or billing work was performed.
+
+## M23 — final B-roll closeout qualification
+
+Status: completed and pushed; PR check remains red only on independently
+reproduced base-branch regressions.
+
+Final generated qualification commit:
+`c8995159c11ab45259e1a34a516af26fbc09e372`.
+
+Remote confirmation: `origin/codex/reeditpro-b-roll-skill-end-to-end`
+resolved to `c8995159c11ab45259e1a34a516af26fbc09e372` after
+`git push -u origin HEAD`.
+
+The final aggregate qualifier ran from exact clean commit
+`7326bf53a52db6b9aace7f9dde0b28ecb921ceb8`. All 26 commands and all 36
+required planning/internal-execution fixtures passed. The generated receipt
+records real exit statuses, timestamps, stdout/stderr digests, build/test/
+security/provider evidence, the exact commit and source-tree hash, and zero
+provider requests, public artifacts, or production mutations. A prior attempt
+stopped without issuing a receipt when Chromium failed to launch for the
+private Remotion fixture; the exact fixture then passed independently and the
+entire qualifier was rerun from the beginning successfully.
+
+The exact main Playwright suite was rerun after the qualification commit with
+local FFmpeg and FFprobe 8.1.1 available: 131 tests passed, seven were declared
+skips, and none failed. GitHub Actions pull-request run
+`https://github.com/yuzastudio6-cyber/Reedkt/actions/runs/30869983147`
+independently passed checkout, secret checks, dependency installation,
+frontend boundary, high-severity audit, Chromium installation, the new
+FFmpeg/FFprobe installation and version verification, lint, typecheck, build,
+and the same 131-test main suite. It contains no `spawn ffmpeg ENOENT`.
+
+The workflow then truthfully failed on the separate five-test Current Edit
+Preferences atomic command: two passed and the same three assertions failed as
+on exact base `6423f12c1e62a252fc860ce5184888770411c62d`. The branch and base both
+retain those failures unchanged; tests were not skipped, weakened, or altered.
+
+The shared canonical private-pipeline normal profile passed 21 consecutive
+stages, including its real FFmpeg/FFprobe object-chunk and resource-observation
+lanes, before the unchanged professional-long-form smoke expected an older
+error class and received the current custom-estimate gate. Running that exact
+smoke in a detached worktree at the PR base reproduced the identical failure.
+The full profile separately passed its first five stages and then failed in the
+unchanged local canonical V3 upload-target escrow fixture; a clean reset rerun
+reproduced `temporary_target_escrow_write_failed`, and none of its source paths
+differ from the PR base. These external base regressions are retained as
+evidence and were not changed under the B-roll closeout scope.
+
+The branch was fetched and pruned at final closeout. The PR base remained
+`6423f12c1e62a252fc860ce5184888770411c62d`, the merge base was exactly that
+commit, and the branch was zero commits behind. No synchronization merge was
+required.
+
+Final evidence:
+
+- Manifest schema: `skill-capability-manifest-v2`.
+- Manifest hash:
+  `f76f07bd05a4e38ff61a04cdb4fa3d5784c41d1018f497f2d3d3c390c260d427`.
+- Tested commit:
+  `7326bf53a52db6b9aace7f9dde0b28ecb921ceb8`.
+- Relevant source-tree hash:
+  `728e4295235751484722887f588f00389727050a89c8c3650e3ed3c7c885db40`.
+- Qualification receipt hash:
+  `e97d1ffc9897102f42f1698fd0e83fc13b23ffa454f0ccf4deb7bcad70d3082f`.
+- Generated qualification artifact hash:
+  `fa62ff38822fbc08da072c9a21c94df04ae13bc6bc2f344104e951c2e6875401`.
+- Actual status: `internal_execution_qualified`.
+- Production qualification: false; all five live production fixtures remain
+  absent.
+
+Final commands executed directly or by the aggregate qualifier:
+
+- `npm run qualify:b-roll:internal`.
+- `npm run test:b-roll-planning`;
+  `npm run test:b-roll-planning-qa`;
+  `npm run test:b-roll-qualification-evidence`;
+  `npm run test:b-roll-plan-invariants`;
+  `npm run test:b-roll-public-plugin`;
+  `npm run test:b-roll-runtime-bindings`;
+  `npm run test:edit-skill-runtime-factory`;
+  `npm run test:ui-qa-media-runtime-workflow`;
+  `npm run test:b-roll-capability-manifest`;
+  `npm run validate:skill-capability-manifests`;
+  `npm run test:edit-skill-capability-kernel`.
+- `npm run build`; `npm run typecheck:server`; `npm run lint`;
+  `npm run check:frontend-boundary`; `git diff --check`.
+- `npm run smoke:b-roll-provider-authority`;
+  `npm run smoke:b-roll-retirement`;
+  `npm run smoke:b-roll-end-to-end`;
+  `npm run smoke:b-roll-candidate-qa`;
+  `npm run smoke:b-roll-existing-source`;
+  `npm run smoke:b-roll-provider-lifecycle`;
+  `npm run test:b-roll-canonical-integration`;
+  `npm run smoke:b-roll-remotion-integration`.
+- `npm run smoke:runtime-api-security`;
+  `npm run smoke:edit-execution-security-boundary`;
+  `npm run smoke:idempotency-boundary` plus the other six UI-QA security
+  boundary smokes recorded in M22.
+- `ffmpeg -version`; `ffprobe -version`; `npx playwright test`;
+  `npm run test:e2e`; `npm run qa:current-edit-preferences-atomic`;
+  `npm run qa:canonical-private-pipeline`; `npm run qa:internal-pipeline`;
+  `npm run qa:canonical-v3-local`.
+- `npm run canary:gemini-omni-b-roll`.
+- Git status/diff/log/ref/fetch checks, GitHub PR/run inspection, normal
+  milestone commits, and `git push -u origin HEAD` after every milestone.
+
+The real Gemini command returned `blocked_external_prerequisites`, performed
+zero provider requests, and did not claim success. Missing gates were explicit
+operator confirmation, the fixed safe fixture ID, a pinned numeric Secret
+Manager key version, an absolute private artifact root, a positive maximum
+cost ceiling, and a positive account-effective rate. Production qualification
+also still requires the real canary, live credential boundary, account-rate
+authority, live private-output ingest, and live security/privacy review.
+
+The orchestra was not implemented. Track All was not implemented. Visual
+Intelligence was not implemented. No direct tracking model or alternate B-roll
+provider was introduced. No paid provider call, public media, production
+mutation, final customer export, billing, or wallet action occurred.
+
+## M24 — required input authority alignment
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`070f4dccfdada957c6118e8cb801acbe2b1bb94d`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`070f4dccfdada957c6118e8cb801acbe2b1bb94d`; local and remote refs matched
+exactly after the push.
+
+The generic `resolveAndValidateSkillAssignmentInputs` boundary now resolves
+the exact manifest-declared input keys and enforces their count, uniqueness,
+tenant/project scope, immutable content address, schema, and required-input
+placement. B-roll now requires all five authorities before planning:
+`b_roll_assignment_v1`, the read-only `b_roll_context_manifest_v1`,
+`source_inventory_v1`, `master_timing_plan_v1`, and
+`visual_ownership_manifest_v1`. The context manifest binds the exact four
+other authority references; the plan retains all five references as public
+evidence lineage.
+
+The B-roll validator now rejects stale assignment/session/manifest/timing
+lineage, a timing range that differs from the assigned range, context sources
+that differ from the checksum-bound inventory, and overlapping exclusive
+primary ownership. The legacy capability handler delegates to the same public
+plugin planning boundary, so it cannot silently use the former two-input path.
+
+Actual M24 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-planning` —
+  passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed the full public lifecycle plus 18 required-input adversarial cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-capability-kernel`
+  — passed.
+- `npm run typecheck:server` and `npm run lint` — passed.
+- `git diff --check` — passed before commit.
+
+The M23 generated qualification receipt is intentionally stale after this
+source-authority change. No replacement receipt is claimed here; M30 will run
+the complete evidence command and generate the exact final receipt after all
+M24-M29 source changes are committed. No provider request, public artifact,
+production mutation, orchestra, Track All implementation, or Visual
+Intelligence implementation occurred.
+
+## M25 — runtime binding classes
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`27c41b84cf0b2eb99decce125f10dfe0e2b32e8e`.
+
+Remote confirmation: `git push -u origin HEAD` advanced the B-roll branch and
+both local and remote refs resolved exactly to
+`27c41b84cf0b2eb99decce125f10dfe0e2b32e8e` after the push.
+
+The generic runtime binding contract is now
+`edit-skill-runtime-binding-v2`. It distinguishes
+`internal_qualification_adapter`, `canonical_private_execution_adapter`, and
+`production_worker_adapter`, binds each to its exact environment, and records
+approval, qualification, provider/tool authority, private-artifact authority,
+range mutation, retry, alternate-provider fallback, and binding-hash policy.
+Registry identity is now exact by skill/version/contract/job/adapter
+class/environment, while each registered class/environment must cover the
+complete manifest job set.
+
+`dispatchApprovedWorkItem` replaces the fixture-named dispatch surface. It
+selects the exact binding class/environment and verifies manifest, work item,
+approved plan authority, phase, exact input artifact types, qualification,
+provider/tool authority, private durable storage requirements, and the
+caller-selected executable prohibition before invoking an adapter. The
+receipt records the exact binding, adapter class/environment, and approval
+hash.
+
+All 13 current B-roll bindings are truthfully classified as
+`internal_qualification_adapter` in `internal_fixture`; they execute zero
+provider requests and create zero public artifacts or production mutations.
+No `production_worker_adapter` is registered. Production adapters require
+production qualification and durable private-artifact authority, and the
+existing runtime factory still rejects an in-memory production store.
+
+Actual M25 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-runtime-bindings`
+  — passed 13 exact fixture dispatches and 27 adversarial binding/dispatch
+  cases; provider request count remained zero and production binding count was
+  zero.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-capability-kernel`
+  — passed on runtime binding v2.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run validate:skill-capability-manifests`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed, including production in-memory rejection.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed unchanged.
+- `npm run typecheck:server`, `npm run lint`, and `git diff --check` — passed.
+
+The generated M23 qualification receipt remains intentionally stale until the
+final M30 aggregate qualification. No canonical-private adapter is claimed by
+this milestone; those real adapters are M26. No production binding, provider
+request, public artifact, production mutation, orchestra, Track All
+implementation, or Visual Intelligence implementation was added.
+
+## M26 — real canonical internal execution adapters
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`89692e8382e3c955946c1bc8c5b6fe19ac1602d8`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`89692e8382e3c955946c1bc8c5b6fe19ac1602d8`; local and remote refs matched
+exactly after the push.
+
+The B-roll binding factory now exposes one complete 13-job
+`canonical_private_execution_adapter` set in the `canonical_private`
+environment while retaining the separate 13-job internal-fixture set. The
+generic runtime factory accepts explicitly injected additional bindings, the
+dispatcher is pinned to its configured environment, and neither surface
+registers a production worker binding.
+
+`BrollCanonicalPrivateExecutionCoordinator` owns the private implementation
+details behind those generic bindings. It revalidates the immutable canonical
+component and projected work graph, the real assignment/manifest/context/range
+contracts, exact approval, dependency order, and visual ownership before work
+executes. Existing-source work uses the existing checksum-bound selector,
+actual FFprobe, actual FFmpeg trim/FFV1 normalization, create-only private
+media storage, and source technical QA. Generated internal work uses the
+injected Gemini Omni V5 lifecycle, executes and verifies an exact replay,
+records zero real provider requests, preserves attempt/cost evidence, runs
+actual FFprobe/FFmpeg/objective candidate QA, and keeps injected semantic
+evidence explicitly test-only and non-production-qualified.
+
+Both media routes enter the existing private Remotion integration. The
+qualification smokes render actual private MP4 previews and verify exact
+timing, layer order, crop, caption reservation, handoffs, QA lineage, private
+integrity, and `outsideAuthorizedRangeModified: false`. Professional no-action
+work produces a strict content-addressed private receipt with no media,
+provider request, source selection, display layer, or estimated provider
+credit.
+
+Actual M26 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-canonical-private-runtime`
+  — passed 13 canonical binding registrations, 11 dispatcher-driven generated
+  jobs, the real injected V5 execution/replay path, actual candidate QA, an
+  actual private Remotion preview, and three dispatcher-driven professional
+  no-action jobs; zero real provider requests and zero production/public
+  mutations were recorded.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run smoke:b-roll-existing-source`
+  — passed 12 dispatcher-driven existing-source jobs with real FFprobe,
+  FFmpeg, private normalized media, source QA, and a private Remotion preview;
+  provider request count remained zero.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-runtime-bindings`
+  — passed all existing 13 fixture dispatches and 27 adversarial cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed canonical-private dependency injection, 26-class registration,
+  wrong-environment rejection, production in-memory rejection, and the
+  existing fail-closed construction cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  and `npm run test:edit-skill-capability-kernel` — passed.
+- `npm run typecheck:server`, `npm run lint`, and `git diff --check` — passed.
+
+Remotion media smokes are run serially because two simultaneous confined
+Docker render fixtures compete for the same local runtime resources. One
+parallel-only container creation failure was reproduced as environmental;
+each exact smoke passed immediately when run in isolation. No test was
+skipped, weakened, or ignored.
+
+The aggregate qualifier now includes
+`test:b-roll-canonical-private-runtime` in its actual Phase B command evidence.
+The M23 receipt remains intentionally stale; M30 will issue the new receipt
+only after all M24-M29 source and authority changes are frozen. No production
+worker binding, paid provider call, public delivery, production mutation,
+orchestra, Track All implementation, or Visual Intelligence implementation
+was added.
+
+## M27 — strict active artifact contracts
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`397b6546a06c2179b98baca9e506802324dff8eb`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`397b6546a06c2179b98baca9e506802324dff8eb`; local and remote refs matched
+exactly after the push.
+
+Every active accepted and produced B-roll artifact now resolves to one of 29
+strict type-specific schemas. The static manifest validator rejects an active
+role backed only by a `legacy_read_only_generic` envelope. The obsolete active
+`skill_qualification_receipt_v1` declaration is replaced by
+`skill_qualification_receipt_v2` and the current receipt-v2 schema.
+
+Raw MP4/NUT bytes remain in the canonical private binary/object store. Public
+work results now carry the strict, content-addressed
+`b_roll_candidate_media_manifest_v1` reference for Gemini output, normalized
+candidate media, and prepared existing-source media. The manifest binds exact
+tenant/edit/assignment/plan/graph/work-item lineage, provider attempt and
+route when applicable, private object identity/checksum, bounded media facts,
+source/reference hashes, proof classification, cost/usage evidence, and
+explicit private-only/no-public-delivery/no-automatic-selection/no-timeline-
+mutation policy. Private Remotion output uses the corresponding strict
+`b_roll_private_preview_media_manifest_v1` contract. The internal
+`provider_b_roll_candidate_video_mp4` identity remains only as the private
+provider/QA role and cannot satisfy an active public artifact slot.
+
+The create-only JSON artifact store now rejects structured artifact content
+whose declared owner/workspace/project differs from the persistence scope.
+The public plugin E2E uses strict no-action and generated-media values and
+still imports zero private mini-skills. The generated manifest documentation
+was regenerated from the canonical TypeScript manifest; final manifest hash
+for this milestone is
+`40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`.
+
+Actual M27 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-active-artifact-contracts`
+  — passed 29 active strict contracts, provider/source/preview media manifests,
+  stale-hash, raw-byte, provider-URL, public-delivery, automatic-selection,
+  timeline-mutation, cross-scope, legacy-generic, and stale-receipt-type cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  — passed the strict public plan, graph, dependency, work-result, no-action,
+  and generated-candidate lifecycle with zero private mini-skill imports.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-runtime-bindings`
+  — passed all 13 exact bindings and 27 adversarial cases against the new
+  artifact roles.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-capability-manifest`,
+  `npm run validate:skill-capability-manifests`, and
+  `npm run test:edit-skill-capability-kernel` — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run typecheck:server`,
+  `npm run lint`, and `git diff --check` — passed.
+
+The provider-authority smoke reached the expected stale generated-receipt
+gate after validating its updated JSON media-manifest output contract. That
+receipt is intentionally not regenerated mid-closeout; the clean M30 aggregate
+qualification run will execute the complete provider-authority smoke and issue
+the exact final receipt. No test was skipped or weakened, and no qualification
+status is newly claimed by M27 alone.
+
+## M28 — qualification dependency authorities
+
+Status: implementation complete, committed, pushed, and targeted-qualified.
+
+Implementation commit:
+`496cad74c932580a401e319dacd3947fe102348a`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`496cad74c932580a401e319dacd3947fe102348a`; local and remote refs matched
+exactly after the push.
+
+Fixture evidence, command evidence, the generated qualification artifact, and
+the receipt-v2 authority now carry the same ordered 18-entry
+`dependencyAuthorityHashes` set. Each entry hashes a forward-only authority
+profile plus the minimal exact files for the canonical approved execution
+package, canonical B-roll component, planning publication/service contract,
+FFprobe profile, FFmpeg recipe profile, media execution protocol, Remotion
+operation/protocol/composition, Gemini Omni V5 profile and lifecycle,
+candidate QA, planning QA, public plugin, artifact registry, runtime binding,
+Visual Intelligence dependency, and model-neutral track-graph contract.
+
+Runtime registration recomputes this set along with the relevant source-tree
+hash and manifest reference before accepting the generated receipt. Missing,
+duplicate, reordered, unknown, forged, or independently changed authority
+values fail closed. Receipt-v2 now also separates actual provider, media, and
+Remotion evidence. Planning-only evidence leaves these execution categories
+empty; internal or production execution status requires all three to contain
+actual command evidence.
+
+Actual M28 evidence:
+
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-qualification-evidence`
+  — passed 36 fixture records, 16 command records, all 18 exact dependency
+  authorities, 18 independent changed-authority rejection cases, missing,
+  duplicate, unknown, stale-source, stale-manifest, failed-command, forged
+  artifact, and qualification-overclaim cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:b-roll-public-plugin`
+  and `npm run test:b-roll-active-artifact-contracts` — passed with the
+  receipt-v2 and strict artifact contract changes.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run test:edit-skill-runtime-factory`
+  — passed runtime construction and fail-closed dependency injection cases.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run validate:skill-capability-manifests`
+  — passed.
+- `REEDITPRO_BROLL_QUALIFICATION_GENERATING=1 npm run typecheck:server`,
+  `npm run lint`, and `git diff --check` — passed.
+
+The checked-in M23 receipt remains intentionally stale and was not rewritten.
+M30 will issue the new receipt only after the M29 public lifecycle source is
+committed, then prove the tested source commit is an ancestor of the evidence
+commit and that the final head recomputes identical source/dependency hashes.
+No external provider request, public artifact, production mutation, orchestra,
+Track All implementation, or Visual Intelligence implementation occurred.
+
+## M29 — full public canonical lifecycle qualification
+
+Status: implementation complete, committed, pushed, and included in the M30
+aggregate qualification.
+
+Implementation and correction commits:
+
+- `afa3905e9055b3a0340c6199158c216ff378a10e` — generic dispatcher artifact
+  values, strict source/object manifests, public/private graph bridge, and the
+  full public canonical lifecycle smoke.
+- `3b0b7c1` — explicit immutable Gemini Omni V5 private raw-output projection;
+  the retired raw MP4 role remains provider-private and is not an active
+  public artifact.
+- `92039bc` — renamed the model-neutral dependency module to the Track graph
+  contract so B-roll imports no Track All implementation surface.
+- `56a4a89` — kept strict runtime artifact values outside hash-only dispatch
+  receipts.
+- `01168f5` — projected only the fields allowed by each exact artifact schema.
+- `657e9e9` — preserved distinct public plan-envelope and private payload-plan
+  hashes through the bridge.
+- `14f734a` — validated source-manifest identity separately from nested source
+  object bytes/checksum.
+- `950fa403856b4f2ce6dcb9f09d017db18a27b75a` — made both lifecycle MP4
+  fixtures stdin-streamable for the unchanged confined media runtime. This is
+  the exact commit tested by the final qualification receipt.
+
+Every listed commit was pushed with `git push -u origin HEAD`; after the final
+M29 correction, local and remote branch refs both resolved to
+`950fa403856b4f2ce6dcb9f09d017db18a27b75a` before qualification began.
+
+The generic runtime dispatcher can now return strict artifact values, persist
+them through the injected public artifact store, and form exact public work
+results without exposing artifact values in its content-addressed receipt.
+The canonical private executor accepts the exact public approved graph only
+when its `pluginWorkGraphHash` matches the separately revalidated private
+B-roll graph. Public assignment/plan/work hashes and private B-roll
+assignment/plan/work hashes remain distinct, explicit authorities.
+
+The full lifecycle smoke imports B-roll only through its top-level package and
+imports no mini-skill. It resolves `b_roll` from the generic plugin registry,
+uses real required-manifest input resolution, plans and approves through the
+public plugin, dispatches real canonical bindings through the generic
+dispatcher, persists every strict output artifact, validates every public
+work result, and finalizes through the public plugin.
+
+The same smoke proves:
+
+- professional no-action completes three exact validation/result work items
+  with zero media, source, display, provider requests, and provider credits;
+- an existing source is a tenant/project-bound immutable source manifest plus
+  a separate private object checksum, then passes real confined FFprobe,
+  confined FFmpeg/FFV1 normalization, technical QA, private Remotion preview,
+  and final public receipt with no provider work;
+- one injected Gemini Omni V5 candidate is emitted as the strict candidate
+  media manifest and public finalization returns `needs_other_skill` until the
+  exact model-neutral Visual Intelligence artifact is accepted; the accepted
+  findings then drive internal semantic QA, Remotion, and finalization;
+- `track_graph_v1` is accepted as the only tracking boundary and a direct
+  model-specific field is rejected;
+- the separate injected Gemini transport command covers every supported task
+  contract and all explicit fail-closed unsupported modes.
+
+Actual M29 evidence is the final M30 aggregate command evidence for
+`npm.test:b-roll-public-canonical-lifecycle` plus the independent provider,
+candidate-QA, existing-source, canonical integration, and Remotion commands
+listed below. The public lifecycle command passed with 13 registered canonical
+bindings, 3 no-action work items, 12 existing-source work items, 11 generated
+work items, exactly one injected provider lifecycle submission, one exact
+Visual Intelligence acceptance, and zero real provider requests, public
+artifacts, or production mutations.
+
+No orchestra, Track All implementation, Visual Intelligence implementation,
+production worker, public delivery, customer export, or billing mutation was
+added.
+
+## M30 — final evidence-backed closeout qualification
+
+Status: complete, committed, pushed, and internally execution qualified.
+
+Qualification evidence commit:
+`4fd8b9dcddb529e1627d03f134514df9458fd524`.
+
+Remote confirmation: `git push -u origin HEAD` advanced
+`origin/codex/reeditpro-b-roll-skill-end-to-end` to
+`4fd8b9dcddb529e1627d03f134514df9458fd524` immediately after the generated
+receipt commit.
+
+`npm run qualify:b-roll:internal` started from a clean tree and tested exact
+commit `950fa403856b4f2ce6dcb9f09d017db18a27b75a`. It recomputed relevant source
+tree hash
+`3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`,
+the ordered 18-authority set hash
+`15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`,
+and manifest hash
+`40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`.
+It emitted 36 fixture evidence records and 29 actual command records, then
+issued qualification receipt hash
+`dca9bca8f88e62d4ce62abf3ead07cf2c392adda54eefd38633b5923a0d057ea`
+and generated artifact hash
+`3c84dfdccdb5865787eb8a043f1d0797c23da4950559696c1704ce109b66e9d1`.
+
+Every aggregate command passed:
+
+- `npm run test:b-roll-planning`
+- `npm run test:b-roll-planning-qa`
+- `npm run test:b-roll-qualification-evidence`
+- `npm run test:b-roll-plan-invariants`
+- `npm run test:b-roll-public-plugin`
+- `npm run test:b-roll-active-artifact-contracts`
+- `npm run test:b-roll-runtime-bindings`
+- `npm run test:edit-skill-runtime-factory`
+- `npm run test:ui-qa-media-runtime-workflow`
+- `npm run test:b-roll-capability-manifest`
+- `npm run validate:skill-capability-manifests`
+- `npm run test:edit-skill-capability-kernel`
+- `npm run build`
+- `npm run typecheck:server`
+- `npm run lint`
+- `npm run check:frontend-boundary`
+- `npm run smoke:b-roll-provider-authority`
+- `npm run smoke:b-roll-retirement`
+- `npm run smoke:b-roll-end-to-end`
+- `npm run test:b-roll-canonical-private-runtime`
+- `npm run test:b-roll-public-canonical-lifecycle`
+- `npm run smoke:b-roll-candidate-qa`
+- `npm run smoke:b-roll-existing-source`
+- `npm run smoke:b-roll-provider-lifecycle`
+- `npm run test:b-roll-canonical-integration`
+- `npm run smoke:b-roll-remotion-integration`
+- `npm run smoke:runtime-api-security`
+- `npm run smoke:edit-execution-security-boundary`
+- `npm run smoke:idempotency-boundary`
+
+The status is `internal_execution_qualified`, not production qualified. The
+five real production fixtures, real paid Gemini canary, durable production
+artifact-store adapter, production worker adapter, public delivery, final
+customer export, and orchestra integration remain intentionally blocked or
+out of scope.
+
+## M31 — final reconciliation preflight and base selection
+
+Status: complete; this documentation commit is the M31 preflight record.
+
+On 2026-08-04 the isolated B-roll checkout started clean on
+`codex/reeditpro-b-roll-skill-end-to-end` at
+`30b1ef57201a05763f4cedd55890da3fc45a66dc`. A fresh
+`git fetch --all --prune` selected the intended integration branch
+`origin/codex/backend-workflow-pipeline-continuation` at exact SHA
+`6423f12c1e62a252fc860ce5184888770411c62d`.
+
+The selected base is already the exact merge base. Ahead/behind was `78 0`,
+so the B-roll branch is zero commits behind. Existing normal merge commit
+`d9e220f048ec6127e6a1927c8276bc660fe4d2fd` has parents
+`cb6e55518d7ac4cda9e9325b38cb53bea5076080` and the selected base
+`6423f12c1e62a252fc860ce5184888770411c62d`. A redundant empty merge will not
+be fabricated; M32 will verify that `git merge --no-ff` correctly reports the
+branch already up to date.
+
+PR #2498 was open, non-draft, and pointed from the expected B-roll branch to
+the intended integration branch. GitHub temporarily reported mergeability as
+`UNKNOWN` while recomputing. Both latest UI QA checks remained red only at the
+three Current Edit Preferences assertions already reproduced unchanged on the
+exact base during M30; the FFmpeg/FFprobe install and the main 138-test browser
+suite had completed without `ENOENT`.
+
+Baseline receipt verification passed without qualification-generation mode:
+
+- `npm run test:b-roll-qualification-evidence` — passed 36 fixture records,
+  17 synthetic/adversarial test-command records, 18 dependency authorities,
+  and 18 independently changed-authority rejection cases.
+- `npm run test:edit-skill-runtime-factory` — accepted the committed generated
+  receipt and passed all fail-closed runtime construction cases.
+- `npm run validate:skill-capability-manifests` — passed exactly one manifest,
+  hash `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`.
+
+The prior receipt remains honestly `internal_execution_qualified` at this
+preflight point. M34 will regenerate it from a new clean source commit even
+though the relevant B-roll/shared authority tree has not changed. No provider
+request, public artifact, production mutation, orchestra, Track All
+implementation, or Visual Intelligence implementation occurred during M31.
+
+## M32 — normal merge verification and ownership reconciliation
+
+Status: complete; no new merge commit was required because the selected base
+was already an ancestor of the B-roll branch.
+
+M31 was committed and pushed as
+`0049726b9e32b3ab71b298cb1039a6680b5c7536`; local and remote refs matched
+exactly after the push. From that clean head, the required command
+`git merge --no-ff origin/codex/backend-workflow-pipeline-continuation`
+reported `Already up to date.` The existing non-destructive reconciliation
+merge remains `d9e220f048ec6127e6a1927c8276bc660fe4d2fd`, whose second parent is the
+exact selected integration SHA. No empty merge commit, rebase, squash, or
+force-push was created.
+
+The ownership audit found no B-roll-side changes after the selected base in
+the integration-owned Visual Intelligence, SAM/model-artifact, GPU placement,
+source-analysis, or GCP retirement paths. Those newer authorities are byte-for-
+byte preserved from the selected base. No SAM2 or SAM 3.1 reference/import was
+found in the active B-roll or Gemini Omni B-roll packages.
+
+Targeted reconciliation validation passed:
+
+- `npm run test:b-roll-capability-manifest` — one canonical manifest, 13
+  supported jobs, 41 qualification fixtures, 46 QA entries, and unchanged
+  manifest hash.
+- `npm run validate:skill-capability-manifests` — exactly one valid manifest.
+- `npm run typecheck:server` — passed.
+- `npm run smoke:b-roll-retirement` — one active `b_roll@1.0.0` registration,
+  Gemini Omni as the sole route, zero provider fallbacks, five retired-provider
+  fixtures rejected, and no Track All implementation import.
+
+The canonical B-roll public plugin, manifest, runtime bindings, dependency
+contracts, and provider history required no adaptation. M33 will run the full
+regression matrix. No provider request, public artifact, production mutation,
+or new orchestra/Track All/Visual Intelligence implementation occurred.
+
+## M33 — reconciled B-roll regression validation
+
+Status: complete; this documentation commit records the full independent
+post-reconciliation regression pass.
+
+M32 was committed and pushed as
+`235053965f2e407dc5b07b93ccfeaa3df083862e`; local and remote refs matched
+exactly. The source tree remained unchanged from the already reconciled B-roll
+implementation. All B-roll-specific and affected shared validation passed:
+
+- Planning/contracts: `test:b-roll-planning`, `test:b-roll-planning-qa`,
+  `test:b-roll-plan-invariants`, `test:b-roll-public-plugin`,
+  `test:b-roll-active-artifact-contracts`, `test:b-roll-runtime-bindings`,
+  `test:b-roll-canonical-private-runtime`,
+  `test:b-roll-public-canonical-lifecycle`,
+  `test:b-roll-capability-manifest`,
+  `test:b-roll-qualification-evidence`,
+  `test:b-roll-canonical-integration`,
+  `test:edit-skill-runtime-factory`,
+  `test:edit-skill-capability-kernel`, and
+  `validate:skill-capability-manifests` passed.
+- Execution/QA: `smoke:b-roll-existing-source`,
+  `smoke:b-roll-provider-authority`, `smoke:b-roll-provider-lifecycle`,
+  `smoke:b-roll-candidate-qa`, `smoke:b-roll-remotion-integration`,
+  `smoke:b-roll-end-to-end`, and `smoke:b-roll-retirement` passed.
+- Shared gates: `smoke:runtime-api-security`,
+  `smoke:edit-execution-security-boundary`, `smoke:idempotency-boundary`,
+  `check:frontend-boundary`, `typecheck:server`, `lint`, and `build` passed.
+- Local `ffmpeg -version` and `ffprobe -version` passed at 8.1.1.
+
+The public canonical lifecycle proved 13 registered/dispatched bindings, three
+no-action work items with zero provider work, 12 existing-source work items
+with real FFprobe/FFmpeg/private Remotion and zero provider requests, and 11
+generated work items from exactly one injected Gemini submission. Generated
+acceptance remained blocked until the exact model-neutral Visual Intelligence
+artifact was accepted. `track_graph_v1` remained the only accepted tracking
+artifact and direct model fields were rejected. No private mini-skill was
+imported by the public lifecycle.
+
+Strict artifact validation passed 29 active schemas; raw bytes and provider
+URLs remained outside public JSON. Provider authority preserved the exact
+historical hashes:
+
+- V1 `17928478279cc8fd292db235286ae883db2434d79d015e7a16bfadc1a4bde1bd`
+- V2 `6fbfdef538e3bc9ecb944892586e7eac154f518bdf1df1d3f15bbe3a9fb32d18`
+- V3 `284b456da2610af6280e080bc9cb24c10989f2ee3401bd2711619622544bfd2b`
+- V4 `91ea2d40a33f5198f124d6322b61e447bb29ea037dabb808b2f39887cd432eeb`
+
+Provider lifecycle kept automatic retries and alternate-provider fallbacks at
+zero. Retirement validation rejected all five retired providers and confirmed
+no Track All implementation import.
+
+`npm run test:e2e` ran with FFmpeg available. The normal browser suite passed
+131 tests with seven intentional skips. The following separate Current Edit
+Preferences atomic assertions remained red:
+
+1. `plan-review-card` remained present after cleanup changed.
+2. `visualPreference` remained `keep_visuals_minimal` instead of
+   `no_extra_visuals`.
+3. `editLevelConfirmed` remained `true` instead of `false` after a non-gate
+   preference change.
+
+The exact `npm run qa:current-edit-preferences-atomic` command reproduced the
+same three failures and values at selected integration commit
+`6423f12c1e62a252fc860ce5184888770411c62d` in a detached worktree. The base
+and B-roll runs each passed the other two tests. No active B-roll file
+participates in that preference path, so the unrelated base regression was
+documented and not changed, skipped, weakened, or hidden.
+
+No B-roll reconciliation fix was required. No paid provider request, public
+artifact, production mutation, production worker, orchestra, Track All
+implementation, or Visual Intelligence implementation was added. M34 will
+generate a fresh receipt from the clean M33 source commit.
+
+## M34 — final evidence-backed requalification
+
+Status: complete; this commit contains only the qualifier-generated evidence
+artifact and its progress documentation.
+
+M33 was committed and pushed as
+`59979f77fa2a7eb418846f0946c72f90df547a0f`. The working tree was clean and
+local/remote refs matched before `npm run qualify:b-roll:internal` began. The
+qualifier tested that exact commit and passed every one of its 29 actual
+commands. It emitted all 36 required fixture evidence records and validated
+the ordered set of 18 shared dependency authorities.
+
+Final M34 evidence:
+
+- tested source commit:
+  `59979f77fa2a7eb418846f0946c72f90df547a0f`
+- relevant source-tree hash:
+  `3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`
+- dependency-authority set hash:
+  `15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`
+- manifest hash:
+  `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`
+- qualification receipt hash:
+  `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`
+- generated qualification artifact hash:
+  `ae45aca6d8cf6d4080bcbefead54e48785b46d2fab65967103de340956fb896c`
+- actual status: `internal_execution_qualified`
+- real provider requests: zero
+- public artifacts: zero
+- production mutations: zero
+
+The unchanged relevant source and dependency hashes are expected: M31-M33
+added only reconciliation/test documentation and did not alter B-roll or
+shared runtime authorities. The new receipt nevertheless binds the new exact
+tested commit, timestamps, command evidence, fixture evidence, and digests.
+The generated TypeScript artifact was produced only by the qualifier and was
+not manually edited.
+
+Production qualification remains false. No live Gemini request, production
+worker, public delivery, orchestra, Track All implementation, or Visual
+Intelligence implementation was added.
+
+## M35 — PR update and B-roll freeze
+
+Status: freeze documentation complete; this final documentation commit is the
+M35 milestone commit. Its post-push GitHub and zero-behind audit is recorded in
+PR #2498 because a Git-tracked file cannot contain the SHA of the commit that
+contains itself.
+
+M34 was committed and pushed as
+`04f750cd93db21b1d0d9c50e560768aa9db4d256`. Runtime receipt verification from
+that committed state passed `test:edit-skill-runtime-factory`,
+`smoke:b-roll-end-to-end`, and `test:b-roll-public-plugin`. The runtime loaded
+receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`,
+reported `internal_execution_qualified`, excluded all five production
+fixtures, and made zero provider requests.
+
+`docs/edit-skills/b-roll/final-freeze.md` now freezes the exact skill identity,
+branch/base/merge authority, manifest and qualification hashes, public plugin,
+produced artifacts, Visual Intelligence and Track All dependency contracts,
+Gemini-only route, production-only gates, invalidation rules, and permitted
+future change classes. The exact Track All branch point is the committed,
+qualified implementation/evidence head:
+`04f750cd93db21b1d0d9c50e560768aa9db4d256`.
+
+`docs/edit-skills/b-roll/qualification-and-test-evidence.md` was updated from
+its older pre-closeout hashes to the exact M34 receipt, artifact, source-tree,
+manifest, dependency-authority set, 29-command, and 36-fixture evidence.
+
+After this documentation commit is pushed, the final protocol is to fetch and
+prune again, compare exact remote refs, verify zero-behind ancestry and a clean
+worktree, inspect final GitHub Actions, and replace PR #2498's body with the
+exact final base/head/evidence facts. If the base advances, this milestone is
+invalid until the new base is normally merged and M33-M35 are repeated.
+
+No B-roll source/runtime authority changed after qualification. No orchestra,
+Track All implementation, Visual Intelligence implementation, production
+worker, paid provider request, public delivery, export, or billing mutation
+was added.
+
 ## Milestone ledger
 
 | Milestone | Implementation commit | Progress-record commit | Push confirmation | Qualification |
@@ -771,3 +2345,62 @@ billing, wallet, Supabase, or production mutation occurred.
 | M9 | `c8268a9d7` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M10 | `f2b799d2f` | this bookkeeping commit | confirmed | `planning_qualified` |
 | M11 | `4a74687ca` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M12 | `d9e220f04` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M13 | `a9dd9d8ac` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M14 | `5e4f1dc0d` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M15 | `588193497` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M16 | `4eb0371e6` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M17 | `44bfb9198` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M18 | `18c2b4335` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M19 | `e13a99cd0` + `387e3b7f5` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M20 | `c34664df7` + `851702089` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M21 | `cc516c651` + `ae3dde206` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M22 | `c79d93e71` + `a39b9feda` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M23 | `c8995159c` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M24 | `070f4dccf` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M25 | `27c41b84c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M26 | `89692e838` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M27 | `397b6546a` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M28 | `496cad74c` | this bookkeeping commit | confirmed | final receipt regeneration required at M30 |
+| M29 | `afa3905e9` + `3b0b7c1` + `92039bc` + `56a4a89` + `01168f5` + `657e9e9` + `14f734a` + `950fa40` | this bookkeeping commit | confirmed | included in final actual receipt |
+| M30 | tested `950fa403856b4f2ce6dcb9f09d017db18a27b75a`; evidence `4fd8b9dcddb529e1627d03f134514df9458fd524` | this bookkeeping commit | confirmed | `internal_execution_qualified` |
+| M31 | selected base `6423f12c1e62a252fc860ce5184888770411c62d`; prior merge `d9e220f048ec6127e6a1927c8276bc660fe4d2fd` | `0049726b9e32b3ab71b298cb1039a6680b5c7536` | confirmed | prior receipt verified; M34 regeneration required |
+| M32 | required merge reported already up to date; ownership audit preserved exact base authorities | `235053965f2e407dc5b07b93ccfeaa3df083862e` | confirmed | targeted manifest/typecheck/retirement validation passed |
+| M33 | full reconciled B-roll regression matrix and exact-base browser comparison | `59979f77fa2a7eb418846f0946c72f90df547a0f` | confirmed | all B-roll gates passed; three unrelated preference failures reproduced on exact base |
+| M34 | tested `59979f77fa2a7eb418846f0946c72f90df547a0f`; receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7` | `04f750cd93db21b1d0d9c50e560768aa9db4d256` | confirmed | `internal_execution_qualified` from 29 commands and 36 fixtures |
+| M35 | freeze record, current evidence document, final PR/remote audit | this freeze documentation commit | pending push and PR update | runtime receipt accepted; production qualification remains false |
+| M36 | `86b624a5a61cd45dfefaf4ae680be455859cc0e6` public Caption owner request/result and receipt | recorded by M37 | confirmed | prior receipt intentionally invalidated by source change |
+| M37 | tested `86b624a5a61cd45dfefaf4ae680be455859cc0e6`; receipt `e74360d571d6442dceb44fb061e730b16c5961dd1d9ca3cc38e3eec324b862f5` | this evidence commit | pending push | `internal_execution_qualified` from 30 commands and 36 fixtures |
+
+## M36-M37 — Caption public owner boundary and requalification
+
+The B-roll branch now exports a frozen, source-only Caption owner-read
+boundary without importing Caption implementation or creating a peer
+dispatcher. The request is `b_roll_caption_owner_read_request_v1`, the result
+is `b_roll_caption_owner_read_result_v1`, and their contract digests are
+`41a8ff19a61ccba5ea99c6c0839939b237388285f7672b1ec2279cd28d835788`
+and
+`5821d74644e3e7284696bc5db4bac4597c49c64de48680cb166c041249443a32`.
+The public receipt digest is
+`255f13e74429107954ea4d1b75d42fbe4002d2f5e7d3b40ab0f5e14ce4287038`.
+
+The result carries byte-free opaque references for the selected media
+manifest, layout occupancy, crop timing, and visible-text evidence. Exact
+owner-user/workspace/project/edit-session/approved-snapshot/output/output-
+frame/scene/frame-range/FPS/MasterTiming lineage is mandatory. Every
+execution, source-selection, crop/timing mutation, asset mutation, final-QA,
+billing, public-delivery, and production authority flag remains `false`.
+
+`npm run qualify:b-roll:internal` tested the clean M36 source commit and passed
+all 30 commands and 36 internal fixtures. The resulting source-tree hash is
+`20f360801162bd44d864d2b8276f21f2980eded565ed04e4205563afd1b64c84`,
+the unchanged dependency-authority set hash is
+`15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`,
+the receipt hash is
+`e74360d571d6442dceb44fb061e730b16c5961dd1d9ca3cc38e3eec324b862f5`,
+and the generated artifact hash is
+`412724597d105726ba8a9e5f58e26b953c36988d20414db9e4aa155001c82cee`.
+Provider requests, public artifacts, and production mutations were zero.
+The type-only receipt does not claim that an authenticated owner result was
+persisted, reread, injected into Caption, or admitted as
+`authenticated_owner_ready`.

@@ -13,6 +13,7 @@ import {
 import type {
   SkillCapabilityManifest,
   SkillExactRouteReference,
+  SkillRouteDefinition,
 } from '../core/skill-capability-manifest-types'
 import { validateSoundOperationHandlerCoverage } from './sound-operation-handler-registry'
 
@@ -24,6 +25,9 @@ export function validateCanonicalSoundPublication(input: {
 } = {}): void {
   const manifest = input.manifest ?? soundSkillCapabilityManifest
   const miniSkills = input.miniSkills ?? soundMiniSkillManifests
+  if (manifest.schemaVersion !== 'skill-capability-manifest-v1') {
+    throw new Error('Canonical Sound publication requires its frozen v1 manifest shape.')
+  }
   validateSoundToolRouteRegistry()
   const publishedRoutes = listSoundToolRouteManifests()
   validateSoundOperationHandlerCoverage(publishedRoutes)
@@ -106,7 +110,7 @@ function validateRefs(owner: string, refs: readonly SkillExactRouteReference[], 
 
 function routeCost(
   ref: SkillExactRouteReference,
-  topRoutes: Map<string, SkillCapabilityManifest['toolRoutes'][number]>,
+  topRoutes: Map<string, SkillRouteDefinition>,
 ): number {
   const route = topRoutes.get(ref.routeKey)
   if (!route || route.routeVersion !== ref.routeVersion || route.routeHash !== ref.routeHash || !route.costClass) {

@@ -1,21 +1,11 @@
-import type { SkillQaRegistry } from '../core/skill-qa-registry'
+import { hashSkillValue } from '../core/skill-capability-manifest-hash'
+import { createSkillQaFinding, type SkillQaRegistry } from '../core/skill-qa-registry'
+import {
+  BROLL_PLANNING_QA_KEYS,
+  registerBrollPlanningQaPolicies,
+} from './b-roll-planning-qa'
 
-export const BROLL_PLANNING_QA_KEYS = [
-  'b_roll.planning.range_authority',
-  'b_roll.planning.editorial_purpose',
-  'b_roll.planning.restraint_considered',
-  'b_roll.planning.source_safety',
-  'b_roll.planning.provenance_rights',
-  'b_roll.planning.proof_safety',
-  'b_roll.planning.visual_density',
-  'b_roll.planning.repetition',
-  'b_roll.planning.primary_visual_ownership',
-  'b_roll.planning.caption_space',
-  'b_roll.planning.dependency_completeness',
-  'b_roll.planning.approval_credit_readiness',
-  'b_roll.planning.provider_eligibility',
-  'b_roll.planning.lower_cost_route',
-] as const
+export { BROLL_PLANNING_QA_KEYS } from './b-roll-planning-qa'
 
 export const BROLL_OUTPUT_QA_KEYS = [
   'b_roll.output.valid_mp4',
@@ -58,18 +48,25 @@ export const BROLL_QA_KEYS = [
 ] as const
 
 export function registerBrollQaPolicies(registry: SkillQaRegistry): void {
-  for (const qaKey of BROLL_QA_KEYS) {
+  registerBrollPlanningQaPolicies(registry)
+  for (const qaKey of [...BROLL_OUTPUT_QA_KEYS, ...BROLL_INTEGRATION_QA_KEYS]) {
     registry.register(qaKey, (input) => {
       const supplied = input[qaKey]
       const passed = supplied === true || supplied === 'pass'
-      return {
+      const suppliedEvidenceHashes = Array.isArray(input.evidenceHashes)
+        ? input.evidenceHashes.filter((value): value is string =>
+          typeof value === 'string' && /^[a-f0-9]{64}$/u.test(value))
+        : []
+      return createSkillQaFinding({
         qaKey,
+        validatorVersion: `${qaKey}.v1`,
         disposition: passed ? 'pass' : 'blocking',
         summary: passed ? `${qaKey} passed.` : `${qaKey} requires explicit passing evidence.`,
-        evidenceHashes: Array.isArray(input.evidenceHashes)
-          ? input.evidenceHashes.filter((value): value is string => typeof value === 'string')
-          : [],
-      }
+        evidenceHashes: suppliedEvidenceHashes.length > 0
+          ? [...new Set(suppliedEvidenceHashes)]
+          : [hashSkillValue({ qaKey, input })],
+        observations: { suppliedStatus: supplied === true ? 'true' : supplied === 'pass' ? 'pass' : 'absent' },
+      })
     })
   }
 }

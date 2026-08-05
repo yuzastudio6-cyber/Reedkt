@@ -18,8 +18,8 @@ import {
   type BrollSkillAssignment,
 } from '../edit-skills/b-roll/index'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
-import { createBrollPlanningQualificationReceipt } from '../edit-skills/b-roll/b-roll-qualification'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import {
   persistCanonicalBrollPlanComponent,
   revalidateCanonicalBrollPlanAuthority,
@@ -214,12 +214,15 @@ assert.throws(() => assertBrollCanonicalWorkGraph(escapedGraph), /lost graph lin
 
 const localStorageRoot = await mkdtemp(join(tmpdir(), 'reeditpro-broll-m4-'))
 try {
-  const qualificationReceipt = createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST)
+  const qualificationReceipt = loadBrollGeneratedQualificationReceiptForCurrentSource(
+    BROLL_CAPABILITY_MANIFEST,
+  )
   const persisted = await persistCanonicalBrollPlanComponent({
     localStorageRoot,
     assignment: generatedAssignment,
     context: generatedContext,
     plan: generated.plan,
+    planningQaReport: generated.planningQaReport,
     workGraph: generated.workGraph,
     qualificationReceipt,
   })
@@ -230,6 +233,14 @@ try {
     canonicalWorkItems: generated.canonicalWorkItems,
   })
   assert.equal(revalidated.workGraph?.workGraphHash, generated.workGraph.workGraphHash)
+  assert.equal(
+    revalidated.planningQaReport?.reportHash,
+    generated.planningQaReport.reportHash,
+  )
+  assert.equal(
+    persisted.component.planningQaReportHash,
+    generated.plan.planningQaReportHash,
+  )
 
   const brollRef = persisted.componentRefs.bRollSkill
   assertCanonicalBrollComponentRefPropagation({

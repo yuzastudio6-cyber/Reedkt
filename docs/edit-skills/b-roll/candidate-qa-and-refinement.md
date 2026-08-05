@@ -32,10 +32,13 @@ server-derived commands only. The pipeline performs:
 - deterministic exact-duration `approved_trim_transcode_v1` normalization to a
   private create-only FFV1/NUT artifact with audio removed.
 
-The objective QA runner now accepts the exact pair
+The private objective-QA runner accepts the exact internal pair
 `provider.google.generate_b_roll_candidate.v1` /
 `provider_b_roll_candidate_video_mp4` in addition to its original visual
-calibration pair. Cross-pair substitutions remain invalid.
+calibration pair. That MP4 identity is an internal provider-output role, not
+an active public plugin artifact. Public work results expose only the strict
+`b_roll_candidate_media_manifest_v1` reference; raw bytes remain in the
+private binary/object store. Cross-pair substitutions remain invalid.
 
 ## Semantic, proof, and audio QA
 
@@ -46,6 +49,14 @@ proof misrepresentation, content safety, and user-confirmation need. Current
 qualification uses hashed internal injected observations and is explicitly
 `productionQualified: false`; this does not claim a live production visual
 intelligence worker.
+
+The public skill contract separately requires a model-neutral
+`visual_intelligence_candidate_qa_v1` artifact before a generated or
+provider-edited candidate can receive semantic acceptance. Missing evidence
+returns `needs_other_skill`; tenant, candidate checksum, assignment, plan,
+range, producer manifest, and qualification substitutions fail closed.
+Injected observations remain internal-only and can never satisfy production
+acceptance.
 
 Generated media is always recorded as non-proof. Automatic selection and
 timeline mutation are false. The B-roll audio disposition is explicit, and

@@ -6,7 +6,9 @@ import {
   editSkillEstimatorRegistry,
   editSkillQaRegistry,
   editSkillReferenceCatalog,
-} from '../edit-skills/registry'
+  editSkillRuntimeBindingRegistry,
+  editSkillWorkGraphJobDefinitions,
+} from '../edit-skills/internal-fixture-runtime'
 import {
   createSkillCapabilityManifest,
   validateSkillCapabilityManifests,
@@ -27,6 +29,8 @@ const validation = validateSkillCapabilityManifests({
   qa: editSkillQaRegistry,
   artifacts: editSkillArtifactSchemaRegistry,
   catalog: editSkillReferenceCatalog,
+  runtimeBindings: editSkillRuntimeBindingRegistry,
+  workGraphJobs: editSkillWorkGraphJobDefinitions,
 })
 assert.equal(validation.manifestCount, 2)
 assert.equal(SOUND_SKILL_VERSION, '4.0.0')
@@ -127,7 +131,7 @@ assert.throws(() => editSkillCapabilityRegistry.registerManifest({
 }), /hash/i)
 
 await assert.rejects(access(new URL('../orchestra/head-of-orchestra.ts', import.meta.url)), /ENOENT/)
-await assert.rejects(access(new URL('../../src/types/skill-capability-manifest.ts', import.meta.url)), /ENOENT/)
+await access(new URL('../../src/types/skill-capability-manifest.ts', import.meta.url))
 
 console.log(JSON.stringify({
   status: 'ok',
@@ -135,5 +139,6 @@ console.log(JSON.stringify({
   soundSkillVersion: SOUND_SKILL_VERSION,
   soundManifestHash: soundSkillCapabilityManifest.manifestHash,
   exactCapabilityCount: soundSkillCapabilityManifest.capabilityEntries?.length,
+  futureOrchestraPublicManifestSeamPresent: true,
   actualOrchestraIntegration: 'pending_by_design',
 }, null, 2))

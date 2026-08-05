@@ -36,6 +36,7 @@ const observationCoreSchema = z.object({
   conceptKey: z.string().trim().min(1).max(180),
   authorizedRangeHash: skillSha256Schema,
   observationSource: z.literal('internal_injected_visual_observation_v1'),
+  testOnly: z.literal(true),
   evidenceArtifactHash: skillSha256Schema,
   confidenceMillionths: z.number().int().min(0).max(1_000_000),
   checks: semanticChecksSchema,

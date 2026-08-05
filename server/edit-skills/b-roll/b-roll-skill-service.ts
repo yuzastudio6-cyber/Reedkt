@@ -1,14 +1,21 @@
 import type { EditSkillArtifactStore } from '../core/edit-skill-artifact-store'
 import type { EditSkillHandler, EditSkillInvocationContext } from '../core/skill-capability-registry'
-import { createSkillPlanEnvelope, type SkillPlanEnvelope } from '../core/skill-plan-envelope'
+import type { SkillPlanEnvelope } from '../core/skill-plan-envelope'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
-import type { BrollPlanArtifact, BrollPlanningContext, BrollSkillAssignment } from './b-roll-contracts'
-import { brollPlanningContextSchema, brollSkillAssignmentSchema } from './b-roll-schemas'
-import { compileBrollPlan } from './b-roll-plan-compiler'
+import type { BrollPlanningContext, BrollSkillAssignment } from './b-roll-contracts'
+import { BrollEditSkillPlugin } from './b-roll-edit-skill-plugin'
+import { compileBrollPlan, type CompileBrollPlanResult } from './b-roll-plan-compiler'
 
-export const BROLL_IMPLEMENTATION_PENDING_MESSAGE =
-  'B-roll orchestra invocation is disabled until planning qualification passes.'
+export const BROLL_IMPLEMENTATION_STATUS = Object.freeze({
+  skillImplementation: 'complete',
+  planningQualification: 'qualified',
+  executionQualification: 'internal_execution_qualified',
+  productionQualification: 'blocked_pending_five_live_fixtures',
+  liveProvider: 'blocked_pending_explicit_canary_gates',
+  publicPlugin: 'available',
+  orchestraIntegration: 'not_implemented_by_design',
+} as const)
 
 export class BrollSkillService implements EditSkillHandler {
   readonly #artifacts: EditSkillArtifactStore
@@ -29,45 +36,20 @@ export class BrollSkillService implements EditSkillHandler {
     assignment: BrollSkillAssignment
     context: BrollPlanningContext
     manifest: EditSkillInvocationContext['manifest']
-  }): BrollPlanArtifact {
+  }): CompileBrollPlanResult {
     return compileBrollPlan({
       ...input,
       estimators: this.#estimators,
       qa: this.#qa,
-    }).plan
+    })
   }
 
   async plan(invocation: EditSkillInvocationContext): Promise<SkillPlanEnvelope> {
-    const assignmentRef = invocation.assignment.contextArtifactRefs.find((ref) => ref.artifactType === 'b_roll_assignment_v1')
-    const contextRef = invocation.assignment.contextArtifactRefs.find((ref) => ref.artifactType === 'b_roll_context_manifest_v1')
-    if (!assignmentRef || !contextRef) throw new Error('B-roll invocation requires assignment and context artifacts.')
-    const scope = {
-      ownerUserId: invocation.assignment.ownerUserId,
-      workspaceId: invocation.assignment.workspaceId,
-      projectId: invocation.assignment.projectId,
-    }
-    const assignment = brollSkillAssignmentSchema.parse(await this.#artifacts.readJson({ reference: assignmentRef, ...scope }))
-    const context = brollPlanningContextSchema.parse(await this.#artifacts.readJson({ reference: contextRef, ...scope }))
-    const plan = this.compilePlanning({ assignment, context, manifest: invocation.manifest })
-    await this.#artifacts.putJson({ artifactType: 'b_roll_plan_v1', value: plan, ...scope })
-    const disposition = plan.decision === 'use_no_broll'
-      ? 'use_no_action' as const
-      : plan.decision === 'needs_other_skill'
-        ? 'needs_other_skill' as const
-        : plan.decision === 'needs_user_confirmation'
-          ? 'needs_user_review' as const
-          : plan.decision === 'blocked' ? 'blocked' as const : 'use_skill' as const
-    return createSkillPlanEnvelope({
-      schemaVersion: 'edit-skill-plan-envelope-v1',
-      planId: plan.planId,
-      assignmentId: invocation.assignment.assignmentId,
-      assignmentHash: invocation.assignment.assignmentHash,
-      manifestRef: invocation.assignment.manifestRef,
-      authorizedRange: invocation.assignment.authorizedRange,
-      disposition,
-      payloadArtifactType: 'b_roll_plan_v1',
-      payloadHash: plan.planHash,
-      ...(disposition === 'needs_other_skill' ? { dependencySkillKey: 'track_all' } : {}),
+    const plugin = new BrollEditSkillPlugin({
+      artifacts: this.#artifacts,
+      estimators: this.#estimators,
+      qa: this.#qa,
     })
+    return (await plugin.planAssignment({ assignment: invocation.assignment })).envelope
   }
 }

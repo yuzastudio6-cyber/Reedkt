@@ -12,20 +12,20 @@ import {
   compileBrollPlan,
   createBrollAssignment,
   createBrollPlanningContext,
-  createBrollSemanticVisualObservation,
   createInitialInjectedBrollCandidateAttemptEvidence,
-  directBrollCandidateRefinement,
   executeBrollCandidateQa,
   executeBrollRemotionIntegration,
   executePrivateInjectedBrollCandidateRefinement,
   projectBrollCanonicalWorkItems,
 } from '../edit-skills/b-roll'
+import { createBrollSemanticVisualObservation } from '../edit-skills/b-roll/mini-skills/candidate-qa-director'
+import { directBrollCandidateRefinement } from '../edit-skills/b-roll/mini-skills/refinement-director'
 import {
   BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
   BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
   BROLL_PRODUCTION_QUALIFICATION_FIXTURE_KEYS,
-  createBrollInternalExecutionQualificationReceipt,
 } from '../edit-skills/b-roll/b-roll-qualification'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
 import {
   hashSkillValue,
   skillManifestReference,
@@ -34,13 +34,14 @@ import {
   assertQualificationSupportsClaim,
   assertSkillQualificationReceipt,
 } from '../edit-skills/core/skill-qualification-receipt'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import {
   BROLL_PROVIDER_ROUTE_ID,
   brollProviderExecutionPackageV5Schema,
   buildBrollGeminiOfficialRefinementRequest,
   buildBrollProviderRequestPackageV5,
   createBrollProviderWorkAuthorizationV5,
+  projectCanonicalBrollWorkItemForImmutableGeminiOmniV5,
   executePrivateInjectedBrollProviderLifecycleV5,
 } from '../providers/google/gemini-omni-broll'
 import {
@@ -83,15 +84,22 @@ try {
   const captionBytes = await readFile(captionPath)
 
   const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
-  const qualificationReceipt = createBrollInternalExecutionQualificationReceipt(
+  const qualificationReceipt = loadBrollGeneratedQualificationReceiptForCurrentSource(
     BROLL_CAPABILITY_MANIFEST,
   )
+  const qualificationGenerationMode =
+    process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING === '1'
   assertSkillQualificationReceipt(qualificationReceipt)
-  assert.equal(qualificationReceipt.qualificationStatus, 'internal_execution_qualified')
-  const expectedInternalFixtureKeys = [
-    ...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
-    ...BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
-  ]
+  assert.equal(
+    qualificationReceipt.qualificationStatus,
+    qualificationGenerationMode ? 'planning_qualified' : 'internal_execution_qualified',
+  )
+  const expectedInternalFixtureKeys = qualificationGenerationMode
+    ? [...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS]
+    : [
+        ...BROLL_PLANNING_QUALIFICATION_FIXTURE_KEYS,
+        ...BROLL_INTERNAL_EXECUTION_QUALIFICATION_FIXTURE_KEYS,
+      ]
   assert.deepEqual(
     qualificationReceipt.fixtureResults.map((result) => result.fixtureKey),
     expectedInternalFixtureKeys,
@@ -105,7 +113,9 @@ try {
   )
   assertQualificationSupportsClaim({
     manifestRef,
-    claimedStatus: 'internal_execution_qualified',
+    claimedStatus: qualificationGenerationMode
+      ? 'planning_qualified'
+      : 'internal_execution_qualified',
     receipt: qualificationReceipt,
   })
   assert.throws(() => assertQualificationSupportsClaim({
@@ -193,6 +203,7 @@ try {
     assignment,
     context,
     plan: compiled.plan,
+    planningQaReport: compiled.planningQaReport,
     workGraph,
     qualificationReceipt,
   })
@@ -223,7 +234,10 @@ try {
     approvedMaximumCredits: 100,
     remainingReservedCredits: 100,
     approvedProviderRoutes: [BROLL_PROVIDER_ROUTE_ID],
-    approvedWorkItems: [{ id: 'provider-work-m11', ...providerWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-work-m11',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(providerWorkItem),
+    }],
     status: 'canonical_authority_packaged_runtime_blocked',
   })
   const authorization = createBrollProviderWorkAuthorizationV5({
@@ -536,6 +550,7 @@ function observation(input: {
     conceptKey: input.conceptKey,
     authorizedRangeHash: input.authorizedRangeHash,
     observationSource: 'internal_injected_visual_observation_v1',
+    testOnly: true,
     evidenceArtifactHash: hashSkillValue({ evidence: input.label }),
     confidenceMillionths: 950_000,
     checks: {

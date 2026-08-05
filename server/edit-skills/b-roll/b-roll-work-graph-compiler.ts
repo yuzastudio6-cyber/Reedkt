@@ -6,6 +6,7 @@ import { skillFrameRangeSchema } from '../core/skill-assignment-schema'
 import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
 import { isFrameRangeContained } from '../core/skill-range-authority'
 import type { BrollPlanArtifact, BrollSkillAssignment } from './b-roll-contracts'
+import { assertBrollPlanRuntimeInvariants } from './b-roll-plan-compiler'
 
 const workItemSchema = z.object({
   workItemKey: z.string().trim().min(1).max(180),
@@ -36,6 +37,7 @@ const workGraphCoreSchema = z.object({
   assignmentHash: skillSha256Schema,
   manifestRef: skillManifestReferenceSchema,
   authorizedRange: skillFrameRangeSchema,
+  planningQaReportHash: skillSha256Schema,
   route: z.enum(['no_action', 'existing_source', 'approved_user_asset', 'gemini_omni']),
   workItems: z.array(workItemSchema).min(1).max(32),
   outsideAuthorizedRangeModified: z.literal(false),
@@ -50,40 +52,143 @@ export type BrollCanonicalWorkGraph = z.infer<typeof brollCanonicalWorkGraphSche
 export const BROLL_CANONICAL_WORK_ITEM_AUTHORITY_VERSION =
   'b_roll_canonical_atomic_work_item_authority_v1' as const
 
-interface WorkDefinition {
+export interface BrollCanonicalWorkDefinition {
   jobType: string
   operationId: string
   workerClass: string
   output: string
+  inputArtifactTypes: readonly string[]
+  allowedPhase: string
   toolOrProviderCredits: number
-  qa: string[]
+  qa: readonly string[]
   provider?: true
 }
 
-const generatedDefinitions: readonly WorkDefinition[] = [
-  { jobType: 'validate_b_roll_assignment', operationId: 'b_roll.internal.validate_assignment.v1', workerClass: 'control_plane_worker', output: 'b_roll_assignment_v1', toolOrProviderCredits: 0, qa: ['b_roll.planning.range_authority'] },
-  { jobType: 'validate_b_roll_range_authority', operationId: 'b_roll.internal.validate_range.v1', workerClass: 'control_plane_worker', output: 'b_roll_plan_v1', toolOrProviderCredits: 0, qa: ['b_roll.integration.exact_authorized_range'] },
-  { jobType: 'generate_b_roll_candidate', operationId: 'provider.google.generate_b_roll_candidate.v1', workerClass: 'provider_worker', output: 'provider_b_roll_candidate_video_mp4', toolOrProviderCredits: 20, qa: ['b_roll.output.semantic_alignment'], provider: true },
-  { jobType: 'inspect_b_roll_candidate_with_ffprobe', operationId: 'tool.ffprobe.inspect_approved_media.v1', workerClass: 'media_processing_worker', output: 'b_roll_candidate_manifest_v1', toolOrProviderCredits: 1, qa: ['b_roll.output.valid_mp4', 'b_roll.output.decodable_streams'] },
-  { jobType: 'normalize_b_roll_candidate_with_ffmpeg', operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1', workerClass: 'media_processing_worker', output: 'b_roll_candidate_version_v1', toolOrProviderCredits: 2, qa: ['b_roll.output.duration', 'b_roll.output.frame_rate', 'b_roll.output.resolution'] },
-  { jobType: 'run_b_roll_technical_qa', operationId: 'b_roll.internal.run_technical_qa.v1', workerClass: 'qa_worker', output: 'b_roll_qa_report_v1', toolOrProviderCredits: 1, qa: ['b_roll.output.not_truncated', 'b_roll.output.not_frozen_or_black'] },
-  { jobType: 'run_b_roll_semantic_visual_qa', operationId: 'b_roll.internal.run_semantic_visual_qa.v1', workerClass: 'qa_worker', output: 'b_roll_qa_report_v1', toolOrProviderCredits: 2, qa: ['b_roll.output.semantic_alignment', 'b_roll.output.no_proof_misrepresentation'] },
-  { jobType: 'prepare_b_roll_remotion_layer', operationId: 'b_roll.internal.prepare_remotion_layer.v1', workerClass: 'control_plane_worker', output: 'b_roll_remotion_layer_manifest_v1', toolOrProviderCredits: 0, qa: ['b_roll.integration.layer_order'] },
-  { jobType: 'render_b_roll_preview', operationId: 'tool.remotion.render_approved_composition.v1', workerClass: 'render_worker', output: 'b_roll_candidate_version_v1', toolOrProviderCredits: 3, qa: ['b_roll.integration.preview_integrity'] },
-  { jobType: 'run_b_roll_preview_qa', operationId: 'b_roll.internal.run_preview_qa.v1', workerClass: 'qa_worker', output: 'b_roll_qa_report_v1', toolOrProviderCredits: 1, qa: ['b_roll.integration.caption_collision', 'b_roll.integration.preview_integrity'] },
-  { jobType: 'project_b_roll_result_receipt', operationId: 'b_roll.internal.project_result.v1', workerClass: 'control_plane_worker', output: 'b_roll_result_receipt_v1', toolOrProviderCredits: 0, qa: ['b_roll.integration.result_lineage'] },
-]
+export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefinition[] = [
+  {
+    jobType: 'validate_b_roll_assignment', operationId: 'b_roll.internal.validate_assignment.v1',
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_assignment_v1'],
+    output: 'b_roll_assignment_v1', allowedPhase: 'plan_validation', toolOrProviderCredits: 0,
+    qa: ['b_roll.planning.range_authority'],
+  },
+  {
+    jobType: 'validate_b_roll_range_authority', operationId: 'b_roll.internal.validate_range.v1',
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_assignment_v1', 'b_roll_plan_v1', 'b_roll_planning_qa_report_v1'],
+    output: 'b_roll_plan_v1', allowedPhase: 'plan_validation', toolOrProviderCredits: 0,
+    qa: ['b_roll.integration.exact_authorized_range'],
+  },
+  {
+    jobType: 'validate_b_roll_source', operationId: 'b_roll.internal.validate_source.v1',
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'source_media_artifact_v1'],
+    output: 'source_media_artifact_v1', allowedPhase: 'plan_validation', toolOrProviderCredits: 0,
+    qa: ['b_roll.planning.source_safety'],
+  },
+  {
+    jobType: 'prepare_b_roll_source', operationId: 'b_roll.internal.prepare_source.v1',
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'source_media_artifact_v1'],
+    output: 'b_roll_candidate_media_manifest_v1', allowedPhase: 'media_normalization', toolOrProviderCredits: 0,
+    qa: ['b_roll.output.private_artifact_integrity'],
+  },
+  {
+    jobType: 'generate_b_roll_candidate', operationId: 'provider.google.generate_b_roll_candidate.v1',
+    workerClass: 'provider_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_provider_request_specification_v1'],
+    output: 'b_roll_candidate_media_manifest_v1', allowedPhase: 'provider_generation', toolOrProviderCredits: 20,
+    qa: ['b_roll.output.semantic_alignment'], provider: true,
+  },
+  {
+    jobType: 'inspect_b_roll_candidate_with_ffprobe', operationId: 'tool.ffprobe.inspect_approved_media.v1',
+    workerClass: 'media_processing_worker', inputArtifactTypes: ['b_roll_candidate_media_manifest_v1'],
+    output: 'b_roll_candidate_manifest_v1', allowedPhase: 'media_inspection', toolOrProviderCredits: 1,
+    qa: ['b_roll.output.valid_mp4', 'b_roll.output.decodable_streams'],
+  },
+  {
+    jobType: 'normalize_b_roll_candidate_with_ffmpeg', operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+    workerClass: 'media_processing_worker', inputArtifactTypes: ['b_roll_candidate_media_manifest_v1', 'b_roll_candidate_manifest_v1'],
+    output: 'b_roll_candidate_version_v1', allowedPhase: 'media_normalization', toolOrProviderCredits: 2,
+    qa: ['b_roll.output.duration', 'b_roll.output.frame_rate', 'b_roll.output.resolution'],
+  },
+  {
+    jobType: 'run_b_roll_technical_qa', operationId: 'b_roll.internal.run_technical_qa.v1',
+    workerClass: 'qa_worker', inputArtifactTypes: ['b_roll_candidate_version_v1'],
+    output: 'b_roll_qa_report_v1', allowedPhase: 'skill_output_qa', toolOrProviderCredits: 1,
+    qa: ['b_roll.output.not_truncated', 'b_roll.output.not_frozen_or_black'],
+  },
+  {
+    jobType: 'run_b_roll_semantic_visual_qa', operationId: 'b_roll.internal.run_semantic_visual_qa.v1',
+    workerClass: 'qa_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'visual_intelligence_candidate_qa_v1'],
+    output: 'b_roll_qa_report_v1', allowedPhase: 'skill_output_qa', toolOrProviderCredits: 2,
+    qa: ['b_roll.output.semantic_alignment', 'b_roll.output.no_proof_misrepresentation'],
+  },
+  {
+    jobType: 'prepare_b_roll_remotion_layer', operationId: 'b_roll.internal.prepare_remotion_layer.v1',
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_candidate_version_v1', 'b_roll_qa_report_v1'],
+    output: 'b_roll_remotion_layer_manifest_v1', allowedPhase: 'layer_preparation', toolOrProviderCredits: 0,
+    qa: ['b_roll.integration.layer_order'],
+  },
+  {
+    jobType: 'render_b_roll_preview', operationId: 'tool.remotion.render_approved_composition.v1',
+    workerClass: 'render_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'],
+    output: 'b_roll_private_preview_media_manifest_v1', allowedPhase: 'private_preview_render', toolOrProviderCredits: 3,
+    qa: ['b_roll.integration.preview_integrity'],
+  },
+  {
+    jobType: 'run_b_roll_preview_qa', operationId: 'b_roll.internal.run_preview_qa.v1',
+    workerClass: 'qa_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'],
+    output: 'b_roll_qa_report_v1', allowedPhase: 'integration_qa', toolOrProviderCredits: 1,
+    qa: ['b_roll.integration.caption_collision', 'b_roll.integration.preview_integrity'],
+  },
+  {
+    jobType: 'project_b_roll_result_receipt', operationId: 'b_roll.internal.project_result.v1',
+    workerClass: 'control_plane_worker', inputArtifactTypes: ['b_roll_plan_v1', 'b_roll_planning_qa_report_v1', 'b_roll_qa_report_v1', 'b_roll_remotion_layer_manifest_v1'],
+    output: 'b_roll_result_receipt_v1', allowedPhase: 'result_projection', toolOrProviderCredits: 0,
+    qa: ['b_roll.integration.result_lineage'],
+  },
+] as const
 
-const existingDefinitions: readonly WorkDefinition[] = [
-  generatedDefinitions[0], generatedDefinitions[1],
-  { jobType: 'validate_b_roll_source', operationId: 'b_roll.internal.validate_source.v1', workerClass: 'control_plane_worker', output: 'source_media_artifact_v1', toolOrProviderCredits: 0, qa: ['b_roll.planning.source_safety'] },
-  { jobType: 'prepare_b_roll_source', operationId: 'b_roll.internal.prepare_source.v1', workerClass: 'control_plane_worker', output: 'b_roll_candidate_version_v1', toolOrProviderCredits: 0, qa: ['b_roll.output.private_artifact_integrity'] },
-  ...generatedDefinitions.slice(3),
-]
+const definitionByJob = new Map(BROLL_CANONICAL_WORK_DEFINITIONS.map((definition) => [definition.jobType, definition]))
 
-const noActionDefinitions: readonly WorkDefinition[] = [
-  generatedDefinitions[0], generatedDefinitions[1], generatedDefinitions.at(-1)!,
-]
+function definitionsFor(jobTypes: readonly string[]): readonly BrollCanonicalWorkDefinition[] {
+  return jobTypes.map((jobType) => {
+    const definition = definitionByJob.get(jobType)
+    if (!definition) throw new Error(`Unknown canonical B-roll work definition ${jobType}.`)
+    return definition
+  })
+}
+
+const generatedDefinitions = definitionsFor([
+  'validate_b_roll_assignment',
+  'validate_b_roll_range_authority',
+  'generate_b_roll_candidate',
+  'inspect_b_roll_candidate_with_ffprobe',
+  'normalize_b_roll_candidate_with_ffmpeg',
+  'run_b_roll_technical_qa',
+  'run_b_roll_semantic_visual_qa',
+  'prepare_b_roll_remotion_layer',
+  'render_b_roll_preview',
+  'run_b_roll_preview_qa',
+  'project_b_roll_result_receipt',
+])
+
+const existingDefinitions = definitionsFor([
+  'validate_b_roll_assignment',
+  'validate_b_roll_range_authority',
+  'validate_b_roll_source',
+  'prepare_b_roll_source',
+  'inspect_b_roll_candidate_with_ffprobe',
+  'normalize_b_roll_candidate_with_ffmpeg',
+  'run_b_roll_technical_qa',
+  'run_b_roll_semantic_visual_qa',
+  'prepare_b_roll_remotion_layer',
+  'render_b_roll_preview',
+  'run_b_roll_preview_qa',
+  'project_b_roll_result_receipt',
+])
+
+const noActionDefinitions = definitionsFor([
+  'validate_b_roll_assignment',
+  'validate_b_roll_range_authority',
+  'project_b_roll_result_receipt',
+])
 
 function routeFor(plan: BrollPlanArtifact): BrollCanonicalWorkGraph['route'] {
   if (plan.decision === 'use_existing_project_clip') return 'existing_source'
@@ -96,10 +201,61 @@ function routeFor(plan: BrollPlanArtifact): BrollCanonicalWorkGraph['route'] {
   return 'no_action'
 }
 
+const MEDIA_CREATING_JOB_TYPES = new Set([
+  'prepare_b_roll_source',
+  'generate_b_roll_candidate',
+  'normalize_b_roll_candidate_with_ffmpeg',
+  'render_b_roll_preview',
+])
+
+export function assertBrollWorkGraphDecisionInvariants(input: {
+  plan: BrollPlanArtifact
+  workGraph: BrollCanonicalWorkGraph
+}): void {
+  if (input.workGraph.planningQaReportHash !== input.plan.planningQaReportHash) {
+    throw new Error('B-roll work graph lost its planning QA report lineage.')
+  }
+  const providerItems = input.workGraph.workItems.filter((item) =>
+    item.operationId === 'provider.google.generate_b_roll_candidate.v1')
+  const mediaItems = input.workGraph.workItems.filter((item) =>
+    MEDIA_CREATING_JOB_TYPES.has(item.jobType))
+  const inert = [
+    'use_no_broll',
+    'needs_other_skill',
+    'needs_user_confirmation',
+    'blocked',
+  ].includes(input.plan.decision)
+  const source = [
+    'use_existing_project_clip',
+    'use_uploaded_user_asset',
+  ].includes(input.plan.decision)
+  const provider = [
+    'generate_with_gemini_omni',
+    'edit_uploaded_video_with_gemini_omni',
+    'refine_generated_omni_candidate',
+  ].includes(input.plan.decision)
+  if (inert && (
+    input.workGraph.route !== 'no_action' ||
+    providerItems.length !== 0 ||
+    mediaItems.length !== 0 ||
+    input.workGraph.workItems.some((item) => item.maximumCreditBudget !== 0)
+  )) throw new Error('Non-executable B-roll plan emitted media, provider, or credit-bearing work.')
+  if (source && (
+    !['existing_source', 'approved_user_asset'].includes(input.workGraph.route) ||
+    providerItems.length !== 0
+  )) throw new Error('Existing-source B-roll plan emitted provider work.')
+  if (provider && (
+    input.workGraph.route !== 'gemini_omni' ||
+    providerItems.length !== 1 ||
+    providerItems[0]?.providerRouteId !== 'gemini_omni_flash'
+  )) throw new Error('Gemini Omni B-roll plan must emit exactly one qualified provider job.')
+}
+
 export function compileBrollCanonicalWorkGraph(input: {
   assignment: BrollSkillAssignment
   plan: BrollPlanArtifact
 }): BrollCanonicalWorkGraph {
+  assertBrollPlanRuntimeInvariants({ assignment: input.assignment, plan: input.plan })
   if (
     input.plan.assignmentId !== input.assignment.assignmentId ||
     input.plan.assignmentHash !== input.assignment.assignmentHash ||
@@ -147,11 +303,17 @@ export function compileBrollCanonicalWorkGraph(input: {
     assignmentHash: input.assignment.assignmentHash,
     manifestRef: input.assignment.manifestRef,
     authorizedRange: input.assignment.writeRangeAuthority.authorizedRange,
+    planningQaReportHash: input.plan.planningQaReportHash,
     route,
     workItems,
     outsideAuthorizedRangeModified: false,
   })
-  return brollCanonicalWorkGraphSchema.parse({ ...core, workGraphHash: hashSkillValue(core) })
+  const workGraph = brollCanonicalWorkGraphSchema.parse({
+    ...core,
+    workGraphHash: hashSkillValue(core),
+  })
+  assertBrollWorkGraphDecisionInvariants({ plan: input.plan, workGraph })
+  return workGraph
 }
 
 export function assertBrollCanonicalWorkGraph(
@@ -198,11 +360,7 @@ function canonicalAssetRole(item: BrollCanonicalWorkItem): CanonicalWorkItemInpu
 }
 
 function canonicalContentType(item: BrollCanonicalWorkItem): string {
-  if (
-    item.expectedOutputType === 'b_roll_candidate_version_v1' ||
-    item.expectedOutputType === 'provider_b_roll_candidate_video_mp4' ||
-    item.jobType === 'render_b_roll_preview'
-  ) return 'video/mp4'
+  void item
   return 'application/json'
 }
 
@@ -240,6 +398,7 @@ export function projectBrollCanonicalWorkItems(input: {
           authorizedRange: item.authorizedRange,
           workItemHash: item.workItemHash,
           qaLineageKeys: item.qaLineageKeys,
+          planningQaReportHash: input.workGraph.planningQaReportHash,
           callerSelectedExecutableAllowed: false,
           outsideAuthorizedRangeModified: false,
         },

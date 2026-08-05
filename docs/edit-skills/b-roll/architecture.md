@@ -37,6 +37,24 @@ candidate selection, B-roll QA, and range-bounded layer handoff. Captions,
 Sound, Color, Transition, Track All, Render, and final export retain their
 respective final authority.
 
+The future orchestra resolves B-roll only through the version-bound public
+plugin. It does not import B-roll mini-skills, rankers, provider request
+builders, QA internals, Remotion internals, or persistence helpers.
+
+## Runtime construction
+
+`createEditSkillRuntime(...)` is the only normal runtime constructor. It
+requires explicit artifact storage, provider authority, tool operation
+registry, QA registry, qualification registry, estimators, and artifact
+schemas. A production-server construction with a missing dependency fails with
+`edit_skill_runtime_unconfigured`; a production-server construction also
+rejects `InMemoryCreateOnlyEditSkillArtifactStore`.
+
+`createInternalFixtureEditSkillRuntime()` is the only convenience constructor
+that creates the in-memory store. Smoke tests and private isolated fixtures
+import it from `internal-fixture-runtime.ts`. A future durable adapter can be
+injected without changing B-roll or its public plugin.
+
 ## Source route order
 
 1. Return `use_no_broll` when the base footage is stronger.
@@ -62,13 +80,20 @@ historical authority. Their baseline registry hashes are:
 | V3 | `284b456da2610af6280e080bc9cb24c10989f2ee3401bd2711619622544bfd2b` |
 | V4 | `91ea2d40a33f5198f124d6322b61e447bb29ea037dabb808b2f39887cd432eeb` |
 
+The B-roll V5 profile remains explicitly `preview_alias_unpinned` with
+`immutableProviderRevision: null`; it is not an accepted immutable provider
+revision. M20 updates that active preview profile openly to match the current
+official task contract. No V1–V4 source or hash changes, and accepting a pinned
+provider revision later requires a new forward-only profile.
+
 B-roll adds a new forward-only V5 operation in a separate module:
 
 - operation: `provider.google.generate_b_roll_candidate.v1`
 - boundary profile: `google_gemini_omni_flash_b_roll_provider_boundary`
 - provider route: `gemini_omni_flash`
 - model: `gemini-omni-flash-preview`
-- output role/type: `provider_b_roll_candidate_video_mp4`
+- private provider output role: `provider_b_roll_candidate_video_mp4`
+- active public work-result artifact: `b_roll_candidate_media_manifest_v1`
 - automatic selection: forbidden
 - timeline mutation: forbidden
 
@@ -80,8 +105,8 @@ reconciliation before any new submission.
 ## Gemini Omni constraints
 
 The server-side transport uses the Gemini Interactions API. It supports text
-to video, image to video, reference-image video, and supported bounded video
-editing. It treats `16:9` and `9:16` as the only native output ratios and plans
+to video, one-first-frame image to video, one-to-six reference-images-to-video,
+and supported bounded uploaded-video editing. It treats `16:9` and `9:16` as the only native output ratios and plans
 a crop-safe handoff for other confirmed frames. Video-reference mode is not an
 active dependable route because the preview documentation does not establish
 reliable reference-video processing. Uploaded-video editing is blocked in
@@ -90,9 +115,15 @@ the operation has no independent negative-prompt control.
 
 Provider URLs, raw responses, API keys, signed URLs, and media bytes are not
 canonical evidence. Output is downloaded once into private create-only,
-checksum-verified storage and represented by a sanitized content-addressed
-receipt. Stateful refinement stores only the minimum provider interaction
-identifier needed for the one authorized refinement.
+checksum-verified storage. The public plugin receives only the strict
+`b_roll_candidate_media_manifest_v1` reference, which binds the exact scope,
+assignment, plan, approved graph, work item, provider attempt, private object
+checksum, media facts, source/reference lineage, cost/usage evidence, and
+non-public/non-automatic-use declarations. Existing-source prepared media and
+normalized candidates use the same strict private-media principle; private
+preview output uses `b_roll_private_preview_media_manifest_v1`. Stateful
+refinement stores only the minimum provider interaction identifier needed for
+the one authorized refinement.
 
 ## Qualification
 
@@ -111,14 +142,24 @@ operational procedure and evidence matrix are recorded in
 [`runbook.md`](./runbook.md) and
 [`qualification-and-test-evidence.md`](./qualification-and-test-evidence.md).
 
+The generated receipt is also bound to 18 exact shared dependency authority
+hashes. This makes qualification stale if the canonical execution package,
+planning publication, FFmpeg/FFprobe profile, media protocol, Remotion
+protocol/composition, Gemini V5 authority/lifecycle, candidate/planning QA,
+public plugin, artifact registry, runtime binding, Visual Intelligence
+dependency, or Track All artifact contract changes even when the B-roll-local
+source-tree hash would otherwise be unchanged.
+
 ## Persistence and execution boundaries
 
-All manifests, assignments, plans, work items, candidate receipts, QA records,
-and qualification receipts are strict, canonically serialized, SHA-256
-addressed records. Runtime artifacts use the existing private create-only
-artifact patterns. Execution requires an immutable approved snapshot, funded
-reservation, idempotency identity, exact package/work item, lease, private
-artifact policy, and backend-only authority.
+All active manifest inputs and outputs resolve to strict, type-specific
+schemas; a legacy generic payload envelope cannot satisfy an active B-roll
+role. Manifests, assignments, plans, work items, media manifests, candidate
+receipts, QA records, and `skill_qualification_receipt_v2` are canonically
+serialized, SHA-256 addressed records. Raw media remains exclusively in the
+private create-only binary/object store. Execution requires an immutable
+approved snapshot, funded reservation, idempotency identity, exact
+package/work item, lease, private artifact policy, and backend-only authority.
 
 No frontend surface can authorize provider work, choose a provider route,
 provide an executable command, supply a storage path, or inject credentials.

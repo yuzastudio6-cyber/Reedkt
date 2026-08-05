@@ -84,6 +84,7 @@ export interface BrollSkillAssignment {
 export interface BrollSourceCandidate {
   sourceId: string
   sourceType: 'existing_project_clip' | 'approved_user_asset' | 'uploaded_video_for_edit' | 'reference_image'
+  providerImageRole?: 'first_frame' | 'reference'
   artifactRef: EditSkillArtifactReference
   sourceRange?: SkillFrameRange
   semanticRelevance: number
@@ -180,6 +181,7 @@ export interface BrollPlanArtifact {
   sourceCandidateId?: string
   sourceArtifactRef?: EditSkillArtifactReference
   sourceScore?: number
+  providerSourceArtifactRefs?: readonly EditSkillArtifactReference[]
   shotSpecification?: BrollShotSpecification
   displayTreatment: BrollDisplayTreatment
   sourceTrim?: SkillFrameRange
@@ -191,9 +193,25 @@ export interface BrollPlanArtifact {
   exitIntent: string
   coordination: BrollCoordinationPlan
   providerRequestPlanned: boolean
+  providerRequestPackageHash?: string
+  providerCreditEstimate: number
+  dependencySkillKey?: string
+  requiredDependencyArtifactType?: string
+  requiredForPhase?: string
+  refinementAuthority?: {
+    previousCandidateVersionId: string
+    previousCandidateVersionHash: string
+    priorQaReportHash: string
+    requestedCandidateVersion: 2
+    refinementCount: 1
+    maximumRefinements: 1
+  }
   timeEstimateSeconds: number
   creditEstimate: number
   lowerCostDecision: 'use_existing_project_clip' | 'use_no_broll'
+  planningQaPlanEvidenceHash: string
+  planningQaReportArtifactType: 'b_roll_planning_qa_report_v1'
+  planningQaReportHash: string
   planningQaPassed: boolean
   outsideAuthorizedRangeModified: false
   planHash: string

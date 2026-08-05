@@ -10,6 +10,10 @@ import type {
   BrollPlanningContext,
   BrollSkillAssignment,
 } from './b-roll-contracts'
+import {
+  assertBrollPlanningQaReport,
+  type BrollPlanningQaReport,
+} from './b-roll-planning-qa'
 import type { BrollCanonicalWorkGraph } from './b-roll-work-graph-compiler'
 
 export const CANONICAL_BROLL_SKILL_COMPONENT_KEY = 'bRollSkill' as const
@@ -37,9 +41,12 @@ const componentCoreSchema = z.object({
   assignmentArtifactRef: blobRefSchema,
   contextArtifactRef: blobRefSchema,
   planArtifactRef: blobRefSchema,
+  planningQaReportArtifactRef: blobRefSchema,
   workGraphArtifactRef: blobRefSchema,
   qualificationReceiptArtifactRef: blobRefSchema,
   planHash: skillSha256Schema,
+  planningQaPlanEvidenceHash: skillSha256Schema,
+  planningQaReportHash: skillSha256Schema,
   workGraphHash: skillSha256Schema,
   qualificationReceiptHash: skillSha256Schema,
   workItemCount: z.number().int().positive().max(32),
@@ -64,33 +71,49 @@ export function createCanonicalBrollSkillPlanComponent(input: {
   assignment: BrollSkillAssignment
   context: BrollPlanningContext
   plan: BrollPlanArtifact
+  planningQaReport: BrollPlanningQaReport
   workGraph: BrollCanonicalWorkGraph
   qualificationReceipt: SkillQualificationReceipt
   assignmentArtifactRef: AuthorityJsonBlobRef
   contextArtifactRef: AuthorityJsonBlobRef
   planArtifactRef: AuthorityJsonBlobRef
+  planningQaReportArtifactRef: AuthorityJsonBlobRef
   workGraphArtifactRef: AuthorityJsonBlobRef
   qualificationReceiptArtifactRef: AuthorityJsonBlobRef
 }): CanonicalBrollSkillPlanComponent {
-  if (
-    input.plan.assignmentId !== input.assignment.assignmentId ||
-    input.plan.assignmentHash !== input.assignment.assignmentHash ||
-    input.context.assignmentId !== input.assignment.assignmentId ||
-    input.context.ownerUserId !== input.assignment.ownerUserId ||
-    input.context.workspaceId !== input.assignment.workspaceId ||
-    input.context.projectId !== input.assignment.projectId ||
-    input.workGraph.assignmentId !== input.assignment.assignmentId ||
-    input.workGraph.assignmentHash !== input.assignment.assignmentHash ||
-    hashSkillValue(input.plan.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
-    hashSkillValue(input.workGraph.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
-    hashSkillValue(input.qualificationReceipt.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
+  const planningQaReport = assertBrollPlanningQaReport({
+    report: input.planningQaReport,
+    assignment: input.assignment,
+    contextHash: input.context.contextHash,
+    planEvidenceHash: input.plan.planningQaPlanEvidenceHash,
+  })
+  const reportArtifactHash = hashSkillValue(planningQaReport)
+  const lineageViolations = [
+    input.plan.assignmentId !== input.assignment.assignmentId && 'plan_assignment_id',
+    input.plan.assignmentHash !== input.assignment.assignmentHash && 'plan_assignment_hash',
+    input.context.assignmentId !== input.assignment.assignmentId && 'context_assignment_id',
+    input.context.ownerUserId !== input.assignment.ownerUserId && 'context_owner',
+    input.context.workspaceId !== input.assignment.workspaceId && 'context_workspace',
+    input.context.projectId !== input.assignment.projectId && 'context_project',
+    input.workGraph.assignmentId !== input.assignment.assignmentId && 'graph_assignment_id',
+    input.workGraph.assignmentHash !== input.assignment.assignmentHash && 'graph_assignment_hash',
+    hashSkillValue(input.plan.manifestRef) !== hashSkillValue(input.assignment.manifestRef) && 'plan_manifest',
+    hashSkillValue(input.workGraph.manifestRef) !== hashSkillValue(input.assignment.manifestRef) && 'graph_manifest',
+    hashSkillValue(input.qualificationReceipt.manifestRef) !== hashSkillValue(input.assignment.manifestRef) && 'qualification_manifest',
     hashSkillValue(input.plan.authorizedRange) !==
-      hashSkillValue(input.assignment.writeRangeAuthority.authorizedRange) ||
+      hashSkillValue(input.assignment.writeRangeAuthority.authorizedRange) && 'plan_range',
     hashSkillValue(input.workGraph.authorizedRange) !==
-      hashSkillValue(input.assignment.writeRangeAuthority.authorizedRange) ||
+      hashSkillValue(input.assignment.writeRangeAuthority.authorizedRange) && 'graph_range',
+    input.workGraph.planningQaReportHash !== reportArtifactHash && 'graph_planning_qa',
+    reportArtifactHash !== input.plan.planningQaReportHash && 'plan_planning_qa',
+    planningQaReport.schemaVersion !== input.plan.planningQaReportArtifactType && 'planning_qa_artifact_type',
+    !planningQaReport.planningQaPassed && 'planning_qa_failed',
     !['planning_qualified', 'internal_execution_qualified', 'production_qualified']
-      .includes(input.qualificationReceipt.qualificationStatus)
-  ) throw new Error('Canonical B-roll component lineage is stale or under-qualified.')
+      .includes(input.qualificationReceipt.qualificationStatus) && 'qualification_status',
+  ].filter((value): value is string => typeof value === 'string')
+  if (lineageViolations.length > 0) {
+    throw new Error(`Canonical B-roll component lineage is stale or under-qualified: ${lineageViolations.join(', ')}.`)
+  }
   const core = componentCoreSchema.parse({
     schemaVersion: CANONICAL_BROLL_SKILL_COMPONENT_VERSION,
     ownerUserId: input.assignment.ownerUserId,
@@ -105,9 +128,12 @@ export function createCanonicalBrollSkillPlanComponent(input: {
     assignmentArtifactRef: input.assignmentArtifactRef,
     contextArtifactRef: input.contextArtifactRef,
     planArtifactRef: input.planArtifactRef,
+    planningQaReportArtifactRef: input.planningQaReportArtifactRef,
     workGraphArtifactRef: input.workGraphArtifactRef,
     qualificationReceiptArtifactRef: input.qualificationReceiptArtifactRef,
     planHash: input.plan.planHash,
+    planningQaPlanEvidenceHash: input.plan.planningQaPlanEvidenceHash,
+    planningQaReportHash: reportArtifactHash,
     workGraphHash: input.workGraph.workGraphHash,
     qualificationReceiptHash: input.qualificationReceipt.receiptHash,
     workItemCount: input.workGraph.workItems.length,

@@ -10,6 +10,7 @@ export interface BrollSourceStrategy {
   decision: BrollDecision
   reason: string
   selected?: RankedBrollSourceCandidate
+  providerReferenceImages?: readonly RankedBrollSourceCandidate[]
   dependencySkillKey?: 'track_all'
 }
 
@@ -54,7 +55,14 @@ export function resolveBrollSourceStrategy(input: {
   ) return {
     decision: 'generate_with_gemini_omni',
     selected: referenceImage,
-    reason: 'The approved reference image can guide one bounded Gemini Omni image-to-video candidate.',
+    ...(referenceImage.candidate.providerImageRole === 'reference' ? {
+      providerReferenceImages: ranked.filter((item) =>
+        item.eligible && item.candidate.sourceType === 'reference_image' &&
+        item.candidate.providerImageRole === 'reference').slice(0, 6),
+    } : {}),
+    reason: referenceImage.candidate.providerImageRole === 'reference'
+      ? 'One to six approved reference images can guide one bounded Gemini Omni reference-to-video candidate.'
+      : 'The approved first frame can guide one bounded Gemini Omni image-to-video candidate.',
   }
 
   if (input.context.claimSensitivity === 'verified_proof_required' || input.context.generatedMediaWouldMislead) {

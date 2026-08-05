@@ -8,7 +8,7 @@ import {
   timelineRatesEqual,
   type TimelineRate,
 } from '../edit-skills/core/timeline-rate'
-import { standaloneSoundSkillService } from '../edit-skills/registry'
+import { standaloneSoundSkillService } from '../edit-skills/internal-fixture-runtime'
 import { analyzeWholeVideoSoundContinuity } from '../sound/sound-continuity'
 import { runCanonicalSoundController } from '../sound/sound-controller'
 import { evaluateSoundScopeGuard, validateSoundResultAuthority } from '../sound/sound-scope-guard'

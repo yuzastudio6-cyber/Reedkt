@@ -7,25 +7,27 @@ import { join } from 'node:path'
 
 import {
   BROLL_CAPABILITY_MANIFEST,
-  brollSemanticVisualObservationSchema,
   compileBrollCanonicalWorkGraph,
   compileBrollPlan,
   createBrollAssignment,
   createBrollPlanningContext,
-  createBrollSemanticVisualObservation,
   createInitialInjectedBrollCandidateAttemptEvidence,
-  directBrollCandidateQa,
-  directBrollCandidateRefinement,
   executeBrollCandidateQa,
   executePrivateInjectedBrollCandidateRefinement,
   projectBrollCanonicalWorkItems,
 } from '../edit-skills/b-roll'
 import {
+  brollSemanticVisualObservationSchema,
+  createBrollSemanticVisualObservation,
+  directBrollCandidateQa,
+} from '../edit-skills/b-roll/mini-skills/candidate-qa-director'
+import { directBrollCandidateRefinement } from '../edit-skills/b-roll/mini-skills/refinement-director'
+import {
   hashSkillValue,
   skillManifestReference,
 } from '../edit-skills/core/skill-capability-manifest-hash'
-import { createBrollPlanningQualificationReceipt } from '../edit-skills/b-roll/b-roll-qualification'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { loadBrollGeneratedQualificationReceiptForCurrentSource } from '../edit-skills/b-roll/b-roll-qualification-evidence'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import { persistCanonicalBrollPlanComponent } from '../services/canonical-broll-plan-component-service'
 import {
   BROLL_PROVIDER_ROUTE_ID,
@@ -33,6 +35,7 @@ import {
   buildBrollGeminiOfficialRefinementRequest,
   buildBrollProviderRequestPackageV5,
   createBrollProviderWorkAuthorizationV5,
+  projectCanonicalBrollWorkItemForImmutableGeminiOmniV5,
   executePrivateInjectedBrollProviderLifecycleV5,
 } from '../providers/google/gemini-omni-broll'
 import { activatePrivateOfflineMediaBinaryRuntime } from '../tool-execution/media-binary-execution'
@@ -125,8 +128,9 @@ try {
     assignment,
     context,
     plan: compiled.plan,
+    planningQaReport: compiled.planningQaReport,
     workGraph,
-    qualificationReceipt: createBrollPlanningQualificationReceipt(BROLL_CAPABILITY_MANIFEST),
+    qualificationReceipt: loadBrollGeneratedQualificationReceiptForCurrentSource(BROLL_CAPABILITY_MANIFEST),
   })
   const componentRef = persisted.componentRefs.bRollSkill
   const requestPackage = buildBrollProviderRequestPackageV5({
@@ -149,7 +153,10 @@ try {
     approvedMaximumCredits: 100,
     remainingReservedCredits: 100,
     approvedProviderRoutes: [BROLL_PROVIDER_ROUTE_ID],
-    approvedWorkItems: [{ id: 'provider-work-m8', ...providerWorkItem }],
+    approvedWorkItems: [{
+      id: 'provider-work-m8',
+      ...projectCanonicalBrollWorkItemForImmutableGeminiOmniV5(providerWorkItem),
+    }],
     status: 'canonical_authority_packaged_runtime_blocked',
   })
   const authorization = createBrollProviderWorkAuthorizationV5({
@@ -483,7 +490,7 @@ function observation(input: {
   cameraIntent: boolean
   evidenceLabel: string
 }) {
-  return createBrollSemanticVisualObservation({
+  const value = createBrollSemanticVisualObservation({
     schemaVersion: 'b_roll_semantic_visual_observation_v1',
     candidateSha256: input.candidateSha256,
     assignmentHash: input.assignmentHash,
@@ -491,6 +498,7 @@ function observation(input: {
     conceptKey: input.conceptKey,
     authorizedRangeHash: input.authorizedRangeHash,
     observationSource: 'internal_injected_visual_observation_v1',
+    testOnly: true,
     evidenceArtifactHash: hashSkillValue({ evidence: input.evidenceLabel }),
     confidenceMillionths: 950_000,
     checks: {
@@ -508,6 +516,9 @@ function observation(input: {
     automaticSelectionAllowed: false,
     productionQualified: false,
   })
+  assert.equal(value.testOnly, true)
+  assert.equal(value.productionQualified, false)
+  return value
 }
 
 function shaText(value: string): string {

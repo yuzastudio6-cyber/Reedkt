@@ -20,7 +20,7 @@ import {
   hashSkillValue,
   skillManifestReference,
 } from '../edit-skills/core/skill-capability-manifest-hash'
-import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/registry'
+import { editSkillEstimatorRegistry, editSkillQaRegistry } from '../edit-skills/internal-fixture-runtime'
 import {
   persistCanonicalPrivateMediaArtifact,
 } from '../services/canonical-private-media-artifact-storage'
@@ -67,25 +67,6 @@ try {
     byteLength: sourceBytes.byteLength,
     ...scope,
   }
-  const trackGraph = trackGraphV1Schema.parse({
-    schemaVersion: 'track_graph_v1',
-    modelNeutral: true,
-    ...scope,
-    sourceSha256: sourceArtifactRef.sha256,
-    fps: 24,
-    tracks: [{
-      trackId: 'speaker-track-m9',
-      startFrameInclusive: 0,
-      endFrameExclusive: 72,
-      samplesArtifactHash: hashSkillValue({ samples: 'm9' }),
-    }],
-  })
-  const trackGraphRef = {
-    artifactType: 'track_graph_v1',
-    sha256: hashSkillValue(trackGraph),
-    byteLength: Buffer.byteLength(canonicalSkillJson(trackGraph), 'utf8'),
-    ...scope,
-  }
   const captionRef = {
     artifactType: 'caption_overlay_png_v1',
     sha256: sha256(captionBytes),
@@ -109,7 +90,7 @@ try {
     readContextAuthority: {
       wholeVideoReadOnly: true,
       adjacentScenesReadOnly: true,
-      contextArtifactRefs: [sourceArtifactRef, trackGraphRef, captionRef],
+      contextArtifactRefs: [sourceArtifactRef, captionRef],
     },
     writeRangeAuthority: { authorizedRange, outsideAuthorizedRangeModified: false },
     reason: 'Use one concise source cutaway to clarify the workflow.',
@@ -126,6 +107,29 @@ try {
     requiredOutputTypes: ['b_roll_result_receipt_v1'],
     manifestRef,
   })
+  const trackGraph = trackGraphV1Schema.parse({
+    schemaVersion: 'track_graph_v1',
+    modelNeutral: true,
+    ...scope,
+    assignmentId: assignment.assignmentId,
+    assignmentHash: assignment.assignmentHash,
+    authorizedRange,
+    authorizedRangeHash: hashSkillValue(authorizedRange),
+    sourceSha256: sourceArtifactRef.sha256,
+    fps: 24,
+    tracks: [{
+      trackId: 'speaker-track-m9',
+      startFrameInclusive: authorizedRange.startFrameInclusive,
+      endFrameExclusive: authorizedRange.endFrameExclusive,
+      samplesArtifactHash: hashSkillValue({ samples: 'm9' }),
+    }],
+  })
+  const trackGraphRef = {
+    artifactType: 'track_graph_v1',
+    sha256: hashSkillValue(trackGraph),
+    byteLength: Buffer.byteLength(canonicalSkillJson(trackGraph), 'utf8'),
+    ...scope,
+  }
   const context = createBrollPlanningContext({
     schemaVersion: 'b_roll_context_manifest_v1',
     ...scope,

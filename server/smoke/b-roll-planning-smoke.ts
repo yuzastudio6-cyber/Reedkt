@@ -6,7 +6,7 @@ import {
   editSkillEstimatorRegistry,
   editSkillQaRegistry,
   editSkillQualificationRegistry,
-} from '../edit-skills/registry'
+} from '../edit-skills/internal-fixture-runtime'
 import { EditSkillInvocationService } from '../edit-skills/core/edit-skill-invocation-service'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
 import { createSkillAssignment } from '../edit-skills/core/skill-range-authority'
@@ -16,7 +16,11 @@ import {
   type BrollSourceCandidate,
   type BrollSkillAssignment,
   createBrollAssignment,
+  createBrollMasterTimingPlan,
   createBrollPlanningContext,
+  createBrollPublicContextManifest,
+  createBrollSourceInventory,
+  createBrollVisualOwnershipManifest,
   compileBrollPlan,
 } from '../edit-skills/b-roll/index'
 
@@ -144,26 +148,63 @@ const regionBlocked = compile(
 assert.notEqual(regionBlocked.plan.decision, 'edit_uploaded_video_with_gemini_omni')
 
 const contextArtifact = context()
-const contextRef = await editSkillArtifactStore.putJson({
-  artifactType: 'b_roll_context_manifest_v1', ownerUserId: 'user', workspaceId: 'workspace', projectId: 'project', value: contextArtifact,
+const publicScope = { ownerUserId: 'user', workspaceId: 'workspace', projectId: 'project' }
+const sourceInventory = createBrollSourceInventory({
+  schemaVersion: 'source_inventory_v1', ...publicScope, editSessionId: 'session', assignmentId: 'assignment',
+  editPlanVersion: 1, manifestRef, candidates: [...contextArtifact.sourceCandidates],
 })
-const brollAssignment = assignment({ readContextAuthority: { wholeVideoReadOnly: true, adjacentScenesReadOnly: true, contextArtifactRefs: [contextRef] } })
+const sourceInventoryRef = await editSkillArtifactStore.putJson({
+  artifactType: 'source_inventory_v1', ...publicScope, value: sourceInventory,
+})
+const masterTiming = createBrollMasterTimingPlan({
+  schemaVersion: 'master_timing_plan_v1', ...publicScope, editSessionId: 'session', assignmentId: 'assignment',
+  editPlanVersion: 1, manifestRef, fps: range.fps, timelineRange: masterRange, assignmentRange: range,
+})
+const masterTimingRef = await editSkillArtifactStore.putJson({
+  artifactType: 'master_timing_plan_v1', ...publicScope, value: masterTiming,
+})
+const visualOwnership = createBrollVisualOwnershipManifest({
+  schemaVersion: 'visual_ownership_manifest_v1', ...publicScope, editSessionId: 'session', assignmentId: 'assignment',
+  editPlanVersion: 1, manifestRef, assignmentRange: range, requestedOwnership: 'primary', ownershipWindows: [],
+})
+const visualOwnershipRef = await editSkillArtifactStore.putJson({
+  artifactType: 'visual_ownership_manifest_v1', ...publicScope, value: visualOwnership,
+})
+const brollAssignment = assignment({
+  masterTimingHash: masterTiming.timingHash,
+  readContextAuthority: {
+    wholeVideoReadOnly: true,
+    adjacentScenesReadOnly: true,
+    contextArtifactRefs: [sourceInventoryRef, masterTimingRef, visualOwnershipRef],
+  },
+})
 const assignmentRef = await editSkillArtifactStore.putJson({
-  artifactType: 'b_roll_assignment_v1', ownerUserId: 'user', workspaceId: 'workspace', projectId: 'project', value: brollAssignment,
+  artifactType: 'b_roll_assignment_v1', ...publicScope, value: brollAssignment,
+})
+const publicContext = createBrollPublicContextManifest({
+  context: contextArtifact, editSessionId: 'session', editPlanVersion: 1, manifestRef,
+  assignmentRef, sourceInventoryRef, masterTimingRef, visualOwnershipRef,
+})
+const contextRef = await editSkillArtifactStore.putJson({
+  artifactType: 'b_roll_context_manifest_v1', ...publicScope, value: publicContext,
 })
 const genericAssignment = createSkillAssignment({
   schemaVersion: 'edit-skill-assignment-v1', assignmentId: 'assignment', ownerUserId: 'user', workspaceId: 'workspace', projectId: 'project',
   editSessionId: 'session', planningRequestId: 'request', manifestRef, authorizedRange: range,
   reason: 'Support the product feature.', intendedViewerBenefit: 'See the exact feature.', editorialContext: 'Manifest-gated B-roll planning.',
-  visualOwnership: 'primary', contextArtifactRefs: [assignmentRef, contextRef], dependencyArtifactRefs: [], requestedBySkill: 'orchestra',
+  visualOwnership: 'primary',
+  contextArtifactRefs: [assignmentRef, contextRef, sourceInventoryRef, masterTimingRef, visualOwnershipRef],
+  dependencyArtifactRefs: [], requestedBySkill: 'orchestra',
 })
 const invocationPlan = await new EditSkillInvocationService(editSkillCapabilityRegistry).plan(genericAssignment)
 assert.equal(invocationPlan.disposition, 'use_skill')
 assert.match(invocationPlan.payloadHash, /^[a-f0-9]{64}$/u)
 
-editSkillQualificationRegistry.assertClaim(manifestRef, 'planning_qualified')
-editSkillQualificationRegistry.assertClaim(manifestRef, 'internal_execution_qualified')
-assert.throws(() => editSkillQualificationRegistry.assertClaim(manifestRef, 'production_qualified'), /exceeds/)
+if (process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING !== '1') {
+  editSkillQualificationRegistry.assertClaim(manifestRef, 'planning_qualified')
+  editSkillQualificationRegistry.assertClaim(manifestRef, 'internal_execution_qualified')
+  assert.throws(() => editSkillQualificationRegistry.assertClaim(manifestRef, 'production_qualified'), /exceeds/)
+}
 
 console.log(JSON.stringify({
   status: 'ok',

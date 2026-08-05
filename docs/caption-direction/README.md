@@ -106,6 +106,7 @@ The governing workflow invariant remains:
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
 - [Canonical rendered-media work binding](canonical-rendered-media-work-binding.md)
 - [Canonical post-render visual QA and private-review planning](canonical-postrender-visual-qa-private-review-planning.md)
+- [Canonical post-render Qwen visual-QA shared lifecycle](../canonical-postrender-qwen-visual-qa-shared-lifecycle-contract.md)
 - [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended

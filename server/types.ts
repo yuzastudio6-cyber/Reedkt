@@ -63,6 +63,9 @@ import type {
 import type {
   CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import type {
+  CanonicalCaptionPostrenderVisualQaEvidenceRepository,
+} from './services/canonical-caption-postrender-visual-qa-evidence-service'
 
 export interface AuthContext {
   userId: string
@@ -157,6 +160,8 @@ export interface RuntimeState {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  canonicalCaptionPostrenderVisualQaEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualQaEvidenceRepository
 }
 
 export type RuntimeRequest = Request & {
@@ -225,4 +230,6 @@ export interface ServiceContext {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  canonicalCaptionPostrenderVisualQaEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualQaEvidenceRepository
 }

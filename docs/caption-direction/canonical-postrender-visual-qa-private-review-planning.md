@@ -26,11 +26,15 @@ public-delivery, or production authority during planning. Actual sample frames
 may be created only after the exact rendered artifact and deterministic QA are
 persisted and reread.
 
-Its resource placement is deliberately
+Its resource placement remains deliberately
 `caption_postrender_visual_qa_lifecycle_pending`, not privately executable.
-The job becomes runnable only after the canonical lifecycle coordinator is
-mounted in the one shared job adapter; planning must not masquerade as that
-runtime evidence.
+The authenticated read side is now source-complete: a canonical normalized
+decision/evidence record, create-only repository contract, exact reread
+service, and mounted signed-in route preserve not-found, pending, passed,
+repair, human-review, and reconciliation-blocked states. That read side does
+not make the coordinator runnable. The job becomes runnable only after the
+canonical provider lifecycle is mounted in the one shared job adapter;
+planning and synthetic route fixtures must not masquerade as runtime evidence.
 
 `canonical-caption-private-review-dependency-binding-v1` then freezes the
 three artifacts that the existing canonical private-review owner must consume:
@@ -53,4 +57,6 @@ run produces and rereads the Qwen lifecycle result, independent private review
 accepts the exact output, and the terminal projection consumes those canonical
 records.
 
-No provider or media runtime was executed by this source milestone.
+No provider or media runtime was executed by this source milestone. The
+authenticated route smoke uses only synthetic lifecycle data and a controlled
+in-memory create-only repository.

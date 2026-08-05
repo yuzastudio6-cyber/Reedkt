@@ -11,6 +11,8 @@ import { createControlledLocalStorytellingProductionAuthorityReader } from './mo
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createCanonicalCloudDispatchRoutes } from
   './routes/canonical-cloud-dispatch-routes'
+import { createCaptionPostrenderVisualQaRoutes } from
+  './routes/caption-postrender-visual-qa-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditDataRoutes } from './routes/credit-data-routes'
 import { createCreditEstimateRoutes } from './routes/credit-estimate-routes'
@@ -113,6 +115,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
+  canonicalCaptionPostrenderVisualQaEvidenceRepository?:
+    RuntimeState['canonicalCaptionPostrenderVisualQaEvidenceRepository']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -302,6 +306,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.trackAllSam31AuthenticatedGpuStartRuntimePort,
         }
       : {}),
+    ...(options.canonicalCaptionPostrenderVisualQaEvidenceRepository
+      ? {
+          canonicalCaptionPostrenderVisualQaEvidenceRepository:
+            options.canonicalCaptionPostrenderVisualQaEvidenceRepository,
+        }
+      : {}),
     clients,
   }
 
@@ -393,6 +403,7 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createRenderRoutes())
   app.use(createVisualIntelligenceOrchestraRoutes())
   app.use(createVisualIntelligenceRoutes())
+  app.use(createCaptionPostrenderVisualQaRoutes())
   app.use(createTrackAllSam31Routes())
   app.use(createProviderGatewayRoutes())
 

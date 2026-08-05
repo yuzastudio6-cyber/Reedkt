@@ -90,6 +90,9 @@ export function getServiceContext(request: Request): ServiceContext {
         .canonicalSourceLedOrchestraPlanningReconciliationPort,
     trackAllSam31AuthenticatedGpuStartRuntimePort:
       runtimeRequest.runtime.trackAllSam31AuthenticatedGpuStartRuntimePort,
+    canonicalCaptionPostrenderVisualQaEvidenceRepository:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualQaEvidenceRepository,
   }
 }
 

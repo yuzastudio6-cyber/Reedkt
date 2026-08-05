@@ -233,6 +233,8 @@
     "smoke:sam3_1-google-cloud-runtime-configuration-publisher": "tsx server/smoke/canonical-sam3_1-google-cloud-runtime-configuration-publisher-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-authority": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-smoke.ts",
+    "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-service": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-service-smoke.ts",
+    "start:track-all-sam3_1-l4-task-qa-cloud-image-build": "tsx server/cli/start-track-all-sam3_1-l4-task-qa-cloud-image-build.ts",
     "publish:sam3_1-google-cloud-runtime-configuration": "tsx server/cli/publish-sam3_1-google-cloud-runtime-configuration.ts",
     "publish:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/cli/publish-track-all-sam3_1-l4-task-qa-runtime-release.ts",
     "smoke:canonical-specialist-support-resume": "tsx server/smoke/canonical-specialist-support-resume-service-smoke.ts",

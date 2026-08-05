@@ -24,6 +24,8 @@ export const CAPTIONS_CANONICAL_TRANSCRIPT_READ_ADAPTER_EVIDENCE_ID =
   'captions.canonical-transcript.authenticated-read-adapter' as const
 export const CAPTIONS_CANONICAL_RESUME_READ_ADAPTER_EVIDENCE_ID =
   'captions.canonical-specialist.resume-read-adapter' as const
+export const CAPTIONS_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_EVIDENCE_ID =
+  'captions.visual-intelligence.spatial-evidence-adapter' as const
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -129,6 +131,14 @@ UnpublishedSkillCapabilityManifestV2 = {
       assertion:
         'The Caption consumer validates the canonical backend sequential-resume record, exact current-owner injection, prior-owner promotion, and complete immediate lineage without importing backend implementation.',
     },
+    {
+      evidenceId: CAPTIONS_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_EVIDENCE_ID,
+      evidenceType: 'fixture',
+      location:
+        'server/smoke/captions-specialist-visual-intelligence-spatial-adapter-smoke.ts',
+      assertion:
+        'The Caption consumer exact-rereads the authenticated Visual Intelligence report and immutable spatial companion, projects provider-neutral occupancy observations, and refuses pixel, contrast, rendered-inspection, provider, or QA authority overclaims.',
+    },
   ],
   acceptedArtifactTypes,
   integrationQa: unique([
@@ -139,6 +149,7 @@ UnpublishedSkillCapabilityManifestV2 = {
     'sound_and_broll_may_not_silently_complete_without_owner_evidence',
     'broll_owner_read_public_adapter_frozen',
     'canonical_backend_sequential_resume_consumer_frozen',
+    'visual_intelligence_spatial_evidence_adapter_frozen',
     'backend_wire_projection_must_be_distinctly_versioned',
   ]),
   qualificationFixtures: unique([
@@ -152,6 +163,7 @@ UnpublishedSkillCapabilityManifestV2 = {
     'The B-roll public adapter is frozen, but no authenticated owner result has been persisted, reread, or injected in this checkout.',
     'The canonical transcript authenticated-read adapter is frozen, but no canonical persistence reader is mounted in this checkout.',
     'The canonical backend sequential-resume consumer is frozen, but no actual persisted resume record has been supplied to Caption.',
+    'The Visual Intelligence spatial adapter is frozen, but no actual owner result has been injected; spatial v1 semantic geometry carries no deterministic regional contrast and cannot alone select final Caption placement.',
     'The canonical backend publishes materially different V1 call, support, and result shapes; integration requires an additive digest-recomputed bridge and forbids cast or relabel behavior.',
   ],
   capabilityEntries,

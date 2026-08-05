@@ -30,6 +30,8 @@ import {
 } from '../captions-specialist/caption-broll-owner-read-adapter'
 import { CAPTION_CANONICAL_SPECIALIST_RESUME_READ_ADAPTER_RECEIPT } from
   '../captions-specialist/caption-canonical-specialist-resume-read'
+import { CAPTION_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_RECEIPT } from
+  '../captions-specialist/caption-visual-intelligence-spatial-adapter'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -105,6 +107,16 @@ check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.integrationQa.includes(
   && CAPTION_CANONICAL_SPECIALIST_RESUME_READ_ADAPTER_RECEIPT.backendSource
     .sourceCommit === '832f56fc41c90413f6c99cc70d5cd658c8e44675',
 'the integration profile binds the exact canonical backend resume consumer')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.integrationQa.includes(
+  'visual_intelligence_spatial_evidence_adapter_frozen')
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.qualificationEvidenceRefs.some(
+    (item) => item.evidenceId
+      === 'captions.visual-intelligence.spatial-evidence-adapter')
+  && CAPTION_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_RECEIPT.backendSource
+    .sourceCommit === '5130e3c70f3f633e6877aa3feff4dc296eba525b'
+  && !CAPTION_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_RECEIPT
+    .renderedCaptionInspectionAdmitted,
+'the integration profile binds the exact provider-neutral spatial adapter')
 
 const legacySoundCall = createCaptionsHarnessCall({
   callId: 'captions.integration.legacy-sound',

@@ -99,6 +99,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 B-roll owner-read adapter](post-cap20-broll-owner-read-adapter.md)
 - [Post-CAP-20 canonical transcript authenticated read](post-cap20-canonical-transcript-authenticated-read.md)
 - [Post-CAP-20 canonical sequential-resume read](post-cap20-canonical-resume-read.md)
+- [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended
 
@@ -293,6 +294,12 @@ create-only sequential support ledger. It proves exact current-owner injection
 and prior-owner promotion without importing the backend service or claiming
 that actual records have been mounted. See
 [`post-cap20-canonical-resume-read.md`](./post-cap20-canonical-resume-read.md).
+
+The provider-neutral Visual Intelligence spatial companion now has a strict
+Caption consumer. It admits semantic occupancy geometry while preserving null
+regional contrast, refusing rendered-review substitution, and retaining all
+provider and QA ownership outside Caption. See
+[`post-cap20-visual-intelligence-spatial-adapter.md`](./post-cap20-visual-intelligence-spatial-adapter.md).
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

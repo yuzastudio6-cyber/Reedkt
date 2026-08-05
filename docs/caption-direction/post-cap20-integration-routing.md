@@ -5,9 +5,9 @@ Milestone: `POST-CAP-20-INTEGRATION-ROUTING`
 Status: `source_complete_authenticated_owner_evidence_pending`
 
 - integration manifest hash:
-  `03ab9332e2c097b9ed72a61987d0ed5fc1e89ef46fd2b7a4444a03631e8b234d`;
+  `5a23bcae3cf008cd5c18484a00d77df5ec17efd27a6d99f454e11f87178e1ef2`;
 - integration qualification digest:
-  `facd5d56f517c1efe64425aaed663f42cc6fa4e86f45576598d3fee1900ebd46`.
+  `963eccd82559bb4f2dd80cbd87a67e514b6ed897cd1a6a7c0f54f917a181d754`.
 
 ## Outcome
 
@@ -95,9 +95,14 @@ The Caption consumer for the canonical backend sequential-resume ledger is
 frozen against backend commit `832f56fc41c90413f6c99cc70d5cd658c8e44675`.
 Actual persisted owner projections and resume records remain external.
 
+The Caption consumer for provider-neutral Visual Intelligence spatial evidence
+is frozen against backend commit `5130e3c70f3f633e6877aa3feff4dc296eba525b`.
+It preserves semantic-only geometry and null regional contrast; actual owner
+result injection and pixel-bound Caption readability evidence remain external.
+
 ## Tests
 
-The focused integration smoke passes 28 checks for frozen-hash compatibility,
+The focused integration smoke passes 29 checks for frozen-hash compatibility,
 all twelve
 conditional job requirements, SoundSync and B-roll routing, two-owner
 safe-region sequential resume, missing-transcript fail-closed behavior,

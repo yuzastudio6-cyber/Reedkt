@@ -6,6 +6,10 @@ export const VISUAL_INTELLIGENCE_REPORT_VERSION =
   'visual-intelligence-report-v1' as const
 export const VISUAL_INTELLIGENCE_PROVIDER_RESULT_VERSION =
   'visual-intelligence-provider-result-v1' as const
+export const VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION =
+  'visual-intelligence-provider-result-v2' as const
+export const VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION =
+  'visual-intelligence-spatial-evidence-v1' as const
 export const VISUAL_INSPECTION_REQUIREMENT_VERSION =
   'visual-inspection-requirement-v1' as const
 export const VISUAL_INSPECTION_RESULT_VERSION =
@@ -37,15 +41,23 @@ export const VISUAL_INTELLIGENCE_PLANNING_OPERATION_ROUTE =
 export const VISUAL_INTELLIGENCE_CAPABILITY_ID =
   'visual_intelligence' as const
 
-export const VISUAL_INTELLIGENCE_SKILL_IDS = [
+export const VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS = [
   'visual_intelligence.analyze_media',
   'visual_intelligence.inspect_edit',
   'visual_intelligence.query_range',
   'visual_intelligence.compare_media',
 ] as const
 
+/** @deprecated These are internal operations, not top-level skill IDs. */
+export const VISUAL_INTELLIGENCE_SKILL_IDS =
+  VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS
+
+export type VisualIntelligenceInternalOperationId =
+  typeof VISUAL_INTELLIGENCE_INTERNAL_OPERATION_IDS[number]
+
+/** @deprecated Use VisualIntelligenceInternalOperationId. */
 export type VisualIntelligenceSkillId =
-  typeof VISUAL_INTELLIGENCE_SKILL_IDS[number]
+  VisualIntelligenceInternalOperationId
 
 export const VISUAL_INTELLIGENCE_OPERATIONS = [
   'analyze_media',
@@ -401,6 +413,17 @@ export interface VisualIntelligenceToolExecutionEvidence {
   sourceArtifactChecksumBound: true
 }
 
+export interface VisualIntelligenceConditionalToolDecision {
+  artifactId: string
+  tool: 'faster_whisper' | 'ocr'
+  disposition:
+    | 'executed'
+    | 'not_required_no_audio'
+  decisionEvidenceRef: VisualIntelligenceEvidenceRef
+  exactCanonicalDecisionRereadVerified: true
+  callerDecisionAccepted: false
+}
+
 export interface VisualIntelligenceSamplingPolicy {
   policyId: string
   policyVersion: string
@@ -431,6 +454,30 @@ export interface VisualIntelligenceCoverage {
   completeRequestedRangeCoverage: boolean
   everyTimelineFrameInspected: false
   completeTimePixelInspectionClaimAllowed: false
+}
+
+/**
+ * Server-owned deterministic evidence package prepared before a semantic
+ * provider call. GCS coordinates remain private control-plane data and never
+ * appear in Orchestra jobs, browser requests, or persisted public reports.
+ */
+export interface VisualIntelligencePreparedEvidence {
+  readonly deterministicEvidence: VisualIntelligenceEvidence[]
+  readonly coveragePlan: VisualIntelligenceCoverage
+  readonly privateMediaInputs: Array<{
+    artifactId: string
+    gcsUri: string
+    contentType: string
+    checksumSha256: string
+    exactGenerationRereadVerified: true
+  }>
+  readonly transcriptVersion: string | null
+  readonly ocrVersion: string | null
+  readonly conditionalToolDecisions:
+    readonly VisualIntelligenceConditionalToolDecision[]
+  readonly toolExecutionEvidence:
+    readonly VisualIntelligenceToolExecutionEvidence[]
+  readonly preparedEvidenceRef: VisualIntelligenceEvidenceRef
 }
 
 /**
@@ -675,8 +722,134 @@ export interface VisualIntelligenceProviderNormalizedResult {
   editingOrRenderingClaimed: false
 }
 
+export const VISUAL_INTELLIGENCE_SPATIAL_OBSERVATION_ROLES = [
+  'safe_candidate',
+  'face',
+  'eyes',
+  'mouth',
+  'hair',
+  'hand',
+  'gesture',
+  'speaker',
+  'product',
+  'important_object',
+  'screen_text',
+  'map_label',
+  'chart_label',
+  'browser_highlight',
+  'lower_third',
+  'fact_safety_note',
+  'cta',
+  'broll_panel',
+  'living_frame',
+  'platform_ui',
+  'crop_risk',
+] as const
+
+export type VisualIntelligenceSpatialObservationRole =
+  typeof VISUAL_INTELLIGENCE_SPATIAL_OBSERVATION_ROLES[number]
+
+export interface VisualIntelligenceBasisPointRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/**
+ * A provider observation is semantic geometry, not deterministic pixel truth.
+ * Regional contrast remains null in v1 because the current deterministic
+ * evidence ref does not bind an exact pixel measurement to this rectangle.
+ */
+export interface VisualIntelligenceSpatialObservation {
+  observationId: string
+  artifactId: string
+  sceneId: string | null
+  range: VisualIntelligenceFrameRange
+  role: VisualIntelligenceSpatialObservationRole
+  regionBasisPoints: VisualIntelligenceBasisPointRect
+  confidenceBasisPoints: number
+  temporalStabilityBasisPoints: number
+  measuredContrastRatioMilli: null
+  clutterBasisPoints: number
+  cropResilienceBasisPoints: number
+  compositionBalanceBasisPoints: number
+  findingIds: string[]
+  evidenceRefs: VisualIntelligenceEvidenceRef[]
+  uncertaintyCode: string | null
+  semanticGeometryOnly: true
+  deterministicPixelGeometryClaimed: false
+}
+
+export interface VisualIntelligenceProviderNormalizedResultV2 {
+  schemaVersion: typeof VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION
+  requestId: string
+  semanticSummary: string
+  segments: VisualIntelligenceSegment[]
+  findings: VisualIntelligenceFinding[]
+  spatialObservations: VisualIntelligenceSpatialObservation[]
+  targetedFollowupRanges: VisualIntelligenceFrameRange[]
+  warnings: string[]
+  mediaContentTreatedAsUntrusted: true
+  providerInstructionsFollowedFromMedia: false
+  editingOrRenderingClaimed: false
+}
+
+export type VisualIntelligenceProviderNormalizedResultAny =
+  | VisualIntelligenceProviderNormalizedResult
+  | VisualIntelligenceProviderNormalizedResultV2
+
+/**
+ * Immutable companion record for report-v1. This preserves historical report
+ * wire identity while giving downstream skills authenticated, frame-bound
+ * spatial evidence instead of asking them to parse prose or invent regions.
+ */
+export interface VisualIntelligenceSpatialEvidence {
+  schemaVersion: typeof VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION
+  spatialEvidenceId: string
+  spatialEvidenceDigestSha256: string
+  requestRef: VisualIntelligenceEvidenceRef
+  reportRef: VisualIntelligenceEvidenceRef
+  scope: VisualIntelligenceRequest['scope']
+  operation: VisualIntelligenceOperation
+  profile: VisualIntelligenceProfile
+  outputFrame: VisualIntelligenceOutputFrame | null
+  sourceArtifacts: Array<{
+    artifactId: string
+    checksumSha256: string
+    width: number
+    height: number
+    durationFrames: number
+    frameRate: VisualIntelligenceFrameRate
+  }>
+  comparisonArtifacts: Array<{
+    artifactId: string
+    checksumSha256: string
+    width: number
+    height: number
+    durationFrames: number
+    frameRate: VisualIntelligenceFrameRate
+  }>
+  observations: VisualIntelligenceSpatialObservation[]
+  actualVisualInferenceObserved: true
+  exactCanonicalPrivateMediaSuppliedToProvider: true
+  providerVisualPreprocessingExpected: true
+  providerPreprocessingIsExactFrameInspection: false
+  everyTimelineFrameInspected: false
+  completeTimePixelInspectionClaimAllowed: false
+  immutableSpatialEvidence: true
+  directTimelineMutationAllowed: false
+  renderPerformedByVisualIntelligence: false
+  qaApprovalGranted: false
+  assetMutationAllowed: false
+  billingMutationAllowed: false
+  exportAuthorized: false
+  publicDeliveryAuthorized: false
+  productionAuthorized: false
+}
+
 export interface VisualIntelligenceProviderExecutionResult {
-  normalizedResult: VisualIntelligenceProviderNormalizedResult
+  normalizedResult: VisualIntelligenceProviderNormalizedResultAny
   usage: VisualIntelligenceUsage
   provenance: Omit<VisualIntelligenceProvenance,
     'cacheIdentitySha256' | 'requestDigestSha256' | 'admissionRef' |

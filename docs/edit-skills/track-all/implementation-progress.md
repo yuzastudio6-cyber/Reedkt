@@ -825,3 +825,54 @@ TRACK-14 independently qualifies the implemented fixture/deterministic QA
 logic; it does not promote actual SAM inference. Track All remains
 `implementation_pending`, SAM remains `blocked`, and no checkpoint/model/GPU/
 paid/public/production/database/head-orchestra action occurred.
+
+## TRACK-15 — canonical work graph and runtime bindings
+
+Status: complete and remotely confirmed.
+
+- implementation commit: `da0bf26faf3669de3aa5de47e8361dc03912dce9`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `da0bf26faf3669de3aa5de47e8361dc03912dce9` after `git push -u origin HEAD`.
+
+Implemented:
+
+- one persisted, strict, content-addressed `track_all_work_graph_v1` with its
+  exact artifact reference bound into the generic approved public graph;
+- atomic route compilation for no-action, selected/concept tracking, repair,
+  planar geometry, privacy, focus, and reframe, including topological
+  dependencies, exact range, plan/assignment/approval/QA lineage, per-stage
+  budgets, attempt ceilings, private-output requirements, and fail-closed
+  no-action constraints;
+- exactly one runtime binding for each of the 13 manifest-supported jobs,
+  with exact operation, worker, input/output, phase, qualification, approval,
+  private-artifact, retry, fallback, and range-mutation policy;
+- explicit separation between successful injected internal-fixture adapters,
+  injected canonical-private adapters requiring durable private authority,
+  and absent production-worker bindings;
+- adversarial validation for missing, duplicate, unknown, mismatched,
+  caller-selected, unregistered-tool, overqualified, wrong-range, forged-hash,
+  and fixture-as-production binding/graph states.
+
+Actual checks run:
+
+- `npm run test:track-all-runtime-bindings` — passed 13/13 manifest bindings,
+  13 actual internal-fixture dispatch receipts, 13 canonical-private binding
+  definitions, zero production bindings, and exact no-action/selected/privacy/
+  planar/focus/reframe atomic graphs containing 4/20/25/11/23/24 stages;
+- `npm run test:track-all-capability-manifest`,
+  `npm run test:track-all-artifact-contracts`, and
+  `npm run test:track-all-planning` — passed;
+- `npm run test:edit-skill-capability-kernel` — passed after adding the exact
+  optional plugin work-graph reference to the generic public graph;
+- frozen B-Roll runtime-binding and public-plugin smokes — passed under the
+  qualification-generation gate; the pre-TRACK-15 receipt correctly reports
+  stale because the shared runtime authority changed and will be regenerated
+  by the final actual qualification pass;
+- targeted ESLint and `npm run typecheck:server` — passed;
+- staged `git diff --check` — passed.
+
+All fixture dispatches recorded zero provider requests, public artifacts, and
+production mutations. TRACK-15 does not claim a canonical-private or
+production worker execution and does not promote actual SAM inference. Track
+All remains `implementation_pending`, SAM remains `blocked`, and no checkpoint/
+model/GPU/paid/public/production/database/head-orchestra action occurred.

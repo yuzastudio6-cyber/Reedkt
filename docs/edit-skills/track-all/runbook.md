@@ -11,6 +11,7 @@ npm run test:track-all-focus-reframe
 npm run test:track-all-cross-skill-handoffs
 npm run test:track-all-independent-qa-repair
 npm run test:track-all-runtime-bindings
+npm run test:track-all-public-plugin-e2e
 ```
 
 The privacy command runs all four fixed treatments and one attempt through the

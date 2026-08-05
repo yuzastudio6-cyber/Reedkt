@@ -2,6 +2,7 @@ import type { EditSkillArtifactReference, EditSkillArtifactStore } from '../core
 import {
   createEditSkillDependencyAcceptance,
   createEditSkillDependencyRequest,
+  editSkillDependencyAcceptanceSchema,
   editSkillDependencyRequestSchema,
   type EditSkillDependencyAcceptance,
   type EditSkillDependencyRequest,
@@ -27,12 +28,15 @@ import { assertSkillAssignment, assertSkillRangeMutation } from '../core/skill-r
 import { createSkillPlanEnvelope } from '../core/skill-plan-envelope'
 import { createSkillResultEnvelope } from '../core/skill-result-envelope'
 import { brollMasterTimingPlanSchema, brollSourceInventorySchema, brollVisualOwnershipManifestSchema } from '../b-roll/b-roll-input-authorities'
+import { trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
 import { TRACK_ALL_CAPABILITY_MANIFEST } from './track-all-capability-manifest'
 import { compileTrackAllPlan, type TrackAllPlanningAuthority } from './track-all-plan-compiler'
 import {
   createTrackAllResultReceipt,
   privacyPolicySnapshotSchema,
+  priorTrackRepairEvidenceSchema,
   sourceFrameAuthoritySchema,
+  trackAllCaptionReservedZonesSchema,
   trackAllAssignmentSchema,
   trackAllPlanSchema,
   trackAllPlanningQaReportSchema,
@@ -59,6 +63,23 @@ function publicDisposition(plan: TrackAllPlan): EditSkillPublicPlan['envelope'][
   if (['needs_user_selection', 'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation', 'multiple_targets_ambiguous', 'identity_uncertain'].includes(plan.decision)) return 'needs_user_review'
   if (['target_not_found', 'privacy_coverage_blocked', 'blocked'].includes(plan.decision)) return 'blocked'
   return 'use_skill'
+}
+
+function resultStatus(plan: TrackAllPlan): Parameters<typeof createTrackAllResultReceipt>[0]['status'] {
+  switch (plan.decision) {
+    case 'use_no_tracking': return 'use_no_tracking'
+    case 'needs_visual_intelligence': return 'needs_visual_intelligence'
+    case 'needs_user_selection': return 'needs_user_selection'
+    case 'needs_range_expansion': return 'needs_range_expansion'
+    case 'needs_manual_keyframe': return 'needs_manual_keyframe'
+    case 'needs_user_confirmation': return 'needs_user_confirmation'
+    case 'target_not_found': return 'target_not_found'
+    case 'multiple_targets_ambiguous': return 'multiple_targets_ambiguous'
+    case 'identity_uncertain': return 'identity_uncertain'
+    case 'privacy_coverage_blocked': return 'privacy_coverage_blocked'
+    case 'blocked': return 'blocked'
+    default: return 'accepted'
+  }
 }
 
 export class TrackAllEditSkillPlugin implements EditSkillPlugin {
@@ -129,12 +150,13 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const assignment = this.#assertAssignment(input.assignment)
     await this.#loadPlan(assignment, input.plan)
     const request = editSkillDependencyRequestSchema.parse(input.request)
-    if (!input.plan.dependencyRequests.some((candidate) => candidate.requestHash === request.requestHash) || request.assignmentHash !== assignment.assignmentHash || request.planHash !== input.plan.envelope.planHash || input.artifactRef.artifactType !== request.requiredArtifactType) throw new Error('Track All rejected an unrequested dependency artifact.')
+    if (!input.plan.dependencyRequests.some((candidate) => candidate.requestHash === request.requestHash) || request.assignmentId !== assignment.assignmentId || request.assignmentHash !== assignment.assignmentHash || request.planId !== input.plan.envelope.planId || request.planHash !== input.plan.envelope.planHash || !same(request.manifestRef, assignment.manifestRef) || !same(request.authorizedRange, assignment.authorizedRange) || input.artifactRef.artifactType !== request.requiredArtifactType) throw new Error('Track All rejected an unrequested dependency artifact.')
     const value = await this.#artifacts.readJson({ reference: input.artifactRef, ...scope(assignment) })
     if (request.requiredArtifactType !== 'visual_intelligence_target_evidence_v1') throw new Error('Track All dependency artifact type is unsupported.')
     const evidence = visualIntelligenceTargetEvidenceSchema.parse(value)
-    const target = trackAllTargetSpecificationSchema.parse((await this.#loadAuthority(assignment)).target)
-    if (evidence.ownerUserId !== assignment.ownerUserId || evidence.workspaceId !== assignment.workspaceId || evidence.projectId !== assignment.projectId || evidence.assignmentHash !== (await this.#loadAuthority(assignment)).assignment.assignmentHash || evidence.targetHash !== target.targetHash || evidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange) || !['internal_execution_qualified', 'production_qualified'].includes(evidence.qualificationStatus)) throw new Error('Visual Intelligence target evidence has stale, cross-tenant, or under-qualified lineage.')
+    const authority = await this.#loadAuthority(assignment)
+    const target = trackAllTargetSpecificationSchema.parse(authority.target)
+    if (evidence.ownerUserId !== assignment.ownerUserId || evidence.workspaceId !== assignment.workspaceId || evidence.projectId !== assignment.projectId || evidence.assignmentHash !== authority.assignment.assignmentHash || evidence.targetHash !== target.targetHash || evidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange) || evidence.candidateRegions.some((region) => region.frameIndex < assignment.authorizedRange.startFrameInclusive || region.frameIndex >= assignment.authorizedRange.endFrameExclusive) || !['internal_execution_qualified', 'production_qualified'].includes(evidence.qualificationStatus)) throw new Error('Visual Intelligence target evidence has stale, cross-tenant, out-of-range, or under-qualified lineage.')
     return createEditSkillDependencyAcceptance({
       schemaVersion: 'edit-skill-dependency-acceptance-v1', requestHash: request.requestHash,
       assignmentId: assignment.assignmentId, assignmentHash: assignment.assignmentHash,
@@ -146,15 +168,18 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
 
   async validateWorkItemResult(input: { assignment: SkillAssignment; plan: EditSkillPublicPlan; workGraph: EditSkillApprovedWorkGraph; result: EditSkillWorkResult }): Promise<EditSkillWorkResult> {
     const assignment = this.#assertAssignment(input.assignment)
-    await this.#loadPlan(assignment, input.plan)
+    const plan = await this.#loadPlan(assignment, input.plan)
     const graph = editSkillApprovedWorkGraphSchema.parse(input.workGraph)
+    this.#assertGraphLineage({ assignment, publicPlan: input.plan, graph })
     const result = editSkillWorkResultSchema.parse(input.result)
     const item = graph.workItems.find((candidate) => candidate.workItemKey === result.workItemKey)
-    if (!item || item.workItemHash !== result.workItemHash || result.assignmentHash !== assignment.assignmentHash || result.planHash !== input.plan.envelope.planHash || !same(result.manifestRef, assignment.manifestRef) || result.operationId !== item.operationId || result.workerClass !== item.workerClass || result.callerSelectedExecutable || result.outsideAuthorizedRangeModified) throw new Error('Track All work result differs from approved work.')
+    if (!item || item.workItemHash !== result.workItemHash || result.assignmentId !== assignment.assignmentId || result.assignmentHash !== assignment.assignmentHash || result.planId !== input.plan.envelope.planId || result.planHash !== input.plan.envelope.planHash || !same(result.manifestRef, assignment.manifestRef) || !same(result.authorizedRange, assignment.authorizedRange) || result.operationId !== item.operationId || result.workerClass !== item.workerClass || !same(result.qaLineageKeys, item.qaLineageKeys) || result.callerSelectedExecutable || result.outsideAuthorizedRangeModified) throw new Error('Track All work result differs from approved work.')
     for (const range of result.mutationRanges) assertSkillRangeMutation({ assignment, mutationRange: range })
     if (result.status === 'succeeded') {
-      if (result.outputArtifactRefs.length !== 1 || result.outputArtifactRefs[0]!.artifactType !== item.expectedOutputType) throw new Error('Track All work result has the wrong strict output artifact.')
-      for (const ref of [...result.outputArtifactRefs, ...result.qaEvidenceArtifactRefs]) await this.#artifacts.readJson({ reference: ref, ...scope(assignment) })
+      if (result.outputArtifactRefs.length !== 1 || result.outputArtifactRefs[0]!.artifactType !== item.expectedOutputType || result.qaEvidenceArtifactRefs.length === 0) throw new Error('Track All work result has the wrong strict output or QA evidence artifact.')
+      const value = await this.#artifacts.readJson({ reference: result.outputArtifactRefs[0]!, ...scope(assignment) })
+      this.#assertProducedArtifactLineage({ assignment, plan, artifactType: item.expectedOutputType, value })
+      for (const ref of result.qaEvidenceArtifactRefs) await this.#artifacts.readJson({ reference: ref, ...scope(assignment) })
     }
     return result
   }
@@ -163,22 +188,40 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const assignment = this.#assertAssignment(input.assignment)
     const plan = await this.#loadPlan(assignment, input.plan)
     const graph = editSkillApprovedWorkGraphSchema.parse(input.workGraph)
+    this.#assertGraphLineage({ assignment, publicPlan: input.plan, graph })
     const required = graph.workItems.filter((item) => item.required)
     if (input.workItemResults.length !== required.length || new Set(input.workItemResults.map((result) => result.workItemKey)).size !== input.workItemResults.length) throw new Error('Track All finalization requires every exact approved work result once.')
     const validated: EditSkillWorkResult[] = []
     for (const result of input.workItemResults) validated.push(await this.validateWorkItemResult({ assignment, plan: input.plan, workGraph: graph, result }))
     if (validated.some((result) => result.status !== 'succeeded')) throw new Error('Track All cannot finalize failed required work.')
-    for (const request of input.plan.dependencyRequests) {
-      if (!input.dependencyAcceptances.some((acceptance) => acceptance.requestHash === request.requestHash)) throw new Error('Track All cannot finalize without its exact dependency acceptance.')
+    if (input.dependencyAcceptances.length !== input.plan.dependencyRequests.length) {
+      throw new Error('Track All finalization received missing or extra dependency acceptances.')
+    }
+    const acceptedRequestHashes = new Set<string>()
+    for (const rawAcceptance of input.dependencyAcceptances) {
+      const acceptance = editSkillDependencyAcceptanceSchema.parse(rawAcceptance)
+      const request = input.plan.dependencyRequests.find((candidate) =>
+        candidate.requestHash === acceptance.requestHash)
+      if (
+        !request || acceptedRequestHashes.has(acceptance.requestHash) ||
+        acceptance.assignmentId !== assignment.assignmentId ||
+        acceptance.assignmentHash !== assignment.assignmentHash ||
+        acceptance.planHash !== input.plan.envelope.planHash ||
+        !same(acceptance.manifestRef, assignment.manifestRef) ||
+        acceptance.artifactRef.artifactType !== request.requiredArtifactType ||
+        acceptance.acceptedForPhase !== request.requiredForPhase
+      ) throw new Error('Track All cannot finalize without each exact dependency acceptance once.')
+      await this.#artifacts.readJson({ reference: acceptance.artifactRef, ...scope(assignment) })
+      acceptedRequestHashes.add(acceptance.requestHash)
     }
     const acceptedRefs = validated.flatMap((result) => result.outputArtifactRefs)
-    const status = plan.decision === 'use_no_tracking' ? 'use_no_tracking' : plan.decision === 'needs_visual_intelligence' ? 'needs_visual_intelligence' : plan.decision === 'needs_user_selection' ? 'needs_user_selection' : plan.decision === 'needs_range_expansion' ? 'needs_range_expansion' : plan.decision === 'blocked' ? 'blocked' : 'accepted'
     const specialized = createTrackAllResultReceipt({
       schemaVersion: 'track_all_result_receipt_v1', resultId: `track-all-result-${plan.planHash.slice(0, 24)}`,
       assignmentId: assignment.assignmentId, assignmentHash: assignment.assignmentHash, planHash: plan.planHash,
       manifestRef: assignment.manifestRef, decision: plan.decision, authorizedRange: assignment.authorizedRange,
       acceptedArtifactRefs: acceptedRefs, qaEvidenceHashes: validated.flatMap((result) => result.qaEvidenceArtifactRefs.map((ref) => ref.sha256)),
-      outsideAuthorizedRangeModified: false, anonymousIdentitiesOnly: true, privateArtifactsOnly: true, status,
+      outsideAuthorizedRangeModified: false, anonymousIdentitiesOnly: true,
+      privateArtifactsOnly: true, status: resultStatus(plan),
     })
     const resultRef = await this.#artifacts.putJson({ artifactType: 'track_all_result_receipt_v1', value: specialized, ...scope(assignment) })
     const disposition = publicDisposition(plan)
@@ -236,13 +279,126 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     if (!same(visualOwnership.assignmentRange, assignment.authorizedRange)) throw new Error('Track All ownership manifest does not exactly bind the assignment range.')
     if (sourceFrames.range.fps !== assignment.authorizedRange.fps || sourceFrames.range.startFrameInclusive > assignment.authorizedRange.startFrameInclusive || sourceFrames.range.endFrameExclusive < assignment.authorizedRange.endFrameExclusive) throw new Error('Track All source-frame authority does not contain the assignment range at the exact FPS.')
     if (!sourceInventory.candidates.some((candidate) => candidate.sourceId === sourceFrames.sourceId && candidate.artifactRef.sha256 === sourceFrames.sourceChecksum)) throw new Error('Track All selected source is absent from the checksum-bound inventory.')
-    const optional = (artifactType: string) => assignment.contextArtifactRefs.find((ref) => ref.artifactType === artifactType)
-    const viRef = optional('visual_intelligence_target_evidence_v1')
-    const privacyRef = optional('privacy_policy_snapshot_v1')
-    const visualIntelligenceEvidence = viRef ? visualIntelligenceTargetEvidenceSchema.parse(await this.#artifacts.readJson({ reference: viRef, ...scope(assignment) })) : undefined
-    const privacyPolicy = privacyRef ? privacyPolicySnapshotSchema.parse(await this.#artifacts.readJson({ reference: privacyRef, ...scope(assignment) })) : undefined
+    const optional = (artifactType: string) => {
+      const entry = resolved.optional.get(artifactType)
+      if (!entry || entry.values.length === 0) return undefined
+      if (entry.values.length !== 1 || entry.references.length !== 1) {
+        throw new Error(`Track All optional authority ${artifactType} is ambiguous.`)
+      }
+      return { reference: entry.references[0]!, value: entry.values[0] }
+    }
+    const viEntry = optional('visual_intelligence_target_evidence_v1')
+    const privacyEntry = optional('privacy_policy_snapshot_v1')
+    const existingGraphEntry = optional('track_graph_v2')
+    const priorRepairEntry = optional('prior_track_repair_evidence_v1')
+    const captionZonesEntry = optional('caption_reserved_zones_v1')
+    const visualIntelligenceEvidence = viEntry
+      ? visualIntelligenceTargetEvidenceSchema.parse(viEntry.value)
+      : undefined
+    const privacyPolicy = privacyEntry
+      ? privacyPolicySnapshotSchema.parse(privacyEntry.value)
+      : undefined
+    const existingTrackGraph = existingGraphEntry
+      ? trackGraphV2Schema.parse(existingGraphEntry.value)
+      : undefined
+    const priorTrackRepairEvidence = priorRepairEntry
+      ? priorTrackRepairEvidenceSchema.parse(priorRepairEntry.value)
+      : undefined
+    const captionReservedZones = captionZonesEntry
+      ? trackAllCaptionReservedZonesSchema.parse(captionZonesEntry.value)
+      : undefined
     if (visualIntelligenceEvidence && (visualIntelligenceEvidence.assignmentHash !== specialized.assignmentHash || visualIntelligenceEvidence.targetHash !== target.targetHash || visualIntelligenceEvidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange))) throw new Error('Visual Intelligence target evidence has stale assignment, target, or range lineage.')
     if (privacyPolicy && (privacyPolicy.ownerUserId !== assignment.ownerUserId || privacyPolicy.workspaceId !== assignment.workspaceId || privacyPolicy.projectId !== assignment.projectId)) throw new Error('Privacy policy is cross-tenant.')
-    return { genericAssignment: assignment, assignment: specialized, target, sourceInventory, masterTiming, sourceFrames, visualOwnership, sceneContext, visualIntelligenceEvidence, privacyPolicy, refs: [...assignment.contextArtifactRefs] }
+    const allInputRefs = [...assignment.contextArtifactRefs, ...assignment.dependencyArtifactRefs]
+    for (const grounding of target.groundingEvidence) {
+      if (!('artifactRef' in grounding)) continue
+      if (!allInputRefs.some((reference) => same(reference, grounding.artifactRef))) {
+        throw new Error('Track All target grounding artifact is absent from assignment authority.')
+      }
+    }
+    if (existingTrackGraph) {
+      const rangeContainsAssignment = existingTrackGraph.authorizedRange.fps === assignment.authorizedRange.fps &&
+        existingTrackGraph.authorizedRange.startFrameInclusive <= assignment.authorizedRange.startFrameInclusive &&
+        existingTrackGraph.authorizedRange.endFrameExclusive >= assignment.authorizedRange.endFrameExclusive
+      if (
+        existingTrackGraph.ownerUserId !== assignment.ownerUserId ||
+        existingTrackGraph.workspaceId !== assignment.workspaceId ||
+        existingTrackGraph.projectId !== assignment.projectId ||
+        existingTrackGraph.editSessionId !== assignment.editSessionId ||
+        existingTrackGraph.sourceSha256 !== sourceFrames.sourceChecksum ||
+        !rangeContainsAssignment ||
+        !specialized.readContext.priorTrackGraphRefs.some((reference) =>
+          same(reference, existingGraphEntry!.reference))
+      ) throw new Error('Existing Track Graph has stale source, session, range, or assignment lineage.')
+    }
+    if (priorTrackRepairEvidence && (
+      !existingGraphEntry || !same(priorTrackRepairEvidence.trackGraphRef, existingGraphEntry.reference) ||
+      priorTrackRepairEvidence.ownerUserId !== assignment.ownerUserId ||
+      priorTrackRepairEvidence.workspaceId !== assignment.workspaceId ||
+      priorTrackRepairEvidence.projectId !== assignment.projectId ||
+      priorTrackRepairEvidence.editSessionId !== assignment.editSessionId ||
+      priorTrackRepairEvidence.assignmentHash !== specialized.assignmentHash ||
+      !existingTrackGraph?.tracks.some((track) => track.trackId === priorTrackRepairEvidence.trackId)
+    )) throw new Error('Prior repair evidence has stale Track Graph or assignment lineage.')
+    if (captionReservedZones && (
+      captionReservedZones.ownerUserId !== assignment.ownerUserId ||
+      captionReservedZones.workspaceId !== assignment.workspaceId ||
+      captionReservedZones.projectId !== assignment.projectId ||
+      captionReservedZones.editSessionId !== assignment.editSessionId ||
+      captionReservedZones.assignmentId !== assignment.assignmentId ||
+      ![assignment.assignmentHash, specialized.assignmentHash].includes(captionReservedZones.assignmentHash) ||
+      !same(captionReservedZones.manifestRef, assignment.manifestRef) ||
+      !same(captionReservedZones.authorizedRange, assignment.authorizedRange)
+    )) throw new Error('Caption reserved zones have stale tenant, assignment, or range lineage.')
+    return {
+      genericAssignment: assignment, assignment: specialized, target, sourceInventory,
+      masterTiming, sourceFrames, visualOwnership, sceneContext,
+      visualIntelligenceEvidence, privacyPolicy, existingTrackGraph,
+      priorTrackRepairEvidence, captionReservedZones,
+      refs: [...assignment.contextArtifactRefs, ...assignment.dependencyArtifactRefs],
+    }
+  }
+
+  #assertGraphLineage(input: {
+    assignment: SkillAssignment
+    publicPlan: EditSkillPublicPlan
+    graph: EditSkillApprovedWorkGraph
+  }): void {
+    const { assignment, publicPlan, graph } = input
+    if (
+      graph.assignmentId !== assignment.assignmentId ||
+      graph.assignmentHash !== assignment.assignmentHash ||
+      graph.planId !== publicPlan.envelope.planId ||
+      graph.planHash !== publicPlan.envelope.planHash ||
+      !same(graph.manifestRef, assignment.manifestRef) ||
+      !same(graph.authorizedRange, assignment.authorizedRange) ||
+      graph.approval.assignmentHash !== assignment.assignmentHash ||
+      graph.approval.planHash !== publicPlan.envelope.planHash ||
+      !graph.pluginWorkGraphRef
+    ) throw new Error('Track All approved graph has stale assignment, plan, or plugin-graph lineage.')
+  }
+
+  #assertProducedArtifactLineage(input: {
+    assignment: SkillAssignment
+    plan: TrackAllPlan
+    artifactType: string
+    value: unknown
+  }): void {
+    if (typeof input.value !== 'object' || input.value === null) {
+      throw new Error('Track All output artifact lacks structured lineage.')
+    }
+    const value = input.value as Readonly<Record<string, unknown>>
+    if (input.artifactType === 'track_all_plan_v1') {
+      if (!same(input.value, input.plan)) throw new Error('Track All planning work returned another plan.')
+      return
+    }
+    if (
+      ('assignmentId' in value && value.assignmentId !== input.assignment.assignmentId) ||
+      ('assignmentHash' in value && value.assignmentHash !== input.assignment.assignmentHash) ||
+      ('planHash' in value && value.planHash !== input.plan.planHash) ||
+      ('manifestRef' in value && !same(value.manifestRef, input.assignment.manifestRef)) ||
+      ('authorizedRange' in value && !same(value.authorizedRange, input.assignment.authorizedRange)) ||
+      ('outsideAuthorizedRangeModified' in value && value.outsideAuthorizedRangeModified !== false)
+    ) throw new Error('Track All output artifact has stale or out-of-range lineage.')
   }
 }

@@ -136,6 +136,11 @@ canonical-private bindings require an injected executor and durable private
 authority, while production bindings remain absent. See
 `canonical-work-graph-and-bindings.md`.
 
+TRACK-16 proves the public-only lifecycle across the complete required scenario
+matrix and rejects stale graph, dependency, work-result, QA, tenant, and range
+lineage. It also reuses the canonical `caption_reserved_zones_v1` contract
+instead of maintaining a competing Track All shape. See `public-plugin-e2e.md`.
+
 ## Qualification boundary
 
 Passing planning smokes establishes tested planning behavior, not a frozen

@@ -2,6 +2,7 @@ import type { SkillAssignment } from '../core/skill-assignment-types'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
 import type { BrollMasterTimingPlan, BrollSourceInventory, BrollVisualOwnershipManifest } from '../b-roll/b-roll-input-authorities'
+import type { TrackGraphV2 } from '../shared/track-graph/track-graph-schemas'
 import {
   createTrackAllPlan,
   createTrackAllPlanningQaReport,
@@ -13,7 +14,9 @@ import {
 import type { z } from 'zod'
 import {
   privacyPolicySnapshotSchema,
+  priorTrackRepairEvidenceSchema,
   sourceFrameAuthoritySchema,
+  trackAllCaptionReservedZonesSchema,
   trackAllSceneContextSchema,
   visualIntelligenceTargetEvidenceSchema,
 } from './track-all-schemas'
@@ -31,6 +34,8 @@ type SourceFrames = z.infer<typeof sourceFrameAuthoritySchema>
 type SceneContext = z.infer<typeof trackAllSceneContextSchema>
 type ViTargetEvidence = z.infer<typeof visualIntelligenceTargetEvidenceSchema>
 type PrivacyPolicy = z.infer<typeof privacyPolicySnapshotSchema>
+type PriorTrackRepairEvidence = z.infer<typeof priorTrackRepairEvidenceSchema>
+type CaptionReservedZones = z.infer<typeof trackAllCaptionReservedZonesSchema>
 
 export interface TrackAllPlanningAuthority {
   genericAssignment: SkillAssignment
@@ -43,6 +48,9 @@ export interface TrackAllPlanningAuthority {
   sceneContext: SceneContext
   visualIntelligenceEvidence?: ViTargetEvidence
   privacyPolicy?: PrivacyPolicy
+  existingTrackGraph?: TrackGraphV2
+  priorTrackRepairEvidence?: PriorTrackRepairEvidence
+  captionReservedZones?: CaptionReservedZones
 }
 
 export interface CompiledTrackAllPlan {
@@ -62,7 +70,10 @@ function targetGroundingFrames(target: TrackAllTargetSpecification): number[] {
 }
 
 function initialDecision(authority: TrackAllPlanningAuthority): TrackAllPlan['decision'] {
-  const { assignment, target, visualIntelligenceEvidence, privacyPolicy } = authority
+  const {
+    assignment, target, visualIntelligenceEvidence, privacyPolicy,
+    existingTrackGraph, priorTrackRepairEvidence, captionReservedZones,
+  } = authority
   if (assignment.editorialRequest.intendedTreatment === 'no_action' || assignment.editorialRequest.requestedJobType === 'track_all.no_action') return 'use_no_tracking'
   const groundFrames = targetGroundingFrames(target)
   if (groundFrames.some((frame) => !rangeHasFrame(assignment.authorizedWriteRange, frame))) {
@@ -75,6 +86,9 @@ function initialDecision(authority: TrackAllPlanningAuthority): TrackAllPlan['de
   if (visualIntelligenceEvidence?.ambiguity === 'multiple_candidates') return 'needs_user_selection'
   if (visualIntelligenceEvidence?.ambiguity === 'uncertain') return target.ambiguityBehavior === 'request_user_selection' ? 'needs_user_selection' : 'multiple_targets_ambiguous'
   if (privacyTreatments.has(assignment.editorialRequest.intendedTreatment) && !privacyPolicy) return 'needs_user_confirmation'
+  if ((target.targetType === 'existing_track' || assignment.editorialRequest.intendedTreatment === 'repair') && !existingTrackGraph) return 'blocked'
+  if (assignment.editorialRequest.intendedTreatment === 'repair' && !priorTrackRepairEvidence) return 'blocked'
+  if (assignment.editorialRequest.intendedTreatment === 'tracked_reframe' && !captionReservedZones) return 'blocked'
   if (target.expectedMaximumCount > assignment.permissions.maximumObjects) return 'needs_user_confirmation'
   if (!assignment.permissions.deterministicToolsAllowed) return 'blocked'
   if (samTargetTypes.has(target.targetType) && !assignment.permissions.sam3_1Allowed) return 'blocked'
@@ -199,6 +213,9 @@ export function compileTrackAllPlan(input: {
     ...(authority.visualIntelligenceEvidence
       ? { visualIntelligenceEvidence: authority.visualIntelligenceEvidence }
       : {}),
+    existingTrackGraphPresent: authority.existingTrackGraph !== undefined,
+    priorTrackRepairEvidencePresent: authority.priorTrackRepairEvidence !== undefined,
+    captionReservedZonesPresent: authority.captionReservedZones !== undefined,
     manifest, decision, executable, samWorkPlanned, visibleTreatmentPlanned,
     ...(initializationFrame === undefined ? {} : { initializationFrame }),
     chunkPlan: chunks, expectedObjects, bucketCount, sessionCount,

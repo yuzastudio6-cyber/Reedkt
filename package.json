@@ -37,6 +37,7 @@
     "test:track-all-cross-skill-handoffs": "tsx server/smoke/track-all-cross-skill-handoffs-smoke.ts",
     "test:track-all-independent-qa-repair": "tsx server/smoke/track-all-independent-qa-repair-smoke.ts",
     "test:track-all-runtime-bindings": "tsx server/smoke/track-all-runtime-bindings-work-graph-smoke.ts",
+    "test:track-all-public-plugin-e2e": "tsx server/smoke/track-all-public-plugin-e2e-smoke.ts",
     "test:edit-skill-capability-kernel": "tsx server/smoke/edit-skill-capability-kernel-smoke.ts",
     "test:b-roll-capability-manifest": "tsx server/smoke/b-roll-capability-manifest-smoke.ts",
     "test:b-roll-planning": "tsx server/smoke/b-roll-planning-smoke.ts",

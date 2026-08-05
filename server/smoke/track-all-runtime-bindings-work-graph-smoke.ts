@@ -7,6 +7,7 @@ import {
   createSkillJobRuntimeBinding,
   hashSkillValue,
   skillManifestReference,
+  type EditSkillArtifactReference,
   type SkillJobRuntimeBinding,
   type SkillJobRuntimeBindingDefinition,
 } from '../edit-skills/core'
@@ -23,6 +24,9 @@ import {
 import {
   TRACK_ALL_FIXTURE_SCOPE,
   createTrackAllAuthorityFixture,
+  createTrackAllCaptionZonesFixture,
+  createTrackAllPriorGraphFixture,
+  createTrackAllPriorRepairEvidenceFixture,
   reviseTrackAllPublicAssignment,
 } from './track-all-fixtures'
 
@@ -356,8 +360,40 @@ async function compileFixture(
   input: Omit<Parameters<typeof createTrackAllAuthorityFixture>[0], 'runtime'>,
   withPrivacyPolicy = false,
 ) {
-  const fixture = await createTrackAllAuthorityFixture({ runtime, ...input })
+  const priorGraphRef = input.intendedTreatment === 'repair'
+    ? await createTrackAllPriorGraphFixture({
+        runtime, nextAssignmentId: input.assignmentId,
+        ...(input.authorizedRange ? { authorizedRange: input.authorizedRange } : {}),
+      })
+    : undefined
+  const fixture = await createTrackAllAuthorityFixture({
+    runtime,
+    ...input,
+    ...(priorGraphRef
+      ? {
+          targetType: 'existing_track' as const,
+          groundingKind: 'existing_track_reference' as const,
+          groundingArtifactRef: priorGraphRef,
+          priorTrackGraphRefs: [priorGraphRef],
+        }
+      : {}),
+  })
   let assignment = fixture.assignment
+  const extraContextRefs: EditSkillArtifactReference[] = []
+  if (priorGraphRef) {
+    extraContextRefs.push(
+      priorGraphRef,
+      await createTrackAllPriorRepairEvidenceFixture({
+        runtime, fixture, trackGraphRef: priorGraphRef,
+      }),
+    )
+  }
+  if (input.intendedTreatment === 'tracked_reframe') {
+    extraContextRefs.push(await createTrackAllCaptionZonesFixture({
+      runtime, assignment,
+      specializedAssignmentHash: fixture.specializedAssignment.assignmentHash,
+    }))
+  }
   if (withPrivacyPolicy) {
     const policy = createPrivacyPolicySnapshot({
       schemaVersion: 'privacy_policy_snapshot_v1',
@@ -374,9 +410,11 @@ async function compileFixture(
       value: policy,
       ...TRACK_ALL_FIXTURE_SCOPE,
     })
+    extraContextRefs.push(policyRef)
+  }
+  if (extraContextRefs.length > 0) {
     assignment = reviseTrackAllPublicAssignment(assignment, [
-      ...assignment.contextArtifactRefs,
-      policyRef,
+      ...assignment.contextArtifactRefs, ...extraContextRefs,
     ])
   }
   const plugin = runtime.pluginRegistry.resolve(manifestRef)

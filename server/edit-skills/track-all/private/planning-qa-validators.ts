@@ -28,6 +28,9 @@ const planningQaInputSchema = z.object({
   visualOwnership: brollVisualOwnershipManifestSchema,
   sceneContext: trackAllSceneContextSchema,
   visualIntelligenceEvidence: visualIntelligenceTargetEvidenceSchema.optional(),
+  existingTrackGraphPresent: z.boolean(),
+  priorTrackRepairEvidencePresent: z.boolean(),
+  captionReservedZonesPresent: z.boolean(),
   manifest: skillCapabilityManifestSchema,
   decision: z.enum(TRACK_ALL_DECISIONS),
   executable: z.boolean(),
@@ -92,7 +95,17 @@ export function deriveTrackAllPlanningQaFindings(raw: unknown) {
   const ambiguitySafe = input.visualIntelligenceEvidence?.ambiguity !== 'uncertain' || !input.executable
   const chunkSafe = !input.executable || input.chunkPlan.chunks.length > 0 && input.chunkPlan.chunks.length <= input.assignment.permissions.maximumChunks && input.chunkPlan.chunks.every((chunk) => contains(chunk.range, input.assignment.authorizedWriteRange))
   const initializationSafe = !input.samWorkPlanned || input.initializationFrame !== undefined && input.initializationFrame >= input.assignment.authorizedWriteRange.startFrameInclusive && input.initializationFrame < input.assignment.authorizedWriteRange.endFrameExclusive
-  const dependencyComplete = input.decision !== 'needs_visual_intelligence' || input.visualIntelligenceEvidence === undefined
+  const semanticDependencyComplete = input.decision !== 'needs_visual_intelligence' || input.visualIntelligenceEvidence === undefined
+  const existingTrackDependencyComplete = !(
+    input.target.targetType === 'existing_track' ||
+    input.assignment.editorialRequest.intendedTreatment === 'repair'
+  ) || input.existingTrackGraphPresent
+  const repairDependencyComplete = input.assignment.editorialRequest.intendedTreatment !== 'repair' ||
+    input.priorTrackRepairEvidencePresent
+  const reframeDependencyComplete = input.assignment.editorialRequest.intendedTreatment !== 'tracked_reframe' ||
+    input.captionReservedZonesPresent
+  const dependencyComplete = semanticDependencyComplete && existingTrackDependencyComplete &&
+    repairDependencyComplete && reframeDependencyComplete
   const lowerCostRoutesPrecedeSam = !input.routeEvaluationKeys.includes('sam3_1_masklets') || input.routeEvaluationKeys.indexOf('no_action') < input.routeEvaluationKeys.indexOf('sam3_1_masklets')
   const approvalReady = !input.executable || manifestExact && rangeExact && sceneExact && timingExact && sourceExact && !ownershipConflict
   const rules = [
@@ -114,7 +127,7 @@ export function deriveTrackAllPlanningQaFindings(raw: unknown) {
     finding({ qaKey: 'track_all.qa.credit_estimate', passed: !input.executable || input.computedCreditExpected <= input.assignment.permissions.maximumCredits, summary: 'Expected internal cost fits the approved ceiling or failed closed.', evidence: [input.computedCreditExpected, input.assignment.permissions.maximumCredits, input.decision], observations: { expectedCredits: input.computedCreditExpected } }),
     finding({ qaKey: 'track_all.qa.lower_cost_route', passed: lowerCostRoutesPrecedeSam, summary: 'Existing graph, deterministic geometry, and no-action are evaluated before SAM.', evidence: [input.routeEvaluationKeys], observations: { routeEvaluationKeys: input.routeEvaluationKeys } }),
     finding({ qaKey: 'track_all.qa.ownership_conflict', passed: !ownershipConflict || !input.visibleTreatmentPlanned, summary: 'Visible treatment cannot displace another exclusive owner.', evidence: [input.visualOwnership, input.visibleTreatmentPlanned], observations: { ownershipConflict } }),
-    finding({ qaKey: 'track_all.qa.dependency_completeness', passed: dependencyComplete, summary: 'Missing semantic evidence returns an exact dependency instead of a target claim.', evidence: [input.decision, input.visualIntelligenceEvidence ?? { evidence: 'missing' }], observations: { decision: input.decision } }),
+    finding({ qaKey: 'track_all.qa.dependency_completeness', passed: dependencyComplete, summary: 'Semantic, prior-track, repair, and caption-zone dependencies are complete or fail closed.', evidence: [input.decision, input.visualIntelligenceEvidence ?? { evidence: 'missing' }, input.existingTrackGraphPresent, input.priorTrackRepairEvidencePresent, input.captionReservedZonesPresent], observations: { decision: input.decision, existingTrackGraphPresent: input.existingTrackGraphPresent, priorTrackRepairEvidencePresent: input.priorTrackRepairEvidencePresent, captionReservedZonesPresent: input.captionReservedZonesPresent } }),
     finding({ qaKey: 'track_all.qa.no_action_consideration', passed: input.routeEvaluationKeys[0] === 'no_action', summary: 'No-action remains the first professional route considered.', evidence: [input.routeEvaluationKeys], observations: { firstRoute: input.routeEvaluationKeys[0] } }),
     finding({ qaKey: 'track_all.qa.repair_policy', passed: input.assignment.permissions.maximumAttempts <= 3, summary: 'Attempts and repairs are bounded.', evidence: [input.assignment.permissions.maximumAttempts], observations: { maximumAttempts: input.assignment.permissions.maximumAttempts } }),
     finding({ qaKey: 'track_all.qa.range_expansion', passed: input.decision !== 'needs_range_expansion' || !input.executable, summary: 'Range expansion is explicit and cannot mutate media.', evidence: [input.decision, input.assignment.authorizedWriteRange], observations: { decision: input.decision } }),

@@ -90,15 +90,21 @@ try {
   const zonesCore = {
     schemaVersion: 'caption_reserved_zones_v1' as const,
     ...scope,
+    editSessionId: graph.editSessionId,
     assignmentId: graph.assignmentId,
     assignmentHash,
+    manifestRef,
     authorizedRange: range,
     zones: [{
       zoneId: 'caption-bottom',
-      range,
-      box: { x: 0.08, y: 0.82, width: 0.84, height: 0.14 },
-      ownerSkillKey: 'captions' as const,
+      frameRange: range,
+      xMillionths: 80_000,
+      yMillionths: 820_000,
+      widthMillionths: 840_000,
+      heightMillionths: 140_000,
+      finalOwner: 'captions' as const,
     }],
+    readOnly: true as const,
   }
   const captionReservedZones = trackAllCaptionReservedZonesSchema.parse({
     ...zonesCore,

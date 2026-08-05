@@ -11,6 +11,7 @@ import type { EditSkillRuntime } from '../edit-skills/core/edit-skill-runtime'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
 import { createSkillAssignment } from '../edit-skills/core/skill-range-authority'
 import type { SkillFrameRange } from '../edit-skills/core/skill-assignment-types'
+import { createTrackGraphV2 } from '../edit-skills/shared/track-graph/track-graph-schemas'
 import {
   TRACK_ALL_CAPABILITY_MANIFEST,
   createSourceFrameAuthority,
@@ -85,6 +86,11 @@ export async function createTrackAllAuthorityFixture(input: {
   privacyClassification?: 'none' | 'personal' | 'sensitive' | 'child' | 'high_assurance'
   targetCriticality?: 'normal' | 'important' | 'privacy_critical'
   privacyCriticality?: 'none' | 'normal' | 'high'
+  targetSemanticClass?: string
+  targetDescription?: string
+  groundingKind?: 'bounding_box' | 'text_concept' | 'existing_track_reference'
+  groundingArtifactRef?: EditSkillArtifactReference
+  priorTrackGraphRefs?: readonly EditSkillArtifactReference[]
 }): Promise<TrackAllAuthorityFixture> {
   const scope = TRACK_ALL_FIXTURE_SCOPE
   const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
@@ -94,6 +100,9 @@ export async function createTrackAllAuthorityFixture(input: {
   }
   const analysisContextRange = input.analysisContextRange ?? {
     startFrameInclusive: 0, endFrameExclusive: 240, fps: 24,
+  }
+  if (input.groundingKind === 'existing_track_reference' && !input.groundingArtifactRef) {
+    throw new Error('Existing-track fixture grounding requires an exact artifact reference.')
   }
   const sourceChecksum = hashSkillValue({ fixture: input.assignmentId, source: true })
   const sourceRef: EditSkillArtifactReference = {
@@ -157,7 +166,8 @@ export async function createTrackAllAuthorityFixture(input: {
     editSessionId: input.targetEditSessionId ?? editSessionId,
     assignmentId: input.targetAssignmentId ?? input.assignmentId,
     targetId: 'target-001', targetType: input.targetType ?? 'selected_instance',
-    semanticClass: 'object', description: 'Approved anonymous selected object.',
+    semanticClass: input.targetSemanticClass ?? 'object',
+    description: input.targetDescription ?? 'Approved anonymous selected object.',
     anonymousIdentityPolicy: 'anonymous_stable_ids_only', childTargetIds: [],
     includeRules: ['selected target only'], excludeRules: [...(input.targetExcludeRules ?? [])],
     expectedMinimumCount: input.expectedMinimumCount ?? 1,
@@ -176,10 +186,24 @@ export async function createTrackAllAuthorityFixture(input: {
     treatmentIntent: input.intendedTreatment === 'no_action' || !input.intendedTreatment
       ? 'geometry_only'
       : input.intendedTreatment,
-    groundingEvidence: [{
-      kind: 'bounding_box', frameIndex: input.groundingFrame ?? authorizedRange.startFrameInclusive,
-      box: { x: 0.25, y: 0.25, width: 0.25, height: 0.25 },
-    }],
+    groundingEvidence: input.groundingKind === 'text_concept'
+      ? [{
+          kind: 'text_concept',
+          compiledConcept: input.targetDescription ?? input.targetSemanticClass ?? 'object',
+          sourceEvidenceHash: hashSkillValue({
+            assignmentId: input.assignmentId,
+            compiledConcept: input.targetDescription ?? input.targetSemanticClass ?? 'object',
+          }),
+        }]
+      : input.groundingKind === 'existing_track_reference'
+        ? [{
+            kind: 'existing_track_reference',
+            artifactRef: input.groundingArtifactRef!,
+          }]
+        : [{
+          kind: 'bounding_box', frameIndex: input.groundingFrame ?? authorizedRange.startFrameInclusive,
+          box: { x: 0.25, y: 0.25, width: 0.25, height: 0.25 },
+        }],
   })
   const targetRef = await input.runtime.artifactStore.putJson({
     artifactType: 'track_all_target_specification_v1', value: target, ...scope,
@@ -197,13 +221,13 @@ export async function createTrackAllAuthorityFixture(input: {
     }),
     readContext: {
       wholeVideoContextPermission: true, transcriptEvidenceRefs: [], visualEvidenceRefs: [],
-      priorTrackGraphRefs: [], sourceInventoryRef, masterTimingRef,
+      priorTrackGraphRefs: [...(input.priorTrackGraphRefs ?? [])], sourceInventoryRef, masterTimingRef,
       visualOwnershipRef,
     },
     editorialRequest: {
       requestedJobType: input.requestedJobType ?? 'track_all.no_action',
       reason: 'Use only exact approved temporal geometry.',
-      targetDescription: 'Approved anonymous selected object.',
+      targetDescription: input.targetDescription ?? 'Approved anonymous selected object.',
       intendedTreatment: input.intendedTreatment ?? 'no_action',
       viewerBenefit: 'Preserve clear and private visual storytelling.',
       privacyCriticality: input.privacyCriticality ?? 'none',
@@ -251,4 +275,114 @@ export async function createTrackAllAuthorityFixture(input: {
       sceneContext: sceneContextRef,
     },
   }
+}
+
+export async function createTrackAllCaptionZonesFixture(input: {
+  runtime: EditSkillRuntime
+  assignment: TrackAllAuthorityFixture['assignment']
+  specializedAssignmentHash: string
+}) {
+  const core = {
+    schemaVersion: 'caption_reserved_zones_v1' as const,
+    ...TRACK_ALL_FIXTURE_SCOPE,
+    editSessionId: input.assignment.editSessionId,
+    assignmentId: input.assignment.assignmentId,
+    assignmentHash: input.specializedAssignmentHash,
+    manifestRef: skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST),
+    authorizedRange: input.assignment.authorizedRange,
+    zones: [{
+      zoneId: 'caption-bottom-third', frameRange: input.assignment.authorizedRange,
+      xMillionths: 50_000, yMillionths: 720_000,
+      widthMillionths: 900_000, heightMillionths: 200_000,
+      finalOwner: 'captions' as const,
+    }],
+    readOnly: true as const,
+  }
+  return input.runtime.artifactStore.putJson({
+    artifactType: 'caption_reserved_zones_v1',
+    value: { ...core, zonesHash: hashSkillValue(core) },
+    ...TRACK_ALL_FIXTURE_SCOPE,
+  })
+}
+
+export async function createTrackAllPriorGraphFixture(input: {
+  runtime: EditSkillRuntime
+  nextAssignmentId: string
+  authorizedRange?: SkillFrameRange
+}) {
+  const range = input.authorizedRange ?? {
+    startFrameInclusive: 24, endFrameExclusive: 144, fps: 24,
+  }
+  const ref = (artifactType: string, key: string): EditSkillArtifactReference => ({
+    artifactType, sha256: hashSkillValue({ artifactType, key }),
+    byteLength: 1_024, ...TRACK_ALL_FIXTURE_SCOPE,
+  })
+  const qaRef = ref('track_all_temporal_qa_report_v1', `${input.nextAssignmentId}-prior-qa`)
+  const graph = createTrackGraphV2({
+    schemaVersion: 'track_graph_v2', modelNeutral: true,
+    ...TRACK_ALL_FIXTURE_SCOPE,
+    editSessionId: 'track-all-session', assignmentId: 'prior-assignment',
+    assignmentHash: hashSkillValue({ assignment: input.nextAssignmentId, prior: true }),
+    planHash: hashSkillValue({ plan: input.nextAssignmentId, prior: true }),
+    manifestRef: skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST),
+    sourceId: 'track-all-source',
+    sourceSha256: hashSkillValue({ fixture: input.nextAssignmentId, source: true }),
+    timingHash: hashSkillValue({ timing: input.nextAssignmentId, prior: true }),
+    authorizedRange: range, authorizedRangeHash: hashSkillValue(range),
+    shots: [{ shotId: 'prior-shot', range, sceneCutResetsIdentity: true }],
+    chunks: [{ chunkId: 'prior-chunk', range, bucketIndex: 0 }],
+    targets: [{
+      targetId: 'prior-target', targetType: 'selected_instance', semanticClass: 'person',
+      includeRules: ['selected person'], excludeRules: [], privacyClass: 'none',
+      groundingEvidenceHashes: [hashSkillValue({ grounding: input.nextAssignmentId })],
+      expectedMinimumCount: 1, expectedMaximumCount: 1, ambiguityState: 'none',
+    }],
+    tracks: [{
+      trackId: 'person_001', targetId: 'prior-target', semanticClass: 'person',
+      childTrackIds: [], startFrameInclusive: range.startFrameInclusive,
+      endFrameExclusive: range.endFrameExclusive,
+      visibilitySpans: [{
+        startFrameInclusive: range.startFrameInclusive,
+        endFrameExclusive: range.endFrameExclusive, state: 'active',
+      }],
+      boxSequenceRef: ref('track_box_sequence_v1', `${input.nextAssignmentId}-prior-boxes`),
+      confidenceSequenceHash: hashSkillValue({ confidence: input.nextAssignmentId }),
+      reentryEventHashes: [], identitySwitchWarnings: [], depthOrder: 1,
+      qaRefs: [qaRef], repairRefs: [],
+    }],
+    stitchingEvidenceHashes: [],
+    cameraNormalizationEvidenceHash: hashSkillValue({ camera: input.nextAssignmentId }),
+    uncertaintyEventHashes: [],
+    objectBudget: {
+      expectedObjects: 1, maximumObjects: 16, bucketSize: 16,
+      bucketCount: 1, sessionCount: 1,
+    },
+    runtimeAttemptRefs: [], finalQaRefs: [qaRef],
+    privateMaskDataPublished: false, outsideAuthorizedRangeModified: false,
+  })
+  return input.runtime.artifactStore.putJson({
+    artifactType: 'track_graph_v2', value: graph, ...TRACK_ALL_FIXTURE_SCOPE,
+  })
+}
+
+export async function createTrackAllPriorRepairEvidenceFixture(input: {
+  runtime: EditSkillRuntime
+  fixture: TrackAllAuthorityFixture
+  trackGraphRef: EditSkillArtifactReference
+}) {
+  const core = {
+    schemaVersion: 'prior_track_repair_evidence_v1' as const,
+    ...TRACK_ALL_FIXTURE_SCOPE,
+    editSessionId: input.fixture.assignment.editSessionId,
+    assignmentHash: input.fixture.specializedAssignment.assignmentHash,
+    planHash: hashSkillValue({ plan: input.fixture.assignment.assignmentId, prior: true }),
+    trackGraphRef: input.trackGraphRef, trackId: 'person_001', repairCount: 0,
+    priorRepairReceiptRefs: [],
+    failureEvidenceHashes: [hashSkillValue({ failure: 'bounded-local-gap' })],
+  }
+  return input.runtime.artifactStore.putJson({
+    artifactType: 'prior_track_repair_evidence_v1',
+    value: { ...core, evidenceHash: hashSkillValue(core) },
+    ...TRACK_ALL_FIXTURE_SCOPE,
+  })
 }

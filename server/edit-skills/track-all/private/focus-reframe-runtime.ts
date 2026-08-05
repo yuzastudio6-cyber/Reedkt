@@ -574,7 +574,12 @@ function collidesWithCaption(
 ): boolean {
   const projected = projectIntoCrop(subjectBox, crop)
   return zones.zones.some((zone) =>
-    inside(frame, zone.range) && overlaps(projected, zone.box))
+    inside(frame, zone.frameRange) && overlaps(projected, {
+      x: zone.xMillionths / 1_000_000,
+      y: zone.yMillionths / 1_000_000,
+      width: zone.widthMillionths / 1_000_000,
+      height: zone.heightMillionths / 1_000_000,
+    }))
 }
 
 function projectIntoCrop(subject: NormalizedBox, crop: NormalizedBox): NormalizedBox {

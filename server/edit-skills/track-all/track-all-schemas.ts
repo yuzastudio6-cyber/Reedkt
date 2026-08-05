@@ -14,6 +14,7 @@ import {
   brollSourceInventorySchema,
   brollVisualOwnershipManifestSchema,
 } from '../b-roll/b-roll-input-authorities'
+import { captionReservedZonesV1Schema } from '../b-roll/b-roll-active-artifact-contracts'
 import { trackGraphV1Schema, trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
 import {
   cameraMotionGraphSchema,
@@ -55,31 +56,8 @@ const box = z.object({ x: unit, y: unit, width: unit, height: unit }).strict().s
   }
 })
 
-export const trackAllCaptionReservedZonesSchema = z.object({
-  schemaVersion: z.literal('caption_reserved_zones_v1'),
-  ownerUserId: safeId,
-  workspaceId: safeId,
-  projectId: safeId,
-  assignmentId: safeId,
-  assignmentHash: skillSha256Schema,
-  authorizedRange: skillFrameRangeSchema,
-  zones: z.array(z.object({
-    zoneId: safeId,
-    range: skillFrameRangeSchema,
-    box,
-    ownerSkillKey: z.literal('captions'),
-  }).strict()).max(1_000),
-  zonesHash: skillSha256Schema,
-}).strict().superRefine((value, context) => {
-  const { zonesHash, ...core } = value
-  if (
-    hashSkillValue(core) !== zonesHash ||
-    value.authorizedRange.endFrameExclusive <= value.authorizedRange.startFrameInclusive ||
-    value.zones.some((zone) =>
-      !isRangeContained(zone.range, value.authorizedRange) ||
-      zone.range.endFrameExclusive <= zone.range.startFrameInclusive)
-  ) context.addIssue({ code: 'custom', message: 'Caption reserved-zone authority is stale or out of range.' })
-})
+/** Track All consumes the canonical shared caption-zone contract owned by Captions/B-Roll. */
+export const trackAllCaptionReservedZonesSchema = captionReservedZonesV1Schema
 
 function isRangeContained(
   child: z.infer<typeof skillFrameRangeSchema>,

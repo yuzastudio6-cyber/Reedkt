@@ -21,6 +21,8 @@ assert.equal(plan.cueSheet.payload.cues[0]?.acquisitionPreference, 'generate_ori
 assert.ok(plan.cueSheet.payload.generatedCueIds.includes(plan.cueSheet.payload.cues[0]!.cueId))
 assert.deepEqual(plan.cueSheet.payload.cues[0]?.instrumentation, ['tonal bed', 'measured rhythmic texture'])
 assert.doesNotMatch(plan.cueSheet.payload.cues[0]?.instrumentation.join(' ') ?? '', /French|Italian|Japanese|tropical/iu)
+assert.ok(plan.estimate.categories.providerGeneration > 0)
+assert.equal(plan.estimate.reservationRequired, true)
 
 const result = await runtime.music.execute(request)
 assert.equal(result.status, 'completed')

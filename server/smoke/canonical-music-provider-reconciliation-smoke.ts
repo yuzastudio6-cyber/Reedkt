@@ -62,6 +62,11 @@ assert.equal(reconciled.candidateArtifacts.length, 1)
 assert.equal(transport.executeCalls, 1)
 assert.equal(transport.reconcileCalls, 1)
 assert.equal(reconciled.providerProfileKey, LYRIA_3_PROVIDER_PROFILE.profileKey)
+const { briefHash: _previousBriefHash, ...briefInput } = brief
+void _previousBriefHash
+const changedBrief = createMusicCompositionBrief({ ...briefInput, energyArc: `${brief.energyArc}-material-change` })
+await assert.rejects(() => provider.execute({ request, cueId: cue.cueId, route, brief: changedBrief,
+  candidateCount: 1, mode: 'fixture' }), /idempotency collision/i)
 
 console.log(JSON.stringify({ status: 'ok', attemptStatus: reconciled.status,
   executeCalls: transport.executeCalls, reconcileCalls: transport.reconcileCalls,

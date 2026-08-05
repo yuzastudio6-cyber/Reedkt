@@ -28,7 +28,7 @@ import {
 } from '../../music/music-context'
 import type { CanonicalLyria3ProviderAdapter } from '../../music/lyria-provider'
 import type { MusicSoundSupportPort } from '../../music/music-sound-support-port'
-import { createMusicCostEvidence } from '../../music/music-rate-card'
+import { createMusicCostEvidence, MUSIC_RATE_CARD, providerUsdToCredits } from '../../music/music-rate-card'
 
 export interface MusicPeerCapabilityViewRequest {
   callerType: Exclude<CanonicalMusicSkillRequest['caller']['callerType'], 'head_of_orchestra'>
@@ -172,20 +172,32 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
 
   async estimate(input: CanonicalMusicSkillRequest): Promise<MusicEstimateResult> {
     const request = parseCanonicalMusicRequest(input)
+    const admission = evaluateMusicScopeGuard(request)
+    if (!admission.ok) throw new Error(`Canonical Music estimate rejected: ${admission.code}:${admission.errors.join(',')}`)
+    const resolvedContext = await resolveCanonicalMusicContext({ request, resolver: this.#contextResolver })
+    const supervision = createSupervisionArtifacts({ request, context: resolvedContext })
+    return this.#estimateFromRoutes(request, supervision.routeBindings)
+  }
+
+  #estimateFromRoutes(
+    request: CanonicalMusicSkillRequest,
+    routeBindings: ReturnType<typeof createSupervisionArtifacts>['routeBindings'],
+  ): MusicEstimateResult {
     const rangeFrames = request.scopeAuthority.authorizedInspectRanges.reduce((sum, range) =>
       sum + range.endFrameExclusive - range.startFrame, 0)
     const seconds = rangeFrames * request.timelineBinding.rationalTimelineRate.denominator /
       request.timelineBinding.rationalTimelineRate.numerator
     const constraints = requestedMusicCueConstraints(request)
-    const cueCount = Math.max(1, constraints.length || request.scopeAuthority.authorizedMusicWriteRanges.length)
-    const generatedCueCount = constraints.filter((cue) =>
-      cue.acquisitionPreference === 'generate_original').length
+    const cueCount = Math.max(1, routeBindings.length)
+    const generatedCueCount = routeBindings.filter((binding) => binding.routeKey.includes('.lyria.')).length
     const candidateCount = generatedCueCount * request.approvalAndBudget.maximumCandidates
     const planningMinutes = Math.ceil(seconds / 60 * 0.25 + cueCount * 0.5)
     const analysisMinutes = Math.ceil(cueCount * 0.4 + candidateCount * 0.3)
     const soundMinutes = Math.ceil(cueCount * 0.5)
     const qaMinutes = Math.ceil(cueCount * 0.3 + (request.scopeAuthority.mayStudyWholeVideo ? 2 : 0))
-    const providerCredits = generatedCueCount * request.approvalAndBudget.maximumCandidates
+    const providerCredits = providerUsdToCredits(
+      candidateCount * MUSIC_RATE_CARD.providerRates.googleLyria3ProPreviewUpToThreeMinutesUsd,
+    )
     const localCredits = cueCount
     const expectedCredits = providerCredits + localCredits
     return {
@@ -197,7 +209,8 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       expectedCredits, maximumCredits: expectedCredits * 3,
       confidence: constraints.length > 0 ? 0.8 : 0.65,
       assumptions: ['exact_rational_duration', `${cueCount}_cue_units`, `${candidateCount}_provider_candidates`, 'nested_sound_cost_separate'],
-      categories: { planning: planningMinutes, providerGeneration: providerCredits, analysis: analysisMinutes, soundChild: soundMinutes, qa: qaMinutes },
+      categories: { planning: planningMinutes, providerGeneration: providerCredits, analysis: analysisMinutes,
+        soundChildEstimateExcludedFromMusicTotal: soundMinutes, qa: qaMinutes },
       approvalRequired: generatedCueCount > 0 || request.requestedExecutionMode !== 'planning',
       reservationRequired: generatedCueCount > 0,
       lowerCostAlternatives: ['preserve_source_music', 'use_user_upload', 'one_recurring_bed', 'ambience_only', 'no_music'],
@@ -216,7 +229,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       request, need: supervision.need, cueSheet: supervision.cueSheet,
       routeBindings: supervision.routeBindings,
     })
-    const estimate = await this.estimate(request)
+    const estimate = this.#estimateFromRoutes(request, supervision.routeBindings)
     const plannedResult = this.#plannedResult(request, supervision, estimate)
     return { schemaVersion: 'canonical-music-plan-result-v2', request, resolvedContext, ...supervision, executionGraph, estimate, plannedResult }
   }

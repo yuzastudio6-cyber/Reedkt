@@ -12,7 +12,7 @@ import { MUSIC_MINI_SKILL_MANIFESTS } from '../edit-skills/music/music-mini-skil
 import { validateCanonicalMusicPublication } from '../edit-skills/music/music-publication-validation'
 import { evaluateMusicScopeGuard } from '../music/music-scope-guard'
 import { MUSIC_TOOL_ROUTE_MANIFESTS } from '../music/music-tool-routes'
-import { makeCanonicalMusicRequest, makeMusicCue } from './canonical-music-test-fixtures'
+import { makeCanonicalMusicRequest, makeMusicCue, makeMusicRights, testHash } from './canonical-music-test-fixtures'
 
 validateCanonicalMusicPublication()
 assert.equal(editSkillCapabilityRegistry.resolveLatest('music').manifestHash, musicSkillCapabilityManifest.manifestHash)
@@ -56,6 +56,27 @@ assert.equal(peer.peerMayInvokeSoundToolsDirectly, false)
 const stale = structuredClone(planning)
 stale.scopeAuthority.timelineRate = { numerator: 25, denominator: 1 }
 assert.equal(evaluateMusicScopeGuard(stale).ok, false)
+
+const rightsAsset = {
+  artifactId: 'foundation-rights-asset', artifactType: 'approved_private_music_audio', version: 1,
+  checksumSha256: testHash('foundation-rights-asset'), storageObjectId: 'inputs:foundation-rights.wav',
+  private: true as const, contentType: 'audio/wav',
+}
+const rightsRequest = makeCanonicalMusicRequest({ requestId: 'music-foundation-rights', mode: 'private_internal',
+  cues: [makeMusicCue({ cueId: 'foundation-rights-cue', range: cue.exactRange, acquisitionPreference: 'user_upload' })],
+  assets: [rightsAsset], rights: [makeMusicRights({ asset: rightsAsset, source: 'user_upload' })] })
+const expired = structuredClone(rightsRequest)
+expired.rightsAndProvenanceRefs[0]!.expiresAt = '2020-01-01T00:00:00.000Z'
+assert.equal(evaluateMusicScopeGuard(expired).code, 'rights_blocked')
+const crossProject = structuredClone(rightsRequest)
+crossProject.rightsAndProvenanceRefs[0]!.authorizedProjectIds = ['different-project']
+assert.equal(evaluateMusicScopeGuard(crossProject).code, 'rights_blocked')
+const locked = structuredClone(rightsRequest)
+locked.scopeAuthority.lockedMusicTrackIds = ['music-track-1']
+assert.equal(evaluateMusicScopeGuard(locked).code, 'locked_track_violation')
+const cycle = structuredClone(rightsRequest)
+cycle.caller.ancestorSkillKeys = ['music']
+assert.equal(evaluateMusicScopeGuard(cycle).code, 'invalid_contract')
 
 console.log(JSON.stringify({
   status: 'ok', musicVersion: musicSkillCapabilityManifest.skillVersion,

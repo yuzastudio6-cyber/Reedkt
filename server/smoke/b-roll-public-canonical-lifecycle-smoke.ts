@@ -1253,7 +1253,23 @@ try {
     }
   }
 
-  const generatedFixture = await createFixture({
+  if (preserveRoot) {
+    console.log(JSON.stringify({
+      status: 'ok',
+      manifestHash: BROLL_CAPABILITY_MANIFEST.manifestHash,
+      publicRegistryResolved: true,
+      strictManifestInputResolution: true,
+      canonicalRuntimeBindingsDispatched: canonicalBindings.length,
+      noActionWorkItems: noActionResults.length,
+      noActionProviderRequests: 0,
+      existingSourceWorkItems: sourceResults.length,
+      existingSourceFfmpegFfprobeAndRemotion: true,
+      generatedRouteIntentionallyExcludedFromCaptionOwnerEvidence: true,
+      captionBrollOwnerEvidence,
+      noPrivateMiniSkillImports: true,
+    }, null, 2))
+  } else {
+    const generatedFixture = await createFixture({
     assignmentId: 'public-canonical-generated',
     route: 'generated',
   })
@@ -1559,26 +1575,27 @@ try {
   })
   assert.equal(trackAcceptance.validatedArtifactHash, trackRef.sha256)
 
-  console.log(JSON.stringify({
-    status: 'ok',
-    manifestHash: BROLL_CAPABILITY_MANIFEST.manifestHash,
-    publicRegistryResolved: true,
-    strictManifestInputResolution: true,
-    canonicalRuntimeBindingsDispatched: canonicalBindings.length,
-    noActionWorkItems: noActionResults.length,
-    noActionProviderRequests: 0,
-    existingSourceWorkItems: sourceResults.length,
-    existingSourceFfmpegFfprobeAndRemotion: true,
-    generatedWorkItems: generatedResults.length,
-    generatedInjectedTransportSubmissions: 1,
-    generatedNeedsVisualIntelligenceBeforeAcceptance: true,
-    visualIntelligenceAcceptanceHash: dependencyAcceptance.acceptanceHash,
-    trackAllArtifactType: trackRequest.requiredArtifactType,
-    directTrackingModelRejected: true,
-    captionBrollOwnerEvidence,
-    providerTaskContractEvidenceCommand: 'npm.smoke:b-roll-provider-lifecycle',
-    noPrivateMiniSkillImports: true,
-  }, null, 2))
+    console.log(JSON.stringify({
+      status: 'ok',
+      manifestHash: BROLL_CAPABILITY_MANIFEST.manifestHash,
+      publicRegistryResolved: true,
+      strictManifestInputResolution: true,
+      canonicalRuntimeBindingsDispatched: canonicalBindings.length,
+      noActionWorkItems: noActionResults.length,
+      noActionProviderRequests: 0,
+      existingSourceWorkItems: sourceResults.length,
+      existingSourceFfmpegFfprobeAndRemotion: true,
+      generatedWorkItems: generatedResults.length,
+      generatedInjectedTransportSubmissions: 1,
+      generatedNeedsVisualIntelligenceBeforeAcceptance: true,
+      visualIntelligenceAcceptanceHash: dependencyAcceptance.acceptanceHash,
+      trackAllArtifactType: trackRequest.requiredArtifactType,
+      directTrackingModelRejected: true,
+      captionBrollOwnerEvidence,
+      providerTaskContractEvidenceCommand: 'npm.smoke:b-roll-provider-lifecycle',
+      noPrivateMiniSkillImports: true,
+    }, null, 2))
+  }
 } finally {
   if (!preserveRoot) await rm(root, { recursive: true, force: true })
 }

@@ -74,30 +74,34 @@ export function createTrackAllRouteQualificationReceipts(input: {
       binding.environmentClass === 'canonical_private' && binding.routeKey === routeKey)
     const evidence = input.artifact.routeQualifications.find((route) =>
       route.routeKey === routeKey)
-    const blockedEvidenceHash = evidence?.routeEvidenceHash ?? hashSkillValue({
-      routeKey,
-      blocked: 'canonical_private_lifecycle_not_yet_qualified',
-    })
+    if (!evidence) throw new Error(
+      `Track All canonical-private route evidence is missing: ${routeKey}.`,
+    )
+    const blocked = evidence.qualificationStatus === 'blocked'
     receipts.push(createSkillRouteQualificationReceipt({
       schemaVersion: 'edit-skill-route-qualification-receipt-v1',
       manifestRef,
       skillQualificationReceiptHash: input.artifact.receipt.receiptHash,
       routeKey,
       environmentClass: 'canonical_private',
-      qualificationStatus: 'blocked',
+      qualificationStatus: evidence.qualificationStatus,
       qualifiedBindings: qualifiedBindings(bindings),
       requiredGateKeys: ['canonical_private_public_lifecycle'],
       gateEvidenceRefs: [{
         gateKey: 'canonical_private_public_lifecycle',
-        disposition: 'blocked',
-        evidenceHash: blockedEvidenceHash,
+        disposition: blocked ? 'blocked' : 'passed',
+        evidenceHash: evidence.routeEvidenceHash,
       }],
       testedCommitSha: input.artifact.testedCommitSha,
       sourceTreeHash: input.artifact.relevantSourceTreeHash,
       dependencyAuthorityHashes: input.artifact.dependencyAuthorityHashes,
-      evidenceClass: routeKey === 'sam3_1_masklet_route'
-        ? 'blocked_external_evidence'
-        : 'blocked_missing_canonical_private_evidence',
+      evidenceClass: blocked
+        ? routeKey === 'sam3_1_masklet_route'
+          ? 'blocked_external_evidence'
+          : 'blocked_missing_canonical_private_evidence'
+        : evidence.qualificationStatus === 'planning_qualified'
+          ? 'actual_planning_evidence'
+          : 'actual_canonical_private_evidence',
       fixtureEvidenceOnly: false,
       qualificationCandidateOnly: false,
       providerRequestCount: 0,

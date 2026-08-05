@@ -560,14 +560,15 @@ await assert.rejects(() => editSkillArtifactStore.putJson({
   value: { ...trackGraph, trackingModel: 'sam2' },
   ...scope,
 }))
-const dependencyAcceptance = await plugin.acceptDependencyArtifact({
-  assignment: dependencyFixture.assignment,
-  plan: dependencyPlan,
-  request: dependencyPlan.dependencyRequests[0]!,
-  artifactRef: trackGraphRef,
-})
-assert.equal(dependencyAcceptance.validatedArtifactHash, trackGraphRef.sha256)
-assert.equal(dependencyAcceptance.productionQualified, false)
+await assert.rejects(
+  () => plugin.acceptDependencyArtifact({
+    assignment: dependencyFixture.assignment,
+    plan: dependencyPlan,
+    request: dependencyPlan.dependencyRequests[0]!,
+    artifactRef: trackGraphRef,
+  }),
+  /authenticated Track All owner support result/iu,
+)
 
 const foreignTrackGraphRef = await editSkillArtifactStore.putJson({
   artifactType: 'track_graph_v1',
@@ -910,7 +911,7 @@ console.log(JSON.stringify({
   publicPlanHash: plan.publicPlanHash,
   approvedWorkGraphHash: workGraph.approvedWorkGraphHash,
   resultReceiptHash: receipt.receiptHash,
-  trackDependencyAcceptanceHash: dependencyAcceptance.acceptanceHash,
+  directUnauthenticatedTrackGraphRejected: true,
   visualIntelligenceDependencyRequestHash: visualIntelligenceRequest.requestHash,
   visualIntelligenceDependencyAcceptanceHash: visualIntelligenceAcceptance.acceptanceHash,
   generatedDependencyReceiptHash: dependencyReceipt.receiptHash,

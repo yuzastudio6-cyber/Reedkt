@@ -4,9 +4,11 @@ import {
   createEditSkillDependencyRequest,
   editSkillDependencyAcceptanceSchema,
   editSkillDependencyRequestSchema,
-  type EditSkillDependencyAcceptance,
   type EditSkillDependencyRequest,
 } from '../core/edit-skill-dependency-request'
+import {
+  type EditSkillArtifactAcceptance,
+} from '../core/edit-skill-support-bridge'
 import {
   createEditSkillApprovedWorkGraph,
   createEditSkillPublicPlan,
@@ -180,8 +182,11 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     })
   }
 
-  async acceptDependencyArtifact(input: { assignment: SkillAssignment; plan: EditSkillPublicPlan; request: EditSkillDependencyRequest; artifactRef: EditSkillArtifactReference }): Promise<EditSkillDependencyAcceptance> {
+  async acceptDependencyArtifact(input: { assignment: SkillAssignment; plan: EditSkillPublicPlan; request: EditSkillDependencyRequest; artifactRef: EditSkillArtifactReference; supportResultRef?: EditSkillArtifactReference }): Promise<EditSkillArtifactAcceptance> {
     const assignment = this.#assertAssignment(input.assignment)
+    if (input.supportResultRef) throw new Error(
+      'Track All dependency inputs do not accept an unrelated peer support-result wrapper.',
+    )
     await this.#loadPlan(assignment, input.plan)
     const request = editSkillDependencyRequestSchema.parse(input.request)
     if (!input.plan.dependencyRequests.some((candidate) => candidate.requestHash === request.requestHash) || request.assignmentId !== assignment.assignmentId || request.assignmentHash !== assignment.assignmentHash || request.planId !== input.plan.envelope.planId || request.planHash !== input.plan.envelope.planHash || !same(request.manifestRef, assignment.manifestRef) || !same(request.authorizedRange, assignment.authorizedRange) || input.artifactRef.artifactType !== request.requiredArtifactType) throw new Error('Track All rejected an unrequested dependency artifact.')
@@ -228,7 +233,7 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     return result
   }
 
-  async finalizeSkillResult(input: { assignment: SkillAssignment; plan: EditSkillPublicPlan; workGraph: EditSkillApprovedWorkGraph; dependencyAcceptances: readonly EditSkillDependencyAcceptance[]; workItemResults: readonly EditSkillWorkResult[] }): Promise<EditSkillResultReceipt> {
+  async finalizeSkillResult(input: { assignment: SkillAssignment; plan: EditSkillPublicPlan; workGraph: EditSkillApprovedWorkGraph; dependencyAcceptances: readonly EditSkillArtifactAcceptance[]; workItemResults: readonly EditSkillWorkResult[] }): Promise<EditSkillResultReceipt> {
     const assignment = this.#assertAssignment(input.assignment)
     const plan = await this.#loadPlan(assignment, input.plan)
     const graph = editSkillApprovedWorkGraphSchema.parse(input.workGraph)

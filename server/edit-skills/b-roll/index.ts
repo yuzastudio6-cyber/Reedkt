@@ -64,6 +64,7 @@ export * from './b-roll-remotion-integration'
 export * from './b-roll-runtime-bindings'
 export * from './b-roll-route-qualification'
 export * from './b-roll-track-graph-dependency'
+export * from './b-roll-track-all-support-bridge'
 export * from './b-roll-plan-compiler'
 export * from './b-roll-schemas'
 export * from './b-roll-work-graph-compiler'
@@ -182,6 +183,8 @@ export function registerBrollSkill(input: {
     artifacts: input.artifactStore,
     estimators: input.estimators,
     qa: input.qa,
+    qualifications: input.qualifications,
+    routeQualifications: input.routeQualifications,
   })
   input.capabilities.registerHandler({
     skillKey: 'b_roll',
@@ -192,6 +195,8 @@ export function registerBrollSkill(input: {
     artifacts: input.artifactStore,
     estimators: input.estimators,
     qa: input.qa,
+    qualifications: input.qualifications,
+    routeQualifications: input.routeQualifications,
   }))
   if (generatedQualification) {
     if (generatedQualification.receipt.qualificationStatus === 'internal_execution_qualified') {

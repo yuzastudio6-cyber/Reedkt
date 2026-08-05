@@ -3,9 +3,9 @@ import { z } from 'zod'
 import type { EditSkillArtifactReference } from './edit-skill-artifact-store'
 import {
   editSkillDependencyRequestSchema,
-  type EditSkillDependencyAcceptance,
   type EditSkillDependencyRequest,
 } from './edit-skill-dependency-request'
+import type { EditSkillArtifactAcceptance } from './edit-skill-support-bridge'
 import type { EditSkillWorkResult } from './edit-skill-work-result'
 import { hashSkillValue } from './skill-capability-manifest-hash'
 import {
@@ -228,9 +228,10 @@ export interface EditSkillPlugin {
     plan: EditSkillPublicPlan
     request: EditSkillDependencyRequest
     artifactRef: EditSkillArtifactReference
+    supportResultRef?: EditSkillArtifactReference
     workGraph?: EditSkillApprovedWorkGraph
     relatedWorkItemResult?: EditSkillWorkResult
-  }): Promise<EditSkillDependencyAcceptance>
+  }): Promise<EditSkillArtifactAcceptance>
 
   validateWorkItemResult(input: {
     assignment: SkillAssignment
@@ -243,7 +244,7 @@ export interface EditSkillPlugin {
     assignment: SkillAssignment
     plan: EditSkillPublicPlan
     workGraph: EditSkillApprovedWorkGraph
-    dependencyAcceptances: readonly EditSkillDependencyAcceptance[]
+    dependencyAcceptances: readonly EditSkillArtifactAcceptance[]
     workItemResults: readonly EditSkillWorkResult[]
   }): Promise<EditSkillResultReceipt>
 }

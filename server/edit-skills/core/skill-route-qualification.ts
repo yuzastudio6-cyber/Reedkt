@@ -278,6 +278,25 @@ export class SkillRouteQualificationRegistry {
     return receipt
   }
 
+  resolveReceipt(input: {
+    manifestRef: SkillManifestReference
+    routeKey: string
+    environmentClass: z.infer<typeof skillRuntimeEnvironmentClassSchema>
+  }): SkillRouteQualificationReceipt {
+    const receipt = this.#receipts.get(routeKey(input))
+    if (!receipt) throw new Error('Route qualification receipt is missing.')
+    if (receipt.qualificationCandidateOnly && !this.#qualificationIssuanceMode) {
+      throw new Error('Qualification-candidate route authority cannot authorize support output.')
+    }
+    if (receipt.skillQualificationReceiptHash) {
+      const skillReceipt = this.#skillQualifications.resolve(receipt.manifestRef)
+      if (skillReceipt.receiptHash !== receipt.skillQualificationReceiptHash) {
+        throw new Error('Support route qualification receipt became stale.')
+      }
+    }
+    return receipt
+  }
+
   list(): readonly SkillRouteQualificationReceipt[] {
     return [...this.#receipts.values()]
   }

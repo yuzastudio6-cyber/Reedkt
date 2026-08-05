@@ -16,7 +16,11 @@ import {
 } from '../../core/skill-capability-manifest-hash'
 import { createSkillQaFinding } from '../../core/skill-qa-registry'
 import { createCaptionReservedZonesV1 } from '../../shared/assignment-authorities'
-import { trackGraphV2Schema, type TrackGraphV2 } from '../../shared/track-graph/track-graph-schemas'
+import {
+  projectTrackGraphV1,
+  trackGraphV2Schema,
+  type TrackGraphV2,
+} from '../../shared/track-graph/track-graph-schemas'
 import type { PrivateOfflineMediaBinaryRuntime } from '../../../tool-execution/media-binary-execution'
 import type { PrivateOfflinePythonStructuredExecutionRuntime } from '../../../tool-execution/python-runner-execution'
 import type { PrivateOfflineRemotionRenderRuntime } from '../../../tool-execution/remotion-render-execution'
@@ -919,9 +923,16 @@ implements TrackAllCanonicalPrivateOperationDriver {
       planarTrackGraphs: [],
     })
     const original = compiled.b_roll
+    const trackGraphV1 = projectTrackGraphV1(graph)
+    const trackGraphV1Ref = await this.#artifactStore.putJson({
+      artifactType: 'track_graph_v1',
+      value: trackGraphV1,
+      ...scope(execution),
+    })
     const core = {
       ...withoutArtifactHash(original),
       ...lineage(execution),
+      trackGraphV1Ref,
       trackGraphV2Ref: oneRef('track_graph_v2', execution),
     }
     this.#handoff = trackAllCrossSkillHandoffSchema.parse({

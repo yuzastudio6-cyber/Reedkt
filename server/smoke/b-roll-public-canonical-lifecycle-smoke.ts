@@ -33,6 +33,7 @@ import {
   InMemoryCreateOnlyEditSkillArtifactStore,
   createEditSkillPlanApproval,
   createSkillAssignment,
+  editSkillDependencyAcceptanceSchema,
   hashSkillValue,
   skillManifestReference,
   type EditSkillApprovedWorkGraph,
@@ -965,7 +966,7 @@ try {
     relatedWorkItemResult: providerResult,
   })
   activeCoordinator.acceptDependencyAcceptance(
-    dependencyAcceptance,
+    editSkillDependencyAcceptanceSchema.parse(dependencyAcceptance),
     visualIntelligenceArtifact,
   )
   for (const item of generated.graph.workItems.slice(providerIndex + 1)) {
@@ -1025,13 +1026,15 @@ try {
     ...scope,
     value: trackGraph,
   })
-  const trackAcceptance = await plugin.acceptDependencyArtifact({
-    assignment: trackFixture.assignment,
-    plan: trackPlan,
-    request: trackRequest,
-    artifactRef: trackRef,
-  })
-  assert.equal(trackAcceptance.validatedArtifactHash, trackRef.sha256)
+  await assert.rejects(
+    () => plugin.acceptDependencyArtifact({
+      assignment: trackFixture.assignment,
+      plan: trackPlan,
+      request: trackRequest,
+      artifactRef: trackRef,
+    }),
+    /authenticated Track All owner support result/iu,
+  )
 
   console.log(JSON.stringify({
     status: 'ok',

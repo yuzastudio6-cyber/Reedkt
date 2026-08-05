@@ -1,4 +1,5 @@
 import { EditSkillArtifactSchemaRegistry } from './core/edit-skill-artifact-store'
+import { registerEditSkillSupportArtifactSchemas } from './core/edit-skill-support-bridge'
 import { ACTIVE_QUALIFICATION_RANK } from './core/edit-skill-ids'
 import { EditSkillPluginRegistry } from './core/edit-skill-plugin-registry'
 import {
@@ -61,6 +62,8 @@ export function createEditSkillRuntime(
     providerOperationQualifications: new Map(),
     phases: new Set(),
   }
+
+  registerEditSkillSupportArtifactSchemas(input.artifactSchemaRegistry!)
 
   registerBrollSkill({
     capabilities: capabilityRegistry,

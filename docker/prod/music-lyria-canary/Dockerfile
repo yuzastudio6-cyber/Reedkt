@@ -27,6 +27,7 @@ COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci
 
 COPY --chown=node:node server ./server
+COPY --chown=node:node src ./src
 COPY --chown=node:node tsconfig.json tsconfig.server.json ./
 
 USER node

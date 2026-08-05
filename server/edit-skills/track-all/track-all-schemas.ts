@@ -10,11 +10,11 @@ import {
 import { editSkillArtifactReferenceSchema, skillFrameRangeSchema } from '../core/skill-assignment-schema'
 import { skillQaFindingSchema } from '../core/skill-qa-registry'
 import {
-  brollMasterTimingPlanSchema,
-  brollSourceInventorySchema,
-  brollVisualOwnershipManifestSchema,
-} from '../b-roll/b-roll-input-authorities'
-import { captionReservedZonesV1Schema } from '../b-roll/b-roll-active-artifact-contracts'
+  captionReservedZonesV1Schema,
+  masterTimingPlanSchema,
+  sourceInventorySchema,
+  visualOwnershipManifestSchema,
+} from '../shared/assignment-authorities'
 import { trackGraphV1Schema, trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
 import {
   cameraMotionGraphSchema,
@@ -270,9 +270,9 @@ export function createTrackAllAssignment(input: z.input<typeof trackAllAssignmen
   return trackAllAssignmentSchema.parse({ ...core, assignmentHash: hashSkillValue(core) })
 }
 
-export const trackAllSourceInventorySchema = brollSourceInventorySchema
+export const trackAllSourceInventorySchema = sourceInventorySchema
 
-export const trackAllMasterTimingSchema = brollMasterTimingPlanSchema
+export const trackAllMasterTimingSchema = masterTimingPlanSchema
 
 const sourceFrameAuthorityCoreSchema = z.object({
   schemaVersion: z.literal('source_frame_authority_v1'), ownerUserId: safeId, workspaceId: safeId, projectId: safeId,
@@ -292,7 +292,7 @@ export function createSourceFrameAuthority(input: z.input<typeof sourceFrameAuth
   return sourceFrameAuthoritySchema.parse({ ...core, authorityHash: hashSkillValue(core) })
 }
 
-export const trackAllVisualOwnershipSchema = brollVisualOwnershipManifestSchema
+export const trackAllVisualOwnershipSchema = visualOwnershipManifestSchema
 
 const trackAllSceneContextCoreSchema = z.object({
   schemaVersion: z.literal('track_all_scene_context_v1'), assignmentId: safeId,

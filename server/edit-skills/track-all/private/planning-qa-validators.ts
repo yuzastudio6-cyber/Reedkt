@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
 import {
-  brollMasterTimingPlanSchema,
-  brollSourceInventorySchema,
-  brollVisualOwnershipManifestSchema,
-} from '../../b-roll/b-roll-input-authorities'
+  masterTimingPlanSchema,
+  sourceInventorySchema,
+  visualOwnershipManifestSchema,
+} from '../../shared/assignment-authorities'
 import { skillAssignmentSchema } from '../../core/skill-assignment-schema'
 import { hashSkillValue } from '../../core/skill-capability-manifest-hash'
 import { skillCapabilityManifestSchema } from '../../core/skill-capability-manifest-schema'
@@ -22,10 +22,10 @@ const planningQaInputSchema = z.object({
   genericAssignment: skillAssignmentSchema,
   assignment: trackAllAssignmentSchema,
   target: trackAllTargetSpecificationSchema,
-  sourceInventory: brollSourceInventorySchema,
-  masterTiming: brollMasterTimingPlanSchema,
+  sourceInventory: sourceInventorySchema,
+  masterTiming: masterTimingPlanSchema,
   sourceFrames: sourceFrameAuthoritySchema,
-  visualOwnership: brollVisualOwnershipManifestSchema,
+  visualOwnership: visualOwnershipManifestSchema,
   sceneContext: trackAllSceneContextSchema,
   visualIntelligenceEvidence: visualIntelligenceTargetEvidenceSchema.optional(),
   existingTrackGraphPresent: z.boolean(),

@@ -13,6 +13,14 @@ interface BrollDependencyAuthorityDefinition {
 
 const DEFINITIONS = [
   {
+    authorityKey: 'shared_assignment_authorities',
+    profileVersion: 'b_roll_dependency_authority.shared_assignment_authorities.v1',
+    files: [
+      'server/edit-skills/shared/assignment-authorities/assignment-authority-schemas.ts',
+      'server/edit-skills/shared/assignment-authorities/index.ts',
+    ],
+  },
+  {
     authorityKey: 'canonical_approved_edit_execution_package',
     profileVersion: 'b_roll_dependency_authority.canonical_approved_edit_execution_package.v1',
     files: ['server/edit-architecture/canonical-approved-edit-execution-package.ts'],

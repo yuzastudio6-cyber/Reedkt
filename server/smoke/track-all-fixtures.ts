@@ -1,11 +1,11 @@
 import type { z } from 'zod'
 
 import {
-  brollVisualOwnershipWindowSchema,
-  createBrollMasterTimingPlan,
-  createBrollSourceInventory,
-  createBrollVisualOwnershipManifest,
-} from '../edit-skills/b-roll'
+  createMasterTimingPlan,
+  createSourceInventory,
+  createVisualOwnershipManifest,
+  visualOwnershipWindowSchema,
+} from '../edit-skills/shared/assignment-authorities'
 import type { EditSkillArtifactReference } from '../edit-skills/core/edit-skill-artifact-store'
 import type { EditSkillRuntime } from '../edit-skills/core/edit-skill-runtime'
 import { hashSkillValue, skillManifestReference } from '../edit-skills/core/skill-capability-manifest-hash'
@@ -70,7 +70,7 @@ export async function createTrackAllAuthorityFixture(input: {
   intendedTreatment?: 'geometry_only' | 'privacy_redaction' | 'tracked_focus' | 'tracked_reframe' | 'planar_geometry' | 'repair' | 'no_action'
   targetType?: 'selected_instance' | 'concept_group' | 'selected_group' | 'planar_region' | 'freeform_region' | 'camera_relative_region' | 'world_relative_region' | 'existing_track' | 'track_child_region' | 'track_parent_region'
   groundingFrame?: number
-  ownershipWindows?: readonly z.input<typeof brollVisualOwnershipWindowSchema>[]
+  ownershipWindows?: readonly z.input<typeof visualOwnershipWindowSchema>[]
   expectedMinimumCount?: number
   expectedMaximumCount?: number
   expectedCount?: number
@@ -109,7 +109,7 @@ export async function createTrackAllAuthorityFixture(input: {
     artifactType: 'source_media_artifact_v1', sha256: sourceChecksum,
     byteLength: 4096, ...scope,
   }
-  const sourceInventory = createBrollSourceInventory({
+  const sourceInventory = createSourceInventory({
     schemaVersion: 'source_inventory_v1', ...scope, editSessionId,
     assignmentId: input.assignmentId, editPlanVersion: 1, manifestRef,
     candidates: [{
@@ -125,7 +125,7 @@ export async function createTrackAllAuthorityFixture(input: {
   const sourceInventoryRef = await input.runtime.artifactStore.putJson({
     artifactType: 'source_inventory_v1', value: sourceInventory, ...scope,
   })
-  const masterTiming = createBrollMasterTimingPlan({
+  const masterTiming = createMasterTimingPlan({
     schemaVersion: 'master_timing_plan_v1', ...scope, editSessionId,
     assignmentId: input.assignmentId, editPlanVersion: 1, manifestRef,
     fps: authorizedRange.fps, timelineRange: analysisContextRange,
@@ -134,7 +134,7 @@ export async function createTrackAllAuthorityFixture(input: {
   const masterTimingRef = await input.runtime.artifactStore.putJson({
     artifactType: 'master_timing_plan_v1', value: masterTiming, ...scope,
   })
-  const visualOwnership = createBrollVisualOwnershipManifest({
+  const visualOwnership = createVisualOwnershipManifest({
     schemaVersion: 'visual_ownership_manifest_v1', ...scope, editSessionId,
     assignmentId: input.assignmentId, editPlanVersion: 1, manifestRef,
     assignmentRange: authorizedRange, requestedOwnership: 'support',

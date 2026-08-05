@@ -7,6 +7,7 @@ import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 const RELEVANT_DIRECTORY_ROOTS = [
   'server/edit-skills/core',
   'server/edit-skills/track-all',
+  'server/edit-skills/shared/assignment-authorities',
   'server/edit-skills/shared/track-graph',
 ] as const
 

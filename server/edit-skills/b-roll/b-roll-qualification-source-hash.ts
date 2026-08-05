@@ -7,6 +7,7 @@ import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 const RELEVANT_DIRECTORY_ROOTS = [
   'server/edit-skills/core',
   'server/edit-skills/b-roll',
+  'server/edit-skills/shared/assignment-authorities',
   'server/providers/google/gemini-omni-broll',
 ] as const
 

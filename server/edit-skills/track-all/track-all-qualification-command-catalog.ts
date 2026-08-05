@@ -4,6 +4,7 @@ import type {
 import { TRACK_ALL_QUALIFICATION_FIXTURE_KEYS } from './track-all-qualification'
 
 export const TRACK_ALL_QUALIFICATION_SCRIPTS = [
+  'test:edit-skill-shared-assignment-authorities',
   'test:track-all-capability-manifest',
   'test:track-all-authority',
   'test:track-all-planning',

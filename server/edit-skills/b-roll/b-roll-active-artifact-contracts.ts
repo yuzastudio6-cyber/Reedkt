@@ -11,6 +11,9 @@ import {
   skillSha256Schema,
 } from '../core/skill-capability-manifest-schema'
 import {
+  captionReservedZonesV1Schema as sharedCaptionReservedZonesV1Schema,
+} from '../shared/assignment-authorities'
+import {
   brollProviderRequestPackageV5Schema,
 } from '../../providers/google/gemini-omni-broll'
 
@@ -177,27 +180,8 @@ export const referenceDnaV1Schema = referenceDnaCoreSchema.extend({
   hashIssue(value, 'referenceDnaHash', context, 'Reference DNA')
 })
 
-const captionZonesCoreSchema = z.object({
-  schemaVersion: z.literal('caption_reserved_zones_v1'),
-  ...scopeShape,
-  authorizedRange: skillFrameRangeSchema,
-  zones: z.array(z.object({
-    zoneId: identity,
-    frameRange: skillFrameRangeSchema,
-    xMillionths: z.number().int().min(0).max(1_000_000),
-    yMillionths: z.number().int().min(0).max(1_000_000),
-    widthMillionths: z.number().int().positive().max(1_000_000),
-    heightMillionths: z.number().int().positive().max(1_000_000),
-    finalOwner: z.literal('captions'),
-  }).strict()).max(10_000),
-  readOnly: z.literal(true),
-}).strict()
-
-export const captionReservedZonesV1Schema = captionZonesCoreSchema.extend({
-  zonesHash: skillSha256Schema,
-}).strict().superRefine((value, context) => {
-  hashIssue(value, 'zonesHash', context, 'Caption reserved zones')
-})
+/** @deprecated Import from `shared/assignment-authorities`. */
+export const captionReservedZonesV1Schema = sharedCaptionReservedZonesV1Schema
 
 const priorBrollResultCoreSchema = z.object({
   schemaVersion: z.literal('prior_b_roll_result_v1'),

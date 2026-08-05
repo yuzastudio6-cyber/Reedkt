@@ -29,6 +29,7 @@ const generatedPath = resolve(
 const gitExecutable = process.env.REEDITPRO_GIT_BIN?.trim() || 'git'
 
 const PHASE_A_SCRIPTS = [
+  'test:edit-skill-shared-assignment-authorities',
   'test:b-roll-planning',
   'test:b-roll-planning-qa',
   'test:b-roll-qualification-evidence',
@@ -110,6 +111,7 @@ function safeQualificationEnvironment(): NodeJS.ProcessEnv {
   const environment: NodeJS.ProcessEnv = {
     ...process.env,
     REEDITPRO_BROLL_QUALIFICATION_GENERATING: '1',
+    REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING: '1',
   }
   for (const key of [
     'GOOGLE_API_KEY',

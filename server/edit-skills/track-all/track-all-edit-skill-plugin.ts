@@ -27,7 +27,11 @@ import type { SkillAssignment } from '../core/skill-assignment-types'
 import { assertSkillAssignment, assertSkillRangeMutation } from '../core/skill-range-authority'
 import { createSkillPlanEnvelope } from '../core/skill-plan-envelope'
 import { createSkillResultEnvelope } from '../core/skill-result-envelope'
-import { brollMasterTimingPlanSchema, brollSourceInventorySchema, brollVisualOwnershipManifestSchema } from '../b-roll/b-roll-input-authorities'
+import {
+  masterTimingPlanSchema,
+  sourceInventorySchema,
+  visualOwnershipManifestSchema,
+} from '../shared/assignment-authorities'
 import { trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
 import { TRACK_ALL_CAPABILITY_MANIFEST } from './track-all-capability-manifest'
 import { compileTrackAllPlan, type TrackAllPlanningAuthority } from './track-all-plan-compiler'
@@ -263,10 +267,10 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const resolved = await resolveAndValidateSkillAssignmentInputs({ assignment, manifest: this.manifest, artifactStore: this.#artifacts })
     const specialized = trackAllAssignmentSchema.parse(resolved.requireOne('assignment').value)
     const target = trackAllTargetSpecificationSchema.parse(resolved.requireOne('target').value)
-    const sourceInventory = brollSourceInventorySchema.parse(resolved.requireOne('source_inventory').value)
-    const masterTiming = brollMasterTimingPlanSchema.parse(resolved.requireOne('master_timing').value)
+    const sourceInventory = sourceInventorySchema.parse(resolved.requireOne('source_inventory').value)
+    const masterTiming = masterTimingPlanSchema.parse(resolved.requireOne('master_timing').value)
     const sourceFrames = sourceFrameAuthoritySchema.parse(resolved.requireOne('source_frames').value)
-    const visualOwnership = brollVisualOwnershipManifestSchema.parse(resolved.requireOne('visual_ownership').value)
+    const visualOwnership = visualOwnershipManifestSchema.parse(resolved.requireOne('visual_ownership').value)
     const sceneContext = trackAllSceneContextSchema.parse(resolved.requireOne('scene_context').value)
     if (specialized.assignmentId !== assignment.assignmentId || specialized.ownerUserId !== assignment.ownerUserId || specialized.workspaceId !== assignment.workspaceId || specialized.projectId !== assignment.projectId || specialized.editSessionId !== assignment.editSessionId || !same(specialized.manifestRef, assignment.manifestRef) || !same(specialized.authorizedWriteRange, assignment.authorizedRange)) throw new Error('Specialized Track All assignment differs from public authority.')
     if (target.assignmentId !== assignment.assignmentId || target.ownerUserId !== assignment.ownerUserId || target.workspaceId !== assignment.workspaceId || target.projectId !== assignment.projectId || target.editSessionId !== assignment.editSessionId) throw new Error('Track All target specification differs from assignment authority.')

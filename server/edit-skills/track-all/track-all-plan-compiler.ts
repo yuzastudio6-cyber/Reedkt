@@ -1,7 +1,11 @@
 import type { SkillAssignment } from '../core/skill-assignment-types'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
-import type { BrollMasterTimingPlan, BrollSourceInventory, BrollVisualOwnershipManifest } from '../b-roll/b-roll-input-authorities'
+import type {
+  MasterTimingPlan,
+  SourceInventory,
+  VisualOwnershipManifest,
+} from '../shared/assignment-authorities'
 import type { TrackGraphV2 } from '../shared/track-graph/track-graph-schemas'
 import {
   createTrackAllPlan,
@@ -41,10 +45,10 @@ export interface TrackAllPlanningAuthority {
   genericAssignment: SkillAssignment
   assignment: TrackAllAssignment
   target: TrackAllTargetSpecification
-  sourceInventory: BrollSourceInventory
-  masterTiming: BrollMasterTimingPlan
+  sourceInventory: SourceInventory
+  masterTiming: MasterTimingPlan
   sourceFrames: SourceFrames
-  visualOwnership: BrollVisualOwnershipManifest
+  visualOwnership: VisualOwnershipManifest
   sceneContext: SceneContext
   visualIntelligenceEvidence?: ViTargetEvidence
   privacyPolicy?: PrivacyPolicy

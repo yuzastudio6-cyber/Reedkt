@@ -13,6 +13,14 @@ interface Definition {
 
 const DEFINITIONS = [
   {
+    authorityKey: 'shared_assignment_authorities',
+    profileVersion: 'track_all_dependency_authority.shared_assignment_authorities.v1',
+    files: [
+      'server/edit-skills/shared/assignment-authorities/assignment-authority-schemas.ts',
+      'server/edit-skills/shared/assignment-authorities/index.ts',
+    ],
+  },
+  {
     authorityKey: 'generic_edit_skill_kernel',
     profileVersion: 'track_all_dependency_authority.generic_edit_skill_kernel.v1',
     files: [

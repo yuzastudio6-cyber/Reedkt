@@ -1109,3 +1109,46 @@ concrete canonical-private public lifecycle, the SAM route remains blocked,
 and production remains false. No provider/model/GPU call, public artifact,
 production mutation, peer-skill implementation, Current Edit Preferences
 change, or head-orchestra implementation occurred.
+
+## TRACK-20 — shared assignment authority ownership
+
+Status: implementation and local verification complete; source commit and
+generated B-Roll qualification evidence are recorded by the follow-up ledger
+entry after the clean source commit is frozen.
+
+Implemented:
+
+- moved `source_inventory_v1`, `master_timing_plan_v1`, and
+  `visual_ownership_manifest_v1` into the neutral
+  `server/edit-skills/shared/assignment-authorities/` owner;
+- moved the already shared `caption_reserved_zones_v1` wire contract into the
+  same neutral owner so Track All no longer imports a private B-Roll module;
+- retained exact B-Roll schema/type/constructor compatibility through explicit
+  deprecated aliases instead of duplicating or silently changing the wire
+  contracts;
+- changed Track All planning, public plugin, planning QA, schemas, and fixtures
+  to import only the neutral owner;
+- bound both skills' source-tree hashes and ordered dependency authority sets
+  to the new shared owner, so a shared-authority change invalidates old
+  qualification evidence;
+- added a static compatibility/boundary test proving schema and constructor
+  identity, content-hash rejection, zero Track All runtime imports from B-Roll,
+  and qualification invalidation coverage.
+
+Actual checks run and passed before the source freeze:
+
+- `npm run test:edit-skill-shared-assignment-authorities`;
+- `npm run test:track-all-authority`;
+- `npm run test:track-all-planning`;
+- `npm run test:track-all-public-plugin-e2e`;
+- `npm run test:b-roll-public-canonical-lifecycle`;
+- `npm run typecheck:server`;
+- `git diff --check`.
+
+The tests ran with both qualification-generation gates only where the expected
+source-tree invalidation made the previously generated receipts stale. This is
+not a qualification bypass: the B-Roll receipt is regenerated from the clean
+source commit before TRACK-20 closes, and the final Track All receipt is
+regenerated after all closeout source milestones. No provider/model/GPU call,
+public artifact, production mutation, peer-skill implementation, or head
+orchestra was introduced.

@@ -1,4 +1,5 @@
 import { EditSkillArtifactSchemaRegistry } from './core/edit-skill-artifact-store'
+import { registerEditSkillSupportArtifactSchemas } from './core/edit-skill-support-bridge'
 import { ACTIVE_QUALIFICATION_RANK } from './core/edit-skill-ids'
 import { EditSkillPluginRegistry } from './core/edit-skill-plugin-registry'
 import {
@@ -16,7 +17,9 @@ import type { SkillReferenceCatalog } from './core/skill-capability-validator'
 import { SkillEstimatorRegistry } from './core/skill-estimator-registry'
 import { SkillQaRegistry } from './core/skill-qa-registry'
 import { SkillQualificationRegistry } from './core/skill-qualification-registry'
+import { SkillRouteQualificationRegistry } from './core/skill-route-qualification'
 import { registerBrollSkill } from './b-roll'
+import { registerTrackAllSkill } from './track-all'
 
 const REQUIRED_DEPENDENCIES = [
   'artifactStore',
@@ -24,6 +27,7 @@ const REQUIRED_DEPENDENCIES = [
   'toolRegistry',
   'qaRegistry',
   'qualificationRegistry',
+  'routeQualificationRegistry',
   'estimatorRegistry',
   'artifactSchemaRegistry',
 ] as const
@@ -40,6 +44,10 @@ export function createEditSkillRuntime(
   ) throw new Error(
     'Production edit-skill runtime rejects the internal in-memory artifact store.',
   )
+  if (input.environmentClass !== 'internal_fixture' &&
+    input.privateArtifactAuthority !== true) throw new Error(
+    'Canonical and production edit-skill runtimes require explicit private artifact authority.',
+  )
 
   const capabilityRegistry = new SkillCapabilityRegistry()
   const pluginRegistry = new EditSkillPluginRegistry()
@@ -55,6 +63,8 @@ export function createEditSkillRuntime(
     phases: new Set(),
   }
 
+  registerEditSkillSupportArtifactSchemas(input.artifactSchemaRegistry!)
+
   registerBrollSkill({
     capabilities: capabilityRegistry,
     estimators: input.estimatorRegistry!,
@@ -65,7 +75,23 @@ export function createEditSkillRuntime(
     runtimeBindings: runtimeBindingRegistry,
     workGraphJobs: workGraphJobDefinitions,
     qualifications: input.qualificationRegistry!,
+    routeQualifications: input.routeQualificationRegistry!,
     catalog: referenceCatalog,
+  })
+  registerTrackAllSkill({
+    capabilities: capabilityRegistry,
+    estimators: input.estimatorRegistry!,
+    qa: input.qaRegistry!,
+    artifacts: input.artifactSchemaRegistry!,
+    artifactStore,
+    plugins: pluginRegistry,
+    runtimeBindings: runtimeBindingRegistry,
+    workGraphJobs: workGraphJobDefinitions,
+    qualifications: input.qualificationRegistry!,
+    routeQualifications: input.routeQualificationRegistry!,
+    catalog: referenceCatalog,
+    environmentClass: input.environmentClass,
+    sam31RouteGateReport: input.trackAllSam31RouteGateReport,
   })
   for (const binding of input.additionalRuntimeBindings ?? []) {
     if (binding.definition.environmentClass !== input.environmentClass) {
@@ -87,15 +113,22 @@ export function createEditSkillRuntime(
     capabilityRegistry,
     pluginRegistry,
     runtimeBindingRegistry,
-    runtimeDispatcher: new EditSkillRuntimeDispatcher(
-      runtimeBindingRegistry,
-      input.environmentClass,
-    ),
+    runtimeDispatcher: new EditSkillRuntimeDispatcher({
+      bindings: runtimeBindingRegistry,
+      environmentClass: input.environmentClass,
+      routeQualifications: input.routeQualificationRegistry!,
+      skillQualifications: input.qualificationRegistry!,
+      artifactStore,
+      privateArtifactAuthority: input.privateArtifactAuthority === true,
+      providerAuthorityOperations: input.providerAuthority!.operations,
+      toolAuthorityOperations: input.toolRegistry!.operationQualifications,
+    }),
     workGraphJobDefinitions: Object.freeze([...workGraphJobDefinitions]),
     estimatorRegistry: input.estimatorRegistry!,
     qaRegistry: input.qaRegistry!,
     artifactSchemaRegistry: input.artifactSchemaRegistry!,
     qualificationRegistry: input.qualificationRegistry!,
+    routeQualificationRegistry: input.routeQualificationRegistry!,
     referenceCatalog,
     providerAuthority: input.providerAuthority!,
     toolRegistry: input.toolRegistry!,
@@ -110,6 +143,9 @@ function assertExternallyConfiguredOperations(input: {
   for (const operationId of input.catalog.toolOperations) {
     if (!input.toolRegistry.operationIds.has(operationId)) {
       throw new Error(`Edit-skill runtime tool operation ${operationId} is not configured.`)
+    }
+    if (!input.toolRegistry.operationQualifications.has(operationId)) {
+      throw new Error(`Edit-skill runtime tool operation ${operationId} has no qualification authority.`)
     }
   }
   for (const operationId of input.catalog.providerOperations) {
@@ -126,9 +162,16 @@ function assertExternallyConfiguredOperations(input: {
 }
 
 export function createEditSkillRuntimeRegistries() {
+  const qualificationRegistry = new SkillQualificationRegistry()
   return {
     qaRegistry: new SkillQaRegistry(),
-    qualificationRegistry: new SkillQualificationRegistry(),
+    qualificationRegistry,
+    routeQualificationRegistry: new SkillRouteQualificationRegistry({
+      skillQualifications: qualificationRegistry,
+      qualificationIssuanceMode:
+        process.env.REEDITPRO_BROLL_QUALIFICATION_GENERATING === '1' ||
+        process.env.REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING === '1',
+    }),
     estimatorRegistry: new SkillEstimatorRegistry(),
     artifactSchemaRegistry: new EditSkillArtifactSchemaRegistry(),
   }

@@ -17,6 +17,8 @@ export const OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE =
   'approved_source_color_match_delivery_matroska_v2' as const
 export const OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE =
   'approved_b_roll_remotion_preview_proxy_matroska_v1' as const
+export const OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE =
+  'approved_track_all_privacy_redaction_matroska_v1' as const
 export const OFFLINE_MEDIA_BINARY_OPERATIONS = Object.freeze({
   ffmpeg: 'tool.ffmpeg.execute_approved_media_recipe.v1',
   ffprobe: 'tool.ffprobe.inspect_approved_media.v1',
@@ -126,6 +128,44 @@ export interface OfflineFfmpegBrollRemotionPreviewProxyPlanningPayload
   metadataPolicy: 'strip_all'
   technicalProxyOnly: true
   creativeColorTransformApplied: false
+}
+
+export type OfflineTrackAllPrivacyRedactionTreatment =
+  | 'gaussian_blur'
+  | 'pixelate'
+  | 'mosaic'
+  | 'solid_fill'
+
+export interface OfflineTrackAllPrivacyMaskRegion {
+  startFrameInclusive: number
+  endFrameExclusive: number
+  x: number
+  y: number
+  width: number
+  height: number
+  evidenceKind:
+    | 'track_mask_bounds'
+    | 'conservative_uncertainty_cover'
+    | 'reflection_cover'
+}
+
+export interface OfflineFfmpegTrackAllPrivacyRedactionPlanningPayload
+  extends OfflineFfmpegCommonPlanningPayload {
+  recipeProfileId: typeof OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE
+  treatment: OfflineTrackAllPrivacyRedactionTreatment
+  sourceWidth: number
+  sourceHeight: number
+  maskRegions: OfflineTrackAllPrivacyMaskRegion[]
+  uncertaintyPolicy: 'expand_hold_parent_block_if_unresolved_v1'
+  privacyFailClosed: true
+  flattenedPrivatePreview: true
+  outputContainer: 'matroska'
+  outputCodec: 'libvpx-vp9'
+  constantQuality: 12
+  outputPixelFormat: 'yuv420p'
+  preserveAudio: false
+  metadataPolicy: 'strip_all'
+  publicArtifact: false
 }
 
 export interface OfflineFfmpegExactSourceFramePngPlanningPayload {
@@ -314,6 +354,7 @@ export function isColorMatchDeliveryPlanningPayload(
 export type OfflineFfmpegPlanningPayload =
   | OfflineFfmpegTrimPlanningPayload
   | OfflineFfmpegBrollRemotionPreviewProxyPlanningPayload
+  | OfflineFfmpegTrackAllPrivacyRedactionPlanningPayload
   | OfflineFfmpegExactSourceFramePngPlanningPayload
   | OfflineFfmpegVoiceDeliveryPlanningPayload
   | OfflineFfmpegEditBriefAudioPlanningPayload
@@ -404,6 +445,8 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
   const brollPreviewProxy = candidate?.recipeProfileId ===
     OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
+  const trackAllPrivacyRedaction = candidate?.recipeProfileId ===
+    OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE
   if (exactSourceFramePng) {
     const frame = exactObject(value, [
       'recipeProfileId', 'timestampPolicy', 'overwriteExistingArtifact',
@@ -563,6 +606,15 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
           'technicalProxyOnly', 'creativeColorTransformApplied',
         ]
       : []),
+    ...(trackAllPrivacyRedaction
+      ? [
+          'treatment', 'sourceWidth', 'sourceHeight', 'maskRegions',
+          'uncertaintyPolicy', 'privacyFailClosed',
+          'flattenedPrivatePreview', 'outputContainer', 'outputCodec',
+          'constantQuality', 'outputPixelFormat', 'preserveAudio',
+          'metadataPolicy', 'publicArtifact',
+        ]
+      : []),
     ...(colorDelivery || colorMatchDelivery
       ? [
           'colorGradeStyle', 'intensity', 'approvedColorOperationIds',
@@ -581,6 +633,7 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     ![
       'approved_trim_transcode_v1',
       OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
+      OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE,
       'approved_voice_delivery_wav_v1',
       OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
       OFFLINE_EDIT_BRIEF_SFX_PROFILE,
@@ -607,6 +660,55 @@ export function validateOfflineFfmpegPlanningPayload(value: unknown): OfflineFfm
     trimEndFrameExclusive: Number(payload.trimEndFrameExclusive),
     frameRate: Number(payload.frameRate) as OfflineFfmpegPlanningPayload['frameRate'],
   } as const
+  if (trackAllPrivacyRedaction) {
+    const sourceWidth = Number(payload.sourceWidth)
+    const sourceHeight = Number(payload.sourceHeight)
+    const maskRegions = validateTrackAllPrivacyMaskRegions(
+      payload.maskRegions,
+      {
+        trimStartFrame: common.trimStartFrame,
+        trimEndFrameExclusive: common.trimEndFrameExclusive,
+        sourceWidth,
+        sourceHeight,
+      },
+    )
+    if (
+      !['gaussian_blur', 'pixelate', 'mosaic', 'solid_fill'].includes(
+        String(payload.treatment),
+      ) ||
+      !Number.isSafeInteger(sourceWidth) || sourceWidth < 16 || sourceWidth > 4096 ||
+      !Number.isSafeInteger(sourceHeight) || sourceHeight < 16 || sourceHeight > 4096 ||
+      sourceWidth * sourceHeight > 16_777_216 ||
+      payload.uncertaintyPolicy !== 'expand_hold_parent_block_if_unresolved_v1' ||
+      payload.privacyFailClosed !== true ||
+      payload.flattenedPrivatePreview !== true ||
+      payload.outputContainer !== 'matroska' ||
+      payload.outputCodec !== 'libvpx-vp9' ||
+      payload.constantQuality !== 12 ||
+      payload.outputPixelFormat !== 'yuv420p' ||
+      payload.preserveAudio !== false ||
+      payload.metadataPolicy !== 'strip_all' ||
+      payload.publicArtifact !== false
+    ) throw invalid()
+    return {
+      recipeProfileId: OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE,
+      ...common,
+      treatment: payload.treatment as OfflineTrackAllPrivacyRedactionTreatment,
+      sourceWidth,
+      sourceHeight,
+      maskRegions,
+      uncertaintyPolicy: 'expand_hold_parent_block_if_unresolved_v1',
+      privacyFailClosed: true,
+      flattenedPrivatePreview: true,
+      outputContainer: 'matroska',
+      outputCodec: 'libvpx-vp9',
+      constantQuality: 12,
+      outputPixelFormat: 'yuv420p',
+      preserveAudio: false,
+      metadataPolicy: 'strip_all',
+      publicArtifact: false,
+    }
+  }
   if (brollPreviewProxy) {
     if (
       payload.outputContainer !== 'matroska' ||
@@ -936,6 +1038,8 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
     OFFLINE_EXACT_SOURCE_FRAME_PNG_PROFILE
   const brollPreviewProxy = requestPayload?.recipeProfileId ===
     OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
+  const trackAllPrivacyRedaction = requestPayload?.recipeProfileId ===
+    OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE
   const editBriefAudio = requestPayload?.recipeProfileId ===
     OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE ||
     requestPayload?.recipeProfileId === OFFLINE_EDIT_BRIEF_SFX_PROFILE
@@ -973,6 +1077,15 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           'outputContainer', 'outputCodec', 'constantQuality',
           'outputPixelFormat', 'preserveAudio', 'metadataPolicy',
           'technicalProxyOnly', 'creativeColorTransformApplied',
+        ]
+      : []),
+    ...(trackAllPrivacyRedaction
+      ? [
+          'treatment', 'sourceWidth', 'sourceHeight', 'maskRegions',
+          'uncertaintyPolicy', 'privacyFailClosed',
+          'flattenedPrivatePreview', 'outputContainer', 'outputCodec',
+          'constantQuality', 'outputPixelFormat', 'preserveAudio',
+          'metadataPolicy', 'publicArtifact',
         ]
       : []),
     ...(
@@ -1070,6 +1183,24 @@ export function validateOfflineFfmpegExecutionRequest(value: unknown): OfflineFf
           technicalProxyOnly: payload.technicalProxyOnly,
           creativeColorTransformApplied:
             payload.creativeColorTransformApplied,
+        }
+      : {}),
+    ...(trackAllPrivacyRedaction
+      ? {
+          treatment: payload.treatment,
+          sourceWidth: payload.sourceWidth,
+          sourceHeight: payload.sourceHeight,
+          maskRegions: payload.maskRegions,
+          uncertaintyPolicy: payload.uncertaintyPolicy,
+          privacyFailClosed: payload.privacyFailClosed,
+          flattenedPrivatePreview: payload.flattenedPrivatePreview,
+          outputContainer: payload.outputContainer,
+          outputCodec: payload.outputCodec,
+          constantQuality: payload.constantQuality,
+          outputPixelFormat: payload.outputPixelFormat,
+          preserveAudio: payload.preserveAudio,
+          metadataPolicy: payload.metadataPolicy,
+          publicArtifact: payload.publicArtifact,
         }
       : {}),
     ...(
@@ -1424,6 +1555,63 @@ function boundedSafeKeys(value: unknown, maximum: number): string[] {
   const normalized = [...new Set(value as string[])].sort()
   if (normalized.length !== value.length || normalized.join('|') !== value.join('|')) throw invalid()
   return normalized
+}
+
+function validateTrackAllPrivacyMaskRegions(
+  value: unknown,
+  bounds: {
+    trimStartFrame: number
+    trimEndFrameExclusive: number
+    sourceWidth: number
+    sourceHeight: number
+  },
+): OfflineTrackAllPrivacyMaskRegion[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 512) {
+    throw invalid()
+  }
+  const regions = value.map((candidate) => {
+    const region = exactObject(candidate, [
+      'startFrameInclusive', 'endFrameExclusive', 'x', 'y',
+      'width', 'height', 'evidenceKind',
+    ])
+    const startFrameInclusive = Number(region.startFrameInclusive)
+    const endFrameExclusive = Number(region.endFrameExclusive)
+    const x = Number(region.x)
+    const y = Number(region.y)
+    const width = Number(region.width)
+    const height = Number(region.height)
+    if (
+      ![startFrameInclusive, endFrameExclusive, x, y, width, height]
+        .every(Number.isSafeInteger) ||
+      startFrameInclusive < bounds.trimStartFrame ||
+      endFrameExclusive <= startFrameInclusive ||
+      endFrameExclusive > bounds.trimEndFrameExclusive ||
+      x < 0 || y < 0 || width < 2 || height < 2 ||
+      x + width > bounds.sourceWidth || y + height > bounds.sourceHeight ||
+      ![
+        'track_mask_bounds',
+        'conservative_uncertainty_cover',
+        'reflection_cover',
+      ].includes(String(region.evidenceKind))
+    ) throw invalid()
+    return {
+      startFrameInclusive,
+      endFrameExclusive,
+      x,
+      y,
+      width,
+      height,
+      evidenceKind: region.evidenceKind as OfflineTrackAllPrivacyMaskRegion['evidenceKind'],
+    }
+  })
+  const canonical = [...regions].sort((left, right) =>
+    left.startFrameInclusive - right.startFrameInclusive ||
+    left.endFrameExclusive - right.endFrameExclusive ||
+    left.y - right.y || left.x - right.x ||
+    left.height - right.height || left.width - right.width ||
+    left.evidenceKind.localeCompare(right.evidenceKind))
+  if (JSON.stringify(canonical) !== JSON.stringify(regions)) throw invalid()
+  return regions
 }
 
 function invalid(): Error {

@@ -3,9 +3,9 @@ import { z } from 'zod'
 import type { EditSkillArtifactReference } from './edit-skill-artifact-store'
 import {
   editSkillDependencyRequestSchema,
-  type EditSkillDependencyAcceptance,
   type EditSkillDependencyRequest,
 } from './edit-skill-dependency-request'
+import type { EditSkillArtifactAcceptance } from './edit-skill-support-bridge'
 import type { EditSkillWorkResult } from './edit-skill-work-result'
 import { hashSkillValue } from './skill-capability-manifest-hash'
 import {
@@ -139,6 +139,7 @@ const editSkillApprovedWorkGraphCoreSchema = z.object({
   approval: editSkillPlanApprovalSchema,
   pluginWorkGraphType: skillIdentitySchema,
   pluginWorkGraphHash: skillSha256Schema,
+  pluginWorkGraphRef: editSkillArtifactReferenceSchema.optional(),
   workItems: z.array(editSkillPublicWorkItemSchema).min(1).max(1_000),
   dependencyRequests: z.array(editSkillDependencyRequestSchema).max(100),
   outsideAuthorizedRangeModified: z.literal(false),
@@ -159,6 +160,15 @@ export const editSkillApprovedWorkGraphSchema = editSkillApprovedWorkGraphCoreSc
     if (item.dependencyKeys.some((dependencyKey) => !workItemKeys.has(dependencyKey))) {
       context.addIssue({ code: 'custom', message: `Work item ${item.workItemKey} has an unknown dependency.` })
     }
+  }
+  if (value.pluginWorkGraphRef && (
+    value.pluginWorkGraphRef.artifactType !== value.pluginWorkGraphType ||
+    value.pluginWorkGraphRef.sha256 !== value.pluginWorkGraphHash
+  )) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Approved work graph does not bind its exact plugin graph artifact.',
+    })
   }
 })
 
@@ -218,9 +228,10 @@ export interface EditSkillPlugin {
     plan: EditSkillPublicPlan
     request: EditSkillDependencyRequest
     artifactRef: EditSkillArtifactReference
+    supportResultRef?: EditSkillArtifactReference
     workGraph?: EditSkillApprovedWorkGraph
     relatedWorkItemResult?: EditSkillWorkResult
-  }): Promise<EditSkillDependencyAcceptance>
+  }): Promise<EditSkillArtifactAcceptance>
 
   validateWorkItemResult(input: {
     assignment: SkillAssignment
@@ -233,7 +244,7 @@ export interface EditSkillPlugin {
     assignment: SkillAssignment
     plan: EditSkillPublicPlan
     workGraph: EditSkillApprovedWorkGraph
-    dependencyAcceptances: readonly EditSkillDependencyAcceptance[]
+    dependencyAcceptances: readonly EditSkillArtifactAcceptance[]
     workItemResults: readonly EditSkillWorkResult[]
   }): Promise<EditSkillResultReceipt>
 }

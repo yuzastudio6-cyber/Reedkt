@@ -1,0 +1,106 @@
+# ADR: Track All SAM 3.1 runtime
+
+Decision: accepted for implementation, real inference blocked pending evidence.
+
+## Decision
+
+Preserve `tool.sam3_1.segment_and_track_subject.v1` as immutable historical authority. Add the forward-only Track All operation `tool.sam3_1.track_masklets.v2`. V2 owns a server-compiled session plan rather than accepting a model request.
+
+The V2 plan permits only:
+
+- exact private source and checkpoint leases;
+- text concept, positive/negative points, bounding boxes, and exact object IDs;
+- approved brush/reference-image evidence resolved before GPU dispatch, not caller byte/path input;
+- non-zero initialization frame;
+- bounded forward, backward, or bidirectional propagation;
+- at most one approved refinement;
+- object removal, reset, cancellation, and mandatory close;
+- exact frame, object, bucket, time, cost, and attempt ceilings;
+- create-only private masklet output.
+
+The operation forbids caller-selected modules, classes, checkpoints, commands, GPUs, endpoints, paths, URLs, retries, fallbacks, and prices. Raw user chat is compiled server-side to a bounded target prompt and never reaches the worker.
+
+## Session ownership
+
+Track All owns a content-addressed state transition ledger:
+
+`planned -> started -> prompted -> propagated -> persisted -> reconciled -> closed`.
+
+One assignment/plan/attempt is the only writer. Multiple concepts require distinct stages or an explicit reset. `close_session` runs in `finally` after success, failure, cancellation, timeout, unknown-outcome reconciliation, or partial persistence. Unknown outcomes must be reconciled before another submission.
+
+## Runtime classes
+
+- `internal_qualification_adapter`: injected masklets, never production.
+- `canonical_private_execution_adapter`: real private execution only after route evidence is accepted.
+- `production_worker_adapter`: intentionally absent until production qualification.
+
+A100 is primary. L4 is not an automatic cheap fallback; it is eligible only after independent qualification, known terminal A100 disposition, equivalent quality, updated estimate, and approval coverage. SAM2, BiRefNet, rembg, and transparent-background tools are not tracking fallbacks.
+
+## Compatibility
+
+The existing Orchestra/SAM binding remains compatibility evidence. The public Track All plugin is the source of truth. No head-orchestra code is added here.
+
+## Implemented V2 authority
+
+TRACK-07 implements the V2 authority as a distinct strict,
+content-addressed server contract. Its operation authority hash is
+`cd6f408a7328ff3a4d54e054dd29b7438d8571533e67003856b5c84bfc4d1a1a`.
+The contract binds the exact Track All manifest, assignment, approved snapshot,
+work item, attempt, lease, reservation, private source checksum and range,
+anonymous object IDs, initialization frame, prompt stages, propagation,
+object/bucket/frame ceilings, rate authority, and mandatory close policy.
+
+The separately hashed attempt-evidence contract distinguishes
+`real_private_sam3_1_inference`, `injected_masklets_test_only`, and
+`not_executed`. Injected evidence must report zero model requests and cannot be
+validated as real evidence. Real evidence requires strict checkpoint load,
+CUDA inference, one exact model request, private output, and close evidence
+after the terminal observation. This milestone exercises contract and injected
+lifecycle validation only; it performs no SAM inference and leaves the route
+`blocked`.
+
+TRACK-09 implements an internal-fixture-only session owner behind an injected
+private persistence port. It records a one-writer create-only session, every
+planned lifecycle action, private binary and manifest persistence, terminal
+observation, and exactly one close event. Its `finally` path closes successful,
+failed, and cancelled fixtures. Replaying through the same owner is
+idempotent; another owner must reconcile the existing session, and a different
+lease on the same session is rejected.
+
+The injected owner accepts only in-memory private mask-sequence bytes and exact
+object/range/geometry metadata. It accepts no path or URL and emits zero model
+requests, public artifacts, or production mutations. A separate
+canonical-private availability guard parses the exact V2 route-gate report and
+rejects construction while the route is blocked or storage is not durable.
+
+## TRACK-26 real-private implementation
+
+The real owner is now separate from the injected owner:
+
+- `track_all_sam3_1_real_private_session_owner_v1` accepts only durable private
+  persistence, the exact qualified runtime profile, the exact qualified route
+  gate, and a fixed `canonical_private_execution_adapter`.
+- `track_all_sam3_1_real_private_worker_protocol_v1` binds the exact source and
+  checkpoint revisions, immutable image digest, accelerator class, assignment,
+  session plan, route gate, runtime profile, private object references, terminal
+  disposition, strict-load/CUDA observations, and mandatory close evidence.
+- A transport failure invokes exact reconciliation-and-close once. It never
+  resubmits model work.
+- The worker response schema requires close evidence for completion, failure,
+  timeout, cancellation, partial output, and reconciliation dispositions.
+- A completed response is the only disposition that can become
+  `real_private_sam3_1_inference` evidence. Failed or uncertain responses cannot
+  receive a masklet output manifest or inference receipt.
+
+The fixed Linux worker is
+`docker/prod/gpu-worker/sam3_1/track_all_runner.py`, built only through the
+`track_all_v2_candidate` Docker target. It maps the official start, prompt,
+forward/backward/both propagation, remove, reset, cancel, and idempotent close
+APIs. It has one fixed task mount and one fixed checkpoint mount, uses
+create-only private output, and contains no stdin, runtime download, subprocess,
+or caller-selected executable path. The default Dockerfile target remains the
+historical V1 candidate, preserving V1 behavior.
+
+The real owner cannot currently be constructed: the checked-in gate report is
+blocked and the generated SAM route receipt is blocked. Source-complete code is
+not execution authority.

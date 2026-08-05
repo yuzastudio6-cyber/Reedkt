@@ -32,6 +32,7 @@ RUN printf '%s\n' \
   && while ! apt-get install -y --no-install-recommends \
         build-essential=12.9 \
         libvpx-dev=1.12.0-1+deb12u5 \
+        nasm=2.16.01-1 \
         pkg-config=1.8.1-1 \
         xz-utils=5.4.1-1 \
         zlib1g-dev=1:1.2.13.dfsg-1; do \
@@ -41,10 +42,12 @@ RUN printf '%s\n' \
   && find /usr/lib -type l -name libvpx.so -delete \
   && rm -rf /var/lib/apt/lists/*
 
-# Official FFmpeg 8.1.2 release source. The digest was independently checked
-# against the release signed by FCF986EA15E6E293A5644F10B4322F04D67658D8.
-ADD --checksum=sha256:464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c \
-  https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz /tmp/ffmpeg-8.1.2.tar.xz
+# Official FFmpeg 8.1.2 release source. `smoke.sh --build` downloads the exact
+# archive with bounded HTTPS retries and verifies this digest before it enters
+# the build context. The digest is checked again below before extraction. It
+# was independently checked against the release signed by
+# FCF986EA15E6E293A5644F10B4322F04D67658D8.
+COPY ffmpeg-8.1.2.tar.xz /tmp/ffmpeg-8.1.2.tar.xz
 
 COPY configure-flags.txt /tmp/configure-flags.txt
 COPY allowed-encoders.txt /tmp/allowed-encoders.txt
@@ -193,6 +196,7 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.customer-delivery-master-mux="private_h264_stream_copy_aac_lc_192k_front_loaded_mp4_only" \
       reeditpro.visual-calibration-objective-qa="private_dependency_bound_mp4_and_reference_frames_only" \
       reeditpro.exact-source-frame-png="private_exact_decoded_source_frame_rgba_png_only" \
+      reeditpro.track-all-privacy-redaction="private_fixed_mask_regions_vp9_matroska_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
       reeditpro.runtime-rootfs="must_run_read_only"

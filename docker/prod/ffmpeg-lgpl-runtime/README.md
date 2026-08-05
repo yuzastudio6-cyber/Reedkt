@@ -41,7 +41,9 @@ the pinned Debian `libvpx 1.12.0-1+deb12u5` build used only for the bounded,
 Remotion-decodable professional color intermediate. The exact allowlist also
 contains the bounded `colorchannelmixer`, `colorlevels`, `unsharp`, and
 `setparams` filters required by the private professional source-color recipe,
-plus `tpad` for the exact bounded last-picture hold needed when an approved
+the core `color`, `drawbox`, `gblur`, and `maskedmerge` filters required by
+the server-compiled Track All privacy-mask recipe, and `tpad` for the exact
+bounded last-picture hold needed when an approved
 container timeline extends a few frames beyond its encoded video stream;
 caller-authored filter strings remain forbidden.
 
@@ -129,6 +131,12 @@ From the repository root:
 docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
 ```
 
+The build wrapper downloads the official FFmpeg 8.1.2 archive over HTTPS with
+bounded retries, verifies the frozen SHA-256 before adding it to the local
+Docker context, and removes the temporary archive after the build. The
+Dockerfile re-verifies the same digest before extraction. A direct Docker build
+without that exact preverified archive fails closed.
+
 The build wrapper removes AppleDouble `._*` sidecars only from this isolated
 build-context directory before invoking Docker. This avoids a Docker Desktop
 xattr failure seen on backup/APFS volumes; it does not touch product sources.
@@ -175,9 +183,9 @@ readiness.
 For a locally built image:
 
 ```bash
-docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local
-docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local > /tmp/reeditpro-ffmpeg-8.1.2-source-frame-v9.spdx.json
-sha256sum /tmp/reeditpro-ffmpeg-8.1.2-source-frame-v9.spdx.json
+docker image inspect --format '{{.Id}}' reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local
+docker sbom --format spdx-json reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local > /tmp/reeditpro-ffmpeg-8.1.2-track-privacy-v10.spdx.json
+sha256sum /tmp/reeditpro-ffmpeg-8.1.2-track-privacy-v10.spdx.json
 ```
 
 The builder package lock and runtime binary/config hashes are stored under

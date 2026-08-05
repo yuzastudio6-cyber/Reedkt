@@ -1,13 +1,56 @@
 #!/bin/sh
 set -eu
 
-IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local}
+IMAGE_TAG=${REEDITPRO_FFMPEG_IMAGE_TAG:-reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local}
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+SOURCE_ARCHIVE="$SCRIPT_DIR/ffmpeg-8.1.2.tar.xz"
+SOURCE_ARCHIVE_PARTIAL="$SOURCE_ARCHIVE.partial.$$"
+SOURCE_ARCHIVE_SHA256=464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c
+SOURCE_ARCHIVE_URL=https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz
+SOURCE_ARCHIVE_CREATED=false
+
+sha256_file() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  else
+    shasum -a 256 "$1" | awk '{print $1}'
+  fi
+}
+
+cleanup_source_archive() {
+  rm -f "$SOURCE_ARCHIVE_PARTIAL"
+  if [ "$SOURCE_ARCHIVE_CREATED" = true ]; then
+    rm -f "$SOURCE_ARCHIVE"
+  fi
+}
+
+trap cleanup_source_archive EXIT HUP INT TERM
 
 if [ "${1:-}" = '--build' ]; then
   # Finder/backup volumes may synthesize AppleDouble sidecars whose xattrs make
   # Docker Desktop fail before .dockerignore is evaluated.
   find "$SCRIPT_DIR" -maxdepth 1 -type f -name '._*' -delete
+  if [ ! -f "$SOURCE_ARCHIVE" ]; then
+    curl \
+      --fail \
+      --location \
+      --proto '=https' \
+      --tlsv1.2 \
+      --connect-timeout 20 \
+      --max-time 300 \
+      --retry 8 \
+      --retry-all-errors \
+      --retry-delay 5 \
+      --retry-max-time 600 \
+      --output "$SOURCE_ARCHIVE_PARTIAL" \
+      "$SOURCE_ARCHIVE_URL"
+    [ "$(sha256_file "$SOURCE_ARCHIVE_PARTIAL")" = "$SOURCE_ARCHIVE_SHA256" ] \
+      || { printf '%s\n' 'FFmpeg source archive checksum verification failed.' >&2; exit 1; }
+    mv "$SOURCE_ARCHIVE_PARTIAL" "$SOURCE_ARCHIVE"
+    SOURCE_ARCHIVE_CREATED=true
+  fi
+  [ "$(sha256_file "$SOURCE_ARCHIVE")" = "$SOURCE_ARCHIVE_SHA256" ] \
+    || { printf '%s\n' 'Existing FFmpeg source archive checksum verification failed.' >&2; exit 1; }
   docker build \
     --file "$SCRIPT_DIR/Dockerfile" \
     --tag "$IMAGE_TAG" \
@@ -40,6 +83,8 @@ docker image inspect "$IMAGE_TAG" >/dev/null 2>&1 \
   || { printf '%s\n' 'image must scope customer delivery to the fixed private H.264/AAC mux' >&2; exit 1; }
 [ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.exact-source-frame-png"}}' "$IMAGE_TAG")" = 'private_exact_decoded_source_frame_rgba_png_only' ] \
   || { printf '%s\n' 'image must scope PNG encoding to exact private source-frame extraction' >&2; exit 1; }
+[ "$(docker image inspect --format '{{index .Config.Labels "reeditpro.track-all-privacy-redaction"}}' "$IMAGE_TAG")" = 'private_fixed_mask_regions_vp9_matroska_only' ] \
+  || { printf '%s\n' 'image must scope Track All privacy redaction to the fixed private recipe' >&2; exit 1; }
 
 docker run --rm \
   --network=none \
@@ -55,5 +100,5 @@ docker run --rm \
   "$IMAGE_TAG"
 
 docker image inspect --format \
-  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}","customerDeliveryMasterMux":"{{index .Config.Labels "reeditpro.customer-delivery-master-mux"}}","exactSourceFramePng":"{{index .Config.Labels "reeditpro.exact-source-frame-png"}}"}' \
+  '{"imageId":"{{.Id}}","architecture":"{{.Architecture}}","os":"{{.Os}}","user":"{{.Config.User}}","productReady":"{{index .Config.Labels "reeditpro.product-ready"}}","h264Encoding":"{{index .Config.Labels "reeditpro.h264-encoding"}}","aacEncoding":"{{index .Config.Labels "reeditpro.aac-encoding"}}","mp4Mux":"{{index .Config.Labels "reeditpro.mp4-mux"}}","objectMezzanineChunk":"{{index .Config.Labels "reeditpro.object-mezzanine-chunk"}}","flacEncoding":"{{index .Config.Labels "reeditpro.flac-encoding"}}","continuousProgramAudio":"{{index .Config.Labels "reeditpro.continuous-program-audio"}}","longFormMasterAssembly":"{{index .Config.Labels "reeditpro.long-form-master-assembly"}}","customerDeliveryMasterMux":"{{index .Config.Labels "reeditpro.customer-delivery-master-mux"}}","exactSourceFramePng":"{{index .Config.Labels "reeditpro.exact-source-frame-png"}}","trackAllPrivacyRedaction":"{{index .Config.Labels "reeditpro.track-all-privacy-redaction"}}"}' \
   "$IMAGE_TAG"

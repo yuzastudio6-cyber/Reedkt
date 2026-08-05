@@ -10,6 +10,7 @@ export const EDIT_SKILL_KEYS = [
   'stroke_motion',
   'track_all',
   'transition',
+  'visual_intelligence',
 ] as const
 
 export type EditSkillKey = (typeof EDIT_SKILL_KEYS)[number]

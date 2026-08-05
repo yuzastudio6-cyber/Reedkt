@@ -41,6 +41,7 @@ import {
   OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE,
   OFFLINE_SOURCE_COLOR_MATCH_DELIVERY_CQ12_PROFILE,
   OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+  OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE,
   isColorDeliveryPlanningPayload,
   isColorDeliveryRecipeProfile,
   isColorMatchDeliveryPlanningPayload,
@@ -52,12 +53,16 @@ import {
   validateOfflineSynchronizedFoleyCandidateNormalizeExecutionRequest,
   type OfflineFfmpegExactSourceFramePngPlanningPayload,
   type OfflineFfmpegExecutionRequest,
+  type OfflineFfmpegTrackAllPrivacyRedactionPlanningPayload,
   type OfflineFfprobeExecutionRequest,
   type OfflineGeneratedMusicCandidateNormalizeExecutionRequest,
   type OfflineStorytellingAudioMeasureExecutionRequest,
   type OfflineStorytellingAudioNormalizeExecutionRequest,
   type OfflineSynchronizedFoleyCandidateNormalizeExecutionRequest,
 } from './offline-media-binary-protocol'
+import {
+  compileOfflineTrackAllPrivacyRedactionFfmpegCommand,
+} from './offline-media-binary-track-all-privacy-redaction'
 import {
   validateOfflineFfmpegStreamingExecutionRequest,
   validateOfflineFfprobeStreamingExecutionRequest,
@@ -161,7 +166,7 @@ import {
   OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES,
 } from './offline-media-binary-types'
 
-const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local' as const
+const IMAGE_TAG = 'reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local' as const
 const FFPROBE_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffprobe' as const
 const FFMPEG_ENTRYPOINT = '/opt/reeditpro-ffmpeg/bin/ffmpeg' as const
 const PRIVATE_SEEKABLE_INPUT_PATH = '/private-input/source.media' as const
@@ -255,6 +260,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     typeof APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
     typeof OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
     typeof OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+    typeof OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE,
   ]
   readiness: {
     privateInternalExecutionReady: true
@@ -265,6 +271,7 @@ export interface OfflineMediaBinaryRuntimeAuthority {
     privateInternalStorytellingSpeechNormalizationReady: true
     privateInternalExactSourceFramePngReady: true
     privateInternalBrollRemotionPreviewProxyReady: true
+    privateInternalTrackAllPrivacyRedactionReady: true
     privateInternalMezzanineFinalizationReady: true
     privateInternalObjectMezzanineChunkSeriesReady: true
     privateInternalContinuousProgramAudioReady: true
@@ -705,6 +712,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
       OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
       OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+      OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE,
     ].join('|') ||
     record(authority.readiness).privateInternalExecutionReady !== true ||
     record(authority.readiness).privateGenericMediaResourceObservationReady !== true ||
@@ -712,6 +720,7 @@ Promise<OfflineMediaBinaryRuntimeAuthority | undefined> {
     record(authority.readiness).privateInternalStorytellingSpeechNormalizationReady !== true ||
     record(authority.readiness).privateInternalExactSourceFramePngReady !== true ||
     record(authority.readiness).privateInternalBrollRemotionPreviewProxyReady !== true ||
+    record(authority.readiness).privateInternalTrackAllPrivacyRedactionReady !== true ||
     record(authority.readiness).privateInternalMezzanineFinalizationReady !== true ||
     record(authority.readiness).privateInternalObjectMezzanineChunkSeriesReady !== true ||
     record(authority.readiness).privateInternalContinuousProgramAudioReady !== true ||
@@ -974,7 +983,8 @@ async function executeServerInjectedStreamingOutput(
     request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE &&
     request.payload.recipeProfileId !== OFFLINE_EDIT_BRIEF_SFX_PROFILE &&
     request.payload.recipeProfileId !==
-      'approved_storytelling_speech_take_normalization_v1'
+      'approved_storytelling_speech_take_normalization_v1' &&
+    request.payload.recipeProfileId !== OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE
   ) throw invalid('Streaming FFmpeg output is restricted to exact approved professional media recipes.')
   assertServerInjectedInput(source, request.payload.sourceByteLength, request.payload.sourceSha256)
   assertStreamingOutputSink(outputSink, request.payload.recipeProfileId)
@@ -4276,7 +4286,12 @@ async function executeFfmpegRequest(
   const colorDelivery = Boolean(colorDeliveryPayload)
   const brollPreviewProxy = request.payload.recipeProfileId ===
     OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE
-  const matroskaDelivery = colorDelivery || brollPreviewProxy
+  const trackAllPrivacyPayload = request.payload.recipeProfileId ===
+    OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE
+    ? request.payload as OfflineFfmpegTrackAllPrivacyRedactionPlanningPayload
+    : undefined
+  const trackAllPrivacyRedaction = Boolean(trackAllPrivacyPayload)
+  const matroskaDelivery = colorDelivery || brollPreviewProxy || trackAllPrivacyRedaction
   const cq12ColorDelivery =
     request.payload.recipeProfileId ===
       OFFLINE_SOURCE_COLOR_DELIVERY_CQ12_PROFILE ||
@@ -4301,7 +4316,7 @@ async function executeFfmpegRequest(
         colorMatchDeliveryPayload!.referenceSourceSha256,
       )
     : undefined
-  const privateInput = voiceDelivery || colorDelivery
+  const privateInput = voiceDelivery || colorDelivery || exactSourceFramePng
     ? await spoolVerifiedPrivateSeekableInput(source)
     : undefined
   let sourceColorAnalysis: ColorPixelAnalysis | undefined
@@ -4368,6 +4383,8 @@ async function executeFfmpegRequest(
         ? colorDeliveryCommand(request, colorCorrection)
         : brollPreviewProxy
           ? brollRemotionPreviewProxyCommand(request)
+        : trackAllPrivacyRedaction
+          ? compileOfflineTrackAllPrivacyRedactionFfmpegCommand(trackAllPrivacyPayload!)
         : [
           '-hide_banner', '-loglevel', 'error', '-nostdin',
           '-i', 'pipe:0', '-map', '0:v:0',
@@ -4814,6 +4831,32 @@ async function executeFfmpegRequest(
                     : 'bounded_legacy_buffer_v1',
                   outputWholeBufferAvoided: Boolean(outputSink),
                 }
+            : trackAllPrivacyRedaction
+              ? {
+                  outputFrameCount: trimDurationFrames,
+                  outputContainer: 'matroska',
+                  outputVideoCodec: 'vp9_cq12',
+                  outputPixelFormat: 'yuv420p',
+                  audioRemoved: true,
+                  metadataStripped: true,
+                  treatment: trackAllPrivacyPayload!.treatment,
+                  maskRegionCount: trackAllPrivacyPayload!.maskRegions.length,
+                  conservativeRegionCount: trackAllPrivacyPayload!.maskRegions.filter(
+                    (region) => region.evidenceKind ===
+                      'conservative_uncertainty_cover',
+                  ).length,
+                  reflectionRegionCount: trackAllPrivacyPayload!.maskRegions.filter(
+                    (region) => region.evidenceKind === 'reflection_cover',
+                  ).length,
+                  privacyFailClosed: true,
+                  flattenedPrivatePreview: true,
+                  publicArtifact: false,
+                  timelineFrameRateNormalizationApplied: true,
+                  outputDeliveryMode: outputSink
+                    ? 'server_committed_private_stream_v1'
+                    : 'bounded_legacy_buffer_v1',
+                  outputWholeBufferAvoided: Boolean(outputSink),
+                }
             : brollPreviewProxy
               ? {
                   outputFrameCount: trimDurationFrames,
@@ -4981,7 +5024,7 @@ function exactSourceFramePngCommand(
   return [
     '-hide_banner', '-loglevel', 'error', '-nostdin',
     '-fflags', '+bitexact',
-    '-i', 'pipe:0',
+    '-i', PRIVATE_SEEKABLE_INPUT_PATH,
     '-map', '0:v:0',
     '-vf', `select=eq(n\\,${payload.sourceFrameIndex}),format=rgba`,
     '-frames:v', '1',
@@ -7075,7 +7118,9 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
     labels['reeditpro.visual-calibration-objective-qa'] !==
       'private_dependency_bound_mp4_and_reference_frames_only' ||
     labels['reeditpro.exact-source-frame-png'] !==
-      'private_exact_decoded_source_frame_rgba_png_only'
+      'private_exact_decoded_source_frame_rgba_png_only' ||
+    labels['reeditpro.track-all-privacy-redaction'] !==
+      'private_fixed_mask_regions_vp9_matroska_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
   const imageIdentityHash = sha256AuthorityValue({
@@ -7109,6 +7154,8 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
       'private_dependency_bound_mp4_and_reference_frames_only',
     exactSourceFramePng:
       'private_exact_decoded_source_frame_rgba_png_only',
+    trackAllPrivacyRedaction:
+      'private_fixed_mask_regions_vp9_matroska_only',
     sourcePolicyHashes,
   }
 }
@@ -7135,6 +7182,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       APPROVED_STORYTELLING_SPEECH_TAKE_NORMALIZATION_PROFILE_ID,
       OFFLINE_GENERATED_MUSIC_CANDIDATE_NORMALIZATION_PROFILE,
       OFFLINE_SYNCHRONIZED_FOLEY_CANDIDATE_NORMALIZATION_PROFILE,
+      OFFLINE_TRACK_ALL_PRIVACY_REDACTION_PROFILE,
     ] as const,
     readiness: {
       privateInternalExecutionReady: true as const,
@@ -7145,6 +7193,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       privateInternalStorytellingSpeechNormalizationReady: true as const,
       privateInternalExactSourceFramePngReady: true as const,
       privateInternalBrollRemotionPreviewProxyReady: true as const,
+      privateInternalTrackAllPrivacyRedactionReady: true as const,
       privateInternalMezzanineFinalizationReady: true as const,
       privateInternalObjectMezzanineChunkSeriesReady: true as const,
       privateInternalContinuousProgramAudioReady: true as const,
@@ -7176,6 +7225,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
       'Generic FFmpeg and FFprobe attempts retain private cgroup-v2 CPU/memory evidence; specialized long-form runner families and deployed cloud telemetry remain separate gates.',
       'Storytelling Speech normalization accepts only the exact verified private provider MP3/alignment dependency set and does not authorize provider transport, selection, mixing, or delivery.',
       'Exact source-frame extraction accepts only a server-selected decoded frame ordinal and returns one bounded opaque RGBA PNG; source selection, artifact approval, matting, rendering, and delivery remain separate authorities.',
+      'Track All privacy redaction accepts only server-compiled bounded mask regions and fixed treatments; outputs remain private, production-blocked VP9 Matroska previews.',
       'Visual-calibration objective QA accepts only one exact provider MP4 and two exact private reference frames; it does not grant creative acceptance, candidate selection, provider execution, timeline mutation, rendering, or delivery.',
     ] as const,
   }

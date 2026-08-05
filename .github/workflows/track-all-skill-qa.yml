@@ -1,0 +1,175 @@
+name: Track All Skill QA
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/track-all-skill-qa.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "server/cli/qualify-track-all-internal.ts"
+      - "server/cli/qualify-b-roll-internal.ts"
+      - "server/cli/generate-track-all-*"
+      - "server/cli/track-all-*"
+      - "server/cli/validate-track-all-active-route-retirement.ts"
+      - "server/edit-skills/core/**"
+      - "server/edit-skills/shared/**"
+      - "server/edit-skills/track-all/**"
+      - "server/edit-skills/b-roll/**"
+      - "server/model-artifacts/canonical-sam3_1*"
+      - "server/tool-execution/**"
+      - "server/workers/masks/canonical-sam3_1*"
+      - "server/smoke/track-all-*"
+      - "server/smoke/b-roll-*"
+      - "docker/prod/ffmpeg-lgpl-runtime/**"
+      - "docker/prod/gpu-worker/sam3_1/**"
+      - "docker/prod/offline-python-structured-execution/**"
+      - "docker/prod/offline-remotion-render-execution/**"
+      - "docs/edit-skills/manifests/track-all-capability-manifest.generated.json"
+  push:
+    branches:
+      - main
+      - master
+      - "codex/**"
+    paths:
+      - ".github/workflows/track-all-skill-qa.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "server/cli/qualify-track-all-internal.ts"
+      - "server/cli/qualify-b-roll-internal.ts"
+      - "server/cli/generate-track-all-*"
+      - "server/cli/track-all-*"
+      - "server/cli/validate-track-all-active-route-retirement.ts"
+      - "server/edit-skills/core/**"
+      - "server/edit-skills/shared/**"
+      - "server/edit-skills/track-all/**"
+      - "server/edit-skills/b-roll/**"
+      - "server/model-artifacts/canonical-sam3_1*"
+      - "server/tool-execution/**"
+      - "server/workers/masks/canonical-sam3_1*"
+      - "server/smoke/track-all-*"
+      - "server/smoke/b-roll-*"
+      - "docker/prod/ffmpeg-lgpl-runtime/**"
+      - "docker/prod/gpu-worker/sam3_1/**"
+      - "docker/prod/offline-python-structured-execution/**"
+      - "docker/prod/offline-remotion-render-execution/**"
+      - "docs/edit-skills/manifests/track-all-capability-manifest.generated.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: track-all-skill-qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  track-all-skill-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install and verify media runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
+      - name: Build and verify confined private media runtimes
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          uname -m
+          lscpu
+          retry_build() {
+            local attempt
+            for attempt in 1 2 3; do
+              if "$@"; then
+                return 0
+              fi
+              echo "Immutable runtime build attempt ${attempt} failed." >&2
+            done
+            return 1
+          }
+          retry_build docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
+          retry_build npx tsx -e "import('./server/tool-execution/python-runner-execution/offline-python-structured-docker-runtime.ts').then(async ({ prepareOfflinePythonStructuredDockerRuntime }) => { const image = await prepareOfflinePythonStructuredDockerRuntime(); console.log(image.imageIdentityHash) })"
+          retry_build npx tsx -e "import('./server/tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime.ts').then(async ({ prepareOfflineRemotionDockerRuntime }) => { const image = await prepareOfflineRemotionDockerRuntime(); console.log(image.imageIdentityHash) })"
+
+      - name: Verify committed manifest and receipts load normally
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run validate:skill-capability-manifests
+          npm run test:track-all-qualification-evidence
+          npm run test:b-roll-public-plugin
+
+      - name: Verify activation bridge and blocked SAM route
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          npm run test:track-all-canonical-private-accounting
+          npm run test:track-all-canonical-private-composite
+          npm run test:track-all-sam3.1-route-gates
+          npm run test:track-all-sam3.1-private-canary
+          npm run test:track-all-sam3.1-protocol-wiring
+          npm run e2e:track-all-sam3.1-canonical-private
+          npm run test:track-all-canonical-private-public-e2e
+
+      - name: Run evidence-backed Track All and B-Roll qualification
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          track_receipt='server/edit-skills/track-all/generated/track-all-internal-qualification.generated.ts'
+          broll_receipt='server/edit-skills/b-roll/generated/b-roll-internal-qualification.generated.ts'
+          track_backup="$RUNNER_TEMP/track-all-internal-qualification.generated.ts"
+          broll_backup="$RUNNER_TEMP/b-roll-internal-qualification.generated.ts"
+          cp "$track_receipt" "$track_backup"
+          cp "$broll_receipt" "$broll_backup"
+          restore_receipts() {
+            cp "$track_backup" "$track_receipt"
+            cp "$broll_backup" "$broll_receipt"
+          }
+          trap restore_receipts EXIT
+          npm run qualify:track-all:internal
+          cp "$track_backup" "$track_receipt"
+          npm run qualify:b-roll:internal
+          restore_receipts
+
+      - name: Verify canonical-private public lifecycle after qualification
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+          REEDITPRO_TRACK_ALL_BROLL_ACCEPTANCE_MODE: actual_current_source_acceptance
+        run: |
+          npm run test:track-all-canonical-private-public-e2e
+          npm run test:track-all-producer-consumer-acceptance
+          npm run test:track-all-retirement
+          git diff --check
+          test -z "$(git status --porcelain --untracked-files=all)"
+
+      - name: Write Track All qualification summary
+        if: always()
+        run: |
+          {
+            echo "## Track All Skill QA"
+            echo ""
+            echo "- Validates the committed Track All and B-Roll qualification receipts before generating fresh run evidence."
+            echo "- Runs the exact 37-command/26-fixture Track All aggregate qualification and the 31-command/36-fixture B-Roll aggregate qualification."
+            echo "- Separately verifies receipt-bound execution accounting, atomic composite routing, blocked SAM gates, the real-canary preflight, protocol-only wiring, and the gated canonical-private SAM E2E preflight."
+            echo "- Installs and verifies FFmpeg and FFprobe, then builds the repository-pinned confined FFmpeg, Python, and Remotion images before any media-dependent test."
+            echo "- The SAM 3.1 real-private route remains fail-closed unless its separately gated checkpoint, image, GPU, quality, cost, and privacy evidence exists."
+            echo "- This workflow performs no paid provider/model call, public delivery, or production mutation."
+            echo "- Repository-wide UI/browser QA remains independent and is not skipped or weakened here."
+          } >> "$GITHUB_STEP_SUMMARY"

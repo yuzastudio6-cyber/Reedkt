@@ -34,6 +34,7 @@ export interface ApprovedCompositionProps {
     | 'motion_studio_native_layered_scene_v1'
     | 'motion_studio_prepared_script_animatic_v1'
     | 'motion_studio_deterministic_route_draw_v1'
+    | 'track_all_private_treatment_preview_v1'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -65,6 +66,28 @@ export interface ApprovedCompositionProps {
     opacity: 0.45 | 1
     layerOrder: 0 | 10
   }
+  treatmentKind?: 'focus' | 'reframe'
+  focusTreatment?:
+    | 'subject_sharp_background_soft'
+    | 'subject_normal_background_dim'
+    | 'tracked_spotlight'
+    | 'tracked_vignette'
+    | 'tracked_magnification'
+    | 'foreground_softening'
+    | 'background_softening'
+    | 'simple_subject_outline'
+  samples?: Array<{
+    frameIndex: number
+    crop: { x: number; y: number; width: number; height: number }
+    priorityTrackIds: string[]
+    confidence: number
+    safeZoneCollision: boolean
+  }>
+  maximumZoom?: number
+  lowConfidenceBehavior?: 'hold_last_safe_crop' | 'widen_crop' | 'manual_review'
+  captionLayerOrder?: 'captions_above_track_all'
+  privateOutput?: true
+  publicArtifact?: false
   sourceMimeType?: 'video/mp4' | 'video/x-matroska'
   sourceByteLength?: number
   sourceSha256?: string
@@ -270,6 +293,12 @@ export const defaultApprovedCompositionProps: ApprovedCompositionProps = {
 export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const frame = useCurrentFrame()
   const { fps, durationInFrames, width, height } = useVideoConfig()
+  if (
+    props.compositionProfileId === 'track_all_private_treatment_preview_v1' &&
+    props.sourceInternalUrl && props.samples
+  ) {
+    return <TrackAllTreatmentPreviewComposition {...props} />
+  }
   if (
     props.compositionProfileId ===
       'approved_long_form_delivery_h264_video_chunk_v1' &&
@@ -814,6 +843,97 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
       <ApprovedLivingFrameOverlays {...props} />
       <ApprovedControlledVisualOverlays {...props} />
       <ApprovedCaptionOverlays {...props} />
+    </AbsoluteFill>
+  )
+}
+
+const TrackAllTreatmentPreviewComposition: React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  const sample = props.samples![Math.min(frame, props.samples!.length - 1)]!
+  const crop = sample.crop
+  if (props.treatmentKind === 'reframe') {
+    const style: React.CSSProperties = {
+      position: 'absolute',
+      left: `${(-crop.x / crop.width) * 100}%`,
+      top: `${(-crop.y / crop.height) * 100}%`,
+      width: `${100 / crop.width}%`,
+      height: `${100 / crop.height}%`,
+      objectFit: 'fill',
+    }
+    return (
+      <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
+        <OffthreadVideo
+          src={props.sourceInternalUrl!}
+          startFrom={props.sourceStartFrame!}
+          endAt={props.sourceEndFrameExclusive!}
+          style={style}
+          volume={0}
+        />
+      </AbsoluteFill>
+    )
+  }
+  const left = crop.x * 100
+  const top = crop.y * 100
+  const width = crop.width * 100
+  const height = crop.height * 100
+  const right = 100 - left - width
+  const bottom = 100 - top - height
+  const softenedBackground = [
+    'subject_sharp_background_soft', 'background_softening',
+  ].includes(props.focusTreatment ?? '')
+  const dimmedBackground = [
+    'subject_normal_background_dim', 'tracked_spotlight', 'tracked_vignette',
+  ].includes(props.focusTreatment ?? '')
+  const foregroundSoft = props.focusTreatment === 'foreground_softening'
+  const backgroundFilter = softenedBackground
+    ? 'blur(10px) brightness(0.82)'
+    : dimmedBackground
+      ? 'brightness(0.42) saturate(0.82)'
+      : 'none'
+  const subjectFilter = foregroundSoft ? 'blur(8px)' : 'none'
+  return (
+    <AbsoluteFill style={{ backgroundColor: '#000000', overflow: 'hidden' }}>
+      <OffthreadVideo
+        src={props.sourceInternalUrl!}
+        startFrom={props.sourceStartFrame!}
+        endAt={props.sourceEndFrameExclusive!}
+        style={{ width: '100%', height: '100%', objectFit: 'fill', filter: backgroundFilter }}
+        volume={0}
+      />
+      <OffthreadVideo
+        src={props.sourceInternalUrl!}
+        startFrom={props.sourceStartFrame!}
+        endAt={props.sourceEndFrameExclusive!}
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'fill', filter: subjectFilter,
+          clipPath: `inset(${top}% ${right}% ${bottom}% ${left}%)`,
+          transform: props.focusTreatment === 'tracked_magnification'
+            ? 'scale(1.12)'
+            : undefined,
+          transformOrigin: `${left + width / 2}% ${top + height / 2}%`,
+        }}
+        volume={0}
+      />
+      {['tracked_spotlight', 'simple_subject_outline', 'tracked_magnification']
+        .includes(props.focusTreatment ?? '') && (
+        <div style={{
+          position: 'absolute', left: `${left}%`, top: `${top}%`,
+          width: `${width}%`, height: `${height}%`, boxSizing: 'border-box',
+          border: props.focusTreatment === 'simple_subject_outline'
+            ? '3px solid rgba(255,255,255,0.9)'
+            : '2px solid rgba(255,255,255,0.65)',
+          boxShadow: props.focusTreatment === 'tracked_spotlight'
+            ? '0 0 36px 14px rgba(255,255,255,0.28)'
+            : undefined,
+          borderRadius: props.focusTreatment === 'tracked_spotlight' ? '50%' : 8,
+        }} />
+      )}
+      {props.focusTreatment === 'tracked_vignette' && (
+        <AbsoluteFill style={{
+          background: `radial-gradient(ellipse at ${left + width / 2}% ${top + height / 2}%, transparent 0%, rgba(0,0,0,0.7) 76%)`,
+        }} />
+      )}
     </AbsoluteFill>
   )
 }

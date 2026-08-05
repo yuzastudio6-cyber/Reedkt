@@ -1,6 +1,10 @@
 import { z } from 'zod'
 
-import type { EditSkillArtifactSchemaRegistry } from './edit-skill-artifact-store'
+import type {
+  EditSkillArtifactReference,
+  EditSkillArtifactSchemaRegistry,
+  EditSkillArtifactStore,
+} from './edit-skill-artifact-store'
 import {
   ACTIVE_QUALIFICATION_RANK,
   EDIT_SKILL_KEYS,
@@ -32,6 +36,15 @@ export interface SkillJobRuntimeInvocation {
   workItemHash: string
   authorizedPhase: string
   inputArtifactTypes: readonly string[]
+  exactInputArtifactRefs: readonly EditSkillArtifactReference[]
+  dependencyOutputRefs: readonly {
+    reference: EditSkillArtifactReference
+    producerWorkItemKey: string
+    producerWorkItemHash: string
+  }[]
+  routeQualificationReceiptHash: string
+  resolvedQualificationStatus: SkillQualificationStatus
+  artifactStore: EditSkillArtifactStore
 }
 
 export interface SkillJobRuntimeAdapterResult {
@@ -79,6 +92,7 @@ const skillJobRuntimeBindingCoreSchema = z.object({
   ]),
   environmentClass: z.enum(['internal_fixture', 'canonical_private', 'production_server']),
   runtimeAdapterId: skillIdentitySchema,
+  routeKey: skillIdentitySchema,
   approvalRequired: z.boolean(),
   providerAuthorityRequired: z.boolean(),
   toolAuthorityRequired: z.boolean(),
@@ -284,8 +298,7 @@ export class SkillJobRuntimeBindingRegistry {
       ...manifest.producedArtifactTypes,
     ])
     const allowedPhases = new Set(manifestAllowedExecutionPhaseIds(manifest))
-    const manifestQualificationRank = ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus]
-    if (manifestQualificationRank === undefined) {
+    if (ACTIVE_QUALIFICATION_RANK[manifest.qualificationStatus] === undefined) {
       throw new Error(`Manifest ${manifest.skillKey} cannot expose runtime bindings at ${manifest.qualificationStatus}.`)
     }
     for (const binding of bindings) {
@@ -337,9 +350,10 @@ export class SkillJobRuntimeBindingRegistry {
         ) throw new Error(`Runtime binding ${definition.jobType} differs from its manifest job capability.`)
       }
       const requiredRank = ACTIVE_QUALIFICATION_RANK[definition.requiredQualification]
-      if (requiredRank === undefined || requiredRank > manifestQualificationRank) {
-        throw new Error(`Runtime binding ${definition.jobType} exceeds the manifest qualification.`)
-      }
+      // A binding may describe a route above the manifest's current status.
+      // It remains non-executable until dispatch presents qualification
+      // evidence meeting this exact required rank.
+      if (requiredRank === undefined) throw new Error(`Runtime binding ${definition.jobType} has an invalid qualification requirement.`)
       if (!definition.approvalRequired) {
         throw new Error(`Runtime binding ${definition.jobType} bypasses approval.`)
       }

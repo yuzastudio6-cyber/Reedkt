@@ -15,6 +15,7 @@ import type { SkillEstimatorRegistry } from './skill-estimator-registry'
 import type { SkillQaRegistry } from './skill-qa-registry'
 import type { SkillQualificationStatus } from './edit-skill-ids'
 import type { SkillQualificationRegistry } from './skill-qualification-registry'
+import type { SkillRouteQualificationRegistry } from './skill-route-qualification'
 
 export type EditSkillRuntimeEnvironmentClass =
   | 'production_server'
@@ -27,6 +28,7 @@ export interface EditSkillProviderAuthority {
 
 export interface EditSkillToolOperationRegistry {
   readonly operationIds: ReadonlySet<string>
+  readonly operationQualifications: ReadonlyMap<string, SkillQualificationStatus>
 }
 
 export interface EditSkillRuntimeDependencies {
@@ -36,9 +38,13 @@ export interface EditSkillRuntimeDependencies {
   toolRegistry?: EditSkillToolOperationRegistry
   qaRegistry?: SkillQaRegistry
   qualificationRegistry?: SkillQualificationRegistry
+  routeQualificationRegistry?: SkillRouteQualificationRegistry
   estimatorRegistry?: SkillEstimatorRegistry
   artifactSchemaRegistry?: EditSkillArtifactSchemaRegistry
   additionalRuntimeBindings?: readonly SkillJobRuntimeBinding[]
+  privateArtifactAuthority?: boolean
+  /** Exact Track All SAM route authority; omitted means the safe blocked report. */
+  trackAllSam31RouteGateReport?: unknown
 }
 
 export interface EditSkillRuntime {
@@ -54,6 +60,7 @@ export interface EditSkillRuntime {
   readonly qaRegistry: SkillQaRegistry
   readonly artifactSchemaRegistry: EditSkillArtifactSchemaRegistry
   readonly qualificationRegistry: SkillQualificationRegistry
+  readonly routeQualificationRegistry: SkillRouteQualificationRegistry
   readonly referenceCatalog: SkillReferenceCatalog
   readonly providerAuthority: EditSkillProviderAuthority
   readonly toolRegistry: EditSkillToolOperationRegistry

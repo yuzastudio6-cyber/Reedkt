@@ -385,8 +385,20 @@ function verifySemanticEvidence(toolId: OfflinePythonStructuredToolId, evidence:
         throw runtimeFailure('PyAV semantic evidence is invalid.')
       }
     } else if (toolId === 'opencv') {
-      assertExactKeys(evidence, ['sourceBytesVerified', 'sampleCount', 'derivedPixelsEmitted', 'fixedTemporaryPathOnly'])
-      if (evidence.sourceBytesVerified !== true || evidence.derivedPixelsEmitted !== false || evidence.fixedTemporaryPathOnly !== true) {
+      const trackAllGeometry = evidence.trackAllGeometryProfileExecuted === true
+      assertExactKeys(evidence, trackAllGeometry
+        ? [
+            'sourceBytesVerified', 'sampleCount', 'derivedPixelsEmitted',
+            'fixedTemporaryPathOnly', 'opticalFlowExecuted', 'homographyExecuted',
+            'cameraTransformCount', 'planarFrameCount', 'trackAllGeometryProfileExecuted',
+          ]
+        : ['sourceBytesVerified', 'sampleCount', 'derivedPixelsEmitted', 'fixedTemporaryPathOnly'])
+      if (
+        evidence.sourceBytesVerified !== true || evidence.derivedPixelsEmitted !== false ||
+        evidence.fixedTemporaryPathOnly !== true ||
+        (trackAllGeometry && evidence.opticalFlowExecuted !== true) ||
+        (trackAllGeometry && typeof evidence.homographyExecuted !== 'boolean')
+      ) {
         throw runtimeFailure('OpenCV semantic evidence is invalid.')
       }
     } else if (toolId === 'pyscenedetect') {

@@ -9,7 +9,7 @@ export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_OUTPUT_BYTES = 192 * 1024 * 
 export const OFFLINE_MEDIA_BINARY_STREAMING_MAXIMUM_AUDIO_OUTPUT_BYTES = 64 * 1024 * 1024
 
 export interface OfflineMediaBinaryImageEvidence {
-  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-source-frame-v9-local'
+  imageTag: 'reeditpro/ffmpeg-lgpl-internal:8.1.2-track-privacy-v10-local'
   imageId: string
   imageIdentityHash: string
   architecture: string
@@ -32,6 +32,8 @@ export interface OfflineMediaBinaryImageEvidence {
     'private_dependency_bound_mp4_and_reference_frames_only'
   exactSourceFramePng:
     'private_exact_decoded_source_frame_rgba_png_only'
+  trackAllPrivacyRedaction:
+    'private_fixed_mask_regions_vp9_matroska_only'
   sourcePolicyHashes: Readonly<Record<string, string>>
 }
 

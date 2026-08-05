@@ -51,7 +51,7 @@ actual_demuxers=$(mktemp)
 actual_muxers=$(mktemp)
 actual_protocols=$(mktemp)
 actual_bsfs=$(mktemp)
-trap 'rm -f "$actual_encoders" "$actual_decoders" "$actual_filters" "$actual_demuxers" "$actual_muxers" "$actual_protocols" "$actual_bsfs" /tmp/reeditpro-intermediate.nut /tmp/reeditpro-color.mkv /tmp/reeditpro-frame.ppm /tmp/reeditpro-probe.json /tmp/reeditpro-color-probe.json /tmp/reeditpro-finalizer-audio.m4a /tmp/reeditpro-finalizer-audio-probe.json' EXIT HUP INT TERM
+trap 'rm -f "$actual_encoders" "$actual_decoders" "$actual_filters" "$actual_demuxers" "$actual_muxers" "$actual_protocols" "$actual_bsfs" /tmp/reeditpro-intermediate.nut /tmp/reeditpro-color.mkv /tmp/reeditpro-track-all-privacy.mkv /tmp/reeditpro-frame.ppm /tmp/reeditpro-probe.json /tmp/reeditpro-color-probe.json /tmp/reeditpro-track-all-privacy-probe.json /tmp/reeditpro-finalizer-audio.m4a /tmp/reeditpro-finalizer-audio-probe.json' EXIT HUP INT TERM
 
 $FFMPEG -hide_banner -encoders 2>/dev/null \
   | awk 'length($1) == 6 && substr($1, 1, 1) ~ /^[VAS]$/ && $2 != "=" { print $2 }' \
@@ -164,6 +164,20 @@ grep -F '"codec_name": "vp9"' /tmp/reeditpro-color-probe.json >/dev/null \
   || fail 'reviewed professional color chain did not produce the lossless VP9 intermediate'
 grep -F '"color_space": "bt709"' /tmp/reeditpro-color-probe.json >/dev/null \
   || fail 'reviewed professional color chain did not set BT.709 metadata'
+
+$FFMPEG -hide_banner -loglevel error \
+  -i /tmp/reeditpro-intermediate.nut \
+  -filter_complex '[0:v]split=2[privacy_base][privacy_effect_source];[privacy_effect_source]gblur=sigma=12:steps=2,format=yuv420p[privacy_effect];color=c=black:s=64x64:r=2:d=1,drawbox=x=12:y=12:w=40:h=40:color=white@1:t=fill,format=gray,setparams=range=tv,scale=in_range=tv:out_range=pc[privacy_mask];[privacy_base][privacy_effect][privacy_mask]maskedmerge,format=yuv420p[privacy_output]' \
+  -map '[privacy_output]' -an -c:v libvpx-vp9 -b:v 0 -crf 12 \
+  -deadline good -cpu-used 4 -row-mt 1 -threads 2 -lag-in-frames 0 \
+  -auto-alt-ref 0 -pix_fmt yuv420p -f matroska \
+  -y /tmp/reeditpro-track-all-privacy.mkv
+$FFPROBE -hide_banner -v error \
+  -show_entries 'format=format_name:stream=codec_name,codec_type,width,height,nb_frames' \
+  -of json /tmp/reeditpro-track-all-privacy.mkv \
+  > /tmp/reeditpro-track-all-privacy-probe.json
+grep -F '"codec_name": "vp9"' /tmp/reeditpro-track-all-privacy-probe.json >/dev/null \
+  || fail 'fixed Track All privacy recipe did not produce VP9 private preview output'
 
 $FFMPEG -hide_banner -loglevel error \
   -i /tmp/reeditpro-intermediate.nut \

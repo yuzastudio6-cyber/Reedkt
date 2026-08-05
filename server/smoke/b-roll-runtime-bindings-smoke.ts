@@ -18,7 +18,10 @@ import {
 } from '../edit-skills/b-roll/b-roll-runtime-bindings'
 import {
   editSkillArtifactSchemaRegistry,
+  editSkillArtifactStore,
+  editSkillQualificationRegistry,
   editSkillReferenceCatalog,
+  editSkillRouteQualificationRegistry,
   editSkillRuntimeBindingRegistry,
 } from '../edit-skills/internal-fixture-runtime'
 
@@ -44,6 +47,7 @@ function definitionCore(definition: SkillJobRuntimeBindingDefinition) {
     adapterClass: definition.adapterClass,
     environmentClass: definition.environmentClass,
     runtimeAdapterId: definition.runtimeAdapterId,
+    routeKey: definition.routeKey,
     approvalRequired: definition.approvalRequired,
     providerAuthorityRequired: definition.providerAuthorityRequired,
     toolAuthorityRequired: definition.toolAuthorityRequired,
@@ -125,10 +129,18 @@ assert.throws(() => driftRegistry.validateManifest({
   workGraphJobs: BROLL_WORK_GRAPH_JOB_DEFINITIONS,
 }), /differs from its manifest job capability/u)
 
-const dispatcher = new EditSkillRuntimeDispatcher(
-  editSkillRuntimeBindingRegistry,
-  'internal_fixture',
-)
+const dispatcher = new EditSkillRuntimeDispatcher({
+  bindings: editSkillRuntimeBindingRegistry,
+  environmentClass: 'internal_fixture',
+  routeQualifications: editSkillRouteQualificationRegistry,
+  skillQualifications: editSkillQualificationRegistry,
+  artifactStore: editSkillArtifactStore,
+  privateArtifactAuthority: false,
+  providerAuthorityOperations: new Map([...editSkillReferenceCatalog.providerOperations]
+    .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+  toolAuthorityOperations: new Map([...editSkillReferenceCatalog.toolOperations]
+    .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+})
 const dispatchReceipts = []
 function workItemFor(definition: SkillJobRuntimeBindingDefinition) {
   const workItemCore = {
@@ -177,14 +189,7 @@ async function dispatchInternal(
     workItem,
     approval: approvalFor(workItem),
     authorizedPhase: definition.allowedPhases[0],
-    inputArtifactTypes: definition.inputArtifactTypes,
-    adapterClass: 'internal_qualification_adapter',
-    environmentClass: 'internal_fixture',
-    runtimeQualification: 'internal_execution_qualified',
-    artifactStorageClass: 'internal_in_memory',
-    privateArtifactAuthority: false,
-    providerAuthorityOperations: editSkillReferenceCatalog.providerOperations,
-    toolAuthorityOperations: editSkillReferenceCatalog.toolOperations,
+    expectedQualification: 'internal_execution_qualified',
     ...overrides,
   })
 }
@@ -390,27 +395,70 @@ assert.throws(
 const validationDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
   binding.definition.jobType === 'validate_b_roll_assignment')!.definition
 await assert.rejects(
-  () => dispatchInternal(validationDefinition, { runtimeQualification: 'planning_qualified' }),
-  /under-qualified/iu,
+  () => dispatchInternal(validationDefinition, { expectedQualification: 'planning_qualified' }),
+  /expectation differs/iu,
 )
+const productionDispatcher = new EditSkillRuntimeDispatcher({
+  bindings: editSkillRuntimeBindingRegistry,
+  environmentClass: 'production_server',
+  routeQualifications: editSkillRouteQualificationRegistry,
+  skillQualifications: editSkillQualificationRegistry,
+  artifactStore: editSkillArtifactStore,
+  privateArtifactAuthority: false,
+  providerAuthorityOperations: new Map([...editSkillReferenceCatalog.providerOperations]
+    .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+  toolAuthorityOperations: new Map([...editSkillReferenceCatalog.toolOperations]
+    .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+})
 await assert.rejects(
-  () => dispatchInternal(validationDefinition, {
-    adapterClass: 'production_worker_adapter',
-    environmentClass: 'production_server',
-    artifactStorageClass: 'internal_in_memory',
+  () => productionDispatcher.dispatchApprovedWorkItem({
+    manifestRef,
+    workItem: workItemFor(validationDefinition),
+    approval: approvalFor(workItemFor(validationDefinition)),
+    authorizedPhase: validationDefinition.allowedPhases[0],
   }),
-  /another configured environment/iu,
+  /unavailable|stale/iu,
 )
 const providerDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
   binding.definition.jobType === 'generate_b_roll_candidate')!.definition
 await assert.rejects(
-  () => dispatchInternal(providerDefinition, { providerAuthorityOperations: new Set() }),
+  () => new EditSkillRuntimeDispatcher({
+    bindings: editSkillRuntimeBindingRegistry,
+    environmentClass: 'internal_fixture',
+    routeQualifications: editSkillRouteQualificationRegistry,
+    skillQualifications: editSkillQualificationRegistry,
+    artifactStore: editSkillArtifactStore,
+    privateArtifactAuthority: false,
+    providerAuthorityOperations: new Map(),
+    toolAuthorityOperations: new Map([...editSkillReferenceCatalog.toolOperations]
+      .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+  }).dispatchApprovedWorkItem({
+    manifestRef,
+    workItem: workItemFor(providerDefinition),
+    approval: approvalFor(workItemFor(providerDefinition)),
+    authorizedPhase: providerDefinition.allowedPhases[0],
+  }),
   /provider authority/iu,
 )
 const toolDefinition = BROLL_RUNTIME_BINDINGS.find((binding) =>
   binding.definition.jobType === 'inspect_b_roll_candidate_with_ffprobe')!.definition
 await assert.rejects(
-  () => dispatchInternal(toolDefinition, { toolAuthorityOperations: new Set() }),
+  () => new EditSkillRuntimeDispatcher({
+    bindings: editSkillRuntimeBindingRegistry,
+    environmentClass: 'internal_fixture',
+    routeQualifications: editSkillRouteQualificationRegistry,
+    skillQualifications: editSkillQualificationRegistry,
+    artifactStore: editSkillArtifactStore,
+    privateArtifactAuthority: false,
+    providerAuthorityOperations: new Map([...editSkillReferenceCatalog.providerOperations]
+      .map((operationId) => [operationId, 'internal_execution_qualified' as const])),
+    toolAuthorityOperations: new Map(),
+  }).dispatchApprovedWorkItem({
+    manifestRef,
+    workItem: workItemFor(toolDefinition),
+    approval: approvalFor(workItemFor(toolDefinition)),
+    authorizedPhase: toolDefinition.allowedPhases[0],
+  }),
   /tool authority/iu,
 )
 

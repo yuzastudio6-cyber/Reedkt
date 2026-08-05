@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { editSkillArtifactReferenceSchema, skillFrameRangeSchema } from '../core/skill-assignment-schema'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-capability-manifest-schema'
+import { sourceInventoryCandidateSchema } from '../shared/assignment-authorities'
 
 export const brollDecisionSchema = z.enum([
   'use_existing_project_clip', 'use_uploaded_user_asset', 'generate_with_gemini_omni',
@@ -68,28 +69,8 @@ export const brollSkillAssignmentSchema = brollAssignmentCoreSchema.extend({
 
 export { brollAssignmentCoreSchema }
 
-export const brollSourceCandidateSchema = z.object({
-  sourceId: z.string().trim().min(1).max(180),
-  sourceType: z.enum(['existing_project_clip', 'approved_user_asset', 'uploaded_video_for_edit', 'reference_image']),
-  providerImageRole: z.enum(['first_frame', 'reference']).optional(),
-  artifactRef: editSkillArtifactReferenceSchema,
-  sourceRange: skillFrameRangeSchema.optional(),
-  semanticRelevance: z.number().min(0).max(1),
-  visualQuality: z.number().min(0).max(1),
-  temporalFit: z.number().min(0).max(1),
-  storyContinuity: z.number().min(0).max(1),
-  provenanceVerified: z.boolean(), rightsApproved: z.boolean(), privacyApproved: z.boolean(), proofSafe: z.boolean(),
-  repetitionRisk: z.number().min(0).max(1), cropFeasibility: z.number().min(0).max(1),
-  speakerActionProtection: z.number().min(0).max(1), audioUsefulness: z.number().min(0).max(1),
-  costCredits: z.number().int().nonnegative(), approvedByUser: z.boolean(),
-}).strict().superRefine((value, context) => {
-  if ((value.sourceType === 'reference_image') !== Boolean(value.providerImageRole)) {
-    context.addIssue({
-      code: 'custom',
-      message: 'Only reference-image candidates require an exact Gemini first-frame or reference role.',
-    })
-  }
-})
+/** @deprecated Import `sourceInventoryCandidateSchema` from the shared authority owner. */
+export const brollSourceCandidateSchema = sourceInventoryCandidateSchema
 
 const brollPlanningContextCoreSchema = z.object({
   schemaVersion: z.literal('b_roll_context_manifest_v1'),

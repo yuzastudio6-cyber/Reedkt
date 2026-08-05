@@ -137,6 +137,7 @@ runtimeBindings.register(createSkillJobRuntimeBinding({
     adapterClass: 'internal_qualification_adapter',
     environmentClass: 'internal_fixture',
     runtimeAdapterId: 'fixture.runtime.v2',
+    routeKey: 'fixture_tool',
     approvalRequired: true,
     providerAuthorityRequired: false,
     toolAuthorityRequired: true,

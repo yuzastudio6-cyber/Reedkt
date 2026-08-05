@@ -1,10 +1,11 @@
-import type { EditSkillArtifactStore } from '../core/edit-skill-artifact-store'
+import type {
+  EditSkillArtifactReference,
+  EditSkillArtifactStore,
+} from '../core/edit-skill-artifact-store'
 import {
   createEditSkillDependencyAcceptance,
   createEditSkillDependencyRequest,
-  editSkillDependencyAcceptanceSchema,
   editSkillDependencyRequestSchema,
-  type EditSkillDependencyAcceptance,
   type EditSkillDependencyRequest,
 } from '../core/edit-skill-dependency-request'
 import {
@@ -21,12 +22,23 @@ import {
   type EditSkillPublicWorkItem,
   type EditSkillResultReceipt,
 } from '../core/edit-skill-plugin'
+import {
+  assertEditSkillSupportResultForRequest,
+  createEditSkillSupportAcceptance,
+  editSkillArtifactAcceptanceSchema,
+  editSkillSupportRequestSchema,
+  editSkillSupportResultReferenceSchema,
+  editSkillSupportResultSchema,
+  type EditSkillArtifactAcceptance,
+} from '../core/edit-skill-support-bridge'
 import { editSkillWorkResultSchema, type EditSkillWorkResult } from '../core/edit-skill-work-result'
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import { manifestSupportedJobTypeIds } from '../core/skill-capability-manifest-normalization'
 import { resolveAndValidateSkillAssignmentInputs } from '../core/skill-assignment-input-resolver'
 import type { SkillEstimatorRegistry } from '../core/skill-estimator-registry'
 import type { SkillQaRegistry } from '../core/skill-qa-registry'
+import type { SkillQualificationRegistry } from '../core/skill-qualification-registry'
+import type { SkillRouteQualificationRegistry } from '../core/skill-route-qualification'
 import { assertSkillAssignment, assertSkillRangeMutation, isFrameRangeContained } from '../core/skill-range-authority'
 import { createSkillPlanEnvelope } from '../core/skill-plan-envelope'
 import { createSkillResultEnvelope } from '../core/skill-result-envelope'
@@ -61,6 +73,11 @@ import {
 } from './b-roll-work-graph-compiler'
 import { trackGraphV1Schema } from './b-roll-artifact-types'
 import {
+  sourceMediaArtifactV1Schema,
+  type SourceMediaArtifactV1,
+} from './b-roll-active-artifact-contracts'
+import { createBrollTrackAllSupportRequest } from './b-roll-tracking-support-bridge'
+import {
   BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE,
   assertBrollVisualIntelligenceCandidateQa,
   brollVisualIntelligenceCandidateQaSchema,
@@ -79,6 +96,10 @@ interface LoadedBrollAuthority {
   visualOwnership: BrollVisualOwnershipManifest
   visualOwnershipRef: SkillAssignment['contextArtifactRefs'][number]
   inputRefs: readonly SkillAssignment['contextArtifactRefs'][number][]
+  sourceMedia: readonly {
+    reference: EditSkillArtifactReference
+    value: SourceMediaArtifactV1
+  }[]
 }
 
 function sameValue(left: unknown, right: unknown): boolean {
@@ -155,15 +176,21 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
   readonly #artifacts: EditSkillArtifactStore
   readonly #estimators: SkillEstimatorRegistry
   readonly #qa: SkillQaRegistry
+  readonly #qualifications: SkillQualificationRegistry
+  readonly #routeQualifications: SkillRouteQualificationRegistry
 
   constructor(input: {
     artifacts: EditSkillArtifactStore
     estimators: SkillEstimatorRegistry
     qa: SkillQaRegistry
+    qualifications: SkillQualificationRegistry
+    routeQualifications: SkillRouteQualificationRegistry
   }) {
     this.#artifacts = input.artifacts
     this.#estimators = input.estimators
     this.#qa = input.qa
+    this.#qualifications = input.qualifications
+    this.#routeQualifications = input.routeQualifications
   }
 
   async planAssignment(input: { assignment: SkillAssignment }): Promise<EditSkillPublicPlan> {
@@ -303,9 +330,10 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     plan: EditSkillPublicPlan
     request: EditSkillDependencyRequest
     artifactRef: SkillAssignment['dependencyArtifactRefs'][number]
+    supportResultRef?: EditSkillArtifactReference
     workGraph?: EditSkillApprovedWorkGraph
     relatedWorkItemResult?: EditSkillWorkResult
-  }): Promise<EditSkillDependencyAcceptance> {
+  }): Promise<EditSkillArtifactAcceptance> {
     const assignment = this.#assertAssignment(input.assignment)
     await this.#assertPlan(assignment, input.plan)
     const request = editSkillDependencyRequestSchema.parse(input.request)
@@ -322,25 +350,118 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       input.artifactRef.artifactType !== request.requiredArtifactType
     ) throw new Error('B-roll dependency artifact lost exact request lineage.')
     assertArtifactScope(assignment, input.artifactRef)
-    const value = await this.#artifacts.readJson({
-      reference: input.artifactRef,
-      ...scopeFor(assignment),
-    })
-    let productionQualified = false
     if (request.requiredArtifactType === 'track_graph_v1') {
-      const graph = trackGraphV1Schema.parse(value)
+      if (!input.supportResultRef) throw new Error(
+        'B-roll requires an authenticated Track All owner support result for Track Graph acceptance.',
+      )
+      const supportResultRef = editSkillSupportResultReferenceSchema.parse(
+        input.supportResultRef,
+      )
+      assertArtifactScope(assignment, supportResultRef)
+      const authority = await this.#loadBrollAuthority(assignment)
+      if (authority.sourceMedia.length !== 1) throw new Error(
+        'B-roll Track All support requires exactly one checksum-bound source media authority.',
+      )
+      const sourceMedia = authority.sourceMedia[0]!
+      const supportRequest = createBrollTrackAllSupportRequest({
+        assignment,
+        plan: input.plan,
+        dependencyRequest: request,
+        sourceMediaRef: sourceMedia.reference,
+        sourceMedia: sourceMedia.value,
+      })
+      const supportResult = editSkillSupportResultSchema.parse(
+        await this.#artifacts.readJson({
+          reference: supportResultRef,
+          ...scopeFor(assignment),
+        }),
+      )
+      const currentSkillQualification = this.#qualifications.resolve(
+        supportResult.producer.manifestRef,
+      )
+      const currentRouteQualification = this.#routeQualifications.resolveReceipt({
+        manifestRef: supportResult.producer.manifestRef,
+        routeKey: supportResult.producer.routeQualification.routeKey,
+        environmentClass: supportResult.producer.routeQualification.environmentClass,
+      })
+      if (
+        currentSkillQualification.receiptHash !==
+          supportResult.producer.qualificationReceiptHash ||
+        currentRouteQualification.receiptHash !==
+          supportResult.producer.routeQualification.receiptHash
+      ) throw new Error('B-roll rejected stale Track All qualification authority.')
+      const persistedSupportRequest = editSkillSupportRequestSchema.parse(
+        await this.#artifacts.readJson({
+          reference: supportResult.supportRequestRef,
+          ...scopeFor(assignment),
+        }),
+      )
+      if (!sameValue(persistedSupportRequest, supportRequest)) throw new Error(
+        'B-roll rejected a Track All result for another exact support request.',
+      )
+      assertEditSkillSupportResultForRequest({
+        request: supportRequest,
+        result: supportResult,
+        supportResultRef,
+      })
+      if (!sameValue(supportResult.producedArtifactRef, input.artifactRef)) {
+        throw new Error('B-roll Track All support result does not bind the submitted Track Graph.')
+      }
+      const graph = trackGraphV1Schema.parse(await this.#artifacts.readJson({
+        reference: input.artifactRef,
+        ...scopeFor(assignment),
+      }))
       if (
         graph.ownerUserId !== assignment.ownerUserId ||
         graph.workspaceId !== assignment.workspaceId ||
         graph.projectId !== assignment.projectId ||
-        graph.assignmentId !== assignment.assignmentId ||
-        graph.assignmentHash !== assignment.assignmentHash ||
-        hashSkillValue(graph.authorizedRange) !== hashSkillValue(assignment.authorizedRange) ||
+        graph.assignmentId !== supportResult.producer.assignmentId ||
+        graph.assignmentHash !== supportResult.producer.assignmentHash ||
+        graph.sourceSha256 !== sourceMedia.value.objectSha256 ||
+        !sameValue(graph.authorizedRange, supportResult.compatibleRange) ||
+        graph.authorizedRange.fps !== assignment.authorizedRange.fps ||
+        !isFrameRangeContained(assignment.authorizedRange, graph.authorizedRange) ||
         hashSkillValue(graph) !== input.artifactRef.sha256
       ) throw new Error('B-roll rejected a forged, cross-workspace, or range-incompatible Track All artifact.')
+      const productionQualified =
+        supportResult.producer.qualificationStatus === 'production_qualified' &&
+        supportResult.producer.routeQualification.qualificationStatus === 'production_qualified'
+      return createEditSkillSupportAcceptance({
+        schemaVersion: 'edit-skill-support-acceptance-v1',
+        requestHash: request.requestHash,
+        assignmentId: assignment.assignmentId,
+        assignmentHash: assignment.assignmentHash,
+        planHash: input.plan.envelope.planHash,
+        manifestRef: assignment.manifestRef,
+        artifactRef: input.artifactRef,
+        validatedArtifactHash: input.artifactRef.sha256,
+        acceptedForPhase: request.requiredForPhase,
+        productionQualified,
+        supportRequestHash: supportRequest.requestHash,
+        supportResultRef,
+        supportResultHash: supportResult.supportResultHash,
+        producerManifestRef: supportResult.producer.manifestRef,
+        producerAssignmentId: supportResult.producer.assignmentId,
+        producerAssignmentHash: supportResult.producer.assignmentHash,
+        producerPlanHash: supportResult.producer.planHash,
+        producerResultReceiptHash: supportResult.producer.resultReceiptHash,
+        producerQualificationStatus: supportResult.producer.qualificationStatus,
+        producerQualificationReceiptHash: supportResult.producer.qualificationReceiptHash,
+        producerRouteQualificationReceiptHash:
+          supportResult.producer.routeQualification.receiptHash,
+        sourceSha256: supportResult.sharedAuthority.sourceSha256,
+        compatibleRange: supportResult.compatibleRange,
+      })
     } else if (
       request.requiredArtifactType === BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE
     ) {
+      if (input.supportResultRef) throw new Error(
+        'B-roll Visual Intelligence evidence cannot be replaced by a Track All support result.',
+      )
+      const value = await this.#artifacts.readJson({
+        reference: input.artifactRef,
+        ...scopeFor(assignment),
+      })
       if (!input.workGraph || !input.relatedWorkItemResult) {
         throw new Error('B-roll Visual Intelligence QA acceptance requires its exact generated candidate work result.')
       }
@@ -367,22 +488,22 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
         candidateArtifact,
         requireProduction: false,
       })
-      productionQualified = artifact.productionQualificationStatus === 'production_qualified'
+      const productionQualified = artifact.productionQualificationStatus === 'production_qualified'
+      return createEditSkillDependencyAcceptance({
+        schemaVersion: 'edit-skill-dependency-acceptance-v1',
+        requestHash: request.requestHash,
+        assignmentId: assignment.assignmentId,
+        assignmentHash: assignment.assignmentHash,
+        planHash: input.plan.envelope.planHash,
+        manifestRef: assignment.manifestRef,
+        artifactRef: input.artifactRef,
+        validatedArtifactHash: input.artifactRef.sha256,
+        acceptedForPhase: request.requiredForPhase,
+        productionQualified,
+      })
     } else {
       throw new Error(`B-roll does not accept dependency artifact ${request.requiredArtifactType}.`)
     }
-    return createEditSkillDependencyAcceptance({
-      schemaVersion: 'edit-skill-dependency-acceptance-v1',
-      requestHash: request.requestHash,
-      assignmentId: assignment.assignmentId,
-      assignmentHash: assignment.assignmentHash,
-      planHash: input.plan.envelope.planHash,
-      manifestRef: assignment.manifestRef,
-      artifactRef: input.artifactRef,
-      validatedArtifactHash: input.artifactRef.sha256,
-      acceptedForPhase: request.requiredForPhase,
-      productionQualified,
-    })
   }
 
   async validateWorkItemResult(input: {
@@ -430,14 +551,14 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     assignment: SkillAssignment
     plan: EditSkillPublicPlan
     workGraph: EditSkillApprovedWorkGraph
-    dependencyAcceptances: readonly EditSkillDependencyAcceptance[]
+    dependencyAcceptances: readonly EditSkillArtifactAcceptance[]
     workItemResults: readonly EditSkillWorkResult[]
   }): Promise<EditSkillResultReceipt> {
     const assignment = this.#assertAssignment(input.assignment)
     await this.#assertPlan(assignment, input.plan)
     await this.#assertWorkGraph(assignment, input.plan, input.workGraph)
     const acceptances = input.dependencyAcceptances.map((value) =>
-      editSkillDependencyAcceptanceSchema.parse(value))
+      editSkillArtifactAcceptanceSchema.parse(value))
     const requiredRequestHashes = new Set(input.plan.dependencyRequests.map((value) => value.requestHash))
     const acceptedRequestHashes = new Set(acceptances.map((value) => value.requestHash))
     if (
@@ -445,12 +566,18 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       [...acceptedRequestHashes].some((hash) => !requiredRequestHashes.has(hash))
     ) throw new Error('B-roll finalization rejected a duplicate or unknown dependency acceptance.')
     for (const acceptance of acceptances) {
+      const request = input.plan.dependencyRequests.find((candidate) =>
+        candidate.requestHash === acceptance.requestHash)
       if (
+        !request ||
         acceptance.assignmentId !== assignment.assignmentId ||
         acceptance.assignmentHash !== assignment.assignmentHash ||
         acceptance.planHash !== input.plan.envelope.planHash ||
-        !sameValue(acceptance.manifestRef, assignment.manifestRef)
-      ) throw new Error('B-roll dependency acceptance is stale or cross-assignment.')
+        !sameValue(acceptance.manifestRef, assignment.manifestRef) ||
+        (request.requiredArtifactType === 'track_graph_v1'
+          ? acceptance.schemaVersion !== 'edit-skill-support-acceptance-v1'
+          : acceptance.schemaVersion !== 'edit-skill-dependency-acceptance-v1')
+      ) throw new Error('B-roll dependency acceptance is stale, cross-assignment, or not owner-authenticated.')
     }
     const visualIntelligenceRequest = input.plan.dependencyRequests.find((request) =>
       request.requiredArtifactType === BROLL_VISUAL_INTELLIGENCE_CANDIDATE_QA_ARTIFACT_TYPE)
@@ -622,6 +749,13 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
     const sourceInventoryInput = resolved.requireOne('source_inventory')
     const masterTimingInput = resolved.requireOne('master_timing')
     const visualOwnershipInput = resolved.requireOne('visual_ownership')
+    const sourceMediaInput = resolved.optional.get('source_media')
+    const sourceMedia = sourceMediaInput
+      ? sourceMediaInput.references.map((reference, index) => ({
+          reference,
+          value: sourceMediaArtifactV1Schema.parse(sourceMediaInput.values[index]),
+        }))
+      : []
     const assignmentRef = assignmentInput.reference
     const contextRef = contextInput.reference
     const sourceInventoryRef = sourceInventoryInput.reference
@@ -712,6 +846,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       sourceInventoryRef,
       masterTimingRef,
       visualOwnershipRef,
+      ...sourceMedia.map((entry) => entry.reference),
     ]
     return {
       assignment: brollAssignment,
@@ -726,6 +861,7 @@ export class BrollEditSkillPlugin implements EditSkillPlugin {
       visualOwnership,
       visualOwnershipRef,
       inputRefs,
+      sourceMedia,
     }
   }
 

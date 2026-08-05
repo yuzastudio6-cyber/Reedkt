@@ -13,6 +13,14 @@ interface BrollDependencyAuthorityDefinition {
 
 const DEFINITIONS = [
   {
+    authorityKey: 'shared_assignment_authorities',
+    profileVersion: 'b_roll_dependency_authority.shared_assignment_authorities.v1',
+    files: [
+      'server/edit-skills/shared/assignment-authorities/assignment-authority-schemas.ts',
+      'server/edit-skills/shared/assignment-authorities/index.ts',
+    ],
+  },
+  {
     authorityKey: 'canonical_approved_edit_execution_package',
     profileVersion: 'b_roll_dependency_authority.canonical_approved_edit_execution_package.v1',
     files: ['server/edit-architecture/canonical-approved-edit-execution-package.ts'],
@@ -143,7 +151,9 @@ const DEFINITIONS = [
     files: [
       'server/edit-skills/core/edit-skill-runtime-binding.ts',
       'server/edit-skills/core/edit-skill-runtime-dispatcher.ts',
+      'server/edit-skills/core/skill-route-qualification.ts',
       'server/edit-skills/b-roll/b-roll-runtime-bindings.ts',
+      'server/edit-skills/b-roll/b-roll-route-qualification.ts',
       'server/edit-skills/b-roll/b-roll-canonical-private-runtime.ts',
     ],
   },

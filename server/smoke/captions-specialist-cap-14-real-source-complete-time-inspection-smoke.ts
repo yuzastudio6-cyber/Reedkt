@@ -5,7 +5,6 @@ import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 import type {
-  CaptionRealSourceCompleteTimeInspectionReceipt,
   CaptionRealSourceInspectionVariant,
 } from '../../src/types/caption-real-source-complete-time-inspection'
 import type { CaptionDomainRef } from '../../src/types/caption-domain-contracts'
@@ -307,11 +306,23 @@ console.log(JSON.stringify({
   productionAuthorityGranted: false,
 }, null, 2))
 
-async function loadRenderArtifact(input: {
-  variant: CaptionRealSourceInspectionVariant
+async function loadRenderArtifact<
+  const TVariant extends CaptionRealSourceInspectionVariant,
+>(input: {
+  variant: TVariant
   fileName: string
   expectedSha256: string
-}) {
+}): Promise<{
+  variant: TVariant
+  artifactRef: CaptionDomainRef
+  mimeType: 'video/mp4'
+  byteLength: number
+  rasterWidth: 360
+  rasterHeight: 640
+  fpsNumerator: 30
+  fpsDenominator: 1
+  frameCount: number
+}> {
   const path = join(evidenceDirectory, input.fileName)
   const bytes = await readFile(path)
   const fileStat = await stat(path)
@@ -379,20 +390,20 @@ function assertPngDimensions(
   assert.equal(bytes.readUInt32BE(20), expectedHeight)
 }
 
-function withDigest(
-  receipt: CaptionRealSourceCompleteTimeInspectionReceipt,
-): CaptionRealSourceCompleteTimeInspectionReceipt {
+function withDigest(receipt: unknown): unknown {
+  assert.ok(receipt && typeof receipt === 'object')
+  const record = receipt as Record<string, unknown>
   return {
-    ...receipt,
+    ...record,
     inspectionDigestSha256: calculateSkillContractDigest(
-      receipt as unknown as Record<string, unknown>,
+      record,
       'inspectionDigestSha256',
     ),
   }
 }
 
 function expectInvalid(
-  receipt: CaptionRealSourceCompleteTimeInspectionReceipt,
+  receipt: unknown,
   message: RegExp,
 ): void {
   assert.throws(() => parseCaptionRealSourceCompleteTimeInspectionReceipt(

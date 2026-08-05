@@ -274,6 +274,7 @@ export interface CanonicalCaptionTranscriptSupportService {
 
 const admittedWordReaders = new WeakSet<object>()
 const admittedSnapshotReaders = new WeakSet<object>()
+const admittedTranscriptRepositories = new WeakSet<object>()
 
 export function createCanonicalCaptionSourceWordTimingReadPort(
   readExact:
@@ -309,6 +310,35 @@ export function createCanonicalCaptionApprovedSnapshotReadPort(
   })
   admittedSnapshotReaders.add(port)
   return port
+}
+
+export function assertCanonicalCaptionApprovedSnapshotReadPort(
+  port: CanonicalCaptionApprovedSnapshotReadPort,
+): void {
+  if (!admittedSnapshotReaders.has(port)
+    || port.schemaVersion !==
+      CANONICAL_CAPTION_APPROVED_SNAPSHOT_READ_PORT_VERSION
+    || typeof port.readExact !== 'function') {
+    throw new Error('Canonical Caption approved-snapshot reader is not admitted.')
+  }
+}
+
+export function assertCanonicalCaptionTranscriptEvidenceRepository(
+  repository: CanonicalCaptionTranscriptEvidenceRepository,
+): void {
+  if (!admittedTranscriptRepositories.has(repository)
+    || repository.schemaVersion !==
+      CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION
+    || repository.repositoryVersion !==
+      CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION
+    || typeof repository.persistCreateOnly !== 'function'
+    || typeof repository.rereadRecord !== 'function'
+    || typeof repository.findExactForExecution !== 'function'
+    || typeof repository.readExact !== 'function') {
+    throw new Error(
+      'Canonical Caption transcript evidence repository is not admitted.',
+    )
+  }
 }
 
 export function createCanonicalCaptionSourceWordTimingEvidence(input: Omit<
@@ -571,7 +601,9 @@ export function createCanonicalCaptionTranscriptEvidenceRepository(input: {
       }) : null
     },
   }
-  return Object.freeze(repository)
+  const frozenRepository = Object.freeze(repository)
+  admittedTranscriptRepositories.add(frozenRepository)
+  return frozenRepository
 }
 
 export function createCanonicalCaptionTranscriptSupportService(input: {
@@ -1114,23 +1146,17 @@ function assertPorts(input: {
   wordTimingReadPort: CanonicalCaptionSourceWordTimingReadPort
   repository: CanonicalCaptionTranscriptEvidenceRepository
 }): void {
-  if (!admittedSnapshotReaders.has(input.approvedSnapshotReadPort)
-    || input.approvedSnapshotReadPort.schemaVersion !==
-      CANONICAL_CAPTION_APPROVED_SNAPSHOT_READ_PORT_VERSION
-    || !admittedWordReaders.has(input.wordTimingReadPort)
+  assertCanonicalCaptionApprovedSnapshotReadPort(
+    input.approvedSnapshotReadPort,
+  )
+  assertCanonicalCaptionTranscriptEvidenceRepository(input.repository)
+  if (!admittedWordReaders.has(input.wordTimingReadPort)
     || input.wordTimingReadPort.schemaVersion !==
       CANONICAL_CAPTION_SOURCE_WORD_TIMING_READ_PORT_VERSION
     || input.sourceTranscriptReadPort?.schemaVersion !==
       CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION
     || typeof input.sourceTranscriptReadPort.readCompleted !== 'function'
-    || input.repository?.schemaVersion !==
-      CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION
-    || input.repository.repositoryVersion !==
-      CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION
-    || typeof input.repository.persistCreateOnly !== 'function'
-    || typeof input.repository.rereadRecord !== 'function'
-    || typeof input.repository.findExactForExecution !== 'function'
-    || typeof input.repository.readExact !== 'function') {
+  ) {
     throw new Error('Canonical Caption transcript support ports are invalid.')
   }
 }

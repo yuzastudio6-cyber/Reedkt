@@ -79,6 +79,7 @@ The governing workflow invariant remains:
 - [CAP-04 transcript, lineage, and alignment report](cap-04-transcript-lineage-alignment-report.md)
 - [CAP-04 private transcript real-media evidence (2026-08-05)](cap-04-private-transcript-real-media-evidence-2026-08-05.md)
 - [CAP-04 reviewed transcript correction owner lane](cap-04-reviewed-transcript-correction-owner-lane-2026-08-05.md)
+- [CAP-04 reviewed transcript correction owner mount](cap-04-reviewed-transcript-correction-owner-mount-2026-08-05.md)
 - [CAP-05 font and Unicode runtime report](cap-05-font-unicode-runtime-report.md)
 - [CAP-06 early strategy and reservation report](cap-06-early-strategy-reservation-report.md)
 - [CAP-07 picture lock and finish readiness report](cap-07-picture-lock-finish-readiness-report.md)

@@ -220,7 +220,8 @@ assert.throws(() => createCanonicalCaptionReviewedCorrectionRecord({
 }), /omits source-word lineage/u)
 checks += 1
 
-const captionAuthority = structuredClone(request)
+const captionAuthority = structuredClone(request) as unknown as
+  Record<string, unknown>
 captionAuthority.transcriptMutationAuthorityGrantedToCaption = true
 redigest(captionAuthority, 'requestDigestSha256')
 assert.throws(() => parseCanonicalCaptionReviewedCorrectionRequest(
@@ -355,7 +356,7 @@ function originalWord(
 function requestForArtifact(
   artifact: typeof correctionArtifact,
 ): typeof request {
-  const input = structuredClone(request) as Record<string, unknown>
+  const input = structuredClone(request) as unknown as Record<string, unknown>
   delete input.schemaVersion
   delete input.requestDigestSha256
   return createCanonicalCaptionReviewedCorrectionRequest({
@@ -380,10 +381,11 @@ function hash(value: string): string {
   return createHash('sha256').update(value).digest('hex')
 }
 
-function redigest<T extends Record<string, unknown>>(
+function redigest<T extends object>(
   value: T,
   field: string,
 ): T {
-  value[field] = calculateSkillContractDigest(value, field)
+  const record = value as unknown as Record<string, unknown>
+  record[field] = calculateSkillContractDigest(record, field)
   return value
 }

@@ -26,6 +26,7 @@ const sourceOnlyScripts = [
   'smoke:canonical-specialist-support-resume',
   'smoke:canonical-caption-transcript-support',
   'smoke:canonical-caption-reviewed-transcript-correction',
+  'smoke:canonical-caption-reviewed-transcript-correction-owner',
   'smoke:canonical-caption-visual-intelligence-support',
   'smoke:canonical-caption-track-all-support',
   'smoke:canonical-caption-soundsync-support',

@@ -37,8 +37,10 @@ source-complete:
 5. B-roll owner request/result admission.
 
 All five now have concrete composition mounts. The transcript remains in the
-private Caption runner, Visual Intelligence and Track All/SAM 3.1 remain in
-their canonical owner compositions, and the new
+canonical transcript owner and now also has a source-ready reviewed-correction
+mount that persists corrected results through the same authenticated evidence
+repository. Visual Intelligence and Track All/SAM 3.1 remain in their canonical
+owner compositions, and the new
 `canonical-caption-shared-owner-private-composition-v1` mounts the existing
 Sound and B-roll owners through Caption's already-published support bridges.
 
@@ -77,8 +79,9 @@ one canonical end-to-end edit.
 
 The owner-mount gap is closed. Nine actual private evidence gates remain:
 
-1. consume the actual canonical transcript persistence reread in the terminal
-   qualification run;
+1. produce the complete independent audio-truth correction/review for the real
+   source, pass it through the mounted canonical transcript owner, and consume
+   that exact persistence reread in the terminal qualification run;
 2. consume an actual canonical Visual Intelligence owner record;
 3. consume an actual canonical Track All owner record;
 4. consume an actual canonical Sound result, exact final audio reread, and

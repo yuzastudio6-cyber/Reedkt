@@ -10,6 +10,8 @@ import type { SkillRequestedMode, SkillScopeLevel } from
 
 export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION =
   'canonical-caption-specialist-work-item-input-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION =
+  'canonical-caption-specialist-work-item-input-v2' as const
 export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION =
   'internal.run_approved_caption_specialist_job.v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION =
@@ -22,6 +24,7 @@ export type CanonicalCaptionInitialArtifactType =
   | 'canonical_transcript_authenticated_read_binding'
   | 'confirmed_output_frame'
   | 'master_timing_or_planning_timing'
+  | 'source_skill_support_request'
 
 export interface CanonicalCaptionSpecialistInitialArtifactRef
   extends SkillArtifactRef {
@@ -34,7 +37,7 @@ export interface CanonicalCaptionSpecialistInitialArtifactRef
  * The approved snapshot identity is deliberately added by the backend only
  * after approval; callers cannot predict or inject it before approval.
  */
-export interface CanonicalCaptionSpecialistWorkItemInput {
+export interface CanonicalCaptionSpecialistWorkItemInputV1 {
   schemaVersion:
     typeof CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION
   operation: typeof CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION
@@ -59,6 +62,22 @@ export interface CanonicalCaptionSpecialistWorkItemInput {
   publicDeliveryRequested: false
   productionAuthorityRequested: false
 }
+
+export interface CanonicalCaptionSpecialistWorkItemInputV2
+  extends Omit<CanonicalCaptionSpecialistWorkItemInputV1, 'schemaVersion'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+  assignmentIntentRef: SkillContractRef
+  assignmentTrigger:
+    import('./canonical-caption-specialist-planning')
+      .CanonicalCaptionSpecialistAssignmentTrigger
+  sourceSupportRequestRef: SkillContractRef | null
+  selectionEvidenceRef: SkillContractRef
+}
+
+export type CanonicalCaptionSpecialistWorkItemInput =
+  | CanonicalCaptionSpecialistWorkItemInputV1
+  | CanonicalCaptionSpecialistWorkItemInputV2
 
 export interface CanonicalCaptionSpecialistExecutionReceipt {
   schemaVersion:

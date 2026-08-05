@@ -3,19 +3,56 @@ import type { CaptionsSupportedJobType } from './captions-specialist'
 
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION =
   'canonical-caption-specialist-planning-binding-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION =
+  'canonical-caption-specialist-planning-binding-v2' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION =
   'canonical-caption-specialist-planning-projection-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION =
+  'canonical-caption-specialist-planning-projection-v2' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_COMPONENT_KEY =
   'canonicalCaptionSpecialistPlanningProjection' as const
 export const CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION =
   'canonical-caption-specialist-estimate-binding-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION =
+  'canonical-caption-specialist-job-assignment-v1' as const
 
 export type CanonicalCaptionTrackingJobType =
   | 'resolve_subject_occluded_typography'
   | 'resolve_object_anchored_typography'
   | 'resolve_environmental_typography'
 
-export interface CanonicalCaptionSpecialistPlanningBinding {
+export type CanonicalCaptionSpecialistAssignmentTrigger =
+  | 'approved_early_plan'
+  | 'approved_picture_lock'
+  | 'approved_boundary_requirement'
+  | 'hq_mediated_support_request'
+  | 'canonical_caption_qa_repair'
+  | 'canonical_caption_output_recomposition'
+  | 'canonical_caption_result_inspection'
+  | 'canonical_caption_boundary_inspection'
+
+export interface CanonicalCaptionSpecialistJobAssignmentIntent {
+  assignmentId: string
+  jobType: CaptionsSupportedJobType
+  scopeLevel: 'video' | 'scene' | 'boundary'
+  outputId: string
+  sceneId: string | null
+  boundaryId: string | null
+  authorizedFrameRange: {
+    startFrame: number
+    endFrameExclusive: number
+  }
+  trigger: CanonicalCaptionSpecialistAssignmentTrigger
+  selectionEvidenceRef: CaptionDomainRef
+  sourceSupportRequestRef: CaptionDomainRef | null
+  reasonCodes: string[]
+  callerMayCreateWork: false
+  captionMayDispatchPeerDirectly: false
+  captionMayExpandScope: false
+  browserMayMarkComplete: false
+}
+
+export interface CanonicalCaptionSpecialistPlanningBindingV1 {
   schemaVersion:
     typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION
   bindingId: string
@@ -69,6 +106,20 @@ export interface CanonicalCaptionSpecialistPlanningBinding {
   productionAuthorityGranted: false
 }
 
+export interface CanonicalCaptionSpecialistPlanningBindingV2
+  extends Omit<CanonicalCaptionSpecialistPlanningBindingV1,
+    'schemaVersion'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+  assignmentIntents: CanonicalCaptionSpecialistJobAssignmentIntent[]
+  assignmentsSelectedByCanonicalPlanOwner: true
+  oneAllFeatureEditFabricated: false
+}
+
+export type CanonicalCaptionSpecialistPlanningBinding =
+  | CanonicalCaptionSpecialistPlanningBindingV1
+  | CanonicalCaptionSpecialistPlanningBindingV2
+
 export interface CanonicalCaptionSpecialistEstimateBindingMetadata {
   schemaVersion:
     typeof CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION
@@ -82,7 +133,7 @@ export interface CanonicalCaptionSpecialistEstimateBindingMetadata {
   billingAuthorityGrantedToCaption: false
 }
 
-export interface CanonicalCaptionSpecialistPlanningProjection {
+export interface CanonicalCaptionSpecialistPlanningProjectionV1 {
   schemaVersion:
     typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION
   projectionId: string
@@ -116,3 +167,19 @@ export interface CanonicalCaptionSpecialistPlanningProjection {
   publicDeliveryGranted: false
   productionAuthorityGranted: false
 }
+
+export interface CanonicalCaptionSpecialistPlanningProjectionV2
+  extends Omit<CanonicalCaptionSpecialistPlanningProjectionV1,
+    'schemaVersion'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+  assignmentIntentRefs: CaptionDomainRef[]
+  projectedBoundaryIds: string[]
+  exactAssignmentIntentCoverage: true
+  repairOrSupportWorkProjectedOnlyFromTypedTrigger: true
+  oneAllFeatureEditFabricated: false
+}
+
+export type CanonicalCaptionSpecialistPlanningProjection =
+  | CanonicalCaptionSpecialistPlanningProjectionV1
+  | CanonicalCaptionSpecialistPlanningProjectionV2

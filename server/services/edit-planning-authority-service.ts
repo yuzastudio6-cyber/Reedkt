@@ -1279,6 +1279,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           context,
           componentRefs: targetPlan.componentRefs,
           workItems: approvalToolWorkItems,
+          planningBinding:
+            approvalComponents.captionSpecialistPlanningBinding,
         })
       const approvalCaptionRenderedMediaWorkBinding =
         await loadCanonicalCaptionRenderedMediaWorkBinding({
@@ -2582,6 +2584,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           context,
           componentRefs: snapshot.componentRefs,
           workItems,
+          planningBinding:
+            approvedComponents.captionSpecialistPlanningBinding,
         })
       const captionRenderedMediaWorkBinding =
         await loadCanonicalCaptionRenderedMediaWorkBinding({
@@ -3604,6 +3608,7 @@ async function loadCanonicalCaptionSpecialistPlanningProjection(input: {
   context: ServiceContext
   componentRefs: Record<string, AuthorityJsonBlobRef>
   workItems: CanonicalPlanAuthorityWorkItem[]
+  planningBinding: unknown
 }): Promise<CanonicalCaptionSpecialistPlanningProjection | undefined> {
   const ref = input.componentRefs[
     CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_COMPONENT_KEY
@@ -3633,6 +3638,7 @@ async function loadCanonicalCaptionSpecialistPlanningProjection(input: {
     assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
       projection,
       input.workItems,
+      input.planningBinding,
     )
     return projection
   } catch (error) {

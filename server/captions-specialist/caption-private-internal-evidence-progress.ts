@@ -176,8 +176,8 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     ]),
   gate('canonical_backend_private_execution_mount',
     'actual_evidence_incomplete', [realSourceDirectInspectionRef], [
-      'all_forty_one_caption_jobs_must_complete_in_one_canonical_work_graph',
-      'every_result_and_artifact_must_be_persisted_and_reread',
+      'representative_approved_runs_must_cover_all_forty_one_caption_jobs',
+      'each_run_must_reread_every_projected_result_and_artifact',
     ]),
   gate('qualified_ai_complete_time_visual_review',
     'actual_evidence_incomplete', [realSourceDirectInspectionRef], [

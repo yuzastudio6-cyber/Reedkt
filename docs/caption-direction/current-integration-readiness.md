@@ -14,6 +14,15 @@ Current per-job truth:
 - Waiting on a canonical owner composition mount: **0/41 jobs**
 - Terminally qualified from current canonical private evidence: **0/41 jobs**
 
+The 41/41 source-path statement now includes an executable canonical
+reachability proof, not only handler enumeration. Versioned V2 planning
+bindings carry exact job assignment intents. The canonical planner validates
+scope, output, scene range, trigger, selection evidence, support-request
+lineage, baseline scene lifecycle, and immutable work-input lineage before it
+projects any work. Four representative plan classes cover the 41-job union;
+the contracts explicitly reject a one-edit/all-features claim. The frozen V1
+binding, projection, and work-input wires remain readable.
+
 The 0/41 terminal count is intentional until one fresh canonical private run
 rereads real results, rendered outputs, qualified complete-time visual review,
 and independent private review. It is not a regression of the Caption source

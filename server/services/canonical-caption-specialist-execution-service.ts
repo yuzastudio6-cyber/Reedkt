@@ -4,12 +4,19 @@ import {
   CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
   type CanonicalCaptionSpecialistExecutionReceipt,
   type CanonicalCaptionSpecialistWorkItemInput,
 } from '../../src/types/canonical-caption-specialist-execution'
-import { CAPTIONS_SUPPORTED_JOB_TYPES } from
+import {
+  CAPTIONS_SUPPORT_JOB_TYPES,
+  CAPTIONS_SUPPORTED_JOB_TYPES,
+} from
   '../../src/types/captions-specialist'
+import {
+  CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION,
+} from '../../src/types/canonical-caption-specialist-planning'
 import type { CanonicalSpecialistCallResultPair } from
   '../../src/types/canonical-specialist-support-resume'
 import {
@@ -33,6 +40,8 @@ import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
   '../captions-specialist/caption-authority-boundary'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
+import { canonicalCaptionAssignmentTriggerForJob } from
+  '../captions-specialist/caption-canonical-work-planning'
 import {
   admitCaptionCanonicalTranscriptFromAuthenticatedRead,
   parseCaptionCanonicalTranscriptAuthenticatedReadBinding,
@@ -80,6 +89,7 @@ const initialArtifactTypeSchema = z.enum([
   'canonical_transcript_authenticated_read_binding',
   'confirmed_output_frame',
   'master_timing_or_planning_timing',
+  'source_skill_support_request',
 ])
 const initialArtifactSchema = z.object({
   id: safeKey,
@@ -91,10 +101,7 @@ const initialArtifactSchema = z.object({
   byteFreeRef: z.literal(true),
   sourceSupportRequestRef: z.null(),
 }).strict()
-const workItemInputSchema: z.ZodType<CanonicalCaptionSpecialistWorkItemInput> =
-z.object({
-  schemaVersion: z.literal(
-    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION),
+const workItemBodySchema = z.object({
   operation: z.literal(CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION),
   captionJobType: z.enum(CAPTIONS_SUPPORTED_JOB_TYPES),
   requestedMode: z.literal('planning'),
@@ -116,7 +123,35 @@ z.object({
   billingAuthorityRequested: z.literal(false),
   publicDeliveryRequested: z.literal(false),
   productionAuthorityRequested: z.literal(false),
-}).strict().superRefine((input, context) => {
+}).strict()
+const workItemInputV1Schema = workItemBodySchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION),
+}).strict()
+const workItemInputV2Schema = workItemBodySchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION),
+  assignmentIntentRef: refSchema.extend({
+    version: z.literal(CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION),
+  }).strict(),
+  assignmentTrigger: z.enum([
+    'approved_early_plan',
+    'approved_picture_lock',
+    'approved_boundary_requirement',
+    'hq_mediated_support_request',
+    'canonical_caption_qa_repair',
+    'canonical_caption_output_recomposition',
+    'canonical_caption_result_inspection',
+    'canonical_caption_boundary_inspection',
+  ]),
+  sourceSupportRequestRef: refSchema.nullable(),
+  selectionEvidenceRef: refSchema,
+}).strict()
+const workItemInputSchema: z.ZodType<CanonicalCaptionSpecialistWorkItemInput> =
+z.discriminatedUnion('schemaVersion', [
+  workItemInputV1Schema,
+  workItemInputV2Schema,
+]).superRefine((input, context) => {
   const types = input.initialArtifactRefs.map((ref) => ref.artifactType)
   if (new Set(types).size !== types.length
     || !types.includes('canonical_transcript')
@@ -150,6 +185,32 @@ z.object({
       code: z.ZodIssueCode.custom,
       message: 'Caption scope identifiers do not match the declared scope level.',
     })
+  }
+  if (input.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION) {
+    const supportJob = (CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
+      .includes(input.captionJobType)
+    const incomingRequestArtifacts = input.initialArtifactRefs.filter(
+      (artifact) => artifact.artifactType ===
+        'source_skill_support_request')
+    if (input.assignmentTrigger !==
+      canonicalCaptionAssignmentTriggerForJob(input.captionJobType)
+      || supportJob !== (input.sourceSupportRequestRef !== null)
+      || supportJob !== (incomingRequestArtifacts.length === 1)
+      || (input.sourceSupportRequestRef !== null
+        && (incomingRequestArtifacts[0]?.id !==
+          input.sourceSupportRequestRef.id
+          || incomingRequestArtifacts[0]?.version !==
+            input.sourceSupportRequestRef.version
+          || incomingRequestArtifacts[0]?.contentHash !==
+            input.sourceSupportRequestRef.contentHash
+          || incomingRequestArtifacts[0]?.producerSkillKey !==
+            'head_of_orchestra'))) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Caption V2 assignment trigger or support lineage is invalid.',
+      })
+    }
   }
 })
 

@@ -27,7 +27,7 @@ the evidence currently belongs to several independently scoped tests.
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner is mounted; an independent complete audio-truth review has not supplied its actual correction artifact. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
 | B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. Its synthetic color-bar imagery is accepted only as technical integration evidence and is structurally ineligible for professional-appearance qualification. Its scope is not the terminal talking-head edit scope. |
-| Backend Caption execution | Two actual real-source Caption renders exist and were inspected, but all 41 Caption jobs have not completed through one canonical work graph/package. |
+| Backend Caption execution | Two actual real-source Caption renders exist and were inspected, but a set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
 | Complete-time visual review | Every rendered frame of the real talking-head full/reduced variants was represented and inspected. This proves Caption-owned professional appearance; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
 Visual Intelligence, Track All/SAM 3.1, and independent final QA have
@@ -85,6 +85,14 @@ standard 41-entry `SkillQualificationSnapshot` for `planning` and
 `private_internal`. It deliberately leaves generic whole-skill and production
 claims false; this is the future workflow-pipeline mounting seam, not a central
 Orchestra or production-release claim.
+
+The approved-work planner now has a distinct V2 assignment-intent lane. It
+requires all eight video-level planning jobs and the applicable scene lifecycle
+for each selected scene, while boundary, incoming-support, repair,
+recomposition, and inspection jobs require their exact typed trigger. Four
+representative source scenarios cover the union of all 41 declared jobs; no
+single scenario claims to exercise every feature. V1 planning bindings and
+work inputs remain strictly readable.
 
 Supply the missing evidence through those existing owners and populate that
 catalog. The nearest hard prerequisite remains a complete independent audio-

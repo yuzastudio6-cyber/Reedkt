@@ -10,6 +10,15 @@ uses the existing worker lease, artifact manifest, private artifact QA, and
 reconciliation owners. Caption does not receive a parallel queue, dispatcher,
 asset manifest, cost owner, or final-QA owner.
 
+The planner now also accepts
+`canonical-caption-specialist-planning-binding-v2`. V2 does not schedule every
+declared Caption feature in every edit. It freezes one exact assignment intent
+per applicable video, scene, boundary, support, or repair occurrence, and the
+resulting `canonical-caption-specialist-work-item-input-v2` binds that intent,
+its trigger, selection evidence, and any HQ-mediated source support request.
+Repair, recomposition, inspection, and support work cannot be smuggled in as a
+picture-lock assignment. The earlier V1 wires remain readable and unchanged.
+
 For an assignment that can finish from its approved byte-free inputs, the
 runner:
 

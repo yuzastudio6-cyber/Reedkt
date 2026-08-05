@@ -2,12 +2,23 @@ import assert from 'node:assert/strict'
 
 import type {
   CanonicalCaptionSpecialistEstimateBindingMetadata,
+  CanonicalCaptionSpecialistJobAssignmentIntent,
   CanonicalCaptionSpecialistPlanningBinding,
+  CanonicalCaptionSpecialistPlanningBindingV1,
+  CanonicalCaptionSpecialistPlanningBindingV2,
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
   CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
 } from '../../src/types/canonical-caption-specialist-planning'
+import {
+  CAPTIONS_BOUNDARY_JOB_TYPES,
+  CAPTIONS_SCENE_JOB_TYPES,
+  CAPTIONS_SUPPORTED_JOB_TYPES,
+  CAPTIONS_SUPPORT_JOB_TYPES,
+  CAPTIONS_VIDEO_JOB_TYPES,
+  type CaptionsSupportedJobType,
+} from '../../src/types/captions-specialist'
 import type { CaptionEarlyPlanningInput } from
   '../../src/types/caption-early-planning'
 import type { ProfessionalSkillSelection } from
@@ -20,7 +31,10 @@ import type {
 import {
   assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems,
   calculateCanonicalCaptionSpecialistPlanningBindingDigest,
+  canonicalCaptionAssignmentScopeForJob,
+  canonicalCaptionAssignmentTriggerForJob,
   canonicalCaptionSpecialistMissingApprovalGates,
+  createCanonicalCaptionSpecialistPlanningBindingV2,
   parseCanonicalCaptionSpecialistPlanningBinding,
   parseCanonicalCaptionSpecialistPlanningProjection,
   prepareCanonicalCaptionSpecialistPlanningProjection,
@@ -53,6 +67,8 @@ import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 import { classifyCanonicalInternalServerJob } from
   '../services/canonical-private-job-execution-adapter-service'
+import { parseCanonicalCaptionSpecialistWorkItemInput } from
+  '../services/canonical-caption-specialist-execution-service'
 
 let checks = 0
 function check(value: unknown, message: string): void {
@@ -452,6 +468,202 @@ check(canonicalCaptionSpecialistMissingApprovalGates(
     'canonical_caption_independent_private_review_binding',
   ].join('|'),
 'Selected Caption planning must expose the exact remaining backend gates.')
+
+const requiredSceneLifecycleJobs: CaptionsSupportedJobType[] = [
+  'reserve_caption_space',
+  'plan_caption_blocking_preview',
+  'check_caption_finish_readiness',
+  'resolve_late_bound_caption_scene',
+  'resolve_semantic_caption_phrases',
+  'compile_caption_scene_graph',
+  'compile_caption_render_spec',
+  'compile_accessible_caption_projection',
+  'compile_reduced_motion_caption_projection',
+]
+const advancedSceneJobs: CaptionsSupportedJobType[] = [
+  'resolve_multi_track_caption_scene',
+  'resolve_spatial_typography',
+  'resolve_subject_occluded_typography',
+  'resolve_front_of_subject_typography',
+  'resolve_object_anchored_typography',
+  'resolve_environmental_typography',
+  'resolve_hero_typography',
+  'resolve_persistent_topic_typography',
+]
+const repairSceneJobs: CaptionsSupportedJobType[] = [
+  'repair_caption_scene',
+  'recompose_caption_output',
+  'inspect_caption_specific_result',
+]
+
+function assignment(
+  scenarioId: string,
+  jobType: CaptionsSupportedJobType,
+): CanonicalCaptionSpecialistJobAssignmentIntent {
+  const declaredScope = canonicalCaptionAssignmentScopeForJob(jobType)
+  const support = declaredScope === 'support'
+  const scopeLevel = support
+    ? jobType === 'provide_typographic_transition_component'
+      ? 'boundary' as const : 'scene' as const
+    : declaredScope
+  return {
+    assignmentId: `caption.assignment.${scenarioId}.${jobType}`,
+    jobType,
+    scopeLevel,
+    outputId: scope.outputId,
+    sceneId: scopeLevel === 'video' ? null : 'scene.caption.plan.1',
+    boundaryId: scopeLevel === 'boundary'
+      ? `boundary.caption.${scenarioId}` : null,
+    authorizedFrameRange: { startFrame: 0, endFrameExclusive: 360 },
+    trigger: canonicalCaptionAssignmentTriggerForJob(jobType),
+    selectionEvidenceRef: domainRef(
+      `selection.caption.${scenarioId}.${jobType}`),
+    sourceSupportRequestRef: support
+      ? domainRef(`support.caption.${scenarioId}.${jobType}`) : null,
+    reasonCodes: [`selected_for_${scenarioId}`],
+    callerMayCreateWork: false,
+    captionMayDispatchPeerDirectly: false,
+    captionMayExpandScope: false,
+    browserMayMarkComplete: false,
+  }
+}
+
+function v2Binding(
+  scenarioId: string,
+  additionalJobs: readonly CaptionsSupportedJobType[],
+): CanonicalCaptionSpecialistPlanningBindingV2 {
+  const legacy = planningBinding({
+    trace: selectedTrace,
+    bundle: selectedBundle,
+  }) as CanonicalCaptionSpecialistPlanningBindingV1
+  const {
+    schemaVersion: _legacyVersion,
+    bindingDigestSha256: _legacyDigest,
+    ...body
+  } = legacy
+  void _legacyVersion
+  void _legacyDigest
+  const jobTypes = [
+    ...CAPTIONS_VIDEO_JOB_TYPES,
+    ...requiredSceneLifecycleJobs,
+    ...additionalJobs,
+  ]
+  return createCanonicalCaptionSpecialistPlanningBindingV2({
+    ...body,
+    bindingId: `${body.bindingId}.${scenarioId}.v2`,
+    assignmentIntents: jobTypes.map((jobType) =>
+      assignment(scenarioId, jobType)),
+    assignmentsSelectedByCanonicalPlanOwner: true,
+    oneAllFeatureEditFabricated: false,
+  })
+}
+
+const v2ScenarioGroups = [
+  { id: 'spatial', jobs: advancedSceneJobs },
+  { id: 'boundary', jobs: [...CAPTIONS_BOUNDARY_JOB_TYPES] },
+  { id: 'support', jobs: [...CAPTIONS_SUPPORT_JOB_TYPES] },
+  { id: 'repair', jobs: repairSceneJobs },
+] as const
+const v2ScenarioProjections = v2ScenarioGroups.map((scenario) => {
+  const binding = v2Binding(scenario.id, scenario.jobs)
+  const result = prepareCanonicalCaptionSpecialistPlanningProjection({
+    ...scope,
+    components: components({
+      trace: selectedTrace,
+      bundle: selectedBundle,
+      binding,
+    }),
+    estimate,
+    existingWorkItems: [snapshotValidation],
+  })
+  check(result.projection?.schemaVersion ===
+    'canonical-caption-specialist-planning-projection-v2'
+    && result.workItems.every((item) =>
+      item.executionInput.schemaVersion ===
+        'canonical-caption-specialist-work-item-input-v2'
+      && parseCanonicalCaptionSpecialistWorkItemInput(item.executionInput)
+        .captionJobType === item.executionInput.captionJobType),
+  `Scenario ${scenario.id} must project only exact V2 assignment work.`)
+  assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
+    result.projection!, result.workItems, binding)
+  checks += 1
+  return { ...result, binding }
+})
+const reachableJobTypes = new Set(v2ScenarioProjections.flatMap((result) =>
+  result.projection?.projectedJobTypes ?? []))
+check(CAPTIONS_SUPPORTED_JOB_TYPES.every((jobType) =>
+  reachableJobTypes.has(jobType))
+  && reachableJobTypes.size === CAPTIONS_SUPPORTED_JOB_TYPES.length,
+'Multiple representative canonical plans must make all 41 Caption jobs reachable without one all-feature edit.')
+check(CAPTIONS_VIDEO_JOB_TYPES.every((jobType) =>
+  reachableJobTypes.has(jobType))
+  && CAPTIONS_SCENE_JOB_TYPES.every((jobType) =>
+    reachableJobTypes.has(jobType))
+  && CAPTIONS_BOUNDARY_JOB_TYPES.every((jobType) =>
+    reachableJobTypes.has(jobType))
+  && CAPTIONS_SUPPORT_JOB_TYPES.every((jobType) =>
+    reachableJobTypes.has(jobType)),
+'Canonical reachability must cover video, scene, boundary, and support families exactly.')
+check(v2ScenarioProjections.every((result) =>
+  result.projection?.schemaVersion ===
+    'canonical-caption-specialist-planning-projection-v2'
+  && result.projection.oneAllFeatureEditFabricated === false
+  && result.projection.exactAssignmentIntentCoverage
+  && result.projection.repairOrSupportWorkProjectedOnlyFromTypedTrigger),
+'Each V2 projection must preserve typed triggers and reject an all-feature-edit claim.')
+
+const supportScenario = v2ScenarioProjections.find((item) =>
+  item.binding.bindingId.includes('.support.v2'))!
+assert.throws(() =>
+  assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
+    supportScenario.projection!,
+    supportScenario.workItems.map((item) =>
+      item.executionInput.captionJobType ===
+        'provide_caption_broll_composition_constraints'
+        ? {
+            ...item,
+            executionInput: {
+              ...item.executionInput,
+              sourceSupportRequestRef: domainRef(
+                'crossed.support.caption.broll'),
+            },
+          }
+        : item),
+    supportScenario.binding,
+  ), /lost its exact assignment intent/u)
+checks += 1
+
+const invalidRepairBinding = structuredClone(v2Binding(
+  'invalid-repair', repairSceneJobs))
+invalidRepairBinding.assignmentIntents.find((item) =>
+  item.jobType === 'repair_caption_scene')!.trigger = 'approved_picture_lock'
+invalidRepairBinding.bindingDigestSha256 =
+  calculateCanonicalCaptionSpecialistPlanningBindingDigest(
+    Object.fromEntries(Object.entries(invalidRepairBinding).filter(
+      ([key]) => key !== 'bindingDigestSha256')))
+assert.throws(() => parseCanonicalCaptionSpecialistPlanningBinding(
+  invalidRepairBinding), /assignment intent.*invalid/iu)
+checks += 1
+
+const missingLifecycleBinding = v2Binding('missing-lifecycle', [])
+missingLifecycleBinding.assignmentIntents =
+  missingLifecycleBinding.assignmentIntents.filter((item) =>
+    item.jobType !== 'compile_caption_render_spec')
+missingLifecycleBinding.bindingDigestSha256 =
+  calculateCanonicalCaptionSpecialistPlanningBindingDigest(
+    Object.fromEntries(Object.entries(missingLifecycleBinding).filter(
+      ([key]) => key !== 'bindingDigestSha256')))
+assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: components({
+    trace: selectedTrace,
+    bundle: selectedBundle,
+    binding: missingLifecycleBinding,
+  }),
+  estimate,
+  existingWorkItems: [snapshotValidation],
+}), /omits required scene lifecycle work/u)
+checks += 1
 
 const captionOverlayWorkItem: CanonicalWorkItemInput = {
   workItemKey: 'caption-overlay',

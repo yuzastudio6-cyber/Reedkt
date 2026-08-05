@@ -2,24 +2,39 @@ import { z } from 'zod'
 
 import type {
   CanonicalCaptionSpecialistEstimateBindingMetadata,
+  CanonicalCaptionSpecialistJobAssignmentIntent,
   CanonicalCaptionSpecialistPlanningBinding,
+  CanonicalCaptionSpecialistPlanningBindingV1,
+  CanonicalCaptionSpecialistPlanningBindingV2,
   CanonicalCaptionSpecialistPlanningProjection,
+  CanonicalCaptionSpecialistPlanningProjectionV1,
+  CanonicalCaptionSpecialistPlanningProjectionV2,
+  CanonicalCaptionSpecialistAssignmentTrigger,
   CanonicalCaptionTrackingJobType,
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
   CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION,
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
   type CanonicalCaptionSpecialistInitialArtifactRef,
   type CanonicalCaptionSpecialistWorkItemInput,
+  type CanonicalCaptionSpecialistWorkItemInputV1,
 } from '../../src/types/canonical-caption-specialist-execution'
 import {
+  CAPTIONS_BOUNDARY_JOB_TYPES,
+  CAPTIONS_SCENE_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
+  CAPTIONS_SUPPORT_JOB_TYPES,
+  CAPTIONS_VIDEO_JOB_TYPES,
   type CaptionsSupportedJobType,
 } from
   '../../src/types/captions-specialist'
@@ -56,9 +71,7 @@ const trackingJobSchema = z.enum([
 const crossSystemTargetSchema = z.enum([
   'broll', 'living_frame', 'map', 'chart', 'diagram', 'transition',
 ])
-const bindingWithoutDigestSchema = z.object({
-  schemaVersion: z.literal(
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION),
+const bindingBodySchema = z.object({
   bindingId: safeKey,
   canonicalScope: z.object({
     ownerUserId: safeKey,
@@ -101,11 +114,53 @@ const bindingWithoutDigestSchema = z.object({
   publicDeliveryGranted: z.literal(false),
   productionAuthorityGranted: z.literal(false),
 }).strict()
-const bindingSchema: z.ZodType<CanonicalCaptionSpecialistPlanningBinding> =
-  bindingWithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
-const projectionWithoutDigestSchema = z.object({
+const bindingV1WithoutDigestSchema = bindingBodySchema.extend({
   schemaVersion: z.literal(
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION),
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION),
+}).strict()
+const assignmentTriggerSchema = z.enum([
+  'approved_early_plan',
+  'approved_picture_lock',
+  'approved_boundary_requirement',
+  'hq_mediated_support_request',
+  'canonical_caption_qa_repair',
+  'canonical_caption_output_recomposition',
+  'canonical_caption_result_inspection',
+  'canonical_caption_boundary_inspection',
+])
+const assignmentIntentSchema:
+z.ZodType<CanonicalCaptionSpecialistJobAssignmentIntent> = z.object({
+  assignmentId: safeKey,
+  jobType: z.enum(CAPTIONS_SUPPORTED_JOB_TYPES),
+  scopeLevel: z.enum(['video', 'scene', 'boundary']),
+  outputId: safeKey,
+  sceneId: safeKey.nullable(),
+  boundaryId: safeKey.nullable(),
+  authorizedFrameRange: z.object({
+    startFrame: z.number().int().nonnegative(),
+    endFrameExclusive: z.number().int().positive(),
+  }).strict(),
+  trigger: assignmentTriggerSchema,
+  selectionEvidenceRef: refSchema,
+  sourceSupportRequestRef: refSchema.nullable(),
+  reasonCodes: z.array(safeKey).min(1).max(16),
+  callerMayCreateWork: z.literal(false),
+  captionMayDispatchPeerDirectly: z.literal(false),
+  captionMayExpandScope: z.literal(false),
+  browserMayMarkComplete: z.literal(false),
+}).strict()
+const bindingV2WithoutDigestSchema = bindingBodySchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION),
+  assignmentIntents: z.array(assignmentIntentSchema).min(1).max(240),
+  assignmentsSelectedByCanonicalPlanOwner: z.literal(true),
+  oneAllFeatureEditFabricated: z.literal(false),
+}).strict()
+const bindingV1Schema: z.ZodType<CanonicalCaptionSpecialistPlanningBindingV1> =
+  bindingV1WithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
+const bindingV2Schema: z.ZodType<CanonicalCaptionSpecialistPlanningBindingV2> =
+  bindingV2WithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
+const projectionBodySchema = z.object({
   projectionId: safeKey,
   disposition: z.enum([
     'planning_work_projected_downstream_caption_execution_required',
@@ -137,8 +192,26 @@ const projectionWithoutDigestSchema = z.object({
   publicDeliveryGranted: z.literal(false),
   productionAuthorityGranted: z.literal(false),
 }).strict()
-const projectionSchema: z.ZodType<CanonicalCaptionSpecialistPlanningProjection> =
-  projectionWithoutDigestSchema.extend({ projectionDigestSha256: sha256 })
+const projectionV1WithoutDigestSchema = projectionBodySchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION),
+}).strict()
+const projectionV2WithoutDigestSchema = projectionBodySchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION),
+  assignmentIntentRefs: z.array(refSchema).min(1).max(240),
+  projectedBoundaryIds: z.array(safeKey).max(128),
+  exactAssignmentIntentCoverage: z.literal(true),
+  repairOrSupportWorkProjectedOnlyFromTypedTrigger: z.literal(true),
+  oneAllFeatureEditFabricated: z.literal(false),
+}).strict()
+const projectionV1Schema:
+z.ZodType<CanonicalCaptionSpecialistPlanningProjectionV1> =
+  projectionV1WithoutDigestSchema.extend({ projectionDigestSha256: sha256 })
+    .strict()
+const projectionV2Schema:
+z.ZodType<CanonicalCaptionSpecialistPlanningProjectionV2> =
+  projectionV2WithoutDigestSchema.extend({ projectionDigestSha256: sha256 })
     .strict()
 
 type CaptionComponents = CanonicalPlanComponentsInput & {
@@ -149,9 +222,11 @@ type CaptionComponents = CanonicalPlanComponentsInput & {
 
 interface JobSpec {
   jobType: CaptionsSupportedJobType
-  scopeLevel: 'video' | 'scene'
+  scopeLevel: 'video' | 'scene' | 'boundary'
   sceneId: string | null
+  boundaryId: string | null
   frameRange: { startFrame: number; endFrameExclusive: number }
+  assignmentIntent: CanonicalCaptionSpecialistJobAssignmentIntent | null
 }
 
 export interface CanonicalCaptionPlanningProjectionWorkItem {
@@ -206,7 +281,14 @@ export function parseCanonicalCaptionSpecialistPlanningBinding(
   value: unknown,
 ): CanonicalCaptionSpecialistPlanningBinding {
   assertClosedContractTree(value, 'Canonical Caption planning binding')
-  const parsed = bindingSchema.parse(value)
+  const version = z.object({ schemaVersion: safeKey }).passthrough()
+    .parse(value).schemaVersion
+  const parsed = version ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION
+    ? bindingV1Schema.parse(value)
+    : version === CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+      ? bindingV2Schema.parse(value)
+      : (() => { throw new Error('Unsupported Caption planning binding version.') })()
   if (parsed.bindingDigestSha256 !== calculateSkillContractDigest(
     parsed as unknown as Record<string, unknown>, 'bindingDigestSha256')) {
     throw new Error('Canonical Caption planning binding digest failed.')
@@ -215,6 +297,10 @@ export function parseCanonicalCaptionSpecialistPlanningBinding(
       !== parsed.scenePolicies.length) {
     throw new Error('Canonical Caption planning scene policies are duplicated.')
   }
+  if (parsed.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION) {
+    assertAssignmentIntentSet(parsed)
+  }
   return structuredClone(parsed)
 }
 
@@ -222,13 +308,30 @@ export function parseCanonicalCaptionSpecialistPlanningProjection(
   value: unknown,
 ): CanonicalCaptionSpecialistPlanningProjection {
   assertClosedContractTree(value, 'Canonical Caption planning projection')
-  const parsed = projectionSchema.parse(value)
+  const version = z.object({ schemaVersion: safeKey }).passthrough()
+    .parse(value).schemaVersion
+  const parsed = version ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION
+    ? projectionV1Schema.parse(value)
+    : version === CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+      ? projectionV2Schema.parse(value)
+      : (() => { throw new Error('Unsupported Caption planning projection version.') })()
   if (parsed.projectionDigestSha256 !== calculateSkillContractDigest(
     parsed as unknown as Record<string, unknown>, 'projectionDigestSha256')
     || new Set(parsed.projectedWorkItemKeys).size
       !== parsed.projectedWorkItemKeys.length
     || new Set(parsed.projectedSceneIds).size !== parsed.projectedSceneIds.length) {
     throw new Error('Canonical Caption planning projection is invalid.')
+  }
+  if (parsed.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+    && (new Set(parsed.assignmentIntentRefs.map(refKey)).size !==
+      parsed.assignmentIntentRefs.length
+      || new Set(parsed.projectedBoundaryIds).size !==
+        parsed.projectedBoundaryIds.length
+      || parsed.assignmentIntentRefs.length !==
+        parsed.projectedWorkItemKeys.length)) {
+    throw new Error('Canonical Caption V2 assignment projection is invalid.')
   }
   return structuredClone(parsed)
 }
@@ -290,6 +393,12 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
     contentHash: bundle.bundleDigestSha256,
   }
   if (entry.disposition === 'restrained') {
+    if (binding.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION) {
+      throw new Error(
+        'Owner-restraint plans cannot carry selected Caption V2 assignments.',
+      )
+    }
     if (input.estimate.lineItems.some(isCaptionEstimateLine)) {
       throw new Error('no_captions cannot retain hidden Caption estimate work.')
     }
@@ -309,6 +418,7 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
         deterministicRenderedCaptionQaRequired: false,
         qualifiedCompleteTimeVisualReviewRequired: false,
         independentPrivateReviewRequired: false,
+        planningBinding: binding,
       }),
       workItems: [],
     }
@@ -376,6 +486,7 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
       deterministicRenderedCaptionQaRequired: true,
       qualifiedCompleteTimeVisualReviewRequired: true,
       independentPrivateReviewRequired: true,
+      planningBinding: binding,
     }),
     workItems,
   }
@@ -384,6 +495,7 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
 export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
   projection: CanonicalCaptionSpecialistPlanningProjection,
   workItems: CanonicalCaptionPlanningProjectionWorkItem[],
+  planningBindingValue?: unknown,
 ): void {
   const captionWorkItems = workItems.filter((item) =>
     item.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS)
@@ -419,6 +531,32 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
       'Selected Caption planning projection is missing exact work or downstream coverage requirements.',
     )
   }
+  let v2Binding: CanonicalCaptionSpecialistPlanningBindingV2 | null = null
+  if (projection.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION) {
+    if (planningBindingValue === undefined) {
+      throw new Error(
+        'Canonical Caption V2 projection requires its exact planning binding.',
+      )
+    }
+    const parsedBinding = parseCanonicalCaptionSpecialistPlanningBinding(
+      planningBindingValue)
+    if (parsedBinding.schemaVersion !==
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+      || refKey(projection.planningBindingRef) !== refKey({
+        id: parsedBinding.bindingId,
+        version: parsedBinding.schemaVersion,
+        contentHash: parsedBinding.bindingDigestSha256,
+      })
+      || projection.assignmentIntentRefs.map(refKey).join('|') !==
+        parsedBinding.assignmentIntents.map(assignmentIntentRef)
+          .map(refKey).join('|')) {
+      throw new Error(
+        'Canonical Caption V2 projection crossed its assignment binding.',
+      )
+    }
+    v2Binding = parsedBinding
+  }
   const captionByKey = new Map(captionWorkItems.map((item) =>
     [item.workItemKey, item]))
   const projectedKeySet = new Set(projection.projectedWorkItemKeys)
@@ -429,6 +567,7 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
     )
   }
   const sceneIds = new Set<string>()
+  const boundaryIds = new Set<string>()
   for (const [index, workItemKey] of
     projection.projectedWorkItemKeys.entries()) {
     const workItem = captionByKey.get(workItemKey)
@@ -446,8 +585,10 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
       || workItem.providerExecutionMode !== 'none'
       || workItem.maximumCreditBudget !== 0
       || workItem.dependencyKeys.length !== 1
-      || executionInput.schemaVersion
-        !== CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION
+      || !([
+        CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+        CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+      ] as readonly string[]).includes(String(executionInput.schemaVersion))
       || executionInput.operation
         !== CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION
       || executionInput.captionJobType !== expectedJobType
@@ -476,11 +617,54 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
     } else if (executionInput.sceneId !== null) {
       throw new Error('Canonical Caption planning scene lineage is malformed.')
     }
+    if (typeof executionInput.boundaryId === 'string') {
+      boundaryIds.add(executionInput.boundaryId)
+    } else if (executionInput.boundaryId !== null) {
+      throw new Error(
+        'Canonical Caption planning boundary lineage is malformed.')
+    }
+    if (projection.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION) {
+      const expectedAssignmentRef = projection.assignmentIntentRefs[index]
+      const assignment = v2Binding?.assignmentIntents[index]
+      if (executionInput.schemaVersion !==
+        CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+        || !assignment
+        || stableAuthorityStringify(executionInput.assignmentIntentRef)
+          !== stableAuthorityStringify(expectedAssignmentRef)
+        || executionInput.assignmentTrigger !==
+          canonicalCaptionAssignmentTriggerForJob(expectedJobType)
+        || executionInput.captionJobType !== assignment.jobType
+        || executionInput.scopeLevel !== assignment.scopeLevel
+        || executionInput.outputId !== assignment.outputId
+        || executionInput.sceneId !== assignment.sceneId
+        || executionInput.boundaryId !== assignment.boundaryId
+        || stableAuthorityStringify(executionInput.authorizedFrameRanges)
+          !== stableAuthorityStringify([assignment.authorizedFrameRange])
+        || stableAuthorityStringify(executionInput.selectionEvidenceRef)
+          !== stableAuthorityStringify(assignment.selectionEvidenceRef)
+        || stableAuthorityStringify(executionInput.sourceSupportRequestRef)
+          !== stableAuthorityStringify(assignment.sourceSupportRequestRef)) {
+        throw new Error(
+          'Canonical Caption V2 work lost its exact assignment intent.',
+        )
+      }
+    }
   }
   if (stableAuthorityStringify([...sceneIds])
     !== stableAuthorityStringify(projection.projectedSceneIds)) {
     throw new Error(
       'Canonical Caption planning scene lineage no longer matches its projection.',
+    )
+  }
+  if (projection.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+    && (stableAuthorityStringify([...boundaryIds]) !==
+      stableAuthorityStringify(projection.projectedBoundaryIds)
+      || projection.assignmentIntentRefs.length !==
+        projection.projectedWorkItemKeys.length)) {
+    throw new Error(
+      'Canonical Caption planning boundary or assignment lineage no longer matches its projection.',
     )
   }
 }
@@ -619,19 +803,126 @@ function isCaptionEstimateLine(line: CanonicalEstimateInput['lineItems'][number]
   return line.category === 'caption_specialist'
 }
 
+export function canonicalCaptionAssignmentTriggerForJob(
+  jobType: CaptionsSupportedJobType,
+): CanonicalCaptionSpecialistAssignmentTrigger {
+  if ((CAPTIONS_VIDEO_JOB_TYPES as readonly string[]).includes(jobType)) {
+    return 'approved_early_plan'
+  }
+  if ((CAPTIONS_SUPPORT_JOB_TYPES as readonly string[]).includes(jobType)) {
+    return 'hq_mediated_support_request'
+  }
+  if (jobType === 'repair_caption_scene') {
+    return 'canonical_caption_qa_repair'
+  }
+  if (jobType === 'recompose_caption_output') {
+    return 'canonical_caption_output_recomposition'
+  }
+  if (jobType === 'inspect_caption_specific_result') {
+    return 'canonical_caption_result_inspection'
+  }
+  if (jobType === 'inspect_caption_boundary_behavior') {
+    return 'canonical_caption_boundary_inspection'
+  }
+  if ((CAPTIONS_BOUNDARY_JOB_TYPES as readonly string[]).includes(jobType)) {
+    return 'approved_boundary_requirement'
+  }
+  if (jobType === 'reserve_caption_space'
+    || jobType === 'plan_caption_blocking_preview') {
+    return 'approved_early_plan'
+  }
+  return 'approved_picture_lock'
+}
+
+export function canonicalCaptionAssignmentScopeForJob(
+  jobType: CaptionsSupportedJobType,
+): 'video' | 'scene' | 'boundary' | 'support' {
+  if ((CAPTIONS_VIDEO_JOB_TYPES as readonly string[]).includes(jobType)) {
+    return 'video'
+  }
+  if ((CAPTIONS_SCENE_JOB_TYPES as readonly string[]).includes(jobType)) {
+    return 'scene'
+  }
+  if ((CAPTIONS_BOUNDARY_JOB_TYPES as readonly string[]).includes(jobType)) {
+    return 'boundary'
+  }
+  return 'support'
+}
+
+function assertAssignmentIntentSet(
+  binding: CanonicalCaptionSpecialistPlanningBindingV2,
+): void {
+  const ids = new Set<string>()
+  const occurrences = new Set<string>()
+  for (const assignment of binding.assignmentIntents) {
+    const expectedTrigger = canonicalCaptionAssignmentTriggerForJob(
+      assignment.jobType)
+    const expectedScope = canonicalCaptionAssignmentScopeForJob(
+      assignment.jobType)
+    const supportJob = expectedScope === 'support'
+    const scopeValid = supportJob
+      ? true
+      : assignment.scopeLevel === expectedScope
+    const identifiersValid = assignment.scopeLevel === 'video'
+      ? assignment.sceneId === null && assignment.boundaryId === null
+      : assignment.scopeLevel === 'scene'
+        ? assignment.sceneId !== null && assignment.boundaryId === null
+        : assignment.boundaryId !== null
+    const occurrence = [
+      assignment.jobType,
+      assignment.scopeLevel,
+      assignment.outputId,
+      assignment.sceneId ?? 'no-scene',
+      assignment.boundaryId ?? 'no-boundary',
+      assignment.authorizedFrameRange.startFrame,
+      assignment.authorizedFrameRange.endFrameExclusive,
+    ].join('|')
+    if (ids.has(assignment.assignmentId)
+      || occurrences.has(occurrence)
+      || assignment.outputId !== binding.canonicalScope.outputId
+      || assignment.trigger !== expectedTrigger
+      || !scopeValid
+      || !identifiersValid
+      || assignment.authorizedFrameRange.endFrameExclusive <=
+        assignment.authorizedFrameRange.startFrame
+      || new Set(assignment.reasonCodes).size !== assignment.reasonCodes.length
+      || supportJob !== (assignment.sourceSupportRequestRef !== null)) {
+      throw new Error(
+        'Canonical Caption assignment intent is duplicated, crossed, or semantically invalid.',
+      )
+    }
+    ids.add(assignment.assignmentId)
+    occurrences.add(occurrence)
+  }
+  const requiredVideoJobs = CAPTIONS_VIDEO_JOB_TYPES.filter((jobType) =>
+    !binding.assignmentIntents.some((assignment) =>
+      assignment.jobType === jobType && assignment.scopeLevel === 'video'))
+  if (requiredVideoJobs.length > 0) {
+    throw new Error(
+      'Canonical Caption V2 selected planning requires every video-level planning assignment.',
+    )
+  }
+}
+
 function createJobSpecs(
   bundle: ReturnType<typeof parseCaptionEarlyPlanningBundle>,
   binding: CanonicalCaptionSpecialistPlanningBinding,
   totalFrames: number,
 ): JobSpec[] {
+  if (binding.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION) {
+    return createJobSpecsV2(bundle, binding, totalFrames)
+  }
   const specs: JobSpec[] = [{
     jobType: 'inspect_project_caption_continuity',
     scopeLevel: 'video',
     sceneId: null,
+    boundaryId: null,
     frameRange: {
       startFrame: 0,
       endFrameExclusive: totalFrames,
     },
+    assignmentIntent: null,
   }]
   const blockingByScene = new Map(bundle.blockingMetadata.scenes.map((item) =>
     [item.sceneId, item]))
@@ -641,7 +932,9 @@ function createJobSpecs(
     const common = {
       scopeLevel: 'scene' as const,
       sceneId: opportunity.sceneId,
+      boundaryId: null,
       frameRange: opportunity.planningFrameRange,
+      assignmentIntent: null,
     }
     specs.push(
       { jobType: 'check_caption_finish_readiness', ...common },
@@ -695,6 +988,60 @@ function createJobSpecs(
   return specs
 }
 
+function createJobSpecsV2(
+  bundle: ReturnType<typeof parseCaptionEarlyPlanningBundle>,
+  binding: CanonicalCaptionSpecialistPlanningBindingV2,
+  totalFrames: number,
+): JobSpec[] {
+  const opportunityByScene = new Map(
+    bundle.opportunityMap.opportunities.map((item) => [item.sceneId, item]))
+  const assignmentKeys = new Set(binding.assignmentIntents.map((item) =>
+    `${item.jobType}|${item.scopeLevel}|${item.sceneId ?? 'no-scene'}`))
+  const requiredSceneJobs: CaptionsSupportedJobType[] = [
+    'reserve_caption_space',
+    'plan_caption_blocking_preview',
+    'check_caption_finish_readiness',
+    'resolve_late_bound_caption_scene',
+    'resolve_semantic_caption_phrases',
+    'compile_caption_scene_graph',
+    'compile_caption_render_spec',
+    ...(bundle.approvalEnvelope.accessibleOutputKinds.length > 0
+      ? ['compile_accessible_caption_projection' as const] : []),
+    ...(bundle.approvalEnvelope.maximumMotionLevel !== 'none'
+      ? ['compile_reduced_motion_caption_projection' as const] : []),
+  ]
+  for (const opportunity of bundle.opportunityMap.opportunities) {
+    if (requiredSceneJobs.some((jobType) =>
+      !assignmentKeys.has(`${jobType}|scene|${opportunity.sceneId}`))) {
+      throw new Error(
+        'Canonical Caption V2 planning omits required scene lifecycle work.',
+      )
+    }
+  }
+  return binding.assignmentIntents.map((assignment) => {
+    const range = assignment.authorizedFrameRange
+    const opportunity = assignment.sceneId === null
+      ? null : opportunityByScene.get(assignment.sceneId)
+    if (range.endFrameExclusive > totalFrames
+      || (assignment.sceneId !== null && (!opportunity
+        || range.startFrame < opportunity.planningFrameRange.startFrame
+        || range.endFrameExclusive >
+          opportunity.planningFrameRange.endFrameExclusive))) {
+      throw new Error(
+        'Canonical Caption assignment exceeds its approved output or scene range.',
+      )
+    }
+    return {
+      jobType: assignment.jobType,
+      scopeLevel: assignment.scopeLevel,
+      sceneId: assignment.sceneId,
+      boundaryId: assignment.boundaryId,
+      frameRange: structuredClone(range),
+      assignmentIntent: structuredClone(assignment),
+    }
+  })
+}
+
 function createWorkItems(input: {
   specs: JobSpec[]
   binding: CanonicalCaptionSpecialistPlanningBinding
@@ -719,28 +1066,42 @@ function createWorkItems(input: {
   )
   const priorByScene = new Map<string, string>()
   return input.specs.map((spec, index) => {
-    const scopeKey = spec.sceneId ?? 'video'
+    const scopeKey = spec.scopeLevel === 'video'
+      ? 'video'
+      : spec.scopeLevel === 'scene'
+        ? `scene:${spec.sceneId}`
+        : `boundary:${spec.boundaryId}`
     const identity = sha256AuthorityValue({
       bindingDigestSha256: input.binding.bindingDigestSha256,
       index,
       jobType: spec.jobType,
       sceneId: spec.sceneId,
+      boundaryId: spec.boundaryId,
+      assignmentIntent: spec.assignmentIntent,
     })
     const workItemKey = `caption:${identity.slice(0, 48)}`
     const dependencyKey = priorByScene.get(scopeKey)
       ?? input.snapshotValidationKey
     priorByScene.set(scopeKey, workItemKey)
-    const executionInput: CanonicalCaptionSpecialistWorkItemInput = {
-      schemaVersion: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+    const initialArtifactRefs = [transcript, frame, timing]
+    if (spec.assignmentIntent?.sourceSupportRequestRef) {
+      initialArtifactRefs.push(artifactRef(
+        spec.assignmentIntent.sourceSupportRequestRef,
+        'source_skill_support_request',
+        'head_of_orchestra',
+      ))
+    }
+    const baseExecutionInput: Omit<CanonicalCaptionSpecialistWorkItemInputV1,
+      'schemaVersion'> = {
       operation: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
       captionJobType: spec.jobType,
       requestedMode: 'planning',
       scopeLevel: spec.scopeLevel,
       outputId: input.binding.canonicalScope.outputId,
       sceneId: spec.sceneId,
-      boundaryId: null,
+      boundaryId: spec.boundaryId,
       authorizedFrameRanges: [spec.frameRange],
-      initialArtifactRefs: [transcript, frame, timing],
+      initialArtifactRefs,
       rawChatIncluded: false,
       transcriptTextIncluded: false,
       mediaBytesIncluded: false,
@@ -754,6 +1115,26 @@ function createWorkItems(input: {
       publicDeliveryRequested: false,
       productionAuthorityRequested: false,
     }
+    const executionInput: CanonicalCaptionSpecialistWorkItemInput =
+      spec.assignmentIntent === null
+        ? {
+            ...baseExecutionInput,
+            schemaVersion:
+              CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+          }
+        : {
+            ...baseExecutionInput,
+            schemaVersion:
+              CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+            assignmentIntentRef: assignmentIntentRef(spec.assignmentIntent),
+            assignmentTrigger: spec.assignmentIntent.trigger,
+            sourceSupportRequestRef: spec.assignmentIntent
+              .sourceSupportRequestRef === null
+              ? null : structuredClone(
+                spec.assignmentIntent.sourceSupportRequestRef),
+            selectionEvidenceRef: structuredClone(
+              spec.assignmentIntent.selectionEvidenceRef),
+          }
     return {
       workItemKey,
       workItemType: 'custom',
@@ -790,6 +1171,16 @@ function createWorkItems(input: {
   })
 }
 
+function assignmentIntentRef(
+  assignment: CanonicalCaptionSpecialistJobAssignmentIntent,
+) {
+  return {
+    id: assignment.assignmentId,
+    version: CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION,
+    contentHash: sha256AuthorityValue(assignment),
+  }
+}
+
 function artifactRef(
   ref: { id: string; version: string; contentHash: string },
   artifactType: CanonicalCaptionSpecialistInitialArtifactRef['artifactType'],
@@ -820,10 +1211,9 @@ function projection(input: {
   deterministicRenderedCaptionQaRequired: boolean
   qualifiedCompleteTimeVisualReviewRequired: boolean
   independentPrivateReviewRequired: boolean
+  planningBinding: CanonicalCaptionSpecialistPlanningBinding
 }): CanonicalCaptionSpecialistPlanningProjection {
-  const withoutDigest = projectionWithoutDigestSchema.parse({
-    schemaVersion:
-      CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION,
+  const body = {
     projectionId: `caption.planning.${input.idSeed.slice(0, 40)}`,
     disposition: input.disposition,
     planningBindingRef: input.planningBindingRef,
@@ -858,7 +1248,27 @@ function projection(input: {
     billingAuthorityGranted: false,
     publicDeliveryGranted: false,
     productionAuthorityGranted: false,
-  })
+  }
+  const withoutDigest = input.planningBinding.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+    ? projectionV2WithoutDigestSchema.parse({
+        ...body,
+        schemaVersion:
+          CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION,
+        assignmentIntentRefs: input.planningBinding.assignmentIntents.map(
+          assignmentIntentRef),
+        projectedBoundaryIds: [...new Set(
+          input.planningBinding.assignmentIntents.flatMap((assignment) =>
+            assignment.boundaryId === null ? [] : [assignment.boundaryId]))],
+        exactAssignmentIntentCoverage: true,
+        repairOrSupportWorkProjectedOnlyFromTypedTrigger: true,
+        oneAllFeatureEditFabricated: false,
+      })
+    : projectionV1WithoutDigestSchema.parse({
+        ...body,
+        schemaVersion:
+          CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION,
+      })
   return parseCanonicalCaptionSpecialistPlanningProjection({
     ...withoutDigest,
     projectionDigestSha256: calculateSkillContractDigest(
@@ -879,11 +1289,27 @@ function exactRef(
 }
 
 export function calculateCanonicalCaptionSpecialistPlanningBindingDigest(
-  value: Omit<CanonicalCaptionSpecialistPlanningBinding,
-  'bindingDigestSha256'>,
+  value: object,
 ): string {
   return calculateSkillContractDigest(
     { ...value, bindingDigestSha256: '' }, 'bindingDigestSha256')
+}
+
+export function createCanonicalCaptionSpecialistPlanningBindingV2(
+  input: Omit<CanonicalCaptionSpecialistPlanningBindingV2,
+    'schemaVersion' | 'bindingDigestSha256'>,
+): CanonicalCaptionSpecialistPlanningBindingV2 {
+  assertClosedContractTree(input, 'Canonical Caption V2 planning input')
+  const withoutDigest = {
+    ...structuredClone(input),
+    schemaVersion:
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION,
+  }
+  return parseCanonicalCaptionSpecialistPlanningBinding({
+    ...withoutDigest,
+    bindingDigestSha256:
+      calculateCanonicalCaptionSpecialistPlanningBindingDigest(withoutDigest),
+  }) as CanonicalCaptionSpecialistPlanningBindingV2
 }
 
 export function captionTrackingJobType(

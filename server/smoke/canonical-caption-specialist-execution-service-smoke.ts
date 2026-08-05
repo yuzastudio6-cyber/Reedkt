@@ -9,8 +9,11 @@ import type { CanonicalCaptionSpecialistWorkItemInput } from
 import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
 } from '../../src/types/canonical-caption-specialist-execution'
+import { CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION } from
+  '../../src/types/canonical-caption-specialist-planning'
 import type {
   OrchestraSkillCall,
   OrchestraSkillJobResult,
@@ -667,7 +670,125 @@ check(resumedVisualReplay.receipt.resultDisposition === 'completed'
     === visualResume.resumedCall.callDigestSha256
   && resumedVisualReplay.receipt.captionResultRef.contentHash
     === visualResume.resumedResult.resultDigestSha256,
-  'The canonical work-item receipt must bind the exact resumed call and result.')
+'The canonical work-item receipt must bind the exact resumed call and result.')
+
+const incomingSupportRequestRef = skillRef('caption.incoming.support.request.1')
+const incomingSupportInput: CanonicalCaptionSpecialistWorkItemInput = {
+  ...workInput,
+  schemaVersion: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+  captionJobType: 'provide_speech_derived_typography_spec',
+  scopeLevel: 'scene',
+  sceneId: 'scene-main',
+  initialArtifactRefs: [
+    ...workInput.initialArtifactRefs,
+    {
+      ...incomingSupportRequestRef,
+      artifactType: 'source_skill_support_request',
+      producerSkillKey: 'head_of_orchestra',
+      privateArtifact: true,
+      byteFreeRef: true,
+      sourceSupportRequestRef: null,
+    },
+  ],
+  assignmentIntentRef: {
+    id: 'caption.assignment.incoming.support.1',
+    version: CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION,
+    contentHash: sha256AuthorityValue('caption.assignment.incoming.support.1'),
+  },
+  assignmentTrigger: 'hq_mediated_support_request',
+  sourceSupportRequestRef: incomingSupportRequestRef,
+  selectionEvidenceRef: skillRef('caption.incoming.selection.1'),
+}
+check(parseCanonicalCaptionSpecialistWorkItemInput(incomingSupportInput)
+  .initialArtifactRefs.some((artifact) =>
+    artifact.artifactType === 'source_skill_support_request'
+    && artifact.id === incomingSupportRequestRef.id),
+'A canonical incoming-support assignment must carry its exact HQ request into the immutable call inputs.')
+assert.throws(() => parseCanonicalCaptionSpecialistWorkItemInput({
+  ...incomingSupportInput,
+  initialArtifactRefs: workInput.initialArtifactRefs,
+}), /assignment trigger or support lineage is invalid/u)
+checks += 1
+
+const incomingSupportExecutionInputRef = {
+  sha256: sha256AuthorityValue(incomingSupportInput),
+  byteLength: Buffer.byteLength(JSON.stringify(incomingSupportInput)),
+}
+const incomingSupportWorkItem = {
+  ...workItem,
+  id: 'approved-caption-work-incoming-support-1',
+  sourceWorkItemId: 'caption-work-source-incoming-support-1',
+  workItemKey: 'caption-provide-speech-derived-typography-spec',
+  executionInputRef: incomingSupportExecutionInputRef,
+  executionInputHash: incomingSupportExecutionInputRef.sha256,
+  executionInput: incomingSupportInput,
+}
+const incomingSupportJob = {
+  ...job,
+  id: 'caption-canonical-job-incoming-support-1',
+  approvedWorkItemId: incomingSupportWorkItem.id,
+  workItemKey: incomingSupportWorkItem.workItemKey,
+  executionInputRef: incomingSupportExecutionInputRef,
+  expectedAssetIds: ['caption-manifest-entry-incoming-support-1'],
+}
+const incomingSupportManifestEntry = {
+  ...manifestEntry,
+  id: 'caption-manifest-entry-incoming-support-1',
+  approvedWorkItemId: incomingSupportWorkItem.id,
+  workItemKey: incomingSupportWorkItem.workItemKey,
+}
+const incomingSupportAuthority = {
+  ...authority,
+  workItems: [incomingSupportWorkItem],
+  jobs: [incomingSupportJob],
+  assetManifest: {
+    ...authority.assetManifest,
+    entries: [incomingSupportManifestEntry],
+  },
+} as unknown as CanonicalApprovedExecutionAuthority
+const incomingSupportExecutionPackage = {
+  ...executionPackage,
+  approvedWorkItems: [{
+    id: incomingSupportWorkItem.id,
+    workItemKey: incomingSupportWorkItem.workItemKey,
+    executionInputHash: incomingSupportWorkItem.executionInputHash,
+  }],
+  jobs: [{
+    id: incomingSupportJob.id,
+    approvedWorkItemId: incomingSupportJob.approvedWorkItemId,
+    executionInputRef: incomingSupportJob.executionInputRef,
+    dispatchState: 'not_authorized',
+  }],
+} as unknown as CanonicalApprovedEditExecutionPackage
+const incomingSupportCalls: OrchestraSkillCall[] = []
+const incomingSupportExecution =
+  await executeCanonicalCaptionSpecialistWorkItem({
+    authority: incomingSupportAuthority,
+    executionPackage: incomingSupportExecutionPackage,
+    jobId: incomingSupportJob.id,
+    repository,
+    executionPort: {
+      async execute({ call }) {
+        incomingSupportCalls.push(structuredClone(call))
+        return completedSpecialistResult(call)
+      },
+    },
+    now: () => new Date('2026-08-05T12:04:00.000Z'),
+  })
+check(incomingSupportExecution.pair.result.disposition === 'completed',
+  'The canonical incoming-support assignment must reach Caption execution.')
+const incomingSupportCall = incomingSupportCalls[0]
+check(incomingSupportCalls.length === 1
+  && incomingSupportCall?.inputArtifactRefs.some((artifact) =>
+    artifact.artifactType === 'source_skill_support_request'
+    && artifact.id === incomingSupportRequestRef.id
+    && artifact.version === incomingSupportRequestRef.version
+    && artifact.contentHash === incomingSupportRequestRef.contentHash
+    && artifact.producerSkillKey === 'head_of_orchestra'),
+'The immutable Caption call must carry the exact HQ-mediated source request instead of inventing peer dispatch.')
+check(incomingSupportCall?.resumeOfSupportRequestRef === null
+  && incomingSupportCall?.resumeOriginCallRef === null,
+'An incoming support assignment must not be mislabeled as Caption resuming one of its own dependency requests.')
 
 assert.throws(() => parseCanonicalCaptionSpecialistWorkItemInput({
   ...workInput,

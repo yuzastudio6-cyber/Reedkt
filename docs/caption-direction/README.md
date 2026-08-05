@@ -115,6 +115,7 @@ The governing workflow invariant remains:
 - [Canonical resumed-chain execution mount](canonical-caption-resume-chain-execution-mount-2026-08-05.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
+- [Canonical 41-job assignment reachability V2](canonical-caption-job-reachability-v2-2026-08-05.md)
 - [Canonical rendered-media work binding](canonical-rendered-media-work-binding.md)
 - [Canonical post-render visual QA and private-review planning](canonical-postrender-visual-qa-private-review-planning.md)
 - [Canonical post-render Qwen visual-QA shared lifecycle](../canonical-postrender-qwen-visual-qa-shared-lifecycle-contract.md)
@@ -334,6 +335,12 @@ owners. Missing owner evidence remains an HQ-mediated wait and cannot become a
 completed manifest asset. This closes the postapproval planning-artifact gate
 without claiming rendered Caption media or final visual QA. See
 [`canonical-postapproval-planning-execution.md`](./canonical-postapproval-planning-execution.md).
+
+The V2 approved-work assignment lane now makes video, scene, boundary,
+incoming-support, repair, recomposition, and inspection jobs canonically
+reachable through exact typed triggers. Several representative plan classes
+cover all 41 jobs; no single all-feature edit is fabricated. See
+[`canonical-caption-job-reachability-v2-2026-08-05.md`](./canonical-caption-job-reachability-v2-2026-08-05.md).
 
 The canonical plan now also schedules qualified post-render visual review only
 after the exact Remotion output and deterministic FFprobe QA, then binds the

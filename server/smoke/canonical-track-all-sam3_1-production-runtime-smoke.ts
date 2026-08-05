@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v3')
+  'canonical-track-all-sam3_1-production-runtime-v4')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -81,6 +81,20 @@ assert.equal(
     .rawCloudLaunchPortExposed,
   false,
 )
+assert.equal(
+  runtime.trackAllSam31CaptionEvidenceFinalizationRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-caption-evidence-finalization-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31CaptionEvidenceFinalizationRuntimePort
+    .acceptsRawEvidenceOrMedia,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31CaptionEvidenceFinalizationRuntimePort
+    .performsRuntimeOrAssetMutation,
+  false,
+)
 
 assert.throws(() => createCanonicalTrackAllSam31ProductionRuntime({
   ...cloud,
@@ -97,11 +111,15 @@ assert.match(
   entrypoint,
   /trackAllSam31AuthenticatedGpuStartRuntimePort/u,
 )
+assert.match(
+  entrypoint,
+  /trackAllSam31CaptionEvidenceFinalizationRuntimePort/u,
+)
 assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 36,
+  checks: 40,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -113,6 +131,7 @@ console.log(JSON.stringify({
   captionTrackAllTaskLevelQaOwnerMounted: true,
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,
   captionTrackAllRequiresPrivateVisualReview: true,
+  captionTrackAllAuthenticatedFinalizerMounted: true,
   a100HeavyPrimary: true,
   l4HeavyFallbackSeparatelyQualified: true,
   userTriggeredScaleFromZero: true,

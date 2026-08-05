@@ -7,12 +7,20 @@ import {
   type TrackAllSam31AuthenticatedGpuStartRequest,
   type TrackAllSam31AuthenticatedGpuStartResult,
 } from '../../src/types/track-all-sam3_1-gpu-start'
+import {
+  TRACK_ALL_SAM3_1_CAPTION_EVIDENCE_FINALIZATION_ROUTE_ID,
+  type TrackAllSam31CaptionEvidenceFinalizationRequest,
+  type TrackAllSam31CaptionEvidenceFinalizationResult,
+} from '../../src/types/track-all-sam3_1-caption-evidence-finalization'
 import { getApiRouteById } from '../../src/backend/api/api-route-registry'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
   buildTrackAllSam31AuthenticatedGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  buildTrackAllSam31CaptionEvidenceFinalizationRequest,
+} from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -23,7 +31,23 @@ const request = buildTrackAllSam31AuthenticatedGpuStartRequest({
   approvedSnapshotId: 'approved-snapshot-track-all-1',
   workItemKey: 'approved-track-all-work-1',
 })
+const evidenceRef = (id: string) => ({
+  id,
+  version: 'fixture-v1',
+  contentHash: sha256AuthorityValue(id),
+})
+const finalizationRequest =
+  buildTrackAllSam31CaptionEvidenceFinalizationRequest({
+    requestId: 'track-all-sam31-caption-finalization-1',
+    priorCallRef: evidenceRef('caption-prior-call'),
+    selectedSupportRequestRef: evidenceRef('caption-support-request'),
+    invocationId: 'sam31-invocation-1',
+    runtimeResultAdmissionRef: evidenceRef('sam31-result-admission'),
+    l4MaskQaMeasurementRef: evidenceRef('l4-mask-qa-measurement'),
+    privateSceneReviewRef: evidenceRef('private-scene-review'),
+  })
 let runtimeCalls = 0
+let finalizationRuntimeCalls = 0
 const app = createReeditProApiApp(loadRuntimeEnv({
   NODE_ENV: 'test',
   E2E_RUNTIME_MODE: 'mock',
@@ -48,6 +72,25 @@ const app = createReeditProApiApp(loadRuntimeEnv({
       assert.equal(input.idempotencyKey, request.requestId)
       assert.deepEqual(input.request, request)
       return resultFor(request)
+    },
+  }),
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort: Object.freeze({
+    schemaVersion:
+      'canonical-track-all-sam3_1-caption-evidence-finalization-runtime-v1',
+    acceptsRawEvidenceOrMedia: false,
+    performsRuntimeOrAssetMutation: false,
+    async finalizeCaptionEvidence(input: {
+      authenticatedOwnerUserId: string
+      workspaceId: string
+      idempotencyKey: string
+      request: unknown
+    }) {
+      finalizationRuntimeCalls += 1
+      assert.equal(input.authenticatedOwnerUserId, 'mock-user-runtime')
+      assert.equal(input.workspaceId, workspaceId)
+      assert.equal(input.idempotencyKey, finalizationRequest.requestId)
+      assert.deepEqual(input.request, finalizationRequest)
+      return finalizationResultFor(finalizationRequest)
     },
   }),
 })
@@ -114,9 +157,62 @@ try {
   assert.match(route?.notes.join(' ') ?? '', /A100 80GB/u)
   assert.match(route?.notes.join(' ') ?? '', /L4/u)
 
+  const finalized = await postFinalization(
+    finalizationRequest,
+    finalizationRequest.requestId,
+    internalToken,
+  )
+  assert.equal(finalized.status, 200)
+  const finalizedJson = await finalized.json() as Record<string, unknown>
+  assert.equal(finalizedJson.ok, true)
+  assert.equal(finalizationRuntimeCalls, 1)
+
+  const injectedMeasurementSource =
+    buildTrackAllSam31CaptionEvidenceFinalizationRequest({
+      requestId: 'track-all-sam31-caption-injected-measurement',
+      priorCallRef: finalizationRequest.priorCallRef,
+      selectedSupportRequestRef: finalizationRequest.selectedSupportRequestRef,
+      invocationId: finalizationRequest.invocationId,
+      runtimeResultAdmissionRef:
+        finalizationRequest.runtimeResultAdmissionRef,
+      l4MaskQaMeasurementRef: finalizationRequest.l4MaskQaMeasurementRef,
+      privateSceneReviewRef: finalizationRequest.privateSceneReviewRef,
+    })
+  const injectedMeasurement = await postFinalization({
+    ...injectedMeasurementSource,
+    measurement: { minimumIou: 1 },
+  }, injectedMeasurementSource.requestId, internalToken)
+  assert.equal(injectedMeasurement.status, 400)
+  assert.equal(finalizationRuntimeCalls, 1)
+
+  const finalizationIdempotencyMismatch = await postFinalization(
+    finalizationRequest,
+    'different-finalization-key',
+    internalToken,
+  )
+  assert.equal(finalizationIdempotencyMismatch.status, 409)
+  assert.equal(finalizationRuntimeCalls, 1)
+
+  const finalizationInvalidToken = await postFinalization(
+    finalizationRequest,
+    finalizationRequest.requestId,
+    'invalid-internal-token',
+  )
+  assert.equal(finalizationInvalidToken.status, 403)
+  assert.equal(finalizationRuntimeCalls, 1)
+
+  const finalizationRoute = getApiRouteById(
+    TRACK_ALL_SAM3_1_CAPTION_EVIDENCE_FINALIZATION_ROUTE_ID,
+  )
+  assert.equal(finalizationRoute?.securityLevel, 'backend_service_role')
+  assert.equal(finalizationRoute?.runtimeMode, 'backend_required')
+  assert.equal(finalizationRoute?.requiresServiceRole, true)
+  assert.match(finalizationRoute?.notes.join(' ') ?? '', /L4 mask-QA/u)
+  assert.match(finalizationRoute?.notes.join(' ') ?? '', /references only/u)
+
   console.log(JSON.stringify({
     smoke: 'canonical-track-all-sam3_1-authenticated-gpu-start-route',
-    checks: 24,
+    checks: 42,
     authenticatedOwnerScopeRequired: true,
     strictInternalServiceAuthRequired: true,
     exactIdempotencyRequired: true,
@@ -125,11 +221,33 @@ try {
     rawCloudLaunchPortAcceptedFromRequest: false,
     accountEffectivePriceAcceptedFromRequest: false,
     runtimeCalls,
+    finalizationRuntimeCalls,
+    rawMeasurementOrReviewAcceptedFromRequest: false,
+    authenticatedSpecialistResumeProjectionCreated: true,
     productionReady: false,
   }, null, 2))
 } finally {
   server.close()
   await once(server, 'close')
+}
+
+async function postFinalization(
+  body: unknown,
+  idempotencyKey: string,
+  token: string,
+) {
+  return fetch(
+    `${url}/internal/v1/workspaces/${workspaceId}/track-all/sam3_1/caption-evidence/finalize`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': idempotencyKey,
+        'x-reeditpro-internal-token': token,
+      },
+      body: JSON.stringify(body),
+    },
+  )
 }
 
 async function post(
@@ -187,6 +305,41 @@ function resultFor(
     customerCreditsMutated: false as const,
     qaApproved: false as const,
     publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
+}
+
+function finalizationResultFor(
+  source: TrackAllSam31CaptionEvidenceFinalizationRequest,
+): TrackAllSam31CaptionEvidenceFinalizationResult {
+  const payload = {
+    schemaVersion:
+      'track-all-sam3_1-caption-evidence-finalization-result-v1' as const,
+    requestRef: {
+      id: source.requestId,
+      version: source.schemaVersion,
+      contentHash: source.requestDigestSha256,
+    },
+    workspaceId,
+    invocationId: source.invocationId,
+    supportRequestRef: source.selectedSupportRequestRef,
+    sceneQaAuthorityRef: evidenceRef('scene-qa-authority'),
+    sceneEvidenceRef: evidenceRef('scene-evidence'),
+    authenticatedEvidenceRecordRef: evidenceRef('authenticated-record'),
+    authenticatedOwnerProjectionRef: evidenceRef('owner-projection'),
+    disposition: 'ready_for_specialist_resume' as const,
+    authenticatedPrincipalVerified: true as const,
+    exactPersistedRuntimeMeasurementAndReviewReread: true as const,
+    createOnlySceneAuthorityAndEvidenceReread: true as const,
+    authenticatedProjectionPersistedAndReread: true as const,
+    browserLocalStateUsed: false as const,
+    directPeerDispatchPerformed: false as const,
+    runtimeExecutionPerformedByFinalizer: false as const,
+    assetMutationPerformed: false as const,
+    customerCreditsMutated: false as const,
+    finalQaApprovalGranted: false as const,
+    publicDeliveryGranted: false as const,
     productionAuthorityGranted: false as const,
   }
   return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }

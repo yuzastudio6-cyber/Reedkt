@@ -298,7 +298,6 @@ export interface CanonicalTrackAllSam31TaskQaOwner {
     readonly invocationId: string
     readonly measurementRef: CaptionDomainRef
     readonly privateSceneReviewRef: CaptionDomainRef
-    readonly admittedAt: string
   }): Promise<CanonicalTrackAllSam31CaptionSceneQaAuthority>
 }
 
@@ -478,7 +477,6 @@ export function createCanonicalTrackAllSam31TaskQaOwner(input: {
       const invocationId = safeId.parse(value.invocationId)
       const expectedMeasurementRef = refSchema.parse(value.measurementRef)
       const expectedReviewRef = refSchema.parse(value.privateSceneReviewRef)
-      const admittedAt = timestamp.parse(value.admittedAt)
       const pair = await input.supportResumeRepository.rereadCallResultPair({
         callRef: priorCallRef,
       })
@@ -522,6 +520,10 @@ export function createCanonicalTrackAllSam31TaskQaOwner(input: {
       if (!review || !sameRef(reviewRef(review), expectedReviewRef)) {
         throw new Error('Track All private scene review is unavailable.')
       }
+      // The immutable review is the final prerequisite for scene admission.
+      // Reuse its owner-persisted timestamp so an identical transport retry
+      // seals byte-identical scene evidence and authority records.
+      const admittedAt = timestamp.parse(review.reviewedAt)
       assertExactLineage({
         payload,
         invocationId,

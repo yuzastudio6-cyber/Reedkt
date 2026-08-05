@@ -69,9 +69,13 @@ import {
   type CanonicalTrackAllSam31TaskQaOwner,
   type CanonicalTrackAllSam31TaskQaRepository,
 } from './canonical-track-all-sam3_1-task-qa-owner'
+import {
+  createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime,
+  type CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
+} from './canonical-track-all-sam3_1-caption-evidence-finalization-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v3' as const
+  'canonical-track-all-sam3_1-production-runtime-v4' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -81,6 +85,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero'
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly trackAllSam31CaptionEvidenceFinalizationRuntimePort:
+    CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   readonly specialistSupportResumeRepository:
     CanonicalSpecialistSupportResumeRepository
   readonly captionTrackAllSceneEvidenceRepository:
@@ -228,6 +234,11 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
       evidenceRepository: captionTrackAllEvidenceRepository,
     })
+  const trackAllSam31CaptionEvidenceFinalizationRuntimePort =
+    createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime({
+      taskQaOwner: captionTrackAllTaskQaOwner,
+      supportService: captionTrackAllSupportService,
+    })
   const rawCloudLaunchPort = createGoogleCloudProfessionalGpuJobLaunchPort({
     releaseReadPort: runtimeConfigurationRepository,
     privateObjectTransportReadPort: runtimeConfigurationRepository,
@@ -271,6 +282,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     schemaVersion: CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION,
     runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero' as const,
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    trackAllSam31CaptionEvidenceFinalizationRuntimePort,
     specialistSupportResumeRepository,
     captionTrackAllSceneEvidenceRepository,
     captionTrackAllTaskQaRepository,

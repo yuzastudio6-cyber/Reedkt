@@ -43,6 +43,12 @@ import {
   sealCanonicalTrackAllSam31L4MaskQaMeasurement,
   sealCanonicalTrackAllSam31PrivateSceneReview,
 } from '../services/canonical-track-all-sam3_1-task-qa-owner'
+import {
+  buildTrackAllSam31CaptionEvidenceFinalizationRequest,
+  createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime,
+  parseTrackAllSam31CaptionEvidenceFinalizationRequest,
+  parseTrackAllSam31CaptionEvidenceFinalizationResult,
+} from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -413,7 +419,6 @@ const sceneQaAuthority = await taskQaOwner.admitCaptionSceneEvidence({
     privateReview.schemaVersion,
     privateReview.reviewDigestSha256,
   ),
-  admittedAt: '2026-08-05T18:03:00.000Z',
 })
 
 const {
@@ -461,7 +466,6 @@ await assert.rejects(() => taskQaOwner.admitCaptionSceneEvidence({
     failingReview.schemaVersion,
     failingReview.reviewDigestSha256,
   ),
-  admittedAt: '2026-08-05T18:04:00.000Z',
 }), /lost exact lineage or quality/u)
 
 const sceneEvidence = await sceneEvidenceRepository.rereadByRef({
@@ -549,6 +553,70 @@ check(
     .recordDigestSha256 === record.recordDigestSha256,
   'The complete authenticated record must validate independently.',
 )
+const finalizationRuntime =
+  createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime({
+    taskQaOwner,
+    supportService: service,
+  })
+const finalizationRequest =
+  buildTrackAllSam31CaptionEvidenceFinalizationRequest({
+    requestId: 'caption-track-all-finalization-1',
+    priorCallRef: callRef(captionCall),
+    selectedSupportRequestRef: requestRef(captionSupportRequest),
+    invocationId: captionTask.invocationId,
+    runtimeResultAdmissionRef: serviceInput.runtimeResultAdmissionRef,
+    l4MaskQaMeasurementRef: rawRef(
+      measurement.measurementId,
+      measurement.schemaVersion,
+      measurement.measurementDigestSha256,
+    ),
+    privateSceneReviewRef: rawRef(
+      privateReview.reviewId,
+      privateReview.schemaVersion,
+      privateReview.reviewDigestSha256,
+    ),
+  })
+const finalizationInput = {
+  authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+  workspaceId: payload.canonicalScope.workspaceId,
+  idempotencyKey: finalizationRequest.requestId,
+  request: finalizationRequest,
+}
+const finalization = await finalizationRuntime.finalizeCaptionEvidence(
+  finalizationInput,
+)
+const finalizationReplay = await finalizationRuntime.finalizeCaptionEvidence(
+  finalizationInput,
+)
+check(
+  finalization.disposition === 'ready_for_specialist_resume'
+    && finalization.resultDigestSha256
+      === finalizationReplay.resultDigestSha256
+    && finalization.sceneQaAuthorityRef.contentHash
+      === sceneQaAuthority.authorityDigestSha256
+    && finalization.authenticatedEvidenceRecordRef.contentHash
+      === record.recordDigestSha256,
+  'The authenticated finalizer must replay to one byte-free resume receipt.',
+)
+check(
+  parseTrackAllSam31CaptionEvidenceFinalizationResult(finalization)
+    .resultDigestSha256 === finalization.resultDigestSha256,
+  'The bounded finalization result must validate independently.',
+)
+const tamperedFinalizationRequest = {
+  ...structuredClone(finalizationRequest),
+  invocationId: 'invocation-crossed',
+}
+assert.throws(() =>
+  parseTrackAllSam31CaptionEvidenceFinalizationRequest(
+    tamperedFinalizationRequest,
+  ))
+assertions += 1
+await assert.rejects(() => finalizationRuntime.finalizeCaptionEvidence({
+  ...finalizationInput,
+  workspaceId: 'workspace-crossed',
+}))
+assertions += 1
 
 await assert.rejects(() => service.projectAuthenticatedEvidence({
   ...serviceInput,

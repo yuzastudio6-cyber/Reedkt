@@ -113,6 +113,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
+    RuntimeState['trackAllSam31CaptionEvidenceFinalizationRuntimePort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -300,6 +302,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           trackAllSam31AuthenticatedGpuStartRuntimePort:
             options.trackAllSam31AuthenticatedGpuStartRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31CaptionEvidenceFinalizationRuntimePort
+      ? {
+          trackAllSam31CaptionEvidenceFinalizationRuntimePort:
+            options.trackAllSam31CaptionEvidenceFinalizationRuntimePort,
         }
       : {}),
     clients,

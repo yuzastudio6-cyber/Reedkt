@@ -6,20 +6,20 @@ CAP-00 selects no new dependency and downloads no model or font.
 
 | Tool/path | Intended role | Current evidence | Required before Caption Direction production use |
 | --- | --- | --- | --- |
-| faster-whisper | transcription/word timing foundation | existing gated local/private worker and model manifest concepts | exact model/version/license, language benchmarks, timestamp/confidence tests, privacy/performance, deployed image evidence |
+| faster-whisper | transcription/word timing foundation | CAP-04 bounded private route qualified for the accepted standard fixture; exact lineage remains required | shared canonical transcript integration, wider language/performance evidence, production image/license review |
 | WhisperX | forced alignment candidate | not qualified in current Caption Direction path | dependency/model licenses, offline image, timestamp benchmarks, failure semantics, language coverage |
 | pyannote | diarization candidate | not qualified | model access/license, consent/privacy, speaker/overlap benchmarks, neutral-label policy |
-| FontTools | font metadata/metrics/subsetting candidate | not qualified | version/license/security review, malformed/variable/font fixture suite |
-| OpenType Sanitizer | font sanitizer candidate | not qualified | pinned binary/build, malicious fixture testing, sandbox and failure policy |
-| Unicode shaping stack | bidi/script shaping | unresolved | preview/final parity and multilingual fixtures |
+| FontTools | font metadata/metrics/subsetting | private build validation qualified at `4.38.0`; subset round trips passed for the reviewed Noto pack | canonical approved font registry and production dependency/legal review |
+| OpenType Sanitizer | font sanitizer | private build validation qualified at `8.2.1`; malformed-font refusal passed | broader malicious corpus and production dependency/legal review |
+| Unicode shaping stack | bidi/script shaping | libass 0.17.5 HarfBuzz/FriBidi path passed French, Japanese, Arabic, and Devanagari private composites | ICU/direct Remotion browser-text parity, emoji, and whole-runtime qualification |
 | OpenCV | deterministic occupancy/QA | registry/worker candidate | approved operations, performance, privacy, visual benchmark |
 | MediaPipe | face/pose/gesture evidence candidate | not established for captions | license/model/build/privacy/accuracy review |
 | PaddleOCR | existing-text protection | registry/model manifest candidate | weights/license/language benchmark, false-positive policy |
-| Visual Intelligence | structured source/final-frame observations and postrender visual evidence | committed provider-neutral v1 public contract and gated lifecycle | exact support adapter, evidence calibration, authenticated reread, no direct Caption provider dispatch |
-| Track All / SAM 3.1 support | masks, tracks, anchors, occlusion evidence | canonical SAM 3.1 owner exists behind mask runtime; public support seam still to reconcile | shared support DTO, temporal QA, opaque model evidence, no direct Caption dispatch |
-| Remotion + Chromium | creative render | planned/bounded runtime foundations | pinned packages/browser/image, deterministic golden frames, sandbox/performance/license |
-| libass | stable render | existing offline/private caption execution evidence | canvas/font/color/script parity and commercial build review |
-| FFmpeg/ffprobe | packaging/probe | existing bounded private execution | LGPL-safe configuration, codec/patent review, deployed version and export fixtures |
+| Visual Intelligence | structured source/final-frame observations and postrender visual evidence | typed support/read boundaries pass; qualified busy-background/shared lifecycle evidence is still missing | authenticated canonical result persistence/reread and no direct Caption provider dispatch |
+| Track All / SAM 3.1 support | masks, tracks, anchors, occlusion evidence | Caption request/result/QA/fallback contracts pass; no direct SAM owner; real shared evidence remains missing | authenticated Track All temporal mask/anchor evidence through the shared boundary |
+| Remotion + Chromium | creative render | pinned `4.0.487` bounded private proxy renders and golden-frame/direct inspection passed | commercial license owner review, customer-scale/full-resolution performance, final pipeline integration |
+| libass | stable render | `0.17.5` ASCII and multilingual private raster evidence passed with exact dynamic canvas and approved fonts | complete-track/export owner integration and public-production legal review |
+| FFmpeg/ffprobe | packaging/probe | existing canonical operation reused for bounded private composition/probes | exact full export fixture plus canonical LGPL/codec/patent and production image review |
 
 ## Qualification evidence
 

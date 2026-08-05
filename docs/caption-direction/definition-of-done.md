@@ -3,6 +3,12 @@
 Terminal status for this Goal:
 `caption_specialist_private_internal_qualified`.
 
+Current CAP-20 candidate status:
+`ready_for_shared_pipeline_integration`. The Caption-owned boundary and the
+29-job admitted surface are complete; the terminal status is not yet claimed
+because 12 enhanced jobs still require authenticated evidence from five shared
+owners.
+
 This is not a claim that the whole ReeditPro SaaS is publicly production-ready.
 It means the Captions Specialist is complete inside its boundary, privately
 qualified with real media, and ready for dependency-safe integration by the

@@ -381,7 +381,9 @@
     "smoke:captions-specialist-cap-18": "tsx server/smoke/captions-specialist-cap-18-smoke.ts",
     "smoke:captions-specialist-cap-18-runtime": "tsx server/smoke/captions-specialist-cap-18-runtime-smoke.ts",
     "smoke:captions-specialist-cap-18-multilingual-runtime": "tsx server/smoke/captions-specialist-cap-18-multilingual-runtime-smoke.ts",
-    "smoke:captions-specialist-cap-19": "tsx server/smoke/captions-specialist-cap-19-smoke.ts"
+    "smoke:captions-specialist-cap-19": "tsx server/smoke/captions-specialist-cap-19-smoke.ts",
+    "smoke:captions-specialist-cap-20": "tsx server/smoke/captions-specialist-cap-20-smoke.ts",
+    "smoke:captions-specialist-cap-20-aggregate": "tsx server/smoke/captions-specialist-cap-20-aggregate-smoke.ts"
   },
   "dependencies": {
     "@babylonjs/core": "^9.15.0",

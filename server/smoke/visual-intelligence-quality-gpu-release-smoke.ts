@@ -48,6 +48,7 @@ const requiredCoreQualificationSmokes = [
   'visual-intelligence-active-cutover-smoke.ts',
   'canonical-specialist-support-resume-service-smoke.ts',
   'canonical-caption-track-all-support-service-smoke.ts',
+  'canonical-track-all-sam3_1-l4-task-qa-worker-smoke.ts',
   'visual-intelligence-live-prerequisites-audit-smoke.ts',
   'gcp-foundation-config-smoke.ts',
   'source-led-visual-intelligence-content-analysis-smoke.ts',

@@ -373,3 +373,20 @@ release source.
 
 The canonical source contract is
 `server/model-artifacts/canonical-sam3_1-source-runtime-candidate.ts`.
+
+## Separate L4 task-QA image
+
+SAM inference does not self-approve its masks. The fixed normal-GPU QA stage
+is defined separately under `docker/prod/gpu-worker/track-all-task-qa` with
+the operation `tool.kornia.refine_mask.v1`. That L4-only candidate rereads the
+exact SAM manifest and every lossless mask PNG, performs substantive temporal
+and morphology measurements with Torch/Kornia CUDA, and cross-checks every
+mask through OpenCV CUDA. It has no CPU-only substantive fallback and shares
+neither the gated SAM checkpoint nor SAM inference authority.
+
+Its response remains worker evidence. Canonical acceptance still requires the
+backend to reread the fixed task, immutable image release, execution envelope,
+launch, terminal scale-to-zero observation, actual platform usage,
+billing-account-effective L4 price and cost, SAM result admission, and an
+independent complete-interval private review. Candidate source cannot satisfy
+those live gates.

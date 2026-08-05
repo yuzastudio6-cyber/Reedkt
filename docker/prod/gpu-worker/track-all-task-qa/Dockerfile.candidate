@@ -1,0 +1,108 @@
+# syntax=docker/dockerfile:1
+# Fixed WeEditPro L4 Track All task-QA image candidate. It is intentionally
+# separate from the SAM model image and contains no checkpoint or runtime
+# installer. Source alone grants no dispatch, billing, QA, or production use.
+
+FROM pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca
+
+ARG WEEDITPRO_SOURCE_COMMIT_SHA
+ARG WEEDITPRO_SOURCE_TREE_HASH
+ARG WEEDITPRO_SOURCE_CLEAN
+ARG WEEDITPRO_TRACK_ALL_TASK_QA_REQUIREMENTS_SHA256
+ARG WEEDITPRO_TRACK_ALL_TASK_QA_OPENCV_CUDA_RECEIPT_SHA256
+ARG WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_FORWARD_COMPAT_RECEIPT_SHA256
+ARG WEEDITPRO_TRACK_ALL_TASK_QA_PRIVATE_CAPSULE_MANIFEST_SHA256
+
+LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.weeditpro.product="WeEditPro" \
+  io.weeditpro.operation.id="tool.kornia.refine_mask.v1" \
+  io.weeditpro.image.role="track-all-sam3_1-l4-task-qa" \
+  io.weeditpro.runtime.accelerator="nvidia-l4" \
+  io.weeditpro.runtime.scale="user-triggered-scale-from-zero" \
+  io.weeditpro.runtime.cpu.substantive="forbidden" \
+  io.weeditpro.runtime.network-download="forbidden" \
+  io.weeditpro.runtime.qualification="candidate-only" \
+  io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
+  io.weeditpro.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.compatibility="legacy-cloud-identifiers-only"
+
+ENV HF_HUB_OFFLINE=1 \
+  TRANSFORMERS_OFFLINE=1 \
+  PIP_DISABLE_PIP_VERSION_CHECK=1 \
+  PIP_NO_INDEX=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  CUDA_MODULE_LOADING=LAZY \
+  NVIDIA_VISIBLE_DEVICES=all \
+  NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+WORKDIR /opt/weeditpro
+
+COPY track_all_task_qa_private_build_input/ \
+  /tmp/track-all-task-qa-private-build-input/
+COPY docker/prod/gpu-worker/track-all-task-qa/runner.py \
+  /opt/weeditpro/track-all-task-qa/runner.py
+COPY docker/prod/gpu-worker/track-all-task-qa/entrypoint.sh \
+  /opt/weeditpro/track-all-task-qa/entrypoint.sh
+COPY docker/prod/gpu-worker/track-all-task-qa/verify-private-build-input.py \
+  /opt/weeditpro/track-all-task-qa/verify-private-build-input.py
+COPY docker/prod/gpu-worker/track-all-task-qa/source-provenance.lock \
+  /opt/weeditpro/track-all-task-qa/source-provenance.lock
+
+RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${WEEDITPRO_SOURCE_CLEAN}" = 'true' \
+  && WEEDITPRO_TRACK_ALL_TASK_QA_PRIVATE_CAPSULE_MANIFEST_SHA256="${WEEDITPRO_TRACK_ALL_TASK_QA_PRIVATE_CAPSULE_MANIFEST_SHA256}" \
+    python -I -B \
+    /opt/weeditpro/track-all-task-qa/verify-private-build-input.py \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_TRACK_ALL_TASK_QA_REQUIREMENTS_SHA256}" \
+    /tmp/track-all-task-qa-private-build-input/python/requirements.lock.txt \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_TRACK_ALL_TASK_QA_OPENCV_CUDA_RECEIPT_SHA256}" \
+    /tmp/track-all-task-qa-private-build-input/opencv/opencv-cuda-receipt.json \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' \
+    /tmp/track-all-task-qa-private-build-input/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /tmp/track-all-task-qa-private-build-input/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb)" = '37945232' \
+  && printf '%s  %s\n' \
+    "${WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_FORWARD_COMPAT_RECEIPT_SHA256}" \
+    /tmp/track-all-task-qa-private-build-input/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json \
+    | sha256sum --check --strict \
+  && dpkg-deb --extract \
+    /tmp/track-all-task-qa-private-build-input/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb / \
+  && test -r /usr/local/cuda-12.8/compat/libcuda.so.1 \
+  && python -m venv --system-site-packages \
+    /opt/weeditpro/track-all-task-qa/venv \
+  && /opt/weeditpro/track-all-task-qa/venv/bin/pip install \
+    --no-index \
+    --no-cache-dir \
+    --require-hashes \
+    --find-links=/tmp/track-all-task-qa-private-build-input/python/wheelhouse \
+    --requirement=/tmp/track-all-task-qa-private-build-input/python/requirements.lock.txt \
+  && /opt/weeditpro/track-all-task-qa/venv/bin/pip check \
+  && /opt/weeditpro/track-all-task-qa/venv/bin/python -I -B -c \
+    "import cv2,kornia,torch; assert torch.__version__ == '2.10.0+cu128'; assert torch.version.cuda == '12.8'; assert kornia.__version__ == '0.8.3'; assert hasattr(cv2,'cuda'); assert hasattr(cv2.cuda,'countNonZero'); assert 'NVIDIA CUDA' in cv2.getBuildInformation()" \
+  && /opt/weeditpro/track-all-task-qa/venv/bin/python -m py_compile \
+    /opt/weeditpro/track-all-task-qa/runner.py \
+  && chmod 0555 \
+    /opt/weeditpro/track-all-task-qa/runner.py \
+    /opt/weeditpro/track-all-task-qa/entrypoint.sh \
+    /opt/weeditpro/track-all-task-qa/verify-private-build-input.py \
+  && chmod 0444 \
+    /opt/weeditpro/track-all-task-qa/source-provenance.lock \
+  && rm -rf /tmp/track-all-task-qa-private-build-input
+
+RUN groupadd --gid 65532 weeditpro \
+  && useradd --uid 65532 --gid 65532 --no-create-home \
+    --home-dir /nonexistent --shell /usr/sbin/nologin weeditpro
+
+USER 65532:65532
+WORKDIR /nonexistent
+ENTRYPOINT ["/opt/weeditpro/track-all-task-qa/entrypoint.sh"]

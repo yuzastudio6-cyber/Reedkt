@@ -23,11 +23,11 @@ RUN apt-get update \
   && apt-get install --yes --no-install-recommends ca-certificates ffmpeg \
   && rm -rf /var/lib/apt/lists/*
 
-COPY package.json package-lock.json ./
+COPY --chown=node:node package.json package-lock.json ./
 RUN npm ci
 
-COPY server ./server
-COPY tsconfig.json tsconfig.server.json ./
+COPY --chown=node:node server ./server
+COPY --chown=node:node tsconfig.json tsconfig.server.json ./
 
 USER node
 CMD ["npm", "run", "canary:music:lyria"]

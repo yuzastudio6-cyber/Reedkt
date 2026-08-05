@@ -8,10 +8,10 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
     "skillKey": "track_all",
     "skillVersion": "1.0.0",
     "contractVersion": "track_all.skill_contract.v1",
-    "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454"
+    "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215"
   },
-  "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-  "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+  "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+  "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
   "dependencyAuthorityHashes": [
     {
       "authorityKey": "shared_assignment_authorities",
@@ -23,15 +23,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
     },
     {
       "authorityKey": "track_all_manifest_and_plugin",
-      "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+      "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
     },
     {
       "authorityKey": "track_all_artifact_schema_catalog",
-      "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+      "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
     },
     {
       "authorityKey": "track_all_work_graph_and_bindings",
-      "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+      "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
     },
     {
       "authorityKey": "shared_track_graph_v1_v2",
@@ -47,7 +47,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
     },
     {
       "authorityKey": "opencv_pyscenedetect_geometry",
-      "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+      "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
     },
     {
       "authorityKey": "remotion_private_track_all_treatments",
@@ -59,7 +59,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
     },
     {
       "authorityKey": "visual_intelligence_dependency_contract",
-      "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+      "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
     },
     {
       "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -80,11 +80,11 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.authority_rejections",
       "commandId": "npm.test:track-all-authority",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -96,15 +96,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -120,7 +120,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -132,7 +132,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -147,12 +147,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:12.728Z",
-      "completedAt": "2026-08-05T05:13:13.347Z",
+      "startedAt": "2026-08-05T06:04:40.786Z",
+      "completedAt": "2026-08-05T06:04:41.411Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "45ea9234c028cb4801fcf12af80c633d0651f5fec465ad7e296dc18426b4d022"
+        "58b56305c1f39942872fbb10043ad29bcbd9f00aa3bf78875f26d178774f8104"
       ],
       "stdoutDigest": "6fdedb6bfef760be2fa54e95a821778c42aa7933bdde3d9d7e8da3d39dd74eb5",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -160,18 +160,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "ca876c5e52e30edbc10e4be55822d27e9790215d27a8e03ae3bd87b8e0fefa81"
+      "evidenceHash": "4ffe87620c8f948848033a9e4a97cc963015873396b18368b12bc22b48e51fb1"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.selected_targets",
       "commandId": "npm.test:track-all-public-plugin-e2e",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -183,15 +183,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -207,7 +207,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -219,7 +219,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -234,31 +234,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:34.473Z",
-      "completedAt": "2026-08-05T05:13:35.383Z",
+      "startedAt": "2026-08-05T06:05:17.246Z",
+      "completedAt": "2026-08-05T06:05:18.290Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1"
+        "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09"
       ],
-      "stdoutDigest": "dfe93635b4fb472c54f24fa48e88d6e72e41c6cb089ed523fcb82ac1eb54bc97",
+      "stdoutDigest": "6217e28c3c615433249908e8a2d8a43456073585683949d6196650f63d872190",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "fa829c61de3e8685d1f4d4ad4889691a93ac91557991e9a04d21b0dc62ff3e88"
+      "evidenceHash": "7949fda7cc38c8cf047f257e559aefb01344c085d8204d9c13df9ca5fdc54c24"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.concept_exclusions",
       "commandId": "npm.test:track-all-public-plugin-e2e",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -270,15 +270,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -294,7 +294,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -306,7 +306,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -321,31 +321,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:34.473Z",
-      "completedAt": "2026-08-05T05:13:35.383Z",
+      "startedAt": "2026-08-05T06:05:17.246Z",
+      "completedAt": "2026-08-05T06:05:18.290Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1"
+        "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09"
       ],
-      "stdoutDigest": "dfe93635b4fb472c54f24fa48e88d6e72e41c6cb089ed523fcb82ac1eb54bc97",
+      "stdoutDigest": "6217e28c3c615433249908e8a2d8a43456073585683949d6196650f63d872190",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "4ff3b7c83c1e670daffd9e1a4b0755cbb7e7e032079c809fc9be8c8f044f0d73"
+      "evidenceHash": "37b255afa5e54ba1c4b1f0df614b0f9e91c8a81f39fa52c156ba71e11275df1a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.target_ambiguity",
       "commandId": "npm.test:track-all-planning",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -357,15 +357,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -381,7 +381,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -393,7 +393,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -408,12 +408,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:13.347Z",
-      "completedAt": "2026-08-05T05:13:13.992Z",
+      "startedAt": "2026-08-05T06:04:41.411Z",
+      "completedAt": "2026-08-05T06:04:42.059Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "07e34623d9a09fd01e2884ac5a33a90294a9fe255fc6a6dca2a8d3068b07fe44"
+        "0ac194045ea489b0c561d8260a2d9c8d9f6830eb9bf46cbadfec094a0eda8578"
       ],
       "stdoutDigest": "681ef9d098f0ff83cdcc3fac8cc5c76dcc3074a1979d4936648b93aca4d1a8a2",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -421,18 +421,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "b4dbd7aa9061f7d6f660f9a5ed511f4081a63bea67a8facd37bc85128c90dd1a"
+      "evidenceHash": "a87b8bb4ca0a4fc2bdbbb71b4134a3c5ad2b21fec387d8f617e971962ee94eb4"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.occlusion_reentry_identity",
       "commandId": "npm.test:track-all-chunk-identity",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -444,15 +444,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -468,7 +468,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -480,7 +480,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -495,31 +495,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.520Z",
-      "completedAt": "2026-08-05T05:13:24.891Z",
+      "startedAt": "2026-08-05T06:04:54.547Z",
+      "completedAt": "2026-08-05T06:04:54.973Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "5ed66a4465f56ff33d4f6677100bdd795edbea6913ecc0f98719d0a08ac146fb"
+        "ce019b6cbd5000520402324561c9ce863fbb450229cfee14cd54f0b99c32bf00"
       ],
-      "stdoutDigest": "f030c677a6c63d0fbdf73941f33c1a44ebddb13c821a7253d4a355320c9397d6",
+      "stdoutDigest": "f81aba3940edbe395773b02ea2a01b1a32469b98d0b3ebd47e9723471fd57c47",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "8a73056e82f570b3e82445d1c7cbcd0ac50780331087ffed3715c6a04cf76b1e"
+      "evidenceHash": "95a410fa52b008b8261f32a8a5b671cfc8bdf60f0902a667b7fc4d7169b09050"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.shot_chunk_overlap",
       "commandId": "npm.test:track-all-chunk-identity",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -531,15 +531,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -555,7 +555,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -567,7 +567,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -582,31 +582,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.520Z",
-      "completedAt": "2026-08-05T05:13:24.891Z",
+      "startedAt": "2026-08-05T06:04:54.547Z",
+      "completedAt": "2026-08-05T06:04:54.973Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "5ed66a4465f56ff33d4f6677100bdd795edbea6913ecc0f98719d0a08ac146fb"
+        "ce019b6cbd5000520402324561c9ce863fbb450229cfee14cd54f0b99c32bf00"
       ],
-      "stdoutDigest": "f030c677a6c63d0fbdf73941f33c1a44ebddb13c821a7253d4a355320c9397d6",
+      "stdoutDigest": "f81aba3940edbe395773b02ea2a01b1a32469b98d0b3ebd47e9723471fd57c47",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "46e625cde898a27a48955ffda77509624bf8b45998b5097655f1e57cbab097cc"
+      "evidenceHash": "31325fc70597b9367c7546dcab45e711adf2a0907bc231bdc06276b2e1b87a9e"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.multiplex_budgets",
       "commandId": "npm.test:track-all-planning",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -618,15 +618,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -642,7 +642,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -654,7 +654,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -669,12 +669,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:13.347Z",
-      "completedAt": "2026-08-05T05:13:13.992Z",
+      "startedAt": "2026-08-05T06:04:41.411Z",
+      "completedAt": "2026-08-05T06:04:42.059Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "07e34623d9a09fd01e2884ac5a33a90294a9fe255fc6a6dca2a8d3068b07fe44"
+        "0ac194045ea489b0c561d8260a2d9c8d9f6830eb9bf46cbadfec094a0eda8578"
       ],
       "stdoutDigest": "681ef9d098f0ff83cdcc3fac8cc5c76dcc3074a1979d4936648b93aca4d1a8a2",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -682,18 +682,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "b43f1cfae11d1c90577651941a4f29dd7138f5f05fda4e6c0e27f48c688e4383"
+      "evidenceHash": "9236ea13881a4bcb640a870adaea68f185892c72313188bd1140f9df7c9fc0d1"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.privacy_fail_closed",
       "commandId": "npm.test:track-all-privacy-redaction",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -705,15 +705,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -729,7 +729,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -741,7 +741,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -756,31 +756,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.891Z",
-      "completedAt": "2026-08-05T05:13:26.652Z",
+      "startedAt": "2026-08-05T06:04:54.973Z",
+      "completedAt": "2026-08-05T06:04:56.992Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "a759c4ddbd52e78b0d62c436be3e74f39754548046c823103c431258935ba1e5"
+        "59abcd47589ffd481a3e75565eb11cb94d80a82cf9946c395187488ed37e27b2"
       ],
-      "stdoutDigest": "80d0dbe4823b46b4b6b56ce9093bca20d7f11ee5586c7a37f7ab4707702379bc",
+      "stdoutDigest": "88dfc3c347bb6571f1dc0ea2623d9a7855fa26809aa3ce22e1a9e0bf27edca61",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f777245b3019b64a0576cffd7c930624ae1cd206f472dbd7c2e67417b763833b"
+      "evidenceHash": "3b2f2205ef674e728eaa758f41656d85eb9ed922251d05f3e574c8c6eaf27b00"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.flattened_privacy_preview",
       "commandId": "npm.test:track-all-privacy-redaction",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -792,15 +792,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -816,7 +816,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -828,7 +828,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -843,31 +843,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.891Z",
-      "completedAt": "2026-08-05T05:13:26.652Z",
+      "startedAt": "2026-08-05T06:04:54.973Z",
+      "completedAt": "2026-08-05T06:04:56.992Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "a759c4ddbd52e78b0d62c436be3e74f39754548046c823103c431258935ba1e5"
+        "59abcd47589ffd481a3e75565eb11cb94d80a82cf9946c395187488ed37e27b2"
       ],
-      "stdoutDigest": "80d0dbe4823b46b4b6b56ce9093bca20d7f11ee5586c7a37f7ab4707702379bc",
+      "stdoutDigest": "88dfc3c347bb6571f1dc0ea2623d9a7855fa26809aa3ce22e1a9e0bf27edca61",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "9c45cb1f49fbdcc7273bbee367b3a43165451add6efc5d65ae2df73d6c925f5f"
+      "evidenceHash": "b18f7f3d7f947b48426676328e02ad586df33526d9c05df97bd22d3e6afe044c"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.camera_motion",
       "commandId": "npm.test:track-all-deterministic-geometry",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -879,15 +879,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -903,7 +903,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -915,7 +915,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -930,31 +930,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:15.233Z",
-      "completedAt": "2026-08-05T05:13:23.345Z",
+      "startedAt": "2026-08-05T06:04:43.291Z",
+      "completedAt": "2026-08-05T06:04:53.219Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "4b12f28311b6ae838ffabdca21e94842e8eca11670e5c6180f1586b15a7fac1a"
+        "b5ddcfde2f5bfb18cd8171885c2ee983b6c46bb651ecd5b3604b0d52d0c2b53a"
       ],
-      "stdoutDigest": "c20c574b78b06b5689601707f23422dfec674fed545bbe5a8d61c2add52ea9af",
+      "stdoutDigest": "3126a0cadf2f06b32eb23e387c94d8f1b90ca10acead8de7820a66f1d4d1b955",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d77aa32e2dc2715b5165f1366a609ce7f79b80c0b25476673a7367c9de6b4b49"
+      "evidenceHash": "d41df4f82c1a35da7ce775385cb12f0eaba323217af7ce6bcef16d2dc13e98d0"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.planar_homography",
       "commandId": "npm.test:track-all-deterministic-geometry",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -966,15 +966,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -990,7 +990,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1002,7 +1002,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1017,31 +1017,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:15.233Z",
-      "completedAt": "2026-08-05T05:13:23.345Z",
+      "startedAt": "2026-08-05T06:04:43.291Z",
+      "completedAt": "2026-08-05T06:04:53.219Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "4b12f28311b6ae838ffabdca21e94842e8eca11670e5c6180f1586b15a7fac1a"
+        "b5ddcfde2f5bfb18cd8171885c2ee983b6c46bb651ecd5b3604b0d52d0c2b53a"
       ],
-      "stdoutDigest": "c20c574b78b06b5689601707f23422dfec674fed545bbe5a8d61c2add52ea9af",
+      "stdoutDigest": "3126a0cadf2f06b32eb23e387c94d8f1b90ca10acead8de7820a66f1d4d1b955",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "af581b4842f0f207daef3d22f5e689f8c65febef2ee26530bda9c3a0de797ace"
+      "evidenceHash": "a92a51e3f22c69e73b326792289a934bb6832387693988d60c365d98212b1a01"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.focus_treatments",
       "commandId": "npm.test:track-all-focus-reframe",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1053,15 +1053,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1077,7 +1077,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1089,7 +1089,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1104,31 +1104,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:26.655Z",
-      "completedAt": "2026-08-05T05:13:32.948Z",
+      "startedAt": "2026-08-05T06:04:56.992Z",
+      "completedAt": "2026-08-05T06:05:04.222Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "e23328e5363942847e7ced27f1be8fe347f4e74f39bc035888a64588b4a72847"
+        "0a9d31432e2062a9c95539c3a669f58ea30afe3e2a4a03acc03026a4e8c604f1"
       ],
-      "stdoutDigest": "51a4e6b3aad2aacf0bd6a9cae7128db2272be1d5873b69d0275f750c506a720b",
+      "stdoutDigest": "7d22261dca8a74c00f4e6243664ccdf60c0a594bc79cbd3538611c03b31ca267",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "5031c2e1091cf548d887757775c0fa605e99a47408c76f9ce31d195543fad456"
+      "evidenceHash": "9cce5b1dc464c2921456706d269adae7eea604896bf02380c34fcfe5771d7502"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.reframe_trajectories",
       "commandId": "npm.test:track-all-focus-reframe",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1140,15 +1140,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1164,7 +1164,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1176,7 +1176,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1191,31 +1191,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:26.655Z",
-      "completedAt": "2026-08-05T05:13:32.948Z",
+      "startedAt": "2026-08-05T06:04:56.992Z",
+      "completedAt": "2026-08-05T06:05:04.222Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "e23328e5363942847e7ced27f1be8fe347f4e74f39bc035888a64588b4a72847"
+        "0a9d31432e2062a9c95539c3a669f58ea30afe3e2a4a03acc03026a4e8c604f1"
       ],
-      "stdoutDigest": "51a4e6b3aad2aacf0bd6a9cae7128db2272be1d5873b69d0275f750c506a720b",
+      "stdoutDigest": "7d22261dca8a74c00f4e6243664ccdf60c0a594bc79cbd3538611c03b31ca267",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "aef14486d15806a3b576ff4f770063fba16c060ad04239429bc4d42dbdbd7dd7"
+      "evidenceHash": "89e74798f1661a06305bb4d4d1cfd544c5a92ae8f48e0a2c84b0f25f7a4ab2c4"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.visual_intelligence_dependency",
       "commandId": "npm.test:track-all-public-plugin-e2e",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1227,15 +1227,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1251,7 +1251,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1263,7 +1263,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1278,31 +1278,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:34.473Z",
-      "completedAt": "2026-08-05T05:13:35.383Z",
+      "startedAt": "2026-08-05T06:05:17.246Z",
+      "completedAt": "2026-08-05T06:05:18.290Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1"
+        "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09"
       ],
-      "stdoutDigest": "dfe93635b4fb472c54f24fa48e88d6e72e41c6cb089ed523fcb82ac1eb54bc97",
+      "stdoutDigest": "6217e28c3c615433249908e8a2d8a43456073585683949d6196650f63d872190",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "03d9228b957e8514a1a4f0f5d39f3b422848cfccc1bbfadf0f6badab54bb77fa"
+      "evidenceHash": "fa83173e8f06cab4b57e5cf2f4b5df3eeebe91bf0658aa604080ece9f5002caf"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.track_graph_compatibility",
       "commandId": "npm.test:track-all-cross-skill-handoffs",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1314,15 +1314,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1338,7 +1338,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1350,7 +1350,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1365,31 +1365,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:32.949Z",
-      "completedAt": "2026-08-05T05:13:33.375Z",
+      "startedAt": "2026-08-05T06:05:04.223Z",
+      "completedAt": "2026-08-05T06:05:04.851Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f1688bd762a8fdb9003eb37595ae9378f7f4ab67059670ff4431975fb0b7cea7"
+        "157ae75c6074f8dda85fd58d04116be0bb6519aa1e19ed13843e56f901bc499f"
       ],
-      "stdoutDigest": "b2471cb171ca3843390d48d33cbda9475304afc51a63fca7880ee5c244c4c6db",
+      "stdoutDigest": "06689d9999fd84f89a210a35e47bdc6dd26984735f4d2229e7c636c07adaee55",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "6cd27cef0a21d0d75808e12b4a3637e9b59afaf30d38a039b1c9cab0ed07d9e3"
+      "evidenceHash": "7200688ec6059e5689c8f425c37a332d78fe377a60cac80707b322832f478b27"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.bounded_repairs",
       "commandId": "npm.test:track-all-independent-qa-repair",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1401,15 +1401,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1425,7 +1425,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1437,7 +1437,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1452,31 +1452,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:33.376Z",
-      "completedAt": "2026-08-05T05:13:33.796Z",
+      "startedAt": "2026-08-05T06:05:04.851Z",
+      "completedAt": "2026-08-05T06:05:05.588Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c5ecd312b7c27baab587c1f7c1b4bdd9006923ec14cd650dcc284a3039502bc4"
+        "0b6b132e21051e70b65de86e133868e05d31a6e41b77436e4a252937dfadec0f"
       ],
-      "stdoutDigest": "05d881598a726c18fe1a3bb1438dd794d448a7622e09ab09f48db820f9a377f6",
+      "stdoutDigest": "7cc4bb657fced2fec5ac30acc303355c66117f88e2a7587654fd503dd250f930",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "65b2dc9a898942eea9cf7726721406036a73798b4a32ff2f1f24097afddeea60"
+      "evidenceHash": "7791e17d7b6cbc71ed4dc1b86a80ae6b5ac34b0f3d11b4de93597efc7d229ed0"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.session_terminal_close",
       "commandId": "npm.test:track-all-sam3.1-injected-session",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1488,15 +1488,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1512,7 +1512,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1524,7 +1524,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1539,12 +1539,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.141Z",
-      "completedAt": "2026-08-05T05:13:24.520Z",
+      "startedAt": "2026-08-05T06:04:54.124Z",
+      "completedAt": "2026-08-05T06:04:54.547Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "4fed4f651e93757cfd7e29d0d55e37927f7d07dea5d51bfa7d4c076527f54756"
+        "aad63b9ae926a33e20cdb26af9d98a0d81e62941817b0aebd14f15040ec397af"
       ],
       "stdoutDigest": "1792dc48270b17fb3594d2d9d36a5ef33721106e4be281c1f40110a29e09abcc",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1552,18 +1552,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "4b3a9a28079af6bac41c00e97139cee3cd44a7e7817b453a5d45d4744001a9ca"
+      "evidenceHash": "2c6eeb2decd1a98adc2d0b77350829dcbc6d50577ad569254a11e925845c9d72"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.runtime_security",
       "commandId": "npm.test:track-all-sam3.1-operation-authority",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1575,15 +1575,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1599,7 +1599,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1611,7 +1611,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1626,31 +1626,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:23.345Z",
-      "completedAt": "2026-08-05T05:13:23.776Z",
+      "startedAt": "2026-08-05T06:04:53.220Z",
+      "completedAt": "2026-08-05T06:04:53.713Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "73266d999ce45c06b6da924d6181c0c32b3dab85ba777d746bda8fab94ae83c5"
+        "db9430daf4ebe80c4c1e6a8579f52dba9ff2ca0f0dfb53e9e5778f9ea4fbeeb2"
       ],
-      "stdoutDigest": "0ef985a32235d4fecf65fd7e5f4ae04471be7a753a51807a5cadc2d5b92c8baf",
+      "stdoutDigest": "b432b252d8a952e65cf63d48c105972b5c232d5ca7660fddf5f018ad80a8cd01",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "80652d260bfbb83da1ad28869c9f4ac5bd60f212101edc321c9a6ae435a3f26c"
+      "evidenceHash": "12a447545eb97945f244ee409dc17967532b56c2f4df89e7f9926740eb1209fd"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.public_plugin_lifecycle",
       "commandId": "npm.test:track-all-public-plugin-e2e",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1662,15 +1662,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1686,7 +1686,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1698,7 +1698,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1713,31 +1713,118 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:34.473Z",
-      "completedAt": "2026-08-05T05:13:35.383Z",
+      "startedAt": "2026-08-05T06:05:17.246Z",
+      "completedAt": "2026-08-05T06:05:18.290Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1"
+        "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09"
       ],
-      "stdoutDigest": "dfe93635b4fb472c54f24fa48e88d6e72e41c6cb089ed523fcb82ac1eb54bc97",
+      "stdoutDigest": "6217e28c3c615433249908e8a2d8a43456073585683949d6196650f63d872190",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "99c86c63cc992cb602d025c275042f091d9f85abc85c4ad9f2c49f99f26cb798"
+      "evidenceHash": "edad9140df3bd690114c9205c1b8aa227292da229adad39e474d23852a44d62b"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
+      "fixtureKey": "track_all.fixture.canonical_private_runtime",
+      "commandId": "npm.test:track-all-canonical-private-runtime",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
+      "dependencyAuthorityHashes": [
+        {
+          "authorityKey": "shared_assignment_authorities",
+          "authorityHash": "f8dc76e1a03b9903044ce7a4212e5ffef583330ccad8eba44a57e9e641037389"
+        },
+        {
+          "authorityKey": "generic_edit_skill_kernel",
+          "authorityHash": "9e3057a3e9eaa67d6c9c5c41a86cf800bdd3eebb36b7ab95d0178fea8399081b"
+        },
+        {
+          "authorityKey": "track_all_manifest_and_plugin",
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
+        },
+        {
+          "authorityKey": "track_all_artifact_schema_catalog",
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
+        },
+        {
+          "authorityKey": "track_all_work_graph_and_bindings",
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
+        },
+        {
+          "authorityKey": "shared_track_graph_v1_v2",
+          "authorityHash": "271477c919cffc03c1723d251243df4be58a9d02c8ff31af21b8efdcd08167c6"
+        },
+        {
+          "authorityKey": "planning_and_independent_qa",
+          "authorityHash": "e9d5a5775965071b23ac8254889a85ec901c8893ae13a1cabfb15c5a90ecfd03"
+        },
+        {
+          "authorityKey": "ffprobe_ffmpeg_private_media",
+          "authorityHash": "87112e4d0961e36f8293dfb3a4659788c69e7219f628141dedc435a3f85c8fd5"
+        },
+        {
+          "authorityKey": "opencv_pyscenedetect_geometry",
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
+        },
+        {
+          "authorityKey": "remotion_private_track_all_treatments",
+          "authorityHash": "d8e9945e69caffeaab72cdfe97b39f39eca39e9b6c0684789606a095abf6d120"
+        },
+        {
+          "authorityKey": "privacy_redaction_runtime",
+          "authorityHash": "2a1de4ad9a20c3ef7c19a9af9d938df2dd1c7cec9ae5d4b482557034729f8c44"
+        },
+        {
+          "authorityKey": "visual_intelligence_dependency_contract",
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
+        },
+        {
+          "authorityKey": "sam3_1_track_masklets_v2_operation",
+          "authorityHash": "30c2b8a4e9f02900ec4ecf5c2c6f252b300ef83b9f244f322bd059cdbf2bd864"
+        },
+        {
+          "authorityKey": "sam3_1_source_checkpoint_authority",
+          "authorityHash": "cb5acd1ca648a504e6de3540e57cfd402ca3f72d42eececc5f9f6d0166f94178"
+        },
+        {
+          "authorityKey": "sam3_1_runtime_image_authority",
+          "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
+        }
+      ],
+      "startedAt": "2026-08-05T06:05:06.461Z",
+      "completedAt": "2026-08-05T06:05:17.245Z",
+      "exitStatus": 0,
+      "passed": true,
+      "evidenceArtifactHashes": [
+        "076d78d01370027a0c1a8a301113e4773e6bf5823dbaeaaf9de68789f04e4adb"
+      ],
+      "stdoutDigest": "7e2ea1eff451c3bc46aea1a7069eacec7af4a134d8739fa512bd7c5f0dcf2c03",
+      "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environmentClass": "local_internal_qualification",
+      "providerRequestCount": 0,
+      "publicArtifactCount": 0,
+      "productionMutationCount": 0,
+      "evidenceHash": "62424b2fb5ccad990dfd22da2f8982c773cfa1a8486f90870ed390296619ed68"
+    },
+    {
+      "schemaVersion": "skill-qualification-fixture-evidence-v1",
+      "skillKey": "track_all",
+      "skillVersion": "1.0.0",
+      "contractVersion": "track_all.skill_contract.v1",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.legacy_retirement",
       "commandId": "npm.test:track-all-retirement",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1749,15 +1836,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1773,7 +1860,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1785,7 +1872,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1800,31 +1887,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:35.773Z",
-      "completedAt": "2026-08-05T05:13:36.120Z",
+      "startedAt": "2026-08-05T06:05:18.686Z",
+      "completedAt": "2026-08-05T06:05:19.042Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "69d9a357938bcbd1bf06f338acf3707a9cd2290f5d61cc7e6e452e204d317ffd"
+        "3fcb1f19345fa79dcdac46710b5fc7fa0d48f9b2076160afb2ecacdbfd81b737"
       ],
-      "stdoutDigest": "86737c41dd15163321db010393aa52e477fc789a07cc622daccfea25a5f1dca1",
+      "stdoutDigest": "d91e54f3731f83fe7e0418683da19fac5fbd9535ffeaf9c8e89e4fb4a7b49e9c",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "4caa88cd486b4f4ff0c56584e17f1301f2a8920b532baf24e3c8e06b5986b544"
+      "evidenceHash": "4351c871de694230f810e86749f8dcf08ec13ddcc62e48e31f988aea4296f845"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "track_all.fixture.qualification_integrity",
       "commandId": "npm.test:track-all-qualification-evidence",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1836,15 +1923,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1860,7 +1947,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1872,7 +1959,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1887,20 +1974,20 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:35.383Z",
-      "completedAt": "2026-08-05T05:13:35.773Z",
+      "startedAt": "2026-08-05T06:05:18.290Z",
+      "completedAt": "2026-08-05T06:05:18.686Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "7d7cb6263a82cd06885414a3762ebd76de07c0220d94857b299f3aeb9c3dc04b"
+        "cc9728c5317f6c27a95b580f210b71040159e129b2eba79e690a93f960af9c68"
       ],
-      "stdoutDigest": "aba0d51bcd1ec54abc2ad8855410c17cbfb9517da878e944c8f8c6c917d545f7",
+      "stdoutDigest": "70c68da2f56d2c7fc1e0d01e70edd38b469d584991e2c499fb9863e1135445f3",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "e044a9203c0a7ac304480011a196a76e76da3735bbfdff0875adf204a21861bd"
+      "evidenceHash": "0f6df0180c8d702c7b3f1b7d92d819ff51f4ad629fdd51fea7ba108bd9068a63"
     }
   ],
   "commandEvidence": [
@@ -1909,11 +1996,11 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:edit-skill-shared-assignment-authorities",
       "commandId": "npm.test:edit-skill-shared-assignment-authorities",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -1925,15 +2012,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -1949,7 +2036,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -1961,7 +2048,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -1976,31 +2063,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:11.496Z",
-      "completedAt": "2026-08-05T05:13:11.849Z",
+      "startedAt": "2026-08-05T06:04:39.551Z",
+      "completedAt": "2026-08-05T06:04:39.900Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "64c88da0750ba6ef9d4b280481f1c28fca39b0329bfd273f6493a498bfd9dfa0"
+        "d9de108eb5987a17b432e756e42d272741a91d539e9cabcd1badf6d57b4ca4fa"
       ],
-      "stdoutDigest": "58e73a67d52b1d275ac04c2b788983db22413c57557a51c9b2abb4b80aec7347",
+      "stdoutDigest": "0649fec5e6e2b785c4df53ee45a5f39a3d845a092c9fe0f4cfaa9d046ec8d8b5",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d50477352ac306f4757c82637bafcdd2b482b9e47b940d27dfbf941e373dfe4a"
+      "evidenceHash": "f8065042a91f8927c336269e4732a741f9de2d230a0994529ab848f966a5dbe3"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:edit-skill-route-qualification",
       "commandId": "npm.test:edit-skill-route-qualification",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2012,15 +2099,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2036,7 +2123,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2048,7 +2135,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2063,12 +2150,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:11.851Z",
-      "completedAt": "2026-08-05T05:13:12.389Z",
+      "startedAt": "2026-08-05T06:04:39.902Z",
+      "completedAt": "2026-08-05T06:04:40.452Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "a2cd3f58861b3d574a23a14b5e5f604a90200c2f919145462d77abad571d2cc3"
+        "20728b719a6d0b601e039478132b67e9c4621d5d10834fc164dec35f366440e9"
       ],
       "stdoutDigest": "152361655e22aae4964bc81952c879f815a8d2fd57a6ecf8e2caaa12cf7a33e8",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -2076,18 +2163,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "7765761bead07b94159f6889528c79064d57d62f3c24be4555f6953a43a16255"
+      "evidenceHash": "f525a51eaf8df59562ed14cd295ce411b87ae187aa1d84b1f879a2b2135afdb4"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-capability-manifest",
       "commandId": "npm.test:track-all-capability-manifest",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2099,15 +2186,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2123,7 +2210,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2135,7 +2222,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2150,31 +2237,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:12.389Z",
-      "completedAt": "2026-08-05T05:13:12.727Z",
+      "startedAt": "2026-08-05T06:04:40.452Z",
+      "completedAt": "2026-08-05T06:04:40.786Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c1d6643e3f56c161bbb2c777d153d5fe9a30fb5a50a2a92c1a31d9522e5f6f17"
+        "f82e9cfee99c57389efc3a1c78a6f378225d12243b78c5b1d2265c08c829428e"
       ],
-      "stdoutDigest": "c8f0c9cb6c205e999128a76532aeb80982959104fb698a9df3d7671498566a97",
+      "stdoutDigest": "f8ecce5a55758dd031a175d337df026eacaa2a72f91b79da6a71e19bfe5f7342",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d2d7487e3d6f3217b9705e0f4f70f5cf0d866e8e53410550ce5caab280e6dc6a"
+      "evidenceHash": "41405023c66afc86b786716f7f1949e89a1ccb04cab5a25d5a1d9192ef4f5381"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-authority",
       "commandId": "npm.test:track-all-authority",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2186,15 +2273,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2210,7 +2297,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2222,7 +2309,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2237,12 +2324,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:12.728Z",
-      "completedAt": "2026-08-05T05:13:13.347Z",
+      "startedAt": "2026-08-05T06:04:40.786Z",
+      "completedAt": "2026-08-05T06:04:41.411Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "16207c12520c390a8fc58a40fd10ca7b05cd5e0dc3d1d6f28bc15949ec8be70e"
+        "22420c899c1da94f3c34a2ab1cc3442f3fd31b05cf463006f993b717098bf3ad"
       ],
       "stdoutDigest": "6fdedb6bfef760be2fa54e95a821778c42aa7933bdde3d9d7e8da3d39dd74eb5",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -2250,18 +2337,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "45ea9234c028cb4801fcf12af80c633d0651f5fec465ad7e296dc18426b4d022"
+      "evidenceHash": "58b56305c1f39942872fbb10043ad29bcbd9f00aa3bf78875f26d178774f8104"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-planning",
       "commandId": "npm.test:track-all-planning",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2273,15 +2360,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2297,7 +2384,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2309,7 +2396,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2324,12 +2411,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:13.347Z",
-      "completedAt": "2026-08-05T05:13:13.992Z",
+      "startedAt": "2026-08-05T06:04:41.411Z",
+      "completedAt": "2026-08-05T06:04:42.059Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "02d4074373620584e8c6a643c5e1b5e049d0a86280c40e6512dbd5aafbe58ab8"
+        "8889a3143838130da00218bca0cecb6a7a6d19d2437efc2472be082de38cccdb"
       ],
       "stdoutDigest": "681ef9d098f0ff83cdcc3fac8cc5c76dcc3074a1979d4936648b93aca4d1a8a2",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -2337,18 +2424,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "07e34623d9a09fd01e2884ac5a33a90294a9fe255fc6a6dca2a8d3068b07fe44"
+      "evidenceHash": "0ac194045ea489b0c561d8260a2d9c8d9f6830eb9bf46cbadfec094a0eda8578"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-evidence-route-coherence",
       "commandId": "npm.test:track-all-evidence-route-coherence",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2360,15 +2447,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2384,7 +2471,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2396,7 +2483,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2411,31 +2498,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:13.992Z",
-      "completedAt": "2026-08-05T05:13:14.673Z",
+      "startedAt": "2026-08-05T06:04:42.059Z",
+      "completedAt": "2026-08-05T06:04:42.740Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "ca171defd7331695dac36905d8f071acb3786371171d8d09d5ab3d99d7cce7d2"
+        "17e3a6b5cbf45179b9ca1af5fc76d0f8b72fbaa518b902692d1f7b2f26e7b198"
       ],
-      "stdoutDigest": "b40226d1828ca7da2536cda52e70a46383ba02c77270bd551a0d44daa125ec8a",
+      "stdoutDigest": "98af9b7fffba4552b2eff95ceb7fccf8fc465fc0dc6283fb93755371bb9ee66d",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "6f706f09e79b5ed210b640e3f419599cc124ab2aca09454baae0bf6cc40d15f0"
+      "evidenceHash": "6650d51ede6f1468c334a2699f2f9c517527b910b1e08a3bc8ab950e5f406641"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-artifact-contracts",
       "commandId": "npm.test:track-all-artifact-contracts",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2447,15 +2534,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2471,7 +2558,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2483,7 +2570,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2498,31 +2585,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:14.673Z",
-      "completedAt": "2026-08-05T05:13:15.233Z",
+      "startedAt": "2026-08-05T06:04:42.740Z",
+      "completedAt": "2026-08-05T06:04:43.290Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "cfd622578bbe4a8b547963a486a089ca3cd16ea73dc9a86e51e1277d5bc2a06a"
+        "ba085e056e730cf8c5c5f6984a3d70334ad45125e57fc5ea8eec666d2e4197b5"
       ],
-      "stdoutDigest": "f78d7bfd4b2c64a5b8241fe34c3083e98150c76f97aa73f33535db8b650b63dc",
+      "stdoutDigest": "87a9bc42a8bd0aaf342cf59cbcdecbb394204862bf548c75666184bd4cb7fbc9",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "0bdaa3efa1556579ac138035d4eede27f8f9479d746a71788f7225a1d5e48ddb"
+      "evidenceHash": "952fb438c1ce47311d89aa4fd6237f52e29c51b1dbd34928306f50c1c1b43976"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-deterministic-geometry",
       "commandId": "npm.test:track-all-deterministic-geometry",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2534,15 +2621,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2558,7 +2645,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2570,7 +2657,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2585,31 +2672,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:15.233Z",
-      "completedAt": "2026-08-05T05:13:23.345Z",
+      "startedAt": "2026-08-05T06:04:43.291Z",
+      "completedAt": "2026-08-05T06:04:53.219Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "ee9d248c5453fa08233bcda379917a837cc346475e7d080417672c9d23bb4f27"
+        "583b4180a31cda3ffba6455bf01618c2c5eb09af3bec3d4c36f46c1d689f8a30"
       ],
-      "stdoutDigest": "c20c574b78b06b5689601707f23422dfec674fed545bbe5a8d61c2add52ea9af",
+      "stdoutDigest": "3126a0cadf2f06b32eb23e387c94d8f1b90ca10acead8de7820a66f1d4d1b955",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "4b12f28311b6ae838ffabdca21e94842e8eca11670e5c6180f1586b15a7fac1a"
+      "evidenceHash": "b5ddcfde2f5bfb18cd8171885c2ee983b6c46bb651ecd5b3604b0d52d0c2b53a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-sam3.1-operation-authority",
       "commandId": "npm.test:track-all-sam3.1-operation-authority",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2621,15 +2708,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2645,7 +2732,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2657,7 +2744,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2672,31 +2759,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:23.345Z",
-      "completedAt": "2026-08-05T05:13:23.776Z",
+      "startedAt": "2026-08-05T06:04:53.220Z",
+      "completedAt": "2026-08-05T06:04:53.713Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d03aa468322538b410b2c8151fac801a3ee0a0fceef9d42a47d71151e912becc"
+        "153dce79e4b36e0c117ece85c5398d2cfd58fee9dc816a50f7dbec7469022cd2"
       ],
-      "stdoutDigest": "0ef985a32235d4fecf65fd7e5f4ae04471be7a753a51807a5cadc2d5b92c8baf",
+      "stdoutDigest": "b432b252d8a952e65cf63d48c105972b5c232d5ca7660fddf5f018ad80a8cd01",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "73266d999ce45c06b6da924d6181c0c32b3dab85ba777d746bda8fab94ae83c5"
+      "evidenceHash": "db9430daf4ebe80c4c1e6a8579f52dba9ff2ca0f0dfb53e9e5778f9ea4fbeeb2"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-sam3.1-route-gates",
       "commandId": "npm.test:track-all-sam3.1-route-gates",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2708,15 +2795,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2732,7 +2819,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2744,7 +2831,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2759,31 +2846,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:23.776Z",
-      "completedAt": "2026-08-05T05:13:24.141Z",
+      "startedAt": "2026-08-05T06:04:53.713Z",
+      "completedAt": "2026-08-05T06:04:54.124Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "ee6de007ba90eb52e51472f4ac05e34aadaf26bb083cf0423834e8518c70eb7c"
+        "4f4816807d516360660c40aea92156472db50b73f4710b6927b841ed366d593a"
       ],
-      "stdoutDigest": "9f95ada8da25322d5d8f9a3a9aed067b8f2c5cea2eae1429bbe3d1fd1abf95e5",
+      "stdoutDigest": "620d94d8d2aa861a1c12fe463ef476729c618f7c448cc6d649b055efc64aa7ef",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "0507d3e9def92e1e2ebc551965f2a6ba2839dc0fe670c4ab82a8d49b58532601"
+      "evidenceHash": "da53889600d13ee319d6ba8597f6375f0641a82cfcf9fedc4bec3830357156b4"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-sam3.1-injected-session",
       "commandId": "npm.test:track-all-sam3.1-injected-session",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2795,15 +2882,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2819,7 +2906,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2831,7 +2918,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2846,12 +2933,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.141Z",
-      "completedAt": "2026-08-05T05:13:24.520Z",
+      "startedAt": "2026-08-05T06:04:54.124Z",
+      "completedAt": "2026-08-05T06:04:54.547Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d49f3ad88b748509d225dc9991c097859b45f1e22a820901413097c59287eb81"
+        "5efa6d434cdcd841072e38dfb2846161effc7b9bdaf9aca8f8ea1e8ca419e37c"
       ],
       "stdoutDigest": "1792dc48270b17fb3594d2d9d36a5ef33721106e4be281c1f40110a29e09abcc",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -2859,18 +2946,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "4fed4f651e93757cfd7e29d0d55e37927f7d07dea5d51bfa7d4c076527f54756"
+      "evidenceHash": "aad63b9ae926a33e20cdb26af9d98a0d81e62941817b0aebd14f15040ec397af"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-chunk-identity",
       "commandId": "npm.test:track-all-chunk-identity",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2882,15 +2969,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2906,7 +2993,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -2918,7 +3005,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -2933,31 +3020,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.520Z",
-      "completedAt": "2026-08-05T05:13:24.891Z",
+      "startedAt": "2026-08-05T06:04:54.547Z",
+      "completedAt": "2026-08-05T06:04:54.973Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "8f0d0529c37a2bec683585dcb6620be8c25e54b323c9b99d48ef8cbddcae8298"
+        "db5d0d944fe466c8c9b1619e6d82590dbace6460ad158093083c0c3bdf909a5b"
       ],
-      "stdoutDigest": "f030c677a6c63d0fbdf73941f33c1a44ebddb13c821a7253d4a355320c9397d6",
+      "stdoutDigest": "f81aba3940edbe395773b02ea2a01b1a32469b98d0b3ebd47e9723471fd57c47",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "5ed66a4465f56ff33d4f6677100bdd795edbea6913ecc0f98719d0a08ac146fb"
+      "evidenceHash": "ce019b6cbd5000520402324561c9ce863fbb450229cfee14cd54f0b99c32bf00"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-privacy-redaction",
       "commandId": "npm.test:track-all-privacy-redaction",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -2969,15 +3056,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -2993,7 +3080,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3005,7 +3092,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3020,31 +3107,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:24.891Z",
-      "completedAt": "2026-08-05T05:13:26.652Z",
+      "startedAt": "2026-08-05T06:04:54.973Z",
+      "completedAt": "2026-08-05T06:04:56.992Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "431d16dae56bbf894218168dd9db1ca329e7a044d825d2210187dca07c965677"
+        "4bad41b441a55e02df9e38d4a1492d1462b669b82b85ce67945a1b409000b2cb"
       ],
-      "stdoutDigest": "80d0dbe4823b46b4b6b56ce9093bca20d7f11ee5586c7a37f7ab4707702379bc",
+      "stdoutDigest": "88dfc3c347bb6571f1dc0ea2623d9a7855fa26809aa3ce22e1a9e0bf27edca61",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "a759c4ddbd52e78b0d62c436be3e74f39754548046c823103c431258935ba1e5"
+      "evidenceHash": "59abcd47589ffd481a3e75565eb11cb94d80a82cf9946c395187488ed37e27b2"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-focus-reframe",
       "commandId": "npm.test:track-all-focus-reframe",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3056,15 +3143,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3080,7 +3167,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3092,7 +3179,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3107,31 +3194,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:26.655Z",
-      "completedAt": "2026-08-05T05:13:32.948Z",
+      "startedAt": "2026-08-05T06:04:56.992Z",
+      "completedAt": "2026-08-05T06:05:04.222Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "b2074b4f4a63319e766e45c28e5784c86c904a92445471a68a3eeb5653f0e562"
+        "c490637b3e3ca3e13c310b7bf155d84b57398a978350534fa4fd42dc45059e6d"
       ],
-      "stdoutDigest": "51a4e6b3aad2aacf0bd6a9cae7128db2272be1d5873b69d0275f750c506a720b",
+      "stdoutDigest": "7d22261dca8a74c00f4e6243664ccdf60c0a594bc79cbd3538611c03b31ca267",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "e23328e5363942847e7ced27f1be8fe347f4e74f39bc035888a64588b4a72847"
+      "evidenceHash": "0a9d31432e2062a9c95539c3a669f58ea30afe3e2a4a03acc03026a4e8c604f1"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-cross-skill-handoffs",
       "commandId": "npm.test:track-all-cross-skill-handoffs",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3143,15 +3230,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3167,7 +3254,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3179,7 +3266,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3194,31 +3281,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:32.949Z",
-      "completedAt": "2026-08-05T05:13:33.375Z",
+      "startedAt": "2026-08-05T06:05:04.223Z",
+      "completedAt": "2026-08-05T06:05:04.851Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "8d61f7f9467318bb3360fa8a99deba6bf1ff333db8e7b4a1800fab6b5beee1b1"
+        "571a0c317be091dea631ad57817a85cabd5c17a6d93abc11a3834a57f2d38a27"
       ],
-      "stdoutDigest": "b2471cb171ca3843390d48d33cbda9475304afc51a63fca7880ee5c244c4c6db",
+      "stdoutDigest": "06689d9999fd84f89a210a35e47bdc6dd26984735f4d2229e7c636c07adaee55",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f1688bd762a8fdb9003eb37595ae9378f7f4ab67059670ff4431975fb0b7cea7"
+      "evidenceHash": "157ae75c6074f8dda85fd58d04116be0bb6519aa1e19ed13843e56f901bc499f"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-independent-qa-repair",
       "commandId": "npm.test:track-all-independent-qa-repair",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3230,15 +3317,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3254,7 +3341,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3266,7 +3353,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3281,31 +3368,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:33.376Z",
-      "completedAt": "2026-08-05T05:13:33.796Z",
+      "startedAt": "2026-08-05T06:05:04.851Z",
+      "completedAt": "2026-08-05T06:05:05.588Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "2903331a2a1c94755d95aee0577bfc7b03a5a4572112f6b223057845406d137c"
+        "8c597f4d666bbd432d13ca5e3cc7f914ce1cc8f4058a507c6cd562eb1e4ffc6b"
       ],
-      "stdoutDigest": "05d881598a726c18fe1a3bb1438dd794d448a7622e09ab09f48db820f9a377f6",
+      "stdoutDigest": "7cc4bb657fced2fec5ac30acc303355c66117f88e2a7587654fd503dd250f930",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "c5ecd312b7c27baab587c1f7c1b4bdd9006923ec14cd650dcc284a3039502bc4"
+      "evidenceHash": "0b6b132e21051e70b65de86e133868e05d31a6e41b77436e4a252937dfadec0f"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-runtime-bindings",
       "commandId": "npm.test:track-all-runtime-bindings",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3317,15 +3404,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3341,7 +3428,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3353,7 +3440,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3368,31 +3455,118 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:33.796Z",
-      "completedAt": "2026-08-05T05:13:34.473Z",
+      "startedAt": "2026-08-05T06:05:05.588Z",
+      "completedAt": "2026-08-05T06:05:06.461Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "92de13b725a1ea6da88658d827843d0372ef30cd32b6835cf3aa1308ff876d9e"
+        "c34eec074a37d3079584833c9358ff91dd1eaacce480de6c1972bb65928c7bbe"
       ],
-      "stdoutDigest": "7558fecc5b3af1ddcc42aaf1f261745dccfe07919e77a1701b2e52fcec303550",
+      "stdoutDigest": "b919e7259cec9fa8194c4665a8742a3e1143d09f3af9e60cabfdfeea17fd952c",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "6a4ac0d511209374f2dea7bba1135686cad4986769a5a3358f217389a4929278"
+      "evidenceHash": "2815c578163ae2498a71e2622c335f0c76adf59285c85179c904484c934f39d6"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
+      "fixtureKey": "command.test:track-all-canonical-private-runtime",
+      "commandId": "npm.test:track-all-canonical-private-runtime",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
+      "dependencyAuthorityHashes": [
+        {
+          "authorityKey": "shared_assignment_authorities",
+          "authorityHash": "f8dc76e1a03b9903044ce7a4212e5ffef583330ccad8eba44a57e9e641037389"
+        },
+        {
+          "authorityKey": "generic_edit_skill_kernel",
+          "authorityHash": "9e3057a3e9eaa67d6c9c5c41a86cf800bdd3eebb36b7ab95d0178fea8399081b"
+        },
+        {
+          "authorityKey": "track_all_manifest_and_plugin",
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
+        },
+        {
+          "authorityKey": "track_all_artifact_schema_catalog",
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
+        },
+        {
+          "authorityKey": "track_all_work_graph_and_bindings",
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
+        },
+        {
+          "authorityKey": "shared_track_graph_v1_v2",
+          "authorityHash": "271477c919cffc03c1723d251243df4be58a9d02c8ff31af21b8efdcd08167c6"
+        },
+        {
+          "authorityKey": "planning_and_independent_qa",
+          "authorityHash": "e9d5a5775965071b23ac8254889a85ec901c8893ae13a1cabfb15c5a90ecfd03"
+        },
+        {
+          "authorityKey": "ffprobe_ffmpeg_private_media",
+          "authorityHash": "87112e4d0961e36f8293dfb3a4659788c69e7219f628141dedc435a3f85c8fd5"
+        },
+        {
+          "authorityKey": "opencv_pyscenedetect_geometry",
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
+        },
+        {
+          "authorityKey": "remotion_private_track_all_treatments",
+          "authorityHash": "d8e9945e69caffeaab72cdfe97b39f39eca39e9b6c0684789606a095abf6d120"
+        },
+        {
+          "authorityKey": "privacy_redaction_runtime",
+          "authorityHash": "2a1de4ad9a20c3ef7c19a9af9d938df2dd1c7cec9ae5d4b482557034729f8c44"
+        },
+        {
+          "authorityKey": "visual_intelligence_dependency_contract",
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
+        },
+        {
+          "authorityKey": "sam3_1_track_masklets_v2_operation",
+          "authorityHash": "30c2b8a4e9f02900ec4ecf5c2c6f252b300ef83b9f244f322bd059cdbf2bd864"
+        },
+        {
+          "authorityKey": "sam3_1_source_checkpoint_authority",
+          "authorityHash": "cb5acd1ca648a504e6de3540e57cfd402ca3f72d42eececc5f9f6d0166f94178"
+        },
+        {
+          "authorityKey": "sam3_1_runtime_image_authority",
+          "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
+        }
+      ],
+      "startedAt": "2026-08-05T06:05:06.461Z",
+      "completedAt": "2026-08-05T06:05:17.245Z",
+      "exitStatus": 0,
+      "passed": true,
+      "evidenceArtifactHashes": [
+        "1742bfb963edfbc5522f3df588798e3e3c081335e25c04921e9bcbd9d57713d4"
+      ],
+      "stdoutDigest": "7e2ea1eff451c3bc46aea1a7069eacec7af4a134d8739fa512bd7c5f0dcf2c03",
+      "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "environmentClass": "local_internal_qualification",
+      "providerRequestCount": 0,
+      "publicArtifactCount": 0,
+      "productionMutationCount": 0,
+      "evidenceHash": "076d78d01370027a0c1a8a301113e4773e6bf5823dbaeaaf9de68789f04e4adb"
+    },
+    {
+      "schemaVersion": "skill-qualification-fixture-evidence-v1",
+      "skillKey": "track_all",
+      "skillVersion": "1.0.0",
+      "contractVersion": "track_all.skill_contract.v1",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-public-plugin-e2e",
       "commandId": "npm.test:track-all-public-plugin-e2e",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3404,15 +3578,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3428,7 +3602,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3440,7 +3614,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3455,31 +3629,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:34.473Z",
-      "completedAt": "2026-08-05T05:13:35.383Z",
+      "startedAt": "2026-08-05T06:05:17.246Z",
+      "completedAt": "2026-08-05T06:05:18.290Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d2579669083f42b2b0cb5803a002c8947f279811f8a2fddbefb66c90a6fbb378"
+        "17969d8d91ae1371be0ce4a0e9a1aae8449e37e55b5257fd3c4e2b1239b9e897"
       ],
-      "stdoutDigest": "dfe93635b4fb472c54f24fa48e88d6e72e41c6cb089ed523fcb82ac1eb54bc97",
+      "stdoutDigest": "6217e28c3c615433249908e8a2d8a43456073585683949d6196650f63d872190",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1"
+      "evidenceHash": "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-qualification-evidence",
       "commandId": "npm.test:track-all-qualification-evidence",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3491,15 +3665,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3515,7 +3689,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3527,7 +3701,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3542,31 +3716,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:35.383Z",
-      "completedAt": "2026-08-05T05:13:35.773Z",
+      "startedAt": "2026-08-05T06:05:18.290Z",
+      "completedAt": "2026-08-05T06:05:18.686Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "650e69844336a7f3bb32b01dfe1bd8b27478acb28f06de8e535a32e221564d13"
+        "46c87484ef1ed91019f03690dd57c3676e8638f0883e925478131e60095a2238"
       ],
-      "stdoutDigest": "aba0d51bcd1ec54abc2ad8855410c17cbfb9517da878e944c8f8c6c917d545f7",
+      "stdoutDigest": "70c68da2f56d2c7fc1e0d01e70edd38b469d584991e2c499fb9863e1135445f3",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "7d7cb6263a82cd06885414a3762ebd76de07c0220d94857b299f3aeb9c3dc04b"
+      "evidenceHash": "cc9728c5317f6c27a95b580f210b71040159e129b2eba79e690a93f960af9c68"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:track-all-retirement",
       "commandId": "npm.test:track-all-retirement",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3578,15 +3752,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3602,7 +3776,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3614,7 +3788,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3629,31 +3803,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:35.773Z",
-      "completedAt": "2026-08-05T05:13:36.120Z",
+      "startedAt": "2026-08-05T06:05:18.686Z",
+      "completedAt": "2026-08-05T06:05:19.042Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "dea9778845e893e1f5f08a145c36943de8cf749961a3dead21645301de8df79e"
+        "2ec745bffda22f83800ef692ef71319e07d797672f3fe268d6fc89f31b65906b"
       ],
-      "stdoutDigest": "86737c41dd15163321db010393aa52e477fc789a07cc622daccfea25a5f1dca1",
+      "stdoutDigest": "d91e54f3731f83fe7e0418683da19fac5fbd9535ffeaf9c8e89e4fb4a7b49e9c",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "69d9a357938bcbd1bf06f338acf3707a9cd2290f5d61cc7e6e452e204d317ffd"
+      "evidenceHash": "3fcb1f19345fa79dcdac46710b5fc7fa0d48f9b2076160afb2ecacdbfd81b737"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.validate:skill-capability-manifests",
       "commandId": "npm.validate:skill-capability-manifests",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3665,15 +3839,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3689,7 +3863,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3701,7 +3875,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3716,31 +3890,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:36.120Z",
-      "completedAt": "2026-08-05T05:13:36.697Z",
+      "startedAt": "2026-08-05T06:05:19.042Z",
+      "completedAt": "2026-08-05T06:05:19.617Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "8232334cfcfcadd25c4823630f769a4be227f071538783d8831dcc67e32a3517"
+        "6c63545b5ddb62840ba3c586cc3ba9d03dddfb71fc887996cf5392a275c1698b"
       ],
-      "stdoutDigest": "7bdbd7d8b580c0996750014b8e286beb1f2c553ec0f7cc8da8f1893bcf316eef",
+      "stdoutDigest": "4c1bddb2145371e4b473cf57183213c3b43f177460232464f4459ec6d79cb958",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "544a1f5229498b7c3c05e35501ddd57fa5bb9c4c369096d99cdfe7928d2c7406"
+      "evidenceHash": "33dc0f2963ba61e99e2644ca67914bcade7068fe6fd6da6c8ac1615e565de6ee"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.test:edit-skill-capability-kernel",
       "commandId": "npm.test:edit-skill-capability-kernel",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3752,15 +3926,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3776,7 +3950,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3788,7 +3962,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3803,12 +3977,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:36.697Z",
-      "completedAt": "2026-08-05T05:13:37.057Z",
+      "startedAt": "2026-08-05T06:05:19.617Z",
+      "completedAt": "2026-08-05T06:05:19.987Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "3f5985469de65428f87cfa5514c8795ff9155686cf5c04c33ff978b9219a99b2"
+        "3f93e823deef05e7896d37660788ad8ee2553da3feba0ec104d362218bac44fc"
       ],
       "stdoutDigest": "c514eb77bd3a13681ab2dfa2b23945d0cf544852ab0646a008cafd4cd5aa40fa",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3816,18 +3990,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "92f449d5d4fca7db818ca20b047c30bf0ab3cba21b4dade5ea042faa927fd72a"
+      "evidenceHash": "dd4838fe6db57cd19f098d1adf92a77da48cc0af387095157ef9f5a6a0687f34"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.smoke:runtime-api-security",
       "commandId": "npm.smoke:runtime-api-security",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3839,15 +4013,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3863,7 +4037,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3875,7 +4049,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3890,31 +4064,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:37.057Z",
-      "completedAt": "2026-08-05T05:13:39.165Z",
+      "startedAt": "2026-08-05T06:05:19.987Z",
+      "completedAt": "2026-08-05T06:05:22.570Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "09bf4f573b8b00893b101a76262f243bf5ff789b05d6cb20ee226bccaa61f3d0"
+        "9a6bbac911508ac7210f7850c1ec471dce59fcafe2d2df1183822e7b4206fcdd"
       ],
       "stdoutDigest": "8863cee8cb96ba74586e53c128a8c83098922aa352fa8dcb318f424761cc47f9",
-      "stderrDigest": "36dad0046c7ac298ce1c63f47ddfbfea211243830801bdb34a63065db296a18d",
+      "stderrDigest": "5d094db9a924709114992a6f3442cc0f7ff6f7980ff9dc1c38ca661ba7b355ba",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "6db3107d1fe91c675b80053641c1075ad40d363f807a76de1930510ee3f26d22"
+      "evidenceHash": "aa31df7844615b21825c794d20ac0cf65a806f062cf1d53e4561ca3b7739c3e0"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.smoke:edit-execution-security-boundary",
       "commandId": "npm.smoke:edit-execution-security-boundary",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -3926,15 +4100,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -3950,7 +4124,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -3962,7 +4136,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -3977,31 +4151,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:39.165Z",
-      "completedAt": "2026-08-05T05:13:41.307Z",
+      "startedAt": "2026-08-05T06:05:22.570Z",
+      "completedAt": "2026-08-05T06:05:24.714Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "2e24b21b13e75dbfe3d8c813bf7fbbdbcf1ecc24f4b0f8ebb57bd97fa9c2c766"
+        "6ec4fd6c50ad0fc08c5f78d1e6f8c5927d40ec2ad13aba64e8bcfb3fe45e21df"
       ],
       "stdoutDigest": "2e4cf3bd3f1e8866e2a2895ebaa96d9adb47337701e15c830b0bddb4d676b262",
-      "stderrDigest": "78893a0df8e94342a8cbabac1b269b86f8dd9e4a102f82236634428c594b85b5",
+      "stderrDigest": "3f16cf7f17b28087a6cf750553f46f80bb4a5bc84453d67982e78028572efe0a",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "e8e4a5ee869ca557af68994baebe21d281761990c2c569ec89671bbc9dd1dd17"
+      "evidenceHash": "055daf0cd7199d311322d4074f3883a7def2d2f673ef485c328962486359596a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.build",
       "commandId": "npm.build",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -4013,15 +4187,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -4037,7 +4211,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -4049,7 +4223,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -4064,31 +4238,31 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:41.307Z",
-      "completedAt": "2026-08-05T05:13:51.907Z",
+      "startedAt": "2026-08-05T06:05:24.714Z",
+      "completedAt": "2026-08-05T06:05:35.354Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "e4083bc667c9e14b286781ff664361ca0b6d47edfca2e3c3912508676a464fd0"
+        "a919036368a16e12e029932ee68734aefbc3059228a5ffc09e2dd9523d7d05dd"
       ],
-      "stdoutDigest": "e86254728ea17011111e2f42b047ab619a3797854fc942d99e4b10b8ca67ac0a",
+      "stdoutDigest": "cfd4aec2cd92f0df25db63450703592eb9deaa46b046d63226eda8b8998440a1",
       "stderrDigest": "d0aad281cd654734a5aa2da4ed27b2c92510705c6b77ada9ead8011e3f768fa4",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f8f3f988d80746ae9ca40dbf4f9dd22bbade846c48a2eb24b647c618f6000681"
+      "evidenceHash": "789dfeba3d57bc303c92ad671b0556978923316b6c10de781e0cbbce1c8d5e9d"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.typecheck:server",
       "commandId": "npm.typecheck:server",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -4100,15 +4274,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -4124,7 +4298,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -4136,7 +4310,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -4151,12 +4325,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:13:51.907Z",
-      "completedAt": "2026-08-05T05:14:19.162Z",
+      "startedAt": "2026-08-05T06:05:35.354Z",
+      "completedAt": "2026-08-05T06:06:03.516Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "65529cb338adafc926950e5ffaaa7808b159e95eecf31e04348d336a7f65a475"
+        "a6491673846cddc833b9339f9565c2bdc4ea5c6f7f678d77fc3f7a08ebeab7a3"
       ],
       "stdoutDigest": "660279b3fe57ad2c9d32ca3d0a3da9b94e8d3b5b85e14f8cbd68bba09cd0ceec",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4164,18 +4338,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "8ea96f7c980d6fd6494beb91727b7f84dca0d7b84917c0cbd699275b0c5224d3"
+      "evidenceHash": "3296e7b4aec8055889fbc9910c8309a0cb0ce5c1e005e3890ea9a5fd1047ed0f"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.lint",
       "commandId": "npm.lint",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -4187,15 +4361,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -4211,7 +4385,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -4223,7 +4397,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -4238,12 +4412,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:14:19.163Z",
-      "completedAt": "2026-08-05T05:14:54.941Z",
+      "startedAt": "2026-08-05T06:06:03.517Z",
+      "completedAt": "2026-08-05T06:06:40.021Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "bdd566293314f6d925e16a79f1572cd0da92f953c54b7582da46523a874b8533"
+        "3a05fd070a8e25c8fe5fa1322a6d8e45d10143a6f5ad02ff3eabd343a9c9eec6"
       ],
       "stdoutDigest": "28f42b817f7241cde58e973824dd0081ac6589fcef5e35feb864cb6158f2a04e",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4251,18 +4425,18 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "25c4d6c05549d4a8ed02c1b0c460ef781171e40135973c78afb32d1879f93b58"
+      "evidenceHash": "498286c7befde1b55525d138f023ba08518928e9eb0c3c7e2b640713648b0317"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215",
       "fixtureKey": "command.check:frontend-boundary",
       "commandId": "npm.check:frontend-boundary",
-      "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-      "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+      "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+      "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
       "dependencyAuthorityHashes": [
         {
           "authorityKey": "shared_assignment_authorities",
@@ -4274,15 +4448,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "track_all_manifest_and_plugin",
-          "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+          "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
         },
         {
           "authorityKey": "track_all_artifact_schema_catalog",
-          "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+          "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
         },
         {
           "authorityKey": "track_all_work_graph_and_bindings",
-          "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+          "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
         },
         {
           "authorityKey": "shared_track_graph_v1_v2",
@@ -4298,7 +4472,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "opencv_pyscenedetect_geometry",
-          "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+          "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
         },
         {
           "authorityKey": "remotion_private_track_all_treatments",
@@ -4310,7 +4484,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "visual_intelligence_dependency_contract",
-          "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+          "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
         },
         {
           "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -4325,12 +4499,12 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "dd75b29bd5b18fa887d84d70c0f71e5c857c4bfb5619e9d5a4927b7b76d5f880"
         }
       ],
-      "startedAt": "2026-08-05T05:14:54.942Z",
-      "completedAt": "2026-08-05T05:14:55.198Z",
+      "startedAt": "2026-08-05T06:06:40.022Z",
+      "completedAt": "2026-08-05T06:06:40.317Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "a1b9a4afabb48998c31c54bb20370686cc61865ab5f9f76dea879a5aac18afc1"
+        "5b58607a3d9b5db48ecbf71d5cea36d13738c13d7206c8b90771aedbf59b39d3"
       ],
       "stdoutDigest": "19cbc3eb4ad7e63b472d001f00fbeb54c6d9cc7a4aec9a4debb672287c71b182",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4338,7 +4512,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "a407a598b7de8a98965913bf76dfbd2c35ed5f32db7b24da8d37e5006c88c819"
+      "evidenceHash": "e0b01f2a34d46f17db4410459a8d11337fe9af326f19d2922bd0000d36a43d33"
     }
   ],
   "routeQualifications": [
@@ -4347,146 +4521,149 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "qualificationStatus": "planning_qualified",
       "evidenceClass": "actual_planning_command_evidence",
       "commandEvidenceHashes": [
-        "d2d7487e3d6f3217b9705e0f4f70f5cf0d866e8e53410550ce5caab280e6dc6a",
-        "45ea9234c028cb4801fcf12af80c633d0651f5fec465ad7e296dc18426b4d022",
-        "07e34623d9a09fd01e2884ac5a33a90294a9fe255fc6a6dca2a8d3068b07fe44",
-        "6f706f09e79b5ed210b640e3f419599cc124ab2aca09454baae0bf6cc40d15f0"
+        "41405023c66afc86b786716f7f1949e89a1ccb04cab5a25d5a1d9192ef4f5381",
+        "58b56305c1f39942872fbb10043ad29bcbd9f00aa3bf78875f26d178774f8104",
+        "0ac194045ea489b0c561d8260a2d9c8d9f6830eb9bf46cbadfec094a0eda8578",
+        "6650d51ede6f1468c334a2699f2f9c517527b910b1e08a3bc8ab950e5f406641"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "Planning contracts, authorities, estimators, and independent QA passed actual commands.",
-      "routeEvidenceHash": "603bb25e998d3e463f060313ca40985d91bd6290ea2745892888ce211139026e"
+      "routeEvidenceHash": "068a254cdc0933f68c808b3f946e1ebacf96a9b67dcf53c2e6223f8420b39c01"
     },
     {
       "routeKey": "deterministic_geometry_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_deterministic_private_fixture_evidence",
       "commandEvidenceHashes": [
-        "4b12f28311b6ae838ffabdca21e94842e8eca11670e5c6180f1586b15a7fac1a"
+        "b5ddcfde2f5bfb18cd8171885c2ee983b6c46bb651ecd5b3604b0d52d0c2b53a",
+        "076d78d01370027a0c1a8a301113e4773e6bf5823dbaeaaf9de68789f04e4adb"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "8fe50347cf33efd49ace5e288412058a42854725ab54eddfa91722c4dd06c3ee"
+      "routeEvidenceHash": "f96fb952c680ca4cfc2a43c6b71a05924d8385243332d39fabe136b78dfbf360"
     },
     {
       "routeKey": "planar_tracking_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_deterministic_private_fixture_evidence",
       "commandEvidenceHashes": [
-        "4b12f28311b6ae838ffabdca21e94842e8eca11670e5c6180f1586b15a7fac1a",
-        "6f706f09e79b5ed210b640e3f419599cc124ab2aca09454baae0bf6cc40d15f0"
+        "b5ddcfde2f5bfb18cd8171885c2ee983b6c46bb651ecd5b3604b0d52d0c2b53a",
+        "6650d51ede6f1468c334a2699f2f9c517527b910b1e08a3bc8ab950e5f406641",
+        "076d78d01370027a0c1a8a301113e4773e6bf5823dbaeaaf9de68789f04e4adb"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "a4ed17d65798c57a9fb2fe6b6f5ac6c0b55353db93c92bd2e26161cd51f1f5f4"
+      "routeEvidenceHash": "d455c7dc257262c062c6b2f33713dbe4e8128823d573a325f9926b64d6180749"
     },
     {
       "routeKey": "existing_track_repair_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_deterministic_private_fixture_evidence",
       "commandEvidenceHashes": [
-        "c5ecd312b7c27baab587c1f7c1b4bdd9006923ec14cd650dcc284a3039502bc4"
+        "0b6b132e21051e70b65de86e133868e05d31a6e41b77436e4a252937dfadec0f"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "8a94676e1d24e625d7517ca87b0dac228d558b873c8495f9a2df0838bbf03633"
+      "routeEvidenceHash": "7acd1eabd1c4f89d4455b9c6bd8d6209b0e9aae865df8373d4c6026b1d88c80e"
     },
     {
       "routeKey": "privacy_redaction_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_deterministic_private_fixture_evidence",
       "commandEvidenceHashes": [
-        "a759c4ddbd52e78b0d62c436be3e74f39754548046c823103c431258935ba1e5"
+        "59abcd47589ffd481a3e75565eb11cb94d80a82cf9946c395187488ed37e27b2"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "b3fff15972351127c279a66de9e3178108f99e7b3ffd92ba90c637fb644f020c"
+      "routeEvidenceHash": "79e6797e9138fe1d50641db9d0ff91025f384e7ff98fd5c0653a41cadc5918c4"
     },
     {
       "routeKey": "focus_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_deterministic_private_fixture_evidence",
       "commandEvidenceHashes": [
-        "e23328e5363942847e7ced27f1be8fe347f4e74f39bc035888a64588b4a72847"
+        "0a9d31432e2062a9c95539c3a669f58ea30afe3e2a4a03acc03026a4e8c604f1"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "60cf456db60c604ebe2fba2eedee7ce811e9aa2512a062658ca05d4e8d143a4f"
+      "routeEvidenceHash": "9184a77eeac617745e196b524742e34831fdc1705de039a9317d55a5297060b7"
     },
     {
       "routeKey": "reframe_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_deterministic_private_fixture_evidence",
       "commandEvidenceHashes": [
-        "e23328e5363942847e7ced27f1be8fe347f4e74f39bc035888a64588b4a72847"
+        "0a9d31432e2062a9c95539c3a669f58ea30afe3e2a4a03acc03026a4e8c604f1"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "d2be6b7eb67f7bcf6a514fe563cd932eb073fdfab89d47d4dd3cf365416d8158"
+      "routeEvidenceHash": "08544aa8153ecee87d2eb42ef5d102fb5a2a7a50f2fe5fbe053ef828bcc1df43"
     },
     {
       "routeKey": "public_plugin_lifecycle_route",
       "qualificationStatus": "internal_execution_qualified",
       "evidenceClass": "actual_injected_private_lifecycle_evidence",
       "commandEvidenceHashes": [
-        "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1"
+        "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09",
+        "076d78d01370027a0c1a8a301113e4773e6bf5823dbaeaaf9de68789f04e4adb"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "The bounded deterministic or injected-private route passed its actual fixture command; this is not real SAM or production evidence.",
-      "routeEvidenceHash": "ffce981b3b266a6ce6e8004cc777e576d3bac6dddc134b96bf138fec6d149d06"
+      "routeEvidenceHash": "3c11d99f50ecc85d78c10a1856b98d5850a65b99f3985f07f2f0c5b0d15e4a7c"
     },
     {
       "routeKey": "sam3_1_masklet_route",
       "qualificationStatus": "blocked",
       "evidenceClass": "missing_external_sam_evidence",
       "commandEvidenceHashes": [
-        "73266d999ce45c06b6da924d6181c0c32b3dab85ba777d746bda8fab94ae83c5",
-        "0507d3e9def92e1e2ebc551965f2a6ba2839dc0fe670c4ab82a8d49b58532601",
-        "4fed4f651e93757cfd7e29d0d55e37927f7d07dea5d51bfa7d4c076527f54756"
+        "db9430daf4ebe80c4c1e6a8579f52dba9ff2ca0f0dfb53e9e5778f9ea4fbeeb2",
+        "da53889600d13ee319d6ba8597f6375f0641a82cfcf9fedc4bec3830357156b4",
+        "aad63b9ae926a33e20cdb26af9d98a0d81e62941817b0aebd14f15040ec397af"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "Contracts and injected lifecycle passed; gated checkpoint, strict load, private GPU inference, quality, and cost evidence are absent.",
-      "routeEvidenceHash": "3dcff6426d16d58d23aa519b458304d72b25df16833f13a9b1d55135ad30fdb9"
+      "routeEvidenceHash": "ee4f949c4f880821a60adb8bd12ee73a6eced01859bf47dc1b9be196612e56da"
     },
     {
       "routeKey": "production_worker_route",
       "qualificationStatus": "blocked",
       "evidenceClass": "missing_production_evidence",
       "commandEvidenceHashes": [
-        "6a4ac0d511209374f2dea7bba1135686cad4986769a5a3358f217389a4929278"
+        "2815c578163ae2498a71e2622c335f0c76adf59285c85179c904484c934f39d6"
       ],
       "actualSamInferenceObserved": false,
       "productionWorkerObserved": false,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
       "summary": "Production worker, durable private store, release, monitoring, and security evidence are intentionally absent.",
-      "routeEvidenceHash": "6b528cbd590e75d2dacb104c66172a39284c00005f2f4675e39393cfd01a7f4b"
+      "routeEvidenceHash": "81c37f0483af54840ce262f1c5e8ec4db3e7e927d1d679d7aebe5e6b641ba123"
     }
   ],
   "actualSamRequestCount": 0,
@@ -4499,11 +4676,11 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "skillKey": "track_all",
       "skillVersion": "1.0.0",
       "contractVersion": "track_all.skill_contract.v1",
-      "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454"
+      "manifestHash": "3f79cde02eaad0af7edb53b10d4bca9dba199cfd02e5177998411e9226d2a215"
     },
     "qualificationStatus": "planning_qualified",
-    "testedCommitSha": "8804889332e1e6ebec51211ce085fc0d6d4eec6e",
-    "relevantSourceTreeHash": "56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e",
+    "testedCommitSha": "0c758af387f7fedcd70763090d8de3b3364bcf7e",
+    "relevantSourceTreeHash": "e9350e774d13c618119dc30c59c72cbc9b33521be27cf45d07d0a9196e7d0c61",
     "dependencyAuthorityHashes": [
       {
         "authorityKey": "shared_assignment_authorities",
@@ -4515,15 +4692,15 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       },
       {
         "authorityKey": "track_all_manifest_and_plugin",
-        "authorityHash": "030d588d55c2c59070c24f3e9f73c104d00b190a085c4612ed3896d5aecf32c1"
+        "authorityHash": "cc47d121443081b5b1a08f9321376718a770c75bf25baed443224bd6ed3e582d"
       },
       {
         "authorityKey": "track_all_artifact_schema_catalog",
-        "authorityHash": "c8357edceefbbd20b4f5d4541a4fac5a47c2813f4d9dd4af6d18f18142897c10"
+        "authorityHash": "b935153c4feecfbf7144cbb3ff4271f6228ef4ada13b3baa2023900b805e6c29"
       },
       {
         "authorityKey": "track_all_work_graph_and_bindings",
-        "authorityHash": "ac91938c8d69a2d114fcaff0847135ede66148ac4eee448982ee0c92aa773582"
+        "authorityHash": "893727389580ec7a5e472db4d16332d676137f7aee9742845e9ddf0d2df58f4c"
       },
       {
         "authorityKey": "shared_track_graph_v1_v2",
@@ -4539,7 +4716,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       },
       {
         "authorityKey": "opencv_pyscenedetect_geometry",
-        "authorityHash": "ff61b5f076b2a7223c844edd391b3bee2d967dd9c8eaeac6ccee6984ef61c906"
+        "authorityHash": "685b83048a72e52aa72c9751d1c84f80890b00407413c467e45a2ecc9e21ecad"
       },
       {
         "authorityKey": "remotion_private_track_all_treatments",
@@ -4551,7 +4728,7 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       },
       {
         "authorityKey": "visual_intelligence_dependency_contract",
-        "authorityHash": "b3d5c65fc4bb6d29d53dd68d4edbfd126f00345a7638cd20717733caa6860df7"
+        "authorityHash": "a730fce125b29f8f3c3b0a659701628350b91d4366311c467ebd7dffec1d233e"
       },
       {
         "authorityKey": "sam3_1_track_masklets_v2_operation",
@@ -4570,127 +4747,133 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       {
         "fixtureKey": "track_all.fixture.authority_rejections",
         "status": "passed",
-        "evidenceHash": "ca876c5e52e30edbc10e4be55822d27e9790215d27a8e03ae3bd87b8e0fefa81",
+        "evidenceHash": "4ffe87620c8f948848033a9e4a97cc963015873396b18368b12bc22b48e51fb1",
         "summary": "track_all.fixture.authority_rejections passed via npm.test:track-all-authority."
       },
       {
         "fixtureKey": "track_all.fixture.selected_targets",
         "status": "passed",
-        "evidenceHash": "fa829c61de3e8685d1f4d4ad4889691a93ac91557991e9a04d21b0dc62ff3e88",
+        "evidenceHash": "7949fda7cc38c8cf047f257e559aefb01344c085d8204d9c13df9ca5fdc54c24",
         "summary": "track_all.fixture.selected_targets passed via npm.test:track-all-public-plugin-e2e."
       },
       {
         "fixtureKey": "track_all.fixture.concept_exclusions",
         "status": "passed",
-        "evidenceHash": "4ff3b7c83c1e670daffd9e1a4b0755cbb7e7e032079c809fc9be8c8f044f0d73",
+        "evidenceHash": "37b255afa5e54ba1c4b1f0df614b0f9e91c8a81f39fa52c156ba71e11275df1a",
         "summary": "track_all.fixture.concept_exclusions passed via npm.test:track-all-public-plugin-e2e."
       },
       {
         "fixtureKey": "track_all.fixture.target_ambiguity",
         "status": "passed",
-        "evidenceHash": "b4dbd7aa9061f7d6f660f9a5ed511f4081a63bea67a8facd37bc85128c90dd1a",
+        "evidenceHash": "a87b8bb4ca0a4fc2bdbbb71b4134a3c5ad2b21fec387d8f617e971962ee94eb4",
         "summary": "track_all.fixture.target_ambiguity passed via npm.test:track-all-planning."
       },
       {
         "fixtureKey": "track_all.fixture.occlusion_reentry_identity",
         "status": "passed",
-        "evidenceHash": "8a73056e82f570b3e82445d1c7cbcd0ac50780331087ffed3715c6a04cf76b1e",
+        "evidenceHash": "95a410fa52b008b8261f32a8a5b671cfc8bdf60f0902a667b7fc4d7169b09050",
         "summary": "track_all.fixture.occlusion_reentry_identity passed via npm.test:track-all-chunk-identity."
       },
       {
         "fixtureKey": "track_all.fixture.shot_chunk_overlap",
         "status": "passed",
-        "evidenceHash": "46e625cde898a27a48955ffda77509624bf8b45998b5097655f1e57cbab097cc",
+        "evidenceHash": "31325fc70597b9367c7546dcab45e711adf2a0907bc231bdc06276b2e1b87a9e",
         "summary": "track_all.fixture.shot_chunk_overlap passed via npm.test:track-all-chunk-identity."
       },
       {
         "fixtureKey": "track_all.fixture.multiplex_budgets",
         "status": "passed",
-        "evidenceHash": "b43f1cfae11d1c90577651941a4f29dd7138f5f05fda4e6c0e27f48c688e4383",
+        "evidenceHash": "9236ea13881a4bcb640a870adaea68f185892c72313188bd1140f9df7c9fc0d1",
         "summary": "track_all.fixture.multiplex_budgets passed via npm.test:track-all-planning."
       },
       {
         "fixtureKey": "track_all.fixture.privacy_fail_closed",
         "status": "passed",
-        "evidenceHash": "f777245b3019b64a0576cffd7c930624ae1cd206f472dbd7c2e67417b763833b",
+        "evidenceHash": "3b2f2205ef674e728eaa758f41656d85eb9ed922251d05f3e574c8c6eaf27b00",
         "summary": "track_all.fixture.privacy_fail_closed passed via npm.test:track-all-privacy-redaction."
       },
       {
         "fixtureKey": "track_all.fixture.flattened_privacy_preview",
         "status": "passed",
-        "evidenceHash": "9c45cb1f49fbdcc7273bbee367b3a43165451add6efc5d65ae2df73d6c925f5f",
+        "evidenceHash": "b18f7f3d7f947b48426676328e02ad586df33526d9c05df97bd22d3e6afe044c",
         "summary": "track_all.fixture.flattened_privacy_preview passed via npm.test:track-all-privacy-redaction."
       },
       {
         "fixtureKey": "track_all.fixture.camera_motion",
         "status": "passed",
-        "evidenceHash": "d77aa32e2dc2715b5165f1366a609ce7f79b80c0b25476673a7367c9de6b4b49",
+        "evidenceHash": "d41df4f82c1a35da7ce775385cb12f0eaba323217af7ce6bcef16d2dc13e98d0",
         "summary": "track_all.fixture.camera_motion passed via npm.test:track-all-deterministic-geometry."
       },
       {
         "fixtureKey": "track_all.fixture.planar_homography",
         "status": "passed",
-        "evidenceHash": "af581b4842f0f207daef3d22f5e689f8c65febef2ee26530bda9c3a0de797ace",
+        "evidenceHash": "a92a51e3f22c69e73b326792289a934bb6832387693988d60c365d98212b1a01",
         "summary": "track_all.fixture.planar_homography passed via npm.test:track-all-deterministic-geometry."
       },
       {
         "fixtureKey": "track_all.fixture.focus_treatments",
         "status": "passed",
-        "evidenceHash": "5031c2e1091cf548d887757775c0fa605e99a47408c76f9ce31d195543fad456",
+        "evidenceHash": "9cce5b1dc464c2921456706d269adae7eea604896bf02380c34fcfe5771d7502",
         "summary": "track_all.fixture.focus_treatments passed via npm.test:track-all-focus-reframe."
       },
       {
         "fixtureKey": "track_all.fixture.reframe_trajectories",
         "status": "passed",
-        "evidenceHash": "aef14486d15806a3b576ff4f770063fba16c060ad04239429bc4d42dbdbd7dd7",
+        "evidenceHash": "89e74798f1661a06305bb4d4d1cfd544c5a92ae8f48e0a2c84b0f25f7a4ab2c4",
         "summary": "track_all.fixture.reframe_trajectories passed via npm.test:track-all-focus-reframe."
       },
       {
         "fixtureKey": "track_all.fixture.visual_intelligence_dependency",
         "status": "passed",
-        "evidenceHash": "03d9228b957e8514a1a4f0f5d39f3b422848cfccc1bbfadf0f6badab54bb77fa",
+        "evidenceHash": "fa83173e8f06cab4b57e5cf2f4b5df3eeebe91bf0658aa604080ece9f5002caf",
         "summary": "track_all.fixture.visual_intelligence_dependency passed via npm.test:track-all-public-plugin-e2e."
       },
       {
         "fixtureKey": "track_all.fixture.track_graph_compatibility",
         "status": "passed",
-        "evidenceHash": "6cd27cef0a21d0d75808e12b4a3637e9b59afaf30d38a039b1c9cab0ed07d9e3",
+        "evidenceHash": "7200688ec6059e5689c8f425c37a332d78fe377a60cac80707b322832f478b27",
         "summary": "track_all.fixture.track_graph_compatibility passed via npm.test:track-all-cross-skill-handoffs."
       },
       {
         "fixtureKey": "track_all.fixture.bounded_repairs",
         "status": "passed",
-        "evidenceHash": "65b2dc9a898942eea9cf7726721406036a73798b4a32ff2f1f24097afddeea60",
+        "evidenceHash": "7791e17d7b6cbc71ed4dc1b86a80ae6b5ac34b0f3d11b4de93597efc7d229ed0",
         "summary": "track_all.fixture.bounded_repairs passed via npm.test:track-all-independent-qa-repair."
       },
       {
         "fixtureKey": "track_all.fixture.session_terminal_close",
         "status": "passed",
-        "evidenceHash": "4b3a9a28079af6bac41c00e97139cee3cd44a7e7817b453a5d45d4744001a9ca",
+        "evidenceHash": "2c6eeb2decd1a98adc2d0b77350829dcbc6d50577ad569254a11e925845c9d72",
         "summary": "track_all.fixture.session_terminal_close passed via npm.test:track-all-sam3.1-injected-session."
       },
       {
         "fixtureKey": "track_all.fixture.runtime_security",
         "status": "passed",
-        "evidenceHash": "80652d260bfbb83da1ad28869c9f4ac5bd60f212101edc321c9a6ae435a3f26c",
+        "evidenceHash": "12a447545eb97945f244ee409dc17967532b56c2f4df89e7f9926740eb1209fd",
         "summary": "track_all.fixture.runtime_security passed via npm.test:track-all-sam3.1-operation-authority."
       },
       {
         "fixtureKey": "track_all.fixture.public_plugin_lifecycle",
         "status": "passed",
-        "evidenceHash": "99c86c63cc992cb602d025c275042f091d9f85abc85c4ad9f2c49f99f26cb798",
+        "evidenceHash": "edad9140df3bd690114c9205c1b8aa227292da229adad39e474d23852a44d62b",
         "summary": "track_all.fixture.public_plugin_lifecycle passed via npm.test:track-all-public-plugin-e2e."
+      },
+      {
+        "fixtureKey": "track_all.fixture.canonical_private_runtime",
+        "status": "passed",
+        "evidenceHash": "62424b2fb5ccad990dfd22da2f8982c773cfa1a8486f90870ed390296619ed68",
+        "summary": "track_all.fixture.canonical_private_runtime passed via npm.test:track-all-canonical-private-runtime."
       },
       {
         "fixtureKey": "track_all.fixture.legacy_retirement",
         "status": "passed",
-        "evidenceHash": "4caa88cd486b4f4ff0c56584e17f1301f2a8920b532baf24e3c8e06b5986b544",
+        "evidenceHash": "4351c871de694230f810e86749f8dcf08ec13ddcc62e48e31f988aea4296f845",
         "summary": "track_all.fixture.legacy_retirement passed via npm.test:track-all-retirement."
       },
       {
         "fixtureKey": "track_all.fixture.qualification_integrity",
         "status": "passed",
-        "evidenceHash": "e044a9203c0a7ac304480011a196a76e76da3735bbfdff0875adf204a21861bd",
+        "evidenceHash": "0f6df0180c8d702c7b3f1b7d92d819ff51f4ad629fdd51fea7ba108bd9068a63",
         "summary": "track_all.fixture.qualification_integrity passed via npm.test:track-all-qualification-evidence."
       }
     ],
@@ -4698,158 +4881,164 @@ export const GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       {
         "fixtureKey": "track_all.fixture.authority_rejections",
         "commandId": "npm.test:track-all-authority",
-        "evidenceHash": "ca876c5e52e30edbc10e4be55822d27e9790215d27a8e03ae3bd87b8e0fefa81"
+        "evidenceHash": "4ffe87620c8f948848033a9e4a97cc963015873396b18368b12bc22b48e51fb1"
       },
       {
         "fixtureKey": "track_all.fixture.selected_targets",
         "commandId": "npm.test:track-all-public-plugin-e2e",
-        "evidenceHash": "fa829c61de3e8685d1f4d4ad4889691a93ac91557991e9a04d21b0dc62ff3e88"
+        "evidenceHash": "7949fda7cc38c8cf047f257e559aefb01344c085d8204d9c13df9ca5fdc54c24"
       },
       {
         "fixtureKey": "track_all.fixture.concept_exclusions",
         "commandId": "npm.test:track-all-public-plugin-e2e",
-        "evidenceHash": "4ff3b7c83c1e670daffd9e1a4b0755cbb7e7e032079c809fc9be8c8f044f0d73"
+        "evidenceHash": "37b255afa5e54ba1c4b1f0df614b0f9e91c8a81f39fa52c156ba71e11275df1a"
       },
       {
         "fixtureKey": "track_all.fixture.target_ambiguity",
         "commandId": "npm.test:track-all-planning",
-        "evidenceHash": "b4dbd7aa9061f7d6f660f9a5ed511f4081a63bea67a8facd37bc85128c90dd1a"
+        "evidenceHash": "a87b8bb4ca0a4fc2bdbbb71b4134a3c5ad2b21fec387d8f617e971962ee94eb4"
       },
       {
         "fixtureKey": "track_all.fixture.occlusion_reentry_identity",
         "commandId": "npm.test:track-all-chunk-identity",
-        "evidenceHash": "8a73056e82f570b3e82445d1c7cbcd0ac50780331087ffed3715c6a04cf76b1e"
+        "evidenceHash": "95a410fa52b008b8261f32a8a5b671cfc8bdf60f0902a667b7fc4d7169b09050"
       },
       {
         "fixtureKey": "track_all.fixture.shot_chunk_overlap",
         "commandId": "npm.test:track-all-chunk-identity",
-        "evidenceHash": "46e625cde898a27a48955ffda77509624bf8b45998b5097655f1e57cbab097cc"
+        "evidenceHash": "31325fc70597b9367c7546dcab45e711adf2a0907bc231bdc06276b2e1b87a9e"
       },
       {
         "fixtureKey": "track_all.fixture.multiplex_budgets",
         "commandId": "npm.test:track-all-planning",
-        "evidenceHash": "b43f1cfae11d1c90577651941a4f29dd7138f5f05fda4e6c0e27f48c688e4383"
+        "evidenceHash": "9236ea13881a4bcb640a870adaea68f185892c72313188bd1140f9df7c9fc0d1"
       },
       {
         "fixtureKey": "track_all.fixture.privacy_fail_closed",
         "commandId": "npm.test:track-all-privacy-redaction",
-        "evidenceHash": "f777245b3019b64a0576cffd7c930624ae1cd206f472dbd7c2e67417b763833b"
+        "evidenceHash": "3b2f2205ef674e728eaa758f41656d85eb9ed922251d05f3e574c8c6eaf27b00"
       },
       {
         "fixtureKey": "track_all.fixture.flattened_privacy_preview",
         "commandId": "npm.test:track-all-privacy-redaction",
-        "evidenceHash": "9c45cb1f49fbdcc7273bbee367b3a43165451add6efc5d65ae2df73d6c925f5f"
+        "evidenceHash": "b18f7f3d7f947b48426676328e02ad586df33526d9c05df97bd22d3e6afe044c"
       },
       {
         "fixtureKey": "track_all.fixture.camera_motion",
         "commandId": "npm.test:track-all-deterministic-geometry",
-        "evidenceHash": "d77aa32e2dc2715b5165f1366a609ce7f79b80c0b25476673a7367c9de6b4b49"
+        "evidenceHash": "d41df4f82c1a35da7ce775385cb12f0eaba323217af7ce6bcef16d2dc13e98d0"
       },
       {
         "fixtureKey": "track_all.fixture.planar_homography",
         "commandId": "npm.test:track-all-deterministic-geometry",
-        "evidenceHash": "af581b4842f0f207daef3d22f5e689f8c65febef2ee26530bda9c3a0de797ace"
+        "evidenceHash": "a92a51e3f22c69e73b326792289a934bb6832387693988d60c365d98212b1a01"
       },
       {
         "fixtureKey": "track_all.fixture.focus_treatments",
         "commandId": "npm.test:track-all-focus-reframe",
-        "evidenceHash": "5031c2e1091cf548d887757775c0fa605e99a47408c76f9ce31d195543fad456"
+        "evidenceHash": "9cce5b1dc464c2921456706d269adae7eea604896bf02380c34fcfe5771d7502"
       },
       {
         "fixtureKey": "track_all.fixture.reframe_trajectories",
         "commandId": "npm.test:track-all-focus-reframe",
-        "evidenceHash": "aef14486d15806a3b576ff4f770063fba16c060ad04239429bc4d42dbdbd7dd7"
+        "evidenceHash": "89e74798f1661a06305bb4d4d1cfd544c5a92ae8f48e0a2c84b0f25f7a4ab2c4"
       },
       {
         "fixtureKey": "track_all.fixture.visual_intelligence_dependency",
         "commandId": "npm.test:track-all-public-plugin-e2e",
-        "evidenceHash": "03d9228b957e8514a1a4f0f5d39f3b422848cfccc1bbfadf0f6badab54bb77fa"
+        "evidenceHash": "fa83173e8f06cab4b57e5cf2f4b5df3eeebe91bf0658aa604080ece9f5002caf"
       },
       {
         "fixtureKey": "track_all.fixture.track_graph_compatibility",
         "commandId": "npm.test:track-all-cross-skill-handoffs",
-        "evidenceHash": "6cd27cef0a21d0d75808e12b4a3637e9b59afaf30d38a039b1c9cab0ed07d9e3"
+        "evidenceHash": "7200688ec6059e5689c8f425c37a332d78fe377a60cac80707b322832f478b27"
       },
       {
         "fixtureKey": "track_all.fixture.bounded_repairs",
         "commandId": "npm.test:track-all-independent-qa-repair",
-        "evidenceHash": "65b2dc9a898942eea9cf7726721406036a73798b4a32ff2f1f24097afddeea60"
+        "evidenceHash": "7791e17d7b6cbc71ed4dc1b86a80ae6b5ac34b0f3d11b4de93597efc7d229ed0"
       },
       {
         "fixtureKey": "track_all.fixture.session_terminal_close",
         "commandId": "npm.test:track-all-sam3.1-injected-session",
-        "evidenceHash": "4b3a9a28079af6bac41c00e97139cee3cd44a7e7817b453a5d45d4744001a9ca"
+        "evidenceHash": "2c6eeb2decd1a98adc2d0b77350829dcbc6d50577ad569254a11e925845c9d72"
       },
       {
         "fixtureKey": "track_all.fixture.runtime_security",
         "commandId": "npm.test:track-all-sam3.1-operation-authority",
-        "evidenceHash": "80652d260bfbb83da1ad28869c9f4ac5bd60f212101edc321c9a6ae435a3f26c"
+        "evidenceHash": "12a447545eb97945f244ee409dc17967532b56c2f4df89e7f9926740eb1209fd"
       },
       {
         "fixtureKey": "track_all.fixture.public_plugin_lifecycle",
         "commandId": "npm.test:track-all-public-plugin-e2e",
-        "evidenceHash": "99c86c63cc992cb602d025c275042f091d9f85abc85c4ad9f2c49f99f26cb798"
+        "evidenceHash": "edad9140df3bd690114c9205c1b8aa227292da229adad39e474d23852a44d62b"
+      },
+      {
+        "fixtureKey": "track_all.fixture.canonical_private_runtime",
+        "commandId": "npm.test:track-all-canonical-private-runtime",
+        "evidenceHash": "62424b2fb5ccad990dfd22da2f8982c773cfa1a8486f90870ed390296619ed68"
       },
       {
         "fixtureKey": "track_all.fixture.legacy_retirement",
         "commandId": "npm.test:track-all-retirement",
-        "evidenceHash": "4caa88cd486b4f4ff0c56584e17f1301f2a8920b532baf24e3c8e06b5986b544"
+        "evidenceHash": "4351c871de694230f810e86749f8dcf08ec13ddcc62e48e31f988aea4296f845"
       },
       {
         "fixtureKey": "track_all.fixture.qualification_integrity",
         "commandId": "npm.test:track-all-qualification-evidence",
-        "evidenceHash": "e044a9203c0a7ac304480011a196a76e76da3735bbfdff0875adf204a21861bd"
+        "evidenceHash": "0f6df0180c8d702c7b3f1b7d92d819ff51f4ad629fdd51fea7ba108bd9068a63"
       }
     ],
     "buildEvidenceHashes": [
-      "f8f3f988d80746ae9ca40dbf4f9dd22bbade846c48a2eb24b647c618f6000681",
-      "8ea96f7c980d6fd6494beb91727b7f84dca0d7b84917c0cbd699275b0c5224d3",
-      "25c4d6c05549d4a8ed02c1b0c460ef781171e40135973c78afb32d1879f93b58",
-      "a407a598b7de8a98965913bf76dfbd2c35ed5f32db7b24da8d37e5006c88c819"
+      "789dfeba3d57bc303c92ad671b0556978923316b6c10de781e0cbbce1c8d5e9d",
+      "3296e7b4aec8055889fbc9910c8309a0cb0ce5c1e005e3890ea9a5fd1047ed0f",
+      "498286c7befde1b55525d138f023ba08518928e9eb0c3c7e2b640713648b0317",
+      "e0b01f2a34d46f17db4410459a8d11337fe9af326f19d2922bd0000d36a43d33"
     ],
     "testEvidenceHashes": [
-      "d50477352ac306f4757c82637bafcdd2b482b9e47b940d27dfbf941e373dfe4a",
-      "7765761bead07b94159f6889528c79064d57d62f3c24be4555f6953a43a16255",
-      "d2d7487e3d6f3217b9705e0f4f70f5cf0d866e8e53410550ce5caab280e6dc6a",
-      "45ea9234c028cb4801fcf12af80c633d0651f5fec465ad7e296dc18426b4d022",
-      "07e34623d9a09fd01e2884ac5a33a90294a9fe255fc6a6dca2a8d3068b07fe44",
-      "6f706f09e79b5ed210b640e3f419599cc124ab2aca09454baae0bf6cc40d15f0",
-      "0bdaa3efa1556579ac138035d4eede27f8f9479d746a71788f7225a1d5e48ddb",
-      "4b12f28311b6ae838ffabdca21e94842e8eca11670e5c6180f1586b15a7fac1a",
-      "73266d999ce45c06b6da924d6181c0c32b3dab85ba777d746bda8fab94ae83c5",
-      "0507d3e9def92e1e2ebc551965f2a6ba2839dc0fe670c4ab82a8d49b58532601",
-      "4fed4f651e93757cfd7e29d0d55e37927f7d07dea5d51bfa7d4c076527f54756",
-      "5ed66a4465f56ff33d4f6677100bdd795edbea6913ecc0f98719d0a08ac146fb",
-      "a759c4ddbd52e78b0d62c436be3e74f39754548046c823103c431258935ba1e5",
-      "e23328e5363942847e7ced27f1be8fe347f4e74f39bc035888a64588b4a72847",
-      "f1688bd762a8fdb9003eb37595ae9378f7f4ab67059670ff4431975fb0b7cea7",
-      "c5ecd312b7c27baab587c1f7c1b4bdd9006923ec14cd650dcc284a3039502bc4",
-      "6a4ac0d511209374f2dea7bba1135686cad4986769a5a3358f217389a4929278",
-      "d1c2d9e47d802c4133e6a683a290925503ae67b892655c74d04e059b811f05b1",
-      "7d7cb6263a82cd06885414a3762ebd76de07c0220d94857b299f3aeb9c3dc04b",
-      "69d9a357938bcbd1bf06f338acf3707a9cd2290f5d61cc7e6e452e204d317ffd",
-      "544a1f5229498b7c3c05e35501ddd57fa5bb9c4c369096d99cdfe7928d2c7406",
-      "92f449d5d4fca7db818ca20b047c30bf0ab3cba21b4dade5ea042faa927fd72a",
-      "6db3107d1fe91c675b80053641c1075ad40d363f807a76de1930510ee3f26d22",
-      "e8e4a5ee869ca557af68994baebe21d281761990c2c569ec89671bbc9dd1dd17",
-      "f8f3f988d80746ae9ca40dbf4f9dd22bbade846c48a2eb24b647c618f6000681",
-      "8ea96f7c980d6fd6494beb91727b7f84dca0d7b84917c0cbd699275b0c5224d3",
-      "25c4d6c05549d4a8ed02c1b0c460ef781171e40135973c78afb32d1879f93b58",
-      "a407a598b7de8a98965913bf76dfbd2c35ed5f32db7b24da8d37e5006c88c819"
+      "f8065042a91f8927c336269e4732a741f9de2d230a0994529ab848f966a5dbe3",
+      "f525a51eaf8df59562ed14cd295ce411b87ae187aa1d84b1f879a2b2135afdb4",
+      "41405023c66afc86b786716f7f1949e89a1ccb04cab5a25d5a1d9192ef4f5381",
+      "58b56305c1f39942872fbb10043ad29bcbd9f00aa3bf78875f26d178774f8104",
+      "0ac194045ea489b0c561d8260a2d9c8d9f6830eb9bf46cbadfec094a0eda8578",
+      "6650d51ede6f1468c334a2699f2f9c517527b910b1e08a3bc8ab950e5f406641",
+      "952fb438c1ce47311d89aa4fd6237f52e29c51b1dbd34928306f50c1c1b43976",
+      "b5ddcfde2f5bfb18cd8171885c2ee983b6c46bb651ecd5b3604b0d52d0c2b53a",
+      "db9430daf4ebe80c4c1e6a8579f52dba9ff2ca0f0dfb53e9e5778f9ea4fbeeb2",
+      "da53889600d13ee319d6ba8597f6375f0641a82cfcf9fedc4bec3830357156b4",
+      "aad63b9ae926a33e20cdb26af9d98a0d81e62941817b0aebd14f15040ec397af",
+      "ce019b6cbd5000520402324561c9ce863fbb450229cfee14cd54f0b99c32bf00",
+      "59abcd47589ffd481a3e75565eb11cb94d80a82cf9946c395187488ed37e27b2",
+      "0a9d31432e2062a9c95539c3a669f58ea30afe3e2a4a03acc03026a4e8c604f1",
+      "157ae75c6074f8dda85fd58d04116be0bb6519aa1e19ed13843e56f901bc499f",
+      "0b6b132e21051e70b65de86e133868e05d31a6e41b77436e4a252937dfadec0f",
+      "2815c578163ae2498a71e2622c335f0c76adf59285c85179c904484c934f39d6",
+      "076d78d01370027a0c1a8a301113e4773e6bf5823dbaeaaf9de68789f04e4adb",
+      "82c3ff0f4a708488a5e5e3431fcc785cc7f76a671362d6f9ccaf022338d8da09",
+      "cc9728c5317f6c27a95b580f210b71040159e129b2eba79e690a93f960af9c68",
+      "3fcb1f19345fa79dcdac46710b5fc7fa0d48f9b2076160afb2ecacdbfd81b737",
+      "33dc0f2963ba61e99e2644ca67914bcade7068fe6fd6da6c8ac1615e565de6ee",
+      "dd4838fe6db57cd19f098d1adf92a77da48cc0af387095157ef9f5a6a0687f34",
+      "aa31df7844615b21825c794d20ac0cf65a806f062cf1d53e4561ca3b7739c3e0",
+      "055daf0cd7199d311322d4074f3883a7def2d2f673ef485c328962486359596a",
+      "789dfeba3d57bc303c92ad671b0556978923316b6c10de781e0cbbce1c8d5e9d",
+      "3296e7b4aec8055889fbc9910c8309a0cb0ce5c1e005e3890ea9a5fd1047ed0f",
+      "498286c7befde1b55525d138f023ba08518928e9eb0c3c7e2b640713648b0317",
+      "e0b01f2a34d46f17db4410459a8d11337fe9af326f19d2922bd0000d36a43d33"
     ],
     "securityEvidenceHashes": [
-      "73266d999ce45c06b6da924d6181c0c32b3dab85ba777d746bda8fab94ae83c5",
-      "69d9a357938bcbd1bf06f338acf3707a9cd2290f5d61cc7e6e452e204d317ffd",
-      "6db3107d1fe91c675b80053641c1075ad40d363f807a76de1930510ee3f26d22",
-      "e8e4a5ee869ca557af68994baebe21d281761990c2c569ec89671bbc9dd1dd17"
+      "db9430daf4ebe80c4c1e6a8579f52dba9ff2ca0f0dfb53e9e5778f9ea4fbeeb2",
+      "3fcb1f19345fa79dcdac46710b5fc7fa0d48f9b2076160afb2ecacdbfd81b737",
+      "aa31df7844615b21825c794d20ac0cf65a806f062cf1d53e4561ca3b7739c3e0",
+      "055daf0cd7199d311322d4074f3883a7def2d2f673ef485c328962486359596a"
     ],
     "providerEvidenceHashes": [],
     "mediaEvidenceHashes": [],
     "remotionEvidenceHashes": [],
-    "startedAt": "2026-08-05T05:13:11.496Z",
-    "completedAt": "2026-08-05T05:14:55.198Z",
-    "issuedAt": "2026-08-05T05:14:55.198Z",
-    "receiptHash": "dade734d8e952778d23d8d5ce05329d4e8e11d1d83faa571f73122836d827e13"
+    "startedAt": "2026-08-05T06:04:39.551Z",
+    "completedAt": "2026-08-05T06:06:40.317Z",
+    "issuedAt": "2026-08-05T06:06:40.317Z",
+    "receiptHash": "a621de95a3fd5af88b0ea15b19fa9cc3bde1692d628ee02e136023404bd33b3b"
   },
-  "artifactHash": "a639360a1e84fa40b7b4db736dcd06a5c1650c89a73326fb0dbc99f81cf5fbcb"
+  "artifactHash": "03ca9c57ffc55044d924b4f81084c72923fbf93e9a9f2f2ef5f21ef776cee13a"
 } as const

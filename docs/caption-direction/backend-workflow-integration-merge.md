@@ -2,8 +2,9 @@
 
 Milestone: Dependency-complete backend integration base
 
-Status: Source integration and the canonical Caption planning-job mount are
-complete; actual owner, media, and terminal evidence gates remain closed
+Status: Source integration, the canonical Caption planning-job mount, and the
+authenticated canonical transcript projection are complete; actual media and
+terminal evidence gates remain closed
 
 ## Integrated histories
 
@@ -79,11 +80,33 @@ SoundSync, B-roll, or Living Frame results as ordinary input references. Those
 results must still pass their canonical owner adapter and the authenticated
 support/resume ledger.
 
+The additive canonical transcript support bridge now closes the earlier
+reference-only transcript gap. It:
+
+- rereads the exact approved snapshot twice;
+- rereads each completed canonical source-transcript owner result twice;
+- accepts word timing only through a process-bound private owner reader and
+  rereads the same word artifact twice;
+- verifies exact source order, source identity, transcript digest, segment
+  frames, word order, word timing, language, and optional complete diarization;
+- creates one immutable `caption-canonical-transcript-v1` plus its exact
+  `caption-canonical-transcript-authenticated-read-binding-v1`;
+- persists and rereads the private transcript record create-only; and
+- lets the approved Caption execution mount inject the full private payload
+  only when the work item carries both exact transcript and binding refs.
+
+The bridge does not run transcription, select a model, call a provider, mutate
+timing, or grant Caption runtime, asset, QA, billing, public, or production
+authority. Missing diarization remains explicit; the bridge never invents a
+speaker. A real internal run must supply the already-completed canonical
+worker's private word-timing reader before speaker-independent Caption jobs can
+claim authenticated transcript execution evidence.
+
 This does not claim the final internal status. The canonical planner still has
 to publish exact Caption work items into real approved plans, and the complete
-private path still needs actual persisted/reread transcript, Visual
-Intelligence, Track All, SoundSync, B-roll, complete-time visual-review, and
-independent private-review evidence before the terminal projection can be
+private path still needs actual worker-backed transcript projection, persisted
+Visual Intelligence, Track All, SoundSync, B-roll, complete-time visual-review,
+and independent private-review evidence before the terminal projection can be
 created.
 
 This is an internal-testing integration base, not a public or production SaaS

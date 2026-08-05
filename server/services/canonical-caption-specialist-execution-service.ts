@@ -33,8 +33,16 @@ import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
   '../captions-specialist/caption-authority-boundary'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
+import {
+  admitCaptionCanonicalTranscriptFromAuthenticatedRead,
+  parseCaptionCanonicalTranscriptAuthenticatedReadBinding,
+} from '../captions-specialist/caption-canonical-transcript-authenticated-read'
+import { parseCaptionCanonicalTranscript } from
+  '../captions-specialist/caption-transcript-lineage'
 import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
+import type { CanonicalCaptionTranscriptAuthenticatedReadPort } from
+  '../../src/types/canonical-caption-transcript-support'
 import type { CanonicalApprovedExecutionAuthority } from
   './edit-planning-authority-service'
 import {
@@ -185,7 +193,11 @@ const receiptSchema: z.ZodType<CanonicalCaptionSpecialistExecutionReceipt> =
   receiptWithoutDigestSchema.extend({ receiptDigestSha256: rawSha256 }).strict()
 
 export interface CanonicalCaptionSpecialistExecutionPort {
-  execute(input: { readonly call: OrchestraSkillCall }): Promise<unknown>
+  execute(input: {
+    readonly call: OrchestraSkillCall
+    readonly canonicalTranscript?: unknown
+    readonly canonicalTranscriptAuthenticatedReadBinding?: unknown
+  }): Promise<unknown>
 }
 
 export function parseCanonicalCaptionSpecialistWorkItemInput(
@@ -214,6 +226,8 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly executionPackage: CanonicalApprovedEditExecutionPackage
   readonly jobId: string
   readonly repository: CanonicalSpecialistSupportResumeRepository
+  readonly canonicalTranscriptReadPort?:
+    CanonicalCaptionTranscriptAuthenticatedReadPort
   readonly executionPort?: CanonicalCaptionSpecialistExecutionPort
   readonly now?: () => Date
 }): Promise<{
@@ -263,8 +277,21 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     }
     pair = replay
   } else {
+    const transcriptEvidence = await readCanonicalTranscriptEvidence({
+      authority,
+      workInput,
+      readPort: input.canonicalTranscriptReadPort,
+    })
     const rawResult = await (input.executionPort ?? defaultExecutionPort)
-      .execute({ call: structuredClone(call) })
+      .execute({
+        call: structuredClone(call),
+        ...(transcriptEvidence === null ? {} : {
+          canonicalTranscript:
+            structuredClone(transcriptEvidence.canonicalTranscript),
+          canonicalTranscriptAuthenticatedReadBinding: structuredClone(
+            transcriptEvidence.authenticatedReadBinding),
+        }),
+      })
     const result = parseOrchestraSkillJobResult(rawResult)
     pair = createCanonicalSpecialistCallResultPair({
       call,
@@ -293,9 +320,107 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
 }
 
 const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
-  async execute({ call }) {
-    return runCaptionsSpecialistJob({ call })
+  async execute(input) {
+    return runCaptionsSpecialistJob({
+      call: input.call,
+      ...(input.canonicalTranscript === undefined ? {} : {
+        canonicalTranscript: input.canonicalTranscript,
+      }),
+      ...(input.canonicalTranscriptAuthenticatedReadBinding === undefined
+        ? {} : {
+            canonicalTranscriptAuthenticatedReadBinding:
+              input.canonicalTranscriptAuthenticatedReadBinding,
+          }),
+    })
   },
+}
+
+async function readCanonicalTranscriptEvidence(input: {
+  authority: CanonicalApprovedExecutionAuthority
+  workInput: CanonicalCaptionSpecialistWorkItemInput
+  readPort?: CanonicalCaptionTranscriptAuthenticatedReadPort
+}) {
+  const transcriptRef = input.workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType === 'canonical_transcript')
+  const bindingRef = input.workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_authenticated_read_binding')
+  if (!transcriptRef) {
+    throw new Error('Canonical Caption transcript ref is missing.')
+  }
+  if (!bindingRef) return null
+  if (input.readPort?.schemaVersion !==
+    'canonical-caption-transcript-authenticated-read-port-v1'
+    || typeof input.readPort.readExact !== 'function') {
+    throw new Error(
+      'Canonical Caption authenticated transcript reader is unavailable.',
+    )
+  }
+  const snapshot = input.authority.snapshot
+  const evidence = await input.readPort.readExact({
+    canonicalReadScope: {
+      ownerUserId: snapshot.approvedByUserId,
+      workspaceId: snapshot.workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+      approvedSnapshotRef: {
+        id: snapshot.snapshotId,
+        version: snapshot.schemaVersion,
+        contentHash: snapshot.snapshotHash,
+      },
+    },
+    canonicalTranscriptRef: {
+      id: transcriptRef.id,
+      version: transcriptRef.version,
+      contentHash: transcriptRef.contentHash,
+    },
+    authenticatedReadBindingRef: {
+      id: bindingRef.id,
+      version: bindingRef.version,
+      contentHash: bindingRef.contentHash,
+    },
+  })
+  if (!evidence) {
+    throw new Error('Canonical Caption authenticated transcript is unavailable.')
+  }
+  const transcript = parseCaptionCanonicalTranscript(
+    evidence.canonicalTranscript)
+  const binding = parseCaptionCanonicalTranscriptAuthenticatedReadBinding(
+    evidence.authenticatedReadBinding)
+  if (transcript.transcriptId !== transcriptRef.id
+    || transcript.schemaVersion !== transcriptRef.version
+    || transcript.transcriptDigestSha256 !== transcriptRef.contentHash
+    || binding.bindingId !== bindingRef.id
+    || binding.schemaVersion !== bindingRef.version
+    || binding.bindingDigestSha256 !== bindingRef.contentHash
+    || input.workInput.outputId === null) {
+    throw new Error('Canonical Caption authenticated transcript refs mismatch.')
+  }
+  admitCaptionCanonicalTranscriptFromAuthenticatedRead({
+    binding,
+    canonicalTranscript: transcript,
+    expectedCanonicalScope: {
+      ownerUserId: snapshot.approvedByUserId,
+      workspaceId: snapshot.workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+      approvedSnapshotRef: {
+        id: snapshot.snapshotId,
+        version: snapshot.schemaVersion,
+        contentHash: snapshot.snapshotHash,
+      },
+      outputId: input.workInput.outputId,
+      sceneId: input.workInput.sceneId,
+      authorizedFrameRanges:
+        structuredClone(input.workInput.authorizedFrameRanges),
+    },
+  })
+  return {
+    canonicalTranscript: transcript,
+    authenticatedReadBinding: binding,
+  }
 }
 
 function createCaptionCall(input: {

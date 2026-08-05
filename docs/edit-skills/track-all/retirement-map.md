@@ -2,6 +2,12 @@
 
 This map is enforced by static validation before final freeze.
 
+Run `npm run test:track-all-retirement`. The validator hashes the active Track
+All TypeScript surface and proves one runtime registration, no SAM2 import or
+route, no superseded orchestra-binding or legacy planning-skill import, no
+production binding, no public-plugin-to-private-mini-skill import, strict
+active artifact schemas, and the forward-only SAM 3.1 V2 authority.
+
 | Surface | Classification | Active-route decision |
 |---|---|---|
 | `server/edit-skills/core/**` | keep | shared plugin/manifest/runtime kernel |

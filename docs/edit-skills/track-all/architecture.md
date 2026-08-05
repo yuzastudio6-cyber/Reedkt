@@ -143,9 +143,9 @@ instead of maintaining a competing Track All shape. See `public-plugin-e2e.md`.
 
 ## Qualification boundary
 
-Passing planning smokes establishes tested planning behavior, not a frozen
-qualification receipt. The manifest remains `implementation_pending` until the
-evidence issuer introduced by the qualification milestone binds the exact
-commit, source tree, manifest, shared authorities, command results, and fixture
-results. SAM inference remains separately blocked on real private checkpoint,
-image, GPU, quality, cost, and privacy evidence.
+Track All is `planning_qualified` only when the generated TRACK-17 receipt
+binds the exact commit, source tree, manifest, shared authorities, command
+results, and fixture results. Deterministic/private fixture routes have
+route-level internal evidence, but the aggregate skill does not exceed the
+blocked SAM route. SAM inference remains separately blocked on real private
+checkpoint, image, GPU, quality, cost, and privacy evidence.

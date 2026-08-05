@@ -23,6 +23,9 @@ import {
   TRACK_ALL_WORK_GRAPH_JOB_DEFINITIONS,
 } from './track-all-work-graph'
 import { estimateTrackAllPlan } from './private/planning-mini-skills'
+import { tryLoadTrackAllGeneratedQualificationArtifact } from './track-all-qualification-evidence'
+import { computeTrackAllQualificationDependencyAuthorityHashes } from './track-all-qualification-dependency-authorities'
+import { computeTrackAllRelevantSourceTreeHash } from './track-all-qualification-source-hash'
 
 export * from './track-all-artifact-types'
 export * from './track-all-active-artifact-contracts'
@@ -30,6 +33,11 @@ export * from './track-all-capability-manifest'
 export * from './track-all-edit-skill-plugin'
 export * from './track-all-plan-compiler'
 export * from './track-all-qa-policy'
+export * from './track-all-qualification'
+export * from './track-all-qualification-command-catalog'
+export * from './track-all-qualification-dependency-authorities'
+export * from './track-all-qualification-evidence'
+export * from './track-all-qualification-source-hash'
 export * from './track-all-schemas'
 export * from './track-all-skill-service'
 export * from './track-all-work-graph'
@@ -76,7 +84,25 @@ export function registerTrackAllSkill(input: {
   qualifications: SkillQualificationRegistry
   catalog: SkillReferenceCatalog
 }): void {
-  void input.qualifications
+  const qualificationGenerationMode =
+    process.env.REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING === '1'
+  let generatedQualification
+  try {
+    generatedQualification = tryLoadTrackAllGeneratedQualificationArtifact({
+      manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+      expectedRelevantSourceTreeHash: computeTrackAllRelevantSourceTreeHash(),
+      expectedDependencyAuthorityHashes:
+        computeTrackAllQualificationDependencyAuthorityHashes(),
+    })
+  } catch (error) {
+    if (!qualificationGenerationMode) throw error
+    generatedQualification = undefined
+  }
+  if (!generatedQualification && !qualificationGenerationMode) {
+    throw new Error(
+      'Track All runtime is unqualified: run npm run qualify:track-all:internal for this exact source tree.',
+    )
+  }
   registerTrackAllArtifactSchemas(input.artifacts)
   registerTrackAllQaPolicies(input.qa)
   input.estimators.registerTime('track_all.time.v1', (value) => {
@@ -98,4 +124,11 @@ export function registerTrackAllSkill(input: {
   const plugin = new TrackAllEditSkillPlugin({ artifacts: input.artifactStore })
   input.plugins.register(plugin)
   input.capabilities.registerHandler({ skillKey: 'track_all', skillVersion: '1.0.0', handler: new TrackAllSkillService(plugin) })
+  if (generatedQualification) {
+    input.qualifications.register(generatedQualification.receipt)
+    input.qualifications.assertClaim(
+      input.capabilities.referenceFor('track_all'),
+      TRACK_ALL_CAPABILITY_MANIFEST.qualificationStatus,
+    )
+  }
 }

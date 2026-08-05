@@ -9,6 +9,7 @@ import {
   TRACK_ALL_OUTPUT_QA_KEYS,
   TRACK_ALL_PLANNING_QA_KEYS,
 } from './track-all-qa-policy'
+import { TRACK_ALL_QUALIFICATION_FIXTURES } from './track-all-qualification'
 
 export const TRACK_ALL_SKILL_VERSION = '1.0.0' as const
 export const TRACK_ALL_CONTRACT_VERSION = 'track_all.skill_contract.v1' as const
@@ -125,25 +126,12 @@ function route(input: {
   }
 }
 
-const qualificationFixtures = [
-  'authority_rejections', 'selected_targets', 'concept_exclusions', 'target_ambiguity',
-  'occlusion_reentry_identity', 'shot_chunk_overlap', 'multiplex_budgets', 'privacy_fail_closed',
-  'flattened_privacy_preview', 'camera_motion', 'planar_homography', 'focus_treatments',
-  'reframe_trajectories', 'visual_intelligence_dependency', 'track_graph_compatibility',
-  'bounded_repairs', 'session_terminal_close', 'runtime_security', 'public_plugin_lifecycle',
-  'legacy_retirement', 'qualification_integrity',
-].map((fixtureKey) => ({
-  fixtureKey: `track_all.fixture.${fixtureKey}`,
-  minimumStatus: 'planning_qualified' as const,
-  description: `Track All ${fixtureKey.replaceAll('_', ' ')} evidence.`,
-}))
-
 export const TRACK_ALL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
   schemaVersion: 'skill-capability-manifest-v2',
   skillKey: 'track_all',
   skillVersion: TRACK_ALL_SKILL_VERSION,
   contractVersion: TRACK_ALL_CONTRACT_VERSION,
-  qualificationStatus: 'implementation_pending',
+  qualificationStatus: 'planning_qualified',
   skillClass: 'temporal_visual_geometry_skill',
   coordinationCritical: true,
   canOwnPrimaryVisual: true,
@@ -275,7 +263,7 @@ export const TRACK_ALL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
     { ruleKey: 'deterministic_repair', changeClass: 'non_material', requiresReestimate: false, requiresNewApproval: false, description: 'One pre-approved deterministic repair may run.' },
     { ruleKey: 'prompt_refinement', changeClass: 'material', requiresReestimate: true, requiresNewApproval: true, description: 'One bounded prompt refinement creates new lineage.' },
   ],
-  qualificationFixtures,
+  qualificationFixtures: TRACK_ALL_QUALIFICATION_FIXTURES,
   knownLimitations: [
     { limitationKey: 'sam_external_gate', affectedJobTypes: ['track_all.produce_selected_target_graph', 'track_all.produce_concept_instance_graph'], reason: 'Real internal SAM execution requires gated checkpoint, strict compatibility, image, GPU, quality, cost, and private-output evidence; production requires the additional production gates.', behavior: 'fail_closed' },
     { limitationKey: 'cross_shot_identity', affectedJobTypes: ['track_all.produce_selected_target_graph', 'track_all.produce_concept_instance_graph'], reason: 'Cross-shot identity is optional, confidence-qualified, and never assumed.', behavior: 'bounded_support' },

@@ -368,7 +368,7 @@
       ]
     }
   ],
-  "manifestHash": "65eb6541aafc312f390479273d196aaa5f2db5cd52cba898dd9165a88f7a5998",
+  "manifestHash": "2125de0ac813dca9e6c8211639131fc389cd70979cb8344904e66fa58e94bf9d",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -877,7 +877,7 @@
       "minimumStatus": "planning_qualified"
     }
   ],
-  "qualificationStatus": "implementation_pending",
+  "qualificationStatus": "planning_qualified",
   "requiredInputs": [
     {
       "artifactType": "track_all_assignment_v1",

@@ -1,5 +1,33 @@
 # Track All runbook
 
+## Qualification
+
+Qualification must start from a clean commit and uses no provider/model/GPU
+credential:
+
+```sh
+REEDITPRO_GIT_BIN=/absolute/path/to/git npm run qualify:track-all:internal
+```
+
+The issuer supplies an 8 GB Node heap ceiling when the caller has not already
+set `NODE_OPTIONS`; this repository-wide TypeScript graph exceeds Node's local
+default heap on some hosts. The command executes the canonical 25-command catalog, captures exit status,
+timestamps and stdout/stderr digests, emits 21 exact fixture evidence records,
+binds 14 dependency authorities, and generates the content-addressed receipt
+under `server/edit-skills/track-all/generated/`. Raw logs and media are not
+committed. Any relevant source, manifest, shared authority, fixture catalog,
+or runtime-binding change invalidates runtime loading.
+
+The aggregate status is intentionally `planning_qualified`. Actual
+deterministic/private fixtures have route-level internal evidence, while the
+SAM 3.1 masklet route and production worker route remain blocked. Injected
+session evidence is never promoted to real SAM inference.
+
+```sh
+npm run test:track-all-retirement
+npm run test:track-all-qualification-evidence
+```
+
 ## Current executable routes
 
 Run deterministic geometry with:

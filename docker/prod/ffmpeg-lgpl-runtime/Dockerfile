@@ -32,6 +32,7 @@ RUN printf '%s\n' \
   && while ! apt-get install -y --no-install-recommends \
         build-essential=12.9 \
         libvpx-dev=1.12.0-1+deb12u5 \
+        nasm=2.16.01-1 \
         pkg-config=1.8.1-1 \
         xz-utils=5.4.1-1 \
         zlib1g-dev=1:1.2.13.dfsg-1; do \

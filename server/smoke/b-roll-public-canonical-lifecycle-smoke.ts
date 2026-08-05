@@ -526,7 +526,7 @@ try {
   assert.equal(candidateProcess.status, 0, candidateProcess.stderr)
   const captionProcess = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
-    'color=c=black@0.0:s=640x360,format=rgba', '-frames:v', '1', '-f',
+    'color=c=black@0.0:s=640x360,format=rgba,drawbox=x=120:y=290:w=400:h=42:color=white@0.9:t=fill,drawbox=x=150:y=302:w=340:h=10:color=black@0.75:t=fill', '-frames:v', '1', '-f',
     'image2', '-vcodec', 'png', '-y', captionPath,
   ], { encoding: 'utf8' })
   assert.equal(captionProcess.status, 0, captionProcess.stderr)
@@ -535,6 +535,10 @@ try {
     readFile(candidatePath),
     readFile(captionPath),
   ])
+  assert.ok(
+    captionBytes.byteLength >= 1_024,
+    `caption overlay fixture must exercise the validated PNG payload boundary; received ${captionBytes.byteLength} bytes`,
+  )
   const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
   await prepareOfflineRemotionDockerRuntime()
   const remotionRuntime = await activatePrivateOfflineRemotionRenderRuntime()

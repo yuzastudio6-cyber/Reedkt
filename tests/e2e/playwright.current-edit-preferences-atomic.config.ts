@@ -1,10 +1,18 @@
-import { resolve } from 'node:path'
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { defineConfig, devices } from '@playwright/test'
 
 const uiPort = Number(process.env.PLAYWRIGHT_CURRENT_EDIT_PREFERENCES_UI_PORT ?? 5433)
 const apiPort = Number(process.env.PLAYWRIGHT_CURRENT_EDIT_PREFERENCES_API_PORT ?? 5434)
 const baseURL = `http://127.0.0.1:${uiPort}`
 const apiBaseURL = `http://127.0.0.1:${apiPort}`
+// These browser proofs write durable local upload, plan, approval, and Edit
+// Preference authority. A fixed default root makes later invocations scan and
+// replay stale test state. Preserve an explicit override for recovery/debug
+// runs while isolating ordinary acceptance runs.
+const storageRoot = process.env.PLAYWRIGHT_CURRENT_EDIT_PREFERENCES_STORAGE_ROOT
+  ?? mkdtempSync(join(tmpdir(), 'reeditpro-current-edit-preferences-'))
 
 export default defineConfig({
   testDir: '.',
@@ -41,7 +49,7 @@ export default defineConfig({
         E2E_RUNTIME_MODE: 'local',
         STORAGE_MODE: 'local',
         REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: 'private_local',
-        LOCAL_STORAGE_ROOT: resolve('test-results/current-edit-preferences-atomic-storage'),
+        LOCAL_STORAGE_ROOT: storageRoot,
         PROVIDER_EXECUTION_ENABLED: 'false',
         WORKER_RUNTIME_MODE: 'mock',
       },

@@ -633,7 +633,13 @@ test.describe('canonical Edit Preference real-file flow', () => {
       await route.continue()
     })
     await page.route(/\/v1\/projects\/[^/]+\/edit-sessions\/[^/]+\/edit-preferences\/apply$/, async (route) => {
-      if (route.request().method() === 'POST') lifecycleMutationRequests.apply += 1
+      const requestBody = route.request().postDataJSON() as {
+        referenceMutation?: 'apply' | 'replace' | 'remove' | null
+      } | null
+      if (
+        route.request().method() === 'POST'
+        && requestBody?.referenceMutation
+      ) lifecycleMutationRequests.apply += 1
       await route.continue()
     })
 

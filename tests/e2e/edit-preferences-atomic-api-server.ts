@@ -70,6 +70,9 @@ import {
   createPrivateLocalMotionStudioCommandRepositoryRuntimePort,
 } from '../../server/motion-studio/commands'
 import {
+  createEditBriefPrivateWorkspaceRuntimePort,
+} from '../../server/services/edit-brief-private-workspace-runtime-port'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileAtomicWithinRoot,
 } from '../../server/security/private-local-persistence'
@@ -406,6 +409,8 @@ const motionStudioCommandRepositoryRuntimePort =
     createPrivateLocalMotionStudioCommandRepository,
   )
 const server = createReeditProApiApp(env, {
+  editBriefPrivateWorkspaceRuntimePort:
+    createEditBriefPrivateWorkspaceRuntimePort(),
   editReferenceExactEditApplyRuntimePort,
   editReferenceApplicationPreparationRuntimePort,
   planningExactEditPreferenceAuthorityPort: planningPort,

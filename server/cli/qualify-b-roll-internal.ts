@@ -110,6 +110,7 @@ function gitOutput(args: readonly string[]): string {
 function safeQualificationEnvironment(): NodeJS.ProcessEnv {
   const environment: NodeJS.ProcessEnv = {
     ...process.env,
+    NODE_OPTIONS: '--max-old-space-size=8192',
     REEDITPRO_BROLL_QUALIFICATION_GENERATING: '1',
   }
   for (const key of [

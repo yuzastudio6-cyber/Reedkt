@@ -63,7 +63,6 @@ import {
   createCaptionTerminalQualificationProjectionV2,
   parseCaptionTerminalQualificationEvidenceInputV2,
   parseCaptionTerminalQualificationPreflightV2,
-  parseCaptionTerminalQualificationProjectionV2,
 } from '../captions-specialist/caption-terminal-qualification-v2'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
@@ -462,21 +461,12 @@ const acceptedPrivateReviewProjectionsV2 = parsedInputV2.outputEvidence.map(
   (output) => privateReviewProjection(parsedInputV2, output))
 const readyPreflightV2 = createCaptionTerminalQualificationPreflightV2(
   parsedInputV2, acceptedPrivateReviewProjectionsV2)
-check(readyPreflightV2.disposition === 'ready_for_terminal_projection'
-  && readyPreflightV2.sourceQualificationInputRef?.version
-    === CAPTION_TERMINAL_QUALIFICATION_INPUT_VERSION_V2,
-'The V2 preflight accepts only exact V2 evidence and private-review lineage.')
-const projectionV2 = createCaptionTerminalQualificationProjectionV2(
-  parsedInputV2, acceptedPrivateReviewProjectionsV2)
-check(projectionV2.jobs.length === 41
-  && projectionV2.outputs.length === 2
-  && projectionV2.sourceCurrentReadinessRef.version
-    === CAPTION_CURRENT_INTEGRATION_READINESS_V3.schemaVersion,
-'The additive V2 terminal projection preserves private qualification semantics.')
-check(parseCaptionTerminalQualificationProjectionV2(
-  projectionV2, parsedInputV2).projectionDigestSha256
-    === projectionV2.projectionDigestSha256,
-'The V2 terminal projection rereads against the exact V2 input.')
+check(readyPreflightV2.disposition === 'blocked_missing_canonical_evidence'
+  && readyPreflightV2.sourceQualificationInputRef === null
+  && readyPreflightV2.blockingGapIds.length === 9,
+'The V2 preflight cannot accept fixture-shaped evidence while owner mounts remain missing.')
+expectThrow(() => createCaptionTerminalQualificationProjectionV2(
+  parsedInputV2, acceptedPrivateReviewProjectionsV2))
 const staleV2Readiness = structuredClone(parsedInputV2)
 staleV2Readiness.sourceCurrentReadinessRef = refFrom(
   CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessId,
@@ -497,6 +487,7 @@ console.log(JSON.stringify({
   currentTerminalStatusClaimed: false,
   candidateJobCount: projection.jobs.length,
   candidateOutputCount: projection.outputs.length,
+  currentV2ProjectionBlockedBySourceReadiness: true,
   result: 'passed',
 }, null, 2))
 

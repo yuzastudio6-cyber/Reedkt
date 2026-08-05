@@ -448,9 +448,11 @@ function currentJobReadinessRef(): CaptionDomainRef {
 
 function currentSourceReadinessAllowsTerminalQualification(): boolean {
   const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER
-  return ledger.counts.sourcePathsReadyForPrivateEvidenceRun
-      === ledger.counts.declaredSupportedJobs
-    && ledger.counts.jobsWaitingOnCanonicalOwnerMount === 0
+  const readyCount: number = ledger.counts.sourcePathsReadyForPrivateEvidenceRun
+  const declaredCount: number = ledger.counts.declaredSupportedJobs
+  const waitingCount: number = ledger.counts.jobsWaitingOnCanonicalOwnerMount
+  return readyCount === declaredCount
+    && waitingCount === 0
     && ledger.ownerMounts.every((owner) =>
       owner.canonicalCompositionMountImplemented)
     && ledger.jobs.every((job) =>

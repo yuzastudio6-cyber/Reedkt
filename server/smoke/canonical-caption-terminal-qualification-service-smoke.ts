@@ -39,9 +39,6 @@ import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V3,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
-  createCaptionTerminalQualificationProjectionV2,
-} from '../captions-specialist/caption-terminal-qualification-v2'
-import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
 } from '../captions-specialist/caption-goal-completion-audit'
 import {
@@ -397,16 +394,16 @@ async function run(): Promise<void> {
     && blocked.terminalProjection === null,
   'Missing canonical evidence must return a blocked preflight without a record.')
 
-  const bundle = createCanonicalCaptionTerminalEvidenceBundle({
+  expectThrow(() => createCanonicalCaptionTerminalEvidenceBundle({
     request,
     qualificationInput,
     privateReviewEvidenceProjections: [privateReviewProjection()],
-  })
+  }))
   let ownerReads = 0
   const evidenceReadPort = createCanonicalCaptionTerminalEvidenceReadPort(
     async () => {
       ownerReads += 1
-      return structuredClone(bundle)
+      return null
     })
   const repository = createCanonicalCaptionTerminalQualificationRepository({
     objectPort: memoryObjectPort(),
@@ -426,18 +423,12 @@ async function run(): Promise<void> {
     && !sourceBlocked.publicOrProductionAuthorityGranted,
   'A source-readiness block cannot promote product, public, or production state.')
 
-  const projectionCandidate = createCaptionTerminalQualificationProjectionV2(
-    qualificationInput, [privateReviewProjection()])
-  check(projectionCandidate.counts.qualifiedPrivateInternalJobs === 41
-    && projectionCandidate.counts.qualifiedOutputs === 1,
-  'The terminal projection contract remains testable without certifying the current source state.')
-
   expectThrow(() => createCanonicalCaptionTerminalQualificationService({
     evidenceReadPort: {
       schemaVersion: 'canonical-caption-terminal-evidence-read-port-v1',
       sourceAuthority: 'canonical_backend_persisted_caption_evidence',
       callerSuppliedEvidenceAccepted: false,
-      async readExact() { return bundle },
+      async readExact() { return null },
     },
     repository,
   }))
@@ -477,10 +468,7 @@ async function run(): Promise<void> {
     qualifiedCandidateWasContractShapeOnly: true,
     actualCanonicalEvidenceConsumedByThisSmoke: false,
     currentSourceReadinessBlockedBeforeOwnerRead: ownerReads === 0,
-    projectionCandidateJobs:
-      projectionCandidate.counts.qualifiedPrivateInternalJobs,
-    projectionCandidateOutputs:
-      projectionCandidate.counts.qualifiedOutputs,
+    currentV2ProjectionBuilderBlockedBySourceReadiness: true,
     callerSuppliedEvidenceAccepted: false,
     browserLocalCompletionAccepted: false,
     productionAuthority: false,

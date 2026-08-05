@@ -26,6 +26,9 @@ import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V3,
 } from './caption-current-integration-readiness'
 import {
+  CAPTION_CURRENT_JOB_READINESS_LEDGER,
+} from './caption-current-job-readiness'
+import {
   assertCaptionTerminalPrivateReviewEvidence,
   createCaptionTerminalQualificationPreflight,
   createCaptionTerminalQualificationProjection,
@@ -165,6 +168,7 @@ export function createCaptionTerminalQualificationProjectionV2(
   privateReviewEvidenceProjections:
     readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
 ): CaptionTerminalQualificationProjectionV2 {
+  assertCurrentSourceReadinessAllowsTerminalProjection()
   const input = parseCaptionTerminalQualificationEvidenceInputV2(
     sourceEvidenceInput)
   const historicalInput = toHistoricalInput(input)
@@ -243,8 +247,10 @@ export function createCaptionTerminalQualificationPreflightV2(
 ): CaptionTerminalQualificationPreflightV2 {
   const input = sourceEvidenceInput === undefined
     ? null : parseCaptionTerminalQualificationEvidenceInputV2(sourceEvidenceInput)
-  const historicalInput = input === null ? undefined : toHistoricalInput(input)
-  if (input && privateReviewEvidenceProjections) {
+  const sourceReady = currentSourceReadinessAllowsTerminalProjection()
+  const historicalInput = input === null || !sourceReady
+    ? undefined : toHistoricalInput(input)
+  if (input && sourceReady && privateReviewEvidenceProjections) {
     assertCaptionTerminalPrivateReviewEvidence(
       historicalInput!, privateReviewEvidenceProjections)
   }
@@ -273,3 +279,25 @@ export function createCaptionTerminalQualificationPreflightV2(
 
 export const CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT_V2 =
   createCaptionTerminalQualificationPreflightV2()
+
+function currentSourceReadinessAllowsTerminalProjection(): boolean {
+  const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER
+  const readyCount: number = ledger.counts.sourcePathsReadyForPrivateEvidenceRun
+  const declaredCount: number = ledger.counts.declaredSupportedJobs
+  const waitingCount: number = ledger.counts.jobsWaitingOnCanonicalOwnerMount
+  return readyCount === declaredCount
+    && waitingCount === 0
+    && ledger.ownerMounts.every((owner) =>
+      owner.canonicalCompositionMountImplemented)
+    && ledger.jobs.every((job) =>
+      job.sourceReadiness === 'ready_for_private_internal_evidence_run'
+      && job.missingCanonicalOwnerMountKeys.length === 0)
+}
+
+function assertCurrentSourceReadinessAllowsTerminalProjection(): void {
+  if (!currentSourceReadinessAllowsTerminalProjection()) {
+    throw new Error(
+      'Caption terminal projection is blocked by current source readiness.',
+    )
+  }
+}

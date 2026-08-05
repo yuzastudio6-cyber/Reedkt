@@ -47,6 +47,10 @@ import {
   createEditSkillRuntime,
   createEditSkillRuntimeRegistries,
 } from '../edit-skills/registry'
+import {
+  TRACK_ALL_SAM_OPERATION_V2,
+  TRACK_ALL_TOOL_OPERATIONS,
+} from '../edit-skills/track-all/track-all-capability-manifest'
 import { GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT } from '../edit-skills/b-roll/generated/b-roll-internal-qualification.generated'
 import {
   assertSkillQualificationReceipt,
@@ -124,7 +128,13 @@ const runtime = createEditSkillRuntime({
       'internal_execution_qualified' as const,
     ])),
   },
-  toolRegistry: { operationIds: new Set(BROLL_TOOL_OPERATIONS) },
+  toolRegistry: {
+    operationIds: new Set([
+      ...BROLL_TOOL_OPERATIONS,
+      ...TRACK_ALL_TOOL_OPERATIONS,
+      TRACK_ALL_SAM_OPERATION_V2,
+    ]),
+  },
   additionalRuntimeBindings: canonicalBindings,
   ...runtimeRegistries,
 })

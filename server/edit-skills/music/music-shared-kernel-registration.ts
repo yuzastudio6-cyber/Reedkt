@@ -21,10 +21,10 @@ import {
 import { validateCanonicalMusicPublication } from './music-publication-validation'
 
 const musicPlanSchema = z.custom<CanonicalMusicPlanResult>((value) => Boolean(
-  value && typeof value === 'object' && (value as CanonicalMusicPlanResult).schemaVersion === 'canonical-music-plan-result-v2',
+  value && typeof value === 'object' && (value as CanonicalMusicPlanResult).schemaVersion === 'canonical-music-plan-result-v3',
 ), 'Canonical Music plan result required.')
 const musicResultSchema = z.custom<CanonicalMusicSkillResult>((value) => Boolean(
-  value && typeof value === 'object' && (value as CanonicalMusicSkillResult).schemaVersion === 'canonical-music-result-v2',
+  value && typeof value === 'object' && (value as CanonicalMusicSkillResult).schemaVersion === 'canonical-music-result-v3',
 ), 'Canonical Music result required.')
 
 export function registerMusicArtifactSchemas(registry: EditSkillArtifactSchemaRegistry): void {

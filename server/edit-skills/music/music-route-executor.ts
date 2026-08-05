@@ -22,6 +22,7 @@ import {
   type MusicExecutionUnitReceipt,
   type MusicFinalCompositionHandoff,
   type MusicRouteStepReceipt,
+  type MusicRuntimeStepOutputBinding,
   type MusicRouteBinding,
   type MusicSoundSupportReceipt,
   type MusicSoundtrackSegmentationPlan,
@@ -50,7 +51,7 @@ import {
 } from './music-execution-graph'
 import { validateMusicResultAuthority } from '../../music/music-scope-guard'
 import type { CanonicalMusicContextPackage } from '../../music/music-context'
-import { getMusicToolRouteManifest, type MusicRouteStep } from '../../music/music-tool-routes'
+import { getMusicToolRouteManifest, type MusicRouteStep, type MusicToolRouteManifest } from '../../music/music-tool-routes'
 import { resolveMusicExactOperationHandler, type MusicExactOperationHandler } from './music-operation-handler-registry'
 import { createMusicCostEvidence, providerUsdToCredits } from '../../music/music-rate-card'
 
@@ -138,6 +139,7 @@ function receipt(input: {
   inputArtifacts?: MusicArtifactRef[]
   outputArtifacts?: MusicArtifactRef[]
   outputHashes?: string[]
+  outputBindings?: MusicRuntimeStepOutputBinding[]
   runtimeEvidence?: string[]
   qaEvidence?: string[]
   providerAttemptId?: string
@@ -157,11 +159,14 @@ function receipt(input: {
     elapsedMilliseconds: Math.max(0, Math.round(input.elapsedMilliseconds)),
     inputArtifactIds: input.inputArtifacts?.map((item) => item.artifactId) ?? input.unit.inputArtifactIds,
     inputArtifactHashes: input.inputArtifacts?.map((item) => item.checksumSha256) ?? input.unit.inputArtifactHashes,
-    outputArtifactIds: input.outputArtifacts?.map((item) => item.artifactId) ?? [],
+    outputArtifactIds: input.outputBindings?.map((item) => item.artifactId) ??
+      input.outputArtifacts?.map((item) => item.artifactId) ?? [],
     outputArtifactHashes: [
-      ...(input.outputArtifacts?.map((item) => item.checksumSha256) ?? []),
+      ...(input.outputBindings?.map((item) => item.artifactHash) ??
+        input.outputArtifacts?.map((item) => item.checksumSha256) ?? []),
       ...(input.outputHashes ?? []),
     ],
+    outputBindings: input.outputBindings ?? [],
     runtimeEvidence: input.runtimeEvidence ?? [],
     costEvidence: { actualCredits: providerUsdToCredits(input.providerCostUsd ?? 0),
       internalToolCostUsd: 0, providerCostUsd: input.providerCostUsd ?? 0 },
@@ -183,6 +188,7 @@ function routeStepReceipt(input: {
   inputArtifactHashes: string[]
   outputArtifactIds: string[]
   outputArtifactHashes: string[]
+  outputBindings: MusicRuntimeStepOutputBinding[]
   runtimeEvidence: string[]
   qaEvidence: string[]
   providerCostUsd: number
@@ -199,6 +205,7 @@ function routeStepReceipt(input: {
     elapsedMilliseconds: Math.max(0, Math.round(input.elapsedMilliseconds)),
     inputArtifactIds: input.inputArtifactIds, inputArtifactHashes: input.inputArtifactHashes,
     outputArtifactIds: input.outputArtifactIds, outputArtifactHashes: input.outputArtifactHashes,
+    outputBindings: input.outputBindings,
     runtimeEvidence: input.runtimeEvidence,
     costEvidence: { actualCredits: providerUsdToCredits(input.providerCostUsd),
       internalToolCostUsd: 0, providerCostUsd: input.providerCostUsd },
@@ -207,6 +214,51 @@ function routeStepReceipt(input: {
     ...(input.reason ? { reason: input.reason } : {}),
   }
   return { ...base, receiptHash: hashMusicValue(base) }
+}
+
+function bindActualRouteOutputs(input: {
+  route: Readonly<MusicToolRouteManifest>
+  step: MusicRouteStep
+  newEnvelopes: MusicArtifactEnvelope[]
+  referencedEnvelopes: MusicArtifactEnvelope[]
+  privateArtifacts: MusicArtifactRef[]
+}): MusicRuntimeStepOutputBinding[] {
+  const envelopeByIdentity = new Map<string, MusicArtifactEnvelope>()
+  for (const artifact of [...input.newEnvelopes, ...input.referencedEnvelopes]) {
+    envelopeByIdentity.set(`${artifact.artifactId}:${artifact.artifactVersion}:${artifact.artifactHash}`, artifact)
+  }
+  const actual = [
+    ...[...envelopeByIdentity.values()].map((artifact) => ({
+      artifactType: artifact.artifactType, artifactId: artifact.artifactId,
+      artifactVersion: artifact.artifactVersion, artifactHash: artifact.artifactHash,
+      schemaVersion: artifact.schemaVersion, lineageRefs: artifact.sourceArtifactHashes,
+    })),
+    ...input.privateArtifacts.map((artifact) => ({
+      artifactType: artifact.artifactType, artifactId: artifact.artifactId,
+      artifactVersion: artifact.version, artifactHash: artifact.checksumSha256,
+      schemaVersion: `${artifact.artifactType}.private-ref.v1`, lineageRefs: artifact.lineageArtifactIds ?? [],
+    })),
+  ]
+  const declared = new Set(input.step.outputBindings)
+  const undeclared = actual.filter((artifact) => !declared.has(artifact.artifactType))
+  if (undeclared.length > 0) {
+    throw new Error(`Music route step ${input.step.stepKey} emitted undeclared output types: ${[
+      ...new Set(undeclared.map((artifact) => artifact.artifactType)),
+    ].join(',')}.`)
+  }
+  const bindings: MusicRuntimeStepOutputBinding[] = actual.map((artifact) => {
+    const published = input.route.outputBindings.find((binding) => binding.artifactType === artifact.artifactType &&
+      binding.producerStepKey === input.step.stepKey)
+    if (!published) throw new Error(`Music output ${artifact.artifactType} has no published producer binding.`)
+    return { bindingKey: published.bindingKey, ...artifact, producerStepKey: input.step.stepKey }
+  })
+  for (const expected of input.route.outputBindings.filter((binding) => binding.required &&
+    binding.producerStepKey === input.step.stepKey)) {
+    if (!bindings.some((binding) => binding.bindingKey === expected.bindingKey)) {
+      throw new Error(`Music route step ${input.step.stepKey} did not produce required output ${expected.bindingKey}.`)
+    }
+  }
+  return bindings
 }
 
 function cueFor(cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>, cueId: string) {
@@ -361,6 +413,7 @@ export class CanonicalMusicRouteExecutor {
         const step = route.steps[0]!
         const handler = resolveMusicExactOperationHandler(step)
         if (!handler) throw new Error(`Music route step ${step.stepKey} has no exact immutable handler.`)
+        const artifactCountBeforeStep = state.artifacts.length
         const details = await this.#executeUnit({ package: input, unit, state, step, handler })
         const completedAt = new Date().toISOString()
         const elapsedMilliseconds = performance.now() - unitStart
@@ -370,6 +423,12 @@ export class CanonicalMusicRouteExecutor {
           ...outputArtifacts.map((artifact) => artifact.checksumSha256), ...(details.outputHashes ?? []),
         ]
         const envelopeOutputs = state.artifacts.filter((artifact) => outputHashes.includes(artifact.artifactHash))
+        const outputBindings = bindActualRouteOutputs({
+          route, step,
+          newEnvelopes: state.artifacts.slice(artifactCountBeforeStep),
+          referencedEnvelopes: envelopeOutputs,
+          privateArtifacts: outputArtifacts,
+        })
         const stepReceipt = routeStepReceipt({
           step, handler, status: 'completed', startedAt: unitStartedAt, completedAt, elapsedMilliseconds,
           inputArtifactIds: inputArtifacts.length > 0 ? inputArtifacts.map((artifact) => artifact.artifactId) : unit.inputArtifactIds,
@@ -377,13 +436,14 @@ export class CanonicalMusicRouteExecutor {
           outputArtifactIds: [...outputArtifacts.map((artifact) => artifact.artifactId),
             ...envelopeOutputs.map((artifact) => artifact.artifactId)],
           outputArtifactHashes: outputHashes,
+          outputBindings,
           runtimeEvidence: details.runtimeEvidence ?? [], qaEvidence: details.qaEvidence ?? [],
           providerCostUsd: details.providerCostUsd ?? 0,
           ...(details.providerAttemptId ? { providerAttemptId: details.providerAttemptId } : {}),
         })
         state.unitReceipts.push(receipt({
           unit, status: 'completed', startedAt: unitStartedAt, completedAt,
-          elapsedMilliseconds, ...details, stepReceipts: [stepReceipt],
+          elapsedMilliseconds, ...details, outputBindings, stepReceipts: [stepReceipt],
         }))
       } catch (error) {
         state.failedUnits.add(unit.unitId)
@@ -459,8 +519,7 @@ export class CanonicalMusicRouteExecutor {
         const handoff = buildExecutionHandoff({ package: input.package, state: input.state })
         input.state.handoff = handoff
         const handoffArtifact = artifactFromPayload({ request,
-          artifactType: handoff.intentionalNoMusic ? 'intentional_no_music_handoff_v2'
-            : handoff.ambienceOnly ? 'music_ambience_only_handoff_v2' : 'music_final_composition_handoff_v2',
+          artifactType: 'music_final_composition_handoff_v2',
           artifactId: handoff.handoffId, payload: handoff,
           evidence: ['actual_route_step_execution_aggregate', 'final_mux_render_export_outside_music'],
         })

@@ -46,6 +46,7 @@ export interface MusicToolRouteManifest {
   qualificationEvidenceRefs: string[]
   requiredInputs: string[]
   producedArtifactTypes: string[]
+  optionalProducedArtifactTypes: string[]
   outputBindings: MusicStepOutputBinding[]
   eligibilityRules: string[]
   steps: MusicRouteStep[]
@@ -159,14 +160,16 @@ export function publishMusicToolRouteManifest(input: UnpublishedMusicRoute): Rea
     visited.add(step.stepKey)
   }
   input.steps.forEach(visit)
-  for (const output of input.producedArtifactTypes) {
+  for (const output of [...input.producedArtifactTypes, ...input.optionalProducedArtifactTypes]) {
     if (!produced.has(output)) throw new Error(`Music route ${input.routeKey} output ${output} is unreachable.`)
   }
   const qualificationByMode = deriveQualification(input.steps)
-  const outputBindings: MusicStepOutputBinding[] = input.producedArtifactTypes.map((artifactType) => {
+  const outputBindings: MusicStepOutputBinding[] = [...input.producedArtifactTypes, ...input.optionalProducedArtifactTypes]
+    .map((artifactType) => {
     const producer = input.steps.find((step) => step.outputBindings.includes(artifactType))
     if (!producer) throw new Error(`Music route ${input.routeKey} has no exact producer for ${artifactType}.`)
-    return { bindingKey: artifactType, artifactType, producerStepKey: producer.stepKey, required: true }
+    return { bindingKey: artifactType, artifactType, producerStepKey: producer.stepKey,
+      required: input.producedArtifactTypes.includes(artifactType) }
   })
   const withoutHash = {
     ...structuredClone(input),
@@ -191,6 +194,7 @@ function route(input: {
   role: MusicRouteRole
   requiredInputs: string[]
   outputs: string[]
+  optionalOutputs?: string[]
   steps: MusicRouteStep[]
   fallback?: Array<{ routeKey: string; routeVersion: string }>
   limitations?: string[]
@@ -205,6 +209,7 @@ function route(input: {
     qualificationEvidenceRefs: input.steps.map((item) => `music.evidence.route.${item.operationKey}.v3`),
     requiredInputs: input.requiredInputs,
     producedArtifactTypes: input.outputs,
+    optionalProducedArtifactTypes: input.optionalOutputs ?? [],
     eligibilityRules: ['exact_scope_authority', 'exact_timeline_binding', 'approved_snapshot', 'rights_when_media_used'],
     steps: input.steps,
     timeEstimatorKey: `music.route.time.${routeKey}.v3`,
@@ -225,7 +230,12 @@ function route(input: {
 }
 
 function planningRoute(job: string, routeKey: string): Readonly<MusicToolRouteManifest> {
-  const output = `music_${job}_artifact_v2`
+  const output = ({
+    study_video_music_context: 'music_context_study_v2',
+    decide_music_need: 'music_need_decision_v2',
+    plan_music_narrative_arc: 'music_narrative_arc_v2',
+    create_music_cue_sheet: 'music_cue_sheet_v2',
+  } as Record<string, string>)[job] ?? `music_${job}_artifact_v2`
   return route({
     key: routeKey, jobs: [job], role: 'primary', requiredInputs: ['music_assignment_v2'], outputs: [output],
     steps: [step({
@@ -241,10 +251,13 @@ const sourceStudyRoute = (input: {
 }): Readonly<MusicToolRouteManifest> => route({
   key: input.key, jobs: [input.job], role: 'primary', requiredInputs: ['approved_private_music_audio'],
   outputs: ['approved_music_selection_v2'],
+  optionalOutputs: input.output === 'approved_music_selection_v2' ? [] : [input.output],
   steps: [step({
     stepKey: 'bind_asset', stepJobType: input.job, toolKey: 'music_private_asset_service', toolVersion: '2.0.0',
     operationKey: input.assetOperation, operationProfileKey: `music.profile.${input.assetOperation}.v2`, required: true,
-    dependencyStepKeys: [], inputBindings: ['approved_private_music_audio'], outputBindings: ['approved_music_selection_v2'], failureBehavior: 'fail_route',
+    dependencyStepKeys: [], inputBindings: ['approved_private_music_audio'],
+    outputBindings: ['approved_music_selection_v2', ...(input.output === 'approved_music_selection_v2' ? [] : [input.output])],
+    failureBehavior: 'fail_route',
   })],
 })
 
@@ -254,10 +267,12 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   sourceStudyRoute({ key: 'music.route.study.user_upload.v2', job: 'study_user_provided_music', assetOperation: 'use_user_uploaded_music', output: 'music_user_intake_v2' }),
   route({
     key: 'music.route.study.reference_dna.v2', jobs: ['study_reference_music', 'create_music_reference_dna'], role: 'primary',
-    requiredInputs: ['approved_private_music_audio'], outputs: ['music_candidate_analysis_v2'], steps: [step({
+    requiredInputs: ['approved_private_music_audio'], outputs: ['music_candidate_analysis_v2'],
+    optionalOutputs: ['music_reference_study_v2', 'music_reference_dna_v2'], steps: [step({
       stepKey: 'analyze_reference', stepJobType: 'study_reference_music', toolKey: 'music_private_audio_analysis', toolVersion: '2.0.0',
       operationKey: 'analyze_audio_bytes', operationProfileKey: 'music.profile.reference_analysis.v2', required: true,
-      dependencyStepKeys: [], inputBindings: ['approved_private_music_audio'], outputBindings: ['music_candidate_analysis_v2'], failureBehavior: 'fail_route',
+      dependencyStepKeys: [], inputBindings: ['approved_private_music_audio'],
+      outputBindings: ['music_candidate_analysis_v2', 'music_reference_study_v2', 'music_reference_dna_v2'], failureBehavior: 'fail_route',
     })], limitations: ['Reference DNA is a measured structural risk screen, not copyright clearance.'],
   }),
   planningRoute('decide_music_need', 'music.route.decide.need.v2'),
@@ -275,27 +290,35 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   sourceStudyRoute({ key: 'music.route.acquire.internal_library.v2', job: 'search_authorized_music_library', assetOperation: 'match_internal_music', output: 'approved_music_selection_v2' }),
   route({
     key: 'music.route.generate.original.lyria.v2', jobs: ['generate_original_music'], role: 'primary',
-    requiredInputs: ['music_composition_brief_v2'], outputs: ['untrusted_music_candidate'], steps: [step({
+    requiredInputs: ['music_composition_brief_v2'],
+    outputs: ['untrusted_music_candidate', 'music_composition_brief_v2', 'music_provider_attempt_v2'], steps: [step({
       stepKey: 'generate', stepJobType: 'generate_original_music', toolKey: 'google_lyria_3', toolVersion: '3.0.0-preview.20260325',
       operationKey: 'generate_original_music_injected', operationProfileKey: 'music.profile.lyria3_pro_preview.v2', required: true,
-      dependencyStepKeys: [], inputBindings: ['music_composition_brief_v2'], outputBindings: ['untrusted_music_candidate'], failureBehavior: 'fail_route',
+      dependencyStepKeys: [], inputBindings: ['music_composition_brief_v2'],
+      outputBindings: ['untrusted_music_candidate', 'music_composition_brief_v2', 'music_provider_attempt_v2'], failureBehavior: 'fail_route',
     })], fallback: [{ routeKey: 'music.route.no_music.v2', routeVersion: '2.0.0' }],
     limitations: ['Fixture-qualified injected transport only; live provider is fail-closed.'],
   }),
   route({
     key: 'music.route.generate.variation.lyria.v2', jobs: ['generate_music_variation'], role: 'primary',
-    requiredInputs: ['music_composition_brief_v2', 'approved_private_music_audio'], outputs: ['untrusted_music_candidate'], steps: [step({
+    requiredInputs: ['music_composition_brief_v2', 'approved_private_music_audio'],
+    outputs: ['untrusted_music_candidate', 'music_composition_brief_v2', 'music_provider_attempt_v2'], steps: [step({
       stepKey: 'generate_variation', stepJobType: 'generate_music_variation', toolKey: 'google_lyria_3', toolVersion: '3.0.0-preview.20260325',
       operationKey: 'generate_music_variation_injected', operationProfileKey: 'music.profile.lyria3_variation_preview.v2', required: true,
-      dependencyStepKeys: [], inputBindings: ['music_composition_brief_v2', 'approved_private_music_audio'], outputBindings: ['untrusted_music_candidate'], failureBehavior: 'fail_route',
+      dependencyStepKeys: [], inputBindings: ['music_composition_brief_v2', 'approved_private_music_audio'],
+      outputBindings: ['untrusted_music_candidate', 'music_composition_brief_v2', 'music_provider_attempt_v2'], failureBehavior: 'fail_route',
     })], fallback: [{ routeKey: 'music.route.no_music.v2', routeVersion: '2.0.0' }],
   }),
   route({
     key: 'music.route.analyze.candidate.v2', jobs: ['analyze_music_candidate'], role: 'primary', requiredInputs: ['untrusted_music_candidate'],
-    outputs: ['music_candidate_analysis_v2', 'music_technical_qa_v2'], steps: [step({
+    outputs: ['music_candidate_analysis_v2'],
+    optionalOutputs: ['music_existing_study_v2', 'music_user_intake_v2', 'music_reference_study_v2', 'music_reference_dna_v2'], steps: [step({
       stepKey: 'analyze', stepJobType: 'analyze_music_candidate', toolKey: 'music_private_audio_analysis', toolVersion: '2.0.0',
       operationKey: 'analyze_audio_bytes', operationProfileKey: 'music.profile.candidate_analysis.v2', required: true,
-      dependencyStepKeys: [], inputBindings: ['untrusted_music_candidate'], outputBindings: ['music_candidate_analysis_v2', 'music_technical_qa_v2'], failureBehavior: 'fail_route',
+      dependencyStepKeys: [], inputBindings: ['untrusted_music_candidate'], outputBindings: [
+        'music_candidate_analysis_v2', 'music_existing_study_v2', 'music_user_intake_v2',
+        'music_reference_study_v2', 'music_reference_dna_v2',
+      ], failureBehavior: 'fail_route',
     })],
   }),
   route({
@@ -308,20 +331,24 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   }),
   route({
     key: 'music.route.editorial.fit.v2', jobs: ['fit_music_to_edit'], role: 'primary', requiredInputs: ['music_candidate_analysis_v2', 'music_cue_sheet_v2'],
-    outputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'], steps: [step({
+    outputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+      'music_anchor_alignment_decision_v3', 'music_mix_intent_manifest_v2'], steps: [step({
       stepKey: 'fit', stepJobType: 'fit_music_to_edit', toolKey: 'music_sync_engine', toolVersion: '2.0.0',
       operationKey: 'compile_frame_accurate_music_placement', operationProfileKey: 'music.profile.editorial_fit.v2', required: true,
       dependencyStepKeys: [], inputBindings: ['music_candidate_analysis_v2', 'music_cue_sheet_v2'],
-      outputBindings: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'], failureBehavior: 'fail_route',
+      outputBindings: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+        'music_anchor_alignment_decision_v3', 'music_mix_intent_manifest_v2'], failureBehavior: 'fail_route',
     })],
   }),
   route({
     key: 'music.route.sync.picture.v2', jobs: ['sync_music_to_picture'], role: 'primary', requiredInputs: ['music_candidate_analysis_v2', 'music_cue_sheet_v2'],
-    outputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'], steps: [step({
+    outputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+      'music_anchor_alignment_decision_v3', 'music_mix_intent_manifest_v2'], steps: [step({
       stepKey: 'sync', stepJobType: 'sync_music_to_picture', toolKey: 'music_sync_engine', toolVersion: '2.0.0',
       operationKey: 'compile_frame_accurate_music_placement', operationProfileKey: 'music.profile.music_sync.v2', required: true,
       dependencyStepKeys: [], inputBindings: ['music_candidate_analysis_v2', 'music_cue_sheet_v2'],
-      outputBindings: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'], failureBehavior: 'fail_route',
+      outputBindings: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+        'music_anchor_alignment_decision_v3', 'music_mix_intent_manifest_v2'], failureBehavior: 'fail_route',
     })],
   }),
   route({
@@ -336,10 +363,10 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   }),
   route({
     key: 'music.route.qa.cue.v2', jobs: ['qa_music'], role: 'qa', requiredInputs: ['approved_private_music_audio'],
-    outputs: ['music_candidate_analysis_v2', 'music_technical_qa_v2'], steps: [step({
+    outputs: ['music_technical_qa_v2'], steps: [step({
       stepKey: 'qa_audio', stepJobType: 'qa_music', toolKey: 'music_private_audio_analysis', toolVersion: '2.0.0',
       operationKey: 'analyze_audio_bytes', operationProfileKey: 'music.profile.cue_qa.v2', required: true,
-      dependencyStepKeys: [], inputBindings: ['approved_private_music_audio'], outputBindings: ['music_candidate_analysis_v2', 'music_technical_qa_v2'], failureBehavior: 'fail_route',
+      dependencyStepKeys: [], inputBindings: ['approved_private_music_audio'], outputBindings: ['music_technical_qa_v2'], failureBehavior: 'fail_route',
     })],
   }),
   route({

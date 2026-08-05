@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { StandaloneCanonicalMusicSkillService } from '../edit-skills/music/canonical-music-skill-service'
 import { MUSIC_MINI_SKILL_MANIFESTS } from '../edit-skills/music/music-mini-skill-registry'
-import { MUSIC_TOOL_ROUTE_MANIFESTS } from '../music/music-tool-routes'
+import { MUSIC_TOOL_ROUTE_MANIFESTS, getMusicToolRouteManifest,
+  publishMusicToolRouteManifest } from '../music/music-tool-routes'
 import { hashMusicValue, type MusicCandidateAnalysis, type MusicEvidenceRef } from '../music/music-contracts'
 import type { MusicContextArtifactResolver, ResolvedMusicContextEvidence } from '../music/music-context'
 import { analyzePrivateMusicArtifact } from '../music/music-analysis'
@@ -109,6 +110,35 @@ await check('sound_parameters_applied', async () => {
   assert.equal(typeof receipt.receivedTechnicalAutomationHash, 'string')
   assert.equal(receipt.receivedTechnicalAutomationHash, receipt.appliedTechnicalAutomationHash)
   assert.ok(Array.isArray(receipt.appliedOperationReceipts) && receipt.appliedOperationReceipts.length >= cue.soundProcessingIntent.length)
+  for (const unit of result.unitReceipts.filter((item) => item.status === 'completed')) {
+    const route = getMusicToolRouteManifest(unit.routeKey, unit.routeVersion)
+    assert.ok(route)
+    assert.ok(unit.outputBindings.length > 0, `${unit.unitId} has named outputs`)
+    assert.equal(unit.stepReceipts.length, route.steps.length)
+    for (const binding of unit.outputBindings) {
+      const published = route.outputBindings.find((candidate) => candidate.bindingKey === binding.bindingKey)
+      assert.ok(published)
+      assert.equal(binding.producerStepKey, published.producerStepKey)
+      assert.equal(binding.artifactType, published.artifactType)
+      assert.ok(binding.artifactId && binding.artifactHash && binding.schemaVersion)
+    }
+    for (const required of route.outputBindings.filter((binding) => binding.required)) {
+      assert.ok(unit.outputBindings.some((binding) => binding.bindingKey === required.bindingKey))
+    }
+  }
+})
+
+await check('route_publication_rejects_false_outputs', () => {
+  const template = MUSIC_TOOL_ROUTE_MANIFESTS.find((route) => route.routeKey === 'music.route.select.candidate.v3')!
+  const publish = publishMusicToolRouteManifest as unknown as (value: Record<string, unknown>) => unknown
+  const { routeHash: _hash, qualificationStatus: _status, qualificationByMode: _modes,
+    outputBindings: _bindings, ...seed } = structuredClone(template)
+  assert.throws(() => publish({ ...seed, routeKey: 'music.route.fixture.false-output.v3',
+    producedArtifactTypes: ['music_output_that_no_step_produces_v3'] }), /unreachable|undeclared/i)
+  const step = structuredClone(template.steps[0]!)
+  step.outputBindings = ['music_output_not_declared_by_operation_v3']
+  assert.throws(() => publish({ ...seed, routeKey: 'music.route.fixture.undeclared-handler-output.v3',
+    producedArtifactTypes: ['music_output_not_declared_by_operation_v3'], steps: [step] }), /undeclared operation output/i)
 })
 
 await check('peer_music_producing_acceptance', async () => {

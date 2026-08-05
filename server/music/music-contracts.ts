@@ -609,6 +609,7 @@ export interface MusicExecutionUnitReceipt {
   inputArtifactHashes: string[]
   outputArtifactIds: string[]
   outputArtifactHashes: string[]
+  outputBindings: MusicRuntimeStepOutputBinding[]
   runtimeEvidence: string[]
   costEvidence: { actualCredits: number; internalToolCostUsd: number; providerCostUsd: number }
   qaEvidence: string[]
@@ -634,12 +635,24 @@ export interface MusicRouteStepReceipt {
   inputArtifactHashes: string[]
   outputArtifactIds: string[]
   outputArtifactHashes: string[]
+  outputBindings: MusicRuntimeStepOutputBinding[]
   runtimeEvidence: string[]
   costEvidence: { actualCredits: number; internalToolCostUsd: number; providerCostUsd: number }
   qaEvidence: string[]
   providerAttemptId?: string
   reason?: string
   receiptHash: string
+}
+
+export interface MusicRuntimeStepOutputBinding {
+  bindingKey: string
+  artifactType: string
+  artifactId: string
+  artifactVersion: number
+  artifactHash: string
+  producerStepKey: string
+  schemaVersion: string
+  lineageRefs: string[]
 }
 
 export interface CanonicalMusicSkillResult {

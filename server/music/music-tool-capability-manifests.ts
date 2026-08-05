@@ -163,7 +163,12 @@ const planningOperations: OperationSeed[] = planningJobs.map((job) => ({
   key: job,
   jobs: [job],
   preset: 'planning',
-  produced: [`music_${job}_artifact_v2`],
+  produced: [({
+    study_video_music_context: 'music_context_study_v2',
+    decide_music_need: 'music_need_decision_v2',
+    plan_music_narrative_arc: 'music_narrative_arc_v2',
+    create_music_cue_sheet: 'music_cue_sheet_v2',
+  } as Record<string, string>)[job] ?? `music_${job}_artifact_v2`],
 }))
 
 export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
@@ -180,7 +185,8 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
           'study_existing_music', 'study_user_provided_music', 'study_reference_music',
           'create_music_reference_dna', 'analyze_music_candidate', 'qa_music',
         ], preset: 'private', accepted: ['approved_private_music_audio', 'untrusted_music_candidate'],
-        produced: ['music_candidate_analysis_v2', 'music_technical_qa_v2'], mutation: 'read_only_analysis',
+        produced: ['music_candidate_analysis_v2', 'music_technical_qa_v2', 'music_existing_study_v2',
+          'music_user_intake_v2', 'music_reference_study_v2', 'music_reference_dna_v2'], mutation: 'read_only_analysis',
         determinism: 'deterministic',
         limitations: ['Key, vocals, semantic emotion, originality, and cultural fit are limited evidence and may require review.'],
       },
@@ -196,7 +202,8 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     boundary: 'private_cpu_worker', status: 'internal_execution_qualified', operations: [{
       key: 'compile_frame_accurate_music_placement', jobs: ['fit_music_to_edit', 'sync_music_to_picture'],
       preset: 'private', accepted: ['music_candidate_analysis_v2', 'music_cue_sheet_v2'],
-      produced: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'],
+      produced: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+        'music_anchor_alignment_decision_v3', 'music_mix_intent_manifest_v2'],
       mutation: 'coordination_record_only', determinism: 'deterministic',
     }],
   }),
@@ -215,12 +222,12 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     boundary: 'private_artifact_service', status: 'internal_execution_qualified', operations: [
       {
         key: 'preserve_source_music', jobs: ['study_existing_music', 'fit_music_to_edit'], preset: 'private',
-        accepted: ['approved_private_music_audio'], produced: ['approved_music_selection_v2'],
+        accepted: ['approved_private_music_audio'], produced: ['approved_music_selection_v2', 'music_existing_study_v2'],
         mutation: 'no_mutation', determinism: 'deterministic',
       },
       {
         key: 'use_user_uploaded_music', jobs: ['study_user_provided_music', 'select_user_provided_music'], preset: 'private',
-        accepted: ['approved_private_music_audio'], produced: ['approved_music_selection_v2'],
+        accepted: ['approved_private_music_audio'], produced: ['approved_music_selection_v2', 'music_user_intake_v2'],
         mutation: 'no_mutation', determinism: 'deterministic',
       },
       {
@@ -257,13 +264,15 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     boundary: 'server_provider_adapter', status: 'planning_qualified', provider: true, operations: [
       {
         key: 'generate_original_music_injected', jobs: ['generate_original_music'], preset: 'fixture',
-        accepted: ['music_composition_brief_v2'], produced: ['untrusted_music_candidate'],
+        accepted: ['music_composition_brief_v2'],
+        produced: ['untrusted_music_candidate', 'music_composition_brief_v2', 'music_provider_attempt_v2'],
         mutation: 'private_provider_ingest', determinism: 'bounded_nondeterministic', paid: true, license: true,
         limitations: ['Injected transport is fixture-qualified; live Lyria 3 remains fail-closed without external evidence.'],
       },
       {
         key: 'generate_music_variation_injected', jobs: ['generate_music_variation'], preset: 'fixture',
-        accepted: ['music_composition_brief_v2', 'approved_private_music_audio'], produced: ['untrusted_music_candidate'],
+        accepted: ['music_composition_brief_v2', 'approved_private_music_audio'],
+        produced: ['untrusted_music_candidate', 'music_composition_brief_v2', 'music_provider_attempt_v2'],
         mutation: 'private_provider_ingest', determinism: 'bounded_nondeterministic', paid: true, license: true,
         limitations: ['Variation remains cue- and rights-bound and is fixture-qualified only.'],
       },

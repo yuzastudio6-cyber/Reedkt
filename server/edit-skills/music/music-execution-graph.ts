@@ -206,7 +206,8 @@ export function compileCanonicalMusicExecutionGraph(input: {
       jobType: 'sync_music_to_picture', capabilityKey: 'music.sync_music_to_picture', route: routeRef('music.route.sync.picture.v3'),
       inputArtifactIds: [], inputArtifactHashes: [], dependencyUnitIds: [selectId],
       idempotencyKey: `${request.idempotencyKey}:${binding.cueId}:sync`,
-      expectedOutputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2'],
+      expectedOutputs: ['music_beat_phrase_map_v2', 'music_editorial_plan_v2', 'music_placement_manifest_v2',
+        'music_anchor_alignment_decision_v3', 'music_mix_intent_manifest_v2'],
       attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true, failurePolicy: 'preserve_partial_success',
       namedInputs: ['music_candidate_analysis_v2', 'music_cue_sheet_v2'], operations: ['compile_frame_accurate_music_placement'],
     }))

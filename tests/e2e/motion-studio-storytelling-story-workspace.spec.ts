@@ -332,11 +332,11 @@ test.describe('Storytelling Story workspace', () => {
     await gotoRoute(page, fixture.editPath)
     await finishSourceReadyPlanSetup(page)
 
-    const planReview = page.getByTestId('plan-review-card')
+    const planReview = page.getByTestId('canonical-plan-publication-blocker')
     const styleSupplement = page.getByTestId('storytelling-style-plan-review')
     await expect(planReview).toBeVisible()
     await expect(styleSupplement).toContainText('Choose one direction before approval')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
     expect(styleRequests).toBe(0)
 
     await page.reload()
@@ -350,13 +350,13 @@ test.describe('Storytelling Story workspace', () => {
     await completeRequiredStorytellingSetupBeforePlan(page)
     await createFreshPlanFromPreparedSource(page)
     await expect(styleSupplement).toContainText('Checking the Storytelling style')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
     await expect(styleSupplement).toContainText('Editorial Collage')
     await expect(styleSupplement).toContainText('five-scene calibration proposal')
     await expect(styleSupplement).toContainText('Execution remains unavailable')
     await expect(page.getByTestId('storytelling-continuity-plan-review')).toContainText('Story flow · Ready for Plan Review')
     await expect(page.getByTestId('storytelling-continuity-plan-review')).toContainText('Question to resolution')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
     await expect(planReview).toContainText('Plan save did not finish')
     await expect(page.getByRole('button', { name: 'Retry saving this exact plan' })).toBeVisible()
 
@@ -366,17 +366,17 @@ test.describe('Storytelling Story workspace', () => {
     await createFreshPlanFromPreparedSource(page)
     await expect(styleSupplement).toContainText('The style could not be verified')
     await expect(styleSupplement).toContainText('exact motion direction changed')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
 
     responseMode = 'wrong_workspace'
     await styleSupplement.getByRole('button', { name: 'Try again' }).click()
     await expect(styleSupplement).toContainText('did not match this exact named edit')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
 
     responseMode = 'ready'
     await styleSupplement.getByRole('button', { name: 'Try again' }).click()
     await expect(styleSupplement).toContainText('Editorial Collage')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
     await expect(planReview).toContainText('Plan save did not finish')
     await expectNoGenerationBeforeApproval(page)
     await expectNoHorizontalOverflow(page)
@@ -459,7 +459,7 @@ test.describe('Storytelling Story workspace', () => {
     await page.getByTestId('chat-composer-send').click()
     await finishSourceReadyPlanSetup(page)
 
-    const planReview = page.getByTestId('plan-review-card')
+    const planReview = page.getByTestId('canonical-plan-publication-blocker')
     await expect(planReview).toBeVisible()
     await expect(page.getByTestId('storytelling-style-plan-review')).toContainText('Editorial Collage')
     await expect(page.getByTestId('canonical-planning-save-handoff-saved-waiting-for-compiler')).toBeVisible()
@@ -468,8 +468,7 @@ test.describe('Storytelling Story workspace', () => {
       'The planned edit includes operations outside the current source-and-caption private review runner.',
     )
     await expect(planReview).toContainText('needs additional canonical work items')
-    await expect(page.getByTestId('plan-review-approve')).toBeDisabled()
-    await expect(page.getByTestId('plan-review-approve')).toHaveText('Approval not ready')
+    await expect(page.getByTestId('plan-review-approve')).toHaveCount(0)
     await expect.poll(() => handoffRequests.length).toBe(1)
 
     const handoffBody = handoffRequests[0] as {
@@ -1404,7 +1403,7 @@ async function createFreshPlanFromPreparedSource(page: Page) {
     await expect(page.getByText(/Source prep is ready for 1 uploaded source file|Ready to create the plan/i)).toBeVisible()
   }
   await clickWhenReady(page.getByRole('button', { name: /Create edit plan/i }).first())
-  await expect(page.getByTestId('plan-review-card')).toBeVisible()
+  await expect(page.getByTestId('canonical-plan-publication-blocker')).toBeVisible()
 }
 
 function readyStylePlanPreparation(

@@ -264,6 +264,10 @@
     padding-inline: var(--rp-space-2);
   }
 
+  .primary {
+    gap: 1px;
+  }
+
   .tab span,
   .activeTab span {
     display: none;

@@ -153,6 +153,13 @@ export async function createBackendProjectForInternalTestingResult(input: {
         'This project creation is still recoverable. Retry the same action to confirm it without creating a duplicate.',
     }
   }
+  if (response.error?.code === 'UNKNOWN_PROJECT_OUTCOME') {
+    return {
+      status: 'failed',
+      errorMessage:
+        'Project creation could not be confirmed. Retry to recover the same project; no local duplicate was created.',
+    }
+  }
   if (response.statusCode === 0 || response.statusCode >= 500) {
     return {
       status: 'failed',

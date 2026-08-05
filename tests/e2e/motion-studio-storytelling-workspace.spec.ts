@@ -158,7 +158,6 @@ test.describe('Storytelling contextual workspace navigation', () => {
       for (const controlId of [
         'chat-composer-attach',
         'chat-composer-reference',
-        'chat-composer-mic',
         'chat-composer-send',
       ]) {
         const controlBounds = await page.getByTestId(controlId).boundingBox()

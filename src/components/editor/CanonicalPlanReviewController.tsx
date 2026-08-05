@@ -64,6 +64,7 @@ export function CanonicalPlanReviewController({
             </div>
           </header>
           <CanonicalPlanningSaveStatus {...planningPublication} />
+          {card.planSupplement}
           {statusSupplement}
           {card.onReviseSetup ? (
             <div className="clean-edit-step-actions">

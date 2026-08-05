@@ -876,3 +876,57 @@ production mutations. TRACK-15 does not claim a canonical-private or
 production worker execution and does not promote actual SAM inference. Track
 All remains `implementation_pending`, SAM remains `blocked`, and no checkpoint/
 model/GPU/paid/public/production/database/head-orchestra action occurred.
+
+## TRACK-16 — public plugin end-to-end lifecycle
+
+Status: complete and remotely confirmed.
+
+- implementation commit: `0fb883d4a4b2a2dd20b76d7b79b3cb8158b3b7b6`
+- remote confirmation: `origin/codex/track-all-skill-end-to-end` resolved to
+  `0fb883d4a4b2a2dd20b76d7b79b3cb8158b3b7b6` after `git push -u origin HEAD`.
+
+Implemented:
+
+- one public-only E2E that resolves `track_all@1.0.0` through the generic
+  plugin registry and performs planning, typed dependency acceptance,
+  approved graph compilation, generic binding dispatch, work-result
+  validation, and final result projection without importing private Track All
+  mini-skills;
+- complete no-action, selected plate, all-faces-except-presenter, existing
+  track repair, planar screen, freeform room, privacy redaction, product focus,
+  speaker reframe, B-Roll V1 handoff, and Captions behind-subject scenarios;
+- exact existing Track Graph/repair evidence, Visual Intelligence grounding,
+  privacy policy, and caption reserved-zone input authority at the public
+  plugin boundary;
+- strict graph/result/finalization checks for assignment, plan, approval,
+  manifest, source, tenant, range, output type, operation, worker, QA lineage,
+  and exact dependency acceptance;
+- exact result-status projection for every non-executable/ambiguity/blocking
+  decision instead of silently defaulting unresolved states to accepted;
+- removal of the competing Track All caption-zone schema in favor of the
+  canonical existing `caption_reserved_zones_v1` contract, including
+  integer-millionth conversion inside the private reframe implementation.
+
+Actual checks run:
+
+- `npm run test:track-all-public-plugin-e2e` — passed 11 complete public
+  scenarios, one Visual Intelligence dependency lifecycle, 57 registered
+  runtime dispatch receipts, six adversarial public-boundary rejections,
+  B-Roll Track Graph V1 compatibility, Captions behind-subject support, zero
+  private mini-skill imports, zero real SAM inference, zero provider requests,
+  zero public artifacts, and zero production mutations;
+- every Track All smoke from capability manifest through runtime bindings —
+  passed, including actual FFmpeg/FFprobe/OpenCV deterministic geometry and
+  privacy fixtures plus actual private Remotion focus/reframe fixtures;
+- frozen B-Roll active-artifact, runtime-binding, and public-plugin smokes —
+  passed under the qualification-generation gate; the frozen receipt remains
+  correctly stale until final evidence regeneration;
+- `npm run test:edit-skill-capability-kernel`, `npm run lint -- --quiet`,
+  `npm run typecheck:server`, and `npm run check:frontend-boundary` — passed;
+- staged `git diff --check` — passed.
+
+All Track All public lifecycle outputs in this milestone are strict injected
+internal evidence and are not represented as real SAM inference. Track All
+remains `implementation_pending`, the SAM route remains `blocked`, and no
+checkpoint/model/GPU/paid/public/production/database/head-orchestra action
+occurred.

@@ -394,7 +394,7 @@
       ]
     }
   ],
-  "manifestHash": "405b1193ed9609befc9362bce4022bf664567d23fd22564c62271779a220064e",
+  "manifestHash": "dcec1be579f9ff28a560ec1f37c01ca9afe0f874f9ac7e66894f8a8ea75b7061",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -900,6 +900,11 @@
     {
       "description": "Track All public plugin lifecycle evidence.",
       "fixtureKey": "track_all.fixture.public_plugin_lifecycle",
+      "minimumStatus": "planning_qualified"
+    },
+    {
+      "description": "Track All b roll consumer acceptance evidence.",
+      "fixtureKey": "track_all.fixture.b_roll_consumer_acceptance",
       "minimumStatus": "planning_qualified"
     },
     {

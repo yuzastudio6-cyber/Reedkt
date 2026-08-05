@@ -33,6 +33,22 @@ const DEFINITIONS = [
     ],
   },
   {
+    authorityKey: 'generic_route_qualification_registry',
+    profileVersion: 'track_all_dependency_authority.generic_route_qualification_registry.v1',
+    files: [
+      'server/edit-skills/core/skill-route-qualification.ts',
+      'server/edit-skills/core/skill-qualification-registry.ts',
+    ],
+  },
+  {
+    authorityKey: 'generic_runtime_dispatch_qualification_resolver',
+    profileVersion: 'track_all_dependency_authority.generic_runtime_dispatch_qualification_resolver.v1',
+    files: [
+      'server/edit-skills/core/edit-skill-runtime-binding.ts',
+      'server/edit-skills/core/edit-skill-runtime-dispatcher.ts',
+    ],
+  },
+  {
     authorityKey: 'track_all_manifest_and_plugin',
     profileVersion: 'track_all_dependency_authority.manifest_and_plugin.v1',
     files: [
@@ -76,6 +92,68 @@ const DEFINITIONS = [
       'server/edit-skills/track-all/track-all-planning-authorities.ts',
       'server/edit-skills/track-all/private/qa-repair-runtime.ts',
     ],
+  },
+  {
+    authorityKey: 'track_all_runtime_profile',
+    profileVersion: 'track_all_dependency_authority.runtime_profile.v2',
+    files: [
+      'server/edit-skills/track-all/track-all-planning-authorities.ts',
+      'server/edit-skills/track-all/private/sam3_1-real-private-runtime-identity.ts',
+    ],
+  },
+  {
+    authorityKey: 'track_all_preflight_observation_schema',
+    profileVersion: 'track_all_dependency_authority.preflight_observation_schema.v1',
+    files: ['server/edit-skills/track-all/track-all-planning-authorities.ts'],
+  },
+  {
+    authorityKey: 'route_coherent_planner',
+    profileVersion: 'track_all_dependency_authority.route_coherent_planner.v1',
+    files: [
+      'server/edit-skills/track-all/track-all-plan-compiler.ts',
+      'server/edit-skills/track-all/private/planning-qa-validators.ts',
+    ],
+  },
+  {
+    authorityKey: 'route_coherent_work_graph',
+    profileVersion: 'track_all_dependency_authority.route_coherent_work_graph.v1',
+    files: ['server/edit-skills/track-all/track-all-work-graph.ts'],
+  },
+  {
+    authorityKey: 'canonical_private_executor',
+    profileVersion: 'track_all_dependency_authority.canonical_private_executor.v1',
+    files: [
+      'server/edit-skills/track-all/track-all-canonical-private-runtime.ts',
+      'server/edit-skills/track-all/private/canonical-private-operation-driver.ts',
+    ],
+  },
+  {
+    authorityKey: 'canonical_execution_coordinator',
+    profileVersion: 'track_all_dependency_authority.canonical_execution_coordinator.v1',
+    files: ['server/edit-skills/track-all/track-all-canonical-private-runtime.ts'],
+  },
+  {
+    authorityKey: 'producer_consumer_support_bridge',
+    profileVersion: 'track_all_dependency_authority.producer_consumer_support_bridge.v1',
+    files: [
+      'server/edit-skills/core/edit-skill-support-bridge.ts',
+      'server/edit-skills/track-all/track-all-peer-support-bridge.ts',
+      'server/edit-skills/b-roll/b-roll-tracking-support-bridge.ts',
+    ],
+  },
+  {
+    authorityKey: 'b_roll_track_graph_consumer',
+    profileVersion: 'track_all_dependency_authority.b_roll_track_graph_consumer.v1',
+    files: [
+      'server/edit-skills/b-roll/b-roll-edit-skill-plugin.ts',
+      'server/edit-skills/b-roll/b-roll-tracking-support-bridge.ts',
+      'server/smoke/b-roll-public-plugin-e2e-smoke.ts',
+    ],
+  },
+  {
+    authorityKey: 'canonical_private_public_e2e',
+    profileVersion: 'track_all_dependency_authority.canonical_private_public_e2e.v1',
+    files: ['server/smoke/track-all-canonical-private-public-e2e-smoke.ts'],
   },
   {
     authorityKey: 'ffprobe_ffmpeg_private_media',

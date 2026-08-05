@@ -17,6 +17,7 @@ import {
 } from '../core/skill-qualification-receipt'
 import { GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT } from './generated/track-all-internal-qualification.generated'
 import {
+  TRACK_ALL_FIXTURE_COMMAND,
   TRACK_ALL_QUALIFICATION_COMMAND_IDS,
   TRACK_ALL_ROUTE_COMMANDS,
 } from './track-all-qualification-command-catalog'
@@ -29,6 +30,10 @@ import {
   computeTrackAllQualificationDependencyAuthorityHashes,
 } from './track-all-qualification-dependency-authorities'
 import { computeTrackAllRelevantSourceTreeHash } from './track-all-qualification-source-hash'
+import {
+  createCurrentTrackAllSam31V2RouteGateReport,
+  trackAllSam31V2RouteGateReportSchema,
+} from './private/sam3_1-v2-route-qualification-gate'
 
 const routeQualificationCoreSchema = z.object({
   routeKey: z.enum(TRACK_ALL_ROUTE_QUALIFICATION_KEYS),
@@ -94,9 +99,156 @@ export function createTrackAllRouteQualificationEvidence(
   })
 }
 
+const finalAuthorityRefsSchema = z.object({
+  sharedAssignmentAuthorityHash: skillSha256Schema,
+  routeQualificationRegistryHash: skillSha256Schema,
+  runtimeDispatchQualificationResolverHash: skillSha256Schema,
+  runtimeProfileHash: skillSha256Schema,
+  preflightObservationSchemaHash: skillSha256Schema,
+  routeCoherentPlannerHash: skillSha256Schema,
+  routeCoherentWorkGraphHash: skillSha256Schema,
+  canonicalPrivateExecutorHash: skillSha256Schema,
+  canonicalExecutionCoordinatorHash: skillSha256Schema,
+  producerConsumerSupportBridgeHash: skillSha256Schema,
+  bRollTrackGraphConsumerHash: skillSha256Schema,
+  canonicalPrivatePublicE2eHash: skillSha256Schema,
+}).strict()
+
+const finalAuthorityBindingCoreSchema = z.object({
+  schemaVersion: z.literal('track_all_final_qualification_authority_binding_v1'),
+  authorityRefs: finalAuthorityRefsSchema,
+  brollConsumerEvidenceClass: z.enum([
+    'bootstrap_prior_actual_acceptance',
+    'actual_current_source_acceptance',
+  ]),
+  actualBrollConsumerAcceptanceEvidenceHash: skillSha256Schema,
+  canonicalPrivatePublicE2eEvidenceHash: skillSha256Schema,
+  samCanaryPreflightEvidenceHash: skillSha256Schema,
+  actualSamCanaryEvidenceHash: z.null(),
+  samRouteGateReport: trackAllSam31V2RouteGateReportSchema,
+  toolProfileSetHash: skillSha256Schema,
+  fixtureCatalogHash: skillSha256Schema,
+  routeStatusSetHash: skillSha256Schema,
+  routeEvidenceHashes: z.array(skillSha256Schema)
+    .length(TRACK_ALL_ROUTE_QUALIFICATION_KEYS.length),
+}).strict()
+
+export const trackAllFinalQualificationAuthorityBindingSchema =
+  finalAuthorityBindingCoreSchema.extend({ bindingHash: skillSha256Schema })
+    .strict().superRefine((value, context) => {
+      const { bindingHash, ...core } = value
+      if (hashSkillValue(core) !== bindingHash) context.addIssue({
+        code: 'custom',
+        message: 'Track All final qualification authority binding is stale or forged.',
+      })
+    })
+
+export type TrackAllFinalQualificationAuthorityBinding = z.infer<
+  typeof trackAllFinalQualificationAuthorityBindingSchema
+>
+
+function requiredAuthorityHash(
+  authorities: readonly SkillQualificationDependencyAuthorityHash[],
+  authorityKey: string,
+): string {
+  const authority = authorities.find((entry) => entry.authorityKey === authorityKey)
+  if (!authority) throw new Error(`Track All final qualification authority is missing: ${authorityKey}.`)
+  return authority.authorityHash
+}
+
+function createTrackAllFinalQualificationAuthorityBinding(input: {
+  dependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
+  commandEvidence: readonly SkillQualificationFixtureEvidence[]
+  routeQualifications: readonly TrackAllRouteQualificationEvidence[]
+  completedAt: string
+  brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance' |
+    'actual_current_source_acceptance'
+}): TrackAllFinalQualificationAuthorityBinding {
+  const commandById = new Map(input.commandEvidence.map((entry) => [entry.commandId, entry]))
+  const commandHash = (commandId: string): string => {
+    const evidence = commandById.get(commandId)
+    if (!evidence) throw new Error(`Track All final qualification command evidence is missing: ${commandId}.`)
+    return evidence.evidenceHash
+  }
+  const authorityRefs = finalAuthorityRefsSchema.parse({
+    sharedAssignmentAuthorityHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'shared_assignment_authorities'),
+    routeQualificationRegistryHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'generic_route_qualification_registry'),
+    runtimeDispatchQualificationResolverHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'generic_runtime_dispatch_qualification_resolver'),
+    runtimeProfileHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'track_all_runtime_profile'),
+    preflightObservationSchemaHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'track_all_preflight_observation_schema'),
+    routeCoherentPlannerHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'route_coherent_planner'),
+    routeCoherentWorkGraphHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'route_coherent_work_graph'),
+    canonicalPrivateExecutorHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'canonical_private_executor'),
+    canonicalExecutionCoordinatorHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'canonical_execution_coordinator'),
+    producerConsumerSupportBridgeHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'producer_consumer_support_bridge'),
+    bRollTrackGraphConsumerHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'b_roll_track_graph_consumer'),
+    canonicalPrivatePublicE2eHash: requiredAuthorityHash(
+      input.dependencyAuthorityHashes, 'canonical_private_public_e2e'),
+  })
+  const toolAuthorityKeys = [
+    'ffprobe_ffmpeg_private_media',
+    'opencv_pyscenedetect_geometry',
+    'remotion_private_track_all_treatments',
+    'privacy_redaction_runtime',
+    'sam3_1_track_masklets_v2_operation',
+    'sam3_1_source_checkpoint_authority',
+    'sam3_1_runtime_image_authority',
+  ] as const
+  const routeEvidenceHashes = input.routeQualifications.map((entry) =>
+    entry.routeEvidenceHash)
+  const samRouteGateReport = createCurrentTrackAllSam31V2RouteGateReport({
+    generatedAt: input.completedAt,
+  })
+  const core = finalAuthorityBindingCoreSchema.parse({
+    schemaVersion: 'track_all_final_qualification_authority_binding_v1',
+    authorityRefs,
+    brollConsumerEvidenceClass: input.brollConsumerEvidenceClass,
+    actualBrollConsumerAcceptanceEvidenceHash:
+      commandHash('npm.test:track-all-b-roll-consumer-acceptance'),
+    canonicalPrivatePublicE2eEvidenceHash:
+      commandHash('npm.test:track-all-canonical-private-public-e2e'),
+    samCanaryPreflightEvidenceHash:
+      commandHash('npm.test:track-all-sam3.1-private-canary'),
+    actualSamCanaryEvidenceHash: null,
+    samRouteGateReport,
+    toolProfileSetHash: hashSkillValue(toolAuthorityKeys.map((authorityKey) => ({
+      authorityKey,
+      authorityHash: requiredAuthorityHash(input.dependencyAuthorityHashes, authorityKey),
+    }))),
+    fixtureCatalogHash: hashSkillValue({
+      fixtureKeys: TRACK_ALL_QUALIFICATION_FIXTURE_KEYS,
+      fixtureCommands: TRACK_ALL_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) => ({
+        fixtureKey,
+        commandId: TRACK_ALL_FIXTURE_COMMAND[fixtureKey],
+      })),
+    }),
+    routeStatusSetHash: hashSkillValue(input.routeQualifications.map((entry) => ({
+      routeKey: entry.routeKey,
+      qualificationStatus: entry.qualificationStatus,
+      evidenceClass: entry.evidenceClass,
+    }))),
+    routeEvidenceHashes,
+  })
+  return trackAllFinalQualificationAuthorityBindingSchema.parse({
+    ...core,
+    bindingHash: hashSkillValue(core),
+  })
+}
+
 const generatedArtifactCoreSchema = z.object({
-  schemaVersion: z.literal('track_all_generated_qualification_artifact_v1'),
-  generatedBy: z.literal('npm.qualify:track-all:internal.v1'),
+  schemaVersion: z.literal('track_all_generated_qualification_artifact_v2'),
+  generatedBy: z.literal('npm.qualify:track-all:internal.v2'),
   manifestRef: skillManifestReferenceSchema,
   testedCommitSha: skillGitCommitShaSchema,
   relevantSourceTreeHash: skillSha256Schema,
@@ -108,6 +260,7 @@ const generatedArtifactCoreSchema = z.object({
     .length(TRACK_ALL_QUALIFICATION_COMMAND_IDS.length),
   routeQualifications: z.array(trackAllRouteQualificationEvidenceSchema)
     .length(TRACK_ALL_ROUTE_QUALIFICATION_KEYS.length),
+  finalAuthorityBinding: trackAllFinalQualificationAuthorityBindingSchema,
   actualSamRequestCount: z.literal(0),
   actualGpuExecutionCount: z.literal(0),
   productionQualified: z.literal(false),
@@ -208,6 +361,8 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
   fixtureEvidence: readonly SkillQualificationFixtureEvidence[]
   commandEvidence: readonly SkillQualificationFixtureEvidence[]
   routeQualifications: readonly TrackAllRouteQualificationEvidence[]
+  brollConsumerEvidenceClass?: 'bootstrap_prior_actual_acceptance' |
+    'actual_current_source_acceptance'
 }): TrackAllGeneratedQualificationArtifact {
   const manifestRef = skillManifestReference(input.manifest)
   if (input.manifest.qualificationStatus !== 'planning_qualified') {
@@ -266,6 +421,14 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
     .map((entry) => entry.startedAt).sort()[0]!
   const completedAt = [...fixtureEvidence, ...commandEvidence]
     .map((entry) => entry.completedAt).sort().at(-1)!
+  const finalAuthorityBinding = createTrackAllFinalQualificationAuthorityBinding({
+    dependencyAuthorityHashes,
+    commandEvidence,
+    routeQualifications,
+    completedAt,
+    brollConsumerEvidenceClass: input.brollConsumerEvidenceClass ??
+      'actual_current_source_acceptance',
+  })
   const receipt = createSkillQualificationReceiptV2({
     schemaVersion: 'skill-qualification-receipt-v2',
     manifestRef,
@@ -285,18 +448,27 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
       evidenceHash: entry.evidenceHash,
     })),
     buildEvidenceHashes: commandEvidenceHashes(commandEvidence, BUILD_COMMAND_IDS),
-    testEvidenceHashes: commandEvidence.map((entry) => entry.evidenceHash),
+    testEvidenceHashes: [
+      ...commandEvidence.map((entry) => entry.evidenceHash),
+      finalAuthorityBinding.bindingHash,
+      ...finalAuthorityBinding.routeEvidenceHashes,
+    ],
     securityEvidenceHashes: commandEvidenceHashes(commandEvidence, SECURITY_COMMAND_IDS),
-    providerEvidenceHashes: [],
-    mediaEvidenceHashes: [],
-    remotionEvidenceHashes: [],
+    providerEvidenceHashes: [finalAuthorityBinding.samRouteGateReport.reportHash],
+    mediaEvidenceHashes: [
+      finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
+      finalAuthorityBinding.canonicalPrivatePublicE2eEvidenceHash,
+    ],
+    remotionEvidenceHashes: [
+      commandEvidenceHashes(commandEvidence, ['npm.test:track-all-canonical-private-public-e2e'])[0]!,
+    ],
     startedAt,
     completedAt,
     issuedAt: completedAt,
   })
   const core = generatedArtifactCoreSchema.parse({
-    schemaVersion: 'track_all_generated_qualification_artifact_v1',
-    generatedBy: 'npm.qualify:track-all:internal.v1',
+    schemaVersion: 'track_all_generated_qualification_artifact_v2',
+    generatedBy: 'npm.qualify:track-all:internal.v2',
     manifestRef,
     testedCommitSha: input.testedCommitSha,
     relevantSourceTreeHash: input.relevantSourceTreeHash,
@@ -304,6 +476,7 @@ export function issueTrackAllGeneratedQualificationArtifact(input: {
     fixtureEvidence,
     commandEvidence,
     routeQualifications,
+    finalAuthorityBinding,
     actualSamRequestCount: 0,
     actualGpuExecutionCount: 0,
     productionQualified: false,
@@ -321,6 +494,7 @@ export function assertTrackAllGeneratedQualificationArtifact(input: {
   manifest: Readonly<SkillCapabilityManifest>
   expectedRelevantSourceTreeHash: string
   expectedDependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
+  allowBootstrapBrollEvidence?: boolean
 }): TrackAllGeneratedQualificationArtifact {
   const artifact = trackAllGeneratedQualificationArtifactSchema.parse(input.artifact)
   assertTrackAllQualificationDependencyAuthorityHashes({
@@ -353,6 +527,37 @@ export function assertTrackAllGeneratedQualificationArtifact(input: {
     'route evidence',
   )
   assertCurrentRouteQualificationPolicy(artifact.routeQualifications)
+  const expectedFinalAuthorityBinding = createTrackAllFinalQualificationAuthorityBinding({
+    dependencyAuthorityHashes: artifact.dependencyAuthorityHashes,
+    commandEvidence: artifact.commandEvidence,
+    routeQualifications: artifact.routeQualifications,
+    completedAt: artifact.receipt.completedAt,
+    brollConsumerEvidenceClass:
+      artifact.finalAuthorityBinding.brollConsumerEvidenceClass,
+  })
+  if (
+    artifact.finalAuthorityBinding.bindingHash !==
+      expectedFinalAuthorityBinding.bindingHash ||
+    !artifact.receipt.testEvidenceHashes.includes(
+      artifact.finalAuthorityBinding.bindingHash,
+    ) ||
+    hashSkillValue(artifact.receipt.providerEvidenceHashes) !== hashSkillValue([
+      artifact.finalAuthorityBinding.samRouteGateReport.reportHash,
+    ]) ||
+    hashSkillValue(artifact.receipt.mediaEvidenceHashes) !== hashSkillValue([
+      artifact.finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
+      artifact.finalAuthorityBinding.canonicalPrivatePublicE2eEvidenceHash,
+    ])
+  ) throw new Error(
+    'Generated Track All qualification lost exact final authority, route-gate, canonical E2E, or B-Roll consumer lineage.',
+  )
+  if (
+    artifact.finalAuthorityBinding.brollConsumerEvidenceClass !==
+      'actual_current_source_acceptance' &&
+    input.allowBootstrapBrollEvidence !== true
+  ) throw new Error(
+    'Generated Track All qualification contains bootstrap-only B-Roll consumer evidence.',
+  )
   for (const evidence of [...artifact.fixtureEvidence, ...artifact.commandEvidence]) {
     if (
       evidence.testedCommitSha !== artifact.testedCommitSha ||
@@ -395,6 +600,8 @@ export function tryLoadTrackAllGeneratedQualificationArtifact(input: {
   if (GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT === undefined) return undefined
   return assertTrackAllGeneratedQualificationArtifact({
     artifact: GENERATED_TRACK_ALL_INTERNAL_QUALIFICATION_ARTIFACT,
+    allowBootstrapBrollEvidence:
+      process.env.REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING === '1',
     ...input,
   })
 }

@@ -12,6 +12,7 @@ import {
 import {
   createTrackAllRouteQualificationEvidence,
   issueTrackAllGeneratedQualificationArtifact,
+  tryLoadTrackAllGeneratedQualificationArtifact,
   type TrackAllGeneratedQualificationArtifact,
   type TrackAllRouteQualificationEvidence,
 } from '../edit-skills/track-all/track-all-qualification-evidence'
@@ -48,12 +49,16 @@ function gitOutput(args: readonly string[]): string {
   return result.stdout.trim()
 }
 
-function safeQualificationEnvironment(): NodeJS.ProcessEnv {
+function safeQualificationEnvironment(
+  brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance' |
+    'actual_current_source_acceptance',
+): NodeJS.ProcessEnv {
   const environment: NodeJS.ProcessEnv = {
     ...process.env,
     NODE_OPTIONS: process.env.NODE_OPTIONS?.trim() || '--max-old-space-size=8192',
     REEDITPRO_BROLL_QUALIFICATION_GENERATING: '1',
     REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING: '1',
+    REEDITPRO_TRACK_ALL_BROLL_ACCEPTANCE_MODE: brollConsumerEvidenceClass,
   }
   for (const key of [
     'GOOGLE_API_KEY',
@@ -73,13 +78,15 @@ function runScript(input: {
   testedCommitSha: string
   relevantSourceTreeHash: string
   dependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
+  brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance' |
+    'actual_current_source_acceptance'
 }): SkillQualificationFixtureEvidence {
   const commandId = `npm.${input.script}`
   const startedAt = new Date().toISOString()
   const result = spawnSync('npm', ['run', input.script], {
     cwd: repositoryRoot,
     encoding: 'utf8',
-    env: safeQualificationEnvironment(),
+    env: safeQualificationEnvironment(input.brollConsumerEvidenceClass),
     maxBuffer: 24 * 1024 * 1024,
   })
   const completedAt = new Date().toISOString()
@@ -230,21 +237,19 @@ function routeEvidence(
   })
 }
 
-function main(): void {
-  const dirty = gitOutput(['status', '--porcelain', '--untracked-files=all'])
-  if (dirty) throw new Error('Track All qualification must start from a clean Git working tree.')
-  const testedCommitSha = gitOutput(['rev-parse', 'HEAD'])
-  if (!/^[a-f0-9]{40}$/u.test(testedCommitSha)) {
-    throw new Error('Unable to resolve an exact Track All tested commit SHA.')
-  }
-  const relevantSourceTreeHash = computeTrackAllRelevantSourceTreeHash(repositoryRoot)
-  const dependencyAuthorityHashes =
-    computeTrackAllQualificationDependencyAuthorityHashes(repositoryRoot)
+function runQualificationPass(input: {
+  testedCommitSha: string
+  relevantSourceTreeHash: string
+  dependencyAuthorityHashes: readonly SkillQualificationDependencyAuthorityHash[]
+  brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance' |
+    'actual_current_source_acceptance'
+}): TrackAllGeneratedQualificationArtifact {
   const commandEvidence = TRACK_ALL_QUALIFICATION_SCRIPTS.map((script) => runScript({
     script,
-    testedCommitSha,
-    relevantSourceTreeHash,
-    dependencyAuthorityHashes,
+    testedCommitSha: input.testedCommitSha,
+    relevantSourceTreeHash: input.relevantSourceTreeHash,
+    dependencyAuthorityHashes: input.dependencyAuthorityHashes,
+    brollConsumerEvidenceClass: input.brollConsumerEvidenceClass,
   }))
   const commands = new Map(commandEvidence.map((entry) => [entry.commandId, entry]))
   const fixtureEvidenceItems = TRACK_ALL_QUALIFICATION_FIXTURE_KEYS.map((fixtureKey) =>
@@ -256,12 +261,55 @@ function main(): void {
     routeEvidence(routeKey as keyof typeof TRACK_ALL_ROUTE_COMMANDS, commands))
   const artifact = issueTrackAllGeneratedQualificationArtifact({
     manifest: TRACK_ALL_CAPABILITY_MANIFEST,
-    testedCommitSha,
-    relevantSourceTreeHash,
-    dependencyAuthorityHashes,
+    testedCommitSha: input.testedCommitSha,
+    relevantSourceTreeHash: input.relevantSourceTreeHash,
+    dependencyAuthorityHashes: input.dependencyAuthorityHashes,
     fixtureEvidence: fixtureEvidenceItems,
     commandEvidence,
     routeQualifications,
+    brollConsumerEvidenceClass: input.brollConsumerEvidenceClass,
+  })
+  return artifact
+}
+
+function main(): void {
+  const dirty = gitOutput(['status', '--porcelain', '--untracked-files=all'])
+  if (dirty) throw new Error('Track All qualification must start from a clean Git working tree.')
+  const testedCommitSha = gitOutput(['rev-parse', 'HEAD'])
+  if (!/^[a-f0-9]{40}$/u.test(testedCommitSha)) {
+    throw new Error('Unable to resolve an exact Track All tested commit SHA.')
+  }
+  const relevantSourceTreeHash = computeTrackAllRelevantSourceTreeHash(repositoryRoot)
+  const dependencyAuthorityHashes =
+    computeTrackAllQualificationDependencyAuthorityHashes(repositoryRoot)
+  const currentFinalArtifact = (() => {
+    try {
+      const current = tryLoadTrackAllGeneratedQualificationArtifact({
+        manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+        expectedRelevantSourceTreeHash: relevantSourceTreeHash,
+        expectedDependencyAuthorityHashes: dependencyAuthorityHashes,
+      })
+      return current?.finalAuthorityBinding.brollConsumerEvidenceClass ===
+        'actual_current_source_acceptance'
+    } catch {
+      return false
+    }
+  })()
+  if (!currentFinalArtifact) {
+    const bootstrap = runQualificationPass({
+      testedCommitSha,
+      relevantSourceTreeHash,
+      dependencyAuthorityHashes,
+      brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance',
+    })
+    writeGenerated(bootstrap)
+    console.log('Track All qualification bootstrap receipt written; rerunning against actual current-source B-Roll acceptance.')
+  }
+  const artifact = runQualificationPass({
+    testedCommitSha,
+    relevantSourceTreeHash,
+    dependencyAuthorityHashes,
+    brollConsumerEvidenceClass: 'actual_current_source_acceptance',
   })
   writeGenerated(artifact)
   console.log(JSON.stringify({

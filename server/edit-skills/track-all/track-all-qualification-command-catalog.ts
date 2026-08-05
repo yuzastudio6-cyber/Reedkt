@@ -26,6 +26,7 @@ export const TRACK_ALL_QUALIFICATION_SCRIPTS = [
   'test:track-all-canonical-private-runtime',
   'test:track-all-canonical-private-public-e2e',
   'test:track-all-public-plugin-e2e',
+  'test:track-all-b-roll-consumer-acceptance',
   'test:track-all-qualification-evidence',
   'test:track-all-retirement',
   'validate:skill-capability-manifests',
@@ -62,6 +63,7 @@ export const TRACK_ALL_FIXTURE_COMMAND = {
   'track_all.fixture.session_terminal_close': 'npm.test:track-all-sam3.1-injected-session',
   'track_all.fixture.runtime_security': 'npm.test:track-all-sam3.1-operation-authority',
   'track_all.fixture.public_plugin_lifecycle': 'npm.test:track-all-public-plugin-e2e',
+  'track_all.fixture.b_roll_consumer_acceptance': 'npm.test:track-all-b-roll-consumer-acceptance',
   'track_all.fixture.canonical_private_runtime': 'npm.test:track-all-canonical-private-runtime',
   'track_all.fixture.canonical_private_public_e2e': 'npm.test:track-all-canonical-private-public-e2e',
   'track_all.fixture.legacy_retirement': 'npm.test:track-all-retirement',
@@ -106,6 +108,7 @@ export const TRACK_ALL_ROUTE_COMMANDS = {
     'npm.test:track-all-public-plugin-e2e',
     'npm.test:track-all-canonical-private-runtime',
     'npm.test:track-all-canonical-private-public-e2e',
+    'npm.test:track-all-b-roll-consumer-acceptance',
   ],
   sam3_1_masklet_route: [
     'npm.test:track-all-sam3.1-operation-authority',

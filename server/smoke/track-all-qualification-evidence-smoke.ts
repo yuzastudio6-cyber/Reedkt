@@ -155,6 +155,50 @@ assert.equal(artifact.receipt.qualificationStatus, 'planning_qualified')
 assert.equal(artifact.actualSamRequestCount, 0)
 assert.equal(artifact.actualGpuExecutionCount, 0)
 assert.equal(artifact.productionQualified, false)
+assert.equal(
+  artifact.finalAuthorityBinding.actualBrollConsumerAcceptanceEvidenceHash,
+  required('npm.test:track-all-b-roll-consumer-acceptance').evidenceHash,
+)
+assert.equal(
+  artifact.finalAuthorityBinding.canonicalPrivatePublicE2eEvidenceHash,
+  required('npm.test:track-all-canonical-private-public-e2e').evidenceHash,
+)
+assert.equal(
+  artifact.finalAuthorityBinding.samCanaryPreflightEvidenceHash,
+  required('npm.test:track-all-sam3.1-private-canary').evidenceHash,
+)
+assert.equal(artifact.finalAuthorityBinding.actualSamCanaryEvidenceHash, null)
+assert.equal(artifact.finalAuthorityBinding.samRouteGateReport.internalExecutionAuthorized, false)
+assert.equal(artifact.finalAuthorityBinding.samRouteGateReport.actualSamRequestCount, 0)
+assert.equal(
+  artifact.receipt.testEvidenceHashes.includes(
+    artifact.finalAuthorityBinding.bindingHash,
+  ),
+  true,
+)
+const bootstrapArtifact = issueTrackAllGeneratedQualificationArtifact({
+  manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+  testedCommitSha,
+  relevantSourceTreeHash: sourceTreeHash,
+  dependencyAuthorityHashes,
+  fixtureEvidence: fixtures,
+  commandEvidence: commands,
+  routeQualifications: routes,
+  brollConsumerEvidenceClass: 'bootstrap_prior_actual_acceptance',
+})
+assert.throws(() => assertTrackAllGeneratedQualificationArtifact({
+  artifact: bootstrapArtifact,
+  manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+  expectedRelevantSourceTreeHash: sourceTreeHash,
+  expectedDependencyAuthorityHashes: dependencyAuthorityHashes,
+}), /bootstrap-only B-Roll consumer evidence/iu)
+assert.equal(assertTrackAllGeneratedQualificationArtifact({
+  artifact: bootstrapArtifact,
+  manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+  expectedRelevantSourceTreeHash: sourceTreeHash,
+  expectedDependencyAuthorityHashes: dependencyAuthorityHashes,
+  allowBootstrapBrollEvidence: true,
+}).artifactHash, bootstrapArtifact.artifactHash)
 assert.throws(() => assertQualificationSupportsClaim({
   manifestRef: artifact.manifestRef,
   claimedStatus: 'internal_execution_qualified',
@@ -252,6 +296,21 @@ assert.throws(() => assertTrackAllGeneratedQualificationArtifact({
   expectedDependencyAuthorityHashes: dependencyAuthorityHashes,
 }), /stale or forged/iu)
 
+const forgedFinalAuthority = structuredClone(artifact)
+forgedFinalAuthority.finalAuthorityBinding.bindingHash = hashSkillValue(
+  'forged-final-authority',
+)
+const { artifactHash: _forgedFinalArtifactHash, ...forgedFinalArtifactCore } =
+  forgedFinalAuthority
+void _forgedFinalArtifactHash
+forgedFinalAuthority.artifactHash = hashSkillValue(forgedFinalArtifactCore)
+assert.throws(() => assertTrackAllGeneratedQualificationArtifact({
+  artifact: forgedFinalAuthority,
+  manifest: TRACK_ALL_CAPABILITY_MANIFEST,
+  expectedRelevantSourceTreeHash: sourceTreeHash,
+  expectedDependencyAuthorityHashes: dependencyAuthorityHashes,
+}), /final qualification authority binding is stale or forged/iu)
+
 const samOverclaim = structuredClone(routes.find((route) =>
   route.routeKey === 'sam3_1_masklet_route')!)
 samOverclaim.qualificationStatus = 'internal_execution_qualified'
@@ -311,6 +370,11 @@ console.log(JSON.stringify({
   reorderedAuthorityRejected: true,
   wrongManifestRejected: true,
   forgedHashRejected: true,
+  forgedFinalAuthorityRejected: true,
+  bRollConsumerAcceptanceBound: true,
+  bootstrapBrollEvidenceRuntimeRejected: true,
+  canonicalPrivatePublicE2eBound: true,
+  samRouteGateReportBound: true,
   samOverclaimRejected: true,
   planningRouteOverclaimRejected: true,
   productionOverclaimRejected: true,

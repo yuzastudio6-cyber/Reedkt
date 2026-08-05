@@ -33,6 +33,8 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_MATERIAL_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-material-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_TASK_STORE_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-task-store-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_MATERIAL_REPOSITORY_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-material-repository-v1' as const
 
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations'
@@ -107,7 +109,7 @@ const materialWithoutHashSchema = z.object({
   exactSamTaskContextResultAndPrivateOutputReread: z.literal(true),
   exactApprovedSnapshotFrameTimingWorkLeaseAttemptAndFundingReread:
     z.literal(true),
-  materialPersistedAndExactRereadBeforeL4AdmissionConsumption:
+  materialCreateOnlyPersistenceAndExactRereadRequiredBeforeL4AdmissionConsumption:
     z.literal(true),
   browserOrCallerTaskMaterialAccepted: z.literal(false),
   callerPathUrlCommandCodeModelEnvironmentOrPriceAccepted: z.literal(false),
@@ -156,6 +158,19 @@ export interface CanonicalTrackAllSam31L4TaskQaMaterialReadPort {
     readonly target: CanonicalProfessionalGpuRuntimeLaunchTarget
     readonly executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
   }): Promise<unknown>
+}
+
+export interface CanonicalTrackAllSam31L4TaskQaMaterialRepository {
+  readonly schemaVersion:
+    typeof CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_MATERIAL_REPOSITORY_VERSION
+  readonly evidenceClass:
+    'gcs_create_only_exact_reread_track_all_l4_task_qa_material'
+  persistMaterialCreateOnly(input: {
+    readonly material: CanonicalTrackAllSam31L4TaskQaMaterial
+  }): Promise<'created' | 'already_exists'>
+  rereadMaterial(input: {
+    readonly executionAttemptRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<CanonicalTrackAllSam31L4TaskQaMaterial | null>
 }
 
 export interface CanonicalTrackAllSam31L4TaskQaTaskStore {
@@ -233,6 +248,59 @@ export function createCanonicalTrackAllSam31L4TaskQaTaskStore(input: {
     },
   }
   return Object.freeze(store)
+}
+
+export function createCanonicalTrackAllSam31L4TaskQaMaterialRepository(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly prefix?: string
+  },
+): CanonicalTrackAllSam31L4TaskQaMaterialRepository {
+  assertObjectPort(input.objectPort)
+  const prefix = normalizePrefix(input.prefix
+    ?? 'private/track-all/sam3_1/v1/l4-task-qa-material')
+  const repository: CanonicalTrackAllSam31L4TaskQaMaterialRepository = {
+    schemaVersion:
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_MATERIAL_REPOSITORY_VERSION,
+    evidenceClass:
+      'gcs_create_only_exact_reread_track_all_l4_task_qa_material',
+    async persistMaterialCreateOnly({ material }) {
+      const exact = assertCanonicalTrackAllSam31L4TaskQaMaterial(material)
+      const body = Buffer.from(stableAuthorityStringify(exact), 'utf8')
+      if (body.byteLength < 2 || body.byteLength > MAXIMUM_TASK_BYTES) {
+        throw new Error('Track All L4 material exceeded its byte bound.')
+      }
+      return input.objectPort.createOnly({
+        objectPath: materialPath(prefix, exact.executionAttemptRef),
+        body,
+        contentSha256: bytesHash(body),
+      })
+    },
+    async rereadMaterial({ executionAttemptRef }) {
+      const body = await input.objectPort.readExact(materialPath(
+        prefix,
+        evidenceRefSchema.parse(executionAttemptRef),
+      ))
+      if (!body) return null
+      if (!Buffer.isBuffer(body) || body.byteLength < 2
+        || body.byteLength > MAXIMUM_TASK_BYTES) {
+        throw new Error('Track All L4 material reread bytes are invalid.')
+      }
+      let value: unknown
+      try {
+        value = JSON.parse(body.toString('utf8')) as unknown
+      } catch {
+        throw new Error('Track All L4 material reread JSON is invalid.')
+      }
+      const material = assertCanonicalTrackAllSam31L4TaskQaMaterial(value)
+      if (!sameRef(material.executionAttemptRef, executionAttemptRef)
+        || stableAuthorityStringify(material) !== body.toString('utf8')) {
+        throw new Error('Track All L4 material exact reread changed.')
+      }
+      return material
+    },
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalTrackAllSam31L4TaskQaPreparingLaunchPort(
@@ -472,6 +540,14 @@ function taskPath(
   kind: 'task' | 'response',
 ): string {
   return `${prefix}/${safeId.parse(invocationId)}/task-qa/${kind}.json`
+}
+
+function materialPath(
+  prefix: string,
+  executionAttemptRef: z.infer<typeof evidenceRefSchema>,
+): string {
+  const exact = evidenceRefSchema.parse(executionAttemptRef)
+  return `${prefix}/${exact.id}.${exact.contentHash.slice(7)}.json`
 }
 
 function normalizePrefix(value: string): string {

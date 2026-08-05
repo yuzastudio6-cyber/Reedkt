@@ -79,9 +79,21 @@ import {
   type CanonicalTrackAllSam31TaskQaCandidateRepository,
   type CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
 } from './canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
+import {
+  createCanonicalTrackAllSam31L4TaskQaMaterialRepository,
+  createCanonicalTrackAllSam31L4TaskQaTaskStore,
+} from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-owner-service'
+import {
+  createCanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition,
+} from './canonical-track-all-sam3_1-l4-task-qa-funded-gpu-runtime-composition'
+import {
+  createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime,
+  createCanonicalTrackAllSam31L4TaskQaSamOutputReadPort,
+  type CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+} from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v7' as const
+  'canonical-track-all-sam3_1-production-runtime-v8' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -91,6 +103,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero'
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
+    CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly trackAllSam31CaptionEvidenceFinalizationRuntimePort:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   readonly trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
@@ -220,6 +234,18 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalTrackAllSam31TaskQaCandidateRepository({
       objectPort: privateGpuJsonObjectPort,
     })
+  const trackAllSam31L4TaskQaMaterialRepository =
+    createCanonicalTrackAllSam31L4TaskQaMaterialRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const trackAllSam31L4TaskQaTaskStore =
+    createCanonicalTrackAllSam31L4TaskQaTaskStore({
+      objectPort: privateGpuJsonObjectPort,
+    })
+  const trackAllSam31L4TaskQaSamOutputReadPort =
+    createCanonicalTrackAllSam31L4TaskQaSamOutputReadPort({
+      objectPort: privateGpuJsonObjectPort,
+    })
   const specialistSupportResumeRepository =
     createCanonicalSpecialistSupportResumeRepository({
       objectPort: controlPlaneObjectPort,
@@ -283,6 +309,12 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     taskStore,
     rawCloudLaunchPort,
   })
+  const l4TaskQaRuntimeComposition =
+    createCanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition({
+      materialRepository: trackAllSam31L4TaskQaMaterialRepository,
+      taskStore: trackAllSam31L4TaskQaTaskStore,
+      rawCloudLaunchPort,
+    })
   const runtimeContextReadPort = Object.freeze({
     rereadQualifiedRuntimeRelease:
       releasePairRegistry.rereadQualifiedRuntimeRelease.bind(
@@ -304,11 +336,30 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       lifecycleStore,
       fundedLifecycleStore: lifecycleStore,
     })
+  const l4TaskQaAuthenticatedRuntime =
+    createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime({
+      pricingAuthorityReadPort: pricingAuthorityStore,
+      approvedFundingReadPort: fundedStartAuthorityStore,
+      attemptStartReadPort: fundedStartAuthorityStore,
+      runtimeContextReadPort,
+      releaseReadPort: runtimeConfigurationRepository,
+      runtimeComposition: l4TaskQaRuntimeComposition,
+      materialRepository: trackAllSam31L4TaskQaMaterialRepository,
+      sam31TaskStore: taskStore,
+      sam31TaskContextRepository: taskContextRepository,
+      sam31ResultStore: sam31RuntimeResultStore,
+      sam31OutputReadPort: trackAllSam31L4TaskQaSamOutputReadPort,
+      supportResumeRepository: specialistSupportResumeRepository,
+      lifecycleStore,
+      fundedLifecycleStore: lifecycleStore,
+    })
 
   return Object.freeze({
     schemaVersion: CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION,
     runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero' as const,
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
+      l4TaskQaAuthenticatedRuntime,
     trackAllSam31CaptionEvidenceFinalizationRuntimePort,
     trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
     trackAllSam31TaskQaCandidateRepository,

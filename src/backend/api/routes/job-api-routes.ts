@@ -90,6 +90,28 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     ],
   },
   {
+    id: 'trackAll.sam31.l4TaskQa.approvedGpuJob.start',
+    domain: 'jobs',
+    method: 'POST',
+    path: '/internal/v1/workspaces/:workspaceId/track-all/sam3_1/l4-task-qa/gpu-jobs/start',
+    description:
+      'Start one approved deterministic Track All mask-QA job on the L4 GPU lane.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'startApprovedTrackAllSam31L4TaskQaGpuJob',
+    notes: [
+      'Requires authenticated user scope, strict internal-service authentication, exact request idempotency, approved L4 work/funding rereads, and an admitted SAM 3.1 result.',
+      'The canonical backend rereads and verifies the complete private SAM mask manifest, persists and rereads one fixed Kornia/OpenCV CUDA task, then starts one L4 scale-from-zero job.',
+      'The request cannot carry mask bytes, paths, commands, an image, GPU route, environment, price, lease, reservation, or raw cloud launch port.',
+      'Anchor-required work remains fail-closed until a distinct canonical anchor manifest is available; a tracking manifest is never relabeled as anchor evidence.',
+    ],
+  },
+  {
     id: 'trackAll.sam31.taskQaEvidence.finalize',
     domain: 'jobs',
     method: 'POST',

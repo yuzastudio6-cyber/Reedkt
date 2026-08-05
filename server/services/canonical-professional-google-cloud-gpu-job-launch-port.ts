@@ -300,7 +300,12 @@ export function createGoogleCloudProfessionalGpuJobLaunchPort(input: {
           target: request.target,
           release,
         })
-        const privateObjectTransport = admission.toolId === 'sam3_1'
+        const fixedPrivateObjectTask = admission.toolId === 'sam3_1'
+          || (
+            admission.toolId === 'kornia'
+            && admission.operationId === 'tool.kornia.refine_mask.v1'
+          )
+        const privateObjectTransport = fixedPrivateObjectTask
           ? assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
               await input.privateObjectTransportReadPort
                 ?.rereadPrivateObjectTransport({
@@ -310,7 +315,7 @@ export function createGoogleCloudProfessionalGpuJobLaunchPort(input: {
                 }),
             )
           : null
-        if (admission.toolId === 'sam3_1') {
+        if (fixedPrivateObjectTask) {
           assertPrivateObjectTransportMatches({
             admission,
             target: request.target,
@@ -446,7 +451,8 @@ function assertPrivateObjectTransportMatches(input: {
     ? release.cloudRunJobResource
     : null
   if (
-    admission.operationId !== 'tool.sam3_1.segment_and_track_subject.v1'
+    (admission.operationId !== 'tool.sam3_1.segment_and_track_subject.v1'
+      && admission.operationId !== 'tool.kornia.refine_mask.v1')
     || transport.routeId !== admission.routeId
     || !sameRef(transport.transportRef,
       target.privateNetworkAndArtifactTransportRef)

@@ -8,6 +8,11 @@ import {
   type TrackAllSam31AuthenticatedGpuStartResult,
 } from '../../src/types/track-all-sam3_1-gpu-start'
 import {
+  TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE_ID,
+  type TrackAllSam31L4TaskQaGpuStartRequest,
+  type TrackAllSam31L4TaskQaGpuStartResult,
+} from '../../src/types/track-all-sam3_1-l4-task-qa-gpu-start'
+import {
   TRACK_ALL_SAM3_1_CAPTION_EVIDENCE_FINALIZATION_ROUTE_ID,
   type TrackAllSam31CaptionEvidenceFinalizationRequest,
   type TrackAllSam31CaptionEvidenceFinalizationResult,
@@ -23,6 +28,9 @@ import { loadRuntimeEnv } from '../config/env'
 import {
   buildTrackAllSam31AuthenticatedGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  buildTrackAllSam31L4TaskQaGpuStartRequest,
+} from '../services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 import {
   buildTrackAllSam31CaptionEvidenceFinalizationRequest,
 } from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
@@ -44,6 +52,14 @@ const evidenceRef = (id: string) => ({
   version: 'fixture-v1',
   contentHash: sha256AuthorityValue(id),
 })
+const l4TaskQaRequest = buildTrackAllSam31L4TaskQaGpuStartRequest({
+  requestId: 'track-all-sam31-l4-task-qa-user-trigger-1',
+  approvedSnapshotId: request.approvedSnapshotId,
+  workItemKey: 'approved-track-all-l4-task-qa-work-1',
+  sam31InvocationId: 'sam31-invocation-1',
+  priorCaptionCallRef: evidenceRef('caption-prior-call'),
+  selectedCaptionSupportRequestRef: evidenceRef('caption-support-request'),
+})
 const finalizationRequest =
   buildTrackAllSam31CaptionEvidenceFinalizationRequest({
     requestId: 'track-all-sam31-caption-finalization-1',
@@ -64,6 +80,7 @@ const taskQaFinalizationRequest =
       evidenceRef('independent-private-review-result'),
   })
 let runtimeCalls = 0
+let l4TaskQaRuntimeCalls = 0
 let finalizationRuntimeCalls = 0
 let taskQaFinalizationRuntimeCalls = 0
 const app = createReeditProApiApp(loadRuntimeEnv({
@@ -90,6 +107,25 @@ const app = createReeditProApiApp(loadRuntimeEnv({
       assert.equal(input.idempotencyKey, request.requestId)
       assert.deepEqual(input.request, request)
       return resultFor(request)
+    },
+  }),
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort: Object.freeze({
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-authenticated-start-v1',
+    routeOwnsGpuPlacementOrPricing: false,
+    rawCloudLaunchPortExposed: false,
+    async startApprovedTaskQaWork(input: {
+      authenticatedOwnerUserId: string
+      workspaceId: string
+      idempotencyKey: string
+      request: unknown
+    }) {
+      l4TaskQaRuntimeCalls += 1
+      assert.equal(input.authenticatedOwnerUserId, 'mock-user-runtime')
+      assert.equal(input.workspaceId, workspaceId)
+      assert.equal(input.idempotencyKey, l4TaskQaRequest.requestId)
+      assert.deepEqual(input.request, l4TaskQaRequest)
+      return l4TaskQaResultFor(l4TaskQaRequest)
     },
   }),
   trackAllSam31CaptionEvidenceFinalizationRuntimePort: Object.freeze({
@@ -144,6 +180,75 @@ try {
   const validJson = await valid.json() as Record<string, unknown>
   assert.equal(validJson.ok, true)
   assert.equal(runtimeCalls, 1)
+
+  const l4TaskQaValid = await postL4TaskQa(
+    l4TaskQaRequest,
+    l4TaskQaRequest.requestId,
+    internalToken,
+  )
+  assert.equal(l4TaskQaValid.status, 202)
+  const l4TaskQaValidJson = await l4TaskQaValid.json() as
+    Record<string, unknown>
+  assert.equal(l4TaskQaValidJson.ok, true)
+  assert.equal(l4TaskQaRuntimeCalls, 1)
+
+  const injectedL4Source = buildTrackAllSam31L4TaskQaGpuStartRequest({
+    requestId: 'track-all-l4-injected-mask-request',
+    approvedSnapshotId: l4TaskQaRequest.approvedSnapshotId,
+    workItemKey: l4TaskQaRequest.workItemKey,
+    sam31InvocationId: l4TaskQaRequest.sam31InvocationId,
+    priorCaptionCallRef: l4TaskQaRequest.priorCaptionCallRef,
+    selectedCaptionSupportRequestRef:
+      l4TaskQaRequest.selectedCaptionSupportRequestRef,
+  })
+  const injectedL4Mask = await postL4TaskQa({
+    ...injectedL4Source,
+    maskPath: '/private/caller-mask.png',
+  }, injectedL4Source.requestId, internalToken)
+  assert.equal(injectedL4Mask.status, 400)
+  assert.equal(l4TaskQaRuntimeCalls, 1)
+
+  const tamperedL4Source = buildTrackAllSam31L4TaskQaGpuStartRequest({
+    requestId: 'track-all-l4-tampered-work-request',
+    approvedSnapshotId: l4TaskQaRequest.approvedSnapshotId,
+    workItemKey: l4TaskQaRequest.workItemKey,
+    sam31InvocationId: l4TaskQaRequest.sam31InvocationId,
+    priorCaptionCallRef: l4TaskQaRequest.priorCaptionCallRef,
+    selectedCaptionSupportRequestRef:
+      l4TaskQaRequest.selectedCaptionSupportRequestRef,
+  })
+  const tamperedL4 = await postL4TaskQa({
+    ...tamperedL4Source,
+    workItemKey: 'cross-work-item',
+  }, tamperedL4Source.requestId, internalToken)
+  assert.equal(tamperedL4.status, 400)
+  assert.equal(l4TaskQaRuntimeCalls, 1)
+
+  const l4IdempotencyMismatch = await postL4TaskQa(
+    l4TaskQaRequest,
+    'different-l4-idempotency-key',
+    internalToken,
+  )
+  assert.equal(l4IdempotencyMismatch.status, 409)
+  assert.equal(l4TaskQaRuntimeCalls, 1)
+
+  const l4InvalidToken = await postL4TaskQa(
+    l4TaskQaRequest,
+    l4TaskQaRequest.requestId,
+    'invalid-internal-token',
+  )
+  assert.equal(l4InvalidToken.status, 403)
+  assert.equal(l4TaskQaRuntimeCalls, 1)
+
+  const l4TaskQaRoute = getApiRouteById(
+    TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE_ID,
+  )
+  assert.equal(l4TaskQaRoute?.securityLevel, 'backend_service_role')
+  assert.equal(l4TaskQaRoute?.runtimeMode, 'backend_required')
+  assert.equal(l4TaskQaRoute?.requiresServiceRole, true)
+  assert.match(l4TaskQaRoute?.notes.join(' ') ?? '', /complete private/u)
+  assert.match(l4TaskQaRoute?.notes.join(' ') ?? '', /scale-from-zero/u)
+  assert.match(l4TaskQaRoute?.notes.join(' ') ?? '', /Anchor-required/u)
 
   const injectedSource = buildTrackAllSam31AuthenticatedGpuStartRequest({
     requestId: 'track-all-injected-model-request',
@@ -303,7 +408,7 @@ try {
 
   console.log(JSON.stringify({
     smoke: 'canonical-track-all-sam3_1-authenticated-gpu-start-route',
-    checks: 57,
+    checks: 80,
     authenticatedOwnerScopeRequired: true,
     strictInternalServiceAuthRequired: true,
     exactIdempotencyRequired: true,
@@ -312,11 +417,14 @@ try {
     rawCloudLaunchPortAcceptedFromRequest: false,
     accountEffectivePriceAcceptedFromRequest: false,
     runtimeCalls,
+    l4TaskQaRuntimeCalls,
     finalizationRuntimeCalls,
     taskQaFinalizationRuntimeCalls,
     rawMeasurementOrReviewAcceptedFromRequest: false,
     taskQaCloudUsagePriceOrCostClaimAcceptedFromRequest: false,
     authenticatedTaskQaEvidenceFinalizerMounted: true,
+    authenticatedL4TaskQaStartMounted: true,
+    callerMaskPathOrGpuRuntimeConfigurationAccepted: false,
     authenticatedSpecialistResumeProjectionCreated: true,
     productionReady: false,
   }, null, 2))
@@ -332,6 +440,25 @@ async function postTaskQaFinalization(
 ) {
   return fetch(
     `${url}/internal/v1/workspaces/${workspaceId}/track-all/sam3_1/task-qa-evidence/finalize`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': idempotencyKey,
+        'x-reeditpro-internal-token': token,
+      },
+      body: JSON.stringify(body),
+    },
+  )
+}
+
+async function postL4TaskQa(
+  body: unknown,
+  idempotencyKey: string,
+  token: string,
+) {
+  return fetch(
+    `${url}/internal/v1/workspaces/${workspaceId}/track-all/sam3_1/l4-task-qa/gpu-jobs/start`,
     {
       method: 'POST',
       headers: {
@@ -414,6 +541,52 @@ function resultFor(
     fundedPricingAndReservationRereadBeforeLaunch: true as const,
     rawCloudLaunchPortExposed: false as const,
     callerSuppliedMediaPromptModelRouteImageCommandOrPriceAccepted:
+      false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
+}
+
+function l4TaskQaResultFor(
+  source: TrackAllSam31L4TaskQaGpuStartRequest,
+): TrackAllSam31L4TaskQaGpuStartResult {
+  const ref = (id: string) => ({
+    id,
+    version: 1,
+    contentHash: `sha256:${sha256AuthorityValue(id)}`,
+  })
+  const payload = {
+    schemaVersion:
+      'track-all-sam3_1-l4-task-qa-gpu-start-result-v1' as const,
+    requestRef: {
+      id: source.requestId,
+      version: 1,
+      contentHash: `sha256:${source.requestDigestSha256}`,
+    },
+    workspaceId,
+    approvedSnapshotId: source.approvedSnapshotId,
+    workItemKey: source.workItemKey,
+    sam31InvocationId: source.sam31InvocationId,
+    l4InvocationId: 'l4-task-qa-invocation-1',
+    sam31RuntimeResultAdmissionRef: ref('sam31-result-admission'),
+    l4TaskMaterialRef: ref('l4-task-material'),
+    fundedDispatchAdmissionRef: ref('l4-funded-admission'),
+    prelaunchAuthorizationRef: ref('l4-prelaunch'),
+    launchRef: ref('l4-launch'),
+    launchBindingRef: ref('l4-launch-binding'),
+    launchDisposition: 'job_created' as const,
+    routeId: 'l4_standard_primary' as const,
+    accelerator: 'nvidia_l4' as const,
+    userTriggeredScaleFromZero: true as const,
+    exactSamTaskResultManifestAndApprovedL4WorkReread: true as const,
+    accountEffectivePricingAndFundingRereadBeforeLaunch: true as const,
+    fixedTaskPersistedAndRereadBeforeCloudJobCreation: true as const,
+    separateSam31InputAndL4JobInvocationRoots: true as const,
+    rawCloudLaunchPortExposed: false as const,
+    callerSuppliedMaskBytesPathsCommandsImageRouteEnvironmentOrPriceAccepted:
       false as const,
     customerCreditsMutated: false as const,
     qaApproved: false as const,

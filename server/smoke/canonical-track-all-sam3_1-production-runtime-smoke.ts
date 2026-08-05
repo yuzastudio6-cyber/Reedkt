@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v7')
+  'canonical-track-all-sam3_1-production-runtime-v8')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -78,6 +78,20 @@ assert.equal(
 )
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort
+    .rawCloudLaunchPortExposed,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-l4-task-qa-authenticated-start-v1',
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+    .routeOwnsGpuPlacementOrPricing,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
     .rawCloudLaunchPortExposed,
   false,
 )
@@ -140,6 +154,10 @@ assert.match(
 )
 assert.match(
   entrypoint,
+  /trackAllSam31L4TaskQaAuthenticatedStartRuntimePort/u,
+)
+assert.match(
+  entrypoint,
   /trackAllSam31CaptionEvidenceFinalizationRuntimePort/u,
 )
 assert.match(
@@ -150,7 +168,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 48,
+  checks: 55,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -159,6 +177,8 @@ console.log(JSON.stringify({
   captionTrackAllSupportResumeAndEvidenceRepositoriesMounted: true,
   captionTrackAllRequiresCanonicalSam31TaskResultReread: true,
   captionTrackAllRequiresTaskLevelIndependentMaskQa: true,
+  authenticatedL4TaskQaStartMounted: true,
+  l4TaskMaterialPersistedAndRereadBeforeCloudLaunch: true,
   captionTrackAllTaskLevelQaOwnerMounted: true,
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,
   captionTrackAllRequiresPrivateVisualReview: true,

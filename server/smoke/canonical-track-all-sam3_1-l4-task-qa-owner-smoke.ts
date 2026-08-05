@@ -6,6 +6,7 @@ import {
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
 import {
   buildCanonicalTrackAllSam31L4TaskQaMaterial,
+  createCanonicalTrackAllSam31L4TaskQaMaterialRepository,
   createCanonicalTrackAllSam31L4TaskQaPreparingLaunchPort,
   createCanonicalTrackAllSam31L4TaskQaTaskStore,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-owner-service'
@@ -108,7 +109,8 @@ const material = buildCanonicalTrackAllSam31L4TaskQaMaterial({
   }],
   exactSamTaskContextResultAndPrivateOutputReread: true,
   exactApprovedSnapshotFrameTimingWorkLeaseAttemptAndFundingReread: true,
-  materialPersistedAndExactRereadBeforeL4AdmissionConsumption: true,
+  materialCreateOnlyPersistenceAndExactRereadRequiredBeforeL4AdmissionConsumption:
+    true,
   browserOrCallerTaskMaterialAccepted: false,
   callerPathUrlCommandCodeModelEnvironmentOrPriceAccepted: false,
   customerCreditsMutated: false,
@@ -117,6 +119,16 @@ const material = buildCanonicalTrackAllSam31L4TaskQaMaterial({
   productionAuthorityGranted: false,
   preparedAt: '2026-08-05T15:00:00.000Z',
 })
+const materialRepository =
+  createCanonicalTrackAllSam31L4TaskQaMaterialRepository({ objectPort })
+assert.equal(await materialRepository.persistMaterialCreateOnly({ material }),
+  'created')
+assert.equal(
+  (await materialRepository.rereadMaterial({
+    executionAttemptRef: material.executionAttemptRef,
+  }))?.materialHash,
+  material.materialHash,
+)
 
 let delegateCalls = 0
 const preparingPort = createCanonicalTrackAllSam31L4TaskQaPreparingLaunchPort({
@@ -203,9 +215,10 @@ assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaMaterial({
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-owner',
-  checks: 18,
+  checks: 20,
   fixedTaskPersistedBeforeCloudJobCreation: true,
   exactTaskRereadBeforeCloudJobCreation: true,
+  approvedMaterialCreateOnlyPersistedAndExactReread: true,
   sam31AndL4InvocationRootsSeparate: true,
   duplicateTaskLaunchRejected: true,
   collapsedInvocationRejected: true,

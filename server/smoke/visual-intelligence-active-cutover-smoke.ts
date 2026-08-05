@@ -71,6 +71,15 @@ const sam31ApprovedTrackAllSourceRepository = source(
 const trackAllSam31AuthenticatedStartService = source(
   'server/services/canonical-track-all-sam3_1-authenticated-gpu-start-service.ts',
 )
+const trackAllSam31L4TaskQaAuthenticatedStartService = source(
+  'server/services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service.ts',
+)
+const trackAllSam31L4TaskQaFundedRuntimeComposition = source(
+  'server/services/canonical-track-all-sam3_1-l4-task-qa-funded-gpu-runtime-composition.ts',
+)
+const trackAllSam31L4TaskQaOwner = source(
+  'server/workers/masks/canonical-track-all-sam3_1-l4-task-qa-owner-service.ts',
+)
 const trackAllSam31Routes = source(
   'server/routes/track-all-sam3_1-routes.ts',
 )
@@ -432,11 +441,55 @@ assert.doesNotMatch(
   trackAllSam31AuthenticatedStartService,
   /startCanonicalProfessionalGpuPlanFundedJob|rawCloudLaunchPort:\s*/u,
 )
+assert.match(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /rereadExactSam31MaskManifest/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /persistMaterialCreateOnly/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /startCanonicalTrackAllSam31L4TaskQaPlanFundedGpuJob/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /payload\.subjectRequests\[0\]\?\.anchorRequired/u,
+)
+assert.doesNotMatch(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /anchorManifestRef:\s*subject\.anchorRequired[\s\S]*result\.manifestRef/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaFundedRuntimeComposition,
+  /createCanonicalTrackAllSam31L4TaskQaPreparingLaunchPort/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaFundedRuntimeComposition,
+  /rawCloudLaunchPortExposed: false/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaOwner,
+  /persistWorkerTaskCreateOnly/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaOwner,
+  /createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort/u,
+)
+assert.doesNotMatch(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /qwen|sam2|cpuOnlySubstantiveExecutionAllowed:\s*true/u,
+)
 assert.match(trackAllSam31Routes, /requireStrictInternalServiceAuth/u)
 assert.match(trackAllSam31Routes, /requireIdempotency/u)
 assert.match(
   trackAllSam31Routes,
   /trackAllSam31AuthenticatedGpuStartRuntimePort/u,
+)
+assert.match(
+  trackAllSam31Routes,
+  /trackAllSam31L4TaskQaAuthenticatedStartRuntimePort/u,
 )
 assert.doesNotMatch(trackAllSam31Routes, /qwen|sam2|modelId|body\.model/u)
 assert.match(

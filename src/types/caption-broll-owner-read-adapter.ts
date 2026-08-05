@@ -13,6 +13,8 @@ export const BROLL_CAPTION_PUBLIC_CONTRACT_RECEIPT_VERSION =
   'b_roll_caption_public_contract_receipt_v1' as const
 export const CAPTION_BROLL_OWNER_READ_ADAPTER_VERSION =
   'caption-broll-owner-read-adapter-v1' as const
+export const BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE =
+  'b_roll_caption_owner_read_result' as const
 
 export interface BrollCaptionOpaqueReference {
   id: string

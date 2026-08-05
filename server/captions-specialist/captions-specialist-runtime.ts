@@ -39,9 +39,10 @@ import type {
   CaptionSoundCueRequest,
   CaptionSoundSupportResult,
 } from '../../src/types/caption-sound-support'
-import type {
-  BrollCaptionOwnerReadRequest,
-  BrollCaptionOwnerReadResult,
+import {
+  BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE,
+  type BrollCaptionOwnerReadRequest,
+  type BrollCaptionOwnerReadResult,
 } from '../../src/types/caption-broll-owner-read-adapter'
 import type { CaptionBrollOwnerReadBinding } from
   '../../src/types/caption-multi-track-scene-graph'
@@ -115,8 +116,6 @@ interface CaptionRuntimeProfile {
   qualification: SkillQualificationSnapshot
 }
 
-const BROLL_CAPTION_OWNER_READ_RESULT_ARTIFACT_TYPE =
-  'b_roll_caption_owner_read_result' as const
 const LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE =
   'living_frame_caption_direction_response' as const
 

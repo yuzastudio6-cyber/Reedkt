@@ -27,6 +27,7 @@ export type MusicMiniSkillImplementationStatus = 'implemented' | 'planning_only'
 export interface MusicMiniSkillImplementationEvidence {
   modulePath: string
   functionOrService: string
+  executionBoundary: 'pre_route_admission' | 'route_step' | 'composite_service'
   routeIdentities: string[]
   operationIdentities: string[]
   receiptTypes: string[]
@@ -71,21 +72,24 @@ type MiniImplementation = {
   modulePath: string
   functionOrService: string
   evidenceLevel: MusicMiniSkillManifest['evidenceLevel']
+  executionBoundary: MusicMiniSkillImplementationEvidence['executionBoundary']
 }
 
 const planning = (functionOrService: string, modulePath = 'server/music/music-supervision.ts'): MiniImplementation => ({
-  status: 'planning_only', modulePath, functionOrService, evidenceLevel: 'planning',
+  status: 'planning_only', modulePath, functionOrService, evidenceLevel: 'planning', executionBoundary: 'composite_service',
 })
 const implemented = (functionOrService: string, modulePath: string): MiniImplementation => ({
-  status: 'implemented', modulePath, functionOrService, evidenceLevel: 'internal_execution',
+  status: 'implemented', modulePath, functionOrService, evidenceLevel: 'internal_execution', executionBoundary: 'route_step',
 })
 const fixture = (functionOrService: string, modulePath: string): MiniImplementation => ({
-  status: 'fixture_only', modulePath, functionOrService, evidenceLevel: 'fixture',
+  status: 'fixture_only', modulePath, functionOrService, evidenceLevel: 'fixture', executionBoundary: 'route_step',
 })
 
 const MINI_SKILL_IMPLEMENTATIONS: Record<(typeof MINI_SKILLS)[number][0], MiniImplementation> = {
-  scope_guard: implemented('evaluateMusicScopeGuard', 'server/music/music-scope-guard.ts'),
-  context_loader: implemented('resolveCanonicalMusicContext', 'server/music/music-context.ts'),
+  scope_guard: { ...implemented('evaluateMusicScopeGuard', 'server/music/music-scope-guard.ts'),
+    executionBoundary: 'pre_route_admission' },
+  context_loader: { ...implemented('resolveCanonicalMusicContext', 'server/music/music-context.ts'),
+    executionBoundary: 'pre_route_admission' },
   evidence_confidence_manager: planning('studyMusicContext'),
   video_music_context_study: planning('studyMusicContext'),
   music_need_director: planning('decideMusicNeed'),
@@ -158,6 +162,8 @@ function ref(route: (typeof MUSIC_TOOL_ROUTE_MANIFESTS)[number]): { routeKey: st
 export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Object.freeze(
   MINI_SKILLS.map(([key, displayName]): MusicMiniSkillManifest => {
     const implementation = MINI_SKILL_IMPLEMENTATIONS[key]
+    const executionBoundary = key === 'revision_director'
+      ? 'composite_service' as const : implementation.executionBoundary
     const routes = relevantRoutes(key)
     const primary = routes.filter((route) => route.routeRole !== 'no_music' && route.routeRole !== 'lower_cost').map(ref)
     const fallback = routes.filter((route) => route.routeRole === 'no_music').map(ref)
@@ -187,10 +193,16 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       implementationEvidence: [{
         modulePath: implementation.modulePath,
         functionOrService: implementation.functionOrService,
+        executionBoundary,
         routeIdentities: routes.map((route) => `${route.routeKey}@${route.routeVersion}#${route.routeHash}`),
-        operationIdentities: routes.flatMap((route) => route.steps.map((step) =>
-          `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}`)),
-        receiptTypes: implementation.status === 'implemented' ? ['music_route_step_receipt_v3']
+        operationIdentities: executionBoundary === 'route_step'
+          ? routes.flatMap((route) => route.steps.map((step) =>
+            `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}`))
+          : [`music.internal/${implementation.functionOrService}@3.0.0`],
+        receiptTypes: key === 'scope_guard' ? ['music_scope_guard_result_v3']
+          : key === 'context_loader' ? ['music_context_package_v2']
+            : key === 'revision_director' ? ['music_revision_receipt_v2']
+              : implementation.status === 'implemented' ? ['music_route_step_receipt_v3']
           : implementation.status === 'fixture_only' ? ['music_provider_attempt_receipt_v3'] : ['music_planning_artifact_v3'],
         modeStatus: {
           planning: 'planning_qualified',

@@ -98,7 +98,9 @@ export function validateCanonicalMusicPublication(
         : mini.evidenceLevel === 'fixture' ? route.qualificationByMode.fixtureExecution
           : route.qualificationByMode.planning
     })
-    if (primaryQualifications.length > 0) {
+    const routeBoundExecution = mini.implementationEvidence.every((evidence) =>
+      evidence.executionBoundary === 'route_step')
+    if (primaryQualifications.length > 0 && routeBoundExecution) {
       const ceiling = Math.max(...primaryQualifications.map((status) => qualificationRank[status]))
       if (qualificationRank[mini.qualification] > ceiling) {
         throw new Error(`Music mini-skill ${mini.miniSkillKey} qualification exceeds its routes.`)

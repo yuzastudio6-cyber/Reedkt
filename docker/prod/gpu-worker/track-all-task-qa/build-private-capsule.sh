@@ -228,6 +228,7 @@ cmake -S "${OPENCV_SOURCE}" -B "${WORK}/opencv-build" \
   -DBUILD_opencv_python3=ON \
   -DCUDA_ARCH_BIN=8.9 \
   -DCUDA_ARCH_PTX= \
+  -DCUDA_NVCC_FLAGS=--objdir-as-tempdir \
   -DCUDA_FAST_MATH=OFF \
   -DENABLE_FAST_MATH=OFF \
   -DINSTALL_C_EXAMPLES=OFF \

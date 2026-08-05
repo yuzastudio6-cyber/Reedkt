@@ -67,6 +67,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-gpu-task-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts',
   'server/smoke/canonical-professional-gpu-funded-start-authority-store-smoke.ts',
+  'server/smoke/canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',
   'server/smoke/canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts',
   'server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts',
   'server/smoke/canonical-sam3_1-prepared-mask-proxy-repository-smoke.ts',

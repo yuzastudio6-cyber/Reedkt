@@ -226,6 +226,7 @@
     "smoke:sam3_1-approved-track-all-source": "tsx server/smoke/canonical-sam3_1-approved-track-all-task-source-repository-smoke.ts",
     "smoke:sam3_1-prepared-mask-proxy": "tsx server/smoke/canonical-sam3_1-prepared-mask-proxy-repository-smoke.ts",
     "smoke:professional-gpu-funded-start-store": "tsx server/smoke/canonical-professional-gpu-funded-start-authority-store-smoke.ts",
+    "smoke:current-gpu-rate-authority-repository": "tsx server/smoke/canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",
     "smoke:visual-intelligence-orchestra-manifest": "tsx server/smoke/visual-intelligence-orchestra-capability-manifest-smoke.ts",

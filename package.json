@@ -45,6 +45,7 @@
     "test:track-all-runtime-bindings": "tsx server/smoke/track-all-runtime-bindings-work-graph-smoke.ts",
     "test:track-all-canonical-private-runtime": "tsx server/smoke/track-all-canonical-private-runtime-smoke.ts",
     "test:track-all-canonical-private-accounting": "tsx server/smoke/track-all-canonical-private-execution-accounting-smoke.ts",
+    "test:track-all-canonical-private-composite": "tsx server/smoke/track-all-canonical-private-composite-driver-smoke.ts",
     "test:track-all-canonical-private-public-e2e": "tsx server/smoke/track-all-canonical-private-public-e2e-smoke.ts",
     "test:track-all-producer-consumer-acceptance": "tsx server/smoke/track-all-producer-consumer-acceptance-smoke.ts",
     "test:track-all-public-plugin-e2e": "tsx server/smoke/track-all-public-plugin-e2e-smoke.ts",

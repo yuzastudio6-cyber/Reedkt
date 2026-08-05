@@ -1,6 +1,6 @@
 # Track All implementation progress
 
-Status: `track_31_execution_accounting_complete`
+Status: `track_32_atomic_composite_driver_complete`
 
 This ledger records actual implementation, test, qualification, Git, and
 external-gate evidence for the canonical `track_all@1.0.0` skill. It does not
@@ -2258,3 +2258,44 @@ Actual validation:
 
 No real route receipt was registered, no SAM stage became executable, and no
 model, GPU, public artifact, production mutation, or credit action occurred.
+
+TRACK-31 implementation commit
+`8d0c4d7184061c3a5027d5be583f929b3419f438` was pushed and the remote branch
+was reread at that exact SHA.
+
+## TRACK-32 — atomic composite operation driver
+
+Status: complete; commit and remote confirmation are recorded by the next
+evidence-ledger commit.
+
+Implemented `TrackAllCanonicalPrivateCompositeOperationDriver` as the sole
+owner of approved atomic dependency traversal, exact input resolution, replay,
+create-only output persistence, atomic operation evidence, count aggregation,
+and public output projection. Executor selection is derived only from the
+immutable approved atomic operation ID: exact SAM V2 work goes to the injected
+SAM stage interface; all other qualified atomic work goes to the deterministic
+stage interface. Caller input cannot select an executor.
+
+The existing canonical-private deterministic driver now exposes a bounded
+atomic-stage interface and public projector while retaining its standalone
+compatibility path. It still rejects any SAM or GPU atomic item before touching
+a tool runtime. The composite rejects unknown GPU operations and fails closed
+when exact SAM work is present without a separately constructed SAM executor.
+
+Actual validation:
+
+- `npm run test:track-all-canonical-private-composite`: passed exact operation-
+  ID routing, deterministic/SAM separation, replay without double execution or
+  count growth, absent-SAM-executor rejection, direct deterministic SAM
+  rejection, and caller-selection rejection;
+- `npm run test:track-all-canonical-private-runtime`: passed through the new
+  composite for no-action and planar deterministic routes;
+- `npm run test:track-all-canonical-private-public-e2e`: passed all seven
+  public-plugin scenarios through the composite, including blocked SAM;
+- `NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server`: passed;
+- focused ESLint and `git diff --check`: passed.
+
+The SAM stage used by the routing smoke is explicitly protocol-shaped test
+logic and did not register route authority, claim checkpoint/CUDA execution,
+enter qualification, or change the committed zero real-execution totals. The
+real SAM stage executor remains the TRACK-33 task.

@@ -36,6 +36,7 @@ import { assertSkillAssignment } from '../core/skill-range-authority'
 import type { SkillAssignment } from '../core/skill-assignment-types'
 import {
   trackAllAtomicExecutionEvidenceSchema,
+  trackAllAtomicWorkItemSchema,
   trackAllCanonicalPrivateExecutionCountsSchema,
   trackAllPublicWorkProjectionEvidenceSchema,
   trackAllWorkGraphArtifactSchema,
@@ -131,6 +132,33 @@ export interface TrackAllCanonicalPrivateOperationDriver {
     invocation: SkillJobRuntimeInvocation
     execution: TrackAllCanonicalPrivateExecutionPackage
   }): Promise<TrackAllCanonicalPrivateOperationResult>
+}
+
+export type TrackAllCanonicalPrivateAtomicWorkItem = z.infer<
+  typeof trackAllAtomicWorkItemSchema
+>
+
+export interface TrackAllCanonicalPrivateAtomicStageExecution {
+  value: unknown
+  evidenceHashes: readonly string[]
+  actualToolOperationIds: readonly string[]
+  executionCounts: TrackAllCanonicalPrivateExecutionCounts
+}
+
+export interface TrackAllCanonicalPrivateAtomicStageExecutor {
+  executeAtomicStage(input: {
+    item: TrackAllCanonicalPrivateAtomicWorkItem
+    execution: TrackAllCanonicalPrivateExecutionPackage
+    inputArtifactRefs: readonly EditSkillArtifactReference[]
+    dependencyResults: readonly TrackAllCanonicalPrivateAtomicResult[]
+  }): Promise<TrackAllCanonicalPrivateAtomicStageExecution>
+}
+
+export interface TrackAllCanonicalPrivatePublicOutputProjector {
+  projectPublicOutput(input: {
+    jobType: TrackAllPublicJobType
+    execution: TrackAllCanonicalPrivateExecutionPackage
+  }): Promise<unknown>
 }
 
 /**

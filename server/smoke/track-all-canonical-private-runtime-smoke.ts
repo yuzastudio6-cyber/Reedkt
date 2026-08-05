@@ -22,6 +22,7 @@ import {
   TRACK_ALL_CAPABILITY_MANIFEST,
   TRACK_ALL_SAM_OPERATION_V2,
   TRACK_ALL_TOOL_OPERATIONS,
+  TrackAllCanonicalPrivateCompositeOperationDriver,
   TrackAllCanonicalPrivateExecutionCoordinator,
   createTrackAllCanonicalPrivateRuntime,
   trackAllPlanSchema,
@@ -111,10 +112,14 @@ try {
   const noActionCoordinator = new TrackAllCanonicalPrivateExecutionCoordinator({
     runtime,
     executorRouter,
-    operationDriver: new TrackAllCanonicalPrivateDeterministicOperationDriver({
+    operationDriver: new TrackAllCanonicalPrivateCompositeOperationDriver({
       artifactStore,
-      runtimes: { media: mediaRuntime, python: pythonRuntime, remotion: unavailableRemotion },
-      privateMediaSink: mediaSink,
+      deterministicStageExecutor: new TrackAllCanonicalPrivateDeterministicOperationDriver({
+        artifactStore,
+        runtimes: { media: mediaRuntime, python: pythonRuntime, remotion: unavailableRemotion },
+        privateMediaSink: mediaSink,
+        now: deterministicClock(),
+      }),
       now: deterministicClock(),
     }),
     execution: {
@@ -169,11 +174,15 @@ try {
   const planarCoordinator = new TrackAllCanonicalPrivateExecutionCoordinator({
     runtime,
     executorRouter,
-    operationDriver: new TrackAllCanonicalPrivateDeterministicOperationDriver({
+    operationDriver: new TrackAllCanonicalPrivateCompositeOperationDriver({
       artifactStore,
-      approvedSourceMedia: { sourceSha256, mimeType: 'video/mp4', bytes: sourceBytes },
-      runtimes: { media: mediaRuntime, python: pythonRuntime, remotion: unavailableRemotion },
-      privateMediaSink: mediaSink,
+      deterministicStageExecutor: new TrackAllCanonicalPrivateDeterministicOperationDriver({
+        artifactStore,
+        approvedSourceMedia: { sourceSha256, mimeType: 'video/mp4', bytes: sourceBytes },
+        runtimes: { media: mediaRuntime, python: pythonRuntime, remotion: unavailableRemotion },
+        privateMediaSink: mediaSink,
+        now: deterministicClock(),
+      }),
       now: deterministicClock(),
     }),
     execution: {

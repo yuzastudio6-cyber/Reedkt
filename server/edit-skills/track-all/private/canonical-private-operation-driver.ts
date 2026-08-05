@@ -27,9 +27,11 @@ import type { PrivateOfflinePythonStructuredExecutionRuntime } from '../../../to
 import type { PrivateOfflineRemotionRenderRuntime } from '../../../tool-execution/remotion-render-execution'
 import type {
   TrackAllCanonicalPrivateAtomicResult,
+  TrackAllCanonicalPrivateAtomicStageExecutor,
   TrackAllCanonicalPrivateExecutionPackage,
   TrackAllCanonicalPrivateOperationDriver,
   TrackAllCanonicalPrivateOperationResult,
+  TrackAllCanonicalPrivatePublicOutputProjector,
 } from '../track-all-canonical-private-runtime'
 import {
   aggregateTrackAllCanonicalPrivateExecutionCounts,
@@ -235,7 +237,9 @@ interface ReframeExecution {
  * SAM implementation and fails closed if a SAM/GPU atomic item reaches it.
  */
 export class TrackAllCanonicalPrivateDeterministicOperationDriver
-implements TrackAllCanonicalPrivateOperationDriver {
+implements TrackAllCanonicalPrivateOperationDriver,
+TrackAllCanonicalPrivateAtomicStageExecutor,
+TrackAllCanonicalPrivatePublicOutputProjector {
   readonly #artifactStore: EditSkillArtifactStore
   readonly #source: TrackAllApprovedPrivateSourceMedia | undefined
   readonly #runtimes: TrackAllCanonicalPrivateToolRuntimes
@@ -294,6 +298,28 @@ implements TrackAllCanonicalPrivateOperationDriver {
     this.#now = input.now ?? (() => new Date().toISOString())
   }
 
+  async executeAtomicStage(input: Parameters<
+    TrackAllCanonicalPrivateAtomicStageExecutor['executeAtomicStage']
+  >[0]) {
+    if (
+      input.item.operationId === 'tool.sam3_1.track_masklets.v2' ||
+      input.item.createsGpuWork
+    ) throw new Error(
+      'Track All deterministic stage executor rejected SAM/GPU atomic work.',
+    )
+    const stage = await this.#executeStage(input.item.stageId, input.execution)
+    return {
+      ...stage,
+      executionCounts: deterministicTrackAllCanonicalPrivateExecutionCounts(),
+    }
+  }
+
+  async projectPublicOutput(input: Parameters<
+    TrackAllCanonicalPrivatePublicOutputProjector['projectPublicOutput']
+  >[0]): Promise<unknown> {
+    return this.#publicOutput(input.jobType, input.execution)
+  }
+
   async execute(input: Parameters<TrackAllCanonicalPrivateOperationDriver['execute']>[0]):
   Promise<TrackAllCanonicalPrivateOperationResult> {
     if (input.execution.plan.samWorkPlanned || input.execution.pluginWorkGraph.atomicWorkItems.some((item) =>
@@ -311,7 +337,10 @@ implements TrackAllCanonicalPrivateOperationDriver {
       throw new Error(`Track All public job ${input.jobType} has no approved atomic work.`)
     }
     for (const item of atomicItems) await this.#executeAtomic(item.workItemKey, input.execution)
-    const outputArtifact = await this.#publicOutput(input.jobType, input.execution)
+    const outputArtifact = await this.projectPublicOutput({
+      jobType: input.jobType,
+      execution: input.execution,
+    })
     const closureKeys = atomicClosureKeys(
       atomicItems.map((item) => item.workItemKey),
       input.execution.pluginWorkGraph.atomicWorkItems,
@@ -357,7 +386,12 @@ implements TrackAllCanonicalPrivateOperationDriver {
       execution,
     )
     const startedAt = this.#now()
-    const stage = await this.#executeStage(item.stageId, execution)
+    const stage = await this.executeAtomicStage({
+      item,
+      execution,
+      inputArtifactRefs,
+      dependencyResults: dependencies,
+    })
     const outputArtifactRef = await this.#artifactStore.putJson({
       artifactType: item.outputArtifactType,
       value: stage.value,
@@ -375,6 +409,7 @@ implements TrackAllCanonicalPrivateOperationDriver {
       outputArtifactHash: outputArtifactRef.sha256,
       stageEvidenceHashes: stage.evidenceHashes,
       actualToolOperationIds: stage.actualToolOperationIds,
+      executionCounts: stage.executionCounts,
       outsideAuthorizedRangeModified: false,
     })
     const result: TrackAllCanonicalPrivateAtomicResult = {
@@ -388,7 +423,7 @@ implements TrackAllCanonicalPrivateOperationDriver {
       dependencyOutputRefs: dependencies.map((value) => value.outputArtifactRef),
       outputArtifactRef,
       evidenceHashes: [...new Set([...stage.evidenceHashes, operationEvidenceHash])],
-      executionCounts: deterministicTrackAllCanonicalPrivateExecutionCounts(),
+      executionCounts: stage.executionCounts,
       status: 'succeeded',
       startedAt,
       completedAt,

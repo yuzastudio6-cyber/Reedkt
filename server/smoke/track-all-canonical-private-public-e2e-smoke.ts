@@ -21,6 +21,7 @@ import {
   TRACK_ALL_CAPABILITY_MANIFEST,
   TRACK_ALL_SAM_OPERATION_V2,
   TRACK_ALL_TOOL_OPERATIONS,
+  TrackAllCanonicalPrivateCompositeOperationDriver,
   TrackAllCanonicalPrivateExecutionCoordinator,
   createPrivacyPolicySnapshot,
   createTrackAllCanonicalPrivateRuntime,
@@ -162,19 +163,23 @@ try {
     const coordinator = new TrackAllCanonicalPrivateExecutionCoordinator({
       runtime,
       executorRouter,
-      operationDriver: new TrackAllCanonicalPrivateDeterministicOperationDriver({
+      operationDriver: new TrackAllCanonicalPrivateCompositeOperationDriver({
         artifactStore,
-        approvedSourceMedia: {
-          sourceSha256,
-          mimeType: 'video/mp4',
-          bytes: sourceBytes,
-        },
-        runtimes: {
-          media: mediaRuntime,
-          python: pythonRuntime,
-          remotion: remotionRuntime,
-        },
-        privateMediaSink: mediaSink,
+        deterministicStageExecutor: new TrackAllCanonicalPrivateDeterministicOperationDriver({
+          artifactStore,
+          approvedSourceMedia: {
+            sourceSha256,
+            mimeType: 'video/mp4',
+            bytes: sourceBytes,
+          },
+          runtimes: {
+            media: mediaRuntime,
+            python: pythonRuntime,
+            remotion: remotionRuntime,
+          },
+          privateMediaSink: mediaSink,
+          now: deterministicClock(scenario),
+        }),
         now: deterministicClock(scenario),
       }),
       execution: {

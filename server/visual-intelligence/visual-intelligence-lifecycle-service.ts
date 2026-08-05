@@ -11,6 +11,7 @@ import {
   type VisualIntelligenceProviderRequest,
   type VisualIntelligenceReport,
   type VisualIntelligenceRequest,
+  type VisualIntelligenceSpatialEvidence,
 } from '../../src/types/visual-intelligence'
 export type {
   VisualIntelligencePreparedEvidence,
@@ -19,22 +20,25 @@ import { ApiError } from '../errors/api-error'
 import {
   createVisualIntelligenceEvidenceRef,
   createVisualIntelligenceReport,
+  createVisualIntelligenceSpatialEvidence,
   parseVisualIntelligencePreparedEvidence,
-  parseVisualIntelligenceProviderNormalizedResult,
+  parseVisualIntelligenceProviderNormalizedResultAny,
   parseVisualIntelligenceReport,
   visualIntelligenceSourcePlanningSegmentsAreComplete,
   parseVisualIntelligenceRequest,
+  parseVisualIntelligenceSpatialEvidence,
   visualIntelligenceDigest,
 } from './visual-intelligence-contract'
 import {
   getVisualIntelligenceProfileDefinition,
+  visualIntelligenceProfileRequiresSpatialEvidence,
 } from './visual-intelligence-profile-registry'
 import {
   getVisualIntelligenceSkillDefinitionForRequest,
 } from './visual-intelligence-skill-registry'
 
 export const VISUAL_INTELLIGENCE_LIFECYCLE_SERVICE_VERSION =
-  'visual-intelligence-lifecycle-service-v1' as const
+  'visual-intelligence-lifecycle-service-v2' as const
 
 export interface VisualIntelligenceAdmissionVerificationPort {
   verifyAndRereadExact(request: VisualIntelligenceRequest): Promise<{
@@ -108,6 +112,20 @@ export interface VisualIntelligenceReportRepository {
   }>
 }
 
+export interface VisualIntelligenceSpatialEvidenceRepository {
+  readAcceptedSpatialEvidenceByReportRef(
+    reportRef: VisualIntelligenceEvidenceRef,
+  ): Promise<VisualIntelligenceSpatialEvidence | null>
+  persistSpatialEvidenceImmutable(input: {
+    readonly reportRef: VisualIntelligenceEvidenceRef
+    readonly spatialEvidence: VisualIntelligenceSpatialEvidence
+  }): Promise<{
+    readonly spatialEvidenceRef: VisualIntelligenceEvidenceRef
+    readonly createOnlyPersisted: true
+    readonly exactRereadVerified: true
+  }>
+}
+
 export interface VisualIntelligenceConcurrencyPort {
   acquire(input: {
     readonly workspaceId: string
@@ -126,6 +144,8 @@ export interface VisualIntelligenceExecutionOutcome {
   readonly status: 'completed' | 'cache_replay'
   readonly report: VisualIntelligenceReport
   readonly reportRef: VisualIntelligenceEvidenceRef
+  readonly spatialEvidence: VisualIntelligenceSpatialEvidence | null
+  readonly spatialEvidenceRef: VisualIntelligenceEvidenceRef | null
   readonly providerCallMadeDuringInvocation: boolean
   readonly costSettledDuringInvocation: boolean
   readonly duplicateProviderCallAvoided: boolean
@@ -143,6 +163,7 @@ export function createVisualIntelligenceLifecycleService(input: {
   readonly evidencePreparationPort: VisualIntelligenceEvidencePreparationPort
   readonly attemptStore: VisualIntelligenceAttemptStore
   readonly reportRepository: VisualIntelligenceReportRepository
+  readonly spatialEvidenceRepository: VisualIntelligenceSpatialEvidenceRepository
   readonly concurrencyPort: VisualIntelligenceConcurrencyPort
   readonly maximumConcurrentProviderCallsPerWorkspace?: number
 }): VisualIntelligenceLifecycleService {
@@ -198,7 +219,19 @@ export function createVisualIntelligenceLifecycleService(input: {
       })
       if (cached) {
         const report = validateCachedReport(cached, request, cacheIdentitySha256)
-        return outcome('cache_replay', report, reportRef(report), false)
+        const cachedReportRef = reportRef(report)
+        const spatialEvidence = await readSpatialEvidenceForReport({
+          repository: input.spatialEvidenceRepository,
+          reportRef: cachedReportRef,
+          request,
+        })
+        return outcome(
+          'cache_replay',
+          report,
+          cachedReportRef,
+          spatialEvidence,
+          false,
+        )
       }
 
       const lease = await input.concurrencyPort.acquire({
@@ -229,7 +262,18 @@ export function createVisualIntelligenceLifecycleService(input: {
             request,
             cacheIdentitySha256,
           )
-          return outcome('cache_replay', report, attempt.reportRef, false)
+          const spatialEvidence = await readSpatialEvidenceForReport({
+            repository: input.spatialEvidenceRepository,
+            reportRef: attempt.reportRef,
+            request,
+          })
+          return outcome(
+            'cache_replay',
+            report,
+            attempt.reportRef,
+            spatialEvidence,
+            false,
+          )
         }
         if (attempt.status === 'already_in_progress') {
           throw notReady('visual_intelligence_request_already_in_progress')
@@ -269,21 +313,26 @@ export function createVisualIntelligenceLifecycleService(input: {
         let providerResult: Awaited<ReturnType<VisualIntelligenceProvider['execute']>>
         try {
           providerResult = await input.provider.execute(providerRequest)
-        } catch {
+        } catch (error) {
+          const providerFailureOutcome = classifyProviderFailure(error)
           await input.attemptStore.markFailed({
             attemptRef: attempt.attemptRef,
-            outcome: 'unknown',
-            blockerCode:
-              'visual_intelligence_provider_outcome_unknown_reconciliation_required',
+            outcome: providerFailureOutcome,
+            blockerCode: providerFailureOutcome === 'executed_rejected'
+              ? 'visual_intelligence_provider_result_not_admissible'
+              : 'visual_intelligence_provider_outcome_unknown_reconciliation_required',
             automaticRetryAllowed: false,
           })
+          if (providerFailureOutcome === 'executed_rejected') {
+            throw notReady('visual_intelligence_provider_result_not_admissible')
+          }
           throw notReady(
             'visual_intelligence_provider_outcome_unknown_reconciliation_required',
           )
         }
 
         let normalizedResult: ReturnType<
-          typeof parseVisualIntelligenceProviderNormalizedResult
+          typeof parseVisualIntelligenceProviderNormalizedResultAny
         >
         try {
           normalizedResult = validateProviderResultAgainstRequest({
@@ -382,6 +431,37 @@ export function createVisualIntelligenceLifecycleService(input: {
           exportAuthorized: false,
           deliveryAuthorized: false,
         })
+        const producedSpatialEvidence = 'spatialObservations' in normalizedResult
+          ? createVisualIntelligenceSpatialEvidence({
+              spatialEvidenceId:
+                `visual-intelligence-spatial-${report.reportDigestSha256.slice(7, 39)}`,
+              requestRef: report.requestRef,
+              reportRef: reportRef(report),
+              scope: request.scope,
+              operation: request.operation,
+              profile: request.profile,
+              outputFrame: request.outputFrame,
+              sourceArtifacts: request.sourceArtifacts.map(spatialEvidenceArtifact),
+              comparisonArtifacts:
+                request.comparisonArtifacts.map(spatialEvidenceArtifact),
+              observations: normalizedResult.spatialObservations,
+              actualVisualInferenceObserved: true,
+              exactCanonicalPrivateMediaSuppliedToProvider: true,
+              providerVisualPreprocessingExpected: true,
+              providerPreprocessingIsExactFrameInspection: false,
+              everyTimelineFrameInspected: false,
+              completeTimePixelInspectionClaimAllowed: false,
+              immutableSpatialEvidence: true,
+              directTimelineMutationAllowed: false,
+              renderPerformedByVisualIntelligence: false,
+              qaApprovalGranted: false,
+              assetMutationAllowed: false,
+              billingMutationAllowed: false,
+              exportAuthorized: false,
+              publicDeliveryAuthorized: false,
+              productionAuthorized: false,
+            })
+          : null
         const persisted = await input.reportRepository.persistImmutable({
           cacheIdentitySha256,
           report,
@@ -399,13 +479,46 @@ export function createVisualIntelligenceLifecycleService(input: {
           })
           throw notReady('visual_intelligence_report_persistence_not_reconciled')
         }
+        let persistedSpatialEvidence: VisualIntelligenceSpatialEvidence | null = null
+        if (producedSpatialEvidence) {
+          const spatialPersisted = await input.spatialEvidenceRepository
+            .persistSpatialEvidenceImmutable({
+              reportRef: persisted.reportRef,
+              spatialEvidence: producedSpatialEvidence,
+            })
+          const expectedSpatialRef = spatialEvidenceRef(producedSpatialEvidence)
+          if (
+            !spatialPersisted.createOnlyPersisted
+            || !spatialPersisted.exactRereadVerified
+            || refKey(spatialPersisted.spatialEvidenceRef)
+              !== refKey(expectedSpatialRef)
+          ) {
+            await input.attemptStore.markFailed({
+              attemptRef: attempt.attemptRef,
+              outcome: 'unknown',
+              blockerCode:
+                'visual_intelligence_spatial_evidence_persistence_not_reconciled',
+              automaticRetryAllowed: false,
+            })
+            throw notReady(
+              'visual_intelligence_spatial_evidence_persistence_not_reconciled',
+            )
+          }
+          persistedSpatialEvidence = producedSpatialEvidence
+        }
         await input.attemptStore.markCompleted({
           attemptRef: attempt.attemptRef,
           reportRef: persisted.reportRef,
           providerCallOutcome: 'executed',
           accountEffectiveCostSettled: true,
         })
-        return outcome('completed', report, persisted.reportRef, true)
+        return outcome(
+          'completed',
+          report,
+          persisted.reportRef,
+          persistedSpatialEvidence,
+          true,
+        )
       } finally {
         await input.concurrencyPort.release(lease.leaseRef)
       }
@@ -416,7 +529,7 @@ export function createVisualIntelligenceLifecycleService(input: {
 function createArtifactBoundSemanticEvidence(input: {
   request: VisualIntelligenceRequest
   normalizedResult: ReturnType<
-    typeof parseVisualIntelligenceProviderNormalizedResult
+    typeof parseVisualIntelligenceProviderNormalizedResultAny
   >
   providerResult: Awaited<ReturnType<VisualIntelligenceProvider['execute']>>
 }): VisualIntelligenceEvidence[] {
@@ -459,8 +572,8 @@ function validateProviderResultAgainstRequest(input: {
   request: VisualIntelligenceRequest
   prepared: VisualIntelligencePreparedEvidence
   providerResult: Awaited<ReturnType<VisualIntelligenceProvider['execute']>>
-}): ReturnType<typeof parseVisualIntelligenceProviderNormalizedResult> {
-  const result = parseVisualIntelligenceProviderNormalizedResult(
+}): ReturnType<typeof parseVisualIntelligenceProviderNormalizedResultAny> {
+  const result = parseVisualIntelligenceProviderNormalizedResultAny(
     input.providerResult.normalizedResult,
   )
   const artifacts = new Map([
@@ -483,6 +596,7 @@ function validateProviderResultAgainstRequest(input: {
 
   if (
     result.requestId !== input.request.requestId
+    || !('spatialObservations' in result)
     || result.segments.length === 0
     || new Set(result.segments.map((segment) => segment.segmentId)).size
       !== result.segments.length
@@ -511,6 +625,12 @@ function validateProviderResultAgainstRequest(input: {
     || provenance.codeExecutionUsed !== false
     || provenance.rawProviderPayloadPersisted !== false
   ) throw notReady('visual_intelligence_provider_result_scope_mismatch')
+
+  validateSpatialProviderResult({
+    request: input.request,
+    prepared: input.prepared,
+    result,
+  })
 
   for (const segment of result.segments) {
     const artifact = artifacts.get(segment.artifactId)
@@ -557,6 +677,64 @@ function validateProviderResultAgainstRequest(input: {
     throw notReady('visual_intelligence_provider_followup_range_not_admissible')
   }
   return result
+}
+
+function validateSpatialProviderResult(input: {
+  request: VisualIntelligenceRequest
+  prepared: VisualIntelligencePreparedEvidence
+  result: ReturnType<typeof parseVisualIntelligenceProviderNormalizedResultAny>
+}): void {
+  const required = visualIntelligenceProfileRequiresSpatialEvidence(
+    input.request.operation,
+    input.request.profile,
+  )
+  if (!('spatialObservations' in input.result)) {
+    if (required) throw notReady('visual_intelligence_spatial_evidence_missing')
+    return
+  }
+  if (
+    (required && (
+      input.request.outputFrame === null
+      || input.result.spatialObservations.length === 0
+    ))
+    || (!required && input.result.spatialObservations.length !== 0)
+  ) throw notReady('visual_intelligence_spatial_evidence_profile_mismatch')
+
+  const artifacts = new Map([
+    ...input.request.sourceArtifacts,
+    ...input.request.comparisonArtifacts,
+  ].map((artifact) => [artifact.artifactId, artifact]))
+  const evidenceByRef = new Map(input.prepared.deterministicEvidence.map(
+    (evidence) => [refKey(evidence.evidenceRef), evidence],
+  ))
+  const findingIds = new Set(input.result.findings.map(
+    (finding) => finding.findingId,
+  ))
+  const observationIds = new Set<string>()
+  for (const observation of input.result.spatialObservations) {
+    const artifact = artifacts.get(observation.artifactId)
+    const citedEvidence = observation.evidenceRefs.map(
+      (reference) => evidenceByRef.get(refKey(reference)),
+    )
+    if (
+      !artifact
+      || observationIds.has(observation.observationId)
+      || !rangeIsAdmitted(
+        observation.range,
+        artifact,
+        input.request.requestedRanges,
+      )
+      || hasDuplicateRefs(observation.evidenceRefs)
+      || citedEvidence.some((evidence) => !evidence)
+      || observation.findingIds.some((findingId) => !findingIds.has(findingId))
+      || (observation.sceneId !== null && !input.result.segments.some(
+        (segment) => segment.artifactId === observation.artifactId
+          && segment.sceneId === observation.sceneId
+          && containsRange(segment.range, observation.range),
+      ))
+    ) throw notReady('visual_intelligence_spatial_observation_not_admissible')
+    observationIds.add(observation.observationId)
+  }
 }
 
 function rangeIsAdmitted(
@@ -874,6 +1052,45 @@ function reportArtifact(value: VisualIntelligenceRequest['sourceArtifacts'][numb
   }
 }
 
+function spatialEvidenceArtifact(
+  value: VisualIntelligenceRequest['sourceArtifacts'][number],
+) {
+  return {
+    artifactId: value.artifactId,
+    checksumSha256: value.checksumSha256,
+    width: value.width,
+    height: value.height,
+    durationFrames: value.durationFrames,
+    frameRate: value.frameRate,
+  }
+}
+
+async function readSpatialEvidenceForReport(input: {
+  repository: VisualIntelligenceSpatialEvidenceRepository
+  reportRef: VisualIntelligenceEvidenceRef
+  request: VisualIntelligenceRequest
+}): Promise<VisualIntelligenceSpatialEvidence | null> {
+  const value = await input.repository.readAcceptedSpatialEvidenceByReportRef(
+    input.reportRef,
+  )
+  if (!value) {
+    if (visualIntelligenceProfileRequiresSpatialEvidence(
+      input.request.operation,
+      input.request.profile,
+    )) throw notReady('visual_intelligence_cached_spatial_evidence_missing')
+    return null
+  }
+  const spatialEvidence = parseVisualIntelligenceSpatialEvidence(value)
+  if (
+    refKey(spatialEvidence.reportRef) !== refKey(input.reportRef)
+    || spatialEvidence.operation !== input.request.operation
+    || spatialEvidence.profile !== input.request.profile
+    || !same(spatialEvidence.scope, input.request.scope)
+    || !same(spatialEvidence.outputFrame, input.request.outputFrame)
+  ) throw notReady('visual_intelligence_cached_spatial_evidence_mismatch')
+  return spatialEvidence
+}
+
 function cacheArtifact(value: VisualIntelligenceRequest['sourceArtifacts'][number]) {
   return {
     artifactId: value.artifactId,
@@ -910,6 +1127,16 @@ function reportRef(report: VisualIntelligenceReport): VisualIntelligenceEvidence
   })
 }
 
+function spatialEvidenceRef(
+  evidence: VisualIntelligenceSpatialEvidence,
+): VisualIntelligenceEvidenceRef {
+  return Object.freeze({
+    id: evidence.spatialEvidenceId,
+    version: 1,
+    contentHash: evidence.spatialEvidenceDigestSha256,
+  })
+}
+
 function uniqueRefs(
   refs: VisualIntelligenceEvidenceRef[],
 ): VisualIntelligenceEvidenceRef[] {
@@ -924,6 +1151,7 @@ function outcome(
   status: VisualIntelligenceExecutionOutcome['status'],
   report: VisualIntelligenceReport,
   ref: VisualIntelligenceEvidenceRef,
+  spatialEvidence: VisualIntelligenceSpatialEvidence | null,
   providerCallMade: boolean,
 ): VisualIntelligenceExecutionOutcome {
   return Object.freeze({
@@ -931,6 +1159,10 @@ function outcome(
     status,
     report,
     reportRef: ref,
+    spatialEvidence,
+    spatialEvidenceRef: spatialEvidence
+      ? spatialEvidenceRef(spatialEvidence)
+      : null,
     providerCallMadeDuringInvocation: providerCallMade,
     costSettledDuringInvocation: providerCallMade,
     duplicateProviderCallAvoided: !providerCallMade,
@@ -946,4 +1178,25 @@ function notReady(requiredGate: string): ApiError {
     503,
     { requiredGate },
   )
+}
+
+function classifyProviderFailure(
+  error: unknown,
+): 'unknown' | 'executed_rejected' {
+  if (!(error instanceof ApiError)) {
+    return 'unknown'
+  }
+  try {
+    if (!error.details || typeof error.details !== 'object'
+      || Array.isArray(error.details)) return 'unknown'
+    const descriptor = Object.getOwnPropertyDescriptor(
+      error.details,
+      'providerOutcome',
+    )
+    return descriptor?.value === 'executed_rejected'
+      ? 'executed_rejected'
+      : 'unknown'
+  } catch {
+    return 'unknown'
+  }
 }

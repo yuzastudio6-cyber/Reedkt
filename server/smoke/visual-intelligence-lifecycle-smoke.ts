@@ -9,6 +9,7 @@ import {
   type VisualIntelligenceProvider,
   type VisualIntelligenceReport,
   type VisualIntelligenceRequest,
+  type VisualIntelligenceSpatialEvidence,
   type VisualIntelligenceToolExecutionEvidence,
 } from '../../src/types/visual-intelligence'
 import {
@@ -16,6 +17,7 @@ import {
   createVisualIntelligenceEvidenceRef,
   createVisualIntelligenceRequest,
   parseVisualIntelligenceReport,
+  parseVisualIntelligenceSpatialEvidence,
   visualIntelligenceDigest,
 } from '../visual-intelligence/visual-intelligence-contract'
 import {
@@ -24,6 +26,7 @@ import {
   type VisualIntelligenceConcurrencyPort,
   type VisualIntelligencePreparedEvidence,
   type VisualIntelligenceReportRepository,
+  type VisualIntelligenceSpatialEvidenceRepository,
 } from '../visual-intelligence/visual-intelligence-lifecycle-service'
 import {
   VISUAL_INTELLIGENCE_PROMPT_VERSION,
@@ -104,7 +107,17 @@ function buildRequest(input: {
     requiredEvidenceRefs:
       allArtifacts.map((artifact) => artifact.mediaProbeEvidenceRef),
     expectedOutcomeRefs: [],
-    outputFrame: null,
+    outputFrame: input.question ? {
+      outputId: 'output-1',
+      aspectRatioLabel: '16:9',
+      aspectRatioNumerator: 16,
+      aspectRatioDenominator: 9,
+      width: 1920,
+      height: 1080,
+      frameRate,
+      confirmedOutputFrameRef: ref('confirmed-output-frame'),
+      confirmedByUser: true,
+    } : null,
     protectedZones: [],
     qualityPolicy: createProfessionalHighVisualIntelligenceQualityPolicy(),
     admission: {
@@ -329,7 +342,7 @@ function createProvider(counter: { calls: number }): VisualIntelligenceProvider 
       ))
       return {
         normalizedResult: {
-          schemaVersion: 'visual-intelligence-provider-result-v1',
+          schemaVersion: 'visual-intelligence-provider-result-v2',
           requestId: input.request.requestId,
           semanticSummary: 'The complete source instruction and action are understood.',
           segments: [
@@ -360,6 +373,36 @@ function createProvider(counter: { calls: number }): VisualIntelligenceProvider 
               : null,
           })),
           findings: [],
+          spatialObservations: input.request.profile === 'identify_primary_subject'
+            ? [{
+                observationId: `observation-${input.request.requestId}`,
+                artifactId: input.request.sourceArtifacts[0]!.artifactId,
+                sceneId: 'scene-1',
+                range: fullRange,
+                role: 'speaker' as const,
+                regionBasisPoints: {
+                  x: 1_500,
+                  y: 1_000,
+                  width: 4_000,
+                  height: 8_000,
+                },
+                confidenceBasisPoints: 9_000,
+                temporalStabilityBasisPoints: 8_500,
+                measuredContrastRatioMilli: null,
+                clutterBasisPoints: 2_000,
+                cropResilienceBasisPoints: 7_500,
+                compositionBalanceBasisPoints: 8_000,
+                findingIds: [],
+                evidenceRefs: [
+                  evidenceByArtifact.get(
+                    input.request.sourceArtifacts[0]!.artifactId,
+                  )!,
+                ],
+                uncertaintyCode: null,
+                semanticGeometryOnly: true as const,
+                deterministicPixelGeometryClaimed: false as const,
+              }]
+            : [],
           targetedFollowupRanges: [],
           warnings: [],
           mediaContentTreatedAsUntrusted: true,
@@ -459,9 +502,11 @@ function createAttemptStore(events: string[]): VisualIntelligenceAttemptStore {
   }
 }
 
-function createReportRepository(events: string[]): VisualIntelligenceReportRepository {
+function createReportRepository(events: string[]):
+VisualIntelligenceReportRepository & VisualIntelligenceSpatialEvidenceRepository {
   const byCache = new Map<string, VisualIntelligenceReport>()
   const byRef = new Map<string, VisualIntelligenceReport>()
+  const spatialByReportRef = new Map<string, VisualIntelligenceSpatialEvidence>()
   return {
     async readAcceptedByCacheIdentity(input) {
       return byCache.get(input.cacheIdentitySha256) ?? null
@@ -482,6 +527,27 @@ function createReportRepository(events: string[]): VisualIntelligenceReportRepos
       events.push('report_persisted')
       return {
         reportRef,
+        createOnlyPersisted: true,
+        exactRereadVerified: true,
+      }
+    },
+    async readAcceptedSpatialEvidenceByReportRef(reportRef) {
+      return spatialByReportRef.get(refKey(reportRef)) ?? null
+    },
+    async persistSpatialEvidenceImmutable(input) {
+      const evidence = parseVisualIntelligenceSpatialEvidence(
+        input.spatialEvidence,
+      )
+      assert.equal(refKey(evidence.reportRef), refKey(input.reportRef))
+      assert.equal(spatialByReportRef.has(refKey(input.reportRef)), false)
+      spatialByReportRef.set(refKey(input.reportRef), evidence)
+      events.push('spatial_evidence_persisted')
+      return {
+        spatialEvidenceRef: {
+          id: evidence.spatialEvidenceId,
+          version: 1,
+          contentHash: evidence.spatialEvidenceDigestSha256,
+        },
         createOnlyPersisted: true,
         exactRereadVerified: true,
       }
@@ -508,6 +574,7 @@ function createConcurrencyPort(events: string[]): VisualIntelligenceConcurrencyP
 async function main() {
   const events: string[] = []
   const counter = { calls: 0 }
+  const lifecycleRepository = createReportRepository(events)
   const service = createVisualIntelligenceLifecycleService({
     provider: createProvider(counter),
     admissionPort: {
@@ -531,7 +598,8 @@ async function main() {
       },
     },
     attemptStore: createAttemptStore(events),
-    reportRepository: createReportRepository(events),
+    reportRepository: lifecycleRepository,
+    spatialEvidenceRepository: lifecycleRepository,
     concurrencyPort: createConcurrencyPort(events),
   })
 
@@ -556,13 +624,16 @@ async function main() {
       semanticEvidence[0]?.evidenceRef.contentHash,
   ), true)
   assert.equal(counter.calls, 1)
-  assert.deepEqual(events.slice(-5), [
+  assert.deepEqual(events.slice(-6), [
     'attempt_created',
     'provider_started',
     'report_persisted',
+    'spatial_evidence_persisted',
     'attempt_completed',
     'lease_released',
   ])
+  assert.ok(first.spatialEvidence)
+  assert.equal(first.spatialEvidence.observations.length, 0)
 
   const replay = await service.execute(firstRequest)
   assert.equal(replay.status, 'cache_replay')
@@ -600,6 +671,8 @@ async function main() {
   )
   assert.equal(firstQuestion.report.planningMayConsumeValidatedEvidence, true)
   assert.equal(secondQuestion.report.planningMayConsumeValidatedEvidence, true)
+  assert.equal(firstQuestion.spatialEvidence?.observations.length, 1)
+  assert.equal(firstQuestion.spatialEvidence?.observations[0]?.role, 'speaker')
   assert.equal(counter.calls, 4)
 
   const comparison = await service.execute(buildRequest({
@@ -638,6 +711,7 @@ async function main() {
     },
     attemptStore: createAttemptStore([]),
     reportRepository: createReportRepository([]),
+    spatialEvidenceRepository: createReportRepository([]),
     concurrencyPort: createConcurrencyPort([]),
   })
   await assert.rejects(() => blockedService.execute(buildRequest({
@@ -673,6 +747,7 @@ async function main() {
     },
     attemptStore: createAttemptStore(unknownEvents),
     reportRepository: createReportRepository(unknownEvents),
+    spatialEvidenceRepository: createReportRepository(unknownEvents),
     concurrencyPort: createConcurrencyPort(unknownEvents),
   })
   await assert.rejects(() => unknownService.execute(buildRequest({
@@ -727,6 +802,7 @@ async function main() {
     },
     attemptStore: createAttemptStore(rejectedEvents),
     reportRepository: createReportRepository(rejectedEvents),
+    spatialEvidenceRepository: createReportRepository(rejectedEvents),
     concurrencyPort: createConcurrencyPort(rejectedEvents),
   })
   await assert.rejects(() => rejectedService.execute(buildRequest({

@@ -4,6 +4,7 @@ import type {
   VisualIntelligenceEvidenceRef,
   VisualIntelligenceReport,
   VisualIntelligenceRequest,
+  VisualIntelligenceSpatialEvidence,
 } from '../../src/types/visual-intelligence'
 import { ApiError } from '../errors/api-error'
 import type {
@@ -12,15 +13,20 @@ import type {
 import {
   createVisualIntelligenceEvidenceRef,
   parseVisualIntelligenceReport,
+  parseVisualIntelligenceSpatialEvidence,
   visualIntelligenceCanonicalJson,
 } from './visual-intelligence-contract'
 import type {
   VisualIntelligenceAttemptStore,
   VisualIntelligenceReportRepository,
+  VisualIntelligenceSpatialEvidenceRepository,
 } from './visual-intelligence-lifecycle-service'
+import {
+  visualIntelligenceProfileRequiresSpatialEvidence,
+} from './visual-intelligence-profile-registry'
 
 export const VISUAL_INTELLIGENCE_GCS_LIFECYCLE_STORE_VERSION =
-  'visual-intelligence-gcs-lifecycle-store-v1' as const
+  'visual-intelligence-gcs-lifecycle-store-v2' as const
 
 const DEFAULT_PREFIX = 'private/visual-intelligence/v1'
 const MAX_RECORD_BYTES = 16 * 1024 * 1024
@@ -30,6 +36,7 @@ const PREFIXED_SHA256 = /^sha256:[a-f0-9]{64}$/u
 export type VisualIntelligenceDurableLifecycleStore =
   VisualIntelligenceAttemptStore
   & VisualIntelligenceReportRepository
+  & VisualIntelligenceSpatialEvidenceRepository
   & {
     readonly schemaVersion:
       typeof VISUAL_INTELLIGENCE_GCS_LIFECYCLE_STORE_VERSION
@@ -293,6 +300,44 @@ export function createVisualIntelligenceDurableLifecycleStore(input: {
         exactRereadVerified: true,
       }
     },
+
+    async readAcceptedSpatialEvidenceByReportRef(reportRef) {
+      return readSpatialEvidenceByReportRef(input.objectPort, prefix, reportRef)
+    },
+
+    async persistSpatialEvidenceImmutable(value) {
+      const reportRef = requireRef(value.reportRef)
+      const report = await readReportByRef(input.objectPort, prefix, reportRef)
+      if (!report) {
+        throw conflict('visual_intelligence_spatial_report_missing')
+      }
+      const spatialEvidence = parseVisualIntelligenceSpatialEvidence(
+        value.spatialEvidence,
+      )
+      if (
+        refKey(spatialEvidence.reportRef) !== refKey(reportRef)
+        || refKey(spatialEvidence.requestRef) !== refKey(report.requestRef)
+        || !same(spatialEvidence.scope, report.scope)
+        || spatialEvidence.operation !== report.operation
+        || spatialEvidence.profile !== report.profile
+      ) throw conflict('visual_intelligence_spatial_report_lineage_mismatch')
+      assertSpatialEvidenceAgainstReport(spatialEvidence, report)
+      const objectPath = spatialEvidencePath(prefix, reportRef)
+      await persistRecord(input.objectPort, objectPath, spatialEvidence)
+      const reread = await readSpatialEvidenceByReportRef(
+        input.objectPort,
+        prefix,
+        reportRef,
+      )
+      if (!reread || !same(spatialEvidence, reread)) {
+        throw conflict('visual_intelligence_spatial_evidence_reread_mismatch')
+      }
+      return {
+        spatialEvidenceRef: spatialEvidenceReference(spatialEvidence),
+        createOnlyPersisted: true,
+        exactRereadVerified: true,
+      }
+    },
   }
   const store = Object.freeze(storeImplementation)
   admittedStores.add(store)
@@ -355,6 +400,84 @@ async function readReportByRef(
     throw conflict('visual_intelligence_report_ref_mismatch')
   }
   return report
+}
+
+async function readSpatialEvidenceByReportRef(
+  port: CanonicalCreateOnlyJsonObjectPort,
+  prefix: string,
+  untrustedReportRef: VisualIntelligenceEvidenceRef,
+): Promise<VisualIntelligenceSpatialEvidence | null> {
+  const reportRef = requireRef(untrustedReportRef)
+  const raw = await readRecord(port, spatialEvidencePath(prefix, reportRef))
+  if (!raw) return null
+  const evidence = parseVisualIntelligenceSpatialEvidence(raw)
+  if (refKey(evidence.reportRef) !== refKey(reportRef)) {
+    throw conflict('visual_intelligence_spatial_report_ref_mismatch')
+  }
+  const report = await readReportByRef(port, prefix, reportRef)
+  if (!report) throw conflict('visual_intelligence_spatial_report_missing')
+  assertSpatialEvidenceAgainstReport(evidence, report)
+  return evidence
+}
+
+function assertSpatialEvidenceAgainstReport(
+  evidence: VisualIntelligenceSpatialEvidence,
+  report: VisualIntelligenceReport,
+): void {
+  const expectedArtifacts = [
+    ...report.sourceArtifacts,
+    ...report.comparisonArtifacts,
+  ]
+  const actualArtifacts = [
+    ...evidence.sourceArtifacts,
+    ...evidence.comparisonArtifacts,
+  ]
+  const reportEvidence = new Set(report.evidence.map((item) =>
+    refKey(item.evidenceRef)))
+  const reportFindingIds = new Set(report.findings.map((item) => item.findingId))
+  if (
+    expectedArtifacts.length !== actualArtifacts.length
+    || expectedArtifacts.some((expected, index) => {
+      const actual = actualArtifacts[index]
+      return !actual
+        || actual.artifactId !== expected.artifactId
+        || actual.checksumSha256 !== expected.checksumSha256
+        || actual.durationFrames !== expected.durationFrames
+    })
+    || (visualIntelligenceProfileRequiresSpatialEvidence(
+      report.operation,
+      report.profile,
+    ) && (
+      evidence.outputFrame === null
+      || evidence.observations.length === 0
+    ))
+    || evidence.observations.some((observation) => {
+      const artifact = actualArtifacts.find((candidate) =>
+        candidate.artifactId === observation.artifactId)
+      return !artifact
+        || observation.range.endFrameExclusive > artifact.durationFrames
+        || observation.range.frameRate.numerator
+          !== artifact.frameRate.numerator
+        || observation.range.frameRate.denominator
+          !== artifact.frameRate.denominator
+        || !report.coverage.requestedRanges.some((range) =>
+          containsRange(range, observation.range))
+        || observation.evidenceRefs.some((reference) =>
+          !reportEvidence.has(refKey(reference)))
+        || observation.findingIds.some((findingId) =>
+          !reportFindingIds.has(findingId))
+    })
+  ) throw conflict('visual_intelligence_spatial_report_evidence_mismatch')
+}
+
+function containsRange(
+  outer: VisualIntelligenceRequest['requestedRanges'][number],
+  inner: VisualIntelligenceRequest['requestedRanges'][number],
+): boolean {
+  return outer.frameRate.numerator === inner.frameRate.numerator
+    && outer.frameRate.denominator === inner.frameRate.denominator
+    && outer.startFrame <= inner.startFrame
+    && outer.endFrameExclusive >= inner.endFrameExclusive
 }
 
 function parseAttemptIntent(value: unknown): AttemptIntentRecord {
@@ -494,6 +617,14 @@ function reportReference(report: VisualIntelligenceReport) {
   })
 }
 
+function spatialEvidenceReference(evidence: VisualIntelligenceSpatialEvidence) {
+  return Object.freeze({
+    id: evidence.spatialEvidenceId,
+    version: 1,
+    contentHash: evidence.spatialEvidenceDigestSha256,
+  })
+}
+
 function attemptReference(
   intent: AttemptIntentRecord,
 ): VisualIntelligenceEvidenceRef {
@@ -519,6 +650,14 @@ function attemptPath(prefix: string, requestId: string, leaf: string): string {
 
 function cachePath(prefix: string, digest: string): string {
   return `${prefix}/cache/${requireDigest(digest).slice('sha256:'.length)}.json`
+}
+
+function spatialEvidencePath(
+  prefix: string,
+  reportRef: VisualIntelligenceEvidenceRef,
+): string {
+  const ref = requireRef(reportRef)
+  return `${prefix}/spatial-evidence-by-report/${requireSafeId(ref.id)}.json`
 }
 
 function pathFor(prefix: string, family: string, id: string): string {

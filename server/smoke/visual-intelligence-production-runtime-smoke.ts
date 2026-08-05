@@ -210,8 +210,8 @@ const release = createControlledVisualIntelligenceRuntimeRelease({
   providerSdkPackage: '@google/genai',
   providerSdkVersion: '2.15.0',
   providerApiVersion: 'v1alpha',
-  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v2',
-  profileRegistryVersion: 'visual-intelligence-profile-registry-v1',
+  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v3',
+  profileRegistryVersion: 'visual-intelligence-profile-registry-v2',
   promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
   responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
   deterministicEvidenceVersion:
@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v14')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v15')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')
@@ -616,7 +616,7 @@ await runtime.canonicalRequestPackageStore.persistCreateOnly({
   inspectionRequirement: null,
 })
 providerPayload = {
-  schemaVersion: 'visual-intelligence-provider-result-v1',
+  schemaVersion: 'visual-intelligence-provider-result-v2',
   requestId: sourceRequest.requestId,
   semanticSummary:
     'The full source contains one complete basketball instruction sequence.',
@@ -658,6 +658,7 @@ providerPayload = {
     directTimelineMutationAllowed: false,
     providerInstructionAccepted: false,
   }],
+  spatialObservations: [],
   targetedFollowupRanges: [],
   warnings: [],
   mediaContentTreatedAsUntrusted: true,
@@ -1063,6 +1064,25 @@ providerPayload = {
       .segments[0]!),
     sourcePlanning: null,
   }],
+  spatialObservations: [{
+    observationId: 'primary-subject-observation-followup',
+    artifactId: 'source-video-1',
+    sceneId: 'scene-1',
+    range: fullRange,
+    role: 'speaker',
+    regionBasisPoints: { x: 2_000, y: 1_000, width: 4_000, height: 8_000 },
+    confidenceBasisPoints: 9_000,
+    temporalStabilityBasisPoints: 8_500,
+    measuredContrastRatioMilli: null,
+    clutterBasisPoints: 2_000,
+    cropResilienceBasisPoints: 7_500,
+    compositionBalanceBasisPoints: 8_000,
+    findingIds: [],
+    evidenceRefs: [probeRef],
+    uncertaintyCode: null,
+    semanticGeometryOnly: true,
+    deterministicPixelGeometryClaimed: false,
+  }],
   targetedFollowupRanges: [{
     startFrame: 0,
     endFrameExclusive: 24,
@@ -1237,6 +1257,7 @@ providerPayload = {
       .segments[0]!),
     sourcePlanning: null,
   }],
+  spatialObservations: [],
 }
 const referenceExecution = await runtime.orchestraJobRuntimePort.execute({
   call: referenceCall,

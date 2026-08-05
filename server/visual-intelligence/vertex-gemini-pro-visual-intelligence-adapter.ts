@@ -13,6 +13,8 @@ import {
   VISUAL_INTELLIGENCE_MODEL_ID,
   VISUAL_INTELLIGENCE_PROVIDER_ADAPTER_ID,
   VISUAL_INTELLIGENCE_PROVIDER_ID,
+  VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION,
+  VISUAL_INTELLIGENCE_SPATIAL_OBSERVATION_ROLES,
   VISUAL_INTELLIGENCE_THINKING_LEVEL,
   type VisualIntelligenceEvidenceRef,
   type VisualIntelligenceFrameRange,
@@ -22,7 +24,7 @@ import {
 } from '../../src/types/visual-intelligence'
 import { ApiError } from '../errors/api-error'
 import {
-  parseVisualIntelligenceProviderNormalizedResult,
+  parseVisualIntelligenceProviderNormalizedResultV2,
   parseVisualIntelligenceRequest,
   visualIntelligenceSourcePlanningSegmentsAreComplete,
   visualIntelligenceCanonicalJson,
@@ -31,10 +33,11 @@ import {
 import {
   compileVisualIntelligenceProviderInstruction,
   getVisualIntelligenceProfileDefinition,
+  visualIntelligenceProfileRequiresSpatialEvidence,
 } from './visual-intelligence-profile-registry'
 
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION =
-  'vertex-gemini-pro-visual-intelligence-adapter-v2' as const
+  'vertex-gemini-pro-visual-intelligence-adapter-v3' as const
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
   'v1alpha' as const
 
@@ -150,13 +153,14 @@ export const VISUAL_INTELLIGENCE_PROVIDER_RESPONSE_JSON_SCHEMA = deepFreeze({
   additionalProperties: false,
   required: [
     'schemaVersion', 'requestId', 'semanticSummary', 'segments', 'findings',
+    'spatialObservations',
     'targetedFollowupRanges', 'warnings', 'mediaContentTreatedAsUntrusted',
     'providerInstructionsFollowedFromMedia', 'editingOrRenderingClaimed',
   ],
   properties: {
     schemaVersion: {
       type: 'string',
-      enum: ['visual-intelligence-provider-result-v1'],
+      enum: [VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION],
     },
     requestId: { type: 'string', minLength: 1, maxLength: 240 },
     semanticSummary: { type: 'string', minLength: 1, maxLength: 16_384 },
@@ -169,6 +173,11 @@ export const VISUAL_INTELLIGENCE_PROVIDER_RESPONSE_JSON_SCHEMA = deepFreeze({
       type: 'array',
       maxItems: 10_000,
       items: findingJsonSchema(),
+    },
+    spatialObservations: {
+      type: 'array',
+      maxItems: 10_000,
+      items: spatialObservationJsonSchema(),
     },
     targetedFollowupRanges: {
       type: 'array',
@@ -230,7 +239,9 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
           config: dispatch.config,
         })
       } catch {
-        throw notReady('vertex_gemini_pro_provider_outcome_unknown_no_automatic_retry')
+        throw providerOutcomeUnknown(
+          'vertex_gemini_pro_provider_outcome_unknown_no_automatic_retry',
+        )
       }
       validateProviderEnvelope(generated)
       let rawResult: unknown
@@ -240,12 +251,22 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
         }
         rawResult = JSON.parse(generated.text)
       } catch {
-        throw notReady('vertex_gemini_pro_structured_response_invalid')
+        throw executedRejected('vertex_gemini_pro_structured_response_invalid')
       }
-      const normalizedResult = parseVisualIntelligenceProviderNormalizedResult(
-        rawResult,
-      )
-      validateNormalizedResultAgainstRequest(normalizedResult, input)
+      let normalizedResult: ReturnType<
+        typeof parseVisualIntelligenceProviderNormalizedResultV2
+      >
+      try {
+        normalizedResult = parseVisualIntelligenceProviderNormalizedResultV2(
+          rawResult,
+        )
+        validateNormalizedResultAgainstRequest(normalizedResult, input)
+      } catch (error) {
+        if (error instanceof ApiError) throw error
+        throw executedRejected(
+          'vertex_gemini_pro_structured_response_not_admissible',
+        )
+      }
       const admissionCost = input.request.admission.costPreflight
       const settlement = await options.costSettlementPort
         .settleAccountEffectiveUsage({
@@ -270,7 +291,7 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
           !== refKey(admissionCost.accountEffectiveRateAuthorityRef)
         || settlement.settledCostMicros
           > admissionCost.maximumAuthorizedCostMicros
-      ) throw notReady('visual_intelligence_cost_settlement_not_admissible')
+      ) throw executedRejected('visual_intelligence_cost_settlement_not_admissible')
       const profile = getVisualIntelligenceProfileDefinition(
         input.request.operation,
         input.request.profile,
@@ -617,6 +638,9 @@ function validateProviderRequest(
     input.promptVersion !== profile.promptVersion
     || input.responseSchemaVersion !== profile.responseSchemaVersion
   ) throw notReady('visual_intelligence_profile_version_mismatch')
+  if (profile.spatialEvidencePolicy === 'required' && request.outputFrame === null) {
+    throw notReady('visual_intelligence_spatial_output_frame_required')
+  }
   const expectedArtifacts = [
     ...request.sourceArtifacts,
     ...request.comparisonArtifacts,
@@ -686,15 +710,15 @@ function validateProviderEnvelope(
     || result.urlContextMetadataPresent
     || result.functionCallPresent
     || result.executableCodePresent
-  ) throw notReady('vertex_gemini_pro_response_envelope_not_admissible')
+  ) throw executedRejected('vertex_gemini_pro_response_envelope_not_admissible')
 }
 
 function validateNormalizedResultAgainstRequest(
-  result: ReturnType<typeof parseVisualIntelligenceProviderNormalizedResult>,
+  result: ReturnType<typeof parseVisualIntelligenceProviderNormalizedResultV2>,
   input: VisualIntelligenceProviderRequest,
 ): void {
   if (result.requestId !== input.request.requestId) {
-    throw notReady('visual_intelligence_provider_result_request_mismatch')
+    throw executedRejected('visual_intelligence_provider_result_request_mismatch')
   }
   const artifacts = new Map([
     ...input.request.sourceArtifacts,
@@ -725,7 +749,7 @@ function validateNormalizedResultAgainstRequest(
         evidenceByRef.get(refKey(ref))?.authority !== 'exact_ocr')
       || segment.transcriptEvidenceRefs.some((ref) =>
         evidenceByRef.get(refKey(ref))?.authority !== 'canonical_transcript')
-    ) throw notReady('visual_intelligence_provider_segment_not_admissible')
+    ) throw executedRejected('visual_intelligence_provider_segment_not_admissible')
     segmentIds.add(segment.segmentId)
     representedArtifactIds.add(segment.artifactId)
   }
@@ -733,14 +757,14 @@ function validateNormalizedResultAgainstRequest(
     result.segments.length === 0
     || [...artifacts.keys()].some((artifactId) =>
       !representedArtifactIds.has(artifactId))
-  ) throw notReady('visual_intelligence_provider_artifact_coverage_missing')
+  ) throw executedRejected('visual_intelligence_provider_artifact_coverage_missing')
   if (!visualIntelligenceSourcePlanningSegmentsAreComplete({
     profile: input.request.profile,
     sourceArtifacts: input.request.sourceArtifacts,
     segments: result.segments,
     targetedFollowupRangeCount: result.targetedFollowupRanges.length,
   })) {
-    throw notReady('visual_intelligence_source_planning_result_incomplete')
+    throw executedRejected('visual_intelligence_source_planning_result_incomplete')
   }
   const expectedOutcomeRefs = new Set(
     input.request.expectedOutcomeRefs.map(refKey),
@@ -762,13 +786,52 @@ function validateNormalizedResultAgainstRequest(
       || finding.expectedOutcomeRefs.some(
         (ref) => !expectedOutcomeRefs.has(refKey(ref)),
       )
-    ) throw notReady('visual_intelligence_provider_finding_not_admissible')
+    ) throw executedRejected('visual_intelligence_provider_finding_not_admissible')
     findingIds.add(finding.findingId)
+  }
+  const spatialRequired = visualIntelligenceProfileRequiresSpatialEvidence(
+    input.request.operation,
+    input.request.profile,
+  )
+  if (
+    (spatialRequired && (
+      input.request.outputFrame === null
+      || result.spatialObservations.length === 0
+    ))
+    || (!spatialRequired && result.spatialObservations.length !== 0)
+  ) throw executedRejected('visual_intelligence_provider_spatial_coverage_invalid')
+  const observationIds = new Set<string>()
+  for (const observation of result.spatialObservations) {
+    const artifact = artifacts.get(observation.artifactId)
+    const references = observation.evidenceRefs.map((ref) =>
+      evidenceByRef.get(refKey(ref)))
+    if (
+      !artifact
+      || observationIds.has(observation.observationId)
+      || observation.range.endFrameExclusive > artifact.durationFrames
+      || observation.range.frameRate.numerator !== artifact.frameRate.numerator
+      || observation.range.frameRate.denominator !== artifact.frameRate.denominator
+      || !input.request.requestedRanges.some((requested) =>
+        containsRange(requested, observation.range))
+      || new Set(observation.evidenceRefs.map(refKey)).size
+        !== observation.evidenceRefs.length
+      || references.some((evidence) => !evidence)
+      || observation.findingIds.some((findingId) => !findingIds.has(findingId))
+      || (observation.sceneId !== null && !result.segments.some((segment) =>
+        segment.artifactId === observation.artifactId
+          && segment.sceneId === observation.sceneId
+          && containsRange(segment.range, observation.range)))
+    ) throw executedRejected(
+      'visual_intelligence_provider_spatial_observation_invalid',
+    )
+    observationIds.add(observation.observationId)
   }
   if (result.targetedFollowupRanges.some((range) =>
     !input.request.requestedRanges.some((requested) =>
       containsRange(requested, range)))) {
-    throw notReady('visual_intelligence_provider_followup_range_not_admissible')
+    throw executedRejected(
+      'visual_intelligence_provider_followup_range_not_admissible',
+    )
   }
 }
 
@@ -938,6 +1001,71 @@ function findingJsonSchema() {
   }
 }
 
+function spatialObservationJsonSchema() {
+  return {
+    type: 'object', additionalProperties: false,
+    required: [
+      'observationId', 'artifactId', 'sceneId', 'range', 'role',
+      'regionBasisPoints', 'confidenceBasisPoints',
+      'temporalStabilityBasisPoints', 'measuredContrastRatioMilli',
+      'clutterBasisPoints', 'cropResilienceBasisPoints',
+      'compositionBalanceBasisPoints', 'findingIds', 'evidenceRefs',
+      'uncertaintyCode', 'semanticGeometryOnly',
+      'deterministicPixelGeometryClaimed',
+    ],
+    properties: {
+      observationId: { type: 'string', minLength: 1, maxLength: 240 },
+      artifactId: { type: 'string', minLength: 1, maxLength: 240 },
+      sceneId: { anyOf: [
+        { type: 'string', minLength: 1, maxLength: 240 },
+        { type: 'null' },
+      ] },
+      range: frameRangeJsonSchema(),
+      role: {
+        type: 'string',
+        enum: [...VISUAL_INTELLIGENCE_SPATIAL_OBSERVATION_ROLES],
+      },
+      regionBasisPoints: {
+        type: 'object', additionalProperties: false,
+        required: ['x', 'y', 'width', 'height'],
+        properties: {
+          x: { type: 'integer', minimum: 0, maximum: 10_000 },
+          y: { type: 'integer', minimum: 0, maximum: 10_000 },
+          width: { type: 'integer', minimum: 1, maximum: 10_000 },
+          height: { type: 'integer', minimum: 1, maximum: 10_000 },
+        },
+      },
+      confidenceBasisPoints: {
+        type: 'integer', minimum: 0, maximum: 10_000,
+      },
+      temporalStabilityBasisPoints: {
+        type: 'integer', minimum: 0, maximum: 10_000,
+      },
+      measuredContrastRatioMilli: { type: 'null' },
+      clutterBasisPoints: {
+        type: 'integer', minimum: 0, maximum: 10_000,
+      },
+      cropResilienceBasisPoints: {
+        type: 'integer', minimum: 0, maximum: 10_000,
+      },
+      compositionBalanceBasisPoints: {
+        type: 'integer', minimum: 0, maximum: 10_000,
+      },
+      findingIds: stringArrayJsonSchema(512, 240),
+      evidenceRefs: {
+        type: 'array', minItems: 1, maxItems: 512,
+        items: evidenceRefJsonSchema(),
+      },
+      uncertaintyCode: { anyOf: [
+        { type: 'string', minLength: 1, maxLength: 240 },
+        { type: 'null' },
+      ] },
+      semanticGeometryOnly: { type: 'boolean', enum: [true] },
+      deterministicPixelGeometryClaimed: { type: 'boolean', enum: [false] },
+    },
+  }
+}
+
 function stringArrayJsonSchema(maxItems: number, maxLength: number) {
   return {
     type: 'array', maxItems,
@@ -966,6 +1094,24 @@ function notReady(requiredGate: string): ApiError {
     'The professional Visual Intelligence provider is not ready.',
     503,
     { requiredGate },
+  )
+}
+
+function executedRejected(requiredGate: string): ApiError {
+  return new ApiError(
+    'TOOL_NOT_READY',
+    'The professional Visual Intelligence provider result is not ready.',
+    503,
+    { requiredGate, providerOutcome: 'executed_rejected' },
+  )
+}
+
+function providerOutcomeUnknown(requiredGate: string): ApiError {
+  return new ApiError(
+    'TOOL_NOT_READY',
+    'The professional Visual Intelligence provider outcome is unknown.',
+    503,
+    { requiredGate, providerOutcome: 'unknown' },
   )
 }
 

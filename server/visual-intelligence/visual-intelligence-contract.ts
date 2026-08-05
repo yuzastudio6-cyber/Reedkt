@@ -14,12 +14,15 @@ import {
   VISUAL_INTELLIGENCE_PROVIDER_ADAPTER_ID,
   VISUAL_INTELLIGENCE_PROVIDER_ID,
   VISUAL_INTELLIGENCE_PROVIDER_RESULT_VERSION,
+  VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION,
   VISUAL_INTELLIGENCE_PLANNING_OPERATION_VERSION,
   VISUAL_INTELLIGENCE_QUALITY_PROFILE,
   VISUAL_INTELLIGENCE_QUERY_PROFILES,
   VISUAL_INTELLIGENCE_REPORT_VERSION,
   VISUAL_INTELLIGENCE_REQUEST_VERSION,
   VISUAL_INTELLIGENCE_THINKING_LEVEL,
+  VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION,
+  VISUAL_INTELLIGENCE_SPATIAL_OBSERVATION_ROLES,
   type VisualInspectionRequirement,
   type VisualInspectionResult,
   type VisualIntelligenceCoverage,
@@ -30,13 +33,16 @@ import {
   type VisualIntelligencePreparedEvidence,
   type VisualIntelligenceProfile,
   type VisualIntelligenceProviderNormalizedResult,
+  type VisualIntelligenceProviderNormalizedResultAny,
+  type VisualIntelligenceProviderNormalizedResultV2,
   type VisualIntelligenceQualityPolicy,
   type VisualIntelligenceReport,
   type VisualIntelligenceRequest,
+  type VisualIntelligenceSpatialEvidence,
 } from '../../src/types/visual-intelligence'
 
 export const VISUAL_INTELLIGENCE_CONTRACT_VALIDATOR_VERSION =
-  'visual-intelligence-contract-validator-v1' as const
+  'visual-intelligence-contract-validator-v2' as const
 
 const MAX_JSON_NODES = 50_000
 const MAX_JSON_DEPTH = 48
@@ -481,6 +487,53 @@ const findingSchema = z.object({
   providerInstructionAccepted: z.literal(false),
 }).strict()
 
+const basisPointRectSchema = z.object({
+  x: z.number().int().min(0).max(10_000),
+  y: z.number().int().min(0).max(10_000),
+  width: z.number().int().positive().max(10_000),
+  height: z.number().int().positive().max(10_000),
+}).strict().superRefine((value, context) => {
+  if (value.x + value.width > 10_000 || value.y + value.height > 10_000) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Spatial observation exceeds the normalized output frame.',
+    })
+  }
+})
+
+const spatialObservationSchema = z.object({
+  observationId: safeIdSchema,
+  artifactId: safeIdSchema,
+  sceneId: safeIdSchema.nullable(),
+  range: frameRangeSchema,
+  role: z.enum(VISUAL_INTELLIGENCE_SPATIAL_OBSERVATION_ROLES),
+  regionBasisPoints: basisPointRectSchema,
+  confidenceBasisPoints: z.number().int().min(0).max(10_000),
+  temporalStabilityBasisPoints: z.number().int().min(0).max(10_000),
+  measuredContrastRatioMilli: z.literal(null),
+  clutterBasisPoints: z.number().int().min(0).max(10_000),
+  cropResilienceBasisPoints: z.number().int().min(0).max(10_000),
+  compositionBalanceBasisPoints: z.number().int().min(0).max(10_000),
+  findingIds: z.array(safeIdSchema).max(512),
+  evidenceRefs: z.array(evidenceRefSchema).min(1).max(512),
+  uncertaintyCode: safeIdSchema.nullable(),
+  semanticGeometryOnly: z.literal(true),
+  deterministicPixelGeometryClaimed: z.literal(false),
+}).strict().superRefine((value, context) => {
+  if (new Set(value.findingIds).size !== value.findingIds.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Spatial observation finding IDs must be unique.',
+    })
+  }
+  if (new Set(value.evidenceRefs.map(refKey)).size !== value.evidenceRefs.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Spatial observation evidence refs must be unique.',
+    })
+  }
+})
+
 const usageSchema = z.object({
   promptTokenCount: z.number().int().nonnegative(),
   candidateTokenCount: z.number().int().nonnegative(),
@@ -642,6 +695,80 @@ const providerResultSchema = z.object({
   editingOrRenderingClaimed: z.literal(false),
 }).strict()
 
+const providerResultV2Schema = z.object({
+  schemaVersion: z.literal(VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION),
+  requestId: safeIdSchema,
+  semanticSummary: safeNarrativeSchema,
+  segments: z.array(segmentSchema).max(10_000),
+  findings: z.array(findingSchema).max(10_000),
+  spatialObservations: z.array(spatialObservationSchema).max(10_000),
+  targetedFollowupRanges: z.array(frameRangeSchema).max(4_096),
+  warnings: z.array(safeNarrativeSchema).max(512),
+  mediaContentTreatedAsUntrusted: z.literal(true),
+  providerInstructionsFollowedFromMedia: z.literal(false),
+  editingOrRenderingClaimed: z.literal(false),
+}).strict()
+
+const spatialEvidenceArtifactSchema = z.object({
+  artifactId: safeIdSchema,
+  checksumSha256: rawShaSchema,
+  width: z.number().int().positive().max(32_768),
+  height: z.number().int().positive().max(32_768),
+  durationFrames: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  frameRate: frameRateSchema,
+}).strict()
+
+const spatialEvidenceWithoutDigestSchema = z.object({
+  schemaVersion: z.literal(VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION),
+  spatialEvidenceId: safeIdSchema,
+  requestRef: evidenceRefSchema,
+  reportRef: evidenceRefSchema,
+  scope: scopeSchema,
+  operation: z.enum(VISUAL_INTELLIGENCE_OPERATIONS),
+  profile: requestWithoutDigestSchema.shape.profile,
+  outputFrame: outputFrameSchema.nullable(),
+  sourceArtifacts: z.array(spatialEvidenceArtifactSchema).min(1).max(64),
+  comparisonArtifacts: z.array(spatialEvidenceArtifactSchema).max(64),
+  observations: z.array(spatialObservationSchema).max(10_000),
+  actualVisualInferenceObserved: z.literal(true),
+  exactCanonicalPrivateMediaSuppliedToProvider: z.literal(true),
+  providerVisualPreprocessingExpected: z.literal(true),
+  providerPreprocessingIsExactFrameInspection: z.literal(false),
+  everyTimelineFrameInspected: z.literal(false),
+  completeTimePixelInspectionClaimAllowed: z.literal(false),
+  immutableSpatialEvidence: z.literal(true),
+  directTimelineMutationAllowed: z.literal(false),
+  renderPerformedByVisualIntelligence: z.literal(false),
+  qaApprovalGranted: z.literal(false),
+  assetMutationAllowed: z.literal(false),
+  billingMutationAllowed: z.literal(false),
+  exportAuthorized: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorized: z.literal(false),
+}).strict()
+
+const spatialEvidenceSchema = spatialEvidenceWithoutDigestSchema.extend({
+  spatialEvidenceDigestSha256: prefixedShaSchema,
+}).strict().superRefine((value, context) => {
+  validateUnique(
+    value.observations.map((item) => item.observationId),
+    context,
+    'spatial observation ID',
+  )
+  const artifactIds = new Set([
+    ...value.sourceArtifacts.map((item) => item.artifactId),
+    ...value.comparisonArtifacts.map((item) => item.artifactId),
+  ])
+  for (const observation of value.observations) {
+    if (!artifactIds.has(observation.artifactId)) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Spatial observation cites an unknown artifact.',
+      })
+    }
+  }
+})
+
 const inspectionRequirementWithoutDigestSchema = z.object({
   schemaVersion: z.literal(VISUAL_INSPECTION_REQUIREMENT_VERSION),
   inspectionId: safeIdSchema,
@@ -793,6 +920,52 @@ export function parseVisualIntelligenceProviderNormalizedResult(
   value: unknown,
 ): VisualIntelligenceProviderNormalizedResult {
   return deepFreeze(providerResultSchema.parse(clonePlainJson(value)))
+}
+
+export function parseVisualIntelligenceProviderNormalizedResultV2(
+  value: unknown,
+): VisualIntelligenceProviderNormalizedResultV2 {
+  return deepFreeze(providerResultV2Schema.parse(clonePlainJson(value)))
+}
+
+export function parseVisualIntelligenceProviderNormalizedResultAny(
+  value: unknown,
+): VisualIntelligenceProviderNormalizedResultAny {
+  const cloned = clonePlainJson(value)
+  if (
+    cloned
+    && typeof cloned === 'object'
+    && 'schemaVersion' in cloned
+    && cloned.schemaVersion === VISUAL_INTELLIGENCE_PROVIDER_RESULT_V2_VERSION
+  ) return deepFreeze(providerResultV2Schema.parse(cloned))
+  return deepFreeze(providerResultSchema.parse(cloned))
+}
+
+export function createVisualIntelligenceSpatialEvidence(
+  input: Omit<
+    VisualIntelligenceSpatialEvidence,
+    'schemaVersion' | 'spatialEvidenceDigestSha256'
+  >,
+): VisualIntelligenceSpatialEvidence {
+  const draft = spatialEvidenceWithoutDigestSchema.parse({
+    schemaVersion: VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION,
+    ...clonePlainJson(input),
+  })
+  return deepFreeze(spatialEvidenceSchema.parse({
+    ...draft,
+    spatialEvidenceDigestSha256: digestRef(draft),
+  }))
+}
+
+export function parseVisualIntelligenceSpatialEvidence(
+  value: unknown,
+): VisualIntelligenceSpatialEvidence {
+  const parsed = spatialEvidenceSchema.parse(clonePlainJson(value))
+  if (
+    parsed.spatialEvidenceDigestSha256
+      !== digestRef(omit(parsed, 'spatialEvidenceDigestSha256'))
+  ) throw new Error('Visual Intelligence spatial evidence digest mismatch.')
+  return deepFreeze(parsed)
 }
 
 export function parseVisualIntelligenceEvidence(

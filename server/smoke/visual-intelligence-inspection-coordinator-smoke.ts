@@ -163,10 +163,12 @@ const lifecycle: VisualIntelligenceLifecycleService = {
       contentHash: report.reportDigestSha256,
     }
     return {
-      lifecycleVersion: 'visual-intelligence-lifecycle-service-v1',
+      lifecycleVersion: 'visual-intelligence-lifecycle-service-v2',
       status: 'completed',
       report,
       reportRef,
+      spatialEvidence: null,
+      spatialEvidenceRef: null,
       providerCallMadeDuringInvocation: true,
       costSettledDuringInvocation: true,
       duplicateProviderCallAvoided: false,

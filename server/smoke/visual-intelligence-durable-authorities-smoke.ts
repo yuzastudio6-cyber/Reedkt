@@ -19,6 +19,7 @@ import {
   createVisualIntelligenceEvidenceRef,
   createVisualIntelligenceReport,
   createVisualIntelligenceRequest,
+  createVisualIntelligenceSpatialEvidence,
   visualIntelligenceCanonicalJson,
   visualIntelligenceDigest,
 } from '../visual-intelligence/visual-intelligence-contract'
@@ -224,8 +225,8 @@ const runtimeRelease = createControlledVisualIntelligenceRuntimeRelease({
   providerSdkPackage: '@google/genai',
   providerSdkVersion: '2.15.0',
   providerApiVersion: 'v1alpha',
-  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v2',
-  profileRegistryVersion: 'visual-intelligence-profile-registry-v1',
+  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v3',
+  profileRegistryVersion: 'visual-intelligence-profile-registry-v2',
   promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
   responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
   deterministicEvidenceVersion:
@@ -504,6 +505,45 @@ const persisted = await lifecycleStore.persistImmutable({
   cacheIdentitySha256,
   report,
 })
+const spatialEvidence = createVisualIntelligenceSpatialEvidence({
+  spatialEvidenceId: 'visual-intelligence-spatial-source-1',
+  requestRef: report.requestRef,
+  reportRef: persisted.reportRef,
+  scope: report.scope,
+  operation: report.operation,
+  profile: report.profile,
+  outputFrame: null,
+  sourceArtifacts: [{
+    artifactId: 'source-1',
+    checksumSha256: rawSha('source-1'),
+    width: 1920,
+    height: 1080,
+    durationFrames: 240,
+    frameRate,
+  }],
+  comparisonArtifacts: [],
+  observations: [],
+  actualVisualInferenceObserved: true,
+  exactCanonicalPrivateMediaSuppliedToProvider: true,
+  providerVisualPreprocessingExpected: true,
+  providerPreprocessingIsExactFrameInspection: false,
+  everyTimelineFrameInspected: false,
+  completeTimePixelInspectionClaimAllowed: false,
+  immutableSpatialEvidence: true,
+  directTimelineMutationAllowed: false,
+  renderPerformedByVisualIntelligence: false,
+  qaApprovalGranted: false,
+  assetMutationAllowed: false,
+  billingMutationAllowed: false,
+  exportAuthorized: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorized: false,
+})
+const spatialPersisted = await lifecycleStore.persistSpatialEvidenceImmutable({
+  reportRef: persisted.reportRef,
+  spatialEvidence,
+})
+assert.equal(spatialPersisted.exactRereadVerified, true)
 await lifecycleStore.markCompleted({
   attemptRef: attempt.attemptRef,
   reportRef: persisted.reportRef,
@@ -519,6 +559,12 @@ assert.deepEqual(
     scope: request.scope,
   }),
   report,
+)
+assert.deepEqual(
+  await restartedStore.readAcceptedSpatialEvidenceByReportRef(
+    persisted.reportRef,
+  ),
+  spatialEvidence,
 )
 assert.equal((await restartedStore.beginCreateOnly({
   requestId: 'visual-request-1',

@@ -182,7 +182,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v14' as const
+  'visual-intelligence-production-runtime-v15' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -672,6 +672,7 @@ export async function createVisualIntelligenceProductionRuntime(
     evidencePreparationPort: canonicalRequestPackageStore,
     attemptStore: durableStore,
     reportRepository: durableStore,
+    spatialEvidenceRepository: durableStore,
     concurrencyPort,
   })
   const orchestraJobRuntimePort =

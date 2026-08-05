@@ -13,6 +13,14 @@ import type {
   VisualIntelligenceSpatialObservation,
 } from '../../src/types/visual-intelligence'
 import {
+  CANONICAL_CAPTION_VISUAL_INTELLIGENCE_AUTHENTICATED_EVIDENCE_RECORD_VERSION,
+  type CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-visual-intelligence-support'
+import {
+  CANONICAL_AUTHENTICATED_SPECIALIST_SUPPORT_ARTIFACT_PROJECTION_VERSION,
+  type CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+} from '../../src/types/canonical-specialist-support-resume'
+import {
   createCaptionFinalVisualHierarchy,
   createCaptionVisualIntelligenceSupport,
   createCaptionVisualOccupancyManifest,
@@ -22,6 +30,21 @@ import {
   parseCaptionVisualIntelligenceSpatialAdapterReceipt,
   projectCaptionVisualIntelligenceSpatialEvidence,
 } from '../captions-specialist/caption-visual-intelligence-spatial-adapter'
+import {
+  CAPTION_CANONICAL_VISUAL_INTELLIGENCE_EVIDENCE_READ_RECEIPT,
+  parseCaptionCanonicalVisualIntelligenceEvidenceReadReceipt,
+  parseCaptionCanonicalVisualIntelligenceEvidenceRecord,
+} from '../captions-specialist/caption-canonical-visual-intelligence-evidence-read'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsHarnessCall,
+  resumeCaptionsHarnessCall,
+} from '../internal-testing/captions-specialist-harness'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-contracts'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -421,6 +444,342 @@ check(hierarchy.qualificationState === 'blocked_no_safe_region'
   && hierarchy.accessibleCaptionRegionId === null,
 'Caption final placement stays closed until pixel-bound readability evidence exists.')
 
+const runtimeCallSeed = createCaptionsHarnessCall({
+  callId: 'captions.visual.spatial.runtime',
+  jobType: 'plan_caption_blocking_preview',
+  scopeLevel: 'scene',
+  runtimeProfile: 'post_cap20_integration',
+})
+const runtimeCallWithoutDigest = {
+  ...structuredClone(runtimeCallSeed),
+  canonicalScope: {
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    approvedSnapshotRef: structuredClone(scope.approvedSnapshotRef),
+    outputId: scope.outputId,
+    sceneId: scope.sceneId,
+    boundaryId: null,
+    authorizedFrameRanges: structuredClone(scope.authorizedFrameRanges),
+  },
+}
+const runtimeCall = parseOrchestraSkillCall({
+  ...runtimeCallWithoutDigest,
+  callDigestSha256: calculateSkillContractDigest(
+    { ...runtimeCallWithoutDigest, callDigestSha256: '' },
+    'callDigestSha256'),
+})
+const runtimeSupport = createCaptionVisualIntelligenceSupport({
+  payloadId: 'caption.visual.spatial.runtime.payload',
+  requestId: `${runtimeCall.callId}.support.visual_intelligence`,
+  idempotencyKey: runtimeCall.idempotencyKey,
+  originalCallRef: {
+    id: runtimeCall.callId,
+    version: runtimeCall.schemaVersion,
+    contentHash: runtimeCall.callDigestSha256,
+  },
+  purpose: 'final_frame_occupancy',
+  canonicalScope: scope,
+  pictureLockRef: support.payload.pictureLockRef,
+  finishReadinessRef: support.payload.finishReadinessRef,
+  confirmedOutputFrame: support.payload.confirmedOutputFrame,
+  sourcePrivateArtifactRef: support.payload.sourcePrivateArtifactRef,
+  canonicalLayoutOccupancyRef: support.payload.canonicalLayoutOccupancyRef,
+  requiredObservationRoles: support.payload.requiredObservationRoles,
+  expectedOutcomeRefs,
+})
+const runtimeInitialResult = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  visualIntelligenceSupportPayload: runtimeSupport.payload,
+})
+check(runtimeInitialResult.disposition === 'needs_followup'
+  && runtimeInitialResult.supportRequests.length === 1
+  && runtimeInitialResult.supportRequests[0].requestDigestSha256
+    === runtimeSupport.supportRequest.requestDigestSha256
+  && runtimeInitialResult.supportRequests[0].requestedArtifactTypes.join('|')
+    === 'caption_visual_intelligence_occupancy_evidence',
+'The integration runtime emits the exact typed Caption Visual Intelligence request.')
+
+const runtimeProjection = projectCaptionVisualIntelligenceSpatialEvidence({
+  packetId: 'caption.visual.spatial.runtime.packet',
+  payload: runtimeSupport.payload,
+  supportRequest: runtimeInitialResult.supportRequests[0],
+  authenticatedReadResult: readResult,
+  spatialEvidence,
+})
+const runtimeRequest = runtimeInitialResult.supportRequests[0]
+const runtimeSupportRequestRef = {
+  id: runtimeRequest.requestId,
+  version: runtimeRequest.schemaVersion,
+  contentHash: runtimeRequest.requestDigestSha256,
+}
+const runtimePacketArtifact = {
+  id: runtimeProjection.packet.packetId,
+  version: runtimeProjection.packet.schemaVersion,
+  contentHash: runtimeProjection.packet.packetDigestSha256,
+  artifactType: runtimeRequest.requestedArtifactTypes[0],
+  producerSkillKey: 'visual_intelligence',
+  privateArtifact: true as const,
+  byteFreeRef: true as const,
+  sourceSupportRequestRef: runtimeSupportRequestRef,
+}
+let runtimeResumedCall = resumeCaptionsHarnessCall(runtimeCall, runtimeRequest)
+runtimeResumedCall.injectedSupportArtifactRefs = [runtimePacketArtifact]
+runtimeResumedCall = parseOrchestraSkillCall({
+  ...runtimeResumedCall,
+  callDigestSha256: calculateSkillContractDigest(
+    { ...runtimeResumedCall, callDigestSha256: '' },
+    'callDigestSha256'),
+})
+const canonicalProjectionWithoutDigest: Omit<
+  CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  'projectionDigestSha256'
+> = {
+  schemaVersion:
+    CANONICAL_AUTHENTICATED_SPECIALIST_SUPPORT_ARTIFACT_PROJECTION_VERSION,
+  projectionId: 'canonical.caption.visual.spatial.projection',
+  originalCallRef: structuredClone(runtimeRequest.originalCallRef),
+  supportRequestRef: structuredClone(runtimeSupportRequestRef),
+  ownerResultRef: structuredClone(
+    runtimeProjection.packet.authenticatedReadResultRef!),
+  ownerKey: 'visual_intelligence',
+  canonicalScope: structuredClone(runtimeRequest.canonicalScope),
+  artifactRefs: [structuredClone(runtimePacketArtifact)],
+  authenticatedPrincipalVerified: true,
+  exactApprovedSnapshotReread: true,
+  exactCanonicalScopeReread: true,
+  exactOwnerResultReread: true,
+  ownerResultPersistedBeforeProjection: true,
+  browserLocalStateUsed: false,
+  rawChatMediaBytesPathsUrlsOrCredentialsAccepted: false,
+  directPeerDispatchPerformed: false,
+  timelineMutationPerformed: false,
+  runtimeExecutionAuthorityGrantedToSpecialist: false,
+  assetMutationAuthorityGrantedToSpecialist: false,
+  costOrBillingAuthorityGrantedToSpecialist: false,
+  finalQaApprovalGrantedToSpecialist: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+const canonicalProjection = {
+  ...canonicalProjectionWithoutDigest,
+  projectionDigestSha256: calculateSkillContractDigest({
+    ...canonicalProjectionWithoutDigest,
+    projectionDigestSha256: '',
+  }, 'projectionDigestSha256'),
+} satisfies CanonicalAuthenticatedSpecialistSupportArtifactProjection
+const canonicalRecordWithoutDigest: Omit<
+  CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
+  'recordDigestSha256'
+> = {
+  schemaVersion:
+    CANONICAL_CAPTION_VISUAL_INTELLIGENCE_AUTHENTICATED_EVIDENCE_RECORD_VERSION,
+  recordId: 'canonical.caption.visual.spatial.record',
+  originalCallRef: structuredClone(runtimeRequest.originalCallRef),
+  supportRequestRef: structuredClone(runtimeSupportRequestRef),
+  supportRequest: structuredClone(runtimeRequest),
+  supportPayload: structuredClone(runtimeSupport.payload),
+  visualIntelligenceRequestRef: structuredClone(visualRequestRef),
+  visualIntelligenceReportRef: structuredClone(visualReportRef),
+  visualIntelligenceSpatialEvidenceRef: {
+    id: spatialEvidence.spatialEvidenceId,
+    version: 1,
+    contentHash: spatialEvidence.spatialEvidenceDigestSha256,
+  },
+  authenticatedReadResultRef: structuredClone(
+    runtimeProjection.packet.authenticatedReadResultRef!),
+  captionEvidencePacket: structuredClone(runtimeProjection.packet),
+  authenticatedOwnerProjection: canonicalProjection,
+  authenticatedPrincipalVerified: true,
+  priorCallAndSupportRequestExactReread: true,
+  canonicalVisualIntelligenceRequestExactReread: true,
+  immutableReportExactReread: true,
+  immutableSpatialEvidenceExactReread: true,
+  exactCaptionScopeOutputSceneRangeAndArtifactBindingVerified: true,
+  exactExpectedOutcomeLineageVerified: true,
+  exactRequiredObservationRoleCoverageVerified: true,
+  ownerProjectionCreateOnlyPersisted: true,
+  evidenceRecordCreateOnlyPersisted: true,
+  browserLocalStateUsed: false,
+  rawChatMediaBytesPathsUrlsOrCredentialsAccepted: false,
+  directPeerDispatchPerformed: false,
+  providerCallPerformedByBridge: false,
+  timelineMutationPerformed: false,
+  runtimeExecutionAuthorityGrantedToCaption: false,
+  assetMutationAuthorityGrantedToCaption: false,
+  costOrBillingAuthorityGrantedToCaption: false,
+  finalQaApprovalGrantedToCaption: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+const canonicalRecord = parseCaptionCanonicalVisualIntelligenceEvidenceRecord({
+  ...canonicalRecordWithoutDigest,
+  recordDigestSha256: calculateSkillContractDigest({
+    ...canonicalRecordWithoutDigest,
+    recordDigestSha256: '',
+  }, 'recordDigestSha256'),
+})
+const runtimeCompletedResult = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  canonicalVisualIntelligenceEvidenceRecord: canonicalRecord,
+})
+check(runtimeCompletedResult.disposition === 'completed'
+  && runtimeCompletedResult.reasonCodes.includes(
+    'visual_intelligence.authenticated_admission.accepted')
+  && runtimeCompletedResult.producedArtifactRefs[0].contentHash
+    !== runtimeInitialResult.resultDigestSha256,
+'The Caption runtime completes only after admitting the exact authenticated packet.')
+
+const canonicalReceipt =
+  parseCaptionCanonicalVisualIntelligenceEvidenceReadReceipt(
+    CAPTION_CANONICAL_VISUAL_INTELLIGENCE_EVIDENCE_READ_RECEIPT)
+const canonicalPublicTypeSha = hash(readFileSync(new URL(
+  '../../src/types/canonical-caption-visual-intelligence-support.ts',
+  import.meta.url)))
+check(canonicalReceipt.backendSource.sourceCommit
+  === '57919eeda74a656714fba4b3b67b81cfb2a32aa3'
+  && canonicalReceipt.backendSource.publicTypeFileSha256
+    === canonicalPublicTypeSha
+  && canonicalReceipt.consumedRecordVersion === canonicalRecord.schemaVersion,
+'Caption freezes and consumes the exact canonical backend evidence record type.')
+
+const tamperedCanonicalRecord = structuredClone(canonicalRecord)
+tamperedCanonicalRecord.authenticatedOwnerProjection.ownerResultRef.id =
+  'visual.read.crossed'
+tamperedCanonicalRecord.authenticatedOwnerProjection.projectionDigestSha256 =
+  calculateSkillContractDigest({
+    ...tamperedCanonicalRecord.authenticatedOwnerProjection,
+    projectionDigestSha256: '',
+  }, 'projectionDigestSha256')
+tamperedCanonicalRecord.recordDigestSha256 = calculateSkillContractDigest({
+  ...tamperedCanonicalRecord,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+const tamperedCanonicalResult = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  canonicalVisualIntelligenceEvidenceRecord: tamperedCanonicalRecord,
+})
+check(tamperedCanonicalResult.disposition === 'blocked'
+  && tamperedCanonicalResult.reasonCodes.join('|')
+    === 'input.visual_intelligence.canonical_record.invalid',
+'A digest-valid crossed canonical owner-result projection fails closed.')
+
+const unknownCanonicalRecord = structuredClone(canonicalRecord) as unknown as
+  Record<string, unknown>
+unknownCanonicalRecord.unknownField = true
+unknownCanonicalRecord.recordDigestSha256 = calculateSkillContractDigest({
+  ...unknownCanonicalRecord,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+expectThrow(() => parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+  unknownCanonicalRecord))
+
+const authorityOverclaimRecord = structuredClone(canonicalRecord) as unknown as
+  Record<string, unknown>
+authorityOverclaimRecord.providerCallPerformedByBridge = true
+authorityOverclaimRecord.recordDigestSha256 = calculateSkillContractDigest({
+  ...authorityOverclaimRecord,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+expectThrow(() => parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+  authorityOverclaimRecord))
+
+const crossedPacketProjection = structuredClone(canonicalRecord)
+crossedPacketProjection.authenticatedOwnerProjection.artifactRefs[0]
+  .contentHash = hash('crossed.canonical.packet')
+crossedPacketProjection.authenticatedOwnerProjection.projectionDigestSha256 =
+  calculateSkillContractDigest({
+    ...crossedPacketProjection.authenticatedOwnerProjection,
+    projectionDigestSha256: '',
+  }, 'projectionDigestSha256')
+crossedPacketProjection.recordDigestSha256 = calculateSkillContractDigest({
+  ...crossedPacketProjection,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+expectThrow(() => parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+  crossedPacketProjection))
+
+const unsafeCanonicalRecord = structuredClone(canonicalRecord)
+unsafeCanonicalRecord.recordId = '/tmp/caption-visual-record'
+unsafeCanonicalRecord.recordDigestSha256 = calculateSkillContractDigest({
+  ...unsafeCanonicalRecord,
+  recordDigestSha256: '',
+}, 'recordDigestSha256')
+expectThrow(() => parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+  unsafeCanonicalRecord))
+
+const inheritedCanonicalRecord = Object.create({ productionAuthorityGranted: true })
+Object.assign(inheritedCanonicalRecord, structuredClone(canonicalRecord))
+expectThrow(() => parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+  inheritedCanonicalRecord))
+
+const cyclicCanonicalRecord = structuredClone(canonicalRecord) as unknown as
+  Record<string, unknown>
+cyclicCanonicalRecord.cycle = cyclicCanonicalRecord
+expectThrow(() => parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+  cyclicCanonicalRecord))
+
+const missingRuntimePacket = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  visualIntelligenceSupportPayload: runtimeSupport.payload,
+})
+check(missingRuntimePacket.disposition === 'blocked'
+  && missingRuntimePacket.reasonCodes.join('|')
+    === 'input.visual_intelligence.authenticated_admission.failed',
+'An artifact reference alone cannot satisfy the authenticated admission path.')
+
+const crossedRuntimeCall = structuredClone(runtimeResumedCall)
+crossedRuntimeCall.injectedSupportArtifactRefs[0].contentHash = hash(
+  'crossed.caption.visual.packet')
+const crossedCall = parseOrchestraSkillCall({
+  ...crossedRuntimeCall,
+  callDigestSha256: calculateSkillContractDigest(
+    { ...crossedRuntimeCall, callDigestSha256: '' }, 'callDigestSha256'),
+})
+const crossedRuntimeResult = runCaptionsSpecialistJob({
+  call: crossedCall,
+  resumeSupportRequest: runtimeRequest,
+  visualIntelligenceSupportPayload: runtimeSupport.payload,
+  visualIntelligenceEvidencePacket: runtimeProjection.packet,
+})
+check(crossedRuntimeResult.disposition === 'blocked'
+  && crossedRuntimeResult.reasonCodes.join('|')
+    === 'input.visual_intelligence.authenticated_admission.mismatch',
+'A crossed packet reference is rejected after packet validation.')
+
+const fixtureOverclaim = structuredClone(runtimeProjection.packet)
+fixtureOverclaim.evidenceMode = 'contract_fixture'
+fixtureOverclaim.packetDigestSha256 = calculateSkillContractDigest(
+  { ...fixtureOverclaim, packetDigestSha256: '' }, 'packetDigestSha256')
+const fixtureOverclaimResult = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  visualIntelligenceSupportPayload: runtimeSupport.payload,
+  visualIntelligenceEvidencePacket: fixtureOverclaim,
+})
+check(fixtureOverclaimResult.disposition === 'blocked'
+  && fixtureOverclaimResult.reasonCodes.join('|')
+    === 'input.visual_intelligence.authenticated_admission.failed',
+'Contract-fixture evidence cannot impersonate an authenticated private reread.')
+
+const wrongScopePayload = structuredClone(runtimeSupport.payload)
+wrongScopePayload.canonicalScope.sceneId = 'scene.crossed'
+wrongScopePayload.requestedSceneId = 'scene.crossed'
+wrongScopePayload.payloadDigestSha256 = calculateSkillContractDigest(
+  { ...wrongScopePayload, payloadDigestSha256: '' }, 'payloadDigestSha256')
+const wrongScopeResult = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  visualIntelligenceSupportPayload: wrongScopePayload,
+})
+check(wrongScopeResult.disposition === 'blocked'
+  && wrongScopeResult.reasonCodes.join('|')
+    === 'input.visual_intelligence.payload.scope.mismatch',
+'The typed Visual Intelligence payload cannot expand or cross the assigned scene.')
+
 const receipt = parseCaptionVisualIntelligenceSpatialAdapterReceipt(
   CAPTION_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_RECEIPT)
 const copiedPublicTypeSha = hash(readFileSync(new URL(
@@ -550,6 +909,13 @@ console.log(JSON.stringify({
   publicTypeSha256: copiedPublicTypeSha,
   adapterVersion: receipt.schemaVersion,
   adapterDigestSha256: receipt.adapterDigestSha256,
+  canonicalEvidenceRecordVersion: canonicalRecord.schemaVersion,
+  canonicalEvidenceReadAdapterVersion: canonicalReceipt.schemaVersion,
+  canonicalEvidenceReadAdapterDigestSha256:
+    canonicalReceipt.adapterDigestSha256,
+  canonicalPublicTypeSha256: canonicalPublicTypeSha,
+  canonicalRecordFixtureAdmitted: true,
+  actualCanonicalEvidenceRecordConsumed: false,
   projectedObservationCount: output.packet.observations.length,
   semanticGeometryOnly: true,
   stableRegionSelected: false,

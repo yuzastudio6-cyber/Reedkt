@@ -12,12 +12,18 @@ import {
   type OrchestraSkillCall,
   type OrchestraSkillJobResult,
   type SkillArtifactRef,
-  type SkillClosedAuthorityBoundary,
   type SkillContractRef,
   type SkillQualificationSnapshot,
   type SkillSupportRequest,
   type SkillSupportTarget,
 } from '../../src/types/orchestra-skill-contracts'
+import type {
+  CaptionVisualIntelligenceEvidencePacket,
+  CaptionVisualIntelligenceSupportPayload,
+} from '../../src/types/caption-visual-intelligence-support'
+import type {
+  CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-visual-intelligence-support'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -38,26 +44,22 @@ import {
 } from './caption-broll-owner-read-adapter'
 import { BROLL_CAPTION_OWNER_READ_REQUEST_VERSION } from
   '../../src/types/caption-broll-owner-read-adapter'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
+import {
+  createCaptionVisualIntelligenceSupportRequest,
+  parseCaptionVisualIntelligenceEvidencePacket,
+  parseCaptionVisualIntelligenceSupportPayload,
+} from './caption-visual-intelligence-support'
+import {
+  parseCaptionCanonicalVisualIntelligenceEvidenceRecord,
+} from './caption-canonical-visual-intelligence-evidence-read'
 
 interface CaptionRuntimeProfile {
   manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
   qualification: SkillQualificationSnapshot
 }
 
-export const CAPTIONS_CLOSED_AUTHORITY_BOUNDARY:
-Readonly<SkillClosedAuthorityBoundary> = Object.freeze({
-  scopeExpansionGranted: false,
-  timelineMutationGranted: false,
-  directPeerDispatchGranted: false,
-  providerCallGranted: false,
-  runtimeExecutionGranted: false,
-  assetCreationGranted: false,
-  costAuthorityGranted: false,
-  billingAuthorityGranted: false,
-  qaApprovalGranted: false,
-  publicDeliveryGranted: false,
-  productionAuthorityGranted: false,
-})
+export { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
 function sha256(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex')
@@ -250,13 +252,59 @@ function requiredArtifactTypes(
 function missingArtifacts(
   profile: CaptionRuntimeProfile,
   call: OrchestraSkillCall,
+  additionallySatisfied: readonly string[] = [],
 ): string[] {
   const present = new Set([
     ...call.inputArtifactRefs,
     ...call.injectedSupportArtifactRefs,
   ].map((ref) => ref.artifactType))
+  for (const artifactType of additionallySatisfied) present.add(artifactType)
   return requiredArtifactTypes(profile, call.job.jobType)
     .filter((artifactType) => !present.has(artifactType))
+}
+
+function exactScopeForVisualPayload(
+  call: OrchestraSkillCall,
+  payload: CaptionVisualIntelligenceSupportPayload,
+): boolean {
+  const callSnapshot = call.canonicalScope.approvedSnapshotRef
+  const payloadSnapshot = payload.canonicalScope.approvedSnapshotRef
+  return call.job.scopeLevel === 'scene'
+    && call.canonicalScope.boundaryId === null
+    && call.canonicalScope.ownerUserId === payload.canonicalScope.ownerUserId
+    && call.canonicalScope.workspaceId === payload.canonicalScope.workspaceId
+    && call.canonicalScope.projectId === payload.canonicalScope.projectId
+    && call.canonicalScope.editSessionId === payload.canonicalScope.editSessionId
+    && call.canonicalScope.outputId === payload.canonicalScope.outputId
+    && call.canonicalScope.sceneId === payload.canonicalScope.sceneId
+    && JSON.stringify(call.canonicalScope.authorizedFrameRanges)
+      === JSON.stringify(payload.canonicalScope.authorizedFrameRanges)
+    && ((callSnapshot === null && payloadSnapshot === null)
+      || (callSnapshot !== null && payloadSnapshot !== null
+        && exactRef(callSnapshot, payloadSnapshot)))
+}
+
+function packetArtifactMatches(
+  call: OrchestraSkillCall,
+  request: SkillSupportRequest,
+  packet: CaptionVisualIntelligenceEvidencePacket,
+): boolean {
+  const injected = call.injectedSupportArtifactRefs
+  if (injected.length !== 1) return false
+  const artifact = injected[0]
+  const requestRef: SkillContractRef = {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+  return artifact.id === packet.packetId
+    && artifact.version === packet.schemaVersion
+    && artifact.contentHash === packet.packetDigestSha256
+    && artifact.artifactType
+      === 'caption_visual_intelligence_occupancy_evidence'
+    && artifact.producerSkillKey === 'visual_intelligence'
+    && artifact.sourceSupportRequestRef !== null
+    && exactRef(artifact.sourceSupportRequestRef, requestRef)
 }
 
 function qualificationEntry(
@@ -271,6 +319,9 @@ export function runCaptionsSpecialistJob(input: {
   qualificationSnapshot?: unknown
   manifest?: unknown
   resumeSupportRequest?: unknown
+  visualIntelligenceSupportPayload?: unknown
+  visualIntelligenceEvidencePacket?: unknown
+  canonicalVisualIntelligenceEvidenceRecord?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationProfile = call.manifestRef.id
@@ -338,6 +389,48 @@ export function runCaptionsSpecialistJob(input: {
     )
   }
 
+  let admittedVisualPacket: CaptionVisualIntelligenceEvidencePacket | null = null
+  let visualPayload: CaptionVisualIntelligenceSupportPayload | null = null
+  let canonicalVisualRecord:
+  CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
+  if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
+    if (input.visualIntelligenceSupportPayload !== undefined
+      || input.visualIntelligenceEvidencePacket !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.visual_intelligence.evidence.ambiguous'],
+        'Canonical and unbound Visual Intelligence evidence cannot be mixed.',
+      )
+    }
+    try {
+      canonicalVisualRecord =
+        parseCaptionCanonicalVisualIntelligenceEvidenceRecord(
+          input.canonicalVisualIntelligenceEvidenceRecord)
+      visualPayload = canonicalVisualRecord.supportPayload
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.visual_intelligence.canonical_record.invalid'],
+        'The canonical Visual Intelligence evidence record was rejected.',
+      )
+    }
+  } else if (input.visualIntelligenceSupportPayload !== undefined) {
+    try {
+      visualPayload = parseCaptionVisualIntelligenceSupportPayload(
+        input.visualIntelligenceSupportPayload)
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.visual_intelligence.payload.invalid'],
+        'The Caption Visual Intelligence support payload is invalid.',
+      )
+    }
+    if (visualPayload.purpose !== 'final_frame_occupancy'
+      || !exactScopeForVisualPayload(call, visualPayload)) {
+      return makeResult(profile,
+        call, 'blocked', ['input.visual_intelligence.payload.scope.mismatch'],
+        'The Caption Visual Intelligence payload does not match the assigned scene.',
+      )
+    }
+  }
+
   if (call.resumeOfSupportRequestRef !== null) {
     let request: SkillSupportRequest
     try {
@@ -374,14 +467,75 @@ export function runCaptionsSpecialistJob(input: {
         'Injected support evidence does not match the approved follow-up request.',
       )
     }
+    if (request.targetSkillKey === 'visual_intelligence'
+      && visualPayload !== null) {
+      if (canonicalVisualRecord !== null) {
+        if (!exactRef(canonicalVisualRecord.supportRequestRef, {
+          id: request.requestId,
+          version: request.schemaVersion,
+          contentHash: request.requestDigestSha256,
+        })) {
+          return makeResult(profile,
+            call, 'blocked', [
+              'input.visual_intelligence.canonical_record.request.mismatch',
+            ], 'The canonical evidence does not match the current follow-up.',
+          )
+        }
+        admittedVisualPacket = canonicalVisualRecord.captionEvidencePacket
+      } else {
+        try {
+          admittedVisualPacket = parseCaptionVisualIntelligenceEvidencePacket(
+            input.visualIntelligenceEvidencePacket,
+            { payload: visualPayload, supportRequest: request },
+          )
+        } catch {
+          return makeResult(profile,
+            call, 'blocked', [
+              'input.visual_intelligence.authenticated_admission.failed',
+            ], 'The authenticated Visual Intelligence evidence was rejected.',
+          )
+        }
+      }
+      if (admittedVisualPacket.evidenceMode !== 'authenticated_private_runtime'
+        || admittedVisualPacket.authenticatedReadResultRef === null
+        || !packetArtifactMatches(call, request, admittedVisualPacket)) {
+        return makeResult(profile,
+          call, 'blocked', [
+            'input.visual_intelligence.authenticated_admission.mismatch',
+          ], 'The Visual Intelligence packet does not match its injected artifact.',
+        )
+      }
+    } else if (request.targetSkillKey === 'visual_intelligence'
+      && input.visualIntelligenceEvidencePacket !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.visual_intelligence.payload.missing'],
+        'Visual Intelligence evidence requires its exact Caption payload.',
+      )
+    } else if (input.visualIntelligenceEvidencePacket !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.visual_intelligence.evidence.unexpected'],
+        'Visual Intelligence evidence does not match the current follow-up owner.',
+      )
+    }
   } else if (input.resumeSupportRequest !== undefined) {
     return makeResult(profile,
       call, 'blocked', ['resume.request.unexpected'],
       'A follow-up request was supplied for a non-resumed Caption call.',
     )
+  } else if (input.visualIntelligenceEvidencePacket !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.visual_intelligence.evidence.unexpected'],
+      'Visual Intelligence evidence was supplied outside an exact resume.',
+    )
+  } else if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.visual_intelligence.canonical_record.unexpected'],
+      'Canonical Visual Intelligence evidence was supplied outside a resume.',
+    )
   }
 
-  const missing = missingArtifacts(profile, call)
+  const missing = missingArtifacts(profile, call,
+    admittedVisualPacket === null ? [] : ['visual_intelligence_report'])
   if (missing.includes('canonical_transcript')) {
     return makeResult(profile, call, 'blocked', [
       'input.canonical_transcript.authenticated_read.missing',
@@ -403,8 +557,16 @@ export function runCaptionsSpecialistJob(input: {
       }
       grouped.set(target, [...(grouped.get(target) ?? []), artifactType])
     }
-    const requests = [...grouped.entries()].map(([target, items]) =>
-      makeSupportRequest(call, target, items))
+    const requests = [...grouped.entries()].map(([target, items]) => {
+      if (target === 'visual_intelligence' && visualPayload !== null) {
+        return createCaptionVisualIntelligenceSupportRequest({
+          requestId: `${call.callId}.support.visual_intelligence`,
+          originalCallRef: callRef(call),
+          payload: visualPayload,
+        })
+      }
+      return makeSupportRequest(call, target, items)
+    })
     return makeResult(profile,
       call,
       'needs_followup',
@@ -423,6 +585,7 @@ export function runCaptionsSpecialistJob(input: {
       call.canonicalScope.outputId ?? 'no-output',
       call.canonicalScope.sceneId ?? 'no-scene',
       call.canonicalScope.boundaryId ?? 'no-boundary',
+      admittedVisualPacket?.packetDigestSha256 ?? 'no-visual-packet',
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -433,7 +596,12 @@ export function runCaptionsSpecialistJob(input: {
   return makeResult(profile,
     call,
     'completed',
-    ['planning.contract.completed'],
+    admittedVisualPacket === null
+      ? ['planning.contract.completed']
+      : [
+          'planning.contract.completed',
+          'visual_intelligence.authenticated_admission.accepted',
+        ],
     'Caption planning completed within the assigned scope.',
     [],
     producedArtifactRefs,

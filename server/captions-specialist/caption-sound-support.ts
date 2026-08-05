@@ -31,7 +31,7 @@ import {
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
 import { parseCaptionMultiTrackSceneGraph } from './caption-multi-track-scene-graph'
-import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './captions-specialist-runtime'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
 const safeKey = z.string().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)

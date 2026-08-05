@@ -296,9 +296,11 @@ that actual records have been mounted. See
 [`post-cap20-canonical-resume-read.md`](./post-cap20-canonical-resume-read.md).
 
 The provider-neutral Visual Intelligence spatial companion now has a strict
-Caption consumer. It admits semantic occupancy geometry while preserving null
-regional contrast, refusing rendered-review substitution, and retaining all
-provider and QA ownership outside Caption. See
+Caption consumer and a typed specialist-runtime admission path. The runtime
+requires the exact authenticated packet rather than trusting its reference,
+while semantic occupancy preserves null regional contrast, refuses
+rendered-review substitution, and retains all provider and QA ownership
+outside Caption. See
 [`post-cap20-visual-intelligence-spatial-adapter.md`](./post-cap20-visual-intelligence-spatial-adapter.md).
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,

@@ -25,7 +25,7 @@ import {
   calculateSkillContractDigest,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
-import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './captions-specialist-runtime'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
 const safeKey = z.string().min(1).max(240)
   .regex(/^[a-z0-9][a-z0-9._:-]*$/u)

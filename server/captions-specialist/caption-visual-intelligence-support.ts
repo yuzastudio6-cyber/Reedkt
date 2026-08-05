@@ -28,7 +28,7 @@ import {
   calculateSkillContractDigest,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
-import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './captions-specialist-runtime'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
 const safeKey = z.string().min(1).max(240)
   .regex(/^[a-z0-9][a-z0-9._:-]*$/u)
@@ -518,6 +518,22 @@ export function createCaptionVisualIntelligenceSupport(input: {
       'payloadDigestSha256',
     ),
   })
+  const supportRequest = createCaptionVisualIntelligenceSupportRequest({
+    requestId: input.requestId,
+    originalCallRef: input.originalCallRef,
+    payload,
+  })
+  return { payload, supportRequest }
+}
+
+export function createCaptionVisualIntelligenceSupportRequest(input: {
+  requestId: string
+  originalCallRef: SkillContractRef
+  payload: unknown
+}): SkillSupportRequest {
+  assertClosedContractTree(
+    input, 'Caption Visual Intelligence support request input')
+  const payload = parseCaptionVisualIntelligenceSupportPayload(input.payload)
   const requestWithoutDigest: Omit<SkillSupportRequest, 'requestDigestSha256'> = {
     schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
     requestId: safeKey.parse(input.requestId),
@@ -548,7 +564,7 @@ export function createCaptionVisualIntelligenceSupport(input: {
   if (!supportScopeMatches(supportRequest.canonicalScope, payload)) {
     throw new Error('Caption Visual Intelligence support envelope changed scope.')
   }
-  return { payload, supportRequest }
+  return supportRequest
 }
 
 export function parseCaptionVisualIntelligenceEvidencePacket(

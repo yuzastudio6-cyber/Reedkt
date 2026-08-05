@@ -53,6 +53,9 @@ import {
   sha256AuthorityValue,
 } from './private-edit-authority-store'
 import {
+  assertPlainSerializedData,
+} from './canonical-professional-gpu-job-lifecycle-service'
+import {
   createVisualIntelligenceGcsPrivateObjectReadPort,
   type VisualIntelligencePrivateObjectReadPort,
 } from '../visual-intelligence/visual-intelligence-private-object-read-port'
@@ -77,7 +80,6 @@ const ARTIFACT_PATHS = Object.freeze([
 ] as const)
 
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
-const timestamp = z.string().datetime({ offset: true })
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
   .refine((value) => !value.includes('..') && !value.includes('://'))
@@ -326,8 +328,11 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceRead
   })
 
   return Object.freeze({
-    async rereadExact(requestValue) {
-      assertClosedPlainData(requestValue, 'track_all_l4_supply_chain_read')
+    async rereadExact(
+      requestValue:
+        CanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequest,
+    ) {
+      assertPlainSerializedData(requestValue, 'track_all_l4_supply_chain_read')
       const request =
         canonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequestSchema
           .parse(requestValue)
@@ -886,37 +891,6 @@ function assertPorts(input: {
   ) throw new Error('track_all_l4_supply_chain_read_port_invalid')
 }
 
-function assertClosedPlainData(value: unknown, label: string): void {
-  const seen = new WeakSet<object>()
-  let nodes = 0
-  const visit = (item: unknown, depth: number): void => {
-    if (item === null || ['string', 'number', 'boolean'].includes(typeof item)) {
-      return
-    }
-    if (typeof item !== 'object' || depth > 64 || nodes > 100_000) {
-      throw new Error(`${label}_not_closed_plain_data`)
-    }
-    nodes += 1
-    const object = item as object
-    if (seen.has(object)) throw new Error(`${label}_cycle`)
-    seen.add(object)
-    const prototype = Object.getPrototypeOf(object)
-    if (prototype !== Object.prototype && prototype !== Array.prototype) {
-      throw new Error(`${label}_prototype_invalid`)
-    }
-    for (const key of Reflect.ownKeys(object)) {
-      if (typeof key !== 'string') throw new Error(`${label}_symbol_key`)
-      const descriptor = Object.getOwnPropertyDescriptor(object, key)
-      if (!descriptor || !('value' in descriptor)) {
-        throw new Error(`${label}_accessor_invalid`)
-      }
-      visit(descriptor.value, depth + 1)
-    }
-    seen.delete(object)
-  }
-  visit(value, 0)
-}
-
 function deepFreeze<T>(value: T): T {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {
     for (const child of Object.values(value as Record<string, unknown>)) {
@@ -926,5 +900,3 @@ function deepFreeze<T>(value: T): T {
   }
   return value
 }
-
-void timestamp

@@ -226,6 +226,16 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     if (plan.request.requestedExecutionMode === 'planning') {
       throw new Error('Canonical Music planning mode cannot execute directly.')
     }
+    if (plan.resolvedContext.resolutionStatus !== 'resolved') {
+      const locked = new Set(plan.request.cueConstraints.lockedCueIds)
+      const lockedCues = requestedMusicCueConstraints(plan.request).filter((cue) => locked.has(cue.cueId))
+      const everyWritableRangeIsExplicitlyLocked = plan.request.scopeAuthority.authorizedMusicWriteRanges.every((range) =>
+        lockedCues.some((cue) => cue.exactRange.startFrame <= range.startFrame &&
+          cue.exactRange.endFrameExclusive >= range.endFrameExclusive))
+      if (!everyWritableRangeIsExplicitlyLocked) {
+        throw new Error('Canonical Music autonomous execution requires resolved, hash-verified story and scene context.')
+      }
+    }
     const executionPackage: ApprovedMusicExecutionPackage = {
       schemaVersion: 'approved-music-execution-package-v2',
       packageId: `music.package.${plan.request.requestId}`,

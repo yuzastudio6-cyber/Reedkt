@@ -139,7 +139,7 @@ const request = parseCanonicalMusicRequest({
 })
 const cue = request.proposedCues[0]
 const briefBase = {
-  briefId: 'music-private-canary-brief', briefVersion: '1.0.0' as const, cueId: cue.cueId,
+  briefId: 'music-private-canary-brief', briefVersion: '2.0.0' as const, cueId: cue.cueId,
   exactRange: cue.exactRange, timelineRate, narrativeFunction: cue.narrativeFunction,
   viewerEmotionTarget: cue.targetStoryState, cueRole: cue.cueRole, motifRole: cue.motifRole,
   durationFrames: cue.exactRange.endFrameExclusive - cue.exactRange.startFrame, tempoRange: cue.tempoRangeBpm,

@@ -318,7 +318,10 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     const soundResultHash = createHash('sha256').update(JSON.stringify(result)).digest('hex')
     const receipt: MusicSoundSupportReceipt = {
       cueId: request.musicCueId,
+      delegatedRange: structuredClone(request.delegatedRange),
       musicSoundSupportRequestHash: hashMusicValue(request),
+      soundPublicRequestHash: hashMusicValue(soundRequest),
+      exactOperationParametersHash: hashMusicValue(request.operationParameters),
       requiredMusicOperations: [...request.requiredOperations],
       mappedSoundOperations: [...soundRequest.requestedOperations],
       technicalMixDirectiveHash: hashMusicValue({
@@ -358,6 +361,13 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     }
     if (receipt.musicSoundSupportRequestHash !== hashMusicValue(request.supportRequest)) {
       errors.push('sound_support_request_hash_mismatch')
+    }
+    if (receipt.exactOperationParametersHash !== hashMusicValue(request.supportRequest.operationParameters)) {
+      errors.push('sound_operation_parameters_hash_mismatch')
+    }
+    if (receipt.delegatedRange.startFrame !== request.supportRequest.delegatedRange.startFrame ||
+      receipt.delegatedRange.endFrameExclusive !== request.supportRequest.delegatedRange.endFrameExclusive) {
+      errors.push('sound_delegated_range_mismatch')
     }
     if (receipt.technicalMixDirectiveHash.length !== 64) errors.push('sound_technical_mix_directive_missing')
     if (receipt.mutationRanges.some((range) =>

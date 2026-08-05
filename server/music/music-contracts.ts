@@ -379,7 +379,10 @@ export interface MusicCandidateAnalysis {
 
 export interface MusicSoundSupportReceipt {
   cueId: string
+  delegatedRange: MusicFrameRange
   musicSoundSupportRequestHash: string
+  soundPublicRequestHash: string
+  exactOperationParametersHash: string
   requiredMusicOperations: string[]
   mappedSoundOperations: string[]
   technicalMixDirectiveHash: string

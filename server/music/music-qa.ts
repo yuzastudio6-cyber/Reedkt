@@ -159,7 +159,12 @@ export function runCanonicalMusicQa(input: {
     const generated = input.analyses.some((analysis) => analysis.candidateArtifact.artifactId === assetId) &&
       input.routes.some((route) => route.acquisitionDecision === 'generate_original_music')
     findings.push(finding({
-      qaClass: 'provenance', status: rights && rights.commercialUse === 'allowed' && rights.platformUse === 'allowed' || generated ? 'pass' : 'blocking',
+      qaClass: 'provenance', status: rights && rights.commercialUse === 'allowed' &&
+        rights.platformUse === 'allowed' && rights.editingPermission === 'allowed' &&
+        (!rights.expiresAt || Date.parse(rights.expiresAt) > Date.now()) &&
+        rights.authorizedProjectIds.includes(input.request.projectBinding.projectId) &&
+        (rights.source !== 'workspace_library' || rights.authorizedWorkspaceIds.includes(input.request.projectBinding.workspaceId)) &&
+        input.request.projectBinding.platformIds.every((platform) => rights.authorizedPlatformIds.includes(platform)) || generated ? 'pass' : 'blocking',
       code: `provenance.${assetId}`, summary: rights ? 'Selected Music is bound to explicit rights evidence.'
         : generated ? 'Generated fixture Music is provider-profile-bound and project-only; live terms remain pending.' : 'Selected Music rights are missing.',
       evidenceRefs: rights?.evidenceRefs.map((item) => item.evidenceHash) ?? (generated ? ['music.provider.google_lyria_3_pro_preview.v2'] : []),
@@ -171,6 +176,21 @@ export function runCanonicalMusicQa(input: {
     code: 'integration.timeline_authority', summary: 'Music placement is hash-bound, rational-rate-bound, and does not mutate visual timing.',
     evidenceRefs: input.placements.map((placement) => placement.placementHash),
   }))
+  for (const receipt of input.soundReceipts) {
+    const cue = input.request.proposedCues.find((candidate) => candidate.cueId === receipt.cueId)
+    const exact = cue && receipt.delegatedRange.startFrame === cue.exactRange.startFrame &&
+      receipt.delegatedRange.endFrameExclusive === cue.exactRange.endFrameExclusive &&
+      receipt.mutationRanges.every((range) => range.startFrame >= receipt.delegatedRange.startFrame &&
+        range.endFrameExclusive <= receipt.delegatedRange.endFrameExclusive)
+    findings.push(finding({
+      qaClass: 'integration', status: exact && receipt.soundPublicRequestHash.length === 64 &&
+        receipt.exactOperationParametersHash.length === 64 && receipt.callerReceiptHash.length === 64 ? 'pass' : 'blocking',
+      code: `integration.sound_receipt.${receipt.cueId}`,
+      summary: 'Canonical Sound v4 receipt is request-hash-bound, parameter-hash-bound, and range-bounded.',
+      evidenceRefs: [receipt.soundResultHash, receipt.soundPublicRequestHash,
+        receipt.exactOperationParametersHash, receipt.callerReceiptHash],
+    }))
+  }
   const continuity = analyzeMusicContinuity(input)
   findings.push(finding({
     qaClass: 'continuity', status: continuity.status === 'blocking' ? 'blocking'

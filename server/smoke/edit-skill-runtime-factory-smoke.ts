@@ -132,7 +132,7 @@ assert.ok(
 )
 assert.ok(productionRuntime.pluginRegistry.resolve(skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)))
 assert.equal(productionRuntime.capabilityRegistry.listManifests().length, 2)
-assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 26)
+assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 27)
 
 const canonicalPrivateRuntime = createEditSkillRuntime({
   environmentClass: 'canonical_private',
@@ -146,7 +146,7 @@ const canonicalPrivateRuntime = createEditSkillRuntime({
   ...dependencies(),
 })
 assert.equal(canonicalPrivateRuntime.environmentClass, 'canonical_private')
-assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 39)
+assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 40)
 assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().filter((binding) =>
   binding.definition.adapterClass === 'canonical_private_execution_adapter').length, 13)
 const wrongEnvironmentDependencies = dependencies()

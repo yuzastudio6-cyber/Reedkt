@@ -23,8 +23,8 @@ from pathlib import Path
 from typing import Any
 
 
-REQUEST_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-request-v1"
-RESPONSE_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-response-v1"
+REQUEST_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-request-v2"
+RESPONSE_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-response-v2"
 OPERATION_ID = "tool.kornia.refine_mask.v1"
 EXPECTED_UID = 65532
 EXPECTED_GID = 65532
@@ -37,7 +37,8 @@ SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
 
-INVOCATION_ROOT: Path
+L4_INVOCATION_ROOT: Path
+SAM31_INVOCATION_ROOT: Path
 TASK_QA_ROOT: Path
 TASK_PATH: Path
 MANIFEST_PATH: Path
@@ -157,11 +158,12 @@ def validate_subject(value: Any, source_mapping_ref: dict[str, Any]) -> dict[str
     return subject
 
 
-def validate_request(value: Any, invocation_id: str) -> dict[str, Any]:
+def validate_request(value: Any, l4_invocation_id: str) -> dict[str, Any]:
     request = exact_object(
         value,
         {
-            "schemaVersion", "operationId", "invocationId", "sam31TaskRef",
+            "schemaVersion", "operationId", "l4InvocationId",
+            "sam31InvocationId", "sam31TaskRef",
             "sam31RuntimeRequestBindingSha256",
             "sam31RuntimeResultAdmissionRef", "sam31MaskManifestRef",
             "l4ExecutionEnvelopeRef", "approvedWorkItemRef", "workerLeaseRef",
@@ -177,14 +179,21 @@ def validate_request(value: Any, invocation_id: str) -> dict[str, Any]:
     )
     if request["schemaVersion"] != REQUEST_VERSION or request["operationId"] != OPERATION_ID:
         raise ValueError("task QA request identity changed")
-    if exact_id(request["invocationId"], "invocation id") != invocation_id:
-        raise ValueError("task QA invocation differs from the environment")
+    if exact_id(request["l4InvocationId"], "L4 invocation id") != l4_invocation_id:
+        raise ValueError("task QA L4 invocation differs from the environment")
+    sam31_invocation_id = exact_id(
+        request["sam31InvocationId"], "SAM 3.1 invocation id"
+    )
+    if sam31_invocation_id == l4_invocation_id:
+        raise ValueError("L4 and SAM 3.1 invocation identities were collapsed")
     for key in (
         "sam31TaskRef", "sam31RuntimeResultAdmissionRef", "sam31MaskManifestRef",
         "l4ExecutionEnvelopeRef", "approvedWorkItemRef", "workerLeaseRef",
         "executionAttemptRef", "sourceFrameMappingRef", "confirmedOutputFrameRef",
     ):
         exact_ref(request[key], key)
+    if request["l4ExecutionEnvelopeRef"]["id"] != l4_invocation_id:
+        raise ValueError("L4 execution envelope and invocation differ")
     exact_sha(
         request["sam31RuntimeRequestBindingSha256"],
         "SAM 3.1 runtime-request binding",
@@ -277,20 +286,29 @@ def validate_request(value: Any, invocation_id: str) -> dict[str, Any]:
     return request
 
 
-def configure_paths(invocation_id: str) -> None:
-    global INVOCATION_ROOT, TASK_QA_ROOT, TASK_PATH, MANIFEST_PATH, MASK_ROOT, RESPONSE_PATH
+def configure_l4_paths(l4_invocation_id: str) -> None:
+    global L4_INVOCATION_ROOT, TASK_QA_ROOT, TASK_PATH, RESPONSE_PATH
     base = Path("/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations")
-    INVOCATION_ROOT = base / invocation_id
-    TASK_QA_ROOT = INVOCATION_ROOT / "task-qa"
+    L4_INVOCATION_ROOT = base / l4_invocation_id
+    TASK_QA_ROOT = L4_INVOCATION_ROOT / "task-qa"
     TASK_PATH = TASK_QA_ROOT / "task.json"
-    MANIFEST_PATH = INVOCATION_ROOT / "output" / "mask-manifest.json"
-    MASK_ROOT = INVOCATION_ROOT / "output"
     RESPONSE_PATH = TASK_QA_ROOT / "response.json"
-    for path in (INVOCATION_ROOT, TASK_QA_ROOT, MASK_ROOT):
+    for path in (L4_INVOCATION_ROOT, TASK_QA_ROOT):
         if path.is_symlink() or not path.is_dir():
             raise RuntimeError("fixed task QA private mount layout is unavailable")
     if RESPONSE_PATH.exists() or RESPONSE_PATH.is_symlink():
         raise RuntimeError("task QA response already exists")
+
+
+def configure_sam31_input_paths(sam31_invocation_id: str) -> None:
+    global SAM31_INVOCATION_ROOT, MANIFEST_PATH, MASK_ROOT
+    base = Path("/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations")
+    SAM31_INVOCATION_ROOT = base / sam31_invocation_id
+    MASK_ROOT = SAM31_INVOCATION_ROOT / "output"
+    MANIFEST_PATH = MASK_ROOT / "mask-manifest.json"
+    for path in (SAM31_INVOCATION_ROOT, MASK_ROOT):
+        if path.is_symlink() or not path.is_dir():
+            raise RuntimeError("fixed SAM 3.1 private output layout is unavailable")
 
 
 def read_bounded(path: Path, maximum: int) -> bytes:
@@ -328,11 +346,11 @@ def read_bounded(path: Path, maximum: int) -> bytes:
         os.close(descriptor)
 
 
-def read_task(invocation_id: str) -> dict[str, Any]:
+def read_task(l4_invocation_id: str) -> dict[str, Any]:
     encoded = read_bounded(TASK_PATH, MAXIMUM_RESPONSE_BYTES)
     value = json.loads(encoded.decode("utf-8"))
     task = exact_object(value, {"runtimeRequest"}, "task QA task")
-    return validate_request(task["runtimeRequest"], invocation_id)
+    return validate_request(task["runtimeRequest"], l4_invocation_id)
 
 
 def validate_manifest(value: Any, request: dict[str, Any]) -> dict[str, Any]:
@@ -757,6 +775,8 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     return {
         "schemaVersion": RESPONSE_VERSION,
         "operationId": OPERATION_ID,
+        "l4InvocationId": request["l4InvocationId"],
+        "sam31InvocationId": request["sam31InvocationId"],
         "requestBindingSha256": request["requestBindingSha256"],
         "status": "completed",
         "terminalStage": "completed",
@@ -791,7 +811,10 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def failure_response(request: dict[str, Any] | None) -> dict[str, Any]:
+def failure_response(
+    request: dict[str, Any] | None,
+    l4_invocation_id: str | None,
+) -> dict[str, Any]:
     failure_code = {
         "request_validation": "request_rejected",
         "manifest_reread": "manifest_mismatch",
@@ -804,6 +827,14 @@ def failure_response(request: dict[str, Any] | None) -> dict[str, Any]:
     return {
         "schemaVersion": RESPONSE_VERSION,
         "operationId": OPERATION_ID,
+        "l4InvocationId": (
+            request["l4InvocationId"] if request is not None
+            else l4_invocation_id or "unknown-l4-invocation"
+        ),
+        "sam31InvocationId": (
+            request["sam31InvocationId"] if request is not None
+            else "unknown-sam31-invocation"
+        ),
         "requestBindingSha256": request["requestBindingSha256"] if request is not None else "0" * 64,
         "status": "failed",
         "terminalStage": stage if stage in {
@@ -856,14 +887,18 @@ def persist_response(payload: dict[str, Any]) -> str:
 
 def main() -> int:
     request: dict[str, Any] | None = None
+    l4_invocation_id: str | None = None
     try:
-        invocation_id = exact_id(os.environ.get("REEDITPRO_GPU_INVOCATION_ID"), "GPU invocation id")
-        configure_paths(invocation_id)
-        request = read_task(invocation_id)
+        l4_invocation_id = exact_id(
+            os.environ.get("REEDITPRO_GPU_INVOCATION_ID"), "GPU invocation id"
+        )
+        configure_l4_paths(l4_invocation_id)
+        request = read_task(l4_invocation_id)
+        configure_sam31_input_paths(request["sam31InvocationId"])
         response = execute(request)
         exit_code = 0
     except Exception:
-        response = failure_response(request)
+        response = failure_response(request, l4_invocation_id)
         exit_code = 1
     response_hash: str | None = None
     try:
@@ -871,7 +906,7 @@ def main() -> int:
     except Exception:
         exit_code = 1
     marker = {
-        "schemaVersion": "canonical-track-all-sam3_1-l4-task-qa-worker-exit-v1",
+        "schemaVersion": "canonical-track-all-sam3_1-l4-task-qa-worker-exit-v2",
         "status": response["status"],
         "responseSha256": response_hash,
         "responsePersisted": response_hash is not None,

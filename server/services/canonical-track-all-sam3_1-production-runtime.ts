@@ -81,7 +81,7 @@ import {
 } from './canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v6' as const
+  'canonical-track-all-sam3_1-production-runtime-v7' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -119,6 +119,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly rawTaskQaMeasurementReviewOrCloudClaimAccepted: false
   readonly canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence:
     true
+  readonly separateSam31InputAndL4TaskQaInvocationRootsRequired: true
   readonly rawCloudLaunchPortExposed: false
 }
 
@@ -328,6 +329,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     rawTaskQaMeasurementReviewOrCloudClaimAccepted: false as const,
     canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence:
       true as const,
+    separateSam31InputAndL4TaskQaInvocationRootsRequired: true as const,
     rawCloudLaunchPortExposed: false as const,
   })
 }

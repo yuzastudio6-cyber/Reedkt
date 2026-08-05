@@ -12,19 +12,24 @@ Torch/Kornia, and cross-checks every mask through OpenCV CUDA. CPU is limited
 to bounded PNG decoding, private-file hashing, and response serialization; a
 CPU-only substantive QA path does not exist.
 
-The fixed mount is:
+The fixed mount uses two distinct server-owned invocation roots:
 
 ```text
-/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations/<server invocation>/
+/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations/<sam31 invocation>/
   output/mask-manifest.json
   output/frame-......png
+
+/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations/<l4 invocation>/
   task-qa/task.json
   task-qa/response.json       # create-only
 ```
 
 The request carries no path, URL, command, code, environment, model, media
-bytes, price, usage, or customer-credit claim. The invocation identity is the
-only environment selector and is validated before the fixed path is formed.
+bytes, price, usage, or customer-credit claim. The L4 invocation identity is
+the only environment selector and is validated before its fixed task/response
+path is formed. The separately bound SAM 3.1 invocation is read-only and may
+resolve only the exact mask manifest and masks. The worker cannot write into
+the SAM 3.1 invocation root, and the two identities must not be equal.
 The response is worker evidence only. The canonical backend must still reread
 the immutable image release, execution envelope, launch, terminal Cloud Run
 observation, exact platform usage, billing-account-effective L4 price, attempt
@@ -32,13 +37,14 @@ cost, SAM result admission, and independent private scene review before it can
 compile the task-QA measurement accepted by Track All.
 
 The active evidence wrapper is
-`canonical-track-all-sam3_1-l4-mask-qa-worker-result-v2`. It persists the
+`canonical-track-all-sam3_1-l4-mask-qa-worker-result-v3`. It persists the
 exact fixed worker request and response, not a caller-built canonical
 measurement. The backend rereads the SAM task context/result plus the L4
 launch, execution envelope, terminal usage/cost receipt, and scale-to-zero
 observation, then derives the canonical scope and measurement itself. The
-historical v1 measurement-carrying wrapper remains readable only for immutable
-evidence compatibility.
+historical v1 measurement-carrying wrapper and single-invocation v2 evidence
+wrapper remain readable only for immutable evidence compatibility; neither can
+finalize fresh task-QA evidence.
 
 The private Cloud Build capsule contains only a hash-locked wheelhouse, the
 reviewed OpenCV-CUDA receipt/build, and the exact NVIDIA CUDA 12.8

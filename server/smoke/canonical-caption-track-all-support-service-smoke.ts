@@ -51,11 +51,14 @@ import {
   parseTrackAllSam31TaskQaEvidenceFinalizationResult,
   sealCanonicalTrackAllSam31L4MaskQaWorkerResult,
   sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult,
+  sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3,
   sealCanonicalTrackAllSam31PrivateReviewResult,
 } from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import {
   buildCanonicalTrackAllSam31L4TaskQaWorkerRequest,
   buildCanonicalTrackAllSam31L4TaskQaWorkerResponse,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -643,10 +646,11 @@ await assert.rejects(() =>
   }), /Historical Track All worker measurement v1 is read-only/u)
 assertions += 1
 
-const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
-  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v1',
+const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v2',
   operationId: 'tool.kornia.refine_mask.v1',
-  invocationId: captionTask.invocationId,
+  sam31InvocationId: captionTask.invocationId,
+  l4InvocationId: l4Envelope.envelopeId,
   sam31TaskRef: backendRef(captionTask.taskId, captionTask.taskRecordHash),
   sam31RuntimeRequestBindingSha256:
     captionTask.runtimeRequest.requestBindingSha256,
@@ -719,9 +723,11 @@ const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
   browserOrCallerMeasurementAccepted: false,
 })
 const fixedWorkerResponse =
-  buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
-    schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1',
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
+    schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v2',
     operationId: 'tool.kornia.refine_mask.v1',
+    sam31InvocationId: fixedWorkerRequest.sam31InvocationId,
+    l4InvocationId: fixedWorkerRequest.l4InvocationId,
     requestBindingSha256: fixedWorkerRequest.requestBindingSha256,
     status: 'completed',
     terminalStage: 'completed',
@@ -822,10 +828,11 @@ const fixedWorkerResponse =
     productionAuthorityGranted: false,
   })
 const fixedWorkerEvidenceResult =
-  sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult({
-    schemaVersion: 'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v2',
-    workerResultId: 'caption-track-all-l4-fixed-worker-result-v2',
-    invocationId: captionTask.invocationId,
+  sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3({
+    schemaVersion: 'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v3',
+    workerResultId: 'caption-track-all-l4-fixed-worker-result-v3',
+    sam31InvocationId: captionTask.invocationId,
+    l4InvocationId: l4Envelope.envelopeId,
     workerServiceIdentityRef,
     l4LaunchRef: rawRef(
       l4Launch.launchRecordId,
@@ -846,6 +853,8 @@ const fixedWorkerEvidenceResult =
     workerResponse: fixedWorkerResponse,
     privateCreateOnlyWorkerOutput: true,
     fixedWorkerRequestAndResponseExactReread: true,
+    separateSam31InputAndL4JobInvocationRootsVerified: true,
+    l4WorkerWroteUnderSam31InvocationRoot: false,
     measurementCompiledOnlyByCanonicalBackend: true,
     callerOrBrowserMeasurementAccepted: false,
     callerOrBrowserOutputAccepted: false,
@@ -934,7 +943,7 @@ assert.equal(
 check(
   fixedEvidenceFinalization.l4MaskQaMeasurementRef.contentHash ===
     compiledMeasurement.measurementDigestSha256,
-  'The task-QA finalizer must compile v2 worker evidence into one canonical measurement.',
+  'The task-QA finalizer must compile v3 worker evidence into one canonical measurement.',
 )
 const fixedEvidenceFinalizationReplay =
   await taskQaEvidenceFinalizationRuntime.finalizeTaskQaEvidence({
@@ -948,7 +957,108 @@ check(
     fixedEvidenceFinalization.resultDigestSha256,
   'The fixed-evidence task-QA finalizer must replay to one immutable result.',
 )
-assert.throws(() => sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult({
+const {
+  schemaVersion: discardedV2RequestVersion,
+  l4InvocationId: discardedV2L4InvocationId,
+  sam31InvocationId: discardedV2Sam31InvocationId,
+  requestBindingSha256: discardedV2RequestDigest,
+  ...historicalV1WorkerRequestPayload
+} = structuredClone(fixedWorkerRequest)
+assert.equal(typeof discardedV2RequestVersion, 'string')
+assert.equal(discardedV2L4InvocationId, l4Envelope.envelopeId)
+assert.equal(discardedV2Sam31InvocationId, captionTask.invocationId)
+assert.equal(typeof discardedV2RequestDigest, 'string')
+const historicalV1WorkerRequest =
+  buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
+    ...historicalV1WorkerRequestPayload,
+    schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v1',
+    invocationId: captionTask.invocationId,
+  })
+const {
+  schemaVersion: discardedV2ResponseVersion,
+  l4InvocationId: discardedResponseL4InvocationId,
+  sam31InvocationId: discardedResponseSam31InvocationId,
+  requestBindingSha256: discardedV2ResponseRequestDigest,
+  responseBindingSha256: discardedV2ResponseDigest,
+  ...historicalV1WorkerResponsePayload
+} = structuredClone(fixedWorkerResponse)
+assert.equal(typeof discardedV2ResponseVersion, 'string')
+assert.equal(discardedResponseL4InvocationId, l4Envelope.envelopeId)
+assert.equal(discardedResponseSam31InvocationId, captionTask.invocationId)
+assert.equal(typeof discardedV2ResponseRequestDigest, 'string')
+assert.equal(typeof discardedV2ResponseDigest, 'string')
+const historicalV1WorkerResponse =
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
+    ...historicalV1WorkerResponsePayload,
+    schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1',
+    requestBindingSha256: historicalV1WorkerRequest.requestBindingSha256,
+  })
+const historicalV2WorkerEvidenceResult =
+  sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult({
+    schemaVersion: 'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v2',
+    workerResultId: 'caption-track-all-l4-historical-worker-result-v2',
+    invocationId: captionTask.invocationId,
+    workerServiceIdentityRef,
+    l4LaunchRef: structuredClone(fixedWorkerEvidenceResult.l4LaunchRef),
+    l4ExecutionEnvelopeRef:
+      structuredClone(fixedWorkerEvidenceResult.l4ExecutionEnvelopeRef),
+    l4TerminalRef: structuredClone(fixedWorkerEvidenceResult.l4TerminalRef),
+    workerRequest: historicalV1WorkerRequest,
+    workerResponse: historicalV1WorkerResponse,
+    privateCreateOnlyWorkerOutput: true,
+    fixedWorkerRequestAndResponseExactReread: true,
+    measurementCompiledOnlyByCanonicalBackend: true,
+    callerOrBrowserMeasurementAccepted: false,
+    callerOrBrowserOutputAccepted: false,
+    pathsUrlsCredentialsOrMediaBytesIncluded: false,
+  })
+assert.equal(await taskQaCandidateRepository.persistWorkerResultCreateOnly({
+  result: historicalV2WorkerEvidenceResult,
+}), 'created')
+const historicalV2ReviewResult = sealCanonicalTrackAllSam31PrivateReviewResult({
+  schemaVersion: 'canonical-track-all-sam3_1-private-review-result-v1',
+  reviewResultId: 'caption-track-all-historical-v2-review-result',
+  invocationId: captionTask.invocationId,
+  reviewerServiceIdentityRef: compiledReview.reviewerIdentityRef,
+  workerResultRef: rawRef(
+    historicalV2WorkerEvidenceResult.workerResultId,
+    historicalV2WorkerEvidenceResult.schemaVersion,
+    historicalV2WorkerEvidenceResult.workerResultDigestSha256,
+  ),
+  review: compiledReview,
+  privateCreateOnlyReviewOutput: true,
+  completeIntervalPlaybackRereadByIndependentReviewOwner: true,
+  callerOrBrowserReviewAccepted: false,
+  pathsUrlsCredentialsOrMediaBytesIncluded: false,
+})
+assert.equal(await taskQaCandidateRepository.persistReviewResultCreateOnly({
+  result: historicalV2ReviewResult,
+}), 'created')
+const historicalV2FinalizationRequest =
+  buildTrackAllSam31TaskQaEvidenceFinalizationRequest({
+    requestId: 'caption-track-all-task-qa-historical-v2-finalization',
+    invocationId: captionTask.invocationId,
+    sam31RuntimeResultAdmissionRef: captionResultRef,
+    l4MaskQaWorkerResultRef: rawRef(
+      historicalV2WorkerEvidenceResult.workerResultId,
+      historicalV2WorkerEvidenceResult.schemaVersion,
+      historicalV2WorkerEvidenceResult.workerResultDigestSha256,
+    ),
+    independentPrivateReviewResultRef: rawRef(
+      historicalV2ReviewResult.reviewResultId,
+      historicalV2ReviewResult.schemaVersion,
+      historicalV2ReviewResult.reviewResultDigestSha256,
+    ),
+  })
+await assert.rejects(() =>
+  taskQaEvidenceFinalizationRuntime.finalizeTaskQaEvidence({
+    authenticatedOwnerUserId: payload.canonicalScope.ownerUserId,
+    workspaceId: payload.canonicalScope.workspaceId,
+    idempotencyKey: historicalV2FinalizationRequest.requestId,
+    request: historicalV2FinalizationRequest,
+  }), /Historical single-invocation Track All worker evidence v2 is read-only/u)
+assertions += 1
+assert.throws(() => sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3({
   ...structuredClone(fixedWorkerEvidenceResult),
   workerResultDigestSha256: undefined,
   measurement: compiledMeasurement,
@@ -1325,7 +1435,8 @@ console.log(JSON.stringify({
   taskLevelIndependentL4KorniaCudaAndOpenCvMaskQaRequired: true,
   taskLevelPrivateVisualReviewRequired: true,
   authenticatedTaskQaFinalizerRereadsSamTaskResultAndL4Lifecycle: true,
-  fixedWorkerV2EvidenceCompiledByCanonicalBackend: true,
+  fixedWorkerV3SeparateInvocationEvidenceCompiledByCanonicalBackend: true,
+  historicalSingleInvocationWorkerV2FreshFinalizationRejected: true,
   workerSuppliedCanonicalMeasurementAccepted: false,
   taskQaFinalizerRequiresZeroActiveGpuInstancesAndExactCostLineage: true,
   taskQaFinalizerRejectsWorkerAsIndependentReviewer: true,

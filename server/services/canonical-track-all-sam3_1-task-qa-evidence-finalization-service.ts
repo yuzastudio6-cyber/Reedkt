@@ -47,6 +47,8 @@ import type {
 import {
   assertCanonicalTrackAllSam31L4TaskQaWorkerRequest,
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -62,6 +64,8 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION =
   'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION =
   'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v2' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_V3_VERSION =
+  'canonical-track-all-sam3_1-l4-mask-qa-worker-result-v3' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_REVIEW_RESULT_VERSION =
   'canonical-track-all-sam3_1-private-review-result-v1' as const
 
@@ -124,9 +128,45 @@ const workerEvidenceResultSchema = workerEvidenceResultWithoutDigestSchema
 export type CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult = z.infer<
   typeof workerEvidenceResultSchema
 >
+
+const workerEvidenceResultV3WithoutDigestSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_V3_VERSION,
+  ),
+  workerResultId: safeId,
+  sam31InvocationId: safeId,
+  l4InvocationId: safeId,
+  workerServiceIdentityRef: refSchema,
+  l4LaunchRef: refSchema,
+  l4ExecutionEnvelopeRef: refSchema,
+  l4TerminalRef: refSchema,
+  workerRequest: z.unknown(),
+  workerResponse: z.unknown(),
+  privateCreateOnlyWorkerOutput: z.literal(true),
+  fixedWorkerRequestAndResponseExactReread: z.literal(true),
+  separateSam31InputAndL4JobInvocationRootsVerified: z.literal(true),
+  l4WorkerWroteUnderSam31InvocationRoot: z.literal(false),
+  measurementCompiledOnlyByCanonicalBackend: z.literal(true),
+  callerOrBrowserMeasurementAccepted: z.literal(false),
+  callerOrBrowserOutputAccepted: z.literal(false),
+  pathsUrlsCredentialsOrMediaBytesIncluded: z.literal(false),
+}).strict()
+const workerEvidenceResultV3Schema = workerEvidenceResultV3WithoutDigestSchema
+  .extend({ workerResultDigestSha256: sha256 }).strict()
+  .superRefine((result, context) => {
+    if (result.sam31InvocationId !== result.l4InvocationId) return
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All worker evidence collapsed SAM and L4 invocations.',
+    })
+  })
+export type CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3 = z.infer<
+  typeof workerEvidenceResultV3Schema
+>
 export type CanonicalTrackAllSam31L4MaskQaWorkerResult =
   | CanonicalTrackAllSam31L4MaskQaWorkerResultV1
   | CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult
+  | CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3
 
 const reviewResultWithoutDigestSchema = z.object({
   schemaVersion: z.literal(
@@ -256,6 +296,19 @@ export function sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult(
     ...payload,
     workerResultDigestSha256: sha256AuthorityValue(payload),
   }) as CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult
+}
+
+export function sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3(
+  value: z.input<typeof workerEvidenceResultV3WithoutDigestSchema>,
+): CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3 {
+  assertPlainSerializedData(value,
+    'track_all_l4_mask_qa_worker_evidence_result_v3_input')
+  const payload = workerEvidenceResultV3WithoutDigestSchema.parse(value)
+  assertFixedWorkerEvidenceResultV3(payload)
+  return parseWorkerResult({
+    ...payload,
+    workerResultDigestSha256: sha256AuthorityValue(payload),
+  }) as CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3
 }
 
 export function sealCanonicalTrackAllSam31PrivateReviewResult(
@@ -458,6 +511,12 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
           'Historical Track All worker measurement v1 is read-only and cannot finalize fresh QA evidence.',
         )
       }
+      if (workerResult.schemaVersion ===
+        CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION) {
+        throw new TypeError(
+          'Historical single-invocation Track All worker evidence v2 is read-only and cannot finalize fresh QA evidence.',
+        )
+      }
       const measurement =
         compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult({
           samTask,
@@ -556,6 +615,9 @@ function parseWorkerResult(
     : version ===
       CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION
       ? workerEvidenceResultSchema.parse(value)
+      : version ===
+        CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_V3_VERSION
+        ? workerEvidenceResultV3Schema.parse(value)
       : (() => { throw new TypeError(
         'Track All L4 worker result version is unsupported.',
       ) })()
@@ -566,8 +628,11 @@ function parseWorkerResult(
   if (result.schemaVersion ===
     CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_RESULT_VERSION) {
     parseCanonicalTrackAllSam31L4MaskQaMeasurement(result.measurement)
-  } else {
+  } else if (result.schemaVersion ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION) {
     assertFixedWorkerEvidenceResult(result)
+  } else {
+    assertFixedWorkerEvidenceResultV3(result)
   }
   return structuredClone(result)
 }
@@ -594,6 +659,36 @@ function assertFixedWorkerEvidenceResult(value: {
       value.l4ExecutionEnvelopeRef.contentHash
   ) throw new TypeError(
     'Track All L4 fixed worker evidence lost request, response, or envelope lineage.',
+  )
+}
+
+function assertFixedWorkerEvidenceResultV3(value: {
+  readonly sam31InvocationId: string
+  readonly l4InvocationId: string
+  readonly l4ExecutionEnvelopeRef: TrackAllSam31CaptionEvidenceRef
+  readonly workerRequest: unknown
+  readonly workerResponse: unknown
+}): void {
+  const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+    value.workerRequest,
+  )
+  const response = assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(
+    value.workerResponse,
+  )
+  if (
+    request.sam31InvocationId !== value.sam31InvocationId
+    || request.l4InvocationId !== value.l4InvocationId
+    || response.sam31InvocationId !== value.sam31InvocationId
+    || response.l4InvocationId !== value.l4InvocationId
+    || response.status !== 'completed'
+    || response.requestBindingSha256 !== request.requestBindingSha256
+    || request.l4ExecutionEnvelopeRef.id !== value.l4InvocationId
+    || request.l4ExecutionEnvelopeRef.id !==
+      value.l4ExecutionEnvelopeRef.id
+    || stripSha(request.l4ExecutionEnvelopeRef.contentHash) !==
+      value.l4ExecutionEnvelopeRef.contentHash
+  ) throw new TypeError(
+    'Track All L4 fixed worker evidence v3 lost separate SAM/L4 lineage.',
   )
 }
 
@@ -624,7 +719,7 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
     readonly samResult: ReturnType<
       typeof assertCanonicalSam31GpuRuntimeResultAdmission
     >
-    readonly workerResult: CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResult
+    readonly workerResult: CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3
     readonly launch: CanonicalProfessionalGpuJobLaunch
     readonly envelope: CanonicalProfessionalGpuExecutionEnvelope
     readonly terminal: CanonicalProfessionalGpuJobTerminal
@@ -639,18 +734,18 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
   )
   const workerResult = parseWorkerResult(input.workerResult)
   if (workerResult.schemaVersion !==
-    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_VERSION) {
-    throw new TypeError('Track All fixed worker evidence v2 is required.')
+    CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_V3_VERSION) {
+    throw new TypeError('Track All fixed worker evidence v3 is required.')
   }
   const launch = assertCanonicalProfessionalGpuJobLaunch(input.launch)
   const envelope = assertCanonicalProfessionalGpuExecutionEnvelope(
     input.envelope,
   )
   const terminal = assertCanonicalProfessionalGpuJobTerminal(input.terminal)
-  const workerRequest = assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(
+  const workerRequest = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
     workerResult.workerRequest,
   )
-  const workerResponse = assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(
+  const workerResponse = assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(
     workerResult.workerResponse,
   )
   const source = task.runtimeRequest.sourceMedia
@@ -668,7 +763,8 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
     samResult.resultAdmissionHash,
   )
   const exactWorkerInput =
-    workerRequest.invocationId === task.invocationId
+    workerRequest.sam31InvocationId === task.invocationId
+    && workerRequest.l4InvocationId === envelope.envelopeId
     && workerRequest.sam31RuntimeRequestBindingSha256 ===
       task.runtimeRequest.requestBindingSha256
     && samePrefixedRef(workerRequest.sam31TaskRef, taskReference)
@@ -716,7 +812,8 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
     && samePrefixedRef(context.confirmedOutputFrameRef,
       envelope.confirmedOutputFrameRef)
     && samePrefixedRef(scope.masterTimingRef, envelope.masterTimingRef)
-  const exactLifecycle = workerResult.invocationId === task.invocationId
+  const exactLifecycle = workerResult.sam31InvocationId === task.invocationId
+    && workerResult.l4InvocationId === envelope.envelopeId
     && sameRef(workerResult.l4LaunchRef, lifecycleRef(
       launch.launchRecordId, launch.schemaVersion, launch.launchHash,
     ))
@@ -893,6 +990,9 @@ function assertExactLineage(input: {
     .sort(compareUtf16)
   const reviewedSubjectEvidenceIds = [...review.reviewedSubjectEvidenceIds]
     .sort(compareUtf16)
+  const workerSam31InvocationId = 'sam31InvocationId' in workerResult
+    ? workerResult.sam31InvocationId
+    : workerResult.invocationId
   const exactLifecycle = sameRef(workerResult.l4LaunchRef, lifecycleRef(
     launch.launchRecordId, launch.schemaVersion, launch.launchHash,
   ))
@@ -941,7 +1041,9 @@ function assertExactLineage(input: {
   if (
     input.authenticatedOwnerUserId !== measurement.canonicalScope.ownerUserId
     || input.workspaceId !== measurement.canonicalScope.workspaceId
-    || request.invocationId !== workerResult.invocationId
+    || request.invocationId !== workerSam31InvocationId
+    || ('l4InvocationId' in workerResult
+      && workerResult.l4InvocationId !== envelope.envelopeId)
     || request.invocationId !== reviewResult.invocationId
     || request.invocationId !== measurement.invocationId
     || request.invocationId !== samTask.invocationId

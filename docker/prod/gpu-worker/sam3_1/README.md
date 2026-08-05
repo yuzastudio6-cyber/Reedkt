@@ -384,6 +384,12 @@ and morphology measurements with Torch/Kornia CUDA, and cross-checks every
 mask through OpenCV CUDA. It has no CPU-only substantive fallback and shares
 neither the gated SAM checkpoint nor SAM inference authority.
 
+The active v2 fixed worker wire binds two different invocation identities:
+the earlier SAM 3.1 invocation is a read-only mask source, while the later L4
+invocation exclusively owns the QA task and create-only response. Collapsing
+those identities or writing any L4 output beneath the SAM invocation fails
+closed. Historical single-invocation evidence remains reread-only.
+
 Its response remains worker evidence. Canonical acceptance still requires the
 backend to reread the fixed task, immutable image release, execution envelope,
 launch, terminal scale-to-zero observation, actual platform usage,

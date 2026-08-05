@@ -38,6 +38,10 @@ import {
 import {
   assertCanonicalTrackAllSam31L4TaskQaWorkerRequest,
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import type {
   CanonicalSam31GpuTaskContextRepository,
@@ -342,17 +346,32 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
 ): CanonicalTrackAllSam31L4MaskQaMeasurement {
   assertClosedContractTree(input,
     'track_all_l4_measurement_worker_evidence_input')
-  const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(
-    input.workerRequest,
-  )
-  const response = assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(
-    input.workerResponse,
-  )
+  const requestVersion = z.object({ schemaVersion: z.string() }).passthrough()
+    .parse(input.workerRequest).schemaVersion
+  const responseVersion = z.object({ schemaVersion: z.string() }).passthrough()
+    .parse(input.workerResponse).schemaVersion
+  const request = requestVersion ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION
+    ? assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(input.workerRequest)
+    : assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(input.workerRequest)
+  const response = responseVersion ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION
+    ? assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(input.workerResponse)
+    : assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(input.workerResponse)
   if (
-    response.status !== 'completed'
+    (requestVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION)
+      !== (responseVersion ===
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION)
+    || response.status !== 'completed'
     || response.outputSummary === null
     || response.inputEvidence === null
     || response.gpuEvidence === null
+    || ('l4InvocationId' in request && (
+      !('l4InvocationId' in response)
+      || response.l4InvocationId !== request.l4InvocationId
+      || response.sam31InvocationId !== request.sam31InvocationId
+    ))
     || response.requestBindingSha256 !== request.requestBindingSha256
     || response.inputEvidence.manifestSha256
       !== request.expectedMaskManifestSha256
@@ -475,7 +494,9 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
     schemaVersion:
       CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_MEASUREMENT_VERSION,
     measurementId: input.measurementId,
-    invocationId: request.invocationId,
+    invocationId: 'sam31InvocationId' in request
+      ? request.sam31InvocationId
+      : request.invocationId,
     sam31TaskRef: structuredClone(input.canonicalSam31TaskRef),
     sam31RuntimeResultAdmissionRef: structuredClone(
       input.canonicalSam31RuntimeResultAdmissionRef,

@@ -11,10 +11,14 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-worker-request-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-worker-request-v2' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-worker-response-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID =
   'tool.kornia.refine_mask.v1' as const
 
-const fixedTaskContractDescriptor = Object.freeze({
+const historicalFixedTaskContractDescriptorV1 = Object.freeze({
   schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-fixed-task-v1',
   operationId: CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID,
   requestVersion:
@@ -28,6 +32,28 @@ const fixedTaskContractDescriptor = Object.freeze({
   taskRelativePath: 'task-qa/task.json',
   responseRelativePath: 'task-qa/response.json',
   samManifestRelativePath: 'output/mask-manifest.json',
+  privateCreateOnlyTaskAndResponse: true,
+  runtimeDownloadAllowed: false,
+  cpuOnlySubstantiveMaskQaAllowed: false,
+  callerPathUrlCommandCodeModelOrEnvironmentAccepted: false,
+})
+
+const fixedTaskContractDescriptor = Object.freeze({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-fixed-task-v2',
+  operationId: CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID,
+  requestVersion:
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION,
+  responseVersion:
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION,
+  l4InvocationEnvironmentName: 'REEDITPRO_GPU_INVOCATION_ID',
+  acceleratorEnvironmentName: 'WEEDITPRO_GPU_ACCELERATOR_CLASS',
+  accelerator: 'nvidia_l4',
+  routeId: 'l4_standard_primary',
+  l4TaskRelativePath: 'task-qa/task.json',
+  l4ResponseRelativePath: 'task-qa/response.json',
+  samManifestRelativePath: 'output/mask-manifest.json',
+  separateL4AndSam31InvocationRootsRequired: true,
+  l4WorkerWritesUnderSam31InvocationRoot: false,
   privateCreateOnlyTaskAndResponse: true,
   runtimeDownloadAllowed: false,
   cpuOnlySubstantiveMaskQaAllowed: false,
@@ -84,7 +110,7 @@ const subjectBindingSchema = z.object({
   })
 })
 
-const requestWithoutHashSchema = z.object({
+const requestV1BaseSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_VERSION,
   ),
@@ -132,13 +158,17 @@ const requestWithoutHashSchema = z.object({
   byteFreeRequest: z.literal(true),
   callerPathUrlCommandCodeOrEnvironmentAccepted: z.literal(false),
   browserOrCallerMeasurementAccepted: z.literal(false),
-}).strict().superRefine((request, context) => {
+}).strict()
+
+function requestV1ScopeIsExact(request: z.infer<
+  typeof requestV1BaseSchema
+>): boolean {
   const frameCount = request.maskFrameRange.endFrameExclusive
     - request.maskFrameRange.startFrame
   const subjectKeys = request.subjects.map((subject) =>
     `${subject.subjectRequestId}\0${subject.subjectEvidenceId}\0${subject.maskObjectId}`)
   const objectIds = request.subjects.map((subject) => subject.maskObjectId)
-  const exact = request.sam31MaskManifestRef.contentHash
+  return request.sam31MaskManifestRef.contentHash
       === `sha256:${request.expectedMaskManifestSha256}`
     && request.maskFrameRange.startFrame === 0
     && request.maskFrameRange.endFrameExclusive <= 240
@@ -157,16 +187,84 @@ const requestWithoutHashSchema = z.object({
         === request.confirmedOutputFrameRef.contentHash.slice(7))
     && new Set(subjectKeys).size === subjectKeys.length
     && new Set(objectIds).size === objectIds.length
-  if (!exact) context.addIssue({
-    code: 'custom',
-    message: 'Track All L4 task-QA request lost exact mask or subject scope.',
-  })
-})
+}
+
+const requestWithoutHashSchema = requestV1BaseSchema.superRefine(
+  (request, context) => {
+    if (requestV1ScopeIsExact(request)) return
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All L4 task-QA request lost exact mask or subject scope.',
+    })
+  },
+)
 
 export const canonicalTrackAllSam31L4TaskQaWorkerRequestSchema =
-  requestWithoutHashSchema.extend({ requestBindingSha256: sha256 }).strict()
+  requestV1BaseSchema.extend({ requestBindingSha256: sha256 }).strict()
+    .superRefine((request, context) => {
+      if (requestV1ScopeIsExact(request)) return
+      context.addIssue({
+        code: 'custom',
+        message: 'Track All L4 task-QA request lost exact mask or subject scope.',
+      })
+    })
 export type CanonicalTrackAllSam31L4TaskQaWorkerRequest = z.infer<
   typeof canonicalTrackAllSam31L4TaskQaWorkerRequestSchema
+>
+
+const requestV2WithoutHashSchema = requestV1BaseSchema.omit({
+  schemaVersion: true,
+  invocationId: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION,
+  ),
+  l4InvocationId: safeId,
+  sam31InvocationId: safeId,
+}).strict()
+
+function requestV2ScopeIsExact(request: z.infer<
+  typeof requestV2WithoutHashSchema
+>): boolean {
+  const frameCount = request.maskFrameRange.endFrameExclusive
+    - request.maskFrameRange.startFrame
+  const subjectKeys = request.subjects.map((subject) =>
+    `${subject.subjectRequestId}\0${subject.subjectEvidenceId}\0${subject.maskObjectId}`)
+  const objectIds = request.subjects.map((subject) => subject.maskObjectId)
+  return request.l4InvocationId !== request.sam31InvocationId
+    && request.l4ExecutionEnvelopeRef.id === request.l4InvocationId
+    && request.sam31MaskManifestRef.contentHash
+      === `sha256:${request.expectedMaskManifestSha256}`
+    && request.maskFrameRange.startFrame === 0
+    && request.maskFrameRange.endFrameExclusive <= 240
+    && request.expectedMaskPngCount === frameCount * request.subjects.length
+    && request.subjects.every((subject) =>
+      subject.maskFrameRange.startFrame === request.maskFrameRange.startFrame
+      && subject.maskFrameRange.endFrameExclusive
+        === request.maskFrameRange.endFrameExclusive
+      && subject.sourceFrameMappingRef.id === request.sourceFrameMappingRef.id
+      && subject.sourceFrameMappingRef.version
+        === request.sourceFrameMappingRef.version
+      && subject.sourceFrameMappingRef.contentHash
+        === request.sourceFrameMappingRef.contentHash)
+    && request.subjects.every((subject) =>
+      subject.outputFrameDigestSha256
+        === request.confirmedOutputFrameRef.contentHash.slice(7))
+    && new Set(subjectKeys).size === subjectKeys.length
+    && new Set(objectIds).size === objectIds.length
+}
+
+export const canonicalTrackAllSam31L4TaskQaWorkerRequestV2Schema =
+  requestV2WithoutHashSchema.extend({ requestBindingSha256: sha256 }).strict()
+    .superRefine((request, context) => {
+      if (requestV2ScopeIsExact(request)) return
+      context.addIssue({
+    code: 'custom',
+    message: 'Track All L4 task-QA v2 request lost separate job or mask scope.',
+  })
+    })
+export type CanonicalTrackAllSam31L4TaskQaWorkerRequestV2 = z.infer<
+  typeof canonicalTrackAllSam31L4TaskQaWorkerRequestV2Schema
 >
 
 const subjectMeasurementSchema = z.object({
@@ -262,7 +360,7 @@ const outputSummarySchema = z.object({
   exactMaskManifestAndEveryMaskPngReread: z.literal(true),
 }).strict()
 
-const responseWithoutHashSchema = z.object({
+const responseV1BaseSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_VERSION,
   ),
@@ -294,9 +392,13 @@ const responseWithoutHashSchema = z.object({
   assetManifestMutated: z.literal(false),
   publicDeliveryAuthorized: z.literal(false),
   productionAuthorityGranted: z.literal(false),
-}).strict().superRefine((response, context) => {
+}).strict()
+
+function responseStateIsExact(response: z.infer<
+  typeof responseV1BaseSchema
+>): boolean {
   const completed = response.status === 'completed'
-  const exact = completed
+  return completed
     ? response.terminalStage === 'completed'
       && response.failureCode === 'none'
       && response.gpuEvidence !== null
@@ -315,16 +417,57 @@ const responseWithoutHashSchema = z.object({
       && response.runtimeMeasurement === null
       && response.outputSummary === null
       && !response.privateCreateOnlyWorkerOutput
-  if (!exact) context.addIssue({
-    code: 'custom',
-    message: 'Track All L4 task-QA response lost its fail-closed state.',
-  })
-})
+}
+
+const responseWithoutHashSchema = responseV1BaseSchema.superRefine(
+  (response, context) => {
+    if (responseStateIsExact(response)) return
+    context.addIssue({
+      code: 'custom',
+      message: 'Track All L4 task-QA response lost its fail-closed state.',
+    })
+  },
+)
 
 export const canonicalTrackAllSam31L4TaskQaWorkerResponseSchema =
-  responseWithoutHashSchema.extend({ responseBindingSha256: sha256 }).strict()
+  responseV1BaseSchema.extend({ responseBindingSha256: sha256 }).strict()
+    .superRefine((response, context) => {
+      if (responseStateIsExact(response)) return
+      context.addIssue({
+        code: 'custom',
+        message: 'Track All L4 task-QA response lost its fail-closed state.',
+      })
+    })
 export type CanonicalTrackAllSam31L4TaskQaWorkerResponse = z.infer<
   typeof canonicalTrackAllSam31L4TaskQaWorkerResponseSchema
+>
+
+const responseV2WithoutHashSchema = responseV1BaseSchema.omit({
+  schemaVersion: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION,
+  ),
+  l4InvocationId: safeId,
+  sam31InvocationId: safeId,
+}).strict()
+
+export const canonicalTrackAllSam31L4TaskQaWorkerResponseV2Schema =
+  responseV2WithoutHashSchema.extend({ responseBindingSha256: sha256 }).strict()
+    .superRefine((response, context) => {
+      if (!responseStateIsExact(response)) context.addIssue({
+          code: 'custom',
+          message: 'Track All L4 task-QA response lost its fail-closed state.',
+        })
+      if (response.l4InvocationId === response.sam31InvocationId) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Track All L4 task-QA response collapsed separate job identities.',
+        })
+      }
+    })
+export type CanonicalTrackAllSam31L4TaskQaWorkerResponseV2 = z.infer<
+  typeof canonicalTrackAllSam31L4TaskQaWorkerResponseV2Schema
 >
 
 export function canonicalTrackAllSam31L4TaskQaFixedTaskContractRef() {
@@ -333,6 +476,16 @@ export function canonicalTrackAllSam31L4TaskQaFixedTaskContractRef() {
     version: 1,
     contentHash: `sha256:${sha256AuthorityValue(
       fixedTaskContractDescriptor,
+    )}`,
+  })
+}
+
+export function canonicalTrackAllSam31L4TaskQaHistoricalFixedTaskV1ContractRef() {
+  return evidenceRefSchema.parse({
+    id: historicalFixedTaskContractDescriptorV1.schemaVersion,
+    version: 1,
+    contentHash: `sha256:${sha256AuthorityValue(
+      historicalFixedTaskContractDescriptorV1,
     )}`,
   })
 }
@@ -360,6 +513,34 @@ export function assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(
   return structuredClone(request)
 }
 
+export function buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+  input: z.input<typeof requestV2WithoutHashSchema>,
+): CanonicalTrackAllSam31L4TaskQaWorkerRequestV2 {
+  assertPlainSerializedData(input, 'track_all_l4_task_qa_worker_request_v2')
+  const payload = requestV2WithoutHashSchema.parse(input)
+  if (!requestV2ScopeIsExact(payload)) throw new TypeError(
+    'Track All L4 task-QA v2 request lost separate job or mask scope.',
+  )
+  return canonicalTrackAllSam31L4TaskQaWorkerRequestV2Schema.parse({
+    ...payload,
+    requestBindingSha256: sha256AuthorityValue(payload),
+  })
+}
+
+export function assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+  value: unknown,
+): CanonicalTrackAllSam31L4TaskQaWorkerRequestV2 {
+  assertPlainSerializedData(value, 'track_all_l4_task_qa_worker_request_v2')
+  const request = canonicalTrackAllSam31L4TaskQaWorkerRequestV2Schema.parse(
+    value,
+  )
+  const { requestBindingSha256, ...payload } = request
+  if (requestBindingSha256 !== sha256AuthorityValue(payload)) {
+    throw new TypeError('Track All L4 task-QA v2 request digest is invalid.')
+  }
+  return structuredClone(request)
+}
+
 export function buildCanonicalTrackAllSam31L4TaskQaWorkerResponse(
   input: z.input<typeof responseWithoutHashSchema>,
 ): CanonicalTrackAllSam31L4TaskQaWorkerResponse {
@@ -381,6 +562,34 @@ export function assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(
   const { responseBindingSha256, ...payload } = response
   if (responseBindingSha256 !== sha256AuthorityValue(payload)) {
     throw new TypeError('Track All L4 task-QA response digest is invalid.')
+  }
+  return structuredClone(response)
+}
+
+export function buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(
+  input: z.input<typeof responseV2WithoutHashSchema>,
+): CanonicalTrackAllSam31L4TaskQaWorkerResponseV2 {
+  assertPlainSerializedData(input, 'track_all_l4_task_qa_worker_response_v2')
+  const payload = responseV2WithoutHashSchema.parse(input)
+  if (payload.l4InvocationId === payload.sam31InvocationId) throw new TypeError(
+    'Track All L4 task-QA response collapsed separate job identities.',
+  )
+  return canonicalTrackAllSam31L4TaskQaWorkerResponseV2Schema.parse({
+    ...payload,
+    responseBindingSha256: sha256AuthorityValue(payload),
+  })
+}
+
+export function assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(
+  value: unknown,
+): CanonicalTrackAllSam31L4TaskQaWorkerResponseV2 {
+  assertPlainSerializedData(value, 'track_all_l4_task_qa_worker_response_v2')
+  const response = canonicalTrackAllSam31L4TaskQaWorkerResponseV2Schema.parse(
+    value,
+  )
+  const { responseBindingSha256, ...payload } = response
+  if (responseBindingSha256 !== sha256AuthorityValue(payload)) {
+    throw new TypeError('Track All L4 task-QA v2 response digest is invalid.')
   }
   return structuredClone(response)
 }

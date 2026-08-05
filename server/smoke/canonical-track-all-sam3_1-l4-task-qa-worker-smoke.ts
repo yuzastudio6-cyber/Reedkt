@@ -2,10 +2,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
 import {
-  assertCanonicalTrackAllSam31L4TaskQaWorkerRequest,
-  assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
-  buildCanonicalTrackAllSam31L4TaskQaWorkerRequest,
-  buildCanonicalTrackAllSam31L4TaskQaWorkerResponse,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -23,10 +23,11 @@ const ref = (id: string) => ({
 const manifestHash = sha256AuthorityValue({ manifest: 'exact-sam-output' })
 const sourceFrameMappingRef = ref('source-frame-mapping')
 const confirmedOutputFrameRef = ref('confirmed-output-frame')
-const request = buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
-  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v1',
+const request = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v2',
   operationId: 'tool.kornia.refine_mask.v1',
-  invocationId: 'track-all-l4-qa-invocation',
+  l4InvocationId: 'l4-execution-envelope',
+  sam31InvocationId: 'sam31-runtime-invocation',
   sam31TaskRef: ref('sam31-task'),
   sam31RuntimeRequestBindingSha256:
     sha256AuthorityValue({ sam31: 'runtime-request' }),
@@ -95,13 +96,13 @@ const request = buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
 })
 
 assert.equal(
-  assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(request)
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(request)
     .requestBindingSha256,
   request.requestBindingSha256,
 )
 assert.equal(
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef().id,
-  'canonical-track-all-sam3_1-l4-task-qa-fixed-task-v1',
+  'canonical-track-all-sam3_1-l4-task-qa-fixed-task-v2',
 )
 
 const measurement = (
@@ -132,9 +133,11 @@ const measurement = (
   completeRequestedRangeCoverage: true as const,
 })
 
-const response = buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
-  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1',
+const response = buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v2',
   operationId: 'tool.kornia.refine_mask.v1',
+  l4InvocationId: request.l4InvocationId,
+  sam31InvocationId: request.sam31InvocationId,
   requestBindingSha256: request.requestBindingSha256,
   status: 'completed',
   terminalStage: 'completed',
@@ -208,7 +211,7 @@ const response = buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
 })
 
 assert.equal(
-  assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(response).status,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(response).status,
   'completed',
 )
 const rawRef = (id: string, contentHash = sha256AuthorityValue({ id })) => ({
@@ -301,18 +304,18 @@ assert.equal(
 const { requestBindingSha256: _requestBindingSha256, ...requestPayload } =
   structuredClone(request)
 assert.equal(_requestBindingSha256, request.requestBindingSha256)
-assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerRequest({
+assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
   ...structuredClone(request),
   expectedMaskPngCount: 7,
 }))
-assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
   ...requestPayload,
   executionPolicy: {
     ...structuredClone(request.executionPolicy),
     cpuOnlySubstantiveMaskQaAllowed: true,
   },
 } as never))
-assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
   ...requestPayload,
   subjects: request.subjects.map((subject, index) => index === 0
     ? {
@@ -321,11 +324,28 @@ assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
       }
     : structuredClone(subject)),
 }))
-assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerResponse({
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
+  ...requestPayload,
+  l4InvocationId: request.sam31InvocationId,
+  l4ExecutionEnvelopeRef: {
+    ...request.l4ExecutionEnvelopeRef,
+    id: request.sam31InvocationId,
+  },
+}))
+assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
   ...structuredClone(response),
   customerCreditsMutated: true,
 }))
-assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
+  ...(() => {
+    const { responseBindingSha256: _digest, ...payload } =
+      structuredClone(response)
+    assert.equal(typeof _digest, 'string')
+    return payload
+  })(),
+  l4InvocationId: response.sam31InvocationId,
+}))
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
   ...structuredClone(response),
   responseBindingSha256: undefined,
   outputSummary: {
@@ -359,7 +379,7 @@ assert.throws(() =>
     workerResponse: response,
     measuredAt: '2026-08-05T20:00:00.000Z',
   }))
-const reorderedResponse = buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
+const reorderedResponse = buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
   ...(() => {
     const { responseBindingSha256: _responseBindingSha256, ...payload } =
       structuredClone(response)
@@ -397,9 +417,11 @@ assert.throws(() =>
     workerResponse: reorderedResponse,
     measuredAt: '2026-08-05T20:00:00.000Z',
   }))
-const failed = buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
-  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1',
+const failed = buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v2',
   operationId: 'tool.kornia.refine_mask.v1',
+  l4InvocationId: request.l4InvocationId,
+  sam31InvocationId: request.sam31InvocationId,
   requestBindingSha256: request.requestBindingSha256,
   status: 'failed',
   terminalStage: 'cuda_admission',
@@ -428,7 +450,7 @@ const accessor = Object.defineProperty({}, 'schemaVersion', {
     return request.schemaVersion
   },
 })
-assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(accessor))
+assert.throws(() => assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(accessor))
 assert.equal(getterInvoked, false)
 
 const runner = readFileSync(
@@ -443,6 +465,11 @@ const entrypoint = readFileSync(
 assert.match(runner, /kornia\.morphology\.closing/u)
 assert.match(runner, /cv2\.cuda\.countNonZero/u)
 assert.match(runner, /requested_keys != set\(mask_by_key\.keys\(\)\)/u)
+assert.match(runner, /configure_l4_paths\(l4_invocation_id\)/u)
+assert.match(runner, /configure_sam31_input_paths\(request\["sam31InvocationId"\]\)/u)
+assert.match(runner, /L4_INVOCATION_ROOT = base \/ l4_invocation_id/u)
+assert.match(runner, /SAM31_INVOCATION_ROOT = base \/ sam31_invocation_id/u)
+assert.doesNotMatch(runner, /RESPONSE_PATH = MASK_ROOT/u)
 assert.match(runner, /cpuOnlySubstantiveMaskQaUsed": False/u)
 assert.doesNotMatch(runner, /torch\.device\(["']cpu/u)
 assert.doesNotMatch(runner, /requests\.|urllib|https?:\/\//u)
@@ -457,6 +484,7 @@ console.log(JSON.stringify({
   requestValidated: true,
   completedAndFailedResponseValidated: true,
   workerResponseCompiledIntoCanonicalMeasurement: true,
+  separateSam31InputAndL4JobInvocationRootsRequired: true,
   everyRequestedMaskRequired: true,
   korniaCudaSubstantiveMeasurementRequired: true,
   opencvCudaEveryMaskCrosscheckRequired: true,

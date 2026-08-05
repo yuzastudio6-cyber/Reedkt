@@ -158,8 +158,31 @@ packaging==26.3 --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb55
 pillow==12.1.0 --hash=sha256:bef9768cab184e7ae6e559c032e95ba8d07b3023c289f79a2bd36e8bf85605a5
 EOF
 
-python -m pip install --no-deps --no-cache-dir --force-reinstall \
-  "${PRIVATE_ROOT}/python/wheelhouse/numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+readonly BUILDER_PYTHON="${WORK}/builder-python"
+mkdir -p "${BUILDER_PYTHON}"
+python - \
+  "${PRIVATE_ROOT}/python/wheelhouse/numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl" \
+  "${BUILDER_PYTHON}" <<'PY'
+from pathlib import Path, PurePosixPath
+import stat
+import sys
+from zipfile import ZipFile
+
+wheel = Path(sys.argv[1])
+destination = Path(sys.argv[2])
+with ZipFile(wheel) as archive:
+    for member in archive.infolist():
+        path = PurePosixPath(member.filename)
+        file_type = (member.external_attr >> 16) & 0o170000
+        if (
+            path.is_absolute()
+            or ".." in path.parts
+            or file_type == stat.S_IFLNK
+        ):
+            raise SystemExit("builder-only NumPy wheel path policy failed")
+    archive.extractall(destination)
+PY
+export PYTHONPATH="${BUILDER_PYTHON}"
 
 tar --extract --gzip --file "${WORK}/downloads/opencv.tar.gz" \
   --directory "${WORK}"
@@ -234,7 +257,7 @@ find "${PRIVATE_ROOT}/opencv/install" -type d -empty -delete
 cp "${OPENCV_SOURCE}/LICENSE" "${PRIVATE_ROOT}/opencv/LICENSE"
 
 readonly OPENCV_BUILD_INFO="${WORK}/opencv-build-information.txt"
-PYTHONPATH="${PRIVATE_ROOT}/opencv/install/python" \
+PYTHONPATH="${PRIVATE_ROOT}/opencv/install/python:${BUILDER_PYTHON}" \
 LD_LIBRARY_PATH="${PRIVATE_ROOT}/opencv/install/lib:/usr/local/cuda/lib64" \
 python - <<'PY' >"${OPENCV_BUILD_INFO}"
 import cv2

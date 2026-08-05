@@ -7,6 +7,7 @@
     "source_frame_authority_v1",
     "visual_ownership_manifest_v1",
     "track_all_scene_context_v1",
+    "track_all_preflight_observation_v1",
     "visual_intelligence_target_evidence_v1",
     "visual_intelligence_tracking_qa_v1",
     "approved_user_selection_v1",
@@ -287,6 +288,30 @@
       "requiresNewApproval": true,
       "ruleKey": "qualification_changed",
       "trigger": "route_qualification_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "preflight_changed",
+      "trigger": "preflight_observation_changed"
+    },
+    {
+      "invalidates": [
+        "plan",
+        "approval",
+        "work_graph",
+        "qa",
+        "result"
+      ],
+      "requiresNewApproval": true,
+      "ruleKey": "sam_profile_changed",
+      "trigger": "sam_runtime_profile_changed"
     }
   ],
   "knownLimitations": [
@@ -331,7 +356,8 @@
         "track_all.validate_track_graph",
         "track_all.prepare_composition_layer",
         "track_all.integrate_preview",
-        "track_all.no_action"
+        "track_all.no_action",
+        "track_all.project_result"
       ],
       "behavior": "requires_production_qualification",
       "limitationKey": "production_worker_absent",
@@ -368,7 +394,7 @@
       ]
     }
   ],
-  "manifestHash": "2125de0ac813dca9e6c8211639131fc389cd70979cb8344904e66fa58e94bf9d",
+  "manifestHash": "06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454",
   "mayOverlapWith": [
     {
       "condition": "track_graph_and_geometry_support",
@@ -460,6 +486,13 @@
     }
   ],
   "optionalInputs": [
+    {
+      "artifactType": "track_all_preflight_observation_v1",
+      "description": "Optional qualified track_all_preflight_observation_v1 authority.",
+      "key": "track_all_preflight_observation_v1",
+      "maximumCount": 1,
+      "minimumCount": 0
+    },
     {
       "artifactType": "visual_intelligence_target_evidence_v1",
       "description": "Optional qualified visual_intelligence_target_evidence_v1 authority.",
@@ -740,6 +773,7 @@
     "track_all_context_manifest_v1",
     "track_all_plan_v1",
     "track_all_planning_qa_report_v1",
+    "track_all_sam3_1_runtime_profile_v2",
     "track_all_work_graph_v1",
     "track_graph_v1",
     "track_graph_v2",
@@ -1238,6 +1272,23 @@
       ],
       "executionAllowed": true,
       "jobType": "track_all.no_action",
+      "minimumQualificationStatus": "planning_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": false,
+      "producedArtifactTypes": [
+        "track_all_result_receipt_v1"
+      ],
+      "requiredArtifactTypes": [
+        "track_all_plan_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
+        "result_projection"
+      ],
+      "executionAllowed": true,
+      "jobType": "track_all.project_result",
       "minimumQualificationStatus": "planning_qualified",
       "planningAllowed": true,
       "primaryVisualOwnershipPossible": false,

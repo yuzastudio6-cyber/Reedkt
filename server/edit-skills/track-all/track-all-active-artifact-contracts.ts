@@ -17,7 +17,7 @@ const trackAllJobTypes = new Set([
   'track_all.apply_privacy_redaction', 'track_all.apply_tracked_focus',
   'track_all.prepare_tracked_reframe', 'track_all.repair_track',
   'track_all.validate_track_graph', 'track_all.prepare_composition_layer',
-  'track_all.integrate_preview', 'track_all.no_action',
+  'track_all.integrate_preview', 'track_all.no_action', 'track_all.project_result',
 ])
 const trackAllArtifactTypes = new Set<string>([
   ...TRACK_ALL_ACCEPTED_ARTIFACT_TYPES,
@@ -143,6 +143,16 @@ export const trackAllWorkGraphArtifactSchema = addressed(z.object({
     if (item.stageId === 'no_action' && (item.createsMedia || item.createsGpuWork)) {
       context.addIssue({ code: 'custom', message: 'Track All no-action work cannot create media or GPU work.' })
     }
+    if (item.stageId === 'project_track_all_result' && (
+      item.parentJobType !== 'track_all.project_result' ||
+      item.operationId !== 'track_all.project_result.v1'
+    )) context.addIssue({
+      code: 'custom', message: 'Track All result projection uses the wrong public parent job.',
+    })
+    if (item.parentJobType === 'track_all.no_action' &&
+      item.operationId !== 'track_all.no_action.v1') context.addIssue({
+      code: 'custom', message: 'Track All no-action parent cannot authorize another operation.',
+    })
   }
   if (totalCredits > value.maximumCreditBudget) {
     context.addIssue({ code: 'custom', message: 'Track All atomic work exceeds the approved credit ceiling.' })

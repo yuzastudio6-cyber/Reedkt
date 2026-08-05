@@ -24,6 +24,8 @@ import { editSkillWorkResultSchema, type EditSkillWorkResult } from '../core/edi
 import { hashSkillValue } from '../core/skill-capability-manifest-hash'
 import { resolveAndValidateSkillAssignmentInputs } from '../core/skill-assignment-input-resolver'
 import type { SkillAssignment } from '../core/skill-assignment-types'
+import type { EditSkillRuntimeEnvironmentClass } from '../core/edit-skill-runtime'
+import type { SkillRouteQualificationRegistry } from '../core/skill-route-qualification'
 import { assertSkillAssignment, assertSkillRangeMutation } from '../core/skill-range-authority'
 import { createSkillPlanEnvelope } from '../core/skill-plan-envelope'
 import { createSkillResultEnvelope } from '../core/skill-result-envelope'
@@ -35,6 +37,12 @@ import {
 import { trackGraphV2Schema } from '../shared/track-graph/track-graph-schemas'
 import { TRACK_ALL_CAPABILITY_MANIFEST } from './track-all-capability-manifest'
 import { compileTrackAllPlan, type TrackAllPlanningAuthority } from './track-all-plan-compiler'
+import {
+  createTrackAllSam31RuntimeProfileV2,
+  createCurrentTrackAllSam31V2RouteGateReport,
+  trackAllPreflightObservationSchema,
+  trackAllSam31RuntimeProfileV2Schema,
+} from './track-all-planning-authorities'
 import {
   createTrackAllResultReceipt,
   privacyPolicySnapshotSchema,
@@ -64,8 +72,9 @@ interface LoadedAuthority extends TrackAllPlanningAuthority {
 function publicDisposition(plan: TrackAllPlan): EditSkillPublicPlan['envelope']['disposition'] {
   if (plan.decision === 'use_no_tracking') return 'use_no_action'
   if (plan.decision === 'needs_visual_intelligence') return 'needs_other_skill'
+  if (plan.decision === 'needs_preflight_observation' || plan.decision === 'needs_track_graph') return 'needs_other_skill'
   if (['needs_user_selection', 'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation', 'multiple_targets_ambiguous', 'identity_uncertain'].includes(plan.decision)) return 'needs_user_review'
-  if (['target_not_found', 'privacy_coverage_blocked', 'blocked'].includes(plan.decision)) return 'blocked'
+  if (['target_not_found', 'privacy_coverage_blocked', 'needs_route_qualification', 'blocked_external_sam_prerequisites', 'blocked'].includes(plan.decision)) return 'blocked'
   return 'use_skill'
 }
 
@@ -73,6 +82,10 @@ function resultStatus(plan: TrackAllPlan): Parameters<typeof createTrackAllResul
   switch (plan.decision) {
     case 'use_no_tracking': return 'use_no_tracking'
     case 'needs_visual_intelligence': return 'needs_visual_intelligence'
+    case 'needs_preflight_observation': return 'blocked'
+    case 'needs_track_graph': return 'blocked'
+    case 'needs_route_qualification': return 'blocked'
+    case 'blocked_external_sam_prerequisites': return 'blocked'
     case 'needs_user_selection': return 'needs_user_selection'
     case 'needs_range_expansion': return 'needs_range_expansion'
     case 'needs_manual_keyframe': return 'needs_manual_keyframe'
@@ -89,13 +102,24 @@ function resultStatus(plan: TrackAllPlan): Parameters<typeof createTrackAllResul
 export class TrackAllEditSkillPlugin implements EditSkillPlugin {
   readonly manifest = TRACK_ALL_CAPABILITY_MANIFEST
   readonly #artifacts: EditSkillArtifactStore
+  readonly #routeQualifications: SkillRouteQualificationRegistry
+  readonly #environmentClass: EditSkillRuntimeEnvironmentClass
 
-  constructor(input: { artifacts: EditSkillArtifactStore }) { this.#artifacts = input.artifacts }
+  constructor(input: {
+    artifacts: EditSkillArtifactStore
+    routeQualifications: SkillRouteQualificationRegistry
+    environmentClass: EditSkillRuntimeEnvironmentClass
+  }) {
+    this.#artifacts = input.artifacts
+    this.#routeQualifications = input.routeQualifications
+    this.#environmentClass = input.environmentClass
+  }
 
   async planAssignment(input: { assignment: SkillAssignment }): Promise<EditSkillPublicPlan> {
     const assignment = this.#assertAssignment(input.assignment)
     const authority = await this.#loadAuthority(assignment)
     const { plan, planningQaReport } = compileTrackAllPlan({ authority, manifest: this.manifest })
+    const profileRef = await this.#artifacts.putJson({ artifactType: 'track_all_sam3_1_runtime_profile_v2', value: authority.samRuntimeProfile, ...scope(assignment) })
     const qaRef = await this.#artifacts.putJson({ artifactType: 'track_all_planning_qa_report_v1', value: planningQaReport, ...scope(assignment) })
     if (qaRef.sha256 !== plan.planningQaReportHash) throw new Error('Track All planning QA persistence lost exact lineage.')
     const planRef = await this.#artifacts.putJson({ artifactType: 'track_all_plan_v1', value: plan, ...scope(assignment) })
@@ -114,10 +138,16 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
       planId: envelope.planId, planHash: envelope.planHash, manifestRef: assignment.manifestRef,
       authorizedRange: assignment.authorizedRange, dependencySkillKey: plan.dependencySkillKey!,
       requiredArtifactType: plan.requiredDependencyArtifactType!, requiredForPhase: plan.requiredForPhase!,
-      minimumQualificationStatus: 'internal_execution_qualified',
-      reason: 'Track All requires model-neutral semantic target evidence before compiling a target claim.', required: true,
+      minimumQualificationStatus: plan.requiredDependencyArtifactType === 'track_all_preflight_observation_v1'
+        ? 'planning_qualified'
+        : 'internal_execution_qualified',
+      reason: plan.requiredDependencyArtifactType === 'track_all_preflight_observation_v1'
+        ? 'Track All requires content-addressed measured preflight evidence before deriving initialization, risk, chunk, or repair values.'
+        : plan.requiredDependencyArtifactType === 'track_graph_v2'
+          ? 'Track All requires an exact existing model-neutral Track Graph before applying this treatment without unnecessary SAM work.'
+          : 'Track All requires model-neutral semantic target evidence before compiling a target claim.', required: true,
     }))
-    return createEditSkillPublicPlan({ schemaVersion: 'edit-skill-public-plan-v1', envelope, payloadRef: planRef, evidenceRefs: [qaRef, ...authority.refs], dependencyRequests })
+    return createEditSkillPublicPlan({ schemaVersion: 'edit-skill-public-plan-v1', envelope, payloadRef: planRef, evidenceRefs: [qaRef, profileRef, ...authority.refs], dependencyRequests })
   }
 
   async compileApprovedWorkGraph(input: { assignment: SkillAssignment; plan: EditSkillPublicPlan; approval: EditSkillPlanApproval }): Promise<EditSkillApprovedWorkGraph> {
@@ -156,17 +186,27 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const request = editSkillDependencyRequestSchema.parse(input.request)
     if (!input.plan.dependencyRequests.some((candidate) => candidate.requestHash === request.requestHash) || request.assignmentId !== assignment.assignmentId || request.assignmentHash !== assignment.assignmentHash || request.planId !== input.plan.envelope.planId || request.planHash !== input.plan.envelope.planHash || !same(request.manifestRef, assignment.manifestRef) || !same(request.authorizedRange, assignment.authorizedRange) || input.artifactRef.artifactType !== request.requiredArtifactType) throw new Error('Track All rejected an unrequested dependency artifact.')
     const value = await this.#artifacts.readJson({ reference: input.artifactRef, ...scope(assignment) })
-    if (request.requiredArtifactType !== 'visual_intelligence_target_evidence_v1') throw new Error('Track All dependency artifact type is unsupported.')
-    const evidence = visualIntelligenceTargetEvidenceSchema.parse(value)
     const authority = await this.#loadAuthority(assignment)
     const target = trackAllTargetSpecificationSchema.parse(authority.target)
-    if (evidence.ownerUserId !== assignment.ownerUserId || evidence.workspaceId !== assignment.workspaceId || evidence.projectId !== assignment.projectId || evidence.assignmentHash !== authority.assignment.assignmentHash || evidence.targetHash !== target.targetHash || evidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange) || evidence.candidateRegions.some((region) => region.frameIndex < assignment.authorizedRange.startFrameInclusive || region.frameIndex >= assignment.authorizedRange.endFrameExclusive) || !['internal_execution_qualified', 'production_qualified'].includes(evidence.qualificationStatus)) throw new Error('Visual Intelligence target evidence has stale, cross-tenant, out-of-range, or under-qualified lineage.')
+    let productionQualified = false
+    if (request.requiredArtifactType === 'visual_intelligence_target_evidence_v1') {
+      const evidence = visualIntelligenceTargetEvidenceSchema.parse(value)
+      if (evidence.ownerUserId !== assignment.ownerUserId || evidence.workspaceId !== assignment.workspaceId || evidence.projectId !== assignment.projectId || evidence.assignmentHash !== authority.assignment.assignmentHash || evidence.targetHash !== target.targetHash || evidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange) || evidence.candidateRegions.some((region) => region.frameIndex < assignment.authorizedRange.startFrameInclusive || region.frameIndex >= assignment.authorizedRange.endFrameExclusive) || !['internal_execution_qualified', 'production_qualified'].includes(evidence.qualificationStatus)) throw new Error('Visual Intelligence target evidence has stale, cross-tenant, out-of-range, or under-qualified lineage.')
+      productionQualified = evidence.qualificationStatus === 'production_qualified' && !evidence.testOnlyInjected
+    } else if (request.requiredArtifactType === 'track_all_preflight_observation_v1') {
+      const evidence = trackAllPreflightObservationSchema.parse(value)
+      if (evidence.ownerUserId !== assignment.ownerUserId || evidence.workspaceId !== assignment.workspaceId || evidence.projectId !== assignment.projectId || evidence.editSessionId !== assignment.editSessionId || evidence.assignmentId !== assignment.assignmentId || evidence.assignmentHash !== authority.assignment.assignmentHash || evidence.targetHash !== target.targetHash || evidence.sourceChecksum !== authority.sourceFrames.sourceChecksum || !same(evidence.authorizedRange, assignment.authorizedRange)) throw new Error('Track All preflight evidence has stale tenant, source, assignment, target, or range lineage.')
+      productionQualified = evidence.qualificationStatus === 'production_qualified'
+    } else if (request.requiredArtifactType === 'track_graph_v2') {
+      const graph = trackGraphV2Schema.parse(value)
+      if (graph.ownerUserId !== assignment.ownerUserId || graph.workspaceId !== assignment.workspaceId || graph.projectId !== assignment.projectId || graph.editSessionId !== assignment.editSessionId || graph.sourceSha256 !== authority.sourceFrames.sourceChecksum || graph.authorizedRangeHash !== hashSkillValue(graph.authorizedRange)) throw new Error('Track All graph dependency has stale tenant, source, session, or range lineage.')
+    } else throw new Error('Track All dependency artifact type is unsupported.')
     return createEditSkillDependencyAcceptance({
       schemaVersion: 'edit-skill-dependency-acceptance-v1', requestHash: request.requestHash,
       assignmentId: assignment.assignmentId, assignmentHash: assignment.assignmentHash,
       planHash: input.plan.envelope.planHash, manifestRef: assignment.manifestRef,
       artifactRef: input.artifactRef, validatedArtifactHash: input.artifactRef.sha256,
-      acceptedForPhase: request.requiredForPhase, productionQualified: evidence.qualificationStatus === 'production_qualified' && !evidence.testOnlyInjected,
+      acceptedForPhase: request.requiredForPhase, productionQualified,
     })
   }
 
@@ -260,6 +300,10 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     if (!qaRef) throw new Error('Track All plan lacks planning QA lineage.')
     const qa = trackAllPlanningQaReportSchema.parse(await this.#artifacts.readJson({ reference: qaRef, ...scope(assignment) }))
     if (qaRef.sha256 !== plan.planningQaReportHash || qa.assignmentHash !== plan.assignmentHash || qa.targetHash !== plan.targetHash || qa.passed !== plan.planningQaPassed) throw new Error('Track All planning QA lineage is stale.')
+    const profileRef = publicPlan.evidenceRefs.find((ref) => ref.artifactType === 'track_all_sam3_1_runtime_profile_v2')
+    if (!profileRef) throw new Error('Track All plan lacks SAM runtime profile lineage.')
+    const profile = trackAllSam31RuntimeProfileV2Schema.parse(await this.#artifacts.readJson({ reference: profileRef, ...scope(assignment) }))
+    if (profile.profileHash !== plan.samRuntimeProfileHash) throw new Error('Track All plan SAM runtime profile is stale.')
     return plan
   }
 
@@ -296,6 +340,7 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
     const existingGraphEntry = optional('track_graph_v2')
     const priorRepairEntry = optional('prior_track_repair_evidence_v1')
     const captionZonesEntry = optional('caption_reserved_zones_v1')
+    const preflightEntry = optional('track_all_preflight_observation_v1')
     const visualIntelligenceEvidence = viEntry
       ? visualIntelligenceTargetEvidenceSchema.parse(viEntry.value)
       : undefined
@@ -310,6 +355,9 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
       : undefined
     const captionReservedZones = captionZonesEntry
       ? trackAllCaptionReservedZonesSchema.parse(captionZonesEntry.value)
+      : undefined
+    const preflightObservation = preflightEntry
+      ? trackAllPreflightObservationSchema.parse(preflightEntry.value)
       : undefined
     if (visualIntelligenceEvidence && (visualIntelligenceEvidence.assignmentHash !== specialized.assignmentHash || visualIntelligenceEvidence.targetHash !== target.targetHash || visualIntelligenceEvidence.authorizedRangeHash !== hashSkillValue(assignment.authorizedRange))) throw new Error('Visual Intelligence target evidence has stale assignment, target, or range lineage.')
     if (privacyPolicy && (privacyPolicy.ownerUserId !== assignment.ownerUserId || privacyPolicy.workspaceId !== assignment.workspaceId || privacyPolicy.projectId !== assignment.projectId)) throw new Error('Privacy policy is cross-tenant.')
@@ -354,11 +402,35 @@ export class TrackAllEditSkillPlugin implements EditSkillPlugin {
       !same(captionReservedZones.manifestRef, assignment.manifestRef) ||
       !same(captionReservedZones.authorizedRange, assignment.authorizedRange)
     )) throw new Error('Caption reserved zones have stale tenant, assignment, or range lineage.')
+    if (preflightObservation && (
+      preflightObservation.ownerUserId !== assignment.ownerUserId ||
+      preflightObservation.workspaceId !== assignment.workspaceId ||
+      preflightObservation.projectId !== assignment.projectId ||
+      preflightObservation.editSessionId !== assignment.editSessionId ||
+      preflightObservation.assignmentId !== assignment.assignmentId ||
+      preflightObservation.assignmentHash !== specialized.assignmentHash ||
+      preflightObservation.targetHash !== target.targetHash ||
+      preflightObservation.sourceChecksum !== sourceFrames.sourceChecksum ||
+      !same(preflightObservation.authorizedRange, assignment.authorizedRange)
+    )) throw new Error('Track All preflight observation has stale tenant, source, assignment, target, or range lineage.')
+    const routeQualifications = this.#routeQualifications.list().filter((receipt) =>
+      receipt.manifestRef.manifestHash === assignment.manifestRef.manifestHash &&
+      receipt.environmentClass === this.#environmentClass)
+    const samRouteReceipt = routeQualifications.find((receipt) =>
+      receipt.routeKey === 'sam3_1_masklet_route')
+    if (!samRouteReceipt) throw new Error('Track All SAM runtime profile lacks exact route qualification authority.')
+    const samRuntimeProfile = createTrackAllSam31RuntimeProfileV2({
+      routeReceipt: samRouteReceipt,
+      routeGateReport: createCurrentTrackAllSam31V2RouteGateReport({
+        generatedAt: '2026-08-04T00:00:00.000Z',
+      }),
+    })
     return {
       genericAssignment: assignment, assignment: specialized, target, sourceInventory,
       masterTiming, sourceFrames, visualOwnership, sceneContext,
       visualIntelligenceEvidence, privacyPolicy, existingTrackGraph,
-      priorTrackRepairEvidence, captionReservedZones,
+      priorTrackRepairEvidence, captionReservedZones, preflightObservation,
+      samRuntimeProfile, routeQualifications,
       refs: [...assignment.contextArtifactRefs, ...assignment.dependencyArtifactRefs],
     }
   }

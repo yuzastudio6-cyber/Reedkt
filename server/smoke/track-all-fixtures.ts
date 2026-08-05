@@ -18,6 +18,7 @@ import {
   createTrackAllAssignment,
   createTrackAllSceneContext,
   createTrackAllTargetSpecification,
+  createTrackAllPreflightObservation,
   createTrackAllWriteAuthorityHash,
   type TrackAllAssignment,
   type TrackAllTargetSpecification,
@@ -41,6 +42,7 @@ export interface TrackAllAuthorityFixture {
     sourceFrames: EditSkillArtifactReference
     visualOwnership: EditSkillArtifactReference
     sceneContext: EditSkillArtifactReference
+    preflight?: EditSkillArtifactReference
   }
 }
 
@@ -91,6 +93,8 @@ export async function createTrackAllAuthorityFixture(input: {
   groundingKind?: 'bounding_box' | 'text_concept' | 'existing_track_reference'
   groundingArtifactRef?: EditSkillArtifactReference
   priorTrackGraphRefs?: readonly EditSkillArtifactReference[]
+  includePreflightObservation?: boolean
+  preflightRisk?: number
 }): Promise<TrackAllAuthorityFixture> {
   const scope = TRACK_ALL_FIXTURE_SCOPE
   const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
@@ -253,6 +257,64 @@ export async function createTrackAllAuthorityFixture(input: {
   const specializedAssignmentRef = await input.runtime.artifactStore.putJson({
     artifactType: 'track_all_assignment_v1', value: specializedAssignment, ...scope,
   })
+  const preflightRef = input.includePreflightObservation === false
+    ? undefined
+    : await input.runtime.artifactStore.putJson({
+      artifactType: 'track_all_preflight_observation_v1',
+      value: createTrackAllPreflightObservation({
+        schemaVersion: 'track_all_preflight_observation_v1',
+        ...scope,
+        editSessionId,
+        assignmentId: input.assignmentId,
+        assignmentHash: specializedAssignment.assignmentHash,
+        targetHash: target.targetHash,
+        sourceChecksum: sourceFrames.sourceChecksum,
+        authorizedRange,
+        authorizedRangeHash: hashSkillValue(authorizedRange),
+        candidateFrames: [
+          input.groundingFrame ?? authorizedRange.startFrameInclusive,
+          Math.floor((authorizedRange.startFrameInclusive + authorizedRange.endFrameExclusive - 1) / 2),
+        ].filter((frameIndex, index, frames) =>
+          frames.indexOf(frameIndex) === index &&
+          frameIndex >= authorizedRange.startFrameInclusive &&
+          frameIndex < authorizedRange.endFrameExclusive)
+          .map((frameIndex, index) => ({
+            frameIndex,
+            visibility: index === 0 ? 0.88 : 0.96,
+            normalizedTargetSize: index === 0 ? 0.52 : 0.61,
+            sharpness: index === 0 ? 0.79 : 0.92,
+            motionBlur: input.preflightRisk ?? (index === 0 ? 0.22 : 0.08),
+            edgeTruncation: index === 0 ? 0.12 : 0.03,
+            cameraStability: index === 0 ? 0.75 : 0.91,
+            cameraMotionRisk: input.preflightRisk ?? (index === 0 ? 0.31 : 0.14),
+            targetMotion: input.preflightRisk ?? (index === 0 ? 0.37 : 0.18),
+            occlusionLikelihood: input.preflightRisk ?? (index === 0 ? 0.28 : 0.09),
+            similarObjectAmbiguity: index === 0 ? 0.18 : 0.07,
+            ocrReadability: target.semanticClass.includes('screen') ? 0.82 : 0,
+            plateScreenDocumentVisibility: ['plate', 'screen', 'document']
+              .some((value) => target.semanticClass.includes(value)) ? 0.84 : 0,
+            evidenceHashes: [hashSkillValue({
+              sourceChecksum: sourceFrames.sourceChecksum,
+              targetHash: target.targetHash,
+              frameIndex,
+              measurementProfile: 'track_all_fixture_measured_preflight_v1',
+            })],
+          })),
+        producerAuthority: {
+          operationId: 'track_all.observe_preflight.v1',
+          workerClass: 'track_all_geometry_worker',
+          sourceEvidenceHash: hashSkillValue({
+            sourceFrames,
+            sceneContext,
+            targetHash: target.targetHash,
+          }),
+          callerSuppliedMeasurementsAccepted: false,
+        },
+        qualificationStatus: 'internal_execution_qualified',
+        observedAt: '2026-08-04T00:00:00.000Z',
+      }),
+      ...scope,
+    })
   const assignment = createSkillAssignment({
     schemaVersion: 'edit-skill-assignment-v1', assignmentId: input.assignmentId,
     ...scope, editSessionId, planningRequestId: `request-${input.assignmentId}`,
@@ -263,6 +325,7 @@ export async function createTrackAllAuthorityFixture(input: {
     contextArtifactRefs: [
       specializedAssignmentRef, targetRef, sourceInventoryRef, masterTimingRef,
       sourceFramesRef, visualOwnershipRef, sceneContextRef,
+      ...(preflightRef ? [preflightRef] : []),
     ],
     dependencyArtifactRefs: [], requestedBySkill: 'orchestra',
   })
@@ -273,6 +336,7 @@ export async function createTrackAllAuthorityFixture(input: {
       sourceInventory: sourceInventoryRef, masterTiming: masterTimingRef,
       sourceFrames: sourceFramesRef, visualOwnership: visualOwnershipRef,
       sceneContext: sceneContextRef,
+      ...(preflightRef ? { preflight: preflightRef } : {}),
     },
   }
 }

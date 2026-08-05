@@ -90,7 +90,7 @@ export const trackAllInitializationInputSchema = z.object({
     frameIndex: z.number().int().nonnegative(), visibility: risk, targetSize: risk,
     sharpness: risk, motionBlur: risk, occlusion: risk, similarObjectAmbiguity: risk,
     edgeTruncation: risk, cameraStability: risk, textReadability: risk.optional(),
-  }).strict()).max(1_000),
+  }).strict()).min(1).max(1_000),
 }).strict()
 
 export function selectTrackAllInitializationFrame(input: z.input<typeof trackAllInitializationInputSchema>) {
@@ -98,12 +98,10 @@ export function selectTrackAllInitializationFrame(input: z.input<typeof trackAll
   const inRange = parsed.candidates.filter((candidate) =>
     candidate.frameIndex >= parsed.authorizedRange.startFrameInclusive &&
     candidate.frameIndex < parsed.authorizedRange.endFrameExclusive)
-  const candidates = inRange.length > 0 ? inRange : [{
-    frameIndex: Math.floor((parsed.authorizedRange.startFrameInclusive + parsed.authorizedRange.endFrameExclusive - 1) / 2),
-    visibility: 0.5, targetSize: 0.5, sharpness: 0.5, motionBlur: 0.5,
-    occlusion: 0.5, similarObjectAmbiguity: 0.5, edgeTruncation: 0.5,
-    cameraStability: 0.5,
-  }]
+  if (inRange.length === 0) {
+    throw new Error('Track All initialization requires measured in-range preflight candidates.')
+  }
+  const candidates = inRange
   const score = (candidate: (typeof candidates)[number]) =>
     candidate.visibility * 2 + candidate.targetSize + candidate.sharpness * 2 +
     candidate.cameraStability + (candidate.textReadability ?? 0) -
@@ -125,7 +123,7 @@ export const trackAllMultiplexBudgetInputSchema = z.object({
   expectedObjects: z.number().int().nonnegative().max(128),
   approvedMaximumObjects: z.number().int().positive().max(128),
   chunkCount: z.number().int().nonnegative().max(1_000),
-  bucketSize: z.literal(16),
+  bucketSize: z.number().int().positive().max(128),
   maximumBuckets: z.number().int().positive().max(8),
   samRequired: z.boolean(),
 }).strict()

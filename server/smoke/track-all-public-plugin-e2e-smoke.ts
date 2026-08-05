@@ -164,6 +164,9 @@ results.push(await executeScenario({
   }),
 }))
 
+const privacyGraphRef = await createTrackAllPriorGraphFixture({
+  runtime, nextAssignmentId: 'public-privacy-redaction',
+})
 const privacyFixture = await createTrackAllAuthorityFixture({
   runtime, assignmentId: 'public-privacy-redaction',
   requestedJobType: 'track_all.apply_privacy_redaction',
@@ -171,26 +174,36 @@ const privacyFixture = await createTrackAllAuthorityFixture({
   targetDescription: 'The selected privacy-critical face.',
   privacyClassification: 'high_assurance', targetCriticality: 'privacy_critical',
   privacyCriticality: 'high',
+  priorTrackGraphRefs: [privacyGraphRef],
 })
 const privacyPolicyRef = await persistPrivacyPolicy(runtime)
 results.push(await executeScenario({
   key: 'privacy-redaction', fixture: privacyFixture,
-  extraContextRefs: [privacyPolicyRef],
+  extraContextRefs: [privacyPolicyRef, privacyGraphRef],
 }))
 
+const focusGraphRef = await createTrackAllPriorGraphFixture({
+  runtime, nextAssignmentId: 'public-product-focus',
+})
 results.push(await executeScenario({
   key: 'product-focus',
   fixture: await createTrackAllAuthorityFixture({
     runtime, assignmentId: 'public-product-focus',
     requestedJobType: 'track_all.apply_tracked_focus', intendedTreatment: 'tracked_focus',
     targetSemanticClass: 'product', targetDescription: 'The selected product.',
+    priorTrackGraphRefs: [focusGraphRef],
   }),
+  extraContextRefs: [focusGraphRef],
 }))
 
+const reframeGraphRef = await createTrackAllPriorGraphFixture({
+  runtime, nextAssignmentId: 'public-speaker-reframe',
+})
 const reframeFixture = await createTrackAllAuthorityFixture({
   runtime, assignmentId: 'public-speaker-reframe',
   requestedJobType: 'track_all.prepare_tracked_reframe', intendedTreatment: 'tracked_reframe',
   targetSemanticClass: 'person', targetDescription: 'The selected anonymous speaker.',
+  priorTrackGraphRefs: [reframeGraphRef],
 })
 const captionZonesRef = await createTrackAllCaptionZonesFixture({
   runtime, assignment: reframeFixture.assignment,
@@ -198,9 +211,12 @@ const captionZonesRef = await createTrackAllCaptionZonesFixture({
 })
 results.push(await executeScenario({
   key: 'speaker-reframe', fixture: reframeFixture,
-  extraContextRefs: [captionZonesRef],
+  extraContextRefs: [captionZonesRef, reframeGraphRef],
 }))
 
+const brollGraphRef = await createTrackAllPriorGraphFixture({
+  runtime, nextAssignmentId: 'public-broll-handoff',
+})
 results.push(await executeScenario({
   key: 'b-roll-track-graph-v1', handoffKind: 'b_roll',
   fixture: await createTrackAllAuthorityFixture({
@@ -208,9 +224,14 @@ results.push(await executeScenario({
     requestedJobType: 'track_all.produce_selected_target_graph',
     intendedTreatment: 'geometry_only', targetSemanticClass: 'person',
     targetDescription: 'The anonymous presenter safe-region subject.',
+    priorTrackGraphRefs: [brollGraphRef],
   }),
+  extraContextRefs: [brollGraphRef],
 }))
 
+const captionGraphRef = await createTrackAllPriorGraphFixture({
+  runtime, nextAssignmentId: 'public-caption-handoff',
+})
 results.push(await executeScenario({
   key: 'captions-behind-subject', handoffKind: 'captions',
   fixture: await createTrackAllAuthorityFixture({
@@ -218,7 +239,9 @@ results.push(await executeScenario({
     requestedJobType: 'track_all.produce_selected_target_graph',
     intendedTreatment: 'geometry_only', targetSemanticClass: 'person',
     targetDescription: 'The anonymous foreground caption subject.',
+    priorTrackGraphRefs: [captionGraphRef],
   }),
+  extraContextRefs: [captionGraphRef],
 }))
 
 assert.equal(results.length, 11)
@@ -229,7 +252,9 @@ assert.deepEqual(new Set(results.map((value) => value.key)), new Set([
   'b-roll-track-graph-v1', 'captions-behind-subject',
 ]))
 assert.equal(results.every((value) => value.workItemCount === value.dispatchReceiptCount), true)
-assert.equal(results.find((value) => value.key === 'all-faces-except-presenter')?.decision, 'produce_track_graph')
+assert.equal(results.find((value) => value.key === 'all-faces-except-presenter')?.decision, 'blocked_external_sam_prerequisites')
+assert.equal(results.find((value) => value.key === 'selected-plate')?.decision, 'blocked_external_sam_prerequisites')
+assert.equal(results.find((value) => value.key === 'freeform-room-region')?.decision, 'blocked_external_sam_prerequisites')
 assert.equal(results.find((value) => value.key === 'privacy-redaction')?.decision, 'apply_privacy_redaction')
 assert.equal(results.find((value) => value.key === 'planar-screen')?.decision, 'track_planar_region')
 assert.equal(results.find((value) => value.key === 'existing-track-repair')?.decision, 'repair_existing_track')
@@ -317,10 +342,15 @@ async function executePublicLifecycle(input: {
       adapterClass: 'internal_qualification_adapter',
       environmentClass: 'internal_fixture',
     })
+    const routeReceipt = runtime.routeQualificationRegistry.list().find((receipt) =>
+      receipt.routeKey === binding.definition.routeKey &&
+      receipt.environmentClass === 'internal_fixture')!
     const dispatch = await runtime.runtimeDispatcher.dispatchApprovedWorkItem({
       manifestRef, workItem: item, approval,
       authorizedPhase: binding.definition.allowedPhases[0]!,
-      expectedQualification: 'internal_execution_qualified',
+      ...(routeReceipt.qualificationStatus === 'blocked'
+        ? {}
+        : { expectedQualification: routeReceipt.qualificationStatus }),
     })
     assert.equal(dispatch.status, 'succeeded')
     assert.equal(dispatch.providerRequestCount, 0)

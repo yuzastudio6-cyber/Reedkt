@@ -30,7 +30,7 @@ import { tryLoadTrackAllGeneratedQualificationArtifact } from './track-all-quali
 import { computeTrackAllQualificationDependencyAuthorityHashes } from './track-all-qualification-dependency-authorities'
 import { computeTrackAllRelevantSourceTreeHash } from './track-all-qualification-source-hash'
 import {
-  createTrackAllInternalRouteQualificationCandidateReceipt,
+  createTrackAllInternalRouteQualificationCandidateReceipts,
   createTrackAllRouteQualificationReceipts,
 } from './track-all-route-qualification'
 
@@ -39,6 +39,7 @@ export * from './track-all-active-artifact-contracts'
 export * from './track-all-capability-manifest'
 export * from './track-all-edit-skill-plugin'
 export * from './track-all-plan-compiler'
+export * from './track-all-planning-authorities'
 export * from './track-all-qa-policy'
 export * from './track-all-qualification'
 export * from './track-all-qualification-command-catalog'
@@ -92,6 +93,7 @@ export function registerTrackAllSkill(input: {
   qualifications: SkillQualificationRegistry
   routeQualifications: SkillRouteQualificationRegistry
   catalog: SkillReferenceCatalog
+  environmentClass: 'internal_fixture' | 'canonical_private' | 'production_server'
 }): void {
   const qualificationGenerationMode =
     process.env.REEDITPRO_TRACK_ALL_QUALIFICATION_GENERATING === '1'
@@ -137,13 +139,9 @@ export function registerTrackAllSkill(input: {
       bindings: routeBindingDefinitions,
     })
   } else {
-    const receipt = createTrackAllInternalRouteQualificationCandidateReceipt({
+    for (const receipt of createTrackAllInternalRouteQualificationCandidateReceipts({
       bindings: routeBindingDefinitions,
-    })
-    input.routeQualifications.register({
-      receipt,
-      bindings: routeBindingDefinitions,
-    })
+    })) input.routeQualifications.register({ receipt, bindings: routeBindingDefinitions })
   }
   registerTrackAllArtifactSchemas(input.artifacts)
   registerTrackAllQaPolicies(input.qa)
@@ -163,7 +161,11 @@ export function registerTrackAllSkill(input: {
   input.capabilities.registerManifest(TRACK_ALL_CAPABILITY_MANIFEST)
   registerTrackAllRuntimeBindings(input.runtimeBindings)
   input.workGraphJobs.push(...TRACK_ALL_WORK_GRAPH_JOB_DEFINITIONS)
-  const plugin = new TrackAllEditSkillPlugin({ artifacts: input.artifactStore })
+  const plugin = new TrackAllEditSkillPlugin({
+    artifacts: input.artifactStore,
+    routeQualifications: input.routeQualifications,
+    environmentClass: input.environmentClass,
+  })
   input.plugins.register(plugin)
   input.capabilities.registerHandler({ skillKey: 'track_all', skillVersion: '1.0.0', handler: new TrackAllSkillService(plugin) })
   if (generatedQualification) {

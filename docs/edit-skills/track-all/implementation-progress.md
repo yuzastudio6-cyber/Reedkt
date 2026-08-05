@@ -1328,3 +1328,70 @@ explicitly blocked pending TRACK-23/TRACK-24 evidence; its internal fixture
 route remains usable only in the internal environment. No real SAM, provider,
 GPU, public artifact, production mutation, peer-skill implementation, or head
 orchestra action occurred.
+
+## TRACK-22 — evidence-derived planning and route-coherent work graphs
+
+Status: implementation and focused validation complete; exact source and
+generated-evidence commit SHAs are recorded in the remote-evidence closeout
+entry after aggregate qualification finishes.
+
+Implemented:
+
+- added strict, content-addressed `track_all_preflight_observation_v1` and
+  `track_all_sam3_1_runtime_profile_v2` authorities;
+- made initialization-frame selection, target/camera/occlusion risk, dynamic
+  overlap, multiplex limits, and deterministic repair cost derive from those
+  measured/versioned authorities instead of planner placeholders;
+- made missing preflight evidence return a typed dependency request and made
+  forged, stale, cross-assignment, or mismatched evidence fail closed;
+- selected one exact route before work-graph compilation and bound the plan to
+  its independently verified route-qualification receipt;
+- made the externally blocked real SAM route produce an exact blocked
+  disposition, missing-gate evidence, zero model/GPU/media work, and no Track
+  Graph acceptance projection;
+- kept existing-graph privacy/focus/reframe, planar, deterministic repair,
+  no-action, dependency, and blocked routes free of SAM/GPU work;
+- introduced `track_all.project_result` as the dedicated result-projection job
+  and added static rejection of result work parented to no-action;
+- added a focused route-coherence suite proving profile limits, preflight
+  derivation, forged-evidence rejection, blocked-SAM behavior, seven SAM-free
+  graphs, and exact projection semantics;
+- increased the Track All qualification command catalog to 28 actual commands
+  while preserving 21 fixture records and honest route-level status.
+
+Actual focused checks passed before source freeze:
+
+```text
+npm run typecheck:server
+npm run lint
+npm run check:frontend-boundary
+npm run test:track-all-planning
+npm run test:track-all-runtime-bindings
+npm run test:track-all-public-plugin-e2e
+npm run test:track-all-authority
+npm run test:track-all-evidence-route-coherence
+npm run test:track-all-capability-manifest
+npm run test:track-all-artifact-contracts
+npm run test:track-all-deterministic-geometry
+npm run test:track-all-sam3.1-operation-authority
+npm run test:track-all-sam3.1-route-gates
+npm run test:track-all-sam3.1-injected-session
+npm run test:track-all-chunk-identity
+npm run test:track-all-privacy-redaction
+npm run test:track-all-focus-reframe
+npm run test:track-all-cross-skill-handoffs
+npm run test:track-all-independent-qa-repair
+npm run test:track-all-qualification-evidence
+npm run test:track-all-retirement
+npm run test:edit-skill-route-qualification
+npm run test:edit-skill-capability-kernel
+git diff --check
+```
+
+The capability-manifest aggregate validator correctly reports the prior
+B-Roll generated receipt stale before regeneration because TRACK-22 changes
+the shared runtime construction source. That is the intended fail-closed
+behavior, not a passing result; both B-Roll and Track All qualification
+artifacts are regenerated from the clean TRACK-22 source commit before this
+milestone closes. No real SAM, provider, GPU, public artifact, production
+mutation, peer-skill implementation, or head orchestra action occurred.

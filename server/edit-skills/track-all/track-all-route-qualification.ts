@@ -21,24 +21,25 @@ export function createTrackAllRouteQualificationReceipts(input: {
   bindings: readonly SkillJobRuntimeBindingDefinition[]
 }): readonly SkillRouteQualificationReceipt[] {
   const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
-  const internalBindings = input.bindings.filter((binding) =>
-    binding.routeKey === 'public_plugin_lifecycle_route' &&
-    binding.environmentClass === 'internal_fixture')
-  const lifecycleEvidence = input.artifact.routeQualifications.find((route) =>
-    route.routeKey === 'public_plugin_lifecycle_route')
-  if (!lifecycleEvidence || internalBindings.length === 0) {
-    throw new Error('Track All internal route evidence or bindings are missing.')
-  }
-  const receipts: SkillRouteQualificationReceipt[] = [
-    createSkillRouteQualificationReceipt({
+  const receipts: SkillRouteQualificationReceipt[] = []
+  const internalRoutes = new Set(input.bindings.filter((binding) =>
+    binding.environmentClass === 'internal_fixture').map((binding) => binding.routeKey))
+  for (const routeKey of internalRoutes) {
+    const bindings = input.bindings.filter((binding) =>
+      binding.environmentClass === 'internal_fixture' && binding.routeKey === routeKey)
+    const evidence = input.artifact.routeQualifications.find((route) =>
+      route.routeKey === routeKey)
+    if (!evidence) throw new Error(`Track All internal route evidence is missing: ${routeKey}.`)
+    const blocked = evidence.qualificationStatus === 'blocked'
+    receipts.push(createSkillRouteQualificationReceipt({
       schemaVersion: 'edit-skill-route-qualification-receipt-v1',
       manifestRef,
       skillQualificationReceiptHash: input.artifact.receipt.receiptHash,
-      routeKey: 'public_plugin_lifecycle_route',
+      routeKey,
       environmentClass: 'internal_fixture',
-      qualificationStatus: 'internal_execution_qualified',
-      qualifiedBindings: qualifiedBindings(internalBindings),
-      requiredGateKeys: ['exact_skill_receipt', 'fixture_lifecycle_evidence'],
+      qualificationStatus: evidence.qualificationStatus,
+      qualifiedBindings: qualifiedBindings(bindings),
+      requiredGateKeys: ['exact_skill_receipt', 'exact_route_evidence'],
       gateEvidenceRefs: [
         {
           gateKey: 'exact_skill_receipt',
@@ -46,22 +47,26 @@ export function createTrackAllRouteQualificationReceipts(input: {
           evidenceHash: input.artifact.receipt.receiptHash,
         },
         {
-          gateKey: 'fixture_lifecycle_evidence',
-          disposition: 'passed',
-          evidenceHash: lifecycleEvidence.routeEvidenceHash,
+          gateKey: 'exact_route_evidence',
+          disposition: blocked ? 'blocked' : 'passed',
+          evidenceHash: evidence.routeEvidenceHash,
         },
       ],
       testedCommitSha: input.artifact.testedCommitSha,
       sourceTreeHash: input.artifact.relevantSourceTreeHash,
       dependencyAuthorityHashes: input.artifact.dependencyAuthorityHashes,
-      evidenceClass: 'actual_fixture_adapter_evidence',
+      evidenceClass: blocked
+        ? 'blocked_external_evidence'
+        : evidence.qualificationStatus === 'planning_qualified'
+          ? 'actual_planning_evidence'
+          : 'actual_fixture_adapter_evidence',
       fixtureEvidenceOnly: true,
       qualificationCandidateOnly: false,
       providerRequestCount: 0,
       gpuExecutionCount: 0,
       productionWorkerObserved: false,
-    }),
-  ]
+    }))
+  }
   const canonicalRoutes = new Set(input.bindings.filter((binding) =>
     binding.environmentClass === 'canonical_private').map((binding) => binding.routeKey))
   for (const routeKey of canonicalRoutes) {
@@ -103,39 +108,46 @@ export function createTrackAllRouteQualificationReceipts(input: {
   return receipts
 }
 
-export function createTrackAllInternalRouteQualificationCandidateReceipt(input: {
+export function createTrackAllInternalRouteQualificationCandidateReceipts(input: {
   bindings: readonly SkillJobRuntimeBindingDefinition[]
-}): SkillRouteQualificationReceipt {
+}): readonly SkillRouteQualificationReceipt[] {
   const manifestRef = skillManifestReference(TRACK_ALL_CAPABILITY_MANIFEST)
-  const bindings = input.bindings.filter((binding) =>
-    binding.routeKey === 'public_plugin_lifecycle_route' &&
-    binding.environmentClass === 'internal_fixture')
-  const candidateHash = hashSkillValue({
-    schemaVersion: 'track_all_internal_route_qualification_candidate_v1',
-    manifestRef,
-    bindingHashes: bindings.map((binding) => binding.bindingHash),
-  })
-  return createSkillRouteQualificationReceipt({
-    schemaVersion: 'edit-skill-route-qualification-receipt-v1',
-    manifestRef,
-    routeKey: 'public_plugin_lifecycle_route',
-    environmentClass: 'internal_fixture',
-    qualificationStatus: 'internal_execution_qualified',
-    qualifiedBindings: qualifiedBindings(bindings),
-    requiredGateKeys: ['qualification_candidate_execution'],
-    gateEvidenceRefs: [{
-      gateKey: 'qualification_candidate_execution',
-      disposition: 'passed',
-      evidenceHash: candidateHash,
-    }],
-    testedCommitSha: '0000000000000000000000000000000000000000',
-    sourceTreeHash: candidateHash,
-    dependencyAuthorityHashes: [],
-    evidenceClass: 'qualification_candidate_execution',
-    fixtureEvidenceOnly: true,
-    qualificationCandidateOnly: true,
-    providerRequestCount: 0,
-    gpuExecutionCount: 0,
-    productionWorkerObserved: false,
+  const routes = new Set(input.bindings.filter((binding) =>
+    binding.environmentClass === 'internal_fixture').map((binding) => binding.routeKey))
+  return [...routes].map((routeKey) => {
+    const bindings = input.bindings.filter((binding) =>
+      binding.environmentClass === 'internal_fixture' && binding.routeKey === routeKey)
+    const candidateHash = hashSkillValue({
+      schemaVersion: 'track_all_internal_route_qualification_candidate_v1',
+      manifestRef,
+      routeKey,
+      bindingHashes: bindings.map((binding) => binding.bindingHash),
+    })
+    const blocked = routeKey === 'sam3_1_masklet_route'
+    return createSkillRouteQualificationReceipt({
+      schemaVersion: 'edit-skill-route-qualification-receipt-v1',
+      manifestRef,
+      routeKey,
+      environmentClass: 'internal_fixture',
+      qualificationStatus: blocked ? 'blocked' :
+        routeKey === 'planning_core_route' ? 'planning_qualified' :
+          'internal_execution_qualified',
+      qualifiedBindings: qualifiedBindings(bindings),
+      requiredGateKeys: ['qualification_candidate_execution'],
+      gateEvidenceRefs: [{
+        gateKey: 'qualification_candidate_execution',
+        disposition: blocked ? 'blocked' : 'passed',
+        evidenceHash: candidateHash,
+      }],
+      testedCommitSha: '0000000000000000000000000000000000000000',
+      sourceTreeHash: candidateHash,
+      dependencyAuthorityHashes: [],
+      evidenceClass: 'qualification_candidate_execution',
+      fixtureEvidenceOnly: true,
+      qualificationCandidateOnly: true,
+      providerRequestCount: 0,
+      gpuExecutionCount: 0,
+      productionWorkerObserved: false,
+    })
   })
 }

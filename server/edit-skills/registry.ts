@@ -87,6 +87,7 @@ export function createEditSkillRuntime(
     qualifications: input.qualificationRegistry!,
     routeQualifications: input.routeQualificationRegistry!,
     catalog: referenceCatalog,
+    environmentClass: input.environmentClass,
   })
   for (const binding of input.additionalRuntimeBindings ?? []) {
     if (binding.definition.environmentClass !== input.environmentClass) {

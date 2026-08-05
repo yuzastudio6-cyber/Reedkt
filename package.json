@@ -28,6 +28,7 @@
     "test:track-all-capability-manifest": "tsx server/smoke/track-all-capability-manifest-smoke.ts",
     "test:track-all-authority": "tsx server/smoke/track-all-authority-smoke.ts",
     "test:track-all-planning": "tsx server/smoke/track-all-planning-smoke.ts",
+    "test:track-all-evidence-route-coherence": "tsx server/smoke/track-all-evidence-route-coherence-smoke.ts",
     "test:track-all-artifact-contracts": "tsx server/smoke/track-all-artifact-contracts-smoke.ts",
     "test:track-all-deterministic-geometry": "tsx server/smoke/track-all-deterministic-geometry-smoke.ts",
     "test:track-all-sam3.1-operation-authority": "tsx server/smoke/track-all-sam3_1-operation-authority-smoke.ts",

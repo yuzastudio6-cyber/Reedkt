@@ -45,6 +45,10 @@ import {
   trackOcclusionEventLogSchema,
   trackSampleSequenceSchema,
 } from './track-all-active-artifact-contracts'
+import {
+  trackAllPreflightObservationSchema,
+  trackAllSam31RuntimeProfileV2Schema,
+} from './track-all-planning-authorities'
 
 const safeId = z.string().trim().min(1).max(180)
 const timestamp = z.string().datetime({ offset: true })
@@ -80,6 +84,8 @@ export const TRACK_ALL_DECISIONS = [
   'needs_visual_intelligence', 'needs_user_selection', 'needs_range_expansion',
   'needs_manual_keyframe', 'needs_user_confirmation', 'target_not_found',
   'multiple_targets_ambiguous', 'identity_uncertain', 'privacy_coverage_blocked',
+  'needs_preflight_observation', 'needs_track_graph',
+  'needs_route_qualification', 'blocked_external_sam_prerequisites',
   'use_no_tracking', 'blocked',
 ] as const
 
@@ -457,20 +463,36 @@ const planCoreSchema = z.object({
   manifestRef: skillManifestReferenceSchema, targetHash: skillSha256Schema, authorizedRange: skillFrameRangeSchema,
   decision: z.enum(TRACK_ALL_DECISIONS), requestedJobType: skillIdentitySchema,
   dependencySkillKey: skillIdentitySchema.optional(), requiredDependencyArtifactType: skillIdentitySchema.optional(), requiredForPhase: skillIdentitySchema.optional(),
+  selectedRouteKey: skillIdentitySchema,
+  routeQualificationReceiptHash: skillSha256Schema,
+  blockedRouteKey: skillIdentitySchema.optional(),
+  blockedRouteReceiptHash: skillSha256Schema.optional(),
+  missingRouteGateKeys: z.array(skillIdentitySchema).max(100),
+  preflightObservationHash: skillSha256Schema.optional(),
+  samRuntimeProfileHash: skillSha256Schema,
+  preflightDerivedRisks: z.object({
+    targetSpeed: unit,
+    targetSizeRisk: unit,
+    occlusionRisk: unit,
+    cameraMotionRisk: unit,
+    expectedRepairRisk: unit,
+    expectedRepairAttempts: z.number().int().min(0).max(1),
+    expectedRepairCredits: z.number().int().nonnegative(),
+  }).strict().optional(),
   shotPlan: z.object({ shotBoundaries: z.array(z.number().int().nonnegative()).max(10_000), shotResetRequired: z.boolean() }).strict(),
   chunkPlan: z.object({ maximumFramesPerChunk: z.number().int().positive(), chunks: z.array(z.object({ chunkId: safeId, range: skillFrameRangeSchema, overlapFramesBefore: z.number().int().nonnegative(), overlapFramesAfter: z.number().int().nonnegative() }).strict()).max(1_000) }).strict(),
-  objectBudget: z.object({ expectedObjects: z.number().int().nonnegative(), maximumObjects: z.number().int().positive(), bucketSize: z.literal(16), bucketCount: z.number().int().nonnegative(), sessionCount: z.number().int().nonnegative() }).strict(),
+  objectBudget: z.object({ expectedObjects: z.number().int().nonnegative(), maximumObjects: z.number().int().positive(), bucketSize: z.number().int().positive().max(128), bucketCount: z.number().int().nonnegative(), sessionCount: z.number().int().nonnegative() }).strict(),
   initializationFrame: z.number().int().nonnegative().optional(), propagationDirection: z.enum(['none', 'forward', 'backward', 'both']),
   samWorkPlanned: z.boolean(), visibleTreatmentPlanned: z.boolean(), privateOutputRequired: z.literal(true), outsideAuthorizedRangeModified: z.literal(false),
   maximumAttempts: z.number().int().min(1).max(3), maximumRepairs: z.number().int().min(0).max(2),
   timeEstimate: z.object({ minimumSeconds: z.number().int().nonnegative(), expectedSeconds: z.number().int().nonnegative(), maximumSeconds: z.number().int().nonnegative() }).strict(),
   creditEstimate: z.object({ minimumCredits: z.number().int().nonnegative(), expectedCredits: z.number().int().nonnegative(), maximumCredits: z.number().int().nonnegative(), internalToolCostOnly: z.literal(true) }).strict(),
-  routeDisposition: z.enum(['selected', 'time_ceiling', 'credit_ceiling', 'dependency', 'authority', 'ambiguity', 'no_action']),
+  routeDisposition: z.enum(['selected', 'time_ceiling', 'credit_ceiling', 'dependency', 'authority', 'ambiguity', 'route_blocked', 'no_action']),
   planningQaReportHash: skillSha256Schema, planningQaPassed: z.boolean(),
 }).strict().superRefine((value, context) => {
-  const dependencyDecision = value.decision === 'needs_visual_intelligence'
+  const dependencyDecision = ['needs_visual_intelligence', 'needs_preflight_observation', 'needs_track_graph'].includes(value.decision)
   if (dependencyDecision !== Boolean(value.dependencySkillKey && value.requiredDependencyArtifactType && value.requiredForPhase)) context.addIssue({ code: 'custom', message: 'Track All dependency decision is incoherent.' })
-  const nonExecutable = ['use_no_tracking', 'needs_visual_intelligence', 'needs_user_selection', 'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation', 'target_not_found', 'multiple_targets_ambiguous', 'identity_uncertain', 'privacy_coverage_blocked', 'blocked'].includes(value.decision)
+  const nonExecutable = ['use_no_tracking', 'needs_visual_intelligence', 'needs_preflight_observation', 'needs_track_graph', 'needs_route_qualification', 'blocked_external_sam_prerequisites', 'needs_user_selection', 'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation', 'target_not_found', 'multiple_targets_ambiguous', 'identity_uncertain', 'privacy_coverage_blocked', 'blocked'].includes(value.decision)
   if (nonExecutable) {
     if (
       value.samWorkPlanned || value.visibleTreatmentPlanned ||
@@ -483,7 +505,13 @@ const planCoreSchema = z.object({
     ) context.addIssue({ code: 'custom', message: 'Non-executable Track All decision contains work, timing, or cost.' })
   }
   if (value.samWorkPlanned && (value.objectBudget.sessionCount < 1 || value.propagationDirection === 'none' || value.initializationFrame === undefined)) context.addIssue({ code: 'custom', message: 'SAM plan lacks exact session authority.' })
-  if (!nonExecutable && value.chunkPlan.chunks.length === 0) context.addIssue({ code: 'custom', message: 'Executable Track All plan lacks bounded chunks.' })
+  if (value.samWorkPlanned && (!value.preflightObservationHash || !value.preflightDerivedRisks)) context.addIssue({ code: 'custom', message: 'SAM plan lacks measured preflight authority.' })
+  const routeBlocked = value.decision === 'needs_route_qualification' || value.decision === 'blocked_external_sam_prerequisites'
+  if (routeBlocked !== Boolean(value.blockedRouteKey && value.blockedRouteReceiptHash && value.missingRouteGateKeys.length > 0)) context.addIssue({ code: 'custom', message: 'Track All blocked-route lineage is incoherent.' })
+  if (value.routeDisposition === 'route_blocked' !== routeBlocked) context.addIssue({ code: 'custom', message: 'Track All route-blocked disposition is incoherent.' })
+  const chunkedDecision = value.samWorkPlanned || value.decision === 'track_planar_region' ||
+    value.decision === 'produce_track_graph'
+  if (!nonExecutable && chunkedDecision && value.chunkPlan.chunks.length === 0) context.addIssue({ code: 'custom', message: 'Chunked Track All plan lacks bounded chunks.' })
   if (value.objectBudget.expectedObjects === 0 ? value.objectBudget.bucketCount !== 0 : value.objectBudget.bucketCount !== Math.ceil(value.objectBudget.expectedObjects / value.objectBudget.bucketSize)) context.addIssue({ code: 'custom', message: 'Track All multiplex bucket count is incoherent.' })
   if (value.samWorkPlanned && value.objectBudget.sessionCount !== value.chunkPlan.chunks.length * value.objectBudget.bucketCount) context.addIssue({ code: 'custom', message: 'Track All SAM session count is incoherent.' })
   if (!value.samWorkPlanned && value.objectBudget.sessionCount !== 0) context.addIssue({ code: 'custom', message: 'Non-SAM plan cannot reserve SAM sessions.' })
@@ -555,6 +583,8 @@ export function registerTrackAllArtifactSchemas(registry: EditSkillArtifactSchem
   const schemas: Record<string, z.ZodType> = {
     track_all_assignment_v1: trackAllAssignmentSchema,
     track_all_target_specification_v1: trackAllTargetSpecificationSchema,
+    track_all_preflight_observation_v1: trackAllPreflightObservationSchema,
+    track_all_sam3_1_runtime_profile_v2: trackAllSam31RuntimeProfileV2Schema,
     track_all_scene_context_v1: trackAllSceneContextSchema,
     source_frame_authority_v1: sourceFrameAuthoritySchema,
     visual_intelligence_target_evidence_v1: visualIntelligenceTargetEvidenceSchema,

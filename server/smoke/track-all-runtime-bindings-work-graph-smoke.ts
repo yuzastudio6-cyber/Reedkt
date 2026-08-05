@@ -107,7 +107,7 @@ function changedBinding(
   })
 }
 
-assert.equal(TRACK_ALL_RUNTIME_BINDINGS.length, 13)
+assert.equal(TRACK_ALL_RUNTIME_BINDINGS.length, 14)
 assert.deepEqual(
   new Set(TRACK_ALL_RUNTIME_BINDINGS.map((binding) => binding.definition.jobType)),
   new Set(TRACK_ALL_CAPABILITY_MANIFEST.supportedJobTypes.map((job) => job.jobType)),
@@ -188,6 +188,7 @@ const dispatcher = new EditSkillRuntimeDispatcher({
   toolAuthorityOperations: runtime.toolRegistry.operationQualifications,
 })
 const dispatchReceipts = []
+const blockedDispatchBindings: string[] = []
 for (const binding of TRACK_ALL_RUNTIME_BINDINGS) {
   const definition = binding.definition
   const workItemCore = {
@@ -220,15 +221,29 @@ for (const binding of TRACK_ALL_RUNTIME_BINDINGS) {
     approved: true,
     approvedAt: '2026-08-04T12:00:00.000Z',
   })
-  dispatchReceipts.push(await dispatcher.dispatchApprovedWorkItem({
-    manifestRef,
-    workItem,
-    approval,
-    authorizedPhase: definition.allowedPhases[0]!,
-    expectedQualification: 'internal_execution_qualified',
-  }))
+  const routeReceipt = runtime.routeQualificationRegistry.list().find((receipt) =>
+    receipt.routeKey === definition.routeKey && receipt.environmentClass === 'internal_fixture')!
+  if (routeReceipt.qualificationStatus === 'blocked') {
+    await assert.rejects(() => dispatcher.dispatchApprovedWorkItem({
+      manifestRef, workItem, approval,
+      authorizedPhase: definition.allowedPhases[0]!,
+    }), /route is blocked/iu)
+    blockedDispatchBindings.push(definition.jobType)
+  } else {
+    dispatchReceipts.push(await dispatcher.dispatchApprovedWorkItem({
+      manifestRef,
+      workItem,
+      approval,
+      authorizedPhase: definition.allowedPhases[0]!,
+      expectedQualification: routeReceipt.qualificationStatus,
+    }))
+  }
 }
-assert.equal(dispatchReceipts.length, 13)
+assert.equal(dispatchReceipts.length, 12)
+assert.deepEqual(blockedDispatchBindings.sort(), [
+  'track_all.produce_concept_instance_graph',
+  'track_all.produce_selected_target_graph',
+])
 assert.equal(dispatchReceipts.every((value) => value.status === 'succeeded'), true)
 assert.equal(dispatchReceipts.reduce((sum, value) => sum + value.providerRequestCount, 0), 0)
 assert.equal(dispatchReceipts.reduce((sum, value) => sum + value.publicArtifactCount, 0), 0)
@@ -245,7 +260,7 @@ const canonicalPrivate = createTrackAllCanonicalPrivateRuntimeBindings({
     failureCode: 'track_all_canonical_private_executor_unconfigured',
   }),
 })
-assert.equal(canonicalPrivate.length, 13)
+assert.equal(canonicalPrivate.length, 14)
 assert.equal(canonicalPrivate.every((binding) =>
   binding.definition.adapterClass === 'canonical_private_execution_adapter' &&
   binding.definition.environmentClass === 'canonical_private' &&
@@ -282,16 +297,11 @@ const selected = await compileFixture({
   requestedJobType: 'track_all.produce_selected_target_graph',
   intendedTreatment: 'geometry_only',
 })
-assertStages(selected, [
-  'inspect_source', 'detect_shot_boundaries', 'estimate_camera_motion',
-  'choose_initialization_frame', 'prepare_tracking_chunks',
-  'allocate_multiplex_buckets', 'execute_sam_masklet_session',
-  'normalize_masklets', 'stitch_chunks', 'associate_identities',
-  'build_camera_motion_graph', 'build_anchor_graph', 'run_target_qa',
-  'run_temporal_qa', 'run_mask_qa', 'build_track_graph',
-  'prepare_composition_layer', 'project_track_all_result',
-])
-assert.equal(selected.atomic.atomicWorkItems.filter((item) => item.createsGpuWork).length, 1)
+assert.equal(selected.plan.decision, 'blocked_external_sam_prerequisites')
+assertStages(selected, ['no_action', 'project_track_all_result'])
+assert.equal(selected.atomic.atomicWorkItems.filter((item) => item.createsGpuWork).length, 0)
+assert.equal(selected.atomic.atomicWorkItems.some((item) =>
+  item.operationId === 'tool.sam3_1.track_masklets.v2'), false)
 
 const privacy = await compileFixture({
   assignmentId: 'work-graph-privacy',
@@ -363,7 +373,9 @@ async function compileFixture(
   input: Omit<Parameters<typeof createTrackAllAuthorityFixture>[0], 'runtime'>,
   withPrivacyPolicy = false,
 ) {
-  const priorGraphRef = input.intendedTreatment === 'repair'
+  const needsExistingGraph = ['repair', 'privacy_redaction', 'tracked_focus',
+    'tracked_reframe'].includes(input.intendedTreatment ?? '')
+  const priorGraphRef = needsExistingGraph
     ? await createTrackAllPriorGraphFixture({
         runtime, nextAssignmentId: input.assignmentId,
         ...(input.authorizedRange ? { authorizedRange: input.authorizedRange } : {}),
@@ -372,20 +384,20 @@ async function compileFixture(
   const fixture = await createTrackAllAuthorityFixture({
     runtime,
     ...input,
-    ...(priorGraphRef
+    ...(priorGraphRef && input.intendedTreatment === 'repair'
       ? {
           targetType: 'existing_track' as const,
           groundingKind: 'existing_track_reference' as const,
           groundingArtifactRef: priorGraphRef,
           priorTrackGraphRefs: [priorGraphRef],
         }
-      : {}),
+      : priorGraphRef ? { priorTrackGraphRefs: [priorGraphRef] } : {}),
   })
   let assignment = fixture.assignment
   const extraContextRefs: EditSkillArtifactReference[] = []
   if (priorGraphRef) {
-    extraContextRefs.push(
-      priorGraphRef,
+    extraContextRefs.push(priorGraphRef)
+    if (input.intendedTreatment === 'repair') extraContextRefs.push(
       await createTrackAllPriorRepairEvidenceFixture({
         runtime, fixture, trackGraphRef: priorGraphRef,
       }),

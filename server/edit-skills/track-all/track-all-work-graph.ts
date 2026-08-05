@@ -30,6 +30,7 @@ export const TRACK_ALL_PUBLIC_WORK_DEFINITIONS = Object.freeze({
   'track_all.prepare_composition_layer': { operationId: 'track_all.prepare_composition_layer.v1', workerClass: 'track_all_handoff_worker', output: 'track_all_cross_skill_handoff_v1', phase: 'treatment_compilation' },
   'track_all.integrate_preview': { operationId: 'tool.remotion.render_approved_composition.v1', workerClass: 'track_all_private_render_worker', output: 'track_all_integration_qa_report_v1', phase: 'private_preview_render' },
   'track_all.no_action': { operationId: 'track_all.no_action.v1', workerClass: 'track_all_no_action_worker', output: 'track_all_result_receipt_v1', phase: 'result_projection' },
+  'track_all.project_result': { operationId: 'track_all.project_result.v1', workerClass: 'track_all_result_worker', output: 'track_all_result_receipt_v1', phase: 'result_projection' },
 } as const)
 
 export type TrackAllPublicJobType = keyof typeof TRACK_ALL_PUBLIC_WORK_DEFINITIONS
@@ -106,9 +107,7 @@ function createBinding(input: {
     throw new Error(`Track All work definition ${input.jobType} lacks a manifest capability.`)
   }
   const canonicalPrivate = input.adapterClass === 'canonical_private_execution_adapter'
-  const routeKey = canonicalPrivate
-    ? canonicalPrivateRouteKey(input.jobType)
-    : 'public_plugin_lifecycle_route'
+  const routeKey = canonicalPrivateRouteKey(input.jobType)
   return createSkillJobRuntimeBinding({
     definition: {
       schemaVersion: 'edit-skill-runtime-binding-v2',
@@ -155,7 +154,8 @@ function canonicalPrivateRouteKey(
   if (jobType === 'track_all.apply_tracked_focus') return 'focus_route'
   if (jobType === 'track_all.prepare_tracked_reframe') return 'reframe_route'
   if (jobType === 'track_all.produce_scene_geometry_graph') return 'deterministic_geometry_route'
-  if (jobType === 'track_all.plan_assignment' || jobType === 'track_all.no_action') {
+  if (jobType === 'track_all.plan_assignment' || jobType === 'track_all.no_action' ||
+    jobType === 'track_all.project_result') {
     return 'planning_core_route'
   }
   return 'public_plugin_lifecycle_route'
@@ -225,7 +225,7 @@ export function registerTrackAllRuntimeBindings(
 
 function jobsForPlan(plan: TrackAllPlan): TrackAllPublicJobType[] {
   if (nonExecutableDecision(plan.decision)) {
-    return ['track_all.plan_assignment', 'track_all.no_action']
+    return ['track_all.plan_assignment', 'track_all.no_action', 'track_all.project_result']
   }
   if (plan.decision === 'track_planar_region') {
     return [
@@ -233,7 +233,7 @@ function jobsForPlan(plan: TrackAllPlan): TrackAllPublicJobType[] {
       'track_all.produce_scene_geometry_graph',
       'track_all.track_planar_region',
       'track_all.validate_track_graph',
-      'track_all.prepare_composition_layer',
+      'track_all.prepare_composition_layer', 'track_all.project_result',
     ]
   }
   if (plan.decision === 'repair_existing_track') {
@@ -241,8 +241,24 @@ function jobsForPlan(plan: TrackAllPlan): TrackAllPublicJobType[] {
       'track_all.plan_assignment',
       'track_all.repair_track',
       'track_all.validate_track_graph',
-      'track_all.prepare_composition_layer',
+      'track_all.prepare_composition_layer', 'track_all.project_result',
     ]
+  }
+  if (plan.decision === 'produce_track_graph' && !plan.samWorkPlanned) {
+    return [
+      'track_all.plan_assignment', 'track_all.validate_track_graph',
+      'track_all.prepare_composition_layer', 'track_all.project_result',
+    ]
+  }
+  if (['apply_privacy_redaction', 'apply_tracked_focus', 'prepare_tracked_reframe'].includes(plan.decision) && !plan.samWorkPlanned) {
+    const jobs: TrackAllPublicJobType[] = ['track_all.plan_assignment']
+    if (plan.decision === 'apply_privacy_redaction') jobs.push('track_all.apply_privacy_redaction')
+    if (plan.decision === 'apply_tracked_focus') jobs.push('track_all.apply_tracked_focus')
+    if (plan.decision === 'prepare_tracked_reframe') jobs.push('track_all.prepare_tracked_reframe')
+    jobs.push('track_all.validate_track_graph', 'track_all.prepare_composition_layer')
+    if (plan.visibleTreatmentPlanned) jobs.push('track_all.integrate_preview')
+    jobs.push('track_all.project_result')
+    return jobs
   }
   const graphJob: TrackAllPublicJobType =
     plan.requestedJobType === 'track_all.produce_concept_instance_graph'
@@ -258,6 +274,7 @@ function jobsForPlan(plan: TrackAllPlan): TrackAllPublicJobType[] {
   if (plan.decision === 'prepare_tracked_reframe') jobs.push('track_all.prepare_tracked_reframe')
   jobs.push('track_all.validate_track_graph', 'track_all.prepare_composition_layer')
   if (plan.visibleTreatmentPlanned) jobs.push('track_all.integrate_preview')
+  jobs.push('track_all.project_result')
   return jobs
 }
 
@@ -401,7 +418,7 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
     return [
       ...root,
       stage('no_action', 'track_all.no_action', 'track_all.no_action.v1', 'track_all_no_action_worker', ['track_all_plan_v1'], 'track_all_result_receipt_v1', ['validate_assignment', 'validate_target_authority']),
-      stage('project_track_all_result', 'track_all.no_action', 'track_all.project_result.v1', 'track_all_result_worker', ['track_all_plan_v1'], 'track_all_result_receipt_v1', ['no_action']),
+      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_all_plan_v1'], 'track_all_result_receipt_v1', ['no_action']),
     ]
   }
   const source: AtomicTemplate[] = [
@@ -418,7 +435,7 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
       stage('calculate_homography', 'track_all.track_planar_region', 'tool.opencv.analyze_approved_visual_artifacts.v1', 'track_all_geometry_worker', ['planar_track_graph_v1'], 'planar_track_graph_v1', ['extract_planar_features']),
       stage('validate_reprojection', 'track_all.validate_track_graph', 'track_all.validate_planar_reprojection.v1', 'track_all_qa_worker', ['planar_track_graph_v1'], 'track_all_integration_qa_report_v1', ['calculate_homography']),
       stage('build_planar_track_graph', 'track_all.track_planar_region', 'track_all.build_planar_track_graph.v1', 'track_all_geometry_worker', ['planar_track_graph_v1', 'track_all_integration_qa_report_v1'], 'planar_track_graph_v1', ['validate_reprojection']),
-      stage('project_track_all_result', 'track_all.no_action', 'track_all.project_result.v1', 'track_all_result_worker', ['planar_track_graph_v1'], 'track_all_result_receipt_v1', ['build_planar_track_graph']),
+      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['planar_track_graph_v1'], 'track_all_result_receipt_v1', ['build_planar_track_graph']),
     ]
   }
   if (plan.decision === 'repair_existing_track') {
@@ -426,7 +443,26 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
       ...root,
       stage('direct_track_repair', 'track_all.repair_track', 'track_all.direct_repair.v1', 'track_all_repair_worker', ['track_graph_v2', 'prior_track_repair_evidence_v1'], 'track_all_repair_receipt_v1', ['validate_target_authority']),
       stage('run_repair_qa', 'track_all.validate_track_graph', 'track_all.validate_repaired_track.v1', 'track_all_qa_worker', ['track_all_repair_receipt_v1'], 'track_all_temporal_qa_report_v1', ['direct_track_repair']),
-      stage('project_track_all_result', 'track_all.no_action', 'track_all.project_result.v1', 'track_all_result_worker', ['track_all_repair_receipt_v1', 'track_all_temporal_qa_report_v1'], 'track_all_result_receipt_v1', ['run_repair_qa']),
+      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_all_repair_receipt_v1', 'track_all_temporal_qa_report_v1'], 'track_all_result_receipt_v1', ['run_repair_qa']),
+    ]
+  }
+  if (plan.decision === 'produce_track_graph' && !plan.samWorkPlanned) {
+    return [
+      ...root,
+      stage('validate_existing_track_graph', 'track_all.validate_track_graph', 'track_all.validate_track_graph.v1', 'track_all_qa_worker', ['track_graph_v2'], 'track_all_temporal_qa_report_v1', ['validate_target_authority']),
+      stage('prepare_composition_layer', 'track_all.prepare_composition_layer', 'track_all.prepare_composition_layer.v1', 'track_all_handoff_worker', ['track_graph_v2'], 'track_all_cross_skill_handoff_v1', ['validate_existing_track_graph']),
+      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_graph_v2'], 'track_all_result_receipt_v1', ['prepare_composition_layer']),
+    ]
+  }
+  if (['apply_privacy_redaction', 'apply_tracked_focus', 'prepare_tracked_reframe'].includes(plan.decision) && !plan.samWorkPlanned) {
+    const treatment = treatmentTemplates(plan, 'validate_existing_track_graph')
+    const finalDependency = treatment.at(-1)?.stageId ?? 'validate_existing_track_graph'
+    return [
+      ...root,
+      stage('validate_existing_track_graph', 'track_all.validate_track_graph', 'track_all.validate_track_graph.v1', 'track_all_qa_worker', ['track_graph_v2'], 'track_all_temporal_qa_report_v1', ['validate_target_authority']),
+      ...treatment,
+      stage('prepare_composition_layer', 'track_all.prepare_composition_layer', 'track_all.prepare_composition_layer.v1', 'track_all_handoff_worker', ['track_graph_v2'], 'track_all_cross_skill_handoff_v1', ['validate_existing_track_graph']),
+      stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_graph_v2'], 'track_all_result_receipt_v1', [finalDependency, 'prepare_composition_layer']),
     ]
   }
   const graphJob: TrackAllPublicJobType =
@@ -448,7 +484,7 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
     stage('run_mask_qa', 'track_all.validate_track_graph', 'track_all.validate_mask.v1', 'track_all_qa_worker', ['track_mask_sequence_v1'], 'track_all_mask_qa_report_v1', ['normalize_masklets']),
     stage('build_track_graph', graphJob, 'track_all.build_track_graph.v2', 'track_all_graph_worker', ['track_identity_lineage_v1', 'track_anchor_graph_v1', 'camera_motion_graph_v1'], 'track_graph_v2', ['build_anchor_graph', 'run_target_qa', 'run_temporal_qa', 'run_mask_qa']),
   ]
-  const treatment = treatmentTemplates(plan)
+  const treatment = treatmentTemplates(plan, 'build_track_graph')
   const finalDependency = treatment.at(-1)?.stageId ?? 'build_track_graph'
   return [
     ...root,
@@ -456,25 +492,25 @@ function atomicTemplatesForPlan(plan: TrackAllPlan): AtomicTemplate[] {
     ...tracking,
     ...treatment,
     stage('prepare_composition_layer', 'track_all.prepare_composition_layer', 'track_all.prepare_composition_layer.v1', 'track_all_handoff_worker', ['track_graph_v2'], 'track_all_cross_skill_handoff_v1', ['build_track_graph']),
-    stage('project_track_all_result', 'track_all.no_action', 'track_all.project_result.v1', 'track_all_result_worker', ['track_graph_v2'], 'track_all_result_receipt_v1', [finalDependency, 'prepare_composition_layer']),
+    stage('project_track_all_result', 'track_all.project_result', 'track_all.project_result.v1', 'track_all_result_worker', ['track_graph_v2'], 'track_all_result_receipt_v1', [finalDependency, 'prepare_composition_layer']),
   ]
 }
 
-function treatmentTemplates(plan: TrackAllPlan): AtomicTemplate[] {
+function treatmentTemplates(plan: TrackAllPlan, graphDependency: string): AtomicTemplate[] {
   if (plan.decision === 'apply_privacy_redaction') return [
-    stage('build_redaction_plan', 'track_all.apply_privacy_redaction', 'track_all.build_redaction_plan.v1', 'track_all_treatment_worker', ['track_graph_v2', 'privacy_policy_snapshot_v1'], 'tracked_redaction_plan_v1', ['build_track_graph']),
+    stage('build_redaction_plan', 'track_all.apply_privacy_redaction', 'track_all.build_redaction_plan.v1', 'track_all_treatment_worker', ['track_graph_v2', 'privacy_policy_snapshot_v1'], 'tracked_redaction_plan_v1', [graphDependency]),
     stage('compile_redaction_effect', 'track_all.apply_privacy_redaction', 'tool.ffmpeg.execute_approved_media_recipe.v1', 'track_all_private_media_worker', ['tracked_redaction_plan_v1'], 'tracked_redaction_result_v1', ['build_redaction_plan'], true),
     stage('render_private_redaction_preview', 'track_all.integrate_preview', 'tool.remotion.render_approved_composition.v1', 'track_all_private_render_worker', ['tracked_redaction_result_v1'], 'tracked_redaction_result_v1', ['compile_redaction_effect'], true),
     stage('run_flattened_privacy_qa', 'track_all.validate_track_graph', 'track_all.validate_flattened_privacy.v1', 'track_all_qa_worker', ['tracked_redaction_result_v1'], 'track_all_privacy_qa_report_v1', ['render_private_redaction_preview']),
     stage('project_redaction_result', 'track_all.apply_privacy_redaction', 'track_all.project_redaction_result.v1', 'track_all_result_worker', ['track_all_privacy_qa_report_v1'], 'tracked_redaction_result_v1', ['run_flattened_privacy_qa']),
   ]
   if (plan.decision === 'apply_tracked_focus') return [
-    stage('compile_focus_treatment', 'track_all.apply_tracked_focus', 'track_all.compile_focus_treatment.v1', 'track_all_treatment_worker', ['track_graph_v2'], 'tracked_focus_plan_v1', ['build_track_graph']),
+    stage('compile_focus_treatment', 'track_all.apply_tracked_focus', 'track_all.compile_focus_treatment.v1', 'track_all_treatment_worker', ['track_graph_v2'], 'tracked_focus_plan_v1', [graphDependency]),
     stage('render_focus_preview', 'track_all.integrate_preview', 'tool.remotion.render_approved_composition.v1', 'track_all_private_render_worker', ['tracked_focus_plan_v1'], 'tracked_focus_result_v1', ['compile_focus_treatment'], true),
     stage('run_focus_integration_qa', 'track_all.validate_track_graph', 'track_all.validate_focus_integration.v1', 'track_all_qa_worker', ['tracked_focus_result_v1'], 'track_all_integration_qa_report_v1', ['render_focus_preview']),
   ]
   if (plan.decision === 'prepare_tracked_reframe') return [
-    stage('calculate_reframe_trajectory', 'track_all.prepare_tracked_reframe', 'track_all.calculate_reframe_trajectory.v1', 'track_all_geometry_worker', ['track_graph_v2', 'caption_reserved_zones_v1'], 'tracked_reframe_plan_v1', ['build_track_graph']),
+    stage('calculate_reframe_trajectory', 'track_all.prepare_tracked_reframe', 'track_all.calculate_reframe_trajectory.v1', 'track_all_geometry_worker', ['track_graph_v2', 'caption_reserved_zones_v1'], 'tracked_reframe_plan_v1', [graphDependency]),
     stage('validate_crop_and_safe_zones', 'track_all.validate_track_graph', 'track_all.validate_reframe_safe_zones.v1', 'track_all_qa_worker', ['tracked_reframe_plan_v1'], 'track_all_integration_qa_report_v1', ['calculate_reframe_trajectory']),
     stage('render_reframe_preview', 'track_all.integrate_preview', 'tool.remotion.render_approved_composition.v1', 'track_all_private_render_worker', ['tracked_reframe_plan_v1'], 'tracked_reframe_result_v1', ['validate_crop_and_safe_zones'], true),
     stage('run_reframe_integration_qa', 'track_all.validate_track_graph', 'track_all.validate_reframe_integration.v1', 'track_all_qa_worker', ['tracked_reframe_result_v1'], 'track_all_integration_qa_report_v1', ['render_reframe_preview']),
@@ -514,6 +550,8 @@ function nonExecutableDecision(decision: TrackAllPlan['decision']): boolean {
     'needs_range_expansion', 'needs_manual_keyframe', 'needs_user_confirmation',
     'target_not_found', 'multiple_targets_ambiguous', 'identity_uncertain',
     'privacy_coverage_blocked', 'blocked',
+    'needs_preflight_observation', 'needs_track_graph',
+    'needs_route_qualification', 'blocked_external_sam_prerequisites',
   ].includes(decision)
 }
 

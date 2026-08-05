@@ -28,6 +28,7 @@ export const TRACK_ALL_JOB_TYPES = [
   'track_all.prepare_composition_layer',
   'track_all.integrate_preview',
   'track_all.no_action',
+  'track_all.project_result',
 ] as const
 
 export const TRACK_ALL_PHASES = [
@@ -83,6 +84,7 @@ const jobContract: Record<(typeof TRACK_ALL_JOB_TYPES)[number], {
   'track_all.prepare_composition_layer': { phase: 'treatment_compilation', required: ['track_graph_v2'], produced: 'track_all_cross_skill_handoff_v1' },
   'track_all.integrate_preview': { phase: 'private_preview_render', required: ['track_graph_v2'], produced: 'track_all_integration_qa_report_v1', primary: true },
   'track_all.no_action': { phase: 'result_projection', required: ['track_all_plan_v1'], produced: 'track_all_result_receipt_v1', minimum: 'planning_qualified' },
+  'track_all.project_result': { phase: 'result_projection', required: ['track_all_plan_v1'], produced: 'track_all_result_receipt_v1', minimum: 'planning_qualified' },
 }
 
 function supported(jobType: (typeof TRACK_ALL_JOB_TYPES)[number]) {
@@ -256,6 +258,7 @@ export const TRACK_ALL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
     ['source_changed', 'source_checksum_changed'], ['target_changed', 'target_specification_changed'],
     ['timing_changed', 'master_timing_changed'], ['ownership_changed', 'visual_ownership_changed'],
     ['privacy_changed', 'privacy_policy_changed'], ['qualification_changed', 'route_qualification_changed'],
+    ['preflight_changed', 'preflight_observation_changed'], ['sam_profile_changed', 'sam_runtime_profile_changed'],
   ].map(([ruleKey, trigger]) => ({ ruleKey, trigger, invalidates: ['plan', 'approval', 'work_graph', 'qa', 'result'], requiresNewApproval: true })),
   revisionRules: [
     { ruleKey: 'target_change', changeClass: 'material', requiresReestimate: true, requiresNewApproval: true, description: 'A changed target creates a new plan.' },

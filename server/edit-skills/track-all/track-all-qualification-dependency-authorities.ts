@@ -72,6 +72,8 @@ const DEFINITIONS = [
     files: [
       'server/edit-skills/track-all/private/planning-mini-skills.ts',
       'server/edit-skills/track-all/private/planning-qa-validators.ts',
+      'server/edit-skills/track-all/track-all-plan-compiler.ts',
+      'server/edit-skills/track-all/track-all-planning-authorities.ts',
       'server/edit-skills/track-all/private/qa-repair-runtime.ts',
     ],
   },

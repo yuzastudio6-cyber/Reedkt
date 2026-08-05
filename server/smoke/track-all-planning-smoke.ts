@@ -54,16 +54,36 @@ const selected = await planFixture({
   requestedJobType: 'track_all.produce_selected_target_graph',
   intendedTreatment: 'geometry_only',
 })
-assert.equal(selected.publicPlan.envelope.disposition, 'use_skill')
-assert.equal(selected.plan.decision, 'produce_track_graph')
-assert.equal(selected.plan.samWorkPlanned, true)
+assert.equal(selected.publicPlan.envelope.disposition, 'blocked')
+assert.equal(selected.plan.decision, 'blocked_external_sam_prerequisites')
+assert.equal(selected.plan.routeDisposition, 'route_blocked')
+assert.equal(selected.plan.selectedRouteKey, 'sam3_1_masklet_route')
+assert.equal(selected.plan.blockedRouteKey, 'sam3_1_masklet_route')
+assert.ok(selected.plan.blockedRouteReceiptHash)
+assert.ok(selected.plan.missingRouteGateKeys.length > 0)
+assert.equal(selected.plan.samWorkPlanned, false)
 assert.equal(selected.plan.visibleTreatmentPlanned, false)
-assert.equal(selected.plan.propagationDirection, 'both')
-assert.equal(selected.plan.initializationFrame, 24)
-assert.equal(selected.plan.objectBudget.bucketCount, 1)
-assert.equal(selected.plan.objectBudget.sessionCount, selected.plan.chunkPlan.chunks.length)
+assert.equal(selected.plan.propagationDirection, 'none')
+assert.equal(selected.plan.initializationFrame, undefined)
+assert.equal(selected.plan.objectBudget.bucketCount, 0)
+assert.equal(selected.plan.objectBudget.sessionCount, 0)
+assert.ok(selected.plan.preflightObservationHash)
+assert.ok(selected.plan.preflightDerivedRisks)
+assert.ok(selected.plan.samRuntimeProfileHash)
+assert.equal(selected.plan.creditEstimate.expectedCredits, 0)
 assert.equal(selected.qa.findings.length, 24)
 assert.equal(new Set(selected.qa.findings.map((finding) => finding.qaKey)).size, 24)
+
+const missingPreflight = await planFixture({
+  runtime, assignmentId: 'planning-missing-preflight',
+  requestedJobType: 'track_all.produce_selected_target_graph',
+  intendedTreatment: 'geometry_only', includePreflightObservation: false,
+})
+assert.equal(missingPreflight.publicPlan.envelope.disposition, 'needs_other_skill')
+assert.equal(missingPreflight.plan.decision, 'needs_preflight_observation')
+assert.equal(missingPreflight.plan.requiredDependencyArtifactType, 'track_all_preflight_observation_v1')
+assert.equal(missingPreflight.plan.samWorkPlanned, false)
+assert.equal(missingPreflight.plan.creditEstimate.expectedCredits, 0)
 
 const conceptDependency = await planFixture({
   runtime, assignmentId: 'planning-concept-dependency',
@@ -80,8 +100,8 @@ assert.equal(conceptDependency.plan.creditEstimate.expectedCredits, 0)
 
 const timeCeiling = await planFixture({
   runtime, assignmentId: 'planning-time-ceiling',
-  requestedJobType: 'track_all.produce_selected_target_graph',
-  intendedTreatment: 'geometry_only', maximumTimeSeconds: 1,
+  requestedJobType: 'track_all.track_planar_region', targetType: 'planar_region',
+  intendedTreatment: 'planar_geometry', maximumTimeSeconds: 1,
 })
 assert.equal(timeCeiling.plan.routeDisposition, 'time_ceiling')
 assert.equal(timeCeiling.plan.decision, 'needs_user_confirmation')
@@ -92,8 +112,8 @@ assert.equal(timeCeiling.plan.creditEstimate.expectedCredits, 0)
 
 const creditCeiling = await planFixture({
   runtime, assignmentId: 'planning-credit-ceiling',
-  requestedJobType: 'track_all.produce_selected_target_graph',
-  intendedTreatment: 'geometry_only', maximumCredits: 0,
+  requestedJobType: 'track_all.track_planar_region', targetType: 'planar_region',
+  intendedTreatment: 'planar_geometry', maximumCredits: 0,
 })
 assert.equal(creditCeiling.plan.routeDisposition, 'credit_ceiling')
 assert.equal(creditCeiling.plan.decision, 'needs_user_confirmation')
@@ -120,8 +140,8 @@ assert.equal(objectBudgetReview.qa.findings.find((finding) =>
 
 const exclusionMismatch = await planFixture({
   runtime, assignmentId: 'planning-exclusion-mismatch',
-  requestedJobType: 'track_all.produce_selected_target_graph',
-  intendedTreatment: 'geometry_only',
+  requestedJobType: 'track_all.track_planar_region',
+  intendedTreatment: 'planar_geometry', targetType: 'planar_region',
   editorialExclusions: ['exclude presenter'], targetExcludeRules: [],
 })
 assert.equal(exclusionMismatch.plan.decision, 'blocked')
@@ -181,7 +201,7 @@ assert.deepEqual(estimateTrackAllPlan({
   previewRender: false, qaDepth: 'planning', repairAttempts: 0, noAction: true,
 }).time, { minimumSeconds: 0, expectedSeconds: 0, maximumSeconds: 0 })
 
-const { planHash: _planHash, ...selectedCore } = selected.plan
+const { planHash: _planHash, ...selectedCore } = planar.plan
 void _planHash
 assert.throws(() => createTrackAllPlan({
   ...selectedCore,
@@ -206,7 +226,7 @@ assert.equal(genericQaAttempt.disposition, 'needs_review')
 assert.equal(genericQaAttempt.observations.acceptedRawBoolean, false)
 
 console.log(JSON.stringify({
-  status: 'ok', planningScenarios: 9, planningQaFindings: selected.qa.findings.length,
+  status: 'ok', planningScenarios: 10, planningQaFindings: selected.qa.findings.length,
   longRangeChunks: longChunks.chunks.length, multiplexBuckets: multiplex.bucketCount,
   timeCeilingFailClosed: true, creditCeilingFailClosed: true,
   rawBooleanCannotApproveQa: true,

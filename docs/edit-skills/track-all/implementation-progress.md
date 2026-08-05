@@ -1395,3 +1395,66 @@ behavior, not a passing result; both B-Roll and Track All qualification
 artifacts are regenerated from the clean TRACK-22 source commit before this
 milestone closes. No real SAM, provider, GPU, public artifact, production
 mutation, peer-skill implementation, or head orchestra action occurred.
+
+Remote evidence closeout:
+
+- primary TRACK-22 source commit:
+  `2e04a729b0088ddfa547093a710348c21e412ea6` (pushed and remotely
+  confirmed);
+- binding-catalog assertion correction:
+  `7ece5cc2487a8f101373ac71c47f4f7bdfc0e741` (pushed and remotely
+  confirmed);
+- B-Roll generated-evidence commit:
+  `8804889332e1e6ebec51211ce085fc0d6d4eec6e` (pushed and remotely
+  confirmed);
+- Track All generated-evidence commit:
+  `6e6a10c35139a4aa405e95621e9f533ebd890ce0` (pushed and remotely
+  confirmed).
+
+The first aggregate B-Roll evidence run stopped at
+`test:edit-skill-runtime-factory` because the smoke still asserted the
+pre-TRACK-22 combined binding count. It issued no receipt and restored the
+prior generated artifact. The assertion was corrected from 26/39 to the
+actual 27/40 catalogs, tested, committed, pushed, and the aggregate command
+was restarted from the new clean source commit.
+
+`npm run qualify:b-roll:internal` then actually passed 31 commands and 36
+fixture records against clean source commit
+`7ece5cc2487a8f101373ac71c47f4f7bdfc0e741`. B-Roll remains exactly
+`internal_execution_qualified` with:
+
+- manifest hash:
+  `2890bb5d96cbb6432c9376acc274c84b793af1521c2da5adc18ccdf7420c23ad`;
+- relevant source-tree hash:
+  `d4937533a19113a533ede18283168bb8753c24438c6b81dc34a3feab6891f310`;
+- dependency authority-set hash:
+  `b7756fd930217eaca0b03bf13555910c00ac15a679c487742fdbe48d0c03ce17`;
+- qualification receipt hash:
+  `a2c911f4b2ae32deff8bc27fb1630a2b4294fe20787132d414117f0b1d83445e`;
+- generated artifact hash:
+  `7446fe56a3939989c819e3b6ca70e8aac1d0db6e822c266fe730d46708cc5370`.
+
+`npm run qualify:track-all:internal` then actually passed 28 commands and 21
+fixture records against clean commit
+`8804889332e1e6ebec51211ce085fc0d6d4eec6e`. Track All remains honestly
+`planning_qualified` with:
+
+- manifest hash:
+  `06218b1b2d82866e0e298f759cd1e759e5f35ed57199c579ffb175c119292454`;
+- relevant source-tree hash:
+  `56c1363bab14ccf88c79f02a81ad89c3630cd9a383d89945f6ba98903dc8bf1e`;
+- shared authority-set hash:
+  `5f0b287204eee799af163ede4133aac85d58e9481e2ed0b512adc6b89da96849`;
+- qualification receipt hash:
+  `dade734d8e952778d23d8d5ce05329d4e8e11d1d83faa571f73122836d827e13`;
+- generated artifact hash:
+  `a639360a1e84fa40b7b4db736dcd06a5c1650c89a73326fb0dbc99f81cf5fbcb`;
+- ten route receipts, zero actual SAM requests, zero actual GPU executions,
+  and `productionQualified: false`.
+
+Normal fail-closed runtime loading then passed capability-manifest validation,
+the TRACK-22 evidence/route-coherence suite, planning, runtime bindings, the
+Track All public plugin E2E, the B-Roll public canonical lifecycle, and the
+runtime factory. The route-coherence result proved seven blocked or
+deterministic graphs with zero SAM/GPU work and a dedicated result-projection
+job. TRACK-22 is complete without promoting the blocked real SAM route.

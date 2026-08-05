@@ -18,6 +18,7 @@ readonly KEY_RING='weeditpro-image-signing'
 readonly SIGNING_KEY='sam31-image-signing'
 readonly CONFIRMATION='provision-weeditpro-sam31-foundation-v1'
 readonly CLOUD_BUILD_SERVICE_AGENT="service-${PROJECT_NUMBER}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+readonly CLOUD_BUILD_SOURCE_BUCKET='reeditpro_cloudbuild'
 
 readonly MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 readonly IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
@@ -217,6 +218,9 @@ configure_least_privilege_iam() {
   grant_bucket_role \
     "${IMAGE_BUILD_INPUT_BUCKET}" \
     "${IMAGE_BUILDER_SA}" roles/storage.objectCreator
+  grant_bucket_role \
+    "${CLOUD_BUILD_SOURCE_BUCKET}" \
+    "${IMAGE_BUILDER_SA}" roles/storage.objectViewer
   grant_bucket_role \
     "${IMAGE_EVIDENCE_BUCKET}" \
     "${IMAGE_SIGNER_SA}" roles/storage.objectCreator

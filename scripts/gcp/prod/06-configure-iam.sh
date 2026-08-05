@@ -29,6 +29,17 @@ grant_bucket_role() {
     --quiet
 }
 
+grant_cloud_build_source_bucket_role() {
+  local account_id="$1"
+  local role="$2"
+  run_gcloud storage buckets add-iam-policy-binding \
+    "gs://${GCP_PROJECT_ID}_cloudbuild" \
+    --project="${GCP_PROJECT_ID}" \
+    --member="serviceAccount:$(service_account_email "${account_id}")" \
+    --role="${role}" \
+    --quiet
+}
+
 grant_secret_access() {
   local secret_name="$1"
   local account_id="$2"
@@ -144,6 +155,8 @@ grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/st
 
 grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_cloud_build_source_bucket_role \
+  "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
 # The dedicated signer uploads only the digest-bound cosign OCI signature and
 # attestation referrers into this one repository. Artifact Registry has no

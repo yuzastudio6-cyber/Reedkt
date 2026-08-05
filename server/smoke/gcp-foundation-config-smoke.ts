@@ -327,6 +327,10 @@ check(
   'Image builder must create the fixed private build-source artifact without object deletion authority.',
 )
 check(
+  /grant_cloud_build_source_bucket_role \\\n+\s+"\$\{REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT\}" roles\/storage\.objectViewer/u.test(iamScript),
+  'Image builder must read the submitted Cloud Build source archive without receiving write or delete authority.',
+)
+check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')
     && iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
   'API image-build owner must create and exact-reread private checkpoint-free build capsules.',

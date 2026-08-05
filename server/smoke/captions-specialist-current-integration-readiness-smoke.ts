@@ -4,9 +4,11 @@ import {
   CAPTION_CURRENT_INTEGRATION_READINESS,
   CAPTION_CURRENT_INTEGRATION_READINESS_V2,
   CAPTION_CURRENT_INTEGRATION_READINESS_V3,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V4,
   parseCaptionCurrentIntegrationReadiness,
   parseCaptionCurrentIntegrationReadinessV2,
   parseCaptionCurrentIntegrationReadinessV3,
+  parseCaptionCurrentIntegrationReadinessV4,
 } from '../captions-specialist/caption-current-integration-readiness'
 import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
@@ -200,25 +202,54 @@ v3Counts.sharedOwnerCompositionMountGaps = 0
 expectThrow(() => parseCaptionCurrentIntegrationReadinessV3(
   redigest(v3CountOverclaim)))
 
+const readinessV4 = parseCaptionCurrentIntegrationReadinessV4(
+  CAPTION_CURRENT_INTEGRATION_READINESS_V4)
+check(readinessV4.closesPriorOwnerCompositionGaps
+  && readinessV4.supersedesReadinessRef.contentHash
+    === readinessV3.readinessDigestSha256
+  && readinessV4.currentStatus
+    === 'caption_source_complete_all_owner_mounts_ready_for_private_evidence',
+'V4 closes the two owner compositions without rewriting the V3 finding.')
+check(readinessV4.counts.canonicalSharedOwnerCompositionMounts === 5
+  && readinessV4.counts.sharedOwnerCompositionMountGaps === 0
+  && readinessV4.gapStates.slice(0, 5).every((gap) =>
+    gap.canonicalSourceMountImplemented),
+'All five canonical shared-owner compositions are now mounted exactly once.')
+check(readinessV4.currentEvidence.soundSyncCanonicalOwnerMountImplemented
+  && readinessV4.currentEvidence.brollCanonicalOwnerMountImplemented
+  && !readinessV4.currentEvidence.actualPrivateOwnerRuntimeEvidenceConsumed
+  && !readinessV4.terminalStatusClaimed,
+'Owner mounts remain distinct from actual private evidence and terminal status.')
+const v4MountRegression = structuredClone(readinessV4)
+v4MountRegression.gapStates[3]!.canonicalSourceMountImplemented = false
+expectThrow(() => parseCaptionCurrentIntegrationReadinessV4(
+  redigest(v4MountRegression)))
+const v4RuntimeOverclaim = structuredClone(readinessV4) as unknown as
+  Record<string, unknown>
+const v4Evidence = v4RuntimeOverclaim.currentEvidence as Record<string, unknown>
+v4Evidence.actualPrivateOwnerRuntimeEvidenceConsumed = true
+expectThrow(() => parseCaptionCurrentIntegrationReadinessV4(
+  redigest(v4RuntimeOverclaim)))
+
 console.log(JSON.stringify({
   smoke: 'captions_specialist_current_integration_readiness',
   assertions,
   historicalReadinessVersion: readiness.schemaVersion,
-  readinessVersion: readinessV3.schemaVersion,
-  readinessDigestSha256: readinessV3.readinessDigestSha256,
+  readinessVersion: readinessV4.schemaVersion,
+  readinessDigestSha256: readinessV4.readinessDigestSha256,
   captionOwnedSharedOwnerBoundariesComplete:
     readiness.counts.captionOwnedSharedOwnerBoundariesComplete,
   strictAuthenticatedMultiOwnerSourceFixturePaths:
     readiness.counts.strictAuthenticatedMultiOwnerSourceFixturePaths,
   actualAuthenticatedPrivateSharedOwnerIntegrations:
-    readinessV3.counts.actualAuthenticatedPrivateSharedOwnerIntegrations,
+    readinessV4.counts.actualAuthenticatedPrivateSharedOwnerIntegrations,
   canonicalSharedOwnerSourceMounts:
-    readinessV3.counts.canonicalSharedOwnerCompositionMounts,
+    readinessV4.counts.canonicalSharedOwnerCompositionMounts,
   sharedOwnerCompositionMountGaps:
-    readinessV3.counts.sharedOwnerCompositionMountGaps,
+    readinessV4.counts.sharedOwnerCompositionMountGaps,
   canonicalBackendExecutionMounts:
     readinessV2.counts.canonicalBackendExecutionMounts,
-  remainingTerminalGaps: readinessV3.counts.remainingPrivateEvidenceGaps,
-  terminalStatusClaimed: readinessV3.terminalStatusClaimed,
+  remainingTerminalGaps: readinessV4.counts.remainingPrivateEvidenceGaps,
+  terminalStatusClaimed: readinessV4.terminalStatusClaimed,
   result: 'passed',
 }, null, 2))

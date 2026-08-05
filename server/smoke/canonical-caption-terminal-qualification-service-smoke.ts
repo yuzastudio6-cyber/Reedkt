@@ -33,7 +33,7 @@ import {
   CAPTIONS_SUPPORTED_JOB_TYPES,
 } from '../../src/types/captions-specialist'
 import {
-  CAPTION_CURRENT_JOB_READINESS_LEDGER,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
 } from '../captions-specialist/caption-current-job-readiness'
 import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V3,
@@ -117,9 +117,9 @@ const request = createCanonicalCaptionTerminalQualificationRequest({
   },
   executionPackageRef,
   currentJobReadinessRef: exactRef(
-    CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerId,
-    CAPTION_CURRENT_JOB_READINESS_LEDGER.schemaVersion,
-    CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerDigestSha256),
+    CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerId,
+    CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.schemaVersion,
+    CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerDigestSha256),
   requiredOutputIds: [outputId],
   privateInternalQualificationRun: true,
   callerSuppliedEvidenceAccepted: false,
@@ -394,16 +394,16 @@ async function run(): Promise<void> {
     && blocked.terminalProjection === null,
   'Missing canonical evidence must return a blocked preflight without a record.')
 
-  expectThrow(() => createCanonicalCaptionTerminalEvidenceBundle({
+  const evidenceBundle = createCanonicalCaptionTerminalEvidenceBundle({
     request,
     qualificationInput,
     privateReviewEvidenceProjections: [privateReviewProjection()],
-  }))
+  })
   let ownerReads = 0
   const evidenceReadPort = createCanonicalCaptionTerminalEvidenceReadPort(
     async () => {
       ownerReads += 1
-      return null
+      return structuredClone(evidenceBundle)
     })
   const repository = createCanonicalCaptionTerminalQualificationRepository({
     objectPort: memoryObjectPort(),
@@ -413,15 +413,24 @@ async function run(): Promise<void> {
     repository,
     now: () => new Date('2026-08-05T23:55:00.000Z'),
   })
-  const sourceBlocked = await service.qualifyPrivateInternal(request)
-  check(sourceBlocked.disposition === 'blocked_missing_canonical_evidence'
-    && sourceBlocked.record === null
-    && sourceBlocked.terminalProjection === null
-    && ownerReads === 0,
-  'The current four-job source-readiness gap must block before owner evidence is read.')
-  check(!sourceBlocked.currentProductStatusChanged
-    && !sourceBlocked.publicOrProductionAuthorityGranted,
-  'A source-readiness block cannot promote product, public, or production state.')
+  const qualified = await service.qualifyPrivateInternal(request)
+  check(qualified.disposition === 'qualified_private_internal'
+    && qualified.record !== null
+    && qualified.terminalProjection?.counts.qualifiedPrivateInternalJobs === 41
+    && qualified.terminalProjection.counts.qualifiedOutputs === 1
+    && ownerReads === 1,
+  'All-owner mount readiness must admit exact canonical evidence for all 41 jobs.')
+  check(!qualified.currentProductStatusChanged
+    && !qualified.publicOrProductionAuthorityGranted
+    && qualified.record?.privateInternalOnly
+    && !qualified.record.productionAuthorityGrantedToCaption,
+  'Private qualification cannot promote product, public, or production state.')
+  const replay = await service.qualifyPrivateInternal(request)
+  check(replay.disposition === 'qualified_private_internal'
+    && replay.record?.recordDigestSha256
+      === qualified.record?.recordDigestSha256
+    && ownerReads === 1,
+  'Terminal qualification replay must reread the create-only record without rereading owner evidence.')
 
   expectThrow(() => createCanonicalCaptionTerminalQualificationService({
     evidenceReadPort: {
@@ -465,10 +474,11 @@ async function run(): Promise<void> {
     status: 'passed',
     assertions,
     blockedWithoutCanonicalEvidence: true,
-    qualifiedCandidateWasContractShapeOnly: true,
-    actualCanonicalEvidenceConsumedByThisSmoke: false,
-    currentSourceReadinessBlockedBeforeOwnerRead: ownerReads === 0,
-    currentV2ProjectionBuilderBlockedBySourceReadiness: true,
+    canonicalEvidenceBundleConsumed: true,
+    qualifiedPrivateInternalJobs:
+      qualified.terminalProjection?.counts.qualifiedPrivateInternalJobs,
+    currentSourceReadinessAcceptedAllOwnerMounts: true,
+    createOnlyReplayVerified: ownerReads === 1,
     callerSuppliedEvidenceAccepted: false,
     browserLocalCompletionAccepted: false,
     productionAuthority: false,

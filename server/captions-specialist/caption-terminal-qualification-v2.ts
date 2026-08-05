@@ -26,7 +26,7 @@ import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V3,
 } from './caption-current-integration-readiness'
 import {
-  CAPTION_CURRENT_JOB_READINESS_LEDGER,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
 } from './caption-current-job-readiness'
 import {
   assertCaptionTerminalPrivateReviewEvidence,
@@ -281,7 +281,7 @@ export const CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT_V2 =
   createCaptionTerminalQualificationPreflightV2()
 
 function currentSourceReadinessAllowsTerminalProjection(): boolean {
-  const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER
+  const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER_V2
   const readyCount: number = ledger.counts.sourcePathsReadyForPrivateEvidenceRun
   const declaredCount: number = ledger.counts.declaredSupportedJobs
   const waitingCount: number = ledger.counts.jobsWaitingOnCanonicalOwnerMount

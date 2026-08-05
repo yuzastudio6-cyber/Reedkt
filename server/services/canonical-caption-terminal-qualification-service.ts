@@ -21,7 +21,7 @@ import type { CaptionDomainRef } from
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
-  CAPTION_CURRENT_JOB_READINESS_LEDGER,
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
 } from '../captions-specialist/caption-current-job-readiness'
 import {
   CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT_V2,
@@ -440,14 +440,14 @@ function outcome(
 
 function currentJobReadinessRef(): CaptionDomainRef {
   return {
-    id: CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerId,
-    version: CAPTION_CURRENT_JOB_READINESS_LEDGER.schemaVersion,
-    contentHash: CAPTION_CURRENT_JOB_READINESS_LEDGER.ledgerDigestSha256,
+    id: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerId,
+    version: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.schemaVersion,
+    contentHash: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerDigestSha256,
   }
 }
 
 function currentSourceReadinessAllowsTerminalQualification(): boolean {
-  const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER
+  const ledger = CAPTION_CURRENT_JOB_READINESS_LEDGER_V2
   const readyCount: number = ledger.counts.sourcePathsReadyForPrivateEvidenceRun
   const declaredCount: number = ledger.counts.declaredSupportedJobs
   const waitingCount: number = ledger.counts.jobsWaitingOnCanonicalOwnerMount

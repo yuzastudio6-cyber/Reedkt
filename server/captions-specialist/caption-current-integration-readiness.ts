@@ -5,12 +5,14 @@ import {
   CAPTION_CURRENT_INTEGRATION_READINESS_VERSION,
   CAPTION_CURRENT_INTEGRATION_READINESS_VERSION_V2,
   CAPTION_CURRENT_INTEGRATION_READINESS_VERSION_V3,
+  CAPTION_CURRENT_INTEGRATION_READINESS_VERSION_V4,
   type CaptionCurrentIntegrationGapState,
   type CaptionCurrentIntegrationGapStateV2,
   type CaptionCurrentIntegrationGapStateV3,
   type CaptionCurrentIntegrationReadiness,
   type CaptionCurrentIntegrationReadinessV2,
   type CaptionCurrentIntegrationReadinessV3,
+  type CaptionCurrentIntegrationReadinessV4,
 } from '../../src/types/caption-current-integration-readiness'
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
@@ -289,6 +291,72 @@ z.object({
   gapStates: z.array(gapSchemaV3).length(9),
   currentStatus: z.literal(
     'caption_source_complete_with_two_owner_mount_gaps'),
+  targetTerminalStatus: z.literal(
+    'caption_specialist_private_internal_qualified'),
+  terminalStatusClaimed: z.literal(false),
+  publicProductionRequiredForTerminalStatus: z.literal(false),
+  centralOrchestraRequiredForTerminalStatus: z.literal(false),
+  centralOrchestraImplemented: z.literal(false),
+  browserLocalCompletionAccepted: z.literal(false),
+  sourceFixtureRelabeledAsActualOwnerRuntime: z.literal(false),
+  technicalQaRelabeledAsVisualAiReview: z.literal(false),
+  operationDispatchAuthority: z.literal(false),
+  providerOrModelRuntimeAuthority: z.literal(false),
+  assetMutationAuthority: z.literal(false),
+  finalQaApprovalAuthority: z.literal(false),
+  creditOrBillingAuthority: z.literal(false),
+  publicDeliveryAuthority: z.literal(false),
+  productionAuthority: z.literal(false),
+}).strict()
+
+const readinessSchemaV4: z.ZodType<CaptionCurrentIntegrationReadinessV4> =
+z.object({
+  schemaVersion: z.literal(CAPTION_CURRENT_INTEGRATION_READINESS_VERSION_V4),
+  readinessId: safeKey,
+  readinessDigestSha256: sha256,
+  observedAt: z.string().datetime({ offset: true }),
+  supersedesFrozenAudit: z.literal(false),
+  closesPriorOwnerCompositionGaps: z.literal(true),
+  supersedesReadinessRef: refSchema,
+  sourceFrozenGoalAuditRef: refSchema,
+  sourceIntegrationManifestRef: refSchema,
+  sourceIntegrationQualificationRef: refSchema,
+  sourceCanonicalResumeAdapterRef: refSchema,
+  sourceOwnerCompositionRef: refSchema,
+  counts: z.object({
+    declaredCaptionJobs: z.literal(41),
+    captionOwnedSharedOwnerBoundariesComplete: z.literal(5),
+    captionSharedOwnerBridgeImplementations: z.literal(5),
+    canonicalSharedOwnerCompositionMounts: z.literal(5),
+    sharedOwnerCompositionMountGaps: z.literal(0),
+    canonicalBackendExecutionMounts: z.literal(1),
+    postrenderAndPrivateReviewSourceMounts: z.literal(2),
+    terminalProjectionContractsPublished: z.literal(2),
+    actualAuthenticatedPrivateSharedOwnerIntegrations: z.literal(0),
+    remainingPrivateEvidenceGaps: z.literal(9),
+  }).strict(),
+  currentEvidence: z.object({
+    captionOwnedFeatureSurfaceComplete: z.literal(true),
+    captionOwnedSharedOwnerContractsComplete: z.literal(true),
+    canonicalTranscriptExecutionMountImplemented: z.literal(true),
+    visualIntelligenceSupportResumeMountImplemented: z.literal(true),
+    trackAllSupportResumeMountImplemented: z.literal(true),
+    soundSyncSupportBridgeImplemented: z.literal(true),
+    soundSyncCanonicalOwnerMountImplemented: z.literal(true),
+    brollSupportBridgeImplemented: z.literal(true),
+    brollCanonicalOwnerMountImplemented: z.literal(true),
+    canonicalBackendPrivateExecutionMountImplemented: z.literal(true),
+    postrenderVisualQaPersistenceAndReadMountImplemented: z.literal(true),
+    independentPrivateReviewProjectionImplemented: z.literal(true),
+    terminalPerJobProjectionContractPublished: z.literal(true),
+    actualCanonicalResumeRecordConsumed: z.literal(false),
+    actualPrivateOwnerRuntimeEvidenceConsumed: z.literal(false),
+    qualifiedAiCompleteTimeVisualReviewConsumed: z.literal(false),
+    independentFinalQaDecisionConsumed: z.literal(false),
+  }).strict(),
+  gapStates: z.array(gapSchemaV3).length(9),
+  currentStatus: z.literal(
+    'caption_source_complete_all_owner_mounts_ready_for_private_evidence'),
   targetTerminalStatus: z.literal(
     'caption_specialist_private_internal_qualified'),
   terminalStatusClaimed: z.literal(false),
@@ -967,6 +1035,164 @@ parseCaptionCurrentIntegrationReadinessV3({
   ...readinessWithoutDigestV3,
   readinessDigestSha256: calculateSkillContractDigest({
     ...readinessWithoutDigestV3,
+    readinessDigestSha256: '',
+  }, 'readinessDigestSha256'),
+})
+
+const previousReadinessV3Ref = ref(
+  CAPTION_CURRENT_INTEGRATION_READINESS_V3.readinessId,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V3.schemaVersion,
+  CAPTION_CURRENT_INTEGRATION_READINESS_V3.readinessDigestSha256)
+const ownerCompositionRef = ref(
+  'captions.shared-owner.private-composition',
+  'canonical-caption-shared-owner-private-composition-v1',
+  calculateSkillContractDigest({
+    version: 'canonical-caption-shared-owner-private-composition-v1',
+    soundOwner: 'canonical-sound-caption-owner-service-v1',
+    brollOwner: 'canonical-broll-caption-owner-service-v1',
+    digest: '',
+  }, 'digest'))
+const soundOwnerMountRef = sourceMountRef(
+  'captions.soundsync.canonical-owner-composition',
+  'canonical-sound-caption-owner-service-v1')
+const brollOwnerMountRef = sourceMountRef(
+  'captions.broll.canonical-owner-composition',
+  'canonical-broll-caption-owner-service-v1')
+
+const expectedGapStatesV4: CaptionCurrentIntegrationGapStateV3[] =
+expectedGapStatesV3.map((gapState) => {
+  if (gapState.gapId === 'soundsync_authenticated_evidence') {
+    return gapV3({
+      gapId: gapState.gapId,
+      ownerKeys: gapState.ownerKeys,
+      sourceIntegrationState:
+        'canonical_source_mount_complete_waiting_on_private_evidence',
+      sourceEvidenceRefs: [
+        ...gapState.sourceEvidenceRefs, soundOwnerMountRef, ownerCompositionRef,
+      ],
+      canonicalSourceMountImplemented: true,
+    })
+  }
+  if (gapState.gapId === 'broll_owner_authenticated_read') {
+    return gapV3({
+      gapId: gapState.gapId,
+      ownerKeys: gapState.ownerKeys,
+      sourceIntegrationState:
+        'canonical_source_mount_complete_waiting_on_private_evidence',
+      sourceEvidenceRefs: [
+        ...gapState.sourceEvidenceRefs, brollOwnerMountRef, ownerCompositionRef,
+      ],
+      canonicalSourceMountImplemented: true,
+    })
+  }
+  return structuredClone(gapState)
+})
+
+export function parseCaptionCurrentIntegrationReadinessV4(
+  value: unknown,
+): CaptionCurrentIntegrationReadinessV4 {
+  assertClosedContractTree(value, 'Caption current integration readiness V4')
+  const parsed = readinessSchemaV4.parse(value)
+  const sharedOwnerMounts = parsed.gapStates.slice(0, 5).filter((item) =>
+    item.canonicalSourceMountImplemented).length
+  const failures = [
+    parsed.readinessDigestSha256 !== calculateSkillContractDigest(
+      parsed as unknown as Record<string, unknown>, 'readinessDigestSha256')
+      ? 'digest' : null,
+    refKey(parsed.supersedesReadinessRef) !== refKey(previousReadinessV3Ref)
+      ? 'superseded_readiness' : null,
+    refKey(parsed.sourceOwnerCompositionRef) !== refKey(ownerCompositionRef)
+      ? 'owner_composition' : null,
+    JSON.stringify(parsed.gapStates) !== JSON.stringify(expectedGapStatesV4)
+      ? 'gap_states' : null,
+    parsed.gapStates.map((item) => item.gapId).join('|')
+      !== CAPTION_GOAL_COMPLETION_GAP_IDS.join('|') ? 'gap_order' : null,
+    sharedOwnerMounts !== parsed.counts.canonicalSharedOwnerCompositionMounts
+      ? 'mount_count' : null,
+    5 - sharedOwnerMounts !== parsed.counts.sharedOwnerCompositionMountGaps
+      ? 'mount_gap_count' : null,
+    parsed.gapStates.some((item) =>
+      new Set(item.ownerKeys).size !== item.ownerKeys.length
+      || new Set(item.sourceEvidenceRefs.map(refKey)).size
+        !== item.sourceEvidenceRefs.length) ? 'duplicate_lineage' : null,
+  ].filter((item): item is string => item !== null)
+  if (failures.length > 0) {
+    throw new Error(
+      `Caption current integration readiness V4 is inconsistent: ${failures.join(', ')}.`,
+    )
+  }
+  return structuredClone(parsed)
+}
+
+const readinessWithoutDigestV4: Omit<CaptionCurrentIntegrationReadinessV4,
+  'readinessDigestSha256'> = {
+  schemaVersion: CAPTION_CURRENT_INTEGRATION_READINESS_VERSION_V4,
+  readinessId: 'captions.current.integration.readiness.all-owner-mounts-closed',
+  observedAt: '2026-08-06T01:00:00.000Z',
+  supersedesFrozenAudit: false,
+  closesPriorOwnerCompositionGaps: true,
+  supersedesReadinessRef: previousReadinessV3Ref,
+  sourceFrozenGoalAuditRef: frozenAuditRef,
+  sourceIntegrationManifestRef: integrationManifestRef,
+  sourceIntegrationQualificationRef: integrationQualificationRef,
+  sourceCanonicalResumeAdapterRef: resumeAdapterRef,
+  sourceOwnerCompositionRef: ownerCompositionRef,
+  counts: {
+    declaredCaptionJobs: 41,
+    captionOwnedSharedOwnerBoundariesComplete: 5,
+    captionSharedOwnerBridgeImplementations: 5,
+    canonicalSharedOwnerCompositionMounts: 5,
+    sharedOwnerCompositionMountGaps: 0,
+    canonicalBackendExecutionMounts: 1,
+    postrenderAndPrivateReviewSourceMounts: 2,
+    terminalProjectionContractsPublished: 2,
+    actualAuthenticatedPrivateSharedOwnerIntegrations: 0,
+    remainingPrivateEvidenceGaps: 9,
+  },
+  currentEvidence: {
+    captionOwnedFeatureSurfaceComplete: true,
+    captionOwnedSharedOwnerContractsComplete: true,
+    canonicalTranscriptExecutionMountImplemented: true,
+    visualIntelligenceSupportResumeMountImplemented: true,
+    trackAllSupportResumeMountImplemented: true,
+    soundSyncSupportBridgeImplemented: true,
+    soundSyncCanonicalOwnerMountImplemented: true,
+    brollSupportBridgeImplemented: true,
+    brollCanonicalOwnerMountImplemented: true,
+    canonicalBackendPrivateExecutionMountImplemented: true,
+    postrenderVisualQaPersistenceAndReadMountImplemented: true,
+    independentPrivateReviewProjectionImplemented: true,
+    terminalPerJobProjectionContractPublished: true,
+    actualCanonicalResumeRecordConsumed: false,
+    actualPrivateOwnerRuntimeEvidenceConsumed: false,
+    qualifiedAiCompleteTimeVisualReviewConsumed: false,
+    independentFinalQaDecisionConsumed: false,
+  },
+  gapStates: expectedGapStatesV4,
+  currentStatus:
+    'caption_source_complete_all_owner_mounts_ready_for_private_evidence',
+  targetTerminalStatus: 'caption_specialist_private_internal_qualified',
+  terminalStatusClaimed: false,
+  publicProductionRequiredForTerminalStatus: false,
+  centralOrchestraRequiredForTerminalStatus: false,
+  centralOrchestraImplemented: false,
+  browserLocalCompletionAccepted: false,
+  sourceFixtureRelabeledAsActualOwnerRuntime: false,
+  technicalQaRelabeledAsVisualAiReview: false,
+  operationDispatchAuthority: false,
+  providerOrModelRuntimeAuthority: false,
+  assetMutationAuthority: false,
+  finalQaApprovalAuthority: false,
+  creditOrBillingAuthority: false,
+  publicDeliveryAuthority: false,
+  productionAuthority: false,
+}
+
+export const CAPTION_CURRENT_INTEGRATION_READINESS_V4 =
+parseCaptionCurrentIntegrationReadinessV4({
+  ...readinessWithoutDigestV4,
+  readinessDigestSha256: calculateSkillContractDigest({
+    ...readinessWithoutDigestV4,
     readinessDigestSha256: '',
   }, 'readinessDigestSha256'),
 })

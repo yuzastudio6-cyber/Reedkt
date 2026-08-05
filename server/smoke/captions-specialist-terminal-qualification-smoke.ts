@@ -63,6 +63,7 @@ import {
   createCaptionTerminalQualificationProjectionV2,
   parseCaptionTerminalQualificationEvidenceInputV2,
   parseCaptionTerminalQualificationPreflightV2,
+  parseCaptionTerminalQualificationProjectionV2,
 } from '../captions-specialist/caption-terminal-qualification-v2'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
@@ -461,12 +462,21 @@ const acceptedPrivateReviewProjectionsV2 = parsedInputV2.outputEvidence.map(
   (output) => privateReviewProjection(parsedInputV2, output))
 const readyPreflightV2 = createCaptionTerminalQualificationPreflightV2(
   parsedInputV2, acceptedPrivateReviewProjectionsV2)
-check(readyPreflightV2.disposition === 'blocked_missing_canonical_evidence'
-  && readyPreflightV2.sourceQualificationInputRef === null
-  && readyPreflightV2.blockingGapIds.length === 9,
-'The V2 preflight cannot accept fixture-shaped evidence while owner mounts remain missing.')
-expectThrow(() => createCaptionTerminalQualificationProjectionV2(
-  parsedInputV2, acceptedPrivateReviewProjectionsV2))
+check(readyPreflightV2.disposition === 'ready_for_terminal_projection'
+  && readyPreflightV2.sourceQualificationInputRef?.contentHash
+    === parsedInputV2.inputDigestSha256
+  && readyPreflightV2.blockingGapIds.length === 0,
+'The V2 preflight admits complete evidence only after all owner mounts close.')
+const projectionV2 = parseCaptionTerminalQualificationProjectionV2(
+  createCaptionTerminalQualificationProjectionV2(
+    parsedInputV2, acceptedPrivateReviewProjectionsV2),
+  parsedInputV2,
+)
+check(projectionV2.counts.qualifiedPrivateInternalJobs === 41
+  && projectionV2.counts.qualifiedOutputs === outputIds.length
+  && projectionV2.currentStatus
+    === 'caption_specialist_private_internal_qualified',
+'The V2 projection covers all 41 jobs and every confirmed output exactly once.')
 const staleV2Readiness = structuredClone(parsedInputV2)
 staleV2Readiness.sourceCurrentReadinessRef = refFrom(
   CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessId,
@@ -487,7 +497,7 @@ console.log(JSON.stringify({
   currentTerminalStatusClaimed: false,
   candidateJobCount: projection.jobs.length,
   candidateOutputCount: projection.outputs.length,
-  currentV2ProjectionBlockedBySourceReadiness: true,
+  currentV2ProjectionSourceGateClosed: true,
   result: 'passed',
 }, null, 2))
 

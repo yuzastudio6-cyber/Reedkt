@@ -23,6 +23,9 @@ const projectScope = {
   workspaceId: 'workspace-internal-testing',
 }
 const handoffStorageKey = buildLocalProjectHandoffStorageKey(projectScope)
+const currentEditPreferencesApiBaseUrl = `http://127.0.0.1:${Number(
+  process.env.PLAYWRIGHT_CURRENT_EDIT_PREFERENCES_API_PORT ?? 5434,
+)}`
 let approvedPreferenceSourceFixturePath = ''
 
 async function createNamedEdit(page: Page, label: string) {
@@ -330,7 +333,7 @@ test.describe('saved and current Edit Preferences', () => {
 
   test('does not confirm untouched setup gates when only a non-gate preference changes', async ({ page }) => {
     await createNamedEdit(page, 'unconfirmed-defaults')
-    await page.evaluate((storageKey) => {
+    const unconfirmedHandoff = await page.evaluate((storageKey) => {
       const envelope = JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as {
         handoffs?: LocalInternalProjectHandoff[]
       }
@@ -339,11 +342,29 @@ test.describe('saved and current Edit Preferences', () => {
       handoff.setup.editLevelConfirmed = false
       handoff.setup.cleanupPreferenceConfirmed = false
       handoff.setup.visualPreferenceConfirmed = false
+      handoff.updatedAt = new Date().toISOString()
       window.localStorage.setItem(storageKey, JSON.stringify(envelope))
+      return handoff
     }, handoffStorageKey)
+    const backendPersistResponse = await page.request.put(
+      `${currentEditPreferencesApiBaseUrl}/v1/projects/${encodeURIComponent(unconfirmedHandoff.projectId)}/internal-edit-state`,
+      {
+        data: {
+          workspaceId: unconfirmedHandoff.workspaceId,
+          editSessionId: unconfirmedHandoff.editSessionId,
+          handoff: unconfirmedHandoff,
+        },
+        headers: {
+          'idempotency-key': `current-edit-unconfirmed-defaults-${unconfirmedHandoff.id}-${Date.now()}`,
+        },
+      },
+    )
+    expect(
+      backendPersistResponse.ok(),
+      `The unconfirmed setup fixture could not be persisted: ${await backendPersistResponse.text()}`,
+    ).toBe(true)
     await page.reload()
-    const initial = await readHandoff(page)
-    expect(initial?.setup).toMatchObject({
+    await expect.poll(async () => (await readHandoff(page))?.setup).toMatchObject({
       editLevelConfirmed: false,
       cleanupPreferenceConfirmed: false,
       visualPreferenceConfirmed: false,

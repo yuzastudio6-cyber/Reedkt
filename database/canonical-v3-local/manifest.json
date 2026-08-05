@@ -881,7 +881,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
-      "sha256": "b93088629a603dec453739aff640c795ec025f308a631ebb18f755adb9259714"
+      "sha256": "851ecfd9b6ce102fd01793a098f5f53512c6baf465a50108c81a794634b3e12d"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",

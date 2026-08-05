@@ -18,6 +18,7 @@ import { createSkillQaFinding } from '../../core/skill-qa-registry'
 import { createCaptionReservedZonesV1 } from '../../shared/assignment-authorities'
 import {
   projectTrackGraphV1,
+  trackGraphV1Schema,
   trackGraphV2Schema,
   type TrackGraphV2,
 } from '../../shared/track-graph/track-graph-schemas'
@@ -923,7 +924,15 @@ implements TrackAllCanonicalPrivateOperationDriver {
       planarTrackGraphs: [],
     })
     const original = compiled.b_roll
-    const trackGraphV1 = projectTrackGraphV1(graph)
+    const priorProjection = projectTrackGraphV1(graph)
+    const trackGraphV1 = trackGraphV1Schema.parse({
+      ...priorProjection,
+      assignmentId: execution.assignment.assignmentId,
+      assignmentHash: execution.assignment.assignmentHash,
+      authorizedRange: execution.assignment.authorizedRange,
+      authorizedRangeHash: hashSkillValue(execution.assignment.authorizedRange),
+      fps: execution.assignment.authorizedRange.fps,
+    })
     const trackGraphV1Ref = await this.#artifactStore.putJson({
       artifactType: 'track_graph_v1',
       value: trackGraphV1,

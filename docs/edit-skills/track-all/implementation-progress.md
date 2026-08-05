@@ -1814,3 +1814,119 @@ Every listed commit was pushed and its remote branch head was confirmed during
 the milestone. No head orchestra, peer skill, Caption implementation, paid
 provider call, real SAM inference, GPU execution, public delivery, or
 production mutation was added.
+
+## TRACK-26 — gated real SAM 3.1 private runtime
+
+Status: source, generated qualification evidence, and milestone ledger are
+complete. The source and evidence commits were pushed and their exact remote
+branch heads were confirmed before this ledger entry.
+
+Implemented:
+
+- added a separate real-private SAM 3.1 session owner and content-addressed
+  runtime identity; the injected fixture owner cannot satisfy this boundary;
+- added a fixed `track_all_v2_candidate` GPU-worker image stage, fixed private
+  entrypoint, and fixed Python runner using the official SAM 3.1 builder and
+  session lifecycle without caller-selected commands, models, checkpoints,
+  GPUs, paths, URLs, retries, or fallback routes;
+- implemented non-zero initialization, forward/backward/bidirectional
+  propagation, exact object/range budgets, private create-only mask output,
+  strict source/checkpoint/image lineage, cancellation, timeout, reconciliation,
+  and mandatory close on every terminal disposition;
+- added a content-addressed private-canary preflight and a separately gated
+  execution entry point. Execution requires durable canonical gate evidence,
+  a current internal-qualified route receipt containing actual canonical GPU
+  evidence, and explicit human execution authority;
+- versioned the SAM route-gate report to bind the exact immutable runtime image
+  digest and added a durable canonical-evidence reread port; raw or fixture
+  evidence cannot promote the route;
+- bound the real runtime identity, canary, worker sources, operation authority,
+  and image authority into Track All qualification invalidation;
+- preserved the historical SAM V1 operation and default historical V1 image
+  target while adding the V2 path forward-only.
+
+Official source verification on 2026-08-05 confirmed:
+
+- Meta repository `HEAD` and `main` both resolve to pinned source revision
+  `96914d2425f90a64f45ca977c2b5165418099543`;
+- the official dispatcher exposes start, prompt, object removal, reset,
+  cancellation, forward/backward/bidirectional propagation, and idempotent
+  close semantics used by the fixed runner;
+- the official `facebook/sam3.1` checkpoint remains gated and has no hosted
+  inference provider suitable for substituting for the required private
+  runtime.
+
+Actual focused checks passed before source freeze:
+
+```text
+npm run test:track-all-sam3.1-operation-authority
+npm run test:track-all-sam3.1-route-gates
+npm run test:track-all-sam3.1-injected-session
+npm run test:track-all-sam3.1-real-private-runtime
+npm run test:track-all-sam3.1-private-canary
+npm run test:track-all-planning
+npm run test:track-all-runtime-bindings
+npm run test:track-all-public-plugin-e2e
+npm run test:track-all-canonical-private-public-e2e
+python3 -I -B -c <compile track_all_runner.py source>
+sh -n docker/prod/gpu-worker/sam3_1/track_all_entrypoint.sh
+NODE_OPTIONS=--max-old-space-size=8192 npm run typecheck:server
+npm run lint
+npm run check:frontend-boundary
+git diff --check
+```
+
+The private canary preflight and execution-gate test passed with deterministic
+receipt hash
+`b3cdd6035f7404673ff327adec812b5c61e35507f36d21975a3e00fbfd6b1602`.
+The execution path failed closed before dispatch with exactly these ten gates:
+
+1. `human_terms_and_commercial_legal_approval`
+2. `official_checkpoint_private_ingest_hash_and_security`
+3. `strict_source_checkpoint_compatibility`
+4. `offline_dependency_closure`
+5. `immutable_signed_runtime_image`
+6. `v2_session_runtime_compatibility`
+7. `a100_private_runtime_and_quality`
+8. `l4_private_runtime_and_quality_if_fallback_active`
+9. `current_account_effective_rate_authority`
+10. `private_output_and_privacy_quality`
+
+It emitted zero SAM requests, zero GPU executions, zero paid actions, zero
+public artifacts, and zero production mutations.
+
+Remote evidence closeout:
+
+- TRACK-26 source commit:
+  `dbf57e0ef99e018f72231e593b41e98ffdfb6dce` (pushed and remotely
+  confirmed);
+- TRACK-26 generated-evidence commit:
+  `8da4fc317d00db9f63b71d30ff47fa7af688a990` (pushed and remotely
+  confirmed);
+- TRACK-26 ledger commit: recorded by this commit and confirmed after push.
+
+`NODE_OPTIONS=--max-old-space-size=8192 npm run qualify:track-all:internal`
+actually passed 32 commands and 23 fixture records against clean source commit
+`dbf57e0ef99e018f72231e593b41e98ffdfb6dce`. The generated evidence binds:
+
+- manifest hash:
+  `405b1193ed9609befc9362bce4022bf664567d23fd22564c62271779a220064e`;
+- relevant source-tree hash:
+  `dc1009c15870fb65098fadc39678b4eb31767b135ee32d576be60b3bd0be9660`;
+- shared authority-set hash:
+  `b21429913c804326664dcbd8238b24ad1f1079b5182c37a4595c4bb8b4405051`;
+- dependency authority count: `15`;
+- qualification receipt hash:
+  `9a579354444904cda1a075e0c2263bcfc584c57c1cdd9869d5fcc5091b0cd403`;
+- generated artifact hash:
+  `cdfc976c5f99f97816345080455ad90954d6fc601de89e516965b1d859d8d2bc`;
+- route qualification count: `10`;
+- actual SAM request count: `0`;
+- actual GPU execution count: `0`;
+- actual top-level status: `planning_qualified`;
+- production qualification: `false`.
+
+The SAM 3.1 route remains `blocked`; deterministic canonical-private routes
+remain `internal_execution_qualified` only where actual canonical evidence
+supports them. No injected masklet or fixture adapter is represented as real
+SAM inference.

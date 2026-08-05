@@ -73,6 +73,27 @@ export interface CaptionsHarnessSequentialRun {
   completedWithoutDirectPeerDispatch: boolean
 }
 
+export type CaptionsHarnessRuntimeEvidenceInput = Omit<
+  Parameters<typeof runCaptionsSpecialistJob>[0],
+  'call' | 'qualificationSnapshot' | 'manifest' | 'resumeSupportRequest'
+>
+
+export interface CaptionsHarnessSupportResolution {
+  injectedSupportArtifactRefs: SkillArtifactRef[]
+  runtimeEvidence: CaptionsHarnessRuntimeEvidenceInput
+}
+
+export interface CaptionsHarnessSupportResolutionContext {
+  stepNumber: number
+  currentCall: OrchestraSkillCall
+  currentResult: OrchestraSkillJobResult
+  selectedSupportRequest: SkillSupportRequest
+}
+
+export type CaptionsHarnessSupportResolver = (
+  context: CaptionsHarnessSupportResolutionContext,
+) => CaptionsHarnessSupportResolution
+
 const EMPTY_AUTHORITY_STATE: Readonly<CaptionsHarnessAuthorityState> =
   Object.freeze({
     timelineMutations: 0,
@@ -204,6 +225,7 @@ export function createCaptionsHarnessCall(input: {
 export function resumeCaptionsHarnessCall(
   originalCall: OrchestraSkillCall,
   request: SkillSupportRequest,
+  injectedSupportArtifactRefs?: SkillArtifactRef[],
 ): OrchestraSkillCall {
   const requestRef = contractRef(
     request.requestId,
@@ -225,16 +247,17 @@ export function resumeCaptionsHarnessCall(
         sourceSupportRequestRef: null,
       })),
     ],
-    injectedSupportArtifactRefs: request.requestedArtifactTypes.map(
-      (artifactType) => ({
-        ...createCaptionsHarnessArtifact(artifactType, request.targetSkillKey),
-        id: `artifact.${artifactType}.support`,
-        contentHash: sha256(
-          `${request.requestDigestSha256}:${artifactType}:approved`,
-        ),
-        sourceSupportRequestRef: requestRef,
-      }),
-    ),
+    injectedSupportArtifactRefs: injectedSupportArtifactRefs === undefined
+      ? request.requestedArtifactTypes.map((artifactType) => ({
+          ...createCaptionsHarnessArtifact(
+            artifactType, request.targetSkillKey),
+          id: `artifact.${artifactType}.support`,
+          contentHash: sha256(
+            `${request.requestDigestSha256}:${artifactType}:approved`,
+          ),
+          sourceSupportRequestRef: requestRef,
+        }))
+      : structuredClone(injectedSupportArtifactRefs),
     resumeOfSupportRequestRef: requestRef,
     resumeOriginCallRef: request.originalCallRef,
   }
@@ -250,10 +273,15 @@ export function resumeCaptionsHarnessCall(
 export function runCaptionsInternalHarnessToCompletion(input: {
   call: OrchestraSkillCall
   maximumResumeSteps?: number
+  initialRuntimeEvidence?: CaptionsHarnessRuntimeEvidenceInput
+  resolveSupportRequest?: CaptionsHarnessSupportResolver
 }): CaptionsHarnessSequentialRun {
   const authorityStateBefore = structuredClone(EMPTY_AUTHORITY_STATE)
   const initialCall = parseOrchestraSkillCall(input.call)
-  const initialResult = runCaptionsSpecialistJob({ call: initialCall })
+  const initialResult = runCaptionsSpecialistJob({
+    call: initialCall,
+    ...(input.initialRuntimeEvidence ?? {}),
+  })
   const maximumResumeSteps = input.maximumResumeSteps ?? 8
   if (!Number.isInteger(maximumResumeSteps)
     || maximumResumeSteps < 1 || maximumResumeSteps > 32) {
@@ -275,11 +303,21 @@ export function runCaptionsInternalHarnessToCompletion(input: {
         ...structuredClone(artifact),
         sourceSupportRequestRef: null,
       }))
+    const resolution = input.resolveSupportRequest?.({
+      stepNumber: resumeSteps.length + 1,
+      currentCall: structuredClone(currentCall),
+      currentResult: structuredClone(currentResult),
+      selectedSupportRequest: structuredClone(selectedSupportRequest),
+    })
     const resumedCall = resumeCaptionsHarnessCall(
-      currentCall, selectedSupportRequest)
+      currentCall,
+      selectedSupportRequest,
+      resolution?.injectedSupportArtifactRefs,
+    )
     const resumedResult = runCaptionsSpecialistJob({
       call: resumedCall,
       resumeSupportRequest: selectedSupportRequest,
+      ...(resolution?.runtimeEvidence ?? {}),
     })
     resumeSteps.push({
       stepNumber: resumeSteps.length + 1,

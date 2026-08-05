@@ -19,11 +19,18 @@ import {
   parseCaptionCanonicalSpecialistResumeSequence,
   parseCaptionCanonicalSpecialistSupportResumeRecord,
 } from '../captions-specialist/caption-canonical-specialist-resume-read'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsAuthenticatedOwnerFixture,
+} from '../internal-testing/captions-specialist-authenticated-owner-fixtures'
 import {
   createCaptionsHarnessCall,
   runCaptionsInternalHarnessToCompletion,
 } from '../internal-testing/captions-specialist-harness'
 import { calculateSkillContractDigest } from
+  '../orchestra/orchestra-skill-contracts'
+import { parseOrchestraSkillCall } from
   '../orchestra/orchestra-skill-contracts'
 
 let assertions = 0
@@ -69,15 +76,65 @@ const approvedSnapshotRef = {
 }
 const initialCall = createCaptionsHarnessCall({
   callId: 'captions.resume.read.safe-region',
-  jobType: 'provide_caption_safe_region_constraints',
+  jobType: 'resolve_subject_occluded_typography',
   scopeLevel: 'scene',
   runtimeProfile: 'post_cap20_integration',
   approvedSnapshotRef,
 })
-const run = runCaptionsInternalHarnessToCompletion({ call: initialCall })
+const authenticatedOwnerFixture = createCaptionsAuthenticatedOwnerFixture(
+  initialCall)
+const run = runCaptionsInternalHarnessToCompletion({
+  call: initialCall,
+  initialRuntimeEvidence: authenticatedOwnerFixture.initialRuntimeEvidence,
+  resolveSupportRequest: authenticatedOwnerFixture.resolveSupportRequest,
+})
 check(run.resumeSteps.length === 2
   && run.finalResult.disposition === 'completed',
 'The fixture exposes a complete two-owner sequential Caption chain.')
+check(run.resumeSteps.map((step) =>
+  step.selectedSupportRequest.targetSkillKey).join('|')
+    === 'visual_intelligence|track_all'
+  && run.finalResult.reasonCodes.includes(
+    'visual_intelligence.authenticated_admission.accepted')
+  && run.finalResult.reasonCodes.includes(
+    'track_all.authenticated_admission.accepted'),
+'The fixture admits exact Visual Intelligence then Track All evidence.')
+
+const finalStepContext = {
+  stepNumber: 2,
+  currentCall: run.resumeSteps[0].resumedCall,
+  currentResult: run.resumeSteps[0].resumedResult,
+  selectedSupportRequest: run.resumeSteps[1].selectedSupportRequest,
+}
+const finalStepResolution = authenticatedOwnerFixture.resolveSupportRequest(
+  finalStepContext)
+const missingPromotedReread = runCaptionsSpecialistJob({
+  call: run.resumeSteps[1].resumedCall,
+  resumeSupportRequest: run.resumeSteps[1].selectedSupportRequest,
+  canonicalTrackAllEvidenceRecord:
+    finalStepResolution.runtimeEvidence.canonicalTrackAllEvidenceRecord,
+})
+check(missingPromotedReread.disposition === 'needs_followup'
+  && missingPromotedReread.supportRequests[0]?.targetSkillKey
+    === 'visual_intelligence',
+'A promoted Visual Intelligence ref is not enough without its canonical reread.')
+const crossedPromotedCall = structuredClone(run.resumeSteps[1].resumedCall)
+const promotedVisualArtifact = crossedPromotedCall.inputArtifactRefs.find(
+  (artifact) => artifact.artifactType
+    === 'caption_visual_intelligence_occupancy_evidence')!
+promotedVisualArtifact.contentHash = hash('crossed.promoted.visual.artifact')
+crossedPromotedCall.callDigestSha256 = calculateSkillContractDigest(
+  crossedPromotedCall as unknown as Record<string, unknown>,
+  'callDigestSha256')
+const crossedPromotedResult = runCaptionsSpecialistJob({
+  call: parseOrchestraSkillCall(crossedPromotedCall),
+  resumeSupportRequest: run.resumeSteps[1].selectedSupportRequest,
+  ...finalStepResolution.runtimeEvidence,
+})
+check(crossedPromotedResult.disposition === 'blocked'
+  && crossedPromotedResult.reasonCodes.includes(
+    'input.visual_intelligence.promoted_evidence.mismatch'),
+'Crossed promoted owner evidence fails closed after canonical reread.')
 
 function projectionForStep(index: number):
 CanonicalAuthenticatedSpecialistSupportArtifactProjection {
@@ -175,7 +232,7 @@ function recordForStep(index: number): CanonicalSpecialistSupportResumeRecord {
 const records = [recordForStep(0), recordForStep(1)]
 check(records.map((record) =>
   record.authenticatedOwnerProjection.ownerKey).join('|')
-    === 'track_all|visual_intelligence',
+    === 'visual_intelligence|track_all',
 'Canonical records preserve the deterministic two-owner order.')
 check(records.every((record) =>
   record.authenticatedOwnerProjection.artifactRefs.every((artifact) =>
@@ -185,7 +242,8 @@ check(records.every((record) =>
 check(records[1].promotedPriorSupportArtifactRefs.every((artifact) =>
   artifact.sourceSupportRequestRef === null)
   && records[1].resumedCall.inputArtifactRefs.some((artifact) =>
-    artifact.artifactType === 'track_all_mask_binding'),
+    artifact.artifactType
+      === 'caption_visual_intelligence_occupancy_evidence'),
 'Prior owner evidence is promoted to canonical input before the next owner.')
 
 const sequence = createCaptionCanonicalSpecialistResumeSequence({
@@ -195,7 +253,7 @@ const sequence = createCaptionCanonicalSpecialistResumeSequence({
   records,
 })
 check(sequence.stepCount === 2
-  && sequence.ownerOrder.join('|') === 'track_all|visual_intelligence'
+  && sequence.ownerOrder.join('|') === 'visual_intelligence|track_all'
   && sequence.finalDisposition === 'completed',
 'Caption consumes the exact complete canonical sequential-resume chain.')
 check(parseCaptionCanonicalSpecialistResumeSequence(sequence)
@@ -236,7 +294,7 @@ staleRecord.stepOrdinal = 2
 expectThrow(() => parseCaptionCanonicalSpecialistSupportResumeRecord(
   staleRecord))
 const wrongOwnerRecord = structuredClone(records[0])
-wrongOwnerRecord.authenticatedOwnerProjection.ownerKey = 'visual_intelligence'
+wrongOwnerRecord.authenticatedOwnerProjection.ownerKey = 'track_all'
 const wrongOwnerProjection = redigest(
   wrongOwnerRecord.authenticatedOwnerProjection as unknown as
     Record<string, unknown>, 'projectionDigestSha256')
@@ -327,6 +385,10 @@ console.log(JSON.stringify({
   sequenceVersion: sequence.schemaVersion,
   sequenceDigestSha256: sequence.sequenceDigestSha256,
   ownerOrder: sequence.ownerOrder,
+  authenticatedOwnerSourceFixturesInjected: true,
+  strictCaptionRuntimeCompleted: run.finalResult.disposition === 'completed',
+  liveProviderOrGpuRuntimeObservedByFixtureBuilder:
+    authenticatedOwnerFixture.liveProviderOrGpuRuntimeObservedByFixtureBuilder,
   actualCanonicalResumeRecordConsumed: false,
   productionAuthorityGranted: false,
   result: 'passed',

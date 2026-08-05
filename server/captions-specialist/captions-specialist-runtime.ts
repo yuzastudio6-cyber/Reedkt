@@ -450,6 +450,22 @@ function packetArtifactMatches(
     && exactRef(artifact.sourceSupportRequestRef, requestRef)
 }
 
+function promotedVisualPacketArtifactMatches(
+  call: OrchestraSkillCall,
+  packet: CaptionVisualIntelligenceEvidencePacket,
+): boolean {
+  return call.inputArtifactRefs.some((artifact) =>
+    artifact.id === packet.packetId
+    && artifact.version === packet.schemaVersion
+    && artifact.contentHash === packet.packetDigestSha256
+    && artifact.artifactType
+      === 'caption_visual_intelligence_occupancy_evidence'
+    && artifact.producerSkillKey === 'visual_intelligence'
+    && artifact.privateArtifact
+    && artifact.byteFreeRef
+    && artifact.sourceSupportRequestRef === null)
+}
+
 function trackAllPacketArtifactMatches(
   call: OrchestraSkillCall,
   request: SkillSupportRequest,
@@ -470,6 +486,21 @@ function trackAllPacketArtifactMatches(
     && artifact.producerSkillKey === 'track_all'
     && artifact.sourceSupportRequestRef !== null
     && exactRef(artifact.sourceSupportRequestRef, requestRef)
+}
+
+function promotedTrackAllPacketArtifactMatches(
+  call: OrchestraSkillCall,
+  packet: CaptionTrackAllEvidencePacket,
+): boolean {
+  return call.inputArtifactRefs.some((artifact) =>
+    artifact.id === packet.packetId
+    && artifact.version === packet.schemaVersion
+    && artifact.contentHash === packet.packetDigestSha256
+    && artifact.artifactType === 'track_all_mask_binding'
+    && artifact.producerSkillKey === 'track_all'
+    && artifact.privateArtifact
+    && artifact.byteFreeRef
+    && artifact.sourceSupportRequestRef === null)
 }
 
 function expectedTrackAllPurpose(jobType: string): CaptionTrackAllPurpose | null {
@@ -1058,6 +1089,18 @@ export function runCaptionsSpecialistJob(input: {
         call, 'blocked', ['input.visual_intelligence.payload.missing'],
         'Visual Intelligence resume requires its exact Caption payload and evidence.',
       )
+    } else if (canonicalVisualRecord !== null) {
+      const packet = canonicalVisualRecord.captionEvidencePacket
+      if (!exactScopeForDomainPayload(call, packet.canonicalScope)
+        || packet.evidenceMode !== 'authenticated_private_runtime'
+        || packet.authenticatedReadResultRef === null
+        || !promotedVisualPacketArtifactMatches(call, packet)) {
+        return makeResult(profile,
+          call, 'blocked', [
+            'input.visual_intelligence.promoted_evidence.mismatch',
+          ], 'Promoted Visual Intelligence evidence failed exact reread.')
+      }
+      admittedVisualPacket = packet
     } else if (input.visualIntelligenceEvidencePacket !== undefined) {
       return makeResult(profile,
         call, 'blocked', ['input.visual_intelligence.evidence.unexpected'],
@@ -1107,6 +1150,18 @@ export function runCaptionsSpecialistJob(input: {
         call, 'blocked', ['input.track_all.payload.missing'],
         'Typed Track All resume requires its exact Caption payload and packet.',
       )
+    } else if (canonicalTrackAllRecord !== null) {
+      const packet = canonicalTrackAllRecord.captionEvidencePacket
+      if (!exactScopeForDomainPayload(call, packet.canonicalScope)
+        || packet.evidenceMode !== 'authenticated_private_runtime'
+        || packet.authenticatedReadResultRef === null
+        || packet.canonicalSam31RuntimeResultAdmissionRef === null
+        || !promotedTrackAllPacketArtifactMatches(call, packet)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.track_all.promoted_evidence.mismatch'],
+          'Promoted Track All evidence failed exact reread.')
+      }
+      admittedTrackAllPacket = packet
     } else if (input.trackAllEvidencePacket !== undefined) {
       return makeResult(profile,
         call, 'blocked', ['input.track_all.evidence.unexpected'],

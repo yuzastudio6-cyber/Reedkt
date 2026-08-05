@@ -99,6 +99,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 B-roll owner-read adapter](post-cap20-broll-owner-read-adapter.md)
 - [Post-CAP-20 canonical transcript authenticated read](post-cap20-canonical-transcript-authenticated-read.md)
 - [Post-CAP-20 canonical sequential-resume read](post-cap20-canonical-resume-read.md)
+- [Post-CAP-20 authenticated multi-owner resume](post-cap20-authenticated-multi-owner-resume-report.md)
 - [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended
@@ -294,6 +295,13 @@ create-only sequential support ledger. It proves exact current-owner injection
 and prior-owner promotion without importing the backend service or claiming
 that actual records have been mounted. See
 [`post-cap20-canonical-resume-read.md`](./post-cap20-canonical-resume-read.md).
+
+The standalone internal harness now exercises that strict path across two
+owners: authenticated Visual Intelligence is admitted and promoted before
+authenticated Track All completes subject-occluded typography. Bare-reference
+injection still fails closed, and the source fixture is not relabeled as a live
+provider, GPU, or persisted backend run. See
+[`post-cap20-authenticated-multi-owner-resume-report.md`](./post-cap20-authenticated-multi-owner-resume-report.md).
 
 The provider-neutral Visual Intelligence spatial companion now has a strict
 Caption consumer and a typed specialist-runtime admission path. The runtime

@@ -35,6 +35,7 @@ export interface ApprovedCompositionProps {
     | 'motion_studio_prepared_script_animatic_v1'
     | 'motion_studio_deterministic_route_draw_v1'
     | 'caption_direction_creative_scene_group_v1'
+    | 'caption_direction_real_source_scene_group_v2'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -267,7 +268,7 @@ export interface ApprovedCompositionProps {
   subjectMaskFixturePolicy?:
     | 'none'
     | 'deterministic_private_fixture_only_not_track_all_evidence'
-  backgroundStyle?: 'editorial_night_sky_v1'
+  backgroundStyle?: 'editorial_night_sky_v1' | 'real_source_video_v1'
   captionCreativeLayers?: Array<{
     layerId: string
     nodeId: string
@@ -402,6 +403,13 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     return <MotionStudioDeterministicRouteDrawComposition {...props} />
   }
   if (
+    props.compositionProfileId === 'caption_direction_real_source_scene_group_v2' &&
+    props.sourceInternalUrl && props.captionCreativeLayers &&
+    props.captionCreativeLayers.length >= 2
+  ) {
+    return <CaptionRealSourceSceneGroupComposition {...props} />
+  }
+  if (
     props.compositionProfileId === 'caption_direction_creative_scene_group_v1' &&
     props.captionCreativeLayers && props.captionCreativeLayers.length >= 2
   ) {
@@ -509,7 +517,8 @@ const CaptionCreativeLayerView: React.FC<{
   layer: CaptionCreativeLayer
   globalFrame: number
   reducedMotion: boolean
-}> = ({ layer, globalFrame, reducedMotion }) => {
+  realSourcePresentation?: boolean
+}> = ({ layer, globalFrame, reducedMotion, realSourcePresentation = false }) => {
   const { width, height } = useVideoConfig()
   if (
     globalFrame < layer.frameRange.startFrame ||
@@ -555,7 +564,7 @@ const CaptionCreativeLayerView: React.FC<{
   const isHero = layer.presentationKind === 'hero_typography'
   const isList = layer.presentationKind === 'persistent_topic_list'
   const isAccessible = layer.presentationKind === 'stable_accessible_caption'
-  const reviewScale = height / 360
+  const reviewScale = Math.min(width / 640, height / 360)
   const px = (value: number) => Math.max(1, Math.round(value * reviewScale))
   const paddingY = isHero ? 0 : isAccessible ? px(10) : px(12)
   const paddingX = isHero ? 0 : isAccessible ? px(18) : px(16)
@@ -588,15 +597,21 @@ const CaptionCreativeLayerView: React.FC<{
           maxWidth: '100%',
           borderRadius: isAccessible ? px(14) : isList ? px(18) : px(12),
           padding: `${paddingY}px ${paddingX}px`,
-          color: layer.typography.textColor,
+          color: realSourcePresentation && isHero
+            ? layer.typography.accentColor : layer.typography.textColor,
           fontFamily: 'Arial, Helvetica, sans-serif',
           fontSize,
           fontWeight: layer.typography.fontWeight,
           lineHeight: layer.typography.lineHeightMilli / 1_000,
-          letterSpacing: isHero ? '-0.045em' : '-0.018em',
+          letterSpacing: isHero
+            ? realSourcePresentation ? '-0.025em' : '-0.045em'
+            : '-0.018em',
           textAlign: layer.typography.textAlign,
           textShadow: layer.typography.plateStyle === 'none'
-            ? '0 3px 18px rgba(0,0,0,0.48)' : 'none',
+            ? realSourcePresentation
+              ? '0 2px 2px rgba(0,0,0,0.82), 0 8px 24px rgba(0,0,0,0.48)'
+              : '0 3px 18px rgba(0,0,0,0.48)'
+            : 'none',
           overflowWrap: 'normal',
           wordBreak: 'keep-all',
           hyphens: 'none',
@@ -629,6 +644,46 @@ const CaptionCreativeLayerView: React.FC<{
         )}
       </div>
     </div>
+  )
+}
+
+const CaptionRealSourceSceneGroupComposition:
+React.FC<ApprovedCompositionProps> = (props) => {
+  const frame = useCurrentFrame()
+  return (
+    <AbsoluteFill
+      style={{
+        background: '#090D12',
+        color: '#F8FAFC',
+        fontFamily: 'Arial, Helvetica, sans-serif',
+        overflow: 'hidden',
+      }}
+    >
+      <OffthreadVideo
+        src={props.sourceInternalUrl!}
+        startFrom={props.sourceStartFrame ?? 0}
+        endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
+        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+        volume={1}
+      />
+      <AbsoluteFill
+        style={{
+          zIndex: 120,
+          pointerEvents: 'none',
+          background:
+            'linear-gradient(180deg, rgba(2,6,12,0) 48%, rgba(2,6,12,0.08) 60%, rgba(2,6,12,0.46) 100%)',
+        }}
+      />
+      {(props.captionCreativeLayers ?? []).map((layer) => (
+        <CaptionCreativeLayerView
+          key={layer.layerId}
+          layer={layer}
+          globalFrame={frame}
+          reducedMotion={props.reducedMotion === true}
+          realSourcePresentation
+        />
+      ))}
+    </AbsoluteFill>
   )
 }
 

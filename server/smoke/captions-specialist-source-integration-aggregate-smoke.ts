@@ -8,6 +8,7 @@ import {
 
 const sourceOnlyScripts = [
   'smoke:captions-specialist-cap-20-aggregate',
+  'smoke:captions-specialist-cap-14-real-source',
   'smoke:captions-specialist-goal-completion-audit',
   'smoke:captions-specialist-integration-routing',
   'smoke:captions-specialist-shared-owner-integration',

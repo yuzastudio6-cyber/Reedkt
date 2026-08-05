@@ -258,6 +258,45 @@ export interface OfflineRemotionCaptionCreativeSceneGroupPayload extends CommonC
   layers: CaptionRemotionLayer[]
 }
 
+export interface OfflineRemotionCaptionRealSourceSceneGroupPayload extends CommonCompositionPayload {
+  compositionProfileId: 'caption_direction_real_source_scene_group_v2'
+  width: 360
+  height: 640
+  fps: 30
+  sceneGroupId: string
+  sceneGroupDigestSha256: string
+  motionLockDigestSha256: string
+  storyTimingResolutionDigestSha256: string
+  confirmedOutputWidth: 1080
+  confirmedOutputHeight: 1920
+  confirmedAspectRatioNumerator: 9
+  confirmedAspectRatioDenominator: 16
+  privateReviewScaleNumerator: 1
+  privateReviewScaleDenominator: 3
+  reducedMotion: boolean
+  subjectMaskFixturePolicy: 'none'
+  backgroundStyle: 'real_source_video_v1'
+  safePlacementPolicy: 'speaker_face_and_gesture_avoidance_top_plane_v1'
+  sourceMediaPolicy: 'approved_caption_private_review_proxy_v1'
+  sourceMimeType: 'video/mp4'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytesBase64: string
+  sourceStartFrame: 0
+  sourceEndFrameExclusive: number
+  sourceFit: 'contain'
+  audioPolicy: 'preserve_source'
+  originalSourceSha256: string
+  originalSourceStartMilliseconds: number
+  originalSourceEndMilliseconds: number
+  captionWordingReviewDigestSha256: string
+  captionWordingReviewPolicy: 'fixture_specific_human_review_phrase_level_only_v1'
+  wordLockedMotionUsed: false
+  canonicalTranscriptQualificationClaimed: false
+  inspectionFrameNumbers: number[]
+  layers: CaptionRemotionLayer[]
+}
+
 export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority, OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_caption_final_v1'
   sourceStartFrame: number
@@ -497,6 +536,7 @@ export type OfflineRemotionRenderRequest = {
   | { payload: OfflineRemotionMotionStudioAnimaticPayload }
   | { payload: OfflineRemotionMotionStudioRouteDrawPayload }
   | { payload: OfflineRemotionCaptionCreativeSceneGroupPayload }
+  | { payload: OfflineRemotionCaptionRealSourceSceneGroupPayload }
 )
 
 export type OfflineRemotionRenderPlanningPayload = OfflineRemotionPreviewPlanningPayload
@@ -514,7 +554,8 @@ export function validateOfflineRemotionRenderPlanningPayload(value: unknown): Of
     isMotionStudioLayeredPayload(request.payload) ||
     isMotionStudioAnimaticPayload(request.payload) ||
     isMotionStudioRouteDrawPayload(request.payload) ||
-    isCaptionCreativeSceneGroupPayload(request.payload)
+    isCaptionCreativeSceneGroupPayload(request.payload) ||
+    isCaptionRealSourceSceneGroupPayload(request.payload)
   ) {
     throw validationFailure('Preview planning cannot contain final-composition source bytes.')
   }
@@ -1279,6 +1320,166 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     request.operationId !== OFFLINE_REMOTION_RENDER_OPERATION
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
+  if (payloadRecord.compositionProfileId === 'caption_direction_real_source_scene_group_v2') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+      'storyTimingResolutionDigestSha256', 'confirmedOutputWidth',
+      'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+      'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+      'privateReviewScaleDenominator', 'reducedMotion', 'subjectMaskFixturePolicy',
+      'backgroundStyle', 'safePlacementPolicy', 'sourceMediaPolicy',
+      'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+      'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit', 'audioPolicy',
+      'originalSourceSha256', 'originalSourceStartMilliseconds',
+      'originalSourceEndMilliseconds', 'captionWordingReviewDigestSha256',
+      'captionWordingReviewPolicy', 'wordLockedMotionUsed',
+      'canonicalTranscriptQualificationClaimed', 'inspectionFrameNumbers', 'layers',
+    ], 'Caption real-source scene-group payload')
+    const common = commonPayload(payload, 24, 900)
+    if (
+      common.width !== 360 || common.height !== 640 || common.fps !== 30 ||
+      payload.confirmedOutputWidth !== 1_080 || payload.confirmedOutputHeight !== 1_920 ||
+      payload.confirmedAspectRatioNumerator !== 9 ||
+      payload.confirmedAspectRatioDenominator !== 16 ||
+      payload.privateReviewScaleNumerator !== 1 ||
+      payload.privateReviewScaleDenominator !== 3 ||
+      typeof payload.reducedMotion !== 'boolean' ||
+      payload.subjectMaskFixturePolicy !== 'none' ||
+      payload.backgroundStyle !== 'real_source_video_v1' ||
+      payload.safePlacementPolicy !== 'speaker_face_and_gesture_avoidance_top_plane_v1' ||
+      payload.sourceMediaPolicy !== 'approved_caption_private_review_proxy_v1' ||
+      payload.sourceStartFrame !== 0 ||
+      payload.sourceEndFrameExclusive !== common.durationFrames ||
+      payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
+      payload.captionWordingReviewPolicy !==
+        'fixture_specific_human_review_phrase_level_only_v1' ||
+      payload.wordLockedMotionUsed !== false ||
+      payload.canonicalTranscriptQualificationClaimed !== false
+    ) throw validationFailure('Caption real-source frame, source, or review policy is unsupported.')
+    const originalSourceStartMilliseconds = integer(
+      payload.originalSourceStartMilliseconds, 0, 3_600_000,
+      'Caption original source start milliseconds',
+    )
+    const originalSourceEndMilliseconds = integer(
+      payload.originalSourceEndMilliseconds, 1, 3_600_000,
+      'Caption original source end milliseconds',
+    )
+    if (originalSourceEndMilliseconds <= originalSourceStartMilliseconds) {
+      throw validationFailure('Caption original source range is empty.')
+    }
+    for (const digest of [
+      payload.originalSourceSha256, payload.captionWordingReviewDigestSha256,
+    ]) {
+      if (typeof digest !== 'string' || !SHA256.test(digest)) {
+        throw validationFailure('Caption real-source evidence digest is invalid.')
+      }
+    }
+    const source = decodeCommittedBase64(
+      payload, 'source', 'video/mp4', 1_024, 16 * 1024 * 1024,
+    )
+    if (source.subarray(4, 8).toString('ascii') !== 'ftyp') {
+      throw validationFailure('Caption real-source proxy MP4 signature is invalid.')
+    }
+    const normalizedCreative = validateOfflineRemotionRenderRequest({
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        compositionProfileId: 'caption_direction_creative_scene_group_v1',
+        width: 640,
+        height: 360,
+        fps: 30,
+        durationFrames: common.durationFrames,
+        sceneGroupId: payload.sceneGroupId,
+        sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+        motionLockDigestSha256: payload.motionLockDigestSha256,
+        storyTimingResolutionDigestSha256: payload.storyTimingResolutionDigestSha256,
+        confirmedOutputWidth: 1_920,
+        confirmedOutputHeight: 1_080,
+        confirmedAspectRatioNumerator: 16,
+        confirmedAspectRatioDenominator: 9,
+        privateReviewScaleNumerator: 1,
+        privateReviewScaleDenominator: 3,
+        reducedMotion: payload.reducedMotion,
+        subjectMaskFixturePolicy: 'none',
+        backgroundStyle: 'editorial_night_sky_v1',
+        layers: payload.layers,
+      },
+    })
+    if (!isCaptionCreativeSceneGroupPayload(normalizedCreative.payload)) {
+      throw validationFailure('Caption real-source layers lost their closed creative contract.')
+    }
+    if (!Array.isArray(payload.inspectionFrameNumbers)
+      || payload.inspectionFrameNumbers.length < 4
+      || payload.inspectionFrameNumbers.length > 16) {
+      throw validationFailure('Caption real-source inspection frames are incomplete.')
+    }
+    const inspectionFrameNumbers = payload.inspectionFrameNumbers.map((frame) =>
+      integer(frame, 0, common.durationFrames - 1, 'Caption inspection frame'))
+    const requiredInspectionFrames = new Set([
+      0,
+      ...normalizedCreative.payload.layers.map((layer) => Math.floor(
+        (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1) / 2,
+      )),
+      common.durationFrames - 1,
+    ])
+    if (
+      new Set(inspectionFrameNumbers).size !== inspectionFrameNumbers.length ||
+      inspectionFrameNumbers.some((frame, index) =>
+        index > 0 && frame <= inspectionFrameNumbers[index - 1]!) ||
+      [...requiredInspectionFrames].some((frame) =>
+        !inspectionFrameNumbers.includes(frame))
+    ) throw validationFailure('Caption real-source inspection frames do not cover exact cue timing.')
+    const normalizedPayload: OfflineRemotionCaptionRealSourceSceneGroupPayload = {
+      compositionProfileId: 'caption_direction_real_source_scene_group_v2',
+      width: 360,
+      height: 640,
+      fps: 30,
+      durationFrames: common.durationFrames,
+      sceneGroupId: normalizedCreative.payload.sceneGroupId,
+      sceneGroupDigestSha256: normalizedCreative.payload.sceneGroupDigestSha256,
+      motionLockDigestSha256: normalizedCreative.payload.motionLockDigestSha256,
+      storyTimingResolutionDigestSha256:
+        normalizedCreative.payload.storyTimingResolutionDigestSha256,
+      confirmedOutputWidth: 1_080,
+      confirmedOutputHeight: 1_920,
+      confirmedAspectRatioNumerator: 9,
+      confirmedAspectRatioDenominator: 16,
+      privateReviewScaleNumerator: 1,
+      privateReviewScaleDenominator: 3,
+      reducedMotion: normalizedCreative.payload.reducedMotion,
+      subjectMaskFixturePolicy: 'none',
+      backgroundStyle: 'real_source_video_v1',
+      safePlacementPolicy: 'speaker_face_and_gesture_avoidance_top_plane_v1',
+      sourceMediaPolicy: 'approved_caption_private_review_proxy_v1',
+      sourceMimeType: 'video/mp4',
+      sourceByteLength: source.byteLength,
+      sourceSha256: String(payload.sourceSha256),
+      sourceBytesBase64: source.toString('base64'),
+      sourceStartFrame: 0,
+      sourceEndFrameExclusive: common.durationFrames,
+      sourceFit: 'contain',
+      audioPolicy: 'preserve_source',
+      originalSourceSha256: String(payload.originalSourceSha256),
+      originalSourceStartMilliseconds,
+      originalSourceEndMilliseconds,
+      captionWordingReviewDigestSha256:
+        String(payload.captionWordingReviewDigestSha256),
+      captionWordingReviewPolicy:
+        'fixture_specific_human_review_phrase_level_only_v1',
+      wordLockedMotionUsed: false,
+      canonicalTranscriptQualificationClaimed: false,
+      inspectionFrameNumbers,
+      layers: normalizedCreative.payload.layers,
+    }
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: normalizedPayload,
+    }
+  }
   if (payloadRecord.compositionProfileId === 'caption_direction_creative_scene_group_v1') {
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
@@ -1968,6 +2169,13 @@ export function isCaptionCreativeSceneGroupPayload(
 ): payload is OfflineRemotionCaptionCreativeSceneGroupPayload {
   return 'compositionProfileId' in payload
     && payload.compositionProfileId === 'caption_direction_creative_scene_group_v1'
+}
+
+export function isCaptionRealSourceSceneGroupPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionCaptionRealSourceSceneGroupPayload {
+  return 'compositionProfileId' in payload
+    && payload.compositionProfileId === 'caption_direction_real_source_scene_group_v2'
 }
 
 export function offlineRemotionRequestSha256(request: OfflineRemotionRenderRequest): string {

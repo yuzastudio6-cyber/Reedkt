@@ -127,6 +127,11 @@ const layerSchema: z.ZodType<CaptionRemotionLayer> = z.object({
   ]),
 }).strict()
 
+export function parseCaptionRemotionLayers(value: unknown): CaptionRemotionLayer[] {
+  assertClosedContractTree(value, 'Caption Remotion layer list')
+  return z.array(layerSchema).min(2).max(128).parse(value)
+}
+
 const sceneGroupSchema: z.ZodType<CaptionRemotionSceneGroup> = z.object({
   schemaVersion: z.literal(CAPTION_REMOTION_SCENE_GROUP_VERSION),
   sceneGroupId: safeKey,

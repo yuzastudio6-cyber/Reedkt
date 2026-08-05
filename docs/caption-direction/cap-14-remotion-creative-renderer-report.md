@@ -108,3 +108,15 @@ CAP-15 adds the stable/accessibility/localization/export lane: dynamic
 canvas-aware ASS, approved font assets, SRT/WebVTT, multilingual shaping,
 output-specific recomposition, and FFmpeg packaging without changing the
 creative Remotion owner.
+
+## 2026-08-05 real-source appearance correction
+
+The synthetic night-sky/person fixture documented above remains engineering
+regression evidence only; it must not be presented as the intended Caption
+product appearance. A separate additive V2 profile now renders the same closed
+Caption layer vocabulary over exact private talking-head footage with source
+audio, full/reduced motion, fixed-frame extraction, and direct visual
+inspection. The first real-source attempt was rejected for collisions and
+overflow; the repaired attempt passed. Exact source, render, frame, technical,
+inspection, repair, and limitation evidence is recorded in
+[the real-source appearance correction](cap-14-real-source-professional-appearance-correction-2026-08-05.md).

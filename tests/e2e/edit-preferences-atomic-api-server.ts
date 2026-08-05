@@ -409,8 +409,12 @@ const motionStudioCommandRepositoryRuntimePort =
     createPrivateLocalMotionStudioCommandRepository,
   )
 const server = createReeditProApiApp(env, {
-  editBriefPrivateWorkspaceRuntimePort:
-    createEditBriefPrivateWorkspaceRuntimePort(),
+  ...(!editReferenceExactEditBriefRuntimePortFactory
+    ? {
+        editBriefPrivateWorkspaceRuntimePort:
+          createEditBriefPrivateWorkspaceRuntimePort(),
+      }
+    : {}),
   editReferenceExactEditApplyRuntimePort,
   editReferenceApplicationPreparationRuntimePort,
   planningExactEditPreferenceAuthorityPort: planningPort,

@@ -877,7 +877,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
-      "sha256": "881976810e7107bab8d8c7be50f88996692bd9c80a970e16d8f28049cdad9fc1"
+      "sha256": "6c8f7398908cd073e262ae7f14997b37d1e1679a6ede1df3d4ba3912f541c7f0"
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
@@ -885,7 +885,7 @@
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
-      "sha256": "8a7fc3484cd5b9a262678858051c95f23dfb875b4e04644899b944c78534eae3"
+      "sha256": "bba331201db41c7974d7415704da5c98e89a866499a5a7ee877fa80c3e6d9d26"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",
@@ -901,7 +901,7 @@
     },
     {
       "path": "tests/e2e/playwright.current-edit-preferences-atomic.config.ts",
-      "sha256": "c306f582b59555ec393da2b13c3326ac19d351939ac8bd8f30c5fd7f7224e016"
+      "sha256": "007409fd5a8f9f988976e3c3d2cffc39dc6f92fcb0a25c2a2874fe59ef6fad1b"
     },
     {
       "path": "tests/e2e/playwright.edit-reference-canonical-real-file.config.ts",

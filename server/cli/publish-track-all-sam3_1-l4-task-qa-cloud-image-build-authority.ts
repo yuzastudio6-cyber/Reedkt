@@ -65,7 +65,7 @@ async function main(): Promise<void> {
   const reviews = createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviews({
     buildSourceCoordinate: coordinate,
     buildSourceArtifactRef,
-    buildSourceArchiveEntries: entries,
+    buildSourceArchiveEntries: [...entries],
     buildSourceArchiveEntrySetSha256: entrySetSha256,
     requirementsLockSha256: required(
       `${PRIVATE_DIRECTORY}/python/requirements.lock.txt`,
@@ -102,7 +102,7 @@ async function main(): Promise<void> {
     sourceWorktreeClean: true,
     buildSourceCoordinate: coordinate,
     buildSourceArtifactRef,
-    buildSourceArchiveEntries: entries,
+    buildSourceArchiveEntries: [...entries],
     buildSourceArchiveEntrySetSha256: entrySetSha256,
     dockerfilePath:
       'docker/prod/gpu-worker/track-all-task-qa/Dockerfile.candidate',

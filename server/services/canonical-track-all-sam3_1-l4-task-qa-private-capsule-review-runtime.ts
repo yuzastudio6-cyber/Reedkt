@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 
-import { Storage } from '@google-cloud/storage'
+import { Storage, type FileMetadata } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
@@ -22,6 +22,7 @@ import {
   TRACK_ALL_L4_TASK_QA_MAXIMUM_BUILD_SOURCE_BYTES,
   TRACK_ALL_L4_TASK_QA_PROJECT_ID,
   canonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinateSchema,
+  type CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinate,
 } from './canonical-track-all-sam3_1-l4-task-qa-private-capsule-source-contract'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
@@ -79,7 +80,13 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviewReposito
     schemaVersion:
       CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_CAPSULE_REVIEW_REPOSITORY_VERSION,
 
-    async persistReviewsCreateOnly(value) {
+    async persistReviewsCreateOnly(value: {
+      readonly archiveSafetyReview:
+        CanonicalTrackAllSam31L4TaskQaArchiveSafetyReview
+      readonly dependencyReview:
+        CanonicalTrackAllSam31L4TaskQaDependencyReview
+      readonly licenseReview: CanonicalTrackAllSam31L4TaskQaLicenseReview
+    }) {
       const archiveSafetyReview = assertArchiveReview(
         value.archiveSafetyReview,
       )
@@ -110,7 +117,9 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviewReposito
       })
     },
 
-    async rereadArchiveSafetyReview({ reviewRef }) {
+    async rereadArchiveSafetyReview({ reviewRef }: {
+      readonly reviewRef: EvidenceRef
+    }) {
       const ref = evidenceRefSchema.parse(reviewRef)
       const record = await readRecord(
         input.objectPort,
@@ -123,7 +132,9 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviewReposito
       return record
     },
 
-    async rereadDependencyReview({ reviewRef }) {
+    async rereadDependencyReview({ reviewRef }: {
+      readonly reviewRef: EvidenceRef
+    }) {
       const ref = evidenceRefSchema.parse(reviewRef)
       const record = await readRecord(
         input.objectPort,
@@ -136,7 +147,9 @@ export function createCanonicalTrackAllSam31L4TaskQaPrivateCapsuleReviewReposito
       return record
     },
 
-    async rereadLicenseReview({ reviewRef }) {
+    async rereadLicenseReview({ reviewRef }: {
+      readonly reviewRef: EvidenceRef
+    }) {
       const ref = evidenceRefSchema.parse(reviewRef)
       const record = await readRecord(
         input.objectPort,
@@ -164,7 +177,7 @@ export function createCanonicalTrackAllSam31L4TaskQaGcsPrivateBuildSourceReadPor
   return Object.freeze({
     schemaVersion:
       CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_GCS_PRIVATE_BUILD_SOURCE_READ_PORT_VERSION,
-    async readExact(value) {
+    async readExact(value: CanonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinate) {
       const coordinate =
         canonicalTrackAllSam31L4TaskQaPrivateBuildSourceCoordinateSchema.parse(
           value,
@@ -173,22 +186,19 @@ export function createCanonicalTrackAllSam31L4TaskQaGcsPrivateBuildSourceReadPor
         coordinate.objectName,
         { generation: Number(coordinate.generation) },
       )
-      let metadataBefore: Awaited<ReturnType<typeof file.getMetadata>>[0]
+      let metadataBefore: FileMetadata
       try {
-        ;[metadataBefore] = await file.getMetadata({ autoRetry: false })
+        ;[metadataBefore] = await file.getMetadata()
       } catch (error) {
         if (isNotFound(error)) return null
         throw error
       }
       assertExactMetadata(metadataBefore, coordinate)
-      const [body] = await file.download({
-        validation: 'crc32c',
-        autoRetry: false,
-      })
+      const [body] = await file.download({ validation: 'crc32c' })
       if (body.byteLength > TRACK_ALL_L4_TASK_QA_MAXIMUM_BUILD_SOURCE_BYTES) {
         throw new Error('track_all_l4_build_source_download_exceeded_bound')
       }
-      const [metadataAfter] = await file.getMetadata({ autoRetry: false })
+      const [metadataAfter] = await file.getMetadata()
       assertExactMetadata(metadataAfter, coordinate)
       return {
         generationBeforeRead: String(metadataBefore.generation),

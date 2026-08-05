@@ -238,6 +238,8 @@
     "publish:track-all-sam3_1-l4-task-qa-cloud-image-build-authority": "tsx server/cli/publish-track-all-sam3_1-l4-task-qa-cloud-image-build-authority.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-authority": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-authority-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-service": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-service-smoke.ts",
+    "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-observation": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-observation-smoke.ts",
+    "observe:track-all-sam3_1-l4-task-qa-cloud-image-build": "tsx server/cli/observe-track-all-sam3_1-l4-task-qa-cloud-image-build.ts",
     "start:track-all-sam3_1-l4-task-qa-cloud-image-build": "tsx server/cli/start-track-all-sam3_1-l4-task-qa-cloud-image-build.ts",
     "publish:sam3_1-google-cloud-runtime-configuration": "tsx server/cli/publish-sam3_1-google-cloud-runtime-configuration.ts",
     "publish:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/cli/publish-track-all-sam3_1-l4-task-qa-runtime-release.ts",

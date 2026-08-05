@@ -315,6 +315,9 @@ export const canonicalPlanComponentsSchema = z.object({
   providerPolicy: providerPolicySchema,
   fallbackPolicy: jsonObjectSchema,
   editBriefAudioPlanning: canonicalEditBriefAudioPlanningSchema.optional(),
+  professionalSkillPlan: jsonObjectSchema.optional(),
+  captionEarlyPlanningBundle: jsonObjectSchema.optional(),
+  captionSpecialistPlanningBinding: jsonObjectSchema.optional(),
   livingFrame: canonicalLivingFramePlanningBindingSchema.optional(),
   motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
   motionStudioStorytellingProductionAuthority:

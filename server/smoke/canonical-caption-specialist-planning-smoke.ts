@@ -18,7 +18,9 @@ import type {
   CanonicalWorkItemInput,
 } from '../validation/edit-planning-authority-schemas'
 import {
+  assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems,
   calculateCanonicalCaptionSpecialistPlanningBindingDigest,
+  canonicalCaptionSpecialistMissingApprovalGates,
   parseCanonicalCaptionSpecialistPlanningBinding,
   parseCanonicalCaptionSpecialistPlanningProjection,
   prepareCanonicalCaptionSpecialistPlanningProjection,
@@ -390,6 +392,33 @@ check(selected.projection?.planningJobsClaimFinishedCaptionMedia === false
 check(parseCanonicalCaptionSpecialistPlanningProjection(selected.projection)
   .projectionDigestSha256 === selected.projection?.projectionDigestSha256,
 'The canonical planning projection must verify its own digest.')
+assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
+  selected.projection!,
+  selected.workItems,
+)
+checks += 1
+check(canonicalCaptionSpecialistMissingApprovalGates(selected.projection)
+  .join('|') === [
+    'caption_postapproval_artifact_execution',
+    'caption_rendered_media_work_binding',
+    'canonical_postrender_visual_qa_lifecycle_writer_and_result',
+    'canonical_caption_independent_private_review_binding',
+  ].join('|'),
+'Selected Caption planning must expose the exact remaining backend gates.')
+assert.throws(() =>
+  assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
+    selected.projection!,
+    selected.workItems.map((item, index) => index === 0
+      ? {
+          ...item,
+          executionInput: {
+            ...item.executionInput,
+            captionJobType: 'compile_caption_render_spec',
+          },
+        }
+      : item),
+  ), /no longer matches its immutable projection/u)
+checks += 1
 
 const restrainedTrace = createProfessionalSkillCompositionTrace({
   planId: 'professional.caption.plan.restrained.1',
@@ -424,6 +453,14 @@ check(restrained.projection?.disposition ===
   'no_caption_work_owner_restraint_preserved'
   && restrained.workItems.length === 0,
 'Exact no_captions restraint must create no hidden Caption work.')
+assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
+  restrained.projection!,
+  restrained.workItems,
+)
+checks += 1
+check(canonicalCaptionSpecialistMissingApprovalGates(restrained.projection)
+  .length === 0,
+'Owner-approved no_captions restraint must not create Caption approval gates.')
 
 assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
   ...scope,

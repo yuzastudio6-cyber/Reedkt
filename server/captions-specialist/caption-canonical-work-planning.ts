@@ -154,6 +154,41 @@ interface JobSpec {
   frameRange: { startFrame: number; endFrameExclusive: number }
 }
 
+export interface CanonicalCaptionPlanningProjectionWorkItem {
+  workItemKey: string
+  workItemType: string
+  workerClass: string
+  dependencyKeys: string[]
+  approvedToolIds: string[]
+  providerExecutionMode: string
+  maximumCreditBudget?: number
+  required: boolean
+  expectedOutputs: Array<{
+    artifactType?: string
+    assetRole?: string
+    contentType?: string
+    required: boolean
+    previewPlaceholderAllowed?: boolean
+  }>
+  executionInput: Record<string, unknown>
+}
+
+export const CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES = [
+  'caption_postapproval_artifact_execution',
+  'caption_rendered_media_work_binding',
+  'canonical_postrender_visual_qa_lifecycle_writer_and_result',
+  'canonical_caption_independent_private_review_binding',
+] as const
+
+export function canonicalCaptionSpecialistMissingApprovalGates(
+  projection: CanonicalCaptionSpecialistPlanningProjection | undefined,
+): Array<typeof CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES[number]> {
+  return !projection || projection.disposition ===
+    'no_caption_work_owner_restraint_preserved'
+    ? []
+    : [...CANONICAL_CAPTION_SPECIALIST_DOWNSTREAM_APPROVAL_GATES]
+}
+
 export function parseCanonicalCaptionSpecialistPlanningBinding(
   value: unknown,
 ): CanonicalCaptionSpecialistPlanningBinding {
@@ -330,6 +365,110 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
       independentPrivateReviewRequired: true,
     }),
     workItems,
+  }
+}
+
+export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkItems(
+  projection: CanonicalCaptionSpecialistPlanningProjection,
+  workItems: CanonicalCaptionPlanningProjectionWorkItem[],
+): void {
+  const captionWorkItems = workItems.filter((item) =>
+    item.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS)
+  if (projection.disposition === 'no_caption_work_owner_restraint_preserved') {
+    if (captionWorkItems.length !== 0
+      || projection.projectedWorkItemKeys.length !== 0
+      || projection.projectedJobTypes.length !== 0
+      || projection.projectedSceneIds.length !== 0
+      || projection.captionEstimateLineKey !== null
+      || projection.postapprovalTranscriptBindingRequired
+      || projection.authenticatedOwnerResumeRequired
+      || projection.downstreamCaptionRenderWorkRequired
+      || projection.deterministicRenderedCaptionQaRequired
+      || projection.qualifiedCompleteTimeVisualReviewRequired
+      || projection.independentPrivateReviewRequired) {
+      throw new Error(
+        'Canonical no-captions restraint cannot retain Caption planning or downstream execution work.',
+      )
+    }
+    return
+  }
+  if (projection.projectedWorkItemKeys.length === 0
+    || projection.projectedWorkItemKeys.length
+      !== projection.projectedJobTypes.length
+    || captionWorkItems.length !== projection.projectedWorkItemKeys.length
+    || projection.captionEstimateLineKey === null
+    || !projection.postapprovalTranscriptBindingRequired
+    || !projection.downstreamCaptionRenderWorkRequired
+    || !projection.deterministicRenderedCaptionQaRequired
+    || !projection.qualifiedCompleteTimeVisualReviewRequired
+    || !projection.independentPrivateReviewRequired) {
+    throw new Error(
+      'Selected Caption planning projection is missing exact work or downstream coverage requirements.',
+    )
+  }
+  const captionByKey = new Map(captionWorkItems.map((item) =>
+    [item.workItemKey, item]))
+  const projectedKeySet = new Set(projection.projectedWorkItemKeys)
+  if (captionByKey.size !== captionWorkItems.length
+    || captionWorkItems.some((item) => !projectedKeySet.has(item.workItemKey))) {
+    throw new Error(
+      'Canonical Caption work graph contains duplicate or unprojected planning work.',
+    )
+  }
+  const sceneIds = new Set<string>()
+  for (const [index, workItemKey] of
+    projection.projectedWorkItemKeys.entries()) {
+    const workItem = captionByKey.get(workItemKey)
+    if (!workItem) {
+      throw new Error(
+        'Canonical Caption planning projection references missing work.',
+      )
+    }
+    const expectedJobType = projection.projectedJobTypes[index]
+    const executionInput = workItem.executionInput
+    const outputs = workItem.expectedOutputs
+    if (workItem.workItemType !== 'custom'
+      || workItem.required !== true
+      || workItem.approvedToolIds.length !== 0
+      || workItem.providerExecutionMode !== 'none'
+      || workItem.maximumCreditBudget !== 0
+      || workItem.dependencyKeys.length !== 1
+      || executionInput.schemaVersion
+        !== CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION
+      || executionInput.operation
+        !== CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION
+      || executionInput.captionJobType !== expectedJobType
+      || executionInput.requestedMode !== 'planning'
+      || executionInput.outputId !== projection.outputId
+      || executionInput.directPeerDispatchRequested !== false
+      || executionInput.providerCallRequested !== false
+      || executionInput.timelineMutationRequested !== false
+      || executionInput.assetMutationRequested !== false
+      || executionInput.qaApprovalRequested !== false
+      || executionInput.billingAuthorityRequested !== false
+      || executionInput.publicDeliveryRequested !== false
+      || executionInput.productionAuthorityRequested !== false
+      || outputs.length !== 1
+      || outputs[0]?.artifactType !== 'caption_specialist_job_receipt'
+      || outputs[0]?.assetRole !== 'qa'
+      || outputs[0]?.contentType !== 'application/json'
+      || outputs[0]?.required !== true
+      || outputs[0]?.previewPlaceholderAllowed !== false) {
+      throw new Error(
+        'Canonical Caption planning work no longer matches its immutable projection.',
+      )
+    }
+    if (typeof executionInput.sceneId === 'string') {
+      sceneIds.add(executionInput.sceneId)
+    } else if (executionInput.sceneId !== null) {
+      throw new Error('Canonical Caption planning scene lineage is malformed.')
+    }
+  }
+  if (stableAuthorityStringify([...sceneIds])
+    !== stableAuthorityStringify(projection.projectedSceneIds)) {
+    throw new Error(
+      'Canonical Caption planning scene lineage no longer matches its projection.',
+    )
   }
 }
 

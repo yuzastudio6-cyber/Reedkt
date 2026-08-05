@@ -5,6 +5,8 @@ export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION =
   'canonical-caption-specialist-planning-binding-v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION =
   'canonical-caption-specialist-planning-projection-v1' as const
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_COMPONENT_KEY =
+  'canonicalCaptionSpecialistPlanningProjection' as const
 export const CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION =
   'canonical-caption-specialist-estimate-binding-v1' as const
 

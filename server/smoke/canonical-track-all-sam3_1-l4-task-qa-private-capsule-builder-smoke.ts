@@ -17,6 +17,10 @@ const candidate = readFileSync(
   'docker/prod/gpu-worker/track-all-task-qa/Dockerfile.candidate',
   'utf8',
 )
+const entrypoint = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/entrypoint.sh',
+  'utf8',
+)
 const verifier = readFileSync(
   'docker/prod/gpu-worker/track-all-task-qa/verify-private-build-input.py',
   'utf8',
@@ -122,13 +126,17 @@ assert.doesNotMatch(cloudBuild, /secretEnv|availableSecrets|gpu|nvidia-l4|a100/i
 
 for (const expected of [
   'PIP_NO_INDEX=1',
-  'PYTHONPATH=/opt/weeditpro/opencv-cuda/python',
+  'PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python',
+  'PYTHONNOUSERSITE=1',
   '--no-index',
   '--no-deps',
   '--ignore-installed',
+  '--target=/opt/weeditpro/track-all-task-qa/python-packages',
   'opencv-build-information.txt',
   "assert PIL.__version__ == '12.1.0'",
 ] as const) assert.ok(candidate.includes(expected), `runtime candidate lost ${expected}`)
+assert.doesNotMatch(candidate, /python -m venv|\/venv\/bin\//u)
+assert.match(entrypoint, /exec \/opt\/conda\/bin\/python -s -B/u)
 
 for (const expected of [
   'opencv_cuda_python_module',

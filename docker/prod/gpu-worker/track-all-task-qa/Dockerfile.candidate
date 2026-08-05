@@ -30,9 +30,10 @@ ENV HF_HUB_OFFLINE=1 \
   TRANSFORMERS_OFFLINE=1 \
   PIP_DISABLE_PIP_VERSION_CHECK=1 \
   PIP_NO_INDEX=1 \
+  PYTHONNOUSERSITE=1 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
-  PYTHONPATH=/opt/weeditpro/opencv-cuda/python \
+  PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python \
   LD_LIBRARY_PATH=/opt/weeditpro/opencv-cuda/lib:/usr/local/cuda-12.8/compat:/usr/local/cuda/lib64 \
   CUDA_MODULE_LOADING=LAZY \
   NVIDIA_VISIBLE_DEVICES=all \
@@ -96,20 +97,21 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && install --mode=0444 \
     /tmp/track-all-task-qa-private-build-input/opencv/opencv-build-information.txt \
     /opt/weeditpro/opencv-cuda/opencv-build-information.txt \
-  && python -m venv --system-site-packages \
-    /opt/weeditpro/track-all-task-qa/venv \
-  && /opt/weeditpro/track-all-task-qa/venv/bin/pip install \
+  && test -x /opt/conda/bin/python \
+  && /opt/conda/bin/python -m pip install \
     --no-index \
     --no-cache-dir \
     --no-deps \
     --ignore-installed \
     --require-hashes \
+    --target=/opt/weeditpro/track-all-task-qa/python-packages \
     --find-links=/tmp/track-all-task-qa-private-build-input/python/wheelhouse \
     --requirement=/tmp/track-all-task-qa-private-build-input/python/requirements.lock.txt \
-  && /opt/weeditpro/track-all-task-qa/venv/bin/pip check \
-  && /opt/weeditpro/track-all-task-qa/venv/bin/python -I -B -c \
+  && PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python \
+    /opt/conda/bin/python -m pip check \
+  && /opt/conda/bin/python -s -B -c \
     "import cv2,kornia,numpy,PIL,pynvml,sys,torch; assert sys.version_info[:2] == (3,12); assert torch.__version__ == '2.10.0+cu128'; assert torch.version.cuda == '12.8'; assert kornia.__version__ == '0.8.3'; assert numpy.__version__ == '2.2.6'; assert PIL.__version__ == '12.1.0'; assert hasattr(cv2,'cuda'); assert hasattr(cv2.cuda,'countNonZero'); assert hasattr(cv2.cuda,'threshold'); assert 'NVIDIA CUDA' in cv2.getBuildInformation()" \
-  && /opt/weeditpro/track-all-task-qa/venv/bin/python -m py_compile \
+  && /opt/conda/bin/python -s -B -m py_compile \
     /opt/weeditpro/track-all-task-qa/runner.py \
   && chmod 0555 \
     /opt/weeditpro/track-all-task-qa/runner.py \

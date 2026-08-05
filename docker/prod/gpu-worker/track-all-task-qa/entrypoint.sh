@@ -53,5 +53,5 @@ export LD_LIBRARY_PATH
 export WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE
 export WEEDITPRO_OBSERVED_NVIDIA_DRIVER_VERSION="${driver_version}"
 
-exec /opt/weeditpro/track-all-task-qa/venv/bin/python -I -B \
+exec /opt/conda/bin/python -s -B \
   /opt/weeditpro/track-all-task-qa/runner.py

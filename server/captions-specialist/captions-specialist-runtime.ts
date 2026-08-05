@@ -44,6 +44,11 @@ import type {
 } from '../../src/types/caption-broll-owner-read-adapter'
 import type { CaptionBrollOwnerReadBinding } from
   '../../src/types/caption-multi-track-scene-graph'
+import type {
+  CaptionCanonicalTranscriptAuthenticatedReadBinding,
+} from '../../src/types/caption-canonical-transcript-authenticated-read'
+import type { CaptionCanonicalTranscript } from
+  '../../src/types/caption-transcript-lineage'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -91,6 +96,10 @@ import {
   parseCaptionSoundSupportResult,
   type CaptionSoundContext,
 } from './caption-sound-support'
+import {
+  admitCaptionCanonicalTranscriptFromAuthenticatedRead,
+  parseCaptionCanonicalTranscriptAuthenticatedReadBinding,
+} from './caption-canonical-transcript-authenticated-read'
 
 interface CaptionRuntimeProfile {
   manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
@@ -548,6 +557,44 @@ function brollResultArtifactMatches(
     && exactRef(artifact.sourceSupportRequestRef, requestRef)
 }
 
+function canonicalTranscriptExpectedScope(
+  call: OrchestraSkillCall,
+  binding: CaptionCanonicalTranscriptAuthenticatedReadBinding,
+): CaptionDomainCanonicalScope | null {
+  if (call.canonicalScope.approvedSnapshotRef === null
+    || call.canonicalScope.outputId === null) return null
+  return {
+    ownerUserId: call.canonicalScope.ownerUserId,
+    workspaceId: call.canonicalScope.workspaceId,
+    projectId: call.canonicalScope.projectId,
+    editSessionId: call.canonicalScope.editSessionId,
+    planVersionId: binding.canonicalReadScope.planVersionId,
+    approvedSnapshotRef: structuredClone(
+      call.canonicalScope.approvedSnapshotRef),
+    outputId: call.canonicalScope.outputId,
+    sceneId: call.canonicalScope.sceneId,
+    authorizedFrameRanges: structuredClone(
+      call.canonicalScope.authorizedFrameRanges),
+  }
+}
+
+function canonicalTranscriptArtifactsMatch(
+  call: OrchestraSkillCall,
+  binding: CaptionCanonicalTranscriptAuthenticatedReadBinding,
+  transcript: CaptionCanonicalTranscript,
+): boolean {
+  return exactSingleInputArtifactRef(call, 'canonical_transcript', {
+    id: transcript.transcriptId,
+    version: transcript.schemaVersion,
+    contentHash: transcript.transcriptDigestSha256,
+  }) && exactSingleInputArtifactRef(
+    call, 'canonical_transcript_authenticated_read_binding', {
+      id: binding.bindingId,
+      version: binding.schemaVersion,
+      contentHash: binding.bindingDigestSha256,
+    })
+}
+
 function qualificationEntry(
   snapshot: SkillQualificationSnapshot,
   jobType: string,
@@ -571,6 +618,8 @@ export function runCaptionsSpecialistJob(input: {
   soundSupportResult?: unknown
   brollOwnerReadRequest?: unknown
   brollOwnerReadResult?: unknown
+  canonicalTranscript?: unknown
+  canonicalTranscriptAuthenticatedReadBinding?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationProfile = call.manifestRef.id
@@ -651,6 +700,7 @@ export function runCaptionsSpecialistJob(input: {
   let admittedSoundResult: CaptionSoundSupportResult | null = null
   let brollRequest: BrollCaptionOwnerReadRequest | null = null
   let admittedBrollBinding: CaptionBrollOwnerReadBinding | null = null
+  let admittedCanonicalTranscript: CaptionCanonicalTranscript | null = null
   if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
     if (input.visualIntelligenceSupportPayload !== undefined
       || input.visualIntelligenceEvidencePacket !== undefined) {
@@ -765,6 +815,40 @@ export function runCaptionsSpecialistJob(input: {
       return makeResult(profile,
         call, 'blocked', ['input.broll_owner.request.scope_or_job.mismatch'],
         'The B-roll owner-read request does not match the assigned scene.',
+      )
+    }
+  }
+  if (input.canonicalTranscript !== undefined
+    || input.canonicalTranscriptAuthenticatedReadBinding !== undefined) {
+    if (input.canonicalTranscript === undefined
+      || input.canonicalTranscriptAuthenticatedReadBinding === undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.canonical_transcript.payload_or_binding.missing'],
+        'Canonical transcript admission requires its payload and read binding.',
+      )
+    }
+    let transcriptBinding: CaptionCanonicalTranscriptAuthenticatedReadBinding
+    try {
+      transcriptBinding =
+        parseCaptionCanonicalTranscriptAuthenticatedReadBinding(
+          input.canonicalTranscriptAuthenticatedReadBinding)
+      const expectedScope = canonicalTranscriptExpectedScope(
+        call, transcriptBinding)
+      if (expectedScope === null) throw new Error('Missing approved scope.')
+      admittedCanonicalTranscript =
+        admitCaptionCanonicalTranscriptFromAuthenticatedRead({
+          binding: transcriptBinding,
+          canonicalTranscript: input.canonicalTranscript,
+          expectedCanonicalScope: expectedScope,
+        })
+      if (!canonicalTranscriptArtifactsMatch(
+        call, transcriptBinding, admittedCanonicalTranscript)) {
+        throw new Error('Transcript artifact references are mismatched.')
+      }
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.canonical_transcript.admission.failed'],
+        'The canonical transcript failed exact authenticated-read admission.',
       )
     }
   }
@@ -1041,6 +1125,13 @@ export function runCaptionsSpecialistJob(input: {
       'input.canonical_transcript.authenticated_read.binding.missing',
     ], 'Caption planning requires the exact canonical transcript reread binding.')
   }
+  if (requiredArtifactTypes(profile, call.job.jobType).includes(
+    'canonical_transcript_authenticated_read_binding')
+    && admittedCanonicalTranscript === null) {
+    return makeResult(profile, call, 'blocked', [
+      'input.canonical_transcript.authenticated_payload.missing',
+    ], 'Caption planning must admit the exact persisted transcript payload.')
+  }
   if (missing.length > 0) {
     const grouped = new Map<SkillSupportTarget, string[]>()
     for (const artifactType of missing) {
@@ -1103,6 +1194,8 @@ export function runCaptionsSpecialistJob(input: {
       admittedTrackAllPacket?.packetDigestSha256 ?? 'no-track-all-packet',
       admittedSoundResult?.resultDigestSha256 ?? 'no-sound-result',
       admittedBrollBinding?.bindingDigestSha256 ?? 'no-broll-binding',
+      admittedCanonicalTranscript?.transcriptDigestSha256
+        ?? 'no-canonical-transcript-payload',
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -1123,6 +1216,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['soundsync.authenticated_admission.accepted']),
       ...(admittedBrollBinding === null ? []
         : ['broll_owner.contract_admission.accepted']),
+      ...(admittedCanonicalTranscript === null ? []
+        : ['canonical_transcript.contract_admission.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

@@ -18,6 +18,12 @@ import { parseCaptionCanonicalTranscript } from
   '../captions-specialist/caption-transcript-lineage'
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
+import { parseOrchestraSkillCall } from
+  '../orchestra/orchestra-skill-contracts'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
+import { createCaptionsHarnessCall } from
+  '../internal-testing/captions-specialist-harness'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -216,6 +222,111 @@ check(!binding.transcriptMutationAuthorityGranted
   && !binding.finalQaApprovalGranted
   && !binding.productionAuthorityGranted,
 'Authenticated reread grants no mutation, timing, runtime, QA, or production authority.')
+
+const runtimeCallCandidate = createCaptionsHarnessCall({
+  callId: 'caption.transcript.runtime.1',
+  jobType: 'resolve_multi_track_caption_scene',
+  scopeLevel: 'scene',
+  runtimeProfile: 'post_cap20_integration',
+  approvedSnapshotRef,
+  outputId: expectedCanonicalScope.outputId,
+  sceneId: expectedCanonicalScope.sceneId,
+  inputArtifactTypes: [
+    'canonical_transcript',
+    'canonical_transcript_authenticated_read_binding',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+    'visual_intelligence_report',
+  ],
+})
+runtimeCallCandidate.canonicalScope = {
+  ...runtimeCallCandidate.canonicalScope,
+  ownerUserId: expectedCanonicalScope.ownerUserId,
+  workspaceId: expectedCanonicalScope.workspaceId,
+  projectId: expectedCanonicalScope.projectId,
+  editSessionId: expectedCanonicalScope.editSessionId,
+  approvedSnapshotRef,
+  outputId: expectedCanonicalScope.outputId,
+  sceneId: expectedCanonicalScope.sceneId,
+  authorizedFrameRanges: structuredClone(
+    expectedCanonicalScope.authorizedFrameRanges),
+}
+runtimeCallCandidate.inputArtifactRefs =
+  runtimeCallCandidate.inputArtifactRefs.map((artifact) => {
+    if (artifact.artifactType === 'canonical_transcript') {
+      return {
+        ...artifact,
+        id: transcript.transcriptId,
+        version: transcript.schemaVersion,
+        contentHash: transcript.transcriptDigestSha256,
+      }
+    }
+    if (artifact.artifactType
+      === 'canonical_transcript_authenticated_read_binding') {
+      return {
+        ...artifact,
+        id: binding.bindingId,
+        version: binding.schemaVersion,
+        contentHash: binding.bindingDigestSha256,
+      }
+    }
+    return artifact
+  })
+const runtimeCall = parseOrchestraSkillCall(redigest(
+  runtimeCallCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256'))
+const runtimeAdmission = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  canonicalTranscript: transcript,
+  canonicalTranscriptAuthenticatedReadBinding: binding,
+})
+check(runtimeAdmission.disposition === 'completed'
+  && runtimeAdmission.reasonCodes.includes(
+    'canonical_transcript.contract_admission.accepted'),
+'The specialist runtime admits the exact transcript payload and reread binding.')
+const referenceOnlyRuntime = runCaptionsSpecialistJob({ call: runtimeCall })
+check(referenceOnlyRuntime.disposition === 'blocked'
+  && referenceOnlyRuntime.reasonCodes.join('|')
+    === 'input.canonical_transcript.authenticated_payload.missing',
+'Transcript and binding references alone cannot impersonate persisted content.')
+const incompleteRuntimeInput = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  canonicalTranscript: transcript,
+})
+check(incompleteRuntimeInput.disposition === 'blocked'
+  && incompleteRuntimeInput.reasonCodes.join('|')
+    === 'input.canonical_transcript.payload_or_binding.missing',
+'Runtime admission requires the transcript payload and binding together.')
+const crossedRuntimeBinding = redigest({
+  ...binding,
+  canonicalReadScope: {
+    ...binding.canonicalReadScope,
+    workspaceId: 'workspace.transcript.crossed',
+  },
+} as unknown as Record<string, unknown>, 'bindingDigestSha256')
+const crossedRuntimeAdmission = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  canonicalTranscript: transcript,
+  canonicalTranscriptAuthenticatedReadBinding: crossedRuntimeBinding,
+})
+check(crossedRuntimeAdmission.disposition === 'blocked'
+  && crossedRuntimeAdmission.reasonCodes.join('|')
+    === 'input.canonical_transcript.admission.failed',
+'A digest-valid cross-workspace transcript binding fails runtime admission.')
+const crossedRuntimeCallCandidate = structuredClone(runtimeCall)
+const transcriptArtifact = crossedRuntimeCallCandidate.inputArtifactRefs.find(
+  (artifact) => artifact.artifactType === 'canonical_transcript')
+assert.ok(transcriptArtifact)
+transcriptArtifact.contentHash = hash('transcript.runtime.crossed')
+const crossedRuntimeCall = parseOrchestraSkillCall(redigest(
+  crossedRuntimeCallCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256'))
+check(runCaptionsSpecialistJob({
+  call: crossedRuntimeCall,
+  canonicalTranscript: transcript,
+  canonicalTranscriptAuthenticatedReadBinding: binding,
+}).reasonCodes.join('|') === 'input.canonical_transcript.admission.failed',
+'A crossed transcript artifact reference cannot satisfy runtime admission.')
 
 const diarizationRef = ref(
   'diarization.transcript.1', 'canonical-speaker-diarization-artifact-v1')

@@ -266,9 +266,13 @@ const completeTranscriptInputCall = createCaptionsHarnessCall({
     'visual_intelligence_report',
   ],
 })
-check(runCaptionsSpecialistJob({ call: completeTranscriptInputCall })
-  .disposition === 'completed',
-'the planning seam accepts both transcript and authenticated-read evidence refs')
+const referenceOnlyTranscriptResult = runCaptionsSpecialistJob({
+  call: completeTranscriptInputCall,
+})
+check(referenceOnlyTranscriptResult.disposition === 'blocked'
+  && referenceOnlyTranscriptResult.reasonCodes.join('|')
+    === 'input.canonical_transcript.authenticated_payload.missing',
+'transcript and authenticated-read refs still require exact persisted payload admission')
 
 const staleCrossProfileCall = structuredClone(soundCall)
 staleCrossProfileCall.qualificationSnapshotRef = {

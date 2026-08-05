@@ -29,6 +29,7 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_SUPPLY_CHAIN_BUILD_TERM
   'canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build-terminal-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
 const BUILD_ENDPOINT =
@@ -649,7 +650,10 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService
         const envelope = parseBuildTerminalEnvelope(response.json)
         if (
           envelope.id !== submission.cloudBuildId
-          || envelope.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          || !isExpectedCloudBuildResourceName(
+            envelope.name,
+            submission.cloudBuildId,
+          )
         ) throw new Error('track_all_l4_supply_chain_build_crossed')
         if (['PENDING', 'QUEUED', 'WORKING'].includes(envelope.status)) {
           return buildTerminal({
@@ -904,6 +908,12 @@ function parseBuildTerminalEnvelope(value: unknown) {
     status: buildStatusSchema,
     warnings: z.array(z.unknown()).max(128).default([]),
   }).passthrough().parse(value)
+}
+
+function isExpectedCloudBuildResourceName(name: string, buildId: string): boolean {
+  return name === `${BUILD_COLLECTION}/${buildId}`
+    || name ===
+      `projects/${PROJECT_NUMBER}/locations/us-central1/builds/${buildId}`
 }
 
 function assertBuildEcho(

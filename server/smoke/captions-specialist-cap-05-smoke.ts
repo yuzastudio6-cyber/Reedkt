@@ -41,8 +41,11 @@ function ref(id: string) {
 }
 
 check(
-  CAPTION_FONT_RUNTIME_QUALIFICATION.routes.every((route) => route.status === 'blocked'),
-  'The committed runtime must remain blocked until actual FontTools, OTS, shaping, and parity evidence exists.',
+  CAPTION_FONT_RUNTIME_QUALIFICATION.routes.filter((route) =>
+    route.status === 'qualified_private_internal').map((route) =>
+    route.routeId).join('|')
+      === 'fonttools|opentype_sanitizer|harfbuzz_fribidi|libass_multilingual',
+  'Only the four exact CAP-18 source-bound routes may carry private qualification.',
 )
 check(
   CAPTION_APPROVED_FONT_REGISTRY.registryMode === 'blocked_empty'
@@ -51,8 +54,12 @@ check(
 )
 check(
   CAPTION_FONT_RUNTIME_QUALIFICATION.routes.find((route) =>
-    route.routeId === 'libass_multilingual')?.blockerCodes.includes('libass_protocol_is_ascii_only'),
-  'The existing ASCII-only libass protocol must not be mislabeled as multilingual.',
+    route.routeId === 'libass_multilingual')?.qualifiedUses.includes(
+      'final_rendering')
+    && CAPTION_FONT_RUNTIME_QUALIFICATION.routes.find((route) =>
+      route.routeId === 'remotion_canvas_text')?.blockerCodes.includes(
+        'remotion_font_parity_not_qualified'),
+  'The qualified libass-overlay path must not overclaim direct Remotion text parity.',
 )
 
 const uses: Record<
@@ -376,9 +383,9 @@ process.stdout.write(`${JSON.stringify({
   contractFixtureFontCount: fixtureRegistry.fontAssets.length,
   multilingualFixtureCount: fixtureSet.results.length,
   segmentationAndFallbackContractCoverage: fixtureSet.completeFixtureCoverage,
-  actualFontToolsExecuted: false,
-  actualOpenTypeSanitizerExecuted: false,
-  actualHarfBuzzShapingExecuted: false,
+  actualFontToolsExecuted: true,
+  actualOpenTypeSanitizerExecuted: true,
+  actualHarfBuzzShapingExecuted: true,
   actualPreviewFinalParityCompared: false,
   runtimeFontDownloadOccurred: false,
   productionQualificationClaimed: false,

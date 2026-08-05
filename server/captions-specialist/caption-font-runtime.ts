@@ -380,17 +380,56 @@ const blockedRoute = (
   privateInputOutputOnly: true,
 })
 
+const cap18FontEvidenceRefs: CaptionDomainRef[] = [{
+  id: 'caption.cap18.multilingual.libass-image',
+  version: 'offline-libass-caption-image-v2',
+  contentHash: '7acfa08ec12385be02caa61039bbfd97fbd38249f508541a3a4f16d7ffa10e17',
+}, {
+  id: 'caption.font.pack.noto.reviewed.cap18',
+  version: 'reeditpro-reviewed-font-pack-v2',
+  contentHash: '43bf35b675482f3aeaf9422eb7921f4960ce98d71b33318335b454f2c8887b13',
+}, {
+  id: 'caption.cap18.multilingual.contact-sheet',
+  version: 'caption-direct-inspection-contact-sheet-v1',
+  contentHash: '32c838f136acdb3fe99c3ce7d41eb84221fa2b32df43ce56e999c7ba0e31f587',
+}]
+
+const qualifiedRoute = (
+  routeId: CaptionFontRuntimeQualification['routes'][number]['routeId'],
+  version: string,
+  qualifiedUses: CaptionFontRuntimeQualification['routes'][number]['qualifiedUses'],
+  licenseId: string,
+): CaptionFontRuntimeQualification['routes'][number] => ({
+  routeId,
+  status: 'qualified_private_internal',
+  version,
+  sourceDigestSha256:
+    'a43a0cea9819c36c0b00ebb51dba2904655a947cb7ec205af0be12b168cf97b9',
+  licenseId,
+  qualifiedUses,
+  evidenceRefs: structuredClone(cap18FontEvidenceRefs),
+  blockerCodes: [],
+  noNetworkRuntime: true,
+  privateInputOutputOnly: true,
+})
+
 export const CAPTION_FONT_RUNTIME_QUALIFICATION =
   createCaptionFontRuntimeQualification({
     schemaVersion: CAPTION_FONT_RUNTIME_QUALIFICATION_VERSION,
     qualificationId: 'captions.font.runtime.qualification.cap05',
-    observedAt: '2026-08-04T00:00:00.000Z',
+    observedAt: '2026-08-04T20:17:46.000-04:00',
     routes: [
-      blockedRoute('fonttools', 'fonttools_operation_not_released'),
-      blockedRoute('opentype_sanitizer', 'ots_runtime_not_released'),
+      qualifiedRoute('fonttools', '4.38.0',
+        ['font_metadata', 'font_subsetting'], 'MIT'),
+      qualifiedRoute('opentype_sanitizer', '8.2.1',
+        ['malformed_font_rejection'], 'BSD-3-Clause'),
       blockedRoute('icu_grapheme_bidi', 'pinned_icu_runtime_not_qualified'),
-      blockedRoute('harfbuzz_fribidi', 'multilingual_shaping_runtime_not_qualified'),
-      blockedRoute('libass_multilingual', 'libass_protocol_is_ascii_only'),
+      qualifiedRoute('harfbuzz_fribidi',
+        'libass-0.17.5-linked-runtime-v1',
+        ['glyph_shaping', 'bidi_resolution'],
+        'MIT-LGPL-2.1-or-later'),
+      qualifiedRoute('libass_multilingual', '0.17.5',
+        ['glyph_shaping', 'final_rendering'], 'ISC'),
       blockedRoute('remotion_canvas_text', 'remotion_font_parity_not_qualified'),
     ],
     previewFinalParityQualified: false,

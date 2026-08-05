@@ -4,19 +4,24 @@ import { inflateSync } from 'node:zlib'
 import { ApiError } from '../../errors/api-error'
 import { readPrivateTextFileIfExistsWithinRoot, writePrivateTextFileAtomicWithinRoot } from '../../security/private-local-persistence'
 import { sha256AuthorityValue, stableAuthorityStringify } from '../../services/private-edit-authority-store'
-import { inspectExistingOfflineLibassRuntime, runOfflineLibassContainer } from './offline-libass-caption-docker-runtime'
+import {
+  inspectExistingOfflineLibassRuntime,
+  OFFLINE_LIBASS_LOCAL_RUNTIME_NAMESPACE,
+  runOfflineLibassContainer,
+} from './offline-libass-caption-docker-runtime'
 import { OFFLINE_LIBASS_CAPTION_OPERATION, offlineLibassCaptionRequestSha256, validateOfflineLibassCaptionRequest } from './offline-libass-caption-protocol'
 import type { OfflineLibassCaptionResult, OfflineLibassImageEvidence, OfflineLibassRuntimeAuthority } from './offline-libass-caption-types'
 
 export const OFFLINE_LIBASS_CAPTION_EXECUTION_STORAGE_ROOT =
-  '/tmp/reeditpro-offline-libass-caption-execution' as const
+  `/tmp/reeditpro-offline-libass-caption-execution-v2-${OFFLINE_LIBASS_LOCAL_RUNTIME_NAMESPACE}` as const
 export const OFFLINE_LIBASS_CAPTION_RUNTIME_AUTHORITY_RELATIVE_PATH =
-  'runtime-authority/offline-libass-caption-runtime-v1.json' as const
+  'runtime-authority/offline-libass-caption-runtime-v2.json' as const
 const STORAGE_ROOT = OFFLINE_LIBASS_CAPTION_EXECUTION_STORAGE_ROOT
 const AUTHORITY_PATH = OFFLINE_LIBASS_CAPTION_RUNTIME_AUTHORITY_RELATIVE_PATH
 const SOURCE_SHA = 'caab4b993dd7be6187c55623b789ed75dddefea6e65938af134637c732fe094a'
 const BLOCKERS = Object.freeze([
-  'Only a bounded transparent caption overlay frame is proven; complete caption tracks, video burn-in, multi-language font packs, collision analysis, final export, and delivery remain separate gates.',
+  'Only bounded transparent caption overlay frames are proven; complete caption tracks, video burn-in, collision analysis, final export, and delivery remain separate gates.',
+  'The reviewed font pack covers fixed Latin, Arabic, Devanagari, and Japanese fixtures; color emoji and unqualified script coverage remain blocked.',
   'Runtime dependency package versions, font licensing, distributed workers, image scanning, observability, and recovery are not production-proven.',
 ] as const)
 
@@ -41,7 +46,7 @@ export async function readPersistedOfflineLibassRuntimeAuthority(): Promise<Offl
 }
 async function execute(image: OfflineLibassImageEvidence, value: unknown): Promise<OfflineLibassCaptionResult> {
   const request = validateOfflineLibassCaptionRequest(value); const p = request.payload
-  const args = [p.width, p.height, p.timestampMs, p.fontSize, p.marginV, p.alignment].map(String)
+  const args = [p.width, p.height, p.timestampMs, p.fontSize, p.marginV, p.alignment, p.fontPackProfileId].map(String)
   const run = await runOfflineLibassContainer({ image, args, caption: p.caption })
   if (run.exitCode !== 0 || run.oomKilled || run.stderr.length) throw unavailable('Confined libass execution failed.')
   const bytes = run.stdout; const sha256 = createHash('sha256').update(bytes).digest('hex')
@@ -55,7 +60,7 @@ async function execute(image: OfflineLibassImageEvidence, value: unknown): Promi
   const withoutHash = { schemaVersion: 'offline-libass-caption-execution-attestation-v1' as const, completedAt, imageIdentityHash: image.imageIdentityHash, requestEnvelopeSha256: requestHash, resultSha256: sha256, confinementHash: sha256AuthorityValue(run.confinement) }
   const attestationHash = sha256AuthorityValue(withoutHash); const recordId = sha256AuthorityValue({ attestationHash, completedAt }); const attestation = { ...withoutHash, recordId, attestationHash }
   await writePrivateTextFileAtomicWithinRoot({ rootPath: STORAGE_ROOT, relativePath: `attestations/${recordId.slice(0, 2)}/${recordId}.json`, content: `${stableAuthorityStringify({ recordVersion: 'offline-libass-caption-execution-attestation-record-v1', attestation, checksumSha256: sha256AuthorityValue(attestation) })}\n` })
-  return { schemaVersion: 'offline-libass-caption-execution-result-v1', request, imageArtifact: { mimeType: 'image/png', bytes, byteLength: bytes.length, sha256, width: decoded.width, height: decoded.height, channels: 4, hasAlpha: true, nonTransparentPixelCount: count, alphaBoundingBox: bbox }, evidence: { toolId: 'libass', operationId: OFFLINE_LIBASS_CAPTION_OPERATION, binaryName: 'libass', binaryVersion: '0.17.5', sourceSha256: SOURCE_SHA, requestEnvelopeSha256: requestHash, resultSha256: sha256, semanticEvidence: { actualAssReadMemoryExecuted: true, actualAssRenderFrameExecuted: true, approvedFontPackUsed: true, transparentRgbaOverlayProduced: true, captionPlacementPolicyPassed: true, nonTransparentPixelCount: count, alphaBoundingBox: bbox }, image, confinement: run.confinement, containerExitCode: 0, oomKilled: false }, attestation, readiness: { privateInternalOnly: true, productReady: false, externalBetaReady: false, productionReady: false, fullTrackOrVideoBurnInReady: false } }
+  return { schemaVersion: 'offline-libass-caption-execution-result-v1', request, imageArtifact: { mimeType: 'image/png', bytes, byteLength: bytes.length, sha256, width: decoded.width, height: decoded.height, channels: 4, hasAlpha: true, nonTransparentPixelCount: count, alphaBoundingBox: bbox }, evidence: { toolId: 'libass', operationId: OFFLINE_LIBASS_CAPTION_OPERATION, binaryName: 'libass', binaryVersion: '0.17.5', sourceSha256: SOURCE_SHA, requestEnvelopeSha256: requestHash, resultSha256: sha256, semanticEvidence: { actualAssReadMemoryExecuted: true, actualAssRenderFrameExecuted: true, approvedFontPackUsed: true, multilingualReviewedFontPackUsed: p.fontPackProfileId === 'reeditpro_reviewed_fonts_v2', colorEmojiIncluded: false, runtimeFontDownloadMade: false, callerFontPathAccepted: false, transparentRgbaOverlayProduced: true, captionPlacementPolicyPassed: true, nonTransparentPixelCount: count, alphaBoundingBox: bbox }, image, confinement: run.confinement, containerExitCode: 0, oomKilled: false }, attestation, readiness: { privateInternalOnly: true, productReady: false, externalBetaReady: false, productionReady: false, fullTrackOrVideoBurnInReady: false } }
 }
 async function persistAuthority(image: OfflineLibassImageEvidence) { const withoutHash = { schemaVersion: 'offline-libass-caption-runtime-authority-v1' as const, source: 'private_local_offline_libass_caption_runtime_authority' as const, activatedAt: new Date().toISOString(), image, supportedOperations: [{ toolId: 'libass' as const, operationId: OFFLINE_LIBASS_CAPTION_OPERATION }] as const, readiness: { privateInternalExecutionReady: true as const, exactStructuredPayloadOnly: true as const, canonicalDispatchMayReference: true as const, productReady: false as const, externalBetaReady: false as const, productionReady: false as const, fullTrackOrVideoBurnInReady: false as const }, blockers: BLOCKERS }; const authority: OfflineLibassRuntimeAuthority = { ...withoutHash, authorityHash: sha256AuthorityValue(withoutHash) }; await writePrivateTextFileAtomicWithinRoot({ rootPath: STORAGE_ROOT, relativePath: AUTHORITY_PATH, content: `${stableAuthorityStringify({ recordVersion: 'offline-libass-caption-runtime-authority-record-v1', authority, checksumSha256: sha256AuthorityValue(authority) })}\n` }) }
 function record(value: unknown): Record<string, unknown> { if (!value || typeof value !== 'object' || Array.isArray(value)) throw unavailable('libass record is invalid.'); return value as Record<string, unknown> }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import importlib.metadata
 import base64
 import binascii
@@ -16,31 +17,6 @@ import warnings
 import wave
 from datetime import datetime, timezone
 from typing import Any
-
-import duckdb
-import audioread
-import librosa
-import mido
-import mir_eval
-import noisereduce
-import pretty_midi
-import av
-import cv2
-import numpy as np
-import opentimelineio as otio
-import polars as pl
-import resampy
-import pyloudnorm as pyln
-import scipy
-from scipy import signal as scipy_signal
-from pedalboard import Compressor, HighpassFilter, Limiter, Pedalboard
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    from pydub import AudioSegment
-    from pydub import effects as pydub_effects
-import scenedetect
-from scenedetect import ContentDetector, SceneManager, open_video
-
 
 PROTOCOL = "offline-python-structured-execution-v1"
 CONTAINER_PROTOCOL = "offline-python-structured-execution-container-v1"
@@ -78,25 +54,25 @@ OPERATIONS = {
     "librosa": "tool.librosa.analyze_audio_features.v1",
 }
 VERSIONS = {
-    "duckdb": duckdb.__version__,
-    "polars": pl.__version__,
-    "opentimelineio": otio.__version__,
-    "pyav": av.__version__,
-    "opencv": cv2.__version__,
-    "pyscenedetect": scenedetect.__version__,
-    "scipy": scipy.__version__,
+    "duckdb": importlib.metadata.version("duckdb"),
+    "polars": importlib.metadata.version("polars"),
+    "opentimelineio": importlib.metadata.version("opentimelineio"),
+    "pyav": importlib.metadata.version("av"),
+    "opencv": "5.0.0",
+    "pyscenedetect": importlib.metadata.version("scenedetect"),
+    "scipy": importlib.metadata.version("scipy"),
     "pyloudnorm": importlib.metadata.version("pyloudnorm"),
     "pydub": importlib.metadata.version("pydub"),
     "pydub_effects": importlib.metadata.version("pydub"),
     "ebu_r128_pyloudnorm": importlib.metadata.version("pyloudnorm"),
     "audioread": importlib.metadata.version("audioread"),
-    "resampy": resampy.__version__,
+    "resampy": importlib.metadata.version("resampy"),
     "pedalboard": importlib.metadata.version("pedalboard"),
     "mir_eval": importlib.metadata.version("mir_eval"),
     "mido": importlib.metadata.version("mido"),
     "pretty_midi": importlib.metadata.version("pretty_midi"),
     "noisereduce": importlib.metadata.version("noisereduce"),
-    "librosa": librosa.__version__,
+    "librosa": importlib.metadata.version("librosa"),
 }
 PACKAGE_NAMES = {
     "duckdb": "duckdb",
@@ -119,6 +95,84 @@ PACKAGE_NAMES = {
     "noisereduce": "noisereduce",
     "librosa": "librosa",
 }
+
+
+def load_operation_dependencies(tool_id: str) -> None:
+    """Load only the native stack required by the authorized operation.
+
+    The confined runner accepts exactly one operation per process. Keeping
+    unrelated native libraries out of that process avoids cross-library CPU
+    dispatch and symbol collisions while preserving fixed operation authority.
+    """
+    global duckdb, pl, otio, av, cv2, np, scenedetect
+    global ContentDetector, SceneManager, open_video
+    global scipy, scipy_signal, librosa, pyln, AudioSegment, pydub_effects
+    global audioread, resampy, Compressor, HighpassFilter, Limiter, Pedalboard
+    global mir_eval, mido, pretty_midi, noisereduce
+
+    if tool_id == "duckdb":
+        duckdb = importlib.import_module("duckdb")
+        return
+    if tool_id == "polars":
+        pl = importlib.import_module("polars")
+        return
+    if tool_id == "opentimelineio":
+        otio = importlib.import_module("opentimelineio")
+        return
+    if tool_id == "pyav":
+        av = importlib.import_module("av")
+        np = importlib.import_module("numpy")
+        return
+    if tool_id == "opencv":
+        cv2 = importlib.import_module("cv2")
+        np = importlib.import_module("numpy")
+        return
+    if tool_id == "pyscenedetect":
+        scenedetect = importlib.import_module("scenedetect")
+        ContentDetector = scenedetect.ContentDetector
+        SceneManager = scenedetect.SceneManager
+        open_video = scenedetect.open_video
+        return
+    if tool_id == "scipy":
+        av = importlib.import_module("av")
+        np = importlib.import_module("numpy")
+        scipy = importlib.import_module("scipy")
+        scipy_signal = importlib.import_module("scipy.signal")
+        return
+
+    # Audio operations share only their approved decode/numeric foundation;
+    # the operation-specific package remains lazy and exact below.
+    av = importlib.import_module("av")
+    np = importlib.import_module("numpy")
+    if tool_id == "librosa":
+        librosa = importlib.import_module("librosa")
+    elif tool_id in {"pyloudnorm", "ebu_r128_pyloudnorm"}:
+        pyln = importlib.import_module("pyloudnorm")
+    elif tool_id in {"pydub", "pydub_effects"}:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            pydub = importlib.import_module("pydub")
+            AudioSegment = pydub.AudioSegment
+            pydub_effects = importlib.import_module("pydub.effects")
+    elif tool_id == "audioread":
+        audioread = importlib.import_module("audioread")
+    elif tool_id == "resampy":
+        resampy = importlib.import_module("resampy")
+    elif tool_id == "pedalboard":
+        pedalboard = importlib.import_module("pedalboard")
+        Compressor = pedalboard.Compressor
+        HighpassFilter = pedalboard.HighpassFilter
+        Limiter = pedalboard.Limiter
+        Pedalboard = pedalboard.Pedalboard
+    elif tool_id == "mir_eval":
+        mir_eval = importlib.import_module("mir_eval")
+    elif tool_id == "mido":
+        mido = importlib.import_module("mido")
+    elif tool_id == "pretty_midi":
+        mido = importlib.import_module("mido")
+        pretty_midi = importlib.import_module("pretty_midi")
+    else:
+        noisereduce = importlib.import_module("noisereduce")
 
 
 class Rejected(Exception):
@@ -1501,6 +1555,7 @@ def execute(request_value: Any) -> dict[str, Any]:
     tool_id = request["toolId"]
     if tool_id not in OPERATIONS or request["operationId"] != OPERATIONS[tool_id]:
         raise Rejected("tool or exact operation identity is unsupported")
+    load_operation_dependencies(tool_id)
     normalized = canonical(request)
     observed_started_at_ns = time.time_ns()
     resource_before = resource.getrusage(resource.RUSAGE_SELF)

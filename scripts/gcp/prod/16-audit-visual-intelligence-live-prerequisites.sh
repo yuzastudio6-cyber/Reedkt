@@ -9,6 +9,7 @@ PROJECT_ID='reeditpro'
 REGION='us-central1'
 ARTIFACT_REPOSITORY='reeditpro-workers'
 IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu'
+TRACK_ALL_L4_TASK_QA_IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa'
 IMAGE_BUILDER_SERVICE_ACCOUNT='reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
 IMAGE_SIGNER_SERVICE_ACCOUNT='reeditpro-image-signer-sa@reeditpro.iam.gserviceaccount.com'
 GPU_WORKER_SERVICE_ACCOUNT='reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com'
@@ -337,6 +338,14 @@ sam31_image_count="$(
       --format='value(version)' 2>/dev/null || true
   } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
 )"
+track_all_l4_task_qa_image_count="$(
+  {
+    gcloud artifacts docker images list "${TRACK_ALL_L4_TASK_QA_IMAGE_URI}" \
+      --project="${PROJECT_ID}" \
+      --include-tags \
+      --format='value(version)' 2>/dev/null || true
+  } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
+)"
 
 missing_services_json="$(
   if ((${#missing_services[@]} == 0)); then
@@ -496,7 +505,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v7' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v8' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -512,6 +521,7 @@ jq -n \
   --argjson legacyCpuIdentityObservations "${legacy_cpu_identity_observations}" \
   --argjson legacyCpuIdentitiesRetired "${legacy_cpu_identities_retired}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
+  --argjson trackAllL4TaskQaImageCount "${track_all_l4_task_qa_image_count}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
   --argjson imageSignerIdentity "${image_signer_identity}" \
@@ -615,6 +625,10 @@ jq -n \
       clean: ($privateSearchControlPlane.ready and $legacyCpuIdentitiesRetired)
     },
     immutableSam31ImagesObserved: $sam31ImageCount,
+    immutableTrackAllL4TaskQaImagesObserved: $trackAllL4TaskQaImageCount,
+    immutableGpuWorkerImageSetReady: (
+      $sam31ImageCount >= 1 and $trackAllL4TaskQaImageCount >= 1
+    ),
     accountEffectiveGeminiPricing: $accountPricing,
     sourceCheckpointCompatibilityReceiptObserved: false,
     imageSupplyChainReleaseObserved: false,

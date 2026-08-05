@@ -7,22 +7,22 @@ Manifest schema: `skill-capability-manifest-v2`
 Manifest hash: `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`
 
 Qualification receipt hash:
-`10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`
+`e74360d571d6442dceb44fb061e730b16c5961dd1d9ca3cc38e3eec324b862f5`
 
-Tested commit: `59979f77fa2a7eb418846f0946c72f90df547a0f`
+Tested commit: `86b624a5a61cd45dfefaf4ae680be455859cc0e6`
 
 Relevant source-tree hash:
-`3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`
+`20f360801162bd44d864d2b8276f21f2980eded565ed04e4205563afd1b64c84`
 
 Shared dependency-authority set hash:
 `15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`
 
 Generated qualification artifact hash:
-`ae45aca6d8cf6d4080bcbefead54e48785b46d2fab65967103de340956fb896c`
+`412724597d105726ba8a9e5f58e26b953c36988d20414db9e4aa155001c82cee`
 
 ## Qualification scope
 
-The receipt was generated from 29 actual passed commands and contains 36
+The receipt was generated from 30 actual passed commands and contains 36
 validated fixture evidence artifacts: all 15 planning fixtures and all 21
 internal-execution fixtures declared by the capability manifest. Each command
 captures its real exit status, timestamps, sanitized stdout/stderr digest, and
@@ -31,6 +31,13 @@ named proof owner. The receipt includes separate build, test, security, and
 provider evidence hashes and is bound to the exact commit, relevant
 source-tree hash, and manifest reference. Provider requests, public artifacts,
 and production mutations were all zero.
+
+The thirtieth command is `test:b-roll-caption-public-contract`. It validates
+the byte-free HQ-mediated request/result contracts, all four opaque reference
+roles, exact scope/snapshot/output-frame/MasterTiming lineage, stale-digest
+and cross-workspace rejection, and the absence of Caption imports, peer
+dispatch, runtime binding, authenticated-evidence claims, or delegated
+authority.
 
 ## Shared dependency authorities
 

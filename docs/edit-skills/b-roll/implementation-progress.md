@@ -2369,3 +2369,38 @@ was added.
 | M33 | full reconciled B-roll regression matrix and exact-base browser comparison | `59979f77fa2a7eb418846f0946c72f90df547a0f` | confirmed | all B-roll gates passed; three unrelated preference failures reproduced on exact base |
 | M34 | tested `59979f77fa2a7eb418846f0946c72f90df547a0f`; receipt `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7` | `04f750cd93db21b1d0d9c50e560768aa9db4d256` | confirmed | `internal_execution_qualified` from 29 commands and 36 fixtures |
 | M35 | freeze record, current evidence document, final PR/remote audit | this freeze documentation commit | pending push and PR update | runtime receipt accepted; production qualification remains false |
+| M36 | `86b624a5a61cd45dfefaf4ae680be455859cc0e6` public Caption owner request/result and receipt | recorded by M37 | confirmed | prior receipt intentionally invalidated by source change |
+| M37 | tested `86b624a5a61cd45dfefaf4ae680be455859cc0e6`; receipt `e74360d571d6442dceb44fb061e730b16c5961dd1d9ca3cc38e3eec324b862f5` | this evidence commit | pending push | `internal_execution_qualified` from 30 commands and 36 fixtures |
+
+## M36-M37 — Caption public owner boundary and requalification
+
+The B-roll branch now exports a frozen, source-only Caption owner-read
+boundary without importing Caption implementation or creating a peer
+dispatcher. The request is `b_roll_caption_owner_read_request_v1`, the result
+is `b_roll_caption_owner_read_result_v1`, and their contract digests are
+`41a8ff19a61ccba5ea99c6c0839939b237388285f7672b1ec2279cd28d835788`
+and
+`5821d74644e3e7284696bc5db4bac4597c49c64de48680cb166c041249443a32`.
+The public receipt digest is
+`255f13e74429107954ea4d1b75d42fbe4002d2f5e7d3b40ab0f5e14ce4287038`.
+
+The result carries byte-free opaque references for the selected media
+manifest, layout occupancy, crop timing, and visible-text evidence. Exact
+owner-user/workspace/project/edit-session/approved-snapshot/output/output-
+frame/scene/frame-range/FPS/MasterTiming lineage is mandatory. Every
+execution, source-selection, crop/timing mutation, asset mutation, final-QA,
+billing, public-delivery, and production authority flag remains `false`.
+
+`npm run qualify:b-roll:internal` tested the clean M36 source commit and passed
+all 30 commands and 36 internal fixtures. The resulting source-tree hash is
+`20f360801162bd44d864d2b8276f21f2980eded565ed04e4205563afd1b64c84`,
+the unchanged dependency-authority set hash is
+`15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`,
+the receipt hash is
+`e74360d571d6442dceb44fb061e730b16c5961dd1d9ca3cc38e3eec324b862f5`,
+and the generated artifact hash is
+`412724597d105726ba8a9e5f58e26b953c36988d20414db9e4aa155001c82cee`.
+Provider requests, public artifacts, and production mutations were zero.
+The type-only receipt does not claim that an authenticated owner result was
+persisted, reread, injected into Caption, or admitted as
+`authenticated_owner_ready`.

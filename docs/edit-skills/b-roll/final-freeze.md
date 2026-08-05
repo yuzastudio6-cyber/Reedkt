@@ -1,6 +1,6 @@
 # B-roll final freeze
 
-Status: `frozen_ready_for_track_all_development`
+Status: `frozen_with_caption_public_owner_boundary`
 
 ## Skill identity
 
@@ -19,6 +19,8 @@ Status: `frozen_ready_for_track_all_development`
   `d9e220f048ec6127e6a1927c8276bc660fe4d2fd`
 - Frozen qualified implementation/evidence head:
   `04f750cd93db21b1d0d9c50e560768aa9db4d256`
+- Post-freeze Caption public-boundary source commit:
+  `86b624a5a61cd45dfefaf4ae680be455859cc0e6`
 
 The M35 freeze-record commit is documentation-only and descends from the
 qualified head above. The exact implementation/evidence commit from which
@@ -35,18 +37,18 @@ exact qualified commit as its Git branch point.
 - Manifest hash:
   `40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0`
 - Tested source commit:
-  `59979f77fa2a7eb418846f0946c72f90df547a0f`
+  `86b624a5a61cd45dfefaf4ae680be455859cc0e6`
 - Relevant source-tree hash:
-  `3849c87be8dfd78f4da8e1f594815e035e4466fd3e98357cde695c9973ceddbe`
+  `20f360801162bd44d864d2b8276f21f2980eded565ed04e4205563afd1b64c84`
 - Shared dependency-authority set hash:
   `15e8803248c2aa5db6715918bcb39f820bc9f312999d4021bb1578b5c69bd87a`
 - Qualification receipt hash:
-  `10000374377cf1b6f7217b59ad9703338e59b52fa9968e0c85d80d967a7da2b7`
+  `e74360d571d6442dceb44fb061e730b16c5961dd1d9ca3cc38e3eec324b862f5`
 - Generated qualification artifact hash:
-  `ae45aca6d8cf6d4080bcbefead54e48785b46d2fab65967103de340956fb896c`
+  `412724597d105726ba8a9e5f58e26b953c36988d20414db9e4aa155001c82cee`
 - Actual qualification: `internal_execution_qualified`
 - Production qualification: `false`
-- Actual command evidence: `29`
+- Actual command evidence: `30`
 - Actual fixture evidence: `36`
 - Real provider requests: `0`
 - Public artifacts: `0`
@@ -87,6 +89,14 @@ Frozen produced artifact types:
 Raw media remains private binary/object data. Public results carry strict,
 content-addressed media manifests rather than bytes, provider URLs, signed
 URLs, or public delivery references.
+
+The post-freeze Caption owner boundary adds no runtime job or dispatcher. It
+exports `BrollCaptionOwnerReadRequest`, `BrollCaptionOwnerReadResult`, and the
+content-addressed `b_roll_caption_public_contract_receipt_v1`. Caption may
+reference the four result artifacts only as opaque `{ id, version,
+contentHash }` values through HQ mediation. The receipt digest is
+`255f13e74429107954ea4d1b75d42fbe4002d2f5e7d3b40ab0f5e14ce4287038`.
+Authenticated private owner evidence is not claimed by the type-only receipt.
 
 ## External dependency contracts
 

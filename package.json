@@ -31,7 +31,7 @@
     "test:b-roll-runtime-bindings": "tsx server/smoke/b-roll-runtime-bindings-smoke.ts",
     "test:b-roll-canonical-private-runtime": "tsx server/smoke/b-roll-canonical-private-runtime-smoke.ts",
     "test:b-roll-public-canonical-lifecycle": "tsx server/smoke/b-roll-public-canonical-lifecycle-smoke.ts",
-    "smoke:canonical-caption-broll-owner-private-runtime": "REEDITPRO_CAPTION_BROLL_REQUIRE_EVIDENCE=1 tsx server/smoke/b-roll-public-canonical-lifecycle-smoke.ts",
+    "smoke:canonical-caption-broll-owner-private-runtime": "tsx server/smoke/canonical-caption-broll-owner-private-runtime-smoke.ts",
     "test:edit-skill-runtime-factory": "tsx server/smoke/edit-skill-runtime-factory-smoke.ts",
     "test:ui-qa-media-runtime-workflow": "tsx server/smoke/ui-qa-media-runtime-workflow-smoke.ts",
     "test:b-roll-plan-invariants": "tsx server/smoke/b-roll-plan-invariants-smoke.ts",

@@ -174,7 +174,7 @@ await assert.rejects(() =>
   }))
 
 const tamperedReceipt = structuredClone(first)
-tamperedReceipt.gpuJobStarted = true
+Reflect.set(tamperedReceipt, 'gpuJobStarted', true)
 assert.throws(() =>
   assertCanonicalSam31GoogleCloudRuntimeConfigurationPublicationReceipt(
     tamperedReceipt,

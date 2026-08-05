@@ -15,8 +15,10 @@ import {
 import type {
   OrchestraSkillCall,
   SkillArtifactRef,
+  SkillCanonicalScope,
   SkillContractRef,
   SkillSupportRequest,
+  SkillSupportTarget,
 } from '../../src/types/orchestra-skill-contracts'
 import { assertClosedContractTree } from '../../src/lib/closed-contract-validation'
 import {
@@ -49,10 +51,65 @@ const safeKey = z.string().min(1).max(180)
   .regex(/^[a-z0-9][a-z0-9._:-]*$/u)
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
-const refSchema = skillSupportRequestSchema.shape.originalCallRef
-const scopeSchema = skillSupportRequestSchema.shape.canonicalScope
-const artifactRefSchema =
-  orchestraSkillCallSchema.shape.injectedSupportArtifactRefs.element
+const refSchema: z.ZodType<SkillContractRef> = z.object({
+  id: safeKey,
+  version: safeKey,
+  contentHash: rawSha256,
+}).strict()
+const frameRangeSchema = z.object({
+  startFrame: z.number().int().min(0),
+  endFrameExclusive: z.number().int().positive(),
+}).strict().superRefine((range, context) => {
+  if (range.endFrameExclusive <= range.startFrame) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical frame range must be non-empty.',
+    })
+  }
+})
+const scopeSchema: z.ZodType<SkillCanonicalScope> = z.object({
+  ownerUserId: safeKey,
+  workspaceId: safeKey,
+  projectId: safeKey,
+  editSessionId: safeKey,
+  approvedSnapshotRef: refSchema.nullable(),
+  outputId: safeKey.nullable(),
+  sceneId: safeKey.nullable(),
+  boundaryId: safeKey.nullable(),
+  authorizedFrameRanges: z.array(frameRangeSchema).max(256),
+}).strict().superRefine((scope, context) => {
+  let lastEnd = -1
+  for (const range of scope.authorizedFrameRanges) {
+    if (range.startFrame < lastEnd) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical frame ranges must be ordered and non-overlapping.',
+      })
+      return
+    }
+    lastEnd = range.endFrameExclusive
+  }
+})
+const supportTargetSchema: z.ZodType<SkillSupportTarget> = z.enum([
+  'visual_intelligence',
+  'track_all',
+  'living_frame',
+  'soundsync',
+  'transitions',
+  'broll_owner',
+  'canonical_timing_owner',
+  'canonical_layout_owner',
+])
+const artifactRefSchema: z.ZodType<SkillArtifactRef> = z.object({
+  id: safeKey,
+  version: safeKey,
+  contentHash: rawSha256,
+  artifactType: safeKey,
+  producerSkillKey: safeKey,
+  privateArtifact: z.literal(true),
+  byteFreeRef: z.literal(true),
+  sourceSupportRequestRef: refSchema.nullable(),
+}).strict()
 
 const projectionWithoutDigestSchema = z.object({
   schemaVersion: z.literal(
@@ -62,7 +119,7 @@ const projectionWithoutDigestSchema = z.object({
   originalCallRef: refSchema,
   supportRequestRef: refSchema,
   ownerResultRef: refSchema,
-  ownerKey: skillSupportRequestSchema.shape.targetSkillKey,
+  ownerKey: supportTargetSchema,
   canonicalScope: scopeSchema,
   artifactRefs: z.array(artifactRefSchema).min(1).max(64),
   authenticatedPrincipalVerified: z.literal(true),
@@ -268,19 +325,19 @@ export function createCanonicalSpecialistSupportResumeRepository(input: {
   const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
   return Object.freeze({
     schemaVersion: CANONICAL_SPECIALIST_SUPPORT_RESUME_REPOSITORY_VERSION,
-    async persistCallResultPairCreateOnly(untrusted) {
+    async persistCallResultPairCreateOnly(untrusted: unknown) {
       const pair = parseCanonicalSpecialistCallResultPair(
         closedUnknownRequest(untrusted, 'pair'),
       )
       return persistExact(input.objectPort, pairPath(prefix, callRef(pair.call)),
         pair, parseCanonicalSpecialistCallResultPair)
     },
-    async rereadCallResultPair(untrusted) {
+    async rereadCallResultPair(untrusted: unknown) {
       const request = closedRefRequest(untrusted, 'callRef')
       return readExact(input.objectPort, pairPath(prefix, request),
         parseCanonicalSpecialistCallResultPair)
     },
-    async persistAuthenticatedOwnerProjectionCreateOnly(untrusted) {
+    async persistAuthenticatedOwnerProjectionCreateOnly(untrusted: unknown) {
       const projection =
         parseCanonicalAuthenticatedSpecialistSupportArtifactProjection(
           closedUnknownRequest(untrusted, 'projection'),
@@ -292,12 +349,12 @@ export function createCanonicalSpecialistSupportResumeRepository(input: {
         parseCanonicalAuthenticatedSpecialistSupportArtifactProjection,
       )
     },
-    async rereadAuthenticatedOwnerProjection(untrusted) {
+    async rereadAuthenticatedOwnerProjection(untrusted: unknown) {
       const request = closedRefRequest(untrusted, 'supportRequestRef')
       return readExact(input.objectPort, projectionPath(prefix, request),
         parseCanonicalAuthenticatedSpecialistSupportArtifactProjection)
     },
-    async persistResumeRecordCreateOnly(untrusted) {
+    async persistResumeRecordCreateOnly(untrusted: unknown) {
       const record = parseCanonicalSpecialistSupportResumeRecord(
         closedUnknownRequest(untrusted, 'record'),
       )
@@ -308,7 +365,7 @@ export function createCanonicalSpecialistSupportResumeRepository(input: {
         parseCanonicalSpecialistSupportResumeRecord,
       )
     },
-    async rereadResumeRecordByResumedCall(untrusted) {
+    async rereadResumeRecordByResumedCall(untrusted: unknown) {
       const request = closedRefRequest(untrusted, 'resumedCallRef')
       return readExact(input.objectPort, resumePath(prefix, request),
         parseCanonicalSpecialistSupportResumeRecord)

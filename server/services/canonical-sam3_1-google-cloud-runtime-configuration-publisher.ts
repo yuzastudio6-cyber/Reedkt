@@ -233,7 +233,7 @@ export function createCanonicalSam31GoogleCloudDeploymentObservationRepository(
   return Object.freeze({
     schemaVersion:
       'canonical-sam3_1-google-cloud-deployment-observation-repository-v1' as const,
-    async persistCreateOnly(untrusted) {
+    async persistCreateOnly(untrusted: unknown) {
       assertPlainSerializedData(untrusted,
         'sam31_google_cloud_deployment_observation_persist')
       const request = z.object({ observation: z.unknown() }).strict()
@@ -259,7 +259,7 @@ export function createCanonicalSam31GoogleCloudDeploymentObservationRepository(
         ? 'created' as const
         : 'identical_replay' as const
     },
-    async rereadExact(untrusted) {
+    async rereadExact(untrusted: unknown) {
       assertPlainSerializedData(untrusted,
         'sam31_google_cloud_deployment_observation_read')
       const request = z.object({ runtimeReleaseRef: refSchema }).strict()

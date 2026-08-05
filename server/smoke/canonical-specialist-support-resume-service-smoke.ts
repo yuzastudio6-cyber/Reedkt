@@ -200,7 +200,7 @@ await assert.rejects(() =>
   }), /next deterministic result member/u)
 
 const tamperedRecord = structuredClone(secondResume)
-tamperedRecord.runtimeExecutionPerformedByResumeOwner = true
+Reflect.set(tamperedRecord, 'runtimeExecutionPerformedByResumeOwner', true)
 assert.throws(() => parseCanonicalSpecialistSupportResumeRecord(tamperedRecord))
 let getterInvoked = false
 const hostile = Object.defineProperty({}, 'schemaVersion', {

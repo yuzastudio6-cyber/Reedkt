@@ -1,6 +1,8 @@
 # Canonical Music v3 integrity migration
 
-Status: implementation in progress
+Status: `standalone_skill_complete`, `orchestra_ready`,
+`orchestra_integration_pending_by_design`,
+`live_music_provider_activation_pending_external_evidence`
 
 ## Baseline audit
 
@@ -33,7 +35,8 @@ Music publishes version `3.0.0`, contract `music.skill_contract.v3`, and v3 requ
 result, artifact, route, and receipt identities. Music v2 remains compatibility-only and
 immutable.
 
-Sound remains canonical Sound `4.0.0` / `sound.skill_contract.v4`. A new optional,
+Sound remains on contract `sound.skill_contract.v4` and publishes compatible skill version
+`4.1.0`. A new optional,
 versioned `sound.music_technical_automation.v1` request extension and corresponding
 receipt are additive. Existing Sound v4 callers keep identical behavior when the
 extension is absent. The extension is the only public path by which Music can transmit
@@ -68,3 +71,28 @@ the exact technical automation contract; no low-level Sound imports are allowed.
 - Provider generation remains fixture-qualified unless live external evidence exists.
 - Generated Music remains project-only by default.
 - Final mux, render, export, delivery, and publishing remain outside Music.
+
+## Closure result
+
+All twelve integrity gaps are closed in Music v3:
+
+- authorized writes are divided into exact non-overlapping atomic segments;
+- cue constraints have explicit authority and resolution receipts;
+- the public Sound port applies and returns the complete technical automation contract;
+- every route step publishes validated named output bindings with lineage;
+- source and library candidates are rights-gated and ranked independently of input order;
+- MusicSync selects source and target anchors from measured boundaries;
+- generated candidates and localized replacements have attempt- and revision-unique identities;
+- each Lyria candidate is one independent provider interaction inside an attempt group;
+- all five peer-shaped callers produce real Music or a typed professional non-Music result;
+- all 35 supported jobs have unique planning evidence and only exactly exercised direct modes
+  retain fixture/private execution qualification;
+- all 41 mini-skills cite real implementation symbols and explicit execution boundaries; and
+- QA validates segment coverage, constraint resolution, actual cue-to-track placement, actual
+  Sound output receipts, measured technical evidence, and whole-video continuity.
+
+The canonical manifest is Music `3.0.0`, contract `music.skill_contract.v3`, hash
+`f723bcdba273e56051ea384084bf311330db2b03f14e6eb2cb5f865f0288d11b`.
+The top-level qualification remains `planning_qualified` because live provider and subjective
+judgment gates remain intentionally unresolved. Four exact fixture job modes and eight exact
+private-internal job modes have direct acceptance evidence; all production modes remain blocked.

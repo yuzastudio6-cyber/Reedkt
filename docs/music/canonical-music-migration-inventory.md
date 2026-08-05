@@ -1,8 +1,8 @@
 # Canonical Music Migration Inventory
 
-Status: `v2_migration_frozen`
+Status: `v3_migration_complete`
 
-This inventory freezes the legacy Music surfaces before the canonical Music v2 execution-integrity closure. It is implementation evidence, not an Orchestra implementation or a live-provider activation record. The detailed v1 gap audit and v2 migration decisions are recorded in `canonical-music-v2-execution-integrity-audit.md` and `adr-0001-canonical-music-v2-versioning-and-boundaries.md`.
+This inventory records the legacy Music surfaces retained, adapted, migrated, isolated as fixtures or compatibility, and retired through the canonical Music v3 execution-integrity closure. It is implementation evidence, not an Orchestra implementation or a live-provider activation record. Historical v1/v2 decisions remain preserved in `canonical-music-v2-execution-integrity-audit.md` and `adr-0001-canonical-music-v2-versioning-and-boundaries.md`; the current closure authority is `canonical-music-closure-report.md`.
 
 ## Canonical baseline
 
@@ -11,7 +11,8 @@ This inventory freezes the legacy Music surfaces before the canonical Music v2 e
 - Shared kernel: `server/edit-skills/core`.
 - Music branch: `codex/canonical-music-skill`.
 - Music v1 baseline: `908f0ea327aa9db57367a829ccfb68f7fdea23e1`.
-- Music v2 target: skill `2.0.0`, contract `music.skill_contract.v2`.
+- Music v3 result: skill `3.0.0`, contract `music.skill_contract.v3`.
+- Compatible Sound dependency: skill `4.1.0`, contract `sound.skill_contract.v4`.
 - Global Orchestra, final mux, render, export, delivery, and publishing remain out of scope.
 
 ## Migration map

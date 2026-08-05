@@ -143,8 +143,11 @@ await check('sound_parameters_applied', async () => {
 await check('route_publication_rejects_false_outputs', () => {
   const template = MUSIC_TOOL_ROUTE_MANIFESTS.find((route) => route.routeKey === 'music.route.select.candidate.v3')!
   const publish = publishMusicToolRouteManifest as unknown as (value: Record<string, unknown>) => unknown
-  const { routeHash: _hash, qualificationStatus: _status, qualificationByMode: _modes,
-    outputBindings: _bindings, ...seed } = structuredClone(template)
+  const seed = structuredClone(template) as unknown as Record<string, unknown>
+  delete seed.routeHash
+  delete seed.qualificationStatus
+  delete seed.qualificationByMode
+  delete seed.outputBindings
   assert.throws(() => publish({ ...seed, routeKey: 'music.route.fixture.false-output.v3',
     producedArtifactTypes: ['music_output_that_no_step_produces_v3'] }), /unreachable|undeclared/i)
   const step = structuredClone(template.steps[0]!)
@@ -278,6 +281,6 @@ await check('anchor_driven_music_sync', async () => {
 })
 
 assert.deepEqual(failures, [], `Canonical Music v3 integrity regressions failed:\n${failures.join('\n')}`)
-console.log(JSON.stringify({ status: 'ok', atomicSegmentCount: (plan as any).segmentationPlan.segments.length,
+console.log(JSON.stringify({ status: 'ok', atomicSegmentCount: plan.segmentationPlan.segments.length,
   peerMusicProducingScenarios: 5, routeCount: MUSIC_TOOL_ROUTE_MANIFESTS.length,
   miniSkillCount: MUSIC_MINI_SKILL_MANIFESTS.length }, null, 2))

@@ -1,268 +1,251 @@
-# Canonical Music standalone closure report
+# Canonical Music v3 standalone closure report
 
-Date: 2026-08-04
+Date: 2026-08-05
 
 Branch: `codex/canonical-music-skill`
-
-Canonical Sound base: `0eef00d247b040168cf48a8c00a039954fb8595a`
 
 Status: `standalone_skill_complete`, `orchestra_ready`,
 `orchestra_integration_pending_by_design`,
 `live_music_provider_activation_pending_external_evidence`
 
-## Published identity
+## Published identity and qualification
 
-- Skill key: `music`
-- Skill version: `2.0.0`
-- Contract: `music.skill_contract.v2`
-- Manifest hash:
-  `8dbc3246016c5109652d91510ae30670e078e0c0c9f7cdc95776afaa21b6d3e6`
+- Skill key/version: `music` / `3.0.0`
+- Contract: `music.skill_contract.v3`
+- Manifest hash: `f723bcdba273e56051ea384084bf311330db2b03f14e6eb2cb5f865f0288d11b`
 - Top-level qualification: `planning_qualified`
-- Capability entries: 35
+- Capability entries / supported jobs: 35
 - Internal mini-skills: 41
-- Tool manifests: 8
+- Tool capability manifests: 8
 - Exact immutable routes: 31
-- Fixture-executable jobs with exact acceptance evidence: 26
-- Private-internal executable jobs with exact acceptance evidence: 24
+- Exact fixture-executable direct jobs: 4
+- Exact private-internal executable direct jobs: 8
 - Production-qualified jobs: 0
 
-The top-level status is deliberately the lowest honest composite status. Real
-private local operations remain `internal_execution_qualified`; injected Lyria
-remains fixture evidence; live provider execution and all production execution
-remain blocked. The capability-mode matrix derives execution status only when
-an exact route qualification and a concrete acceptance-evidence registry entry
-both exist.
+The top-level status is intentionally the lowest honest composite status. Deterministic private
+operations remain internally qualified, injected Lyria remains fixture evidence, subjective
+professional judgments remain confidence-scored or review-required, and production/live provider
+execution remains blocked. Each supported job has a unique planning evidence record. Direct
+execution qualification exists only where an exact job/mode test binds the request, capability,
+route, handler, inputs, outputs, assertions, and result-evidence hash.
 
-## Canonical architecture
+## Canonical locations
 
-| Boundary | Canonical location |
+| Boundary | Location |
 |---|---|
 | Neutral shared skill kernel | `server/edit-skills/core/` |
 | Shared skill registry | `server/edit-skills/registry.ts` |
-| Music department | `server/edit-skills/music/` and `server/music/` |
-| Public Music service and sole public barrel | `server/edit-skills/music/canonical-music-skill-service.ts`, `server/edit-skills/music/index.ts` |
-| Request, result, artifacts, rights and handoff contracts | `server/music/music-contracts.ts` |
+| Music skill | `server/edit-skills/music/`, `server/music/` |
+| Public Music service | `server/edit-skills/music/canonical-music-skill-service.ts` |
+| Request/result/artifact/rights/handoff contracts | `server/music/music-contracts.ts` |
 | Capability manifest | `server/edit-skills/music/music-capability-manifest.ts` |
-| Per-mode matrix | `server/edit-skills/music/music-capability-mode-matrix.ts` |
-| Acceptance evidence registry | `server/edit-skills/music/music-acceptance-evidence-registry.ts` |
+| Per-mode acceptance matrix | `server/edit-skills/music/music-capability-mode-matrix.ts` |
+| Exact acceptance evidence | `server/edit-skills/music/music-acceptance-evidence-registry.ts` |
 | Mini-skill registry | `server/edit-skills/music/music-mini-skill-registry.ts` |
 | Tool registry | `server/music/music-tool-capability-manifests.ts` |
 | Route registry | `server/music/music-tool-routes.ts` |
 | Publication validator | `server/edit-skills/music/music-publication-validation.ts` |
 | Execution graph | `server/edit-skills/music/music-execution-graph.ts` |
-| Route executor | `server/edit-skills/music/music-route-executor.ts` |
-| Operation handlers | `server/edit-skills/music/music-operation-handler-registry.ts` |
-| Scope guard | `server/music/music-scope-guard.ts` |
-| Supervision | `server/music/music-supervision.ts` |
-| Audio analysis | `server/music/music-analysis.ts` |
-| Immutable Music rate card | `server/music/music-rate-card.ts` |
-| Context/evidence resolver | `server/music/music-context.ts` |
+| Route executor / handler registry | `server/edit-skills/music/music-route-executor.ts`, `music-operation-handler-registry.ts` |
+| Supervision / segmentation | `server/music/music-supervision.ts` |
+| Audio analysis / professional matching | `server/music/music-analysis.ts`, `music-asset-matcher.ts` |
 | MusicSync | `server/music/music-sync.ts` |
-| Music QA | `server/music/music-qa.ts` |
-| Sound v4 port | `server/music/music-sound-support-port.ts` |
-| Lyria adapter and profile | `server/music/lyria-provider.ts` |
-| Lyria live transport | `server/music/lyria-live-transport.ts` |
-| Final handoff builder | `server/music/music-contracts.ts` |
-| Legacy adapter | `server/edit-skills/music/music-legacy-compatibility-adapter.ts` |
-| UI projection | `server/edit-skills/music/music-ui-projection.ts`, `src/components/editor/music/MusicPlanChatFlow.tsx` |
+| Music QA and continuity | `server/music/music-qa.ts` |
+| Sound public port | `server/music/music-sound-support-port.ts` |
+| Lyria provider | `server/music/lyria-provider.ts`, `music/lyria-live-transport.ts` |
+| Legacy boundary | `server/edit-skills/music/music-legacy-compatibility-adapter.ts` |
+| Read-only UI projection | `server/edit-skills/music/music-ui-projection.ts`, `src/components/editor/music/MusicPlanChatFlow.tsx` |
 
-Music is registered beside B-roll and Sound through the same schema, hashing,
-qualification vocabulary, validator, and registry. No Music-local generic
-kernel and no Sound-created Orchestra facade were introduced.
+Music registers beside B-roll and Sound through the same shared schema, registry, immutable hash,
+qualification vocabulary, assignment/plan/result envelopes, estimators, invalidation, revision,
+and publication validator. It introduces neither a Music-local generic kernel nor a Head of
+Orchestra facade.
 
-## Department implementation
+## Professional department and authority
 
-The service owns request validation, admission, scope enforcement, versioned
-context resolution, autonomous structured context study, Music-need and silence decisions, narrative arc, exact cue sheet,
-per-cue acquisition, provider lifecycle, independent candidate analysis and
-selection, MusicSync, creative editorial and mix intent, public Sound v4
-delegation, actual-output QA, whole-video continuity, localized revision, and
-final handoff.
+The public service owns validation, admission, exact scope, context resolution, study-first Music
+supervision, Music-need and silence decisions, atomic soundtrack segmentation, cue-constraint
+resolution, narrative arc, exact cue sheet, cue-local acquisition, provider attempts, candidate
+analysis/selection, MusicSync, creative editorial and mix intent, Sound delegation, QA, continuity,
+localized revision, and final handoff.
 
-Professional source order is enforced per cue: preserve source, user upload,
-project library, workspace library, approved internal library, original
-generation, then no Music. Library execution requires a real private artifact
-and exact rights binding; no fake library record is accepted. No-Music and
-ambience-only are real typed routes. Ambience-only produces a bounded Sound
-requirement and never lets Music generate non-musical ambience.
+Every authorized write range is covered by exact, non-overlapping atomic segments derived from
+scene, speech, silence, ambience, transition, chapter, locked-range, and cue-constraint boundaries.
+Whole-video context inspection never expands Music write authority. Fully/range/creative-field
+locked cues and soft/advisory cues are resolved by typed receipts. Visual timing is never mutated;
+Music returns a proposal instead.
 
-Supervision separates measured, structured, user-declared, inferred, and
-review-required evidence. It protects speech, natural ambience, emotional
-silence and breathing room; creates soundtrack arcs and motif plans; detects
-over-scoring; and never treats location or one mood label as genre authority.
-Lake Como and legacy keyword mappings are fixture-only.
+Music can choose source Music, user upload, rights-bound project/workspace/internal library Music,
+original generation, hybrid treatment, ambience-only, intentional silence, or no Music. It does
+not generate merely because no upload exists. Location, culture, and one mood label never directly
+select genre or instrumentation; Lake Como remains a fixture only.
 
-All authoritative timing uses the shared rational rate and exact frames.
-Frame/sample conversion and explicit half-up rounding passed 24/1, 25/1,
-30000/1001, 30/1, 50/1, 60000/1001 and 60/1, including a long-duration drift
-test. No canonical path silently assumes 30 FPS or uses seconds as write
-authority.
+## Timing, MusicSync, and editorial
 
-## Rights and provenance
+All authority uses the shared rational frame rate and exact frames/samples with explicit rounding.
+Acceptance covers 24/1, 25/1, 30000/1001, 30/1, 50/1, 60000/1001, and 60/1 plus long-duration
+round trips without accumulated drift. No canonical path silently assumes 30 FPS or uses seconds
+as mutation authority.
 
-Source, user, project, workspace, internal, reference and generated assets bind
-exact ID, version, checksum, private object ID and source-specific rights.
-User uploads remain user media and cannot be auto-promoted. Generated outputs
-default to `project_only`. Reference Music is study-only, with explicit
-no-melody, no-hook, no-lyric, no-artist-imitation and no-recognizable-arrangement
-rules. The system does not claim legal copyright clearance.
+MusicSync evaluates measured beat, downbeat, phrase, and section boundaries against every supplied
+target anchor. Its decision records all evaluated source/target alignments, rejects out-of-authority
+entries and unsafe short sections, supports bounded handle shifts and intentional off-beat/free-time
+placement, and never changes picture timing. The arrangement editor produces an exact creative edit
+specification; Sound performs the byte mutation.
 
-## Lyria 3
+## Rights, matching, reference DNA, and assets
 
-The frozen profile is `music.provider.google_lyria_3_pro_preview.v2`, using
-`lyria-3-pro-preview` and the documented global `v1beta1` Interactions endpoint.
-It sets `store=false` and `background=false`, accepts the documented audio/mpeg
-output, privately ingests it, and never exposes credentials or provider URLs as
-artifact authority.
+Actual source/upload/project/workspace/internal candidates are independently decoded and compared
+on rights, project/workspace/platform scope, duration, speech safety, vocal policy, measured tempo,
+structure, energy, ending, loop, motif, provenance, and review risk. Rights are hard gates and input
+order cannot select the winner. A library route remains blocked when no real authorized artifact
+exists; no fake catalog item is created.
 
-Injected transport returns real private WAV bytes. The canonical graph independently
-ingests, decodes, measures and QA-checks three candidates, selects candidate 2
-by evidence rather than array order, delegates the selected asset through Sound
-v4 and creates the final handoff. Provider attempts bind immutable execution
-fingerprints, and unknown outcomes reconcile before replay. A changed request
-cannot reuse an idempotency key silently.
+User uploads remain user media and are never automatically promoted. Generated output defaults to
+`project_only`. Reference Music remains study-only and separates measured, inferred, declared, and
+review-required evidence. Do-not-copy rules cover melody, lyric, hook, artist imitation, recognizable
+arrangement, exact timing, and source reuse. No automatic legal copyright clearance is claimed.
 
-The controlled canary is `npm run canary:music:lyria`. It uses Application
-Default Credentials only after explicit account, privacy, retention,
-commercial, rate, runtime, project and confirmation gates pass. CI proves the
-fail-closed path and never reads credentials or makes a provider call.
+## Lyria provider integrity
 
-Live activation remains blocked until those gates plus a successful private
-canary and generated-output QA evidence exist. Fixture evidence does not
-promote production qualification.
+Profile `music.provider.google_lyria_3_pro_preview.v2` binds model
+`lyria-3-pro-preview`, the global `v1beta1` Interactions endpoint, `store=false`, one audio output per
+interaction, documented audio constraints, and the immutable Music rate card. Legacy Lyria names or
+request fields do not authorize execution.
 
-## Sound v4 collaboration
+One cue-level attempt group creates one independent child provider interaction for each candidate.
+Each child has a unique idempotency fingerprint, provider request ID, storage identity, checksum,
+brief/prompt/snapshot/cue/ordinal binding, and revision identity. All returned candidates are
+privately ingested, decoded, measured, QA-checked, and ranked independently. Unknown outcomes are
+reconciled per child before retry; blind resubmission and automatic higher-cost fallback are blocked.
 
-Music depends only on the injected `MusicSoundSupportPort`. The production
-adapter calls the canonical Sound v4 public service and binds Sound version
-`4.0.0`, contract `sound.skill_contract.v4`, and manifest hash
-`e971a332f814a4cf74a48700358f192b5f9696f5ee79c27f472cd53a6bec67a2`.
+Injected transport returns real WAV fixture bytes through the same adapter and route graph used by
+future live execution. Live mode requires the durable private attempt store and remains fail-closed
+without account, privacy, retention, commercial, rate, deployed-runtime, project, confirmation, and
+private-canary evidence. CI reads no credential and makes no provider call.
 
-The delegated request carries the Music manifest, parent request, cue, exact
-range, selected asset, rational rate, exact operation parameters and their hash,
-protected speech, approval, cost ceiling and idempotency. Music validates the
-Sound request hash, caller receipt, route, artifact lineage, range, operation
-parameters, QA and cost evidence; Sound mutation receipts determine actual
-Music mutation ranges. Nested Sound costs remain separate and are not
-double-counted.
-The ancestor chain blocks Music→Sound→Music cycles. Music never imports FFmpeg,
-Sound route-executor, Mirelo, file-path or provider internals.
+## Canonical Sound 4.1 collaboration
 
-## QA, continuity and revision
+Music imports only `MusicSoundSupportPort`. The production adapter calls canonical Sound skill
+`4.1.0`, contract `sound.skill_contract.v4`, manifest
+`058368b79551d7db3cef699a5962a51f25c34ecf2b1cb997f94aa74ffc879128`, capability
+`sound.edit_music_technical_automation`, and exact route
+`sound.route.edit.music_technical_automation.v1`.
 
-Planning, technical, structural/MusicSync, speech safety, narrative fit,
-vocal/lyric, reference/copy-risk, culture/stereotype, soundtrack continuity,
-provenance and integration QA are separate. Technical checks decode actual
-audio and measure duration, sample rate, channels, loudness, true peak,
-clipping, silence and checksum. Speech safety uses exact overlap windows and
-measured Sound receipts. Subjective emotional, originality, cultural,
-advanced-harmonic, vocal-certainty and legal judgments remain confidence-scored
-or review-required.
+The delegated request binds the Music version/manifest, parent request, cue, selected artifact,
+rational rate, exact bounded range, complete technical parameters, protected speech/ambience,
+approval, budget, reservation, and idempotency. Sound applies trim/cut/fade/crossfade/gain/
+normalization/loop/resample/channel conversion/stretch/pitch/place/duck/EQ/dynamics/pan/stem/QA as
+requested and returns per-operation received/applied hashes, outputs, measured QA, mutation receipts,
+route evidence, cost, and caller receipt. Music rejects mismatched hashes, missing outputs/QA, stale
+manifests, or range escalation. Sound receipts determine actual Music mutation ranges. Nested Sound
+cost stays separate and is not double-counted. The ancestor chain prevents Music→Sound→Music cycles.
 
-The executable whole-video pass preserves bounded writes while reading wider
-context. Its continuity report covers cue families, energy, speech and ambience
-priority, silence, repetition, cue density, boundaries, loudness and Music/SFX
-collisions. Localized revision preserves unaffected artifact hashes and Sound
-receipts, reruns only affected Music/Sound work and affected/neighboring QA, and
-publishes an updated handoff.
+## Route truthfulness, QA, continuity, and revision
 
-## Legacy and UI closure
+Every execution unit binds an immutable route/version/hash, operation-spec hash, handler, exact
+inputs, dependencies, expected named outputs, failure policy, and idempotency key. Publication rejects
+unknown routes, tools, handlers, schemas, inputs, outputs, conditions, stale hashes, unsupported jobs,
+and unreachable final output. Runtime rejects undeclared produced output and missing required output.
+Step receipts contain actual timestamps, elapsed time, inputs, named output bindings, lineage,
+runtime evidence, cost, QA, provider attempt, and receipt hash; no total duration is fabricated across
+steps.
 
-The migration inventory is in `docs/music/canonical-music-migration-inventory.md`.
-Useful legacy planning concepts were adapted. `SOUND_MUSIC_AUDIO`, legacy
-Music Director/provider workers, mock QA and UI state no longer own runtime
-execution. The compatibility adapter is planning-only and cannot select tools,
-call a provider, dispatch a worker, bypass scope/rights/approval/cost/QA, or
-create a final handoff.
+QA is separated into planning, technical, structural/MusicSync, speech safety, narrative fit,
+vocal/lyric, reference/copy risk, culture/stereotype, continuity, provenance, and integration classes.
+It validates planned and executed atomic-segment coverage, constraint resolutions, actual decoded
+candidate bytes, actual processed Sound outputs, exact applied parameter hashes, measured Sound
+technical/sync/mix evidence, cue-to-track placement, track reuse/fatigue, silence, boundary behavior,
+loudness continuity, and Music/SFX collision policy. Subjective emotional, originality, culture,
+advanced harmonic, vocal-certainty, lyric, and legal findings remain review-aware.
 
-The editor renders a read-only projection of canonical Music artifacts. It has
-no fake timers, provider calls, local approval authority or invented QA pass.
-The empty state explicitly says it is waiting for canonical artifacts. No
-database migration was added; the historical Music SQL remains domain
-inventory, not executable production history.
+Localized revision preserves byte-identical unaffected artifacts, provider attempts, hashes, and
+Sound receipts; recompiles only invalidated cues; gives changed generated cues new attempts and
+storage identities; reruns affected Sound/QA and neighboring continuity; and creates an updated
+handoff. Partial failure preserves independent success.
 
-## Acceptance and validation
+## Final handoff, legacy, UI, and persistence
 
-The aggregate command is `npm run test:music-acceptance`. It runs Music,
-shared-kernel, B-roll and canonical Sound v4 regressions. The dedicated workflow
-is `.github/workflows/canonical-music-acceptance.yml`.
+A completed Music handoff contains real approved selected/processed/stem references, exact
+placements, MusicSync maps, mix intent, Sound receipts, QA, provenance, ranges, and review items.
+Existing approved Music can be handed off without falsely claiming byte mutation. Typed no-Music and
+ambience-only handoffs contain exact ranges and reasons and do not invent Music or non-musical
+ambience. Final mux, render, export, delivery, and publishing remain outside Music.
 
-Local closure commands and results:
+`SOUND_MUSIC_AUDIO`, SoundSync-as-owner, keyword directors, fixed timing, metadata-estimated analysis,
+mock providers/workers/orchestrators, mock QA, and UI local state have no execution authority. One
+planning-only compatibility adapter cannot bypass scope, rights, approval, cost, route admission,
+provider lifecycle, Sound, QA, or handoff. The UI is a read-only canonical artifact projection and
+its Chromium acceptance test passes. No SQL migration was added; historical Music SQL remains domain
+inventory only.
+
+## Local acceptance record
 
 | Command | Result |
 |---|---|
-| `npm run test:music-acceptance` | passed |
-| `npm run test:sound-acceptance` | passed within aggregate and independently; Sound remained `4.0.0` with manifest `e971a332f814a4cf74a48700358f192b5f9696f5ee79c27f472cd53a6bec67a2` |
+| `npm run test:music-acceptance` | passed; includes Music v3, Sound 4.1, shared kernel, and B-roll |
+| `npm run test:sound-acceptance` | passed within aggregate |
+| `npm run validate:skill-capability-manifests` | passed; 3 manifests |
 | `npm run test:edit-skill-capability-kernel` | passed |
 | `npm run test:b-roll-capability-manifest` | passed |
-| `npm run validate:skill-capability-manifests` | passed, 3 manifests |
 | `npm run typecheck:server` | passed |
+| `npm run qa:canonical-music-ui` | passed; Chromium 1/1 |
 | `npm run lint` | passed |
-| `npm run build` | passed |
-| `npm run qa:canonical-music-ui` | passed, Chromium 1/1 |
-| `npm run check:secrets` | passed, no secret values printed |
-| `npm run check:frontend-boundary` | passed |
-| `npm run smoke:private-local-persistence` | passed |
-| `npm run smoke:runtime-api-security` | passed |
-| `npm run smoke:error-provider-confidentiality` | passed |
-| `npm run audit:prod:high` | passed, 0 vulnerabilities |
-| `git diff --check` | passed |
-| `git diff --cached --check` | passed before final commit |
+| `npm run build` | passed; non-blocking existing chunk-size/dynamic-import warnings only |
+| `npm run check:secrets` | passed; 6,161 files, no secret values printed |
+| `npm run check:frontend-boundary` | passed; 2,088 files |
+| `npm run audit:prod:high` | passed; 0 vulnerabilities |
+| `git diff --check`, `git diff --cached --check` | passed before closure commit |
 
-Key evidence includes real private audio bytes, per-candidate decode and
-analysis, private file mode `0600`, create-only idempotent ingest, exact route
-and operation receipts, actual Sound v4 artifacts, exact mutation ranges,
-measured QA, partial-failure preservation, revision lineage, and typed
-non-Music handoffs.
+The dedicated workflow is `.github/workflows/canonical-music-acceptance.yml`. It installs the exact
+Node/media/browser runtime and repeats Music/Sound/kernel acceptance, UI QA, security boundaries,
+typecheck, lint, build, and the production audit. Its pushed run is the final external release gate.
 
 ## Definition-of-Done evaluation
 
-All 137 requested statements were evaluated against source, publication
-validation, acceptance evidence and the command matrix:
+All 137 requested statements were evaluated against publication validation, source inspection,
+exact acceptance records, real execution receipts, and the command matrix:
 
-- Items 1–16: one service/kernel/manifest/registry/route system and future
-  caller contracts — satisfied; actual Orchestra pending by design.
-- Items 17–22: exact authority and rational timing — satisfied.
-- Items 23–42: study-first supervision, need/silence/ambience, source order,
-  cue-local decisions, arc, motif and continuity — satisfied.
-- Items 43–51: upload/reference rights, project-only reuse and review-aware
-  vocal/culture rules — satisfied.
-- Items 52–62: provider-neutral brief, current Lyria profile, server-only
-  fail-closed provider and idempotent reconciliation — satisfied at fixture
-  qualification; live evidence intentionally pending.
-- Items 63–79: all-candidate real-byte processing, measured analysis,
-  frame-accurate MusicSync and exact editorial specifications — satisfied.
-- Items 80–92: public Sound v4 boundary, exact nested authority/cost and honest
-  multi-class QA — satisfied.
-- Items 93–102: bounded whole-video pass, partial success, localized revision,
-  real/existing/no-Music/ambience handoffs — satisfied.
-- Items 103–110: ownership and legacy retirement — satisfied; final
-  mux/render/export/delivery/publishing remain outside Music.
-- Items 111–118: complete acceptance matrix and honest derived qualification —
-  satisfied; production and live provider stay blocked.
-- Items 119–129: local acceptance, regressions, type/lint/build/security and
-  diff validation — satisfied.
-- Items 130–137: dedicated CI is installed; pushed SHA parity, clean worktree,
-  and the final workflow result are release gates verified after this report is
-  committed and pushed. No Head of Orchestra or other top-level skill was
-  implemented.
+- 1–16: one public service, shared kernel, manifest, registries, Head/peer-shaped calls, and no
+  competing framework — satisfied; actual Orchestra integration remains pending by design.
+- 17–22: broad read/exact write authority and rational timing with no fixed-spacing, silent-30-FPS,
+  or seconds-only execution path — satisfied.
+- 23–42: study-first need/silence/ambience/source/generation decisions, cue-local acquisition,
+  anti-keyword authority, exact cue sheets, arc, motif, density, and continuity — satisfied.
+- 43–51: user/reference/generated rights, project-only defaults, measured/inferred/declared DNA,
+  speech-bound vocals, and review-aware language/culture — satisfied.
+- 52–62: provider-neutral brief, verified Lyria profile, server-only fail-closed live boundary,
+  real fixture bytes, cue-specific idempotent attempts, and reconciliation — satisfied at honest
+  fixture qualification; external live evidence remains pending.
+- 63–79: independent candidates, order-independent selection, actual-byte audio analysis, measured
+  loudness/peak/clipping/timing evidence, and anchor-driven MusicSync/editorial — satisfied.
+- 80–92: public Sound 4.1 port only, exact delegated authority and cost, receipt-derived mutations,
+  separated measured QA, and honest subjective/legal boundaries — satisfied.
+- 93–102: bounded whole-video execution, partial success, localized revision, real/existing/
+  no-Music/ambience handoffs — satisfied.
+- 103–110: Music excludes mux/render/export/delivery/publishing and active legacy authority —
+  satisfied; historical SQL remains undeployed inventory.
+- 111–118: every supported job has exact matrix evidence; planning/blocked modes fail closed and
+  top-level/route/mini-skill/live-provider qualifications remain honest — satisfied.
+- 119–129: Music, Sound, kernel, B-roll, typecheck, lint, build, secrets, frontend boundary,
+  production audit, and diff validation — satisfied locally.
+- 130–137: dedicated CI exists; branch push, SHA parity, clean worktree, and hosted workflow result
+  are final release gates verified after this report is committed. No Head of Orchestra or other
+  top-level skill was implemented.
 
-## Milestone history
+## Milestone commits
 
-- `a1f025688` — `docs(music): freeze canonical migration inventory`
-- `0cf7f945d` — `feat(music): establish canonical skill foundation`
-- `fffaa3036` — `feat(music): execute canonical department end to end`
-- `565aa0812` — `refactor(music): retire legacy runtime authority`
-- `908f0ea32` — `test(music): qualify standalone closure and ci`
-- `09de35a6f` — `docs(music): freeze v2 closure migration`
-- `51ba85f50` — `feat(music): publish canonical v2 execution boundary`
-- `72f5aa810` — `feat(music): enforce autonomous context and Sound receipts`
-- `5ed762921` — `fix(music): bind estimates rights and provider replay`
-- `9df975489` — `refactor(music): seal canonical public boundary`
-- Final closure-evidence commit — updates this v2 report after all local gates.
+- `7144733a2` — capture v3 integrity gaps
+- `81afa1b9d` — establish segmented Sound-bound execution
+- `a8945b4ff` — qualify professional matching and anchor sync
+- `6a121f3f9` — enforce truthful named route outputs
+- `a7211a94a` — isolate provider candidates and revisions
+- `80c979ab8` — bind exact acceptance and segmented QA
+- `21ec35aca` — qualify non-route service boundaries honestly
+- Closure evidence commit — this report, final validation record, and lint-quality correction
 
-Music is safe to close because its public boundary, internal execution,
-authority, real artifacts, Sound v4 collaboration, QA, revision, handoff,
-qualification and regression evidence now agree. The remaining work is an
-intentional external activation/global-integration boundary, not an incomplete
-Music implementation.
+Music is safe to close because its public contract, manifest, route graph, handlers, real private
+artifacts, rights, exact timing, Sound collaboration, measured QA, localized revision, final handoff,
+qualification, and acceptance evidence now agree. The remaining live-provider activation and global
+Orchestra integration are explicit external/design boundaries, not unfinished Music code. No other
+top-level skill was started.

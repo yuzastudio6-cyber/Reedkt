@@ -55,10 +55,12 @@ selected, processed through Sound v4 when needed, and evaluated by Music QA.
 
 ## Fixture evidence
 
-The deterministic injected transport returns real WAV fixture bytes through
-the same provider adapter and canonical Music execution graph. Acceptance
-processes every returned candidate independently and proves that selection is
-not provider-array order.
+The deterministic injected transport returns one real WAV fixture output per
+interaction through the same provider adapter and canonical Music execution graph.
+A cue-level attempt group submits one child interaction per requested candidate;
+each child has independent idempotency, provider request, private storage, checksum,
+brief/prompt/snapshot/cue/ordinal and revision identity. Acceptance processes every
+candidate independently and proves that selection is not provider-array order.
 
 Fixture evidence does not prove a Google account, a live provider call,
 commercial approval, zero-retention entitlement, deployed IAM, live pricing,

@@ -394,9 +394,13 @@ const responseV1BaseSchema = z.object({
   productionAuthorityGranted: z.literal(false),
 }).strict()
 
-function responseStateIsExact(response: z.infer<
+type TrackAllL4TaskQaResponseState = Omit<z.infer<
   typeof responseV1BaseSchema
->): boolean {
+>, 'schemaVersion'> & { readonly schemaVersion: string }
+
+function responseStateIsExact(
+  response: TrackAllL4TaskQaResponseState,
+): boolean {
   const completed = response.status === 'completed'
   return completed
     ? response.terminalStage === 'completed'

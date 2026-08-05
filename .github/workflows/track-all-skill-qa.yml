@@ -86,6 +86,14 @@ jobs:
           ffmpeg -version
           ffprobe -version
 
+      - name: Build and verify confined private media runtimes
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: |
+          docker/prod/ffmpeg-lgpl-runtime/smoke.sh --build
+          npx tsx -e "import('./server/tool-execution/python-runner-execution/offline-python-structured-docker-runtime.ts').then(async ({ prepareOfflinePythonStructuredDockerRuntime }) => { const image = await prepareOfflinePythonStructuredDockerRuntime(); console.log(image.imageIdentityHash) })"
+          npx tsx -e "import('./server/tool-execution/remotion-render-execution/offline-remotion-render-docker-runtime.ts').then(async ({ prepareOfflineRemotionDockerRuntime }) => { const image = await prepareOfflineRemotionDockerRuntime(); console.log(image.imageIdentityHash) })"
+
       - name: Verify committed manifest and receipts load normally
         env:
           NODE_OPTIONS: --max-old-space-size=8192
@@ -117,7 +125,7 @@ jobs:
             echo ""
             echo "- Validates the committed Track All and B-Roll qualification receipts before generating fresh run evidence."
             echo "- Runs the exact 33-command Track All aggregate qualification, including canonical-private media, Remotion, security, retirement, and actual B-Roll consumer acceptance evidence."
-            echo "- Installs and verifies FFmpeg and FFprobe before any media-dependent test."
+            echo "- Installs and verifies FFmpeg and FFprobe, then builds the repository-pinned confined FFmpeg, Python, and Remotion images before any media-dependent test."
             echo "- The SAM 3.1 real-private route remains fail-closed unless its separately gated checkpoint, image, GPU, quality, cost, and privacy evidence exists."
             echo "- This workflow performs no paid provider/model call, public delivery, or production mutation."
             echo "- Repository-wide UI/browser QA remains independent and is not skipped or weakened here."

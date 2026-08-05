@@ -127,5 +127,14 @@ actual independent private-review acceptance, and terminal projection.
 Transcript and specialist-owner evidence remain fail-closed whenever their
 exact authenticated records are unavailable.
 
+The terminal handoff is now source-mounted as
+`canonical-caption-terminal-evidence-assembly-v1`. The backend workflow must
+provide only its admitted completed-work/owner reader and the canonical
+private-review reader. The assembly exact-rereads both sources twice, persists
+the existing terminal evidence bundle create-only, and exposes the existing
+terminal read port. A caller cannot submit the bundle or promote a partial run.
+The mount remains empty until all evidence belongs to one exact snapshot,
+package, work graph, and output set.
+
 This is an internal-testing integration base, not a public or production SaaS
 release.

@@ -61,6 +61,12 @@ import {
   createCanonicalCaptionTerminalQualificationService,
   parseCanonicalCaptionTerminalQualificationRequest,
 } from '../services/canonical-caption-terminal-qualification-service'
+import {
+  createCanonicalCaptionTerminalEvidenceAssembly,
+  createCanonicalCaptionTerminalEvidenceBundleRepository,
+  createCanonicalCaptionTerminalInputReadPort,
+  createCanonicalCaptionTerminalPrivateReviewReadPort,
+} from '../services/canonical-caption-terminal-evidence-assembly-service'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 
@@ -399,6 +405,131 @@ async function run(): Promise<void> {
     qualificationInput,
     privateReviewEvidenceProjections: [privateReviewProjection()],
   })
+
+  let assemblyInputReads = 0
+  let assemblyReviewReads = 0
+  const assemblyInputReadPort =
+    createCanonicalCaptionTerminalInputReadPort(async () => {
+      assemblyInputReads += 1
+      return structuredClone(qualificationInput)
+    })
+  const assemblyPrivateReviewReadPort =
+    createCanonicalCaptionTerminalPrivateReviewReadPort(async () => {
+      assemblyReviewReads += 1
+      return [privateReviewProjection()]
+    })
+  const assembly = createCanonicalCaptionTerminalEvidenceAssembly({
+    inputReadPort: assemblyInputReadPort,
+    privateReviewReadPort: assemblyPrivateReviewReadPort,
+    bundleRepository: createCanonicalCaptionTerminalEvidenceBundleRepository({
+      objectPort: memoryObjectPort(),
+    }),
+  })
+  const assembledBundle = await assembly.evidenceReadPort.readExact({ request })
+  check(assembledBundle?.bundleDigestSha256
+    === evidenceBundle.bundleDigestSha256
+    && assemblyInputReads === 2
+    && assemblyReviewReads === 2,
+  'Canonical assembly must exact-reread inputs and private review before persisting the same bundle.')
+  const assembledReplay = await assembly.evidenceReadPort.readExact({ request })
+  check(assembledReplay?.bundleDigestSha256
+    === assembledBundle?.bundleDigestSha256
+    && assemblyInputReads === 2
+    && assemblyReviewReads === 2,
+  'Canonical assembly replay must reread the create-only bundle without reassembling source evidence.')
+  check(assembly.exactSourceRereadBeforeAssembly
+    && assembly.bundlePersistedCreateOnlyBeforeQualification
+    && !assembly.callerSuppliedEvidenceAccepted
+    && !assembly.operationOrRuntimeAuthorityGrantedToCaption
+    && !assembly.finalQaApprovalAuthorityGrantedToCaption
+    && !assembly.productionAuthorityGrantedToCaption,
+  'Terminal assembly must remain a closed evidence mount without execution or final-QA authority.')
+
+  const assembledQualificationService =
+    createCanonicalCaptionTerminalQualificationService({
+      evidenceReadPort: assembly.evidenceReadPort,
+      repository: createCanonicalCaptionTerminalQualificationRepository({
+        objectPort: memoryObjectPort(),
+        prefix: 'private-internal/caption-terminal-assembled-records',
+      }),
+      now: () => new Date('2026-08-05T23:54:00.000Z'),
+    })
+  const assembledQualification = await assembledQualificationService
+    .qualifyPrivateInternal(request)
+  check(assembledQualification.disposition === 'qualified_private_internal'
+    && assembledQualification.record !== null
+    && assemblyInputReads === 2
+    && assemblyReviewReads === 2,
+  'The terminal qualifier must consume only the persisted assembled bundle on replay.')
+  const stableAssemblyInputReads = assemblyInputReads
+  const stableAssemblyReviewReads = assemblyReviewReads
+
+  await expectReject(() => assembly.evidenceReadPort.readExact({
+    request,
+    callerEvidenceBundle: evidenceBundle,
+  } as never))
+  expectThrow(() => createCanonicalCaptionTerminalEvidenceAssembly({
+    inputReadPort: {
+      schemaVersion: 'canonical-caption-terminal-input-read-port-v1',
+      sourceAuthority:
+        'canonical_backend_completed_caption_work_and_owner_evidence',
+      callerSuppliedQualificationInputAccepted: false,
+      async readExact() { return null },
+    },
+    privateReviewReadPort: assemblyPrivateReviewReadPort,
+    bundleRepository: assembly.bundleRepository,
+  }))
+
+  let unstableInputRead = 0
+  const unstableInputPort = createCanonicalCaptionTerminalInputReadPort(
+    async () => {
+      unstableInputRead += 1
+      if (unstableInputRead === 1) return structuredClone(qualificationInput)
+      const changed = structuredClone(qualificationInput)
+      changed.observedAt = '2026-08-05T23:46:00.000Z'
+      changed.inputDigestSha256 = calculateSkillContractDigest(
+        changed as unknown as Record<string, unknown>, 'inputDigestSha256')
+      return changed
+    })
+  const unstableAssembly = createCanonicalCaptionTerminalEvidenceAssembly({
+    inputReadPort: unstableInputPort,
+    privateReviewReadPort: assemblyPrivateReviewReadPort,
+    bundleRepository: createCanonicalCaptionTerminalEvidenceBundleRepository({
+      objectPort: memoryObjectPort(),
+      prefix: 'private-internal/caption-terminal-unstable-input',
+    }),
+  })
+  await expectReject(() => unstableAssembly.evidenceReadPort.readExact({
+    request,
+  }))
+
+  let unstableReviewRead = 0
+  const unstableReviewPort =
+    createCanonicalCaptionTerminalPrivateReviewReadPort(async () => {
+      unstableReviewRead += 1
+      const review = privateReviewProjection()
+      if (unstableReviewRead === 2) {
+        review.projectionId = `${review.projectionId}.crossed`
+        review.projectionDigestSha256 = calculateSkillContractDigest(
+          review as unknown as Record<string, unknown>,
+          'projectionDigestSha256')
+      }
+      return [review]
+    })
+  const unstableReviewAssembly =
+    createCanonicalCaptionTerminalEvidenceAssembly({
+      inputReadPort: assemblyInputReadPort,
+      privateReviewReadPort: unstableReviewPort,
+      bundleRepository:
+        createCanonicalCaptionTerminalEvidenceBundleRepository({
+          objectPort: memoryObjectPort(),
+          prefix: 'private-internal/caption-terminal-unstable-review',
+        }),
+    })
+  await expectReject(() => unstableReviewAssembly.evidenceReadPort.readExact({
+    request,
+  }))
+
   let ownerReads = 0
   const evidenceReadPort = createCanonicalCaptionTerminalEvidenceReadPort(
     async () => {
@@ -475,6 +606,9 @@ async function run(): Promise<void> {
     assertions,
     blockedWithoutCanonicalEvidence: true,
     canonicalEvidenceBundleConsumed: true,
+    canonicalEvidenceAssemblyMounted: true,
+    sourceEvidenceExactRereads: stableAssemblyInputReads,
+    privateReviewExactRereads: stableAssemblyReviewReads,
     qualifiedPrivateInternalJobs:
       qualified.terminalProjection?.counts.qualifiedPrivateInternalJobs,
     currentSourceReadinessAcceptedAllOwnerMounts: true,

@@ -35,6 +35,21 @@ service does not accept the evidence bundle in the caller request. Missing
 canonical evidence returns the blocked preflight and creates no qualification
 record.
 
+The later `canonical-caption-terminal-evidence-assembly-v1` implementation
+provides the concrete source-ready mount for that read port. It accepts no
+qualification input or review evidence from the caller. Instead it:
+
+- exact-rereads the canonical completed Caption-work/shared-owner record twice;
+- exact-rereads the canonical private-review projections twice;
+- refuses evidence that changes between rereads;
+- constructs the existing closed terminal evidence bundle;
+- persists the bundle create-only and exact-rereads it;
+- serves exact replay from the persisted bundle without reassembling sources.
+
+The mount is source infrastructure, not actual run evidence. Its two admitted
+source readers still return `null` until the canonical backend has completed
+all work and review records for one exact run.
+
 The V2 preflight, projection builder, evidence-bundle builder, and canonical
 service all check the exact current per-job source-readiness ledger. While any
 declared job still waits on a canonical owner composition mount, terminal
@@ -110,6 +125,8 @@ Files changed:
 - `server/captions-specialist/caption-terminal-qualification.ts`
 - `server/captions-specialist/caption-terminal-qualification-v2.ts`
 - `server/services/canonical-caption-terminal-qualification-service.ts`
+- `src/types/canonical-caption-terminal-evidence-assembly.ts`
+- `server/services/canonical-caption-terminal-evidence-assembly-service.ts`
 - `server/smoke/captions-specialist-terminal-qualification-smoke.ts`
 - `server/smoke/canonical-caption-terminal-qualification-service-smoke.ts`
 - `src/types/canonical-caption-private-review-evidence-projection.ts`

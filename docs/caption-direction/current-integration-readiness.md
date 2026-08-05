@@ -69,6 +69,12 @@ projection, the terminal per-job qualification contracts, and the create-only
 terminal qualification service are also implemented. The terminal service
 accepts only a request locator and rereads its evidence through an admitted
 backend port; callers cannot submit a truth-shaped evidence bundle.
+The additive terminal evidence assembly now provides the concrete one-writer
+mount behind that port: it exact-rereads completed work/owner evidence and
+private-review projections twice, persists the assembled bundle create-only,
+and rereads it before the terminal qualifier can consume it. Actual owner/work
+records for one common run are still absent, so this source mount changes none
+of the terminal evidence counts.
 The historical V1 terminal lane remains bound to readiness V2; the additive V2
 terminal lane binds readiness V3 and is the only current terminal lane.
 This is still not the same as an actual private qualification run: the count

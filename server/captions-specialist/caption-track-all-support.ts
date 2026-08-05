@@ -494,6 +494,21 @@ export function createCaptionTrackAllSupport(input: {
       'payloadDigestSha256',
     ),
   })
+  const supportRequest = createCaptionTrackAllSupportRequest({
+    requestId: input.requestId,
+    originalCallRef: input.originalCallRef,
+    payload,
+  })
+  return { payload, supportRequest }
+}
+
+export function createCaptionTrackAllSupportRequest(input: {
+  requestId: string
+  originalCallRef: SkillContractRef
+  payload: unknown
+}): SkillSupportRequest {
+  assertClosedContractTree(input, 'Caption Track All support request input')
+  const payload = parseCaptionTrackAllSupportPayload(input.payload)
   const requestWithoutDigest: Omit<SkillSupportRequest, 'requestDigestSha256'> = {
     schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
     requestId: safeKey.parse(input.requestId),
@@ -519,7 +534,7 @@ export function createCaptionTrackAllSupport(input: {
       'requestDigestSha256',
     ),
   })
-  return { payload, supportRequest }
+  return supportRequest
 }
 
 function subjectQa(input: {

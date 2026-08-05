@@ -1,6 +1,6 @@
 # CAP-09 — Track All and SAM 3.1 Report
 
-Status: `contract_complete_private_track_all_runtime_gated`
+Status: `contract_and_runtime_admission_ready_private_track_all_runtime_gated`
 Milestone: `CAP-09`
 Media/GPU/runtime started: no
 Real text-behind-subject fixture claimed: no
@@ -19,6 +19,13 @@ create mask assets, or reinterpret private runtime internals. The inbound
 packet keeps the canonical operation identity
 `tool.sam3_1.segment_and_track_subject.v1` as opaque Track All lineage and
 explicitly rejects historical SAM 2 for new work.
+
+The post-CAP-20 specialist runtime now consumes this exact typed payload and
+emits the same Track All support request. On resume it parses the complete
+packet and matches the packet ref, producer, artifact type, and support-request
+lineage before it can satisfy `track_all_mask_binding`. An artifact reference,
+unbound packet, cross-scene payload, or `contract_fixture` packet cannot
+complete the runtime job.
 
 ## Evidence and QA
 
@@ -63,14 +70,16 @@ subject or object anchoring, even when their synthetic measurements pass.
 
 ## Verification
 
-`smoke:captions-specialist-cap-09` passes 25 positive and adversarial checks.
+`smoke:captions-specialist-cap-09` passes 31 positive and adversarial checks.
 It covers the neutral Track All target, exact SAM 3.1 operation identity,
 subject/phrase/source/frame lineage, deterministic QA thresholds, mask/track
 and anchor requirements, cache separation/reuse, weak overlap/flicker
 findings, safe fallback, wrong depth, missing phrase lineage, stale cache,
 invalid cache reuse, historical SAM 2, fixture execution overclaims, missing
 masks, disallowed payload/evidence combinations, unknown nested data, and
-admission overclaims.
+admission overclaims. The additional runtime checks freeze the exact typed
+request and prove missing, unbound, crossed, and fixture-only evidence fails
+closed.
 
 The focused smoke, server typecheck, and focused ESLint pass. The real
 SAM 3.1 + Track All + OpenCV/Kornia + Remotion text-behind-subject media

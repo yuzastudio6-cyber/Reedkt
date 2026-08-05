@@ -24,6 +24,13 @@ import type {
 import type {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-visual-intelligence-support'
+import type {
+  CaptionTrackAllEvidencePacket,
+  CaptionTrackAllPurpose,
+  CaptionTrackAllSupportPayload,
+} from '../../src/types/caption-track-all-support'
+import type { CaptionDomainCanonicalScope } from
+  '../../src/types/caption-domain-contracts'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -53,6 +60,11 @@ import {
 import {
   parseCaptionCanonicalVisualIntelligenceEvidenceRecord,
 } from './caption-canonical-visual-intelligence-evidence-read'
+import {
+  createCaptionTrackAllSupportRequest,
+  parseCaptionTrackAllEvidencePacket,
+  parseCaptionTrackAllSupportPayload,
+} from './caption-track-all-support'
 
 interface CaptionRuntimeProfile {
   manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
@@ -263,22 +275,22 @@ function missingArtifacts(
     .filter((artifactType) => !present.has(artifactType))
 }
 
-function exactScopeForVisualPayload(
+function exactScopeForDomainPayload(
   call: OrchestraSkillCall,
-  payload: CaptionVisualIntelligenceSupportPayload,
+  scope: CaptionDomainCanonicalScope,
 ): boolean {
   const callSnapshot = call.canonicalScope.approvedSnapshotRef
-  const payloadSnapshot = payload.canonicalScope.approvedSnapshotRef
+  const payloadSnapshot = scope.approvedSnapshotRef
   return call.job.scopeLevel === 'scene'
     && call.canonicalScope.boundaryId === null
-    && call.canonicalScope.ownerUserId === payload.canonicalScope.ownerUserId
-    && call.canonicalScope.workspaceId === payload.canonicalScope.workspaceId
-    && call.canonicalScope.projectId === payload.canonicalScope.projectId
-    && call.canonicalScope.editSessionId === payload.canonicalScope.editSessionId
-    && call.canonicalScope.outputId === payload.canonicalScope.outputId
-    && call.canonicalScope.sceneId === payload.canonicalScope.sceneId
+    && call.canonicalScope.ownerUserId === scope.ownerUserId
+    && call.canonicalScope.workspaceId === scope.workspaceId
+    && call.canonicalScope.projectId === scope.projectId
+    && call.canonicalScope.editSessionId === scope.editSessionId
+    && call.canonicalScope.outputId === scope.outputId
+    && call.canonicalScope.sceneId === scope.sceneId
     && JSON.stringify(call.canonicalScope.authorizedFrameRanges)
-      === JSON.stringify(payload.canonicalScope.authorizedFrameRanges)
+      === JSON.stringify(scope.authorizedFrameRanges)
     && ((callSnapshot === null && payloadSnapshot === null)
       || (callSnapshot !== null && payloadSnapshot !== null
         && exactRef(callSnapshot, payloadSnapshot)))
@@ -307,6 +319,39 @@ function packetArtifactMatches(
     && exactRef(artifact.sourceSupportRequestRef, requestRef)
 }
 
+function trackAllPacketArtifactMatches(
+  call: OrchestraSkillCall,
+  request: SkillSupportRequest,
+  packet: CaptionTrackAllEvidencePacket,
+): boolean {
+  const injected = call.injectedSupportArtifactRefs
+  if (injected.length !== 1) return false
+  const artifact = injected[0]
+  const requestRef: SkillContractRef = {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+  return artifact.id === packet.packetId
+    && artifact.version === packet.schemaVersion
+    && artifact.contentHash === packet.packetDigestSha256
+    && artifact.artifactType === 'track_all_mask_binding'
+    && artifact.producerSkillKey === 'track_all'
+    && artifact.sourceSupportRequestRef !== null
+    && exactRef(artifact.sourceSupportRequestRef, requestRef)
+}
+
+function expectedTrackAllPurpose(jobType: string): CaptionTrackAllPurpose | null {
+  if (jobType === 'resolve_subject_occluded_typography') {
+    return 'subject_occlusion'
+  }
+  if (jobType === 'resolve_object_anchored_typography') return 'object_anchor'
+  if (jobType === 'resolve_environmental_typography') {
+    return 'environmental_anchor'
+  }
+  return null
+}
+
 function qualificationEntry(
   snapshot: SkillQualificationSnapshot,
   jobType: string,
@@ -322,6 +367,8 @@ export function runCaptionsSpecialistJob(input: {
   visualIntelligenceSupportPayload?: unknown
   visualIntelligenceEvidencePacket?: unknown
   canonicalVisualIntelligenceEvidenceRecord?: unknown
+  trackAllSupportPayload?: unknown
+  trackAllEvidencePacket?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationProfile = call.manifestRef.id
@@ -393,6 +440,8 @@ export function runCaptionsSpecialistJob(input: {
   let visualPayload: CaptionVisualIntelligenceSupportPayload | null = null
   let canonicalVisualRecord:
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
+  let trackAllPayload: CaptionTrackAllSupportPayload | null = null
+  let admittedTrackAllPacket: CaptionTrackAllEvidencePacket | null = null
   if (input.canonicalVisualIntelligenceEvidenceRecord !== undefined) {
     if (input.visualIntelligenceSupportPayload !== undefined
       || input.visualIntelligenceEvidencePacket !== undefined) {
@@ -423,10 +472,28 @@ export function runCaptionsSpecialistJob(input: {
       )
     }
     if (visualPayload.purpose !== 'final_frame_occupancy'
-      || !exactScopeForVisualPayload(call, visualPayload)) {
+      || !exactScopeForDomainPayload(call, visualPayload.canonicalScope)) {
       return makeResult(profile,
         call, 'blocked', ['input.visual_intelligence.payload.scope.mismatch'],
         'The Caption Visual Intelligence payload does not match the assigned scene.',
+      )
+    }
+  }
+  if (input.trackAllSupportPayload !== undefined) {
+    try {
+      trackAllPayload = parseCaptionTrackAllSupportPayload(
+        input.trackAllSupportPayload)
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.track_all.payload.invalid'],
+        'The Caption Track All support payload is invalid.',
+      )
+    }
+    if (!exactScopeForDomainPayload(call, trackAllPayload.canonicalScope)
+      || expectedTrackAllPurpose(call.job.jobType) !== trackAllPayload.purpose) {
+      return makeResult(profile,
+        call, 'blocked', ['input.track_all.payload.scope_or_job.mismatch'],
+        'The Caption Track All payload does not match the assigned scene job.',
       )
     }
   }
@@ -517,6 +584,42 @@ export function runCaptionsSpecialistJob(input: {
         'Visual Intelligence evidence does not match the current follow-up owner.',
       )
     }
+    if (request.targetSkillKey === 'track_all' && trackAllPayload !== null) {
+      try {
+        admittedTrackAllPacket = parseCaptionTrackAllEvidencePacket(
+          input.trackAllEvidencePacket,
+          { payload: trackAllPayload, supportRequest: request },
+        )
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.track_all.authenticated_admission.failed'],
+          'The authenticated Track All evidence was rejected.',
+        )
+      }
+      if (admittedTrackAllPacket.evidenceMode
+          !== 'authenticated_private_runtime'
+        || admittedTrackAllPacket.authenticatedReadResultRef === null
+        || admittedTrackAllPacket.canonicalSam31RuntimeResultAdmissionRef
+          === null
+        || !trackAllPacketArtifactMatches(
+          call, request, admittedTrackAllPacket)) {
+        return makeResult(profile,
+          call, 'blocked', ['input.track_all.authenticated_admission.mismatch'],
+          'The Track All packet is not authenticated or does not match its artifact.',
+        )
+      }
+    } else if (request.targetSkillKey === 'track_all'
+      && request.typedPayloadType === 'caption-track-all-support-payload-v1') {
+      return makeResult(profile,
+        call, 'blocked', ['input.track_all.payload.missing'],
+        'Typed Track All resume requires its exact Caption payload and packet.',
+      )
+    } else if (input.trackAllEvidencePacket !== undefined) {
+      return makeResult(profile,
+        call, 'blocked', ['input.track_all.evidence.unexpected'],
+        'Track All evidence does not match the current follow-up owner.',
+      )
+    }
   } else if (input.resumeSupportRequest !== undefined) {
     return makeResult(profile,
       call, 'blocked', ['resume.request.unexpected'],
@@ -531,6 +634,11 @@ export function runCaptionsSpecialistJob(input: {
     return makeResult(profile,
       call, 'blocked', ['input.visual_intelligence.canonical_record.unexpected'],
       'Canonical Visual Intelligence evidence was supplied outside a resume.',
+    )
+  } else if (input.trackAllEvidencePacket !== undefined) {
+    return makeResult(profile,
+      call, 'blocked', ['input.track_all.evidence.unexpected'],
+      'Track All evidence was supplied outside an exact resume.',
     )
   }
 
@@ -565,6 +673,13 @@ export function runCaptionsSpecialistJob(input: {
           payload: visualPayload,
         })
       }
+      if (target === 'track_all' && trackAllPayload !== null) {
+        return createCaptionTrackAllSupportRequest({
+          requestId: `${call.callId}.support.track_all`,
+          originalCallRef: callRef(call),
+          payload: trackAllPayload,
+        })
+      }
       return makeSupportRequest(call, target, items)
     })
     return makeResult(profile,
@@ -586,6 +701,7 @@ export function runCaptionsSpecialistJob(input: {
       call.canonicalScope.sceneId ?? 'no-scene',
       call.canonicalScope.boundaryId ?? 'no-boundary',
       admittedVisualPacket?.packetDigestSha256 ?? 'no-visual-packet',
+      admittedTrackAllPacket?.packetDigestSha256 ?? 'no-track-all-packet',
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -596,12 +712,13 @@ export function runCaptionsSpecialistJob(input: {
   return makeResult(profile,
     call,
     'completed',
-    admittedVisualPacket === null
-      ? ['planning.contract.completed']
-      : [
-          'planning.contract.completed',
-          'visual_intelligence.authenticated_admission.accepted',
-        ],
+    [
+      'planning.contract.completed',
+      ...(admittedVisualPacket === null ? []
+        : ['visual_intelligence.authenticated_admission.accepted']),
+      ...(admittedTrackAllPacket === null ? []
+        : ['track_all.authenticated_admission.accepted']),
+    ],
     'Caption planning completed within the assigned scope.',
     [],
     producedArtifactRefs,

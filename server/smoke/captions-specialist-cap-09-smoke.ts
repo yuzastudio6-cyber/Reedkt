@@ -7,7 +7,16 @@ import {
   parseCaptionTrackAllEvidencePacket,
   parseCaptionTrackAllSupportPayload,
 } from '../captions-specialist/caption-track-all-support'
-import { calculateSkillContractDigest } from '../orchestra/orchestra-skill-contracts'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-contracts'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
+import {
+  createCaptionsHarnessCall,
+  resumeCaptionsHarnessCall,
+} from '../internal-testing/captions-specialist-harness'
 import type {
   CaptionDomainCanonicalScope,
   CaptionDomainRef,
@@ -386,6 +395,164 @@ check(
   'CAP-09 cannot promote final QA, Remotion canvas, or production authority.',
 )
 
+const runtimeCallSeed = createCaptionsHarnessCall({
+  callId: 'captions.track-all.runtime-admission',
+  jobType: 'resolve_subject_occluded_typography',
+  scopeLevel: 'scene',
+  runtimeProfile: 'post_cap20_integration',
+  inputArtifactTypes: [
+    'canonical_transcript', 'confirmed_output_frame',
+    'master_timing_or_planning_timing', 'visual_intelligence_report',
+  ],
+})
+const runtimeCallWithoutDigest = {
+  ...structuredClone(runtimeCallSeed),
+  canonicalScope: {
+    ownerUserId: scope.ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    approvedSnapshotRef: structuredClone(scope.approvedSnapshotRef),
+    outputId: scope.outputId,
+    sceneId: scope.sceneId,
+    boundaryId: null,
+    authorizedFrameRanges: structuredClone(scope.authorizedFrameRanges),
+  },
+}
+const runtimeCall = parseOrchestraSkillCall({
+  ...runtimeCallWithoutDigest,
+  callDigestSha256: calculateSkillContractDigest({
+    ...runtimeCallWithoutDigest,
+    callDigestSha256: '',
+  }, 'callDigestSha256'),
+})
+const runtimeSupport = createCaptionTrackAllSupport({
+  payloadId: 'caption.track.all.runtime.payload',
+  requestId: `${runtimeCall.callId}.support.track_all`,
+  idempotencyKey: runtimeCall.idempotencyKey,
+  originalCallRef: {
+    id: runtimeCall.callId,
+    version: runtimeCall.schemaVersion,
+    contentHash: runtimeCall.callDigestSha256,
+  },
+  purpose: 'subject_occlusion',
+  canonicalScope: scope,
+  pictureLockRef: support.payload.pictureLockRef,
+  finishReadinessRef: support.payload.finishReadinessRef,
+  visualOccupancyManifestRef: support.payload.visualOccupancyManifestRef,
+  confirmedOutputFrameDigestSha256: frameDigest,
+  sourcePrivateArtifactRef: support.payload.sourcePrivateArtifactRef,
+  sourceFrameMappingRef,
+  subjectRequests: [subjectRequest],
+  korniaRefinementAllowed: true,
+})
+const runtimeInitial = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  trackAllSupportPayload: runtimeSupport.payload,
+})
+check(runtimeInitial.disposition === 'needs_followup'
+  && runtimeInitial.supportRequests.length === 1
+  && runtimeInitial.supportRequests[0].requestDigestSha256
+    === runtimeSupport.supportRequest.requestDigestSha256
+  && runtimeInitial.supportRequests[0].typedPayloadType
+    === 'caption-track-all-support-payload-v1',
+'The integration runtime emits the exact typed Track All support request.')
+
+const runtimeRequest = runtimeInitial.supportRequests[0]
+const runtimePacket = createCaptionTrackAllEvidencePacketForContractFixture({
+  packetId: 'caption.track.all.runtime.packet.fixture',
+  payload: runtimeSupport.payload,
+  supportRequest: runtimeRequest,
+  trackAllResultRef: ref('track.all.runtime.result.fixture'),
+  subjectEvidence: [subjectEvidence],
+})
+let runtimeResumedCall = resumeCaptionsHarnessCall(runtimeCall, runtimeRequest)
+runtimeResumedCall.injectedSupportArtifactRefs = [{
+  id: runtimePacket.packetId,
+  version: runtimePacket.schemaVersion,
+  contentHash: runtimePacket.packetDigestSha256,
+  artifactType: 'track_all_mask_binding',
+  producerSkillKey: 'track_all',
+  privateArtifact: true,
+  byteFreeRef: true,
+  sourceSupportRequestRef: {
+    id: runtimeRequest.requestId,
+    version: runtimeRequest.schemaVersion,
+    contentHash: runtimeRequest.requestDigestSha256,
+  },
+}]
+runtimeResumedCall = parseOrchestraSkillCall({
+  ...runtimeResumedCall,
+  callDigestSha256: calculateSkillContractDigest({
+    ...runtimeResumedCall,
+    callDigestSha256: '',
+  }, 'callDigestSha256'),
+})
+const fixtureRuntimeResult = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  trackAllSupportPayload: runtimeSupport.payload,
+  trackAllEvidencePacket: runtimePacket,
+})
+check(fixtureRuntimeResult.disposition === 'blocked'
+  && fixtureRuntimeResult.reasonCodes.join('|')
+    === 'input.track_all.authenticated_admission.mismatch',
+'A structurally valid Track All contract fixture cannot complete the runtime job.')
+
+const missingRuntimePacket = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  trackAllSupportPayload: runtimeSupport.payload,
+})
+check(missingRuntimePacket.disposition === 'blocked'
+  && missingRuntimePacket.reasonCodes.join('|')
+    === 'input.track_all.authenticated_admission.failed',
+'A Track All artifact reference alone cannot satisfy runtime admission.')
+
+const unboundRuntimePacket = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+  trackAllEvidencePacket: runtimePacket,
+})
+check(unboundRuntimePacket.disposition === 'blocked'
+  && unboundRuntimePacket.reasonCodes.join('|')
+    === 'input.track_all.payload.missing',
+'Track All evidence cannot be admitted without its exact Caption payload.')
+
+const referenceOnlyRuntimeResult = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeRequest,
+})
+check(referenceOnlyRuntimeResult.disposition === 'blocked'
+  && referenceOnlyRuntimeResult.reasonCodes.join('|')
+    === 'input.track_all.payload.missing',
+'A typed Track All resume cannot fall back to reference-only completion.')
+
+const crossedTrackSupport = createCaptionTrackAllSupport({
+  payloadId: 'caption.track.all.runtime.payload.crossed',
+  requestId: 'caption.track.all.runtime.support.crossed',
+  idempotencyKey: runtimeCall.idempotencyKey,
+  originalCallRef: runtimeSupport.supportRequest.originalCallRef,
+  purpose: 'subject_occlusion',
+  canonicalScope: { ...scope, sceneId: 'scene.track.crossed' },
+  pictureLockRef: support.payload.pictureLockRef,
+  finishReadinessRef: support.payload.finishReadinessRef,
+  visualOccupancyManifestRef: support.payload.visualOccupancyManifestRef,
+  confirmedOutputFrameDigestSha256: frameDigest,
+  sourcePrivateArtifactRef: support.payload.sourcePrivateArtifactRef,
+  sourceFrameMappingRef,
+  subjectRequests: [subjectRequest],
+  korniaRefinementAllowed: true,
+})
+const crossedTrackResult = runCaptionsSpecialistJob({
+  call: runtimeCall,
+  trackAllSupportPayload: crossedTrackSupport.payload,
+})
+check(crossedTrackResult.disposition === 'blocked'
+  && crossedTrackResult.reasonCodes.join('|')
+    === 'input.track_all.payload.scope_or_job.mismatch',
+'The typed Track All payload cannot cross or expand the assigned scene.')
+
 process.stdout.write(`${JSON.stringify({
   status: 'passed_with_explicit_private_track_all_runtime_gate',
   milestone: 'CAP-09',
@@ -401,6 +568,8 @@ process.stdout.write(`${JSON.stringify({
   actualOpenCvExecutionObserved: false,
   actualKorniaExecutionObserved: false,
   realTextBehindSubjectFixtureExecuted: false,
+  typedRuntimeAdmissionPathReady: true,
+  contractFixtureRuntimeAdmissionRejected: true,
   captionExecutedSam31: false,
   productionAuthorityPromoted: false,
 }, null, 2)}\n`)

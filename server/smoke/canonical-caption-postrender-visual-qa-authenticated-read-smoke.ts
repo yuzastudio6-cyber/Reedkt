@@ -16,6 +16,15 @@ import type {
 import type {
   CanonicalPostrenderVisualQaWorkRequestInput,
 } from '../../src/types/canonical-postrender-visual-qa-work-request'
+import type {
+  CanonicalCaptionPrivateReviewDependencyBinding,
+} from '../../src/types/canonical-caption-private-review-dependency-binding'
+import type {
+  CanonicalPrivateReviewAssemblyResponse,
+} from '../validation/canonical-private-review-assembly-schemas'
+import type {
+  CanonicalPrivateReviewDecisionResponse,
+} from '../validation/canonical-private-review-decision-schemas'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
@@ -36,6 +45,14 @@ import {
 import {
   reconcileCanonicalCaptionPostrenderVisualQaOwnerResult,
 } from '../services/canonical-caption-postrender-visual-qa-reconciliation-service'
+import {
+  buildCanonicalCaptionPrivateReviewEvidenceProjection,
+  parseCanonicalCaptionPrivateReviewEvidenceProjection,
+} from '../services/canonical-caption-private-review-evidence-service'
+import { calculateSkillContractDigest } from
+  '../orchestra/orchestra-skill-contracts'
+import { sha256AuthorityValue } from
+  '../services/private-edit-authority-store'
 import {
   digestCanonicalPostrenderVisualQaSharedLifecycleResult,
 } from '../validation/canonical-postrender-visual-qa-lifecycle-schemas'
@@ -306,6 +323,71 @@ check(repair.disposition === 'completed'
   && repair.outputSetStatus.visualQaBlocksDelivery,
 'A completed model attempt requiring repair must never project a passed gate.')
 
+const privateReviewAuthority = createPrivateReviewAuthority()
+const waitingAssembly = buildCanonicalCaptionPrivateReviewEvidenceProjection({
+  authority: privateReviewAuthority,
+  completed: completedEnvelope,
+  assembly: null,
+  decision: null,
+})
+check(waitingAssembly.disposition === 'waiting_for_private_review_assembly'
+  && waitingAssembly.privateReviewAssemblyAllowed
+  && !waitingAssembly.terminalPrivateInternalQualificationEligible,
+'A visual pass may enter canonical private review but cannot qualify before its decision.')
+const reviewAssembly = createPrivateReviewAssembly()
+const waitingDecision = buildCanonicalCaptionPrivateReviewEvidenceProjection({
+  authority: privateReviewAuthority,
+  completed: completedEnvelope,
+  assembly: reviewAssembly,
+  decision: null,
+})
+check(waitingDecision.disposition === 'waiting_for_private_review_decision'
+  && waitingDecision.canonicalPrivateReview.exactAssemblyReread
+  && !waitingDecision.privateReviewAccepted,
+'Exact review assembly must remain pending until the canonical reviewer decides.')
+const acceptedDecision = createPrivateReviewDecision(
+  reviewAssembly, 'accept_private_internal_review')
+const acceptedReview = buildCanonicalCaptionPrivateReviewEvidenceProjection({
+  authority: privateReviewAuthority,
+  completed: completedEnvelope,
+  assembly: reviewAssembly,
+  decision: acceptedDecision,
+})
+check(acceptedReview.disposition === 'private_review_accepted_visual_pass'
+  && acceptedReview.privateReviewAccepted
+  && acceptedReview.terminalPrivateInternalQualificationEligible,
+'Only the exact visual pass plus canonical private-review acceptance may qualify the output.')
+check(parseCanonicalCaptionPrivateReviewEvidenceProjection(acceptedReview)
+  .projectionDigestSha256 === acceptedReview.projectionDigestSha256,
+'The authenticated Caption private-review projection must verify its closed digest.')
+const repairEnvelope = createEnvelope('repair_required')
+const repairAdmission = buildCanonicalCaptionPrivateReviewEvidenceProjection({
+  authority: privateReviewAuthority,
+  completed: repairEnvelope,
+  assembly: null,
+  decision: null,
+})
+check(repairAdmission.disposition === 'repair_required_before_private_review'
+  && !repairAdmission.privateReviewAssemblyAllowed
+  && repairAdmission.requiresNewApprovedSnapshot
+  && !repairAdmission.terminalPrivateInternalQualificationEligible,
+'A visually failed Caption output must stop before review assembly and require a new snapshot.')
+assert.throws(() => buildCanonicalCaptionPrivateReviewEvidenceProjection({
+  authority: privateReviewAuthority,
+  completed: repairEnvelope,
+  assembly: reviewAssembly,
+  decision: acceptedDecision,
+}))
+assertions += 1
+const tamperedReview = structuredClone(acceptedReview)
+tamperedReview.terminalPrivateInternalQualificationEligible = false
+tamperedReview.projectionDigestSha256 = calculateSkillContractDigest(
+  tamperedReview as unknown as Record<string, unknown>,
+  'projectionDigestSha256')
+assert.throws(() => parseCanonicalCaptionPrivateReviewEvidenceProjection(
+  tamperedReview))
+assertions += 1
+
 await assert.rejects(() =>
   createCanonicalCaptionPostrenderVisualQaAuthenticatedReadService({
     repository: completedRepository,
@@ -573,6 +655,297 @@ function createLifecycleResult(
     ...provisional,
     lifecycleResultDigestSha256:
       digestCanonicalPostrenderVisualQaSharedLifecycleResult(provisional),
+  }
+}
+
+function createPrivateReviewAuthority() {
+  const bindingWithoutDigest: Omit<
+    CanonicalCaptionPrivateReviewDependencyBinding,
+    'bindingDigestSha256'
+  > = {
+    schemaVersion: 'canonical-caption-private-review-dependency-binding-v1',
+    bindingId: 'caption.private-review.binding.visual-qa-smoke',
+    planningProjectionRef: {
+      id: 'caption.planning.projection.visual-qa-smoke',
+      version: 'canonical-caption-specialist-planning-projection-v1',
+      contentHash: sha('caption-planning-projection'),
+    },
+    renderedMediaWorkBindingRef: {
+      id: 'caption.rendered-media.binding.visual-qa-smoke',
+      version: 'canonical-caption-rendered-media-work-binding-v1',
+      contentHash: sha('caption-rendered-media-binding'),
+    },
+    postrenderVisualQaWorkBindingRef: {
+      id: 'caption.visual-qa.binding.visual-qa-smoke',
+      version: 'canonical-caption-postrender-visual-qa-work-binding-v1',
+      contentHash: sha('caption-visual-qa-binding'),
+    },
+    outputId: confirmedFrame.outputId,
+    confirmedOutputFrameRef: {
+      id: confirmedFrame.id,
+      version: `${confirmedFrame.id}.v1`,
+      contentHash: sha('confirmed-frame-caption-visual-qa'),
+    },
+    masterTimingRef: {
+      id: 'caption.master-timing.visual-qa-smoke',
+      version: 'master-timing-plan-v1',
+      contentHash: sha('caption-master-timing'),
+    },
+    canonicalMasterTimingId: 'caption-master-timing-visual-qa-smoke',
+    requiredReviewArtifacts: [{
+      role: 'final_captioned_render',
+      workItemKey: 'caption-final-render-work',
+      outputKey: 'caption-final-render-output',
+      contentType: 'video/mp4',
+    }, {
+      role: 'deterministic_final_qa',
+      workItemKey: 'caption-final-qa-work',
+      outputKey: 'caption-final-qa-output',
+      contentType: 'application/json',
+    }, {
+      role: 'qualified_complete_time_visual_review',
+      workItemKey: 'caption-visual-qa-work',
+      outputKey: 'caption-visual-qa-output',
+      contentType: 'application/json',
+    }],
+    canonicalPrivateReview: {
+      assemblyServiceId: 'canonical_private_review_assembly_service',
+      assemblyResponseSchemaVersion:
+        'canonical-private-review-assembly-response-v1',
+      assemblyManifestSchemaVersion: 'canonical-private-review-manifest-v1',
+      assemblyRoute:
+        '/v1/edit-executions/packages/:packageRecordId/private-review-assemblies',
+      decisionServiceId: 'canonical_private_review_decision_service',
+      decisionResponseSchemaVersion:
+        'canonical-private-review-decision-response-v1',
+      decisionManifestSchemaVersion:
+        'canonical-private-review-decision-manifest-v1',
+      decisionRoute:
+        '/v1/edit-executions/private-review-assemblies/:reviewAssemblyId/decisions',
+    },
+    everyRequiredArtifactRequiresCreateOnlyPersistence: true,
+    everyRequiredArtifactRequiresIndependentQa: true,
+    everyRequiredArtifactRequiresReconciliation: true,
+    actualReviewAssemblyCreated: false,
+    actualPrivateReviewDecisionRecorded: false,
+    privateReviewAcceptanceClaimed: false,
+    browserReviewCompletionAccepted: false,
+    approvedSnapshotMutationGranted: false,
+    additionalWorkCreationGranted: false,
+    providerDispatchGranted: false,
+    assetMutationAuthorityGrantedToCaption: false,
+    finalQaApprovalAuthorityGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  const dependencyBinding: CanonicalCaptionPrivateReviewDependencyBinding = {
+    ...bindingWithoutDigest,
+    bindingDigestSha256: calculateSkillContractDigest({
+      ...bindingWithoutDigest,
+      bindingDigestSha256: '',
+    } as unknown as Record<string, unknown>, 'bindingDigestSha256'),
+  }
+  return {
+    ownerUserId,
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    approvedSnapshotId: scope.approvedSnapshotId,
+    approvedSnapshotHash: workRequest.approvedSnapshotRef.contentHash.slice(7),
+    planId: 'caption-private-review-plan',
+    planVersion: 1,
+    packageRecordId: workRequest.executionPackageRef.id,
+    packageHash: workRequest.executionPackageRef.contentHash.slice(7),
+    approvedVisualQaWorkItemId: workRequest.approvedWorkItemRef.id,
+    dependencyBinding,
+  }
+}
+
+function createPrivateReviewAssembly(): CanonicalPrivateReviewAssemblyResponse {
+  const finalArtifact = reviewArtifact(
+    workRequest.privateRenderArtifactRef.id,
+    workRequest.privateRenderArtifactRef.contentHash.slice(7),
+    'video/mp4')
+  const finalQaArtifact = {
+    ...reviewArtifact(
+      workRequest.deterministicQaRef.id,
+      workRequest.deterministicQaRef.contentHash.slice(7),
+      'application/json'),
+    contentType: 'application/json' as const,
+    canonicalToolId: 'ffprobe' as const,
+    finalQaGatesPassed: true as const,
+    finalQaReportSha256: sha('caption-final-qa-report'),
+  }
+  const withoutHash = {
+    schemaVersion: 'canonical-private-review-assembly-response-v1' as const,
+    source: 'canonical_private_review_assembly_service' as const,
+    purpose: 'assemble_canonical_private_review' as const,
+    identity: {
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+      packageRecordId: workRequest.executionPackageRef.id,
+      approvedPlanSnapshotId: scope.approvedSnapshotId,
+      reviewAssemblyId: 'caption-private-review-assembly-visual-qa-smoke',
+    },
+    status: 'ready_for_private_internal_review' as const,
+    requiredExecution: {
+      requiredJobCount: 3,
+      requiredExpectedAssetCount: 3,
+      passedQaArtifactCount: 3,
+      reconciledArtifactCount: 3,
+      allRequiredJobsCompleted: true as const,
+      allRequiredAssetsQaPassed: true as const,
+      allRequiredAssetsReconciled: true as const,
+    },
+    finalArtifact: {
+      ...finalArtifact,
+      contentType: 'video/mp4' as const,
+      privateDownloadAvailable: true as const,
+      publicUrlCreated: false as const,
+      signedUrlCreated: false as const,
+    },
+    finalQaArtifact,
+    chain: {
+      finalQaLeaseId: 'caption-private-review-final-qa-lease',
+      finalQaExecutionAttemptId: 'caption-private-review-final-qa-attempt',
+      finalQaDependencyAuthorityHash: sha('caption-final-qa-dependency'),
+      finalQaInputBoundToFinalArtifact: true as const,
+      immutablePackageRevalidated: true as const,
+      immutablePlanRevalidated: true as const,
+      artifactStoreChecksumVerified: true as const,
+      leaseStoreChecksumVerified: true as const,
+    },
+    manifest: {
+      schemaVersion: 'canonical-private-review-manifest-v1' as const,
+      manifestId: 'caption-private-review-assembly-visual-qa-smoke',
+      manifestSha256: sha('caption-private-review-manifest'),
+      privateCreateOnlyPersistence: true as const,
+      credentialFree: true as const,
+    },
+    replay: {
+      idempotentReplay: false,
+      sameManifestOnly: true as const,
+    },
+    readiness: {
+      privateReviewReady: true as const,
+      publicExportReady: false as const,
+      productReady: false as const,
+      externalBetaReady: false as const,
+      productionReady: false as const,
+      nextRequiredGate:
+        'canonical_private_review_user_decision_or_revision' as const,
+    },
+    permissions: assemblyDeniedPermissions(),
+    assembledAt: '2026-08-05T10:01:00.000Z',
+    testOnly: true as const,
+  }
+  return {
+    ...withoutHash,
+    responseHash: sha256AuthorityValue(withoutHash),
+  }
+}
+
+function createPrivateReviewDecision(
+  assembly: CanonicalPrivateReviewAssemblyResponse,
+  decision: 'accept_private_internal_review',
+): CanonicalPrivateReviewDecisionResponse {
+  const withoutHash = {
+    schemaVersion: 'canonical-private-review-decision-response-v1' as const,
+    source: 'canonical_private_review_decision_service' as const,
+    purpose: 'record_canonical_private_review_decision' as const,
+    identity: {
+      ...assembly.identity,
+      reviewDecisionId: 'caption-private-review-decision-visual-qa-smoke',
+    },
+    decision,
+    status: 'private_internal_review_accepted' as const,
+    authority: {
+      approvedPlanId: 'caption-private-review-plan',
+      approvedPlanVersion: 1,
+      approvedSnapshotHash: workRequest.approvedSnapshotRef.contentHash.slice(7),
+      approvedPlanHash: sha('caption-private-review-plan'),
+      approvedEstimateHash: sha('caption-private-review-estimate'),
+      reviewManifestSha256: assembly.manifest.manifestSha256,
+      finalArtifactSha256: assembly.finalArtifact.sha256,
+      immutableApprovedSnapshotPreserved: true as const,
+      immutableReviewManifestPreserved: true as const,
+    },
+    revisionHandoff: null,
+    manifest: {
+      schemaVersion: 'canonical-private-review-decision-manifest-v1' as const,
+      manifestId: 'caption-private-review-decision-visual-qa-smoke',
+      manifestSha256: sha('caption-private-review-decision-manifest'),
+      privateCreateOnlyPersistence: true as const,
+      credentialFree: true as const,
+    },
+    replay: {
+      idempotentReplay: false,
+      sameDecisionOnly: true as const,
+    },
+    readiness: {
+      privateReviewDecisionRecorded: true as const,
+      revisionRequested: false,
+      publicExportReady: false as const,
+      productReady: false as const,
+      externalBetaReady: false as const,
+      productionReady: false as const,
+      nextRequiredGate:
+        'private_internal_acceptance_recorded_public_delivery_blocked' as const,
+    },
+    permissions: decisionDeniedPermissions(),
+    decidedAt: '2026-08-05T10:02:00.000Z',
+    testOnly: true as const,
+  }
+  return {
+    ...withoutHash,
+    responseHash: sha256AuthorityValue(withoutHash),
+  }
+}
+
+function reviewArtifact(
+  artifactId: string,
+  contentSha256: string,
+  contentType: 'video/mp4' | 'application/json',
+) {
+  return {
+    jobId: `${artifactId}-job`,
+    approvedWorkItemId: `${artifactId}-work-item`,
+    expectedAssetId: `${artifactId}-expected-asset`,
+    artifactId,
+    artifactVersion: 1,
+    qaEvaluationId: `${artifactId}-qa`,
+    reconciliationId: `${artifactId}-reconciliation`,
+    contentType,
+    sha256: contentSha256,
+    byteLength: 1_024,
+    privateObjectIdentityHash: sha(`${artifactId}-private-object`),
+  }
+}
+
+function assemblyDeniedPermissions() {
+  return {
+    providerCall: false as const,
+    publicArtifact: false as const,
+    publicDelivery: false as const,
+    productionRender: false as const,
+    furtherRender: false as const,
+    customerPriceMutation: false as const,
+    customerCreditMutation: false as const,
+    walletMutation: false as const,
+    settlement: false as const,
+    billing: false as const,
+    deployment: false as const,
+  }
+}
+
+function decisionDeniedPermissions() {
+  return {
+    ...assemblyDeniedPermissions(),
+    revisionExecution: false as const,
+    replacementPlanPublication: false as const,
+    reservationMutation: false as const,
   }
 }
 

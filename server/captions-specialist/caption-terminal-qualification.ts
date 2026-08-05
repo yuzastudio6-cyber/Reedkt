@@ -30,6 +30,12 @@ import {
 import {
   CAPTION_GOAL_COMPLETION_GAP_IDS,
 } from '../../src/types/caption-goal-completion-audit'
+import type {
+  CanonicalCaptionPrivateReviewEvidenceProjection,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
 import type { CaptionSharedOwnerKey } from
   '../../src/types/caption-shared-owner-integration'
 import {
@@ -55,6 +61,9 @@ import {
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
 } from './captions-specialist-integration-qualification'
+import {
+  parseCanonicalCaptionPrivateReviewEvidenceProjection,
+} from '../services/canonical-caption-private-review-evidence-service'
 
 const safeKey = z.string().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -530,9 +539,13 @@ export function parseCaptionTerminalQualificationProjection(
 
 export function createCaptionTerminalQualificationProjection(
   sourceEvidenceInput: unknown,
+  privateReviewEvidenceProjections:
+    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
 ): CaptionTerminalQualificationProjection {
   const input = parseCaptionTerminalQualificationEvidenceInput(
     sourceEvidenceInput)
+  assertCaptionTerminalPrivateReviewEvidence(
+    input, privateReviewEvidenceProjections)
   const withoutDigest: Omit<CaptionTerminalQualificationProjection,
     'projectionDigestSha256'> = {
     schemaVersion: CAPTION_TERMINAL_QUALIFICATION_PROJECTION_VERSION,
@@ -612,10 +625,15 @@ export function parseCaptionTerminalQualificationPreflight(
 
 export function createCaptionTerminalQualificationPreflight(
   sourceEvidenceInput?: unknown,
+  privateReviewEvidenceProjections?:
+    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
 ): CaptionTerminalQualificationPreflight {
-  const input = sourceEvidenceInput === undefined
-    ? null
-    : parseCaptionTerminalQualificationEvidenceInput(sourceEvidenceInput)
+  const candidate = sourceEvidenceInput === undefined
+    ? null : parseCaptionTerminalQualificationEvidenceInput(sourceEvidenceInput)
+  const input = candidate && privateReviewEvidenceProjections
+    ? (assertCaptionTerminalPrivateReviewEvidence(
+        candidate, privateReviewEvidenceProjections), candidate)
+    : null
   const withoutDigest: Omit<CaptionTerminalQualificationPreflight,
     'preflightDigestSha256'> = {
     schemaVersion: CAPTION_TERMINAL_QUALIFICATION_PREFLIGHT_VERSION,
@@ -654,3 +672,84 @@ export function createCaptionTerminalQualificationPreflight(
 
 export const CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT =
   createCaptionTerminalQualificationPreflight()
+
+export function assertCaptionTerminalPrivateReviewEvidence(
+  input: CaptionTerminalQualificationEvidenceInput,
+  projections: readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+): void {
+  if (projections.length !== input.outputEvidence.length) {
+    throw new Error(
+      'Caption terminal qualification requires one exact private-review projection per output.',
+    )
+  }
+  const parsed = projections.map((projection) =>
+    parseCanonicalCaptionPrivateReviewEvidenceProjection(projection))
+  if (new Set(parsed.map((projection) => projection.output.outputId)).size
+    !== parsed.length) {
+    throw new Error(
+      'Caption terminal private-review projections contain duplicate outputs.',
+    )
+  }
+  for (const [index, output] of input.outputEvidence.entries()) {
+    const projection = parsed[index]
+    if (!projection
+      || projection.output.outputId !== output.outputId
+      || projection.canonicalScope.ownerUserId
+        !== input.canonicalScope.ownerUserId
+      || projection.canonicalScope.workspaceId
+        !== input.canonicalScope.workspaceId
+      || projection.canonicalScope.projectId !== input.canonicalScope.projectId
+      || projection.canonicalScope.editSessionId
+        !== input.canonicalScope.editSessionId
+      || projection.canonicalScope.approvedSnapshotId
+        !== input.canonicalScope.approvedSnapshotRef.id
+      || projection.canonicalScope.approvedSnapshotHash
+        !== input.canonicalScope.approvedSnapshotRef.contentHash
+      || projection.canonicalScope.packageRecordId
+        !== input.canonicalExecution.executionPackageRef.id
+      || projection.canonicalScope.packageHash
+        !== input.canonicalExecution.executionPackageRef.contentHash
+      || !sameRef(projection.output.confirmedOutputFrameRef,
+        output.confirmedOutputFrameRef)
+      || !sameRef(evidenceRefAsDomainRef(
+        projection.output.renderedArtifactRef), output.renderedArtifactRef)
+      || !sameRef(evidenceRefAsDomainRef(
+        projection.output.deterministicQaRef), output.deterministicQaRef)
+      || !sameRef({
+        id: projection.sourceRefs.postrenderVisualQaEvidenceRef.id,
+        version:
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+        contentHash: unprefix(
+          projection.sourceRefs.postrenderVisualQaEvidenceRef.contentHash),
+      }, output.qualifiedCompleteTimeVisualReviewRef)
+      || projection.canonicalPrivateReview.decisionRef === null
+      || !sameRef(projection.canonicalPrivateReview.decisionRef,
+        output.privateReviewDecisionRef)
+      || projection.disposition !== 'private_review_accepted_visual_pass'
+      || !projection.privateReviewAccepted
+      || !projection.terminalPrivateInternalQualificationEligible
+      || !projection.visualReview.actualCompleteTimeVisualReviewPassed
+      || !projection.canonicalPrivateReview.exactAssemblyReread
+      || !projection.canonicalPrivateReview.exactDecisionReread) {
+      throw new Error(
+        `Caption terminal private-review evidence is invalid for ${output.outputId}.`,
+      )
+    }
+  }
+}
+
+function evidenceRefAsDomainRef(value: {
+  id: string
+  version: number
+  contentHash: string
+}): CaptionDomainRef {
+  return {
+    id: value.id,
+    version: String(value.version),
+    contentHash: unprefix(value.contentHash),
+  }
+}
+
+function unprefix(value: string): string {
+  return value.startsWith('sha256:') ? value.slice(7) : value
+}

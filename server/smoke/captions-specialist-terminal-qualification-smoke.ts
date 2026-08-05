@@ -8,6 +8,13 @@ import {
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
 import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+  type CanonicalCaptionPrivateReviewEvidenceProjection,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
+import {
   CAPTION_CANONICAL_TRANSCRIPT_AUTHENTICATED_READ_BINDING_VERSION,
 } from '../../src/types/caption-canonical-transcript-authenticated-read'
 import {
@@ -190,12 +197,14 @@ const inputWithoutDigest: Omit<CaptionTerminalQualificationEvidenceInput,
   outputEvidence: outputIds.map((outputId, repairGeneration) => ({
     outputId,
     confirmedOutputFrameRef: ref(`${outputId}.confirmed-frame`),
-    renderedArtifactRef: ref(`${outputId}.rendered-artifact`),
-    deterministicQaRef: ref(`${outputId}.deterministic-qa`),
+    renderedArtifactRef: ref(`${outputId}.rendered-artifact`, '1'),
+    deterministicQaRef: ref(`${outputId}.deterministic-qa`, '1'),
     qualifiedCompleteTimeVisualReviewRef:
-      ref(`${outputId}.qualified-complete-time-visual-review`),
+      ref(`${outputId}.qualified-complete-time-visual-review`,
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION),
     independentFinalQaRef: ref(`${outputId}.independent-final-qa`),
-    privateReviewDecisionRef: ref(`${outputId}.private-review-decision`),
+    privateReviewDecisionRef: ref(`${outputId}.private-review-decision`,
+      'canonical-private-review-decision-response-v1'),
     repairGeneration,
     exactConfirmedFrameReread: true,
     exactRenderedArtifactReread: true,
@@ -247,15 +256,24 @@ check(parsedInput.outputEvidence.length === 2
     .sourceFixtureUsedAsRuntimeEvidence,
 'The terminal input requires exact output and actual owner-record assertions.')
 
-const readyPreflight = createCaptionTerminalQualificationPreflight(parsedInput)
+const shapeOnlyPreflight = createCaptionTerminalQualificationPreflight(
+  parsedInput)
+check(shapeOnlyPreflight.disposition === 'blocked_missing_canonical_evidence'
+  && !shapeOnlyPreflight.canonicalEvidenceAccepted,
+'A truth-shaped terminal input cannot qualify without exact private-review projections.')
+const acceptedPrivateReviewProjections = parsedInput.outputEvidence.map(
+  (output) => privateReviewProjection(parsedInput, output))
+const readyPreflight = createCaptionTerminalQualificationPreflight(
+  parsedInput, acceptedPrivateReviewProjections)
 check(readyPreflight.disposition === 'ready_for_terminal_projection'
   && readyPreflight.blockingGapIds.length === 0
   && readyPreflight.canonicalEvidenceAccepted
   && !readyPreflight.terminalProjectionCreated
   && !readyPreflight.terminalStatusClaimed,
-'Accepted evidence enables projection creation without claiming it early.')
+'Exact private-review evidence enables projection creation without claiming it early.')
 
-const projection = createCaptionTerminalQualificationProjection(parsedInput)
+const projection = createCaptionTerminalQualificationProjection(
+  parsedInput, acceptedPrivateReviewProjections)
 check(projection.jobs.length === 41
   && projection.counts.qualifiedPrivateInternalJobs === 41
   && projection.counts.blockedJobs === 0
@@ -286,6 +304,11 @@ check(projection.privateInternalOnly
 check(parseCaptionTerminalQualificationProjection(projection, parsedInput)
   .projectionDigestSha256 === projection.projectionDigestSha256,
 'The terminal projection rereads against the exact source evidence input.')
+expectThrow(() => createCaptionTerminalQualificationProjection(parsedInput, []))
+const crossedPrivateReview = structuredClone(acceptedPrivateReviewProjections)
+crossedPrivateReview.reverse()
+expectThrow(() => createCaptionTerminalQualificationProjection(
+  parsedInput, crossedPrivateReview))
 
 const staleDigest = structuredClone(parsedInput)
 staleDigest.canonicalScope.planVersionId = 'tampered-plan'
@@ -405,3 +428,117 @@ console.log(JSON.stringify({
   candidateOutputCount: projection.outputs.length,
   result: 'passed',
 }, null, 2))
+
+function privateReviewProjection(
+  input: CaptionTerminalQualificationEvidenceInput,
+  output: CaptionTerminalQualificationEvidenceInput['outputEvidence'][number],
+): CanonicalCaptionPrivateReviewEvidenceProjection {
+  const withoutDigest: Omit<
+    CanonicalCaptionPrivateReviewEvidenceProjection,
+    'projectionDigestSha256'
+  > = {
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+    projectionId: `caption.private-review.projection.${output.outputId}`,
+    canonicalScope: {
+      ownerUserId: input.canonicalScope.ownerUserId,
+      workspaceId: input.canonicalScope.workspaceId,
+      projectId: input.canonicalScope.projectId,
+      editSessionId: input.canonicalScope.editSessionId,
+      approvedSnapshotId: input.canonicalScope.approvedSnapshotRef.id,
+      approvedSnapshotHash:
+        input.canonicalScope.approvedSnapshotRef.contentHash,
+      planId: 'private-caption-qualification-plan',
+      planVersion: 1,
+      packageRecordId: input.canonicalExecution.executionPackageRef.id,
+      packageHash: input.canonicalExecution.executionPackageRef.contentHash,
+    },
+    output: {
+      outputId: output.outputId,
+      confirmedOutputFrameRef: structuredClone(
+        output.confirmedOutputFrameRef),
+      width: output.outputId.endsWith('vertical') ? 1_080 : 1_920,
+      height: output.outputId.endsWith('vertical') ? 1_920 : 1_080,
+      fpsNumerator: 30,
+      fpsDenominator: 1,
+      renderedArtifactRef: {
+        id: output.renderedArtifactRef.id,
+        version: Number(output.renderedArtifactRef.version),
+        contentHash: `sha256:${output.renderedArtifactRef.contentHash}`,
+      },
+      deterministicQaRef: {
+        id: output.deterministicQaRef.id,
+        version: Number(output.deterministicQaRef.version),
+        contentHash: `sha256:${output.deterministicQaRef.contentHash}`,
+      },
+    },
+    sourceRefs: {
+      privateReviewDependencyBindingRef: ref(
+        `${output.outputId}.private-review-dependency-binding`,
+        'canonical-caption-private-review-dependency-binding-v1'),
+      postrenderVisualQaEvidenceRef: {
+        id: output.qualifiedCompleteTimeVisualReviewRef.id,
+        version: 1,
+        contentHash:
+          `sha256:${output.qualifiedCompleteTimeVisualReviewRef.contentHash}`,
+      },
+      workRequestRef: {
+        id: `${output.outputId}.visual-qa-work-request`,
+        version: 1,
+        contentHash: `sha256:${hashText(
+          `${output.outputId}.visual-qa-work-request`)}`,
+      },
+      normalizedResultRef: {
+        id: `${output.outputId}.normalized-visual-result`,
+        version: 1,
+        contentHash: `sha256:${hashText(
+          `${output.outputId}.normalized-visual-result`)}`,
+      },
+    },
+    visualReview: {
+      decision: 'passed',
+      actualModelInferenceVerified: true,
+      exactApprovedRenderBound: true,
+      canonicalEvidenceReconciled: true,
+      actualCompleteTimeVisualReviewPassed: true,
+      smallestScopeRepairRequired: false,
+      privateHumanReviewRequired: false,
+    },
+    canonicalPrivateReview: {
+      assemblyRef: ref(`${output.outputId}.private-review-assembly`,
+        'canonical-private-review-assembly-response-v1'),
+      decisionRef: structuredClone(output.privateReviewDecisionRef),
+      decision: 'accept_private_internal_review',
+      finalArtifactSha256: output.renderedArtifactRef.contentHash,
+      finalQaArtifactSha256: output.deterministicQaRef.contentHash,
+      exactAssemblyReread: true,
+      exactDecisionReread: true,
+      immutableApprovedSnapshotPreserved: true,
+      immutableReviewManifestPreserved: true,
+    },
+    disposition: 'private_review_accepted_visual_pass',
+    privateReviewAssemblyAllowed: true,
+    privateReviewDecisionRecorded: true,
+    privateReviewAccepted: true,
+    terminalPrivateInternalQualificationEligible: true,
+    requiresNewApprovedSnapshot: false,
+    browserLocalCompletionAccepted: false,
+    captionCreatedPrivateReviewDecision: false,
+    captionExecutedRepair: false,
+    approvedSnapshotMutationGranted: false,
+    operationDispatchAuthority: false,
+    providerOrModelRuntimeAuthority: false,
+    assetMutationAuthority: false,
+    finalQaApprovalAuthority: false,
+    creditOrBillingAuthority: false,
+    publicDeliveryAuthority: false,
+    productionAuthority: false,
+  }
+  return {
+    ...withoutDigest,
+    projectionDigestSha256: calculateSkillContractDigest({
+      ...withoutDigest,
+      projectionDigestSha256: '',
+    } as unknown as Record<string, unknown>, 'projectionDigestSha256'),
+  }
+}

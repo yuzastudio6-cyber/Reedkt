@@ -1,7 +1,8 @@
 # Canonical Caption post-render visual QA and private-review planning
 
-Status: source-complete approval coverage; real post-render evidence remains an
-execution-time internal gate
+Status: source-complete approval, execution-consumer, and private-review
+admission coverage; real post-render evidence remains an execution-time
+internal gate
 
 This milestone removes a circular approval requirement. A post-render visual
 review result cannot exist before the approved captioned render exists, so the
@@ -57,14 +58,36 @@ promote Caption to the independent QA owner. Every required artifact still
 needs create-only persistence, independent artifact QA, and reconciliation
 before the canonical private-review service may assemble it.
 
+`canonical-caption-private-review-evidence-projection-v1` now joins those
+planned dependencies to the actual persisted Caption visual-evidence envelope
+and the existing canonical review assembly/decision records. The authenticated
+service rereads the immutable execution package and approved snapshot, then
+requires the same owner, workspace, project, edit, snapshot, output, confirmed
+frame, rendered artifact, deterministic-QA artifact, visual-QA work item, review
+manifest, and review decision. Its digest is recomputed; browser state cannot
+complete it.
+
+The existing private-edit preparation coordinator consults that projection
+before it assembles a Caption review. A visual `repair_required` or
+`blocked_evidence_reconciliation` result now stops review readiness. A `passed`
+or `needs_human_review` result may enter the existing canonical private-review
+owner. Only `passed` plus an exact persisted
+`accept_private_internal_review` decision is eligible for terminal Caption
+qualification. Human acceptance after an AI uncertainty remains truthfully
+recorded but does not relabel the AI result as passed. Revision decisions require
+a new approved snapshot and never mutate the prior one.
+
 For a selected Caption plan with exact render, deterministic QA, scheduled
 visual review, and private-review dependencies, the Caption-specific planning
 coverage blockers are now closed. Approval can therefore happen in the correct
 order. Terminal Caption qualification remains blocked until the real shared
 owner produces and rereads the Qwen lifecycle result, independent private review
 accepts the exact output, and the terminal projection consumes those canonical
-records.
+records. The terminal projection builder now requires one accepted evidence
+projection per confirmed output; a truth-shaped terminal input by itself is no
+longer sufficient.
 
 No provider or media runtime was executed by this source milestone. The
 authenticated route smoke uses only synthetic lifecycle data and a controlled
-in-memory create-only repository.
+in-memory create-only repository. Its focused proof covers 24 authenticated
+visual/review assertions, and the terminal proof covers 33 contract assertions.

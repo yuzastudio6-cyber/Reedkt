@@ -166,9 +166,11 @@ grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" role
 grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
 grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectCreator
 # The Cloud Build artifacts uploader must resolve the destination bucket before
-# performing its create-only writes. This grants bucket metadata read without
-# granting object read, overwrite, or destructive mutation.
+# performing its create-only writes, and it rereads/lists the generated objects
+# while producing the build artifact manifest. Creator + Viewer deliberately
+# omits overwrite, update, destructive mutation, and bucket administration.
 grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.bucketViewer
+grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_artifact_repository_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/artifactregistry.reader
 grant_artifact_repository_role "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/artifactregistry.reader

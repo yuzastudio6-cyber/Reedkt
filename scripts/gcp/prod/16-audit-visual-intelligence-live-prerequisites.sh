@@ -414,6 +414,9 @@ image_signer_supply_chain_evidence_creator="$(policy_has_member_role \
 image_signer_supply_chain_bucket_viewer="$(policy_has_member_role \
   "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.bucketViewer' \
   "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+image_signer_supply_chain_evidence_reader="$(policy_has_member_role \
+  "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
 api_supply_chain_evidence_reader="$(policy_has_member_role \
   "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectViewer' \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
@@ -524,7 +527,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v9' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v10' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -556,6 +559,7 @@ jq -n \
   --argjson apiBuildInputReader "${api_build_input_reader}" \
   --argjson imageSignerSupplyChainEvidenceCreator "${image_signer_supply_chain_evidence_creator}" \
   --argjson imageSignerSupplyChainBucketViewer "${image_signer_supply_chain_bucket_viewer}" \
+  --argjson imageSignerSupplyChainEvidenceReader "${image_signer_supply_chain_evidence_reader}" \
   --argjson apiSupplyChainEvidenceReader "${api_supply_chain_evidence_reader}" \
   --argjson apiControlPlaneCreator "${api_control_plane_creator}" \
   --argjson apiControlPlaneReader "${api_control_plane_reader}" \
@@ -612,6 +616,7 @@ jq -n \
         apiBuildInputReader: $apiBuildInputReader,
         imageSignerSupplyChainEvidenceCreator: $imageSignerSupplyChainEvidenceCreator,
         imageSignerSupplyChainBucketViewer: $imageSignerSupplyChainBucketViewer,
+        imageSignerSupplyChainEvidenceReader: $imageSignerSupplyChainEvidenceReader,
         apiSupplyChainEvidenceReader: $apiSupplyChainEvidenceReader,
         apiControlPlaneCreator: $apiControlPlaneCreator,
         apiControlPlaneReader: $apiControlPlaneReader
@@ -627,6 +632,7 @@ jq -n \
         and $apiBuildInputReader
         and $imageSignerSupplyChainEvidenceCreator
         and $imageSignerSupplyChainBucketViewer
+        and $imageSignerSupplyChainEvidenceReader
         and $apiSupplyChainEvidenceReader
         and $apiControlPlaneCreator
         and $apiControlPlaneReader

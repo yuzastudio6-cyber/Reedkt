@@ -225,11 +225,14 @@ configure_least_privilege_iam() {
     "${IMAGE_EVIDENCE_BUCKET}" \
     "${IMAGE_SIGNER_SA}" roles/storage.objectCreator
   # Cloud Build's artifacts uploader resolves the destination bucket before it
-  # creates objects. Keep object access append-only while granting only the
-  # bucket-metadata read that the uploader requires.
+  # creates objects, then rereads/lists them while writing its manifest. The
+  # Creator + Viewer excludes overwrite, update, destructive mutation, and admin.
   grant_bucket_role \
     "${IMAGE_EVIDENCE_BUCKET}" \
     "${IMAGE_SIGNER_SA}" roles/storage.bucketViewer
+  grant_bucket_role \
+    "${IMAGE_EVIDENCE_BUCKET}" \
+    "${IMAGE_SIGNER_SA}" roles/storage.objectViewer
   grant_bucket_role \
     "${IMAGE_EVIDENCE_BUCKET}" "${API_SA}" roles/storage.objectViewer
   grant_bucket_role \

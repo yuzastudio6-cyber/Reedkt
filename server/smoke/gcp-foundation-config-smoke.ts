@@ -341,7 +341,11 @@ check(
 )
 check(
   iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.bucketViewer'),
-  'Dedicated image signer must have only the bucket-metadata visibility required by the Cloud Build artifact uploader.',
+  'Dedicated image signer must have the bucket-metadata visibility required by the Cloud Build artifact uploader.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
+  'Dedicated image signer must reread/list its generated artifacts without receiving overwrite or delete authority.',
 )
 check(
   iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),

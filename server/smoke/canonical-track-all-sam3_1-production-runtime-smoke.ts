@@ -26,11 +26,19 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v8')
+  'canonical-track-all-sam3_1-production-runtime-v9')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
-assert.equal(runtime.l4HeavyFallbackSeparatelyQualified, true)
+assert.equal(runtime.a100PrimaryRequiresQualifiedReleaseAtAdmission, true)
+assert.equal(
+  runtime.l4HeavyFallbackRequiresSeparateQualifiedReleaseAtAdmission,
+  true,
+)
+assert.equal(
+  runtime.l4HeavyFallbackQualificationClaimedByComposition,
+  false,
+)
 assert.equal(runtime.minimumIdleGpuInstances, 0)
 assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
@@ -168,7 +176,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 55,
+  checks: 58,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -189,7 +197,9 @@ console.log(JSON.stringify({
   canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence: true,
   separateSam31InputAndL4TaskQaInvocationRootsRequired: true,
   a100HeavyPrimary: true,
-  l4HeavyFallbackSeparatelyQualified: true,
+  a100PrimaryRequiresQualifiedReleaseAtAdmission: true,
+  l4HeavyFallbackRequiresSeparateQualifiedReleaseAtAdmission: true,
+  l4HeavyFallbackQualificationClaimedByComposition: false,
   userTriggeredScaleFromZero: true,
   minimumIdleGpuInstances: 0,
   cpuOnlySubstantiveExecutionAllowed: false,

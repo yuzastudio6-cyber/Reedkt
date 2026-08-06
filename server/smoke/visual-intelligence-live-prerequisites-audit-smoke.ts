@@ -11,7 +11,7 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v12/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v13/u)
 assert.match(source, /observed_at="\$\(date -u/u)
 assert.match(source, /observedAt: \$observedAt/u)
 assert.match(source, /REGION='us-central1'/u)
@@ -19,8 +19,23 @@ assert.match(source, /NVIDIA_A100_80GB_GPUS/u)
 assert.match(source, /NVIDIA_L4_GPUS/u)
 assert.match(source,
   /A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'/u)
+for (const candidate of [
+  ['us-central1', 'reeditpro-a100-80gb-us-central1-1'],
+  ['us-east4', 'weeditpro-a100-80gb-us-east4-1'],
+  ['us-east5', 'weeditpro-a100-80gb-us-east5-1'],
+] as const) {
+  assert.match(source, new RegExp(candidate[0], 'u'))
+  assert.match(source, new RegExp(candidate[1], 'u'))
+}
 assert.match(source, /gcloud beta quotas preferences describe/u)
 assert.match(source, /a100QuotaPreference: \$a100QuotaPreference/u)
+assert.match(source, /a100CapacityCandidates: \$a100CapacityCandidates/u)
+assert.match(source, /a100CandidateRequestCount/u)
+assert.match(source, /a100PendingReviewCount/u)
+assert.match(source, /a100GrantedCandidateCount/u)
+assert.match(source, /a100DispatchReadyCandidateCount/u)
+assert.match(source, /resourceFoundationObserved/u)
+assert.match(source, /dispatchCapacityReady/u)
 assert.match(source, /disposition/u)
 assert.match(source, /capacityGranted/u)
 assert.match(source, /a100QualificationFoundation/u)

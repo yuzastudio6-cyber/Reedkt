@@ -313,9 +313,14 @@ idempotent rerun then observed all five disabled and emitted
   AI, Cloud Build, and Secret Manager APIs are enabled.
 - The A2 CPU quota request for one `a2-ultragpu-1g` job was approved at 12.
 - The A100 80GB quota requests for one GPU in `us-central1`, `us-east4`, and
-  `us-east5` were denied; effective A100 quota remains zero in all three
-  attempted regions. The approved A2 CPU quota does not substitute for GPU
-  quota.
+  `us-east5` were initially denied; effective A100 quota remains zero in all
+  three attempted regions. On 2026-08-06 the same bounded requests were
+  resubmitted with the current quota-authorized operator contact and an exact
+  one-GPU, zero-idle, private Batch qualification justification. Google denied
+  all three again immediately, so effective A100 80GB quota remains zero. The
+  approved A2 CPU quota does not substitute for GPU quota, and an alternate-
+  region grant would not become dispatch authority until that region had its
+  own exact private resource foundation.
 - The project has one L4 of Compute quota. The separately scoped Track All
   task-QA image now has an independently built, scanned, signed, and privately
   qualified L4 path; this does not qualify the checkpoint-bearing SAM 3.1

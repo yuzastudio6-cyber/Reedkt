@@ -25,6 +25,16 @@ PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
 PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-private-searxng@sha256:7f56a77c442601d249389e4cb4101da2046fd62c04818c69eabf8caa7f6957ee'
 A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
+readonly -a A100_CAPACITY_CANDIDATE_REGIONS=(
+  'us-central1'
+  'us-east4'
+  'us-east5'
+)
+readonly -a A100_CAPACITY_CANDIDATE_PREFERENCE_IDS=(
+  'reeditpro-a100-80gb-us-central1-1'
+  'weeditpro-a100-80gb-us-east4-1'
+  'weeditpro-a100-80gb-us-east5-1'
+)
 A100_QUALIFICATION_SERVICE_ACCOUNT='weeditpro-sam31-qual-sa@reeditpro.iam.gserviceaccount.com'
 A100_QUALIFICATION_BUCKET='reeditpro-production-sam31-qualification-private'
 A100_QUALIFICATION_KEY_RING='weeditpro-private-artifacts'
@@ -184,6 +194,65 @@ a100_quota_preference="$(jq -n \
         and $granted >= 1
       )
     }')"
+
+a100_capacity_candidates='[]'
+for index in "${!A100_CAPACITY_CANDIDATE_REGIONS[@]}"; do
+  candidate_region="${A100_CAPACITY_CANDIDATE_REGIONS[${index}]}"
+  candidate_preference_id="${A100_CAPACITY_CANDIDATE_PREFERENCE_IDS[${index}]}"
+  candidate_quota_json="$(read_json_or_empty gcloud compute regions describe \
+    "${candidate_region}" --project="${PROJECT_ID}" --format='json(quotas)')"
+  candidate_quota_limit="$(jq -r \
+    '[.quotas[]? | select(.metric == "NVIDIA_A100_80GB_GPUS") | .limit]
+      | first // 0' <<<"${candidate_quota_json}")"
+  candidate_preference_metadata="$(read_json_or_empty \
+    gcloud beta quotas preferences describe "${candidate_preference_id}" \
+    --project="${PROJECT_ID}" --format=json)"
+  candidate_observation="$(jq -n \
+    --arg projectId "${PROJECT_ID}" \
+    --arg foundationRegion "${REGION}" \
+    --arg preferenceId "${candidate_preference_id}" \
+    --arg region "${candidate_region}" \
+    --argjson regionalQuotaLimit "${candidate_quota_limit}" \
+    --argjson metadata "${candidate_preference_metadata}" \
+    'def number_or_zero: (tonumber? // 0);
+    (($metadata.quotaConfig.preferredValue // "0") | number_or_zero) as $preferred
+    | (($metadata.quotaConfig.grantedValue // "0") | number_or_zero) as $granted
+    | (($metadata.quotaConfig.stateDetail // "") | tostring) as $stateDetail
+    | (($metadata.reconciling // false) == true) as $reconciling
+    | ("projects/" + $projectId + "/locations/global/quotaPreferences/" +
+       $preferenceId) as $expectedName
+    | {
+        region: $region,
+        quotaMetric: "NVIDIA_A100_80GB_GPUS",
+        regionalQuotaLimit: $regionalQuotaLimit,
+        preferenceId: $preferenceId,
+        preferenceExists: ($metadata.name == $expectedName),
+        preferredValue: $preferred,
+        grantedValue: $granted,
+        reconciling: $reconciling,
+        stateDetail: (if $stateDetail == "" then null else $stateDetail end),
+        disposition: (
+          if $metadata.name != $expectedName then "not_found"
+          elif ($metadata.dimensions.region // "") != $region then "scope_mismatch"
+          elif $granted >= 1 then "granted"
+          elif $reconciling then "pending"
+          elif ($stateDetail | ascii_downcase | contains("denied")) then "denied"
+          else "not_granted"
+          end
+        ),
+        capacityGranted: ($regionalQuotaLimit >= 1 and $granted >= 1),
+        resourceFoundationObserved: ($region == $foundationRegion),
+        dispatchCapacityReady: (
+          $region == $foundationRegion
+          and $regionalQuotaLimit >= 1
+          and $granted >= 1
+          and ($reconciling == false)
+        )
+      }')"
+  a100_capacity_candidates="$(jq -c \
+    --argjson candidate "${candidate_observation}" \
+    '. + [$candidate]' <<<"${a100_capacity_candidates}")"
+done
 
 enabled_secret_version_count() {
   local secret_name="$1"
@@ -784,13 +853,14 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v12' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v13' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
   --argjson l4Limit "${l4_limit}" \
   --argjson a100QuotaPreference "${a100_quota_preference}" \
+  --argjson a100CapacityCandidates "${a100_capacity_candidates}" \
   --argjson huggingFaceTokenEnabledVersions "${hugging_face_token_versions}" \
   --argjson modelWeightTokenEnabledVersions "${model_weight_token_versions}" \
   --argjson missingServices "${missing_services_json}" \
@@ -839,6 +909,17 @@ jq -n \
       nvidiaA10080Gb: $a100Limit,
       nvidiaL4: $l4Limit,
       a100QuotaPreference: $a100QuotaPreference,
+      a100CapacityCandidates: $a100CapacityCandidates,
+      a100CandidateRequestCount: ($a100CapacityCandidates | length),
+      a100PendingReviewCount: (
+        [$a100CapacityCandidates[] | select(.disposition == "pending")] | length
+      ),
+      a100GrantedCandidateCount: (
+        [$a100CapacityCandidates[] | select(.capacityGranted)] | length
+      ),
+      a100DispatchReadyCandidateCount: (
+        [$a100CapacityCandidates[] | select(.dispatchCapacityReady)] | length
+      ),
       capacityPrerequisitesReady: ($a100Limit >= 1 and $l4Limit >= 1)
     },
     a100QualificationFoundation: $a100QualificationFoundation,

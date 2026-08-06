@@ -1,0 +1,624 @@
+import { z } from 'zod'
+
+import type {
+  OrchestraEvidenceRef,
+  SkillCapabilityManifest,
+  SkillQualificationSnapshot,
+} from '../../../src/types/orchestra-skill-capability'
+import {
+  ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+} from '../../../src/types/orchestra-skill-capability'
+import {
+  assertCanonicalProfessionalToolGpuRuntimeRelease,
+} from '../../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
+import {
+  CANONICAL_SAM3_1_OPERATION_ID,
+} from '../../model-artifacts/canonical-sam3_1-source-runtime-candidate'
+import type {
+  CanonicalSkillQualificationRegistry,
+} from '../../orchestra/canonical-skill-qualification-registry'
+import {
+  createSkillQualificationSnapshot,
+  orchestraDigest,
+  orchestraEvidenceRef,
+  parseSkillCapabilityManifest,
+  parseSkillQualificationSnapshot,
+} from '../../orchestra/orchestra-skill-capability-contract'
+import type {
+  CanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
+} from '../../services/canonical-current-google-cloud-gpu-rate-authority-repository'
+import {
+  assertPlainSerializedData,
+} from '../../services/canonical-professional-gpu-job-lifecycle-service'
+import type {
+  CanonicalSam31GpuRuntimeReleaseRegistry,
+} from '../../services/canonical-sam3_1-gpu-runtime-release-registry'
+import {
+  assertCanonicalSam31GpuRuntimeReleaseRegistryRecord,
+  canonicalSam31GpuRuntimeReleaseRef,
+} from '../../services/canonical-sam3_1-gpu-runtime-release-registry'
+import {
+  assertCanonicalTrackAllSam31ArtifactRepositoryRelease,
+  canonicalTrackAllSam31ArtifactRepositoryReleaseRef,
+  type CanonicalTrackAllSam31ArtifactRepositoryReleaseReadPort,
+} from '../../services/canonical-track-all-sam3_1-artifact-repository-release'
+import type {
+  CanonicalTrackAllSam31L4TaskQaRuntimeReleaseEvidenceRepository,
+} from '../../services/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher'
+import {
+  assertCanonicalTrackAllSam31L4TaskQaDeploymentObservation,
+  assertCanonicalTrackAllSam31L4TaskQaImageQualification,
+  canonicalTrackAllSam31L4TaskQaImageQualificationRef,
+} from '../../services/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher'
+import {
+  sha256AuthorityValue,
+  stableAuthorityStringify,
+} from '../../services/private-edit-authority-store'
+import {
+  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
+} from '../../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+import {
+  CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
+} from './canonical-track-all-sam3_1-orchestra-binding'
+import {
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID,
+} from './canonical-track-all-sam3_1-l4-task-qa-worker-contract'
+import {
+  createTrackAllSam31OrchestraCapabilityManifestForQualification,
+  createTrackAllSam31OrchestraQualificationSnapshot,
+  TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
+} from './track-all-sam3_1-orchestra-capability-manifest'
+
+export const TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLISHER_VERSION =
+  'track-all-sam3_1-orchestra-qualification-publisher-v1' as const
+export const TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLICATION_RECEIPT_VERSION =
+  'track-all-sam3_1-orchestra-qualification-publication-receipt-v1' as const
+
+const safeId = z.string().trim().min(1).max(512)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
+  .refine((value) => !value.includes('..'))
+const timestamp = z.string().datetime({ offset: true })
+const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const refSchema = z.object({
+  id: safeId,
+  version: z.number().int().positive().safe(),
+  contentHash: prefixedSha256,
+}).strict()
+const publicationInputSchema = z.object({
+  a100RuntimeReleaseRef: refSchema,
+  l4FallbackRuntimeReleaseRef: refSchema,
+  a100RateAuthorityRef: refSchema,
+  l4FallbackRateAuthorityRef: refSchema,
+  l4TaskQaImageQualificationRef: refSchema,
+  l4TaskQaRuntimeReleaseRef: refSchema,
+  artifactRepositoryReleaseRef: refSchema,
+  observedAt: timestamp,
+}).strict()
+
+const receiptWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLICATION_RECEIPT_VERSION,
+  ),
+  publisherVersion: z.literal(
+    TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLISHER_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_track_all_sam3_1_orchestra_qualification_publisher',
+  ),
+  evidenceClass: z.literal(
+    'canonical_release_rate_repository_exact_reread_create_only',
+  ),
+  manifestRef: refSchema,
+  qualificationSnapshotRef: refSchema,
+  observedReleaseRef: refSchema,
+  registryRecordRef: refSchema,
+  a100RuntimeReleaseRef: refSchema,
+  l4FallbackRuntimeReleaseRef: refSchema,
+  l4TaskQaImageQualificationRef: refSchema,
+  l4TaskQaRuntimeReleaseRef: refSchema,
+  a100RateAuthorityRef: refSchema,
+  l4FallbackRateAuthorityRef: refSchema,
+  l4TaskQaRateAuthorityRef: refSchema,
+  artifactRepositoryReleaseRef: refSchema,
+  disposition: z.enum(['created', 'identical_replay']),
+  exactA100AndIndependentL4Sam31ReleaseReread: z.literal(true),
+  exactL4TaskQaImageDeploymentAndScaleZeroReread: z.literal(true),
+  exactBillingAccountEffectiveA100AndL4RateReread: z.literal(true),
+  exactTrackAllResultAndArtifactRepositoryReleaseReread: z.literal(true),
+  exactCanonicalManifestQualificationCreateOnlyReread: z.literal(true),
+  callerCanSelfQualify: z.literal(false),
+  gpuJobStarted: z.literal(false),
+  providerOrModelExecuted: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApprovalGranted: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  publishedAt: timestamp,
+}).strict()
+const receiptSchema = receiptWithoutHashSchema.extend({
+  receiptHash: sha256,
+}).strict()
+
+export type TrackAllSam31OrchestraQualificationPublicationReceipt = z.infer<
+  typeof receiptSchema
+>
+
+type RuntimeReleaseReadPort = Pick<
+  CanonicalSam31GpuRuntimeReleaseRegistry,
+  'schemaVersion' | 'evidenceClass' | 'rereadReleasePair'
+>
+type L4TaskQaReleaseReadPort = Pick<
+  CanonicalTrackAllSam31L4TaskQaRuntimeReleaseEvidenceRepository,
+  'schemaVersion' | 'rereadImageQualification' |
+    'rereadDeploymentObservation'
+>
+type RateAuthorityReadPort = Pick<
+  CanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
+  'schemaVersion' | 'evidenceClass' | 'rereadApprovedCurrentRate'
+>
+
+export interface TrackAllSam31OrchestraQualificationPublisherDependencies {
+  readonly runtimeReleaseRegistry: RuntimeReleaseReadPort
+  readonly l4TaskQaReleaseRepository: L4TaskQaReleaseReadPort
+  readonly rateAuthorityRepository: RateAuthorityReadPort
+  readonly artifactRepositoryReleaseReadPort:
+    CanonicalTrackAllSam31ArtifactRepositoryReleaseReadPort
+  readonly qualificationRegistry: CanonicalSkillQualificationRegistry
+}
+
+export async function publishTrackAllSam31OrchestraQualification(
+  untrusted: unknown,
+  dependencies: TrackAllSam31OrchestraQualificationPublisherDependencies,
+): Promise<TrackAllSam31OrchestraQualificationPublicationReceipt> {
+  assertDependencies(dependencies)
+  assertPlainSerializedData(untrusted, 'track_all_qualification_publication')
+  const request = publicationInputSchema.parse(untrusted)
+
+  const a100Record = assertCanonicalSam31GpuRuntimeReleaseRegistryRecord(
+    await dependencies.runtimeReleaseRegistry.rereadReleasePair({
+      runtimeReleaseRef: request.a100RuntimeReleaseRef,
+    }),
+  )
+  const l4Record = assertCanonicalSam31GpuRuntimeReleaseRegistryRecord(
+    await dependencies.runtimeReleaseRegistry.rereadReleasePair({
+      runtimeReleaseRef: request.l4FallbackRuntimeReleaseRef,
+    }),
+  )
+  const a100 = assertCanonicalProfessionalToolGpuRuntimeRelease(
+    a100Record.runtimeRelease,
+    request.observedAt,
+  )
+  const l4 = assertCanonicalProfessionalToolGpuRuntimeRelease(
+    l4Record.runtimeRelease,
+    request.observedAt,
+  )
+  assertExactSam31RuntimePair({
+    a100,
+    a100Record,
+    a100Ref: request.a100RuntimeReleaseRef,
+    l4,
+    l4Record,
+    l4Ref: request.l4FallbackRuntimeReleaseRef,
+  })
+
+  const l4TaskQaImage =
+    assertCanonicalTrackAllSam31L4TaskQaImageQualification(
+      await dependencies.l4TaskQaReleaseRepository
+        .rereadImageQualification({
+          imageQualificationRef: request.l4TaskQaImageQualificationRef,
+        }),
+    )
+  const l4TaskQaDeployment =
+    assertCanonicalTrackAllSam31L4TaskQaDeploymentObservation(
+      await dependencies.l4TaskQaReleaseRepository
+        .rereadDeploymentObservation({
+          runtimeReleaseRef: request.l4TaskQaRuntimeReleaseRef,
+        }),
+    )
+  assertExactL4TaskQaRelease({
+    image: l4TaskQaImage,
+    imageRef: request.l4TaskQaImageQualificationRef,
+    deployment: l4TaskQaDeployment,
+    runtimeRef: request.l4TaskQaRuntimeReleaseRef,
+    at: request.observedAt,
+  })
+
+  const a100Rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
+      rateAuthorityRef: request.a100RateAuthorityRef,
+      routeId: 'a100_80gb_heavy_primary',
+      at: request.observedAt,
+    }),
+    request.observedAt,
+  )
+  const l4FallbackRate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
+      rateAuthorityRef: request.l4FallbackRateAuthorityRef,
+      routeId: 'l4_heavy_fallback',
+      at: request.observedAt,
+    }),
+    request.observedAt,
+  )
+  const l4TaskQaRateRef = refSchema.parse(
+    l4TaskQaImage.accountEffectiveL4RateCompatibilityRef,
+  )
+  const l4TaskQaRate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
+      rateAuthorityRef: l4TaskQaRateRef,
+      routeId: 'l4_standard_primary',
+      at: request.observedAt,
+    }),
+    request.observedAt,
+  )
+  assertExactRates({
+    a100Rate,
+    a100Ref: request.a100RateAuthorityRef,
+    l4FallbackRate,
+    l4FallbackRef: request.l4FallbackRateAuthorityRef,
+    l4TaskQaRate,
+    l4TaskQaRef: l4TaskQaRateRef,
+  })
+
+  const artifactRepositoryRelease =
+    assertCanonicalTrackAllSam31ArtifactRepositoryRelease(
+      await dependencies.artifactRepositoryReleaseReadPort.readExact({
+        releaseRef: request.artifactRepositoryReleaseRef,
+      }),
+      request.observedAt,
+    )
+  if (!sameRef(
+    canonicalTrackAllSam31ArtifactRepositoryReleaseRef(
+      artifactRepositoryRelease,
+    ),
+    request.artifactRepositoryReleaseRef,
+  )) throw new Error('Track All artifact repository release ref changed.')
+
+  const qualificationEvidenceRefs = sortRefs([
+    request.a100RuntimeReleaseRef,
+    request.l4FallbackRuntimeReleaseRef,
+    request.l4TaskQaImageQualificationRef,
+    request.l4TaskQaRuntimeReleaseRef,
+    request.a100RateAuthorityRef,
+    request.l4FallbackRateAuthorityRef,
+    l4TaskQaRateRef,
+    request.artifactRepositoryReleaseRef,
+  ])
+  const observedReleaseRef = orchestraEvidenceRef(
+    'track-all-sam3_1-qualified-release-set-v1',
+    orchestraDigest({
+      qualificationEvidenceRefs,
+      exactA100AndIndependentL4Sam31ReleaseReread: true,
+      exactBillingAccountEffectiveA100AndL4RateReread: true,
+      exactL4TaskQaImageDeploymentAndScaleZeroReread: true,
+      exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
+      releaseSetVersion: 'track-all-sam3_1-qualified-release-set-v1',
+    }),
+  )
+  const qualificationSnapshot = buildQualifiedSnapshot({
+    observedAt: request.observedAt,
+    observedReleaseRef,
+    qualificationEvidenceRefs,
+  })
+  const manifest = createTrackAllSam31OrchestraCapabilityManifestForQualification(
+    qualificationSnapshot,
+  )
+  const persisted = await dependencies.qualificationRegistry.persistCreateOnly({
+    manifest,
+    qualificationSnapshot,
+  })
+  const reread = await dependencies.qualificationRegistry.readExact({
+    manifestRef: persisted.manifestRef,
+    qualificationSnapshotRef: persisted.qualificationSnapshotRef,
+  })
+  if (!reread
+    || stableAuthorityStringify(reread.manifest)
+      !== stableAuthorityStringify(manifest)
+    || stableAuthorityStringify(reread.qualificationSnapshot)
+      !== stableAuthorityStringify(qualificationSnapshot)) {
+    throw new Error('Track All canonical qualification reread failed.')
+  }
+
+  return createReceipt({
+    request,
+    persisted,
+    l4TaskQaRateRef,
+  })
+}
+
+export function assertTrackAllSam31OrchestraQualificationPublicationReceipt(
+  value: unknown,
+): TrackAllSam31OrchestraQualificationPublicationReceipt {
+  assertPlainSerializedData(value, 'track_all_qualification_receipt')
+  const receipt = receiptSchema.parse(value)
+  const { receiptHash, ...payload } = receipt
+  if (receiptHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Track All qualification receipt hash is invalid.')
+  }
+  return structuredClone(receipt)
+}
+
+function buildQualifiedSnapshot(input: {
+  observedAt: string
+  observedReleaseRef: OrchestraEvidenceRef
+  qualificationEvidenceRefs: OrchestraEvidenceRef[]
+}): SkillQualificationSnapshot {
+  const candidate = createTrackAllSam31OrchestraQualificationSnapshot()
+  return createSkillQualificationSnapshot({
+    schemaVersion: ORCHESTRA_SKILL_QUALIFICATION_SNAPSHOT_VERSION,
+    snapshotId: candidate.snapshotId,
+    skillKey: candidate.skillKey,
+    skillVersion: candidate.skillVersion,
+    contractVersion: candidate.contractVersion,
+    capabilityDefinitionDigestSha256:
+      candidate.capabilityDefinitionDigestSha256,
+    observedReleaseRef: input.observedReleaseRef,
+    observedAt: input.observedAt,
+    overall: 'qualified',
+    jobQualifications: [{
+      jobType: CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
+      status: 'qualified',
+      blockerCodes: [],
+      qualifiedRouteIds: Object.values(
+        TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
+      ).sort(compareUtf16),
+      qualificationEvidenceRefs: input.qualificationEvidenceRefs,
+    }],
+    callerCanSelfQualify: false,
+    qualificationOwner: 'canonical_skill_qualification_registry',
+    dispatchAuthorityGranted: false,
+    providerAuthorityGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryAuthorityGranted: false,
+    productionAuthorityGranted: false,
+  })
+}
+
+function createReceipt(input: {
+  request: z.infer<typeof publicationInputSchema>
+  l4TaskQaRateRef: z.infer<typeof refSchema>
+  persisted: Awaited<ReturnType<
+    CanonicalSkillQualificationRegistry['persistCreateOnly']
+  >>
+}): TrackAllSam31OrchestraQualificationPublicationReceipt {
+  const payload = receiptWithoutHashSchema.parse({
+    schemaVersion:
+      TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLICATION_RECEIPT_VERSION,
+    publisherVersion:
+      TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLISHER_VERSION,
+    source:
+      'canonical_server_track_all_sam3_1_orchestra_qualification_publisher',
+    evidenceClass:
+      'canonical_release_rate_repository_exact_reread_create_only',
+    manifestRef: input.persisted.manifestRef,
+    qualificationSnapshotRef: input.persisted.qualificationSnapshotRef,
+    observedReleaseRef: input.persisted.observedReleaseRef,
+    registryRecordRef: input.persisted.registryRecordRef,
+    a100RuntimeReleaseRef: input.request.a100RuntimeReleaseRef,
+    l4FallbackRuntimeReleaseRef: input.request.l4FallbackRuntimeReleaseRef,
+    l4TaskQaImageQualificationRef:
+      input.request.l4TaskQaImageQualificationRef,
+    l4TaskQaRuntimeReleaseRef: input.request.l4TaskQaRuntimeReleaseRef,
+    a100RateAuthorityRef: input.request.a100RateAuthorityRef,
+    l4FallbackRateAuthorityRef: input.request.l4FallbackRateAuthorityRef,
+    l4TaskQaRateAuthorityRef: input.l4TaskQaRateRef,
+    artifactRepositoryReleaseRef:
+      input.request.artifactRepositoryReleaseRef,
+    disposition: input.persisted.disposition,
+    exactA100AndIndependentL4Sam31ReleaseReread: true,
+    exactL4TaskQaImageDeploymentAndScaleZeroReread: true,
+    exactBillingAccountEffectiveA100AndL4RateReread: true,
+    exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
+    exactCanonicalManifestQualificationCreateOnlyReread: true,
+    callerCanSelfQualify: false,
+    gpuJobStarted: false,
+    providerOrModelExecuted: false,
+    customerCreditsMutated: false,
+    qaApprovalGranted: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    publishedAt: input.request.observedAt,
+  })
+  return receiptSchema.parse({
+    ...payload,
+    receiptHash: sha256AuthorityValue(payload),
+  })
+}
+
+function assertExactSam31RuntimePair(input: {
+  a100: ReturnType<typeof assertCanonicalProfessionalToolGpuRuntimeRelease>
+  l4: ReturnType<typeof assertCanonicalProfessionalToolGpuRuntimeRelease>
+  a100Record: ReturnType<
+    typeof assertCanonicalSam31GpuRuntimeReleaseRegistryRecord
+  >
+  l4Record: ReturnType<
+    typeof assertCanonicalSam31GpuRuntimeReleaseRegistryRecord
+  >
+  a100Ref: z.infer<typeof refSchema>
+  l4Ref: z.infer<typeof refSchema>
+}): void {
+  if (
+    input.a100.toolId !== 'sam3_1'
+    || input.l4.toolId !== 'sam3_1'
+    || input.a100.operationId !== CANONICAL_SAM3_1_OPERATION_ID
+    || input.l4.operationId !== CANONICAL_SAM3_1_OPERATION_ID
+    || input.a100.routeId !== 'a100_80gb_heavy_primary'
+    || input.a100.accelerator !== 'nvidia_a100_80gb'
+    || input.l4.routeId !== 'l4_heavy_fallback'
+    || input.l4.accelerator !== 'nvidia_l4'
+    || !sameRef(
+      canonicalSam31GpuRuntimeReleaseRef(input.a100), input.a100Ref,
+    )
+    || !sameRef(
+      canonicalSam31GpuRuntimeReleaseRef(input.l4), input.l4Ref,
+    )
+    || sameRef(input.a100Ref, input.l4Ref)
+    || !sameRef(
+      input.a100.toolOrModelArtifactReleaseRef,
+      input.l4.toolOrModelArtifactReleaseRef,
+    )
+    || input.a100Record.specializedRelease.checkpoint.repositoryRevision
+      !== input.l4Record.specializedRelease.checkpoint.repositoryRevision
+    || input.a100Record.specializedRelease.checkpoint.sha256
+      !== input.l4Record.specializedRelease.checkpoint.sha256
+    || input.a100.minimumIdleInstances !== 0
+    || input.l4.minimumIdleInstances !== 0
+    || input.a100.cpuOnlySubstantiveExecutionObserved
+    || input.l4.cpuOnlySubstantiveExecutionObserved
+    || !input.l4Record.specializedRelease.qualification
+      .qualityEqualToOrBetterThanApprovedA100Baseline
+  ) throw new Error('Track All A100/L4 SAM 3.1 release pair is not exact.')
+}
+
+function assertExactL4TaskQaRelease(input: {
+  image: ReturnType<
+    typeof assertCanonicalTrackAllSam31L4TaskQaImageQualification
+  >
+  deployment: ReturnType<
+    typeof assertCanonicalTrackAllSam31L4TaskQaDeploymentObservation
+  >
+  imageRef: z.infer<typeof refSchema>
+  runtimeRef: z.infer<typeof refSchema>
+  at: string
+}): void {
+  if (
+    !sameRef(
+      canonicalTrackAllSam31L4TaskQaImageQualificationRef(input.image),
+      input.imageRef,
+    )
+    || !sameRef(input.deployment.imageQualificationRef, input.imageRef)
+    || !sameRef(input.deployment.release.releaseRef, input.runtimeRef)
+    || input.image.operationId !==
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID
+    || input.deployment.release.operationId !==
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_OPERATION_ID
+    || input.deployment.release.routeId !== 'l4_standard_primary'
+    || input.deployment.release.accelerator !== 'nvidia_l4'
+    || input.deployment.release.minimumIdleInstances !== 0
+    || input.deployment.release.configuredMinimumInstances !== 0
+    || input.image.cpuOnlySubstantiveMaskQaAllowed
+    || Date.parse(input.at) < Date.parse(input.image.qualifiedAt)
+    || Date.parse(input.at) < Date.parse(input.deployment.observedAt)
+    || Date.parse(input.at) >= Date.parse(input.image.expiresAt)
+  ) throw new Error('Track All L4 task-QA release is not exact or current.')
+}
+
+function assertExactRates(input: {
+  a100Rate: ReturnType<
+    typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
+  >
+  l4FallbackRate: ReturnType<
+    typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
+  >
+  l4TaskQaRate: ReturnType<
+    typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
+  >
+  a100Ref: z.infer<typeof refSchema>
+  l4FallbackRef: z.infer<typeof refSchema>
+  l4TaskQaRef: z.infer<typeof refSchema>
+}): void {
+  if (
+    input.a100Rate.routeId !== 'a100_80gb_heavy_primary'
+    || input.l4FallbackRate.routeId !== 'l4_heavy_fallback'
+    || input.l4TaskQaRate.routeId !== 'l4_standard_primary'
+    || !sameRateRef(input.a100Rate, input.a100Ref)
+    || !sameRateRef(input.l4FallbackRate, input.l4FallbackRef)
+    || !sameRateRef(input.l4TaskQaRate, input.l4TaskQaRef)
+    || input.a100Rate.customerPricingOrServiceFeeAuthorityGranted
+    || input.l4FallbackRate.customerPricingOrServiceFeeAuthorityGranted
+    || input.l4TaskQaRate.customerPricingOrServiceFeeAuthorityGranted
+    || input.a100Rate.walletOrCreditMutationAuthorityGranted
+    || input.l4FallbackRate.walletOrCreditMutationAuthorityGranted
+    || input.l4TaskQaRate.walletOrCreditMutationAuthorityGranted
+  ) throw new Error('Track All account-effective GPU rate set is invalid.')
+}
+
+function sameRateRef(
+  authority: ReturnType<
+    typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
+  >,
+  ref: z.infer<typeof refSchema>,
+): boolean {
+  return sameRef({
+    id: authority.rateAuthorityId,
+    version: authority.rateAuthorityVersion,
+    contentHash: `sha256:${authority.rateAuthorityHash}`,
+  }, ref)
+}
+
+function sortRefs(refs: z.infer<typeof refSchema>[]): OrchestraEvidenceRef[] {
+  return refs.map((ref) => structuredClone(ref)).sort((left, right) =>
+    compareUtf16(stableAuthorityStringify(left), stableAuthorityStringify(right)))
+}
+
+function sameRef(
+  left: Pick<OrchestraEvidenceRef, 'id' | 'version' | 'contentHash'>,
+  right: Pick<OrchestraEvidenceRef, 'id' | 'version' | 'contentHash'>,
+): boolean {
+  return left.id === right.id && left.version === right.version
+    && left.contentHash === right.contentHash
+}
+
+function compareUtf16(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
+
+function assertDependencies(
+  dependencies: TrackAllSam31OrchestraQualificationPublisherDependencies,
+): void {
+  if (
+    dependencies.runtimeReleaseRegistry?.schemaVersion !==
+      'canonical-sam3_1-gpu-runtime-release-registry-v1'
+    || dependencies.runtimeReleaseRegistry.evidenceClass !==
+      'private_gcs_create_only_exact_reread'
+    || typeof dependencies.runtimeReleaseRegistry.rereadReleasePair !==
+      'function'
+    || dependencies.l4TaskQaReleaseRepository?.schemaVersion !==
+      'canonical-track-all-sam3_1-l4-task-qa-runtime-release-evidence-repository-v1'
+    || typeof dependencies.l4TaskQaReleaseRepository
+      .rereadImageQualification !== 'function'
+    || typeof dependencies.l4TaskQaReleaseRepository
+      .rereadDeploymentObservation !== 'function'
+    || dependencies.rateAuthorityRepository?.schemaVersion !==
+      'canonical-current-google-cloud-gpu-rate-authority-repository-v1'
+    || dependencies.rateAuthorityRepository.evidenceClass !==
+      'gcs_create_only_exact_reread_account_effective_gpu_rates'
+    || typeof dependencies.rateAuthorityRepository
+      .rereadApprovedCurrentRate !== 'function'
+    || dependencies.artifactRepositoryReleaseReadPort?.schemaVersion !==
+      'canonical-track-all-sam3_1-artifact-repository-release-repository-v1'
+    || dependencies.artifactRepositoryReleaseReadPort.evidenceClass !==
+      'private_create_only_exact_reread'
+    || typeof dependencies.artifactRepositoryReleaseReadPort.readExact !==
+      'function'
+    || dependencies.qualificationRegistry?.schemaVersion !==
+      'canonical-skill-qualification-registry-v1'
+    || dependencies.qualificationRegistry.evidenceClass !==
+      'private_create_only_exact_reread'
+    || typeof dependencies.qualificationRegistry.persistCreateOnly !==
+      'function'
+    || typeof dependencies.qualificationRegistry.readExact !== 'function'
+  ) throw new Error('Track All qualification publisher dependency is invalid.')
+}
+
+export function parsePublishedTrackAllSam31Qualification(input: {
+  readonly manifest: unknown
+  readonly qualificationSnapshot: unknown
+}): Readonly<{
+  manifest: SkillCapabilityManifest
+  qualificationSnapshot: SkillQualificationSnapshot
+}> {
+  const qualificationSnapshot = parseSkillQualificationSnapshot(
+    input.qualificationSnapshot,
+  )
+  const manifest = parseSkillCapabilityManifest({
+    value: input.manifest,
+    qualificationSnapshot,
+  })
+  if (manifest.skillKey !== 'track_all'
+    || qualificationSnapshot.skillKey !== 'track_all'
+    || qualificationSnapshot.overall !== 'qualified') {
+    throw new Error('Published Track All qualification is not qualified.')
+  }
+  return Object.freeze({ manifest, qualificationSnapshot })
+}

@@ -481,6 +481,7 @@ const authority = createCanonicalSourceAnalysisOrchestraAuthority({
 })
 const qualificationRegistryReadPort = {
   schemaVersion: CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+  evidenceClass: 'private_create_only_exact_reread' as const,
   async readExact(input: {
     manifestRef: { id: string, version: number, contentHash: string }
     qualificationSnapshotRef: {
@@ -732,6 +733,7 @@ const missingQualificationOwner =
     dispatchPackageStore: dispatchStore,
     qualificationRegistryReadPort: {
       schemaVersion: CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+      evidenceClass: 'private_create_only_exact_reread' as const,
       async readExact() { return null },
     },
   })

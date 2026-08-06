@@ -291,6 +291,7 @@
     "smoke:track-all-sam3_1-production-runtime": "tsx server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",
     "smoke:track-all-sam3_1-orchestra-manifest": "tsx server/smoke/track-all-sam3_1-orchestra-capability-manifest-smoke.ts",
     "smoke:canonical-skill-qualification-registry": "tsx server/smoke/canonical-skill-qualification-registry-smoke.ts",
+    "smoke:track-all-sam3_1-orchestra-qualification-publisher": "tsx server/smoke/track-all-sam3_1-orchestra-qualification-publisher-smoke.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",
     "smoke:visual-intelligence-orchestra-manifest": "tsx server/smoke/visual-intelligence-orchestra-capability-manifest-smoke.ts",
     "smoke:visual-intelligence-orchestra-compiler": "tsx server/smoke/visual-intelligence-orchestra-invocation-compiler-smoke.ts",

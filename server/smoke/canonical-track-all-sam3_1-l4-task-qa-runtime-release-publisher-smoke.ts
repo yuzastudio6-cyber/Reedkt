@@ -56,12 +56,12 @@ const productionMaskQaReleasePayload = {
   immutableImageDigest: productionMaskQaImageDigest,
 }
 Reflect.deleteProperty(productionMaskQaReleasePayload, 'configurationHash')
-const productionMaskQaRelease = {
+export const productionMaskQaRelease = {
   ...productionMaskQaReleasePayload,
   configurationHash: sha256AuthorityValue(productionMaskQaReleasePayload),
 }
 
-const image = createCanonicalTrackAllSam31L4TaskQaImageQualification({
+export const image = createCanonicalTrackAllSam31L4TaskQaImageQualification({
   schemaVersion:
     'canonical-track-all-sam3_1-l4-task-qa-image-qualification-v1',
   source:
@@ -116,13 +116,13 @@ const image = createCanonicalTrackAllSam31L4TaskQaImageQualification({
   qualifiedAt: '2026-08-05T12:00:00.000Z',
   expiresAt: '2026-09-05T12:00:00.000Z',
 })
-const imageQualificationRef = {
+export const imageQualificationRef = {
   id: image.qualificationId,
   version: image.qualificationVersion,
   contentHash: `sha256:${image.qualificationHash}` as const,
 }
 const privateObjectTransport = productionMaskQaTransport()
-const observation = createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
+export const observation = createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
   schemaVersion:
     'canonical-track-all-sam3_1-l4-task-qa-deployment-observation-v2',
   source:

@@ -97,6 +97,13 @@ export interface CanonicalSkillQualificationRegistry
   }): Promise<CanonicalSkillQualificationRegistryRecord | null>
 }
 
+type PersistQualificationInput = Parameters<
+  CanonicalSkillQualificationRegistry['persistCreateOnly']
+>[0]
+type ReadQualificationInput = Parameters<
+  CanonicalSkillQualificationRegistry['readExact']
+>[0]
+
 export function createCanonicalSkillQualificationRegistry(input: {
   readonly objectPort: CanonicalCreateOnlyJsonObjectPort
   readonly prefix?: string
@@ -107,7 +114,7 @@ export function createCanonicalSkillQualificationRegistry(input: {
     schemaVersion: CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
     evidenceClass: 'private_create_only_exact_reread' as const,
 
-    async persistCreateOnly(untrusted) {
+    async persistCreateOnly(untrusted: PersistQualificationInput) {
       assertPlainSerializedData(untrusted, 'skill_qualification_publication')
       assertExactRecord(untrusted, ['manifest', 'qualificationSnapshot'])
       const qualificationSnapshot = parseSkillQualificationSnapshot(
@@ -159,7 +166,7 @@ export function createCanonicalSkillQualificationRegistry(input: {
       })
     },
 
-    async readExact(untrusted) {
+    async readExact(untrusted: ReadQualificationInput) {
       const record = await registry.rereadRecord(untrusted)
       return record ? Object.freeze({
         manifest: structuredClone(record.manifest),
@@ -168,7 +175,7 @@ export function createCanonicalSkillQualificationRegistry(input: {
       }) : null
     },
 
-    async rereadRecord(untrusted) {
+    async rereadRecord(untrusted: ReadQualificationInput) {
       assertPlainSerializedData(untrusted, 'skill_qualification_read')
       assertExactRecord(
         untrusted,

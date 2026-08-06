@@ -215,8 +215,10 @@ console.log(JSON.stringify({
   productionAuthorityGranted: false,
 }))
 
-function reorderOwnKeys<T extends Record<string, unknown>>(value: T): T {
-  return Object.fromEntries(Object.entries(structuredClone(value)).reverse()) as T
+function reorderOwnKeys<T extends object>(value: T): T {
+  return Object.fromEntries(Object.entries(
+    structuredClone(value) as Record<string, unknown>,
+  ).reverse()) as T
 }
 
 function sameRef(left: OrchestraEvidenceRef, right: OrchestraEvidenceRef) {

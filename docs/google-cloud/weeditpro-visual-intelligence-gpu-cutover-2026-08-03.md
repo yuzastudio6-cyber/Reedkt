@@ -575,6 +575,22 @@ quality-preserving L4-fallback, and independent L4 task-QA routes plus canonical
 qualification evidence. A missing, blocked, partial, wrong-definition, or
 caller-invented manifest/snapshot pair cannot reach GPU launch preparation.
 
+The canonical Track All qualification publisher now closes the publication
+side of that boundary. It cannot accept a manifest, qualification disposition,
+route list, rate, repository version, or readiness boolean from a caller. It
+must exact-reread the current A100 SAM 3.1 release, the independently qualified
+L4 SAM 3.1 fallback release, the L4 Kornia task-QA image and deployment, all
+three billing-account-effective A100/L4 rate authorities, and a bounded
+create-only Track All result/artifact repository release. Only that complete
+set may produce a qualified snapshot and persist it through the canonical skill
+qualification registry. The repository release separately binds the exact task
+context, task, runtime result, task-QA, Caption scene-evidence, and Caption
+Track-All evidence repository versions plus isolated control-plane and mask
+artifact storage qualification. Missing, crossed, stale, unknown-field, or
+post-digest-tampered evidence fails closed. Publication starts no GPU job,
+executes no model/provider, mutates no customer credits, grants no QA approval,
+and grants no public-delivery or production authority.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

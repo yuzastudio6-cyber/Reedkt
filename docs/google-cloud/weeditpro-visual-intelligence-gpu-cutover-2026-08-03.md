@@ -312,17 +312,44 @@ idempotent rerun then observed all five disabled and emitted
 - Billing and required Compute, Batch, Cloud Run, Artifact Registry, Vertex
   AI, Cloud Build, and Secret Manager APIs are enabled.
 - The A2 CPU quota request for one `a2-ultragpu-1g` job was approved at 12.
-- The A100 80GB quota request for one GPU was resubmitted with the exact
-  scale-from-zero workload justification and denied again; effective quota is
-  zero.
-- The project has L4 Compute quota, but neither SAM 3.1 route is admitted until
-  the same immutable image independently passes A100 and L4 qualification.
+- The A100 80GB quota requests for one GPU in `us-central1`, `us-east4`, and
+  `us-east5` were denied; effective A100 quota remains zero in all three
+  attempted regions. The approved A2 CPU quota does not substitute for GPU
+  quota.
+- The project has one L4 of Compute quota. The separately scoped Track All
+  task-QA image now has an independently built, scanned, signed, and privately
+  qualified L4 path; this does not qualify the checkpoint-bearing SAM 3.1
+  heavy image or the L4 heavy fallback route.
 - Container Analysis and Container Scanning are now enabled alongside Artifact
   Registry. This closes the API foundation only; the future immutable image
   must still produce a clean digest-bound scan, SBOM, signature, and
   attestation before either GPU route may use it.
-- No SAM 3.1 image, GPU job, provider call, model download, customer charge, or
-  production promotion occurred.
+- No checkpoint-bearing SAM 3.1 image, model download, customer charge, public
+  delivery, or production promotion occurred.
+
+### 2026-08-06 L4 task-QA qualification milestone
+
+- Two independent current-source private build capsules produced the identical
+  199,218,494-byte archive SHA-256
+  `2bf1d7101ce31dbe0221dc111f6d7324316a050c6a765b06ad53ad5f99fb6e02`
+  from different Cloud Build IDs, object generations, and ETags.
+- The governed build produced immutable image digest
+  `sha256:5ccb7b8be3fae729a07cb38663265fe78419f1e273310f57bed092b09b36dd71`.
+  Its exact supply chain includes an SPDX 2.3 SBOM, Google Artifact Analysis,
+  HSM-backed KMS signature verification, and SLSA v1 provenance. The private
+  security review observed zero critical, high, or unknown-severity findings.
+- The scale-from-zero Cloud Run job executed one deterministic private
+  qualification exactly once, ran 10 Torch CUDA kernels and 32 OpenCV CUDA
+  kernels on an NVIDIA L4, reread the complete fixture result, stopped, and
+  returned to zero active executions. The canonical receipt is
+  `weeditpro-sam31-l4-private-20260806110601287-c9a54c63ec8a42418728`
+  with content hash
+  `sha256:7a2380e0c68cbd3e26540863abf71da4818f26969947fe174efcc9bcac6306ae`.
+- The receipt disposition is intentionally
+  `l4_task_qa_qualified_rate_blocked`. It qualifies only deterministic L4
+  task QA; it contains no checkpoint or model weights, does not execute SAM
+  3.1, and grants no runtime release, customer-credit mutation, QA approval,
+  public delivery, or production authority.
 
 The read-only operator command
 `npm run audit:visual-intelligence-live-prerequisites` reports A100/L4 quota,
@@ -392,9 +419,9 @@ invocation of this operator boundary.
   exact immutable private qualification coordinate and server-only billing
   account resource. Those values never enter a browser or worker payload.
 - The current read-only cloud audit reports account-effective Gemini price
-  access as not ready. The local Application Default Credential requires fresh
-  human reauthentication, and an independent token-only read confirms the
-  active operator lacks `billing.billingAccountPrice.get`. The canonical API
+  access as not ready. Application Default Credentials are now authenticated
+  as the verified WeEditPro operator, but an independent read confirms the
+  active operator still lacks `billing.billingAccountPrice.get`. The canonical API
   identity therefore still needs `roles/billing.viewer` from an authorized
   billing-account administrator. No rate object exists and no live model/SKU
   compatibility qualification has been observed. The runtime remains
@@ -411,11 +438,14 @@ invocation of this operator boundary.
 
 ## Current disposition
 
-The source cutover is deterministic and fail-closed. Live SAM 3.1 installation
-remains blocked by Meta checkpoint access, the still-open official
-source/checkpoint compatibility issue, A100 80GB quota, and the required
-image/security/runtime qualification. Live Gemini pricing additionally remains
-blocked by billing-account price-read IAM and isolated model/SKU reconciliation.
+The source cutover and the current L4 task-QA image path are deterministic and
+fail-closed. The L4 task-QA path has passed immutable image supply-chain review
+and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing
+SAM 3.1 installation remains blocked by Meta checkpoint access, the still-open
+official source/checkpoint compatibility issue, A100 80GB quota, and independent
+heavy-image A100/L4 qualification. Live Gemini and GPU pricing additionally
+remain blocked by billing-account price-read IAM and isolated model/SKU
+reconciliation.
 Legacy visual and CPU processing runtimes are now absent and their five live
 identities are retired; the private-search control plane is independently
 isolated. The implementation must not weaken or silently bypass the remaining

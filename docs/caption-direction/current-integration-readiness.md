@@ -37,6 +37,17 @@ rereads real results, rendered outputs, qualified complete-time visual review,
 and independent private review. It is not a regression of the Caption source
 implementation.
 
+The standalone internal qualification harness now also has a separately
+versioned asynchronous path. It requires an explicit owner resolver, accepts
+only exact request-bound private byte-free artifacts, and can await multiple
+existing owner services in deterministic order. Its focused two-owner scene
+awaits Visual Intelligence, then Track All, and completes only after both
+authenticated records are supplied. The path lives under `server/internal-testing`,
+is not imported by production routes, performs no implicit fixture injection,
+and does not implement the central Orchestra. This closes the harness execution
+shape needed for real owner services; it does not turn its closed source
+fixtures into terminal evidence.
+
 The normal source-led approval route now proves more than source reachability.
 With professional Captions selected, it scheduled 25 jobs and completed 16
 private jobs with zero failures before stopping at the exact authenticated

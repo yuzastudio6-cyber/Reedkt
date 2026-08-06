@@ -18,6 +18,7 @@ const sourceOnlyScripts = [
   'smoke:captions-specialist-private-internal-evidence-progress',
   'smoke:captions-specialist-integration-routing',
   'smoke:captions-specialist-shared-owner-integration',
+  'smoke:captions-specialist-async-support-harness',
   'smoke:captions-specialist-multi-support-resume',
   'smoke:captions-specialist-broll-owner-read-adapter',
   'smoke:captions-specialist-canonical-resume-read',

@@ -580,6 +580,7 @@
     "smoke:canonical-caption-terminal-qualification": "tsx server/smoke/canonical-caption-terminal-qualification-service-smoke.ts",
     "smoke:captions-specialist-integration-routing": "tsx server/smoke/captions-specialist-integration-routing-smoke.ts",
     "smoke:captions-specialist-shared-owner-integration": "tsx server/smoke/captions-specialist-shared-owner-integration-smoke.ts",
+    "smoke:captions-specialist-async-support-harness": "tsx server/smoke/captions-specialist-async-support-harness-smoke.ts",
     "smoke:captions-specialist-multi-support-resume": "tsx server/smoke/captions-specialist-multi-support-resume-smoke.ts"
   },
   "dependencies": {

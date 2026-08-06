@@ -31,6 +31,8 @@ import {
 
 export const CAPTIONS_INTERNAL_HARNESS_VERSION =
   'captions-specialist-internal-harness-v1' as const
+export const CAPTIONS_INTERNAL_ASYNC_HARNESS_VERSION =
+  'captions-specialist-internal-async-harness-v1' as const
 
 export interface CaptionsHarnessAuthorityState {
   timelineMutations: number
@@ -73,6 +75,14 @@ export interface CaptionsHarnessSequentialRun {
   completedWithoutDirectPeerDispatch: boolean
 }
 
+export interface CaptionsHarnessAsyncSequentialRun
+  extends Omit<CaptionsHarnessSequentialRun, 'harnessVersion'> {
+  harnessVersion: typeof CAPTIONS_INTERNAL_ASYNC_HARNESS_VERSION
+  independentlyExecutedSupportResolverRequired: true
+  implicitFixtureArtifactInjectionAllowed: false
+  centralOrchestraImplemented: false
+}
+
 export type CaptionsHarnessRuntimeEvidenceInput = Omit<
   Parameters<typeof runCaptionsSpecialistJob>[0],
   'call' | 'qualificationSnapshot' | 'manifest' | 'resumeSupportRequest'
@@ -93,6 +103,10 @@ export interface CaptionsHarnessSupportResolutionContext {
 export type CaptionsHarnessSupportResolver = (
   context: CaptionsHarnessSupportResolutionContext,
 ) => CaptionsHarnessSupportResolution
+
+export type CaptionsHarnessAsyncSupportResolver = (
+  context: CaptionsHarnessSupportResolutionContext,
+) => Promise<CaptionsHarnessSupportResolution>
 
 const EMPTY_AUTHORITY_STATE: Readonly<CaptionsHarnessAuthorityState> =
   Object.freeze({
@@ -344,6 +358,136 @@ export function runCaptionsInternalHarnessToCompletion(input: {
         step.selectedSupportRequest.mediationPolicy.hqMediated
         && !step.selectedSupportRequest.mediationPolicy
           .directPeerDispatchAllowed),
+  }
+}
+
+/**
+ * Test-only asynchronous owner runner. Unlike the historical synchronous
+ * fixture helper, this path never invents dependency artifacts. A caller must
+ * independently execute or reread the selected canonical owner and return the
+ * exact byte-free artifact plus the runtime evidence consumed by Captions.
+ *
+ * Production routes must not import this module. The future Orchestra remains
+ * the production owner of support scheduling and result injection.
+ */
+export async function runCaptionsInternalHarnessToCompletionAsync(input: {
+  call: OrchestraSkillCall
+  maximumResumeSteps?: number
+  initialRuntimeEvidence?: CaptionsHarnessRuntimeEvidenceInput
+  resolveSupportRequest: CaptionsHarnessAsyncSupportResolver
+}): Promise<CaptionsHarnessAsyncSequentialRun> {
+  if (typeof input.resolveSupportRequest !== 'function') {
+    throw new Error(
+      'The asynchronous Caption harness requires an explicit owner resolver.',
+    )
+  }
+  const authorityStateBefore = structuredClone(EMPTY_AUTHORITY_STATE)
+  const initialCall = parseOrchestraSkillCall(input.call)
+  const initialResult = runCaptionsSpecialistJob({
+    call: initialCall,
+    ...(input.initialRuntimeEvidence ?? {}),
+  })
+  const maximumResumeSteps = input.maximumResumeSteps ?? 8
+  if (!Number.isInteger(maximumResumeSteps)
+    || maximumResumeSteps < 1 || maximumResumeSteps > 32) {
+    throw new Error('Caption harness resume-step bound is invalid.')
+  }
+  const resumeSteps: CaptionsHarnessSequentialResumeStep[] = []
+  let currentCall = initialCall
+  let currentResult = initialResult
+  while (currentResult.disposition === 'needs_followup') {
+    if (resumeSteps.length >= maximumResumeSteps) {
+      throw new Error('Caption harness exceeded its bounded resume depth.')
+    }
+    const selectedSupportRequest = currentResult.supportRequests[0]
+    if (!selectedSupportRequest) {
+      throw new Error('Caption needs_followup result omitted its support request.')
+    }
+    const promotedPriorSupportArtifactRefs =
+      currentCall.injectedSupportArtifactRefs.map((artifact) => ({
+        ...structuredClone(artifact),
+        sourceSupportRequestRef: null,
+      }))
+    const resolution = await input.resolveSupportRequest({
+      stepNumber: resumeSteps.length + 1,
+      currentCall: structuredClone(currentCall),
+      currentResult: structuredClone(currentResult),
+      selectedSupportRequest: structuredClone(selectedSupportRequest),
+    })
+    assertExactAsyncOwnerResolution(selectedSupportRequest, resolution)
+    const resumedCall = resumeCaptionsHarnessCall(
+      currentCall,
+      selectedSupportRequest,
+      resolution.injectedSupportArtifactRefs,
+    )
+    const resumedResult = runCaptionsSpecialistJob({
+      call: resumedCall,
+      resumeSupportRequest: selectedSupportRequest,
+      ...resolution.runtimeEvidence,
+    })
+    resumeSteps.push({
+      stepNumber: resumeSteps.length + 1,
+      selectedSupportRequest: structuredClone(selectedSupportRequest),
+      promotedPriorSupportArtifactRefs,
+      resumedCall: structuredClone(resumedCall),
+      resumedResult: structuredClone(resumedResult),
+    })
+    currentCall = resumedCall
+    currentResult = resumedResult
+  }
+  const authorityStateAfter = structuredClone(EMPTY_AUTHORITY_STATE)
+  return {
+    harnessVersion: CAPTIONS_INTERNAL_ASYNC_HARNESS_VERSION,
+    initialCall: structuredClone(initialCall),
+    initialResult: structuredClone(initialResult),
+    resumeSteps,
+    finalResult: structuredClone(currentResult),
+    authorityStateBefore,
+    authorityStateAfter,
+    completedWithoutDirectPeerDispatch:
+      currentResult.disposition === 'completed'
+      && resumeSteps.every((step) =>
+        step.selectedSupportRequest.mediationPolicy.hqMediated
+        && !step.selectedSupportRequest.mediationPolicy
+          .directPeerDispatchAllowed),
+    independentlyExecutedSupportResolverRequired: true,
+    implicitFixtureArtifactInjectionAllowed: false,
+    centralOrchestraImplemented: false,
+  }
+}
+
+function assertExactAsyncOwnerResolution(
+  request: SkillSupportRequest,
+  resolution: CaptionsHarnessSupportResolution,
+): void {
+  if (!resolution || typeof resolution !== 'object'
+    || !resolution.runtimeEvidence
+    || typeof resolution.runtimeEvidence !== 'object'
+    || !Array.isArray(resolution.injectedSupportArtifactRefs)) {
+    throw new Error('Caption asynchronous owner resolution is invalid.')
+  }
+  const requestedTypes = request.requestedArtifactTypes
+  const artifacts = resolution.injectedSupportArtifactRefs
+  const artifactTypes = artifacts.map((artifact) => artifact.artifactType)
+  const exactRequestRef = contractRef(
+    request.requestId,
+    request.schemaVersion,
+    request.requestDigestSha256,
+  )
+  if (artifacts.length !== requestedTypes.length
+    || artifactTypes.some((type, index) => type !== requestedTypes[index])
+    || new Set(artifactTypes).size !== artifactTypes.length
+    || artifacts.some((artifact) =>
+      artifact.producerSkillKey !== request.targetSkillKey
+      || !artifact.privateArtifact
+      || !artifact.byteFreeRef
+      || artifact.sourceSupportRequestRef?.id !== exactRequestRef.id
+      || artifact.sourceSupportRequestRef?.version !== exactRequestRef.version
+      || artifact.sourceSupportRequestRef?.contentHash !==
+        exactRequestRef.contentHash)) {
+    throw new Error(
+      'Caption asynchronous owner artifacts do not match the selected support request.',
+    )
   }
 }
 

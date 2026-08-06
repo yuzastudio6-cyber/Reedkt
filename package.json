@@ -316,6 +316,8 @@
     "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:a100-vertex-custom-job-launch": "tsx server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts",
     "smoke:a100-vertex-custom-job-terminal": "tsx server/smoke/canonical-a100-vertex-custom-job-terminal-port-smoke.ts",
+    "smoke:vertex-a100-account-effective-rate": "tsx server/smoke/canonical-current-google-cloud-vertex-a100-rate-authority-smoke.ts",
+    "publish:vertex-a100-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-rate-authority.ts",
     "provision:sam3_1-vertex-a100-private-foundation": "bash scripts/gcp/prod/27-provision-sam31-vertex-a100-private-foundation.sh",
     "smoke:sam3_1-vertex-a100-private-foundation": "tsx server/smoke/sam31-vertex-a100-private-foundation-smoke.ts",
     "smoke:visual-intelligence-quality-gpu-release": "tsx server/smoke/visual-intelligence-quality-gpu-release-smoke.ts",

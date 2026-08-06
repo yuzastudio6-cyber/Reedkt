@@ -116,6 +116,7 @@ The governing workflow invariant remains:
 - [Canonical terminal evidence assembly mount](canonical-terminal-evidence-assembly-mount-2026-08-05.md)
 - [Canonical resumed-chain execution mount](canonical-caption-resume-chain-execution-mount-2026-08-05.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
+- [Current backend-base reconciliation](backend-base-reconciliation-2026-08-05.md)
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
 - [Canonical 41-job assignment reachability V2](canonical-caption-job-reachability-v2-2026-08-05.md)
 - [Canonical rendered-media work binding](canonical-rendered-media-work-binding.md)
@@ -168,6 +169,14 @@ neutral shared v2 manifest extension, per-job qualification snapshot,
 Orchestra-shaped call/support/result contracts, strict closed-data validation,
 the Caption manifest, and a bounded internal-only harness. It does not add the
 HQ reasoning loop, a global scheduler, or peer execution.
+
+The current Caption integration branch has also reconciled the published
+backend workflow base through `98f8fa08bc010188a808bbf93cd555fa0a8d1568`.
+That merge preserves the newer L4 Track All task-QA runtime and finalization
+owners together with Caption's evidence projection and private-qualification
+consumers. It makes the draft PR mergeable with its backend base, but it does
+not turn backend source/release evidence into a scene-specific terminal Caption
+record.
 
 CAP-02 adds the `caption_design` internal composite, 55 reusable mini skills,
 versioned inverse relationships, the explicit `no_captions` conflict, complete

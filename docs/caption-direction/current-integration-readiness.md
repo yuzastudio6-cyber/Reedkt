@@ -66,13 +66,22 @@ The Track All mount is current at support service v2. Its Caption evidence
 adapter requires the backend's independent task-level scene-QA authority in
 addition to the admitted SAM 3.1 result and scene evidence. This source-level
 hardening does not change the 41/41 source-readiness count and does not turn the
-owner's still-unrun live A100/L4 path into qualification evidence.
+owner's separately qualified runtime path into scene-specific Caption
+qualification evidence.
 
 The current Track All source evidence also includes the protected backend
 finalization route and Caption's exact result-to-v2-record adapter. This closes
 the source handoff from already-persisted runtime/measurement/private-review
 evidence to `ready_for_specialist_resume`; it does not create live owner
 evidence, run the resume, or change the 41/41 source-readiness count.
+
+The Caption integration branch is now reconciled with the backend workflow
+base through `98f8fa08bc010188a808bbf93cd555fa0a8d1568`. The combined tree
+includes the newer L4 task-QA start, funded lifecycle, terminal-stop/cost
+reconciliation, task-QA evidence finalizer, and Caption evidence finalizer.
+This removes the Git merge/publication conflict and preserves the correct
+runtime owner, but no exact terminal Caption scene has yet consumed a persisted
+Track All owner record. The 0/41 terminal count therefore remains unchanged.
 
 Sound uses exact canonical execution/result rereads, private final-audio byte
 rereads, measured synchronization and dialogue-protection QA, and an admitted

@@ -55,13 +55,23 @@ terminal-scope evidence remains incomplete or absent. Living Frame is not a
 sixth gap: CAP-11/CAP-12 already provide the accepted, versioned,
 non-executing typed boundary and Living Frame has independently verified it.
 
+The source-led professional Caption planning seam is also now mounted. It can
+attach the exact professional composition trace, early bundle, estimate, and
+V2 assignments to a fresh source-led plan before approval while reusing the
+existing canonical work owner. A selected professional plan removes and
+rereads after the legacy exact-marker renderer so no parallel Caption owner is
+created. This closes the source-code attachment gap inside item 6; item 6
+remains terminally incomplete until representative approved runs persist and
+reread actual results across the 41-job catalog.
+
 ## Important qualification distinctions
 
 - The current `SkillQualificationSnapshot` is the CAP-01 planning snapshot. It
   must not be presented as a private-execution qualification snapshot.
 - The top-level standalone runtime proves bounded planning calls, support
   requests, exact resume binding, and results. The canonical backend still has
-  to mount the approved private execution bundle and persist/reread its results.
+  to run the newly mounted source-led plan through approved private execution
+  and persist/reread its results.
 - Direct inspection now covers every rendered frame through complete-time
   contact sheets for the real 9:16, 16:9, and 1:1 full/reduced variants. It is
   valid Caption-owned visual evidence, but it is not a qualified shared

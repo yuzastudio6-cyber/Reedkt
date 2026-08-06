@@ -78,6 +78,9 @@ import type {
 import type {
   CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
+import type {
+  CanonicalCaptionSourceLedProfessionalPlanningReadPort,
+} from '../src/types/canonical-caption-source-led-professional-planning'
 
 export interface AuthContext {
   userId: string
@@ -182,6 +185,8 @@ export interface RuntimeState {
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
     CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
+  canonicalCaptionSourceLedProfessionalPlanningReadPort?:
+    CanonicalCaptionSourceLedProfessionalPlanningReadPort
 }
 
 export type RuntimeRequest = Request & {
@@ -260,4 +265,6 @@ export interface ServiceContext {
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
     CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
+  canonicalCaptionSourceLedProfessionalPlanningReadPort?:
+    CanonicalCaptionSourceLedProfessionalPlanningReadPort
 }

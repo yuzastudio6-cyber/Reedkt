@@ -293,6 +293,7 @@
     "smoke:canonical-sound-caption-owner": "tsx server/smoke/canonical-sound-caption-owner-service-smoke.ts",
     "smoke:canonical-sound-caption-owner-private-runtime": "tsx server/smoke/canonical-sound-caption-owner-private-runtime-smoke.ts",
     "smoke:canonical-caption-specialist-planning": "tsx server/smoke/canonical-caption-specialist-planning-smoke.ts",
+    "smoke:canonical-caption-source-led-professional-planning": "tsx server/smoke/canonical-caption-source-led-professional-planning-smoke.ts",
     "smoke:canonical-caption-postrender-visual-qa-authenticated-read": "tsx server/smoke/canonical-caption-postrender-visual-qa-authenticated-read-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-worker": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-worker-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-owner": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-owner-smoke.ts",

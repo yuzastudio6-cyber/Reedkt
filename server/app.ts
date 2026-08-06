@@ -125,6 +125,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalCaptionPostrenderVisualQaEvidenceRepository']
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
     RuntimeState['canonicalCaptionPostrenderVisualQaOwnerResultReadPort']
+  canonicalCaptionSourceLedProfessionalPlanningReadPort?:
+    RuntimeState['canonicalCaptionSourceLedProfessionalPlanningReadPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -336,6 +338,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
             options.canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionSourceLedProfessionalPlanningReadPort
+      ? {
+          canonicalCaptionSourceLedProfessionalPlanningReadPort:
+            options.canonicalCaptionSourceLedProfessionalPlanningReadPort,
         }
       : {}),
     ...(options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort

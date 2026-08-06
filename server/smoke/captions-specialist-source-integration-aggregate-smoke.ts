@@ -29,6 +29,7 @@ const sourceOnlyScripts = [
   'smoke:captions-specialist-terminal-qualification',
   'smoke:captions-specialist-terminal-qualification-v3',
   'smoke:canonical-caption-specialist-planning',
+  'smoke:canonical-caption-source-led-professional-planning',
   'smoke:canonical-caption-specialist-execution',
   'smoke:canonical-specialist-support-resume',
   'smoke:canonical-caption-transcript-support',

@@ -116,7 +116,7 @@ supplied run evidence.
 - `smoke:canonical-caption-real-source-inspection-projection` — 44 assertions
 - `smoke:canonical-caption-qualification-run-evidence` — 25 checks
 - `smoke:canonical-caption-private-qualification-catalog` — 29 checks
-- `smoke:canonical-caption-private-qualification-composition` — 9 checks
+- `smoke:canonical-caption-private-qualification-composition` — 15 checks
 - `smoke:canonical-caption-shared-owner-composition` — 9 checks
 
 The catalog and final-record smoke uses contract fixtures only. It starts no

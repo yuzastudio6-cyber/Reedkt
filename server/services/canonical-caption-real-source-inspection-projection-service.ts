@@ -26,13 +26,16 @@ import {
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_REPOSITORY_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V2_VERSION,
+  CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V3_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_REQUEST_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V2_VERSION,
+  CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V3_VERSION,
   type CanonicalCaptionRealSourceInspectionAuthority,
   type CanonicalCaptionRealSourceInspectionAuthorityReadPort,
   type CanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
+  type CanonicalCaptionRealSourceInspectionAuthorityReadPortV3,
   type CanonicalCaptionRealSourceInspectionBundle,
   type CanonicalCaptionRealSourceInspectionBundleLocator,
   type CanonicalCaptionRealSourceInspectionBundleReadPort,
@@ -42,6 +45,7 @@ import {
   type CanonicalCaptionRealSourceInspectionProjectionRequest,
   type CanonicalCaptionRealSourceInspectionProjectionService,
   type CanonicalCaptionRealSourceInspectionProjectionServiceV2,
+  type CanonicalCaptionRealSourceInspectionProjectionServiceV3,
   type CanonicalCaptionRealSourceInspectionVariant,
 } from '../../src/types/canonical-caption-real-source-inspection-projection'
 import {
@@ -65,6 +69,20 @@ import {
 } from './canonical-caption-direct-visual-inspection-evidence-service'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   './canonical-gcs-source-analysis-lifecycle-store'
+import type { ServiceContext } from '../types'
+import { ApiError } from '../errors/api-error'
+import {
+  createCanonicalCaptionPrivateReviewEvidenceService,
+  parseCanonicalCaptionPrivateReviewEvidenceProjection,
+} from './canonical-caption-private-review-evidence-service'
+import {
+  createCanonicalEditExecutionPackageService,
+} from './canonical-edit-execution-package-service'
+import {
+  createEditPlanningAuthorityService,
+} from './edit-planning-authority-service'
+import { getRequiredAuthUserId } from './service-helpers'
+import { sha256AuthorityValue } from './private-edit-authority-store'
 
 const safeKey = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -170,6 +188,7 @@ const admittedReadPorts = new WeakSet<object>()
 const admittedAuthorityReadPorts = new WeakSet<object>()
 const admittedReadPortsV2 = new WeakSet<object>()
 const admittedAuthorityReadPortsV2 = new WeakSet<object>()
+const admittedAuthorityReadPortsV3 = new WeakSet<object>()
 const admittedBundleRepositories = new WeakSet<object>()
 
 interface SelectedInspectionEvidence {
@@ -455,6 +474,74 @@ export function isCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
     && admittedAuthorityReadPortsV2.has(value as object))
 }
 
+export function createCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(
+  readExact:
+    CanonicalCaptionRealSourceInspectionAuthorityReadPortV3['readExact'],
+): CanonicalCaptionRealSourceInspectionAuthorityReadPortV3 {
+  if (typeof readExact !== 'function') {
+    throw new Error(
+      'Source-bound canonical Caption authority reader required.')
+  }
+  const port = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V3_VERSION,
+    sourceAuthority:
+      'canonical_backend_approved_caption_run_authority' as const,
+    callerSuppliedAuthorityAccepted: false as const,
+    exactOriginalSourceBindingRequired: true as const,
+    async readExact(input: {
+      readonly canonicalScope:
+        CanonicalCaptionRealSourceInspectionProjectionRequest['canonicalScope']
+      readonly confirmedOutputFrameRef: CaptionDomainRef
+      readonly renderedArtifactRef: CaptionDomainRef
+      readonly deterministicQaRef: CaptionDomainRef
+      readonly expectedOriginalSourceRef: CaptionDomainRef
+    }) {
+      const parsed = z.object({
+        canonicalScope: scopeSchema,
+        confirmedOutputFrameRef: refSchema,
+        renderedArtifactRef: refSchema,
+        deterministicQaRef: refSchema,
+        expectedOriginalSourceRef: refSchema,
+      }).strict().parse(input)
+      return readExact(structuredClone(parsed))
+    },
+  })
+  admittedAuthorityReadPortsV3.add(port)
+  return port
+}
+
+export function isCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(
+  value: unknown,
+): value is CanonicalCaptionRealSourceInspectionAuthorityReadPortV3 {
+  return Boolean(value && typeof value === 'object'
+    && admittedAuthorityReadPortsV3.has(value as object))
+}
+
+/**
+ * Canonical one-writer adapter. It derives inspection authority only from the
+ * authenticated execution package, immutable approved snapshot, persisted
+ * Caption output evidence, and exact uploaded-source binding manifest.
+ */
+export function createCanonicalCaptionApprovedRunInspectionAuthorityReadPort(
+  context: ServiceContext,
+): CanonicalCaptionRealSourceInspectionAuthorityReadPortV3 {
+  if (!context) {
+    throw new Error('Canonical Caption approved-run context required.')
+  }
+  return createCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(
+    async (input) => {
+      try {
+        return await readApprovedRunInspectionAuthority(context, input)
+      } catch (error) {
+        if (error instanceof ApiError
+          && ['APPROVED_SNAPSHOT_REQUIRED', 'JOB_DEPENDENCY_NOT_READY']
+            .includes(error.code)) return null
+        throw error
+      }
+    })
+}
+
 export function createCanonicalCaptionRealSourceInspectionProjectionService(
   input: {
     readonly bundleReadPort:
@@ -677,6 +764,210 @@ export function createCanonicalCaptionRealSourceInspectionProjectionServiceV2(
       return legacyCore.project(request)
     },
   })
+}
+
+export function createCanonicalCaptionRealSourceInspectionProjectionServiceV3(
+  input: {
+    readonly bundleReadPort:
+      CanonicalCaptionRealSourceInspectionBundleReadPortV2
+    readonly authorityReadPort:
+      CanonicalCaptionRealSourceInspectionAuthorityReadPortV3
+    readonly evidenceRepository:
+      CanonicalCaptionDirectVisualInspectionRepository
+  },
+): CanonicalCaptionRealSourceInspectionProjectionServiceV3 {
+  if (!isCanonicalCaptionRealSourceInspectionBundleReadPortV2(
+    input.bundleReadPort)
+    || !isCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(
+      input.authorityReadPort)
+    || !isCanonicalCaptionDirectVisualInspectionRepository(
+      input.evidenceRepository)) {
+    throw new Error(
+      'Canonical Caption real-source inspection V3 ports invalid.')
+  }
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V3_VERSION,
+    tenantScopedBundleRereadRequired: true as const,
+    exactOriginalSourceBindingRequired: true as const,
+    callerSuppliedReceiptAccepted: false as const,
+    callerSuppliedAuthorityAccepted: false as const,
+    canonicalApprovedRunAuthorityRereadRequired: true as const,
+    canonicalQualificationReaderMustRevalidateAuthority: true as const,
+    async project(untrusted: unknown) {
+      const request =
+        parseCanonicalCaptionRealSourceInspectionProjectionRequest(untrusted)
+      const scopedBundlePort =
+        createCanonicalCaptionRealSourceInspectionBundleReadPort(
+          async ({ receiptRef }) => {
+            if (!sameRef(receiptRef, request.receiptRef)) return null
+            return input.bundleReadPort.readExact({
+              canonicalScope: request.canonicalScope,
+              receiptRef: request.receiptRef,
+              variant: request.variant,
+            })
+          })
+      const scopedAuthorityPort =
+        createCanonicalCaptionRealSourceInspectionAuthorityReadPort(
+          async (locator) => {
+            if (!sameRef(locator.approvedSnapshotRef,
+              request.canonicalScope.approvedSnapshotRef)
+              || !sameRef(locator.executionPackageRef,
+                request.canonicalScope.executionPackageRef)
+              || locator.outputId !== request.canonicalScope.outputId
+              || !sameRef(locator.renderedArtifactRef,
+                request.renderedArtifactRef)) return null
+            return input.authorityReadPort.readExact({
+              canonicalScope: request.canonicalScope,
+              confirmedOutputFrameRef: request.confirmedOutputFrameRef,
+              renderedArtifactRef: request.renderedArtifactRef,
+              deterministicQaRef: request.deterministicQaRef,
+              expectedOriginalSourceRef: request.expectedOriginalSourceRef,
+            })
+          })
+      const compatibilityCore =
+        createCanonicalCaptionRealSourceInspectionProjectionService({
+          bundleReadPort: scopedBundlePort,
+          authorityReadPort: scopedAuthorityPort,
+          evidenceRepository: input.evidenceRepository,
+        })
+      return compatibilityCore.project(request)
+    },
+  })
+}
+
+async function readApprovedRunInspectionAuthority(
+  context: ServiceContext,
+  input: Parameters<
+    CanonicalCaptionRealSourceInspectionAuthorityReadPortV3['readExact']>[0],
+): Promise<CanonicalCaptionRealSourceInspectionAuthority | null> {
+  const ownerUserId = getRequiredAuthUserId(context)
+  const scope = input.canonicalScope
+  const packageResult = await createCanonicalEditExecutionPackageService(
+    context).getPackage(scope.executionPackageRef.id, scope.workspaceId)
+  const executionPackage = packageResult.approvedEditExecutionPackage
+  const authority = await createEditPlanningAuthorityService(context)
+    .loadApprovedExecutionAuthority(
+      executionPackage.approvedPlanSnapshotId, scope.workspaceId)
+  const reviewValue = await createCanonicalCaptionPrivateReviewEvidenceService(
+    context).readForPackage({
+      workspaceId: scope.workspaceId,
+      packageRecordId: executionPackage.packageRecordId,
+      outputId: scope.outputId,
+    })
+  if (!reviewValue) return null
+  const review = parseCanonicalCaptionPrivateReviewEvidenceProjection(
+    reviewValue)
+  const source = authority.sourceAssetManifest
+  if (source.schemaVersion !== 'private-approved-source-binding-manifest-v1') {
+    return null
+  }
+  const approvedSnapshotRef: CaptionDomainRef = {
+    id: authority.snapshot.snapshotId,
+    version: authority.snapshot.schemaVersion,
+    contentHash: authority.snapshot.snapshotHash,
+  }
+  const executionPackageRef: CaptionDomainRef = {
+    id: executionPackage.packageRecordId,
+    version: executionPackage.schemaVersion,
+    contentHash: executionPackage.packageHash,
+  }
+  const renderedArtifactRef = normalizeEvidenceRef(
+    review.output.renderedArtifactRef)
+  const deterministicQaRef = normalizeEvidenceRef(
+    review.output.deterministicQaRef)
+  const sourceMatches = source.bindings.filter((binding) =>
+    binding.mediaAssetId === input.expectedOriginalSourceRef.id
+    && binding.checksumSha256 === input.expectedOriginalSourceRef.contentHash)
+  if (input.expectedOriginalSourceRef.version !== 'private-source-media-v1'
+    || sourceMatches.length !== 1) {
+    throw new Error(
+      'Caption inspection source did not match one approved upload binding.')
+  }
+  const expectedPlanVersionId = `${authority.snapshot.planId}.v${
+    authority.snapshot.planVersion}`
+  if (scope.ownerUserId !== ownerUserId
+    || scope.workspaceId !== authority.snapshot.workspaceId
+    || scope.projectId !== authority.snapshot.projectId
+    || scope.editSessionId !== authority.snapshot.editSessionId
+    || scope.planVersionId !== expectedPlanVersionId
+    || scope.outputId !== authority.captionPlanningProjection?.outputId
+    || !sameRef(scope.approvedSnapshotRef, approvedSnapshotRef)
+    || !sameRef(scope.executionPackageRef, executionPackageRef)
+    || executionPackage.approvedPlanSnapshotId !== authority.snapshot.snapshotId
+    || review.canonicalScope.ownerUserId !== ownerUserId
+    || review.canonicalScope.workspaceId !== scope.workspaceId
+    || review.canonicalScope.projectId !== scope.projectId
+    || review.canonicalScope.editSessionId !== scope.editSessionId
+    || review.canonicalScope.approvedSnapshotId !==
+      authority.snapshot.snapshotId
+    || review.canonicalScope.approvedSnapshotHash !==
+      authority.snapshot.snapshotHash
+    || review.canonicalScope.planId !== authority.snapshot.planId
+    || review.canonicalScope.planVersion !== authority.snapshot.planVersion
+    || review.canonicalScope.packageRecordId !==
+      executionPackage.packageRecordId
+    || review.canonicalScope.packageHash !== executionPackage.packageHash
+    || review.output.outputId !== scope.outputId
+    || !sameRef(review.output.confirmedOutputFrameRef,
+      input.confirmedOutputFrameRef)
+    || !sameRef(renderedArtifactRef, input.renderedArtifactRef)
+    || !sameRef(deterministicQaRef, input.deterministicQaRef)
+    || !review.visualReview.actualModelInferenceVerified
+    || !review.visualReview.exactApprovedRenderBound) {
+    throw new Error(
+      'Caption inspection authority crossed canonical approved-run lineage.')
+  }
+  const sourceMediaAuthorityRef: CaptionDomainRef = {
+    id: `${authority.snapshot.snapshotId}.approved-source-media`,
+    version: source.schemaVersion,
+    contentHash: source.manifestHash,
+  }
+  const sourceMediaBindingRefs: CaptionDomainRef[] = source.bindings.map(
+    (binding) => ({
+      id: binding.mediaAssetId,
+      version: 'private-approved-source-binding-v1',
+      contentHash: binding.bindingHash,
+    })).sort((left, right) => {
+      const leftKey = refKey(left)
+      const rightKey = refKey(right)
+      return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0
+    })
+  const authorityIdentity = sha256AuthorityValue({
+    canonicalScope: scope,
+    confirmedOutputFrameRef: input.confirmedOutputFrameRef,
+    renderedArtifactRef,
+    deterministicQaRef,
+    originalSourceRef: input.expectedOriginalSourceRef,
+    sourceMediaAuthorityRef,
+    sourceMediaBindingRefs,
+  })
+  return createCanonicalCaptionRealSourceInspectionAuthority({
+    authorityId: `caption.approved-run.inspection.${
+      authorityIdentity.slice(0, 40)}`,
+    canonicalScope: structuredClone(scope),
+    confirmedOutputFrameRef: structuredClone(
+      input.confirmedOutputFrameRef),
+    renderedArtifactRef,
+    deterministicQaRef,
+    originalSourceRef: structuredClone(input.expectedOriginalSourceRef),
+    sourceMediaAuthorityRef,
+    sourceMediaBindingRefs,
+    exactApprovedSnapshotExecutionPackageOutputAndSourceReread: true,
+  })
+}
+
+function normalizeEvidenceRef(value: {
+  readonly id: string
+  readonly version: number
+  readonly contentHash: string
+}): CaptionDomainRef {
+  return {
+    id: value.id,
+    version: String(value.version),
+    contentHash: value.contentHash.startsWith('sha256:')
+      ? value.contentHash.slice(7) : value.contentHash,
+  }
 }
 
 async function readBundle(

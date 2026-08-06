@@ -2,7 +2,7 @@
 
 Milestone: Post-CAP-20 canonical evidence integration
 
-Status: `tenant_scoped_private_composition_mounted_waiting_on_fresh_approved_run_receipts`
+Status: `canonical_approved_run_adapter_mounted_waiting_on_fresh_receipts`
 
 ## Outcome
 
@@ -32,11 +32,15 @@ approved-run evidence record can exist.
 
 The initial V1 internal read ports remain a compatibility record, but they are
 not mounted in the private qualification composition because their lookup
-inputs did not carry complete tenant/output scope. V2 is the active mount. It
-uses a create-only repository keyed by owner, workspace, immutable approved
-scope, output, variant, and receipt, and it passes the same complete scope to
-the approved-run authority reader. Cross-tenant lookup and persistence fail
-closed.
+inputs did not carry complete tenant/output scope. V2 preserves that corrected
+tenant-scoped compatibility lane. V3 is the active mount: it uses the same
+create-only repository keyed by owner, workspace, immutable approved scope,
+output, variant, and receipt, and its backend adapter independently rereads the
+authenticated execution package, immutable snapshot, persisted Caption output,
+and approved uploaded-source manifest. V3 additionally requires the receipt's
+exact original-source ID and checksum to match one approved binding, so a
+multi-source edit cannot substitute another clip. Cross-tenant, cross-output,
+and cross-source lookup fail closed.
 
 ## Files changed
 
@@ -56,9 +60,12 @@ closed.
 - `canonical-caption-real-source-inspection-authority-v1`
 - `canonical-caption-real-source-inspection-authority-read-port-v1`
 - `canonical-caption-real-source-inspection-authority-read-port-v2`
+- `canonical-caption-real-source-inspection-authority-read-port-v3`
 - `canonical-caption-real-source-inspection-projection-service-v1`
 - `canonical-caption-real-source-inspection-projection-service-v2`
+- `canonical-caption-real-source-inspection-projection-service-v3`
 - `canonical-caption-private-qualification-composition-v2`
+- `canonical-caption-private-qualification-composition-v3`
 
 ## Existing owners reused
 
@@ -116,10 +123,11 @@ Not applicable. No new image or video was generated.
 ## Repairs made
 
 The first draft accepted source-authority references in the projection request
-and deferred their verification to the later qualification reader. That was
-repaired before publication. The final service derives canonical source and
-execution lineage only from an admitted, twice-reread approved-run authority
-port and retains the downstream reader revalidation as defense in depth.
+and deferred their verification to the later qualification reader. V2 repaired
+the tenant/output lookup but still required an already-admitted abstract
+authority port. V3 now mounts the concrete canonical backend adapter and adds
+the exact original uploaded-source binding to its read identity. The downstream
+qualification reader still revalidates the same authority as defense in depth.
 
 ## Known limitations and scoped blockers
 
@@ -139,6 +147,6 @@ source authority and without promoting synthetic engineering media.
 
 ## Next milestone
 
-Run representative approved edits through the V2 private composition so they
+Run representative approved edits through the V3 private composition so they
 persist exact real-source inspection evidence and the remaining owner/QA
 evidence into the multi-run catalog.

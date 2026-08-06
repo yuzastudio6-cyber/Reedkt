@@ -6,6 +6,7 @@ import type { CanonicalCaptionBrollEvidenceRepository } from
 import {
   createCanonicalCaptionPrivateQualificationComposition,
   createCanonicalCaptionPrivateQualificationCompositionV2,
+  createCanonicalCaptionPrivateQualificationCompositionV3,
 } from '../services/canonical-caption-private-qualification-composition'
 import {
   createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
@@ -99,6 +100,18 @@ const compositionV2 =
     realSourceInspectionAuthorityReadPort,
     prefix: 'private-internal/caption-qualification-composition-v2-smoke',
   })
+const compositionV3 =
+  createCanonicalCaptionPrivateQualificationCompositionV3({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository,
+    prefix: 'private-internal/caption-qualification-composition-v3-smoke',
+  })
 
 check(composition.schemaVersion ===
   'canonical-caption-private-qualification-composition-v1',
@@ -144,6 +157,17 @@ check(compositionV2.realSourceInspectionProjectionService.schemaVersion ===
   && compositionV2.tenantScopedInspectionEvidenceRequired
   && !compositionV2.historicalInspectionReceiptAutoPromoted,
 'The V2 composition must project only fresh, tenant-scoped approved evidence.')
+check(compositionV3.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v3'
+  && compositionV3.realSourceInspectionProjectionService.schemaVersion ===
+    'canonical-caption-real-source-inspection-projection-service-v3',
+'The V3 composition must mount the canonical approved-run projection lane.')
+check(compositionV3.canonicalApprovedRunAuthorityAdapterMounted
+  && compositionV3.exactOriginalSourceBindingRequired
+  && compositionV3.realSourceInspectionProjectionService
+    .exactOriginalSourceBindingRequired
+  && !compositionV3.historicalInspectionReceiptAutoPromoted,
+'The active composition must bind one exact approved source without promotion.')
 
 assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
   context,
@@ -183,6 +207,8 @@ console.log(JSON.stringify({
   sourceOnly: true,
   actualPrivateEvidenceRead: false,
   tenantScopedRealSourceInspectionProjectionMounted: true,
+  canonicalApprovedRunAuthorityAdapterMounted: true,
+  exactOriginalSourceBindingRequired: true,
   historicalInspectionReceiptAutoPromoted: false,
   multipleApprovedRunsRequired: true,
   oneAllFeatureEditFabricated: false,

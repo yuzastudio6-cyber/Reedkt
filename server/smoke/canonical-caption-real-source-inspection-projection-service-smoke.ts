@@ -43,11 +43,11 @@ import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
   createCanonicalCaptionRealSourceInspectionAuthority,
-  createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
+  createCanonicalCaptionRealSourceInspectionAuthorityReadPortV3,
   createCanonicalCaptionRealSourceInspectionBundleReadPortV2,
   createCanonicalCaptionRealSourceInspectionBundleRepository,
   createCanonicalCaptionRealSourceInspectionProjectionRequest,
-  createCanonicalCaptionRealSourceInspectionProjectionServiceV2,
+  createCanonicalCaptionRealSourceInspectionProjectionServiceV3,
   parseCanonicalCaptionRealSourceInspectionProjectionRequest,
 } from '../services/canonical-caption-real-source-inspection-projection-service'
 
@@ -606,7 +606,7 @@ async function run(): Promise<void> {
       prefix: 'private-internal/caption-real-source-bundle-smoke',
     })
   const authorityReadPort =
-    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
+    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(
       async (input) => {
         const value = authorities.get(refKey(input.renderedArtifactRef))
         if (!value
@@ -615,7 +615,9 @@ async function run(): Promise<void> {
           || refKey(value.confirmedOutputFrameRef) !==
             refKey(input.confirmedOutputFrameRef)
           || refKey(value.deterministicQaRef) !==
-            refKey(input.deterministicQaRef)) return null
+            refKey(input.deterministicQaRef)
+          || refKey(value.originalSourceRef) !==
+            refKey(input.expectedOriginalSourceRef)) return null
         return structuredClone(value)
       })
   const evidenceMemory = memoryPort()
@@ -625,7 +627,7 @@ async function run(): Promise<void> {
       prefix: 'private-internal/caption-real-source-projection-smoke',
     })
   const service =
-    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV3({
       bundleReadPort,
       authorityReadPort,
       evidenceRepository,
@@ -750,7 +752,7 @@ async function run(): Promise<void> {
       return bundle
     })
   await expectReject(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV3({
       bundleReadPort: changingBundlePort,
       authorityReadPort,
       evidenceRepository,
@@ -758,7 +760,7 @@ async function run(): Promise<void> {
 
   let authorityReads = 0
   const changingAuthorityPort =
-    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(async () => {
+    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(async () => {
       authorityReads += 1
       const value = structuredClone(cases[0]!.authority)
       if (authorityReads === 2) {
@@ -770,14 +772,14 @@ async function run(): Promise<void> {
       return value
     })
   await expectReject(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV3({
       bundleReadPort,
       authorityReadPort: changingAuthorityPort,
       evidenceRepository,
     }).project(requests[0]!))
 
   const unsortedAuthorityPort =
-    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(async () => {
+    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV3(async () => {
       const value = structuredClone(cases[0]!.authority)
       value.sourceMediaBindingRefs.reverse()
       value.authorityDigestSha256 = calculateSkillContractDigest(
@@ -786,14 +788,14 @@ async function run(): Promise<void> {
       return value
     })
   await expectReject(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV3({
       bundleReadPort,
       authorityReadPort: unsortedAuthorityPort,
       evidenceRepository,
     }).project(requests[0]!))
 
   expectThrow(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV3({
       bundleReadPort: {
         schemaVersion:
           'canonical-caption-real-source-inspection-bundle-read-port-v2',
@@ -806,13 +808,14 @@ async function run(): Promise<void> {
       evidenceRepository,
     }))
   expectThrow(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV3({
       bundleReadPort,
       authorityReadPort: {
         schemaVersion:
-          'canonical-caption-real-source-inspection-authority-read-port-v2',
+          'canonical-caption-real-source-inspection-authority-read-port-v3',
         sourceAuthority: 'canonical_backend_approved_caption_run_authority',
         callerSuppliedAuthorityAccepted: false,
+        exactOriginalSourceBindingRequired: true,
         async readExact() { return null },
       },
       evidenceRepository,
@@ -826,6 +829,7 @@ async function run(): Promise<void> {
     sourceContractFixtureOnly: true,
     actualHistoricalInspectionReceiptsConsumedAtRuntime: false,
     canonicalApprovedRunAuthorityRereadTwice: true,
+    exactOriginalSourceBindingRequired: true,
     actualQualificationCatalogPersisted: false,
     syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
     sharedPostrenderModelReviewClaimed: false,

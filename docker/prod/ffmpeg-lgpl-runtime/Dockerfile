@@ -44,8 +44,7 @@ RUN printf '%s\n' \
 
 # Official FFmpeg 8.1.2 release source. The digest was independently checked
 # against the release signed by FCF986EA15E6E293A5644F10B4322F04D67658D8.
-ADD --checksum=sha256:464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c \
-  https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz /tmp/ffmpeg-8.1.2.tar.xz
+COPY ffmpeg-8.1.2.tar.xz /tmp/ffmpeg-8.1.2.tar.xz
 
 COPY configure-flags.txt /tmp/configure-flags.txt
 COPY allowed-encoders.txt /tmp/allowed-encoders.txt

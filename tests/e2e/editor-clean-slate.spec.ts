@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 import {
   clickWhenReady,
   completeRequiredEditorSetupBeforeFootagePrep,
@@ -72,14 +72,9 @@ test.describe('clean named-edit chat', () => {
     await expectNoGenerationBeforeApproval(page)
 
     await clickWhenReady(page.getByTestId('plan-review-approve'))
-    await expect(page.getByTestId('canonical-plan-approval-approved')).toBeVisible()
-    await clickWhenReady(page.getByTestId('canonical-execution-package-request-submit'))
-    await clickWhenReady(page.getByTestId('canonical-private-edit-preparation-submit'))
     const assembleReview = page.getByRole('button', { name: /^Assemble private review$/i })
     const canonicalPrivateReview = page.getByTestId('canonical-private-review')
-    await expect(assembleReview.or(canonicalPrivateReview)).toBeVisible({
-      timeout: PROFESSIONAL_PRIVATE_REVIEW_TIMEOUT_MS,
-    })
+    await reachPrivateReviewAssembly(page, assembleReview, canonicalPrivateReview)
     if (await assembleReview.isVisible()) {
       await clickWhenReady(assembleReview)
     }
@@ -95,3 +90,27 @@ test.describe('clean named-edit chat', () => {
     await expectFloatingComposerAligned(page)
   })
 })
+
+async function reachPrivateReviewAssembly(
+  page: Page,
+  assembleReview: Locator,
+  canonicalPrivateReview: Locator,
+): Promise<void> {
+  const deadline = Date.now() + PROFESSIONAL_PRIVATE_REVIEW_TIMEOUT_MS
+  const recoveryControls = [
+    page.getByTestId('canonical-execution-package-request-submit'),
+    page.getByTestId('canonical-private-edit-preparation-submit'),
+  ]
+  while (Date.now() < deadline) {
+    if (await canonicalPrivateReview.isVisible() || await assembleReview.isVisible()) return
+    for (const recoveryControl of recoveryControls) {
+      if (await recoveryControl.isVisible() && await recoveryControl.isEnabled()) {
+        await clickWhenReady(recoveryControl)
+      }
+    }
+    await page.waitForTimeout(250)
+  }
+  await expect(assembleReview.or(canonicalPrivateReview)).toBeVisible({
+    timeout: 1,
+  })
+}

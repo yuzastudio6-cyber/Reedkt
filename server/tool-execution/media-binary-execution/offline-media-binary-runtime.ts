@@ -1,10 +1,11 @@
 import { spawn } from 'node:child_process'
 import { createHash, randomBytes } from 'node:crypto'
 import { constants } from 'node:fs'
-import { open, readFile } from 'node:fs/promises'
+import { cp, mkdtemp, open, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Readable, Transform } from 'node:stream'
 import { finished, pipeline } from 'node:stream/promises'
+import { tmpdir } from 'node:os'
 
 import { ApiError } from '../../errors/api-error'
 import { inspectPcmWavePrefix, PCM_WAVE_MAXIMUM_HEADER_BYTES } from '../../media/pcm-wave'
@@ -188,6 +189,9 @@ const VISUAL_CALIBRATION_OBJECTIVE_QA_ENTRYPOINT =
   '/usr/local/bin/reeditpro-ffmpeg-visual-calibration-objective-qa' as const
 const SOURCE_VERSION = '8.1.2' as const
 const SOURCE_SHA256 = '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' as const
+const SOURCE_ARCHIVE_URL = 'https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz' as const
+const SOURCE_ARCHIVE_NAME = 'ffmpeg-8.1.2.tar.xz' as const
+const SOURCE_ARCHIVE_MAXIMUM_BYTES = 32 * 1024 * 1024
 export const OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_SCOPE_VERSION =
   'offline-media-binary-runtime-storage-scope-v1' as const
 
@@ -389,31 +393,40 @@ export async function prepareOfflineMediaBinaryDockerRuntime(): Promise<OfflineM
   } catch (error) {
     if (!(error instanceof ApiError) || error.code !== 'TOOL_NOT_READY') throw error
   }
-  const context = join(process.cwd(), 'docker/prod/ffmpeg-lgpl-runtime')
+  const sourceContext = join(process.cwd(), 'docker/prod/ffmpeg-lgpl-runtime')
   const sourceTreeSha256 = sha256AuthorityValue(await policyHashes())
-  const failures: Array<{ attempt: number; exitCode: number; diagnostic: string }> = []
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    const built = await dockerBuffer([
-      'build',
-      '--pull=false',
-      '--progress=plain',
-      '--file', join(context, 'Dockerfile'),
-      '--tag', IMAGE_TAG,
-      '--build-arg', 'SOURCE_DATE_EPOCH=1781664539',
-      '--build-arg', `REEDITPRO_SOURCE_TREE_SHA256=${sourceTreeSha256}`,
-      context,
-    ], undefined, 8 * 1024 * 1024, DOCKER_BUILD_TIMEOUT_MS)
-    if (built.exitCode === 0) return inspectImage()
-    failures.push({
-      attempt,
-      exitCode: built.exitCode,
-      diagnostic: boundedDockerDiagnostic(built),
+  const buildRoot = await mkdtemp(join(tmpdir(), 'reeditpro-ffmpeg-lgpl-build-'))
+  const context = join(buildRoot, 'context')
+  try {
+    await cp(sourceContext, context, { recursive: true, force: false, errorOnExist: true })
+    const archive = await downloadPinnedSourceArchive()
+    await writeFile(join(context, SOURCE_ARCHIVE_NAME), archive, { flag: 'wx', mode: 0o600 })
+    const failures: Array<{ attempt: number; exitCode: number; diagnostic: string }> = []
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const built = await dockerBuffer([
+        'build',
+        '--pull=false',
+        '--progress=plain',
+        '--file', join(context, 'Dockerfile'),
+        '--tag', IMAGE_TAG,
+        '--build-arg', 'SOURCE_DATE_EPOCH=1781664539',
+        '--build-arg', `REEDITPRO_SOURCE_TREE_SHA256=${sourceTreeSha256}`,
+        context,
+      ], undefined, 8 * 1024 * 1024, DOCKER_BUILD_TIMEOUT_MS)
+      if (built.exitCode === 0) return inspectImage()
+      failures.push({
+        attempt,
+        exitCode: built.exitCode,
+        diagnostic: boundedDockerDiagnostic(built),
+      })
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 2_000))
+    }
+    throw unavailable('Pinned FFmpeg LGPL image build failed.', {
+      attempts: failures,
     })
-    if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 2_000))
+  } finally {
+    await rm(buildRoot, { recursive: true, force: true }).catch(() => undefined)
   }
-  throw unavailable('Pinned FFmpeg LGPL image build failed.', {
-    attempts: failures,
-  })
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -7991,7 +8004,7 @@ async function inspectContainer(id: string): Promise<Record<string, unknown>> {
 async function policyHashes(): Promise<Record<string, string>> {
   const directory = join(process.cwd(), 'docker/prod/ffmpeg-lgpl-runtime')
   const names = [
-    'Dockerfile', 'source-provenance.lock', 'configure-flags.txt',
+    '.dockerignore', 'Dockerfile', 'source-provenance.lock', 'configure-flags.txt',
     'allowed-encoders.txt', 'allowed-decoders.txt', 'allowed-filters.txt',
     'allowed-demuxers.txt', 'allowed-muxers.txt', 'allowed-protocols.txt', 'allowed-bsfs.txt',
     'source-slice-finalizer.sh', 'object-mezzanine-chunk.sh',
@@ -7999,6 +8012,7 @@ async function policyHashes(): Promise<Record<string, string>> {
     'long-form-master-assembly.sh', 'customer-delivery-master-mux.sh',
     'visual-calibration-objective-qa.sh',
     'media-cgroup-resource-observer.sh',
+    'verify-runtime.sh',
   ]
   return Object.fromEntries(await Promise.all(names.map(async (name) => [name, sha256(await readFile(join(directory, name)))])))
 }
@@ -8050,6 +8064,38 @@ function boundedDockerDiagnostic(result: { stdout: Buffer; stderr: Buffer }): st
     .join('')
     .trim()
   return combined.length <= 4_096 ? combined : combined.slice(-4_096)
+}
+
+async function downloadPinnedSourceArchive(): Promise<Buffer> {
+  const failures: Array<{ attempt: number; reason: string }> = []
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    try {
+      const response = await fetch(SOURCE_ARCHIVE_URL, {
+        redirect: 'error',
+        signal: AbortSignal.timeout(120_000),
+        headers: { 'user-agent': 'ReEditPro-private-runtime-builder/1.0' },
+      })
+      const declaredLength = Number(response.headers.get('content-length'))
+      if (
+        response.status !== 200 ||
+        !Number.isSafeInteger(declaredLength) ||
+        declaredLength < 1024 * 1024 ||
+        declaredLength > SOURCE_ARCHIVE_MAXIMUM_BYTES
+      ) throw new Error(`Unexpected source response ${response.status}/${declaredLength}.`)
+      const archive = Buffer.from(await response.arrayBuffer())
+      if (archive.byteLength !== declaredLength || sha256(archive) !== SOURCE_SHA256) {
+        throw new Error('Downloaded source archive identity is invalid.')
+      }
+      return archive
+    } catch (error) {
+      failures.push({
+        attempt,
+        reason: error instanceof Error ? error.message.slice(0, 512) : 'unknown download failure',
+      })
+      if (attempt < 5) await new Promise((resolve) => setTimeout(resolve, attempt * 2_000))
+    }
+  }
+  throw unavailable('Pinned FFmpeg source archive download failed.', { attempts: failures })
 }
 
 async function dockerVerifiedSeekableInput(

@@ -321,13 +321,24 @@ idempotent rerun then observed all five disabled and emitted
   approved A2 CPU quota does not substitute for GPU quota, and an alternate-
   region grant would not become dispatch authority until that region had its
   own exact private resource foundation.
-- A separate Vertex AI Custom Job quota request now asks for exactly one
-  general custom-model-training A100 80GB GPU in `us-central1`. It is pending.
-  This is an additional user-triggered, zero-persistent-endpoint capacity path,
-  not permission to use Vertex's restricted image-training quota and not a
-  runtime route yet. Even if granted, the route remains blocked until its own
-  immutable-container, private-network, attempt, usage-cost, terminal-reread,
-  and independent qualification contracts are frozen and proven.
+- Vertex AI approved exactly one general custom-model-training A100 80GB GPU
+  in `us-central1` under quota preference
+  `weeditpro-vertex-a100-80gb-us-central1-1`. This is the viable heavy-primary
+  capacity path after the bounded Compute A100 requests were denied. It does
+  not authorize Vertex's restricted image-training quota and does not by
+  itself authorize a live job.
+- The additive `canonical-a100-vertex-custom-job-launch-port-v1` boundary now
+  compiles an exact one-worker/one-replica `NVIDIA_A100_80GB` Custom Job only
+  after create-only durable authority consumption and reread. It pins the
+  immutable container, service identity, private VPC peering, CMEK, timeout,
+  zero restart, zero automatic retry, and zero persistent endpoint; it rejects
+  caller image/command/arguments/model selection. An uncertain create outcome
+  blocks retry until reconciliation, and every accepted attempt requires
+  terminal usage plus billing-account-effective cost reread. This is a
+  source-qualified launch boundary, not an active production mount or live
+  SAM 3.1 inference claim. Private-network provisioning, canonical lifecycle
+  bridging, account-effective rate authority, checkpoint-bearing image, and
+  independent A100/L4 execution evidence remain required.
 - The project has one L4 of Compute quota. The separately scoped Track All
   task-QA image now has an independently built, scanned, signed, and privately
   qualified L4 path; this does not qualify the checkpoint-bearing SAM 3.1

@@ -30,6 +30,7 @@ const smokes = [
   'server/smoke/visual-intelligence-live-prerequisites-audit-smoke.ts',
   'server/smoke/visual-intelligence-account-price-reader-grant-smoke.ts',
   'server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts',
+  'server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts',
   'server/smoke/gcp-foundation-config-smoke.ts',
   'server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts',
   'server/smoke/canonical-source-analysis-l4-probe-attempt-owner-smoke.ts',

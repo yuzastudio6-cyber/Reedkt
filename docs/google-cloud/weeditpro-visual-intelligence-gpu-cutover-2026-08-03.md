@@ -624,6 +624,19 @@ semantics only; they do not substitute for the six repository-specific
 canonical-chain qualifications still required by the artifact-repository
 release owner.
 
+The six-repository release owner is now mounted behind
+`npm run publish:track-all-sam3_1-artifact-repository-release`. It accepts only
+an exact Caption/Track-All support-request ref and the two current storage-
+qualification refs. It then rereads and identical-replays one complete
+canonical task-context → task → runtime-result → L4 task-QA/private-review →
+Caption scene-evidence → authenticated Caption Track-All evidence chain through
+the same repositories used by the production composition root. It derives the
+six component qualification refs from those exact persisted records, rejects
+crossed/stale/partial/tampered lineage, and publishes the bounded release
+create-only. The operator cannot self-assert repository versions, readiness,
+storage security, or completion. It remains intentionally unexecutable until a
+real qualified SAM 3.1 Track All result completes that full canonical chain.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

@@ -87,6 +87,9 @@ import {
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
+  createCanonicalSam31GpuTaskContextRepository,
+} from '../services/canonical-sam3_1-gpu-task-context-owner'
+import {
   buildCanonicalSam31GpuTaskContext,
   buildCanonicalSam31GpuTaskRecord,
   createCanonicalSam31GpuTaskStoreFromObjectPort,
@@ -194,6 +197,14 @@ const captionContext = buildCanonicalSam31GpuTaskContext({
   privateTaskInputTransportRef: baseContext.privateTaskInputTransportRef,
   privateTaskOutputTransportRef: baseContext.privateTaskOutputTransportRef,
   preparedAt: baseContext.preparedAt,
+})
+const qualificationTaskContextRepository =
+  createCanonicalSam31GpuTaskContextRepository({
+    objectPort: controlPort,
+    prefix: 'private/smoke/caption-track-all/task-context/v1',
+  })
+await qualificationTaskContextRepository.persistTaskContextCreateOnly({
+  context: captionContext,
 })
 const captionTask = buildCanonicalSam31GpuTaskRecord({
   admission: a100.admission,
@@ -1421,6 +1432,25 @@ assert.throws(() => parseCaptionTrackAllSupportPayload(new Proxy({}, {
   ownKeys() { throw new Error('hostile proxy') },
 })))
 assertions += 1
+
+export const canonicalCaptionTrackAllRepositoryQualificationFixture =
+  Object.freeze({
+    supportRequestRef: requestRef(captionSupportRequest),
+    context: captionContext,
+    task: captionTask,
+    result: captionResult,
+    measurement: compiledMeasurement,
+    review: compiledReview,
+    authority: sceneQaAuthority,
+    sceneEvidence: sceneEvidence!,
+    record,
+    taskContextRepository: qualificationTaskContextRepository,
+    taskStore,
+    runtimeResultStore: resultStore,
+    taskQaRepository,
+    captionSceneEvidenceRepository: sceneEvidenceRepository,
+    captionTrackAllEvidenceRepository: evidenceRepository,
+  })
 
 console.log(JSON.stringify({
   smoke: 'canonical-caption-track-all-support-service',

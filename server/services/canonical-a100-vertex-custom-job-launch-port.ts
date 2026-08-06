@@ -12,6 +12,8 @@ export const CANONICAL_A100_VERTEX_CUSTOM_JOB_LAUNCH_AUTHORITY_VERSION =
   'canonical-a100-vertex-custom-job-launch-authority-v1' as const
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_CONSUMPTION_VERSION =
   'canonical-a100-vertex-custom-job-consumption-v1' as const
+export const CANONICAL_A100_VERTEX_CUSTOM_JOB_EXECUTION_RECORD_VERSION =
+  'canonical-a100-vertex-custom-job-execution-record-v1' as const
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_LAUNCH_RESULT_VERSION =
   'canonical-a100-vertex-custom-job-launch-result-v1' as const
 
@@ -45,6 +47,9 @@ const serviceAccountEmail = z.string().trim().max(180).regex(
 )
 const immutableImageUri = z.string().trim().max(512).regex(
   /^us-central1-docker\.pkg\.dev\/reeditpro\/[a-z0-9._-]+\/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$/u,
+)
+const customJobResourceName = z.string().regex(
+  /^projects\/reeditpro\/locations\/us-central1\/customJobs\/[0-9]+$/u,
 )
 
 const releaseWithoutHashSchema = z.object({
@@ -211,6 +216,32 @@ export type CanonicalA100VertexCustomJobConsumption = z.infer<
   typeof canonicalA100VertexCustomJobConsumptionSchema
 >
 
+const executionRecordWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_A100_VERTEX_CUSTOM_JOB_EXECUTION_RECORD_VERSION,
+  ),
+  source: z.literal('canonical_a100_vertex_custom_job_launch_port'),
+  executionRecordId: safeId,
+  authorityRef: evidenceRefSchema,
+  releaseRef: evidenceRefSchema,
+  consumptionRef: evidenceRefSchema,
+  customJobCreateRequestRef: evidenceRefSchema,
+  customJobResourceName,
+  displayName: safeId,
+  initialState: z.enum(['JOB_STATE_PENDING', 'JOB_STATE_QUEUED']),
+  providerResponseDigestSha256: sha256,
+  createResponsePersistedAndExactReread: z.literal(true),
+  terminalStateClaimed: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  persistedAt: timestamp,
+}).strict()
+export const canonicalA100VertexCustomJobExecutionRecordSchema =
+  executionRecordWithoutHashSchema.extend({ executionRecordHash: sha256 })
+    .strict()
+export type CanonicalA100VertexCustomJobExecutionRecord = z.infer<
+  typeof canonicalA100VertexCustomJobExecutionRecordSchema
+>
+
 const launchResultWithoutHashSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_A100_VERTEX_CUSTOM_JOB_LAUNCH_RESULT_VERSION,
@@ -274,10 +305,17 @@ export interface CanonicalA100VertexCustomJobConsumptionPort {
   ): Promise<unknown>
 }
 
+export interface CanonicalA100VertexCustomJobExecutionRepository {
+  createOnlyAndReread(
+    record: CanonicalA100VertexCustomJobExecutionRecord,
+  ): Promise<unknown>
+}
+
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
 
 export function createCanonicalA100VertexCustomJobLaunchPort(input: {
   readonly consumptionPort: CanonicalA100VertexCustomJobConsumptionPort
+  readonly executionRepository: CanonicalA100VertexCustomJobExecutionRepository
   readonly auth?: GoogleAuthRequest
   readonly now?: () => string
   readonly requestTimeoutMilliseconds?: number
@@ -333,16 +371,34 @@ export function createCanonicalA100VertexCustomJobLaunchPort(input: {
           responseType: 'json',
           maxContentLength: 2 * 1024 * 1024,
         })
-        const executionRef = parseCreateResponse({
+        const createResponse = parseCreateResponse({
           untrusted: response.data,
           prepared,
         })
+        const executionRecord = createExecutionRecord({
+          authority,
+          release,
+          consumption,
+          createRequestRef: prepared.createRequestRef,
+          createResponse,
+          persistedAt: observedAt,
+        })
+        const rereadExecution = assertCanonicalA100VertexCustomJobExecutionRecord(
+          await input.executionRepository.createOnlyAndReread(executionRecord),
+        )
+        if (stableAuthorityStringify(rereadExecution) !==
+          stableAuthorityStringify(executionRecord)) {
+          throw new Error('Vertex execution record reread changed.')
+        }
         return launchResult({
           authority,
           release,
           consumption,
           createRequestRef: prepared.createRequestRef,
-          customJobExecutionRef: executionRef,
+          customJobExecutionRef: ref(
+            executionRecord.executionRecordId,
+            executionRecord.executionRecordHash,
+          ),
           disposition: 'accepted',
           providerCallStarted: true,
           substantiveWork: 'not_executed',
@@ -419,6 +475,18 @@ export function assertCanonicalA100VertexCustomJobConsumption(
     throw new Error('Vertex A100 consumption hash is invalid.')
   }
   return consumption
+}
+
+export function assertCanonicalA100VertexCustomJobExecutionRecord(
+  value: unknown,
+): CanonicalA100VertexCustomJobExecutionRecord {
+  assertPlainSerializedData(value, 'vertex_a100_execution_record')
+  const record = canonicalA100VertexCustomJobExecutionRecordSchema.parse(value)
+  const { executionRecordHash, ...payload } = record
+  if (executionRecordHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Vertex A100 execution record hash is invalid.')
+  }
+  return record
 }
 
 function assertAuthorityReleaseMatch(
@@ -535,31 +603,66 @@ function createConsumption(input: {
   })
 }
 
+function createExecutionRecord(input: {
+  authority: CanonicalA100VertexCustomJobLaunchAuthority
+  release: CanonicalA100VertexCustomJobRelease
+  consumption: CanonicalA100VertexCustomJobConsumption
+  createRequestRef: z.infer<typeof evidenceRefSchema>
+  createResponse: ReturnType<typeof parseCreateResponse>
+  persistedAt: string
+}): CanonicalA100VertexCustomJobExecutionRecord {
+  const payload = executionRecordWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_A100_VERTEX_CUSTOM_JOB_EXECUTION_RECORD_VERSION,
+    source: 'canonical_a100_vertex_custom_job_launch_port',
+    executionRecordId:
+      `vertex-a100-execution.${input.createResponse.responseDigest.slice(0, 32)}`,
+    authorityRef: ref(input.authority.authorityId,
+      input.authority.authorityHash),
+    releaseRef: input.release.releaseRef,
+    consumptionRef: ref(
+      `vertex-a100-consumption.${input.consumption.consumptionHash.slice(0, 32)}`,
+      input.consumption.consumptionHash,
+    ),
+    customJobCreateRequestRef: input.createRequestRef,
+    customJobResourceName: input.createResponse.name,
+    displayName: input.createResponse.displayName,
+    initialState: input.createResponse.state,
+    providerResponseDigestSha256: input.createResponse.responseDigest,
+    createResponsePersistedAndExactReread: true,
+    terminalStateClaimed: false,
+    customerCreditsMutated: false,
+    persistedAt: input.persistedAt,
+  })
+  return canonicalA100VertexCustomJobExecutionRecordSchema.parse({
+    ...payload,
+    executionRecordHash: sha256AuthorityValue(payload),
+  })
+}
+
 function parseCreateResponse(input: {
   untrusted: unknown
   prepared: ReturnType<typeof prepareCreateRequest>
 }) {
   assertPlainSerializedData(input.untrusted, 'vertex_custom_job_response')
   const parsed = z.object({
-    name: z.string().regex(
-      /^projects\/reeditpro\/locations\/us-central1\/customJobs\/[0-9]+$/u,
-    ),
+    name: customJobResourceName,
     displayName: z.string().trim().min(1).max(128),
     state: z.enum(['JOB_STATE_PENDING', 'JOB_STATE_QUEUED']),
   }).passthrough().parse(input.untrusted)
   if (parsed.displayName !== input.prepared.displayName) {
     throw new Error('Vertex response returned another custom job.')
   }
-  const digest = sha256AuthorityValue({
+  const responseDigest = sha256AuthorityValue({
     name: parsed.name,
     displayName: parsed.displayName,
     state: parsed.state,
     createRequestRef: input.prepared.createRequestRef,
   })
-  return evidenceRefSchema.parse({
-    id: `vertex-custom-job.${digest.slice(0, 32)}`,
-    version: 1,
-    contentHash: `sha256:${digest}`,
+  return Object.freeze({
+    name: parsed.name,
+    displayName: parsed.displayName,
+    state: parsed.state,
+    responseDigest,
   })
 }
 

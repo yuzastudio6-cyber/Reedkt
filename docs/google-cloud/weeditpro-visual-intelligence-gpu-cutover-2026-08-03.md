@@ -333,8 +333,18 @@ idempotent rerun then observed all five disabled and emitted
   immutable container, service identity, private VPC peering, CMEK, timeout,
   zero restart, zero automatic retry, and zero persistent endpoint; it rejects
   caller image/command/arguments/model selection. An uncertain create outcome
-  blocks retry until reconciliation, and every accepted attempt requires
-  terminal usage plus billing-account-effective cost reread. This is a
+  blocks retry until reconciliation. The provider-returned Custom Job resource
+  name and create-response digest are now create-only persisted and exact-
+  reread before a launch may return accepted; persistence uncertainty also
+  blocks retry rather than fabricating an execution reference. The companion
+  terminal port rereads that canonical execution record, performs an exact
+  pinned Vertex GET, distinguishes pending from terminal and unknown outcomes,
+  verifies zero active A100 instances after a terminal state, and admits a
+  terminal result only after platform usage, billing-account-effective price,
+  and attempt-cost evidence are reread and persisted before settlement.
+  Every accepted attempt therefore requires terminal usage plus account-
+  effective cost evidence while customer-wallet, QA, public-delivery, and
+  production authority remain closed. This is a
   source-qualified launch boundary, not an active production mount or live
   SAM 3.1 inference claim. Private-network provisioning, canonical lifecycle
   bridging, account-effective rate authority, checkpoint-bearing image, and

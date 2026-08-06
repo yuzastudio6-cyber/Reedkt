@@ -20,10 +20,18 @@ const release = buildRelease()
 const authority = buildAuthority()
 const sequence: string[] = []
 let observedRequest: Record<string, unknown> | null = null
+let persistedExecution: Record<string, unknown> | null = null
 const launchPort = createCanonicalA100VertexCustomJobLaunchPort({
   consumptionPort: {
     async consumeCreateOnlyAndReread(record) {
       sequence.push('consumed')
+      return structuredClone(record)
+    },
+  },
+  executionRepository: {
+    async createOnlyAndReread(record) {
+      sequence.push('persisted')
+      persistedExecution = structuredClone(record)
       return structuredClone(record)
     },
   },
@@ -46,9 +54,14 @@ const launchPort = createCanonicalA100VertexCustomJobLaunchPort({
 
 const result = await launchPort.startOneShotJob({ authority, release })
 assert.equal(result.disposition, 'accepted')
-assert.deepEqual(sequence, ['consumed', 'provider'])
+assert.deepEqual(sequence, ['consumed', 'provider', 'persisted'])
 assert.ok(result.consumptionRef)
 assert.ok(result.customJobExecutionRef)
+assert.ok(persistedExecution)
+assert.equal(
+  (persistedExecution as Record<string, unknown>).customJobResourceName,
+  'projects/reeditpro/locations/us-central1/customJobs/12345',
+)
 assert.equal(result.minimumIdleInstances, 0)
 assert.equal(result.persistentEndpointCreated, false)
 assert.equal(result.automaticRetryAllowed, false)
@@ -120,6 +133,7 @@ const consumptionFailure = await createCanonicalA100VertexCustomJobLaunchPort({
       throw new Error('duplicate authority consumption')
     },
   },
+  executionRepository: unreachableExecutionRepository(),
   auth: {
     async request() {
       consumptionFailureProviderCalls += 1
@@ -139,6 +153,7 @@ const unknown = await createCanonicalA100VertexCustomJobLaunchPort({
       return structuredClone(record)
     },
   },
+  executionRepository: unreachableExecutionRepository(),
   auth: {
     async request() {
       throw new Error('network outcome unavailable')
@@ -159,6 +174,7 @@ const tamperPort = createCanonicalA100VertexCustomJobLaunchPort({
       return record
     },
   },
+  executionRepository: unreachableExecutionRepository(),
   auth: {
     async request() {
       tamperProviderCalls += 1
@@ -190,6 +206,37 @@ const crossedReleaseResult = await tamperPort.startOneShotJob({
 assert.equal(crossedReleaseResult.disposition, 'rejected_before_creation')
 assert.equal(tamperProviderCalls, 0)
 
+const persistenceFailure = await createCanonicalA100VertexCustomJobLaunchPort({
+  consumptionPort: {
+    async consumeCreateOnlyAndReread(record) {
+      return structuredClone(record)
+    },
+  },
+  executionRepository: {
+    async createOnlyAndReread() {
+      throw new Error('durable execution mapping unavailable')
+    },
+  },
+  auth: {
+    async request(request) {
+      const requestBody = request.data as { displayName: string }
+      return {
+        data: {
+          name: 'projects/reeditpro/locations/us-central1/customJobs/67890',
+          displayName: requestBody.displayName,
+          state: 'JOB_STATE_QUEUED',
+        },
+      } as never
+    },
+  },
+  now: () => NOW,
+}).startOneShotJob({ authority, release })
+assert.equal(
+  persistenceFailure.disposition,
+  'outcome_unknown_requires_reconciliation',
+)
+assert.equal(persistenceFailure.automaticRetryAllowed, false)
+
 let getterInvoked = false
 const hostile = Object.create(null) as Record<string, unknown>
 Object.defineProperty(hostile, 'schemaVersion', {
@@ -216,6 +263,8 @@ console.log(JSON.stringify({
     privateVpcAndCmekBound: true,
     scaleFromZeroNoPersistentEndpoint: true,
     consumptionBeforeProvider: true,
+    providerResourcePersistedAndReread: true,
+    persistenceFailureRequiresReconciliation: true,
     duplicateConsumptionRejectedBeforeProvider: true,
     unknownOutcomeRetryForbidden: true,
     tamperAndHostileInputFailClosed: true,
@@ -369,4 +418,12 @@ function requireRequest(
 ): Record<string, unknown> {
   assert.ok(value)
   return value
+}
+
+function unreachableExecutionRepository() {
+  return {
+    async createOnlyAndReread(): Promise<never> {
+      throw new Error('execution persistence must not be reached')
+    },
+  }
 }

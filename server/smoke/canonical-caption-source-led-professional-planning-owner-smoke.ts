@@ -25,18 +25,11 @@ import {
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort,
 } from '../captions-specialist/caption-source-led-professional-planning-owner'
 import {
-  canonicalSourceLedVisualIntelligenceEvidenceSchema,
-  createCanonicalSourceLedContentAnalysisEvidence,
-  createCanonicalSourceLedSourceFrameAuthority,
-  digestCanonicalSourceLedStructuredSelection,
-} from '../services/canonical-source-led-content-analysis-evidence'
-import {
-  createCanonicalSourceCleanupVisualIntelligenceBinding,
-} from '../services/canonical-source-cleanup-visual-intelligence-binding'
-import {
   compileCanonicalSourceLedPlan,
-  type CanonicalSourceLedCleanupAuthorityInput,
 } from '../services/canonical-source-led-plan-compiler'
+import {
+  createCanonicalSourceAnalysisAuthorityFixture as sourceAuthority,
+} from './fixtures/canonical-source-led-content-analysis-authority-fixture'
 
 let checks = 0
 
@@ -55,10 +48,20 @@ const selectedPublication = requirePublication(selectedCompilation)
 const selectedComponents = canonicalPlanComponentsSchema.parse(
   selectedPublication.canonicalPlan.components,
 )
+const missingCompositionTraceComponents = structuredClone(selectedComponents)
+delete missingCompositionTraceComponents.professionalSkillPlan
+assert.throws(
+  () => createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+    components: missingCompositionTraceComponents,
+    sourceCleanupAuthority: selectedSourceAuthority,
+    confirmedCaptionMarkerSetRef: null,
+  }),
+  /exact professional-skill composition trace/i,
+)
+checks += 1
 const selectedRequest = createRequest(selectedComponents)
 const selectedPort =
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-    plannerInput: selectedPlannerInput,
     components: selectedComponents,
     sourceCleanupAuthority: selectedSourceAuthority,
     confirmedCaptionMarkerSetRef: null,
@@ -181,7 +184,6 @@ checks += 1
 
 const compatibilityPort =
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-    plannerInput: selectedPlannerInput,
     components: selectedComponents,
     confirmedCaptionMarkerSetRef: null,
   })
@@ -190,8 +192,14 @@ const compatibilityRead =
     port: compatibilityPort,
     request: selectedRequest,
   })
-assert.equal(compatibilityRead.status, 'not_requested')
-checks += 1
+assert.equal(compatibilityRead.status, 'blocked_requested')
+if (compatibilityRead.status !== 'blocked_requested') {
+  throw new Error('unreachable')
+}
+assert.deepEqual(compatibilityRead.blockerCodes, [
+  'canonical_caption_source_analysis_evidence_not_ready',
+])
+checks += 2
 
 const silentAuthority = sourceAuthority({ hasSpeech: false })
 const silentCompilation = compileCanonicalSourceLedPlan({
@@ -206,7 +214,6 @@ const silentComponents = canonicalPlanComponentsSchema.parse(
 const silentRequest = createRequest(silentComponents)
 const silentPort =
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-    plannerInput: selectedPlannerInput,
     components: silentComponents,
     sourceCleanupAuthority: silentAuthority,
     confirmedCaptionMarkerSetRef: null,
@@ -239,7 +246,6 @@ const restrainedComponents = canonicalPlanComponentsSchema.parse(
 const restrainedRequest = createRequest(restrainedComponents)
 const restrainedPort =
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-    plannerInput: restrainedPlannerInput,
     components: restrainedComponents,
     confirmedCaptionMarkerSetRef: null,
   })
@@ -296,7 +302,6 @@ const crossedSourceAuthority = sourceAuthority({
 })
 const crossedSourcePort =
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-    plannerInput: selectedPlannerInput,
     components: selectedComponents,
     sourceCleanupAuthority: crossedSourceAuthority,
     confirmedCaptionMarkerSetRef: null,
@@ -316,7 +321,6 @@ const tamperedEvidence = structuredClone(
 tamperedEvidence.evidenceDigestSha256 = sha('tampered-source-evidence')
 await assert.rejects(() =>
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-    plannerInput: selectedPlannerInput,
     components: selectedComponents,
     sourceCleanupAuthority: {
       ...selectedSourceAuthority,
@@ -334,7 +338,7 @@ console.log(JSON.stringify({
   selectedAssignments: 17,
   canonicalSourceAnalysisReread: true,
   safeRegionGeometryInvented: false,
-  selectedWithoutSourceEvidence: 'not_requested',
+  selectedWithoutSourceEvidence: 'blocked_requested',
   selectedWithoutSpeech: 'blocked_requested',
   noCaptionsRestraintReady: true,
   workCreatedByOwner: false,
@@ -426,263 +430,6 @@ ApprovedEditExecutionUploadedMediaSourceAssetClientInput {
   }
 }
 
-function sourceAuthority(input: {
-  hasSpeech: boolean
-  workspaceId?: string
-}): CanonicalSourceLedCleanupAuthorityInput {
-  const durationFrames = 120
-  const transcriptSegments = input.hasSpeech ? [{
-    segmentId: 'transcript-segment-1',
-    startFrame: 0,
-    endFrameExclusive: durationFrames,
-    text: 'Authenticated fixture speech for deterministic planning.',
-    confidenceBasisPoints: 9_500,
-    wordsVerified: true,
-  }] : []
-  const transcriptCoverageWithoutDigest = {
-    schemaVersion:
-      'canonical-source-audio-complete-timeline-coverage-v1' as const,
-    coveredStartFrame: 0 as const,
-    coveredEndFrameExclusive: durationFrames,
-    completeAudioTimelineProcessed: true as const,
-    speechSegmentsMayOmitSilence: true as const,
-    embeddedInstructionDetectionRequired: true as const,
-  }
-  const observation = {
-    observationId: 'visual-window-1',
-    windowIndex: 1,
-    startFrame: 0,
-    endFrameExclusive: durationFrames,
-    sourceFunction: input.hasSpeech ? 'dialogue' as const : 'idle' as const,
-    actionIntensity: 'low' as const,
-    editUsability: 'strong' as const,
-    cameraStability: 'stable' as const,
-    continuity: 'continuous' as const,
-    confidenceBasisPoints: 9_400,
-    evidenceRefs: [evidenceRef('source-probe')],
-    providerObservationScope:
-      'complete_source_range_semantic_partition' as const,
-    exactProviderSampleFramesKnown: false as const,
-  }
-  const observations = [observation]
-  const visualCoverageWithoutDigest = {
-    schemaVersion:
-      'canonical-source-visual-intelligence-semantic-coverage-v4' as const,
-    profileId:
-      'visual_intelligence_source_edit_planning_professional_high_v1' as const,
-    coveredStartFrame: 0 as const,
-    coveredEndFrameExclusive: durationFrames,
-    maximumWindowFrames: 240 as const,
-    windowCount: 1,
-    gapCount: 0 as const,
-    completeSourceRangeRequested: true as const,
-    completeRequestedRangeSemanticCoverage: true as const,
-    orderedGaplessObservationPartition: true as const,
-    deterministicGpuEvidenceUsed: true as const,
-    providerVisualPreprocessingExpected: true as const,
-    everyTimelineFrameInspected: false as const,
-    completeTimePixelInspectionClaimAllowed: false as const,
-    providerAudioUnderstandingClaimAllowed: false as const,
-    completeAudioTranscriptSuppliedToHeadReasonerSeparately: true as const,
-  }
-  const visual = canonicalSourceLedVisualIntelligenceEvidenceSchema.parse({
-    status: 'completed',
-    evidenceMode: 'visual_intelligence_gemini_pro_high_v1',
-    providerCapabilityId: 'visual_intelligence',
-    providerSkillId: 'visual_intelligence.analyze_media',
-    operation: 'analyze_media',
-    profile: 'source_edit_planning',
-    providerAdapterId: 'vertex_gemini_pro',
-    providerId: 'google_vertex_ai',
-    providerModel: 'gemini-3.1-pro-preview',
-    qualityProfile: 'professional_high',
-    thinkingLevel: 'high',
-    mediaResolution: 'high',
-    requestRef: evidenceRef('visual-request'),
-    reportRef: evidenceRef('visual-report'),
-    admissionRef: evidenceRef('visual-admission'),
-    providerReleaseRef: evidenceRef('visual-release'),
-    costEvidenceRef: evidenceRef('visual-cost'),
-    observationDigestSha256:
-      digestCanonicalSourceLedStructuredSelection(observations),
-    observations,
-    coverage: {
-      ...visualCoverageWithoutDigest,
-      coverageDigestSha256:
-        digestCanonicalSourceLedStructuredSelection(
-          visualCoverageWithoutDigest),
-    },
-    lifecycleInvocationDisposition: 'cache_replay',
-    providerCallMadeDuringInvocation: false,
-    costSettledDuringInvocation: false,
-    exactImmutableReportRereadVerified: true,
-    applicationDefaultCredentialsUsed: true,
-    accountEffectiveBillingRateUsed: true,
-    publicListPriceUsedAsSettlementAuthority: false,
-    providerVisualPreprocessingExpected: true,
-    completeTimePixelInspectionClaimAllowed: false,
-    selfHostedQwenRuntimeUsed: false,
-    managedQwenApiUsed: false,
-    localQwen25VlRuntimeUsed: false,
-    signedReadUrlPersisted: false,
-    signedReadUrlReturned: false,
-    rawModelOutputPersisted: false,
-  })
-  const selectedRange = {
-    rangeId: 'keep-source-1',
-    startFrame: 0,
-    endFrameExclusive: durationFrames,
-    role: 'main_story' as const,
-    reason: 'Preserve the complete source-backed explanation.',
-    confidenceBasisPoints: 9_500,
-    phraseBoundaryAligned: true as const,
-    preservesSourceMeaning: true as const,
-    userReviewRequired: false as const,
-    evidenceIds: input.hasSpeech
-      ? ['transcript-segment-1', 'visual-window-1']
-      : ['visual-window-1'],
-    keepReasonCodes: ['clear_explanation' as const],
-    removedContextCodes: [],
-    decisionBasis: 'content_understanding' as const,
-    instructionIds: [],
-    timeOnlyDecision: false as const,
-  }
-  const selection = {
-    sources: [{
-      sourceSequenceItemId: 'source-item-1',
-      mediaAssetId: 'media-asset-1',
-      uploadedOrder: 1,
-      selectedRanges: [selectedRange],
-      removedRanges: [],
-      embeddedEditInstructions: [],
-    }],
-    sourceOrderPreserved: true,
-    completeSourceCoverageVerified: true,
-    allTimelineIntervalsReviewed: true,
-    embeddedInstructionsEvaluated: true,
-    timeOnlyCutDecisionCount: 0,
-    meaningPreservationPassed: true,
-    userReviewRequired: false,
-    reviewReasons: [],
-  }
-  const evidence = createCanonicalSourceLedContentAnalysisEvidence({
-    schemaVersion: 'canonical-source-led-content-analysis-evidence-v5',
-    source: 'server_private_source_understanding_pipeline',
-    identity: {
-      workspaceId: input.workspaceId ?? 'workspace-caption-owner',
-      projectId: 'project-caption-owner',
-      editSessionId: 'edit-caption-owner',
-      analysisRunId: input.hasSpeech
-        ? 'analysis-caption-owner-speech'
-        : 'analysis-caption-owner-silent',
-      userInstructionDigestSha256: sha('user-instructions'),
-      fps: 30,
-    },
-    sources: [{
-      sourceSequenceItemId: 'source-item-1',
-      mediaAssetId: 'media-asset-1',
-      uploadedOrder: 1,
-      checksumSha256: sha('source-bytes'),
-      byteLength: 4_096,
-      durationFrames,
-      sourceFrameAuthority: createCanonicalSourceLedSourceFrameAuthority({
-        fpsNumerator: 30,
-        fpsDenominator: 1,
-        frameCount: durationFrames,
-        timeBaseNumerator: 1,
-        timeBaseDenominator: 30,
-      }),
-      transcript: {
-        status: input.hasSpeech ? 'completed' : 'no_speech',
-        modelId: 'faster-whisper-large-v3',
-        modelDigestSha256: sha('faster-whisper-large-v3'),
-        runtimeVersion: 'faster-whisper-1.2.1',
-        transcriptDigestSha256:
-          digestCanonicalSourceLedStructuredSelection(transcriptSegments),
-        segments: transcriptSegments,
-        coverage: {
-          ...transcriptCoverageWithoutDigest,
-          coverageDigestSha256:
-            digestCanonicalSourceLedStructuredSelection(
-              transcriptCoverageWithoutDigest),
-        },
-        rawAudioPersisted: false,
-        modelDownloadPerformed: false,
-        networkAttempted: false,
-      },
-      visual,
-      selectedRanges: [selectedRange],
-      removedRanges: [],
-      embeddedEditInstructions: [],
-    }],
-    reasoning: {
-      status: 'completed',
-      routeId: 'kimi_k3_primary',
-      providerModel: 'kimi-k3',
-      credentialSource: 'google_secret_manager_pinned_version',
-      credentialVersion: 1,
-      providerCallMade: true,
-      modelCallMade: true,
-      attemptDigestSha256: sha('reasoning-attempt'),
-      structuredResultDigestSha256:
-        digestCanonicalSourceLedStructuredSelection(selection),
-      completeSourceCoverageConfirmed: true,
-      allTimelineIntervalsReviewed: true,
-      embeddedInstructionsEvaluated: true,
-      timeOnlyCutDecisionsAllowed: false,
-      rawProviderResponsePersisted: false,
-    },
-    summary: {
-      selectedSourceCount: 1,
-      selectedRangeCount: 1,
-      selectedTotalFrames: durationFrames,
-      originalTotalFrames: durationFrames,
-      originalTotalTimelineFrames: durationFrames,
-      selectedTotalTimelineFrames: durationFrames,
-      rationalSourceFrameMappingVerified: true,
-      sourceOrderPreserved: true,
-      everySelectionEvidenceBound: true,
-      everyRemovalEvidenceBound: true,
-      completeSourceCoverageVerified: true,
-      allTimelineIntervalsReviewed: true,
-      embeddedInstructionsEvaluated: true,
-      embeddedInstructionCount: 0,
-      unresolvedEmbeddedInstructionCount: 0,
-      timeOnlyCutDecisionCount: 0,
-      meaningPreservationPassed: true,
-      userReviewRequired: false,
-    },
-    boundaries: {
-      privateEvidence: true,
-      sourceBytesSerialized: false,
-      localPathsSerialized: false,
-      rawModelOutputSerialized: false,
-      rawChatUsedAsWorkerInstruction: false,
-      planPublished: false,
-      approvalGranted: false,
-      executionStarted: false,
-      customerChargeCreated: false,
-      publicDeliveryCreated: false,
-      productionAuthority: false,
-    },
-  })
-  const expectedScope = {
-    workspaceId: evidence.identity.workspaceId,
-    projectId: evidence.identity.projectId,
-    editSessionId: evidence.identity.editSessionId,
-    planningDirectionDigestSha256: sha('planning-direction'),
-    userInstructionDigestSha256: evidence.identity.userInstructionDigestSha256,
-  }
-  return {
-    evidence,
-    binding: createCanonicalSourceCleanupVisualIntelligenceBinding({
-      evidence,
-      expectedScope,
-    }),
-    expectedScope,
-  }
-}
-
 function createRequest(
   components: ReturnType<typeof canonicalPlanComponentsSchema.parse>,
 ) {
@@ -707,14 +454,6 @@ function requirePublication(
     compilation.professionalLongFormPublication
   assert.ok(publication)
   return publication
-}
-
-function evidenceRef(id: string) {
-  return {
-    id,
-    version: 1,
-    contentHash: `sha256:${sha(id)}`,
-  }
 }
 
 function sha(value: string): string {

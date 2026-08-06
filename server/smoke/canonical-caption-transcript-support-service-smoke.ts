@@ -15,6 +15,7 @@ import {
   createCanonicalCaptionSourceWordTimingEvidence,
   createCanonicalCaptionSourceWordTimingReadPort,
   createCanonicalCaptionTranscriptEvidenceRepository,
+  createCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
   createCanonicalCaptionTranscriptSupportService,
   createCanonicalCaptionTranscriptSupportServiceV2,
   parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
@@ -583,6 +584,125 @@ check(expectationExecutionMount.transcriptRef.contentHash ===
   && expectationMountBindingRef?.contentHash ===
     expectationProjection.expectationBinding.bindingDigestSha256,
   'The runner must resolve V3 expectation work to the exact transcript and immutable mapping.')
+
+const ownerProjectionRepository =
+  createCanonicalCaptionTranscriptEvidenceRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/caption-transcript-support/owner-projection',
+  })
+let ownerProjectionReadCount = 0
+const ownerProjectionReadPort =
+  createCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+    async ({ canonicalReadScope, planningExpectationRef: requestedRef }) => {
+      ownerProjectionReadCount += 1
+      return stableAuthorityStringify(canonicalReadScope) ===
+        stableAuthorityStringify(approvedScope)
+        && stableAuthorityStringify(requestedRef) ===
+          stableAuthorityStringify(planningExpectationRef)
+        ? structuredClone(expectationProjection)
+        : null
+    },
+  )
+const ownerProjectionMount =
+  await resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: expectationMountAuthority,
+    jobId: 'job.caption.transcript.expectation.1',
+    transcriptRepository: ownerProjectionRepository,
+    planningExpectationOwnerReadPort: ownerProjectionReadPort,
+  })
+check(ownerProjectionReadCount === 2
+  && ownerProjectionMount.recordDigestSha256 === record.recordDigestSha256
+  && ownerProjectionMount.planningExpectationBindingRef?.contentHash ===
+    expectationProjection.expectationBinding.bindingDigestSha256,
+  'The runner must double-reread and mount an exact canonical owner projection.')
+const ownerProjectionPersistence =
+  await ownerProjectionRepository.findExactForPlanningExpectation({
+    canonicalReadScope: approvedScope,
+    planningExpectationRef,
+  })
+check(ownerProjectionPersistence?.transcriptRecord.recordDigestSha256 ===
+  record.recordDigestSha256
+  && ownerProjectionPersistence.binding.bindingDigestSha256 ===
+    expectationProjection.expectationBinding.bindingDigestSha256,
+  'The owner projection must persist create-only and reread exactly before use.')
+
+await assert.rejects(
+  () => resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: expectationMountAuthority,
+    jobId: 'job.caption.transcript.expectation.1',
+    transcriptRepository: createCanonicalCaptionTranscriptEvidenceRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-transcript-support/unadmitted-owner',
+    }),
+    planningExpectationOwnerReadPort: {
+      ...ownerProjectionReadPort,
+    },
+  }),
+  /owner reader is invalid/u,
+)
+checks += 1
+
+let unstableOwnerReadCount = 0
+const unstableOwnerReadPort =
+  createCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+    async () => {
+      unstableOwnerReadCount += 1
+      return unstableOwnerReadCount === 1
+        ? structuredClone(expectationProjection)
+        : null
+    },
+  )
+await assert.rejects(
+  () => resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: expectationMountAuthority,
+    jobId: 'job.caption.transcript.expectation.1',
+    transcriptRepository: createCanonicalCaptionTranscriptEvidenceRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-transcript-support/unstable-owner',
+    }),
+    planningExpectationOwnerReadPort: unstableOwnerReadPort,
+  }),
+  /owner reread is not stable/u,
+)
+checks += 1
+
+const crossedPlanningExpectationRef = {
+  ...planningExpectationRef,
+  contentHash: sha256AuthorityValue('crossed-owner-expectation'),
+}
+const crossedOwnerAuthority = {
+  ...expectationMountAuthority,
+  workItems: [{
+    id: 'work.caption.transcript.expectation.1',
+    executionInput: {
+      ...expectationMountWorkInput,
+      initialArtifactRefs:
+        expectationMountWorkInput.initialArtifactRefs.map((artifact) =>
+          artifact.artifactType ===
+            'canonical_transcript_planning_expectation'
+            ? { ...artifact, ...crossedPlanningExpectationRef }
+            : artifact),
+    },
+  }],
+} as unknown as Parameters<
+  typeof resolveCanonicalCaptionTranscriptExecutionMount
+>[0]['authority']
+await assert.rejects(
+  () => resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: crossedOwnerAuthority,
+    jobId: 'job.caption.transcript.expectation.1',
+    transcriptRepository: createCanonicalCaptionTranscriptEvidenceRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-transcript-support/crossed-owner',
+    }),
+    planningExpectationOwnerReadPort:
+      createCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+        async () => structuredClone(expectationProjection),
+      ),
+  }),
+  /owner projection lineage is crossed/u,
+)
+checks += 1
 
 const v3ExecutionInputRef = {
   sha256: sha256AuthorityValue(expectationMountWorkInput),

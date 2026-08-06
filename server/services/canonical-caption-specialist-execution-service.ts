@@ -66,6 +66,10 @@ import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
 import type { CanonicalCaptionTranscriptAuthenticatedReadPort } from
   '../../src/types/canonical-caption-transcript-support'
+import {
+  canonicalWorkerLeaseDependencyAuthoritySchema,
+  type CanonicalWorkerLeaseDependencyAuthority,
+} from '../validation/canonical-worker-lease-authority-schemas'
 import type { CanonicalApprovedExecutionAuthority } from
   './edit-planning-authority-service'
 import {
@@ -371,6 +375,13 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly canonicalTranscriptPlanningExpectationBindingRef?: SkillContractRef
   readonly incomingSupportRequestReadPort?:
     CanonicalCaptionIncomingSupportRequestReadPort
+  /**
+   * Exact read-only dependency proof derived by the canonical worker-lease
+   * owner. Required for jobs whose immutable graph label is `blocked`; that
+   * label records original dependency topology, not current readiness.
+   */
+  readonly canonicalJobDependencyAuthority?:
+    CanonicalWorkerLeaseDependencyAuthority
   readonly executionPort?: CanonicalCaptionSpecialistExecutionPort
   readonly now?: () => Date
 }): Promise<{
@@ -390,7 +401,6 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     || job.jobType !== workItem.workItemType
     || job.workerClass !== workItem.workerClass
     || job.executionInputRef.sha256 !== workItem.executionInputRef.sha256
-    || job.status !== 'ready'
     || workItem.workItemType !== 'custom'
     || workItem.workerClass !== CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS
     || workItem.approvedToolIds.length !== 0
@@ -398,6 +408,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     || workItem.approvedProviderRoute !== undefined) {
     throw new Error('Canonical Caption work-item/job authority is invalid.')
   }
+  assertCanonicalCaptionJobDependencyAdmission({
+    authority,
+    job,
+    dependencyAuthority: input.canonicalJobDependencyAuthority,
+  })
   if (sha256AuthorityValue(workItem.executionInput)
     !== workItem.executionInputRef.sha256
     || workItem.executionInputHash !== workItem.executionInputRef.sha256) {
@@ -1011,6 +1026,114 @@ function assertExpectedOutputAndManifest(
     }) !== stableAuthorityStringify(output)) {
     throw new Error(
       'Canonical Caption planned receipt output or manifest entry is invalid.',
+    )
+  }
+}
+
+function assertCanonicalCaptionJobDependencyAdmission(input: {
+  authority: CanonicalApprovedExecutionAuthority
+  job: CanonicalApprovedExecutionAuthority['jobs'][number]
+  dependencyAuthority?: CanonicalWorkerLeaseDependencyAuthority
+}): void {
+  const workItem = input.authority.workItems.find((candidate) =>
+    candidate.id === input.job.approvedWorkItemId)
+  const jobIdsByWorkItemKey = new Map(input.authority.jobs.map((candidate) =>
+    [candidate.workItemKey, candidate.id]))
+  const expectedDependencyJobIds = workItem?.dependencyKeys.map((key) =>
+    jobIdsByWorkItemKey.get(key))
+  if (
+    !workItem ||
+    expectedDependencyJobIds?.some((jobId) => !jobId) ||
+    stableAuthorityStringify(expectedDependencyJobIds) !==
+      stableAuthorityStringify(input.job.dependencyJobIds)
+  ) {
+    throw new Error(
+      'Canonical Caption dependency job lineage is incomplete.',
+    )
+  }
+  const rootJob = input.job.dependencyJobIds.length === 0
+  if (rootJob) {
+    if (input.job.status !== 'ready') {
+      throw new Error('Canonical Caption work-item/job authority is invalid.')
+    }
+    if (input.dependencyAuthority === undefined) return
+  } else if (
+    input.job.status !== 'blocked' ||
+    input.dependencyAuthority === undefined
+  ) {
+    throw new Error(
+      'Canonical Caption dependent job lacks verified dependency authority.',
+    )
+  }
+
+  const parsed = canonicalWorkerLeaseDependencyAuthoritySchema.parse(
+    input.dependencyAuthority,
+  )
+  const { authorityHash, ...withoutHash } = parsed
+  if (authorityHash !== sha256AuthorityValue(withoutHash)) {
+    throw new Error(
+      'Canonical Caption dependency authority digest is invalid.',
+    )
+  }
+  if (rootJob) {
+    if (
+      parsed.state !== 'not_required_for_root_job' ||
+      parsed.selectedArtifacts.length !== 0
+    ) {
+      throw new Error(
+        'Canonical Caption root job dependency authority is invalid.',
+      )
+    }
+    return
+  }
+
+  if (parsed.state !== 'private_test_dependencies_verified') {
+    throw new Error(
+      'Canonical Caption dependent job lacks verified dependency authority.',
+    )
+  }
+  const dependencyJobIds = new Set(input.job.dependencyJobIds)
+  const expectedSelectionKeys: string[] = []
+  for (const dependencyJobId of input.job.dependencyJobIds) {
+    const dependencyJob = input.authority.jobs.find((candidate) =>
+      candidate.id === dependencyJobId)
+    const dependencyWorkItem = input.authority.workItems.find((candidate) =>
+      candidate.id === dependencyJob?.approvedWorkItemId)
+    if (!dependencyJob || !dependencyWorkItem) {
+      throw new Error(
+        'Canonical Caption dependency job lineage is incomplete.',
+      )
+    }
+    if (!dependencyWorkItem.required) continue
+    for (const expectedAssetId of dependencyJob.expectedAssetIds) {
+      const manifestEntry = input.authority.assetManifest.entries.find(
+        (candidate) => candidate.id === expectedAssetId &&
+          candidate.approvedWorkItemId === dependencyWorkItem.id,
+      )
+      if (!manifestEntry) {
+        throw new Error(
+          'Canonical Caption dependency asset lineage is incomplete.',
+        )
+      }
+      if (manifestEntry.required) {
+        expectedSelectionKeys.push(`${dependencyJobId}\u0000${expectedAssetId}`)
+      }
+    }
+  }
+  const actualSelectionKeys = parsed.selectedArtifacts.map((selection) => {
+    if (!dependencyJobIds.has(selection.dependencyJobId)) {
+      throw new Error(
+        'Canonical Caption dependency authority crossed its approved graph.',
+      )
+    }
+    return `${selection.dependencyJobId}\u0000${selection.expectedAssetId}`
+  })
+  if (
+    stableAuthorityStringify([...actualSelectionKeys].sort()) !==
+    stableAuthorityStringify([...expectedSelectionKeys].sort())
+  ) {
+    throw new Error(
+      'Canonical Caption dependency authority does not cover exact required assets.',
     )
   }
 }

@@ -37,6 +37,19 @@ rereads real results, rendered outputs, qualified complete-time visual review,
 and independent private review. It is not a regression of the Caption source
 implementation.
 
+The normal source-led approval route now proves more than source reachability.
+With professional Captions selected, it scheduled 25 jobs and completed 16
+private jobs with zero failures before stopping at the exact authenticated
+Visual Intelligence owner boundary. Root and dependent Caption jobs now use
+the immutable approved graph plus lease-time, byte-verified dependency
+admission; dependent job status is never rewritten. The exact receipt is
+documented in
+[`canonical-source-led-caption-execution-integration-2026-08-06.md`](canonical-source-led-caption-execution-integration-2026-08-06.md).
+
+This does not change the terminal count. The route's synthetic color-bar media
+is engineering evidence only and is not accepted as professional Caption
+appearance or qualified visual-AI review.
+
 ## Outcome
 
 The additive `caption-current-job-readiness-ledger-v2` record provides the

@@ -131,6 +131,10 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort']
   canonicalCaptionSourceLedProfessionalPlanningReadPort?:
     RuntimeState['canonicalCaptionSourceLedProfessionalPlanningReadPort']
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
+    RuntimeState[
+      'canonicalCaptionTranscriptPlanningExpectationOwnerReadPort'
+    ]
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -362,6 +366,13 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalCaptionSourceLedProfessionalPlanningReadPort:
             options.canonicalCaptionSourceLedProfessionalPlanningReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+      ? {
+          canonicalCaptionTranscriptPlanningExpectationOwnerReadPort:
+            options
+              .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
         }
       : {}),
     ...(options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort

@@ -87,6 +87,9 @@ import type {
 import type {
   CanonicalCaptionSourceLedProfessionalPlanningReadPort,
 } from '../src/types/canonical-caption-source-led-professional-planning'
+import type {
+  CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+} from './services/canonical-caption-transcript-support-service'
 
 export interface AuthContext {
   userId: string
@@ -197,6 +200,8 @@ export interface RuntimeState {
     CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
   canonicalCaptionSourceLedProfessionalPlanningReadPort?:
     CanonicalCaptionSourceLedProfessionalPlanningReadPort
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
 }
 
 export type RuntimeRequest = Request & {
@@ -281,4 +286,6 @@ export interface ServiceContext {
     CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
   canonicalCaptionSourceLedProfessionalPlanningReadPort?:
     CanonicalCaptionSourceLedProfessionalPlanningReadPort
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
 }

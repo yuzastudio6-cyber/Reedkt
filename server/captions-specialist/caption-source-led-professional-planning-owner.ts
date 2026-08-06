@@ -20,10 +20,6 @@ import {
   CAPTIONS_VIDEO_JOB_TYPES,
   type CaptionsSupportedJobType,
 } from '../../src/types/captions-specialist'
-import type { PlannerInput } from '../../src/types/reeditpro'
-import {
-  createProfessionalSkillPlan,
-} from '../../src/lib/professional-skills/professional-skill-planner'
 import {
   parseProfessionalSkillCompositionTrace,
 } from '../../src/lib/professional-skills/professional-skill-composition-trace'
@@ -84,7 +80,6 @@ interface PlanningSourceScene {
  */
 export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
   input: {
-    readonly plannerInput: PlannerInput
     readonly components: CanonicalPlanComponentsInput
     readonly sourceCleanupAuthority?:
       CanonicalSourceLedCleanupAuthorityInput
@@ -92,9 +87,12 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
   },
 ): CanonicalCaptionSourceLedProfessionalPlanningReadPort {
   const expectedComponentsDigest = sha256AuthorityValue(input.components)
-  const skillPlan = createProfessionalSkillPlan({
-    plannerInput: structuredClone(input.plannerInput),
-  })
+  const skillPlan = input.components.professionalSkillPlan
+  if (!skillPlan || !('compositionTrace' in skillPlan)) {
+    throw new Error(
+      'Canonical source-led Caption planning requires the exact professional-skill composition trace from the plan components.',
+    )
+  }
   const trace = parseProfessionalSkillCompositionTrace(
     skillPlan.compositionTrace)
   const disposition = trace.entries[0].disposition
@@ -120,10 +118,12 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
         return {
           schemaVersion:
             CANONICAL_CAPTION_SOURCE_LED_PROFESSIONAL_PLANNING_READ_PORT_VERSION,
-          status: 'not_requested',
+          status: 'blocked_requested',
           requestRef: requestRef(request),
           authority: null,
-          blockerCodes: [],
+          blockerCodes: [
+            'canonical_caption_source_analysis_evidence_not_ready',
+          ],
         }
       }
 

@@ -533,10 +533,15 @@ export function applyCanonicalCaptionSourceLedProfessionalPlanning(input: {
       'Canonical source-led plan already contains a competing Caption estimate line.',
     )
   }
-  if (input.workItems.some((item) =>
+  const existingCaptionOverlayWork = input.workItems.filter((item) =>
     item.executionInput.operation === 'render_approved_caption_overlay' ||
     item.expectedOutputs.some((output) =>
-      output.artifactType === 'controlled_libass_caption_overlay_png'))) {
+      output.artifactType === 'controlled_libass_caption_overlay_png'))
+  if (existingCaptionOverlayWork.length > 0 &&
+    !isAuthenticatedTranscriptStableCaptionLane({
+      components: input.components,
+      workItems: existingCaptionOverlayWork,
+    })) {
     throw new Error(
       'Professional Caption planning requires the legacy exact-marker caption lane to be removed before projection.',
     )
@@ -583,6 +588,25 @@ export function applyCanonicalCaptionSourceLedProfessionalPlanning(input: {
     ],
     projection: prepared.projection,
   }
+}
+
+function isAuthenticatedTranscriptStableCaptionLane(input: {
+  components: CanonicalPlanComponentsInput
+  workItems: CanonicalWorkItemInput[]
+}): boolean {
+  const parsedCaptionTimingItems = z.array(z.object({
+    linkedTranscriptLineId: safeKey,
+  }).passthrough()).min(1).safeParse(
+    input.components.masterTimingPlan.captionTimingItems,
+  )
+  if (!parsedCaptionTimingItems.success) return false
+  const captionTimingItems = parsedCaptionTimingItems.data
+  return input.workItems.length === captionTimingItems.length
+    && input.workItems.every((item) =>
+      item.executionInput.operation === 'render_approved_caption_overlay'
+      && item.expectedOutputs.length === 1
+      && item.expectedOutputs[0]?.artifactType ===
+        'controlled_libass_caption_overlay_png')
 }
 
 function parseReadResult(
@@ -634,7 +658,6 @@ function assertNoCaptionPlanningComponents(
   components: CanonicalPlanComponentsInput,
 ): void {
   if (
-    components.professionalSkillPlan !== undefined ||
     components.captionEarlyPlanningBundle !== undefined ||
     components.captionSpecialistPlanningBinding !== undefined
   ) {

@@ -53,10 +53,17 @@ import { createCanonicalEditExecutionPackageService } from './canonical-edit-exe
 import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
 import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
 import {
+  assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
   createCanonicalCaptionTranscriptEvidenceRepository,
+  parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
+  parseCanonicalCaptionTranscriptPlanningExpectationBinding,
   type CanonicalCaptionTranscriptEvidenceRepository,
+  type CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
 } from './canonical-caption-transcript-support-service'
-import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
+import {
+  createCanonicalWorkerLeaseAuthorityService,
+  inspectCanonicalWorkerLeaseDependencyAdmission,
+} from './canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import {
   createPrivateArtifactQaAuthorityService,
@@ -433,6 +440,8 @@ export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
   authority: Authority
   jobId: string
   transcriptRepository: CanonicalCaptionTranscriptEvidenceRepository
+  planningExpectationOwnerReadPort?:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
 }) {
   const workItem = input.authority.workItems.find((candidate) =>
     candidate.id === input.authority.jobs.find((candidate) =>
@@ -475,7 +484,7 @@ export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
       contentHash: snapshot.snapshotHash,
     },
   }
-  const planningResolution = planningExpectationRef
+  let planningResolution = planningExpectationRef
     ? await input.transcriptRepository.findExactForPlanningExpectation({
         canonicalReadScope,
         planningExpectationRef: {
@@ -485,6 +494,135 @@ export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
         },
       })
     : null
+  if (planningExpectationRef && !planningResolution
+    && input.planningExpectationOwnerReadPort) {
+    const ownerReadPort = input.planningExpectationOwnerReadPort
+    assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+      ownerReadPort,
+    )
+    const exactPlanningExpectationRef = {
+      id: planningExpectationRef.id,
+      version: planningExpectationRef.version,
+      contentHash: planningExpectationRef.contentHash,
+    }
+    const ownerReadInput = {
+      canonicalReadScope,
+      planningExpectationRef: exactPlanningExpectationRef,
+    }
+    const firstOwnerRead = await ownerReadPort.readExact(ownerReadInput)
+    const secondOwnerRead = await ownerReadPort.readExact(ownerReadInput)
+    if ((firstOwnerRead === null) !== (secondOwnerRead === null)
+      || (firstOwnerRead && secondOwnerRead
+        && stableAuthorityStringify(firstOwnerRead) !==
+          stableAuthorityStringify(secondOwnerRead))) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical Caption transcript owner reread is not stable.',
+        409,
+        {
+          requiredGate:
+            'canonical_caption_transcript_owner_projection_stable_reread',
+        },
+      )
+    }
+    if (firstOwnerRead && secondOwnerRead) {
+      let ownerTranscriptRecord
+      let ownerExpectationBinding
+      try {
+        ownerTranscriptRecord =
+          parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord(
+            firstOwnerRead.transcriptRecord,
+          )
+        ownerExpectationBinding =
+          parseCanonicalCaptionTranscriptPlanningExpectationBinding(
+            firstOwnerRead.expectationBinding,
+          )
+      } catch {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption transcript owner projection is invalid.',
+          409,
+          {
+            requiredGate:
+              'canonical_caption_transcript_owner_projection_validation',
+          },
+        )
+      }
+      const transcriptRefFromRecord = {
+        id: ownerTranscriptRecord.canonicalTranscript.transcriptId,
+        version: ownerTranscriptRecord.canonicalTranscript.schemaVersion,
+        contentHash:
+          ownerTranscriptRecord.canonicalTranscript.transcriptDigestSha256,
+      }
+      const authenticatedReadBindingRefFromRecord = {
+        id: ownerTranscriptRecord.authenticatedReadBinding.bindingId,
+        version:
+          ownerTranscriptRecord.authenticatedReadBinding.schemaVersion,
+        contentHash:
+          ownerTranscriptRecord.authenticatedReadBinding.bindingDigestSha256,
+      }
+      if (stableAuthorityStringify(
+        ownerTranscriptRecord.canonicalReadScope,
+      ) !== stableAuthorityStringify(canonicalReadScope)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.canonicalReadScope,
+        ) !== stableAuthorityStringify(canonicalReadScope)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.planningExpectationRef,
+        ) !== stableAuthorityStringify(exactPlanningExpectationRef)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.canonicalTranscriptRef,
+        ) !== stableAuthorityStringify(transcriptRefFromRecord)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.authenticatedReadBindingRef,
+        ) !== stableAuthorityStringify(
+          authenticatedReadBindingRefFromRecord,
+        )
+        || ownerExpectationBinding
+          .authenticatedTranscriptRecordDigestSha256 !==
+          ownerTranscriptRecord.recordDigestSha256
+        || ownerExpectationBinding.sourceScopeDigestSha256 !==
+          ownerTranscriptRecord.sourceScopeDigestSha256) {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption transcript owner projection lineage is crossed.',
+          409,
+          {
+            requiredGate:
+              'canonical_caption_transcript_owner_projection_lineage',
+          },
+        )
+      }
+      await input.transcriptRepository.persistCreateOnly({
+        record: ownerTranscriptRecord,
+      })
+      await input.transcriptRepository
+        .persistPlanningExpectationBindingCreateOnly({
+          binding: ownerExpectationBinding,
+        })
+      const persistedResolution = await input.transcriptRepository
+        .findExactForPlanningExpectation({
+          canonicalReadScope,
+          planningExpectationRef: exactPlanningExpectationRef,
+        })
+      if (!persistedResolution
+        || stableAuthorityStringify(persistedResolution.transcriptRecord) !==
+          stableAuthorityStringify(ownerTranscriptRecord)
+        || stableAuthorityStringify(persistedResolution.binding) !==
+          stableAuthorityStringify(ownerExpectationBinding)) {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption transcript owner projection did not persist and reread exactly.',
+          409,
+          {
+            requiredGate:
+              'canonical_caption_transcript_owner_projection_persistence',
+          },
+        )
+      }
+      planningResolution = persistedResolution
+    }
+  }
   const transcriptRecord = planningResolution?.transcriptRecord ??
     (transcriptRef ? await input.transcriptRepository.findExactForExecution({
       canonicalReadScope,
@@ -537,6 +675,13 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
   authority: Authority
   jobId: string
 }): Promise<CaptionExecution> {
+  const dependencyAdmission =
+    await inspectCanonicalWorkerLeaseDependencyAdmission(input.context, {
+      workspaceId: input.workspaceId,
+      projectId: input.authority.snapshot.projectId,
+      editSessionId: input.authority.snapshot.editSessionId,
+      jobId: input.jobId,
+    })
   const packageService = createCanonicalEditExecutionPackageService(
     input.context,
   )
@@ -573,6 +718,13 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
     authority: input.authority,
     jobId: input.jobId,
     transcriptRepository,
+    ...(input.context
+      .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+      ? {
+          planningExpectationOwnerReadPort: input.context
+            .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+        }
+      : {}),
   })
   const execution = await executeCanonicalCaptionSpecialistWorkItem({
     authority: input.authority,
@@ -587,6 +739,8 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       canonicalTranscriptPlanningExpectationBindingRef:
         transcriptMount.planningExpectationBindingRef,
     } : {}),
+    canonicalJobDependencyAuthority:
+      dependencyAdmission.dependencyAuthority,
   })
   if (execution.pair.result.disposition !== 'completed') {
     const supportRequestRefs = execution.pair.result.supportRequests.map(
@@ -602,9 +756,10 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       'Canonical Caption planning is waiting for exact authenticated owner evidence.',
       409,
       {
-        requiredGate: supportRequestRefs.length > 0
-          ? 'canonical_caption_hq_mediated_support_resume'
-          : 'canonical_caption_authenticated_transcript_projection',
+        requiredGate: canonicalCaptionResultRequiredGate({
+          reasonCodes: execution.pair.result.reasonCodes,
+          supportRequestCount: supportRequestRefs.length,
+        }),
         captionDisposition: execution.pair.result.disposition,
         reasonCodes: execution.pair.result.reasonCodes,
         supportRequestRefs,
@@ -612,6 +767,28 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
     )
   }
   return execution
+}
+
+function canonicalCaptionResultRequiredGate(input: {
+  reasonCodes: readonly string[]
+  supportRequestCount: number
+}): string {
+  if (input.supportRequestCount > 0) {
+    return 'canonical_caption_hq_mediated_support_resume'
+  }
+  if (input.reasonCodes.some((code) =>
+    code.startsWith('input.canonical_transcript.authenticated_read.'))) {
+    return 'canonical_caption_authenticated_transcript_projection'
+  }
+  if (input.reasonCodes.includes(
+    'input.canonical_transcript.authenticated_payload.missing')) {
+    return 'canonical_caption_authenticated_transcript_payload'
+  }
+  if (input.reasonCodes.includes(
+    'input.canonical_transcript.admission.failed')) {
+    return 'canonical_caption_authenticated_transcript_admission'
+  }
+  return 'canonical_caption_specialist_result_completion'
 }
 
 function assertCanonicalAuthorityValidationJob(input: {
@@ -709,7 +886,7 @@ function assertCanonicalAuthorityValidationJob(input: {
           candidate.outputKey === payload.componentDependency.outputKey)
       : undefined
     if (
-      readiness.job.canonicalGraphState !== 'ready' ||
+      readiness.job.canonicalGraphState !== 'blocked' ||
       readiness.job.dependencyJobIds.length !== 1 ||
       readiness.dependencyEvidenceState !==
         'required_results_and_qa_not_committed' ||
@@ -748,16 +925,22 @@ function assertCanonicalAuthorityValidationJob(input: {
       ? parseCanonicalCaptionSpecialistWorkItemInput(workItem.executionInput)
       : null
     const dependencyCount = readiness.job.dependencyJobIds.length
+    const selectedDependencyJobIds = new Set(
+      lease.dependencyAuthority.selectedArtifacts.map(
+        (artifact) => artifact.dependencyJobId),
+    )
     const dependencyAuthorityMatches = dependencyCount === 0
       ? lease.dependencyAuthority.state === 'not_required_for_root_job'
         && lease.dependencyAuthority.selectedArtifacts.length === 0
       : lease.dependencyAuthority.state ===
           'private_test_dependencies_verified'
-        && lease.dependencyAuthority.selectedArtifacts.length === dependencyCount
-        && new Set(lease.dependencyAuthority.selectedArtifacts.map(
-          (artifact) => artifact.dependencyJobId)).size === dependencyCount
+        && lease.dependencyAuthority.selectedArtifacts.length >= dependencyCount
+        && selectedDependencyJobIds.size === dependencyCount
+        && readiness.job.dependencyJobIds.every((dependencyJobId) =>
+          selectedDependencyJobIds.has(dependencyJobId))
     if (
-      readiness.job.canonicalGraphState !== 'ready' ||
+      readiness.job.canonicalGraphState !==
+        (dependencyCount === 0 ? 'ready' : 'blocked') ||
       !dependencyAuthorityMatches ||
       !workInput ||
       workItem.workItemType !== 'custom' ||
@@ -794,7 +977,7 @@ function assertCanonicalAuthorityValidationJob(input: {
       : undefined
     const selectedArtifact = lease.dependencyAuthority.selectedArtifacts[0]
     if (
-      readiness.job.canonicalGraphState !== 'ready'
+      readiness.job.canonicalGraphState !== 'blocked'
       || readiness.job.dependencyJobIds.length !== 1
       || lease.dependencyAuthority.state !==
         'private_test_dependencies_verified'

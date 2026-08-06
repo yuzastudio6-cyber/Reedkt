@@ -114,6 +114,9 @@ export function getServiceContext(request: Request): ServiceContext {
     canonicalCaptionSourceLedProfessionalPlanningReadPort:
       runtimeRequest.runtime
         .canonicalCaptionSourceLedProfessionalPlanningReadPort,
+    canonicalCaptionTranscriptPlanningExpectationOwnerReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
   }
 }
 

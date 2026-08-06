@@ -1078,6 +1078,186 @@ await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
 }), /work-item\/job authority is invalid/u)
 checks += 1
 
+const dependencyExecutionInput = {
+  operation: 'internal.validate_snapshot_manifest.v1',
+  source: 'canonical_edit_authority',
+}
+const dependencyExecutionInputRef = {
+  sha256: sha256AuthorityValue(dependencyExecutionInput),
+  byteLength: Buffer.byteLength(JSON.stringify(dependencyExecutionInput)),
+}
+const dependencyExpectedOutput = {
+  outputKey: 'authority-validation-evidence',
+  artifactType: 'authority_validation_evidence',
+  assetRole: 'qa' as const,
+  required: true,
+  previewPlaceholderAllowed: false,
+  contentType: 'application/json',
+  segmentIds: [] as string[],
+  timingIds: [] as string[],
+  rendererLayerIds: [] as string[],
+}
+const dependencyWorkItem = {
+  ...workItem,
+  id: 'approved-caption-dependency-work-1',
+  sourceWorkItemId: 'caption-dependency-work-source-1',
+  workItemKey: 'caption-approved-dependency',
+  workItemType: 'validate_approved_snapshot',
+  workerClass: 'canonical_authority_validation_runner_v1',
+  executionInputRef: dependencyExecutionInputRef,
+  sourceSequenceItemIds: [] as string[],
+  sourceCleanupDecisionIds: [] as string[],
+  expectedOutputs: [dependencyExpectedOutput],
+  dependencyKeys: [] as string[],
+  executionInputHash: dependencyExecutionInputRef.sha256,
+  executionInput: dependencyExecutionInput,
+}
+const dependencyJob = {
+  ...job,
+  id: 'caption-dependency-job-1',
+  approvedWorkItemId: dependencyWorkItem.id,
+  workItemKey: dependencyWorkItem.workItemKey,
+  jobType: dependencyWorkItem.workItemType,
+  workerClass: dependencyWorkItem.workerClass,
+  executionInputRef: dependencyExecutionInputRef,
+  sourceSequenceItemIds: [] as string[],
+  sourceCleanupDecisionIds: [] as string[],
+  expectedAssetIds: ['caption-dependency-manifest-entry-1'],
+}
+const dependencyManifestEntry = {
+  ...manifestEntry,
+  id: dependencyJob.expectedAssetIds[0],
+  approvedWorkItemId: dependencyWorkItem.id,
+  workItemKey: dependencyWorkItem.workItemKey,
+  ...dependencyExpectedOutput,
+}
+const dependentWorkItem = {
+  ...workItem,
+  dependencyKeys: [dependencyWorkItem.workItemKey],
+}
+const dependentJob = {
+  ...job,
+  dependencyJobIds: [dependencyJob.id],
+  status: 'blocked' as const,
+}
+const dependentAuthority = {
+  ...authority,
+  workItems: [dependencyWorkItem, dependentWorkItem],
+  jobs: [dependencyJob, dependentJob],
+  assetManifest: {
+    ...authority.assetManifest,
+    entries: [dependencyManifestEntry, manifestEntry],
+    requiredAssetCount: 2,
+  },
+} as unknown as CanonicalApprovedExecutionAuthority
+const dependentExecutionPackage = {
+  ...executionPackage,
+  approvedWorkItems: [
+    {
+      id: dependencyWorkItem.id,
+      workItemKey: dependencyWorkItem.workItemKey,
+      executionInputHash: dependencyWorkItem.executionInputHash,
+    },
+    executionPackage.approvedWorkItems[0]!,
+  ],
+  jobs: [
+    {
+      id: dependencyJob.id,
+      approvedWorkItemId: dependencyJob.approvedWorkItemId,
+      executionInputRef: dependencyJob.executionInputRef,
+      dispatchState: 'not_authorized' as const,
+    },
+    executionPackage.jobs[0]!,
+  ],
+} as CanonicalApprovedEditExecutionPackage
+const dependencyAuthorityWithoutHash = {
+  state: 'private_test_dependencies_verified' as const,
+  readinessHash: sha256AuthorityValue({
+    jobId: dependentJob.id,
+    dependencyJobId: dependencyJob.id,
+  }),
+  selectedArtifacts: [{
+    dependencyJobId: dependencyJob.id,
+    expectedAssetId: dependencyManifestEntry.id,
+    artifactId: 'caption-dependency-artifact-1',
+    artifactVersion: 1,
+    contentSha256: sha256AuthorityValue({
+      artifactId: 'caption-dependency-artifact-1',
+    }),
+    qaEvaluationId: 'caption-dependency-qa-1',
+    reconciliationId: 'caption-dependency-reconciliation-1',
+    executionAttemptId: 'caption-dependency-execution-attempt-1',
+    sourceLeaseImmutableHash: sha256AuthorityValue({
+      leaseId: 'caption-dependency-lease-1',
+    }),
+  }],
+  liveRuntimeEligible: false as const,
+}
+const dependencyAuthority = {
+  ...dependencyAuthorityWithoutHash,
+  authorityHash: sha256AuthorityValue(dependencyAuthorityWithoutHash),
+}
+const dependentExecution = await executeCanonicalCaptionSpecialistWorkItem({
+  authority: dependentAuthority,
+  executionPackage: dependentExecutionPackage,
+  jobId: dependentJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/dependent-v1',
+  }),
+  canonicalJobDependencyAuthority: dependencyAuthority,
+})
+check(dependentExecution.pair.result.disposition === 'completed',
+  'A dependent Caption job must run only with exact verified dependency authority.')
+
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: dependentAuthority,
+  executionPackage: dependentExecutionPackage,
+  jobId: dependentJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/dependent-missing-v1',
+  }),
+}), /lacks verified dependency authority/u)
+checks += 1
+
+const crossedDependencyAuthorityWithoutHash = {
+  ...dependencyAuthorityWithoutHash,
+  selectedArtifacts: [{
+    ...dependencyAuthorityWithoutHash.selectedArtifacts[0]!,
+    dependencyJobId: 'caption-crossed-dependency-job-1',
+  }],
+}
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: dependentAuthority,
+  executionPackage: dependentExecutionPackage,
+  jobId: dependentJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/dependent-crossed-v1',
+  }),
+  canonicalJobDependencyAuthority: {
+    ...crossedDependencyAuthorityWithoutHash,
+    authorityHash: sha256AuthorityValue(crossedDependencyAuthorityWithoutHash),
+  },
+}), /crossed its approved graph/u)
+checks += 1
+
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: dependentAuthority,
+  executionPackage: dependentExecutionPackage,
+  jobId: dependentJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/dependent-tampered-v1',
+  }),
+  canonicalJobDependencyAuthority: {
+    ...dependencyAuthority,
+    readinessHash: sha256AuthorityValue({ tampered: true }),
+  },
+}), /dependency authority digest is invalid/u)
+checks += 1
+
 await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
   authority: {
     ...authority,

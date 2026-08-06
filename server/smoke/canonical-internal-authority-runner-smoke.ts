@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFile, stat, writeFile } from 'node:fs/promises'
+import { readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
 import { loadRuntimeEnv } from '../config/env'
@@ -16,6 +16,9 @@ import {
 } from '../services/private-artifact-qa-authority-store'
 import { createPrivateArtifactQaAuthorityService } from '../services/private-artifact-qa-authority-service'
 import {
+  clearPrivateCanonicalWorkerLeaseProcessStateForSmoke,
+} from '../services/private-canonical-worker-lease-store'
+import {
   readPrivateEditAuthorityAggregate,
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -26,7 +29,7 @@ import { canonicalAuthoritySmokeRoot } from './canonical-authority-smoke-root'
 await import('./canonical-execution-readiness-smoke')
 
 const localStorageRoot = canonicalAuthoritySmokeRoot
-const workspaceId = 'workspace-authority-smoke'
+const workspaceId = 'workspace-authority-route-smoke'
 const userId = 'user-authority-smoke'
 const strongInternalSecret = 'rp-local-internal-runner-8Mx2Qv7Lc4Np9Hd3Ts6Za1Wk5Bj'
 const context: ServiceContext = {
@@ -44,32 +47,69 @@ const context: ServiceContext = {
   auth: { userId, isMockUser: true },
 }
 
+// The imported authority integration already exercised this workspace's
+// private runner. Preserve its immutable approval package, but start this
+// runner-specific proof with fresh lease/artifact evidence so it cannot replay
+// or collide with the prerequisite smoke's runtime records.
+await Promise.all([
+  'canonical-worker-leases',
+  'artifact-qa-authority',
+  'canonical-internal-authority-results',
+].map((relativePath) => rm(join(localStorageRoot, relativePath), {
+  force: true,
+  recursive: true,
+})))
+clearPrivateCanonicalWorkerLeaseProcessStateForSmoke()
+clearPrivateArtifactQaAuthorityProcessStateForSmoke()
+
 const authorityBefore = await requireEditAuthority()
-const snapshot = authorityBefore.snapshots.find((candidate) =>
-  authorityBefore.executionPackages.some((record) => record.snapshotId === candidate.snapshotId))
-assert.ok(snapshot)
+const snapshot = authorityBefore.snapshots.find((candidate) => {
+  const snapshotJobs = authorityBefore.jobs.filter((job) =>
+    job.snapshotId === candidate.snapshotId)
+  return authorityBefore.executionPackages.some((record) =>
+    record.snapshotId === candidate.snapshotId) &&
+    snapshotJobs.some((job) =>
+      job.dependencyJobIds.length === 1 &&
+      snapshotJobs.some((dependency) =>
+        dependency.id === job.dependencyJobIds[0] &&
+        dependency.dependencyJobIds.length === 0))
+})
+assert.ok(
+  snapshot,
+  JSON.stringify(authorityBefore.snapshots.map((candidate) => ({
+    snapshotId: candidate.snapshotId,
+    packagePresent: authorityBefore.executionPackages.some((record) =>
+      record.snapshotId === candidate.snapshotId),
+    jobs: authorityBefore.jobs
+      .filter((job) => job.snapshotId === candidate.snapshotId)
+      .map((job) => ({
+        id: job.id,
+        dependencies: job.dependencyJobIds,
+      })),
+  }))),
+)
 const canonicalAuthority = await createEditPlanningAuthorityService(context)
   .loadApprovedExecutionAuthority(snapshot.snapshotId, workspaceId)
-const rootWorkItem = canonicalAuthority.workItems.find((candidate) =>
+const dependentJob = canonicalAuthority.jobs.find((candidate) =>
   candidate.snapshotId === snapshot.snapshotId &&
-  candidate.workItemType === 'validate_approved_snapshot')
-const trimWorkItem = canonicalAuthority.workItems.find((candidate) =>
-  candidate.snapshotId === snapshot.snapshotId &&
-  candidate.workItemType === 'prepare_source_trim')
-assert.ok(rootWorkItem)
-assert.ok(trimWorkItem)
+  candidate.dependencyJobIds.length === 1 &&
+  canonicalAuthority.jobs.some((dependency) =>
+    dependency.id === candidate.dependencyJobIds[0] &&
+    dependency.dependencyJobIds.length === 0))
+assert.ok(dependentJob)
 const rootJob = canonicalAuthority.jobs.find((candidate) =>
-  candidate.snapshotId === snapshot.snapshotId &&
-  candidate.approvedWorkItemId === rootWorkItem.id)
-const trimJob = canonicalAuthority.jobs.find((candidate) =>
-  candidate.snapshotId === snapshot.snapshotId &&
-  candidate.approvedWorkItemId === trimWorkItem.id)
+  candidate.id === dependentJob.dependencyJobIds[0])
 assert.ok(rootJob)
-assert.ok(trimJob)
+const rootWorkItem = canonicalAuthority.workItems.find((candidate) =>
+  candidate.id === rootJob.approvedWorkItemId)
+const dependentWorkItem = canonicalAuthority.workItems.find((candidate) =>
+  candidate.id === dependentJob.approvedWorkItemId)
+assert.ok(rootWorkItem)
+assert.ok(dependentWorkItem)
 const rootExpectedAssetId = rootJob.expectedAssetIds[0]
-const trimExpectedAssetId = trimJob.expectedAssetIds[0]
+const dependentExpectedAssetId = dependentJob.expectedAssetIds[0]
 assert.ok(rootExpectedAssetId)
-assert.ok(trimExpectedAssetId)
+assert.ok(dependentExpectedAssetId)
 
 const leaseAuthority = createCanonicalWorkerLeaseAuthorityService(context)
 const artifactAuthority = createPrivateArtifactQaAuthorityService(context)
@@ -88,9 +128,9 @@ await expectApiError(
     workspaceId,
     projectId: snapshot.projectId,
     editSessionId: snapshot.editSessionId,
-    jobId: trimJob.id,
+    jobId: dependentJob.id,
     purpose: 'private_internal_canonical_lease_claim',
-    idempotencyKey: 'trim-before-root-artifact-must-fail',
+    idempotencyKey: 'dependent-before-root-artifact-must-fail',
   }),
   'JOB_DEPENDENCY_NOT_READY',
 )
@@ -120,7 +160,7 @@ await expectApiError(
   'WORKER_LEASE_EXPIRED',
 )
 await expectApiError(
-  () => runner.execute({ ...runInput, expectedAssetId: trimExpectedAssetId }, serverLease),
+  () => runner.execute({ ...runInput, expectedAssetId: dependentExpectedAssetId }, serverLease),
   'APPROVED_SNAPSHOT_REQUIRED',
 )
 
@@ -209,19 +249,19 @@ assert.equal(parsedArtifact.valid, true)
 assert.equal(JSON.stringify(parsedArtifact).includes(rootClaim.leaseCredential), false)
 assert.equal(JSON.stringify(parsedArtifact).includes(localStorageRoot), false)
 
-const trimDependencyReadiness = await artifactAuthority.deriveJobDependencyReadiness({
+const dependentDependencyReadiness = await artifactAuthority.deriveJobDependencyReadiness({
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
   snapshotId: snapshot.snapshotId,
-  jobId: trimJob.id,
+  jobId: dependentJob.id,
   purpose: 'derive_private_artifact_dependency_readiness',
 })
-assert.equal(trimDependencyReadiness.readinessGroup, 'ready_now_private_test_only')
-assert.equal(trimDependencyReadiness.privateTestDependencySatisfied, true)
-assert.equal(trimDependencyReadiness.liveRuntimeDependencySatisfied, false)
-assert.equal(trimDependencyReadiness.workerExecutionAuthorized, false)
-assert.equal(trimDependencyReadiness.toolExecutionAuthorized, false)
+assert.equal(dependentDependencyReadiness.readinessGroup, 'ready_now_private_test_only')
+assert.equal(dependentDependencyReadiness.privateTestDependencySatisfied, true)
+assert.equal(dependentDependencyReadiness.liveRuntimeDependencySatisfied, false)
+assert.equal(dependentDependencyReadiness.workerExecutionAuthorized, false)
+assert.equal(dependentDependencyReadiness.toolExecutionAuthorized, false)
 
 const releasedRoot = await leaseAuthority.release({
   workspaceId,
@@ -241,44 +281,44 @@ await expectApiError(
     workspaceId,
     projectId: snapshot.projectId,
     editSessionId: snapshot.editSessionId,
-    jobId: trimJob.id,
+    jobId: dependentJob.id,
     purpose: 'private_internal_canonical_lease_claim',
-    idempotencyKey: 'trim-tampered-root-artifact-must-fail',
+    idempotencyKey: 'dependent-tampered-root-artifact-must-fail',
   }),
   'JOB_DEPENDENCY_NOT_READY',
 )
 await writeFile(artifactPath, originalArtifactBytes)
 
-const trimClaim = (await leaseAuthority.claim({
+const dependentClaim = (await leaseAuthority.claim({
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id,
+  jobId: dependentJob.id,
   purpose: 'private_internal_canonical_lease_claim',
-  idempotencyKey: 'trim-after-root-artifact-ready',
+  idempotencyKey: 'dependent-after-root-artifact-ready',
 })).workerLeaseClaim
-assert.equal(trimClaim.lease.jobId, trimJob.id)
-assert.equal(trimClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
-assert.equal(trimClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
+assert.equal(dependentClaim.lease.jobId, dependentJob.id)
+assert.equal(dependentClaim.lease.dependencyAuthority.state, 'private_test_dependencies_verified')
+assert.equal(dependentClaim.lease.dependencyAuthority.selectedArtifacts.length, 1)
 assert.equal(
-  trimClaim.lease.dependencyAuthority.selectedArtifacts[0]?.executionAttemptId,
+  dependentClaim.lease.dependencyAuthority.selectedArtifacts[0]?.executionAttemptId,
   left.execution.executionAttemptId,
 )
-assert.equal(trimClaim.executionAuthority.dispatchAuthorized, false)
-assert.equal(trimClaim.executionAuthority.toolExecutionAuthorized, false)
-assert.equal(trimClaim.persistenceEvidence.productionAuthority, false)
+assert.equal(dependentClaim.executionAuthority.dispatchAuthorized, false)
+assert.equal(dependentClaim.executionAuthority.toolExecutionAuthorized, false)
+assert.equal(dependentClaim.persistenceEvidence.productionAuthority, false)
 
-const verifiedTrimLease = await leaseAuthority.verifyActive({
+const verifiedDependentLease = await leaseAuthority.verifyActive({
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id,
-  leaseId: trimClaim.lease.leaseId,
-  leaseCredential: trimClaim.leaseCredential,
+  jobId: dependentJob.id,
+  leaseId: dependentClaim.lease.leaseId,
+  leaseCredential: dependentClaim.leaseCredential,
   purpose: 'private_internal_canonical_lease_verification',
 })
-assert.equal(verifiedTrimLease.workerLeaseVerification.verified, true)
-assert.equal(verifiedTrimLease.workerLeaseVerification.executionAuthority.dispatchAuthorized, false)
+assert.equal(verifiedDependentLease.workerLeaseVerification.verified, true)
+assert.equal(verifiedDependentLease.workerLeaseVerification.executionAuthority.dispatchAuthorized, false)
 
 const artifactAggregatePath = join(
   localStorageRoot,
@@ -294,9 +334,9 @@ await expectApiError(
     workspaceId,
     projectId: snapshot.projectId,
     editSessionId: snapshot.editSessionId,
-    jobId: trimJob.id,
-    leaseId: trimClaim.lease.leaseId,
-    leaseCredential: trimClaim.leaseCredential,
+    jobId: dependentJob.id,
+    leaseId: dependentClaim.lease.leaseId,
+    leaseCredential: dependentClaim.leaseCredential,
     purpose: 'private_internal_canonical_lease_verification',
   }),
   'VALIDATION_FAILED',
@@ -307,9 +347,9 @@ assert.equal((await leaseAuthority.verifyActive({
   workspaceId,
   projectId: snapshot.projectId,
   editSessionId: snapshot.editSessionId,
-  jobId: trimJob.id,
-  leaseId: trimClaim.lease.leaseId,
-  leaseCredential: trimClaim.leaseCredential,
+  jobId: dependentJob.id,
+  leaseId: dependentClaim.lease.leaseId,
+  leaseCredential: dependentClaim.leaseCredential,
   purpose: 'private_internal_canonical_lease_verification',
 })).workerLeaseVerification.verified, true)
 
@@ -345,7 +385,7 @@ console.log(JSON.stringify({
     'concurrent_execution_is_one_content_addressed_artifact_authority',
     'private_json_bytes_hash_size_mode_and_semantics_verified',
     'artifact_qa_reconciliation_records_are_server_derived_and_replay_safe',
-    'dependency_ready_source_trim_receives_lease_only_after_root_evidence',
+    'dependency_ready_job_receives_lease_only_after_root_evidence',
     'dependency_lease_freezes_exact_artifact_qa_reconciliation_and_execution_fence',
     'lease_time_private_object_bytes_are_reopened_and_verified',
     'tampered_private_artifact_and_checksum_store_fail_closed',

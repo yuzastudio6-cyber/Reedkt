@@ -62,6 +62,8 @@ export const CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_VERSION =
   'canonical-caption-transcript-support-service-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_V2_VERSION =
   'canonical-caption-transcript-support-service-v2' as const
+export const CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_OWNER_READ_PORT_VERSION =
+  'canonical-caption-transcript-planning-expectation-owner-read-port-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION =
   'canonical-caption-transcript-evidence-repository-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION =
@@ -287,6 +289,27 @@ export interface CanonicalCaptionApprovedSnapshotReadPort {
   ): Promise<CaptionCanonicalTranscriptReadScope | null>
 }
 
+/**
+ * Read-only bridge from the canonical transcript owner into Caption's
+ * postapproval execution repository. The owner returns the already-created,
+ * exact-reread transcript projection and expectation binding; Caption cannot
+ * start transcription, align words, mutate timing, or manufacture evidence.
+ */
+export interface CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_OWNER_READ_PORT_VERSION
+  readonly sourceAuthority: 'canonical_source_transcript_owner'
+  readonly callerSuppliedTranscriptAccepted: false
+  readonly transcriptRuntimeGrantedToCaption: false
+  readExact(input: {
+    readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    readonly planningExpectationRef: CaptionDomainRef
+  }): Promise<Readonly<{
+    transcriptRecord: CanonicalCaptionTranscriptAuthenticatedEvidenceRecord
+    expectationBinding: CanonicalCaptionTranscriptPlanningExpectationBinding
+  }> | null>
+}
+
 export interface CanonicalCaptionTranscriptEvidenceRepository
   extends CanonicalCaptionTranscriptAuthenticatedReadPort {
   readonly repositoryVersion:
@@ -348,6 +371,7 @@ export interface CanonicalCaptionTranscriptSupportServiceV2 {
 const admittedWordReaders = new WeakSet<object>()
 const admittedSnapshotReaders = new WeakSet<object>()
 const admittedTranscriptRepositories = new WeakSet<object>()
+const admittedPlanningExpectationOwnerReaders = new WeakSet<object>()
 
 export function createCanonicalCaptionSourceWordTimingReadPort(
   readExact:
@@ -383,6 +407,43 @@ export function createCanonicalCaptionApprovedSnapshotReadPort(
   })
   admittedSnapshotReaders.add(port)
   return port
+}
+
+export function createCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+  readExact:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort['readExact'],
+): CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort {
+  if (typeof readExact !== 'function') {
+    throw new Error(
+      'Canonical Caption transcript expectation owner reader is required.',
+    )
+  }
+  const port = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_OWNER_READ_PORT_VERSION,
+    sourceAuthority: 'canonical_source_transcript_owner' as const,
+    callerSuppliedTranscriptAccepted: false as const,
+    transcriptRuntimeGrantedToCaption: false as const,
+    readExact: readExact.bind(undefined),
+  })
+  admittedPlanningExpectationOwnerReaders.add(port)
+  return port
+}
+
+export function assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+  port: CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+): void {
+  if (!admittedPlanningExpectationOwnerReaders.has(port)
+    || port.schemaVersion !==
+      CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_OWNER_READ_PORT_VERSION
+    || port.sourceAuthority !== 'canonical_source_transcript_owner'
+    || port.callerSuppliedTranscriptAccepted !== false
+    || port.transcriptRuntimeGrantedToCaption !== false
+    || typeof port.readExact !== 'function') {
+    throw new Error(
+      'Canonical Caption transcript expectation owner reader is invalid.',
+    )
+  }
 }
 
 export function assertCanonicalCaptionApprovedSnapshotReadPort(

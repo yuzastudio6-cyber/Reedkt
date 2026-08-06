@@ -412,6 +412,42 @@ function briefDrivenSource(input: ProfessionalSkillPlannerInput): ProfessionalSk
   return brief.ready ? 'edit_brief' : 'edit_brief'
 }
 
+function captionPreferenceSkillIds(
+  preference: NonNullable<NonNullable<
+    ProfessionalSkillPlannerInput['planningContext']
+  >['editBrief']>['captionPreference'],
+): string[] {
+  switch (preference) {
+    case 'none':
+      return ['captions.no_caption_policy']
+    case 'minimal':
+      return [
+        'captions.clean_readable_captions',
+        'captions.small_premium_subtitles',
+      ]
+    case 'standard':
+      return ['captions.clean_readable_captions']
+    case 'dynamic':
+      return [
+        'captions.clean_readable_captions',
+        'captions.keyword_emphasis',
+      ]
+    case 'bold_creator':
+      return [
+        'captions.clean_readable_captions',
+        'captions.bold_social_captions',
+      ]
+    case 'premium_subtle':
+      return [
+        'captions.clean_readable_captions',
+        'captions.small_premium_subtitles',
+      ]
+    case 'ai_decides':
+    case undefined:
+      return []
+  }
+}
+
 function reasonsForSkill(definition: ProfessionalSkillDefinition, sources: ProfessionalSkillSelectionSource[]) {
   if (sources.includes('user_prompt')) return `Selected because the edit request asks for ${definition.userFacingName.toLowerCase()}.`
   if (sources.includes('edit_brief')) return `Selected from optional Edit Brief direction for ${definition.userFacingName.toLowerCase()}.`
@@ -581,6 +617,15 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
       if (hasAny(briefText, definition.triggerKeywords)) {
         selected.set(definition.id, addSelectionSource(selected.get(definition.id) ?? [], briefSource))
       }
+    }
+
+    for (const skillId of captionPreferenceSkillIds(
+      input.planningContext.editBrief.captionPreference,
+    )) {
+      selected.set(
+        skillId,
+        addSelectionSource(selected.get(skillId) ?? [], briefSource),
+      )
     }
   }
 

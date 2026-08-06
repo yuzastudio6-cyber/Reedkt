@@ -21,6 +21,9 @@ import type {
 import type {
   CanonicalCaptionSpecialistPlanningProjection,
 } from '../../src/types/canonical-caption-specialist-planning'
+import {
+  parseProfessionalSkillCompositionTrace,
+} from '../../src/lib/professional-skills/professional-skill-composition-trace'
 import { createCanonicalPlanPresentationCoordinatorService } from './canonical-plan-presentation-coordinator-service'
 import { createCanonicalPlanningHandoffService } from './canonical-planning-handoff-service'
 import {
@@ -335,11 +338,14 @@ export function createCanonicalSourceLedPlanPresentationService(
         : null
       const compilePlan = (
         selectedCaptionMarkers: typeof captionMarkers,
+        professionalCaptionSelectionMarkers: typeof captionMarkers =
+          selectedCaptionMarkers,
       ) => compileCanonicalSourceLedPlan({
         plannerInput,
         sourceMediaAssets,
         editBrief,
         confirmedCaptionMarkers: selectedCaptionMarkers,
+        professionalCaptionSelectionMarkers,
         ...(sourceCleanupAuthorityRead?.status === 'ready'
           ? { sourceCleanupAuthority: sourceCleanupAuthorityRead.authority }
           : {}),
@@ -420,7 +426,6 @@ export function createCanonicalSourceLedPlanPresentationService(
           const port =
             context.canonicalCaptionSourceLedProfessionalPlanningReadPort ??
             createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
-              plannerInput,
               components: baseComponents,
               ...(sourceCleanupAuthorityRead?.status === 'ready'
                 ? {
@@ -441,6 +446,24 @@ export function createCanonicalSourceLedPlanPresentationService(
         let captionPlanningResult = await readCaptionPlanning()
         let captionPlanningRequest = captionPlanningResult.request
         let captionPlanningRead = captionPlanningResult.read
+        const captionSelectionDisposition =
+          parseProfessionalSkillCompositionTrace(
+            baseComponents.professionalSkillPlan?.compositionTrace,
+          ).entries[0].disposition
+        if (
+          captionPlanningRead.status === 'not_requested' &&
+          captionSelectionDisposition !== 'unresolved'
+        ) {
+          throw new ApiError(
+            'JOB_DEPENDENCY_NOT_READY',
+            'The Caption planning owner returned not_requested for an exact selected or restrained Caption composition trace.',
+            409,
+            {
+              requiredGate:
+                'canonical_caption_composition_trace_owner_reconciliation',
+            },
+          )
+        }
         if (captionPlanningRead.status === 'blocked_requested') {
           throw new ApiError(
             'JOB_DEPENDENCY_NOT_READY',
@@ -468,7 +491,7 @@ export function createCanonicalSourceLedPlanPresentationService(
               )
             }
             try {
-              compiled = compilePlan([])
+              compiled = compilePlan([], captionMarkers)
             } catch (error) {
               throw new ApiError(
                 'JOB_DEPENDENCY_NOT_READY',
@@ -528,12 +551,19 @@ export function createCanonicalSourceLedPlanPresentationService(
               estimate: publication.canonicalPlan.estimate,
               workItems: publication.canonicalPlan.workItems,
             })
+          const sourceLedBaseWorkItems = structuredClone(
+            publication.canonicalPlan.workItems,
+          )
           const validatedAppliedPlan =
             publishCanonicalEditPlanSchema.shape.canonicalPlan.parse({
               ...publication.canonicalPlan,
               components: applied.components,
               estimate: applied.estimate,
-              workItems: applied.workItems,
+              // The source-led owner proves the projection above, but the
+              // canonical edit-planning authority remains the sole writer of
+              // Caption work. Passing preprojected work here would make that
+              // owner project the same assignments a second time.
+              workItems: sourceLedBaseWorkItems,
             })
           publication.canonicalPlan = structuredClone(
             validatedAppliedPlan,

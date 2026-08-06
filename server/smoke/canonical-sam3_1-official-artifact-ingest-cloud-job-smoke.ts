@@ -59,7 +59,24 @@ assert.match(deployScript,
   /deploy-weeditpro-sam31-official-artifact-ingest-v1/u)
 assert.match(deployScript, /weeditpro-sam31-official-artifact-ingest/u)
 assert.match(deployScript, /weeditpro-sam31-ingest-sa/u)
-assert.match(deployScript, /@sha256:/u)
+assert.match(deployScript,
+  /BUILD_ID='563d55bf-bbdc-4bd4-8f46-298e52f24647'/u)
+assert.match(deployScript,
+  /SOURCE_COMMIT='a62f15e01c6c32c0ea41b95a49278ccc260b4cf5'/u)
+assert.match(deployScript,
+  /SOURCE_TREE='9268c325dc14e9edfb92610813936b399994ec66'/u)
+assert.match(deployScript,
+  /IMAGE_DIGEST='sha256:a965f0109baadd0db69b9c9d524f16aa127377dd50fe39c0aa0abdae5be8d635'/u)
+assert.match(deployScript, /requestedVerifyOption == "VERIFIED"/u)
+assert.match(deployScript, /sourceProvenanceHash == \["SHA256"\]/u)
+assert.match(deployScript, /slsa_build_level == 3/u)
+assert.match(deployScript, /FINISHED_SUCCESS/u)
+assert.match(deployScript, /contains\(\["NPM", "OS", "SECRET"\]\)/u)
+assert.match(deployScript, /lastScanTime/u)
+assert.match(deployScript,
+  /package_vulnerability_summary\.vulnerabilities/u)
+assert.doesNotMatch(deployScript,
+  /WEEDITPRO_SAM31_ARTIFACT_INGEST_IMAGE/u)
 assert.match(deployScript, /versions\/\[1-9\]\[0-9\]\*/u)
 assert.match(deployScript, /gcloud storage cat/u)
 assert.match(deployScript, /roles\/secretmanager\.secretAccessor/u)
@@ -85,11 +102,12 @@ assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 56,
+  checks: 68,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,
   immutableImageRequired: true,
+  exactCleanBuildSlsaAndVulnerabilityScanRereadRequired: true,
   exactHumanTermsObjectRequired: true,
   exactEnabledSecretVersionRequired: true,
   dedicatedLeastPrivilegeServiceIdentity: true,

@@ -12,7 +12,15 @@ readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-ingest-sa'
 readonly SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly MODEL_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 readonly CONTROL_BUCKET='reeditpro-production-reeditpro-control-plane-state'
-readonly IMAGE_PREFIX="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-official-artifact-ingest@sha256:"
+readonly BUILD_ID='563d55bf-bbdc-4bd4-8f46-298e52f24647'
+readonly SOURCE_COMMIT='a62f15e01c6c32c0ea41b95a49278ccc260b4cf5'
+readonly SOURCE_TREE='9268c325dc14e9edfb92610813936b399994ec66'
+readonly IMAGE_TAG="sam31-ingest-${SOURCE_COMMIT:0:16}"
+readonly IMAGE_DIGEST='sha256:a965f0109baadd0db69b9c9d524f16aa127377dd50fe39c0aa0abdae5be8d635'
+readonly IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-official-artifact-ingest@${IMAGE_DIGEST}"
+readonly IMAGE_TAGGED="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-official-artifact-ingest:${IMAGE_TAG}"
+readonly IMAGE_BUILDER='projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
+readonly CLOUD_BUILDER_DIGEST='sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147'
 readonly TERMS_PREFIX='private/sam3_1/terms-acceptance/v1/'
 readonly CONFIRMATION='deploy-weeditpro-sam31-official-artifact-ingest-v1'
 
@@ -26,7 +34,6 @@ fail() {
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
   || fail 'active Google Cloud project is not the fixed project'
 
-image="${WEEDITPRO_SAM31_ARTIFACT_INGEST_IMAGE:-}"
 secret_resource="${WEEDITPRO_SAM31_HF_SECRET_RESOURCE_NAME:-}"
 terms_name="${WEEDITPRO_SAM31_TERMS_ACCEPTANCE_OBJECT_NAME:-}"
 terms_generation="${WEEDITPRO_SAM31_TERMS_ACCEPTANCE_GENERATION:-}"
@@ -35,8 +42,6 @@ terms_length="${WEEDITPRO_SAM31_TERMS_ACCEPTANCE_BYTE_LENGTH:-}"
 terms_sha256="${WEEDITPRO_SAM31_TERMS_ACCEPTANCE_SHA256:-}"
 publication_attempt="${WEEDITPRO_SAM31_PUBLICATION_ATTEMPT_ID:-}"
 
-[[ "${image}" =~ ^${IMAGE_PREFIX}[a-f0-9]{64}$ ]] \
-  || fail 'immutable source-bound image is invalid'
 [[ "${secret_resource}" =~ ^projects/${PROJECT_ID}/secrets/(HUGGINGFACE_TOKEN|MODEL_WEIGHT_ACCESS_TOKEN)/versions/[1-9][0-9]*$ ]] \
   || fail 'pinned checkpoint credential version is invalid'
 [[ "${terms_name}" == "${TERMS_PREFIX}"*.json \
@@ -55,8 +60,55 @@ publication_attempt="${WEEDITPRO_SAM31_PUBLICATION_ATTEMPT_ID:-}"
   && "${publication_attempt}" != *'..'* ]] \
   || fail 'publication attempt identity is invalid'
 
-gcloud artifacts docker images describe "${image}" \
-  --project="${PROJECT_ID}" --format=json >/dev/null
+build_observation="$(gcloud builds describe "${BUILD_ID}" \
+  --project="${PROJECT_ID}" --region="${REGION}" --format=json)"
+jq -e \
+  --arg image "${IMAGE_TAGGED}" \
+  --arg digest "${IMAGE_DIGEST}" \
+  --arg source_commit "${SOURCE_COMMIT}" \
+  --arg source_tree "${SOURCE_TREE}" \
+  --arg builder "${IMAGE_BUILDER}" \
+  --arg cloud_builder "${CLOUD_BUILDER_DIGEST}" '
+    .status == "SUCCESS"
+    and .serviceAccount == $builder
+    and .substitutions._IMAGE == $image
+    and .substitutions._SOURCE_COMMIT_SHA == $source_commit
+    and .substitutions._SOURCE_TREE_HASH == $source_tree
+    and .options.requestedVerifyOption == "VERIFIED"
+    and .options.sourceProvenanceHash == ["SHA256"]
+    and .results.buildStepImages == [$cloud_builder]
+    and (.results.images | length) == 1
+    and .results.images[0].name == $image
+    and .results.images[0].digest == $digest
+    and (.sourceProvenance.fileHashes | to_entries | length) == 1
+    and any(
+      .sourceProvenance.fileHashes[]?.fileHash[]?;
+      .type == "SHA256" and (.value | length) > 20
+    )
+  ' <<<"${build_observation}" >/dev/null \
+  || fail 'source-bound Cloud Build provenance changed'
+image_observation="$(gcloud artifacts docker images describe "${IMAGE}" \
+  --project="${PROJECT_ID}" --show-package-vulnerability --format=json)"
+jq -e --arg digest "${IMAGE_DIGEST}" '
+    .image_summary.digest == $digest
+    and .image_summary.slsa_build_level == 3
+    and .discovery_summary.discovery[0].discovery.analysisStatus
+      == "FINISHED_SUCCESS"
+    and (
+      .discovery_summary.discovery[0].discovery
+        .analysisCompleted.analysisType
+      | contains(["NPM", "OS", "SECRET"])
+    )
+    and (
+      .discovery_summary.discovery[0].discovery.lastScanTime
+      | type == "string" and length > 10
+    )
+    and ([
+      (.package_vulnerability_summary.vulnerabilities // {})
+      | to_entries[]?.value[]?
+    ] | length) == 0
+  ' <<<"${image_observation}" >/dev/null \
+  || fail 'immutable image scan or SLSA evidence is not release-clean'
 secret_name="${secret_resource#projects/${PROJECT_ID}/secrets/}"
 secret_name="${secret_name%%/versions/*}"
 secret_version="${secret_resource##*/versions/}"
@@ -103,7 +155,7 @@ gcloud secrets add-iam-policy-binding "${secret_name}" \
 
 gcloud run jobs deploy "${JOB}" \
   --project="${PROJECT_ID}" --region="${REGION}" \
-  --image="${image}" --service-account="${SERVICE_ACCOUNT}" \
+  --image="${IMAGE}" --service-account="${SERVICE_ACCOUNT}" \
   --cpu=2 --memory=4Gi --tasks=1 --parallelism=1 \
   --max-retries=0 --task-timeout=4h --execution-environment=gen2 \
   --set-env-vars="WEEDITPRO_SAM31_OFFICIAL_ARTIFACT_INGEST_CONFIRM=publish-official-sam31-artifacts-once,WEEDITPRO_SAM31_PUBLICATION_ATTEMPT_ID=${publication_attempt},WEEDITPRO_SAM31_HF_SECRET_RESOURCE_NAME=${secret_resource},WEEDITPRO_SAM31_TERMS_ACCEPTANCE_OBJECT_NAME=${terms_name},WEEDITPRO_SAM31_TERMS_ACCEPTANCE_GENERATION=${terms_generation},WEEDITPRO_SAM31_TERMS_ACCEPTANCE_ETAG=${terms_etag},WEEDITPRO_SAM31_TERMS_ACCEPTANCE_BYTE_LENGTH=${terms_length},WEEDITPRO_SAM31_TERMS_ACCEPTANCE_SHA256=${terms_sha256}" \
@@ -120,6 +172,6 @@ fi
 printf '{"operation":"weeditpro_sam31_artifact_ingest_job_deploy_v1",'
 printf '"job":"projects/%s/locations/%s/jobs/%s",' \
   "${PROJECT_ID}" "${REGION}" "${JOB}"
-printf '"immutableImage":"%s","minimumInstances":0,' "${image}"
+printf '"immutableImage":"%s","minimumInstances":0,' "${IMAGE}"
 printf '"jobExecuted":false,"modelOrCheckpointDownloaded":false,'
 printf '"customerCreditsMutated":false,"productionAuthorityGranted":false}\n'

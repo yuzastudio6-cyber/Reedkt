@@ -69,6 +69,8 @@ jobs:
         run: npm run test:e2e
 
       - name: Server typecheck
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: npm run typecheck:server
 
       - name: Security boundary smokes

@@ -61,6 +61,8 @@ jobs:
         run: npm run test:sound-acceptance
 
       - name: Server typecheck
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: npm run typecheck:server
 
       - name: Lint

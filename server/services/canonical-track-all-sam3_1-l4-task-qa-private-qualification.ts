@@ -27,7 +27,7 @@ const REGION = 'us-central1' as const
 const JOB_RESOURCE =
   'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4' as const
 const IMAGE_DIGEST =
-  'sha256:93313f705698d2bf3e639d603ade793730fc218b22ad76741017ec9d3f970873' as const
+  'sha256:fb9ced131438f50c7273f11fd47febfb2b7d440e1ae3d18f78151d33ce4e83de' as const
 const NETWORK = 'weeditpro-gpu-private' as const
 const SUBNET = 'weeditpro-gpu-private-us-central1' as const
 const NETWORK_TAG = 'weeditpro-gpu-private-no-nat' as const

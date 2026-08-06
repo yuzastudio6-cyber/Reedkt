@@ -107,6 +107,13 @@ if (Buffer.isBuffer(exactArtifact.body)
 }
 for await (const chunk of exactArtifact.body) chunks.push(Buffer.from(chunk))
 assert.deepEqual(Buffer.concat(chunks), artifactBody)
+assert.deepEqual(
+  await exactArtifact.rereadMetadataAfterBodyConsumed?.(),
+  {
+    generationAfterRead: coordinate.generation,
+    etagAfterRead: coordinate.etag,
+  },
+)
 assert.equal(artifactMetadataReads, 2)
 assert.equal(artifactStreams, 1)
 assert.equal(await createCanonicalSam31GcsPrivateArtifactReadPort({

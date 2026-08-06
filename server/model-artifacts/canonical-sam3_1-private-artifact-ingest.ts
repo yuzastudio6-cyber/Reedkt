@@ -231,6 +231,10 @@ export interface CanonicalSam31PrivateObjectReadPort {
     readonly body: Buffer | Uint8Array | AsyncIterable<Uint8Array>
     readonly generationAfterRead: string
     readonly etagAfterRead: string
+    readonly rereadMetadataAfterBodyConsumed?: () => Promise<{
+      readonly generationAfterRead: string
+      readonly etagAfterRead: string
+    }>
   } | null>
 }
 
@@ -310,11 +314,13 @@ export async function prepareCanonicalSam31PrivateArtifactIngestReceipt(
     sourceCoordinate,
     input.privateObjectReadPort,
     ['application/x-tar', 'application/octet-stream'],
+    input.evidenceClass === 'canonical_private_reread',
   )
   const checkpointRead = await verifyExactPrivateObject(
     checkpointCoordinate,
     input.privateObjectReadPort,
     ['application/octet-stream'],
+    input.evidenceClass === 'canonical_private_reread',
   )
   const payload = ingestWithoutHashSchema.parse({
     schemaVersion: CANONICAL_SAM3_1_PRIVATE_ARTIFACT_INGEST_VERSION,
@@ -429,6 +435,7 @@ async function verifyExactPrivateObject(
   coordinate: z.infer<typeof objectCoordinateSchema>,
   port: CanonicalSam31PrivateObjectReadPort,
   allowedContentTypes: readonly string[],
+  requirePostBodyMetadataReread: boolean,
 ): Promise<{ readonly stable: true }> {
   const object = await port.readExact(coordinate)
   if (!object) throw new Error('SAM 3.1 private artifact is missing.')
@@ -460,6 +467,19 @@ async function verifyExactPrivateObject(
     byteLength !== coordinate.byteLength
     || digest.digest('hex') !== coordinate.sha256
   ) throw new Error('SAM 3.1 private artifact bytes changed.')
+  const after = requirePostBodyMetadataReread
+    ? await object.rereadMetadataAfterBodyConsumed?.()
+    : undefined
+  if (requirePostBodyMetadataReread && !after) {
+    throw new Error('SAM 3.1 canonical artifact post-read metadata is absent.')
+  }
+  const generationAfterRead = after?.generationAfterRead
+    ?? object.generationAfterRead
+  const etagAfterRead = after?.etagAfterRead ?? object.etagAfterRead
+  if (
+    generationAfterRead !== coordinate.generation
+    || etagAfterRead !== coordinate.etag
+  ) throw new Error('SAM 3.1 private artifact changed after streaming read.')
   return { stable: true }
 }
 

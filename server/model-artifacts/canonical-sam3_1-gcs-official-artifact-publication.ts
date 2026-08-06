@@ -179,23 +179,41 @@ export function createCanonicalSam31GcsPrivateArtifactReadPort(input: {
         throw error
       }
       assertExactReadMetadata(before, coordinate)
-      const afterResponse = await exact.getMetadata()
-      const after = afterResponse[0] as unknown as Record<string, unknown>
-      assertExactReadMetadata(after, coordinate)
+      let bodyConsumed = false
       return Object.freeze({
         generationBeforeRead: coordinate.generation,
         etagBeforeRead: coordinate.etag,
         contentType: String(before.contentType ?? ''),
-        body: exact.createReadStream({
+        body: markBodyConsumed(exact.createReadStream({
           decompress: false,
           validation: 'crc32c',
-        }),
+        }), () => { bodyConsumed = true }),
         generationAfterRead: coordinate.generation,
         etagAfterRead: coordinate.etag,
+        async rereadMetadataAfterBodyConsumed() {
+          if (!bodyConsumed) {
+            throw new Error('SAM 3.1 artifact body was not fully consumed.')
+          }
+          const afterResponse = await exact.getMetadata()
+          const after = afterResponse[0] as unknown as Record<string, unknown>
+          assertExactReadMetadata(after, coordinate)
+          return Object.freeze({
+            generationAfterRead: coordinate.generation,
+            etagAfterRead: coordinate.etag,
+          })
+        },
       })
     },
   }
   return Object.freeze(port)
+}
+
+async function* markBodyConsumed(
+  body: AsyncIterable<Uint8Array>,
+  markConsumed: () => void,
+): AsyncIterable<Uint8Array> {
+  for await (const chunk of body) yield chunk
+  markConsumed()
 }
 
 function assertPublicationInput(input: {

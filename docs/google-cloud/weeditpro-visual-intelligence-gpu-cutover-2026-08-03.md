@@ -351,6 +351,34 @@ idempotent rerun then observed all five disabled and emitted
   3.1, and grants no runtime release, customer-credit mutation, QA approval,
   public delivery, or production authority.
 
+### 2026-08-06 A100 source/checkpoint qualification foundation milestone
+
+- The guarded A100 foundation operator completed and exact-reread the live
+  `reeditpro` control plane. It created the dedicated
+  `weeditpro-sam31-qual-sa` identity, the regional private qualification
+  bucket, an HSM-backed 90-day-rotation encryption key, and the pinned
+  `weeditpro-sam31-qualification-a100-v1` instance template.
+- The template is fixed to `a2-ultragpu-1g` (one NVIDIA A100 80 GB), the
+  version-pinned Google Batch Debian image, a 200 GB balanced boot disk,
+  Shielded VM controls, OS Login, and the private `us-central1` GPU subnet.
+  It has no external-IP access configuration. Batch remains responsible for
+  host GPU-driver installation; the worker must still independently qualify
+  the observed driver, CUDA libraries, accelerator identity, and exact model
+  behavior.
+- The qualification identity has only Batch agent reporting, log writing,
+  metric writing, qualification-bucket object read/create, and immutable-image
+  read access. The canonical API identity alone may attach it and create/read
+  qualification evidence. The bucket enforces uniform access, public-access
+  prevention, 14-day soft delete, and the exact HSM CMEK.
+- A post-provision audit found zero SAM 3.1/A100 Batch jobs and zero matching
+  Compute instances. This milestone therefore prepares user-triggered
+  scale-from-zero execution but starts no GPU, downloads no source/checkpoint,
+  mutates no customer credits, and grants no production authority.
+- The live receipt identity is
+  `weeditpro-sam31-a100-qualification-foundation-receipt-v1`. Actual A100
+  source/checkpoint qualification remains blocked by the official gated
+  checkpoint/token and effective A100 80 GB quota.
+
 The read-only operator command
 `npm run audit:visual-intelligence-live-prerequisites` reports A100/L4 quota,
 enabled checkpoint-secret version counts (never payloads), the full required

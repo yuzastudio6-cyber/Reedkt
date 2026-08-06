@@ -202,28 +202,32 @@ assert_exact_foundation() {
     --keyring="${KEY_RING}" --format=json)"
   template_json="$(gcloud compute instance-templates describe \
     "${INSTANCE_TEMPLATE}" --project="${PROJECT_ID}" --format=json)"
-  jq -e --arg email "${QUALIFICATION_SA_EMAIL}" \
-    '.email == $email and .disabled == false' <<<"${service_json}" >/dev/null \
+  jq -e --arg email "${QUALIFICATION_SA_EMAIL}" --arg project "${PROJECT_ID}" '
+    .email == $email and .projectId == $project
+    and .name == ("projects/" + $project + "/serviceAccounts/" + $email)
+    and (.disabled // false) == false
+  ' <<<"${service_json}" >/dev/null \
     || fail 'qualification service identity exact reread failed'
   jq -e --arg key "${KMS_KEY_RESOURCE}" '
-    .location == "US-CENTRAL1" and .storageClass == "STANDARD"
-    and .iamConfiguration.uniformBucketLevelAccess.enabled == true
-    and .iamConfiguration.publicAccessPrevention == "enforced"
-    and .encryption.defaultKmsKeyName == $key
-    and .softDeletePolicy.retentionDurationSeconds == "1209600"
+    .location == "US-CENTRAL1" and .location_type == "region"
+    and .default_storage_class == "STANDARD"
+    and .uniform_bucket_level_access == true
+    and .public_access_prevention == "enforced"
+    and .default_kms_key == $key
+    and .soft_delete_policy.retentionDurationSeconds == "1209600"
   ' <<<"${bucket_json}" >/dev/null || fail 'qualification bucket changed'
   jq -e '
     .purpose == "ENCRYPT_DECRYPT" and .primary.protectionLevel == "HSM"
     and .rotationPeriod == "7776000s" and .primary.state == "ENABLED"
   ' <<<"${key_json}" >/dev/null || fail 'qualification encryption key changed'
-  jq -e --arg sa "${QUALIFICATION_SA_EMAIL}" --arg imageId "${BATCH_IMAGE_ID}" '
+  jq -e --arg sa "${QUALIFICATION_SA_EMAIL}" --arg image "${BATCH_IMAGE}" '
     .properties.machineType == "a2-ultragpu-1g"
     and .properties.canIpForward == false
     and .properties.scheduling.onHostMaintenance == "TERMINATE"
     and .properties.scheduling.provisioningModel == "STANDARD"
     and .properties.serviceAccounts[0].email == $sa
     and .properties.networkInterfaces[0].accessConfigs == null
-    and (.properties.disks[0].initializeParams.sourceImage | endswith("/" + $imageId))
+    and (.properties.disks[0].initializeParams.sourceImage | endswith("/" + $image))
     and .properties.disks[0].initializeParams.diskSizeGb == "200"
     and (.properties.metadata.items
       | any(.key == "block-project-ssh-keys" and .value == "true"))

@@ -26,6 +26,9 @@ assert.match(script, /--protection-level=hsm/u)
 assert.match(script, /--default-encryption-key/u)
 assert.match(script, /--public-access-prevention/u)
 assert.match(script, /--uniform-bucket-level-access/u)
+assert.match(script, /\.disabled \/\/ false/u)
+assert.match(script, /\.default_kms_key == \$key/u)
+assert.match(script, /\.soft_delete_policy\.retentionDurationSeconds == "1209600"/u)
 assert.match(script, /roles\/batch\.agentReporter/u)
 assert.match(script, /roles\/artifactregistry\.reader/u)
 assert.match(script, /roles\/storage\.objectCreator/u)
@@ -51,7 +54,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-a100-qualification-foundation',
-  checks: 31,
+  checks: 34,
   exactA100MachineTypeAndPinnedBatchOsImage: true,
   privateNetworkNoExternalIp: true,
   hsmCmekPrivateBucket: true,

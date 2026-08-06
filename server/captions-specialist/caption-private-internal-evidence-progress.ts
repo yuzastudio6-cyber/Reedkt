@@ -125,13 +125,13 @@ const soundIncompletePackageRef = ref(
   'caption-sound-private-runtime-inspection-package-v1',
   '8fc28a91ba4c139830468c564edd6c477101bc4d04b22570439c32c12734b194')
 const brollOwnerRuntimeReceiptRef = ref(
-  'caption.broll.owner.private-runtime.2026-08-05-v3',
+  'caption.broll.owner.private-runtime.2026-08-06-v4',
   'caption-broll-owner-private-runtime-receipt-v1',
-  'e21e08a9969db634d53d7d3c1d291f2360d7b99aab860a4b21dd96042e20047e')
+  '79a1589877bd6c02d3c3e0658ba05d9b504013cb339d197fc651d021759121b6')
 const brollDirectInspectionRef = ref(
-  'review.caption-broll.public-canonical.v3',
-  'caption-broll-direct-private-inspection-v1',
-  '0430a5e1ed801337e1a2d1967474dec1084e1cc0ee8ad1627fa2492731fa9dc4')
+  'review.caption-broll.technical-qa-label.v4',
+  'caption-broll-direct-private-inspection-v2',
+  'c156c2ea73439886ed363271ce5b4607c90bcfe46e4fb6b271b8d48da7ec6c46')
 const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
@@ -235,8 +235,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-05-v2',
-  observedAt: '2026-08-05T20:33:01.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v3',
+  observedAt: '2026-08-06T12:00:00.000-04:00',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

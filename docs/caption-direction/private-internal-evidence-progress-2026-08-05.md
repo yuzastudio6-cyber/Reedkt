@@ -26,7 +26,7 @@ the evidence currently belongs to several independently scoped tests.
 | --- | --- |
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner is mounted; an independent complete audio-truth review has not supplied its actual correction artifact. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
-| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. Its synthetic color-bar imagery is accepted only as technical integration evidence and is structurally ineligible for professional-appearance qualification. Its scope is not the terminal talking-head edit scope. |
+| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. The corrected renderer now carries the validated B-roll geometry into Remotion, keeps Caption above B-roll, and visibly labels every synthetic frame as a technical QA preview. Its color-bar imagery is structurally ineligible for professional-appearance qualification, and its scope is not the terminal talking-head edit scope. |
 | Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
 | Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
@@ -39,7 +39,12 @@ per-job projection remains blocked by the first eight gates.
 Color bars, geometry blocks, timers, and exaggerated plates are test media.
 They prove frame timing, safe-area behavior, layer ordering, clipping refusal,
 and export behavior. They are deliberately **not** examples of the intended
-Caption art direction.
+Caption art direction. The B-roll fixture now renders a persistent
+`Technical QA preview · not final Caption design` label, and its direct-review
+contract requires `professionalCaptionAppearanceQualified: false`.
+
+The additive correction and direct-raster evidence are recorded in
+`caption-broll-technical-fixture-layer-order-correction-2026-08-06.md`.
 
 The intended-appearance proof uses real talking-head pixels and separate
 full/reduced Caption renders. The original 9:16 evidence remains:

@@ -4185,6 +4185,12 @@ async function execute(request, options = {}) {
         sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
+        ...(request.payload.sourceMediaPolicy === undefined
+          ? {}
+          : { sourceMediaPolicy: request.payload.sourceMediaPolicy }),
+        ...(request.payload.brollPreviewLayer === undefined
+          ? {}
+          : { brollPreviewLayer: request.payload.brollPreviewLayer }),
         sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
         ...livingFrameOverlayRenderPayload,
         ...controlledVisualOverlayRenderPayload,

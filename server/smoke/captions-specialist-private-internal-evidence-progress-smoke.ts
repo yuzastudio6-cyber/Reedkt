@@ -59,6 +59,11 @@ check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')?.status
     === 'actual_evidence_accepted_outside_terminal_scope',
 'accepted B-roll evidence remains separate from the terminal edit scope')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
+    (reference) => reference.version ===
+      'caption-broll-direct-private-inspection-v2'),
+'B-roll technical fixture evidence requires the visibly labelled v2 review')
 check(progress.professionalAppearanceEvidence.realTalkingHeadPixelsInspected
   && progress.professionalAppearanceEvidence
     .acceptedForCaptionOwnedProfessionalAppearance

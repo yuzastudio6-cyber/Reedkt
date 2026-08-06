@@ -1257,9 +1257,42 @@ const ApprovedChunkMergeComposition: React.FC<ApprovedCompositionProps> = (props
   )
 }
 
+const TechnicalQaPreviewLabel: React.FC = () => (
+  <div
+    style={{
+      position: 'absolute',
+      top: 12,
+      left: '50%',
+      zIndex: 1_000,
+      maxWidth: 'calc(100% - 24px)',
+      transform: 'translateX(-50%)',
+      border: '1px solid rgba(251, 191, 36, 0.9)',
+      borderRadius: 999,
+      background: 'rgba(17, 24, 39, 0.92)',
+      boxShadow: '0 4px 18px rgba(0, 0, 0, 0.36)',
+      color: '#FDE68A',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      fontSize: 11,
+      fontWeight: 800,
+      letterSpacing: '0.08em',
+      lineHeight: 1,
+      overflow: 'hidden',
+      padding: '7px 11px',
+      pointerEvents: 'none',
+      textOverflow: 'ellipsis',
+      textTransform: 'uppercase',
+      whiteSpace: 'nowrap',
+    }}
+  >
+    Technical QA preview · not final Caption design
+  </div>
+)
+
 const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (props) => {
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
   const broll = props.brollPreviewLayer
+  const technicalQaPreview = props.sourceMediaPolicy ===
+    'approved_b_roll_qa_normalized_preview_proxy_v1'
   const sourceStyle: React.CSSProperties = broll
     ? {
         position: 'absolute',
@@ -1294,6 +1327,7 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
       <ApprovedLivingFrameOverlays {...props} />
       <ApprovedControlledVisualOverlays {...props} />
       <ApprovedCaptionOverlays {...props} />
+      {technicalQaPreview && <TechnicalQaPreviewLabel />}
     </AbsoluteFill>
   )
 }
@@ -1420,6 +1454,7 @@ const ApprovedSupplementalAudioTracks: React.FC<ApprovedCompositionProps> = (pro
 const captionOverlayStyle: React.CSSProperties = {
   position: 'absolute',
   inset: 0,
+  zIndex: 900,
   width: '100%',
   height: '100%',
   objectFit: 'fill',

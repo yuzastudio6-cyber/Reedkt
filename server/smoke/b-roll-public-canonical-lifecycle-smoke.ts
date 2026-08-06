@@ -496,7 +496,7 @@ async function dispatchItem(input: {
 }
 
 interface CaptionBrollInspectionPackage {
-  readonly schemaVersion: 'caption-broll-private-inspection-package-v1'
+  readonly schemaVersion: 'caption-broll-private-inspection-package-v2'
   readonly previewSha256: string
   readonly captionOverlaySha256: string
   readonly layerManifestHash: string
@@ -516,6 +516,8 @@ interface CaptionBrollInspectionPackage {
   readonly actualLibassReadAndRenderFrameExecuted: boolean
   readonly approvedFontPackUsed: boolean
   readonly completeTimePrivateVisualReviewRequired: true
+  readonly technicalQaPreviewLabelRequired: true
+  readonly professionalCaptionAppearanceQualificationAllowed: false
   readonly mediaBytesIncluded: false
   readonly publicDeliveryGranted: false
   readonly productionAuthorityGranted: false
@@ -574,7 +576,7 @@ async function createCaptionBrollInspectionPackage(input: {
   }
   const contactSheetBytes = await readFile(contactSheetPath)
   const withoutDigest: Omit<CaptionBrollInspectionPackage, 'packageSha256'> = {
-    schemaVersion: 'caption-broll-private-inspection-package-v1',
+    schemaVersion: 'caption-broll-private-inspection-package-v2',
     previewSha256: input.previewSha256,
     captionOverlaySha256: input.captionOverlaySha256,
     layerManifestHash: input.layerManifestHash,
@@ -591,6 +593,8 @@ async function createCaptionBrollInspectionPackage(input: {
       input.actualLibassReadAndRenderFrameExecuted,
     approvedFontPackUsed: input.approvedFontPackUsed,
     completeTimePrivateVisualReviewRequired: true,
+    technicalQaPreviewLabelRequired: true,
+    professionalCaptionAppearanceQualificationAllowed: false,
     mediaBytesIncluded: false,
     publicDeliveryGranted: false,
     productionAuthorityGranted: false,
@@ -611,7 +615,7 @@ async function readCaptionBrollDirectInspection(input: {
   expectedReceiptSha256: string
   inspectionPackage: CaptionBrollInspectionPackage
 }): Promise<{
-  schemaVersion: 'caption-broll-direct-private-inspection-v1'
+  schemaVersion: 'caption-broll-direct-private-inspection-v2'
   reviewId: string
   reviewerClass: 'qualified_visual_ai'
   disposition: 'accepted_with_warnings'
@@ -644,9 +648,11 @@ async function readCaptionBrollDirectInspection(input: {
     'reviewerClass',
     'schemaVersion',
     'syntheticFixtureLimitationAcknowledged',
+    'technicalQaPreviewLabelVisible',
+    'professionalCaptionAppearanceQualified',
   ].sort())
   assert.equal(value.schemaVersion,
-    'caption-broll-direct-private-inspection-v1')
+    'caption-broll-direct-private-inspection-v2')
   assert.equal(value.inspectionPackageSha256,
     input.inspectionPackage.packageSha256)
   assert.equal(value.reviewerClass, 'qualified_visual_ai')
@@ -659,14 +665,16 @@ async function readCaptionBrollDirectInspection(input: {
     'captionLayerAboveBrollVerified',
     'noClippingOrCollisionObserved',
     'syntheticFixtureLimitationAcknowledged',
+    'technicalQaPreviewLabelVisible',
   ]) assert.equal(value[field], true, `${field} must be true.`)
+  assert.equal(value.professionalCaptionAppearanceQualified, false)
   assert.equal(value.mediaBytesIncluded, false)
   assert.equal(value.publicDeliveryGranted, false)
   assert.equal(value.productionAuthorityGranted, false)
   assert.match(String(value.reviewId), /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u)
   assert.equal(Number.isNaN(Date.parse(String(value.reviewedAt))), false)
   return {
-    schemaVersion: 'caption-broll-direct-private-inspection-v1',
+    schemaVersion: 'caption-broll-direct-private-inspection-v2',
     reviewId: String(value.reviewId),
     reviewerClass: 'qualified_visual_ai',
     disposition: 'accepted_with_warnings',

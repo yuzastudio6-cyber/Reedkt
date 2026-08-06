@@ -392,11 +392,14 @@ reader—because cosign persists digest-bound signatures and attestations as OCI
 referrers; it retains no admin/delete or model/runtime authority. A blocked
 audit is expected until every external checkpoint, identity, KMS, storage,
 image, and A100 gate closes; it does not weaken or self-authorize a build or
-runtime. Audit version v6 additionally requires all fifteen frozen CPU-only
+runtime. Audit version v11 additionally requires all fifteen frozen CPU-only
 processing job definitions to be absent, the bounded private-search service to
 retain its exact immutable zero-idle control-plane shape under its dedicated
 identity, and all five fixed legacy CPU processing identities to be disabled or
-absent. GPU jobs remain outside the retirement scope.
+absent. It also exact-rereads the complete A100 qualification foundation:
+dedicated identity and least-privilege roles, HSM-CMEK bucket, pinned Batch OS,
+private subnet, A100 80 GB instance template, and zero active qualification jobs
+or instances. GPU qualification still remains a separate evidence gate.
 
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,

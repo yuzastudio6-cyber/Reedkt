@@ -17,8 +17,14 @@ const [dockerfile, buildConfig, buildScript, deployScript, viteConfig, cli,
 
 assert.match(dockerfile,
   /node:24-alpine3\.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97/u)
-assert.equal((dockerfile.match(/FROM node:24-alpine3\.22@sha256:/gu) ?? []).length, 3)
-assert.match(dockerfile, /apk add --no-cache ca-certificates git/u)
+assert.equal((dockerfile.match(/FROM node:24-alpine3\.22@sha256:/gu) ?? []).length, 2)
+assert.match(dockerfile, /ca-certificates=20260611-r0/u)
+assert.match(dockerfile, /git=2\.49\.1-r0/u)
+assert.match(dockerfile, /libcrypto3=3\.5\.7-r0/u)
+assert.match(dockerfile, /libssl3=3\.5\.7-r0/u)
+assert.match(dockerfile, /openssl=3\.5\.7-r0/u)
+assert.match(dockerfile, /rm -rf \/usr\/local\/lib\/node_modules\/npm/u)
+assert.doesNotMatch(dockerfile, /COPY --from=dependencies|\/app\/node_modules/u)
 assert.doesNotMatch(dockerfile, /apt-get|bookworm|perl/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_COMMIT_SHA/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_TREE_HASH/u)
@@ -67,6 +73,7 @@ assert.match(viteConfig,
   /input: 'server\/cli\/canonical-sam3_1-official-artifact-ingest\.ts'/u)
 assert.match(viteConfig, /codeSplitting: false/u)
 assert.match(viteConfig, /copyPublicDir: false/u)
+assert.match(viteConfig, /noExternal: true/u)
 assert.match(viteConfig,
   /outDir: 'dist-sam31-official-artifact-ingest'/u)
 assert.match(packageJson,
@@ -78,7 +85,7 @@ assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 49,
+  checks: 56,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,

@@ -4,11 +4,6 @@
 # media processing or inference. The gated checkpoint is streamed directly
 # from the official origin into private, create-only Google Cloud Storage.
 
-FROM node:24-alpine3.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97 AS dependencies
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
-
 FROM node:24-alpine3.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97 AS build
 WORKDIR /app
 ENV NODE_ENV=development \
@@ -29,7 +24,17 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
       | grep -Eq '^[a-f0-9]{40}$' \
   && test "${WEEDITPRO_SOURCE_CLEAN}" = 'true' \
-  && apk add --no-cache ca-certificates git
+  && apk add --no-cache \
+      'ca-certificates=20260611-r0' \
+      'git=2.49.1-r0' \
+      'libcrypto3=3.5.7-r0' \
+      'libssl3=3.5.7-r0' \
+      'openssl=3.5.7-r0' \
+  && rm -rf /usr/local/lib/node_modules/npm \
+      /usr/local/bin/npm /usr/local/bin/npx /opt/yarn* \
+  && test ! -e /usr/local/lib/node_modules/npm \
+  && test ! -e /usr/local/bin/npm \
+  && test ! -e /usr/local/bin/npx
 LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
   io.weeditpro.build.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \
@@ -39,11 +44,9 @@ LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
 WORKDIR /app
 ENV NODE_ENV=production \
   REEDITPRO_DISABLE_DOTENV=true
-COPY --from=dependencies --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node \
   /app/dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js \
   ./dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js
-COPY --chown=node:node package.json package-lock.json ./
 RUN test -f dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js \
   && test "$(find dist-sam31-official-artifact-ingest -type f | wc -l)" = '1' \
   && test "$(id -u node)" != '0'

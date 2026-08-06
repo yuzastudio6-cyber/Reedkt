@@ -53,6 +53,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-private-artifact-ingest-runtime-smoke.ts',
   'server/smoke/canonical-sam3_1-authorized-terms-finalization-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-hugging-face-official-access-verifier-smoke.ts',
+  'server/smoke/canonical-sam3_1-authorized-terms-finalization-cloud-job-smoke.ts',
   'server/smoke/canonical-sam3_1-private-artifact-ingest-cloud-job-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',
   'server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts',

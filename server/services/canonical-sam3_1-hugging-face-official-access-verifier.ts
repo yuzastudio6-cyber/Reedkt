@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { z } from 'zod'
+import { GoogleAuth } from 'google-auth-library'
 
 import {
   assertCanonicalSam31AuthorizedHumanTermsIntent,
@@ -202,11 +203,23 @@ export function createCanonicalSam31HuggingFaceOfficialAccessVerificationPort(
 }
 
 async function createSecretManagerClient(): Promise<SecretManagerClientLike> {
-  const moduleName = '@google-cloud/secret-manager'
-  const mod = await import(/* @vite-ignore */ moduleName) as {
-    SecretManagerServiceClient: new () => SecretManagerClientLike
-  }
-  return new mod.SecretManagerServiceClient()
+  const auth = new GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/cloud-platform'],
+  })
+  const client = await auth.getClient()
+  return Object.freeze({
+    async accessSecretVersion(input: { readonly name: string }) {
+      if (!SECRET_RESOURCE.test(input.name)) {
+        throw new Error('SAM 3.1 pinned access credential is invalid.')
+      }
+      const response = await client.request({
+        url: `https://secretmanager.googleapis.com/v1/${input.name}:access`,
+        method: 'POST',
+        responseType: 'json',
+      })
+      return [response.data]
+    },
+  })
 }
 
 async function resolvePinnedToken(input: {

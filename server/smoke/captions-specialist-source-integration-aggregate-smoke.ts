@@ -46,6 +46,7 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-real-source-inspection-projection',
   'smoke:canonical-caption-qualification-run-evidence',
   'smoke:canonical-caption-private-qualification-catalog',
+  'smoke:canonical-caption-private-qualification-campaign',
   'smoke:canonical-caption-private-qualification-composition',
 ] as const
 
@@ -103,6 +104,7 @@ console.log(JSON.stringify({
   captionOwnedDirectRealSourceInspectionRequired: true,
   syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
   multiRunFortyOneJobCatalogImplemented: true,
+  boundedMultiRunCampaignControllerImplemented: true,
   finalPrivateQualificationServiceImplemented: true,
   actualQualificationCatalogPersisted: false,
   mediaRuntimeStarted: false,

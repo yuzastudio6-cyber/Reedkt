@@ -27,6 +27,14 @@ jobs selected for its actual scenes and boundaries. The canonical path now:
    qualified for `planning` and `private_internal`, while whole-skill and
    production claims remain false in that generic future-Orchestra surface.
 
+The V5 private composition now mounts a bounded campaign controller over those
+existing owners. It accepts an exact catalog request plus the declared approved
+run inputs, sorts and reconciles every run, refuses a crossed or duplicate run
+set, requires more than one immutable approved snapshot, and invokes the
+existing catalog/release service only after every run is recorded. It returns
+an explicit waiting disposition for incomplete runs or incomplete catalog
+coverage; it cannot manufacture the missing record.
+
 The source mount is complete. No actual catalog or terminal qualification
 record was published by this milestone because the required real approved runs
 have not yet been executed and collected together.
@@ -36,9 +44,11 @@ have not yet been executed and collected together.
 - `src/types/canonical-caption-qualification-run-evidence.ts`
 - `src/types/canonical-caption-private-qualification-catalog.ts`
 - `src/types/canonical-caption-private-internal-qualification.ts`
+- `src/types/canonical-caption-private-qualification-campaign.ts`
 - `server/services/canonical-caption-qualification-run-evidence-reader.ts`
 - `server/services/canonical-caption-private-qualification-catalog-service.ts`
 - `server/services/canonical-caption-private-internal-qualification-service.ts`
+- `server/services/canonical-caption-private-qualification-campaign-service.ts`
 - `server/services/canonical-caption-private-qualification-composition.ts`
 - `server/services/canonical-caption-shared-owner-private-composition.ts`
 - focused source smokes and the Caption source-integration aggregate
@@ -60,6 +70,9 @@ have not yet been executed and collected together.
 - `canonical-caption-private-internal-qualification-repository-v1`
 - `canonical-caption-private-internal-qualification-service-v1`
 - `canonical-caption-private-qualification-composition-v1`
+- `canonical-caption-private-qualification-campaign-controller-v1`
+- `canonical-caption-private-qualification-campaign-outcome-v1`
+- `canonical-caption-private-qualification-composition-v5`
 - embedded `skill-qualification-snapshot-v1` terminal per-job projection
 
 The historical V1/V2/V3 Caption terminal contracts remain readable. The new
@@ -116,7 +129,8 @@ supplied run evidence.
 - `smoke:canonical-caption-real-source-inspection-projection` — 49 assertions
 - `smoke:canonical-caption-qualification-run-evidence` — 25 checks
 - `smoke:canonical-caption-private-qualification-catalog` — 29 checks
-- `smoke:canonical-caption-private-qualification-composition` — 17 checks
+- `smoke:canonical-caption-private-qualification-campaign` — 7 checks
+- `smoke:canonical-caption-private-qualification-composition` — 19 checks
 - `smoke:canonical-caption-shared-owner-composition` — 9 checks
 
 The catalog and final-record smoke uses contract fixtures only. It starts no
@@ -143,6 +157,10 @@ Not applicable. No new raster or video was generated.
   approved-run record;
 - exposed the already-mounted Sound and B-roll evidence repositories for the
   terminal reread without creating another owner.
+- connected several V4 approved-run reconciliations to the existing catalog
+  and terminal release service through a deterministic V5 campaign harness;
+- made incomplete-run and incomplete-catalog outcomes explicit and
+  non-promoting.
 
 ## Known limitations and scoped blockers
 

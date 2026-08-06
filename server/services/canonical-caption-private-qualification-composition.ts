@@ -2,6 +2,9 @@ import type {
   CanonicalCaptionPrivateQualificationCatalogAssembly,
 } from '../../src/types/canonical-caption-private-qualification-catalog'
 import type {
+  CanonicalCaptionPrivateQualificationCampaignController,
+} from '../../src/types/canonical-caption-private-qualification-campaign'
+import type {
   CanonicalCaptionPrivateInternalQualificationService,
 } from '../../src/types/canonical-caption-private-internal-qualification'
 import type {
@@ -38,6 +41,9 @@ import {
   createCanonicalCaptionPrivateQualificationRunController,
 } from './canonical-caption-private-qualification-run-controller'
 import {
+  createCanonicalCaptionPrivateQualificationCampaignController,
+} from './canonical-caption-private-qualification-campaign-service'
+import {
   createCanonicalCaptionQualificationRunEvidenceAssembly,
   createCanonicalCaptionQualificationRunEvidenceReader,
   createCanonicalCaptionQualificationRunEvidenceRepository,
@@ -69,6 +75,8 @@ export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V3_VERSION =
   'canonical-caption-private-qualification-composition-v3' as const
 export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V4_VERSION =
   'canonical-caption-private-qualification-composition-v4' as const
+export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V5_VERSION =
+  'canonical-caption-private-qualification-composition-v5' as const
 
 /**
  * Private qualification composition only. It reads existing canonical owners,
@@ -133,6 +141,16 @@ export interface CanonicalCaptionPrivateQualificationCompositionV4
   readonly approvedRunController:
     CanonicalCaptionPrivateQualificationRunController
   readonly inspectionToRunEvidenceMounted: true
+}
+
+export interface CanonicalCaptionPrivateQualificationCompositionV5
+  extends Omit<CanonicalCaptionPrivateQualificationCompositionV4,
+  'schemaVersion'> {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V5_VERSION
+  readonly campaignController:
+    CanonicalCaptionPrivateQualificationCampaignController
+  readonly multiRunCampaignToTerminalProjectionMounted: true
 }
 
 export interface CanonicalCaptionPrivateQualificationCompositionInput {
@@ -304,5 +322,22 @@ export function createCanonicalCaptionPrivateQualificationCompositionV4(
         runEvidenceAssembly: base.runEvidenceAssembly,
       }),
     inspectionToRunEvidenceMounted: true,
+  })
+}
+
+export function createCanonicalCaptionPrivateQualificationCompositionV5(
+  input: CanonicalCaptionPrivateQualificationCompositionInput,
+): CanonicalCaptionPrivateQualificationCompositionV5 {
+  const base = createCanonicalCaptionPrivateQualificationCompositionV4(input)
+  return Object.freeze({
+    ...base,
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V5_VERSION,
+    campaignController:
+      createCanonicalCaptionPrivateQualificationCampaignController({
+        approvedRunController: base.approvedRunController,
+        qualificationService: base.qualificationService,
+      }),
+    multiRunCampaignToTerminalProjectionMounted: true,
   })
 }

@@ -8,6 +8,7 @@ import {
   createCanonicalCaptionPrivateQualificationCompositionV2,
   createCanonicalCaptionPrivateQualificationCompositionV3,
   createCanonicalCaptionPrivateQualificationCompositionV4,
+  createCanonicalCaptionPrivateQualificationCompositionV5,
 } from '../services/canonical-caption-private-qualification-composition'
 import {
   createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
@@ -125,6 +126,18 @@ const compositionV4 =
     brollEvidenceRepository,
     prefix: 'private-internal/caption-qualification-composition-v4-smoke',
   })
+const compositionV5 =
+  createCanonicalCaptionPrivateQualificationCompositionV5({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository,
+    prefix: 'private-internal/caption-qualification-composition-v5-smoke',
+  })
 
 check(composition.schemaVersion ===
   'canonical-caption-private-qualification-composition-v1',
@@ -192,6 +205,18 @@ check(compositionV4.approvedRunController
   && compositionV4.approvedRunController.exactApprovedRunRereadRequired
   && !compositionV4.approvedRunController.incompleteRunPromotionAllowed,
 'The run controller must wait rather than promote incomplete evidence.')
+check(compositionV5.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v5'
+  && compositionV5.campaignController.schemaVersion ===
+    'canonical-caption-private-qualification-campaign-controller-v1'
+  && compositionV5.multiRunCampaignToTerminalProjectionMounted,
+'The V5 composition must mount the bounded multi-run qualification campaign.')
+check(compositionV5.campaignController.exactCatalogRunSetRequired
+  && compositionV5.campaignController.multipleApprovedSnapshotsRequired
+  && !compositionV5.campaignController.oneAllFeatureEditAllowed
+  && !compositionV5.campaignController.incompleteRunOrCatalogPromotionAllowed
+  && compositionV5.campaignController.privateInternalQualificationHarnessOnly,
+'The campaign must remain a bounded internal harness and fail closed.')
 
 assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
   context,

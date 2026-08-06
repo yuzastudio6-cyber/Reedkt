@@ -106,6 +106,15 @@ to reread and persist the run. If any owner, artifact, model-review, final-QA,
 or private-review evidence is missing, the controller returns a waiting result
 and keeps terminal/catalog status unchanged.
 
+The V5 composition now mounts the missing multi-run campaign connection. It
+requires the campaign's declared run set to match the catalog exactly, requires
+multiple immutable approved snapshots, reconciles each run through the V4
+controller, and calls the existing catalog/final-release owner only when every
+run is recorded. Its source regression proves both waiting states; it does not
+claim that a real catalog or private-internal record exists. The evidence truth
+therefore remains **0/41 terminal jobs** and **0/9 terminal gates** for one exact
+persisted catalog until representative real runs populate it.
+
 When that real catalog is complete, the final record also publishes the
 standard 41-entry `SkillQualificationSnapshot` for `planning` and
 `private_internal`. It deliberately leaves generic whole-skill and production

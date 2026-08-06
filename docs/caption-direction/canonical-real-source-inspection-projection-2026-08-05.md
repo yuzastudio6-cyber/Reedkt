@@ -69,6 +69,9 @@ and cross-source lookup fail closed.
 - `canonical-caption-private-qualification-run-controller-v1`
 - `canonical-caption-private-qualification-run-outcome-v1`
 - `canonical-caption-private-qualification-composition-v4`
+- `canonical-caption-private-qualification-campaign-controller-v1`
+- `canonical-caption-private-qualification-campaign-outcome-v1`
+- `canonical-caption-private-qualification-composition-v5`
 
 ## Existing owners reused
 
@@ -155,5 +158,7 @@ source authority and without promoting synthetic engineering media.
 ## Next milestone
 
 Run representative approved edits through the V4 private composition so they
-persist exact real-source inspection evidence and the remaining owner/QA
-evidence into the multi-run catalog.
+persist exact real-source inspection evidence and remaining owner/QA evidence;
+then submit those exact run inputs to the V5 campaign controller so the existing
+catalog and release services can assemble the multi-run record without a second
+owner.

@@ -521,6 +521,7 @@
     "smoke:captions-specialist-terminal-qualification-v3": "tsx server/smoke/captions-specialist-terminal-qualification-v3-smoke.ts",
     "smoke:canonical-caption-qualification-run-evidence": "tsx server/smoke/canonical-caption-qualification-run-evidence-reader-smoke.ts",
     "smoke:canonical-caption-private-qualification-catalog": "tsx server/smoke/canonical-caption-private-qualification-catalog-service-smoke.ts",
+    "smoke:canonical-caption-private-qualification-campaign": "tsx server/smoke/canonical-caption-private-qualification-campaign-smoke.ts",
     "smoke:canonical-caption-private-qualification-composition": "tsx server/smoke/canonical-caption-private-qualification-composition-smoke.ts",
     "smoke:canonical-caption-direct-visual-inspection-evidence": "tsx server/smoke/canonical-caption-direct-visual-inspection-evidence-smoke.ts",
     "smoke:canonical-caption-real-source-inspection-projection": "tsx server/smoke/canonical-caption-real-source-inspection-projection-service-smoke.ts",

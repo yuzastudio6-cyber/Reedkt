@@ -13,6 +13,7 @@ const packageJson = JSON.parse(readFileSync(
 assert.match(script, /set -euo pipefail/u)
 assert.match(script, /a2-ultragpu-1g/u)
 assert.match(script, /nvidia_a100_80gb/u)
+assert.match(script, /weeditpro-sam31-qual-sa/u)
 assert.match(script, /batch-debian-11-official-20260730-00-p01/u)
 assert.match(script, /2466381682817372572/u)
 assert.match(script, /weeditpro-gpu-private/u)

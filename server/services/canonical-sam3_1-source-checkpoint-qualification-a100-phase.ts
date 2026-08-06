@@ -43,7 +43,7 @@ const PRIVATE_NETWORK =
 const PRIVATE_SUBNETWORK =
   'projects/reeditpro/regions/us-central1/subnetworks/weeditpro-gpu-private-us-central1' as const
 const SERVICE_ACCOUNT =
-  'reeditpro-sam31-qualification-sa@reeditpro.iam.gserviceaccount.com' as const
+  'weeditpro-sam31-qual-sa@reeditpro.iam.gserviceaccount.com' as const
 const MOUNT_PATH = '/mnt/disks/reeditpro/sam31-qualification' as const
 const REQUEST_OBJECT_NAME = 'request/request.json' as const
 const CHECKPOINT_OBJECT_NAME =

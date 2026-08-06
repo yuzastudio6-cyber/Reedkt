@@ -34,7 +34,6 @@ import {
   assertCanonicalImageSecurityReviewMatches,
   assertCanonicalSam31ImageSecurityReview,
   canonicalArtifactRegistryImageUrl,
-  canonicalCloudBuildProvenanceInvocationId,
   canonicalCloudBuildReadUrl,
   canonicalImageSecurityReviewRef,
   createCanonicalSam31ImageSupplyChainGoogleReadTransport,
@@ -80,6 +79,7 @@ const ARTIFACT_PATHS = Object.freeze([
 ] as const)
 
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const timestamp = z.string().datetime({ offset: true })
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
   .refine((value) => !value.includes('..') && !value.includes('://'))
@@ -390,11 +390,7 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceRead
         ),
         listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
-          'kind="BUILD" AND '
-            + 'build.inTotoSlsaProvenanceV1.predicate.runDetails.metadata.'
-            + `invocationId="${canonicalCloudBuildProvenanceInvocationId(
-              imageTerminal.cloudBuildResource,
-            )}"`,
+          `kind="BUILD" AND resourceUrl="${resourceUri}"`,
         ),
       ])
 
@@ -451,6 +447,7 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceRead
         occurrences: buildOccurrences,
         imageUri,
         imageDigest,
+        taggedImageUri: imageAuthority.imageDestination.taggedUri,
         cloudBuildResource: imageTerminal.cloudBuildResource,
       })
 
@@ -692,46 +689,55 @@ function verifyOriginalBuild(input: {
     input.authority,
   ).body as Record<string, unknown>
   const expectedSource = record(expected.source)
-  const source = record(root.source)
+  const expectedStorage = record(expectedSource.storageSource)
+  const source = record(record(root.source).storageSource)
   const sourceProvenance = record(root.sourceProvenance)
+  const resolvedSource = record(sourceProvenance.resolvedStorageSource)
   const results = record(root.results)
   const images = z.array(z.unknown()).length(1).parse(results.images)
   const resultImage = record(images[0])
-  if (
-    root.id !== input.terminal.cloudBuildId
-    || !isExpectedBuildResource(root.name, input.terminal.cloudBuildId)
-    || ![PROJECT_ID, PROJECT_NUMBER].includes(String(root.projectId) as never)
-    || root.status !== 'SUCCESS'
-    || !Array.isArray(root.warnings)
-    || root.warnings.length !== 0
-    || !sameJson(source, expectedSource)
-    || !sameJson(
-      sourceProvenance.resolvedStorageSource,
-      expectedSource.storageSource,
-    )
-    || !sameCloudBuildSteps(root.steps, expected.steps)
-    || !sameJson(root.images, expected.images)
-    || root.serviceAccount !== expected.serviceAccount
-    || root.timeout !== expected.timeout
-    || root.queueTtl !== expected.queueTtl
-    || !sameCloudBuildOptions(root.options, expected.options)
-    || !sameJson(root.tags, expected.tags)
-    || resultImage.name !== input.authority.imageDestination.taggedUri
-    || resultImage.digest !== input.terminal.immutableImageDigest
-    || resultImage.artifactRegistryPackage !== IMAGE_PACKAGE
-    || !containsSha256(
+  const failures = ([
+    [root.id !== input.terminal.cloudBuildId, 'id'],
+    [!isExpectedBuildResource(root.name, input.terminal.cloudBuildId), 'name'],
+    [![PROJECT_ID, PROJECT_NUMBER].includes(
+      String(root.projectId) as never,
+    ), 'project'],
+    [root.status !== 'SUCCESS', 'status'],
+    [hasUnexpectedWarnings(root.warnings), 'warnings'],
+    [!sameStorageSource(source, expectedStorage), 'source'],
+    [!sameStorageSource(resolvedSource, expectedStorage), 'resolved_source'],
+    [!sameCloudBuildSteps(root.steps, expected.steps), 'steps'],
+    [!sameJson(root.images, expected.images), 'images'],
+    [root.serviceAccount !== expected.serviceAccount, 'service_account'],
+    [root.timeout !== expected.timeout, 'timeout'],
+    [root.queueTtl !== expected.queueTtl, 'queue_ttl'],
+    [!sameCloudBuildOptions(root.options, expected.options), 'options'],
+    [!sameJson(root.tags, expected.tags), 'tags'],
+    [resultImage.name !== input.authority.imageDestination.taggedUri,
+      'result_image'],
+    [resultImage.digest !== input.terminal.immutableImageDigest,
+      'result_digest'],
+    [resultImage.artifactRegistryPackage !==
+      `${IMAGE_PACKAGE}/versions/${input.terminal.immutableImageDigest}`,
+    'result_package'],
+    [!containsSha256(
       sourceProvenance,
       input.authority.buildSourceCoordinate.sha256,
-    )
-    || input.submission.buildRequestHash !==
+    ), 'source_sha256'],
+    [input.submission.buildRequestHash !==
       compileCanonicalTrackAllSam31L4TaskQaCloudBuildRequest(
         input.authority,
-      ).requestHash
-    || hasNonEmptyValue(root.substitutions)
-    || hasNonEmptyValue(root.secrets)
-    || hasNonEmptyValue(root.availableSecrets)
-    || hasNonEmptyValue(root.buildTriggerId)
-  ) throw new Error('track_all_l4_original_cloud_build_invalid')
+      ).requestHash, 'request_hash'],
+    [hasNonEmptyValue(root.substitutions), 'substitutions'],
+    [hasNonEmptyValue(root.secrets), 'secrets'],
+    [hasNonEmptyValue(root.availableSecrets), 'available_secrets'],
+    [hasNonEmptyValue(root.buildTriggerId), 'build_trigger'],
+  ] as const).filter(([failed]) => failed).map(([, label]) => label)
+  if (failures.length > 0) {
+    throw new Error(
+      `track_all_l4_original_cloud_build_invalid:${failures.join(',')}`,
+    )
+  }
 }
 
 function verifySupplyChainBuild(input: {
@@ -747,29 +753,37 @@ function verifySupplyChainBuild(input: {
   const results = record(root.results)
   const artifacts = record(record(root.artifacts).objects)
   const expectedArtifacts = record(record(expected.artifacts).objects)
-  if (
-    root.id !== input.terminal.cloudBuildId
-    || !isExpectedBuildResource(root.name, input.terminal.cloudBuildId)
-    || ![PROJECT_ID, PROJECT_NUMBER].includes(String(root.projectId) as never)
-    || root.status !== 'SUCCESS'
-    || !Array.isArray(root.warnings)
-    || root.warnings.length !== 0
-    || !sameSupplyChainSteps(root.steps, expected.steps)
-    || !sameJson(artifacts, expectedArtifacts)
-    || root.serviceAccount !== expected.serviceAccount
-    || root.timeout !== expected.timeout
-    || root.queueTtl !== expected.queueTtl
-    || !sameCloudBuildOptions(root.options, expected.options)
-    || !sameJson(root.tags, expected.tags)
-    || results.artifactManifest !== input.terminal.evidenceArtifactManifestUri
-    || Number(results.numArtifacts) !== ARTIFACT_PATHS.length
-    || hasNonEmptyValue(root.source)
-    || hasNonEmptyValue(root.images)
-    || hasNonEmptyValue(root.substitutions)
-    || hasNonEmptyValue(root.secrets)
-    || hasNonEmptyValue(root.availableSecrets)
-    || hasNonEmptyValue(root.buildTriggerId)
-  ) throw new Error('track_all_l4_supply_chain_cloud_build_invalid')
+  const failures = ([
+    [root.id !== input.terminal.cloudBuildId, 'id'],
+    [!isExpectedBuildResource(root.name, input.terminal.cloudBuildId), 'name'],
+    [![PROJECT_ID, PROJECT_NUMBER].includes(
+      String(root.projectId) as never,
+    ), 'project'],
+    [root.status !== 'SUCCESS', 'status'],
+    [hasUnexpectedWarnings(root.warnings), 'warnings'],
+    [!sameSupplyChainSteps(root.steps, expected.steps), 'steps'],
+    [!sameArtifactObjects(artifacts, expectedArtifacts), 'artifacts'],
+    [root.serviceAccount !== expected.serviceAccount, 'service_account'],
+    [root.timeout !== expected.timeout, 'timeout'],
+    [root.queueTtl !== expected.queueTtl, 'queue_ttl'],
+    [!sameCloudBuildOptions(root.options, expected.options), 'options'],
+    [!sameJson(root.tags, expected.tags), 'tags'],
+    [results.artifactManifest !== input.terminal.evidenceArtifactManifestUri,
+      'artifact_manifest'],
+    [Number(results.numArtifacts) !== ARTIFACT_PATHS.length,
+      'artifact_count'],
+    [hasNonEmptyValue(root.source), 'source'],
+    [hasNonEmptyValue(root.images), 'images'],
+    [hasNonEmptyValue(root.substitutions), 'substitutions'],
+    [hasNonEmptyValue(root.secrets), 'secrets'],
+    [hasNonEmptyValue(root.availableSecrets), 'available_secrets'],
+    [hasNonEmptyValue(root.buildTriggerId), 'build_trigger'],
+  ] as const).filter(([failed]) => failed).map(([, label]) => label)
+  if (failures.length > 0) {
+    throw new Error(
+      `track_all_l4_supply_chain_cloud_build_invalid:${failures.join(',')}`,
+    )
+  }
 }
 
 function sameCloudBuildSteps(observed: unknown, expected: unknown): boolean {
@@ -791,16 +805,30 @@ function sameCloudBuildSteps(observed: unknown, expected: unknown): boolean {
     })), expectedSteps.data)
 }
 
+function sameStorageSource(
+  observed: Record<string, unknown>,
+  expected: Record<string, unknown>,
+): boolean {
+  return observed.bucket === expected.bucket
+    && observed.object === expected.object
+    && String(observed.generation) === String(expected.generation)
+    && observed.sourceFetcher === 'GCS_FETCHER'
+    && Object.keys(observed).sort().join(',') ===
+      'bucket,generation,object,sourceFetcher'
+}
+
 function sameSupplyChainSteps(observed: unknown, expected: unknown): boolean {
   const observedSteps = z.array(z.object({
     id: z.unknown(),
     name: z.unknown(),
+    entrypoint: z.unknown().optional(),
     waitFor: z.unknown().optional(),
     args: z.unknown(),
   }).passthrough()).max(100).safeParse(observed)
   const expectedSteps = z.array(z.object({
     id: z.unknown(),
     name: z.unknown(),
+    entrypoint: z.unknown().optional(),
     waitFor: z.unknown().optional(),
     args: z.unknown(),
   }).strict()).max(100).safeParse(expected)
@@ -808,11 +836,29 @@ function sameSupplyChainSteps(observed: unknown, expected: unknown): boolean {
     && sameJson(observedSteps.data.map((step) => ({
       id: step.id,
       name: step.name,
+      ...(step.entrypoint === undefined ? {} : {
+        entrypoint: step.entrypoint,
+      }),
       ...(Array.isArray(step.waitFor) && step.waitFor.length > 0
         ? { waitFor: step.waitFor }
         : {}),
       args: step.args,
     })), expectedSteps.data)
+}
+
+function sameArtifactObjects(
+  observed: Record<string, unknown>,
+  expected: Record<string, unknown>,
+): boolean {
+  const timing = z.object({
+    startTime: timestamp,
+    endTime: timestamp,
+  }).strict().safeParse(observed.timing)
+  return observed.location === expected.location
+    && sameJson(observed.paths, expected.paths)
+    && Object.keys(observed).sort().join(',') === 'location,paths,timing'
+    && timing.success
+    && Date.parse(timing.data.endTime) >= Date.parse(timing.data.startTime)
 }
 
 function sameCloudBuildOptions(observed: unknown, expected: unknown): boolean {
@@ -833,13 +879,16 @@ function sameCloudBuildOptions(observed: unknown, expected: unknown): boolean {
   if (!observedValue.success || !expectedValue.success) return false
   return sameJson({
     machineType: observedValue.data.machineType,
-    diskSizeGb: observedValue.data.diskSizeGb,
+    diskSizeGb: String(observedValue.data.diskSizeGb),
     logging: observedValue.data.logging,
     requestedVerifyOption: observedValue.data.requestedVerifyOption,
     ...(observedValue.data.sourceProvenanceHash === undefined
       ? {}
       : { sourceProvenanceHash: observedValue.data.sourceProvenanceHash }),
-  }, expectedValue.data)
+  }, {
+    ...expectedValue.data,
+    diskSizeGb: String(expectedValue.data.diskSizeGb),
+  })
 }
 
 function isExpectedBuildResource(value: unknown, buildId: string): boolean {
@@ -870,6 +919,10 @@ function hasNonEmptyValue(value: unknown): boolean {
   if (Array.isArray(value)) return value.length > 0
   if (typeof value === 'object') return Reflect.ownKeys(value).length > 0
   return true
+}
+
+function hasUnexpectedWarnings(value: unknown): boolean {
+  return value !== undefined && (!Array.isArray(value) || value.length > 0)
 }
 
 function record(value: unknown): Record<string, unknown> {

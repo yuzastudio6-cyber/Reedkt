@@ -240,6 +240,7 @@
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-service": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-service-smoke.ts",
     "run:track-all-sam3_1-l4-task-qa-image-supply-chain-build": "tsx server/cli/run-track-all-sam3_1-l4-task-qa-image-supply-chain-build.ts",
     "review:track-all-sam3_1-l4-task-qa-image-security": "tsx server/cli/review-track-all-sam3_1-l4-task-qa-image-security.ts",
+    "reread:track-all-sam3_1-l4-task-qa-image-supply-chain": "tsx server/cli/reread-track-all-sam3_1-l4-task-qa-image-supply-chain-evidence.ts",
     "smoke:track-all-sam3_1-l4-task-qa-image-supply-chain-build": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-observation": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-observation-smoke.ts",
     "observe:track-all-sam3_1-l4-task-qa-cloud-image-build": "tsx server/cli/observe-track-all-sam3_1-l4-task-qa-cloud-image-build.ts",

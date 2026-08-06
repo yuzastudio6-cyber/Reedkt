@@ -486,11 +486,18 @@ function createQualificationEvidenceObjects(input: {
       `gs://${input.admission.evidenceBucket}/`
         + `${input.admission.evidencePrefix}/${path}#${generations.get(path)}`,
     file_hash: [{
-      type: 2,
-      value: createHash('md5').update(value).digest('base64'),
+      file_hash: [{
+        type: 2,
+        value: Buffer.from(
+          createHash('md5').update(value).digest('base64'),
+          'utf8',
+        ).toString('base64'),
+      }],
     }],
   }))
-  const manifestBody = Buffer.from(JSON.stringify(manifestEntries))
+  const manifestBody = Buffer.from(
+    manifestEntries.map((entry) => JSON.stringify(entry)).join('\n'),
+  )
   const manifestUri = input.observation.evidenceArtifactManifestUri
   assert(manifestUri)
   const manifestName = manifestUri
@@ -596,6 +603,7 @@ function qualificationGoogleEvidenceResponse(input: {
         occurrences: [qualificationBuildProvenanceOccurrence(
           imageUri,
           imageDigest,
+          input.authority.imageDestination.taggedUri,
           input.imageBuildTerminal.cloudBuildResource,
         )],
       },
@@ -614,6 +622,7 @@ function successfulQualificationImageBuild(
   const source = structuredClone(expected.source) as {
     storageSource: Record<string, unknown>
   }
+  source.storageSource.sourceFetcher = 'GCS_FETCHER'
   return {
     id: terminal.cloudBuildId,
     name: terminal.cloudBuildResource,
@@ -644,7 +653,9 @@ function successfulQualificationImageBuild(
       images: [{
         name: value.imageDestination.taggedUri,
         digest: terminal.immutableImageDigest,
-        artifactRegistryPackage: terminal.artifactRegistryPackage,
+        artifactRegistryPackage:
+          `${terminal.artifactRegistryPackage}/versions/`
+            + terminal.immutableImageDigest,
       }],
     },
   }
@@ -672,14 +683,14 @@ function qualificationDiscoveryOccurrence(imageUri: string) {
 function qualificationBuildProvenanceOccurrence(
   imageUri: string,
   imageDigest: string,
+  taggedImageUri: string,
   cloudBuildResource: string,
 ) {
-  const repository = imageUri.replace(/@sha256:[a-f0-9]{64}$/u, '')
   const statement = {
     _type: 'https://in-toto.io/Statement/v1',
     predicateType: 'https://slsa.dev/provenance/v1',
     subject: [{
-      name: `https://${repository}`,
+      name: `https://${taggedImageUri}`,
       digest: { sha256: imageDigest.slice(7) },
     }],
     predicate: {
@@ -1065,6 +1076,13 @@ function successfulBuild(
   bucket: string,
   prefix: string,
 ) {
+  const artifacts = structuredClone(body.artifacts) as {
+    objects: Record<string, unknown>
+  }
+  artifacts.objects.timing = {
+    startTime: '2026-08-04T20:00:30Z',
+    endTime: '2026-08-04T20:00:40Z',
+  }
   return {
     id: buildId,
     name: `projects/reeditpro/locations/us-central1/builds/${buildId}`,
@@ -1072,7 +1090,7 @@ function successfulBuild(
     status: 'SUCCESS',
     warnings: [],
     steps: structuredClone(body.steps),
-    artifacts: structuredClone(body.artifacts),
+    artifacts,
     timeout: body.timeout,
     queueTtl: body.queueTtl,
     options: structuredClone(body.options),

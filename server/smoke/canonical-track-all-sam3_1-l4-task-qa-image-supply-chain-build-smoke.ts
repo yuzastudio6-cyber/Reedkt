@@ -239,7 +239,7 @@ const reconciledService =
             artifacts: reconciledBody.artifacts,
             results: {
               artifactManifest:
-                `gs://reeditpro-production-reeditpro-image-supply-chain-evidence/${reconciledAdmission.evidencePrefix}/artifacts-${reconciledBuildId}.json#1`,
+                `gs://reeditpro-production-reeditpro-image-supply-chain-evidence/${reconciledAdmission.evidencePrefix}/artifacts-${reconciledBuildId}.json`,
               numArtifacts: '3',
             },
           },

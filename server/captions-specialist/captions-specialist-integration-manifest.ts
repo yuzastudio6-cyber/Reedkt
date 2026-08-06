@@ -3,8 +3,12 @@ import {
   type SkillCapabilityManifestV2,
   type UnpublishedSkillCapabilityManifestV2,
 } from '../../src/types/skill-capability-manifest'
-import type { CaptionsSupportedJobType } from
-  '../../src/types/captions-specialist'
+import {
+  CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
+  CAPTIONS_SUPPORT_JOB_TYPES,
+  type CaptionsSupportJobType,
+  type CaptionsSupportedJobType,
+} from '../../src/types/captions-specialist'
 import { publishSkillCapabilityManifestV2 } from
   '../orchestra/skill-capability-manifest'
 import { CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF } from
@@ -28,6 +32,12 @@ export const CAPTIONS_VISUAL_INTELLIGENCE_SPATIAL_ADAPTER_EVIDENCE_ID =
   'captions.visual-intelligence.spatial-evidence-adapter' as const
 export const CAPTIONS_CANONICAL_TRACK_ALL_EVIDENCE_ADAPTER_EVIDENCE_ID =
   'captions.track-all.canonical-evidence-read-adapter' as const
+export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2_ID =
+  'captions.specialist.integration.manifest.v2' as const
+export const CAPTIONS_SPECIALIST_INTEGRATION_V2_VERSION =
+  'captions-specialist-integration-v2' as const
+export const CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID =
+  'captions.incoming-support-request-v2-reread' as const
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -184,3 +194,72 @@ UnpublishedSkillCapabilityManifestV2 = {
 
 export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST =
   publishSkillCapabilityManifestV2(unpublishedIntegrationManifest)
+
+function integrateEntryV2(entry: SkillCapabilityEntry): SkillCapabilityEntry {
+  if (!(CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
+    .includes(entry.supportedJobType)) return structuredClone(entry)
+  const supportOutput = CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[
+    entry.supportedJobType as CaptionsSupportJobType]
+  return {
+    ...structuredClone(entry),
+    capabilityVersion: 'captions-capability-integration-v2',
+    qualificationEvidenceRefs: unique([
+      ...entry.qualificationEvidenceRefs,
+      CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID,
+    ]),
+    producedArtifactTypes: unique([
+      ...entry.producedArtifactTypes,
+      supportOutput,
+    ]),
+    integrationQa: unique([
+      ...entry.integrationQa,
+      'incoming_support_request_v2_exact_reread_and_result_binding',
+    ]),
+    qualificationFixtures: unique([
+      ...entry.qualificationFixtures,
+      'captions.incoming-support-request-v2',
+    ]),
+  }
+}
+
+const {
+  manifestHash: _integrationV1Hash,
+  ...integrationV1Body
+} = structuredClone(
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST) as SkillCapabilityManifestV2
+void _integrationV1Hash
+
+const unpublishedIntegrationManifestV2:
+UnpublishedSkillCapabilityManifestV2 = {
+  ...integrationV1Body,
+  manifestId: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2_ID,
+  skillVersion: CAPTIONS_SPECIALIST_INTEGRATION_V2_VERSION,
+  qualificationEvidenceRefs: [
+    ...integrationV1Body.qualificationEvidenceRefs,
+    {
+      evidenceId: CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID,
+      evidenceType: 'smoke_test',
+      location:
+        'server/smoke/canonical-caption-specialist-execution-service-smoke.ts',
+      assertion:
+        'Caption exact-rereads a persisted skill-support-request-v2 targeted to its assigned job and returns the requested byte-free artifact bound to that request.',
+    },
+  ],
+  integrationQa: unique([
+    ...integrationV1Body.integrationQa,
+    'incoming_support_target_caption_requires_versioned_v2_request',
+    'incoming_support_request_reread_before_caption_execution',
+  ]),
+  qualificationFixtures: unique([
+    ...integrationV1Body.qualificationFixtures,
+    'captions.incoming-support-request-v2',
+  ]),
+  knownLimitations: [
+    ...integrationV1Body.knownLimitations,
+    'skill-support-request-v1 remains frozen and cannot target Caption; incoming Caption support assignments use only the additive V2 request.',
+  ],
+  capabilityEntries: integrationV1Body.capabilityEntries.map(integrateEntryV2),
+}
+
+export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2 =
+  publishSkillCapabilityManifestV2(unpublishedIntegrationManifestV2)

@@ -341,6 +341,9 @@ incoming-support, repair, recomposition, and inspection jobs canonically
 reachable through exact typed triggers. Several representative plan classes
 cover all 41 jobs; no single all-feature edit is fabricated. See
 [`canonical-caption-job-reachability-v2-2026-08-05.md`](./canonical-caption-job-reachability-v2-2026-08-05.md).
+The same lane now exact-rereads a separately versioned Caption-targeted support
+request and returns its requested semantic artifact without modifying the
+hash-frozen V1 request/parser or implementing peer dispatch.
 
 The canonical plan now also schedules qualified post-render visual review only
 after the exact Remotion output and deterministic FFprobe QA, then binds the

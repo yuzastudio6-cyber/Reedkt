@@ -19,6 +19,17 @@ its trigger, selection evidence, and any HQ-mediated source support request.
 Repair, recomposition, inspection, and support work cannot be smuggled in as a
 picture-lock assignment. The earlier V1 wires remain readable and unchanged.
 
+Incoming support jobs use the additive `skill-support-request-v2` contract
+because the frozen V1 target enum cannot represent Caption. The V2 contract is
+published in separate files instead of mutating the hash-frozen V1 public type
+or parser. The executor rereads the exact persisted request and originating
+specialist call twice, requires the immutable work input and call to carry the
+same request ref, and verifies the Caption job, scope, requester/source-call
+identity, requested artifact type, and non-cyclic source-call lineage before
+invoking Caption. Caption returns a semantic byte-free
+support artifact whose `sourceSupportRequestRef` points to that request; it
+does not dispatch back to the requesting specialist.
+
 For an assignment that can finish from its approved byte-free inputs, the
 runner:
 

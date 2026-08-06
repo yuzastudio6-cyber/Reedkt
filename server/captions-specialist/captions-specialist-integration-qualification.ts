@@ -17,8 +17,11 @@ import { CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT } from
   './caption-goal-completion-audit'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_EVIDENCE_ID,
+  CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
   CAPTIONS_SPECIALIST_INTEGRATION_VERSION,
+  CAPTIONS_SPECIALIST_INTEGRATION_V2_VERSION,
 } from './captions-specialist-integration-manifest'
 
 const manifestRef = {
@@ -75,6 +78,59 @@ parseSkillQualificationSnapshot({
   ...snapshotWithoutDigest,
   snapshotDigestSha256: calculateSkillContractDigest(
     { ...snapshotWithoutDigest, snapshotDigestSha256: '' },
+    'snapshotDigestSha256'),
+})
+
+const manifestV2Ref = {
+  id: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestId,
+  version:
+    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestSchemaVersion,
+  contentHash: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestHash,
+}
+
+const snapshotV2WithoutDigest: Omit<SkillQualificationSnapshot,
+  'snapshotDigestSha256'> = {
+  ...snapshotWithoutDigest,
+  snapshotId: 'captions.specialist.qualification.integration-v2',
+  manifestRef: manifestV2Ref,
+  observedAt: '2026-08-05T00:00:00.000Z',
+  jobEntries: CAPTIONS_SUPPORTED_JOB_TYPES.map((jobType) => {
+    const capability = CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2
+      .capabilityEntries.find((entry) => entry.supportedJobType === jobType)!
+    const incomingSupport = capability.qualificationEvidenceRefs.includes(
+      CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID)
+    return {
+      jobType,
+      status: 'qualified' as const,
+      qualifiedModes: ['planning'] as const,
+      blockerCodes: [],
+      routeRefs: [{
+        id: 'captions.planning.no-output',
+        version: 'captions-planning-route-v2',
+        contentHash: hashText(
+          `captions.planning.no-output:integration-v2:${jobType}`),
+      }],
+      evidenceRefs: [{
+        id: incomingSupport
+          ? CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID
+          : CAPTIONS_SPECIALIST_INTEGRATION_EVIDENCE_ID,
+        version: CAPTIONS_SPECIALIST_INTEGRATION_V2_VERSION,
+        contentHash: sourceAuditRef.contentHash,
+      }],
+      requiredEvidenceTypes: [...capability.requiredEvidence],
+      contractDigestSha256: hashText(
+        `${CAPTIONS_SPECIALIST_CONTRACT_VERSION}:${jobType}:integration-v2-planning`),
+      manifestDigestSha256:
+        CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestHash,
+    }
+  }),
+}
+
+export const CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2 =
+parseSkillQualificationSnapshot({
+  ...snapshotV2WithoutDigest,
+  snapshotDigestSha256: calculateSkillContractDigest(
+    { ...snapshotV2WithoutDigest, snapshotDigestSha256: '' },
     'snapshotDigestSha256'),
 })
 

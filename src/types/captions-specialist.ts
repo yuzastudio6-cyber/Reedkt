@@ -58,6 +58,27 @@ export const CAPTIONS_SUPPORT_JOB_TYPES = [
   'provide_caption_living_frame_handoff_constraints',
 ] as const
 
+export type CaptionsSupportJobType = typeof CAPTIONS_SUPPORT_JOB_TYPES[number]
+
+export const CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES:
+Readonly<Record<CaptionsSupportJobType, string>> = Object.freeze({
+  provide_speech_derived_typography_spec:
+    'caption_speech_derived_typography_spec',
+  provide_caption_phrase_lineage: 'caption_phrase_lineage',
+  provide_caption_safe_region_constraints:
+    'caption_safe_region_constraints',
+  provide_caption_to_visual_handoff_spec:
+    'caption_to_visual_handoff_spec',
+  provide_accessible_text_projection:
+    'caption_accessible_text_projection',
+  provide_typographic_transition_component:
+    'caption_typographic_transition_component',
+  provide_caption_broll_composition_constraints:
+    'caption_broll_composition_constraints',
+  provide_caption_living_frame_handoff_constraints:
+    'caption_living_frame_handoff_constraints',
+})
+
 export const CAPTIONS_SUPPORTED_JOB_TYPES = [
   ...CAPTIONS_VIDEO_JOB_TYPES,
   ...CAPTIONS_SCENE_JOB_TYPES,

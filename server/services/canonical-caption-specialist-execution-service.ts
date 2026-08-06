@@ -1,17 +1,21 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
   type CanonicalCaptionSpecialistExecutionReceipt,
+  type CanonicalCaptionIncomingSupportRequestReadPort,
   type CanonicalCaptionSpecialistWorkItemInput,
 } from '../../src/types/canonical-caption-specialist-execution'
 import {
+  CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
   CAPTIONS_SUPPORT_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
+  type CaptionsSupportJobType,
 } from
   '../../src/types/captions-specialist'
 import {
@@ -25,6 +29,8 @@ import {
   type OrchestraSkillCall,
   type SkillContractRef,
 } from '../../src/types/orchestra-skill-contracts'
+import type { SkillSupportRequestV2 } from
+  '../../src/types/orchestra-skill-support-request-v2'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
@@ -32,9 +38,16 @@ import {
   parseOrchestraSkillCall,
   parseOrchestraSkillJobResult,
 } from '../orchestra/orchestra-skill-contracts'
+import { parseSkillSupportRequestV2 } from
+  '../orchestra/orchestra-skill-support-request-v2'
 import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
   '../captions-specialist/captions-specialist-integration-manifest'
-import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT } from
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2 } from
+  '../captions-specialist/captions-specialist-integration-manifest'
+import {
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
+} from
   '../captions-specialist/captions-specialist-integration-qualification'
 import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
   '../captions-specialist/caption-authority-boundary'
@@ -68,6 +81,7 @@ const safeKey = z.string().trim().min(1).max(180)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const admittedIncomingSupportReadPorts = new WeakSet<object>()
 const refSchema = z.object({
   id: safeKey,
   version: safeKey,
@@ -211,6 +225,11 @@ z.discriminatedUnion('schemaVersion', [
         message: 'Caption V2 assignment trigger or support lineage is invalid.',
       })
     }
+  } else if (types.includes('source_skill_support_request')) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Caption V1 work cannot claim an incoming support request.',
+    })
   }
 })
 
@@ -259,7 +278,26 @@ export interface CanonicalCaptionSpecialistExecutionPort {
     readonly call: OrchestraSkillCall
     readonly canonicalTranscript?: unknown
     readonly canonicalTranscriptAuthenticatedReadBinding?: unknown
+    readonly incomingSupportRequest?: SkillSupportRequestV2
   }): Promise<unknown>
+}
+
+export function createCanonicalCaptionIncomingSupportRequestReadPort(
+  readExact: CanonicalCaptionIncomingSupportRequestReadPort['readExact'],
+): CanonicalCaptionIncomingSupportRequestReadPort {
+  if (typeof readExact !== 'function') {
+    throw new Error('Canonical Caption incoming-support reader is required.')
+  }
+  const port: CanonicalCaptionIncomingSupportRequestReadPort = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION,
+    sourceAuthority:
+      'canonical_backend_persisted_specialist_support_request',
+    callerSuppliedRequestAccepted: false,
+    readExact,
+  })
+  admittedIncomingSupportReadPorts.add(port)
+  return port
 }
 
 export function parseCanonicalCaptionSpecialistWorkItemInput(
@@ -297,6 +335,8 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
    * this service binds it into the immutable call and refuses mismatches.
    */
   readonly canonicalTranscriptAuthenticatedReadBindingRef?: SkillContractRef
+  readonly incomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
   readonly executionPort?: CanonicalCaptionSpecialistExecutionPort
   readonly now?: () => Date
 }): Promise<{
@@ -361,6 +401,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       initialArtifactRefs,
       readPort: input.canonicalTranscriptReadPort,
     })
+    const incomingSupportRequest = await readIncomingSupportRequest({
+      call,
+      workInput,
+      readPort: input.incomingSupportRequestReadPort,
+    })
     const rawResult = await (input.executionPort ?? defaultExecutionPort)
       .execute({
         call: structuredClone(call),
@@ -369,6 +414,9 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
             structuredClone(transcriptEvidence.canonicalTranscript),
           canonicalTranscriptAuthenticatedReadBinding: structuredClone(
             transcriptEvidence.authenticatedReadBinding),
+        }),
+        ...(incomingSupportRequest === null ? {} : {
+          incomingSupportRequest: structuredClone(incomingSupportRequest),
         }),
       })
     const result = parseOrchestraSkillJobResult(rawResult)
@@ -417,6 +465,9 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
             canonicalTranscriptAuthenticatedReadBinding:
               input.canonicalTranscriptAuthenticatedReadBinding,
           }),
+      ...(input.incomingSupportRequest === undefined ? {} : {
+        incomingSupportRequest: input.incomingSupportRequest,
+      }),
     })
   },
 }
@@ -552,6 +603,75 @@ async function readCanonicalTranscriptEvidence(input: {
   }
 }
 
+async function readIncomingSupportRequest(input: {
+  call: OrchestraSkillCall
+  workInput: CanonicalCaptionSpecialistWorkItemInput
+  readPort?: CanonicalCaptionIncomingSupportRequestReadPort
+}): Promise<SkillSupportRequestV2 | null> {
+  if (input.workInput.schemaVersion !==
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+    || input.workInput.sourceSupportRequestRef === null) return null
+  if (!input.readPort
+    || !admittedIncomingSupportReadPorts.has(input.readPort)
+    || input.readPort.schemaVersion !==
+      CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION
+    || input.readPort.sourceAuthority !==
+      'canonical_backend_persisted_specialist_support_request'
+    || input.readPort.callerSuppliedRequestAccepted) {
+    throw new Error(
+      'Canonical Caption incoming-support request reader is unavailable.',
+    )
+  }
+  const requestRef = structuredClone(input.workInput.sourceSupportRequestRef)
+  const firstValue = await input.readPort.readExact({ requestRef })
+  const secondValue = await input.readPort.readExact({ requestRef })
+  if (!firstValue || !secondValue
+    || stableAuthorityStringify(firstValue)
+      !== stableAuthorityStringify(secondValue)) {
+    throw new Error(
+      'Canonical Caption incoming-support request changed between rereads.',
+    )
+  }
+  const request = parseSkillSupportRequestV2(firstValue.request)
+  const originalCall = parseOrchestraSkillCall(firstValue.originalCall)
+  const exactRequestRef = {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+  const expectedArtifactType = CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[
+    input.workInput.captionJobType as CaptionsSupportJobType]
+  if (stableAuthorityStringify(exactRequestRef)
+      !== stableAuthorityStringify(requestRef)
+    || request.targetSkillKey !== 'captions'
+    || request.requestingSkillKey === 'captions'
+    || originalCall.assigneeSkillKey !== request.requestingSkillKey
+    || stableAuthorityStringify(request.originalCallRef)
+      !== stableAuthorityStringify({
+        id: originalCall.callId,
+        version: originalCall.schemaVersion,
+        contentHash: originalCall.callDigestSha256,
+      })
+    || stableAuthorityStringify(originalCall.canonicalScope)
+      !== stableAuthorityStringify(input.call.canonicalScope)
+    || request.requestedJobType !== input.workInput.captionJobType
+    || request.requestedArtifactTypes.length !== 1
+    || request.requestedArtifactTypes[0] !== expectedArtifactType
+    || stableAuthorityStringify(request.canonicalScope)
+      !== stableAuthorityStringify(input.call.canonicalScope)
+    || stableAuthorityStringify(request.originalCallRef)
+      === stableAuthorityStringify({
+        id: input.call.callId,
+        version: input.call.schemaVersion,
+        contentHash: input.call.callDigestSha256,
+      })) {
+    throw new Error(
+      'Canonical Caption incoming-support request crossed its assignment.',
+    )
+  }
+  return structuredClone(request)
+}
+
 function createCaptionCall(input: {
   authority: CanonicalApprovedExecutionAuthority
   workItem: CanonicalApprovedExecutionAuthority['workItems'][number]
@@ -560,19 +680,23 @@ function createCaptionCall(input: {
   initialArtifactRefs:
     CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs']
 }): OrchestraSkillCall {
+  const integrationManifest = input.workInput.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2
+    : CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
+  const integrationQualification = input.workInput.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2
+    : CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
   const manifestRef: SkillContractRef = {
-    id: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId,
-    version:
-      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestSchemaVersion,
-    contentHash: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestHash,
+    id: integrationManifest.manifestId,
+    version: integrationManifest.manifestSchemaVersion,
+    contentHash: integrationManifest.manifestHash,
   }
   const qualificationRef: SkillContractRef = {
-    id: CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT.snapshotId,
-    version:
-      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT.schemaVersion,
-    contentHash:
-      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
-        .snapshotDigestSha256,
+    id: integrationQualification.snapshotId,
+    version: integrationQualification.schemaVersion,
+    contentHash: integrationQualification.snapshotDigestSha256,
   }
   const identity = sha256AuthorityValue({
     snapshotHash: input.authority.snapshot.snapshotHash,

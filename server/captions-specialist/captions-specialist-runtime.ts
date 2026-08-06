@@ -3,8 +3,11 @@ import {
   CAPTIONS_CAP_01_ARTIFACT_TYPE,
   CAPTIONS_LIVING_FRAME_JOB_TYPES,
   CAPTIONS_SPECIALIST_SKILL_KEY,
+  CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
+  CAPTIONS_SUPPORT_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
   CAPTIONS_UNSUPPORTED_JOB_TYPES,
+  type CaptionsSupportJobType,
 } from '../../src/types/captions-specialist'
 import {
   ORCHESTRA_SKILL_CALL_VERSION,
@@ -18,6 +21,8 @@ import {
   type SkillSupportRequest,
   type SkillSupportTarget,
 } from '../../src/types/orchestra-skill-contracts'
+import type { SkillSupportRequestV2 } from
+  '../../src/types/orchestra-skill-support-request-v2'
 import type {
   CaptionVisualIntelligenceEvidencePacket,
   CaptionVisualIntelligenceSupportPayload,
@@ -35,6 +40,8 @@ import type {
 } from '../../src/types/canonical-caption-track-all-support'
 import type { CaptionDomainCanonicalScope } from
   '../../src/types/caption-domain-contracts'
+import type { SkillCapabilityManifestV2 } from
+  '../../src/types/skill-capability-manifest'
 import {
   CAPTION_SOUND_SUPPORT_RESULT_ARTIFACT_TYPE,
   type CaptionSoundCueRequest,
@@ -63,12 +70,20 @@ import {
   parseSkillQualificationSnapshot,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
+import { parseSkillSupportRequestV2 } from
+  '../orchestra/orchestra-skill-support-request-v2'
 import { parseSkillCapabilityManifestV2 } from '../orchestra/skill-capability-manifest'
 import { CAPTIONS_SPECIALIST_MANIFEST } from './captions-specialist-manifest'
 import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from './captions-specialist-qualification'
-import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
+import {
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
+} from
   './captions-specialist-integration-manifest'
-import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT } from
+import {
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
+} from
   './captions-specialist-integration-qualification'
 import {
   BROLL_CAPTION_PUBLIC_RECEIPT_DIGEST,
@@ -113,7 +128,7 @@ import {
 } from './caption-living-frame-boundary'
 
 interface CaptionRuntimeProfile {
-  manifest: typeof CAPTIONS_SPECIALIST_MANIFEST
+  manifest: SkillCapabilityManifestV2
   qualification: SkillQualificationSnapshot
 }
 
@@ -769,12 +784,20 @@ export function runCaptionsSpecialistJob(input: {
   canonicalTranscriptAuthenticatedReadBinding?: unknown
   livingFrameRequest?: unknown
   livingFrameResponse?: unknown
+  incomingSupportRequest?: unknown
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
-  const integrationProfile = call.manifestRef.id
+  const integrationV2Profile = call.manifestRef.id
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestId
+  const integrationV1Profile = call.manifestRef.id
     === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId
-  const profile: CaptionRuntimeProfile = integrationProfile
+  const profile: CaptionRuntimeProfile = integrationV2Profile
     ? {
+        manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
+        qualification:
+          CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
+      }
+    : integrationV1Profile ? {
         manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
         qualification:
           CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
@@ -834,6 +857,54 @@ export function runCaptionsSpecialistJob(input: {
       call, 'blocked', ['qualification.mode.blocked'],
       'The requested Caption job mode is not qualified by current evidence.',
     )
+  }
+
+  const incomingSupportArtifacts = call.inputArtifactRefs.filter(
+    (artifact) => artifact.artifactType === 'source_skill_support_request')
+  let incomingSupportRequest: SkillSupportRequestV2 | null = null
+  if (input.incomingSupportRequest !== undefined) {
+    try {
+      incomingSupportRequest = parseSkillSupportRequestV2(
+        input.incomingSupportRequest)
+    } catch {
+      return makeResult(profile,
+        call, 'blocked', ['input.incoming_support_request.invalid'],
+        'The incoming specialist support request is invalid.',
+      )
+    }
+  }
+  if (incomingSupportArtifacts.length > 0 || incomingSupportRequest !== null) {
+    const supportJob = (CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
+      .includes(call.job.jobType)
+    const expectedArtifactType = supportJob
+      ? CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[
+        call.job.jobType as CaptionsSupportJobType]
+      : null
+    const requestRef = incomingSupportRequest === null ? null : {
+      id: incomingSupportRequest.requestId,
+      version: incomingSupportRequest.schemaVersion,
+      contentHash: incomingSupportRequest.requestDigestSha256,
+    }
+    if (!supportJob
+      || incomingSupportArtifacts.length !== 1
+      || incomingSupportRequest === null
+      || requestRef === null
+      || !exactRef(incomingSupportArtifacts[0]!, requestRef)
+      || incomingSupportArtifacts[0]!.producerSkillKey !== 'head_of_orchestra'
+      || incomingSupportRequest.targetSkillKey !== 'captions'
+      || incomingSupportRequest.requestingSkillKey === 'captions'
+      || incomingSupportRequest.requestedJobType !== call.job.jobType
+      || incomingSupportRequest.requestedArtifactTypes.length !== 1
+      || incomingSupportRequest.requestedArtifactTypes[0]
+        !== expectedArtifactType
+      || JSON.stringify(incomingSupportRequest.canonicalScope)
+        !== JSON.stringify(call.canonicalScope)
+      || exactRef(incomingSupportRequest.originalCallRef, callRef(call))) {
+      return makeResult(profile,
+        call, 'blocked', ['input.incoming_support_request.binding.mismatch'],
+        'The incoming support request does not match this Caption assignment.',
+      )
+    }
   }
 
   let admittedVisualPacket: CaptionVisualIntelligenceEvidencePacket | null = null
@@ -1455,7 +1526,25 @@ export function runCaptionsSpecialistJob(input: {
     privateArtifact: true,
     byteFreeRef: true,
     sourceSupportRequestRef: null,
-  }]
+  }, ...(incomingSupportRequest === null ? []
+    : incomingSupportRequest.requestedArtifactTypes.map((artifactType) => ({
+        id: `${call.callId}.support-result.${artifactType}`,
+        version: 'caption-specialist-support-result-v1',
+        contentHash: sha256([
+          call.callDigestSha256,
+          incomingSupportRequest.requestDigestSha256,
+          artifactType,
+        ].join(':')),
+        artifactType,
+        producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
+        privateArtifact: true as const,
+        byteFreeRef: true as const,
+        sourceSupportRequestRef: {
+          id: incomingSupportRequest.requestId,
+          version: incomingSupportRequest.schemaVersion,
+          contentHash: incomingSupportRequest.requestDigestSha256,
+        },
+      }))) ]
   return makeResult(profile,
     call,
     'completed',
@@ -1473,6 +1562,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['canonical_transcript.contract_admission.accepted']),
       ...(admittedLivingFrameResponse === null ? []
         : ['living_frame.contract_admission.accepted']),
+      ...(incomingSupportRequest === null ? []
+        : ['incoming_support_request.exact_assignment.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

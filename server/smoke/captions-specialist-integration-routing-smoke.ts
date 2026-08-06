@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 
 import {
+  CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
+  CAPTIONS_SUPPORT_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
+  type CaptionsSupportJobType,
 } from '../../src/types/captions-specialist'
 import {
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF,
@@ -12,9 +15,11 @@ import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from
   '../captions-specialist/captions-specialist-qualification'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
 } from '../captions-specialist/captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
 } from '../captions-specialist/captions-specialist-integration-qualification'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
@@ -48,11 +53,14 @@ check(CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256
 check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId
   === 'captions.specialist.integration.manifest'
   && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestHash
-    !== CAPTIONS_SPECIALIST_MANIFEST.manifestHash,
+    === '66d8c5559f828ee6e61933b8c930c7b50b9dedd92458f7b46ffe939e9b2ad954',
 'the post-CAP-20 manifest is an additive wire identity')
 check(CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
   .manifestRef.contentHash
-  === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestHash,
+  === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestHash
+  && CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
+    .snapshotDigestSha256
+    === '88370247b34496bb1b62b340b31b726905bf71db191858dd43c3920a6b906231',
 'the integration qualification binds only the additive manifest')
 check(CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT.jobEntries.length
   === CAPTIONS_SUPPORTED_JOB_TYPES.length
@@ -65,6 +73,27 @@ check(!CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
   && !CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
     .productionQualificationClaimed,
 'integration routing does not claim whole-skill or production qualification')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestId
+  === 'captions.specialist.integration.manifest.v2'
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestHash
+    !== CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestHash,
+'incoming Caption support uses an additive integration manifest identity')
+check(CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2
+  .manifestRef.contentHash
+  === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestHash
+  && CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2.jobEntries.length
+    === CAPTIONS_SUPPORTED_JOB_TYPES.length,
+'the additive V2 qualification binds all jobs to only the V2 manifest')
+check(CAPTIONS_SUPPORT_JOB_TYPES.every((jobType) => {
+  const entry = CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.capabilityEntries
+    .find((candidate) => candidate.supportedJobType === jobType)
+  return entry !== undefined
+    && entry.producedArtifactTypes.includes(
+      CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[
+        jobType as CaptionsSupportJobType])
+    && entry.integrationQa.includes(
+      'incoming_support_request_v2_exact_reread_and_result_binding')
+}), 'all eight support jobs declare their exact V2 semantic result artifact')
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(

@@ -23,6 +23,15 @@ projects any work. Four representative plan classes cover the 41-job union;
 the contracts explicitly reject a one-edit/all-features claim. The frozen V1
 binding, projection, and work-input wires remain readable.
 
+The required incoming-support fixture is now part of that reachability proof.
+An additive V2 support request can target one exact Caption support job, while
+the hash-frozen generic V1 type/parser and existing outgoing dependency-resume
+behavior remain unchanged. The canonical work-item executor rereads the V2
+request together with its exact originating specialist call from the persisted
+backend boundary and binds the returned semantic Caption artifact to it. This
+proves bounded support production, not a peer
+dispatcher or a central Orchestra implementation.
+
 The 0/41 terminal count is intentional until one fresh canonical private run
 rereads real results, rendered outputs, qualified complete-time visual review,
 and independent private review. It is not a regression of the Caption source

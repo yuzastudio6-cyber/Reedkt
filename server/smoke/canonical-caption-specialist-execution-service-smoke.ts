@@ -21,10 +21,17 @@ import type {
   SkillContractRef,
   SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
+import {
+  SKILL_SUPPORT_REQUEST_VERSION_V2,
+  type SkillSupportRequestV2,
+} from '../../src/types/orchestra-skill-support-request-v2'
+import { calculateSkillSupportRequestV2Digest } from
+  '../orchestra/orchestra-skill-support-request-v2'
 import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
 import {
   executeCanonicalCaptionSpecialistWorkItem,
+  createCanonicalCaptionIncomingSupportRequestReadPort,
   parseCanonicalCaptionSpecialistExecutionReceipt,
   parseCanonicalCaptionSpecialistWorkItemInput,
 } from '../services/canonical-caption-specialist-execution-service'
@@ -39,8 +46,12 @@ import {
 } from '../services/canonical-specialist-support-resume-service'
 import {
   calculateSkillContractDigest,
+  parseOrchestraSkillCall,
   parseOrchestraSkillJobResult,
+  parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
+import { parseSkillSupportRequestV2 } from
+  '../orchestra/orchestra-skill-support-request-v2'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 import {
@@ -334,6 +345,11 @@ check(first.receipt.directPeerDispatchPerformed === false
 check(parseCanonicalCaptionSpecialistExecutionReceipt(first.receipt)
   .receiptDigestSha256 === first.receipt.receiptDigestSha256,
   'The closed execution receipt must verify its own digest.')
+check(first.pair.pairDigestSha256
+  === 'edb9c1dada0718cab269e3aed8660b83084ccf4fae4f9b783af1535a1d6b8a53'
+  && first.receipt.receiptDigestSha256
+    === '3e2e6416e37c7836f7d3e8c7a65dccd4f8fd3541568183618807c12638688c39',
+'The additive incoming-support lane must not alter the frozen V1 call/result or receipt digests.')
 
 const artifactRoot = await mkdtemp(join(tmpdir(), 'caption-artifact-reader-'))
 const artifactIdentityHash = sha256AuthorityValue('caption-artifact-object')
@@ -672,7 +688,139 @@ check(resumedVisualReplay.receipt.resultDisposition === 'completed'
     === visualResume.resumedResult.resultDigestSha256,
 'The canonical work-item receipt must bind the exact resumed call and result.')
 
-const incomingSupportRequestRef = skillRef('caption.incoming.support.request.1')
+const sourceCallWithoutDigest: Omit<OrchestraSkillCall,
+  'callDigestSha256'> = {
+  ...structuredClone(first.pair.call),
+  callId: 'living-frame.source.call.1',
+  idempotencyKey: 'living-frame:source-call-1',
+  assigneeSkillKey: 'living_frame',
+  job: {
+    jobId: 'living-frame.source.job.1',
+    jobType: 'request_caption_typography_support',
+    requestedMode: 'planning',
+    scopeLevel: 'scene',
+  },
+  canonicalScope: {
+    ...structuredClone(first.pair.call.canonicalScope),
+    sceneId: 'scene-main',
+    authorizedFrameRanges: structuredClone(workInput.authorizedFrameRanges),
+  },
+  manifestRef: skillRef('living-frame.source.manifest.1'),
+  qualificationSnapshotRef:
+    skillRef('living-frame.source.qualification.1'),
+  inputArtifactRefs: [],
+}
+const sourceCall = parseOrchestraSkillCall({
+  ...sourceCallWithoutDigest,
+  callDigestSha256: calculateSkillContractDigest(
+    sourceCallWithoutDigest as unknown as Record<string, unknown>,
+    'callDigestSha256',
+  ),
+})
+
+const incomingSupportRequestWithoutDigest: Omit<SkillSupportRequestV2,
+  'requestDigestSha256'> = {
+  schemaVersion: SKILL_SUPPORT_REQUEST_VERSION_V2,
+  requestId: 'caption.incoming.support.request.1',
+  originalCallRef: skillCallRef(sourceCall),
+  requestingSkillKey: 'living_frame',
+  targetSkillKey: 'captions',
+  requestedJobType: 'provide_speech_derived_typography_spec',
+  reasonCode: 'speech_typography_required_for_visual_handoff',
+  requestedArtifactTypes: ['caption_speech_derived_typography_spec'],
+  canonicalScope: {
+    ownerUserId: snapshot.approvedByUserId,
+    workspaceId: snapshot.workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    approvedSnapshotRef: {
+      id: snapshot.snapshotId,
+      version: snapshot.schemaVersion,
+      contentHash: snapshot.snapshotHash,
+    },
+    outputId: workInput.outputId,
+    sceneId: 'scene-main',
+    boundaryId: null,
+    authorizedFrameRanges: structuredClone(workInput.authorizedFrameRanges),
+  },
+  typedPayloadType: 'caption-speech-typography-support-context-v1',
+  typedPayload: {
+    schemaVersion: 'caption-speech-typography-support-context-v1',
+    semanticConceptRef: skillRef('caption.incoming.semantic-concept.1'),
+    informationOwner: 'captions',
+    requesterMayDispatchCaptionDirectly: false,
+  },
+  mediationPolicy: {
+    hqMediated: true,
+    directPeerDispatchAllowed: false,
+    assigneeMayOnlyResumeAfterInjection: true,
+  },
+  authorityBoundary: {
+    scopeExpansionGranted: false,
+    timelineMutationGranted: false,
+    directPeerDispatchGranted: false,
+    providerCallGranted: false,
+    runtimeExecutionGranted: false,
+    assetCreationGranted: false,
+    costAuthorityGranted: false,
+    billingAuthorityGranted: false,
+    qaApprovalGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  },
+}
+const incomingSupportRequest: SkillSupportRequestV2 = {
+  ...incomingSupportRequestWithoutDigest,
+  requestDigestSha256: calculateSkillSupportRequestV2Digest(
+    incomingSupportRequestWithoutDigest as unknown as Record<string, unknown>),
+}
+const incomingSupportRequestRef: SkillContractRef = {
+  id: incomingSupportRequest.requestId,
+  version: incomingSupportRequest.schemaVersion,
+  contentHash: incomingSupportRequest.requestDigestSha256,
+}
+check(parseSkillSupportRequestV2(incomingSupportRequest)
+  .targetSkillKey === 'captions',
+'The additive V2 parser must admit an exact Caption-targeted support request.')
+
+const attemptedV1CaptionTarget = {
+  ...incomingSupportRequestWithoutDigest,
+  schemaVersion: 'skill-support-request-v1',
+  requestDigestSha256: '',
+}
+delete (attemptedV1CaptionTarget as { requestedJobType?: string })
+  .requestedJobType
+attemptedV1CaptionTarget.requestDigestSha256 = calculateSkillContractDigest(
+  attemptedV1CaptionTarget as unknown as Record<string, unknown>,
+  'requestDigestSha256',
+)
+assert.throws(() => parseSkillSupportRequest(attemptedV1CaptionTarget),
+  /Invalid enum value|Invalid option/u)
+checks += 1
+
+const unsafeIncomingSupportRequest = {
+  ...incomingSupportRequestWithoutDigest,
+  typedPayload: { privatePath: '/Users/example/private-caption.json' },
+  requestDigestSha256: '',
+}
+unsafeIncomingSupportRequest.requestDigestSha256 =
+  calculateSkillSupportRequestV2Digest(
+    unsafeIncomingSupportRequest as unknown as Record<string, unknown>)
+assert.throws(() => parseSkillSupportRequestV2(unsafeIncomingSupportRequest),
+  /contains unsafe text/u)
+checks += 1
+
+const unknownFieldIncomingSupportRequest = {
+  ...incomingSupportRequestWithoutDigest,
+  unknownAuthority: false,
+  requestDigestSha256: '',
+}
+unknownFieldIncomingSupportRequest.requestDigestSha256 =
+  calculateSkillSupportRequestV2Digest(
+    unknownFieldIncomingSupportRequest as unknown as Record<string, unknown>)
+assert.throws(() => parseSkillSupportRequestV2(
+  unknownFieldIncomingSupportRequest), /Unrecognized key|unrecognized_keys/u)
+checks += 1
 const incomingSupportInput: CanonicalCaptionSpecialistWorkItemInput = {
   ...workInput,
   schemaVersion: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
@@ -760,35 +908,131 @@ const incomingSupportExecutionPackage = {
     dispatchState: 'not_authorized',
   }],
 } as unknown as CanonicalApprovedEditExecutionPackage
-const incomingSupportCalls: OrchestraSkillCall[] = []
 const incomingSupportExecution =
   await executeCanonicalCaptionSpecialistWorkItem({
     authority: incomingSupportAuthority,
     executionPackage: incomingSupportExecutionPackage,
     jobId: incomingSupportJob.id,
     repository,
-    executionPort: {
-      async execute({ call }) {
-        incomingSupportCalls.push(structuredClone(call))
-        return completedSpecialistResult(call)
-      },
-    },
+    incomingSupportRequestReadPort:
+      createCanonicalCaptionIncomingSupportRequestReadPort(
+        async ({ requestRef }) =>
+          requestRef.id === incomingSupportRequestRef.id
+            && requestRef.version === incomingSupportRequestRef.version
+            && requestRef.contentHash === incomingSupportRequestRef.contentHash
+            ? {
+                request: structuredClone(incomingSupportRequest),
+                originalCall: structuredClone(sourceCall),
+              } : null,
+      ),
     now: () => new Date('2026-08-05T12:04:00.000Z'),
   })
 check(incomingSupportExecution.pair.result.disposition === 'completed',
   'The canonical incoming-support assignment must reach Caption execution.')
-const incomingSupportCall = incomingSupportCalls[0]
-check(incomingSupportCalls.length === 1
-  && incomingSupportCall?.inputArtifactRefs.some((artifact) =>
+const incomingSupportCall = incomingSupportExecution.pair.call
+check(incomingSupportCall.inputArtifactRefs.some((artifact) =>
     artifact.artifactType === 'source_skill_support_request'
     && artifact.id === incomingSupportRequestRef.id
     && artifact.version === incomingSupportRequestRef.version
     && artifact.contentHash === incomingSupportRequestRef.contentHash
     && artifact.producerSkillKey === 'head_of_orchestra'),
 'The immutable Caption call must carry the exact HQ-mediated source request instead of inventing peer dispatch.')
-check(incomingSupportCall?.resumeOfSupportRequestRef === null
-  && incomingSupportCall?.resumeOriginCallRef === null,
+check(incomingSupportCall.resumeOfSupportRequestRef === null
+  && incomingSupportCall.resumeOriginCallRef === null,
 'An incoming support assignment must not be mislabeled as Caption resuming one of its own dependency requests.')
+check(incomingSupportExecution.pair.result.producedArtifactRefs.some(
+  (artifact) =>
+    artifact.artifactType === 'caption_speech_derived_typography_spec'
+    && artifact.sourceSupportRequestRef?.id
+      === incomingSupportRequestRef.id
+    && artifact.sourceSupportRequestRef.contentHash
+      === incomingSupportRequestRef.contentHash),
+'Caption must return the requested byte-free support artifact bound to the exact incoming request.')
+
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: incomingSupportAuthority,
+  executionPackage: incomingSupportExecutionPackage,
+  jobId: incomingSupportJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/missing-request-v1',
+  }),
+}), /incoming-support request reader is unavailable/u)
+checks += 1
+
+let incomingRequestRereadCount = 0
+const changedIncomingRequest = {
+  ...incomingSupportRequestWithoutDigest,
+  reasonCode: 'changed_between_canonical_rereads',
+  requestDigestSha256: '',
+}
+changedIncomingRequest.requestDigestSha256 =
+  calculateSkillSupportRequestV2Digest(
+    changedIncomingRequest as unknown as Record<string, unknown>)
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: incomingSupportAuthority,
+  executionPackage: incomingSupportExecutionPackage,
+  jobId: incomingSupportJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/changed-request-v1',
+  }),
+  incomingSupportRequestReadPort:
+    createCanonicalCaptionIncomingSupportRequestReadPort(async () => {
+      incomingRequestRereadCount += 1
+      return {
+        request: structuredClone(incomingRequestRereadCount === 1
+          ? incomingSupportRequest : changedIncomingRequest),
+        originalCall: structuredClone(sourceCall),
+      }
+    }),
+}), /changed between rereads/u)
+checks += 1
+
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: incomingSupportAuthority,
+  executionPackage: incomingSupportExecutionPackage,
+  jobId: incomingSupportJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/crossed-request-v1',
+  }),
+  incomingSupportRequestReadPort:
+    createCanonicalCaptionIncomingSupportRequestReadPort(
+      async () => ({
+        request: structuredClone(changedIncomingRequest),
+        originalCall: structuredClone(sourceCall),
+      }),
+    ),
+}), /crossed its assignment/u)
+checks += 1
+
+const crossedSourceCallWithoutDigest = {
+  ...sourceCallWithoutDigest,
+  assigneeSkillKey: 'transitions',
+}
+const crossedSourceCall = parseOrchestraSkillCall({
+  ...crossedSourceCallWithoutDigest,
+  callDigestSha256: calculateSkillContractDigest(
+    crossedSourceCallWithoutDigest as unknown as Record<string, unknown>,
+    'callDigestSha256',
+  ),
+})
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: incomingSupportAuthority,
+  executionPackage: incomingSupportExecutionPackage,
+  jobId: incomingSupportJob.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/canonical-caption-execution/crossed-source-call-v1',
+  }),
+  incomingSupportRequestReadPort:
+    createCanonicalCaptionIncomingSupportRequestReadPort(async () => ({
+      request: structuredClone(incomingSupportRequest),
+      originalCall: structuredClone(crossedSourceCall),
+    })),
+}), /crossed its assignment/u)
+checks += 1
 
 assert.throws(() => parseCanonicalCaptionSpecialistWorkItemInput({
   ...workInput,

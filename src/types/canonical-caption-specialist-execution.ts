@@ -1,9 +1,12 @@
 import type {
+  OrchestraSkillCall,
   OrchestraSkillJobResult,
   SkillArtifactRef,
   SkillContractRef,
   SkillFrameRange,
 } from './orchestra-skill-contracts'
+import type { SkillSupportRequestV2 } from
+  './orchestra-skill-support-request-v2'
 import type { CaptionsSupportedJobType } from './captions-specialist'
 import type { SkillRequestedMode, SkillScopeLevel } from
   './skill-capability-manifest'
@@ -16,6 +19,8 @@ export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION =
   'internal.run_approved_caption_specialist_job.v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION =
   'canonical-caption-specialist-execution-receipt-v1' as const
+export const CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION =
+  'canonical-caption-incoming-support-request-read-port-v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS =
   'canonical_caption_specialist_worker_v1' as const
 
@@ -78,6 +83,20 @@ export interface CanonicalCaptionSpecialistWorkItemInputV2
 export type CanonicalCaptionSpecialistWorkItemInput =
   | CanonicalCaptionSpecialistWorkItemInputV1
   | CanonicalCaptionSpecialistWorkItemInputV2
+
+export interface CanonicalCaptionIncomingSupportRequestReadPort {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION
+  readonly sourceAuthority:
+    'canonical_backend_persisted_specialist_support_request'
+  readonly callerSuppliedRequestAccepted: false
+  readExact(input: {
+    readonly requestRef: SkillContractRef
+  }): Promise<{
+    readonly request: SkillSupportRequestV2
+    readonly originalCall: OrchestraSkillCall
+  } | null>
+}
 
 export interface CanonicalCaptionSpecialistExecutionReceipt {
   schemaVersion:

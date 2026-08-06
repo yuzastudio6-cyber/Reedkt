@@ -141,3 +141,24 @@ The next terminal step remains representative approved Caption runs with
 actual persisted Transcript, Visual Intelligence, Track All, SoundSync,
 B-roll, complete-time visual review, independent final QA, and accepted
 private-review evidence assembled through the existing V5 campaign.
+
+## 2026-08-06 SAM 3.1 source/checkpoint follow-up
+
+The backend branch next advanced through five additive SAM 3.1 and Track All
+L4 commits, ending at
+`62607cd4ef81427720690a877517343c0337222d`. The exact backend tip was merged
+without conflict at `9ded71798bed682e221058d98a847218c71f443a`.
+
+The merged source now preserves the pinned L4 CUDA compatibility libraries,
+classifies CUDA admission failures before inference, and tightens the final
+SAM 3.1 video-model qualification to one strict checkpoint load with an exact
+key set and complete video probe. The frozen source/checkpoint smoke reports
+`qualified_for_private_image_build`, three deterministic A100 qualification
+runs, zero missing or unexpected checkpoint keys, and no runtime dispatch.
+
+This is meaningful upstream progress, but it is not a Caption terminal mask
+receipt. The private image build has not started, the admitted A100/L4 Track
+All runtime has not produced the exact scene mask result, and no task-level
+scene-QA/private-review authority has been projected into the Caption support
+record. The Caption Track All terminal gate therefore remains open and the
+41-job terminal count remains unchanged.

@@ -220,6 +220,8 @@
     "deploy:sam3_1-official-artifact-ingest-job": "bash scripts/gcp/prod/21-deploy-sam31-official-artifact-ingest-job.sh",
     "smoke:sam3_1-source-checkpoint-qualification": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
+    "smoke:sam3_1-a100-qualification-foundation": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-smoke.ts",
+    "provision:sam3_1-a100-qualification-foundation": "bash scripts/gcp/prod/22-provision-sam31-a100-qualification-foundation.sh",
     "smoke:sam3_1-source-checkpoint-qualification-staging": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-staging-owner-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-result": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-result-owner-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-terminal": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-terminal-evidence-owner-smoke.ts",

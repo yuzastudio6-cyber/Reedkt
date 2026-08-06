@@ -21,6 +21,8 @@ const sourceOnlyScripts = [
   'smoke:captions-specialist-async-support-harness',
   'smoke:captions-specialist-multi-support-resume',
   'smoke:captions-specialist-broll-owner-read-adapter',
+  'smoke:captions-specialist-broll-owner-professional-review',
+  'smoke:captions-specialist-broll-owner-professional-inspection',
   'smoke:captions-specialist-canonical-resume-read',
   'smoke:captions-specialist-canonical-transcript-authenticated-read',
   'smoke:captions-specialist-visual-intelligence-spatial-adapter',

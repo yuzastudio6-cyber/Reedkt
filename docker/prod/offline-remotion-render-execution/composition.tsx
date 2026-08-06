@@ -37,6 +37,7 @@ export interface ApprovedCompositionProps {
     | 'caption_direction_creative_scene_group_v1'
     | 'caption_direction_real_source_scene_group_v2'
     | 'caption_direction_real_source_multi_output_scene_group_v3'
+    | 'caption_direction_broll_owner_real_source_scene_group_v4'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -45,6 +46,7 @@ export interface ApprovedCompositionProps {
     | 'preserve_source'
     | 'preserve_source_sequence'
     | 'replace_with_approved_voice_tracks'
+    | 'source_audio_absent_owner_normalized'
   captionOverlayPolicy?: 'approved_full_frame_rgba' | 'approved_timed_full_frame_rgba_track'
   sourceMediaPolicy?:
     | 'approved_professional_color_intermediate_v1'
@@ -410,6 +412,7 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     [
       'caption_direction_real_source_scene_group_v2',
       'caption_direction_real_source_multi_output_scene_group_v3',
+      'caption_direction_broll_owner_real_source_scene_group_v4',
     ].includes(props.compositionProfileId ?? '') &&
     props.sourceInternalUrl && props.captionCreativeLayers &&
     props.captionCreativeLayers.length >= 2
@@ -658,6 +661,59 @@ const CaptionRealSourceSceneGroupComposition:
 React.FC<ApprovedCompositionProps> = (props) => {
   const frame = useCurrentFrame()
   const { width, height } = useVideoConfig()
+  const brollOwnerFullFrame = props.compositionProfileId ===
+    'caption_direction_broll_owner_real_source_scene_group_v4'
+  if (brollOwnerFullFrame) {
+    const safeInset = Math.max(12, Math.round(height * 0.045))
+    return (
+      <AbsoluteFill
+        style={{
+          background: '#050A12',
+          color: '#F8FAFC',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          overflow: 'hidden',
+        }}
+      >
+        <OffthreadVideo
+          src={props.sourceInternalUrl!}
+          startFrom={props.sourceStartFrame ?? 0}
+          endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          volume={0}
+        />
+        <AbsoluteFill
+          style={{
+            zIndex: 80,
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(180deg, rgba(2,8,18,0.08) 0%, rgba(2,8,18,0.02) 38%, rgba(2,8,18,0.28) 58%, rgba(2,8,18,0.92) 100%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 110,
+            left: safeInset,
+            bottom: safeInset,
+            width: Math.max(42, Math.round(width * 0.12)),
+            height: Math.max(3, Math.round(height * 0.009)),
+            borderRadius: 999,
+            background:
+              'linear-gradient(90deg, #6EE7F9 0%, rgba(110,231,249,0.08) 100%)',
+          }}
+        />
+        {(props.captionCreativeLayers ?? []).map((layer) => (
+          <CaptionCreativeLayerView
+            key={layer.layerId}
+            layer={layer}
+            globalFrame={frame}
+            reducedMotion={props.reducedMotion === true}
+            realSourcePresentation
+          />
+        ))}
+      </AbsoluteFill>
+    )
+  }
   const editorialSplit = props.compositionProfileId ===
     'caption_direction_real_source_multi_output_scene_group_v3'
   if (editorialSplit) {

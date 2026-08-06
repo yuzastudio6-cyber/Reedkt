@@ -136,6 +136,10 @@ const brollDirectInspectionRef = ref(
   'review.caption-broll.real-source.co-composition.2026-08-06-v1',
   'caption-broll-direct-private-inspection-v3',
   'f574f5827033ff8ba809d617241c82cc0523cd9077090f836deab6dbbd727c80')
+const brollProfessionalInspectionRef = ref(
+  'caption.broll-owner.professional.direct-inspection-2026-08-06-v1',
+  'caption-broll-owner-professional-direct-inspection-v1',
+  '93f1a59310c6fa5e41f57b39e4b6db6ae82d7b015a800b50ad3b6235ef818adc')
 const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
@@ -144,14 +148,14 @@ const realSourceMultiOutputDirectInspectionRef = ref(
   'caption.real-source.multi-output.direct-inspection-2026-08-05-v1',
   'caption-real-source-multi-output-direct-inspection-v1',
   'c4b686fdf2798eda32d1bb047b800b2269a90aed87fa513b0d4bcdbf9b91c34d')
-const realSourceFullRenderRef = ref(
-  'caption.real-source.render.full_motion',
-  'caption-real-source-private-review-render-v1',
-  '200abd32615cbed07739243880ed7993998609451ad911a1bddac9e686fa939f')
-const realSourceReducedRenderRef = ref(
-  'caption.real-source.render.reduced_motion',
-  'caption-real-source-private-review-render-v1',
-  'b8b87995c9031a0221a304bd1c06bfe6beeb1c186b5818d28758fd511f606e74')
+const brollProfessionalFullRenderRef = ref(
+  'caption.broll-owner.professional.accepted.full.render',
+  'caption-broll-owner-professional-private-render-v1',
+  'a75bcfe4dabd4ca4af1cc0893150e4ee66971efd585b826ae2082a95ae76babf')
+const brollProfessionalReducedRenderRef = ref(
+  'caption.broll-owner.professional.accepted.reduced.render',
+  'caption-broll-owner-professional-private-render-v1',
+  'a6e5f9089d8be6834fffa504c9653a566412ba544cf55f854747b964f8583128')
 
 const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
   gate('canonical_transcript_owner_authenticated_read',
@@ -181,7 +185,9 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     ]),
   gate('broll_owner_authenticated_read',
     'actual_evidence_accepted_outside_terminal_scope', [
-      brollOwnerRuntimeReceiptRef, brollDirectInspectionRef,
+      brollOwnerRuntimeReceiptRef,
+      brollDirectInspectionRef,
+      brollProfessionalInspectionRef,
     ], [
       'accepted_broll_owner_result_must_be_rerun_or_rebound_in_terminal_scope',
       'same_package_snapshot_output_and_work_graph_required',
@@ -190,6 +196,7 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     'actual_evidence_incomplete', [
       realSourceDirectInspectionRef,
       realSourceMultiOutputDirectInspectionRef,
+      brollProfessionalInspectionRef,
     ], [
       'representative_approved_runs_must_cover_all_forty_one_caption_jobs',
       'each_run_must_reread_every_projected_result_and_artifact',
@@ -198,6 +205,7 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     'actual_evidence_incomplete', [
       realSourceDirectInspectionRef,
       realSourceMultiOutputDirectInspectionRef,
+      brollProfessionalInspectionRef,
     ], [
       'shared_qualified_postrender_ai_review_required_for_each_output',
       'direct_agent_raster_inspection_must_remain_separate_evidence',
@@ -243,8 +251,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v5',
-  observedAt: '2026-08-06T21:18:27.000Z',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v6',
+  observedAt: '2026-08-06T16:45:00.000-04:00',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,
@@ -263,9 +271,9 @@ const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   gates: expectedGates,
   professionalAppearanceEvidence: {
     realTalkingHeadPixelsInspected: true,
-    fullMotionRenderRef: realSourceFullRenderRef,
-    reducedMotionRenderRef: realSourceReducedRenderRef,
-    directInspectionReceiptRef: realSourceDirectInspectionRef,
+    fullMotionRenderRef: brollProfessionalFullRenderRef,
+    reducedMotionRenderRef: brollProfessionalReducedRenderRef,
+    directInspectionReceiptRef: brollProfessionalInspectionRef,
     acceptedForCaptionOwnedProfessionalAppearance: true,
     syntheticEngineeringFixtureUsed: false,
     qualifiedSharedPostrenderAiReviewClaimed: false,

@@ -74,11 +74,18 @@ check(progress.gates.find((gate) =>
     (reference) => reference.version ===
       'caption-broll-owner-private-runtime-receipt-v2'),
 'B-roll real-source evidence requires the v2 owner runtime receipt')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
+    (reference) => reference.version ===
+      'caption-broll-owner-professional-direct-inspection-v1'),
+'B-roll evidence includes the repaired professional all-frame inspection')
 check(progress.professionalAppearanceEvidence.realTalkingHeadPixelsInspected
   && progress.professionalAppearanceEvidence
     .acceptedForCaptionOwnedProfessionalAppearance
+  && progress.professionalAppearanceEvidence.directInspectionReceiptRef
+    .version === 'caption-broll-owner-professional-direct-inspection-v1'
   && !progress.professionalAppearanceEvidence.syntheticEngineeringFixtureUsed,
-'real talking-head appearance evidence remains explicit')
+'owner-bound real talking-head appearance evidence remains explicit')
 check(progress.gates.find((gate) =>
   gate.gapId === 'canonical_backend_private_execution_mount')
   ?.evidenceRefs.some((reference) => reference.version ===

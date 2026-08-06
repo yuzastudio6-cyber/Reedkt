@@ -113,14 +113,31 @@ const body = compileCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildBody(
   admission,
 )
 const steps = body.steps as ReadonlyArray<Record<string, unknown>>
-assert.equal(steps.length, 5)
+assert.equal(steps.length, 6)
 assert.deepEqual(steps.map((step) => step.id), [
   'pull-immutable-track-all-l4-task-qa-image',
   'archive-immutable-track-all-l4-task-qa-image',
   'generate-spdx-2-3-sbom',
+  'prepare-cosign-workspace-artifacts',
   'sign-immutable-track-all-l4-task-qa-image',
   'verify-immutable-track-all-l4-task-qa-image-signature',
 ])
+const prepareCosign = steps[3]
+assert.equal(prepareCosign.entrypoint, '/bin/sh')
+assert.equal(
+  JSON.stringify(prepareCosign.args).includes('chmod 0666'),
+  true,
+)
+assert.equal(
+  JSON.stringify(prepareCosign.args).includes(
+    'cosign-signature.bundle.json',
+  ),
+  true,
+)
+assert.equal(
+  JSON.stringify(prepareCosign.args).includes('cosign-verification.json'),
+  true,
+)
 assert.equal(JSON.stringify(body).includes('customer'), false)
 assert.equal(JSON.stringify(body).includes('checkpoint'), false)
 assert.equal(JSON.stringify(body).includes('gpu'), false)
@@ -401,9 +418,10 @@ assert.throws(() =>
 
 process.stdout.write(`${JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build',
-  checks: 28,
+  checks: 33,
   immutableDigestBound: true,
   pinnedSbomAndKmsToolchain: true,
+  nonRootCosignWorkspaceFilesPrecreatedWithBoundedWriteAccess: true,
   exactCloudBuildEchoRequired: true,
   automaticRetryAllowed: false,
   runtimeReleaseGranted: false,

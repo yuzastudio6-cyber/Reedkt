@@ -449,9 +449,23 @@ export function compileCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildBody(
         ],
       },
       {
+        id: 'prepare-cosign-workspace-artifacts',
+        name: admission.buildPolicy.dockerBuilderImage,
+        waitFor: ['generate-spdx-2-3-sbom'],
+        entrypoint: '/bin/sh',
+        args: [
+          '-ceu',
+          [
+            `: > /workspace/${ARTIFACT_PATHS[1]}`,
+            `: > /workspace/${ARTIFACT_PATHS[2]}`,
+            `chmod 0666 /workspace/${ARTIFACT_PATHS[1]} /workspace/${ARTIFACT_PATHS[2]}`,
+          ].join('\n'),
+        ],
+      },
+      {
         id: 'sign-immutable-track-all-l4-task-qa-image',
         name: admission.buildPolicy.cosignImage,
-        waitFor: ['generate-spdx-2-3-sbom'],
+        waitFor: ['prepare-cosign-workspace-artifacts'],
         args: [
           'sign', '--yes', '--key', key, '--use-signing-config=false',
           '--tlog-upload=false', '--bundle',

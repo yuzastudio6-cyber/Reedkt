@@ -57,13 +57,13 @@ assert.match(buildScript, /"gpuStarted":false/u)
 assert.match(buildScript, /"customerCreditsMutated":false/u)
 
 assert.match(deployScript,
-  /BUILD_ID='03133c6e-91f2-468a-8dd3-e3333b96bbb2'/u)
+  /BUILD_ID='031bf059-0d4e-4957-8d38-5f01e6b76d22'/u)
 assert.match(deployScript,
-  /SOURCE_COMMIT='4c1ef11eb855de981bfd4fc90b69a2b3a43d3de1'/u)
+  /SOURCE_COMMIT='1a1c59682d26307929e6b1aa3d9cf70649548d34'/u)
 assert.match(deployScript,
-  /SOURCE_TREE='1add02c65b4ffd65845ee20d537fab863c51e0d2'/u)
+  /SOURCE_TREE='78bf6b723b9a8757f02f258fef8c1cc69ba91a9c'/u)
 assert.match(deployScript,
-  /IMAGE_DIGEST='sha256:d2be82cef9b3a68a899a1c70d8050db660d81e0c45fa2d9532e00799ed65db87'/u)
+  /IMAGE_DIGEST='sha256:41305e2751bb418506313068c10658b6f3755d795b43c4b540cd76be87be4436'/u)
 assert.match(deployScript, /slsa_build_level == 3/u)
 assert.match(deployScript, /FINISHED_SUCCESS/u)
 assert.match(deployScript, /contains\(\["NPM", "OS", "SECRET"\]\)/u)

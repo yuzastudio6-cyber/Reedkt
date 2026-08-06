@@ -73,6 +73,14 @@ assert.match(deployScript, /weeditpro-sam31-terms-finalization/u)
 assert.match(deployScript,
   /WEEDITPRO_CONFIRM_SAM31_AUTHORIZED_TERMS_FINALIZATION_JOB_DEPLOY/u)
 assert.match(deployScript,
+  /BUILD_ID='2495fc2c-0d3f-40d8-be1f-ebb55d5d0766'/u)
+assert.match(deployScript,
+  /SOURCE_COMMIT='1a1c59682d26307929e6b1aa3d9cf70649548d34'/u)
+assert.match(deployScript,
+  /SOURCE_TREE='78bf6b723b9a8757f02f258fef8c1cc69ba91a9c'/u)
+assert.match(deployScript,
+  /IMAGE_DIGEST='sha256:76f42dbcb8aa482d0334fadf855a1e0dc0faaef6818531220b7b92eb45388d9a'/u)
+assert.match(deployScript,
   /canonical-sam3_1-authorized-human-terms-intent-v1/u)
 assert.match(deployScript,
   /authenticated_authorized_human_action/u)
@@ -125,7 +133,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-authorized-terms-finalization-cloud-job',
-  checks: 78,
+  checks: 82,
   sourceBoundCloudJobPackaged: true,
   immutableLinuxAmd64ImageBuildConfigured: true,
   sourceBoundImageBuiltAndScanPinned: true,

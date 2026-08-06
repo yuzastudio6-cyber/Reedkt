@@ -134,7 +134,11 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
    that exact persistence reread in the terminal qualification run. A closed
    private preparation package now covers all 11 source segments and 153 source
    words with two unapproved offline ASR observations, but all listener
-   decisions and owner admission remain false;
+   decisions and owner admission remain false. The source-complete reviewer
+   completion seam now validates the full listening submission and produces the
+   existing independent-review/correction/request contracts, but it cannot
+   create those real artifacts before an audio-capable reviewer supplies the
+   decisions;
 2. consume an actual canonical Visual Intelligence owner record;
 3. consume an actual canonical Track All owner record;
 4. consume an actual canonical Sound result, exact final audio reread, and
@@ -167,6 +171,11 @@ historical CAP-01 through CAP-20 checks plus the current routing, owner bridge,
 canonical execution, postrender reread, per-job readiness, and terminal
 qualification service regressions. It deliberately starts no media, model, or
 Docker runtime and cannot claim the terminal private qualification status.
+
+The transcript preparation and completion boundaries are documented in
+[`cap-04-real-source-correction-review-preparation-2026-08-06.md`](cap-04-real-source-correction-review-preparation-2026-08-06.md)
+and
+[`cap-04-independent-audio-review-completion-seam-2026-08-06.md`](cap-04-independent-audio-review-completion-seam-2026-08-06.md).
 
 ## Files changed
 

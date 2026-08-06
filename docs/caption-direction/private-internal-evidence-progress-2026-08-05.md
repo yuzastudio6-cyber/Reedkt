@@ -24,7 +24,7 @@ the evidence currently belongs to several independently scoped tests.
 
 | Gate | Current evidence truth |
 | --- | --- |
-| Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner is mounted. A new private review-preparation package covers all 11 source segments and 153 source words with two additional unapproved offline ASR observations; it preserves nine text disagreements, two timing disagreements, two brand-review spans, and one claim-sensitive number span. Every listener decision remains pending, so no independent review or correction artifact has been admitted. |
+| Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner is mounted. A private review-preparation package covers all 11 source segments and 153 source words with two additional unapproved offline ASR observations; it preserves nine text disagreements, two timing disagreements, two brand-review spans, and one claim-sensitive number span. The source-complete reviewer-completion seam now validates exact decisions and projects them into the existing review/correction/request contracts, but every real listener decision remains pending, so no independent review or correction artifact has been admitted. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
 | B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. The corrected renderer now carries the validated B-roll geometry into Remotion, keeps Caption above B-roll, and visibly labels every synthetic frame as a technical QA preview. Its color-bar imagery is structurally ineligible for professional-appearance qualification, and its scope is not the terminal talking-head edit scope. |
 | Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
@@ -138,8 +138,11 @@ Supply the missing evidence through those existing owners and populate that
 catalog. The rejected transcript now has the closed preparation package
 documented in
 `cap-04-real-source-correction-review-preparation-2026-08-06.md`; its ASR
-candidates remain explicitly non-authoritative. The nearest hard prerequisite
-remains a complete independent audio-truth review for that real source. Visual Intelligence,
+candidates remain explicitly non-authoritative. The safe completion path is
+documented in
+`cap-04-independent-audio-review-completion-seam-2026-08-06.md`; it does not
+invent an actual review. The nearest hard prerequisite remains a complete
+independent audio-truth review for that real source. Visual Intelligence,
 Track All, complete-time listening review, shared postrender visual AI, and
 independent final QA remain separate owner evidence requirements.
 

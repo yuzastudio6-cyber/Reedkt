@@ -12,8 +12,12 @@ import type {
 import {
   hashSoundMusicTechnicalAutomation,
   SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+  SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
+  validateSoundMusicTwoSourceCrossfadeReceipt,
   type SoundMusicTechnicalAutomationExtension,
+  type SoundMusicTwoSourceCrossfadeRequest,
 } from '../sound'
+import { framesToSamples } from '../edit-skills/core/timeline-rate'
 import { musicSkillCapabilityManifest } from '../edit-skills/music/music-capability-manifest'
 import {
   hashMusicValue,
@@ -21,6 +25,8 @@ import {
   type MusicArtifactRef,
   type MusicFrameRange,
   type MusicSoundSupportReceipt,
+  type MusicCrossfadePlan,
+  type MusicCrossfadeReceipt,
 } from './music-contracts'
 
 export interface MusicSoundCapabilityViewRequest {
@@ -114,11 +120,32 @@ export interface MusicSoundSupportQaResult {
   errors: string[]
 }
 
+export interface MusicSoundTwoSourceCrossfadeRequest {
+  plan: MusicCrossfadePlan
+  musicSkillVersion: string
+  musicManifestHash: string
+  approvedSnapshotId: string
+  approvedSnapshotHash: string
+  parentAuthorityRef: string
+  parentAuthorityHash: string
+  approvedWorkItemId: string
+  privateOutputScopeId: string
+  creditReservationId: string
+  idempotencyKey: string
+}
+
+export interface MusicSoundTwoSourceCrossfadeResult {
+  plan: MusicCrossfadePlan
+  receipt: MusicCrossfadeReceipt
+  soundReceipt: Awaited<ReturnType<CanonicalSoundSkillService['executeMusicTwoSourceCrossfade']>>['receipt']
+}
+
 export interface MusicSoundSupportPort {
   getCapabilityView(request: MusicSoundCapabilityViewRequest): Promise<MusicSoundCapabilityView>
   estimate(request: MusicSoundSupportRequest): Promise<MusicSoundSupportEstimate>
   execute(request: MusicSoundSupportRequest): Promise<MusicSoundSupportResult>
   qa(request: MusicSoundSupportQaRequest): Promise<MusicSoundSupportQaResult>
+  executeTwoSourceCrossfade(request: MusicSoundTwoSourceCrossfadeRequest): Promise<MusicSoundTwoSourceCrossfadeResult>
 }
 
 function toSoundArtifact(artifact: MusicArtifactRef): SoundArtifactRef {
@@ -143,7 +170,7 @@ type PublicSoundOperation = CanonicalSoundRequest['requestedOperations'][number]
 
 function soundOperation(operation: MusicSoundSupportRequest['requiredOperations'][number]): PublicSoundOperation | undefined {
   const map: Partial<Record<MusicSoundSupportRequest['requiredOperations'][number], PublicSoundOperation>> = {
-    trim: 'trim', cut: 'trim', fade: 'fade', crossfade: 'mix', gain: 'gain', normalize: 'normalize',
+    trim: 'trim', cut: 'trim', fade: 'fade', gain: 'gain', normalize: 'normalize',
     loop: 'loop', resample: 'resample', channel_conversion: 'convert_channels',
     time_stretch: 'time_stretch', pitch_shift: 'pitch_shift', place: 'sync',
     dialogue_ducking: 'gain', eq: 'mix', dynamics: 'mix', pan: 'mix',
@@ -153,6 +180,9 @@ function soundOperation(operation: MusicSoundSupportRequest['requiredOperations'
 }
 
 function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): CanonicalSoundRequest {
+  if (request.requiredOperations.includes('crossfade')) {
+    throw new Error('Music crossfade requires the exact two-source Sound crossfade boundary; one-source technical automation cannot authorize it.')
+  }
   const capability = soundSkillCapabilityManifest.capabilityEntries?.find((entry) =>
     entry.supportedJobTypes.includes('edit_music_technical_automation'))
   if (!capability) throw new Error('Canonical Sound Music technical-automation capability is unavailable.')
@@ -418,6 +448,75 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     return { receipt, soundResultStatus: result.status }
   }
 
+  async executeTwoSourceCrossfade(
+    request: MusicSoundTwoSourceCrossfadeRequest,
+  ): Promise<MusicSoundTwoSourceCrossfadeResult> {
+    if (request.musicSkillVersion !== musicSkillCapabilityManifest.skillVersion ||
+      request.musicManifestHash !== musicSkillCapabilityManifest.manifestHash) {
+      throw new Error('Music two-source crossfade has a stale Music manifest binding.')
+    }
+    const planCore = { ...request.plan, planHash: undefined }
+    if (request.plan.planHash !== hashMusicValue(planCore)) {
+      throw new Error('Music two-source crossfade plan hash is stale.')
+    }
+    if (request.plan.leftSource.checksumSha256 === request.plan.rightSource.checksumSha256) {
+      throw new Error('Music two-source crossfade requires independent source hashes.')
+    }
+    const soundCore: Omit<SoundMusicTwoSourceCrossfadeRequest, 'extensionHash'> = {
+      schemaVersion: SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
+      requestId: request.plan.planId,
+      callerSkillKey: 'music', callerSkillVersion: request.musicSkillVersion,
+      callerManifestHash: request.musicManifestHash,
+      soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
+      soundManifestHash: soundSkillCapabilityManifest.manifestHash,
+      leftCueId: request.plan.leftCueId, rightCueId: request.plan.rightCueId,
+      leftSource: toSoundArtifact(request.plan.leftSource), rightSource: toSoundArtifact(request.plan.rightSource),
+      leftSourceRange: toSoundRange(request.plan.leftSourceRange),
+      rightSourceRange: toSoundRange(request.plan.rightSourceRange),
+      targetOverlapRange: toSoundRange(request.plan.targetOverlapRange),
+      authorizedWriteRange: toSoundRange(request.plan.authorizedWriteRange),
+      crossfadeDurationFrames: request.plan.crossfadeDurationFrames,
+      crossfadeDurationSamples: request.plan.crossfadeDurationSamples,
+      sampleRate: request.plan.sampleRate, timelineRate: request.plan.timelineRate,
+      curveType: request.plan.curveType,
+      leftGainCurve: [
+        { frame: request.plan.targetOverlapRange.startFrame, linearGain: 1 },
+        { frame: request.plan.targetOverlapRange.endFrameExclusive, linearGain: 0 },
+      ],
+      rightGainCurve: [
+        { frame: request.plan.targetOverlapRange.startFrame, linearGain: 0 },
+        { frame: request.plan.targetOverlapRange.endFrameExclusive, linearGain: 1 },
+      ],
+      approvedSnapshotId: request.approvedSnapshotId, approvedSnapshotHash: request.approvedSnapshotHash,
+      parentMusicRequestId: request.plan.requestId, parentAuthorityRef: request.parentAuthorityRef,
+      parentAuthorityHash: request.parentAuthorityHash, approvedWorkItemId: request.approvedWorkItemId,
+      privateOutputScopeId: request.privateOutputScopeId, creditReservationId: request.creditReservationId,
+      idempotencyKey: request.idempotencyKey,
+      requiredOutputs: ['music_crossfade_audio', 'music_crossfade_receipt_v3'],
+      requiredMeasuredQa: ['two_source_presence', 'curve_progression', 'duration', 'true_peak', 'clipping'],
+    }
+    const soundRequest: SoundMusicTwoSourceCrossfadeRequest = {
+      ...soundCore, extensionHash: hashSoundMusicTechnicalAutomation(soundCore),
+    }
+    const sound = await this.#sound.executeMusicTwoSourceCrossfade(soundRequest)
+    validateSoundMusicTwoSourceCrossfadeReceipt({ request: soundRequest, receipt: sound.receipt })
+    const outputArtifact: MusicArtifactRef = {
+      ...sound.outputArtifact, artifactType: 'music_crossfade_audio',
+      lineageArtifactIds: [request.plan.leftSource.artifactId, request.plan.rightSource.artifactId],
+    }
+    const receiptCore: Omit<MusicCrossfadeReceipt, 'receiptHash'> = {
+      schemaVersion: 'music-crossfade-receipt-v3', planId: request.plan.planId,
+      planHash: request.plan.planHash, soundReceiptHash: sound.receipt.receiptHash,
+      leftSourceHash: request.plan.leftSource.checksumSha256,
+      rightSourceHash: request.plan.rightSource.checksumSha256,
+      outputArtifact, measuredQaEvidenceHash: sound.receipt.measuredQa.evidenceHash,
+    }
+    return {
+      plan: structuredClone(request.plan), soundReceipt: sound.receipt,
+      receipt: { ...receiptCore, receiptHash: hashMusicValue(receiptCore) },
+    }
+  }
+
   async qa(request: MusicSoundSupportQaRequest): Promise<MusicSoundSupportQaResult> {
     const errors: string[] = []
     const receipt = request.supportResult.receipt
@@ -449,6 +548,36 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     if (receipt.appliedOperationReceipts.some((operation) =>
       operation.receivedParametersHash !== operation.appliedParametersHash)) {
       errors.push('sound_operation_parameters_not_applied_exactly')
+    }
+    for (const operation of receipt.appliedOperationReceipts) {
+      const { receiptHash, ...receiptCore } = operation
+      const stableApplied = JSON.stringify(operation.appliedParameters, Object.keys(operation.appliedParameters).sort())
+      const stableCompiled = JSON.stringify(operation.compiledParameters, Object.keys(operation.compiledParameters).sort())
+      if (operation.receivedParametersHash !== hashMusicValue(operation.requestedParameters) ||
+        operation.compiledParametersHash !== hashMusicValue(operation.compiledParameters) ||
+        operation.appliedParametersHash !== hashMusicValue(operation.appliedParameters) ||
+        operation.receivedParametersHash !== operation.compiledParametersHash ||
+        stableApplied !== stableCompiled) errors.push(`sound_operation_parameter_receipt_invalid:${operation.operation}`)
+      if (receiptHash !== hashMusicValue(receiptCore)) errors.push(`sound_operation_receipt_hash_invalid:${operation.operation}`)
+      if (!operation.sourceArtifactIds.includes(request.supportRequest.selectedMusicArtifact.artifactId) ||
+        !operation.sourceArtifactHashes.includes(request.supportRequest.selectedMusicArtifact.checksumSha256)) {
+        errors.push(`sound_operation_source_lineage_invalid:${operation.operation}`)
+      }
+      if (operation.outputArtifactIds.length === 0 ||
+        operation.outputArtifactIds.length !== operation.outputArtifactHashes.length) {
+        errors.push(`sound_operation_output_lineage_invalid:${operation.operation}`)
+      }
+      if (operation.exactMutationRange.startFrame !== request.supportRequest.delegatedRange.startFrame ||
+        operation.exactMutationRange.endFrameExclusive !== request.supportRequest.delegatedRange.endFrameExclusive) {
+        errors.push(`sound_operation_range_invalid:${operation.operation}`)
+      }
+      if (!receipt.soundRouteBindings.includes(
+        `${operation.routeKey}@${operation.routeVersion}#${operation.routeHash}`) ||
+        operation.handlerIdentity.length === 0 || operation.operationVersion.length === 0) {
+        errors.push(`sound_operation_execution_binding_invalid:${operation.operation}`)
+      }
+      if (operation.measuredQaRefs.length === 0 || operation.measuredQaResult === 'failed' ||
+        operation.status !== 'completed') errors.push(`sound_operation_qa_invalid:${operation.operation}`)
     }
     if (receipt.mutationRanges.some((range) =>
       range.startFrame < request.supportRequest.delegatedRange.startFrame ||
@@ -499,4 +628,38 @@ export function createMusicSoundSupportRequest(input: {
     parentAuthorityHash: input.request.scopeAuthority.parentAuthorityHash,
     idempotencyKey: `music-sound-${input.request.idempotencyKey}-${input.cueId}`,
   }
+}
+
+export function createMusicCrossfadePlan(input: {
+  request: CanonicalMusicSkillRequest
+  leftCueId: string
+  rightCueId: string
+  leftSource: MusicArtifactRef
+  rightSource: MusicArtifactRef
+  leftSourceRange: MusicFrameRange
+  rightSourceRange: MusicFrameRange
+  targetOverlapRange: MusicFrameRange
+  authorizedWriteRange: MusicFrameRange
+  curveType?: MusicCrossfadePlan['curveType']
+  sampleRate?: MusicCrossfadePlan['sampleRate']
+}): MusicCrossfadePlan {
+  const crossfadeDurationFrames = input.targetOverlapRange.endFrameExclusive - input.targetOverlapRange.startFrame
+  const sampleRate = input.sampleRate ?? 48_000
+  const core = {
+    schemaVersion: 'music-crossfade-plan-v3' as const,
+    planId: `music.crossfade.${input.request.requestId}.${input.leftCueId}.${input.rightCueId}`,
+    requestId: input.request.requestId, leftCueId: input.leftCueId, rightCueId: input.rightCueId,
+    leftSource: structuredClone(input.leftSource), rightSource: structuredClone(input.rightSource),
+    leftSourceRange: structuredClone(input.leftSourceRange), rightSourceRange: structuredClone(input.rightSourceRange),
+    targetOverlapRange: structuredClone(input.targetOverlapRange),
+    authorizedWriteRange: structuredClone(input.authorizedWriteRange),
+    crossfadeDurationFrames,
+    crossfadeDurationSamples: framesToSamples({ frames: crossfadeDurationFrames,
+      rate: input.request.timelineBinding.rationalTimelineRate, sampleRate, rounding: 'nearest_half_up' }),
+    timelineRate: structuredClone(input.request.timelineBinding.rationalTimelineRate), sampleRate,
+    curveType: input.curveType ?? 'equal_power' as const,
+    soundRouteIdentity: 'sound.route.edit.music_two_source_crossfade.v1@1.0.0',
+    soundExtensionVersion: SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
+  }
+  return { ...core, planHash: hashMusicValue(core) }
 }

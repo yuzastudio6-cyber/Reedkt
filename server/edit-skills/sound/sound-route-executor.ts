@@ -1193,6 +1193,22 @@ export class CanonicalSoundRouteExecutor {
     measuredSoundRmsDbfs?: number
     measuredDuckingDeltaDb?: number
     measuredDuckingDb?: number
+    duckEnvelopeMeasurements: Array<{
+      startSeconds: number
+      endSeconds: number
+      attackSeconds: number
+      releaseSeconds: number
+      requestedDuckingDb: number
+      attackEarlyRmsDbfs: number
+      attackLateRmsDbfs: number
+      holdRmsDbfs: number
+      releaseEarlyRmsDbfs: number
+      releaseLateRmsDbfs: number
+      measuredAttackDeltaDb: number
+      measuredReleaseDeltaDb: number
+      attackRampPresent: boolean
+      releaseRampPresent: boolean
+    }>
     protectedRange?: SoundFrameRange
     expectedPanDirection: 'left' | 'center' | 'right'
     measuredChannelDeltaDb: number
@@ -1253,6 +1269,13 @@ export class CanonicalSoundRouteExecutor {
           gainDb: point.gainDb,
         })),
         pan: automation?.pan ?? 0,
+        duckAttackSeconds: automation
+          ? framesToSeconds(automation.duckAttackFrames, input.request.timelineRate)
+          : undefined,
+        duckReleaseSeconds: automation
+          ? framesToSeconds(automation.duckReleaseFrames, input.request.timelineRate)
+          : undefined,
+        dialogueDuckingDb: automation?.dialogueDuckingDb,
       })
       measurements.push({
         unitId: outcome.unit.unitId,
@@ -1263,6 +1286,7 @@ export class CanonicalSoundRouteExecutor {
         measuredSoundRmsDbfs: sound?.rmsDbfs,
         measuredDuckingDeltaDb: sound ? Number((output.rmsDbfs - sound.rmsDbfs).toFixed(3)) : undefined,
         measuredDuckingDb: windowMeasurements.protectedRangeMeasurements[0]?.measuredDuckingDb,
+        duckEnvelopeMeasurements: windowMeasurements.duckEnvelopeMeasurements,
         protectedRange: automation?.protectedSpeechRanges[0],
         expectedPanDirection: windowMeasurements.expectedPanDirection,
         measuredChannelDeltaDb: windowMeasurements.measuredChannelDeltaDb,
@@ -1523,6 +1547,57 @@ function compileSoundMixRenderSpec(
   return { ...core, renderSpecHash: hash(core) }
 }
 
+function musicOperationParameterRecord(input: {
+  extension: NonNullable<CanonicalSoundRequest['musicTechnicalAutomationExtension']>
+  render: CompiledSoundMixRenderSpec
+  operation: string
+}): Record<string, unknown> {
+  const { extension, render, operation } = input
+  if (operation === 'crossfade') {
+    throw new Error('One-source Music technical automation cannot issue a crossfade receipt; use the exact two-source crossfade boundary.')
+  }
+  if (operation === 'trim' || operation === 'cut') return {
+    sourceStartFrame: extension.sourceStartFrame,
+    sourceEndFrameExclusive: extension.sourceEndFrameExclusive,
+    targetStartFrame: extension.targetStartFrame,
+    targetEndFrameExclusive: extension.targetEndFrameExclusive,
+  }
+  if (operation === 'fade') return { fadeInFrames: render.fadeInFrames, fadeOutFrames: render.fadeOutFrames }
+  if (operation === 'gain') return { baseGainDb: extension.baseGainDb, gainEnvelope: render.gainEnvelope }
+  if (operation === 'normalize') return {
+    enabled: extension.normalization.enabled,
+    targetLoudnessLufs: extension.normalization.targetLoudnessLufs,
+    maximumTruePeakDbtp: extension.maximumTruePeakDbtp,
+  }
+  if (operation === 'loop') return { loopCrossfadeFrames: extension.loopCrossfadeFrames }
+  if (operation === 'resample') return { sampleRate: extension.sampleRate }
+  if (operation === 'channel_conversion') return { channelLayout: extension.channelLayout }
+  if (operation === 'time_stretch') return { tempoRatio: extension.tempoRatio }
+  if (operation === 'pitch_shift') return { pitchSemitones: extension.pitchSemitones }
+  if (operation === 'place') return {
+    delegatedRange: extension.delegatedRange,
+    targetStartFrame: extension.targetStartFrame,
+    targetEndFrameExclusive: extension.targetEndFrameExclusive,
+  }
+  if (operation === 'dialogue_ducking') return {
+    attenuationDb: render.dialogueDuckingDb,
+    attackFrames: render.duckAttackFrames,
+    releaseFrames: render.duckReleaseFrames,
+    protectedSpeechRanges: render.protectedSpeechRanges,
+  }
+  if (operation === 'eq') return { eqProfile: render.eqProfile }
+  if (operation === 'dynamics') return { dynamicsProfile: render.dynamicsProfile }
+  if (operation === 'pan') return { pan: render.pan }
+  if (operation === 'stem_rendering') return {
+    renderStem: extension.renderStem,
+    headroomDb: render.headroomDb,
+    distance: render.perspectiveProfile,
+    roomMatch: render.roomProfile,
+  }
+  if (operation === 'technical_qa') return { requiredQa: extension.requiredQa }
+  throw new Error(`Sound Music technical operation ${operation} has no parameter contract.`)
+}
+
 function createMusicTechnicalAutomationReceipt(input: {
   request: CanonicalSoundRequest
   outcomes: UnitExecutionOutcome[]
@@ -1586,7 +1661,7 @@ function createMusicTechnicalAutomationReceipt(input: {
   }
   const stepForOperation: Record<string, string[]> = {
     trim: ['trim_fade_gain'], cut: ['trim_fade_gain'], fade: ['trim_fade_gain'],
-    crossfade: ['trim_fade_gain'], gain: ['trim_fade_gain'], normalize: ['normalize'],
+    gain: ['trim_fade_gain'], normalize: ['normalize'],
     loop: ['loop_audio'], resample: ['resample_channels'], channel_conversion: ['resample_channels'],
     time_stretch: ['stretch_pitch'], pitch_shift: ['stretch_pitch'], place: ['sync_qa'],
     dialogue_ducking: ['mix_stem'], eq: ['mix_stem'], dynamics: ['mix_stem'], pan: ['mix_stem'],
@@ -1616,22 +1691,64 @@ function createMusicTechnicalAutomationReceipt(input: {
     if (evidence.length !== stepKeys.length) {
       throw new Error(`Sound Music technical operation ${operation} lacks completed step evidence.`)
     }
-    const parameterHash = hash({
-      extensionHash: extension.extensionHash,
-      operationParametersHash: extension.operationParametersHash,
-      operation,
-      stepReceiptHashes: evidence.map((receipt) => receipt.operationReceiptHash),
+    const routeManifest = getSoundToolRouteManifest(outcome.unit.route.routeKey, outcome.unit.route.routeVersion)
+    if (!routeManifest || routeManifest.routeHash !== outcome.unit.route.routeHash) {
+      throw new Error(`Sound Music technical operation ${operation} has a stale route binding.`)
+    }
+    const routeSteps = stepKeys.map((stepKey) => {
+      const step = routeManifest.orderedOrGraphSteps.find((candidate) => candidate.stepKey === stepKey)
+      if (!step) throw new Error(`Sound Music technical operation ${operation} references unknown route step ${stepKey}.`)
+      return step
     })
+    const requestedParameters = musicOperationParameterRecord({ extension, render, operation })
+    const compiledParameters = structuredClone(requestedParameters)
+    const appliedParameters = structuredClone(compiledParameters)
+    const receivedParametersHash = hash(requestedParameters)
+    const compiledParametersHash = hash(compiledParameters)
+    const appliedParametersHash = hash(appliedParameters)
     const measuredQaRefs = operation === 'place' ? synchronizationQaRefs
       : ['dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering'].includes(operation) ? mixQaRefs
         : technicalQaRefs
-    return {
-      operation,
-      receivedParametersHash: parameterHash,
-      appliedParametersHash: parameterHash,
-      outputArtifactIds: [...new Set(evidence.flatMap((receipt) => receipt.outputArtifactIds))],
-      measuredQaRefs,
+    const criticalQaPrefix = operation === 'dialogue_ducking' && extension.dialogueDucking.protectedSpeechRanges.length > 0
+      ? 'mix.measured_duck_envelope.'
+      : operation === 'pan' ? 'mix.measured_pan.'
+        : operation === 'normalize' ? 'technical.true_peak.' : undefined
+    const allQa = [...input.qa.technicalOutputQa, ...input.qa.synchronizationQa, ...input.qa.mixQa]
+    const matchesQaPrefix = (key: string, prefix: string) =>
+      key === prefix.replace(/\.$/u, '') || key.startsWith(prefix)
+    if (criticalQaPrefix && !allQa.some((finding) =>
+      matchesQaPrefix(finding.key, criticalQaPrefix) && finding.disposition === 'pass')) {
+      const matching = allQa.filter((finding) => matchesQaPrefix(finding.key, criticalQaPrefix))
+      throw new Error(`Sound Music technical operation ${operation} lacks passing parameter-specific measured QA: ${JSON.stringify(matching)}.`)
     }
+    const qaFindings = allQa.filter((finding) => measuredQaRefs.includes(finding.key))
+    const measuredQaResult = qaFindings.some((finding) => finding.disposition === 'fail') ? 'failed' as const
+      : qaFindings.some((finding) => finding.disposition === 'needs_review') ? 'needs_review' as const
+        : qaFindings.some((finding) => finding.disposition === 'warning') ? 'warning' as const : 'passed' as const
+    const outputPairs = new Map<string, string>()
+    for (const receipt of evidence) receipt.outputArtifactIds.forEach((artifactId, index) => {
+      const artifactHash = receipt.outputArtifactHashes[index]
+      if (artifactHash) outputPairs.set(artifactId, artifactHash)
+    })
+    outputPairs.set(outcome.selectedArtifact!.artifactId, outcome.selectedArtifact!.checksumSha256)
+    const sourceArtifacts = outcome.unit.sourceArtifacts.length > 0
+      ? outcome.unit.sourceArtifacts : outcome.consumedSourceArtifacts
+    if (sourceArtifacts.length === 0) throw new Error(`Sound Music technical operation ${operation} lacks source lineage.`)
+    const receiptCore = {
+      operation, operationVersion: routeSteps[0]!.operationProfileVersion,
+      requestedParameters, receivedParametersHash,
+      compiledParameters, compiledParametersHash,
+      appliedParameters, appliedParametersHash,
+      sourceArtifactIds: sourceArtifacts.map((artifact) => artifact.artifactId),
+      sourceArtifactHashes: sourceArtifacts.map((artifact) => artifact.checksumSha256),
+      outputArtifactIds: [...outputPairs.keys()], outputArtifactHashes: [...outputPairs.values()],
+      exactMutationRange: structuredClone(extension.delegatedRange),
+      handlerIdentity: routeSteps.map((step) =>
+        `${step.toolKey}:${step.operationKey}:${step.operationProfileKey}`).join(':'),
+      routeKey: routeManifest.routeKey, routeVersion: routeManifest.routeVersion, routeHash: routeManifest.routeHash,
+      measuredQaRefs, measuredQaResult, status: 'completed' as const,
+    }
+    return { ...receiptCore, receiptHash: hash(receiptCore) }
   })
   if (technicalQaRefs.length === 0 || synchronizationQaRefs.length === 0 || mixQaRefs.length === 0) {
     throw new Error('Sound Music technical automation requires measured technical, synchronization, and mix QA.')

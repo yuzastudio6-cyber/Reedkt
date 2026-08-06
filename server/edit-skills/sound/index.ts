@@ -5,6 +5,7 @@ export {
   type CanonicalSoundPlanResult,
   type CanonicalSoundQaRequest,
   type CanonicalSoundQaResult,
+  type CanonicalSoundMusicCrossfadeResult,
   type CanonicalSoundRevisionRequest,
   type CanonicalSoundRevisionExecutionRequest,
   type CanonicalSoundSkillService,

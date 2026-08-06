@@ -31,6 +31,8 @@ function qualification(preset: Preset): ToolOperationQualificationByMode {
 
 interface OperationSeed {
   key: string
+  version?: string
+  evidenceVersion?: string
   jobs: string[]
   preset: Preset
   accepted?: string[]
@@ -46,7 +48,7 @@ function operation(seed: OperationSeed): ToolOperationCapability {
   const execution = seed.preset === 'private' || seed.preset === 'fixture'
   return {
     operationKey: seed.key,
-    operationVersion: '2.0.0',
+    operationVersion: seed.version ?? '2.0.0',
     displayName: seed.key.replaceAll('_', ' '),
     description: `Canonical Music bounded operation for ${seed.key.replaceAll('_', ' ')}.`,
     supportedJobTypes: seed.jobs,
@@ -87,10 +89,11 @@ function operation(seed: OperationSeed): ToolOperationCapability {
     qualificationByMode: qualification(seed.preset),
     qualificationEvidenceLevel: seed.preset === 'fixture' ? 'fixture' :
       seed.preset === 'private' ? 'internal_execution' : seed.preset,
-    qualificationEvidenceRefs: [`music.evidence.${seed.key}.v2`],
-    timeEstimatorKey: `music.tool.time.${seed.key}.v2`,
-    creditEstimatorKey: `music.tool.credit.${seed.key}.v2`,
-    attemptPolicyKey: seed.paid ? 'music.attempt.provider_reconciled.v2' : 'music.attempt.local_idempotent.v2',
+    qualificationEvidenceRefs: [`music.evidence.${seed.key}.${seed.evidenceVersion ?? 'v2'}`],
+    timeEstimatorKey: `music.tool.time.${seed.key}.${seed.evidenceVersion ?? 'v2'}`,
+    creditEstimatorKey: `music.tool.credit.${seed.key}.${seed.evidenceVersion ?? 'v2'}`,
+    attemptPolicyKey: seed.paid ? 'music.attempt.provider_reconciled.v2'
+      : `music.attempt.local_idempotent.${seed.evidenceVersion ?? 'v2'}`,
     requiredPlanningQa: ['music_scope_qa', 'music_rights_qa', 'music_timeline_qa'],
     requiredOutputQa: ['music_artifact_qa', 'music_qualification_qa'],
     requiredIntegrationQa: ['music_range_authority_qa', 'music_ownership_boundary_qa'],
@@ -108,14 +111,17 @@ function manifest(input: {
   operations: OperationSeed[]
   provider?: boolean
   limitations?: string[]
+  manifestRevision?: string
+  adapterVersion?: string
+  contractVersion?: string
 }): Readonly<ToolCapabilityManifest> {
   return publishToolCapabilityManifest({
     manifestSchemaVersion: 'tool-capability-manifest-v1',
-    toolManifestId: `tool.manifest.${input.toolKey}.v2`,
+    toolManifestId: `tool.manifest.${input.toolKey}.${input.manifestRevision ?? 'v2'}`,
     toolKey: input.toolKey,
     toolVersion: input.toolVersion,
-    adapterVersion: '2.0.0',
-    contractVersion: '2.0.0',
+    adapterVersion: input.adapterVersion ?? '2.0.0',
+    contractVersion: input.contractVersion ?? '2.0.0',
     toolClass: input.toolClass,
     executionBoundary: input.boundary,
     owningSystem: 'music',
@@ -123,7 +129,8 @@ function manifest(input: {
     qualificationEvidenceLevel: input.status === 'internal_execution_qualified'
       ? 'internal_execution' : input.status === 'blocked' ? 'blocked'
         : input.operations.some((item) => item.preset === 'fixture') ? 'fixture' : 'planning',
-    qualificationEvidenceRefs: input.operations.map((item) => `music.evidence.${item.key}.v2`),
+    qualificationEvidenceRefs: input.operations.map((item) =>
+      `music.evidence.${item.key}.${item.evidenceVersion ?? 'v2'}`),
     operations: input.operations.map(operation),
     privacyPolicy: {
       policyKey: input.provider ? 'music.privacy.lyria3_preview.v2' : 'music.privacy.private_local.v2',
@@ -176,6 +183,16 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     toolKey: 'music_supervision_engine', toolVersion: '2.0.0', toolClass: 'decision_route',
     boundary: 'private_coordination_service', status: 'planning_qualified', operations: planningOperations,
     limitations: ['Subjective narrative, emotional, cultural, and artistic findings remain confidence-scored or needs-review.'],
+  }),
+  manifest({
+    toolKey: 'music_cue_grouping_engine', toolVersion: '3.1.0', toolClass: 'decision_route',
+    boundary: 'private_coordination_service', status: 'planning_qualified',
+    manifestRevision: 'v3', adapterVersion: '3.1.0', contractVersion: '3.1.0', operations: [{
+      key: 'group_music_cues', version: '3.1.0', evidenceVersion: 'v3',
+      jobs: ['create_music_cue_sheet'], preset: 'planning',
+      produced: ['music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3'],
+      limitations: ['Produces a typed conflict instead of exceeding an approved hard cue policy.'],
+    }],
   }),
   manifest({
     toolKey: 'music_private_audio_analysis', toolVersion: '2.0.0', toolClass: 'internal_service',
@@ -249,15 +266,24 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     ],
   }),
   manifest({
-    toolKey: 'canonical_sound_v4_port', toolVersion: '4.0.0', toolClass: 'internal_service',
-    boundary: 'private_coordination_service', status: 'internal_execution_qualified', operations: [{
-      key: 'process_music_through_public_sound_service',
-      jobs: ['prepare_music_stem', 'request_sound_processing', 'plan_music_mix', 'qa_music'],
-      preset: 'private', accepted: ['music_editorial_plan_v2', 'approved_private_music_audio'],
-      produced: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'],
-      mutation: 'create_versioned_private_artifact', determinism: 'deterministic',
-      limitations: ['Admission derives from the exact selected canonical Sound v4 capability and route.'],
-    }],
+    toolKey: 'canonical_sound_v4_port', toolVersion: '4.2.0', toolClass: 'internal_service',
+    boundary: 'private_coordination_service', status: 'internal_execution_qualified', operations: [
+      {
+        key: 'process_music_through_public_sound_service',
+        jobs: ['prepare_music_stem', 'request_sound_processing', 'plan_music_mix', 'qa_music'],
+        preset: 'private', accepted: ['music_editorial_plan_v2', 'approved_private_music_audio'],
+        produced: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'],
+        mutation: 'create_versioned_private_artifact', determinism: 'deterministic',
+        limitations: ['Admission derives from the exact selected canonical Sound v4 capability and route.'],
+      },
+      {
+        key: 'crossfade_music_through_public_sound_service', jobs: ['request_sound_processing'], preset: 'private',
+        accepted: ['music_crossfade_plan_v3', 'approved_private_music_audio'],
+        produced: ['music_crossfade_audio', 'music_crossfade_receipt_v3'],
+        mutation: 'create_versioned_private_artifact', determinism: 'deterministic',
+        limitations: ['Requires two independent checksum-bound Music sources and the exact Sound two-source route.'],
+      },
+    ],
   }),
   manifest({
     toolKey: 'google_lyria_3', toolVersion: '3.0.0-preview.20260325', toolClass: 'external_provider',

@@ -184,8 +184,13 @@ export function publishMusicToolRouteManifest(input: UnpublishedMusicRoute): Rea
   return Object.freeze(result)
 }
 
-function step(input: Omit<MusicRouteStep, 'operationVersion' | 'operationProfileVersion'>): MusicRouteStep {
-  return { ...input, operationVersion: '2.0.0', operationProfileVersion: '2.0.0' }
+function step(input: Omit<MusicRouteStep, 'operationVersion' | 'operationProfileVersion'> &
+  Partial<Pick<MusicRouteStep, 'operationVersion' | 'operationProfileVersion'>>): MusicRouteStep {
+  return {
+    ...input,
+    operationVersion: input.operationVersion ?? '2.0.0',
+    operationProfileVersion: input.operationProfileVersion ?? '2.0.0',
+  }
 }
 
 function route(input: {
@@ -198,11 +203,12 @@ function route(input: {
   steps: MusicRouteStep[]
   fallback?: Array<{ routeKey: string; routeVersion: string }>
   limitations?: string[]
+  version?: string
 }): Readonly<MusicToolRouteManifest> {
   const routeKey = input.key.replace(/\.v2$/u, '.v3')
   return publishMusicToolRouteManifest({
     routeKey,
-    routeVersion: '3.0.0',
+    routeVersion: input.version ?? '3.0.0',
     supportedCapabilityKeys: input.jobs.map((job) => `music.${job}`),
     supportedJobTypes: input.jobs,
     routeRole: input.role,
@@ -282,6 +288,19 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   planningRoute('plan_scene_music', 'music.route.plan.scene.v2'),
   planningRoute('plan_boundary_music', 'music.route.plan.boundary.v2'),
   planningRoute('full_video_music_pass', 'music.route.plan.full_video.v2'),
+  route({
+    key: 'music.route.plan.cue_grouping.v2', jobs: ['create_music_cue_sheet'], role: 'primary',
+    version: '3.1.0',
+    requiredInputs: ['music_assignment_v2'], outputs: ['music_cue_grouping_plan_v3'],
+    optionalOutputs: ['music_cue_policy_conflict_v3'], steps: [step({
+      stepKey: 'group_cues', stepJobType: 'create_music_cue_sheet',
+      toolKey: 'music_cue_grouping_engine', toolVersion: '3.1.0', operationKey: 'group_music_cues',
+      operationVersion: '3.1.0', operationProfileKey: 'music.profile.group_music_cues.v3',
+      operationProfileVersion: '3.1.0', required: true,
+      dependencyStepKeys: [], inputBindings: ['music_assignment_v2'],
+      outputBindings: ['music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3'], failureBehavior: 'fail_route',
+    })],
+  }),
   planningRoute('create_music_cue_sheet', 'music.route.plan.cue_sheet.v2'),
   sourceStudyRoute({ key: 'music.route.acquire.preserve_source.v2', job: 'fit_music_to_edit', assetOperation: 'preserve_source_music', output: 'approved_music_selection_v2' }),
   sourceStudyRoute({ key: 'music.route.acquire.user_upload.v2', job: 'select_user_provided_music', assetOperation: 'use_user_uploaded_music', output: 'approved_music_selection_v2' }),
@@ -353,12 +372,26 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   }),
   route({
     key: 'music.route.support.sound_processing.v2', jobs: ['prepare_music_stem', 'request_sound_processing', 'plan_music_mix'], role: 'support',
+    version: '3.1.0',
     requiredInputs: ['music_editorial_plan_v2', 'approved_private_music_audio'],
     outputs: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'], steps: [step({
-      stepKey: 'sound_support', stepJobType: 'request_sound_processing', toolKey: 'canonical_sound_v4_port', toolVersion: '4.0.0',
+      stepKey: 'sound_support', stepJobType: 'request_sound_processing', toolKey: 'canonical_sound_v4_port', toolVersion: '4.2.0',
       operationKey: 'process_music_through_public_sound_service', operationProfileKey: 'music.profile.sound_v4_support.v2', required: true,
       dependencyStepKeys: [], inputBindings: ['music_editorial_plan_v2', 'approved_private_music_audio'],
       outputBindings: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'], failureBehavior: 'fail_route',
+    })],
+  }),
+  route({
+    key: 'music.route.support.two_source_crossfade.v2', jobs: ['request_sound_processing'], role: 'support',
+    version: '3.1.0',
+    requiredInputs: ['music_crossfade_plan_v3', 'approved_private_music_audio'],
+    outputs: ['music_crossfade_audio', 'music_crossfade_receipt_v3'], steps: [step({
+      stepKey: 'sound_two_source_crossfade', stepJobType: 'request_sound_processing',
+      toolKey: 'canonical_sound_v4_port', toolVersion: '4.2.0',
+      operationKey: 'crossfade_music_through_public_sound_service',
+      operationProfileKey: 'music.profile.sound_two_source_crossfade.v3', required: true,
+      dependencyStepKeys: [], inputBindings: ['music_crossfade_plan_v3', 'approved_private_music_audio'],
+      outputBindings: ['music_crossfade_audio', 'music_crossfade_receipt_v3'], failureBehavior: 'fail_route',
     })],
   }),
   route({
@@ -421,8 +454,10 @@ for (const item of routes) {
 
 export const MUSIC_TOOL_ROUTE_MANIFESTS = Object.freeze([...routeRegistry.values()])
 
-export function getMusicToolRouteManifest(routeKey: string, routeVersion = '3.0.0'): Readonly<MusicToolRouteManifest> | undefined {
-  return routeRegistry.get(`${routeKey}@${routeVersion}`)
+export function getMusicToolRouteManifest(routeKey: string, routeVersion?: string): Readonly<MusicToolRouteManifest> | undefined {
+  if (routeVersion) return routeRegistry.get(`${routeKey}@${routeVersion}`)
+  return MUSIC_TOOL_ROUTE_MANIFESTS.filter((route) => route.routeKey === routeKey)
+    .sort((left, right) => right.routeVersion.localeCompare(left.routeVersion, undefined, { numeric: true }))[0]
 }
 
 export function assertMusicToolRouteManifestHash(route: Readonly<MusicToolRouteManifest>): void {

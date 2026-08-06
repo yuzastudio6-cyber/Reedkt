@@ -9,7 +9,7 @@ import type { SkillQualificationStatus } from '../core/edit-skill-ids'
 import { SOUND_TOOL_ROUTE_MANIFESTS } from '../../sound/sound-tool-routes'
 
 export const SOUND_SKILL_KEY = 'sound' as const
-export const SOUND_SKILL_VERSION = '4.1.0' as const
+export const SOUND_SKILL_VERSION = '4.2.0' as const
 export const SOUND_MANIFEST_CONTRACT_VERSION = 'sound.skill_contract.v4' as const
 
 export const SOUND_SUPPORTED_JOB_TYPES = [
@@ -19,7 +19,7 @@ export const SOUND_SUPPORTED_JOB_TYPES = [
   'support_transition_sound', 'support_graphic_design_sound', 'search_sound_library',
   'extract_project_owned_sound', 'generate_video_conditioned_sfx', 'generate_text_conditioned_sfx',
   'generate_foley', 'generate_ambience', 'extend_ambience', 'repair_audio', 'clean_dialogue',
-  'reduce_noise', 'edit_audio', 'edit_music_technical_automation', 'trim_audio', 'fade_audio', 'adjust_gain', 'normalize_audio',
+  'reduce_noise', 'edit_audio', 'edit_music_technical_automation', 'crossfade_music_sources', 'trim_audio', 'fade_audio', 'adjust_gain', 'normalize_audio',
   'resample_audio', 'convert_audio_channels', 'loop_audio', 'time_stretch_audio', 'pitch_shift_audio',
   'sync_audio_to_visual', 'align_sound_transient', 'mix_sound_layers', 'create_sound_stem',
   'qa_sound', 'revise_sound', 'handoff_sound_to_final_composition',
@@ -39,7 +39,8 @@ export const SOUND_ACCEPTED_ARTIFACT_TYPES = [
   'bounded_private_visual_proxy', 'transcript_speech_evidence', 'scene_manifest', 'clip_manifest',
   'approved_timeline_manifest', 'visual_event_manifest', 'tracking_motion_manifest',
   'read_only_music_context', 'sound_cue_manifest_v2', 'sound_audio_artifact_v2',
-  'reference_sound_asset', 'provider_attempt_evidence',
+  'reference_sound_asset', 'provider_attempt_evidence', 'approved_left_music_audio',
+  'approved_right_music_audio', 'music_two_source_crossfade_extension',
 ] as const
 
 export const SOUND_PRODUCED_ARTIFACT_TYPES = [
@@ -48,6 +49,7 @@ export const SOUND_PRODUCED_ARTIFACT_TYPES = [
   'sound_cue_manifest_v2', 'sound_audio_artifact_v2', 'sound_mix_automation_manifest_v2',
   'sound_qa_report_v2', 'sound_continuity_report_v2', 'sound_provenance_report_v2',
   'sound_caller_receipt_v2', 'sound_final_composition_handoff_v2',
+  'music_crossfade_audio', 'music_crossfade_receipt_v3',
 ] as const
 
 const PLANNING_JOBS = new Set<string>([

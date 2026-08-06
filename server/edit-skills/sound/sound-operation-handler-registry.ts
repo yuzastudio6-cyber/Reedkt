@@ -40,6 +40,7 @@ const handlerKindByOperationIdentity = new Map<string, SoundOperationHandlerKind
   ['ffmpeg:normalize_audio_loudness', 'local_audio'],
   ['ffmpeg:resample_convert_channels', 'local_audio'],
   ['ffmpeg:loop_audio_crossfade', 'local_audio'],
+  ['ffmpeg:crossfade_music_two_source', 'local_audio'],
   ['ffmpeg:stretch_pitch_audio', 'local_audio'],
   ['ffmpeg:mix_scene_stem', 'local_audio'],
   ['ffmpeg:sync_transient_qa', 'local_audio'],

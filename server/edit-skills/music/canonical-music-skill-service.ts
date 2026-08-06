@@ -12,6 +12,8 @@ import {
   type MusicSoundtrackSegmentationPlan,
   type MusicCueConstraintResolution,
   type MusicAcceptanceReceipt,
+  type MusicCueGroupingPlan,
+  type MusicCuePolicyConflict,
 } from '../../music/music-contracts'
 import { evaluateMusicScopeGuard, musicRangesOverlap, validateMusicResultAuthority } from '../../music/music-scope-guard'
 import { createSupervisionArtifacts, type MusicContextStudyPayload, type MusicCueSheetPayload,
@@ -30,7 +32,11 @@ import {
   type MusicContextArtifactResolver,
 } from '../../music/music-context'
 import type { CanonicalLyria3ProviderAdapter } from '../../music/lyria-provider'
-import type { MusicSoundSupportPort } from '../../music/music-sound-support-port'
+import type {
+  MusicSoundSupportPort,
+  MusicSoundTwoSourceCrossfadeRequest,
+  MusicSoundTwoSourceCrossfadeResult,
+} from '../../music/music-sound-support-port'
 import { createMusicCostEvidence, MUSIC_RATE_CARD, providerUsdToCredits } from '../../music/music-rate-card'
 import { requireExactMusicAcceptanceEvidence } from './music-acceptance-evidence-registry'
 import { getMusicToolRouteManifest } from '../../music/music-tool-routes'
@@ -83,6 +89,10 @@ export interface CanonicalMusicPlanResult {
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
   segmentationPlan: MusicSoundtrackSegmentationPlan
   segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
+  cueGroupingPlan: MusicCueGroupingPlan
+  cueGrouping: MusicArtifactEnvelope<MusicCueGroupingPlan>
+  cuePolicyConflict?: MusicCuePolicyConflict
+  cuePolicyConflictArtifact?: MusicArtifactEnvelope<MusicCuePolicyConflict>
   cueConstraintResolutions: MusicCueConstraintResolution[]
   acceptanceReceipts: MusicAcceptanceReceipt[]
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
@@ -138,6 +148,7 @@ export interface CanonicalMusicSkillService {
   estimate(request: CanonicalMusicSkillRequest): Promise<MusicEstimateResult>
   plan(request: CanonicalMusicSkillRequest): Promise<CanonicalMusicPlanResult>
   execute(request: CanonicalMusicSkillRequest): Promise<CanonicalMusicSkillResult>
+  executeTwoSourceCrossfade(request: MusicSoundTwoSourceCrossfadeRequest): Promise<MusicSoundTwoSourceCrossfadeResult>
   planRevision(request: MusicRevisionRequest): Promise<MusicRevisionPlan>
   executeRevision(request: MusicRevisionExecutionRequest): Promise<CanonicalMusicSkillResult>
   qa(request: MusicQaRequest): Promise<MusicQaResult>
@@ -146,6 +157,8 @@ export interface CanonicalMusicSkillService {
 export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkillService {
   readonly #executor: CanonicalMusicRouteExecutor
   readonly #contextResolver?: MusicContextArtifactResolver
+  readonly #sound?: MusicSoundSupportPort
+  readonly #planReplays = new Map<string, { fingerprint: string; plan: CanonicalMusicPlanResult }>()
 
   constructor(input: {
     artifacts: CanonicalMusicArtifactResolver
@@ -155,6 +168,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
   }) {
     this.#executor = new CanonicalMusicRouteExecutor(input)
     this.#contextResolver = input.context
+    this.#sound = input.sound
   }
 
   getCapabilityManifest(): Readonly<SkillCapabilityManifest> {
@@ -230,19 +244,29 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
 
   async plan(input: CanonicalMusicSkillRequest): Promise<CanonicalMusicPlanResult> {
     const request = parseCanonicalMusicRequest(input)
+    const fingerprint = hashMusicValue(request)
+    const replay = this.#planReplays.get(request.idempotencyKey)
+    if (replay) {
+      if (replay.fingerprint !== fingerprint) {
+        throw new Error('Music planning idempotency collision: the key is already bound to different canonical inputs.')
+      }
+      return structuredClone(replay.plan)
+    }
     const admission = evaluateMusicScopeGuard(request)
     if (!admission.ok) throw new Error(`Canonical Music request rejected: ${admission.code}:${admission.errors.join(',')}`)
     const resolvedContext = await resolveCanonicalMusicContext({ request, resolver: this.#contextResolver })
     const supervision = createSupervisionArtifacts({ request, context: resolvedContext })
     const executionGraph = compileCanonicalMusicExecutionGraph({
-      request, need: supervision.need, cueSheet: supervision.cueSheet,
+      request, need: supervision.need, cueGrouping: supervision.cueGrouping, cueSheet: supervision.cueSheet,
       routeBindings: supervision.routeBindings,
     })
     const estimate = this.#estimateFromRoutes(request, supervision.routeBindings)
     const plannedResult = this.#plannedResult(request, supervision, estimate)
     const acceptanceReceipts = plannedResult.acceptanceReceipts
-    return { schemaVersion: 'canonical-music-plan-result-v3', request, resolvedContext, ...supervision,
-      acceptanceReceipts, executionGraph, estimate, plannedResult }
+    const result: CanonicalMusicPlanResult = { schemaVersion: 'canonical-music-plan-result-v3', request,
+      resolvedContext, ...supervision, acceptanceReceipts, executionGraph, estimate, plannedResult }
+    this.#planReplays.set(request.idempotencyKey, { fingerprint, plan: structuredClone(result) })
+    return result
   }
 
   async execute(input: CanonicalMusicSkillRequest): Promise<CanonicalMusicSkillResult> {
@@ -250,6 +274,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
     if (plan.request.requestedExecutionMode === 'planning') {
       throw new Error('Canonical Music planning mode cannot execute directly.')
     }
+    if (plan.cuePolicyConflict) return plan.plannedResult
     if (plan.resolvedContext.resolutionStatus !== 'resolved') {
       const locked = new Set(plan.request.cueConstraints.lockedCueIds)
       const lockedCues = requestedMusicCueConstraints(plan.request).filter((cue) => locked.has(cue.cueId))
@@ -270,11 +295,19 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
         proposedCues: plan.cueSheet.payload.cues,
       },
       context: plan.context, segmentationPlan: plan.segmentationPlan, segmentation: plan.segmentation,
+      cueGroupingPlan: plan.cueGroupingPlan, cueGrouping: plan.cueGrouping,
       cueConstraintResolutions: plan.cueConstraintResolutions, need: plan.need, arc: plan.arc,
       cueSheet: plan.cueSheet, routeBindings: plan.routeBindings, resolvedContext: plan.resolvedContext,
       executionGraph: plan.executionGraph,
     }
     return this.#executor.execute(executionPackage)
+  }
+
+  async executeTwoSourceCrossfade(
+    request: MusicSoundTwoSourceCrossfadeRequest,
+  ): Promise<MusicSoundTwoSourceCrossfadeResult> {
+    if (!this.#sound) throw new Error('Canonical Music two-source crossfade requires the injected public Sound port.')
+    return this.#sound.executeTwoSourceCrossfade(request)
   }
 
   async planRevision(input: MusicRevisionRequest): Promise<MusicRevisionPlan> {
@@ -499,6 +532,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
   ): CanonicalMusicSkillResult {
     const noMusic = supervision.need.payload.decision === 'no_music' || supervision.need.payload.decision === 'intentional_silence'
     const ambience = supervision.need.payload.decision === 'ambience_only'
+    const policyBlocked = Boolean(supervision.cuePolicyConflict)
     const acceptanceEvidence = requireExactMusicAcceptanceEvidence({
       jobType: request.jobType,
       mode: 'planning',
@@ -531,20 +565,28 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
         request.timelineBinding.timelineManifestHash, request.scopeAuthority.parentAuthorityHash,
         ...request.contextEvidence.map((evidence) => evidence.evidenceHash)],
       outputArtifactIds: [supervision.context.artifactId, supervision.segmentation.artifactId,
+        supervision.cueGrouping.artifactId, ...(supervision.cuePolicyConflictArtifact
+          ? [supervision.cuePolicyConflictArtifact.artifactId] : []),
         supervision.need.artifactId, supervision.arc.artifactId, supervision.cueSheet.artifactId],
       outputBindingHashes: [supervision.context.artifactHash, supervision.segmentation.artifactHash,
+        supervision.cueGrouping.artifactHash, ...(supervision.cuePolicyConflictArtifact
+          ? [supervision.cuePolicyConflictArtifact.artifactHash] : []),
         supervision.need.artifactHash, supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
       assertionKeys: [...acceptanceEvidence.assertionKeys],
-      evidenceRefs: [supervision.segmentationPlan.planHash, supervision.cueSheet.artifactHash],
+      evidenceRefs: [supervision.segmentationPlan.planHash, supervision.cueGroupingPlan.groupingHash,
+        ...(supervision.cuePolicyConflict ? [supervision.cuePolicyConflict.conflictHash] : []),
+        supervision.cueSheet.artifactHash],
       resultEvidenceHash: hashMusicValue({
         requestId: request.requestId,
         jobType: request.jobType,
         mode: 'planning',
         routeHashes: supervision.routeBindings.map((binding) => binding.routeHash),
         outputHashes: [supervision.context.artifactHash, supervision.segmentation.artifactHash,
+          supervision.cueGrouping.artifactHash, ...(supervision.cuePolicyConflictArtifact
+            ? [supervision.cuePolicyConflictArtifact.artifactHash] : []),
           supervision.need.artifactHash, supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
       }),
-      status: 'planned' as const,
+      status: policyBlocked ? 'blocked' as const : 'planned' as const,
       receiptHash: '',
     }
     const result: CanonicalMusicSkillResult = {
@@ -552,7 +594,8 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       musicSkillKey: 'music', musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
       musicManifestHash: musicSkillCapabilityManifest.manifestHash,
       capabilityKey: `music.${request.jobType}`, capabilityVersion: musicSkillCapabilityManifest.skillVersion,
-      qualificationStatusUsed: 'planning_qualified', status: noMusic ? 'no_music' : ambience ? 'ambience_only' : 'planned',
+      qualificationStatusUsed: 'planning_qualified', status: policyBlocked ? 'blocked'
+        : noMusic ? 'no_music' : ambience ? 'ambience_only' : 'planned',
       contextStudyRef: supervision.context.artifactId, musicNeedDecisionRef: supervision.need.artifactId,
       musicNarrativeArcRef: supervision.arc.artifactId, cueSheetRef: supervision.cueSheet.artifactId,
       acquisitionPlanRef: hashMusicValue(supervision.routeBindings), providerAttemptRefs: [], candidateArtifactRefs: [],
@@ -560,8 +603,12 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       soundSupportReceipts: [], selectedMusicAssetRefs: [], processedMusicAssetRefs: [], musicStemAssetRefs: [],
       cueQaRefs: [], provenanceRefs: request.rightsAndProvenanceRefs.map((item) => item.rightsId),
       actualMusicMutationRanges: [], intentionalNoMusicRanges: noMusic ? request.scopeAuthority.authorizedMusicWriteRanges : [],
-      artifacts: [supervision.context, supervision.segmentation, supervision.need, supervision.arc, supervision.cueSheet],
+      artifacts: [supervision.context, supervision.segmentation, supervision.cueGrouping,
+        ...(supervision.cuePolicyConflictArtifact ? [supervision.cuePolicyConflictArtifact] : []),
+        supervision.need, supervision.arc, supervision.cueSheet],
       segmentationPlan: supervision.segmentationPlan,
+      cueGroupingPlan: supervision.cueGroupingPlan,
+      ...(supervision.cuePolicyConflict ? { cuePolicyConflict: supervision.cuePolicyConflict } : {}),
       cueConstraintResolutions: supervision.cueConstraintResolutions,
       acceptanceReceipts: [{ ...acceptanceCore, receiptHash: hashMusicValue(acceptanceCore) }],
       unitReceipts: [], routeReceipts: [],
@@ -570,8 +617,9 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
         arc: supervision.arc.artifactHash, cueSheet: supervision.cueSheet.artifactHash,
       }, mode: 'planning' }),
       costEvidence: createMusicCostEvidence({ estimatedCredits: estimate.expectedCredits, providerCostUsd: 0, nestedSoundCredits: 0 }),
-      elapsedTimeEvidence: { actualMilliseconds: 0 }, unresolvedDependencies: [],
-      reviewRequiredItems: supervision.context.payload.reviewRequiredFindings,
+      elapsedTimeEvidence: { actualMilliseconds: 0 }, unresolvedDependencies: policyBlocked ? ['music_cue_policy_conflict_v3'] : [],
+      reviewRequiredItems: [...supervision.context.payload.reviewRequiredFindings,
+        ...(policyBlocked ? ['music_cue_policy_conflict_v3'] : [])],
       callerReceipt: receiptBase,
     }
     result.callerReceipt.resultHash = hashMusicValue({ ...result, callerReceipt: receiptBase })

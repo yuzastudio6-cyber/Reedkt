@@ -38,6 +38,7 @@ export type SoundLocalOperation =
   | 'normalize'
   | 'resample_channels'
   | 'loop_crossfade'
+  | 'crossfade_music'
   | 'stretch_pitch'
   | 'mix_stem'
   | 'sync_qa'
@@ -74,6 +75,12 @@ export interface SoundLocalOperationParameters {
   sampleRate?: 44_100 | 48_000
   channels?: 1 | 2
   loopCrossfadeSeconds?: number
+  leftSourceStartSeconds?: number
+  leftSourceDurationSeconds?: number
+  rightSourceStartSeconds?: number
+  rightSourceDurationSeconds?: number
+  crossfadeDurationSeconds?: number
+  crossfadeCurve?: 'equal_power' | 'linear'
   tempoRatio?: number
   pitchSemitones?: number
   inputGainDb?: number[]
@@ -141,6 +148,22 @@ export interface SoundMixOutputMeasurements {
     referenceRmsDbfs: number
     measuredDuckingDb: number
   }>
+  duckEnvelopeMeasurements: Array<{
+    startSeconds: number
+    endSeconds: number
+    attackSeconds: number
+    releaseSeconds: number
+    requestedDuckingDb: number
+    attackEarlyRmsDbfs: number
+    attackLateRmsDbfs: number
+    holdRmsDbfs: number
+    releaseEarlyRmsDbfs: number
+    releaseLateRmsDbfs: number
+    measuredAttackDeltaDb: number
+    measuredReleaseDeltaDb: number
+    attackRampPresent: boolean
+    releaseRampPresent: boolean
+  }>
   expectedPanDirection: 'left' | 'center' | 'right'
   measuredChannelDeltaDb: number
   gainEnvelopeMeasurements: Array<{
@@ -199,6 +222,7 @@ const operationProfiles: Record<SoundLocalOperation, {
   normalize: { profileKeys: ['sound.normalize.v1', 'sound.normalize.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   resample_channels: { profileKeys: ['sound.resample-channels.v1', 'sound.resample-channels.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   loop_crossfade: { profileKeys: ['sound.loop.edit.v1', 'sound.loop.ambience.v1', 'sound.loop.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
+  crossfade_music: { profileKeys: ['sound.crossfade.music_two_source.v1'], outputRequired: true, minimumSources: 2, maximumSources: 2 },
   stretch_pitch: { profileKeys: ['sound.stretch-pitch.v1', 'sound.stretch-pitch.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   mix_stem: { profileKeys: ['sound.mix-stem.scene.v1', 'sound.mix-stem.provider_candidate.v1', 'sound.mix-stem.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 16 },
   sync_qa: { profileKeys: ['sound.sync-qa.v1', 'sound.sync-qa.music_technical.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
@@ -212,6 +236,7 @@ const toolOperationByLocalOperation: Record<SoundLocalOperation, string> = {
   normalize: 'normalize_audio_loudness',
   resample_channels: 'resample_convert_channels',
   loop_crossfade: 'loop_audio_crossfade',
+  crossfade_music: 'crossfade_music_two_source',
   stretch_pitch: 'stretch_pitch_audio',
   mix_stem: 'mix_scene_stem',
   sync_qa: 'sync_transient_qa',
@@ -227,6 +252,8 @@ const parameterKeys = new Set([
   'trimStartSeconds', 'durationSeconds', 'fadeInSeconds', 'fadeOutSeconds',
   'gainDb', 'targetLoudnessLufs', 'maximumTruePeakDbtp', 'sampleRate', 'channels',
   'loopCrossfadeSeconds', 'tempoRatio', 'pitchSemitones', 'inputGainDb',
+  'leftSourceStartSeconds', 'leftSourceDurationSeconds', 'rightSourceStartSeconds',
+  'rightSourceDurationSeconds', 'crossfadeDurationSeconds', 'crossfadeCurve',
   'dialogueInputIndex', 'dialogueDuckingDb', 'expectedHitSeconds',
   'duckAttackSeconds', 'duckReleaseSeconds', 'outputLimiterLinear',
   'gainEnvelope', 'protectedSpeechWindows', 'pan', 'eqProfile', 'dynamicsProfile',
@@ -267,6 +294,18 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
   finiteInRange(parameters.targetLoudnessLufs, -36, -8, 'targetLoudnessLufs')
   finiteInRange(parameters.maximumTruePeakDbtp, -12, -0.1, 'maximumTruePeakDbtp')
   finiteInRange(parameters.loopCrossfadeSeconds, 0.005, 5, 'loopCrossfadeSeconds')
+  finiteInRange(parameters.leftSourceStartSeconds, 0, 86_400, 'leftSourceStartSeconds')
+  finiteInRange(parameters.leftSourceDurationSeconds, 0.01, 86_400, 'leftSourceDurationSeconds', operation === 'crossfade_music')
+  finiteInRange(parameters.rightSourceStartSeconds, 0, 86_400, 'rightSourceStartSeconds')
+  finiteInRange(parameters.rightSourceDurationSeconds, 0.01, 86_400, 'rightSourceDurationSeconds', operation === 'crossfade_music')
+  const crossfadeDuration = finiteInRange(parameters.crossfadeDurationSeconds, 0.005, 30,
+    'crossfadeDurationSeconds', operation === 'crossfade_music')
+  if (operation === 'crossfade_music') {
+    if (!parameters.crossfadeCurve) throw new Error('Two-source Music crossfade requires an explicit curve.')
+    if ((crossfadeDuration ?? 0) >= Math.min(parameters.leftSourceDurationSeconds!, parameters.rightSourceDurationSeconds!)) {
+      throw new Error('Two-source Music crossfade exceeds available source handles.')
+    }
+  }
   finiteInRange(parameters.tempoRatio, 0.5, 2, 'tempoRatio')
   finiteInRange(parameters.pitchSemitones, -12, 12, 'pitchSemitones')
   finiteInRange(parameters.dialogueDuckingDb, -36, 0, 'dialogueDuckingDb')
@@ -300,6 +339,11 @@ function validateParameters(operation: SoundLocalOperation, parameters: SoundLoc
     finiteInRange(window.startSeconds, 0, 86_400, `protectedSpeechWindows[${index}].startSeconds`, true)
     finiteInRange(window.endSeconds, 0, 86_400, `protectedSpeechWindows[${index}].endSeconds`, true)
     if (window.endSeconds <= window.startSeconds) throw new Error('Protected speech windows must have positive duration.')
+  }
+  if ((parameters.protectedSpeechWindows?.length ?? 0) > 0 &&
+    (parameters.duckAttackSeconds === undefined || parameters.duckReleaseSeconds === undefined ||
+      parameters.dialogueDuckingDb === undefined)) {
+    throw new Error('Protected speech windows require explicit duck depth, attack, and release parameters.')
   }
   if (parameters.provenanceTag !== undefined &&
     !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,179}$/.test(parameters.provenanceTag)) {
@@ -384,7 +428,10 @@ async function probeAudio(path: string): Promise<{
 }
 
 export async function validateSoundAudioFile(path: string) {
-  return probeAudio(path)
+  // Validation is an evidence-producing operation, not a container probe.  The
+  // full decoded study is required by execution receipts that claim clipping,
+  // peak, loudness, or silence QA.
+  return studyAudio(path)
 }
 
 function parseLoudnorm(stderr: string): { integratedLoudnessLufs?: number; truePeakDbtp?: number } {
@@ -534,6 +581,9 @@ export async function measureSoundMixOutput(input: {
   protectedSpeechWindows: Array<{ startSeconds: number; endSeconds: number }>
   gainEnvelope: Array<{ timeSeconds: number; gainDb: number }>
   pan: number
+  duckAttackSeconds?: number
+  duckReleaseSeconds?: number
+  dialogueDuckingDb?: number
 }): Promise<SoundMixOutputMeasurements> {
   const sampleRate = 8_000
   const decoded = await execFileAsync(FFMPEG, [
@@ -585,6 +635,38 @@ export async function measureSoundMixOutput(input: {
       measuredDuckingDb: Number((measuredRmsDbfs - unprotectedRms).toFixed(3)),
     }
   })
+  const attackSeconds = input.duckAttackSeconds ?? 0.02
+  const releaseSeconds = input.duckReleaseSeconds ?? 0.25
+  const requestedDuckingDb = input.dialogueDuckingDb ?? -9
+  const sampleAt = (seconds: number, radiusSeconds: number) => {
+    const center = Math.round(Math.max(0, seconds) * sampleRate)
+    const radius = Math.max(1, Math.round(radiusSeconds * sampleRate))
+    return rms(center - radius, center + radius)
+  }
+  const duckEnvelopeMeasurements = input.protectedSpeechWindows.map((window) => {
+    const attackStart = Math.max(0, window.startSeconds - attackSeconds)
+    const effectiveAttack = window.startSeconds - attackStart
+    const releaseEnd = Math.min(frameCount / sampleRate, window.endSeconds + releaseSeconds)
+    const effectiveRelease = releaseEnd - window.endSeconds
+    const attackRadius = Math.max(0.002, Math.min(0.012, effectiveAttack / 12))
+    const releaseRadius = Math.max(0.002, Math.min(0.012, effectiveRelease / 12))
+    const attackEarlyRmsDbfs = sampleAt(attackStart + effectiveAttack * 0.2, attackRadius)
+    const attackLateRmsDbfs = sampleAt(attackStart + effectiveAttack * 0.8, attackRadius)
+    const holdRmsDbfs = sampleAt((window.startSeconds + window.endSeconds) / 2,
+      Math.max(0.002, Math.min(0.02, (window.endSeconds - window.startSeconds) / 8)))
+    const releaseEarlyRmsDbfs = sampleAt(window.endSeconds + effectiveRelease * 0.2, releaseRadius)
+    const releaseLateRmsDbfs = sampleAt(window.endSeconds + effectiveRelease * 0.8, releaseRadius)
+    const measuredAttackDeltaDb = Number((attackLateRmsDbfs - attackEarlyRmsDbfs).toFixed(3))
+    const measuredReleaseDeltaDb = Number((releaseLateRmsDbfs - releaseEarlyRmsDbfs).toFixed(3))
+    return {
+      ...window, attackSeconds, releaseSeconds, requestedDuckingDb,
+      attackEarlyRmsDbfs, attackLateRmsDbfs, holdRmsDbfs,
+      releaseEarlyRmsDbfs, releaseLateRmsDbfs,
+      measuredAttackDeltaDb, measuredReleaseDeltaDb,
+      attackRampPresent: effectiveAttack > 0 && measuredAttackDeltaDb < -0.2,
+      releaseRampPresent: effectiveRelease > 0 && measuredReleaseDeltaDb > 0.2,
+    }
+  })
   const gainEnvelopeMeasurements = input.gainEnvelope.map((point) => {
     const center = Math.round(point.timeSeconds * sampleRate)
     const radius = Math.max(1, Math.round(sampleRate * 0.025))
@@ -598,6 +680,7 @@ export async function measureSoundMixOutput(input: {
   const centerStart = Math.max(0, Math.floor((frameCount - edgeFrames) / 2))
   return {
     protectedRangeMeasurements,
+    duckEnvelopeMeasurements,
     expectedPanDirection: input.pan < -0.05 ? 'left' : input.pan > 0.05 ? 'right' : 'center',
     measuredChannelDeltaDb: Number((rms(0, frameCount, 1) - rms(0, frameCount, 0)).toFixed(3)),
     gainEnvelopeMeasurements,
@@ -607,6 +690,35 @@ export async function measureSoundMixOutput(input: {
       trailingRmsDbfs: rms(Math.max(0, frameCount - edgeFrames), frameCount),
     },
   }
+}
+
+export async function measureSoundRmsWindows(input: {
+  absolutePath: string
+  windows: Array<{ key: string; startSeconds: number; endSeconds: number }>
+}): Promise<Array<{ key: string; startSeconds: number; endSeconds: number; rmsDbfs: number }>> {
+  const sampleRate = 8_000
+  const decoded = await execFileAsync(FFMPEG, [
+    '-hide_banner', '-loglevel', 'error', '-nostdin', '-i', input.absolutePath,
+    '-t', '600', '-vn', '-ac', '2', '-ar', String(sampleRate), '-f', 'f32le', 'pipe:1',
+  ], { timeout: 120_000, maxBuffer: 64 * 1024 * 1024, encoding: 'buffer' } as Parameters<typeof execFileAsync>[2])
+  const bytes = Buffer.isBuffer(decoded.stdout) ? decoded.stdout : Buffer.from(decoded.stdout)
+  const frameCount = Math.floor(bytes.length / 8)
+  if (frameCount < 1) throw new Error('Sound RMS measurement requires decoded stereo PCM frames.')
+  return input.windows.map((window) => {
+    const start = Math.max(0, Math.min(frameCount - 1, Math.round(window.startSeconds * sampleRate)))
+    const end = Math.min(frameCount, Math.max(start + 1, Math.round(window.endSeconds * sampleRate)))
+    let squareSum = 0
+    let samples = 0
+    for (let frame = start; frame < end; frame += 1) {
+      for (const channel of [0, 1] as const) {
+        const value = bytes.readFloatLE((frame * 2 + channel) * 4)
+        squareSum += value * value
+        samples += 1
+      }
+    }
+    const rms = Math.sqrt(squareSum / Math.max(1, samples))
+    return { ...window, rmsDbfs: Number((20 * Math.log10(Math.max(rms, 1e-9))).toFixed(3)) }
+  })
 }
 
 async function studyAudio(path: string): Promise<SoundAudioStudyReport> {
@@ -712,6 +824,25 @@ function outputArguments(
       ...codec, temporaryPath,
     ]
   }
+  if (input.operation === 'crossfade_music') {
+    const left = input.sources[0]!.absolutePath
+    const right = input.sources[1]!.absolutePath
+    const duration = p.crossfadeDurationSeconds as number
+    const curve = p.crossfadeCurve === 'equal_power' ? 'qsin' : 'tri'
+    const filters = [
+      `[0:a]atrim=start=${p.leftSourceStartSeconds ?? 0}:duration=${p.leftSourceDurationSeconds},asetpts=PTS-STARTPTS[left]`,
+      `[1:a]atrim=start=${p.rightSourceStartSeconds ?? 0}:duration=${p.rightSourceDurationSeconds},asetpts=PTS-STARTPTS[right]`,
+      `[left][right]acrossfade=d=${duration}:c1=${curve}:c2=${curve},` +
+        `alimiter=limit=${p.outputLimiterLinear ?? 0.891}:level=disabled[out]`,
+    ]
+    return [
+      '-hide_banner', '-loglevel', 'error', '-nostdin', '-y', '-i', left, '-i', right,
+      '-filter_complex', filters.join(';'), '-map', '[out]',
+      '-ar', String(p.sampleRate ?? 48_000), '-ac', String(p.channels ?? 2),
+      ...(p.provenanceTag ? ['-metadata', `comment=${p.provenanceTag}`] : []),
+      ...codec, temporaryPath,
+    ]
+  }
   if (input.operation === 'stretch_pitch') {
     const tempo = p.tempoRatio ?? 1
     const pitchFactor = 2 ** ((p.pitchSemitones ?? 0) / 12)
@@ -760,7 +891,22 @@ function mixArguments(input: SoundLocalAudioExecutionPackage, temporaryPath: str
     soundFilters.push(`volume=${point.gainDb}dB:enable='between(t,${point.timeSeconds},${next.timeSeconds})'`)
   }
   for (const window of p.protectedSpeechWindows ?? []) {
-    soundFilters.push(`volume=${p.dialogueDuckingDb ?? -9}dB:enable='between(t,${window.startSeconds},${window.endSeconds})'`)
+    const duckingDb = p.dialogueDuckingDb ?? -9
+    const attackSeconds = p.duckAttackSeconds ?? 0.02
+    const releaseSeconds = p.duckReleaseSeconds ?? 0.25
+    const attackStart = Math.max(0, window.startSeconds - attackSeconds)
+    const effectiveAttack = window.startSeconds - attackStart
+    if (effectiveAttack > 0) {
+      soundFilters.push(
+        `volume='pow(10,(${duckingDb}*(t-${attackStart})/${effectiveAttack})/20)'` +
+        `:eval=frame:enable='between(t,${attackStart},${window.startSeconds})'`,
+      )
+    }
+    soundFilters.push(`volume=${duckingDb}dB:enable='between(t,${window.startSeconds},${window.endSeconds})'`)
+    soundFilters.push(
+      `volume='pow(10,(${duckingDb}*(1-(t-${window.endSeconds})/${releaseSeconds}))/20)'` +
+      `:eval=frame:enable='between(t,${window.endSeconds},${window.endSeconds + releaseSeconds})'`,
+    )
   }
   if ((p.pan ?? 0) !== 0) {
     const left = Number((1 - Math.max(0, p.pan ?? 0)).toFixed(6))
@@ -959,6 +1105,10 @@ function validatePackage(input: SoundLocalAudioExecutionPackage): void {
   }
   if (input.sources.length < profile.minimumSources || input.sources.length > profile.maximumSources) {
     throw new Error('Sound operation source count is outside its bounded profile.')
+  }
+  if (input.operation === 'crossfade_music' &&
+    input.sources[0]!.artifact.checksumSha256 === input.sources[1]!.artifact.checksumSha256) {
+    throw new Error('Two-source Music crossfade requires two independently bound source artifacts.')
   }
   if (profile.outputRequired && (
     !input.outputRelativePath || !input.outputArtifactId || !input.outputArtifactType || !input.outputContentType

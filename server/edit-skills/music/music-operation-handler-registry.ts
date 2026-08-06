@@ -22,6 +22,7 @@ export interface MusicExactOperationHandler {
 }
 
 const HANDLER_KINDS: Readonly<Record<string, MusicOperationHandlerKind>> = Object.freeze({
+  group_music_cues: 'supervision',
   analyze_audio_bytes: 'private_audio_analysis',
   select_qualified_candidate: 'private_audio_analysis',
   preserve_source_music: 'private_asset_binding',
@@ -34,6 +35,7 @@ const HANDLER_KINDS: Readonly<Record<string, MusicOperationHandlerKind>> = Objec
   compile_frame_accurate_music_placement: 'music_sync',
   run_music_continuity_qa: 'music_qa',
   process_music_through_public_sound_service: 'sound_public_port',
+  crossfade_music_through_public_sound_service: 'sound_public_port',
   create_final_music_handoff: 'handoff',
   create_no_music_handoff: 'handoff',
   create_ambience_only_handoff: 'handoff',

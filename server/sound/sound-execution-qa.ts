@@ -67,6 +67,22 @@ export function runCanonicalSoundExecutionQa(input: {
     measuredSoundRmsDbfs?: number
     measuredDuckingDeltaDb?: number
     measuredDuckingDb?: number
+    duckEnvelopeMeasurements: Array<{
+      startSeconds: number
+      endSeconds: number
+      attackSeconds: number
+      releaseSeconds: number
+      requestedDuckingDb: number
+      attackEarlyRmsDbfs: number
+      attackLateRmsDbfs: number
+      holdRmsDbfs: number
+      releaseEarlyRmsDbfs: number
+      releaseLateRmsDbfs: number
+      measuredAttackDeltaDb: number
+      measuredReleaseDeltaDb: number
+      attackRampPresent: boolean
+      releaseRampPresent: boolean
+    }>
     protectedRange?: { rangeId: string; startFrame: number; endFrameExclusive: number }
     expectedPanDirection: 'left' | 'center' | 'right'
     measuredChannelDeltaDb: number
@@ -255,6 +271,14 @@ export function runCanonicalSoundExecutionQa(input: {
           measuredDuckingDeltaDb: measurement.measuredDuckingDeltaDb,
           measuredDuckingDb: measurement.measuredDuckingDb,
           protectedRange: measurement.protectedRange,
+        }),
+      finding(`mix.measured_duck_envelope.${measurement.unitId}`,
+        measurement.protectedRange === undefined ? 'pass'
+          : measurement.duckEnvelopeMeasurements.length === 0 ? 'fail'
+            : measurement.duckEnvelopeMeasurements.every((window) =>
+              window.attackRampPresent && window.releaseRampPresent) ? 'pass' : 'fail',
+        'Decoded attack and release windows were measured to prove gradual duck-envelope ramps.', {
+          duckEnvelopeMeasurements: measurement.duckEnvelopeMeasurements,
         }),
       finding(`mix.measured_pan.${measurement.unitId}`,
         measurement.expectedPanDirection === 'center'

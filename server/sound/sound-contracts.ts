@@ -4,6 +4,8 @@ import {
   timelineRateDisplayFps,
   timelineRatesEqual,
   timelineRateSchema,
+  framesToSamples,
+  framesToSeconds,
 } from '../edit-skills/core/timeline-rate'
 import type {
   SkillQualificationStatus,
@@ -194,12 +196,242 @@ const soundMusicTechnicalAutomationExtensionSchema = z.object({
     extension.targetEndFrameExclusive !== extension.delegatedRange.endFrameExclusive) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical target range is not exact.' })
   }
+  if (extension.dialogueDucking.protectedSpeechRanges.length > 0 &&
+    (extension.dialogueDucking.attackFrames <= 0 || extension.dialogueDucking.releaseFrames <= 0 ||
+      extension.dialogueDucking.attenuationDb >= 0)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Protected speech ducking requires a nonzero attack, release, and negative attenuation.',
+    })
+  }
   if (extension.extensionHash !== hashSoundMusicTechnicalAutomation(extension)) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation extension hash is stale.' })
   }
 })
 
 export type SoundMusicTechnicalAutomationExtension = z.infer<typeof soundMusicTechnicalAutomationExtensionSchema>
+
+export const SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION = 'sound.music_two_source_crossfade.v1' as const
+
+const crossfadeGainPointSchema = z.object({
+  frame: z.number().int().nonnegative(),
+  linearGain: z.number().min(0).max(1),
+}).strict()
+
+export const soundMusicTwoSourceCrossfadeRequestSchema = z.object({
+  schemaVersion: z.literal(SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION),
+  requestId: safeId,
+  callerSkillKey: z.literal('music'),
+  callerSkillVersion: safeId,
+  callerManifestHash: sha256,
+  soundSkillVersion: safeId,
+  soundManifestHash: sha256,
+  leftCueId: safeId,
+  rightCueId: safeId,
+  leftSource: soundArtifactRefSchema,
+  rightSource: soundArtifactRefSchema,
+  leftSourceRange: soundFrameRangeSchema,
+  rightSourceRange: soundFrameRangeSchema,
+  targetOverlapRange: soundFrameRangeSchema,
+  authorizedWriteRange: soundFrameRangeSchema,
+  crossfadeDurationFrames: z.number().int().positive(),
+  crossfadeDurationSamples: z.number().int().positive(),
+  sampleRate: z.union([z.literal(44_100), z.literal(48_000)]),
+  timelineRate: timelineRateSchema,
+  curveType: z.enum(['equal_power', 'linear']),
+  leftGainCurve: z.array(crossfadeGainPointSchema).length(2),
+  rightGainCurve: z.array(crossfadeGainPointSchema).length(2),
+  approvedSnapshotId: safeId,
+  approvedSnapshotHash: sha256,
+  parentMusicRequestId: safeId,
+  parentAuthorityRef: safeId,
+  parentAuthorityHash: sha256,
+  approvedWorkItemId: safeId,
+  privateOutputScopeId: safeId,
+  creditReservationId: safeId,
+  idempotencyKey: safeId,
+  requiredOutputs: z.array(z.enum(['music_crossfade_audio', 'music_crossfade_receipt_v3'])).min(2).max(2),
+  requiredMeasuredQa: z.array(z.enum(['two_source_presence', 'curve_progression', 'duration', 'true_peak', 'clipping'])).min(5).max(5),
+  extensionHash: sha256,
+}).strict().superRefine((request, context) => {
+  if (request.leftCueId === request.rightCueId) {
+    context.addIssue({ code: 'custom', message: 'Two-source Music crossfade requires independent cue identities.' })
+  }
+  if (request.leftSource.checksumSha256 === request.rightSource.checksumSha256) {
+    context.addIssue({ code: 'custom', message: 'Two-source Music crossfade requires independent source hashes.' })
+  }
+  const overlapFrames = request.targetOverlapRange.endFrameExclusive - request.targetOverlapRange.startFrame
+  if (overlapFrames !== request.crossfadeDurationFrames) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade overlap range and duration differ.' })
+  }
+  if (request.targetOverlapRange.startFrame < request.authorizedWriteRange.startFrame ||
+    request.targetOverlapRange.endFrameExclusive > request.authorizedWriteRange.endFrameExclusive) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade overlap exceeds authorized write authority.' })
+  }
+  const leftFrames = request.leftSourceRange.endFrameExclusive - request.leftSourceRange.startFrame
+  const rightFrames = request.rightSourceRange.endFrameExclusive - request.rightSourceRange.startFrame
+  if (request.crossfadeDurationFrames >= Math.min(leftFrames, rightFrames)) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade exceeds available source handles.' })
+  }
+  const expectedSamples = framesToSamples({ frames: request.crossfadeDurationFrames, rate: request.timelineRate,
+    sampleRate: request.sampleRate, rounding: 'nearest_half_up' })
+  if (request.crossfadeDurationSamples !== expectedSamples) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade frame/sample binding is stale.' })
+  }
+  const validateCurve = (curve: Array<{ frame: number; linearGain: number }>, left: boolean) => {
+    if (curve[0]?.frame !== request.targetOverlapRange.startFrame ||
+      curve.at(-1)?.frame !== request.targetOverlapRange.endFrameExclusive) {
+      context.addIssue({ code: 'custom', message: 'Music crossfade gain curve range is incomplete.' })
+    }
+    if (curve.some((point, index) => index > 0 && point.frame <= curve[index - 1]!.frame)) {
+      context.addIssue({ code: 'custom', message: 'Music crossfade gain curve frames must be strictly ordered.' })
+    }
+    if (left ? curve[0]?.linearGain !== 1 || curve.at(-1)?.linearGain !== 0
+      : curve[0]?.linearGain !== 0 || curve.at(-1)?.linearGain !== 1) {
+      context.addIssue({ code: 'custom', message: 'Music crossfade gain curve endpoints are malformed.' })
+    }
+  }
+  validateCurve(request.leftGainCurve, true)
+  validateCurve(request.rightGainCurve, false)
+  if (request.extensionHash !== hashSoundMusicTechnicalAutomation(request)) {
+    context.addIssue({ code: 'custom', message: 'Music two-source crossfade extension hash is stale.' })
+  }
+})
+
+export type SoundMusicTwoSourceCrossfadeRequest = z.infer<typeof soundMusicTwoSourceCrossfadeRequestSchema>
+
+export interface SoundMusicTwoSourceCrossfadeReceipt {
+  schemaVersion: 'sound.music_two_source_crossfade_receipt.v1'
+  requestId: string
+  extensionHash: string
+  routeKey: 'sound.route.edit.music_two_source_crossfade.v1'
+  routeVersion: string
+  routeHash: string
+  operationKey: 'crossfade_music_two_source'
+  operationVersion: string
+  operationProfileKey: 'sound.crossfade.music_two_source.v1'
+  leftSourceId: string
+  leftSourceHash: string
+  rightSourceId: string
+  rightSourceHash: string
+  outputArtifact: SoundArtifactRef
+  targetOverlapRange: SoundFrameRange
+  crossfadeDurationFrames: number
+  crossfadeDurationSamples: number
+  curveType: 'equal_power' | 'linear'
+  requestedParameters: Record<string, unknown>
+  requestedParametersHash: string
+  compiledParameters: Record<string, unknown>
+  compiledParametersHash: string
+  appliedParameters: Record<string, unknown>
+  appliedParametersHash: string
+  measuredQa: {
+    outputDurationFrames: number
+    expectedOutputDurationFrames: number
+    truePeakDbtp: number | null
+    clippingSampleCount: number
+    overlapStartRmsDbfs: number
+    overlapMidpointRmsDbfs: number
+    overlapEndRmsDbfs: number
+    evidenceHash: string
+  }
+  status: 'passed'
+  receiptHash: string
+}
+
+export function parseSoundMusicTwoSourceCrossfadeRequest(input: unknown): SoundMusicTwoSourceCrossfadeRequest {
+  return soundMusicTwoSourceCrossfadeRequestSchema.parse(input)
+}
+
+export function soundMusicTwoSourceCrossfadeRequestedParameters(
+  request: SoundMusicTwoSourceCrossfadeRequest,
+): Record<string, unknown> {
+  return {
+    leftSourceRange: structuredClone(request.leftSourceRange),
+    rightSourceRange: structuredClone(request.rightSourceRange),
+    targetOverlapRange: structuredClone(request.targetOverlapRange),
+    crossfadeDurationFrames: request.crossfadeDurationFrames,
+    crossfadeDurationSamples: request.crossfadeDurationSamples,
+    timelineRate: structuredClone(request.timelineRate),
+    curveType: request.curveType,
+    leftGainCurve: structuredClone(request.leftGainCurve),
+    rightGainCurve: structuredClone(request.rightGainCurve),
+  }
+}
+
+export interface SoundMusicTwoSourceCompiledParameters extends Record<string, unknown> {
+  leftSourceStartSeconds: number
+  leftSourceDurationSeconds: number
+  rightSourceStartSeconds: number
+  rightSourceDurationSeconds: number
+  crossfadeDurationSeconds: number
+  crossfadeCurve: 'equal_power' | 'linear'
+  maximumTruePeakDbtp: number
+  outputLimiterLinear: number
+  sampleRate: 44_100 | 48_000
+  channels: 2
+  provenanceTag: string
+}
+
+export function compileSoundMusicTwoSourceCrossfadeParameters(
+  request: SoundMusicTwoSourceCrossfadeRequest,
+): SoundMusicTwoSourceCompiledParameters {
+  const leftFrames = request.leftSourceRange.endFrameExclusive - request.leftSourceRange.startFrame
+  const rightFrames = request.rightSourceRange.endFrameExclusive - request.rightSourceRange.startFrame
+  return {
+    leftSourceStartSeconds: framesToSeconds(request.leftSourceRange.startFrame, request.timelineRate),
+    leftSourceDurationSeconds: framesToSeconds(leftFrames, request.timelineRate),
+    rightSourceStartSeconds: framesToSeconds(request.rightSourceRange.startFrame, request.timelineRate),
+    rightSourceDurationSeconds: framesToSeconds(rightFrames, request.timelineRate),
+    crossfadeDurationSeconds: framesToSeconds(request.crossfadeDurationFrames, request.timelineRate),
+    crossfadeCurve: request.curveType,
+    maximumTruePeakDbtp: -1,
+    outputLimiterLinear: Number((10 ** (-1 / 20)).toFixed(6)),
+    sampleRate: request.sampleRate,
+    channels: 2,
+    provenanceTag: `sound-crossfade-${request.requestId}`,
+  }
+}
+
+export function validateSoundMusicTwoSourceCrossfadeReceipt(input: {
+  request: SoundMusicTwoSourceCrossfadeRequest
+  receipt: SoundMusicTwoSourceCrossfadeReceipt
+}): SoundMusicTwoSourceCrossfadeReceipt {
+  const { receipt, request } = input
+  const errors: string[] = []
+  if (receipt.requestId !== request.requestId || receipt.extensionHash !== request.extensionHash) errors.push('request_binding')
+  if (receipt.leftSourceHash !== request.leftSource.checksumSha256 ||
+    receipt.rightSourceHash !== request.rightSource.checksumSha256) errors.push('source_hash_binding')
+  if (receipt.leftSourceHash === receipt.rightSourceHash) errors.push('independent_source_binding')
+  if (receipt.outputArtifact.checksumSha256.length !== 64) errors.push('output_hash')
+  if (receipt.targetOverlapRange.startFrame !== request.targetOverlapRange.startFrame ||
+    receipt.targetOverlapRange.endFrameExclusive !== request.targetOverlapRange.endFrameExclusive) errors.push('overlap_range')
+  if (receipt.crossfadeDurationFrames !== request.crossfadeDurationFrames ||
+    receipt.crossfadeDurationSamples !== request.crossfadeDurationSamples ||
+    receipt.curveType !== request.curveType) errors.push('crossfade_parameter_binding')
+  const expectedRequested = soundMusicTwoSourceCrossfadeRequestedParameters(request)
+  const expectedCompiled = compileSoundMusicTwoSourceCrossfadeParameters(request)
+  if (JSON.stringify(stableSoundValue(receipt.requestedParameters)) !==
+      JSON.stringify(stableSoundValue(expectedRequested)) ||
+    JSON.stringify(stableSoundValue(receipt.compiledParameters)) !==
+      JSON.stringify(stableSoundValue(expectedCompiled))) errors.push('request_to_compiled_parameter_binding')
+  if (receipt.requestedParametersHash !== hashSoundMusicTechnicalAutomation(receipt.requestedParameters) ||
+    receipt.compiledParametersHash !== hashSoundMusicTechnicalAutomation(receipt.compiledParameters) ||
+    receipt.appliedParametersHash !== hashSoundMusicTechnicalAutomation(receipt.appliedParameters) ||
+    JSON.stringify(stableSoundValue(receipt.compiledParameters)) !==
+      JSON.stringify(stableSoundValue(receipt.appliedParameters))) errors.push('parameter_hash')
+  if (receipt.measuredQa.outputDurationFrames !== receipt.measuredQa.expectedOutputDurationFrames ||
+    receipt.measuredQa.clippingSampleCount !== 0 || receipt.measuredQa.truePeakDbtp === null ||
+    receipt.measuredQa.truePeakDbtp > -0.8 ||
+    ![receipt.measuredQa.overlapStartRmsDbfs, receipt.measuredQa.overlapMidpointRmsDbfs,
+      receipt.measuredQa.overlapEndRmsDbfs].every(Number.isFinite)) errors.push('measured_qa')
+  const qaCore = { ...receipt.measuredQa, evidenceHash: undefined }
+  if (receipt.measuredQa.evidenceHash !== hashSoundMusicTechnicalAutomation(qaCore)) errors.push('measured_qa_hash')
+  const receiptCore = { ...receipt, receiptHash: undefined }
+  if (receipt.receiptHash !== hashSoundMusicTechnicalAutomation(receiptCore)) errors.push('receipt_hash')
+  if (errors.length > 0) throw new Error(`Music two-source crossfade receipt rejected: ${errors.join(',')}.`)
+  return structuredClone(receipt)
+}
 
 const requestedMode = z.enum(['planning', 'fixture', 'private_internal', 'production'])
 
@@ -642,10 +874,26 @@ export const canonicalSoundResultSchema = z.object({
     appliedExtensionHash: sha256,
     appliedOperationReceipts: z.array(z.object({
       operation: safeId,
+      operationVersion: safeId,
+      requestedParameters: z.record(z.string(), z.unknown()),
       receivedParametersHash: sha256,
+      compiledParameters: z.record(z.string(), z.unknown()),
+      compiledParametersHash: sha256,
+      appliedParameters: z.record(z.string(), z.unknown()),
       appliedParametersHash: sha256,
+      sourceArtifactIds: z.array(safeId).min(1).max(128),
+      sourceArtifactHashes: z.array(sha256).min(1).max(128),
       outputArtifactIds: z.array(safeId).max(128),
+      outputArtifactHashes: z.array(sha256).max(128),
+      exactMutationRange: soundFrameRangeSchema,
+      handlerIdentity: safeId,
+      routeKey: safeId,
+      routeVersion: safeId,
+      routeHash: sha256,
       measuredQaRefs: z.array(safeId).max(128),
+      measuredQaResult: z.enum(['passed', 'warning', 'needs_review', 'failed']),
+      status: z.literal('completed'),
+      receiptHash: sha256,
     }).strict()).min(1).max(64),
     measuredTechnicalQaRefs: z.array(safeId).min(1).max(128),
     measuredSynchronizationQaRefs: z.array(safeId).min(1).max(128),

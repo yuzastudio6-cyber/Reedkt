@@ -5,7 +5,7 @@ import { getMusicToolRouteManifest } from '../../music/music-tool-routes'
 import { musicSkillCapabilityManifest } from './music-capability-manifest'
 
 export type MusicExecutionUnitKind =
-  | 'context_study' | 'music_need_decision' | 'narrative_arc_planning' | 'cue_planning'
+  | 'context_study' | 'music_need_decision' | 'narrative_arc_planning' | 'cue_grouping' | 'cue_planning'
   | 'acquisition' | 'provider_attempt' | 'candidate_ingest' | 'candidate_analysis'
   | 'candidate_selection' | 'music_editorial' | 'music_sync' | 'sound_support'
   | 'cue_qa' | 'continuity_qa' | 'revision' | 'handoff' | 'no_music' | 'planning_only'
@@ -51,7 +51,7 @@ export interface MusicExecutionUnit {
 
 export interface MusicExecutionGraph {
   graphId: string
-  graphVersion: '3.0.0'
+  graphVersion: '3.1.0'
   graphHash: string
   requestId: string
   parentJobType: string
@@ -120,6 +120,7 @@ function acquisitionJobType(decision: MusicRouteBinding['acquisitionDecision'], 
 export function compileCanonicalMusicExecutionGraph(input: {
   request: CanonicalMusicSkillRequest
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
+  cueGrouping: MusicArtifactEnvelope
   cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>
   routeBindings: MusicRouteBinding[]
 }): MusicExecutionGraph {
@@ -147,10 +148,18 @@ export function compileCanonicalMusicExecutionGraph(input: {
     failurePolicy: 'fail_graph', namedInputs: ['music_context_study_v2'], operations: ['decide_music_need'],
   }))
   add(unit({
+    unitId: `music-unit-${request.requestId}-cue-grouping`, unitKind: 'cue_grouping', jobType: 'create_music_cue_sheet',
+    capabilityKey: 'music.create_music_cue_sheet', route: routeRef('music.route.plan.cue_grouping.v3'),
+    inputArtifactIds: [input.cueGrouping.artifactId], inputArtifactHashes: [input.cueGrouping.artifactHash],
+    dependencyUnitIds: [`music-unit-${request.requestId}-need`], idempotencyKey: `${request.idempotencyKey}:cue-grouping`,
+    expectedOutputs: ['music_cue_grouping_plan_v3'], attemptPolicyKey: 'music.attempt.local_idempotent.v3', required: true,
+    failurePolicy: 'fail_graph', namedInputs: ['music_assignment_v2'], operations: ['group_music_cues'],
+  }))
+  add(unit({
     unitId: `music-unit-${request.requestId}-cue-sheet`, unitKind: 'cue_planning', jobType: 'create_music_cue_sheet',
     capabilityKey: 'music.create_music_cue_sheet', route: routeRef('music.route.plan.cue_sheet.v3'),
     inputArtifactIds: [input.cueSheet.artifactId], inputArtifactHashes: [input.cueSheet.artifactHash],
-    dependencyUnitIds: [`music-unit-${request.requestId}-need`], idempotencyKey: `${request.idempotencyKey}:cue-sheet`,
+    dependencyUnitIds: [`music-unit-${request.requestId}-cue-grouping`], idempotencyKey: `${request.idempotencyKey}:cue-sheet`,
     expectedOutputs: ['music_cue_sheet_v2'], attemptPolicyKey: 'music.attempt.local_idempotent.v2', required: true,
     failurePolicy: 'fail_graph', namedInputs: ['music_need_decision_v2'], operations: ['create_music_cue_sheet'],
   }))
@@ -259,7 +268,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   })))
   const base = {
     graphId: `music.graph.${request.requestId}`,
-    graphVersion: '3.0.0' as const,
+    graphVersion: '3.1.0' as const,
     requestId: request.requestId,
     parentJobType: request.jobType,
     manifestHash: musicSkillCapabilityManifest.manifestHash,

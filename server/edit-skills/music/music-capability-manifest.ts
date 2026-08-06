@@ -26,7 +26,7 @@ export const MUSIC_UNSUPPORTED_JOB_TYPES = [
 export const MUSIC_ACCEPTED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
   'music_assignment_v2', 'music_context_manifest_v2', 'approved_timeline_manifest',
   'approved_private_music_audio', 'untrusted_music_candidate', 'music_composition_brief_v2',
-  'music_candidate_analysis_v2', 'music_cue_sheet_v2', 'music_editorial_plan_v2',
+  'music_candidate_analysis_v2', 'music_cue_grouping_plan_v3', 'music_cue_sheet_v2', 'music_editorial_plan_v2',
   'music_placement_manifest_v2', 'music_qa_report_v2', 'transcript_speech_evidence',
   'visual_intelligence_evidence', 'scene_map_evidence', 'existing_sound_plan_evidence',
   ...MUSIC_TOOL_ROUTE_MANIFESTS.flatMap((route) => route.requiredInputs),
@@ -34,6 +34,7 @@ export const MUSIC_ACCEPTED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
 
 export const MUSIC_PRODUCED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
   'music_plan_v2', 'music_result_v2', 'music_context_study_v2', 'music_need_decision_v2',
+  'music_soundtrack_segmentation_plan_v3', 'music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3',
   'intentional_silence_decision_v2', 'music_narrative_arc_v2', 'music_cue_strategy_v2',
   'music_cue_sheet_v2', 'canonical_music_cue_v2', 'music_motif_plan_v2',
   'music_continuity_plan_v2', 'music_existing_study_v2', 'music_user_intake_v2',
@@ -49,6 +50,8 @@ export const MUSIC_PRODUCED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
   'music_final_composition_handoff_v2', 'intentional_no_music_handoff_v2',
   'music_ambience_only_handoff_v2', 'approved_music_selection_v2',
   'processed_music_audio_v2', 'music_stem_audio_v2',
+  'music_crossfade_plan_v3', 'music_crossfade_audio', 'music_crossfade_receipt_v3',
+  'music_sound_operation_receipt_v3',
   ...MUSIC_TOOL_ROUTE_MANIFESTS.flatMap((route) => route.producedArtifactTypes),
 ])))
 

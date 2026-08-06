@@ -13,6 +13,11 @@ import {
   type MusicSoundtrackSegment,
   type MusicCueConstraint,
   type MusicCueConstraintResolution,
+  type MusicCueGroup,
+  type MusicCueGroupingPlan,
+  type MusicCueGroupingReductionDecision,
+  type MusicCuePolicyConflict,
+  type MusicRightsBinding,
 } from './music-contracts'
 import type { CanonicalMusicContextPackage, MusicSceneEvidence } from './music-context'
 import { MUSIC_TOOL_ROUTE_MANIFESTS } from './music-tool-routes'
@@ -89,6 +94,7 @@ export interface MusicCueSheetPayload {
   intentionalSilenceRanges: CanonicalMusicSkillRequest['scopeAuthority']['authorizedMusicWriteRanges']
   noFirstItemFallback: true
   segmentationPlanHash: string
+  cueGroupingPlanHash: string
   cueConstraintResolutions: MusicCueConstraintResolution[]
 }
 
@@ -241,12 +247,21 @@ export function buildMusicSoundtrackSegmentationPlan(input: {
   return { ...base, planHash: hashMusicValue(base) }
 }
 
-function rightsUsable(request: CanonicalMusicSkillRequest, source: string): boolean {
+function rightsUsable(
+  request: CanonicalMusicSkillRequest,
+  source: MusicRightsBinding['source'],
+  narrativeFunction?: CanonicalMusicCueIntent['narrativeFunction'],
+): boolean {
   const now = Date.now()
   const rightsByAsset = new Map(request.rightsAndProvenanceRefs.map((item) => [item.assetId, item]))
+  const descriptorsForSource = request.musicAssetDescriptors.filter((descriptor) => descriptor.sourceType === source)
   return request.inputAssetRefs.some((asset) => {
     const rights = rightsByAsset.get(asset.artifactId)
-    return rights?.source === source && rights.commercialUse === 'allowed' &&
+    const descriptor = request.musicAssetDescriptors.find((candidate) => candidate.assetId === asset.artifactId &&
+      candidate.assetVersion === asset.version && candidate.assetHash === asset.checksumSha256)
+    const narrativeEligible = descriptorsForSource.length === 0 || Boolean(descriptor && descriptor.availability === 'available' &&
+      (!narrativeFunction || descriptor.narrativeFunctions.includes(narrativeFunction)))
+    return narrativeEligible && rights?.source === source && rights.commercialUse === 'allowed' &&
       rights.platformUse === 'allowed' && rights.editingPermission === 'allowed' &&
       (!rights.expiresAt || Date.parse(rights.expiresAt) > now) &&
       rights.authorizedProjectIds.includes(request.projectBinding.projectId) &&
@@ -266,12 +281,16 @@ function rangeScene(context: CanonicalMusicContextPackage, range: MusicFrameRang
   })[0]
 }
 
-function professionalAcquisition(request: CanonicalMusicSkillRequest): MusicNeedDecisionKind {
-  if (rightsUsable(request, 'source_media') && request.userMusicPolicy.preserveSourceMusic) return 'preserve_source_music'
-  if (rightsUsable(request, 'user_upload') && request.scopeAuthority.mayUseUserProvidedMusic) return 'user_provided_music'
-  if (rightsUsable(request, 'project_library') && request.scopeAuthority.mayUseLibraryMusic) return 'project_music'
-  if (rightsUsable(request, 'workspace_library') && request.scopeAuthority.mayUseLibraryMusic) return 'workspace_music'
-  if (rightsUsable(request, 'internal_library') && request.scopeAuthority.mayUseLibraryMusic) return 'internal_music'
+function professionalAcquisition(
+  request: CanonicalMusicSkillRequest,
+  scene?: MusicSceneEvidence,
+): MusicNeedDecisionKind {
+  const narrativeFunction = cueFunction(scene)
+  if (rightsUsable(request, 'source_media', narrativeFunction) && request.userMusicPolicy.preserveSourceMusic) return 'preserve_source_music'
+  if (rightsUsable(request, 'user_upload', narrativeFunction) && request.scopeAuthority.mayUseUserProvidedMusic) return 'user_provided_music'
+  if (rightsUsable(request, 'project_library', narrativeFunction) && request.scopeAuthority.mayUseLibraryMusic) return 'project_music'
+  if (rightsUsable(request, 'workspace_library', narrativeFunction) && request.scopeAuthority.mayUseLibraryMusic) return 'workspace_music'
+  if (rightsUsable(request, 'internal_library', narrativeFunction) && request.scopeAuthority.mayUseLibraryMusic) return 'internal_music'
   if (request.userMusicPolicy.allowGeneration && request.scopeAuthority.mayGenerateMusic) return 'generate_original_music'
   return request.userMusicPolicy.preserveNaturalSound ? 'ambience_only' : 'no_music'
 }
@@ -302,7 +321,7 @@ function rangeNeed(input: {
   } else if (scene && ['critical', 'high'].includes(scene.naturalAmbienceValue) && scene.speechDensity >= 0.35) {
     decision = 'ambience_only'; reason = 'Natural ambience carries story evidence and is protected.'
   } else {
-    decision = professionalAcquisition(input.request)
+    decision = professionalAcquisition(input.request, scene)
     reason = decision === 'generate_original_music'
       ? 'No admitted source, upload, or library asset is available; an original cue is permitted by the approved policy.'
       : `The professional acquisition order selected ${decision}.`
@@ -400,6 +419,249 @@ export function decideMusicNeed(input: {
     artifactId: `music.need.${input.request.requestId}`, payload,
     evidence: ['per_range_professional_route_order', 'no_music_considered', 'absence_of_upload_does_not_force_generation'],
   })
+}
+
+const absentMusicDecisions = new Set<MusicNeedDecisionKind>(['no_music', 'intentional_silence', 'ambience_only'])
+
+function groupingCueRole(decision: MusicNeedDecisionKind, members: MusicSoundtrackSegment[]): CanonicalMusicCueIntent['cueRole'] {
+  if (decision === 'intentional_silence' || decision === 'no_music') return 'silence'
+  if (decision === 'ambience_only') return 'ambience_only'
+  if (members.some((member) => member.classification === 'montage')) return 'montage'
+  if (members.some((member) => member.classification === 'chapter' || member.classification === 'transition')) return 'chapter'
+  if (members.some((member) => member.classification === 'story')) return 'bed'
+  return 'motif'
+}
+
+function groupingNarrativePurpose(members: MusicSoundtrackSegment[]): CanonicalMusicCueIntent['narrativeFunction'] {
+  if (members.every((member) => member.classification === 'emotional_pause' || member.classification === 'testimony')) {
+    return 'remain_absent'
+  }
+  if (members.some((member) => member.classification === 'montage')) return 'support_montage'
+  if (members.some((member) => member.classification === 'chapter' || member.classification === 'transition')) return 'bridge_chapters'
+  if (members.some((member) => member.classification === 'ambience_priority')) return 'hold_continuity'
+  return 'hold_continuity'
+}
+
+function rightsConstraintIds(request: CanonicalMusicSkillRequest, decision: MusicNeedDecisionKind): string[] {
+  const sourceByDecision: Partial<Record<MusicNeedDecisionKind, string>> = {
+    preserve_source_music: 'source_media', user_provided_music: 'user_upload', project_music: 'project_library',
+    workspace_music: 'workspace_library', internal_music: 'internal_library', generate_original_music: 'provider_generated',
+  }
+  const source = sourceByDecision[decision]
+  return request.rightsAndProvenanceRefs.filter((binding) => !source || binding.source === source)
+    .map((binding) => binding.rightsId).sort()
+}
+
+function cueChangeMetrics(request: CanonicalMusicSkillRequest, groups: readonly MusicCueGroup[]) {
+  const durationFrames = request.scopeAuthority.authorizedMusicWriteRanges.reduce((sum, range) =>
+    sum + range.endFrameExclusive - range.startFrame, 0)
+  const durationMinutes = durationFrames * request.timelineBinding.rationalTimelineRate.denominator /
+    request.timelineBinding.rationalTimelineRate.numerator / 60
+  const musicalGroups = groups.filter((group) => !absentMusicDecisions.has(group.acquisitionFamily))
+  const cueChangeCount = Math.max(0, musicalGroups.length - 1)
+  const cueChangesPerMinute = cueChangeCount / Math.max(durationMinutes, 1 / 60)
+  return { durationFrames, durationMinutes, cueChangeCount, cueChangesPerMinute, musicalCueCount: musicalGroups.length }
+}
+
+export function buildMusicCueGroupingPlan(input: {
+  request: CanonicalMusicSkillRequest
+  context: CanonicalMusicContextPackage
+  need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
+  segmentationPlan: MusicSoundtrackSegmentationPlan
+  segmentationArtifactId: string
+  segmentationArtifactHash: string
+}): { plan: MusicCueGroupingPlan; conflict?: MusicCuePolicyConflict } {
+  const constraints = new Map(canonicalMusicCueConstraints(input.request).map((constraint) =>
+    [constraint.constraintId, constraint]))
+  const decisionBySegmentId = new Map(input.segmentationPlan.segments.map((segment) => {
+    const decision = input.need.payload.perRangeDecisions.find((item) =>
+      item.range.startFrame === segment.exactRange.startFrame &&
+      item.range.endFrameExclusive === segment.exactRange.endFrameExclusive)
+    if (!decision) throw new Error(`Music grouping lacks a need decision for ${segment.segmentId}.`)
+    return [segment.segmentId, decision.decision] as const
+  }))
+  const reductionDecisions: MusicCueGroupingReductionDecision[] = []
+  const nonMergeReasons = new Map<string, string[]>()
+
+  const makeGroup = (members: MusicSoundtrackSegment[], decision: MusicNeedDecisionKind,
+    mergeReasons: string[] = []): MusicCueGroup => {
+    const first = members[0]!
+    const last = members.at(-1)!
+    const lockedCueConstraintIds = [...new Set(members.flatMap((member) => member.cueConstraintIds)
+      .filter((id) => {
+        const constraint = constraints.get(id)
+        return constraint && !['soft_preference', 'advisory'].includes(constraint.authorityMode)
+      }))].sort()
+    const noMusicOrSilenceBoundary = absentMusicDecisions.has(decision)
+    return {
+      groupId: `music-cue-group-${input.request.requestId}-${first.segmentId}-${last.segmentId}`,
+      exactRange: {
+        rangeId: `${first.exactRange.rangeId}.through.${last.exactRange.rangeId}`,
+        startFrame: first.exactRange.startFrame,
+        endFrameExclusive: last.exactRange.endFrameExclusive,
+      },
+      memberSegmentIds: members.map((member) => member.segmentId),
+      members: members.map((member) => ({
+        segmentId: member.segmentId, exactRange: structuredClone(member.exactRange), classification: member.classification,
+        decision: decisionBySegmentId.get(member.segmentId)!, protectedSpeech: member.importantSpeech,
+        naturalAmbiencePriority: member.naturalAmbiencePriority, locked: member.locked,
+        cueConstraintIds: [...member.cueConstraintIds],
+      })),
+      cueRole: groupingCueRole(decision, members), acquisitionFamily: decision,
+      motifOrContinuityFamily: absentMusicDecisions.has(decision) ? `absence:${decision}` : `music:${decision}`,
+      narrativePurpose: groupingNarrativePurpose(members),
+      protectedSpeechBehavior: absentMusicDecisions.has(decision) ? 'remain_absent'
+        : members.some((member) => member.importantSpeech) ? 'instrumental_and_duck' : 'none',
+      mergeReasons: [...mergeReasons], nonMergeBoundaryReasons: [], lockedCueConstraintIds,
+      noMusicOrSilenceBoundary, rightsAndProvenanceConstraintIds: rightsConstraintIds(input.request, decision),
+    }
+  }
+  const memberSegments = (group: MusicCueGroup): MusicSoundtrackSegment[] => group.memberSegmentIds.map((id) => {
+    const segment = input.segmentationPlan.segments.find((candidate) => candidate.segmentId === id)
+    if (!segment) throw new Error(`Music grouping references unknown segment ${id}.`)
+    return segment
+  })
+  const mergeBlockers = (left: MusicCueGroup, right: MusicCueGroup, relaxedNarrative: boolean): string[] => {
+    const leftMembers = memberSegments(left)
+    const rightMembers = memberSegments(right)
+    const reasons: string[] = []
+    if (left.exactRange.endFrameExclusive !== right.exactRange.startFrame) reasons.push('non_adjacent_authority')
+    if (leftMembers.at(-1)?.sourceWriteRangeId !== rightMembers[0]?.sourceWriteRangeId) reasons.push('separate_authorized_write_ranges')
+    if (left.acquisitionFamily !== right.acquisitionFamily) reasons.push('incompatible_acquisition_requirements')
+    if (left.rightsAndProvenanceConstraintIds.join('|') !== right.rightsAndProvenanceConstraintIds.join('|')) {
+      reasons.push('incompatible_rights_or_source_authority')
+    }
+    const leftHard = new Set(left.lockedCueConstraintIds)
+    const rightHard = new Set(right.lockedCueConstraintIds)
+    const sharedHard = [...leftHard].filter((id) => rightHard.has(id))
+    if ((leftHard.size > 0 || rightHard.size > 0) && sharedHard.length === 0) reasons.push('locked_cue_boundary')
+    const leftBoundary = leftMembers.at(-1)!
+    const rightBoundary = rightMembers[0]!
+    if ((leftBoundary.transitionBoundaryIds.length > 0 || rightBoundary.transitionBoundaryIds.length > 0) && sharedHard.length === 0) {
+      reasons.push('major_transition_boundary')
+    }
+    if (left.noMusicOrSilenceBoundary !== right.noMusicOrSilenceBoundary) reasons.push('no_music_or_intentional_silence_boundary')
+    if (!relaxedNarrative && (left.cueRole !== right.cueRole || left.narrativePurpose !== right.narrativePurpose)) {
+      reasons.push('narrative_or_cue_role_change')
+    }
+    return reasons
+  }
+  const merge = (left: MusicCueGroup, right: MusicCueGroup, reason: string): MusicCueGroup =>
+    makeGroup([...memberSegments(left), ...memberSegments(right)], left.acquisitionFamily,
+      [...left.mergeReasons, ...right.mergeReasons, reason])
+  const reduceAdjacent = (source: MusicCueGroup[], relaxedNarrative: boolean, action:
+    MusicCueGroupingReductionDecision['action']): MusicCueGroup[] => {
+    const result: MusicCueGroup[] = []
+    for (const candidate of source) {
+      const previous = result.at(-1)
+      if (!previous) {
+        result.push(candidate)
+        continue
+      }
+      const blockers = mergeBlockers(previous, candidate, relaxedNarrative)
+      if (blockers.length > 0) {
+        nonMergeReasons.set(`${previous.groupId}->${candidate.groupId}`, blockers)
+        result.push(candidate)
+        continue
+      }
+      const merged = merge(previous, candidate, relaxedNarrative
+        ? 'continued compatible motif/source family across an atomic narrative boundary'
+        : 'merged adjacent compatible atomic segments')
+      const core = {
+        decisionId: `music.grouping-reduction.${input.request.requestId}.${reductionDecisions.length + 1}`,
+        action, affectedGroupIds: [previous.groupId, candidate.groupId], resultingGroupId: merged.groupId,
+        reason: relaxedNarrative ? 'Reused a compatible continuity family to reduce unnecessary cue changes.'
+          : 'Adjacent atomic boundaries did not require a new professional Music cue.',
+      }
+      reductionDecisions.push({ ...core, decisionHash: hashMusicValue(core) })
+      result[result.length - 1] = merged
+    }
+    return result
+  }
+
+  let groups = input.segmentationPlan.segments.map((segment) =>
+    makeGroup([segment], decisionBySegmentId.get(segment.segmentId)!))
+  groups = reduceAdjacent(groups, false, 'merge_compatible_beds')
+  groups = reduceAdjacent(groups, true, 'reuse_continuity_family')
+
+  const withinLimits = (): boolean => {
+    const metrics = cueChangeMetrics(input.request, groups)
+    return metrics.musicalCueCount <= input.request.userMusicPolicy.maximumCueCount &&
+      metrics.cueChangesPerMinute <= input.request.userMusicPolicy.maximumCueChangesPerMinute + 1e-9
+  }
+  while (!withinLimits()) {
+    const removableIndex = groups.findIndex((group) => !absentMusicDecisions.has(group.acquisitionFamily) &&
+      group.lockedCueConstraintIds.length === 0 && group.members.every((member) =>
+        !member.protectedSpeech && ['story', 'transition', 'ambience_priority'].includes(member.classification)))
+    if (removableIndex < 0) break
+    const current = groups[removableIndex]!
+    const useAmbience = current.members.some((member) => member.naturalAmbiencePriority)
+    const decision: MusicNeedDecisionKind = useAmbience ? 'ambience_only' : 'intentional_silence'
+    const replacement = makeGroup(memberSegments(current), decision,
+      [...current.mergeReasons, useAmbience ? 'protected valuable natural ambience' : 'removed low-importance decorative scoring'])
+    const core = {
+      decisionId: `music.grouping-reduction.${input.request.requestId}.${reductionDecisions.length + 1}`,
+      action: useAmbience ? 'convert_to_ambience_only' as const : 'convert_to_intentional_no_music' as const,
+      affectedGroupIds: [current.groupId], resultingGroupId: replacement.groupId,
+      reason: useAmbience ? 'Natural ambience evidence supports an ambience-only lower-density result.'
+        : 'A weak decorative region was removed while preserving story-critical and locked cues.',
+    }
+    reductionDecisions.push({ ...core, decisionHash: hashMusicValue(core) })
+    groups[removableIndex] = replacement
+    groups = reduceAdjacent(groups, true, 'merge_compatible_beds')
+  }
+
+  for (let index = 1; index < groups.length; index += 1) {
+    const boundaryReasons = nonMergeReasons.get(`${groups[index - 1]!.groupId}->${groups[index]!.groupId}`) ??
+      mergeBlockers(groups[index - 1]!, groups[index]!, true)
+    groups[index - 1]!.nonMergeBoundaryReasons.push(...boundaryReasons.map((reason) => `after:${reason}`))
+    groups[index]!.nonMergeBoundaryReasons.push(...boundaryReasons.map((reason) => `before:${reason}`))
+  }
+  const metrics = cueChangeMetrics(input.request, groups)
+  const countSatisfied = metrics.musicalCueCount <= input.request.userMusicPolicy.maximumCueCount
+  const densitySatisfied = metrics.cueChangesPerMinute <= input.request.userMusicPolicy.maximumCueChangesPerMinute + 1e-9
+  const conflictId = `music.cue-policy-conflict.${input.request.requestId}`
+  const hardConstraintIds = [...new Set(groups.flatMap((group) => group.lockedCueConstraintIds))].sort()
+  const conflictCore = !countSatisfied || !densitySatisfied ? {
+    schemaVersion: 'music-cue-policy-conflict-v3' as const,
+    conflictId, requestId: input.request.requestId,
+    requestedMaximumCueCount: input.request.userMusicPolicy.maximumCueCount,
+    requestedMaximumCueChangesPerMinute: input.request.userMusicPolicy.maximumCueChangesPerMinute,
+    minimumPossibleCueCount: metrics.musicalCueCount,
+    minimumPossibleCueChangesPerMinute: Number(metrics.cueChangesPerMinute.toFixed(6)),
+    hardConstraintIds: hardConstraintIds.length > 0 ? hardConstraintIds : ['incompatible_acquisition_or_hard_narrative_boundaries'],
+    affectedCueGroupIds: groups.filter((group) => !absentMusicDecisions.has(group.acquisitionFamily)).map((group) => group.groupId),
+    affectedSegmentIds: groups.flatMap((group) => group.memberSegmentIds),
+    requiresNewApprovalOrPolicyRevision: true as const,
+    reason: 'The minimum professionally valid grouped cue set exceeds an approved hard Music policy.',
+  } : undefined
+  const conflict = conflictCore ? { ...conflictCore, conflictHash: hashMusicValue(conflictCore) } : undefined
+  const planCore = {
+    schemaVersion: 'music-cue-grouping-plan-v3' as const,
+    groupingPlanId: `music.cue-grouping.${input.request.requestId}`,
+    requestId: input.request.requestId,
+    sourceSegmentationArtifactId: input.segmentationArtifactId,
+    sourceSegmentationArtifactHash: input.segmentationArtifactHash,
+    sourceSegmentationPlanHash: input.segmentationPlan.planHash,
+    timelineHash: input.request.timelineBinding.timelineManifestHash,
+    timelineRate: structuredClone(input.request.timelineBinding.rationalTimelineRate),
+    atomicSegmentIds: input.segmentationPlan.segments.map((segment) => segment.segmentId), groups,
+    densityCalculation: {
+      durationFrames: metrics.durationFrames, durationMinutes: Number(metrics.durationMinutes.toFixed(9)),
+      cueChangeCount: metrics.cueChangeCount, cueChangesPerMinute: Number(metrics.cueChangesPerMinute.toFixed(6)),
+    },
+    maximumCueCountCalculation: {
+      requestedMaximum: input.request.userMusicPolicy.maximumCueCount,
+      actualFinal: metrics.musicalCueCount, satisfied: countSatisfied,
+    },
+    maximumCueChangesPerMinuteCalculation: {
+      requestedMaximum: input.request.userMusicPolicy.maximumCueChangesPerMinute,
+      actualFinal: Number(metrics.cueChangesPerMinute.toFixed(6)), satisfied: densitySatisfied,
+    },
+    reductionDecisions,
+    unresolvedTypedConflictIds: conflict ? [conflict.conflictId] : [],
+  }
+  return { plan: { ...planCore, groupingHash: hashMusicValue(planCore) }, ...(conflict ? { conflict } : {}) }
 }
 
 function storyTension(scene: MusicSceneEvidence | undefined, decision: MusicNeedDecisionKind):
@@ -509,6 +771,7 @@ function buildCueSet(input: {
   context: CanonicalMusicContextPackage
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   segmentationPlan: MusicSoundtrackSegmentationPlan
+  groupingPlan: MusicCueGroupingPlan
 }): {
   cues: CanonicalMusicCueIntent[]
   lockedCueIds: string[]
@@ -516,10 +779,18 @@ function buildCueSet(input: {
   constraintResolutions: MusicCueConstraintResolution[]
 } {
   const constraints = canonicalMusicCueConstraints(input.request)
-  const scoredTotal = input.need.payload.perRangeDecisions.filter((item) =>
-    !['no_music', 'intentional_silence', 'ambience_only'].includes(item.decision)).length
-  let generated = input.need.payload.perRangeDecisions.map((rangeDecision, index) => derivedCue({
-    request: input.request, context: input.context, rangeDecision, index, totalScored: scoredTotal,
+  if (input.groupingPlan.unresolvedTypedConflictIds.length > 0) return {
+    cues: [], lockedCueIds: [], generatedCueIds: [], constraintResolutions: [],
+  }
+  const scoredTotal = input.groupingPlan.groups.filter((group) => !absentMusicDecisions.has(group.acquisitionFamily)).length
+  let generated = input.groupingPlan.groups.map((group, index) => derivedCue({
+    request: input.request, context: input.context,
+    rangeDecision: {
+      range: structuredClone(group.exactRange), decision: group.acquisitionFamily,
+      reason: `Canonical cue group ${group.groupId}.`, confidence: 1,
+      evidenceRefs: [input.groupingPlan.groupingHash, ...group.memberSegmentIds],
+    },
+    index, totalScored: scoredTotal,
   }))
   const lockedCueIds: string[] = []
   const preserved: CanonicalMusicCueIntent[] = []
@@ -613,6 +884,13 @@ function buildCueSet(input: {
     throw new Error('Every Music cue constraint must produce exactly one resolution.')
   }
   const generatedCueIds = generated.map((cue) => cue.cueId)
+  for (const segment of input.segmentationPlan.segments) {
+    const covering = cues.filter((cue) => cue.exactRange.startFrame <= segment.exactRange.startFrame &&
+      cue.exactRange.endFrameExclusive >= segment.exactRange.endFrameExclusive)
+    if (covering.length !== 1) {
+      throw new Error(`Music cue grouping must cover ${segment.segmentId} exactly once; found ${covering.length}.`)
+    }
+  }
   return { cues, lockedCueIds, generatedCueIds, constraintResolutions: resolutions }
 }
 
@@ -661,6 +939,7 @@ export function buildMusicCueSheet(input: {
   context: CanonicalMusicContextPackage
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   segmentationPlan: MusicSoundtrackSegmentationPlan
+  groupingPlan: MusicCueGroupingPlan
 }): MusicArtifactEnvelope<MusicCueSheetPayload> {
   const cueSet = buildCueSet(input)
   const inspectStart = Math.min(...input.request.scopeAuthority.authorizedInspectRanges.map((range) => range.startFrame))
@@ -668,10 +947,12 @@ export function buildMusicCueSheet(input: {
   const durationMinutes = (inspectEnd - inspectStart) * input.request.timelineBinding.rationalTimelineRate.denominator /
     input.request.timelineBinding.rationalTimelineRate.numerator / 60
   const scored = cueSet.cues.filter((cue) => cue.cueRole !== 'silence' && cue.cueRole !== 'ambience_only')
-  const density = scored.length / Math.max(durationMinutes, 1 / 60)
+  const density = Math.max(0, scored.length - 1) / Math.max(durationMinutes, 1 / 60)
   const warnings: string[] = []
-  if (density > input.request.userMusicPolicy.maximumCueChangesPerMinute) warnings.push('cue_change_density_exceeds_policy')
-  if (cueSet.cues.length >= input.request.userMusicPolicy.maximumCueCount && cueSet.cues.length > 0) warnings.push('maximum_cue_count_reached')
+  if (scored.length > input.request.userMusicPolicy.maximumCueCount ||
+    density > input.request.userMusicPolicy.maximumCueChangesPerMinute + 1e-9) {
+    throw new Error('Music cue sheet cannot publish a warning-only cue policy violation.')
+  }
   if (scored.length > 2 && cueSet.cues.every((cue) => cue.intentionalNoMusicRanges.length === 0)) warnings.push('no_breathing_room_declared')
   const intentionalSilenceRanges = cueSet.cues.flatMap((cue) => cue.intentionalNoMusicRanges)
   return artifact({
@@ -686,6 +967,7 @@ export function buildMusicCueSheet(input: {
       cueDensityPerMinute: Number(density.toFixed(4)), overScoringWarnings: warnings,
       intentionalSilenceRanges, noFirstItemFallback: true,
       segmentationPlanHash: input.segmentationPlan.planHash,
+      cueGroupingPlanHash: input.groupingPlan.groupingHash,
       cueConstraintResolutions: cueSet.constraintResolutions,
     },
     evidence: [
@@ -715,7 +997,9 @@ export function decideCueRoutes(input: {
       const direct: Partial<Record<CanonicalMusicCueIntent['acquisitionPreference'], MusicNeedDecisionKind>> = {
         preserve_source: 'preserve_source_music', user_upload: 'user_provided_music', project_library: 'project_music',
         workspace_library: 'workspace_music', internal_library: 'internal_music', generate_original: 'generate_original_music',
-        no_music: cue.intentionalNoMusicRanges.length > 0 ? 'intentional_silence' : 'no_music', ambience_only: 'ambience_only',
+        no_music: rangeDecision && ['no_music', 'intentional_silence'].includes(rangeDecision.decision)
+          ? rangeDecision.decision : cue.intentionalNoMusicRanges.length > 0 ? 'intentional_silence' : 'no_music',
+        ambience_only: 'ambience_only',
       }
       decision = direct[cue.acquisitionPreference] ?? decision
     }
@@ -729,8 +1013,14 @@ export function decideCueRoutes(input: {
           : decision === 'workspace_music' ? 'workspace_library'
             : decision === 'internal_music' ? 'internal_library' : undefined
     const eligibleRights = input.request.rightsAndProvenanceRefs.filter((rights) => !sourceKind || rights.source === sourceKind)
+    const sourceDescriptors = sourceKind
+      ? input.request.musicAssetDescriptors.filter((descriptor) => descriptor.sourceType === sourceKind) : []
     const sourceBindings = input.request.inputAssetRefs.filter((asset) =>
       input.request.scopeAuthority.authorizedSourceMusicAssetIds.includes(asset.artifactId) &&
+      (sourceDescriptors.length === 0 || sourceDescriptors.some((descriptor) =>
+        descriptor.assetId === asset.artifactId && descriptor.assetVersion === asset.version &&
+        descriptor.assetHash === asset.checksumSha256 && descriptor.availability === 'available' &&
+        descriptor.narrativeFunctions.includes(cue.narrativeFunction))) &&
       eligibleRights.some((rights) => rights.assetId === asset.artifactId)).map((asset) => asset.artifactId)
     return {
       cueId: cue.cueId, acquisitionDecision: decision,
@@ -754,6 +1044,10 @@ export function createSupervisionArtifacts(input: {
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
   segmentationPlan: MusicSoundtrackSegmentationPlan
   segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
+  cueGroupingPlan: MusicCueGroupingPlan
+  cueGrouping: MusicArtifactEnvelope<MusicCueGroupingPlan>
+  cuePolicyConflict?: MusicCuePolicyConflict
+  cuePolicyConflictArtifact?: MusicArtifactEnvelope<MusicCuePolicyConflict>
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
   cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>
@@ -768,12 +1062,31 @@ export function createSupervisionArtifacts(input: {
     evidence: ['exact_write_range_coverage', 'scene_speech_silence_ambience_transition_constraint_boundaries'],
   })
   const need = decideMusicNeed({ ...input, contextStudy: context, segmentationPlan })
-  const cueSheet = buildMusicCueSheet({ ...input, need, segmentationPlan })
+  const grouping = buildMusicCueGroupingPlan({
+    ...input, need, segmentationPlan,
+    segmentationArtifactId: segmentation.artifactId,
+    segmentationArtifactHash: segmentation.artifactHash,
+  })
+  const cueGrouping = artifact({
+    ...input, artifactType: 'music_cue_grouping_plan_v3', artifactId: grouping.plan.groupingPlanId,
+    payload: grouping.plan,
+    evidence: ['atomic_segments_grouped_before_cue_creation', 'hard_cue_limits_enforced',
+      'deterministic_professional_reduction', grouping.plan.groupingHash],
+  })
+  const cuePolicyConflictArtifact = grouping.conflict ? artifact({
+    ...input, artifactType: 'music_cue_policy_conflict_v3', artifactId: grouping.conflict.conflictId,
+    payload: grouping.conflict,
+    evidence: ['hard_policy_conflict_fail_closed', grouping.conflict.conflictHash],
+  }) : undefined
+  const cueSheet = buildMusicCueSheet({ ...input, need, segmentationPlan, groupingPlan: grouping.plan })
   const arc = buildMusicNarrativeArc({ ...input, cues: cueSheet.payload.cues })
   const routeBindings = decideCueRoutes({ request: input.request, need, cueSheet })
   const distinctCueIds = new Set(routeBindings.map((item) => item.cueId))
   if (distinctCueIds.size !== routeBindings.length) throw new Error('Music route binding requires one exact decision per cue.')
   if (hashMusicValue(routeBindings).length !== 64) throw new Error('Music route binding hash failure.')
-  return { context, segmentationPlan, segmentation, need, arc, cueSheet, routeBindings,
+  return { context, segmentationPlan, segmentation, cueGroupingPlan: grouping.plan, cueGrouping,
+    ...(grouping.conflict ? { cuePolicyConflict: grouping.conflict } : {}),
+    ...(cuePolicyConflictArtifact ? { cuePolicyConflictArtifact } : {}),
+    need, arc, cueSheet, routeBindings,
     cueConstraintResolutions: cueSheet.payload.cueConstraintResolutions }
 }

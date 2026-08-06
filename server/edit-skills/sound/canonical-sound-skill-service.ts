@@ -10,10 +10,17 @@ import {
 import {
   parseCanonicalSoundRequest,
   parseCanonicalSoundResult,
+  parseSoundMusicTwoSourceCrossfadeRequest,
+  validateSoundMusicTwoSourceCrossfadeReceipt,
+  compileSoundMusicTwoSourceCrossfadeParameters,
+  soundMusicTwoSourceCrossfadeRequestedParameters,
+  hashSoundMusicTechnicalAutomation,
   type CanonicalSoundCue,
   type CanonicalSoundRequest,
   type CanonicalSoundResult,
   type SoundFrameRange,
+  type SoundMusicTwoSourceCrossfadeRequest,
+  type SoundMusicTwoSourceCrossfadeReceipt,
 } from '../../sound/sound-contracts'
 import { evaluateSoundScopeGuard, validateSoundResultAuthority } from '../../sound/sound-scope-guard'
 import { createSoundMixAutomation } from '../../sound/sound-sync-mix-qa'
@@ -35,6 +42,14 @@ import {
   compileCanonicalSoundExecutionGraph,
   type SoundExecutionGraph,
 } from './sound-execution-graph'
+import { framesToSeconds } from '../core/timeline-rate'
+import {
+  measureSoundRmsWindows,
+  runSoundLocalAudioExecution,
+  validateSoundAudioFile,
+} from '../../sound/sound-local-audio-processor'
+import { evaluateSoundToolRouteAdmission, getSoundToolRouteManifest } from '../../sound/sound-tool-route-manifest'
+import { probeCanonicalSoundRuntimeStatuses } from '../../sound/sound-runtime-status'
 
 export interface LoadedCanonicalSoundContext {
   controllerContext: SoundControllerContext
@@ -103,6 +118,11 @@ export interface CanonicalSoundQaResult {
   continuity: SoundWholeVideoContinuityReport
 }
 
+export interface CanonicalSoundMusicCrossfadeResult {
+  outputArtifact: SoundMusicTwoSourceCrossfadeReceipt['outputArtifact']
+  receipt: SoundMusicTwoSourceCrossfadeReceipt
+}
+
 export interface CanonicalSoundSkillService {
   getCapabilityManifest(): Readonly<SkillCapabilityManifest>
   getPeerCapabilityView(request: PeerCapabilityViewRequest): PeerSoundCapabilityView
@@ -112,17 +132,20 @@ export interface CanonicalSoundSkillService {
   executeRevision(request: CanonicalSoundRevisionExecutionRequest): Promise<CanonicalSoundResult>
   revise(request: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult>
   qa(request: CanonicalSoundQaRequest): Promise<CanonicalSoundQaResult>
+  executeMusicTwoSourceCrossfade(request: SoundMusicTwoSourceCrossfadeRequest): Promise<CanonicalSoundMusicCrossfadeResult>
 }
 
 export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkillService {
   readonly #context: CanonicalSoundContextLoader
   readonly #executor: CanonicalSoundRouteExecutor
+  readonly #artifacts: CanonicalSoundArtifactResolver
 
   constructor(input: {
     artifacts: CanonicalSoundArtifactResolver
     context?: CanonicalSoundContextLoader
     mirelo?: ConstructorParameters<typeof CanonicalSoundRouteExecutor>[0]['mirelo']
   }) {
+    this.#artifacts = input.artifacts
     this.#context = input.context ?? new StructuredRequestSoundContextLoader()
     this.#executor = new CanonicalSoundRouteExecutor({ artifacts: input.artifacts, mirelo: input.mirelo })
   }
@@ -186,6 +209,127 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
 
   async execute(executionPackage: ApprovedSoundExecutionPackage): Promise<CanonicalSoundResult> {
     return (await this.#executeWithEvidence(executionPackage)).result
+  }
+
+  async executeMusicTwoSourceCrossfade(
+    input: SoundMusicTwoSourceCrossfadeRequest,
+  ): Promise<CanonicalSoundMusicCrossfadeResult> {
+    const request = parseSoundMusicTwoSourceCrossfadeRequest(input)
+    if (request.soundSkillVersion !== soundSkillCapabilityManifest.skillVersion ||
+      request.soundManifestHash !== soundSkillCapabilityManifest.manifestHash) {
+      throw new Error('Music two-source crossfade has a stale Sound manifest binding.')
+    }
+    const leftFrames = request.leftSourceRange.endFrameExclusive - request.leftSourceRange.startFrame
+    const rightFrames = request.rightSourceRange.endFrameExclusive - request.rightSourceRange.startFrame
+    const expectedOutputDurationFrames = leftFrames + rightFrames - request.crossfadeDurationFrames
+    const authorizedDuration = request.authorizedWriteRange.endFrameExclusive - request.authorizedWriteRange.startFrame
+    const expectedOverlapStart = request.authorizedWriteRange.startFrame + leftFrames - request.crossfadeDurationFrames
+    if (authorizedDuration !== expectedOutputDurationFrames ||
+      request.targetOverlapRange.startFrame !== expectedOverlapStart ||
+      request.targetOverlapRange.endFrameExclusive !== expectedOverlapStart + request.crossfadeDurationFrames) {
+      throw new Error('Music two-source crossfade target range is not the exact authorized output composition.')
+    }
+    const route = getSoundToolRouteManifest('sound.route.edit.music_two_source_crossfade.v1', '1.0.0')
+    if (!route) throw new Error('Canonical two-source Music crossfade route is unavailable.')
+    const admission = evaluateSoundToolRouteAdmission({
+      routeKey: route.routeKey, routeVersion: route.routeVersion,
+      capabilityKey: 'sound.crossfade_music_sources', jobType: 'crossfade_music_sources',
+      mode: 'preview_execution', scope: 'boundary', availableInputKeys: [...route.requiredInputs],
+      availableQaKeys: [...route.stepQa, ...route.finalOutputQa, ...route.integrationQa],
+      runtimeStatuses: await probeCanonicalSoundRuntimeStatuses(), budgetApproved: true,
+      rateCardSnapshotIds: {}, licenseEvidenceRefs: { ffmpeg: 'sound.license.ffmpeg_private_local_evidence.v1' },
+    })
+    if (!admission.admitted || !admission.binding) {
+      throw new Error(`Canonical two-source Music crossfade route admission failed: ${admission.reasons.join(',')}.`)
+    }
+    const [left, right] = await Promise.all([
+      this.#artifacts.resolve(request.leftSource), this.#artifacts.resolve(request.rightSource),
+    ])
+    if (left.approvedRoot !== right.approvedRoot) {
+      throw new Error('Music two-source crossfade inputs must share one approved private artifact root.')
+    }
+    const outputRoot = await this.#artifacts.privateOutputRoot(request.privateOutputScopeId)
+    const compiledParameters = compileSoundMusicTwoSourceCrossfadeParameters(request)
+    const local = await runSoundLocalAudioExecution({
+      schemaVersion: 'sound-local-audio-execution-v1',
+      executionId: `sound.music-crossfade.${request.requestId}`,
+      binding: {
+        soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
+        soundManifestHash: soundSkillCapabilityManifest.manifestHash,
+        capabilityKey: 'sound.crossfade_music_sources',
+        approvedPlanSnapshotId: request.approvedSnapshotId,
+        approvedPlanSnapshotHash: request.approvedSnapshotHash,
+        approvedWorkItemId: request.approvedWorkItemId,
+        privateOutputScopeId: request.privateOutputScopeId,
+        creditReservationId: request.creditReservationId,
+        idempotencyKey: request.idempotencyKey,
+        operationSpecHash: hashSoundMusicTechnicalAutomation(request),
+        timelineRate: request.timelineRate,
+        routeBinding: admission.binding,
+      },
+      operation: 'crossfade_music', operationProfileKey: 'sound.crossfade.music_two_source.v1',
+      sources: [
+        { artifact: request.leftSource, absolutePath: left.absolutePath },
+        { artifact: request.rightSource, absolutePath: right.absolutePath },
+      ],
+      approvedInputRoot: left.approvedRoot, privateOutputRoot: outputRoot,
+      outputRelativePath: `sound/${request.idempotencyKey}/music-two-source-crossfade.wav`,
+      outputArtifactId: `sound-music-crossfade-${request.requestId}`,
+      outputArtifactType: 'music_crossfade_audio', outputContentType: 'audio/wav',
+      parameters: compiledParameters,
+    })
+    const outputArtifact = local.outputArtifact
+    if (!outputArtifact) throw new Error('Music two-source crossfade produced no private output artifact.')
+    const resolvedOutput = await this.#artifacts.resolve(outputArtifact)
+    const outputStudy = await validateSoundAudioFile(resolvedOutput.absolutePath)
+    const overlapStartSeconds = framesToSeconds(leftFrames - request.crossfadeDurationFrames, request.timelineRate)
+    const overlapDurationSeconds = framesToSeconds(request.crossfadeDurationFrames, request.timelineRate)
+    const windowSeconds = Math.max(0.02, Math.min(0.1, overlapDurationSeconds / 8))
+    const windows = await measureSoundRmsWindows({ absolutePath: resolvedOutput.absolutePath, windows: [
+      { key: 'overlap_start', startSeconds: overlapStartSeconds,
+        endSeconds: overlapStartSeconds + windowSeconds },
+      { key: 'overlap_midpoint', startSeconds: overlapStartSeconds + overlapDurationSeconds / 2 - windowSeconds / 2,
+        endSeconds: overlapStartSeconds + overlapDurationSeconds / 2 + windowSeconds / 2 },
+      { key: 'overlap_end', startSeconds: overlapStartSeconds + overlapDurationSeconds - windowSeconds,
+        endSeconds: overlapStartSeconds + overlapDurationSeconds },
+    ] })
+    if (outputArtifact.durationFrames !== expectedOutputDurationFrames || outputStudy.clippingSampleCount !== 0 ||
+      outputStudy.truePeakDbtp === undefined || outputStudy.truePeakDbtp > -0.8) {
+      throw new Error('Music two-source crossfade failed exact duration, clipping, or true-peak QA.')
+    }
+    const requestedParameters = soundMusicTwoSourceCrossfadeRequestedParameters(request)
+    const measuredQaCore = {
+      outputDurationFrames: outputArtifact.durationFrames,
+      expectedOutputDurationFrames,
+      truePeakDbtp: outputStudy.truePeakDbtp ?? null,
+      clippingSampleCount: outputStudy.clippingSampleCount,
+      overlapStartRmsDbfs: windows.find((window) => window.key === 'overlap_start')!.rmsDbfs,
+      overlapMidpointRmsDbfs: windows.find((window) => window.key === 'overlap_midpoint')!.rmsDbfs,
+      overlapEndRmsDbfs: windows.find((window) => window.key === 'overlap_end')!.rmsDbfs,
+    }
+    const receiptCore: Omit<SoundMusicTwoSourceCrossfadeReceipt, 'receiptHash'> = {
+      schemaVersion: 'sound.music_two_source_crossfade_receipt.v1', requestId: request.requestId,
+      extensionHash: request.extensionHash,
+      routeKey: 'sound.route.edit.music_two_source_crossfade.v1', routeVersion: route.routeVersion,
+      routeHash: route.routeHash, operationKey: 'crossfade_music_two_source', operationVersion: '1.0.0',
+      operationProfileKey: 'sound.crossfade.music_two_source.v1',
+      leftSourceId: request.leftSource.artifactId, leftSourceHash: request.leftSource.checksumSha256,
+      rightSourceId: request.rightSource.artifactId, rightSourceHash: request.rightSource.checksumSha256,
+      outputArtifact, targetOverlapRange: structuredClone(request.targetOverlapRange),
+      crossfadeDurationFrames: request.crossfadeDurationFrames,
+      crossfadeDurationSamples: request.crossfadeDurationSamples, curveType: request.curveType,
+      requestedParameters, requestedParametersHash: hashSoundMusicTechnicalAutomation(requestedParameters),
+      compiledParameters, compiledParametersHash: hashSoundMusicTechnicalAutomation(compiledParameters),
+      appliedParameters: structuredClone(compiledParameters),
+      appliedParametersHash: hashSoundMusicTechnicalAutomation(compiledParameters),
+      measuredQa: { ...measuredQaCore, evidenceHash: hashSoundMusicTechnicalAutomation(measuredQaCore) },
+      status: 'passed',
+    }
+    const receipt: SoundMusicTwoSourceCrossfadeReceipt = {
+      ...receiptCore, receiptHash: hashSoundMusicTechnicalAutomation(receiptCore),
+    }
+    validateSoundMusicTwoSourceCrossfadeReceipt({ request, receipt })
+    return { outputArtifact, receipt }
   }
 
   async planRevision(input: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult> {

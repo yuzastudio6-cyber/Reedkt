@@ -298,7 +298,10 @@ export function runCanonicalMusicQa(input: {
     const noMusicUnderSpeech = ['no_music', 'intentional_silence', 'ambience_only'].includes(route?.acquisitionDecision ?? '')
     const measuredSpeechSafety = receipt && receipt.mixQaRefs.length > 0 &&
       receipt.appliedOperationReceipts.every((operation) =>
-        operation.receivedParametersHash === operation.appliedParametersHash)
+        operation.receivedParametersHash === operation.appliedParametersHash) &&
+      receipt.appliedOperationReceipts.some((operation) => operation.operation === 'dialogue_ducking' &&
+        operation.measuredQaResult === 'passed' &&
+        operation.measuredQaRefs.some((ref) => ref.includes('measured_duck_envelope')))
     findings.push(finding({ qaClass: 'speech_safety',
       status: cue.protectedSpeechRanges.length === 0 || noMusicUnderSpeech ? 'pass'
         : measuredSpeechSafety ? 'pass' : 'blocking',
@@ -351,7 +354,12 @@ export function runCanonicalMusicQa(input: {
     const parametersExact = receipt.receivedTechnicalAutomationHash === receipt.appliedTechnicalAutomationHash &&
       receipt.appliedOperationReceipts.length > 0 && receipt.appliedOperationReceipts.every((operation) =>
         operation.receivedParametersHash === operation.appliedParametersHash &&
-        operation.outputArtifactIds.length > 0 && operation.measuredQaRefs.length > 0)
+        operation.compiledParametersHash === operation.appliedParametersHash &&
+        operation.outputArtifactIds.length > 0 &&
+        operation.outputArtifactIds.length === operation.outputArtifactHashes.length &&
+        operation.sourceArtifactIds.length === operation.sourceArtifactHashes.length &&
+        operation.measuredQaRefs.length > 0 && operation.measuredQaResult !== 'failed' &&
+        operation.receiptHash.length === 64 && operation.status === 'completed')
     const outputQa = receipt.processedMusicAssets.length > 0 && receipt.technicalQaRefs.length > 0 &&
       (!receipt.requiredMusicOperations.includes('place') || receipt.synchronizationQaRefs.length > 0) &&
       receipt.mixQaRefs.length > 0

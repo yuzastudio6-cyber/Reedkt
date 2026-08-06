@@ -3,7 +3,7 @@ import { getMusicToolRouteManifest, MUSIC_TOOL_ROUTE_MANIFESTS } from '../../mus
 
 export interface MusicMiniSkillManifest {
   miniSkillKey: string
-  version: '3.0.0'
+  version: '3.1.0'
   supportedOperations: string[]
   requiredInputs: string[]
   optionalInputs: string[]
@@ -47,6 +47,7 @@ const MINI_SKILLS = [
   ['narrative_function_director', 'Narrative Function Director'],
   ['emotional_arc_director', 'Emotional Arc Director'],
   ['single_multi_cue_director', 'Single Multi Cue Director'],
+  ['cue_grouping_director', 'Cue Grouping Director'],
   ['cue_density_guard', 'Cue Density and Over-Scoring Guard'],
   ['cue_sheet_planner', 'Music Cue-Sheet Planner'], ['motif_theme_director', 'Motif and Theme Director'],
   ['soundtrack_continuity_director', 'Soundtrack Continuity Director'],
@@ -97,6 +98,8 @@ const MINI_SKILL_IMPLEMENTATIONS: Record<(typeof MINI_SKILLS)[number][0], MiniIm
   narrative_function_director: planning('buildMusicNarrativeArc'),
   emotional_arc_director: planning('buildMusicNarrativeArc'),
   single_multi_cue_director: planning('buildMusicSoundtrackSegmentationPlan'),
+  cue_grouping_director: { ...implemented('buildMusicCueGroupingPlan', 'server/music/music-supervision.ts'),
+    executionBoundary: 'composite_service' },
   cue_density_guard: planning('buildMusicCueSheet'),
   cue_sheet_planner: planning('buildMusicCueSheet'),
   motif_theme_director: planning('buildMusicNarrativeArc'),
@@ -138,7 +141,8 @@ function relevantRoutes(key: string): typeof MUSIC_TOOL_ROUTE_MANIFESTS {
     scope_guard: ['decide.need'], context_loader: ['study.video_context'], evidence_confidence_manager: ['study.video_context'],
     video_music_context_study: ['study.video_context'], music_need_director: ['decide.need', 'no_music', 'ambience_only'],
     silence_director: ['decide.silence', 'no_music'], narrative_function_director: ['narrative_arc'],
-    emotional_arc_director: ['narrative_arc'], single_multi_cue_director: ['cue_sheet'], cue_density_guard: ['cue_sheet'],
+    emotional_arc_director: ['narrative_arc'], single_multi_cue_director: ['cue_sheet'],
+    cue_grouping_director: ['cue_grouping'], cue_density_guard: ['cue_sheet'],
     cue_sheet_planner: ['cue_sheet'], motif_theme_director: ['plan.motif'], soundtrack_continuity_director: ['full_video'],
     existing_music_study: ['study.existing'], user_music_intake: ['study.user_upload'], rights_provenance_guard: ['study.user_upload'],
     reference_music_study: ['study.reference'], reference_music_dna: ['study.reference'], style_arrangement_director: ['narrative_arc'],
@@ -147,7 +151,7 @@ function relevantRoutes(key: string): typeof MUSIC_TOOL_ROUTE_MANIFESTS {
     composition_brief_director: ['generate.original'], provider_prompt_compiler: ['generate.original'],
     provider_attempt_manager: ['lyria'], candidate_processing_director: ['analyze.candidate'],
     candidate_selection_director: ['select.candidate'], music_sync: ['sync.picture'], arrangement_editor: ['editorial.fit'],
-    sound_support_coordinator: ['sound_processing'], mix_intent_director: ['sound_processing'], qa_coordinator: ['qa.cue'],
+    sound_support_coordinator: ['sound_processing', 'two_source_crossfade'], mix_intent_director: ['sound_processing'], qa_coordinator: ['qa.cue'],
     continuity_qa: ['qa.continuity'], revision_director: ['revise.localized'], regeneration_director: ['revise.localized'],
     asset_usage_manager: ['handoff.final'], library_promotion_manager: ['promote.library'], final_handoff_builder: ['handoff.final'],
   }
@@ -172,7 +176,7 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       ? 'internal_execution_qualified' : 'planning_qualified'
     return {
       miniSkillKey: `music.mini.${key}`,
-      version: '3.0.0',
+      version: '3.1.0',
       supportedOperations: [key],
       requiredInputs: ['music_assignment_v2', 'approved_timeline_manifest'],
       optionalInputs: ['approved_private_music_audio', 'structured_story_evidence', 'speech_evidence'],
@@ -198,7 +202,7 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
         operationIdentities: executionBoundary === 'route_step'
           ? routes.flatMap((route) => route.steps.map((step) =>
             `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}`))
-          : [`music.internal/${implementation.functionOrService}@3.0.0`],
+          : [`music.internal/${implementation.functionOrService}@3.1.0`],
         receiptTypes: key === 'scope_guard' ? ['music_scope_guard_result_v3']
           : key === 'context_loader' ? ['music_context_package_v2']
             : key === 'revision_director' ? ['music_revision_receipt_v2']

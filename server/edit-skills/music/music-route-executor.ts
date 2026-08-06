@@ -27,6 +27,7 @@ import {
   type MusicSoundSupportReceipt,
   type MusicSoundtrackSegmentationPlan,
   type MusicCueConstraintResolution,
+  type MusicCueGroupingPlan,
 } from '../../music/music-contracts'
 import {
   CanonicalLyria3ProviderAdapter,
@@ -65,6 +66,8 @@ export interface ApprovedMusicExecutionPackage {
   context: MusicArtifactEnvelope<MusicContextStudyPayload>
   segmentationPlan: MusicSoundtrackSegmentationPlan
   segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
+  cueGroupingPlan: MusicCueGroupingPlan
+  cueGrouping: MusicArtifactEnvelope<MusicCueGroupingPlan>
   cueConstraintResolutions: MusicCueConstraintResolution[]
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
@@ -340,6 +343,7 @@ export class CanonicalMusicRouteExecutor {
       needPayload: input.need.payload,
       arcPayload: input.arc.payload,
       cueSheetPayload: input.cueSheet.payload,
+      cueGroupingPayload: input.cueGrouping.payload,
       routeBindings: input.routeBindings,
       executionRoutes: input.executionGraph.units.map((unit) => ({
         unitId: unit.unitId, cueId: unit.cueId, route: unit.route,
@@ -359,7 +363,7 @@ export class CanonicalMusicRouteExecutor {
     if (input.executionGraph.requestId !== input.request.requestId) throw new Error('Music graph/request binding mismatch.')
     const state: ExecutionState = {
       artifacts: [
-        input.context, input.segmentation, input.need, input.arc, input.cueSheet,
+        input.context, input.segmentation, input.cueGrouping, input.need, input.arc, input.cueSheet,
         artifactFromPayload({ request: input.request, artifactType: 'music_motif_plan_v2',
           artifactId: `music.motif.${input.request.requestId}`, payload: {
             motifCues: input.cueSheet.payload.cues.filter((cue) => cue.motifRole !== 'none')
@@ -405,7 +409,7 @@ export class CanonicalMusicRouteExecutor {
       const unitStartedAt = new Date().toISOString()
       try {
         const unitMode = [
-          'context_study', 'music_need_decision', 'narrative_arc_planning', 'cue_planning', 'planning_only',
+          'context_study', 'music_need_decision', 'narrative_arc_planning', 'cue_grouping', 'cue_planning', 'planning_only',
         ].includes(unit.unitKind) ? 'planning' : input.request.requestedExecutionMode
         assertMusicRouteAdmission({ ...unit.route, jobType: unit.jobType, mode: unitMode })
         const route = getMusicToolRouteManifest(unit.route.routeKey, unit.route.routeVersion)
@@ -478,6 +482,7 @@ export class CanonicalMusicRouteExecutor {
     if (input.handler.kind === 'supervision') {
       const artifact = input.step.operationKey === 'study_video_music_context' ? input.package.context
         : input.step.operationKey === 'decide_music_need' ? input.package.need
+          : input.step.operationKey === 'group_music_cues' ? input.package.cueGrouping
           : input.step.operationKey === 'plan_music_narrative_arc' ? input.package.arc
             : input.step.operationKey === 'create_music_cue_sheet' ? input.package.cueSheet : undefined
       return {
@@ -941,6 +946,7 @@ export class CanonicalMusicRouteExecutor {
       finalCompositionHandoff: handoff,
       artifacts: input.state.artifacts,
       segmentationPlan: input.package.segmentationPlan,
+      cueGroupingPlan: input.package.cueGroupingPlan,
       cueConstraintResolutions: input.package.cueConstraintResolutions,
       acceptanceReceipts: [acceptanceReceipt],
       unitReceipts: input.state.unitReceipts,

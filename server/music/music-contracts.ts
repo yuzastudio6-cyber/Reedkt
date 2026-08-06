@@ -9,7 +9,7 @@ import {
 } from '../edit-skills/core/timeline-rate'
 import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
 
-export const MUSIC_SKILL_VERSION = '3.0.0' as const
+export const MUSIC_SKILL_VERSION = '3.1.0' as const
 export const MUSIC_CONTRACT_VERSION = 'music.skill_contract.v3' as const
 export const CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION = 'canonical-music-request-v3' as const
 export const CANONICAL_MUSIC_RESULT_SCHEMA_VERSION = 'canonical-music-result-v3' as const
@@ -351,9 +351,9 @@ export const canonicalMusicRequestSchema = z.object({
     context.addIssue({ code: 'custom', message: 'Circular Music dependency is not allowed.' })
   }
   const requestedCues = [...request.cueConstraints.requestedCues, ...request.proposedCues]
-  if (requestedCues.length > request.userMusicPolicy.maximumCueCount) {
-    context.addIssue({ code: 'custom', message: 'Music cue constraints exceed the approved policy.' })
-  }
+  // Caller-authored constraints may themselves make a hard cue policy impossible. They are admitted as
+  // constraints so the canonical grouping stage can return a typed, evidence-bound policy conflict rather
+  // than failing before Music has explained the minimum professionally valid cue set.
   const cueIds = new Set(requestedCues.map((cue) => cue.cueId))
   if (cueIds.size !== requestedCues.length) {
     context.addIssue({ code: 'custom', message: 'Music cue constraint identities must be unique.' })
@@ -413,6 +413,126 @@ export interface MusicSoundtrackSegmentationPlan {
   crossfadeOverlaps: Array<{ leftSegmentId: string; rightSegmentId: string; range: MusicFrameRange }>
   unresolvedEvidence: string[]
   planHash: string
+}
+
+export interface MusicCueGroupingMember {
+  segmentId: string
+  exactRange: MusicFrameRange
+  classification: MusicSoundtrackSegment['classification']
+  decision: MusicNeedDecisionKind
+  protectedSpeech: boolean
+  naturalAmbiencePriority: boolean
+  locked: boolean
+  cueConstraintIds: string[]
+}
+
+export interface MusicCueGroup {
+  groupId: string
+  exactRange: MusicFrameRange
+  memberSegmentIds: string[]
+  members: MusicCueGroupingMember[]
+  cueRole: CanonicalMusicCueIntent['cueRole']
+  acquisitionFamily: MusicNeedDecisionKind
+  motifOrContinuityFamily: string
+  narrativePurpose: CanonicalMusicCueIntent['narrativeFunction']
+  protectedSpeechBehavior: 'none' | 'instrumental_and_duck' | 'remain_absent'
+  mergeReasons: string[]
+  nonMergeBoundaryReasons: string[]
+  lockedCueConstraintIds: string[]
+  noMusicOrSilenceBoundary: boolean
+  rightsAndProvenanceConstraintIds: string[]
+}
+
+export interface MusicCueGroupingReductionDecision {
+  decisionId: string
+  action: 'merge_compatible_beds' | 'reuse_continuity_family' | 'remove_decorative_cue' |
+    'convert_to_intentional_no_music' | 'convert_to_ambience_only'
+  affectedGroupIds: string[]
+  resultingGroupId?: string
+  reason: string
+  decisionHash: string
+}
+
+export interface MusicCuePolicyConflict {
+  schemaVersion: 'music-cue-policy-conflict-v3'
+  conflictId: string
+  requestId: string
+  requestedMaximumCueCount: number
+  requestedMaximumCueChangesPerMinute: number
+  minimumPossibleCueCount: number
+  minimumPossibleCueChangesPerMinute: number
+  hardConstraintIds: string[]
+  affectedCueGroupIds: string[]
+  affectedSegmentIds: string[]
+  requiresNewApprovalOrPolicyRevision: true
+  reason: string
+  conflictHash: string
+}
+
+export interface MusicCrossfadePlan {
+  schemaVersion: 'music-crossfade-plan-v3'
+  planId: string
+  requestId: string
+  leftCueId: string
+  rightCueId: string
+  leftSource: MusicArtifactRef
+  rightSource: MusicArtifactRef
+  leftSourceRange: MusicFrameRange
+  rightSourceRange: MusicFrameRange
+  targetOverlapRange: MusicFrameRange
+  authorizedWriteRange: MusicFrameRange
+  crossfadeDurationFrames: number
+  crossfadeDurationSamples: number
+  timelineRate: TimelineRate
+  sampleRate: 44_100 | 48_000
+  curveType: 'equal_power' | 'linear'
+  soundRouteIdentity: string
+  soundExtensionVersion: string
+  planHash: string
+}
+
+export interface MusicCrossfadeReceipt {
+  schemaVersion: 'music-crossfade-receipt-v3'
+  planId: string
+  planHash: string
+  soundReceiptHash: string
+  leftSourceHash: string
+  rightSourceHash: string
+  outputArtifact: MusicArtifactRef
+  measuredQaEvidenceHash: string
+  receiptHash: string
+}
+
+export interface MusicCueGroupingPlan {
+  schemaVersion: 'music-cue-grouping-plan-v3'
+  groupingPlanId: string
+  requestId: string
+  sourceSegmentationArtifactId: string
+  sourceSegmentationArtifactHash: string
+  sourceSegmentationPlanHash: string
+  timelineHash: string
+  timelineRate: TimelineRate
+  atomicSegmentIds: string[]
+  groups: MusicCueGroup[]
+  densityCalculation: {
+    durationFrames: number
+    durationMinutes: number
+    cueChangeCount: number
+    cueChangesPerMinute: number
+  }
+  maximumCueCountCalculation: {
+    requestedMaximum: number
+    actualFinal: number
+    satisfied: boolean
+  }
+  maximumCueChangesPerMinuteCalculation: {
+    requestedMaximum: number
+    actualFinal: number
+    satisfied: boolean
+  }
+  reductionDecisions: MusicCueGroupingReductionDecision[]
+  unresolvedTypedConflictIds: string[]
+  groupingHash: string
 }
 
 export interface MusicCueConstraintResolution {
@@ -523,10 +643,26 @@ export interface MusicSoundSupportReceipt {
   appliedTechnicalAutomationHash: string
   appliedOperationReceipts: Array<{
     operation: string
+    operationVersion: string
+    requestedParameters: Record<string, unknown>
     receivedParametersHash: string
+    compiledParameters: Record<string, unknown>
+    compiledParametersHash: string
+    appliedParameters: Record<string, unknown>
     appliedParametersHash: string
+    sourceArtifactIds: string[]
+    sourceArtifactHashes: string[]
     outputArtifactIds: string[]
+    outputArtifactHashes: string[]
+    exactMutationRange: MusicFrameRange
+    handlerIdentity: string
+    routeKey: string
+    routeVersion: string
+    routeHash: string
     measuredQaRefs: string[]
+    measuredQaResult: 'passed' | 'warning' | 'needs_review' | 'failed'
+    status: 'completed'
+    receiptHash: string
   }>
   soundSkillVersion: string
   soundManifestHash: string
@@ -701,6 +837,8 @@ export interface CanonicalMusicSkillResult {
   finalCompositionHandoff?: MusicFinalCompositionHandoff
   artifacts: MusicArtifactEnvelope[]
   segmentationPlan?: MusicSoundtrackSegmentationPlan
+  cueGroupingPlan?: MusicCueGroupingPlan
+  cuePolicyConflict?: MusicCuePolicyConflict
   cueConstraintResolutions: MusicCueConstraintResolution[]
   acceptanceReceipts: MusicAcceptanceReceipt[]
   unitReceipts: MusicExecutionUnitReceipt[]

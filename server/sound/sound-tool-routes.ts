@@ -394,6 +394,23 @@ export const SOUND_TOOL_ROUTE_MANIFESTS = [
     limitations: ['Music owns creative decisions; this route applies only the exact bounded technical automation supplied through the versioned Music extension.'],
   }),
   route({
+    key: 'sound.route.edit.music_two_source_crossfade.v1',
+    version: '1.0.0',
+    capabilities: ['sound.crossfade_music_sources'],
+    jobs: ['crossfade_music_sources'], role: 'primary',
+    requiredInputs: ['approved_left_music_audio', 'approved_right_music_audio',
+      'music_two_source_crossfade_extension'],
+    outputs: ['music_crossfade_audio', 'music_crossfade_receipt_v3'],
+    steps: [{
+      key: 'crossfade_two_sources', tool: 'ffmpeg', toolVersion: ffmpegVersion,
+      operation: 'crossfade_music_two_source', profile: 'sound.crossfade.music_two_source.v1',
+      inputs: ['approved_left_music_audio', 'approved_right_music_audio',
+        'music_two_source_crossfade_extension'],
+      outputs: ['music_crossfade_audio', 'music_crossfade_receipt_v3'], qualification: privateInternal,
+    }],
+    limitations: ['Private/internal exact two-source Music crossfade only; production deployment remains unqualified.'],
+  }),
+  route({
     key: 'sound.route.retime.pitch_preserved.v1',
     capabilities: ['sound.time_stretch_audio', 'sound.pitch_shift_audio'],
     jobs: ['time_stretch_audio', 'pitch_shift_audio'], role: 'primary',

@@ -495,7 +495,7 @@ async function dispatchItem(input: {
   })
 }
 
-interface CaptionBrollInspectionPackage {
+interface CaptionBrollInspectionPackageV2 {
   readonly schemaVersion: 'caption-broll-private-inspection-package-v2'
   readonly previewSha256: string
   readonly captionOverlaySha256: string
@@ -524,9 +524,48 @@ interface CaptionBrollInspectionPackage {
   readonly packageSha256: string
 }
 
+interface CaptionBrollInspectionPackageV3 {
+  readonly schemaVersion: 'caption-broll-private-inspection-package-v3'
+  readonly sourceEvidenceMode: 'real_private_media'
+  readonly normalizedSourceSha256: string
+  readonly previewSha256: string
+  readonly captionOverlaySha256: string
+  readonly layerManifestHash: string
+  readonly integrationQaHash: string
+  readonly frameCount: number
+  readonly fps: number
+  readonly contactSheet: {
+    readonly fileName: string
+    readonly sha256: string
+    readonly sampledFrameCount: number
+  }
+  readonly sampleFrames: readonly {
+    readonly frameIndex: number
+    readonly fileName: string
+    readonly sha256: string
+  }[]
+  readonly actualLibassReadAndRenderFrameExecuted: boolean
+  readonly approvedFontPackUsed: boolean
+  readonly completeTimePrivateVisualReviewRequired: true
+  readonly technicalQaPreviewLabelRequired: true
+  readonly professionalCaptionAppearanceQualificationAllowed: false
+  readonly brollCaptionCoCompositionQualificationAllowed: true
+  readonly mediaBytesIncluded: false
+  readonly sourceMediaPathIncluded: false
+  readonly publicDeliveryGranted: false
+  readonly productionAuthorityGranted: false
+  readonly packageSha256: string
+}
+
+type CaptionBrollInspectionPackage =
+  | CaptionBrollInspectionPackageV2
+  | CaptionBrollInspectionPackageV3
+
 async function createCaptionBrollInspectionPackage(input: {
   root: string
   previewPath: string
+  sourceEvidenceMode: 'synthetic_engineering_fixture' | 'real_private_media'
+  normalizedSourceSha256: string
   previewSha256: string
   captionOverlaySha256: string
   layerManifestHash: string
@@ -575,8 +614,7 @@ async function createCaptionBrollInspectionPackage(input: {
     })
   }
   const contactSheetBytes = await readFile(contactSheetPath)
-  const withoutDigest: Omit<CaptionBrollInspectionPackage, 'packageSha256'> = {
-    schemaVersion: 'caption-broll-private-inspection-package-v2',
+  const common = {
     previewSha256: input.previewSha256,
     captionOverlaySha256: input.captionOverlaySha256,
     layerManifestHash: input.layerManifestHash,
@@ -592,17 +630,30 @@ async function createCaptionBrollInspectionPackage(input: {
     actualLibassReadAndRenderFrameExecuted:
       input.actualLibassReadAndRenderFrameExecuted,
     approvedFontPackUsed: input.approvedFontPackUsed,
-    completeTimePrivateVisualReviewRequired: true,
-    technicalQaPreviewLabelRequired: true,
-    professionalCaptionAppearanceQualificationAllowed: false,
-    mediaBytesIncluded: false,
-    publicDeliveryGranted: false,
-    productionAuthorityGranted: false,
+    completeTimePrivateVisualReviewRequired: true as const,
+    technicalQaPreviewLabelRequired: true as const,
+    professionalCaptionAppearanceQualificationAllowed: false as const,
+    mediaBytesIncluded: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
   }
+  const withoutDigest = input.sourceEvidenceMode === 'real_private_media'
+    ? {
+      schemaVersion: 'caption-broll-private-inspection-package-v3' as const,
+      sourceEvidenceMode: 'real_private_media' as const,
+      normalizedSourceSha256: input.normalizedSourceSha256,
+      ...common,
+      brollCaptionCoCompositionQualificationAllowed: true as const,
+      sourceMediaPathIncluded: false as const,
+    }
+    : {
+    schemaVersion: 'caption-broll-private-inspection-package-v2',
+      ...common,
+    } satisfies Omit<CaptionBrollInspectionPackageV2, 'packageSha256'>
   const inspectionPackage = Object.freeze({
     ...withoutDigest,
     packageSha256: hashSkillValue(withoutDigest),
-  })
+  }) as CaptionBrollInspectionPackage
   await writeFile(
     join(inspectionRoot, 'inspection-package.json'),
     `${JSON.stringify(inspectionPackage, null, 2)}\n`,
@@ -615,11 +666,15 @@ async function readCaptionBrollDirectInspection(input: {
   expectedReceiptSha256: string
   inspectionPackage: CaptionBrollInspectionPackage
 }): Promise<{
-  schemaVersion: 'caption-broll-direct-private-inspection-v2'
+  schemaVersion:
+    | 'caption-broll-direct-private-inspection-v2'
+    | 'caption-broll-direct-private-inspection-v3'
   reviewId: string
   reviewerClass: 'qualified_visual_ai'
   disposition: 'accepted_with_warnings'
   reviewedAt: string
+  sourceEvidenceMode: 'synthetic_engineering_fixture' | 'real_private_media'
+  brollCaptionCoCompositionQualified: boolean
 }> {
   assert.match(input.expectedReceiptSha256, /^[a-f0-9]{64}$/u)
   const receiptPath = join(
@@ -631,7 +686,7 @@ async function readCaptionBrollDirectInspection(input: {
   assert.equal(sha256(receiptBytes), input.expectedReceiptSha256,
     'Direct B-roll visual-inspection receipt bytes do not match admission.')
   const value = JSON.parse(receiptBytes.toString('utf8')) as Record<string, unknown>
-  assert.deepEqual(Object.keys(value).sort(), [
+  const v2Keys = [
     'allSampleFramesReviewed',
     'captionLayerAboveBrollVerified',
     'captionSafeAreaVerified',
@@ -650,9 +705,22 @@ async function readCaptionBrollDirectInspection(input: {
     'syntheticFixtureLimitationAcknowledged',
     'technicalQaPreviewLabelVisible',
     'professionalCaptionAppearanceQualified',
-  ].sort())
-  assert.equal(value.schemaVersion,
-    'caption-broll-direct-private-inspection-v2')
+  ].sort()
+  const v3Keys = [
+    ...v2Keys,
+    'brollCaptionCoCompositionQualified',
+    'normalizedSourceSha256',
+    'realPrivateSourceMediaReviewed',
+    'sourceEvidenceMode',
+  ].sort()
+  const realPrivateSource = input.inspectionPackage.schemaVersion
+    === 'caption-broll-private-inspection-package-v3'
+  assert.deepEqual(Object.keys(value).sort(), realPrivateSource
+    ? v3Keys
+    : v2Keys)
+  assert.equal(value.schemaVersion, realPrivateSource
+    ? 'caption-broll-direct-private-inspection-v3'
+    : 'caption-broll-direct-private-inspection-v2')
   assert.equal(value.inspectionPackageSha256,
     input.inspectionPackage.packageSha256)
   assert.equal(value.reviewerClass, 'qualified_visual_ai')
@@ -664,26 +732,44 @@ async function readCaptionBrollDirectInspection(input: {
     'captionSafeAreaVerified',
     'captionLayerAboveBrollVerified',
     'noClippingOrCollisionObserved',
-    'syntheticFixtureLimitationAcknowledged',
     'technicalQaPreviewLabelVisible',
   ]) assert.equal(value[field], true, `${field} must be true.`)
+  assert.equal(value.syntheticFixtureLimitationAcknowledged,
+    !realPrivateSource)
   assert.equal(value.professionalCaptionAppearanceQualified, false)
+  if (realPrivateSource) {
+    assert.equal(value.sourceEvidenceMode, 'real_private_media')
+    assert.equal(value.normalizedSourceSha256,
+      input.inspectionPackage.normalizedSourceSha256)
+    assert.equal(value.realPrivateSourceMediaReviewed, true)
+    assert.equal(value.brollCaptionCoCompositionQualified, true)
+  }
   assert.equal(value.mediaBytesIncluded, false)
   assert.equal(value.publicDeliveryGranted, false)
   assert.equal(value.productionAuthorityGranted, false)
   assert.match(String(value.reviewId), /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u)
   assert.equal(Number.isNaN(Date.parse(String(value.reviewedAt))), false)
   return {
-    schemaVersion: 'caption-broll-direct-private-inspection-v2',
+    schemaVersion: realPrivateSource
+      ? 'caption-broll-direct-private-inspection-v3'
+      : 'caption-broll-direct-private-inspection-v2',
     reviewId: String(value.reviewId),
     reviewerClass: 'qualified_visual_ai',
     disposition: 'accepted_with_warnings',
     reviewedAt: String(value.reviewedAt),
+    sourceEvidenceMode: realPrivateSource
+      ? 'real_private_media'
+      : 'synthetic_engineering_fixture',
+    brollCaptionCoCompositionQualified: realPrivateSource,
   }
 }
 
 const requestedCaptionEvidenceRoot =
   process.env.REEDITPRO_CAPTION_BROLL_PRIVATE_EVIDENCE_ROOT?.trim() ?? ''
+const requestedPrivateSourceMediaPath =
+  process.env.REEDITPRO_CAPTION_BROLL_PRIVATE_SOURCE_MEDIA_PATH?.trim() ?? ''
+const requestedPrivateSourceMediaSha256 =
+  process.env.REEDITPRO_CAPTION_BROLL_PRIVATE_SOURCE_MEDIA_SHA256?.trim() ?? ''
 const captionBrollEvidenceRequired =
   process.env.REEDITPRO_CAPTION_BROLL_REQUIRE_EVIDENCE === '1'
 const root = requestedCaptionEvidenceRoot.length > 0
@@ -695,17 +781,51 @@ if (captionBrollEvidenceRequired && !preserveRoot) {
     'Caption B-roll private evidence requires an explicit private evidence root.',
   )
 }
+if (requestedPrivateSourceMediaPath.length > 0 && !preserveRoot) {
+  throw new Error(
+    'Real Caption B-roll source media requires an explicit private evidence root.',
+  )
+}
+if (requestedPrivateSourceMediaPath.length > 0
+  && !/^[a-f0-9]{64}$/u.test(requestedPrivateSourceMediaSha256)) {
+  throw new Error(
+    'Real Caption B-roll source media requires its exact SHA-256.',
+  )
+}
+const sourceEvidenceMode = requestedPrivateSourceMediaPath.length > 0
+  ? 'real_private_media' as const
+  : 'synthetic_engineering_fixture' as const
 if (preserveRoot) await mkdir(root, { recursive: true })
 try {
   const sourcePath = join(root, 'source.mp4')
   const candidatePath = join(root, 'candidate.mp4')
   const captionPath = join(root, 'caption.png')
-  const sourceProcess = spawnSync('ffmpeg', [
-    '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
-    'testsrc2=size=320x180:rate=24:duration=4', '-an', '-c:v', 'libx264',
-    '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-    '-threads', '1', '-y', sourcePath,
-  ], { encoding: 'utf8' })
+  let sourceProcess: ReturnType<typeof spawnSync>
+  if (sourceEvidenceMode === 'real_private_media') {
+    const sourceInputPath = resolve(requestedPrivateSourceMediaPath)
+    const sourceInputBytes = await readFile(sourceInputPath)
+    assert.equal(sha256(sourceInputBytes), requestedPrivateSourceMediaSha256,
+      'Real Caption B-roll source media changed before normalization.')
+    sourceProcess = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-i', sourceInputPath,
+      '-filter_complex',
+      '[0:v]split=2[bgsrc][fgsrc];' +
+      '[bgsrc]scale=320:180:force_original_aspect_ratio=increase,' +
+      'crop=320:180,gblur=sigma=18[bg];' +
+      '[fgsrc]scale=320:180:force_original_aspect_ratio=decrease[fg];' +
+      '[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p,fps=24[out]',
+      '-map', '[out]', '-an', '-frames:v', '96', '-c:v', 'libx264',
+      '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+      '-movflags', '+faststart', '-threads', '1', '-y', sourcePath,
+    ], { encoding: 'utf8' })
+  } else {
+    sourceProcess = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
+      'testsrc2=size=320x180:rate=24:duration=4', '-an', '-c:v', 'libx264',
+      '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+      '-threads', '1', '-y', sourcePath,
+    ], { encoding: 'utf8' })
+  }
   assert.equal(sourceProcess.status, 0, sourceProcess.stderr)
   const candidateProcess = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error', '-f', 'lavfi', '-i',
@@ -742,7 +862,9 @@ try {
         fontSize: 38,
         marginV: 42,
         alignment: 2,
-        caption: 'Ideas move through the frame',
+        caption: sourceEvidenceMode === 'real_private_media'
+          ? "I'm launching my new AI software."
+          : 'Ideas move through the frame',
       },
     })
     captionBytes = caption.imageArtifact.bytes
@@ -789,6 +911,7 @@ try {
     readFile(sourcePath),
     readFile(candidatePath),
   ])
+  const normalizedSourceSha256 = sha256(sourceBytes)
   const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
   await prepareOfflineRemotionDockerRuntime()
   const remotionRuntime = await activatePrivateOfflineRemotionRenderRuntime()
@@ -947,6 +1070,8 @@ try {
     const inspectionPackage = await createCaptionBrollInspectionPackage({
       root,
       previewPath,
+      sourceEvidenceMode,
+      normalizedSourceSha256,
       previewSha256: preview.sha256,
       captionOverlaySha256,
       layerManifestHash: sourceSnapshot.layerManifest.layerManifestHash,
@@ -1229,8 +1354,7 @@ try {
       // immutable-snapshot comparison.
       assert.equal(snapshotReads, 8)
       assert.equal(reviewReads, 2)
-      const finalReceipt = {
-        schemaVersion: 'caption-broll-owner-private-runtime-receipt-v1',
+      const commonFinalReceipt = {
         status: 'passed_with_direct_private_visual_inspection',
         inspectionPackageSha256: inspectionPackage.packageSha256,
         directInspectionReceiptSha256: directInspectionSha256,
@@ -1253,6 +1377,23 @@ try {
         publicDeliveryGranted: false,
         productionAuthorityGranted: false,
       }
+      const finalReceipt = sourceEvidenceMode === 'real_private_media'
+        ? {
+          schemaVersion: 'caption-broll-owner-private-runtime-receipt-v2',
+          ...commonFinalReceipt,
+          sourceEvidenceMode,
+          normalizedSourceSha256,
+          realPrivateSourceMediaUsed: true,
+          sourceMediaPathIncluded: false,
+          brollCaptionCoCompositionQualified:
+            directInspection.brollCaptionCoCompositionQualified,
+          professionalCaptionAppearanceQualified: false,
+          independentFinalQaApprovalGranted: false,
+        }
+        : {
+          schemaVersion: 'caption-broll-owner-private-runtime-receipt-v1',
+          ...commonFinalReceipt,
+        }
       await writeFile(
         join(root, 'caption-broll-owner-private-runtime-receipt.json'),
         `${JSON.stringify(finalReceipt, null, 2)}\n`,

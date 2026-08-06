@@ -47,6 +47,50 @@ async function readHandoff(page: Page): Promise<LocalInternalProjectHandoff | un
   }, handoffStorageKey)
 }
 
+async function readBackendHandoff(
+  page: Page,
+  handoff: Pick<LocalInternalProjectHandoff, 'editSessionId' | 'projectId' | 'workspaceId'>,
+): Promise<LocalInternalProjectHandoff | undefined> {
+  const response = await page.request.get(
+    `${currentEditPreferencesApiBaseUrl}/v1/projects/${encodeURIComponent(handoff.projectId)}/internal-edit-state`,
+    {
+      params: {
+        workspaceId: handoff.workspaceId,
+        editSessionId: handoff.editSessionId,
+      },
+    },
+  )
+  if (!response.ok()) return undefined
+  const body = await response.json() as {
+    data?: {
+      internalEditState?: {
+        handoff?: LocalInternalProjectHandoff
+      }
+    }
+  }
+  return body.data?.internalEditState?.handoff
+}
+
+async function waitForExactBackendHandoff(
+  page: Page,
+  expected: LocalInternalProjectHandoff,
+): Promise<void> {
+  await expect.poll(async () => {
+    const persisted = await readBackendHandoff(page, expected)
+    return persisted
+      ? {
+          editSessionId: persisted.editSessionId,
+          setup: persisted.setup,
+          updatedAt: persisted.updatedAt,
+        }
+      : undefined
+  }).toEqual({
+    editSessionId: expected.editSessionId,
+    setup: expected.setup,
+    updatedAt: expected.updatedAt,
+  })
+}
+
 async function openAdvancedPreferences(page: Page) {
   const advanced = page.getByTestId('current-edit-preferences-advanced')
   if (await advanced.getAttribute('open') === null) {
@@ -333,19 +377,29 @@ test.describe('saved and current Edit Preferences', () => {
 
   test('does not confirm untouched setup gates when only a non-gate preference changes', async ({ page }) => {
     await createNamedEdit(page, 'unconfirmed-defaults')
-    const unconfirmedHandoff = await page.evaluate((storageKey) => {
-      const envelope = JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as {
-        handoffs?: LocalInternalProjectHandoff[]
-      }
-      const handoff = envelope.handoffs?.[0]
-      if (!handoff) throw new Error('The exact named-edit handoff was not found.')
-      handoff.setup.editLevelConfirmed = false
-      handoff.setup.cleanupPreferenceConfirmed = false
-      handoff.setup.visualPreferenceConfirmed = false
-      handoff.updatedAt = new Date().toISOString()
-      window.localStorage.setItem(storageKey, JSON.stringify(envelope))
-      return handoff
-    }, handoffStorageKey)
+    const createdHandoff = await readHandoff(page)
+    if (!createdHandoff) throw new Error('The exact named-edit handoff was not found.')
+
+    // Creating the edit starts an asynchronous private-recovery save. Prove
+    // that exact revision landed, then unload the app before installing the
+    // deliberately unconfirmed fixture. This prevents a stale React snapshot
+    // from racing the fixture when this suite is run repeatedly in one CI job.
+    await waitForExactBackendHandoff(page, createdHandoff)
+    const editorUrl = page.url()
+    await page.goto('about:blank')
+
+    const unconfirmedHandoff: LocalInternalProjectHandoff = {
+      ...createdHandoff,
+      setup: {
+        ...createdHandoff.setup,
+        editLevelConfirmed: false,
+        cleanupPreferenceConfirmed: false,
+        visualPreferenceConfirmed: false,
+      },
+      updatedAt: new Date(
+        Math.max(Date.now(), Date.parse(createdHandoff.updatedAt) + 1),
+      ).toISOString(),
+    }
     const backendPersistResponse = await page.request.put(
       `${currentEditPreferencesApiBaseUrl}/v1/projects/${encodeURIComponent(unconfirmedHandoff.projectId)}/internal-edit-state`,
       {
@@ -363,7 +417,29 @@ test.describe('saved and current Edit Preferences', () => {
       backendPersistResponse.ok(),
       `The unconfirmed setup fixture could not be persisted: ${await backendPersistResponse.text()}`,
     ).toBe(true)
-    await page.reload()
+    await waitForExactBackendHandoff(page, unconfirmedHandoff)
+
+    await page.addInitScript(({ storageKey, targetHandoff }) => {
+      const fixtureMarker = `reeditpro.current-edit-unconfirmed-fixture.${targetHandoff.editSessionId}`
+      if (window.sessionStorage.getItem(fixtureMarker) === 'installed') return
+      const envelope = JSON.parse(window.localStorage.getItem(storageKey) ?? '{}') as {
+        handoffs?: LocalInternalProjectHandoff[]
+        savedAt?: string
+      }
+      envelope.handoffs = [
+        targetHandoff,
+        ...(envelope.handoffs ?? []).filter(
+          (handoff) => handoff.editSessionId !== targetHandoff.editSessionId,
+        ),
+      ]
+      envelope.savedAt = targetHandoff.updatedAt
+      window.localStorage.setItem(storageKey, JSON.stringify(envelope))
+      window.sessionStorage.setItem(fixtureMarker, 'installed')
+    }, {
+      storageKey: handoffStorageKey,
+      targetHandoff: unconfirmedHandoff,
+    })
+    await page.goto(editorUrl)
     await expect.poll(async () => (await readHandoff(page))?.setup).toMatchObject({
       editLevelConfirmed: false,
       cleanupPreferenceConfirmed: false,

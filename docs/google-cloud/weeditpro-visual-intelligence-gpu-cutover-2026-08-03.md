@@ -339,6 +339,18 @@ idempotent rerun then observed all five disabled and emitted
   SAM 3.1 inference claim. Private-network provisioning, canonical lifecycle
   bridging, account-effective rate authority, checkpoint-bearing image, and
   independent A100/L4 execution evidence remain required.
+- The guarded Vertex private-foundation operator completed and exact-reread
+  private services access on 2026-08-06. Service Networking is enabled; the
+  fixed `weeditpro-gpu-private` VPC has an active
+  `servicenetworking-googleapis-com` peering backed only by the reserved
+  `10.43.0.0/16` range; the VPC still has no router or Cloud NAT. The existing
+  API identity has Vertex Custom Job creation authority and impersonation only
+  for the existing SAM 3.1 worker identity, while the Google-managed Vertex
+  service agent has encrypt/decrypt access to the existing HSM-backed
+  qualification key. The exact receipt is
+  `weeditpro-sam31-vertex-a100-private-foundation-receipt-v1`. This
+  control-plane step created no Custom Job, checkpoint/image, charge, QA
+  approval, delivery, or production authority.
 - The project has one L4 of Compute quota. The separately scoped Track All
   task-QA image now has an independently built, scanned, signed, and privately
   qualified L4 path; this does not qualify the checkpoint-bearing SAM 3.1

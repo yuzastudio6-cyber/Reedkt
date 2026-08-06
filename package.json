@@ -315,6 +315,8 @@
     "smoke:visual-intelligence-account-price-reader-grant": "tsx server/smoke/visual-intelligence-account-price-reader-grant-smoke.ts",
     "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:a100-vertex-custom-job-launch": "tsx server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts",
+    "provision:sam3_1-vertex-a100-private-foundation": "bash scripts/gcp/prod/27-provision-sam31-vertex-a100-private-foundation.sh",
+    "smoke:sam3_1-vertex-a100-private-foundation": "tsx server/smoke/sam31-vertex-a100-private-foundation-smoke.ts",
     "smoke:visual-intelligence-quality-gpu-release": "tsx server/smoke/visual-intelligence-quality-gpu-release-smoke.ts",
     "qa:visual-intelligence-quality-gpu-release": "node scripts/verify-visual-intelligence-quality-gpu-release.mjs",
     "smoke:offline-libass-caption-execution": "tsx server/smoke/offline-libass-caption-execution-smoke.ts",

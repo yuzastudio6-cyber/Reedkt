@@ -99,6 +99,13 @@ evidence, rendered output, complete-time visual review, independent final QA,
 and private-review decision. Several records must then cover the full job
 surface before terminal status can be published.
 
+The V4 composition now also mounts a private approved-run controller. It
+persists the closed Caption-owned inspection bundle, projects it through the exact
+canonical authority adapter, and then asks the existing approved-run assembly
+to reread and persist the run. If any owner, artifact, model-review, final-QA,
+or private-review evidence is missing, the controller returns a waiting result
+and keeps terminal/catalog status unchanged.
+
 When that real catalog is complete, the final record also publishes the
 standard 41-entry `SkillQualificationSnapshot` for `planning` and
 `private_internal`. It deliberately leaves generic whole-skill and production

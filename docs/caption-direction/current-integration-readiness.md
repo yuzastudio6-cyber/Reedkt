@@ -218,6 +218,12 @@ approved original-source binding twice, then persists one exact
 smoke proves the adapter and adversarial boundary only. A fresh approved run
 has not used it yet, so actual qualification remains unchanged.
 
+The private V4 qualification composition also mounts the exact inspection-to-
+run controller. It can now persist the accepted direct-inspection record and
+continue into the canonical approved-run reader in one bounded operation. Its
+source smoke reaches the truthful waiting disposition because no fresh run
+contains all remaining evidence; it does not create or promote missing data.
+
 ## Next milestone
 
 Run one authorized canonical private end-to-end qualification that supplies the

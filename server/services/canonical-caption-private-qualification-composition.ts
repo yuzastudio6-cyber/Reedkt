@@ -5,6 +5,9 @@ import type {
   CanonicalCaptionPrivateInternalQualificationService,
 } from '../../src/types/canonical-caption-private-internal-qualification'
 import type {
+  CanonicalCaptionPrivateQualificationRunController,
+} from '../../src/types/canonical-caption-private-qualification-run-controller'
+import type {
   CanonicalCaptionDirectVisualInspectionRepository,
 } from '../../src/types/canonical-caption-direct-visual-inspection-evidence'
 import type {
@@ -31,6 +34,9 @@ import {
   createCanonicalCaptionPrivateInternalQualificationRepository,
   createCanonicalCaptionPrivateInternalQualificationService,
 } from './canonical-caption-private-internal-qualification-service'
+import {
+  createCanonicalCaptionPrivateQualificationRunController,
+} from './canonical-caption-private-qualification-run-controller'
 import {
   createCanonicalCaptionQualificationRunEvidenceAssembly,
   createCanonicalCaptionQualificationRunEvidenceReader,
@@ -61,6 +67,8 @@ export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V2_VERSION =
   'canonical-caption-private-qualification-composition-v2' as const
 export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V3_VERSION =
   'canonical-caption-private-qualification-composition-v3' as const
+export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V4_VERSION =
+  'canonical-caption-private-qualification-composition-v4' as const
 
 /**
  * Private qualification composition only. It reads existing canonical owners,
@@ -115,6 +123,16 @@ export interface CanonicalCaptionPrivateQualificationCompositionV3
     CanonicalCaptionRealSourceInspectionProjectionServiceV3
   readonly canonicalApprovedRunAuthorityAdapterMounted: true
   readonly exactOriginalSourceBindingRequired: true
+}
+
+export interface CanonicalCaptionPrivateQualificationCompositionV4
+  extends Omit<CanonicalCaptionPrivateQualificationCompositionV3,
+  'schemaVersion'> {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V4_VERSION
+  readonly approvedRunController:
+    CanonicalCaptionPrivateQualificationRunController
+  readonly inspectionToRunEvidenceMounted: true
 }
 
 export interface CanonicalCaptionPrivateQualificationCompositionInput {
@@ -266,5 +284,25 @@ export function createCanonicalCaptionPrivateQualificationCompositionV3(
     historicalInspectionReceiptAutoPromoted: false,
     canonicalApprovedRunAuthorityAdapterMounted: true,
     exactOriginalSourceBindingRequired: true,
+  })
+}
+
+export function createCanonicalCaptionPrivateQualificationCompositionV4(
+  input: CanonicalCaptionPrivateQualificationCompositionInput,
+): CanonicalCaptionPrivateQualificationCompositionV4 {
+  const base = createCanonicalCaptionPrivateQualificationCompositionV3(input)
+  return Object.freeze({
+    ...base,
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V4_VERSION,
+    approvedRunController:
+      createCanonicalCaptionPrivateQualificationRunController({
+        inspectionBundleRepository:
+          base.realSourceInspectionBundleRepository,
+        inspectionProjectionService:
+          base.realSourceInspectionProjectionService,
+        runEvidenceAssembly: base.runEvidenceAssembly,
+      }),
+    inspectionToRunEvidenceMounted: true,
   })
 }

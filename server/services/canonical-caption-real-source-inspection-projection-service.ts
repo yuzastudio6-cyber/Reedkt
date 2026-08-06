@@ -190,6 +190,7 @@ const admittedReadPortsV2 = new WeakSet<object>()
 const admittedAuthorityReadPortsV2 = new WeakSet<object>()
 const admittedAuthorityReadPortsV3 = new WeakSet<object>()
 const admittedBundleRepositories = new WeakSet<object>()
+const admittedProjectionServicesV3 = new WeakSet<object>()
 
 interface SelectedInspectionEvidence {
   observedAt: string
@@ -785,7 +786,7 @@ export function createCanonicalCaptionRealSourceInspectionProjectionServiceV3(
     throw new Error(
       'Canonical Caption real-source inspection V3 ports invalid.')
   }
-  return Object.freeze({
+  const service = Object.freeze({
     schemaVersion:
       CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V3_VERSION,
     tenantScopedBundleRereadRequired: true as const,
@@ -834,6 +835,15 @@ export function createCanonicalCaptionRealSourceInspectionProjectionServiceV3(
       return compatibilityCore.project(request)
     },
   })
+  admittedProjectionServicesV3.add(service)
+  return service
+}
+
+export function isCanonicalCaptionRealSourceInspectionProjectionServiceV3(
+  value: unknown,
+): value is CanonicalCaptionRealSourceInspectionProjectionServiceV3 {
+  return Boolean(value && typeof value === 'object'
+    && admittedProjectionServicesV3.has(value as object))
 }
 
 async function readApprovedRunInspectionAuthority(

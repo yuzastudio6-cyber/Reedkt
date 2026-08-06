@@ -267,6 +267,7 @@ const legacyRecordV1Schema = recordSchema.extend({
 
 const admittedReadPorts = new WeakSet<object>()
 const admittedRepositories = new WeakSet<object>()
+const admittedAssemblies = new WeakSet<object>()
 
 class MissingCanonicalRunEvidence extends Error {}
 
@@ -440,7 +441,7 @@ export function createCanonicalCaptionQualificationRunEvidenceAssembly(input: {
       }
       return structuredClone(reread)
     })
-  return Object.freeze({
+  const assembly = Object.freeze({
     schemaVersion:
       CANONICAL_CAPTION_QUALIFICATION_RUN_EVIDENCE_ASSEMBLY_V2_VERSION,
     evidenceReadPort,
@@ -461,6 +462,15 @@ export function createCanonicalCaptionQualificationRunEvidenceAssembly(input: {
     publicDeliveryAuthorityGrantedToCaption: false,
     productionAuthorityGrantedToCaption: false,
   })
+  admittedAssemblies.add(assembly)
+  return assembly
+}
+
+export function isCanonicalCaptionQualificationRunEvidenceAssembly(
+  value: unknown,
+): value is CanonicalCaptionQualificationRunEvidenceAssembly {
+  return Boolean(value && typeof value === 'object'
+    && admittedAssemblies.has(value as object))
 }
 
 export function createCanonicalCaptionQualificationRunEvidenceReader(input: {

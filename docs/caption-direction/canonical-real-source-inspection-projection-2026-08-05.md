@@ -66,6 +66,9 @@ and cross-source lookup fail closed.
 - `canonical-caption-real-source-inspection-projection-service-v3`
 - `canonical-caption-private-qualification-composition-v2`
 - `canonical-caption-private-qualification-composition-v3`
+- `canonical-caption-private-qualification-run-controller-v1`
+- `canonical-caption-private-qualification-run-outcome-v1`
+- `canonical-caption-private-qualification-composition-v4`
 
 ## Existing owners reused
 
@@ -106,6 +109,10 @@ It checks exact per-variant contact-sheet and original-resolution coverage,
 tenant-scoped create-only persistence and replay, cross-tenant refusal, exact
 receipt/source authority lineage, stale digest, crossed kind/source/output,
 changed rereads, unadmitted ports, unsafe fields, and unsorted source bindings.
+It also proves that the private run controller persists accepted inspection
+evidence, attempts the canonical approved-run reread, and remains in an explicit
+waiting state when the other run gates are absent. Missing run evidence is not
+promoted or synthesized.
 The fixture is explicitly a source contract fixture; it is not inserted into
 the actual qualification catalog.
 
@@ -147,6 +154,6 @@ source authority and without promoting synthetic engineering media.
 
 ## Next milestone
 
-Run representative approved edits through the V3 private composition so they
+Run representative approved edits through the V4 private composition so they
 persist exact real-source inspection evidence and the remaining owner/QA
 evidence into the multi-run catalog.

@@ -23,6 +23,9 @@ import type {
   CanonicalCaptionRealSourceInspectionVariant,
 } from '../../src/types/canonical-caption-real-source-inspection-projection'
 import {
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
+} from '../captions-specialist/caption-current-job-readiness'
+import {
   createCaptionRealSourceCompleteTimeInspectionReceipt,
 } from '../captions-specialist/caption-real-source-complete-time-inspection'
 import {
@@ -39,6 +42,15 @@ import {
 import {
   createCanonicalCaptionDirectVisualInspectionRepository,
 } from '../services/canonical-caption-direct-visual-inspection-evidence-service'
+import {
+  createCanonicalCaptionPrivateQualificationRunController,
+  parseCanonicalCaptionPrivateQualificationRunOutcome,
+} from '../services/canonical-caption-private-qualification-run-controller'
+import {
+  createCanonicalCaptionQualificationRunEvidenceAssembly,
+  createCanonicalCaptionQualificationRunEvidenceReadPort,
+  createCanonicalCaptionQualificationRunEvidenceRepository,
+} from '../services/canonical-caption-qualification-run-evidence-reader'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
@@ -50,6 +62,9 @@ import {
   createCanonicalCaptionRealSourceInspectionProjectionServiceV3,
   parseCanonicalCaptionRealSourceInspectionProjectionRequest,
 } from '../services/canonical-caption-real-source-inspection-projection-service'
+import {
+  createCanonicalCaptionTerminalQualificationRequest,
+} from '../services/canonical-caption-terminal-qualification-service'
 
 const OBSERVED_AT = '2026-08-05T20:45:00.000Z'
 const SPOT_FRAMES = [8, 21, 80, 122] as const
@@ -683,6 +698,102 @@ async function run(): Promise<void> {
   check(replay.evidence.evidenceDigestSha256 ===
     (await service.project(requests[0]!)).evidence.evidenceDigestSha256,
   'Exact replay must remain byte-identical and idempotent.')
+  const firstRequest = requests[0]!
+  const terminalRequest =
+    createCanonicalCaptionTerminalQualificationRequest({
+      requestId: 'caption.projection.qualification-run.request',
+      canonicalScope: {
+        ownerUserId: firstRequest.canonicalScope.ownerUserId,
+        workspaceId: firstRequest.canonicalScope.workspaceId,
+        projectId: firstRequest.canonicalScope.projectId,
+        editSessionId: firstRequest.canonicalScope.editSessionId,
+        planVersionId: firstRequest.canonicalScope.planVersionId,
+        approvedSnapshotRef:
+          firstRequest.canonicalScope.approvedSnapshotRef,
+      },
+      executionPackageRef: firstRequest.canonicalScope.executionPackageRef,
+      currentJobReadinessRef: {
+        id: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerId,
+        version: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.schemaVersion,
+        contentHash:
+          CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerDigestSha256,
+      },
+      requiredOutputIds: [firstRequest.canonicalScope.outputId],
+      privateInternalQualificationRun: true,
+      callerSuppliedEvidenceAccepted: false,
+      browserLocalCompletionAccepted: false,
+      rawChatMediaBytesPathsUrlsOrCredentialsIncluded: false,
+      operationOrRuntimeAuthorityGrantedToCaption: false,
+      providerOrModelAuthorityGrantedToCaption: false,
+      assetMutationAuthorityGrantedToCaption: false,
+      finalQaApprovalAuthorityGrantedToCaption: false,
+      creditOrBillingAuthorityGrantedToCaption: false,
+      publicDeliveryAuthorityGrantedToCaption: false,
+      productionAuthorityGrantedToCaption: false,
+    })
+  const runAssembly = createCanonicalCaptionQualificationRunEvidenceAssembly({
+    sourceReadPort:
+      createCanonicalCaptionQualificationRunEvidenceReadPort(async () => null),
+    repository: createCanonicalCaptionQualificationRunEvidenceRepository({
+      objectPort: memoryPort().port,
+      prefix: 'private-internal/caption-projection-controller-run-smoke',
+    }),
+  })
+  const controller = createCanonicalCaptionPrivateQualificationRunController({
+    inspectionBundleRepository: bundleReadPort,
+    inspectionProjectionService: service,
+    runEvidenceAssembly: runAssembly,
+  })
+  expectThrow(() => createCanonicalCaptionPrivateQualificationRunController({
+    inspectionBundleRepository: bundleReadPort,
+    inspectionProjectionService: service,
+    runEvidenceAssembly: { ...runAssembly },
+  }))
+  const controllerInput = {
+    inspectionRequest: firstRequest,
+    inspectionBundle: bundles.get(refKey(firstRequest.receiptRef))!,
+    qualificationRequest: terminalRequest,
+    captionOwnedClosedDirectInspectionReceiptProvided: true as const,
+    exactApprovedRunRereadRequired: true as const,
+    callerSuppliedCanonicalAuthorityAccepted: false as const,
+    browserLocalCompletionAccepted: false as const,
+    operationOrRuntimeAuthorityGrantedToCaption: false as const,
+    providerOrModelAuthorityGrantedToCaption: false as const,
+    assetMutationAuthorityGrantedToCaption: false as const,
+    finalQaApprovalAuthorityGrantedToCaption: false as const,
+    creditOrBillingAuthorityGrantedToCaption: false as const,
+    publicDeliveryAuthorityGrantedToCaption: false as const,
+    productionAuthorityGrantedToCaption: false as const,
+  }
+  const pendingRun = await controller.reconcileApprovedRun(controllerInput)
+  check(pendingRun.disposition ===
+    'inspection_projected_waiting_for_complete_run'
+    && pendingRun.qualificationRunEvidence === null
+    && pendingRun.qualificationRunEvidenceRef === null
+    && pendingRun.canonicalRunEvidenceSourceReadAttempted
+    && !pendingRun.qualificationRunEvidencePersistedAndExactReread
+    && !pendingRun.incompleteRunPromoted,
+  'The controller must persist inspection evidence and wait for missing gates.')
+  const pendingReplay = await controller.reconcileApprovedRun(controllerInput)
+  check(pendingReplay.outcomeDigestSha256 === pendingRun.outcomeDigestSha256,
+  'The incomplete approved-run replay must remain deterministic and idempotent.')
+  const falselyPersisted = structuredClone(pendingRun) as unknown as
+    Record<string, unknown>
+  falselyPersisted.qualificationRunEvidencePersistedAndExactReread = true
+  falselyPersisted.outcomeDigestSha256 = calculateSkillContractDigest(
+    falselyPersisted, 'outcomeDigestSha256')
+  expectThrow(() => parseCanonicalCaptionPrivateQualificationRunOutcome(
+    falselyPersisted))
+  const crossedTerminalRequest =
+    createCanonicalCaptionTerminalQualificationRequest({
+      ...structuredClone(terminalRequest),
+      requestId: 'caption.projection.qualification-run.crossed',
+      requiredOutputIds: ['caption-projection-crossed-output'],
+    })
+  await expectReject(() => controller.reconcileApprovedRun({
+    ...controllerInput,
+    qualificationRequest: crossedTerminalRequest,
+  }))
   check(await bundleReadPort.persistBundleCreateOnly({
     locator: {
       canonicalScope: requests[0]!.canonicalScope,
@@ -830,6 +941,8 @@ async function run(): Promise<void> {
     actualHistoricalInspectionReceiptsConsumedAtRuntime: false,
     canonicalApprovedRunAuthorityRereadTwice: true,
     exactOriginalSourceBindingRequired: true,
+    inspectionToRunControllerPendingPathVerified: true,
+    incompleteRunPromoted: false,
     actualQualificationCatalogPersisted: false,
     syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
     sharedPostrenderModelReviewClaimed: false,

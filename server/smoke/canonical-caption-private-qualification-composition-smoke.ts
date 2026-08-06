@@ -7,6 +7,7 @@ import {
   createCanonicalCaptionPrivateQualificationComposition,
   createCanonicalCaptionPrivateQualificationCompositionV2,
   createCanonicalCaptionPrivateQualificationCompositionV3,
+  createCanonicalCaptionPrivateQualificationCompositionV4,
 } from '../services/canonical-caption-private-qualification-composition'
 import {
   createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
@@ -112,6 +113,18 @@ const compositionV3 =
     brollEvidenceRepository,
     prefix: 'private-internal/caption-qualification-composition-v3-smoke',
   })
+const compositionV4 =
+  createCanonicalCaptionPrivateQualificationCompositionV4({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository,
+    prefix: 'private-internal/caption-qualification-composition-v4-smoke',
+  })
 
 check(composition.schemaVersion ===
   'canonical-caption-private-qualification-composition-v1',
@@ -168,6 +181,17 @@ check(compositionV3.canonicalApprovedRunAuthorityAdapterMounted
     .exactOriginalSourceBindingRequired
   && !compositionV3.historicalInspectionReceiptAutoPromoted,
 'The active composition must bind one exact approved source without promotion.')
+check(compositionV4.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v4'
+  && compositionV4.approvedRunController.schemaVersion ===
+    'canonical-caption-private-qualification-run-controller-v1'
+  && compositionV4.inspectionToRunEvidenceMounted,
+'The V4 composition must mount inspection-to-run evidence reconciliation.')
+check(compositionV4.approvedRunController
+  .closedCaptionDirectInspectionReceiptRequired
+  && compositionV4.approvedRunController.exactApprovedRunRereadRequired
+  && !compositionV4.approvedRunController.incompleteRunPromotionAllowed,
+'The run controller must wait rather than promote incomplete evidence.')
 
 assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
   context,
@@ -208,6 +232,7 @@ console.log(JSON.stringify({
   actualPrivateEvidenceRead: false,
   tenantScopedRealSourceInspectionProjectionMounted: true,
   canonicalApprovedRunAuthorityAdapterMounted: true,
+  inspectionToRunEvidenceMounted: true,
   exactOriginalSourceBindingRequired: true,
   historicalInspectionReceiptAutoPromoted: false,
   multipleApprovedRunsRequired: true,

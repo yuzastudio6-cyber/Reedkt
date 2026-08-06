@@ -988,7 +988,7 @@ function createEvidenceObjects(input: {
       const path = request.objectName.slice(prefix.length)
       const body = bodies.get(path)
       const generation = generations.get(path)
-      if (!body || request.generation !== generation) return null
+      if (!body || !generation || request.generation !== generation) return null
       return {
         body: Buffer.from(body),
         generation,

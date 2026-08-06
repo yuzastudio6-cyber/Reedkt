@@ -76,7 +76,7 @@ evidence to `ready_for_specialist_resume`; it does not create live owner
 evidence, run the resume, or change the 41/41 source-readiness count.
 
 The Caption integration branch is now reconciled with the backend workflow
-base through `98f8fa08bc010188a808bbf93cd555fa0a8d1568`. The combined tree
+base through `d8cbfc163dd9a40ddcb22e8dfee6bf0328d2b530`. The combined tree
 includes the newer L4 task-QA start, funded lifecycle, terminal-stop/cost
 reconciliation, task-QA evidence finalizer, and Caption evidence finalizer.
 This removes the Git merge/publication conflict and preserves the correct

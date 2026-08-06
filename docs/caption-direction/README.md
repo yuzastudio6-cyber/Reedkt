@@ -171,7 +171,7 @@ the Caption manifest, and a bounded internal-only harness. It does not add the
 HQ reasoning loop, a global scheduler, or peer execution.
 
 The current Caption integration branch has also reconciled the published
-backend workflow base through `98f8fa08bc010188a808bbf93cd555fa0a8d1568`.
+backend workflow base through `d8cbfc163dd9a40ddcb22e8dfee6bf0328d2b530`.
 That merge preserves the newer L4 Track All task-QA runtime and finalization
 owners together with Caption's evidence projection and private-qualification
 consumers. It makes the draft PR mergeable with its backend base, but it does

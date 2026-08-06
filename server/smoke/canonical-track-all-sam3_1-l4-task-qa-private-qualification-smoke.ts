@@ -139,7 +139,8 @@ const manifestRef = {
   contentHash: fixture.request.sam31MaskManifestRef.contentHash,
 }
 const responseRef = canonicalTrackAllSam31L4TaskQaResponseRef(workerResponse)
-const receipt = buildCanonicalTrackAllSam31L4TaskQaPrivateQualificationReceipt({
+export const receipt =
+  buildCanonicalTrackAllSam31L4TaskQaPrivateQualificationReceipt({
   schemaVersion:
     'canonical-track-all-sam3_1-l4-task-qa-private-qualification-receipt-v1',
   source:

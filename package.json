@@ -232,6 +232,8 @@
     "smoke:professional-gpu-runtime-configuration-repository": "tsx server/smoke/canonical-professional-google-cloud-gpu-runtime-configuration-repository-smoke.ts",
     "smoke:sam3_1-google-cloud-runtime-configuration-publisher": "tsx server/smoke/canonical-sam3_1-google-cloud-runtime-configuration-publisher-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-runtime-release": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke.ts",
+    "smoke:track-all-sam3_1-l4-task-qa-image-qualification-owner": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-image-qualification-owner-smoke.ts",
+    "qualify:track-all-sam3_1-l4-task-qa-image": "tsx server/cli/qualify-track-all-sam3_1-l4-task-qa-image.ts",
     "smoke:track-all-sam3_1-l4-task-qa-private-capsule-builder": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-private-capsule-builder-smoke.ts",
     "build:track-all-sam3_1-l4-task-qa-private-capsule": "bash scripts/gcp/prod/18-build-track-all-l4-task-qa-private-capsule.sh",
     "smoke:track-all-sam3_1-l4-task-qa-private-capsule-review": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-private-capsule-review-smoke.ts",

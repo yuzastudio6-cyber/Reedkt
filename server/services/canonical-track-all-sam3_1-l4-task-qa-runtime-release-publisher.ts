@@ -325,7 +325,10 @@ export function createCanonicalTrackAllSam31L4TaskQaRuntimeReleaseEvidenceReposi
     }) =>
       persistRecord({
         port: input.objectPort,
-        path: imagePath(prefix, imageQualificationRef(qualification)),
+        path: imagePath(
+          prefix,
+          canonicalTrackAllSam31L4TaskQaImageQualificationRef(qualification),
+        ),
         value: assertCanonicalTrackAllSam31L4TaskQaImageQualification(
           qualification,
         ),
@@ -389,7 +392,9 @@ export async function publishCanonicalTrackAllSam31L4TaskQaRuntimeRelease(
     )
   const release = observation.release
   if (
-    stableAuthorityStringify(imageQualificationRef(image))
+    stableAuthorityStringify(
+      canonicalTrackAllSam31L4TaskQaImageQualificationRef(image),
+    )
       !== stableAuthorityStringify(imageRef)
     || stableAuthorityStringify(observation.imageQualificationRef)
       !== stableAuthorityStringify(imageRef)
@@ -455,13 +460,14 @@ export function assertCanonicalTrackAllSam31L4TaskQaRuntimeReleaseReceipt(
   return structuredClone(receipt)
 }
 
-function imageQualificationRef(
+export function canonicalTrackAllSam31L4TaskQaImageQualificationRef(
   record: CanonicalTrackAllSam31L4TaskQaImageQualification,
 ) {
+  const exact = assertCanonicalTrackAllSam31L4TaskQaImageQualification(record)
   return evidenceRefSchema.parse({
-    id: record.qualificationId,
-    version: record.qualificationVersion,
-    contentHash: `sha256:${record.qualificationHash}`,
+    id: exact.qualificationId,
+    version: exact.qualificationVersion,
+    contentHash: `sha256:${exact.qualificationHash}`,
   })
 }
 

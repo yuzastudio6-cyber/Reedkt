@@ -245,6 +245,8 @@
     "smoke:track-all-sam3_1-l4-task-qa-job-definition": "tsx server/smoke/track-all-sam31-l4-task-qa-job-definition-smoke.ts",
     "provision:weeditpro-private-gpu-network": "bash scripts/gcp/prod/20-provision-weeditpro-private-gpu-network.sh",
     "smoke:weeditpro-private-gpu-network": "tsx server/smoke/weeditpro-private-gpu-network-smoke.ts",
+    "smoke:track-all-sam3_1-l4-task-qa-private-qualification": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-private-qualification-smoke.ts",
+    "qualify:track-all-sam3_1-l4-task-qa-private-runtime": "tsx server/cli/qualify-track-all-sam3_1-l4-task-qa-private-runtime.ts",
     "smoke:track-all-sam3_1-l4-task-qa-image-supply-chain-build": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-cloud-image-build-observation": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-cloud-image-build-observation-smoke.ts",
     "observe:track-all-sam3_1-l4-task-qa-cloud-image-build": "tsx server/cli/observe-track-all-sam3_1-l4-task-qa-cloud-image-build.ts",

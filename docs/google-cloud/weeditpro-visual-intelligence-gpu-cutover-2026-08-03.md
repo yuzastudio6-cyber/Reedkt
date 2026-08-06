@@ -451,6 +451,22 @@ live terms/access result exists yet because this task browser remains logged
 out of the gated repository and both checkpoint secret placeholders still have
 zero enabled versions.
 
+The same gated-access boundary now has a source-bound scale-from-zero Cloud Run
+Job image. Cloud Build `cd5a38d0-e483-4ddc-911f-c0bafaf39131` built exact
+source commit `95a8aebb1f3606b788798900be2bd154ae4496f5` and tree
+`ad61842dec884241b2e1b2f67fea9bae7506c17c` into immutable image digest
+`sha256:80cc3eda3a2c9517f0cde58bc1e8cb184b95e8a0dd2dc53688f4c4a2d7184a3f`.
+Google reports SLSA build level 3, completed NPM/OS/secret analysis, and zero
+reported package vulnerabilities. The reviewed deployment operator requires
+that exact provenance and scan, one immutable authenticated human-intent
+object, and one enabled pinned Secret Manager version. It grants only log
+write, control-plane object read/create, and selected-secret access to a
+dedicated service account. The job has one task, zero retries, a fifteen-minute
+timeout, no GPU, no model-artifact-bucket access, no private GPU-network mount,
+and no public IAM. Deployment never executes it. No job is deployed yet because
+the canonical human-intent object and enabled checkpoint-token version do not
+exist; browser sign-in alone is not treated as either artifact.
+
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,
 and GPU-worker identities are enabled; all four fixed private buckets enforce

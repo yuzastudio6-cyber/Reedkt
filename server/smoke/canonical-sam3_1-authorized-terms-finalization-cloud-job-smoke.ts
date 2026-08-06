@@ -15,6 +15,9 @@ const cloudBuild = read(
 const buildScript = read(
   'scripts/gcp/prod/25-build-sam31-authorized-terms-finalization-image.sh',
 )
+const deployScript = read(
+  'scripts/gcp/prod/26-deploy-sam31-authorized-terms-finalization-job.sh',
+)
 const viteConfig = read('vite.sam31-authorized-terms-finalization.config.ts')
 const packageJson = JSON.parse(read('package.json')) as {
   scripts?: Record<string, string>
@@ -66,6 +69,44 @@ assert.match(buildScript, /gpuStarted":false/u)
 assert.match(buildScript, /checkpointRead":false/u)
 assert.doesNotMatch(buildScript, /gcloud run jobs execute/u)
 
+assert.match(deployScript, /weeditpro-sam31-terms-finalization/u)
+assert.match(deployScript,
+  /WEEDITPRO_CONFIRM_SAM31_AUTHORIZED_TERMS_FINALIZATION_JOB_DEPLOY/u)
+assert.match(deployScript,
+  /canonical-sam3_1-authorized-human-terms-intent-v1/u)
+assert.match(deployScript,
+  /authenticated_authorized_human_action/u)
+assert.match(deployScript, /contactInformationSharingAcceptedByAuthorizedHuman/u)
+assert.match(deployScript, /termsAcceptedByAutomation == false/u)
+assert.match(deployScript, /callerTokenPathUrlOrCredentialAccepted == false/u)
+assert.match(deployScript, /projects\/\$\{PROJECT_ID\}\/secrets\//u)
+assert.match(deployScript, /\.state == "ENABLED"/u)
+assert.match(deployScript, /roles\/secretmanager\.secretAccessor/u)
+assert.match(deployScript, /roles\/storage\.objectCreator/u)
+assert.match(deployScript, /roles\/storage\.objectViewer/u)
+assert.match(deployScript,
+  /resource\.name\.startsWith\('projects\/_\/buckets\/\$\{CONTROL_BUCKET\}\/objects\/private\/sam3_1\/'\)/u)
+assert.match(deployScript, /--max-retries=0/u)
+assert.match(deployScript, /--tasks=1 --parallelism=1/u)
+assert.match(deployScript, /--cpu=1 --memory=1Gi/u)
+assert.match(deployScript, /--task-timeout=15m/u)
+assert.match(deployScript, /release=prequalification,scale=zero/u)
+assert.match(deployScript, /nodeSelector \/\/ \{\}\) == \{\}/u)
+assert.match(deployScript, /run\.googleapis\.com\/network-interfaces/u)
+assert.match(deployScript, /from_entries/u)
+assert.match(deployScript, /credentialVersionAuthorityRef/u)
+assert.match(deployScript, /minimumInstances":0/u)
+assert.match(deployScript, /jobExecuted":false/u)
+assert.match(deployScript, /checkpointBytesDownloaded":false/u)
+assert.match(deployScript, /modelInstalledOnDeveloperMachine":false/u)
+assert.match(deployScript, /gpuStarted":false/u)
+assert.match(deployScript, /customerCreditsMutated":false/u)
+assert.doesNotMatch(deployScript, /gcloud secrets versions access/u)
+assert.doesNotMatch(deployScript, /--set-secrets/u)
+assert.doesNotMatch(deployScript, /gcloud run jobs execute/u)
+assert.doesNotMatch(deployScript, /--gpu|--accelerator|--min-instances/u)
+assert.doesNotMatch(deployScript, /--allow-unauthenticated/u)
+
 assert.match(viteConfig,
   /server\/cli\/canonical-sam3_1-authorized-terms-finalization\.ts/u)
 assert.match(viteConfig, /codeSplitting: false/u)
@@ -77,14 +118,21 @@ assert.equal(
   packageJson.scripts?.['build:sam3_1-authorized-terms-finalization-image'],
   'bash scripts/gcp/prod/25-build-sam31-authorized-terms-finalization-image.sh',
 )
+assert.equal(
+  packageJson.scripts?.['deploy:sam3_1-authorized-terms-finalization-job'],
+  'bash scripts/gcp/prod/26-deploy-sam31-authorized-terms-finalization-job.sh',
+)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-authorized-terms-finalization-cloud-job',
-  checks: 51,
+  checks: 78,
   sourceBoundCloudJobPackaged: true,
   immutableLinuxAmd64ImageBuildConfigured: true,
+  sourceBoundImageBuiltAndScanPinned: true,
   sourceCommitAndTreeRequired: true,
   pinnedSecretManagerVersionRequired: true,
+  authenticatedHumanIntentObjectRequired: true,
+  privateScaleFromZeroDeploymentPrepared: true,
   officialCheckpointHeadOnly: true,
   termsAcceptedByBuild: false,
   checkpointBytesDownloaded: false,

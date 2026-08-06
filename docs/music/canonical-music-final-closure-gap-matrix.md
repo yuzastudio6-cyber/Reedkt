@@ -34,22 +34,26 @@ This delta does not authorize changes to the unrelated two-hour custom-estimate
 gate, Lyria live-canary evidence, the Head of Orchestra, final composition
 rendering, or another top-level skill.
 
-Closure result: the post-green delta is closed in Music `3.2.0` while Sound
-remains `4.2.0`. The final implementation publishes the two missing immutable
-artifacts, executes dependency-ordered multi-step Music routes, validates all
-17 one-source Sound-operation receipts plus the exact two-source crossfade
-boundary, rejects 27 receipt mutations and seven publication attacks, and passes
-the complete local Music/Sound acceptance aggregate. Exact final GitHub SHA and
-hosted CI evidence are recorded only after the final commits are pushed.
+Closure result: a second adversarial source audit found that the green `3.2.0`
+state still expanded Sound v1 receipt semantics in place and did not bind
+source-specific decoded crossfade evidence or complete duck-envelope evidence.
+Those defects are now closed in Music `3.3.0` and Sound `4.3.0`. Active Music
+support publishes v2 Sound extensions, routes, profiles, and receipts; crossfade
+evidence contains decoded source-specific curve measurements; duck receipts bind
+baseline/attack/hold/release/post-release measurements and the applied frame
+segments; synchronization evidence is no longer dropped at the Music boundary;
+and 29 receipt mutations plus seven publication attacks are rejected. Exact
+final GitHub SHA and hosted CI evidence are recorded only after the final commit
+is pushed.
 
 | Requirement | Starting evidence | Starting gap | Closure action |
 | --- | --- | --- | --- |
 | Professional cue grouping | `buildMusicSoundtrackSegmentationPlan` creates exact atomic segments; `buildCueSet` in `server/music/music-supervision.ts` creates a derived cue for every range decision. | No canonical grouping artifact exists between atomic segmentation and final cues. Cue-count and cue-density excesses are warnings. | Add a deterministic `music_cue_grouping_plan_v3`, hard policy enforcement, deterministic reduction, and typed `music_cue_policy_conflict_v3`. |
 | Autonomous whole-video execution | `StandaloneCanonicalMusicSkillService.execute` can replace empty caller cues with Music-planned cues and routes those cues through the canonical executor. | The path is not yet proven with professional grouping, mixed real source/generated/no-Music routes, exact atomic coverage, and measured outputs in one public-service scenario. | Make grouping an authoritative service stage and add a real-byte public-service acceptance scenario with `cues: []`. |
 | True two-source crossfade | Music maps `crossfade` to generic Sound `mix`; the request carries one selected Music artifact and reuses `loopCrossfadeFrames`. | No independent left/right source binding, exact two-source overlap contract, measured curve, or fail-closed two-source receipt exists. | Publish a versioned two-source Music crossfade extension/route, execute both decoded sources, measure the overlap, and validate both hashes and exact authority. |
-| Duck attack/release | Music sends attenuation and attack/release frame values in `sound.music_technical_automation.v1`. | Existing Sound execution can report the values without proving a gradual range-based envelope. | Compile and apply an exact protected-range envelope, measure pre/attack/hold/release/post RMS, and bind the measurements to the operation receipt. |
+| Duck attack/release | The old boundary sent attenuation and attack/release frame values in `sound.music_technical_automation.v1`. | Existing Sound execution could report values without binding the complete applied envelope and return-to-baseline evidence. | Publish `sound.music_technical_automation.v2`, compile an exact protected-range envelope, measure pre/attack/hold/release/post RMS and frame/sample lengths, and bind the applied segments and measurements to every duck receipt. |
 | Operation-specific receipts | Sound emits one receipt per requested Music operation with matching parameter hashes. | Several operations share generic `mix_stem` evidence and do not independently bind requested/compiled/applied parameters, exact source/output hashes, range, and operation-specific measurements. | Replace the projection with parameter-specific, hash-verifiable receipts and operation-specific QA requirements, including tamper rejection. |
-| Manifest/output/version agreement | Music 3.0.0 and Sound 4.1.0 publish immutable manifests and exact routes. | The published artifact inventories omit the grouping, policy-conflict, crossfade-plan, and crossfade-receipt artifacts; the public Music-to-Sound extension semantics need an honest version bump. | Update contracts, manifests, mini-skills, routes, handlers, acceptance evidence, dependency identity, semantic versions, and hashes together. |
+| Manifest/output/version agreement | Music and Sound publish immutable manifests and exact routes. | The first closure mutated Sound Music-support v1 receipt semantics and left changed Music grouping/Sound-dependency routes at old versions. | Publish Music `3.3.0`, Sound `4.3.0`, Music grouping/support routes `3.3.0`, and Sound Music-support extensions/routes/profiles/receipts v2 with exact manifest hashes. |
 | Final closure acceptance | `test:music-acceptance` and `test:sound-acceptance` pass at the starting SHA. | The six mandatory real-byte closure tests and `test:music-final-closure` do not exist. | Add all six tests, include the aggregate in Music acceptance and both relevant CI workflows, then run the full required validation matrix. |
 | GitHub exact-SHA proof | PR #2501 and local/remote branch all point to the starting SHA; the dedicated Music and Sound checks are green there. | New closure behavior is not committed or proven on an exact final SHA. | Commit in meaningful milestones, push, update PR evidence, and wait for both dedicated workflows on the final SHA. |
 

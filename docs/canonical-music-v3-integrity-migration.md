@@ -37,7 +37,7 @@ immutable.
 
 Sound remains on contract `sound.skill_contract.v4` and publishes compatible skill version
 `4.1.0`. A new optional,
-versioned `sound.music_technical_automation.v1` request extension and corresponding
+historical `sound.music_technical_automation.v1` request extension and corresponding
 receipt are additive. Existing Sound v4 callers keep identical behavior when the
 extension is absent. The extension is the only public path by which Music can transmit
 the exact technical automation contract; no low-level Sound imports are allowed.
@@ -96,3 +96,6 @@ The canonical manifest is Music `3.0.0`, contract `music.skill_contract.v3`, has
 The top-level qualification remains `planning_qualified` because live provider and subjective
 judgment gates remain intentionally unresolved. Four exact fixture job modes and eight exact
 private-internal job modes have direct acceptance evidence; all production modes remain blocked.
+The v1 Music-support extension is retained only as historical Git evidence. The
+active immutable boundary is `sound.music_technical_automation.v2` on Sound
+`4.3.0`; current Music callers cannot publish or execute through the old route.

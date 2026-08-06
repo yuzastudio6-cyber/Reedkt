@@ -1,4 +1,4 @@
-# Canonical Music v3.2 standalone closure report
+# Canonical Music v3.3 standalone closure report
 
 Date: 2026-08-06
 
@@ -11,9 +11,9 @@ Status: `standalone_skill_complete`, `orchestra_ready`,
 
 ## Published identity and qualification
 
-- Skill key/version: `music` / `3.2.0`
+- Skill key/version: `music` / `3.3.0`
 - Contract: `music.skill_contract.v3`
-- Manifest hash: `e7497e4c3297d8505f77d1454aa17cea741ad4ad7bc49601113a46d858013043`
+- Manifest hash: `40a43c5426e0d733097921d7a66e4deb0b70292bccff889bf01abb06d7f619fb`
 - Top-level qualification: `planning_qualified`
 - Capability entries / supported jobs: 35
 - Internal mini-skills: 42
@@ -64,8 +64,8 @@ qualification vocabulary, assignment/plan/result envelopes, estimators, invalida
 and publication validator. It introduces neither a Music-local generic kernel nor a Head of
 Orchestra facade.
 
-Music `3.2.0` publishes `music_cue_constraint_resolution_v3` through
-`music.route.plan.cue_sheet.v3@3.2.0` and publishes
+Music `3.3.0` publishes `music_cue_constraint_resolution_v3` through
+`music.route.plan.cue_sheet.v3@3.3.0` and publishes
 `music_acceptance_receipt_v3` as a canonical public-service output. Both are
 immutable artifact envelopes rather than unregistered result-only structures.
 
@@ -80,7 +80,7 @@ localized revision, and final handoff.
 Every authorized write range is covered by exact, non-overlapping atomic segments derived from
 scene, speech, silence, ambience, transition, chapter, locked-range, and cue-constraint boundaries.
 Those atomic planning segments are not treated as final cues. The versioned grouping stage merges
-compatible adjacent segments, reuses continuity families, removes weak decorative scoring where
+only rights-, source-, acquisition-, authority-, narrative-, cue-role-, silence-, and lock-compatible adjacent segments, reuses continuity families, removes weak decorative scoring where
 policy permits, and hard-enforces both the approved cue count and cue-change density. An impossible
 policy produces a typed conflict and blocked result rather than a warning-only over-scored plan.
 Whole-video context inspection never expands Music write authority. Fully/range/creative-field
@@ -146,13 +146,13 @@ still requires canonical Sound processing and final measured QA. The live eviden
 transport without falsely promoting the immutable route or top-level Music capability to production
 qualification.
 
-## Canonical Sound 4.2 collaboration
+## Canonical Sound 4.3 collaboration
 
 Music imports only `MusicSoundSupportPort`. The production adapter calls canonical Sound skill
-`4.2.0`, contract `sound.skill_contract.v4`, manifest
-`84ed4074e718aff8c48a3af6b7f981dc3442672721e1a20f1fef4546e800e122`, capability
+`4.3.0`, contract `sound.skill_contract.v4`, manifest
+`7a95f89ebfed61e9ef2658d6a162b36f48d0659959b247cd431da4f7e6512591`, capability
 `sound.edit_music_technical_automation`, and exact route
-`sound.route.edit.music_technical_automation.v1`.
+`sound.route.edit.music_technical_automation.v2@2.0.0`.
 
 The delegated request binds the Music version/manifest, parent request, cue, selected artifact,
 rational rate, exact bounded range, complete technical parameters, protected speech/ambience,
@@ -165,17 +165,21 @@ manifests, or range escalation. Sound receipts determine actual Music mutation r
 cost stays separate and is not double-counted. The ancestor chain prevents Music→Sound→Music cycles.
 
 The final receipt-integrity acceptance executes all 17 one-source operations
-through this port and rejects 27 targeted mutations. Normalization requires
+through this port and rejects 29 targeted mutations. Normalization requires
 measured loudness and true peak, nonzero ducking requires measured attack and
 release ramps, pan requires decoded channel-balance evidence, and a peak limiter
 requires measured peak evidence. Crossfade cannot use this one-source boundary.
 
-True two-source Music crossfade uses a separate typed public boundary and exact route
-`sound.route.edit.music_two_source_crossfade.v1@1.0.0`. It binds two independently checksum-verified
+True two-source Music crossfade uses a separate typed v2 public boundary and exact route
+`sound.route.edit.music_two_source_crossfade.v2@2.0.0`. It binds two independently checksum-verified
 private sources, exact source windows, overlap frames/samples, gain curves, authority, route/profile,
-output hash, and measured overlap/peak/clipping QA. The generic one-source automation contract rejects
-crossfade. Dialogue ducking now applies and measures exact frame-based attack, hold, and release ramps;
-zero-length ramps and invalid protected ranges fail closed.
+output hash, and measured overlap/peak/clipping QA. Its signed receipt also contains decoded spectral
+least-squares evidence for each source at the start, midpoint, and end of the overlap, expected versus
+measured curve shares, reconstruction correlation, and hard source-presence/curve tolerances. The
+generic one-source automation contract rejects crossfade. Dialogue ducking uses
+`sound.music_technical_automation.v2` and records exact frame-based applied attack/hold/release
+segments, pre/post baselines, effective sample lengths, measured hold attenuation, gradual ramps, and
+return-to-baseline. Zero-length ramps, invalid ranges, and stripped/recomputed evidence fail closed.
 
 ## Route truthfulness, QA, continuity, and revision
 
@@ -225,8 +229,8 @@ inventory only.
 | Command | Result |
 |---|---|
 | `npm run test:music-final-closure` | passed; six mandatory real-byte/grouping/receipt/manifest scenarios |
-| `npm run test:music-acceptance` | passed; includes Music v3.2, Sound 4.2, shared kernel, and B-roll |
-| `npm run test:sound-acceptance` | passed within aggregate |
+| `npm run test:music-acceptance` | passed; Music v3.3, Sound v4.3, shared kernel, B-roll, Lyria, final closure, and execution integrity |
+| `npm run test:sound-acceptance` | passed directly and within aggregate; Sound v4.3 and 41-job matrix |
 | `npm run validate:skill-capability-manifests` | passed; 3 manifests |
 | `npm run test:edit-skill-capability-kernel` | passed |
 | `npm run test:b-roll-capability-manifest` | passed |
@@ -263,7 +267,7 @@ exact acceptance records, real execution receipts, and the command matrix:
   canary — satisfied. Production-route promotion remains intentionally separate from canary proof.
 - 63–79: independent candidates, order-independent selection, actual-byte audio analysis, measured
   loudness/peak/clipping/timing evidence, and anchor-driven MusicSync/editorial — satisfied.
-- 80–92: public Sound 4.2 port only, exact delegated authority and cost, receipt-derived mutations,
+- 80–92: public Sound 4.3 port only, exact delegated authority and cost, receipt-derived mutations,
   separated measured QA, and honest subjective/legal boundaries — satisfied.
 - 93–102: bounded whole-video execution, partial success, localized revision, real/existing/
   no-Music/ambience handoffs — satisfied.
@@ -297,7 +301,11 @@ exact acceptance records, real execution receipts, and the command matrix:
 - Final v3.1 acceptance evidence commit — first six focused regressions and CI wiring
 - `07a0913cb` — complete operation tamper matrix, typed constraint/acceptance
   artifacts, negative publication attacks, and dependency-ordered route execution
-- Final v3.2 closure-evidence commit — gap matrix, red-team audit, command record, and closure report
+- Final v3.2 closure-evidence commit — first post-green gap matrix, red-team audit, command record, and closure report
+- `cd952b2ad` — immutable Sound v2 Music-support boundary, source-specific
+  crossfade evidence, complete duck-envelope receipts, strict grouping compatibility, and renewed
+  requirement-to-source audit
+- Final v3.3 evidence report commit — this report, the post-green gap matrix, and red-team audit
 
 Music is safe to close because its public contract, manifest, route graph, handlers, real private
 artifacts, rights, exact timing, Sound collaboration, measured QA, localized revision, final handoff,

@@ -21,9 +21,14 @@ The runtime becomes build-admissible only after all of the following are true:
 - the exact pinned source tree and privately ingested checkpoint load together
   without missing/unexpected keys and produce the frozen output shape;
 - the open upstream `facebookresearch/sam3#526` source/checkpoint compatibility
-  finding is resolved by an official compatible release or by a separately
-  reviewed, versioned, exact-key conversion with full strict-load and output
-  qualification; no guessed or unreviewed key rewrite is admissible;
+  finding is explicitly reviewed. Its non-strict partial-tracker warning cannot
+  qualify the runtime. The pinned WeEditPro wrapper must instead load the
+  checkpoint exactly once into the final assembled multiplex video model with
+  strict key-set equality, then pass the complete deterministic A100 video
+  probe. That direct proof may qualify the pinned pair without waiting for the
+  issue to close; otherwise only an official compatible release or a separately
+  reviewed, versioned exact-key conversion is admissible. Guessed or unreviewed
+  key rewrites remain forbidden;
 - separate A100 80 GB primary and L4 fallback images are built, scanned,
   signed, and attested;
 - both routes pass real-media quality, temporal-mask, performance, and cost

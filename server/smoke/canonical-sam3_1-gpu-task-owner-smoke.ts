@@ -1007,7 +1007,7 @@ function buildSpecializedRelease(input: {
     toolId: 'sam3_1' as const,
     operationId: 'tool.sam3_1.segment_and_track_subject.v1' as const,
     sourceCandidateRef: {
-      schemaVersion: 'canonical-sam3_1-source-runtime-candidate-v3' as const,
+      schemaVersion: 'canonical-sam3_1-source-runtime-candidate-v4' as const,
       candidateHash: sha256AuthorityValue('sam31-candidate'),
     },
     privateArtifactIngestReceiptRef: ref('sam31-private-ingest'),

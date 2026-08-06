@@ -9,7 +9,7 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION =
-  'canonical-sam3_1-source-runtime-candidate-v3' as const
+  'canonical-sam3_1-source-runtime-candidate-v4' as const
 export const CANONICAL_SAM3_1_OPERATION_ID =
   'tool.sam3_1.segment_and_track_subject.v1' as const
 
@@ -100,9 +100,15 @@ const candidateWithoutHashSchema = z.object({
     transformersIntegrationAvailable: z.literal(false),
     knownPublicCompatibilityIssueNumber: z.literal(526),
     knownPublicCompatibilityIssueStateAtReview: z.literal('open'),
-    knownPublicCompatibilityIssueObservedAt: z.literal('2026-08-02'),
+    knownPublicCompatibilityIssueObservedAt: z.literal('2026-08-06'),
     pinnedSourceAndCheckpointMayBeAssumedCompatible: z.literal(false),
     unreviewedCheckpointKeyRewriteAllowed: z.literal(false),
+    partialTrackerLoadWarningMayQualifyCompatibility: z.literal(false),
+    strictFinalAssembledVideoModelMayQualifyWithoutIssueClosure:
+      z.literal(true),
+    strictQualificationRequiresSingleCheckpointLoad: z.literal(true),
+    strictQualificationRequiresExactModelKeySet: z.literal(true),
+    strictQualificationRequiresCompleteVideoProbe: z.literal(true),
     exactByteLengthAvailableWithoutAuthorizedDownload: z.literal(false),
     exactSha256AvailableWithoutAuthorizedDownload: z.literal(false),
     thirdPartyMirrorOrScanMaySatisfyCanonicalIngest: z.literal(false),
@@ -316,7 +322,7 @@ const candidateWithoutHashSchema = z.object({
     z.literal('exact_checkpoint_download_byte_length_sha256_and_license_reread'),
     z.literal('private_checkpoint_ingest_generation_etag_hash_and_malware_scan'),
     z.literal('exact_source_archive_license_and_security_approval'),
-    z.literal('official_sam3_issue_526_resolution_or_exact_versioned_checkpoint_conversion_qualification'),
+    z.literal('official_sam3_issue_526_review_and_strict_final_assembled_video_predictor_qualification'),
     z.literal('pinned_source_checkpoint_strict_compatibility_and_output_shape_qualification'),
     z.literal('pinned_python_torch_cuda_wheel_and_native_library_closure'),
     z.literal('cuda_12_8_l4_driver_forward_compatibility_artifact_and_runtime_load_qualification'),
@@ -413,9 +419,14 @@ CanonicalSam31SourceRuntimeCandidate {
       transformersIntegrationAvailable: false,
       knownPublicCompatibilityIssueNumber: 526,
       knownPublicCompatibilityIssueStateAtReview: 'open',
-      knownPublicCompatibilityIssueObservedAt: '2026-08-02',
+      knownPublicCompatibilityIssueObservedAt: '2026-08-06',
       pinnedSourceAndCheckpointMayBeAssumedCompatible: false,
       unreviewedCheckpointKeyRewriteAllowed: false,
+      partialTrackerLoadWarningMayQualifyCompatibility: false,
+      strictFinalAssembledVideoModelMayQualifyWithoutIssueClosure: true,
+      strictQualificationRequiresSingleCheckpointLoad: true,
+      strictQualificationRequiresExactModelKeySet: true,
+      strictQualificationRequiresCompleteVideoProbe: true,
       exactByteLengthAvailableWithoutAuthorizedDownload: false,
       exactSha256AvailableWithoutAuthorizedDownload: false,
       thirdPartyMirrorOrScanMaySatisfyCanonicalIngest: false,
@@ -605,7 +616,7 @@ CanonicalSam31SourceRuntimeCandidate {
       'exact_checkpoint_download_byte_length_sha256_and_license_reread',
       'private_checkpoint_ingest_generation_etag_hash_and_malware_scan',
       'exact_source_archive_license_and_security_approval',
-      'official_sam3_issue_526_resolution_or_exact_versioned_checkpoint_conversion_qualification',
+      'official_sam3_issue_526_review_and_strict_final_assembled_video_predictor_qualification',
       'pinned_source_checkpoint_strict_compatibility_and_output_shape_qualification',
       'pinned_python_torch_cuda_wheel_and_native_library_closure',
       'cuda_12_8_l4_driver_forward_compatibility_artifact_and_runtime_load_qualification',

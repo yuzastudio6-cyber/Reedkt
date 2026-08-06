@@ -935,7 +935,7 @@ def validate_model_artifacts(value: Any) -> None:
         {"schemaVersion", "candidateHash"},
         "source candidate",
     )
-    if candidate["schemaVersion"] != "canonical-sam3_1-source-runtime-candidate-v3":
+    if candidate["schemaVersion"] != "canonical-sam3_1-source-runtime-candidate-v4":
         raise ValueError("source candidate version is invalid")
     exact_raw_sha(candidate["candidateHash"], "source candidate hash")
     for key in (

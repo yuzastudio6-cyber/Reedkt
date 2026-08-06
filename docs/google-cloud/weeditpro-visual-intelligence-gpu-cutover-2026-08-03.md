@@ -605,6 +605,25 @@ A100 primary release, independent L4 fallback release, L4 task-QA release, all
 three account-effective rate authorities, and the Track All artifact-repository
 release have each been published by their own qualified owner.
 
+On 2026-08-06 the bounded private-storage qualifier ran against the existing
+control-plane and mask-artifact buckets. Both live probes observed uniform
+bucket-level access, enforced public-access prevention, zero public IAM
+principals, create-only first write, identical replay, conflicting replay
+refusal, exact read-after-write, detached second reread, and unrelated-prefix
+isolation. The persisted control-plane qualification ref is
+`track-all-sam3_1-control_plane_state-06c127f0-e221-49df-8c16-a2003a7f8fa9`
+version 1 with content hash
+`sha256:8f2533da6e3adaa3402169595b37dbe79a935afdd36449ccd2df262a4876842d`.
+The persisted private-mask qualification ref is
+`track-all-sam3_1-private_mask_artifacts-06c127f0-e221-49df-8c16-a2003a7f8fa9`
+version 1 with content hash
+`sha256:25b208541d2b72171d3829f06cd67ce7345f1ff78eeaadcd119e311440abcd97`.
+Both expire on 2026-08-13 and grant no GPU, provider, model, customer-credit,
+QA-approval, public-delivery, or production authority. They qualify the storage
+semantics only; they do not substitute for the six repository-specific
+canonical-chain qualifications still required by the artifact-repository
+release owner.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

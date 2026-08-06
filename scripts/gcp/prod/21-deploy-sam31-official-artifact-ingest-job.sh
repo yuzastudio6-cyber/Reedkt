@@ -29,6 +29,32 @@ fail() {
   exit 1
 }
 
+add_project_log_writer_binding_with_propagation_retry() {
+  local attempt diagnostic_file
+  diagnostic_file="$(mktemp \
+    "${TMPDIR:-/tmp}/weeditpro-sam31-ingest-iam.XXXXXX")"
+  for attempt in {1..12}; do
+    if gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role=roles/logging.logWriter --condition=None --quiet \
+      >/dev/null 2>"${diagnostic_file}"; then
+      rm -f "${diagnostic_file}"
+      return 0
+    fi
+    if ! grep -Fq 'does not exist' "${diagnostic_file}"; then
+      cat "${diagnostic_file}" >&2
+      rm -f "${diagnostic_file}"
+      fail 'project log-writer binding failed'
+    fi
+    if [[ "${attempt}" -eq 12 ]]; then
+      cat "${diagnostic_file}" >&2
+      rm -f "${diagnostic_file}"
+      fail 'new ingest service account did not propagate'
+    fi
+    sleep 5
+  done
+}
+
 [[ "${WEEDITPRO_CONFIRM_SAM31_ARTIFACT_INGEST_JOB_DEPLOY:-}" \
   == "${CONFIRMATION}" ]] || fail 'exact job-deployment confirmation is missing'
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
@@ -138,9 +164,7 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" \
     --display-name='WeEditPro SAM 3.1 official artifact ingest' \
     --description='Cloud-only byte-stream ingest; no model inference or media processing'
 fi
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/logging.logWriter --condition=None --quiet >/dev/null
+add_project_log_writer_binding_with_propagation_retry
 for role in roles/storage.objectCreator roles/storage.objectViewer; do
   gcloud storage buckets add-iam-policy-binding "gs://${MODEL_BUCKET}" \
     --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \

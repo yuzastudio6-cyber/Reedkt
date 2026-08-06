@@ -80,6 +80,11 @@ assert.doesNotMatch(deployScript,
 assert.match(deployScript, /versions\/\[1-9\]\[0-9\]\*/u)
 assert.match(deployScript, /gcloud storage cat/u)
 assert.match(deployScript, /roles\/secretmanager\.secretAccessor/u)
+assert.match(deployScript,
+  /add_project_log_writer_binding_with_propagation_retry/u)
+assert.match(deployScript, /for attempt in \{1\.\.12\}/u)
+assert.match(deployScript, /grep -Fq 'does not exist'/u)
+assert.match(deployScript, /sleep 5/u)
 assert.match(deployScript, /--max-retries=0/u)
 assert.match(deployScript, /--task-timeout=4h/u)
 assert.match(deployScript, /"jobExecuted":false/u)
@@ -102,7 +107,7 @@ assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 68,
+  checks: 72,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,

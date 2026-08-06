@@ -31,11 +31,8 @@ import {
   CAPTION_GOAL_COMPLETION_GAP_IDS,
 } from '../../src/types/caption-goal-completion-audit'
 import type {
-  CanonicalCaptionPrivateReviewEvidenceProjection,
+  CanonicalCaptionPrivateReviewEvidenceProjectionAny,
 } from '../../src/types/canonical-caption-private-review-evidence-projection'
-import {
-  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
-} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
 import type { CaptionSharedOwnerKey } from
   '../../src/types/caption-shared-owner-integration'
 import {
@@ -62,6 +59,7 @@ import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
 } from './captions-specialist-integration-qualification'
 import {
+  canonicalCaptionPrivateReviewVisualEvidenceRef,
   parseCanonicalCaptionPrivateReviewEvidenceProjection,
 } from '../services/canonical-caption-private-review-evidence-service'
 
@@ -540,7 +538,7 @@ export function parseCaptionTerminalQualificationProjection(
 export function createCaptionTerminalQualificationProjection(
   sourceEvidenceInput: unknown,
   privateReviewEvidenceProjections:
-    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+    readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): CaptionTerminalQualificationProjection {
   const input = parseCaptionTerminalQualificationEvidenceInput(
     sourceEvidenceInput)
@@ -626,7 +624,7 @@ export function parseCaptionTerminalQualificationPreflight(
 export function createCaptionTerminalQualificationPreflight(
   sourceEvidenceInput?: unknown,
   privateReviewEvidenceProjections?:
-    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+    readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): CaptionTerminalQualificationPreflight {
   const candidate = sourceEvidenceInput === undefined
     ? null : parseCaptionTerminalQualificationEvidenceInput(sourceEvidenceInput)
@@ -675,7 +673,7 @@ export const CAPTION_CURRENT_TERMINAL_QUALIFICATION_PREFLIGHT =
 
 export function assertCaptionTerminalPrivateReviewEvidence(
   input: CaptionTerminalQualificationEvidenceInput,
-  projections: readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+  projections: readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): void {
   if (projections.length !== input.outputEvidence.length) {
     throw new Error(
@@ -715,13 +713,8 @@ export function assertCaptionTerminalPrivateReviewEvidence(
         projection.output.renderedArtifactRef), output.renderedArtifactRef)
       || !sameRef(evidenceRefAsDomainRef(
         projection.output.deterministicQaRef), output.deterministicQaRef)
-      || !sameRef({
-        id: projection.sourceRefs.postrenderVisualQaEvidenceRef.id,
-        version:
-          CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
-        contentHash: unprefix(
-          projection.sourceRefs.postrenderVisualQaEvidenceRef.contentHash),
-      }, output.qualifiedCompleteTimeVisualReviewRef)
+      || !sameRef(canonicalCaptionPrivateReviewVisualEvidenceRef(projection),
+        output.qualifiedCompleteTimeVisualReviewRef)
       || projection.canonicalPrivateReview.decisionRef === null
       || !sameRef(projection.canonicalPrivateReview.decisionRef,
         output.privateReviewDecisionRef)

@@ -37,7 +37,17 @@ import type {
 } from '../../src/types/canonical-caption-private-review-dependency-binding'
 import {
   buildCanonicalCaptionPrivateReviewEvidenceProjection,
+  parseCanonicalCaptionPrivateReviewEvidenceProjection,
 } from '../services/canonical-caption-private-review-evidence-service'
+import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 import {
@@ -913,6 +923,29 @@ check(privateReviewProjection.disposition ===
   && privateReviewProjection.privateReviewAssemblyAllowed
   && !privateReviewProjection.terminalPrivateInternalQualificationEligible,
 'The active Visual Intelligence pass may enter canonical private review but cannot self-approve it.')
+if (privateReviewProjection.schemaVersion !==
+    CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION) {
+  throw new Error(
+    'Active Visual Intelligence private review must use projection V2.')
+}
+check(privateReviewProjection.sourceRefs.visualEvidenceOwner ===
+  'visual_intelligence'
+  && privateReviewProjection.sourceRefs.postrenderVisualEvidenceRef.id ===
+    result.resultId
+  && privateReviewProjection.sourceRefs.postrenderVisualEvidenceRef.version ===
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION
+  && privateReviewProjection.sourceRefs.postrenderVisualEvidenceRef
+    .contentHash === result.resultDigestSha256.replace(/^sha256:/u, ''),
+'Private-review V2 must preserve the exact active Visual Intelligence result identity without relabeling it as Qwen evidence.')
+const relabeledPrivateReview = structuredClone(privateReviewProjection)
+relabeledPrivateReview.sourceRefs.postrenderVisualEvidenceRef.version =
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION
+relabeledPrivateReview.projectionDigestSha256 = calculateSkillContractDigest(
+  relabeledPrivateReview as unknown as Record<string, unknown>,
+  'projectionDigestSha256')
+assert.throws(() => parseCanonicalCaptionPrivateReviewEvidenceProjection(
+  relabeledPrivateReview))
+assertions += 1
 
 console.log(JSON.stringify({
   smoke: 'canonical-caption-postrender-visual-intelligence-result',

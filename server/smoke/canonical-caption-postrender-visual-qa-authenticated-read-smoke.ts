@@ -19,6 +19,9 @@ import type {
 import type {
   CanonicalCaptionPrivateReviewDependencyBinding,
 } from '../../src/types/canonical-caption-private-review-dependency-binding'
+import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
 import type {
   CanonicalPrivateReviewAssemblyResponse,
 } from '../validation/canonical-private-review-assembly-schemas'
@@ -355,7 +358,9 @@ const acceptedReview = buildCanonicalCaptionPrivateReviewEvidenceProjection({
 })
 check(acceptedReview.disposition === 'private_review_accepted_visual_pass'
   && acceptedReview.privateReviewAccepted
-  && acceptedReview.terminalPrivateInternalQualificationEligible,
+  && acceptedReview.terminalPrivateInternalQualificationEligible
+  && acceptedReview.schemaVersion ===
+    CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
 'Only the exact visual pass plus canonical private-review acceptance may qualify the output.')
 check(parseCanonicalCaptionPrivateReviewEvidenceProjection(acceptedReview)
   .projectionDigestSha256 === acceptedReview.projectionDigestSha256,

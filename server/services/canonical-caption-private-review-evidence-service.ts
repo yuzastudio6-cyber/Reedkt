@@ -2,16 +2,24 @@ import { z } from 'zod'
 
 import {
   CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+  type CanonicalCaptionPrivateReviewEvidenceProjectionAny,
   type CanonicalCaptionPrivateReviewEvidenceProjection,
+  type CanonicalCaptionPrivateReviewEvidenceProjectionV2,
 } from '../../src/types/canonical-caption-private-review-evidence-projection'
 import type {
   CanonicalCaptionPrivateReviewDependencyBinding,
 } from '../../src/types/canonical-caption-private-review-dependency-binding'
+import type { CaptionDomainRef } from
+  '../../src/types/caption-domain-contracts'
 import type {
   CanonicalCaptionPostrenderVisualQaCompletedEnvelope,
 } from './canonical-caption-postrender-visual-qa-evidence-service'
 import type {
   CanonicalCaptionPostrenderVisualIntelligenceResult,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
 } from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION,
@@ -23,6 +31,9 @@ import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION,
   parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope,
 } from './canonical-caption-postrender-visual-qa-evidence-service'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
 import type { ServiceContext } from '../types'
 import type {
   CanonicalPrivateReviewAssemblyResponse,
@@ -69,9 +80,7 @@ const evidenceRef = z.object({
   version: z.number().int().positive(),
   contentHash: prefixedSha256,
 }).strict()
-const projectionSchema: z.ZodType<
-  CanonicalCaptionPrivateReviewEvidenceProjection
-> = z.object({
+const projectionSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION),
   projectionId: safeKey,
@@ -154,6 +163,25 @@ const projectionSchema: z.ZodType<
   creditOrBillingAuthority: z.literal(false),
   publicDeliveryAuthority: z.literal(false),
   productionAuthority: z.literal(false),
+}).strict() satisfies z.ZodType<
+  CanonicalCaptionPrivateReviewEvidenceProjection
+>
+
+const projectionSchemaV2: z.ZodType<
+  CanonicalCaptionPrivateReviewEvidenceProjectionV2
+> = projectionSchema.omit({
+  schemaVersion: true,
+  sourceRefs: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION),
+  sourceRefs: z.object({
+    privateReviewDependencyBindingRef: domainRef,
+    visualEvidenceOwner: z.literal('visual_intelligence'),
+    postrenderVisualEvidenceRef: domainRef,
+    workRequestRef: evidenceRef,
+    normalizedResultRef: evidenceRef,
+  }).strict(),
 }).strict()
 
 interface ProjectionAuthority {
@@ -179,7 +207,7 @@ export function createCanonicalCaptionPrivateReviewEvidenceService(
       workspaceId: string
       packageRecordId: string
       outputId?: string
-    }): Promise<CanonicalCaptionPrivateReviewEvidenceProjection | null> {
+    }): Promise<CanonicalCaptionPrivateReviewEvidenceProjectionAny | null> {
       const ownerUserId = getRequiredAuthUserId(context)
       const packageResult = await createCanonicalEditExecutionPackageService(
         context).getPackage(input.packageRecordId, input.workspaceId)
@@ -290,7 +318,7 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
     | CanonicalCaptionPostrenderVisualIntelligenceResult
   assembly: CanonicalPrivateReviewAssemblyResponse | null
   decision: CanonicalPrivateReviewDecisionResponse | null
-}): CanonicalCaptionPrivateReviewEvidenceProjection {
+}): CanonicalCaptionPrivateReviewEvidenceProjectionAny {
   const authority = input.authority
   const binding = authority.dependencyBinding
   const visual = normalizeCaptionVisualReviewEvidence(input.completed)
@@ -308,7 +336,8 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
     || visualDecision === 'needs_human_review'
   const accepted = decision?.decision === 'accept_private_internal_review'
   const revision = decision?.decision === 'request_revision'
-  const disposition = visualDecision === 'blocked_evidence_reconciliation'
+  const disposition: CanonicalCaptionPrivateReviewEvidenceProjection[
+    'disposition'] = visualDecision === 'blocked_evidence_reconciliation'
     ? 'blocked_visual_evidence_reconciliation'
     : visualDecision === 'repair_required' && !revision
       ? 'repair_required_before_private_review'
@@ -321,12 +350,9 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
             : visualDecision === 'passed'
               ? 'private_review_accepted_visual_pass'
               : 'private_review_accepted_visual_uncertainty_unresolved'
-  const withoutDigest: Omit<CanonicalCaptionPrivateReviewEvidenceProjection,
-    'projectionDigestSha256'> = {
-    schemaVersion:
-      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+  const common = {
     projectionId: `caption.private-review.evidence.${
-      visual.evidenceDigestSha256.slice(7, 47)}`,
+      unprefix(visual.evidenceDigestSha256).slice(0, 40)}`,
     canonicalScope: {
       ownerUserId: authority.ownerUserId,
       workspaceId: authority.workspaceId,
@@ -349,20 +375,6 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
       fpsDenominator: visual.output.fpsDenominator,
       renderedArtifactRef: structuredClone(visual.privateRenderArtifactRef),
       deterministicQaRef: structuredClone(visual.deterministicQaRef),
-    },
-    sourceRefs: {
-      privateReviewDependencyBindingRef: {
-        id: binding.bindingId,
-        version: binding.schemaVersion,
-        contentHash: binding.bindingDigestSha256,
-      },
-      postrenderVisualQaEvidenceRef: {
-        id: visual.evidenceId,
-        version: 1,
-        contentHash: visual.evidenceDigestSha256,
-      },
-      workRequestRef: structuredClone(visual.workRequestRef),
-      normalizedResultRef: structuredClone(visual.normalizedResultRef),
     },
     visualReview: {
       decision: visualDecision,
@@ -417,7 +429,44 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
     creditOrBillingAuthority: false,
     publicDeliveryAuthority: false,
     productionAuthority: false,
+  } satisfies Omit<CanonicalCaptionPrivateReviewEvidenceProjection,
+    'schemaVersion' | 'projectionDigestSha256' | 'sourceRefs'>
+  const privateReviewDependencyBindingRef = {
+    id: binding.bindingId,
+    version: binding.schemaVersion,
+    contentHash: binding.bindingDigestSha256,
   }
+  const withoutDigest = visual.sourceKind === 'visual_intelligence'
+    ? {
+        ...common,
+        schemaVersion:
+          CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+        sourceRefs: {
+          privateReviewDependencyBindingRef,
+          visualEvidenceOwner: 'visual_intelligence' as const,
+          postrenderVisualEvidenceRef:
+            structuredClone(visual.sourceResultRef),
+          workRequestRef: structuredClone(visual.workRequestRef),
+          normalizedResultRef: structuredClone(visual.normalizedResultRef),
+        },
+      } satisfies Omit<CanonicalCaptionPrivateReviewEvidenceProjectionV2,
+        'projectionDigestSha256'>
+    : {
+        ...common,
+        schemaVersion:
+          CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+        sourceRefs: {
+          privateReviewDependencyBindingRef,
+          postrenderVisualQaEvidenceRef: {
+            id: visual.evidenceId,
+            version: 1,
+            contentHash: visual.evidenceDigestSha256,
+          },
+          workRequestRef: structuredClone(visual.workRequestRef),
+          normalizedResultRef: structuredClone(visual.normalizedResultRef),
+        },
+      } satisfies Omit<CanonicalCaptionPrivateReviewEvidenceProjection,
+        'projectionDigestSha256'>
   return parseCanonicalCaptionPrivateReviewEvidenceProjection({
     ...withoutDigest,
     projectionDigestSha256: calculateSkillContractDigest({
@@ -429,14 +478,25 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
 
 export function parseCanonicalCaptionPrivateReviewEvidenceProjection(
   value: unknown,
-): CanonicalCaptionPrivateReviewEvidenceProjection {
+): CanonicalCaptionPrivateReviewEvidenceProjectionAny {
   assertClosedContractTree(value,
     'Canonical Caption private-review evidence projection')
-  const parsed = projectionSchema.parse(value)
+  const schemaVersion = (value as { schemaVersion?: unknown }).schemaVersion
+  const parsed = schemaVersion ===
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION
+    ? projectionSchemaV2.parse(value)
+    : projectionSchema.parse(value)
   if (parsed.projectionDigestSha256 !== calculateSkillContractDigest(
     parsed as unknown as Record<string, unknown>,
     'projectionDigestSha256')) {
     throw conflict('caption_private_review_projection_digest_invalid')
+  }
+  if (parsed.schemaVersion ===
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION
+    && (parsed.sourceRefs.visualEvidenceOwner !== 'visual_intelligence'
+      || parsed.sourceRefs.postrenderVisualEvidenceRef.version !==
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION)) {
+    throw conflict('caption_private_review_visual_owner_lineage_invalid')
   }
   const accepted = parsed.canonicalPrivateReview.decision ===
     'accept_private_internal_review'
@@ -487,7 +547,28 @@ export function parseCanonicalCaptionPrivateReviewEvidenceProjection(
   return structuredClone(parsed)
 }
 
+export function canonicalCaptionPrivateReviewVisualEvidenceRef(
+  projection: CanonicalCaptionPrivateReviewEvidenceProjectionAny,
+): CaptionDomainRef {
+  if (projection.schemaVersion ===
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION) {
+    return structuredClone(projection.sourceRefs.postrenderVisualEvidenceRef)
+  }
+  return {
+    id: projection.sourceRefs.postrenderVisualQaEvidenceRef.id,
+    version: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+    contentHash: unprefix(
+      projection.sourceRefs.postrenderVisualQaEvidenceRef.contentHash),
+  }
+}
+
 interface NormalizedCaptionVisualReviewEvidence {
+  sourceKind: 'visual_intelligence' | 'legacy_qwen_read_only'
+  sourceResultRef: {
+    id: string
+    version: string
+    contentHash: string
+  }
   evidenceId: string
   evidenceDigestSha256: string
   scope: {
@@ -535,6 +616,13 @@ function normalizeCaptionVisualReviewEvidence(
     const result = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
       value)
     return {
+      sourceKind: 'visual_intelligence',
+      sourceResultRef: {
+        id: result.resultId,
+        version:
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+        contentHash: unprefix(result.resultDigestSha256),
+      },
       evidenceId: result.resultId,
       evidenceDigestSha256: result.resultDigestSha256,
       scope: structuredClone(result.scope),
@@ -570,6 +658,12 @@ function normalizeCaptionVisualReviewEvidence(
   const envelope = parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(
     value)
   return {
+    sourceKind: 'legacy_qwen_read_only',
+    sourceResultRef: {
+      id: envelope.evidence.evidenceId,
+      version: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+      contentHash: unprefix(envelope.evidence.evidenceDigestSha256),
+    },
     evidenceId: envelope.evidence.evidenceId,
     evidenceDigestSha256: envelope.evidence.evidenceDigestSha256,
     scope: {

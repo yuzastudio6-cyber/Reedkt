@@ -11,8 +11,13 @@ import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
 import {
   CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
   type CanonicalCaptionPrivateReviewEvidenceProjection,
+  type CanonicalCaptionPrivateReviewEvidenceProjectionV2,
 } from '../../src/types/canonical-caption-private-review-evidence-projection'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
 } from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
@@ -484,6 +489,28 @@ staleV2Readiness.sourceCurrentReadinessRef = refFrom(
   CAPTION_CURRENT_INTEGRATION_READINESS_V2.readinessDigestSha256)
 expectThrow(() => parseCaptionTerminalQualificationEvidenceInputV2(
   redigestInputV2(staleV2Readiness)))
+const activeVisualInputV2 = parseCaptionTerminalQualificationEvidenceInputV2(
+  redigestInputV2({
+    ...structuredClone(parsedInputV2),
+    outputEvidence: parsedInputV2.outputEvidence.map((output) => ({
+      ...structuredClone(output),
+      qualifiedCompleteTimeVisualReviewRef: {
+        ...structuredClone(output.qualifiedCompleteTimeVisualReviewRef),
+        version:
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+      },
+    })),
+    inputDigestSha256: '',
+  }))
+const activeVisualPrivateReviewProjections = activeVisualInputV2.outputEvidence
+  .map((output) => privateReviewProjectionV2(activeVisualInputV2, output))
+const activeVisualProjectionV2 = createCaptionTerminalQualificationProjectionV2(
+  activeVisualInputV2, activeVisualPrivateReviewProjections)
+check(activeVisualProjectionV2.allConfirmedOutputsQualified
+  && activeVisualPrivateReviewProjections.every((projection) =>
+    projection.sourceRefs.postrenderVisualEvidenceRef.version ===
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION),
+'Terminal qualification must preserve active Visual Intelligence result lineage without relabeling it as the legacy Qwen evidence record.')
 
 console.log(JSON.stringify({
   smoke: 'captions_specialist_terminal_qualification',
@@ -614,4 +641,32 @@ function privateReviewProjection(
       projectionDigestSha256: '',
     } as unknown as Record<string, unknown>, 'projectionDigestSha256'),
   }
+}
+
+function privateReviewProjectionV2(
+  input: CaptionTerminalQualificationEvidenceInputV2,
+  output: CaptionTerminalQualificationEvidenceInputV2[
+    'outputEvidence'][number],
+): CanonicalCaptionPrivateReviewEvidenceProjectionV2 {
+  const legacy = privateReviewProjection(input, output)
+  const candidate: CanonicalCaptionPrivateReviewEvidenceProjectionV2 = {
+    ...legacy,
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+    sourceRefs: {
+      privateReviewDependencyBindingRef: structuredClone(
+        legacy.sourceRefs.privateReviewDependencyBindingRef),
+      visualEvidenceOwner: 'visual_intelligence',
+      postrenderVisualEvidenceRef: structuredClone(
+        output.qualifiedCompleteTimeVisualReviewRef),
+      workRequestRef: structuredClone(legacy.sourceRefs.workRequestRef),
+      normalizedResultRef: structuredClone(
+        legacy.sourceRefs.normalizedResultRef),
+    },
+    projectionDigestSha256: '',
+  }
+  candidate.projectionDigestSha256 = calculateSkillContractDigest(
+    candidate as unknown as Record<string, unknown>,
+    'projectionDigestSha256')
+  return candidate
 }

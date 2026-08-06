@@ -75,14 +75,19 @@ promote Caption to the independent QA owner. Every required artifact still
 needs create-only persistence, independent artifact QA, and reconciliation
 before the canonical private-review service may assemble it.
 
-`canonical-caption-private-review-evidence-projection-v1` now joins those
-planned dependencies to the actual persisted Caption visual-evidence envelope
-and the existing canonical review assembly/decision records. The authenticated
-service rereads the immutable execution package and approved snapshot, then
-requires the same owner, workspace, project, edit, snapshot, output, confirmed
-frame, rendered artifact, deterministic-QA artifact, visual-QA work item, review
-manifest, and review decision. Its digest is recomputed; browser state cannot
-complete it.
+The frozen `canonical-caption-private-review-evidence-projection-v1` remains
+the compatibility lane for historical Qwen records. Active Visual Intelligence
+results use the additive
+`canonical-caption-private-review-evidence-projection-v2`. V2 carries the exact
+`canonical-caption-postrender-visual-intelligence-result-v1` identity and
+digest; it never casts or relabels that result as the retired Qwen evidence
+record. The authenticated service rereads the immutable execution package and
+approved snapshot, then requires the same owner, workspace, project, edit,
+snapshot, output, confirmed frame, rendered artifact, deterministic-QA
+artifact, visual-review work item, review manifest, and review decision. Its
+digest is recomputed; browser state cannot complete it. Terminal qualification
+and qualification-run assembly project the exact V1-or-V2 visual evidence ref
+instead of manufacturing one fixed legacy version.
 
 The existing private-edit preparation coordinator consults that projection
 before it assembles a Caption review. A visual `repair_required` or

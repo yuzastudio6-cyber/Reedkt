@@ -16,6 +16,9 @@ import type {
   CanonicalCaptionTerminalEvidenceBundle,
   CanonicalCaptionTerminalQualificationRequest,
 } from '../../src/types/canonical-caption-terminal-qualification'
+import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
@@ -157,8 +160,17 @@ export function createCanonicalCaptionTerminalEvidenceAssembly(input: {
           'Canonical Caption private review changed between exact rereads.')
       }
       const privateReviewEvidenceProjections = firstReviews.map(
-        (review) => parseCanonicalCaptionPrivateReviewEvidenceProjection(
-          review))
+        (review) => {
+          const parsed = parseCanonicalCaptionPrivateReviewEvidenceProjection(
+            review)
+          if (parsed.schemaVersion !==
+              CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION) {
+            throw new Error(
+              'Canonical Caption terminal V1 bundle cannot contain a V2 private-review projection.',
+            )
+          }
+          return parsed
+        })
       const bundle = createCanonicalCaptionTerminalEvidenceBundle({
         request,
         qualificationInput,

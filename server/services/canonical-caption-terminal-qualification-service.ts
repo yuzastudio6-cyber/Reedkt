@@ -18,6 +18,9 @@ import {
 } from '../../src/types/canonical-caption-terminal-qualification'
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
+import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
@@ -233,8 +236,17 @@ export function parseCanonicalCaptionTerminalEvidenceBundle(
   const qualificationInput = parseCaptionTerminalQualificationEvidenceInputV2(
     envelope.qualificationInput)
   const projections = envelope.privateReviewEvidenceProjections.map(
-    (projection) =>
-      parseCanonicalCaptionPrivateReviewEvidenceProjection(projection))
+    (projection) => {
+      const parsed = parseCanonicalCaptionPrivateReviewEvidenceProjection(
+        projection)
+      if (parsed.schemaVersion !==
+          CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION) {
+        throw new Error(
+          'Canonical Caption terminal V1 bundle cannot contain a V2 private-review projection.',
+        )
+      }
+      return parsed
+    })
   const preflight = createCaptionTerminalQualificationPreflightV2(
     qualificationInput, projections)
   const outputIds = qualificationInput.outputEvidence.map((output) =>

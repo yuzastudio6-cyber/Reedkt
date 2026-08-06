@@ -9,8 +9,13 @@ import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
 import {
   CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
   type CanonicalCaptionPrivateReviewEvidenceProjection,
+  type CanonicalCaptionPrivateReviewEvidenceProjectionV2,
 } from '../../src/types/canonical-caption-private-review-evidence-projection'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
 } from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
@@ -599,6 +604,12 @@ async function run(): Promise<void> {
     qualificationInput: crossedInput,
     privateReviewEvidenceProjections: [privateReviewProjection()],
   }))
+  const activeVisualReview = privateReviewProjectionV2()
+  expectThrow(() => createCanonicalCaptionTerminalEvidenceBundle({
+    request,
+    qualificationInput,
+    privateReviewEvidenceProjections: [activeVisualReview],
+  }))
 
   console.log(JSON.stringify({
     smoke: 'canonical_caption_terminal_qualification_service',
@@ -617,6 +628,36 @@ async function run(): Promise<void> {
     browserLocalCompletionAccepted: false,
     productionAuthority: false,
   }, null, 2))
+}
+
+function privateReviewProjectionV2():
+CanonicalCaptionPrivateReviewEvidenceProjectionV2 {
+  const legacy = privateReviewProjection()
+  const candidate: CanonicalCaptionPrivateReviewEvidenceProjectionV2 = {
+    ...legacy,
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+    sourceRefs: {
+      privateReviewDependencyBindingRef: structuredClone(
+        legacy.sourceRefs.privateReviewDependencyBindingRef),
+      visualEvidenceOwner: 'visual_intelligence',
+      postrenderVisualEvidenceRef: {
+        id: legacy.sourceRefs.postrenderVisualQaEvidenceRef.id,
+        version:
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+        contentHash: legacy.sourceRefs.postrenderVisualQaEvidenceRef
+          .contentHash.replace(/^sha256:/u, ''),
+      },
+      workRequestRef: structuredClone(legacy.sourceRefs.workRequestRef),
+      normalizedResultRef: structuredClone(
+        legacy.sourceRefs.normalizedResultRef),
+    },
+    projectionDigestSha256: '',
+  }
+  candidate.projectionDigestSha256 = calculateSkillContractDigest(
+    candidate as unknown as Record<string, unknown>,
+    'projectionDigestSha256')
+  return candidate
 }
 
 void run()

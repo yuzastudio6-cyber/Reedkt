@@ -28,9 +28,6 @@ import {
   CAPTION_CANONICAL_TRANSCRIPT_AUTHENTICATED_READ_BINDING_VERSION,
   type CaptionCanonicalTranscriptReadScope,
 } from '../../src/types/caption-canonical-transcript-authenticated-read'
-import {
-  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
-} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import { ApiError } from '../errors/api-error'
@@ -65,6 +62,7 @@ import type {
   CanonicalCaptionDirectVisualInspectionRepository,
 } from '../../src/types/canonical-caption-direct-visual-inspection-evidence'
 import {
+  canonicalCaptionPrivateReviewVisualEvidenceRef,
   createCanonicalCaptionPrivateReviewEvidenceService,
   parseCanonicalCaptionPrivateReviewEvidenceProjection,
 } from './canonical-caption-private-review-evidence-service'
@@ -786,12 +784,8 @@ async function buildRunEvidence(
         version: directInspection.schemaVersion,
         contentHash: directInspection.evidenceDigestSha256,
       },
-      qualifiedCompleteTimeVisualReviewRef: {
-        id: parsedReview.sourceRefs.postrenderVisualQaEvidenceRef.id,
-        version: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
-        contentHash: unprefix(parsedReview.sourceRefs
-          .postrenderVisualQaEvidenceRef.contentHash),
-      },
+      qualifiedCompleteTimeVisualReviewRef:
+        canonicalCaptionPrivateReviewVisualEvidenceRef(parsedReview),
       independentFinalQaRef: {
         id: assembly.finalQaArtifact.artifactId,
         version: String(assembly.finalQaArtifact.artifactVersion),

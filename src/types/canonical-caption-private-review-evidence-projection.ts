@@ -6,6 +6,8 @@ import type { CanonicalCaptionPostrenderVisualQaDecision } from
 
 export const CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION =
   'canonical-caption-private-review-evidence-projection-v1' as const
+export const CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION =
+  'canonical-caption-private-review-evidence-projection-v2' as const
 
 export type CanonicalCaptionPrivateReviewEvidenceDisposition =
   | 'blocked_visual_evidence_reconciliation'
@@ -96,3 +98,27 @@ export interface CanonicalCaptionPrivateReviewEvidenceProjection {
   publicDeliveryAuthority: false
   productionAuthority: false
 }
+
+/**
+ * Active Visual Intelligence projection. V1 remains the immutable compatibility
+ * lane for the retired Qwen result. V2 carries the exact provider-neutral
+ * Visual Intelligence result schema instead of relabeling it as the V1 Qwen
+ * evidence record downstream.
+ */
+export interface CanonicalCaptionPrivateReviewEvidenceProjectionV2
+  extends Omit<CanonicalCaptionPrivateReviewEvidenceProjection,
+    'schemaVersion' | 'sourceRefs'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION
+  sourceRefs: {
+    privateReviewDependencyBindingRef: CaptionDomainRef
+    visualEvidenceOwner: 'visual_intelligence'
+    postrenderVisualEvidenceRef: CaptionDomainRef
+    workRequestRef: CanonicalPostrenderVisualQaEvidenceRef
+    normalizedResultRef: CanonicalPostrenderVisualQaEvidenceRef
+  }
+}
+
+export type CanonicalCaptionPrivateReviewEvidenceProjectionAny =
+  | CanonicalCaptionPrivateReviewEvidenceProjection
+  | CanonicalCaptionPrivateReviewEvidenceProjectionV2

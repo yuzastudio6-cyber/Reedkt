@@ -19,7 +19,7 @@ import { assertClosedContractTree } from
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 import type {
-  CanonicalCaptionPrivateReviewEvidenceProjection,
+  CanonicalCaptionPrivateReviewEvidenceProjectionAny,
 } from '../../src/types/canonical-caption-private-review-evidence-projection'
 import {
   CAPTION_CURRENT_INTEGRATION_READINESS_V2,
@@ -166,7 +166,7 @@ export function parseCaptionTerminalQualificationProjectionV2(
 export function createCaptionTerminalQualificationProjectionV2(
   sourceEvidenceInput: unknown,
   privateReviewEvidenceProjections:
-    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+    readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): CaptionTerminalQualificationProjectionV2 {
   assertCurrentSourceReadinessAllowsTerminalProjection()
   const input = parseCaptionTerminalQualificationEvidenceInputV2(
@@ -243,7 +243,7 @@ export function parseCaptionTerminalQualificationPreflightV2(
 export function createCaptionTerminalQualificationPreflightV2(
   sourceEvidenceInput?: unknown,
   privateReviewEvidenceProjections?:
-    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+    readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): CaptionTerminalQualificationPreflightV2 {
   const input = sourceEvidenceInput === undefined
     ? null : parseCaptionTerminalQualificationEvidenceInputV2(sourceEvidenceInput)

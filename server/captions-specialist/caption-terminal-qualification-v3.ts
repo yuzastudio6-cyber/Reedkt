@@ -44,7 +44,7 @@ import {
   parseCaptionTerminalQualificationProjectionV2,
 } from './caption-terminal-qualification-v2'
 import type {
-  CanonicalCaptionPrivateReviewEvidenceProjection,
+  CanonicalCaptionPrivateReviewEvidenceProjectionAny,
 } from '../../src/types/canonical-caption-private-review-evidence-projection'
 
 const safeKey = z.string().trim().min(1).max(240)
@@ -105,7 +105,7 @@ export function parseCaptionTerminalQualificationEvidenceInputV3(
 export function createCaptionTerminalQualificationProjectionV3(
   sourceEvidenceInput: unknown,
   privateReviewEvidenceProjections:
-    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+    readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): CaptionTerminalQualificationProjectionV3 {
   const input = parseCaptionTerminalQualificationEvidenceInputV3(
     sourceEvidenceInput)
@@ -226,7 +226,7 @@ export function parseCaptionTerminalQualificationProjectionV3(
 export function createCaptionTerminalQualificationPreflightV3(
   sourceEvidenceInput?: unknown,
   privateReviewEvidenceProjections?:
-    readonly CanonicalCaptionPrivateReviewEvidenceProjection[],
+    readonly CanonicalCaptionPrivateReviewEvidenceProjectionAny[],
 ): CaptionTerminalQualificationPreflightV3 {
   const input = sourceEvidenceInput === undefined ? null
     : parseCaptionTerminalQualificationEvidenceInputV3(sourceEvidenceInput)

@@ -32,6 +32,7 @@ const ALLOWED_REDIRECT_HOSTS = new Set([
   'cas-bridge.xethub.hf.co',
   'cdn-lfs.hf.co',
   'huggingface.co',
+  'us.aws.cdn.hf.co',
 ])
 const evidenceRefSchema = z.object({
   id: z.string().trim().min(1).max(220)

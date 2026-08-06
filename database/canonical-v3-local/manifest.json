@@ -313,7 +313,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "495d5dd23d8f244d6a3c62353ec74e52e49fa19a47919e870f9fcb0b433e3e82"
+      "sha256": "ca08b89c3e28282f7a853db4f297324e6277194f5bd2658b7457fd161a216173"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",

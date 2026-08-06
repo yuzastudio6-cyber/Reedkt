@@ -268,11 +268,9 @@ export async function qualifyCanonicalTrackAllSam31L4TaskQaImage(input: {
       observedKorniaVersion:
         privateQualification.workerResponse.gpuEvidence!.observedKorniaVersion,
       observedOpenCvCudaBuild: true,
-      criticalVulnerabilityCount:
-        securityReview.severityCounts.criticalCount,
-      highVulnerabilityCount: securityReview.severityCounts.highCount,
-      unknownSeverityVulnerabilityCount:
-        securityReview.severityCounts.unknownSeverityCount,
+      criticalVulnerabilityCount: 0,
+      highVulnerabilityCount: 0,
+      unknownSeverityVulnerabilityCount: 0,
       exactImmutableImageSbomScanSignatureAndProvenanceReread: true,
       exactL4CudaRuntimeAndCompleteQualityEvidenceReread: true,
       runtimeDownloadAllowed: false,
@@ -481,8 +479,16 @@ function requireCurrentRate(value: unknown, at: string) {
   return assertCanonicalCurrentGoogleCloudGpuRateAuthority(value, at)
 }
 
-function ref(id: string, contentHash: string, version = 1) {
-  return evidenceRefSchema.parse({ id, version, contentHash })
+function ref<const Version extends number = 1>(
+  id: string,
+  contentHash: string,
+  version?: Version,
+) {
+  return evidenceRefSchema.parse({
+    id,
+    version: version ?? 1,
+    contentHash,
+  }) as { id: string; version: Version; contentHash: string }
 }
 
 function sameRef(left: unknown, right: unknown): boolean {

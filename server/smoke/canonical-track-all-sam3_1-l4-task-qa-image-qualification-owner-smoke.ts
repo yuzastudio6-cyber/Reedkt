@@ -566,10 +566,14 @@ function memoryObjectPort(
   }
 }
 
-function ref(id: string, contentHash?: string, version = 1) {
+function ref<const Version extends number = 1>(
+  id: string,
+  contentHash?: string,
+  version?: Version,
+) {
   return {
     id,
-    version,
+    version: (version ?? 1) as Version,
     contentHash: (contentHash ?? `sha256:${sha256AuthorityValue({ id })}`) as
       `sha256:${string}`,
   }

@@ -185,7 +185,7 @@ await rejectMutation('wrong GPU', (copy) => {
   copy.job.template.template.nodeSelector.accelerator = 'cpu'
 }, /job_definition_changed|nvidia-l4/u)
 await rejectMutation('caller command', (copy) => {
-  copy.job.template.template.containers[0].command = ['/bin/sh']
+  Reflect.set(copy.job.template.template.containers[0], 'command', ['/bin/sh'])
 }, /job_definition_changed/u)
 await rejectMutation('wrong mount', (copy) => {
   copy.job.template.template.volumes[0].gcs.mountOptions = ['implicit-dirs']
@@ -196,14 +196,19 @@ await rejectMutation('public bucket principal', (copy) => {
   })
 }, /expected false/u)
 await rejectMutation('Cloud NAT', (copy) => {
-  copy.routers.items = [{ name: 'public-nat-router', nats: [{}] }]
+  Reflect.set(copy.routers, 'items', [{
+    name: 'public-nat-router', nats: [{}],
+  }])
 }, /expected 0/u)
 await rejectMutation('customer-managed encryption relabel', (copy) => {
-  copy.bucket.encryption = { defaultKmsKeyName: 'projects/x/keys/y' }
+  Reflect.set(copy.bucket, 'encryption', {
+    defaultKmsKeyName: 'projects/x/keys/y',
+  })
 }, /encryption_changed/u)
 await rejectMutation('crossed image', (copy) => {
-  copy.image.uri = copy.image.uri.replace('reeditpro-track-all-l4-task-qa',
-    'crossed-image')
+  Reflect.set(copy.image, 'uri', copy.image.uri.replace(
+    'reeditpro-track-all-l4-task-qa', 'crossed-image',
+  ))
 }, /image supply-chain evidence failed exact validation/u)
 await rejectMutation('extra environment', (copy) => {
   copy.job.template.template.containers[0].env.push({

@@ -54,13 +54,16 @@ const evidenceRefSchema = z.object({
   version: z.number().int().positive().safe(),
   contentHash: prefixedSha256,
 }).strict()
+const versionOneEvidenceRefSchema = evidenceRefSchema.extend({
+  version: z.literal(1),
+}).strict()
 const configurationSchema = z.object({
   GOOGLE_CLOUD_PROJECT_ID: z.literal(PROJECT_ID),
   GCS_CONTROL_PLANE_STATE_BUCKET: z.literal(CONTROL_PLANE_BUCKET),
   WEEDITPRO_CONFIRM_TRACK_ALL_L4_IMAGE_QUALIFICATION:
     z.literal(CONFIRMATION),
-  imageBuildAuthorityRef: evidenceRefSchema,
-  imageBuildTerminalRef: evidenceRefSchema,
+  imageBuildAuthorityRef: versionOneEvidenceRefSchema,
+  imageBuildTerminalRef: versionOneEvidenceRefSchema,
   vulnerabilityScanRef: evidenceRefSchema,
   securityReviewRef: evidenceRefSchema,
   privateQualificationRef: evidenceRefSchema,
@@ -118,9 +121,13 @@ const receipt = await qualifyCanonicalTrackAllSam31L4TaskQaImage({
   },
   evidenceReadPort: {
     rereadBuildAuthority: (input) =>
-      buildRuntime.repository.rereadBuildAuthority(input),
+      buildRuntime.repository.rereadBuildAuthority({
+        authorityRef: versionOneEvidenceRefSchema.parse(input.authorityRef),
+      }),
     rereadBuildTerminal: (input) =>
-      observationRuntime.repository.rereadTerminal(input),
+      observationRuntime.repository.rereadTerminal({
+        terminalRef: versionOneEvidenceRefSchema.parse(input.terminalRef),
+      }),
     rereadSecurityReview: ({ securityReviewRef }) =>
       rereadSecurityReview({
         objectPort,

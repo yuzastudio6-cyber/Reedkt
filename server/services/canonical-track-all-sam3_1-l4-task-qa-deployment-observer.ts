@@ -327,7 +327,9 @@ export function createCanonicalTrackAllSam31L4TaskQaDeploymentEvidenceRepository
   return Object.freeze({
     schemaVersion:
       CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPLOYMENT_EVIDENCE_REPOSITORY_VERSION,
-    async persistCreateOnly({ evidence }) {
+    async persistCreateOnly({ evidence }: {
+      readonly evidence: CanonicalTrackAllSam31L4TaskQaDeploymentEvidence
+    }) {
       const exact = assertCanonicalTrackAllSam31L4TaskQaDeploymentEvidence(
         evidence,
       )
@@ -345,7 +347,9 @@ export function createCanonicalTrackAllSam31L4TaskQaDeploymentEvidenceRepository
       }
       return result === 'created' ? 'created' : 'identical_replay'
     },
-    async reread({ evidenceRef }) {
+    async reread({ evidenceRef }: {
+      readonly evidenceRef: z.infer<typeof evidenceRefSchema>
+    }) {
       const ref = evidenceRefSchema.parse(evidenceRef)
       const bytes = await input.objectPort.readExact(evidencePath(prefix, ref))
       if (!bytes) return null
@@ -909,7 +913,7 @@ function normalizeRouters(value: unknown) {
     throw new Error('track_all_l4_router_set_incomplete')
   }
   const routers = array(root.items)
-  const natCount = routers.reduce((count, item) =>
+  const natCount = routers.reduce<number>((count, item) =>
     count + array(record(item).nats).length, 0)
   return routerEvidenceSchema.parse({
     routerCount: routers.length,

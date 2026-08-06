@@ -290,20 +290,20 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   planningRoute('full_video_music_pass', 'music.route.plan.full_video.v2'),
   route({
     key: 'music.route.plan.cue_grouping.v2', jobs: ['create_music_cue_sheet'], role: 'primary',
-    version: '3.1.0',
+    version: '3.3.0',
     requiredInputs: ['music_assignment_v2'], outputs: ['music_cue_grouping_plan_v3'],
     optionalOutputs: ['music_cue_policy_conflict_v3'], steps: [step({
       stepKey: 'group_cues', stepJobType: 'create_music_cue_sheet',
-      toolKey: 'music_cue_grouping_engine', toolVersion: '3.1.0', operationKey: 'group_music_cues',
-      operationVersion: '3.1.0', operationProfileKey: 'music.profile.group_music_cues.v3',
-      operationProfileVersion: '3.1.0', required: true,
+      toolKey: 'music_cue_grouping_engine', toolVersion: '3.3.0', operationKey: 'group_music_cues',
+      operationVersion: '3.3.0', operationProfileKey: 'music.profile.group_music_cues.v3',
+      operationProfileVersion: '3.3.0', required: true,
       dependencyStepKeys: [], inputBindings: ['music_assignment_v2'],
       outputBindings: ['music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3'], failureBehavior: 'fail_route',
     })],
   }),
   route({
     key: 'music.route.plan.cue_sheet.v2', jobs: ['create_music_cue_sheet'], role: 'primary',
-    version: '3.2.0', requiredInputs: ['music_assignment_v2'],
+    version: '3.3.0', requiredInputs: ['music_assignment_v2'],
     outputs: ['music_cue_sheet_v2', 'music_cue_constraint_resolution_v3'],
     steps: [
       step({
@@ -315,10 +315,10 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
       }),
       step({
         stepKey: 'publish_constraint_resolutions', stepJobType: 'create_music_cue_sheet',
-        toolKey: 'music_constraint_resolution_publisher', toolVersion: '3.2.0',
-        operationKey: 'publish_cue_constraint_resolutions', operationVersion: '3.2.0',
+        toolKey: 'music_constraint_resolution_publisher', toolVersion: '3.3.0',
+        operationKey: 'publish_cue_constraint_resolutions', operationVersion: '3.3.0',
         operationProfileKey: 'music.profile.publish_cue_constraint_resolutions.v3',
-        operationProfileVersion: '3.2.0', required: true, dependencyStepKeys: ['plan'],
+        operationProfileVersion: '3.3.0', required: true, dependencyStepKeys: ['plan'],
         inputBindings: ['music_cue_sheet_v2'], outputBindings: ['music_cue_constraint_resolution_v3'],
         failureBehavior: 'fail_route',
       }),
@@ -394,10 +394,10 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   }),
   route({
     key: 'music.route.support.sound_processing.v2', jobs: ['prepare_music_stem', 'request_sound_processing', 'plan_music_mix'], role: 'support',
-    version: '3.1.0',
+    version: '3.3.0',
     requiredInputs: ['music_editorial_plan_v2', 'approved_private_music_audio'],
     outputs: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'], steps: [step({
-      stepKey: 'sound_support', stepJobType: 'request_sound_processing', toolKey: 'canonical_sound_v4_port', toolVersion: '4.2.0',
+      stepKey: 'sound_support', stepJobType: 'request_sound_processing', toolKey: 'canonical_sound_v4_port', toolVersion: '4.3.0',
       operationKey: 'process_music_through_public_sound_service', operationProfileKey: 'music.profile.sound_v4_support.v2', required: true,
       dependencyStepKeys: [], inputBindings: ['music_editorial_plan_v2', 'approved_private_music_audio'],
       outputBindings: ['processed_music_audio_v2', 'music_stem_audio_v2', 'music_sound_support_receipt_v2'], failureBehavior: 'fail_route',
@@ -405,11 +405,11 @@ const routes: Readonly<MusicToolRouteManifest>[] = [
   }),
   route({
     key: 'music.route.support.two_source_crossfade.v2', jobs: ['request_sound_processing'], role: 'support',
-    version: '3.1.0',
+    version: '3.3.0',
     requiredInputs: ['music_crossfade_plan_v3', 'approved_private_music_audio'],
     outputs: ['music_crossfade_audio', 'music_crossfade_receipt_v3'], steps: [step({
       stepKey: 'sound_two_source_crossfade', stepJobType: 'request_sound_processing',
-      toolKey: 'canonical_sound_v4_port', toolVersion: '4.2.0',
+      toolKey: 'canonical_sound_v4_port', toolVersion: '4.3.0',
       operationKey: 'crossfade_music_through_public_sound_service',
       operationProfileKey: 'music.profile.sound_two_source_crossfade.v3', required: true,
       dependencyStepKeys: [], inputBindings: ['music_crossfade_plan_v3', 'approved_private_music_audio'],

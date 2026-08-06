@@ -29,7 +29,7 @@ const validation = validateSkillCapabilityManifests({
   catalog: editSkillReferenceCatalog,
 })
 assert.equal(validation.manifestCount, 3)
-assert.equal(SOUND_SKILL_VERSION, '4.2.0')
+assert.equal(SOUND_SKILL_VERSION, '4.3.0')
 assert.equal(soundSkillCapabilityManifest.contractVersion, 'sound.skill_contract.v4')
 assert.equal(soundSkillCapabilityManifest.qualificationStatus, 'planning_qualified')
 assert.equal(Object.isFrozen(soundSkillCapabilityManifest), true)

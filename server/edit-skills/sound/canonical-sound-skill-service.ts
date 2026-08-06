@@ -45,6 +45,7 @@ import {
 import { framesToSeconds } from '../core/timeline-rate'
 import {
   measureSoundRmsWindows,
+  measureSoundTwoSourceCrossfade,
   runSoundLocalAudioExecution,
   validateSoundAudioFile,
 } from '../../sound/sound-local-audio-processor'
@@ -229,8 +230,11 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
       request.targetOverlapRange.endFrameExclusive !== expectedOverlapStart + request.crossfadeDurationFrames) {
       throw new Error('Music two-source crossfade target range is not the exact authorized output composition.')
     }
-    const route = getSoundToolRouteManifest('sound.route.edit.music_two_source_crossfade.v1', '1.0.0')
-    if (!route) throw new Error('Canonical two-source Music crossfade route is unavailable.')
+    const route = getSoundToolRouteManifest('sound.route.edit.music_two_source_crossfade.v2', '2.0.0')
+    if (!route || route.routeHash !== request.soundRouteHash || route.routeKey !== request.soundRouteKey ||
+      route.routeVersion !== request.soundRouteVersion) {
+      throw new Error('Canonical two-source Music crossfade route is unavailable or stale.')
+    }
     const admission = evaluateSoundToolRouteAdmission({
       routeKey: route.routeKey, routeVersion: route.routeVersion,
       capabilityKey: 'sound.crossfade_music_sources', jobType: 'crossfade_music_sources',
@@ -267,7 +271,7 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
         timelineRate: request.timelineRate,
         routeBinding: admission.binding,
       },
-      operation: 'crossfade_music', operationProfileKey: 'sound.crossfade.music_two_source.v1',
+      operation: 'crossfade_music', operationProfileKey: 'sound.crossfade.music_two_source.v2',
       sources: [
         { artifact: request.leftSource, absolutePath: left.absolutePath },
         { artifact: request.rightSource, absolutePath: right.absolutePath },
@@ -293,9 +297,20 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
       { key: 'overlap_end', startSeconds: overlapStartSeconds + overlapDurationSeconds - windowSeconds,
         endSeconds: overlapStartSeconds + overlapDurationSeconds },
     ] })
+    const twoSourceEvidence = await measureSoundTwoSourceCrossfade({
+      leftAbsolutePath: left.absolutePath,
+      rightAbsolutePath: right.absolutePath,
+      outputAbsolutePath: resolvedOutput.absolutePath,
+      leftSourceStartSeconds: compiledParameters.leftSourceStartSeconds,
+      leftSourceDurationSeconds: compiledParameters.leftSourceDurationSeconds,
+      rightSourceStartSeconds: compiledParameters.rightSourceStartSeconds,
+      crossfadeDurationSeconds: compiledParameters.crossfadeDurationSeconds,
+      curveType: request.curveType,
+    })
     if (outputArtifact.durationFrames !== expectedOutputDurationFrames || outputStudy.clippingSampleCount !== 0 ||
-      outputStudy.truePeakDbtp === undefined || outputStudy.truePeakDbtp > -0.8) {
-      throw new Error('Music two-source crossfade failed exact duration, clipping, or true-peak QA.')
+      outputStudy.truePeakDbtp === undefined || outputStudy.truePeakDbtp > -0.8 ||
+      !twoSourceEvidence.twoSourcePresencePassed || !twoSourceEvidence.curveWithinTolerance) {
+      throw new Error(`Music two-source crossfade failed duration, clipping, true-peak, source-presence, or curve QA: ${JSON.stringify(twoSourceEvidence)}.`)
     }
     const requestedParameters = soundMusicTwoSourceCrossfadeRequestedParameters(request)
     const measuredQaCore = {
@@ -306,13 +321,14 @@ export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkill
       overlapStartRmsDbfs: windows.find((window) => window.key === 'overlap_start')!.rmsDbfs,
       overlapMidpointRmsDbfs: windows.find((window) => window.key === 'overlap_midpoint')!.rmsDbfs,
       overlapEndRmsDbfs: windows.find((window) => window.key === 'overlap_end')!.rmsDbfs,
+      twoSourceEvidence,
     }
     const receiptCore: Omit<SoundMusicTwoSourceCrossfadeReceipt, 'receiptHash'> = {
-      schemaVersion: 'sound.music_two_source_crossfade_receipt.v1', requestId: request.requestId,
+      schemaVersion: 'sound.music_two_source_crossfade_receipt.v2', requestId: request.requestId,
       extensionHash: request.extensionHash,
-      routeKey: 'sound.route.edit.music_two_source_crossfade.v1', routeVersion: route.routeVersion,
-      routeHash: route.routeHash, operationKey: 'crossfade_music_two_source', operationVersion: '1.0.0',
-      operationProfileKey: 'sound.crossfade.music_two_source.v1',
+      routeKey: 'sound.route.edit.music_two_source_crossfade.v2', routeVersion: route.routeVersion,
+      routeHash: route.routeHash, operationKey: 'crossfade_music_two_source', operationVersion: '2.0.0',
+      operationProfileKey: 'sound.crossfade.music_two_source.v2',
       leftSourceId: request.leftSource.artifactId, leftSourceHash: request.leftSource.checksumSha256,
       rightSourceId: request.rightSource.artifactId, rightSourceHash: request.rightSource.checksumSha256,
       outputArtifact, targetOverlapRange: structuredClone(request.targetOverlapRange),

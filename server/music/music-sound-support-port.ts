@@ -61,8 +61,8 @@ export const MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY = Object.freeze({
   soundManifestHash: soundSkillCapabilityManifest.manifestHash,
   capabilityKey: musicAutomationCapability.capabilityKey,
   capabilityVersion: musicAutomationCapability.capabilityVersion,
-  technicalAutomationRoute: exactPublishedSoundRoute('sound.route.edit.music_technical_automation.v1'),
-  twoSourceCrossfadeRoute: exactPublishedSoundRoute('sound.route.edit.music_two_source_crossfade.v1'),
+  technicalAutomationRoute: exactPublishedSoundRoute('sound.route.edit.music_technical_automation.v2'),
+  twoSourceCrossfadeRoute: exactPublishedSoundRoute('sound.route.edit.music_two_source_crossfade.v2'),
   technicalAutomationExtensionVersion: SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
   twoSourceCrossfadeExtensionVersion: SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
 })
@@ -537,9 +537,18 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
       processedMusicAssets: processed,
       musicStemAssets: stems.length > 0 ? stems : processed,
       mutationRanges,
-      technicalQaRefs: soundQa.qa.technicalOutputQa.map((finding) => finding.key),
-      synchronizationQaRefs: soundQa.qa.synchronizationQa.map((finding) => finding.key),
-      mixQaRefs: soundQa.qa.mixQa.map((finding) => finding.key),
+      technicalQaRefs: [...new Set([
+        ...soundQa.qa.technicalOutputQa.map((finding) => finding.key),
+        ...automationReceipt.measuredTechnicalQaRefs,
+      ])],
+      synchronizationQaRefs: [...new Set([
+        ...soundQa.qa.synchronizationQa.map((finding) => finding.key),
+        ...automationReceipt.measuredSynchronizationQaRefs,
+      ])],
+      mixQaRefs: [...new Set([
+        ...soundQa.qa.mixQa.map((finding) => finding.key),
+        ...automationReceipt.measuredMixQaRefs,
+      ])],
       nestedActualCredits: result.actualExecutionEvidence?.actualCreditsCharged ?? 0,
       callerReceiptHash: createHash('sha256').update(JSON.stringify(result.callerReceipt)).digest('hex'),
     }
@@ -559,6 +568,12 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     if (request.plan.planHash !== hashMusicValue(planCore)) {
       throw new Error('Music two-source crossfade plan hash is stale.')
     }
+    const exactSoundRoute = MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.twoSourceCrossfadeRoute
+    if (request.plan.soundRouteIdentity !==
+      `${exactSoundRoute.routeKey}@${exactSoundRoute.routeVersion}` ||
+      request.plan.soundExtensionVersion !== SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION) {
+      throw new Error('Music two-source crossfade plan has a stale Sound route or extension binding.')
+    }
     if (request.plan.leftSource.checksumSha256 === request.plan.rightSource.checksumSha256) {
       throw new Error('Music two-source crossfade requires independent source hashes.')
     }
@@ -569,6 +584,9 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
       callerManifestHash: request.musicManifestHash,
       soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
       soundManifestHash: soundSkillCapabilityManifest.manifestHash,
+      soundRouteKey: exactSoundRoute.routeKey as 'sound.route.edit.music_two_source_crossfade.v2',
+      soundRouteVersion: exactSoundRoute.routeVersion as '2.0.0',
+      soundRouteHash: exactSoundRoute.routeHash,
       leftCueId: request.plan.leftCueId, rightCueId: request.plan.rightCueId,
       leftSource: toSoundArtifact(request.plan.leftSource), rightSource: toSoundArtifact(request.plan.rightSource),
       leftSourceRange: toSoundRange(request.plan.leftSourceRange),
@@ -661,6 +679,28 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
         errors.push(`sound_operation_not_requested:${operation.operation}`)
         continue
       }
+      if (operation.appliedExecutionEvidenceHash !== hashMusicValue(operation.appliedExecutionEvidence)) {
+        errors.push(`sound_operation_execution_evidence_hash_mismatch:${operation.operation}`)
+      }
+      if (operation.operation === 'dialogue_ducking' &&
+        request.supportRequest.protectedSpeechRanges.length > 0) {
+        const evidence = operation.appliedExecutionEvidence as {
+          evidenceType?: unknown
+          mode?: unknown
+          protectedSpeechRanges?: unknown[]
+          measuredRampEvidence?: Array<{ attackRampPresent?: unknown; releaseRampPresent?: unknown;
+            returnedToBaseline?: unknown }>
+        }
+        if (evidence.evidenceType !== 'sound.dialogue_ducking_execution.v2' ||
+          evidence.mode !== 'range_envelope' ||
+          evidence.protectedSpeechRanges?.length !== request.supportRequest.protectedSpeechRanges.length ||
+          evidence.measuredRampEvidence?.length !== request.supportRequest.protectedSpeechRanges.length ||
+          !evidence.measuredRampEvidence?.every((window) =>
+            window.attackRampPresent === true && window.releaseRampPresent === true &&
+            window.returnedToBaseline === true)) {
+          errors.push('sound_dialogue_ducking_execution_evidence_incomplete')
+        }
+      }
       const expectedParameters = expectedMusicOperationParameters(request.supportRequest, requestedOperation)
       if (operation.receivedParametersHash !== hashMusicValue(operation.requestedParameters) ||
         operation.compiledParametersHash !== hashMusicValue(operation.compiledParameters) ||
@@ -687,6 +727,11 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
         `${operation.routeKey}@${operation.routeVersion}#${operation.routeHash}`) ||
         operation.handlerIdentity.length === 0 || operation.operationVersion.length === 0) {
         errors.push(`sound_operation_execution_binding_invalid:${operation.operation}`)
+      }
+      const expectedRoute = MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.technicalAutomationRoute
+      if (operation.routeKey !== expectedRoute.routeKey || operation.routeVersion !== expectedRoute.routeVersion ||
+        operation.routeHash !== expectedRoute.routeHash) {
+        errors.push(`sound_operation_route_identity_invalid:${operation.operation}`)
       }
       if (operation.measuredQaRefs.length === 0 || operation.measuredQaResult === 'failed' ||
         operation.status !== 'completed') errors.push(`sound_operation_qa_invalid:${operation.operation}`)
@@ -776,7 +821,7 @@ export function createMusicCrossfadePlan(input: {
       rate: input.request.timelineBinding.rationalTimelineRate, sampleRate, rounding: 'nearest_half_up' }),
     timelineRate: structuredClone(input.request.timelineBinding.rationalTimelineRate), sampleRate,
     curveType: input.curveType ?? 'equal_power' as const,
-    soundRouteIdentity: 'sound.route.edit.music_two_source_crossfade.v1@1.0.0',
+    soundRouteIdentity: 'sound.route.edit.music_two_source_crossfade.v2@2.0.0',
     soundExtensionVersion: SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
   }
   return { ...core, planHash: hashMusicValue(core) }

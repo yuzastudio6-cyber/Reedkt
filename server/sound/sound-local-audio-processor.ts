@@ -149,20 +149,30 @@ export interface SoundMixOutputMeasurements {
     measuredDuckingDb: number
   }>
   duckEnvelopeMeasurements: Array<{
+    mode: 'range_envelope'
     startSeconds: number
     endSeconds: number
     attackSeconds: number
     releaseSeconds: number
+    effectiveAttackSeconds: number
+    effectiveReleaseSeconds: number
+    attackSampleCount: number
+    releaseSampleCount: number
     requestedDuckingDb: number
+    preAttackBaselineRmsDbfs: number
     attackEarlyRmsDbfs: number
     attackLateRmsDbfs: number
     holdRmsDbfs: number
     releaseEarlyRmsDbfs: number
     releaseLateRmsDbfs: number
+    postReleaseBaselineRmsDbfs: number
     measuredAttackDeltaDb: number
     measuredReleaseDeltaDb: number
+    measuredHoldAttenuationDb: number
+    measuredPostReleaseDeltaDb: number
     attackRampPresent: boolean
     releaseRampPresent: boolean
+    returnedToBaseline: boolean
   }>
   expectedPanDirection: 'left' | 'center' | 'right'
   measuredChannelDeltaDb: number
@@ -176,6 +186,32 @@ export interface SoundMixOutputMeasurements {
     centerRmsDbfs: number
     trailingRmsDbfs: number
   }
+}
+
+export interface SoundTwoSourceCrossfadeMeasurements {
+  measurementMethod: 'decoded_pcm_spectral_two_source_least_squares_v1'
+  analysisSampleRate: 8_000
+  windows: Array<{
+    position: 'start' | 'midpoint' | 'end'
+    progress: number
+    outputStartSeconds: number
+    durationSeconds: number
+    expectedLeftShare: number
+    expectedRightShare: number
+    measuredLeftShare: number
+    measuredRightShare: number
+    leftCoefficient: number
+    rightCoefficient: number
+    reconstructionCorrelation: number
+    curveShareError: number
+  }>
+  maximumCurveShareError: number
+  minimumReconstructionCorrelation: number
+  startLeftDominant: boolean
+  midpointBothSourcesPresent: boolean
+  endRightDominant: boolean
+  curveWithinTolerance: boolean
+  twoSourcePresencePassed: boolean
 }
 
 export interface SoundLocalAudioExecutionResult {
@@ -222,9 +258,9 @@ const operationProfiles: Record<SoundLocalOperation, {
   normalize: { profileKeys: ['sound.normalize.v1', 'sound.normalize.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   resample_channels: { profileKeys: ['sound.resample-channels.v1', 'sound.resample-channels.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
   loop_crossfade: { profileKeys: ['sound.loop.edit.v1', 'sound.loop.ambience.v1', 'sound.loop.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  crossfade_music: { profileKeys: ['sound.crossfade.music_two_source.v1'], outputRequired: true, minimumSources: 2, maximumSources: 2 },
+  crossfade_music: { profileKeys: ['sound.crossfade.music_two_source.v2'], outputRequired: true, minimumSources: 2, maximumSources: 2 },
   stretch_pitch: { profileKeys: ['sound.stretch-pitch.v1', 'sound.stretch-pitch.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
-  mix_stem: { profileKeys: ['sound.mix-stem.scene.v1', 'sound.mix-stem.provider_candidate.v1', 'sound.mix-stem.music_technical.v1'], outputRequired: true, minimumSources: 1, maximumSources: 16 },
+  mix_stem: { profileKeys: ['sound.mix-stem.scene.v1', 'sound.mix-stem.provider_candidate.v1', 'sound.mix-stem.music_technical.v2'], outputRequired: true, minimumSources: 1, maximumSources: 16 },
   sync_qa: { profileKeys: ['sound.sync-qa.v1', 'sound.sync-qa.music_technical.v1'], outputRequired: false, minimumSources: 1, maximumSources: 1 },
   cleanup_gentle: { profileKeys: ['sound.cleanup.gentle.v1'], outputRequired: true, minimumSources: 1, maximumSources: 1 },
 }
@@ -650,21 +686,35 @@ export async function measureSoundMixOutput(input: {
     const effectiveRelease = releaseEnd - window.endSeconds
     const attackRadius = Math.max(0.002, Math.min(0.012, effectiveAttack / 12))
     const releaseRadius = Math.max(0.002, Math.min(0.012, effectiveRelease / 12))
+    const baselineRadius = Math.max(0.002, Math.min(0.02, Math.max(effectiveAttack, effectiveRelease) / 8))
+    const preAttackBaselineRmsDbfs = sampleAt(Math.max(0, attackStart - baselineRadius * 2), baselineRadius)
     const attackEarlyRmsDbfs = sampleAt(attackStart + effectiveAttack * 0.2, attackRadius)
     const attackLateRmsDbfs = sampleAt(attackStart + effectiveAttack * 0.8, attackRadius)
     const holdRmsDbfs = sampleAt((window.startSeconds + window.endSeconds) / 2,
       Math.max(0.002, Math.min(0.02, (window.endSeconds - window.startSeconds) / 8)))
     const releaseEarlyRmsDbfs = sampleAt(window.endSeconds + effectiveRelease * 0.2, releaseRadius)
     const releaseLateRmsDbfs = sampleAt(window.endSeconds + effectiveRelease * 0.8, releaseRadius)
+    const postReleaseBaselineRmsDbfs = sampleAt(
+      Math.min(frameCount / sampleRate, releaseEnd + baselineRadius * 2), baselineRadius,
+    )
     const measuredAttackDeltaDb = Number((attackLateRmsDbfs - attackEarlyRmsDbfs).toFixed(3))
     const measuredReleaseDeltaDb = Number((releaseLateRmsDbfs - releaseEarlyRmsDbfs).toFixed(3))
+    const measuredHoldAttenuationDb = Number((holdRmsDbfs - preAttackBaselineRmsDbfs).toFixed(3))
+    const measuredPostReleaseDeltaDb = Number((postReleaseBaselineRmsDbfs - preAttackBaselineRmsDbfs).toFixed(3))
     return {
-      ...window, attackSeconds, releaseSeconds, requestedDuckingDb,
+      mode: 'range_envelope' as const,
+      ...window, attackSeconds, releaseSeconds, effectiveAttackSeconds: effectiveAttack,
+      effectiveReleaseSeconds: effectiveRelease,
+      attackSampleCount: Math.round(effectiveAttack * sampleRate),
+      releaseSampleCount: Math.round(effectiveRelease * sampleRate), requestedDuckingDb,
+      preAttackBaselineRmsDbfs,
       attackEarlyRmsDbfs, attackLateRmsDbfs, holdRmsDbfs,
-      releaseEarlyRmsDbfs, releaseLateRmsDbfs,
-      measuredAttackDeltaDb, measuredReleaseDeltaDb,
+      releaseEarlyRmsDbfs, releaseLateRmsDbfs, postReleaseBaselineRmsDbfs,
+      measuredAttackDeltaDb, measuredReleaseDeltaDb, measuredHoldAttenuationDb,
+      measuredPostReleaseDeltaDb,
       attackRampPresent: effectiveAttack > 0 && measuredAttackDeltaDb < -0.2,
       releaseRampPresent: effectiveRelease > 0 && measuredReleaseDeltaDb > 0.2,
+      returnedToBaseline: Math.abs(measuredPostReleaseDeltaDb) <= 2,
     }
   })
   const gainEnvelopeMeasurements = input.gainEnvelope.map((point) => {
@@ -689,6 +739,167 @@ export async function measureSoundMixOutput(input: {
       centerRmsDbfs: rms(centerStart, centerStart + edgeFrames),
       trailingRmsDbfs: rms(Math.max(0, frameCount - edgeFrames), frameCount),
     },
+  }
+}
+
+async function decodeMonoPcmWindow(input: {
+  absolutePath: string
+  startSeconds: number
+  durationSeconds: number
+}): Promise<Float64Array> {
+  const sampleRate = 8_000
+  const decoded = await execFileAsync(FFMPEG, [
+    '-hide_banner', '-loglevel', 'error', '-nostdin', '-ss', String(Math.max(0, input.startSeconds)),
+    '-t', String(input.durationSeconds), '-i', input.absolutePath, '-vn', '-ac', '1', '-ar', String(sampleRate),
+    '-f', 'f32le', 'pipe:1',
+  ], { timeout: 120_000, maxBuffer: 16 * 1024 * 1024, encoding: 'buffer' } as Parameters<typeof execFileAsync>[2])
+  const bytes = Buffer.isBuffer(decoded.stdout) ? decoded.stdout : Buffer.from(decoded.stdout)
+  const samples = new Float64Array(Math.floor(bytes.length / 4))
+  for (let index = 0; index < samples.length; index += 1) samples[index] = bytes.readFloatLE(index * 4)
+  return samples
+}
+
+function spectralMagnitudes(samples: Float64Array): Float64Array {
+  const count = Math.min(1_024, samples.length)
+  if (count < 64) throw new Error('Two-source crossfade spectral measurement requires decoded PCM evidence.')
+  const bins = Math.min(256, Math.floor(count / 2) - 1)
+  const magnitudes = new Float64Array(bins)
+  for (let bin = 1; bin <= bins; bin += 1) {
+    let real = 0
+    let imaginary = 0
+    for (let index = 0; index < count; index += 1) {
+      const hann = 0.5 - 0.5 * Math.cos(2 * Math.PI * index / Math.max(1, count - 1))
+      const sample = samples[index]! * hann
+      const phase = 2 * Math.PI * bin * index / count
+      real += sample * Math.cos(phase)
+      imaginary -= sample * Math.sin(phase)
+    }
+    magnitudes[bin - 1] = Math.sqrt(real * real + imaginary * imaginary)
+  }
+  return magnitudes
+}
+
+function solveTwoSourceShares(input: {
+  left: Float64Array
+  right: Float64Array
+  output: Float64Array
+}): { leftCoefficient: number; rightCoefficient: number; leftShare: number; rightShare: number; correlation: number } {
+  const spectralLeft = spectralMagnitudes(input.left)
+  const spectralRight = spectralMagnitudes(input.right)
+  const spectralOutput = spectralMagnitudes(input.output)
+  const count = Math.min(spectralLeft.length, spectralRight.length, spectralOutput.length)
+  if (count < 64) throw new Error('Two-source crossfade measurement requires decoded PCM evidence.')
+  let leftSquare = 0
+  let rightSquare = 0
+  let cross = 0
+  let leftOutput = 0
+  let rightOutput = 0
+  for (let index = 0; index < count; index += 1) {
+    const left = spectralLeft[index]!
+    const right = spectralRight[index]!
+    const output = spectralOutput[index]!
+    leftSquare += left * left
+    rightSquare += right * right
+    cross += left * right
+    leftOutput += left * output
+    rightOutput += right * output
+  }
+  const determinant = leftSquare * rightSquare - cross * cross
+  if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-12) {
+    throw new Error('Two-source crossfade sources are not independently measurable.')
+  }
+  const leftCoefficient = (leftOutput * rightSquare - rightOutput * cross) / determinant
+  const rightCoefficient = (rightOutput * leftSquare - leftOutput * cross) / determinant
+  let outputSquare = 0
+  let reconstructionSquare = 0
+  let outputReconstruction = 0
+  for (let index = 0; index < count; index += 1) {
+    const output = spectralOutput[index]!
+    const reconstructed = leftCoefficient * spectralLeft[index]! + rightCoefficient * spectralRight[index]!
+    outputSquare += output * output
+    reconstructionSquare += reconstructed * reconstructed
+    outputReconstruction += output * reconstructed
+  }
+  const coefficientTotal = Math.max(1e-12, Math.abs(leftCoefficient) + Math.abs(rightCoefficient))
+  return {
+    leftCoefficient: Number(leftCoefficient.toFixed(6)),
+    rightCoefficient: Number(rightCoefficient.toFixed(6)),
+    leftShare: Number((Math.abs(leftCoefficient) / coefficientTotal).toFixed(6)),
+    rightShare: Number((Math.abs(rightCoefficient) / coefficientTotal).toFixed(6)),
+    correlation: Number((outputReconstruction /
+      Math.max(1e-12, Math.sqrt(outputSquare * reconstructionSquare))).toFixed(6)),
+  }
+}
+
+export async function measureSoundTwoSourceCrossfade(input: {
+  leftAbsolutePath: string
+  rightAbsolutePath: string
+  outputAbsolutePath: string
+  leftSourceStartSeconds: number
+  leftSourceDurationSeconds: number
+  rightSourceStartSeconds: number
+  crossfadeDurationSeconds: number
+  curveType: 'equal_power' | 'linear'
+}): Promise<SoundTwoSourceCrossfadeMeasurements> {
+  const analysisSampleRate = 8_000 as const
+  const windowDuration = Math.max(0.04, Math.min(0.1, input.crossfadeDurationSeconds / 8))
+  const positions = [
+    { position: 'start' as const, progress: 0.1 },
+    { position: 'midpoint' as const, progress: 0.5 },
+    { position: 'end' as const, progress: 0.9 },
+  ]
+  const windows = await Promise.all(positions.map(async ({ position, progress }) => {
+    const offset = Math.max(0, Math.min(
+      input.crossfadeDurationSeconds - windowDuration,
+      progress * input.crossfadeDurationSeconds - windowDuration / 2,
+    ))
+    const outputStartSeconds = input.leftSourceDurationSeconds - input.crossfadeDurationSeconds + offset
+    const [left, right, output] = await Promise.all([
+      decodeMonoPcmWindow({ absolutePath: input.leftAbsolutePath,
+        startSeconds: input.leftSourceStartSeconds + input.leftSourceDurationSeconds -
+          input.crossfadeDurationSeconds + offset, durationSeconds: windowDuration }),
+      decodeMonoPcmWindow({ absolutePath: input.rightAbsolutePath,
+        startSeconds: input.rightSourceStartSeconds + offset, durationSeconds: windowDuration }),
+      decodeMonoPcmWindow({ absolutePath: input.outputAbsolutePath,
+        startSeconds: outputStartSeconds, durationSeconds: windowDuration }),
+    ])
+    const solved = solveTwoSourceShares({ left, right, output })
+    const expectedLeftGain = input.curveType === 'equal_power'
+      ? Math.cos(progress * Math.PI / 2) : 1 - progress
+    const expectedRightGain = input.curveType === 'equal_power'
+      ? Math.sin(progress * Math.PI / 2) : progress
+    const gainTotal = expectedLeftGain + expectedRightGain
+    const expectedLeftShare = expectedLeftGain / gainTotal
+    const expectedRightShare = expectedRightGain / gainTotal
+    return {
+      position, progress, outputStartSeconds: Number(outputStartSeconds.toFixed(6)),
+      durationSeconds: Number(windowDuration.toFixed(6)),
+      expectedLeftShare: Number(expectedLeftShare.toFixed(6)),
+      expectedRightShare: Number(expectedRightShare.toFixed(6)),
+      measuredLeftShare: solved.leftShare, measuredRightShare: solved.rightShare,
+      leftCoefficient: solved.leftCoefficient, rightCoefficient: solved.rightCoefficient,
+      reconstructionCorrelation: solved.correlation,
+      curveShareError: Number(Math.max(
+        Math.abs(solved.leftShare - expectedLeftShare),
+        Math.abs(solved.rightShare - expectedRightShare),
+      ).toFixed(6)),
+    }
+  }))
+  const start = windows.find((window) => window.position === 'start')!
+  const midpoint = windows.find((window) => window.position === 'midpoint')!
+  const end = windows.find((window) => window.position === 'end')!
+  const maximumCurveShareError = Math.max(...windows.map((window) => window.curveShareError))
+  const minimumReconstructionCorrelation = Math.min(...windows.map((window) => window.reconstructionCorrelation))
+  const startLeftDominant = start.measuredLeftShare >= 0.65 && start.measuredLeftShare > start.measuredRightShare
+  const midpointBothSourcesPresent = midpoint.measuredLeftShare >= 0.2 && midpoint.measuredRightShare >= 0.2
+  const endRightDominant = end.measuredRightShare >= 0.65 && end.measuredRightShare > end.measuredLeftShare
+  const curveWithinTolerance = maximumCurveShareError <= 0.2 && minimumReconstructionCorrelation >= 0.85
+  return {
+    measurementMethod: 'decoded_pcm_spectral_two_source_least_squares_v1', analysisSampleRate, windows,
+    maximumCurveShareError: Number(maximumCurveShareError.toFixed(6)),
+    minimumReconstructionCorrelation: Number(minimumReconstructionCorrelation.toFixed(6)),
+    startLeftDominant, midpointBothSourcesPresent, endRightDominant, curveWithinTolerance,
+    twoSourcePresencePassed: startLeftDominant && midpointBothSourcesPresent && endRightDominant,
   }
 }
 

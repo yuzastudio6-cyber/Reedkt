@@ -68,6 +68,11 @@ assert.equal(result.soundReceipt.crossfadeDurationSamples, 48_000)
 assert.equal(result.soundReceipt.outputArtifact.durationFrames, 72)
 assert.equal(result.soundReceipt.measuredQa.clippingSampleCount, 0)
 assert.ok((result.soundReceipt.measuredQa.truePeakDbtp ?? 0) <= -0.8)
+assert.equal(result.soundReceipt.measuredQa.twoSourceEvidence.twoSourcePresencePassed, true)
+assert.equal(result.soundReceipt.measuredQa.twoSourceEvidence.curveWithinTolerance, true)
+assert.equal(result.soundReceipt.measuredQa.twoSourceEvidence.windows.length, 3)
+assert.ok(result.soundReceipt.measuredQa.twoSourceEvidence.maximumCurveShareError <= 0.2)
+assert.ok(result.soundReceipt.measuredQa.twoSourceEvidence.minimumReconstructionCorrelation >= 0.85)
 assert.equal(result.receipt.outputArtifact.checksumSha256, result.soundReceipt.outputArtifact.checksumSha256)
 
 const output = await runtime.resolver.resolve(result.receipt.outputArtifact)
@@ -82,6 +87,38 @@ const measurements = {
 assert.ok(measurements.start440 > measurements.start880 * 2)
 assert.ok(measurements.end880 > measurements.end440 * 2)
 assert.ok(measurements.mid440 > 0.006 && measurements.mid880 > 0.006)
+
+const sameSourcePlan = createMusicCrossfadePlan({
+  request, leftCueId: 'same-left-cue', rightCueId: 'same-right-cue', leftSource: left, rightSource: left,
+  leftSourceRange: plan.leftSourceRange, rightSourceRange: plan.rightSourceRange,
+  targetOverlapRange: plan.targetOverlapRange, authorizedWriteRange: plan.authorizedWriteRange,
+})
+await assert.rejects(() => runtime.music.executeTwoSourceCrossfade({
+  plan: sameSourcePlan, musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
+  musicManifestHash: musicSkillCapabilityManifest.manifestHash,
+  approvedSnapshotId: request.approvedSnapshotRef.snapshotId, approvedSnapshotHash: request.approvedSnapshotRef.snapshotHash,
+  parentAuthorityRef: request.scopeAuthority.parentAuthorityRef, parentAuthorityHash: request.scopeAuthority.parentAuthorityHash,
+  approvedWorkItemId: request.caller.parentWorkItemId, privateOutputScopeId: request.privateOutputScopeId!,
+  creditReservationId: request.approvalAndBudget.reservationRef!, idempotencyKey: 'same-source-twice',
+}), /independent source/i)
+
+await assert.rejects(() => runtime.music.executeTwoSourceCrossfade({
+  plan, musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
+  musicManifestHash: testHash('stale-music-manifest'),
+  approvedSnapshotId: request.approvedSnapshotRef.snapshotId, approvedSnapshotHash: request.approvedSnapshotRef.snapshotHash,
+  parentAuthorityRef: request.scopeAuthority.parentAuthorityRef, parentAuthorityHash: request.scopeAuthority.parentAuthorityHash,
+  approvedWorkItemId: request.caller.parentWorkItemId, privateOutputScopeId: request.privateOutputScopeId!,
+  creditReservationId: request.approvalAndBudget.reservationRef!, idempotencyKey: 'stale-music-manifest',
+}), /stale Music manifest/i)
+
+await assert.rejects(() => runtime.music.executeTwoSourceCrossfade({
+  plan, musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
+  musicManifestHash: musicSkillCapabilityManifest.manifestHash,
+  approvedSnapshotId: '', approvedSnapshotHash: request.approvedSnapshotRef.snapshotHash,
+  parentAuthorityRef: request.scopeAuthority.parentAuthorityRef, parentAuthorityHash: request.scopeAuthority.parentAuthorityHash,
+  approvedWorkItemId: request.caller.parentWorkItemId, privateOutputScopeId: request.privateOutputScopeId!,
+  creditReservationId: request.approvalAndBudget.reservationRef!, idempotencyKey: 'missing-approval',
+}), /too_small|approved|snapshot|String must contain/i)
 
 await assert.rejects(() => runtime.music.executeTwoSourceCrossfade({
   plan: { ...plan, rightSource: undefined } as unknown as typeof plan,
@@ -139,13 +176,25 @@ await assert.rejects(() => runtime.music.executeTwoSourceCrossfade({
 }), /source handles/i)
 
 const receiptValidationRequest = {
-  schemaVersion: 'sound.music_two_source_crossfade.v1', requestId: plan.planId,
+  schemaVersion: 'sound.music_two_source_crossfade.v2', requestId: plan.planId,
   callerSkillKey: 'music', callerSkillVersion: musicSkillCapabilityManifest.skillVersion,
   callerManifestHash: musicSkillCapabilityManifest.manifestHash,
   soundSkillVersion: runtime.sound.getCapabilityManifest().skillVersion,
   soundManifestHash: runtime.sound.getCapabilityManifest().manifestHash,
+  soundRouteKey: result.soundReceipt.routeKey,
+  soundRouteVersion: result.soundReceipt.routeVersion as '2.0.0',
+  soundRouteHash: result.soundReceipt.routeHash,
   leftCueId: plan.leftCueId, rightCueId: plan.rightCueId,
-  leftSource: { ...left }, rightSource: { ...right }, leftSourceRange: plan.leftSourceRange,
+  leftSource: {
+    artifactId: left.artifactId, artifactType: left.artifactType, version: left.version,
+    checksumSha256: left.checksumSha256, storageObjectId: left.storageObjectId, private: true,
+    contentType: left.contentType, durationFrames: left.durationFrames, timelineRate: left.timelineRate,
+  },
+  rightSource: {
+    artifactId: right.artifactId, artifactType: right.artifactType, version: right.version,
+    checksumSha256: right.checksumSha256, storageObjectId: right.storageObjectId, private: true,
+    contentType: right.contentType, durationFrames: right.durationFrames, timelineRate: right.timelineRate,
+  }, leftSourceRange: plan.leftSourceRange,
   rightSourceRange: plan.rightSourceRange, targetOverlapRange: plan.targetOverlapRange,
   authorizedWriteRange: plan.authorizedWriteRange, crossfadeDurationFrames: plan.crossfadeDurationFrames,
   crossfadeDurationSamples: plan.crossfadeDurationSamples, sampleRate: plan.sampleRate,
@@ -162,6 +211,26 @@ const receiptValidationRequest = {
   requiredMeasuredQa: ['two_source_presence', 'curve_progression', 'duration', 'true_peak', 'clipping'],
   extensionHash: result.soundReceipt.extensionHash,
 } satisfies Parameters<typeof validateSoundMusicTwoSourceCrossfadeReceipt>[0]['request']
+
+const staleSoundRequestCore = {
+  ...receiptValidationRequest,
+  soundManifestHash: testHash('stale-sound-manifest'),
+  extensionHash: undefined,
+}
+await assert.rejects(() => runtime.sound.executeMusicTwoSourceCrossfade({
+  ...staleSoundRequestCore,
+  extensionHash: hashSoundMusicTechnicalAutomation(staleSoundRequestCore),
+}), /stale Sound manifest/i)
+
+const malformedCurveCore = {
+  ...receiptValidationRequest,
+  leftGainCurve: [{ frame: 24, linearGain: 0 }, { frame: 48, linearGain: 1 }],
+  extensionHash: undefined,
+}
+await assert.rejects(() => runtime.sound.executeMusicTwoSourceCrossfade({
+  ...malformedCurveCore,
+  extensionHash: hashSoundMusicTechnicalAutomation(malformedCurveCore),
+} as typeof receiptValidationRequest), /curve endpoints|malformed/i)
 
 assert.throws(() => validateSoundMusicTwoSourceCrossfadeReceipt({
   request: receiptValidationRequest,
@@ -185,6 +254,26 @@ assert.throws(() => validateSoundMusicTwoSourceCrossfadeReceipt({
   request: receiptValidationRequest,
   receipt: selfConsistentTamper,
 }), /request_to_compiled_parameter_binding|rejected/i)
+
+const staleRouteReceipt = structuredClone(result.soundReceipt)
+staleRouteReceipt.routeHash = testHash('stale-crossfade-route')
+const staleRouteReceiptCore = { ...staleRouteReceipt, receiptHash: undefined }
+staleRouteReceipt.receiptHash = hashSoundMusicTechnicalAutomation(staleRouteReceiptCore)
+assert.throws(() => validateSoundMusicTwoSourceCrossfadeReceipt({
+  request: receiptValidationRequest,
+  receipt: staleRouteReceipt,
+}), /route_operation_binding|rejected/i)
+
+const incompleteMeasuredEvidence = structuredClone(result.soundReceipt)
+incompleteMeasuredEvidence.measuredQa.twoSourceEvidence.windows = []
+const incompleteQaCore = { ...incompleteMeasuredEvidence.measuredQa, evidenceHash: undefined }
+incompleteMeasuredEvidence.measuredQa.evidenceHash = hashSoundMusicTechnicalAutomation(incompleteQaCore)
+const incompleteReceiptCore = { ...incompleteMeasuredEvidence, receiptHash: undefined }
+incompleteMeasuredEvidence.receiptHash = hashSoundMusicTechnicalAutomation(incompleteReceiptCore)
+assert.throws(() => validateSoundMusicTwoSourceCrossfadeReceipt({
+  request: receiptValidationRequest,
+  receipt: incompleteMeasuredEvidence,
+}), /two_source_presence_and_curve_evidence|rejected/i)
 
 console.log(JSON.stringify({
   status: 'ok', leftChecksum: left.checksumSha256, rightChecksum: right.checksumSha256,

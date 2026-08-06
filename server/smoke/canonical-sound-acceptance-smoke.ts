@@ -74,8 +74,8 @@ try {
     assert.ok(capability, `Missing capability entry for ${job}.`)
     if (job === 'crossfade_music_sources') {
       const crossfadeRoute = getSoundToolRouteManifest(
-        'sound.route.edit.music_two_source_crossfade.v1',
-        '1.0.0',
+        'sound.route.edit.music_two_source_crossfade.v2',
+        '2.0.0',
       )
       assert.ok(crossfadeRoute)
       assert.equal(crossfadeRoute.capabilityKeys.includes('sound.crossfade_music_sources'), true)

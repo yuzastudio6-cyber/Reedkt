@@ -51,7 +51,7 @@ export interface MusicExecutionUnit {
 
 export interface MusicExecutionGraph {
   graphId: string
-  graphVersion: '3.2.0'
+  graphVersion: '3.3.0'
   graphHash: string
   requestId: string
   parentJobType: string
@@ -269,7 +269,7 @@ export function compileCanonicalMusicExecutionGraph(input: {
   })))
   const base = {
     graphId: `music.graph.${request.requestId}`,
-    graphVersion: '3.2.0' as const,
+    graphVersion: '3.3.0' as const,
     requestId: request.requestId,
     parentJobType: request.jobType,
     manifestHash: musicSkillCapabilityManifest.manifestHash,

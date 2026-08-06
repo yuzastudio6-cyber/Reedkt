@@ -145,7 +145,7 @@ const operation = z.enum([
 
 export type SoundRequestedOperation = z.infer<typeof operation>
 
-export const SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION = 'sound.music_technical_automation.v1' as const
+export const SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION = 'sound.music_technical_automation.v2' as const
 
 const soundMusicTechnicalAutomationExtensionSchema = z.object({
   schemaVersion: z.literal(SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION),
@@ -211,7 +211,7 @@ const soundMusicTechnicalAutomationExtensionSchema = z.object({
 
 export type SoundMusicTechnicalAutomationExtension = z.infer<typeof soundMusicTechnicalAutomationExtensionSchema>
 
-export const SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION = 'sound.music_two_source_crossfade.v1' as const
+export const SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION = 'sound.music_two_source_crossfade.v2' as const
 
 const crossfadeGainPointSchema = z.object({
   frame: z.number().int().nonnegative(),
@@ -226,6 +226,9 @@ export const soundMusicTwoSourceCrossfadeRequestSchema = z.object({
   callerManifestHash: sha256,
   soundSkillVersion: safeId,
   soundManifestHash: sha256,
+  soundRouteKey: z.literal('sound.route.edit.music_two_source_crossfade.v2'),
+  soundRouteVersion: z.literal('2.0.0'),
+  soundRouteHash: sha256,
   leftCueId: safeId,
   rightCueId: safeId,
   leftSource: soundArtifactRefSchema,
@@ -301,15 +304,15 @@ export const soundMusicTwoSourceCrossfadeRequestSchema = z.object({
 export type SoundMusicTwoSourceCrossfadeRequest = z.infer<typeof soundMusicTwoSourceCrossfadeRequestSchema>
 
 export interface SoundMusicTwoSourceCrossfadeReceipt {
-  schemaVersion: 'sound.music_two_source_crossfade_receipt.v1'
+  schemaVersion: 'sound.music_two_source_crossfade_receipt.v2'
   requestId: string
   extensionHash: string
-  routeKey: 'sound.route.edit.music_two_source_crossfade.v1'
+  routeKey: 'sound.route.edit.music_two_source_crossfade.v2'
   routeVersion: string
   routeHash: string
   operationKey: 'crossfade_music_two_source'
   operationVersion: string
-  operationProfileKey: 'sound.crossfade.music_two_source.v1'
+  operationProfileKey: 'sound.crossfade.music_two_source.v2'
   leftSourceId: string
   leftSourceHash: string
   rightSourceId: string
@@ -333,6 +336,31 @@ export interface SoundMusicTwoSourceCrossfadeReceipt {
     overlapStartRmsDbfs: number
     overlapMidpointRmsDbfs: number
     overlapEndRmsDbfs: number
+    twoSourceEvidence: {
+      measurementMethod: 'decoded_pcm_spectral_two_source_least_squares_v1'
+      analysisSampleRate: 8_000
+      windows: Array<{
+        position: 'start' | 'midpoint' | 'end'
+        progress: number
+        outputStartSeconds: number
+        durationSeconds: number
+        expectedLeftShare: number
+        expectedRightShare: number
+        measuredLeftShare: number
+        measuredRightShare: number
+        leftCoefficient: number
+        rightCoefficient: number
+        reconstructionCorrelation: number
+        curveShareError: number
+      }>
+      maximumCurveShareError: number
+      minimumReconstructionCorrelation: number
+      startLeftDominant: boolean
+      midpointBothSourcesPresent: boolean
+      endRightDominant: boolean
+      curveWithinTolerance: boolean
+      twoSourcePresencePassed: boolean
+    }
     evidenceHash: string
   }
   status: 'passed'
@@ -400,6 +428,11 @@ export function validateSoundMusicTwoSourceCrossfadeReceipt(input: {
   const { receipt, request } = input
   const errors: string[] = []
   if (receipt.requestId !== request.requestId || receipt.extensionHash !== request.extensionHash) errors.push('request_binding')
+  if (receipt.routeKey !== request.soundRouteKey || receipt.routeVersion !== request.soundRouteVersion ||
+    receipt.routeHash !== request.soundRouteHash || receipt.operationKey !== 'crossfade_music_two_source' ||
+    receipt.operationVersion !== '2.0.0' || receipt.operationProfileKey !== 'sound.crossfade.music_two_source.v2') {
+    errors.push('route_operation_binding')
+  }
   if (receipt.leftSourceHash !== request.leftSource.checksumSha256 ||
     receipt.rightSourceHash !== request.rightSource.checksumSha256) errors.push('source_hash_binding')
   if (receipt.leftSourceHash === receipt.rightSourceHash) errors.push('independent_source_binding')
@@ -425,6 +458,56 @@ export function validateSoundMusicTwoSourceCrossfadeReceipt(input: {
     receipt.measuredQa.truePeakDbtp > -0.8 ||
     ![receipt.measuredQa.overlapStartRmsDbfs, receipt.measuredQa.overlapMidpointRmsDbfs,
       receipt.measuredQa.overlapEndRmsDbfs].every(Number.isFinite)) errors.push('measured_qa')
+  const sourceEvidence = receipt.measuredQa.twoSourceEvidence
+  const positions = sourceEvidence?.windows?.map((window) => window.position) ?? []
+  const expectedProgress = [0.1, 0.5, 0.9]
+  const windowEvidenceInvalid = sourceEvidence?.windows?.some((window, index) => {
+    const progress = expectedProgress[index]
+    if (progress === undefined || Math.abs(window.progress - progress) > 1e-9) return true
+    const leftGain = request.curveType === 'equal_power'
+      ? Math.cos(progress * Math.PI / 2) : 1 - progress
+    const rightGain = request.curveType === 'equal_power'
+      ? Math.sin(progress * Math.PI / 2) : progress
+    const expectedLeftShare = leftGain / (leftGain + rightGain)
+    const expectedRightShare = rightGain / (leftGain + rightGain)
+    const calculatedError = Math.max(
+      Math.abs(window.measuredLeftShare - expectedLeftShare),
+      Math.abs(window.measuredRightShare - expectedRightShare),
+    )
+    return Math.abs(window.expectedLeftShare - expectedLeftShare) > 1e-6 ||
+      Math.abs(window.expectedRightShare - expectedRightShare) > 1e-6 ||
+      Math.abs(window.curveShareError - calculatedError) > 1e-6
+  }) ?? true
+  const calculatedMaximumError = sourceEvidence?.windows?.length
+    ? Math.max(...sourceEvidence.windows.map((window) => window.curveShareError)) : Number.POSITIVE_INFINITY
+  const calculatedMinimumCorrelation = sourceEvidence?.windows?.length
+    ? Math.min(...sourceEvidence.windows.map((window) => window.reconstructionCorrelation)) : Number.NEGATIVE_INFINITY
+  const [startEvidence, midpointEvidence, endEvidence] = sourceEvidence?.windows ?? []
+  const sourcePresenceInvalid = !startEvidence || !midpointEvidence || !endEvidence ||
+    startEvidence.measuredLeftShare < 0.65 ||
+    startEvidence.measuredLeftShare <= startEvidence.measuredRightShare ||
+    midpointEvidence.measuredLeftShare < 0.2 || midpointEvidence.measuredRightShare < 0.2 ||
+    endEvidence.measuredRightShare < 0.65 ||
+    endEvidence.measuredRightShare <= endEvidence.measuredLeftShare
+  if (!sourceEvidence || sourceEvidence.measurementMethod !== 'decoded_pcm_spectral_two_source_least_squares_v1' ||
+    sourceEvidence.analysisSampleRate !== 8_000 || sourceEvidence.windows.length !== 3 ||
+    JSON.stringify(positions) !== JSON.stringify(['start', 'midpoint', 'end']) ||
+    !sourceEvidence.startLeftDominant || !sourceEvidence.midpointBothSourcesPresent ||
+    !sourceEvidence.endRightDominant || !sourceEvidence.curveWithinTolerance ||
+    !sourceEvidence.twoSourcePresencePassed || sourceEvidence.maximumCurveShareError > 0.2 ||
+    sourceEvidence.minimumReconstructionCorrelation < 0.85 ||
+    Math.abs(sourceEvidence.maximumCurveShareError - calculatedMaximumError) > 1e-6 ||
+    Math.abs(sourceEvidence.minimumReconstructionCorrelation - calculatedMinimumCorrelation) > 1e-6 ||
+    windowEvidenceInvalid || sourcePresenceInvalid ||
+    sourceEvidence.windows.some((window) =>
+      ![window.progress, window.outputStartSeconds, window.durationSeconds, window.expectedLeftShare,
+        window.expectedRightShare, window.measuredLeftShare, window.measuredRightShare,
+        window.leftCoefficient, window.rightCoefficient, window.reconstructionCorrelation,
+        window.curveShareError].every(Number.isFinite) ||
+      Math.abs(window.measuredLeftShare + window.measuredRightShare - 1) > 0.01 ||
+      window.curveShareError > 0.2 || window.reconstructionCorrelation < 0.85)) {
+    errors.push('two_source_presence_and_curve_evidence')
+  }
   const qaCore = { ...receipt.measuredQa, evidenceHash: undefined }
   if (receipt.measuredQa.evidenceHash !== hashSoundMusicTechnicalAutomation(qaCore)) errors.push('measured_qa_hash')
   const receiptCore = { ...receipt, receiptHash: undefined }
@@ -867,7 +950,7 @@ export const canonicalSoundResultSchema = z.object({
   }).strict().optional(),
   mixRenderSpecifications: z.array(compiledSoundMixRenderSpecSchema).max(10_000).optional(),
   musicTechnicalAutomationReceipt: z.object({
-    schemaVersion: z.literal('sound.music_technical_automation_receipt.v1'),
+    schemaVersion: z.literal('sound.music_technical_automation_receipt.v2'),
     bindingId: safeId,
     musicCueId: safeId,
     receivedExtensionHash: sha256,
@@ -892,6 +975,8 @@ export const canonicalSoundResultSchema = z.object({
       routeHash: sha256,
       measuredQaRefs: z.array(safeId).max(128),
       measuredQaResult: z.enum(['passed', 'warning', 'needs_review', 'failed']),
+      appliedExecutionEvidence: z.record(z.string(), z.unknown()),
+      appliedExecutionEvidenceHash: sha256,
       status: z.literal('completed'),
       receiptHash: sha256,
     }).strict()).min(1).max(64),

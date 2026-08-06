@@ -3,7 +3,7 @@ import { getMusicToolRouteManifest, MUSIC_TOOL_ROUTE_MANIFESTS } from '../../mus
 
 export interface MusicMiniSkillManifest {
   miniSkillKey: string
-  version: '3.2.0'
+  version: '3.3.0'
   supportedOperations: string[]
   requiredInputs: string[]
   optionalInputs: string[]
@@ -176,7 +176,7 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
       ? 'internal_execution_qualified' : 'planning_qualified'
     return {
       miniSkillKey: `music.mini.${key}`,
-      version: '3.2.0',
+      version: '3.3.0',
       supportedOperations: [key],
       requiredInputs: ['music_assignment_v2', 'approved_timeline_manifest'],
       optionalInputs: ['approved_private_music_audio', 'structured_story_evidence', 'speech_evidence'],
@@ -202,7 +202,7 @@ export const MUSIC_MINI_SKILL_MANIFESTS: readonly MusicMiniSkillManifest[] = Obj
         operationIdentities: executionBoundary === 'route_step'
           ? routes.flatMap((route) => route.steps.map((step) =>
             `${step.toolKey}@${step.toolVersion}/${step.operationKey}@${step.operationVersion}`))
-          : [`music.internal/${implementation.functionOrService}@3.2.0`],
+          : [`music.internal/${implementation.functionOrService}@3.3.0`],
         receiptTypes: key === 'scope_guard' ? ['music_scope_guard_result_v3']
           : key === 'context_loader' ? ['music_context_package_v2']
             : key === 'cue_grouping_director' ? ['music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3']

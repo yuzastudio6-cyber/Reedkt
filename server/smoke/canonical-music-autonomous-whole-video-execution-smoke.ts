@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
 import { hashMusicValue, type MusicEvidenceRef } from '../music/music-contracts'
+import type { CanonicalMusicQaReport } from '../music/music-qa'
+import { validateSoundAudioFile } from '../sound/sound-local-audio-processor'
 import type { MusicContextArtifactResolver, ResolvedMusicContextEvidence } from '../music/music-context'
 import { createCanonicalMusicTestRuntime } from './canonical-music-test-runtime'
 import { makeCanonicalMusicRequest, makeMusicRights, testHash } from './canonical-music-test-fixtures'
@@ -77,6 +79,12 @@ assert.equal(result.status, 'completed', JSON.stringify(result.unitReceipts.filt
 assert.equal(result.cueGroupingPlan?.maximumCueCountCalculation.satisfied, true)
 assert.equal(result.cueGroupingPlan?.maximumCueChangesPerMinuteCalculation.satisfied, true)
 assert.equal(result.cueGroupingPlan?.groups.length, 3)
+assert.ok(result.segmentationPlan)
+assert.equal(result.segmentationPlan?.coverageStatus, 'exact')
+assert.equal(result.segmentationPlan?.segments[0]?.exactRange.startFrame, 0)
+assert.equal(result.segmentationPlan?.segments.at(-1)?.exactRange.endFrameExclusive, 216)
+assert.ok(result.segmentationPlan?.segments.slice(1).every((segment, index) =>
+  result.segmentationPlan!.segments[index]!.exactRange.endFrameExclusive === segment.exactRange.startFrame))
 const acquisitionArtifact = result.artifacts.find((artifact) => artifact.artifactType === 'music_acquisition_plan_v2')
 assert.ok(acquisitionArtifact)
 const bindings = acquisitionArtifact.payload as Array<{ cueId: string; acquisitionDecision: string; routeKey: string }>
@@ -93,6 +101,38 @@ assert.equal(result.intentionalNoMusicRanges.length, 1)
 assert.equal(result.intentionalNoMusicRanges[0]!.startFrame, 72)
 assert.equal(result.intentionalNoMusicRanges[0]!.endFrameExclusive, 144)
 assert.equal(result.actualMusicMutationRanges.length, 2)
+assert.ok(result.actualMusicMutationRanges.every((range) => range.startFrame >= 0 && range.endFrameExclusive <= 216))
+assert.ok(result.actualMusicMutationRanges.slice(1).every((range, index) =>
+  result.actualMusicMutationRanges[index]!.endFrameExclusive <= range.startFrame))
+assert.ok(result.actualMusicMutationRanges.every((range) => result.intentionalNoMusicRanges.every((silent) =>
+  range.endFrameExclusive <= silent.startFrame || range.startFrame >= silent.endFrameExclusive)))
+assert.deepEqual(result.actualMusicMutationRanges.map((range) => [range.startFrame, range.endFrameExclusive]),
+  result.soundSupportReceipts.flatMap((receipt) => receipt.mutationRanges)
+    .map((range) => [range.startFrame, range.endFrameExclusive]))
+const qaArtifact = result.artifacts.find((artifact) => artifact.artifactType === 'music_qa_report_v2')
+assert.ok(qaArtifact)
+const qa = qaArtifact.payload as CanonicalMusicQaReport
+assert.notEqual(qa.status, 'blocking', JSON.stringify(qa, null, 2))
+assert.equal(qa.segmentation.exactPlannedCoverage, true)
+assert.equal(qa.segmentation.exactExecutionCoverage, true)
+assert.deepEqual(qa.segmentation.gapSegmentIds, [])
+assert.deepEqual(qa.segmentation.illegalOverlapFindings, [])
+assert.equal(qa.segmentation.plannedSegmentIds.length, qa.segmentation.resolvedSegmentIds.length)
+assert.equal(qa.findings.some((finding) => finding.status === 'blocking'), false)
+assert.ok(result.candidateAnalysisRefs.length >= result.selectedMusicAssetRefs.length)
+for (const artifact of [...result.selectedMusicAssetRefs, ...result.processedMusicAssetRefs,
+  ...result.musicStemAssetRefs]) {
+  assert.equal(artifact.private, true)
+  assert.match(artifact.checksumSha256, /^[a-f0-9]{64}$/u)
+  assert.match(artifact.contentType, /^audio\//u)
+  assert.ok(!artifact.storageObjectId.startsWith('mock://'))
+  const resolvedArtifact = await runtime.resolver.resolve(artifact)
+  const decoded = await validateSoundAudioFile(resolvedArtifact.absolutePath)
+  assert.ok(decoded.decodedSampleCount > 0)
+}
+assert.ok(result.soundSupportReceipts.every((receipt) =>
+  receipt.processedMusicAssets.length > 0 && receipt.musicStemAssets.length > 0 &&
+  receipt.technicalQaRefs.length > 0 && receipt.mixQaRefs.length > 0))
 assert.ok(result.finalCompositionHandoff)
 assert.equal(result.finalCompositionHandoff?.selectedMusicAssets.length, 2)
 assert.equal(result.callerReceipt.finalRenderOutsideMusic, true)
@@ -105,5 +145,8 @@ console.log(JSON.stringify({
   processedAssetHashes: result.processedMusicAssetRefs.map((asset) => asset.checksumSha256),
   providerAttemptCount: result.providerAttemptRefs.length,
   soundReceiptCount: result.soundSupportReceipts.length,
+  exactPlannedCoverage: qa.segmentation.exactPlannedCoverage,
+  exactExecutionCoverage: qa.segmentation.exactExecutionCoverage,
+  candidateAnalysisCount: result.candidateAnalysisRefs.length,
   intentionalNoMusicRanges: result.intentionalNoMusicRanges,
 }, null, 2))

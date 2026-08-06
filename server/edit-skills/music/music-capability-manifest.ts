@@ -278,6 +278,7 @@ export const musicSkillCapabilityManifest = createSkillCapabilityManifest({
   qualificationFixtures: [
     { fixtureKey: 'music.shared_kernel.v2', minimumStatus: 'planning_qualified', description: 'Music publishes through the neutral shared skill kernel.' },
     { fixtureKey: 'music.private_audio_analysis.v2', minimumStatus: 'internal_execution_qualified', description: 'Real private decoded audio analysis, rational MusicSync, Sound v4 support, and measured QA.' },
+    { fixtureKey: 'music.final_closure.v3.3', minimumStatus: 'internal_execution_qualified', description: 'Hard cue grouping, autonomous whole-video execution, exact Sound v2 Music automation, true two-source crossfade, duck envelopes, and operation receipts pass real-byte closure acceptance.' },
     { fixtureKey: 'music.lyria3.injected.v2', minimumStatus: 'planning_qualified', description: 'Current Lyria 3 contract with real private fixture bytes through the canonical graph.' },
   ],
   knownLimitations: [

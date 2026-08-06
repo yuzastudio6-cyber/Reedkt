@@ -55,6 +55,7 @@ for (const receipt of receipts) {
   assert.ok(receipt.outputArtifactIds.length > 0)
   assert.deepEqual(receipt.exactMutationRange, range)
   assert.match(receipt.receiptHash, /^[a-f0-9]{64}$/u)
+  assert.equal(receipt.appliedExecutionEvidenceHash, hashMusicValue(receipt.appliedExecutionEvidence))
   assert.equal(receipt.status, 'completed')
   assert.notEqual(receipt.measuredQaResult, 'failed')
 }
@@ -107,6 +108,23 @@ await tamperOperation('fade', (operation) => {
 await tamperOperation('technical_qa', (operation) => {
   operation.receiptHash = testHash('tampered-operation-receipt')
 }, /receipt_hash_invalid/u)
+await tamperOperation('dialogue_ducking', (operation) => {
+  operation.appliedExecutionEvidence = { ...operation.appliedExecutionEvidence, measuredRampEvidence: [] }
+}, /execution_evidence_hash_mismatch|execution_evidence_incomplete/u)
+
+const routeSubstitution = structuredClone(supportResult)
+const substitutedOperation = routeSubstitution.receipt.appliedOperationReceipts.find((operation) =>
+  operation.operation === 'trim')!
+substitutedOperation.routeHash = testHash('substituted-sound-route')
+routeSubstitution.receipt.soundRouteBindings.push(
+  `${substitutedOperation.routeKey}@${substitutedOperation.routeVersion}#${substitutedOperation.routeHash}`,
+)
+const { receiptHash: _substitutedReceiptHash, ...substitutedReceiptCore } = substitutedOperation
+assert.ok(_substitutedReceiptHash)
+substitutedOperation.receiptHash = hashMusicValue(substitutedReceiptCore)
+const routeSubstitutionQa = await adapter.qa({ supportRequest, supportResult: routeSubstitution })
+assert.equal(routeSubstitutionQa.accepted, false)
+assert.ok(routeSubstitutionQa.errors.includes('sound_operation_route_identity_invalid:trim'))
 
 for (const operationName of expectedOneSourceOperations) {
   await tamperOperation(operationName, (operation) => {
@@ -144,5 +162,5 @@ console.log(JSON.stringify({
     outputHashCount: receipt.outputArtifactHashes.length,
     measuredQaResult: receipt.measuredQaResult,
   })),
-  tamperCasesRejected: 7 + expectedOneSourceOperations.length + 3,
+  tamperCasesRejected: 9 + expectedOneSourceOperations.length + 3,
 }, null, 2))

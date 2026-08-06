@@ -13,6 +13,10 @@ import { getMusicToolRouteManifest, publishMusicToolRouteManifest,
   type MusicToolRouteManifest } from '../music/music-tool-routes'
 import { MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY } from '../music/music-sound-support-port'
 import { soundSkillCapabilityManifest } from '../edit-skills/sound'
+import {
+  SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+  SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
+} from '../sound'
 import { createCanonicalMusicTestRuntime } from './canonical-music-test-runtime'
 import { makeCanonicalMusicRequest, makeMusicCue, makeMusicRights, testHash } from './canonical-music-test-fixtures'
 
@@ -31,21 +35,21 @@ for (const artifactType of requiredV3Outputs) {
     `Published manifest omitted ${artifactType}.`)
 }
 
-const groupingRoute = getMusicToolRouteManifest('music.route.plan.cue_grouping.v3', '3.1.0')
+const groupingRoute = getMusicToolRouteManifest('music.route.plan.cue_grouping.v3', '3.3.0')
 assert.ok(groupingRoute)
 assert.deepEqual(groupingRoute.producedArtifactTypes, ['music_cue_grouping_plan_v3'])
 assert.deepEqual(groupingRoute.optionalProducedArtifactTypes, ['music_cue_policy_conflict_v3'])
 assert.equal(groupingRoute.steps[0]?.operationKey, 'group_music_cues')
-assert.ok(getToolOperationCapability('music_cue_grouping_engine', 'group_music_cues', '3.1.0'))
+assert.ok(getToolOperationCapability('music_cue_grouping_engine', 'group_music_cues', '3.3.0'))
 
-const crossfadeRoute = getMusicToolRouteManifest('music.route.support.two_source_crossfade.v3', '3.1.0')
+const crossfadeRoute = getMusicToolRouteManifest('music.route.support.two_source_crossfade.v3', '3.3.0')
 assert.ok(crossfadeRoute)
 assert.deepEqual(crossfadeRoute.producedArtifactTypes, ['music_crossfade_audio', 'music_crossfade_receipt_v3'])
 assert.equal(crossfadeRoute.steps[0]?.operationKey, 'crossfade_music_through_public_sound_service')
 assert.ok(getToolOperationCapability('canonical_sound_v4_port',
-  'crossfade_music_through_public_sound_service', '4.2.0'))
+  'crossfade_music_through_public_sound_service', '4.3.0'))
 
-const cueSheetRoute = getMusicToolRouteManifest('music.route.plan.cue_sheet.v3', '3.2.0')
+const cueSheetRoute = getMusicToolRouteManifest('music.route.plan.cue_sheet.v3', '3.3.0')
 assert.ok(cueSheetRoute)
 assert.deepEqual(cueSheetRoute.producedArtifactTypes,
   ['music_cue_sheet_v2', 'music_cue_constraint_resolution_v3'])
@@ -125,6 +129,22 @@ assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.soundManifestHash,
   soundSkillCapabilityManifest.manifestHash)
 assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.capabilityKey,
   'sound.edit_music_technical_automation')
+assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.technicalAutomationExtensionVersion,
+  SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION)
+assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.twoSourceCrossfadeExtensionVersion,
+  SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION)
+assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.technicalAutomationRoute.routeKey,
+  'sound.route.edit.music_technical_automation.v2')
+assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.technicalAutomationRoute.routeVersion, '2.0.0')
+assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.twoSourceCrossfadeRoute.routeKey,
+  'sound.route.edit.music_two_source_crossfade.v2')
+assert.equal(MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.twoSourceCrossfadeRoute.routeVersion, '2.0.0')
+assert.ok(soundSkillCapabilityManifest.toolRoutes.some((route) =>
+  route.routeKey === MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.technicalAutomationRoute.routeKey &&
+  route.routeHash === MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.technicalAutomationRoute.routeHash))
+assert.ok(soundSkillCapabilityManifest.toolRoutes.some((route) =>
+  route.routeKey === MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.twoSourceCrossfadeRoute.routeKey &&
+  route.routeHash === MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY.twoSourceCrossfadeRoute.routeHash))
 
 function republishedMusicManifest(input: {
   omitProducedArtifact?: string

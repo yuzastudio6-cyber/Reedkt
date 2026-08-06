@@ -9,7 +9,7 @@ import type { SkillQualificationStatus } from '../core/edit-skill-ids'
 import { SOUND_TOOL_ROUTE_MANIFESTS } from '../../sound/sound-tool-routes'
 
 export const SOUND_SKILL_KEY = 'sound' as const
-export const SOUND_SKILL_VERSION = '4.2.0' as const
+export const SOUND_SKILL_VERSION = '4.3.0' as const
 export const SOUND_MANIFEST_CONTRACT_VERSION = 'sound.skill_contract.v4' as const
 
 export const SOUND_SUPPORTED_JOB_TYPES = [
@@ -287,7 +287,8 @@ export const soundSkillCapabilityManifest = createSkillCapabilityManifest({
   qualificationFixtures: [
     { fixtureKey: 'sound.shared_kernel.v4', minimumStatus: 'planning_qualified', description: 'Shared registry, immutable hash, composite child-route graph, exact handler registry, and named-output closure evidence.' },
     { fixtureKey: 'sound.local_real_bytes.v4', minimumStatus: 'internal_execution_qualified', description: 'Per-range real private FFmpeg/FFprobe execution, immutable replay provenance, mix rendering, mutation receipts, and measured output QA evidence.' },
-    { fixtureKey: 'sound.music_technical_automation.v4.1', minimumStatus: 'internal_execution_qualified', description: 'Exact Music technical parameters are applied through the Sound-owned route and returned with measured QA and parameter receipts.' },
+    { fixtureKey: 'sound.music_technical_automation.v4.3', minimumStatus: 'internal_execution_qualified', description: 'Exact Music parameters use the immutable v2 Sound route and receipts with decoded baseline/attack/hold/release/post-release evidence.' },
+    { fixtureKey: 'sound.music_two_source_crossfade.v4.3', minimumStatus: 'internal_execution_qualified', description: 'Two checksum-distinct sources are decoded, independently measured across the requested curve, and bound to an immutable v2 route receipt.' },
     { fixtureKey: 'sound.mirelo.injected_route.v4', minimumStatus: 'planning_qualified', description: 'Per-cue fixture-only injected transport using the canonical dependency-driven route graph and independent candidate processing.' },
   ],
   knownLimitations: [

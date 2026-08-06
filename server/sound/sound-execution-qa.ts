@@ -68,22 +68,32 @@ export function runCanonicalSoundExecutionQa(input: {
     measuredDuckingDeltaDb?: number
     measuredDuckingDb?: number
     duckEnvelopeMeasurements: Array<{
+      mode: 'range_envelope'
       startSeconds: number
       endSeconds: number
       attackSeconds: number
       releaseSeconds: number
+      effectiveAttackSeconds: number
+      effectiveReleaseSeconds: number
+      attackSampleCount: number
+      releaseSampleCount: number
       requestedDuckingDb: number
+      preAttackBaselineRmsDbfs: number
       attackEarlyRmsDbfs: number
       attackLateRmsDbfs: number
       holdRmsDbfs: number
       releaseEarlyRmsDbfs: number
       releaseLateRmsDbfs: number
+      postReleaseBaselineRmsDbfs: number
       measuredAttackDeltaDb: number
       measuredReleaseDeltaDb: number
+      measuredHoldAttenuationDb: number
+      measuredPostReleaseDeltaDb: number
       attackRampPresent: boolean
       releaseRampPresent: boolean
+      returnedToBaseline: boolean
     }>
-    protectedRange?: { rangeId: string; startFrame: number; endFrameExclusive: number }
+    protectedRanges: Array<{ rangeId: string; startFrame: number; endFrameExclusive: number }>
     expectedPanDirection: 'left' | 'center' | 'right'
     measuredChannelDeltaDb: number
     gainEnvelopeMeasurements: Array<{
@@ -261,7 +271,7 @@ export function runCanonicalSoundExecutionQa(input: {
           maximumTruePeakDbtp: input.request.qualityPolicy.maximumTruePeakDbtp,
         }),
       finding(`mix.measured_ducking.${measurement.unitId}`,
-        measurement.protectedRange === undefined ? 'pass'
+        measurement.protectedRanges.length === 0 ? 'pass'
           : measurement.measuredDuckingDb === undefined ? 'needs_review'
             : measurement.measuredDuckingDb < 0 ? 'pass' : 'fail',
         'Protected overlap windows were decoded and compared with unprotected output energy.', {
@@ -270,14 +280,17 @@ export function runCanonicalSoundExecutionQa(input: {
           measuredSoundRmsDbfs: measurement.measuredSoundRmsDbfs,
           measuredDuckingDeltaDb: measurement.measuredDuckingDeltaDb,
           measuredDuckingDb: measurement.measuredDuckingDb,
-          protectedRange: measurement.protectedRange,
+          protectedRanges: measurement.protectedRanges,
         }),
       finding(`mix.measured_duck_envelope.${measurement.unitId}`,
-        measurement.protectedRange === undefined ? 'pass'
+        measurement.protectedRanges.length === 0 ? 'pass'
           : measurement.duckEnvelopeMeasurements.length === 0 ? 'fail'
             : measurement.duckEnvelopeMeasurements.every((window) =>
-              window.attackRampPresent && window.releaseRampPresent) ? 'pass' : 'fail',
-        'Decoded attack and release windows were measured to prove gradual duck-envelope ramps.', {
+              window.attackRampPresent && window.releaseRampPresent && window.returnedToBaseline &&
+              window.attackSampleCount > 0 && window.releaseSampleCount > 0 &&
+              Math.abs(window.measuredHoldAttenuationDb - window.requestedDuckingDb) <= 2.5)
+              ? 'pass' : 'fail',
+        'Decoded baseline, attack, hold, release, and post-release windows prove the applied duck envelope.', {
           duckEnvelopeMeasurements: measurement.duckEnvelopeMeasurements,
         }),
       finding(`mix.measured_pan.${measurement.unitId}`,

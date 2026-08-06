@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import type { MusicContextArtifactResolver, ResolvedMusicContextEvidence } from '../music/music-context'
 import { hashMusicValue, type MusicEvidenceRef, type MusicFrameRange } from '../music/music-contracts'
 import { createCanonicalMusicTestRuntime } from './canonical-music-test-runtime'
-import { makeCanonicalMusicRequest, makeMusicCue } from './canonical-music-test-fixtures'
+import { makeCanonicalMusicRequest, makeMusicCue, makeMusicRights } from './canonical-music-test-fixtures'
 
 const writeRanges: MusicFrameRange[] = Array.from({ length: 5 }, (_, index) => ({
   rangeId: `grouping-write-${index + 1}`,
@@ -81,6 +81,39 @@ for (const group of first.cueGroupingPlan.groups) {
     assert.ok(['no_music', 'intentional_silence', 'ambience_only'].includes(group.acquisitionFamily))
   }
 }
+const firstNonMergeReasons = first.cueGroupingPlan.groups.flatMap((group) => group.nonMergeBoundaryReasons)
+assert.ok(firstNonMergeReasons.some((reason) => reason.includes('no_music_or_intentional_silence_boundary')))
+assert.ok(firstNonMergeReasons.some((reason) => reason.includes('narrative_or_cue_role_change')))
+
+const [userSource, providerSource] = await Promise.all([
+  runtime.makeWav({ id: 'grouping-user-source', durationSeconds: 60, frequency: 330, volume: 0.12 }),
+  runtime.makeWav({ id: 'grouping-provider-source', durationSeconds: 60, frequency: 550, volume: 0.12 }),
+])
+const incompatibleRequest = makeCanonicalMusicRequest({
+  requestId: 'music-cue-grouping-incompatible-rights', mode: 'planning',
+  cues: [
+    makeMusicCue({ cueId: 'grouping-user-cue',
+      range: { rangeId: 'grouping-user-range', startFrame: 0, endFrameExclusive: 1_440 },
+      acquisitionPreference: 'user_upload' }),
+    makeMusicCue({ cueId: 'grouping-provider-cue',
+      range: { rangeId: 'grouping-provider-range', startFrame: 1_440, endFrameExclusive: 2_880 },
+      acquisitionPreference: 'generate_original' }),
+  ],
+  assets: [userSource, providerSource],
+  rights: [makeMusicRights({ asset: userSource, source: 'user_upload' }),
+    makeMusicRights({ asset: providerSource, source: 'provider_generated' })],
+  writeRanges: [{ rangeId: 'grouping-incompatible-write', startFrame: 0, endFrameExclusive: 2_880 }],
+  inspectRanges: [{ rangeId: 'grouping-incompatible-inspect', startFrame: 0, endFrameExclusive: 2_880 }],
+  allowGeneration: true, maximumCueCount: 8, maximumCueChangesPerMinute: 8,
+})
+const incompatiblePlan = await runtime.music.plan(incompatibleRequest)
+const incompatibleReasons = incompatiblePlan.cueGroupingPlan.groups.flatMap((group) =>
+  group.nonMergeBoundaryReasons)
+assert.ok(incompatibleReasons.some((reason) => reason.includes('incompatible_acquisition_requirements')))
+assert.ok(incompatibleReasons.some((reason) => reason.includes('incompatible_rights_or_source_authority')))
+assert.ok(incompatibleReasons.some((reason) => reason.includes('locked_cue_boundary')))
+assert.ok(!incompatiblePlan.cueGroupingPlan.groups.some((group) =>
+  group.exactRange.startFrame < 1_440 && group.exactRange.endFrameExclusive > 1_440))
 
 const lockedRanges: MusicFrameRange[] = Array.from({ length: 3 }, (_, index) => ({
   rangeId: `locked-policy-${index + 1}`, startFrame: index * 960, endFrameExclusive: (index + 1) * 960,
@@ -108,5 +141,6 @@ console.log(JSON.stringify({
   activeCueCount: first.cueGroupingPlan.maximumCueCountCalculation.actualFinal,
   cueChangesPerMinute: first.cueGroupingPlan.maximumCueChangesPerMinuteCalculation.actualFinal,
   groupingHash: first.cueGroupingPlan.groupingHash,
+  incompatibleRightsBoundaryReasons: incompatibleReasons,
   conflictHash: blockedPlan.cuePolicyConflict?.conflictHash,
 }, null, 2))

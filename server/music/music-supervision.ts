@@ -521,7 +521,7 @@ export function buildMusicCueGroupingPlan(input: {
     if (!segment) throw new Error(`Music grouping references unknown segment ${id}.`)
     return segment
   })
-  const mergeBlockers = (left: MusicCueGroup, right: MusicCueGroup, relaxedNarrative: boolean): string[] => {
+  const mergeBlockers = (left: MusicCueGroup, right: MusicCueGroup): string[] => {
     const leftMembers = memberSegments(left)
     const rightMembers = memberSegments(right)
     const reasons: string[] = []
@@ -541,7 +541,7 @@ export function buildMusicCueGroupingPlan(input: {
       reasons.push('major_transition_boundary')
     }
     if (left.noMusicOrSilenceBoundary !== right.noMusicOrSilenceBoundary) reasons.push('no_music_or_intentional_silence_boundary')
-    if (!relaxedNarrative && (left.cueRole !== right.cueRole || left.narrativePurpose !== right.narrativePurpose)) {
+    if (left.cueRole !== right.cueRole || left.narrativePurpose !== right.narrativePurpose) {
       reasons.push('narrative_or_cue_role_change')
     }
     return reasons
@@ -558,7 +558,7 @@ export function buildMusicCueGroupingPlan(input: {
         result.push(candidate)
         continue
       }
-      const blockers = mergeBlockers(previous, candidate, relaxedNarrative)
+      const blockers = mergeBlockers(previous, candidate)
       if (blockers.length > 0) {
         nonMergeReasons.set(`${previous.groupId}->${candidate.groupId}`, blockers)
         result.push(candidate)
@@ -613,7 +613,7 @@ export function buildMusicCueGroupingPlan(input: {
 
   for (let index = 1; index < groups.length; index += 1) {
     const boundaryReasons = nonMergeReasons.get(`${groups[index - 1]!.groupId}->${groups[index]!.groupId}`) ??
-      mergeBlockers(groups[index - 1]!, groups[index]!, true)
+      mergeBlockers(groups[index - 1]!, groups[index]!)
     groups[index - 1]!.nonMergeBoundaryReasons.push(...boundaryReasons.map((reason) => `after:${reason}`))
     groups[index]!.nonMergeBoundaryReasons.push(...boundaryReasons.map((reason) => `before:${reason}`))
   }

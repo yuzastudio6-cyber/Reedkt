@@ -185,20 +185,20 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     limitations: ['Subjective narrative, emotional, cultural, and artistic findings remain confidence-scored or needs-review.'],
   }),
   manifest({
-    toolKey: 'music_cue_grouping_engine', toolVersion: '3.1.0', toolClass: 'decision_route',
+    toolKey: 'music_cue_grouping_engine', toolVersion: '3.3.0', toolClass: 'decision_route',
     boundary: 'private_coordination_service', status: 'planning_qualified',
-    manifestRevision: 'v3', adapterVersion: '3.1.0', contractVersion: '3.1.0', operations: [{
-      key: 'group_music_cues', version: '3.1.0', evidenceVersion: 'v3',
+    manifestRevision: 'v3', adapterVersion: '3.3.0', contractVersion: '3.3.0', operations: [{
+      key: 'group_music_cues', version: '3.3.0', evidenceVersion: 'v3',
       jobs: ['create_music_cue_sheet'], preset: 'planning',
       produced: ['music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3'],
       limitations: ['Produces a typed conflict instead of exceeding an approved hard cue policy.'],
     }],
   }),
   manifest({
-    toolKey: 'music_constraint_resolution_publisher', toolVersion: '3.2.0', toolClass: 'decision_route',
+    toolKey: 'music_constraint_resolution_publisher', toolVersion: '3.3.0', toolClass: 'decision_route',
     boundary: 'private_coordination_service', status: 'planning_qualified',
-    manifestRevision: 'v3', adapterVersion: '3.2.0', contractVersion: '3.2.0', operations: [{
-      key: 'publish_cue_constraint_resolutions', version: '3.2.0', evidenceVersion: 'v3',
+    manifestRevision: 'v3', adapterVersion: '3.3.0', contractVersion: '3.3.0', operations: [{
+      key: 'publish_cue_constraint_resolutions', version: '3.3.0', evidenceVersion: 'v3',
       jobs: ['create_music_cue_sheet'], preset: 'planning', accepted: ['music_cue_sheet_v2'],
       produced: ['music_cue_constraint_resolution_v3'],
       limitations: ['Publishes the exact one-resolution-per-caller-constraint record; it does not grant new authority.'],
@@ -276,7 +276,7 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     ],
   }),
   manifest({
-    toolKey: 'canonical_sound_v4_port', toolVersion: '4.2.0', toolClass: 'internal_service',
+    toolKey: 'canonical_sound_v4_port', toolVersion: '4.3.0', toolClass: 'internal_service',
     boundary: 'private_coordination_service', status: 'internal_execution_qualified', operations: [
       {
         key: 'process_music_through_public_sound_service',

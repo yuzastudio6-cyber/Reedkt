@@ -182,7 +182,8 @@ create_exact_instance_template() {
       --maintenance-policy=TERMINATE --provisioning-model=STANDARD \
       --service-account="${QUALIFICATION_SA_EMAIL}" \
       --scopes=https://www.googleapis.com/auth/cloud-platform \
-      --network="${NETWORK}" --subnet="${SUBNET}" --no-address \
+      --network="${NETWORK}" --subnet="${SUBNET}" --region="${REGION}" \
+      --no-address \
       --no-can-ip-forward --shielded-secure-boot --shielded-vtpm \
       --shielded-integrity-monitoring \
       --metadata=block-project-ssh-keys=true,enable-oslogin=true \

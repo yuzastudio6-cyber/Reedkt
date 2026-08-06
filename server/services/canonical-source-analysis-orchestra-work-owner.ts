@@ -21,7 +21,7 @@ import {
 } from '../orchestra/canonical-source-analysis-orchestra-coordinator'
 import {
   CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
-  type CanonicalSkillQualificationRegistry,
+  type CanonicalSkillQualificationRegistryReadPort,
 } from '../orchestra/canonical-skill-qualification-registry'
 import {
   orchestraDigest,
@@ -239,10 +239,8 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
     VisualIntelligenceCanonicalPreparedEvidenceStore
   readonly dispatchPackageStore:
     VisualIntelligenceOrchestraDispatchPackageStore
-  readonly qualificationRegistryReadPort: Pick<
-    CanonicalSkillQualificationRegistry,
-    'schemaVersion' | 'readExact'
-  >
+  readonly qualificationRegistryReadPort:
+    CanonicalSkillQualificationRegistryReadPort
 }): CanonicalSourceAnalysisOrchestraWorkOwner {
   assertDependencies(input)
   return Object.freeze({

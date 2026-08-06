@@ -565,6 +565,16 @@ that pair is absent. This registry is a qualification truth boundary, not a
 publisher of fabricated readiness; the current Track All and Visual
 Intelligence source snapshots remain blocked.
 
+The production composition roots expose only the registry read port; the
+create-only publication method is not reachable from ordinary Visual
+Intelligence or Track All runtime consumers. The approved Track All task-source
+repository now rereads that port both before it creates a source record and
+again immediately before materializing the SAM 3.1 launch input. It requires a
+qualified `track_subject_geometry` job with the exact A100-primary,
+quality-preserving L4-fallback, and independent L4 task-QA routes plus canonical
+qualification evidence. A missing, blocked, partial, wrong-definition, or
+caller-invented manifest/snapshot pair cannot reach GPU launch preparation.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

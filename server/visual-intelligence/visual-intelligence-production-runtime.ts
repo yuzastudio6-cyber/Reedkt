@@ -16,7 +16,7 @@ import {
 } from '../orchestra/canonical-source-analysis-orchestra-coordinator'
 import {
   createCanonicalSkillQualificationRegistry,
-  type CanonicalSkillQualificationRegistry,
+  type CanonicalSkillQualificationRegistryReadPort,
 } from '../orchestra/canonical-skill-qualification-registry'
 import {
   createGoogleBatchA100JobInvocationPort,
@@ -199,7 +199,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v17' as const
+  'visual-intelligence-production-runtime-v18' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -219,8 +219,8 @@ export interface VisualIntelligenceProductionRuntime {
     VisualIntelligenceOrchestraDispatchPackageStore
   readonly orchestraJobResultStore:
     VisualIntelligenceOrchestraJobResultStore
-  readonly skillQualificationRegistry:
-    CanonicalSkillQualificationRegistry
+  readonly skillQualificationRegistryReadPort:
+    CanonicalSkillQualificationRegistryReadPort
   readonly editReferenceBindingStore:
     EditReferenceVisualIntelligenceBindingStore
   readonly editReferenceReadPort:
@@ -736,7 +736,13 @@ export async function createVisualIntelligenceProductionRuntime(
     canonicalPreparedEvidenceStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,
-    skillQualificationRegistry,
+    skillQualificationRegistryReadPort: Object.freeze({
+      schemaVersion: skillQualificationRegistry.schemaVersion,
+      evidenceClass: skillQualificationRegistry.evidenceClass,
+      readExact: skillQualificationRegistry.readExact.bind(
+        skillQualificationRegistry,
+      ),
+    }),
     editReferenceBindingStore,
     editReferenceReadPort,
     sourceVideoUnderstandingBindingStore,

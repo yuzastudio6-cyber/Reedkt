@@ -5,6 +5,15 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  createCanonicalSkillQualificationRegistry,
+} from '../orchestra/canonical-skill-qualification-registry'
+import {
+  createOrchestraSkillCall,
+  createSkillQualificationSnapshot,
+  orchestraDigest,
+  orchestraEvidenceRef,
+} from '../orchestra/orchestra-skill-capability-contract'
+import {
   createCanonicalProfessionalGpuAttemptStartAuthority,
   canonicalProfessionalGpuApprovedFundingObservationSchema,
   CANONICAL_PROFESSIONAL_GPU_APPROVED_FUNDING_OBSERVATION_VERSION,
@@ -27,8 +36,14 @@ import {
   canonicalSam31GpuSourceMediaSchema,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
 import {
+  CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
   assertCanonicalTrackAllSam31OrchestraBinding,
 } from '../workers/masks/canonical-track-all-sam3_1-orchestra-binding'
+import {
+  TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
+  createTrackAllSam31OrchestraCapabilityManifestForQualification,
+  createTrackAllSam31OrchestraQualificationSnapshot,
+} from '../workers/masks/track-all-sam3_1-orchestra-capability-manifest'
 import { a100 as base } from './canonical-sam3_1-gpu-task-owner-smoke'
 import { released } from
   './canonical-sam3_1-gpu-runtime-qualification-compilation-authority-smoke'
@@ -152,8 +167,72 @@ const target = createCanonicalProfessionalGpuRuntimeLaunchTarget({
 })
 
 const objects = new Map<string, Buffer>()
+const objectPort = memoryObjectPort(objects)
+const qualificationRegistry = createCanonicalSkillQualificationRegistry({
+  objectPort,
+  prefix: 'private/smoke/orchestra/skill-qualification-registry',
+})
+const candidateQualification =
+  createTrackAllSam31OrchestraQualificationSnapshot()
+const {
+  snapshotDigestSha256: _candidateDigest,
+  ...candidateQualificationWithoutDigest
+} = candidateQualification
+assert.ok(_candidateDigest)
+const qualification = createSkillQualificationSnapshot({
+  ...candidateQualificationWithoutDigest,
+  observedReleaseRef: orchestraEvidenceRef(
+    'track-all-sam3_1-qualified-private-release-set',
+    orchestraDigest({
+      a100Release: 'qualified',
+      accountEffectiveRates: 'qualified',
+      l4FallbackRelease: 'qualified',
+      l4TaskQaRelease: 'qualified',
+      repository: 'qualified',
+    }),
+  ),
+  observedAt,
+  overall: 'qualified',
+  jobQualifications: [{
+    jobType: CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
+    status: 'qualified',
+    blockerCodes: [],
+    qualifiedRouteIds: Object.values(TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS)
+      .sort(compare),
+    qualificationEvidenceRefs: [
+      orchestraEvidenceRef('a100-private-release', orchestraDigest('a100')),
+      orchestraEvidenceRef('l4-fallback-private-release', orchestraDigest('l4')),
+      orchestraEvidenceRef('l4-task-qa-private-release', orchestraDigest('qa')),
+    ].sort((left, right) => compare(left.id, right.id)),
+  }],
+})
+const manifest =
+  createTrackAllSam31OrchestraCapabilityManifestForQualification(
+    qualification,
+  )
+await qualificationRegistry.persistCreateOnly({
+  manifest,
+  qualificationSnapshot: qualification,
+})
+const {
+  callDigestSha256: _baseCallDigest,
+  ...baseCallWithoutDigest
+} = base.orchestraCall
+assert.ok(_baseCallDigest)
+const orchestraCall = createOrchestraSkillCall({
+  ...baseCallWithoutDigest,
+  manifestRef: orchestraEvidenceRef(
+    manifest.manifestId,
+    manifest.manifestDigestSha256,
+  ),
+  qualificationSnapshotRef: orchestraEvidenceRef(
+    qualification.snapshotId,
+    qualification.snapshotDigestSha256,
+  ),
+})
 const repository = createCanonicalSam31ApprovedTrackAllTaskSourceRepository({
-  objectPort: memoryObjectPort(objects),
+  objectPort,
+  qualificationRegistryReadPort: qualificationRegistry,
   prefix: 'private/smoke/track-all/sam3_1/approved-sources/v1',
 })
 const publication = {
@@ -161,7 +240,7 @@ const publication = {
   approvedFundingObservation: funding,
   attemptStartAuthority: attempt,
   bindingId: 'track-all-sam31-binding-1',
-  orchestraCall: base.orchestraCall,
+  orchestraCall,
   editPlanVersionId: base.context.editPlanVersionId,
   editPlanVersionRef: base.context.editPlanVersionRef,
   sceneId: base.context.sceneId,
@@ -185,7 +264,7 @@ assert.equal(created.disposition, 'created')
 assert.equal(created.gpuJobStarted, false)
 assert.equal((await repository.persistApprovedTaskSourceCreateOnly(publication))
   .disposition, 'identical_replay')
-assert.equal(objects.size, 1)
+assert.equal(objects.size, 2)
 
 const materialSource = await repository.rereadApprovedTaskMaterialSource({
   admission,
@@ -203,6 +282,25 @@ assert.equal(materialSource.sceneId, base.context.sceneId)
 assert.equal('path' in materialSource, false)
 assert.equal('url' in materialSource, false)
 assert.equal('command' in materialSource, false)
+
+const qualificationObjectPath = [...objects.keys()].find((path) =>
+  path.includes('skill-qualification-registry'))
+if (!qualificationObjectPath) {
+  throw new Error('Expected canonical qualification registry object.')
+}
+const qualificationObject = objects.get(qualificationObjectPath)
+if (!qualificationObject) {
+  throw new Error('Expected canonical qualification registry bytes.')
+}
+objects.delete(qualificationObjectPath)
+await assert.rejects(repository.rereadApprovedTaskMaterialSource({
+  admission,
+  target,
+  admissionConsumptionRef: ref('admission-consumption'),
+  executionEnvelopeRef: ref('execution-envelope'),
+  at: '2026-08-04T18:30:05.000Z',
+}), /qualification_not_published/u)
+objects.set(qualificationObjectPath, qualificationObject)
 
 await assert.rejects(repository.rereadApprovedTaskMaterialSource({
   admission: mutateAdmission(admission, {
@@ -227,6 +325,67 @@ await assert.rejects(
 )
 assert.equal(getterInvoked, false)
 
+const emptyObjects = new Map<string, Buffer>()
+const emptyObjectPort = memoryObjectPort(emptyObjects)
+const unpublishedQualificationRepository =
+  createCanonicalSam31ApprovedTrackAllTaskSourceRepository({
+    objectPort: emptyObjectPort,
+    qualificationRegistryReadPort:
+      createCanonicalSkillQualificationRegistry({
+        objectPort: emptyObjectPort,
+        prefix: 'private/smoke/orchestra/empty-skill-registry',
+      }),
+    prefix: 'private/smoke/track-all/sam3_1/unpublished-sources/v1',
+  })
+await assert.rejects(
+  unpublishedQualificationRepository.persistApprovedTaskSourceCreateOnly(
+    publication,
+  ),
+  /qualification_not_published/u,
+)
+assert.equal(emptyObjects.size, 0)
+
+const blockedObjects = new Map<string, Buffer>()
+const blockedObjectPort = memoryObjectPort(blockedObjects)
+const blockedRegistry = createCanonicalSkillQualificationRegistry({
+  objectPort: blockedObjectPort,
+  prefix: 'private/smoke/orchestra/blocked-skill-registry',
+})
+const blockedManifest =
+  createTrackAllSam31OrchestraCapabilityManifestForQualification(
+    candidateQualification,
+  )
+await blockedRegistry.persistCreateOnly({
+  manifest: blockedManifest,
+  qualificationSnapshot: candidateQualification,
+})
+const blockedCall = createOrchestraSkillCall({
+  ...baseCallWithoutDigest,
+  manifestRef: orchestraEvidenceRef(
+    blockedManifest.manifestId,
+    blockedManifest.manifestDigestSha256,
+  ),
+  qualificationSnapshotRef: orchestraEvidenceRef(
+    candidateQualification.snapshotId,
+    candidateQualification.snapshotDigestSha256,
+  ),
+})
+const blockedQualificationRepository =
+  createCanonicalSam31ApprovedTrackAllTaskSourceRepository({
+    objectPort: blockedObjectPort,
+    qualificationRegistryReadPort: blockedRegistry,
+    prefix: 'private/smoke/track-all/sam3_1/blocked-sources/v1',
+  })
+await assert.rejects(
+  blockedQualificationRepository.persistApprovedTaskSourceCreateOnly({
+    ...publication,
+    sourcePublicationId: 'track-all-blocked-source-publication-1',
+    orchestraCall: blockedCall,
+  }),
+  /qualification_not_currently_qualified/u,
+)
+assert.equal(blockedObjects.size, 1)
+
 await assert.rejects(repository.persistApprovedTaskSourceCreateOnly({
   ...publication,
   sourcePublicationId: 'colliding-different-publication',
@@ -234,16 +393,24 @@ await assert.rejects(repository.persistApprovedTaskSourceCreateOnly({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-approved-track-all-task-source-repository',
-  checks: 27,
+  checks: 41,
   createOnlyExactReread: true,
   identicalReplayAccepted: true,
   crossLeaseAttemptRejected: true,
   hostileAccessorRejectedWithoutInvocation: true,
+  exactCanonicalQualificationRegistryRereadRequired: true,
+  callerSelfQualifiedPlanRejected: true,
+  canonicallyPersistedBlockedQualificationRejected: true,
+  removedQualificationRefusedAtLaunchMaterialization: true,
   callerMediaPromptRouteImageCommandPriceAccepted: false,
   gpuJobStarted: false,
   customerCreditsMutated: false,
   productionReady: false,
 }, null, 2))
+
+function compare(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
+}
 
 function memoryObjectPort(
   values: Map<string, Buffer>,

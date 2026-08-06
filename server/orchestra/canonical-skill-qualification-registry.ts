@@ -60,9 +60,20 @@ export interface CanonicalSkillQualificationRegistryRecord {
   readonly recordDigestSha256: string
 }
 
-export interface CanonicalSkillQualificationRegistry {
+export interface CanonicalSkillQualificationRegistryReadPort {
   readonly schemaVersion: typeof CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION
   readonly evidenceClass: 'private_create_only_exact_reread'
+  readExact(input: {
+    readonly manifestRef: OrchestraEvidenceRef
+    readonly qualificationSnapshotRef: OrchestraEvidenceRef
+  }): Promise<Readonly<{
+    manifest: SkillCapabilityManifest
+    qualificationSnapshot: SkillQualificationSnapshot
+  }> | null>
+}
+
+export interface CanonicalSkillQualificationRegistry
+  extends CanonicalSkillQualificationRegistryReadPort {
   persistCreateOnly(input: {
     readonly manifest: unknown
     readonly qualificationSnapshot: unknown
@@ -80,13 +91,6 @@ export interface CanonicalSkillQualificationRegistry {
     publicDeliveryAuthorityGranted: false
     productionAuthorityGranted: false
   }>>
-  readExact(input: {
-    readonly manifestRef: OrchestraEvidenceRef
-    readonly qualificationSnapshotRef: OrchestraEvidenceRef
-  }): Promise<Readonly<{
-    manifest: SkillCapabilityManifest
-    qualificationSnapshot: SkillQualificationSnapshot
-  }> | null>
   rereadRecord(input: {
     readonly manifestRef: OrchestraEvidenceRef
     readonly qualificationSnapshotRef: OrchestraEvidenceRef

@@ -14,6 +14,9 @@ readonly JOB_NAME='reeditpro-track-all-mask-qa-l4'
 readonly GPU_WORKER_SERVICE_ACCOUNT='reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com'
 readonly MASK_BUCKET='reeditpro-production-reeditpro-masks'
 readonly VOLUME_NAME='reeditpro-private-gpu-objects'
+readonly NETWORK='weeditpro-gpu-private'
+readonly SUBNET='weeditpro-gpu-private-us-central1'
+readonly NETWORK_TAG='weeditpro-gpu-private-no-nat'
 readonly CONFIRMATION='deploy-weeditpro-track-all-sam31-l4-task-qa-v1'
 
 main() {
@@ -41,6 +44,10 @@ main() {
     --parallelism=1 \
     --max-retries=0 \
     --task-timeout=3600s \
+    --network="${NETWORK}" \
+    --subnet="${SUBNET}" \
+    --network-tags="${NETWORK_TAG}" \
+    --vpc-egress=all-traffic \
     --add-volume="name=${VOLUME_NAME},type=cloud-storage,bucket=${MASK_BUCKET},readonly=false,mount-options=uid=65532;gid=65532;implicit-dirs=true" \
     --add-volume-mount="volume=${VOLUME_NAME},mount-path=/mnt/reeditpro" \
     --set-env-vars='REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,WEEDITPRO_GPU_ACCELERATOR_CLASS=nvidia_l4' \
@@ -58,6 +65,9 @@ main() {
     --arg service_account "${GPU_WORKER_SERVICE_ACCOUNT}" \
     --arg bucket "${MASK_BUCKET}" \
     --arg volume "${VOLUME_NAME}" \
+    --arg network "${NETWORK}" \
+    --arg subnet "${SUBNET}" \
+    --arg network_tag "${NETWORK_TAG}" \
     '
       .spec.template.spec.taskCount == 1
       and .spec.template.spec.parallelism == 1
@@ -66,6 +76,9 @@ main() {
       and .spec.template.spec.template.spec.serviceAccountName == $service_account
       and .spec.template.metadata.annotations."run.googleapis.com/execution-environment" == "gen2"
       and .spec.template.metadata.annotations."run.googleapis.com/gpu-zonal-redundancy-disabled" == "true"
+      and .spec.template.metadata.annotations."run.googleapis.com/vpc-access-egress" == "all-traffic"
+      and (.spec.template.metadata.annotations."run.googleapis.com/network-interfaces" | fromjson)
+        == [{"network":$network,"subnetwork":$subnet,"tags":[$network_tag]}]
       and (.spec.template.spec.template.spec.containers | length) == 1
       and .spec.template.spec.template.spec.containers[0].image == $image
       and .spec.template.spec.template.spec.containers[0].resources.limits.cpu == "8"
@@ -124,6 +137,8 @@ assert_operator_boundary() {
     --project="${PROJECT_ID}" >/dev/null
   gcloud storage buckets describe "gs://${MASK_BUCKET}" \
     --project="${PROJECT_ID}" >/dev/null
+  gcloud compute networks subnets describe "${SUBNET}" \
+    --project="${PROJECT_ID}" --region="${REGION}" >/dev/null
   command -v jq >/dev/null
 }
 

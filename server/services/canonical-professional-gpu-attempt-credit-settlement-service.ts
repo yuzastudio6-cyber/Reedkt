@@ -166,6 +166,8 @@ export async function settleCanonicalProfessionalGpuPlanFundedAttemptCredits(
       if (collisions.length > 0) {
         if (
           collisions.length !== 1
+          || collisions[0]!.schemaVersion !==
+            CANONICAL_PROFESSIONAL_GPU_ATTEMPT_CREDIT_SETTLEMENT_VERSION
           || !sameExistingSettlement({
             settlement: collisions[0]!,
             terminalBindingId: terminalBinding.terminalBindingId,
@@ -370,6 +372,14 @@ export async function settleCanonicalProfessionalGpuPlanFundedAttemptCredits(
       return { result: record, changed: true }
     },
   })
+  if (settlement.schemaVersion !==
+    CANONICAL_PROFESSIONAL_GPU_ATTEMPT_CREDIT_SETTLEMENT_VERSION) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'GPU attempt settlement resolved to another versioned owner.',
+      409,
+    )
+  }
 
   const reread = await readPrivateEditAuthorityAggregate({
     localStorageRoot: input.context.env.localStorageRoot,
@@ -381,6 +391,8 @@ export async function settleCanonicalProfessionalGpuPlanFundedAttemptCredits(
   )
   if (
     !rereadSettlement
+    || rereadSettlement.schemaVersion !==
+      CANONICAL_PROFESSIONAL_GPU_ATTEMPT_CREDIT_SETTLEMENT_VERSION
     || rereadSettlement.settlementHash !== settlement.settlementHash
     || sha256AuthorityValue({
       ...rereadSettlement,

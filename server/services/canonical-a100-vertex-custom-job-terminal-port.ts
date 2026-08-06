@@ -194,7 +194,12 @@ export interface CanonicalA100VertexTerminalCostEvidenceReadPort {
     readonly executionRef: z.infer<typeof evidenceRefSchema>
     readonly cloudTerminalObservationRef: z.infer<typeof evidenceRefSchema>
     readonly terminalOutcome: 'completed' | 'failed' | 'canceled' | 'expired'
-  }): Promise<unknown>
+    readonly providerTimes: {
+      readonly createTime: string
+      readonly startTime: string
+      readonly endTime: string
+    }
+  }): Promise<CanonicalA100VertexCustomJobTerminalCostEvidence>
 }
 
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
@@ -269,12 +274,20 @@ export function createCanonicalA100VertexCustomJobTerminalPort(input: {
             provider,
           },
         )
+        if (provider.endTime === null) {
+          throw new Error('Vertex terminal response omitted its end time.')
+        }
         const costEvidence = assertCanonicalA100VertexTerminalCostEvidence(
           await input.costEvidenceReadPort.rereadUsageAccountPriceAndCost({
             execution,
             executionRef,
             cloudTerminalObservationRef,
             terminalOutcome,
+            providerTimes: {
+              createTime: provider.createTime,
+              startTime: provider.startTime ?? provider.createTime,
+              endTime: provider.endTime,
+            },
           }),
         )
         if (

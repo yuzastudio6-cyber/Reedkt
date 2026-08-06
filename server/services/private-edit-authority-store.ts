@@ -261,6 +261,47 @@ export interface AuthorityGpuAttemptCreditSettlementRecord {
   settlementHash: string
 }
 
+export interface AuthorityA100VertexAttemptCreditSettlementRecord {
+  schemaVersion: 'canonical-a100-vertex-attempt-credit-settlement-v1'
+  id: string
+  vertexTerminalReadId: string
+  vertexTerminalReadHash: string
+  launchAuthorityId: string
+  launchAuthorityHash: string
+  executionRecordId: string
+  executionRecordHash: string
+  attemptCostReceiptId: string
+  attemptCostReceiptHash: string
+  executionAttemptId: string
+  snapshotId: string
+  approvalId: string
+  reservationId: string
+  approvedWorkItemId: string
+  terminalOutcome: 'completed' | 'reeditpro_failed'
+  settlementDisposition:
+    | 'charged_eligible_cost_to_shared_plan_reservation'
+    | 'no_charge_weeditpro_absorbed_failure'
+  approvedToolCeilingCredits: number
+  customerChargedCredits: number
+  weeditproAbsorbedInfrastructureCostUsdNanos: number
+  unusedToolCeilingCreditsRetainedInSharedPlanReservation: number
+  creditsHeldPendingReconciliation: 0
+  creditsReleasedOrRefundedAtAttemptSettlement: 0
+  reservationSpendApplied: boolean
+  exactTerminalAndAttemptCostReceiptReread: true
+  serviceFeeSettledHere: false
+  finalPlanSettlementStillRequired: true
+  publicBillingAuthorityGranted: false
+  productionAuthorityGranted: false
+  idempotencyKey: string
+  createdAt: string
+  settlementHash: string
+}
+
+export type AuthorityAnyGpuAttemptCreditSettlementRecord =
+  | AuthorityGpuAttemptCreditSettlementRecord
+  | AuthorityA100VertexAttemptCreditSettlementRecord
+
 export interface AuthorityGpuPlanFinalCreditSettlementWorkBinding {
   workItemKey: string
   approvedWorkItemId: string
@@ -424,7 +465,7 @@ export interface PrivateEditAuthorityAggregate {
   reservations: AuthorityCreditReservationRecord[]
   ledgerEntries: AuthorityLedgerEntry[]
   reservationEvents: AuthorityReservationEvent[]
-  gpuAttemptCreditSettlements: AuthorityGpuAttemptCreditSettlementRecord[]
+  gpuAttemptCreditSettlements: AuthorityAnyGpuAttemptCreditSettlementRecord[]
   gpuPlanFinalCreditSettlements: AuthorityGpuPlanFinalCreditSettlementRecord[]
   jobs: AuthorityDerivedJobRecord[]
   executionPackages: AuthorityExecutionPackageRecord[]
@@ -780,6 +821,58 @@ function assertAuthorityAggregateValid(aggregate: PrivateEditAuthorityAggregate,
           settlement.customerChargedCredits
       : matchingLedgerEntries.length === 0
         && matchingReservationEvents.length === 0
+    if (settlement.schemaVersion ===
+      'canonical-a100-vertex-attempt-credit-settlement-v1') {
+      const validVertexDisposition = settlement.terminalOutcome === 'completed'
+        ? settlement.settlementDisposition ===
+            'charged_eligible_cost_to_shared_plan_reservation'
+          && settlement.reservationSpendApplied ===
+            (settlement.customerChargedCredits > 0)
+          && settlement.customerChargedCredits
+            + settlement
+              .unusedToolCeilingCreditsRetainedInSharedPlanReservation
+            === settlement.approvedToolCeilingCredits
+        : settlement.terminalOutcome === 'reeditpro_failed'
+          && settlement.settlementDisposition ===
+            'no_charge_weeditpro_absorbed_failure'
+          && settlement.customerChargedCredits === 0
+          && settlement.reservationSpendApplied === false
+          && settlement
+            .unusedToolCeilingCreditsRetainedInSharedPlanReservation ===
+              settlement.approvedToolCeilingCredits
+      if (
+        !reservation || !snapshot || !approvedWorkItem
+        || snapshot.reservationId !== reservation.id
+        || snapshot.approvalId !== settlement.approvalId
+        || approvedWorkItem.snapshotId !== snapshot.snapshotId
+        || !validVertexDisposition
+        || !exactSpendEvidence
+        || settlement.creditsHeldPendingReconciliation !== 0
+        || settlement.creditsReleasedOrRefundedAtAttemptSettlement !== 0
+        || settlement.exactTerminalAndAttemptCostReceiptReread !== true
+        || settlement.serviceFeeSettledHere !== false
+        || settlement.finalPlanSettlementStillRequired !== true
+        || settlement.publicBillingAuthorityGranted !== false
+        || settlement.productionAuthorityGranted !== false
+        || [
+          settlement.approvedToolCeilingCredits,
+          settlement.customerChargedCredits,
+          settlement.weeditproAbsorbedInfrastructureCostUsdNanos,
+          settlement.unusedToolCeilingCreditsRetainedInSharedPlanReservation,
+        ].some((value) => !Number.isInteger(value) || value < 0)
+        || settlement.approvedToolCeilingCredits <= 0
+        || !/^[a-f0-9]{64}$/u.test(settlement.vertexTerminalReadHash)
+        || !/^[a-f0-9]{64}$/u.test(settlement.launchAuthorityHash)
+        || !/^[a-f0-9]{64}$/u.test(settlement.executionRecordHash)
+        || !/^[a-f0-9]{64}$/u.test(settlement.attemptCostReceiptHash)
+        || settlementHash !== sha256Text(stableStringify(payload))
+      ) throw new ApiError(
+        'VALIDATION_FAILED',
+        'Private edit authority Vertex A100 settlement is invalid.',
+        409,
+      )
+      continue
+    }
     const validDisposition = settlement.terminalOutcome ===
       'unknown_requires_reconciliation'
       ? settlement.settlementDisposition ===

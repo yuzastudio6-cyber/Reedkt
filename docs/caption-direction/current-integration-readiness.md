@@ -210,7 +210,8 @@ professional evidence and is not relabeled as shared complete-time visual AI,
 independent final QA, or terminal qualification.
 
 The closed 9:16 and multi-output inspection receipts now also have a shared
-canonical projection service. For each of the six variants it rereads the
+canonical V2 projection service mounted in the private qualification
+composition. For each of the six variants it tenant-scoped rereads the
 persisted Caption receipt and canonical approved-run/source authority twice,
 then persists one exact
 `canonical-caption-direct-visual-inspection-evidence-v1` record. The source

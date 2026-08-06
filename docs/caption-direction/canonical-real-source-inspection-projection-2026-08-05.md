@@ -2,7 +2,7 @@
 
 Milestone: Post-CAP-20 canonical evidence integration
 
-Status: `source_complete_waiting_on_fresh_approved_run_receipts`
+Status: `tenant_scoped_private_composition_mounted_waiting_on_fresh_approved_run_receipts`
 
 ## Outcome
 
@@ -30,6 +30,14 @@ The existing canonical qualification reader remains the final defense-in-depth
 consumer and rereads the same approved execution and source authority before an
 approved-run evidence record can exist.
 
+The initial V1 internal read ports remain a compatibility record, but they are
+not mounted in the private qualification composition because their lookup
+inputs did not carry complete tenant/output scope. V2 is the active mount. It
+uses a create-only repository keyed by owner, workspace, immutable approved
+scope, output, variant, and receipt, and it passes the same complete scope to
+the approved-run authority reader. Cross-tenant lookup and persistence fail
+closed.
+
 ## Files changed
 
 - `src/types/canonical-caption-real-source-inspection-projection.ts`
@@ -43,9 +51,14 @@ approved-run evidence record can exist.
 
 - `canonical-caption-real-source-inspection-projection-request-v1`
 - `canonical-caption-real-source-inspection-bundle-read-port-v1`
+- `canonical-caption-real-source-inspection-bundle-read-port-v2`
+- `canonical-caption-real-source-inspection-bundle-repository-v1`
 - `canonical-caption-real-source-inspection-authority-v1`
 - `canonical-caption-real-source-inspection-authority-read-port-v1`
+- `canonical-caption-real-source-inspection-authority-read-port-v2`
 - `canonical-caption-real-source-inspection-projection-service-v1`
+- `canonical-caption-real-source-inspection-projection-service-v2`
+- `canonical-caption-private-qualification-composition-v2`
 
 ## Existing owners reused
 
@@ -83,10 +96,11 @@ The source-contract smoke projects:
 - 1:1 reduced motion.
 
 It checks exact per-variant contact-sheet and original-resolution coverage,
-create-only persistence and replay, exact receipt/source authority lineage,
-stale digest, crossed kind/source/output, changed rereads, unadmitted ports,
-unsafe fields, and unsorted source bindings. The fixture is explicitly a source
-contract fixture; it is not inserted into the actual qualification catalog.
+tenant-scoped create-only persistence and replay, cross-tenant refusal, exact
+receipt/source authority lineage, stale digest, crossed kind/source/output,
+changed rereads, unadmitted ports, unsafe fields, and unsorted source bindings.
+The fixture is explicitly a source contract fixture; it is not inserted into
+the actual qualification catalog.
 
 ## Media inspected
 
@@ -125,7 +139,6 @@ source authority and without promoting synthetic engineering media.
 
 ## Next milestone
 
-Mount the bundle reader and approved-run authority adapter in the canonical
-private Caption composition, then run representative approved edits that
-persist their exact real-source inspection evidence and the remaining owner/QA
+Run representative approved edits through the V2 private composition so they
+persist exact real-source inspection evidence and the remaining owner/QA
 evidence into the multi-run catalog.

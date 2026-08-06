@@ -5,7 +5,11 @@ import type { CanonicalCaptionBrollEvidenceRepository } from
   '../services/canonical-caption-broll-support-service'
 import {
   createCanonicalCaptionPrivateQualificationComposition,
+  createCanonicalCaptionPrivateQualificationCompositionV2,
 } from '../services/canonical-caption-private-qualification-composition'
+import {
+  createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
+} from '../services/canonical-caption-real-source-inspection-projection-service'
 import type { CanonicalCaptionSoundSyncEvidenceRepository } from
   '../services/canonical-caption-soundsync-support-service'
 import type { CanonicalCaptionTrackAllEvidenceRepository } from
@@ -79,6 +83,22 @@ const composition = createCanonicalCaptionPrivateQualificationComposition({
   brollEvidenceRepository,
   prefix: 'private-internal/caption-qualification-composition-smoke',
 })
+const realSourceInspectionAuthorityReadPort =
+  createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
+    async () => null)
+const compositionV2 =
+  createCanonicalCaptionPrivateQualificationCompositionV2({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository,
+    realSourceInspectionAuthorityReadPort,
+    prefix: 'private-internal/caption-qualification-composition-v2-smoke',
+  })
 
 check(composition.schemaVersion ===
   'canonical-caption-private-qualification-composition-v1',
@@ -111,6 +131,19 @@ check(!composition.assetMutationAuthorityGrantedToCaption
   && !composition.publicDeliveryAuthorityGrantedToCaption
   && !composition.productionAuthorityGrantedToCaption,
 'The composition must preserve every external authority boundary.')
+check(compositionV2.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v2',
+'The V2 composition must preserve V1 and add the scoped inspection mount.')
+check(compositionV2.realSourceInspectionBundleRepository.schemaVersion ===
+  'canonical-caption-real-source-inspection-bundle-read-port-v2'
+  && compositionV2.realSourceInspectionBundleRepository.repositoryVersion ===
+    'canonical-caption-real-source-inspection-bundle-repository-v1',
+'The V2 composition must mount one tenant-scoped create-only receipt store.')
+check(compositionV2.realSourceInspectionProjectionService.schemaVersion ===
+  'canonical-caption-real-source-inspection-projection-service-v2'
+  && compositionV2.tenantScopedInspectionEvidenceRequired
+  && !compositionV2.historicalInspectionReceiptAutoPromoted,
+'The V2 composition must project only fresh, tenant-scoped approved evidence.')
 
 assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
   context,
@@ -124,12 +157,33 @@ assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
 }))
 checks += 1
 
+assert.throws(() => createCanonicalCaptionPrivateQualificationCompositionV2({
+  context,
+  objectPort: objectPort(),
+  supportResumeRepository,
+  transcriptEvidenceRepository,
+  visualIntelligenceEvidenceRepository,
+  trackAllEvidenceRepository,
+  soundSyncEvidenceRepository,
+  brollEvidenceRepository,
+  realSourceInspectionAuthorityReadPort: {
+    schemaVersion:
+      'canonical-caption-real-source-inspection-authority-read-port-v2',
+    sourceAuthority: 'canonical_backend_approved_caption_run_authority',
+    callerSuppliedAuthorityAccepted: false,
+    async readExact() { return null },
+  },
+}))
+checks += 1
+
 console.log(JSON.stringify({
   smoke: 'canonical_caption_private_qualification_composition',
   status: 'passed',
   checks,
   sourceOnly: true,
   actualPrivateEvidenceRead: false,
+  tenantScopedRealSourceInspectionProjectionMounted: true,
+  historicalInspectionReceiptAutoPromoted: false,
   multipleApprovedRunsRequired: true,
   oneAllFeatureEditFabricated: false,
   centralOrchestraImplemented: false,

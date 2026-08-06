@@ -7,12 +7,20 @@ export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_REQUEST_VERSION
   'canonical-caption-real-source-inspection-projection-request-v1' as const
 export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_VERSION =
   'canonical-caption-real-source-inspection-bundle-read-port-v1' as const
+export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_V2_VERSION =
+  'canonical-caption-real-source-inspection-bundle-read-port-v2' as const
+export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_REPOSITORY_VERSION =
+  'canonical-caption-real-source-inspection-bundle-repository-v1' as const
 export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_VERSION =
   'canonical-caption-real-source-inspection-authority-read-port-v1' as const
+export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V2_VERSION =
+  'canonical-caption-real-source-inspection-authority-read-port-v2' as const
 export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_VERSION =
   'canonical-caption-real-source-inspection-authority-v1' as const
 export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_VERSION =
   'canonical-caption-real-source-inspection-projection-service-v1' as const
+export const CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V2_VERSION =
+  'canonical-caption-real-source-inspection-projection-service-v2' as const
 
 export type CanonicalCaptionRealSourceInspectionReceiptKind =
   | 'vertical_complete_time_v1'
@@ -83,6 +91,34 @@ export interface CanonicalCaptionRealSourceInspectionBundleReadPort {
   }): Promise<CanonicalCaptionRealSourceInspectionBundle | null>
 }
 
+export interface CanonicalCaptionRealSourceInspectionBundleLocator {
+  canonicalScope:
+    CanonicalCaptionRealSourceInspectionProjectionRequest['canonicalScope']
+  receiptRef: CaptionDomainRef
+  variant: CanonicalCaptionRealSourceInspectionVariant
+}
+
+export interface CanonicalCaptionRealSourceInspectionBundleReadPortV2 {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_V2_VERSION
+  readonly sourceAuthority:
+    'caption_owned_tenant_scoped_persisted_real_source_inspection_bundle'
+  readonly callerSuppliedReceiptAccepted: false
+  readExact(
+    input: CanonicalCaptionRealSourceInspectionBundleLocator,
+  ): Promise<CanonicalCaptionRealSourceInspectionBundle | null>
+}
+
+export interface CanonicalCaptionRealSourceInspectionBundleRepository
+  extends CanonicalCaptionRealSourceInspectionBundleReadPortV2 {
+  readonly repositoryVersion:
+    typeof CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_REPOSITORY_VERSION
+  persistBundleCreateOnly(input: {
+    readonly locator: CanonicalCaptionRealSourceInspectionBundleLocator
+    readonly bundle: CanonicalCaptionRealSourceInspectionBundle
+  }): Promise<'created' | 'identical_replay'>
+}
+
 /**
  * Exact canonical approved-run authority used to bind an already-inspected
  * Caption output to the immutable execution package and approved source set.
@@ -117,6 +153,20 @@ export interface CanonicalCaptionRealSourceInspectionAuthorityReadPort {
   }): Promise<CanonicalCaptionRealSourceInspectionAuthority | null>
 }
 
+export interface CanonicalCaptionRealSourceInspectionAuthorityReadPortV2 {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V2_VERSION
+  readonly sourceAuthority: 'canonical_backend_approved_caption_run_authority'
+  readonly callerSuppliedAuthorityAccepted: false
+  readExact(input: {
+    readonly canonicalScope:
+      CanonicalCaptionRealSourceInspectionProjectionRequest['canonicalScope']
+    readonly confirmedOutputFrameRef: CaptionDomainRef
+    readonly renderedArtifactRef: CaptionDomainRef
+    readonly deterministicQaRef: CaptionDomainRef
+  }): Promise<CanonicalCaptionRealSourceInspectionAuthority | null>
+}
+
 export interface CanonicalCaptionRealSourceInspectionProjectionOutcome {
   disposition: 'projected_canonical_direct_visual_inspection_evidence'
   request: CanonicalCaptionRealSourceInspectionProjectionRequest
@@ -134,6 +184,20 @@ export interface CanonicalCaptionRealSourceInspectionProjectionOutcome {
 export interface CanonicalCaptionRealSourceInspectionProjectionService {
   readonly schemaVersion:
     typeof CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_VERSION
+  readonly callerSuppliedReceiptAccepted: false
+  readonly callerSuppliedAuthorityAccepted: false
+  readonly canonicalApprovedRunAuthorityRereadRequired: true
+  readonly canonicalQualificationReaderMustRevalidateAuthority: true
+  project(
+    request: CanonicalCaptionRealSourceInspectionProjectionRequest,
+  ): Promise<CanonicalCaptionRealSourceInspectionProjectionOutcome>
+}
+
+
+export interface CanonicalCaptionRealSourceInspectionProjectionServiceV2 {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V2_VERSION
+  readonly tenantScopedBundleRereadRequired: true
   readonly callerSuppliedReceiptAccepted: false
   readonly callerSuppliedAuthorityAccepted: false
   readonly canonicalApprovedRunAuthorityRereadRequired: true

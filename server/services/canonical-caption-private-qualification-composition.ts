@@ -10,6 +10,11 @@ import type {
 import type {
   CanonicalCaptionQualificationRunEvidenceAssembly,
 } from '../../src/types/canonical-caption-qualification-run-evidence'
+import type {
+  CanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
+  CanonicalCaptionRealSourceInspectionBundleRepository,
+  CanonicalCaptionRealSourceInspectionProjectionServiceV2,
+} from '../../src/types/canonical-caption-real-source-inspection-projection'
 import type { ServiceContext } from '../types'
 import type { CanonicalCaptionBrollEvidenceRepository } from
   './canonical-caption-broll-support-service'
@@ -30,6 +35,10 @@ import {
   createCanonicalCaptionQualificationRunEvidenceReader,
   createCanonicalCaptionQualificationRunEvidenceRepository,
 } from './canonical-caption-qualification-run-evidence-reader'
+import {
+  createCanonicalCaptionRealSourceInspectionBundleRepository,
+  createCanonicalCaptionRealSourceInspectionProjectionServiceV2,
+} from './canonical-caption-real-source-inspection-projection-service'
 import type { CanonicalCaptionSoundSyncEvidenceRepository } from
   './canonical-caption-soundsync-support-service'
 import type { CanonicalCaptionTrackAllEvidenceRepository } from
@@ -45,6 +54,8 @@ import type { CanonicalSpecialistSupportResumeRepository } from
 
 export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_VERSION =
   'canonical-caption-private-qualification-composition-v1' as const
+export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V2_VERSION =
+  'canonical-caption-private-qualification-composition-v2' as const
 
 /**
  * Private qualification composition only. It reads existing canonical owners,
@@ -77,7 +88,20 @@ export interface CanonicalCaptionPrivateQualificationComposition {
   readonly productionAuthorityGrantedToCaption: false
 }
 
-export function createCanonicalCaptionPrivateQualificationComposition(input: {
+export interface CanonicalCaptionPrivateQualificationCompositionV2
+  extends Omit<CanonicalCaptionPrivateQualificationComposition,
+  'schemaVersion'> {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V2_VERSION
+  readonly realSourceInspectionBundleRepository:
+    CanonicalCaptionRealSourceInspectionBundleRepository
+  readonly realSourceInspectionProjectionService:
+    CanonicalCaptionRealSourceInspectionProjectionServiceV2
+  readonly tenantScopedInspectionEvidenceRequired: true
+  readonly historicalInspectionReceiptAutoPromoted: false
+}
+
+export interface CanonicalCaptionPrivateQualificationCompositionInput {
   readonly context: ServiceContext
   readonly objectPort: CanonicalCreateOnlyJsonObjectPort
   readonly supportResumeRepository:
@@ -93,7 +117,11 @@ export function createCanonicalCaptionPrivateQualificationComposition(input: {
   readonly brollEvidenceRepository:
     CanonicalCaptionBrollEvidenceRepository
   readonly prefix?: string
-}): CanonicalCaptionPrivateQualificationComposition {
+}
+
+export function createCanonicalCaptionPrivateQualificationComposition(
+  input: CanonicalCaptionPrivateQualificationCompositionInput,
+): CanonicalCaptionPrivateQualificationComposition {
   const prefix = input.prefix
     ?? 'private-internal/captions-specialist/v1/qualification-composition'
   const runEvidenceRepository =
@@ -159,5 +187,36 @@ export function createCanonicalCaptionPrivateQualificationComposition(input: {
     creditOrBillingAuthorityGrantedToCaption: false,
     publicDeliveryAuthorityGrantedToCaption: false,
     productionAuthorityGrantedToCaption: false,
+  })
+}
+
+export function createCanonicalCaptionPrivateQualificationCompositionV2(
+  input: CanonicalCaptionPrivateQualificationCompositionInput & {
+    readonly realSourceInspectionAuthorityReadPort:
+      CanonicalCaptionRealSourceInspectionAuthorityReadPortV2
+  },
+): CanonicalCaptionPrivateQualificationCompositionV2 {
+  const prefix = input.prefix
+    ?? 'private-internal/captions-specialist/v1/qualification-composition'
+  const base = createCanonicalCaptionPrivateQualificationComposition(input)
+  const realSourceInspectionBundleRepository =
+    createCanonicalCaptionRealSourceInspectionBundleRepository({
+      objectPort: input.objectPort,
+      prefix: `${prefix}/real-source-inspection-bundles`,
+    })
+  const realSourceInspectionProjectionService =
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
+      bundleReadPort: realSourceInspectionBundleRepository,
+      authorityReadPort: input.realSourceInspectionAuthorityReadPort,
+      evidenceRepository: base.directVisualInspectionRepository,
+    })
+  return Object.freeze({
+    ...base,
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V2_VERSION,
+    realSourceInspectionBundleRepository,
+    realSourceInspectionProjectionService,
+    tenantScopedInspectionEvidenceRequired: true,
+    historicalInspectionReceiptAutoPromoted: false,
   })
 }

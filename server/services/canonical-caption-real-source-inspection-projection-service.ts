@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
 import { assertClosedContractTree } from
@@ -20,17 +22,26 @@ import type {
 } from '../../src/types/canonical-caption-direct-visual-inspection-evidence'
 import {
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_VERSION,
+  CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_V2_VERSION,
+  CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_REPOSITORY_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_VERSION,
+  CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V2_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_REQUEST_VERSION,
   CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_VERSION,
+  CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V2_VERSION,
   type CanonicalCaptionRealSourceInspectionAuthority,
   type CanonicalCaptionRealSourceInspectionAuthorityReadPort,
+  type CanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
   type CanonicalCaptionRealSourceInspectionBundle,
+  type CanonicalCaptionRealSourceInspectionBundleLocator,
   type CanonicalCaptionRealSourceInspectionBundleReadPort,
+  type CanonicalCaptionRealSourceInspectionBundleReadPortV2,
+  type CanonicalCaptionRealSourceInspectionBundleRepository,
   type CanonicalCaptionRealSourceInspectionProjectionOutcome,
   type CanonicalCaptionRealSourceInspectionProjectionRequest,
   type CanonicalCaptionRealSourceInspectionProjectionService,
+  type CanonicalCaptionRealSourceInspectionProjectionServiceV2,
   type CanonicalCaptionRealSourceInspectionVariant,
 } from '../../src/types/canonical-caption-real-source-inspection-projection'
 import {
@@ -52,6 +63,8 @@ import {
   isCanonicalCaptionDirectVisualInspectionRepository,
   parseCanonicalCaptionDirectVisualInspectionEvidence,
 } from './canonical-caption-direct-visual-inspection-evidence-service'
+import type { CanonicalCreateOnlyJsonObjectPort } from
+  './canonical-gcs-source-analysis-lifecycle-store'
 
 const safeKey = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -134,8 +147,30 @@ const authoritySchema = z.object({
   sourceMediaBindingRefs: z.array(refSchema).min(1).max(1_000),
   exactApprovedSnapshotExecutionPackageOutputAndSourceReread: z.literal(true),
 }).strict()
+const bundleLocatorSchema = z.object({
+  canonicalScope: scopeSchema,
+  receiptRef: refSchema,
+  variant: z.enum([
+    'vertical_full_motion',
+    'vertical_reduced_motion',
+    'widescreen_full_motion',
+    'widescreen_reduced_motion',
+    'square_full_motion',
+    'square_reduced_motion',
+  ]),
+}).strict()
+const prefixSchema = z.string().trim().min(1).max(1_024)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/u)
+  .refine((value) =>
+    !value.includes('..') && !value.includes('//') && !value.endsWith('/'))
+const DEFAULT_BUNDLE_PREFIX =
+  'private-internal/captions-specialist/v1/real-source-inspection-bundles'
+const MAX_BUNDLE_BYTES = 32 * 1024 * 1024
 const admittedReadPorts = new WeakSet<object>()
 const admittedAuthorityReadPorts = new WeakSet<object>()
+const admittedReadPortsV2 = new WeakSet<object>()
+const admittedAuthorityReadPortsV2 = new WeakSet<object>()
+const admittedBundleRepositories = new WeakSet<object>()
 
 interface SelectedInspectionEvidence {
   observedAt: string
@@ -147,6 +182,11 @@ interface SelectedInspectionEvidence {
   contactSheetCount: number
   originalResolutionSpotCheckCount: number
 }
+
+type InspectionSelection = Pick<
+  CanonicalCaptionRealSourceInspectionProjectionRequest,
+  'receiptKind' | 'receiptRef' | 'variant'
+>
 
 type RequestInput = Omit<
   CanonicalCaptionRealSourceInspectionProjectionRequest,
@@ -256,6 +296,91 @@ export function isCanonicalCaptionRealSourceInspectionBundleReadPort(
     && admittedReadPorts.has(value as object))
 }
 
+export function createCanonicalCaptionRealSourceInspectionBundleReadPortV2(
+  readExact: CanonicalCaptionRealSourceInspectionBundleReadPortV2['readExact'],
+): CanonicalCaptionRealSourceInspectionBundleReadPortV2 {
+  if (typeof readExact !== 'function') {
+    throw new Error('Tenant-scoped Caption inspection reader required.')
+  }
+  const port = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_V2_VERSION,
+    sourceAuthority: (
+      'caption_owned_tenant_scoped_persisted_real_source_inspection_bundle'
+    ) as const,
+    callerSuppliedReceiptAccepted: false as const,
+    async readExact(input: CanonicalCaptionRealSourceInspectionBundleLocator) {
+      return readExact(parseBundleLocator(input))
+    },
+  })
+  admittedReadPortsV2.add(port)
+  return port
+}
+
+export function isCanonicalCaptionRealSourceInspectionBundleReadPortV2(
+  value: unknown,
+): value is CanonicalCaptionRealSourceInspectionBundleReadPortV2 {
+  return Boolean(value && typeof value === 'object'
+    && admittedReadPortsV2.has(value as object))
+}
+
+export function createCanonicalCaptionRealSourceInspectionBundleRepository(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly prefix?: string
+  },
+): CanonicalCaptionRealSourceInspectionBundleRepository {
+  assertObjectPort(input.objectPort)
+  const prefix = prefixSchema.parse(input.prefix ?? DEFAULT_BUNDLE_PREFIX)
+  const repository = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_READ_PORT_V2_VERSION,
+    repositoryVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_BUNDLE_REPOSITORY_VERSION,
+    sourceAuthority: (
+      'caption_owned_tenant_scoped_persisted_real_source_inspection_bundle'
+    ) as const,
+    callerSuppliedReceiptAccepted: false as const,
+    async persistBundleCreateOnly(untrusted: unknown) {
+      const envelope = z.object({
+        locator: z.unknown(),
+        bundle: z.unknown(),
+      }).strict().parse(untrusted)
+      const locator = parseBundleLocator(envelope.locator)
+      const bundle = parseBundleValue(envelope.bundle)
+      assertBundleLocator(bundle, locator)
+      const body = serializeBundle(bundle)
+      const path = bundlePath(prefix, locator)
+      const disposition = await input.objectPort.createOnly({
+        objectPath: path,
+        body,
+        contentSha256: createHash('sha256').update(body).digest('hex'),
+      })
+      const reread = await readPersistedBundle(
+        input.objectPort, path, locator)
+      if (!reread || !sameCanonical(reread, bundle)) {
+        throw new Error('Caption inspection bundle persistence conflict.')
+      }
+      return disposition === 'created' ? 'created' : 'identical_replay'
+    },
+    async readExact(untrusted: unknown) {
+      const locator = parseBundleLocator(untrusted)
+      return readPersistedBundle(
+        input.objectPort, bundlePath(prefix, locator), locator)
+    },
+  })
+  admittedReadPortsV2.add(repository)
+  admittedBundleRepositories.add(repository)
+  return repository
+}
+
+export function isCanonicalCaptionRealSourceInspectionBundleRepository(
+  value: unknown,
+): value is CanonicalCaptionRealSourceInspectionBundleRepository {
+  return Boolean(value && typeof value === 'object'
+    && admittedBundleRepositories.has(value as object))
+}
+
 export function createCanonicalCaptionRealSourceInspectionAuthorityReadPort(
   readExact:
     CanonicalCaptionRealSourceInspectionAuthorityReadPort['readExact'],
@@ -287,6 +412,47 @@ export function isCanonicalCaptionRealSourceInspectionAuthorityReadPort(
 ): value is CanonicalCaptionRealSourceInspectionAuthorityReadPort {
   return Boolean(value && typeof value === 'object'
     && admittedAuthorityReadPorts.has(value as object))
+}
+
+export function createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
+  readExact:
+    CanonicalCaptionRealSourceInspectionAuthorityReadPortV2['readExact'],
+): CanonicalCaptionRealSourceInspectionAuthorityReadPortV2 {
+  if (typeof readExact !== 'function') {
+    throw new Error(
+      'Tenant-scoped canonical Caption authority reader required.')
+  }
+  const port = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_AUTHORITY_READ_PORT_V2_VERSION,
+    sourceAuthority:
+      'canonical_backend_approved_caption_run_authority' as const,
+    callerSuppliedAuthorityAccepted: false as const,
+    async readExact(input: {
+      readonly canonicalScope:
+        CanonicalCaptionRealSourceInspectionProjectionRequest['canonicalScope']
+      readonly confirmedOutputFrameRef: CaptionDomainRef
+      readonly renderedArtifactRef: CaptionDomainRef
+      readonly deterministicQaRef: CaptionDomainRef
+    }) {
+      const parsed = z.object({
+        canonicalScope: scopeSchema,
+        confirmedOutputFrameRef: refSchema,
+        renderedArtifactRef: refSchema,
+        deterministicQaRef: refSchema,
+      }).strict().parse(input)
+      return readExact(structuredClone(parsed))
+    },
+  })
+  admittedAuthorityReadPortsV2.add(port)
+  return port
+}
+
+export function isCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
+  value: unknown,
+): value is CanonicalCaptionRealSourceInspectionAuthorityReadPortV2 {
+  return Boolean(value && typeof value === 'object'
+    && admittedAuthorityReadPortsV2.has(value as object))
 }
 
 export function createCanonicalCaptionRealSourceInspectionProjectionService(
@@ -445,15 +611,174 @@ export function createCanonicalCaptionRealSourceInspectionProjectionService(
   })
 }
 
+export function createCanonicalCaptionRealSourceInspectionProjectionServiceV2(
+  input: {
+    readonly bundleReadPort:
+      CanonicalCaptionRealSourceInspectionBundleReadPortV2
+    readonly authorityReadPort:
+      CanonicalCaptionRealSourceInspectionAuthorityReadPortV2
+    readonly evidenceRepository:
+      CanonicalCaptionDirectVisualInspectionRepository
+  },
+): CanonicalCaptionRealSourceInspectionProjectionServiceV2 {
+  if (!isCanonicalCaptionRealSourceInspectionBundleReadPortV2(
+    input.bundleReadPort)
+    || !isCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
+      input.authorityReadPort)
+    || !isCanonicalCaptionDirectVisualInspectionRepository(
+      input.evidenceRepository)) {
+    throw new Error(
+      'Canonical Caption real-source inspection V2 ports invalid.')
+  }
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_REAL_SOURCE_INSPECTION_PROJECTION_SERVICE_V2_VERSION,
+    tenantScopedBundleRereadRequired: true as const,
+    callerSuppliedReceiptAccepted: false as const,
+    callerSuppliedAuthorityAccepted: false as const,
+    canonicalApprovedRunAuthorityRereadRequired: true as const,
+    canonicalQualificationReaderMustRevalidateAuthority: true as const,
+    async project(untrusted: unknown) {
+      const request =
+        parseCanonicalCaptionRealSourceInspectionProjectionRequest(untrusted)
+      const scopedBundlePort =
+        createCanonicalCaptionRealSourceInspectionBundleReadPort(
+          async ({ receiptRef }) => {
+            if (!sameRef(receiptRef, request.receiptRef)) return null
+            return input.bundleReadPort.readExact({
+              canonicalScope: request.canonicalScope,
+              receiptRef: request.receiptRef,
+              variant: request.variant,
+            })
+          })
+      const scopedAuthorityPort =
+        createCanonicalCaptionRealSourceInspectionAuthorityReadPort(
+          async (locator) => {
+            if (!sameRef(locator.approvedSnapshotRef,
+              request.canonicalScope.approvedSnapshotRef)
+              || !sameRef(locator.executionPackageRef,
+                request.canonicalScope.executionPackageRef)
+              || locator.outputId !== request.canonicalScope.outputId
+              || !sameRef(locator.renderedArtifactRef,
+                request.renderedArtifactRef)) return null
+            return input.authorityReadPort.readExact({
+              canonicalScope: request.canonicalScope,
+              confirmedOutputFrameRef: request.confirmedOutputFrameRef,
+              renderedArtifactRef: request.renderedArtifactRef,
+              deterministicQaRef: request.deterministicQaRef,
+            })
+          })
+      const legacyCore =
+        createCanonicalCaptionRealSourceInspectionProjectionService({
+          bundleReadPort: scopedBundlePort,
+          authorityReadPort: scopedAuthorityPort,
+          evidenceRepository: input.evidenceRepository,
+        })
+      return legacyCore.project(request)
+    },
+  })
+}
+
 async function readBundle(
   port: CanonicalCaptionRealSourceInspectionBundleReadPort,
   receiptRef: CaptionDomainRef,
 ): Promise<CanonicalCaptionRealSourceInspectionBundle | null> {
   const value = await port.readExact({ receiptRef })
   if (!value) return null
+  return parseBundleValue(value)
+}
+
+function parseBundleValue(
+  value: unknown,
+): CanonicalCaptionRealSourceInspectionBundle {
   assertClosedContractTree(value,
     'Canonical Caption real-source inspection bundle')
   return structuredClone(bundleSchema.parse(value))
+}
+
+function parseBundleLocator(
+  value: unknown,
+): CanonicalCaptionRealSourceInspectionBundleLocator {
+  assertClosedContractTree(value,
+    'Canonical Caption real-source inspection bundle locator')
+  return structuredClone(bundleLocatorSchema.parse(value))
+}
+
+function assertBundleLocator(
+  bundle: CanonicalCaptionRealSourceInspectionBundle,
+  locator: CanonicalCaptionRealSourceInspectionBundleLocator,
+): void {
+  const expectedKind = locator.variant.startsWith('vertical_')
+    ? 'vertical_complete_time_v1' : 'multi_output_complete_time_v1'
+  if (bundle.receiptKind !== expectedKind) {
+    throw new Error('Caption inspection bundle locator kind crossed.')
+  }
+  const selected = selectInspectionEvidence(bundle, {
+    receiptKind: bundle.receiptKind,
+    receiptRef: locator.receiptRef,
+    variant: locator.variant,
+  })
+  const scope = selected.canonicalScope
+  const expected = locator.canonicalScope
+  if (scope.approvedSnapshotRef === null
+    || scope.ownerUserId !== expected.ownerUserId
+    || scope.workspaceId !== expected.workspaceId
+    || scope.projectId !== expected.projectId
+    || scope.editSessionId !== expected.editSessionId
+    || scope.planVersionId !== expected.planVersionId
+    || scope.outputId !== expected.outputId
+    || !sameRef(scope.approvedSnapshotRef, expected.approvedSnapshotRef)) {
+    throw new Error('Caption inspection bundle locator crossed tenant scope.')
+  }
+}
+
+function bundlePath(
+  prefix: string,
+  locator: CanonicalCaptionRealSourceInspectionBundleLocator,
+): string {
+  const digest = createHash('sha256').update(
+    JSON.stringify(locator), 'utf8').digest('hex')
+  return `${prefix}/${locator.canonicalScope.ownerUserId}/${
+    locator.canonicalScope.workspaceId}/${digest}.json`
+}
+
+function serializeBundle(
+  bundle: CanonicalCaptionRealSourceInspectionBundle,
+): Buffer {
+  const body = Buffer.from(JSON.stringify(bundle), 'utf8')
+  if (body.byteLength < 2 || body.byteLength > MAX_BUNDLE_BYTES) {
+    throw new Error('Caption inspection bundle bytes invalid.')
+  }
+  return body
+}
+
+async function readPersistedBundle(
+  port: CanonicalCreateOnlyJsonObjectPort,
+  path: string,
+  locator: CanonicalCaptionRealSourceInspectionBundleLocator,
+): Promise<CanonicalCaptionRealSourceInspectionBundle | null> {
+  const body = await port.readExact(path)
+  if (!body) return null
+  if (body.byteLength < 2 || body.byteLength > MAX_BUNDLE_BYTES) {
+    throw new Error('Caption inspection bundle reread bytes invalid.')
+  }
+  try {
+    const bundle = parseBundleValue(
+      JSON.parse(body.toString('utf8')) as unknown)
+    assertBundleLocator(bundle, locator)
+    return bundle
+  } catch (error) {
+    throw new Error('Caption inspection bundle reread invalid.', {
+      cause: error,
+    })
+  }
+}
+
+function assertObjectPort(port: CanonicalCreateOnlyJsonObjectPort): void {
+  if (!port || typeof port.createOnly !== 'function'
+    || typeof port.readExact !== 'function') {
+    throw new Error('Caption inspection bundle object port invalid.')
+  }
 }
 
 async function readAuthority(
@@ -472,7 +797,7 @@ async function readAuthority(
 
 function selectInspectionEvidence(
   bundle: CanonicalCaptionRealSourceInspectionBundle,
-  request: CanonicalCaptionRealSourceInspectionProjectionRequest,
+  request: InspectionSelection,
 ): SelectedInspectionEvidence {
   if (bundle.receiptKind !== request.receiptKind) {
     throw new Error('Canonical Caption inspection receipt kind crossed.')
@@ -484,7 +809,7 @@ function selectInspectionEvidence(
 
 function selectVerticalEvidence(
   bundle: CanonicalCaptionRealSourceInspectionBundle,
-  request: CanonicalCaptionRealSourceInspectionProjectionRequest,
+  request: InspectionSelection,
 ): SelectedInspectionEvidence {
   if (bundle.reviewSpecs.length !== 2) {
     throw new Error('Canonical Caption vertical inspection specs incomplete.')
@@ -528,7 +853,7 @@ function selectVerticalEvidence(
 
 function selectMultiOutputEvidence(
   bundle: CanonicalCaptionRealSourceInspectionBundle,
-  request: CanonicalCaptionRealSourceInspectionProjectionRequest,
+  request: InspectionSelection,
 ): SelectedInspectionEvidence {
   if (bundle.reviewSpecs.length !== 4) {
     throw new Error(

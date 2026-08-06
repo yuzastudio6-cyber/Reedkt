@@ -89,7 +89,9 @@ The canonical multi-run reader, create-only repository, 41-job catalog, and
 final private-qualification service are now source-complete. The Caption-owned
 9:16/16:9/1:1 real-source inspection receipts also have a fail-closed canonical
 projection that requires a twice-reread approved-run and source authority before
-persisting direct-inspection evidence. A normal approved edit is no longer
+persisting direct-inspection evidence. Its V2 create-only receipt repository and
+projection service are mounted in the private qualification composition with
+full tenant/output scope. A normal approved edit is no longer
 expected to contain all 41 jobs. Each representative edit is recorded
 separately with its immutable snapshot, execution package, work graph, owner
 evidence, rendered output, complete-time visual review, independent final QA,

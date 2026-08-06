@@ -43,10 +43,11 @@ import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
   createCanonicalCaptionRealSourceInspectionAuthority,
-  createCanonicalCaptionRealSourceInspectionAuthorityReadPort,
-  createCanonicalCaptionRealSourceInspectionBundleReadPort,
+  createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
+  createCanonicalCaptionRealSourceInspectionBundleReadPortV2,
+  createCanonicalCaptionRealSourceInspectionBundleRepository,
   createCanonicalCaptionRealSourceInspectionProjectionRequest,
-  createCanonicalCaptionRealSourceInspectionProjectionService,
+  createCanonicalCaptionRealSourceInspectionProjectionServiceV2,
   parseCanonicalCaptionRealSourceInspectionProjectionRequest,
 } from '../services/canonical-caption-real-source-inspection-projection-service'
 
@@ -598,29 +599,33 @@ async function run(): Promise<void> {
       expectedSpotChecks: 4,
     })
   }
+  const bundleMemory = memoryPort()
   const bundleReadPort =
-    createCanonicalCaptionRealSourceInspectionBundleReadPort(async (input) =>
-      structuredClone(bundles.get(refKey(input.receiptRef)) ?? null))
+    createCanonicalCaptionRealSourceInspectionBundleRepository({
+      objectPort: bundleMemory.port,
+      prefix: 'private-internal/caption-real-source-bundle-smoke',
+    })
   const authorityReadPort =
-    createCanonicalCaptionRealSourceInspectionAuthorityReadPort(
+    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(
       async (input) => {
         const value = authorities.get(refKey(input.renderedArtifactRef))
         if (!value
-          || refKey(value.canonicalScope.approvedSnapshotRef) !==
-            refKey(input.approvedSnapshotRef)
-          || refKey(value.canonicalScope.executionPackageRef) !==
-            refKey(input.executionPackageRef)
-          || value.canonicalScope.outputId !== input.outputId) return null
+          || JSON.stringify(value.canonicalScope) !==
+            JSON.stringify(input.canonicalScope)
+          || refKey(value.confirmedOutputFrameRef) !==
+            refKey(input.confirmedOutputFrameRef)
+          || refKey(value.deterministicQaRef) !==
+            refKey(input.deterministicQaRef)) return null
         return structuredClone(value)
       })
-  const memory = memoryPort()
+  const evidenceMemory = memoryPort()
   const evidenceRepository =
     createCanonicalCaptionDirectVisualInspectionRepository({
-      objectPort: memory.port,
+      objectPort: evidenceMemory.port,
       prefix: 'private-internal/caption-real-source-projection-smoke',
     })
   const service =
-    createCanonicalCaptionRealSourceInspectionProjectionService({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
       bundleReadPort,
       authorityReadPort,
       evidenceRepository,
@@ -636,6 +641,16 @@ async function run(): Promise<void> {
       authority: item.authority,
     })
     requests.push(request)
+    const bundle = bundles.get(refKey(item.receiptRef))!
+    check(await bundleReadPort.persistBundleCreateOnly({
+      locator: {
+        canonicalScope: request.canonicalScope,
+        receiptRef: request.receiptRef,
+        variant: request.variant,
+      },
+      bundle,
+    }) === 'created',
+    'Each tenant/output/variant inspection bundle must persist create-only.')
     const outcome = await service.project(request)
     check(outcome.canonicalApprovedRunAuthorityRereadTwice
       && outcome.evidencePersistedCreateOnlyAndReread,
@@ -659,12 +674,36 @@ async function run(): Promise<void> {
       && !outcome.publicOrProductionAuthorityGranted,
     'Projection must preserve real-source truth and every downstream closed gate.')
   }
-  check(memory.objects.size === 6,
+  check(bundleMemory.objects.size === 6
+    && evidenceMemory.objects.size === 6,
   'All six exact output variants must persist as separate evidence records.')
   const replay = await service.project(requests[0]!)
   check(replay.evidence.evidenceDigestSha256 ===
     (await service.project(requests[0]!)).evidence.evidenceDigestSha256,
   'Exact replay must remain byte-identical and idempotent.')
+  check(await bundleReadPort.persistBundleCreateOnly({
+    locator: {
+      canonicalScope: requests[0]!.canonicalScope,
+      receiptRef: requests[0]!.receiptRef,
+      variant: requests[0]!.variant,
+    },
+    bundle: bundles.get(refKey(requests[0]!.receiptRef))!,
+  }) === 'identical_replay',
+  'The tenant-scoped receipt bundle replay must be byte-identical.')
+  const crossedTenantLocator = {
+    canonicalScope: {
+      ...structuredClone(requests[0]!.canonicalScope),
+      ownerUserId: 'caption-projection-other-owner',
+    },
+    receiptRef: requests[0]!.receiptRef,
+    variant: requests[0]!.variant,
+  }
+  check(await bundleReadPort.readExact(crossedTenantLocator) === null,
+  'A different tenant must not locate the persisted inspection bundle.')
+  await expectReject(() => bundleReadPort.persistBundleCreateOnly({
+    locator: crossedTenantLocator,
+    bundle: bundles.get(refKey(requests[0]!.receiptRef))!,
+  }))
 
   const stale = structuredClone(requests[0]!)
   stale.expectedOriginalSourceRef = ref('caption.projection.crossed.source')
@@ -700,7 +739,7 @@ async function run(): Promise<void> {
 
   let bundleReads = 0
   const changingBundlePort =
-    createCanonicalCaptionRealSourceInspectionBundleReadPort(async () => {
+    createCanonicalCaptionRealSourceInspectionBundleReadPortV2(async () => {
       bundleReads += 1
       const bundle = structuredClone(bundles.get(
         refKey(receiptRef(vertical)))!)
@@ -711,7 +750,7 @@ async function run(): Promise<void> {
       return bundle
     })
   await expectReject(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionService({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
       bundleReadPort: changingBundlePort,
       authorityReadPort,
       evidenceRepository,
@@ -719,7 +758,7 @@ async function run(): Promise<void> {
 
   let authorityReads = 0
   const changingAuthorityPort =
-    createCanonicalCaptionRealSourceInspectionAuthorityReadPort(async () => {
+    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(async () => {
       authorityReads += 1
       const value = structuredClone(cases[0]!.authority)
       if (authorityReads === 2) {
@@ -731,14 +770,14 @@ async function run(): Promise<void> {
       return value
     })
   await expectReject(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionService({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
       bundleReadPort,
       authorityReadPort: changingAuthorityPort,
       evidenceRepository,
     }).project(requests[0]!))
 
   const unsortedAuthorityPort =
-    createCanonicalCaptionRealSourceInspectionAuthorityReadPort(async () => {
+    createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2(async () => {
       const value = structuredClone(cases[0]!.authority)
       value.sourceMediaBindingRefs.reverse()
       value.authorityDigestSha256 = calculateSkillContractDigest(
@@ -747,19 +786,19 @@ async function run(): Promise<void> {
       return value
     })
   await expectReject(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionService({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
       bundleReadPort,
       authorityReadPort: unsortedAuthorityPort,
       evidenceRepository,
     }).project(requests[0]!))
 
   expectThrow(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionService({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
       bundleReadPort: {
         schemaVersion:
-          'canonical-caption-real-source-inspection-bundle-read-port-v1',
+          'canonical-caption-real-source-inspection-bundle-read-port-v2',
         sourceAuthority:
-          'caption_owned_persisted_real_source_inspection_bundle',
+          'caption_owned_tenant_scoped_persisted_real_source_inspection_bundle',
         callerSuppliedReceiptAccepted: false,
         async readExact() { return null },
       },
@@ -767,11 +806,11 @@ async function run(): Promise<void> {
       evidenceRepository,
     }))
   expectThrow(() =>
-    createCanonicalCaptionRealSourceInspectionProjectionService({
+    createCanonicalCaptionRealSourceInspectionProjectionServiceV2({
       bundleReadPort,
       authorityReadPort: {
         schemaVersion:
-          'canonical-caption-real-source-inspection-authority-read-port-v1',
+          'canonical-caption-real-source-inspection-authority-read-port-v2',
         sourceAuthority: 'canonical_backend_approved_caption_run_authority',
         callerSuppliedAuthorityAccepted: false,
         async readExact() { return null },

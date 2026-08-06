@@ -7,6 +7,7 @@ import { runAudioExtractProductionWorker } from './audio-extract-production-work
 import { runKeyframeExtractProductionWorker } from './keyframe-extract-production-worker'
 import { runMediaProbeProductionWorker } from './media-probe-production-worker'
 import { runMediaProxyProductionWorker } from './media-proxy-production-worker'
+import { resolveAnalysisProxyColorDecision } from './media-proxy-policy'
 import { runRepresentativeFrameProductionWorker } from './representative-frame-production-worker'
 import type {
   ExtractedAudioResult,
@@ -24,6 +25,9 @@ import {
   assertWorkerPayloadHasNoSignedUrls,
 } from '../production/production-worker-gates'
 import { assertWorkerPayloadHasNoForbiddenFields } from '../production/production-worker-artifact-policy'
+import { REEDITPRO_ANALYSIS_PROXY_POLICY } from '../../../src/types/large-media'
+import { deriveMediaTaskTimeoutMs } from './media-task-policy'
+import { verifyLocalMediaFileAuthority } from './media-file-integrity'
 
 const defaultTasks: MediaFoundationTask[] = [
   'probe',
@@ -81,16 +85,23 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
   }
 
   assertExistingLocalFile(resolvedSource.localFilePath)
+  const sourceAuthorityBefore = await verifyExactSourceAuthorityIfRequired(
+    input,
+    resolvedSource.localFilePath,
+  )
 
   const ffprobeBin = input.ffprobeBin ?? 'ffprobe'
   const ffmpegBin = input.ffmpegBin ?? 'ffmpeg'
-  const timeoutMs = input.timeoutMs ?? 30_000
+  const probeTimeoutMs = input.timeoutMs ?? deriveMediaTaskTimeoutMs({
+    task: 'probe',
+    sourceSizeBytes: input.source.sizeBytes,
+  })
   const summaries: MediaFoundationArtifactSummary[] = []
   const probe = expectedActions.includes('probe')
     ? await runMediaProbeProductionWorker({
       localFilePath: resolvedSource.localFilePath,
       ffprobeBin,
-      timeoutMs,
+      timeoutMs: probeTimeoutMs,
     })
     : undefined
 
@@ -98,17 +109,23 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     throw new Error('Milestone 6 local_dev runner requires probe task before artifacts/report assembly.')
   }
 
+  const timeoutFor = (task: MediaFoundationTask) => input.timeoutMs ?? deriveMediaTaskTimeoutMs({
+    task,
+    probe,
+    sourceSizeBytes: input.source.sizeBytes,
+  })
+
   const proxy = expectedActions.includes('create_proxy')
-    ? await runProxyTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries)
+    ? await runProxyTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('create_proxy'), summaries, probe)
     : undefined
   const audio = expectedActions.includes('extract_audio')
-    ? await runAudioTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, probe.audioStreams.length > 0, summaries)
+    ? await runAudioTask(input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('extract_audio'), probe.audioStreams.length > 0, summaries)
     : undefined
   const keyframes = expectedActions.includes('extract_keyframes')
-    ? await runFrameTask('keyframes', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries)
+    ? await runFrameTask('keyframes', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('extract_keyframes'), summaries)
     : undefined
   const representativeFrames = expectedActions.includes('extract_representative_frames')
-    ? await runFrameTask('representative', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutMs, summaries, probe.durationSeconds)
+    ? await runFrameTask('representative', input, resolvedSource.localFilePath, outputRoot, ffmpegBin, timeoutFor('extract_representative_frames'), summaries, probe.durationSeconds)
     : undefined
 
   const artifactRecords = buildArtifactRecordsFromSummaries({
@@ -133,6 +150,10 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     })
     : undefined
 
+  const sourceAuthorityEvidence = sourceAuthorityBefore
+    ? await verifySourceMasterPreserved(input, resolvedSource.localFilePath, sourceAuthorityBefore)
+    : undefined
+
   return {
     mode: input.mode,
     status: mediaAnalysisReport ? 'partial' : 'completed',
@@ -142,14 +163,19 @@ export async function runMediaAnalysisFoundation(input: MediaFoundationRunnerInp
     audio,
     keyframes,
     representativeFrames,
+    ...(sourceAuthorityEvidence ? { sourceAuthorityEvidence } : {}),
     artifactRecords,
     mediaAnalysisReport,
     skipReasons: [
+      ...(proxy?.skipReason ? [proxy.skipReason] : []),
       ...(audio?.skipReason ? [audio.skipReason] : []),
       ...(keyframes?.skipReason ? [keyframes.skipReason] : []),
       ...(representativeFrames?.skipReason ? [representativeFrames.skipReason] : []),
     ],
-    warnings: ['Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.'],
+    warnings: [
+      ...(proxy?.colorAssumptionWarning ? [proxy.colorAssumptionWarning] : []),
+      'Milestone 6 did not run transcript, scene intelligence, OpenCV visual analysis, color grading, OCR, masks, enhancement, or final render.',
+    ],
   }
 }
 
@@ -165,6 +191,19 @@ function validateRunnerInput(input: MediaFoundationRunnerInput): void {
   if (!input.workspaceId || !input.projectId || !input.mediaAssetId || !input.sourceStorageObjectId) {
     throw new Error('Media foundation requires workspaceId, projectId, mediaAssetId, and sourceStorageObjectId.')
   }
+  if (input.requireExactSourceAuthority) {
+    if (
+      input.source.authorityRole !== 'immutable_source_master' ||
+      !Number.isSafeInteger(input.source.sizeBytes) ||
+      Number(input.source.sizeBytes) <= 0 ||
+      !/^[a-f0-9]{64}$/.test(input.source.checksumSha256 ?? '')
+    ) {
+      throw new Error('Exact media foundation execution requires immutable source-master size and SHA-256 authority.')
+    }
+    if (input.source.generation && !input.source.etag || input.source.etag && !input.source.generation) {
+      throw new Error('Exact generation-bound source authority requires generation and ETag together.')
+    }
+  }
 }
 
 async function runProxyTask(
@@ -174,7 +213,25 @@ async function runProxyTask(
   ffmpegBin: string,
   timeoutMs: number,
   summaries: MediaFoundationArtifactSummary[],
+  probe: NonNullable<MediaFoundationResult['probe']>,
 ): Promise<MediaProxyResult> {
+  const colorDecision = resolveAnalysisProxyColorDecision(probe.videoStreams[0])
+  if (colorDecision.status !== 'ready') {
+    return {
+      status: 'skipped',
+      ...fitProxyDimensions(probe.width, probe.height, probe.rotation),
+      durationSeconds: probe.durationSeconds,
+      profileId: colorDecision.profileId,
+      sourceDynamicRange: colorDecision.sourceDynamicRange,
+      outputColorSpace: colorDecision.outputColorSpace,
+      originalMasterPreserved: true,
+      skipReason: {
+        code: colorDecision.reasonCode,
+        message: colorDecision.message,
+        tool: 'ffmpeg',
+      },
+    }
+  }
   const outputLocalPath = path.join(outputRoot, 'proxy', `${input.mediaAssetId}-proxy.mp4`)
   const artifact = await runMediaProxyProductionWorker({
     sourceLocalPath,
@@ -182,15 +239,49 @@ async function runProxyTask(
     safeOutputRoot: outputRoot,
     ffmpegBin,
     timeoutMs,
-    targetMaxWidth: 1280,
+    targetMaxWidth: REEDITPRO_ANALYSIS_PROXY_POLICY.maxWidth,
+    targetMaxHeight: REEDITPRO_ANALYSIS_PROXY_POLICY.maxHeight,
+    videoPreset: REEDITPRO_ANALYSIS_PROXY_POLICY.videoPreset,
+    videoCrf: REEDITPRO_ANALYSIS_PROXY_POLICY.videoCrf,
+    videoMaxBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.videoMaxBitrate,
+    videoBufferSize: REEDITPRO_ANALYSIS_PROXY_POLICY.videoBufferSize,
+    audioBitrate: REEDITPRO_ANALYSIS_PROXY_POLICY.audioBitrate,
     keepAudio: true,
+    outputColorSpace: REEDITPRO_ANALYSIS_PROXY_POLICY.outputColorSpace,
   })
   const canonical = withCanonicalStoragePath(input, artifact, 'proxy', `${input.mediaAssetId}-proxy.mp4`)
   summaries.push(canonical)
   return {
     status: 'created',
     artifact: canonical,
+    ...fitProxyDimensions(probe.width, probe.height, probe.rotation),
+    durationSeconds: probe.durationSeconds,
+    profileId: colorDecision.profileId,
+    sourceDynamicRange: colorDecision.sourceDynamicRange,
+    outputColorSpace: colorDecision.outputColorSpace,
+    originalMasterPreserved: true,
+    colorAssumptionWarning: colorDecision.warning,
   }
+}
+
+function fitProxyDimensions(width: number, height: number, rotation: number): { width: number; height: number } {
+  if (width <= 0 || height <= 0) return { width: 0, height: 0 }
+  const quarterTurn = Math.abs(rotation) % 180 === 90
+  const displayWidth = quarterTurn ? height : width
+  const displayHeight = quarterTurn ? width : height
+  const scale = Math.min(
+    1,
+    REEDITPRO_ANALYSIS_PROXY_POLICY.maxWidth / displayWidth,
+    REEDITPRO_ANALYSIS_PROXY_POLICY.maxHeight / displayHeight,
+  )
+  return {
+    width: makeEven(Math.max(2, Math.round(displayWidth * scale))),
+    height: makeEven(Math.max(2, Math.round(displayHeight * scale))),
+  }
+}
+
+function makeEven(value: number): number {
+  return value % 2 === 0 ? value : value - 1
 }
 
 async function runAudioTask(
@@ -290,6 +381,11 @@ function withCanonicalStoragePath(
   folder: string,
   filename: string,
 ): MediaFoundationArtifactSummary {
+  const derivativeRole = artifact.artifactType === 'proxy_video'
+    ? 'analysis_proxy'
+    : artifact.artifactType === 'extracted_audio'
+      ? 'analysis_audio'
+      : 'analysis_frame'
   return {
     ...artifact,
     storageObjectPath: buildMediaObjectPath({
@@ -299,5 +395,51 @@ function withCanonicalStoragePath(
       folder,
       filename,
     }),
+    sourceStorageObjectId: input.sourceStorageObjectId,
+    sourceChecksumSha256: input.source.checksumSha256,
+    sourceGeneration: input.source.generation,
+    sourceEtag: input.source.etag,
+    sourceAuthorityRole: input.source.authorityRole === 'immutable_source_master'
+      ? 'immutable_source_master'
+      : undefined,
+    derivativeRole,
+    finalRenderEligible: false,
+    immutableSourceMasterPreserved: true,
+  }
+}
+
+async function verifyExactSourceAuthorityIfRequired(
+  input: MediaFoundationRunnerInput,
+  localFilePath: string,
+): Promise<{ sizeBytes: number; checksumSha256: string } | undefined> {
+  if (!input.requireExactSourceAuthority) return undefined
+  return verifyLocalMediaFileAuthority({
+    localFilePath,
+    expectedSizeBytes: Number(input.source.sizeBytes),
+    expectedChecksumSha256: input.source.checksumSha256!,
+  })
+}
+
+async function verifySourceMasterPreserved(
+  input: MediaFoundationRunnerInput,
+  localFilePath: string,
+  before: { sizeBytes: number; checksumSha256: string },
+): Promise<NonNullable<MediaFoundationResult['sourceAuthorityEvidence']>> {
+  const after = await verifyLocalMediaFileAuthority({
+    localFilePath,
+    expectedSizeBytes: before.sizeBytes,
+    expectedChecksumSha256: before.checksumSha256,
+  })
+  return {
+    sourceStorageObjectId: input.sourceStorageObjectId,
+    authorityRole: 'immutable_source_master',
+    expectedSizeBytes: after.sizeBytes,
+    expectedChecksumSha256: after.checksumSha256,
+    generation: input.source.generation,
+    etag: input.source.etag,
+    verifiedBeforeProcessing: true,
+    verifiedAfterProcessing: true,
+    immutableSourceMasterPreserved: true,
+    analysisDerivativesFinalRenderEligible: false,
   }
 }

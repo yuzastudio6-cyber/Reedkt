@@ -3,9 +3,30 @@
 # OpenImageIO/OpenColorIO remain optional/pending because production package/build
 # selection needs a separate dependency and license review.
 
-av
-scenedetect
-opencv-python-headless
-duckdb
-polars
-opentimelineio
+av==18.0.0
+opencv-python-headless==5.0.0.93
+click==8.4.2
+numpy==2.4.6
+platformdirs==4.10.0
+tqdm==4.68.4
+duckdb==1.5.4
+polars==1.42.1
+opentimelineio==0.18.1
+
+# Track B / professional adapter audio analysis and SoundSync CPU tools.
+# These remain backend-worker packages only; frontend execution is forbidden.
+# AudioFlux is intentionally excluded: its published 0.1.9 wheel embeds an
+# x86_64 native library and also pulls a conflicting non-headless OpenCV wheel.
+# It requires a dedicated reviewed amd64/source-build worker lane.
+librosa==0.11.0
+audioread==3.1.0
+pydub==0.25.1
+scipy==1.17.1
+resampy==0.4.3
+pyloudnorm==0.2.0
+music21==10.5.0
+pretty_midi==0.2.11
+mido==1.3.3
+noisereduce==3.0.3
+pedalboard==0.9.24
+mir_eval==0.8.2

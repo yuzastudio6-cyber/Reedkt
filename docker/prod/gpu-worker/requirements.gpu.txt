@@ -15,6 +15,8 @@ demucs
 # optional_planned: paddlepaddle-gpu
 
 # pending_source_install_review: BiRefNet
-# pending_source_install_review: SAM2
 # pending_source_install_review: Real-ESRGAN
 # pending_source_install_review: FILM frame interpolation
+
+# SAM 3.1 is isolated in its separately pinned Python 3.12 / PyTorch 2.10 /
+# CUDA 12.8 immutable-image candidate. SAM 2 has no active install path.

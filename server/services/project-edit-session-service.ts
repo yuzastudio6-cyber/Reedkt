@@ -6,7 +6,8 @@ import type {
 } from '../validation/project-edit-session-schemas'
 import type { ProjectEditSessionRecord } from '../../src/types/project-edit-session'
 import { MOCK_PROJECT_EDIT_SESSION_FIXTURE_BUNDLE } from '../../src/lib/mock-project-edit-sessions'
-import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import { createMockId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 type CreateProjectEditSessionInput = CreateProjectEditSessionRequest & {
   projectId: string
@@ -67,10 +68,11 @@ function createSeededBackendLocalEditSession(
 
 function ensureSeededBackendLocalEditSessions(workspaceId: string, ownerUserId: string): void {
   for (const session of MOCK_PROJECT_EDIT_SESSION_FIXTURE_BUNDLE.sessions) {
-    const existing = mockEditSessions.get(session.id)
-    if (existing?.workspaceId === workspaceId) continue
+    const scopedKey = editSessionScopeKey(ownerUserId, workspaceId, session.id)
+    const existing = mockEditSessions.get(scopedKey)
+    if (existing) continue
 
-    mockEditSessions.set(session.id, createSeededBackendLocalEditSession(session, workspaceId, ownerUserId))
+    mockEditSessions.set(scopedKey, createSeededBackendLocalEditSession(session, workspaceId, ownerUserId))
   }
 }
 
@@ -79,19 +81,21 @@ function ensureSeededBackendLocalEditSession(
   workspaceId: string,
   ownerUserId: string,
 ): void {
-  const existing = mockEditSessions.get(editSessionId)
-  if (existing?.workspaceId === workspaceId) return
+  const scopedKey = editSessionScopeKey(ownerUserId, workspaceId, editSessionId)
+  const existing = mockEditSessions.get(scopedKey)
+  if (existing) return
 
   const fixture = MOCK_PROJECT_EDIT_SESSION_FIXTURE_BUNDLE.sessions.find((session) => session.id === editSessionId)
   if (!fixture) return
 
-  mockEditSessions.set(fixture.id, createSeededBackendLocalEditSession(fixture, workspaceId, ownerUserId))
+  mockEditSessions.set(scopedKey, createSeededBackendLocalEditSession(fixture, workspaceId, ownerUserId))
 }
 
 export function createProjectEditSessionService(context: ServiceContext) {
   return {
     async createProjectEditSession(input: CreateProjectEditSessionInput) {
-      const userId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      const userId = access.userId
       assertSafeEditSessionInput(input)
 
       if (context.clients.admin && !context.env.mockOnly) {
@@ -103,9 +107,9 @@ export function createProjectEditSessionService(context: ServiceContext) {
       }
 
       const replayKey = `${input.workspaceId}:${userId}:${input.idempotencyKey}`
-      const existingId = mockEditSessionIdempotency.get(replayKey)
-      if (existingId) {
-        const existing = mockEditSessions.get(existingId)
+      const existingKey = mockEditSessionIdempotency.get(replayKey)
+      if (existingKey) {
+        const existing = mockEditSessions.get(existingKey)
         if (existing) {
           return {
             editSession: {
@@ -124,7 +128,7 @@ export function createProjectEditSessionService(context: ServiceContext) {
       const record: BackendLocalProjectEditSessionRecord = {
         id: createMockId('edit_session'),
         projectId: input.projectId,
-        workspaceId: input.workspaceId,
+        workspaceId: access.workspaceId,
         ownerUserId: userId,
         name: input.name.trim(),
         description: input.description?.trim() || undefined,
@@ -164,8 +168,9 @@ export function createProjectEditSessionService(context: ServiceContext) {
         productReady: false,
       }
 
-      mockEditSessions.set(record.id, record)
-      mockEditSessionIdempotency.set(replayKey, record.id)
+      const scopedKey = editSessionScopeKey(userId, access.workspaceId, record.id)
+      mockEditSessions.set(scopedKey, record)
+      mockEditSessionIdempotency.set(replayKey, scopedKey)
 
       return {
         editSession: record,
@@ -177,6 +182,7 @@ export function createProjectEditSessionService(context: ServiceContext) {
     },
 
     async getProjectEditSession(editSessionId: string, workspaceId: string) {
+      const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
           'MOCK_ONLY',
@@ -185,9 +191,9 @@ export function createProjectEditSessionService(context: ServiceContext) {
         )
       }
 
-      ensureSeededBackendLocalEditSession(editSessionId, workspaceId, context.auth?.userId ?? 'mock-user-runtime')
-      const existing = mockEditSessions.get(editSessionId)
-      if (!existing || existing.workspaceId !== workspaceId) {
+      ensureSeededBackendLocalEditSession(editSessionId, access.workspaceId, access.userId)
+      const existing = mockEditSessions.get(editSessionScopeKey(access.userId, access.workspaceId, editSessionId))
+      if (!existing) {
         throw new ApiError('PROJECT_NOT_FOUND', 'Backend-local edit session was not found for this workspace.', 404)
       }
 
@@ -201,6 +207,7 @@ export function createProjectEditSessionService(context: ServiceContext) {
     },
 
     async listProjectEditSessions(input: { projectId: string; workspaceId: string }) {
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'read')
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
           'MOCK_ONLY',
@@ -209,9 +216,12 @@ export function createProjectEditSessionService(context: ServiceContext) {
         )
       }
 
-      ensureSeededBackendLocalEditSessions(input.workspaceId, context.auth?.userId ?? 'mock-user-runtime')
+      ensureSeededBackendLocalEditSessions(access.workspaceId, access.userId)
       const editSessions = Array.from(mockEditSessions.values())
-        .filter((session) => session.workspaceId === input.workspaceId && session.projectId === input.projectId)
+        .filter((session) =>
+          session.ownerUserId === access.userId &&
+          session.workspaceId === access.workspaceId &&
+          session.projectId === input.projectId)
         .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
 
       return {
@@ -227,7 +237,8 @@ export function createProjectEditSessionService(context: ServiceContext) {
       editSessionId: string
       idempotencyKey: string
     }) {
-      const userId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      const userId = access.userId
       assertSafeLifecycleCheckpointInput(input)
 
       if (context.clients.admin && !context.env.mockOnly) {
@@ -239,9 +250,9 @@ export function createProjectEditSessionService(context: ServiceContext) {
       }
 
       const replayKey = `${input.workspaceId}:${userId}:${input.idempotencyKey}`
-      const replayId = mockEditSessionLifecycleIdempotency.get(replayKey)
-      if (replayId) {
-        const replayed = mockEditSessions.get(replayId)
+      const replayScopedKey = mockEditSessionLifecycleIdempotency.get(replayKey)
+      if (replayScopedKey) {
+        const replayed = mockEditSessions.get(replayScopedKey)
         if (replayed) {
           return {
             editSession: { ...replayed, readbackVerified: true },
@@ -253,12 +264,13 @@ export function createProjectEditSessionService(context: ServiceContext) {
         }
       }
 
-      let existing = mockEditSessions.get(input.editSessionId)
-      if (!existing || existing.workspaceId !== input.workspaceId) {
-        ensureSeededBackendLocalEditSession(input.editSessionId, input.workspaceId, userId)
-        existing = mockEditSessions.get(input.editSessionId)
+      const scopedKey = editSessionScopeKey(userId, access.workspaceId, input.editSessionId)
+      let existing = mockEditSessions.get(scopedKey)
+      if (!existing) {
+        ensureSeededBackendLocalEditSession(input.editSessionId, access.workspaceId, userId)
+        existing = mockEditSessions.get(scopedKey)
       }
-      if (!existing || existing.workspaceId !== input.workspaceId) {
+      if (!existing) {
         throw new ApiError('PROJECT_NOT_FOUND', 'Backend-local edit session was not found for this workspace.', 404)
       }
 
@@ -324,8 +336,8 @@ export function createProjectEditSessionService(context: ServiceContext) {
         readbackVerified: true,
       }
 
-      mockEditSessions.set(updated.id, updated)
-      mockEditSessionLifecycleIdempotency.set(replayKey, updated.id)
+      mockEditSessions.set(scopedKey, updated)
+      mockEditSessionLifecycleIdempotency.set(replayKey, scopedKey)
 
       return {
         editSession: updated,
@@ -336,6 +348,12 @@ export function createProjectEditSessionService(context: ServiceContext) {
       }
     },
   }
+}
+
+function editSessionScopeKey(ownerUserId: string, workspaceId: string, editSessionId: string): string {
+  return [ownerUserId, workspaceId, editSessionId]
+    .map((value) => `${value.length}:${value}`)
+    .join('|')
 }
 
 function assertSafeEditSessionInput(input: CreateProjectEditSessionInput): void {

@@ -257,7 +257,48 @@ function clipForSegment(clips: ClipSource[], index: number) {
 function segmentDuration(editLevel: EditLevel, index: number, clip: ClipSource | undefined) {
   const clipDuration = clipDurationSeconds(clip)
   const base = editLevel === 'premium' ? 6 : editLevel === 'pro' ? 5 : 4
-  return Math.max(3, Math.min(base + (index % 2), clipDuration))
+  return Math.min(base + (index % 2), clipDuration)
+}
+
+function confirmedSourceBoundSegments(input: PlannerInput): Array<{
+  clip: ClipSource
+  sourceStartSeconds: number
+  sourceEndSeconds: number
+}> | null {
+  const sourceSequenceIsAlreadyOrdered =
+    input.sourceSequenceMode === 'single_complete_video' ||
+    input.sourceSequenceMode === 'multi_clip_story_order'
+  const structureAllowsCurrentOrder =
+    input.structurePreference === 'preserve_source_order' ||
+    input.structurePreference === 'improve_if_needed'
+
+  if (
+    input.sourceOrderConfirmed !== true ||
+    !sourceSequenceIsAlreadyOrdered ||
+    !structureAllowsCurrentOrder ||
+    input.sourceCleanupPlan?.status !== 'confirmed' ||
+    input.clips.length === 0
+  ) return null
+
+  const orderedClips = [...input.clips].sort((left, right) => left.uploadedOrder - right.uploadedOrder)
+  const segments = orderedClips.flatMap((clip) => {
+    const decision = input.sourceCleanupPlan?.decisions.find((candidate) => candidate.clipId === clip.id)
+    const clipDuration = clipDurationSeconds(clip)
+    const sourceStartSeconds = decision?.sourceRange.startSeconds
+    const sourceEndSeconds = decision?.sourceRange.endSeconds
+    if (
+      !decision || !['keep', 'preserve'].includes(decision.decision) ||
+      !['main_timeline', 'proof'].includes(decision.finalUse) ||
+      decision.userReviewRequired || ['high', 'blocking'].includes(decision.riskLevel) ||
+      typeof sourceStartSeconds !== 'number' || typeof sourceEndSeconds !== 'number' ||
+      !Number.isFinite(sourceStartSeconds) || !Number.isFinite(sourceEndSeconds) ||
+      sourceStartSeconds < 0 || sourceEndSeconds <= sourceStartSeconds ||
+      sourceEndSeconds > clipDuration
+    ) return []
+    return [{ clip, sourceStartSeconds, sourceEndSeconds }]
+  })
+
+  return segments.length === orderedClips.length ? segments : null
 }
 
 function mapVisualAssetsToSegments(visualAssetPlan: VisualAssetPlanItem[] | undefined, segmentCount: number) {
@@ -391,7 +432,7 @@ function qaItemsForSegment(segment: SegmentBase, editLevel: EditLevel): SegmentQ
       fallbackActions,
       notes: [
         ...(segment.trimDecisionItemIds?.map((id) => `Trim decision: ${id}.`) ?? ['No source cleanup decision linked yet.']),
-        'No real transcript/silence/media analysis is implied.',
+        'Transcript, silence, and media analysis remain backend-gated.',
       ],
     },
     {
@@ -591,20 +632,49 @@ export function createSegmentEditPlans(params: {
 }): SegmentEditPlan[] {
   const { adaptiveEditStrategyPlan, audioPipelinePlan, colorPipelinePlan, compiledIntent, input, rendererCompositionPlan, visualAssetPlan } = params
   const directive = compiledIntent.professionalEditingDirective
-  const seeds = segmentSeedsForCategory(input.editingCategory)
+  const categorySeeds = segmentSeedsForCategory(input.editingCategory)
+  const sourceBoundSegments = confirmedSourceBoundSegments(input)
+  const seeds = sourceBoundSegments
+    ? sourceBoundSegments.map(({ clip }, index) => {
+        const template = categorySeeds[index % categorySeeds.length]!
+        return {
+          ...template,
+          label: clip.detectedType || template.label,
+          storyPurpose: `Preserve ${clip.fileName} in confirmed source order. ${template.storyPurpose}`,
+          spokenTextSummary: sourceBoundSpokenTextSummary(clip.notes, template.spokenTextSummary),
+        }
+      })
+    : categorySeeds
   const visualAssetsBySegment = mapVisualAssetsToSegments(visualAssetPlan, seeds.length)
   const rendererLayersByAsset = mapRendererLayersToVisualAssets(rendererCompositionPlan)
+  const globalSourceLedStrategy = adaptiveEditStrategyPlan?.segmentStrategies.find((strategy) =>
+    !strategy.segmentId &&
+    !strategy.clipId &&
+    (
+      strategy.recommendedVisualSupport === 'caption_only' ||
+      strategy.recommendedVisualSupport === 'no_extra_visual'
+    ),
+  )
   let currentStart = 0
 
   return seeds.map((seed, index) => {
-    const clip = clipForSegment(input.clips, index)
-    const duration = segmentDuration(input.editLevel, index, clip)
+    const sourceBoundSegment = sourceBoundSegments?.[index]
+    const clip = sourceBoundSegment?.clip ?? clipForSegment(input.clips, index)
+    const duration = sourceBoundSegment
+      ? sourceBoundSegment.sourceEndSeconds - sourceBoundSegment.sourceStartSeconds
+      : segmentDuration(input.editLevel, index, clip)
     const finalTimeRange = {
       startSeconds: currentStart,
       endSeconds: currentStart + duration,
       label: `${seed.label} final range`,
     }
-    const sourceTimeRange = clip
+    const sourceTimeRange = sourceBoundSegment
+      ? {
+          startSeconds: sourceBoundSegment.sourceStartSeconds,
+          endSeconds: sourceBoundSegment.sourceEndSeconds,
+          label: `${sourceBoundSegment.clip.fileName} approved source range`,
+        }
+      : clip
       ? {
           startSeconds: 0,
           endSeconds: Math.min(duration + 1, clipDurationSeconds(clip)),
@@ -616,7 +686,7 @@ export function createSegmentEditPlans(params: {
       strategy.segmentId === segmentId ||
       Boolean(strategy.clipId && clip?.id === strategy.clipId) ||
       strategyIndex === index,
-    )
+    ) ?? globalSourceLedStrategy
     const visualAssetPlanItemIds = visualAssetsBySegment[index]
     const rendererLayerIds = visualAssetPlanItemIds.flatMap((assetId) => rendererLayersByAsset.get(assetId) ?? [])
     const trimDecisions = input.sourceCleanupPlan?.decisions.filter((decision) => clip?.id === decision.clipId) ?? []
@@ -652,7 +722,9 @@ export function createSegmentEditPlans(params: {
       },
       brollPlan: {
         ...getDefaultBrollPlan(directive, input.editLevel),
-        policy: adaptiveStrategy?.recommendedBrollPolicy ?? directive.brollPolicy,
+        policy: directive.brollPolicy === 'none'
+          ? 'none'
+          : adaptiveStrategy?.recommendedBrollPolicy ?? directive.brollPolicy,
         notes: [
           ...getDefaultBrollPlan(directive, input.editLevel).notes,
           ...trimDecisions.filter((decision) => decision.finalUse === 'broll').map((decision) => `Source cleanup routes ${decision.clipId} as b-roll support.`),
@@ -733,13 +805,13 @@ export function createSegmentEditPlans(params: {
         ...(colorPipelinePlan
           ? [
               `Color pipeline planned at project/clip/asset level: ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')}.`,
-              'Segment grade must match project color pipeline; no real color processing runs in this mock.',
+              'Segment grade must match project color pipeline; color processing remains backend-gated.',
             ]
           : []),
         ...(audioPipelinePlan
           ? [
               `Audio pipeline planned at project/clip/timing level: ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')}.`,
-              'Segment sound must match project audio pipeline; no real audio processing runs in this mock.',
+              'Segment sound must match project audio pipeline; audio processing remains backend-gated.',
             ]
           : []),
         ...(input.sourceCleanupPlan
@@ -766,4 +838,11 @@ export function createSegmentEditPlans(params: {
     currentStart = finalTimeRange.endSeconds
     return segment
   })
+}
+
+function sourceBoundSpokenTextSummary(notes: string | undefined, fallback: string): string {
+  const explicitTranscript = notes?.trim().match(/^(?:spoken (?:text|line)|transcript):\s*(.+)$/i)?.[1]?.trim()
+  return explicitTranscript && explicitTranscript.length <= 120
+    ? explicitTranscript
+    : fallback
 }

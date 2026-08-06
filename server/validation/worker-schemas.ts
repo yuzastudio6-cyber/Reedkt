@@ -30,7 +30,7 @@ export const toolReadinessCheckSchema = z.object({
   workspaceId: idSchema.optional(),
   workerType: z.string().min(1).optional(),
   toolName: z.enum(['ffmpeg', 'ffprobe', 'remotion', 'sharp_libvips', 'audioflux', 'signalsmith_stretch', 'opencv', 'vapoursynth', 'playwright']).optional(),
-  recordResults: z.boolean().optional(),
+  recordResults: z.literal(false).default(false),
 }).strict()
 
 export const runWorkerJobSchema = z.object({

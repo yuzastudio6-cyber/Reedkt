@@ -17,7 +17,10 @@ export function createProjectEditPlanRoutes(): Router {
       projectId: getRouteParam(request, 'projectId'),
       editSessionId: getRouteParam(request, 'editSessionId'),
     })
-    sendOk(response, { localEditPlan: result.localEditPlan }, result.warnings, 201)
+    sendOk(response, {
+      localEditPlan: result.localEditPlan,
+      authorityBoundary: result.authorityBoundary,
+    }, result.warnings, 201)
   }))
 
   router.get('/v1/local-edit-plans/:planId', requireAuth, asyncRoute(async (request, response) => {
@@ -28,7 +31,10 @@ export function createProjectEditPlanRoutes(): Router {
       getRouteParam(request, 'planId'),
       workspaceId,
     )
-    sendOk(response, { localEditPlan: result.localEditPlan }, result.warnings)
+    sendOk(response, {
+      localEditPlan: result.localEditPlan,
+      authorityBoundary: result.authorityBoundary,
+    }, result.warnings)
   }))
 
   return router

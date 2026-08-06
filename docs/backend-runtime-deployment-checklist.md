@@ -7,6 +7,10 @@
 - [ ] Stripe keys stored in Secret Manager.
 - [ ] Cloud Run service account created.
 - [ ] Cloud Run service account permissions reviewed.
+- [ ] `REEDITPRO_INTERNAL_SERVICE_TOKEN` stored in Secret Manager for the transitional gate, rotated, and never exposed to frontend code.
+- [ ] Cloud Run IAM/OIDC audience validation replaces or supplements the shared internal token before public production traffic.
+- [ ] Worker, job creation, provider gateway, runtime probe, and render execution routes reject ordinary user-only authentication.
+- [ ] Provider webhook signatures and replay protection implemented before any live webhook route is enabled.
 - [ ] Health route works.
 - [ ] Readiness route works.
 - [ ] Route registry works.
@@ -18,3 +22,4 @@
 - [ ] Real credit mutations are transactional and backend-only.
 - [ ] Worker lease claims are transactional and backend-only.
 - [ ] Monitoring and rate limits reviewed.
+- [ ] Distributed rate limits and edge/WAF quotas are enforced; in-process-only throttling is not treated as sufficient.

@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { createSafeRuntimeSummary } from '../config/env'
+import { requireInternalServiceAuth } from '../middleware/internal-service-auth'
 import { runToolReadinessChecks } from '../workers/tool-readiness-runner'
 import { asyncRoute, getServiceContext, sendOk } from './route-helpers'
 
@@ -12,14 +13,10 @@ export function createHealthRoutes(): Router {
       service: 'reeditpro-api',
       status: 'ok',
       requestId: context.requestId,
-      runtime: {
-        mode: context.env.mode,
-        mockOnly: context.env.mockOnly,
-      },
     })
   })
 
-  router.get('/health/readiness', (request, response) => {
+  router.get('/health/readiness', requireInternalServiceAuth, (request, response) => {
     const context = getServiceContext(request)
     sendOk(response, {
       envLoaded: true,
@@ -39,7 +36,7 @@ export function createHealthRoutes(): Router {
     }, context.env.warnings)
   })
 
-  router.get('/health/tool-readiness', asyncRoute(async (request, response) => {
+  router.get('/health/tool-readiness', requireInternalServiceAuth, asyncRoute(async (request, response) => {
     const context = getServiceContext(request)
     const shouldRun = request.query.run === 'true'
     if (shouldRun) {

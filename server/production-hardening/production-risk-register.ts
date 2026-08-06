@@ -6,7 +6,7 @@ export const productionRiskRegister: ProductionRiskRegisterItem[] = [
     category: 'readiness_validation',
     severity: 'high',
     risk: 'Production-ready execution could be enabled before tool, model, and manual blockers are cleared.',
-    mitigation: 'Keep productionReadyAllowed false and require human approval records before launch.',
+    mitigation: 'Allow productionReadyAllowed only when tool, model, readiness, deployment, and human approval evidence gates pass.',
   },
   {
     id: 'secret-logging',

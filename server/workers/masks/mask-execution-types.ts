@@ -21,12 +21,16 @@ export type MaskIntent =
 
 export type MaskToolId =
   | 'birefnet'
+  | 'sam3_1'
   | 'sam2'
   | 'transparent_background'
   | 'rembg'
   | 'opencv'
   | 'kornia'
   | 'none'
+
+/** SAM 2 remains decodable only for immutable historical evidence. */
+export type NewPlanMaskToolId = Exclude<MaskToolId, 'sam2'>
 
 export interface MaskBoundingBox {
   x: number
@@ -71,10 +75,11 @@ export interface MaskExecutionInput {
   subjectSelection?: MaskSubjectSelection
   selectedPrimaryTool?: MaskToolId
   fallbackTools?: MaskToolId[]
+  /** Server-derived rejection marker for removed SAM 2 request fields. */
+  legacySam2InputRejected?: boolean
   modelWeightManifestIds?: string[]
   modelLocalPaths?: string[]
   birefnetModelLocalPath?: string
-  sam2CheckpointLocalPath?: string
   maskConfidenceHint?: number
   motionRequiresTracking?: boolean
   frameSamplingMaxFrames?: number
@@ -100,17 +105,35 @@ export interface MaskExecutionInput {
 export interface MaskTaskPlan {
   taskPlanId: string
   maskIntent: MaskIntent
-  primaryTool: MaskToolId
-  fallbackTools: MaskToolId[]
+  primaryTool: NewPlanMaskToolId
+  fallbackTools: NewPlanMaskToolId[]
   selectedFrames: Array<{ frameId: string; timeSeconds?: number; reason: string }>
   videoFrameSamplingPolicy: {
     mode: 'keyframes_only' | 'proxy_sampled' | 'single_frame'
     maxFrames: number
     fullResolutionEveryFrame: false
   }
+  canonicalGpuExecutionPolicy: {
+    placementClass:
+      | 'a100_80gb_heavy_primary_l4_qualified_fallback'
+      | 'l4_standard_gpu_primary'
+    primaryGpuProfileId:
+      | 'quality_a100_80gb_user_triggered_heavy_job_v1'
+      | 'quality_l4_user_triggered_standard_media_job_v1'
+    fallbackGpuProfileId:
+      | 'quality_l4_user_triggered_heavy_fallback_job_v1'
+      | null
+    completeSelectedIntervalRequired: boolean
+    sourceResolutionPreserved: true
+    cpuOnlySubstantiveExecutionAllowed: false
+    userTriggeredScaleFromZeroRequired: true
+    stopAfterTerminalAttemptRequired: true
+    canonicalRuntimeReleaseRequired: true
+    freshEstimateApprovalSnapshotReservationRequired: true
+  }
   subjectSelection?: MaskSubjectSelection
   expectedArtifacts: Array<Extract<ToolArtifact['artifactType'], 'mask_image' | 'mask_sequence' | 'rgba_cutout' | 'qa_report' | 'preview_video' | 'render_manifest'>>
-  modelWeightRequirements: Array<'birefnet_model' | 'sam2_checkpoint' | 'rembg_model' | 'transparent_background_model'>
+  modelWeightRequirements: Array<'birefnet_model' | 'sam3_1_checkpoint' | 'rembg_model' | 'transparent_background_model'>
   refinementPlan: {
     opencv: boolean
     kornia: boolean

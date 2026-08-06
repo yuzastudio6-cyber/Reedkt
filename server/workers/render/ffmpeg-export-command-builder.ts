@@ -13,7 +13,7 @@ export function buildFfmpegExportCommandPlan(input: {
       executionInput.outputDirectory,
     )
     : '[worker-temp-ffmpeg-output]'
-  const sourcePath = executionInput.proxyLocalPaths?.[0] ?? executionInput.sourceLocalPaths?.[0] ?? '[private-video-input]'
+  const sourcePath = selectFfmpegVideoInputPath(executionInput)
   const externalAudioPath = executionInput.audioLocalPaths?.[0]
   const captionOverlays = executionInput.enableCaptionBurnIn === true ? executionInput.captionOverlayInputs ?? [] : []
   const audioRequired = executionInput.sourceAudioRequired !== false
@@ -57,7 +57,7 @@ export function buildFfmpegExportCommandPlan(input: {
       '-movflags',
       '+faststart',
       '-metadata',
-      'comment=Private ReEditPro review output',
+      `comment=${executionInput.renderMode === 'final_export' ? 'Private ReEditPro final export' : 'Private ReEditPro review output'}`,
       '-t',
       formatNumber(executionManifest.durationSeconds),
       '-shortest',
@@ -73,6 +73,13 @@ export function buildFfmpegExportCommandPlan(input: {
       profile?.audioFinish === 'clean_voice' ? 'Voice-first cleanup and EBU-style loudness normalization are applied.' : undefined,
     ].filter(Boolean).join(' '),
   }
+}
+
+export function selectFfmpegVideoInputPath(input: FinalRenderExecutionInput): string {
+  if (input.renderMode === 'final_export') {
+    return input.sourceLocalPaths?.[0] ?? '[private-source-master-input]'
+  }
+  return input.proxyLocalPaths?.[0] ?? input.sourceLocalPaths?.[0] ?? '[private-video-input]'
 }
 
 function buildFilterComplex(

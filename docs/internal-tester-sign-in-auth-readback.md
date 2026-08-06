@@ -1,33 +1,46 @@
-# Internal Tester Sign-In Auth Readback
+# Internal Tester Google Auth Readback
 
 ## Decision
 
-`internal_tester_sign_in_auth_readback_gate_passed_ready_for_manual_readback_workflow`
+`google_first_same_sha_auth_profile_workspace_readback_source_ready_remote_read_not_run`
 
 ## Purpose
 
-After the staging tester provisioning workflow runs, the next safe gate is a backend-only readback check. This workflow confirms that the tester email maps to a Supabase Auth user and that the expected profile, workspace, and workspace membership rows exist before the tester attempts browser sign-in.
+After the guarded profile/workspace provisioning step, this backend-only readback verifies the exact protected staging tester without signing in as that user. A pass requires:
 
-The readback does not sign in as the user and does not prove the user's password or magic-link flow. It proves backend identity/workspace readiness and records whether email confirmation was observed.
+- an existing Supabase Auth user for the protected email;
+- Google provider identity, confirmed email, and a valid prior Auth `last_sign_in_at` timestamp;
+- one profile row matching the deployed workspace ownership contract;
+- one tester-owned workspace and an `owner` membership linking that same tester and workspace.
+
+The workflow is read-only. It performs no insert, upsert, update, delete, RPC, Auth invitation, or Auth-user creation.
+
+Supabase's Admin user record does not attribute `last_sign_in_at` to a specific provider. This readback therefore reports Google identity and prior Auth sign-in as separate facts; the owner-interactive browser verifier is what must prove the live session itself used Google.
 
 ## Operator Flow
 
-1. Run **Internal Tester Profile Workspace Provisioning** if the tester has not been provisioned yet.
-2. Run **Internal Tester Sign-In Auth Readback**.
-3. Set `confirm_internal_tester_auth_readback` to `VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK`.
-4. Provide the same tester email.
-5. Confirm the CLI output decision is `internal_tester_sign_in_auth_readback_passed_ready_for_browser_sign_in_test`.
-6. Run `npm run internal-testing:verify-browser-sign-in` with public Supabase URL/anon key and the tester email/password to prove the browser-safe Supabase sign-in path returns a session.
-7. Open `https://yuzastudio6-cyber.github.io/Reedkt/sign-in` and complete the browser sign-in test.
+1. Run **Internal Tester Google Profile Workspace Provisioning** for the exact reviewed SHA and the hash emitted by the owner-interactive verifier.
+2. Run **Internal Tester Google Auth Readback** from that same branch and SHA with the same hash.
+3. Require decision `internal_tester_sign_in_auth_readback_passed_ready_for_browser_sign_in_test`.
+4. Rerun the owner-local `npm run internal-testing:verify-interactive-google-session` command.
+5. Require a 2xx `GET /v1/projects` response from the exact activation-evidence gateway, followed by successful sign-out and protected-route denial.
 
-The CLI emits sanitized JSON only. It prints an email hash, user id, profile id, workspace id, membership id, role, and email confirmation status. It does not print service-role keys, passwords, invite links, or signed URLs.
+## Confidentiality
 
-## Safety Boundary
+The raw tester email and service-role key remain protected `staging` environment secrets. Workflow inputs contain only the 16-character email hash. The CLI first detects whether deployed workspaces own direct Auth users or legacy profile users, then requires the matching profile shape. The legacy `owner_user_id` contract takes precedence when present because that table may also carry a later backfilled `owner_id`; direct Auth ownership is selected only when the legacy column is absent. Workspace membership readback accepts either a legacy surrogate `workspace_members.id` or the canonical `(workspace_id, user_id)` composite identity, but always revalidates the exact owner role and tenant scope. It emits hashed user/profile/workspace/membership identities, the membership identity-contract label, identity booleans, that bounded schema shape, and membership role. It does not print the raw email, raw IDs, last-sign-in timestamp, password, token, invite link, signed URL, or service-role value.
 
-This is a read-only staging operator workflow. It does not add a public API, frontend secret, Vite secret, Supabase migration, schema mutation, data mutation, storage upload, signed URL, provider call, worker dispatch, tool execution, media processing, render/export, credit reservation, credit spend, Stripe billing, external beta unlock, or production unlock.
+## Evidence Boundary
 
-The service-role secret remains backend-only in GitHub Actions. The deployed static app continues to use only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+This readback is a controlled staging prerequisite, not a canonical schema or RLS certification. The raw migration chain remains blocked, no two-user isolation test has passed, and no live signed-in gateway journey is complete until the owner-interactive verifier succeeds afterward.
+
+## Current State
+
+The source workflow is prepared on `codex/backend-workflow-pipeline-continuation`. It has not been pushed or dispatched, and no remote Supabase read occurred in this slice.
+
+## Blocked Scope
+
+No Supabase write/migration, Auth mutation, Storage action, upload, provider call, tool/worker execution, render/export, credit/wallet mutation, Stripe/customer billing, public delivery, external beta, or production action is authorized.
 
 ## Next Gate
 
-`INTERNAL_TESTER_BROWSER_SIGN_IN_VERIFICATION`
+`OWNER_INTERACTIVE_GOOGLE_SESSION_WITH_PRIVATE_GATEWAY_PROJECTS_READBACK`

@@ -45,3 +45,7 @@ export const createDownloadTargetSchema = z.object({
   workspaceId: idSchema,
   urlPurpose: z.enum(['download', 'preview_review', 'thumbnail', 'qa_review', 'export_delivery', 'worker_read']).default('download'),
 }).strict()
+
+export const localUploadWorkspaceQuerySchema = z.object({
+  workspaceId: idSchema,
+}).strict()

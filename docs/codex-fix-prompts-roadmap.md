@@ -1,5 +1,9 @@
 # Codex Fix Prompts Roadmap
 
+## Merge Readiness Note
+
+RP-MERGE-AUDIT-00 documents that merge state is `path_divergence_risk`, not clean or merged. Before staging future prompt work, read `docs/repo-merge-integrity-audit.md`, `docs/repo-path-divergence-audit.md`, and `docs/repo-next-safe-staging-plan.md`.
+
 ## Completed / Partially Completed
 
 ### RP-FIX-06 Auth Profile Workspace Bootstrap
@@ -213,8 +217,234 @@ Still open:
 - credit spend/refund finalization;
 - production provenance and terms review.
 
+### RP-EDITLEVEL-00 Existing Edit Level Surface Audit
+
+Status: docs/report/smoke audit completed.
+
+Implemented:
+
+- existing Basic/Pro/Premium edit-level surface inventory;
+- future Normal/Premium/Ultra Premium product contract audit;
+- tool routing and Qwen 3.7/Qwen2.5-VL routing audits;
+- Project setup, Edit Session, Edit Brief, Edit Preference/DNA, Source Understanding, QA, credit estimate, and render budget audits;
+- reuse vs new build plan, blocker list, beta decision register, and milestone roadmap;
+- `smoke:edit-level-surface-audit`.
+
+Still open:
+
+- runtime `EditLevelProfile` and resolver;
+- level-aware Qwen/tool/source-understanding/QA/estimate profiles;
+- UI label migration and approved snapshot compatibility;
+- durable persistence and production gates.
+
+### RP-EDITLEVEL-01 Edit Level Product Contract + Architecture
+
+Status: docs/status/smoke architecture completed.
+
+Implemented:
+
+- Normal, Premium, and Ultra Premium product contract;
+- future `EditLevelProfile` architecture;
+- legacy basic/pro/premium compatibility;
+- level-aware tool routing and Qwen 3.7/Qwen2.5-VL routing architecture;
+- level-aware source understanding, Edit Brief, Edit Preference/DNA, QA profile, estimate/budget, fallback/degraded capability, UI recommendation, backend service, and integration architecture;
+- internal testing plan and RP-EDITLEVEL-02 types/fixtures handoff;
+- `smoke:edit-level-architecture`.
+
+Still open:
+
+- repositories, API routes, UI behavior, persistence, runtime workers, model calls, render/export, and credit execution;
+- final `needs_product_value` credit/render/revision/variant budget values.
+
+### RP-EDITLEVEL-02 Edit Level Types, Profiles, and Mock Fixtures
+
+Status: mock-safe type/profile foundation completed.
+
+Implemented:
+
+- public `src/types/edit-level.ts` contract and barrel export;
+- Normal, Premium, and Ultra Premium deterministic profile fixtures;
+- source-aware legacy basic/pro/premium compatibility mappers;
+- profile, summary, UI-card, and recommendation fixture mappers;
+- request/response-only backend contracts;
+- mock scenarios and orchestrator flows;
+- type contract docs and `smoke:edit-level-types`.
+
+Still open:
+
+- RP-EDITLEVEL-03 mock repository/API/client layer, now complete as mock-only;
+- RP-EDITLEVEL-04 UI cards/recommendation behavior, which may be pulled earlier if visible level selection is needed;
+- runtime migration, persistence, live Qwen/tool execution, render/export, and credit execution.
+
 ## Recommended Next Prompt
 
 `RP-FIX-16 - Cloud Run And Secret Manager Runtime Binding`
 
 Goal: prepare the backend runtime deployment and Secret Manager binding path needed before any future real provider transport can be enabled, without adding real provider calls or exposing secrets.
+
+Completed follow-up: `RP-EDITLEVEL-03 - Mock Repository + API/Client Layer`.
+
+Result: mock-safe repository and API/client layer for RP-EDITLEVEL-02 fixtures while preserving legacy basic/pro/premium compatibility and avoiding production routes, migrations, providers, media workers, render/export, and credit execution.
+
+### RP-EDITLEVEL-03 Mock Repository + API/Client Layer
+
+Status: complete as mock-only access boundary.
+
+Added:
+
+- repository types and side-effect flags;
+- MockDatabase collections and fixture-backed mock repository operations;
+- disabled Supabase skeleton;
+- mock local planning-domain route metadata and handlers;
+- browser-safe client wrapper with separated mock adapter;
+- repository/API/client docs, scenarios, orchestrators, and smokes.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- visible UI behavior or `ChatNativeEditor` changes;
+- production HTTP routes, Supabase reads/writes, migrations, provider/model calls, media workers, render/export, progress, or credit spend.
+
+Recommended edit-level prompt: `RP-EDITLEVEL-04 - UI Cards + Recommendation`.
+
+### RP-EDITLEVEL-04 UI Cards + Recommendation
+
+Status: complete as visible mock/local UI layer.
+
+Added:
+
+- browser-safe UI adapter over the mock Edit Level client;
+- Normal/Premium/Ultra Premium card components;
+- recommendation banner, selected summary, tool-depth summary, estimate notice, and boundary notice;
+- `/projects/new`, editor setup card, and planning context display; Edit Brief summary remains focused on optional user direction;
+- docs, smoke coverage, and focused Playwright coverage.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- `ChatNativeEditor` runtime behavior changes;
+- live planner/tool routing, provider/model calls, media workers, render/export, progress, migrations, Supabase, or credit spend.
+
+Recommended edit-level prompt: `RP-EDITLEVEL-05 - Level-Aware Tool Capability Router`.
+
+### RP-EDITLEVEL-05 Level-Aware Tool Capability Router
+
+Status: complete as mock/local router.
+
+Added:
+
+- public router types and side-effect flags;
+- deterministic capability registry and level packages;
+- browser-safe UI adapter and summaries;
+- backend mock registry, routing, readiness, fallback, validation, summary services, contracts, scenarios, and orchestrator;
+- visible capability summary/list/fallback UI;
+- docs, smoke coverage, and focused Playwright coverage.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- `ChatNativeEditor` runtime behavior changes;
+- production HTTP routes, provider/model calls, media workers, render/export, progress, migrations, Supabase, or credit spend.
+
+Recommended edit-level prompt: `RP-EDITLEVEL-06 - Level-Aware Source Video Understanding Routing`.
+
+### RP-EDITLEVEL-06 Level-Aware Source Video Understanding Routing
+
+Status: complete as mock/local router.
+
+Added:
+
+- public source-understanding types and no-execution side-effect flags;
+- deterministic source layer registry and level packages;
+- marker context windows and future Qwen context policy by level;
+- browser-safe UI adapter and summaries;
+- backend mock registry, routing, marker, Qwen, fallback, validation, summary services, contracts, scenarios, and orchestrator;
+- visible source-depth summary/list/marker/fallback UI;
+- docs, smoke coverage, and focused Playwright coverage.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- `ChatNativeEditor` runtime behavior changes;
+- source-understanding tool execution, Qwen/Qwen2.5-VL calls, provider/model calls, media extraction, transcript/audio/graphic workers, render/export, progress, migrations, Supabase, uploads, external fetches, file-byte reads, or credit spend.
+
+### RP-EDITLEVEL-07 Level-Aware Qwen Planning Profile
+
+Status: complete as mock/local Qwen planning profile policy.
+
+Added:
+
+- public Qwen planning types and no-execution side-effect flags;
+- deterministic Qwen reasoning, planning pass, prompt context, structured output, Marker Chat, Preference DNA, QA explanation, fallback, and estimate-only policies by level;
+- browser-safe UI adapter and summaries;
+- backend mock registry, profile, prompt, structured output, fallback, usage, validation, summary services, contracts, scenarios, and orchestrator;
+- visible Qwen planning summary/dimension/fallback/usage-estimate UI;
+- docs, smoke coverage, and focused Playwright coverage.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- `ChatNativeEditor` runtime behavior changes;
+- Qwen/Qwen2.5-VL/DeepSeek calls, provider/model calls, real planner execution, edit-plan creation, media workers, render/export, progress, migrations, Supabase, uploads, external fetches, file-byte reads, or credit spend.
+
+### RP-EDITLEVEL-08 Level-Aware QA Gates
+
+Status: complete as mock/local QA gate policy.
+
+Added:
+
+- public QA gate types and no-execution side-effect flags;
+- exactly 30 deterministic QA gate definitions;
+- Normal baseline QA, Premium stronger creative QA, and Ultra Premium studio-level strict QA packages;
+- browser-safe UI adapter and summaries;
+- backend mock registry, routing, readiness, fallback, validation, summary services, contracts, scenarios, and orchestrator;
+- visible QA summary/list/readiness/fallback UI;
+- docs, smoke coverage, and focused Playwright coverage.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- `ChatNativeEditor` runtime behavior changes;
+- QA tool execution, Qwen/Qwen2.5-VL/DeepSeek calls, provider/model calls, real planner execution, edit-plan creation, media workers, render/export, progress, migrations, Supabase, uploads, external fetches, file-byte reads, or credit spend.
+
+Follow-up completed by `RP-EDITLEVEL-09 - Level-Aware Estimates: Time, Credits, Render Budget`.
+
+### RP-EDITLEVEL-09 Level-Aware Estimates
+
+Status: complete as mock/local estimate policy.
+
+Added:
+
+- public estimate types and no-execution side-effect flags;
+- exactly 15 deterministic estimate item definitions;
+- Normal 20-45 minutes / 1.0x, Premium 45-90 minutes / 2.0x, and Ultra Premium 90-180 minutes / 4.0x packages;
+- future render, revision, variant, storage, and worker budget metadata;
+- browser-safe UI adapter and summaries;
+- backend mock item registry, package, time, credit, render, revision, fallback, validation, summary services, contracts, scenarios, and orchestrator;
+- visible estimate summary/item/credit/render/revision/boundary UI;
+- docs, smoke coverage, and focused Playwright coverage.
+
+Not added:
+
+- runtime edit-level migration or `basic | pro | premium` rename;
+- `ChatNativeEditor` runtime behavior changes;
+- credit reservation/spend/records, real planner execution, edit-plan creation, provider/model calls, media workers, progress, render/export, migrations, Supabase, uploads, external fetches, file-byte reads, or production billing.
+
+Recommended edit-level prompt: `RP-EDITLEVEL-10 - End-to-End Internal Testing + Playwright Coverage`.
+
+### RP-CREDITPOLICY-01 Credit Policy Lock
+
+Status: complete as policy/types/docs/constants only.
+
+Added:
+
+- `1 credit = $0.10` and `100 credits = $10` constants/docs;
+- product edit-level service fee floors and percentages for Normal/Premium/Ultra Premium;
+- revised estimate and export lock copy;
+- no-silent-recovery billing rules;
+- policy-only tool-cost metering with `serviceFeeIncluded = false`;
+- smoke coverage.
+
+Not added:
+
+- live billing, Stripe, Supabase migration, wallet mutation, provider/model calls, render/export charging, credit reservation/spend execution, production settlement, or runtime edit-level migration.

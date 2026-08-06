@@ -1,5 +1,6 @@
 import type { PlanValidationCheck, PlanValidationReport } from '../../lib/planner-validation'
 import type { ChatPlanningCardDescriptor } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { Badge } from '../Badge'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
@@ -59,7 +60,7 @@ export function InlinePlanValidationCard({ descriptor, report }: InlinePlanValid
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? report.status !== 'passed'}
       eyebrow="Planning validation"
-      helper="This mock validator checks whether the plan follows ReeditPro's product rules before any real generation or rendering would start."
+      helper="This local validator checks whether the plan follows ReeditPro's product rules before any real generation or rendering would start."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Planning validation"
@@ -69,8 +70,8 @@ export function InlinePlanValidationCard({ descriptor, report }: InlinePlanValid
       </div>
 
       <div className="qa-badge-row">
-        <Badge accent="cyan">Basic/Pro no Veo</Badge>
-        <Badge accent="warning">Premium fallback-only Veo</Badge>
+        <Badge accent="cyan">Basic/Pro premium fallback locked</Badge>
+        <Badge accent="warning">Premium fallback only</Badge>
         <Badge accent="blue">Matching panel background</Badge>
         <Badge accent="warning">Approval required</Badge>
         <Badge accent="success">Professional baseline</Badge>
@@ -82,7 +83,7 @@ export function InlinePlanValidationCard({ descriptor, report }: InlinePlanValid
         <span><strong>Warnings</strong>{report.warningCount}</span>
         <span><strong>Errors/blocking</strong>{report.errorCount + report.blockingCount}</span>
       </div>
-      <p className="inline-helper">{report.summary}</p>
+      <p className="inline-helper">{hideInternalToolNamesInCopy(report.summary)}</p>
 
       <div className="validation-check-list">
         {visible.map((check) => (
@@ -91,12 +92,12 @@ export function InlinePlanValidationCard({ descriptor, report }: InlinePlanValid
             key={check.id}
           >
             <div>
-              <strong>{check.label}</strong>
+              <strong>{hideInternalToolNamesInCopy(check.label)}</strong>
               <small>{formatLabel(check.category)} / {formatLabel(check.severity)} / {check.passed ? 'passed' : 'needs attention'}</small>
             </div>
-            <p>{check.message}</p>
-            {check.relatedField && <span>{check.relatedField}</span>}
-            {check.recommendation && <span>{check.recommendation}</span>}
+            <p>{hideInternalToolNamesInCopy(check.message)}</p>
+            {check.relatedField && <span>{hideInternalToolNamesInCopy(check.relatedField)}</span>}
+            {check.recommendation && <span>{hideInternalToolNamesInCopy(check.recommendation)}</span>}
           </article>
         ))}
       </div>
@@ -113,11 +114,11 @@ export function InlinePlanValidationCard({ descriptor, report }: InlinePlanValid
                   key={check.id}
                 >
                   <div>
-                    <strong>{check.label}</strong>
+                    <strong>{hideInternalToolNamesInCopy(check.label)}</strong>
                     <small>{formatLabel(check.category)} / {formatLabel(check.severity)} / {check.passed ? 'passed' : 'needs attention'}</small>
                   </div>
-                  <p>{check.message}</p>
-                  {check.recommendation && <span>{check.recommendation}</span>}
+                  <p>{hideInternalToolNamesInCopy(check.message)}</p>
+                  {check.recommendation && <span>{hideInternalToolNamesInCopy(check.recommendation)}</span>}
                 </article>
               ))}
           </div>

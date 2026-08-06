@@ -377,12 +377,14 @@ function applyLevelRules(
       transitionFamilies: directive.transitionFamilies.includes('graphic_motion_design_transitions')
         ? ['clean_cut_transitions', 'graphic_motion_design_transitions']
         : ['clean_cut_transitions'],
-      colorGradeStyle: directive.colorGradeStyle === 'cinematic_contrast' || directive.colorGradeStyle === 'moody_dramatic' ? 'clean_natural' : directive.colorGradeStyle,
+      colorGradeStyle: 'clean_natural',
+      soundStyle: 'clean_voice_only',
       mustFollowRules: [
         'Meet a professional clean-edit standard',
         'Use lower-compute choices where they preserve quality',
         'Prefer uploaded footage, stills, cards, and editor motion before expensive generation',
         'Keep captions readable and safely placed',
+        'Use clean natural color and a professional voice-first audio baseline unless the user explicitly requests another supported treatment',
       ],
       avoidRules: [
         'No Veo',
@@ -453,18 +455,20 @@ export function createCustomEditingDirective(params: {
 export function getDefaultProfessionalEditingDirective(params: DefaultDirectiveParams): ProfessionalEditingDirective {
   const baseDirective = defaultMapping(params)
   const levelAdjusted = applyLevelRules(baseDirective, params.editLevel)
+  const sourceVisualsOnly = params.visualPreference === 'no_extra_visuals'
 
   return {
     ...levelAdjusted,
-    customDirectives: params.visualPreference === 'no_extra_visuals'
+    brollPolicy: sourceVisualsOnly ? 'none' : levelAdjusted.brollPolicy,
+    customDirectives: sourceVisualsOnly
       ? [
           createCustomEditingDirective({
             rawUserRequest: 'No extra visuals',
-            interpretedMeaning: 'Keep visuals minimal unless an essential card is needed for clarity.',
-            mappedPresetIds: [levelAdjusted.editStyle, levelAdjusted.brollPolicy],
-            customOverrides: ['Avoid nonessential visual assets'],
+            interpretedMeaning: 'Keep approved source footage primary and add no b-roll unless the user approves a revision.',
+            mappedPresetIds: [levelAdjusted.editStyle, 'none'],
+            customOverrides: ['Disable b-roll and avoid nonessential visual assets'],
             mustFollowRules: ['Respect no-extra-visuals preference until the user approves a revision'],
-            avoidRules: ['Do not add decorative Stroke Motion, Real Motion, or generated b-roll'],
+            avoidRules: ['Do not add uploaded, decorative, Stroke Motion, Real Motion, or generated b-roll'],
             confidence: 'high',
           }),
         ]

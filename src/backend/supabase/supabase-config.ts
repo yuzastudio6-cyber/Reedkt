@@ -13,13 +13,20 @@ export interface SupabasePublicConfig {
   message: string
 }
 
-const SUPABASE_PUBLIC_ENV_READERS: Record<SupabasePublicEnvKey, () => string | undefined> = {
-  VITE_SUPABASE_URL: () => import.meta.env.VITE_SUPABASE_URL,
-  VITE_SUPABASE_ANON_KEY: () => import.meta.env.VITE_SUPABASE_ANON_KEY,
+type RuntimeEnvRecord = Record<string, string | undefined>
+
+type RuntimeGlobal = typeof globalThis & {
+  process?: {
+    env?: RuntimeEnvRecord
+  }
 }
 
 function readPublicEnv(key: SupabasePublicEnvKey): string | undefined {
-  const value = SUPABASE_PUBLIC_ENV_READERS[key]()
+  const processEnv = (globalThis as RuntimeGlobal).process?.env
+  const viteValue = key === 'VITE_SUPABASE_URL'
+    ? import.meta.env?.VITE_SUPABASE_URL
+    : import.meta.env?.VITE_SUPABASE_ANON_KEY
+  const value = viteValue ?? processEnv?.[key]
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined
 }
 

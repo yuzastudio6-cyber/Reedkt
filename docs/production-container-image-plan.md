@@ -39,9 +39,13 @@ The render image centers on the locked core stack:
 ## Template Boundary
 
 Files under `docker/prod/` are production-oriented templates. Heavy package installation, model downloads, local media processing, image builds, image pushes, and Cloud Run deployment are all later human-approved steps.
+
+Human build scripts now require an exactly clean checkout, derive the commit/tree instead of trusting caller-authored source identity, and pass those values into fixed OCI source labels. API and worker server artifacts are built inside Docker from that source. The render template no longer copies the separate mock-only Remotion worker artifact. These changes make later immutable-image inspection meaningful, but do not build or qualify any image by themselves.
 ## Milestone 12 Readiness Validation
 
 M12 adds a unified readiness report that validates expected image contents for API, CPU, GPU, render, QA, and tool-readiness images. The report consumes Dockerfile declarations and tool readiness specs but does not build, push, or deploy images.
+
+The independent host verifier can produce a non-promotable local receipt after matching a confined in-container candidate to an exact clean commit/tree, immutable repository digest, image role, and OCI labels. Static readiness does not consume that receipt, and production image qualification remains false until reviewed manual license/model/source-install evidence and a later canonical release authority exist.
 
 ## Milestone 16A Render Image Consumption
 

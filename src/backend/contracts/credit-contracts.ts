@@ -2,8 +2,13 @@ import type {
   CreditApprovalRecord,
   CreditEstimateLineItemRecord,
   CreditEstimateRecord,
+  CreditRevisionActionRecord,
   CreditReservationRecord,
+  CreditSettlementRecord,
   CreditWalletRecord,
+  EditCreditCostSummary,
+  PreviewCreditSettlementRequest,
+  PreviewCreditSettlementResponse,
 } from '../../types'
 
 export interface CreateCreditEstimateRequest {
@@ -41,4 +46,24 @@ export interface ReserveCreditsRequest {
 export interface ReserveCreditsResponse {
   creditReservation: CreditReservationRecord
   creditWallet: CreditWalletRecord
+}
+
+export type {
+  CreditRevisionActionRecord,
+  CreditSettlementRecord,
+  EditCreditCostSummary,
+  PreviewCreditSettlementRequest,
+  PreviewCreditSettlementResponse,
+}
+
+export interface ListCreditSettlementsResponse {
+  settlements: CreditSettlementRecord[]
+}
+
+export interface CreateCreditRevisionActionResponse {
+  action: CreditRevisionActionRecord
+}
+
+export interface ListCreditRevisionActionsResponse {
+  actions: CreditRevisionActionRecord[]
 }

@@ -1,0 +1,1184 @@
+import { createHash } from 'node:crypto'
+import { z } from 'zod'
+import {
+  timelineRateDisplayFps,
+  timelineRatesEqual,
+  timelineRateSchema,
+  framesToSamples,
+  framesToSeconds,
+} from '../edit-skills/core/timeline-rate'
+import type {
+  SkillQualificationStatus,
+} from '../edit-skills/core/edit-skill-ids'
+
+export type SoundRequestedMode = 'planning' | 'fixture' | 'private_internal' | 'production'
+
+export interface CompositeSoundExecutionPolicy {
+  schemaVersion: 'composite-sound-execution-policy-v1'
+  parentJobType: string
+  parentMayExecuteDirectly: false
+  childRoutesMustBeExactAndModeQualified: true
+  privateInternalExecution: 'admit_only_when_every_required_child_route_is_qualified'
+  fixtureExecution: 'admit_fixture_routes_and_internal_routes'
+  productionExecution: 'admit_only_production_qualified_child_routes'
+  completionPolicy: 'all_required_units_or_typed_partial_result'
+}
+
+export const CANONICAL_SOUND_REQUEST_SCHEMA_VERSION = 'canonical-sound-request-v1' as const
+export const CANONICAL_SOUND_RESULT_SCHEMA_VERSION = 'canonical-sound-result-v1' as const
+
+const safeId = z.string().trim().min(1).max(180)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
+  .refine((value) => !value.includes('..'), 'Unsafe identity sequence.')
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/)
+const boundedText = z.string().trim().min(1).max(2_000)
+const safeStorageId = z.string().trim().min(1).max(512)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
+  .refine((value) => !value.includes('..'), 'Unsafe storage identity sequence.')
+
+export const soundFrameRangeSchema = z.object({
+  rangeId: safeId,
+  startFrame: z.number().int().nonnegative(),
+  endFrameExclusive: z.number().int().positive(),
+}).strict().superRefine((range, context) => {
+  if (range.endFrameExclusive <= range.startFrame) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Range end must exceed start.' })
+  }
+})
+
+export type SoundFrameRange = z.infer<typeof soundFrameRangeSchema>
+
+export const soundArtifactRefSchema = z.object({
+  artifactId: safeId,
+  artifactType: safeId,
+  version: z.number().int().positive(),
+  checksumSha256: sha256,
+  storageObjectId: safeStorageId,
+  private: z.literal(true),
+  contentType: z.string().trim().min(1).max(120),
+  durationFrames: z.number().int().positive().optional(),
+  timelineRate: timelineRateSchema.optional(),
+}).strict()
+
+export type SoundArtifactRef = z.infer<typeof soundArtifactRefSchema>
+
+export const soundVisualDependencySchema = z.object({
+  artifact: soundArtifactRefSchema,
+  visualVersion: z.number().int().positive(),
+  visualHash: sha256,
+  timingManifestHash: sha256,
+  originalApprovedVisual: z.literal(true),
+  timelineRange: soundFrameRangeSchema.optional(),
+}).strict()
+
+export type SoundVisualDependency = z.infer<typeof soundVisualDependencySchema>
+
+export const soundEventAnchorSchema = z.object({
+  anchorId: safeId,
+  eventType: safeId,
+  frame: z.number().int().nonnegative(),
+  endFrameExclusive: z.number().int().positive().optional(),
+  sceneId: safeId.optional(),
+  clipId: safeId.optional(),
+  material: z.string().trim().max(120).optional(),
+  perspective: z.enum(['close', 'medium', 'distant', 'offscreen']).optional(),
+  environment: z.string().trim().max(160).optional(),
+  importance: z.enum(['background', 'support', 'foreground', 'hero']),
+  soundWouldImproveEdit: z.boolean(),
+}).strict()
+
+export type SoundEventAnchor = z.infer<typeof soundEventAnchorSchema>
+
+export const soundAssignmentScopeSchema = z.object({
+  assignmentMode: z.enum(['scene', 'clip', 'range', 'multi_range', 'whole_video']),
+  inspectWholeVideo: z.boolean(),
+  inspectRanges: z.array(soundFrameRangeSchema).max(512),
+  authorizedAudioWriteRanges: z.array(soundFrameRangeSchema).max(512),
+  authorizedVisualWriteRanges: z.array(soundFrameRangeSchema).max(512),
+  sceneIds: z.array(safeId).max(512),
+  clipIds: z.array(safeId).max(2_000),
+  lockedAudioTracks: z.array(safeId).max(256),
+  lockedVisualLayers: z.array(safeId).max(512),
+  targetAudioTracks: z.array(safeId).max(256),
+  targetVisualLayers: z.array(safeId).max(512),
+  contextHandles: z.array(z.object({
+    contextHandleId: safeId,
+    authorizedRange: soundFrameRangeSchema,
+    purpose: z.enum(['sound_tail', 'neighbor_context', 'crossfade']),
+  }).strict()).max(128),
+  soundTailPolicy: z.enum([
+    'end_within_authorized_range',
+    'use_authorized_context_handle',
+    'request_range_extension',
+    'return_boundary_conflict',
+  ]),
+  parentAuthorityHash: sha256,
+  sourceTimelineVersion: z.number().int().positive(),
+  sourceTimelineHash: sha256,
+  sourceArtifactVersions: z.array(z.object({
+    artifactId: safeId,
+    version: z.number().int().positive(),
+    checksumSha256: sha256,
+  }).strict()).min(1).max(2_000),
+  manifestHash: sha256,
+}).strict()
+
+export type SoundAssignmentScope = z.infer<typeof soundAssignmentScopeSchema>
+
+export const soundPeerAuthoritySchema = z.object({
+  parentWorkItemId: safeId,
+  parentAuthorityHash: sha256,
+  callerOwnedAudioRanges: z.array(soundFrameRangeSchema).max(512),
+  callerOwnedVisualRanges: z.array(soundFrameRangeSchema).max(512),
+  ancestorSkillKeys: z.array(safeId).max(64),
+  callerManifestHash: sha256,
+}).strict()
+
+const operation = z.enum([
+  'study', 'design', 'preserve_source', 'search_library', 'extract_source',
+  'generate_video_conditioned', 'generate_text_conditioned', 'generate_foley',
+  'generate_ambience', 'repair', 'clean_dialogue', 'reduce_noise', 'trim',
+  'fade', 'gain', 'normalize', 'resample', 'convert_channels', 'loop',
+  'time_stretch', 'pitch_shift', 'sync', 'align_transient', 'mix',
+  'render_stem', 'qa', 'revise', 'handoff', 'propose_visual_retime',
+])
+
+export type SoundRequestedOperation = z.infer<typeof operation>
+
+export const SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION = 'sound.music_technical_automation.v2' as const
+
+const soundMusicTechnicalAutomationExtensionSchema = z.object({
+  schemaVersion: z.literal(SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION),
+  bindingId: safeId,
+  musicCueId: safeId,
+  delegatedRange: soundFrameRangeSchema,
+  sourceStartFrame: z.number().int().nonnegative(),
+  sourceEndFrameExclusive: z.number().int().positive(),
+  targetStartFrame: z.number().int().nonnegative(),
+  targetEndFrameExclusive: z.number().int().positive(),
+  fadeInFrames: z.number().int().nonnegative(),
+  fadeOutFrames: z.number().int().nonnegative(),
+  crossfadeFrames: z.number().int().nonnegative(),
+  baseGainDb: z.number().min(-96).max(24),
+  gainEnvelope: z.array(z.object({
+    frame: z.number().int().nonnegative(), gainDb: z.number().min(-96).max(24),
+  }).strict()).min(2).max(512),
+  normalization: z.object({ enabled: z.boolean(), targetLoudnessLufs: z.number().min(-70).max(0) }).strict(),
+  dialogueDucking: z.object({
+    attenuationDb: z.number().min(-48).max(0),
+    attackFrames: z.number().int().nonnegative(),
+    releaseFrames: z.number().int().nonnegative(),
+    protectedSpeechRanges: z.array(soundFrameRangeSchema).max(2_000),
+  }).strict(),
+  eqProfile: z.enum(['neutral', 'speech_safe', 'distance_rolloff', 'impact_control', 'room_match']),
+  dynamicsProfile: z.enum(['none', 'gentle_compression', 'peak_limiter']),
+  pan: z.number().min(-1).max(1),
+  distance: z.enum(['close', 'medium', 'distant']),
+  roomMatch: z.enum(['dry', 'source_room', 'small_room', 'large_room', 'exterior']),
+  maximumTruePeakDbtp: z.number().min(-24).max(0),
+  headroomDb: z.number().min(0.1).max(24),
+  loopCrossfadeFrames: z.number().int().nonnegative(),
+  tempoRatio: z.number().min(0.5).max(2),
+  pitchSemitones: z.number().min(-12).max(12),
+  sampleRate: z.union([z.literal(44_100), z.literal(48_000)]),
+  channelLayout: z.enum(['mono', 'stereo']),
+  renderStem: z.boolean(),
+  requiredQa: z.array(z.enum(['technical', 'synchronization', 'mix'])).min(1).max(3),
+  requiredMusicOperations: z.array(safeId).min(1).max(64),
+  operationParametersHash: sha256,
+  extensionHash: sha256,
+}).strict().superRefine((extension, context) => {
+  if (extension.sourceEndFrameExclusive <= extension.sourceStartFrame) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical source range is invalid.' })
+  }
+  if (extension.targetEndFrameExclusive <= extension.targetStartFrame ||
+    extension.targetStartFrame !== extension.delegatedRange.startFrame ||
+    extension.targetEndFrameExclusive !== extension.delegatedRange.endFrameExclusive) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical target range is not exact.' })
+  }
+  if (extension.dialogueDucking.protectedSpeechRanges.length > 0 &&
+    (extension.dialogueDucking.attackFrames <= 0 || extension.dialogueDucking.releaseFrames <= 0 ||
+      extension.dialogueDucking.attenuationDb >= 0)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Protected speech ducking requires a nonzero attack, release, and negative attenuation.',
+    })
+  }
+  if (extension.extensionHash !== hashSoundMusicTechnicalAutomation(extension)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation extension hash is stale.' })
+  }
+})
+
+export type SoundMusicTechnicalAutomationExtension = z.infer<typeof soundMusicTechnicalAutomationExtensionSchema>
+
+export const SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION = 'sound.music_two_source_crossfade.v2' as const
+
+const crossfadeGainPointSchema = z.object({
+  frame: z.number().int().nonnegative(),
+  linearGain: z.number().min(0).max(1),
+}).strict()
+
+export const soundMusicTwoSourceCrossfadeRequestSchema = z.object({
+  schemaVersion: z.literal(SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION),
+  requestId: safeId,
+  callerSkillKey: z.literal('music'),
+  callerSkillVersion: safeId,
+  callerManifestHash: sha256,
+  soundSkillVersion: safeId,
+  soundManifestHash: sha256,
+  soundRouteKey: z.literal('sound.route.edit.music_two_source_crossfade.v2'),
+  soundRouteVersion: z.literal('2.0.0'),
+  soundRouteHash: sha256,
+  leftCueId: safeId,
+  rightCueId: safeId,
+  leftSource: soundArtifactRefSchema,
+  rightSource: soundArtifactRefSchema,
+  leftSourceRange: soundFrameRangeSchema,
+  rightSourceRange: soundFrameRangeSchema,
+  targetOverlapRange: soundFrameRangeSchema,
+  authorizedWriteRange: soundFrameRangeSchema,
+  crossfadeDurationFrames: z.number().int().positive(),
+  crossfadeDurationSamples: z.number().int().positive(),
+  sampleRate: z.union([z.literal(44_100), z.literal(48_000)]),
+  timelineRate: timelineRateSchema,
+  curveType: z.enum(['equal_power', 'linear']),
+  leftGainCurve: z.array(crossfadeGainPointSchema).length(2),
+  rightGainCurve: z.array(crossfadeGainPointSchema).length(2),
+  approvedSnapshotId: safeId,
+  approvedSnapshotHash: sha256,
+  parentMusicRequestId: safeId,
+  parentAuthorityRef: safeId,
+  parentAuthorityHash: sha256,
+  approvedWorkItemId: safeId,
+  privateOutputScopeId: safeId,
+  creditReservationId: safeId,
+  idempotencyKey: safeId,
+  requiredOutputs: z.array(z.enum(['music_crossfade_audio', 'music_crossfade_receipt_v3'])).min(2).max(2),
+  requiredMeasuredQa: z.array(z.enum(['two_source_presence', 'curve_progression', 'duration', 'true_peak', 'clipping'])).min(5).max(5),
+  extensionHash: sha256,
+}).strict().superRefine((request, context) => {
+  if (request.leftCueId === request.rightCueId) {
+    context.addIssue({ code: 'custom', message: 'Two-source Music crossfade requires independent cue identities.' })
+  }
+  if (request.leftSource.checksumSha256 === request.rightSource.checksumSha256) {
+    context.addIssue({ code: 'custom', message: 'Two-source Music crossfade requires independent source hashes.' })
+  }
+  const overlapFrames = request.targetOverlapRange.endFrameExclusive - request.targetOverlapRange.startFrame
+  if (overlapFrames !== request.crossfadeDurationFrames) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade overlap range and duration differ.' })
+  }
+  if (request.targetOverlapRange.startFrame < request.authorizedWriteRange.startFrame ||
+    request.targetOverlapRange.endFrameExclusive > request.authorizedWriteRange.endFrameExclusive) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade overlap exceeds authorized write authority.' })
+  }
+  const leftFrames = request.leftSourceRange.endFrameExclusive - request.leftSourceRange.startFrame
+  const rightFrames = request.rightSourceRange.endFrameExclusive - request.rightSourceRange.startFrame
+  if (request.crossfadeDurationFrames >= Math.min(leftFrames, rightFrames)) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade exceeds available source handles.' })
+  }
+  const expectedSamples = framesToSamples({ frames: request.crossfadeDurationFrames, rate: request.timelineRate,
+    sampleRate: request.sampleRate, rounding: 'nearest_half_up' })
+  if (request.crossfadeDurationSamples !== expectedSamples) {
+    context.addIssue({ code: 'custom', message: 'Music crossfade frame/sample binding is stale.' })
+  }
+  const validateCurve = (curve: Array<{ frame: number; linearGain: number }>, left: boolean) => {
+    if (curve[0]?.frame !== request.targetOverlapRange.startFrame ||
+      curve.at(-1)?.frame !== request.targetOverlapRange.endFrameExclusive) {
+      context.addIssue({ code: 'custom', message: 'Music crossfade gain curve range is incomplete.' })
+    }
+    if (curve.some((point, index) => index > 0 && point.frame <= curve[index - 1]!.frame)) {
+      context.addIssue({ code: 'custom', message: 'Music crossfade gain curve frames must be strictly ordered.' })
+    }
+    if (left ? curve[0]?.linearGain !== 1 || curve.at(-1)?.linearGain !== 0
+      : curve[0]?.linearGain !== 0 || curve.at(-1)?.linearGain !== 1) {
+      context.addIssue({ code: 'custom', message: 'Music crossfade gain curve endpoints are malformed.' })
+    }
+  }
+  validateCurve(request.leftGainCurve, true)
+  validateCurve(request.rightGainCurve, false)
+  if (request.extensionHash !== hashSoundMusicTechnicalAutomation(request)) {
+    context.addIssue({ code: 'custom', message: 'Music two-source crossfade extension hash is stale.' })
+  }
+})
+
+export type SoundMusicTwoSourceCrossfadeRequest = z.infer<typeof soundMusicTwoSourceCrossfadeRequestSchema>
+
+export interface SoundMusicTwoSourceCrossfadeReceipt {
+  schemaVersion: 'sound.music_two_source_crossfade_receipt.v2'
+  requestId: string
+  extensionHash: string
+  routeKey: 'sound.route.edit.music_two_source_crossfade.v2'
+  routeVersion: string
+  routeHash: string
+  operationKey: 'crossfade_music_two_source'
+  operationVersion: string
+  operationProfileKey: 'sound.crossfade.music_two_source.v2'
+  leftSourceId: string
+  leftSourceHash: string
+  rightSourceId: string
+  rightSourceHash: string
+  outputArtifact: SoundArtifactRef
+  targetOverlapRange: SoundFrameRange
+  crossfadeDurationFrames: number
+  crossfadeDurationSamples: number
+  curveType: 'equal_power' | 'linear'
+  requestedParameters: Record<string, unknown>
+  requestedParametersHash: string
+  compiledParameters: Record<string, unknown>
+  compiledParametersHash: string
+  appliedParameters: Record<string, unknown>
+  appliedParametersHash: string
+  measuredQa: {
+    outputDurationFrames: number
+    expectedOutputDurationFrames: number
+    truePeakDbtp: number | null
+    clippingSampleCount: number
+    overlapStartRmsDbfs: number
+    overlapMidpointRmsDbfs: number
+    overlapEndRmsDbfs: number
+    twoSourceEvidence: {
+      measurementMethod: 'decoded_pcm_spectral_two_source_least_squares_v1'
+      analysisSampleRate: 8_000
+      windows: Array<{
+        position: 'start' | 'midpoint' | 'end'
+        progress: number
+        outputStartSeconds: number
+        durationSeconds: number
+        expectedLeftShare: number
+        expectedRightShare: number
+        measuredLeftShare: number
+        measuredRightShare: number
+        leftCoefficient: number
+        rightCoefficient: number
+        reconstructionCorrelation: number
+        curveShareError: number
+      }>
+      maximumCurveShareError: number
+      minimumReconstructionCorrelation: number
+      startLeftDominant: boolean
+      midpointBothSourcesPresent: boolean
+      endRightDominant: boolean
+      curveWithinTolerance: boolean
+      twoSourcePresencePassed: boolean
+    }
+    evidenceHash: string
+  }
+  status: 'passed'
+  receiptHash: string
+}
+
+export function parseSoundMusicTwoSourceCrossfadeRequest(input: unknown): SoundMusicTwoSourceCrossfadeRequest {
+  return soundMusicTwoSourceCrossfadeRequestSchema.parse(input)
+}
+
+export function soundMusicTwoSourceCrossfadeRequestedParameters(
+  request: SoundMusicTwoSourceCrossfadeRequest,
+): Record<string, unknown> {
+  return {
+    leftSourceRange: structuredClone(request.leftSourceRange),
+    rightSourceRange: structuredClone(request.rightSourceRange),
+    targetOverlapRange: structuredClone(request.targetOverlapRange),
+    crossfadeDurationFrames: request.crossfadeDurationFrames,
+    crossfadeDurationSamples: request.crossfadeDurationSamples,
+    timelineRate: structuredClone(request.timelineRate),
+    curveType: request.curveType,
+    leftGainCurve: structuredClone(request.leftGainCurve),
+    rightGainCurve: structuredClone(request.rightGainCurve),
+  }
+}
+
+export interface SoundMusicTwoSourceCompiledParameters extends Record<string, unknown> {
+  leftSourceStartSeconds: number
+  leftSourceDurationSeconds: number
+  rightSourceStartSeconds: number
+  rightSourceDurationSeconds: number
+  crossfadeDurationSeconds: number
+  crossfadeCurve: 'equal_power' | 'linear'
+  maximumTruePeakDbtp: number
+  outputLimiterLinear: number
+  sampleRate: 44_100 | 48_000
+  channels: 2
+  provenanceTag: string
+}
+
+export function compileSoundMusicTwoSourceCrossfadeParameters(
+  request: SoundMusicTwoSourceCrossfadeRequest,
+): SoundMusicTwoSourceCompiledParameters {
+  const leftFrames = request.leftSourceRange.endFrameExclusive - request.leftSourceRange.startFrame
+  const rightFrames = request.rightSourceRange.endFrameExclusive - request.rightSourceRange.startFrame
+  return {
+    leftSourceStartSeconds: framesToSeconds(request.leftSourceRange.startFrame, request.timelineRate),
+    leftSourceDurationSeconds: framesToSeconds(leftFrames, request.timelineRate),
+    rightSourceStartSeconds: framesToSeconds(request.rightSourceRange.startFrame, request.timelineRate),
+    rightSourceDurationSeconds: framesToSeconds(rightFrames, request.timelineRate),
+    crossfadeDurationSeconds: framesToSeconds(request.crossfadeDurationFrames, request.timelineRate),
+    crossfadeCurve: request.curveType,
+    maximumTruePeakDbtp: -1,
+    outputLimiterLinear: Number((10 ** (-1 / 20)).toFixed(6)),
+    sampleRate: request.sampleRate,
+    channels: 2,
+    provenanceTag: `sound-crossfade-${request.requestId}`,
+  }
+}
+
+export function validateSoundMusicTwoSourceCrossfadeReceipt(input: {
+  request: SoundMusicTwoSourceCrossfadeRequest
+  receipt: SoundMusicTwoSourceCrossfadeReceipt
+}): SoundMusicTwoSourceCrossfadeReceipt {
+  const { receipt, request } = input
+  const errors: string[] = []
+  if (receipt.requestId !== request.requestId || receipt.extensionHash !== request.extensionHash) errors.push('request_binding')
+  if (receipt.routeKey !== request.soundRouteKey || receipt.routeVersion !== request.soundRouteVersion ||
+    receipt.routeHash !== request.soundRouteHash || receipt.operationKey !== 'crossfade_music_two_source' ||
+    receipt.operationVersion !== '2.0.0' || receipt.operationProfileKey !== 'sound.crossfade.music_two_source.v2') {
+    errors.push('route_operation_binding')
+  }
+  if (receipt.leftSourceHash !== request.leftSource.checksumSha256 ||
+    receipt.rightSourceHash !== request.rightSource.checksumSha256) errors.push('source_hash_binding')
+  if (receipt.leftSourceHash === receipt.rightSourceHash) errors.push('independent_source_binding')
+  if (receipt.outputArtifact.checksumSha256.length !== 64) errors.push('output_hash')
+  if (receipt.targetOverlapRange.startFrame !== request.targetOverlapRange.startFrame ||
+    receipt.targetOverlapRange.endFrameExclusive !== request.targetOverlapRange.endFrameExclusive) errors.push('overlap_range')
+  if (receipt.crossfadeDurationFrames !== request.crossfadeDurationFrames ||
+    receipt.crossfadeDurationSamples !== request.crossfadeDurationSamples ||
+    receipt.curveType !== request.curveType) errors.push('crossfade_parameter_binding')
+  const expectedRequested = soundMusicTwoSourceCrossfadeRequestedParameters(request)
+  const expectedCompiled = compileSoundMusicTwoSourceCrossfadeParameters(request)
+  if (JSON.stringify(stableSoundValue(receipt.requestedParameters)) !==
+      JSON.stringify(stableSoundValue(expectedRequested)) ||
+    JSON.stringify(stableSoundValue(receipt.compiledParameters)) !==
+      JSON.stringify(stableSoundValue(expectedCompiled))) errors.push('request_to_compiled_parameter_binding')
+  if (receipt.requestedParametersHash !== hashSoundMusicTechnicalAutomation(receipt.requestedParameters) ||
+    receipt.compiledParametersHash !== hashSoundMusicTechnicalAutomation(receipt.compiledParameters) ||
+    receipt.appliedParametersHash !== hashSoundMusicTechnicalAutomation(receipt.appliedParameters) ||
+    JSON.stringify(stableSoundValue(receipt.compiledParameters)) !==
+      JSON.stringify(stableSoundValue(receipt.appliedParameters))) errors.push('parameter_hash')
+  if (receipt.measuredQa.outputDurationFrames !== receipt.measuredQa.expectedOutputDurationFrames ||
+    receipt.measuredQa.clippingSampleCount !== 0 || receipt.measuredQa.truePeakDbtp === null ||
+    receipt.measuredQa.truePeakDbtp > -0.8 ||
+    ![receipt.measuredQa.overlapStartRmsDbfs, receipt.measuredQa.overlapMidpointRmsDbfs,
+      receipt.measuredQa.overlapEndRmsDbfs].every(Number.isFinite)) errors.push('measured_qa')
+  const sourceEvidence = receipt.measuredQa.twoSourceEvidence
+  const positions = sourceEvidence?.windows?.map((window) => window.position) ?? []
+  const expectedProgress = [0.1, 0.5, 0.9]
+  const windowEvidenceInvalid = sourceEvidence?.windows?.some((window, index) => {
+    const progress = expectedProgress[index]
+    if (progress === undefined || Math.abs(window.progress - progress) > 1e-9) return true
+    const leftGain = request.curveType === 'equal_power'
+      ? Math.cos(progress * Math.PI / 2) : 1 - progress
+    const rightGain = request.curveType === 'equal_power'
+      ? Math.sin(progress * Math.PI / 2) : progress
+    const expectedLeftShare = leftGain / (leftGain + rightGain)
+    const expectedRightShare = rightGain / (leftGain + rightGain)
+    const calculatedError = Math.max(
+      Math.abs(window.measuredLeftShare - expectedLeftShare),
+      Math.abs(window.measuredRightShare - expectedRightShare),
+    )
+    return Math.abs(window.expectedLeftShare - expectedLeftShare) > 1e-6 ||
+      Math.abs(window.expectedRightShare - expectedRightShare) > 1e-6 ||
+      Math.abs(window.curveShareError - calculatedError) > 1e-6
+  }) ?? true
+  const calculatedMaximumError = sourceEvidence?.windows?.length
+    ? Math.max(...sourceEvidence.windows.map((window) => window.curveShareError)) : Number.POSITIVE_INFINITY
+  const calculatedMinimumCorrelation = sourceEvidence?.windows?.length
+    ? Math.min(...sourceEvidence.windows.map((window) => window.reconstructionCorrelation)) : Number.NEGATIVE_INFINITY
+  const [startEvidence, midpointEvidence, endEvidence] = sourceEvidence?.windows ?? []
+  const sourcePresenceInvalid = !startEvidence || !midpointEvidence || !endEvidence ||
+    startEvidence.measuredLeftShare < 0.65 ||
+    startEvidence.measuredLeftShare <= startEvidence.measuredRightShare ||
+    midpointEvidence.measuredLeftShare < 0.2 || midpointEvidence.measuredRightShare < 0.2 ||
+    endEvidence.measuredRightShare < 0.65 ||
+    endEvidence.measuredRightShare <= endEvidence.measuredLeftShare
+  if (!sourceEvidence || sourceEvidence.measurementMethod !== 'decoded_pcm_spectral_two_source_least_squares_v1' ||
+    sourceEvidence.analysisSampleRate !== 8_000 || sourceEvidence.windows.length !== 3 ||
+    JSON.stringify(positions) !== JSON.stringify(['start', 'midpoint', 'end']) ||
+    !sourceEvidence.startLeftDominant || !sourceEvidence.midpointBothSourcesPresent ||
+    !sourceEvidence.endRightDominant || !sourceEvidence.curveWithinTolerance ||
+    !sourceEvidence.twoSourcePresencePassed || sourceEvidence.maximumCurveShareError > 0.2 ||
+    sourceEvidence.minimumReconstructionCorrelation < 0.85 ||
+    Math.abs(sourceEvidence.maximumCurveShareError - calculatedMaximumError) > 1e-6 ||
+    Math.abs(sourceEvidence.minimumReconstructionCorrelation - calculatedMinimumCorrelation) > 1e-6 ||
+    windowEvidenceInvalid || sourcePresenceInvalid ||
+    sourceEvidence.windows.some((window) =>
+      ![window.progress, window.outputStartSeconds, window.durationSeconds, window.expectedLeftShare,
+        window.expectedRightShare, window.measuredLeftShare, window.measuredRightShare,
+        window.leftCoefficient, window.rightCoefficient, window.reconstructionCorrelation,
+        window.curveShareError].every(Number.isFinite) ||
+      Math.abs(window.measuredLeftShare + window.measuredRightShare - 1) > 0.01 ||
+      window.curveShareError > 0.2 || window.reconstructionCorrelation < 0.85)) {
+    errors.push('two_source_presence_and_curve_evidence')
+  }
+  const qaCore = { ...receipt.measuredQa, evidenceHash: undefined }
+  if (receipt.measuredQa.evidenceHash !== hashSoundMusicTechnicalAutomation(qaCore)) errors.push('measured_qa_hash')
+  const receiptCore = { ...receipt, receiptHash: undefined }
+  if (receipt.receiptHash !== hashSoundMusicTechnicalAutomation(receiptCore)) errors.push('receipt_hash')
+  if (errors.length > 0) throw new Error(`Music two-source crossfade receipt rejected: ${errors.join(',')}.`)
+  return structuredClone(receipt)
+}
+
+const requestedMode = z.enum(['planning', 'fixture', 'private_internal', 'production'])
+
+const soundOperationDirectiveSchema = z.object({
+  directiveId: safeId,
+  operation,
+  targetRangeId: safeId.optional(),
+  eventAnchorId: safeId.optional(),
+  sourceArtifactIds: z.array(safeId).max(16).optional(),
+  parameters: z.object({
+    trimSourceStartFrame: z.number().int().nonnegative().optional(),
+    targetDurationFrames: z.number().int().positive().optional(),
+    gainDb: z.number().min(-48).max(18).optional(),
+    fadeInFrames: z.number().int().nonnegative().optional(),
+    fadeOutFrames: z.number().int().nonnegative().optional(),
+    loopCrossfadeFrames: z.number().int().positive().optional(),
+    tempoRatio: z.number().min(0.5).max(2).optional(),
+    pitchSemitones: z.number().min(-12).max(12).optional(),
+    syncToleranceFrames: z.number().int().nonnegative().max(120).optional(),
+    dialogueSourceArtifactId: safeId.optional(),
+    sourceGainDb: z.record(safeId, z.number().min(-48).max(18)).optional(),
+    proxyPreRollFrames: z.number().int().nonnegative().max(10_000).optional(),
+    proxyPostRollFrames: z.number().int().nonnegative().max(10_000).optional(),
+  }).strict(),
+}).strict()
+
+export const canonicalSoundRequestSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_SOUND_REQUEST_SCHEMA_VERSION),
+  requestId: safeId,
+  callerType: z.enum([
+    'head_of_orchestra', 'living_frame', 'three_d', 'motion_design',
+    'transitions', 'graphic_design', 'typed_peer_skill',
+  ]),
+  orchestraRunId: safeId.optional(),
+  peerAuthority: soundPeerAuthoritySchema.optional(),
+  callerSkillKey: safeId,
+  callerSkillVersion: safeId,
+  callerManifestHash: sha256.optional(),
+  requestedCapabilityKey: safeId,
+  requestedJobType: safeId,
+  soundSkillKey: z.literal('sound'),
+  soundSkillVersion: safeId,
+  soundManifestHash: sha256,
+  assignmentScope: soundAssignmentScopeSchema,
+  requestedOperations: z.array(operation).min(1).max(64),
+  operationDirectives: z.array(soundOperationDirectiveSchema).max(256).optional(),
+  musicTechnicalAutomationExtension: soundMusicTechnicalAutomationExtensionSchema.optional(),
+  requestedOutcome: boundedText,
+  requiredDeliverables: z.array(safeId).min(1).max(64),
+  sourceMediaRefs: z.array(soundArtifactRefSchema).max(2_000),
+  sourceAudioRefs: z.array(soundArtifactRefSchema).max(2_000),
+  visualDependencies: z.array(soundVisualDependencySchema).max(2_000),
+  timelineManifestRef: soundArtifactRefSchema,
+  timelineManifestHash: sha256,
+  timelineRate: timelineRateSchema,
+  timelineManifestRate: timelineRateSchema,
+  timelineFps: z.number().positive().max(240).optional(),
+  transcriptSpeechEvidenceRef: soundArtifactRefSchema.optional(),
+  musicContext: z.object({
+    artifact: soundArtifactRefSchema,
+    contextHash: sha256,
+    readOnly: z.literal(true),
+    approvedForTechnicalProcessing: z.boolean(),
+    allowedAutomation: z.array(z.enum(['duck', 'fade', 'collision_avoidance'])).max(3),
+  }).strict().optional(),
+  completedSkillWork: z.array(z.object({
+    skillKey: safeId,
+    skillVersion: safeId,
+    artifact: soundArtifactRefSchema,
+  }).strict()).max(2_000),
+  eventAnchors: z.array(soundEventAnchorSchema).max(10_000),
+  userSoundPreferences: z.object({
+    enableSoundDesign: z.boolean(),
+    preserveNaturalSound: z.boolean(),
+    preserveEmotionalSilence: z.boolean(),
+    avoidLoudSoundUnderSpeech: z.boolean(),
+    maximumCueDensityPerMinute: z.number().int().min(0).max(120),
+    preferredPerspective: z.enum(['natural', 'close', 'cinematic', 'restrained']),
+  }).strict(),
+  referenceSoundInputs: z.array(soundArtifactRefSchema).max(32),
+  qualityPolicy: z.object({
+    qaDepth: z.enum(['standard', 'strong', 'studio']),
+    sampleRate: z.union([z.literal(44_100), z.literal(48_000)]),
+    channelLayout: z.enum(['mono', 'stereo']),
+    maximumTruePeakDbtp: z.number().min(-12).max(-0.1),
+    targetLoudnessLufs: z.number().min(-36).max(-8),
+    speechClarityWins: z.literal(true),
+  }).strict(),
+  costPolicy: z.object({
+    maximumCredits: z.number().nonnegative().max(10_000_000),
+    candidateCount: z.number().int().min(1).max(4),
+    allowProviderGeneration: z.boolean(),
+    lowerCostAlternativesRequired: z.literal(true),
+  }).strict(),
+  latencyPolicy: z.object({
+    maximumExpectedSeconds: z.number().int().positive().max(86_400),
+    allowAsyncProviderJob: z.boolean(),
+  }).strict(),
+  providerPolicyEvidence: z.object({
+    profileKey: safeId,
+    profileVersion: safeId,
+    privacyApproved: z.boolean(),
+    commercialTermsApproved: z.boolean(),
+    retentionApproved: z.boolean(),
+    qualificationEvidenceIds: z.array(safeId).max(64),
+  }).strict().optional(),
+  executionAuthority: z.object({
+    requestedMode,
+    approvedPlanSnapshotId: safeId.optional(),
+    approvedPlanSnapshotHash: sha256.optional(),
+    creditReservationId: safeId.optional(),
+    approvalStatus: z.enum(['not_required_for_planning', 'approved']),
+    creditStatus: z.enum(['not_required', 'reserved']),
+    privateOutputScopeId: safeId.optional(),
+  }).strict(),
+  idempotencyKey: safeId,
+  attemptId: safeId,
+  requiredQualificationMode: requestedMode,
+  dependencyChain: z.array(safeId).max(64),
+}).strict().superRefine((request, context) => {
+  const musicTechnicalJob = request.requestedJobType === 'edit_music_technical_automation'
+  if (musicTechnicalJob !== Boolean(request.musicTechnicalAutomationExtension)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'The Music technical-automation extension is required exclusively by its exact Sound job.',
+    })
+  }
+  if (request.musicTechnicalAutomationExtension) {
+    const extension = request.musicTechnicalAutomationExtension
+    const delegated = request.assignmentScope.authorizedAudioWriteRanges.find((range) =>
+      range.rangeId === extension.delegatedRange.rangeId)
+    if (!delegated || delegated.startFrame !== extension.delegatedRange.startFrame ||
+      delegated.endFrameExclusive !== extension.delegatedRange.endFrameExclusive) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical delegation does not match exact Sound authority.' })
+    }
+    if (request.callerSkillKey !== 'music' || request.requestedCapabilityKey !== 'sound.edit_music_technical_automation') {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation requires the exact Music caller and Sound capability.' })
+    }
+    const source = request.sourceAudioRefs[0]
+    if (!source || request.sourceAudioRefs.length !== 1) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical automation requires exactly one approved Music source.' })
+    } else if (source.durationFrames !== undefined && extension.sourceEndFrameExclusive > source.durationFrames) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Music technical source range exceeds approved source duration.' })
+    }
+  }
+  const peer = request.callerType !== 'head_of_orchestra'
+  if (peer && !request.peerAuthority) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Peer Sound requests require peerAuthority.' })
+  }
+  if (!peer && !request.orchestraRunId) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Head Sound requests require orchestraRunId.' })
+  }
+  const executing = request.executionAuthority.requestedMode === 'private_internal' ||
+    request.executionAuthority.requestedMode === 'production'
+  if (executing && (
+    !request.executionAuthority.approvedPlanSnapshotId ||
+    !request.executionAuthority.approvedPlanSnapshotHash ||
+    !request.executionAuthority.privateOutputScopeId ||
+    request.executionAuthority.approvalStatus !== 'approved'
+  )) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Sound execution requires an approved snapshot and private output scope.',
+    })
+  }
+  if (request.costPolicy.allowProviderGeneration && executing && (
+    !request.executionAuthority.creditReservationId ||
+    request.executionAuthority.creditStatus !== 'reserved'
+  )) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Paid/provider Sound execution requires an active credit reservation.',
+    })
+  }
+  if (request.timelineManifestRef.checksumSha256 !== request.timelineManifestHash) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Timeline manifest hash mismatch.' })
+  }
+  if (!timelineRatesEqual(request.timelineRate, request.timelineManifestRate)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Timeline manifest rate mismatch.' })
+  }
+  if (request.timelineManifestRef.timelineRate &&
+    !timelineRatesEqual(request.timelineRate, request.timelineManifestRef.timelineRate)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Timeline artifact rate mismatch.' })
+  }
+  if (request.timelineFps !== undefined &&
+    Math.abs(request.timelineFps - timelineRateDisplayFps(request.timelineRate)) > 1e-9) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Display FPS does not match the exact timeline rate.' })
+  }
+  const sourceIds = new Set([
+    ...request.sourceAudioRefs.map((item) => item.artifactId),
+    ...request.referenceSoundInputs.map((item) => item.artifactId),
+  ])
+  const rangeIds = new Set(request.assignmentScope.authorizedAudioWriteRanges.map((item) => item.rangeId))
+  const eventIds = new Set(request.eventAnchors.map((item) => item.anchorId))
+  const directiveKeys = new Set<string>()
+  for (const directive of request.operationDirectives ?? []) {
+    if (!request.requestedOperations.includes(directive.operation)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} was not requested.` })
+    }
+    if (directive.targetRangeId && !rangeIds.has(directive.targetRangeId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} references an unauthorized range.` })
+    }
+    if (directive.eventAnchorId && !eventIds.has(directive.eventAnchorId)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} references an unknown event.` })
+    }
+    if (directive.sourceArtifactIds?.some((artifactId) => !sourceIds.has(artifactId))) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directive ${directive.directiveId} references an unauthorized source.` })
+    }
+    const key = `${directive.operation}:${directive.targetRangeId ?? '*'}:${directive.eventAnchorId ?? '*'}`
+    if (directiveKeys.has(key)) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: `Operation directives collide at ${key}.` })
+    }
+    directiveKeys.add(key)
+  }
+})
+
+export type CanonicalSoundRequest = z.infer<typeof canonicalSoundRequestSchema>
+
+const cueDecision = z.object({
+  cueRequestId: safeId,
+  decision: z.enum(['accepted', 'adjusted', 'merged', 'replaced', 'rejected', 'blocked']),
+  reason: boundedText,
+  resultingCueId: safeId.optional(),
+}).strict()
+
+const soundCue = z.object({
+  cueId: safeId,
+  eventAnchorId: safeId.optional(),
+  startFrame: z.number().int().nonnegative(),
+  hitFrame: z.number().int().nonnegative().optional(),
+  endFrameExclusive: z.number().int().positive(),
+  acquisitionDecision: z.enum([
+    'preserve_project_source', 'internal_library', 'project_source_extraction',
+    'generate_original', 'no_sound',
+  ]),
+  miniSkillKey: safeId,
+  layerRole: z.enum([
+    'background_texture', 'subtle_support', 'foreground_action', 'hero_impact',
+    'transition_accent', 'room_tone', 'repair_layer',
+  ]),
+  storyReason: boundedText,
+  selectedSourceArtifactId: safeId.optional(),
+  sourceVisualHash: sha256.optional(),
+  sourceVisualArtifactId: safeId.optional(),
+  staleIfVisualChanges: z.boolean(),
+}).strict().superRefine((cue, context) => {
+  if (cue.endFrameExclusive <= cue.startFrame) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: 'Cue end must exceed start.' })
+  }
+})
+
+export type CanonicalSoundCue = z.infer<typeof soundCue>
+
+const mixAutomation = z.object({
+  cueId: safeId,
+  baseGainDb: z.number().min(-96).max(24),
+  gainEnvelope: z.array(z.object({
+    frame: z.number().int().nonnegative(),
+    gainDb: z.number().min(-96).max(24),
+  }).strict()).min(2).max(512),
+  fadeInFrames: z.number().int().nonnegative(),
+  fadeOutFrames: z.number().int().nonnegative(),
+  dialogueDuckingDb: z.number().min(-48).max(0),
+  duckAttackFrames: z.number().int().nonnegative(),
+  duckReleaseFrames: z.number().int().nonnegative(),
+  protectedSpeechRanges: z.array(soundFrameRangeSchema).max(512),
+  musicInteractionPolicy: z.enum(['none', 'avoid_accents', 'duck_approved_music', 'fade_approved_music']),
+  eqProfile: z.enum(['neutral', 'speech_safe', 'distance_rolloff', 'impact_control', 'room_match']),
+  dynamicsProfile: z.enum(['none', 'gentle_compression', 'peak_limiter']),
+  pan: z.number().min(-1).max(1),
+  distance: z.enum(['close', 'medium', 'distant']),
+  roomMatch: z.enum(['dry', 'source_room', 'small_room', 'large_room', 'exterior']),
+  headroomDb: z.number().min(0.1).max(24),
+}).strict()
+
+export type SoundMixAutomation = z.infer<typeof mixAutomation>
+
+const compiledSoundMixRenderSpecSchema = z.object({
+  schemaVersion: z.literal('compiled-sound-mix-render-spec-v1'),
+  renderSpecId: safeId,
+  cueId: safeId,
+  targetRange: soundFrameRangeSchema,
+  timelineRate: timelineRateSchema,
+  gainEnvelope: z.array(z.object({
+    frame: z.number().int().nonnegative(),
+    gainDb: z.number().min(-96).max(24),
+  }).strict()).min(2).max(512),
+  fadeInFrames: z.number().int().nonnegative(),
+  fadeOutFrames: z.number().int().nonnegative(),
+  protectedSpeechRanges: z.array(soundFrameRangeSchema).max(512),
+  dialogueDuckingDb: z.number().min(-48).max(0),
+  duckAttackFrames: z.number().int().nonnegative(),
+  duckReleaseFrames: z.number().int().nonnegative(),
+  eqProfile: z.enum(['neutral', 'speech_safe', 'distance_rolloff', 'impact_control', 'room_match']),
+  dynamicsProfile: z.enum(['none', 'gentle_compression', 'peak_limiter']),
+  perspectiveProfile: z.enum(['close', 'medium', 'distant']),
+  roomProfile: z.enum(['dry', 'source_room', 'small_room', 'large_room', 'exterior']),
+  pan: z.number().min(-1).max(1),
+  headroomDb: z.number().min(0.1).max(24),
+  sourceArtifactIds: z.array(safeId).min(1).max(128),
+  renderSpecHash: sha256,
+}).strict()
+
+export type CompiledSoundMixRenderSpec = z.infer<typeof compiledSoundMixRenderSpecSchema>
+
+export interface SoundStepOutputBundle {
+  schemaVersion: 'sound-step-output-bundle-v1'
+  unitId: string
+  stepKey: string
+  declaredOutputBindings: string[]
+  outputsByBinding: Record<string, unknown>
+  outputArtifactRefs: SoundArtifactRef[]
+  bundleHash: string
+}
+
+const soundToolOperationBindingSchema = z.object({
+  toolKey: safeId,
+  toolVersion: safeId,
+  toolManifestHash: sha256,
+  operationKey: safeId,
+  operationVersion: safeId,
+  operationProfileKey: safeId,
+  operationProfileVersion: safeId,
+  qualificationEvidenceRefs: z.array(safeId).max(128),
+  rateCardSnapshotId: safeId.optional(),
+  licenseEvidenceRef: safeId.optional(),
+}).strict()
+
+export const soundToolRouteBindingSchema = z.object({
+  routeKey: safeId,
+  routeVersion: safeId,
+  routeHash: sha256,
+  qualificationEvidenceRefs: z.array(safeId).max(128),
+  toolOperations: z.array(soundToolOperationBindingSchema).min(1).max(128),
+}).strict()
+
+export const canonicalSoundResultSchema = z.object({
+  schemaVersion: z.literal(CANONICAL_SOUND_RESULT_SCHEMA_VERSION),
+  requestId: safeId,
+  soundSkillKey: z.literal('sound'),
+  soundSkillVersion: safeId,
+  soundManifestHash: sha256,
+  capabilityEntryKey: safeId,
+  qualificationStatusUsed: z.enum([
+    'declared', 'implementation_pending', 'planning_qualified',
+    'internal_execution_qualified', 'production_qualified', 'blocked', 'retired',
+  ]),
+  toolRouteBindings: z.array(soundToolRouteBindingSchema).min(1).max(32),
+  status: z.enum(['planned', 'completed', 'partial', 'no_sound', 'blocked', 'needs_visual_revision', 'stale']),
+  studyReport: z.record(z.string(), z.unknown()).optional(),
+  soundDesignPlan: z.record(z.string(), z.unknown()).optional(),
+  cueManifest: z.object({
+    cueManifestId: safeId,
+    version: z.number().int().positive(),
+    cues: z.array(soundCue).max(10_000),
+  }).strict(),
+  mixAutomationManifest: z.object({
+    mixManifestId: safeId,
+    version: z.number().int().positive(),
+    automations: z.array(mixAutomation).max(10_000),
+  }).strict(),
+  qaReport: z.record(z.string(), z.unknown()),
+  soundDna: z.object({
+    schemaVersion: z.literal('sound-dna-v1'),
+    measured: z.record(z.string(), z.unknown()),
+    declared: z.record(z.string(), z.unknown()),
+    sourceArtifactIds: z.array(safeId).min(1).max(128),
+    evidenceHash: sha256,
+  }).strict().optional(),
+  synchronizationPlacements: z.array(z.object({
+    placementId: safeId,
+    cueId: safeId,
+    sourceArtifactId: safeId,
+    requestedEventFrame: z.number().int().nonnegative(),
+    detectedTransientFrame: z.number().int().nonnegative(),
+    appliedOffsetFrames: z.number().int(),
+    resultingTransientFrame: z.number().int().nonnegative(),
+    residualErrorFrames: z.number().int().nonnegative(),
+    timelineRate: timelineRateSchema,
+    placementManifestHash: sha256,
+  }).strict()).max(10_000).optional(),
+  executionUnits: z.array(z.object({
+    unitId: safeId,
+    operationSpecHash: sha256,
+    routeKey: safeId,
+    routeVersion: safeId,
+    routeHash: sha256,
+    status: z.enum(['completed', 'no_sound', 'planning_only', 'failed', 'blocked']),
+    targetRange: soundFrameRangeSchema,
+    outputArtifactIds: z.array(safeId).max(128),
+    mutationReceiptIds: z.array(safeId).max(128),
+    providerAttemptIds: z.array(safeId).max(128),
+    failureCode: safeId.optional(),
+    receiptHash: sha256,
+  }).strict()).max(10_000).optional(),
+  mutationReceipts: z.array(z.object({
+    mutationReceiptId: safeId,
+    unitId: safeId,
+    artifactId: safeId,
+    range: soundFrameRangeSchema,
+    sourceArtifactIds: z.array(safeId).max(128),
+    sourceHashes: z.array(sha256).max(128),
+    outputHash: sha256,
+    sourceUnchanged: z.literal(true),
+    receiptHash: sha256,
+  }).strict()).max(10_000).optional(),
+  revisionEvidence: z.object({
+    previousRequestId: safeId,
+    invalidatedRanges: z.array(soundFrameRangeSchema).min(1).max(512),
+    preservedArtifactIds: z.array(safeId).max(10_000),
+    preservedExecutionUnitIds: z.array(safeId).max(10_000),
+    replacementCueIds: z.array(safeId).max(10_000),
+    replacedUnitIds: z.array(safeId).max(10_000),
+    unaffectedArtifactsReused: z.boolean(),
+  }).strict().optional(),
+  candidateProcessingReceipts: z.array(z.object({
+    receiptId: safeId,
+    unitId: safeId,
+    candidateArtifactId: safeId,
+    processedArtifactIds: z.array(safeId).min(1).max(32),
+    studyEvidenceHash: sha256,
+    qaEvidenceHash: sha256,
+    eligibleForSelection: z.boolean(),
+    receiptHash: sha256,
+  }).strict()).max(512).optional(),
+  candidateSelectionRecord: z.object({
+    recordId: safeId,
+    unitId: safeId,
+    candidateArtifactIds: z.array(safeId).min(1).max(128),
+    selectedArtifactId: safeId,
+    selectionPolicyKey: safeId,
+    recordHash: sha256,
+  }).strict().optional(),
+  mixRenderSpecifications: z.array(compiledSoundMixRenderSpecSchema).max(10_000).optional(),
+  musicTechnicalAutomationReceipt: z.object({
+    schemaVersion: z.literal('sound.music_technical_automation_receipt.v2'),
+    bindingId: safeId,
+    musicCueId: safeId,
+    receivedExtensionHash: sha256,
+    appliedExtensionHash: sha256,
+    appliedOperationReceipts: z.array(z.object({
+      operation: safeId,
+      operationVersion: safeId,
+      requestedParameters: z.record(z.string(), z.unknown()),
+      receivedParametersHash: sha256,
+      compiledParameters: z.record(z.string(), z.unknown()),
+      compiledParametersHash: sha256,
+      appliedParameters: z.record(z.string(), z.unknown()),
+      appliedParametersHash: sha256,
+      sourceArtifactIds: z.array(safeId).min(1).max(128),
+      sourceArtifactHashes: z.array(sha256).min(1).max(128),
+      outputArtifactIds: z.array(safeId).max(128),
+      outputArtifactHashes: z.array(sha256).max(128),
+      exactMutationRange: soundFrameRangeSchema,
+      handlerIdentity: safeId,
+      routeKey: safeId,
+      routeVersion: safeId,
+      routeHash: sha256,
+      measuredQaRefs: z.array(safeId).max(128),
+      measuredQaResult: z.enum(['passed', 'warning', 'needs_review', 'failed']),
+      appliedExecutionEvidence: z.record(z.string(), z.unknown()),
+      appliedExecutionEvidenceHash: sha256,
+      status: z.literal('completed'),
+      receiptHash: sha256,
+    }).strict()).min(1).max(64),
+    measuredTechnicalQaRefs: z.array(safeId).min(1).max(128),
+    measuredSynchronizationQaRefs: z.array(safeId).min(1).max(128),
+    measuredMixQaRefs: z.array(safeId).min(1).max(128),
+    receiptHash: sha256,
+  }).strict().optional(),
+  fallbackEvidence: z.array(z.object({
+    fallbackEvidenceId: safeId,
+    unitId: safeId,
+    failedRouteKey: safeId,
+    failedRouteVersion: safeId,
+    failureCode: safeId,
+    decision: z.enum(['blocked', 'use_declared_fallback', 'no_sound']),
+    selectedFallbackRouteKey: safeId.optional(),
+    selectedFallbackRouteVersion: safeId.optional(),
+    freshApprovalRequired: z.boolean(),
+    reconciliationCompleted: z.boolean(),
+    evidenceHash: sha256,
+  }).strict()).max(10_000).optional(),
+  candidateAssetVersions: z.array(soundArtifactRefSchema).max(128),
+  selectedAssetVersions: z.array(soundArtifactRefSchema).max(128),
+  privateSoundStemArtifacts: z.array(soundArtifactRefSchema).max(128),
+  modifiedAudioRanges: z.array(soundFrameRangeSchema).max(512),
+  modifiedVisualRanges: z.array(soundFrameRangeSchema).max(512),
+  proposedVisualRevisions: z.array(z.object({
+    proposalId: safeId,
+    range: soundFrameRangeSchema,
+    requestedChange: z.enum(['slow', 'extend', 'shorten', 'move']),
+    reason: boundedText,
+    routeThroughHead: z.literal(true),
+  }).strict()).max(128),
+  sourceVisualHashes: z.array(sha256).max(2_000),
+  sourceAudioHashes: z.array(sha256).max(2_000),
+  sourceTimingHash: sha256,
+  timelineRate: timelineRateSchema,
+  callerReceipt: z.object({
+    receiptId: safeId,
+    callerType: safeId,
+    callerSkillKey: safeId,
+    parentWorkItemId: safeId.optional(),
+    authorityHash: sha256,
+    authorityEscalated: z.literal(false),
+    requestResolved: z.boolean(),
+    finalRenderOwnedBySound: z.literal(false),
+    musicCompositionPerformed: z.literal(false),
+  }).strict(),
+  acceptedCueRequests: z.array(cueDecision).max(10_000),
+  mergedCueRequests: z.array(cueDecision).max(10_000),
+  rejectedCueRequests: z.array(cueDecision).max(10_000),
+  blockedCueRequests: z.array(cueDecision).max(10_000),
+  unresolvedDependencies: z.array(safeId).max(512),
+  staleIfSourceChanges: z.literal(true),
+  approvalStatus: z.enum(['not_required_for_planning', 'approved', 'blocked']),
+  creditStatus: z.enum(['estimate_only', 'reserved', 'not_required', 'blocked']),
+  providerStatus: z.enum(['not_needed', 'planned', 'fixture_qualified', 'submitted', 'succeeded', 'failed', 'unknown', 'blocked']),
+  workerStatus: z.enum(['not_needed', 'planned', 'completed', 'failed', 'blocked']),
+  artifactStatus: z.enum(['none', 'planned', 'private_ready', 'failed', 'blocked']),
+  qaStatus: z.enum(['not_run', 'planned', 'passed', 'warning', 'failed', 'blocked']),
+  finalHandoffTargets: z.array(z.enum(['head_of_orchestra', 'final_composition'])).max(2),
+  actualExecutionEvidence: z.object({
+    routeExecutionId: safeId,
+    elapsedMilliseconds: z.number().int().nonnegative(),
+    actualCreditsCharged: z.number().nonnegative(),
+    actualLocalInfrastructureCostUsd: z.number().nonnegative(),
+    providerCostEvidenceId: safeId.optional(),
+    providerAttemptId: safeId.optional(),
+    providerAttemptStatus: safeId.optional(),
+    providerAttemptIds: z.array(safeId).max(10_000).optional(),
+    toolRuntimeEvidenceIds: z.array(safeId).max(128),
+    outputArtifactHashes: z.array(sha256).max(128),
+    stepOutputBundles: z.array(z.object({
+      schemaVersion: z.literal('sound-step-output-bundle-v1'),
+      unitId: safeId,
+      stepKey: safeId,
+      declaredOutputBindings: z.array(safeId).max(128),
+      outputsByBinding: z.record(safeId, z.unknown()),
+      outputArtifactRefs: z.array(soundArtifactRefSchema).max(128),
+      bundleHash: sha256,
+    }).strict()).max(10_000),
+    stepEvidence: z.array(z.object({
+      stepKey: safeId,
+      toolKey: safeId,
+      operationKey: safeId,
+      unitId: safeId,
+      status: z.enum(['completed', 'skipped_optional', 'skipped_condition', 'failed', 'blocked_dependency']),
+      startedAt: z.string().datetime().optional(),
+      completedAt: z.string().datetime().optional(),
+      elapsedMilliseconds: z.number().int().nonnegative(),
+      outputArtifactIds: z.array(safeId).max(128),
+      outputArtifactHashes: z.array(sha256).max(128),
+      outputBindingKeys: z.array(safeId).max(128),
+      evidenceRefs: z.array(safeId).max(128),
+      operationSpecHash: sha256,
+      operationReceiptHash: sha256.optional(),
+      failureCode: safeId.optional(),
+    }).strict()).max(10_000),
+  }).strict().optional(),
+  finalCompositionHandoff: z.object({
+    handoffId: safeId,
+    soundArtifactIds: z.array(safeId).max(128),
+    finalSoundArtifactReferences: z.array(soundArtifactRefSchema).max(128),
+    intentionalNoSound: z.boolean(),
+    authorizedRanges: z.array(soundFrameRangeSchema).max(512),
+    cueManifestId: safeId,
+    mixManifestId: safeId,
+    qaEvidenceHash: sha256,
+    timelineManifestHash: sha256,
+    timelineRate: timelineRateSchema,
+    finalRenderOwnedBySound: z.literal(false),
+  }).strict().optional(),
+}).strict().superRefine((result, context) => {
+  if (result.status === 'completed') {
+    if (!result.finalCompositionHandoff ||
+      result.finalCompositionHandoff.finalSoundArtifactReferences.length === 0 ||
+      result.finalCompositionHandoff.intentionalNoSound) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Completed Sound execution requires at least one exact final Sound artifact reference.',
+      })
+    }
+  }
+  if (result.status === 'no_sound' && result.finalCompositionHandoff &&
+    !result.finalCompositionHandoff.intentionalNoSound) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'No-Sound handoff must be explicitly intentional.',
+    })
+  }
+})
+
+export type CanonicalSoundResult = z.infer<typeof canonicalSoundResultSchema>
+
+function stableSoundValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(stableSoundValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .filter(([key, item]) => key !== 'extensionHash' && item !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => [key, stableSoundValue(item)]))
+  }
+  return value
+}
+
+export function hashSoundMusicTechnicalAutomation(value: unknown): string {
+  return createHash('sha256').update(JSON.stringify(stableSoundValue(value))).digest('hex')
+}
+
+const forbiddenKeys = [
+  /raw.*prompt/i,
+  /credential/i,
+  /api.*key/i,
+  /secret/i,
+  /signed.*url/i,
+  /^url$/i,
+  /local.*path/i,
+  /shell/i,
+  /executable/i,
+  /ffmpeg.*arg/i,
+  /filter.*graph/i,
+  /provider.*transport/i,
+]
+
+function inspectForbidden(value: unknown, path: string, errors: string[]): void {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) => inspectForbidden(item, `${path}[${index}]`, errors))
+    return
+  }
+  if (value && typeof value === 'object') {
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+      if (forbiddenKeys.some((pattern) => pattern.test(key))) errors.push(`forbidden_key:${path}.${key}`)
+      inspectForbidden(item, `${path}.${key}`, errors)
+    }
+    return
+  }
+  if (typeof value === 'string' && (
+    /^(?:https?|file):\/\//i.test(value) ||
+    value.startsWith('/') ||
+    /^[A-Za-z]:\\/.test(value)
+  )) {
+    errors.push(`forbidden_location:${path}`)
+  }
+}
+
+export function parseCanonicalSoundRequest(input: unknown): CanonicalSoundRequest {
+  const errors: string[] = []
+  inspectForbidden(input, 'request', errors)
+  if (errors.length > 0) throw new Error(`Unsafe canonical Sound request: ${errors.join(', ')}`)
+  return canonicalSoundRequestSchema.parse(input)
+}
+
+export function parseCanonicalSoundResult(input: unknown): CanonicalSoundResult {
+  return canonicalSoundResultSchema.parse(input)
+}
+
+export function soundQualificationMode(request: CanonicalSoundRequest): SoundRequestedMode {
+  return request.requiredQualificationMode
+}
+
+export function qualificationFromRequest(
+  request: CanonicalSoundRequest,
+): SkillQualificationStatus | undefined {
+  return request.requiredQualificationMode === 'planning' ? 'planning_qualified' : undefined
+}

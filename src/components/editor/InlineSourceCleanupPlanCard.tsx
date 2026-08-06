@@ -7,6 +7,7 @@ import type {
   EditPlan,
   TrimRiskLevel,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineSourceCleanupPlanCardProps = {
@@ -90,7 +91,7 @@ export function InlineSourceCleanupPlanCard({
         <Badge accent={confirmed ? 'success' : 'warning'}>{confirmed ? 'Confirmed' : 'Needs confirmation'}</Badge>
         <Badge accent="blue">No random cuts</Badge>
         <Badge accent="cyan">Meaning first</Badge>
-        <Badge accent="violet">Mock only</Badge>
+        <Badge accent="violet">Internal plan</Badge>
       </div>
 
       {!confirmed && (
@@ -173,7 +174,7 @@ export function InlineSourceCleanupPlanCard({
               <article className="retake-group-item" key={group.id}>
                 <strong>{group.label}</strong>
                 <span>Selected: {group.selectedClipId ?? 'review required'}</span>
-                <small>{group.reason}</small>
+                <small>{hideInternalToolNamesInCopy(group.reason)}</small>
               </article>
             ))}
           </div>
@@ -184,14 +185,14 @@ export function InlineSourceCleanupPlanCard({
         <div className="cleanup-user-review-note">
           <strong>User review needed</strong>
           {sourceCleanupPlan.userReviewItems.slice(0, 4).map((item) => (
-            <span key={item.id}>{item.clipId}: {item.reason}</span>
+            <span key={item.id}>{item.clipId}: {hideInternalToolNamesInCopy(item.reason)}</span>
           ))}
         </div>
       )}
 
       <div className="cleanup-mock-note">
         {sourceCleanupPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

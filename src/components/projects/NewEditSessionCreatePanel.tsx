@@ -21,7 +21,6 @@ import { Badge } from '../Badge'
 import { Button } from '../Button'
 import { Card } from '../Card'
 import { NewEditSessionAspectRatioPicker } from './NewEditSessionAspectRatioPicker'
-import { NewEditSessionEditLevelPicker } from './NewEditSessionEditLevelPicker'
 import { NewEditSessionPlatformTargetPicker } from './NewEditSessionPlatformTargetPicker'
 import { NewEditSessionPreferencePicker } from './NewEditSessionPreferencePicker'
 import { NewEditSessionSourceNotes } from './NewEditSessionSourceNotes'
@@ -44,10 +43,14 @@ export function NewEditSessionCreatePanel({
   projectId,
 }: NewEditSessionCreatePanelProps) {
   function createInitialForm(): NewEditSessionFormState {
-    return applyProjectEditDefaultPreferenceToNewEditForm(
+    const initial = applyProjectEditDefaultPreferenceToNewEditForm(
       createDefaultNewEditSessionFormState(),
       readProjectEditDefaultPreferenceSettings(),
     )
+    return {
+      ...initial,
+      selectedEditLevel: 'premium',
+    }
   }
 
   const [form, setForm] = useState<NewEditSessionFormState>(() => createInitialForm())
@@ -142,11 +145,6 @@ export function NewEditSessionCreatePanel({
           <NewEditSessionPlatformTargetPicker
             onChange={(platformTarget) => updateForm({ platformTarget })}
             value={form.platformTarget}
-          />
-
-          <NewEditSessionEditLevelPicker
-            onChange={(selectedEditLevel) => updateForm({ selectedEditLevel })}
-            value={form.selectedEditLevel}
           />
 
           <NewEditSessionPreferencePicker

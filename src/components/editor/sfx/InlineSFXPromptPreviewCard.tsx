@@ -1,5 +1,6 @@
 import { Badge } from '../../Badge'
 import type { SFXPromptPlanRecord } from '../../../types'
+import { hideInternalToolNamesInCopy } from '../../../lib/tool-display-labels'
 import { formatSFXLabel, formatSFXSeconds, sfxProviderLabels } from './sfxChatUiData'
 
 type InlineSFXPromptPreviewCardProps = {
@@ -8,31 +9,32 @@ type InlineSFXPromptPreviewCardProps = {
 
 export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPreviewCardProps) {
   const isMMAudioPrompt = promptPlan.provider === 'mmaudio_v2' || promptPlan.provider === 'mmaudio_v'
+  const isMireloRoute = promptPlan.provider === 'mirelo_sfx_v1_6' || promptPlan.provider === 'mirelo_sfx_v1_5'
 
   return (
     <section className="inline-chat-card sfx-inline-card sfx-prompt-preview-card">
       <div className="inline-card-heading">
         <div>
-          <span className="section-eyebrow">Prompt preview</span>
+          <span className="section-eyebrow">Audio asset brief</span>
           <h3>{sfxProviderLabels[promptPlan.provider]}</h3>
         </div>
         <Badge accent="cyan">{formatSFXLabel(promptPlan.promptStyle)}</Badge>
       </div>
 
-      <p className="sfx-muted-note">Prompt preview only. ReeditPro has not called Mirelo or MMAudio.</p>
-      {isMMAudioPrompt && <p className="sfx-muted-note">MMAudio V2 prompts are short because the model is expected to use video context.</p>}
-      {promptPlan.provider === 'mirelo_sfx_v1_5' && <p className="sfx-muted-note">Mirelo prompts are production-style and more controlled.</p>}
+      <p className="sfx-muted-note">Audio asset brief only. ReeditPro has not called an SFX asset service.</p>
+      {isMMAudioPrompt && <p className="sfx-muted-note">Draft route briefs stay short because they are expected to use video context.</p>}
+      {isMireloRoute && <p className="sfx-muted-note">This route is fixture-qualified for controlled planning and remains blocked for production execution.</p>}
 
       <div className="sfx-score-grid">
-        <span><strong>Model</strong>{promptPlan.modelName}</span>
+        <span><strong>Route status</strong>Gated until approval</span>
         <span><strong>Needed duration</strong>{formatSFXSeconds(promptPlan.durationNeededSeconds)}</span>
         <span><strong>Generate duration</strong>{formatSFXSeconds(promptPlan.durationToGenerateSeconds)}</span>
         <span><strong>Duration policy</strong>{formatSFXLabel(promptPlan.generatedDurationPolicy)}</span>
       </div>
 
       <details className="sfx-details">
-        <summary>Full provider prompt</summary>
-        <p className="sfx-prompt-text">{promptPlan.prompt || 'No generation prompt created.'}</p>
+        <summary>Full audio asset brief</summary>
+        <p className="sfx-prompt-text">{promptPlan.prompt || 'No audio asset brief created.'}</p>
         {promptPlan.negativePrompt && <p className="sfx-negative-prompt-text">{promptPlan.negativePrompt}</p>}
       </details>
 
@@ -48,7 +50,7 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
       </details>
 
       {promptPlan.promptWarnings.length > 0 && (
-        <p className="sfx-warning">{promptPlan.promptWarnings.join(' ')}</p>
+        <p className="sfx-warning">{hideInternalToolNamesInCopy(promptPlan.promptWarnings.join(' '))}</p>
       )}
     </section>
   )

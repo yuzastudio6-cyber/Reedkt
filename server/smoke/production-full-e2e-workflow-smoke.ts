@@ -86,9 +86,16 @@ check(audio.qaSummary.total > 0, 'Audio scenario must emit audio QA.')
 check(JSON.stringify(audio.qaSummary).includes('music_over_voice') || JSON.stringify(audio.stageResults).includes('duck_music_under_voice'), 'Audio scenario must address music over voice.')
 
 const finalRender = await runProductionWorkflowScenario({ scenario: scenarioById('final-render-export'), mode: 'dry_run' })
-check(finalRender.stageResults.some((stage) => stage.stage === 'final_render_export_execution' && Number(stage.outputSummary.commandPlans) >= 3), 'Final render scenario must create command plans without tools.')
+const finalRenderStage = finalRender.stageResults.find((stage) => stage.stage === 'final_render_export_execution')
+check(
+  finalRenderStage?.status === 'blocked' &&
+    Number(finalRenderStage.outputSummary.commandPlans) === 0 &&
+    finalRenderStage.skippedReasons.includes('approved_4k_export_coverage_missing') &&
+    finalRenderStage.skippedReasons.includes('approved_edit_reservation_required_for_final_export'),
+  'Final render dry-run must fail closed before command planning without approved 4K coverage and reservation authority.',
+)
 check(!finalRender.finalDeliveryAllowed, 'final_delivery must not pass without final_export artifact.')
-check(finalRender.artifactSummary.byType.render_manifest !== undefined, 'Final render scenario must create render_manifest artifact.')
+check(finalRender.artifactSummary.byType.render_manifest === undefined, 'Blocked final render must not fabricate a render_manifest artifact.')
 
 const localDev = await runProductionWorkflowScenario({ scenario: scenarioById('final-render-export'), mode: 'local_dev_generated_fixture' })
 check(localDev.artifactSummary.tempFixtureCleanupRequired.length === 0, 'Local-dev generated fixture mode must not leave temp fixture cleanup debt in dry-run-safe smoke.')
@@ -112,7 +119,7 @@ console.log(JSON.stringify({
     'sample_first_enhancement',
     'color_qa',
     'audio_music_over_voice',
-    'final_render_command_plans',
+    'final_render_command_planning_fail_closed',
     'final_delivery_rules',
     'local_dev_generated_fixture_safe',
     'no_provider_cloud_model_download',

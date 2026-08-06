@@ -79,15 +79,25 @@ function includesAny(text: string, terms: string[]) {
 }
 
 function hasPeople(input: PlannerInput, report?: VideoUnderstandingReport) {
-  const text = [
-    input.customInstructions,
+  const explicitSourceText = [
     ...input.clips.map((clip) => `${clip.fileName} ${clip.detectedType} ${clip.notes ?? ''} ${clip.sourceRole ?? ''}`),
-    report?.visualUnderstanding.speakerFraming,
-    ...(report?.visualUnderstanding.faceSafeZoneNotes ?? []),
-    ...(report?.clips.flatMap((clip) => clip.faceOrSpeakerNotes) ?? []),
   ].filter(Boolean).join(' ').toLowerCase()
+  const explicitVisualInstruction = /\b(?:face|person|people|speaker)\s+(?:is\s+|are\s+)?(?:visible|on[ -]camera|in (?:the )?frame)|\b(?:protect|preserve)\s+(?:the\s+)?skin tones?\b/i
 
-  return includesAny(text, ['speaker', 'face', 'person', 'people', 'couple', 'founder', 'talking', 'reaction'])
+  return report?.clips.some((clip) => clip.detectedRole === 'speaker') === true ||
+    input.workflowType === 'talking_head_personal_brand' ||
+    input.workflowType === 'podcast_clip' ||
+    explicitVisualInstruction.test(input.customInstructions) ||
+    includesAny(explicitSourceText, [
+      'speaker',
+      'face',
+      'person',
+      'people',
+      'couple',
+      'founder',
+      'talking',
+      'reaction',
+    ])
 }
 
 function chooseColorGradeStyle(params: CreateColorPipelinePlanParams): ColorGradeStyleId {
@@ -123,8 +133,14 @@ function chooseIntensity(style: ColorGradeStyleId, editLevel: PlannerInput['edit
     : getColorGradePreset(style).intensityDefault
 }
 
-function stagesForPlan(editLevel: PlannerInput['editLevel'], hasAssets: boolean, hasAiVideoAssets: boolean): ColorPipelineStage[] {
-  const stages: ColorPipelineStage[] = ['source_analysis', 'basic_correction', 'shot_matching']
+function stagesForPlan(
+  editLevel: PlannerInput['editLevel'],
+  hasMultipleClips: boolean,
+  hasAssets: boolean,
+  hasAiVideoAssets: boolean,
+): ColorPipelineStage[] {
+  const stages: ColorPipelineStage[] = ['source_analysis', 'basic_correction']
+  if (hasMultipleClips) stages.push('shot_matching')
 
   if (editLevel !== 'basic') {
     stages.push('look_grade')
@@ -141,12 +157,33 @@ function stagesForPlan(editLevel: PlannerInput['editLevel'], hasAssets: boolean,
 }
 
 function toolForOperation(operation: ColorOperationId, editLevel: PlannerInput['editLevel']): ColorPipelineToolId {
-  if (operation.startsWith('qa_')) return operation === 'qa_background_match_check' ? 'opencv' : 'opencv'
+  if (operation === 'qa_histogram_check') return editLevel === 'premium' ? 'opencv' : 'ffmpeg'
+  if (operation.startsWith('qa_')) return 'opencv'
   if (operation === 'generated_asset_match') return editLevel === 'premium' ? 'openimageio' : 'sharp'
   if (operation === 'ai_video_asset_match' || operation === 'panel_background_match') return 'sharp'
-  if (operation === 'look_transform' || operation === 'display_transform') return editLevel === 'basic' ? 'ffmpeg' : 'opencolorio'
+  if (operation === 'look_transform' || operation === 'display_transform') {
+    return editLevel === 'premium' ? 'opencolorio' : 'ffmpeg'
+  }
   if (operation === 'output_color_transform' || operation === 'lut_application') return editLevel === 'premium' ? 'opencolorio' : 'ffmpeg'
   return 'ffmpeg'
+}
+
+const ASSET_ONLY_COLOR_OPERATIONS = new Set<ColorOperationId>([
+  'ai_video_asset_match',
+  'generated_asset_match',
+  'panel_background_match',
+  'qa_background_match_check',
+])
+
+function sourceApplicableOperations(input: {
+  operations: ColorOperationId[]
+  hasPeople: boolean
+  hasMultipleClips: boolean
+}): ColorOperationId[] {
+  return input.operations.filter((operation) =>
+    !ASSET_ONLY_COLOR_OPERATIONS.has(operation) &&
+    (operation !== 'skin_tone_protection' || input.hasPeople) &&
+    (operation !== 'shot_matching' || input.hasMultipleClips))
 }
 
 function statusForTool(toolId: ColorPipelineToolId): ColorPipelineStatus {
@@ -239,7 +276,7 @@ function createOperation(params: {
     status: statusForTool(toolId),
     qaChecks: [
       `${operationLabels[params.operation]} matches ${label(params.colorGradeStyle)} plan.`,
-      'Planning only; no real color processing is executed in the frontend.',
+      'Color processing remains backend-gated until approved execution.',
     ],
     workerNotes: [
       toolId === 'remotion_preview' || toolId === 'planning_only'
@@ -260,10 +297,18 @@ function projectOperations(params: {
 }) {
   const operations = getColorOperationsForGrade(params.colorGradeStyle, params.input.editLevel)
   const ids = unique<ColorOperationId>([
-    ...operations.correctionOperations,
+    ...sourceApplicableOperations({
+      operations: operations.correctionOperations,
+      hasPeople: params.hasPeople,
+      hasMultipleClips: params.hasMultipleClips,
+    }),
     ...(params.hasPeople ? ['skin_tone_protection' as ColorOperationId] : []),
     ...(params.hasMultipleClips ? ['shot_matching' as ColorOperationId] : []),
-    ...operations.lookOperations,
+    ...sourceApplicableOperations({
+      operations: operations.lookOperations,
+      hasPeople: params.hasPeople,
+      hasMultipleClips: params.hasMultipleClips,
+    }),
     'qa_histogram_check',
     ...(params.hasPeople ? ['qa_skin_tone_check' as ColorOperationId] : []),
   ])
@@ -306,7 +351,11 @@ function clipPlans(params: {
     const clipText = `${clip.fileName} ${clip.detectedType} ${clip.notes ?? ''} ${clip.sourceRole ?? ''}`.toLowerCase()
     const skinToneProtection = params.peopleVisible || includesAny(clipText, ['speaker', 'face', 'person', 'people', 'talking'])
     const correctionOperations = unique<ColorOperationId>([
-      ...operations.correctionOperations,
+      ...sourceApplicableOperations({
+        operations: operations.correctionOperations,
+        hasPeople: skinToneProtection,
+        hasMultipleClips,
+      }),
       ...(qualityIssues.includes('low_light') || qualityIssues.includes('underexposed') ? ['shadow_control' as ColorOperationId] : []),
       ...(qualityIssues.includes('overexposed') ? ['highlight_recovery' as ColorOperationId] : []),
       ...(qualityIssues.includes('blurry') ? ['sharpening' as ColorOperationId] : []),
@@ -322,7 +371,11 @@ function clipPlans(params: {
       referenceClipId: referenceClipId === clip.id ? undefined : referenceClipId,
       scope: 'clip',
     }))
-    const lookOperations = (params.input.editLevel === 'basic' ? [] : operations.lookOperations).map((operation) => createOperation({
+    const lookOperations = sourceApplicableOperations({
+      operations: params.input.editLevel === 'basic' ? [] : operations.lookOperations,
+      hasPeople: skinToneProtection,
+      hasMultipleClips,
+    }).map((operation) => createOperation({
       colorGradeStyle: params.colorGradeStyle,
       editLevel: params.input.editLevel,
       idPrefix: `color-clip-${clip.id}`,
@@ -411,7 +464,7 @@ function assetMatchPlans(params: {
         qaChecks: [
           `${aiVideoAsset ? 'AI video' : 'Generated asset'} color matches ${label(params.colorGradeStyle)}.`,
           'Panel background match is planned; transparent AI-video background is not the default.',
-          'No real color QA is executed in this frontend mock.',
+          'Color QA remains backend-gated until approved execution.',
         ],
         notes: [
           aiVideoAsset
@@ -425,21 +478,12 @@ function assetMatchPlans(params: {
     })
 }
 
-function toolsPlanned(params: {
-  editLevel: PlannerInput['editLevel']
-  colorGradeStyle: ColorGradeStyleId
-  hasAssetPlans: boolean
-  hasQualityIssues: boolean
-}): ColorPipelineToolId[] {
+function toolsPlanned(operations: ColorOperationPlan[]): ColorPipelineToolId[] {
   return unique([
     'planning_only',
-    'ffmpeg',
     'remotion_preview',
-    params.editLevel !== 'basic' ? 'opencolorio' : undefined,
-    params.editLevel === 'premium' && params.hasAssetPlans ? 'openimageio' : undefined,
-    params.hasAssetPlans || params.hasQualityIssues ? 'opencv' : undefined,
-    params.hasAssetPlans || params.hasQualityIssues ? 'sharp' : undefined,
-  ].filter(Boolean) as ColorPipelineToolId[])
+    ...operations.map((operation) => operation.toolId),
+  ])
 }
 
 export function createColorPipelinePlan(params: CreateColorPipelinePlanParams): ColorPipelinePlan {
@@ -449,8 +493,6 @@ export function createColorPipelinePlan(params: CreateColorPipelinePlanParams): 
   const panelBackgroundColor = params.rendererCompositionPlan?.panelBackgroundColor ?? '#f8fafc'
   const visualAssets = params.visualAssetPlan ?? []
   const hasAiVideoAssets = visualAssets.some(isAiVideoAsset)
-  const hasQualityIssues = Boolean(params.videoUnderstandingReport?.visualUnderstanding.colorLightingIssues.some((issue) => issue !== 'none')) ||
-    params.input.clips.some((clip) => clipQualityIssues(clip.id, params.videoUnderstandingReport).length > 0)
   const clipColorPlans = clipPlans({
     colorGradeStyle,
     input: params.input,
@@ -473,26 +515,31 @@ export function createColorPipelinePlan(params: CreateColorPipelinePlanParams): 
     intensity,
     panelBackgroundColor,
   })
+  const allOperations = [
+    ...projectOps,
+    ...clipColorPlans.flatMap((clip) => [...clip.correctionOperations, ...clip.lookOperations]),
+    ...assetPlans.flatMap((asset) => asset.operations),
+  ]
   const preset = getColorGradePreset(colorGradeStyle)
 
   return {
     id: `color-pipeline-${params.input.editingCategory}-${params.input.editLevel}`,
-    summary: `${label(colorGradeStyle)} color pipeline planned with ${clipColorPlans.length} clip plan${clipColorPlans.length === 1 ? '' : 's'} and ${assetPlans.length} asset match plan${assetPlans.length === 1 ? '' : 's'}; no real color processing runs in this frontend mock.`,
+    summary: `${label(colorGradeStyle)} color pipeline planned with ${clipColorPlans.length} clip plan${clipColorPlans.length === 1 ? '' : 's'} and ${assetPlans.length} asset match plan${assetPlans.length === 1 ? '' : 's'}; color processing remains backend-gated until approved execution.`,
     colorGradeStyle,
     intensity,
-    stages: stagesForPlan(params.input.editLevel, assetPlans.length > 0, hasAiVideoAssets),
-    toolsPlanned: toolsPlanned({
-      colorGradeStyle,
-      editLevel: params.input.editLevel,
-      hasAssetPlans: assetPlans.length > 0,
-      hasQualityIssues,
-    }),
+    stages: stagesForPlan(
+      params.input.editLevel,
+      params.input.clips.length > 1,
+      assetPlans.length > 0,
+      hasAiVideoAssets,
+    ),
+    toolsPlanned: toolsPlanned(allOperations),
     projectOperations: projectOps,
     clipPlans: clipColorPlans,
     assetMatchPlans: assetPlans,
     tierNotes: [
       params.input.editLevel === 'basic'
-        ? 'Basic includes professional clean correction, skin tone protection, and basic shot matching as baseline.'
+        ? 'Basic includes professional clean correction, with skin protection and shot matching only when the source requires them.'
         : params.input.editLevel === 'pro'
           ? 'Pro adds style-specific grading, generated asset matching, and stronger QA; no Veo.'
           : 'Premium adds scene-by-scene color planning, stronger asset harmonization, and deeper QA; Veo remains generation fallback only, not color.',
@@ -508,9 +555,9 @@ export function createColorPipelinePlan(params: CreateColorPipelinePlanParams): 
       'Color pipeline stays deterministic and planning-only.',
     ],
     limitations: [
-      'Mock-only color pipeline plan.',
-      'No real media, color, histogram, skin tone, or lighting analysis has run.',
-      'No FFmpeg, OpenColorIO, OpenImageIO, OpenCV, Sharp, Remotion rendering, backend worker, or provider call is executed.',
+      'Review-only color pipeline plan.',
+      'Media, color, histogram, skin tone, and lighting analysis remain backend-gated.',
+      'FFmpeg, OpenColorIO, OpenImageIO, OpenCV, Sharp, rendering, backend workers, and provider calls require approved execution gates.',
       'Future workers must execute only approved plan snapshots after plan and credit approval.',
     ],
     status: 'planned',

@@ -206,7 +206,7 @@ export function createMeaningPreservationValidationPlan(
       userReviewItems: [missing],
       globalRules: ['Source cleanup decisions are required before meaning validation.'],
       qaChecks: ['Meaning preservation blocked until source cleanup exists.'],
-      limitations: ['Mock-only validation; no real semantic/transcript/media analysis has run.'],
+      limitations: ['Review-only validation; semantic, transcript, and media analysis remain backend-gated.'],
       notes: ['Create SourceCleanupPlan before TrimReviewPlan.'],
     }
   }
@@ -316,13 +316,13 @@ export function createMeaningPreservationValidationPlan(
       'Proof/evidence context preserved or reviewed.',
       'Tutorial/product continuity preserved or reviewed.',
       'Retake ambiguity surfaced when confidence is low.',
-      'No real semantic/media analysis is implied.',
+      'Semantic and media analysis remain backend-gated.',
     ],
     limitations: [
-      'Mock-only meaning preservation validation.',
-      'No real semantic analysis has run.',
-      'No real transcript comparison has run.',
-      'No real audio/video/media analysis has run.',
+      'Review-only meaning preservation validation.',
+      'Semantic analysis remains backend-gated.',
+      'Transcript comparison remains backend-gated.',
+      'Audio, video, and media analysis remain backend-gated.',
       'Future transcript/media workers are required for production-grade meaning validation.',
     ],
     notes: [

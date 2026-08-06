@@ -36,9 +36,59 @@ assert.ok(missingIncident.hardBlockers.some((blocker) => blocker.includes('Incid
 
 const betaReport = buildBetaReadinessReport({ e2eDryRunPassed: true, safetyDocsExist: true, costDocsExist: true })
 assert.equal(betaReport.goNoGo.internalDryRunTestingAllowed, true, 'internal dry-run testing can be allowed after E2E and safety docs')
-assert.equal(betaReport.goNoGo.externalBetaAllowed, false, 'external beta must remain blocked')
+assert.equal(betaReport.goNoGo.externalBetaAllowed, false, 'external beta must stay blocked by default until evidence gates pass')
 
 const betaNoGo = evaluateBetaGoNoGo({ e2eDryRunPassed: false, safetyDocsExist: true, costDocsExist: true })
 assert.equal(betaNoGo.internalDryRunTestingAllowed, false, 'internal dry-run testing should require E2E dry-run pass')
+
+const passingChecklist = betaReport.checklist.map((item) => ({
+  ...item,
+  status: 'passed' as const,
+  notes: [...item.notes, 'Production hardening smoke supplied owner approval evidence.'],
+}))
+const passedReadinessReport = {
+  ...buildProductionReadinessReport({ includeCommandPlans: false }),
+  overallStatus: 'passed' as const,
+  blockerSummaries: [],
+  warnings: [],
+}
+const productionReadyReport = buildProductionHardeningReport({
+  readinessReport: passedReadinessReport,
+  securityReviewOptions: {
+    modelWeightStatuses: ['approved'],
+    storagePrivate: true,
+  },
+  e2eDryRunPassed: true,
+  incidentRunbookExists: true,
+  productionReadinessBlocked: false,
+  modelWeightsApproved: true,
+  launchCoreToolsReady: true,
+  ffmpegLgplReviewed: true,
+  renderReadinessApproved: true,
+  revideoRequested: false,
+  idempotencyGatesPresent: true,
+  approvedSnapshotGatesPresent: true,
+  costControlsApproved: true,
+  concurrencyLimitsPresent: true,
+  retentionDeletionPolicyPresent: true,
+  auditLoggingPolicyPresent: true,
+  blockingQAFailuresPresent: false,
+  productionDeploymentApproved: true,
+  securityApproved: true,
+  storageApproved: true,
+  modelLicensesApproved: true,
+  licenseModelWeightReviewApproved: true,
+  privateMediaApproval: true,
+  artifactPrivacyEvidence: true,
+  billingLedgerPersistenceApproved: true,
+  observabilityApproved: true,
+  legalApproval: true,
+  betaChecklist: passingChecklist,
+})
+assert.equal(productionReadyReport.productionReadyAllowed, true, 'production hardening should become production-ready when every evidence gate passes')
+assert.equal(productionReadyReport.limitedBetaAllowed, true, 'limited beta should become allowed when external-beta evidence gates pass')
+assert.equal(productionReadyReport.overallStatus, 'production_ready', 'overall status should reflect the highest passed launch gate')
+assert.equal(productionReadyReport.blockers.length, 0, 'passing production hardening report should have no blockers')
+assert.equal(productionReadyReport.scorecard.productionReadyAllowed, true, 'scorecard should mirror production readiness')
 
 console.log('production-hardening-smoke passed')

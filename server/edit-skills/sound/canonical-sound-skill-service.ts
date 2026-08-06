@@ -1,0 +1,560 @@
+import { createHash } from 'node:crypto'
+import type { SkillCapabilityManifest } from '../core/skill-capability-manifest-types'
+import {
+  applyLocalizedSoundRevision,
+  runCanonicalSoundController,
+  validatePlannedCueAuthority,
+  type SoundControllerContext,
+  type SoundControllerResponse,
+} from '../../sound/sound-controller'
+import {
+  parseCanonicalSoundRequest,
+  parseCanonicalSoundResult,
+  parseSoundMusicTwoSourceCrossfadeRequest,
+  validateSoundMusicTwoSourceCrossfadeReceipt,
+  compileSoundMusicTwoSourceCrossfadeParameters,
+  soundMusicTwoSourceCrossfadeRequestedParameters,
+  hashSoundMusicTechnicalAutomation,
+  type CanonicalSoundCue,
+  type CanonicalSoundRequest,
+  type CanonicalSoundResult,
+  type SoundFrameRange,
+  type SoundMusicTwoSourceCrossfadeRequest,
+  type SoundMusicTwoSourceCrossfadeReceipt,
+} from '../../sound/sound-contracts'
+import { evaluateSoundScopeGuard, validateSoundResultAuthority } from '../../sound/sound-scope-guard'
+import { createSoundMixAutomation } from '../../sound/sound-sync-mix-qa'
+import {
+  analyzeWholeVideoSoundContinuity,
+  type SoundContinuitySceneEvidence,
+  type SoundWholeVideoContinuityReport,
+} from '../../sound/sound-continuity'
+import { soundSkillCapabilityManifest } from './sound-capability-manifest'
+import { resolveSoundCapabilityEntry } from './sound-admission'
+import {
+  CanonicalSoundRouteExecutor,
+  type ApprovedSoundExecutionPackage,
+  type CanonicalSoundArtifactResolver,
+  type SoundRouteExecutionResult,
+} from './sound-route-executor'
+import type { CanonicalSoundExecutionQaReport } from '../../sound/sound-execution-qa'
+import {
+  compileCanonicalSoundExecutionGraph,
+  type SoundExecutionGraph,
+} from './sound-execution-graph'
+import { framesToSeconds } from '../core/timeline-rate'
+import {
+  measureSoundRmsWindows,
+  measureSoundTwoSourceCrossfade,
+  runSoundLocalAudioExecution,
+  validateSoundAudioFile,
+} from '../../sound/sound-local-audio-processor'
+import { evaluateSoundToolRouteAdmission, getSoundToolRouteManifest } from '../../sound/sound-tool-route-manifest'
+import { probeCanonicalSoundRuntimeStatuses } from '../../sound/sound-runtime-status'
+
+export interface LoadedCanonicalSoundContext {
+  controllerContext: SoundControllerContext
+  continuitySceneEvidence: SoundContinuitySceneEvidence[]
+}
+
+export interface CanonicalSoundContextLoader {
+  load(request: CanonicalSoundRequest): Promise<LoadedCanonicalSoundContext>
+}
+
+export interface CanonicalSoundPlanResult {
+  schemaVersion: 'canonical-sound-plan-result-v1'
+  request: CanonicalSoundRequest
+  controller: SoundControllerResponse
+  continuity: SoundWholeVideoContinuityReport
+  selectedRoute: ApprovedSoundExecutionPackage['selectedRoute']
+  executionGraph: SoundExecutionGraph
+}
+
+export interface PeerCapabilityViewRequest {
+  callerType: Exclude<CanonicalSoundRequest['callerType'], 'head_of_orchestra'>
+  callerSkillKey: string
+  jobType: string
+}
+
+export interface PeerSoundCapabilityView {
+  skillKey: 'sound'
+  skillVersion: string
+  manifestHash: string
+  accepted: boolean
+  capabilityKey?: string
+  supportedScopes: string[]
+  requiredInputs: string[]
+  optionalInputs: string[]
+  producedArtifactTypes: string[]
+  qualificationStatus?: string
+  evidenceLevel?: string
+  peerMayInvokeSoundToolsDirectly: false
+  peerMaySupplyProviderPayload: false
+  peerMayDispatchWorkers: false
+  limitations: string[]
+}
+
+export interface CanonicalSoundRevisionRequest {
+  request: CanonicalSoundRequest
+  previousResult: CanonicalSoundResult
+  invalidatedRanges: SoundFrameRange[]
+  replacementCues?: CanonicalSoundCue[]
+}
+
+export interface CanonicalSoundRevisionExecutionRequest extends CanonicalSoundRevisionRequest {
+  execution: {
+    packageId: string
+    approvedWorkItemId: string
+    selectedOptionalStepKeys: string[]
+  }
+}
+
+export interface CanonicalSoundQaRequest {
+  executionPackage: ApprovedSoundExecutionPackage
+}
+
+export interface CanonicalSoundQaResult {
+  result: CanonicalSoundResult
+  qa: CanonicalSoundExecutionQaReport
+  continuity: SoundWholeVideoContinuityReport
+}
+
+export interface CanonicalSoundMusicCrossfadeResult {
+  outputArtifact: SoundMusicTwoSourceCrossfadeReceipt['outputArtifact']
+  receipt: SoundMusicTwoSourceCrossfadeReceipt
+}
+
+export interface CanonicalSoundSkillService {
+  getCapabilityManifest(): Readonly<SkillCapabilityManifest>
+  getPeerCapabilityView(request: PeerCapabilityViewRequest): PeerSoundCapabilityView
+  plan(request: CanonicalSoundRequest): Promise<CanonicalSoundPlanResult>
+  execute(executionPackage: ApprovedSoundExecutionPackage): Promise<CanonicalSoundResult>
+  planRevision(request: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult>
+  executeRevision(request: CanonicalSoundRevisionExecutionRequest): Promise<CanonicalSoundResult>
+  revise(request: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult>
+  qa(request: CanonicalSoundQaRequest): Promise<CanonicalSoundQaResult>
+  executeMusicTwoSourceCrossfade(request: SoundMusicTwoSourceCrossfadeRequest): Promise<CanonicalSoundMusicCrossfadeResult>
+}
+
+export class StandaloneCanonicalSoundSkillService implements CanonicalSoundSkillService {
+  readonly #context: CanonicalSoundContextLoader
+  readonly #executor: CanonicalSoundRouteExecutor
+  readonly #artifacts: CanonicalSoundArtifactResolver
+
+  constructor(input: {
+    artifacts: CanonicalSoundArtifactResolver
+    context?: CanonicalSoundContextLoader
+    mirelo?: ConstructorParameters<typeof CanonicalSoundRouteExecutor>[0]['mirelo']
+  }) {
+    this.#artifacts = input.artifacts
+    this.#context = input.context ?? new StructuredRequestSoundContextLoader()
+    this.#executor = new CanonicalSoundRouteExecutor({ artifacts: input.artifacts, mirelo: input.mirelo })
+  }
+
+  getCapabilityManifest(): Readonly<SkillCapabilityManifest> {
+    return soundSkillCapabilityManifest
+  }
+
+  getPeerCapabilityView(request: PeerCapabilityViewRequest): PeerSoundCapabilityView {
+    const capability = resolveSoundCapabilityEntry({ jobType: request.jobType })
+    const accepted = Boolean(capability?.acceptedCallerTypes.includes(request.callerType))
+    return {
+      skillKey: 'sound',
+      skillVersion: soundSkillCapabilityManifest.skillVersion,
+      manifestHash: soundSkillCapabilityManifest.manifestHash,
+      accepted,
+      ...(capability ? {
+        capabilityKey: capability.capabilityKey,
+        qualificationStatus: capability.qualificationStatus,
+        evidenceLevel: capability.evidenceLevel,
+      } : {}),
+      supportedScopes: [...(capability?.supportedScopes ?? [])],
+      requiredInputs: [...(capability?.requiredInputs ?? [])],
+      optionalInputs: [...(capability?.optionalInputs ?? [])],
+      producedArtifactTypes: [...(capability?.producedArtifactTypes ?? [])],
+      peerMayInvokeSoundToolsDirectly: false,
+      peerMaySupplyProviderPayload: false,
+      peerMayDispatchWorkers: false,
+      limitations: [...(capability?.knownLimitations ?? ['unsupported_sound_job'])],
+    }
+  }
+
+  async plan(input: CanonicalSoundRequest): Promise<CanonicalSoundPlanResult> {
+    const request = parseCanonicalSoundRequest(input)
+    const guard = evaluateSoundScopeGuard(request)
+    if (!guard.ok) throw new Error(`Canonical Sound request rejected: ${guard.code}:${guard.errors.join(',')}`)
+    const context = await this.#context.load(request)
+    const controller = runCanonicalSoundController(request, context.controllerContext)
+    const continuity = analyzeWholeVideoSoundContinuity({
+      reportId: `sound.continuity.plan.${request.requestId}`,
+      timelineRate: request.timelineRate,
+      scenes: context.continuitySceneEvidence,
+      cues: controller.result.cueManifest.cues,
+      maximumCueDensityPerMinute: request.userSoundPreferences.maximumCueDensityPerMinute,
+    })
+    controller.result.soundDesignPlan = {
+      ...controller.result.soundDesignPlan,
+      wholeVideoContinuity: continuity,
+    }
+    const selected = controller.result.toolRouteBindings[0]
+    if (!selected) throw new Error('Canonical Sound planning produced no exact route binding.')
+    const executionGraph = compileCanonicalSoundExecutionGraph({ request, controller })
+    return {
+      schemaVersion: 'canonical-sound-plan-result-v1', request, controller, continuity,
+      executionGraph,
+      selectedRoute: {
+        routeKey: selected.routeKey, routeVersion: selected.routeVersion, routeHash: selected.routeHash,
+      },
+    }
+  }
+
+  async execute(executionPackage: ApprovedSoundExecutionPackage): Promise<CanonicalSoundResult> {
+    return (await this.#executeWithEvidence(executionPackage)).result
+  }
+
+  async executeMusicTwoSourceCrossfade(
+    input: SoundMusicTwoSourceCrossfadeRequest,
+  ): Promise<CanonicalSoundMusicCrossfadeResult> {
+    const request = parseSoundMusicTwoSourceCrossfadeRequest(input)
+    if (request.soundSkillVersion !== soundSkillCapabilityManifest.skillVersion ||
+      request.soundManifestHash !== soundSkillCapabilityManifest.manifestHash) {
+      throw new Error('Music two-source crossfade has a stale Sound manifest binding.')
+    }
+    const leftFrames = request.leftSourceRange.endFrameExclusive - request.leftSourceRange.startFrame
+    const rightFrames = request.rightSourceRange.endFrameExclusive - request.rightSourceRange.startFrame
+    const expectedOutputDurationFrames = leftFrames + rightFrames - request.crossfadeDurationFrames
+    const authorizedDuration = request.authorizedWriteRange.endFrameExclusive - request.authorizedWriteRange.startFrame
+    const expectedOverlapStart = request.authorizedWriteRange.startFrame + leftFrames - request.crossfadeDurationFrames
+    if (authorizedDuration !== expectedOutputDurationFrames ||
+      request.targetOverlapRange.startFrame !== expectedOverlapStart ||
+      request.targetOverlapRange.endFrameExclusive !== expectedOverlapStart + request.crossfadeDurationFrames) {
+      throw new Error('Music two-source crossfade target range is not the exact authorized output composition.')
+    }
+    const route = getSoundToolRouteManifest('sound.route.edit.music_two_source_crossfade.v2', '2.0.0')
+    if (!route || route.routeHash !== request.soundRouteHash || route.routeKey !== request.soundRouteKey ||
+      route.routeVersion !== request.soundRouteVersion) {
+      throw new Error('Canonical two-source Music crossfade route is unavailable or stale.')
+    }
+    const admission = evaluateSoundToolRouteAdmission({
+      routeKey: route.routeKey, routeVersion: route.routeVersion,
+      capabilityKey: 'sound.crossfade_music_sources', jobType: 'crossfade_music_sources',
+      mode: 'preview_execution', scope: 'boundary', availableInputKeys: [...route.requiredInputs],
+      availableQaKeys: [...route.stepQa, ...route.finalOutputQa, ...route.integrationQa],
+      runtimeStatuses: await probeCanonicalSoundRuntimeStatuses(), budgetApproved: true,
+      rateCardSnapshotIds: {}, licenseEvidenceRefs: { ffmpeg: 'sound.license.ffmpeg_private_local_evidence.v1' },
+    })
+    if (!admission.admitted || !admission.binding) {
+      throw new Error(`Canonical two-source Music crossfade route admission failed: ${admission.reasons.join(',')}.`)
+    }
+    const [left, right] = await Promise.all([
+      this.#artifacts.resolve(request.leftSource), this.#artifacts.resolve(request.rightSource),
+    ])
+    if (left.approvedRoot !== right.approvedRoot) {
+      throw new Error('Music two-source crossfade inputs must share one approved private artifact root.')
+    }
+    const outputRoot = await this.#artifacts.privateOutputRoot(request.privateOutputScopeId)
+    const compiledParameters = compileSoundMusicTwoSourceCrossfadeParameters(request)
+    const local = await runSoundLocalAudioExecution({
+      schemaVersion: 'sound-local-audio-execution-v1',
+      executionId: `sound.music-crossfade.${request.requestId}`,
+      binding: {
+        soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
+        soundManifestHash: soundSkillCapabilityManifest.manifestHash,
+        capabilityKey: 'sound.crossfade_music_sources',
+        approvedPlanSnapshotId: request.approvedSnapshotId,
+        approvedPlanSnapshotHash: request.approvedSnapshotHash,
+        approvedWorkItemId: request.approvedWorkItemId,
+        privateOutputScopeId: request.privateOutputScopeId,
+        creditReservationId: request.creditReservationId,
+        idempotencyKey: request.idempotencyKey,
+        operationSpecHash: hashSoundMusicTechnicalAutomation(request),
+        timelineRate: request.timelineRate,
+        routeBinding: admission.binding,
+      },
+      operation: 'crossfade_music', operationProfileKey: 'sound.crossfade.music_two_source.v2',
+      sources: [
+        { artifact: request.leftSource, absolutePath: left.absolutePath },
+        { artifact: request.rightSource, absolutePath: right.absolutePath },
+      ],
+      approvedInputRoot: left.approvedRoot, privateOutputRoot: outputRoot,
+      outputRelativePath: `sound/${request.idempotencyKey}/music-two-source-crossfade.wav`,
+      outputArtifactId: `sound-music-crossfade-${request.requestId}`,
+      outputArtifactType: 'music_crossfade_audio', outputContentType: 'audio/wav',
+      parameters: compiledParameters,
+    })
+    const outputArtifact = local.outputArtifact
+    if (!outputArtifact) throw new Error('Music two-source crossfade produced no private output artifact.')
+    const resolvedOutput = await this.#artifacts.resolve(outputArtifact)
+    const outputStudy = await validateSoundAudioFile(resolvedOutput.absolutePath)
+    const overlapStartSeconds = framesToSeconds(leftFrames - request.crossfadeDurationFrames, request.timelineRate)
+    const overlapDurationSeconds = framesToSeconds(request.crossfadeDurationFrames, request.timelineRate)
+    const windowSeconds = Math.max(0.02, Math.min(0.1, overlapDurationSeconds / 8))
+    const windows = await measureSoundRmsWindows({ absolutePath: resolvedOutput.absolutePath, windows: [
+      { key: 'overlap_start', startSeconds: overlapStartSeconds,
+        endSeconds: overlapStartSeconds + windowSeconds },
+      { key: 'overlap_midpoint', startSeconds: overlapStartSeconds + overlapDurationSeconds / 2 - windowSeconds / 2,
+        endSeconds: overlapStartSeconds + overlapDurationSeconds / 2 + windowSeconds / 2 },
+      { key: 'overlap_end', startSeconds: overlapStartSeconds + overlapDurationSeconds - windowSeconds,
+        endSeconds: overlapStartSeconds + overlapDurationSeconds },
+    ] })
+    const twoSourceEvidence = await measureSoundTwoSourceCrossfade({
+      leftAbsolutePath: left.absolutePath,
+      rightAbsolutePath: right.absolutePath,
+      outputAbsolutePath: resolvedOutput.absolutePath,
+      leftSourceStartSeconds: compiledParameters.leftSourceStartSeconds,
+      leftSourceDurationSeconds: compiledParameters.leftSourceDurationSeconds,
+      rightSourceStartSeconds: compiledParameters.rightSourceStartSeconds,
+      crossfadeDurationSeconds: compiledParameters.crossfadeDurationSeconds,
+      curveType: request.curveType,
+    })
+    if (outputArtifact.durationFrames !== expectedOutputDurationFrames || outputStudy.clippingSampleCount !== 0 ||
+      outputStudy.truePeakDbtp === undefined || outputStudy.truePeakDbtp > -0.8 ||
+      !twoSourceEvidence.twoSourcePresencePassed || !twoSourceEvidence.curveWithinTolerance) {
+      throw new Error(`Music two-source crossfade failed duration, clipping, true-peak, source-presence, or curve QA: ${JSON.stringify(twoSourceEvidence)}.`)
+    }
+    const requestedParameters = soundMusicTwoSourceCrossfadeRequestedParameters(request)
+    const measuredQaCore = {
+      outputDurationFrames: outputArtifact.durationFrames,
+      expectedOutputDurationFrames,
+      truePeakDbtp: outputStudy.truePeakDbtp ?? null,
+      clippingSampleCount: outputStudy.clippingSampleCount,
+      overlapStartRmsDbfs: windows.find((window) => window.key === 'overlap_start')!.rmsDbfs,
+      overlapMidpointRmsDbfs: windows.find((window) => window.key === 'overlap_midpoint')!.rmsDbfs,
+      overlapEndRmsDbfs: windows.find((window) => window.key === 'overlap_end')!.rmsDbfs,
+      twoSourceEvidence,
+    }
+    const receiptCore: Omit<SoundMusicTwoSourceCrossfadeReceipt, 'receiptHash'> = {
+      schemaVersion: 'sound.music_two_source_crossfade_receipt.v2', requestId: request.requestId,
+      extensionHash: request.extensionHash,
+      routeKey: 'sound.route.edit.music_two_source_crossfade.v2', routeVersion: route.routeVersion,
+      routeHash: route.routeHash, operationKey: 'crossfade_music_two_source', operationVersion: '2.0.0',
+      operationProfileKey: 'sound.crossfade.music_two_source.v2',
+      leftSourceId: request.leftSource.artifactId, leftSourceHash: request.leftSource.checksumSha256,
+      rightSourceId: request.rightSource.artifactId, rightSourceHash: request.rightSource.checksumSha256,
+      outputArtifact, targetOverlapRange: structuredClone(request.targetOverlapRange),
+      crossfadeDurationFrames: request.crossfadeDurationFrames,
+      crossfadeDurationSamples: request.crossfadeDurationSamples, curveType: request.curveType,
+      requestedParameters, requestedParametersHash: hashSoundMusicTechnicalAutomation(requestedParameters),
+      compiledParameters, compiledParametersHash: hashSoundMusicTechnicalAutomation(compiledParameters),
+      appliedParameters: structuredClone(compiledParameters),
+      appliedParametersHash: hashSoundMusicTechnicalAutomation(compiledParameters),
+      measuredQa: { ...measuredQaCore, evidenceHash: hashSoundMusicTechnicalAutomation(measuredQaCore) },
+      status: 'passed',
+    }
+    const receipt: SoundMusicTwoSourceCrossfadeReceipt = {
+      ...receiptCore, receiptHash: hashSoundMusicTechnicalAutomation(receiptCore),
+    }
+    validateSoundMusicTwoSourceCrossfadeReceipt({ request, receipt })
+    return { outputArtifact, receipt }
+  }
+
+  async planRevision(input: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult> {
+    const planned = await this.plan(input.request)
+    const replacementCues = input.replacementCues ?? planned.controller.result.cueManifest.cues.filter((cue) =>
+      input.invalidatedRanges.some((range) => cue.startFrame < range.endFrameExclusive && cue.endFrameExclusive > range.startFrame))
+    const cues = applyLocalizedSoundRevision({
+      previous: input.previousResult,
+      invalidatedRanges: input.invalidatedRanges,
+      replacementCues,
+    })
+    if (!validatePlannedCueAuthority(planned.request, cues)) {
+      throw new Error('Localized Sound revision would exceed exact write authority.')
+    }
+    const protectedSpeechRanges = planned.controller.result.mixAutomationManifest.automations
+      .flatMap((automation) => automation.protectedSpeechRanges)
+    const automations = cues.map((cue) => createSoundMixAutomation({
+      cue,
+      protectedSpeechRanges,
+      timelineRate: planned.request.timelineRate,
+      musicContextPresent: Boolean(planned.request.musicContext),
+      approvedMusicAutomation: planned.request.musicContext?.allowedAutomation ?? [],
+    }))
+    const preservedMutationReceipts = (input.previousResult.mutationReceipts ?? []).filter((receipt) =>
+      !input.invalidatedRanges.some((range) =>
+        receipt.range.startFrame < range.endFrameExclusive &&
+        receipt.range.endFrameExclusive > range.startFrame))
+    const preservedArtifactIds = new Set(preservedMutationReceipts.map((receipt) => receipt.artifactId))
+    const preservedExecutionUnitIds = new Set(preservedMutationReceipts.map((receipt) => receipt.unitId))
+    const preservedSelected = input.previousResult.selectedAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedCandidates = input.previousResult.candidateAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedStems = input.previousResult.privateSoundStemArtifacts.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    return parseCanonicalSoundResult({
+      ...planned.controller.result,
+      status: 'planned',
+      cueManifest: {
+        ...planned.controller.result.cueManifest,
+        version: input.previousResult.cueManifest.version + 1,
+        cues,
+      },
+      mixAutomationManifest: {
+        ...planned.controller.result.mixAutomationManifest,
+        version: input.previousResult.mixAutomationManifest.version + 1,
+        automations,
+      },
+      candidateAssetVersions: preservedCandidates,
+      selectedAssetVersions: preservedSelected,
+      privateSoundStemArtifacts: preservedStems,
+      mutationReceipts: preservedMutationReceipts,
+      executionUnits: (input.previousResult.executionUnits ?? []).filter((unit) =>
+        preservedExecutionUnitIds.has(unit.unitId)),
+      revisionEvidence: {
+        previousRequestId: input.previousResult.requestId,
+        invalidatedRanges: input.invalidatedRanges,
+        preservedArtifactIds: [...preservedArtifactIds],
+        preservedExecutionUnitIds: [...preservedExecutionUnitIds],
+        replacementCueIds: replacementCues.map((cue) => cue.cueId),
+        replacedUnitIds: planned.executionGraph.units.map((unit) => unit.unitId),
+        unaffectedArtifactsReused: preservedArtifactIds.size > 0,
+      },
+      modifiedAudioRanges: [],
+      actualExecutionEvidence: undefined,
+      finalCompositionHandoff: undefined,
+      staleIfSourceChanges: true,
+    })
+  }
+
+  async revise(input: CanonicalSoundRevisionRequest): Promise<CanonicalSoundResult> {
+    return this.planRevision(input)
+  }
+
+  async executeRevision(input: CanonicalSoundRevisionExecutionRequest): Promise<CanonicalSoundResult> {
+    const plannedRevision = await this.planRevision(input)
+    const originalAuthority = input.request.assignmentScope.authorizedAudioWriteRanges
+    if (!input.invalidatedRanges.every((invalidated) => originalAuthority.some((authority) =>
+      invalidated.startFrame >= authority.startFrame &&
+      invalidated.endFrameExclusive <= authority.endFrameExclusive))) {
+      throw new Error('Executed Sound revision invalidation exceeds the original write authority.')
+    }
+    const revisionIdentity = createHash('sha256').update(JSON.stringify({
+      requestId: input.request.requestId,
+      invalidatedRanges: input.invalidatedRanges,
+      packageId: input.execution.packageId,
+    })).digest('hex').slice(0, 20)
+    const replacementRequest: CanonicalSoundRequest = structuredClone(input.request)
+    replacementRequest.requestId = `${input.request.requestId}.revision.${revisionIdentity}`
+    replacementRequest.idempotencyKey = `${input.request.idempotencyKey}.revision.${revisionIdentity}`
+    replacementRequest.attemptId = `${input.request.attemptId}.revision.${revisionIdentity}`
+    replacementRequest.assignmentScope.authorizedAudioWriteRanges = structuredClone(input.invalidatedRanges)
+    replacementRequest.assignmentScope.assignmentMode = input.invalidatedRanges.length > 1 ? 'multi_range' : 'range'
+    replacementRequest.eventAnchors = replacementRequest.eventAnchors.filter((event) =>
+      input.invalidatedRanges.some((range) =>
+        event.frame < range.endFrameExclusive &&
+        (event.endFrameExclusive ?? event.frame + 1) > range.startFrame))
+    const replacementPlan = await this.plan(replacementRequest)
+    const execution = await this.#executeWithEvidence({
+      schemaVersion: 'approved-sound-execution-package-v1',
+      packageId: input.execution.packageId,
+      approvedWorkItemId: input.execution.approvedWorkItemId,
+      request: replacementPlan.request,
+      plannedResult: replacementPlan.controller.result,
+      selectedRoute: replacementPlan.selectedRoute,
+      executionGraph: replacementPlan.executionGraph,
+      selectedOptionalStepKeys: input.execution.selectedOptionalStepKeys,
+      continuitySceneEvidence: replacementPlan.continuity.sceneEvidence,
+    })
+    const preservedArtifactIds = new Set(plannedRevision.revisionEvidence?.preservedArtifactIds ?? [])
+    const preservedSelected = plannedRevision.selectedAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedCandidates = plannedRevision.candidateAssetVersions.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const preservedStems = plannedRevision.privateSoundStemArtifacts.filter((artifact) =>
+      preservedArtifactIds.has(artifact.artifactId))
+    const selectedAssetVersions = uniqueSoundArtifacts([
+      ...preservedSelected,
+      ...execution.result.selectedAssetVersions,
+    ])
+    const privateSoundStemArtifacts = uniqueSoundArtifacts([
+      ...preservedStems,
+      ...execution.result.privateSoundStemArtifacts,
+    ])
+    const finalSoundArtifactReferences = uniqueSoundArtifacts([
+      ...preservedSelected,
+      ...preservedStems,
+      ...(execution.result.finalCompositionHandoff?.finalSoundArtifactReferences ?? []),
+      ...execution.result.selectedAssetVersions,
+    ])
+    return parseCanonicalSoundResult({
+      ...execution.result,
+      cueManifest: plannedRevision.cueManifest,
+      mixAutomationManifest: plannedRevision.mixAutomationManifest,
+      candidateAssetVersions: uniqueSoundArtifacts([
+        ...preservedCandidates,
+        ...execution.result.candidateAssetVersions,
+      ]),
+      selectedAssetVersions,
+      privateSoundStemArtifacts,
+      executionUnits: [
+        ...(plannedRevision.executionUnits ?? []),
+        ...(execution.result.executionUnits ?? []),
+      ],
+      mutationReceipts: [
+        ...(plannedRevision.mutationReceipts ?? []),
+        ...(execution.result.mutationReceipts ?? []),
+      ],
+      revisionEvidence: {
+        ...plannedRevision.revisionEvidence!,
+        replacedUnitIds: replacementPlan.executionGraph.units.map((unit) => unit.unitId),
+      },
+      modifiedAudioRanges: execution.result.modifiedAudioRanges,
+      finalCompositionHandoff: execution.result.finalCompositionHandoff ? {
+        ...execution.result.finalCompositionHandoff,
+        soundArtifactIds: finalSoundArtifactReferences.map((artifact) => artifact.artifactId),
+        finalSoundArtifactReferences,
+        authorizedRanges: input.request.assignmentScope.authorizedAudioWriteRanges,
+      } : undefined,
+      staleIfSourceChanges: true,
+    })
+  }
+
+  async qa(input: CanonicalSoundQaRequest): Promise<CanonicalSoundQaResult> {
+    const executed = await this.#executeWithEvidence(input.executionPackage)
+    return { result: executed.result, qa: executed.qa, continuity: executed.continuity }
+  }
+
+  async #executeWithEvidence(input: ApprovedSoundExecutionPackage): Promise<SoundRouteExecutionResult> {
+    const execution = await this.#executor.execute(input)
+    const authority = validateSoundResultAuthority(input.request, execution.result)
+    if (!authority.ok) {
+      throw new Error(`Executed Sound result violated authority: ${authority.code}:${authority.errors.join(',')}`)
+    }
+    return execution
+  }
+}
+
+export class StructuredRequestSoundContextLoader implements CanonicalSoundContextLoader {
+  async load(request: CanonicalSoundRequest): Promise<LoadedCanonicalSoundContext> {
+    const sceneIds = request.assignmentScope.sceneIds.length > 0
+      ? request.assignmentScope.sceneIds : ['sound-unassigned-scene']
+    const continuitySceneEvidence = sceneIds.map((sceneId, index) => {
+      const range = request.assignmentScope.inspectRanges[index] ??
+        request.assignmentScope.inspectRanges[0] ?? request.assignmentScope.authorizedAudioWriteRanges[0]!
+      const events = request.eventAnchors.filter((event) => event.sceneId === sceneId || sceneIds.length === 1)
+      const environment = events.find((event) => event.environment)?.environment
+      return {
+        sceneId,
+        range,
+        ...(environment ? { acousticEnvironment: environment } : {}),
+        environmentChangeIntent: index === 0 ? 'unknown' as const : 'same_environment' as const,
+        ...(environment && request.sourceAudioRefs.length > 0
+          ? { roomToneOrAmbienceId: `source-room:${environment}` } : {}),
+        sourceAudioPresent: request.sourceAudioRefs.length > 0,
+        dialogueImportance: request.transcriptSpeechEvidenceRef ? 'high' as const : 'none' as const,
+        musicContext: request.musicContext ? 'bed' as const : 'none' as const,
+        foregroundPerspective: events[0]?.perspective,
+        backgroundPerspective: events[1]?.perspective,
+        intentionalSilence: events.length === 0 && request.userSoundPreferences.preserveEmotionalSilence,
+        cueIdentityKeys: events.map((event) => `${event.eventType}:${event.material ?? 'unknown'}`),
+      }
+    })
+    return { controllerContext: {}, continuitySceneEvidence }
+  }
+}
+
+function uniqueSoundArtifacts<T extends { artifactId: string; version: number }>(artifacts: T[]): T[] {
+  return [...new Map(artifacts.map((artifact) => [
+    `${artifact.artifactId}:${artifact.version}`, artifact,
+  ])).values()]
+}

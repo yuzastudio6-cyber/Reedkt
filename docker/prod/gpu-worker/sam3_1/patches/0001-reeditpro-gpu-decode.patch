@@ -1,0 +1,290 @@
+diff --git a/sam3/model/io_utils.py b/sam3/model/io_utils.py
+index 4e76f04..da8e2be 100644
+--- a/sam3/model/io_utils.py
++++ b/sam3/model/io_utils.py
+@@ -36,6 +36,8 @@ def load_resource_as_video_frames(
+     img_std: tuple[float, float, float] = (0.5, 0.5, 0.5),
+     async_loading_frames: bool = False,
+     video_loader_type: str = "cv2",
++    gpu_acceleration: bool = False,
++    gpu_device: Optional[torch.device] = None,
+ ) -> tuple[Any, int, int]:
+     """
+     Load video frames from either a video or an image (as a single-frame video).
+@@ -93,6 +95,8 @@ def load_resource_as_video_frames(
+             img_std=img_std,
+             async_loading_frames=async_loading_frames,
+             video_loader_type=video_loader_type,
++            gpu_acceleration=gpu_acceleration,
++            gpu_device=gpu_device,
+         )
+
+
+@@ -133,6 +137,8 @@ def load_video_frames(
+     img_std=(0.5, 0.5, 0.5),
+     async_loading_frames=False,
+     video_loader_type="cv2",
++    gpu_acceleration=False,
++    gpu_device=None,
+ ):
+     """
+     Load the video frames from video_path. The frames are resized to image_size as in
+@@ -168,6 +174,8 @@ def load_video_frames(
+             img_mean=img_mean,
+             img_std=img_std,
+             async_loading_frames=async_loading_frames,
++            gpu_acceleration=gpu_acceleration,
++            gpu_device=gpu_device,
+             video_loader_type=video_loader_type,
+         )
+     else:
+@@ -181,6 +189,8 @@ def load_video_frames(
+                 img_mean=img_mean,
+                 img_std=img_std,
+                 async_loading_frames=async_loading_frames,
++                gpu_acceleration=gpu_acceleration,
++                gpu_device=gpu_device,
+                 video_loader_type=video_loader_type,
+             )
+         except Exception as e:
+diff --git a/sam3/model/sam3_base_predictor.py b/sam3/model/sam3_base_predictor.py
+index 60885ef..aa8d6a8 100644
+--- a/sam3/model/sam3_base_predictor.py
++++ b/sam3/model/sam3_base_predictor.py
+@@ -133,6 +133,10 @@ class Sam3BasePredictor:
+             init_kwargs["async_loading_frames"] = self.async_loading_frames
+         if hasattr(self, "video_loader_type"):
+             init_kwargs["video_loader_type"] = self.video_loader_type
++        if getattr(self, "gpu_accelerated_decode", False):
++            init_kwargs["use_torchcodec"] = True
++            init_kwargs["gpu_acceleration"] = True
++            init_kwargs["gpu_device"] = torch.device("cuda")
+         inference_state = self.model.init_state(**init_kwargs)
+
+         if not session_id:
+diff --git a/sam3/model/sam3_multiplex_tracking.py b/sam3/model/sam3_multiplex_tracking.py
+index 1b6ce7d..46d4275 100644
+--- a/sam3/model/sam3_multiplex_tracking.py
++++ b/sam3/model/sam3_multiplex_tracking.py
+@@ -208,12 +208,17 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
+         self,
+         resource_path,
+         offload_video_to_cpu=False,
++        offload_state_to_cpu=False,
+         async_loading_frames=False,
+         use_torchcodec=False,
+         use_cv2=False,
+         input_is_mp4=False,
++        gpu_acceleration=False,
++        gpu_device=None,
+     ):
+         # Initialize inference state (inlined from Sam3DemoMixin.init_state)
++        if offload_state_to_cpu:
++            raise ValueError("SAM 3.1 multiplex state CPU offload is disabled")
+         if use_torchcodec:
+             video_loader_type = "torchcodec"
+         elif use_cv2:
+@@ -228,6 +233,8 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
+             img_std=self.image_std,
+             async_loading_frames=async_loading_frames,
+             video_loader_type=video_loader_type,
++            gpu_acceleration=gpu_acceleration,
++            gpu_device=gpu_device,
+         )
+         inference_state = {}
+         inference_state["image_size"] = self.image_size
+@@ -786,12 +791,21 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
+                     prod_outputs["out_centers"] = out_centers.cpu().numpy()
+
+-        outputs = {
+-            "out_obj_ids": out_obj_ids.cpu().numpy(),
+-            "out_probs": out_probs.cpu().numpy(),
+-            "out_boxes_xywh": out_boxes_xywh.cpu().numpy(),
+-            "out_binary_masks": out_binary_masks.cpu().numpy(),
+-            "frame_stats": out.get("frame_stats", None),
+-        } | prod_outputs
++        if getattr(self, "reeditpro_return_cuda_output_tensors", False):
++            outputs = {
++                "out_obj_ids": out_obj_ids,
++                "out_probs": out_probs,
++                "out_boxes_xywh": out_boxes_xywh,
++                "out_binary_masks": out_binary_masks,
++                "frame_stats": out.get("frame_stats", None),
++            } | prod_outputs
++        else:
++            outputs = {
++                "out_obj_ids": out_obj_ids.cpu().numpy(),
++                "out_probs": out_probs.cpu().numpy(),
++                "out_boxes_xywh": out_boxes_xywh.cpu().numpy(),
++                "out_binary_masks": out_binary_masks.cpu().numpy(),
++                "frame_stats": out.get("frame_stats", None),
++            } | prod_outputs
+
+         return outputs
+
+@@ -1025,15 +1041,10 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
+
+             # Apply non-overlapping constraints (per-frame operation)
+             if out_masks.shape[0] > 1:
+-                # Copy sam2_probs to CPU pinned memory then back to GPU for the operation
+-                out_sam2_probs_cpu = torch.empty(
+-                    out_sam2_probs.shape, dtype=out_sam2_probs.dtype, pin_memory=True
+-                )
+-                out_sam2_probs_cpu.copy_(out_sam2_probs, non_blocking=True)
+                 out_masks = (
+                     self.tracker._apply_object_wise_non_overlapping_constraints(
+                         out_masks.unsqueeze(1),
+-                        out_sam2_probs_cpu.unsqueeze(1).to(out_masks.device),
++                        out_sam2_probs.unsqueeze(1).to(out_masks.device),
+                         background_value=0,
+                     ).squeeze(1)
+                 ) > 0
+@@ -1083,6 +1094,66 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
+                 outputs.append(output_dict)
+             return outputs
+
++        # ReeditPro keeps substantive mask output on CUDA. The stock batched
++        # path allocates a potentially very large pinned CPU mask buffer before
++        # returning NumPy arrays, which defeats the GPU-only processing
++        # boundary and can dominate postprocessing for high-resolution video.
++        # Small metadata tensors may remain on their existing devices; the
++        # worker performs the only bounded mask transfer while serializing each
++        # admitted result artifact.
++        if getattr(self, "reeditpro_return_cuda_output_tensors", False):
++            frame_to_result = {result[0]: result for result in final_results}
++            frame_to_centers = {}
++            if all_centers is not None:
++                center_offset = 0
++                for frame_i, obj_ids, _, _, _ in final_results:
++                    count = obj_ids.shape[0]
++                    frame_to_centers[frame_i] = all_centers[
++                        center_offset : center_offset + count
++                    ]
++                    center_offset += count
++
++            outputs = []
++            for frame_i, data in enumerate(frame_data):
++                result = frame_to_result.get(frame_i)
++                if result is None:
++                    output_dict = {
++                        "out_obj_ids": torch.zeros(
++                            0, dtype=torch.int64, device=self.device
++                        ),
++                        "out_probs": torch.zeros(
++                            0, dtype=torch.float32, device=self.device
++                        ),
++                        "out_boxes_xywh": torch.zeros(
++                            0, 4, dtype=torch.float32, device=self.device
++                        ),
++                        "out_binary_masks": torch.zeros(
++                            0,
++                            H_video,
++                            W_video,
++                            dtype=torch.bool,
++                            device=self.device,
++                        ),
++                        "frame_stats": data[5],
++                    }
++                    if self.running_in_prod:
++                        output_dict["out_centers"] = torch.zeros(
++                            0, 2, dtype=torch.float32, device=self.device
++                        )
++                else:
++                    _, obj_ids, probs, boxes, masks = result
++                    output_dict = {
++                        "out_obj_ids": obj_ids,
++                        "out_probs": probs,
++                        "out_boxes_xywh": boxes,
++                        "out_binary_masks": masks,
++                        "frame_stats": data[5],
++                    }
++                    if self.running_in_prod:
++                        output_dict["out_centers"] = frame_to_centers[frame_i]
++                outputs.append(output_dict)
++            return outputs
++
+         # ========== Phase 7: Concatenate for batched GPU→CPU copy ==========
+         final_obj_ids = torch.cat([r[1] for r in final_results], dim=0)
+         final_probs = torch.cat([r[2] for r in final_results], dim=0)
+
+diff --git a/sam3/model/sam3_multiplex_video_predictor.py b/sam3/model/sam3_multiplex_video_predictor.py
+index b86c7f1..03f3652 100644
+--- a/sam3/model/sam3_multiplex_video_predictor.py
++++ b/sam3/model/sam3_multiplex_video_predictor.py
+@@ -37,12 +37,14 @@ class Sam3MultiplexVideoPredictor(Sam3BasePredictor):
+         default_output_prob_thresh=0.5,
+         async_loading_frames=True,
+         warm_up=False,
++        gpu_accelerated_decode=False,
+     ):
+         super().__init__()
+         self.model = model
+         self.session_expiration_sec = session_expiration_sec
+         self.default_output_prob_thresh = default_output_prob_thresh
+         self.async_loading_frames = async_loading_frames
++        self.gpu_accelerated_decode = gpu_accelerated_decode
+
+         # turn on tfloat32 for Ampere GPUs
+         torch.backends.cuda.matmul.allow_tf32 = True
+diff --git a/sam3/model_builder.py b/sam3/model_builder.py
+index 602906b..62e5d0a 100644
+--- a/sam3/model_builder.py
++++ b/sam3/model_builder.py
+@@ -1079,6 +1079,9 @@ def build_sam3_multiplex_video_predictor(
+     session_expiration_sec: int = 1200,
+     default_output_prob_thresh: float = 0.5,
+     async_loading_frames: bool = True,
++    gpu_accelerated_decode: bool = False,
++    strict_checkpoint_load: bool = False,
++    return_cuda_output_tensors: bool = False,
+ ):
+     """
+     Build a fully-initialized Sam3MultiplexVideoPredictor.
+@@ -1100,6 +1103,9 @@ def build_sam3_multiplex_video_predictor(
+         session_expiration_sec: Session expiration timeout in seconds
+         default_output_prob_thresh: Default probability threshold for output masks
+         async_loading_frames: Whether to load frames asynchronously
++        gpu_accelerated_decode: Use TorchCodec CUDA/NVDEC for video decoding
++        strict_checkpoint_load: Refuse any missing or unexpected checkpoint key
++        return_cuda_output_tensors: Preserve mask tensors on CUDA for bounded output serialization
+
+     Returns:
+         Sam3MultiplexVideoPredictor: The fully-initialized predictor
+@@ -1118,11 +1124,11 @@ def build_sam3_multiplex_video_predictor(
+
+     # Build tracker
+     tracker_model = build_sam3_multiplex_video_model(
+-        checkpoint_path=checkpoint_path,
++        checkpoint_path=None,
+         load_from_HF=False,
+         multiplex_count=multiplex_count,
+         use_fa3=use_fa3,
+         use_rope_real=use_rope_real,
+         compile=False,
+-        strict_state_dict_loading=False,
++        strict_state_dict_loading=True,
+     )
+@@ -1197,5 +1203,7 @@ def build_sam3_multiplex_video_predictor(
+         image_std=(0.5, 0.5, 0.5),
+         compile_model=compile,
+     )
++    demo_model.reeditpro_return_cuda_output_tensors = (
++        return_cuda_output_tensors)
+
+     # Load checkpoint (auto-download from HuggingFace if not provided)
+@@ -1220,6 +1228,7 @@ def build_sam3_multiplex_video_predictor(
+                     new_k = "tracker." + k[len("sam2_predictor.") :]
+                 remapped_ckpt[new_k] = v
+             ckpt = remapped_ckpt
+-        missing_keys, unexpected_keys = demo_model.load_state_dict(ckpt, strict=False)
++        missing_keys, unexpected_keys = demo_model.load_state_dict(
++            ckpt, strict=strict_checkpoint_load)
+         if missing_keys:
+             print(f"Missing keys ({len(missing_keys)}): {missing_keys[:10]}...")
+@@ -1237,5 +1246,6 @@ def build_sam3_multiplex_video_predictor(
+         default_output_prob_thresh=default_output_prob_thresh,
+         async_loading_frames=async_loading_frames,
+         warm_up=warm_up,
++        gpu_accelerated_decode=gpu_accelerated_decode,
+     )
+     return predictor

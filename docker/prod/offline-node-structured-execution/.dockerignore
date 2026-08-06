@@ -1,0 +1,7 @@
+**
+!docker/prod/offline-node-runner/package.json
+!docker/prod/offline-node-runner/package-lock.json
+!docker/prod/offline-node-structured-execution/Dockerfile
+!server/tool-execution/**
+!server/tool-registry/**
+!src/backend/contracts/**

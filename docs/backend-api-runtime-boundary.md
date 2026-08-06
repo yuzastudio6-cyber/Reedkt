@@ -13,7 +13,7 @@ Frontend chat/editor UI
 -> backend service, Supabase, worker, provider, or payment runtime
 ```
 
-The current RP-FIX-08 flow is:
+The local/mock fallback flow is:
 
 ```text
 Frontend or local caller
@@ -22,7 +22,9 @@ Frontend or local caller
 -> existing deterministic mock services
 ```
 
-`VITE_REEDITPRO_API_MODE` defaults to `mock`. `VITE_REEDITPRO_API_BASE_URL` is a safe placeholder for a future backend, but live HTTP transport remains intentionally gated.
+`VITE_REEDITPRO_API_MODE` defaults to `mock`. For internal testing against a deployed backend, set `VITE_REEDITPRO_API_MODE=frontend_safe` and `VITE_REEDITPRO_API_BASE_URL` to the reviewed API origin. In that mode the frontend-safe client may call reviewed `/v1` routes for projects, private upload intents, approved snapshots, credit approval/reservation metadata, internal edit state, and the canonical package-request, private-preparation, private-review media, and canonical-decision surfaces. Backend-required routes still fail closed.
+
+The older staged `editExecution.*` package/adapter/runner/final-render chain remains available only to deterministic mock fixtures. It is protected by internal-service authority or intercepted by the legacy execution gate in the real server and is not eligible for deployed browser transport. Frontend HTTP eligibility requires both `runtimeMode = frontend_safe` and `status = frontend_safe_ready`; a `/v1` path alone never makes a route browser-callable. Non-`/v1` contracts that are explicitly `mock` + `mock_ready` and have a deterministic mock handler may still run as `mockOnly` metadata helpers only in a loopback development/test runtime. They never use backend HTTP transport, survive into a deployed production client, or claim durable production state.
 
 ## Frontend-Safe Operations
 

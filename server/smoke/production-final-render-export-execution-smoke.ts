@@ -26,6 +26,7 @@ import {
 } from '../workers/final-render'
 import type { QualityGateType } from '../../src/backend/contracts/production-tool-runtime-contracts'
 import type { FinalRenderExecutionInput } from '../workers/final-render'
+import { buildProfessionalExportExecutionAuthority } from '../../src/lib/professional-export-policy'
 
 const execFileAsync = promisify(execFile)
 
@@ -68,6 +69,15 @@ const baseInput: FinalRenderExecutionInput = {
   fps: 30,
   durationSeconds: 8,
   exportSettings: { container: 'mp4', videoCodec: 'h264', audioCodec: 'aac', pixelFormat: 'yuv420p' },
+  professionalExportAuthority: buildProfessionalExportExecutionAuthority({
+    approvedEstimateId: 'credit-estimate-m16a-smoke',
+    approvedReservationId: 'credit-reservation-m16a-smoke',
+    approvedDeliverableId: 'deliverable-m16a-smoke-landscape',
+    approvedAspectRatio: '16:9',
+    approvedOutputFps: 30,
+    approvedDurationSeconds: 8,
+    selectedProfileId: 'hd_1080',
+  }),
 }
 
 await expectRejects(
@@ -118,6 +128,16 @@ try {
   const libassPlan = buildLibassCaptionBurnInCommandPlan({ executionInput: baseInput, executionManifest })
   check(remotionPlan.executes === false && remotionPlan.args.includes('render') && !remotionPlan.args.includes('revideo'), 'Remotion command builder must be allowlisted and non-executing.')
   check(ffmpegPlan.executes === false && ffmpegPlan.args.includes('-c:v') && ffmpegPlan.args.includes('-filter_complex'), 'FFmpeg export command builder must be allowlisted, timeline-aware, and non-executing in dry-run.')
+  const sourceMasterPlan = buildFfmpegExportCommandPlan({
+    executionInput: {
+      ...baseInput,
+      renderMode: 'final_export',
+      sourceLocalPaths: ['/private/source-master.mp4'],
+      proxyLocalPaths: ['/private/analysis-proxy.mp4'],
+    },
+    executionManifest: { ...executionManifest, renderMode: 'final_export' },
+  })
+  check(sourceMasterPlan.args.includes('/private/source-master.mp4') && !sourceMasterPlan.args.includes('/private/analysis-proxy.mp4'), 'Final export must prefer the immutable source master over the analysis proxy.')
   check(ffmpegPlan.args.includes('-ar') && ffmpegPlan.args.includes('48000'), 'FFmpeg export audio must be locked to the professional 48 kHz video-delivery rate.')
   const externalMixPlan = buildFfmpegExportCommandPlan({ executionInput: { ...baseInput, audioLocalPaths: ['/private/approved-mix.wav'] }, executionManifest })
   check(externalMixPlan.args.includes('/private/approved-mix.wav') && externalMixPlan.args.join(' ').includes('[1:a:0]atrim'), 'FFmpeg export must preserve an explicitly approved external audio mix when one is provided.')
@@ -236,7 +256,16 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
     outputFileName: 'whole-edit-final.mp4',
     renderEngine: 'ffmpeg',
     renderMode: 'final_export',
-    canvas: { width: 320, height: 568, aspectRatio: '40:71' },
+    canvas: { width: 1080, height: 1920, aspectRatio: '9:16' },
+    professionalExportAuthority: buildProfessionalExportExecutionAuthority({
+      approvedEstimateId: 'credit-estimate-m16a-smoke',
+      approvedReservationId: baseInput.creditReservationId as string,
+      approvedDeliverableId: 'deliverable-m16a-smoke-portrait',
+      approvedAspectRatio: '9:16',
+      approvedOutputFps: 30,
+      approvedDurationSeconds: 1.5,
+      selectedProfileId: 'hd_1080',
+    }),
     fps: 30,
     durationSeconds: 1.5,
     enableLocalDevRender: true,
@@ -251,7 +280,7 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
   check(localRender.finalDeliveryAllowed, 'Local whole-edit fixture must pass private final-delivery QA.')
   check(Boolean(localRender.outputLocalPath && existsSync(localRender.outputLocalPath)), 'Local whole-edit fixture must create a real MP4 output.')
   check(localRender.outputProbe?.durationSeconds !== undefined && Math.abs(localRender.outputProbe.durationSeconds - 1.5) <= 0.35, 'Local whole-edit fixture output duration must match the approved timeline.')
-  check(localRender.outputProbe?.width === 320 && localRender.outputProbe.height === 568, 'Local whole-edit fixture output must match the approved canvas.')
+  check(localRender.outputProbe?.width === 1080 && localRender.outputProbe.height === 1920, 'Local whole-edit fixture output must match the approved 1080p portrait profile.')
 
   const invalidOutputPath = path.join(tempRoot, 'invalid-timeline-must-not-render.mp4')
   const invalidTimelineRender = await runFinalRenderExecutionPipeline({
@@ -301,7 +330,16 @@ Dialogue: 0,0:00:00.10,0:00:01.30,Default,,0,0,0,,Whole edit fixture
     outputFileName: path.basename(invalidOutputPath),
     renderEngine: 'ffmpeg',
     renderMode: 'final_export',
-    canvas: { width: 320, height: 568, aspectRatio: '40:71' },
+    canvas: { width: 1080, height: 1920, aspectRatio: '9:16' },
+    professionalExportAuthority: buildProfessionalExportExecutionAuthority({
+      approvedEstimateId: 'credit-estimate-m16a-smoke',
+      approvedReservationId: baseInput.creditReservationId as string,
+      approvedDeliverableId: 'deliverable-m16a-smoke-invalid-timeline',
+      approvedAspectRatio: '9:16',
+      approvedOutputFps: 30,
+      approvedDurationSeconds: 1.5,
+      selectedProfileId: 'hd_1080',
+    }),
     fps: 30,
     durationSeconds: 1.5,
     enableLocalDevRender: true,

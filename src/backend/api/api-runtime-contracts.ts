@@ -28,10 +28,12 @@ export type ApiDomain =
   | 'auth'
   | 'projects'
   | 'media'
+  | 'motion_studio'
   | 'planning'
   | 'credits'
   | 'jobs'
   | 'generation'
+  | 'visual_intelligence'
   | 'render'
   | 'music'
   | 'sfx'
@@ -77,6 +79,7 @@ export interface ApiRequestEnvelope<TBody = unknown> {
   body?: TBody
   params?: Record<string, string>
   query?: Record<string, string>
+  idempotencyKey?: string
 }
 
 export interface ApiResponseEnvelope<TData = unknown> {

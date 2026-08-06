@@ -1,340 +1,196 @@
-import { useMemo, useState, type FormEvent } from 'react'
-import { ArrowRight, CheckCircle2, LockKeyhole, RefreshCw, ShieldCheck, UserPlus } from 'lucide-react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { AuthBootstrapStatusCard } from '../components/auth/AuthBootstrapStatusCard'
-import { Badge } from '../components/Badge'
+import { useState, type FormEvent } from 'react'
+import { ArrowLeft, KeyRound, LockKeyhole, ShieldCheck, UserRoundCheck } from 'lucide-react'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
+import { sanitizeInternalReturnTo } from '../auth/auth-navigation'
+import { useAuthSession } from '../auth/useAuthSession'
+import { BrandLogo } from '../components/BrandLogo'
 import { Button } from '../components/Button'
-import { Card } from '../components/Card'
-import {
-  isInternalTestingMockAuthEnabled,
-  signInWithEmailPassword,
-  signUpWithEmailPassword,
-} from '../backend/auth/auth-client-service'
-import { useAuthBootstrap } from '../hooks/useAuthBootstrap'
+import { GoogleMark } from '../components/auth/GoogleMark'
+import { readGoogleOAuthCallbackError } from '../auth/google-oauth'
 
-type AuthFormMode = 'sign_in' | 'sign_up'
-type AuthFormNotice = {
-  tone: 'info' | 'success' | 'warning' | 'error'
-  title: string
-  detail: string
-}
-
-const DEFAULT_REDIRECT = '/dashboard'
-
-function sanitizeRedirect(value: string | null): string {
-  if (!value) return DEFAULT_REDIRECT
-  if (!value.startsWith('/')) return DEFAULT_REDIRECT
-  if (value.startsWith('//')) return DEFAULT_REDIRECT
-  if (/^\/(?:sign-in|auth)(?:\/|\?|#|$)/.test(value)) return DEFAULT_REDIRECT
-  return value
-}
-
-function isUsableEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
-
-function isUsablePassword(value: string): boolean {
-  return value.length >= 8
-}
-
-function buildSignUpEmailRedirectTo(redirectTo: string): string | undefined {
-  if (typeof window === 'undefined') return undefined
-
-  const basePath = import.meta.env.BASE_URL === '/' ? '' : import.meta.env.BASE_URL.replace(/\/$/, '')
-  const url = new URL(`${basePath}/sign-in`, window.location.origin)
-  url.searchParams.set('redirect', sanitizeRedirect(redirectTo))
-  return url.toString()
-}
+type PendingAuthAction = 'google' | 'local_test' | 'password' | null
 
 export function SignInPage() {
+  const auth = useAuthSession()
+  const location = useLocation()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const redirectTo = useMemo(() => sanitizeRedirect(searchParams.get('redirect')), [searchParams])
-  const auth = useAuthBootstrap()
-  const internalTestingMockAuthEnabled = isInternalTestingMockAuthEnabled()
-  const [mode, setMode] = useState<AuthFormMode>('sign_in')
+  const searchParams = new URLSearchParams(location.search)
+  const returnTo = sanitizeInternalReturnTo(searchParams.get('returnTo') ?? searchParams.get('redirect'))
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [displayName, setDisplayName] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [notice, setNotice] = useState<AuthFormNotice | null>(null)
+  const [pendingAction, setPendingAction] = useState<PendingAuthAction>(null)
+  const [error, setError] = useState(() => (
+    typeof window === 'undefined'
+      ? ''
+      : readGoogleOAuthCallbackError(window.location.search, window.location.hash)
+  ))
 
-  const configured = auth.configured
-  const signedIn = auth.status !== 'not_configured' && auth.status !== 'signed_out' && Boolean(auth.userContext)
-  const submitDisabled = submitting || !configured || !isUsableEmail(email.trim()) || !isUsablePassword(password)
+  if (auth.status === 'signed_in') {
+    return <Navigate replace to={returnTo} />
+  }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    const nextEmail = email.trim()
-    if (!isUsableEmail(nextEmail)) {
-      setNotice({
-        tone: 'warning',
-        title: 'Use a valid email',
-        detail: 'Enter the approved internal tester email before continuing.',
-      })
-      return
-    }
-
-    if (!isUsablePassword(password)) {
-      setNotice({
-        tone: 'warning',
-        title: 'Password is too short',
-        detail: 'Use at least 8 characters for Supabase email/password auth.',
-      })
-      return
-    }
-
-    setSubmitting(true)
-    setNotice(null)
-
-    const result =
-      mode === 'sign_in'
-        ? await signInWithEmailPassword(nextEmail, password)
-        : await signUpWithEmailPassword(
-            nextEmail,
-            password,
-            displayName.trim() || undefined,
-            buildSignUpEmailRedirectTo(redirectTo),
-          )
+  const enterLocalTestSession = async () => {
+    setPendingAction('local_test')
+    setError('')
+    const result = await auth.signInLocalTest()
+    setPendingAction(null)
 
     if (!result.ok) {
-      setNotice({
-        tone: 'error',
-        title: mode === 'sign_in' ? 'Sign-in failed' : 'Sign-up failed',
-        detail: result.message,
-      })
-      setSubmitting(false)
+      setError(result.message)
       return
     }
 
-    const bootstrap = await auth.refresh()
+    navigate(returnTo, { replace: true })
+  }
 
-    if (result.session || (result.mode === 'mock' && result.status === 'ready')) {
-      setNotice({
-        tone: 'success',
-          title: result.mode === 'mock' ? 'Local session ready' : 'Signed in',
-        detail: bootstrap.ok
-          ? 'Your ReEditPro session and workspace context are ready.'
-          : `${bootstrap.message} You can still continue to the app home for project checks.`,
-      })
-      navigate(redirectTo, { replace: true })
+  const startGoogleSignIn = async () => {
+    setPendingAction('google')
+    setError('')
+    const result = await auth.signInWithGoogle(returnTo)
+
+    if (!result.ok) {
+      setPendingAction(null)
+      setError(result.message)
+    }
+  }
+
+  const submitSupabaseSignIn = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setPendingAction('password')
+    setError('')
+    const result = await auth.signInWithPassword(email, password)
+    setPendingAction(null)
+
+    if (!result.ok) {
+      setError(result.message)
       return
     }
 
-    setNotice({
-      tone: result.emailConfirmationRequired ? 'warning' : 'info',
-      title: result.emailConfirmationRequired ? 'Tester provisioning required' : 'Session pending',
-      detail: result.emailConfirmationRequired
-        ? 'This Supabase project did not return an active session. Use a provisioned tester account, or enable email signups in Supabase Auth before creating accounts from this page.'
-        : result.message,
-    })
-    if (result.emailConfirmationRequired) {
-      setMode('sign_in')
-    }
-    setSubmitting(false)
-  }
-
-  async function handleRefresh() {
-    const result = await auth.refresh()
-    setNotice({
-      tone: result.ok ? 'success' : 'info',
-      title: result.ok ? 'Session ready' : 'Session check complete',
-      detail: result.message,
-    })
-  }
-
-  async function handleSignOut() {
-    await auth.signOut()
-    setNotice({
-      tone: 'info',
-      title: 'Signed out',
-      detail: 'This browser no longer has an active Supabase session.',
-    })
+    navigate(returnTo, { replace: true })
   }
 
   return (
-    <main className="auth-entry-page">
-      <section className="auth-entry-hero" aria-labelledby="sign-in-title">
-        <Link className="auth-entry-brand" to="/">
-          <span aria-hidden="true">R</span>
-          <strong>ReEditPro</strong>
-        </Link>
+    <>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
+      <main className="auth-page" id="main-content">
+        <div aria-hidden="true" className="auth-topology" />
+        <header className="auth-brand-row">
+          <Link aria-label="ReeditPro home" to="/">
+            <BrandLogo />
+          </Link>
+          <Link className="auth-back-link" to="/">
+            <ArrowLeft aria-hidden="true" size={16} />
+            Back
+          </Link>
+        </header>
 
-        <div className="auth-entry-copy">
-          <Badge accent={configured ? 'cyan' : 'warning'}>
-            {configured ? 'ReEditPro sign-in' : 'Auth configuration required'}
-          </Badge>
-          <h1 id="sign-in-title">Sign in to test the ReEditPro app.</h1>
-          <p>
-            Sign in to open the ReEditPro app. The landing page stays public; this app route owns the session and project access checks.
-          </p>
-        </div>
-
-        <div className="auth-entry-safety-grid" aria-label="Auth safety boundaries">
-          <span>
-            <ShieldCheck aria-hidden="true" size={16} />
-            Frontend anon auth only
-          </span>
-          <span>
-            <LockKeyhole aria-hidden="true" size={16} />
-            No service-role secrets
-          </span>
-          <span>
-            <CheckCircle2 aria-hidden="true" size={16} />
-            No tool execution on sign-in
-          </span>
-        </div>
-      </section>
-
-      <section className="auth-entry-grid">
-        <Card className="auth-entry-card">
-          <div className="plan-card-header">
-            <div>
-              <p className="eyebrow">Account access</p>
-              <h2>{mode === 'sign_in' ? 'Sign in' : 'Create tester account'}</h2>
+        <section className="auth-layout">
+          <div className="auth-intro">
+            <span className="section-eyebrow">Private creative workspace</span>
+            <h1>Pick up exactly where you left off.</h1>
+            <p>Your projects, source media, plans, and private reviews stay organized inside one signed-in workspace.</p>
+            <div className="auth-trust-list" aria-label="Workspace protections">
+              <span><ShieldCheck aria-hidden="true" size={17} /><span><strong>Private source media</strong><small>Uploads stay inside the workspace.</small></span></span>
+              <span><LockKeyhole aria-hidden="true" size={17} /><span><strong>Approval before credits</strong><small>No editing run begins before review.</small></span></span>
+              <span><UserRoundCheck aria-hidden="true" size={17} /><span><strong>One clear session</strong><small>Projects remain tied to the signed-in identity.</small></span></span>
             </div>
-            <Badge accent={mode === 'sign_in' ? 'blue' : 'violet'}>
-              {mode === 'sign_in' ? 'Existing tester' : 'New tester'}
-            </Badge>
           </div>
 
-          {!configured && (
-            <div className="auth-entry-notice auth-entry-notice-warning" role="status">
-              <strong>Supabase env is missing</strong>
-              <p>Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to this app deployment before live sign-in can run.</p>
+          <div className="auth-card" data-testid="sign-in-card">
+            <div className="auth-card-heading">
+              <span className="section-eyebrow">Sign in</span>
+              <h2>Continue to ReeditPro</h2>
+              <p>{auth.message}</p>
             </div>
-          )}
 
-          {internalTestingMockAuthEnabled && (
-            <div
-              className="auth-entry-notice auth-entry-notice-info"
-              data-testid="auth-local-testing-session-notice"
-              role="status"
-            >
-              <strong>Local app session is enabled</strong>
-              <p>
-                `VITE_REEDITPRO_INTERNAL_TEST_AUTH=true` lets this form create a browser-local testing session when Supabase env is
-                absent. It does not send credentials to Supabase, create backend records, run tools, upload media, reserve credits,
-                or call providers.
-              </p>
-            </div>
-          )}
-
-          {notice && (
-            <div className={`auth-entry-notice auth-entry-notice-${notice.tone}`} role="status">
-              <strong>{notice.title}</strong>
-              <p>{notice.detail}</p>
-            </div>
-          )}
-
-          <div className="auth-entry-mode-toggle" role="tablist" aria-label="Choose account action">
-            <button
-              aria-pressed={mode === 'sign_in'}
-              className={mode === 'sign_in' ? 'active' : ''}
-              onClick={() => setMode('sign_in')}
-              type="button"
-            >
-              Sign in
-            </button>
-            <button
-              aria-pressed={mode === 'sign_up'}
-              className={mode === 'sign_up' ? 'active' : ''}
-              onClick={() => setMode('sign_up')}
-              type="button"
-            >
-              Create account
-            </button>
-          </div>
-
-          <form className="auth-entry-form" onSubmit={handleSubmit}>
-            {mode === 'sign_up' && (
-              <label>
-                <span>Display name</span>
-                <input
-                  autoComplete="name"
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder="Your name"
-                  type="text"
-                  value={displayName}
-                />
-              </label>
-            )}
-            <label>
-              <span>Email</span>
-              <input
-                autoComplete="email"
-                inputMode="email"
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="you@reeditpro.com"
-                type="email"
-                value={email}
-              />
-            </label>
-            <label>
-              <span>Password</span>
-              <input
-                autoComplete={mode === 'sign_in' ? 'current-password' : 'new-password'}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="8+ characters"
-                type="password"
-                value={password}
-              />
-            </label>
-
-            <Button
-              data-testid="auth-submit-button"
-              disabled={submitDisabled}
-              icon={mode === 'sign_in' ? ArrowRight : UserPlus}
-              type="submit"
-              variant="primary"
-            >
-              {submitting ? 'Checking session' : mode === 'sign_in' ? 'Sign in' : 'Create account'}
-            </Button>
-          </form>
-
-          <p className="auth-entry-footnote">
-            Sign-in does not start generation, run tools, upload media, reserve credits, or call providers.
-          </p>
-        </Card>
-
-        <div className="auth-entry-side">
-          <AuthBootstrapStatusCard
-            configured={auth.configured}
-            loading={auth.loading}
-            mode={auth.mode}
-            onRefresh={handleRefresh}
-            onSignOut={handleSignOut}
-            status={auth.status}
-            userContext={auth.userContext}
-            warnings={auth.warnings}
-          />
-
-          <Card className="auth-entry-card auth-entry-next-card">
-            <div className="plan-card-header">
-              <div>
-                <p className="eyebrow">After sign-in</p>
-                <h3>Continue to ReEditPro</h3>
+            {auth.status === 'loading' && (
+              <div aria-live="polite" className="auth-status" role="status">
+                <span aria-hidden="true" className="route-loading-mark" />
+                Checking session configuration…
               </div>
-              <Badge accent={signedIn ? 'success' : 'muted'}>{signedIn ? 'Session found' : 'Waiting'}</Badge>
-            </div>
-            <p>
-              Open the clean project workspace, create a project, create an edit, and continue the upload/brief flow.
-            </p>
-            <div className="auth-entry-actions">
-              <Button icon={RefreshCw} onClick={handleRefresh} variant="secondary">
-                Refresh session
-              </Button>
-              <Button icon={ArrowRight} to={redirectTo} variant="primary">
-                Open app
-              </Button>
-            </div>
-            <Link className="auth-entry-secondary-link" to="/dashboard">
-              Or open Home
-            </Link>
-          </Card>
-        </div>
-      </section>
-    </main>
+            )}
+
+            {auth.status !== 'loading' && auth.mode === 'local_test' && (
+              <div className="auth-local-test">
+                <div className="auth-mode-note">
+                  <span aria-hidden="true" className="auth-mode-dot" />
+                  <div>
+                    <strong>Local preview session</strong>
+                    <p>A browser-only workspace is available for this private preview. It ends when this tab closes.</p>
+                  </div>
+                </div>
+                <Button
+                  data-testid="local-test-sign-in"
+                  disabled={pendingAction !== null}
+                  icon={KeyRound}
+                  onClick={() => { void enterLocalTestSession() }}
+                  variant="primary"
+                >
+                  {pendingAction === 'local_test' ? 'Opening workspace…' : 'Enter test workspace'}
+                </Button>
+              </div>
+            )}
+
+            {auth.status !== 'loading' && auth.mode === 'supabase' && (
+              <div className="auth-secure-sign-in">
+                <button
+                  className="auth-google-button"
+                  data-testid="google-sign-in"
+                  disabled={pendingAction !== null}
+                  onClick={() => { void startGoogleSignIn() }}
+                  type="button"
+                >
+                  <GoogleMark />
+                  <span>{pendingAction === 'google' ? 'Opening Google…' : 'Continue with Google'}</span>
+                </button>
+
+                <details className="auth-password-fallback">
+                  <summary data-testid="auth-password-toggle">Use email and password</summary>
+                  <form className="auth-form" onSubmit={(event) => { void submitSupabaseSignIn(event) }}>
+                    <label className="planning-field">
+                      <span>Email</span>
+                      <input
+                        autoComplete="email"
+                        inputMode="email"
+                        name="email"
+                        onChange={(event) => setEmail(event.target.value)}
+                        required
+                        type="email"
+                        value={email}
+                      />
+                    </label>
+                    <label className="planning-field">
+                      <span>Password</span>
+                      <input
+                        autoComplete="current-password"
+                        name="password"
+                        onChange={(event) => setPassword(event.target.value)}
+                        required
+                        type="password"
+                        value={password}
+                      />
+                    </label>
+                    <Button data-testid="auth-submit-button" disabled={pendingAction !== null} icon={KeyRound} type="submit" variant="secondary">
+                      {pendingAction === 'password' ? 'Signing in…' : 'Sign in with email'}
+                    </Button>
+                  </form>
+                </details>
+              </div>
+            )}
+
+            {auth.status === 'unavailable' && (
+              <div className="auth-unavailable" role="status">
+                <strong>Sign-in is not available here.</strong>
+                <p>{auth.message} Use an approved local testing environment or configure secure browser sign-in.</p>
+              </div>
+            )}
+
+            {error && <p aria-live="assertive" className="auth-error" role="alert">{error}</p>}
+
+            <p className="auth-boundary-note">Private preview · No production billing or public delivery.</p>
+          </div>
+        </section>
+      </main>
+    </>
   )
 }

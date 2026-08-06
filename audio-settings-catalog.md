@@ -177,6 +177,13 @@ Sharp + libvips is the launch candidate for backend/worker image and asset prepa
 
 Planned QA thresholds include voice too quiet warning, music over voice warning, clipping warning, background noise warning, too many SFX warning, long silence warning, ducking missing warning, and SFX without reason warning.
 
+Private FFmpeg voice-delivery QA uses programme loudness and true peak for every
+output. Loudness Range is applied only when the programme is long enough for a
+stable EBU LRA distribution. Short-form outputs instead use maximum Short-term
+Loudness, with a bounded maximum-Momentary fallback only when the output is
+shorter than the three-second Short-term window. The raw LRA diagnostic is
+retained for audit but cannot fail a short-form output by itself.
+
 ## Launch Tool Boundaries
 
 - FFmpeg owns loudness normalization, trim/silence cleanup, audio filters, and future mux/export planning.

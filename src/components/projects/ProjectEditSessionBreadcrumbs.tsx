@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { ProjectEditSessionBreadcrumbItem } from '../../types/project-edit-session-navigation'
 
 type ProjectEditSessionBreadcrumbsProps = {

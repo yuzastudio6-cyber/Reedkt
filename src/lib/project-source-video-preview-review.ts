@@ -3,6 +3,7 @@ import type {
   ProjectSourceVideoLocalEditPreviewResult,
   ProjectSourceVideoPreviewReviewResult,
 } from '../types/project-source-video'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -101,7 +102,7 @@ export async function createProjectSourceVideoPreviewReview(
     throw new Error('Preview review requires a preview render id.')
   }
 
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const safeNotes = assertSafeNotes(input.notes)
   const envelope = await parseEnvelope<PreviewReviewData>(await fetchImpl(joinUrl(

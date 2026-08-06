@@ -22,18 +22,72 @@ export function buildStaticReadinessCommandPlan(): ReadinessCommandPlan {
   }
 }
 
+export function buildContainerHostVerificationCommandPlan(): ReadinessCommandPlan {
+  return {
+    id: 'container_readiness_host_verification',
+    label: 'Independent local container source/image verification',
+    mode: 'host_optional',
+    command: 'scripts/docker/prod/14-verify-container-readiness-candidate.example.sh',
+    requiredEnvVars: [
+      'REEDITPRO_CONTAINER_READINESS_CANDIDATE_FILE',
+      'REEDITPRO_CONFIRM_CONTAINER_HOST_VERIFICATION=true',
+    ],
+    safetyNotes: [
+      'Human-run only after a non-promotable runtime candidate has been retained outside the checkout.',
+      'Reads exact clean Git identity and performs local Docker context/image inspection only.',
+      'The emitted host receipt remains non-promotable; manual license/model and deployed-release gates stay closed.',
+    ],
+    expectedOutputSummary: 'Non-promotable local host receipt binding one candidate to an exact clean commit/tree and immutable image digest.',
+    doesNotRun: [
+      ...READINESS_DOES_NOT_RUN,
+      'no Docker pull or run',
+      'no cloud or database mutation',
+      'no customer price, credits, service fee, wallet, or billing',
+    ],
+  }
+}
+
+export function buildContainerManualReviewPreparationCommandPlan(): ReadinessCommandPlan {
+  return {
+    id: 'container_manual_qualification_review_package',
+    label: 'Prepare image-bound manual qualification review package',
+    mode: 'host_optional',
+    command: 'scripts/docker/prod/15-prepare-container-manual-review-package.example.sh',
+    requiredEnvVars: [
+      'REEDITPRO_CONTAINER_HOST_VERIFICATION_FILE',
+      'REEDITPRO_CONFIRM_CONTAINER_MANUAL_REVIEW_PREPARATION=true',
+    ],
+    safetyNotes: [
+      'Consumes one retained host-verification receipt from the exact clean source checkout.',
+      'Builds review input for package licenses, model checkpoints, and source-install reproducibility.',
+      'Cannot record a reviewer decision, qualify an image, qualify a release, or enable production.',
+    ],
+    expectedOutputSummary: 'Immutable non-promotable review package for every runtime-observed tool in one verified image.',
+    doesNotRun: [
+      ...READINESS_DOES_NOT_RUN,
+      'no Docker inspection, pull, or run',
+      'no license or model approval',
+      'no cloud, database, provider, or billing mutation',
+    ],
+  }
+}
+
 export function buildReadinessCommandPlans(): ReadinessCommandPlan[] {
   const imageRoles: ProductionContainerImageRole[] = [
+    'api',
     'cpu_worker',
     'render_worker',
     'qa_worker',
     'gpu_worker',
+    'tool_readiness_worker',
   ]
 
   return [
     buildStaticReadinessCommandPlan(),
     ...imageRoles.map(buildContainerReadinessCommandPlan),
     buildAllContainerReadinessCommandPlan(),
+    buildContainerHostVerificationCommandPlan(),
+    buildContainerManualReviewPreparationCommandPlan(),
   ]
 }
 

@@ -20,8 +20,6 @@ if (!Number.isInteger(appPort) || appPort <= 0 || appPort > 65535) {
 
 const apiBaseUrl = `http://127.0.0.1:${apiPort}`
 const appBaseUrl = `http://127.0.0.1:${appPort}`
-const briefPath = '/projects/mock-project-edit-chat-foundation/edits/edit-session-youtube-wide/brief'
-
 const children = []
 
 function spawnLogged(label, args, env) {
@@ -68,19 +66,22 @@ console.log('Starting ReEditPro internal local upload test stack.')
 console.log(`API health: ${apiBaseUrl}/health`)
 console.log(`Projects: ${appBaseUrl}/projects`)
 console.log(`Sign in: ${appBaseUrl}/sign-in`)
-console.log(`Edit Brief source-video test: ${appBaseUrl}${briefPath}`)
+console.log(`Create a project: ${appBaseUrl}/projects/new`)
 console.log(`Local storage root: ${path.resolve(repoRoot, localStorageRoot)}`)
-console.log('Mode: browser-local mock sign-in + backend-local storage + gated preview review, QA, and private export smoke. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
+console.log('Mode: browser-local test sign-in + active named-edit route + reviewed frontend-safe API transport + backend-local source storage. No Supabase writes, GCS writes, provider calls, live Qwen calls, public delivery, external beta, or production.')
 
-spawnLogged('api', ['run', 'dev:api'], {
+spawnLogged('api', ['run', 'dev:private-workspace:api'], {
   NODE_ENV: 'development',
   API_PORT: String(apiPort),
   PORT: String(apiPort),
+  API_ALLOWED_CORS_ORIGINS: appBaseUrl,
   E2E_RUNTIME_MODE: 'local',
   API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
   STORAGE_MODE: 'local',
-  LOCAL_STORAGE_ROOT: localStorageRoot,
+  LOCAL_STORAGE_ROOT: path.resolve(repoRoot, localStorageRoot),
   WORKER_RUNTIME_MODE: 'mock',
+  REEDITPRO_DISABLE_DOTENV: 'true',
+  REEDITPRO_PRIVATE_WORKSPACE_HOST: '127.0.0.1',
   SUPABASE_URL: '',
   SUPABASE_ANON_KEY: '',
   SUPABASE_SERVICE_ROLE_KEY: '',
@@ -93,6 +94,9 @@ spawnLogged('app', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(
   VITE_REEDITPRO_SOURCE_VIDEO_BACKEND_UPLOAD: 'true',
   VITE_REEDITPRO_LOCAL_EDIT_PREVIEW_SMOKE: 'true',
   VITE_REEDITPRO_INTERNAL_TEST_AUTH: 'true',
-  VITE_REEDITPRO_INTERNAL_TEST_WORKSPACE_ID: 'mock-workspace',
-  VITE_REEDITPRO_API_MODE: 'mock',
+  VITE_REEDITPRO_AUTH_MODE: 'local_test',
+  VITE_REEDITPRO_INTERNAL_TEST_WORKSPACE_ID: 'workspace-internal-testing',
+  VITE_REEDITPRO_LOCAL_PRIVATE_UPLOADS: 'true',
+  VITE_REEDITPRO_LOCAL_TEST_BACKEND_USER_ID: 'mock-user-runtime',
+  VITE_REEDITPRO_API_MODE: 'frontend_safe',
 })

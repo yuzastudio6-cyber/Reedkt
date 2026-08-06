@@ -117,6 +117,7 @@ export function createMusicDuckingTimingForSpeech(params: {
   input: PlannerInput
   speechLine: TranscriptTimingLine
   captionVisualCueTimingPlan?: CaptionVisualCueTimingPlan
+  maxEndFrame?: number
   index: number
 }): RefinedMusicDuckingTimingItem {
   const reasonType = reasonTypeForSpeech(params.speechLine, params.captionVisualCueTimingPlan)
@@ -124,7 +125,10 @@ export function createMusicDuckingTimingForSpeech(params: {
   const attackFrames = Math.max(3, Math.round(range.fps * 0.12))
   const releaseFrames = Math.max(6, Math.round(range.fps * 0.22))
   const startFrame = Math.max(0, range.startFrame - attackFrames)
-  const endFrame = range.endFrame + releaseFrames
+  const unclampedEndFrame = range.endFrame + releaseFrames
+  const endFrame = typeof params.maxEndFrame === 'number'
+    ? Math.max(startFrame, Math.min(params.maxEndFrame, unclampedEndFrame))
+    : unclampedEndFrame
   const linkedCaption = params.captionVisualCueTimingPlan?.refinedCaptionTimings.find((item) => item.linkedTranscriptLineId === params.speechLine.id)
 
   return {

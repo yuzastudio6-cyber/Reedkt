@@ -2,21 +2,23 @@
 
 ## Purpose
 
-This milestone creates production-test-ready Supabase migration files for ReeditPro, but it does not run them.
+The repository contains Supabase migration candidates, but the raw executable directory is currently blocked by incompatible parallel foundations. It must not be treated as production-test-ready until the baseline is reconciled.
 
-The active migration files now live in `supabase/migrations/` so they can be reviewed and tested with the Supabase CLI in a later manual step. Codex does not apply these migrations, connect to Supabase, create a client, add secrets, or deploy anything in this milestone.
+The SQL files live in `supabase/migrations/`, but that location contains overlapping `20260513` and `20260518` table definitions plus later migrations that depend on both. See `docs/supabase-migration-baseline-reconciliation.md`. Codex does not apply these migrations, connect to Supabase, create a client, add secrets, or deploy anything in this milestone.
 
-Local and staging testing must happen manually before production. Production deployment remains blocked until local tests, staging tests, RLS review, Supabase Security Advisor review, Supabase Performance Advisor review, backup/PITR decisions, and explicit approval are complete.
+Baseline reconciliation must happen before local testing. Production deployment remains blocked until one canonical chain passes local reset, staging tests, RLS review, Supabase Security Advisor review, Supabase Performance Advisor review, backup/PITR decisions, and explicit approval.
 
 ## Environment Flow
 
-1. Local Supabase testing comes first.
-2. Staging Supabase testing comes second.
-3. Production migration comes last.
+1. Canonical migration-baseline reconciliation comes first.
+2. Local Supabase testing comes second.
+3. Staging Supabase testing comes third.
+4. Production migration comes last.
 
 Rules:
 
 - Never directly edit the remote production schema through the Supabase dashboard or table editor.
+- Do not run the raw `supabase/migrations/` directory while `npm run audit:supabase-migration-baseline` reports `blocked_by_parallel_foundations`.
 - Review and commit migration files before running them.
 - Run migrations locally before staging.
 - Push to production only after local/staging tests pass and the migration is approved.
@@ -26,6 +28,7 @@ Rules:
 
 Before production, ReeditPro must confirm:
 
+- The canonical migration chain completes a clean local reset from an empty database.
 - RLS is enabled on all exposed public tables.
 - Workspace/project membership policies are tested.
 - Storage buckets remain private by default.

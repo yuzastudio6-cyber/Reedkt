@@ -29,6 +29,7 @@ const requiredFiles = [
   'scripts/dev/internal-testing-local-upload-e2e.mjs',
   'server/smoke/internal-testing-real-video-upload-acceptance-runner-smoke.ts',
   'tests/e2e/project-source-video-backend-upload-local-api.spec.ts',
+  'tests/e2e/project-create-edit-upload-local-api.spec.ts',
   'package.json',
 ]
 
@@ -50,13 +51,18 @@ for (const phrase of [
   'REEDITPRO_INTERNAL_TESTING_REAL_VIDEO_PATH',
   '.reeditpro-local-upload-storage-real-video',
   'internal-testing-local-upload-e2e.mjs',
-  'backend-local upload',
-  'local preview smoke',
+  'active named-edit backend-local upload',
+  'durable inline Brief',
+  'canonical plan publication and approval',
+  'source-authority reload',
   'No provider calls, live Qwen calls, Supabase writes, GCS writes, public delivery, beta, or production.',
 ]) {
   assertMentions(wrapper, phrase, 'real-video upload acceptance wrapper')
 }
-assert.doesNotMatch(wrapper, /supabase db|docker build|gcloud|STRIPE_SECRET|worker:run|tools:check|smoke:prod-real|apt-get|ffmpeg|ffprobe|MP4Box/i)
+assert.doesNotMatch(
+  wrapper,
+  /supabase db|docker build|gcloud|STRIPE_SECRET|worker:run|tools:check|smoke:prod-real|apt-get|ffmpeg|ffprobe|MP4Box/i,
+)
 
 const e2eRunner = read('scripts/dev/internal-testing-local-upload-e2e.mjs')
 for (const phrase of [
@@ -65,32 +71,51 @@ for (const phrase of [
   'PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH',
   "assertExecutable('ffmpeg', 'FFmpeg')",
   'Real video fixture:',
-  'backend-local upload',
-  'preview-only local edit smoke',
+  'backend-local source upload',
+  'canonical plan/approval gates',
+  'project-source-video-backend-upload-local-api.spec.ts',
+  'project-create-edit-upload-local-api.spec.ts',
 ]) {
   assertMentions(e2eRunner, phrase, 'local upload E2E runner')
 }
-assert.match(e2eRunner, /if\s*\(realVideoFixturePath\)\s*\{[\s\S]*existsSync\(realVideoFixturePath\)[\s\S]*\}\s*else\s*\{[\s\S]*assertExecutable\('ffmpeg', 'FFmpeg'\)/)
-assert.doesNotMatch(e2eRunner, /supabase db|supabase migration|docker build|gcloud|STRIPE_SECRET|worker:run|tools:check|smoke:prod-real|apt-get/i)
+assert.match(
+  e2eRunner,
+  /if\s*\(realVideoFixturePath\)\s*\{[\s\S]*existsSync\(realVideoFixturePath\)[\s\S]*\}\s*else\s*\{[\s\S]*assertExecutable\('ffmpeg', 'FFmpeg'\)/,
+)
+assert.doesNotMatch(
+  e2eRunner,
+  /supabase db|supabase migration|docker build|gcloud|STRIPE_SECRET|worker:run|tools:check|smoke:prod-real|apt-get/i,
+)
 
-const realApiSpec = read('tests/e2e/project-source-video-backend-upload-local-api.spec.ts')
+const uploadSpec = read('tests/e2e/project-source-video-backend-upload-local-api.spec.ts')
 for (const phrase of [
   'externalFixturePath',
-  'fixtureFileName',
-  'uploadedFixtureFileName',
   'PLAYWRIGHT_SOURCE_VIDEO_BACKEND_UPLOAD_FIXTURE_PATH',
   'External real-video fixture must be a non-empty MP4 file.',
-  'test.setTimeout(externalFixturePath ? 180_000 : 90_000)',
-  "toContainText('uploaded', { timeout: externalFixturePath ? 120_000 : 30_000 })",
-  'toContainText(uploadedFixtureFileName)',
-  'Source video uploaded to backend-local storage metadata',
-  'Run local edit preview',
-  'Qwen 3.7 Max identity recorded, no live call',
+  'test.setTimeout(externalFixturePath ? 180_000 : 120_000)',
+  'signInAndCreateActiveProjectEdit',
+  'uploadActiveEditorSource',
+  'storageBucket',
+  'storagePath',
 ]) {
-  assertMentions(realApiSpec, phrase, 'backend upload Playwright spec')
+  assertMentions(uploadSpec, phrase, 'backend upload Playwright spec')
 }
-assert.doesNotMatch(realApiSpec, /page\.route\(/, 'Real local API spec must not intercept upload routes.')
-assert.doesNotMatch(realApiSpec, /createSignedUrl|SUPABASE_SERVICE_ROLE_KEY|GCS_SOURCE_MEDIA_BUCKET|providerCallMade:\s*true|qwenCallMade:\s*true|productReady:\s*true/i)
+assert.doesNotMatch(uploadSpec, /page\.route\(/, 'Real local API upload spec must not intercept routes.')
+assert.doesNotMatch(
+  uploadSpec,
+  /createSignedUrl|SUPABASE_SERVICE_ROLE_KEY|GCS_SOURCE_MEDIA_BUCKET|providerCallMade:\s*true|qwenCallMade:\s*true|productReady:\s*true/i,
+)
+
+const activeJourneySpec = read('tests/e2e/project-create-edit-upload-local-api.spec.ts')
+for (const phrase of [
+  'plans from chat direction, and records approval safely',
+  'inline Edit Brief on the canonical named-edit route before approval',
+  'restores exact uploaded-source authority after reloading the named edit',
+  'approvedSnapshotId',
+]) {
+  assertMentions(activeJourneySpec, phrase, 'active named-edit Playwright spec')
+}
+assert.doesNotMatch(activeJourneySpec, /page\.route\(/, 'Active named-edit spec must not intercept routes.')
 
 console.log(JSON.stringify({
   ok: true,
@@ -101,7 +126,9 @@ console.log(JSON.stringify({
     'real_video_fixture_path_env_forwarded',
     'synthetic_ffmpeg_fallback_preserved',
     'backend_local_upload_spec_accepts_external_fixture',
-    'local_preview_smoke_gate_preserved',
+    'canonical_plan_publication_and_approval_covered',
+    'durable_inline_edit_brief_covered',
+    'source_authority_reload_covered',
     'runtime_provider_public_delivery_scope_not_enabled',
   ],
 }, null, 2))

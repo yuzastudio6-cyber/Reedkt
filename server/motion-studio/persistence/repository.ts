@@ -1,0 +1,38 @@
+import type {
+  AppendMotionStudioArtifactInvalidationInput,
+  AppendMotionStudioCostActualInput,
+  AppendMotionStudioCostAdjustmentInput,
+  AppendMotionStudioCostBudgetInput,
+  AppendMotionStudioCostReconciliationInput,
+  AppendMotionStudioPropertyLockEventInput,
+  AppendMotionStudioUsageEventInput,
+  CreateMotionStudioArtifactVersionInput,
+  CreateMotionStudioCostEstimateInput,
+  CreateMotionStudioProductionInput,
+  MotionStudioArtifactVersionReceipt,
+  MotionStudioCostEstimateReceipt,
+  MotionStudioPersistedRecordReceipt,
+  MotionStudioPersistenceResult,
+  MotionStudioProductionReceipt,
+  RegisterMotionStudioProviderRateCardInput,
+  RegisterMotionStudioRecipeInstantiationInput,
+  RegisterMotionStudioSceneRecipeVersionInput,
+  RegisterMotionStudioToolCostProfileInput,
+} from './types'
+
+export interface MotionStudioPersistenceRepository {
+  createProduction(input: CreateMotionStudioProductionInput): Promise<MotionStudioPersistenceResult<MotionStudioProductionReceipt>>
+  createArtifactVersion(input: CreateMotionStudioArtifactVersionInput): Promise<MotionStudioPersistenceResult<MotionStudioArtifactVersionReceipt>>
+  appendArtifactInvalidation(input: AppendMotionStudioArtifactInvalidationInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  appendPropertyLockEvent(input: AppendMotionStudioPropertyLockEventInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  registerSceneRecipeVersion(input: RegisterMotionStudioSceneRecipeVersionInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  registerRecipeInstantiation(input: RegisterMotionStudioRecipeInstantiationInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  registerProviderRateCard(input: RegisterMotionStudioProviderRateCardInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  registerToolCostProfile(input: RegisterMotionStudioToolCostProfileInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  createCostEstimate(input: CreateMotionStudioCostEstimateInput): Promise<MotionStudioPersistenceResult<MotionStudioCostEstimateReceipt>>
+  appendCostBudget(input: AppendMotionStudioCostBudgetInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  appendUsageEvent(input: AppendMotionStudioUsageEventInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  appendCostActual(input: AppendMotionStudioCostActualInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  appendCostReconciliation(input: AppendMotionStudioCostReconciliationInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+  appendCostAdjustment(input: AppendMotionStudioCostAdjustmentInput): Promise<MotionStudioPersistenceResult<MotionStudioPersistedRecordReceipt>>
+}

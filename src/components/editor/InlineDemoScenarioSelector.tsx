@@ -1,4 +1,5 @@
-import { demoScenarios } from '../../lib/demo-scenarios'
+import { demoScenarioIndex } from '../../lib/demo-scenario-index'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { Badge } from '../Badge'
 
 type InlineDemoScenarioSelectorProps = {
@@ -15,17 +16,17 @@ export function InlineDemoScenarioSelector({ onSelect, selectedScenarioId }: Inl
     <section className="inline-chat-card demo-scenario-selector-card">
       <div className="inline-card-heading">
         <div>
-          <span className="section-eyebrow">Demo scenario</span>
-          <h3>Demo scenario</h3>
+          <span className="section-eyebrow">Scenario library</span>
+          <h3>Internal scenario</h3>
         </div>
-        <Badge accent="cyan">Mock prototype</Badge>
+        <Badge accent="cyan">Internal</Badge>
       </div>
       <p className="inline-helper">
-        Use these mock scenarios to test ReeditPro's planning engine. This does not call real providers.
+        Switch internal scenarios to review different planning flows. Provider calls remain gated.
       </p>
 
       <div className="demo-scenario-grid">
-        {demoScenarios.map((scenario) => {
+        {demoScenarioIndex.map((scenario) => {
           const active = scenario.id === selectedScenarioId
 
           return (
@@ -36,7 +37,7 @@ export function InlineDemoScenarioSelector({ onSelect, selectedScenarioId }: Inl
               type="button"
             >
               <span>{scenario.label}</span>
-              <small>{scenario.description}</small>
+              <small>{hideInternalToolNamesInCopy(scenario.description)}</small>
               <em>{formatLabel(scenario.editingCategory)} / {scenario.editLevel}</em>
             </button>
           )

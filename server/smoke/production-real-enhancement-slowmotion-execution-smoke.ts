@@ -294,7 +294,9 @@ function buildPayload(
     idempotencyKey: 'pending',
     attempt: 1,
     maxAttempts: 1,
-    requestedToolIds: ['real_esrgan', 'film'],
+    // The routed smoke builds metadata only. Real-ESRGAN and FILM remain
+    // non-E2E candidates and must never be represented as requested tools.
+    requestedToolIds: [],
     requestedRecipeIds: ['enhancement_slow_motion_recipe'],
     storageReferenceIds: ['workspaces/workspace-m15d-smoke/projects/project-m15d-smoke/media/source.mp4'],
     requiredQualityGateTypes: ['enhancement_artifacts', 'slow_motion_artifacts', 'render_asset_integrity'],

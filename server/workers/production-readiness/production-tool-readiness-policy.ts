@@ -1,7 +1,6 @@
 import {
   PRODUCTION_TOOL_IDS,
   getGpuRequiredTools,
-  getProductionToolProfile,
   getToolsWithModelWeights,
 } from '../../tool-registry'
 import type { ProductionToolId } from '../../tool-registry'
@@ -25,7 +24,6 @@ const apiForbiddenTools: ProductionToolId[] = [
   ...getToolsWithModelWeights().map((profile) => profile.toolId),
   'ffmpeg',
   'ffprobe',
-  'revideo',
 ]
 
 export const productionContainerImageExpectations: ProductionContainerImageExpectation[] = [
@@ -54,11 +52,10 @@ export const productionContainerImageExpectations: ProductionContainerImageExpec
       'duckdb',
       'polars',
       'opentimelineio',
-      'paddleocr',
       'openimageio',
       'opencolorio',
     ],
-    forbiddenToolIds: ['revideo'],
+    forbiddenToolIds: [],
     notes: ['CPU worker image is for probe/proxy/analysis/timeline preparation, not AI model inference by default.'],
   },
   {
@@ -66,28 +63,19 @@ export const productionContainerImageExpectations: ProductionContainerImageExpec
     imageName: 'reeditpro-gpu-worker',
     dockerfilePath: 'docker/prod/gpu-worker/Dockerfile',
     expectedToolIds: [
-      'faster_whisper',
-      'birefnet',
-      'sam2',
       'kornia',
       'deepfilternet',
-      'demucs',
-      'real_esrgan',
-      'film',
-      'torch_torchvision',
-      'transformers',
+      'rembg',
       'opencv',
-      'paddleocr',
     ],
-    forbiddenToolIds: ['revideo'],
-    notes: ['GPU worker image targets Cloud Run Jobs with NVIDIA L4 first; model weights are placeholders only.'],
+    forbiddenToolIds: [],
+    notes: ['Current canonical E2E GPU-assigned tools target Cloud Run Jobs with NVIDIA L4 first; future model capabilities remain outside the production tool registry.'],
   },
   {
     imageRole: 'render_worker',
     imageName: 'reeditpro-render-worker',
     dockerfilePath: 'docker/prod/render-worker/Dockerfile',
     expectedToolIds: [
-      'hyperframe',
       'remotion',
       'ffmpeg',
       'ffprobe',
@@ -108,8 +96,8 @@ export const productionContainerImageExpectations: ProductionContainerImageExpec
       'lottie',
       'konva',
     ],
-    forbiddenToolIds: ['revideo'],
-    notes: ['Render image centers Remotion + FFmpeg + libass with Hyperframe/OTIO handoff boundaries.'],
+    forbiddenToolIds: [],
+    notes: ['Render image centers Remotion + FFmpeg + libass with the OpenTimelineIO handoff boundary.'],
   },
   {
     imageRole: 'qa_worker',
@@ -124,7 +112,7 @@ export const productionContainerImageExpectations: ProductionContainerImageExpec
       'opencolorio',
       'audioflux',
     ],
-    forbiddenToolIds: ['revideo'],
+    forbiddenToolIds: [],
     notes: ['QA worker validates outputs and quality gates; it does not make creative editing decisions.'],
   },
   {
@@ -141,7 +129,9 @@ export function listProductionReadinessSpecs(): ProductionToolReadinessSpec[] {
   return [...productionToolReadinessSpecs]
 }
 
-export function getProductionReadinessSpec(toolId: ProductionToolId): ProductionToolReadinessSpec | undefined {
+export function getProductionReadinessSpec(
+  toolId: ProductionToolId | string,
+): ProductionToolReadinessSpec | undefined {
   return productionToolReadinessSpecs.find((spec) => spec.toolId === toolId)
 }
 
@@ -162,7 +152,10 @@ export function assertProductionReadinessSpecsCoverRegistry(): void {
   const missingSpecs = PRODUCTION_TOOL_IDS.filter((toolId) => !specIds.has(toolId))
   const unknownSpecs = productionToolReadinessSpecs
     .map((spec) => spec.toolId)
-    .filter((toolId) => !PRODUCTION_TOOL_IDS.includes(toolId))
+    .filter(
+      (toolId) =>
+        !(PRODUCTION_TOOL_IDS as readonly string[]).includes(toolId),
+    )
 
   if (missingSpecs.length > 0) {
     throw new Error(`Production readiness specs missing registry tools: ${missingSpecs.join(', ')}`)
@@ -200,19 +193,15 @@ export function assertGpuToolsStayOutOfApiImage(): void {
   }
 }
 
-export function assertRevideoReadinessBlocked(): void {
-  const revideo = getProductionReadinessSpec('revideo')
-  const profile = getProductionToolProfile('revideo')
+export function assertNonE2ECapabilitiesExcludedFromProductionReadiness():
+void {
+  const knownProductionIds = new Set<string>(PRODUCTION_TOOL_IDS)
 
-  if (!revideo || !profile) {
-    throw new Error('Revideo profile/readiness spec is missing.')
-  }
-
-  if (!revideo.evaluationOnly || revideo.readinessStatusWhenMissing !== 'evaluation_only') {
-    throw new Error('Revideo readiness must be evaluation-only.')
-  }
-
-  if (!revideo.blocksProductionIfMissing || profile.launchCore) {
-    throw new Error('Revideo must be production-blocked and not launch core.')
+  for (const spec of productionToolReadinessSpecs) {
+    if (!knownProductionIds.has(spec.toolId)) {
+      throw new Error(
+        `Non-E2E capability leaked into production readiness: ${spec.toolId}.`,
+      )
+    }
   }
 }

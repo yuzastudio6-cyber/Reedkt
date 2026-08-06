@@ -18,7 +18,7 @@ export function InlineMusicContextCard({ context }: InlineMusicContextCardProps)
         </div>
       )}
       defaultExpanded
-      eyebrow="SoundSync"
+      eyebrow="Music"
       helper="Music is planned before generation. ReeditPro does not generate random music."
       priority="user_summary"
       status="ready"

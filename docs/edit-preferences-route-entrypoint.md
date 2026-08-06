@@ -1,47 +1,58 @@
 # Edit Preferences Route Entrypoint
 
+Status: `implemented_current_private_scope`
+
+Status date: 2026-07-13
+
 ## Decision
 
-`edit_preferences_route_entrypoint_passed_mock_local_ready_for_internal_testing`
+`saved_edit_preferences_route_ready_for_private_internal_testing`
 
 ## Summary
 
-This milestone wires the primary `/preferences` route into the app as a clean mock/local Preferences page. The older `/edit-preferences` URL remains a compatibility redirect so existing internal-testing links still land on the same page.
+The signed-in `/preferences` route now opens the canonical **Saved Edit Preferences** scope. The older `/edit-preferences` URL remains a compatibility redirect to the same page.
 
-The route is production-shaped for internal testing, not a shortcut. It keeps Edit Preference distinct from Project, Edit Chat, and Edit Brief, and it preserves the future path toward authenticated persistence and owner-approved runtime gates.
+This route is one half of the Edit Preferences system:
+
+1. Saved Edit Preferences provide reusable workspace defaults for future edits.
+2. Current Edit Preferences provide exact-edit overrides inside a named edit.
+
+The page is production-shaped for private/internal testing. It does not claim production database durability, provider execution, live billing, public delivery, or product readiness.
 
 ## Connected Scope
 
-- Canonical route: `/preferences`
-- Legacy redirect: `/edit-preferences`
-- Navigation: sidebar Preferences item.
-- Sidebar rule: the primary sidebar navigation is intentionally limited to Home, Project, and Preferences. Editor, upload, export, brand, wallet, and other old shell surfaces must not appear as primary sidebar options; their old standalone routes redirect back into Home, Project, or Preferences.
-- Source options: broad editing-default preference groups only.
-- Default project/session context: none.
-- Draft storage: not connected in this clean shell.
+- Seven saved fields: edit level, workflow type, cleanup preference, visual preference, mood/style, credit preference, and target platform.
+- One explicit option to pre-confirm reusable editing choices for a new edit.
+- Identity/workspace-scoped local-test persistence and the reviewed authenticated private-internal repository boundary.
+- Explicit **Save defaults**, retry, refresh, discard, unsaved-navigation protection, and preserved-draft feedback.
+- New named edits copy the seven effective values into an immutable creation baseline. Existing edits do not change when Saved Edit Preferences change later.
+- The normal route hides internal connection diagnostics. Development/E2E diagnostics require the explicit `?internalTesting=1` query.
 
-## Boundaries
+## Navigation
+
+- Canonical route: `/preferences`.
+- Legacy redirect: `/edit-preferences`.
+- Required combined-source sidebar links: Home, Projects, Edit Videos, Motion Studio, and Edit Preferences. Projects keeps `/projects`; Edit Videos uses `/edit-videos` and opens exact normal edits without changing `/projects/:projectId/edits/:editSessionId`; Motion Studio remains its own destination and workflow.
+- Retired standalone shell routes remain redirects into Home, Projects, or Edit Preferences.
+
+## Safety Boundaries
 
 - No upload or file-byte read.
 - No reference URL fetch.
-- No Qwen, DeepSeek, provider, worker, render/export, media processing, credit reservation, or credit spend.
-- No live Supabase read/write, Storage, signed URL, SQL, or migration.
+- No provider, Qwen, DeepSeek, worker, media-processing, render, or export call.
+- No credit reservation, spend, release, refund, wallet mutation, or billing action.
+- No live Supabase migration, SQL, RLS, Storage, or signed-URL action.
 - No external beta, real-user-media beta, paid production, or product-ready claim.
 
 ## Validation
 
 - `npm run smoke:edit-preferences-route-entrypoint`
-- `PLAYWRIGHT_PORT=<port> npx playwright test tests/e2e/edit-preferences-route-entrypoint.spec.ts`
-- `npm run smoke:project-edit-brief-internal-testing-entrypoint`
-- `npm run smoke:project-edit-brief-e2e`
-- `npm run smoke:beta-readiness`
-- `npm run typecheck:server`
-- `npm run build`
-- `git diff --check`
-- `git diff --cached --check`
+- `npm run smoke:edit-preference-persistence`
+- `npm run smoke:edit-preference-backend-route`
+- `npm run smoke:planning-input-safety`
+- `npx playwright test tests/e2e/edit-preferences-route-entrypoint.spec.ts tests/e2e/preferences-persistence.spec.ts tests/e2e/edit-preferences-current-edit.spec.ts --workers=1`
+- Frontend TypeScript, targeted ESLint, production build, frontend/server boundary, and `git diff --check`.
 
-## Next
+## Remaining Production Work
 
-Use `/preferences` during internal testing to inspect broad reusable style direction. Later milestones can connect authenticated preference persistence and owner-reviewed Preference DNA, but this route does not enable those release gates by itself.
-
-Keep Preferences in the clean sidebar. Do not restore the older broad sidebar list or standalone old shell pages unless a later product decision explicitly expands primary navigation.
+Production multi-device durability still requires an approved Supabase migration baseline, reviewed RLS and tenancy evidence, conflict behavior, deployment evidence, and production security validation. Those gates remain closed.

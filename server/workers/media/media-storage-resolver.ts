@@ -35,6 +35,10 @@ export interface BuildStorageArtifactReferenceInput {
   localFilePath?: string
   contentType?: string
   sizeBytes?: number
+  checksumSha256?: string
+  generation?: string
+  etag?: string
+  authorityRole?: 'immutable_source_master' | 'analysis_derivative'
 }
 
 export function assertStorageRefIsPrivate(input: Pick<MediaFoundationStorageReference, 'isPrivate' | 'sourceOfTruth'>): void {
@@ -61,6 +65,15 @@ export function buildStorageArtifactReference(input: BuildStorageArtifactReferen
     assertNoSignedUrlOrRawUrl(input.localFilePath, 'localFilePath')
     assertNoPathTraversal(input.localFilePath, 'localFilePath')
   }
+  if (input.sizeBytes !== undefined && (!Number.isSafeInteger(input.sizeBytes) || input.sizeBytes <= 0)) {
+    throw new Error('Storage artifact byte size must be a positive safe integer when supplied.')
+  }
+  if (input.checksumSha256 !== undefined && !/^[a-f0-9]{64}$/.test(input.checksumSha256)) {
+    throw new Error('Storage artifact checksum must be a lowercase SHA-256 value when supplied.')
+  }
+  if (Boolean(input.generation) !== Boolean(input.etag)) {
+    throw new Error('Generation-bound storage authority requires generation and ETag together.')
+  }
 
   return {
     sourceStorageObjectId: input.sourceStorageObjectId,
@@ -69,6 +82,10 @@ export function buildStorageArtifactReference(input: BuildStorageArtifactReferen
     localFilePath: input.localFilePath,
     contentType: input.contentType,
     sizeBytes: input.sizeBytes,
+    checksumSha256: input.checksumSha256,
+    generation: input.generation,
+    etag: input.etag,
+    authorityRole: input.authorityRole,
     isPrivate: true,
     sourceOfTruth: true,
   }

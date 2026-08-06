@@ -1,5 +1,5 @@
 import type { GeneratedAssetRecord } from './generation'
-import type { MediaAssetRecord, ReferenceAssetRecord, SourceClipSequenceItem, SourceClipSequenceRecord } from './media'
+import type { MediaAssetRecord, MediaStorageProvider, ReferenceAssetRecord, SourceClipSequenceItem, SourceClipSequenceRecord } from './media'
 import type { ID } from './shared'
 
 export type UploadPurpose =
@@ -74,18 +74,38 @@ export interface UploadValidationResult {
 
 export interface UploadPlan {
   id: string
+  finalizedMediaAssetId?: string
+  storageObjectRecordId?: string
   workspaceId: string
   projectId?: string
   purpose: UploadPurpose
   bucketName: string
   objectPath: string
+  storageProvider?: MediaStorageProvider
   fileName: string
   mimeType: string
   fileSizeBytes: number
+  checksumSha256?: string
   requiresAuth: boolean
   createsMediaAsset: boolean
   mockOnly?: boolean
   uploadedOrder?: number
+  sourceMetadata?: SourceMediaMetadata
+}
+
+export interface SourceMediaMetadata {
+  probeStatus: 'probed' | 'unavailable'
+  source: 'local_ffprobe' | 'gcs_ffprobe'
+  durationSeconds?: number
+  width?: number
+  height?: number
+  videoCodec?: string
+  audioCodec?: string
+  formatName?: string
+  streamCount?: number
+  hasVideo: boolean
+  hasAudio: boolean
+  unavailableReason?: string
 }
 
 export interface CreateUploadPlanInput extends UploadValidationContext {

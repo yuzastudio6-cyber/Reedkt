@@ -7,7 +7,8 @@ import {
 } from '../production/production-worker-gates'
 import { assertWorkerPayloadHasNoForbiddenFields } from '../production/production-worker-artifact-policy'
 import { evaluateModelWeightManifestForMode, getGpuModelWeightManifestTemplate } from '../../model-weights'
-import type { MaskExecutionInput } from './mask-execution-types'
+import { buildMaskTaskPlan } from './mask-task-plan-builder'
+import type { MaskExecutionInput, MaskTaskPlan } from './mask-execution-types'
 
 const forbiddenInputKeys = [
   'rawPrompt',
@@ -42,6 +43,8 @@ export function validateMaskExecutionPolicy(input: MaskExecutionInput): {
   if (input.allowFinalRender === true) blockingReasons.push('final_render_blocked_in_m15c')
   if ((input.arbitraryModelArgs?.length ?? 0) > 0) blockingReasons.push('arbitrary_model_args_blocked')
   if ((input.arbitraryFfmpegArgs?.length ?? 0) > 0) blockingReasons.push('arbitrary_ffmpeg_args_blocked')
+  const historicalSam2Requested = input.selectedPrimaryTool === 'sam2' || input.fallbackTools?.includes('sam2') === true || input.legacySam2InputRejected === true
+  if (historicalSam2Requested) blockingReasons.push('sam2_historical_only_new_work_blocked')
   if (input.mode === 'production_blocked') blockingReasons.push('production_mask_execution_blocked_in_m15c')
 
   if (input.mode === 'production_ready') {
@@ -60,7 +63,12 @@ export function validateMaskExecutionPolicy(input: MaskExecutionInput): {
       blockingReasons.push('mask_readiness_blockers_present')
     }
 
-    for (const manifestId of requiredManifestIds(input)) {
+    const taskPlan = historicalSam2Requested ? undefined : buildMaskTaskPlan(input)
+    for (const manifestId of taskPlan?.modelWeightRequirements ?? []) {
+      if (!isAdmittedMaskManifestId(manifestId)) {
+        blockingReasons.push(`${manifestId}_canonical_manifest_not_admitted`)
+        continue
+      }
       if (!input.modelWeightManifestIds?.includes(manifestId)) {
         blockingReasons.push(`${manifestId}_modelWeightManifestId_required`)
         continue
@@ -88,12 +96,10 @@ export function validateMaskExecutionPolicy(input: MaskExecutionInput): {
   }
 }
 
-function requiredManifestIds(input: MaskExecutionInput): Array<'birefnet_model' | 'sam2_checkpoint'> {
-  const ids: Array<'birefnet_model' | 'sam2_checkpoint'> = ['birefnet_model']
-  if (input.maskIntent === 'background_removal_video' || input.maskIntent === 'text_behind_subject' || input.motionRequiresTracking) {
-    ids.push('sam2_checkpoint')
-  }
-  return ids
+function isAdmittedMaskManifestId(
+  manifestId: MaskTaskPlan['modelWeightRequirements'][number],
+): manifestId is 'birefnet_model' | 'sam3_1_checkpoint' {
+  return manifestId === 'birefnet_model' || manifestId === 'sam3_1_checkpoint'
 }
 
 function rejectForbiddenInputFields(input: MaskExecutionInput): void {
@@ -111,7 +117,6 @@ function rejectUnsafeReferences(input: MaskExecutionInput): void {
     ['proxyVideoLocalPath', input.proxyVideoLocalPath],
     ['outputDirectory', input.outputDirectory],
     ['birefnetModelLocalPath', input.birefnetModelLocalPath],
-    ['sam2CheckpointLocalPath', input.sam2CheckpointLocalPath],
   ] as const
   for (const [label, value] of stringFields) {
     if (!value) continue

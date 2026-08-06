@@ -1,0 +1,84 @@
+name: Canonical Sound Acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/sound/**'
+      - 'server/sound/**'
+      - 'server/smoke/*sound*'
+      - 'docs/sound/**'
+      - 'package.json'
+      - '.github/workflows/canonical-sound-acceptance.yml'
+  push:
+    branches:
+      - main
+      - master
+      - 'codex/**'
+    paths:
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/sound/**'
+      - 'server/sound/**'
+      - 'server/smoke/*sound*'
+      - 'docs/sound/**'
+      - 'package.json'
+      - '.github/workflows/canonical-sound-acceptance.yml'
+
+jobs:
+  canonical-sound-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install approved local media runtime
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+              -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
+      - name: Check repository secrets
+        run: npm run check:secrets
+
+      - name: Run canonical Sound acceptance suite
+        run: npm run test:sound-acceptance
+
+      - name: Run canonical Music-to-Sound final-closure regressions
+        run: npm run test:music-final-closure
+
+      - name: Server typecheck
+        run: npm run typecheck:server
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Record qualification boundary
+        if: always()
+        run: |
+          {
+            echo "## Canonical Sound acceptance"
+            echo ""
+            echo "- The shared capability kernel, B-roll regression, complete Sound smoke suite, execution-integrity suite, capability-wide acceptance matrix, and Music-to-Sound final-closure regressions ran on this exact commit."
+            echo "- Mirelo coverage uses deterministic injected transport and remains fixture-qualified. This workflow does not perform a paid provider call or production activation."
+            echo "- This workflow validates Sound's public Music-support boundary; the Head of Orchestra and Music creative ownership remain outside Sound by design."
+          } >> "$GITHUB_STEP_SUMMARY"

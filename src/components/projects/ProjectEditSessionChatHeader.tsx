@@ -21,7 +21,6 @@ export function ProjectEditSessionChatHeader({ header }: ProjectEditSessionChatH
           <Badge>{header.aspectRatioLabel}</Badge>
           <Badge>{header.platformLabel}</Badge>
           <Badge>{header.statusLabel}</Badge>
-          <Badge>{header.editLevelLabel}</Badge>
           <Badge accent={header.dnaLabel === 'DNA applied' ? 'violet' : 'muted'}>{header.dnaLabel}</Badge>
           <Badge accent="cyan">{header.dnaQALabel}</Badge>
           <Badge>{header.doNotCopyLabel}</Badge>

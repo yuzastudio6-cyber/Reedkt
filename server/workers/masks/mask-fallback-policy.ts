@@ -9,24 +9,33 @@ export function buildMaskFallbackDecisions(input: {
   const confidence = input.maskConfidence ?? 0.72
   const temporal = input.temporalStabilityScore ?? 0.68
 
-  if (confidence < 0.78) {
+  if (confidence < 0.78 && input.taskPlan.primaryTool === 'birefnet') {
     decisions.push({
       trigger: 'birefnet_weak_mask',
       action: 'switch_tool',
-      toolIds: ['sam2', 'opencv', 'kornia'],
+      toolIds: ['sam3_1', 'opencv', 'kornia'],
       reason: 'Weak foreground extraction should try tracking/refinement before any depth effect.',
+    })
+  }
+
+  if (confidence < 0.78 && input.taskPlan.primaryTool === 'sam3_1') {
+    decisions.push({
+      trigger: 'sam3_1_subject_confidence_low',
+      action: 'request_review',
+      reason: 'Low subject confidence must not silently switch to a lower-quality segmentation model.',
+      blocksPreview: true,
     })
   }
 
   if (input.taskPlan.temporalSmoothingPlan.required && temporal < 0.75) {
     decisions.push({
-      trigger: 'sam2_tracking_drift',
+      trigger: 'sam3_1_tracking_drift',
       action: 'use_shorter_segment',
-      toolIds: ['sam2'],
+      toolIds: ['sam3_1'],
       reason: 'Tracking drift should shorten the segment or use keyframe-only cutout.',
     })
     decisions.push({
-      trigger: 'sam2_tracking_drift',
+      trigger: 'sam3_1_tracking_drift',
       action: 'keyframe_only_cutout',
       reason: 'Use keyframe-only cutout when temporal propagation is not stable.',
     })

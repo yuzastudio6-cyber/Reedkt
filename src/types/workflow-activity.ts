@@ -1,0 +1,146 @@
+import type { ProjectWorkflowStatus } from './production-workflow'
+import type { ID, ProjectScopedRecord } from './workflow-common'
+
+export type WorkflowActivityType =
+  | 'upload_received'
+  | 'proxy_created'
+  | 'transcription_started'
+  | 'transcription_completed'
+  | 'silence_detection_started'
+  | 'silence_detection_completed'
+  | 'retake_detection_started'
+  | 'retake_detection_completed'
+  | 'cleanup_plan_created'
+  | 'clean_assembly_created'
+  | 'source_library_created'
+  | 'source_asset_role_updated'
+  | 'source_asset_suggestion_accepted'
+  | 'source_asset_marked_do_not_use'
+  | 'source_library_confirmed'
+  | 'source_library_reset'
+  | 'edit_brief_created'
+  | 'edit_brief_updated'
+  | 'edit_brief_asset_rule_updated'
+  | 'edit_brief_reset'
+  | 'edit_brief_ready'
+  | 'edit_cue_created'
+  | 'edit_cue_updated'
+  | 'edit_cue_asset_updated'
+  | 'edit_cue_ready'
+  | 'edit_cue_deleted'
+  | 'edit_cues_reset'
+  | 'edit_cue_validation_warning'
+  | 'edit_cue_remapped'
+  | 'edit_cue_remap_failed'
+  | 'edit_cue_conflict_found'
+  | 'edit_cue_conflict_resolved'
+  | 'edit_cue_conflict_ignored'
+  | 'edit_cue_conflicts_reset'
+  | 'planning_context_created'
+  | 'planning_context_ready'
+  | 'planning_context_needs_review'
+  | 'planning_context_blocked'
+  | 'context_aware_plan_created'
+  | 'edit_plan_started'
+  | 'edit_plan_ready'
+  | 'credit_estimate_ready'
+  | 'approval_required'
+  | 'professional_integration_started'
+  | 'professional_integration_created'
+  | 'professional_integration_regenerated'
+  | 'professional_integration_ready'
+  | 'professional_integration_needs_review'
+  | 'professional_integration_blocked'
+  | 'professional_integration_accepted'
+  | 'professional_treatment_accepted'
+  | 'professional_qa_started'
+  | 'professional_qa_passed'
+  | 'professional_qa_needs_review'
+  | 'professional_qa_blocked'
+  | 'professional_qa_warning_accepted'
+  | 'professional_qa_reviewed'
+  | 'professional_qa_reset'
+  | 'generation_readiness_created'
+  | 'mock_credit_estimate_ready'
+  | 'generation_approval_required'
+  | 'generation_approved'
+  | 'mock_preview_job_queued'
+  | 'mock_preview_job_started'
+  | 'mock_preview_job_progress'
+  | 'mock_preview_ready'
+  | 'mock_preview_blocked'
+  | 'mock_preview_failed'
+  | 'edit_map_created'
+  | 'edit_map_selection_changed'
+  | 'edit_map_operation_applied'
+  | 'edit_map_visibility_changed'
+  | 'edit_map_lock_changed'
+  | 'edit_map_element_regenerate_requested'
+  | 'edit_map_reset'
+  | 'revision_request_created'
+  | 'revision_estimate_ready'
+  | 'revision_approval_required'
+  | 'revision_approved'
+  | 'revision_rejected'
+  | 'mock_revision_job_queued'
+  | 'mock_revision_job_started'
+  | 'mock_revision_job_progress'
+  | 'mock_revision_preview_ready'
+  | 'mock_revision_failed'
+  | 'revision_reset'
+  | 'export_readiness_created'
+  | 'mock_export_estimate_ready'
+  | 'export_approval_required'
+  | 'export_approved'
+  | 'export_rejected'
+  | 'mock_export_job_queued'
+  | 'mock_export_job_started'
+  | 'mock_export_job_progress'
+  | 'mock_export_ready'
+  | 'mock_export_failed'
+  | 'export_reset'
+  | 'render_started'
+  | 'qa_started'
+  | 'qa_passed'
+  | 'qa_failed'
+  | 'preview_ready'
+  | 'edit_operation_created'
+  | 'revision_requested'
+  | 'export_started'
+  | 'export_ready'
+  | 'workflow_failed'
+
+export type WorkflowActivitySeverity =
+  | 'info'
+  | 'success'
+  | 'warning'
+  | 'error'
+
+export interface WorkflowActivityEvent extends ProjectScopedRecord {
+  type: WorkflowActivityType
+  severity: WorkflowActivitySeverity
+  title: string
+  message: string
+  status?: ProjectWorkflowStatus
+  relatedMediaAssetId?: ID
+  relatedCleanAssemblyId?: ID
+  relatedEditCueId?: ID
+  relatedEditPlanId?: ID
+  relatedRenderId?: ID
+  relatedEditOperationId?: ID
+  progressPercent?: number
+  retryable?: boolean
+  recoveryAction?: string
+  metadata?: Record<string, unknown>
+}
+
+export interface WorkflowProgressSnapshot {
+  projectId: ID
+  status: ProjectWorkflowStatus
+  activeLabel: string
+  progressPercent?: number
+  latestEvent?: WorkflowActivityEvent
+  blockingIssueCount?: number
+  warningCount?: number
+  nextRecommendedActions: string[]
+}

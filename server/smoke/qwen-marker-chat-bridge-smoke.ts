@@ -56,7 +56,8 @@ const validStructuredResponse = {
 }
 
 const fakeSecretClient = {
-  async accessSecretVersion() {
+  async accessSecretVersion(input: { name: string }) {
+    assert.equal(input.name, 'projects/mock-project/secrets/qwen-reasoning-api-key/versions/7')
     return [{ payload: { data: Buffer.from('mock-qwen-secret-for-bridge') } }]
   },
 }
@@ -79,7 +80,7 @@ const fakeProviderClient = {
 const betaEnv = {
   REEDITPRO_QWEN_RUNTIME_MODE: 'beta_enabled',
   GOOGLE_CLOUD_PROJECT_ID: 'mock-project',
-  QWEN_REASONING_API_KEY_SECRET: 'qwen-reasoning-api-key',
+  QWEN_REASONING_API_KEY_SECRET: 'projects/mock-project/secrets/qwen-reasoning-api-key/versions/7',
   QWEN_REASONING_BASE_URL: 'https://qwen.example.invalid',
   QWEN_REASONING_MODEL_ID: 'qwen-3.7-marker-chat',
 }

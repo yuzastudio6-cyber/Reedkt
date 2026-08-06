@@ -1,46 +1,57 @@
 {
-  "decision": "internal_tester_sign_in_auth_readback_gate_passed_ready_for_manual_readback_workflow",
-  "sourceRef": "codex/reeditpro-web-ui-shell",
-  "sourceSha": "d84af861f401513d6f699087463d059c90022619",
+  "decision": "google_first_same_sha_auth_profile_workspace_readback_source_ready_remote_read_not_run",
+  "sourceRef": "codex/backend-workflow-pipeline-continuation",
+  "sourceShaRequiredAtDispatch": true,
   "workflow": ".github/workflows/internal-tester-sign-in-auth-readback.yml",
   "cli": "server/cli/verify-internal-tester-auth-readback.ts",
-  "packageScripts": {
-    "readback": "internal-testing:verify-auth-readback",
-    "browserSignIn": "internal-testing:verify-browser-sign-in",
-    "smoke": "smoke:internal-tester-sign-in-auth-readback"
-  },
+  "identityEvidenceModule": "server/auth/internal-tester-google-identity.ts",
+  "sourceWorkflowReady": true,
+  "sourceWorkflowPushed": false,
+  "remoteWorkflowRun": false,
   "requiredConfirmation": {
     "REEDITPRO_CONFIRM_INTERNAL_TESTER_AUTH_READBACK": "VERIFY_REEDITPRO_INTERNAL_TESTER_AUTH_READBACK"
   },
-  "requiredSecrets": [
+  "requiredEnvironmentSecrets": [
     "STAGING_SUPABASE_URL",
-    "STAGING_SUPABASE_SERVICE_ROLE_KEY"
+    "STAGING_SUPABASE_SERVICE_ROLE_KEY",
+    "STAGING_INTERNAL_TESTER_EMAIL"
   ],
   "requiredInputs": [
-    "tester_email"
+    "source_ref",
+    "source_sha",
+    "expected_email_hash"
   ],
   "readbackTargets": [
     "auth.users",
-    "profiles",
+    "profiles_or_legacy_user_profiles_compatibility_fallback",
     "workspaces",
     "workspace_members"
   ],
-  "supportedProfileIdentityColumns": [
-    "user_id",
-    "id"
-  ],
-  "authReadinessOutput": [
-    "emailHash",
-    "userId",
+  "googleSessionEvidenceRequired": [
+    "googleIdentityObserved",
     "authEmailConfirmed",
-    "authLastSignInAt",
-    "profileId",
-    "profileIdentityColumn",
-    "workspaceId",
-    "membershipId",
-    "membershipRole"
+    "priorAuthSignInObserved"
   ],
+  "dataMutationAllowed": false,
+  "workspaceIdentityContractDetectedBeforeReadback": true,
+  "profileContractMustMatchWorkspaceOwnership": true,
+  "workspaceIdentityContractSelectionOrder": [
+    "legacy_user_profile_when_owner_user_id_exists",
+    "direct_auth_user_when_only_owner_id_exists"
+  ],
+  "ownedWorkspaceRequired": true,
+  "ownerMembershipRequired": true,
+  "workspaceMembershipIdentityContracts": [
+    "surrogate_id",
+    "workspace_user_composite"
+  ],
+  "compositeMembershipIdentitySupported": true,
+  "rawEmailAcceptedAsWorkflowInput": false,
+  "outputIdentifiersHashed": true,
+  "rawMigrationBaselineStatus": "blocked_by_parallel_foundations",
   "blockedScope": {
+    "authUserCreation": false,
+    "authInvitation": false,
     "frontendServiceRole": false,
     "viteServiceRole": false,
     "supabaseMigration": false,
@@ -56,8 +67,9 @@
     "creditReservation": false,
     "creditSpend": false,
     "stripe": false,
+    "customerBilling": false,
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "INTERNAL_TESTER_BROWSER_SIGN_IN_VERIFICATION"
+  "nextGate": "OWNER_INTERACTIVE_GOOGLE_SESSION_WITH_PRIVATE_GATEWAY_PROJECTS_READBACK"
 }

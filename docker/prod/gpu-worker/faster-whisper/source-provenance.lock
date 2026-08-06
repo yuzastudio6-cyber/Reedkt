@@ -1,0 +1,17 @@
+platform=linux/amd64
+nvidia_cuda_base=nvidia/cuda:12.3.2-cudnn9-runtime-ubuntu22.04
+nvidia_cuda_base_index_digest=sha256:fa44193567d1908f7ca1f3abf8623ce9c63bc8cba7bcfdb32702eb04d326f7a8
+nvidia_cuda_base_amd64_digest=sha256:edc99e084ef003e1e6f180dbe2e9f64496c61254cb109c09060532c2d3b61d75
+cuda_version=12.3.2
+cudnn_major=9
+python_version=3.10
+faster_whisper_version=1.2.1
+faster_whisper_source_revision=65882eee9f5cdbeeb2d877f1131d48cf241b327d
+ctranslate2_version=4.6.2
+numpy_version=1.26.4
+av_version=14.2.0
+onnxruntime_version=1.16.3
+model_repository=Systran/faster-whisper-small
+model_revision=536b0662742c02347bc0e980a01041f333bce120
+runtime_network_fetch_allowed=false
+runtime_cpu_fallback_allowed=false

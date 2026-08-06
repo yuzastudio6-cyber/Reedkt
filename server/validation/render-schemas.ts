@@ -5,9 +5,19 @@ export const createRenderJobSchema = z.object({
   workspaceId: idSchema,
   projectId: idSchema,
   approvedPlanSnapshotId: idSchema,
+  creditEstimateId: idSchema,
   creditReservationId: idSchema,
   renderType: z.enum(['preview', 'export']),
   renderQualityLevel: z.string().optional(),
+  approvedReservationRemainingCredits: z.number().int().nonnegative().optional(),
+  renderUsage: z.object({
+    requestCount: z.number().int().positive().optional(),
+    renderDurationSeconds: z.number().nonnegative().finite().optional(),
+    outputSeconds: z.number().nonnegative().finite().optional(),
+    width: z.number().int().positive().optional(),
+    height: z.number().int().positive().optional(),
+    fps: z.number().positive().finite().optional(),
+  }).optional(),
 })
 
 export const previewReviewSchema = z.object({

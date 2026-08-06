@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
   PRODUCTION_TOOL_IDS,
   getLaunchCoreProductionTools,
   getProductionToolProfile,
@@ -10,7 +11,7 @@ import {
   assertApiImageHasNoHeavyTools,
   assertGpuToolsStayOutOfApiImage,
   assertProductionReadinessSpecsCoverRegistry,
-  assertRevideoReadinessBlocked,
+  assertNonE2ECapabilitiesExcludedFromProductionReadiness,
   getContainerImageExpectation,
   getProductionReadinessSpec,
   productionContainerImageExpectations,
@@ -56,6 +57,10 @@ const requiredDockerFiles = [
 
 for (const path of requiredDockerFiles) {
   check(repoFileExists(path), `Missing Docker template file: ${path}`)
+  if (path.endsWith('/Dockerfile')) {
+    const source = readRepoFile(path)
+    check(source.includes('dist-server/container-readiness-receipt.js'), `${path} must require the built bounded container receipt entrypoint.`)
+  }
 }
 
 const requiredBuildScripts = [
@@ -91,7 +96,7 @@ check(!packageJson.includes('scripts/docker/prod'), 'package.json must not call 
 assertProductionReadinessSpecsCoverRegistry()
 assertApiImageHasNoHeavyTools()
 assertGpuToolsStayOutOfApiImage()
-assertRevideoReadinessBlocked()
+assertNonE2ECapabilitiesExcludedFromProductionReadiness()
 
 check(productionToolReadinessSpecs.length === PRODUCTION_TOOL_IDS.length, 'Readiness specs must cover every production tool.')
 
@@ -103,13 +108,18 @@ for (const toolId of PRODUCTION_TOOL_IDS) {
 }
 
 for (const spec of productionToolReadinessSpecs) {
-  check(PRODUCTION_TOOL_IDS.includes(spec.toolId), `Readiness spec references unknown tool ${spec.toolId}`)
+  check(
+    (PRODUCTION_TOOL_IDS as readonly string[]).includes(spec.toolId),
+    `Readiness spec references unknown tool ${spec.toolId}`,
+  )
 }
 
-const revideo = requireSpec('revideo')
-check(revideo.evaluationOnly, 'Revideo readiness spec must be evaluation-only.')
-check(revideo.blocksProductionIfMissing, 'Revideo readiness spec must block production.')
-check(revideo.readinessStatusWhenMissing === 'evaluation_only', 'Revideo readiness status must be evaluation_only.')
+for (const toolId of NON_E2E_TOOL_CAPABILITY_IDS) {
+  check(
+    getProductionReadinessSpec(toolId) === undefined,
+    `${toolId} must not receive a production readiness spec before E2E promotion.`,
+  )
+}
 
 const apiExpectation = getContainerImageExpectation('api')
 check(Boolean(apiExpectation), 'API image expectation must exist.')
@@ -136,18 +146,18 @@ check(dryRun.results.length === PRODUCTION_TOOL_IDS.length, 'Dry-run readiness m
 check(!dryRun.results.some((result) => result.status === 'passed'), 'Dry-run readiness must not report command/import checks as passed.')
 check(dryRun.summary.launchCoreTools.length === getLaunchCoreProductionTools().length, 'Summary must surface launch-core tools.')
 check(dryRun.summary.missingTools.length > 0, 'Summary must list missing launch/core tools in dry-run.')
-check(dryRun.summary.futureOnlyTools.length > 0, 'Summary must list future-only tools.')
-check(dryRun.summary.evaluationOnlyTools.includes('revideo'), 'Summary must list Revideo as evaluation-only.')
 check(dryRun.summary.modelWeightTools.length === getToolsWithModelWeights().length, 'Summary must list model-weight tools.')
-check(dryRun.summary.productionBlockedTools.includes('revideo'), 'Summary must list Revideo as production-blocked.')
+check(
+  !dryRun.results.some((result) =>
+    (NON_E2E_TOOL_CAPABILITY_IDS as readonly string[]).includes(
+      result.toolId,
+    )),
+  'Dry-run production readiness must exclude every non-E2E capability.',
+)
 
 const remotion = requireSpec('remotion')
 check(remotion.imageRoles.includes('render_worker'), 'Remotion must be render worker readiness.')
 check(remotion.nodePackageChecks.some((item) => item.importName === 'remotion'), 'Remotion readiness must be a Node package check.')
-
-const hyperframe = requireSpec('hyperframe')
-check(hyperframe.expectedWorkerTypes.includes('frontend_preview_only'), 'Hyperframe must remain preview/timeline boundary.')
-check(!hyperframe.gpuRequired, 'Hyperframe must not be modeled as a heavy backend AI tool.')
 
 check(requireSpec('ffmpeg').commandChecks.some((item) => item.command === 'ffmpeg'), 'FFmpeg readiness must include command checks.')
 check(requireSpec('ffprobe').commandChecks.some((item) => item.command === 'ffprobe'), 'ffprobe readiness must include command checks.')
@@ -160,7 +170,11 @@ const renderExpectation = getContainerImageExpectation('render_worker')
 check(Boolean(renderExpectation?.expectedToolIds.includes('remotion')), 'Render image expectation must include Remotion.')
 check(Boolean(renderExpectation?.expectedToolIds.includes('ffmpeg')), 'Render image expectation must include FFmpeg.')
 check(Boolean(renderExpectation?.expectedToolIds.includes('libass')), 'Render image expectation must include libass.')
-check(Boolean(renderExpectation?.forbiddenToolIds.includes('revideo')), 'Render image expectation must exclude Revideo.')
+check(
+  !renderExpectation?.expectedToolIds.some((toolId) =>
+    (NON_E2E_TOOL_CAPABILITY_IDS as readonly string[]).includes(toolId)),
+  'Render image expectation must exclude all non-E2E capabilities.',
+)
 
 check(productionContainerImageExpectations.length === 6, 'There must be six production container image expectations.')
 

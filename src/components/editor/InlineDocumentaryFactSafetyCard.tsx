@@ -64,7 +64,7 @@ export function InlineDocumentaryFactSafetyCard({ descriptor, plan }: InlineDocu
     >
       <div className="qa-badge-row">
         <Badge accent="warning">Neutral claim treatment</Badge>
-        <Badge accent="muted">No real fact verification</Badge>
+        <Badge accent="muted">Verification gated</Badge>
       </div>
       {factSafetyPlan.clarifyingQuestions.length > 0 && (
         <p className="fact-safety-warning">
@@ -102,7 +102,7 @@ export function InlineDocumentaryFactSafetyCard({ descriptor, plan }: InlineDocu
         ))}
       </div>
 
-      {factSafetyPlan.claimItems.length > 4 && <p className="inline-helper">+ {factSafetyPlan.claimItems.length - 4} more fact-safety item{factSafetyPlan.claimItems.length - 4 === 1 ? '' : 's'} included in the mock plan.</p>}
+      {factSafetyPlan.claimItems.length > 4 && <p className="inline-helper">+ {factSafetyPlan.claimItems.length - 4} more fact-safety item{factSafetyPlan.claimItems.length - 4 === 1 ? '' : 's'} included in the review plan.</p>}
 
       <div className="renderer-notes">
         {factSafetyPlan.globalRules.slice(0, 4).map((rule) => (

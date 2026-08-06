@@ -518,7 +518,10 @@ function strategyFromOpportunity(
     recommendedTransitionFamilies: directive?.transitionFamilies ?? ['clean_cut_transitions'],
     recommendedColorGrade: directive?.colorGradeStyle ?? 'clean_natural',
     recommendedCaptionStyle: directive?.captionStyle ?? 'clean_subtitle',
-    recommendedBrollPolicy: directive?.brollPolicy ?? 'support_key_points',
+    recommendedBrollPolicy:
+      opportunityType === 'caption_only' || opportunityType === 'no_extra_visual'
+        ? 'none'
+        : directive?.brollPolicy ?? 'support_key_points',
     costComplexity: costForOpportunity(opportunityType, restraint, input),
     reasons: strategyReasons({ compiledIntent, input, opportunity, restraint }),
     mustFollowRules: [
@@ -758,8 +761,8 @@ export function createAdaptiveEditStrategyPlan({
       'Reference DNA guides style only and never overrides explicit instructions.',
     ],
     limitations: [
-      'Mock-only adaptive strategy; no real media analysis has been run.',
-      'No tools, providers, rendering, masks, tracking, backend, FFmpeg, OpenCV, Playwright, MapLibre, D3, or ECharts are executed.',
+      'Review-only adaptive strategy; media analysis remains backend-gated.',
+      'Tools, providers, rendering, masks, tracking, backend jobs, FFmpeg, OpenCV, Playwright, D3, SVG.js, Remotion, and ECharts require approved execution gates.',
     ],
   }
 }
@@ -797,7 +800,7 @@ function avoidRulesForOpportunity(input: PlannerInput, type: VisualSupportOpport
   const rules = [
     'Do not apply this visual because of category alone; it must support the exact beat.',
     'Do not override explicit user instructions, tier policy, safety rules, or approval gates.',
-    'Do not execute tools or generate media in the frontend mock planner.',
+    'Do not execute tools or generate media before approved backend gates pass.',
   ]
 
   if (input.editLevel !== 'premium') {
@@ -860,13 +863,13 @@ export function createAdaptiveEditStrategy({
     items,
     globalRules: [
       'Select visuals per beat, not by category template.',
-      'Explicit user instructions stay above mock video understanding.',
+      'Explicit user instructions stay above preliminary video understanding.',
       'Use the simplest visual that clearly answers what the viewer needs to see.',
       'Keep provider generation and rendering behind approval and future worker boundaries.',
     ],
     notes: [
-      'This strategy is deterministic mock planning only.',
-      'Future media-analysis workers can replace the mock report while preserving this decision shape.',
+      'This strategy is deterministic planning metadata.',
+      'Future media-analysis workers can replace the preliminary report while preserving this decision shape.',
     ],
   }
 }

@@ -1,129 +1,125 @@
 import type { QualityGateType } from '../../src/backend/contracts/production-tool-runtime-contracts'
 
-export type ProductionToolId =
-  | 'ffmpeg'
-  | 'ffprobe'
-  | 'mediainfo'
-  | 'exiftool'
-  | 'pyav'
-  | 'opentimelineio'
-  | 'hyperframe'
-  | 'remotion'
-  | 'libass'
-  | 'sharp'
-  | 'imagemagick'
-  | 'duckdb'
-  | 'polars'
-  | 'faster_whisper'
-  | 'whisper_cpp'
-  | 'paddleocr'
-  | 'tesseract'
-  | 'pyscenedetect'
-  | 'opencv'
-  | 'mediapipe'
-  | 'kornia'
-  | 'birefnet'
-  | 'sam2'
-  | 'transparent_background'
-  | 'rembg'
-  | 'opencolorio'
-  | 'openimageio'
-  | 'deepfilternet'
-  | 'rnnoise'
-  | 'demucs'
-  | 'librosa'
-  | 'audioflux'
-  | 'signalsmith_stretch'
-  | 'soundtouch'
-  | 'rubber_band'
-  | 'essentia'
-  | 'real_esrgan'
-  | 'film'
-  | 'pixijs'
-  | 'three_js'
-  | 'babylon_js'
-  | 'lottie'
-  | 'playwright'
-  | 'maplibre'
-  | 'turf'
-  | 'd3'
-  | 'echarts'
-  | 'vega'
-  | 'vega_lite'
-  | 'satori'
-  | 'svg_js'
-  | 'viz_js'
-  | 'animejs'
-  | 'deck_gl'
-  | 'cesium_js'
-  | 'konva'
-  | 'torch_torchvision'
-  | 'transformers'
-  | 'vapoursynth'
-  | 'revideo'
-
-export const PRODUCTION_TOOL_IDS = [
+/**
+ * Exact tool identities with canonical private end-to-end and job-adapter
+ * evidence. This is the only list accepted by production tool-call schemas.
+ *
+ * Historical planning and future-capability records are retained separately
+ * under `ProfessionalToolCatalogId`; they are not `ProductionToolId`s.
+ */
+export const CANONICAL_PRIVATE_E2E_TOOL_IDS = [
+  'd3',
+  'echarts',
+  'vega_lite',
+  'vega',
+  'satori',
+  'svg_js',
+  'viz_js',
+  'lottie',
+  'animejs',
+  'three_js',
+  'pixijs',
+  'konva',
+  'babylon_js',
+  'rembg',
+  'kornia',
+  'librosa',
+  'audioread',
+  'pydub',
+  'scipy',
+  'resampy',
+  'pyloudnorm',
+  'audioflux',
+  'music21',
+  'pretty_midi',
+  'mido',
+  'noisereduce',
+  'pedalboard',
+  'mir_eval',
+  'pydub_effects',
+  'ebu_r128_pyloudnorm',
+  'rnnoise',
+  'deepfilternet',
+  'playwright',
+  'pyscenedetect',
+  'opencolorio',
+  'openimageio',
+  'mkvtoolnix_container_validation',
+  'gpac_mp4box_packaging_validation',
   'ffmpeg',
   'ffprobe',
-  'mediainfo',
-  'exiftool',
   'pyav',
   'opentimelineio',
-  'hyperframe',
   'remotion',
   'libass',
   'sharp',
-  'imagemagick',
   'duckdb',
   'polars',
+  'opencv',
+  'signalsmith_stretch',
+  'vapoursynth',
+] as const
+
+export type ProductionToolId =
+  (typeof CANONICAL_PRIVATE_E2E_TOOL_IDS)[number]
+
+export type CanonicalPrivateE2EToolId = ProductionToolId
+
+export const PRODUCTION_TOOL_IDS = CANONICAL_PRIVATE_E2E_TOOL_IDS
+
+/**
+ * Preserved design/readiness identities without canonical private E2E proof.
+ * They are capability candidates, not production tools, and must not enter
+ * tool-call schemas, planner selection, work manifests, or dispatch.
+ */
+export const NON_E2E_TOOL_CAPABILITY_IDS = [
+  'hyperframe',
+  'streamer_render_pipeline_support',
   'faster_whisper',
   'whisper_cpp',
   'paddleocr',
-  'tesseract',
-  'pyscenedetect',
-  'opencv',
   'mediapipe',
-  'kornia',
   'birefnet',
+  'sam3_1',
   'sam2',
+  'comfyui',
+  'stable_audio_3_small_sfx',
   'transparent_background',
-  'rembg',
-  'opencolorio',
-  'openimageio',
-  'deepfilternet',
-  'rnnoise',
   'demucs',
-  'librosa',
-  'audioflux',
-  'signalsmith_stretch',
   'soundtouch',
   'rubber_band',
   'essentia',
   'real_esrgan',
   'film',
-  'pixijs',
-  'three_js',
-  'babylon_js',
-  'lottie',
-  'playwright',
   'maplibre',
   'turf',
-  'd3',
-  'echarts',
-  'vega',
-  'vega_lite',
-  'satori',
-  'svg_js',
-  'viz_js',
-  'animejs',
   'deck_gl',
   'cesium_js',
-  'konva',
   'torch_torchvision',
   'transformers',
-  'vapoursynth',
   'revideo',
-] as const satisfies readonly ProductionToolId[]
+] as const
+
+export type NonE2EToolCapabilityId =
+  (typeof NON_E2E_TOOL_CAPABILITY_IDS)[number]
+
+export type ProfessionalToolCatalogId =
+  | ProductionToolId
+  | NonE2EToolCapabilityId
+
+export const RUNNER_ONLY_FOUNDATION_IDS = [
+  'streamer_render_pipeline_support',
+  'torch_torchvision',
+  'transformers',
+] as const satisfies readonly NonE2EToolCapabilityId[]
+
+export type RunnerOnlyFoundationId =
+  (typeof RUNNER_ONLY_FOUNDATION_IDS)[number]
+
+export const ALL_PROFESSIONAL_TOOL_CATALOG_IDS = [
+  ...CANONICAL_PRIVATE_E2E_TOOL_IDS,
+  ...NON_E2E_TOOL_CAPABILITY_IDS,
+] as const satisfies readonly ProfessionalToolCatalogId[]
 
 export type ProductionToolStatus =
   | 'launch_core'
@@ -149,6 +145,8 @@ export type ProductionToolCategory =
   | 'image_processing'
   | 'audio_cleanup'
   | 'audio_analysis'
+  | 'audio_generation'
+  | 'music_midi'
   | 'music_separation'
   | 'enhancement'
   | 'frame_interpolation'
@@ -291,8 +289,8 @@ export interface ProductionQAProfile {
   notes: string[]
 }
 
-export interface ProductionToolProfile {
-  toolId: ProductionToolId
+export interface ProfessionalToolCatalogProfile {
+  toolId: ProfessionalToolCatalogId
   displayName: string
   category: ProductionToolCategory
   description: string
@@ -312,7 +310,7 @@ export interface ProductionToolProfile {
   requiredArtifacts: ProductionToolInputType[]
   producedArtifacts: ProductionToolOutputType[]
   qaResponsibilities: QualityGateType[]
-  fallbackToolIds: ProductionToolId[]
+  fallbackToolIds: ProfessionalToolCatalogId[]
   license: string
   licenseFamily: ProductionLicenseFamily
   licenseRisk: ProductionLicenseRisk
@@ -325,6 +323,23 @@ export interface ProductionToolProfile {
   productionReadinessNotes: string[]
 }
 
+export interface ProductionToolProfile
+  extends Omit<
+    ProfessionalToolCatalogProfile,
+    'toolId' | 'fallbackToolIds'
+  > {
+  toolId: ProductionToolId
+  fallbackToolIds: ProductionToolId[]
+}
+
+export interface NonE2EToolCapabilityProfile
+  extends Omit<
+    ProfessionalToolCatalogProfile,
+    'toolId'
+  > {
+  toolId: NonE2EToolCapabilityId
+}
+
 export interface ProductionToolRegistrySummary {
   totalTools: number
   launchCoreTools: ProductionToolId[]
@@ -335,5 +350,16 @@ export interface ProductionToolRegistrySummary {
   blockedTools: ProductionToolId[]
   categories: ProductionToolCategory[]
   workerTypes: ProductionRegistryWorkerType[]
+  notes: string[]
+}
+
+export interface NonE2EToolCapabilityCatalogSummary {
+  totalCapabilities: number
+  runnerOnlyFoundations: NonE2EToolCapabilityId[]
+  remainingUnprovenCapabilities: NonE2EToolCapabilityId[]
+  toolCallAllowed: false
+  plannerSelectionAllowed: false
+  workManifestAdmissionAllowed: false
+  dispatchAllowed: false
   notes: string[]
 }

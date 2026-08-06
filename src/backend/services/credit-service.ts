@@ -7,6 +7,7 @@ import type {
   CreditRefundRecord,
   CreditReservationRecord,
   CreditWalletRecord,
+  JSONObject,
 } from '../../types'
 import type {
   ApproveCreditEstimateRequest,
@@ -16,6 +17,8 @@ import type {
 import type { MockDatabase } from '../mock/mock-database'
 import { createMockId, findMockRecord, insertMockRecord, nowIso } from '../mock/mock-database'
 import { fail, ok, type ServiceResult } from '../service-result'
+import { buildProfessionalExportCreditCoverage } from '../../lib/professional-export-policy'
+import type { ProfessionalExportCreditCoverage } from '../../types/professional-export'
 
 export function createCreditWallet(
   db: MockDatabase,
@@ -98,7 +101,18 @@ export function createCreditEstimate(
     return fail('EDIT_PLAN_NOT_FOUND', `Edit plan ${input.editPlanId} was not found.`)
   }
 
-  const totalEstimatedCredits = editPlan.complexity === 'basic_edit' ? 18 : 42
+  const baseEstimatedCredits = editPlan.complexity === 'basic_edit' ? 18 : 42
+  const finalVideoDurationSeconds = Math.max(
+    1,
+    ...db.editPlanSegments
+      .filter((segment) => segment.editPlanId === editPlan.id)
+      .map((segment) => segment.outputEndSeconds),
+  )
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: finalVideoDurationSeconds,
+    outputFps: 30,
+  })
+  const totalEstimatedCredits = baseEstimatedCredits + professionalExportCoverage.maximumInternalToolCostCredits
   const estimate: CreditEstimateRecord = {
     id: createMockId('credit-estimate'),
     workspaceId: input.workspaceId,
@@ -107,7 +121,7 @@ export function createCreditEstimate(
     editPlanId: input.editPlanId,
     status: 'shown_to_user',
     totalEstimatedCredits,
-    minimumEstimatedCredits: Math.max(1, totalEstimatedCredits - 4),
+    minimumEstimatedCredits: Math.max(1, baseEstimatedCredits - 4) + professionalExportCoverage.lowInternalToolCostCredits,
     maximumEstimatedCredits: totalEstimatedCredits + 8,
     availableCreditsSnapshot: db.creditWallets[0]?.cachedAvailableCredits ?? 0,
     reservedCreditsSnapshot: db.creditWallets[0]?.cachedReservedCredits ?? 0,
@@ -115,6 +129,9 @@ export function createCreditEstimate(
     estimateReason: 'Mock estimate created after planning and before generation.',
     estimatePayload: {
       approvalRequiredBeforeReservation: true,
+      professionalExportCoverage: professionalExportCoverage as unknown as JSONObject,
+      finalExportUsesExistingReservation: true,
+      exportTimeEstimateOrChargeAllowed: false,
     },
     shownToUserAt: nowIso(),
     createdByAgent: 'mock_credit_estimation_agent',
@@ -125,7 +142,14 @@ export function createCreditEstimate(
   }
 
   insertMockRecord(db, 'creditEstimates', estimate)
-  const lineItems = createCreditEstimateLineItems(db, estimate.id, input.workspaceId, input.projectId, input.editPlanId)
+  const lineItems = createCreditEstimateLineItems(
+    db,
+    estimate.id,
+    input.workspaceId,
+    input.projectId,
+    input.editPlanId,
+    professionalExportCoverage,
+  )
 
   if (lineItems.ok) {
     estimate.lineItems = lineItems.data
@@ -140,6 +164,7 @@ export function createCreditEstimateLineItems(
   workspaceId: string,
   projectId: string,
   editPlanId?: string,
+  professionalExportCoverage?: ProfessionalExportCreditCoverage,
 ): ServiceResult<CreditEstimateLineItemRecord[]> {
   const lineItems: CreditEstimateLineItemRecord[] = [
     {
@@ -174,6 +199,31 @@ export function createCreditEstimateLineItems(
       requiresUserApproval: true,
       createdAt: nowIso(),
     },
+    ...(professionalExportCoverage
+      ? [{
+          id: createMockId('credit-line-item'),
+          creditEstimateId,
+          workspaceId,
+          projectId,
+          editPlanId,
+          lineItemType: 'final_export' as const,
+          usageCategory: 'rendering' as const,
+          label: '4K UHD render and export ceiling',
+          description: 'Included in the approved edit estimate. Covered 1080p, 2K/1440p, or 4K export uses this reservation without another credit prompt or charge.',
+          estimatedCredits: professionalExportCoverage.maximumInternalToolCostCredits,
+          isOptional: false,
+          isPremium: false,
+          requiresUserApproval: true,
+          linePayload: {
+            lineItemRole: 'mandatory_4k_export_ceiling',
+            policyVersion: professionalExportCoverage.policyVersion,
+            requiresSeparateExportEstimate: false,
+            allowsAdditionalExportCharge: false,
+            serviceFeeIncluded: false,
+          },
+          createdAt: nowIso(),
+        }]
+      : []),
   ]
 
   lineItems.forEach((lineItem) => insertMockRecord(db, 'creditEstimateLineItems', lineItem))

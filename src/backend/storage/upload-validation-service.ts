@@ -4,11 +4,29 @@ import type {
   UploadValidationContext,
   UploadValidationResult,
 } from '../../types/upload'
+import {
+  REEDITPRO_REFERENCE_MEDIA_MAX_BYTES,
+  REEDITPRO_REFERENCE_IMAGE_MAX_BYTES,
+  REEDITPRO_SOURCE_AUDIO_MAX_BYTES,
+  REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
+} from '../../types/large-media'
 
 const MB = 1024 * 1024
 const GB = 1024 * MB
 
-const ALL_VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime', 'video/webm'] as const
+const WEB_VIDEO_MIME_TYPES = [
+  'video/mp4',
+  'video/quicktime',
+  'video/webm',
+] as const
+const PROFESSIONAL_SOURCE_VIDEO_MIME_TYPES = [
+  ...WEB_VIDEO_MIME_TYPES,
+  'video/x-m4v',
+  'video/x-matroska',
+  'video/x-msvideo',
+  'video/mp2t',
+  'application/mxf',
+] as const
 const ALL_AUDIO_MIME_TYPES = [
   'audio/mpeg',
   'audio/mp3',
@@ -22,18 +40,25 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   aac: 'audio/aac',
   jpeg: 'image/jpeg',
   jpg: 'image/jpeg',
+  avi: 'video/x-msvideo',
+  m2ts: 'video/mp2t',
+  m4v: 'video/x-m4v',
+  mkv: 'video/x-matroska',
   mov: 'video/quicktime',
   mp3: 'audio/mpeg',
   mp4: 'video/mp4',
+  mts: 'video/mp2t',
+  mxf: 'application/mxf',
   png: 'image/png',
+  ts: 'video/mp2t',
   wav: 'audio/wav',
   webm: 'video/webm',
   webp: 'image/webp',
 }
 
 const MAX_BYTES_BY_PURPOSE: Record<UploadPurpose, number> = {
-  source_media: 2 * GB,
-  reference_media: GB,
+  source_media: REEDITPRO_SOURCE_MEDIA_MAX_BYTES,
+  reference_media: REEDITPRO_REFERENCE_MEDIA_MAX_BYTES,
   generated_asset: GB,
   processed_media: GB,
   preview: 2 * GB,
@@ -49,19 +74,19 @@ const MAX_BYTES_BY_PURPOSE: Record<UploadPurpose, number> = {
 }
 
 const ALLOWED_MIME_BY_PURPOSE: Record<UploadPurpose, string[]> = {
-  source_media: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES],
-  reference_media: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
-  generated_asset: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
-  processed_media: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
-  preview: [...ALL_VIDEO_MIME_TYPES],
-  export: [...ALL_VIDEO_MIME_TYPES],
-  preview_render: [...ALL_VIDEO_MIME_TYPES],
-  final_export: [...ALL_VIDEO_MIME_TYPES],
+  source_media: [...PROFESSIONAL_SOURCE_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES],
+  reference_media: [...PROFESSIONAL_SOURCE_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  generated_asset: [...WEB_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  processed_media: [...WEB_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  preview: [...WEB_VIDEO_MIME_TYPES],
+  export: [...WEB_VIDEO_MIME_TYPES],
+  preview_render: [...WEB_VIDEO_MIME_TYPES],
+  final_export: [...WEB_VIDEO_MIME_TYPES],
   thumbnail: [...ALL_IMAGE_MIME_TYPES],
   audio_asset: [...ALL_AUDIO_MIME_TYPES],
   profile_asset: [...ALL_IMAGE_MIME_TYPES],
   brand_asset: [...ALL_IMAGE_MIME_TYPES],
-  qa_artifact: [...ALL_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
+  qa_artifact: [...WEB_VIDEO_MIME_TYPES, ...ALL_AUDIO_MIME_TYPES, ...ALL_IMAGE_MIME_TYPES],
   worker_temp: ['application/octet-stream'],
 }
 
@@ -115,13 +140,13 @@ export function validateUploadFile(
   const mimeResult = validateUploadMimeType(purpose, file.type, file.name)
   if (!mimeResult.ok) return withFileDetails(mimeResult, file)
 
-  const sizeResult = validateUploadFileSize(purpose, file.size)
+  const sizeResult = validateUploadFileSize(purpose, file.size, mimeResult.mimeType)
   if (!sizeResult.ok) return withFileDetails(sizeResult, file)
 
   return {
     ok: true,
     status: 'valid',
-    maxBytes: getMaxUploadBytesForPurpose(purpose),
+    maxBytes: sizeResult.maxBytes,
     fileSizeBytes: file.size ?? 0,
     mimeType: resolveMimeType(file.type, file.name),
     extension: extractExtension(file.name),
@@ -158,12 +183,14 @@ export function validateUploadMimeType(
 export function validateUploadFileSize(
   purpose: UploadPurpose,
   fileSizeBytes?: number,
+  mimeType?: string,
 ): UploadValidationResult {
-  const maxBytes = getMaxUploadBytesForPurpose(purpose)
+  const maxBytes = getMaxUploadBytesForFile(purpose, mimeType)
 
   if (typeof fileSizeBytes !== 'number' || Number.isNaN(fileSizeBytes) || fileSizeBytes <= 0) {
     return createValidationResult(false, 'missing_file', purpose, {
       message: 'Upload file size is missing or invalid.',
+      maxBytes,
     })
   }
 
@@ -171,12 +198,14 @@ export function validateUploadFileSize(
     return createValidationResult(false, 'too_large', purpose, {
       fileSizeBytes,
       message: `File is larger than the planning limit for ${purpose}.`,
+      maxBytes,
     })
   }
 
   return createValidationResult(true, 'valid', purpose, {
     fileSizeBytes,
     message: 'Upload file size is within the planning limit.',
+    maxBytes,
   })
 }
 
@@ -225,7 +254,13 @@ export function createUploadValidationSummary(result: UploadValidationResult): s
 function resolveMimeType(mimeType?: string, fileName?: string): string | undefined {
   if (mimeType && mimeType.trim().length > 0) {
     const normalized = mimeType.trim().toLowerCase()
-    return normalized === 'audio/mp3' ? 'audio/mpeg' : normalized
+    if (normalized === 'audio/mp3') return 'audio/mpeg'
+    if (normalized === 'video/mov') return 'video/quicktime'
+    if (normalized === 'video/mxf' || normalized === 'application/x-mxf') return 'application/mxf'
+    if (normalized === 'video/mkv' || normalized === 'application/x-matroska') return 'video/x-matroska'
+    if (normalized === 'video/avi' || normalized === 'video/msvideo' || normalized === 'video/vnd.avi') return 'video/x-msvideo'
+    if (normalized === 'video/x-mpeg2ts' || normalized === 'video/vnd.dlna.mpeg-tts') return 'video/mp2t'
+    if (normalized !== 'application/octet-stream') return normalized
   }
 
   const extension = extractExtension(fileName)
@@ -247,13 +282,26 @@ function createValidationResult(
   return {
     ok,
     status,
-    maxBytes: getMaxUploadBytesForPurpose(purpose),
+    maxBytes: details.maxBytes ?? getMaxUploadBytesForPurpose(purpose),
     warnings: details.warnings ?? [],
     message: details.message ?? (ok ? 'Upload validation passed.' : 'Upload validation failed.'),
     fileSizeBytes: details.fileSizeBytes,
     mimeType: details.mimeType,
     extension: details.extension,
   }
+}
+
+function getMaxUploadBytesForFile(purpose: UploadPurpose, mimeType?: string): number {
+  if (mimeType?.startsWith('audio/') && (purpose === 'source_media' || purpose === 'reference_media')) {
+    return REEDITPRO_SOURCE_AUDIO_MAX_BYTES
+  }
+  if (mimeType?.startsWith('image/') && purpose === 'reference_media') {
+    return REEDITPRO_REFERENCE_IMAGE_MAX_BYTES
+  }
+  if ((mimeType?.startsWith('video/') || mimeType === 'application/mxf') && purpose === 'reference_media') {
+    return REEDITPRO_REFERENCE_MEDIA_MAX_BYTES
+  }
+  return getMaxUploadBytesForPurpose(purpose)
 }
 
 function withFileDetails(

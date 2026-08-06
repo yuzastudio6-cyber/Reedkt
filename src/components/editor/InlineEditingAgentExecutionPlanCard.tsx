@@ -6,6 +6,7 @@ import type {
   EditWorkExpectedOutput,
   EditWorkItem,
 } from '../../types/editing-agent-runtime'
+import { hideInternalToolNamesInCopy, userFacingActivityLabel } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineEditingAgentExecutionPlanCardProps = {
@@ -48,12 +49,12 @@ function WorkItemCard({ item }: { item: EditWorkItem }) {
         <span><strong>Retries</strong>{item.retryCount}/{item.maxRetries}</span>
         <span><strong>Idempotency</strong>{item.idempotencyKey}</span>
       </div>
-      <p>{item.purpose}</p>
+      <p>{hideInternalToolNamesInCopy(item.purpose)}</p>
       <div className="edit-dependency-list">
         {item.dependencies.slice(0, 5).map((dependency) => (
           <span key={dependency.id}>
             <strong>{label(dependency.dependencyType)}</strong>
-            {dependency.reason}
+            {hideInternalToolNamesInCopy(dependency.reason)}
           </span>
         ))}
         {!item.dependencies.length && <span>No blocking dependencies.</span>}
@@ -68,8 +69,8 @@ function WorkItemCard({ item }: { item: EditWorkItem }) {
       </div>
       <small>Dependencies: {dependencySummary(item.dependencies)}</small>
       <small>Outputs: {outputSummary(item.expectedOutputs)}</small>
-      <small>Fallback: {item.fallbackPolicy.slice(0, 2).join(' ')}</small>
-      <small>Checkback: {item.checkbackPolicy.slice(0, 2).join(' ')}</small>
+      <small>Fallback: {hideInternalToolNamesInCopy(item.fallbackPolicy.slice(0, 2).join(' '))}</small>
+      <small>Checkback: {hideInternalToolNamesInCopy(item.checkbackPolicy.slice(0, 2).join(' '))}</small>
     </article>
   )
 }
@@ -89,8 +90,8 @@ function AssetManifestCard({ asset }: { asset: EditAssetManifestItem }) {
         <span><strong>QA</strong>{label(asset.qaStatus)}</span>
         <span><strong>Version</strong>{asset.version}</span>
       </div>
-      {asset.providerModel && <span className="agent-layer-badge">{label(asset.providerModel)}</span>}
-      {asset.toolId && <span className="agent-layer-badge">{label(asset.toolId)}</span>}
+      {asset.providerModel && <span className="agent-layer-badge">{hideInternalToolNamesInCopy(label(asset.providerModel))}</span>}
+      {asset.toolId && <span className="agent-layer-badge">{userFacingActivityLabel(asset.toolId)}</span>}
       <small>Segments: {asset.linkedSegmentIds.join(', ') || 'none'}</small>
       <small>Timing: {asset.linkedTimingCueIds.join(', ') || 'none'}</small>
       <small>Layers: {asset.linkedRendererLayerIds.join(', ') || 'none'}</small>
@@ -112,13 +113,13 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
         <div className="compact-summary-row">
           <span className="compact-summary-chip">{label(executionPlan.runMode)}</span>
           <span className="compact-summary-chip">{executionPlan.workItems.length} work items</span>
-          <span className="compact-summary-chip">{executionPlan.assetManifest.length} manifest items</span>
+          <span className="compact-summary-chip">{executionPlan.assetManifest.length} review asset items</span>
           <span className="compact-summary-chip">{executionPlan.parallelGroups.length} parallel groups</span>
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Execution planning"
-      helper="ReeditPro uses an async work graph so independent editing tasks can continue while image, video, tool, or render jobs are pending. This is planning only; no workers run in this demo."
+      helper="ReeditPro uses an async work graph so independent editing tasks can continue while image, video, processing, or render jobs are pending. Execution remains gated by approval, credits, and private artifact policy."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Editing agent execution"
@@ -126,11 +127,11 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
       <div className="renderer-badge-row">
         <Badge accent="cyan">Async graph</Badge>
         <Badge accent="blue">Continue while waiting</Badge>
-        <Badge accent="violet">Asset manifest</Badge>
+        <Badge accent="violet">Review asset list</Badge>
         <Badge accent="cyan">Dependency tracked</Badge>
         <Badge accent="blue">Checkback policy</Badge>
-        <Badge accent="muted">No real execution</Badge>
-        <Badge accent="warning">Approved snapshot required</Badge>
+        <Badge accent="muted">Backend execution gated</Badge>
+        <Badge accent="warning">Approved plan required</Badge>
         <Badge accent="success">Final render waits for QA</Badge>
       </div>
 
@@ -149,7 +150,7 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
 
       <div className="async-graph-note">
         <strong>Execution rule</strong>
-        <span>{executionPlan.summary}</span>
+        <span>{hideInternalToolNamesInCopy(executionPlan.summary)}</span>
       </div>
 
       <div>
@@ -162,7 +163,7 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
       </div>
 
       <div>
-        <h4>Asset manifest</h4>
+        <h4>Review asset list</h4>
         <div className="asset-manifest-list">
           {executionPlan.assetManifest.slice(0, 10).map((asset) => (
             <AssetManifestCard asset={asset} key={asset.id} />
@@ -177,7 +178,7 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
             <article className="parallel-group-item" key={group.id}>
               <strong>{group.label}</strong>
               <span>{group.workItemIds.join(', ')}</span>
-              <small>{group.reason}</small>
+              <small>{hideInternalToolNamesInCopy(group.reason)}</small>
             </article>
           ))}
         </div>
@@ -192,7 +193,7 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
               <span>{checkpoint.currentFocus}</span>
               <small>Pending: {checkpoint.pendingWorkItemIds.slice(0, 6).join(', ') || 'none'}</small>
               <small>Blocked: {checkpoint.blockedWorkItemIds.slice(0, 6).join(', ') || 'none'}</small>
-              <small>Next: {checkpoint.nextActions.join(' ')}</small>
+              <small>Next: {hideInternalToolNamesInCopy(checkpoint.nextActions.join(' '))}</small>
             </article>
           ))}
         </div>
@@ -201,14 +202,14 @@ export function InlineEditingAgentExecutionPlanCard({ descriptor, plan }: Inline
       <div className="approved-snapshot-required-note">
         <strong>Global rules</strong>
         {executionPlan.globalRules.map((rule) => (
-          <span key={rule}>{rule}</span>
+          <span key={rule}>{hideInternalToolNamesInCopy(rule)}</span>
         ))}
       </div>
 
       <div className="no-real-execution-note">
         <strong>Limitations</strong>
         {executionPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

@@ -42,6 +42,9 @@ Project/chat/upload:
 - `POST /v1/chat-sessions/:chatSessionId/attachments/clips`
 - `POST /v1/projects/:projectId/upload-intents`
 - `POST /v1/upload-intents/:uploadIntentId/finalize`
+- `POST /v1/upload-intents/:uploadIntentId/finalization-jobs`
+- `GET /v1/large-media-finalization-jobs/:jobId`
+- `POST /v1/internal/large-media-finalization-jobs/:jobId/run`
 - `POST /v1/upload-intents/:uploadIntentId/signed-url-events`
 
 Execution gates:
@@ -72,7 +75,14 @@ Worker/render/provider:
 
 Protected routes require `Authorization: Bearer <token>` when Supabase auth is available. In explicit local mock mode, a mock user context is attached. Protected writes never trust frontend `userId` fields.
 
-Write routes that can mutate runtime state require `Idempotency-Key`. The middleware hashes method, path, and body. With Supabase admin runtime it uses `api_idempotency_keys`; in explicit mock mode it uses an in-memory map and still blocks same-key/different-hash conflicts.
+Write routes that use the generic middleware require `Idempotency-Key`. In
+explicit bounded local/mock persistence, the middleware hashes method, path,
+and body, atomically reserves the in-process key, rejects concurrent or
+conflicting reuse, and replays the completed HTTP response without rerunning the
+handler. Generic Supabase/production writes fail closed until their domain
+mutation and completed response are coupled inside a route-specific atomic RPC
+or transaction. The earlier select-then-insert description is historical and
+must not be treated as production idempotency.
 
 ## Error Envelope
 

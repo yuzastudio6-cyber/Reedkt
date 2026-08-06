@@ -12,7 +12,7 @@ export type MediaAssetType =
   | 'preview_render'
   | 'final_export'
 
-export type MediaStorageProvider = 'supabase_storage' | 'google_cloud_storage' | 'external_url' | 'local_mock'
+export type MediaStorageProvider = 'supabase_storage' | 'google_cloud_storage' | 'external_url' | 'local_mock' | 'local_private'
 
 export type TranscriptStatus = 'not_started' | 'queued' | 'running' | 'completed' | 'failed'
 
@@ -24,6 +24,7 @@ export interface MediaAssetRecord extends BaseRecord {
   uploadedByUserId?: ID
   assetType: MediaAssetType
   storageProvider: MediaStorageProvider
+  storageBucket?: string
   storagePath?: string
   externalUrl?: string
   safePreviewUrl?: string
@@ -34,6 +35,20 @@ export interface MediaAssetRecord extends BaseRecord {
   height?: number
   durationSeconds?: Seconds
   checksum?: string
+  sourceMetadata?: {
+    probeStatus: 'probed' | 'unavailable'
+    source: 'local_ffprobe' | 'gcs_ffprobe'
+    durationSeconds?: number
+    width?: number
+    height?: number
+    videoCodec?: string
+    audioCodec?: string
+    formatName?: string
+    streamCount?: number
+    hasVideo: boolean
+    hasAudio: boolean
+    unavailableReason?: string
+  }
   status: ProcessingStatus
 }
 

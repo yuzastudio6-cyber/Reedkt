@@ -281,7 +281,7 @@ export const remotionCapabilities: RemotionCapability[] = [
   capability({
     id: 'map_layer_placement',
     label: 'Map layer placement',
-    description: 'Places MapLibre/Turf map outputs or map specs into the final frame.',
+    description: 'Places source-bound D3/SVG.js map outputs or map specs into the final frame.',
     bestFor: ['route reveals', 'location context', 'neighborhood maps'],
     avoidFor: ['AI-video-generated fake maps'],
     requiredInputs: ['geojson', 'json_data', 'frame_layout'],

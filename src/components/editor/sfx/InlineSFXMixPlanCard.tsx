@@ -1,5 +1,6 @@
 import { Badge } from '../../Badge'
 import type { SFXMixPlanRecord } from '../../../types'
+import { hideInternalToolNamesInCopy } from '../../../lib/tool-display-labels'
 import { formatSFXLabel, formatSFXMs } from './sfxChatUiData'
 
 type InlineSFXMixPlanCardProps = {
@@ -40,13 +41,13 @@ export function InlineSFXMixPlanCard({ mixPlan, warnings }: InlineSFXMixPlanCard
       <details className="sfx-details">
         <summary>EQ, reverb, and room match</summary>
         <ul className="sfx-compact-list">
-          {mixPlan.eqNotes.map((note) => <li key={note}>{note}</li>)}
-          <li>Reverb: {mixPlan.reverbMatch}</li>
-          <li>Room: {mixPlan.roomMatch}</li>
+          {mixPlan.eqNotes.map((note) => <li key={note}>{hideInternalToolNamesInCopy(note)}</li>)}
+          <li>Reverb: {hideInternalToolNamesInCopy(mixPlan.reverbMatch)}</li>
+          <li>Room: {hideInternalToolNamesInCopy(mixPlan.roomMatch)}</li>
         </ul>
       </details>
 
-      {warnings.length > 0 && <p className="sfx-warning">{warnings.slice(0, 2).join(' ')}</p>}
+      {warnings.length > 0 && <p className="sfx-warning">{hideInternalToolNamesInCopy(warnings.slice(0, 2).join(' '))}</p>}
     </section>
   )
 }

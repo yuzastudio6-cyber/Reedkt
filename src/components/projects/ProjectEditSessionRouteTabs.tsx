@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import { Badge } from '../Badge'
 import type { ProjectEditSessionRouteTab } from '../../types/project-edit-session-navigation'
 

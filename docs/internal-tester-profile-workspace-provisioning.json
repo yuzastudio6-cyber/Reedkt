@@ -1,50 +1,51 @@
 {
-  "decision": "internal_tester_profile_workspace_provisioning_gate_passed_ready_for_manual_staging_workflow",
-  "sourceRef": "codex/reeditpro-web-ui-shell",
-  "sourceSha": "0804f14c24b18f5bc811e1c62ca46fd226500ce7",
+  "decision": "google_first_same_sha_profile_workspace_provisioning_source_ready_remote_staging_write_not_run",
+  "sourceRef": "codex/backend-workflow-pipeline-continuation",
+  "sourceShaRequiredAtDispatch": true,
   "workflow": ".github/workflows/internal-tester-profile-workspace-provisioning.yml",
   "cli": "server/cli/provision-internal-tester.ts",
-  "packageScripts": {
-    "provision": "internal-testing:provision-tester",
-    "smoke": "smoke:internal-tester-profile-workspace-provisioning"
-  },
+  "identityEvidenceModule": "server/auth/internal-tester-google-identity.ts",
+  "sourceWorkflowReady": true,
+  "sourceWorkflowPushed": false,
+  "remoteWorkflowRun": false,
   "requiredConfirmations": {
     "REEDITPRO_CONFIRM_INTERNAL_TESTER_PROVISIONING": "PROVISION_REEDITPRO_INTERNAL_TESTER",
     "REEDITPRO_CONFIRM_STAGING_SUPABASE_WRITES": "true"
   },
-  "requiredSecrets": [
+  "requiredEnvironmentSecrets": [
     "STAGING_SUPABASE_URL",
-    "STAGING_SUPABASE_SERVICE_ROLE_KEY"
+    "STAGING_SUPABASE_SERVICE_ROLE_KEY",
+    "STAGING_INTERNAL_TESTER_EMAIL"
   ],
   "requiredInputs": [
-    "tester_email"
+    "source_ref",
+    "source_sha",
+    "expected_email_hash"
   ],
-  "optionalInputs": [
-    "display_name",
-    "workspace_name",
-    "invite_if_missing",
-    "redirect_to"
-  ],
-  "safeRedirects": [
-    "https://yuzastudio6-cyber.github.io/Reedkt/sign-in",
-    "https://app.reeditpro.com/sign-in"
-  ],
+  "googleSessionRequiredBeforeWrites": true,
+  "authUserCreationOrInvitationAllowed": false,
+  "rawEmailAcceptedAsWorkflowInput": false,
   "provisionedTables": [
-    "profiles",
+    "profiles_or_legacy_user_profiles_compatibility_fallback",
     "workspaces",
     "workspace_members"
   ],
-  "supportedProfileIdentityColumns": [
-    "user_id",
-    "id"
+  "profileContractPolicy": "must_match_detected_workspace_ownership",
+  "workspaceIdentityContractDetectedBeforeWrite": true,
+  "profileContractMustMatchWorkspaceOwnership": true,
+  "workspaceIdentityContractSelectionOrder": [
+    "legacy_user_profile_when_owner_user_id_exists",
+    "direct_auth_user_when_only_owner_id_exists"
   ],
-  "authBehavior": {
-    "existingAuthUser": "profile_workspace_membership_rows_are_created_or_reused",
-    "missingAuthUser": "blocked_unless_invite_if_missing_is_true",
-    "passwordHandling": "no_password_input_or_output",
-    "output": "sanitized_json_only"
-  },
+  "ownedWorkspaceRequired": true,
+  "ownerMembershipRequired": true,
+  "legacyDualWriteAllowed": false,
+  "retryReusesExistingOwnedWorkspace": true,
+  "outputIdentifiersHashed": true,
+  "rawMigrationBaselineStatus": "blocked_by_parallel_foundations",
   "blockedScope": {
+    "authUserCreation": false,
+    "authInvitation": false,
     "frontendServiceRole": false,
     "viteServiceRole": false,
     "supabaseMigration": false,
@@ -59,8 +60,9 @@
     "creditReservation": false,
     "creditSpend": false,
     "stripe": false,
+    "customerBilling": false,
     "externalBeta": false,
     "production": false
   },
-  "nextGate": "INTERNAL_TESTER_SIGN_IN_AUTH_READBACK"
+  "nextGate": "SAME_SHA_GOOGLE_TESTER_AUTH_READBACK_THEN_OWNER_INTERACTIVE_GATEWAY_RETRY"
 }

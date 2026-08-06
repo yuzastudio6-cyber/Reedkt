@@ -1,4 +1,13 @@
-import type { ProductionQAProfile, ProductionToolId } from './production-tool-types'
+import {
+  NON_E2E_TOOL_CAPABILITY_IDS,
+  PRODUCTION_TOOL_IDS,
+} from './production-tool-types'
+import type {
+  NonE2EToolCapabilityId,
+  ProfessionalToolCatalogId,
+  ProductionQAProfile,
+  ProductionToolId,
+} from './production-tool-types'
 
 const empty: ProductionQAProfile = {
   gateTypes: [],
@@ -7,7 +16,8 @@ const empty: ProductionQAProfile = {
   notes: ['No direct QA gate; readiness or planning metadata only.'],
 }
 
-export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAProfile> = {
+export const PROFESSIONAL_TOOL_CATALOG_QA_POLICIES:
+Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
   ffmpeg: {
     gateTypes: ['export_codec_format', 'export_duration_sync', 'audio_loudness', 'final_delivery'],
     requiredBeforePreview: ['export_duration_sync'],
@@ -20,23 +30,27 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
     requiredBeforeFinalExport: ['export_codec_format', 'export_duration_sync'],
     notes: ['Metadata QA for inputs and final exports.'],
   },
-  mediainfo: {
-    ...empty,
-    gateTypes: ['render_asset_integrity', 'export_codec_format', 'export_duration_sync', 'final_delivery'],
-    requiredBeforePreview: [],
-    requiredBeforeFinalExport: [],
-    notes: ['Track B planning-only metadata QA candidate; execution gates are not enabled by this registry promotion.'],
-  },
-  exiftool: {
-    ...empty,
-    gateTypes: ['render_asset_integrity', 'caption_safe_zone'],
-    requiredBeforePreview: [],
-    requiredBeforeFinalExport: [],
-    notes: ['Track B planning-only image metadata QA candidate; execution gates are not enabled by this registry promotion.'],
-  },
   pyav: { ...empty, gateTypes: ['render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
   opentimelineio: { ...empty, gateTypes: ['render_timeline_integrity'], requiredBeforeFinalExport: ['render_timeline_integrity'] },
   hyperframe: { ...empty, gateTypes: ['render_timeline_integrity'], requiredBeforePreview: ['render_timeline_integrity'] },
+  streamer_render_pipeline_support: {
+    ...empty,
+    gateTypes: ['render_asset_integrity', 'render_timeline_integrity'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    notes: ['Backend-only GStreamer render-pipeline support validation for approved internal runs.'],
+  },
+  mkvtoolnix_container_validation: {
+    ...empty,
+    gateTypes: ['export_codec_format', 'export_duration_sync', 'render_asset_integrity'],
+    requiredBeforeFinalExport: ['export_codec_format', 'export_duration_sync'],
+    notes: ['Backend-only MKVToolNix container validation for private packaging evidence.'],
+  },
+  gpac_mp4box_packaging_validation: {
+    ...empty,
+    gateTypes: ['export_codec_format', 'export_duration_sync', 'final_delivery'],
+    requiredBeforeFinalExport: ['export_codec_format', 'export_duration_sync', 'final_delivery'],
+    notes: ['Backend-only GPAC/MP4Box packaging validation; media commands remain gated by approved private artifacts.'],
+  },
   remotion: {
     gateTypes: ['caption_safe_zone', 'render_asset_integrity', 'render_timeline_integrity', 'final_delivery'],
     requiredBeforePreview: ['render_asset_integrity', 'render_timeline_integrity'],
@@ -45,31 +59,34 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   },
   libass: { ...empty, gateTypes: ['caption_readability', 'caption_timing', 'caption_safe_zone'], requiredBeforeFinalExport: ['caption_readability', 'caption_timing', 'caption_safe_zone'] },
   sharp: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
-  imagemagick: {
-    ...empty,
-    gateTypes: ['render_asset_integrity', 'caption_safe_zone', 'color_exposure', 'color_export_space', 'enhancement_artifacts'],
-    requiredBeforePreview: [],
-    requiredBeforeFinalExport: [],
-    notes: ['Track B planning-only image transform candidate; GraphicsMagick is not counted as first-class here.'],
-  },
   duckdb: { ...empty, gateTypes: ['render_timeline_integrity'] },
   polars: { ...empty, gateTypes: ['render_timeline_integrity'] },
   faster_whisper: { ...empty, gateTypes: ['transcript_alignment', 'caption_timing'], requiredBeforePreview: ['transcript_alignment'] },
   whisper_cpp: { ...empty, gateTypes: ['transcript_alignment'], requiredBeforePreview: [] },
   paddleocr: { ...empty, gateTypes: ['ocr_text_overlap', 'caption_safe_zone'], requiredBeforePreview: ['ocr_text_overlap'] },
-  tesseract: {
-    ...empty,
-    gateTypes: ['ocr_text_overlap', 'caption_safe_zone'],
-    requiredBeforePreview: [],
-    requiredBeforeFinalExport: [],
-    notes: ['Track B planning-only OCR fallback candidate; OCR execution and language-pack use remain future work.'],
-  },
   pyscenedetect: { ...empty, gateTypes: ['cut_smoothness'], requiredBeforePreview: ['cut_smoothness'] },
   opencv: { ...empty, gateTypes: ['caption_safe_zone', 'mask_edge_quality', 'render_asset_integrity', 'color_exposure'], requiredBeforePreview: ['render_asset_integrity'] },
   mediapipe: { ...empty, gateTypes: ['caption_safe_zone', 'mask_subject_coverage'], requiredBeforePreview: ['caption_safe_zone'] },
   kornia: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'enhancement_artifacts'], requiredBeforePreview: ['mask_edge_quality'] },
   birefnet: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_subject_coverage'] },
   sam2: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'] },
+  sam3_1: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], notes: ['SAM 3.1 remains blocked until exact gated checkpoint, A100/L4 runtime, and temporal-quality qualification are released.'] },
+  comfyui: {
+    ...empty,
+    gateTypes: ['render_asset_integrity', 'enhancement_artifacts'],
+    requiredBeforePreview: ['render_asset_integrity'],
+    requiredBeforeFinalExport: ['render_asset_integrity', 'enhancement_artifacts'],
+    notes: ['Generated opaque PNG integrity only; Living Frame alpha, continuity, fact, destination, manifest, and private-review gates remain downstream.'],
+  },
+  stable_audio_3_small_sfx: {
+    ...empty,
+    gateTypes: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    requiredBeforePreview: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    requiredBeforeFinalExport: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    notes: [
+      'Generated SFX must pass prompt-fit, artifact, clipping, transient, frame-anchor, speech-safety, and voice-first mix review before use.',
+    ],
+  },
   transparent_background: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   rembg: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   opencolorio: { ...empty, gateTypes: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'], requiredBeforePreview: ['color_exposure'], requiredBeforeFinalExport: ['color_exposure', 'color_skin_tone', 'color_export_space', 'color_shot_match'] },
@@ -78,7 +95,20 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   rnnoise: { ...empty, gateTypes: ['audio_naturalness', 'audio_loudness'], requiredBeforePreview: ['audio_naturalness'] },
   demucs: { ...empty, gateTypes: ['audio_naturalness', 'music_over_voice', 'audio_sync'], requiredBeforeFinalExport: ['music_over_voice', 'audio_naturalness'] },
   librosa: { ...empty, gateTypes: ['audio_sync', 'music_over_voice'], requiredBeforePreview: ['audio_sync'] },
+  audioread: { ...empty, gateTypes: ['render_asset_integrity', 'audio_sync'], requiredBeforePreview: ['render_asset_integrity'] },
+  pydub: { ...empty, gateTypes: ['audio_loudness', 'audio_naturalness', 'audio_sync'], requiredBeforePreview: ['audio_naturalness'] },
+  scipy: { ...empty, gateTypes: ['audio_sync', 'audio_naturalness'], requiredBeforePreview: ['audio_sync'] },
+  resampy: { ...empty, gateTypes: ['audio_sync', 'audio_naturalness'], requiredBeforePreview: ['audio_sync'] },
+  pyloudnorm: { ...empty, gateTypes: ['audio_loudness'], requiredBeforePreview: ['audio_loudness'], requiredBeforeFinalExport: ['audio_loudness'] },
   audioflux: { ...empty, gateTypes: ['audio_sync', 'music_over_voice'], requiredBeforePreview: ['audio_sync'] },
+  music21: { ...empty, gateTypes: ['audio_sync', 'music_over_voice'], requiredBeforePreview: ['audio_sync'] },
+  pretty_midi: { ...empty, gateTypes: ['audio_sync', 'music_over_voice'], requiredBeforePreview: ['audio_sync'] },
+  mido: { ...empty, gateTypes: ['audio_sync'], requiredBeforePreview: ['audio_sync'] },
+  noisereduce: { ...empty, gateTypes: ['audio_naturalness', 'audio_loudness'], requiredBeforePreview: ['audio_naturalness'] },
+  pedalboard: { ...empty, gateTypes: ['audio_naturalness', 'audio_loudness', 'audio_sync'], requiredBeforePreview: ['audio_naturalness'] },
+  mir_eval: { ...empty, gateTypes: ['audio_sync', 'music_over_voice'], requiredBeforePreview: ['audio_sync'] },
+  pydub_effects: { ...empty, gateTypes: ['audio_naturalness', 'audio_loudness', 'audio_sync'], requiredBeforePreview: ['audio_naturalness'] },
+  ebu_r128_pyloudnorm: { ...empty, gateTypes: ['audio_loudness'], requiredBeforePreview: ['audio_loudness'], requiredBeforeFinalExport: ['audio_loudness'] },
   signalsmith_stretch: { ...empty, gateTypes: ['audio_naturalness', 'audio_sync'], requiredBeforeFinalExport: ['audio_naturalness', 'audio_sync'] },
   soundtouch: { ...empty, gateTypes: ['audio_naturalness', 'audio_sync'], requiredBeforeFinalExport: ['audio_naturalness'] },
   rubber_band: { ...empty, gateTypes: ['audio_naturalness', 'audio_sync'], requiredBeforeFinalExport: ['audio_naturalness'] },
@@ -89,26 +119,48 @@ export const PRODUCTION_TOOL_QA_POLICIES: Record<ProductionToolId, ProductionQAP
   three_js: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
   babylon_js: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
   lottie: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
+  animejs: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
+  satori: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
+  svg_js: { ...empty, gateTypes: ['render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
   playwright: { ...empty, gateTypes: ['ocr_text_overlap', 'render_asset_integrity', 'caption_safe_zone'], requiredBeforePreview: ['render_asset_integrity'] },
   maplibre: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
   turf: { ...empty, gateTypes: ['render_asset_integrity'] },
   d3: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
   echarts: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
-  vega: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
+  vega: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   vega_lite: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
-  satori: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
-  svg_js: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
-  viz_js: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
-  animejs: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'], requiredBeforePreview: ['render_asset_integrity'] },
+  viz_js: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   deck_gl: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   cesium_js: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
   konva: { ...empty, gateTypes: ['caption_safe_zone', 'render_asset_integrity'] },
-  torch_torchvision: { ...empty, gateTypes: ['render_asset_integrity', 'mask_edge_quality', 'enhancement_artifacts'], requiredBeforePreview: ['render_asset_integrity'] },
-  transformers: { ...empty, gateTypes: ['render_asset_integrity', 'mask_subject_coverage', 'enhancement_artifacts'], requiredBeforePreview: ['render_asset_integrity'] },
+  torch_torchvision: { ...empty, gateTypes: ['render_asset_integrity', 'mask_edge_quality', 'enhancement_artifacts'] },
+  transformers: { ...empty, gateTypes: ['render_asset_integrity', 'mask_edge_quality', 'enhancement_artifacts'] },
   vapoursynth: { ...empty, gateTypes: ['render_asset_integrity', 'export_duration_sync'], requiredBeforePreview: ['render_asset_integrity'] },
   revideo: { ...empty, gateTypes: ['render_asset_integrity', 'render_timeline_integrity'], notes: ['Evaluation-only; not a core render QA path.'] },
 }
 
-export function getToolQAPolicy(toolId: ProductionToolId): ProductionQAProfile {
-  return PRODUCTION_TOOL_QA_POLICIES[toolId]
+export const PRODUCTION_TOOL_QA_POLICIES = Object.freeze(
+  Object.fromEntries(
+    PRODUCTION_TOOL_IDS.map((toolId) => [
+      toolId,
+      PROFESSIONAL_TOOL_CATALOG_QA_POLICIES[toolId],
+    ]),
+  ),
+) as Readonly<Record<ProductionToolId, ProductionQAProfile>>
+
+export const NON_E2E_TOOL_CAPABILITY_QA_POLICIES = Object.freeze(
+  Object.fromEntries(
+    NON_E2E_TOOL_CAPABILITY_IDS.map((toolId) => [
+      toolId,
+      PROFESSIONAL_TOOL_CATALOG_QA_POLICIES[toolId],
+    ]),
+  ),
+) as Readonly<
+  Record<NonE2EToolCapabilityId, ProductionQAProfile>
+>
+
+export function getToolQAPolicy(
+  toolId: ProfessionalToolCatalogId,
+): ProductionQAProfile {
+  return PROFESSIONAL_TOOL_CATALOG_QA_POLICIES[toolId]
 }

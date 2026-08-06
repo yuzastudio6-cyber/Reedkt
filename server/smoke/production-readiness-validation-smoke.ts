@@ -39,9 +39,14 @@ const requiredFiles = [
   'server/workers/readiness-validation/production-readiness-summary.ts',
   'server/workers/readiness-validation/readiness-command-plan-builder.ts',
   'server/workers/readiness-validation/container-readiness-command-builder.ts',
+  'server/workers/readiness-validation/canonical-tool-readiness-evidence.ts',
+  'server/workers/readiness-validation/production-container-qualification-contract.ts',
+  'server/workers/readiness-validation/production-container-qualification-live-probe.ts',
   'server/workers/readiness-validation/index.ts',
   'server/cli/production-readiness-summary.ts',
+  'server/cli/production-readiness-action-plan.ts',
   'server/cli/production-readiness-command-plan.ts',
+  'docs/production-signalsmith-stretch-source-resolution-plan.md',
 ]
 
 for (const file of requiredFiles) {
@@ -56,6 +61,119 @@ check(dryRunReport.mode === 'dry_run', 'Dry-run readiness report must use dry_ru
 check(staticReport.workerSummaries.length === 6, 'Readiness report must contain all six worker summaries.')
 check(staticReport.imageSummaries.length === 6, 'Readiness report must contain all six image summaries.')
 check(staticReport.toolSummaries.length > 0, 'Readiness report must contain tool summaries.')
+check(staticReport.evidenceTiers.registryToolCount === staticReport.toolSummaries.length, 'Readiness report must cover every tool in all three evidence tiers.')
+check(staticReport.evidenceTiers.privateInternal.canonicalEndToEndVerifiedToolIds.length === 50, 'Readiness report must retain the 50 canonical private end-to-end proofs.')
+check(
+  staticReport.evidenceTiers.privateInternal
+    .canonicalBoundaryContractVerifiedToolIds.length === 0,
+  'Production readiness must not mix non-E2E boundary capabilities into the canonical 50-tool registry.',
+)
+check(staticReport.evidenceTiers.productionImageQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate production-image qualification.')
+check(staticReport.evidenceTiers.deployedReleaseQualification.qualifiedToolIds.length === 0, 'Static readiness must not fabricate deployed-release qualification.')
+check(staticReport.actionPlan.status === 'blocked_by_evidence_gates', 'Static readiness must expose blocked evidence-gate action plan status.')
+check(staticReport.actionPlan.currentSafeStage === 'internal_testing', 'Static readiness must keep current safe stage at internal_testing.')
+check(staticReport.actionPlan.stages.length === 5, 'Static readiness action plan must expose the five release evidence lanes.')
+check(
+  staticReport.actionPlan.stages.some((stage) => stage.id === 'launch_core_container_readiness' && stage.toolIds.length > 0 && stage.status === 'blocked'),
+  'Action plan must identify launch-core container readiness as the first blocked production lane.',
+)
+check(
+  staticReport.toolSummaries.every((tool) =>
+    tool.statusScope === 'production_image_and_release_qualification' &&
+    tool.productionImageQualification.qualified === false &&
+    tool.deployedReleaseQualification.qualified === false),
+  'Static tool status must be scoped to production image/release qualification and must keep both gates closed.',
+)
+check(
+  staticReport.actionPlan.stages.some((stage) => stage.id === 'model_weight_license_mount_approval' && stage.toolIds.length > 0 && stage.status === 'blocked'),
+  'Action plan must identify model-weight/license/mount approval as a blocked production lane.',
+)
+check(
+  staticReport.actionPlan.stages.some((stage) => stage.id === 'deployment_billing_release_evidence' && stage.status === 'blocked'),
+  'Action plan must keep deployment/billing/release evidence blocked until tool readiness passes.',
+)
+check(
+  staticReport.actionPlan.stages.every((stage) => /not authorize|remain|No external|Does not authorize/i.test(stage.safetyBoundary)),
+  'Every action-plan stage must carry a no-scope safety boundary.',
+)
+
+const launchCoreStage = staticReport.actionPlan.stages.find((stage) => stage.id === 'launch_core_container_readiness')
+check(Boolean(launchCoreStage), 'Action plan must include launch-core container readiness stage.')
+check(
+  Boolean(
+    launchCoreStage?.canonicalPrivateEndToEndVerifiedToolIds.length === 23 &&
+      launchCoreStage?.canonicalPrivateJobAdapterVerifiedToolIds.length === 23 &&
+      launchCoreStage?.canonicalPrivateBoundaryContractVerifiedToolIds.length === 0 &&
+      launchCoreStage.transitionSummary.includes('23 tool(s) have canonical private end-to-end proof') &&
+      !launchCoreStage.transitionSummary.includes('non-executable integration boundary'),
+  ),
+  'Launch-core readiness must contain only the 23 canonical E2E launch identities.',
+)
+check(
+  Boolean(
+    launchCoreStage?.adapterContractToolIds.includes('librosa') &&
+      launchCoreStage?.adapterContractToolIds.includes('pyloudnorm') &&
+      launchCoreStage?.productionReadinessMissingToolIds.includes('librosa'),
+  ),
+  'Launch-core action plan must distinguish internally contracted audio adapters from missing production container evidence.',
+)
+check(
+  Boolean(
+      launchCoreStage?.sourceDeclarationToolIds.includes('ffmpeg') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('libass') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('librosa') &&
+      launchCoreStage?.sourceDeclarationToolIds.includes('signalsmith_stretch') &&
+      !launchCoreStage?.sourceDeclarationMissingToolIds.includes('signalsmith_stretch') &&
+      launchCoreStage?.productionReadinessMissingToolIds.includes('signalsmith_stretch'),
+  ),
+  'Launch-core action plan must distinguish static package declarations and missing production runtime proof.',
+)
+check(
+  Boolean(
+    launchCoreStage?.sourceDeclarationMissingToolIds.length === 0 &&
+      !launchCoreStage?.nextActions.some((action) => action.includes('Resolve approved source declarations')),
+  ),
+  'Launch-core action plan must clear source-resolution actions once all launch-core tools are source-declared.',
+)
+check(
+  Boolean(
+    launchCoreStage?.sourceDeclarationEvidence.some((evidence) =>
+      evidence.toolId === 'signalsmith_stretch' &&
+      evidence.evidenceKinds.includes('dockerfile') &&
+      evidence.sources.includes('docker/prod/cpu-worker/Dockerfile') &&
+      evidence.sources.includes('docker/prod/tool-readiness-worker/Dockerfile') &&
+      evidence.runtimeProofRequired === true &&
+      evidence.productReady === false
+    ),
+  ),
+  'Signalsmith source declaration must come from worker Dockerfiles and must still require runtime proof.',
+)
+check(
+  Boolean(launchCoreStage?.sourceDeclarationEvidence.every((evidence) =>
+    evidence.runtimeProofRequired === true && evidence.productReady === false
+  )),
+  'Source declaration evidence must never mark launch-core tools product-ready.',
+)
+
+const optionalAdapterStage = staticReport.actionPlan.stages.find((stage) => stage.id === 'optional_adapter_promotion')
+check(Boolean(optionalAdapterStage), 'Action plan must include optional adapter promotion stage.')
+check(
+  Boolean(
+    optionalAdapterStage?.adapterContractToolIds.includes('d3') &&
+      optionalAdapterStage?.adapterContractToolIds.includes('gpac_mp4box_packaging_validation') &&
+      optionalAdapterStage?.productionReadinessMissingToolIds.includes('d3'),
+  ),
+  'Optional adapter action plan must distinguish adapter contracts from production promotion evidence.',
+)
+check(
+  Boolean(
+    optionalAdapterStage?.sourceDeclarationToolIds.includes('d3') &&
+      optionalAdapterStage?.sourceDeclarationToolIds.includes('kornia') &&
+      optionalAdapterStage?.sourceDeclarationMissingToolIds.includes('gpac_mp4box_packaging_validation') &&
+      optionalAdapterStage?.sourceDeclarationMissingToolIds.includes('mkvtoolnix_container_validation'),
+  ),
+  'Optional adapter action plan must distinguish declared visual/model packages from undeclared packaging tools.',
+)
 
 const requiredWorkers: ProductionRegistryWorkerType[] = [
   'api_service',
@@ -89,15 +207,14 @@ check(worker('cpu_analysis_worker')?.expectedTools.includes('ffmpeg'), 'CPU work
 check(worker('cpu_analysis_worker')?.expectedTools.includes('opentimelineio'), 'CPU worker summary must include OpenTimelineIO.')
 check(worker('render_worker')?.expectedTools.includes('remotion'), 'Render worker summary must include Remotion.')
 check(worker('render_worker')?.expectedTools.includes('libass'), 'Render worker summary must include libass.')
-check(worker('gpu_ai_worker')?.expectedTools.includes('faster_whisper'), 'GPU worker summary must include faster-whisper.')
+check(worker('gpu_ai_worker')?.expectedTools.includes('kornia'), 'GPU worker summary must include Kornia.')
 check(worker('gpu_ai_worker')?.expectedTools.includes('deepfilternet'), 'GPU worker summary must include DeepFilterNet.')
+check(worker('gpu_ai_worker')?.expectedTools.includes('rembg'), 'GPU worker summary must include rembg.')
 
-const revideoTool = staticReport.toolSummaries.find((tool) => tool.toolId === 'revideo')
-if (!revideoTool) {
-  throw new Error('Report must include Revideo.')
-}
-check(revideoTool.status === 'evaluation_only', 'Report must mark Revideo evaluation_only.')
-check(revideoTool.blockers.some((blocker) => blocker.severity === 'hard_blocker'), 'Revideo must be production-blocked.')
+check(
+  !staticReport.toolSummaries.some((tool) => String(tool.toolId) === 'revideo'),
+  'Production readiness must exclude the non-E2E Revideo capability.',
+)
 
 const modelWeightTools = staticReport.toolSummaries.filter((tool) => tool.modelWeightsRequired)
 check(modelWeightTools.length > 0, 'Report must include model-weight tools.')
@@ -109,21 +226,19 @@ const apiImage = image('api')
 const cpuImage = image('cpu_worker')
 const renderImage = image('render_worker')
 const gpuOnlyTools: ProductionToolId[] = [
-  'faster_whisper',
-  'birefnet',
-  'sam2',
   'kornia',
   'deepfilternet',
-  'demucs',
-  'real_esrgan',
-  'film',
+  'rembg',
 ]
 for (const toolId of gpuOnlyTools) {
   check(!apiImage?.expectedTools.includes(toolId), `API image must not include GPU tool ${toolId}.`)
   check(!cpuImage?.expectedTools.includes(toolId), `CPU image must not include GPU tool ${toolId}.`)
   check(!renderImage?.expectedTools.includes(toolId), `Render image must not include GPU tool ${toolId}.`)
 }
-check(!renderImage?.expectedTools.includes('revideo'), 'Render image must keep Revideo out.')
+check(
+  !renderImage?.expectedTools.map(String).includes('revideo'),
+  'Render image must keep Revideo out.',
+)
 
 check(
   classifyProductionReadinessBlocker({ kind: 'evaluation_only_production_execution', toolId: 'revideo' }).severity === 'hard_blocker',
@@ -143,7 +258,11 @@ check(
 )
 check(
   classifyProductionReadinessBlocker({ kind: 'required_launch_core_missing', toolId: 'ffmpeg' }).severity === 'hard_blocker',
-  'Blocker policy must flag missing launch-core tools.',
+  'Blocker policy must flag missing launch-core production-image qualification evidence.',
+)
+check(
+  classifyProductionReadinessBlocker({ kind: 'required_launch_core_boundary_release_missing', toolId: 'hyperframe' }).severity === 'hard_blocker',
+  'Blocker policy must keep a non-executable launch-core boundary blocked on deployed integration evidence without inventing a worker image.',
 )
 check(
   classifyProductionReadinessBlocker({ kind: 'future_only_tool_not_installed', toolId: 'vapoursynth' }).severity === 'warning',
@@ -156,10 +275,14 @@ check(staticReport.licenseSummaries.some((summary) => summary.id === 'libass_sub
 const plans = buildReadinessCommandPlans()
 for (const id of [
   'static_readiness',
+  'container_readiness_api',
   'container_readiness_cpu_worker',
   'container_readiness_render_worker',
   'container_readiness_qa_worker',
   'container_readiness_gpu_worker',
+  'container_readiness_tool_readiness_worker',
+  'container_readiness_host_verification',
+  'container_manual_qualification_review_package',
 ]) {
   check(plans.some((plan) => plan.id === id), `Missing command plan ${id}.`)
 }
@@ -167,6 +290,22 @@ check(plans.every((plan) => plan.doesNotRun.includes('no media processing')), 'C
 check(plans.every((plan) => plan.doesNotRun.includes('no model downloads')), 'Command plans must say they do not download models.')
 check(plans.every((plan) => plan.doesNotRun.includes('no providers')), 'Command plans must say they do not call providers.')
 check(plans.every((plan) => plan.doesNotRun.includes('no deployment')), 'Command plans must say they do not deploy.')
+check(
+  plans.filter((plan) => plan.mode === 'container_command_plan').every((plan) =>
+    !plan.command.includes('--mode=static_only') &&
+    (plan.id === 'container_readiness_all'
+      ? plan.command.includes('13-run-all-container-readiness.example.sh')
+      : plan.command.includes('container-readiness-receipt.js'))),
+  'Container command plans must invoke the bounded runtime receipt entrypoint rather than static-only reporting.',
+)
+const hostVerificationPlan = plans.find((plan) => plan.id === 'container_readiness_host_verification')
+check(hostVerificationPlan?.mode === 'host_optional', 'Host verification must remain an explicit host-optional command plan.')
+check(hostVerificationPlan?.command.includes('14-verify-container-readiness-candidate.example.sh') === true, 'Host verification plan must use the bounded human script.')
+check(hostVerificationPlan?.doesNotRun.includes('no Docker pull or run') === true, 'Host verification plan must prohibit image pull and run.')
+const manualReviewPlan = plans.find((plan) => plan.id === 'container_manual_qualification_review_package')
+check(manualReviewPlan?.mode === 'host_optional', 'Manual review package preparation must remain host optional.')
+check(manualReviewPlan?.command.includes('15-prepare-container-manual-review-package.example.sh') === true, 'Manual review package plan must use the bounded human script.')
+check(manualReviewPlan?.doesNotRun.includes('no license or model approval') === true, 'Review package preparation must not approve licenses or models.')
 
 const scripts = [
   'scripts/docker/prod/08-run-static-readiness.example.sh',
@@ -185,13 +324,23 @@ for (const script of scripts) {
   }
   check(!/\bgcloud\s+run\b|\bgcloud\s+deploy\b|\bgcloud\s+beta\s+run\b/i.test(text), `${script} must not deploy Cloud Run.`)
   check(!/huggingface-cli|snapshot_download|from_pretrained|wget\s|curl\s/i.test(text), `${script} must not download models.`)
+  if (!script.includes('08-run-static')) {
+    check(text.includes('name@sha256:digest'), `${script} must require immutable image digests.`)
+    check(text.includes('REEDITPRO_SOURCE_COMMIT_SHA'), `${script} must require exact source commit identity.`)
+    check(text.includes('REEDITPRO_SOURCE_TREE_HASH'), `${script} must require exact source tree identity.`)
+    check(text.includes('container-readiness-receipt.js'), `${script} must run the bounded receipt entrypoint.`)
+    check(!text.includes('--mode=static_only'), `${script} must not mistake static reporting for a container probe.`)
+    check(!/\beval\b/.test(text), `${script} must not execute a string-built Docker command through eval.`)
+  }
   check(!/sk-[A-Za-z0-9]|AIza[A-Za-z0-9_-]+|ghp_[A-Za-z0-9]+|-----BEGIN/.test(text), `${script} must not contain real secrets.`)
 }
 
 const packageJson = requireRead('package.json')
 check(packageJson.includes('smoke:prod-readiness-validation'), 'package.json must expose smoke:prod-readiness-validation.')
 check(packageJson.includes('prod:readiness:summary'), 'package.json must expose prod:readiness:summary.')
+check(packageJson.includes('prod:readiness:action-plan'), 'package.json must expose prod:readiness:action-plan.')
 check(packageJson.includes('prod:readiness:command-plan'), 'package.json must expose prod:readiness:command-plan.')
+check(packageJson.includes('prod:readiness:container-receipt'), 'package.json must expose the built container receipt entrypoint.')
 check(!/"[^"]*":\s*"[^"]*scripts\/docker\/prod\/0[1-7][^"]*"/.test(packageJson), 'npm scripts must not auto-build or auto-push production images.')
 check(!/"[^"]*":\s*"[^"]*docker build[^"]*docker\/prod[^"]*"/.test(packageJson), 'npm scripts must not auto-build production Docker images.')
 
@@ -207,6 +356,18 @@ console.log(JSON.stringify({
   tools: staticReport.toolSummaries.length,
   modelWeightSummaries: staticReport.modelWeightSummaries.length,
   hardBlockers: staticReport.blockerSummaries.filter((blocker) => blocker.severity === 'hard_blocker').length,
+  actionPlanStatus: staticReport.actionPlan.status,
+  currentSafeStage: staticReport.actionPlan.currentSafeStage,
+  actionPlanStages: staticReport.actionPlan.stages.map((stage) => ({
+    id: stage.id,
+    status: stage.status,
+    toolCount: stage.toolIds.length,
+    sourceDeclarationToolCount: stage.sourceDeclarationToolIds.length,
+    sourceDeclarationMissingToolCount: stage.sourceDeclarationMissingToolIds.length,
+    adapterContractToolCount: stage.adapterContractToolIds.length,
+    productionReadinessMissingToolCount: stage.productionReadinessMissingToolIds.length,
+    blockerCount: stage.blockerCount,
+  })),
   commandPlans: staticReport.commandPlans.map((plan) => plan.id),
   scripts: scripts.length,
   dockerRequired: false,

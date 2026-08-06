@@ -89,7 +89,7 @@ function createRetakeSelectionPlan(params: {
       qaChecks: [
         'Retake selection has a reason and confidence.',
         'Low-confidence selections require user review.',
-        'No real transcript, semantic, audio, visual, or media comparison has run.',
+        'Transcript, semantic, audio, visual, and media comparison remain backend-gated.',
         ...group.qaChecks,
       ],
     }
@@ -99,8 +99,8 @@ function createRetakeSelectionPlan(params: {
     id: `retake-selection-${params.input.editingCategory}-${params.input.editLevel}`,
     active: groups.length > 0,
     summary: groups.length
-      ? `${items.length} retake group(s) reviewed with mock metadata-based selection.`
-      : 'No retake groups were inferred from mock metadata.',
+      ? `${items.length} retake group(s) reviewed with metadata-based selection.`
+      : 'No retake groups were inferred from available metadata.',
     items,
     selectedCandidateCount: items.filter((item) => Boolean(item.selectedCandidateId)).length,
     userReviewRequiredCount: items.filter((item) => item.userReviewRequired).length,
@@ -111,10 +111,10 @@ function createRetakeSelectionPlan(params: {
       'Later take is only a fallback signal.',
     ],
     limitations: [
-      'Mock-only retake selection.',
-      'No real transcript comparison has run.',
-      'No real semantic comparison has run.',
-      'No real audio/video/media quality analysis has run.',
+      'Review-only retake selection.',
+      'Transcript comparison remains backend-gated.',
+      'Semantic comparison remains backend-gated.',
+      'Audio, video, and media quality analysis remain backend-gated.',
     ],
     notes: [
       params.sourceCleanupPlan
@@ -169,7 +169,7 @@ export function createTrimReviewPlan(params: CreateTrimReviewPlanParams): TrimRe
     id: `trim-review-${params.input.editingCategory}-${params.input.editLevel}`,
     summary: approvalBlocked
       ? 'Trim review found items that need user review before approval.'
-      : 'Trim review is mock-reviewable with retake and meaning preservation checks.',
+      : 'Trim review is reviewable with retake and meaning preservation checks.',
     retakeSelectionPlan,
     meaningPreservationValidationPlan,
     approvalBlocked,
@@ -179,20 +179,20 @@ export function createTrimReviewPlan(params: CreateTrimReviewPlanParams): TrimRe
       meaningPreservationValidationPlan.summary,
       approvalBlocked
         ? 'Approval is locked until risky trim review items are resolved.'
-        : 'Retake selection and meaning preservation are reviewable in this mock plan.',
+        : 'Retake selection and meaning preservation are reviewable in this plan.',
     ],
     nextUserQuestions: Array.from(new Set(nextUserQuestions)),
     qaChecks: [
       'Retake selections include reasons and confidence.',
       'Meaning preservation validation exists before approval.',
       'Risky cuts require review or block approval.',
-      'No real transcript/media comparison is implied.',
+      'Transcript and media comparison remain backend-gated.',
     ],
     limitations: [
-      'Mock-only trim review.',
-      'No real transcript comparison has run.',
-      'No real semantic analysis has run.',
-      'No real media analysis has run.',
+      'Review-only trim review.',
+      'Transcript comparison remains backend-gated.',
+      'Semantic analysis remains backend-gated.',
+      'Media analysis remains backend-gated.',
       'No FFmpeg, VapourSynth, AudioFlux, Signalsmith Stretch, Remotion rendering, provider call, backend, or worker execution has run.',
     ],
   }

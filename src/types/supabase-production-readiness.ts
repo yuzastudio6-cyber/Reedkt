@@ -18,6 +18,8 @@ export interface SupabaseProductionReadinessCheck {
 export interface SupabaseProductionReadinessPlan {
   id: string
   status: SupabaseProductionReadinessStatus
+  migrationBaselineStatus: 'reproducible' | 'blocked_by_parallel_foundations'
+  securitySourceStatus: 'static_review_clear' | 'blocked_by_security_findings'
   summary: string
   activeMigrationFiles: string[]
   manualTestFiles: string[]

@@ -1,5 +1,5 @@
 import type { ClipSource, PlannerInput } from '../../types/reeditpro'
-import { sampleClips } from '../../lib/mock-planner'
+import { sampleClips } from '../../lib/mock-planner/default-data'
 
 export const defaultChatPlannerInput: PlannerInput = {
   projectName: 'Premium real estate short',
@@ -13,9 +13,6 @@ export const defaultChatPlannerInput: PlannerInput = {
   moodStyle: 'luxury',
   visualPreference: 'balanced_visual_mix',
   referenceUrl: 'https://example.com/luxury-listing-reference',
-  referenceVideoMode: 'user_pasted_link',
-  referenceAdaptationFocus: ['overall_style'],
-  referenceNotes: ['Use reference DNA as style guidance only.'],
   customInstructions:
     "I want to edit these clips into a premium real estate short. Keep it natural and don't make it too viral.",
   creditPreference: 'balanced',
@@ -34,16 +31,15 @@ export const referenceDNAItems = [
 ]
 
 export const progressSteps = [
-  'Reading source sequence',
-  'Analyzing transcript',
+  'Reading source order',
+  'Understanding source content',
   'Mapping story beats',
-  'Applying clean cuts',
-  'Creating captions',
-  'Planning Stroke Motion',
-  'Creating Graphic Design overlay',
-  'Planning browser/app visuals',
-  'Checking Real Motion face-safe placement',
-  'Matching SoundSync mood',
-  'Preparing preview',
-  'Rendering mock preview',
+  'Preparing clean cut decisions',
+  'Preparing captions',
+  'Planning motion storytelling',
+  'Planning graphic support',
+  'Checking face-safe placement',
+  'Matching sound and mood',
+  'Assembling review timeline',
+  'Preparing private review',
 ]

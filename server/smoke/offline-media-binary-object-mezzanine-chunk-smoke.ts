@@ -1,0 +1,488 @@
+import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { readFile, rm } from 'node:fs/promises'
+import { join } from 'node:path'
+import { Readable } from 'node:stream'
+
+import {
+  activatePrivateOfflineMediaBinaryRuntime,
+  buildOfflineMediaBinaryCrossChunkColorContinuityRequest,
+  buildOfflineMediaBinaryObjectMezzanineChunkRequest,
+  evaluateOfflineMediaBinaryCrossChunkColorContinuity,
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_POLICY,
+  OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_RECIPE,
+  OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+  OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_RECIPE,
+  OFFLINE_MEDIA_BINARY_OPERATIONS,
+  OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+} from '../tool-execution/media-binary-execution'
+
+const width = 2160 as const
+const height = 2160 as const
+const fps = 30 as const
+const sliceFrames = 675
+const sourceFrames = 900
+const durationFrames = sliceFrames * 2
+const sourcePaths = [
+  join('/tmp', `reeditpro-object-chunk-source-1-${process.pid}.mp4`),
+  join('/tmp', `reeditpro-object-chunk-source-2-${process.pid}.mp4`),
+]
+const colors = ['0x174EA6', '0xB3261E']
+
+try {
+  for (const [index, path] of sourcePaths.entries()) {
+    const generated = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error',
+      '-f', 'lavfi', '-i',
+      `color=c=${colors[index]}:s=${width}x${height}:r=${fps}`,
+      '-frames:v', String(sourceFrames),
+      '-c:v', 'libx264', '-preset', 'ultrafast', '-tune', 'zerolatency',
+      '-x264-params',
+      `keyint=${sourceFrames}:min-keyint=${sourceFrames}:scenecut=0:open-gop=0:colorprim=bt709:transfer=bt709:colormatrix=bt709`,
+      '-bf', '0', '-pix_fmt', 'yuv420p', '-color_range', 'tv',
+      '-colorspace', 'bt709', '-color_primaries', 'bt709',
+      '-color_trc', 'bt709', '-an', '-movflags', '+faststart',
+      '-threads', '1', '-y', path,
+    ], { encoding: 'utf8' })
+    assert.equal(generated.status, 0, generated.stderr)
+  }
+  const sourceBytes = await Promise.all(sourcePaths.map((path) => readFile(path)))
+  const sha256 = (bytes: Buffer) =>
+    createHash('sha256').update(bytes).digest('hex')
+  assert.notEqual(sha256(sourceBytes[0]!), sha256(sourceBytes[1]!))
+  const sourceCommitments = sourceBytes.map((bytes, index) => ({
+    inputId: `approved-source-${index + 1}`,
+    sourceSequenceItemId: `object-source-${index + 1}`,
+    mediaAssetId: `object-media-${index + 1}`,
+    sourceObjectGeneration: String(index + 1),
+    mimeType: 'video/mp4' as const,
+    byteLength: bytes.byteLength,
+    sha256: sha256(bytes),
+  }))
+  const chunkAuthorityHash = sha256(Buffer.from('object-chunk-authority'))
+  const expectedObjectIdentity = sha256(Buffer.from('object-chunk-object'))
+  const request = buildOfflineMediaBinaryObjectMezzanineChunkRequest({
+    planningPayload: {
+      recipeProfileId: OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_RECIPE,
+      chunkId: 'long-form-object-chunk-fixture',
+      chunkAuthorityHash,
+      expectedObjectIdentity,
+      chunkIndex: 1,
+      chunkCount: 2,
+      width,
+      height,
+      fps,
+      durationFrames,
+      globalStartFrame: 0,
+      globalEndFrameExclusive: durationFrames,
+      sourceSlices: sourceCommitments.map((source, index) => ({
+        sliceIndex: index + 1,
+        segmentId: `object-segment-${index + 1}`,
+        sourceSequenceItemId: source.sourceSequenceItemId,
+        mediaAssetId: source.mediaAssetId,
+        sourceObjectGeneration: source.sourceObjectGeneration,
+        sourceSha256: source.sha256,
+        sourceCleanupDecisionId: `cleanup-object-source-${index + 1}`,
+        sourceStartFrame: 0,
+        sourceEndFrameExclusive: sliceFrames,
+        globalTimelineStartFrame: index * sliceFrames,
+        globalTimelineEndFrameExclusive: (index + 1) * sliceFrames,
+        chunkLocalStartFrame: index * sliceFrames,
+        chunkLocalEndFrameExclusive: (index + 1) * sliceFrames,
+        boundaryBefore: index === 0
+          ? 'timeline_start' as const
+          : 'approved_hard_cut' as const,
+      })),
+      videoAssemblyPolicy: 'frame_exact_decode_trim_concat_v2',
+      audioPolicy: 'separate_continuous_program_audio_v1',
+      codecCompatibilityPolicy: 'bounded_h264_decode_to_vp9_mezzanine_v2',
+      timestampPolicy: 'normalize_from_zero',
+      outputContainer: 'matroska',
+      outputVideoCodec: 'libvpx_vp9_cq12',
+      outputPixelFormat: 'yuv420p',
+      outputColorSpace: 'bt709',
+      frameNormalizationPolicy: 'contain_black_letterbox_v1',
+      colorNormalizationPolicy: 'bt709_limited_v1',
+      renderPurpose: 'private_4k_object_mezzanine_chunk_v2',
+      sourceQualityPolicy: 'immutable_source_master_no_proxy_v1',
+      usesApprovedEditReservation: true,
+      requiresSeparateExportEstimate: false,
+      allowsAdditionalExportCharge: false,
+    },
+    sources: sourceCommitments,
+  })
+  const privateInputs = sourceBytes.map((bytes) => Object.freeze({
+    inputMode: 'private_verified_stream_v1' as const,
+    byteLength: bytes.byteLength,
+    sha256: sha256(bytes),
+    async openStream() { return Readable.from([bytes]) },
+  }))
+  let outputBytes = Buffer.alloc(0)
+  const runtime = await activatePrivateOfflineMediaBinaryRuntime()
+  const result = await runtime.executeObjectMezzanineChunkServerInjected(
+    request,
+    privateInputs,
+    {
+      maximumBytes:
+        OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+      async persist(input) {
+        assert.equal(input.mimeType, 'video/x-matroska')
+        const chunks: Buffer[] = []
+        for await (const chunk of input.stream) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        }
+        outputBytes = Buffer.concat(chunks)
+        assert.equal(outputBytes.byteLength, input.expectedByteLength)
+        assert.equal(sha256(outputBytes), input.expectedSha256)
+        return {
+          byteLength: outputBytes.byteLength,
+          sha256: sha256(outputBytes),
+        }
+      },
+    },
+  )
+  assert.deepEqual([...outputBytes.subarray(0, 4)], [0x1a, 0x45, 0xdf, 0xa3])
+  assert.equal(result.resultArtifact.sha256, sha256(outputBytes))
+  assert.equal(result.resultArtifact.byteLength, outputBytes.byteLength)
+  assert.equal(result.evidence.sourceSha256s.length, 2)
+  assert.equal(result.evidence.confinement.networkMode, 'none')
+  assert.equal(
+    result.evidence.confinement.serverOwnedEntrypoint,
+    '/usr/local/bin/reeditpro-ffmpeg-object-mezzanine-chunk',
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .frameExactH264DecodeTrimConcatExecuted,
+    true,
+  )
+  assert.equal(
+    result.evidence.semanticEvidence
+      .vp9Cq12MezzanineEncoded,
+    true,
+  )
+  assert.equal(result.evidence.semanticEvidence.allObjectChunksSupported, true)
+  assert.equal(result.evidence.semanticEvidence.outputVideoCodec, 'vp9_cq12')
+  assert.equal(result.evidence.semanticEvidence.outputAudioStreams, 0)
+  assert.equal(result.readiness.productReady, false)
+  assert.equal(
+    result.image.objectMezzanineChunk,
+    'private_all_chunk_vp9_cq12_only',
+  )
+
+  let repeatedOutputBytes = Buffer.alloc(0)
+  const repeated = await runtime.executeObjectMezzanineChunkServerInjected(
+    request,
+    privateInputs,
+    {
+      maximumBytes:
+        OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+      async persist(input) {
+        const chunks: Buffer[] = []
+        for await (const chunk of input.stream) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        }
+        repeatedOutputBytes = Buffer.concat(chunks)
+        return {
+          byteLength: repeatedOutputBytes.byteLength,
+          sha256: sha256(repeatedOutputBytes),
+        }
+      },
+    },
+  )
+  assert.equal(repeated.resultArtifact.sha256, result.resultArtifact.sha256)
+  assert.equal(repeated.resultArtifact.byteLength, result.resultArtifact.byteLength)
+  assert.deepEqual(repeatedOutputBytes, outputBytes)
+
+  const laterRequest = buildOfflineMediaBinaryObjectMezzanineChunkRequest({
+    planningPayload: {
+      ...request.payload,
+      chunkId: 'long-form-object-chunk-later-fixture',
+      chunkAuthorityHash: sha256(Buffer.from('later-object-chunk-authority')),
+      expectedObjectIdentity: sha256(Buffer.from('later-object-chunk-object')),
+      chunkIndex: 2,
+      globalStartFrame: durationFrames,
+      globalEndFrameExclusive: durationFrames * 2,
+      sourceSlices: request.payload.sourceSlices.map((_slice, index) => ({
+        ...request.payload.sourceSlices[index === 0 ? 1 : 0]!,
+        sliceIndex: index + 1,
+        sourceStartFrame: sourceFrames - sliceFrames,
+        sourceEndFrameExclusive: sourceFrames,
+        chunkLocalStartFrame: index * sliceFrames,
+        chunkLocalEndFrameExclusive: (index + 1) * sliceFrames,
+        globalTimelineStartFrame: durationFrames + index * sliceFrames,
+        globalTimelineEndFrameExclusive:
+          durationFrames + (index + 1) * sliceFrames,
+        boundaryBefore: index === 0
+          ? 'continuous_technical_split' as const
+          : 'approved_hard_cut' as const,
+      })),
+    },
+    sources: sourceCommitments,
+  })
+  let laterOutputBytes = Buffer.alloc(0)
+  const later = await runtime.executeObjectMezzanineChunkServerInjected(
+    laterRequest,
+    privateInputs,
+    {
+      maximumBytes:
+        OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+      async persist(input) {
+        const chunks: Buffer[] = []
+        for await (const chunk of input.stream) {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+        }
+        laterOutputBytes = Buffer.concat(chunks)
+        return {
+          byteLength: laterOutputBytes.byteLength,
+          sha256: sha256(laterOutputBytes),
+        }
+      },
+    },
+  )
+  assert.equal(laterRequest.payload.chunkIndex, 2)
+  assert.equal(laterRequest.payload.globalStartFrame, durationFrames)
+  assert.equal(
+    laterRequest.payload.sourceSlices[0]?.boundaryBefore,
+    'continuous_technical_split',
+  )
+  assert.ok((laterRequest.payload.sourceSlices[0]?.sourceStartFrame ?? 0) > 0)
+  assert.equal(later.resultArtifact.sha256, sha256(laterOutputBytes))
+  assert.equal(later.evidence.semanticEvidence.allObjectChunksSupported, true)
+  assert.equal(
+    later.evidence.semanticEvidence.frameExactH264DecodeTrimConcatExecuted,
+    true,
+  )
+
+  const colorContinuityRequest =
+    buildOfflineMediaBinaryCrossChunkColorContinuityRequest({
+      planningPayload: {
+        recipeProfileId:
+          OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_RECIPE,
+        continuityPolicyId:
+          OFFLINE_MEDIA_BINARY_CROSS_CHUNK_COLOR_CONTINUITY_POLICY,
+        colorAuthorityHash: sha256(Buffer.from('cross-chunk-color-authority')),
+        expectedEvidenceIdentity:
+          'approved-snapshot:color-continuity:boundary-1-2',
+        leftChunkIndex: 1,
+        rightChunkIndex: 2,
+        boundaryBefore: 'continuous_technical_split',
+        width,
+        height,
+        fps,
+        sampleWindowFrames: 30,
+        sampleFramesPerSide: 3,
+        sourcePolicy:
+          'independently_qa_passed_private_vp9_bt709_chunks_v1',
+        technicalSplitMismatchDisposition: 'block_finalization',
+        editorialCutMismatchDisposition: 'review_required',
+        mediaMutationAllowed: false,
+        usesApprovedEditReservation: true,
+        requiresSeparateExportEstimate: false,
+        allowsAdditionalExportCharge: false,
+      },
+      left: {
+        inputId: 'left-chunk',
+        chunkId: request.payload.chunkId,
+        chunkIndex: 1,
+        objectIdentity: request.payload.expectedObjectIdentity,
+        mimeType: 'video/x-matroska',
+        byteLength: outputBytes.byteLength,
+        sha256: sha256(outputBytes),
+        frameCount: durationFrames,
+      },
+      right: {
+        inputId: 'right-chunk',
+        chunkId: laterRequest.payload.chunkId,
+        chunkIndex: 2,
+        objectIdentity: laterRequest.payload.expectedObjectIdentity,
+        mimeType: 'video/x-matroska',
+        byteLength: laterOutputBytes.byteLength,
+        sha256: sha256(laterOutputBytes),
+        frameCount: durationFrames,
+      },
+    })
+  const colorContinuity =
+    await runtime.executeCrossChunkColorContinuityServerInjected(
+      colorContinuityRequest,
+      {
+        left: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: outputBytes.byteLength,
+          sha256: sha256(outputBytes),
+          async openStream() { return Readable.from([outputBytes]) },
+        },
+        right: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: laterOutputBytes.byteLength,
+          sha256: sha256(laterOutputBytes),
+          async openStream() { return Readable.from([laterOutputBytes]) },
+        },
+      },
+    )
+  const colorDocument = colorContinuity.resultJson.document
+  const colorEvaluation = colorDocument.evaluation as Record<string, unknown>
+  assert.equal(colorDocument.outcome, 'passed')
+  assert.equal(colorEvaluation.boundaryClass, 'technical_continuation')
+  assert.equal(colorEvaluation.withinContinuityTolerance, true)
+  assert.equal(
+    colorContinuity.evidence.semanticEvidence.mediaMutationPerformed,
+    false,
+  )
+  assert.equal(
+    colorContinuity.evidence.semanticEvidence.separateExportEstimateRequired,
+    false,
+  )
+  assert.equal(colorContinuity.evidence.confinement.leftProbe.networkMode, 'none')
+  assert.equal(
+    colorContinuity.evidence.confinement.rightAnalysis.serverOwnedEntrypoint,
+    '/opt/reeditpro-ffmpeg/bin/ffmpeg',
+  )
+  const syntheticLeftColor = {
+    sampledFrameCount: 3,
+    sampledPixelCount: 12_288,
+    meanRed: 180,
+    meanGreen: 70,
+    meanBlue: 50,
+    meanLuma: 95,
+    minimumLuma: 20,
+    maximumLuma: 220,
+    blackLumaFraction: 0,
+    whiteLumaFraction: 0,
+  }
+  const syntheticRightMismatch = {
+    ...syntheticLeftColor,
+    meanRed: 45,
+    meanGreen: 75,
+    meanBlue: 190,
+    meanLuma: 110,
+  }
+  assert.equal(
+    evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+      boundaryBefore: 'continuous_technical_split',
+      left: syntheticLeftColor,
+      right: syntheticRightMismatch,
+    }).outcome,
+    'blocked',
+  )
+  assert.throws(() =>
+    buildOfflineMediaBinaryCrossChunkColorContinuityRequest({
+      planningPayload: {
+        ...colorContinuityRequest.payload,
+        maximumMeanLumaDelta: 255,
+      },
+      left: colorContinuityRequest.inputs.left,
+      right: colorContinuityRequest.inputs.right,
+    }))
+  await assert.rejects(() =>
+    runtime.executeCrossChunkColorContinuityServerInjected(
+      colorContinuityRequest,
+      {
+        left: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: outputBytes.byteLength,
+          sha256: 'f'.repeat(64),
+          async openStream() { return Readable.from([outputBytes]) },
+        },
+        right: {
+          inputMode: 'private_verified_stream_v1',
+          byteLength: laterOutputBytes.byteLength,
+          sha256: sha256(laterOutputBytes),
+          async openStream() { return Readable.from([laterOutputBytes]) },
+        },
+      },
+    ))
+  assert.equal(
+    evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+      boundaryBefore: 'approved_hard_cut',
+      left: syntheticLeftColor,
+      right: syntheticRightMismatch,
+    }).outcome,
+    'review_required',
+  )
+  assert.equal(
+    evaluateOfflineMediaBinaryCrossChunkColorContinuity({
+      boundaryBefore: 'approved_hard_cut',
+      left: syntheticLeftColor,
+      right: {
+        ...syntheticLeftColor,
+        meanLuma: 3,
+        blackLumaFraction: 0.99,
+      },
+    }).outcome,
+    'blocked',
+  )
+
+  const independentQa = await runtime.executeServerInjected({
+    schemaVersion: OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
+    toolId: 'ffprobe',
+    operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffprobe,
+    payload: {
+      inspectionProfileId: 'object_mezzanine_chunk_qa_v1',
+      countFrames: true,
+      verifyDurationAndSync: true,
+      emitMachineJsonOnly: true,
+      mimeType: 'video/x-matroska',
+      sourceByteLength: outputBytes.byteLength,
+      sourceSha256: sha256(outputBytes),
+      sourceInputMode: OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+    },
+  }, {
+    inputMode: 'private_verified_stream_v1',
+    byteLength: outputBytes.byteLength,
+    sha256: sha256(outputBytes),
+    async openStream() { return Readable.from([outputBytes]) },
+  })
+  const streams = independentQa.resultJson.document.streams as
+    Array<Record<string, unknown>>
+  const video = streams.find((stream) => stream.codecType === 'video')
+  assert.equal(streams.length, 1)
+  assert.equal(video?.codecName, 'vp9')
+  assert.equal(video?.width, width)
+  assert.equal(video?.height, height)
+  assert.equal(video?.fps, fps)
+  assert.equal(video?.readFrameCount, durationFrames)
+  assert.equal(video?.colorSpace, 'bt709')
+
+  assert.throws(() => buildOfflineMediaBinaryObjectMezzanineChunkRequest({
+    planningPayload: {
+      ...request.payload,
+      command: 'ffmpeg -i caller.mp4',
+    },
+    sources: request.inputs.sources,
+  }))
+  await assert.rejects(() =>
+    runtime.executeObjectMezzanineChunkServerInjected(
+      request,
+      [{ ...privateInputs[0]!, sha256: 'f'.repeat(64) }, privateInputs[1]!],
+      {
+        maximumBytes:
+          OFFLINE_MEDIA_BINARY_OBJECT_MEZZANINE_CHUNK_MAXIMUM_OUTPUT_BYTES,
+        async persist() { throw new Error('tampered input must not persist') },
+      },
+    ))
+
+  console.log(JSON.stringify({
+    ok: true,
+    schemaVersion: 'offline-media-binary-object-mezzanine-chunk-smoke-v2',
+    sourceCount: sourceBytes.length,
+    sourceSliceCount: request.payload.sourceSlices.length,
+    durationFrames,
+    outputByteLength: outputBytes.byteLength,
+    outputSha256: sha256(outputBytes),
+    independentQaSha256: independentQa.resultJson.sha256,
+    deterministicByteReexecutionVerified: true,
+    laterChunkIndex: laterRequest.payload.chunkIndex,
+    nonzeroSourceStartFrame:
+      laterRequest.payload.sourceSlices[0]?.sourceStartFrame,
+    technicalSplitBoundaryVerified: true,
+    crossChunkColorContinuityOutcome: colorDocument.outcome,
+    crossChunkColorContinuityEvidenceSha256:
+      colorContinuity.resultJson.sha256,
+    productReady: false,
+    productionReady: false,
+  }, null, 2))
+} finally {
+  await Promise.all(sourcePaths.map((path) => rm(path, { force: true })))
+}

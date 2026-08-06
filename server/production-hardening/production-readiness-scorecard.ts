@@ -4,7 +4,7 @@ import type { ProductionHardeningCategory, ProductionHardeningCheck, ProductionR
 export function computeProductionReadinessScorecard(checks: ProductionHardeningCheck[]): ProductionReadinessScorecard {
   const blockers = checks.filter((check) => check.status === 'blocked')
   const warnings = checks.filter((check) => check.status === 'warning')
-  const manualReviewCount = checks.filter((check) => check.manualReviewRequired).length
+  const manualReviewCount = checks.filter((check) => check.manualReviewRequired && check.status !== 'passed').length
   const categoryScores = Object.fromEntries(productionHardeningCategories.map((category) => {
     const categoryChecks = checks.filter((check) => check.category === category)
     const categoryBlockers = categoryChecks.filter((check) => check.status === 'blocked').length
@@ -20,7 +20,7 @@ export function computeProductionReadinessScorecard(checks: ProductionHardeningC
     warningCount: warnings.length,
     manualReviewCount,
     categoryScores,
-    productionReadyAllowed: false,
+    productionReadyAllowed: blockers.length === 0 && manualReviewCount === 0,
     limitedBetaAllowed: blockers.length === 0 && manualReviewCount === 0,
   }
 }

@@ -1,0 +1,384 @@
+name: Signed-In Private Media Storage Staging Activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_private_media_storage_activation:
+        description: "Type ACTIVATE_REEDITPRO_SIGNED_IN_PRIVATE_MEDIA_STORAGE"
+        required: true
+        type: string
+      confirm_internal_cloud_cost:
+        description: "Type ACCEPT_REEDITPRO_PRIVATE_STAGING_STORAGE_COST; this never charges customer credits"
+        required: true
+        type: string
+      source_ref:
+        description: "Exact reviewed source branch"
+        required: true
+        default: "codex/backend-workflow-pipeline-continuation"
+        type: string
+      source_sha:
+        description: "Exact 40-character source SHA at the tip of source_ref"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: reeditpro-signed-in-private-media-storage-staging-activation
+  cancel-in-progress: false
+
+jobs:
+  activate-private-media-storage:
+    name: Activate exact signed-in private media storage lane
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: staging
+    env:
+      GCP_PROJECT_ID: reeditpro
+      GCP_REGION: us-east1
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER || vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      GCP_DEPLOYER_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT || vars.GCP_SERVICE_ACCOUNT }}
+      CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT: reeditpro-api-staging@reeditpro.iam.gserviceaccount.com
+      STAGING_APP_ORIGIN: https://yuzastudio6-cyber.github.io
+      GCS_BUCKET_PREFIX: reeditpro-staging-reeditpro-us-east1
+    steps:
+      - name: Fail closed unless every storage activation input is exact
+        shell: bash
+        env:
+          CONFIRM_STORAGE_ACTIVATION: ${{ inputs.confirm_private_media_storage_activation }}
+          CONFIRM_INTERNAL_CLOUD_COST: ${{ inputs.confirm_internal_cloud_cost }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "${CONFIRM_STORAGE_ACTIVATION}" = "ACTIVATE_REEDITPRO_SIGNED_IN_PRIVATE_MEDIA_STORAGE"
+          test "${CONFIRM_INTERNAL_CLOUD_COST}" = "ACCEPT_REEDITPRO_PRIVATE_STAGING_STORAGE_COST"
+          test "${SOURCE_REF}" = "codex/backend-workflow-pipeline-continuation"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+          test "${GITHUB_REF}" = "refs/heads/${SOURCE_REF}"
+          test "${GITHUB_SHA}" = "${SOURCE_SHA}"
+          test "${GCP_PROJECT_ID}" = "reeditpro"
+          test "${GCP_REGION}" = "us-east1"
+          test "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}" = "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com"
+          test "${STAGING_APP_ORIGIN}" = "https://yuzastudio6-cyber.github.io"
+          test "${GCS_BUCKET_PREFIX}" = "reeditpro-staging-reeditpro-us-east1"
+          test -n "${GCP_WORKLOAD_IDENTITY_PROVIDER}"
+          [[ "${GCP_DEPLOYER_SERVICE_ACCOUNT}" =~ ^[a-z0-9-]+@reeditpro[.]iam[.]gserviceaccount[.]com$ ]]
+
+      - name: Checkout exact reviewed source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 1
+
+      - name: Verify immutable source tip and clean activation context
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          test -z "$(git status --porcelain)"
+          test -f server/config/signed-in-private-media-storage-readiness.ts
+          test -f server/cli/verify-signed-in-private-media-storage-readiness.ts
+          git diff --exit-code -- package-lock.json
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install immutable dependencies
+        run: npm ci --no-audit --no-fund --progress=false
+
+      - name: Prove storage source contracts before cloud access
+        run: |
+          set -euo pipefail
+          npm run smoke:signed-in-private-media-storage-readiness
+          npm run smoke:gcs-upload-integrity-security
+          npm run smoke:large-media-ingest-readiness
+          npm run smoke:large-media-background-finalization
+          npm run smoke:protected-internal-testing-release-candidate-admission
+          npm run typecheck:server
+          npm run check:secrets
+
+      - name: Require exact same-SHA protected internal testing source admission
+        env:
+          REEDITPRO_INTERNAL_TESTING_SOURCE_REF: ${{ inputs.source_ref }}
+          REEDITPRO_INTERNAL_TESTING_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          npm run smoke:protected-internal-testing-release-candidate-admission
+          npm run internal-testing:verify-protected-release-candidate
+
+      - name: Authenticate to Google Cloud with keyless OIDC
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ env.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ env.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          export_environment_variables: true
+          cleanup_credentials: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Enable only storage and signing services
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud services enable \
+            iamcredentials.googleapis.com \
+            storage.googleapis.com \
+            --project="${GCP_PROJECT_ID}" \
+            --quiet
+
+      - name: Create or harden exact private staging buckets
+        shell: bash
+        run: |
+          set -euo pipefail
+          declare -A lifecycle_age=(
+            [source-media]=30
+            [generated-assets]=14
+            [processed-media]=14
+            [previews]=7
+            [exports]=30
+            [thumbnails]=30
+            [qa-artifacts]=14
+            [worker-temp]=1
+          )
+          purposes=(source-media generated-assets processed-media previews exports thumbnails qa-artifacts worker-temp)
+          source_cors="${RUNNER_TEMP}/source-media-cors.json"
+          python3 - "${source_cors}" "${STAGING_APP_ORIGIN}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          cors = [{
+              "origin": [sys.argv[2]],
+              "method": ["GET", "HEAD", "PUT"],
+              "responseHeader": [
+                  "Content-Range", "Content-Type", "ETag", "Range",
+                  "x-goog-generation", "x-goog-hash",
+                  "x-goog-if-generation-match", "x-goog-metageneration",
+              ],
+              "maxAgeSeconds": 3600,
+          }]
+          pathlib.Path(sys.argv[1]).write_text(json.dumps(cors, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+
+          for purpose in "${purposes[@]}"; do
+            bucket="${GCS_BUCKET_PREFIX}-${purpose}"
+            [[ "${bucket}" =~ ^reeditpro-staging-reeditpro-us-east1-[a-z0-9-]+$ ]]
+            if ! gcloud storage buckets describe "gs://${bucket}" \
+              --project="${GCP_PROJECT_ID}" --format=none >/dev/null 2>&1; then
+              gcloud storage buckets create "gs://${bucket}" \
+                --project="${GCP_PROJECT_ID}" \
+                --location="${GCP_REGION}" \
+                --default-storage-class=STANDARD \
+                --uniform-bucket-level-access \
+                --public-access-prevention=enforced \
+                --soft-delete-duration=7d \
+                --quiet
+            fi
+
+            lifecycle_file="${RUNNER_TEMP}/${purpose}-lifecycle.json"
+            age="${lifecycle_age[$purpose]}"
+            python3 - "${lifecycle_file}" "${age}" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          lifecycle = {"rule": [{"action": {"type": "Delete"}, "condition": {"age": int(sys.argv[2])}}]}
+          pathlib.Path(sys.argv[1]).write_text(json.dumps(lifecycle, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+            gcloud storage buckets update "gs://${bucket}" \
+              --project="${GCP_PROJECT_ID}" \
+              --default-storage-class=STANDARD \
+              --uniform-bucket-level-access \
+              --public-access-prevention=enforced \
+              --soft-delete-duration=7d \
+              --no-versioning \
+              --lifecycle-file="${lifecycle_file}" \
+              --update-labels="app=reeditpro,env=staging,lane=signed-in-private-media" \
+              --quiet
+            if [ "${purpose}" = "source-media" ]; then
+              gcloud storage buckets update "gs://${bucket}" \
+                --project="${GCP_PROJECT_ID}" \
+                --cors-file="${source_cors}" \
+                --quiet
+            else
+              gcloud storage buckets update "gs://${bucket}" \
+                --project="${GCP_PROJECT_ID}" \
+                --clear-cors \
+                --quiet
+            fi
+          done
+
+      - name: Bind exact runtime storage and signing authority
+        shell: bash
+        run: |
+          set -euo pipefail
+          runtime_member="serviceAccount:${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}"
+          for purpose in source-media generated-assets processed-media previews exports thumbnails qa-artifacts worker-temp; do
+            bucket="${GCS_BUCKET_PREFIX}-${purpose}"
+            role=roles/storage.objectViewer
+            if [ "${purpose}" = "source-media" ]; then
+              role=roles/storage.objectUser
+            fi
+            gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
+              --project="${GCP_PROJECT_ID}" \
+              --member="${runtime_member}" \
+              --role="${role}" \
+              --quiet
+          done
+          gcloud iam service-accounts add-iam-policy-binding "${CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT}" \
+            --project="${GCP_PROJECT_ID}" \
+            --member="${runtime_member}" \
+            --role=roles/iam.serviceAccountTokenCreator \
+            --condition=None \
+            --quiet
+
+      - name: Require strict read-only configuration evidence after mutation
+        env:
+          REEDITPRO_REQUIRE_PRIVATE_MEDIA_STORAGE_READY: "true"
+        run: |
+          set -euo pipefail
+          npm run staging:verify-signed-in-private-media-storage-readiness \
+            > "${RUNNER_TEMP}/signed-in-private-media-storage-readiness.json"
+          test -s "${RUNNER_TEMP}/signed-in-private-media-storage-readiness.json"
+
+      - name: Verify exact live source-bucket CORS without object access
+        shell: bash
+        run: |
+          set -euo pipefail
+          bucket="${GCS_BUCKET_PREFIX}-source-media"
+          allowed_headers="${RUNNER_TEMP}/allowed-cors.txt"
+          allowed_status="$(curl --silent --show-error --max-time 20 \
+            --request OPTIONS \
+            --header "Origin: ${STAGING_APP_ORIGIN}" \
+            --header "Access-Control-Request-Method: PUT" \
+            --header "Access-Control-Request-Headers: content-type,content-range,x-goog-if-generation-match" \
+            --dump-header "${allowed_headers}" \
+            --output /dev/null \
+            --write-out '%{http_code}' \
+            "https://${bucket}.storage.googleapis.com/reeditpro-cors-preflight")"
+          test "${allowed_status}" = "200"
+          grep -Fqi "access-control-allow-origin: ${STAGING_APP_ORIGIN}" "${allowed_headers}"
+          grep -Fqi "access-control-allow-methods:" "${allowed_headers}"
+          grep -Fqi "content-range" "${allowed_headers}"
+          grep -Fqi "x-goog-if-generation-match" "${allowed_headers}"
+
+          hostile_headers="${RUNNER_TEMP}/hostile-cors.txt"
+          curl --silent --show-error --max-time 20 \
+            --request OPTIONS \
+            --header "Origin: https://attacker.example" \
+            --header "Access-Control-Request-Method: PUT" \
+            --header "Access-Control-Request-Headers: content-type,content-range" \
+            --dump-header "${hostile_headers}" \
+            --output /dev/null \
+            "https://${bucket}.storage.googleapis.com/reeditpro-cors-preflight"
+          if grep -Fqi "access-control-allow-origin: https://attacker.example" "${hostile_headers}"; then
+            exit 1
+          fi
+
+      - name: Create sanitized immutable storage activation evidence
+        shell: bash
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          evidence_file="${RUNNER_TEMP}/reeditpro-signed-in-private-media-storage-activation.json"
+          readiness_file="${RUNNER_TEMP}/signed-in-private-media-storage-readiness.json"
+          python3 - \
+            "${evidence_file}" \
+            "${readiness_file}" \
+            "${GITHUB_REPOSITORY}" \
+            "${GITHUB_RUN_ID}" \
+            "${GITHUB_RUN_ATTEMPT}" \
+            "${SOURCE_REF}" \
+            "${SOURCE_SHA}" \
+            "${GCP_PROJECT_ID}" \
+            "${GCP_REGION}" \
+            "${GCS_BUCKET_PREFIX}" <<'PY'
+          import hashlib
+          import json
+          import pathlib
+          import re
+          import sys
+
+          output, readiness_path, repository, run_id, run_attempt, source_ref, source_sha, project, region, prefix = sys.argv[1:]
+          readiness_bytes = pathlib.Path(readiness_path).read_bytes()
+          readiness = json.loads(readiness_bytes)
+          if readiness.get("ok") is not True or readiness.get("decision") != "ready_for_same_sha_gateway_storage_configuration":
+              raise SystemExit("Strict private media storage readiness did not pass.")
+          if repository != "yuzastudio6-cyber/Reedkt" or source_ref != "codex/backend-workflow-pipeline-continuation":
+              raise SystemExit("Storage activation source scope is invalid.")
+          if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
+              raise SystemExit("Storage activation source SHA is invalid.")
+          if project != "reeditpro" or region != "us-east1" or prefix != "reeditpro-staging-reeditpro-us-east1":
+              raise SystemExit("Storage activation cloud scope is invalid.")
+          purposes = ["source-media", "generated-assets", "processed-media", "previews", "exports", "thumbnails", "qa-artifacts", "worker-temp"]
+          buckets = {purpose.replace("-", "_"): f"{prefix}-{purpose}" for purpose in purposes}
+          evidence = {
+              "schemaVersion": 1,
+              "repository": repository,
+              "workflowPath": ".github/workflows/signed-in-private-media-storage-staging-activation.yml",
+              "workflowRunId": int(run_id),
+              "workflowRunAttempt": int(run_attempt),
+              "sourceRef": source_ref,
+              "sourceSha": source_sha,
+              "projectId": project,
+              "region": region,
+              "runtimeServiceAccount": "reeditpro-api-staging@reeditpro.iam.gserviceaccount.com",
+              "appOrigin": "https://yuzastudio6-cyber.github.io",
+              "bucketNames": buckets,
+              "readinessContractVersion": readiness.get("contractVersion"),
+              "readinessEvidenceSha256": hashlib.sha256(readiness_bytes).hexdigest(),
+              "configurationReadinessPassed": True,
+              "liveCorsPreflightPassed": True,
+              "storageMode": "gcs",
+              "largeMediaFinalizationMode": "disabled",
+              "maximumHostedUploadBytesWithoutDistributedFinalization": 16777216,
+              "objectWriteVerified": False,
+              "signedUrlVerified": False,
+              "resumableUploadVerified": False,
+              "largeMediaDistributedFinalizationVerified": False,
+              "providerEnabled": False,
+              "workerEnabled": False,
+              "customerBillingEnabled": False,
+              "publicDeliveryEnabled": False,
+              "productionEnabled": False,
+          }
+          pathlib.Path(output).write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+          test -s "${evidence_file}"
+
+      - name: Upload immutable sanitized storage activation evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: reeditpro-signed-in-private-media-storage-activation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/reeditpro-signed-in-private-media-storage-activation.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Record private media storage activation boundary
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          {
+            echo '# ReEditPro Signed-In Private Media Storage Staging Activation'
+            echo ''
+            echo "- Source SHA: \`${SOURCE_SHA}\`"
+            echo '- Eight exact regional staging buckets are private, uniform-access, lifecycle-bounded, and soft-delete protected.'
+            echo '- The source bucket has exact GitHub Pages CORS and the API runtime has object-user plus self-signing authority.'
+            echo '- No object was written, read, signed, finalized, rendered, delivered, or charged by this activation.'
+            echo '- Hosted uploads above 16 MiB remain blocked before bytes until distributed large-media finalization is verified.'
+            echo '- Providers, workers, customer billing, public delivery, external beta, and production remain disabled.'
+          } >> "${GITHUB_STEP_SUMMARY}"

@@ -136,5 +136,13 @@ function metadataFromSummary(summary: MediaFoundationArtifactSummary): JSONObjec
   if (typeof summary.frameNumber === 'number') metadata.frameNumber = summary.frameNumber
   if (typeof summary.width === 'number') metadata.width = summary.width
   if (typeof summary.height === 'number') metadata.height = summary.height
+  if (summary.sourceStorageObjectId) metadata.sourceStorageObjectId = summary.sourceStorageObjectId
+  if (summary.sourceChecksumSha256) metadata.sourceChecksumSha256 = summary.sourceChecksumSha256
+  if (summary.sourceGeneration) metadata.sourceGeneration = summary.sourceGeneration
+  if (summary.sourceEtag) metadata.sourceEtag = summary.sourceEtag
+  if (summary.sourceAuthorityRole) metadata.sourceAuthorityRole = summary.sourceAuthorityRole
+  if (summary.derivativeRole) metadata.derivativeRole = summary.derivativeRole
+  if (summary.finalRenderEligible === false) metadata.finalRenderEligible = false
+  if (summary.immutableSourceMasterPreserved === true) metadata.immutableSourceMasterPreserved = true
   return metadata
 }

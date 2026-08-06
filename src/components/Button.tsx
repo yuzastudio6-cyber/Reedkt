@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 import type { LucideIcon } from 'lucide-react'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -13,6 +13,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button({
   children,
   className = '',
+  disabled = false,
   icon: Icon,
   size = 'md',
   to,
@@ -20,7 +21,7 @@ export function Button({
   variant = 'secondary',
   ...props
 }: ButtonProps) {
-  const classes = `rp-button rp-button-${variant} rp-button-${size} ${className}`.trim()
+  const classes = `rp-button rp-button-${variant} rp-button-${size} ${disabled ? 'is-disabled' : ''} ${className}`.trim()
   const content = (
     <>
       {Icon && <Icon aria-hidden="true" size={18} />}
@@ -29,6 +30,14 @@ export function Button({
   )
 
   if (to) {
+    if (disabled) {
+      return (
+        <span aria-disabled="true" className={classes} role="link">
+          {content}
+        </span>
+      )
+    }
+
     return (
       <Link className={classes} to={to}>
         {content}
@@ -37,7 +46,7 @@ export function Button({
   }
 
   return (
-    <button className={classes} type={type} {...props}>
+    <button className={classes} disabled={disabled} type={type} {...props}>
       {content}
     </button>
   )
@@ -48,9 +57,9 @@ type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon: LucideIcon
 }
 
-export function IconButton({ className = '', icon: Icon, label, type = 'button', ...props }: IconButtonProps) {
+export function IconButton({ className = '', icon: Icon, label, title, type = 'button', ...props }: IconButtonProps) {
   return (
-    <button aria-label={label} className={`icon-button ${className}`.trim()} type={type} {...props}>
+    <button aria-label={label} className={`icon-button ${className}`.trim()} title={title ?? label} type={type} {...props}>
       <Icon aria-hidden="true" size={18} />
     </button>
   )

@@ -1,6 +1,8 @@
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
-import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import { createMockId, mockWarning, nowIso, sanitizeJson } from './service-helpers'
+import { sha256AuthorityValue } from './private-edit-authority-store'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 import type {
   ProjectEditPlanDirectionSource,
   ProjectEditSkillPlanSummary,
@@ -138,12 +140,67 @@ export interface ApprovedLocalEditPlanRecord {
   warnings: string[]
 }
 
-const mockApprovedLocalEditPlans = new Map<string, ApprovedLocalEditPlanRecord>()
+export interface LegacyLocalEditPlanAuthorityBoundary {
+  schemaVersion: 'legacy-local-edit-plan-authority-boundary-v1'
+  classification: 'legacy_local_preview_only'
+  executionAllowed: false
+  canonicalPlanAuthority: false
+  approvedSnapshotAuthority: false
+  creditReservationAuthority: false
+  toolOrProviderAuthority: false
+  canonicalPlanningHandoffRequired: true
+  canonicalPublicationRequiresInternalService: true
+  intentionalBlanketBlocksAllowed: false
+  safeBlockerReductionAllowed: true
+  blockerScopeType: 'unsafe_action_only'
+  mustContinueSafeProgressWhenAvailable: true
+  blockedDoesNotMeanStopAllWork: true
+  blockedActionScope: string[]
+  allowedForwardProgressScopes: string[]
+}
+
+interface StoredApprovedLocalEditPlan {
+  record: ApprovedLocalEditPlanRecord
+  requestHash: string
+}
+
+const mockApprovedLocalEditPlans = new Map<string, StoredApprovedLocalEditPlan>()
+
+export function createLegacyLocalEditPlanAuthorityBoundary(): LegacyLocalEditPlanAuthorityBoundary {
+  return {
+    schemaVersion: 'legacy-local-edit-plan-authority-boundary-v1',
+    classification: 'legacy_local_preview_only',
+    executionAllowed: false,
+    canonicalPlanAuthority: false,
+    approvedSnapshotAuthority: false,
+    creditReservationAuthority: false,
+    toolOrProviderAuthority: false,
+    canonicalPlanningHandoffRequired: true,
+    canonicalPublicationRequiresInternalService: true,
+    intentionalBlanketBlocksAllowed: false,
+    safeBlockerReductionAllowed: true,
+    blockerScopeType: 'unsafe_action_only',
+    mustContinueSafeProgressWhenAvailable: true,
+    blockedDoesNotMeanStopAllWork: true,
+    blockedActionScope: [
+      'canonical_plan_publication',
+      'approved_snapshot_creation',
+      'credit_reservation_or_spend',
+      'tool_provider_worker_or_render_execution',
+    ],
+    allowedForwardProgressScopes: [
+      'local_preview_contract_testing',
+      'canonical_planning_handoff_preparation',
+      'canonical_planning_handoff_inspection',
+    ],
+  }
+}
 
 export function createProjectEditPlanService(context: ServiceContext) {
   return {
     async createApprovedLocalEditPlan(input: CreateApprovedLocalEditPlanInput) {
-      const approvedByUserId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      const approvedByUserId = access.userId
       assertSafePlanText(input)
 
       if (context.clients.admin && !context.env.mockOnly) {
@@ -154,13 +211,23 @@ export function createProjectEditPlanService(context: ServiceContext) {
         )
       }
 
-      const existing = mockApprovedLocalEditPlans.get(input.planId)
+      const requestHash = sha256AuthorityValue(input)
+      const recordKey = localEditPlanRecordKey(approvedByUserId, access.workspaceId, input.planId)
+      const existing = mockApprovedLocalEditPlans.get(recordKey)
       if (existing) {
+        if (existing.requestHash !== requestHash) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'This legacy local plan identity is already bound to different preview-only content.',
+            409,
+          )
+        }
         return {
           localEditPlan: {
-            ...existing,
+            ...existing.record,
             readbackVerified: true,
           },
+          authorityBoundary: createLegacyLocalEditPlanAuthorityBoundary(),
           warnings: [mockWarning('Approved local edit plan replay'), 'Existing backend-local approved plan record returned by plan id.'],
         }
       }
@@ -170,7 +237,7 @@ export function createProjectEditPlanService(context: ServiceContext) {
         id: createMockId('local_edit_plan'),
         editPlanId: input.planId,
         creditEstimateId: `${input.planId}-credit-estimate`,
-        workspaceId: input.workspaceId,
+        workspaceId: access.workspaceId,
         projectId: input.projectId,
         editSessionId: input.editSessionId,
         approvedByUserId,
@@ -208,15 +275,17 @@ export function createProjectEditPlanService(context: ServiceContext) {
           'This is a backend-local approved plan record for internal testing only; it does not approve production execution.',
         ],
       }
-      mockApprovedLocalEditPlans.set(record.editPlanId, record)
+      mockApprovedLocalEditPlans.set(recordKey, { record, requestHash })
 
       return {
         localEditPlan: record,
+        authorityBoundary: createLegacyLocalEditPlanAuthorityBoundary(),
         warnings: record.warnings,
       }
     },
 
     async getApprovedLocalEditPlan(planId: string, workspaceId: string) {
+      const access = await authorizeWorkspaceAccess(context, workspaceId, 'read')
       if (context.clients.admin && !context.env.mockOnly) {
         throw new ApiError(
           'MOCK_ONLY',
@@ -225,20 +294,27 @@ export function createProjectEditPlanService(context: ServiceContext) {
         )
       }
 
-      const record = mockApprovedLocalEditPlans.get(planId)
-      if (!record || record.workspaceId !== workspaceId) {
+      const stored = mockApprovedLocalEditPlans.get(localEditPlanRecordKey(access.userId, access.workspaceId, planId))
+      if (!stored) {
         throw new ApiError('PLAN_NOT_APPROVED', 'Approved backend-local edit plan was not found for this workspace.', 404)
       }
 
       return {
         localEditPlan: {
-          ...record,
+          ...stored.record,
           readbackVerified: true,
         },
+        authorityBoundary: createLegacyLocalEditPlanAuthorityBoundary(),
         warnings: [mockWarning('Approved local edit plan readback')],
       }
     },
   }
+}
+
+function localEditPlanRecordKey(ownerUserId: string, workspaceId: string, planId: string): string {
+  return [ownerUserId, workspaceId, planId]
+    .map((value) => `${value.length}:${value}`)
+    .join('|')
 }
 
 function assertSafePlanText(input: CreateApprovedLocalEditPlanInput): void {

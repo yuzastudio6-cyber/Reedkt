@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ApiEnvelope<TData> {
   ok?: boolean
@@ -31,16 +32,22 @@ export interface ProjectEditBriefBackendLocalRecord {
   savedByUserId?: string
   createdAt?: string
   updatedAt?: string
+  contentDigestSha256: string
   backendLocalBriefStored?: true
+  persistenceAuthority?:
+    | 'canonical_v3_local_supabase_rls'
+    | 'private_edit_brief_authority_store'
+  runtimeSource?: 'verified_live'
   readbackVerified?: true
   providerCallMade?: false
   workerJobCreated?: false
   renderJobCreated?: false
   creditReservedOrSpent?: false
-  supabaseWriteMade?: false
+  supabaseWriteMade?: boolean
   gcsWriteMade?: false
   productReady?: false
-  mockOnly?: true
+  remoteMutationMade?: false
+  mockOnly?: boolean
 }
 
 interface ProjectEditBriefBackendLocalData {
@@ -154,7 +161,7 @@ export async function saveProjectEditBriefBackendLocal(
   warnings: string[]
 }> {
   const briefText = assertSafeBriefText(input.briefText)
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const commonHeaders = {
     'Content-Type': 'application/json',
@@ -191,7 +198,9 @@ export async function saveProjectEditBriefBackendLocal(
   if (
     readback.editBrief.id !== editBrief.id ||
     readback.editBrief.editSessionId !== input.editSessionId ||
-    readback.editBrief.briefText !== briefText
+    readback.editBrief.briefText !== briefText ||
+    readback.editBrief.contentDigestSha256 !== editBrief.contentDigestSha256 ||
+    !/^[a-f0-9]{64}$/.test(readback.editBrief.contentDigestSha256)
   ) {
     throw new Error('Edit brief readback did not match the saved brief.')
   }
@@ -208,7 +217,11 @@ export async function saveProjectEditBriefBackendLocal(
     warnings: [
       ...(createEnvelope.warnings ?? []),
       ...readback.warnings,
-      'Backend-local edit brief was saved and read back before plan approval; no tools, render, credits, Supabase, GCS, beta, or production work started.',
+      editBrief.persistenceAuthority === 'canonical_v3_local_supabase_rls'
+        ? 'Exact Edit Brief was saved and read back through isolated local RLS authority before plan approval; no tools, render, credits, remote Supabase, GCS, beta, or production work started.'
+        : editBrief.persistenceAuthority === 'private_edit_brief_authority_store'
+          ? 'Exact Edit Brief was read back from the durable private workspace authority before plan approval; no duplicate Brief, tools, render, credits, cloud, beta, or production work started.'
+        : 'Backend-local edit brief was saved and read back before plan approval; no tools, render, credits, Supabase, GCS, beta, or production work started.',
     ],
   }
 }
@@ -221,7 +234,7 @@ export async function readProjectEditBriefBackendLocal(input: {
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ editBrief: ProjectEditBriefBackendLocalRecord; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectEditBriefBackendLocalData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,

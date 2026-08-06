@@ -1,5 +1,5 @@
 import { runBiRefNetMask } from './birefnet-execution-runner'
-import { runSam2Tracking } from './sam2-execution-runner'
+import { runSam31Tracking } from './sam3_1-execution-runner'
 import { runTransparentBackgroundFallback } from './transparent-background-adapter'
 import { runRembgFallback } from './rembg-adapter'
 import { runOpenCvMaskRefinement } from './opencv-mask-refinement-adapter'
@@ -10,9 +10,12 @@ export async function runBackgroundRemovalExecution(input: {
   executionInput: MaskExecutionInput
   taskPlan: MaskTaskPlan
 }): Promise<MaskToolExecutionResult[]> {
-  const results = [await runBiRefNetMask(input)]
-  if (input.taskPlan.fallbackTools.includes('sam2') || input.taskPlan.temporalSmoothingPlan.trackingRequired) {
-    results.push(await runSam2Tracking(input))
+  const results: MaskToolExecutionResult[] = []
+  if (input.taskPlan.primaryTool === 'sam3_1' || input.taskPlan.fallbackTools.includes('sam3_1') || input.taskPlan.temporalSmoothingPlan.trackingRequired) {
+    results.push(await runSam31Tracking(input))
+  }
+  if (input.taskPlan.primaryTool === 'birefnet' || input.taskPlan.fallbackTools.includes('birefnet')) {
+    results.push(await runBiRefNetMask(input))
   }
   if (input.taskPlan.fallbackTools.includes('transparent_background')) {
     results.push(await runTransparentBackgroundFallback(input))

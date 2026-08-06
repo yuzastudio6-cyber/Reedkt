@@ -1,146 +1,150 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChatMessage } from '../ChatMessage'
-import { InlineLyriaPromptPreviewCard } from './InlineLyriaPromptPreviewCard'
-import { InlineMusicContextCard } from './InlineMusicContextCard'
-import { InlineMusicCreditEstimateCard } from './InlineMusicCreditEstimateCard'
-import { InlineMusicCueCard } from './InlineMusicCueCard'
-import { InlineMusicCueSheetCard } from './InlineMusicCueSheetCard'
-import { InlineMusicGenerationProgressCard } from './InlineMusicGenerationProgressCard'
-import { InlineMusicMixPlanCard } from './InlineMusicMixPlanCard'
-import { InlineMusicQACard } from './InlineMusicQACard'
-import { InlineMusicRevisionOptionsCard } from './InlineMusicRevisionOptionsCard'
-import { createMusicChatUiData } from './musicChatUiData'
+import type { CanonicalMusicUiProjection } from '../../../types/canonical-music-ui'
+import { Badge } from '../../Badge'
+import { InlinePlanCardShell } from '../InlinePlanCardShell'
 
-export function MusicPlanChatFlow() {
-  const data = useMemo(() => createMusicChatUiData(), [])
-  const [musicPlanApproved, setMusicPlanApproved] = useState(false)
-  const [musicCreditsApproved, setMusicCreditsApproved] = useState(false)
-  const [musicProgressStarted, setMusicProgressStarted] = useState(false)
-  const [musicProgressIndex, setMusicProgressIndex] = useState(0)
-  const [musicRevisionMessage, setMusicRevisionMessage] = useState('')
-  const timerRef = useRef<number | null>(null)
-  const musicProgressComplete = musicProgressStarted && musicProgressIndex >= data.progressSteps.length - 1
+type MusicPlanChatFlowProps = {
+  projection?: CanonicalMusicUiProjection
+}
 
-  useEffect(() => {
-    if (!musicProgressStarted || musicProgressComplete) {
-      return
-    }
+function label(value: string) {
+  return value.replaceAll('_', ' ')
+}
 
-    timerRef.current = window.setTimeout(() => {
-      setMusicProgressIndex((current) => Math.min(current + 1, data.progressSteps.length - 1))
-    }, 520)
-
-    return () => {
-      if (timerRef.current) {
-        window.clearTimeout(timerRef.current)
-      }
-    }
-  }, [data.progressSteps.length, musicProgressComplete, musicProgressIndex, musicProgressStarted])
-
-  function startMusicProgress() {
-    setMusicProgressStarted(true)
-    setMusicProgressIndex(0)
-    setMusicRevisionMessage('Music plan and music credits approved. Starting mock SoundSync progress.')
+export function MusicPlanChatFlow({ projection }: MusicPlanChatFlowProps) {
+  if (!projection) {
+    return (
+      <section
+        aria-label="Canonical Music department"
+        className="soundflow-panel music-flow-panel"
+        data-testid="music-flow"
+      >
+        <InlinePlanCardShell
+          actions={<Badge accent="warning">Waiting for artifacts</Badge>}
+          className="music-inline-card music-context-card"
+          defaultExpanded
+          eyebrow="Music"
+          helper="This surface is read-only. It displays canonical Music artifacts and never simulates generation or QA."
+          priority="user_summary"
+          status="needs_input"
+          title="Music department ready"
+        >
+          <p className="music-muted-note" role="status">
+            No canonical Music plan has been published to this chat yet. Music generation, progress, QA, and approval are not inferred from local UI state.
+          </p>
+        </InlinePlanCardShell>
+      </section>
+    )
   }
 
-  function handleMusicPlanApprove() {
-    setMusicPlanApproved(true)
-    if (musicCreditsApproved) {
-      startMusicProgress()
-      return
-    }
-    setMusicRevisionMessage('Music plan approved. Music generation still waits for music credit approval.')
-  }
-
-  function handleMusicCreditsApprove() {
-    setMusicCreditsApproved(true)
-    if (musicPlanApproved) {
-      startMusicProgress()
-      return
-    }
-    setMusicRevisionMessage('Music credits approved for this mock SoundSync plan.')
-  }
-
+  const qaAccent = projection.qa.status === 'pass' ? 'success'
+    : projection.qa.status === 'blocking' ? 'danger' : 'warning'
   return (
-    <>
-      <ChatMessage role="ai">
-        <p>I found this is a lifestyle/vacation edit with dialogue, montage, food/social moments, and an outro. I recommend a multi-cue music plan instead of one track.</p>
-        <InlineMusicContextCard context={data.context} />
-      </ChatMessage>
+    <section
+      aria-label="Canonical Music department"
+      className="soundflow-panel music-flow-panel"
+      data-evidence={projection.executionEvidence}
+      data-testid="music-flow"
+    >
+      <div className="soundflow-message-list">
+        <InlinePlanCardShell
+          actions={<Badge accent={projection.status === 'completed' ? 'success' : 'cyan'}>{label(projection.status)}</Badge>}
+          className="music-inline-card music-context-card"
+          defaultExpanded
+          eyebrow="Canonical Music"
+          helper="Read-only projection from versioned Music artifacts. Broad context does not expand write authority."
+          priority="user_summary"
+          status={projection.status === 'blocked' ? 'blocking' : 'ready'}
+          title="Music supervision"
+        >
+          <div className="music-info-grid">
+            <span><strong>Music decision</strong>{label(projection.musicNeed.decision)}</span>
+            <span><strong>Confidence</strong>{projection.musicNeed.confidencePercent}%</span>
+            <span><strong>Soundtrack strategy</strong>{label(projection.soundtrack.cueFamilyStrategy)}</span>
+            <span><strong>Cues</strong>{projection.soundtrack.cueCount}</span>
+            <span><strong>Speech evidence</strong>{label(projection.context.speechEvidence)}</span>
+            <span><strong>Natural ambience</strong>{label(projection.context.naturalAmbience)}</span>
+          </div>
+          <p className="music-muted-note"><strong>Why:</strong> {projection.musicNeed.reason}</p>
+          <p className="music-muted-note"><strong>Evidence:</strong> {projection.context.evidenceSummary}</p>
+        </InlinePlanCardShell>
 
-      <ChatMessage role="ai">
-        <p>Here is the music cue sheet before generating anything.</p>
-        <InlineMusicCueSheetCard
-          approved={musicPlanApproved}
-          context={data.context}
-          cueSheet={data.cueSheet}
-          onAmbienceOnly={() => setMusicRevisionMessage('Updated mock music preference: keep natural ambience and skip generated music where possible.')}
-          onApprove={handleMusicPlanApprove}
-          onInstrumentalOnly={() => setMusicRevisionMessage('Updated mock music preference: make all cues instrumental-first.')}
-          onLowerCost={() => setMusicRevisionMessage('Updated mock music preference: lower cost by generating fewer cues.')}
-        />
-        {data.cueCards.map((cue) => (
-          <InlineMusicCueCard cue={cue} key={cue.id} />
-        ))}
-      </ChatMessage>
+        <InlinePlanCardShell
+          actions={<Badge accent="violet">{projection.soundtrack.cueCount} exact cues</Badge>}
+          className="music-inline-card music-cue-sheet-card"
+          defaultExpanded
+          eyebrow="Cue sheet"
+          helper="Frames are authoritative. Seconds and animated timers are not used as execution evidence."
+          priority="required_user_action"
+          status="ready"
+          title="Music cue strategy"
+        >
+          {projection.cues.length === 0 ? (
+            <p className="music-muted-note">No Music cues are planned for this assignment.</p>
+          ) : (
+            <ol className="music-cue-list">
+              {projection.cues.map((cue) => (
+                <li key={cue.cueId}>
+                  <strong>{cue.cueId}</strong>
+                  <span>
+                    Frames {cue.startFrame}–{cue.endFrameExclusive} · {label(cue.narrativeFunction)} · {label(cue.acquisitionDecision)} · {label(cue.status)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+          {projection.soundtrack.overScoringWarnings.length > 0 ? (
+            <p className="music-muted-note" role="status">
+              <strong>Restraint review:</strong> {projection.soundtrack.overScoringWarnings.map(label).join(', ')}
+            </p>
+          ) : null}
+        </InlinePlanCardShell>
 
-      <ChatMessage role="ai">
-        <p>Lyrics can work in the montage sections, but I’ll keep dialogue sections instrumental-only so the voice stays clear.</p>
-        <InlineLyriaPromptPreviewCard
-          cue={data.promptCue}
-          onAction={setMusicRevisionMessage}
-          promptPlan={data.promptPlan}
-        />
-      </ChatMessage>
+        {projection.estimate ? (
+          <InlinePlanCardShell
+            actions={<Badge accent={projection.estimate.approvalRequired ? 'warning' : 'success'}>
+              {projection.estimate.approvalRequired ? 'Approval required' : 'No paid action'}
+            </Badge>}
+            className="music-inline-card music-credit-card"
+            eyebrow="Estimate"
+            helper="Estimates do not reserve or spend credits. Nested Sound cost remains separately evidenced."
+            priority="required_user_action"
+            status={projection.estimate.approvalRequired ? 'needs_input' : 'ready'}
+            title="Music cost range"
+          >
+            <div className="music-info-grid">
+              <span><strong>Minimum</strong>{projection.estimate.minimumCredits} credits</span>
+              <span><strong>Expected</strong>{projection.estimate.expectedCredits} credits</span>
+              <span><strong>Maximum</strong>{projection.estimate.maximumCredits} credits</span>
+            </div>
+            <p className="music-muted-note"><strong>Lower-cost choices:</strong> {projection.estimate.lowerCostAlternatives.map(label).join(', ')}</p>
+          </InlinePlanCardShell>
+        ) : null}
 
-      <ChatMessage role="ai">
-        <p>I can generate these with Lyria Pro after you approve the music credit estimate.</p>
-        <InlineMusicCreditEstimateCard
-          approved={musicCreditsApproved}
-          estimate={data.creditEstimate}
-          onApprove={handleMusicCreditsApprove}
-          onDialogueBedOnly={() => setMusicRevisionMessage('Updated mock music plan: generate only the dialogue bed and keep the rest ambience/editorial.')}
-          onLowerCost={() => setMusicRevisionMessage('Updated mock music plan: reduce generated cue count to lower cost.')}
-          onSkipMusic={() => setMusicRevisionMessage('Updated mock music plan: skip generated music and preserve ambience only.')}
-        />
-      </ChatMessage>
-
-      {musicRevisionMessage && (
-        <ChatMessage role="ai">
-          <p>{musicRevisionMessage}</p>
-        </ChatMessage>
-      )}
-
-      {musicProgressStarted && (
-        <ChatMessage role="ai">
-          <InlineMusicGenerationProgressCard
-            activeIndex={musicProgressIndex}
-            complete={musicProgressComplete}
-            steps={data.progressSteps}
-          />
-        </ChatMessage>
-      )}
-
-      {musicProgressComplete && (
-        <>
-          <ChatMessage role="ai">
-            <p>The music QA passed for the dialogue-safe cue. I also checked a failed example so the lyrics-under-dialogue guard is visible in this mock.</p>
-            <InlineMusicQACard
-              primaryResult={data.qaPassResult}
-              warningResult={data.qaFailResult}
-            />
-          </ChatMessage>
-
-          <ChatMessage role="ai">
-            <p>I built the mix plan around the video. Voice stays first, montage can carry stronger music, and ambience is preserved where it matters.</p>
-            <InlineMusicMixPlanCard mixPlan={data.qaPassResult.mixPlan} />
-          </ChatMessage>
-
-          <ChatMessage role="ai">
-            <InlineMusicRevisionOptionsCard onChoose={setMusicRevisionMessage} />
-          </ChatMessage>
-        </>
-      )}
-    </>
+        <InlinePlanCardShell
+          actions={<Badge accent={qaAccent}>{label(projection.qa.status)}</Badge>}
+          className="music-inline-card music-qa-card"
+          defaultExpanded
+          eyebrow="Evidence"
+          helper="Progress and QA appear only when canonical unit receipts and output evidence exist."
+          priority="user_summary"
+          status={projection.qa.status === 'blocking' ? 'blocking' : projection.qa.status === 'pass' ? 'ready' : 'needs_input'}
+          title="Execution and Music QA"
+        >
+          <p className="music-muted-note" role="status">{projection.progress.evidenceLabel}</p>
+          <div className="music-info-grid">
+            <span><strong>Evidence level</strong>{label(projection.executionEvidence)}</span>
+            <span><strong>Provider evidence</strong>{label(projection.provider.evidence)}</span>
+            <span><strong>Provider attempts</strong>{projection.provider.attemptCount}</span>
+            <span><strong>Live activation</strong>{label(projection.provider.liveActivation)}</span>
+            <span><strong>Selected assets</strong>{projection.handoff.selectedAssetCount}</span>
+            <span><strong>Music stems</strong>{projection.handoff.musicStemCount}</span>
+          </div>
+          {projection.qa.reviewItems.length > 0 ? (
+            <p className="music-muted-note"><strong>Review required:</strong> {projection.qa.reviewItems.map(label).join(', ')}</p>
+          ) : null}
+          <p className="music-muted-note">Final mux, render, export, delivery, and publishing remain outside Music.</p>
+        </InlinePlanCardShell>
+      </div>
+    </section>
   )
 }

@@ -371,7 +371,12 @@ export async function createPreviewStorageObjectFromRender(
   mockOnly?: boolean
 }> {
   const adapter = createStorageAdapter(context.env)
-  const metadata = await adapter.getObjectMetadata(input.bucketName, input.objectPath)
+  const metadata = await adapter.verifyUploadedObject({
+    bucketName: input.bucketName,
+    objectPath: input.objectPath,
+    expectedSizeBytes: input.sizeBytes,
+    checksumSha256: input.checksumSha256,
+  })
   if (!metadata.exists) {
     throw new ApiError('STORAGE_OBJECT_NOT_FOUND', 'Rendered preview object was not found in local storage.', 404)
   }

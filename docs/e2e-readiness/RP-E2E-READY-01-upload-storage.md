@@ -11,6 +11,7 @@ This milestone adds the first server-only bridge between upload intents, tempora
 - Upload intent creation with a temporary target and a signed URL audit event.
 - Local raw body upload through `PUT /v1/upload-intents/:uploadIntentId/local-object`.
 - Finalization that verifies the object, creates storage metadata, creates/links a media asset, and updates the upload intent.
+- Private background-finalization jobs for resumable sources, with authenticated enqueue/status and an internal leased runner boundary.
 - Storage object metadata and temporary download target routes.
 - Finalized clip attachment to chat/source sequence order without starting AI planning, provider calls, or rendering.
 
@@ -37,7 +38,22 @@ Temporary upload/download targets can be returned to clients and audited in `sig
 
 ## Future GCS Mode
 
-`@google-cloud/storage` is imported only by `server/storage/gcs-storage-adapter.ts`. GCS remains dormant unless `STORAGE_MODE=gcs` and bucket env is complete. Frontend code never receives credentials and never imports GCS code.
+`@google-cloud/storage` is imported only by `server/storage/gcs-storage-adapter.ts`. GCS remains dormant unless `STORAGE_MODE=gcs` and bucket env is complete. Frontend code never receives long-lived Google/service credentials and never imports GCS code. For a large upload it does receive a temporary resumable-session URI, which is itself a bearer credential and must remain memory-only.
+
+The source-level adapter now returns a create-only resumable session for files
+above 16 MiB. The browser client uploads aligned chunks, queries the committed
+offset after interruption, and never sends the ReEditPro bearer token to the
+storage origin. This has deterministic fake-provider evidence only; no live GCS
+session was created.
+
+For a resumable source, the normal finalize route fails closed before reading
+the object. The browser creates `POST
+/v1/upload-intents/:uploadIntentId/finalization-jobs`, polls `GET
+/v1/large-media-finalization-jobs/:jobId`, and reads the canonical result from
+the finalize route only after the private worker commits completion. The
+browser cannot call the internal runner. This is currently
+single-process/single-host private lifecycle evidence, not deployed GCS worker
+evidence.
 
 ## Safety Rules
 
@@ -52,8 +68,12 @@ Temporary upload/download targets can be returned to clients and audited in `sig
 
 ## Still Not Implemented
 
-- Multipart uploads.
+- Deployed resumable-upload CORS/IAM/session cancellation and real large-file
+  interruption tests.
 - Production GCS IAM, signed URL policy review, and bucket lifecycle rules.
 - Supabase transactional RPCs for finalizing uploads and attaching source sequences atomically.
-- Media probing, thumbnails, transcoding, or QA.
+- Production-scale distributed verification/probing, durable byte progress,
+  color-managed HDR proxies, thumbnails, transcoding, or QA. A private
+  restart-safe job control plane, local/dev 1080p analysis proxy, and adaptive
+  task budgets exist but are not deployed evidence.
 - Real provider, render, or worker execution.

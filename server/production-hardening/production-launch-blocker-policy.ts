@@ -59,7 +59,7 @@ export function classifyProductionLaunchBlockers(options: ClassifyProductionLaun
   warnings.push('Optional/future tools may still be missing.')
   warnings.push('OpenColorIO/OpenImageIO manual review may remain pending.')
   warnings.push('GPU tools are not built or production-enabled yet.')
-  warnings.push('Runtime execution remains local-dev/static only.')
+  warnings.push('Runtime execution requires approved backend deployment/runtime evidence before external beta or production launch.')
   warnings.push('Large Vite chunk warning, if present, is not a production readiness pass/fail signal yet.')
 
   return {

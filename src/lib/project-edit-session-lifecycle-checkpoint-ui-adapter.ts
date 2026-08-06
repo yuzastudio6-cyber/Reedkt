@@ -50,6 +50,10 @@ function numberValue(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
+function booleanValue(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined
+}
+
 function briefLineageValue(value: unknown): ProjectSourceVideoBriefLineage | undefined {
   const record = objectValue(value)
   if (!record) return undefined
@@ -206,7 +210,9 @@ export function createSourceUploadCheckpointMetadata(result: ProjectSourceVideoB
     sizeBytes: result.sizeBytes,
     checksumSha256: result.checksumSha256,
     uploadedAt: result.uploadedAt,
-    backendLocalUploadMade: true,
+    backendLocalUploadMade: result.backendLocalUploadMade,
+    gcsWriteMade: result.gcsWriteMade,
+    sourceFinalizationJobCreated: result.sourceFinalizationJobCreated ?? false,
     browserFileBytesSent: result.browserFileBytesSent,
     fileBytesReadByBackend: result.fileBytesReadByBackend,
     storageWriteMade: result.storageWriteMade,
@@ -376,12 +382,13 @@ export function restoreBackendUploadResult(session: ProjectEditSessionRecord | u
     sizeBytes,
     checksumSha256: stringValue(metadata.checksumSha256),
     uploadedAt: stringValue(metadata.uploadedAt) ?? checkpoint?.recordedAt ?? new Date(0).toISOString(),
-    backendLocalUploadMade: true,
+    backendLocalUploadMade: booleanValue(metadata.backendLocalUploadMade) ?? true,
     browserFileBytesSent: true,
     fileBytesReadByBackend: true,
     storageWriteMade: true,
     supabaseWriteMade: false,
-    gcsWriteMade: false,
+    gcsWriteMade: booleanValue(metadata.gcsWriteMade) ?? false,
+    sourceFinalizationJobCreated: booleanValue(metadata.sourceFinalizationJobCreated) ?? false,
     mediaProcessingStarted: false,
     workerJobCreated: false,
     providerCallMade: false,

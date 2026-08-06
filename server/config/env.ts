@@ -1,18 +1,31 @@
 import dotenv from 'dotenv'
 import { z } from 'zod'
 
-dotenv.config({ quiet: true })
+dotenv.config({
+  quiet: true,
+  path: process.env.REEDITPRO_DISABLE_DOTENV === 'true' ? [] : undefined,
+})
 
 export type E2ERuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
 export type StorageMode = 'local' | 'gcs_disabled' | 'gcs'
+export type LargeMediaFinalizationMode = 'disabled' | 'private_local' | 'distributed'
 export type WorkerRuntimeMode = 'local' | 'mock' | 'cloud_run' | 'disabled'
+export type BrowserApiTransportMode = 'direct' | 'google_api_gateway'
+export type KimiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
+export type OpenAiRuntimeMode = 'disabled' | 'internal_test' | 'cloud_run'
 
 export interface RuntimeEnv {
   nodeEnv: string
   mode: E2ERuntimeMode
   apiPort: number
+  jsonBodyLimit: string
+  allowedCorsOrigins: string[]
+  browserApiTransport: BrowserApiTransportMode
+  internalServiceToken?: string
   allowMockWithoutSupabase: boolean
+  allowInternalTestExecutionWithSupabase: boolean
   storageMode: StorageMode
+  largeMediaFinalizationMode: LargeMediaFinalizationMode
   localStorageRoot: string
   signedUrlTtlSeconds: number
   supabaseUrl?: string
@@ -39,7 +52,11 @@ export interface RuntimeEnv {
   ffprobeBin: string
   remotionBin: string
   pythonBin: string
+  toolAdapterPythonBin: string
+  toolAdapterPythonBinConfigured: boolean
   playwrightBin: string
+  kimiRuntimeMode: KimiRuntimeMode
+  openAiRuntimeMode: OpenAiRuntimeMode
   providerSecretReferenceNames: Record<string, string | undefined>
   hasSupabaseAdmin: boolean
   hasSupabasePublic: boolean
@@ -48,12 +65,19 @@ export interface RuntimeEnv {
 }
 
 const envSchema = z.object({
-  NODE_ENV: z.string().default('development'),
-  API_PORT: z.coerce.number().int().positive().max(65535).default(8787),
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  API_PORT: z.coerce.number().int().positive().max(65535).optional(),
+  API_JSON_BODY_LIMIT: z.string().default('8mb'),
+  API_ALLOWED_CORS_ORIGINS: z.string().optional(),
+  REEDITPRO_BROWSER_API_TRANSPORT: z.enum(['direct', 'google_api_gateway']).default('direct'),
+  REEDITPRO_INTERNAL_SERVICE_TOKEN: z.string().optional(),
   PORT: z.coerce.number().int().positive().max(65535).optional(),
   E2E_RUNTIME_MODE: z.enum(['local', 'mock', 'cloud_run', 'disabled']).default('local'),
   API_ALLOW_MOCK_WITHOUT_SUPABASE: z.string().optional(),
+  API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE: z.string().optional(),
   STORAGE_MODE: z.enum(['local', 'gcs_disabled', 'gcs']).default('local'),
+  REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE: z.enum(['disabled', 'private_local', 'distributed'])
+    .default('private_local'),
   LOCAL_STORAGE_ROOT: z.string().default('.reeditpro-local-storage'),
   SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().max(86400).default(900),
   SUPABASE_URL: z.string().optional(),
@@ -82,8 +106,21 @@ const envSchema = z.object({
   FFPROBE_BIN: z.string().default('ffprobe'),
   REMOTION_BIN: z.string().default('npx remotion'),
   PYTHON_BIN: z.string().default('python'),
+  TOOL_ADAPTER_PYTHON_BIN: z.string().optional(),
   PLAYWRIGHT_BIN: z.string().default('npx playwright'),
+  REEDITPRO_KIMI_RUNTIME_MODE: z.enum([
+    'disabled',
+    'internal_test',
+    'cloud_run',
+  ]).default('disabled'),
+  REEDITPRO_OPENAI_RUNTIME_MODE: z.enum([
+    'disabled',
+    'internal_test',
+    'cloud_run',
+  ]).default('disabled'),
   GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_GEMINI_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_KIMI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_WAN_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_HAILUO_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME: z.string().optional(),
@@ -98,8 +135,12 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
   const supabaseAnonKey = clean(parsed.SUPABASE_ANON_KEY) ?? clean(parsed.VITE_SUPABASE_ANON_KEY)
   const supabaseServiceRoleKey = clean(parsed.SUPABASE_SERVICE_ROLE_KEY)
   const allowMockWithoutSupabase = parseBoolean(parsed.API_ALLOW_MOCK_WITHOUT_SUPABASE)
+  const allowedCorsOrigins = parseCorsOrigins(parsed.API_ALLOWED_CORS_ORIGINS)
+  const internalServiceToken = clean(parsed.REEDITPRO_INTERNAL_SERVICE_TOKEN)
+  const allowInternalTestExecutionWithSupabase = parseBoolean(parsed.API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE)
   const hasSupabaseAdmin = Boolean(supabaseUrl && supabaseServiceRoleKey)
   const hasSupabasePublic = Boolean(supabaseUrl && supabaseAnonKey)
+  const toolAdapterPythonBin = clean(parsed.TOOL_ADAPTER_PYTHON_BIN) ?? parsed.PYTHON_BIN
   const mockOnly = parsed.E2E_RUNTIME_MODE === 'mock' || parsed.E2E_RUNTIME_MODE === 'disabled' || !hasSupabaseAdmin
   const warnings: string[] = []
 
@@ -111,8 +152,28 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     warnings.push('API_ALLOW_MOCK_WITHOUT_SUPABASE is false; server startup should fail unless Supabase admin env is configured.')
   }
 
+  if (parsed.NODE_ENV === 'production' && allowedCorsOrigins.length === 0) {
+    warnings.push('API_ALLOWED_CORS_ORIGINS is empty; browser cross-origin API access will be denied in production.')
+  }
+
+  if (parsed.NODE_ENV === 'production' && !internalServiceToken) {
+    warnings.push('REEDITPRO_INTERNAL_SERVICE_TOKEN is missing; internal worker/provider routes cannot start securely.')
+  }
+
+  if (parsed.REEDITPRO_BROWSER_API_TRANSPORT === 'google_api_gateway') {
+    warnings.push(
+      'Google API Gateway browser transport is selected; the gateway JWT policy, exclusive service-level Cloud Run invoker binding, and deployed route evidence must pass before browser traffic is enabled.',
+    )
+  }
+
   if (hasSupabaseAdmin && parsed.E2E_RUNTIME_MODE === 'mock') {
     warnings.push('Supabase admin env is present, but E2E_RUNTIME_MODE=mock keeps runtime in mock-only mode.')
+  }
+
+  if (allowInternalTestExecutionWithSupabase) {
+    warnings.push(
+      'API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE is enabled; approved source-upload and edit-execution routes may use local/in-memory internal-test persistence while Supabase auth is configured.',
+    )
   }
 
   if (parsed.STORAGE_MODE === 'gcs' && !hasRequiredGcsBuckets(parsed)) {
@@ -123,8 +184,14 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     nodeEnv: parsed.NODE_ENV,
     mode: parsed.E2E_RUNTIME_MODE,
     apiPort: parsed.API_PORT ?? parsed.PORT ?? 8787,
+    jsonBodyLimit: clean(parsed.API_JSON_BODY_LIMIT) ?? '8mb',
+    allowedCorsOrigins,
+    browserApiTransport: parsed.REEDITPRO_BROWSER_API_TRANSPORT,
+    internalServiceToken,
     allowMockWithoutSupabase,
+    allowInternalTestExecutionWithSupabase,
     storageMode: parsed.STORAGE_MODE,
+    largeMediaFinalizationMode: parsed.REEDITPRO_LARGE_MEDIA_FINALIZATION_MODE,
     localStorageRoot: parsed.LOCAL_STORAGE_ROOT,
     signedUrlTtlSeconds: parsed.SIGNED_URL_TTL_SECONDS,
     supabaseUrl,
@@ -151,9 +218,15 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     ffprobeBin: parsed.FFPROBE_BIN,
     remotionBin: parsed.REMOTION_BIN,
     pythonBin: parsed.PYTHON_BIN,
+    toolAdapterPythonBin,
+    toolAdapterPythonBinConfigured: Boolean(clean(parsed.TOOL_ADAPTER_PYTHON_BIN)),
     playwrightBin: parsed.PLAYWRIGHT_BIN,
+    kimiRuntimeMode: parsed.REEDITPRO_KIMI_RUNTIME_MODE,
+    openAiRuntimeMode: parsed.REEDITPRO_OPENAI_RUNTIME_MODE,
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
+      gemini: clean(parsed.GOOGLE_SECRET_GEMINI_API_KEY_NAME),
+      kimi: clean(parsed.GOOGLE_SECRET_KIMI_API_KEY_NAME),
       wan: clean(parsed.GOOGLE_SECRET_WAN_API_KEY_NAME),
       hailuo: clean(parsed.GOOGLE_SECRET_HAILUO_API_KEY_NAME),
       veo: clean(parsed.GOOGLE_SECRET_VEO_VERTEX_CONFIG_NAME),
@@ -169,8 +242,135 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
 }
 
 export function assertRuntimeCanStart(env: RuntimeEnv): void {
+  if (env.allowMockWithoutSupabase && (env.nodeEnv === 'production' || !['local', 'mock'].includes(env.mode))) {
+    throw new Error('API_ALLOW_MOCK_WITHOUT_SUPABASE is restricted to non-production local/mock runtimes.')
+  }
+
+  if (env.nodeEnv === 'production' && env.allowInternalTestExecutionWithSupabase) {
+    throw new Error('API_ALLOW_INTERNAL_TEST_EXECUTION_WITH_SUPABASE is forbidden in production.')
+  }
+
+  if (env.nodeEnv === 'production' && (env.mode === 'local' || env.mode === 'mock')) {
+    throw new Error('Production E2E_RUNTIME_MODE must not use local or mock execution.')
+  }
+
+  if (env.nodeEnv === 'production' && (env.workerRuntimeMode === 'local' || env.workerRuntimeMode === 'mock')) {
+    throw new Error('Production WORKER_RUNTIME_MODE must not use local or mock execution.')
+  }
+
+  if (env.nodeEnv === 'production' && env.storageMode === 'local') {
+    throw new Error('Production STORAGE_MODE must not use local storage.')
+  }
+
+  if (env.nodeEnv === 'production' && env.largeMediaFinalizationMode === 'private_local') {
+    throw new Error('Production large-media finalization must not use the private single-host authority.')
+  }
+
+  if (env.largeMediaFinalizationMode === 'distributed') {
+    throw new Error(
+      'Distributed large-media finalization is not available in this source build; keep the mode disabled until its execution evidence is integrated.',
+    )
+  }
+
+  if (env.storageMode === 'gcs') {
+    assertGcsRuntimeConfigured(env)
+  }
+
   if (!env.hasSupabaseAdmin && !env.allowMockWithoutSupabase) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing. Set API_ALLOW_MOCK_WITHOUT_SUPABASE=true for explicit local mock mode.')
+  }
+
+  if (env.nodeEnv === 'production' && !env.hasSupabasePublic) {
+    throw new Error('SUPABASE_ANON_KEY is required for production bearer-token verification.')
+  }
+
+  if (env.nodeEnv === 'production' && env.allowedCorsOrigins.length === 0) {
+    throw new Error('API_ALLOWED_CORS_ORIGINS must contain at least one exact browser origin in production.')
+  }
+
+  if (env.nodeEnv === 'production' && !env.internalServiceToken) {
+    throw new Error('REEDITPRO_INTERNAL_SERVICE_TOKEN is required for production internal control-plane routes.')
+  }
+
+  if (env.browserApiTransport === 'google_api_gateway') {
+    if (env.mode !== 'cloud_run') {
+      throw new Error('REEDITPRO_BROWSER_API_TRANSPORT=google_api_gateway requires E2E_RUNTIME_MODE=cloud_run.')
+    }
+    if (!env.hasSupabasePublic || !isSecureSupabaseOrigin(env.supabaseUrl)) {
+      throw new Error('Google API Gateway browser transport requires an exact HTTPS Supabase origin and anon key for user-token revalidation.')
+    }
+    if (env.allowedCorsOrigins.length === 0) {
+      throw new Error('Google API Gateway browser transport requires at least one exact API_ALLOWED_CORS_ORIGINS entry.')
+    }
+  }
+
+  if (env.kimiRuntimeMode !== 'disabled') {
+    const secretReference = env.providerSecretReferenceNames.kimi
+    if (
+      !secretReference
+      || !/^projects\/(?:[a-z][a-z0-9-]{4,28}[a-z0-9]|[0-9]{6,20})\/secrets\/[A-Za-z0-9_-]{1,255}\/versions\/[1-9][0-9]*$/u.test(
+        secretReference,
+      )
+    ) {
+      throw new Error(
+        'Kimi runtime requires GOOGLE_SECRET_KIMI_API_KEY_NAME as an explicitly pinned Secret Manager version.',
+      )
+    }
+  }
+
+  if (
+    env.nodeEnv === 'production'
+    && env.kimiRuntimeMode === 'internal_test'
+  ) {
+    throw new Error(
+      'REEDITPRO_KIMI_RUNTIME_MODE=internal_test is forbidden in production.',
+    )
+  }
+
+  if (
+    env.kimiRuntimeMode === 'cloud_run'
+    && env.mode !== 'cloud_run'
+  ) {
+    throw new Error(
+      'REEDITPRO_KIMI_RUNTIME_MODE=cloud_run requires E2E_RUNTIME_MODE=cloud_run.',
+    )
+  }
+
+  if (env.openAiRuntimeMode !== 'disabled') {
+    if (env.kimiRuntimeMode === 'disabled') {
+      throw new Error(
+        'GPT-5.6 Terra is a Kimi fallback and requires the Kimi primary runtime.',
+      )
+    }
+    const secretReference = env.providerSecretReferenceNames.openai
+    if (
+      !secretReference
+      || !/^projects\/(?:[a-z][a-z0-9-]{4,28}[a-z0-9]|[0-9]{6,20})\/secrets\/[A-Za-z0-9_-]{1,255}\/versions\/[1-9][0-9]*$/u.test(
+        secretReference,
+      )
+    ) {
+      throw new Error(
+        'OpenAI runtime requires GOOGLE_SECRET_OPENAI_API_KEY_NAME as an explicitly pinned Secret Manager version.',
+      )
+    }
+  }
+
+  if (
+    env.nodeEnv === 'production'
+    && env.openAiRuntimeMode === 'internal_test'
+  ) {
+    throw new Error(
+      'REEDITPRO_OPENAI_RUNTIME_MODE=internal_test is forbidden in production.',
+    )
+  }
+
+  if (
+    env.openAiRuntimeMode === 'cloud_run'
+    && env.mode !== 'cloud_run'
+  ) {
+    throw new Error(
+      'REEDITPRO_OPENAI_RUNTIME_MODE=cloud_run requires E2E_RUNTIME_MODE=cloud_run.',
+    )
   }
 }
 
@@ -179,8 +379,13 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     nodeEnv: env.nodeEnv,
     mode: env.mode,
     apiPort: env.apiPort,
+    allowedCorsOriginCount: env.allowedCorsOrigins.length,
+    browserApiTransport: env.browserApiTransport,
+    internalServiceAuthConfigured: Boolean(env.internalServiceToken),
     allowMockWithoutSupabase: env.allowMockWithoutSupabase,
+    allowInternalTestExecutionWithSupabase: env.allowInternalTestExecutionWithSupabase,
     storageMode: env.storageMode,
+    largeMediaFinalizationMode: env.largeMediaFinalizationMode,
     localStorageRootConfigured: Boolean(env.localStorageRoot),
     signedUrlTtlSeconds: env.signedUrlTtlSeconds,
     supabaseUrlConfigured: Boolean(env.supabaseUrl),
@@ -209,7 +414,25 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
       ffprobeBinConfigured: Boolean(env.ffprobeBin),
       remotionBinConfigured: Boolean(env.remotionBin),
       pythonBinConfigured: Boolean(env.pythonBin),
+      toolAdapterPythonBinConfigured: env.toolAdapterPythonBinConfigured,
       playwrightBinConfigured: Boolean(env.playwrightBin),
+    },
+    kimiRuntime: {
+      mode: env.kimiRuntimeMode,
+      pinnedSecretReferenceConfigured: Boolean(
+        env.providerSecretReferenceNames.kimi,
+      ),
+      endpoint: 'https://api.moonshot.ai/v1/chat/completions',
+      model: 'kimi-k3',
+    },
+    openAiRuntime: {
+      mode: env.openAiRuntimeMode,
+      pinnedSecretReferenceConfigured: Boolean(
+        env.providerSecretReferenceNames.openai,
+      ),
+      endpoint: 'https://api.openai.com/v1/responses',
+      model: 'gpt-5.6-terra',
+      role: 'kimi_fallback',
     },
     providerSecretReferenceNamesConfigured: Object.fromEntries(
       Object.entries(env.providerSecretReferenceNames).map(([key, value]) => [key, Boolean(value)]),
@@ -228,6 +451,38 @@ function clean(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined
 }
 
+function parseCorsOrigins(value: string | undefined): string[] {
+  const origins = Array.from(new Set(
+    (value ?? '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  ))
+
+  for (const origin of origins) {
+    let parsed: URL
+    try {
+      parsed = new URL(origin)
+    } catch {
+      throw new Error(`API_ALLOWED_CORS_ORIGINS contains an invalid origin: ${origin}`)
+    }
+
+    if (
+      !['http:', 'https:'].includes(parsed.protocol) ||
+      parsed.origin !== origin ||
+      parsed.username ||
+      parsed.password ||
+      parsed.pathname !== '/' ||
+      parsed.search ||
+      parsed.hash
+    ) {
+      throw new Error(`API_ALLOWED_CORS_ORIGINS must contain exact http(s) origins without paths, credentials, queries, or wildcards: ${origin}`)
+    }
+  }
+
+  return origins
+}
+
 function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {
   return Boolean(
     clean(parsed.GCS_SOURCE_MEDIA_BUCKET) &&
@@ -239,4 +494,58 @@ function hasRequiredGcsBuckets(parsed: z.infer<typeof envSchema>): boolean {
     clean(parsed.GCS_QA_ARTIFACTS_BUCKET) &&
     clean(parsed.GCS_WORKER_TEMP_BUCKET),
   )
+}
+
+function assertGcsRuntimeConfigured(env: RuntimeEnv): void {
+  if (!env.googleCloudProjectId || !env.googleCloudRegion) {
+    throw new Error('STORAGE_MODE=gcs requires GOOGLE_CLOUD_PROJECT_ID and GOOGLE_CLOUD_REGION.')
+  }
+
+  const buckets = {
+    GCS_SOURCE_MEDIA_BUCKET: env.gcsSourceMediaBucket,
+    GCS_GENERATED_ASSETS_BUCKET: env.gcsGeneratedAssetsBucket,
+    GCS_PROCESSED_MEDIA_BUCKET: env.gcsProcessedMediaBucket,
+    GCS_PREVIEWS_BUCKET: env.gcsPreviewsBucket,
+    GCS_EXPORTS_BUCKET: env.gcsExportsBucket,
+    GCS_THUMBNAILS_BUCKET: env.gcsThumbnailsBucket,
+    GCS_QA_ARTIFACTS_BUCKET: env.gcsQaArtifactsBucket,
+    GCS_WORKER_TEMP_BUCKET: env.gcsWorkerTempBucket,
+  }
+  const missing = Object.entries(buckets)
+    .filter(([, value]) => !value)
+    .map(([name]) => name)
+  if (missing.length > 0) {
+    throw new Error(`STORAGE_MODE=gcs is missing required bucket configuration: ${missing.join(', ')}.`)
+  }
+
+  for (const [name, value] of Object.entries(buckets)) {
+    if (!isValidGcsBucketName(value!)) {
+      throw new Error(`${name} is not a valid private GCS bucket name.`)
+    }
+  }
+}
+
+function isValidGcsBucketName(value: string): boolean {
+  return value.length >= 3 && value.length <= 63 &&
+    /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])$/.test(value) &&
+    !value.includes('..') &&
+    !/^goog/i.test(value) &&
+    !value.includes('google')
+}
+
+function isSecureSupabaseOrigin(value: string | undefined): boolean {
+  if (!value) return false
+
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' &&
+      !url.username &&
+      !url.password &&
+      !url.search &&
+      !url.hash &&
+      url.pathname === '/' &&
+      url.origin === value.replace(/\/$/, '')
+  } catch {
+    return false
+  }
 }

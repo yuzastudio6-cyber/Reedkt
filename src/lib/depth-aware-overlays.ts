@@ -157,7 +157,7 @@ export const depthCompositingModes = [
     complexity: 'simple',
     risk: 'low',
     tierAvailability: allTiers,
-    toolImplications: ['No real mask or tracking worker is needed.'],
+    toolImplications: ['Mask or tracking workers are not needed for this layout.'],
     promptImplications: ['Keep the overlay compact and away from faces, captions, and key source detail.'],
     remotionLayerNotes: ['Graphic sits above source video and below captions.'],
     qaChecks: ['Graphic does not cover face or captions.', 'Text remains readable.'],
@@ -224,7 +224,7 @@ export const depthCompositingModes = [
     toolImplications: ['Future cutout worker and manual-style review are required.'],
     promptImplications: ['Design the background visual to accept a subject cutout without pretending the cutout exists now.'],
     remotionLayerNotes: ['Future subject cutout layer sits above the generated layout and below captions.'],
-    qaChecks: ['Manual review is recommended.', 'Fallback layout exists.', 'No real cutout is executed in the mock.'],
+    qaChecks: ['Manual review is recommended.', 'Fallback layout exists.', 'Cutout execution remains backend-gated.'],
     fallbackLayoutMode: 'picture_in_picture_speaker',
   }),
   depthMode({
@@ -316,7 +316,7 @@ export function getDepthQAChecks(mode: DepthCompositingMode, strategy: MaskStrat
       ...(strategyDefinition?.qaChecks ?? []),
       'Captions remain above masks and graphics.',
       'Graphic text remains readable after foreground overlay.',
-      'No real segmentation, tracking, or mask execution occurs in this frontend mock.',
+      'Segmentation, tracking, and mask execution remain backend-gated.',
     ]),
   )
 }

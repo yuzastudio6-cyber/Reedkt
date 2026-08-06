@@ -85,7 +85,7 @@ function createPlanGateChecks(params: {
       status: finalStatus,
       label: finalProfile.label,
       severity: gateSeverity(finalStatus),
-      message: 'Final QA remains a mock gate that blocks unresolved required failures and user-review decisions.',
+      message: 'Final QA remains a review gate that blocks unresolved required failures and user-review decisions.',
       recommendation: finalStatus === 'blocked' ? 'Resolve blocking timing, trim, or fallback decisions before final export.' : 'Future QA must validate output before export.',
       qaChecks: finalProfile.qaChecks,
     },
@@ -103,7 +103,7 @@ function relevantWorkItemForCategory(workItems: EditWorkItem[], category: AgentF
           : category === 'mask_generation_failure'
             ? ['generate_mask_asset']
             : category.includes('audio')
-              ? ['run_audio_analysis', 'run_audio_stretch']
+              ? ['run_audio_analysis', 'run_audio_stretch', 'process_audio_asset']
               : category.includes('render')
                 ? ['render_final_export', 'render_remotion_preview']
                 : category.includes('timing')
@@ -318,9 +318,9 @@ export function createAgentQAFallbackPlan(params: {
       'Meaning, privacy, source truth, and credit-overrun issues require user review or new approval.',
     ],
     limitations: [
-      'Mock QA/fallback plan only.',
-      'No real output QA or media inspection runs.',
-      'No real provider calls, retries, fallbacks, webhooks, polling, workers, storage, rendering, backend, Supabase, Google Cloud, or billing are implemented.',
+      'Review-only QA/fallback plan.',
+      'Output QA and media inspection remain backend-gated.',
+      'Provider calls, retries, fallbacks, webhooks, polling, workers, storage, rendering, backend jobs, cloud jobs, and billing require approved execution gates.',
       'Future workers will execute only approved fallback policies from approved snapshots.',
     ],
     qaChecks: [

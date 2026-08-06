@@ -84,6 +84,29 @@ Idempotency-Key: upload-finalize-001
 
 The response includes `uploadIntent`, `storageObjectRecord`, and `mediaAsset`. It does not include a signed URL.
 
+For a resumable source, enqueue and poll private finalization first:
+
+```http
+POST /v1/upload-intents/upload_intent_123/finalization-jobs
+Authorization: Bearer <token>
+Idempotency-Key: upload-finalization-job-001
+```
+
+```json
+{
+  "workspaceId": "workspace_123",
+  "sizeBytes": 107374182400
+}
+```
+
+```http
+GET /v1/large-media-finalization-jobs/large-media-finalize-123?workspaceId=workspace_123
+Authorization: Bearer <token>
+```
+
+The browser polls the safe status view and calls the finalize endpoint only
+after status is `completed`. It never calls the internal worker-run route.
+
 ## Attach Finalized Media To Chat
 
 ```http
@@ -343,19 +366,33 @@ Example output shape:
 
 ```json
 {
-  "prompt6Ready": false,
-  "required": {
-    "ffmpeg": "unavailable",
-    "ffprobe": "unavailable"
+  "schemaVersion": "canonical-private-tool-summary-v1",
+  "registryScope": "canonical_private_end_to_end",
+  "authoritativeToolCount": 50,
+  "evidence": {
+    "confinedRunnerVerifiedCount": 50,
+    "canonicalPrivateLifecycleVerifiedCount": 50,
+    "canonicalJobAdapterVerifiedCount": 50,
+    "allCanonicalToolsIndividuallyVerified": true,
+    "oneEditInvokedAllTools": false
   },
-  "optional": {
-    "remotion": "unavailable",
-    "sharp_libvips": "unavailable"
+  "releaseReadiness": {
+    "privateInternalEvidenceReady": true,
+    "productReady": false,
+    "externalBetaReady": false,
+    "productionReady": false
   },
-  "notes": [
-    "Prompt 6 is blocked until FFmpeg and FFprobe are available on the host or in the Docker worker image."
-  ]
+  "tools": []
 }
+```
+
+The real output includes all 50 exact tool records. It intentionally does not
+add historical candidates or runner foundations to the count. To inspect only
+the nine convenience dependencies installed on the current developer machine,
+run:
+
+```bash
+npm run tools:host-summary
 ```
 
 ## Strict Prompt 6 Readiness

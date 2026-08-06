@@ -1,7 +1,9 @@
 import type { ServiceContext } from '../types'
 import { ApiError } from '../errors/api-error'
-import { getMockMediaAsset } from './upload-service'
+import { createUploadService } from './upload-service'
 import { createMockId, getRequiredAuthUserId, mockWarning, nowIso, throwOnSupabaseError } from './service-helpers'
+import { createProjectService } from './project-service'
+import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 interface CreateChatSessionInput {
   workspaceId: string
@@ -26,11 +28,13 @@ export function createChatService(context: ServiceContext) {
   return {
     async createChatSession(input: CreateChatSessionInput) {
       const userId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      await createProjectService(context).getProject(input.projectId, access.workspaceId)
       if (!context.clients.admin || context.env.mockOnly) {
         return {
           chatSession: {
             id: createMockId('chat_session'),
-            workspaceId: input.workspaceId,
+            workspaceId: access.workspaceId,
             projectId: input.projectId,
             title: input.title ?? 'Mock edit session',
             createdByUserId: userId,
@@ -44,7 +48,7 @@ export function createChatService(context: ServiceContext) {
       const { data, error } = await context.clients.admin
         .from('chat_sessions')
         .insert({
-          workspace_id: input.workspaceId,
+          workspace_id: access.workspaceId,
           project_id: input.projectId,
           title: input.title ?? 'Edit session',
           created_by: userId,
@@ -58,11 +62,12 @@ export function createChatService(context: ServiceContext) {
 
     async sendMessage(input: SendChatMessageInput) {
       const userId = getRequiredAuthUserId(context)
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
       if (!context.clients.admin || context.env.mockOnly) {
         return {
           chatMessage: {
             id: createMockId('chat_message'),
-            workspaceId: input.workspaceId,
+            workspaceId: access.workspaceId,
             chatSessionId: input.chatSessionId,
             role: 'user',
             message: input.message,
@@ -74,14 +79,27 @@ export function createChatService(context: ServiceContext) {
         }
       }
 
+      const { data: chatSession, error: chatSessionError } = await context.clients.admin
+        .from('chat_sessions')
+        .select('id, workspace_id, project_id')
+        .eq('id', input.chatSessionId)
+        .eq('workspace_id', access.workspaceId)
+        .maybeSingle()
+      throwOnSupabaseError(chatSessionError, 'CHAT_SESSION_NOT_FOUND')
+      if (!chatSession || typeof chatSession.project_id !== 'string') {
+        throw new ApiError('CHAT_SESSION_NOT_FOUND', 'Chat session was not found.', 404)
+      }
+      await createProjectService(context).getProject(chatSession.project_id, access.workspaceId)
+
       const { data, error } = await context.clients.admin
         .from('chat_messages')
         .insert({
-          workspace_id: input.workspaceId,
+          workspace_id: access.workspaceId,
+          project_id: chatSession.project_id,
           chat_session_id: input.chatSessionId,
           role: 'user',
           content: input.message,
-          user_id: userId,
+          actor_user_id: userId,
         })
         .select('*')
         .single()
@@ -95,8 +113,30 @@ export function createChatService(context: ServiceContext) {
 
     async attachFinalizedClips(input: AttachClipsInput) {
       const userId = getRequiredAuthUserId(context)
-      if (!context.clients.admin || context.env.mockOnly) {
-        const missingAssets = input.mediaAssetIds.filter((id) => !getMockMediaAsset(id))
+      const access = await authorizeWorkspaceAccess(context, input.workspaceId, 'write')
+      if (
+        !context.clients.admin ||
+        context.env.mockOnly ||
+        context.env.allowInternalTestExecutionWithSupabase
+      ) {
+        if (!input.projectId) {
+          throw new ApiError(
+            'VALIDATION_FAILED',
+            'projectId is required to attach finalized clips in private local mode.',
+            400,
+          )
+        }
+        await createProjectService(context).getProject(input.projectId, access.workspaceId)
+        const uploadService = createUploadService(context)
+        const finalizedChecks = await Promise.allSettled(input.mediaAssetIds.map((mediaAssetId) =>
+          uploadService.getFinalizedSourceMediaAsset(
+            mediaAssetId,
+            access.workspaceId,
+            input.projectId as string,
+            'source_media',
+          )
+        ))
+        const missingAssets = input.mediaAssetIds.filter((_, index) => finalizedChecks[index]?.status !== 'fulfilled')
         if (missingAssets.length > 0) {
           throw new ApiError(
             'UPLOAD_NOT_FINALIZED',
@@ -109,7 +149,7 @@ export function createChatService(context: ServiceContext) {
         return {
           attachmentBatch: {
             id: createMockId('clip_attachment_batch'),
-            workspaceId: input.workspaceId,
+            workspaceId: access.workspaceId,
             projectId: input.projectId,
             chatSessionId: input.chatSessionId,
             mediaAssetIds: input.mediaAssetIds,
@@ -126,18 +166,23 @@ export function createChatService(context: ServiceContext) {
 
       const { data: chatSession, error: chatError } = await context.clients.admin
         .from('chat_sessions')
-        .select('id, project_id')
+        .select('id, workspace_id, project_id')
         .eq('id', input.chatSessionId)
-        .single()
+        .eq('workspace_id', access.workspaceId)
+        .maybeSingle()
       throwOnSupabaseError(chatError, 'CHAT_SESSION_NOT_FOUND')
       if (!chatSession) throw new ApiError('CHAT_SESSION_NOT_FOUND', 'Chat session was not found.', 404)
 
       const projectId = input.projectId ?? String(chatSession.project_id)
+      if (String(chatSession.project_id) !== projectId) {
+        throw new ApiError('CHAT_SESSION_NOT_FOUND', 'Chat session did not match the requested project.', 404)
+      }
+      await createProjectService(context).getProject(projectId, access.workspaceId)
       const { data: mediaAssets, error: mediaError } = await context.clients.admin
         .from('media_assets')
         .select('id, mime_type')
         .in('id', input.mediaAssetIds)
-        .eq('workspace_id', input.workspaceId)
+        .eq('workspace_id', access.workspaceId)
         .eq('project_id', projectId)
       throwOnSupabaseError(mediaError)
 
@@ -153,7 +198,7 @@ export function createChatService(context: ServiceContext) {
       const { data: sequence, error: sequenceError } = await context.clients.admin
         .from('source_clip_sequences')
         .insert({
-          workspace_id: input.workspaceId,
+          workspace_id: access.workspaceId,
           project_id: projectId,
           chat_session_id: input.chatSessionId,
           created_by: userId,
@@ -166,7 +211,7 @@ export function createChatService(context: ServiceContext) {
 
       const sequenceId = String(sequence?.id ?? sourceSequenceId)
       const attachmentRows = input.mediaAssetIds.map((mediaAssetId, index) => ({
-        workspace_id: input.workspaceId,
+        workspace_id: access.workspaceId,
         project_id: projectId,
         chat_session_id: input.chatSessionId,
         attachment_type: attachmentTypeForMediaAsset(mediaAssets?.find((asset) => String(asset.id) === mediaAssetId)?.mime_type),
@@ -176,7 +221,7 @@ export function createChatService(context: ServiceContext) {
       }))
       const itemRows = input.mediaAssetIds.map((mediaAssetId, index) => ({
         source_clip_sequence_id: sequenceId,
-        workspace_id: input.workspaceId,
+        workspace_id: access.workspaceId,
         project_id: projectId,
         media_asset_id: mediaAssetId,
         uploaded_order: index + 1,
@@ -191,7 +236,7 @@ export function createChatService(context: ServiceContext) {
       return {
         attachmentBatch: {
           id: createMockId('clip_attachment_batch'),
-          workspaceId: input.workspaceId,
+          workspaceId: access.workspaceId,
           projectId,
           chatSessionId: input.chatSessionId,
           mediaAssetIds: input.mediaAssetIds,

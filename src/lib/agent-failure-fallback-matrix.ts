@@ -104,7 +104,7 @@ function scenarioDefaults(category: AgentFailureCategory): Omit<AgentFailureScen
   const affectedWorkItemTypes: EditWorkItemType[] = providerCategories.includes(category)
     ? ['generate_image_asset', 'generate_ai_video_asset']
     : toolCategories.includes(category)
-      ? ['render_map_asset', 'render_chart_asset', 'capture_browser_asset', 'run_audio_analysis', 'run_audio_stretch', 'process_image_asset', 'process_video_asset', 'generate_mask_asset']
+      ? ['render_map_asset', 'render_chart_asset', 'capture_browser_asset', 'run_audio_analysis', 'run_audio_stretch', 'process_audio_asset', 'process_image_asset', 'process_video_asset', 'generate_mask_asset', 'reconstruct_background_plate', 'build_component_rig']
       : category.includes('render')
         ? ['render_final_export', 'render_remotion_preview']
         : category.includes('timing')
@@ -192,7 +192,7 @@ function action(params: {
     affectsCredits: params.affectsCredits ?? false,
     estimatedCreditImpact: params.estimatedCreditImpact ?? 'none',
     reason: params.reason,
-    qaChecks: params.qaChecks ?? ['Fallback must remain inside approved snapshot policy.', 'No real fallback execution runs in frontend mock.'],
+    qaChecks: params.qaChecks ?? ['Fallback must remain inside approved snapshot policy.', 'Fallback execution remains backend-gated.'],
   }
 }
 
@@ -272,7 +272,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     actionType: 'switch_to_tool_generated_asset',
     label: 'Use controlled tool asset',
     description: 'Use an approved controlled tool output instead of generative video.',
-    allowedToolIds: ['maplibre', 'd3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'playwright', 'sharp', 'ffmpeg', 'vapoursynth'],
+    allowedToolIds: ['d3', 'echarts', 'vega', 'vega_lite', 'satori', 'svg_js', 'viz_js', 'playwright', 'sharp', 'ffmpeg', 'vapoursynth', 'remotion'],
     reason: 'Exact maps, charts, screenshots, masks, and processing should use tools/workers later, not AI video.',
   }),
   action({
@@ -280,7 +280,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     actionType: 'switch_to_static_map',
     label: 'Use static map card',
     description: 'Use a static map/location card for failed map animation.',
-    allowedToolIds: ['maplibre', 'remotion'],
+    allowedToolIds: ['d3', 'svg_js', 'remotion'],
     reason: 'Maps should stay controlled and not be invented by AI video.',
   }),
   action({
@@ -375,7 +375,7 @@ export const agentFallbackActions: AgentFallbackAction[] = [
     requiresUserReview: true,
     affectsCredits: true,
     estimatedCreditImpact: 'medium',
-    reason: 'No real billing occurs in this milestone.',
+    reason: 'Billing remains disabled in this milestone.',
   }),
   action({
     id: 'fallback-custom',
@@ -478,8 +478,8 @@ export function createFallbackDecision(params: {
       ? 'Fallback changes approved cost, model route, visual route, meaning, or final output scope.'
       : undefined,
     creditImpactNote: params.actions.some((actionItem) => actionItem.affectsCredits)
-      ? 'Fallback may affect future fallback allowance or credit estimate; no real credits are deducted in this mock.'
-      : 'No material credit impact is expected for this mock fallback path.',
+      ? 'Fallback may affect future fallback allowance or credit estimate; credits remain disabled for this planning path.'
+      : 'No material credit impact is expected for this planning fallback path.',
     continueIndependentWork,
     finalRenderBlocked,
     reason: finalRenderBlocked
@@ -490,7 +490,7 @@ export function createFallbackDecision(params: {
     qaChecks: [
       'Fallback must stay inside approved plan constraints.',
       'Basic/Pro no Veo and Premium final-fallback-only Veo must be preserved.',
-      'No real fallback execution runs in frontend mock.',
+      'Fallback execution remains backend-gated.',
     ],
   }
 }

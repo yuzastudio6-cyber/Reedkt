@@ -3,3 +3,8 @@
 Public buckets are forbidden for source media, proxy media, generated artifacts, previews, and final exports. Persistent signed URLs are not allowed as source of truth.
 
 Workers and APIs should use private storage refs and trusted server-side access. Delivery/share is a separate future policy and must not be inferred from a final export artifact.
+
+Analysis proxies are derivatives, not render masters. Exact private processing
+should bind them to the immutable source checksum and object identity, preserve
+the original before and after processing, and mark the derivative as ineligible
+for silent final-render substitution.

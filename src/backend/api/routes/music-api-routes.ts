@@ -1,6 +1,6 @@
 import type { ApiRouteDefinition } from '../api-runtime-contracts'
 
-export const MUSIC_API_ROUTES: ApiRouteDefinition[] = [
+const LEGACY_FIXTURE_MUSIC_API_ROUTES: ApiRouteDefinition[] = [
   {
     id: 'music.creditGate.check',
     domain: 'music',
@@ -116,3 +116,15 @@ export const MUSIC_API_ROUTES: ApiRouteDefinition[] = [
     notes: ['No real audio mixing is performed.'],
   },
 ]
+
+/**
+ * Historical mock-only route inventory. These entries remain available for
+ * planning fixture regressions and cannot authorize canonical Music execution.
+ */
+export const MUSIC_API_ROUTES: ApiRouteDefinition[] = LEGACY_FIXTURE_MUSIC_API_ROUTES.map((route) => ({
+  ...route,
+  notes: [
+    ...route.notes,
+    'Legacy fixture-only surface. Canonical Music execution is owned exclusively by CanonicalMusicSkillService.',
+  ],
+}))

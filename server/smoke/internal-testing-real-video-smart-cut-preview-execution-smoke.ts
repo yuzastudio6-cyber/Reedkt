@@ -116,7 +116,7 @@ try {
     expectedSizeBytes: fixtureBytes.length,
     checksumSha256,
   })
-  await uploadService.uploadLocalObject(createdUpload.uploadIntent.id, fixtureBytes, 'video/mp4')
+  await uploadService.uploadLocalObject(createdUpload.uploadIntent.id, planningState.project.workspaceId, fixtureBytes, 'video/mp4')
   const finalizedUpload = await uploadService.finalizeUploadIntent({
     workspaceId: planningState.project.workspaceId,
     uploadIntentId: createdUpload.uploadIntent.id,

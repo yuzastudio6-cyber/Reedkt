@@ -1,0 +1,919 @@
+{
+  "schemaVersion": "reeditpro-canonical-v3-local-manifest-v1",
+  "executionScope": "local_only",
+  "rawMigrationBaselineStatus": "blocked_by_parallel_foundations",
+  "remoteMutationAllowed": false,
+  "productionAuthority": false,
+  "files": [
+    {
+      "path": ".gitignore",
+      "sha256": "3639da80892fc947abab68c699addd960cd542f9f93bf87fdfa3b33329c7a139"
+    },
+    {
+      "path": "README.md",
+      "sha256": "1397fb9102d7a09e2f9e6bc4a259603f489dc60f189abe6661a5a06f7213a1e0"
+    },
+    {
+      "path": "expected-recovery-data-tables.txt",
+      "sha256": "2d0b8b59ccdb6244f5797653bbd17295c56f1cdaaea9a123407daf1cd3bdbb0d"
+    },
+    {
+      "path": "run-local-recovery-verification.sh",
+      "sha256": "cccdc786c980e7fa8460e41384188e6d10916334209cedbe5f18c3f0881a6901"
+    },
+    {
+      "path": "run-local-verification.sh",
+      "sha256": "a33a18f295167767d57ff62c671635bde094a21407441b59211fca3ed22e53c4"
+    },
+    {
+      "path": "setup-local-auth-users.ts",
+      "sha256": "ff7bc298a69e9e2cb7d540aae5adcb8e601766e41af0eb3bac065653db759b6e"
+    },
+    {
+      "path": "supabase/.gitignore",
+      "sha256": "7937a595bb8dc6940abd9268ad2e8941f3dc02ca722977b06015de4b329976fa"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "fd8ef92d3b1e6eec48e2d008b394300ce8d10a02e2f6911fc5b3c8876f1668ae"
+    },
+    {
+      "path": "supabase/migrations/202607210001_identity_and_exact_edit_authority.sql",
+      "sha256": "b16d43cc5b3e47bc83583ad3e86ab15529a6d9dafd06844b5c403d34ffe77867"
+    },
+    {
+      "path": "supabase/migrations/202607210002_edit_reference_v6_schema.sql",
+      "sha256": "35618686aab6111003d2cda59c1e10a5f51472125275aac467de6faabd5b7445"
+    },
+    {
+      "path": "supabase/migrations/202607210003_edit_reference_v6_security_and_rpcs.sql",
+      "sha256": "97adf4a7e85d9419818e37f0ca73fdab7d52649b7ba68f1bc01f6f14b80e6523"
+    },
+    {
+      "path": "supabase/migrations/202607210004_exact_edit_atomic_apply.sql",
+      "sha256": "bdcea968594b9181f03998470aaabd47659d4c60fdba4a3772be166a91ddbda3"
+    },
+    {
+      "path": "supabase/migrations/202607210005_exact_edit_apply_authority_read.sql",
+      "sha256": "e73e265e32e8eafa201107bbf80e2663ce33b8906c20834a9e1030b93d1af11e"
+    },
+    {
+      "path": "supabase/migrations/202607210006_canonical_exact_edit_planning_authority.sql",
+      "sha256": "74c535e58cd26351de6e99b315376639aecb7330786825f8751a686ad7645923"
+    },
+    {
+      "path": "supabase/migrations/202607210007_edit_reference_application_preparation.sql",
+      "sha256": "c2f9195fd92e72f8dd2e00016e9a91741234b56bbc6d58f553a5cd0887070e00"
+    },
+    {
+      "path": "supabase/migrations/202607210008_edit_reference_domain_library_study_rpcs.sql",
+      "sha256": "0accb2ecf83eff54f9ad141a5348d4aa378a00e84ccc32d7fc152ef4518d18f1"
+    },
+    {
+      "path": "supabase/migrations/202607210009_edit_reference_domain_evidence_dna_approval_rpcs.sql",
+      "sha256": "62070c36c8ab4d07884d84ff3d6eb8cca0c7f9d6c450d59e0163fd34c6f5a74b"
+    },
+    {
+      "path": "supabase/migrations/202607210010_canonical_distributed_pre_plan_study_rpc.sql",
+      "sha256": "674812a160ff567c171171e4a6576f19cb9c7bf6656b5a2b6d08cbeff7e40b64"
+    },
+    {
+      "path": "supabase/migrations/202607210011_canonical_pre_plan_study_read_projection.sql",
+      "sha256": "3e5a9d00e7e141783df3942f557f9a96dcafc27375862f7a7273f7f868e2dd11"
+    },
+    {
+      "path": "supabase/migrations/202607210012_canonical_pre_plan_source_registration.sql",
+      "sha256": "4123ca0b88cb41afda7ee58fecf4d28f895d0ebc44bf0243ccee1843e092abc7"
+    },
+    {
+      "path": "supabase/migrations/202607210013_exact_edit_brief_and_target_source.sql",
+      "sha256": "5f65ec59f378f573f9df4e6e36dae1faedd880bcae99c5b90bb7b062db110787"
+    },
+    {
+      "path": "supabase/migrations/202607210014_target_understanding_package_persistence.sql",
+      "sha256": "c2b6788c99dc01e961972a91753612e22466003ad2596ab2d3629335a75664f0"
+    },
+    {
+      "path": "supabase/migrations/202607210015_server_prepared_target_application.sql",
+      "sha256": "4eee565f1f605adfdad0a17dca05d226df915435b97269a80a8b498f26904ec8"
+    },
+    {
+      "path": "supabase/migrations/202607210016_reviewed_qa_lifecycle_compatibility.sql",
+      "sha256": "b8960b390c3bc822cab5c61a3e97be6af95e9085d4e4cbc490836e11ee729a96"
+    },
+    {
+      "path": "supabase/migrations/202607210017_canonical_application_lifecycle_projection.sql",
+      "sha256": "16822474d9a12aac9af55c0b01040f8a5dfa1b989d857c01510d2c815bf7c98e"
+    },
+    {
+      "path": "supabase/migrations/202607210018_pre_plan_enqueue_study_concurrency_fence.sql",
+      "sha256": "62b0bca1b7dd126ad23ef6b201030f1aa61cc2f134708f8757b5237065dbc5f4"
+    },
+    {
+      "path": "supabase/migrations/202607210019_edit_reference_idempotency_concurrency_fence.sql",
+      "sha256": "73c30e652d298125bbefaecff4f67b905e7fd45489e0317b27e4c5f7c61c050b"
+    },
+    {
+      "path": "supabase/migrations/202607210020_canonical_distributed_media_ingest_rpc.sql",
+      "sha256": "edac3b9af68c233326dd5c0fd2c389a863d8fb1ffa7f2f8d0b0abf5a3f4cabbf"
+    },
+    {
+      "path": "supabase/migrations/202607210021_canonical_durable_upload_target_rpc.sql",
+      "sha256": "75e0c4aa02803aa89fcf1af07e7c37a77b26e30417d9d9c62fc7312842adcb4f"
+    },
+    {
+      "path": "supabase/migrations/202607210022_canonical_upload_target_credential_escrow_rpc.sql",
+      "sha256": "92efc87ed0f1f903a4c63ad9f8b9efd2b1c83842df1a6b65e83a02694705929f"
+    },
+    {
+      "path": "supabase/migrations/202607210023_canonical_private_project_authority_rpc.sql",
+      "sha256": "6d43893400cdd81a772f778a8bc57b29df685654168aa8948c0aff27310b2c68"
+    },
+    {
+      "path": "supabase/migrations/202607210024_canonical_local_resumable_upload_protocol.sql",
+      "sha256": "56acac22104d5f93a350957d03efb6c77f01fb3002619f832bdc7828e2f34cff"
+    },
+    {
+      "path": "tests/001_two_user_two_workspace_rls.sql",
+      "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
+    },
+    {
+      "path": "tests/002_edit_reference_v6_lifecycle_rpc.sql",
+      "sha256": "d72c9641a8d93be0e06783798675da1a64ae2d6a71f909cf0e3b0b4d72d66fbb"
+    },
+    {
+      "path": "tests/003_edit_reference_v6_recovery_and_cost.sql",
+      "sha256": "f9f8a55f8571aeca6dfe421bc43067c589726ceb6a6e5fa73a00a231a2e1896f"
+    },
+    {
+      "path": "tests/004_schema_security_invariants.sql",
+      "sha256": "d75d40d4b5dbd6547a08e6a4690f9dcfd97517e53407a789a7a4dbf84630b39e"
+    },
+    {
+      "path": "tests/005_exact_edit_atomic_apply.sql",
+      "sha256": "2ad45fc6e4dafd8178152de22ece7dffc26112820b512a47b224826b88cc0107"
+    },
+    {
+      "path": "tests/006_exact_edit_apply_authority_read.sql",
+      "sha256": "554eb02d74192ab71ae85614fa2223dfd0538ebe08ea655da96a1a809cda5b1b"
+    },
+    {
+      "path": "tests/007_canonical_exact_edit_planning_authority.sql",
+      "sha256": "e3c6f69bf66e039a1486aab00f2de4d1ce5cba214c42cb6e68fb85595f920639"
+    },
+    {
+      "path": "tests/008_edit_reference_application_preparation.sql",
+      "sha256": "a5c28b88e79785e049ff8c0f8f859cd68ab6c895995423d2c1e8601a0b8c4b02"
+    },
+    {
+      "path": "tests/009_recovery_restore_assertions.sql",
+      "sha256": "5f4c6dd94a9e1ce8a0e7c27445c0b68b2555dde7f3a8b660427400aa19cfd7c4"
+    },
+    {
+      "path": "tests/010_edit_reference_domain_library_study_rpcs.sql",
+      "sha256": "098a2f3775b5048dbae633b2a3262715989c6ba8b11b5113d31de681837aacee"
+    },
+    {
+      "path": "tests/011_edit_reference_domain_v2_receipt_and_security.sql",
+      "sha256": "e06dd2d2074b82e2e1186c3a9f4b3e80977441cee265741cd268356d96abb633"
+    },
+    {
+      "path": "tests/012_edit_reference_domain_lifecycle_postconditions.sql",
+      "sha256": "a2450c6b82fd18c46501db2ee43caf9b1e7c4e2b467590212bf8ae2f40015673"
+    },
+    {
+      "path": "tests/013_canonical_distributed_pre_plan_study_rpc_postconditions.sql",
+      "sha256": "2b7f19e8a43a7133f5dbd7ccb240da6d8c66d2c24236031968e95b32705fa6b0"
+    },
+    {
+      "path": "tests/014_canonical_distributed_media_ingest_rpc_postconditions.sql",
+      "sha256": "efef2147436e607d00b8b78d78ac38d5e1231a2066812e92fd55e70dccde03ec"
+    },
+    {
+      "path": "tests/015_canonical_durable_upload_target_rpc_postconditions.sql",
+      "sha256": "d6d4b4f5925e88f2085866324361384f9e7e9c3051b4b2f661ffded2c2f488ad"
+    },
+    {
+      "path": "tests/016_canonical_upload_target_credential_escrow_rpc_postconditions.sql",
+      "sha256": "2e9f606b1086496eb4224eb009862a4ec11b1161d5f47e799afba5df7ff5c10e"
+    },
+    {
+      "path": "tests/017_canonical_private_project_authority_rpc_postconditions.sql",
+      "sha256": "1949a421688d9d165a65d014225e8379bd0d9e4c49ad39a80524ea9f4318acdc"
+    },
+    {
+      "path": "tests/018_canonical_local_resumable_upload_protocol.sql",
+      "sha256": "74adbc12139a4c4acf82e4cb4e2fcf2cadeb3e7c32ad59ed1e736f8195d994a6"
+    },
+    {
+      "path": "tests/_fixture.sql",
+      "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
+    },
+    {
+      "path": "tests/_recovery_seed.sql",
+      "sha256": "3508bce16b11ee2873afaaf0edf424abebe92b84f9dec762881ed0bbd2f25534"
+    },
+    {
+      "path": "tests/_recovery_state_digest.sql",
+      "sha256": "82587a063c223487802953889786c42f492f8108da2192cb3a951db4e9f39a60"
+    },
+    {
+      "path": "verify.mjs",
+      "sha256": "0a55ac3a0443fcf9fa3661f1d5860a1fed383b4b025eebfde4b6eec086d48adb"
+    }
+  ],
+  "repositoryFiles": [
+    {
+      "path": "docs/canonical-durable-upload-target-authority-2026-07-20.md",
+      "sha256": "ea99a557b142e5de35325176456fd585fef53bee7e99a24a21664df7c32be51a"
+    },
+    {
+      "path": "docs/canonical-edit-reference-application-preparation-verification-2026-07-21.md",
+      "sha256": "0ae541f03c4658b0d61c360938cd3a1b6bec1883138eec6ab7dde5f4d976d738"
+    },
+    {
+      "path": "docs/canonical-edit-reference-mounted-domain-repository-runtime-port-verification-2026-07-21.md",
+      "sha256": "700d058e581188ca3e3cc785a3e5e90cd0a35395bff2d32ab47e575fc1a89b5b"
+    },
+    {
+      "path": "docs/canonical-edit-reference-mounted-long-form-runtime-port-verification-2026-07-21.md",
+      "sha256": "2316746617242f4ecb6372e0898620188c6e1c799f73628244f83d918d60d058"
+    },
+    {
+      "path": "docs/canonical-exact-edit-planning-authority-verification-2026-07-21.md",
+      "sha256": "1f382a8457d02f468a706ce7cd29f91b23727f1f247de2298e38154f4c3f5827"
+    },
+    {
+      "path": "docs/canonical-v3-local-distributed-media-ingest-verification-2026-07-22.md",
+      "sha256": "f8a2f5ac2472d93d35da1997e342f383698468c3034a6aeae741ec5ddd2a46f5"
+    },
+    {
+      "path": "docs/canonical-v3-local-distributed-pre-plan-study-runtime-verification-2026-07-21.md",
+      "sha256": "897675e612f1867526807f0f37ec9b5619644170f6231fc9b7999ca6f29949b3"
+    },
+    {
+      "path": "docs/canonical-v3-local-durable-upload-target-verification-2026-07-29.md",
+      "sha256": "b3b5772528ddbdb0653386904302eb9f61c1c88e33204fc92ccb87536ae1e46d"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-domain-library-study-verification-2026-07-21.md",
+      "sha256": "02a9fbca047e85b8236ebfafd4a47d3e6f4b5f6599fe369404b853396cdb91c4"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-evidence-dna-approval-verification-2026-07-21.md",
+      "sha256": "e6ae15c455533baa2e3b57bf693abc0ce9e8ce385ac8cb90db4583d24775e407"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-long-form-runtime-bridge-verification-2026-07-21.md",
+      "sha256": "a623e2afc870b3e11396f24821e9c573764858697fc075edb4984960840fa6b8"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-recovery-verification-2026-07-21.md",
+      "sha256": "13eb4a4c720caff95910eedfd11941b0d28593a04acb5d63e4c6cc7de3102b01"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-request-scoped-long-form-verification-2026-07-21.md",
+      "sha256": "3516ed146b786a69e6b7a527e175549a5e919efad65cde04ee31aac6fa8eceb3"
+    },
+    {
+      "path": "docs/canonical-v3-local-edit-reference-target-application-e2e-verification-2026-07-21.md",
+      "sha256": "2c7608270f4fcf8fdc1a328c789575886af54ad9706edbe75704275961bb4ca5"
+    },
+    {
+      "path": "docs/canonical-v3-local-encrypted-upload-target-credential-escrow-verification-2026-07-29.md",
+      "sha256": "fb640775f0c71429af66287e5cd51e063ac6bca66f40603f19a25ce84c3e9a4d"
+    },
+    {
+      "path": "docs/canonical-v3-local-exact-edit-apply-authority-read-verification-2026-07-21.md",
+      "sha256": "119115ee058850d3f0197d52a4efa73cd43761b49c24852c349712ef823af9ac"
+    },
+    {
+      "path": "docs/canonical-v3-local-exact-edit-atomic-apply-verification-2026-07-21.md",
+      "sha256": "84fc1424c531ceff2c50b060cb00ff633d4d38ea6062d1915568998288cca11d"
+    },
+    {
+      "path": "docs/canonical-v3-local-exact-edit-brief-target-source-verification-2026-07-21.md",
+      "sha256": "f5a74ca711873d1ea3435c436f4323622d9c511538b6c353fa51b1ad3e7eb41b"
+    },
+    {
+      "path": "docs/canonical-v3-local-motion-studio-private-command-repository-verification-2026-07-24.md",
+      "sha256": "4a5a89884029fa1c6c72137f0ef77c8bf9d6beddbfafc2fc0081648ec09dec13"
+    },
+    {
+      "path": "docs/canonical-v3-local-private-project-authority-verification-2026-07-29.md",
+      "sha256": "a358873c56e6ac5920786e469e1b67820fc6cd54b89bc0ad84553601948e129a"
+    },
+    {
+      "path": "docs/canonical-v3-local-target-understanding-package-persistence-verification-2026-07-21.md",
+      "sha256": "e8bac98b49f851fdaa981cc700c57a6b9218e8f49a735452874cff249f5654ce"
+    },
+    {
+      "path": "docs/edit-preferences-mounted-atomic-apply-recovery-2026-07-21.md",
+      "sha256": "cfddcfdd5d2c0a9074df9eae7bcb89a0b4edaeffcb71bf3033543c479f1703b1"
+    },
+    {
+      "path": "package.json",
+      "sha256": "ca08b89c3e28282f7a853db4f297324e6277194f5bd2658b7457fd161a216173"
+    },
+    {
+      "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
+      "sha256": "66ad6711610790d09fbfddd7c8becbf64c783a73eba4165a1a5d76daa3cb07f3"
+    },
+    {
+      "path": "server/app.ts",
+      "sha256": "f7d7dc39e30903329860e9390d44c95a0874aab1d14697b02da30c167bf0da35"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
+      "sha256": "d43f611135a4bf200c872505043cd12d3a6d379f8337aca59dee810ff2bbebf4"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-source-registration.ts",
+      "sha256": "6b13f67c15155c2275d888abd8a342e574f1418b0758541de16130bc2dcc8114"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-state-port.ts",
+      "sha256": "59df2e620a850361ea76a3ddfaf2c7313276ac3d9f2deae83620e6730fd3fff3"
+    },
+    {
+      "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-state-rpc-adapter.ts",
+      "sha256": "f0897f160cee41e449471192ccdc1d7f2220ecf0d61acfcb1bf7fd263c89aa7e"
+    },
+    {
+      "path": "server/distributed-media-ingest/index.ts",
+      "sha256": "d0e95f1b0ec7e9c6b4dc099292ee61417c9841fec8ba374af78c3715eb3207f1"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-local-supabase-http-rpc-client.ts",
+      "sha256": "e05068efe89f4add1350684c8f9576905807c33638cb87bb55c718da67ca899e"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-read-projection.ts",
+      "sha256": "b872a3c04a0bcd28a3096f2c1eb3710bae4d15ba0acab54d0768ec87497862ac"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-source-registration.ts",
+      "sha256": "d6fe59b0145aa1ed6a9abe893092c7d290b36e6d87a5ccd56626573892a4399f"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-conformance.ts",
+      "sha256": "645a80b0e43c19f9146b52946715833206b61ed2e475cc03711e8850c0c54685"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-port.ts",
+      "sha256": "edfbd4528380c0317fe96c452a7b143d59b0c4df0d9ad6f201792c20712b6001"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/canonical-distributed-pre-plan-study-state-rpc-adapter.ts",
+      "sha256": "ca30bf17ec3e54b023cd6263382a2323aeea74ee4cfdffa84ea4e25cee2da5e0"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/in-memory-canonical-distributed-pre-plan-study-fixture.ts",
+      "sha256": "1f8681992622a7ab5fe40bf2d63c6ff41bfec288d9ac809da94722d9840b924f"
+    },
+    {
+      "path": "server/distributed-pre-plan-study/index.ts",
+      "sha256": "c273c4947e29c32adfb657d73f199ffa7dbd0a66bbde0ebff4f4ede1da50f896"
+    },
+    {
+      "path": "server/edit-references/canonical-exact-edit-planning-authority-boundary.ts",
+      "sha256": "54a253f0be8434d2bd696ea10efecb1392a3364fe4a1cb8829036849c4a58f01"
+    },
+    {
+      "path": "server/edit-references/controlled-local-edit-reference-application-preparation-fixture.ts",
+      "sha256": "496d0b50c979f181452cfd35455cefc02733dc02d92e58d1fa22398de9fb25c2"
+    },
+    {
+      "path": "server/edit-references/edit-reference-domain-command-contract.ts",
+      "sha256": "ac5621379e8862b16283bb559ce6a13bff5c86f2fa548d1536543abb5cc1d5af"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-application-preparation-port.ts",
+      "sha256": "c344fd0564b6cdc26e0b93f40d627ca01dbc457a1cb29066f8d6d1461ed63364"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-domain-http-rpc-client.ts",
+      "sha256": "7557e818ad26127bceb1652d59f6d4f8e1e4f68022daba07a3750e15366c902f"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-domain-repository.ts",
+      "sha256": "cde935d82d379eececbd9c151dd89a7cc0c295e6131b53e15a126f0b1a834238"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-http-rpc-client.ts",
+      "sha256": "d1e2b3830c4d4cf78ab430f04baa9834fe4698c3bd9c5882c8a85f0648beae5b"
+    },
+    {
+      "path": "server/edit-references/edit-reference-local-supabase-rpc-adapter.ts",
+      "sha256": "773f7ea7a5a58a465a831f393b357c92d257d8bf6d314df2b98ccc1cf1e31d14"
+    },
+    {
+      "path": "server/edit-references/edit-reference-long-form-source-inspector.ts",
+      "sha256": "356f1f9af1cc65346a05631b9379690a5d772f360f6d2b72292e6f26059dc202"
+    },
+    {
+      "path": "server/edit-references/edit-reference-long-form-study-contract.ts",
+      "sha256": "ee82a70830cd5a79eda96b06b1448f12484a059d12e2b190c0c147320149fec0"
+    },
+    {
+      "path": "server/edit-references/edit-reference-long-form-study-scheduler.ts",
+      "sha256": "f799064cb7d3062b3de0aa8ae8d2f913c7ceb692079728f2e8316d265e5f36f9"
+    },
+    {
+      "path": "server/edit-references/edit-reference-production-application-preparation-boundary.ts",
+      "sha256": "97b984f77d89f031fb8bf38f955d54e1edbd7e13f8bf1a199a36a2425f317261"
+    },
+    {
+      "path": "server/edit-references/edit-reference-production-exact-edit-apply-boundary.ts",
+      "sha256": "c5f5b07e70eb3616a34979c707be2ba98d55185908983f33046d72f83e19e6db"
+    },
+    {
+      "path": "server/edit-references/edit-reference-production-readiness.ts",
+      "sha256": "0c425d18a6ea8c55b8d152a3c214d0063888ebb407d48b80a1e6ddc2ad75c6bf"
+    },
+    {
+      "path": "server/edit-references/edit-reference-repository.ts",
+      "sha256": "2af3858a3c59dbe4a0d9eb72c81f82b7658bfc8fb49913aaa29d350bc7d9c474"
+    },
+    {
+      "path": "server/edit-references/edit-reference-target-adaptation.ts",
+      "sha256": "eeebc501cf0f14a2280f98fe6b89c28239d2c16979bc36a02c6ae9c44cc66c13"
+    },
+    {
+      "path": "server/edit-references/edit-reference-target-video-understanding-contract.ts",
+      "sha256": "1cde524be941d22cbcbc57cc56557393b595b2c8ca762994b9d51f7cc5c837f8"
+    },
+    {
+      "path": "server/edit-references/private-edit-reference-long-form-study-repository.ts",
+      "sha256": "37d34a0889e4db2990d069cf77f46fa0f94d3049236beb0065d3aca67fc3561a"
+    },
+    {
+      "path": "server/edit-references/private-edit-reference-repository.ts",
+      "sha256": "1be7bb6d4e189a524f44e07e99a115f6e92315f87065069b0c3f133d76117583"
+    },
+    {
+      "path": "server/middleware/idempotency.ts",
+      "sha256": "5ffdbd691639217f982c4ecfee4a74e51f69fb370f8c2c26057c5e8b8063954d"
+    },
+    {
+      "path": "server/motion-studio/commands/index.ts",
+      "sha256": "cca8c3c00fce5e2fcad3969d051420c1a9a28ca212d2b6a3a2b544e23059bf97"
+    },
+    {
+      "path": "server/motion-studio/commands/private-local-repository.ts",
+      "sha256": "931d45d7f693940aa7e8658f602688faa2d8b430931650af00075aa77d758e63"
+    },
+    {
+      "path": "server/motion-studio/commands/repository.ts",
+      "sha256": "b836b7b3b51446f446985ad207bb9dce85ccb8bc543e20d7340e36ddeb57d0a2"
+    },
+    {
+      "path": "server/motion-studio/commands/runtime-port.ts",
+      "sha256": "35f653f166a0ff417c5a88074299552162ffc3de05c64bf62faa220f65b500ba"
+    },
+    {
+      "path": "server/motion-studio/commands/service.ts",
+      "sha256": "c610efbb7def5182411a0bc7c84591504d2fc625d0dedf89c1ecf45d2e8b0ccb"
+    },
+    {
+      "path": "server/motion-studio/commands/types.ts",
+      "sha256": "459e27907a184ecd93ab83e713df63bba2ed58b1a4e7951b6ccea52288f44b49"
+    },
+    {
+      "path": "server/private-workspace-index.ts",
+      "sha256": "2d1e58f10a5a09e36d283f37c139529b151d3a135427796b1cb37092bde8b65f"
+    },
+    {
+      "path": "server/project-authority/canonical-private-project-request-authority.ts",
+      "sha256": "aa1f9efd2b58819162efca2d965bcbb8738341bd065a9b7f08bf5abc414d54e8"
+    },
+    {
+      "path": "server/routes/edit-reference-target-video-understanding-routes.ts",
+      "sha256": "6de924a872fdaf5372602af95097a92a34d9c70af4ff504b770f7a2971fc0ad7"
+    },
+    {
+      "path": "server/routes/exact-edit-preference-routes.ts",
+      "sha256": "0a7f668a8df0f728a9206a4f95e74ea3049364c9bf5af0deb5e6260f82376970"
+    },
+    {
+      "path": "server/routes/route-helpers.ts",
+      "sha256": "5fc0e176c022c1085fe86a9e3db69e9d068873ee41d20696ba4fdea8fcd2ee61"
+    },
+    {
+      "path": "server/routes/upload-routes.ts",
+      "sha256": "e164a57b841b2220c6abf1112d137961a4e0ed43f1b6e62d8f3c776d246a4f2b"
+    },
+    {
+      "path": "server/services/canonical-planning-handoff-service.ts",
+      "sha256": "98f47bb6019af9aa7363ced8bf8036a1adfce88c5b00114b79ad30c6b7456073"
+    },
+    {
+      "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
+      "sha256": "ce89a95330a574d5a6bf591449a0a63c09e333410fae8903c213d07c34e46d99"
+    },
+    {
+      "path": "server/services/edit-reference-application-preparation-service.ts",
+      "sha256": "2ef1af03c070eae4fb2d444695e99ee24e5f526a303ef2415f598aa3b9eb79ec"
+    },
+    {
+      "path": "server/services/edit-reference-canonical-v3-local-exact-edit-brief-runtime-port-factory.ts",
+      "sha256": "726f3f222ca53b8b8e691f0840568392bc233d9e163012abfc14883c80f1ac22"
+    },
+    {
+      "path": "server/services/edit-reference-canonical-v3-local-long-form-runtime-port-factory.ts",
+      "sha256": "8605674f5e657b023a11ece6eb660469cd86b79608af8f6e979fc583aa3c2e30"
+    },
+    {
+      "path": "server/services/edit-reference-canonical-v3-local-long-form-runtime-port.ts",
+      "sha256": "7899323a98edc960ba67eb5568f504bdd82337820b218b3a18adf3ff3062944b"
+    },
+    {
+      "path": "server/services/edit-reference-canonical-v3-local-target-understanding-package-runtime-port-factory.ts",
+      "sha256": "8adf483760fc49990315a40e9fa72649ad22a322086dd989f2650a62f1421065"
+    },
+    {
+      "path": "server/services/edit-reference-domain-repository-runtime-port.ts",
+      "sha256": "f11911f9d182b1667bc64f1ac250dd2ec3a1f1d6ef52758994f605fc41629704"
+    },
+    {
+      "path": "server/services/edit-reference-exact-edit-apply-runtime-port.ts",
+      "sha256": "503a1977e24e076cf8081c4d8e37434ec94cca7e2e34d9bf949f10af640132de"
+    },
+    {
+      "path": "server/services/edit-reference-exact-edit-brief-runtime-port.ts",
+      "sha256": "bcd447a2d734af6a2b14a302ff4f9f7b0b67afce17f569df6e712ca743fcf058"
+    },
+    {
+      "path": "server/services/edit-reference-production-long-form-runtime-port.ts",
+      "sha256": "bbb96675c07a377ff45b464ab4e48ecde6da02ca86bbf7528cf57d8b07d7ecf4"
+    },
+    {
+      "path": "server/services/edit-reference-service.ts",
+      "sha256": "237548bd8a27f2dd4fd3ecb30c514ac9672da77206ebced3d157b3a56cf1dae2"
+    },
+    {
+      "path": "server/services/edit-reference-signed-in-private-media-runtime-port.ts",
+      "sha256": "aef07fa170d42bb61238c5f0242857ad9cf154e1df1d0fde4db1ff4d16a74f4a"
+    },
+    {
+      "path": "server/services/edit-reference-target-understanding-package-runtime-port.ts",
+      "sha256": "b1a33ecb9423551d24351a889bfcfcb8bdf71b294b2ae4b09787f231e5eec37a"
+    },
+    {
+      "path": "server/services/edit-reference-target-video-understanding-service.ts",
+      "sha256": "3eaf4f6a805f919f1c7aff817de04c27f044ebfe8fdebcd41e0d9159b186d812"
+    },
+    {
+      "path": "server/services/idempotency-service.ts",
+      "sha256": "453fe6d148d4bab661e847564a8df7f7f1b5309a95329f79baa06cbd64174983"
+    },
+    {
+      "path": "server/services/internal-edit-state-service.ts",
+      "sha256": "d456fe8e84f4606b1a30795e2b32b4e5a62be2c0409e9ecae20bbc363e037e11"
+    },
+    {
+      "path": "server/services/planning-exact-edit-preference-authority-port.ts",
+      "sha256": "616ef0d33a12ea31ee7bd4d9ccc20df88c71f0d1275cc408ce68199b93df4104"
+    },
+    {
+      "path": "server/services/planning-exact-edit-preference-authority-service.ts",
+      "sha256": "742dc27bb3bb08a040d169dda5af5cc124829a667fbdc40afafb1c84302ebd62"
+    },
+    {
+      "path": "server/services/planning-input-authority-binding-service.ts",
+      "sha256": "bc87bc844b5cf86f8e9e424cfb1d8ca54f114dc1cde2bd5d10ee1e0af1fdb3cd"
+    },
+    {
+      "path": "server/services/project-edit-brief-local-service.ts",
+      "sha256": "18f4bc654ed8d3035f50bbb8b9fe1a573d3c9a3d8e2b3b1dc07c47211ce28c6d"
+    },
+    {
+      "path": "server/services/project-service.ts",
+      "sha256": "9a0efeb336c8a5cc1ac458822bc37ef3d7a2e92ea973412435fdb3d8bb13dab7"
+    },
+    {
+      "path": "server/services/upload-service.ts",
+      "sha256": "eff3b544a2a11c4e1eb528083d8036205277082f7eefe8f941f0792a2147b2f5"
+    },
+    {
+      "path": "server/services/workspace-access-service.ts",
+      "sha256": "7e038f3e19b3a02be9b78d457b503bb21a13ca2718961d50600c33ed01af0950"
+    },
+    {
+      "path": "server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts",
+      "sha256": "3a716f905863b6c9627837f4dbfca6de797c09c097e4b976dadfa2608b64c5dc"
+    },
+    {
+      "path": "server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts",
+      "sha256": "639795eccc938e82919aed2d704cc374cb10ce445a09eb861b85a78266902b19"
+    },
+    {
+      "path": "server/smoke/canonical-distributed-pre-plan-study-state-rpc-adapter-smoke.ts",
+      "sha256": "0b395ed5c46344896cbb2b681e93d3b5e767624ce7cc161637ef36d82f60a7a2"
+    },
+    {
+      "path": "server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts",
+      "sha256": "09ed6967ff0312f33ff5f4e5e8644961961d5099b9c0bf0210f3b0ebbff4530c"
+    },
+    {
+      "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
+      "sha256": "f69ad2a526ae7f35a421910d0a335f1eb6d7cfe4e95a507b78627aeca02e70d0"
+    },
+    {
+      "path": "server/smoke/canonical-private-project-authority-local-postgres-smoke.ts",
+      "sha256": "acc5277520b4da716baed3fa9ca5b35dfecb76af6215b710323ef6acdf18fe99"
+    },
+    {
+      "path": "server/smoke/canonical-private-tool-dispatch-authority-smoke.ts",
+      "sha256": "e9a33c746e34b77a45373c3043b1eed9d3da38b0d3a6962ce642a75e28fbdefb"
+    },
+    {
+      "path": "server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
+      "sha256": "1a85a2bc77a18c5105d6c38dca3ca807617df4ab74a2fae28e0169e2f74cb8e7"
+    },
+    {
+      "path": "server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
+      "sha256": "f449d7edc162327107ad1aa2871414b2ee2ad744992458069fe4feb3eac38c92"
+    },
+    {
+      "path": "server/smoke/edit-planning-authority-smoke.ts",
+      "sha256": "e4f4a30d119d8c28b06f51858303ad06b452a72cb1bd792cac3909e10e093b0c"
+    },
+    {
+      "path": "server/smoke/edit-reference-canonical-v3-application-preparation-and-apply-smoke.ts",
+      "sha256": "cc88a3f114a04a3a7647d60ed5a1842777cf32182762cea51587ee8286bcf6b4"
+    },
+    {
+      "path": "server/smoke/edit-reference-canonical-v3-exact-edit-target-source-smoke.ts",
+      "sha256": "820c11602a9472ee9bb9ce402aecc7ef9086b06f2cae9ad6877ad27bf1a2dc13"
+    },
+    {
+      "path": "server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts",
+      "sha256": "b26cea2eb8bd0e7186f3043c18e81a6d25dd5ce418c620f19389a3f6ca0e4075"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-application-preparation-smoke.ts",
+      "sha256": "6142a44718e68a6985dcafbcd26e04d171716e0b4b6df30b8a9d4b59339c8774"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-domain-repository-smoke.ts",
+      "sha256": "7c825e5540dd92c82c3a8c322023f40c5c283862e63972b249b25bcdc6bac69a"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-http-rpc-smoke.ts",
+      "sha256": "4dc989627af7664c5c24c4088fc8311dfa9c7e168a57b36ec4c9f7f799896110"
+    },
+    {
+      "path": "server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts",
+      "sha256": "c38ae19538d8bb4561788a2bf2879e6fa4c645a33f551da9d64f60230e702abc"
+    },
+    {
+      "path": "server/smoke/edit-reference-long-form-runtime-port-factory-smoke.ts",
+      "sha256": "6489302cac1ebfc10a5ea81bf4e8c94ba98491a32ccce8e54bfe7e3840e95e20"
+    },
+    {
+      "path": "server/smoke/edit-reference-mounted-domain-repository-runtime-port-smoke.ts",
+      "sha256": "f74017f99ce7c5a0c1ee5c08396d5b5c7280684594f7ec7efdad67bc67773de4"
+    },
+    {
+      "path": "server/smoke/edit-reference-mounted-long-form-runtime-port-smoke.ts",
+      "sha256": "099dbc90b17565556e699115b20d498f39b33212f62db0ad2b9d4b13aab7ade2"
+    },
+    {
+      "path": "server/smoke/edit-reference-production-long-form-runtime-port-smoke.ts",
+      "sha256": "f36024b2319cc0cf6df12f49b1a1f4b76481becb9f297ab61cdd0dfedceeba3b"
+    },
+    {
+      "path": "server/smoke/edit-reference-production-readiness-smoke.ts",
+      "sha256": "33cdd7278c2a78fe1358047368e6357af0aa575b33f25bb7198404322e75d1a8"
+    },
+    {
+      "path": "server/smoke/fixtures/complete-canonical-v3-pre-plan-study-fixture.ts",
+      "sha256": "3822885fdde6b276058dc781036f81154e956ffe38b7c1e945cee10bda8de948"
+    },
+    {
+      "path": "server/smoke/fixtures/ready-target-video-understanding-fixture.ts",
+      "sha256": "4f1345cfd41475e8f96ae82980300250e49d21ed5d324ff2fee3e4d3278693fc"
+    },
+    {
+      "path": "server/smoke/local-resumable-source-upload-smoke.ts",
+      "sha256": "2cd90c321dca457df2fd2f4766c3b4958d00700698bb4c979b9cddf76cd0af53"
+    },
+    {
+      "path": "server/smoke/motion-studio-private-local-command-repository-smoke.ts",
+      "sha256": "fb1f2476103b9d7ce1cf1fe49f51b81cdca755ef39f8ffab63c95020e8a13384"
+    },
+    {
+      "path": "server/smoke/planning-exact-edit-preference-authority-port-smoke.ts",
+      "sha256": "db2643cdb06b3026657b494b055196bccdc13498a07949234eb891346b1771dc"
+    },
+    {
+      "path": "server/smoke/upload-boundary-security-smoke.ts",
+      "sha256": "fbfe10dd1be1fcd42637f3cea756f9644ecee8b4d2e389110a1d02dfae6a59e3"
+    },
+    {
+      "path": "server/storage/local-resumable-upload-ledger.ts",
+      "sha256": "efee2adb11f29e9fc1729f8adf806d03f30fdd86a5a177d94ce018ee10e29616"
+    },
+    {
+      "path": "server/storage/local-storage-adapter.ts",
+      "sha256": "ad51802a57eae71f06d2c8a9d08e10aa27c78c0944282d85e4593a613fb588e4"
+    },
+    {
+      "path": "server/storage/storage-types.ts",
+      "sha256": "bfa69ddf5043ba0d1eb6d0ef6f72153ffc6f788d08bf0060131ae160373845a5"
+    },
+    {
+      "path": "server/types.ts",
+      "sha256": "3941a807e76c1a0307dc2984081d954e41cee8202f3e670e40b860dc0d66feb4"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-authority.ts",
+      "sha256": "68de13a66c991bcdcae5a3f996fd2ecb571e34f0d72883b520660fa9c4f31206"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-local-supabase-http-rpc-client.ts",
+      "sha256": "c84aff63a19b712701c9b3636051fd69bf2134b45802929b9a1ffa3a324b2c49"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-request-factory.ts",
+      "sha256": "0562568fc74c3428c68714450a522361d0f55881cf2786ef0e16e651f3e93179"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-durable-upload-target-state-rpc-adapter.ts",
+      "sha256": "2e16bfaf4a7c938eccf3e23da0bf5e34cb565510d8346fc34acc5f525c0eb549"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-upload-target-credential-envelope.ts",
+      "sha256": "42a7ed8b243cf981143bc166d73fdb20514a8491386ad00861adea2d10d4bfd4"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client.ts",
+      "sha256": "3870ca4d972bb6e9f3105bad3ae9df91f3efbf0a0ca44acfa7e0c6ffb855cd7c"
+    },
+    {
+      "path": "server/upload-target-authority/canonical-upload-target-credential-escrow-rpc-adapter.ts",
+      "sha256": "23b335c812da3bf9e4cd4ead53fe4dac4bf49c9620540f1756feeab0caacef36"
+    },
+    {
+      "path": "server/upload-target-authority/index.ts",
+      "sha256": "fa0d299853c76c2729cfd520a888788708e02a34ed63cbcae8e7cb3ad876ef2c"
+    },
+    {
+      "path": "server/validation/canonical-exact-edit-planning-authority-schemas.ts",
+      "sha256": "9055d5395d2550c83a0dfaded2eeb656074de99c97eec62134f00c66d6a0c4a7"
+    },
+    {
+      "path": "server/validation/edit-planning-authority-schemas.ts",
+      "sha256": "e9049a05fa464f36499f47f6eb62106d19a46be7e4a8c541482911a9ee2db243"
+    },
+    {
+      "path": "server/validation/edit-reference-application-preparation-schemas.ts",
+      "sha256": "39e1e69b0d7971c9e77daeafb7c0f7560e2014ae9a0dbccd9630742a416b1f27"
+    },
+    {
+      "path": "server/validation/planning-input-authority-binding-schemas.ts",
+      "sha256": "7137705a6faed80e15e59054ba242691b0a5a99e0833c4e85eb75271d3f177d7"
+    },
+    {
+      "path": "src/backend/api/routes/edit-planning-api-routes.ts",
+      "sha256": "c3af3c657ac6c7f5fe56ac22a3a99053dc4388c2f974c0b8b527f1d26151d6fe"
+    },
+    {
+      "path": "src/backend/api/routes/media-upload-api-routes.ts",
+      "sha256": "2844477945f150aabbfc516e0374149a030c93af0e18cd2caf984d748cbce49f"
+    },
+    {
+      "path": "src/backend/auth/workspace-bootstrap-service.ts",
+      "sha256": "cfab9467f94da1f7d570201d2bacd046ffb2f82a239ed131543ccdfcb824722f"
+    },
+    {
+      "path": "src/components/editor/ChatNativeEditor.tsx",
+      "sha256": "03f7e3e3e2995787e6c789c82817dcb00de255c2e32455bcd61b590dec366fa8"
+    },
+    {
+      "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
+      "sha256": "57365873e28f21a3eaa4b7efb70e0fa888020a9c4924781d6147527db92be0fd"
+    },
+    {
+      "path": "src/components/editor/edit-reference/ProjectEditReferenceTargetStudy.tsx",
+      "sha256": "d7ef595d9d313171e964be4d4d73cb603dc5d3d817e4c63e07f5417ed85fd98d"
+    },
+    {
+      "path": "src/lib/canonical-planning-draft.ts",
+      "sha256": "b20ad94f6df266b6b3cb0013c3d6f8be57bcb11ac48c607c6d736f1245185297"
+    },
+    {
+      "path": "src/lib/canonical-planning-publication-client.ts",
+      "sha256": "ed62f29fca3651e6da4600743d99a957b4044d8e21cab990090b3a5d0e0093d5"
+    },
+    {
+      "path": "src/lib/current-edit-reference-application-ui.ts",
+      "sha256": "f92ddf733350fcfbb570a4a2f5200c60eac9657ff451ff2ec3d4231819a7b74f"
+    },
+    {
+      "path": "src/lib/current-edit-reference-draft-decision.ts",
+      "sha256": "79767f5304459c24f0b829de7e90726c823409f22482feed4457286ceee5abac"
+    },
+    {
+      "path": "src/lib/edit-reference-application-preparation-client.ts",
+      "sha256": "14e281be7415ab90848ba10e8ca53de0fd18e6bc011ddf156d13963362d66c75"
+    },
+    {
+      "path": "src/lib/project-edit-brief-backend-local.ts",
+      "sha256": "6f2b89d4321da01a92b0f966a72dfcef7c2040b9de0fb4b964ac496dabffa9ed"
+    },
+    {
+      "path": "src/lib/project-edit-session-edit-reference-integration.ts",
+      "sha256": "3e7d922855489faaa481c01929d933c3abd4e70cfcfa7c244eb6166f0b2697de"
+    },
+    {
+      "path": "src/lib/project-source-video-backend-upload.ts",
+      "sha256": "533897f2159495f9527cbe7b55ebaf79d692b548548546f83892b8dae01eb7b3"
+    },
+    {
+      "path": "src/lib/resumable-file-upload.ts",
+      "sha256": "2af11bfc95c98d61f495264450e0fabdf3722a45d7ebd8e496abcc920af2e260"
+    },
+    {
+      "path": "src/lib/source-upload-planning.ts",
+      "sha256": "2d7cd2a73069ce647c6dcfcd74cbd10eebb8715906f38fa462ee3542b18ae32a"
+    },
+    {
+      "path": "src/lib/temporary-object-upload-client.ts",
+      "sha256": "2c3391cfa6523597b012bd9129dc77f8bf640808e02cb5521704ae984eb7b5b0"
+    },
+    {
+      "path": "src/types/canonical-exact-edit-planning-authority.ts",
+      "sha256": "c15c42d3976172bfd7102588f311c470e06982132337194a8eb12979708bb6b9"
+    },
+    {
+      "path": "src/types/e2e-runtime.ts",
+      "sha256": "0bfd5c92e1d3a50299a88e6a1f40ef463200e7d8c1e7e9c8d9cc85cf02dae3e7"
+    },
+    {
+      "path": "src/types/edit-reference-production-application-preparation-api.ts",
+      "sha256": "d00ec14e92336bc1ec96632cbc3fe694cfcafce40349a13abf11775593d05064"
+    },
+    {
+      "path": "src/types/edit-reference-production-exact-edit-apply-api.ts",
+      "sha256": "e44e18815cc735c26fd167966a529b796964c9c7abcf1bc95c7097143fe993b8"
+    },
+    {
+      "path": "src/types/edit-reference-target-video-understanding.ts",
+      "sha256": "6ed43e14ef3a8c4c5035c215954f81bac25cababe1de9c683dc3b4127d1d52b0"
+    },
+    {
+      "path": "src/types/edit-reference.ts",
+      "sha256": "f3ea11b498c0283541e098e01320ad131bfd465887e3062caa08b7e5fdd84502"
+    },
+    {
+      "path": "src/types/large-media.ts",
+      "sha256": "5fa3bcea26e1ebf369d2341ac902b97622c385b5a1ac00bcb2e3ff25aaee989e"
+    },
+    {
+      "path": "src/types/reeditpro.ts",
+      "sha256": "e4b32f471841c087d32d5002724188a18589ba18a51439564d42fb172633f1f3"
+    },
+    {
+      "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
+      "sha256": "6c8f7398908cd073e262ae7f14997b37d1e1679a6ede1df3d4ba3912f541c7f0"
+    },
+    {
+      "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
+      "sha256": "44214ebabbbe32ba947ebf0b5f315e3aefbac73afd1693aed69c615081f1e637"
+    },
+    {
+      "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
+      "sha256": "bba331201db41c7974d7415704da5c98e89a866499a5a7ee877fa80c3e6d9d26"
+    },
+    {
+      "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",
+      "sha256": "529b28ff0802f81570e1c2aaa5eca5cd8acc330f42b022c145d3e99ae2e88d72"
+    },
+    {
+      "path": "tests/e2e/helpers/canonical-v3-edit-reference-apply-fixture.ts",
+      "sha256": "c63933da515d98972dde8cf1fee7595225260a92fa2a26c8f943d3873884d656"
+    },
+    {
+      "path": "tests/e2e/helpers/real-local-api-journey.ts",
+      "sha256": "802a7cace62cffb2bcdd005b7c079bb4b25060f55015825177734b439fba0227"
+    },
+    {
+      "path": "tests/e2e/playwright.current-edit-preferences-atomic.config.ts",
+      "sha256": "007409fd5a8f9f988976e3c3d2cffc39dc6f92fcb0a25c2a2874fe59ef6fad1b"
+    },
+    {
+      "path": "tests/e2e/playwright.edit-reference-canonical-real-file.config.ts",
+      "sha256": "2907ca83025e999aec869babcdd68252238598b56bf55d64e87d776008ef558e"
+    },
+    {
+      "path": "tests/e2e/playwright.edit-reference-canonical-v3-local.config.ts",
+      "sha256": "11c08203dc866dc7e51547e6c8059219d184d982a95cf00421ea4303f865421b"
+    },
+    {
+      "path": "tests/e2e/project-create-edit-upload-local-api.spec.ts",
+      "sha256": "aa47aae9f086a9be151b0e878277c994bbb94a8b06a236efaf4d79f3cd35d0a3"
+    }
+  ]
+}

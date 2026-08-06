@@ -8,16 +8,26 @@ source "${SCRIPT_DIR}/confirm-prod-action.sh"
 
 required_apis() {
   cat <<'EOF'
+serviceusage.googleapis.com
 run.googleapis.com
+batch.googleapis.com
+compute.googleapis.com
+aiplatform.googleapis.com
+cloudbilling.googleapis.com
 artifactregistry.googleapis.com
 storage.googleapis.com
 secretmanager.googleapis.com
 iam.googleapis.com
 cloudbuild.googleapis.com
+cloudkms.googleapis.com
+containeranalysis.googleapis.com
+binaryauthorization.googleapis.com
 logging.googleapis.com
 monitoring.googleapis.com
 eventarc.googleapis.com
 pubsub.googleapis.com
+cloudtasks.googleapis.com
+iamcredentials.googleapis.com
 EOF
 }
 
@@ -27,6 +37,9 @@ source-media
 proxy-media
 analysis-artifacts
 transcripts
+model-artifacts
+image-build-inputs
+control-plane-state
 masks
 generated-assets
 previews
@@ -43,27 +56,32 @@ bucket_name() {
 
 service_accounts() {
   cat <<EOF
-${REEDITPRO_API_SERVICE_ACCOUNT}:ReeditPro production API service
-${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}:ReeditPro production CPU analysis worker
-${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}:ReeditPro production GPU AI worker
-${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}:ReeditPro production render worker
-${REEDITPRO_QA_WORKER_SERVICE_ACCOUNT}:ReeditPro production QA worker
-${REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT}:ReeditPro production tool readiness worker
+${REEDITPRO_API_SERVICE_ACCOUNT}:WeEditPro production API service
+${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}:WeEditPro private immutable image builder
+${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}:WeEditPro immutable image signer
+${REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT}:WeEditPro legacy analysis service identity
+${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}:WeEditPro production A100 and L4 GPU worker
+${REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT}:WeEditPro legacy render service identity
+${REEDITPRO_QA_WORKER_SERVICE_ACCOUNT}:WeEditPro legacy QA service identity
+${REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT}:WeEditPro production tool readiness worker
 EOF
 }
 
 secret_placeholders() {
-  cat <<'EOF'
-SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
-OPENAI_API_KEY
-PROVIDER_GATEWAY_SHARED_SECRET
-WORKER_WEBHOOK_SECRET
-STRIPE_SECRET_KEY
-SFX_PROVIDER_API_KEY
-MUSIC_PROVIDER_API_KEY
-MODEL_WEIGHT_ACCESS_TOKEN
-HUGGINGFACE_TOKEN
+  cat <<EOF
+${REEDITPRO_SECRET_PREFIX}-supabase-url
+${REEDITPRO_SECRET_PREFIX}-supabase-anon-key
+${REEDITPRO_SECRET_PREFIX}-supabase-service-role-key
+${REEDITPRO_SECRET_PREFIX}-api-internal-service-token
+${REEDITPRO_SECRET_PREFIX}-openai-api-key
+${REEDITPRO_SECRET_PREFIX}-wan-api-key
+${REEDITPRO_SECRET_PREFIX}-hailuo-api-key
+${REEDITPRO_SECRET_PREFIX}-veo-vertex-config
+${REEDITPRO_SECRET_PREFIX}-lyria-api-key
+${REEDITPRO_SECRET_PREFIX}-mirelo-api-key
+${REEDITPRO_SECRET_PREFIX}-mmaudio-api-key
+${REEDITPRO_SECRET_PREFIX}-provider-webhook-signing-secret
+${REEDITPRO_SECRET_PREFIX}-stripe-webhook-secret
 EOF
 }
 

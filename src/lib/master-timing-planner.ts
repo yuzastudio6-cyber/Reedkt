@@ -155,14 +155,14 @@ function createSourceTimingItems(input: PlannerInput, fps: number) {
       : trimDecision?.decision === 'cut'
       ? 0
       : trimDecision?.decision === 'tighten'
-        ? Math.max(2, Math.min(sourceDuration, sourceDuration * 0.75))
+        ? Math.min(sourceDuration, Math.max(Math.min(2, sourceDuration), sourceDuration * 0.75))
         : trimDecision?.decision === 'move_to_broll'
-          ? Math.max(2, Math.min(sourceDuration, 4))
+          ? Math.min(sourceDuration, 4)
           : clip.isOptional
-      ? Math.max(2, Math.min(sourceDuration, 4))
+      ? Math.min(sourceDuration, 4)
       : clip.isImportant
         ? sourceDuration
-        : Math.max(3, Math.min(sourceDuration, 8))
+        : Math.min(sourceDuration, 8)
 
     return {
       id: `source-timing-${clip.id}`,
@@ -230,14 +230,13 @@ function createTranscriptTimingPlan(params: {
       ],
     }
   })
-
   return {
     id: 'master-transcript-timing-plan',
     status: 'needs_transcript_alignment',
     lines,
     phraseBoundaryCueIds: lines.map((line) => `speech-cue-${line.id}`),
     emotionalPauseCueIds: lines.filter((line) => line.lineType === 'emotion').map((line) => `pause-cue-${line.id}`),
-    limitations: ['No real transcript alignment has run; these lines are deterministic mock timing from the edit plan.'],
+    limitations: ['Transcript alignment remains backend-gated; these lines are deterministic timing estimates from the edit plan.'],
     qaChecks: ['Speech timing must be verified by future transcript alignment before production execution.'],
   }
 }
@@ -336,25 +335,73 @@ function createCaptionTimingItems(params: {
   fps: number
   input: PlannerInput
 }): CaptionTimingItem[] {
-  return params.transcriptTimingPlan.lines.map((line) => {
-    const minimumReadFrames = getMinimumReadFrames(line.text, params.fps)
-    const range = line.timeRange.durationFrames >= minimumReadFrames
-      ? line.timeRange
-      : createFrameTimeRangeFromFrames(line.timeRange.startFrame, line.timeRange.startFrame + minimumReadFrames, params.fps)
+  return groupMockCaptionLines(params.transcriptTimingPlan.lines).map((group, index) => {
+    const first = group[0]!
+    const last = group.at(-1)!
+    const text = boundedMockCaptionText(group.map((line) => line.text).join(' '))
+    const minimumReadFrames = getMinimumReadFrames(text, params.fps)
+    const range = group.length === 1
+      ? first.timeRange
+      : createFrameTimeRangeFromFrames(
+          first.timeRange.startFrame,
+          last.timeRange.endFrame,
+          params.fps,
+        )
+    const readableDuration = range.durationFrames >= minimumReadFrames
 
     return {
-      id: `caption-timing-${line.id}`,
-      captionText: line.text,
+      id: group.length === 1
+        ? `caption-timing-${first.id}`
+        : `caption-timing-consolidated-${index + 1}`,
+      captionText: text,
       timeRange: range,
-      linkedTranscriptLineId: line.id,
+      ...(group.length === 1 ? { linkedTranscriptLineId: first.id } : {}),
       animationInFrames: params.input.editLevel === 'basic' ? 4 : 6,
       holdFrames: Math.max(0, range.durationFrames - (params.input.editLevel === 'basic' ? 8 : 12)),
       animationOutFrames: params.input.editLevel === 'basic' ? 4 : 6,
-      emphasisWord: params.input.editLevel === 'basic' ? undefined : line.emphasisWords[0],
-      readabilityScore: range.durationFrames >= minimumReadFrames ? 'high' : 'medium',
-      qaChecks: ['Caption has frame range.', 'Caption duration is checked for readable hold time.'],
+      emphasisWord: params.input.editLevel === 'basic'
+        ? undefined
+        : group.flatMap((line) => line.emphasisWords)[0],
+      readabilityScore: readableDuration ? 'high' : 'medium',
+      qaChecks: [
+        'Caption has a frame range inside its owning transcript/segment range.',
+        ...(group.length > 1
+          ? ['Contiguous mock transcript lines share one planning caption without changing speech-boundary timing.']
+          : []),
+        readableDuration
+          ? 'Caption duration meets the estimated readable hold time.'
+          : 'Caption duration is shorter than the readability target; simplify or merge text before approval.',
+      ],
     }
   })
+}
+
+const MAXIMUM_MOCK_CAPTION_TIMING_ITEMS = 7
+const MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS = 120
+
+function groupMockCaptionLines(lines: TranscriptTimingLine[]): TranscriptTimingLine[][] {
+  if (lines.length <= MAXIMUM_MOCK_CAPTION_TIMING_ITEMS) {
+    return lines.map((line) => [line])
+  }
+  return Array.from({ length: MAXIMUM_MOCK_CAPTION_TIMING_ITEMS }, (_, groupIndex) => {
+    const startIndex = Math.floor(groupIndex * lines.length / MAXIMUM_MOCK_CAPTION_TIMING_ITEMS)
+    const endIndex = Math.floor((groupIndex + 1) * lines.length / MAXIMUM_MOCK_CAPTION_TIMING_ITEMS)
+    return lines.slice(startIndex, endIndex)
+  })
+}
+
+function boundedMockCaptionText(value: string): string {
+  const normalized = value.trim().replace(/\s+/g, ' ')
+  if (normalized.length <= MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS) return normalized
+
+  const words = normalized.split(' ')
+  let result = ''
+  for (const word of words) {
+    const candidate = result ? `${result} ${word}` : word
+    if (candidate.length > MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS - 3) break
+    result = candidate
+  }
+  return `${result || normalized.slice(0, MAXIMUM_MOCK_CAPTION_TEXT_CHARACTERS - 3).trimEnd()}...`
 }
 
 function segmentForAsset(segmentRanges: ReturnType<typeof finalRangesFromSegments>, asset: VisualAssetPlanItem, index: number) {
@@ -562,7 +609,7 @@ function createRemotionLayerTimingItems(params: {
       timeRange: captionLayerRange,
       zIndex: 90,
       reason: 'Captions stay above visuals and masks.',
-      qaChecks: ['Captions above visual layers.', 'Caption timing derives from transcript mock timing.'],
+      qaChecks: ['Captions above visual layers.', 'Caption timing derives from transcript timing estimates.'],
     },
     ...params.transitionTimingItems.map<RemotionLayerTimingItem>((item, index) => ({
       id: `remotion-layer-${item.id}`,
@@ -608,7 +655,7 @@ function createTimingQaChecks(params: {
       'Confirm output frame before approval.',
     ),
     check('timing-qa-final-segments', 'Final segments have frame ranges', 'high', params.finalTimelineSegments.every((segment) => segment.finalRange.durationFrames >= 0), 'Every final segment has non-negative frame timing.'),
-    check('timing-qa-caption-readable', 'Caption readability timing', 'medium', params.captionTimingItems.every((item) => item.timeRange.durationFrames >= 30), 'Caption cues have readable mock duration.'),
+    check('timing-qa-caption-readable', 'Caption readability timing', 'medium', params.captionTimingItems.every((item) => item.timeRange.durationFrames >= 30), 'Caption cues have readable estimated duration.'),
     check('timing-qa-visual-read-time', 'Visual read time', 'medium', params.visualTimingItems.every((item) => item.timeRange.durationFrames >= item.revealFrames + item.exitFrames), 'Visual cues have reveal, hold, and exit timing.'),
     check('timing-qa-transitions', 'Transitions avoid negative ranges', 'medium', params.transitionTimingItems.every((item) => item.timeRange.durationFrames >= 0), 'Transition ranges are frame-safe.'),
     check('timing-qa-sfx-justified', 'SFX justified', 'medium', params.sfxTimingItems.every((item) => item.reason.toLowerCase().includes('justified') || item.reason.toLowerCase().includes('transition')), 'SFX cues are tied to visual or transition cues.'),
@@ -623,10 +670,9 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
   const fps = getDefaultTimingFps({ aspectRatioFramePlan })
   const sourceTimingItems = createSourceTimingItems(params.input, fps)
   const segmentRanges = finalRangesFromSegments(params.input, params.segmentEditPlans, fps)
-  const finalDurationSeconds = Math.max(
-    3,
-    segmentRanges.length ? Math.max(...segmentRanges.map((segment) => segment.range.endSeconds)) : 18,
-  )
+  const finalDurationSeconds = segmentRanges.length
+    ? Math.max(1 / fps, Math.max(...segmentRanges.map((segment) => segment.range.endSeconds)))
+    : 18
   const finalFrames = secondsToFrames(finalDurationSeconds, fps)
   const sourceDurationSeconds = sourceTimingItems.reduce((sum, item) => sum + item.sourceRange.durationSeconds, 0)
   const transcriptTimingPlan = createTranscriptTimingPlan({ fps, segmentRanges })
@@ -703,7 +749,7 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
       priority: 'speech_clarity',
       snapMode: 'speech_boundary',
       linkedTranscriptLineId: item.linkedTranscriptLineId,
-      reason: 'Caption cue follows mock transcript line timing.',
+      reason: 'Caption cue follows estimated transcript line timing.',
       qaChecks: item.qaChecks,
     })),
     ...visualTimingItems.map((item) => createTimingCue({
@@ -727,7 +773,7 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
       ? 'Timing is draft until the output frame is confirmed; approval remains blocked.'
       : trimReviewBlocked
         ? 'Timing is blocked until TrimReviewPlan resolves retake/meaning preservation review.'
-        : `Frame-accurate mock timing is planned at ${fps}fps with ${finalFrames} final frames.`,
+        : `Frame-accurate timing is planned at ${fps}fps with ${finalFrames} final frames.`,
     sourceCleanupPlanId: params.input.sourceCleanupPlan?.id,
     timingBase: {
       fps,
@@ -769,13 +815,13 @@ export function createMasterTimingPlan(params: CreateMasterTimingPlanParams): Ma
       'SFX must be justified and must not cover speech.',
       'Music ducking protects voice clarity.',
       'Provider clips are assets placed by Remotion, not final canvases.',
-      'No real transcript alignment, beat detection, audio analysis, rendering, provider call, or worker execution has run.',
+      'Transcript alignment, beat detection, audio analysis, rendering, provider calls, and worker execution remain backend-gated.',
     ],
     qaChecks,
     limitations: [
-      'No real transcript alignment has run.',
-      'No real beat detection or AudioFlux analysis has run.',
-      'No FFmpeg, Signalsmith Stretch, Remotion rendering, provider call, backend worker, or media processing has run.',
+      'Transcript alignment remains backend-gated.',
+      'Beat detection and AudioFlux analysis remain backend-gated.',
+      'FFmpeg, Signalsmith Stretch, rendering, provider calls, backend workers, and media processing require approved execution gates.',
       status === 'needs_frame_confirmation'
         ? 'Timing cannot be approved until the output frame is confirmed.'
         : 'Timing is ready as mock planning metadata, but production timing still needs future media/transcript/audio workers.',

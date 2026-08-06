@@ -91,7 +91,7 @@ function wordTimingsForChunk(params: {
       timeRange: createFrameTimeRangeFromFrames(startFrame, endFrame, params.timeRange.fps),
       emphasized: params.emphasisWords.map((item) => item.toLowerCase()).includes(word.replace(/[^\w-]/g, '').toLowerCase()),
       confidence: 'low',
-      notes: ['Mock word timing distributed within phrase range; no real transcript alignment has run.'],
+      notes: ['Estimated word timing is distributed within the phrase range; transcript alignment remains backend-gated.'],
     }
   })
 }
@@ -326,11 +326,11 @@ function qaChecksForPlan(params: {
       `${params.collisionPlans.length} collision recommendation(s) created for risky layouts.`,
     ),
     check(
-      'caption-visual-qa-mock-limit',
-      'Mock-only limitation stated',
+      'caption-visual-qa-execution-gate',
+      'Execution gate stated',
       'medium',
       true,
-      'No real word alignment, beat detection, pixel collision analysis, media processing, or rendering has run.',
+      'Word alignment, beat detection, pixel collision analysis, media processing, and rendering remain gated until approved backend execution.',
     ),
   ]
 }
@@ -358,7 +358,7 @@ export function createCaptionVisualCueTimingPlan(params: CreateCaptionVisualCueT
       collisionPlans: [],
       globalRules: ['MasterTimingPlan is required before refined caption/visual timing.'],
       qaChecks: qaChecksForPlan({ collisionPlans: [], refinedCaptionTimings: [], status: 'blocked', visualCueTimings: [] }),
-      limitations: ['No MasterTimingPlan was provided.', 'No real transcript/audio/media analysis has run.'],
+      limitations: ['No MasterTimingPlan was provided.', 'Transcript, audio, and media analysis remain pending until the timing plan exists.'],
       notes: ['This is planning metadata only.'],
     }
   }
@@ -409,22 +409,22 @@ export function createCaptionVisualCueTimingPlan(params: CreateCaptionVisualCueT
       'Visual cues must appear when the viewer needs the concept.',
       'Captions must not cover faces, products, map labels, chart labels, browser highlights, source labels, or fact-safety notes.',
       'SFX must be tied to a planned visual or transition cue.',
-      'All caption and visual cue timing is frame-accurate mock metadata.',
+      'All caption and visual cue timing is frame-accurate review metadata.',
     ],
     qaChecks: qaChecksForPlan({ collisionPlans, refinedCaptionTimings, status, visualCueTimings }),
     limitations: [
-      'Mock-only timing: no real word-level transcript alignment has run.',
-      'No speech-to-text, AudioFlux beat detection, media processing, Remotion rendering, or provider execution has run.',
+      'Review-only timing: word-level transcript alignment remains backend-gated.',
+      'Speech-to-text, beat detection, media processing, rendering, and provider execution remain gated until approved backend execution.',
       params.masterTimingPlan.transcriptTimingPlan.status === 'needs_transcript_alignment'
         ? 'Transcript line and word timing need future alignment workers before production execution.'
-        : 'Transcript timing is still review-only until verified against real media.',
+        : 'Transcript timing stays review-only until verified against source media.',
       params.masterTimingPlan.beatGridPlan.status === 'needs_audio_analysis'
         ? 'Beat-supported visual cues need future audio analysis before production execution.'
-        : 'Beat support remains mock metadata.',
+        : 'Beat support remains review metadata.',
     ],
     notes: [
       params.compiledIntent ? `Compiled intent available: ${params.compiledIntent.goalSummary}.` : 'Compiled intent was not attached to this timing pass.',
-      params.videoUnderstandingReport ? 'Video understanding context informed timing notes.' : 'No real video understanding execution occurred.',
+      params.videoUnderstandingReport ? 'Video understanding context informed timing notes.' : 'Video understanding execution is pending for this edit.',
       params.adaptiveEditStrategyPlan ? 'Adaptive strategy informed visual cue density.' : 'No adaptive strategy plan attached.',
       params.segmentEditPlans?.length ? `${params.segmentEditPlans.length} segment plan(s) available for cue references.` : 'No segment plans attached.',
     ],

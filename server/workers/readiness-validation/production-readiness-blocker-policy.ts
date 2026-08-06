@@ -11,6 +11,7 @@ import type {
 
 export type ProductionReadinessBlockerKind =
   | 'required_launch_core_missing'
+  | 'required_launch_core_boundary_release_missing'
   | 'model_weight_missing'
   | 'model_weight_blocked'
   | 'non_commercial_model_weight'
@@ -40,6 +41,7 @@ export interface ProductionReadinessBlockerCandidate {
 
 const hardBlockerKinds = new Set<ProductionReadinessBlockerKind>([
   'required_launch_core_missing',
+  'required_launch_core_boundary_release_missing',
   'model_weight_missing',
   'model_weight_blocked',
   'non_commercial_model_weight',
@@ -55,6 +57,7 @@ const hardBlockerKinds = new Set<ProductionReadinessBlockerKind>([
 
 const statusByKind: Record<ProductionReadinessBlockerKind, ReadinessValidationStatus> = {
   required_launch_core_missing: 'missing',
+  required_launch_core_boundary_release_missing: 'missing',
   model_weight_missing: 'model_weight_missing',
   model_weight_blocked: 'model_weight_blocked',
   non_commercial_model_weight: 'model_weight_blocked',
@@ -76,7 +79,8 @@ const statusByKind: Record<ProductionReadinessBlockerKind, ReadinessValidationSt
 }
 
 const messageByKind: Record<ProductionReadinessBlockerKind, string> = {
-  required_launch_core_missing: 'Required launch-core tool is missing for production readiness.',
+  required_launch_core_missing: 'Required launch-core production-image qualification evidence is missing.',
+  required_launch_core_boundary_release_missing: 'Required launch-core non-executable integration-boundary release evidence is missing.',
   model_weight_missing: 'Required model-weight manifest or mounted model weight is missing.',
   model_weight_blocked: 'Model weight is blocked for production execution.',
   non_commercial_model_weight: 'Non-commercial model weight cannot be used for paid production.',
@@ -98,7 +102,8 @@ const messageByKind: Record<ProductionReadinessBlockerKind, string> = {
 }
 
 const remediationByKind: Record<ProductionReadinessBlockerKind, string> = {
-  required_launch_core_missing: 'Install or declare the required launch-core tool in the correct worker image, then rerun readiness.',
+  required_launch_core_missing: 'Produce and verify the approved same-source immutable-image readiness receipt; private single-host execution proof does not satisfy this production gate.',
+  required_launch_core_boundary_release_missing: 'Verify the exact same-source browser/server integration, deployed application identity, observability, and release receipt without assigning a worker image or executable tool authority.',
   model_weight_missing: 'Provide an approved model-weight manifest and runtime mount policy in a later model execution milestone.',
   model_weight_blocked: 'Replace or review the model weight before production execution.',
   non_commercial_model_weight: 'Select a commercially allowed model weight or block the feature for paid production.',

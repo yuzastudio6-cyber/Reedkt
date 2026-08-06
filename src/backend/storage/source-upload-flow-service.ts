@@ -86,7 +86,7 @@ export function createSourceClipSequenceItemsFromUploads(
     const uploadedOrder = resolveUploadedOrder(item, index)
 
     return {
-      id: `${sourceSequence.id}-item-${String(index + 1).padStart(2, '0')}`,
+      id: createStableSourceSequenceItemId(sourceSequence.id, item.uploadPlan.id),
       sourceClipSequenceId: sourceSequence.id,
       mediaAssetId: mediaAssetRecord?.id ?? `${item.uploadPlan.id}-media-record`,
       uploadedOrder,
@@ -163,4 +163,33 @@ function sortUploadsBySourceOrder(uploads: SourceUploadFlowItem[]): SourceUpload
 
 function resolveUploadedOrder(item: SourceUploadFlowItem, fallbackIndex: number): number {
   return item.uploadedOrder ?? item.uploadPlan.uploadedOrder ?? fallbackIndex + 1
+}
+
+function createStableSourceSequenceItemId(sourceSequenceId: string, uploadPlanId: string): string {
+  const sequencePart = normalizeIdentityPart(sourceSequenceId).slice(0, 120) || 'mock-source-sequence'
+  const uploadPart = normalizeIdentityPart(uploadPlanId).slice(0, 48) || 'upload'
+  const digest = stableIdentityDigest(`${sourceSequenceId}\u0000${uploadPlanId}`)
+  return `${sequencePart}-item-${uploadPart}-${digest}`
+}
+
+function normalizeIdentityPart(value: string): string {
+  return value
+    .trim()
+    .replace(/[^A-Za-z0-9._:-]+/g, '-')
+    .replace(/\.{2,}/g, '.')
+    .replace(/^[^A-Za-z0-9]+/, '')
+    .replace(/[-.]+$/g, '')
+}
+
+function stableIdentityDigest(value: string): string {
+  let first = 0x811c9dc5
+  let second = 0x9e3779b9
+
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index)
+    first = Math.imul(first ^ code, 0x01000193) >>> 0
+    second = Math.imul(second ^ (code + index), 0x85ebca6b) >>> 0
+  }
+
+  return `${first.toString(16).padStart(8, '0')}${second.toString(16).padStart(8, '0')}`
 }

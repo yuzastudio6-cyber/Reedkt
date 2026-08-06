@@ -448,8 +448,8 @@ export const toolPresets: ToolPreset[] = [
   preset({
     id: 'map_route_reveal',
     label: 'Map route reveal',
-    description: 'MapLibre/Turf/Remotion planning for route reveal maps.',
-    toolIds: ['maplibre', 'turf', 'remotion'],
+    description: 'D3/SVG/Remotion planning for source-bound route reveal maps.',
+    toolIds: ['d3', 'svg_js', 'remotion'],
     category: 'maps_geospatial',
     settings: { motionPreset: 'route_reveal', routeLineWidth: 4, planningOnly: true },
     bestUseCases: ['Travel routes', 'Location reveals', 'Documentary geography'],
@@ -459,8 +459,8 @@ export const toolPresets: ToolPreset[] = [
   preset({
     id: 'real_estate_neighborhood_map',
     label: 'Real estate neighborhood map',
-    description: 'Neighborhood map planning with pins, regions, and route-safe label spacing.',
-    toolIds: ['maplibre', 'turf', 'remotion'],
+    description: 'Source-bound vector neighborhood map planning with pins, regions, and route-safe label spacing.',
+    toolIds: ['d3', 'svg_js', 'remotion'],
     category: 'maps_geospatial',
     settings: { mapStyle: 'clean_neighborhood', pinStyle: 'property_pin', planningOnly: true },
     bestUseCases: ['Real estate areas', 'Neighborhood context', 'Local amenities'],

@@ -20,8 +20,10 @@ The only frontend-safe public config names are:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+- `VITE_REEDITPRO_AUTH_MODE`
 - `VITE_REEDITPRO_API_BASE_URL`
 - `VITE_REEDITPRO_API_MODE`
+- `VITE_REEDITPRO_API_TRANSPORT`
 - `VITE_REEDITPRO_MOCK_MODE`
 
 Frontend/browser code must never reference backend/provider secret names as runtime config.

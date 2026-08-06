@@ -27,6 +27,7 @@ import type {
   VisualAssetType,
 } from '../types/reeditpro'
 import type { AgentQAFallbackPlan, AsyncAssetReconciliationPlan, EditingAgentExecutionPlan } from '../types/editing-agent-runtime'
+import { buildProfessionalExportCreditCoverage } from './professional-export-policy'
 
 type CreateCreditEstimateParams = {
   visualAssetPlan: VisualAssetPlanItem[]
@@ -237,7 +238,7 @@ function depthPlanningReason(depthAwareOverlayPlan?: DepthAwareOverlayPlan) {
       ? 'Plans foreground subject/contact object preservation for integrated map/card overlays.'
       : 'Plans foreground-aware composition for integrated map/card overlays.',
     hasFallback ? 'Includes fallback layout because mask risk is medium/high.' : undefined,
-    'Frontend mock only; real segmentation/rendering is not implemented.',
+    'Planning-only; segmentation and rendering require approved backend gates.',
   ].filter(Boolean).join(' ')
 }
 
@@ -317,7 +318,7 @@ function renderStrategyPlanningReason(renderStrategyPlan?: RenderStrategyPlan) {
   return [
     `${items.length} render strateg${items.length === 1 ? 'y' : 'ies'} planned.`,
     `${remotionOnlyItems} Remotion-only; ${toolItems} controlled-tool; ${aiVideoItems} AI-video eligible.`,
-    'Frontend mock only; no real Remotion render, tool execution, provider call, or worker cost is applied.',
+    'Planning-only; rendering, tool execution, provider calls, and worker cost application require approved backend gates.',
   ].join(' ')
 }
 
@@ -362,7 +363,7 @@ function toolStrategyPlanningReason(toolStrategyPlan?: ToolStrategyPlan) {
   return [
     `${items.length} tool strateg${items.length === 1 ? 'y' : 'ies'} planned.`,
     `${controlledChains} controlled/Remotion-first chain${controlledChains === 1 ? '' : 's'}; ${futureChains} future/license-review chain${futureChains === 1 ? '' : 's'}.`,
-    'Tool execution is planned only; this frontend demo does not run tools or install packages.',
+    'Tool execution is planned only; tools and package installation require approved backend gates.',
   ].join(' ')
 }
 
@@ -398,7 +399,7 @@ function colorPipelinePlanningReason(colorPipelinePlan?: ColorPipelinePlan) {
   return [
     `Professional ${colorPipelinePlan.colorGradeStyle.replaceAll('_', ' ')} color plan with ${colorPipelinePlan.clipPlans.length} clip plan${colorPipelinePlan.clipPlans.length === 1 ? '' : 's'}.`,
     `${colorPipelinePlan.assetMatchPlans.length} generated/AI asset color match plan${colorPipelinePlan.assetMatchPlans.length === 1 ? '' : 's'}.`,
-    'Basic clean correction is baseline; future color tool execution is planned only and does not run in this demo.',
+    'Basic clean correction is baseline; color tool execution requires approved backend gates.',
   ].join(' ')
 }
 
@@ -436,7 +437,7 @@ function audioPipelinePlanningReason(audioPipelinePlan?: AudioPipelinePlan) {
   return [
     `Professional ${audioPipelinePlan.soundStyle.replaceAll('_', ' ')} audio plan with ${audioPipelinePlan.clipPlans.length} clip plan${audioPipelinePlan.clipPlans.length === 1 ? '' : 's'}.`,
     `${audioPipelinePlan.soundSyncCues.length} SoundSync cue${audioPipelinePlan.soundSyncCues.length === 1 ? '' : 's'} for captions, reveals, transitions, and SFX timing.`,
-    'Voice cleanup and loudness are professional baseline; future audio tool execution is planned only and does not run in this demo.',
+    'Voice cleanup and loudness are professional baseline; audio tool execution requires approved backend gates.',
   ].join(' ')
 }
 
@@ -476,7 +477,7 @@ function mapAnimationPlanningReason(mapAnimationPlan?: MapAnimationPlan) {
   return [
     `${mapAnimationPlan.items.length} map/location item${mapAnimationPlan.items.length === 1 ? '' : 's'} planned with ${mapAnimationPlan.mapToolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')}.`,
     'Plans map style, location confidence, route/pin animation, layout, and QA.',
-    'No MapLibre/Turf execution, geocoding, tile calls, or real map rendering runs in this frontend demo.',
+    'D3/SVG.js/Remotion map execution and any external geocoding or tile access require approved backend gates.',
   ].join(' ')
 }
 
@@ -525,7 +526,7 @@ function dataVizPlanningReason(dataVizPlan?: DataVizPlan) {
   return [
     `${dataVizPlan.items.length} chart/diagram item${dataVizPlan.items.length === 1 ? '' : 's'} planned with ${dataVizPlan.toolsPlanned.map((tool) => tool.replaceAll('_', ' ')).join(', ')}.`,
     'Plans data source certainty, safe wording, diagram style, tool chain, layout, animation, and QA.',
-    'No D3/ECharts/Vega-Lite execution, data verification, or real chart rendering runs in this frontend demo.',
+    'D3/ECharts/Vega-Lite execution, data verification, and chart rendering require approved backend gates.',
   ].join(' ')
 }
 
@@ -573,7 +574,7 @@ function sourceCleanupPlanningReason(sourceCleanupPlan?: SourceCleanupPlan) {
   return [
     `Source cleanup preference: ${preference.replaceAll('_', ' ')} (${sourceCleanupPlan.status.replaceAll('_', ' ')}).`,
     `${sourceCleanupPlan.decisions.length} trim/select decision(s), ${sourceCleanupPlan.retakeGroups.length} retake group(s), ${sourceCleanupPlan.userReviewItems.length} user-review item(s).`,
-    'Mock-only cleanup; no real transcript, silence, video, audio, FFmpeg, VapourSynth, or worker execution runs before approval.',
+    'Review-only cleanup; transcript, silence, video, audio, FFmpeg, VapourSynth, and worker execution require approval and backend gates.',
   ].join(' ')
 }
 
@@ -712,7 +713,12 @@ function getFallbackPolicyNotes(input: PlannerInput, visualAssetPlan: VisualAsse
   return notes
 }
 
-function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams, fallbackCredits: number): CreditEstimate['breakdown'] {
+function creditBreakdown(
+  input: PlannerInput,
+  params: CreateCreditEstimateParams,
+  fallbackCredits: number,
+  professionalExportCredits: number,
+): CreditEstimate['breakdown'] {
   const base = tierBaseCredits[input.editLevel]
   const assetCounts = countAssets(params.visualAssetPlan)
   const stillCount = stillAssetTypes.reduce((sum, assetType) => sum + (assetCounts[assetType] ?? 0), 0)
@@ -792,13 +798,11 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
     reason: 'Timing support for music, SFX cues, ducking, and beat placement.',
   })
 
-  if (params.rendererCompositionPlan) {
-    breakdown.push({
-      label: 'Remotion composition plan placeholder',
-      credits: 0,
-      reason: 'Rendering is planned but not implemented in this frontend milestone.',
-    })
-  }
+  breakdown.push({
+    label: '4K UHD render and export ceiling',
+    credits: professionalExportCredits,
+    reason: 'Required, non-removable 4K UHD delivery allowance included before approval. Covered 1080p, 2K/1440p, or 4K export uses this same approved edit reservation and must not trigger a second export estimate or charge.',
+  })
 
   const renderStrategyCredits = renderStrategyPlanningCredits(input, params.renderStrategyPlan)
 
@@ -859,6 +863,7 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
       item.workItemType === 'capture_browser_asset' ||
       item.workItemType === 'run_audio_analysis' ||
       item.workItemType === 'run_audio_stretch' ||
+      item.workItemType === 'process_audio_asset' ||
       item.workItemType === 'process_image_asset' ||
       item.workItemType === 'process_video_asset' ||
       item.workItemType === 'generate_mask_asset'
@@ -868,7 +873,7 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
       breakdown.push({
         label: 'Async execution coordination',
         credits: asyncWorkCount > 8 || params.editingAgentExecutionPlan.parallelGroups.length > 3 ? 1 : 0,
-        reason: 'Async execution planning lets independent tasks continue while generation, tool, and render jobs are pending. This is coordination planning only; no workers run and no real credits are deducted here.',
+        reason: 'Async execution planning lets independent tasks continue while generation, tool, and render jobs are pending. This is coordination planning only; workers and credit deduction remain gated.',
       })
     }
   }
@@ -883,7 +888,7 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
       breakdown.push({
         label: 'Async checkback + asset reconciliation',
         credits: checkbackCount > 10 || fallbackOrReviewCount > 3 ? 1 : 0,
-        reason: 'ReeditPro can continue independent work while generation/tool jobs are pending, then reconcile assets into the correct segment, timing cue, and renderer layer before final render. This is planning-only coordination and does not deduct real credits.',
+        reason: 'ReeditPro can continue independent work while generation/tool jobs are pending, then reconcile assets into the correct segment, timing cue, and renderer layer before final render. This is planning-only coordination and credit deduction remains disabled.',
       })
     }
   }
@@ -896,7 +901,7 @@ function creditBreakdown(input: PlannerInput, params: CreateCreditEstimateParams
     breakdown.push({
       label: 'Agent QA + fallback policy',
       credits: fallbackRiskCount > 6 ? 1 : 0,
-      reason: `Fallback allowance and QA gates are planned for ${params.agentQAFallbackPlan.failureScenarios.length} likely failure scenario(s). No real retries, fallback execution, billing, or credit deduction occurs in this mock.`,
+      reason: `Fallback allowance and QA gates are planned for ${params.agentQAFallbackPlan.failureScenarios.length} likely failure scenario(s). Retries, fallback execution, billing, and credit deduction remain gated.`,
     })
   }
 
@@ -1107,6 +1112,19 @@ function lowerCostAlternatives(
 }
 
 export function createCreditEstimate(input: PlannerInput, params: CreateCreditEstimateParams): CreditEstimate {
+  const exportFps = params.masterTimingPlan?.timingBase.fps ?? params.rendererCompositionPlan?.fps ?? 30
+  const exportDurationSeconds = params.rendererCompositionPlan?.durationSeconds ??
+    (params.masterTimingPlan
+      ? params.masterTimingPlan.timingBase.totalFrames / params.masterTimingPlan.timingBase.fps
+      : 1)
+  const approvedAspectRatio = (input.aspectRatioConfirmed === true || input.aspectRatioFramePlan?.status === 'confirmed') && input.aspectRatio !== 'let_ai_decide'
+    ? input.aspectRatio
+    : undefined
+  const professionalExportCoverage = buildProfessionalExportCreditCoverage({
+    durationSeconds: Math.max(1 / exportFps, exportDurationSeconds),
+    outputFps: exportFps,
+    approvedAspectRatio,
+  })
   const fallbackCredits = fallbackAllowanceCredits(input, params.visualAssetPlan)
   const sourceCleanupPlan = params.sourceCleanupPlan ?? input.sourceCleanupPlan
   const trimReviewPlan = params.trimReviewPlan ?? input.trimReviewPlan
@@ -1132,7 +1150,12 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
       )
     : 0
   const breakdown = [
-    ...creditBreakdown(input, params, fallbackCredits),
+    ...creditBreakdown(
+      input,
+      params,
+      fallbackCredits,
+      professionalExportCoverage.maximumInternalToolCostCredits,
+    ),
     ...(sourceCleanupPlan
       ? [{
           label: 'Source cleanup planning',
@@ -1144,14 +1167,14 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
       ? [{
           label: 'Trim review planning',
           credits: trimReviewCredits,
-          reason: `Retake selection (${trimReviewPlan.retakeSelectionPlan.items.length}) and meaning preservation checks (${trimReviewPlan.meaningPreservationValidationPlan.checks.length}) add mock planning/QA complexity.`,
+          reason: `Retake selection (${trimReviewPlan.retakeSelectionPlan.items.length}) and meaning preservation checks (${trimReviewPlan.meaningPreservationValidationPlan.checks.length}) add review planning/QA complexity.`,
         }]
       : []),
     ...(params.timingValidationPlan
       ? [{
           label: 'Timing planning',
           credits: timingValidationCredits,
-          reason: 'Frame-accurate captions, visual cues, transitions, SFX, ducking, AI clip placement, and Remotion layer timing affect mock planning complexity.',
+          reason: 'Frame-accurate captions, visual cues, transitions, SFX, ducking, AI clip placement, and renderer layer timing affect planning complexity.',
         }]
       : timingComplexityCredits > 0
       ? [{
@@ -1164,14 +1187,14 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
       ? [{
           label: 'Caption and visual cue refinement',
           credits: captionVisualCueCredits,
-          reason: 'Readable caption chunks, visual cue triggers, collision recommendations, and cue QA add mock planning complexity.',
+          reason: 'Readable caption chunks, visual cue triggers, collision recommendations, and cue QA add planning complexity.',
         }]
       : []),
     ...(!params.timingValidationPlan && soundSyncTransitionCredits > 0
       ? [{
           label: 'SoundSync and transition timing',
           credits: soundSyncTransitionCredits,
-          reason: 'Speech-safe beat snap decisions, refined transitions, cue-linked SFX, and music ducking QA add mock planning complexity.',
+          reason: 'Speech-safe beat snap decisions, refined transitions, cue-linked SFX, and music ducking QA add planning complexity.',
         }]
       : []),
   ]
@@ -1265,6 +1288,7 @@ export function createCreditEstimate(input: PlannerInput, params: CreateCreditEs
         : soundSyncTransitionBlocked
           ? 'SoundSync + Transition Timing is blocked. Credit approval remains draft until speech-safe transition timing can be reviewed.'
         : 'Output frame or timing base is recommended but not confirmed. Credit approval remains blocked until the user confirms the target aspect ratio and frame timing gate.',
-    estimateVersion: 'mock-vs-05',
+    estimateVersion: 'mock-vs-06-4k-export-ceiling',
+    professionalExportCoverage,
   }
 }

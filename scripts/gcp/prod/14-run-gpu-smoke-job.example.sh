@@ -8,8 +8,9 @@ source "${SCRIPT_DIR}/lib/gcloud-common.sh"
 # Requires REEDITPRO_CONFIRM_PROD_SETUP=true through confirm_prod_action.
 confirm_prod_action
 
-# This runs only a future GPU environment smoke job, not customer media or model/provider work.
-run_gcloud run jobs execute reeditpro-gpu-ai-worker \
+# This runs only the current L4 standard environment smoke job, not customer
+# media, model/provider work, or the separately admitted A100 heavy route.
+run_gcloud run jobs execute reeditpro-professional-l4 \
   --project="${GCP_PROJECT_ID}" \
   --region="${GCP_REGION}" \
   --wait

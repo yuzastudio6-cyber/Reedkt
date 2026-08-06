@@ -1,0 +1,145 @@
+.surface {
+  align-content: start;
+  display: grid;
+  gap: var(--rp-space-4);
+  min-height: min(720px, calc(100vh - 210px));
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: var(--rp-space-4);
+}
+
+.header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--rp-space-4);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.header > div {
+  min-width: 0;
+}
+
+.header h2,
+.header p,
+.focalState h3,
+.focalState p,
+.focusedWorkspace h3,
+.focusedWorkspace p {
+  margin: 0;
+}
+
+.header h2 {
+  font-size: clamp(1.05rem, 2vw, 1.34rem);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.header p {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin-top: var(--rp-space-1);
+  max-width: 720px;
+}
+
+.eyebrow {
+  color: var(--rp-brand-cyan);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--rp-space-1);
+  text-transform: uppercase;
+}
+
+.focalState,
+.focusedWorkspace {
+  align-items: center;
+  align-self: start;
+  border-top: 1px solid var(--rp-border-subtle);
+  display: grid;
+  gap: var(--rp-space-4);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  padding: var(--rp-space-6) 0;
+  width: min(100%, 880px);
+}
+
+.focalIcon,
+.focusedIcon {
+  align-items: center;
+  color: var(--rp-brand-cyan);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.focalCopy,
+.focusedWorkspace > div:nth-child(2) {
+  min-width: 0;
+}
+
+.focalState h3,
+.focusedWorkspace h3 {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.focalState p,
+.focusedWorkspace p {
+  color: var(--rp-text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  margin-top: var(--rp-space-1);
+  max-width: 720px;
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rp-space-2);
+  justify-content: flex-end;
+}
+
+.spin {
+  animation: storytelling-workspace-spin 900ms linear infinite;
+  color: var(--rp-brand-cyan);
+}
+
+@keyframes storytelling-workspace-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .surface {
+    min-height: calc(100vh - 232px);
+    padding: var(--rp-space-3);
+  }
+
+  .header,
+  .focalState,
+  .focusedWorkspace {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .focalIcon,
+  .focusedIcon {
+    justify-content: flex-start;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

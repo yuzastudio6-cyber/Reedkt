@@ -29,6 +29,17 @@ secret_placeholders | sed 's/^/  - /'
 
 echo ""
 echo "Artifact images:"
-for image in reeditpro-api reeditpro-cpu-worker reeditpro-gpu-worker reeditpro-render-worker reeditpro-qa-worker reeditpro-tool-readiness-worker; do
+for image in \
+  reeditpro-api \
+  reeditpro-sam31-gpu \
+  reeditpro-l4-media-worker \
+  reeditpro-tool-readiness-worker; do
   echo "  - $(artifact_image "${image}")"
 done
+
+echo ""
+echo "Active quality-first GPU routes:"
+echo "  - A100 80 GB heavy primary: one-shot Google Cloud Batch job"
+echo "  - L4 heavy fallback: reeditpro-sam31-l4-fallback Cloud Run Job"
+echo "  - L4 standard primary: reeditpro-professional-l4 Cloud Run Job"
+echo "  - Minimum idle jobs/instances: 0"

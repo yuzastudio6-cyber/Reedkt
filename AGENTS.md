@@ -5,6 +5,8 @@ These instructions are for Codex and any future agent working in this repository
 ## Required Reading
 
 - Read `design.md` before any UI, layout, component, visual, brand, or frontend design work.
+- Read `docs/ui-ux-active-product-redesign-plan.md`, `docs/current-product-scope.md`, and `docs/current-route-navigation-map.md` before repo-wide UI/UX redesign, active-route hierarchy, project journey, resource-state, or whole-product visual-consistency work.
+- Read `docs/ui-ux-edit-preferences-architecture.md` and `docs/ui-ux-edit-brief-architecture.md` before changing Saved or Current Edit Preferences, Edit Brief fields or presentation, exact-edit persistence, planning-context transfer, plan invalidation, or approval-time locking.
 - Read `product-plan.md` before product-scope decisions.
 - Read `intent-led-edit-planning.md` before upload, planning, AI workflow, generation, or approval work.
 - Read `reference-video-dna-ux.md` before reference video, style matching, Reference DNA, or reference-analysis UX work.
@@ -61,11 +63,14 @@ These instructions are for Codex and any future agent working in this repository
 - Read `supabase-schema-planning-bridge.md`, `database-migration-readiness-checklist.md`, and `supabase-table-specification.md` before Supabase schema planning, table planning, migration bridge work, RLS planning, storage bucket planning, or database readiness work.
 - Read `sql-migration-draft-review.md`, `supabase-rls-policy-draft.md`, and `supabase-storage-bucket-draft.md` before SQL migration draft review, RLS draft policy work, storage bucket draft policy work, or migration readiness follow-up.
 - Read `migration-review-and-rls-hardening.md`, `rls-hardening-matrix.md`, and `data-privacy-retention-plan.md` before migration review, RLS hardening, service-role boundary, access-control matrix, private artifact, browser-capture privacy, or retention planning work.
+- Read `docs/repo-merge-integrity-audit.md`, `docs/repo-path-divergence-audit.md`, and `docs/repo-next-safe-staging-plan.md` before staging, merge planning, path reconciliation, PR split work, or deciding whether `/Volumes/backup/REeditpro` or `/Users/macuser/Developer/REeditpro` is the source of truth. RP-MERGE-AUDIT-00 status is `path_divergence_risk`.
 - Read `chat-planning-ux-architecture.md` before chat flow organization, planning card priority, collapse behavior, guided/detailed/developer modes, or approval-path UX work.
 - Read `source-sequence-review-ux.md` before source order review, clip reorder UX, uploaded-order semantics, or source-sequence confirmation work.
 - Read `docs/lyria-worker-plan.md` and `docs/google-cloud-audio-worker-plan.md` before Lyria worker, Google Cloud audio worker, music generation job, worker secret, or generated music asset work.
 - Read `docs/lyria-integration-adapter.md` before Lyria provider adapter, Lyria request building, Lyria response parsing, integration mode, or disabled real API path work.
 - Read `supabase-production-test-readiness.md` and `supabase-local-staging-test-plan.md` before active Supabase migration testing, production-test readiness, local/staging database validation, or Supabase advisor review work.
+- Read `docs/supabase-migration-baseline-reconciliation.md` before treating `supabase/migrations/` as executable history, adding a durable Supabase-backed feature, running a local reset, or planning staging/production migration work. The current raw baseline status is `blocked_by_parallel_foundations`.
+- Read `docs/supabase-security-audit-2026-07-10.md`, `docs/runtime-api-security-hardening-2026-07-10.md`, `docs/repository-security-exposure-audit-2026-07-10.md`, `docs/gcs-upload-integrity-hardening-2026-07-10.md`, `docs/generic-idempotency-hardening-2026-07-10.md`, and `docs/private-local-persistence-hardening-2026-07-10.md` before RLS, grants, SECURITY DEFINER functions, storage policies, signed GCS uploads/downloads, idempotency, private local artifact persistence, auth middleware, worker/provider routes, internal service authentication, repository visibility, secret scanning, or production security claims. Static source hardening does not prove the live Supabase project, GCS buckets/IAM, or GitHub security settings are secure.
 
 - Read `soundsync-music-intelligence.md`, `music-reference-dna.md`, `lyria-music-generation-plan.md`, and `audio-library-and-licensing.md` before SoundSync music, generated music, reference audio, SFX, audio library, or Lyria Pro planning work.
 
@@ -97,6 +102,10 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Failed ReeditPro generation should be refunded according to `pricing-and-credits.md`.
 - Real Motion is premium and credit-heavy.
 - RP-FIX-09 credit runtime helpers are the current mock-safe approval/reservation gate. Real reserve, spend, release, refund, provider execution, rendering, and worker jobs remain backend-required.
+- RP-CREDITPOLICY-01 locks the external-beta credit policy as policy/types/docs/constants only: 1 credit = `$0.10`, 100 credits = `$10`, subscriptions are software access, credits cover AI generation/rendering/editing usage plus ReEditPro service/edit fee, tool-owner cost events must keep service fees out, and unapproved overages are absorbed by ReEditPro instead of silently charged later. It does not authorize live billing, Stripe, Supabase migrations, wallet mutation, provider calls, render/export charging, or production settlement.
+- RP-RATECARD-01 is the mock-safe rate card and cost math hardening layer: tool-cost events remain actual internal tool cost only, pricing snapshots keep `serviceFeeIncluded = false`, `smoke:rate-card` and `smoke:tool-cost-metering` cover the bridge, and ReEditPro service fee still belongs only in settlement preview/credit policy math. It does not authorize live billing, Stripe, provider calls, Supabase migrations, wallet mutation, reservation spend/release/refund, ledger writes, render/export execution, or export unlock.
+- RP-TOOLCOST-01 derives production tool cost owner coverage from the existing 49-tool registry and adds mock-safe estimate/event adapters plus provider/render/worker metadata hooks. It does not authorize live billing, provider calls, Supabase migrations, wallet mutation, reservation spend/release/refund, ledger writes, settlement execution, render/export execution, or package-lock changes.
+- RP-ESTIMATE-01 adds the mock-safe edit credit estimate preview layer and `smoke:credit-estimate`. It may aggregate production tool estimates and credit-policy service fees into user-facing estimate records, but it must not approve estimates, reserve/spend/release/refund credits, mutate wallets, write ledgers, call providers, run workers, render/export, run Supabase, or change package-lock.
 - RP-FIX-10 job runtime helpers are the current mock-safe queue/readiness layer. Real worker dispatch, Cloud Run jobs, service-role job mutation, provider execution, and rendering remain backend-required.
 
 - Blockers are evidence gaps, not permanent stop signs. A blocker must name the unsafe action it protects, the exact missing proof or approval, and the next smallest safe lane that can reduce or retire it.
@@ -113,6 +122,17 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - ReeditPro editing is chat-native. The chat is the editor, and UI appears inside chat only when the AI needs user input, confirmation, approval, progress, or preview.
 - Every ReeditPro edit, including Basic, must meet a professional editing standard. Basic means lower-compute clean editing, not low-quality editing.
 - Edit level controls complexity, generation depth, credit cost, signature usage, and worker pipeline depth. Edit level does not control quality.
+- RP-EDITLEVEL-00 is a docs/report/smoke-only audit for the future Normal/Premium/Ultra Premium beta edit-level contract. Runtime still uses `basic | pro | premium`; the conceptual Basic->Normal, Pro->Premium, Premium->Ultra Premium mapping is audit-only and final alias/migration policy remains `needs_product_value`.
+- RP-EDITLEVEL-01 is the docs/status/smoke-only architecture source for that future contract. It defines Normal/Premium/Ultra Premium profiles, legacy basic/pro/premium compatibility, tool/Qwen/source/brief/preference/QA/estimate/fallback/UI/backend architecture, and recommends RP-EDITLEVEL-02 for types/fixtures. It does not authorize runtime behavior, type migration, routes, repositories, UI changes, migrations, providers, media workers, render/export, progress, or credit spend.
+- RP-EDITLEVEL-02 adds mock-safe types, deterministic profiles, source-aware compatibility mappers, request/response-only contracts, scenarios, an orchestrator, docs, and smoke coverage. These exports must remain unused by current runtime planners/UI until a later milestone explicitly wires them in.
+- RP-EDITLEVEL-03 adds a mock-only Edit Level repository, MockDatabase collections, disabled Supabase skeleton, mock local planning-domain API route metadata/handlers, browser-safe client wrapper, docs, scenarios, orchestrators, and smoke coverage. It does not authorize production routes, migrations, Supabase reads/writes, UI behavior, planner wiring, providers, media workers, render/export, progress, or credit spend. The next default edit-level prompt is RP-EDITLEVEL-04 UI Cards + Recommendation.
+- RP-EDITLEVEL-04 adds visible mock/local Normal/Premium/Ultra Premium UI cards, deterministic recommendation display, mock selection save/update through the Edit Level client, selected-level summaries, estimate-only notices, and boundary copy. It preserves existing runtime `basic | pro | premium`, does not modify `ChatNativeEditor` runtime behavior, and does not authorize live planner/tool routing, providers, media workers, render/export, progress, migrations, Supabase, or credit spend.
+- RP-EDITLEVEL-05 adds a mock/local Level-Aware Tool Capability Router for Normal/Premium/Ultra Premium. It resolves required, recommended, optional, future-gated, degraded, and fallback capability packages and visible summaries, while preserving runtime `basic | pro | premium`. It does not authorize Qwen 3.7, Qwen2.5-VL, DeepSeek, provider, media, worker, render/export, progress, Supabase, migration, or credit execution. The next default edit-level prompt is RP-EDITLEVEL-06 Level-Aware Source Video Understanding Routing.
+- RP-EDITLEVEL-06 adds mock/local Level-Aware Source Video Understanding Routing for Normal/Premium/Ultra Premium. It resolves source metadata/targeted, key-moment/marker-window, and scene-level context policies, marker windows, future Qwen context policy, fallbacks, and visible summaries while preserving runtime `basic | pro | premium`. It does not authorize Qwen 3.7, Qwen2.5-VL, DeepSeek, provider, transcript/media/audio/graphic worker, ffmpeg/ffprobe, render/export, progress, Supabase, migration, upload, external fetch, file-byte read, or credit execution.
+- RP-EDITLEVEL-07 adds mock/local Level-Aware Qwen Planning Profile policy for Normal/Premium/Ultra Premium. It resolves future Qwen 3.7 reasoning depth, planning pass policy, prompt context policy, structured output hints, Marker Chat behavior, Preference DNA usage, QA explanation depth, fallback policy, visible summaries, docs, smoke, and focused Playwright coverage while preserving runtime `basic | pro | premium`. It does not authorize Qwen 3.7, Qwen2.5-VL, DeepSeek, provider, planner, edit-plan, media worker, render/export, progress, Supabase, migration, upload, external fetch, file-byte read, or credit execution.
+- RP-EDITLEVEL-08 adds mock/local Level-Aware QA Gates for Normal/Premium/Ultra Premium. It resolves baseline, stronger creative, and studio-level strict QA packages, gate registry metadata, readiness states, fallback notices, visible summaries, docs, smoke, and focused Playwright coverage while preserving runtime `basic | pro | premium`. It does not authorize QA tool execution, Qwen 3.7, Qwen2.5-VL, DeepSeek, provider, planner, edit-plan, media worker, render/export, progress, Supabase, migration, upload, external fetch, file-byte read, or credit execution. RP-EDITLEVEL-09 completed the estimate-policy follow-up.
+- RP-EDITLEVEL-09 adds mock/local Level-Aware Estimates for Normal/Premium/Ultra Premium. It resolves deterministic 20-45, 45-90, and 90-180 minute ranges, 1.0x/2.0x/4.0x multiplier-only credit estimates, analysis depth, future render/revision/variant budgets, degraded capability notices, visible summaries, docs, smoke, and focused Playwright coverage while preserving runtime `basic | pro | premium`. It does not authorize credit reservation/spend/records, planner execution, edit-plan creation, provider/model calls, media workers, render/export, progress, Supabase, migration, upload, external fetch, file-byte read, or credit execution. The next default edit-level prompt is RP-EDITLEVEL-10 End-to-End Internal Testing + Playwright Coverage.
+- Edit Level mock/local milestone notes are current-state boundaries, not permanent prohibitions. Production readiness is computed through the Edit Level evidence gates; keep runtime, persistence, provider, worker, render/export, credit, Supabase, deployment, and QA blocked by default until the named evidence exists.
 - Heavy AI, generation, rendering, and background work should be designed for future Google Cloud workers, but no Google Cloud resources, credentials, or deployments should be added unless explicitly requested.
 - Never begin generation before edit plan and credit approval.
 - Stroke Motion supports `spoken_story_mode` and `source_reading_mode`.
@@ -202,7 +222,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Every generated or processed asset must appear in the asset manifest.
 - The agent must not rely on model memory to remember pending jobs, dependencies, or assets.
 - Every work item needs an idempotency key and approved snapshot reference or explicit pending-snapshot note.
-- Provider/tool execution is future backend/worker only.
+- Provider/tool execution is backend/worker only. Frontend planning must not execute heavy tools; backend-approved internal gates may run bounded private package checks, local media/audio processing, QA, and private render review only when an approved snapshot, credit reservation, idempotency key, private artifact policy, and runtime evidence are present.
 - No final render may start without required assets and QA.
 - Pending provider/tool jobs must have checkback policies.
 - Completed assets must be merged/reconciled before downstream work proceeds.
@@ -222,7 +242,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Preview placeholders are allowed only when explicitly planned.
 - Maps, charts, browser captures, captions, timing, and masks should not fallback to AI video.
 - Meaning, privacy, source truth, and credit-overrun issues require user review or new approval.
-- No real QA, retry, fallback, provider, worker, backend, storage, billing, media, or rendering execution occurs in frontend/mock milestones.
+- No real QA, retry, fallback, provider, worker, storage, billing, media, or rendering execution occurs in frontend/mock planning. Backend-approved internal testing may execute only the explicitly gated private/local stages and must keep public delivery, external beta, production, and billing blocked until their evidence gates pass.
 - Workers execute approved snapshots, not raw chat.
 - Provider prompts must be built from compiled intent, professional editing direction, visual asset plan, style mode, frame layout, provider route, and QA checks.
 - Do not hand-write random prompts disconnected from the approved plan.
@@ -307,8 +327,8 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Music ducking must protect voice clarity.
 - Documentary and case-study SoundSync timing should stay restrained unless the user requests otherwise.
 - Basic should use simple professional timing, not chaotic beat/SFX timing.
-- Beat grids are mock-only until a future AudioFlux worker exists.
-- No real audio analysis is implemented in frontend/mock milestones.
+- Beat grids stay planning-only in the frontend until an approved backend AudioFlux/audio worker result is attached.
+- No real audio analysis is implemented in frontend/mock planning; approved backend local/internal audio QA may run only through gated worker routes.
 - Future FFmpeg LGPL Configuration, AudioFlux, Signalsmith Stretch, librosa, whisper.cpp, and any future/evaluation Essentia or Rubber Band workers may execute audio analysis or processing only after approval.
 - Launch audio analysis candidate is AudioFlux, not Essentia.
 - Launch music stretch/pitch candidate is Signalsmith Stretch, not Rubber Band.
@@ -317,8 +337,8 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - VapourSynth is worker-only and plugins require separate review.
 - Sharp + libvips needs dependency/security/LGPL review before production execution.
 - AudioFlux and Signalsmith Stretch are worker-only candidates and must not be installed or executed in frontend milestones.
-- No worker tool executes before approval, credit reservation, and future backend worker implementation.
-- No real audio processing unless a milestone explicitly requests it.
+- No worker tool executes before approval, credit reservation, idempotency, private artifact boundaries, and a backend worker/runtime implementation with source-truth evidence.
+- No real audio processing unless an approved backend/internal milestone or route explicitly gates it.
 - Audio plans must not enable Veo or change AI-video tier rules.
 - Use controlled map tools for geographic/location visuals instead of AI video.
 - Map visuals must be planned with layout, safe zones, label readability, and source certainty.
@@ -411,7 +431,7 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 
 - Personal: `$10/week` software access.
 - Personal includes 100 weekly bonus Reedit Credits.
-- 100 credits = `$5` retail value.
+- 1 credit = `$0.10`; 100 credits = `$10` retail value.
 - Business: `$20/week` software access.
 - Business can buy as many credits as needed.
 - Subscription is software access.
@@ -426,6 +446,20 @@ ReeditPro should never start expensive AI editing, rendering, or generation unti
 - Preserve the official ReeditPro logo assets and brand direction.
 - AI chat is the primary editor. The timeline is secondary. Advanced panels should be hidden by default unless the user explicitly opens them.
 - The chat is the editor. The AI edits in the background. Inline cards appear only when the AI needs user input, confirmation, approval, or preview.
+
+## UI/UX Governance
+
+Before any UI/UX implementation, read:
+
+- `docs/ui-ux-master-plan.md`
+- `docs/ui-ux-codex-rules.md`
+- `docs/ui-ux-component-standards.md`
+- `docs/ui-ux-page-flow-map.md`
+- `docs/ui-ux-quality-checklist.md`
+- `docs/ui-ux-app-shell-sizing.md`
+- `docs/ui-ux-chat-message-architecture.md`
+
+ReeditPro is website/desktop web app first. Mobile is future-only. Chat is the editor. Plan and credit approval must happen before generation. UI must be calm, spacious, premium, and AI Topology Matrix aligned.
 
 ## Web First, Mobile Later
 

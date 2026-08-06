@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '../backend/supabase/supabase-client'
+import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
 
 interface ProjectEnvelope<TData> {
   ok?: boolean
@@ -142,7 +143,7 @@ export async function createProjectBackendLocal(
   const name = input.name.trim()
   if (!name) throw new Error('Project name is required.')
 
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const headers = {
     'Content-Type': 'application/json',
@@ -195,7 +196,7 @@ export async function readProjectBackendLocal(input: {
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ project: ProjectBackendLocalRecord; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectBackendLocalData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,
@@ -218,7 +219,7 @@ export async function listProjectsBackendLocal(input: {
   fetchImpl?: typeof fetch
   getAccessToken?: () => Promise<string | undefined>
 }): Promise<{ projects: ProjectBackendLocalRecord[]; warnings: string[] }> {
-  const fetchImpl = input.fetchImpl ?? fetch
+  const fetchImpl = resolveReceiverSafeFetch(input.fetchImpl)
   const accessToken = await (input.getAccessToken ?? getSupabaseAccessToken)()
   const envelope = await parseEnvelope<ProjectBackendLocalListData>(await fetchImpl(joinUrl(
     input.apiBaseUrl,

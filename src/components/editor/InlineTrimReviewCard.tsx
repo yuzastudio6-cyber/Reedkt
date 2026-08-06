@@ -5,6 +5,7 @@ import type {
   MeaningPreservationCheck,
   MeaningPreservationStatus,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineTrimReviewCardProps = {
@@ -27,7 +28,7 @@ function MeaningCheckList({ checks }: { checks: MeaningPreservationCheck[] }) {
     return (
       <div className="trim-review-mock-note">
         <strong>No meaning warnings</strong>
-        <span>Mock validation did not find risky meaning-preservation cuts.</span>
+        <span>Local validation did not find risky meaning-preservation cuts.</span>
       </div>
     )
   }
@@ -73,7 +74,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
       )}
       defaultExpanded={shouldExpand}
       eyebrow="Source QA"
-      helper="ReeditPro reviews retakes and checks that cuts preserve meaning before final approval. This is mock review only; no real transcript/media comparison has run."
+      helper="ReeditPro reviews retakes and checks that cuts preserve meaning before final approval. Transcript and media comparison remain approval-gated until approved execution."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Trim review"
@@ -85,7 +86,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
           {meaningPreservationValidationPlan.userReviewRequired ? 'Needs user review' : 'No user review'}
         </Badge>
         <Badge accent={statusAccent(meaningPreservationValidationPlan.status)}>Meaning {statusLabel(meaningPreservationValidationPlan.status)}</Badge>
-        <Badge accent="muted">Mock only</Badge>
+        <Badge accent="muted">Internal review</Badge>
       </div>
 
       <div className="trim-review-summary-grid">
@@ -112,7 +113,7 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
           {retakeSelectionPlan.items.length === 0 ? (
             <article className="retake-selection-item">
               <strong>No retake groups inferred</strong>
-              <span>Mock metadata did not identify repeated takes.</span>
+              <span>Local metadata did not identify repeated takes.</span>
             </article>
           ) : retakeSelectionPlan.items.map((item) => (
             <article className="retake-selection-item" key={item.id}>
@@ -161,16 +162,16 @@ export function InlineTrimReviewCard({ descriptor, plan }: InlineTrimReviewCardP
           <h4>User review questions</h4>
           <div className="trim-review-user-question-list">
             {trimReviewPlan.nextUserQuestions.slice(0, 5).map((question) => (
-              <span key={question}>{question}</span>
+              <span key={question}>{hideInternalToolNamesInCopy(question)}</span>
             ))}
           </div>
         </div>
       )}
 
       <div className="trim-review-mock-note">
-        <strong>Mock-only review</strong>
+        <strong>Review gate</strong>
         {trimReviewPlan.limitations.map((limitation) => (
-          <span key={limitation}>{limitation}</span>
+          <span key={limitation}>{hideInternalToolNamesInCopy(limitation)}</span>
         ))}
       </div>
     </InlinePlanCardShell>

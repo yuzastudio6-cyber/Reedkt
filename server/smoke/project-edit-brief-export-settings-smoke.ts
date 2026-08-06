@@ -6,6 +6,7 @@ import {
 } from '../../src/lib/project-edit-brief-api-client'
 import {
   applyProjectEditBriefExportPresetToForm,
+  applyProjectEditBriefExportResolutionProfileToForm,
   createProjectEditBriefExportSettingsFormState,
   loadProjectEditBriefExportSettingsPanelForUI,
   saveProjectEditBriefExportSettingsFormViaApi,
@@ -60,13 +61,13 @@ assert.equal(presets.length, PROJECT_EDIT_BRIEF_EXPORT_PRESET_DEFINITIONS.length
 for (const preset of presets) assertFalseFlags(preset, `preset:${preset.presetId}`)
 
 const expectedPresets = [
-  ['instagram_reel', '9:16', 'instagram_reel_1080x1920', 1080, 1920],
-  ['tiktok_reel', '9:16', 'tiktok_1080x1920', 1080, 1920],
-  ['youtube_shorts', '9:16', 'youtube_shorts_1080x1920', 1080, 1920],
-  ['youtube_standard', '16:9', 'youtube_standard_1920x1080', 1920, 1080],
-  ['website', '16:9', 'website_1920x1080', 1920, 1080],
-  ['instagram_feed', '1:1', 'instagram_feed_square_1080x1080', 1080, 1080],
-  ['ad_creative', '4:5', 'instagram_feed_4x5_1080x1350', 1080, 1350],
+  ['instagram_reel', '9:16', 'instagram_reel_1080x1920', 2160, 3840],
+  ['tiktok_reel', '9:16', 'tiktok_1080x1920', 2160, 3840],
+  ['youtube_shorts', '9:16', 'youtube_shorts_1080x1920', 2160, 3840],
+  ['youtube_standard', '16:9', 'youtube_standard_1920x1080', 3840, 2160],
+  ['website', '16:9', 'website_1920x1080', 3840, 2160],
+  ['instagram_feed', '1:1', 'instagram_feed_square_1080x1080', 2160, 2160],
+  ['ad_creative', '4:5', 'instagram_feed_4x5_1080x1350', 2160, 2700],
   ['custom', 'custom', 'custom', 1080, 1080],
 ] as const
 
@@ -80,6 +81,7 @@ for (const [platformTarget, aspectRatio, presetId, width, height] of expectedPre
   assert.equal(recommendation.exportSettings.deliveryPreset, presetId)
   assert.equal(recommendation.exportSettings.resolution.width, width)
   assert.equal(recommendation.exportSettings.resolution.height, height)
+  assert.equal(recommendation.exportSettings.resolutionProfileId, presetId === 'custom' ? 'custom' : 'uhd_2160')
   assert.equal(recommendation.exportSettings.frameRate, 30)
   assert.equal(recommendation.exportSettings.format, 'mp4')
   assert.equal(recommendation.exportSettings.codec, 'h264')
@@ -104,6 +106,7 @@ const clientRecommendation = await client.exportSettings.recommend<{
 })
 assert.equal(clientRecommendation.ok, true)
 assert.equal(clientRecommendation.data?.exportSettings.deliveryPreset, 'instagram_feed_4x5_1080x1350')
+assert.equal(clientRecommendation.data?.exportSettings.resolutionProfileId, 'uhd_2160')
 assert.equal(clientRecommendation.data?.safety.renderJobCreated, false)
 
 const panel = await loadProjectEditBriefExportSettingsPanelForUI({
@@ -117,6 +120,15 @@ assert.equal(panel.canStartExport, false)
 assertFalseFlags(panel, 'panel')
 
 const form = createProjectEditBriefExportSettingsFormState(panel.settings!)
+assert.equal(form.resolutionProfileId, 'hd_1080', 'legacy fixtures should infer their exact professional profile')
+const twoKForm = applyProjectEditBriefExportResolutionProfileToForm(form, 'qhd_1440')
+assert.equal(twoKForm.resolutionWidth, 2560)
+assert.equal(twoKForm.resolutionHeight, 1440)
+assert.equal(twoKForm.resolutionProfileId, 'qhd_1440')
+const fourKForm = applyProjectEditBriefExportResolutionProfileToForm(twoKForm, 'uhd_2160')
+assert.equal(fourKForm.resolutionWidth, 3840)
+assert.equal(fourKForm.resolutionHeight, 2160)
+assert.equal(fourKForm.resolutionProfileId, 'uhd_2160')
 const updatedForm = {
   ...applyProjectEditBriefExportPresetToForm(form, 'instagram_reel_1080x1920'),
   resolutionWidth: 1080,
@@ -130,7 +142,28 @@ const saved = await saveProjectEditBriefExportSettingsFormViaApi(updatedForm, cl
 assert.equal(saved.validation.ok, true)
 assert.equal(saved.exportSettings?.deliveryPreset, 'instagram_reel_1080x1920')
 assert.equal(saved.exportSettings?.source, 'user_override_mock')
+assert.equal(saved.exportSettings?.resolutionProfileId, 'hd_1080')
 assert.match(saved.summary, /No render\/export started/)
+
+const sourceResolutionRecommendation = createProjectEditBriefExportSettingsRecommendation({
+  projectId,
+  editSessionId: 'edit-session-source-resolution',
+  platformTarget: 'instagram_reel',
+  aspectRatio: '9:16',
+  sourceResolution: { width: 1080, height: 1920 },
+  source: 'browser_source_video_metadata',
+})
+assert.equal(sourceResolutionRecommendation.exportSettings.resolutionProfileId, 'hd_1080')
+assert.deepEqual(sourceResolutionRecommendation.exportSettings.resolution, { width: 1080, height: 1920 })
+
+const fourByThreeRecommendation = createProjectEditBriefExportSettingsRecommendation({
+  projectId,
+  editSessionId: 'edit-session-professional-4x3',
+  platformTarget: 'custom',
+  aspectRatio: '4:3',
+})
+assert.equal(fourByThreeRecommendation.exportSettings.resolutionProfileId, 'uhd_2160')
+assert.deepEqual(fourByThreeRecommendation.exportSettings.resolution, { width: 2880, height: 2160 })
 
 const invalidForm = {
   ...updatedForm,

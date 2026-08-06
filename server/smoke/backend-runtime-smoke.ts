@@ -15,6 +15,15 @@ const env = loadRuntimeEnv({
   SUPABASE_SERVICE_ROLE_KEY: 'smoke-service-role-placeholder',
   SUPABASE_URL: '',
 })
+const adapterRuntimeEnv = loadRuntimeEnv({
+  NODE_ENV: 'test',
+  E2E_RUNTIME_MODE: 'local',
+  API_ALLOW_MOCK_WITHOUT_SUPABASE: 'true',
+  API_PORT: '8788',
+  TOOL_ADAPTER_PYTHON_BIN: '/opt/reeditpro-worker/bin/python',
+  SUPABASE_SERVICE_ROLE_KEY: 'smoke-service-role-placeholder',
+  SUPABASE_URL: '',
+})
 
 const app = createReeditProApiApp(env)
 assert(Boolean(app), 'Express app should be created.')
@@ -37,6 +46,10 @@ assert(providerBlocked, 'Provider gateway should block real provider calls.')
 
 const summaryText = JSON.stringify(createSafeRuntimeSummary(env))
 assert(!summaryText.includes('smoke-service-role-placeholder'), 'Safe runtime summary must not expose service-role key values.')
+const adapterRuntimeSummaryText = JSON.stringify(createSafeRuntimeSummary(adapterRuntimeEnv))
+assert(adapterRuntimeEnv.toolAdapterPythonBin === '/opt/reeditpro-worker/bin/python', 'Tool adapter Python runtime should allow a worker-specific override.')
+assert(adapterRuntimeSummaryText.includes('"toolAdapterPythonBinConfigured":true'), 'Safe runtime summary should report that adapter Python override is configured.')
+assert(!adapterRuntimeSummaryText.includes('/opt/reeditpro-worker/bin/python'), 'Safe runtime summary must not expose the adapter Python binary path.')
 
 console.log(JSON.stringify({
   ok: true,
@@ -46,5 +59,6 @@ console.log(JSON.stringify({
     'error_envelope_shape',
     'provider_real_calls_disabled',
     'service_role_not_exposed',
+    'tool_adapter_python_runtime_override_safe_summary',
   ],
 }))

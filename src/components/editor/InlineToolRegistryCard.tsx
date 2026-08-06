@@ -1,6 +1,14 @@
+import { useEffect, useState } from 'react'
+
+import {
+  readPrivateInternalToolRuntimeReadiness,
+  type PrivateInternalToolRuntimeReadiness,
+} from '../../lib/private-internal-tool-runtime-readiness-client'
+import type {
+  ChatPlanningCardDescriptor,
+  EditPlan,
+} from '../../types/reeditpro'
 import { Badge } from '../Badge'
-import { getLaunchCoreTools, getPreset, getToolProfile, getToolRegistrySummary } from '../../lib/tool-registry'
-import type { ChatPlanningCardDescriptor, EditPlan, OpenSourceToolId } from '../../types/reeditpro'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineToolRegistryCardProps = {
@@ -8,150 +16,175 @@ type InlineToolRegistryCardProps = {
   descriptor?: ChatPlanningCardDescriptor
 }
 
-const keyLaunchToolIds: OpenSourceToolId[] = [
-  'remotion',
-  'ffmpeg',
-  'sharp',
-  'audioflux',
-  'signalsmith_stretch',
-  'maplibre',
-  'turf',
-  'd3',
-  'echarts',
-  'playwright',
-  'opencv',
-]
-
-const keyPresetIds = [
-  'money_flow_diagram',
-  'map_route_reveal',
-  'browser_dashboard_capture',
-  'premium_lower_panel',
-  'clean_natural_color_pass',
-  'voice_cleanup_basic',
-]
+type RuntimeReadinessState =
+  | { status: 'checking' }
+  | {
+      status: 'ready'
+      readiness: PrivateInternalToolRuntimeReadiness
+    }
+  | {
+      status: 'connection_required'
+      message: string
+    }
 
 function label(value: string) {
   return value.replaceAll('_', ' ')
 }
 
-function tierText(tier: { basic: boolean; pro: boolean; premium: boolean }) {
-  return [
-    tier.basic ? 'Basic' : undefined,
-    tier.pro ? 'Pro' : undefined,
-    tier.premium ? 'Premium' : undefined,
-  ].filter(Boolean).join(' / ')
-}
+export function InlineToolRegistryCard({
+  descriptor,
+}: InlineToolRegistryCardProps) {
+  const [runtimeState, setRuntimeState] =
+    useState<RuntimeReadinessState>({ status: 'checking' })
 
-export function InlineToolRegistryCard({ descriptor, plan }: InlineToolRegistryCardProps) {
-  const summary = plan?.toolRegistrySummary ?? getToolRegistrySummary()
-  const launchTools = keyLaunchToolIds
-    .flatMap((toolId) => {
-      const tool = getToolProfile(toolId)
-      return tool ? [tool] : []
-    })
-  const presets = keyPresetIds
-    .flatMap((presetId) => {
-      const preset = getPreset(presetId)
-      return preset ? [preset] : []
-    })
-  const launchCoreCount = getLaunchCoreTools().length
+  useEffect(() => {
+    let active = true
+
+    void readPrivateInternalToolRuntimeReadiness()
+      .then((readiness) => {
+        if (active) {
+          setRuntimeState({ status: 'ready', readiness })
+        }
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setRuntimeState({
+            status: 'connection_required',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'The authenticated private runtime status could not be read.',
+          })
+        }
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const readiness =
+    runtimeState.status === 'ready' ? runtimeState.readiness : undefined
 
   return (
     <InlinePlanCardShell
       className="tool-registry-card"
       compactSummary={(
-        <div className="compact-summary-row">
-          <span className="compact-summary-chip">{summary.launchCoreToolCount} launch core</span>
-          <span className="compact-summary-chip">{summary.plannedToolCount + summary.futureToolCount} planned/future</span>
-          <span className="compact-summary-chip">{summary.needsLicenseReviewCount} license review</span>
-          <span className="compact-summary-chip">planning only</span>
+        <div className="compact-summary-row" aria-live="polite">
+          {readiness ? (
+            <>
+              <span className="compact-summary-chip">
+                {readiness.readyToolCount} canonical tools ready
+              </span>
+              <span className="compact-summary-chip">
+                {readiness.runtimeAuthorityCount} verified runtimes
+              </span>
+              <span className="compact-summary-chip">
+                private internal execution
+              </span>
+            </>
+          ) : (
+            <span className="compact-summary-chip">
+              {runtimeState.status === 'checking'
+                ? 'Checking authenticated runtime status'
+                : 'Connect the private internal backend to inspect runtimes'}
+            </span>
+          )}
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
-      eyebrow="Tool intelligence"
-      helper="ReeditPro can use controlled open-source tools for maps, charts, browser captures, color, audio, and QA instead of relying on generative AI for everything. This is a planning registry only; no tools run in this demo."
+      eyebrow="Editing runtime status"
+      helper="This is a read-only status from the authenticated backend process. Ready means the verified runtime is active for private internal execution; it does not claim customer or production release."
       priority={descriptor?.priority}
-      status={descriptor?.status}
-      title="Tool registry"
+      status={readiness ? 'ready' : undefined}
+      title="Canonical editing tools"
     >
-      <div className="tool-registry-summary-grid">
-        <span><strong>{summary.launchCoreToolCount}</strong>Launch-core tools</span>
-        <span><strong>{summary.plannedToolCount}</strong>Planned tools</span>
-        <span><strong>{summary.futureToolCount}</strong>Future/evaluate tools</span>
-        <span><strong>{summary.needsLicenseReviewCount}</strong>License review</span>
-      </div>
+      {readiness ? (
+        <>
+          <div className="tool-registry-summary-grid">
+            <span>
+              <strong>{readiness.readyToolCount}</strong>
+              Ready tools
+            </span>
+            <span>
+              <strong>{readiness.runnerClassCount}</strong>
+              Runner classes
+            </span>
+            <span>
+              <strong>{readiness.runtimeAuthorityCount}</strong>
+              Runtime authorities
+            </span>
+            <span>
+              <strong>{readiness.canonicalToolCount}</strong>
+              Canonical identities
+            </span>
+          </div>
 
-      <div className="tool-category-list">
-        {summary.categories.map((category) => (
-          <span key={category}>{label(category)}</span>
-        ))}
-      </div>
+          <div className="understanding-chip-row">
+            <Badge accent="success">All canonical tools ready</Badge>
+            <Badge accent="cyan">Private internal execution</Badge>
+            <Badge accent="muted">Production promotion separate</Badge>
+          </div>
 
-      <div className="understanding-chip-row">
-        <span className="not-installed-badge">No packages installed</span>
-        <span className="not-installed-badge">No tool execution</span>
-        <span className="not-installed-badge">No backend worker yet</span>
-        <span className="not-installed-badge">Provider models separate</span>
-      </div>
+          <details className="understanding-section">
+            <summary>
+              Verified canonical tools ({readiness.readyToolCount})
+            </summary>
+            <div className="tool-profile-list">
+              {readiness.tools.map((tool) => (
+                <article className="tool-profile-item" key={tool.toolId}>
+                  <div>
+                    <span className="section-eyebrow">
+                      {label(tool.runtimeFamily)}
+                    </span>
+                    <h4>{tool.displayName}</h4>
+                    <p>{tool.operationId}</p>
+                  </div>
+                  <div className="understanding-chip-row">
+                    <Badge accent="success">Ready</Badge>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </details>
 
-      <details className="understanding-section" open={descriptor?.status === 'warning' || descriptor?.status === 'blocking'}>
-        <summary>Key launch tools ({launchCoreCount})</summary>
-        <div className="tool-profile-list">
-          {launchTools.map((tool) => (
-            <article className="tool-profile-item" key={tool.id}>
-              <div>
-                <span className="section-eyebrow">{label(tool.category)}</span>
-                <h4>{tool.label}</h4>
-                <p>{tool.description}</p>
-              </div>
-              <div className="tool-profile-meta">
-                <span><strong>Execution</strong><em className="tool-execution-badge">{label(tool.executionMode)}</em></span>
-                <span><strong>Adoption</strong><em className="tool-adoption-badge">{label(tool.adoptionStage)}</em></span>
-                <span><strong>Tier</strong><em className="tool-tier-row">{tierText(tool.tierAvailability)}</em></span>
-                <span><strong>Best for</strong>{tool.bestFor.slice(0, 3).join(', ')}</span>
-              </div>
-              <div className="understanding-chip-row">
-                <span className="not-installed-badge">not installed yet</span>
-                {tool.licenseNotes.slice(0, 1).map((note) => (
-                  <span className="license-review-note" key={note}>{note}</span>
-                ))}
-              </div>
-            </article>
-          ))}
+          <details className="understanding-section">
+            <summary>Release boundary</summary>
+            <div className="layout-mode-meta">
+              <span>
+                <strong>Internal execution</strong>
+                Ready in this authenticated private process
+              </span>
+              <span>
+                <strong>Customer production</strong>
+                Requires separate deployment, service identity, storage,
+                observability, and release evidence
+              </span>
+              {readiness.releaseBlockers.map((blocker) => (
+                <span key={blocker}>
+                  <strong>Open release gate</strong>
+                  {label(blocker)}
+                </span>
+              ))}
+            </div>
+          </details>
+        </>
+      ) : (
+        <div className="inline-runtime-status" role="status">
+          <strong>
+            {runtimeState.status === 'checking'
+              ? 'Reading verified runtime authorities…'
+              : 'Private backend connection required'}
+          </strong>
+          <p>
+            {runtimeState.status === 'checking'
+              ? 'The interface is waiting for the authenticated backend result and will not guess from planning metadata.'
+              : runtimeState.status === 'connection_required'
+                ? runtimeState.message
+                : 'The authenticated backend result is being applied.'}
+          </p>
         </div>
-      </details>
-
-      <details className="understanding-section">
-        <summary>Common ReeditPro presets</summary>
-        <div className="tool-preset-list">
-          {presets.map((preset) => (
-            <article className="tool-preset-item" key={preset.id}>
-              <div>
-                <strong>{label(preset.id)}</strong>
-                <p>{preset.description}</p>
-              </div>
-              <div className="understanding-chip-row">
-                {preset.toolIds.map((toolId) => (
-                  <Badge accent="cyan" key={toolId}>{label(toolId)}</Badge>
-                ))}
-                <Badge accent={preset.tierFit.basic ? 'success' : 'violet'}>
-                  {tierText(preset.tierFit)}
-                </Badge>
-              </div>
-            </article>
-          ))}
-        </div>
-      </details>
-
-      <details className="understanding-section">
-        <summary>Registry boundaries</summary>
-        <div className="layout-mode-meta">
-          {summary.notes.map((note) => (
-            <span key={note}><strong>Rule</strong>{note}</span>
-          ))}
-        </div>
-      </details>
+      )}
     </InlinePlanCardShell>
   )
 }

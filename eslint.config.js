@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'dist-server', 'dist-remotion-worker']),
+  globalIgnores(['dist', 'dist-server', 'dist-remotion-worker', 'test-results', 'playwright-report', '**/._*']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -23,6 +23,21 @@ export default defineConfig([
     files: ['server/**/*.ts', 'src/server/**/*.ts', 'vite.server.config.ts'],
     languageOptions: {
       globals: globals.node,
+    },
+  },
+  {
+    files: ['docker/prod/offline-remotion-render-execution/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: ['playwright.config.ts', 'tests/e2e/**/*.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
   },
 ])

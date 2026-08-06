@@ -10,10 +10,9 @@ This layer is planning-only. It does not render maps, call map APIs, geocode loc
 
 Map and location visuals should generally use controlled tooling:
 
-- MapLibre for map display and camera animation planning.
-- Turf for route, bounds, distance, geometry, and padding planning.
+- D3 plus SVG.js for the current canonical source-bound vector-map asset path.
 - Remotion for final composition, layout, caption placement, and timing.
-- D3, deck.gl, or CesiumJS later for advanced map/data/globe visuals.
+- MapLibre, Turf, deck.gl, and CesiumJS remain future capability references only; they are not selectable canonical tools until they have exact end-to-end proof.
 - GPT-Image-2 only for stylized map cards or non-geographic illustrations where exact map accuracy is not needed.
 
 AI video should not invent exact maps, labels, roads, pins, or geography. Wan, Hailuo, and Veo are not map rendering tools. Veo remains Premium-only final fallback for AI video assets, not map generation.
@@ -108,7 +107,7 @@ Pro:
 - Multi-location sequence.
 - Side-by-side or PIP map.
 - Map behind subject if low/medium risk with fallback.
-- MapLibre/Turf planning.
+- Source-bound D3/SVG route and label planning.
 - No Veo.
 
 Premium:
@@ -133,14 +132,15 @@ For Documentary / Case Study:
 
 ## Tool Responsibilities
 
-MapLibre:
+D3 + SVG.js:
 
-- Map camera/render planning.
-- Pins, routes, layers, and future map asset generation.
+- Source-bound vector geometry, labels, pins, route drawing, and deterministic map asset specifications.
+- Exact coordinates, bounds, and source geometry must already be approved; these tools do not geocode or invent geography.
 
-Turf:
+Future capability references:
 
-- Route, bounds, distance, and geometry planning.
+- MapLibre/Turf may later provide map camera, tiles, route bounds, distance, and geometry support after canonical end-to-end proof.
+- deck.gl/CesiumJS may later support advanced map/data/globe visuals after the same admission process.
 
 Remotion:
 
@@ -165,4 +165,4 @@ Wan/Hailuo/Veo:
 
 ## Non-Goals
 
-This milestone does not install MapLibre/Turf, render real maps, call map APIs, geocode locations, verify locations, run Remotion, or run backend workers.
+This milestone does not render real maps, call map APIs, geocode locations, verify locations, run Remotion, or run backend workers. Future map capabilities are not selectable tool identities.

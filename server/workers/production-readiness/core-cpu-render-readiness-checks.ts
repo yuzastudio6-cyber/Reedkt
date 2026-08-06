@@ -19,27 +19,14 @@ export const M10_CORE_CPU_RENDER_TOOL_IDS: ProductionToolId[] = [
   'sharp',
   'remotion',
   'libass',
-  'hyperframe',
   'openimageio',
   'opencolorio',
 ]
 
 export const M10_EXCLUDED_GPU_MODEL_TOOL_IDS: ProductionToolId[] = [
-  'faster_whisper',
-  'whisper_cpp',
-  'paddleocr',
-  'mediapipe',
   'kornia',
-  'birefnet',
-  'sam2',
-  'transparent_background',
   'rembg',
-  'torch_torchvision',
-  'transformers',
   'deepfilternet',
-  'demucs',
-  'real_esrgan',
-  'film',
 ]
 
 export type CoreToolReadinessCheckKind =
@@ -296,16 +283,6 @@ function policyResults(checkedAt: string): CoreToolReadinessCheckResult[] {
       optional: false,
       manualReviewRequired: true,
       message: 'Distro FFmpeg may be declared for dev/readiness images, but final commercial LGPL-safe build verification is pending manual review.',
-      checkedAt,
-    },
-    {
-      toolId: 'revideo',
-      checkKind: 'registry_policy',
-      checkName: 'revideo_evaluation_only_policy',
-      status: 'evaluation_only',
-      optional: false,
-      manualReviewRequired: true,
-      message: 'Revideo remains evaluation-only and is not installed as a core render dependency.',
       checkedAt,
     },
   ]

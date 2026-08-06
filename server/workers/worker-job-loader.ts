@@ -27,6 +27,7 @@ export interface WorkerJobLoaderInput {
 }
 
 export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoaderInput): Promise<WorkerJobRecord> {
+  blockCallerAuthoredWorkerJobLoading()
   if (!context.clients.admin || context.env.mockOnly) {
     return {
       id: input.jobId,
@@ -62,6 +63,15 @@ export async function loadWorkerJob(context: ServiceContext, input: WorkerJobLoa
     outputPayload: isRecord(data.output_payload) ? data.output_payload : undefined,
     jobBatchId: typeof data.job_batch_id === 'string' ? data.job_batch_id : undefined,
   }
+}
+
+function blockCallerAuthoredWorkerJobLoading(): void {
+  throw new ApiError(
+    'TOOL_NOT_READY',
+    'Worker jobs must be loaded from immutable canonical authority; caller fields and legacy jobs-table rows cannot create execution authority.',
+    503,
+    { requiredGate: 'canonical_authority_job_loader' },
+  )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

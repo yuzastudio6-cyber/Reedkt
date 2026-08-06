@@ -188,10 +188,10 @@ export function createGeneratedAssetFromWorker(input: {
     durationSeconds: providerResponse.durationSeconds,
     transparentBackground: false,
     wordLevelTiming: false,
-    usableForRender: true,
+    usableForRender: false,
     qualityNotes: [
-      'Mock generated music asset; no real audio file exists.',
-      'Must pass Music QA and mix planning before preview use.',
+      'Fixture-only Music metadata; no real audio file exists.',
+      'Cannot be previewed, rendered, promoted, or handed off by canonical Music.',
     ],
     createdAt: nowIso(),
     updatedAt: nowIso(),

@@ -5,6 +5,7 @@ import type { TimelineManifest } from '../../../src/backend/contracts/timeline-m
 import type { ToolArtifact } from '../../../src/backend/contracts/tool-artifact-contracts'
 import type { MediaProbeResult } from '../media/media-worker-types'
 import type { ProductionWorkerJobPayload } from '../production/production-worker-types'
+import type { ProfessionalExportExecutionAuthority } from '../../../src/types/professional-export'
 
 export type FinalRenderExecutionMode =
   | 'dry_run'
@@ -60,6 +61,7 @@ export interface FinalRenderExecutionInput {
   fps: number
   durationSeconds: number
   exportSettings: RenderExportSettings
+  professionalExportAuthority?: ProfessionalExportExecutionAuthority
   enableLocalDevRender?: boolean
   enableRemotionLocalRender?: boolean
   enableCaptionBurnIn?: boolean
@@ -125,6 +127,7 @@ export interface RenderExecutionManifest {
   renderEngine: FinalRenderEngine
   renderMode: FinalRenderMode
   exportSettings: RenderExportSettings
+  professionalExportAuthority?: ProfessionalExportExecutionAuthority
   resolvedAssets: RenderResolvedAsset[]
   qaRequirements: Array<QualityGateResult['gateType']>
   hyperframeBridgeOnly: boolean

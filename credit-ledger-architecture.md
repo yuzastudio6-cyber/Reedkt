@@ -10,6 +10,10 @@ Subscription is software access. Reedit Credits pay for AI generation, rendering
 
 The system must not treat `$10/week` or `$20/week` as unlimited AI editing.
 
+RP-CREDITPOLICY-01 locks the external-beta retail value at 1 credit = $0.10, so 10 credits = $1.00 and 100 credits = $10.00. Older notes that said 100 credits = $5 are legacy and superseded.
+
+Credits also pay ReEditPro's service/edit fee on top of actual billable tool cost. Tool owners report actual internal tool cost only and must never include the ReEditPro service/edit fee inside tool cost events.
+
 ## RP-FIX-11 Runtime Note
 
 Worker leases and idempotency keys are now represented in mock runtime services. Production credit spend/refund must remain transactionally tied to job completion/failure and idempotency records so a retried or duplicated worker cannot spend credits twice.
@@ -90,11 +94,15 @@ Fields:
 ```text
 estimate credits
 -> user approves
--> reserve credits
+-> reserve maximumEstimatedCredits
 -> generation starts
 -> if success, reserved becomes spent
 -> if ReeditPro failure, reserved/spent credits are refunded
 ```
+
+If projected spend may exceed the approved maximum estimate, ReEditPro must pause and show `Action required: revised credit estimate needed`. No extra paid work continues until the user approves a revised estimate, chooses a lower-cost option, or cancels extra work.
+
+If ReEditPro fails to pause before an unapproved overage, ReEditPro absorbs the overage. Do not silently charge the next edit and do not create hidden negative wallet behavior. Export lock copy, `Action required: add credits to export`, is allowed only for approved but unfunded final charges.
 
 ## Credit Types
 
@@ -173,3 +181,31 @@ The existing credit tables remain the target schema. The skeleton does not add m
 ## RP-FIX-10 Job Recovery Link
 
 RP-FIX-10 connects mock job completion/failure flows to the RP-FIX-09 credit skeleton. Successful mock jobs can spend a reserved credit record. Failed mock jobs can release or refund reserved credits. Production behavior still requires transactional backend enforcement around job status and ledger mutation.
+
+## RP-CREDITPOLICY-01 Policy Lock
+
+RP-CREDITPOLICY-01 adds policy/types/docs/constants and smoke coverage for credit retail value, product edit-level service fee floors/percentages, tool-owner service-fee exclusion, revised estimate copy, export-lock copy, and no-silent-recovery billing rules.
+
+It does not add live billing, Stripe, Supabase migration, wallet mutation, provider calls, render/export charging, credit reservation/spend execution, or production settlement.
+
+## RP-CREDITDATA-01 Data Foundation
+
+RP-CREDITDATA-01 adds mock-safe settlement and action-required data records: `CreditSettlementRecord`, `CreditRevisionActionRecord`, `EditCreditCostSummary`, and read-only preview contracts. The mock store supports idempotency and receipt preview while preserving no live billing, no wallet mutation, no reservation spend/release/refund, no ledger write, no Stripe checkout, no provider call, no render/export execution, and no export unlock. Production settlement enforcement remains a later backend milestone.
+
+## RP-RATECARD-01 Rate Card Cost Math
+
+RP-RATECARD-01 hardens the mock-safe rate card and cost math that feeds settlement preview. Tool-cost events store actual internal tool cost only, pricing snapshots keep `serviceFeeIncluded = false`, non-billable costs remain visible as absorbed cost, and ReEditPro service fee is added separately by credit policy math. `smoke:rate-card` and the `smoke:tool-cost-metering` alias cover the integer micros/cents/credits bridge.
+
+This still does not add live billing, Stripe/payment, provider calls, Supabase migrations, wallet mutation, reservation spend/release/refund, ledger writes, render/export execution, production persistence, or export unlock.
+
+## RP-TOOLCOST-01 Production Tool Cost Coverage
+
+RP-TOOLCOST-01 derives mock-safe owner coverage for all 49 production registry tools and exposes estimate/event adapters over the RP-RATECARD-01 math. Billable production tool events require approved plan context, approved credit estimate, active reservation when required, and idempotency. Non-billable events remain visible as absorbed internal cost. ReEditPro service fee is still settlement-preview policy only and is never included in tool-cost events.
+
+This still does not add live billing, Stripe/payment, provider calls, Supabase migrations, wallet mutation, reservation spend/release/refund, ledger writes, render/export execution, production persistence, settlement execution, or export unlock.
+
+## RP-ESTIMATE-01 Credit Estimate Preview
+
+RP-ESTIMATE-01 adds a mock-safe estimate preview before paid work starts. It aggregates production tool estimate ranges, adds the ReEditPro service/edit fee as a separate line, records the high estimate as the future required hold, and reports informational top-up/lower-cost options.
+
+This still does not approve estimates, reserve credits, spend/release/refund credits, mutate wallets, write ledgers, call providers, run workers, render/export, run Supabase, create production persistence, or unlock export.

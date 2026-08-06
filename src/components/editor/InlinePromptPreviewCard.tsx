@@ -1,5 +1,6 @@
 import { Badge } from '../Badge'
 import type { ChatPlanningCardDescriptor, EditPlan, PromptTargetProvider, ProviderPromptPlan } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlinePromptPreviewCardProps = {
@@ -9,18 +10,18 @@ type InlinePromptPreviewCardProps = {
 
 const providerLabels: Record<PromptTargetProvider, string> = {
   editor_motion: 'Editor motion',
-  gpt_image_2: 'GPT-Image-2',
-  hailuo: 'Hailuo',
+  gpt_image_2: 'AI image route',
+  hailuo: 'AI video route',
   none: 'None',
-  remotion: 'Remotion',
-  veo: 'Veo',
-  wan: 'Wan',
+  remotion: 'Composition brief',
+  veo: 'Premium video fallback',
+  wan: 'AI video route',
 }
 
 const providerOrder: PromptTargetProvider[] = ['gpt_image_2', 'wan', 'hailuo', 'veo', 'remotion', 'editor_motion', 'none']
 
 function formatLabel(value: string) {
-  return value.replaceAll('_', ' ')
+  return hideInternalToolNamesInCopy(value.replaceAll('_', ' '))
 }
 
 function groupPromptPlans(promptPlans: ProviderPromptPlan[]) {
@@ -34,10 +35,10 @@ function groupPromptPlans(promptPlans: ProviderPromptPlan[]) {
 
 function promptPreviewText(promptPlan: ProviderPromptPlan) {
   if (promptPlan.prompt.length <= 360) {
-    return promptPlan.prompt
+    return hideInternalToolNamesInCopy(promptPlan.prompt)
   }
 
-  return `${promptPlan.prompt.slice(0, 360).trim()}...`
+  return `${hideInternalToolNamesInCopy(promptPlan.prompt.slice(0, 360).trim())}...`
 }
 
 export function InlinePromptPreviewCard({ descriptor, plan }: InlinePromptPreviewCardProps) {
@@ -54,25 +55,25 @@ export function InlinePromptPreviewCard({ descriptor, plan }: InlinePromptPrevie
       className="prompt-preview-card"
       compactSummary={(
         <div className="compact-summary-row">
-          <span className="compact-summary-chip">{promptPlans.length} prompt plans</span>
+          <span className="compact-summary-chip">{promptPlans.length} asset briefs</span>
           <span className="compact-summary-chip">{groupedProviders.map((group) => providerLabels[group.provider]).join(', ')}</span>
-          <span className="compact-summary-chip">Mock only</span>
-          <span className="compact-summary-chip">No provider calls</span>
+          <span className="compact-summary-chip">Internal draft</span>
+          <span className="compact-summary-chip">Preparation gated</span>
         </div>
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
-      eyebrow="Provider prompt preview"
-      helper="These are mock prompt plans. In production, workers would use approved prompt plans to generate images, cards, keyframes, AI animation clips, or Remotion motion briefs. No provider is called in this demo."
+      eyebrow="AI asset briefs"
+      helper="These asset briefs are internal drafts. Approved preparation steps can use them later to prepare images, cards, keyframes, AI animation clips, or composition motion briefs."
       priority={descriptor?.priority}
       status={descriptor?.status}
-      title="Provider prompt preview"
+      title="AI asset briefs"
     >
       <div className="qa-badge-row">
-        <Badge accent="cyan">Mock only</Badge>
+        <Badge accent="cyan">Internal draft</Badge>
         <Badge accent="muted">Advanced planning details</Badge>
       </div>
       <p className="prompt-policy-note">
-        Provider dollar costs are not shown here. Prompts are not sent yet. AI models generate assets/clips only; ReeditPro owns final composition and approval.
+        AI asset costs are not shown here. Asset briefs are not sent yet. Private preparation can create assets or clips later; ReeditPro owns final composition and approval.
       </p>
 
       <div className="prompt-group-list">
@@ -85,7 +86,7 @@ export function InlinePromptPreviewCard({ descriptor, plan }: InlinePromptPrevie
               <div className="prompt-plan-header">
                 <div>
                   <strong>{providerLabels[group.provider]}</strong>
-                  <small>{group.plans.length} prompt plan{group.plans.length === 1 ? '' : 's'}</small>
+                  <small>{group.plans.length} asset brief{group.plans.length === 1 ? '' : 's'}</small>
                 </div>
                 {group.provider === 'veo' && <span className="prompt-locked-note">Premium final fallback only</span>}
               </div>
@@ -115,7 +116,7 @@ export function InlinePromptPreviewCard({ descriptor, plan }: InlinePromptPrevie
                     <p className="prompt-plan-text">{promptPreviewText(promptPlan)}</p>
                     {promptPlan.negativePrompt && (
                       <p className="prompt-negative-text">
-                        <strong>Negative:</strong> {promptPlan.negativePrompt}
+                        <strong>Negative:</strong> {hideInternalToolNamesInCopy(promptPlan.negativePrompt)}
                       </p>
                     )}
                   </div>
@@ -130,7 +131,7 @@ export function InlinePromptPreviewCard({ descriptor, plan }: InlinePromptPrevie
               ))}
 
               {hiddenCount > 0 && (
-                <p className="inline-helper">+ {hiddenCount} more {providerLabels[group.provider]} prompt plan{hiddenCount === 1 ? '' : 's'} included in the approved mock plan.</p>
+                <p className="inline-helper">+ {hiddenCount} more {providerLabels[group.provider]} asset brief{hiddenCount === 1 ? '' : 's'} included in the approved internal plan.</p>
               )}
             </article>
           )

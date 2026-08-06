@@ -13,12 +13,29 @@ import type {
   VisualAssetPlanItemRecord,
 } from '../types/edit-planning-db'
 import type { EditLevel, EditPlan, ProfessionalEditingDirective } from '../types/reeditpro'
+import type { PlanningBriefInput } from '../types/planning-context'
 
 type CreateApprovedPlanSnapshotParams = {
   projectId: string
   editSessionId: string
   approvedBy: string
   plan: EditPlan
+  editBriefSnapshot?: PlanningBriefInput
+  sourceMediaAssets?: ApprovedSourceMediaBindingInput[]
+}
+
+type ApprovedSourceMediaBindingInput = {
+  mediaAssetId: string
+  sourceSequenceItemId?: string
+  uploadedClipId?: string
+  uploadedOrder: number
+  storageProvider: 'local_private' | 'google_cloud_storage' | 'supabase_storage'
+  storageBucket?: string
+  storagePath: string
+  fileName: string
+  mimeType: string
+  byteSize: number
+  checksumSha256?: string
 }
 
 function asJson(value: unknown): JsonValue {
@@ -51,19 +68,53 @@ function getProfessionalDirective(plan: EditPlan): ProfessionalEditingDirective 
     }
 }
 
-function createSourceSequence(projectId: string, editSessionId: string, plan: EditPlan, createdAt: string): SourceSequenceItemRecord[] {
-  return plan.sourceSequenceMap.map((item) => ({
-    id: `source-sequence-${item.clipId}`,
-    project_id: projectId,
-    edit_session_id: editSessionId,
-    uploaded_clip_id: item.clipId,
-    source_order: item.uploadedOrder,
-    confirmed_order: item.uploadedOrder,
-    user_confirmed: true,
-    notes: item.detectedRole,
-    created_at: createdAt,
-    updated_at: createdAt,
-  }))
+function createSourceSequence(
+  projectId: string,
+  editSessionId: string,
+  plan: EditPlan,
+  createdAt: string,
+  sourceMediaAssets: ApprovedSourceMediaBindingInput[] = [],
+): SourceSequenceItemRecord[] {
+  const bindingsBySourceSequenceItemId = new Map(
+    sourceMediaAssets
+      .filter((asset) => Boolean(asset.sourceSequenceItemId))
+      .map((asset) => [asset.sourceSequenceItemId, asset] as const),
+  )
+  const bindingsByUploadedClipId = new Map(
+    sourceMediaAssets
+      .filter((asset) => Boolean(asset.uploadedClipId))
+      .map((asset) => [asset.uploadedClipId, asset] as const),
+  )
+  const bindingsByUploadedOrder = new Map(sourceMediaAssets.map((asset) => [asset.uploadedOrder, asset] as const))
+
+  return plan.sourceSequenceMap.map((item) => {
+    const id = `source-sequence-${item.clipId}`
+    const binding =
+      bindingsBySourceSequenceItemId.get(id) ??
+      bindingsByUploadedClipId.get(item.clipId) ??
+      bindingsByUploadedOrder.get(item.uploadedOrder)
+
+    return {
+      id,
+      project_id: projectId,
+      edit_session_id: editSessionId,
+      uploaded_clip_id: item.clipId,
+      source_order: item.uploadedOrder,
+      confirmed_order: item.uploadedOrder,
+      user_confirmed: true,
+      notes: item.detectedRole,
+      approved_media_asset_id: binding?.mediaAssetId,
+      approved_source_checksum_sha256: binding?.checksumSha256,
+      approved_storage_provider: binding?.storageProvider,
+      approved_storage_bucket: binding?.storageBucket,
+      approved_storage_path: binding?.storagePath,
+      approved_file_name: binding?.fileName,
+      approved_mime_type: binding?.mimeType,
+      approved_byte_size: binding?.byteSize,
+      created_at: createdAt,
+      updated_at: createdAt,
+    }
+  })
 }
 
 function createEditPlanVersion(projectId: string, editSessionId: string, plan: EditPlan, approvedBy: string, approvedAt: string): EditPlanVersionRecord {
@@ -276,7 +327,13 @@ function modelConstraintsForLevel(editLevel: EditLevel) {
 }
 
 export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotParams): ApprovedPlanSnapshot {
-  const { approvedBy, editSessionId, plan, projectId } = params
+  const { approvedBy, editBriefSnapshot, editSessionId, plan, projectId, sourceMediaAssets = [] } = params
+
+  if (plan.professionalSkillPlan?.livingFrame) {
+    throw new Error(
+      'Living Frame requires the asynchronous canonical planning authority and cannot use the legacy synchronous snapshot path.',
+    )
+  }
 
   if (plan.aspectRatioFramePlan?.status !== 'confirmed') {
     throw new Error('Cannot create an approved plan snapshot until the output frame/aspect ratio is confirmed.')
@@ -306,9 +363,29 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     throw new Error('Cannot create an approved plan snapshot until Timing Validation has passed or is reviewable without blocking/failing checks.')
   }
 
+  const professionalExportCoverage = plan.creditEstimate.professionalExportCoverage
+  const selectedAspectRatio = plan.aspectRatioFramePlan.selectedAspectRatio
+  const exportEstimateLine = plan.creditEstimate.breakdown.find((item) =>
+    item.label === '4K UHD render and export ceiling')
+  if (
+    !professionalExportCoverage ||
+    !selectedAspectRatio ||
+    selectedAspectRatio === 'let_ai_decide' ||
+    professionalExportCoverage.approvedAspectRatio !== selectedAspectRatio ||
+    professionalExportCoverage.costBasisProfileId !== 'uhd_2160' ||
+    professionalExportCoverage.includedInInitialEstimate !== true ||
+    professionalExportCoverage.requiresSeparateExportEstimate !== false ||
+    professionalExportCoverage.allowsAdditionalExportCharge !== false ||
+    professionalExportCoverage.usesApprovedEditReservation !== true ||
+    !exportEstimateLine ||
+    exportEstimateLine.credits !== professionalExportCoverage.maximumInternalToolCostCredits
+  ) {
+    throw new Error('Cannot approve this plan until the required 4K UHD render/export ceiling is included in the edit estimate and bound to the confirmed aspect ratio.')
+  }
+
   const approvedAt = nowIso()
   const editLevel = getEditLevel(plan)
-  const sourceSequence = createSourceSequence(projectId, editSessionId, plan, approvedAt)
+  const sourceSequence = createSourceSequence(projectId, editSessionId, plan, approvedAt, sourceMediaAssets)
   const editPlanVersion = createEditPlanVersion(projectId, editSessionId, plan, approvedBy, approvedAt)
   const segments = createSegmentRecords(plan)
   const operations = createOperationRecords(plan)
@@ -319,6 +396,7 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
   const creditEstimate = createCreditEstimateRecord(projectId, plan, approvedAt)
   const qaPlan = createQAReportRecord(projectId, plan, approvedAt)
   const professionalEditingDirective = getProfessionalDirective(plan)
+  const planningInputTrace = plan.planningInputTrace
 
   return {
     id: `approved-snapshot-${projectId}-${Date.now()}`,
@@ -328,6 +406,17 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     creditEstimateId: creditEstimate.id,
     approvedAt,
     approvedBy,
+    editBriefSnapshot: editBriefSnapshot ? {
+      ...editBriefSnapshot,
+      targetPlatforms: [...editBriefSnapshot.targetPlatforms],
+      styleKeywords: [...editBriefSnapshot.styleKeywords],
+      mustUseAssetIds: [...editBriefSnapshot.mustUseAssetIds],
+      avoidAssetIds: [...editBriefSnapshot.avoidAssetIds],
+      mustIncludeNotes: [...editBriefSnapshot.mustIncludeNotes],
+      avoidNotes: [...editBriefSnapshot.avoidNotes],
+      userProvidedReferenceUrls: [...editBriefSnapshot.userProvidedReferenceUrls],
+    } : undefined,
+    planningInputTrace,
     compiledIntent: plan.compiledIntent,
     professionalEditingDirective,
     settingsSnapshot: {
@@ -337,6 +426,8 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
       intent_snapshot_id: plan.compiledIntent?.id ?? 'mock-intent-snapshot-1',
       editing_category: plan.compiledIntent?.resolvedSettings.editingCategory,
       edit_level: editLevel,
+      workflow_type: planningInputTrace?.effectiveEditPreferences?.workflowType,
+      cleanup_preference: planningInputTrace?.effectiveEditPreferences?.cleanupPreference,
       target_platform: plan.compiledIntent?.resolvedSettings.targetPlatform,
       aspect_ratio: plan.compiledIntent?.resolvedSettings.aspectRatio,
       frame_template_type: plan.compiledIntent?.resolvedSettings.frameTemplateType,
@@ -344,6 +435,14 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
       mood_style: plan.compiledIntent?.resolvedSettings.moodStyle,
       credit_preference: plan.compiledIntent?.resolvedSettings.creditPreference,
       source_order_confirmed: true,
+      planning_input_fingerprint: planningInputTrace?.fingerprint,
+      planning_instruction_count: planningInputTrace?.instructionCount,
+      preference_defaults_applied: planningInputTrace?.preferenceApplication?.applied,
+      preference_snapshot_id: planningInputTrace?.preferenceApplication?.snapshotId,
+      preference_snapshot_applied_at: planningInputTrace?.preferenceApplication?.appliedAt,
+      preference_persistence_source: planningInputTrace?.preferenceApplication?.source,
+      current_edit_preference_override_keys: planningInputTrace?.preferenceApplication?.currentEditOverrideKeys,
+      current_edit_preference_revision: planningInputTrace?.preferenceApplication?.currentEditRevision,
       status: 'approved',
       created_at: approvedAt,
     },
@@ -366,6 +465,7 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     videoUnderstandingReport: plan.videoUnderstandingReport,
     adaptiveEditStrategy: plan.adaptiveEditStrategy,
     adaptiveEditStrategyPlan: plan.adaptiveEditStrategyPlan,
+    professionalSkillPlan: plan.professionalSkillPlan,
     toolRegistrySummary: plan.toolRegistrySummary,
     toolStrategyPlan: plan.toolStrategyPlan,
     colorPipelinePlan: plan.colorPipelinePlan,
@@ -386,6 +486,7 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     documentaryFactSafetyPlan: plan.documentaryFactSafetyPlan,
     creditEstimate,
     creditEstimateDomain: plan.creditEstimate,
+    professionalExportCoverage,
     qaPlan,
     qaPlanDomain: plan.editQAPlan,
     planningSystemAuditReport: plan.planningSystemAuditReport,

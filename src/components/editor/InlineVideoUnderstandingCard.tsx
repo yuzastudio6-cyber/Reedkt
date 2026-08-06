@@ -4,6 +4,7 @@ import type {
   EditPlan,
   VideoUnderstandingConfidence,
 } from '../../types/reeditpro'
+import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import { InlinePlanCardShell } from './InlinePlanCardShell'
 
 type InlineVideoUnderstandingCardProps = {
@@ -54,17 +55,17 @@ export function InlineVideoUnderstandingCard({ descriptor, plan }: InlineVideoUn
       )}
       defaultExpanded={descriptor?.defaultExpanded ?? false}
       eyebrow="Video understanding"
-      helper="Before planning visuals, ReeditPro analyzes what the video appears to contain. This mock report explains what the edit needs without using a rigid template."
+      helper="Before planning visuals, ReeditPro analyzes what the video appears to contain. This local understanding report explains what the edit needs without using a rigid template."
       priority={descriptor?.priority}
       status={descriptor?.status}
       title="Video understanding"
     >
       <div className="video-understanding-summary">
-        <span><strong>Summary</strong>{report.overallSummary}</span>
+        <span><strong>Summary</strong>{hideInternalToolNamesInCopy(report.overallSummary)}</span>
         <span><strong>Confidence</strong>{report.confidence}</span>
         <span><strong>Source order</strong>{report.sourceOrderConfirmed ? 'Confirmed' : 'Needs confirmation'}</span>
         <span><strong>Opportunities</strong>{opportunityTypes.map(label).join(', ')}</span>
-        <span><strong>Limitations</strong>{report.limitations.length} mock limitation notes</span>
+        <span><strong>Limitations</strong>{report.limitations.length} local limitation notes</span>
       </div>
 
       <div className="understanding-chip-row">
@@ -76,7 +77,7 @@ export function InlineVideoUnderstandingCard({ descriptor, plan }: InlineVideoUn
         ))}
       </div>
 
-      <p className="understanding-limitations-note">{report.limitations.join(' ')}</p>
+      <p className="understanding-limitations-note">{hideInternalToolNamesInCopy(report.limitations.join(' '))}</p>
 
       <details className="understanding-section">
         <summary>Clip understanding</summary>
@@ -86,7 +87,7 @@ export function InlineVideoUnderstandingCard({ descriptor, plan }: InlineVideoUn
               <div>
                 <span className="section-eyebrow">Order {clip.uploadedOrder} / {clip.duration}</span>
                 <h4>{clip.fileName}</h4>
-                <p>{clip.transcriptSummary}</p>
+                <p>{hideInternalToolNamesInCopy(clip.transcriptSummary)}</p>
               </div>
               <div className="understanding-chip-row">
                 <span className="opportunity-chip">{label(clip.detectedRole)}</span>
@@ -102,8 +103,8 @@ export function InlineVideoUnderstandingCard({ descriptor, plan }: InlineVideoUn
                   ))}
               </div>
               <div className="layout-mode-meta">
-                <span><strong>Visual</strong>{clip.visualSummary}</span>
-                <span><strong>Audio</strong>{clip.audioSummary}</span>
+                <span><strong>Visual</strong>{hideInternalToolNamesInCopy(clip.visualSummary)}</span>
+                <span><strong>Audio</strong>{hideInternalToolNamesInCopy(clip.audioSummary)}</span>
               </div>
             </article>
           ))}
@@ -144,7 +145,7 @@ export function InlineVideoUnderstandingCard({ descriptor, plan }: InlineVideoUn
           <span><strong>Cleanup</strong>{report.audioUnderstanding.cleanupNeeded ? 'Needed' : 'Not flagged'}</span>
           <span><strong>Noise</strong>{report.audioUnderstanding.noiseLevel}</span>
           <span><strong>Loudness</strong>{report.audioUnderstanding.loudnessConsistency}</span>
-          <span><strong>SoundSync</strong>{report.audioUnderstanding.soundSyncOpportunities.join(' ')}</span>
+          <span><strong>Sound timing</strong>{report.audioUnderstanding.soundSyncOpportunities.join(' ')}</span>
           <span><strong>Issues</strong>{report.audioUnderstanding.audioIssues.map(label).join(', ')}</span>
         </div>
       </details>

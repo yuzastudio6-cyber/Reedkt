@@ -1,0 +1,104 @@
+name: Canonical Music Acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/music/**'
+      - 'server/edit-skills/sound/**'
+      - 'server/music/**'
+      - 'server/sound/**'
+      - 'server/smoke/*music*'
+      - 'src/components/editor/music/**'
+      - 'src/types/canonical-music-ui.ts'
+      - 'tests/e2e/canonical-music-ui.spec.ts'
+      - 'docs/music/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/canonical-music-acceptance.yml'
+  push:
+    branches:
+      - main
+      - master
+      - 'codex/**'
+    paths:
+      - 'server/edit-skills/core/**'
+      - 'server/edit-skills/music/**'
+      - 'server/edit-skills/sound/**'
+      - 'server/music/**'
+      - 'server/sound/**'
+      - 'server/smoke/*music*'
+      - 'src/components/editor/music/**'
+      - 'src/types/canonical-music-ui.ts'
+      - 'tests/e2e/canonical-music-ui.spec.ts'
+      - 'docs/music/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/canonical-music-acceptance.yml'
+
+jobs:
+  canonical-music-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install approved local media runtime
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+              -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
+      - name: Install Music UI browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Check repository secrets and frontend boundary
+        run: |
+          npm run check:secrets
+          npm run check:frontend-boundary
+
+      - name: Run canonical Music acceptance suite
+        run: npm run test:music-acceptance
+
+      - name: Run canonical Music UI projection QA
+        run: npm run qa:canonical-music-ui
+
+      - name: Server typecheck
+        run: npm run typecheck:server
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Production dependency audit
+        run: npm run audit:prod:high
+
+      - name: Record qualification boundary
+        if: always()
+        run: |
+          {
+            echo "## Canonical Music acceptance"
+            echo ""
+            echo "- Shared-kernel, B-roll, canonical Sound v4, Music execution, exact timing, provider lifecycle, QA, revision, handoff, legacy retirement, and UI projection regressions run through the aggregate command."
+            echo "- Lyria generation uses deterministic injected real audio bytes in CI. Live Lyria remains fail-closed and is not promoted by this workflow."
+            echo "- The Head of Orchestra and final mux/render/export remain outside canonical Music by design."
+          } >> "$GITHUB_STEP_SUMMARY"

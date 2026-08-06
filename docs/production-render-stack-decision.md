@@ -4,7 +4,15 @@
 
 This document locks ReeditPro's production render stack for the professional backend runtime. It supersedes earlier launch wording that treated Remotion as the only render-layer decision.
 
-Milestone 0 is documentation-only. It does not install render packages, create templates, run Hyperframe, run Remotion, run FFmpeg/libass, create OpenTimelineIO files, evaluate Revideo, render media, or deploy workers.
+The original Milestone 0 was documentation-only and authorized none of the
+runtime actions below. Later reviewed private/internal milestones now execute
+pinned Remotion, FFmpeg/FFprobe, and libass paths behind approved-snapshot,
+reservation, lease, one-use dispatch, private-artifact, and QA gates. The
+bounded Remotion v2 transport streams server-injected approved inputs and final
+MP4 output without media base64, while product, provider, public-delivery,
+deployment, external-beta, and production readiness remain false. See
+`docs/canonical-large-remotion-output-streaming-verification-2026-07-15.md` for
+the exact current evidence and limits.
 
 ## Decision
 

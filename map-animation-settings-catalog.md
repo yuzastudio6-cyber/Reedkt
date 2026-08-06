@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This catalog defines the structured map settings ReeditPro should plan for location, route, neighborhood, documentary, and foreground-aware map visuals. These settings are mock planning fields only. They do not execute MapLibre, Turf, deck.gl, CesiumJS, geocoding, tile fetching, or rendering.
+This catalog defines the structured map settings ReeditPro should plan for location, route, neighborhood, documentary, and foreground-aware map visuals. These settings are mock planning fields only. They do not execute D3, SVG.js, Remotion, future map capabilities, geocoding, tile fetching, or rendering.
 
 ## Map Data Settings
 
@@ -104,7 +104,7 @@ Basic:
 
 Pro:
 
-- `route_reveal_map`: controlled route draw with MapLibre/Turf/Remotion planning.
+- `route_reveal_map`: controlled source-bound route draw with D3/SVG/Remotion planning.
 - `multi_location_sequence`: ordered locations with fit-bounds camera planning.
 - `side_by_side_explainer_map`: speaker plus map for explanation.
 - `pro_map_behind_subject_safe`: low/medium risk foreground-aware map with fallback.

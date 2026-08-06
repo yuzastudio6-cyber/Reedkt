@@ -37,7 +37,7 @@ import {
 } from './visual-intelligence-profile-registry'
 
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION =
-  'vertex-gemini-pro-visual-intelligence-adapter-v3' as const
+  'vertex-gemini-pro-visual-intelligence-adapter-v4' as const
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
   'v1alpha' as const
 
@@ -201,8 +201,7 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
   if (
     !safeIdentity(options.projectId)
-    || timeoutMs <= 0
-    || timeoutMs > MAX_TIMEOUT_MS
+    || !validProviderTimeoutMs(timeoutMs)
   ) throw notReady('vertex_gemini_pro_adapter_configuration_invalid')
   const generatePort = options.generatePort
     ?? createGoogleGenAiVertexGeneratePort({
@@ -215,6 +214,7 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
     preflight(untrustedInput: VisualIntelligenceProviderRequest) {
       const dispatch = compileVertexGeminiProVisualIntelligenceDispatch(
         untrustedInput,
+        timeoutMs,
       )
       return Object.freeze({
         requestConfigurationDigestSha256:
@@ -230,7 +230,10 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
       untrustedInput: VisualIntelligenceProviderRequest,
     ): Promise<VisualIntelligenceProviderExecutionResult> {
       const input = validateProviderRequest(untrustedInput)
-      const dispatch = compileVertexGeminiProVisualIntelligenceDispatch(input)
+      const dispatch = compileVertexGeminiProVisualIntelligenceDispatch(
+        input,
+        timeoutMs,
+      )
       let generated: VisualIntelligenceGeminiGenerateResult
       try {
         generated = await generatePort.generate({
@@ -344,7 +347,11 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
 
 export function compileVertexGeminiProVisualIntelligenceDispatch(
   input: VisualIntelligenceProviderRequest,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS,
 ): CompiledVertexGeminiProVisualIntelligenceDispatch {
+  if (!validProviderTimeoutMs(timeoutMs)) {
+    throw notReady('vertex_gemini_pro_dispatch_timeout_invalid')
+  }
   const validated = validateProviderRequest(input)
   const instruction = compileVisualIntelligenceProviderInstruction(
     validated.request,
@@ -396,7 +403,7 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
     },
     httpOptions: {
       apiVersion: VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
-      timeout: DEFAULT_TIMEOUT_MS,
+      timeout: timeoutMs,
       retryOptions: { attempts: 1 },
     },
     labels: {
@@ -437,6 +444,12 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
     providerPreprocessingIsExactFrameInspection: false,
     rawRequestMayBePersisted: false,
   })
+}
+
+function validProviderTimeoutMs(timeoutMs: number): boolean {
+  return Number.isSafeInteger(timeoutMs)
+    && timeoutMs > 0
+    && timeoutMs <= MAX_TIMEOUT_MS
 }
 
 function compileAuthorizedMediaRangeParts(

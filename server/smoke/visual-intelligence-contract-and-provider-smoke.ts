@@ -37,6 +37,7 @@ import {
   createVertexGeminiProVisualIntelligenceAdapter,
   VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
   VISUAL_INTELLIGENCE_PROVIDER_RESPONSE_JSON_SCHEMA,
+  type VisualIntelligenceGeminiGenerateInput,
   type VisualIntelligenceGeminiGeneratePort,
   type VisualIntelligenceProviderCostSettlementPort,
 } from '../visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter'
@@ -494,6 +495,27 @@ async function main() {
     dispatch.config.httpOptions?.apiVersion,
     VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
   )
+  assert.equal(dispatch.config.httpOptions?.timeout, 600_000)
+  const longVideoDispatch = compileVertexGeminiProVisualIntelligenceDispatch(
+    providerInput,
+    900_000,
+  )
+  assert.equal(longVideoDispatch.config.httpOptions?.timeout, 900_000)
+  assert.notEqual(
+    longVideoDispatch.requestConfigurationDigestSha256,
+    dispatch.requestConfigurationDigestSha256,
+  )
+  assert.throws(
+    () => compileVertexGeminiProVisualIntelligenceDispatch(providerInput, 0),
+    /not ready/iu,
+  )
+  assert.throws(
+    () => compileVertexGeminiProVisualIntelligenceDispatch(
+      providerInput,
+      Number.NaN,
+    ),
+    /not ready/iu,
+  )
   assert.equal(VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION, 'v1alpha')
   assert.equal(dispatch.config.temperature, undefined)
   assert.equal(dispatch.config.topP, undefined)
@@ -660,11 +682,17 @@ async function main() {
   const adapter = createVertexGeminiProVisualIntelligenceAdapter({
     projectId: 'reeditpro',
     location: 'global',
+    timeoutMs: 900_000,
     generatePort,
     costSettlementPort,
   })
   const result = await adapter.execute(providerInput)
   assert.equal(calls.length, 1)
+  assert.equal(
+    (calls[0] as VisualIntelligenceGeminiGenerateInput)
+      .config.httpOptions?.timeout,
+    900_000,
+  )
   assert.equal(settlementCalls.length, 1)
   assert.equal(result.normalizedResult.requestId, request.requestId)
   assert.equal(result.usage.settledCostMicros, 14_250)

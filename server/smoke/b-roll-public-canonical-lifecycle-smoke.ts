@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { spawnSync } from 'node:child_process'
+import { spawnSync, type SpawnSyncReturns } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -738,9 +738,11 @@ async function readCaptionBrollDirectInspection(input: {
     !realPrivateSource)
   assert.equal(value.professionalCaptionAppearanceQualified, false)
   if (realPrivateSource) {
+    const realInspectionPackage = input.inspectionPackage as
+      CaptionBrollInspectionPackageV3
     assert.equal(value.sourceEvidenceMode, 'real_private_media')
     assert.equal(value.normalizedSourceSha256,
-      input.inspectionPackage.normalizedSourceSha256)
+      realInspectionPackage.normalizedSourceSha256)
     assert.equal(value.realPrivateSourceMediaReviewed, true)
     assert.equal(value.brollCaptionCoCompositionQualified, true)
   }
@@ -800,7 +802,7 @@ try {
   const sourcePath = join(root, 'source.mp4')
   const candidatePath = join(root, 'candidate.mp4')
   const captionPath = join(root, 'caption.png')
-  let sourceProcess: ReturnType<typeof spawnSync>
+  let sourceProcess: SpawnSyncReturns<string>
   if (sourceEvidenceMode === 'real_private_media') {
     const sourceInputPath = resolve(requestedPrivateSourceMediaPath)
     const sourceInputBytes = await readFile(sourceInputPath)

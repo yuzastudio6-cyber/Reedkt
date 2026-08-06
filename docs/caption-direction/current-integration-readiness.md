@@ -106,14 +106,16 @@ the source handoff from already-persisted runtime/measurement/private-review
 evidence to `ready_for_specialist_resume`; it does not create live owner
 evidence, run the resume, or change the 41/41 source-readiness count.
 
-The reconciled backend source now includes the published SAM 3.1/Track All
-foundation through backend commit
-`4c1ef11eb855de981bfd4fc90b69a2b3a43d3de1`, merged into this Caption branch by
-`16993c4ead82d256b8d7777d3072ee0fe866c80d`. The combined tree contains the
+The reconciled backend source now includes the published SAM 3.1/Track All and
+Vertex A100 foundation through backend commit
+`1a1c59682d26307929e6b1aa3d9cf70649548d34`, merged into this Caption branch by
+`e40abc36532dd1d383f7854c317f176e256b6e71`. The combined tree contains the
 source/checkpoint qualification runtime, exact A100 foundation observations,
 private official-artifact ingest contracts, L4 task-QA deployment observation
 and image-qualification owners, funded lifecycle, terminal-stop/cost
-reconciliation, task-QA finalization, and the Caption evidence finalizer.
+reconciliation, task-QA finalization, Caption evidence finalizer, canonical
+skill-qualification registry, repository-release owners, and Vertex A100
+account-effective cost/credit lineage.
 
 The current backend release suite still truthfully reports
 `sam31CloudInstallQualified=false`, immutable A100/L4 images unqualified for the

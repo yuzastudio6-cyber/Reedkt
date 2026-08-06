@@ -35,6 +35,14 @@ import {
   assertCanonicalSam31GpuRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
+import {
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequest,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION,
+} from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import type {
   CanonicalSam31GpuTaskContextRepository,
 } from './canonical-sam3_1-gpu-task-context-owner'
@@ -310,6 +318,210 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurement(
   return parseCanonicalTrackAllSam31L4MaskQaMeasurement({
     ...payload,
     measurementDigestSha256: digest(payload, 'measurementDigestSha256'),
+  })
+}
+
+/**
+ * Converts only a request-matched fixed L4 worker response into the canonical
+ * task measurement. Cloud usage, pricing, cost, launch, and terminal refs are
+ * still supplied by the authenticated terminal owner and are reread again by
+ * the task-QA finalizer; the worker cannot create those authorities.
+ */
+export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
+  input: {
+    readonly measurementId: string
+    readonly canonicalSam31TaskRef: CaptionDomainRef
+    readonly canonicalSam31RuntimeResultAdmissionRef: CaptionDomainRef
+    readonly canonicalSam31MaskSequenceArtifactRef: CaptionDomainRef
+    readonly canonicalL4ExecutionEnvelopeRef: CaptionDomainRef
+    readonly canonicalScope: CaptionDomainCanonicalScope
+    readonly sourcePrivateArtifactRef: CaptionDomainRef
+    readonly requestedRange: CaptionDomainFrameRange
+    readonly l4QaExecution:
+      CanonicalTrackAllSam31L4MaskQaMeasurement['l4QaExecution']
+    readonly workerRequest: unknown
+    readonly workerResponse: unknown
+    readonly measuredAt: string
+  },
+): CanonicalTrackAllSam31L4MaskQaMeasurement {
+  assertClosedContractTree(input,
+    'track_all_l4_measurement_worker_evidence_input')
+  const requestVersion = z.object({ schemaVersion: z.string() }).passthrough()
+    .parse(input.workerRequest).schemaVersion
+  const responseVersion = z.object({ schemaVersion: z.string() }).passthrough()
+    .parse(input.workerResponse).schemaVersion
+  const request = requestVersion ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION
+    ? assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(input.workerRequest)
+    : assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(input.workerRequest)
+  const response = responseVersion ===
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION
+    ? assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(input.workerResponse)
+    : assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(input.workerResponse)
+  if (
+    (requestVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION)
+      !== (responseVersion ===
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION)
+    || response.status !== 'completed'
+    || response.outputSummary === null
+    || response.inputEvidence === null
+    || response.gpuEvidence === null
+    || ('l4InvocationId' in request && (
+      !('l4InvocationId' in response)
+      || response.l4InvocationId !== request.l4InvocationId
+      || response.sam31InvocationId !== request.sam31InvocationId
+    ))
+    || response.requestBindingSha256 !== request.requestBindingSha256
+    || response.inputEvidence.manifestSha256
+      !== request.expectedMaskManifestSha256
+    || response.inputEvidence.manifestByteLength
+      !== request.expectedMaskManifestByteLength
+    || response.inputEvidence.maskPngCount !== request.expectedMaskPngCount
+    || !samePrefixedIdentityAndHash(
+      request.sam31TaskRef,
+      input.canonicalSam31TaskRef,
+    )
+    || !samePrefixedIdentityAndHash(
+      request.sam31RuntimeResultAdmissionRef,
+      input.canonicalSam31RuntimeResultAdmissionRef,
+    )
+    || !samePrefixedIdentityAndHash(
+      request.l4ExecutionEnvelopeRef,
+      input.canonicalL4ExecutionEnvelopeRef,
+    )
+    || !sameRef(
+      domainRefFromPrefixed(request.approvedWorkItemRef),
+      input.l4QaExecution.approvedWorkItemRef,
+    )
+    || !sameRef(
+      domainRefFromPrefixed(request.workerLeaseRef),
+      input.l4QaExecution.workerLeaseRef,
+    )
+    || !sameRef(
+      domainRefFromPrefixed(request.executionAttemptRef),
+      input.l4QaExecution.executionAttemptRef,
+    )
+    || response.outputSummary.korniaCudaExecutionDigestSha256
+      !== input.l4QaExecution.korniaCudaExecutionEvidenceRef.contentHash
+    || response.outputSummary.opencvCudaCrosscheckExecutionDigestSha256
+      !== input.l4QaExecution.opencvCrosscheckExecutionEvidenceRef.contentHash
+    || !response.gpuEvidence.exactL4DeviceObserved
+    || !response.gpuEvidence.korniaCudaTensorExecutionObserved
+    || !response.gpuEvidence.opencvCudaEveryMaskCrosschecked
+    || response.gpuEvidence.cpuOnlySubstantiveMaskQaUsed
+    || response.cpuOnlySubstantiveMaskQaUsed
+  ) throw new TypeError(
+    'Track All L4 worker response lost exact CUDA, manifest, or evidence lineage.',
+  )
+  const subjectEvidence = request.subjects.map((subject, index) => {
+    const measured = response.outputSummary!.subjectMeasurements[index]
+    if (
+      !measured
+      || measured.subjectRequestId !== subject.subjectRequestId
+      || measured.subjectEvidenceId !== subject.subjectEvidenceId
+      || measured.maskObjectId !== subject.maskObjectId
+      || stableAuthorityStringify(subject.canonicalFrameRange)
+        !== stableAuthorityStringify(input.requestedRange)
+    ) throw new TypeError(
+      'Track All L4 worker subject evidence crossed subject or frame scope.',
+    )
+    const maskSequenceRef = structuredClone(
+      input.canonicalSam31MaskSequenceArtifactRef,
+    )
+    const korniaRef = input.l4QaExecution.korniaCudaExecutionEvidenceRef
+    const opencvRef =
+      input.l4QaExecution.opencvCrosscheckExecutionEvidenceRef
+    return subjectEvidenceSchema.parse({
+      subjectRequestId: subject.subjectRequestId,
+      subjectEvidenceId: subject.subjectEvidenceId,
+      subjectRole: subject.subjectRole,
+      frameRange: subject.canonicalFrameRange,
+      maskSequenceRef,
+      trackManifestRef: domainRefFromPrefixed(subject.trackManifestRef),
+      anchorManifestRef: subject.anchorManifestRef === null
+        ? null
+        : domainRefFromPrefixed(subject.anchorManifestRef),
+      sourceFrameMappingRef:
+        domainRefFromPrefixed(subject.sourceFrameMappingRef),
+      outputFrameDigestSha256: subject.outputFrameDigestSha256,
+      temporalQa: {
+        measuredFrameCount: measured.measuredFrameCount,
+        expectedFrameCount: measured.expectedFrameCount,
+        emptyMaskFrameCount: measured.emptyMaskFrameCount,
+        fullFrameMaskCount: measured.fullFrameMaskCount,
+        minimumBinaryIntersectionOverUnionBasisPoints:
+          measured.minimumBinaryIntersectionOverUnionBasisPoints,
+        maximumNormalizedCentroidShiftBasisPoints:
+          measured.maximumNormalizedCentroidShiftBasisPoints,
+        maximumBoundaryDisagreementBasisPoints:
+          measured.maximumBoundaryDisagreementBasisPoints,
+        maximumAlphaFlickerBasisPoints:
+          measured.maximumAlphaFlickerBasisPoints,
+        minimumEdgeQualityBasisPoints:
+          measured.minimumEdgeQualityBasisPoints,
+        minimumSubjectCoverageBasisPoints:
+          measured.minimumSubjectCoverageBasisPoints,
+        identitySwapCount: measured.identitySwapCount,
+        lostAnchorFrameCount: measured.lostAnchorFrameCount,
+        completeRequestedRangeCoverage: true,
+      },
+      refinementEvidence: [{
+        refinementId: `${subject.subjectEvidenceId}:kornia-cuda`,
+        tool: 'kornia',
+        operation: 'edge_feather_measurement',
+        inputArtifactRef: maskSequenceRef,
+        outputArtifactRef: maskSequenceRef,
+        executionEvidenceRef: korniaRef,
+        actualExecutionObserved: true,
+      }, {
+        refinementId: `${subject.subjectEvidenceId}:opencv-cuda`,
+        tool: 'opencv',
+        operation: 'temporal_median_check',
+        inputArtifactRef: maskSequenceRef,
+        outputArtifactRef: maskSequenceRef,
+        executionEvidenceRef: opencvRef,
+        actualExecutionObserved: true,
+      }],
+      evidenceRefs: [korniaRef, opencvRef],
+    })
+  })
+  if (response.outputSummary.subjectMeasurements.length
+    !== subjectEvidence.length) throw new TypeError(
+    'Track All L4 worker response included an unrequested subject.',
+  )
+  return sealCanonicalTrackAllSam31L4MaskQaMeasurement({
+    schemaVersion:
+      CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_MEASUREMENT_VERSION,
+    measurementId: input.measurementId,
+    invocationId: 'sam31InvocationId' in request
+      ? request.sam31InvocationId
+      : request.invocationId,
+    sam31TaskRef: structuredClone(input.canonicalSam31TaskRef),
+    sam31RuntimeResultAdmissionRef: structuredClone(
+      input.canonicalSam31RuntimeResultAdmissionRef,
+    ),
+    canonicalScope: structuredClone(input.canonicalScope),
+    sourcePrivateArtifactRef: structuredClone(input.sourcePrivateArtifactRef),
+    sourceFrameMappingRef:
+      domainRefFromPrefixed(request.sourceFrameMappingRef),
+    confirmedOutputFrameRef:
+      domainRefFromPrefixed(request.confirmedOutputFrameRef),
+    requestedRange: structuredClone(input.requestedRange),
+    subjectEvidence,
+    l4QaExecution: structuredClone(input.l4QaExecution),
+    everyRequestedFrameAndSubjectMeasured: true,
+    sampledOrRepresentativeOnlyMeasurementAccepted: false,
+    exactMaskManifestAndEveryMaskPngReread: true,
+    browserOrCallerMeasurementAccepted: false,
+    pathsUrlsCredentialsOrMediaBytesIncluded: false,
+    customerCreditsMutated: false,
+    qaApprovalGranted: false,
+    assetManifestMutated: false,
+    renderAuthorized: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    measuredAt: input.measuredAt,
   })
 }
 
@@ -820,6 +1032,23 @@ function isRef(value: unknown): value is CaptionDomainRef {
 }
 function stripSha(value: string): string {
   return value.startsWith('sha256:') ? value.slice(7) : value
+}
+function domainRefFromPrefixed(value: {
+  id: string
+  version: number
+  contentHash: string
+}): CaptionDomainRef {
+  return refSchema.parse({
+    id: value.id,
+    version: String(value.version),
+    contentHash: stripSha(value.contentHash),
+  })
+}
+function samePrefixedIdentityAndHash(
+  left: { id: string; contentHash: string },
+  right: CaptionDomainRef,
+): boolean {
+  return left.id === right.id && stripSha(left.contentHash) === right.contentHash
 }
 function digest(value: unknown, omitted: string): string {
   return calculateSkillContractDigest(

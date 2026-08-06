@@ -29,6 +29,17 @@ grant_bucket_role() {
     --quiet
 }
 
+grant_cloud_build_source_bucket_role() {
+  local account_id="$1"
+  local role="$2"
+  run_gcloud storage buckets add-iam-policy-binding \
+    "gs://${GCP_PROJECT_ID}_cloudbuild" \
+    --project="${GCP_PROJECT_ID}" \
+    --member="serviceAccount:$(service_account_email "${account_id}")" \
+    --role="${role}" \
+    --quiet
+}
+
 grant_secret_access() {
   local secret_name="$1"
   local account_id="$2"
@@ -135,12 +146,17 @@ done
 grant_bucket_role source-media "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role previews "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role final-exports "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
+grant_bucket_role masks "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_bucket_role masks "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
 grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator
 grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 
 grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer
+grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectCreator
+grant_cloud_build_source_bucket_role \
+  "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
 # The dedicated signer uploads only the digest-bound cosign OCI signature and
 # attestation referrers into this one repository. Artifact Registry has no
@@ -149,12 +165,23 @@ grant_artifact_repository_role "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" role
 # artifact-removal policy authority.
 grant_artifact_repository_role "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/artifactregistry.writer
 grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectCreator
+# The Cloud Build artifacts uploader must resolve the destination bucket before
+# performing its create-only writes, and it rereads/lists the generated objects
+# while producing the build artifact manifest. Creator + Viewer deliberately
+# omits overwrite, update, destructive mutation, and bucket administration.
+grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.bucketViewer
+grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer
 grant_artifact_repository_role "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/artifactregistry.reader
 grant_artifact_repository_role "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}" roles/artifactregistry.reader
 grant_image_signing_key_role \
   "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
   roles/cloudkms.signerVerifier
+# Cosign must read the asymmetric-key algorithm before asking KMS to sign.
+# Scope metadata read to this one key; it grants no key mutation or signing.
+grant_image_signing_key_role \
+  "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" \
+  roles/cloudkms.viewer
 
 for purpose in \
   source-media proxy-media worker-temp model-artifacts generated-assets masks \

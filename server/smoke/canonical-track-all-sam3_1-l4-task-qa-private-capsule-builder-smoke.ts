@@ -1,0 +1,250 @@
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+
+const dockerfile = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/Dockerfile.private-capsule-builder',
+  'utf8',
+)
+const builder = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/build-private-capsule.sh',
+  'utf8',
+)
+const cloudBuild = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/cloudbuild.private-capsule.yaml',
+  'utf8',
+)
+const candidate = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/Dockerfile.candidate',
+  'utf8',
+)
+const entrypoint = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/entrypoint.sh',
+  'utf8',
+)
+const verifier = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/verify-private-build-input.py',
+  'utf8',
+)
+const runner = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/runner.py',
+  'utf8',
+)
+const provenance = readFileSync(
+  'docker/prod/gpu-worker/track-all-task-qa/source-provenance.lock',
+  'utf8',
+)
+const iam = readFileSync('scripts/gcp/prod/06-configure-iam.sh', 'utf8')
+const foundation = readFileSync(
+  'scripts/gcp/prod/17-provision-visual-intelligence-sam31-foundation.sh',
+  'utf8',
+)
+const operator = readFileSync(
+  'scripts/gcp/prod/18-build-track-all-l4-task-qa-private-capsule.sh',
+  'utf8',
+)
+
+for (const expected of [
+  'pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081',
+  'Dockerfile.candidate',
+  'runner.py',
+  'entrypoint.sh',
+  'verify-private-build-input.py',
+  'source-provenance.lock',
+  'build-private-capsule.sh',
+  'readelf',
+] as const) assert.ok(dockerfile.includes(expected), `builder Dockerfile lost ${expected}`)
+
+for (const expected of [
+  '49486f61fb25722cbcf586b7f4320921d46fb38e',
+  '8f00b42869ab2836be36090f6631ae4c38ba59171e22a69a8e0f92f8ef1771d4',
+  'd943e1d61c8bc556a13783e1546ee7c1a9e0b1cf',
+  '79b55fa0d0edc6b2766f20cc97baf9dcee5f974870d5afeb1f8e3c623623b59b',
+  '0b15f5d359aeafd7ff54ea631ed1943a3eb295c4a6dae3f745ddeada25e33289',
+  '396f84661fcf260885c3f9db717caf6904eafd44857dca17be09a835bd7da8d9',
+  'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249',
+  'd7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c',
+  '78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91',
+  'f13c72698edef492f985cc225f14faafe68ae065a2e407f45bdf6f4b9b43fde8',
+  'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
+  'e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+  'libnppc.so.12',
+  'libnppial.so.12',
+  'libnppidei.so.12',
+  'libnppig.so.12',
+  'libnppist.so.12',
+  'libnppitc.so.12',
+  'weeditpro-cuda-npp-runtime-receipt-v1',
+  'weeditpro-ubuntu-runtime-security-closure-receipt-v1',
+  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+  'OpenCV CUDA NPP dependency closure changed',
+  '-DBUILD_LIST=core,imgproc,cudev,cudaarithm,python3',
+  '-DOPENCV_EXTRA_MODULES_PATH="${OPENCV_CONTRIB_SOURCE}/modules"',
+  '-DCUDA_ARCH_BIN=8.9',
+  '-DCUDA_NVCC_FLAGS=--objdir-as-tempdir',
+  '-DCUDA_FAST_MATH=OFF',
+  '-DENABLE_FAST_MATH=OFF',
+  '-DOPENCV_ENABLE_NONFREE=OFF',
+  '-DOPENCV_TIMESTAMP=1970-01-01T00:00:00Z',
+  '-DOPENCV_SKIP_PYTHON_LOADER=ON',
+  'sourceReleaseTagSignatureVerified',
+  'runtimeNetworkDownloadsAllowed',
+  'weeditpro-track-all-sam3_1-l4-task-qa-private-build-capsule-v1',
+  '--format=ustar',
+  "find . -mindepth 1 \\( -type d -o -type f \\) -printf '%P\\0'",
+  "--mtime='@0'",
+  '--file="${UNCOMPRESSED_TAR}" --null --files-from=-',
+  'gzip --no-name --best',
+] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
+
+for (const expected of [
+  "export SOURCE_DATE_EPOCH='0'",
+  "export TZ='UTC'",
+  "export LANG='C'",
+  "export LC_ALL='C'",
+] as const) assert.ok(
+  builder.includes(expected),
+  `capsule builder lost deterministic environment ${expected}`,
+)
+
+assert.equal((builder.match(/download_exact \\\n/gu) ?? []).length, 11)
+assert.doesNotMatch(builder, /apt-get|conda install|pip install [^\n]*https?:/u)
+assert.match(builder, /from urllib\.request import HTTPRedirectHandler, Request, build_opener/u)
+assert.match(builder, /class HttpsOnlyRedirectHandler/u)
+assert.match(builder, /observed_bytes > expected_bytes/u)
+assert.match(builder, /digest\.hexdigest\(\) != expected_sha256/u)
+assert.match(
+  builder,
+  /key=lambda item: item\.relative_to\(root\)\.as_posix\(\)/u,
+  'Capsule manifest paths must use the verifier\'s bytewise POSIX ordering.',
+)
+assert.doesNotMatch(`${dockerfile}\n${builder}`, /\bcurl\b/u)
+assert.match(builder, /builder-only NumPy wheel path policy failed/u)
+assert.match(builder, /file_type == stat\.S_IFLNK/u)
+assert.match(builder, /export PYTHONPATH="\$\{BUILDER_PYTHON\}"/u)
+assert.doesNotMatch(builder, /python -m pip install/u)
+assert.doesNotMatch(builder, /sam(?:2|3)[._-]?(?:checkpoint|weights)|huggingface|customer[_ -]media/iu)
+
+for (const expected of [
+  'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147',
+  'gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/track-all-l4-task-qa/',
+  'reproducibility/${BUILD_ID}/',
+  'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
+  'E2_HIGHCPU_8',
+  'CLOUD_LOGGING_ONLY',
+  'requestedVerifyOption: VERIFIED',
+] as const) assert.ok(cloudBuild.includes(expected), `Cloud Build lost ${expected}`)
+assert.doesNotMatch(
+  cloudBuild,
+  /location:\s+gs:\/\/reeditpro-production-reeditpro-image-build-inputs\/private\/image-build-inputs\/track-all-l4-task-qa\/\s*$/mu,
+  'Cloud Build must not overwrite a prior content-addressed capsule object.',
+)
+assert.doesNotMatch(cloudBuild, /secretEnv|availableSecrets|gpu|nvidia-l4|a100/iu)
+
+for (const expected of [
+  'PIP_NO_INDEX=1',
+  'PYTHONPATH=/opt/weeditpro/track-all-task-qa/python-packages:/opt/weeditpro/opencv-cuda/python',
+  'PYTHONNOUSERSITE=1',
+  '--no-index',
+  '--no-deps',
+  '--ignore-installed',
+  '--target=/opt/weeditpro/track-all-task-qa/python-packages',
+  "test \"$(command -v python)\" = '/usr/bin/python'",
+  '/usr/bin/python -m pip install',
+  'opencv-build-information.txt',
+  '/opt/weeditpro/cuda-npp/lib',
+  '/usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib',
+  '/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib',
+  '/usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib',
+  'libcublas.so.12',
+  'libcublasLt.so.12',
+  'libcudart.so.12',
+  'libcufft.so.11',
+  'WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_RECEIPT_SHA256',
+  'WEEDITPRO_TRACK_ALL_TASK_QA_CUDA_NPP_LICENSE_SHA256',
+  'WEEDITPRO_TRACK_ALL_TASK_QA_UBUNTU_SECURITY_RECEIPT_SHA256',
+  "assert PIL.__version__ == '12.3.0'",
+  'dpkg --purge python3-pip python3-wheel',
+  '! command -v pip',
+  'ubuntu-runtime-security-closure-receipt.json',
+] as const) assert.ok(candidate.includes(expected), `runtime candidate lost ${expected}`)
+assert.doesNotMatch(candidate, /python -m venv|\/venv\/bin\//u)
+assert.doesNotMatch(`${candidate}\n${entrypoint}`, /\/opt\/conda\//u)
+assert.match(entrypoint, /exec \/usr\/bin\/python -s -B/u)
+
+for (const expected of [
+  'opencv_cuda_python_module',
+  'opencv_cuda_shared_library',
+  'opencv_source_license',
+  'opencv_contrib_source_license',
+  'cuda_npp_shared_library',
+  'cuda_npp_ingest_receipt',
+  'cuda_npp_license',
+  'ubuntu_security_package',
+  'ubuntu_security_ingest_receipt',
+  'Ubuntu runtime security receipt changed',
+  'CUDA NPP library receipt changed',
+  'OpenCV CUDA runtime artifact set changed',
+  'capsule requirements lock changed',
+] as const) assert.ok(verifier.includes(expected), `capsule verifier lost ${expected}`)
+
+assert.match(runner, /from PIL import Image, ImageFile/u)
+assert.match(runner, /decoded\.format != "PNG"/u)
+assert.match(runner, /decoded\.mode != "L"/u)
+assert.doesNotMatch(runner, /cv2\.imdecode/u)
+
+for (const source of [iam, foundation]) {
+  assert.match(
+    source,
+    /IMAGE_BUILDER(?:_SERVICE_ACCOUNT|_SA)[^\n]*"? roles\/storage\.objectCreator/u,
+  )
+  assert.match(source, /roles\/cloudkms\.signerVerifier/u)
+  assert.match(source, /roles\/cloudkms\.viewer/u)
+}
+assert.doesNotMatch(`${dockerfile}\n${candidate}`, /COPY .*checkpoint|ADD https?:/iu)
+
+for (const expected of [
+  'schema=weeditpro-track-all-sam3_1-l4-task-qa-runtime-candidate-v3',
+  'cuda_npp_runtime_receipt_required=true',
+  'cuda_npp_complete_toolkit_copied=false',
+  'cuda_npp_library_count=6',
+  'cuda_npp_license_sha256=e4196076c5496c4bb5509be61e3d1cddf36b92a449a10ece1779afce3c65e684',
+  'cuda_npp_libnppc_so_12_sha256=69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7',
+  'cuda_npp_libnppitc_so_12_sha256=cb0bbbc4d1f08d30bfedde3a862be3a20426e6fdc45636c822fd1bf7ebe32ae9',
+  'candidate_base_cuda_libraries_reread_during_build=true',
+  'ubuntu_security_closure_required=true',
+  'runtime_python_package_manager_allowed=false',
+] as const) assert.ok(
+  provenance.includes(expected),
+  `source provenance lost ${expected}`,
+)
+
+for (const expected of [
+  "readonly PROJECT_ID='reeditpro'",
+  "readonly REGION='us-central1'",
+  "readonly CONFIRMATION='start-weeditpro-track-all-l4-task-qa-private-capsule-build-v1'",
+  "readonly CONTEXT='docker/prod/gpu-worker/track-all-task-qa'",
+  'git status --short',
+  'gcloud config get project',
+  'gcloud builds submit "${CONTEXT}"',
+  '--async',
+] as const) assert.ok(operator.includes(expected), `capsule operator lost ${expected}`)
+assert.doesNotMatch(operator, /(?:--substitutions|--gcs-source-staging-dir|--service-account|secret|model|checkpoint)/iu)
+
+console.log(JSON.stringify({
+  smoke: 'canonical-track-all-sam3_1-l4-task-qa-private-capsule-builder',
+  productName: 'WeEditPro',
+  cloudOnlyCompilerImage: true,
+  exactPinnedDownloadCount: 11,
+  opencvVersion: '4.12.0',
+  opencvCudaArchitecture: '8.9',
+  deterministicBuildTimestamp: '1970-01-01T00:00:00Z',
+  deterministicNvccIntermediateNames: true,
+  runtimeNetworkDownloadsAllowed: false,
+  checkpointOrModelWeightsIncluded: false,
+  developerMachineInstallPerformed: false,
+  immutableRuntimeImageBuilt: false,
+  gpuJobStarted: false,
+  customerCreditsMutated: false,
+  productionReady: false,
+}, null, 2))

@@ -115,8 +115,12 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
+    RuntimeState['trackAllSam31L4TaskQaAuthenticatedStartRuntimePort']
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     RuntimeState['trackAllSam31CaptionEvidenceFinalizationRuntimePort']
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    RuntimeState['trackAllSam31TaskQaEvidenceFinalizationRuntimePort']
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     RuntimeState['canonicalCaptionPostrenderVisualQaEvidenceRepository']
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
@@ -310,6 +314,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.trackAllSam31AuthenticatedGpuStartRuntimePort,
         }
       : {}),
+    ...(options.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+      ? {
+          trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
+            options.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+        }
+      : {}),
     ...(options.trackAllSam31CaptionEvidenceFinalizationRuntimePort
       ? {
           trackAllSam31CaptionEvidenceFinalizationRuntimePort:
@@ -326,6 +336,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
             options.canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+        }
+      : {}),
+    ...(options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+      ? {
+          trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
+            options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
         }
       : {}),
     clients,

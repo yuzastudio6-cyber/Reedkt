@@ -97,6 +97,7 @@ const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const OCCURRENCES_ENDPOINT =
   'https://containeranalysis.googleapis.com/v1/projects/reeditpro/occurrences'
+const MAXIMUM_JSON_BYTES = 64 * 1024 * 1024
 const MAXIMUM_OCCURRENCE_PAGES = 16
 const MAXIMUM_OCCURRENCES = 16_000
 
@@ -368,46 +369,42 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
         vulnerabilityOccurrences,
         buildOccurrences,
       ] = await Promise.all([
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          artifactRegistryImageUrl(imageDigest, IMAGE_NAME),
+          canonicalArtifactRegistryImageUrl(imageDigest, IMAGE_NAME),
           'sam3_1_artifact_registry_image_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(imageTerminal.cloudBuildResource),
+          canonicalCloudBuildReadUrl(imageTerminal.cloudBuildResource),
           'sam3_1_original_cloud_build_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(supplyObservation.cloudBuildResource),
+          canonicalCloudBuildReadUrl(supplyObservation.cloudBuildResource),
           'sam3_1_supply_chain_cloud_build_reread_failed',
         ),
-        rereadEvidenceArtifacts({
+        rereadCanonicalImageSupplyChainEvidenceArtifacts({
           observation: supplyObservation,
           admission: supplyAdmission,
           artifactPaths: ARTIFACT_PATHS,
           privateObjectReadPort: input.privateObjectReadPort,
         }),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="DISCOVERY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="VULNERABILITY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
-          'kind="BUILD" AND '
-            + 'build.inTotoSlsaProvenanceV1.predicate.runDetails.metadata.'
-            + `invocationId="${provenanceInvocationId(
-              imageTerminal.cloudBuildResource,
-            )}"`,
+          `kind="BUILD" AND resourceUrl="${resourceUri}"`,
         ),
       ])
 
-      const imageMetadata = verifyImageMetadata(
+      const imageMetadata = verifyCanonicalImageMetadata(
         imageMetadataResponse,
         imageUri,
         imageDigest,
@@ -424,12 +421,12 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
         admission: supplyAdmission,
         observation: supplyObservation,
       })
-      const sbom = verifySpdxSbom({
+      const sbom = verifyCanonicalImageSpdxSbom({
         body: evidenceArtifacts.byPath.get('sam31.spdx.json')?.body,
         imageDigest,
         syftImage: supplyAdmission.toolchain.syftImage,
       })
-      const signature = verifyCosignEvidence({
+      const signature = verifyCanonicalImageCosignEvidence({
         bundleBody:
           evidenceArtifacts.byPath.get('cosign-signature.bundle.json')?.body,
         verificationBody:
@@ -440,7 +437,7 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
         supplyChainObservationRef:
           imageSupplyChainBuildObservationReference(supplyObservation),
       })
-      const vulnerabilityScan = verifyVulnerabilityOccurrences({
+      const vulnerabilityScan = verifyCanonicalImageVulnerabilityOccurrences({
         imageDigest,
         resourceUri,
         discoveryOccurrences,
@@ -456,14 +453,15 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
           severityCounts: vulnerabilityScan.severityCounts,
         }),
       )
-      assertSecurityReviewMatches(securityReview, {
+      assertCanonicalImageSecurityReviewMatches(securityReview, {
         imageDigest,
         ...vulnerabilityScan,
       })
-      const provenance = verifyBuildProvenance({
+      const provenance = verifyCanonicalImageBuildProvenance({
         occurrences: buildOccurrences,
         imageUri,
         imageDigest,
+        taggedImageUri: authority.imageDestination.taggedUri,
         cloudBuildResource: imageTerminal.cloudBuildResource,
       })
 
@@ -498,7 +496,7 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
             vulnerabilityScan.occurrenceSnapshotUpdatedAt,
           ...vulnerabilityScan.severityCounts,
           exactOccurrencesReread: true,
-          securityReviewRef: securityReviewRef(securityReview),
+          securityReviewRef: canonicalImageSecurityReviewRef(securityReview),
           securityReviewApprovedForPrivateGpuQualification: true,
         },
         signature: {
@@ -650,46 +648,45 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
         vulnerabilityOccurrences,
         buildOccurrences,
       ] = await Promise.all([
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          artifactRegistryImageUrl(imageDigest, QUALIFICATION_IMAGE_NAME),
+          canonicalArtifactRegistryImageUrl(
+            imageDigest,
+            QUALIFICATION_IMAGE_NAME,
+          ),
           'sam3_1_qualification_image_registry_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(imageTerminal.cloudBuildResource),
+          canonicalCloudBuildReadUrl(imageTerminal.cloudBuildResource),
           'sam3_1_qualification_original_build_reread_failed',
         ),
-        getRequiredJson(
+        getRequiredCanonicalImageSupplyChainJson(
           input.googleReadTransport,
-          cloudBuildUrl(supplyObservation.cloudBuildResource),
+          canonicalCloudBuildReadUrl(supplyObservation.cloudBuildResource),
           'sam3_1_qualification_supply_build_reread_failed',
         ),
-        rereadEvidenceArtifacts({
+        rereadCanonicalImageSupplyChainEvidenceArtifacts({
           observation: supplyObservation,
           admission: supplyAdmission,
           artifactPaths: supplyAdmission.evidenceArtifactPaths,
           privateObjectReadPort: input.privateObjectReadPort,
         }),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="DISCOVERY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
           `kind="VULNERABILITY" AND resourceUrl="${resourceUri}"`,
         ),
-        listAllOccurrences(
+        listCanonicalImageArtifactAnalysisOccurrences(
           input.googleReadTransport,
-          'kind="BUILD" AND '
-            + 'build.inTotoSlsaProvenanceV1.predicate.runDetails.metadata.'
-            + `invocationId="${provenanceInvocationId(
-              imageTerminal.cloudBuildResource,
-            )}"`,
+          `kind="BUILD" AND resourceUrl="${resourceUri}"`,
         ),
       ])
 
-      const imageMetadata = verifyImageMetadata(
+      const imageMetadata = verifyCanonicalImageMetadata(
         imageMetadataResponse,
         imageUri,
         imageDigest,
@@ -708,12 +705,12 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
       })
       const [sbomPath, bundlePath, verificationPath] =
         supplyAdmission.evidenceArtifactPaths
-      const sbom = verifySpdxSbom({
+      const sbom = verifyCanonicalImageSpdxSbom({
         body: evidenceArtifacts.byPath.get(sbomPath)?.body,
         imageDigest,
         syftImage: supplyAdmission.toolchain.syftImage,
       })
-      const signature = verifyCosignEvidence({
+      const signature = verifyCanonicalImageCosignEvidence({
         bundleBody: evidenceArtifacts.byPath.get(bundlePath)?.body,
         verificationBody: evidenceArtifacts.byPath.get(verificationPath)?.body,
         imageUri,
@@ -724,7 +721,7 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
             supplyObservation,
           ),
       })
-      const vulnerabilityScan = verifyVulnerabilityOccurrences({
+      const vulnerabilityScan = verifyCanonicalImageVulnerabilityOccurrences({
         imageDigest,
         resourceUri,
         discoveryOccurrences,
@@ -740,14 +737,15 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
           severityCounts: vulnerabilityScan.severityCounts,
         }),
       )
-      assertSecurityReviewMatches(securityReview, {
+      assertCanonicalImageSecurityReviewMatches(securityReview, {
         imageDigest,
         ...vulnerabilityScan,
       })
-      const provenance = verifyBuildProvenance({
+      const provenance = verifyCanonicalImageBuildProvenance({
         occurrences: buildOccurrences,
         imageUri,
         imageDigest,
+        taggedImageUri: authority.imageDestination.taggedUri,
         cloudBuildResource: imageTerminal.cloudBuildResource,
       })
 
@@ -798,7 +796,7 @@ export function createCanonicalSam31QualificationImageSupplyChainEvidenceReadPor
             vulnerabilityScan.occurrenceSnapshotUpdatedAt,
           ...vulnerabilityScan.severityCounts,
           exactOccurrencesReread: true,
-          securityReviewRef: securityReviewRef(securityReview),
+          securityReviewRef: canonicalImageSecurityReviewRef(securityReview),
           securityReviewApprovedForPrivateGpuQualification: true,
         },
         signature: {
@@ -1122,7 +1120,7 @@ function assertRequestLineage(
   ) throw conflict('sam3_1_supply_chain_read_request_lineage_mismatch')
 }
 
-async function rereadEvidenceArtifacts(input: {
+export async function rereadCanonicalImageSupplyChainEvidenceArtifacts(input: {
   observation: {
     readonly evidenceArtifactManifestUri: string | null
     readonly cloudBuildId: string
@@ -1133,7 +1131,7 @@ async function rereadEvidenceArtifacts(input: {
   artifactPaths: readonly [string, string, string]
   privateObjectReadPort: VisualIntelligencePrivateObjectReadPort
 }) {
-  const manifestCoordinate = parseGcsGenerationUri(
+  const manifestCoordinate = parseGcsObjectUri(
     input.observation.evidenceArtifactManifestUri ?? '',
   )
   if (
@@ -1184,22 +1182,45 @@ async function rereadEvidenceArtifacts(input: {
 }
 
 function parseArtifactManifest(body: Buffer) {
-  const value = parseBoundedJson(body, 'sam3_1_artifact_manifest')
-  return z.array(z.object({
+  if (body.byteLength < 2 || body.byteLength > MAXIMUM_JSON_BYTES) {
+    throw conflict('sam3_1_artifact_manifest_size_invalid')
+  }
+  const source = body.toString('utf8').replace(/\r?\n$/u, '')
+  const lines = source.split(/\r?\n/u)
+  if (lines.length !== 3 || lines.some((line) => !line)) {
+    throw conflict('sam3_1_artifact_manifest_line_count_invalid')
+  }
+  const entrySchema = z.object({
     location: z.string().regex(
       /^gs:\/\/reeditpro-production-reeditpro-image-supply-chain-evidence\/[A-Za-z0-9._/-]+#[1-9][0-9]{0,30}$/u,
     ),
     file_hash: z.array(z.object({
-      type: z.literal(2),
-      value: z.string().regex(/^[A-Za-z0-9+/]{22}==$/u),
+      file_hash: z.array(z.object({
+        type: z.literal(2),
+        value: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/u),
+      }).strict()).length(1),
     }).strict()).length(1),
-  }).strict()).length(3).parse(value).map((entry) => ({
-    location: entry.location,
-    md5Base64: entry.file_hash[0].value,
-  }))
+  }).strict()
+  return lines.map((line) => {
+    let value: unknown
+    try {
+      value = JSON.parse(line)
+    } catch {
+      throw conflict('sam3_1_artifact_manifest_json_invalid')
+    }
+    assertBoundedPlainJson(value, 'sam3_1_artifact_manifest_entry')
+    const entry = entrySchema.parse(value)
+    const encoded = entry.file_hash[0].file_hash[0].value
+    const md5Base64 = Buffer.from(encoded, 'base64').toString('utf8')
+    if (
+      Buffer.from(md5Base64, 'utf8').toString('base64') !== encoded
+      || !/^[A-Za-z0-9+/]{22}==$/u.test(md5Base64)
+    ) throw conflict('sam3_1_artifact_manifest_md5_encoding_invalid')
+    return { location: entry.location, md5Base64 }
+  })
 }
 
-function verifySpdxSbom(input: {
+export function verifyCanonicalImageSpdxSbom(input: {
   body: Buffer | undefined
   imageDigest: string
   syftImage: string
@@ -1214,8 +1235,10 @@ function verifySpdxSbom(input: {
     .parse(root.packages)
   const relationships = z.array(z.unknown()).min(1).max(400_000)
     .parse(root.relationships)
-  const documentDescribes = z.array(z.string().min(1).max(512))
-    .min(1).max(32).parse(root.documentDescribes)
+  const explicitDocumentDescribes = root.documentDescribes === undefined
+    ? []
+    : z.array(z.string().min(1).max(512)).min(1).max(32)
+      .parse(root.documentDescribes)
   if (
     root.spdxVersion !== 'SPDX-2.3'
     || root.SPDXID !== 'SPDXRef-DOCUMENT'
@@ -1235,16 +1258,36 @@ function verifySpdxSbom(input: {
     }
     packageIds.add(id)
   }
-  for (const id of documentDescribes) {
-    if (!packageIds.has(id)) {
-      throw conflict('sam3_1_supply_chain_spdx_document_scope_invalid')
-    }
-  }
+  const relationshipDocumentDescribes: string[] = []
   for (const relationshipValue of relationships) {
     const relationship = record(relationshipValue)
-    z.string().min(1).max(512).parse(relationship.spdxElementId)
-    z.string().min(1).max(128).parse(relationship.relationshipType)
-    z.string().min(1).max(512).parse(relationship.relatedSpdxElement)
+    const spdxElementId = z.string().min(1).max(512)
+      .parse(relationship.spdxElementId)
+    const relationshipType = z.string().min(1).max(128)
+      .parse(relationship.relationshipType)
+    const relatedSpdxElement = z.string().min(1).max(512)
+      .parse(relationship.relatedSpdxElement)
+    if (
+      spdxElementId === 'SPDXRef-DOCUMENT'
+      && relationshipType === 'DESCRIBES'
+    ) relationshipDocumentDescribes.push(relatedSpdxElement)
+  }
+  const documentDescribes = explicitDocumentDescribes.length > 0
+    ? explicitDocumentDescribes
+    : relationshipDocumentDescribes
+  if (
+    documentDescribes.length < 1
+    || documentDescribes.length > 32
+    || new Set(documentDescribes).size !== documentDescribes.length
+    || (explicitDocumentDescribes.length > 0
+      && relationshipDocumentDescribes.length > 0
+      && !sameJson(
+        [...explicitDocumentDescribes].sort(),
+        [...relationshipDocumentDescribes].sort(),
+      ))
+    || documentDescribes.some((id) => !packageIds.has(id))
+  ) {
+    throw conflict('sam3_1_supply_chain_spdx_document_scope_invalid')
   }
   const contentSha256 = sha256(input.body)
   const generatorDigest = input.syftImage.match(/@sha256:([a-f0-9]{64})$/u)?.[1]
@@ -1266,7 +1309,7 @@ function verifySpdxSbom(input: {
   }
 }
 
-function verifyCosignEvidence(input: {
+export function verifyCanonicalImageCosignEvidence(input: {
   bundleBody: Buffer | undefined
   verificationBody: Buffer | undefined
   imageUri: string
@@ -1281,38 +1324,82 @@ function verifyCosignEvidence(input: {
     input.bundleBody,
     'sam3_1_cosign_signature_bundle',
   ))
-  const messageSignature = record(bundle.messageSignature)
-  const messageDigest = record(messageSignature.messageDigest)
   const expectedDigestBase64 = Buffer.from(
     input.imageDigest.slice(7),
     'hex',
   ).toString('base64')
-  if (
-    bundle.mediaType !==
-      'application/vnd.dev.sigstore.bundle.v0.3+json'
-    || messageDigest.algorithm !== 'SHA2_256'
-    || messageDigest.digest !== expectedDigestBase64
-    || typeof messageSignature.signature !== 'string'
-    || messageSignature.signature.length < 40
-    || !bundle.verificationMaterial
-  ) throw conflict('sam3_1_supply_chain_cosign_bundle_invalid')
+  if (bundle.mediaType !==
+    'application/vnd.dev.sigstore.bundle.v0.3+json') {
+    throw conflict('sam3_1_supply_chain_cosign_bundle_invalid')
+  }
+  const verificationMaterial = record(bundle.verificationMaterial)
+  if (bundle.dsseEnvelope !== undefined) {
+    const publicKey = record(verificationMaterial.publicKey)
+    const envelope = record(bundle.dsseEnvelope)
+    const signatures = z.array(z.object({
+      sig: z.string().min(40).max(4_096),
+    }).strict()).length(1).parse(envelope.signatures)
+    const statement = record(decodeBase64Json(
+      z.string().min(2).max(64 * 1024).parse(envelope.payload),
+      'sam3_1_cosign_dsse_payload',
+    ))
+    const subjects = z.array(z.unknown()).length(1).parse(statement.subject)
+    const subject = record(subjects[0])
+    const digest = record(subject.digest)
+    if (
+      Object.keys(bundle).sort().join(',') !==
+        'dsseEnvelope,mediaType,verificationMaterial'
+      || Object.keys(verificationMaterial).sort().join(',') !== 'publicKey'
+      || typeof publicKey.hint !== 'string'
+      || !/^[A-Za-z0-9+/]{40,}={0,2}$/u.test(publicKey.hint)
+      || envelope.payloadType !== 'application/vnd.in-toto+json'
+      || statement._type !== 'https://in-toto.io/Statement/v1'
+      || statement.predicateType !==
+        'https://sigstore.dev/cosign/sign/v1'
+      || digest.sha256 !== input.imageDigest.slice(7)
+      || !subject.annotations
+      || Reflect.ownKeys(record(subject.annotations)).length !== 0
+      || !statement.predicate
+      || Reflect.ownKeys(record(statement.predicate)).length !== 0
+      || !/^[A-Za-z0-9+/]{40,}={0,2}$/u.test(signatures[0].sig)
+    ) throw conflict('sam3_1_supply_chain_cosign_bundle_invalid')
+  } else {
+    const messageSignature = record(bundle.messageSignature)
+    const messageDigest = record(messageSignature.messageDigest)
+    if (
+      messageDigest.algorithm !== 'SHA2_256'
+      || messageDigest.digest !== expectedDigestBase64
+      || typeof messageSignature.signature !== 'string'
+      || messageSignature.signature.length < 40
+      || Reflect.ownKeys(verificationMaterial).length < 1
+    ) throw conflict('sam3_1_supply_chain_cosign_bundle_invalid')
+  }
 
-  const verification = z.array(z.unknown()).length(1).parse(
+  const verification = z.array(z.unknown()).min(1).max(16).parse(
     parseBoundedJson(
       input.verificationBody,
       'sam3_1_cosign_verification',
     ),
   )
-  const item = record(verification[0])
-  const critical = record(item.critical)
-  const identity = record(critical.identity)
-  const image = record(critical.image)
   const repository = input.imageUri.replace(/@sha256:[a-f0-9]{64}$/u, '')
-  if (
-    critical.type !== 'cosign container image signature'
-    || identity['docker-reference'] !== repository
-    || image['docker-manifest-digest'] !== input.imageDigest
-  ) throw conflict('sam3_1_supply_chain_cosign_verification_invalid')
+  for (const itemValue of verification) {
+    const item = record(itemValue)
+    const critical = record(item.critical)
+    const identity = record(critical.identity)
+    const image = record(critical.image)
+    const current = critical.type === 'https://sigstore.dev/cosign/sign/v1'
+      && identity['docker-reference'] === input.imageUri
+      && item.optional !== undefined
+      && Reflect.ownKeys(record(item.optional)).length === 0
+    const legacy = critical.type === 'cosign container image signature'
+      && identity['docker-reference'] === repository
+      && item.optional === null
+    if (
+      Object.keys(item).sort().join(',') !== 'critical,optional'
+      || (!current && !legacy)
+      || image['docker-manifest-digest'] !== input.imageDigest
+    ) throw conflict('sam3_1_supply_chain_cosign_verification_invalid')
+  }
   const bundleSha256 = sha256(input.bundleBody)
   const verificationSha256 = sha256(input.verificationBody)
   const signatureHash = sha256AuthorityValue({
@@ -1330,7 +1417,7 @@ function verifyCosignEvidence(input: {
   }
 }
 
-function verifyVulnerabilityOccurrences(input: {
+export function verifyCanonicalImageVulnerabilityOccurrences(input: {
   imageDigest: string
   resourceUri: string
   discoveryOccurrences: readonly unknown[]
@@ -1362,14 +1449,24 @@ function verifyVulnerabilityOccurrences(input: {
   const vulnerabilities = input.vulnerabilityOccurrences.map((value) => {
     const root = occurrenceRecord(value, 'VULNERABILITY', input.resourceUri)
     const details = record(root.vulnerability)
-    const severities = [details.effectiveSeverity, details.severity]
+    const effectiveSeverities = [details.effectiveSeverity]
     if (Array.isArray(details.packageIssue)) {
       for (const issueValue of details.packageIssue) {
         const issue = record(issueValue)
-        severities.push(issue.effectiveSeverity)
+        effectiveSeverities.push(issue.effectiveSeverity)
       }
     }
-    const severity = maximumSeverity(severities)
+    // Artifact Analysis defines effective severity as the distribution
+    // maintainer's assessment for OS packages (and the advisory database's
+    // assessment for language packages). Prefer that authenticated field;
+    // fall back to the note-provider severity only when no effective value is
+    // available. Combining both with a maximum incorrectly re-escalates
+    // distro-downgraded findings and makes the release gate disagree with the
+    // provider's effective-vulnerability summary.
+    const effectiveSeverity = maximumSeverity(effectiveSeverities)
+    const severity = effectiveSeverity === 'UNKNOWN'
+      ? maximumSeverity([details.severity])
+      : effectiveSeverity
     if (severity === 'CRITICAL') counts.criticalCount += 1
     else if (severity === 'HIGH') counts.highCount += 1
     else if (severity === 'MEDIUM') counts.mediumCount += 1
@@ -1416,13 +1513,16 @@ function verifyVulnerabilityOccurrences(input: {
   }
 }
 
-function verifyBuildProvenance(input: {
+export function verifyCanonicalImageBuildProvenance(input: {
   occurrences: readonly unknown[]
   imageUri: string
   imageDigest: string
+  taggedImageUri: string
   cloudBuildResource: string
 }) {
-  const invocationId = provenanceInvocationId(input.cloudBuildResource)
+  const invocationId = canonicalCloudBuildProvenanceInvocationId(
+    input.cloudBuildResource,
+  )
   const candidates = input.occurrences.flatMap((value) => {
     const root = occurrenceRecord(value, 'BUILD', `https://${input.imageUri}`)
     const build = record(root.build)
@@ -1431,6 +1531,7 @@ function verifyBuildProvenance(input: {
     verifyProvenanceStatement(statement, {
       imageUri: input.imageUri,
       imageDigest: input.imageDigest,
+      taggedImageUri: input.taggedImageUri,
       invocationId,
     })
     const envelope = record(root.envelope)
@@ -1454,6 +1555,7 @@ function verifyBuildProvenance(input: {
     verifyProvenanceStatement(decoded, {
       imageUri: input.imageUri,
       imageDigest: input.imageDigest,
+      taggedImageUri: input.taggedImageUri,
       invocationId,
     })
     return [{ root, statement }]
@@ -1473,6 +1575,7 @@ function verifyBuildProvenance(input: {
 function verifyProvenanceStatement(value: unknown, input: {
   imageUri: string
   imageDigest: string
+  taggedImageUri: string
   invocationId: string
 }): void {
   const statement = record(value)
@@ -1481,16 +1584,16 @@ function verifyProvenanceStatement(value: unknown, input: {
   const metadata = record(runDetails.metadata)
   const builder = record(runDetails.builder)
   const subjects = z.array(z.unknown()).min(1).max(16).parse(statement.subject)
-  const repository = input.imageUri.replace(/@sha256:[a-f0-9]{64}$/u, '')
   const subjectMatched = subjects.some((subjectValue) => {
     const subject = record(subjectValue)
     const digest = record(subject.digest)
     return digest.sha256 === input.imageDigest.slice(7)
-      && (subject.name === `https://${repository}`
-        || subject.name === repository)
+      && (subject.name === `https://${input.taggedImageUri}`
+        || subject.name === input.taggedImageUri)
   })
   if (
-    statement.predicateType !== 'https://slsa.dev/provenance/v1'
+    statement._type !== 'https://in-toto.io/Statement/v1'
+    || statement.predicateType !== 'https://slsa.dev/provenance/v1'
     || metadata.invocationId !== input.invocationId
     || builder.id !==
       'https://cloudbuild.googleapis.com/GoogleHostedWorker'
@@ -1498,11 +1601,11 @@ function verifyProvenanceStatement(value: unknown, input: {
   ) throw conflict('sam3_1_slsa_v1_lineage_invalid')
 }
 
-function verifyImageMetadata(
+export function verifyCanonicalImageMetadata(
   value: unknown,
   imageUri: string,
   imageDigest: string,
-  imageName: typeof IMAGE_NAME | typeof QUALIFICATION_IMAGE_NAME,
+  imageName: string,
 ) {
   assertBoundedPlainJson(value, 'sam3_1_artifact_registry_image')
   const root = record(value)
@@ -1542,15 +1645,15 @@ function verifyOriginalImageBuild(input: {
     || root.name !== input.terminal.cloudBuildResource
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
-    || !Array.isArray(root.warnings)
-    || root.warnings.length !== 0
-    || !sameJson(source, expectedStorage)
-    || !sameJson(resolved, expectedStorage)
+    || hasUnexpectedWarnings(root.warnings)
+    || !sameStorageSource(source, expectedStorage)
+    || !sameStorageSource(resolved, expectedStorage)
     || root.serviceAccount !== expected.serviceAccount
     || !sameJson(root.images, expected.images)
     || !sameJson(root.tags, expected.tags)
     || options.machineType !== record(expected.options).machineType
-    || options.diskSizeGb !== record(expected.options).diskSizeGb
+    || String(options.diskSizeGb) !==
+      String(record(expected.options).diskSizeGb)
     || options.logging !== record(expected.options).logging
     || !sameJson(
       options.sourceProvenanceHash,
@@ -1559,7 +1662,8 @@ function verifyOriginalImageBuild(input: {
     || options.requestedVerifyOption !== 'VERIFIED'
     || image.name !== input.authority.imageDestination.taggedUri
     || image.digest !== input.terminal.immutableImageDigest
-    || image.artifactRegistryPackage !== IMAGE_PACKAGE
+    || image.artifactRegistryPackage !==
+      `${IMAGE_PACKAGE}/versions/${input.terminal.immutableImageDigest}`
     || !sourceProvenanceContainsSha256(
       root.sourceProvenance,
       input.authority.capsuleCoordinate.sha256,
@@ -1594,15 +1698,15 @@ function verifyQualificationImageBuild(input: {
     || root.name !== input.terminal.cloudBuildResource
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
-    || !Array.isArray(root.warnings)
-    || root.warnings.length !== 0
-    || !sameJson(source, expectedStorage)
-    || !sameJson(resolved, expectedStorage)
+    || hasUnexpectedWarnings(root.warnings)
+    || !sameStorageSource(source, expectedStorage)
+    || !sameStorageSource(resolved, expectedStorage)
     || root.serviceAccount !== expected.serviceAccount
     || !sameJson(root.images, expected.images)
     || !sameJson(root.tags, expected.tags)
     || options.machineType !== record(expected.options).machineType
-    || options.diskSizeGb !== record(expected.options).diskSizeGb
+    || String(options.diskSizeGb) !==
+      String(record(expected.options).diskSizeGb)
     || options.logging !== record(expected.options).logging
     || !sameJson(
       options.sourceProvenanceHash,
@@ -1611,7 +1715,10 @@ function verifyQualificationImageBuild(input: {
     || options.requestedVerifyOption !== 'VERIFIED'
     || image.name !== input.authority.imageDestination.taggedUri
     || image.digest !== input.terminal.immutableImageDigest
-    || image.artifactRegistryPackage !== QUALIFICATION_IMAGE_PACKAGE
+    || image.artifactRegistryPackage !==
+      `${QUALIFICATION_IMAGE_PACKAGE}/versions/${
+        input.terminal.immutableImageDigest
+      }`
     || !sourceProvenanceContainsSha256(
       root.sourceProvenance,
       input.authority.capsuleCoordinate.sha256,
@@ -1641,6 +1748,9 @@ function verifySupplyChainBuild(input: {
       return {
         id: step.id,
         name: step.name,
+        ...(step.entrypoint === undefined ? {} : {
+          entrypoint: step.entrypoint,
+        }),
         ...(Array.isArray(step.waitFor) && step.waitFor.length > 0
           ? { waitFor: step.waitFor }
           : {}),
@@ -1656,16 +1766,15 @@ function verifySupplyChainBuild(input: {
     || root.name !== input.observation.cloudBuildResource
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
-    || !Array.isArray(root.warnings)
-    || root.warnings.length !== 0
+    || hasUnexpectedWarnings(root.warnings)
     || !sameJson(normalizedSteps, expected.steps)
-    || !sameJson(artifacts, expectedArtifacts)
+    || !sameArtifactObjects(artifacts, expectedArtifacts)
     || root.serviceAccount !== expected.serviceAccount
     || root.timeout !== expected.timeout
     || root.queueTtl !== expected.queueTtl
     || !sameJson(root.tags, expected.tags)
     || options.machineType !== expectedOptions.machineType
-    || options.diskSizeGb !== expectedOptions.diskSizeGb
+    || String(options.diskSizeGb) !== String(expectedOptions.diskSizeGb)
     || options.requestedVerifyOption !== expectedOptions.requestedVerifyOption
     || options.logging !== expectedOptions.logging
     || results.artifactManifest !==
@@ -1697,6 +1806,9 @@ function verifyQualificationImageSupplyChainBuild(input: {
       return {
         id: step.id,
         name: step.name,
+        ...(step.entrypoint === undefined ? {} : {
+          entrypoint: step.entrypoint,
+        }),
         ...(Array.isArray(step.waitFor) && step.waitFor.length > 0
           ? { waitFor: step.waitFor }
           : {}),
@@ -1712,16 +1824,15 @@ function verifyQualificationImageSupplyChainBuild(input: {
     || root.name !== input.observation.cloudBuildResource
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
-    || !Array.isArray(root.warnings)
-    || root.warnings.length !== 0
+    || hasUnexpectedWarnings(root.warnings)
     || !sameJson(normalizedSteps, expected.steps)
-    || !sameJson(artifacts, expectedArtifacts)
+    || !sameArtifactObjects(artifacts, expectedArtifacts)
     || root.serviceAccount !== expected.serviceAccount
     || root.timeout !== expected.timeout
     || root.queueTtl !== expected.queueTtl
     || !sameJson(root.tags, expected.tags)
     || options.machineType !== expectedOptions.machineType
-    || options.diskSizeGb !== expectedOptions.diskSizeGb
+    || String(options.diskSizeGb) !== String(expectedOptions.diskSizeGb)
     || options.requestedVerifyOption !== expectedOptions.requestedVerifyOption
     || options.logging !== expectedOptions.logging
     || results.artifactManifest !==
@@ -1737,7 +1848,7 @@ function verifyQualificationImageSupplyChainBuild(input: {
   ) throw conflict('sam3_1_qualification_supply_build_echo_invalid')
 }
 
-async function listAllOccurrences(
+export async function listCanonicalImageArtifactAnalysisOccurrences(
   transport: CanonicalSam31ImageSupplyChainGoogleReadTransport,
   filter: string,
 ): Promise<readonly unknown[]> {
@@ -1747,7 +1858,7 @@ async function listAllOccurrences(
   for (let page = 0; page < MAXIMUM_OCCURRENCE_PAGES; page += 1) {
     const parameters = new URLSearchParams({ filter, pageSize: '1000' })
     if (pageToken) parameters.set('pageToken', pageToken)
-    const response = await getRequiredJson(
+    const response = await getRequiredCanonicalImageSupplyChainJson(
       transport,
       `${OCCURRENCES_ENDPOINT}?${parameters.toString()}`,
       'sam3_1_artifact_analysis_occurrences_reread_failed',
@@ -1779,7 +1890,7 @@ async function listAllOccurrences(
   throw notReady('sam3_1_artifact_analysis_pagination_incomplete')
 }
 
-async function getRequiredJson(
+export async function getRequiredCanonicalImageSupplyChainJson(
   transport: CanonicalSam31ImageSupplyChainGoogleReadTransport,
   url: string,
   gate: string,
@@ -1790,7 +1901,7 @@ async function getRequiredJson(
   return response.json
 }
 
-function assertSecurityReviewMatches(
+export function assertCanonicalImageSecurityReviewMatches(
   review: CanonicalSam31ImageSecurityReview,
   input: {
     imageDigest: string
@@ -1810,7 +1921,9 @@ function assertSecurityReviewMatches(
   ) throw conflict('sam3_1_image_security_review_scan_mismatch')
 }
 
-function securityReviewRef(review: CanonicalSam31ImageSecurityReview) {
+export function canonicalImageSecurityReviewRef(
+  review: CanonicalSam31ImageSecurityReview,
+) {
   return contentRef(review.reviewId, review.reviewHash)
 }
 
@@ -1875,8 +1988,16 @@ function sourceProvenanceContainsSha256(
 }
 
 function parseGcsGenerationUri(value: string) {
+  const coordinate = parseGcsObjectUri(value)
+  if (!coordinate.generation) {
+    throw conflict('sam3_1_supply_chain_gcs_generation_uri_invalid')
+  }
+  return coordinate as typeof coordinate & { generation: string }
+}
+
+function parseGcsObjectUri(value: string) {
   const match = value.match(
-    /^gs:\/\/([a-z0-9][a-z0-9._-]{1,220}[a-z0-9])\/([A-Za-z0-9][A-Za-z0-9._/-]{0,2047})#([1-9][0-9]{0,30})$/u,
+    /^gs:\/\/([a-z0-9][a-z0-9._-]{1,220}[a-z0-9])\/([A-Za-z0-9][A-Za-z0-9._/-]{0,2047})(?:#([1-9][0-9]{0,30}))?$/u,
   )
   if (
     !match
@@ -1887,13 +2008,13 @@ function parseGcsGenerationUri(value: string) {
   return {
     bucketName: match[1],
     objectName: match[2],
-    generation: match[3],
+    ...(match[3] ? { generation: match[3] } : {}),
   }
 }
 
-function artifactRegistryImageUrl(
+export function canonicalArtifactRegistryImageUrl(
   imageDigest: string,
-  imageName: typeof IMAGE_NAME | typeof QUALIFICATION_IMAGE_NAME,
+  imageName: string,
 ): string {
   const imageId = encodeURIComponent(`${imageName}@${imageDigest}`)
   return 'https://artifactregistry.googleapis.com/v1/projects/reeditpro/'
@@ -1901,11 +2022,13 @@ function artifactRegistryImageUrl(
     + imageId
 }
 
-function cloudBuildUrl(resource: string): string {
+export function canonicalCloudBuildReadUrl(resource: string): string {
   return `https://cloudbuild.googleapis.com/v1/${resource}`
 }
 
-function provenanceInvocationId(resource: string): string {
+export function canonicalCloudBuildProvenanceInvocationId(
+  resource: string,
+): string {
   return `https://cloudbuild.googleapis.com/v1/${resource}`
 }
 
@@ -1928,14 +2051,14 @@ export function assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
   const decodedPath = safelyDecodePath(url.pathname)
   const artifactRegistry =
     url.origin === 'https://artifactregistry.googleapis.com'
-    && /^\/v1\/projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/dockerImages\/reeditpro-sam31-(?:gpu|qualification)@sha256:[a-f0-9]{64}$/u
+    && /^\/v1\/projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/dockerImages\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}$/u
       .test(decodedPath)
     && !url.search
   const filter = url.searchParams.get('filter') ?? ''
   const occurrenceFilterAllowed = [
-    /^kind="DISCOVERY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-(?:gpu|qualification)@sha256:[a-f0-9]{64}"$/u,
-    /^kind="VULNERABILITY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-(?:gpu|qualification)@sha256:[a-f0-9]{64}"$/u,
-    /^kind="BUILD" AND build\.inTotoSlsaProvenanceV1\.predicate\.runDetails\.metadata\.invocationId="https:\/\/cloudbuild\.googleapis\.com\/v1\/projects\/reeditpro\/locations\/us-central1\/builds\/[0-9a-f-]{36}"$/u,
+    /^kind="DISCOVERY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="VULNERABILITY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="BUILD" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
   ].some((pattern) => pattern.test(filter))
   const occurrenceKeys = [...url.searchParams.keys()]
   const occurrences =
@@ -1965,7 +2088,7 @@ function safelyDecodePath(value: string): string {
 }
 
 function parseBoundedJson(body: Buffer, label: string): unknown {
-  if (body.byteLength < 2 || body.byteLength > 64 * 1024 * 1024) {
+  if (body.byteLength < 2 || body.byteLength > MAXIMUM_JSON_BYTES) {
     throw conflict(`${label}_size_invalid`)
   }
   let value: unknown
@@ -2038,11 +2161,42 @@ function sameJson(left: unknown, right: unknown): boolean {
   return sha256AuthorityValue(left) === sha256AuthorityValue(right)
 }
 
+function sameArtifactObjects(
+  observed: Record<string, unknown>,
+  expected: Record<string, unknown>,
+): boolean {
+  const timing = z.object({
+    startTime: timestamp,
+    endTime: timestamp,
+  }).strict().safeParse(observed.timing)
+  return observed.location === expected.location
+    && sameJson(observed.paths, expected.paths)
+    && Object.keys(observed).sort().join(',') === 'location,paths,timing'
+    && timing.success
+    && Date.parse(timing.data.endTime) >= Date.parse(timing.data.startTime)
+}
+
+function sameStorageSource(
+  observed: Record<string, unknown>,
+  expected: Record<string, unknown>,
+): boolean {
+  return observed.bucket === expected.bucket
+    && observed.object === expected.object
+    && String(observed.generation) === String(expected.generation)
+    && observed.sourceFetcher === 'GCS_FETCHER'
+    && Object.keys(observed).sort().join(',') ===
+      'bucket,generation,object,sourceFetcher'
+}
+
 function hasNonEmptyValue(value: unknown): boolean {
   if (value === undefined || value === null || value === '') return false
   if (Array.isArray(value)) return value.length > 0
   if (typeof value === 'object') return Reflect.ownKeys(value).length > 0
   return true
+}
+
+function hasUnexpectedWarnings(value: unknown): boolean {
+  return value !== undefined && (!Array.isArray(value) || value.length > 0)
 }
 
 function sha256(body: Buffer): string {

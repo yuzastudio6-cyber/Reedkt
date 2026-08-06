@@ -498,6 +498,12 @@ export interface CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort {
   }): Promise<CanonicalTrackAllSam31CaptionSceneQaAuthority | null>
 }
 
+export interface CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort {
+  rereadAuthority(input: {
+    readonly authorityRef: CaptionDomainRef
+  }): Promise<CanonicalTrackAllSam31CaptionSceneQaAuthority | null>
+}
+
 export function sealCanonicalTrackAllSam31CaptionSceneEvidence(
   value: Omit<CanonicalTrackAllSam31CaptionSceneEvidence,
     'evidenceDigestSha256'>,

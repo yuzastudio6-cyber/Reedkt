@@ -13,6 +13,9 @@ import {
 import {
   canonicalSam31GpuFixedTaskContractRef,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import {
+  canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
+} from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 
 const a100ImageRaw = sha('sam31-a100-image')
 const a100ImageRef = evidenceRef('sam31-a100-private-image', a100ImageRaw)
@@ -306,6 +309,106 @@ assert.equal(l4Serialized.includes('WEEDITPRO_GPU_ACCELERATOR_CLASS'), true)
 assert.equal(l4Serialized.includes('nvidia_l4'), true)
 assert.equal(l4Serialized.includes('workspace-1'), false)
 
+const maskQaImageRaw = sha('track-all-mask-qa-l4-image')
+const maskQaImageRef = evidenceRef(
+  'track-all-mask-qa-l4-private-image',
+  maskQaImageRaw,
+)
+const maskQaReleaseRef = evidenceRef(
+  'track-all-mask-qa-l4-runtime-release',
+  sha('track-all-mask-qa-l4-runtime-release-record'),
+)
+export const maskQaAdmission = buildAdmission({
+  admissionId: 'track-all-mask-qa-l4-admission',
+  toolId: 'kornia',
+  operationId: 'tool.kornia.refine_mask.v1',
+  routeId: 'l4_standard_primary',
+  releaseRef: maskQaReleaseRef,
+})
+export const maskQaTarget = {
+  ...l4Target,
+  releaseRef: maskQaReleaseRef,
+  toolId: maskQaAdmission.toolId,
+  operationId: maskQaAdmission.operationId,
+  immutableImageRef: maskQaImageRef,
+  immutableImageDigest: maskQaImageRef.contentHash,
+  fixedServerTaskContractRef:
+    canonicalTrackAllSam31L4TaskQaFixedTaskContractRef(),
+  serviceIdentityRef: ref('track-all-mask-qa-l4-service-identity'),
+  privateNetworkAndArtifactTransportRef:
+    ref('track-all-mask-qa-l4-private-transport'),
+}
+export const maskQaRelease = buildMaskQaL4Release()
+export const maskQaPrivateTransport = buildMaskQaPrivateObjectTransport()
+let maskQaRequest: Record<string, unknown> | null = null
+const maskQaPort = createGoogleCloudProfessionalGpuJobLaunchPort({
+  releaseReadPort: {
+    async rereadPrivateRelease() {
+      return structuredClone(maskQaRelease)
+    },
+  },
+  privateObjectTransportReadPort: {
+    async rereadPrivateObjectTransport() {
+      return structuredClone(maskQaPrivateTransport)
+    },
+  },
+  auth: {
+    async request(input) {
+      maskQaRequest = structuredClone(input as Record<string, unknown>)
+      return {
+        data: {
+          name:
+            'projects/reeditpro/locations/us-central1/operations/mask-qa-l4-op-1',
+          done: false,
+        },
+      } as never
+    },
+  },
+  now: () => '2026-08-02T17:01:30.000Z',
+})
+const maskQaResult = await maskQaPort.startOneShotJob({
+  admission: maskQaAdmission,
+  target: maskQaTarget,
+  admissionConsumptionRef: ref('track-all-mask-qa-l4-consumption'),
+  executionEnvelopeRef: ref('track-all-mask-qa-l4-execution-envelope'),
+})
+assert.equal(maskQaResult.disposition, 'accepted')
+const observedMaskQaRequest = requireCapturedRequest(maskQaRequest)
+assert.equal(
+  observedMaskQaRequest.url,
+  'https://run.googleapis.com/v2/projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4:run',
+)
+const maskQaSerialized = JSON.stringify(observedMaskQaRequest.data)
+assert.equal(maskQaSerialized.includes('REEDITPRO_GPU_INVOCATION_ID'), true)
+assert.equal(maskQaSerialized.includes('nvidia_l4'), true)
+assert.equal(maskQaSerialized.includes('command'), false)
+assert.equal(maskQaSerialized.includes('image'), false)
+
+let missingMaskQaTransportProviderCalls = 0
+const missingMaskQaTransportPort =
+  createGoogleCloudProfessionalGpuJobLaunchPort({
+    releaseReadPort: {
+      async rereadPrivateRelease() {
+        return structuredClone(maskQaRelease)
+      },
+    },
+    auth: {
+      async request() {
+        missingMaskQaTransportProviderCalls += 1
+        throw new Error('Missing mask-QA transport must not reach cloud.')
+      },
+    },
+    now: () => '2026-08-02T17:01:45.000Z',
+  })
+const missingMaskQaTransport = await missingMaskQaTransportPort.startOneShotJob({
+  admission: maskQaAdmission,
+  target: maskQaTarget,
+  admissionConsumptionRef: ref('track-all-mask-qa-no-transport-consumption'),
+  executionEnvelopeRef: ref('track-all-mask-qa-no-transport-envelope'),
+})
+assert.equal(missingMaskQaTransport.disposition, 'rejected_before_creation')
+assert.equal(missingMaskQaTransportProviderCalls, 0)
+
 let unknownRequestCount = 0
 const unknownPort = createGoogleCloudProfessionalGpuJobLaunchPort({
   releaseReadPort: {
@@ -444,23 +547,28 @@ assert.equal(hostileResponseResult.disposition, 'outcome_unknown')
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-google-cloud-gpu-job-launch-port',
-  checks: 59,
+  checks: 72,
   a100BatchRequestAccepted: true,
   sam31L4FallbackPreconfiguredPrivateMountAccepted: true,
   l4CloudRunRequestAccepted: true,
+  trackAllMaskQaL4PrivateTransportAccepted: true,
   callerCommandImageModelOrEnvironmentAccepted: false,
   providerRedirectAllowed: false,
   automaticProviderRetryAllowed: false,
   unknownCreateOutcomeRetryAllowed: false,
   mismatchedReleaseProviderCalls: rejectedRequestCount,
   missingPrivateTransportProviderCalls: missingTransportProviderCalls,
+  missingMaskQaTransportProviderCalls,
   cpuOnlySubstantiveExecutionAllowed: false,
   liveCloudJobCreated: false,
   productionAuthorityGranted: false,
 }))
 
 function buildSam31PrivateObjectTransport(input: {
-  routeId: 'a100_80gb_heavy_primary' | 'l4_heavy_fallback'
+  routeId:
+    | 'a100_80gb_heavy_primary'
+    | 'l4_heavy_fallback'
+    | 'l4_standard_primary'
   target: {
     serviceIdentityRef: ReturnType<typeof ref>
     privateNetworkAndArtifactTransportRef: ReturnType<typeof ref>
@@ -502,6 +610,74 @@ function buildSam31PrivateObjectTransport(input: {
     publicNetworkEgressAllowed: false as const,
     observedAt: '2026-08-02T16:55:00.000Z',
   }
+  return {
+    ...payload,
+    configurationHash: sha256AuthorityValue(payload),
+  }
+}
+
+function buildMaskQaPrivateObjectTransport() {
+  const payload = {
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1' as const,
+    source:
+      'canonical_server_track_all_sam3_1_l4_task_qa_private_transport_registry' as const,
+    evidenceClass: 'canonical_private_reread' as const,
+    transportRef: maskQaTarget.privateNetworkAndArtifactTransportRef,
+    serviceIdentityRef: maskQaTarget.serviceIdentityRef,
+    routeId: 'l4_standard_primary' as const,
+    projectId: 'reeditpro' as const,
+    privateBucketName: 'reeditpro-private-professional-gpu',
+    bucketCmekAndUniformAccessPolicyRef: ref('private-gpu-bucket-policy'),
+    invocationRootMountPath: '/mnt/reeditpro' as const,
+    invocationObjectPrefix:
+      'private/canonical-professional-gpu/sam3_1/v1/invocations' as const,
+    sam31ManifestObjectName: 'output/mask-manifest.json' as const,
+    sam31MaskObjectPattern:
+      'output/frame-{frameIndex:06}-object-{objectId:06}.png' as const,
+    l4TaskObjectName: 'task-qa/task.json' as const,
+    l4ResponseObjectName: 'task-qa/response.json' as const,
+    gcsFuseVolumeName: 'reeditpro-private-gpu-objects' as const,
+    gcsFuseMountOptions: 'rw,implicit-dirs' as const,
+    cloudRunJobResource:
+      'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4',
+    cloudRunJobConfigurationRef:
+      ref('track-all-mask-qa-l4-cloud-run-configuration'),
+    l4CloudRunMountPreconfiguredAndReread: true as const,
+    separateSam31ReadRootAndL4TaskQaWriteRoot: true as const,
+    exactSam31ManifestAndEveryMaskRereadRequired: true as const,
+    l4TaskGenerationOneRereadBeforeLaunch: true as const,
+    l4ResponseGenerationOneRequired: true as const,
+    callerPathUrlObjectNameCommandOrEnvironmentAllowed: false as const,
+    runtimeModelOrMediaDownloadAllowed: false as const,
+    publicNetworkEgressAllowed: false as const,
+    observedAt: '2026-08-02T16:55:00.000Z',
+  }
+  return {
+    ...payload,
+    configurationHash: sha256AuthorityValue(payload),
+  }
+}
+
+function buildMaskQaL4Release(): CanonicalProfessionalGoogleCloudGpuRelease {
+  const payload = {
+    ...buildL4Release(),
+    releaseRef: maskQaReleaseRef,
+    fixedServerTaskContractRef:
+      maskQaTarget.fixedServerTaskContractRef,
+    serviceIdentityRef: maskQaTarget.serviceIdentityRef,
+    privateNetworkAndArtifactTransportRef:
+      maskQaTarget.privateNetworkAndArtifactTransportRef,
+    toolId: maskQaAdmission.toolId,
+    operationId: maskQaAdmission.operationId,
+    immutableImageUri:
+      `us-central1-docker.pkg.dev/reeditpro/gpu/track-all-mask-qa-l4@sha256:${maskQaImageRaw}`,
+    immutableImageRef: maskQaImageRef,
+    immutableImageDigest: maskQaImageRef.contentHash,
+    cloudRunJobResource:
+      'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4',
+  }
+  Reflect.deleteProperty(payload, 'configurationHash')
   return {
     ...payload,
     configurationHash: sha256AuthorityValue(payload),
@@ -692,7 +868,7 @@ function buildL4Release(): CanonicalProfessionalGoogleCloudGpuRelease {
 
 function buildAdmission(input: {
   admissionId: string
-  toolId: 'sam3_1' | 'ffmpeg'
+  toolId: 'sam3_1' | 'ffmpeg' | 'kornia'
   operationId: string
   routeId:
     | 'a100_80gb_heavy_primary'

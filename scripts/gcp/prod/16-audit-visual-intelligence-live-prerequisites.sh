@@ -9,6 +9,7 @@ PROJECT_ID='reeditpro'
 REGION='us-central1'
 ARTIFACT_REPOSITORY='reeditpro-workers'
 IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu'
+TRACK_ALL_L4_TASK_QA_IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa'
 IMAGE_BUILDER_SERVICE_ACCOUNT='reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
 IMAGE_SIGNER_SERVICE_ACCOUNT='reeditpro-image-signer-sa@reeditpro.iam.gserviceaccount.com'
 GPU_WORKER_SERVICE_ACCOUNT='reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com'
@@ -19,9 +20,11 @@ MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+MASK_BUCKET='reeditpro-production-reeditpro-masks'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
 PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-private-searxng@sha256:7f56a77c442601d249389e4cb4101da2046fd62c04818c69eabf8caa7f6957ee'
+A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
 readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
   'reeditpro-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
   'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
@@ -132,6 +135,42 @@ quota_json="$(
 )"
 a100_limit="$(jq -r '[.quotas[] | select(.metric == "NVIDIA_A100_80GB_GPUS") | .limit] | first // 0' <<<"${quota_json}")"
 l4_limit="$(jq -r '[.quotas[] | select(.metric == "NVIDIA_L4_GPUS") | .limit] | first // 0' <<<"${quota_json}")"
+a100_quota_preference_metadata="$(read_json_or_empty \
+  gcloud beta quotas preferences describe "${A100_QUOTA_PREFERENCE_ID}" \
+  --project="${PROJECT_ID}" --format=json)"
+a100_quota_preference="$(jq -n \
+  --arg preferenceId "${A100_QUOTA_PREFERENCE_ID}" \
+  --arg expectedName "projects/${PROJECT_ID}/locations/global/quotaPreferences/${A100_QUOTA_PREFERENCE_ID}" \
+  --arg expectedRegion "${REGION}" \
+  --argjson metadata "${a100_quota_preference_metadata}" \
+  'def number_or_zero: (tonumber? // 0);
+  (($metadata.quotaConfig.preferredValue // "0") | number_or_zero) as $preferred
+  | (($metadata.quotaConfig.grantedValue // "0") | number_or_zero) as $granted
+  | (($metadata.quotaConfig.stateDetail // "") | tostring) as $stateDetail
+  | (($metadata.reconciling // false) == true) as $reconciling
+  | {
+      preferenceId: $preferenceId,
+      exists: ($metadata.name == $expectedName),
+      region: ($metadata.dimensions.region // null),
+      preferredValue: $preferred,
+      grantedValue: $granted,
+      reconciling: $reconciling,
+      stateDetail: (if $stateDetail == "" then null else $stateDetail end),
+      disposition: (
+        if $metadata.name != $expectedName then "not_found"
+        elif ($metadata.dimensions.region // "") != $expectedRegion then "scope_mismatch"
+        elif $granted >= 1 then "granted"
+        elif $reconciling then "pending"
+        elif ($stateDetail | ascii_downcase | contains("denied")) then "denied"
+        else "not_granted"
+        end
+      ),
+      capacityGranted: (
+        $metadata.name == $expectedName
+        and ($metadata.dimensions.region // "") == $expectedRegion
+        and $granted >= 1
+      )
+    }')"
 
 enabled_secret_version_count() {
   local secret_name="$1"
@@ -300,6 +339,14 @@ sam31_image_count="$(
       --format='value(version)' 2>/dev/null || true
   } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
 )"
+track_all_l4_task_qa_image_count="$(
+  {
+    gcloud artifacts docker images list "${TRACK_ALL_L4_TASK_QA_IMAGE_URI}" \
+      --project="${PROJECT_ID}" \
+      --include-tags \
+      --format='value(version)' 2>/dev/null || true
+  } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
+)"
 
 missing_services_json="$(
   if ((${#missing_services[@]} == 0)); then
@@ -318,6 +365,7 @@ model_artifact_bucket="$(bucket_observation "${MODEL_ARTIFACT_BUCKET}")"
 image_build_input_bucket="$(bucket_observation "${IMAGE_BUILD_INPUT_BUCKET}")"
 image_supply_chain_evidence_bucket="$(bucket_observation "${IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET}")"
 control_plane_state_bucket="$(bucket_observation "${CONTROL_PLANE_STATE_BUCKET}")"
+mask_bucket="$(bucket_observation "${MASK_BUCKET}")"
 
 repository_metadata="$(read_json_or_empty gcloud artifacts repositories describe \
   "${ARTIFACT_REPOSITORY}" --project="${PROJECT_ID}" \
@@ -346,6 +394,8 @@ image_supply_chain_evidence_bucket_policy="$(read_json_or_empty gcloud storage b
   "gs://${IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 control_plane_state_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
   "gs://${CONTROL_PLANE_STATE_BUCKET}" --project="${PROJECT_ID}" --format=json)"
+mask_bucket_policy="$(read_json_or_empty gcloud storage buckets get-iam-policy \
+  "gs://${MASK_BUCKET}" --project="${PROJECT_ID}" --format=json)"
 gpu_worker_model_artifact_reader="$(policy_has_member_role \
   "${model_artifact_bucket_policy}" 'roles/storage.objectViewer' \
   "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
@@ -361,6 +411,12 @@ api_build_input_reader="$(policy_has_member_role \
 image_signer_supply_chain_evidence_creator="$(policy_has_member_role \
   "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectCreator' \
   "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+image_signer_supply_chain_bucket_viewer="$(policy_has_member_role \
+  "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.bucketViewer' \
+  "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
+image_signer_supply_chain_evidence_reader="$(policy_has_member_role \
+  "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${IMAGE_SIGNER_SERVICE_ACCOUNT}")"
 api_supply_chain_evidence_reader="$(policy_has_member_role \
   "${image_supply_chain_evidence_bucket_policy}" 'roles/storage.objectViewer' \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
@@ -369,6 +425,18 @@ api_control_plane_creator="$(policy_has_member_role \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
 api_control_plane_reader="$(policy_has_member_role \
   "${control_plane_state_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+gpu_worker_mask_reader="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
+gpu_worker_mask_creator="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectCreator' \
+  "serviceAccount:${GPU_WORKER_SERVICE_ACCOUNT}")"
+api_mask_reader="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectViewer' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+api_mask_creator="$(policy_has_member_role \
+  "${mask_bucket_policy}" 'roles/storage.objectCreator' \
   "serviceAccount:${API_SERVICE_ACCOUNT}")"
 
 signing_key_metadata="$(read_json_or_empty gcloud kms keys describe \
@@ -459,11 +527,12 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v6' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v10' \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
   --argjson l4Limit "${l4_limit}" \
+  --argjson a100QuotaPreference "${a100_quota_preference}" \
   --argjson huggingFaceTokenEnabledVersions "${hugging_face_token_versions}" \
   --argjson modelWeightTokenEnabledVersions "${model_weight_token_versions}" \
   --argjson missingServices "${missing_services_json}" \
@@ -474,6 +543,7 @@ jq -n \
   --argjson legacyCpuIdentityObservations "${legacy_cpu_identity_observations}" \
   --argjson legacyCpuIdentitiesRetired "${legacy_cpu_identities_retired}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
+  --argjson trackAllL4TaskQaImageCount "${track_all_l4_task_qa_image_count}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
   --argjson imageSignerIdentity "${image_signer_identity}" \
@@ -482,14 +552,21 @@ jq -n \
   --argjson imageBuildInputBucket "${image_build_input_bucket}" \
   --argjson imageSupplyChainEvidenceBucket "${image_supply_chain_evidence_bucket}" \
   --argjson controlPlaneStateBucket "${control_plane_state_bucket}" \
+  --argjson maskBucket "${mask_bucket}" \
   --argjson gpuWorkerModelArtifactReader "${gpu_worker_model_artifact_reader}" \
   --argjson imageBuilderBuildInputReader "${image_builder_build_input_reader}" \
   --argjson apiBuildInputCreator "${api_build_input_creator}" \
   --argjson apiBuildInputReader "${api_build_input_reader}" \
   --argjson imageSignerSupplyChainEvidenceCreator "${image_signer_supply_chain_evidence_creator}" \
+  --argjson imageSignerSupplyChainBucketViewer "${image_signer_supply_chain_bucket_viewer}" \
+  --argjson imageSignerSupplyChainEvidenceReader "${image_signer_supply_chain_evidence_reader}" \
   --argjson apiSupplyChainEvidenceReader "${api_supply_chain_evidence_reader}" \
   --argjson apiControlPlaneCreator "${api_control_plane_creator}" \
   --argjson apiControlPlaneReader "${api_control_plane_reader}" \
+  --argjson gpuWorkerMaskReader "${gpu_worker_mask_reader}" \
+  --argjson gpuWorkerMaskCreator "${gpu_worker_mask_creator}" \
+  --argjson apiMaskReader "${api_mask_reader}" \
+  --argjson apiMaskCreator "${api_mask_creator}" \
   --argjson artifactRepository "${artifact_repository}" \
   --argjson signingKey "${signing_key}" \
   --argjson cloudBuildCanUseBuilder "${cloud_build_can_use_builder}" \
@@ -501,6 +578,7 @@ jq -n \
     gpuQuota: {
       nvidiaA10080Gb: $a100Limit,
       nvidiaL4: $l4Limit,
+      a100QuotaPreference: $a100QuotaPreference,
       capacityPrerequisitesReady: ($a100Limit >= 1 and $l4Limit >= 1)
     },
     privateArtifactAccess: {
@@ -537,6 +615,8 @@ jq -n \
         apiBuildInputCreator: $apiBuildInputCreator,
         apiBuildInputReader: $apiBuildInputReader,
         imageSignerSupplyChainEvidenceCreator: $imageSignerSupplyChainEvidenceCreator,
+        imageSignerSupplyChainBucketViewer: $imageSignerSupplyChainBucketViewer,
+        imageSignerSupplyChainEvidenceReader: $imageSignerSupplyChainEvidenceReader,
         apiSupplyChainEvidenceReader: $apiSupplyChainEvidenceReader,
         apiControlPlaneCreator: $apiControlPlaneCreator,
         apiControlPlaneReader: $apiControlPlaneReader
@@ -551,6 +631,8 @@ jq -n \
         and $apiBuildInputCreator
         and $apiBuildInputReader
         and $imageSignerSupplyChainEvidenceCreator
+        and $imageSignerSupplyChainBucketViewer
+        and $imageSignerSupplyChainEvidenceReader
         and $apiSupplyChainEvidenceReader
         and $apiControlPlaneCreator
         and $apiControlPlaneReader
@@ -558,6 +640,21 @@ jq -n \
     },
     artifactRepository: $artifactRepository,
     imageSigningKey: $signingKey,
+    trackAllMaskQaPrivateObjectTransport: {
+      bucket: $maskBucket,
+      gpuWorkerObjectReader: $gpuWorkerMaskReader,
+      gpuWorkerObjectCreator: $gpuWorkerMaskCreator,
+      apiObjectReader: $apiMaskReader,
+      apiObjectCreator: $apiMaskCreator,
+      mountPath: "/mnt/reeditpro",
+      ready: (
+        $maskBucket.ready
+        and $gpuWorkerMaskReader
+        and $gpuWorkerMaskCreator
+        and $apiMaskReader
+        and $apiMaskCreator
+      )
+    },
     retiredLegacyVisualRuntime: {
       matchingJobs: $legacyVisualJobs,
       matchingServices: $legacyVisualServices,
@@ -576,6 +673,10 @@ jq -n \
       clean: ($privateSearchControlPlane.ready and $legacyCpuIdentitiesRetired)
     },
     immutableSam31ImagesObserved: $sam31ImageCount,
+    immutableTrackAllL4TaskQaImagesObserved: $trackAllL4TaskQaImageCount,
+    immutableGpuWorkerImageSetReady: (
+      $sam31ImageCount >= 1 and $trackAllL4TaskQaImageCount >= 1
+    ),
     accountEffectiveGeminiPricing: $accountPricing,
     sourceCheckpointCompatibilityReceiptObserved: false,
     imageSupplyChainReleaseObserved: false,

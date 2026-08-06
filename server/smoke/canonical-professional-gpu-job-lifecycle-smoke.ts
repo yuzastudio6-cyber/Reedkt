@@ -105,6 +105,41 @@ await assert.rejects(() => startCanonicalProfessionalGpuJob({
 assert.equal(cloudLaunchCount, 0)
 assert.equal(consumedAdmissionIds.has(admission.admissionId), false)
 
+const korniaAdmission = buildKorniaAdmission()
+const korniaLaunchTarget = {
+  ...structuredClone(launchTarget),
+  releaseRef: korniaAdmission.runtimeReleaseRef,
+  toolId: korniaAdmission.toolId,
+  operationId: korniaAdmission.operationId,
+  routeId: korniaAdmission.routeId,
+  executionTarget: 'google_cloud_run_l4_job' as const,
+  machineType: 'cloud_run_nvidia_l4' as const,
+  accelerator: 'nvidia_l4' as const,
+  immutableImageRef: ref('track-all-l4-qa-image'),
+  immutableImageDigest: hash('track-all-l4-qa-image'),
+  fixedServerTaskContractRef: ref('track-all-l4-qa-fixed-task-v2'),
+}
+let rawKorniaCloudLaunchCount = 0
+await assert.rejects(() => startCanonicalProfessionalGpuJob({
+  launchRecordId: 'track-all-l4-qa-raw-port-must-fail',
+  admission: korniaAdmission,
+  releaseReadPort: {
+    async rereadPrivateLaunchTarget() {
+      return structuredClone(korniaLaunchTarget)
+    },
+  },
+  launchPort: {
+    async startOneShotJob() {
+      rawKorniaCloudLaunchCount += 1
+      throw new Error('Raw Kornia L4 task-QA launch must be unreachable.')
+    },
+  },
+  store,
+  startedAt: '2026-08-02T15:00:00.000Z',
+}))
+assert.equal(rawKorniaCloudLaunchCount, 0)
+assert.equal(consumedAdmissionIds.has(korniaAdmission.admissionId), false)
+
 const launch = await startCanonicalProfessionalGpuJob({
   launchRecordId: 'sam31-gpu-launch-1',
   admission,
@@ -372,10 +407,11 @@ assert.equal(hostileEnvelopeCloudLaunchCount, 0)
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-job-lifecycle',
-  checks: 46,
+  checks: 47,
   rawSam31CloudLaunchPortAccepted: false,
   rawPortRejectedBeforeAdmissionConsumption: true,
   canonicalFixedTaskPreparingPortRequired: true,
+  rawKorniaL4TaskQaLaunchPortAccepted: false,
   cloudLaunchCount,
   duplicateLaunchBlocked: true,
   acceptedJobStartsFromConsumedAdmission: true,
@@ -524,6 +560,27 @@ function buildAdmission(admissionId: string, executionAttemptId: string) {
     productionAuthorityGranted: false as const,
     admittedAt: '2026-08-02T14:59:00.000Z',
     expiresAt: '2026-08-02T16:00:00.000Z',
+  }
+  return canonicalProfessionalToolGpuDispatchAdmissionSchema.parse({
+    ...payload,
+    admissionHash: sha256AuthorityValue(payload),
+  })
+}
+
+function buildKorniaAdmission() {
+  const samAdmission = buildAdmission(
+    'track-all-l4-qa-admission-1',
+    'track-all-l4-qa-attempt-1',
+  )
+  const { admissionHash: _admissionHash, ...samPayload } = samAdmission
+  void _admissionHash
+  const payload = {
+    ...samPayload,
+    toolId: 'kornia',
+    operationId: 'tool.kornia.refine_mask.v1',
+    routeId: 'l4_standard_primary' as const,
+    runtimeReleaseRef: ref('track-all-l4-qa-runtime-release-1'),
+    currentRateAuthorityRef: ref('track-all-l4-qa-rate-1'),
   }
   return canonicalProfessionalToolGpuDispatchAdmissionSchema.parse({
     ...payload,

@@ -19,6 +19,7 @@ for (const expected of [
   "readonly IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'",
   "readonly IMAGE_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'",
   "readonly CONTROL_PLANE_BUCKET='reeditpro-production-reeditpro-control-plane-state'",
+  "readonly MASK_BUCKET='reeditpro-production-reeditpro-masks'",
   'cloudkms.googleapis.com',
   'binaryauthorization.googleapis.com',
   '--purpose=asymmetric-signing',
@@ -53,7 +54,7 @@ assert.equal(
 assert.equal(
   [...source.matchAll(/create_protected_bucket "\$\{[A-Z_]+_BUCKET\}"/gu)]
     .length,
-  4,
+  5,
 )
 
 for (const forbidden of [
@@ -85,7 +86,7 @@ console.log(JSON.stringify({
   smoke: 'visual-intelligence-sam31-foundation-provisioning',
   productName: 'WeEditPro',
   exactServiceIdentityCount: 3,
-  exactPrivateBucketCount: 4,
+  exactPrivateBucketCount: 5,
   secretPlaceholdersOnly: true,
   secretVersionCreated: false,
   modelDownloaded: false,

@@ -253,18 +253,29 @@ for (const scriptPath of scriptPaths) {
 const gpuScript = readRepoFile('scripts/gcp/prod/10-deploy-gpu-worker-job.example.sh')
 check(gpuScript.includes('reeditpro-professional-l4'), 'GPU deploy example must define the L4 standard-primary job.')
 check(gpuScript.includes('reeditpro-sam31-l4-fallback'), 'GPU deploy example must define the separately qualified SAM 3.1 L4 fallback job.')
-check((gpuScript.match(/--gpu=1/gu) ?? []).length === 2, 'Both L4 jobs must include --gpu=1.')
-check((gpuScript.match(/--gpu-type=nvidia-l4/gu) ?? []).length === 2, 'Both L4 jobs must use nvidia-l4.')
-check((gpuScript.match(/--no-gpu-zonal-redundancy/gu) ?? []).length === 2, 'Both L4 jobs must disable GPU zonal redundancy.')
-check((gpuScript.match(/--cpu=8/gu) ?? []).length === 2, 'Both L4 jobs must use 8 vCPU.')
-check((gpuScript.match(/--memory=32Gi/gu) ?? []).length === 2, 'Both L4 jobs must use 32Gi memory.')
-check((gpuScript.match(/--parallelism=1/gu) ?? []).length === 2, 'Both L4 jobs must use parallelism 1.')
+check(gpuScript.includes('reeditpro-track-all-mask-qa-l4'), 'GPU deploy example must define the dedicated Track All L4 mask-QA job.')
+check((gpuScript.match(/--gpu=1/gu) ?? []).length === 3, 'All three L4 jobs must include --gpu=1.')
+check((gpuScript.match(/--gpu-type=nvidia-l4/gu) ?? []).length === 3, 'All three L4 jobs must use nvidia-l4.')
+check((gpuScript.match(/--no-gpu-zonal-redundancy/gu) ?? []).length === 3, 'All three L4 jobs must disable GPU zonal redundancy.')
+check((gpuScript.match(/--cpu=8/gu) ?? []).length === 3, 'All three L4 jobs must use 8 vCPU.')
+check((gpuScript.match(/--memory=32Gi/gu) ?? []).length === 3, 'All three L4 jobs must use 32Gi memory.')
+check((gpuScript.match(/--parallelism=1/gu) ?? []).length === 3, 'All three L4 jobs must use parallelism 1.')
 check(!gpuScript.includes('--min-instances=1'), 'L4 jobs must not configure a warm instance.')
 check(gpuScript.includes('REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT'), 'GPU deploy example must use the GPU worker service account env var.')
 check(gpuScript.includes('WEEDITPRO_L4_MEDIA_IMAGE_DIGEST'),
   'L4 standard definition must require an immutable image digest.')
 check(gpuScript.includes('WEEDITPRO_SAM31_IMAGE_DIGEST'),
   'SAM 3.1 L4 fallback definition must require an immutable image digest.')
+check(gpuScript.includes('WEEDITPRO_TRACK_ALL_L4_TASK_QA_IMAGE_DIGEST'),
+  'Track All mask QA must require its own immutable image digest.')
+check(gpuScript.includes('reeditpro-track-all-l4-task-qa@'),
+  'Track All mask QA must use its dedicated immutable image repository.')
+check(gpuScript.includes('mount-path=/mnt/reeditpro,type=cloud-storage'),
+  'Track All mask QA must mount the fixed private object root.')
+check(gpuScript.includes('bucket=${MASK_BUCKET},readonly=false'),
+  'Track All mask QA must use the fixed private mask bucket.')
+check(gpuScript.includes('uid=65532;gid=65532;implicit-dirs=true'),
+  'Track All mask QA private mount must match its non-root worker identity.')
 check(gpuScript.includes('deploy-weeditpro-qualified-l4-job-definitions-v1'),
   'L4 definition deployment must require a second exact confirmation.')
 check(!gpuScript.includes('artifact_image reeditpro-l4-media-worker'),
@@ -309,7 +320,15 @@ check(iamScript.includes('roles/cloudkms.signerVerifier'), 'Image signer must us
 check(iamScript.includes('roles/containeranalysis.occurrences.viewer'), 'Supply-chain owner must reread Artifact Analysis occurrences.')
 check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
-  'Image builder must read only the checkpoint-free private build-input bucket.',
+  'Image builder must exact-reread the checkpoint-free private build-input bucket.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}" roles/storage.objectCreator'),
+  'Image builder must create the fixed private build-source artifact without object deletion authority.',
+)
+check(
+  /grant_cloud_build_source_bucket_role \\\n+\s+"\$\{REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT\}" roles\/storage\.objectViewer/u.test(iamScript),
+  'Image builder must read the submitted Cloud Build source archive without receiving write or delete authority.',
 )
 check(
   iamScript.includes('grant_bucket_role image-build-inputs "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')
@@ -319,6 +338,14 @@ check(
 check(
   iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectCreator'),
   'Dedicated image signer must create only private supply-chain evidence objects.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.bucketViewer'),
+  'Dedicated image signer must have the bucket-metadata visibility required by the Cloud Build artifact uploader.',
+)
+check(
+  iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
+  'Dedicated image signer must reread/list its generated artifacts without receiving overwrite or delete authority.',
 )
 check(
   iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
@@ -333,6 +360,11 @@ check(
   iamScript.includes('grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')
     && iamScript.includes('grant_bucket_role control-plane-state "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
   'API orchestration must create and exact-reread immutable control-plane state.',
+)
+check(
+  iamScript.includes('grant_bucket_role masks "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectCreator')
+    && iamScript.includes('grant_bucket_role masks "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
+  'API task owner must create and exact-reread private SAM and L4 task objects.',
 )
 check(
   !iamScript.includes('grant_bucket_role control-plane-state "${REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT}"')

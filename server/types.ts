@@ -72,6 +72,12 @@ import type {
 import type {
   CanonicalCaptionPostrenderVisualQaOwnerResultReadPort,
 } from './services/canonical-caption-postrender-visual-qa-owner-result-port'
+import type {
+  CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+} from './services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
+import type {
+  CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export interface AuthContext {
   userId: string
@@ -166,8 +172,12 @@ export interface RuntimeState {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
@@ -240,8 +250,12 @@ export interface ServiceContext {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
   canonicalCaptionPostrenderVisualQaEvidenceRepository?:
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:

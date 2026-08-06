@@ -841,6 +841,13 @@ function successfulSupplyChainBuild(
   value: Readonly<Record<string, unknown>>,
   buildAdmission: typeof admission,
 ) {
+  const artifacts = structuredClone(value.artifacts) as {
+    objects: Record<string, unknown>
+  }
+  artifacts.objects.timing = {
+    startTime: '2026-08-03T20:00:30Z',
+    endTime: '2026-08-03T20:00:40Z',
+  }
   return {
     id,
     name: `projects/reeditpro/locations/us-central1/builds/${id}`,
@@ -848,7 +855,7 @@ function successfulSupplyChainBuild(
     status: 'SUCCESS',
     warnings: [],
     steps: structuredClone(value.steps) as Array<Record<string, unknown>>,
-    artifacts: structuredClone(value.artifacts),
+    artifacts,
     timeout: value.timeout,
     queueTtl: value.queueTtl,
     options: structuredClone(value.options),
@@ -856,7 +863,7 @@ function successfulSupplyChainBuild(
     tags: structuredClone(value.tags),
     results: {
       artifactManifest:
-        `gs://${buildAdmission.evidenceBucket}/${buildAdmission.evidencePrefix}/artifacts-${id}.json#4101`,
+        `gs://${buildAdmission.evidenceBucket}/${buildAdmission.evidencePrefix}/artifacts-${id}.json`,
       numArtifacts: '3',
     },
   }
@@ -934,11 +941,18 @@ function createEvidenceObjects(input: {
       `gs://${input.admission.evidenceBucket}/`
         + `${input.admission.evidencePrefix}/${path}#${generations.get(path)}`,
     file_hash: [{
-      type: 2,
-      value: createHash('md5').update(value).digest('base64'),
+      file_hash: [{
+        type: 2,
+        value: Buffer.from(
+          createHash('md5').update(value).digest('base64'),
+          'utf8',
+        ).toString('base64'),
+      }],
     }],
   }))
-  const manifestBody = Buffer.from(JSON.stringify(manifestEntries))
+  const manifestBody = Buffer.from(
+    manifestEntries.map((entry) => JSON.stringify(entry)).join('\n'),
+  )
   if (input.tamperArtifactPath) {
     const current = bodies.get(input.tamperArtifactPath)
     assert(current)
@@ -960,9 +974,8 @@ function createEvidenceObjects(input: {
       )
       if (
         request.bucketName !== input.admission.evidenceBucket
-        || !request.generation
       ) return null
-      if (request.objectName === manifestName && request.generation === '4101') {
+      if (request.objectName === manifestName && !request.generation) {
         return {
           body: Buffer.from(manifestBody),
           generation: '4101',
@@ -975,7 +988,7 @@ function createEvidenceObjects(input: {
       const path = request.objectName.slice(prefix.length)
       const body = bodies.get(path)
       const generation = generations.get(path)
-      if (!body || request.generation !== generation) return null
+      if (!body || !generation || request.generation !== generation) return null
       return {
         body: Buffer.from(body),
         generation,
@@ -1050,6 +1063,7 @@ function googleEvidenceResponse(input: {
         occurrences: [buildProvenanceOccurrence(
           imageUri,
           imageDigest,
+          input.authority.imageDestination.taggedUri,
           input.imageBuildTerminal.cloudBuildResource,
         )],
       },
@@ -1066,6 +1080,7 @@ function successfulImageBuild(
   const source = structuredClone(expected.source) as {
     storageSource: Record<string, unknown>
   }
+  source.storageSource.sourceFetcher = 'GCS_FETCHER'
   return {
     id: terminal.cloudBuildId,
     name: terminal.cloudBuildResource,
@@ -1096,7 +1111,9 @@ function successfulImageBuild(
       images: [{
         name: value.imageDestination.taggedUri,
         digest: terminal.immutableImageDigest,
-        artifactRegistryPackage: terminal.artifactRegistryPackage,
+        artifactRegistryPackage:
+          `${terminal.artifactRegistryPackage}/versions/`
+            + terminal.immutableImageDigest,
       }],
     },
   }
@@ -1126,6 +1143,7 @@ function vulnerabilityOccurrences(imageUri: string) {
       id: '32222222-2222-4222-8222-222222222222',
       imageUri,
       severity: 'MEDIUM',
+      noteProviderSeverity: 'CRITICAL',
       updatedAt: '2026-08-03T20:03:00Z',
     }),
     vulnerabilityOccurrence({
@@ -1141,6 +1159,7 @@ function vulnerabilityOccurrence(input: {
   id: string
   imageUri: string
   severity: 'LOW' | 'MEDIUM'
+  noteProviderSeverity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   updatedAt: string
 }) {
   return {
@@ -1151,7 +1170,7 @@ function vulnerabilityOccurrence(input: {
     createTime: input.updatedAt,
     updateTime: input.updatedAt,
     vulnerability: {
-      severity: input.severity,
+      severity: input.noteProviderSeverity ?? input.severity,
       effectiveSeverity: input.severity,
       packageIssue: [{
         affectedPackage: 'sam31-runtime-package',
@@ -1164,14 +1183,14 @@ function vulnerabilityOccurrence(input: {
 function buildProvenanceOccurrence(
   imageUri: string,
   imageDigest: string,
+  taggedImageUri: string,
   cloudBuildResource: string,
 ) {
-  const repository = imageUri.replace(/@sha256:[a-f0-9]{64}$/u, '')
   const statement = {
     _type: 'https://in-toto.io/Statement/v1',
     predicateType: 'https://slsa.dev/provenance/v1',
     subject: [{
-      name: `https://${repository}`,
+      name: `https://${taggedImageUri}`,
       digest: { sha256: imageDigest.slice(7) },
     }],
     predicate: {

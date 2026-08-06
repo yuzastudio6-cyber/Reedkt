@@ -705,7 +705,13 @@ function assertFixedTaskPreparingLaunchPortRequired(input: {
   target: CanonicalProfessionalGpuRuntimeLaunchTarget
   launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
 }): void {
-  if (input.admission.toolId !== 'sam3_1') return
+  const requiresCanonicalFixedTaskPreparation =
+    input.admission.toolId === 'sam3_1'
+    || (
+      input.admission.toolId === 'kornia'
+      && input.admission.operationId === 'tool.kornia.refine_mask.v1'
+    )
+  if (!requiresCanonicalFixedTaskPreparation) return
   const descriptor = fixedTaskPreparingLaunchPorts.get(input.launchPort)
   if (!descriptor
     || descriptor.toolId !== input.admission.toolId
@@ -717,7 +723,8 @@ function assertFixedTaskPreparingLaunchPortRequired(input: {
     || descriptor.fixedServerTaskContractRef.contentHash !==
       input.target.fixedServerTaskContractRef.contentHash) {
     throw new Error(
-      'SAM 3.1 requires its canonical fixed-task preparing launch port.',
+      `${input.admission.toolId} ${input.admission.operationId} requires `
+      + 'its canonical fixed-task preparing launch port.',
     )
   }
 }

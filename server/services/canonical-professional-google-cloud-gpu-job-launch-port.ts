@@ -20,6 +20,8 @@ export const CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_LAUNCH_PORT_VERSION =
   'canonical-professional-google-cloud-gpu-launch-port-v1' as const
 export const CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_PRIVATE_OBJECT_TRANSPORT_VERSION =
   'canonical-professional-google-cloud-gpu-private-object-transport-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_OBJECT_TRANSPORT_VERSION =
+  'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const BATCH_API_ORIGIN = 'https://batch.googleapis.com' as const
@@ -241,6 +243,55 @@ export type CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport =
     typeof canonicalProfessionalGoogleCloudGpuPrivateObjectTransportSchema
   >
 
+export const canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema =
+  z.object({
+    schemaVersion: z.literal(
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_OBJECT_TRANSPORT_VERSION,
+    ),
+    source: z.literal(
+      'canonical_server_track_all_sam3_1_l4_task_qa_private_transport_registry',
+    ),
+    evidenceClass: z.literal('canonical_private_reread'),
+    transportRef: evidenceRefSchema,
+    serviceIdentityRef: evidenceRefSchema,
+    routeId: z.literal('l4_standard_primary'),
+    projectId: z.literal(PROJECT_ID),
+    privateBucketName,
+    bucketCmekAndUniformAccessPolicyRef: evidenceRefSchema,
+    invocationRootMountPath: z.literal('/mnt/reeditpro'),
+    invocationObjectPrefix: z.literal(
+      'private/canonical-professional-gpu/sam3_1/v1/invocations',
+    ),
+    sam31ManifestObjectName: z.literal('output/mask-manifest.json'),
+    sam31MaskObjectPattern: z.literal(
+      'output/frame-{frameIndex:06}-object-{objectId:06}.png',
+    ),
+    l4TaskObjectName: z.literal('task-qa/task.json'),
+    l4ResponseObjectName: z.literal('task-qa/response.json'),
+    gcsFuseVolumeName: z.literal('reeditpro-private-gpu-objects'),
+    gcsFuseMountOptions: z.literal('rw,implicit-dirs'),
+    cloudRunJobResource: z.string().trim().max(512).regex(
+      /^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/jobs\/[a-z][a-z0-9-]{0,62}$/u,
+    ),
+    cloudRunJobConfigurationRef: evidenceRefSchema,
+    l4CloudRunMountPreconfiguredAndReread: z.literal(true),
+    separateSam31ReadRootAndL4TaskQaWriteRoot: z.literal(true),
+    exactSam31ManifestAndEveryMaskRereadRequired: z.literal(true),
+    l4TaskGenerationOneRereadBeforeLaunch: z.literal(true),
+    l4ResponseGenerationOneRequired: z.literal(true),
+    callerPathUrlObjectNameCommandOrEnvironmentAllowed: z.literal(false),
+    runtimeModelOrMediaDownloadAllowed: z.literal(false),
+    publicNetworkEgressAllowed: z.literal(false),
+    observedAt: z.string().datetime({ offset: true }),
+    configurationHash: sha256,
+  }).strict()
+export type CanonicalTrackAllSam31L4TaskQaPrivateObjectTransport = z.infer<
+  typeof canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema
+>
+export type CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord =
+  | CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport
+  | CanonicalTrackAllSam31L4TaskQaPrivateObjectTransport
+
 export interface CanonicalProfessionalGoogleCloudGpuReleaseReadPort {
   rereadPrivateRelease(input: {
     readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
@@ -300,17 +351,30 @@ export function createGoogleCloudProfessionalGpuJobLaunchPort(input: {
           target: request.target,
           release,
         })
-        const privateObjectTransport = admission.toolId === 'sam3_1'
-          ? assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
-              await input.privateObjectTransportReadPort
-                ?.rereadPrivateObjectTransport({
-                  admission,
-                  target: request.target,
-                  release,
-                }),
-            )
+        const fixedPrivateObjectTask = admission.toolId === 'sam3_1'
+          || (
+            admission.toolId === 'kornia'
+            && admission.operationId === 'tool.kornia.refine_mask.v1'
+          )
+        const untrustedPrivateObjectTransport = fixedPrivateObjectTask
+          ? await input.privateObjectTransportReadPort
+              ?.rereadPrivateObjectTransport({
+                admission,
+                target: request.target,
+                release,
+              })
           : null
-        if (admission.toolId === 'sam3_1') {
+        const privateObjectTransport = admission.operationId ===
+          'tool.kornia.refine_mask.v1'
+          ? assertCanonicalTrackAllSam31L4TaskQaPrivateObjectTransport(
+              untrustedPrivateObjectTransport,
+            )
+          : fixedPrivateObjectTask
+            ? assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
+                untrustedPrivateObjectTransport,
+              )
+            : null
+        if (fixedPrivateObjectTask) {
           assertPrivateObjectTransportMatches({
             admission,
             target: request.target,
@@ -405,6 +469,19 @@ export function assertCanonicalProfessionalGoogleCloudGpuPrivateObjectTransport(
   return transport
 }
 
+export function assertCanonicalTrackAllSam31L4TaskQaPrivateObjectTransport(
+  value: unknown,
+): CanonicalTrackAllSam31L4TaskQaPrivateObjectTransport {
+  assertPlainSerializedData(value, 'track_all_l4_task_qa_private_transport')
+  const transport =
+    canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema.parse(value)
+  const { configurationHash, ...payload } = transport
+  if (configurationHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Track All L4 task-QA transport hash is invalid.')
+  }
+  return transport
+}
+
 function assertReleaseMatchesTarget(input: {
   admission: CanonicalProfessionalToolGpuDispatchAdmission
   target: CanonicalProfessionalGpuRuntimeLaunchTarget
@@ -438,7 +515,7 @@ function assertPrivateObjectTransportMatches(input: {
   admission: CanonicalProfessionalToolGpuDispatchAdmission
   target: CanonicalProfessionalGpuRuntimeLaunchTarget
   release: CanonicalProfessionalGoogleCloudGpuRelease
-  transport: CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport
+  transport: CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord
 }): void {
   const { admission, target, release, transport } = input
   const cloudRunResource = release.executionTarget ===
@@ -446,12 +523,19 @@ function assertPrivateObjectTransportMatches(input: {
     ? release.cloudRunJobResource
     : null
   if (
-    admission.operationId !== 'tool.sam3_1.segment_and_track_subject.v1'
+    (admission.operationId !== 'tool.sam3_1.segment_and_track_subject.v1'
+      && admission.operationId !== 'tool.kornia.refine_mask.v1')
     || transport.routeId !== admission.routeId
     || !sameRef(transport.transportRef,
       target.privateNetworkAndArtifactTransportRef)
     || !sameRef(transport.serviceIdentityRef, target.serviceIdentityRef)
     || transport.cloudRunJobResource !== cloudRunResource
+    || (admission.operationId === 'tool.kornia.refine_mask.v1'
+      && transport.schemaVersion !==
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_OBJECT_TRANSPORT_VERSION)
+    || (admission.operationId === 'tool.sam3_1.segment_and_track_subject.v1'
+      && transport.schemaVersion !==
+        CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_PRIVATE_OBJECT_TRANSPORT_VERSION)
   ) throw new Error(
     'GPU private object transport differs from release or admission.',
   )
@@ -464,7 +548,7 @@ function prepareCloudLaunch(input: {
   admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
   executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
   privateObjectTransport:
-    CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport | null
+    CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord | null
 }) {
   const invocationId = input.executionEnvelopeRef.id
   if (input.release.executionTarget === 'google_cloud_batch_a2_ultra_job') {
@@ -538,7 +622,7 @@ function createA100BatchBody(input: {
     executionTarget: 'google_cloud_batch_a2_ultra_job'
   }>
   privateObjectTransport:
-    CanonicalProfessionalGoogleCloudGpuPrivateObjectTransport | null
+    CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportRecord | null
 }) {
   const release = input.release
   return {

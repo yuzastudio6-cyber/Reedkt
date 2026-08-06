@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v4')
+  'canonical-track-all-sam3_1-production-runtime-v8')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -82,6 +82,20 @@ assert.equal(
   false,
 )
 assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-l4-task-qa-authenticated-start-v1',
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+    .routeOwnsGpuPlacementOrPricing,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+    .rawCloudLaunchPortExposed,
+  false,
+)
+assert.equal(
   runtime.trackAllSam31CaptionEvidenceFinalizationRuntimePort.schemaVersion,
   'canonical-track-all-sam3_1-caption-evidence-finalization-runtime-v1',
 )
@@ -94,6 +108,33 @@ assert.equal(
   runtime.trackAllSam31CaptionEvidenceFinalizationRuntimePort
     .performsRuntimeOrAssetMutation,
   false,
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaCandidateRepository.schemaVersion,
+  'canonical-track-all-sam3_1-task-qa-candidate-repository-v1',
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaEvidenceFinalizationRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-task-qa-evidence-finalization-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+    .acceptsRawMeasurementReviewMediaOrCloudClaims,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+    .performsRuntimeAssetQaBillingOrDeliveryMutation,
+  false,
+)
+assert.equal(runtime.rawTaskQaMeasurementReviewOrCloudClaimAccepted, false)
+assert.equal(
+  runtime.canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence,
+  true,
+)
+assert.equal(
+  runtime.separateSam31InputAndL4TaskQaInvocationRootsRequired,
+  true,
 )
 
 assert.throws(() => createCanonicalTrackAllSam31ProductionRuntime({
@@ -113,13 +154,21 @@ assert.match(
 )
 assert.match(
   entrypoint,
+  /trackAllSam31L4TaskQaAuthenticatedStartRuntimePort/u,
+)
+assert.match(
+  entrypoint,
   /trackAllSam31CaptionEvidenceFinalizationRuntimePort/u,
+)
+assert.match(
+  entrypoint,
+  /trackAllSam31TaskQaEvidenceFinalizationRuntimePort/u,
 )
 assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 40,
+  checks: 55,
   localAndMockRuntimeMounted: false,
   cloudRunGcsCompositionMounted: true,
   authenticatedRouteUsesDurableProductionRuntime: true,
@@ -128,10 +177,17 @@ console.log(JSON.stringify({
   captionTrackAllSupportResumeAndEvidenceRepositoriesMounted: true,
   captionTrackAllRequiresCanonicalSam31TaskResultReread: true,
   captionTrackAllRequiresTaskLevelIndependentMaskQa: true,
+  authenticatedL4TaskQaStartMounted: true,
+  l4TaskMaterialPersistedAndRereadBeforeCloudLaunch: true,
   captionTrackAllTaskLevelQaOwnerMounted: true,
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,
   captionTrackAllRequiresPrivateVisualReview: true,
   captionTrackAllAuthenticatedFinalizerMounted: true,
+  taskQaCandidateRepositoryMountedInPrivateGpuObjectStore: true,
+  taskQaEvidenceFinalizerMounted: true,
+  rawTaskQaMeasurementReviewOrCloudClaimAccepted: false,
+  canonicalBackendCompilesTaskQaMeasurementFromFixedWorkerEvidence: true,
+  separateSam31InputAndL4TaskQaInvocationRootsRequired: true,
   a100HeavyPrimary: true,
   l4HeavyFallbackSeparatelyQualified: true,
   userTriggeredScaleFromZero: true,

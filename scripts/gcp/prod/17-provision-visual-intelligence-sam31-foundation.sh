@@ -18,11 +18,13 @@ readonly KEY_RING='weeditpro-image-signing'
 readonly SIGNING_KEY='sam31-image-signing'
 readonly CONFIRMATION='provision-weeditpro-sam31-foundation-v1'
 readonly CLOUD_BUILD_SERVICE_AGENT="service-${PROJECT_NUMBER}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+readonly CLOUD_BUILD_SOURCE_BUCKET='reeditpro_cloudbuild'
 
 readonly MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 readonly IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 readonly IMAGE_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 readonly CONTROL_PLANE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+readonly MASK_BUCKET='reeditpro-production-reeditpro-masks'
 
 main() {
   assert_operator_boundary
@@ -43,6 +45,7 @@ main() {
   create_protected_bucket "${IMAGE_BUILD_INPUT_BUCKET}"
   create_protected_bucket "${IMAGE_EVIDENCE_BUCKET}"
   create_protected_bucket "${CONTROL_PLANE_BUCKET}"
+  create_protected_bucket "${MASK_BUCKET}"
 
   create_secret_placeholder HUGGINGFACE_TOKEN
   create_secret_placeholder MODEL_WEIGHT_ACCESS_TOKEN
@@ -54,7 +57,7 @@ main() {
   printf '  "projectId":"%s",\n' "${PROJECT_ID}"
   printf '  "region":"%s",\n' "${REGION}"
   printf '  "serviceIdentityCount":3,\n'
-  printf '  "privateBucketCount":4,\n'
+  printf '  "privateBucketCount":5,\n'
   printf '  "secretPlaceholderCount":2,\n'
   printf '  "hsmSigningKeyCreatedOrReread":true,\n'
   printf '  "secretVersionCreated":false,\n'
@@ -213,13 +216,36 @@ configure_least_privilege_iam() {
     "${IMAGE_BUILD_INPUT_BUCKET}" \
     "${IMAGE_BUILDER_SA}" roles/storage.objectViewer
   grant_bucket_role \
+    "${IMAGE_BUILD_INPUT_BUCKET}" \
+    "${IMAGE_BUILDER_SA}" roles/storage.objectCreator
+  grant_bucket_role \
+    "${CLOUD_BUILD_SOURCE_BUCKET}" \
+    "${IMAGE_BUILDER_SA}" roles/storage.objectViewer
+  grant_bucket_role \
     "${IMAGE_EVIDENCE_BUCKET}" \
     "${IMAGE_SIGNER_SA}" roles/storage.objectCreator
+  # Cloud Build's artifacts uploader resolves the destination bucket before it
+  # creates objects, then rereads/lists them while writing its manifest. The
+  # Creator + Viewer excludes overwrite, update, destructive mutation, and admin.
+  grant_bucket_role \
+    "${IMAGE_EVIDENCE_BUCKET}" \
+    "${IMAGE_SIGNER_SA}" roles/storage.bucketViewer
+  grant_bucket_role \
+    "${IMAGE_EVIDENCE_BUCKET}" \
+    "${IMAGE_SIGNER_SA}" roles/storage.objectViewer
   grant_bucket_role \
     "${IMAGE_EVIDENCE_BUCKET}" "${API_SA}" roles/storage.objectViewer
   grant_bucket_role \
     "${MODEL_ARTIFACT_BUCKET}" \
     "${GPU_WORKER_SA}" roles/storage.objectViewer
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${API_SA}" roles/storage.objectCreator
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${API_SA}" roles/storage.objectViewer
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${GPU_WORKER_SA}" roles/storage.objectCreator
+  grant_bucket_role \
+    "${MASK_BUCKET}" "${GPU_WORKER_SA}" roles/storage.objectViewer
 
   grant_artifact_role \
     "${IMAGE_BUILDER_SA}" roles/artifactregistry.writer
@@ -234,6 +260,14 @@ configure_least_privilege_iam() {
     --keyring="${KEY_RING}" \
     --member="serviceAccount:$(service_account_email "${IMAGE_SIGNER_SA}")" \
     --role=roles/cloudkms.signerVerifier \
+    --condition=None \
+    --quiet
+  run_gcloud kms keys add-iam-policy-binding "${SIGNING_KEY}" \
+    --project="${PROJECT_ID}" \
+    --location="${REGION}" \
+    --keyring="${KEY_RING}" \
+    --member="serviceAccount:$(service_account_email "${IMAGE_SIGNER_SA}")" \
+    --role=roles/cloudkms.viewer \
     --condition=None \
     --quiet
 }

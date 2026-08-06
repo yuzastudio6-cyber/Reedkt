@@ -18,10 +18,11 @@ import { validateSoundOperationHandlerCoverage } from '../edit-skills/sound/soun
 
 validateCanonicalSoundPublication()
 const routes = listSoundToolRouteManifests()
-assert.equal(routes.length, 20)
+assert.equal(routes.length, 21)
 for (const route of routes) {
   assert.equal(route.routeVersion,
-    route.routeKey === 'sound.route.edit.music_technical_automation.v1' ? '1.0.0' : '4.0.0')
+    route.routeKey === 'sound.route.edit.music_technical_automation.v1' ||
+      route.routeKey === 'sound.route.edit.music_two_source_crossfade.v1' ? '1.0.0' : '4.0.0')
   assert.match(route.routeHash, /^[a-f0-9]{64}$/)
   for (const step of route.orderedOrGraphSteps) {
     const operation = getToolOperationCapability(step.toolKey, step.operationKey, step.toolVersionConstraint)

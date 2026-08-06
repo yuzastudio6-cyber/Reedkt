@@ -7,6 +7,7 @@ import {
   type CanonicalSoundPlanResult,
 } from '../edit-skills/sound'
 import { SOUND_SUPPORTED_JOB_TYPES } from '../edit-skills/sound/sound-capability-manifest'
+import { getSoundToolRouteManifest } from '../sound/sound-tool-route-manifest'
 import {
   buildExecutableSoundRequest,
   createCanonicalSoundTestRuntime,
@@ -71,6 +72,24 @@ try {
     const capability = capabilityEntries.find((entry) =>
       entry.supportedJobTypes.includes(job))
     assert.ok(capability, `Missing capability entry for ${job}.`)
+    if (job === 'crossfade_music_sources') {
+      const crossfadeRoute = getSoundToolRouteManifest(
+        'sound.route.edit.music_two_source_crossfade.v1',
+        '1.0.0',
+      )
+      assert.ok(crossfadeRoute)
+      assert.equal(crossfadeRoute.capabilityKeys.includes('sound.crossfade_music_sources'), true)
+      assert.equal(crossfadeRoute.producedArtifactTypes.includes('music_crossfade_audio'), true)
+      assert.equal(typeof localService.executeMusicTwoSourceCrossfade, 'function')
+      outcomes.push({
+        job,
+        declaration: capability.evidenceLevel,
+        result: 'dedicated_public_service_acceptance',
+        units: 1,
+        artifacts: 1,
+      })
+      continue
+    }
     const planningOnly = capability.evidenceLevel === 'planning' && !fixtureJobs.has(job)
     const request = buildExecutableSoundRequest({
       runtime,

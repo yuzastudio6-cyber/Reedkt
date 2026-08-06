@@ -60,6 +60,9 @@ jobs:
       - name: Run canonical Sound acceptance suite
         run: npm run test:sound-acceptance
 
+      - name: Run canonical Music-to-Sound final-closure regressions
+        run: npm run test:music-final-closure
+
       - name: Server typecheck
         run: npm run typecheck:server
 
@@ -75,7 +78,7 @@ jobs:
           {
             echo "## Canonical Sound acceptance"
             echo ""
-            echo "- The shared capability kernel, B-roll regression, complete Sound smoke suite, execution-integrity suite, and capability-wide acceptance matrix ran through the aggregate Sound command."
+            echo "- The shared capability kernel, B-roll regression, complete Sound smoke suite, execution-integrity suite, capability-wide acceptance matrix, and Music-to-Sound final-closure regressions ran on this exact commit."
             echo "- Mirelo coverage uses deterministic injected transport and remains fixture-qualified. This workflow does not perform a paid provider call or production activation."
-            echo "- The Head of Orchestra and the separate Music skill remain outside this workflow by design."
+            echo "- This workflow validates Sound's public Music-support boundary; the Head of Orchestra and Music creative ownership remain outside Sound by design."
           } >> "$GITHUB_STEP_SUMMARY"

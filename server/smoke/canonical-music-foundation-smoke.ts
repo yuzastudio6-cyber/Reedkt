@@ -17,7 +17,7 @@ import { makeCanonicalMusicRequest, makeMusicCue, makeMusicRights, testHash } fr
 validateCanonicalMusicPublication()
 assert.equal(editSkillCapabilityRegistry.resolveLatest('music').manifestHash, musicSkillCapabilityManifest.manifestHash)
 assert.equal(MUSIC_CAPABILITY_MODE_MATRIX.length, musicSkillCapabilityManifest.supportedJobTypes.length)
-assert.equal(MUSIC_MINI_SKILL_MANIFESTS.length, 41)
+assert.equal(MUSIC_MINI_SKILL_MANIFESTS.length, 42)
 assert.ok(MUSIC_TOOL_ROUTE_MANIFESTS.length >= 25)
 assert.equal(new Set(MUSIC_TOOL_ROUTE_MANIFESTS.map((route) => `${route.routeKey}@${route.routeVersion}`)).size,
   MUSIC_TOOL_ROUTE_MANIFESTS.length)

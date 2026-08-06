@@ -29,11 +29,11 @@ const validation = validateSkillCapabilityManifests({
   catalog: editSkillReferenceCatalog,
 })
 assert.equal(validation.manifestCount, 3)
-assert.equal(SOUND_SKILL_VERSION, '4.1.0')
+assert.equal(SOUND_SKILL_VERSION, '4.2.0')
 assert.equal(soundSkillCapabilityManifest.contractVersion, 'sound.skill_contract.v4')
 assert.equal(soundSkillCapabilityManifest.qualificationStatus, 'planning_qualified')
 assert.equal(Object.isFrozen(soundSkillCapabilityManifest), true)
-assert.equal(soundSkillCapabilityManifest.capabilityEntries?.length, 40)
+assert.equal(soundSkillCapabilityManifest.capabilityEntries?.length, 41)
 assert.equal(editSkillCapabilityRegistry.resolveLatest('sound').manifestHash, soundSkillCapabilityManifest.manifestHash)
 assert.equal(editSkillCapabilityRegistry.resolveLatest('b_roll').skillKey, 'b_roll')
 assert.equal(editSkillCapabilityRegistry.resolveLatest('music').skillKey, 'music')

@@ -79,6 +79,9 @@ export function makeCanonicalMusicRequest(input: {
   inspectRanges?: MusicFrameRange[]
   writeRanges?: MusicFrameRange[]
   caller?: CanonicalMusicSkillRequest['caller']
+  maximumCueCount?: number
+  maximumCueChangesPerMinute?: number
+  musicAssetDescriptors?: CanonicalMusicSkillRequest['musicAssetDescriptors']
 }): CanonicalMusicSkillRequest {
   const rate = input.rate ?? { numerator: 24, denominator: 1 }
   const writeRanges = input.writeRanges ?? input.cues.map((cue) => cue.exactRange)
@@ -138,10 +141,12 @@ export function makeCanonicalMusicRequest(input: {
     userMusicPolicy: {
       musicEnabled: input.musicEnabled ?? true, preserveSourceMusic: true, preserveNaturalSound: true,
       protectEmotionalSilence: true, allowGeneration, instrumentalUnderImportantSpeech: true,
-      maximumCueCount: 16, maximumCueChangesPerMinute: 8,
+      maximumCueCount: input.maximumCueCount ?? 16,
+      maximumCueChangesPerMinute: input.maximumCueChangesPerMinute ?? 8,
       customDirectives: ['Use professional restraint; prioritize dialogue and story continuity.'],
     },
     inputAssetRefs: assets, referenceMusicRefs: [], rightsAndProvenanceRefs: input.rights ?? [],
+    musicAssetDescriptors: input.musicAssetDescriptors ?? [],
     cueConstraints: {
       requestedCues: input.cues, lockedCueIds: input.cues.map((cue) => cue.cueId),
       allowMusicToCombineUnlockedCues: false, constraints: [],

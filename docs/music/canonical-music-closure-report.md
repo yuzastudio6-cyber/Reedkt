@@ -1,4 +1,4 @@
-# Canonical Music v3 standalone closure report
+# Canonical Music v3.1 standalone closure report
 
 Date: 2026-08-05
 
@@ -11,14 +11,14 @@ Status: `standalone_skill_complete`, `orchestra_ready`,
 
 ## Published identity and qualification
 
-- Skill key/version: `music` / `3.0.0`
+- Skill key/version: `music` / `3.1.0`
 - Contract: `music.skill_contract.v3`
-- Manifest hash: `f723bcdba273e56051ea384084bf311330db2b03f14e6eb2cb5f865f0288d11b`
+- Manifest hash: `4d1c95cbfd4eeaa350c692e92f378f9eb76eb0174a1b72763ad2c968981733cd`
 - Top-level qualification: `planning_qualified`
 - Capability entries / supported jobs: 35
-- Internal mini-skills: 41
-- Tool capability manifests: 8
-- Exact immutable routes: 31
+- Internal mini-skills: 42
+- Tool capability manifests: 9
+- Exact immutable routes: 33
 - Exact fixture-executable direct jobs: 4
 - Exact private-internal executable direct jobs: 8
 - Production-qualified jobs: 0
@@ -67,13 +67,17 @@ Orchestra facade.
 ## Professional department and authority
 
 The public service owns validation, admission, exact scope, context resolution, study-first Music
-supervision, Music-need and silence decisions, atomic soundtrack segmentation, cue-constraint
-resolution, narrative arc, exact cue sheet, cue-local acquisition, provider attempts, candidate
+supervision, Music-need and silence decisions, atomic soundtrack segmentation, professional cue
+grouping, cue-constraint resolution, narrative arc, exact cue sheet, cue-local acquisition, provider attempts, candidate
 analysis/selection, MusicSync, creative editorial and mix intent, Sound delegation, QA, continuity,
 localized revision, and final handoff.
 
 Every authorized write range is covered by exact, non-overlapping atomic segments derived from
 scene, speech, silence, ambience, transition, chapter, locked-range, and cue-constraint boundaries.
+Those atomic planning segments are not treated as final cues. The versioned grouping stage merges
+compatible adjacent segments, reuses continuity families, removes weak decorative scoring where
+policy permits, and hard-enforces both the approved cue count and cue-change density. An impossible
+policy produces a typed conflict and blocked result rather than a warning-only over-scored plan.
 Whole-video context inspection never expands Music write authority. Fully/range/creative-field
 locked cues and soft/advisory cues are resolved by typed receipts. Visual timing is never mutated;
 Music returns a proposal instead.
@@ -137,11 +141,11 @@ still requires canonical Sound processing and final measured QA. The live eviden
 transport without falsely promoting the immutable route or top-level Music capability to production
 qualification.
 
-## Canonical Sound 4.1 collaboration
+## Canonical Sound 4.2 collaboration
 
 Music imports only `MusicSoundSupportPort`. The production adapter calls canonical Sound skill
-`4.1.0`, contract `sound.skill_contract.v4`, manifest
-`058368b79551d7db3cef699a5962a51f25c34ecf2b1cb997f94aa74ffc879128`, capability
+`4.2.0`, contract `sound.skill_contract.v4`, manifest
+`84ed4074e718aff8c48a3af6b7f981dc3442672721e1a20f1fef4546e800e122`, capability
 `sound.edit_music_technical_automation`, and exact route
 `sound.route.edit.music_technical_automation.v1`.
 
@@ -149,10 +153,18 @@ The delegated request binds the Music version/manifest, parent request, cue, sel
 rational rate, exact bounded range, complete technical parameters, protected speech/ambience,
 approval, budget, reservation, and idempotency. Sound applies trim/cut/fade/crossfade/gain/
 normalization/loop/resample/channel conversion/stretch/pitch/place/duck/EQ/dynamics/pan/stem/QA as
-requested and returns per-operation received/applied hashes, outputs, measured QA, mutation receipts,
+requested and returns parameter-specific per-operation requested/compiled/applied records and hashes,
+source/output lineage, outputs, measured QA, mutation receipts,
 route evidence, cost, and caller receipt. Music rejects mismatched hashes, missing outputs/QA, stale
 manifests, or range escalation. Sound receipts determine actual Music mutation ranges. Nested Sound
 cost stays separate and is not double-counted. The ancestor chain prevents Music→Sound→Music cycles.
+
+True two-source Music crossfade uses a separate typed public boundary and exact route
+`sound.route.edit.music_two_source_crossfade.v1@1.0.0`. It binds two independently checksum-verified
+private sources, exact source windows, overlap frames/samples, gain curves, authority, route/profile,
+output hash, and measured overlap/peak/clipping QA. The generic one-source automation contract rejects
+crossfade. Dialogue ducking now applies and measures exact frame-based attack, hold, and release ramps;
+zero-length ramps and invalid protected ranges fail closed.
 
 ## Route truthfulness, QA, continuity, and revision
 
@@ -196,7 +208,8 @@ inventory only.
 
 | Command | Result |
 |---|---|
-| `npm run test:music-acceptance` | passed; includes Music v3, Sound 4.1, shared kernel, and B-roll |
+| `npm run test:music-final-closure` | passed; six mandatory real-byte/grouping/receipt/manifest scenarios |
+| `npm run test:music-acceptance` | passed; includes Music v3.1, Sound 4.2, shared kernel, and B-roll |
 | `npm run test:sound-acceptance` | passed within aggregate |
 | `npm run validate:skill-capability-manifests` | passed; 3 manifests |
 | `npm run test:edit-skill-capability-kernel` | passed |
@@ -232,7 +245,7 @@ exact acceptance records, real execution receipts, and the command matrix:
   canary — satisfied. Production-route promotion remains intentionally separate from canary proof.
 - 63–79: independent candidates, order-independent selection, actual-byte audio analysis, measured
   loudness/peak/clipping/timing evidence, and anchor-driven MusicSync/editorial — satisfied.
-- 80–92: public Sound 4.1 port only, exact delegated authority and cost, receipt-derived mutations,
+- 80–92: public Sound 4.2 port only, exact delegated authority and cost, receipt-derived mutations,
   separated measured QA, and honest subjective/legal boundaries — satisfied.
 - 93–102: bounded whole-video execution, partial success, localized revision, real/existing/
   no-Music/ambience handoffs — satisfied.
@@ -262,6 +275,9 @@ exact acceptance records, real execution receipts, and the command matrix:
 - `3f1178621` — preserve safe Lyria rejection evidence
 - `170bc13d0` — align live Lyria prompts with provider policy
 - Live evidence commit — this report and immutable deployed canary record
+- `9cbfd4af6` — close cue grouping and Sound execution integrity
+- Final v3.1 acceptance evidence commit — six focused regressions, red-team audit,
+  CI wiring, and this updated closure record
 
 Music is safe to close because its public contract, manifest, route graph, handlers, real private
 artifacts, rights, exact timing, Sound collaboration, measured QA, localized revision, final handoff,

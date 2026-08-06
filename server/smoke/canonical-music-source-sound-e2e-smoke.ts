@@ -12,7 +12,7 @@ const request = makeCanonicalMusicRequest({
 })
 
 const result = await runtime.music.execute(request)
-assert.equal(result.status, 'completed')
+assert.equal(result.status, 'completed', JSON.stringify(result.unitReceipts.filter((item) => item.status !== 'completed')))
 assert.equal(result.selectedMusicAssetRefs.length, 1)
 assert.ok(result.processedMusicAssetRefs.length >= 1)
 assert.ok(result.musicStemAssetRefs.length >= 1)

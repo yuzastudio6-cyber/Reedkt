@@ -67,13 +67,15 @@ const denseRanges = Array.from({ length: 4 }, (_, index) => ({ rangeId: `dense-$
   endFrameExclusive: (index + 1) * 6 }))
 const denseRequest = makeCanonicalMusicRequest({ requestId: 'music-cue-density', mode: 'planning',
   cues: denseRanges.map((range, index) => makeMusicCue({ cueId: `dense-cue-${index}`, range,
-    acquisitionPreference: 'no_music' })), inspectRanges: [{ rangeId: 'dense-inspect', startFrame: 0, endFrameExclusive: 24 }],
-  writeRanges: denseRanges })
+    acquisitionPreference: 'generate_original' })), inspectRanges: [{ rangeId: 'dense-inspect', startFrame: 0, endFrameExclusive: 24 }],
+  writeRanges: denseRanges, allowGeneration: true, maximumCueCount: 1, maximumCueChangesPerMinute: 0 })
 const densePlan = await denseRuntime.music.plan(denseRequest)
-assert.ok(densePlan.cueSheet.payload.overScoringWarnings.includes('cue_change_density_exceeds_policy'))
-assert.equal(densePlan.arc.payload.cueFamilyStrategy, 'chapter_score')
+assert.equal(densePlan.plannedResult.status, 'blocked')
+assert.ok(densePlan.cuePolicyConflict)
+assert.equal(densePlan.cueSheet.payload.overScoringWarnings.length, 0)
+assert.equal(densePlan.arc.payload.cueFamilyStrategy, 'zero_cues')
 
 console.log(JSON.stringify({ status: 'ok', cueCount: report.cueIds.length,
   routeFamilies: report.cueFamilyContinuity, intentionalSilenceFindings: report.silenceFindings.length,
   protectedSpeechFindings: report.speechPriorityFindings.length,
-  overScoringWarnings: densePlan.cueSheet.payload.overScoringWarnings }, null, 2))
+  cuePolicyConflictHash: densePlan.cuePolicyConflict?.conflictHash }, null, 2))

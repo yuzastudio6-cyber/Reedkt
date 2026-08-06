@@ -112,7 +112,9 @@ export interface CanonicalMusicTestRuntime {
   makeWav(input: { id: string; durationSeconds: number; frequency: number; volume?: number }): Promise<MusicArtifactRef>
 }
 
-export async function createCanonicalMusicTestRuntime(): Promise<CanonicalMusicTestRuntime> {
+export async function createCanonicalMusicTestRuntime(input: {
+  context?: MusicContextArtifactResolver
+} = {}): Promise<CanonicalMusicTestRuntime> {
   const root = await mkdtemp(join(tmpdir(), 'reeditpro-canonical-music-'))
   await mkdir(join(root, 'inputs'), { recursive: true, mode: 0o700 })
   const resolver = new TestPrivateArtifactResolver(root)
@@ -151,7 +153,7 @@ export async function createCanonicalMusicTestRuntime(): Promise<CanonicalMusicT
   const sound = new StandaloneCanonicalSoundSkillService({ artifacts: resolver })
   const music = new StandaloneCanonicalMusicSkillService({
     artifacts: resolver, provider, sound: new CanonicalSoundV4MusicSupportAdapter(sound),
-    context: new CanonicalMusicFixtureContextResolver(),
+    context: input.context ?? new CanonicalMusicFixtureContextResolver(),
   })
   return { root, resolver, music, sound, makeWav }
 }

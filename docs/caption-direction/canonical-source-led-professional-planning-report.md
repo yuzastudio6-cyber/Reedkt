@@ -2,14 +2,16 @@
 
 Milestone: `CAPTION-SOURCE-LED-PROFESSIONAL-PLANNING-01`
 
-Status: `source_mount_complete_private_execution_evidence_pending`
+Status: `source_mount_complete_postapproval_transcript_resolution_wired`
 
 ## Outcome
 
 The existing source-led plan-presentation path now has a default deterministic,
 server-owned professional Caption planning authority before plan publication.
 The authority supplies the existing professional composition trace, early
-planning bundle, V2 assignment binding, and one canonical estimate line. The
+planning bundle, V3 assignment binding, and one canonical estimate line. V3
+freezes the source-analysis transcript expectation instead of mislabeling that
+preapproval digest as the final word-level canonical transcript. The
 existing edit-planning authority remains the only owner that creates Caption
 work and binds downstream rendering, deterministic rendered QA, complete-time
 visual review, and independent private review.
@@ -40,18 +42,35 @@ This milestone does not claim that an approved representative edit has run,
 that authenticated transcript/Visual Intelligence/Track All/SoundSync/B-roll
 evidence was consumed, or that terminal private qualification has passed.
 
+The postapproval transcript bridge is now wired separately. The canonical
+transcript owner must reread the exact approved snapshot and canonical source
+transcript/word-timing evidence, recompute the preapproval expectation, persist
+the authenticated transcript, and then create-only persist the exact
+expectation-to-transcript mapping. The private Caption runner resolves V3 work
+through that mapping and replaces the expectation with the real transcript,
+its authenticated-read binding, and the immutable mapping ref in the actual
+specialist call. Missing, crossed, remapped, or pre-injected lineage fails
+closed.
+
 ## Files changed
 
 - `src/types/canonical-caption-source-led-professional-planning.ts`
+- `src/types/canonical-caption-specialist-planning.ts`
+- `src/types/canonical-caption-specialist-execution.ts`
+- `src/types/canonical-caption-transcript-support.ts`
 - `server/captions-specialist/caption-source-led-professional-planning.ts`
 - `server/captions-specialist/caption-source-led-professional-planning-owner.ts`
 - `server/services/canonical-source-led-plan-presentation-service.ts`
+- `server/services/canonical-caption-transcript-support-service.ts`
+- `server/services/canonical-caption-specialist-execution-service.ts`
+- `server/services/canonical-internal-authority-runner-service.ts`
 - `src/lib/canonical-planning-draft.ts`
 - `server/types.ts`
 - `server/app.ts`
 - `server/routes/route-helpers.ts`
 - `server/smoke/canonical-caption-source-led-professional-planning-smoke.ts`
 - `server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts`
+- `server/smoke/canonical-caption-transcript-support-service-smoke.ts`
 - `server/smoke/captions-specialist-source-integration-aggregate-smoke.ts`
 - `package.json`
 - this report and the post-CAP-20 audit update
@@ -61,6 +80,12 @@ evidence was consumed, or that terminal private qualification has passed.
 - `canonical-caption-source-led-professional-planning-request-v1`
 - `canonical-caption-source-led-professional-planning-authority-v1`
 - `canonical-caption-source-led-professional-planning-read-port-v1`
+- `canonical-caption-specialist-planning-binding-v3`
+- `canonical-caption-specialist-planning-projection-v3`
+- `canonical-caption-specialist-work-item-input-v3`
+- `canonical-caption-transcript-support-service-v2`
+- `canonical-caption-transcript-evidence-repository-v3`
+- `canonical-caption-transcript-planning-expectation-binding-v1`
 
 The request is byte-free and binds the exact owner/workspace/project/edit
 session/planning request/output, base component digest, confirmed output frame,
@@ -94,7 +119,8 @@ specialist assignments are added.
 ## Tests run
 
 - `smoke:canonical-caption-source-led-professional-planning`: 24 checks
-- `smoke:canonical-caption-source-led-professional-planning-owner`: 26 checks
+- `smoke:canonical-caption-source-led-professional-planning-owner`: 33 checks
+- `smoke:canonical-caption-transcript-support`: 29 checks
 - `smoke:canonical-caption-specialist-planning`: 61 checks
 - `smoke:canonical-caption-specialist-execution`: 45 checks
 - `smoke:canonical-source-led-plan-compiler`: green, including six adversarial
@@ -113,10 +139,13 @@ specialist assignments are added.
 ## Tests passed
 
 All tests above passed. The focused proof covers selected planning, explicit
-restraint, exact V2 assignment coverage across two source scenes, stable double
+restraint, exact V3 assignment coverage across two source scenes, stable double
 reread, forged-port refusal, stale-base refusal, pre-existing component
 refusal, legacy parallel-renderer refusal, closed authority flags, canonical
-component parsing, and final publishable-plan parsing.
+component parsing, and final publishable-plan parsing. It also covers exact
+expectation recomputation, create-only mapping/reread, remap collision refusal,
+crossed expectation and snapshot refusal, runner resolution, one approved V3
+specialist execution, and failure before resolution.
 
 ## Tests failed
 
@@ -139,7 +168,11 @@ Not applicable; no new media was produced.
 - preserved exact confirmed-marker lineage through the clean recompile;
 - required stable owner rereads before and after legacy-lane retirement;
 - rejected partial or pre-existing Caption component merges;
-- preserved explicit `no_captions` as zero work and zero hidden estimate cost.
+- preserved explicit `no_captions` as zero work and zero hidden estimate cost;
+- stopped source-led planning from pretending a source-analysis transcript
+  projection was already the final authenticated word-level transcript; and
+- preserved the immutable approved work input while replacing its expectation
+  only in the actual postapproval call after canonical reread.
 
 ## Known limitations
 
@@ -149,6 +182,10 @@ from the exact admitted source-analysis record. No fallback fixture is mounted.
 Before that record exists, the historical exact-marker path remains backward
 compatible. A requested Caption plan with analysis but no captionable speech,
 crossed scope, or stale evidence blocks publication fail closed.
+
+The focused authenticated transcript used to prove the new mapping is a
+closed fixture-only owner record. It proves orchestration and lineage, not the
+pending real audio-truth correction or terminal transcript qualification.
 
 ## Scoped blockers
 
@@ -166,6 +203,7 @@ and aggregate coverage are complete.
 
 ## Next milestone
 
-Execute bounded approved representative runs through the existing work graph
-once the corrected authenticated transcript and exact project evidence exist.
+Complete the prepared real audio-truth review, have the canonical transcript
+owner persist the corrected record and its V3 planning-expectation mapping,
+then execute bounded representative runs through the existing work graph.
 Preserve the separate complete-time visual-AI and independent final-QA gates.

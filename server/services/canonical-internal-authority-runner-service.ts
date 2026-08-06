@@ -449,10 +449,15 @@ export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
     workItem.executionInput)
   const transcriptRef = workInput.initialArtifactRefs.find((artifact) =>
     artifact.artifactType === 'canonical_transcript')
-  if (!transcriptRef) {
+  const planningExpectationRef = workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_planning_expectation',
+  )
+  if ((!transcriptRef && !planningExpectationRef)
+    || (transcriptRef && planningExpectationRef)) {
     throw new ApiError(
       'JOB_DEPENDENCY_NOT_READY',
-      'Canonical Caption transcript authority is unavailable.',
+      'Canonical Caption transcript or planning-expectation authority is unavailable.',
       409,
       { requiredGate: 'canonical_caption_transcript_ref' },
     )
@@ -470,15 +475,25 @@ export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
       contentHash: snapshot.snapshotHash,
     },
   }
-  const transcriptRecord =
-    await input.transcriptRepository.findExactForExecution({
+  const planningResolution = planningExpectationRef
+    ? await input.transcriptRepository.findExactForPlanningExpectation({
+        canonicalReadScope,
+        planningExpectationRef: {
+          id: planningExpectationRef.id,
+          version: planningExpectationRef.version,
+          contentHash: planningExpectationRef.contentHash,
+        },
+      })
+    : null
+  const transcriptRecord = planningResolution?.transcriptRecord ??
+    (transcriptRef ? await input.transcriptRepository.findExactForExecution({
       canonicalReadScope,
       canonicalTranscriptRef: {
         id: transcriptRef.id,
         version: transcriptRef.version,
         contentHash: transcriptRef.contentHash,
       },
-    })
+    }) : null)
   if (!transcriptRecord) {
     throw new ApiError(
       'JOB_DEPENDENCY_NOT_READY',
@@ -490,12 +505,26 @@ export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
     )
   }
   const binding = transcriptRecord.authenticatedReadBinding
+  const resolvedTranscript = transcriptRecord.canonicalTranscript
+  const expectationBinding = planningResolution?.binding
   return Object.freeze({
     readPort: input.transcriptRepository,
+    transcriptRef: Object.freeze({
+      id: resolvedTranscript.transcriptId,
+      version: resolvedTranscript.schemaVersion,
+      contentHash: resolvedTranscript.transcriptDigestSha256,
+    }),
     bindingRef: Object.freeze({
       id: binding.bindingId,
       version: binding.schemaVersion,
       contentHash: binding.bindingDigestSha256,
+    }),
+    ...(expectationBinding === undefined ? {} : {
+      planningExpectationBindingRef: Object.freeze({
+        id: expectationBinding.bindingId,
+        version: expectationBinding.schemaVersion,
+        contentHash: expectationBinding.bindingDigestSha256,
+      }),
     }),
     recordDigestSha256: transcriptRecord.recordDigestSha256,
   })
@@ -551,8 +580,13 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
     jobId: input.jobId,
     repository,
     canonicalTranscriptReadPort: transcriptMount.readPort,
+    canonicalTranscriptRef: transcriptMount.transcriptRef,
     canonicalTranscriptAuthenticatedReadBindingRef:
       transcriptMount.bindingRef,
+    ...('planningExpectationBindingRef' in transcriptMount ? {
+      canonicalTranscriptPlanningExpectationBindingRef:
+        transcriptMount.planningExpectationBindingRef,
+    } : {}),
   })
   if (execution.pair.result.disposition !== 'completed') {
     const supportRequestRefs = execution.pair.result.supportRequests.map(

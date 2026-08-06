@@ -44,7 +44,7 @@ import { sha256AuthorityValue } from
 import {
   canonicalCaptionAssignmentTriggerForJob,
   calculateCanonicalCaptionSpecialistPlanningBindingDigest,
-  createCanonicalCaptionSpecialistPlanningBindingV2,
+  createCanonicalCaptionSpecialistPlanningBindingV3,
   parseCanonicalCaptionSpecialistPlanningBinding,
 } from './caption-canonical-work-planning'
 import { CAPTION_DESIGN_COMPOSITE } from './caption-design-composite'
@@ -196,10 +196,16 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
         publicDeliveryGranted: false,
         productionAuthorityGranted: false,
       }
+      const {
+        canonicalTranscriptRef: canonicalTranscriptExpectationRef,
+        ...selectedBindingBody
+      } = bindingBody
       const binding = restrained
         ? createRestrainedPlanningBinding(bindingBody)
-        : createCanonicalCaptionSpecialistPlanningBindingV2({
-            ...bindingBody,
+        : createCanonicalCaptionSpecialistPlanningBindingV3({
+            ...selectedBindingBody,
+            canonicalTranscriptExpectationRef,
+            postapprovalCanonicalTranscriptResolutionRequired: true,
             assignmentIntents: createAssignmentIntents({
               request,
               trace,

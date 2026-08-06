@@ -2,7 +2,9 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 
 import {
+  CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
 } from '../../src/types/canonical-caption-specialist-execution'
 
@@ -14,6 +16,7 @@ import {
   createCanonicalCaptionSourceWordTimingReadPort,
   createCanonicalCaptionTranscriptEvidenceRepository,
   createCanonicalCaptionTranscriptSupportService,
+  createCanonicalCaptionTranscriptSupportServiceV2,
   parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
 } from '../services/canonical-caption-transcript-support-service'
 import { createCanonicalSourceLedSourceFrameAuthority } from
@@ -27,6 +30,17 @@ import type { CanonicalCreateOnlyJsonObjectPort } from
 import {
   resolveCanonicalCaptionTranscriptExecutionMount,
 } from '../services/canonical-internal-authority-runner-service'
+import {
+  executeCanonicalCaptionSpecialistWorkItem,
+  parseCanonicalCaptionSpecialistWorkItemInput,
+} from
+  '../services/canonical-caption-specialist-execution-service'
+import { createCanonicalSpecialistSupportResumeRepository } from
+  '../services/canonical-specialist-support-resume-service'
+import type { CanonicalApprovedExecutionAuthority } from
+  '../services/edit-planning-authority-service'
+import type { CanonicalApprovedEditExecutionPackage } from
+  '../edit-architecture/canonical-approved-edit-execution-package'
 import type { CanonicalVisualIntelligenceSourceTranscriptResult } from
   '../services/canonical-source-visual-intelligence-analysis-contract'
 import { createCanonicalQualityFirstUserTriggeredGpuPolicy } from
@@ -230,27 +244,33 @@ check(CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION ===
   'canonical-caption-transcript-evidence-repository-v1'
   && repository.repositoryVersion ===
     CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION,
-  'The frozen V1 repository identity must remain stable while the scope index uses V2.')
-const service = createCanonicalCaptionTranscriptSupportService({
-  approvedSnapshotReadPort: createCanonicalCaptionApprovedSnapshotReadPort(
-    async (scope) => structuredClone(scope)),
-  sourceTranscriptReadPort: {
+  'The frozen V1 repository identity must remain stable while current indexes advance additively.')
+const approvedSnapshotReadPort =
+  createCanonicalCaptionApprovedSnapshotReadPort(
+    async (scope) => structuredClone(scope))
+const sourceTranscriptReadPort = {
     schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
-    async readCompleted(scope) {
+    async readCompleted(scope: CanonicalSourceTranscriptOrchestraReadScope) {
       return stableAuthorityStringify(scope) ===
         stableAuthorityStringify(sourceScope)
         ? structuredClone(transcriptResult) : null
     },
-  },
-  wordTimingReadPort: createCanonicalCaptionSourceWordTimingReadPort(
+  } as const
+const wordTimingReadPort = createCanonicalCaptionSourceWordTimingReadPort(
     async ({ scope, transcriptAuthorityRef }) =>
       stableAuthorityStringify(scope) === stableAuthorityStringify(sourceScope)
       && stableAuthorityStringify(transcriptAuthorityRef) ===
         stableAuthorityStringify(transcriptResult.transcriptAuthorityRef)
-        ? structuredClone(wordEvidence) : null),
+        ? structuredClone(wordEvidence) : null)
+const serviceInput = {
+  approvedSnapshotReadPort,
+  sourceTranscriptReadPort,
+  wordTimingReadPort,
   repository,
   now: () => new Date('2026-08-05T18:00:00.000Z'),
-})
+} as const
+const service = createCanonicalCaptionTranscriptSupportService(serviceInput)
+const serviceV2 = createCanonicalCaptionTranscriptSupportServiceV2(serviceInput)
 
 const record = await service.projectAuthenticatedTranscript({
   canonicalReadScope: approvedScope,
@@ -274,6 +294,91 @@ check(record.providerCallPerformedByBridge === false
 check(parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord(record)
   .recordDigestSha256 === record.recordDigestSha256,
   'The closed authenticated record must verify its digest.')
+
+const transcriptProjection = [{
+  sourceSequenceItemId: sourceScope.sourceSequenceItemId,
+  transcriptDigestSha256,
+  transcriptCoverageDigestSha256:
+    transcriptResult.transcript.coverage.coverageDigestSha256,
+}]
+const planningExpectationDigestSha256 = sha256AuthorityValue(
+  transcriptProjection)
+const planningExpectationRef = {
+  id: `caption-source-transcript.${
+    planningExpectationDigestSha256.slice(0, 48)}`,
+  version: 'canonical-source-transcript-planning-evidence-v1',
+  contentHash: planningExpectationDigestSha256,
+} as const
+const expectationProjection =
+  await serviceV2.projectAuthenticatedTranscriptForPlanningExpectation({
+    canonicalReadScope: approvedScope,
+    sourceScopes: [sourceScope],
+    planningExpectationRef,
+  })
+check(expectationProjection.transcriptRecord.recordDigestSha256 ===
+  record.recordDigestSha256,
+  'V2 must bind the exact preapproval expectation to the authenticated transcript record.')
+check(expectationProjection.expectationBinding.planningExpectationRef.id ===
+  planningExpectationRef.id
+  && expectationProjection.expectationBinding.byteFreeBinding
+  && expectationProjection.expectationBinding
+    .transcriptMutationAuthorityGrantedToCaption === false,
+  'The expectation bridge must stay byte-free and grant Caption no transcript authority.')
+const expectationReread =
+  await repository.findExactForPlanningExpectation({
+    canonicalReadScope: approvedScope,
+    planningExpectationRef,
+  })
+check(expectationReread?.binding.bindingDigestSha256 ===
+  expectationProjection.expectationBinding.bindingDigestSha256
+  && expectationReread.transcriptRecord.recordDigestSha256 ===
+    record.recordDigestSha256,
+  'The create-only expectation index must reread the exact mapping and transcript.')
+await assert.rejects(
+  () => serviceV2.projectAuthenticatedTranscriptForPlanningExpectation({
+    canonicalReadScope: approvedScope,
+    sourceScopes: [sourceScope],
+    planningExpectationRef: {
+      ...planningExpectationRef,
+      contentHash: sha256AuthorityValue('crossed-planning-expectation'),
+    },
+  }),
+  /crossed its exact source-analysis lineage/u,
+)
+checks += 1
+const alternateWordEvidence = createCanonicalCaptionSourceWordTimingEvidence({
+  ...wordEvidence,
+  evidenceId: 'caption.word-timing.source.alternate.1',
+  wordTimingArtifactRef: {
+    id: 'canonical.word-timing.source.alternate.1',
+    version: 'canonical-source-word-timing-artifact-v1',
+    contentHash: sha256AuthorityValue('alternate-word-timing-source-1'),
+  },
+  segments: wordEvidence.segments.map((segment) => ({
+    ...segment,
+    words: segment.words.map((word, index) => index === 4
+      ? { ...word, endMillisecondsExclusive: 1_160 }
+      : structuredClone(word)),
+  })),
+})
+const alternateServiceV2 = createCanonicalCaptionTranscriptSupportServiceV2({
+  approvedSnapshotReadPort,
+  sourceTranscriptReadPort,
+  wordTimingReadPort: createCanonicalCaptionSourceWordTimingReadPort(
+    async () => structuredClone(alternateWordEvidence)),
+  repository,
+  now: () => new Date('2026-08-05T18:00:00.000Z'),
+})
+await assert.rejects(
+  () => alternateServiceV2
+    .projectAuthenticatedTranscriptForPlanningExpectation({
+      canonicalReadScope: approvedScope,
+      sourceScopes: [sourceScope],
+      planningExpectationRef,
+    }),
+  /create-only collision/u,
+)
+checks += 1
 
 const reread = await repository.readExact({
   canonicalReadScope: record.canonicalReadScope,
@@ -388,6 +493,341 @@ check(executionMount.recordDigestSha256 === record.recordDigestSha256
   && executionMount.bindingRef.contentHash ===
     record.authenticatedReadBinding.bindingDigestSha256,
   'The internal Caption runner mount must inject the exact postapproval transcript binding.')
+
+const expectationMountWorkInput = {
+  ...mountWorkInput,
+  schemaVersion: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
+  initialArtifactRefs: mountWorkInput.initialArtifactRefs.map((artifact) =>
+    artifact.artifactType === 'canonical_transcript'
+      ? {
+          ...planningExpectationRef,
+          artifactType: 'canonical_transcript_planning_expectation' as const,
+          producerSkillKey: 'canonical_transcript' as const,
+          privateArtifact: true as const,
+          byteFreeRef: true as const,
+          sourceSupportRequestRef: null,
+        }
+      : artifact),
+  assignmentIntentRef: {
+    id: 'caption.assignment.transcript.expectation.1',
+    version: 'canonical-caption-specialist-job-assignment-v1',
+    contentHash: sha256AuthorityValue('caption-assignment-transcript-1'),
+  },
+  assignmentTrigger: 'approved_early_plan',
+  sourceSupportRequestRef: null,
+  selectionEvidenceRef: {
+    id: 'caption.selection.transcript.expectation.1',
+    version: 'professional-skill-composition-trace-v1',
+    contentHash: sha256AuthorityValue('caption-selection-transcript-1'),
+  },
+} as const
+const expectationMountAuthority = {
+  ...mountAuthority,
+  jobs: [{ id: 'job.caption.transcript.expectation.1', approvedWorkItemId:
+    'work.caption.transcript.expectation.1' }],
+  workItems: [{
+    id: 'work.caption.transcript.expectation.1',
+    executionInput: expectationMountWorkInput,
+  }],
+} as unknown as Parameters<
+  typeof resolveCanonicalCaptionTranscriptExecutionMount
+>[0]['authority']
+assert.throws(() => parseCanonicalCaptionSpecialistWorkItemInput({
+  ...expectationMountWorkInput,
+  initialArtifactRefs: [
+    ...expectationMountWorkInput.initialArtifactRefs,
+    {
+      id: expectationProjection.transcriptRecord.authenticatedReadBinding
+        .bindingId,
+      version: expectationProjection.transcriptRecord.authenticatedReadBinding
+        .schemaVersion,
+      contentHash: expectationProjection.transcriptRecord
+        .authenticatedReadBinding.bindingDigestSha256,
+      artifactType: 'canonical_transcript_authenticated_read_binding',
+      producerSkillKey: 'canonical_transcript',
+      privateArtifact: true,
+      byteFreeRef: true,
+      sourceSupportRequestRef: null,
+    },
+  ],
+}), /initial evidence/u)
+checks += 1
+assert.throws(() => parseCanonicalCaptionSpecialistWorkItemInput({
+  ...expectationMountWorkInput,
+  initialArtifactRefs: expectationMountWorkInput.initialArtifactRefs.map(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_planning_expectation'
+      ? {
+          ...expectationProjection.transcriptRecord.authenticatedReadBinding
+            .canonicalTranscriptRef,
+          artifactType: 'canonical_transcript',
+          producerSkillKey: 'canonical_transcript',
+          privateArtifact: true,
+          byteFreeRef: true,
+          sourceSupportRequestRef: null,
+        }
+      : artifact,
+  ),
+}), /initial evidence/u)
+checks += 1
+const expectationExecutionMount =
+  await resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: expectationMountAuthority,
+    jobId: 'job.caption.transcript.expectation.1',
+    transcriptRepository: repository,
+  })
+const expectationMountBindingRef =
+  expectationExecutionMount.planningExpectationBindingRef
+check(expectationExecutionMount.transcriptRef.contentHash ===
+  record.canonicalTranscript.transcriptDigestSha256
+  && expectationMountBindingRef?.contentHash ===
+    expectationProjection.expectationBinding.bindingDigestSha256,
+  'The runner must resolve V3 expectation work to the exact transcript and immutable mapping.')
+
+const v3ExecutionInputRef = {
+  sha256: sha256AuthorityValue(expectationMountWorkInput),
+  byteLength: Buffer.byteLength(JSON.stringify(expectationMountWorkInput)),
+}
+const v3ExpectedOutput = {
+  outputKey: 'caption-plan-receipt',
+  artifactType: 'caption_specialist_job_receipt',
+  assetRole: 'qa' as const,
+  required: true,
+  previewPlaceholderAllowed: false,
+  contentType: 'application/json',
+  segmentIds: [] as string[],
+  timingIds: ['timing.caption.transcript.1'],
+  rendererLayerIds: [] as string[],
+}
+const v3WorkItem = {
+  id: 'approved-caption-expectation-work-1',
+  snapshotId: approvedScope.approvedSnapshotRef.id,
+  sourceWorkItemId: 'caption-expectation-source-work-1',
+  workItemKey: 'caption-expectation-plan-strategy',
+  workItemType: 'custom',
+  workerClass: CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
+  executionInputRef: v3ExecutionInputRef,
+  sourceSequenceItemIds: [sourceScope.sourceSequenceItemId],
+  sourceCleanupDecisionIds: ['caption-source-cleanup-decision-1'],
+  expectedOutputs: [v3ExpectedOutput],
+  dependencyKeys: [],
+  approvedToolIds: [] as string[],
+  providerExecutionMode: 'none' as const,
+  fallbackPolicyRef: {
+    sha256: sha256AuthorityValue({ fallback: 'fail_closed' }),
+    byteLength: 24,
+  },
+  maxAttempts: 1,
+  attemptTimeoutSeconds: 60,
+  scheduledDelaySeconds: 0,
+  maximumCreditBudget: 0,
+  required: true,
+  executionInputHash: v3ExecutionInputRef.sha256,
+  createdAt: '2026-08-05T18:00:00.000Z',
+  executionInput: expectationMountWorkInput,
+  fallbackPolicy: { fallback: 'fail_closed' },
+}
+const v3Job = {
+  id: 'caption-expectation-job-1',
+  snapshotId: v3WorkItem.snapshotId,
+  reservationId: 'caption-expectation-reservation-1',
+  approvedWorkItemId: v3WorkItem.id,
+  workItemKey: v3WorkItem.workItemKey,
+  jobType: v3WorkItem.workItemType,
+  workerClass: v3WorkItem.workerClass,
+  executionInputRef: v3ExecutionInputRef,
+  sourceSequenceItemIds: [sourceScope.sourceSequenceItemId],
+  sourceCleanupDecisionIds: ['caption-source-cleanup-decision-1'],
+  expectedAssetIds: ['caption-expectation-manifest-entry-1'],
+  dependencyJobIds: [] as string[],
+  status: 'ready' as const,
+  maxAttempts: 1,
+  attemptTimeoutSeconds: 60,
+  scheduledFor: '2026-08-05T18:00:00.000Z',
+  createdAt: '2026-08-05T18:00:00.000Z',
+}
+const v3ManifestEntry = {
+  id: 'caption-expectation-manifest-entry-1',
+  snapshotId: v3WorkItem.snapshotId,
+  approvedWorkItemId: v3WorkItem.id,
+  workItemKey: v3WorkItem.workItemKey,
+  ...v3ExpectedOutput,
+  status: 'planned' as const,
+  version: 1 as const,
+  createdAt: '2026-08-05T18:00:00.000Z',
+}
+const v3ComponentRefs = {
+  masterTimingPlan: {
+    sha256: sha256AuthorityValue('timing-caption-transcript-1'),
+    byteLength: 64,
+  },
+}
+const v3SnapshotWithoutHash = {
+  schemaVersion: 'private-edit-authority-approved-snapshot-v3' as const,
+  snapshotId: approvedScope.approvedSnapshotRef.id,
+  workspaceId: approvedScope.workspaceId,
+  projectId: approvedScope.projectId,
+  editSessionId: approvedScope.editSessionId,
+  planId: 'plan.caption.transcript.1',
+  planVersion: 1,
+  estimateId: 'caption-expectation-estimate-1',
+  approvalId: 'caption-expectation-approval-1',
+  reservationId: v3Job.reservationId,
+  approvedByUserId: approvedScope.ownerUserId,
+  approvedAt: '2026-08-05T18:00:00.000Z',
+  componentRefs: v3ComponentRefs,
+  approvedWorkItemIds: [v3WorkItem.id],
+  planHash: sha256AuthorityValue('caption-expectation-plan'),
+  estimateHash: sha256AuthorityValue('caption-expectation-estimate'),
+  workGraphHash: sha256AuthorityValue('caption-expectation-work-graph'),
+  sourceSequenceHash: sha256AuthorityValue('caption-expectation-source'),
+  timingHash: sha256AuthorityValue('caption-expectation-timing'),
+  approvedAssetManifestRef: {
+    sha256: sha256AuthorityValue('caption-expectation-manifest-ref'),
+    byteLength: 512,
+  },
+  approvedAssetManifestHash:
+    sha256AuthorityValue('caption-expectation-manifest'),
+  approvedSourceAssetManifestRef: {
+    sha256: sha256AuthorityValue('caption-expectation-source-manifest-ref'),
+    byteLength: 512,
+  },
+  approvedSourceAssetManifestHash:
+    sha256AuthorityValue('caption-expectation-source-manifest'),
+}
+const v3Snapshot = {
+  ...v3SnapshotWithoutHash,
+  snapshotHash: approvedScope.approvedSnapshotRef.contentHash,
+}
+const v3Authority = {
+  authorityRevision: 1,
+  snapshot: v3Snapshot,
+  estimate: {
+    id: v3Snapshot.estimateId,
+    planId: v3Snapshot.planId,
+    estimateVersion: 1,
+    status: 'approved' as const,
+    lineItems: [],
+    estimatedCredits: 1,
+    fallbackAllowanceCredits: 0,
+    approvedMaximumCredits: 1,
+    estimateHash: v3Snapshot.estimateHash,
+    validUntil: '2026-08-06T18:00:00.000Z',
+    createdAt: v3Snapshot.approvedAt,
+    approvedAt: v3Snapshot.approvedAt,
+  },
+  reservation: {
+    id: v3Snapshot.reservationId,
+    approvalId: v3Snapshot.approvalId,
+    snapshotId: v3Snapshot.snapshotId,
+    estimateId: v3Snapshot.estimateId,
+    planId: v3Snapshot.planId,
+    projectId: v3Snapshot.projectId,
+    editSessionId: v3Snapshot.editSessionId,
+    status: 'reserved' as const,
+    reservedCredits: 1,
+    spentCredits: 0,
+    releasedCredits: 0,
+    refundedCredits: 0,
+    reservedAt: v3Snapshot.approvedAt,
+    expiresAt: '2026-08-06T18:00:00.000Z',
+    updatedAt: v3Snapshot.approvedAt,
+  },
+  workItems: [v3WorkItem],
+  jobs: [v3Job],
+  assetManifest: {
+    schemaVersion: 'private-edit-asset-manifest-v1',
+    snapshotId: v3Snapshot.snapshotId,
+    planId: v3Snapshot.planId,
+    planHash: v3Snapshot.planHash,
+    workGraphHash: v3Snapshot.workGraphHash,
+    entries: [v3ManifestEntry],
+    requiredAssetCount: 1,
+    optionalAssetCount: 0,
+    manifestHash: v3Snapshot.approvedAssetManifestHash,
+  },
+} as unknown as CanonicalApprovedExecutionAuthority
+const v3ExecutionPackage = {
+  schemaVersion: 'canonical-approved-edit-execution-package-v5',
+  packageRecordId: 'caption-expectation-execution-package-1',
+  packageHash: sha256AuthorityValue('caption-expectation-package'),
+  workspaceId: v3Snapshot.workspaceId,
+  projectId: v3Snapshot.projectId,
+  editSessionId: v3Snapshot.editSessionId,
+  approvedPlanSnapshotId: v3Snapshot.snapshotId,
+  snapshotHash: v3Snapshot.snapshotHash,
+  planHash: v3Snapshot.planHash,
+  estimateHash: v3Snapshot.estimateHash,
+  workGraphHash: v3Snapshot.workGraphHash,
+  timingHash: v3Snapshot.timingHash,
+  approvedAssetManifestHash: v3Snapshot.approvedAssetManifestHash,
+  componentRefs: v3ComponentRefs,
+  approvedWorkItems: [{
+    id: v3WorkItem.id,
+    workItemKey: v3WorkItem.workItemKey,
+    executionInputHash: v3WorkItem.executionInputHash,
+  }],
+  jobs: [{
+    id: v3Job.id,
+    approvedWorkItemId: v3Job.approvedWorkItemId,
+    executionInputRef: v3Job.executionInputRef,
+    dispatchState: 'not_authorized',
+  }],
+} as unknown as CanonicalApprovedEditExecutionPackage
+const v3SpecialistRepository =
+  createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/caption-transcript-support/specialist-v3',
+  })
+const v3Execution = await executeCanonicalCaptionSpecialistWorkItem({
+  authority: v3Authority,
+  executionPackage: v3ExecutionPackage,
+  jobId: v3Job.id,
+  repository: v3SpecialistRepository,
+  canonicalTranscriptReadPort: repository,
+  canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+  canonicalTranscriptAuthenticatedReadBindingRef:
+    expectationExecutionMount.bindingRef,
+  canonicalTranscriptPlanningExpectationBindingRef:
+    expectationMountBindingRef,
+  now: () => new Date('2026-08-05T18:01:00.000Z'),
+})
+check(v3Execution.pair.result.disposition === 'completed'
+  && v3Execution.pair.call.inputArtifactRefs.some((artifact) =>
+    artifact.artifactType ===
+      'canonical_transcript_planning_expectation_binding'
+    && artifact.contentHash === expectationMountBindingRef?.contentHash)
+  && v3Execution.pair.call.inputArtifactRefs.every((artifact) =>
+    artifact.artifactType !== 'canonical_transcript_planning_expectation'),
+  'Approved V3 work must execute only after the exact expectation is replaced by authenticated transcript lineage.')
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: v3Authority,
+  executionPackage: v3ExecutionPackage,
+  jobId: v3Job.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/caption-transcript-support/forged-v3-mapping',
+  }),
+  canonicalTranscriptReadPort: repository,
+  canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+  canonicalTranscriptAuthenticatedReadBindingRef:
+    expectationExecutionMount.bindingRef,
+  canonicalTranscriptPlanningExpectationBindingRef: {
+    ...expectationMountBindingRef!,
+    contentHash: sha256AuthorityValue('forged-expectation-binding'),
+  },
+}), /expectation mapping crossed approved authority/u)
+checks += 1
+await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
+  authority: v3Authority,
+  executionPackage: v3ExecutionPackage,
+  jobId: v3Job.id,
+  repository: createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/caption-transcript-support/missing-v3-resolution',
+  }),
+}), /requires an exact postapproval transcript resolution/u)
+checks += 1
 await assert.rejects(
   () => resolveCanonicalCaptionTranscriptExecutionMount({
     authority: {

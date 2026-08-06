@@ -15,6 +15,8 @@ export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION =
   'canonical-caption-specialist-work-item-input-v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION =
   'canonical-caption-specialist-work-item-input-v2' as const
+export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION =
+  'canonical-caption-specialist-work-item-input-v3' as const
 export const CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION =
   'internal.run_approved_caption_specialist_job.v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION =
@@ -26,6 +28,8 @@ export const CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS =
 
 export type CanonicalCaptionInitialArtifactType =
   | 'canonical_transcript'
+  | 'canonical_transcript_planning_expectation'
+  | 'canonical_transcript_planning_expectation_binding'
   | 'canonical_transcript_authenticated_read_binding'
   | 'confirmed_output_frame'
   | 'master_timing_or_planning_timing'
@@ -80,9 +84,16 @@ export interface CanonicalCaptionSpecialistWorkItemInputV2
   selectionEvidenceRef: SkillContractRef
 }
 
+export interface CanonicalCaptionSpecialistWorkItemInputV3
+  extends Omit<CanonicalCaptionSpecialistWorkItemInputV2, 'schemaVersion'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+}
+
 export type CanonicalCaptionSpecialistWorkItemInput =
   | CanonicalCaptionSpecialistWorkItemInputV1
   | CanonicalCaptionSpecialistWorkItemInputV2
+  | CanonicalCaptionSpecialistWorkItemInputV3
 
 export interface CanonicalCaptionIncomingSupportRequestReadPort {
   readonly schemaVersion:

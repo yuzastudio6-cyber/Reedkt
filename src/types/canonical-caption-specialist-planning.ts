@@ -5,10 +5,14 @@ export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION =
   'canonical-caption-specialist-planning-binding-v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION =
   'canonical-caption-specialist-planning-binding-v2' as const
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION =
+  'canonical-caption-specialist-planning-binding-v3' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION =
   'canonical-caption-specialist-planning-projection-v1' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION =
   'canonical-caption-specialist-planning-projection-v2' as const
+export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION =
+  'canonical-caption-specialist-planning-projection-v3' as const
 export const CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_COMPONENT_KEY =
   'canonicalCaptionSpecialistPlanningProjection' as const
 export const CANONICAL_CAPTION_SPECIALIST_ESTIMATE_BINDING_VERSION =
@@ -116,9 +120,25 @@ export interface CanonicalCaptionSpecialistPlanningBindingV2
   oneAllFeatureEditFabricated: false
 }
 
+/**
+ * Fresh source-led plans cannot know the final postapproval transcript digest.
+ * V3 therefore freezes a source-bound expectation, never a fabricated final
+ * transcript reference. The canonical transcript owner resolves it after
+ * approval and persists an exact expectation-to-transcript binding.
+ */
+export interface CanonicalCaptionSpecialistPlanningBindingV3
+  extends Omit<CanonicalCaptionSpecialistPlanningBindingV2,
+    'schemaVersion' | 'canonicalTranscriptRef'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+  canonicalTranscriptExpectationRef: CaptionDomainRef
+  postapprovalCanonicalTranscriptResolutionRequired: true
+}
+
 export type CanonicalCaptionSpecialistPlanningBinding =
   | CanonicalCaptionSpecialistPlanningBindingV1
   | CanonicalCaptionSpecialistPlanningBindingV2
+  | CanonicalCaptionSpecialistPlanningBindingV3
 
 export interface CanonicalCaptionSpecialistEstimateBindingMetadata {
   schemaVersion:
@@ -180,6 +200,16 @@ export interface CanonicalCaptionSpecialistPlanningProjectionV2
   oneAllFeatureEditFabricated: false
 }
 
+export interface CanonicalCaptionSpecialistPlanningProjectionV3
+  extends Omit<CanonicalCaptionSpecialistPlanningProjectionV2,
+    'schemaVersion'> {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION
+  canonicalTranscriptExpectationRef: CaptionDomainRef
+  postapprovalCanonicalTranscriptResolutionRequired: true
+}
+
 export type CanonicalCaptionSpecialistPlanningProjection =
   | CanonicalCaptionSpecialistPlanningProjectionV1
   | CanonicalCaptionSpecialistPlanningProjectionV2
+  | CanonicalCaptionSpecialistPlanningProjectionV3

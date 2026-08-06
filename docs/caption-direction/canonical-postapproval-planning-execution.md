@@ -19,6 +19,14 @@ its trigger, selection evidence, and any HQ-mediated source support request.
 Repair, recomposition, inspection, and support work cannot be smuggled in as a
 picture-lock assignment. The earlier V1 wires remain readable and unchanged.
 
+Source-led planning now uses additive V3 planning/work wires. V3 retains the
+V2 assignment semantics but freezes a
+`canonical_transcript_planning_expectation` before approval. It cannot contain
+or pre-inject the final transcript or either postapproval binding. After
+approval, the canonical transcript repository must resolve the exact
+expectation to one authenticated transcript and mapping before the execution
+service creates the actual specialist call. V1/V2 remain readable unchanged.
+
 Incoming support jobs use the additive `skill-support-request-v2` contract
 because the frozen V1 target enum cannot represent Caption. The V2 contract is
 published in separate files instead of mutating the hash-frozen V1 public type

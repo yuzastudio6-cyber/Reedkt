@@ -14,6 +14,8 @@ export const CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_EVIDENCE_RECORD_VERSION 
   'canonical-caption-transcript-authenticated-evidence-record-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION =
   'canonical-caption-transcript-authenticated-read-port-v1' as const
+export const CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_BINDING_VERSION =
+  'canonical-caption-transcript-planning-expectation-binding-v1' as const
 
 export interface CanonicalCaptionSourceWordTimingEvidenceWord {
   orderInSegment: number
@@ -130,6 +132,43 @@ export interface CanonicalCaptionTranscriptAuthenticatedEvidenceRecord {
   productionAuthorityGranted: false
 }
 
+/**
+ * Immutable postapproval resolution of a byte-free preapproval expectation.
+ * The expectation is source-analysis lineage, not a fabricated transcript.
+ */
+export interface CanonicalCaptionTranscriptPlanningExpectationBinding {
+  schemaVersion:
+    typeof CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_BINDING_VERSION
+  bindingId: string
+  bindingDigestSha256: string
+  canonicalReadScope: CaptionCanonicalTranscriptReadScope
+  planningExpectationRef: CaptionDomainRef
+  canonicalTranscriptRef: CaptionDomainRef
+  authenticatedReadBindingRef: CaptionDomainRef
+  authenticatedTranscriptRecordDigestSha256: string
+  sourceScopeDigestSha256: string
+  exactApprovedSnapshotRereadVerified: true
+  exactSourceScopeAndTranscriptLineageVerified: true
+  authenticatedTranscriptPersistedAndReread: true
+  createOnlyPersistedAndReread: true
+  privateArtifact: true
+  byteFreeBinding: true
+  rawChatIncluded: false
+  transcriptTextIncluded: false
+  mediaBytesIncluded: false
+  pathsUrlsOrCredentialsIncluded: false
+  directPeerDispatchPerformed: false
+  providerCallPerformedByBridge: false
+  transcriptRuntimePerformedByBridge: false
+  transcriptMutationAuthorityGrantedToCaption: false
+  timingAuthorityGrantedToCaption: false
+  assetMutationAuthorityGrantedToCaption: false
+  finalQaApprovalGrantedToCaption: false
+  billingAuthorityGrantedToCaption: false
+  publicDeliveryGranted: false
+  productionAuthorityGranted: false
+}
+
 export interface CanonicalCaptionTranscriptAuthenticatedReadPort {
   schemaVersion:
     typeof CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION
@@ -142,4 +181,13 @@ export interface CanonicalCaptionTranscriptAuthenticatedReadPort {
     authenticatedReadBinding:
       CaptionCanonicalTranscriptAuthenticatedReadBinding
   } | null>
+  /**
+   * V3 source-led work uses this optional read surface to prove that its
+   * immutable planning expectation resolved through the canonical create-only
+   * mapping. Legacy V1/V2 readers remain compatible because they never need it.
+   */
+  readPlanningExpectationExact?(input: {
+    canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    planningExpectationRef: CaptionDomainRef
+  }): Promise<CanonicalCaptionTranscriptPlanningExpectationBinding | null>
 }

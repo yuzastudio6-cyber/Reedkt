@@ -7,7 +7,12 @@ import type {
 import type { PlannerInput } from '../../src/types/reeditpro'
 import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
 } from '../../src/types/canonical-caption-specialist-execution'
+import {
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION,
+} from '../../src/types/canonical-caption-specialist-planning'
 import {
   canonicalPlanComponentsSchema,
 } from '../validation/edit-planning-authority-schemas'
@@ -96,6 +101,25 @@ assert.equal(
 checks += 1
 const selectedBinding =
   selectedRead.authority.captionSpecialistPlanningBinding
+assert.equal(
+  selectedBinding.schemaVersion,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION,
+)
+assert.equal('canonicalTranscriptRef' in selectedBinding, false)
+const sourceTranscriptExpectation =
+  selectedRead.authority.captionEarlyPlanningBundle.inputRefs.find((ref) =>
+    ref.version === 'canonical-source-transcript-planning-evidence-v1')
+assert.deepEqual(
+  'canonicalTranscriptExpectationRef' in selectedBinding
+    ? selectedBinding.canonicalTranscriptExpectationRef : null,
+  sourceTranscriptExpectation,
+)
+assert.equal(
+  'postapprovalCanonicalTranscriptResolutionRequired' in selectedBinding
+    && selectedBinding.postapprovalCanonicalTranscriptResolutionRequired,
+  true,
+)
+checks += 4
 assert.equal('assignmentIntents' in selectedBinding, true)
 if (!('assignmentIntents' in selectedBinding)) throw new Error('unreachable')
 assert.equal(selectedBinding.assignmentIntents.length, 17)
@@ -120,10 +144,33 @@ assert.equal(
 )
 checks += 1
 assert.equal(
-  applied.workItems.filter((item) =>
-    item.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS).length,
+  applied.projection.schemaVersion,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION,
+)
+assert.equal(
+  'canonicalTranscriptExpectationRef' in applied.projection
+    && applied.projection.canonicalTranscriptExpectationRef.contentHash ===
+      sourceTranscriptExpectation?.contentHash,
+  true,
+)
+checks += 2
+const selectedCaptionWork = applied.workItems.filter((item) =>
+  item.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS)
+assert.equal(
+  selectedCaptionWork.length,
   17,
 )
+checks += 1
+assert.equal(selectedCaptionWork.every((item) => {
+  const executionInput = item.executionInput as Record<string, unknown>
+  const refs = Array.isArray(executionInput.initialArtifactRefs)
+    ? executionInput.initialArtifactRefs as Array<Record<string, unknown>> : []
+  return executionInput.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+    && refs.some((ref) => ref.artifactType ===
+      'canonical_transcript_planning_expectation')
+    && refs.every((ref) => ref.artifactType !== 'canonical_transcript')
+}), true)
 checks += 1
 assert.equal(
   applied.estimate.lineItems.filter((line) =>

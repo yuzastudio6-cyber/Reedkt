@@ -65,6 +65,16 @@ closes the source-code attachment gap inside item 6; item 6 remains terminally
 incomplete until representative approved runs persist and reread actual results
 across the 41-job catalog.
 
+That path now uses an additive V3 transcript expectation rather than treating a
+preapproval source-analysis digest as a finished canonical transcript. The
+postapproval repository recomputes and create-only binds the expectation to the
+actual authenticated transcript, and the private runner executes V3 work only
+after exact resolution. A focused approved fixture proves this chain and its
+remap/cross-scope refusals. It is not counted as terminal transcript evidence:
+the actual source transcript still needs the pending independent audio-truth
+review and corrected canonical-owner persistence in the target qualification
+scope.
+
 ## Important qualification distinctions
 
 - The current `SkillQualificationSnapshot` is the CAP-01 planning snapshot. It

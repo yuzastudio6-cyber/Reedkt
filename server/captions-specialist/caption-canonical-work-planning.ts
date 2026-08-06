@@ -6,9 +6,11 @@ import type {
   CanonicalCaptionSpecialistPlanningBinding,
   CanonicalCaptionSpecialistPlanningBindingV1,
   CanonicalCaptionSpecialistPlanningBindingV2,
+  CanonicalCaptionSpecialistPlanningBindingV3,
   CanonicalCaptionSpecialistPlanningProjection,
   CanonicalCaptionSpecialistPlanningProjectionV1,
   CanonicalCaptionSpecialistPlanningProjectionV2,
+  CanonicalCaptionSpecialistPlanningProjectionV3,
   CanonicalCaptionSpecialistAssignmentTrigger,
   CanonicalCaptionTrackingJobType,
 } from '../../src/types/canonical-caption-specialist-planning'
@@ -17,13 +19,16 @@ import {
   CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION,
   CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION,
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
   type CanonicalCaptionSpecialistInitialArtifactRef,
   type CanonicalCaptionSpecialistWorkItemInput,
@@ -156,10 +161,23 @@ const bindingV2WithoutDigestSchema = bindingBodySchema.extend({
   assignmentsSelectedByCanonicalPlanOwner: z.literal(true),
   oneAllFeatureEditFabricated: z.literal(false),
 }).strict()
+const bindingV3WithoutDigestSchema = bindingBodySchema
+  .omit({ canonicalTranscriptRef: true })
+  .extend({
+    schemaVersion: z.literal(
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION),
+    canonicalTranscriptExpectationRef: refSchema,
+    postapprovalCanonicalTranscriptResolutionRequired: z.literal(true),
+    assignmentIntents: z.array(assignmentIntentSchema).min(1).max(240),
+    assignmentsSelectedByCanonicalPlanOwner: z.literal(true),
+    oneAllFeatureEditFabricated: z.literal(false),
+  }).strict()
 const bindingV1Schema: z.ZodType<CanonicalCaptionSpecialistPlanningBindingV1> =
   bindingV1WithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
 const bindingV2Schema: z.ZodType<CanonicalCaptionSpecialistPlanningBindingV2> =
   bindingV2WithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
+const bindingV3Schema: z.ZodType<CanonicalCaptionSpecialistPlanningBindingV3> =
+  bindingV3WithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
 const projectionBodySchema = z.object({
   projectionId: safeKey,
   disposition: z.enum([
@@ -205,6 +223,14 @@ const projectionV2WithoutDigestSchema = projectionBodySchema.extend({
   repairOrSupportWorkProjectedOnlyFromTypedTrigger: z.literal(true),
   oneAllFeatureEditFabricated: z.literal(false),
 }).strict()
+const projectionV3WithoutDigestSchema = projectionV2WithoutDigestSchema.omit({
+  schemaVersion: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION),
+  canonicalTranscriptExpectationRef: refSchema,
+  postapprovalCanonicalTranscriptResolutionRequired: z.literal(true),
+}).strict()
 const projectionV1Schema:
 z.ZodType<CanonicalCaptionSpecialistPlanningProjectionV1> =
   projectionV1WithoutDigestSchema.extend({ projectionDigestSha256: sha256 })
@@ -212,6 +238,10 @@ z.ZodType<CanonicalCaptionSpecialistPlanningProjectionV1> =
 const projectionV2Schema:
 z.ZodType<CanonicalCaptionSpecialistPlanningProjectionV2> =
   projectionV2WithoutDigestSchema.extend({ projectionDigestSha256: sha256 })
+    .strict()
+const projectionV3Schema:
+z.ZodType<CanonicalCaptionSpecialistPlanningProjectionV3> =
+  projectionV3WithoutDigestSchema.extend({ projectionDigestSha256: sha256 })
     .strict()
 
 type CaptionComponents = CanonicalPlanComponentsInput & {
@@ -288,6 +318,8 @@ export function parseCanonicalCaptionSpecialistPlanningBinding(
     ? bindingV1Schema.parse(value)
     : version === CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
       ? bindingV2Schema.parse(value)
+      : version === CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+        ? bindingV3Schema.parse(value)
       : (() => { throw new Error('Unsupported Caption planning binding version.') })()
   if (parsed.bindingDigestSha256 !== calculateSkillContractDigest(
     parsed as unknown as Record<string, unknown>, 'bindingDigestSha256')) {
@@ -297,8 +329,7 @@ export function parseCanonicalCaptionSpecialistPlanningBinding(
       !== parsed.scenePolicies.length) {
     throw new Error('Canonical Caption planning scene policies are duplicated.')
   }
-  if (parsed.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION) {
+  if (isAssignmentPlanningBinding(parsed)) {
     assertAssignmentIntentSet(parsed)
   }
   return structuredClone(parsed)
@@ -315,6 +346,8 @@ export function parseCanonicalCaptionSpecialistPlanningProjection(
     ? projectionV1Schema.parse(value)
     : version === CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
       ? projectionV2Schema.parse(value)
+      : version === CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION
+        ? projectionV3Schema.parse(value)
       : (() => { throw new Error('Unsupported Caption planning projection version.') })()
   if (parsed.projectionDigestSha256 !== calculateSkillContractDigest(
     parsed as unknown as Record<string, unknown>, 'projectionDigestSha256')
@@ -323,15 +356,14 @@ export function parseCanonicalCaptionSpecialistPlanningProjection(
     || new Set(parsed.projectedSceneIds).size !== parsed.projectedSceneIds.length) {
     throw new Error('Canonical Caption planning projection is invalid.')
   }
-  if (parsed.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+  if (isAssignmentPlanningProjection(parsed)
     && (new Set(parsed.assignmentIntentRefs.map(refKey)).size !==
       parsed.assignmentIntentRefs.length
       || new Set(parsed.projectedBoundaryIds).size !==
         parsed.projectedBoundaryIds.length
       || parsed.assignmentIntentRefs.length !==
         parsed.projectedWorkItemKeys.length)) {
-    throw new Error('Canonical Caption V2 assignment projection is invalid.')
+    throw new Error('Canonical Caption assignment projection is invalid.')
   }
   return structuredClone(parsed)
 }
@@ -393,10 +425,9 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
     contentHash: bundle.bundleDigestSha256,
   }
   if (entry.disposition === 'restrained') {
-    if (binding.schemaVersion ===
-      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION) {
+    if (isAssignmentPlanningBinding(binding)) {
       throw new Error(
-        'Owner-restraint plans cannot carry selected Caption V2 assignments.',
+        'Owner-restraint plans cannot carry selected Caption assignments.',
       )
     }
     if (input.estimate.lineItems.some(isCaptionEstimateLine)) {
@@ -531,18 +562,23 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
       'Selected Caption planning projection is missing exact work or downstream coverage requirements.',
     )
   }
-  let v2Binding: CanonicalCaptionSpecialistPlanningBindingV2 | null = null
-  if (projection.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION) {
+  let assignmentBinding:
+    | CanonicalCaptionSpecialistPlanningBindingV2
+    | CanonicalCaptionSpecialistPlanningBindingV3
+    | null = null
+  if (isAssignmentPlanningProjection(projection)) {
     if (planningBindingValue === undefined) {
       throw new Error(
-        'Canonical Caption V2 projection requires its exact planning binding.',
+        'Canonical Caption assignment projection requires its exact planning binding.',
       )
     }
     const parsedBinding = parseCanonicalCaptionSpecialistPlanningBinding(
       planningBindingValue)
-    if (parsedBinding.schemaVersion !==
-      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+    if (!isAssignmentPlanningBinding(parsedBinding)
+      || (projection.schemaVersion ===
+        CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION) !==
+        (parsedBinding.schemaVersion ===
+          CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION)
       || refKey(projection.planningBindingRef) !== refKey({
         id: parsedBinding.bindingId,
         version: parsedBinding.schemaVersion,
@@ -550,12 +586,19 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
       })
       || projection.assignmentIntentRefs.map(refKey).join('|') !==
         parsedBinding.assignmentIntents.map(assignmentIntentRef)
-          .map(refKey).join('|')) {
+          .map(refKey).join('|')
+      || (projection.schemaVersion ===
+        CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION
+        && (parsedBinding.schemaVersion !==
+          CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+          || !exactRef(
+            projection.canonicalTranscriptExpectationRef,
+            parsedBinding.canonicalTranscriptExpectationRef)))) {
       throw new Error(
-        'Canonical Caption V2 projection crossed its assignment binding.',
+        'Canonical Caption assignment projection crossed its binding.',
       )
     }
-    v2Binding = parsedBinding
+    assignmentBinding = parsedBinding
   }
   const captionByKey = new Map(captionWorkItems.map((item) =>
     [item.workItemKey, item]))
@@ -588,6 +631,7 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
       || !([
         CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
         CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+        CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
       ] as readonly string[]).includes(String(executionInput.schemaVersion))
       || executionInput.operation
         !== CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION
@@ -624,11 +668,39 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
         'Canonical Caption planning boundary lineage is malformed.')
     }
     if (projection.schemaVersion ===
-      CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION) {
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION) {
+      const artifactValues = (executionInput as { initialArtifactRefs?: unknown })
+        .initialArtifactRefs
+      const expectationArtifact = Array.isArray(artifactValues)
+        ? artifactValues.find((artifact): artifact is
+          CanonicalCaptionSpecialistInitialArtifactRef => Boolean(
+          artifact && typeof artifact === 'object'
+          && (artifact as { artifactType?: unknown }).artifactType ===
+            'canonical_transcript_planning_expectation',
+        ))
+        : undefined
+      if (!expectationArtifact
+        || expectationArtifact.producerSkillKey !== 'canonical_transcript'
+        || !expectationArtifact.privateArtifact
+        || !expectationArtifact.byteFreeRef
+        || expectationArtifact.sourceSupportRequestRef !== null
+        || !exactRef(
+          expectationArtifact,
+          projection.canonicalTranscriptExpectationRef,
+        )) {
+        throw new Error(
+          'Canonical Caption V3 work crossed its transcript planning expectation.',
+        )
+      }
+    }
+    if (isAssignmentPlanningProjection(projection)) {
       const expectedAssignmentRef = projection.assignmentIntentRefs[index]
-      const assignment = v2Binding?.assignmentIntents[index]
-      if (executionInput.schemaVersion !==
-        CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+      const assignment = assignmentBinding?.assignmentIntents[index]
+      const expectedWorkVersion = projection.schemaVersion ===
+        CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION
+        ? CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+        : CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+      if (executionInput.schemaVersion !== expectedWorkVersion
         || !assignment
         || stableAuthorityStringify(executionInput.assignmentIntentRef)
           !== stableAuthorityStringify(expectedAssignmentRef)
@@ -646,7 +718,7 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
         || stableAuthorityStringify(executionInput.sourceSupportRequestRef)
           !== stableAuthorityStringify(assignment.sourceSupportRequestRef)) {
         throw new Error(
-          'Canonical Caption V2 work lost its exact assignment intent.',
+          'Canonical Caption work lost its exact assignment intent.',
         )
       }
     }
@@ -657,8 +729,7 @@ export function assertCanonicalCaptionSpecialistPlanningProjectionMatchesWorkIte
       'Canonical Caption planning scene lineage no longer matches its projection.',
     )
   }
-  if (projection.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+  if (isAssignmentPlanningProjection(projection)
     && (stableAuthorityStringify([...boundaryIds]) !==
       stableAuthorityStringify(projection.projectedBoundaryIds)
       || projection.assignmentIntentRefs.length !==
@@ -727,7 +798,7 @@ function assertPlanningLineage(input: {
     || !exactRef(binding.professionalSkillCompositionTraceRef, traceRef)
     || !exactRef(binding.earlyPlanningBundleRef, bundleRef)
     || !exactRef(binding.captionEstimateInputRef, estimateRef)
-    || !inputRefKeys.has(refKey(binding.canonicalTranscriptRef))
+    || !inputRefKeys.has(refKey(transcriptPlanningRef(binding)))
     || !inputRefKeys.has(refKey(binding.masterTimingRef))
     || binding.masterTimingRef.contentHash
       !== sha256AuthorityValue(input.components.masterTimingPlan)
@@ -850,7 +921,9 @@ export function canonicalCaptionAssignmentScopeForJob(
 }
 
 function assertAssignmentIntentSet(
-  binding: CanonicalCaptionSpecialistPlanningBindingV2,
+  binding:
+    | CanonicalCaptionSpecialistPlanningBindingV2
+    | CanonicalCaptionSpecialistPlanningBindingV3,
 ): void {
   const ids = new Set<string>()
   const occurrences = new Set<string>()
@@ -909,8 +982,7 @@ function createJobSpecs(
   binding: CanonicalCaptionSpecialistPlanningBinding,
   totalFrames: number,
 ): JobSpec[] {
-  if (binding.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION) {
+  if (isAssignmentPlanningBinding(binding)) {
     return createJobSpecsV2(bundle, binding, totalFrames)
   }
   const specs: JobSpec[] = [{
@@ -990,7 +1062,9 @@ function createJobSpecs(
 
 function createJobSpecsV2(
   bundle: ReturnType<typeof parseCaptionEarlyPlanningBundle>,
-  binding: CanonicalCaptionSpecialistPlanningBindingV2,
+  binding:
+    | CanonicalCaptionSpecialistPlanningBindingV2
+    | CanonicalCaptionSpecialistPlanningBindingV3,
   totalFrames: number,
 ): JobSpec[] {
   const opportunityByScene = new Map(
@@ -1049,11 +1123,18 @@ function createWorkItems(input: {
   sourceSequenceItemIds: string[]
   sourceCleanupDecisionIds: string[]
 }): CanonicalWorkItemInput[] {
-  const transcript = artifactRef(
-    input.binding.canonicalTranscriptRef,
-    'canonical_transcript',
-    'canonical_transcript',
-  )
+  const transcript = input.binding.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+    ? artifactRef(
+        input.binding.canonicalTranscriptExpectationRef,
+        'canonical_transcript_planning_expectation',
+        'canonical_transcript',
+      )
+    : artifactRef(
+        input.binding.canonicalTranscriptRef,
+        'canonical_transcript',
+        'canonical_transcript',
+      )
   const frame = artifactRef(
     input.binding.confirmedOutputFrame.confirmedOutputFrameRef,
     'confirmed_output_frame',
@@ -1124,8 +1205,10 @@ function createWorkItems(input: {
           }
         : {
             ...baseExecutionInput,
-            schemaVersion:
-              CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+            schemaVersion: input.binding.schemaVersion ===
+              CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+              ? CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+              : CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
             assignmentIntentRef: assignmentIntentRef(spec.assignmentIntent),
             assignmentTrigger: spec.assignmentIntent.trigger,
             sourceSupportRequestRef: spec.assignmentIntent
@@ -1250,8 +1333,26 @@ function projection(input: {
     productionAuthorityGranted: false,
   }
   const withoutDigest = input.planningBinding.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
-    ? projectionV2WithoutDigestSchema.parse({
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+    ? projectionV3WithoutDigestSchema.parse({
+        ...body,
+        schemaVersion:
+          CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION,
+        assignmentIntentRefs: input.planningBinding.assignmentIntents.map(
+          assignmentIntentRef),
+        projectedBoundaryIds: [...new Set(
+          input.planningBinding.assignmentIntents.flatMap((assignment) =>
+            assignment.boundaryId === null ? [] : [assignment.boundaryId]))],
+        exactAssignmentIntentCoverage: true,
+        repairOrSupportWorkProjectedOnlyFromTypedTrigger: true,
+        oneAllFeatureEditFabricated: false,
+        canonicalTranscriptExpectationRef:
+          input.planningBinding.canonicalTranscriptExpectationRef,
+        postapprovalCanonicalTranscriptResolutionRequired: true,
+      })
+    : input.planningBinding.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+      ? projectionV2WithoutDigestSchema.parse({
         ...body,
         schemaVersion:
           CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION,
@@ -1264,7 +1365,7 @@ function projection(input: {
         repairOrSupportWorkProjectedOnlyFromTypedTrigger: true,
         oneAllFeatureEditFabricated: false,
       })
-    : projectionV1WithoutDigestSchema.parse({
+      : projectionV1WithoutDigestSchema.parse({
         ...body,
         schemaVersion:
           CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_VERSION,
@@ -1310,6 +1411,52 @@ export function createCanonicalCaptionSpecialistPlanningBindingV2(
     bindingDigestSha256:
       calculateCanonicalCaptionSpecialistPlanningBindingDigest(withoutDigest),
   }) as CanonicalCaptionSpecialistPlanningBindingV2
+}
+
+export function createCanonicalCaptionSpecialistPlanningBindingV3(
+  input: Omit<CanonicalCaptionSpecialistPlanningBindingV3,
+    'schemaVersion' | 'bindingDigestSha256'>,
+): CanonicalCaptionSpecialistPlanningBindingV3 {
+  assertClosedContractTree(input, 'Canonical Caption V3 planning input')
+  const withoutDigest = {
+    ...structuredClone(input),
+    schemaVersion:
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION,
+  }
+  return parseCanonicalCaptionSpecialistPlanningBinding({
+    ...withoutDigest,
+    bindingDigestSha256:
+      calculateCanonicalCaptionSpecialistPlanningBindingDigest(withoutDigest),
+  }) as CanonicalCaptionSpecialistPlanningBindingV3
+}
+
+function isAssignmentPlanningBinding(
+  value: CanonicalCaptionSpecialistPlanningBinding,
+): value is CanonicalCaptionSpecialistPlanningBindingV2
+  | CanonicalCaptionSpecialistPlanningBindingV3 {
+  return value.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V2_VERSION
+    || value.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+}
+
+function isAssignmentPlanningProjection(
+  value: CanonicalCaptionSpecialistPlanningProjection,
+): value is CanonicalCaptionSpecialistPlanningProjectionV2
+  | CanonicalCaptionSpecialistPlanningProjectionV3 {
+  return value.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V2_VERSION
+    || value.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION
+}
+
+function transcriptPlanningRef(
+  binding: CanonicalCaptionSpecialistPlanningBinding,
+): { id: string; version: string; contentHash: string } {
+  return binding.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_V3_VERSION
+    ? binding.canonicalTranscriptExpectationRef
+    : binding.canonicalTranscriptRef
 }
 
 export function captionTrackingJobType(

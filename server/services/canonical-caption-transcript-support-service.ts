@@ -6,9 +6,11 @@ import {
   CANONICAL_CAPTION_SOURCE_WORD_TIMING_EVIDENCE_VERSION,
   CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_EVIDENCE_RECORD_VERSION,
   CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION,
+  CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_BINDING_VERSION,
   type CanonicalCaptionSourceWordTimingEvidence,
   type CanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
   type CanonicalCaptionTranscriptAuthenticatedReadPort,
+  type CanonicalCaptionTranscriptPlanningExpectationBinding,
 } from '../../src/types/canonical-caption-transcript-support'
 import {
   CAPTION_CANONICAL_TRANSCRIPT_AUTHENTICATED_READ_BINDING_VERSION,
@@ -58,12 +60,16 @@ export const CANONICAL_CAPTION_APPROVED_SNAPSHOT_READ_PORT_VERSION =
   'canonical-caption-approved-snapshot-read-port-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_VERSION =
   'canonical-caption-transcript-support-service-v1' as const
+export const CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_V2_VERSION =
+  'canonical-caption-transcript-support-service-v2' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_VERSION =
   'canonical-caption-transcript-evidence-repository-v1' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION =
-  'canonical-caption-transcript-evidence-repository-v2' as const
+  'canonical-caption-transcript-evidence-repository-v3' as const
 export const CANONICAL_CAPTION_TRANSCRIPT_SCOPE_INDEX_VERSION =
   'canonical-caption-transcript-scope-index-v1' as const
+export const CANONICAL_CAPTION_TRANSCRIPT_EXPECTATION_INDEX_VERSION =
+  'canonical-caption-transcript-expectation-index-v1' as const
 
 const DEFAULT_PREFIX = 'private/orchestra/v1/caption-transcript-support'
 const MAX_RECORD_BYTES = 64 * 1024 * 1024
@@ -215,6 +221,43 @@ const scopeIndexSchema = z.object({
   indexDigestSha256: rawSha256,
 }).strict()
 
+const expectationBindingWithoutDigestSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_BINDING_VERSION),
+  bindingId: safeKey,
+  canonicalReadScope: readScopeSchema,
+  planningExpectationRef: domainRefSchema,
+  canonicalTranscriptRef: domainRefSchema,
+  authenticatedReadBindingRef: domainRefSchema,
+  authenticatedTranscriptRecordDigestSha256: rawSha256,
+  sourceScopeDigestSha256: rawSha256,
+  exactApprovedSnapshotRereadVerified: z.literal(true),
+  exactSourceScopeAndTranscriptLineageVerified: z.literal(true),
+  authenticatedTranscriptPersistedAndReread: z.literal(true),
+  createOnlyPersistedAndReread: z.literal(true),
+  privateArtifact: z.literal(true),
+  byteFreeBinding: z.literal(true),
+  rawChatIncluded: z.literal(false),
+  transcriptTextIncluded: z.literal(false),
+  mediaBytesIncluded: z.literal(false),
+  pathsUrlsOrCredentialsIncluded: z.literal(false),
+  directPeerDispatchPerformed: z.literal(false),
+  providerCallPerformedByBridge: z.literal(false),
+  transcriptRuntimePerformedByBridge: z.literal(false),
+  transcriptMutationAuthorityGrantedToCaption: z.literal(false),
+  timingAuthorityGrantedToCaption: z.literal(false),
+  assetMutationAuthorityGrantedToCaption: z.literal(false),
+  finalQaApprovalGrantedToCaption: z.literal(false),
+  billingAuthorityGrantedToCaption: z.literal(false),
+  publicDeliveryGranted: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+}).strict()
+const expectationBindingSchema:
+z.ZodType<CanonicalCaptionTranscriptPlanningExpectationBinding> =
+  expectationBindingWithoutDigestSchema.extend({
+    bindingDigestSha256: rawSha256,
+  }).strict()
+
 type CanonicalCaptionTranscriptScopeIndex = z.infer<typeof scopeIndexSchema>
 
 export interface CanonicalCaptionSourceWordTimingReadPort {
@@ -260,6 +303,16 @@ export interface CanonicalCaptionTranscriptEvidenceRepository
     readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
     readonly canonicalTranscriptRef: CaptionDomainRef
   }): Promise<CanonicalCaptionTranscriptAuthenticatedEvidenceRecord | null>
+  persistPlanningExpectationBindingCreateOnly(input: {
+    readonly binding: CanonicalCaptionTranscriptPlanningExpectationBinding
+  }): Promise<'created' | 'identical_replay'>
+  findExactForPlanningExpectation(input: {
+    readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    readonly planningExpectationRef: CaptionDomainRef
+  }): Promise<Readonly<{
+    binding: CanonicalCaptionTranscriptPlanningExpectationBinding
+    transcriptRecord: CanonicalCaptionTranscriptAuthenticatedEvidenceRecord
+  }> | null>
 }
 
 export interface CanonicalCaptionTranscriptSupportService {
@@ -270,6 +323,26 @@ export interface CanonicalCaptionTranscriptSupportService {
     readonly sourceScopes:
       readonly CanonicalSourceTranscriptOrchestraReadScope[]
   }): Promise<CanonicalCaptionTranscriptAuthenticatedEvidenceRecord>
+}
+
+export interface CanonicalCaptionTranscriptSupportServiceV2 {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_V2_VERSION
+  projectAuthenticatedTranscript(input: {
+    readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    readonly sourceScopes:
+      readonly CanonicalSourceTranscriptOrchestraReadScope[]
+  }): Promise<CanonicalCaptionTranscriptAuthenticatedEvidenceRecord>
+  projectAuthenticatedTranscriptForPlanningExpectation(input: {
+    readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    readonly sourceScopes:
+      readonly CanonicalSourceTranscriptOrchestraReadScope[]
+    readonly planningExpectationRef: CaptionDomainRef
+  }): Promise<Readonly<{
+    transcriptRecord: CanonicalCaptionTranscriptAuthenticatedEvidenceRecord
+    expectationBinding:
+      CanonicalCaptionTranscriptPlanningExpectationBinding
+  }>>
 }
 
 const admittedWordReaders = new WeakSet<object>()
@@ -334,6 +407,9 @@ export function assertCanonicalCaptionTranscriptEvidenceRepository(
     || typeof repository.persistCreateOnly !== 'function'
     || typeof repository.rereadRecord !== 'function'
     || typeof repository.findExactForExecution !== 'function'
+    || typeof repository.persistPlanningExpectationBindingCreateOnly !==
+      'function'
+    || typeof repository.findExactForPlanningExpectation !== 'function'
     || typeof repository.readExact !== 'function') {
     throw new Error(
       'Canonical Caption transcript evidence repository is not admitted.',
@@ -442,6 +518,50 @@ export function parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord(
   return freeze(record)
 }
 
+export function createCanonicalCaptionTranscriptPlanningExpectationBinding(
+  input: Omit<CanonicalCaptionTranscriptPlanningExpectationBinding,
+    'schemaVersion' | 'bindingDigestSha256'>,
+): CanonicalCaptionTranscriptPlanningExpectationBinding {
+  assertClosedContractTree(
+    input, 'Canonical Caption transcript expectation binding input')
+  const withoutDigest = expectationBindingWithoutDigestSchema.parse({
+    schemaVersion:
+      CANONICAL_CAPTION_TRANSCRIPT_PLANNING_EXPECTATION_BINDING_VERSION,
+    ...structuredClone(input),
+  })
+  return parseCanonicalCaptionTranscriptPlanningExpectationBinding({
+    ...withoutDigest,
+    bindingDigestSha256: contractDigest({
+      ...withoutDigest,
+      bindingDigestSha256: '',
+    }, 'bindingDigestSha256'),
+  })
+}
+
+export function parseCanonicalCaptionTranscriptPlanningExpectationBinding(
+  value: unknown,
+): CanonicalCaptionTranscriptPlanningExpectationBinding {
+  assertClosedContractTree(
+    value, 'Canonical Caption transcript expectation binding')
+  rejectUnsafeText(value, 'Canonical Caption transcript expectation binding')
+  const binding = expectationBindingSchema.parse(value)
+  if (binding.bindingDigestSha256 !== contractDigest(
+    binding as unknown as Record<string, unknown>,
+    'bindingDigestSha256',
+  ) || binding.bindingId !== planningExpectationBindingId({
+    canonicalReadScope: binding.canonicalReadScope,
+    planningExpectationRef: binding.planningExpectationRef,
+  }) || sameDomainRef(
+    binding.planningExpectationRef,
+    binding.canonicalTranscriptRef,
+  )) {
+    throw new Error(
+      'Canonical Caption transcript expectation binding is invalid.',
+    )
+  }
+  return freeze(binding)
+}
+
 export function createCanonicalCaptionTranscriptEvidenceRepository(input: {
   readonly objectPort: CanonicalCreateOnlyJsonObjectPort
   readonly prefix?: string
@@ -528,6 +648,59 @@ export function createCanonicalCaptionTranscriptEvidenceRepository(input: {
     }
     return record
   }
+  const findRecordForPlanningExpectation = async (request: {
+    canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    planningExpectationRef: CaptionDomainRef
+  }) => {
+    const canonicalReadScope = readScopeSchema.parse(request.canonicalReadScope)
+    const planningExpectationRef = domainRefSchema.parse(
+      request.planningExpectationRef)
+    const lookup = freeze({ canonicalReadScope, planningExpectationRef })
+    assertClosedContractTree(
+      lookup, 'Canonical Caption transcript expectation lookup')
+    rejectUnsafeText(lookup, 'Canonical Caption transcript expectation lookup')
+    const body = await input.objectPort.readExact(
+      expectationBindingPath(prefix, lookup))
+    if (!body) return null
+    if (!Buffer.isBuffer(body) || body.byteLength < 2
+      || body.byteLength > MAX_RECORD_BYTES) {
+      throw new Error(
+        'Canonical Caption transcript expectation binding bytes are invalid.')
+    }
+    const text = body.toString('utf8')
+    let untrusted: unknown
+    try {
+      untrusted = JSON.parse(text)
+    } catch {
+      throw new Error(
+        'Canonical Caption transcript expectation binding JSON is invalid.')
+    }
+    const binding =
+      parseCanonicalCaptionTranscriptPlanningExpectationBinding(untrusted)
+    if (text !== stableAuthorityStringify(binding)
+      || stableAuthorityStringify(binding.canonicalReadScope) !==
+        stableAuthorityStringify(canonicalReadScope)
+      || !sameDomainRef(
+        binding.planningExpectationRef, planningExpectationRef)) {
+      throw new Error(
+        'Canonical Caption transcript expectation binding crossed authority.')
+    }
+    const transcriptRecord = await readRecord({
+      canonicalReadScope,
+      canonicalTranscriptRef: binding.canonicalTranscriptRef,
+      authenticatedReadBindingRef: binding.authenticatedReadBindingRef,
+    })
+    if (!transcriptRecord
+      || transcriptRecord.recordDigestSha256 !==
+        binding.authenticatedTranscriptRecordDigestSha256
+      || transcriptRecord.sourceScopeDigestSha256 !==
+        binding.sourceScopeDigestSha256) {
+      throw new Error(
+        'Canonical Caption transcript expectation did not resolve its exact record.',
+      )
+    }
+    return freeze({ binding, transcriptRecord })
+  }
   const repository: CanonicalCaptionTranscriptEvidenceRepository = {
     schemaVersion:
       CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_READ_PORT_VERSION,
@@ -593,6 +766,52 @@ export function createCanonicalCaptionTranscriptEvidenceRepository(input: {
     },
     rereadRecord: readRecord,
     findExactForExecution: findRecordForExecution,
+    async persistPlanningExpectationBindingCreateOnly({ binding: value }) {
+      const binding =
+        parseCanonicalCaptionTranscriptPlanningExpectationBinding(value)
+      const transcriptRecord = await readRecord({
+        canonicalReadScope: binding.canonicalReadScope,
+        canonicalTranscriptRef: binding.canonicalTranscriptRef,
+        authenticatedReadBindingRef: binding.authenticatedReadBindingRef,
+      })
+      if (!transcriptRecord
+        || transcriptRecord.recordDigestSha256 !==
+          binding.authenticatedTranscriptRecordDigestSha256
+        || transcriptRecord.sourceScopeDigestSha256 !==
+          binding.sourceScopeDigestSha256) {
+        throw new Error(
+          'Canonical Caption expectation cannot bind an unavailable transcript.',
+        )
+      }
+      const body = Buffer.from(stableAuthorityStringify(binding), 'utf8')
+      if (body.byteLength > MAX_RECORD_BYTES) {
+        throw new Error(
+          'Canonical Caption transcript expectation binding is too large.')
+      }
+      const disposition = await input.objectPort.createOnly({
+        objectPath: expectationBindingPath(prefix, {
+          canonicalReadScope: binding.canonicalReadScope,
+          planningExpectationRef: binding.planningExpectationRef,
+        }),
+        body,
+        contentSha256: rawBufferDigest(body),
+      })
+      const reread = await findRecordForPlanningExpectation({
+        canonicalReadScope: binding.canonicalReadScope,
+        planningExpectationRef: binding.planningExpectationRef,
+      })
+      if (!reread || reread.binding.bindingDigestSha256 !==
+        binding.bindingDigestSha256) {
+        throw new Error(
+          'Canonical Caption transcript expectation create-only reread failed.')
+      }
+      return disposition === 'created' ? 'created' : 'identical_replay'
+    },
+    findExactForPlanningExpectation: findRecordForPlanningExpectation,
+    async readPlanningExpectationExact(request) {
+      const result = await findRecordForPlanningExpectation(request)
+      return result?.binding ?? null
+    },
     async readExact(request) {
       const record = await readRecord(request)
       return record ? freeze({
@@ -617,71 +836,209 @@ export function createCanonicalCaptionTranscriptSupportService(input: {
   const service: CanonicalCaptionTranscriptSupportService = {
     schemaVersion: CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_VERSION,
     async projectAuthenticatedTranscript(request) {
-      assertClosedContractTree(request,
-        'Canonical Caption transcript projection request')
-      const canonicalReadScope = readScopeSchema.parse(
-        request.canonicalReadScope)
-      const sourceScopes = request.sourceScopes.map(parseSourceScope)
-      assertSourceScopes(sourceScopes, canonicalReadScope)
-      await assertApprovedSnapshotReread(
-        input.approvedSnapshotReadPort,
-        canonicalReadScope,
-      )
-      const wordEvidence: CanonicalCaptionSourceWordTimingEvidence[] = []
-      for (const sourceScope of sourceScopes) {
-        const firstResult = await input.sourceTranscriptReadPort.readCompleted(
-          sourceScope)
-        const secondResult = await input.sourceTranscriptReadPort.readCompleted(
-          sourceScope)
-        if (!firstResult || !secondResult
-          || stableAuthorityStringify(firstResult) !==
-            stableAuthorityStringify(secondResult)) {
-          throw new Error('Canonical source transcript reread is unavailable.')
-        }
-        const result = verifyCanonicalVisualIntelligenceSourceTranscriptResult(
-          sourceForVerification(sourceScope, firstResult),
-          firstResult,
-        )
-        if (result.transcript.status === 'no_speech') continue
-        const evidence = await readWordEvidenceTwice({
-          port: input.wordTimingReadPort,
-          scope: sourceScope,
-          result,
-        })
-        assertWordEvidenceMatchesSource({
-          evidence,
-          scope: sourceScope,
-          result,
-        })
-        wordEvidence.push(evidence)
-      }
-      if (wordEvidence.length === 0) {
-        throw new Error('Caption cannot project a transcript without speech.')
-      }
-      if (new Set(wordEvidence.map((item) => item.languageCode)).size !== 1
-        || new Set(wordEvidence.map((item) =>
-          item.speakerDiarizationState)).size !== 1) {
-        throw new Error(
-          'Caption transcript sources require one language and one complete diarization disposition.',
-        )
-      }
-      const createdAt = (input.now ?? (() => new Date()))().toISOString()
-      const record = createAuthenticatedTranscriptRecord({
-        canonicalReadScope,
-        sourceScopes,
-        wordEvidence,
-        createdAt,
-      })
-      await input.repository.persistCreateOnly({ record })
-      const reread = await input.repository.rereadRecord(recordReadRequest(
-        record))
-      if (!reread || reread.recordDigestSha256 !== record.recordDigestSha256) {
-        throw new Error('Canonical Caption transcript record did not reconcile.')
-      }
-      return reread
+      return (await projectAuthenticatedTranscriptRecord(input, request)).record
     },
   }
   return Object.freeze(service)
+}
+
+export function createCanonicalCaptionTranscriptSupportServiceV2(input: {
+  readonly approvedSnapshotReadPort: CanonicalCaptionApprovedSnapshotReadPort
+  readonly sourceTranscriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
+  readonly wordTimingReadPort: CanonicalCaptionSourceWordTimingReadPort
+  readonly repository: CanonicalCaptionTranscriptEvidenceRepository
+  readonly now?: () => Date
+}): CanonicalCaptionTranscriptSupportServiceV2 {
+  assertPorts(input)
+  const service: CanonicalCaptionTranscriptSupportServiceV2 = {
+    schemaVersion: CANONICAL_CAPTION_TRANSCRIPT_SUPPORT_SERVICE_V2_VERSION,
+    async projectAuthenticatedTranscript(request) {
+      return (await projectAuthenticatedTranscriptRecord(input, request)).record
+    },
+    async projectAuthenticatedTranscriptForPlanningExpectation(request) {
+      assertClosedContractTree(
+        request,
+        'Canonical Caption transcript expectation projection request',
+      )
+      const planningExpectationRef = domainRefSchema.parse(
+        request.planningExpectationRef,
+      )
+      const projected = await projectAuthenticatedTranscriptRecord(input, {
+        canonicalReadScope: request.canonicalReadScope,
+        sourceScopes: request.sourceScopes,
+      })
+      if (!sameDomainRef(
+        planningExpectationRef,
+        projected.planningExpectationRef,
+      )) {
+        throw new Error(
+          'Canonical Caption transcript expectation crossed its exact source-analysis lineage.',
+        )
+      }
+      const transcriptRecord = projected.record
+      const canonicalTranscriptRef = domainTranscriptRef(
+        transcriptRecord.canonicalTranscript,
+      )
+      const authenticatedReadBindingRef = domainBindingRef(
+        transcriptRecord.authenticatedReadBinding,
+      )
+      const expectationBinding =
+        createCanonicalCaptionTranscriptPlanningExpectationBinding({
+          bindingId: planningExpectationBindingId({
+            canonicalReadScope: transcriptRecord.canonicalReadScope,
+            planningExpectationRef,
+          }),
+          canonicalReadScope: transcriptRecord.canonicalReadScope,
+          planningExpectationRef,
+          canonicalTranscriptRef,
+          authenticatedReadBindingRef,
+          authenticatedTranscriptRecordDigestSha256:
+            transcriptRecord.recordDigestSha256,
+          sourceScopeDigestSha256:
+            transcriptRecord.sourceScopeDigestSha256,
+          exactApprovedSnapshotRereadVerified: true,
+          exactSourceScopeAndTranscriptLineageVerified: true,
+          authenticatedTranscriptPersistedAndReread: true,
+          createOnlyPersistedAndReread: true,
+          privateArtifact: true,
+          byteFreeBinding: true,
+          rawChatIncluded: false,
+          transcriptTextIncluded: false,
+          mediaBytesIncluded: false,
+          pathsUrlsOrCredentialsIncluded: false,
+          directPeerDispatchPerformed: false,
+          providerCallPerformedByBridge: false,
+          transcriptRuntimePerformedByBridge: false,
+          transcriptMutationAuthorityGrantedToCaption: false,
+          timingAuthorityGrantedToCaption: false,
+          assetMutationAuthorityGrantedToCaption: false,
+          finalQaApprovalGrantedToCaption: false,
+          billingAuthorityGrantedToCaption: false,
+          publicDeliveryGranted: false,
+          productionAuthorityGranted: false,
+        })
+      await input.repository.persistPlanningExpectationBindingCreateOnly({
+        binding: expectationBinding,
+      })
+      const reread =
+        await input.repository.findExactForPlanningExpectation({
+          canonicalReadScope: transcriptRecord.canonicalReadScope,
+          planningExpectationRef,
+        })
+      if (!reread
+        || reread.binding.bindingDigestSha256 !==
+          expectationBinding.bindingDigestSha256
+        || reread.transcriptRecord.recordDigestSha256 !==
+          transcriptRecord.recordDigestSha256) {
+        throw new Error(
+          'Canonical Caption transcript expectation binding did not reconcile.',
+        )
+      }
+      return freeze({
+        transcriptRecord: reread.transcriptRecord,
+        expectationBinding: reread.binding,
+      })
+    },
+  }
+  return Object.freeze(service)
+}
+
+async function projectAuthenticatedTranscriptRecord(
+  input: {
+    readonly approvedSnapshotReadPort: CanonicalCaptionApprovedSnapshotReadPort
+    readonly sourceTranscriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
+    readonly wordTimingReadPort: CanonicalCaptionSourceWordTimingReadPort
+    readonly repository: CanonicalCaptionTranscriptEvidenceRepository
+    readonly now?: () => Date
+  },
+  request: {
+    readonly canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    readonly sourceScopes:
+      readonly CanonicalSourceTranscriptOrchestraReadScope[]
+  },
+): Promise<Readonly<{
+  record: CanonicalCaptionTranscriptAuthenticatedEvidenceRecord
+  planningExpectationRef: CaptionDomainRef
+}>> {
+  assertClosedContractTree(
+    request,
+    'Canonical Caption transcript projection request',
+  )
+  const canonicalReadScope = readScopeSchema.parse(request.canonicalReadScope)
+  const sourceScopes = request.sourceScopes.map(parseSourceScope)
+  assertSourceScopes(sourceScopes, canonicalReadScope)
+  await assertApprovedSnapshotReread(
+    input.approvedSnapshotReadPort,
+    canonicalReadScope,
+  )
+  const wordEvidence: CanonicalCaptionSourceWordTimingEvidence[] = []
+  const transcriptProjection: Array<{
+    sourceSequenceItemId: string
+    transcriptDigestSha256: string
+    transcriptCoverageDigestSha256: string
+  }> = []
+  for (const sourceScope of sourceScopes) {
+    const firstResult = await input.sourceTranscriptReadPort.readCompleted(
+      sourceScope,
+    )
+    const secondResult = await input.sourceTranscriptReadPort.readCompleted(
+      sourceScope,
+    )
+    if (!firstResult || !secondResult
+      || stableAuthorityStringify(firstResult) !==
+        stableAuthorityStringify(secondResult)) {
+      throw new Error('Canonical source transcript reread is unavailable.')
+    }
+    const result = verifyCanonicalVisualIntelligenceSourceTranscriptResult(
+      sourceForVerification(sourceScope, firstResult),
+      firstResult,
+    )
+    transcriptProjection.push({
+      sourceSequenceItemId: sourceScope.sourceSequenceItemId,
+      transcriptDigestSha256: result.transcript.transcriptDigestSha256,
+      transcriptCoverageDigestSha256:
+        result.transcript.coverage.coverageDigestSha256,
+    })
+    if (result.transcript.status === 'no_speech') continue
+    const evidence = await readWordEvidenceTwice({
+      port: input.wordTimingReadPort,
+      scope: sourceScope,
+      result,
+    })
+    assertWordEvidenceMatchesSource({ evidence, scope: sourceScope, result })
+    wordEvidence.push(evidence)
+  }
+  if (wordEvidence.length === 0) {
+    throw new Error('Caption cannot project a transcript without speech.')
+  }
+  if (new Set(wordEvidence.map((item) => item.languageCode)).size !== 1
+    || new Set(wordEvidence.map((item) =>
+      item.speakerDiarizationState)).size !== 1) {
+    throw new Error(
+      'Caption transcript sources require one language and one complete diarization disposition.',
+    )
+  }
+  const createdAt = (input.now ?? (() => new Date()))().toISOString()
+  const record = createAuthenticatedTranscriptRecord({
+    canonicalReadScope,
+    sourceScopes,
+    wordEvidence,
+    createdAt,
+  })
+  await input.repository.persistCreateOnly({ record })
+  const reread = await input.repository.rereadRecord(recordReadRequest(record))
+  if (!reread || reread.recordDigestSha256 !== record.recordDigestSha256) {
+    throw new Error('Canonical Caption transcript record did not reconcile.')
+  }
+  const projectionDigestSha256 = sha256AuthorityValue(transcriptProjection)
+  return freeze({
+    record: reread,
+    planningExpectationRef: {
+      id: `caption-source-transcript.${projectionDigestSha256.slice(0, 48)}`,
+      version: 'canonical-source-transcript-planning-evidence-v1',
+      contentHash: projectionDigestSha256,
+    },
+  })
 }
 
 function createAuthenticatedTranscriptRecord(input: {
@@ -1266,6 +1623,25 @@ function scopeIndexPath(
   },
 ): string {
   return `${prefix}/by-scope/${sha256AuthorityValue(lookup)}.json`
+}
+
+function expectationBindingPath(
+  prefix: string,
+  lookup: {
+    canonicalReadScope: CaptionCanonicalTranscriptReadScope
+    planningExpectationRef: CaptionDomainRef
+  },
+): string {
+  return `${prefix}/by-planning-expectation/${
+    sha256AuthorityValue(lookup)}.json`
+}
+
+function planningExpectationBindingId(input: {
+  canonicalReadScope: CaptionCanonicalTranscriptReadScope
+  planningExpectationRef: CaptionDomainRef
+}): string {
+  return `caption.transcript.expectation.${
+    sha256AuthorityValue(input).slice(0, 32)}`
 }
 
 function domainTranscriptRef(

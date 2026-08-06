@@ -232,8 +232,8 @@ function earlyInput(input: {
 function planningBinding(input: {
   trace: typeof selectedTrace
   bundle: ReturnType<typeof createCaptionEarlyPlanningBundle>
-}): CanonicalCaptionSpecialistPlanningBinding {
-  const withoutDigest: Omit<CanonicalCaptionSpecialistPlanningBinding,
+}): CanonicalCaptionSpecialistPlanningBindingV1 {
+  const withoutDigest: Omit<CanonicalCaptionSpecialistPlanningBindingV1,
   'bindingDigestSha256'> = {
     schemaVersion: CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
     bindingId: `${input.bundle.bundleId}.canonical-binding`,
@@ -287,7 +287,7 @@ function planningBinding(input: {
     ...withoutDigest,
     bindingDigestSha256:
       calculateCanonicalCaptionSpecialistPlanningBindingDigest(withoutDigest),
-  })
+  }) as CanonicalCaptionSpecialistPlanningBindingV1
 }
 
 function components(input: {

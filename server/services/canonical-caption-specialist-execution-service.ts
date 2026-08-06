@@ -6,6 +6,7 @@ import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
   type CanonicalCaptionSpecialistExecutionReceipt,
   type CanonicalCaptionIncomingSupportRequestReadPort,
@@ -73,6 +74,9 @@ import {
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
 import {
+  parseCanonicalCaptionTranscriptPlanningExpectationBinding,
+} from './canonical-caption-transcript-support-service'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
@@ -100,6 +104,8 @@ const frameRangeSchema = z.object({
 })
 const initialArtifactTypeSchema = z.enum([
   'canonical_transcript',
+  'canonical_transcript_planning_expectation',
+  'canonical_transcript_planning_expectation_binding',
   'canonical_transcript_authenticated_read_binding',
   'confirmed_output_frame',
   'master_timing_or_planning_timing',
@@ -161,21 +167,43 @@ const workItemInputV2Schema = workItemBodySchema.extend({
   sourceSupportRequestRef: refSchema.nullable(),
   selectionEvidenceRef: refSchema,
 }).strict()
+const workItemInputV3Schema = workItemInputV2Schema.omit({
+  schemaVersion: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION),
+}).strict()
 const workItemInputSchema: z.ZodType<CanonicalCaptionSpecialistWorkItemInput> =
 z.discriminatedUnion('schemaVersion', [
   workItemInputV1Schema,
   workItemInputV2Schema,
+  workItemInputV3Schema,
 ]).superRefine((input, context) => {
   const types = input.initialArtifactRefs.map((ref) => ref.artifactType)
+  const sourceLedExpectation = input.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+  const hasPlanningResolutionBinding = types.includes(
+    'canonical_transcript_planning_expectation_binding',
+  )
+  const hasAuthenticatedReadBinding = types.includes(
+    'canonical_transcript_authenticated_read_binding',
+  )
   if (new Set(types).size !== types.length
-    || !types.includes('canonical_transcript')
+    || (sourceLedExpectation
+      ? !types.includes('canonical_transcript_planning_expectation')
+        || types.includes('canonical_transcript')
+        || hasPlanningResolutionBinding
+        || hasAuthenticatedReadBinding
+      : !types.includes('canonical_transcript')
+        || types.includes('canonical_transcript_planning_expectation')
+        || hasPlanningResolutionBinding)
     || !types.includes('confirmed_output_frame')
     || !types.includes('master_timing_or_planning_timing')) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ['initialArtifactRefs'],
       message:
-        'Caption initial evidence must contain one transcript, frame, and MasterTiming ref without duplicate roles.',
+        'Caption initial evidence must contain one transcript or source-led expectation, frame, and MasterTiming ref without duplicate roles.',
     })
   }
   let lastEnd = -1
@@ -201,7 +229,9 @@ z.discriminatedUnion('schemaVersion', [
     })
   }
   if (input.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION) {
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+    || input.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION) {
     const supportJob = (CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
       .includes(input.captionJobType)
     const incomingRequestArtifacts = input.initialArtifactRefs.filter(
@@ -335,6 +365,10 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
    * this service binds it into the immutable call and refuses mismatches.
    */
   readonly canonicalTranscriptAuthenticatedReadBindingRef?: SkillContractRef
+  /** Exact postapproval transcript resolved from a V3 planning expectation. */
+  readonly canonicalTranscriptRef?: SkillContractRef
+  /** Exact immutable expectation-to-authenticated-transcript resolution. */
+  readonly canonicalTranscriptPlanningExpectationBindingRef?: SkillContractRef
   readonly incomingSupportRequestReadPort?:
     CanonicalCaptionIncomingSupportRequestReadPort
   readonly executionPort?: CanonicalCaptionSpecialistExecutionPort
@@ -374,8 +408,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   assertExpectedOutputAndManifest(authority, workItem)
   const initialArtifactRefs = resolveInitialArtifactRefs({
     workInput,
+    postApprovalTranscriptRef: input.canonicalTranscriptRef,
     postApprovalBindingRef:
       input.canonicalTranscriptAuthenticatedReadBindingRef,
+    postApprovalExpectationBindingRef:
+      input.canonicalTranscriptPlanningExpectationBindingRef,
   })
 
   const call = createCaptionCall({
@@ -474,15 +511,60 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
 
 function resolveInitialArtifactRefs(input: {
   workInput: CanonicalCaptionSpecialistWorkItemInput
+  postApprovalTranscriptRef?: SkillContractRef
   postApprovalBindingRef?: SkillContractRef
+  postApprovalExpectationBindingRef?: SkillContractRef
 }): CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs'] {
+  const expectation = input.workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'canonical_transcript_planning_expectation')
+  const existingTranscript = input.workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType === 'canonical_transcript')
   const existing = input.workInput.initialArtifactRefs.find((artifact) =>
     artifact.artifactType ===
       'canonical_transcript_authenticated_read_binding')
+  const existingExpectationBinding = input.workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_planning_expectation_binding')
+  const sourceLedExpectation = input.workInput.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+  if (sourceLedExpectation && (!expectation
+    || !input.postApprovalTranscriptRef
+    || !input.postApprovalBindingRef
+    || !input.postApprovalExpectationBindingRef)) {
+    throw new Error(
+      'Canonical Caption source-led work requires an exact postapproval transcript resolution.',
+    )
+  }
+  if (!sourceLedExpectation && input.postApprovalExpectationBindingRef) {
+    throw new Error(
+      'Canonical Caption V1/V2 work cannot receive a planning-expectation binding.',
+    )
+  }
+  if (existingExpectationBinding) {
+    throw new Error(
+      'Canonical Caption immutable work cannot pre-inject transcript expectation resolution.',
+    )
+  }
+  if (!sourceLedExpectation && input.postApprovalTranscriptRef
+    && (!existingTranscript
+      || existingTranscript.id !== input.postApprovalTranscriptRef.id
+      || existingTranscript.version !== input.postApprovalTranscriptRef.version
+      || existingTranscript.contentHash !==
+        input.postApprovalTranscriptRef.contentHash)) {
+    throw new Error(
+      'Canonical Caption postapproval transcript conflicts with the approved input.',
+    )
+  }
   if (!input.postApprovalBindingRef) {
     return structuredClone(input.workInput.initialArtifactRefs)
   }
+  const transcriptRef = input.postApprovalTranscriptRef === undefined
+    ? null : refSchema.parse(input.postApprovalTranscriptRef)
   const ref = refSchema.parse(input.postApprovalBindingRef)
+  const expectationBindingRef = input.postApprovalExpectationBindingRef ===
+    undefined ? null : refSchema.parse(
+      input.postApprovalExpectationBindingRef,
+    )
   if (existing && (
     existing.id !== ref.id
     || existing.version !== ref.version
@@ -492,7 +574,18 @@ function resolveInitialArtifactRefs(input: {
       'Canonical Caption postapproval transcript binding conflicts with the approved input.',
     )
   }
-  if (existing) return structuredClone(input.workInput.initialArtifactRefs)
+  if (existing && !sourceLedExpectation) {
+    return structuredClone(input.workInput.initialArtifactRefs)
+  }
+  const transcriptArtifact = transcriptRef === null ? null
+    : initialArtifactSchema.parse({
+        ...transcriptRef,
+        artifactType: 'canonical_transcript',
+        producerSkillKey: 'canonical_transcript',
+        privateArtifact: true,
+        byteFreeRef: true,
+        sourceSupportRequestRef: null,
+      })
   const bindingArtifact = initialArtifactSchema.parse({
     ...ref,
     artifactType: 'canonical_transcript_authenticated_read_binding',
@@ -501,9 +594,23 @@ function resolveInitialArtifactRefs(input: {
     byteFreeRef: true,
     sourceSupportRequestRef: null,
   })
+  const expectationBindingArtifact = expectationBindingRef === null ? null
+    : initialArtifactSchema.parse({
+        ...expectationBindingRef,
+        artifactType: 'canonical_transcript_planning_expectation_binding',
+        producerSkillKey: 'canonical_transcript',
+        privateArtifact: true,
+        byteFreeRef: true,
+        sourceSupportRequestRef: null,
+      })
   const resolved = [
-    ...structuredClone(input.workInput.initialArtifactRefs),
+    ...structuredClone(input.workInput.initialArtifactRefs).filter(
+      (artifact) => artifact.artifactType !==
+        'canonical_transcript_planning_expectation'),
+    ...(transcriptArtifact === null ? [] : [transcriptArtifact]),
     bindingArtifact,
+    ...(expectationBindingArtifact === null
+      ? [] : [expectationBindingArtifact]),
   ]
   if (resolved.length > 8) {
     throw new Error(
@@ -525,6 +632,12 @@ async function readCanonicalTranscriptEvidence(input: {
   const bindingRef = input.initialArtifactRefs.find(
     (artifact) => artifact.artifactType ===
       'canonical_transcript_authenticated_read_binding')
+  const expectationRef = input.workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_planning_expectation')
+  const expectationBindingRef = input.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_planning_expectation_binding')
   if (!transcriptRef) {
     throw new Error('Canonical Caption transcript ref is missing.')
   }
@@ -577,6 +690,71 @@ async function readCanonicalTranscriptEvidence(input: {
     || input.workInput.outputId === null) {
     throw new Error('Canonical Caption authenticated transcript refs mismatch.')
   }
+  if (input.workInput.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION) {
+    if (!expectationRef || !expectationBindingRef
+      || typeof input.readPort.readPlanningExpectationExact !== 'function') {
+      throw new Error(
+        'Canonical Caption transcript expectation reread is unavailable.',
+      )
+    }
+    const expectationLookup = {
+      canonicalReadScope: {
+        ownerUserId: snapshot.approvedByUserId,
+        workspaceId: snapshot.workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+        approvedSnapshotRef: {
+          id: snapshot.snapshotId,
+          version: snapshot.schemaVersion,
+          contentHash: snapshot.snapshotHash,
+        },
+      },
+      planningExpectationRef: {
+        id: expectationRef.id,
+        version: expectationRef.version,
+        contentHash: expectationRef.contentHash,
+      },
+    }
+    const firstExpectationBinding =
+      await input.readPort.readPlanningExpectationExact(expectationLookup)
+    const secondExpectationBinding =
+      await input.readPort.readPlanningExpectationExact(expectationLookup)
+    if (!firstExpectationBinding || !secondExpectationBinding
+      || stableAuthorityStringify(firstExpectationBinding) !==
+        stableAuthorityStringify(secondExpectationBinding)) {
+      throw new Error(
+        'Canonical Caption transcript expectation changed between rereads.',
+      )
+    }
+    const expectationBinding =
+      parseCanonicalCaptionTranscriptPlanningExpectationBinding(
+        firstExpectationBinding,
+      )
+    if (stableAuthorityStringify(expectationBinding.canonicalReadScope) !==
+        stableAuthorityStringify(expectationLookup.canonicalReadScope)
+      || stableAuthorityStringify(expectationBinding.planningExpectationRef)
+        !== stableAuthorityStringify(expectationLookup.planningExpectationRef)
+      || expectationBinding.bindingId !== expectationBindingRef.id
+      || expectationBinding.schemaVersion !== expectationBindingRef.version
+      || expectationBinding.bindingDigestSha256 !==
+        expectationBindingRef.contentHash
+      || expectationBinding.canonicalTranscriptRef.id !== transcriptRef.id
+      || expectationBinding.canonicalTranscriptRef.version !==
+        transcriptRef.version
+      || expectationBinding.canonicalTranscriptRef.contentHash !==
+        transcriptRef.contentHash
+      || expectationBinding.authenticatedReadBindingRef.id !== bindingRef.id
+      || expectationBinding.authenticatedReadBindingRef.version !==
+        bindingRef.version
+      || expectationBinding.authenticatedReadBindingRef.contentHash !==
+        bindingRef.contentHash) {
+      throw new Error(
+        'Canonical Caption transcript expectation mapping crossed approved authority.',
+      )
+    }
+  }
   admitCaptionCanonicalTranscriptFromAuthenticatedRead({
     binding,
     canonicalTranscript: transcript,
@@ -608,8 +786,10 @@ async function readIncomingSupportRequest(input: {
   workInput: CanonicalCaptionSpecialistWorkItemInput
   readPort?: CanonicalCaptionIncomingSupportRequestReadPort
 }): Promise<SkillSupportRequestV2 | null> {
-  if (input.workInput.schemaVersion !==
-    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+  if ((input.workInput.schemaVersion !==
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+    && input.workInput.schemaVersion !==
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION)
     || input.workInput.sourceSupportRequestRef === null) return null
   if (!input.readPort
     || !admittedIncomingSupportReadPorts.has(input.readPort)
@@ -680,12 +860,14 @@ function createCaptionCall(input: {
   initialArtifactRefs:
     CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs']
 }): OrchestraSkillCall {
-  const integrationManifest = input.workInput.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+  const assignmentInput = input.workInput.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+    || input.workInput.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+  const integrationManifest = assignmentInput
     ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2
     : CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
-  const integrationQualification = input.workInput.schemaVersion ===
-    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+  const integrationQualification = assignmentInput
     ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2
     : CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
   const manifestRef: SkillContractRef = {

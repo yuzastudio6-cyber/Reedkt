@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
 import {
@@ -478,6 +479,42 @@ assert.match(dockerfile, /candidate-only/u)
 assert.match(dockerfile, /contains no checkpoint/u)
 assert.match(entrypoint, /nvidia_l4/u)
 assert.match(entrypoint, /cuda_compat_12_8/u)
+assert.match(entrypoint, /\/\^NVRM version:\//u)
+assert.match(entrypoint, /count < 2 \|\| count > 4/u)
+assert.match(entrypoint, /is_driver_version\(\$field\)/u)
+assert.doesNotMatch(
+  entrypoint,
+  /Kernel Module\[\[:space:\]\]\*\\\(\[0-9\]\[0-9\.\]\*\\\)/u,
+)
+const driverParser = entrypoint.match(
+  /driver_version="\$\(\n[ ]{2}awk '\n(?<program>[\s\S]*?)\n[ ]{2}' "\$\{driver_version_file\}"\n\)"/u,
+)?.groups?.program
+assert.ok(driverParser, 'the exact entrypoint driver parser must remain testable')
+const parseDriverVersion = (source: string) => execFileSync(
+  'awk',
+  [driverParser],
+  { input: source, encoding: 'utf8' },
+).trim()
+assert.equal(
+  parseDriverVersion(
+    'NVRM version: NVIDIA UNIX x86_64 Kernel Module  535.216.03  Thu Apr  3 01:14:19 UTC 2025\n',
+  ),
+  '535.216.03',
+)
+assert.equal(
+  parseDriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  580.95.05  Release Build\n',
+  ),
+  '580.95.05',
+)
+assert.equal(
+  parseDriverVersion('NVRM version: NVIDIA UNIX Open Kernel Module for x86_64 malformed\n'),
+  '',
+)
+assert.equal(
+  parseDriverVersion('compiler: gcc version 12.2.0\n'),
+  '',
+)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-worker',
@@ -490,6 +527,7 @@ console.log(JSON.stringify({
   opencvCudaEveryMaskCrosscheckRequired: true,
   cpuOnlySubstantiveQaAllowed: false,
   immutableImageCandidateOnly: true,
+  standardAndOpenKernelModuleDriverLinesAdmitted: true,
   liveL4JobStarted: false,
   customerCreditsMutated: false,
   productionReady: false,

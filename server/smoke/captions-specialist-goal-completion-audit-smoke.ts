@@ -6,6 +6,10 @@ import {
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT,
   parseCaptionGoalCompletionAudit,
 } from '../captions-specialist/caption-goal-completion-audit'
+import {
+  CAPTION_CURRENT_PRIVATE_INTERNAL_EVIDENCE_PROGRESS,
+  parseCaptionPrivateInternalEvidenceProgress,
+} from '../captions-specialist/caption-private-internal-evidence-progress'
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 
@@ -36,6 +40,8 @@ function redigest(value: Record<string, unknown>): Record<string, unknown> {
 
 const audit = parseCaptionGoalCompletionAudit(
   CAPTION_POST_CAP20_GOAL_COMPLETION_AUDIT)
+const current = parseCaptionPrivateInternalEvidenceProgress(
+  CAPTION_CURRENT_PRIVATE_INTERNAL_EVIDENCE_PROGRESS)
 
 check(audit.counts.declaredCaptionJobs === 41
   && audit.counts.currentlyAdmittedJobs === 29
@@ -87,6 +93,19 @@ check(!audit.operationDispatchAuthority
   && !audit.publicDeliveryAuthority
   && !audit.productionAuthority,
 'audit grants no external authority')
+check(current.counts.captionOwnedImplementationsComplete === 41
+  && current.counts.sourcePathsReadyForPrivateEvidenceRun === 41
+  && current.counts.canonicalOwnerCompositionMountsComplete === 5,
+'current evidence supersedes the historical pre-mount 29/41 source snapshot')
+check(current.counts.terminalPrivateInternalQualifiedJobs === 0
+  && current.counts.terminalEvidenceGatesSatisfied === 0
+  && current.gates.length === 9,
+'current evidence keeps all nine terminal gates open without losing progress')
+check(current.gates.find((gate) =>
+  gate.gapId === 'canonical_transcript_owner_authenticated_read')?.evidenceRefs
+  .some((reference) => reference.version ===
+    'canonical-caption-transcript-correction-review-package-v1'),
+'current audit includes the real transcript review preparation package')
 
 expectThrow(() => parseCaptionGoalCompletionAudit({
   ...audit, unknownField: true,
@@ -128,20 +147,27 @@ expectThrow(() => parseCaptionGoalCompletionAudit(cyclic))
 
 const document = readFileSync(join(process.cwd(), 'docs/caption-direction',
   'post-cap20-goal-completion-audit.md'), 'utf8')
-check(document.includes('ready_for_shared_pipeline_integration')
+check(document.includes('caption_private_internal_evidence_in_progress')
   && document.includes('caption_specialist_private_internal_qualified')
   && document.includes('qualified complete-time visual-AI review'),
 'completion-audit documentation preserves current and target truth')
-check(document.includes('29') && document.includes('12')
-  && document.includes('five shared owners'),
-'completion-audit documentation preserves exact scope counts')
+check(document.includes('41/41') && document.includes('5/5')
+  && document.includes('historical'),
+'completion-audit documentation distinguishes current and historical counts')
 
 console.log(JSON.stringify({
   smoke: 'captions_specialist_goal_completion_audit',
   assertions,
-  currentStatus: audit.currentStatus,
-  targetTerminalStatus: audit.targetTerminalStatus,
-  remainingTerminalGaps: audit.counts.remainingTerminalGaps,
-  terminalStatusClaimed: audit.terminalStatusClaimed,
+  historicalAuditVersion: audit.schemaVersion,
+  currentStatus: current.terminalStatus,
+  targetTerminalStatus: current.targetTerminalStatus,
+  captionOwnedImplementationsComplete:
+    current.counts.captionOwnedImplementationsComplete,
+  sourcePathsReadyForPrivateEvidenceRun:
+    current.counts.sourcePathsReadyForPrivateEvidenceRun,
+  canonicalOwnerCompositionMountsComplete:
+    current.counts.canonicalOwnerCompositionMountsComplete,
+  remainingTerminalGaps: current.counts.terminalEvidenceGates,
+  terminalStatusClaimed: current.terminalStatusClaimed,
   result: 'passed',
 }, null, 2))

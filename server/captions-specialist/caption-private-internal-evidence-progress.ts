@@ -120,6 +120,10 @@ const transcriptRejectedInspectionRef = ref(
   'caption.private.transcript.inspection.rejected.a1640b8a2da4bf076c6ecfbd',
   'caption-private-transcript-direct-inspection-receipt-v1',
   '08da86485883639439bf357512b9e0d021c0f010909eee3512c525e753e3fba5')
+const transcriptCorrectionReviewPackageRef = ref(
+  'caption.transcript.correction.review.a4351e35dc730da196fcdd29d3978df5',
+  'canonical-caption-transcript-correction-review-package-v1',
+  '911610fb7a111a76585fdeaa12cc92f035820b900dbc76398226326a514e4a03')
 const soundIncompletePackageRef = ref(
   'caption.sound.private-runtime.inspection.2026-08-05-v9',
   'caption-sound-private-runtime-inspection-package-v1',
@@ -151,8 +155,12 @@ const realSourceReducedRenderRef = ref(
 
 const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
   gate('canonical_transcript_owner_authenticated_read',
-    'actual_evidence_rejected', [transcriptRejectedInspectionRef], [
+    'actual_evidence_rejected', [
+      transcriptRejectedInspectionRef,
+      transcriptCorrectionReviewPackageRef,
+    ], [
       'complete_independent_audio_truth_review_required',
+      'reviewer_completion_seam_must_emit_exact_review_artifact_and_request',
       'mounted_reviewed_correction_owner_must_persist_and_reread_result',
       'corrected_transcript_must_bind_terminal_run_scope',
     ]),
@@ -235,8 +243,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v3',
-  observedAt: '2026-08-06T12:00:00.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v4',
+  observedAt: '2026-08-06T14:00:00.000-04:00',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

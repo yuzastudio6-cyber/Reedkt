@@ -52,6 +52,11 @@ check(progress.gates.find((gate) =>
     === 'actual_evidence_rejected',
 'the rejected private transcript remains rejected')
 check(progress.gates.find((gate) =>
+  gate.gapId === 'canonical_transcript_owner_authenticated_read')?.evidenceRefs
+  .some((reference) => reference.version ===
+    'canonical-caption-transcript-correction-review-package-v1'),
+'the private transcript gate inventories the real correction review package')
+check(progress.gates.find((gate) =>
   gate.gapId === 'soundsync_authenticated_evidence')?.status
     === 'actual_evidence_incomplete',
 'the real Sound execution remains incomplete without listening review')

@@ -2,7 +2,7 @@
 
 Milestone: `POST-CAP-20-AUDIT`
 
-Status: `ready_for_shared_pipeline_integration`
+Status: `caption_private_internal_evidence_in_progress`
 
 Target: `caption_specialist_private_internal_qualified`
 
@@ -10,9 +10,15 @@ Target: `caption_specialist_private_internal_qualified`
 
 The Caption feature modules, typed boundaries, planning runtime, standalone
 harness, sequential support/resume behavior, controlled private media fixtures,
-and direct raster inspection are complete. The current admitted surface remains
-29 of 41 declared jobs: 25 with private evidence and four correct typed contract
-boundaries. Twelve jobs remain conditional on five shared owners.
+and direct raster inspection are complete. The current ledger proves **41/41**
+Caption-owned implementations, **41/41** source paths ready for private
+evidence, and **5/5** canonical owner composition mounts. It still proves
+**0/41** terminally qualified jobs and **0/9** terminal gates satisfied by one
+exact canonical qualification catalog.
+
+The earlier `caption-goal-completion-audit-v1` 29/41 admitted-job and 12-job
+conditional snapshot is preserved as historical pre-mount evidence. It is not
+the current implementation count and must not be used for progress reporting.
 
 The Goal is not terminally qualified yet. That is an internal integration and
 evidence statement, not a public-production requirement. Public SaaS rollout
@@ -22,15 +28,19 @@ and the future central Orchestra are explicitly outside the terminal status.
 
 Nine evidence/integration gaps block the terminal status:
 
-1. authenticated canonical transcript and speaker-diarization reread;
+1. complete the prepared independent audio-truth review, then persist and
+   authenticate the corrected canonical transcript and speaker-diarization
+   reread in the exact qualification scope;
 2. authenticated Visual Intelligence result reread and Caption admission;
 3. authenticated Track All result reread, including qualified-scene SAM 3.1
    evidence;
 4. authenticated SoundSync result reread and Caption admission;
-5. an authenticated B-roll owner request/result read adapter carrying exact
-   selected-media, crop/timing, occupancy, and visible-text lineage;
-6. canonical backend mounting of the Caption execution bundle, persisted job
-   results, and exact sequential support-result rereads;
+5. bind the already-mounted authenticated B-roll owner result to the same
+   qualification package/snapshot/output/work graph rather than the separate
+   technical fixture scope;
+6. run representative approved Caption jobs through the mounted canonical
+   backend execution bundle, persist/reread every projected result, and cover
+   the 41-job catalog across multiple honest runs;
 7. qualified complete-time visual-AI review for every rendered output, kept
    separate from deterministic technical QA and direct sampled-frame
    inspection;
@@ -39,10 +49,11 @@ Nine evidence/integration gaps block the terminal status:
 9. a final Caption-owned per-job qualification projection and terminal release
    manifest built only after the first eight items pass.
 
-The five shared owners are Visual Intelligence, canonical transcript and
-diarization, Track All, SoundSync, and B-roll. Living Frame is not a sixth gap:
-CAP-11/CAP-12 already provide the accepted, versioned, non-executing typed
-boundary and Living Frame has independently verified it.
+The five shared owners are now source-mounted: Visual Intelligence, canonical
+transcript and diarization, Track All, SoundSync, and B-roll. Their actual
+terminal-scope evidence remains incomplete or absent. Living Frame is not a
+sixth gap: CAP-11/CAP-12 already provide the accepted, versioned,
+non-executing typed boundary and Living Frame has independently verified it.
 
 ## Important qualification distinctions
 
@@ -51,8 +62,10 @@ boundary and Living Frame has independently verified it.
 - The top-level standalone runtime proves bounded planning calls, support
   requests, exact resume binding, and results. The canonical backend still has
   to mount the approved private execution bundle and persist/reread its results.
-- Direct inspection of 35 selected rendered frames is valid visual evidence,
-  but it is not a qualified complete-time visual-AI review.
+- Direct inspection now covers every rendered frame through complete-time
+  contact sheets for the real 9:16, 16:9, and 1:1 full/reduced variants. It is
+  valid Caption-owned visual evidence, but it is not a qualified shared
+  complete-time visual-AI review.
 - Technical render QA cannot substitute for looking at the visuals, and neither
   technical QA nor Caption-owned visual evidence can substitute for independent
   final QA.
@@ -69,11 +82,13 @@ boundary and Living Frame has independently verified it.
 
 ## Contracts added
 
-`caption-goal-completion-audit-v1` is a closed, digest-bound, source-only truth
-record. It cannot be mutated into a success receipt: the known open evidence is
-literal and every external authority remains false. A later final qualification
-contract must consume authenticated canonical evidence and recompute its own
-digest; it must not relabel this audit.
+`caption-goal-completion-audit-v1` remains a closed, digest-bound historical
+truth record. The current view is
+`caption-private-internal-evidence-progress-v1`, bound to the 41/41 current job
+ledger and exact private evidence refs. Neither can be mutated into a success
+receipt. The later final qualification contract must consume authenticated
+canonical evidence and recompute its own digest; it must not relabel either
+record.
 
 ## Existing owners reused
 
@@ -97,10 +112,12 @@ tamper refusal, inherited-property refusal, and cyclic-input refusal.
 
 ## Media inspected
 
-No new media was generated by this source-only audit. It references the frozen
-CAP-18/CAP-20 evidence: nine outputs, 1,200 rendered frames, 44 seconds, and 35
-directly inspected frames. Those prior pixels are not relabeled as new runtime
-or complete-time AI evidence.
+No new media was generated by this source-only audit. The current evidence
+references six accepted real talking-head Caption renders: 9:16, 16:9, and 1:1,
+each full and reduced motion. Their complete-time contact sheets and
+original-size spot checks are not relabeled as new runtime, shared visual-AI,
+or independent final-QA evidence. Color-bar engineering fixtures remain
+technical-only.
 
 ## Known limitations and scoped blockers
 

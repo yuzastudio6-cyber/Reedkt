@@ -184,6 +184,7 @@ const admissionWithoutHashSchema = z.object({
   allocatedGpuCount: z.literal(1),
   allocatedVcpuCount: z.literal(12),
   allocatedMemoryGiB: z.literal(170),
+  batchManagedGpuDriverInstallationRequired: z.literal(true),
   taskCount: z.literal(1),
   taskParallelism: z.literal(1),
   maximumExecutionSeconds: z.literal(7_200),
@@ -766,6 +767,7 @@ function createAdmission(input: {
     allocatedGpuCount: 1,
     allocatedVcpuCount: 12,
     allocatedMemoryGiB: 170,
+    batchManagedGpuDriverInstallationRequired: true,
     taskCount: 1,
     taskParallelism: 1,
     maximumExecutionSeconds: 7_200,
@@ -863,7 +865,7 @@ function prepareBatchCreate(input: {
       },
       instances: [{
         instanceTemplate: INSTANCE_TEMPLATE,
-        installGpuDrivers: false,
+        installGpuDrivers: true,
         installOpsAgent: false,
         blockProjectSshKeys: true,
       }],
@@ -1025,7 +1027,7 @@ function assertBatchConfigurationEcho(input: {
       location: z.object({ allowedLocations: z.array(z.string()) }).passthrough(),
       instances: z.array(z.object({
         instanceTemplate: z.string(),
-        installGpuDrivers: z.literal(false),
+        installGpuDrivers: z.literal(true),
       }).passthrough()).length(1),
       serviceAccount: z.object({ email: z.string() }).passthrough(),
     }).passthrough(),
@@ -1044,6 +1046,7 @@ function assertBatchConfigurationEcho(input: {
     || variables.WEEDITPRO_GPU_ACCELERATOR_CLASS !== 'nvidia_a100_80gb'
     || parsed.allocationPolicy.instances[0]?.instanceTemplate !==
       INSTANCE_TEMPLATE
+    || parsed.allocationPolicy.instances[0]?.installGpuDrivers !== true
     || parsed.allocationPolicy.serviceAccount.email !== SERVICE_ACCOUNT
     || networkInterface.network !== PRIVATE_NETWORK
     || networkInterface.subnetwork !== PRIVATE_SUBNETWORK

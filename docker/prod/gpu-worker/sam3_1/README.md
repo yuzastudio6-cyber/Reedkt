@@ -173,6 +173,12 @@ terminal configuration reread preserve that exact tuple. A private bucket
 mount without this job-level no-external-IP policy is not an admissible
 network-none qualification, even when the instance template is fixed.
 
+The fixed Batch instance policy also requires Google Batch to install the
+NVIDIA kernel driver on the ephemeral A2 Ultra VM. The container still
+qualifies the actually observed driver branch and loaded CUDA-library path
+before Python/model execution; Batch-managed installation is not itself a
+driver qualification claim.
+
 The terminal evidence path is split into two additional one-writer stages.
 `canonical-sam3_1-source-checkpoint-qualification-result-evidence-v1`
 generation-rereads the private CMEK result object after the exact Batch job

@@ -191,6 +191,7 @@ assert.equal(admission.userTriggered, true)
 assert.equal(admission.minimumIdleInstances, 0)
 assert.equal(admission.prewarmingOrKeepaliveAllowed, false)
 assert.equal(admission.substantiveCpuModelOrMediaExecutionAllowed, false)
+assert.equal(admission.batchManagedGpuDriverInstallationRequired, true)
 assert.equal(admission.billingClassification,
   'platform_internal_qualification')
 assert.equal(admission.accountEffectivePricingReread, true)
@@ -286,7 +287,7 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-a100-phase',
-  checks: 58,
+  checks: 60,
   batchPostCalls: postCalls,
   batchGetCalls: getCalls,
   durableRecords: objectStore.records.size,
@@ -294,6 +295,8 @@ console.log(JSON.stringify({
   attemptScopedRemotePath: mount.gcsRemotePath,
   scaleFromZero: admission.minimumIdleInstances === 0,
   privateNetworkNoExternalIp: admission.noExternalIpAddress,
+  batchManagedGpuDriverInstallationRequired:
+    admission.batchManagedGpuDriverInstallationRequired,
   accountEffectivePricingReread: admission.accountEffectivePricingReread,
   customerCreditsMutated: succeeded.customerCreditsMutated,
   sourceCheckpointQualificationGranted:

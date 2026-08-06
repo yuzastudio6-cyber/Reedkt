@@ -91,6 +91,43 @@ jobs and no persisted multi-run qualification catalog. Integrating a newer
 backend source owner does not relabel source evidence as a completed real
 Caption run.
 
+## 2026-08-06 follow-up reconciliation
+
+The backend branch advanced by one additive Track All L4 supply-chain repair
+commit, `2af9aa916d0f31c8cbf82d8146767fadfed49c8c`. It was merged without conflict
+at `c31aba34f3c02741cf717ecf7dfbd31e0cff3b67`. The merge changes only the
+existing backend-owned Track All runner, task-QA qualification, and their
+smokes; it does not create or move a Caption owner.
+
+The first GitHub rerun also proved that the full server typecheck exceeded
+Node's default approximately 4 GB heap after the combined source tree grew.
+The two PR workflows that execute the full server typecheck now provide an
+8 GB compiler heap. The TypeScript command itself, its project, and its failure
+semantics are unchanged. The exact full server typecheck passes locally with
+that bound.
+
+Because `.github/workflows/ui-qa.yml` is deliberately part of B-roll's
+qualification source fingerprint, that CI correction invalidated the prior
+generated evidence. The fail-closed rejection was preserved. The canonical
+qualification generator reran all 30 commands and 36 fixtures against the
+updated tree and emitted:
+
+- tested commit:
+  `c31aba34f3c02741cf717ecf7dfbd31e0cff3b67`;
+- relevant source tree:
+  `19d460a9f477c2e9100ed49e05ac784c4e9b10fdfb9c7a87f5bd85ddd610f342`;
+- dependency authority set:
+  `bf23b799a3150286d16bb479cad4be3b191ac07a1ae8a10894ffa5615ed41578`;
+- receipt:
+  `dba7c090c3f4d66589a58572f2bd724f8c6f74c26842628b6e74e73127fe377f`;
+  and
+- artifact:
+  `1ea85531f1738a394abeaffb9f79b7e6fcdf1dc49f41c948237edd78e5a32ec9`.
+
+The post-refresh canonical Sound acceptance suite passes locally. The result
+still claims only `internal_execution_qualified`; provider, customer-credit,
+public-delivery, and production authority remain false.
+
 ## Media and authority boundary
 
 This reconciliation generated no new Caption media and required no new visual

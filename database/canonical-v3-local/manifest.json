@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "a33a18f295167767d57ff62c671635bde094a21407441b59211fca3ed22e53c4"
+      "sha256": "614606bea8012d3f65c6a34d82983cdcbf0a26aef8a9ba129c1eb774a97ddf40"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -313,15 +313,15 @@
     },
     {
       "path": "package.json",
-      "sha256": "c0f43613c0f75c9d30fed9c9ae4d347c67fb56dd8f2b621fb7228f9f319c15f5"
+      "sha256": "1b5fd62256b550b78b72c857c763f9e1c70ab42110295a6ace2381699c48fef0"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
-      "sha256": "82c371917da87e25966f82dabca8f1c4f039410c18b18775e66a78bee12d6ea4"
+      "sha256": "66ad6711610790d09fbfddd7c8becbf64c783a73eba4165a1a5d76daa3cb07f3"
     },
     {
       "path": "server/app.ts",
-      "sha256": "7febf31e0aef4db9c4d854b01d84cd828975912ca6e391815fb7906f2edbfc1e"
+      "sha256": "445b4a28204628a2512ee50ed94bff4a6cdfde968e2936151869a10dc9471f58"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -449,7 +449,7 @@
     },
     {
       "path": "server/edit-references/private-edit-reference-repository.ts",
-      "sha256": "1be7bb6d4e189a524f44e07e99a115f6e92315f87065069b0c3f133d76117583"
+      "sha256": "dcb05cb6781a99ff1bebcdc9ab81b4be7a0ad36275983945091407bfbee4f141"
     },
     {
       "path": "server/middleware/idempotency.ts",
@@ -481,7 +481,7 @@
     },
     {
       "path": "server/private-workspace-index.ts",
-      "sha256": "5a781e689bb93f4116e6a8a1e33a2a1ef4d6758a7e419cbe468e44b868c0d767"
+      "sha256": "2d1e58f10a5a09e36d283f37c139529b151d3a135427796b1cb37092bde8b65f"
     },
     {
       "path": "server/project-authority/canonical-private-project-request-authority.ts",
@@ -497,7 +497,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "c63050e73bfb00c8940283627ce846c5b1f8ae6a84a191419de1b6281b0eb5b8"
+      "sha256": "cf26ed8f8626d5fdc24b42dce174c38bc988bab13a645ebbcdaa0da9ba371cc9"
     },
     {
       "path": "server/routes/upload-routes.ts",
@@ -505,7 +505,7 @@
     },
     {
       "path": "server/services/canonical-planning-handoff-service.ts",
-      "sha256": "6cceea4806272b6103cf355bea6b7f7e09c4385c987a618e5e342d87a744b68c"
+      "sha256": "98f47bb6019af9aa7363ced8bf8036a1adfce88c5b00114b79ad30c6b7456073"
     },
     {
       "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
@@ -549,7 +549,7 @@
     },
     {
       "path": "server/services/edit-reference-service.ts",
-      "sha256": "237548bd8a27f2dd4fd3ecb30c514ac9672da77206ebced3d157b3a56cf1dae2"
+      "sha256": "0c2a518517dcb88c7ed8233facd4b3bd8127d6e7896f150084a4e10a04dfc15c"
     },
     {
       "path": "server/services/edit-reference-signed-in-private-media-runtime-port.ts",
@@ -597,7 +597,7 @@
     },
     {
       "path": "server/services/workspace-access-service.ts",
-      "sha256": "b6341b13a14e8a9ddddd9668832e8eb38bd38c3be0ca4328edd26b11695beb77"
+      "sha256": "7e038f3e19b3a02be9b78d457b503bb21a13ca2718961d50600c33ed01af0950"
     },
     {
       "path": "server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts",
@@ -613,11 +613,11 @@
     },
     {
       "path": "server/smoke/canonical-durable-upload-target-local-postgres-smoke.ts",
-      "sha256": "f47c227a06a6dbdb6e6026a2168d33d06a5a29898d23d159a34230aa4b31c873"
+      "sha256": "3a895f5f5d8b62620e7d210292c41acec0320459f1f9a70519ca0fb303c12bd4"
     },
     {
       "path": "server/smoke/canonical-planning-publication-frontend-client-smoke.ts",
-      "sha256": "9f738079500f584f70214d103438d827e07e7234eb0b0ea4c6c5bf37fc79f1bc"
+      "sha256": "f69ad2a526ae7f35a421910d0a335f1eb6d7cfe4e95a507b78627aeca02e70d0"
     },
     {
       "path": "server/smoke/canonical-private-project-authority-local-postgres-smoke.ts",
@@ -637,7 +637,7 @@
     },
     {
       "path": "server/smoke/edit-planning-authority-smoke.ts",
-      "sha256": "f0917ffaae6ce361fba110d2a26591da7016ecca597e09b89694498a3f2906b3"
+      "sha256": "6cd0eb43bf9fcc4f37ace179d044c48da209a5cdb535d88e956eea4d28ac92ab"
     },
     {
       "path": "server/smoke/edit-reference-canonical-v3-application-preparation-and-apply-smoke.ts",
@@ -697,7 +697,7 @@
     },
     {
       "path": "server/smoke/local-resumable-source-upload-smoke.ts",
-      "sha256": "c2320dba1d3d2ee1f4a8ef1a090c458cb8a88fca4f996f4a33a2f925649b49df"
+      "sha256": "2cd90c321dca457df2fd2f4766c3b4958d00700698bb4c979b9cddf76cd0af53"
     },
     {
       "path": "server/smoke/motion-studio-private-local-command-repository-smoke.ts",
@@ -725,7 +725,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "1b31112b9e3c13b6703e8f1dee3525b8c3a841da8e821c9fd6432e1961cfd637"
+      "sha256": "3fb899083144ca0836d3f5682b5dd6f2ebaa11c69e90d571d1cae49f3074ccef"
     },
     {
       "path": "server/upload-target-authority/canonical-durable-upload-target-authority.ts",
@@ -745,7 +745,7 @@
     },
     {
       "path": "server/upload-target-authority/canonical-upload-target-credential-envelope.ts",
-      "sha256": "a6b6630d55e88a224a7e4b543b9b49f42f05c821901058f281c740aaa76d00e4"
+      "sha256": "42a7ed8b243cf981143bc166d73fdb20514a8491386ad00861adea2d10d4bfd4"
     },
     {
       "path": "server/upload-target-authority/canonical-upload-target-credential-escrow-local-supabase-http-rpc-client.ts",
@@ -765,7 +765,7 @@
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
-      "sha256": "c5fc220f69916b3c69049105a493021984b44bba75c59558d0ac637ffff70474"
+      "sha256": "4277269e43fa2b1f343b62865a68d3ec8f5872e6ccf09505cc652228a689b45d"
     },
     {
       "path": "server/validation/edit-reference-application-preparation-schemas.ts",
@@ -777,7 +777,7 @@
     },
     {
       "path": "src/backend/api/routes/edit-planning-api-routes.ts",
-      "sha256": "3b6efd62c17c236beb04a10a18b1c2b1aa55ea0c5bd4dd080044582a7a8a3f16"
+      "sha256": "c3af3c657ac6c7f5fe56ac22a3a99053dc4388c2f974c0b8b527f1d26151d6fe"
     },
     {
       "path": "src/backend/api/routes/media-upload-api-routes.ts",
@@ -789,11 +789,11 @@
     },
     {
       "path": "src/components/editor/ChatNativeEditor.tsx",
-      "sha256": "80542635294e8d906c6173c8d1eaedd086f0b9b9f2cc5e63b788d02f520c1a2c"
+      "sha256": "595d3342808518e2454f5cc2136fd673d10c045c465493556835622759665b04"
     },
     {
       "path": "src/components/editor/CurrentEditPreferencesWorkspace.tsx",
-      "sha256": "6f1ae521a4ffa4f5cb2cf0e6c319eb84ae3109080946dc4e75714b4c3a095b86"
+      "sha256": "57365873e28f21a3eaa4b7efb70e0fa888020a9c4924781d6147527db92be0fd"
     },
     {
       "path": "src/components/editor/edit-reference/ProjectEditReferenceTargetStudy.tsx",
@@ -801,7 +801,7 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "584b70b4554447a367737c902bc2e3efd1abf3fc704fa0d55c06001b5cf83eb4"
+      "sha256": "b20ad94f6df266b6b3cb0013c3d6f8be57bcb11ac48c607c6d736f1245185297"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
@@ -865,15 +865,15 @@
     },
     {
       "path": "src/types/edit-reference.ts",
-      "sha256": "f3ea11b498c0283541e098e01320ad131bfd465887e3062caa08b7e5fdd84502"
+      "sha256": "65ce57d10bb3f348275ca6cb64ded3976e14789391a7e7311d363feda6c50522"
     },
     {
       "path": "src/types/large-media.ts",
-      "sha256": "34dd2ab5f1ce1e6df8a6f81714e60cb7c409e3e565e686f35a1ac05dc9768ff8"
+      "sha256": "5fa3bcea26e1ebf369d2341ac902b97622c385b5a1ac00bcb2e3ff25aaee989e"
     },
     {
       "path": "src/types/reeditpro.ts",
-      "sha256": "eac0dddab98daf8a02b9c6e6ce410697a00f02d4d5d65feba8fdfe2ad8f6b7d1"
+      "sha256": "e4b32f471841c087d32d5002724188a18589ba18a51439564d42fb172633f1f3"
     },
     {
       "path": "tests/e2e/edit-preferences-atomic-api-server.ts",
@@ -881,7 +881,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
-      "sha256": "ac83451f080a9f54dcb7b5cbc12a40fe5d0c2326efe35f729378beeceb91cefa"
+      "sha256": "4e6f764bda15a421138a96e3eb4dd9b259d8d6d5c498ff62c2c772ea8a5d254b"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",
@@ -889,15 +889,15 @@
     },
     {
       "path": "tests/e2e/edit-reference-canonical-v3-local-browser.spec.ts",
-      "sha256": "f08995bca9c5b5b20bc1cc1d976963af5efd376c12c38d9cb8c3c5b4f223d611"
+      "sha256": "eaaa07523546e53c4708bf149ac9bc0313661b66c5c385f4a305740b9aa3954c"
     },
     {
       "path": "tests/e2e/helpers/canonical-v3-edit-reference-apply-fixture.ts",
-      "sha256": "a74b5c2f9f87746df899254cd63205001a237b84ce018fc676388523c2818122"
+      "sha256": "0d25217a411c7a80cf71defea46328855bde7c63050a2f6f1d1cc857344c5287"
     },
     {
       "path": "tests/e2e/helpers/real-local-api-journey.ts",
-      "sha256": "d272beac445da686bc3744df0fb0acdab89266392f2d5c239ab21c3486629f2b"
+      "sha256": "802a7cace62cffb2bcdd005b7c079bb4b25060f55015825177734b439fba0227"
     },
     {
       "path": "tests/e2e/playwright.current-edit-preferences-atomic.config.ts",

@@ -32,6 +32,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install isolated local database test prerequisites
+        run: |
+          sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+            -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+          sudo env DEBIAN_FRONTEND=noninteractive timeout 300s \
+            apt-get install --yes postgresql-client jq
+          psql --version
+          jq --version
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520
+        with:
+          version: 2.105.0
+
+      - name: Verify isolated local database CLI
+        run: |
+          supabase --version
+          supabase db reset --help >/dev/null
+
       - name: Check frontend/server boundary
         run: npm run check:frontend-boundary
 

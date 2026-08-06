@@ -26,7 +26,7 @@ the evidence currently belongs to several independently scoped tests.
 | --- | --- |
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner V2 is mounted in source and can create-only resolve immutable approved-work expectations to reviewed corrected transcripts while refusing remaps to the rejected record. A private review-preparation package covers all 11 source segments and 153 source words with two additional unapproved offline ASR observations; it preserves nine text disagreements, two timing disagreements, two brand-review spans, and one claim-sensitive number span. The source-complete reviewer-completion seam validates exact decisions and projects them into the existing review/correction/request contracts, but every real listener decision remains pending, so no actual independent review, correction artifact, corrected transcript, or expectation binding has been admitted. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
-| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. The corrected renderer now carries the validated B-roll geometry into Remotion, keeps Caption above B-roll, and visibly labels every synthetic frame as a technical QA preview. Its color-bar imagery is structurally ineligible for professional-appearance qualification, and its scope is not the terminal talking-head edit scope. |
+| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran against hash-pinned real talking-head media. Direct complete-time inspection accepted real-source B-roll/Caption co-composition, safe placement, Caption-above-visual ordering, and no clipping/collision. The receipt keeps general professional Caption appearance and independent final QA false, and its scope is still outside the terminal approved-run catalog. |
 | Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
 | Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
@@ -45,6 +45,14 @@ contract requires `professionalCaptionAppearanceQualified: false`.
 
 The additive correction and direct-raster evidence are recorded in
 `caption-broll-technical-fixture-layer-order-correction-2026-08-06.md`.
+
+The same owner chain has now also run against real private talking-head pixels.
+Its 72-frame complete-time sheet plus frames 0, 35, and 71 were inspected after
+runtime exit. That V3 review qualifies only B-roll/Caption co-composition; it
+explicitly keeps general professional Caption appearance false because one
+stable accessibility treatment is not the creative-style matrix. The exact
+evidence is recorded in
+`caption-broll-real-source-owner-evidence-2026-08-06.md`.
 
 The intended-appearance proof uses real talking-head pixels and separate
 full/reduced Caption renders. The original 9:16 evidence remains:

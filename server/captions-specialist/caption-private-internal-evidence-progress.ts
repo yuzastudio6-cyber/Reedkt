@@ -129,13 +129,13 @@ const soundIncompletePackageRef = ref(
   'caption-sound-private-runtime-inspection-package-v1',
   '8fc28a91ba4c139830468c564edd6c477101bc4d04b22570439c32c12734b194')
 const brollOwnerRuntimeReceiptRef = ref(
-  'caption.broll.owner.private-runtime.2026-08-06-v4',
-  'caption-broll-owner-private-runtime-receipt-v1',
-  '79a1589877bd6c02d3c3e0658ba05d9b504013cb339d197fc651d021759121b6')
+  'caption.broll.owner.real-source.private-runtime.2026-08-06-v1',
+  'caption-broll-owner-private-runtime-receipt-v2',
+  '99aaf04e82eff6c628d42e4c33eb99c6ef0b01961d9b82b16ac117efb73ffb94')
 const brollDirectInspectionRef = ref(
-  'review.caption-broll.technical-qa-label.v4',
-  'caption-broll-direct-private-inspection-v2',
-  'c156c2ea73439886ed363271ce5b4607c90bcfe46e4fb6b271b8d48da7ec6c46')
+  'review.caption-broll.real-source.co-composition.2026-08-06-v1',
+  'caption-broll-direct-private-inspection-v3',
+  'f574f5827033ff8ba809d617241c82cc0523cd9077090f836deab6dbbd727c80')
 const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
@@ -243,8 +243,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v4',
-  observedAt: '2026-08-06T14:00:00.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v5',
+  observedAt: '2026-08-06T21:18:27.000Z',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

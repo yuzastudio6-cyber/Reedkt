@@ -67,8 +67,13 @@ check(progress.gates.find((gate) =>
 check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
     (reference) => reference.version ===
-      'caption-broll-direct-private-inspection-v2'),
-'B-roll technical fixture evidence requires the visibly labelled v2 review')
+      'caption-broll-direct-private-inspection-v3'),
+'B-roll evidence requires the directly inspected real-source v3 review')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
+    (reference) => reference.version ===
+      'caption-broll-owner-private-runtime-receipt-v2'),
+'B-roll real-source evidence requires the v2 owner runtime receipt')
 check(progress.professionalAppearanceEvidence.realTalkingHeadPixelsInspected
   && progress.professionalAppearanceEvidence
     .acceptedForCaptionOwnedProfessionalAppearance

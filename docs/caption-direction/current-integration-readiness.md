@@ -175,8 +175,10 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
 3. consume an actual canonical Track All owner record;
 4. consume an actual canonical Sound result, exact final audio reread, and
    complete-time listening review through the mounted owner service;
-5. consume actual canonical B-roll work/artifacts and complete-time visual
-   review through the mounted owner service;
+5. bind the now-accepted real-source canonical B-roll work/artifacts,
+   complete-time visual review, owner result, and Caption resume to the exact
+   representative approved-run package rather than its separate evidence
+   scope;
 6. complete all Caption work through the canonical backend work graph
    and persist/reread every result;
 7. run qualified complete-time visual-AI review for every rendered output;

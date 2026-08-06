@@ -104,6 +104,7 @@ The governing workflow invariant remains:
 - [Post-CAP-20 shared-owner integration routing](post-cap20-integration-routing.md)
 - [Post-CAP-20 B-roll owner-read adapter](post-cap20-broll-owner-read-adapter.md)
 - [Canonical B-roll owner private-execution mount](canonical-broll-owner-private-execution-mount.md)
+- [Caption/B-roll real-source owner evidence](caption-broll-real-source-owner-evidence-2026-08-06.md)
 - [Canonical SoundSync private-execution mount](canonical-soundsync-private-execution-mount.md)
 - [Post-CAP-20 canonical transcript authenticated read](post-cap20-canonical-transcript-authenticated-read.md)
 - [Post-CAP-20 canonical sequential-resume read](post-cap20-canonical-resume-read.md)

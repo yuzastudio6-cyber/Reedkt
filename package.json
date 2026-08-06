@@ -216,6 +216,8 @@
     "smoke:sam3_1-official-artifact-publication": "tsx server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts",
     "smoke:sam3_1-official-artifact-publication-repository": "tsx server/smoke/canonical-sam3_1-official-artifact-publication-repository-smoke.ts",
     "smoke:sam3_1-private-artifact-ingest-runtime": "tsx server/smoke/canonical-sam3_1-private-artifact-ingest-runtime-smoke.ts",
+    "smoke:sam3_1-authorized-terms-finalization": "tsx server/smoke/canonical-sam3_1-authorized-terms-finalization-owner-smoke.ts",
+    "smoke:sam3_1-official-access-verifier": "tsx server/smoke/canonical-sam3_1-hugging-face-official-access-verifier-smoke.ts",
     "smoke:sam3_1-private-artifact-ingest-cloud-job": "tsx server/smoke/canonical-sam3_1-private-artifact-ingest-cloud-job-smoke.ts",
     "smoke:sam3_1-official-artifact-ingest-cloud-job": "tsx server/smoke/canonical-sam3_1-official-artifact-ingest-cloud-job-smoke.ts",
     "build:sam3_1-official-artifact-ingest-bundle": "npm run typecheck:server && vite build --config vite.sam31-official-artifact-ingest.config.ts",

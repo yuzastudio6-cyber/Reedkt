@@ -422,6 +422,35 @@ clean while A100 dispatch remains blocked; it started no GPU job, downloaded
 no model/checkpoint, changed no customer credits, and granted no production
 authority.
 
+The A100 80 GB quota preference was resubmitted on 2026-08-06 with the active
+authenticated project account as the contact, one user-triggered scale-from-zero
+GPU as the requested limit, and the exact private WeEditPro SAM 3.1
+segmentation/tracking qualification use case. Google returned a second denied
+decision: preferred value 1, granted value 0, effective regional A100 80 GB
+quota 0. The denial is not treated as pending capacity and cannot select L4 as
+an unqualified substitute. A fresh canonical foundation observation was
+published at 16:24:54Z with content hash
+`sha256:2ed5327913bf459e505be6eec84bb633333dbc173299cab613c68ba2fc8058ac`.
+It exact-rereads the ready resource foundation and zero active jobs/instances,
+but reports `dispatchCapacityReady: false`, `scaleFromZeroClean: true`, no GPU
+start, no model/checkpoint download, no customer-credit mutation, and no
+production authority.
+
+The gated-access boundary is now source-closed without automating a human
+decision. An authenticated human terms intent is joined only by the canonical
+server owner with an independently verified official Hugging Face access
+observation. The verifier resolves one pinned Secret Manager version, reads the
+exact official model metadata revision, performs an authenticated `HEAD` of the
+exact checkpoint with redirects blocked, validates only an allowlisted official
+artifact redirect plus exact linked size/ETag, and downloads zero checkpoint
+bytes. It persists no token, response body, URL, path, or credential in the
+result. The finalization bundle and canonical terms record are create-only and
+exact-reread; callers cannot provide an `accessGranted` boolean or credential.
+The focused owner/verifier evidence passes 38 and 34 checks respectively. No
+live terms/access result exists yet because this task browser remains logged
+out of the gated repository and both checkpoint secret placeholders still have
+zero enabled versions.
+
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,
 and GPU-worker identities are enabled; all four fixed private buckets enforce

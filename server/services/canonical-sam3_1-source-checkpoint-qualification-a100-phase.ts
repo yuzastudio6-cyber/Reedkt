@@ -17,18 +17,25 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  assertCanonicalSam31A100QualificationFoundationObservation,
+  canonicalSam31A100QualificationFoundationObservationRef,
+  canonicalSam31A100QualificationFoundationResourceRefs,
+  type CanonicalSam31A100QualificationFoundationObservation,
+  type CanonicalSam31A100QualificationFoundationReadPort,
+} from './canonical-sam3_1-a100-qualification-foundation-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_MOUNT_OBSERVATION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_ADMISSION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-admission-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-admission-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_SUBMISSION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-submission-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-submission-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_JOB_OBSERVATION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-job-observation-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-job-observation-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const REGION = 'us-central1' as const
@@ -38,8 +45,12 @@ const BATCH_ENDPOINT =
   'https://batch.googleapis.com/v1/projects/reeditpro/locations/us-central1/jobs' as const
 const INSTANCE_TEMPLATE =
   'projects/reeditpro/global/instanceTemplates/weeditpro-sam31-qualification-a100-v1' as const
+const PRIVATE_NETWORK =
+  'projects/reeditpro/global/networks/weeditpro-gpu-private' as const
+const PRIVATE_SUBNETWORK =
+  'projects/reeditpro/regions/us-central1/subnetworks/weeditpro-gpu-private-us-central1' as const
 const SERVICE_ACCOUNT =
-  'reeditpro-sam31-qualification-sa@reeditpro.iam.gserviceaccount.com' as const
+  'weeditpro-sam31-qual-sa@reeditpro.iam.gserviceaccount.com' as const
 const MOUNT_PATH = '/mnt/disks/reeditpro/sam31-qualification' as const
 const REQUEST_OBJECT_NAME = 'request/request.json' as const
 const CHECKPOINT_OBJECT_NAME =
@@ -89,6 +100,7 @@ const mountWithoutHashSchema = z.object({
   attemptId: safeId,
   qualificationId: safeId,
   workerRequestRef: evidenceRefSchema,
+  foundationResourceRef: evidenceRefSchema,
   stagingAuthorityRef: evidenceRefSchema,
   serviceIdentityRef: evidenceRefSchema,
   privateNetworkPolicyRef: evidenceRefSchema,
@@ -158,6 +170,7 @@ const admissionWithoutHashSchema = z.object({
   qualificationId: safeId,
   operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
   workerRequestRef: evidenceRefSchema,
+  foundationObservationRef: evidenceRefSchema,
   qualificationImageSupplyChainReleaseRef: evidenceRefSchema,
   qualificationImageRef: evidenceRefSchema,
   qualificationImageDigest: prefixedSha256,
@@ -170,6 +183,9 @@ const admissionWithoutHashSchema = z.object({
   region: z.literal(REGION),
   batchCollection: z.literal(BATCH_COLLECTION),
   instanceTemplateResource: z.literal(INSTANCE_TEMPLATE),
+  privateNetworkResource: z.literal(PRIVATE_NETWORK),
+  privateSubnetworkResource: z.literal(PRIVATE_SUBNETWORK),
+  noExternalIpAddress: z.literal(true),
   serviceAccountEmail: z.literal(SERVICE_ACCOUNT),
   executionTarget: z.literal('google_cloud_batch_a2_ultra_job'),
   machineType: z.literal('a2-ultragpu-1g'),
@@ -177,6 +193,7 @@ const admissionWithoutHashSchema = z.object({
   allocatedGpuCount: z.literal(1),
   allocatedVcpuCount: z.literal(12),
   allocatedMemoryGiB: z.literal(170),
+  batchManagedGpuDriverInstallationRequired: z.literal(true),
   taskCount: z.literal(1),
   taskParallelism: z.literal(1),
   maximumExecutionSeconds: z.literal(7_200),
@@ -417,6 +434,8 @@ export interface CanonicalSam31QualificationBatchTransport {
  */
 export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
   input: {
+    readonly foundationReadPort:
+      CanonicalSam31A100QualificationFoundationReadPort
     readonly imageReleaseReadPort:
       CanonicalSam31QualificationImageReleaseReadPort
     readonly workerRequestReadPort:
@@ -445,6 +464,14 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
       )
       const requestRef = evidenceRefSchema.parse(request.workerRequestRef)
       const admittedAt = now()
+      const foundation =
+        assertCanonicalSam31A100QualificationFoundationObservation(
+          await input.foundationReadPort.rereadCurrentFoundation({
+            purpose: 'a100_qualification_dispatch',
+            at: admittedAt,
+          }),
+          { purpose: 'a100_qualification_dispatch', at: admittedAt },
+        )
       const release = assertQualifiedRelease(
         await input.imageReleaseReadPort
           .rereadQualifiedQualificationImageRelease({ releaseRef }),
@@ -465,6 +492,7 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
         }),
         attemptId,
         workerRequest,
+        foundation,
       )
       const rate = assertA100Rate(
         await input.rateReadPort.rereadCurrentAccountEffectiveA100Rate({
@@ -479,6 +507,7 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
         release,
         workerRequest,
         mount,
+        foundation,
         rate,
         admittedAt,
       })
@@ -573,6 +602,9 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
             await rereadReleaseForAdmission(input, admission),
         }),
       )
+      if (!sameRef(mountRef(mount), admission.mountObservationRef)) {
+        throw new Error('SAM 3.1 qualification mount crossed admission.')
+      }
       let response: {
         readonly status: number
         readonly json: unknown
@@ -728,6 +760,7 @@ function createAdmission(input: {
   release: CanonicalSam31QualificationImageSupplyChainRelease
   workerRequest: CanonicalSam31SourceCheckpointQualificationWorkerRequest
   mount: CanonicalSam31QualificationA100MountObservation
+  foundation: CanonicalSam31A100QualificationFoundationObservation
   rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   admittedAt: string
 }): CanonicalSam31QualificationA100Admission {
@@ -739,6 +772,10 @@ function createAdmission(input: {
     qualificationId: input.workerRequest.qualificationId,
     operationId: input.workerRequest.operationId,
     workerRequestRef: workerRequestRef(input.workerRequest),
+    foundationObservationRef:
+      canonicalSam31A100QualificationFoundationObservationRef(
+        input.foundation,
+      ),
     qualificationImageSupplyChainReleaseRef: releaseRef(input.release),
     qualificationImageRef: input.release.immutableImageRef,
     qualificationImageDigest: input.release.immutableImageDigest,
@@ -749,6 +786,9 @@ function createAdmission(input: {
     region: REGION,
     batchCollection: BATCH_COLLECTION,
     instanceTemplateResource: INSTANCE_TEMPLATE,
+    privateNetworkResource: PRIVATE_NETWORK,
+    privateSubnetworkResource: PRIVATE_SUBNETWORK,
+    noExternalIpAddress: true,
     serviceAccountEmail: SERVICE_ACCOUNT,
     executionTarget: 'google_cloud_batch_a2_ultra_job',
     machineType: 'a2-ultragpu-1g',
@@ -756,6 +796,7 @@ function createAdmission(input: {
     allocatedGpuCount: 1,
     allocatedVcpuCount: 12,
     allocatedMemoryGiB: 170,
+    batchManagedGpuDriverInstallationRequired: true,
     taskCount: 1,
     taskParallelism: 1,
     maximumExecutionSeconds: 7_200,
@@ -841,12 +882,19 @@ function prepareBatchCreate(input: {
       },
     }],
     allocationPolicy: {
+      network: {
+        networkInterfaces: [{
+          network: PRIVATE_NETWORK,
+          subnetwork: PRIVATE_SUBNETWORK,
+          noExternalIpAddress: true,
+        }],
+      },
       location: {
         allowedLocations: ['zones/us-central1-a', 'zones/us-central1-c'],
       },
       instances: [{
         instanceTemplate: INSTANCE_TEMPLATE,
-        installGpuDrivers: false,
+        installGpuDrivers: true,
         installOpsAgent: false,
         blockProjectSshKeys: true,
       }],
@@ -998,10 +1046,17 @@ function assertBatchConfigurationEcho(input: {
       }).passthrough(),
     }).passthrough()).length(1),
     allocationPolicy: z.object({
+      network: z.object({
+        networkInterfaces: z.array(z.object({
+          network: z.literal(PRIVATE_NETWORK),
+          subnetwork: z.literal(PRIVATE_SUBNETWORK),
+          noExternalIpAddress: z.literal(true),
+        }).strict()).length(1),
+      }).strict(),
       location: z.object({ allowedLocations: z.array(z.string()) }).passthrough(),
       instances: z.array(z.object({
         instanceTemplate: z.string(),
-        installGpuDrivers: z.literal(false),
+        installGpuDrivers: z.literal(true),
       }).passthrough()).length(1),
       serviceAccount: z.object({ email: z.string() }).passthrough(),
     }).passthrough(),
@@ -1010,6 +1065,8 @@ function assertBatchConfigurationEcho(input: {
   const runnable = group.taskSpec.runnables[0]!
   const volume = group.taskSpec.volumes[0]!
   const variables = group.taskSpec.environment.variables
+  const networkInterface = parsed.allocationPolicy.network
+    .networkInterfaces[0]!
   if (
     runnable.container.imageUri !== input.admission.qualificationImageUri
     || volume.gcs.remotePath !== input.mount.gcsRemotePath
@@ -1018,7 +1075,11 @@ function assertBatchConfigurationEcho(input: {
     || variables.WEEDITPRO_GPU_ACCELERATOR_CLASS !== 'nvidia_a100_80gb'
     || parsed.allocationPolicy.instances[0]?.instanceTemplate !==
       INSTANCE_TEMPLATE
+    || parsed.allocationPolicy.instances[0]?.installGpuDrivers !== true
     || parsed.allocationPolicy.serviceAccount.email !== SERVICE_ACCOUNT
+    || networkInterface.network !== PRIVATE_NETWORK
+    || networkInterface.subnetwork !== PRIVATE_SUBNETWORK
+    || networkInterface.noExternalIpAddress !== true
     || stableAuthorityStringify(
       parsed.allocationPolicy.location.allowedLocations,
     ) !== stableAuthorityStringify([
@@ -1114,13 +1175,26 @@ function assertMount(
   value: unknown,
   attemptId: string,
   request: CanonicalSam31SourceCheckpointQualificationWorkerRequest,
+  foundation: CanonicalSam31A100QualificationFoundationObservation,
 ): CanonicalSam31QualificationA100MountObservation {
   if (!value) throw new Error('SAM 3.1 qualification mount is missing.')
   const mount = assertCanonicalSam31QualificationA100MountObservation(value)
+  const foundationRefs =
+    canonicalSam31A100QualificationFoundationResourceRefs(foundation)
   if (
     mount.attemptId !== attemptId
     || mount.qualificationId !== request.qualificationId
     || !sameRef(mount.workerRequestRef, workerRequestRef(request))
+    || !sameRef(mount.foundationResourceRef,
+      foundationRefs.foundationResourceRef)
+    || !sameRef(mount.stagingAuthorityRef,
+      foundationRefs.stagingAuthorityRef)
+    || !sameRef(mount.serviceIdentityRef,
+      foundationRefs.serviceIdentityRef)
+    || !sameRef(mount.privateNetworkPolicyRef,
+      foundationRefs.privateNetworkPolicyRef)
+    || !sameRef(mount.instanceTemplateRef,
+      foundationRefs.instanceTemplateRef)
     || mount.requestObject.requestCanonicalHash !== request.requestHash
     || mount.checkpointObject.sha256 !== request.checkpoint.sha256
     || mount.checkpointObject.byteLength !== request.checkpoint.byteLength
@@ -1209,7 +1283,8 @@ function assertDependencies(input: Parameters<
   typeof createCanonicalSam31SourceCheckpointQualificationA100Phase
 >[0]): void {
   if (
-    typeof input.imageReleaseReadPort
+    typeof input.foundationReadPort?.rereadCurrentFoundation !== 'function'
+    || typeof input.imageReleaseReadPort
       ?.rereadQualifiedQualificationImageRelease !== 'function'
     || typeof input.workerRequestReadPort?.rereadExactWorkerRequest !==
       'function'

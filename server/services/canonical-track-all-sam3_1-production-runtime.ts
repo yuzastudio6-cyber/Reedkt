@@ -93,7 +93,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v8' as const
+  'canonical-track-all-sam3_1-production-runtime-v9' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -126,7 +126,9 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly captionTrackAllEvidenceRequiresIndependentTaskLevelMaskQa: true
   readonly captionTrackAllEvidenceRequiresPrivateVisualReview: true
   readonly a100HeavyPrimary: true
-  readonly l4HeavyFallbackSeparatelyQualified: true
+  readonly a100PrimaryRequiresQualifiedReleaseAtAdmission: true
+  readonly l4HeavyFallbackRequiresSeparateQualifiedReleaseAtAdmission: true
+  readonly l4HeavyFallbackQualificationClaimedByComposition: false
   readonly minimumIdleGpuInstances: 0
   readonly cpuOnlySubstantiveExecutionAllowed: false
   readonly callerGpuRouteModelImageCommandOrPriceAccepted: false
@@ -373,7 +375,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     captionTrackAllEvidenceRequiresIndependentTaskLevelMaskQa: true as const,
     captionTrackAllEvidenceRequiresPrivateVisualReview: true as const,
     a100HeavyPrimary: true as const,
-    l4HeavyFallbackSeparatelyQualified: true as const,
+    a100PrimaryRequiresQualifiedReleaseAtAdmission: true as const,
+    l4HeavyFallbackRequiresSeparateQualifiedReleaseAtAdmission: true as const,
+    l4HeavyFallbackQualificationClaimedByComposition: false as const,
     minimumIdleGpuInstances: 0 as const,
     cpuOnlySubstantiveExecutionAllowed: false as const,
     callerGpuRouteModelImageCommandOrPriceAccepted: false as const,

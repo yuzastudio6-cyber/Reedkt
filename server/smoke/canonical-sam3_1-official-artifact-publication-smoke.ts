@@ -112,7 +112,7 @@ const publicationPort: CanonicalSam31PrivateArtifactPublicationPort = {
   },
 }
 
-const receipt = await publishCanonicalSam31OfficialPrivateArtifacts({
+export const receipt = await publishCanonicalSam31OfficialPrivateArtifacts({
   publicationAttemptId: 'contract-fixture-001',
   evidenceClass: 'synthetic_contract_fixture',
   candidate: createCanonicalSam31SourceRuntimeCandidate(),

@@ -33,7 +33,7 @@ const workerRequestRef = ref(
 )
 const resultEvidenceRef = ref(attemptId, resultEvidence.evidenceHash)
 const terminalEvidenceRef = ref(attemptId, terminalEvidence.evidenceHash)
-const clearance = createClearance()
+export const clearance = createClearance()
 const clearanceRef = ref(clearance.clearanceId, clearance.clearanceHash)
 const store = createObjectPort()
 const owner = createOwner({}, store.port)

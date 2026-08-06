@@ -25,6 +25,17 @@ PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
 PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-workers/reeditpro-staging-private-searxng@sha256:7f56a77c442601d249389e4cb4101da2046fd62c04818c69eabf8caa7f6957ee'
 A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
+A100_QUALIFICATION_SERVICE_ACCOUNT='weeditpro-sam31-qual-sa@reeditpro.iam.gserviceaccount.com'
+A100_QUALIFICATION_BUCKET='reeditpro-production-sam31-qualification-private'
+A100_QUALIFICATION_KEY_RING='weeditpro-private-artifacts'
+A100_QUALIFICATION_KEY='sam31-qualification'
+A100_QUALIFICATION_INSTANCE_TEMPLATE='weeditpro-sam31-qualification-a100-v1'
+A100_QUALIFICATION_NETWORK='weeditpro-gpu-private'
+A100_QUALIFICATION_SUBNET='weeditpro-gpu-private-us-central1'
+A100_QUALIFICATION_SUBNET_CIDR='10.42.0.0/24'
+A100_QUALIFICATION_BATCH_IMAGE_PROJECT='batch-custom-image'
+A100_QUALIFICATION_BATCH_IMAGE='batch-debian-11-official-20260730-00-p01'
+A100_QUALIFICATION_BATCH_IMAGE_ID='2466381682817372572'
 readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
   'reeditpro-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
   'reeditpro-stg-cpu-worker-sa@reeditpro.iam.gserviceaccount.com'
@@ -35,9 +46,11 @@ readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
 
 command -v gcloud >/dev/null
 command -v jq >/dev/null
+observed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 PROJECT_NUMBER="$(gcloud projects describe "${PROJECT_ID}" --format='value(projectNumber)')"
 CLOUD_BUILD_SERVICE_AGENT="service-${PROJECT_NUMBER}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+STORAGE_SERVICE_AGENT="service-${PROJECT_NUMBER}@gs-project-accounts.iam.gserviceaccount.com"
 
 configured_project="$(gcloud config get-value project --quiet)"
 if [[ "${configured_project}" != "${PROJECT_ID}" ]]; then
@@ -373,6 +386,250 @@ repository_metadata="$(read_json_or_empty gcloud artifacts repositories describe
 repository_policy="$(read_json_or_empty gcloud artifacts repositories get-iam-policy \
   "${ARTIFACT_REPOSITORY}" --project="${PROJECT_ID}" \
   --location="${REGION}" --format=json)"
+
+project_policy="$(read_json_or_empty gcloud projects get-iam-policy \
+  "${PROJECT_ID}" --format=json)"
+a100_qualification_identity="$(service_account_observation \
+  "${A100_QUALIFICATION_SERVICE_ACCOUNT}")"
+a100_qualification_identity_policy="$(read_json_or_empty \
+  gcloud iam service-accounts get-iam-policy \
+  "${A100_QUALIFICATION_SERVICE_ACCOUNT}" --project="${PROJECT_ID}" \
+  --format=json)"
+a100_qualification_bucket="$(bucket_observation \
+  "${A100_QUALIFICATION_BUCKET}")"
+a100_qualification_bucket_metadata="$(read_json_or_empty \
+  gcloud storage buckets describe "gs://${A100_QUALIFICATION_BUCKET}" \
+  --project="${PROJECT_ID}" --format=json)"
+a100_qualification_bucket_policy="$(read_json_or_empty \
+  gcloud storage buckets get-iam-policy "gs://${A100_QUALIFICATION_BUCKET}" \
+  --project="${PROJECT_ID}" --format=json)"
+a100_qualification_key_metadata="$(read_json_or_empty gcloud kms keys describe \
+  "${A100_QUALIFICATION_KEY}" --project="${PROJECT_ID}" \
+  --location="${REGION}" --keyring="${A100_QUALIFICATION_KEY_RING}" \
+  --format=json)"
+a100_qualification_key_policy="$(read_json_or_empty gcloud kms keys get-iam-policy \
+  "${A100_QUALIFICATION_KEY}" --project="${PROJECT_ID}" \
+  --location="${REGION}" --keyring="${A100_QUALIFICATION_KEY_RING}" \
+  --format=json)"
+a100_qualification_template="$(read_json_or_empty \
+  gcloud compute instance-templates describe \
+  "${A100_QUALIFICATION_INSTANCE_TEMPLATE}" --project="${PROJECT_ID}" \
+  --format=json)"
+a100_qualification_network="$(read_json_or_empty gcloud compute networks describe \
+  "${A100_QUALIFICATION_NETWORK}" --project="${PROJECT_ID}" --format=json)"
+a100_qualification_subnet="$(read_json_or_empty \
+  gcloud compute networks subnets describe "${A100_QUALIFICATION_SUBNET}" \
+  --project="${PROJECT_ID}" --region="${REGION}" --format=json)"
+a100_qualification_routers="$(read_json_or_empty gcloud compute routers list \
+  --project="${PROJECT_ID}" --regions="${REGION}" --format=json)"
+a100_qualification_batch_image="$(read_json_or_empty gcloud compute images describe \
+  "${A100_QUALIFICATION_BATCH_IMAGE}" \
+  --project="${A100_QUALIFICATION_BATCH_IMAGE_PROJECT}" --format=json)"
+a100_qualification_batch_job_count="$({
+  gcloud batch jobs list --project="${PROJECT_ID}" --location="${REGION}" \
+    --format='value(name)' 2>/dev/null || true
+  } | awk '/weeditpro-sam31-q-/ { count += 1 } END { print count + 0 }')"
+a100_qualification_instance_count="$({
+  gcloud compute instances list --project="${PROJECT_ID}" \
+    --format='value(name)' 2>/dev/null || true
+  } | awk '/weeditpro-sam31-q-/ { count += 1 } END { print count + 0 }')"
+
+a100_qualification_project_roles="$(jq -n \
+  --arg member "serviceAccount:${A100_QUALIFICATION_SERVICE_ACCOUNT}" \
+  --argjson policy "${project_policy}" '
+  [$policy.bindings[]?
+    | select(any(.members[]?; . == $member))
+    | .role] | sort
+')"
+a100_qualification_attach_roles="$(jq -n \
+  --arg member "serviceAccount:${API_SERVICE_ACCOUNT}" \
+  --argjson policy "${a100_qualification_identity_policy}" '
+  [$policy.bindings[]?
+    | select(any(.members[]?; . == $member))
+    | .role] | sort
+')"
+a100_qualification_worker_bucket_roles="$(jq -n \
+  --arg member "serviceAccount:${A100_QUALIFICATION_SERVICE_ACCOUNT}" \
+  --argjson policy "${a100_qualification_bucket_policy}" '
+  [$policy.bindings[]?
+    | select(any(.members[]?; . == $member))
+    | .role] | sort
+')"
+a100_qualification_api_bucket_roles="$(jq -n \
+  --arg member "serviceAccount:${API_SERVICE_ACCOUNT}" \
+  --argjson policy "${a100_qualification_bucket_policy}" '
+  [$policy.bindings[]?
+    | select(any(.members[]?; . == $member))
+    | .role] | sort
+')"
+a100_qualification_repository_roles="$(jq -n \
+  --arg member "serviceAccount:${A100_QUALIFICATION_SERVICE_ACCOUNT}" \
+  --argjson policy "${repository_policy}" '
+  [$policy.bindings[]?
+    | select(any(.members[]?; . == $member))
+    | .role] | sort
+')"
+a100_qualification_storage_key_roles="$(jq -n \
+  --arg member "serviceAccount:${STORAGE_SERVICE_AGENT}" \
+  --argjson policy "${a100_qualification_key_policy}" '
+  [$policy.bindings[]?
+    | select(any(.members[]?; . == $member))
+    | .role] | sort
+')"
+
+a100_qualification_foundation="$(jq -n \
+  --arg projectId "${PROJECT_ID}" \
+  --arg region "${REGION}" \
+  --arg serviceAccount "${A100_QUALIFICATION_SERVICE_ACCOUNT}" \
+  --arg bucketName "${A100_QUALIFICATION_BUCKET}" \
+  --arg keyName "projects/${PROJECT_ID}/locations/${REGION}/keyRings/${A100_QUALIFICATION_KEY_RING}/cryptoKeys/${A100_QUALIFICATION_KEY}" \
+  --arg templateName "${A100_QUALIFICATION_INSTANCE_TEMPLATE}" \
+  --arg networkName "${A100_QUALIFICATION_NETWORK}" \
+  --arg subnetName "${A100_QUALIFICATION_SUBNET}" \
+  --arg subnetCidr "${A100_QUALIFICATION_SUBNET_CIDR}" \
+  --arg batchImage "${A100_QUALIFICATION_BATCH_IMAGE}" \
+  --arg batchImageId "${A100_QUALIFICATION_BATCH_IMAGE_ID}" \
+  --argjson identity "${a100_qualification_identity}" \
+  --argjson bucket "${a100_qualification_bucket}" \
+  --argjson bucketMetadata "${a100_qualification_bucket_metadata}" \
+  --argjson keyMetadata "${a100_qualification_key_metadata}" \
+  --argjson template "${a100_qualification_template}" \
+  --argjson network "${a100_qualification_network}" \
+  --argjson subnet "${a100_qualification_subnet}" \
+  --argjson routers "${a100_qualification_routers}" \
+  --argjson image "${a100_qualification_batch_image}" \
+  --argjson projectRoles "${a100_qualification_project_roles}" \
+  --argjson attachRoles "${a100_qualification_attach_roles}" \
+  --argjson workerBucketRoles "${a100_qualification_worker_bucket_roles}" \
+  --argjson apiBucketRoles "${a100_qualification_api_bucket_roles}" \
+  --argjson repositoryRoles "${a100_qualification_repository_roles}" \
+  --argjson storageKeyRoles "${a100_qualification_storage_key_roles}" \
+  --argjson activeBatchJobs "${a100_qualification_batch_job_count}" \
+  --argjson activeInstances "${a100_qualification_instance_count}" '
+  (["roles/batch.agentReporter", "roles/logging.logWriter",
+    "roles/monitoring.metricWriter"] | sort) as $expectedProjectRoles
+  | (["roles/storage.objectCreator", "roles/storage.objectViewer"] | sort)
+    as $expectedBucketRoles
+  | {
+      schemaVersion:
+        "weeditpro-sam31-a100-qualification-foundation-observation-v1",
+      projectId: $projectId,
+      region: $region,
+      serviceIdentity: $identity,
+      exactProjectRoles: ($projectRoles == $expectedProjectRoles),
+      projectRoles: $projectRoles,
+      exactApiAttachRole: ($attachRoles == ["roles/iam.serviceAccountUser"]),
+      apiAttachRoles: $attachRoles,
+      privateBucket: $bucket,
+      bucketCmekAndRetentionReady: (
+        $bucketMetadata.name == $bucketName
+        and $bucketMetadata.default_kms_key == $keyName
+        and $bucketMetadata.default_storage_class == "STANDARD"
+        and $bucketMetadata.soft_delete_policy.retentionDurationSeconds == "1209600"
+      ),
+      exactWorkerBucketRoles: ($workerBucketRoles == $expectedBucketRoles),
+      exactApiBucketRoles: ($apiBucketRoles == $expectedBucketRoles),
+      exactRepositoryRole:
+        ($repositoryRoles == ["roles/artifactregistry.reader"]),
+      hsmCmekReady: (
+        $keyMetadata.name == $keyName
+        and $keyMetadata.purpose == "ENCRYPT_DECRYPT"
+        and $keyMetadata.primary.protectionLevel == "HSM"
+        and $keyMetadata.primary.state == "ENABLED"
+        and $keyMetadata.rotationPeriod == "7776000s"
+        and $storageKeyRoles == ["roles/cloudkms.cryptoKeyEncrypterDecrypter"]
+      ),
+      pinnedBatchImageReady: (
+        $image.name == $batchImage
+        and ($image.id | tostring) == $batchImageId
+        and $image.status == "READY"
+        and $image.deprecated == null
+      ),
+      privateNetworkReady: (
+        $network.name == $networkName
+        and $network.autoCreateSubnetworks == false
+        and $network.mtu == 1460
+        and $network.routingConfig.routingMode == "REGIONAL"
+        and $subnet.name == $subnetName
+        and $subnet.ipCidrRange == $subnetCidr
+        and $subnet.privateIpGoogleAccess == true
+        and $subnet.purpose == "PRIVATE"
+        and $subnet.stackType == "IPV4_ONLY"
+        and ($routers | type == "array" and length == 0)
+      ),
+      exactA100TemplateReady: (
+        $template.name == $templateName
+        and $template.properties.machineType == "a2-ultragpu-1g"
+        and $template.properties.canIpForward == false
+        and $template.properties.scheduling.onHostMaintenance == "TERMINATE"
+        and $template.properties.scheduling.provisioningModel == "STANDARD"
+        and $template.properties.serviceAccounts[0].email == $serviceAccount
+        and $template.properties.serviceAccounts[0].scopes ==
+          ["https://www.googleapis.com/auth/cloud-platform"]
+        and $template.properties.networkInterfaces[0].accessConfigs == null
+        and ($template.properties.networkInterfaces[0].network
+          | endswith("/" + $networkName))
+        and ($template.properties.networkInterfaces[0].subnetwork
+          | endswith("/" + $subnetName))
+        and ($template.properties.disks[0].initializeParams.sourceImage
+          | endswith("/" + $batchImage))
+        and $template.properties.disks[0].initializeParams.diskSizeGb == "200"
+        and $template.properties.disks[0].initializeParams.diskType == "pd-balanced"
+        and $template.properties.shieldedInstanceConfig.enableSecureBoot == true
+        and $template.properties.shieldedInstanceConfig.enableVtpm == true
+        and $template.properties.shieldedInstanceConfig.enableIntegrityMonitoring == true
+        and ($template.properties.metadata.items
+          | any(.key == "block-project-ssh-keys" and .value == "true"))
+        and ($template.properties.metadata.items
+          | any(.key == "enable-oslogin" and .value == "true"))
+      ),
+      activeQualificationBatchJobs: $activeBatchJobs,
+      activeQualificationInstances: $activeInstances,
+      scaleFromZeroClean: ($activeBatchJobs == 0 and $activeInstances == 0),
+      modelOrCheckpointDownloaded: false,
+      gpuJobStartedByAudit: false,
+      customerCreditsMutated: false,
+      productionAuthorityGranted: false,
+      ready: (
+        $identity.ready
+        and $projectRoles == $expectedProjectRoles
+        and $attachRoles == ["roles/iam.serviceAccountUser"]
+        and $bucket.ready
+        and $bucketMetadata.default_kms_key == $keyName
+        and $bucketMetadata.default_storage_class == "STANDARD"
+        and $bucketMetadata.soft_delete_policy.retentionDurationSeconds == "1209600"
+        and $workerBucketRoles == $expectedBucketRoles
+        and $apiBucketRoles == $expectedBucketRoles
+        and $repositoryRoles == ["roles/artifactregistry.reader"]
+        and $keyMetadata.name == $keyName
+        and $keyMetadata.purpose == "ENCRYPT_DECRYPT"
+        and $keyMetadata.primary.protectionLevel == "HSM"
+        and $keyMetadata.primary.state == "ENABLED"
+        and $keyMetadata.rotationPeriod == "7776000s"
+        and $storageKeyRoles == ["roles/cloudkms.cryptoKeyEncrypterDecrypter"]
+        and $image.name == $batchImage
+        and ($image.id | tostring) == $batchImageId
+        and $image.status == "READY"
+        and $image.deprecated == null
+        and $network.name == $networkName
+        and $network.autoCreateSubnetworks == false
+        and $network.mtu == 1460
+        and $network.routingConfig.routingMode == "REGIONAL"
+        and $subnet.name == $subnetName
+        and $subnet.ipCidrRange == $subnetCidr
+        and $subnet.privateIpGoogleAccess == true
+        and $subnet.purpose == "PRIVATE"
+        and $subnet.stackType == "IPV4_ONLY"
+        and ($routers | type == "array" and length == 0)
+        and $template.name == $templateName
+        and $template.properties.machineType == "a2-ultragpu-1g"
+        and $template.properties.canIpForward == false
+        and $template.properties.networkInterfaces[0].accessConfigs == null
+        and $activeBatchJobs == 0
+        and $activeInstances == 0
+      )
+    }
+')"
 image_builder_repository_writer="$(policy_has_member_role \
   "${repository_policy}" 'roles/artifactregistry.writer' \
   "serviceAccount:${IMAGE_BUILDER_SERVICE_ACCOUNT}")"
@@ -527,7 +784,8 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v10' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v12' \
+  --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -545,6 +803,7 @@ jq -n \
   --argjson sam31ImageCount "${sam31_image_count}" \
   --argjson trackAllL4TaskQaImageCount "${track_all_l4_task_qa_image_count}" \
   --argjson accountPricing "${account_pricing_json}" \
+  --argjson a100QualificationFoundation "${a100_qualification_foundation}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
   --argjson imageSignerIdentity "${image_signer_identity}" \
   --argjson gpuWorkerIdentity "${gpu_worker_identity}" \
@@ -573,6 +832,7 @@ jq -n \
   --argjson cloudBuildCanUseSigner "${cloud_build_can_use_signer}" \
   '{
     audit: $audit,
+    observedAt: $observedAt,
     projectId: $projectId,
     region: $region,
     gpuQuota: {
@@ -581,6 +841,7 @@ jq -n \
       a100QuotaPreference: $a100QuotaPreference,
       capacityPrerequisitesReady: ($a100Limit >= 1 and $l4Limit >= 1)
     },
+    a100QualificationFoundation: $a100QualificationFoundation,
     privateArtifactAccess: {
       huggingFaceTokenEnabledVersions: $huggingFaceTokenEnabledVersions,
       modelWeightTokenEnabledVersions: $modelWeightTokenEnabledVersions,

@@ -50,6 +50,10 @@ not call cloud-mutating scripts.
     onto its dedicated zero-idle identity, verifies Cloud Run, Batch, and active
     build detachment, then disables—not deletes—the five fixed historical CPU
     processing identities.
+15. `22-provision-sam31-a100-qualification-foundation.sh` only for the exact
+    private SAM 3.1 qualification foundation. It creates no VM or Batch job;
+    the canonical staging and launch owners must still reread the exact
+    foundation and current A100 capacity before any private qualification.
 
 The historical CPU/render/QA/tool-readiness deployment scripts and the manual
 GPU-smoke execution script fail closed. Fresh execution must enter through the

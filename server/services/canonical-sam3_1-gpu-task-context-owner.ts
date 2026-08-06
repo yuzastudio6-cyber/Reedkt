@@ -162,7 +162,9 @@ export interface CanonicalSam31GpuReleasePairReadPort {
 export interface CanonicalSam31GpuTaskRateAuthorityReadPort {
   rereadApprovedCurrentRate(input: {
     readonly rateAuthorityRef: z.infer<typeof refSchema>
-    readonly routeId: z.infer<typeof routeIdSchema>
+    readonly routeId:
+      | z.infer<typeof routeIdSchema>
+      | 'l4_standard_primary'
     readonly at: string
   }): Promise<unknown>
 }

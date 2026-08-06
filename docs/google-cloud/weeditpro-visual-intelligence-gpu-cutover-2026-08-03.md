@@ -535,6 +535,21 @@ invocation of this operator boundary.
 
 ## Current disposition
 
+The Orchestra can now discover Track All through the same provider-neutral
+`skill-capability-manifest-v1` boundary used by Visual Intelligence. The Track
+All manifest exposes only `track_subject_geometry` at complete-scene scope. It
+declares SAM 3.1 on A100 80 GB as the heavy primary, SAM 3.1 on L4 as a
+separately qualified quality-preserving fallback, and the L4 Kornia task-QA
+route as a required independent route. It also binds account-effective A100/L4
+pricing, user-triggered scale-from-zero, exact snapshot/frame/MasterTiming/work/
+lease/reservation lineage, and Track All ownership of mask/track artifacts.
+SAM2 is an explicit fresh-work conflict and remains historical-read-only. The
+source-candidate qualification snapshot is intentionally blocked until exact
+A100, L4 fallback, L4 task-QA, artifact-repository, and account-effective rate
+releases are reread by the canonical skill qualification registry. A plan or
+peer support request cannot self-qualify the skill, directly dispatch a GPU, or
+grant billing, QA, public-delivery, or production authority.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

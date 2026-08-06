@@ -58,6 +58,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-qualification-a100-rate-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-result-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-terminal-evidence-owner-smoke.ts',
+  'server/smoke/canonical-sam3_1-source-checkpoint-qualification-runtime-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-image-build-phase-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-image-supply-chain-build-phase-smoke.ts',

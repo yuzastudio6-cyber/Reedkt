@@ -2,6 +2,11 @@ import { expect, type Locator, type Page } from '@playwright/test'
 
 export async function setViewport(page: Page, width: number, height = 900) {
   await page.setViewportSize({ width, height })
+  await page.evaluate(() => new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => resolve())
+    })
+  }))
 }
 
 export async function expectNoHorizontalOverflow(page: Page, tolerance = 2) {

@@ -1859,19 +1859,24 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     localProjectHandoff?.stage === 'source_uploaded' &&
     localProjectHandoff.revisionPlanContext?.freshPlanRequired === true,
   )
-  const currentEditPreferencesLocked = !exactEditRevisionSetupActive && Boolean(
+  const currentEditPreferencesLocked = Boolean(
     approvalChecking ||
     approved ||
     approvedSnapshot ||
-    canonicalApprovalRecorded ||
-    canonicalJourneyValue?.stage === 'revision_requested' ||
-    (
-      canonicalJourneyValue?.stage !== 'replanning_required' &&
-      (canonicalJourneyValue?.plan?.version ?? 0) > 1
-    ) ||
     progressStarted ||
     privateInternalTestRun ||
-    (localProjectHandoff && currentEditPreferenceLockedStages.has(localProjectHandoff.stage)),
+    (
+      !exactEditRevisionSetupActive &&
+      (
+        canonicalApprovalRecorded ||
+        canonicalJourneyValue?.stage === 'revision_requested' ||
+        (
+          canonicalJourneyValue?.stage !== 'replanning_required' &&
+          (canonicalJourneyValue?.plan?.version ?? 0) > 1
+        ) ||
+        (localProjectHandoff && currentEditPreferenceLockedStages.has(localProjectHandoff.stage))
+      )
+    )
   )
   const currentEditDraftPlanExists = Boolean(contextAwarePlanResult)
   const currentEditReferenceAuthorityResolution = useMemo(

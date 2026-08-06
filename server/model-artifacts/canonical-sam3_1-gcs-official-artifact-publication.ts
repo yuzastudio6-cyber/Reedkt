@@ -21,6 +21,20 @@ const PROJECT_ID = 'reeditpro' as const
 const MODEL_ARTIFACT_BUCKET =
   'reeditpro-production-reeditpro-model-artifacts' as const
 
+type CanonicalSam31PrivateArtifactPublicationFailureCode =
+  | 'artifact_identity_or_bounds_failed'
+  | 'artifact_stream_invalid'
+  | 'source_acquisition_failed'
+  | 'source_archive_command_failed'
+  | 'source_archive_stream_invalid'
+  | 'source_identity_changed'
+  | 'storage_authorization_failed'
+  | 'storage_conflict'
+  | 'storage_target_not_found'
+  | 'storage_throttled'
+  | 'storage_transport_unavailable'
+  | 'unclassified_failure'
+
 /**
  * Cloud-only streaming object publisher for the one-time SAM 3.1 source and
  * checkpoint ingest. A pre-existing object is never accepted implicitly:
@@ -82,9 +96,13 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
           'SAM 3.1 artifact object already exists; exact reconciliation is required.',
           { cause: error },
         )
-        throw new Error('SAM 3.1 private artifact streaming publication failed.', {
-          cause: error,
-        })
+        const failureCode = classifyPublicationFailure(error)
+        throw new Error(
+          `SAM 3.1 private artifact streaming publication failed [${
+            failureCode
+          }].`,
+          { cause: error },
+        )
       }
       const publishedSha256 = measurement.digest.digest('hex')
       assertExpectedMeasurement(value, measurement.byteLength, publishedSha256)
@@ -341,9 +359,86 @@ async function hashBoundedStream(
 
 function cloudErrorCode(error: unknown): number | undefined {
   if (!error || typeof error !== 'object') return
-  const code = Reflect.get(error, 'code')
+  let code: unknown
+  try {
+    code = Reflect.get(error, 'code')
+  } catch {
+    return
+  }
   if (typeof code === 'number') return code
   if (typeof code === 'string' && /^[0-9]{3}$/u.test(code)) {
     return Number.parseInt(code, 10)
+  }
+}
+
+/**
+ * Returns only a bounded, enumerated stage code. Raw cloud, Git, URL, path,
+ * credential, and provider diagnostics remain in the private error cause and
+ * can never be copied into the operator-facing structured log.
+ */
+function classifyPublicationFailure(
+  error: unknown,
+): CanonicalSam31PrivateArtifactPublicationFailureCode {
+  let cursor: unknown = error
+  for (let depth = 0; depth < 8 && cursor; depth += 1) {
+    const cloudCode = cloudErrorCode(cursor)
+    if (cloudCode === 401 || cloudCode === 403) {
+      return 'storage_authorization_failed'
+    }
+    if (cloudCode === 404) return 'storage_target_not_found'
+    if (cloudCode === 409) return 'storage_conflict'
+    if (cloudCode === 429) return 'storage_throttled'
+    if (
+      cloudCode === 408
+      || cloudCode === 500
+      || cloudCode === 502
+      || cloudCode === 503
+      || cloudCode === 504
+    ) return 'storage_transport_unavailable'
+
+    const message = safeStaticErrorMessage(cursor)
+    if (message === 'SAM 3.1 official source acquisition failed.') {
+      return 'source_acquisition_failed'
+    }
+    if (message === 'SAM 3.1 official Git source identity changed.') {
+      return 'source_identity_changed'
+    }
+    if (
+      message === 'SAM 3.1 official source archive command failed.'
+      || message
+        === 'SAM 3.1 official source archive command did not complete.'
+    ) return 'source_archive_command_failed'
+    if (message === 'SAM 3.1 Git archive stream is invalid.') {
+      return 'source_archive_stream_invalid'
+    }
+    if (message === 'SAM 3.1 official artifact stream is invalid.') {
+      return 'artifact_stream_invalid'
+    }
+    if (
+      message === 'SAM 3.1 official artifact exceeds its byte bound.'
+      || message === 'SAM 3.1 official artifact is below its byte bound.'
+      || message === 'SAM 3.1 official artifact identity is not approved.'
+    ) return 'artifact_identity_or_bounds_failed'
+
+    cursor = safeErrorCause(cursor)
+  }
+  return 'unclassified_failure'
+}
+
+function safeStaticErrorMessage(error: unknown): string | undefined {
+  if (!(error instanceof Error)) return
+  try {
+    return error.message
+  } catch {
+    return
+  }
+}
+
+function safeErrorCause(error: unknown): unknown {
+  if (!error || typeof error !== 'object') return
+  try {
+    return Reflect.get(error, 'cause')
+  } catch {
+    return
   }
 }

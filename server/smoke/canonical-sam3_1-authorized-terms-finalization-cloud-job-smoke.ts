@@ -73,13 +73,13 @@ assert.match(deployScript, /weeditpro-sam31-terms-finalization/u)
 assert.match(deployScript,
   /WEEDITPRO_CONFIRM_SAM31_AUTHORIZED_TERMS_FINALIZATION_JOB_DEPLOY/u)
 assert.match(deployScript,
-  /BUILD_ID='2495fc2c-0d3f-40d8-be1f-ebb55d5d0766'/u)
+  /BUILD_ID='0ffbead4-979a-46b7-960b-4cc49e2e81fb'/u)
 assert.match(deployScript,
-  /SOURCE_COMMIT='1a1c59682d26307929e6b1aa3d9cf70649548d34'/u)
+  /SOURCE_COMMIT='83f63eaa10296f6b9ee87fd25f2f14b7a91e493c'/u)
 assert.match(deployScript,
-  /SOURCE_TREE='78bf6b723b9a8757f02f258fef8c1cc69ba91a9c'/u)
+  /SOURCE_TREE='8cb0e5bc827cc5f117945b6856cf8481c0cef144'/u)
 assert.match(deployScript,
-  /IMAGE_DIGEST='sha256:76f42dbcb8aa482d0334fadf855a1e0dc0faaef6818531220b7b92eb45388d9a'/u)
+  /IMAGE_DIGEST='sha256:b593e9994d66efbbede674819f0914c491d53b9e498f941746f5fd8cce6356a4'/u)
 assert.match(deployScript,
   /canonical-sam3_1-authorized-human-terms-intent-v1/u)
 assert.match(deployScript,

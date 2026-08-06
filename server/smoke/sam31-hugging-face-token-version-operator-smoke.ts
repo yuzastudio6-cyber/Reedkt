@@ -5,6 +5,7 @@ const source = readFileSync(
   'scripts/gcp/prod/28-add-sam31-hugging-face-token-version.sh',
   'utf8',
 )
+const operatorGuide = readFileSync('scripts/gcp/prod/README.md', 'utf8')
 
 for (const expected of [
   "readonly PROJECT_ID='reeditpro'",
@@ -48,6 +49,18 @@ assert.doesNotMatch(
   /gcloud[^\n]*(?:\$\{token\}|\$token)/u,
   'the secret must enter gcloud only through stdin',
 )
+for (const expected of [
+  '`28-add-sam31-hugging-face-token-version.sh` operator',
+  'personally signed in to the official',
+  '`facebook/sam3.1` gated repository',
+  'minimum-scope read token',
+  'never writes the token to a local file',
+  'no local checkpoint, model installation, image, GPU job, or production',
+] as const) assert.ok(
+  operatorGuide.includes(expected),
+  `operator guide missing ${expected}`,
+)
+assert.doesNotMatch(operatorGuide, /paste[^\n]*(?:ChatGPT|Codex)/iu)
 
 console.log(JSON.stringify({
   smoke: 'sam31-hugging-face-token-version-operator',

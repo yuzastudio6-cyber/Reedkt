@@ -19,7 +19,14 @@ not call cloud-mutating scripts.
   confirmation. Script 19 additionally exact-matches each job image, service
   identity, CPU/memory envelope, and absence of a GPU before deletion; a
   changed or GPU-enabled job fails closed.
-- Secret scripts create Secret Manager names only. They do not add secret versions or payloads.
+- Foundation secret scripts create Secret Manager names only. The sole payload
+  exception is the separately confirmed
+  `28-add-sam31-hugging-face-token-version.sh` operator: after an authorized
+  human has accepted the official gated repository terms and created a
+  read-only Hugging Face token, it reads that token without echo and streams it
+  directly to the existing `HUGGINGFACE_TOKEN` Secret Manager container. It
+  never writes the token to a local file, prints it, downloads model bytes, or
+  starts a cloud workload.
 
 ## Human Execution Order
 
@@ -54,6 +61,13 @@ not call cloud-mutating scripts.
     private SAM 3.1 qualification foundation. It creates no VM or Batch job;
     the canonical staging and launch owners must still reread the exact
     foundation and current A100 capacity before any private qualification.
+16. `28-add-sam31-hugging-face-token-version.sh` only after the authorized
+    organization representative has personally signed in to the official
+    `facebook/sam3.1` gated repository, reviewed and accepted its terms, and
+    created a minimum-scope read token. The operator must run in a trusted
+    interactive terminal. It creates one numeric Secret Manager version and
+    no local checkpoint, model installation, image, GPU job, or production
+    authority.
 
 The historical CPU/render/QA/tool-readiness deployment scripts and the manual
 GPU-smoke execution script fail closed. Fresh execution must enter through the

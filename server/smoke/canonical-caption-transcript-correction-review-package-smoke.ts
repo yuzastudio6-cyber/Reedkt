@@ -341,6 +341,7 @@ function hash(value: string): string {
   return createHash('sha256').update(value).digest('hex')
 }
 
-function redigest(value: Record<string, unknown>, field: string): void {
-  value[field] = calculateSkillContractDigest(value, field)
+function redigest(value: object, field: string): void {
+  const record = value as Record<string, unknown>
+  record[field] = calculateSkillContractDigest(record, field)
 }

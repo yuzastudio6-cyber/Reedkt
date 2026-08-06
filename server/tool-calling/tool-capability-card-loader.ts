@@ -447,7 +447,9 @@ export function listExplicitToolStudyCards(): ToolCapabilityStudyCard[] {
   }
 
   return readdirSync(STUDY_CARDS_DIRECTORY)
-    .filter((fileName) => fileName.endsWith('.json'))
+    .filter((fileName) =>
+      fileName.endsWith('.json')
+      && !fileName.startsWith('._'))
     .sort()
     .flatMap((fileName) => {
       const fileUrl = new URL(fileName, STUDY_CARDS_DIRECTORY)

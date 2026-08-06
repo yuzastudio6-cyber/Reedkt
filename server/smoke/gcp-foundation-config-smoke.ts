@@ -340,6 +340,10 @@ check(
   'Dedicated image signer must create only private supply-chain evidence objects.',
 )
 check(
+  iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT}" roles/storage.bucketViewer'),
+  'Dedicated image signer must have only the bucket-metadata visibility required by the Cloud Build artifact uploader.',
+)
+check(
   iamScript.includes('grant_bucket_role image-supply-chain-evidence "${REEDITPRO_API_SERVICE_ACCOUNT}" roles/storage.objectViewer'),
   'API supply-chain owner must exact-reread private supply-chain evidence.',
 )

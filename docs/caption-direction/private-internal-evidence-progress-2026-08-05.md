@@ -27,8 +27,8 @@ the evidence currently belongs to several independently scoped tests.
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner is mounted; an independent complete audio-truth review has not supplied its actual correction artifact. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
 | B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran. Its synthetic color-bar imagery is accepted only as technical integration evidence and is structurally ineligible for professional-appearance qualification. Its scope is not the terminal talking-head edit scope. |
-| Backend Caption execution | Two actual real-source Caption renders exist and were inspected, but a set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
-| Complete-time visual review | Every rendered frame of the real talking-head full/reduced variants was represented and inspected. This proves Caption-owned professional appearance; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
+| Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
+| Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
 Visual Intelligence, Track All/SAM 3.1, and independent final QA have
 source-ready adapters but no actual record for the terminal run. The final
@@ -42,7 +42,7 @@ and export behavior. They are deliberately **not** examples of the intended
 Caption art direction.
 
 The intended-appearance proof uses real talking-head pixels and separate
-full/reduced Caption renders:
+full/reduced Caption renders. The original 9:16 evidence remains:
 
 - full-motion render SHA-256:
   `200abd32615cbed07739243880ed7993998609451ad911a1bddac9e686fa939f`
@@ -51,9 +51,22 @@ full/reduced Caption renders:
 - direct-inspection contract digest:
   `004ae03efbf920fdf43015ca4523e5371d3613d5cfdcc7124b8b43410914ba4d`
 
-That inspection found no face/gesture obstruction, clipping, phrase overflow,
+The additive output-specific evidence covers 16:9 and 1:1:
+
+- 16:9 full/reduced SHA-256:
+  `660d705c970159ef99b2bb8707dc1b3a8a1a091fcab4de4fde88fd497872ae97` /
+  `24ed3415b097dff779bbc7250d16aa205ec75d6ebb8b45c5649d612fa90d00f7`;
+- 1:1 full/reduced SHA-256:
+  `1ca4755f418b07b529c0e2425e901a4040c12a40b512426839458bee9e3d6497` /
+  `5846f2055f568e9474117f602ceff99041c6a8cffa1b7dc4ed0545e915c0e5cb`;
+- multi-output direct-inspection digest:
+  `c4b686fdf2798eda32d1bb047b800b2269a90aed87fa513b0d4bcdbf9b91c34d`.
+
+Those inspections found no face/gesture obstruction, clipping, phrase overflow,
 plate collision, unstable placement, unusable cue transition, or tail
-truncation. It deliberately claims neither shared Qwen review nor independent
+truncation. The multi-output receipt additionally rejects source distortion,
+cross-canvas evidence reuse, and synthetic engineering-fixture promotion. It
+deliberately claims neither shared Qwen review nor independent
 final QA.
 
 ## Closed semantics
@@ -106,7 +119,7 @@ Orchestra are not required for this private internal target.
 ## Verification
 
 `npm run smoke:captions-specialist-private-internal-evidence-progress`
-performs the focused 21-assertion closed-contract regression. The source-only
+performs the focused 22-assertion closed-contract regression. The source-only
 Caption integration aggregate includes it and starts no media, model, provider,
 or Docker runtime.
 
@@ -114,3 +127,5 @@ The additive multi-run mount is documented in
 `canonical-multi-run-private-qualification-mount-2026-08-05.md`.
 The exact real-source-only appearance gate is documented in
 `canonical-direct-professional-appearance-gate-2026-08-05.md`.
+The new 16:9/1:1 evidence is documented in
+`cap-18-real-source-multi-output-professional-inspection-2026-08-05.md`.

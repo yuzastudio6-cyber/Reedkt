@@ -136,6 +136,10 @@ const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
   '004ae03efbf920fdf43015ca4523e5371d3613d5cfdcc7124b8b43410914ba4d')
+const realSourceMultiOutputDirectInspectionRef = ref(
+  'caption.real-source.multi-output.direct-inspection-2026-08-05-v1',
+  'caption-real-source-multi-output-direct-inspection-v1',
+  'c4b686fdf2798eda32d1bb047b800b2269a90aed87fa513b0d4bcdbf9b91c34d')
 const realSourceFullRenderRef = ref(
   'caption.real-source.render.full_motion',
   'caption-real-source-private-review-render-v1',
@@ -175,12 +179,18 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
       'same_package_snapshot_output_and_work_graph_required',
     ]),
   gate('canonical_backend_private_execution_mount',
-    'actual_evidence_incomplete', [realSourceDirectInspectionRef], [
+    'actual_evidence_incomplete', [
+      realSourceDirectInspectionRef,
+      realSourceMultiOutputDirectInspectionRef,
+    ], [
       'representative_approved_runs_must_cover_all_forty_one_caption_jobs',
       'each_run_must_reread_every_projected_result_and_artifact',
     ]),
   gate('qualified_ai_complete_time_visual_review',
-    'actual_evidence_incomplete', [realSourceDirectInspectionRef], [
+    'actual_evidence_incomplete', [
+      realSourceDirectInspectionRef,
+      realSourceMultiOutputDirectInspectionRef,
+    ], [
       'shared_qualified_postrender_ai_review_required_for_each_output',
       'direct_agent_raster_inspection_must_remain_separate_evidence',
     ]),
@@ -225,8 +235,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-05-v1',
-  observedAt: '2026-08-05T18:30:00.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-05-v2',
+  observedAt: '2026-08-05T20:33:01.000-04:00',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

@@ -36,6 +36,7 @@ export interface ApprovedCompositionProps {
     | 'motion_studio_deterministic_route_draw_v1'
     | 'caption_direction_creative_scene_group_v1'
     | 'caption_direction_real_source_scene_group_v2'
+    | 'caption_direction_real_source_multi_output_scene_group_v3'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -268,7 +269,10 @@ export interface ApprovedCompositionProps {
   subjectMaskFixturePolicy?:
     | 'none'
     | 'deterministic_private_fixture_only_not_track_all_evidence'
-  backgroundStyle?: 'editorial_night_sky_v1' | 'real_source_video_v1'
+  backgroundStyle?:
+    | 'editorial_night_sky_v1'
+    | 'real_source_video_v1'
+    | 'real_source_editorial_split_v1'
   captionCreativeLayers?: Array<{
     layerId: string
     nodeId: string
@@ -403,7 +407,10 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
     return <MotionStudioDeterministicRouteDrawComposition {...props} />
   }
   if (
-    props.compositionProfileId === 'caption_direction_real_source_scene_group_v2' &&
+    [
+      'caption_direction_real_source_scene_group_v2',
+      'caption_direction_real_source_multi_output_scene_group_v3',
+    ].includes(props.compositionProfileId ?? '') &&
     props.sourceInternalUrl && props.captionCreativeLayers &&
     props.captionCreativeLayers.length >= 2
   ) {
@@ -650,6 +657,95 @@ const CaptionCreativeLayerView: React.FC<{
 const CaptionRealSourceSceneGroupComposition:
 React.FC<ApprovedCompositionProps> = (props) => {
   const frame = useCurrentFrame()
+  const { width, height } = useVideoConfig()
+  const editorialSplit = props.compositionProfileId ===
+    'caption_direction_real_source_multi_output_scene_group_v3'
+  if (editorialSplit) {
+    const square = width === height
+    const panelRight = square ? width * 0.03 : width * 0.035
+    const panelTop = height * 0.04
+    const panelWidth = square ? width * 0.47 : width * 0.4
+    const panelHeight = height * 0.92
+    const radius = Math.max(12, Math.round(Math.min(width, height) * 0.045))
+    return (
+      <AbsoluteFill
+        style={{
+          background: '#06111C',
+          color: '#F8FAFC',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          overflow: 'hidden',
+        }}
+      >
+        <OffthreadVideo
+          src={props.sourceInternalUrl!}
+          startFrom={props.sourceStartFrame ?? 0}
+          endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
+          style={{
+            position: 'absolute',
+            inset: '-8%',
+            width: '116%',
+            height: '116%',
+            objectFit: 'cover',
+            filter: 'blur(24px) brightness(0.3) saturate(0.72)',
+            opacity: 0.72,
+          }}
+          volume={0}
+        />
+        <AbsoluteFill
+          style={{
+            zIndex: 20,
+            background: square
+              ? 'linear-gradient(90deg, rgba(3,10,20,0.98) 0%, rgba(3,10,20,0.9) 45%, rgba(3,10,20,0.28) 72%, rgba(3,10,20,0.5) 100%)'
+              : 'linear-gradient(90deg, rgba(3,10,20,0.99) 0%, rgba(3,10,20,0.94) 45%, rgba(3,10,20,0.3) 68%, rgba(3,10,20,0.54) 100%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 100,
+            right: panelRight,
+            top: panelTop,
+            width: panelWidth,
+            height: panelHeight,
+            overflow: 'hidden',
+            borderRadius: radius,
+            background: 'rgba(2, 8, 16, 0.82)',
+            border: '1px solid rgba(255,255,255,0.16)',
+            boxShadow: '0 18px 55px rgba(0,0,0,0.46)',
+          }}
+        >
+          <OffthreadVideo
+            src={props.sourceInternalUrl!}
+            startFrom={props.sourceStartFrame ?? 0}
+            endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            volume={1}
+          />
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            zIndex: 130,
+            left: '5%',
+            top: '12%',
+            width: Math.max(28, Math.round(width * 0.08)),
+            height: Math.max(3, Math.round(height * 0.009)),
+            borderRadius: 999,
+            background: 'linear-gradient(90deg, #6EE7F9, rgba(110,231,249,0.08))',
+          }}
+        />
+        {(props.captionCreativeLayers ?? []).map((layer) => (
+          <CaptionCreativeLayerView
+            key={layer.layerId}
+            layer={layer}
+            globalFrame={frame}
+            reducedMotion={props.reducedMotion === true}
+            realSourcePresentation
+          />
+        ))}
+      </AbsoluteFill>
+    )
+  }
   return (
     <AbsoluteFill
       style={{

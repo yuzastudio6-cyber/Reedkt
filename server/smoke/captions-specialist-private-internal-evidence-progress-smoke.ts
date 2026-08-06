@@ -64,6 +64,15 @@ check(progress.professionalAppearanceEvidence.realTalkingHeadPixelsInspected
     .acceptedForCaptionOwnedProfessionalAppearance
   && !progress.professionalAppearanceEvidence.syntheticEngineeringFixtureUsed,
 'real talking-head appearance evidence remains explicit')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'canonical_backend_private_execution_mount')
+  ?.evidenceRefs.some((reference) => reference.version ===
+    'caption-real-source-multi-output-direct-inspection-v1')
+  && progress.gates.find((gate) =>
+    gate.gapId === 'qualified_ai_complete_time_visual_review')
+    ?.evidenceRefs.some((reference) => reference.version ===
+      'caption-real-source-multi-output-direct-inspection-v1'),
+'real 16:9 and 1:1 inspection evidence is inventoried without closing gates')
 check(!progress.professionalAppearanceEvidence
   .qualifiedSharedPostrenderAiReviewClaimed
   && !progress.professionalAppearanceEvidence.independentFinalQaClaimed,

@@ -2,7 +2,14 @@
 
 Milestone: `CAP-18`
 
-Status: `caption_owned_private_evidence_complete_ready_for_backend_integration_with_seven_shared_owner_gaps`
+Status: `historical_fixture_catalog_complete_not_terminal_qualification`
+
+Current correction: this report records the historical CAP-18 fixture catalog.
+Its synthetic/color-bar render fixtures prove engineering behavior only. They
+must not be used as professional-appearance evidence. The current terminal
+truth is the later private-evidence progress record: 41/41 source paths ready,
+0/41 terminally qualified, and 0/9 terminal gates satisfied by one exact
+canonical catalog.
 
 ## Outcome
 
@@ -30,15 +37,19 @@ digest is
 the derived per-job evidence-set digest is
 `4e83a75eed18c1e64a39658e4dc297dc82e0dd4f500bb4d0ac4475a9621523d7`.
 
-Caption-owned requirements are complete for canonical backend workflow
-integration. Whole-specialist internal qualification remains false until the
-seven named shared owners supply their evidence.
+Caption-owned source requirements represented by this historical catalog are
+complete for canonical backend workflow integration. Whole-specialist internal
+qualification remains false; the later current-progress record, rather than
+this historical matrix, owns the exact remaining evidence count.
 
-## Actual media and direct visual inspection
+## Historical engineering media and direct inspection
 
-The main private proof executed real Caption/Remotion media at three output
-ratios plus full and reduced creative variants. The exact accepted artifact
-hashes are:
+The original CAP-18 proof executed Caption/Remotion engineering media at three
+output ratios plus full and reduced creative-form variants. These renders are
+retained for timing, clipping, safe-zone, layer-order, persistent-state, and
+protocol evidence. Color bars, geometric blocks, counters, and synthetic
+plates in these artifacts are not representative Caption art direction and are
+not accepted for professional appearance. Their exact artifact hashes are:
 
 | Output | SHA-256 |
 | --- | --- |
@@ -49,12 +60,33 @@ hashes are:
 | Creative reduced motion | `f201ec3683dc068534743e4ed86089697b2511c9394619668cb39a37aabb914f` |
 
 Requested frames and contact sheets were opened after the media children had
-stopped. Direct inspection accepted caption readability, safe placement,
-cross-ratio isolation, persistent-list continuity, hero transition behavior,
-and reduced-motion parity. The closed path-free inspection receipt digest is
+stopped. Direct inspection accepted the bounded technical properties:
+readability, safe placement, cross-ratio isolation, persistent-list continuity,
+hero transition behavior, and reduced-motion parity. It did not prove
+professional appearance. The closed path-free engineering inspection receipt
+digest is
 `3be445896ba80cc5295ee6c0855a68049fa3887c683ecd0cf962fe86e030763f`.
 Technical QA was retained separately and did not replace looking at the
 rendered pixels.
+
+## Current real-source appearance correction
+
+Professional appearance is now proven only by real talking-head pixels:
+
+- 9:16 full/reduced inspection digest:
+  `004ae03efbf920fdf43015ca4523e5371d3613d5cfdcc7124b8b43410914ba4d`;
+- 16:9 and 1:1 full/reduced inspection digest:
+  `c4b686fdf2798eda32d1bb047b800b2269a90aed87fa513b0d4bcdbf9b91c34d`.
+
+The multi-output receipt covers 508 rendered frames through four complete-time
+contact sheets and 16 original-size spot checks. It records no face/gesture
+obstruction, clipping, overflow, source distortion, cross-canvas evidence
+reuse, stuck Caption layer, or tail truncation. It explicitly records
+`syntheticEngineeringFixtureQualifiedProfessionalAppearance: false`.
+
+These direct inspections are Caption-owned appearance evidence only. They do
+not claim shared qualified postrender AI, independent final QA, or terminal
+specialist qualification.
 
 ## Multilingual runtime qualification
 

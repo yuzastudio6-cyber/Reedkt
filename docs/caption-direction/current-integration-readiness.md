@@ -197,8 +197,17 @@ explicitly not actual media qualification evidence.
 
 ## Media inspected
 
-No media was generated. Existing inspected Caption media was not relabeled as
-new evidence or as complete-time visual-AI review.
+An additive CAP-18 run generated four real-source private review renders after
+this source-mount checkpoint: output-specific 16:9 and 1:1, each in full and
+reduced motion. Every one of their 127 rendered frames was represented in a
+directly opened contact sheet, with 16 original-size spot checks across the
+four variants. The closed inspection digest is
+`c4b686fdf2798eda32d1bb047b800b2269a90aed87fa513b0d4bcdbf9b91c34d`.
+
+That evidence accepts Caption-owned professional appearance for the bounded
+fixtures. It explicitly rejects the synthetic engineering fixture as
+professional evidence and is not relabeled as shared complete-time visual AI,
+independent final QA, or terminal qualification.
 
 ## Next milestone
 

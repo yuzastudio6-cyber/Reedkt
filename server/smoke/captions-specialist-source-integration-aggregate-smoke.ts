@@ -13,6 +13,7 @@ import {
 const sourceOnlyScripts = [
   'smoke:captions-specialist-cap-20-aggregate',
   'smoke:captions-specialist-cap-14-real-source',
+  'smoke:captions-specialist-cap-18-real-source-multi-output',
   'smoke:captions-specialist-goal-completion-audit',
   'smoke:captions-specialist-private-internal-evidence-progress',
   'smoke:captions-specialist-integration-routing',

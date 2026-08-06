@@ -14,6 +14,7 @@ import {
 } from './offline-remotion-render-docker-runtime'
 import {
   isCaptionCreativeSceneGroupPayload,
+  isCaptionRealSourceMultiOutputSceneGroupPayload,
   isCaptionRealSourceSceneGroupPayload,
   isMotionStudioAnimaticPayload,
   isMotionStudioLayeredPayload,
@@ -339,6 +340,7 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   const expectedFrames = isMotionStudioRouteDrawPayload(request.payload)
     ? [0, 45, 90, 135, 179]
     : isCaptionRealSourceSceneGroupPayload(request.payload)
+      || isCaptionRealSourceMultiOutputSceneGroupPayload(request.payload)
       ? request.payload.inspectionFrameNumbers
     : isCaptionCreativeSceneGroupPayload(request.payload)
       ? [...new Set([

@@ -92,6 +92,7 @@ The governing workflow invariant remains:
 - [CAP-14 Remotion creative renderer report](cap-14-remotion-creative-renderer-report.md)
 - [CAP-14 real-source professional appearance correction](cap-14-real-source-professional-appearance-correction-2026-08-05.md)
 - [CAP-14 real-source complete-time direct inspection](cap-14-real-source-complete-time-direct-inspection-2026-08-05.md)
+- [CAP-18 real-source multi-output professional inspection](cap-18-real-source-multi-output-professional-inspection-2026-08-05.md)
 - [CAP-15 accessibility, localization, and export report](cap-15-accessibility-localization-export-report.md)
 - [CAP-16 complete QA, repair, and fallback report](cap-16-complete-qa-repair-fallback-report.md)
 - [CAP-17 chat, persistence, and observability report](cap-17-chat-persistence-observability-report.md)

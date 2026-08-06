@@ -23,6 +23,7 @@ export interface MusicExactOperationHandler {
 
 const HANDLER_KINDS: Readonly<Record<string, MusicOperationHandlerKind>> = Object.freeze({
   group_music_cues: 'supervision',
+  publish_cue_constraint_resolutions: 'supervision',
   analyze_audio_bytes: 'private_audio_analysis',
   select_qualified_candidate: 'private_audio_analysis',
   preserve_source_music: 'private_asset_binding',
@@ -87,8 +88,10 @@ export function resolveMusicOperationHandlerKind(operationKey: string): MusicOpe
   return MUSIC_EXACT_OPERATION_HANDLERS.find((handler) => handler.operationKey === operationKey)?.kind
 }
 
-export function validateMusicOperationHandlerCoverage(): void {
-  for (const route of MUSIC_TOOL_ROUTE_MANIFESTS) {
+export function validateMusicOperationHandlerCoverage(
+  routes: readonly Pick<(typeof MUSIC_TOOL_ROUTE_MANIFESTS)[number], 'routeKey' | 'steps'>[] = MUSIC_TOOL_ROUTE_MANIFESTS,
+): void {
+  for (const route of routes) {
     for (const step of route.steps) {
       const handler = resolveMusicExactOperationHandler(step)
       if (!handler) throw new Error(`Music route ${route.routeKey} lacks an exact handler for ${step.operationKey}.`)

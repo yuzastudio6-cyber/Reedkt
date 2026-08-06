@@ -1,7 +1,10 @@
 import type { SkillCapabilityManifest, SkillExactRouteReference } from '../core/skill-capability-manifest-types'
 import { assertSkillManifestHash } from '../core/skill-capability-manifest-hash'
 import { MUSIC_CAPABILITY_MODE_MATRIX, validateMusicCapabilityModeMatrix } from './music-capability-mode-matrix'
-import { musicSkillCapabilityManifest } from './music-capability-manifest'
+import {
+  MUSIC_PUBLIC_SERVICE_OUTPUT_ARTIFACT_TYPES,
+  musicSkillCapabilityManifest,
+} from './music-capability-manifest'
 import { MUSIC_MINI_SKILL_MANIFESTS, validateMusicMiniSkillRegistry } from './music-mini-skill-registry'
 import { validateMusicOperationHandlerCoverage } from './music-operation-handler-registry'
 import {
@@ -10,6 +13,7 @@ import {
   getMusicToolRouteManifest,
 } from '../../music/music-tool-routes'
 import { getToolOperationCapability } from '../../tool-registry'
+import { validateMusicAcceptanceEvidenceRegistry } from './music-acceptance-evidence-registry'
 
 const qualificationRank = {
   blocked: 0, retired: 0, declared: 1, implementation_pending: 1,
@@ -18,8 +22,15 @@ const qualificationRank = {
 
 const costRank = { zero: 0, local: 1, provider: 2, unavailable: 3 } as const
 
-function validateReferences(owner: string, refs: readonly SkillExactRouteReference[], jobs?: readonly string[]): void {
+function validateReferences(
+  owner: string,
+  refs: readonly (SkillExactRouteReference | { routeKey: string; routeVersion?: string; routeHash?: string })[],
+  jobs?: readonly string[],
+): void {
   for (const ref of refs) {
+    if (!ref.routeVersion || !ref.routeHash) {
+      throw new Error(`${owner} contains an unversioned or unhashed Music route ${ref.routeKey}.`)
+    }
     const route = getMusicToolRouteManifest(ref.routeKey, ref.routeVersion)
     if (!route || route.routeHash !== ref.routeHash) {
       throw new Error(`${owner} references unresolved Music route ${ref.routeKey}@${ref.routeVersion}.`)
@@ -37,6 +48,16 @@ export function validateCanonicalMusicPublication(
   validateMusicOperationHandlerCoverage()
   validateMusicCapabilityModeMatrix()
   validateMusicMiniSkillRegistry()
+  validateMusicAcceptanceEvidenceRegistry()
+
+  validateReferences('music.manifest.toolRoutes', manifest.toolRoutes)
+  validateReferences('music.manifest.fallbackRoutes', manifest.fallbackRoutes)
+  validateReferences('music.manifest.lowerCostRoutes', manifest.lowerCostRoutes)
+  for (const artifactType of MUSIC_PUBLIC_SERVICE_OUTPUT_ARTIFACT_TYPES) {
+    if (!manifest.producedArtifactTypes.includes(artifactType)) {
+      throw new Error(`Music manifest omits public-service output ${artifactType}.`)
+    }
+  }
 
   const identities = new Set<string>()
   for (const route of MUSIC_TOOL_ROUTE_MANIFESTS) {
@@ -62,6 +83,11 @@ export function validateCanonicalMusicPublication(
         if (!operation.operation.producedArtifactTypes.includes(output)) {
           throw new Error(`Music route ${identity} step ${step.stepKey} has undeclared output ${output}.`)
         }
+      }
+    }
+    for (const output of [...route.producedArtifactTypes, ...route.optionalProducedArtifactTypes]) {
+      if (!manifest.producedArtifactTypes.includes(output)) {
+        throw new Error(`Music route ${identity} publishes undeclared manifest output ${output}.`)
       }
     }
   }

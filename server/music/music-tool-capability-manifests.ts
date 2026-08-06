@@ -195,6 +195,16 @@ export const MUSIC_TOOL_CAPABILITY_MANIFESTS = Object.freeze([
     }],
   }),
   manifest({
+    toolKey: 'music_constraint_resolution_publisher', toolVersion: '3.2.0', toolClass: 'decision_route',
+    boundary: 'private_coordination_service', status: 'planning_qualified',
+    manifestRevision: 'v3', adapterVersion: '3.2.0', contractVersion: '3.2.0', operations: [{
+      key: 'publish_cue_constraint_resolutions', version: '3.2.0', evidenceVersion: 'v3',
+      jobs: ['create_music_cue_sheet'], preset: 'planning', accepted: ['music_cue_sheet_v2'],
+      produced: ['music_cue_constraint_resolution_v3'],
+      limitations: ['Publishes the exact one-resolution-per-caller-constraint record; it does not grant new authority.'],
+    }],
+  }),
+  manifest({
     toolKey: 'music_private_audio_analysis', toolVersion: '2.0.0', toolClass: 'internal_service',
     boundary: 'private_cpu_worker', status: 'internal_execution_qualified', operations: [
       {

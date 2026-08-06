@@ -1707,19 +1707,27 @@ function createMusicTechnicalAutomationReceipt(input: {
     const compiledParametersHash = hash(compiledParameters)
     const appliedParametersHash = hash(appliedParameters)
     const measuredQaRefs = operation === 'place' ? synchronizationQaRefs
-      : ['dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering'].includes(operation) ? mixQaRefs
-        : technicalQaRefs
-    const criticalQaPrefix = operation === 'dialogue_ducking' && extension.dialogueDucking.protectedSpeechRanges.length > 0
-      ? 'mix.measured_duck_envelope.'
-      : operation === 'pan' ? 'mix.measured_pan.'
-        : operation === 'normalize' ? 'technical.true_peak.' : undefined
+      : ['fade', 'gain', 'dialogue_ducking', 'eq', 'dynamics', 'pan'].includes(operation)
+        ? [...mixQaRefs, ...technicalQaRefs]
+        : operation === 'stem_rendering' ? [...technicalQaRefs, ...mixQaRefs]
+          : technicalQaRefs
+    const criticalQaPrefixes = operation === 'dialogue_ducking' &&
+      extension.dialogueDucking.protectedSpeechRanges.length > 0 &&
+      extension.dialogueDucking.attackFrames > 0 && extension.dialogueDucking.releaseFrames > 0
+      ? ['mix.measured_duck_envelope.']
+      : operation === 'pan' ? ['mix.measured_pan.']
+        : operation === 'normalize' ? ['technical.loudness.', 'technical.true_peak.']
+          : operation === 'dynamics' && extension.dynamicsProfile === 'peak_limiter'
+            ? ['mix.measured_peak.'] : []
     const allQa = [...input.qa.technicalOutputQa, ...input.qa.synchronizationQa, ...input.qa.mixQa]
     const matchesQaPrefix = (key: string, prefix: string) =>
       key === prefix.replace(/\.$/u, '') || key.startsWith(prefix)
-    if (criticalQaPrefix && !allQa.some((finding) =>
-      matchesQaPrefix(finding.key, criticalQaPrefix) && finding.disposition === 'pass')) {
-      const matching = allQa.filter((finding) => matchesQaPrefix(finding.key, criticalQaPrefix))
-      throw new Error(`Sound Music technical operation ${operation} lacks passing parameter-specific measured QA: ${JSON.stringify(matching)}.`)
+    for (const criticalQaPrefix of criticalQaPrefixes) {
+      if (!allQa.some((finding) => matchesQaPrefix(finding.key, criticalQaPrefix) &&
+        ['pass', 'warning'].includes(finding.disposition))) {
+        const matching = allQa.filter((finding) => matchesQaPrefix(finding.key, criticalQaPrefix))
+        throw new Error(`Sound Music technical operation ${operation} lacks parameter-specific measured QA ${criticalQaPrefix}: ${JSON.stringify(matching)}.`)
+      }
     }
     const qaFindings = allQa.filter((finding) => measuredQaRefs.includes(finding.key))
     const measuredQaResult = qaFindings.some((finding) => finding.disposition === 'fail') ? 'failed' as const

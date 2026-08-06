@@ -1048,6 +1048,7 @@ export function createSupervisionArtifacts(input: {
   cueGrouping: MusicArtifactEnvelope<MusicCueGroupingPlan>
   cuePolicyConflict?: MusicCuePolicyConflict
   cuePolicyConflictArtifact?: MusicArtifactEnvelope<MusicCuePolicyConflict>
+  cueConstraintResolution: MusicArtifactEnvelope<MusicCueConstraintResolution[]>
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
   cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>
@@ -1079,6 +1080,16 @@ export function createSupervisionArtifacts(input: {
     evidence: ['hard_policy_conflict_fail_closed', grouping.conflict.conflictHash],
   }) : undefined
   const cueSheet = buildMusicCueSheet({ ...input, need, segmentationPlan, groupingPlan: grouping.plan })
+  const cueConstraintResolution = artifact({
+    ...input, artifactType: 'music_cue_constraint_resolution_v3',
+    artifactId: `music.constraint-resolution.${input.request.requestId}`,
+    payload: cueSheet.payload.cueConstraintResolutions,
+    evidence: [
+      'every_caller_constraint_resolved_exactly_once',
+      'locked_authority_preserved',
+      'constraint_resolution_hashes_bound',
+    ],
+  })
   const arc = buildMusicNarrativeArc({ ...input, cues: cueSheet.payload.cues })
   const routeBindings = decideCueRoutes({ request: input.request, need, cueSheet })
   const distinctCueIds = new Set(routeBindings.map((item) => item.cueId))
@@ -1087,6 +1098,6 @@ export function createSupervisionArtifacts(input: {
   return { context, segmentationPlan, segmentation, cueGroupingPlan: grouping.plan, cueGrouping,
     ...(grouping.conflict ? { cuePolicyConflict: grouping.conflict } : {}),
     ...(cuePolicyConflictArtifact ? { cuePolicyConflictArtifact } : {}),
-    need, arc, cueSheet, routeBindings,
+    cueConstraintResolution, need, arc, cueSheet, routeBindings,
     cueConstraintResolutions: cueSheet.payload.cueConstraintResolutions }
 }

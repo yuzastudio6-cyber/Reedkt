@@ -9,7 +9,7 @@ import {
 } from '../edit-skills/core/timeline-rate'
 import type { SkillQualificationStatus } from '../edit-skills/core/edit-skill-ids'
 
-export const MUSIC_SKILL_VERSION = '3.1.0' as const
+export const MUSIC_SKILL_VERSION = '3.2.0' as const
 export const MUSIC_CONTRACT_VERSION = 'music.skill_contract.v3' as const
 export const CANONICAL_MUSIC_REQUEST_SCHEMA_VERSION = 'canonical-music-request-v3' as const
 export const CANONICAL_MUSIC_RESULT_SCHEMA_VERSION = 'canonical-music-result-v3' as const

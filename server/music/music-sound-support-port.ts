@@ -42,6 +42,31 @@ export interface MusicSoundCapabilityView {
   musicMayInvokeLowLevelSoundTools: false
 }
 
+function exactPublishedSoundRoute(routeKey: string) {
+  const route = soundSkillCapabilityManifest.toolRoutes.find((candidate) => candidate.routeKey === routeKey)
+  if (!route?.routeVersion || !route.routeHash) {
+    throw new Error(`Canonical Music cannot publish an unresolved Sound dependency route ${routeKey}.`)
+  }
+  return Object.freeze({ routeKey, routeVersion: route.routeVersion, routeHash: route.routeHash })
+}
+
+const musicAutomationCapability = soundSkillCapabilityManifest.capabilityEntries?.find((entry) =>
+  entry.supportedJobTypes.includes('edit_music_technical_automation'))
+if (!musicAutomationCapability) throw new Error('Canonical Music cannot resolve the Sound Music-automation capability.')
+
+export const MUSIC_CANONICAL_SOUND_DEPENDENCY_IDENTITY = Object.freeze({
+  soundSkillKey: soundSkillCapabilityManifest.skillKey,
+  soundSkillVersion: soundSkillCapabilityManifest.skillVersion,
+  soundContractVersion: soundSkillCapabilityManifest.contractVersion,
+  soundManifestHash: soundSkillCapabilityManifest.manifestHash,
+  capabilityKey: musicAutomationCapability.capabilityKey,
+  capabilityVersion: musicAutomationCapability.capabilityVersion,
+  technicalAutomationRoute: exactPublishedSoundRoute('sound.route.edit.music_technical_automation.v1'),
+  twoSourceCrossfadeRoute: exactPublishedSoundRoute('sound.route.edit.music_two_source_crossfade.v1'),
+  technicalAutomationExtensionVersion: SOUND_MUSIC_TECHNICAL_AUTOMATION_EXTENSION_VERSION,
+  twoSourceCrossfadeExtensionVersion: SOUND_MUSIC_TWO_SOURCE_CROSSFADE_EXTENSION_VERSION,
+})
+
 export interface MusicSoundSupportRequest {
   callerSkillKey: 'music'
   musicSkillVersion: string
@@ -177,6 +202,81 @@ function soundOperation(operation: MusicSoundSupportRequest['requiredOperations'
     stem_rendering: 'render_stem', technical_qa: 'qa',
   }
   return map[operation]
+}
+
+function expectedMusicOperationParameters(
+  request: MusicSoundSupportRequest,
+  operation: MusicSoundSupportRequest['requiredOperations'][number],
+): Record<string, unknown> {
+  const parameters = request.operationParameters
+  if (operation === 'crossfade') {
+    throw new Error('One-source Music technical automation cannot validate a crossfade operation receipt.')
+  }
+  if (operation === 'trim' || operation === 'cut') return {
+    sourceStartFrame: parameters.sourceStartFrame,
+    sourceEndFrameExclusive: parameters.sourceEndFrameExclusive,
+    targetStartFrame: request.delegatedRange.startFrame,
+    targetEndFrameExclusive: request.delegatedRange.endFrameExclusive,
+  }
+  if (operation === 'fade') return { fadeInFrames: parameters.fadeInFrames, fadeOutFrames: parameters.fadeOutFrames }
+  if (operation === 'gain') return { baseGainDb: parameters.gainDb, gainEnvelope: parameters.gainEnvelope }
+  if (operation === 'normalize') return {
+    enabled: true, targetLoudnessLufs: parameters.targetLoudnessLufs,
+    maximumTruePeakDbtp: parameters.maximumTruePeakDbtp,
+  }
+  if (operation === 'loop') return { loopCrossfadeFrames: parameters.loopCrossfadeFrames ?? 0 }
+  if (operation === 'resample') return { sampleRate: parameters.sampleRate }
+  if (operation === 'channel_conversion') return { channelLayout: parameters.channelLayout }
+  if (operation === 'time_stretch') return { tempoRatio: parameters.tempoRatio ?? 1 }
+  if (operation === 'pitch_shift') return { pitchSemitones: parameters.pitchSemitones ?? 0 }
+  if (operation === 'place') return {
+    delegatedRange: request.delegatedRange,
+    targetStartFrame: request.delegatedRange.startFrame,
+    targetEndFrameExclusive: request.delegatedRange.endFrameExclusive,
+  }
+  if (operation === 'dialogue_ducking') return {
+    attenuationDb: parameters.dialogueDuckingDb,
+    attackFrames: parameters.duckAttackFrames,
+    releaseFrames: parameters.duckReleaseFrames,
+    protectedSpeechRanges: request.protectedSpeechRanges,
+  }
+  if (operation === 'eq') return { eqProfile: parameters.eqProfile }
+  if (operation === 'dynamics') return { dynamicsProfile: parameters.dynamicsProfile }
+  if (operation === 'pan') return { pan: parameters.pan }
+  if (operation === 'stem_rendering') return {
+    renderStem: true, headroomDb: parameters.headroomDb,
+    distance: parameters.distance, roomMatch: parameters.roomMatch,
+  }
+  if (operation === 'technical_qa') return { requiredQa: [
+    'technical',
+    ...(request.requiredOperations.includes('place') ? ['synchronization'] : []),
+    ...(request.requiredOperations.some((item) =>
+      ['dialogue_ducking', 'eq', 'dynamics', 'pan', 'stem_rendering'].includes(item)) ? ['mix'] : []),
+  ] }
+  throw new Error(`Music operation ${operation} has no exact parameter validator.`)
+}
+
+function requiredMeasuredEvidencePrefixes(
+  request: MusicSoundSupportRequest,
+  operation: MusicSoundSupportRequest['requiredOperations'][number],
+): string[] {
+  if (operation === 'normalize') return ['technical.loudness.', 'technical.true_peak.']
+  if (operation === 'resample') return ['technical.sample_rate.']
+  if (operation === 'channel_conversion') return ['technical.channels.']
+  if (operation === 'place') return ['sound.measured.sync_qa.']
+  if (operation === 'fade') return ['mix.measured_fades.']
+  if (operation === 'gain') return ['mix.measured_gain_envelope.']
+  if (operation === 'dialogue_ducking' && request.protectedSpeechRanges.length > 0 &&
+    request.operationParameters.duckAttackFrames > 0 && request.operationParameters.duckReleaseFrames > 0) {
+    return ['mix.measured_duck_envelope.']
+  }
+  if (operation === 'dynamics' && request.operationParameters.dynamicsProfile === 'peak_limiter') {
+    return ['mix.measured_peak.']
+  }
+  if (operation === 'pan') return ['mix.measured_pan.']
+  if (operation === 'stem_rendering') return ['technical.checksum.']
+  if (operation === 'technical_qa') return ['technical.decode.', 'technical.duration.', 'technical.checksum.']
+  return ['technical.decode.']
 }
 
 function buildCanonicalSoundRequest(request: MusicSoundSupportRequest): CanonicalSoundRequest {
@@ -545,19 +645,31 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
     if (receipt.appliedOperationReceipts.length !== request.supportRequest.requiredOperations.length) {
       errors.push('sound_operation_receipt_count_mismatch')
     }
+    if (hashMusicValue(receipt.requiredMusicOperations) !== hashMusicValue(request.supportRequest.requiredOperations) ||
+      hashMusicValue(receipt.appliedOperationReceipts.map((operation) => operation.operation)) !==
+      hashMusicValue(request.supportRequest.requiredOperations)) {
+      errors.push('sound_operation_receipt_identity_mismatch')
+    }
     if (receipt.appliedOperationReceipts.some((operation) =>
       operation.receivedParametersHash !== operation.appliedParametersHash)) {
       errors.push('sound_operation_parameters_not_applied_exactly')
     }
     for (const operation of receipt.appliedOperationReceipts) {
       const { receiptHash, ...receiptCore } = operation
-      const stableApplied = JSON.stringify(operation.appliedParameters, Object.keys(operation.appliedParameters).sort())
-      const stableCompiled = JSON.stringify(operation.compiledParameters, Object.keys(operation.compiledParameters).sort())
+      const requestedOperation = request.supportRequest.requiredOperations.find((item) => item === operation.operation)
+      if (!requestedOperation) {
+        errors.push(`sound_operation_not_requested:${operation.operation}`)
+        continue
+      }
+      const expectedParameters = expectedMusicOperationParameters(request.supportRequest, requestedOperation)
       if (operation.receivedParametersHash !== hashMusicValue(operation.requestedParameters) ||
         operation.compiledParametersHash !== hashMusicValue(operation.compiledParameters) ||
         operation.appliedParametersHash !== hashMusicValue(operation.appliedParameters) ||
         operation.receivedParametersHash !== operation.compiledParametersHash ||
-        stableApplied !== stableCompiled) errors.push(`sound_operation_parameter_receipt_invalid:${operation.operation}`)
+        operation.compiledParametersHash !== operation.appliedParametersHash ||
+        operation.receivedParametersHash !== hashMusicValue(expectedParameters)) {
+        errors.push(`sound_operation_parameter_receipt_invalid:${operation.operation}`)
+      }
       if (receiptHash !== hashMusicValue(receiptCore)) errors.push(`sound_operation_receipt_hash_invalid:${operation.operation}`)
       if (!operation.sourceArtifactIds.includes(request.supportRequest.selectedMusicArtifact.artifactId) ||
         !operation.sourceArtifactHashes.includes(request.supportRequest.selectedMusicArtifact.checksumSha256)) {
@@ -578,6 +690,12 @@ export class CanonicalSoundV4MusicSupportAdapter implements MusicSoundSupportPor
       }
       if (operation.measuredQaRefs.length === 0 || operation.measuredQaResult === 'failed' ||
         operation.status !== 'completed') errors.push(`sound_operation_qa_invalid:${operation.operation}`)
+      for (const prefix of requiredMeasuredEvidencePrefixes(request.supportRequest, requestedOperation)) {
+        const base = prefix.replace(/\.$/u, '')
+        if (!operation.measuredQaRefs.some((ref) => ref === base || ref.startsWith(prefix))) {
+          errors.push(`sound_operation_measured_evidence_invalid:${operation.operation}:${prefix}`)
+        }
+      }
     }
     if (receipt.mutationRanges.some((range) =>
       range.startFrame < request.supportRequest.delegatedRange.startFrame ||

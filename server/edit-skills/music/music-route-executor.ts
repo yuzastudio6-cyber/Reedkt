@@ -68,6 +68,7 @@ export interface ApprovedMusicExecutionPackage {
   segmentation: MusicArtifactEnvelope<MusicSoundtrackSegmentationPlan>
   cueGroupingPlan: MusicCueGroupingPlan
   cueGrouping: MusicArtifactEnvelope<MusicCueGroupingPlan>
+  cueConstraintResolution: MusicArtifactEnvelope<MusicCueConstraintResolution[]>
   cueConstraintResolutions: MusicCueConstraintResolution[]
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
   arc: MusicArtifactEnvelope<MusicNarrativeArcPayload>
@@ -267,6 +268,28 @@ function bindActualRouteOutputs(input: {
   return bindings
 }
 
+function topologicalRouteSteps(route: Readonly<MusicToolRouteManifest>): MusicRouteStep[] {
+  const byKey = new Map(route.steps.map((step) => [step.stepKey, step]))
+  const ordered: MusicRouteStep[] = []
+  const visiting = new Set<string>()
+  const visited = new Set<string>()
+  const visit = (step: MusicRouteStep): void => {
+    if (visiting.has(step.stepKey)) throw new Error(`Music route ${route.routeKey} contains a runtime dependency cycle.`)
+    if (visited.has(step.stepKey)) return
+    visiting.add(step.stepKey)
+    for (const dependencyKey of step.dependencyStepKeys) {
+      const dependency = byKey.get(dependencyKey)
+      if (!dependency) throw new Error(`Music route ${route.routeKey} lost dependency ${dependencyKey}.`)
+      visit(dependency)
+    }
+    visiting.delete(step.stepKey)
+    visited.add(step.stepKey)
+    ordered.push(step)
+  }
+  route.steps.forEach(visit)
+  return ordered
+}
+
 function cueFor(cueSheet: MusicArtifactEnvelope<MusicCueSheetPayload>, cueId: string) {
   return cueSheet.payload.cues.find((cue) => cue.cueId === cueId)
 }
@@ -363,7 +386,8 @@ export class CanonicalMusicRouteExecutor {
     if (input.executionGraph.requestId !== input.request.requestId) throw new Error('Music graph/request binding mismatch.')
     const state: ExecutionState = {
       artifacts: [
-        input.context, input.segmentation, input.cueGrouping, input.need, input.arc, input.cueSheet,
+        input.context, input.segmentation, input.cueGrouping, input.cueConstraintResolution,
+        input.need, input.arc, input.cueSheet,
         artifactFromPayload({ request: input.request, artifactType: 'music_motif_plan_v2',
           artifactId: `music.motif.${input.request.requestId}`, payload: {
             motifCues: input.cueSheet.payload.cues.filter((cue) => cue.motifRole !== 'none')
@@ -414,43 +438,70 @@ export class CanonicalMusicRouteExecutor {
         assertMusicRouteAdmission({ ...unit.route, jobType: unit.jobType, mode: unitMode })
         const route = getMusicToolRouteManifest(unit.route.routeKey, unit.route.routeVersion)
         if (!route || route.routeHash !== unit.route.routeHash) throw new Error('Music execution route identity is stale.')
-        if (route.steps.length !== 1) {
-          throw new Error(`Music v3 unit ${unit.unitId} requires one exact executable route step; found ${route.steps.length}.`)
+        const routeSteps = topologicalRouteSteps(route)
+        const stepReceipts: MusicRouteStepReceipt[] = []
+        const aggregateOutputBindings: MusicRuntimeStepOutputBinding[] = []
+        const aggregateOutputArtifacts: MusicArtifactRef[] = []
+        const aggregateOutputHashes: string[] = []
+        const aggregateRuntimeEvidence: string[] = []
+        const aggregateQaEvidence: string[] = []
+        let aggregateProviderCostUsd = 0
+        let aggregateProviderAttemptId: string | undefined
+        for (const step of routeSteps) {
+          const handler = resolveMusicExactOperationHandler(step)
+          if (!handler) throw new Error(`Music route step ${step.stepKey} has no exact immutable handler.`)
+          const artifactCountBeforeStep = state.artifacts.length
+          const stepStartedClock = performance.now()
+          const stepStartedAt = new Date().toISOString()
+          const details = await this.#executeUnit({ package: input, unit, state, step, handler })
+          const stepCompletedAt = new Date().toISOString()
+          const inputArtifacts = details.inputArtifacts ?? []
+          const outputArtifacts = details.outputArtifacts ?? []
+          const outputHashes = [
+            ...outputArtifacts.map((artifact) => artifact.checksumSha256), ...(details.outputHashes ?? []),
+          ]
+          const envelopeOutputs = state.artifacts.filter((artifact) => outputHashes.includes(artifact.artifactHash))
+          const outputBindings = bindActualRouteOutputs({
+            route, step,
+            newEnvelopes: state.artifacts.slice(artifactCountBeforeStep),
+            referencedEnvelopes: envelopeOutputs,
+            privateArtifacts: outputArtifacts,
+          })
+          const dependencyReceipts = stepReceipts.filter((receipt) =>
+            step.dependencyStepKeys.includes(receipt.stepKey))
+          const dependencyInputIds = dependencyReceipts.flatMap((receipt) => receipt.outputArtifactIds)
+          const dependencyInputHashes = dependencyReceipts.flatMap((receipt) => receipt.outputArtifactHashes)
+          stepReceipts.push(routeStepReceipt({
+            step, handler, status: 'completed', startedAt: stepStartedAt, completedAt: stepCompletedAt,
+            elapsedMilliseconds: performance.now() - stepStartedClock,
+            inputArtifactIds: inputArtifacts.length > 0 ? inputArtifacts.map((artifact) => artifact.artifactId)
+              : dependencyInputIds.length > 0 ? dependencyInputIds : unit.inputArtifactIds,
+            inputArtifactHashes: inputArtifacts.length > 0 ? inputArtifacts.map((artifact) => artifact.checksumSha256)
+              : dependencyInputHashes.length > 0 ? dependencyInputHashes : unit.inputArtifactHashes,
+            outputArtifactIds: [...outputArtifacts.map((artifact) => artifact.artifactId),
+              ...envelopeOutputs.map((artifact) => artifact.artifactId)],
+            outputArtifactHashes: outputHashes, outputBindings,
+            runtimeEvidence: details.runtimeEvidence ?? [], qaEvidence: details.qaEvidence ?? [],
+            providerCostUsd: details.providerCostUsd ?? 0,
+            ...(details.providerAttemptId ? { providerAttemptId: details.providerAttemptId } : {}),
+          }))
+          aggregateOutputBindings.push(...outputBindings)
+          aggregateOutputArtifacts.push(...outputArtifacts)
+          aggregateOutputHashes.push(...outputHashes)
+          aggregateRuntimeEvidence.push(...(details.runtimeEvidence ?? []))
+          aggregateQaEvidence.push(...(details.qaEvidence ?? []))
+          aggregateProviderCostUsd += details.providerCostUsd ?? 0
+          aggregateProviderAttemptId = details.providerAttemptId ?? aggregateProviderAttemptId
         }
-        const step = route.steps[0]!
-        const handler = resolveMusicExactOperationHandler(step)
-        if (!handler) throw new Error(`Music route step ${step.stepKey} has no exact immutable handler.`)
-        const artifactCountBeforeStep = state.artifacts.length
-        const details = await this.#executeUnit({ package: input, unit, state, step, handler })
         const completedAt = new Date().toISOString()
         const elapsedMilliseconds = performance.now() - unitStart
-        const inputArtifacts = details.inputArtifacts ?? []
-        const outputArtifacts = details.outputArtifacts ?? []
-        const outputHashes = [
-          ...outputArtifacts.map((artifact) => artifact.checksumSha256), ...(details.outputHashes ?? []),
-        ]
-        const envelopeOutputs = state.artifacts.filter((artifact) => outputHashes.includes(artifact.artifactHash))
-        const outputBindings = bindActualRouteOutputs({
-          route, step,
-          newEnvelopes: state.artifacts.slice(artifactCountBeforeStep),
-          referencedEnvelopes: envelopeOutputs,
-          privateArtifacts: outputArtifacts,
-        })
-        const stepReceipt = routeStepReceipt({
-          step, handler, status: 'completed', startedAt: unitStartedAt, completedAt, elapsedMilliseconds,
-          inputArtifactIds: inputArtifacts.length > 0 ? inputArtifacts.map((artifact) => artifact.artifactId) : unit.inputArtifactIds,
-          inputArtifactHashes: inputArtifacts.length > 0 ? inputArtifacts.map((artifact) => artifact.checksumSha256) : unit.inputArtifactHashes,
-          outputArtifactIds: [...outputArtifacts.map((artifact) => artifact.artifactId),
-            ...envelopeOutputs.map((artifact) => artifact.artifactId)],
-          outputArtifactHashes: outputHashes,
-          outputBindings,
-          runtimeEvidence: details.runtimeEvidence ?? [], qaEvidence: details.qaEvidence ?? [],
-          providerCostUsd: details.providerCostUsd ?? 0,
-          ...(details.providerAttemptId ? { providerAttemptId: details.providerAttemptId } : {}),
-        })
         state.unitReceipts.push(receipt({
           unit, status: 'completed', startedAt: unitStartedAt, completedAt,
-          elapsedMilliseconds, ...details, outputBindings, stepReceipts: [stepReceipt],
+          elapsedMilliseconds, outputArtifacts: aggregateOutputArtifacts,
+          outputHashes: aggregateOutputHashes, outputBindings: aggregateOutputBindings,
+          runtimeEvidence: aggregateRuntimeEvidence, qaEvidence: aggregateQaEvidence,
+          providerCostUsd: aggregateProviderCostUsd, stepReceipts,
+          ...(aggregateProviderAttemptId ? { providerAttemptId: aggregateProviderAttemptId } : {}),
         }))
       } catch (error) {
         state.failedUnits.add(unit.unitId)
@@ -483,6 +534,8 @@ export class CanonicalMusicRouteExecutor {
       const artifact = input.step.operationKey === 'study_video_music_context' ? input.package.context
         : input.step.operationKey === 'decide_music_need' ? input.package.need
           : input.step.operationKey === 'group_music_cues' ? input.package.cueGrouping
+            : input.step.operationKey === 'publish_cue_constraint_resolutions'
+              ? input.package.cueConstraintResolution
           : input.step.operationKey === 'plan_music_narrative_arc' ? input.package.arc
             : input.step.operationKey === 'create_music_cue_sheet' ? input.package.cueSheet : undefined
       return {
@@ -915,6 +968,19 @@ export class CanonicalMusicRouteExecutor {
       receiptHash: '',
     }
     const acceptanceReceipt = { ...acceptanceCore, receiptHash: hashMusicValue(acceptanceCore) }
+    const acceptanceReceiptArtifact = createMusicArtifact({
+      artifactId: acceptanceReceipt.receiptId, artifactVersion: 1,
+      schemaVersion: 'music_acceptance_receipt_v3.schema.v3',
+      artifactType: 'music_acceptance_receipt_v3', requestId: request.requestId,
+      sourceArtifactHashes: [...acceptanceReceipt.inputBindingHashes, ...acceptanceReceipt.outputBindingHashes],
+      timelineHash: request.timelineBinding.timelineManifestHash,
+      timelineRate: request.timelineBinding.rationalTimelineRate,
+      qualificationEvidence: [acceptanceReceipt.evidenceKey, ...acceptanceReceipt.assertionKeys],
+      createdAt: new Date().toISOString(),
+      invalidationKeys: ['manifest_hash', 'route_hash', 'handler_identity', 'output_hash'],
+      revisionLineage: [], payload: acceptanceReceipt,
+    })
+    input.state.artifacts.push(acceptanceReceiptArtifact)
     const result: CanonicalMusicSkillResult = {
       schemaVersion: 'canonical-music-result-v3', requestId: request.requestId,
       musicSkillKey: 'music', musicSkillVersion: musicSkillCapabilityManifest.skillVersion,

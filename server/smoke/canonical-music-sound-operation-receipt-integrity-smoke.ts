@@ -3,6 +3,7 @@ import {
   CanonicalSoundV4MusicSupportAdapter,
   createMusicSoundSupportRequest,
 } from '../music/music-sound-support-port'
+import { hashMusicValue } from '../music/music-contracts'
 import { createCanonicalMusicTestRuntime } from './canonical-music-test-runtime'
 import { makeCanonicalMusicRequest, makeMusicCue, makeMusicRights, testHash } from './canonical-music-test-fixtures'
 
@@ -22,7 +23,9 @@ const supportRequest = createMusicSoundSupportRequest({
   request, cueId: cue.cueId, delegatedRange: range, selectedMusicArtifact: source,
   protectedSpeechRanges: [protectedSpeechRange],
   requiredOperations: [
-    'trim', 'fade', 'gain', 'normalize', 'dialogue_ducking', 'pan', 'stem_rendering', 'technical_qa',
+    'trim', 'cut', 'fade', 'gain', 'normalize', 'loop', 'resample', 'channel_conversion',
+    'time_stretch', 'pitch_shift', 'place', 'dialogue_ducking', 'eq', 'dynamics', 'pan',
+    'stem_rendering', 'technical_qa',
   ],
   operationParameters: {
     sourceStartFrame: 0, sourceEndFrameExclusive: 192, targetDurationFrames: 192,
@@ -33,6 +36,7 @@ const supportRequest = createMusicSoundSupportRequest({
     distance: 'distant', roomMatch: 'dry', headroomDb: 8,
     targetLoudnessLufs: -20, maximumTruePeakDbtp: -1,
     sampleRate: 48_000, channelLayout: 'stereo',
+    tempoRatio: 1.05, pitchSemitones: 1, loopCrossfadeFrames: 2,
   },
 })
 const adapter = new CanonicalSoundV4MusicSupportAdapter(runtime.sound)
@@ -60,6 +64,13 @@ const normalize = receipts.find((receipt) => receipt.operation === 'normalize')
 assert.ok(duck?.measuredQaRefs.some((ref) => ref.includes('measured_duck_envelope')))
 assert.ok(pan?.measuredQaRefs.some((ref) => ref.includes('measured_pan')))
 assert.ok(normalize?.measuredQaRefs.some((ref) => ref.includes('technical.true_peak')))
+
+const expectedOneSourceOperations = [
+  'trim', 'cut', 'fade', 'gain', 'normalize', 'loop', 'resample', 'channel_conversion',
+  'time_stretch', 'pitch_shift', 'place', 'dialogue_ducking', 'eq', 'dynamics', 'pan',
+  'stem_rendering', 'technical_qa',
+]
+assert.deepEqual(receipts.map((receipt) => receipt.operation), expectedOneSourceOperations)
 
 async function tamperOperation(
   operationName: string,
@@ -97,6 +108,33 @@ await tamperOperation('technical_qa', (operation) => {
   operation.receiptHash = testHash('tampered-operation-receipt')
 }, /receipt_hash_invalid/u)
 
+for (const operationName of expectedOneSourceOperations) {
+  await tamperOperation(operationName, (operation) => {
+    operation.requestedParameters = { ...operation.requestedParameters, tamperedParameter: operationName }
+  }, /parameter_receipt_invalid/u)
+}
+
+async function tamperMeasuredEvidence(
+  operationName: 'dialogue_ducking' | 'pan' | 'normalize',
+  forbiddenEvidence: RegExp,
+) {
+  const tampered = structuredClone(supportResult)
+  const operation = tampered.receipt.appliedOperationReceipts.find((item) => item.operation === operationName)
+  assert.ok(operation)
+  operation.measuredQaRefs = operation.measuredQaRefs.filter((ref) => !forbiddenEvidence.test(ref))
+  const { receiptHash: _receiptHash, ...receiptCore } = operation
+  assert.ok(_receiptHash)
+  operation.receiptHash = hashMusicValue(receiptCore)
+  const qa = await adapter.qa({ supportRequest, supportResult: tampered })
+  assert.equal(qa.accepted, false)
+  assert.ok(qa.errors.some((error) => /operation_qa_invalid|measured_evidence_invalid/u.test(error)),
+    JSON.stringify(qa.errors))
+}
+
+await tamperMeasuredEvidence('dialogue_ducking', /measured_duck_envelope/u)
+await tamperMeasuredEvidence('pan', /measured_pan/u)
+await tamperMeasuredEvidence('normalize', /technical\.(?:integrated_loudness|true_peak)/u)
+
 console.log(JSON.stringify({
   status: 'ok', operationCount: receipts.length,
   operations: receipts.map((receipt) => ({
@@ -106,5 +144,5 @@ console.log(JSON.stringify({
     outputHashCount: receipt.outputArtifactHashes.length,
     measuredQaResult: receipt.measuredQaResult,
   })),
-  tamperCasesRejected: 7,
+  tamperCasesRejected: 7 + expectedOneSourceOperations.length + 3,
 }, null, 2))

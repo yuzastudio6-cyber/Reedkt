@@ -24,7 +24,8 @@ assert.ok(result.soundSupportReceipts[0]!.mutationRanges.every((mutation) =>
   mutation.startFrame >= range.startFrame && mutation.endFrameExclusive <= range.endFrameExclusive))
 assert.ok(result.soundSupportReceipts[0]!.technicalQaRefs.length > 0)
 assert.ok(result.unitReceipts.every((receipt) => receipt.status === 'completed'))
-assert.ok(result.unitReceipts.every((receipt) => receipt.stepReceipts.length === 1))
+assert.ok(result.unitReceipts.every((receipt) => receipt.stepReceipts.length >= 1))
+assert.equal(result.unitReceipts.find((receipt) => receipt.unitId.endsWith('-cue-sheet'))?.stepReceipts.length, 2)
 assert.ok(result.unitReceipts.flatMap((receipt) => receipt.stepReceipts).every((step) =>
   step.status === 'completed' && step.handlerIdentity.length > 0 && step.receiptHash.length === 64))
 assert.ok(result.unitReceipts.every((receipt) => receipt.elapsedMilliseconds >= 0))

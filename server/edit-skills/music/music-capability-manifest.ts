@@ -32,9 +32,19 @@ export const MUSIC_ACCEPTED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
   ...MUSIC_TOOL_ROUTE_MANIFESTS.flatMap((route) => route.requiredInputs),
 ])))
 
+export const MUSIC_PUBLIC_SERVICE_OUTPUT_ARTIFACT_TYPES = Object.freeze([
+  'music_soundtrack_segmentation_plan_v3',
+  'music_acceptance_receipt_v3',
+  'music_crossfade_plan_v3',
+  'music_crossfade_audio',
+  'music_crossfade_receipt_v3',
+  'music_sound_operation_receipt_v3',
+] as const)
+
 export const MUSIC_PRODUCED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
   'music_plan_v2', 'music_result_v2', 'music_context_study_v2', 'music_need_decision_v2',
-  'music_soundtrack_segmentation_plan_v3', 'music_cue_grouping_plan_v3', 'music_cue_policy_conflict_v3',
+  'music_soundtrack_segmentation_plan_v3', 'music_cue_grouping_plan_v3',
+  'music_cue_constraint_resolution_v3', 'music_cue_policy_conflict_v3', 'music_acceptance_receipt_v3',
   'intentional_silence_decision_v2', 'music_narrative_arc_v2', 'music_cue_strategy_v2',
   'music_cue_sheet_v2', 'canonical_music_cue_v2', 'music_motif_plan_v2',
   'music_continuity_plan_v2', 'music_existing_study_v2', 'music_user_intake_v2',
@@ -52,6 +62,7 @@ export const MUSIC_PRODUCED_ARTIFACT_TYPES = Object.freeze(Array.from(new Set([
   'processed_music_audio_v2', 'music_stem_audio_v2',
   'music_crossfade_plan_v3', 'music_crossfade_audio', 'music_crossfade_receipt_v3',
   'music_sound_operation_receipt_v3',
+  ...MUSIC_PUBLIC_SERVICE_OUTPUT_ARTIFACT_TYPES,
   ...MUSIC_TOOL_ROUTE_MANIFESTS.flatMap((route) => route.producedArtifactTypes),
 ])))
 

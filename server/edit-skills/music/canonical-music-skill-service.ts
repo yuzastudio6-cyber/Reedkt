@@ -93,6 +93,7 @@ export interface CanonicalMusicPlanResult {
   cueGrouping: MusicArtifactEnvelope<MusicCueGroupingPlan>
   cuePolicyConflict?: MusicCuePolicyConflict
   cuePolicyConflictArtifact?: MusicArtifactEnvelope<MusicCuePolicyConflict>
+  cueConstraintResolution: MusicArtifactEnvelope<MusicCueConstraintResolution[]>
   cueConstraintResolutions: MusicCueConstraintResolution[]
   acceptanceReceipts: MusicAcceptanceReceipt[]
   need: MusicArtifactEnvelope<MusicNeedDecisionPayload>
@@ -296,6 +297,7 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       },
       context: plan.context, segmentationPlan: plan.segmentationPlan, segmentation: plan.segmentation,
       cueGroupingPlan: plan.cueGroupingPlan, cueGrouping: plan.cueGrouping,
+      cueConstraintResolution: plan.cueConstraintResolution,
       cueConstraintResolutions: plan.cueConstraintResolutions, need: plan.need, arc: plan.arc,
       cueSheet: plan.cueSheet, routeBindings: plan.routeBindings, resolvedContext: plan.resolvedContext,
       executionGraph: plan.executionGraph,
@@ -567,11 +569,13 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       outputArtifactIds: [supervision.context.artifactId, supervision.segmentation.artifactId,
         supervision.cueGrouping.artifactId, ...(supervision.cuePolicyConflictArtifact
           ? [supervision.cuePolicyConflictArtifact.artifactId] : []),
-        supervision.need.artifactId, supervision.arc.artifactId, supervision.cueSheet.artifactId],
+        supervision.cueConstraintResolution.artifactId, supervision.need.artifactId,
+        supervision.arc.artifactId, supervision.cueSheet.artifactId],
       outputBindingHashes: [supervision.context.artifactHash, supervision.segmentation.artifactHash,
         supervision.cueGrouping.artifactHash, ...(supervision.cuePolicyConflictArtifact
           ? [supervision.cuePolicyConflictArtifact.artifactHash] : []),
-        supervision.need.artifactHash, supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
+        supervision.cueConstraintResolution.artifactHash, supervision.need.artifactHash,
+        supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
       assertionKeys: [...acceptanceEvidence.assertionKeys],
       evidenceRefs: [supervision.segmentationPlan.planHash, supervision.cueGroupingPlan.groupingHash,
         ...(supervision.cuePolicyConflict ? [supervision.cuePolicyConflict.conflictHash] : []),
@@ -584,11 +588,25 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
         outputHashes: [supervision.context.artifactHash, supervision.segmentation.artifactHash,
           supervision.cueGrouping.artifactHash, ...(supervision.cuePolicyConflictArtifact
             ? [supervision.cuePolicyConflictArtifact.artifactHash] : []),
-          supervision.need.artifactHash, supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
+          supervision.cueConstraintResolution.artifactHash, supervision.need.artifactHash,
+          supervision.arc.artifactHash, supervision.cueSheet.artifactHash],
       }),
       status: policyBlocked ? 'blocked' as const : 'planned' as const,
       receiptHash: '',
     }
+    const acceptanceReceipt = { ...acceptanceCore, receiptHash: hashMusicValue(acceptanceCore) }
+    const acceptanceReceiptArtifact = createMusicArtifact({
+      artifactId: acceptanceReceipt.receiptId, artifactVersion: 1,
+      schemaVersion: 'music_acceptance_receipt_v3.schema.v3',
+      artifactType: 'music_acceptance_receipt_v3', requestId: request.requestId,
+      sourceArtifactHashes: [...acceptanceReceipt.inputBindingHashes, ...acceptanceReceipt.outputBindingHashes],
+      timelineHash: request.timelineBinding.timelineManifestHash,
+      timelineRate: request.timelineBinding.rationalTimelineRate,
+      qualificationEvidence: [acceptanceReceipt.evidenceKey, ...acceptanceReceipt.assertionKeys],
+      createdAt: new Date().toISOString(),
+      invalidationKeys: ['manifest_hash', 'route_hash', 'handler_identity', 'output_hash'],
+      revisionLineage: [], payload: acceptanceReceipt,
+    })
     const result: CanonicalMusicSkillResult = {
       schemaVersion: 'canonical-music-result-v3', requestId: request.requestId,
       musicSkillKey: 'music', musicSkillVersion: musicSkillCapabilityManifest.skillVersion,
@@ -605,12 +623,13 @@ export class StandaloneCanonicalMusicSkillService implements CanonicalMusicSkill
       actualMusicMutationRanges: [], intentionalNoMusicRanges: noMusic ? request.scopeAuthority.authorizedMusicWriteRanges : [],
       artifacts: [supervision.context, supervision.segmentation, supervision.cueGrouping,
         ...(supervision.cuePolicyConflictArtifact ? [supervision.cuePolicyConflictArtifact] : []),
-        supervision.need, supervision.arc, supervision.cueSheet],
+        supervision.cueConstraintResolution, supervision.need, supervision.arc, supervision.cueSheet,
+        acceptanceReceiptArtifact],
       segmentationPlan: supervision.segmentationPlan,
       cueGroupingPlan: supervision.cueGroupingPlan,
       ...(supervision.cuePolicyConflict ? { cuePolicyConflict: supervision.cuePolicyConflict } : {}),
       cueConstraintResolutions: supervision.cueConstraintResolutions,
-      acceptanceReceipts: [{ ...acceptanceCore, receiptHash: hashMusicValue(acceptanceCore) }],
+      acceptanceReceipts: [acceptanceReceipt],
       unitReceipts: [], routeReceipts: [],
       executionFingerprint: hashMusicValue({ request, supervision: {
         context: supervision.context.artifactHash, need: supervision.need.artifactHash,

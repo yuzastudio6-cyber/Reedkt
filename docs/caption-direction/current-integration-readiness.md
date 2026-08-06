@@ -82,24 +82,22 @@ the source handoff from already-persisted runtime/measurement/private-review
 evidence to `ready_for_specialist_resume`; it does not create live owner
 evidence, run the resume, or change the 41/41 source-readiness count.
 
-The reconciled backend source now also carries the stricter SAM 3.1
-source/checkpoint qualification ending at backend commit
-`62607cd4ef81427720690a877517343c0337222d`. Its canonical source smoke records
-three deterministic strict-load A100 qualification runs and a
-`qualified_for_private_image_build` disposition. That evidence qualifies the
-fixed source/checkpoint pair for the next private image-build stage; it does
-not claim that the image was built, that A100/L4 scene inference ran, or that
-Caption consumed a scene-specific Track All result. The terminal count remains
-unchanged.
+The reconciled backend source now includes the published SAM 3.1/Track All
+foundation through backend commit
+`4c1ef11eb855de981bfd4fc90b69a2b3a43d3de1`, merged into this Caption branch by
+`16993c4ead82d256b8d7777d3072ee0fe866c80d`. The combined tree contains the
+source/checkpoint qualification runtime, exact A100 foundation observations,
+private official-artifact ingest contracts, L4 task-QA deployment observation
+and image-qualification owners, funded lifecycle, terminal-stop/cost
+reconciliation, task-QA finalization, and the Caption evidence finalizer.
 
-The Caption integration branch is now reconciled with the backend workflow
-base through `62607cd4ef81427720690a877517343c0337222d`; the earlier Track All
-repair cutoff was `d8cbfc163dd9a40ddcb22e8dfee6bf0328d2b530`. The combined tree
-includes the newer L4 task-QA start, funded lifecycle, terminal-stop/cost
-reconciliation, task-QA evidence finalizer, and Caption evidence finalizer.
-This removes the Git merge/publication conflict and preserves the correct
-runtime owner, but no exact terminal Caption scene has yet consumed a persisted
-Track All owner record. The 0/41 terminal count therefore remains unchanged.
+The current backend release suite still truthfully reports
+`sam31CloudInstallQualified=false`, immutable A100/L4 images unqualified for the
+active release, and the L4 heavy fallback unreleased. The source contracts and
+owner mounts are therefore current, but no exact terminal Caption scene has
+consumed a persisted Track All result plus separately funded L4 measurement,
+complete-range private scene review, and final Caption evidence record. The
+0/41 terminal count remains unchanged.
 
 Sound uses exact canonical execution/result rereads, private final-audio byte
 rereads, measured synchronization and dialogue-protection QA, and an admitted

@@ -171,7 +171,7 @@ const receipt = buildCanonicalTrackAllSam31L4TaskQaPrivateQualificationReceipt({
       'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4',
     jobUid: '6cde9050-a555-406f-8c8c-a6123d0ddc88',
     immutableImageDigest:
-      'sha256:fb9ced131438f50c7273f11fd47febfb2b7d440e1ae3d18f78151d33ce4e83de',
+      'sha256:5ccb7b8be3fae729a07cb38663265fe78419f1e273310f57bed092b09b36dd71',
     accelerator: 'nvidia_l4',
     allocatedGpuCount: 1,
     allocatedVcpuCount: 8,

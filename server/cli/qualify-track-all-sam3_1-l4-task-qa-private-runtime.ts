@@ -67,48 +67,48 @@ const POLL_INTERVAL_MS = 2_000
 
 const supplyRefs = Object.freeze({
   imageBuildAuthorityRef: ref(
-    'track-all-l4-task-qa-cloud-image-build-4c27860eb6e05494d81099c3',
-    '00fdafb9f273a13a5f209a963622beb4b14e958047fac4348b9ec10eb21ab979',
+    'track-all-l4-task-qa-cloud-image-build-e8d846e8612ef7d03ecad337',
+    '6e0b4f170b7897a2014b0b54e7113233b16799ec595792905b482cc1b3e6aec8',
   ),
   imageBuildSubmissionRef: ref(
-    'track-all-l4-cloud-build-submission-2347191f8d2952c12cd8c4d6',
-    '2347191f8d2952c12cd8c4d6e4b2bcc1fb5df1f0a6f52bd87a0c8fbb5f12e4a9',
+    'track-all-l4-cloud-build-submission-4ab1e29f2e1ebb96d0c52be4',
+    '4ab1e29f2e1ebb96d0c52be4ab927d9c6c71dfba606849b317492da2f65b0124',
   ),
   imageBuildTerminalRef: ref(
-    'track-all-l4-cloud-build-terminal-06299a429cfbcdc715e8f7ba',
-    'b792597f1139a544abe0d48365c255e4b83eb471e9affe001b87c1459c4252ab',
+    'track-all-l4-cloud-build-terminal-796e77e032b95b8287f77d32',
+    '712f9206a5c4a99209af7c8406d213327d2e10bae1f5f2e1a6f1d7f99ee5c381',
   ),
   supplyChainAdmissionRef: ref(
-    'track-all-l4-image-supply-chain-b792597f1139a544abe0d483',
-    'fecec3bcaa67307f3617ed70df70258e86df5c779a1aaad8c449973d771e2a4f',
+    'track-all-l4-image-supply-chain-712f9206a5c4a99209af7c84',
+    '9dc36a5197e8c1c4978aa1d3e315eb6301d7727a9834eeca96deb6b80f0c8426',
   ),
   supplyChainSubmissionRef: ref(
-    'track-all-l4-supply-chain-submission-a7cfa881c73fdeeb083dc047',
-    'a7cfa881c73fdeeb083dc047012b8f15126daef4d713b2db232f5743bb9ca4a3',
+    'track-all-l4-supply-chain-submission-f44b1eb68bde20ac1e6a3a9e',
+    'f44b1eb68bde20ac1e6a3a9eed28ec9cd87792ecf8ac579b0a55642cbd7fb67b',
   ),
   supplyChainTerminalRef: ref(
-    'track-all-l4-supply-chain-terminal-d355b41f1c4765ec7d455972',
-    'd355b41f1c4765ec7d45597287fce2a27abcbab5384811991f214969b432363f',
+    'track-all-l4-supply-chain-terminal-ed79def88526581891a99d82',
+    'ed79def88526581891a99d82be507d7b668572ebc6f15362c0bfb472225867cb',
   ),
   sbomRef: ref(
-    'sam31-spdx-sbom-ef943c1d21e4018f1daa5db8',
-    'ef943c1d21e4018f1daa5db88bef3071c655a772ed9342b2eb36a2c0ba2d7ab3',
+    'sam31-spdx-sbom-63735d401e22886fee1ecfcd',
+    '63735d401e22886fee1ecfcd41f944e6ac24f016e512e3129b1c78b80c6f7079',
   ),
   vulnerabilityScanRef: ref(
-    'sam31-artifact-analysis-scan-a6b8fc99b14584abcd395eea',
-    'a6b8fc99b14584abcd395eea4d07ea809fb26fb01570d6eaac3cec8e1471d5bf',
+    'sam31-artifact-analysis-scan-7277e29da046618e10ab7bf9',
+    '7277e29da046618e10ab7bf96963a33648b0606aee3b4861b37805f43b23674f',
   ),
   signatureVerificationRef: ref(
-    'sam31-cosign-verification-9079a2ade3b5b9ad4d60670a',
-    '9079a2ade3b5b9ad4d60670a86cc115f2d1ace742b8f7f41680490934b491b17',
+    'sam31-cosign-verification-c6a0f4b803db32f82f7ed258',
+    'c6a0f4b803db32f82f7ed25862faa705b8312d97935d3c8ef5d43b08a3bd18d8',
   ),
   slsaProvenanceRef: ref(
-    'sam31-slsa-v1-provenance-87ca75892eec0fc48ea2eded',
-    '87ca75892eec0fc48ea2ededf3a549851ae2c4715cef554643020fd774ed15f3',
+    'sam31-slsa-v1-provenance-8e974d544f2bb36afbe6a3d0',
+    '8e974d544f2bb36afbe6a3d0cbcac7008eccd07ddf003dea392958b12f24bb1b',
   ),
   securityReviewRef: ref(
-    'track-all-l4-image-security-review-a6b8fc99b14584abcd395eea',
-    '197ba4d1a4abe8ecb5b16f6087515242cd1b0f86fb7b6cfd64d61b2b6692725f',
+    'track-all-l4-image-security-review-7277e29da046618e10ab7bf9',
+    '9467d089f7c8b20627b9c77d954b7146c821cc3d6602ef41bd9470a431684cb4',
   ),
 })
 

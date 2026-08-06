@@ -212,7 +212,7 @@ const redirectedPort = createCanonicalSam31CloudOfficialArtifactStreamPort({
       status: 302,
       headers: {
         location:
-          'https://cas-bridge.xethub.hf.co/private-signed-checkpoint-object',
+          'https://us.aws.cdn.hf.co/private-signed-checkpoint-object',
       },
     })
     return new Response(checkpointBytes, {
@@ -341,10 +341,11 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-publication',
-  checks: 39,
+  checks: 40,
   cloudOnly: true,
   officialSourcePinned: true,
   officialGatedCheckpointPinned: true,
+  currentOfficialUsAwsCdnHostAllowlistedExactly: true,
   authorizationRemovedBeforeRedirect: true,
   createOnlyGcsWrite: true,
   exactGenerationReread: true,

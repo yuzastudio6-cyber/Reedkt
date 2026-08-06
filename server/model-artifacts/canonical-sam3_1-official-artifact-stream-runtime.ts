@@ -39,7 +39,7 @@ const SECRET_RESOURCE = new RegExp(
     + '[1-9][0-9]*$',
   'u',
 )
-const OFFICIAL_DOWNLOAD_HOST = /^(?:huggingface\.co|cdn-lfs(?:-[a-z0-9-]+)?\.huggingface\.co|cdn-lfs\.hf\.co|cas-bridge\.xethub\.hf\.co)$/u
+const OFFICIAL_DOWNLOAD_HOST = /^(?:huggingface\.co|cdn-lfs(?:-[a-z0-9-]+)?\.huggingface\.co|cdn-lfs\.hf\.co|cas-bridge\.xethub\.hf\.co|us\.aws\.cdn\.hf\.co)$/u
 
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
 

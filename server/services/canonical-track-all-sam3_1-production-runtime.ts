@@ -2,6 +2,10 @@ import { Storage } from '@google-cloud/storage'
 
 import type { RuntimeEnv } from '../config/env'
 import {
+  createCanonicalSkillQualificationRegistry,
+  type CanonicalSkillQualificationRegistryReadPort,
+} from '../orchestra/canonical-skill-qualification-registry'
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
 import {
@@ -93,7 +97,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v9' as const
+  'canonical-track-all-sam3_1-production-runtime-v11' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -101,6 +105,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly schemaVersion:
     typeof CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION
   readonly runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero'
+  readonly skillQualificationRegistryReadPort:
+    CanonicalSkillQualificationRegistryReadPort
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
@@ -170,6 +176,10 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       storage,
       bucketName: privateGpuObjectBucketName,
     })
+  const skillQualificationRegistry =
+    createCanonicalSkillQualificationRegistry({
+      objectPort: controlPlaneObjectPort,
+    })
 
   const pricingAuthorityStore =
     createCanonicalProfessionalGpuPricingAuthorityStore({
@@ -205,6 +215,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       storage,
       projectId,
       bucketName: controlPlaneBucketName,
+      qualificationRegistryReadPort: skillQualificationRegistry,
     })
   const preparedMaskProxyRepository =
     createCanonicalGcsSam31PreparedMaskProxyRepository({
@@ -359,6 +370,13 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
   return Object.freeze({
     schemaVersion: CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION,
     runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero' as const,
+    skillQualificationRegistryReadPort: Object.freeze({
+      schemaVersion: skillQualificationRegistry.schemaVersion,
+      evidenceClass: skillQualificationRegistry.evidenceClass,
+      readExact: skillQualificationRegistry.readExact.bind(
+        skillQualificationRegistry,
+      ),
+    }),
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,

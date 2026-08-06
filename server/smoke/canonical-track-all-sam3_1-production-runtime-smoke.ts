@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v9')
+  'canonical-track-all-sam3_1-production-runtime-v11')
 assert.equal(runtime.runtimeMode,
   'cloud_run_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -42,6 +42,14 @@ assert.equal(
 assert.equal(runtime.minimumIdleGpuInstances, 0)
 assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
+assert.equal(
+  runtime.skillQualificationRegistryReadPort.schemaVersion,
+  'canonical-skill-qualification-registry-v1',
+)
+assert.equal(
+  'persistCreateOnly' in runtime.skillQualificationRegistryReadPort,
+  false,
+)
 assert.equal(
   runtime.specialistSupportResumeRepository.schemaVersion,
   'canonical-specialist-support-resume-repository-v1',

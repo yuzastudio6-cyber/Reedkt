@@ -313,9 +313,54 @@ idempotent rerun then observed all five disabled and emitted
   AI, Cloud Build, and Secret Manager APIs are enabled.
 - The A2 CPU quota request for one `a2-ultragpu-1g` job was approved at 12.
 - The A100 80GB quota requests for one GPU in `us-central1`, `us-east4`, and
-  `us-east5` were denied; effective A100 quota remains zero in all three
-  attempted regions. The approved A2 CPU quota does not substitute for GPU
-  quota.
+  `us-east5` were initially denied; effective A100 quota remains zero in all
+  three attempted regions. On 2026-08-06 the same bounded requests were
+  resubmitted with the current quota-authorized operator contact and an exact
+  one-GPU, zero-idle, private Batch qualification justification. Google denied
+  all three again immediately, so effective A100 80GB quota remains zero. The
+  approved A2 CPU quota does not substitute for GPU quota, and an alternate-
+  region grant would not become dispatch authority until that region had its
+  own exact private resource foundation.
+- Vertex AI approved exactly one general custom-model-training A100 80GB GPU
+  in `us-central1` under quota preference
+  `weeditpro-vertex-a100-80gb-us-central1-1`. This is the viable heavy-primary
+  capacity path after the bounded Compute A100 requests were denied. It does
+  not authorize Vertex's restricted image-training quota and does not by
+  itself authorize a live job.
+- The additive `canonical-a100-vertex-custom-job-launch-port-v1` boundary now
+  compiles an exact one-worker/one-replica `NVIDIA_A100_80GB` Custom Job only
+  after create-only durable authority consumption and reread. It pins the
+  immutable container, service identity, private VPC peering, CMEK, timeout,
+  zero restart, zero automatic retry, and zero persistent endpoint; it rejects
+  caller image/command/arguments/model selection. An uncertain create outcome
+  blocks retry until reconciliation. The provider-returned Custom Job resource
+  name and create-response digest are now create-only persisted and exact-
+  reread before a launch may return accepted; persistence uncertainty also
+  blocks retry rather than fabricating an execution reference. The companion
+  terminal port rereads that canonical execution record, performs an exact
+  pinned Vertex GET, distinguishes pending from terminal and unknown outcomes,
+  verifies zero active A100 instances after a terminal state, and admits a
+  terminal result only after platform usage, billing-account-effective price,
+  and attempt-cost evidence are reread and persisted before settlement.
+  Every accepted attempt therefore requires terminal usage plus account-
+  effective cost evidence while customer-wallet, QA, public-delivery, and
+  production authority remain closed. This is a
+  source-qualified launch boundary, not an active production mount or live
+  SAM 3.1 inference claim. Private-network provisioning, canonical lifecycle
+  bridging, account-effective rate authority, checkpoint-bearing image, and
+  independent A100/L4 execution evidence remain required.
+- The guarded Vertex private-foundation operator completed and exact-reread
+  private services access on 2026-08-06. Service Networking is enabled; the
+  fixed `weeditpro-gpu-private` VPC has an active
+  `servicenetworking-googleapis-com` peering backed only by the reserved
+  `10.43.0.0/16` range; the VPC still has no router or Cloud NAT. The existing
+  API identity has Vertex Custom Job creation authority and impersonation only
+  for the existing SAM 3.1 worker identity, while the Google-managed Vertex
+  service agent has encrypt/decrypt access to the existing HSM-backed
+  qualification key. The exact receipt is
+  `weeditpro-sam31-vertex-a100-private-foundation-receipt-v1`. This
+  control-plane step created no Custom Job, checkpoint/image, charge, QA
+  approval, delivery, or production authority.
 - The project has one L4 of Compute quota. The separately scoped Track All
   task-QA image now has an independently built, scanned, signed, and privately
   qualified L4 path; this does not qualify the checkpoint-bearing SAM 3.1
@@ -422,6 +467,51 @@ clean while A100 dispatch remains blocked; it started no GPU job, downloaded
 no model/checkpoint, changed no customer credits, and granted no production
 authority.
 
+The A100 80 GB quota preference was resubmitted on 2026-08-06 with the active
+authenticated project account as the contact, one user-triggered scale-from-zero
+GPU as the requested limit, and the exact private WeEditPro SAM 3.1
+segmentation/tracking qualification use case. Google returned a second denied
+decision: preferred value 1, granted value 0, effective regional A100 80 GB
+quota 0. The denial is not treated as pending capacity and cannot select L4 as
+an unqualified substitute. A fresh canonical foundation observation was
+published at 16:24:54Z with content hash
+`sha256:2ed5327913bf459e505be6eec84bb633333dbc173299cab613c68ba2fc8058ac`.
+It exact-rereads the ready resource foundation and zero active jobs/instances,
+but reports `dispatchCapacityReady: false`, `scaleFromZeroClean: true`, no GPU
+start, no model/checkpoint download, no customer-credit mutation, and no
+production authority.
+
+The gated-access boundary is now source-closed without automating a human
+decision. An authenticated human terms intent is joined only by the canonical
+server owner with an independently verified official Hugging Face access
+observation. The verifier resolves one pinned Secret Manager version, reads the
+exact official model metadata revision, performs an authenticated `HEAD` of the
+exact checkpoint with redirects blocked, validates only an allowlisted official
+artifact redirect plus exact linked size/ETag, and downloads zero checkpoint
+bytes. It persists no token, response body, URL, path, or credential in the
+result. The finalization bundle and canonical terms record are create-only and
+exact-reread; callers cannot provide an `accessGranted` boolean or credential.
+The focused owner/verifier evidence passes 38 and 34 checks respectively. No
+live terms/access result exists yet because this task browser remains logged
+out of the gated repository and both checkpoint secret placeholders still have
+zero enabled versions.
+
+The same gated-access boundary now has a source-bound scale-from-zero Cloud Run
+Job image. Cloud Build `cd5a38d0-e483-4ddc-911f-c0bafaf39131` built exact
+source commit `95a8aebb1f3606b788798900be2bd154ae4496f5` and tree
+`ad61842dec884241b2e1b2f67fea9bae7506c17c` into immutable image digest
+`sha256:80cc3eda3a2c9517f0cde58bc1e8cb184b95e8a0dd2dc53688f4c4a2d7184a3f`.
+Google reports SLSA build level 3, completed NPM/OS/secret analysis, and zero
+reported package vulnerabilities. The reviewed deployment operator requires
+that exact provenance and scan, one immutable authenticated human-intent
+object, and one enabled pinned Secret Manager version. It grants only log
+write, control-plane object read/create, and selected-secret access to a
+dedicated service account. The job has one task, zero retries, a fifteen-minute
+timeout, no GPU, no model-artifact-bucket access, no private GPU-network mount,
+and no public IAM. Deployment never executes it. No job is deployed yet because
+the canonical human-intent object and enabled checkpoint-token version do not
+exist; browser sign-in alone is not treated as either artifact.
+
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,
 and GPU-worker identities are enabled; all four fixed private buckets enforce
@@ -489,6 +579,108 @@ invocation of this operator boundary.
   account IAM policy access is absent.
 
 ## Current disposition
+
+The Orchestra can now discover Track All through the same provider-neutral
+`skill-capability-manifest-v1` boundary used by Visual Intelligence. The Track
+All manifest exposes only `track_subject_geometry` at complete-scene scope. It
+declares SAM 3.1 on A100 80 GB as the heavy primary, SAM 3.1 on L4 as a
+separately qualified quality-preserving fallback, and the L4 Kornia task-QA
+route as a required independent route. It also binds account-effective A100/L4
+pricing, user-triggered scale-from-zero, exact snapshot/frame/MasterTiming/work/
+lease/reservation lineage, and Track All ownership of mask/track artifacts.
+SAM2 is an explicit fresh-work conflict and remains historical-read-only. The
+source-candidate qualification snapshot is intentionally blocked until exact
+A100, L4 fallback, L4 task-QA, artifact-repository, and account-effective rate
+releases are reread by the canonical skill qualification registry. A plan or
+peer support request cannot self-qualify the skill, directly dispatch a GPU, or
+grant billing, QA, public-delivery, or production authority.
+
+The same generic Orchestra boundary now has a private, create-only canonical
+skill qualification registry mounted by both the Visual Intelligence and Track
+All production composition roots. A record contains the complete validated
+manifest and qualification snapshot, exact manifest/snapshot/release refs, a
+recomputed record digest, and closed dispatch/provider/billing/public/
+production authorities. Records use locale-independent UTF-16 recursive key
+ordering, exact persisted-byte hashing, create-only collision refusal, and an
+exact reread before publication is acknowledged. The source-video Orchestra
+work owner no longer trusts the plan's
+`exactQualificationRegistryRereadVerified` boolean: it rereads the exact
+manifest/snapshot pair from this server-owned registry and returns no work when
+that pair is absent. This registry is a qualification truth boundary, not a
+publisher of fabricated readiness; the current Track All and Visual
+Intelligence source snapshots remain blocked.
+
+The production composition roots expose only the registry read port; the
+create-only publication method is not reachable from ordinary Visual
+Intelligence or Track All runtime consumers. The approved Track All task-source
+repository now rereads that port both before it creates a source record and
+again immediately before materializing the SAM 3.1 launch input. It requires a
+qualified `track_subject_geometry` job with the exact A100-primary,
+quality-preserving L4-fallback, and independent L4 task-QA routes plus canonical
+qualification evidence. A missing, blocked, partial, wrong-definition, or
+caller-invented manifest/snapshot pair cannot reach GPU launch preparation.
+
+The canonical Track All qualification publisher now closes the publication
+side of that boundary. It cannot accept a manifest, qualification disposition,
+route list, rate, repository version, or readiness boolean from a caller. It
+must exact-reread the current A100 SAM 3.1 release, the independently qualified
+L4 SAM 3.1 fallback release, the L4 Kornia task-QA image and deployment, all
+three billing-account-effective A100/L4 rate authorities, and a bounded
+create-only Track All result/artifact repository release. Only that complete
+set may produce a qualified snapshot and persist it through the canonical skill
+qualification registry. The repository release separately binds the exact task
+context, task, runtime result, task-QA, Caption scene-evidence, and Caption
+Track-All evidence repository versions plus isolated control-plane and mask
+artifact storage qualification. Missing, crossed, stale, unknown-field, or
+post-digest-tampered evidence fails closed. Publication starts no GPU job,
+executes no model/provider, mutates no customer credits, grants no QA approval,
+and grants no public-delivery or production authority.
+
+The bounded publication operator is
+`npm run publish:track-all-sam3_1-orchestra-qualification`. It accepts only
+server-owned evidence coordinates in the closed
+`id|version|sha256:<64-lowercase-hex>` form through the
+`WEEDITPRO_TRACK_ALL_*_REF` environment variables. The operator rereads those
+coordinates from the canonical private GCS repositories, recomputes the
+qualified Track All manifest/snapshot pair, persists it create-only, and
+returns the exact persisted receipt. It does not accept route definitions,
+qualification booleans, rates, repository versions, or readiness claims from
+the invoking shell. The operator must therefore remain unavailable until the
+A100 primary release, independent L4 fallback release, L4 task-QA release, all
+three account-effective rate authorities, and the Track All artifact-repository
+release have each been published by their own qualified owner.
+
+On 2026-08-06 the bounded private-storage qualifier ran against the existing
+control-plane and mask-artifact buckets. Both live probes observed uniform
+bucket-level access, enforced public-access prevention, zero public IAM
+principals, create-only first write, identical replay, conflicting replay
+refusal, exact read-after-write, detached second reread, and unrelated-prefix
+isolation. The persisted control-plane qualification ref is
+`track-all-sam3_1-control_plane_state-06c127f0-e221-49df-8c16-a2003a7f8fa9`
+version 1 with content hash
+`sha256:8f2533da6e3adaa3402169595b37dbe79a935afdd36449ccd2df262a4876842d`.
+The persisted private-mask qualification ref is
+`track-all-sam3_1-private_mask_artifacts-06c127f0-e221-49df-8c16-a2003a7f8fa9`
+version 1 with content hash
+`sha256:25b208541d2b72171d3829f06cd67ce7345f1ff78eeaadcd119e311440abcd97`.
+Both expire on 2026-08-13 and grant no GPU, provider, model, customer-credit,
+QA-approval, public-delivery, or production authority. They qualify the storage
+semantics only; they do not substitute for the six repository-specific
+canonical-chain qualifications still required by the artifact-repository
+release owner.
+
+The six-repository release owner is now mounted behind
+`npm run publish:track-all-sam3_1-artifact-repository-release`. It accepts only
+an exact Caption/Track-All support-request ref and the two current storage-
+qualification refs. It then rereads and identical-replays one complete
+canonical task-context → task → runtime-result → L4 task-QA/private-review →
+Caption scene-evidence → authenticated Caption Track-All evidence chain through
+the same repositories used by the production composition root. It derives the
+six component qualification refs from those exact persisted records, rejects
+crossed/stale/partial/tampered lineage, and publishes the bounded release
+create-only. The operator cannot self-assert repository versions, readiness,
+storage security, or completion. It remains intentionally unexecutable until a
+real qualified SAM 3.1 Track All result completes that full canonical chain.
 
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review

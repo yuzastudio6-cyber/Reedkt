@@ -9,7 +9,15 @@ import {
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
 import { ApiError } from '../errors/api-error'
 import {
+  CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+  createCanonicalSkillQualificationRegistry,
+  type CanonicalSkillQualificationRegistryReadPort,
+} from '../orchestra/canonical-skill-qualification-registry'
+import {
+  orchestraEvidenceRef,
   parseOrchestraSkillCall,
+  parseSkillCapabilityManifest,
+  parseSkillQualificationSnapshot,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-capability-contract'
 import {
@@ -20,6 +28,10 @@ import {
   createCanonicalTrackAllSam31OrchestraBinding,
   CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
 } from '../workers/masks/canonical-track-all-sam3_1-orchestra-binding'
+import {
+  TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
+  createTrackAllSam31OrchestraCapabilityManifestForQualification,
+} from '../workers/masks/track-all-sam3_1-orchestra-capability-manifest'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
@@ -41,7 +53,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_APPROVED_TRACK_ALL_TASK_SOURCE_REPOSITORY_VERSION =
-  'canonical-sam3_1-approved-track-all-task-source-repository-v1' as const
+  'canonical-sam3_1-approved-track-all-task-source-repository-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_STATE_BUCKET =
@@ -108,6 +120,8 @@ const recordWithoutHashSchema = z.object({
   materialSource: materialSourceSchema,
   sourceWorkApprovalAndAttemptRereadVerified: z.literal(true),
   exactOrchestraSceneSourceFrameTimingAndPromptBound: z.literal(true),
+  exactOrchestraManifestAndQualificationRegistryRereadVerified:
+    z.literal(true),
   callerOrBrowserMaterialAccepted: z.literal(false),
   runtimeReleaseGpuRouteModelImageCommandOrPriceAccepted: z.literal(false),
   workDispatched: z.literal(false),
@@ -175,11 +189,16 @@ type MaterialSourceReadInput = Parameters<
 export function createCanonicalSam31ApprovedTrackAllTaskSourceRepository(
   input: {
     readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly qualificationRegistryReadPort:
+      CanonicalSkillQualificationRegistryReadPort
     readonly prefix?: string
   },
 ): CanonicalSam31ApprovedTrackAllTaskSourceRepository {
   if (typeof input.objectPort?.createOnly !== 'function'
-    || typeof input.objectPort?.readExact !== 'function') {
+    || typeof input.objectPort?.readExact !== 'function'
+    || input.qualificationRegistryReadPort?.schemaVersion !==
+      CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION
+    || typeof input.qualificationRegistryReadPort.readExact !== 'function') {
     throw notReady('approved_track_all_source_object_port_invalid')
   }
   const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
@@ -228,6 +247,11 @@ export function createCanonicalSam31ApprovedTrackAllTaskSourceRepository(
         publication,
         funding.confirmedOutputFrame.outputFrameRef,
       )
+      await assertCurrentTrackAllQualification({
+        call: materialSource.orchestraCall,
+        qualificationRegistryReadPort:
+          input.qualificationRegistryReadPort,
+      })
       const sourceScope = buildSourceScope({ funding, attempt })
       assertPublicationLineage({
         funding,
@@ -245,6 +269,7 @@ export function createCanonicalSam31ApprovedTrackAllTaskSourceRepository(
         materialSource,
         sourceWorkApprovalAndAttemptRereadVerified: true,
         exactOrchestraSceneSourceFrameTimingAndPromptBound: true,
+        exactOrchestraManifestAndQualificationRegistryRereadVerified: true,
         callerOrBrowserMaterialAccepted: false,
         runtimeReleaseGpuRouteModelImageCommandOrPriceAccepted: false,
         workDispatched: false,
@@ -311,6 +336,11 @@ export function createCanonicalSam31ApprovedTrackAllTaskSourceRepository(
       }
       assertRecordMatchesAdmission(record, admission)
       const source = record.materialSource
+      await assertCurrentTrackAllQualification({
+        call: source.orchestraCall,
+        qualificationRegistryReadPort:
+          input.qualificationRegistryReadPort,
+      })
       const binding = createCanonicalTrackAllSam31OrchestraBinding({
         bindingId: source.bindingId,
         call: source.orchestraCall,
@@ -349,16 +379,21 @@ export function createCanonicalGcsSam31ApprovedTrackAllTaskSourceRepository(
     readonly projectId?: string
     readonly bucketName?: string
     readonly prefix?: string
+    readonly qualificationRegistryReadPort?:
+      CanonicalSkillQualificationRegistryReadPort
   } = {},
 ): CanonicalSam31ApprovedTrackAllTaskSourceRepository {
   const storage = input.storage ?? new Storage({
     projectId: input.projectId ?? PROJECT_ID,
   })
+  const objectPort = createCanonicalGcsSourceAnalysisJsonObjectPort({
+    storage,
+    bucketName: input.bucketName ?? CONTROL_PLANE_STATE_BUCKET,
+  })
   return createCanonicalSam31ApprovedTrackAllTaskSourceRepository({
-    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
-      storage,
-      bucketName: input.bucketName ?? CONTROL_PLANE_STATE_BUCKET,
-    }),
+    objectPort,
+    qualificationRegistryReadPort: input.qualificationRegistryReadPort
+      ?? createCanonicalSkillQualificationRegistry({ objectPort }),
     prefix: input.prefix,
   })
 }
@@ -485,6 +520,62 @@ function assertPublicationLineage(input: {
   ) throw conflict('approved_track_all_source_lineage_invalid')
 }
 
+async function assertCurrentTrackAllQualification(input: {
+  call: unknown
+  qualificationRegistryReadPort: CanonicalSkillQualificationRegistryReadPort
+}): Promise<void> {
+  const call = parseOrchestraSkillCall(input.call)
+  const registered = await input.qualificationRegistryReadPort.readExact({
+    manifestRef: call.manifestRef,
+    qualificationSnapshotRef: call.qualificationSnapshotRef,
+  })
+  if (!registered) {
+    throw notReady('track_all_skill_qualification_not_published')
+  }
+  const qualification = parseSkillQualificationSnapshot(
+    registered.qualificationSnapshot,
+  )
+  const manifest = parseSkillCapabilityManifest({
+    value: registered.manifest,
+    qualificationSnapshot: qualification,
+  })
+  const expectedManifest =
+    createTrackAllSam31OrchestraCapabilityManifestForQualification(
+      qualification,
+    )
+  const job = qualification.jobQualifications.find((candidate) =>
+    candidate.jobType === CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE)
+  const requiredRoutes = Object.values(TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS)
+    .sort(compare)
+  if (
+    qualification.overall !== 'qualified'
+    || qualification.qualificationOwner !==
+      'canonical_skill_qualification_registry'
+    || qualification.callerCanSelfQualify
+    || qualification.dispatchAuthorityGranted
+    || qualification.providerAuthorityGranted
+    || qualification.billingAuthorityGranted
+    || qualification.publicDeliveryAuthorityGranted
+    || qualification.productionAuthorityGranted
+    || !job
+    || job.status !== 'qualified'
+    || job.blockerCodes.length !== 0
+    || job.qualificationEvidenceRefs.length < 3
+    || JSON.stringify([...job.qualifiedRouteIds].sort(compare)) !==
+      JSON.stringify(requiredRoutes)
+    || manifest.manifestDigestSha256 !==
+      expectedManifest.manifestDigestSha256
+    || !sameRef(call.manifestRef, orchestraEvidenceRef(
+      manifest.manifestId,
+      manifest.manifestDigestSha256,
+    ))
+    || !sameRef(call.qualificationSnapshotRef, orchestraEvidenceRef(
+      qualification.snapshotId,
+      qualification.snapshotDigestSha256,
+    ))
+  ) throw notReady('track_all_skill_qualification_not_currently_qualified')
+}
+
 function assertSourceRecord(
   value: unknown,
 ): CanonicalSam31ApprovedTrackAllTaskSourceRecord {
@@ -568,6 +659,10 @@ function bodyFor(value: unknown): Buffer {
 
 function rawHash(body: Buffer): string {
   return createHash('sha256').update(body).digest('hex')
+}
+
+function compare(left: string, right: string): number {
+  return left < right ? -1 : left > right ? 1 : 0
 }
 
 function sameRef(

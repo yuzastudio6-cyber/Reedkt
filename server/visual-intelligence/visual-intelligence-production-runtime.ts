@@ -15,6 +15,10 @@ import {
   type CanonicalSourceAnalysisPlanningScopeReadPort,
 } from '../orchestra/canonical-source-analysis-orchestra-coordinator'
 import {
+  createCanonicalSkillQualificationRegistry,
+  type CanonicalSkillQualificationRegistryReadPort,
+} from '../orchestra/canonical-skill-qualification-registry'
+import {
   createGoogleBatchA100JobInvocationPort,
 } from '../services/canonical-a100-batch-job-invocation-service'
 import {
@@ -208,7 +212,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v17' as const
+  'visual-intelligence-production-runtime-v18' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -235,6 +239,8 @@ export interface VisualIntelligenceProductionRuntime {
     VisualIntelligenceOrchestraDispatchPackageStore
   readonly orchestraJobResultStore:
     VisualIntelligenceOrchestraJobResultStore
+  readonly skillQualificationRegistryReadPort:
+    CanonicalSkillQualificationRegistryReadPort
   readonly editReferenceBindingStore:
     EditReferenceVisualIntelligenceBindingStore
   readonly editReferenceReadPort:
@@ -425,6 +431,8 @@ export async function createVisualIntelligenceProductionRuntime(
   const durableStore = createVisualIntelligenceDurableLifecycleStore({
     objectPort,
   })
+  const skillQualificationRegistry =
+    createCanonicalSkillQualificationRegistry({ objectPort })
   const specialistSupportResumeRepository =
     createCanonicalSpecialistSupportResumeRepository({ objectPort })
   const captionEvidenceRepository =
@@ -706,6 +714,7 @@ export async function createVisualIntelligenceProductionRuntime(
       transcriptReadPort: sourceTranscriptOrchestraRepository,
       preparedEvidenceStore: canonicalPreparedEvidenceStore,
       dispatchPackageStore: orchestraDispatchPackageStore,
+      qualificationRegistryReadPort: skillQualificationRegistry,
     }),
     orchestraRuntime: orchestraJobRuntimePort,
     planningReconciliationPort:
@@ -765,6 +774,13 @@ export async function createVisualIntelligenceProductionRuntime(
     canonicalPreparedEvidenceStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,
+    skillQualificationRegistryReadPort: Object.freeze({
+      schemaVersion: skillQualificationRegistry.schemaVersion,
+      evidenceClass: skillQualificationRegistry.evidenceClass,
+      readExact: skillQualificationRegistry.readExact.bind(
+        skillQualificationRegistry,
+      ),
+    }),
     editReferenceBindingStore,
     editReferenceReadPort,
     sourceVideoUnderstandingBindingStore,

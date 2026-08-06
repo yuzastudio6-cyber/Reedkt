@@ -360,7 +360,7 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v17')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v18')
 assert.equal(runtime.captionPostrenderOwnerResultRepository.authorityBoundary,
   'canonical_visual_intelligence_postrender_owner')
 assert.equal(runtime.captionPostrenderEvidenceRepository.repositoryVersion,
@@ -376,6 +376,14 @@ assert.equal(runtime.apiKeyUsed, false)
 assert.equal(runtime.qwenFallbackAllowed, false)
 assert.equal(runtime.selfHostedVisualModelFallbackAllowed, false)
 assert.equal(runtime.substantiveCpuMediaProcessingAllowed, false)
+assert.equal(
+  runtime.skillQualificationRegistryReadPort.schemaVersion,
+  'canonical-skill-qualification-registry-v1',
+)
+assert.equal(
+  'persistCreateOnly' in runtime.skillQualificationRegistryReadPort,
+  false,
+)
 assert.equal(
   runtime.specialistSupportResumeRepository.schemaVersion,
   'canonical-specialist-support-resume-repository-v1',

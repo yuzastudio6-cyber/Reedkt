@@ -388,11 +388,13 @@ assert.throws(() => parseCanonicalCaptionPrivateReviewEvidenceProjection(
   tamperedReview))
 assertions += 1
 
-await assert.rejects(() =>
-  createCanonicalCaptionPostrenderVisualQaAuthenticatedReadService({
+const crossOwnerRead =
+  await createCanonicalCaptionPostrenderVisualQaAuthenticatedReadService({
     repository: completedRepository,
-  }).read({ authenticatedOwnerUserId: 'other-user', request: readRequest }))
-assertions += 1
+  }).read({ authenticatedOwnerUserId: 'other-user', request: readRequest })
+check(crossOwnerRead.disposition === 'not_found'
+  && crossOwnerRead.outputSetStatus === null,
+'A different authenticated owner must not learn that another owner has Caption evidence.')
 
 const staleFrameRequest = structuredClone(readRequest)
 staleFrameRequest.requiredOutputs[0]!.confirmedOutputFrameRef.width = 1_918

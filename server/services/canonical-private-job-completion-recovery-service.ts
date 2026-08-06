@@ -560,7 +560,7 @@ function assertRecoveryInput(input: RecoverCanonicalPrivateJobCompletionInput): 
                 operationId:
                   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
                 runnerClass:
-                  'canonical_caption_postrender_visual_qa_coordinator_runner_v1',
+                  'canonical_caption_postrender_visual_intelligence_coordinator_runner_v2',
               }
           : undefined
   const provenCatalogIdentity = input.canonicalToolId

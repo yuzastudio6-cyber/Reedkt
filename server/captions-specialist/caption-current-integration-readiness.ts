@@ -642,10 +642,10 @@ const executionMountRef = sourceMountRef(
   'canonical-caption-specialist-execution-receipt-v1')
 const postrenderMountRef = sourceMountRef(
   'captions.postrender-visual-qa.persistence-read-mount',
-  'canonical-caption-postrender-visual-qa-coordinator-service-v1')
+  'canonical-caption-postrender-visual-qa-coordinator-service-v2')
 const privateReviewMountRef = sourceMountRef(
   'captions.independent-private-review.projection-mount',
-  'canonical-caption-private-review-evidence-service-v1')
+  'canonical-caption-private-review-evidence-service-v2')
 const terminalProjectionRef = sourceMountRef(
   'captions.terminal.per-job-qualification-projection',
   'caption-terminal-per-job-qualification-projection-v1')

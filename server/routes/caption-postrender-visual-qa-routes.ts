@@ -31,21 +31,25 @@ export function createCaptionPostrenderVisualQaRoutes(): Router {
         'Caption visual-review evidence requires an authenticated user.',
         401,
       )
-      if (!context.canonicalCaptionPostrenderVisualQaEvidenceRepository) {
+      if (!context.canonicalCaptionPostrenderVisualQaEvidenceRepository
+        && !context
+          .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository) {
         throw new ApiError(
           'TOOL_NOT_READY',
           'The canonical Caption visual-review repository is not mounted.',
           503,
           {
             requiredGate:
-              'canonical_caption_postrender_visual_qa_evidence_repository',
+              'canonical_caption_postrender_visual_intelligence_evidence_repository',
           },
         )
       }
       const authenticatedRead = await
         createCanonicalCaptionPostrenderVisualQaAuthenticatedReadService({
-          repository:
-            context.canonicalCaptionPostrenderVisualQaEvidenceRepository,
+          repository: context
+            .canonicalCaptionPostrenderVisualQaEvidenceRepository,
+          visualIntelligenceRepository: context
+            .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
         }).read({
           authenticatedOwnerUserId: context.auth.userId,
           request: request.body,

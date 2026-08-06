@@ -123,11 +123,15 @@ Caption projection to the existing approved libass overlay work and Remotion
 final canvas through `canonical-caption-rendered-media-work-binding-v1`.
 The binding is content-addressed, exact-frame and MasterTiming bound, and
 recomputed from the immutable work graph before approval and execution reread.
-The planner now also freezes one ordered postrender visual-review work item and
+The planner now also freezes one ordered postrender Visual Intelligence
+reconciliation work item and
 the exact final-render, deterministic-QA, visual-review, assembly, and decision
 lineage required by canonical private review. This is approval coverage only:
-the complete private path still needs the real qualified visual-review result,
+the complete private path still needs the real qualified Visual Intelligence result,
 actual independent private-review acceptance, and terminal projection.
+The current Caption work item consumes that owner result; the canonical backend
+still has to schedule the approved Visual Intelligence inspection and its
+estimate/reservation-bound provider lifecycle before reconciliation can run.
 Transcript and specialist-owner evidence remain fail-closed whenever their
 exact authenticated records are unavailable.
 

@@ -12,6 +12,15 @@ import {
   CANONICAL_CAPTION_SPECIALIST_PLANNING_BINDING_VERSION,
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_INPUT_VERSION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_OPERATION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_V1_WORKER_CLASS,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
+  type CanonicalCaptionPostrenderVisualQaWorkBindingV1,
+  type CanonicalCaptionPostrenderVisualQaWorkItemInputV1,
+} from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
+import {
   CAPTIONS_BOUNDARY_JOB_TYPES,
   CAPTIONS_SCENE_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
@@ -47,6 +56,8 @@ import {
 import {
   assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches,
   parseCanonicalCaptionPostrenderVisualQaWorkBinding,
+  parseCanonicalCaptionPostrenderVisualQaWorkBindingAny,
+  parseCanonicalCaptionPostrenderVisualQaWorkItemInputAny,
   prepareCanonicalCaptionPostrenderVisualQaWorkBinding,
   prepareCanonicalCaptionPostrenderVisualQaWorkItem,
 } from '../captions-specialist/caption-postrender-visual-qa-work-binding'
@@ -67,6 +78,8 @@ import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 import { classifyCanonicalInternalServerJob } from
   '../services/canonical-private-job-execution-adapter-service'
+import { calculateSkillContractDigest } from
+  '../orchestra/orchestra-skill-contracts'
 import { parseCanonicalCaptionSpecialistWorkItemInput } from
   '../services/canonical-caption-specialist-execution-service'
 
@@ -859,7 +872,7 @@ const postrenderVisualQaWorkItem =
   })
 check(postrenderVisualQaWorkItem?.dependencyKeys[0] === 'final-qa'
   && postrenderVisualQaWorkItem.workerClass ===
-    'canonical_caption_postrender_visual_qa_coordinator_v1'
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS
   && postrenderVisualQaWorkItem.maximumCreditBudget === 0
   && postrenderVisualQaWorkItem.approvedToolIds.length === 0,
 'Post-render visual review must be scheduled after deterministic QA without planning-time dispatch or cost authority.')
@@ -882,14 +895,14 @@ check(postrenderVisualQaPlacement?.workerType === 'qa_worker'
   && !postrenderVisualQaPlacement.privateExecutionReady
   && postrenderVisualQaPlacement.providerExecutionMode === 'none'
   && postrenderVisualQaPlacement.requiredGate ===
-    'canonical_caption_postrender_visual_qa_owner_result_read_port',
-'Post-render visual-QA coordination must remain blocked until the shared-owner result port is mounted.')
+    'canonical_caption_postrender_visual_intelligence_owner_result_read_port',
+'Post-render visual QA must remain blocked until the active Visual Intelligence owner result port is mounted.')
 const postrenderRunnerProfile = classifyCanonicalInternalServerJob(
   postrenderVisualQaWorkItem!)
 check(postrenderRunnerProfile?.kind ===
   'caption_postrender_visual_qa_reconciliation'
   && postrenderRunnerProfile.runnerClass ===
-    'canonical_caption_postrender_visual_qa_coordinator_runner_v1'
+    'canonical_caption_postrender_visual_intelligence_coordinator_runner_v2'
   && postrenderRunnerProfile.purpose ===
     'execute_canonical_internal_caption_postrender_visual_qa_reconciliation',
 'The canonical private job adapter must route Caption visual review only to its shared-owner reconciliation runner.')
@@ -900,7 +913,13 @@ const postrenderVisualQaBinding =
     workItems: visualQaWorkItems,
   })
 check(postrenderVisualQaBinding?.visualQaLifecycle
-  .sharedProviderOperationId === 'postrender_private_visual_qa'
+  .ownerOperationId === 'visual_intelligence.inspect_edit'
+  && postrenderVisualQaBinding.visualQaLifecycle.ownerCapabilityId ===
+    'visual_intelligence'
+  && postrenderVisualQaBinding.visualQaLifecycle.requiredInspectionProfiles
+    .join('|') === 'final_render_visual_qa'
+  && !postrenderVisualQaBinding.qwenVisualFallbackAllowed
+  && !postrenderVisualQaBinding.semanticEveryFrameInspectionClaimAllowed
   && postrenderVisualQaBinding.approvalCoverageBindsScheduledWorkNotCompletedResult
   && !postrenderVisualQaBinding.actualLifecycleResultPersisted
   && !postrenderVisualQaBinding.providerDispatchGrantedAtPlanning,
@@ -909,6 +928,116 @@ check(parseCanonicalCaptionPostrenderVisualQaWorkBinding(
   postrenderVisualQaBinding).bindingDigestSha256 ===
     postrenderVisualQaBinding?.bindingDigestSha256,
 'Post-render visual-QA binding must verify its closed digest.')
+const v1BindingWithoutDigest: Omit<
+  CanonicalCaptionPostrenderVisualQaWorkBindingV1,
+  'bindingDigestSha256'
+> = {
+  schemaVersion:
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION,
+  bindingId: postrenderVisualQaBinding!.bindingId,
+  planningProjectionRef:
+    structuredClone(postrenderVisualQaBinding!.planningProjectionRef),
+  renderedMediaWorkBindingRef:
+    structuredClone(postrenderVisualQaBinding!.renderedMediaWorkBindingRef),
+  outputId: postrenderVisualQaBinding!.outputId,
+  confirmedOutputFrame:
+    structuredClone(postrenderVisualQaBinding!.confirmedOutputFrame),
+  masterTimingRef: structuredClone(postrenderVisualQaBinding!.masterTimingRef),
+  canonicalMasterTimingId:
+    postrenderVisualQaBinding!.canonicalMasterTimingId,
+  finalRender: structuredClone(postrenderVisualQaBinding!.finalRender),
+  deterministicQa: structuredClone(postrenderVisualQaBinding!.deterministicQa),
+  visualQaLifecycle: {
+    workItemKey: postrenderVisualQaBinding!.visualQaLifecycle.workItemKey,
+    outputKey: postrenderVisualQaBinding!.visualQaLifecycle.outputKey,
+    workerClass: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_V1_WORKER_CLASS,
+    operation: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_OPERATION,
+    dependencyKeys: [...postrenderVisualQaBinding!.visualQaLifecycle
+      .dependencyKeys],
+    maximumAttempts: 2,
+    maximumCreditBudget: 0,
+    workRequestSchemaVersion:
+      'canonical-postrender-visual-qa-work-request-v1',
+    lifecycleResultSchemaVersion:
+      'canonical-postrender-visual-qa-shared-lifecycle-result-v1',
+    captionLifecycleProjectionSchemaVersion:
+      'caption-rendered-visual-review-shared-lifecycle-result-v1',
+    authenticatedReadRequestSchemaVersion:
+      'caption-rendered-visual-review-authenticated-read-request-v1',
+    authenticatedReadResultSchemaVersion:
+      'caption-rendered-visual-review-authenticated-read-result-v1',
+    sharedProviderCapabilityId: 'qwen2_5_vl_visual_understanding',
+    sharedProviderOperationId: 'postrender_private_visual_qa',
+    sharedProviderOperationVersion: 'postrender-private-visual-qa-v1',
+  },
+  approvalCoverageBindsScheduledWorkNotCompletedResult: true,
+  actualRenderedArtifactRequiredAtExecution: true,
+  actualDeterministicQaPassRequiredAtExecution: true,
+  actualCompleteTimeModelInspectionRequiredForCompletion: true,
+  actualLifecycleResultPersisted: false,
+  authenticatedLifecycleResultReread: false,
+  browserLocalCompletionAccepted: false,
+  directPeerDispatchGranted: false,
+  providerDispatchGrantedAtPlanning: false,
+  providerCallMadeAtPlanning: false,
+  assetMutationAuthorityGrantedToCaption: false,
+  finalQaApprovalAuthorityGranted: false,
+  repairAuthorityGranted: false,
+  billingAuthorityGranted: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+const v1Binding: CanonicalCaptionPostrenderVisualQaWorkBindingV1 = {
+  ...v1BindingWithoutDigest,
+  bindingDigestSha256: calculateSkillContractDigest({
+    ...v1BindingWithoutDigest,
+    bindingDigestSha256: '',
+  } as unknown as Record<string, unknown>, 'bindingDigestSha256'),
+}
+check(parseCanonicalCaptionPostrenderVisualQaWorkBindingAny(v1Binding)
+  .schemaVersion ===
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION,
+'Historical Qwen V1 bindings must remain byte-readable without becoming active work.')
+const activeWorkInput = postrenderVisualQaWorkItem!.executionInput as Record<
+  string, unknown
+>
+const v1WorkInput: CanonicalCaptionPostrenderVisualQaWorkItemInputV1 = {
+  schemaVersion:
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_INPUT_VERSION,
+  operation: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_OPERATION,
+  outputId: String(activeWorkInput.outputId),
+  confirmedOutputFrameRef:
+    structuredClone(activeWorkInput.confirmedOutputFrameRef) as never,
+  masterTimingRef: structuredClone(activeWorkInput.masterTimingRef) as never,
+  canonicalMasterTimingId: String(activeWorkInput.canonicalMasterTimingId),
+  finalRenderWorkItemKey: String(activeWorkInput.finalRenderWorkItemKey),
+  finalRenderOutputKey: String(activeWorkInput.finalRenderOutputKey),
+  deterministicQaWorkItemKey:
+    String(activeWorkInput.deterministicQaWorkItemKey),
+  deterministicQaOutputKey: String(activeWorkInput.deterministicQaOutputKey),
+  workRequestSchemaVersion:
+    'canonical-postrender-visual-qa-work-request-v1',
+  lifecycleResultSchemaVersion:
+    'canonical-postrender-visual-qa-shared-lifecycle-result-v1',
+  sharedProviderCapabilityId: 'qwen2_5_vl_visual_understanding',
+  sharedProviderOperationId: 'postrender_private_visual_qa',
+  sharedProviderOperationVersion: 'postrender-private-visual-qa-v1',
+  authenticatedCaptionReadRequired: true,
+  completeTimeCoverageRequired: true,
+  sampledFramesCreatedOnlyAfterExactRenderReread: true,
+  rawPromptAccepted: false,
+  browserCompletionAccepted: false,
+  directProviderDispatchRequested: false,
+  assetMutationRequested: false,
+  qaApprovalRequested: false,
+  billingAuthorityRequested: false,
+  publicDeliveryRequested: false,
+  productionAuthorityRequested: false,
+}
+check(parseCanonicalCaptionPostrenderVisualQaWorkItemInputAny(v1WorkInput)
+  .schemaVersion ===
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_INPUT_VERSION,
+'Historical Qwen V1 work inputs must remain readable only through the explicit compatibility decoder.')
 assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches(
   postrenderVisualQaBinding!, {
     projection: selected.projection!,

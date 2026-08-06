@@ -47,8 +47,8 @@ import {
   prepareCanonicalCaptionPostrenderVisualQaExecution,
 } from './canonical-caption-postrender-visual-qa-coordinator-service'
 import {
-  parseCanonicalCaptionPostrenderVisualQaEvidence,
-} from './canonical-caption-postrender-visual-qa-evidence-service'
+  parseCanonicalCaptionPostrenderVisualIntelligenceResult,
+} from './canonical-caption-postrender-visual-intelligence-result'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
 import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
@@ -79,7 +79,7 @@ const ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1' as 
 const CAPTION_ARTIFACT_SCHEMA_VERSION =
   'canonical-caption-specialist-planning-artifact-v1' as const
 const CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION =
-  'canonical-caption-postrender-visual-qa-evidence-artifact-v1' as const
+  'canonical-caption-postrender-visual-intelligence-evidence-artifact-v2' as const
 const MAXIMUM_ARTIFACT_BYTES = 1024 * 1024
 const authorityArtifactWriteLocks = new Map<string, Promise<void>>()
 
@@ -811,7 +811,7 @@ function assertCanonicalAuthorityValidationJob(input: {
       || workItem.maximumCreditBudget !== 0
       || workItem.expectedOutputs[0]?.outputKey !== expectedAsset.outputKey
       || expectedAsset.artifactType !==
-        'canonical_postrender_visual_qa_lifecycle_result'
+        'canonical_caption_postrender_visual_intelligence_result'
       || expectedAsset.assetRole !== 'qa'
       || !dependencyWorkItem || !dependencyJob || !dependencyAsset
       || dependencyWorkItem.workItemType !== 'run_final_qa'
@@ -1016,13 +1016,17 @@ function buildCaptionPostrenderVisualQaEvidence(
       'Canonical Caption post-render visual-QA evidence was not exactly reconciled.',
     )
   }
-  const evidence = parseCanonicalCaptionPostrenderVisualQaEvidence(
-    execution.envelope.evidence)
+  const evidence = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
+    execution.result)
   return {
     evidence,
-    workRequestRef: structuredClone(evidence.workRequestRef),
-    lifecycleResultRef: structuredClone(evidence.lifecycleResultRef),
-    normalizedResultRef: structuredClone(evidence.normalizedDecisionRef),
+    visualInspectionRequirementRef:
+      structuredClone(evidence.visualInspectionRequirementRef),
+    visualIntelligenceRequestRef:
+      structuredClone(evidence.visualIntelligenceRequestRef),
+    visualIntelligenceReportRef:
+      structuredClone(evidence.visualIntelligenceReportRef),
+    visualIntelligenceResultRef: structuredClone(execution.resultRef),
     persistenceDisposition: execution.disposition,
     canonicalOwnerResultRereadVerified: true as const,
     evidenceCreateOnlyRereadVerified: true as const,
@@ -1472,10 +1476,15 @@ function validCaptionPostrenderVisualQaEvidence(value: unknown): boolean {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const record = value as Record<string, unknown>
   try {
-    const evidence = parseCanonicalCaptionPostrenderVisualQaEvidence(
+    const evidence = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
       record.evidence)
-    return evidence.actualModelInferenceVerified === true
-      && evidence.deterministicQaPassed === true
+    return evidence.actualVisualIntelligenceInferenceVerified === true
+      && evidence.deterministicCompleteTimeQaPassed === true
+      && evidence.completeRequestedRangeSemanticCoverageVerified === true
+      && evidence.semanticModelEveryTimelineFrameInspectedClaimed === false
+      && evidence.semanticModelExactPixelInspectionClaimed === false
+      && evidence.deterministicEveryFrameTechnicalQaRemainsSeparate === true
+      && evidence.qwenVisualFallbackUsed === false
       && record.canonicalOwnerResultRereadVerified === true
       && record.evidenceCreateOnlyRereadVerified === true
       && record.actualModelInferenceVerifiedFromCanonicalOwner === true
@@ -1486,10 +1495,17 @@ function validCaptionPostrenderVisualQaEvidence(value: unknown): boolean {
       && record.productionAuthorityGranted === false
       && ['created', 'idempotent_replay'].includes(
         String(record.persistenceDisposition))
-      && refMatches(record.workRequestRef, evidence.workRequestRef)
-      && refMatches(record.lifecycleResultRef, evidence.lifecycleResultRef)
-      && refMatches(record.normalizedResultRef,
-        evidence.normalizedDecisionRef)
+      && refMatches(record.visualInspectionRequirementRef,
+        evidence.visualInspectionRequirementRef)
+      && refMatches(record.visualIntelligenceRequestRef,
+        evidence.visualIntelligenceRequestRef)
+      && refMatches(record.visualIntelligenceReportRef,
+        evidence.visualIntelligenceReportRef)
+      && refMatches(record.visualIntelligenceResultRef, {
+        id: evidence.resultId,
+        version: 1,
+        contentHash: evidence.resultDigestSha256,
+      })
   } catch {
     return false
   }
@@ -1693,7 +1709,7 @@ function internalValidationProfile(purpose: RunCanonicalInternalAuthorityJobInpu
       operation:
         CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
       artifactDomain:
-        'canonical_internal_caption_postrender_visual_qa_artifact_v1' as const,
+        'canonical_internal_caption_postrender_visual_intelligence_artifact_v2' as const,
     }
   }
   return {

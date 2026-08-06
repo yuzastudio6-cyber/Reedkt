@@ -360,7 +360,13 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v16')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v17')
+assert.equal(runtime.captionPostrenderOwnerResultRepository.authorityBoundary,
+  'canonical_visual_intelligence_postrender_owner')
+assert.equal(runtime.captionPostrenderEvidenceRepository.repositoryVersion,
+  'canonical-caption-postrender-visual-intelligence-evidence-repository-v1')
+assert.equal(runtime.captionPostrenderOwnerService.serviceVersion,
+  'canonical-caption-postrender-visual-intelligence-owner-service-v1')
 assert.equal(runtime.providerCapabilityId, 'visual_intelligence')
 assert.equal(runtime.semanticEngine, 'gemini-3.1-pro-preview')
 assert.equal(runtime.thinkingLevel, 'high')

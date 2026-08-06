@@ -3,16 +3,16 @@ import {
 } from '../captions-specialist/caption-postrender-visual-qa-work-binding'
 import type { ServiceContext } from '../types'
 import {
-  readCanonicalCaptionPostrenderVisualQaOwnerResult,
-} from './canonical-caption-postrender-visual-qa-owner-result-port'
+  readCanonicalCaptionPostrenderVisualIntelligenceOwnerResult,
+} from './canonical-caption-postrender-visual-intelligence-owner-result-port'
 import {
-  reconcileCanonicalCaptionPostrenderVisualQaOwnerResult,
-} from './canonical-caption-postrender-visual-qa-reconciliation-service'
+  persistCanonicalCaptionPostrenderVisualIntelligenceEvidence,
+} from './canonical-caption-postrender-visual-intelligence-evidence-repository'
 
 export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_COORDINATOR_SERVICE_VERSION =
-  'canonical-caption-postrender-visual-qa-coordinator-service-v1' as const
+  'canonical-caption-postrender-visual-qa-coordinator-service-v2' as const
 export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_COORDINATOR_RUNNER_CLASS =
-  'canonical_caption_postrender_visual_qa_coordinator_runner_v1' as const
+  'canonical_caption_postrender_visual_intelligence_coordinator_runner_v2' as const
 
 export async function prepareCanonicalCaptionPostrenderVisualQaExecution(input: {
   context: ServiceContext
@@ -26,8 +26,10 @@ export async function prepareCanonicalCaptionPostrenderVisualQaExecution(input: 
 }) {
   const workInput = parseCanonicalCaptionPostrenderVisualQaWorkItemInput(
     input.executionInput)
-  const ownerResult = await readCanonicalCaptionPostrenderVisualQaOwnerResult({
-    port: input.context.canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+  const ownerResult =
+    await readCanonicalCaptionPostrenderVisualIntelligenceOwnerResult({
+    port: input.context
+      .canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort,
     locator: {
       ownerUserId: input.actorUserId,
       workspaceId: input.workspaceId,
@@ -37,15 +39,14 @@ export async function prepareCanonicalCaptionPostrenderVisualQaExecution(input: 
       approvedWorkItemId: input.approvedWorkItemId,
       outputId: workInput.outputId,
       confirmedOutputFrameRef: workInput.confirmedOutputFrameRef,
-      requireCompleteTimeCoverage: true,
+      requireCompleteRequestedRangeCoverage: true,
     },
   })
   const reconciliation =
-    await reconcileCanonicalCaptionPostrenderVisualQaOwnerResult({
-      repository:
-        input.context.canonicalCaptionPostrenderVisualQaEvidenceRepository,
-      ownerUserId: input.actorUserId,
-      ownerResult,
+    await persistCanonicalCaptionPostrenderVisualIntelligenceEvidence({
+      repository: input.context
+        .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+      result: ownerResult,
     })
   return {
     workInput,

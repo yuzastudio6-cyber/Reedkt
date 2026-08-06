@@ -28,9 +28,19 @@ import {
   type CanonicalCaptionPostrenderVisualQaOutputAuthority,
   parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope,
 } from './canonical-caption-postrender-visual-qa-evidence-service'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceResult,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION,
+  type CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+} from './canonical-caption-postrender-visual-intelligence-evidence-repository'
+import {
+  parseCanonicalCaptionPostrenderVisualIntelligenceResult,
+} from './canonical-caption-postrender-visual-intelligence-result'
 
 export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_AUTHENTICATED_READ_SERVICE_VERSION =
-  'canonical-caption-postrender-visual-qa-authenticated-read-service-v2' as const
+  'canonical-caption-postrender-visual-qa-authenticated-read-service-v3' as const
 export const CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_AUTHENTICATED_READ_SERVICE_V1_VERSION =
   'canonical-caption-postrender-visual-qa-authenticated-read-service-v1' as const
 
@@ -57,10 +67,19 @@ export interface CanonicalCaptionPostrenderVisualQaAuthenticatedReadService {
 
 export function createCanonicalCaptionPostrenderVisualQaAuthenticatedReadService(
   input: {
-    repository: CanonicalCaptionPostrenderVisualQaEvidenceRepository
+    repository?: CanonicalCaptionPostrenderVisualQaEvidenceRepository
+    visualIntelligenceRepository?:
+      CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
   },
 ): CanonicalCaptionPostrenderVisualQaAuthenticatedReadService {
-  assertRepository(input.repository)
+  if (input.repository) assertRepository(input.repository)
+  if (!input.repository && !input.visualIntelligenceRepository) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Canonical Caption visual-review persistence is unavailable.',
+      503,
+    )
+  }
   return Object.freeze({
     serviceVersion:
       CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_AUTHENTICATED_READ_SERVICE_VERSION,
@@ -75,14 +94,16 @@ export function createCanonicalCaptionPostrenderVisualQaAuthenticatedReadService
       const reads = await Promise.all(request.requiredOutputs.map(
         async (requiredOutput) => readExactOutput({
           repository: input.repository,
+          visualIntelligenceRepository: input.visualIntelligenceRepository,
           authenticatedOwnerUserId: value.authenticatedOwnerUserId,
           request,
           requiredOutput,
         }),
       ))
       const anyLifecycle = reads.some((read) =>
-        read.authority.lifecycleState !== 'not_scheduled'
-        || read.completed !== null)
+        (read.authority?.lifecycleState ?? 'not_scheduled') !== 'not_scheduled'
+        || read.legacyCompleted !== null
+        || read.visualIntelligenceCompleted !== null)
       if (!anyLifecycle) return createResult({
         request,
         disposition: 'not_found',
@@ -120,29 +141,29 @@ function parseRequest(
 }
 
 async function readExactOutput(input: {
-  repository: CanonicalCaptionPostrenderVisualQaEvidenceRepository
+  repository?: CanonicalCaptionPostrenderVisualQaEvidenceRepository
+  visualIntelligenceRepository?:
+    CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
   authenticatedOwnerUserId: string
   request: CaptionRenderedVisualReviewAuthenticatedReadRequest
   requiredOutput: CaptionRenderedVisualReviewAuthenticatedOutputScope
 }): Promise<{
-  authority: CanonicalCaptionPostrenderVisualQaOutputAuthority
-  completed: CanonicalCaptionPostrenderVisualQaCompletedEnvelope | null
+  authority: CanonicalCaptionPostrenderVisualQaOutputAuthority | null
+  legacyCompleted: CanonicalCaptionPostrenderVisualQaCompletedEnvelope | null
+  visualIntelligenceCompleted:
+    CanonicalCaptionPostrenderVisualIntelligenceResult | null
 }> {
   const locator = {
     ownerUserId: input.authenticatedOwnerUserId,
     ...input.request.scope,
     outputId: input.requiredOutput.outputId,
   }
-  const authority = await input.repository.readOutputAuthority(locator)
-  if (!authority) throw new ApiError(
-    'PROJECT_NOT_FOUND',
-    'The exact approved Caption output-frame authority was not found.',
-    404,
-    { reason: 'caption_visual_qa_output_authority_not_found' },
-  )
-  if (!authorityMatchesRequest(
-    authority, input.authenticatedOwnerUserId, input.request,
-    input.requiredOutput)) {
+  const authority = input.repository
+    ? await input.repository.readOutputAuthority(locator)
+    : null
+  if (authority && !authorityMatchesRequest(
+      authority, input.authenticatedOwnerUserId, input.request,
+      input.requiredOutput)) {
     throw new ApiError(
       'WORKSPACE_ACCESS_DENIED',
       'Caption visual-review scope does not match the authenticated output.',
@@ -150,29 +171,83 @@ async function readExactOutput(input: {
       { reason: 'caption_visual_qa_output_authority_scope_mismatch' },
     )
   }
-  const completedValue = await input.repository.readCompletedEvidence(locator)
-  const completed = completedValue === null ? null
+  const completedValue = input.repository
+    ? await input.repository.readCompletedEvidence(locator)
+    : null
+  const legacyCompleted = completedValue === null ? null
     : parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(completedValue)
-  if (completed && (
-    completed.evidence.ownerUserId !== input.authenticatedOwnerUserId
-    || !sameScope(completed.evidence.scope, input.request.scope)
-    || completed.evidence.output.outputId !== input.requiredOutput.outputId
-    || !authorityMatchesCompleted(authority, completed)
-  )) throw new ApiError(
+  const activeRepository = input.visualIntelligenceRepository
+  if (activeRepository && activeRepository.repositoryVersion !==
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'The active Caption Visual Intelligence evidence repository is incompatible.',
+      503,
+      {
+        requiredGate:
+          'canonical_caption_postrender_visual_intelligence_evidence_repository',
+      },
+    )
+  }
+  const activeValue = activeRepository
+    ? await activeRepository.readCompletedEvidenceForOutput(locator)
+    : null
+  const visualIntelligenceCompleted = activeValue === null ? null
+    : parseCanonicalCaptionPostrenderVisualIntelligenceResult(activeValue)
+  if (legacyCompleted && visualIntelligenceCompleted) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Legacy and active Caption visual-review evidence both exist for one output.',
+      409,
+      { reason: 'caption_visual_qa_multiple_owner_results' },
+    )
+  }
+  if (legacyCompleted && (!authority || (
+    legacyCompleted.evidence.ownerUserId !== input.authenticatedOwnerUserId
+    || !sameScope(legacyCompleted.evidence.scope, input.request.scope)
+    || legacyCompleted.evidence.output.outputId !== input.requiredOutput.outputId
+    || !authorityMatchesCompleted(authority, legacyCompleted)
+  ))) throw new ApiError(
     'IDEMPOTENCY_CONFLICT',
     'Caption visual-review evidence no longer matches its exact output authority.',
     409,
     { reason: 'caption_visual_qa_completed_evidence_scope_mismatch' },
   )
-  return { authority: structuredClone(authority), completed }
+  if (visualIntelligenceCompleted && !(authority
+    ? activeMatchesAuthority(
+        visualIntelligenceCompleted, authority,
+        input.authenticatedOwnerUserId, input.request, input.requiredOutput)
+    : activeMatchesRequest(
+        visualIntelligenceCompleted, input.authenticatedOwnerUserId,
+        input.request, input.requiredOutput))) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Visual Intelligence evidence no longer matches its exact output authority.',
+      409,
+      { reason: 'caption_visual_intelligence_completed_scope_mismatch' },
+    )
+  }
+  return {
+    authority: authority ? structuredClone(authority) : null,
+    legacyCompleted,
+    visualIntelligenceCompleted,
+  }
 }
 
 function toOutputProductStatus(input: {
-  authority: CanonicalCaptionPostrenderVisualQaOutputAuthority
-  completed: CanonicalCaptionPostrenderVisualQaCompletedEnvelope | null
+  authority: CanonicalCaptionPostrenderVisualQaOutputAuthority | null
+  legacyCompleted: CanonicalCaptionPostrenderVisualQaCompletedEnvelope | null
+  visualIntelligenceCompleted:
+    CanonicalCaptionPostrenderVisualIntelligenceResult | null
 }): CaptionRenderedVisualReviewOutputProductStatus {
   const authority = input.authority
-  if (!input.completed) {
+  if (!input.legacyCompleted && !input.visualIntelligenceCompleted) {
+    if (!authority) throw new ApiError(
+      'TOOL_NOT_READY',
+      'Caption visual review is waiting for exact output-frame authority.',
+      503,
+      { requiredGate: 'canonical_caption_visual_qa_output_authority' },
+    )
     const deterministicPassed =
       authority.lifecycleState === 'waiting_for_qualified_ai'
     const state = deterministicPassed
@@ -212,7 +287,11 @@ function toOutputProductStatus(input: {
       },
     }
   }
-  const evidence = input.completed.evidence
+  if (input.visualIntelligenceCompleted) {
+    return toActiveVisualIntelligenceProductStatus(
+      input.visualIntelligenceCompleted)
+  }
+  const evidence = input.legacyCompleted!.evidence
   const state = evidence.decision === 'passed'
     ? 'passed' as const
     : evidence.decision
@@ -263,6 +342,90 @@ function toOutputProductStatus(input: {
           evidence.independentArtifactQaRef),
         assetManifestReconciliationRef: structuredClone(
           evidence.assetManifestReconciliationRef),
+      },
+      visualQaGateSatisfied: gateSatisfied,
+      visualQaBlocksDelivery: !gateSatisfied,
+      smallestScopeRepairRequired: evidence.smallestScopeRepairRequired,
+      privateHumanReviewRequired: evidence.privateHumanReviewRequired,
+      rawModelTextIncluded: false,
+      mediaBytesIncluded: false,
+      pathsOrUrlsIncluded: false,
+      authorityBoundary: { ...PRODUCT_CLOSED_AUTHORITY },
+    },
+  }
+}
+
+function toActiveVisualIntelligenceProductStatus(
+  evidence: CanonicalCaptionPostrenderVisualIntelligenceResult,
+): CaptionRenderedVisualReviewOutputProductStatus {
+  const state = evidence.decision === 'passed'
+    ? 'passed' as const
+    : evidence.decision
+  const inspectionStatus = evidence.decision === 'passed'
+    ? 'passed' as const
+    : evidence.decision === 'blocked_evidence_reconciliation'
+      ? 'blocked' as const
+      : evidence.decision
+  const gateSatisfied = evidence.decision === 'passed'
+    && evidence.completeTimelineCompositeReviewPassed
+    && evidence.completeRequestedRangeSemanticCoverageVerified
+    && evidence.deterministicAndSemanticEvidenceAgree
+    && evidence.canonicalEvidenceReconciled
+    && evidence.actualVisualIntelligenceInferenceVerified
+    && evidence.deterministicCompleteTimeQaPassed
+  return {
+    outputId: evidence.output.outputId,
+    aspectRatio: evidence.output.aspectRatio,
+    width: evidence.output.width,
+    height: evidence.output.height,
+    fps: evidence.output.fpsNumerator / evidence.output.fpsDenominator,
+    status: {
+      schemaVersion: CAPTION_RENDERED_VISUAL_REVIEW_PRODUCT_STATUS_VERSION,
+      scope: {
+        workspaceId: evidence.scope.workspaceId,
+        projectId: evidence.scope.projectId,
+        editSessionId: evidence.scope.editSessionId,
+        approvedSnapshotId: evidence.scope.approvedSnapshotId,
+      },
+      state,
+      userFacingLabel: evidence.decision === 'passed'
+        ? 'Caption checks passed'
+        : evidence.decision === 'repair_required'
+          ? 'Caption repair required'
+          : evidence.decision === 'needs_human_review'
+            ? 'Caption review required'
+            : 'Caption evidence blocked',
+      userFacingSummary: evidence.userFacingSummary,
+      deterministicQaStatus: 'passed',
+      aiVisualInspectionStatus: inspectionStatus,
+      exactApprovedRenderBound:
+        evidence.exactApprovedPrivateRenderRereadVerified,
+      actualModelInferenceVerified:
+        evidence.actualVisualIntelligenceInferenceVerified,
+      deterministicAndModelEvidenceAgree:
+        evidence.deterministicAndSemanticEvidenceAgree,
+      canonicalEvidenceReconciled: evidence.canonicalEvidenceReconciled,
+      serverDerivedFromCanonicalEvidence: true,
+      modelInspectionCoverage: {
+        scope: 'complete_segment_coverage',
+        sampledSegmentCount: evidence.analyzedRanges.length,
+        unsampledSegmentCount: 0,
+        modelInspectedOnlyPlannedSamples: true,
+        unsampledSegmentsNeverImpliedInspected: true,
+      },
+      canonicalEvidenceRefs: {
+        decisionRef: structuredClone(evidence.visualInspectionResultRef),
+        providerExecutionReceiptRef:
+          structuredClone(evidence.visualIntelligenceReportRef),
+        persistedEvidenceArtifactRef: {
+          id: evidence.resultId,
+          version: 1,
+          contentHash: evidence.resultDigestSha256,
+        },
+        independentArtifactQaRef:
+          structuredClone(evidence.independentArtifactQaRef),
+        assetManifestReconciliationRef:
+          structuredClone(evidence.assetManifestReconciliationRef),
       },
       visualQaGateSatisfied: gateSatisfied,
       visualQaBlocksDelivery: !gateSatisfied,
@@ -424,6 +587,88 @@ function authorityMatchesCompleted(
   return authority.ownerUserId === evidence.ownerUserId
     && sameScope(authority.scope, evidence.scope)
     && JSON.stringify(authority.output) === JSON.stringify(evidence.output)
+}
+
+function activeMatchesAuthority(
+  result: CanonicalCaptionPostrenderVisualIntelligenceResult,
+  authority: CanonicalCaptionPostrenderVisualQaOutputAuthority,
+  ownerUserId: string,
+  request: CaptionRenderedVisualReviewAuthenticatedReadRequest,
+  requiredOutput: CaptionRenderedVisualReviewAuthenticatedOutputScope,
+): boolean {
+  const frame = result.output.confirmedOutputFrameRef
+  return result.scope.ownerUserId === ownerUserId
+    && sameScope(result.scope, request.scope)
+    && result.output.outputId === requiredOutput.outputId
+    && result.output.outputId === authority.output.outputId
+    && result.output.aspectRatio === authority.output.aspectRatio
+    && result.output.width === authority.output.width
+    && result.output.height === authority.output.height
+    && result.output.fpsNumerator / result.output.fpsDenominator
+      === authority.output.fps
+    && frame.id === authority.output.confirmedOutputFrameRef.id
+    && frame.version === authority.output.confirmedOutputFrameRef.version
+    && frame.contentHash
+      === authority.output.confirmedOutputFrameRef.contentHash
+    && result.output.confirmedByUser
+    && result.output.confirmationRecordId
+      === authority.output.confirmationRecordId
+    && result.exactConfirmedOutputFrameRereadVerified
+    && result.exactApprovedPrivateRenderRereadVerified
+    && result.actualVisualIntelligenceInferenceVerified
+    && result.providerCapabilityId === 'visual_intelligence'
+    && result.providerOperationId === 'visual_intelligence.inspect_edit'
+    && !result.qwenVisualFallbackUsed
+    && !result.browserLocalStateUsed
+    && !result.directPeerDispatchAuthority
+    && !result.providerRuntimeAuthority
+    && !result.timelineMutationAuthority
+    && !result.qaApprovalAuthority
+    && !result.repairExecutionAuthority
+    && !result.assetMutationAuthority
+    && !result.creditOrBillingAuthority
+    && !result.publicDeliveryAuthority
+    && !result.productionAuthority
+}
+
+function activeMatchesRequest(
+  result: CanonicalCaptionPostrenderVisualIntelligenceResult,
+  ownerUserId: string,
+  request: CaptionRenderedVisualReviewAuthenticatedReadRequest,
+  requiredOutput: CaptionRenderedVisualReviewAuthenticatedOutputScope,
+): boolean {
+  const frame = requiredOutput.confirmedOutputFrameRef
+  const resultFrame = result.output.confirmedOutputFrameRef
+  return result.scope.ownerUserId === ownerUserId
+    && sameScope(result.scope, request.scope)
+    && result.output.outputId === requiredOutput.outputId
+    && result.output.outputId === frame.outputId
+    && result.output.aspectRatio === requiredOutput.aspectRatio
+    && result.output.aspectRatio === frame.aspectRatio
+    && result.output.width === frame.width
+    && result.output.height === frame.height
+    && result.output.fpsNumerator / result.output.fpsDenominator === frame.fps
+    && resultFrame.id === frame.id
+    && resultFrame.version === frame.version
+    && resultFrame.contentHash === frame.contentHash
+    && result.output.confirmedByUser === frame.confirmedByUser
+    && result.output.confirmationRecordId === frame.confirmationRecordId
+    && result.exactConfirmedOutputFrameRereadVerified
+    && result.exactApprovedPrivateRenderRereadVerified
+    && result.actualVisualIntelligenceInferenceVerified
+    && result.providerCapabilityId === 'visual_intelligence'
+    && result.providerOperationId === 'visual_intelligence.inspect_edit'
+    && !result.qwenVisualFallbackUsed
+    && !result.browserLocalStateUsed
+    && !result.directPeerDispatchAuthority
+    && !result.providerRuntimeAuthority
+    && !result.timelineMutationAuthority
+    && !result.qaApprovalAuthority
+    && !result.repairExecutionAuthority
+    && !result.assetMutationAuthority
+    && !result.creditOrBillingAuthority
+    && !result.publicDeliveryAuthority
+    && !result.productionAuthority
 }
 
 function sameScope(

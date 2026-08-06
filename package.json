@@ -296,6 +296,7 @@
     "smoke:canonical-caption-source-led-professional-planning": "tsx server/smoke/canonical-caption-source-led-professional-planning-smoke.ts",
     "smoke:canonical-caption-source-led-professional-planning-owner": "tsx server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts",
     "smoke:canonical-caption-postrender-visual-qa-authenticated-read": "tsx server/smoke/canonical-caption-postrender-visual-qa-authenticated-read-smoke.ts",
+    "smoke:canonical-caption-postrender-visual-intelligence-result": "tsx server/smoke/canonical-caption-postrender-visual-intelligence-result-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-worker": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-worker-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-owner": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-owner-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",

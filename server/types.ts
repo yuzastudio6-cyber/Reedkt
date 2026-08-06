@@ -73,6 +73,12 @@ import type {
   CanonicalCaptionPostrenderVisualQaOwnerResultReadPort,
 } from './services/canonical-caption-postrender-visual-qa-owner-result-port'
 import type {
+  CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+} from './services/canonical-caption-postrender-visual-intelligence-evidence-repository'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort,
+} from './services/canonical-caption-postrender-visual-intelligence-owner-result-port'
+import type {
   CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
 } from './services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import type {
@@ -185,6 +191,10 @@ export interface RuntimeState {
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
     CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
+  canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+  canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
   canonicalCaptionSourceLedProfessionalPlanningReadPort?:
     CanonicalCaptionSourceLedProfessionalPlanningReadPort
 }
@@ -265,6 +275,10 @@ export interface ServiceContext {
     CanonicalCaptionPostrenderVisualQaEvidenceRepository
   canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
     CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
+  canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+  canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
   canonicalCaptionSourceLedProfessionalPlanningReadPort?:
     CanonicalCaptionSourceLedProfessionalPlanningReadPort
 }

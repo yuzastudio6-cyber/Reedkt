@@ -211,6 +211,7 @@ import {
 } from '../../src/types/canonical-caption-rendered-media-work-binding'
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_COMPONENT_KEY,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION,
   type CanonicalCaptionPostrenderVisualQaWorkBinding,
 } from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
 import {
@@ -233,7 +234,7 @@ import {
 } from '../captions-specialist/caption-rendered-media-work-binding'
 import {
   assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches,
-  parseCanonicalCaptionPostrenderVisualQaWorkBinding,
+  parseCanonicalCaptionPostrenderVisualQaWorkBindingAny,
   prepareCanonicalCaptionPostrenderVisualQaWorkBinding,
   prepareCanonicalCaptionPostrenderVisualQaWorkItem,
 } from '../captions-specialist/caption-postrender-visual-qa-work-binding'
@@ -3728,7 +3729,20 @@ async function loadCanonicalCaptionPostrenderVisualQaWorkBinding(input: {
       localStorageRoot: input.context.env.localStorageRoot,
       ref,
     })
-    const binding = parseCanonicalCaptionPostrenderVisualQaWorkBinding(value)
+    const binding = parseCanonicalCaptionPostrenderVisualQaWorkBindingAny(
+      value)
+    if (binding.schemaVersion ===
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION) {
+      throw new ApiError(
+        'APPROVED_SNAPSHOT_REQUIRED',
+        'Historical Qwen Caption visual-QA work is readable but cannot execute; create a new approved Visual Intelligence plan version.',
+        409,
+        {
+          requiredGate:
+            'canonical_caption_postrender_visual_intelligence_v2_replan',
+        },
+      )
+    }
     assertCanonicalCaptionPostrenderVisualQaWorkBindingMatches(binding, {
       projection: input.projection,
       renderedMediaWorkBinding: input.renderedMediaWorkBinding,

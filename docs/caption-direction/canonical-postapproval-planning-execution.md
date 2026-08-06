@@ -77,12 +77,19 @@ work leaves the gate open; it never creates a second renderer or dispatcher.
 This closes `caption_rendered_media_work_binding`.
 
 The canonical planner now additionally creates one post-render visual-QA
-coordinator work item after the exact deterministic final-QA work item. Its
-content-addressed binding freezes the shared Qwen work-request/result identity,
-Caption authenticated reread identity, confirmed frame, MasterTiming, final
-render, and deterministic-QA lineage. A second binding freezes the final MP4,
+reconciliation work item after the exact deterministic final-QA work item. Its
+content-addressed V2 binding freezes the active Visual Intelligence
+`inspect_edit` request/report/spatial/result identities, Caption authenticated
+reread identity, confirmed frame, MasterTiming, final render, and
+deterministic-QA lineage. The retired Qwen V1 remains decode-only for immutable
+historical snapshots. A second binding freezes the final MP4,
 deterministic QA, and qualified visual-review result as required inputs to the
 existing canonical private-review assembly and decision owners.
+This Caption-owned work item is the reconciliation consumer, not the provider
+dispatcher. The backend workflow still must admit and schedule the approved
+Visual Intelligence inspection, including its canonical request package,
+estimate/reservation, lifecycle result, and owner finalization, before the
+consumer becomes runnable.
 
 This closes the Caption-specific approval coverage gates. It does not claim an
 actual provider/model result or private-review decision. Those remain required

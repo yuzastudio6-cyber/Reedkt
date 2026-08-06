@@ -44,6 +44,7 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-broll-support',
   'smoke:canonical-sound-caption-owner',
   'smoke:canonical-caption-shared-owner-composition',
+  'smoke:canonical-caption-postrender-visual-intelligence-result',
   'smoke:canonical-caption-postrender-visual-qa-authenticated-read',
   'smoke:canonical-caption-terminal-qualification',
   'smoke:canonical-caption-direct-visual-inspection-evidence',

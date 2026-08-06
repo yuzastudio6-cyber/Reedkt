@@ -71,7 +71,7 @@ Those inspections found no face/gesture obstruction, clipping, phrase overflow,
 plate collision, unstable placement, unusable cue transition, or tail
 truncation. The multi-output receipt additionally rejects source distortion,
 cross-canvas evidence reuse, and synthetic engineering-fixture promotion. It
-deliberately claims neither shared Qwen review nor independent
+deliberately claims neither active Visual Intelligence post-render review nor independent
 final QA.
 
 ## Closed semantics
@@ -134,6 +134,18 @@ representative source scenarios cover the union of all 41 declared jobs; no
 single scenario claims to exercise every feature. V1 planning bindings and
 work inputs remain strictly readable.
 
+The active post-render visual-review source lane now uses Visual Intelligence
+instead of the retired Qwen wire. The hosted Visual Intelligence composition
+mounts separate create-only owner-result and Caption reconciliation stores, an
+exact request/report/spatial-evidence finalizer, authenticated reload, and
+private-review admission. Focused source fixtures prove the Gemini 3.1 Pro
+profile/model contract, canonical confirmed-frame digest, approved
+snapshot/work/package/QA lineage, semantic range coverage without every-frame
+or exact-pixel overclaims, replay/conflict refusal, and closed authority. These
+fixtures make no provider call. The canonical approved workflow still must
+schedule and execute the real Visual Intelligence inspection before the
+existing Caption reconciliation work item can consume it.
+
 Supply the missing evidence through those existing owners and populate that
 catalog. The rejected transcript now has the closed preparation package
 documented in
@@ -143,7 +155,7 @@ documented in
 `cap-04-independent-audio-review-completion-seam-2026-08-06.md`; it does not
 invent an actual review. The nearest hard prerequisite remains a complete
 independent audio-truth review for that real source. Visual Intelligence,
-Track All, complete-time listening review, shared postrender visual AI, and
+Track All, complete-time listening review, active postrender Visual Intelligence, and
 independent final QA remain separate owner evidence requirements.
 
 Public SaaS rollout, billing activation, production authority, and the central

@@ -2,12 +2,23 @@ import { z } from 'zod'
 
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_VERSION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION,
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_INPUT_VERSION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_INPUT_VERSION,
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_OPERATION,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_V1_WORKER_CLASS,
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
   type CanonicalCaptionPostrenderVisualQaWorkBinding,
+  type CanonicalCaptionPostrenderVisualQaWorkBindingAny,
+  type CanonicalCaptionPostrenderVisualQaWorkBindingV1,
   type CanonicalCaptionPostrenderVisualQaWorkItemInput,
+  type CanonicalCaptionPostrenderVisualQaWorkItemInputAny,
+  type CanonicalCaptionPostrenderVisualQaWorkItemInputV1,
 } from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
 import type {
   CanonicalCaptionRenderedMediaWorkBinding,
 } from '../../src/types/canonical-caption-rendered-media-work-binding'
@@ -19,17 +30,11 @@ import {
   CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_RESULT_VERSION,
 } from '../../src/types/caption-direction-visual-review-authenticated-read'
 import {
-  CAPTION_RENDERED_VISUAL_REVIEW_SHARED_LIFECYCLE_RESULT_VERSION,
-} from '../../src/types/caption-direction-visual-review-shared-lifecycle'
-import {
-  CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID,
-  CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID,
-  CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION,
-  CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION,
-} from '../../src/types/canonical-postrender-visual-qa-lifecycle'
-import {
-  CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION,
-} from '../../src/types/canonical-postrender-visual-qa-work-request'
+  VISUAL_INSPECTION_REQUIREMENT_VERSION,
+  VISUAL_INTELLIGENCE_REQUEST_VERSION,
+  VISUAL_INTELLIGENCE_REPORT_VERSION,
+  VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION,
+} from '../../src/types/visual-intelligence'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import type {
@@ -65,16 +70,61 @@ const workItemInputSchema: z.ZodType<
   finalRenderOutputKey: safeKey,
   deterministicQaWorkItemKey: safeKey,
   deterministicQaOutputKey: safeKey,
+  visualInspectionRequirementSchemaVersion: z.literal(
+    VISUAL_INSPECTION_REQUIREMENT_VERSION),
+  visualIntelligenceRequestSchemaVersion: z.literal(
+    VISUAL_INTELLIGENCE_REQUEST_VERSION),
+  visualIntelligenceReportSchemaVersion: z.literal(
+    VISUAL_INTELLIGENCE_REPORT_VERSION),
+  visualIntelligenceSpatialEvidenceSchemaVersion: z.literal(
+    VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION),
+  ownerResultSchemaVersion: z.literal(
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION),
+  ownerCapabilityId: z.literal('visual_intelligence'),
+  ownerOperationId: z.literal('visual_intelligence.inspect_edit'),
+  requiredInspectionProfiles: z.tuple([
+    z.literal('final_render_visual_qa'),
+  ]),
+  authenticatedCaptionReadRequired: z.literal(true),
+  ownerResultCreatedOutsideCaptionReconciliation: z.literal(true),
+  deterministicEveryFrameQaRequired: z.literal(true),
+  completeRequestedRangeSemanticCoverageRequired: z.literal(true),
+  semanticEveryFrameInspectionClaimAllowed: z.literal(false),
+  semanticExactPixelInspectionClaimAllowed: z.literal(false),
+  qwenVisualFallbackAllowed: z.literal(false),
+  rawPromptAccepted: z.literal(false),
+  browserCompletionAccepted: z.literal(false),
+  directPeerDispatchRequested: z.literal(false),
+  providerDispatchRequestedByCaption: z.literal(false),
+  assetMutationRequested: z.literal(false),
+  qaApprovalRequested: z.literal(false),
+  billingAuthorityRequested: z.literal(false),
+  publicDeliveryRequested: z.literal(false),
+  productionAuthorityRequested: z.literal(false),
+}).strict()
+const workItemInputV1Schema: z.ZodType<
+  CanonicalCaptionPostrenderVisualQaWorkItemInputV1
+> = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_INPUT_VERSION),
+  operation: z.literal(
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_OPERATION),
+  outputId: safeKey,
+  confirmedOutputFrameRef: refSchema,
+  masterTimingRef: refSchema,
+  canonicalMasterTimingId: safeKey,
+  finalRenderWorkItemKey: safeKey,
+  finalRenderOutputKey: safeKey,
+  deterministicQaWorkItemKey: safeKey,
+  deterministicQaOutputKey: safeKey,
   workRequestSchemaVersion: z.literal(
-    CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION),
+    'canonical-postrender-visual-qa-work-request-v1'),
   lifecycleResultSchemaVersion: z.literal(
-    CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION),
+    'canonical-postrender-visual-qa-shared-lifecycle-result-v1'),
   sharedProviderCapabilityId: z.literal(
-    CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID),
-  sharedProviderOperationId: z.literal(
-    CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID),
-  sharedProviderOperationVersion: z.literal(
-    CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION),
+    'qwen2_5_vl_visual_understanding'),
+  sharedProviderOperationId: z.literal('postrender_private_visual_qa'),
+  sharedProviderOperationVersion: z.literal('postrender-private-visual-qa-v1'),
   authenticatedCaptionReadRequired: z.literal(true),
   completeTimeCoverageRequired: z.literal(true),
   sampledFramesCreatedOnlyAfterExactRenderReread: z.literal(true),
@@ -120,27 +170,35 @@ const bindingWithoutDigestSchema = z.object({
     dependencyKeys: z.array(safeKey).length(1),
     maximumAttempts: z.literal(2),
     maximumCreditBudget: z.literal(0),
-    workRequestSchemaVersion: z.literal(
-      CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION),
-    lifecycleResultSchemaVersion: z.literal(
-      CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION),
-    captionLifecycleProjectionSchemaVersion: z.literal(
-      CAPTION_RENDERED_VISUAL_REVIEW_SHARED_LIFECYCLE_RESULT_VERSION),
+    visualInspectionRequirementSchemaVersion: z.literal(
+      VISUAL_INSPECTION_REQUIREMENT_VERSION),
+    visualIntelligenceRequestSchemaVersion: z.literal(
+      VISUAL_INTELLIGENCE_REQUEST_VERSION),
+    visualIntelligenceReportSchemaVersion: z.literal(
+      VISUAL_INTELLIGENCE_REPORT_VERSION),
+    visualIntelligenceSpatialEvidenceSchemaVersion: z.literal(
+      VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION),
+    ownerResultSchemaVersion: z.literal(
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION),
     authenticatedReadRequestSchemaVersion: z.literal(
       CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_REQUEST_VERSION),
     authenticatedReadResultSchemaVersion: z.literal(
       CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_RESULT_VERSION),
-    sharedProviderCapabilityId: z.literal(
-      CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID),
-    sharedProviderOperationId: z.literal(
-      CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID),
-    sharedProviderOperationVersion: z.literal(
-      CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION),
+    ownerCapabilityId: z.literal('visual_intelligence'),
+    ownerOperationId: z.literal('visual_intelligence.inspect_edit'),
+    requiredInspectionProfiles: z.tuple([
+      z.literal('final_render_visual_qa'),
+    ]),
   }).strict(),
   approvalCoverageBindsScheduledWorkNotCompletedResult: z.literal(true),
   actualRenderedArtifactRequiredAtExecution: z.literal(true),
   actualDeterministicQaPassRequiredAtExecution: z.literal(true),
-  actualCompleteTimeModelInspectionRequiredForCompletion: z.literal(true),
+  deterministicEveryFrameQaRequiredForCompletion: z.literal(true),
+  completeRequestedRangeSemanticInspectionRequiredForCompletion:
+    z.literal(true),
+  semanticEveryFrameInspectionClaimAllowed: z.literal(false),
+  semanticExactPixelInspectionClaimAllowed: z.literal(false),
+  qwenVisualFallbackAllowed: z.literal(false),
   actualLifecycleResultPersisted: z.literal(false),
   authenticatedLifecycleResultReread: z.literal(false),
   browserLocalCompletionAccepted: z.literal(false),
@@ -156,6 +214,50 @@ const bindingWithoutDigestSchema = z.object({
 }).strict()
 const bindingSchema: z.ZodType<CanonicalCaptionPostrenderVisualQaWorkBinding> =
   bindingWithoutDigestSchema.extend({ bindingDigestSha256: sha256 }).strict()
+const bindingV1WithoutDigestSchema = bindingWithoutDigestSchema.omit({
+  schemaVersion: true,
+  visualQaLifecycle: true,
+  deterministicEveryFrameQaRequiredForCompletion: true,
+  completeRequestedRangeSemanticInspectionRequiredForCompletion: true,
+  semanticEveryFrameInspectionClaimAllowed: true,
+  semanticExactPixelInspectionClaimAllowed: true,
+  qwenVisualFallbackAllowed: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION),
+  visualQaLifecycle: z.object({
+    workItemKey: safeKey,
+    outputKey: safeKey,
+    workerClass: z.literal(
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_V1_WORKER_CLASS),
+    operation: z.literal(
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_OPERATION),
+    dependencyKeys: z.array(safeKey).length(1),
+    maximumAttempts: z.literal(2),
+    maximumCreditBudget: z.literal(0),
+    workRequestSchemaVersion: z.literal(
+      'canonical-postrender-visual-qa-work-request-v1'),
+    lifecycleResultSchemaVersion: z.literal(
+      'canonical-postrender-visual-qa-shared-lifecycle-result-v1'),
+    captionLifecycleProjectionSchemaVersion: z.literal(
+      'caption-rendered-visual-review-shared-lifecycle-result-v1'),
+    authenticatedReadRequestSchemaVersion: z.literal(
+      CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_REQUEST_VERSION),
+    authenticatedReadResultSchemaVersion: z.literal(
+      CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_RESULT_VERSION),
+    sharedProviderCapabilityId: z.literal(
+      'qwen2_5_vl_visual_understanding'),
+    sharedProviderOperationId: z.literal('postrender_private_visual_qa'),
+    sharedProviderOperationVersion: z.literal(
+      'postrender-private-visual-qa-v1'),
+  }).strict(),
+  actualCompleteTimeModelInspectionRequiredForCompletion: z.literal(true),
+}).strict()
+const bindingV1Schema: z.ZodType<
+  CanonicalCaptionPostrenderVisualQaWorkBindingV1
+> = bindingV1WithoutDigestSchema.extend({
+  bindingDigestSha256: sha256,
+}).strict()
 
 interface CaptionPostrenderWorkItem {
   workItemKey: string
@@ -221,22 +323,30 @@ export function prepareCanonicalCaptionPostrenderVisualQaWorkItem(input: {
     finalRenderOutputKey: media.finalComposition.outputKey,
     deterministicQaWorkItemKey: deterministicQa.workItemKey,
     deterministicQaOutputKey: deterministicOutput.outputKey,
-    workRequestSchemaVersion:
-      CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION,
-    lifecycleResultSchemaVersion:
-      CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION,
-    sharedProviderCapabilityId:
-      CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID,
-    sharedProviderOperationId:
-      CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID,
-    sharedProviderOperationVersion:
-      CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION,
+    visualInspectionRequirementSchemaVersion:
+      VISUAL_INSPECTION_REQUIREMENT_VERSION,
+    visualIntelligenceRequestSchemaVersion:
+      VISUAL_INTELLIGENCE_REQUEST_VERSION,
+    visualIntelligenceReportSchemaVersion:
+      VISUAL_INTELLIGENCE_REPORT_VERSION,
+    visualIntelligenceSpatialEvidenceSchemaVersion:
+      VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION,
+    ownerResultSchemaVersion:
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+    ownerCapabilityId: 'visual_intelligence',
+    ownerOperationId: 'visual_intelligence.inspect_edit',
+    requiredInspectionProfiles: ['final_render_visual_qa'],
     authenticatedCaptionReadRequired: true,
-    completeTimeCoverageRequired: true,
-    sampledFramesCreatedOnlyAfterExactRenderReread: true,
+    ownerResultCreatedOutsideCaptionReconciliation: true,
+    deterministicEveryFrameQaRequired: true,
+    completeRequestedRangeSemanticCoverageRequired: true,
+    semanticEveryFrameInspectionClaimAllowed: false,
+    semanticExactPixelInspectionClaimAllowed: false,
+    qwenVisualFallbackAllowed: false,
     rawPromptAccepted: false,
     browserCompletionAccepted: false,
-    directProviderDispatchRequested: false,
+    directPeerDispatchRequested: false,
+    providerDispatchRequestedByCaption: false,
     assetMutationRequested: false,
     qaApprovalRequested: false,
     billingAuthorityRequested: false,
@@ -253,7 +363,8 @@ export function prepareCanonicalCaptionPostrenderVisualQaWorkItem(input: {
     sourceCleanupDecisionIds: [],
     expectedOutputs: [{
       outputKey,
-      artifactType: 'canonical_postrender_visual_qa_lifecycle_result',
+      artifactType:
+        'canonical_caption_postrender_visual_intelligence_result',
       assetRole: 'qa',
       required: true,
       previewPlaceholderAllowed: false,
@@ -303,6 +414,57 @@ export function parseCanonicalCaptionPostrenderVisualQaWorkItemInput(
   assertClosedContractTree(value,
     'Canonical Caption post-render visual-QA work-item input')
   return structuredClone(workItemInputSchema.parse(value))
+}
+
+/**
+ * Historical V1 decoder. New work must never be scheduled from this value;
+ * this exists only so immutable approved snapshots remain auditable.
+ */
+export function parseCanonicalCaptionPostrenderVisualQaWorkBindingV1(
+  value: unknown,
+): CanonicalCaptionPostrenderVisualQaWorkBindingV1 {
+  assertClosedContractTree(value,
+    'Historical Caption post-render visual-QA work binding V1')
+  const parsed = bindingV1Schema.parse(value)
+  if (parsed.bindingDigestSha256 !== calculateSkillContractDigest(
+    parsed as unknown as Record<string, unknown>, 'bindingDigestSha256')) {
+    throw new Error(
+      'Historical Caption post-render visual-QA binding digest failed.')
+  }
+  if (parsed.visualQaLifecycle.dependencyKeys[0] !==
+    parsed.deterministicQa.workItemKey) {
+    throw new Error(
+      'Historical Caption visual-QA work lost deterministic-QA ordering.')
+  }
+  return structuredClone(parsed)
+}
+
+export function parseCanonicalCaptionPostrenderVisualQaWorkItemInputV1(
+  value: unknown,
+): CanonicalCaptionPostrenderVisualQaWorkItemInputV1 {
+  assertClosedContractTree(value,
+    'Historical Caption post-render visual-QA work-item input V1')
+  return structuredClone(workItemInputV1Schema.parse(value))
+}
+
+export function parseCanonicalCaptionPostrenderVisualQaWorkBindingAny(
+  value: unknown,
+): CanonicalCaptionPostrenderVisualQaWorkBindingAny {
+  if (recordSchemaVersion(value) ===
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_BINDING_V1_VERSION) {
+    return parseCanonicalCaptionPostrenderVisualQaWorkBindingV1(value)
+  }
+  return parseCanonicalCaptionPostrenderVisualQaWorkBinding(value)
+}
+
+export function parseCanonicalCaptionPostrenderVisualQaWorkItemInputAny(
+  value: unknown,
+): CanonicalCaptionPostrenderVisualQaWorkItemInputAny {
+  if (recordSchemaVersion(value) ===
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_V1_INPUT_VERSION) {
+    return parseCanonicalCaptionPostrenderVisualQaWorkItemInputV1(value)
+  }
+  return parseCanonicalCaptionPostrenderVisualQaWorkItemInput(value)
 }
 
 export function prepareCanonicalCaptionPostrenderVisualQaWorkBinding(input: {
@@ -363,27 +525,32 @@ export function prepareCanonicalCaptionPostrenderVisualQaWorkBinding(input: {
       dependencyKeys: [...lifecycle.dependencyKeys],
       maximumAttempts: 2,
       maximumCreditBudget: 0,
-      workRequestSchemaVersion:
-        CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION,
-      lifecycleResultSchemaVersion:
-        CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION,
-      captionLifecycleProjectionSchemaVersion:
-        CAPTION_RENDERED_VISUAL_REVIEW_SHARED_LIFECYCLE_RESULT_VERSION,
+      visualInspectionRequirementSchemaVersion:
+        VISUAL_INSPECTION_REQUIREMENT_VERSION,
+      visualIntelligenceRequestSchemaVersion:
+        VISUAL_INTELLIGENCE_REQUEST_VERSION,
+      visualIntelligenceReportSchemaVersion:
+        VISUAL_INTELLIGENCE_REPORT_VERSION,
+      visualIntelligenceSpatialEvidenceSchemaVersion:
+        VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION,
+      ownerResultSchemaVersion:
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
       authenticatedReadRequestSchemaVersion:
         CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_REQUEST_VERSION,
       authenticatedReadResultSchemaVersion:
         CAPTION_RENDERED_VISUAL_REVIEW_AUTHENTICATED_READ_RESULT_VERSION,
-      sharedProviderCapabilityId:
-        CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID,
-      sharedProviderOperationId:
-        CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID,
-      sharedProviderOperationVersion:
-        CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION,
+      ownerCapabilityId: 'visual_intelligence',
+      ownerOperationId: 'visual_intelligence.inspect_edit',
+      requiredInspectionProfiles: ['final_render_visual_qa'],
     },
     approvalCoverageBindsScheduledWorkNotCompletedResult: true,
     actualRenderedArtifactRequiredAtExecution: true,
     actualDeterministicQaPassRequiredAtExecution: true,
-    actualCompleteTimeModelInspectionRequiredForCompletion: true,
+    deterministicEveryFrameQaRequiredForCompletion: true,
+    completeRequestedRangeSemanticInspectionRequiredForCompletion: true,
+    semanticEveryFrameInspectionClaimAllowed: false,
+    semanticExactPixelInspectionClaimAllowed: false,
+    qwenVisualFallbackAllowed: false,
     actualLifecycleResultPersisted: false,
     authenticatedLifecycleResultReread: false,
     browserLocalCompletionAccepted: false,
@@ -463,6 +630,12 @@ function requireDeterministicFinalQa(
   return item
 }
 
+function recordSchemaVersion(value: unknown): unknown {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>).schemaVersion
+    : undefined
+}
+
 function assertVisualQaLifecycleWorkItem(
   item: CaptionPostrenderWorkItem,
   media: CanonicalCaptionRenderedMediaWorkBinding,
@@ -481,7 +654,7 @@ function assertVisualQaLifecycleWorkItem(
     || item.maxAttempts !== 2 || item.maximumCreditBudget !== 0
     || item.expectedOutputs.length !== 1 || !output
     || output.artifactType
-      !== 'canonical_postrender_visual_qa_lifecycle_result'
+      !== 'canonical_caption_postrender_visual_intelligence_result'
     || output.assetRole !== 'qa' || output.contentType !== 'application/json'
     || !output.required || output.previewPlaceholderAllowed
     || stableAuthorityStringify(output.segmentIds)
@@ -505,22 +678,33 @@ function assertVisualQaLifecycleWorkItem(
     || parsedInput.finalRenderOutputKey !== media.finalComposition.outputKey
     || parsedInput.deterministicQaWorkItemKey !== deterministicQa.workItemKey
     || parsedInput.deterministicQaOutputKey !== deterministicOutput.outputKey
-    || parsedInput.workRequestSchemaVersion
-      !== CANONICAL_POSTRENDER_VISUAL_QA_WORK_REQUEST_VERSION
-    || parsedInput.lifecycleResultSchemaVersion
-      !== CANONICAL_POSTRENDER_VISUAL_QA_SHARED_LIFECYCLE_RESULT_VERSION
-    || parsedInput.sharedProviderCapabilityId
-      !== CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_CAPABILITY_ID
-    || parsedInput.sharedProviderOperationId
-      !== CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_ID
-    || parsedInput.sharedProviderOperationVersion
-      !== CANONICAL_POSTRENDER_VISUAL_QA_PROVIDER_OPERATION_VERSION
+    || parsedInput.visualInspectionRequirementSchemaVersion
+      !== VISUAL_INSPECTION_REQUIREMENT_VERSION
+    || parsedInput.visualIntelligenceRequestSchemaVersion
+      !== VISUAL_INTELLIGENCE_REQUEST_VERSION
+    || parsedInput.visualIntelligenceReportSchemaVersion
+      !== VISUAL_INTELLIGENCE_REPORT_VERSION
+    || parsedInput.visualIntelligenceSpatialEvidenceSchemaVersion
+      !== VISUAL_INTELLIGENCE_SPATIAL_EVIDENCE_VERSION
+    || parsedInput.ownerResultSchemaVersion
+      !== CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION
+    || parsedInput.ownerCapabilityId !== 'visual_intelligence'
+    || parsedInput.ownerOperationId !== 'visual_intelligence.inspect_edit'
+    || stableAuthorityStringify(parsedInput.requiredInspectionProfiles)
+      !== stableAuthorityStringify([
+        'final_render_visual_qa',
+      ])
     || parsedInput.authenticatedCaptionReadRequired !== true
-    || parsedInput.completeTimeCoverageRequired !== true
-    || parsedInput.sampledFramesCreatedOnlyAfterExactRenderReread !== true
+    || parsedInput.ownerResultCreatedOutsideCaptionReconciliation !== true
+    || parsedInput.deterministicEveryFrameQaRequired !== true
+    || parsedInput.completeRequestedRangeSemanticCoverageRequired !== true
+    || parsedInput.semanticEveryFrameInspectionClaimAllowed !== false
+    || parsedInput.semanticExactPixelInspectionClaimAllowed !== false
+    || parsedInput.qwenVisualFallbackAllowed !== false
     || parsedInput.rawPromptAccepted !== false
     || parsedInput.browserCompletionAccepted !== false
-    || parsedInput.directProviderDispatchRequested !== false
+    || parsedInput.directPeerDispatchRequested !== false
+    || parsedInput.providerDispatchRequestedByCaption !== false
     || parsedInput.assetMutationRequested !== false
     || parsedInput.qaApprovalRequested !== false
     || parsedInput.billingAuthorityRequested !== false

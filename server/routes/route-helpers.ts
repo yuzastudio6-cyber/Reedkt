@@ -105,6 +105,12 @@ export function getServiceContext(request: Request): ServiceContext {
     canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
       runtimeRequest.runtime
         .canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+    canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+    canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort,
     canonicalCaptionSourceLedProfessionalPlanningReadPort:
       runtimeRequest.runtime
         .canonicalCaptionSourceLedProfessionalPlanningReadPort,

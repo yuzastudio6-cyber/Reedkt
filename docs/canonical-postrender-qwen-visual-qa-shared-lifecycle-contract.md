@@ -1,7 +1,12 @@
 # Canonical Post-render Qwen Visual-QA Shared Lifecycle Contract
 
 Status:
-`authenticated_projection_and_caption_reconciliation_runner_source_complete_provider_lifecycle_pending`
+`historical_read_only_superseded_by_visual_intelligence_v2`
+
+This V1 wire is retained only to reread immutable historical snapshots. New
+Caption work must use `canonical-caption-postrender-visual-qa-work-binding-v2`
+and the active Visual Intelligence `final_render_visual_qa` owner result. The
+V1 contract below must not be scheduled, cast, or relabelled as active evidence.
 
 This source-only boundary freezes one frontend-safe shared result shape for
 `qwen2_5_vl_visual_understanding` / `postrender_private_visual_qa` /

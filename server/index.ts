@@ -29,6 +29,10 @@ const app = createReeditProApiApp(env, {
         visualIntelligenceRuntime.sourceCleanupAuthorityRepository,
       canonicalSourceVisualIntelligenceOrchestraReadPort:
         visualIntelligenceRuntime.sourceVideoUnderstandingReadPort,
+      canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort:
+        visualIntelligenceRuntime.captionPostrenderOwnerResultRepository,
+      canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository:
+        visualIntelligenceRuntime.captionPostrenderEvidenceRepository,
     }
     : {}),
   ...(trackAllSam31Runtime

@@ -4,6 +4,12 @@ Milestone: `CAP-17`
 
 Status: `caption_chat_and_authenticated_reload_source_complete_shared_writers_external`
 
+Current runtime note: CAP-17 originally documented the then-proposed Qwen
+post-render lane. Fresh work now uses the provider-neutral Visual Intelligence
+V2 reconciliation path (`visual_intelligence.inspect_edit` /
+`final_render_visual_qa`). The Qwen V1 records below are historical-read
+compatibility only and cannot execute in a new approved snapshot.
+
 ## Outcome
 
 CAP-17 connects the frozen Caption specialist evidence to the normal Edit Chat
@@ -80,10 +86,10 @@ available. It derives the request directly from the frozen confirmed-frame
 authorities; width, height, fps, aspect ratio, and confirmation identity are
 not reconstructed from loose browser fields.
 
-The shared canonical Qwen lifecycle writer, create-only result persistence,
-QA/reconciliation, and qualified repository read port remain backend-owned
-integration gates. CAP-17 does not create a Caption dispatcher or reinterpret
-the distinct Gemini Visual Intelligence operation.
+The active Visual Intelligence owner-result finalizer, create-only result
+persistence, Caption reconciliation, and authenticated read are backend-owned
+source mounts. A real approved invocation and persisted owner result remain an
+internal evidence gate. CAP-17 does not create a Caption dispatcher.
 
 ## Revisions and private review
 
@@ -140,8 +146,9 @@ transcript, credentials, provider output, or customer artifact.
 
 - backend professional-coverage admission must consume the exact composition
   trace and snapshot extension rather than substring matching;
-- the shared Qwen postrender lifecycle writer and qualified repository port
-  must satisfy the published authenticated read route;
+- the canonical backend workflow must schedule the approved Visual
+  Intelligence post-render inspection and produce its qualified owner result
+  before the published authenticated read route can complete;
 - the existing B-roll owner must publish the exact selected/cropped/timed read
   result consumed by Caption/Remotion;
 - backend approval packaging must supply the complete CAP-02 through CAP-16

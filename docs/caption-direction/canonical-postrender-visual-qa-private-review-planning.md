@@ -9,41 +9,58 @@ review result cannot exist before the approved captioned render exists, so the
 canonical plan now freezes the review work and its downstream private-review
 dependencies before approval without claiming either result has completed.
 
-`canonical-caption-postrender-visual-qa-work-binding-v1` requires one exact
+`canonical-caption-postrender-visual-qa-work-binding-v2` requires one exact
 chain:
 
 1. the libass caption overlay and Remotion final-canvas binding;
 2. the final private MP4;
 3. deterministic FFprobe final QA for that exact MP4; and
-4. one server-owned post-render visual-QA coordinator work item.
+4. one server-owned post-render Visual Intelligence reconciliation work item.
 
-The coordinator is bound to the existing
-`canonical-postrender-visual-qa-work-request-v1` and
-`canonical-postrender-visual-qa-shared-lifecycle-result-v1` contracts and to
-the Caption authenticated reread contracts. It requests complete-time visual
-coverage, accepts no caller prompt, cannot use browser-local completion, and
-does not receive provider dispatch, asset mutation, QA approval, billing,
-public-delivery, or production authority during planning. Actual sample frames
-may be created only after the exact rendered artifact and deterministic QA are
-persisted and reread.
+The active post-render coordinator is bound to
+`visual-intelligence.inspect_edit` / `final_render_visual_qa` and
+`canonical-caption-postrender-visual-intelligence-result-v1`. The earlier
+Caption support lane remains separately bound to `caption_layout_qa`; it is
+planning/layout evidence and is not relabelled as the final-render review.
+Visual Intelligence must semantically cover every exact requested timeline
+range with Gemini 3.1 Pro Preview evidence. It must not claim that the model
+inspected every frame or exact pixel. Deterministic every-frame technical QA
+remains a separate required authority. The coordinator accepts no caller
+prompt, cannot use browser-local completion, and receives no provider
+dispatch, timeline, asset, QA-approval, repair, billing, public-delivery, or
+production authority.
 
 Its resource placement is now
 `caption_postrender_visual_qa_owner_reconciliation`: a tool-free internal job
 that is runnable only as a consumer of an injected canonical shared-owner
-result. Its frozen placement remains `privateExecutionReady: false` until that
-port is mounted by the backend owner. The authenticated read side includes a digest-bound normalized result,
-Caption evidence record, create-only repository contract, exact reread service,
+result. Its frozen placement remains `privateExecutionReady: false` until the
+execution runner receives the exact active-owner result port. The hosted Visual
+Intelligence composition now mounts separate durable owner-result and Caption
+create-only evidence stores, but that source mount does not prove an approved
+provider invocation or a real owner result. The authenticated read side includes
+a digest-bound provider-neutral result, Caption evidence record, create-only
+repository contract, exact reread service,
 and mounted signed-in route preserving not-found, pending, passed, repair,
 human-review, and reconciliation-blocked states. The private job adapter can
 reconcile those exact records into the approved Caption work item, but it never
-dispatches Qwen. Without the qualified shared lifecycle owner/read port, it
+dispatches Visual Intelligence. Without the qualified owner/read port, it
 fails closed before execution. Planning and synthetic fixtures still cannot
 masquerade as runtime evidence.
 
-V1 can mark complete-time visual review as passed only when exact full-motion
-sample evidence covers every render frame. Sampling every segment is not
-enough. Edits longer than the 4,096-frame V1 ceiling require a future
-full-review-video contract and remain blocked in this lane.
+This slice deliberately does not hide the remaining orchestration gap. The
+Caption work graph schedules reconciliation of an already admitted Visual
+Intelligence result; it does not itself schedule or dispatch the provider. A
+canonical approved workflow owner must still create the exact inspection
+requirement/request package, bind estimate and reservation authority, invoke the
+existing Visual Intelligence lifecycle, finalize the owner result, and only
+then allow Caption reconciliation. Until that one-writer path is exercised with
+the real private render, the internal end-to-end visual-review gate remains
+open.
+
+The retired Qwen wire remains readable only through the explicit historical
+`canonical-caption-postrender-visual-qa-work-binding-v1` and work-input V1
+decoders. New planning cannot emit or execute it, and no V1 record is cast or
+relabelled as Visual Intelligence evidence.
 
 `canonical-caption-private-review-dependency-binding-v1` then freezes the
 three artifacts that the existing canonical private-review owner must consume:
@@ -81,13 +98,15 @@ For a selected Caption plan with exact render, deterministic QA, scheduled
 visual review, and private-review dependencies, the Caption-specific planning
 coverage blockers are now closed. Approval can therefore happen in the correct
 order. Terminal Caption qualification remains blocked until the real shared
-owner produces and rereads the Qwen lifecycle result, independent private review
+owner produces and rereads the Visual Intelligence result, independent private review
 accepts the exact output, and the terminal projection consumes those canonical
 records. The terminal projection builder now requires one accepted evidence
 projection per confirmed output; a truth-shaped terminal input by itself is no
 longer sufficient.
 
 No provider or media runtime was executed by this source milestone. The
-authenticated route smoke uses only synthetic lifecycle data and a controlled
-in-memory create-only repository. Its focused proof covers 24 authenticated
-visual/review assertions, and the terminal proof covers 33 contract assertions.
+authenticated route smoke uses only synthetic lifecycle data and controlled
+in-memory create-only repositories. The focused active-owner proof covers the
+exact Gemini profile/model, immutable owner reread, crossed-work refusal,
+create-only replay/conflict, authenticated reload, coordinator consumption,
+private-review admission, semantic overclaim refusal, and closed authority.

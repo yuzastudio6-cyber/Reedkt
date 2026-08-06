@@ -10,6 +10,15 @@ import type {
 import type {
   CanonicalCaptionPostrenderVisualQaCompletedEnvelope,
 } from './canonical-caption-postrender-visual-qa-evidence-service'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceResult,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION,
+} from './canonical-caption-postrender-visual-intelligence-evidence-repository'
+import {
+  parseCanonicalCaptionPostrenderVisualIntelligenceResult,
+} from './canonical-caption-postrender-visual-intelligence-result'
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION,
   parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope,
@@ -43,7 +52,7 @@ import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export const CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_SERVICE_VERSION =
-  'canonical-caption-private-review-evidence-service-v1' as const
+  'canonical-caption-private-review-evidence-service-v2' as const
 
 const safeKey = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -191,26 +200,47 @@ export function createCanonicalCaptionPrivateReviewEvidenceService(
       if (!visualWorkItem) {
         throw conflict('caption_private_review_visual_work_item_missing')
       }
-      const repository =
+      const legacyRepository =
         context.canonicalCaptionPostrenderVisualQaEvidenceRepository
-      if (!repository
-        || repository.repositoryVersion !==
+      const activeRepository = context
+        .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+      if (legacyRepository && legacyRepository.repositoryVersion !==
           CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION) {
+        throw conflict('caption_private_review_legacy_repository_incompatible')
+      }
+      if (activeRepository && activeRepository.repositoryVersion !==
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION) {
+        throw conflict('caption_private_review_active_repository_incompatible')
+      }
+      if (!legacyRepository && !activeRepository) {
         throw new ApiError(
           'TOOL_NOT_READY',
           'Canonical Caption private review is waiting for its visual-evidence repository.',
           503,
-          { requiredGate: 'canonical_caption_visual_qa_evidence_repository' },
+          {
+            requiredGate:
+              'canonical_caption_postrender_visual_intelligence_evidence_repository',
+          },
         )
       }
-      const completed = await repository.readCompletedEvidence({
+      const locator = {
         ownerUserId,
         workspaceId: input.workspaceId,
         projectId: executionPackage.projectId,
         editSessionId: executionPackage.editSessionId,
         approvedSnapshotId: executionPackage.approvedPlanSnapshotId,
         outputId: dependencyBinding.outputId,
-      })
+      }
+      const legacyCompleted = legacyRepository
+        ? await legacyRepository.readCompletedEvidence(locator)
+        : null
+      const activeCompleted = activeRepository
+        ? await activeRepository.readCompletedEvidenceForOutput(locator)
+        : null
+      if (legacyCompleted && activeCompleted) {
+        throw conflict('caption_private_review_multiple_visual_owner_results')
+      }
+      const completed = activeCompleted ?? legacyCompleted
       if (!completed) {
         throw new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
@@ -257,13 +287,13 @@ export function createCanonicalCaptionPrivateReviewEvidenceService(
 export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
   authority: ProjectionAuthority
   completed: CanonicalCaptionPostrenderVisualQaCompletedEnvelope
+    | CanonicalCaptionPostrenderVisualIntelligenceResult
   assembly: CanonicalPrivateReviewAssemblyResponse | null
   decision: CanonicalPrivateReviewDecisionResponse | null
 }): CanonicalCaptionPrivateReviewEvidenceProjection {
   const authority = input.authority
   const binding = authority.dependencyBinding
-  const envelope = parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(
-    input.completed)
+  const visual = normalizeCaptionVisualReviewEvidence(input.completed)
   const assembly = input.assembly === null ? null
     : canonicalPrivateReviewAssemblyResponseSchema.parse(input.assembly)
   const decision = input.decision === null ? null
@@ -272,8 +302,8 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
     || (decision && !validResponseHash(decision, 'responseHash'))) {
     throw conflict('caption_private_review_canonical_response_hash_invalid')
   }
-  assertExactCaptionReviewLineage({ authority, envelope, assembly, decision })
-  const visualDecision = envelope.evidence.decision
+  assertExactCaptionReviewLineage({ authority, visual, assembly, decision })
+  const visualDecision = visual.decision
   const assemblyAllowed = visualDecision === 'passed'
     || visualDecision === 'needs_human_review'
   const accepted = decision?.decision === 'accept_private_internal_review'
@@ -296,7 +326,7 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
     schemaVersion:
       CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
     projectionId: `caption.private-review.evidence.${
-      envelope.evidence.evidenceDigestSha256.slice(7, 47)}`,
+      visual.evidenceDigestSha256.slice(7, 47)}`,
     canonicalScope: {
       ownerUserId: authority.ownerUserId,
       workspaceId: authority.workspaceId,
@@ -313,14 +343,12 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
       outputId: binding.outputId,
       confirmedOutputFrameRef: structuredClone(
         binding.confirmedOutputFrameRef),
-      width: envelope.normalizedResult.output.width,
-      height: envelope.normalizedResult.output.height,
-      fpsNumerator: envelope.normalizedResult.output.fpsNumerator,
-      fpsDenominator: envelope.normalizedResult.output.fpsDenominator,
-      renderedArtifactRef: structuredClone(
-        envelope.workRequest.privateRenderArtifactRef),
-      deterministicQaRef: structuredClone(
-        envelope.workRequest.deterministicQaRef),
+      width: visual.output.width,
+      height: visual.output.height,
+      fpsNumerator: visual.output.fpsNumerator,
+      fpsDenominator: visual.output.fpsDenominator,
+      renderedArtifactRef: structuredClone(visual.privateRenderArtifactRef),
+      deterministicQaRef: structuredClone(visual.deterministicQaRef),
     },
     sourceRefs: {
       privateReviewDependencyBindingRef: {
@@ -329,26 +357,25 @@ export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
         contentHash: binding.bindingDigestSha256,
       },
       postrenderVisualQaEvidenceRef: {
-        id: envelope.evidence.evidenceId,
+        id: visual.evidenceId,
         version: 1,
-        contentHash: envelope.evidence.evidenceDigestSha256,
+        contentHash: visual.evidenceDigestSha256,
       },
-      workRequestRef: structuredClone(envelope.evidence.workRequestRef),
-      normalizedResultRef: structuredClone(
-        envelope.evidence.normalizedDecisionRef),
+      workRequestRef: structuredClone(visual.workRequestRef),
+      normalizedResultRef: structuredClone(visual.normalizedResultRef),
     },
     visualReview: {
       decision: visualDecision,
       actualModelInferenceVerified: true,
       exactApprovedRenderBound: true,
       canonicalEvidenceReconciled:
-        envelope.evidence.canonicalEvidenceReconciled,
+        visual.canonicalEvidenceReconciled,
       actualCompleteTimeVisualReviewPassed:
-        envelope.evidence.actualCompleteTimeVisualReviewPassed,
+        visual.actualCompleteTimeVisualReviewPassed,
       smallestScopeRepairRequired:
-        envelope.evidence.smallestScopeRepairRequired,
+        visual.smallestScopeRepairRequired,
       privateHumanReviewRequired:
-        envelope.evidence.privateHumanReviewRequired,
+        visual.privateHumanReviewRequired,
     },
     canonicalPrivateReview: {
       assemblyRef: assembly ? {
@@ -460,45 +487,164 @@ export function parseCanonicalCaptionPrivateReviewEvidenceProjection(
   return structuredClone(parsed)
 }
 
+interface NormalizedCaptionVisualReviewEvidence {
+  evidenceId: string
+  evidenceDigestSha256: string
+  scope: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    approvedSnapshotId: string
+  }
+  approvedSnapshotRef: { id: string; version: number; contentHash: string }
+  executionPackageRef: { id: string; version: number; contentHash: string }
+  approvedWorkItemRef: { id: string; version: number; contentHash: string }
+  output: {
+    outputId: string
+    confirmedOutputFrameRef: {
+      id: string
+      version: string
+      contentHash: string
+    }
+    width: number
+    height: number
+    fpsNumerator: number
+    fpsDenominator: number
+  }
+  privateRenderArtifactRef: { id: string; version: number; contentHash: string }
+  deterministicQaRef: { id: string; version: number; contentHash: string }
+  workRequestRef: { id: string; version: number; contentHash: string }
+  normalizedResultRef: { id: string; version: number; contentHash: string }
+  decision: CanonicalCaptionPrivateReviewEvidenceProjection[
+    'visualReview']['decision']
+  actualModelInferenceVerified: true
+  exactApprovedRenderBound: true
+  canonicalEvidenceReconciled: boolean
+  actualCompleteTimeVisualReviewPassed: boolean
+  smallestScopeRepairRequired: boolean
+  privateHumanReviewRequired: boolean
+}
+
+function normalizeCaptionVisualReviewEvidence(
+  value: CanonicalCaptionPostrenderVisualQaCompletedEnvelope
+    | CanonicalCaptionPostrenderVisualIntelligenceResult,
+): NormalizedCaptionVisualReviewEvidence {
+  if ('schemaVersion' in value && value.schemaVersion ===
+    'canonical-caption-postrender-visual-intelligence-result-v1') {
+    const result = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
+      value)
+    return {
+      evidenceId: result.resultId,
+      evidenceDigestSha256: result.resultDigestSha256,
+      scope: structuredClone(result.scope),
+      approvedSnapshotRef: structuredClone(result.approvedSnapshotRef),
+      executionPackageRef: structuredClone(result.executionPackageRef),
+      approvedWorkItemRef: structuredClone(result.approvedWorkItemRef),
+      output: {
+        outputId: result.output.outputId,
+        confirmedOutputFrameRef:
+          structuredClone(result.output.captionConfirmedOutputFrameRef),
+        width: result.output.width,
+        height: result.output.height,
+        fpsNumerator: result.output.fpsNumerator,
+        fpsDenominator: result.output.fpsDenominator,
+      },
+      privateRenderArtifactRef:
+        structuredClone(result.privateRenderArtifactRef),
+      deterministicQaRef:
+        structuredClone(result.deterministicCompleteTimeQaRef),
+      workRequestRef: structuredClone(result.visualIntelligenceRequestRef),
+      normalizedResultRef:
+        structuredClone(result.visualInspectionResultRef),
+      decision: result.decision,
+      actualModelInferenceVerified: true,
+      exactApprovedRenderBound: true,
+      canonicalEvidenceReconciled: result.canonicalEvidenceReconciled,
+      actualCompleteTimeVisualReviewPassed:
+        result.completeTimelineCompositeReviewPassed,
+      smallestScopeRepairRequired: result.smallestScopeRepairRequired,
+      privateHumanReviewRequired: result.privateHumanReviewRequired,
+    }
+  }
+  const envelope = parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(
+    value)
+  return {
+    evidenceId: envelope.evidence.evidenceId,
+    evidenceDigestSha256: envelope.evidence.evidenceDigestSha256,
+    scope: {
+      ownerUserId: envelope.evidence.ownerUserId,
+      ...structuredClone(envelope.evidence.scope),
+    },
+    approvedSnapshotRef:
+      structuredClone(envelope.workRequest.approvedSnapshotRef),
+    executionPackageRef:
+      structuredClone(envelope.workRequest.executionPackageRef),
+    approvedWorkItemRef:
+      structuredClone(envelope.workRequest.approvedWorkItemRef),
+    output: {
+      outputId: envelope.normalizedResult.output.outputId,
+      confirmedOutputFrameRef: structuredClone(
+        envelope.normalizedResult.output.confirmedOutputFrameRef),
+      width: envelope.normalizedResult.output.width,
+      height: envelope.normalizedResult.output.height,
+      fpsNumerator: envelope.normalizedResult.output.fpsNumerator,
+      fpsDenominator: envelope.normalizedResult.output.fpsDenominator,
+    },
+    privateRenderArtifactRef:
+      structuredClone(envelope.workRequest.privateRenderArtifactRef),
+    deterministicQaRef:
+      structuredClone(envelope.workRequest.deterministicQaRef),
+    workRequestRef: structuredClone(envelope.evidence.workRequestRef),
+    normalizedResultRef:
+      structuredClone(envelope.evidence.normalizedDecisionRef),
+    decision: envelope.evidence.decision,
+    actualModelInferenceVerified: true,
+    exactApprovedRenderBound: true,
+    canonicalEvidenceReconciled:
+      envelope.evidence.canonicalEvidenceReconciled,
+    actualCompleteTimeVisualReviewPassed:
+      envelope.evidence.actualCompleteTimeVisualReviewPassed,
+    smallestScopeRepairRequired:
+      envelope.evidence.smallestScopeRepairRequired,
+    privateHumanReviewRequired:
+      envelope.evidence.privateHumanReviewRequired,
+  }
+}
+
 function assertExactCaptionReviewLineage(input: {
   authority: ProjectionAuthority
-  envelope: CanonicalCaptionPostrenderVisualQaCompletedEnvelope
+  visual: NormalizedCaptionVisualReviewEvidence
   assembly: CanonicalPrivateReviewAssemblyResponse | null
   decision: CanonicalPrivateReviewDecisionResponse | null
 }): void {
-  const { authority, envelope, assembly, decision } = input
+  const { authority, visual, assembly, decision } = input
   const binding = authority.dependencyBinding
-  const workRequest = envelope.workRequest
-  const normalized = envelope.normalizedResult
-  const scope = envelope.evidence.scope
-  const exactOutput = normalized.output
+  const scope = visual.scope
+  const exactOutput = visual.output
   if (
-    envelope.evidence.ownerUserId !== authority.ownerUserId
+    scope.ownerUserId !== authority.ownerUserId
     || scope.workspaceId !== authority.workspaceId
     || scope.projectId !== authority.projectId
     || scope.editSessionId !== authority.editSessionId
     || scope.approvedSnapshotId !== authority.approvedSnapshotId
-    || workRequest.approvedSnapshotRef.id !== authority.approvedSnapshotId
-    || unprefix(workRequest.approvedSnapshotRef.contentHash)
+    || visual.approvedSnapshotRef.id !== authority.approvedSnapshotId
+    || unprefix(visual.approvedSnapshotRef.contentHash)
       !== authority.approvedSnapshotHash
-    || workRequest.executionPackageRef.id !== authority.packageRecordId
-    || unprefix(workRequest.executionPackageRef.contentHash)
+    || visual.executionPackageRef.id !== authority.packageRecordId
+    || unprefix(visual.executionPackageRef.contentHash)
       !== authority.packageHash
-    || workRequest.approvedWorkItemRef.id
+    || visual.approvedWorkItemRef.id
       !== authority.approvedVisualQaWorkItemId
     || binding.outputId !== exactOutput.outputId
     || !sameDomainRef(binding.confirmedOutputFrameRef,
       exactOutput.confirmedOutputFrameRef)
-    || binding.confirmedOutputFrameRef.id
-      !== envelope.evidence.output.confirmedOutputFrameRef.id
-    || binding.confirmedOutputFrameRef.contentHash
-      !== unprefix(envelope.evidence.output.confirmedOutputFrameRef.contentHash)
-    || envelope.evidence.actualModelInferenceVerified !== true
-    || envelope.evidence.exactApprovedRenderBound !== true
+    || visual.actualModelInferenceVerified !== true
+    || visual.exactApprovedRenderBound !== true
   ) throw conflict('caption_private_review_exact_lineage_mismatch')
   if (assembly) {
     if (
-      !['passed', 'needs_human_review'].includes(envelope.evidence.decision)
+      !['passed', 'needs_human_review'].includes(visual.decision)
       || assembly.identity.workspaceId !== authority.workspaceId
       || assembly.identity.projectId !== authority.projectId
       || assembly.identity.editSessionId !== authority.editSessionId
@@ -506,12 +652,12 @@ function assertExactCaptionReviewLineage(input: {
       || assembly.identity.approvedPlanSnapshotId
         !== authority.approvedSnapshotId
       || assembly.finalArtifact.artifactId
-        !== workRequest.privateRenderArtifactRef.id
+        !== visual.privateRenderArtifactRef.id
       || assembly.finalArtifact.sha256
-        !== unprefix(workRequest.privateRenderArtifactRef.contentHash)
-      || assembly.finalQaArtifact.artifactId !== workRequest.deterministicQaRef.id
+        !== unprefix(visual.privateRenderArtifactRef.contentHash)
+      || assembly.finalQaArtifact.artifactId !== visual.deterministicQaRef.id
       || assembly.finalQaArtifact.sha256
-        !== unprefix(workRequest.deterministicQaRef.contentHash)
+        !== unprefix(visual.deterministicQaRef.contentHash)
       || assembly.finalQaArtifact.finalQaGatesPassed !== true
       || assembly.readiness.privateReviewReady !== true
     ) throw conflict('caption_private_review_assembly_lineage_mismatch')
@@ -534,7 +680,7 @@ function assertExactCaptionReviewLineage(input: {
       || decision.authority.immutableReviewManifestPreserved !== true
       || (decision.decision === 'accept_private_internal_review'
         && !['passed', 'needs_human_review'].includes(
-          envelope.evidence.decision))) {
+          visual.decision))) {
       throw conflict('caption_private_review_decision_lineage_mismatch')
     }
   }

@@ -121,7 +121,7 @@ The governing workflow invariant remains:
 - [Canonical 41-job assignment reachability V2](canonical-caption-job-reachability-v2-2026-08-05.md)
 - [Canonical rendered-media work binding](canonical-rendered-media-work-binding.md)
 - [Canonical post-render visual QA and private-review planning](canonical-postrender-visual-qa-private-review-planning.md)
-- [Canonical post-render Qwen visual-QA shared lifecycle](../canonical-postrender-qwen-visual-qa-shared-lifecycle-contract.md)
+- [Historical post-render Qwen visual-QA shared lifecycle (read-only compatibility)](../canonical-postrender-qwen-visual-qa-shared-lifecycle-contract.md)
 - [Post-CAP-20 Visual Intelligence spatial adapter](post-cap20-visual-intelligence-spatial-adapter.md)
 
 ### Historical architecture retained and amended

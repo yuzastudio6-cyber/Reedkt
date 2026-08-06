@@ -592,7 +592,7 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
               : livingFrameOperationPending
                 ? 'canonical_living_frame_dependency_input_operation_admission' as const
               : captionPostrenderVisualQaReconciliation
-                ? 'canonical_caption_postrender_visual_qa_owner_result_read_port' as const
+                ? 'canonical_caption_postrender_visual_intelligence_owner_result_read_port' as const
               : 'provider_activation_and_approved_route' as const,
           }
         : {}),

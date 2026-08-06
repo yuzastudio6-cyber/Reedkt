@@ -130,7 +130,7 @@ specialist assignments are added.
   regression through the normal default Caption owner; without admitted source
   analysis it preserved the compatibility disposition
 - `smoke:edit-planning-authority`: green full canonical authority regression
-- `smoke:captions-specialist-source-integration-aggregate`: 41/41 source suites
+- `smoke:captions-specialist-source-integration-aggregate`: 42/42 source suites
 - server TypeScript check
 - targeted and full-repository ESLint
 - full production build (2,969 modules)

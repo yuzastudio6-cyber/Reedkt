@@ -215,7 +215,7 @@ async function createSecretManagerClient(): Promise<SecretManagerClientLike> {
       }
       const response = await client.request({
         url: `https://secretmanager.googleapis.com/v1/${input.name}:access`,
-        method: 'POST',
+        method: 'GET',
         responseType: 'json',
       })
       return [response.data]

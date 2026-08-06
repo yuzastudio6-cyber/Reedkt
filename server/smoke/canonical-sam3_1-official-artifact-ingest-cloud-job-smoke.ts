@@ -79,6 +79,9 @@ assert.doesNotMatch(deployScript,
   /WEEDITPRO_SAM31_ARTIFACT_INGEST_IMAGE/u)
 assert.match(deployScript, /versions\/\[1-9\]\[0-9\]\*/u)
 assert.match(deployScript, /gcloud storage cat/u)
+assert.equal((deployScript.match(
+  /--role="\$\{role\}" --condition=None --quiet/gu,
+) ?? []).length, 2)
 assert.match(deployScript, /roles\/secretmanager\.secretAccessor/u)
 assert.match(deployScript,
   /add_project_log_writer_binding_with_propagation_retry/u)
@@ -107,7 +110,7 @@ assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 72,
+  checks: 73,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,

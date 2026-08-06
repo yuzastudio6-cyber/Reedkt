@@ -168,10 +168,10 @@ add_project_log_writer_binding_with_propagation_retry
 for role in roles/storage.objectCreator roles/storage.objectViewer; do
   gcloud storage buckets add-iam-policy-binding "gs://${MODEL_BUCKET}" \
     --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role="${role}" --quiet >/dev/null
+    --role="${role}" --condition=None --quiet >/dev/null
   gcloud storage buckets add-iam-policy-binding "gs://${CONTROL_BUCKET}" \
     --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role="${role}" --quiet >/dev/null
+    --role="${role}" --condition=None --quiet >/dev/null
 done
 gcloud secrets add-iam-policy-binding "${secret_name}" \
   --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \

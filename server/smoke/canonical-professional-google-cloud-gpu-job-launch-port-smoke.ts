@@ -619,7 +619,7 @@ function buildSam31PrivateObjectTransport(input: {
 function buildMaskQaPrivateObjectTransport() {
   const payload = {
     schemaVersion:
-      'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1' as const,
+      'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v2' as const,
     source:
       'canonical_server_track_all_sam3_1_l4_task_qa_private_transport_registry' as const,
     evidenceClass: 'canonical_private_reread' as const,
@@ -628,7 +628,10 @@ function buildMaskQaPrivateObjectTransport() {
     routeId: 'l4_standard_primary' as const,
     projectId: 'reeditpro' as const,
     privateBucketName: 'reeditpro-private-professional-gpu',
-    bucketCmekAndUniformAccessPolicyRef: ref('private-gpu-bucket-policy'),
+    bucketSecurityPolicyRef: ref('private-gpu-bucket-security-policy'),
+    bucketEncryptionMode: 'google_managed_encryption' as const,
+    uniformBucketLevelAccessEnabled: true as const,
+    publicAccessPreventionEnforced: true as const,
     invocationRootMountPath: '/mnt/reeditpro' as const,
     invocationObjectPrefix:
       'private/canonical-professional-gpu/sam3_1/v1/invocations' as const,
@@ -638,7 +641,8 @@ function buildMaskQaPrivateObjectTransport() {
     l4TaskObjectName: 'task-qa/task.json' as const,
     l4ResponseObjectName: 'task-qa/response.json' as const,
     gcsFuseVolumeName: 'reeditpro-private-gpu-objects' as const,
-    gcsFuseMountOptions: 'rw,implicit-dirs' as const,
+    gcsFuseMountOptions:
+      'uid=65532,gid=65532,implicit-dirs=true' as const,
     cloudRunJobResource:
       'projects/reeditpro/locations/us-central1/jobs/reeditpro-track-all-mask-qa-l4',
     cloudRunJobConfigurationRef:

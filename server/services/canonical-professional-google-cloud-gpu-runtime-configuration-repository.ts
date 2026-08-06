@@ -392,7 +392,7 @@ function assertReleaseAndTransportBinding(
   if (
     release.operationId === 'tool.kornia.refine_mask.v1'
       ? transport.schemaVersion !==
-        'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1'
+        'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v2'
       : release.toolId === 'sam3_1'
         && transport.schemaVersion !==
           'canonical-professional-google-cloud-gpu-private-object-transport-v1'

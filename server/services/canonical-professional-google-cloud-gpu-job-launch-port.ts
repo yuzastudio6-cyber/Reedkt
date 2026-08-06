@@ -21,7 +21,7 @@ export const CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_LAUNCH_PORT_VERSION =
 export const CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_PRIVATE_OBJECT_TRANSPORT_VERSION =
   'canonical-professional-google-cloud-gpu-private-object-transport-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_PRIVATE_OBJECT_TRANSPORT_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-private-object-transport-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const BATCH_API_ORIGIN = 'https://batch.googleapis.com' as const
@@ -257,7 +257,10 @@ export const canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema =
     routeId: z.literal('l4_standard_primary'),
     projectId: z.literal(PROJECT_ID),
     privateBucketName,
-    bucketCmekAndUniformAccessPolicyRef: evidenceRefSchema,
+    bucketSecurityPolicyRef: evidenceRefSchema,
+    bucketEncryptionMode: z.literal('google_managed_encryption'),
+    uniformBucketLevelAccessEnabled: z.literal(true),
+    publicAccessPreventionEnforced: z.literal(true),
     invocationRootMountPath: z.literal('/mnt/reeditpro'),
     invocationObjectPrefix: z.literal(
       'private/canonical-professional-gpu/sam3_1/v1/invocations',
@@ -269,7 +272,9 @@ export const canonicalTrackAllSam31L4TaskQaPrivateObjectTransportSchema =
     l4TaskObjectName: z.literal('task-qa/task.json'),
     l4ResponseObjectName: z.literal('task-qa/response.json'),
     gcsFuseVolumeName: z.literal('reeditpro-private-gpu-objects'),
-    gcsFuseMountOptions: z.literal('rw,implicit-dirs'),
+    gcsFuseMountOptions: z.literal(
+      'uid=65532,gid=65532,implicit-dirs=true',
+    ),
     cloudRunJobResource: z.string().trim().max(512).regex(
       /^projects\/reeditpro\/locations\/(us-central1|europe-west4)\/jobs\/[a-z][a-z0-9-]{0,62}$/u,
     ),

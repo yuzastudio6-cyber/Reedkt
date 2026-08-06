@@ -124,7 +124,7 @@ const imageQualificationRef = {
 const privateObjectTransport = productionMaskQaTransport()
 const observation = createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
   schemaVersion:
-    'canonical-track-all-sam3_1-l4-task-qa-deployment-observation-v1',
+    'canonical-track-all-sam3_1-l4-task-qa-deployment-observation-v2',
   source:
     'canonical_server_track_all_sam3_1_l4_task_qa_deployment_observer',
   evidenceClass: 'canonical_private_google_cloud_api_reread',
@@ -138,6 +138,16 @@ const observation = createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
   immutableImageMetadataObservationRef:
     ref('track-all-l4-immutable-image-observation'),
   cloudRunJobObservationRef: ref('track-all-l4-cloud-run-job-observation'),
+  cloudRunExecutionSetObservationRef:
+    ref('track-all-l4-cloud-run-execution-set-observation'),
+  privateNetworkObservationRef:
+    ref('track-all-l4-private-network-observation'),
+  privateSubnetObservationRef:
+    ref('track-all-l4-private-subnet-observation'),
+  privateRouteSetObservationRef:
+    ref('track-all-l4-private-route-set-observation'),
+  privateRouterSetObservationRef:
+    ref('track-all-l4-private-router-set-observation'),
   privateBucketMetadataObservationRef:
     ref('track-all-l4-private-bucket-observation'),
   privateBucketIamPolicyObservationRef:
@@ -147,7 +157,8 @@ const observation = createCanonicalTrackAllSam31L4TaskQaDeploymentObservation({
   observedAt: '2026-08-05T12:05:00.000Z',
   exactProjectRegionImageServiceTaskJobGpuAndScaleZeroReread: true,
   exactSeparateSamReadAndL4TaskQaWriteRootReread: true,
-  exactPrivateBucketCmekUniformAccessPublicPreventionAndIamReread: true,
+  exactPrivateNetworkSubnetNoNatAndZeroActiveExecutionReread: true,
+  exactPrivateBucketEncryptionUniformAccessPublicPreventionAndIamReread: true,
   callerImageCommandBucketPathObjectNameOrCloudResourceAccepted: false,
   gpuJobStarted: false,
   providerOrModelExecuted: false,
@@ -312,8 +323,8 @@ function productionMaskQaTransport() {
   const payload = {
     ...maskQaPrivateTransport,
     privateBucketName: 'reeditpro-production-reeditpro-masks',
-    bucketCmekAndUniformAccessPolicyRef:
-      ref('production-mask-bucket-cmek-uniform-access-policy'),
+    bucketSecurityPolicyRef:
+      ref('production-mask-bucket-security-policy'),
     observedAt: '2026-08-05T12:05:00.000Z',
   }
   Reflect.deleteProperty(payload, 'configurationHash')

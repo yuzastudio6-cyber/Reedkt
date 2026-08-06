@@ -28,11 +28,11 @@ import {
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_QUALIFICATION_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-image-qualification-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_DEPLOYMENT_OBSERVATION_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-deployment-observation-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-deployment-observation-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_RUNTIME_RELEASE_PUBLISHER_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_RUNTIME_RELEASE_RECEIPT_VERSION =
-  'canonical-track-all-sam3_1-l4-task-qa-runtime-release-receipt-v1' as const
+  'canonical-track-all-sam3_1-l4-task-qa-runtime-release-receipt-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_RUNTIME_RELEASE_EVIDENCE_REPOSITORY_VERSION =
   'canonical-track-all-sam3_1-l4-task-qa-runtime-release-evidence-repository-v1' as const
 
@@ -149,13 +149,20 @@ const deploymentObservationWithoutHashSchema = z.object({
   serviceIdentityObservationRef: evidenceRefSchema,
   immutableImageMetadataObservationRef: evidenceRefSchema,
   cloudRunJobObservationRef: evidenceRefSchema,
+  cloudRunExecutionSetObservationRef: evidenceRefSchema,
+  privateNetworkObservationRef: evidenceRefSchema,
+  privateSubnetObservationRef: evidenceRefSchema,
+  privateRouteSetObservationRef: evidenceRefSchema,
+  privateRouterSetObservationRef: evidenceRefSchema,
   privateBucketMetadataObservationRef: evidenceRefSchema,
   privateBucketIamPolicyObservationRef: evidenceRefSchema,
   cloudRunJobIamPolicyObservationRef: evidenceRefSchema,
   observedAt: timestamp,
   exactProjectRegionImageServiceTaskJobGpuAndScaleZeroReread: z.literal(true),
   exactSeparateSamReadAndL4TaskQaWriteRootReread: z.literal(true),
-  exactPrivateBucketCmekUniformAccessPublicPreventionAndIamReread:
+  exactPrivateNetworkSubnetNoNatAndZeroActiveExecutionReread:
+    z.literal(true),
+  exactPrivateBucketEncryptionUniformAccessPublicPreventionAndIamReread:
     z.literal(true),
   callerImageCommandBucketPathObjectNameOrCloudResourceAccepted:
     z.literal(false),

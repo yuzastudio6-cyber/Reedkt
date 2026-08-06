@@ -56,6 +56,9 @@ import {
   createCanonicalCaptionSourceLedProfessionalPlanningRequest,
   readCanonicalCaptionSourceLedProfessionalPlanning,
 } from '../captions-specialist/caption-source-led-professional-planning'
+import {
+  createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort,
+} from '../captions-specialist/caption-source-led-professional-planning-owner'
 
 export function createCanonicalSourceLedPlanPresentationService(
   context: ServiceContext,
@@ -387,7 +390,7 @@ export function createCanonicalSourceLedPlanPresentationService(
 
       let captionProfessionalPlanningProjection:
         CanonicalCaptionSpecialistPlanningProjection | undefined
-      if (context.canonicalCaptionSourceLedProfessionalPlanningReadPort) {
+      {
         let baseComponents = canonicalPlanComponentsSchema.parse(
           compiled.canonicalDraft.components,
         )
@@ -412,13 +415,32 @@ export function createCanonicalSourceLedPlanPresentationService(
             confirmedCaptionMarkerSetRef,
           })
         }
-        let captionPlanningRequest = createCaptionPlanningRequest()
-        let captionPlanningRead =
-          await readCanonicalCaptionSourceLedProfessionalPlanning({
-            port:
-              context.canonicalCaptionSourceLedProfessionalPlanningReadPort,
-            request: captionPlanningRequest,
-          })
+        const readCaptionPlanning = async () => {
+          const request = createCaptionPlanningRequest()
+          const port =
+            context.canonicalCaptionSourceLedProfessionalPlanningReadPort ??
+            createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+              plannerInput,
+              components: baseComponents,
+              ...(sourceCleanupAuthorityRead?.status === 'ready'
+                ? {
+                    sourceCleanupAuthority:
+                      sourceCleanupAuthorityRead.authority,
+                  }
+                : {}),
+              confirmedCaptionMarkerSetRef,
+            })
+          return {
+            request,
+            read: await readCanonicalCaptionSourceLedProfessionalPlanning({
+              port,
+              request,
+            }),
+          }
+        }
+        let captionPlanningResult = await readCaptionPlanning()
+        let captionPlanningRequest = captionPlanningResult.request
+        let captionPlanningRead = captionPlanningResult.read
         if (captionPlanningRead.status === 'blocked_requested') {
           throw new ApiError(
             'JOB_DEPENDENCY_NOT_READY',
@@ -478,14 +500,9 @@ export function createCanonicalSourceLedPlanPresentationService(
             baseComponents = canonicalPlanComponentsSchema.parse(
               compiled.canonicalDraft.components,
             )
-            captionPlanningRequest = createCaptionPlanningRequest()
-            const reread =
-              await readCanonicalCaptionSourceLedProfessionalPlanning({
-                port:
-                  context
-                    .canonicalCaptionSourceLedProfessionalPlanningReadPort,
-                request: captionPlanningRequest,
-              })
+            captionPlanningResult = await readCaptionPlanning()
+            captionPlanningRequest = captionPlanningResult.request
+            const reread = captionPlanningResult.read
             if (
               reread.status !== 'ready' ||
               reread.authority.selectionDisposition !==

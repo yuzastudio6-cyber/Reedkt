@@ -6,7 +6,7 @@ Status: `source_mount_complete_private_execution_evidence_pending`
 
 ## Outcome
 
-The existing source-led plan-presentation path can now consume one exact,
+The existing source-led plan-presentation path now has a default deterministic,
 server-owned professional Caption planning authority before plan publication.
 The authority supplies the existing professional composition trace, early
 planning bundle, V2 assignment binding, and one canonical estimate line. The
@@ -21,6 +21,17 @@ then projects specialist work. The two render lanes cannot run in parallel.
 The exact confirmed-marker set remains bound as a byte-free digest reference so
 the professional owner can preserve the user's confirmed caption direction.
 
+The default owner rereads the already-admitted canonical source cleanup,
+transcript, and Visual Intelligence semantic evidence. It maps exact retained
+source phrases onto the source-led MasterTiming scenes, leaves safe-region
+geometry unresolved until authenticated spatial evidence exists, and emits
+only the 8 video-level plus 9 required scene-level planning assignments per
+captionable scene. It does not guess language, word timing, masks, placement,
+or provider output. If professional captions are selected before source
+analysis is ready, the owner returns `not_requested` so the historical exact
+marker compatibility lane remains available. If analysis is ready but proves
+no speech, requested Caption planning blocks fail closed.
+
 `no_captions` remains an explicit owner restraint. It produces no Caption work
 and no Caption estimate line. It conflicts fail-closed with confirmed Caption
 markers.
@@ -33,12 +44,14 @@ evidence was consumed, or that terminal private qualification has passed.
 
 - `src/types/canonical-caption-source-led-professional-planning.ts`
 - `server/captions-specialist/caption-source-led-professional-planning.ts`
+- `server/captions-specialist/caption-source-led-professional-planning-owner.ts`
 - `server/services/canonical-source-led-plan-presentation-service.ts`
 - `src/lib/canonical-planning-draft.ts`
 - `server/types.ts`
 - `server/app.ts`
 - `server/routes/route-helpers.ts`
 - `server/smoke/canonical-caption-source-led-professional-planning-smoke.ts`
+- `server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts`
 - `server/smoke/captions-specialist-source-integration-aggregate-smoke.ts`
 - `package.json`
 - this report and the post-CAP-20 audit update
@@ -81,16 +94,17 @@ specialist assignments are added.
 ## Tests run
 
 - `smoke:canonical-caption-source-led-professional-planning`: 24 checks
+- `smoke:canonical-caption-source-led-professional-planning-owner`: 26 checks
 - `smoke:canonical-caption-specialist-planning`: 61 checks
 - `smoke:canonical-caption-specialist-execution`: 45 checks
 - `smoke:canonical-source-led-plan-compiler`: green, including six adversarial
   assertions
 - `smoke:canonical-source-led-plan-route`: green actual-upload approval,
   execution, private-review, revision, rerender, acceptance, and exact download
-  regression; the admitted Caption port was reread twice in the compatibility
-  disposition
+  regression through the normal default Caption owner; without admitted source
+  analysis it preserved the compatibility disposition
 - `smoke:edit-planning-authority`: green full canonical authority regression
-- `smoke:captions-specialist-source-integration-aggregate`: 40/40 source suites
+- `smoke:captions-specialist-source-integration-aggregate`: 41/41 source suites
 - server TypeScript check
 - targeted and full-repository ESLint
 - full production build (2,969 modules)
@@ -129,12 +143,12 @@ Not applicable; no new media was produced.
 
 ## Known limitations
 
-The runtime read port is a canonical mounting seam. A qualified authenticated
-owner still has to provide a ready authority from the corrected canonical
-transcript, visual evidence, and exact project state. No fallback fixture is
-mounted by default. Without the port, the historical exact-marker path remains
-backward compatible. With a blocked requested authority, plan publication fails
-closed.
+The runtime read port remains an override seam, but the normal route now mounts
+the deterministic server owner by default. It can return a ready authority only
+from the exact admitted source-analysis record. No fallback fixture is mounted.
+Before that record exists, the historical exact-marker path remains backward
+compatible. A requested Caption plan with analysis but no captionable speech,
+crossed scope, or stale evidence blocks publication fail closed.
 
 ## Scoped blockers
 
@@ -152,7 +166,6 @@ and aggregate coverage are complete.
 
 ## Next milestone
 
-Mount a qualified authenticated owner implementation when the corrected
-canonical transcript and exact project evidence are ready, then execute bounded
-approved representative runs through the existing work graph. Preserve the
-separate complete-time visual-AI and independent final-QA gates.
+Execute bounded approved representative runs through the existing work graph
+once the corrected authenticated transcript and exact project evidence exist.
+Preserve the separate complete-time visual-AI and independent final-QA gates.

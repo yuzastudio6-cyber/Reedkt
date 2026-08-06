@@ -20,12 +20,6 @@ import {
 import type {
   KimiK3SourceLedChatAssistantPort,
 } from '../services/kimi-k3-source-led-chat-assistant'
-import {
-  createCanonicalCaptionSourceLedProfessionalPlanningReadPort,
-} from '../captions-specialist/caption-source-led-professional-planning'
-import {
-  CANONICAL_CAPTION_SOURCE_LED_PROFESSIONAL_PLANNING_READ_PORT_VERSION,
-} from '../../src/types/canonical-caption-source-led-professional-planning'
 
 type JsonEnvelope = {
   data?: Record<string, unknown>
@@ -50,25 +44,6 @@ const userId = 'user-source-led-route-smoke'
 const accessToken = 'verified-source-led-route-token'
 const internalServiceToken = 'source-led-route-internal-token-7Gk2Wm9Q'
 let kimiK3CallCount = 0
-let captionProfessionalPlanningReadCount = 0
-const captionProfessionalPlanningReadPort =
-  createCanonicalCaptionSourceLedProfessionalPlanningReadPort(
-    async (request) => {
-      captionProfessionalPlanningReadCount += 1
-      return {
-        schemaVersion:
-          CANONICAL_CAPTION_SOURCE_LED_PROFESSIONAL_PLANNING_READ_PORT_VERSION,
-        status: 'not_requested',
-        requestRef: {
-          id: request.requestId,
-          version: request.schemaVersion,
-          contentHash: request.requestDigestSha256,
-        },
-        authority: null,
-        blockerCodes: [],
-      }
-    },
-  )
 const kimiK3SourceLedChatAssistantPort:
 KimiK3SourceLedChatAssistantPort = {
   async respond(input) {
@@ -163,8 +138,6 @@ const server = await listen(createServer(createReeditProApiApp(env, {
     public: createPublicAuthClient(new Map([[accessToken, routeUser]])),
   },
   kimiK3SourceLedChatAssistantPort,
-  canonicalCaptionSourceLedProfessionalPlanningReadPort:
-    captionProfessionalPlanningReadPort,
 })))
 
 try {
@@ -661,11 +634,6 @@ try {
   assert.equal(
     presentation.schemaVersion,
     'canonical-source-led-plan-presentation-v1',
-  )
-  assert.equal(
-    captionProfessionalPlanningReadCount,
-    2,
-    'The source-led route must perform one stable double read of the admitted Caption planning port.',
   )
   const derivation = record(presentation.derivation)
   assert.equal(derivation.sourceMetadataAuthority, 'server_reverified_finalized_upload_ffprobe')

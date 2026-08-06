@@ -55,14 +55,15 @@ terminal-scope evidence remains incomplete or absent. Living Frame is not a
 sixth gap: CAP-11/CAP-12 already provide the accepted, versioned,
 non-executing typed boundary and Living Frame has independently verified it.
 
-The source-led professional Caption planning seam is also now mounted. It can
-attach the exact professional composition trace, early bundle, estimate, and
-V2 assignments to a fresh source-led plan before approval while reusing the
-existing canonical work owner. A selected professional plan removes and
-rereads after the legacy exact-marker renderer so no parallel Caption owner is
-created. This closes the source-code attachment gap inside item 6; item 6
-remains terminally incomplete until representative approved runs persist and
-reread actual results across the 41-job catalog.
+The source-led professional Caption planning seam and its default deterministic
+server owner are now mounted. The owner rereads exact source-analysis evidence,
+attaches the professional composition trace, early bundle, estimate, and typed
+assignments to a fresh source-led plan before approval, and reuses the existing
+canonical work owner. A selected professional plan removes and rereads after
+the legacy exact-marker renderer so no parallel Caption owner is created. This
+closes the source-code attachment gap inside item 6; item 6 remains terminally
+incomplete until representative approved runs persist and reread actual results
+across the 41-job catalog.
 
 ## Important qualification distinctions
 

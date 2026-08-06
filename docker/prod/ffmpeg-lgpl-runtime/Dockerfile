@@ -31,6 +31,8 @@ RUN printf '%s\n' \
   && attempt=1 \
   && while ! apt-get install -y --no-install-recommends \
         build-essential=12.9 \
+        ca-certificates=20230311+deb12u1 \
+        curl=7.88.1-10+deb12u14 \
         libvpx-dev=1.12.0-1+deb12u5 \
         nasm=2.16.01-1 \
         pkg-config=1.8.1-1 \
@@ -44,8 +46,29 @@ RUN printf '%s\n' \
 
 # Official FFmpeg 8.1.2 release source. The digest was independently checked
 # against the release signed by FCF986EA15E6E293A5644F10B4322F04D67658D8.
-ADD --checksum=sha256:464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c \
-  https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz /tmp/ffmpeg-8.1.2.tar.xz
+# BuildKit remote ADD does not retry connection resets, so download through the
+# pinned snapshot curl with bounded retries and verify before preserving the
+# source archive in the build layer. Extraction performs the same strict digest
+# check again below.
+RUN curl \
+      --fail \
+      --show-error \
+      --location \
+      --proto '=https' \
+      --tlsv1.2 \
+      --connect-timeout 20 \
+      --max-time 300 \
+      --retry 8 \
+      --retry-all-errors \
+      --retry-delay 2 \
+      --retry-max-time 300 \
+      'https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz' \
+      --output /tmp/ffmpeg-8.1.2.tar.xz.download \
+  && printf '%s  %s\n' \
+      '464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c' \
+      '/tmp/ffmpeg-8.1.2.tar.xz.download' \
+      | sha256sum --check --strict - \
+  && mv /tmp/ffmpeg-8.1.2.tar.xz.download /tmp/ffmpeg-8.1.2.tar.xz
 
 COPY configure-flags.txt /tmp/configure-flags.txt
 COPY allowed-encoders.txt /tmp/allowed-encoders.txt

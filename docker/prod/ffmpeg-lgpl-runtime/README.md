@@ -20,13 +20,17 @@ to GCP, Supabase, providers, billing, public delivery, or production export.
 - Debian Bookworm slim multi-platform index digest:
   `sha256:60eac759739651111db372c07be67863818726f754804b8707c90979bda511df`.
 - Debian package resolution snapshot: `20260623T000000Z`.
+- Source downloader: Debian-snapshot `curl 7.88.1-10+deb12u14` with
+  `ca-certificates 20230311+deb12u1`.
 - `SOURCE_DATE_EPOCH=1781664539`, matching the release signature time.
 
-The source checksum is enforced twice: BuildKit `ADD --checksum` and an
-in-stage `sha256sum --check --strict`. The checked-in provenance lock records
-the source, detached signature, signing key, base image, snapshot, and toolchain
-versions. The initial detached signature was verified locally against the exact
-fingerprint above. Builds do not fetch mutable Git branches or tags.
+The source is downloaded with the pinned Debian-snapshot curl using bounded
+HTTPS retries. Its checksum is enforced immediately after download and again
+with `sha256sum --check --strict` before extraction. The checked-in provenance
+lock records the source, detached signature, signing key, base image, snapshot,
+and toolchain versions. The initial detached signature was verified locally
+against the exact fingerprint above. Builds do not fetch mutable Git branches
+or tags.
 
 ## Deliberately narrow capability boundary
 

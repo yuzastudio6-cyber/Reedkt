@@ -93,11 +93,14 @@ Caption run.
 
 ## 2026-08-06 follow-up reconciliation
 
-The backend branch advanced by one additive Track All L4 supply-chain repair
-commit, `2af9aa916d0f31c8cbf82d8146767fadfed49c8c`. It was merged without conflict
-at `c31aba34f3c02741cf717ecf7dfbd31e0cff3b67`. The merge changes only the
-existing backend-owned Track All runner, task-QA qualification, and their
-smokes; it does not create or move a Caption owner.
+The backend branch advanced through two additive Track All L4 repair commits:
+the pinned supply-chain correction
+`2af9aa916d0f31c8cbf82d8146767fadfed49c8c` and its safe admission-diagnostics
+follow-up `d8cbfc163dd9a40ddcb22e8dfee6bf0328d2b530`. The exact backend tip was
+merged without conflict at `c31aba34f3c02741cf717ecf7dfbd31e0cff3b67`.
+The merge changes only the existing backend-owned Track All runner, task-QA
+qualification, admission diagnostics, and their smokes; it does not create or
+move a Caption owner.
 
 The first GitHub rerun also proved that the full server typecheck exceeded
 Node's default approximately 4 GB heap after the combined source tree grew.

@@ -131,7 +131,10 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
 
 1. produce the complete independent audio-truth correction/review for the real
    source, pass it through the mounted canonical transcript owner, and consume
-   that exact persistence reread in the terminal qualification run;
+   that exact persistence reread in the terminal qualification run. A closed
+   private preparation package now covers all 11 source segments and 153 source
+   words with two unapproved offline ASR observations, but all listener
+   decisions and owner admission remain false;
 2. consume an actual canonical Visual Intelligence owner record;
 3. consume an actual canonical Track All owner record;
 4. consume an actual canonical Sound result, exact final audio reread, and

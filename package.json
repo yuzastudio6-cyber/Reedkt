@@ -502,6 +502,8 @@
     "smoke:captions-specialist-cap-04": "tsx server/smoke/captions-specialist-cap-04-smoke.ts",
     "smoke:canonical-caption-reviewed-transcript-correction": "tsx server/smoke/canonical-caption-reviewed-transcript-correction-smoke.ts",
     "smoke:canonical-caption-reviewed-transcript-correction-owner": "tsx server/smoke/canonical-caption-reviewed-transcript-correction-owner-service-smoke.ts",
+    "smoke:canonical-caption-transcript-correction-review-package": "tsx server/smoke/canonical-caption-transcript-correction-review-package-smoke.ts",
+    "private:caption-transcript-correction-review-package": "tsx server/cli/canonical-caption-transcript-correction-review-package.ts",
     "smoke:captions-specialist-cap-05": "tsx server/smoke/captions-specialist-cap-05-smoke.ts",
     "smoke:captions-specialist-cap-06": "tsx server/smoke/captions-specialist-cap-06-smoke.ts",
     "smoke:captions-specialist-cap-07": "tsx server/smoke/captions-specialist-cap-07-smoke.ts",

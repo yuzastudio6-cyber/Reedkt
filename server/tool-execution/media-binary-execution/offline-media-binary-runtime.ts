@@ -390,21 +390,28 @@ export async function prepareOfflineMediaBinaryDockerRuntime(): Promise<OfflineM
     if (!(error instanceof ApiError) || error.code !== 'TOOL_NOT_READY') throw error
   }
   const context = join(process.cwd(), 'docker/prod/ffmpeg-lgpl-runtime')
-  const built = await dockerBuffer([
-    'build',
-    '--pull=false',
-    '--quiet',
-    '--file', join(context, 'Dockerfile'),
-    '--tag', IMAGE_TAG,
-    '--build-arg', 'SOURCE_DATE_EPOCH=1781664539',
-    context,
-  ], undefined, 8 * 1024 * 1024, DOCKER_BUILD_TIMEOUT_MS)
-  if (built.exitCode !== 0) {
-    throw unavailable('Pinned FFmpeg LGPL image build failed.', {
+  const failures: Array<{ attempt: number; exitCode: number; diagnostic: string }> = []
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const built = await dockerBuffer([
+      'build',
+      '--pull=false',
+      '--progress=plain',
+      '--file', join(context, 'Dockerfile'),
+      '--tag', IMAGE_TAG,
+      '--build-arg', 'SOURCE_DATE_EPOCH=1781664539',
+      context,
+    ], undefined, 8 * 1024 * 1024, DOCKER_BUILD_TIMEOUT_MS)
+    if (built.exitCode === 0) return inspectImage()
+    failures.push({
+      attempt,
       exitCode: built.exitCode,
+      diagnostic: boundedDockerDiagnostic(built),
     })
+    if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 2_000))
   }
-  return inspectImage()
+  throw unavailable('Pinned FFmpeg LGPL image build failed.', {
+    attempts: failures,
+  })
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {
@@ -8026,6 +8033,17 @@ function dockerBuffer(
     if (input) child.stdin.end(input)
     else child.stdin.end()
   })
+}
+
+function boundedDockerDiagnostic(result: { stdout: Buffer; stderr: Buffer }): string {
+  const combined = Array.from(`${result.stdout.toString('utf8')}\n${result.stderr.toString('utf8')}`)
+    .filter((character) => {
+      const codePoint = character.codePointAt(0) ?? 0
+      return codePoint === 9 || codePoint === 10 || codePoint === 13 || (codePoint >= 32 && codePoint !== 127)
+    })
+    .join('')
+    .trim()
+  return combined.length <= 4_096 ? combined : combined.slice(-4_096)
 }
 
 async function dockerVerifiedSeekableInput(

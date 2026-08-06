@@ -75,6 +75,11 @@ jobs:
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
 
+      - name: Prepare exact professional-editor media image
+        run: |
+          npx tsx server/cli/prepare-professional-editor-media-runtime.ts
+          docker builder prune --force
+
       - name: Lint
         run: npm run lint
 

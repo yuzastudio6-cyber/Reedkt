@@ -189,7 +189,8 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
       brollDirectInspectionRef,
       brollProfessionalInspectionRef,
     ], [
-      'accepted_broll_owner_result_must_be_rerun_or_rebound_in_terminal_scope',
+      'persist_exact_broll_inspection_bundle_in_terminal_scope',
+      'canonical_approved_broll_run_authority_must_project_existing_receipt',
       'same_package_snapshot_output_and_work_graph_required',
     ]),
   gate('canonical_backend_private_execution_mount',
@@ -251,8 +252,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v6',
-  observedAt: '2026-08-06T16:45:00.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-06-v7',
+  observedAt: '2026-08-06T19:15:00.000-04:00',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

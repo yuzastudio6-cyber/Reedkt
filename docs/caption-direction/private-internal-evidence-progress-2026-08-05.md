@@ -26,7 +26,7 @@ the evidence currently belongs to several independently scoped tests.
 | --- | --- |
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner V2 is mounted in source and can create-only resolve immutable approved-work expectations to reviewed corrected transcripts while refusing remaps to the rejected record. A private review-preparation package covers all 11 source segments and 153 source words with two additional unapproved offline ASR observations; it preserves nine text disagreements, two timing disagreements, two brand-review spans, and one claim-sensitive number span. The source-complete reviewer-completion seam validates exact decisions and projects them into the existing review/correction/request contracts, but every real listener decision remains pending, so no actual independent review, correction artifact, corrected transcript, or expectation binding has been admitted. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. |
-| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran against hash-pinned real talking-head media. Direct complete-time inspection accepted real-source B-roll/Caption co-composition, safe placement, Caption-above-visual ordering, and no clipping/collision. The receipt keeps general professional Caption appearance and independent final QA false, and its scope is still outside the terminal approved-run catalog. |
+| B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran against hash-pinned real talking-head media. Direct complete-time inspection accepted real-source B-roll/Caption co-composition, safe placement, Caption-above-visual ordering, and no clipping/collision. A new canonical projection adapter can persist that receipt through the existing direct-visual-evidence owner after twice rereading the exact B-roll evidence and approved-run authority. The real receipt has not yet been projected under one terminal package/snapshot/work graph, so the gate remains outside the terminal catalog. |
 | Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
 | Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
@@ -119,6 +119,16 @@ to reread and persist the run. If any owner, artifact, model-review, final-QA,
 or private-review evidence is missing, the controller returns a waiting result
 and keeps terminal/catalog status unchanged.
 
+The owner-bound B-roll professional receipt now has a separate versioned
+projection adapter because the frozen uploaded-source request V1 cannot be
+silently widened or relabelled for B-roll owner semantics. The new adapter
+reuses the same canonical direct-visual-evidence repository and requires exact
+B-roll support-request/result/evidence, selected normalized source, scene,
+MasterTiming, render, deterministic-QA, approved snapshot, execution-package,
+and approved-source-manifest lineage. Its 16-check source regression is green;
+the current private receipt remains outside terminal scope until the backend
+one-writer supplies that real approved-run authority and persisted bundle.
+
 The V5 composition now mounts the missing multi-run campaign connection. It
 requires the campaign's declared run set to match the catalog exactly, requires
 multiple immutable approved snapshots, reconciles each run through the V4
@@ -172,7 +182,7 @@ Orchestra are not required for this private internal target.
 ## Verification
 
 `npm run smoke:captions-specialist-private-internal-evidence-progress`
-performs the focused 22-assertion closed-contract regression. The source-only
+performs the focused 27-assertion closed-contract regression. The source-only
 Caption integration aggregate includes it and starts no media, model, provider,
 or Docker runtime.
 

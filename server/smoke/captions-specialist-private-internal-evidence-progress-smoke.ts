@@ -79,6 +79,11 @@ check(progress.gates.find((gate) =>
     (reference) => reference.version ===
       'caption-broll-owner-professional-direct-inspection-v1'),
 'B-roll evidence includes the repaired professional all-frame inspection')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'broll_owner_authenticated_read')
+  ?.nextRequiredEvidenceCodes.includes(
+    'canonical_approved_broll_run_authority_must_project_existing_receipt'),
+'B-roll now waits on canonical projection of the existing inspection receipt')
 check(progress.professionalAppearanceEvidence.realTalkingHeadPixelsInspected
   && progress.professionalAppearanceEvidence
     .acceptedForCaptionOwnedProfessionalAppearance

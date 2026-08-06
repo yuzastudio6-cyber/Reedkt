@@ -93,3 +93,32 @@ edit run and does not replace:
 
 All operation-dispatch, asset-mutation, final-QA approval, billing,
 public-delivery, and production authority flags remain false.
+
+## Canonical consumption adapter
+
+The accepted receipt is no longer limited to a progress-ledger reference. The
+additive `canonical-caption-broll-owner-inspection-projection-service-v1`
+adapter can project it into the existing
+`canonical-caption-direct-visual-inspection-evidence-v1` repository without
+creating a second visual-evidence or final-QA owner.
+
+The adapter requires independent, twice-reread inputs for:
+
+- the tenant-scoped, create-only inspection bundle containing the accepted and
+  rejected full/reduced specs plus the inspection receipt;
+- the exact authenticated B-roll owner result and Caption evidence record; and
+- the canonical approved-run authority binding the immutable snapshot,
+  execution package, output, scene, MasterTiming range, confirmed frame,
+  deterministic QA, selected normalized source, render, and approved source
+  manifest.
+
+It rejects crossed sources, review specs, scenes, support requests, outputs,
+owner records, changing rereads, stale digests, create-only collisions, and
+caller-supplied receipts or authority. Exact replay produces the same canonical
+direct-inspection evidence digest.
+
+This closes the source-level canonical projection seam. It does not pretend the
+existing private receipt has already been projected inside a real terminal
+approved run. That still requires the backend one-writer to supply the exact
+approved-run authority and persist the bundle under the same package, snapshot,
+output, work graph, and source manifest used by the qualification reader.

@@ -30,7 +30,7 @@ RESULT_VERSION = (
     "canonical-sam3_1-source-checkpoint-qualification-worker-result-v1"
 )
 OPERATION_ID = "tool.sam3_1.segment_and_track_subject.v1"
-CANDIDATE_VERSION = "canonical-sam3_1-source-runtime-candidate-v3"
+CANDIDATE_VERSION = "canonical-sam3_1-source-runtime-candidate-v4"
 INGEST_VERSION = "canonical-sam3_1-private-artifact-ingest-receipt-v3"
 BASE_IMAGE_DIGEST = (
     "sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca"

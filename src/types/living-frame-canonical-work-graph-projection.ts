@@ -134,7 +134,7 @@ export interface CanonicalLivingFrameSam31TemporalMaskRequirement {
   readonly requirementVersion:
     'canonical-living-frame-sam3_1-temporal-mask-requirement-v1'
   readonly sourceCandidateVersion:
-    'canonical-sam3_1-source-runtime-candidate-v3'
+    'canonical-sam3_1-source-runtime-candidate-v4'
   readonly sourceCandidateHash: string
   readonly operationId:
     'tool.sam3_1.segment_and_track_subject.v1'

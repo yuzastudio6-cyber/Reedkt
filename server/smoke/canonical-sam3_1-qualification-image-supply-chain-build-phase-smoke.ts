@@ -871,7 +871,7 @@ function createAuthority() {
     authorityVersion: 1,
     operationId: 'tool.sam3_1.segment_and_track_subject.v1',
     candidateRef: {
-      schemaVersion: 'canonical-sam3_1-source-runtime-candidate-v3',
+      schemaVersion: 'canonical-sam3_1-source-runtime-candidate-v4',
       candidateHash: digest('candidate'),
     },
     ingestReceiptRef: {

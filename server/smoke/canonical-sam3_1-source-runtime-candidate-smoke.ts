@@ -89,6 +89,28 @@ assert.equal(
 )
 assert.equal(candidate.officialCheckpoint.unreviewedCheckpointKeyRewriteAllowed,
   false)
+assert.equal(
+  candidate.officialCheckpoint
+    .partialTrackerLoadWarningMayQualifyCompatibility,
+  false,
+)
+assert.equal(
+  candidate.officialCheckpoint
+    .strictFinalAssembledVideoModelMayQualifyWithoutIssueClosure,
+  true,
+)
+assert.equal(
+  candidate.officialCheckpoint.strictQualificationRequiresSingleCheckpointLoad,
+  true,
+)
+assert.equal(
+  candidate.officialCheckpoint.strictQualificationRequiresExactModelKeySet,
+  true,
+)
+assert.equal(
+  candidate.officialCheckpoint.strictQualificationRequiresCompleteVideoProbe,
+  true,
+)
 assert.equal(candidate.fixedApi.builder,
   'build_sam3_multiplex_video_predictor')
 assert.equal(candidate.fixedApi.useFlashAttention3, false)

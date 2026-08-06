@@ -67,7 +67,7 @@ const sourceQualificationRefSchema = refSchema.extend({
 export const canonicalSam31GpuRuntimeQualificationEvidenceOwnerRequestSchema =
 z.object({
   candidateRef: z.object({
-    schemaVersion: z.literal('canonical-sam3_1-source-runtime-candidate-v3'),
+    schemaVersion: z.literal('canonical-sam3_1-source-runtime-candidate-v4'),
     candidateHash: sha256,
   }).strict(),
   privateArtifactIngestReceiptRef: refSchema,

@@ -253,7 +253,7 @@ const evidenceWithoutHashSchema = z.object({
   qualificationId: safeId,
   qualificationVersion: z.literal(1),
   candidateRef: z.object({
-    schemaVersion: z.literal('canonical-sam3_1-source-runtime-candidate-v3'),
+    schemaVersion: z.literal('canonical-sam3_1-source-runtime-candidate-v4'),
     candidateHash: sha256,
   }).strict(),
   privateArtifactIngestReceiptRef: versionOneRefSchema,
@@ -340,7 +340,7 @@ export const canonicalSam31GpuRuntimeQualificationEvidenceReadRequestSchema =
     qualificationEvidenceRef: versionOneRefSchema,
     candidateRef: z.object({
       schemaVersion: z.literal(
-        'canonical-sam3_1-source-runtime-candidate-v3',
+        'canonical-sam3_1-source-runtime-candidate-v4',
       ),
       candidateHash: sha256,
     }).strict(),

@@ -221,6 +221,7 @@ export const OFFLINE_MEDIA_BINARY_RUNTIME_AUTHORITY_PATH =
 const STORAGE_ROOT = OFFLINE_MEDIA_BINARY_RUNTIME_STORAGE_ROOT
 const AUTHORITY_PATH = OFFLINE_MEDIA_BINARY_RUNTIME_AUTHORITY_PATH
 const DOCKER_CONTROL_TIMEOUT_MS = 120_000
+const DOCKER_BUILD_TIMEOUT_MS = 30 * 60_000
 const MAXIMUM_STREAMING_TIMEOUT_MS = 10 * 60_000
 const CONTINUOUS_PROGRAM_AUDIO_TIMEOUT_MS = 60 * 60_000
 const LONG_FORM_MASTER_ASSEMBLY_TIMEOUT_MS = 6 * 60 * 60_000
@@ -377,6 +378,33 @@ export interface PrivateOfflineMediaBinaryRuntime {
       lastFrame: OfflineMediaBinaryServerInjectedInput
     },
   ): Promise<OfflineVisualCalibrationObjectiveQaExecutionResult>
+}
+
+export async function prepareOfflineMediaBinaryDockerRuntime(): Promise<OfflineMediaBinaryImageEvidence> {
+  if (arguments.length !== 0) {
+    throw invalid('Media binary Docker preparation accepts no caller input.')
+  }
+  try {
+    return await inspectImage()
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.code !== 'TOOL_NOT_READY') throw error
+  }
+  const context = join(process.cwd(), 'docker/prod/ffmpeg-lgpl-runtime')
+  const built = await dockerBuffer([
+    'build',
+    '--pull=false',
+    '--quiet',
+    '--file', join(context, 'Dockerfile'),
+    '--tag', IMAGE_TAG,
+    '--build-arg', 'SOURCE_DATE_EPOCH=1781664539',
+    context,
+  ], undefined, 8 * 1024 * 1024, DOCKER_BUILD_TIMEOUT_MS)
+  if (built.exitCode !== 0) {
+    throw unavailable('Pinned FFmpeg LGPL image build failed.', {
+      exitCode: built.exitCode,
+    })
+  }
+  return inspectImage()
 }
 
 export async function activatePrivateOfflineMediaBinaryRuntime(): Promise<PrivateOfflineMediaBinaryRuntime> {

@@ -65,7 +65,7 @@ test.describe('clean named-edit chat', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
 
     const checkpoint = await findPlanReview(page)
-    await expect(checkpoint).toContainText(/What I understood/i)
+    await expect(checkpoint).toContainText(/Review the edit direction/i)
     await expect(checkpoint).toContainText(/estimated credits/i)
     await expect(page.getByTestId('editor-stage')).toHaveAttribute('data-editor-stage', 'plan_review')
     await expect(page.getByTestId('plan-approval-checkpoint')).toHaveCount(1)

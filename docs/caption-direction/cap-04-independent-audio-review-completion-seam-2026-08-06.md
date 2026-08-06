@@ -86,7 +86,7 @@ the canonical transcript, or claim final QA.
   — **23/23 checks passed**;
 - existing correction artifact/request smoke — **11/11 passed**;
 - correction owner and immutable planning-expectation reconciliation smoke —
-  **17/17 passed**;
+  **19/19 passed**;
 - existing review-package smoke — **22/22 passed**;
 - Caption source-integration aggregate — **39 suites passed**;
 - focused ESLint — passed;

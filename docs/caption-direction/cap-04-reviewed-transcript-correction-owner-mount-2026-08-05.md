@@ -38,6 +38,7 @@ while still refusing substitution.
 
 - `src/types/canonical-caption-reviewed-transcript-correction.ts`
 - `server/services/canonical-caption-reviewed-transcript-correction.ts`
+- `server/services/canonical-caption-reviewed-transcript-correction-private-composition.ts`
 - `server/services/canonical-caption-transcript-support-service.ts`
 - `server/smoke/canonical-caption-reviewed-transcript-correction-owner-service-smoke.ts`
 - `server/smoke/captions-specialist-source-integration-aggregate-smoke.ts`
@@ -51,6 +52,7 @@ while still refusing substitution.
 - `canonical-caption-reviewed-transcript-correction-repository-v1`
 - `canonical-caption-reviewed-transcript-correction-owner-service-v1`
 - `canonical-caption-reviewed-transcript-correction-owner-service-v2`
+- `canonical-caption-reviewed-transcript-correction-private-composition-v1`
 
 ## Existing owners reused
 
@@ -69,7 +71,7 @@ while still refusing substitution.
 
 ## Focused evidence
 
-The owner-service smoke passes 17 checks covering:
+The owner-service smoke passes 19 checks covering:
 
 - complete reviewed correction;
 - manual timing provenance;
@@ -85,7 +87,11 @@ The owner-service smoke passes 17 checks covering:
 - corrected transcript resolution through the create-only expectation index;
 - rejected-transcript remap refusal;
 - forged V1 correction-owner rejection by the V2 composition; and
-- crossed source-analysis scope rejection.
+- crossed source-analysis scope rejection;
+- one private composition root over the existing transcript/correction
+  repositories and canonical read ports; and
+- closed composition authority flags with approved-work mutation and runtime
+  ownership both false.
 
 The deterministic fixture digests are:
 

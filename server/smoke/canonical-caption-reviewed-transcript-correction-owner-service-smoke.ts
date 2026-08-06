@@ -51,9 +51,11 @@ import {
   createCanonicalCaptionReviewedCorrectionEvidenceReadPort,
   createCanonicalCaptionReviewedCorrectionOwnerService,
   createCanonicalCaptionReviewedCorrectionOwnerServiceV2,
-  createCanonicalCaptionReviewedCorrectionRepository,
   createCanonicalCaptionReviewedCorrectionRequest,
 } from '../services/canonical-caption-reviewed-transcript-correction'
+import {
+  createCanonicalCaptionReviewedCorrectionPrivateComposition,
+} from '../services/canonical-caption-reviewed-transcript-correction-private-composition'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -329,18 +331,6 @@ const evidenceReadPort =
 const approvedSnapshotReadPort = createCanonicalCaptionApprovedSnapshotReadPort(
   async (readScope) => stableAuthorityStringify(readScope) ===
       stableAuthorityStringify(scope) ? structuredClone(scope) : null)
-const correctionRepository =
-  createCanonicalCaptionReviewedCorrectionRepository({
-    objectPort,
-    prefix: 'private/tests/caption-reviewed-correction/owner',
-  })
-const service = createCanonicalCaptionReviewedCorrectionOwnerService({
-  approvedSnapshotReadPort,
-  evidenceReadPort,
-  transcriptRepository,
-  correctionRepository,
-  now: () => new Date('2026-08-05T17:05:00.000-04:00'),
-})
 const sourceTranscriptReadPort = Object.freeze({
   schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
   async readCompleted(readScope: CanonicalSourceTranscriptOrchestraReadScope) {
@@ -349,12 +339,32 @@ const sourceTranscriptReadPort = Object.freeze({
       ? structuredClone(sourceTranscriptResult) : null
   },
 })
-const serviceV2 = createCanonicalCaptionReviewedCorrectionOwnerServiceV2({
-  ownerService: service,
-  approvedSnapshotReadPort,
-  sourceTranscriptReadPort,
-  transcriptRepository,
-})
+const composition =
+  createCanonicalCaptionReviewedCorrectionPrivateComposition({
+    objectPort,
+    approvedSnapshotReadPort,
+    sourceTranscriptReadPort,
+    evidenceReadPort,
+    prefix: 'private/tests/caption-reviewed-correction',
+    transcriptPrefix: 'private/tests/caption-reviewed-correction/transcripts',
+    now: () => new Date('2026-08-05T17:05:00.000-04:00'),
+  })
+const correctionRepository = composition.correctionRepository
+const service = composition.ownerV1
+const serviceV2 = composition.ownerV2
+assert.equal(composition.approvedWorkMutationMounted, false)
+assert.equal(composition.providerOrRuntimeAuthorityGranted, false)
+checks += 1
+
+const independentlyComposedV2 =
+  createCanonicalCaptionReviewedCorrectionOwnerServiceV2({
+    ownerService: service,
+    approvedSnapshotReadPort,
+    sourceTranscriptReadPort,
+    transcriptRepository,
+  })
+assert.equal(independentlyComposedV2.schemaVersion, serviceV2.schemaVersion)
+checks += 1
 
 // The request binds both final digests; the review binds the artifact's stable
 // digest basis, and the final artifact binds the exact review digest.

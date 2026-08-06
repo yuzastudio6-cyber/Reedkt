@@ -61,7 +61,10 @@ repository. Its additive V2 composition also recomputes the exact source-led
 planning expectation, binds it create-only to the reviewed corrected record,
 and lets immutable approved V3 Caption work resolve that record without
 rewriting the plan. Any attempted remap to the rejected transcript fails
-closed. Visual Intelligence and Track All/SAM 3.1 remain in their canonical
+closed. The named private composition root is
+`canonical-caption-reviewed-transcript-correction-private-composition-v1`;
+it mounts no review, transcript runtime, provider, or approved-work mutation
+authority. Visual Intelligence and Track All/SAM 3.1 remain in their canonical
 owner compositions, and the new
 `canonical-caption-shared-owner-private-composition-v1` mounts the existing
 Sound and B-roll owners through Caption's already-published support bridges.

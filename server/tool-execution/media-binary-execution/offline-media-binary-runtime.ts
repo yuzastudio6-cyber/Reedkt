@@ -390,6 +390,7 @@ export async function prepareOfflineMediaBinaryDockerRuntime(): Promise<OfflineM
     if (!(error instanceof ApiError) || error.code !== 'TOOL_NOT_READY') throw error
   }
   const context = join(process.cwd(), 'docker/prod/ffmpeg-lgpl-runtime')
+  const sourceTreeSha256 = sha256AuthorityValue(await policyHashes())
   const failures: Array<{ attempt: number; exitCode: number; diagnostic: string }> = []
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     const built = await dockerBuffer([
@@ -399,6 +400,7 @@ export async function prepareOfflineMediaBinaryDockerRuntime(): Promise<OfflineM
       '--file', join(context, 'Dockerfile'),
       '--tag', IMAGE_TAG,
       '--build-arg', 'SOURCE_DATE_EPOCH=1781664539',
+      '--build-arg', `REEDITPRO_SOURCE_TREE_SHA256=${sourceTreeSha256}`,
       context,
     ], undefined, 8 * 1024 * 1024, DOCKER_BUILD_TIMEOUT_MS)
     if (built.exitCode === 0) return inspectImage()
@@ -7113,6 +7115,10 @@ async function inspectImage(): Promise<OfflineMediaBinaryImageEvidence> {
       'private_exact_decoded_source_frame_rgba_png_only'
   ) throw unavailable('Pinned media image identity or safety labels are invalid.')
   const sourcePolicyHashes = await policyHashes()
+  const sourceTreeSha256 = sha256AuthorityValue(sourcePolicyHashes)
+  if (labels['reeditpro.source-tree.sha256'] !== sourceTreeSha256) {
+    throw unavailable('Pinned media image source tree is stale.')
+  }
   const imageIdentityHash = sha256AuthorityValue({
     imageId: image.Id, architecture: image.Architecture, os: image.Os,
     user: config.User, labels, sourceVersion: SOURCE_VERSION,

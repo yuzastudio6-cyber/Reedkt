@@ -32,6 +32,7 @@ RUN printf '%s\n' \
   && while ! apt-get install -y --no-install-recommends \
         build-essential=12.9 \
         libvpx-dev=1.12.0-1+deb12u5 \
+        nasm=2.16.01-1 \
         pkg-config=1.8.1-1 \
         xz-utils=5.4.1-1 \
         zlib1g-dev=1:1.2.13.dfsg-1; do \
@@ -175,6 +176,7 @@ RUN find \
 FROM ${DEBIAN_BASE} AS runtime
 
 ARG SOURCE_DATE_EPOCH
+ARG REEDITPRO_SOURCE_TREE_SHA256
 
 LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker foundation" \
       org.opencontainers.image.description="Pinned FFmpeg source build with GPL/nonfree/network disabled; internal evaluation only" \
@@ -195,7 +197,8 @@ LABEL org.opencontainers.image.title="ReEditPro minimal FFmpeg internal-worker f
       reeditpro.exact-source-frame-png="private_exact_decoded_source_frame_rgba_png_only" \
       reeditpro.codec-patent-legal-review="required" \
       reeditpro.runtime-network="must_run_with_network_none" \
-      reeditpro.runtime-rootfs="must_run_read_only"
+      reeditpro.runtime-rootfs="must_run_read_only" \
+      reeditpro.source-tree.sha256="${REEDITPRO_SOURCE_TREE_SHA256}"
 
 ENV PATH=/opt/reeditpro-ffmpeg/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ENV HOME=/nonexistent

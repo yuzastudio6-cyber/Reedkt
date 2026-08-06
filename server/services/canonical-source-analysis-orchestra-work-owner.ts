@@ -20,9 +20,14 @@ import {
   CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_WORK_READ_PORT_VERSION,
 } from '../orchestra/canonical-source-analysis-orchestra-coordinator'
 import {
+  CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+  type CanonicalSkillQualificationRegistry,
+} from '../orchestra/canonical-skill-qualification-registry'
+import {
   orchestraDigest,
   orchestraEvidenceRef,
   parseOrchestraSkillCall,
+  parseSkillCapabilityManifest,
   parseSkillQualificationSnapshot,
 } from '../orchestra/orchestra-skill-capability-contract'
 import type {
@@ -94,7 +99,7 @@ export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_AUTHORITY_VERSION =
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_AUTHORITY_READ_PORT_VERSION =
   'canonical-source-analysis-orchestra-authority-read-port-v1' as const
 export const CANONICAL_SOURCE_ANALYSIS_ORCHESTRA_WORK_OWNER_VERSION =
-  'canonical-source-analysis-orchestra-work-owner-v2' as const
+  'canonical-source-analysis-orchestra-work-owner-v3' as const
 
 const AUTHORITY_KEYS = [
   'schemaVersion', 'source', 'scopeDigestSha256', 'call',
@@ -234,6 +239,10 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
     VisualIntelligenceCanonicalPreparedEvidenceStore
   readonly dispatchPackageStore:
     VisualIntelligenceOrchestraDispatchPackageStore
+  readonly qualificationRegistryReadPort: Pick<
+    CanonicalSkillQualificationRegistry,
+    'schemaVersion' | 'readExact'
+  >
 }): CanonicalSourceAnalysisOrchestraWorkOwner {
   assertDependencies(input)
   return Object.freeze({
@@ -261,6 +270,35 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
         scope: untrustedScope,
         value: authorityRaw,
       })
+      const registeredPair = await input.qualificationRegistryReadPort
+        .readExact({
+          manifestRef: authority.call.manifestRef,
+          qualificationSnapshotRef:
+            authority.call.qualificationSnapshotRef,
+        })
+      if (!registeredPair) return null
+      const registeredQualification = parseSkillQualificationSnapshot(
+        registeredPair.qualificationSnapshot,
+      )
+      const registeredManifest = parseSkillCapabilityManifest({
+        value: registeredPair.manifest,
+        qualificationSnapshot: registeredQualification,
+      })
+      if (
+        !sameRef(authority.call.manifestRef, orchestraEvidenceRef(
+          registeredManifest.manifestId,
+          registeredManifest.manifestDigestSha256,
+        ))
+        || !sameRef(
+          authority.call.qualificationSnapshotRef,
+          orchestraEvidenceRef(
+            registeredQualification.snapshotId,
+            registeredQualification.snapshotDigestSha256,
+          ),
+        )
+        || registeredQualification.snapshotDigestSha256 !==
+          authority.qualificationSnapshot.snapshotDigestSha256
+      ) throw conflict('source_analysis_qualification_registry_mismatch')
       const l4VisualEvidence =
         assertCanonicalSourceAnalysisL4VisualEvidenceResult(
           l4VisualEvidenceRaw,
@@ -289,10 +327,7 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
           artifacts: rawToolArtifacts as
             CanonicalSourceAnalysisL4VisualEvidenceToolArtifact[],
         })
-      const manifest =
-        createVisualIntelligenceOrchestraCapabilityManifestForQualification(
-          authority.qualificationSnapshot,
-        )
+      const manifest = registeredManifest
       const artifact = createSourceArtifact(untrustedScope, l4VisualEvidence)
       const compilationEvidence = createCompilationEvidence({
         scope: untrustedScope,
@@ -351,7 +386,7 @@ export function createCanonicalSourceAnalysisOrchestraWorkOwner(input: {
         call: authority.call,
         supportRequest: null,
         manifest,
-        qualificationSnapshot: authority.qualificationSnapshot,
+        qualificationSnapshot: registeredQualification,
         compilationEvidence,
         preparedEvidenceRef: prepared.recordRef,
         inspectionRequirement: null,
@@ -710,6 +745,9 @@ function assertDependencies(input: Parameters<
     || input.preparedEvidenceStore?.schemaVersion !==
       VISUAL_INTELLIGENCE_CANONICAL_PREPARED_EVIDENCE_STORE_VERSION
     || typeof input.preparedEvidenceStore.persistCreateOnly !== 'function'
+    || input.qualificationRegistryReadPort?.schemaVersion !==
+      CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION
+    || typeof input.qualificationRegistryReadPort.readExact !== 'function'
     || input.dispatchPackageStore?.schemaVersion !==
       VISUAL_INTELLIGENCE_ORCHESTRA_DISPATCH_PACKAGE_STORE_VERSION
     || typeof input.dispatchPackageStore.persistCreateOnly !== 'function'

@@ -16,6 +16,9 @@ import {
   assertCanonicalSourceAnalysisOrchestraWork,
 } from '../orchestra/canonical-source-analysis-orchestra-coordinator'
 import {
+  CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+} from '../orchestra/canonical-skill-qualification-registry'
+import {
   createOrchestraSkillCall,
   createSkillQualificationSnapshot,
   orchestraDigest,
@@ -476,6 +479,33 @@ const authority = createCanonicalSourceAnalysisOrchestraAuthority({
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,
 })
+const qualificationRegistryReadPort = {
+  schemaVersion: CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+  async readExact(input: {
+    manifestRef: { id: string, version: number, contentHash: string }
+    qualificationSnapshotRef: {
+      id: string
+      version: number
+      contentHash: string
+    }
+  }) {
+    if (
+      input.manifestRef.id !== call.manifestRef.id
+      || input.manifestRef.version !== call.manifestRef.version
+      || input.manifestRef.contentHash !== call.manifestRef.contentHash
+      || input.qualificationSnapshotRef.id !==
+        call.qualificationSnapshotRef.id
+      || input.qualificationSnapshotRef.version !==
+        call.qualificationSnapshotRef.version
+      || input.qualificationSnapshotRef.contentHash !==
+        call.qualificationSnapshotRef.contentHash
+    ) return null
+    return {
+      manifest: structuredClone(manifest),
+      qualificationSnapshot: structuredClone(qualification),
+    }
+  },
+}
 
 let preparedRequest: VisualIntelligenceRequest | null = null
 let preparedWrites = 0
@@ -567,6 +597,7 @@ const owner = createCanonicalSourceAnalysisOrchestraWorkOwner({
   },
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
+  qualificationRegistryReadPort,
 })
 
 const work = assertCanonicalSourceAnalysisOrchestraWork({
@@ -620,6 +651,7 @@ const missingL4Owner = createCanonicalSourceAnalysisOrchestraWorkOwner({
   transcriptReadPort: ownerTranscriptPort(transcriptResult),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
+  qualificationRegistryReadPort,
 })
 assert.equal(
   await missingL4Owner.readExactSourceVideoUnderstandingWork(scope),
@@ -636,6 +668,7 @@ const missingTranscriptOwner = createCanonicalSourceAnalysisOrchestraWorkOwner({
   transcriptReadPort: ownerTranscriptPort(null),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
+  qualificationRegistryReadPort,
 })
 assert.equal(
   await missingTranscriptOwner.readExactSourceVideoUnderstandingWork(scope),
@@ -653,6 +686,7 @@ const missingToolArtifactOwner = createCanonicalSourceAnalysisOrchestraWorkOwner
   transcriptReadPort: ownerTranscriptPort(transcriptResult),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
+  qualificationRegistryReadPort,
 })
 assert.equal(
   await missingToolArtifactOwner.readExactSourceVideoUnderstandingWork(scope),
@@ -678,9 +712,34 @@ const crossScopeL4Owner = createCanonicalSourceAnalysisOrchestraWorkOwner({
   transcriptReadPort: ownerTranscriptPort(transcriptResult),
   preparedEvidenceStore,
   dispatchPackageStore: dispatchStore,
+  qualificationRegistryReadPort,
 })
 await assert.rejects(() =>
   crossScopeL4Owner.readExactSourceVideoUnderstandingWork(scope))
+
+const missingQualificationOwner =
+  createCanonicalSourceAnalysisOrchestraWorkOwner({
+    authorityReadPort: ownerAuthorityPort(authority),
+    l4VisualEvidenceReadPort: {
+      schemaVersion:
+        CANONICAL_SOURCE_ANALYSIS_L4_VISUAL_EVIDENCE_READ_PORT_VERSION,
+      async readCompleted() { return structuredClone(l4Result) },
+    },
+    l4VisualEvidenceToolArtifactReadPort:
+      ownerToolArtifactPort(toolArtifacts),
+    transcriptReadPort: ownerTranscriptPort(transcriptResult),
+    preparedEvidenceStore,
+    dispatchPackageStore: dispatchStore,
+    qualificationRegistryReadPort: {
+      schemaVersion: CANONICAL_SKILL_QUALIFICATION_REGISTRY_VERSION,
+      async readExact() { return null },
+    },
+  })
+assert.equal(
+  await missingQualificationOwner
+    .readExactSourceVideoUnderstandingWork(scope),
+  null,
+)
 
 console.log(JSON.stringify({
   ok: true,
@@ -692,6 +751,7 @@ console.log(JSON.stringify({
   missingL4Rejected: true,
   missingTranscriptRejected: true,
   missingToolArtifactRejected: true,
+  missingCanonicalQualificationRejected: true,
   crossScopeL4EvidenceRejected: true,
   crossScopeRejected: true,
   callerAuthorityEscalationRejected: true,

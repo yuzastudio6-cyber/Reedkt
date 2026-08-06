@@ -550,6 +550,21 @@ releases are reread by the canonical skill qualification registry. A plan or
 peer support request cannot self-qualify the skill, directly dispatch a GPU, or
 grant billing, QA, public-delivery, or production authority.
 
+The same generic Orchestra boundary now has a private, create-only canonical
+skill qualification registry mounted by both the Visual Intelligence and Track
+All production composition roots. A record contains the complete validated
+manifest and qualification snapshot, exact manifest/snapshot/release refs, a
+recomputed record digest, and closed dispatch/provider/billing/public/
+production authorities. Records use locale-independent UTF-16 recursive key
+ordering, exact persisted-byte hashing, create-only collision refusal, and an
+exact reread before publication is acknowledged. The source-video Orchestra
+work owner no longer trusts the plan's
+`exactQualificationRegistryRereadVerified` boolean: it rereads the exact
+manifest/snapshot pair from this server-owned registry and returns no work when
+that pair is absent. This registry is a qualification truth boundary, not a
+publisher of fabricated readiness; the current Track All and Visual
+Intelligence source snapshots remain blocked.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

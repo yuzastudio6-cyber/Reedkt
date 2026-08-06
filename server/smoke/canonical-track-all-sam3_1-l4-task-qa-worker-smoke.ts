@@ -487,6 +487,22 @@ assert.match(entrypoint, /cuda_compat_12_8/u)
 assert.match(entrypoint, /\/\^NVRM version:\//u)
 assert.match(entrypoint, /count < 2 \|\| count > 4/u)
 assert.match(entrypoint, /is_driver_version\(\$field\)/u)
+assert.match(
+  entrypoint,
+  /runtime_library_paths=\/opt\/weeditpro\/opencv-cuda\/lib:\/opt\/weeditpro\/cuda-npp\/lib:\/usr\/local\/lib\/python3\.12\/dist-packages\/nvidia\/cublas\/lib:\/usr\/local\/lib\/python3\.12\/dist-packages\/nvidia\/cuda_runtime\/lib:\/usr\/local\/lib\/python3\.12\/dist-packages\/nvidia\/cufft\/lib:\/usr\/local\/cuda\/lib64/u,
+)
+assert.match(
+  entrypoint,
+  /LD_LIBRARY_PATH="\$\{compatibility_path\}:\$\{host_driver_paths\}:\$\{runtime_library_paths\}"/u,
+)
+assert.match(
+  entrypoint,
+  /LD_LIBRARY_PATH="\$\{host_driver_paths\}:\$\{runtime_library_paths\}"/u,
+)
+assert.doesNotMatch(
+  entrypoint,
+  /LD_LIBRARY_PATH="\$\{(?:compatibility_path|host_driver_paths)\}(?::\$\{host_driver_paths\})?"/u,
+)
 assert.doesNotMatch(
   entrypoint,
   /Kernel Module\[\[:space:\]\]\*\\\(\[0-9\]\[0-9\.\]\*\\\)/u,
@@ -530,6 +546,7 @@ console.log(JSON.stringify({
   everyRequestedMaskRequired: true,
   korniaCudaSubstantiveMeasurementRequired: true,
   opencvCudaEveryMaskCrosscheckRequired: true,
+  pinnedCudaRuntimeLibrariesRetainedAfterDriverSelection: true,
   cpuOnlySubstantiveQaAllowed: false,
   immutableImageCandidateOnly: true,
   standardAndOpenKernelModuleDriverLinesAdmitted: true,

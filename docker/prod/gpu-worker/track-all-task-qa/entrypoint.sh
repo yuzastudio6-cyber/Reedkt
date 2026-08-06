@@ -53,6 +53,7 @@ case "${driver_major}" in
 esac
 
 host_driver_paths=/usr/local/nvidia/lib64:/usr/local/nvidia/lib
+runtime_library_paths=/opt/weeditpro/opencv-cuda/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cublas/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cufft/lib:/usr/local/cuda/lib64
 if [ "${driver_major}" -ge 535 ] && [ "${driver_major}" -lt 570 ]; then
   compatibility_path=/usr/local/cuda-12.8/compat
   if [ ! -r "${compatibility_path}/libcuda.so.1" ]; then
@@ -60,10 +61,10 @@ if [ "${driver_major}" -ge 535 ] && [ "${driver_major}" -lt 570 ]; then
     exit 70
   fi
   WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE=cuda_compat_12_8
-  LD_LIBRARY_PATH="${compatibility_path}:${host_driver_paths}"
+  LD_LIBRARY_PATH="${compatibility_path}:${host_driver_paths}:${runtime_library_paths}"
 elif [ "${driver_major}" -ge 570 ]; then
   WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE=host_driver
-  LD_LIBRARY_PATH="${host_driver_paths}"
+  LD_LIBRARY_PATH="${host_driver_paths}:${runtime_library_paths}"
 else
   echo "NVIDIA driver is below the admitted CUDA 12.8 floor" >&2
   exit 70

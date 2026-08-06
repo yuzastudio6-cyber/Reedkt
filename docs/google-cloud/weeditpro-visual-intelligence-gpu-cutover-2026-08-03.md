@@ -410,6 +410,17 @@ private subnet, A100 80 GB instance template, and zero active qualification jobs
 or instances. GPU qualification still remains a separate evidence gate.
 Version v12 also timestamps each exact live reread so the canonical A100
 foundation owner can reject stale observations before staging or dispatch.
+The corresponding server repository now publishes that sealed observation in
+one immutable five-minute control-plane slot and exact-rereads it before use.
+It refuses a changed replay in the same slot, never skips a newer denial to use
+an older grant, and exposes no caller-selected cloud resource reference. The
+bounded fixed-audit publisher was exercised on 2026-08-06 at 14:30:30Z and
+created observation
+`sha256:3ab9ee70929586cd4dc1fcf5c874a711f747b035f1f2c94cc50cb69cb8f14b6e`.
+That live record reports the resource foundation ready and scale-from-zero
+clean while A100 dispatch remains blocked; it started no GPU job, downloaded
+no model/checkpoint, changed no customer credits, and granted no production
+authority.
 
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,

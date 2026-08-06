@@ -86,11 +86,14 @@ credentials, and raw chat are not part of the record.
 ## Next internal implementation step
 
 The canonical multi-run reader, create-only repository, 41-job catalog, and
-final private-qualification service are now source-complete. A normal approved
-edit is no longer expected to contain all 41 jobs. Each representative edit is
-recorded separately with its immutable snapshot, execution package, work graph,
-owner evidence, rendered output, complete-time visual review, independent final
-QA, and private-review decision. Several records must then cover the full job
+final private-qualification service are now source-complete. The Caption-owned
+9:16/16:9/1:1 real-source inspection receipts also have a fail-closed canonical
+projection that requires a twice-reread approved-run and source authority before
+persisting direct-inspection evidence. A normal approved edit is no longer
+expected to contain all 41 jobs. Each representative edit is recorded
+separately with its immutable snapshot, execution package, work graph, owner
+evidence, rendered output, complete-time visual review, independent final QA,
+and private-review decision. Several records must then cover the full job
 surface before terminal status can be published.
 
 When that real catalog is complete, the final record also publishes the
@@ -129,3 +132,5 @@ The exact real-source-only appearance gate is documented in
 `canonical-direct-professional-appearance-gate-2026-08-05.md`.
 The new 16:9/1:1 evidence is documented in
 `cap-18-real-source-multi-output-professional-inspection-2026-08-05.md`.
+The canonical receipt projection is documented in
+`canonical-real-source-inspection-projection-2026-08-05.md`.

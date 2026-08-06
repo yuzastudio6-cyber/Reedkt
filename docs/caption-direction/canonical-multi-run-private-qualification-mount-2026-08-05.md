@@ -113,6 +113,7 @@ supplied run evidence.
 - `smoke:canonical-caption-specialist-execution` — 30 checks
 - `smoke:captions-specialist-terminal-qualification-v3` — 12 checks
 - `smoke:canonical-caption-direct-visual-inspection-evidence` — 11 checks
+- `smoke:canonical-caption-real-source-inspection-projection` — 35 assertions
 - `smoke:canonical-caption-qualification-run-evidence` — 25 checks
 - `smoke:canonical-caption-private-qualification-catalog` — 29 checks
 - `smoke:canonical-caption-private-qualification-composition` — 9 checks

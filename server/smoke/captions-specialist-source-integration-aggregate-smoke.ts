@@ -43,6 +43,7 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-postrender-visual-qa-authenticated-read',
   'smoke:canonical-caption-terminal-qualification',
   'smoke:canonical-caption-direct-visual-inspection-evidence',
+  'smoke:canonical-caption-real-source-inspection-projection',
   'smoke:canonical-caption-qualification-run-evidence',
   'smoke:canonical-caption-private-qualification-catalog',
   'smoke:canonical-caption-private-qualification-composition',

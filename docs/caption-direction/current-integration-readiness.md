@@ -209,6 +209,14 @@ fixtures. It explicitly rejects the synthetic engineering fixture as
 professional evidence and is not relabeled as shared complete-time visual AI,
 independent final QA, or terminal qualification.
 
+The closed 9:16 and multi-output inspection receipts now also have a shared
+canonical projection service. For each of the six variants it rereads the
+persisted Caption receipt and canonical approved-run/source authority twice,
+then persists one exact
+`canonical-caption-direct-visual-inspection-evidence-v1` record. The source
+smoke proves the adapter and adversarial boundary only. A fresh approved run
+has not used it yet, so actual qualification remains unchanged.
+
 ## Next milestone
 
 Run one authorized canonical private end-to-end qualification that supplies the

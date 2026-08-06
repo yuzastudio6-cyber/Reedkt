@@ -1126,6 +1126,7 @@ function vulnerabilityOccurrences(imageUri: string) {
       id: '32222222-2222-4222-8222-222222222222',
       imageUri,
       severity: 'MEDIUM',
+      noteProviderSeverity: 'CRITICAL',
       updatedAt: '2026-08-03T20:03:00Z',
     }),
     vulnerabilityOccurrence({
@@ -1141,6 +1142,7 @@ function vulnerabilityOccurrence(input: {
   id: string
   imageUri: string
   severity: 'LOW' | 'MEDIUM'
+  noteProviderSeverity?: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   updatedAt: string
 }) {
   return {
@@ -1151,7 +1153,7 @@ function vulnerabilityOccurrence(input: {
     createTime: input.updatedAt,
     updateTime: input.updatedAt,
     vulnerability: {
-      severity: input.severity,
+      severity: input.noteProviderSeverity ?? input.severity,
       effectiveSeverity: input.severity,
       packageIssue: [{
         affectedPackage: 'sam31-runtime-package',

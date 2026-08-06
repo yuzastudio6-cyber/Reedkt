@@ -1365,14 +1365,24 @@ export function verifyCanonicalImageVulnerabilityOccurrences(input: {
   const vulnerabilities = input.vulnerabilityOccurrences.map((value) => {
     const root = occurrenceRecord(value, 'VULNERABILITY', input.resourceUri)
     const details = record(root.vulnerability)
-    const severities = [details.effectiveSeverity, details.severity]
+    const effectiveSeverities = [details.effectiveSeverity]
     if (Array.isArray(details.packageIssue)) {
       for (const issueValue of details.packageIssue) {
         const issue = record(issueValue)
-        severities.push(issue.effectiveSeverity)
+        effectiveSeverities.push(issue.effectiveSeverity)
       }
     }
-    const severity = maximumSeverity(severities)
+    // Artifact Analysis defines effective severity as the distribution
+    // maintainer's assessment for OS packages (and the advisory database's
+    // assessment for language packages). Prefer that authenticated field;
+    // fall back to the note-provider severity only when no effective value is
+    // available. Combining both with a maximum incorrectly re-escalates
+    // distro-downgraded findings and makes the release gate disagree with the
+    // provider's effective-vulnerability summary.
+    const effectiveSeverity = maximumSeverity(effectiveSeverities)
+    const severity = effectiveSeverity === 'UNKNOWN'
+      ? maximumSeverity([details.severity])
+      : effectiveSeverity
     if (severity === 'CRITICAL') counts.criticalCount += 1
     else if (severity === 'HIGH') counts.highCount += 1
     else if (severity === 'MEDIUM') counts.mediumCount += 1

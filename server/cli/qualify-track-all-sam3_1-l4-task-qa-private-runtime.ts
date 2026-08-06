@@ -76,7 +76,7 @@ const supplyRefs = Object.freeze({
   ),
   imageBuildTerminalRef: ref(
     'track-all-l4-cloud-build-terminal-89203fdbb2b84b6bd2d2ba0b',
-    'c155313e594645c5d4b4f19ec7707389112354f943d9cdf4c339b96b7b309e33',
+    'c155313e594645939ca832bcb406f38ee09fd42c2062bd320baf57674a80e259',
   ),
   supplyChainAdmissionRef: ref(
     'track-all-l4-image-supply-chain-c155313e594645939ca832bc',
@@ -343,15 +343,32 @@ async function rereadSupplyChainEvidence() {
       submissionRef: supplyRefs.supplyChainSubmissionRef,
     }),
   ])
-  if (!imageBuildAuthority || !imageBuildSubmission || !imageBuildTerminal
-    || !supplyChainAdmission || !supplyChainSubmission
-    || !supplyChainTerminal
-    || !sameRef(supplyRefs.imageBuildTerminalRef,
-      canonicalTrackAllSam31L4TaskQaCloudImageBuildTerminalRef(
-        imageBuildTerminal,
-      ))
-    || !sameRef(supplyRefs.supplyChainTerminalRef,
-      imageSupplyChainTerminalRef(supplyChainTerminal))) return null
+  if (!imageBuildAuthority) throw new Error(
+    'exact_supply_chain_record_missing:image_build_authority',
+  )
+  if (!imageBuildSubmission) throw new Error(
+    'exact_supply_chain_record_missing:image_build_submission',
+  )
+  if (!imageBuildTerminal) throw new Error(
+    'exact_supply_chain_record_missing:image_build_terminal',
+  )
+  if (!supplyChainAdmission) throw new Error(
+    'exact_supply_chain_record_missing:supply_chain_admission',
+  )
+  if (!supplyChainSubmission) throw new Error(
+    'exact_supply_chain_record_missing:supply_chain_submission',
+  )
+  if (!supplyChainTerminal) throw new Error(
+    'exact_supply_chain_record_missing:supply_chain_terminal',
+  )
+  if (!sameRef(supplyRefs.imageBuildTerminalRef,
+    canonicalTrackAllSam31L4TaskQaCloudImageBuildTerminalRef(
+      imageBuildTerminal,
+    ))) throw new Error('exact_image_build_terminal_reference_changed')
+  if (!sameRef(supplyRefs.supplyChainTerminalRef,
+    imageSupplyChainTerminalRef(supplyChainTerminal))) {
+    throw new Error('exact_supply_chain_terminal_reference_changed')
+  }
   const records = {
     imageBuildAuthority,
     imageBuildSubmission,

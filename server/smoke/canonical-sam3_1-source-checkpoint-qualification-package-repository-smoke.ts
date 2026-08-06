@@ -113,13 +113,22 @@ assert.equal(created.disposition, 'created')
 assert.equal(created.modelOrGpuRuntimeStarted, false)
 assert.equal(created.customerCreditsMutated, false)
 assert.equal(created.productionAuthorityGranted, false)
-assert.equal(store.records.size, 1)
+assert.equal(store.records.size, 2)
 
 const rereadRequest = await repository.rereadExactWorkerRequest({
   workerRequestRef: created.workerRequestRef,
 })
 assert.deepEqual(rereadRequest, workerRequest)
 assert.notEqual(rereadRequest, workerRequest)
+const rereadIngest = await repository.rereadExactIngestReceipt({
+  ingestReceiptRef: {
+    id: workerRequest.ingestReceiptRef.id,
+    version: workerRequest.ingestReceiptRef.version,
+    contentHash: workerRequest.ingestReceiptRef.contentHash,
+  },
+})
+assert.deepEqual(rereadIngest, canonicalIngest)
+assert.notEqual(rereadIngest, canonicalIngest)
 
 const rereadSources =
   assertCanonicalSam31QualificationStagingSourceSetForWorker(
@@ -151,12 +160,22 @@ const replay = await repository.persistQualificationPackageCreateOnly({
 })
 assert.equal(replay.disposition, 'identical_replay')
 assert.deepEqual(replay.workerRequestRef, created.workerRequestRef)
-assert.equal(store.records.size, 1)
+assert.equal(store.records.size, 2)
 assert.equal(probeReadCalls, 2)
 
 assert.equal(await repository.rereadExactWorkerRequest({
   workerRequestRef: ref('missing-worker-request'),
 }), null)
+assert.equal(await repository.rereadExactIngestReceipt({
+  ingestReceiptRef: ref('missing-ingest-receipt'),
+}), null)
+await assert.rejects(repository.rereadExactIngestReceipt({
+  ingestReceiptRef: {
+    id: 'crossed-ingest-receipt',
+    version: workerRequest.ingestReceiptRef.version,
+    contentHash: workerRequest.ingestReceiptRef.contentHash,
+  },
+}))
 
 await rejectsPackage({
   probeFixtureSource: {
@@ -207,7 +226,8 @@ await assert.rejects(repository.rereadExactSources({
   workerRequest: changedRequest,
 }))
 
-const [recordPath, canonicalBody] = [...store.records.entries()][0] ?? []
+const [recordPath, canonicalBody] = [...store.records.entries()]
+  .find(([path]) => !path.includes('/ingests/')) ?? []
 assert(recordPath)
 assert(canonicalBody)
 const parsed = JSON.parse(canonicalBody.toString('utf8')) as Record<
@@ -236,9 +256,10 @@ assert.doesNotMatch(source, /HUGGINGFACE_TOKEN|MODEL_WEIGHT_ACCESS_TOKEN/u)
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-source-checkpoint-qualification-package-repository',
-  checks: 43,
+  checks: 47,
   records: store.records.size,
   durableWorkerRequestReadPort: true,
+  durableIngestReceiptReadPort: true,
   durableStagingSourceReadPort: true,
   privateGcsProbeGenerationEtagKmsLengthAndBytesReread: true,
   exactCheckpointCoordinateBoundToCanonicalIngest: true,

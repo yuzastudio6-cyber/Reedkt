@@ -130,6 +130,9 @@ export interface CanonicalSam31QualificationPackageRepository
     readonly customerCreditsMutated: false
     readonly productionAuthorityGranted: false
   }>
+  rereadExactIngestReceipt(input: {
+    readonly ingestReceiptRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<CanonicalSam31PrivateArtifactIngestReceipt | null>
 }
 
 /**
@@ -213,6 +216,20 @@ export function createCanonicalSam31QualificationPackageRepository(input: {
       })
       assertRecord(record)
       const body = serialize(record)
+      const ingestBody = serialize(ingestReceipt)
+      await input.objectPort.createOnly({
+        objectPath: ingestRecordPath(prefix, ingestReceipt.ingestReceiptHash),
+        body: ingestBody,
+        contentSha256: digest(ingestBody),
+      })
+      const ingestReread = await readIngestReceipt({
+        port: input.objectPort,
+        path: ingestRecordPath(prefix, ingestReceipt.ingestReceiptHash),
+      })
+      if (!ingestReread || stableAuthorityStringify(ingestReread) !==
+        stableAuthorityStringify(ingestReceipt)) {
+        throw new Error('SAM 3.1 qualification ingest reread changed.')
+      }
       const disposition = await input.objectPort.createOnly({
         objectPath: recordPath(prefix, workerRequest.requestHash),
         body,
@@ -269,6 +286,25 @@ export function createCanonicalSam31QualificationPackageRepository(input: {
         throw new Error('SAM 3.1 qualification package crossed request.')
       }
       return structuredClone(record.stagingSourceSet)
+    },
+
+    async rereadExactIngestReceipt(untrusted) {
+      assertPlainSerializedData(untrusted, 'sam31_qualification_ingest_read')
+      const { ingestReceiptRef } = z.object({
+        ingestReceiptRef: evidenceRefSchema,
+      }).strict().parse(untrusted)
+      const receipt = await readIngestReceipt({
+        port: input.objectPort,
+        path: ingestRecordPath(
+          prefix,
+          ingestReceiptRef.contentHash.slice('sha256:'.length),
+        ),
+      })
+      if (!receipt) return null
+      if (!sameRef(ingestRef(receipt), ingestReceiptRef)) {
+        throw new Error('SAM 3.1 qualification ingest reference changed.')
+      }
+      return structuredClone(receipt)
     },
   }
   return Object.freeze(repository)
@@ -503,6 +539,29 @@ async function readRecord(input: {
   return record
 }
 
+async function readIngestReceipt(input: {
+  port: CanonicalCreateOnlyJsonObjectPort
+  path: string
+}): Promise<CanonicalSam31PrivateArtifactIngestReceipt | null> {
+  const body = await input.port.readExact(input.path)
+  if (!body) return null
+  if (!Buffer.isBuffer(body) || body.byteLength < 2
+    || body.byteLength > MAXIMUM_RECORD_BYTES) {
+    throw new Error('SAM 3.1 qualification ingest bytes are invalid.')
+  }
+  let decoded: unknown
+  try {
+    decoded = JSON.parse(body.toString('utf8'))
+  } catch {
+    throw new Error('SAM 3.1 qualification ingest JSON is invalid.')
+  }
+  const receipt = assertCanonicalSam31PrivateArtifactIngestReceipt(decoded)
+  if (stableAuthorityStringify(receipt) !== body.toString('utf8')) {
+    throw new Error('SAM 3.1 qualification ingest bytes are not canonical.')
+  }
+  return receipt
+}
+
 function requestRef(
   workerRequest: CanonicalSam31SourceCheckpointQualificationWorkerRequest,
 ): z.infer<typeof evidenceRefSchema> {
@@ -533,6 +592,12 @@ function sameRef(
 
 function recordPath(prefix: string, requestHash: string): string {
   return `${safePrefix.parse(prefix)}/${rawSha256.parse(requestHash)}.json`
+}
+
+function ingestRecordPath(prefix: string, ingestHash: string): string {
+  return `${safePrefix.parse(prefix)}/ingests/${
+    rawSha256.parse(ingestHash)
+  }.json`
 }
 
 function serialize(value: unknown): Buffer {

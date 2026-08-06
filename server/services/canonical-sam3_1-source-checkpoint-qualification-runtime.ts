@@ -50,6 +50,13 @@ import {
   type CanonicalSam31QualificationPackageRepository,
 } from './canonical-sam3_1-source-checkpoint-qualification-package-repository'
 import {
+  createCanonicalSam31QualificationReleaseOwner,
+} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
+import {
+  type CanonicalSam31AuthenticatedSecurityClearanceReadPort,
+  createCanonicalSam31QualificationReleaseReadRepository,
+} from './canonical-sam3_1-source-checkpoint-qualification-release-read-repository'
+import {
   assertCanonicalSam31QualificationResultEvidence,
   createCanonicalSam31QualificationGcsResultObjectPort,
   createCanonicalSam31QualificationResultOwner,
@@ -94,6 +101,10 @@ type TerminalEvidenceOwner = Pick<
   ReturnType<typeof createCanonicalSam31QualificationTerminalEvidenceOwner>,
   'rereadAndPersist'
 >
+type QualificationReleaseOwner = Pick<
+  ReturnType<typeof createCanonicalSam31QualificationReleaseOwner>,
+  'compileAndPersist'
+>
 
 export interface CanonicalSam31SourceCheckpointQualificationRuntimeDependencies {
   readonly foundationReadPort:
@@ -108,6 +119,7 @@ export interface CanonicalSam31SourceCheckpointQualificationRuntimeDependencies 
   readonly batchTransport: CanonicalSam31QualificationBatchTransport
   readonly resultOwner: ResultOwner
   readonly terminalEvidenceOwner: TerminalEvidenceOwner
+  readonly qualificationReleaseOwner: QualificationReleaseOwner
   readonly now?: () => string
 }
 
@@ -283,6 +295,25 @@ export function createCanonicalSam31SourceCheckpointQualificationRuntime(
         productionReady: false as const,
       })
     },
+
+    async compileSecurityClearedQualificationRelease(untrusted: {
+      readonly qualificationId: string
+      readonly workerRequestRef: z.input<typeof evidenceRefSchema>
+      readonly resultEvidenceRef: z.input<typeof evidenceRefSchema>
+      readonly terminalEvidenceRef: z.input<typeof evidenceRefSchema>
+      readonly securityComplianceClearanceRef:
+        z.input<typeof evidenceRefSchema>
+    }) {
+      assertPlainSerializedData(untrusted, 'sam31_qualification_release')
+      const request = z.object({
+        qualificationId: safeId,
+        workerRequestRef: evidenceRefSchema,
+        resultEvidenceRef: evidenceRefSchema,
+        terminalEvidenceRef: evidenceRefSchema,
+        securityComplianceClearanceRef: evidenceRefSchema,
+      }).strict().parse(untrusted)
+      return input.qualificationReleaseOwner.compileAndPersist(request)
+    },
   })
 }
 
@@ -294,6 +325,8 @@ export function createCanonicalSam31GcpSourceCheckpointQualificationRuntime(
     readonly batchTransport?: CanonicalSam31QualificationBatchTransport
     readonly terminalPlatformReadPort?:
       CanonicalSam31QualificationTerminalPlatformReadPort
+    readonly authenticatedSecurityClearanceReadPort:
+      CanonicalSam31AuthenticatedSecurityClearanceReadPort
     readonly now?: () => string
   },
 ) {
@@ -336,6 +369,14 @@ export function createCanonicalSam31GcpSourceCheckpointQualificationRuntime(
       evidenceObjectPort: objectPort,
       now: input.now,
     })
+  const releaseReadRepository =
+    createCanonicalSam31QualificationReleaseReadRepository({
+      objectPort,
+      packageRepository: qualificationPackageRepository,
+      statePort,
+      authenticatedSecurityClearanceReadPort:
+        input.authenticatedSecurityClearanceReadPort,
+    })
   return createCanonicalSam31SourceCheckpointQualificationRuntime({
     foundationReadPort: foundation,
     qualificationPackageRepository,
@@ -350,6 +391,12 @@ export function createCanonicalSam31GcpSourceCheckpointQualificationRuntime(
       createCanonicalGoogleBatchSam31QualificationTransport(),
     resultOwner,
     terminalEvidenceOwner,
+    qualificationReleaseOwner:
+      createCanonicalSam31QualificationReleaseOwner({
+        readPort: releaseReadRepository,
+        releaseObjectPort: objectPort,
+        now: input.now,
+      }),
     now: input.now,
   })
 }
@@ -374,5 +421,6 @@ function assertDependencies(
     || typeof input.batchTransport?.request !== 'function'
     || typeof input.resultOwner?.rereadAndPersist !== 'function'
     || typeof input.terminalEvidenceOwner?.rereadAndPersist !== 'function'
+    || typeof input.qualificationReleaseOwner?.compileAndPersist !== 'function'
   ) throw new Error('SAM 3.1 qualification runtime is not configured.')
 }

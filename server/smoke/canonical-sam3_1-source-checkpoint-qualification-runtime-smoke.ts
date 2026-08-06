@@ -39,6 +39,7 @@ let stageCalls = 0
 let batchCalls = 0
 let resultOwnerCalls = 0
 let terminalOwnerCalls = 0
+let releaseOwnerCalls = 0
 let liveRateCalls = 0
 
 const workerRequestRef = Object.freeze({
@@ -68,6 +69,9 @@ const packageRepository: CanonicalSam31QualificationPackageRepository = {
   },
   async rereadExactSources() {
     throw new Error('controlled source read should remain behind staging owner')
+  },
+  async rereadExactIngestReceipt() {
+    return structuredClone(canonicalIngest)
   },
 }
 const rateOwner: CanonicalSam31QualificationA100RateOwner = {
@@ -122,6 +126,12 @@ const runtime = createCanonicalSam31SourceCheckpointQualificationRuntime({
     async rereadAndPersist() {
       terminalOwnerCalls += 1
       throw new Error('controlled terminal owner must not be reached')
+    },
+  },
+  qualificationReleaseOwner: {
+    async compileAndPersist() {
+      releaseOwnerCalls += 1
+      throw new Error('controlled security clearance remains unavailable')
     },
   },
   now: () => '2026-08-04T18:00:00.000Z',
@@ -179,6 +189,24 @@ await assert.rejects(runtime.reconcileOne({ attemptId }))
 await assert.rejects(runtime.finalizeSucceededAttempt({ attemptId }))
 assert.equal(resultOwnerCalls, 0)
 assert.equal(terminalOwnerCalls, 0)
+assert.equal(releaseOwnerCalls, 0)
+await assert.rejects(runtime.compileSecurityClearedQualificationRelease({
+  qualificationId: workerRequest.qualificationId,
+  workerRequestRef,
+  resultEvidenceRef: ref('qualification-result-evidence'),
+  terminalEvidenceRef: ref('qualification-terminal-evidence'),
+  securityComplianceClearanceRef: ref('qualification-security-clearance'),
+}))
+assert.equal(releaseOwnerCalls, 1)
+await assert.rejects(runtime.compileSecurityClearedQualificationRelease({
+  qualificationId: workerRequest.qualificationId,
+  workerRequestRef,
+  resultEvidenceRef: ref('qualification-result-evidence'),
+  terminalEvidenceRef: ref('qualification-terminal-evidence'),
+  securityComplianceClearanceRef: ref('qualification-security-clearance'),
+  productionReady: true,
+} as never))
+assert.equal(releaseOwnerCalls, 1)
 
 assert.throws(() => createCanonicalSam31SourceCheckpointQualificationRuntime({
   foundationReadPort: { async rereadCurrentFoundation() { return null } },
@@ -197,6 +225,9 @@ assert.throws(() => createCanonicalSam31SourceCheckpointQualificationRuntime({
   terminalEvidenceOwner: {
     async rereadAndPersist() { throw new Error('controlled') },
   },
+  qualificationReleaseOwner: {
+    async compileAndPersist() { throw new Error('controlled') },
+  },
 }))
 
 const gcpRuntime =
@@ -205,6 +236,11 @@ const gcpRuntime =
       async readCurrentRouteRate() {
         liveRateCalls += 1
         throw new Error('controlled live rate read')
+      },
+    },
+    authenticatedSecurityClearanceReadPort: {
+      async rereadAuthenticatedSecurityComplianceClearance() {
+        throw new Error('controlled security clearance read')
       },
     },
   })
@@ -222,6 +258,7 @@ console.log(JSON.stringify({
   batchCalls,
   resultOwnerCalls,
   terminalOwnerCalls,
+  releaseOwnerCalls,
   gcpConstructionNetworkCalls: liveRateCalls,
   missingFoundationRejectedBeforeBatch: true,
   missingTerminalLifecycleRejectedBeforeResultRead: true,

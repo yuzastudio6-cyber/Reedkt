@@ -4,12 +4,12 @@
 # media processing or inference. The gated checkpoint is streamed directly
 # from the official origin into private, create-only Google Cloud Storage.
 
-FROM node:24-bookworm-slim@sha256:65932751ed4073ed02f5c04e494e4b2572a891b7dbea0568a863dc80341bf848 AS dependencies
+FROM node:24-alpine3.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97 AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 
-FROM node:24-bookworm-slim@sha256:65932751ed4073ed02f5c04e494e4b2572a891b7dbea0568a863dc80341bf848 AS build
+FROM node:24-alpine3.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97 AS build
 WORKDIR /app
 ENV NODE_ENV=development \
   NODE_OPTIONS=--max-old-space-size=6144
@@ -20,7 +20,7 @@ RUN npm run build:sam3_1-official-artifact-ingest-bundle \
   && test -f dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js \
   && test "$(find dist-sam31-official-artifact-ingest -type f | wc -l)" = '1'
 
-FROM node:24-bookworm-slim@sha256:65932751ed4073ed02f5c04e494e4b2572a891b7dbea0568a863dc80341bf848 AS runtime
+FROM node:24-alpine3.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97 AS runtime
 ARG WEEDITPRO_SOURCE_COMMIT_SHA
 ARG WEEDITPRO_SOURCE_TREE_HASH
 ARG WEEDITPRO_SOURCE_CLEAN
@@ -29,9 +29,7 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
       | grep -Eq '^[a-f0-9]{40}$' \
   && test "${WEEDITPRO_SOURCE_CLEAN}" = 'true' \
-  && apt-get update \
-  && apt-get install --yes --no-install-recommends ca-certificates git \
-  && rm -rf /var/lib/apt/lists/*
+  && apk add --no-cache ca-certificates git
 LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
   io.weeditpro.build.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \

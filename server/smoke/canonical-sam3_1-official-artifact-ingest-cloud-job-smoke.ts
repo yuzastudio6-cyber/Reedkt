@@ -16,8 +16,10 @@ const [dockerfile, buildConfig, buildScript, deployScript, viteConfig, cli,
   ])
 
 assert.match(dockerfile,
-  /node:24-bookworm-slim@sha256:65932751ed4073ed02f5c04e494e4b2572a891b7dbea0568a863dc80341bf848/u)
-assert.equal((dockerfile.match(/FROM node:24-bookworm-slim@sha256:/gu) ?? []).length, 3)
+  /node:24-alpine3\.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97/u)
+assert.equal((dockerfile.match(/FROM node:24-alpine3\.22@sha256:/gu) ?? []).length, 3)
+assert.match(dockerfile, /apk add --no-cache ca-certificates git/u)
+assert.doesNotMatch(dockerfile, /apt-get|bookworm|perl/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_COMMIT_SHA/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_TREE_HASH/u)
 assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=6144/u)
@@ -76,7 +78,7 @@ assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 47,
+  checks: 49,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,

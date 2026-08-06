@@ -11,7 +11,8 @@ RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund
 
 FROM node:24-bookworm-slim@sha256:65932751ed4073ed02f5c04e494e4b2572a891b7dbea0568a863dc80341bf848 AS build
 WORKDIR /app
-ENV NODE_ENV=development
+ENV NODE_ENV=development \
+  NODE_OPTIONS=--max-old-space-size=6144
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY . .

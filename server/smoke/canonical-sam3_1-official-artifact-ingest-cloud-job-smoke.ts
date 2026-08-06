@@ -20,6 +20,7 @@ assert.match(dockerfile,
 assert.equal((dockerfile.match(/FROM node:24-bookworm-slim@sha256:/gu) ?? []).length, 3)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_COMMIT_SHA/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_TREE_HASH/u)
+assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=6144/u)
 assert.match(dockerfile, /io\.weeditpro\.model\.weights\.included="false"/u)
 assert.match(dockerfile, /io\.weeditpro\.runtime\.inference\.allowed="false"/u)
 assert.match(dockerfile, /USER node/u)
@@ -75,7 +76,7 @@ assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 46,
+  checks: 47,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,

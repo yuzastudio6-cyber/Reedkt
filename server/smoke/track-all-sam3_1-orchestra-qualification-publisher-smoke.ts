@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import type {
   OrchestraEvidenceRef,
@@ -343,6 +344,30 @@ assert.throws(() =>
     tamperedReceipt,
   ))
 checks += 1
+
+const cliSource = readFileSync(new URL(
+  '../cli/publish-track-all-sam3_1-orchestra-qualification.ts',
+  import.meta.url,
+), 'utf8')
+const packageJson = JSON.parse(readFileSync(
+  new URL('../../package.json', import.meta.url),
+  'utf8',
+)) as { scripts?: Record<string, string> }
+check(cliSource.includes('createCanonicalSam31GcpGpuRuntimeReleaseRegistry'))
+check(cliSource.includes(
+  'createCanonicalGcsCurrentGoogleCloudGpuRateAuthorityRepository',
+))
+check(cliSource.includes(
+  'createCanonicalGcsTrackAllSam31ArtifactRepositoryReleaseRepository',
+))
+check(cliSource.includes('createCanonicalSkillQualificationRegistry'))
+check(cliSource.includes(
+  'WEEDITPRO_TRACK_ALL_ARTIFACT_REPOSITORY_RELEASE_REF',
+))
+check(!/callerQualified|callerCanSelfQualify\s*:\s*true/u.test(cliSource))
+check(packageJson.scripts?.[
+  'publish:track-all-sam3_1-orchestra-qualification'
+] === 'tsx server/cli/publish-track-all-sam3_1-orchestra-qualification.ts')
 
 console.log(JSON.stringify({
   smoke: 'track-all-sam3_1-orchestra-qualification-publisher',

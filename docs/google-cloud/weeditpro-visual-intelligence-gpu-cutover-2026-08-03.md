@@ -591,6 +591,20 @@ post-digest-tampered evidence fails closed. Publication starts no GPU job,
 executes no model/provider, mutates no customer credits, grants no QA approval,
 and grants no public-delivery or production authority.
 
+The bounded publication operator is
+`npm run publish:track-all-sam3_1-orchestra-qualification`. It accepts only
+server-owned evidence coordinates in the closed
+`id|version|sha256:<64-lowercase-hex>` form through the
+`WEEDITPRO_TRACK_ALL_*_REF` environment variables. The operator rereads those
+coordinates from the canonical private GCS repositories, recomputes the
+qualified Track All manifest/snapshot pair, persists it create-only, and
+returns the exact persisted receipt. It does not accept route definitions,
+qualification booleans, rates, repository versions, or readiness claims from
+the invoking shell. The operator must therefore remain unavailable until the
+A100 primary release, independent L4 fallback release, L4 task-QA release, all
+three account-effective rate authorities, and the Track All artifact-repository
+release have each been published by their own qualified owner.
+
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing

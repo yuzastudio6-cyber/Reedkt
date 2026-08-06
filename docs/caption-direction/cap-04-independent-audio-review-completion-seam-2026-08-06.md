@@ -85,7 +85,8 @@ the canonical transcript, or claim final QA.
 - `npm run smoke:canonical-caption-transcript-correction-review-completion`
   — **23/23 checks passed**;
 - existing correction artifact/request smoke — **11/11 passed**;
-- existing correction owner smoke — **12/12 passed**;
+- correction owner and immutable planning-expectation reconciliation smoke —
+  **17/17 passed**;
 - existing review-package smoke — **22/22 passed**;
 - Caption source-integration aggregate — **39 suites passed**;
 - focused ESLint — passed;
@@ -108,7 +109,9 @@ exists for the real source.
 
 ## Next milestone
 
-After the actual review, run the new create-only completion CLI and feed its
-exact request into the already-mounted canonical transcript owner. Then bind
-the authenticated corrected-transcript reread into the representative private
-Caption qualification campaign.
+After the actual review, run the create-only completion CLI and feed its exact
+request plus canonical source scopes into the mounted V2 correction owner. The
+owner will create-only bind the existing approved-work planning expectation to
+the authenticated corrected-transcript reread without mutating the approved
+work item. Consume that exact mapping in the representative private Caption
+qualification campaign.

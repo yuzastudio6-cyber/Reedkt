@@ -69,7 +69,8 @@ raw chat.
 
 - the immutable Caption canonical transcript and source-word lineage;
 - the rejected direct-inspection receipt;
-- the existing reviewed-correction owner lane;
+- the reviewed-correction owner V2 and existing authenticated transcript
+  repository;
 - the approved local Faster-Whisper model manifest and runtime.
 
 No second transcript owner, reviewer authority, dispatcher, work graph, or
@@ -110,8 +111,9 @@ canonical transcript owner persist and reread a corrected transcript.
 
 ## Next milestone
 
-Run the completed review through the existing canonical correction owner, then
-use that exact authenticated transcript binding in the representative private
-qualification campaign. Other source-only and already-rendered Caption evidence
-remains valid, but terminal qualification stays unchanged until the review is
-actually completed.
+Run the completed review through the canonical correction owner V2 with the
+exact source scopes. It will recompute and create-only bind the immutable
+approved-work planning expectation to the corrected authenticated transcript.
+Use that exact mapping in the representative private qualification campaign.
+Other source-only and already-rendered Caption evidence remains valid, but
+terminal qualification stays unchanged until the review is actually completed.

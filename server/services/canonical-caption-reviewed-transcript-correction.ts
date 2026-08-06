@@ -28,6 +28,7 @@ import {
 import {
   CANONICAL_CAPTION_TRANSCRIPT_AUTHENTICATED_EVIDENCE_RECORD_VERSION,
   type CanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
+  type CanonicalCaptionTranscriptPlanningExpectationBinding,
 } from '../../src/types/canonical-caption-transcript-support'
 import {
   CAPTION_PRIVATE_TRANSCRIPT_INSPECTION_RECEIPT_VERSION,
@@ -53,10 +54,17 @@ import type {
 import {
   assertCanonicalCaptionApprovedSnapshotReadPort,
   assertCanonicalCaptionTranscriptEvidenceRepository,
+  createCanonicalCaptionTranscriptPlanningExpectationBindingForRecord,
   parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
+  resolveCanonicalCaptionTranscriptPlanningExpectation,
   type CanonicalCaptionApprovedSnapshotReadPort,
   type CanonicalCaptionTranscriptEvidenceRepository,
 } from './canonical-caption-transcript-support-service'
+import {
+  CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+  type CanonicalSourceTranscriptOrchestraReadPort,
+  type CanonicalSourceTranscriptOrchestraReadScope,
+} from './canonical-source-led-orchestra-content-analysis-reconciliation'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -205,6 +213,8 @@ export const CANONICAL_CAPTION_REVIEWED_CORRECTION_REPOSITORY_VERSION =
   'canonical-caption-reviewed-transcript-correction-repository-v1' as const
 export const CANONICAL_CAPTION_REVIEWED_CORRECTION_OWNER_SERVICE_VERSION =
   'canonical-caption-reviewed-transcript-correction-owner-service-v1' as const
+export const CANONICAL_CAPTION_REVIEWED_CORRECTION_OWNER_SERVICE_V2_VERSION =
+  'canonical-caption-reviewed-transcript-correction-owner-service-v2' as const
 
 const independentReviewSchema:
 z.ZodType<CanonicalCaptionIndependentAudioTruthReview> = z.object({
@@ -343,6 +353,23 @@ export interface CanonicalCaptionReviewedCorrectionOwnerService {
   }>
 }
 
+export interface CanonicalCaptionReviewedCorrectionOwnerServiceV2 {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_REVIEWED_CORRECTION_OWNER_SERVICE_V2_VERSION
+  reconcileReviewedCorrectionForPlanningExpectation(input: {
+    readonly request: unknown
+    readonly sourceScopes:
+      readonly CanonicalSourceTranscriptOrchestraReadScope[]
+  }): Promise<{
+    readonly correctionRecord: CanonicalCaptionReviewedCorrectionRecord
+    readonly authenticatedTranscriptRecord:
+      CanonicalCaptionTranscriptAuthenticatedEvidenceRecord
+    readonly receipt: CanonicalCaptionReviewedCorrectionOwnerReceipt
+    readonly planningExpectationBinding:
+      CanonicalCaptionTranscriptPlanningExpectationBinding
+  }>
+}
+
 export interface CanonicalCaptionReviewedCorrectionRecordContext {
   readonly request: unknown
   readonly artifact: unknown
@@ -360,6 +387,7 @@ export interface CanonicalCaptionReviewedCorrectionOwnerReceiptContext {
 
 const admittedEvidenceReaders = new WeakSet<object>()
 const admittedCorrectionRepositories = new WeakSet<object>()
+const admittedCorrectionOwnerServices = new WeakSet<object>()
 
 type ArtifactInput = Omit<CanonicalCaptionReviewedCorrectionArtifact,
   'schemaVersion' | 'artifactDigestSha256'>
@@ -656,6 +684,117 @@ export function createCanonicalCaptionReviewedCorrectionOwnerService(input: {
         correctionRecord: structuredClone(correctionReread),
         authenticatedTranscriptRecord: structuredClone(transcriptReread),
         receipt: structuredClone(receiptReread),
+      })
+    },
+  }
+  const frozenService = Object.freeze(service)
+  admittedCorrectionOwnerServices.add(frozenService)
+  return frozenService
+}
+
+export function assertCanonicalCaptionReviewedCorrectionOwnerService(
+  value: unknown,
+): asserts value is CanonicalCaptionReviewedCorrectionOwnerService {
+  if (!value || typeof value !== 'object'
+    || !admittedCorrectionOwnerServices.has(value)
+    || (value as CanonicalCaptionReviewedCorrectionOwnerService)
+      .schemaVersion !==
+        CANONICAL_CAPTION_REVIEWED_CORRECTION_OWNER_SERVICE_VERSION
+    || typeof (value as CanonicalCaptionReviewedCorrectionOwnerService)
+      .reconcileReviewedCorrection !== 'function') {
+    throw new Error(
+      'Canonical Caption reviewed correction owner service is invalid.',
+    )
+  }
+}
+
+export function createCanonicalCaptionReviewedCorrectionOwnerServiceV2(input: {
+  readonly ownerService: CanonicalCaptionReviewedCorrectionOwnerService
+  readonly approvedSnapshotReadPort: CanonicalCaptionApprovedSnapshotReadPort
+  readonly sourceTranscriptReadPort: CanonicalSourceTranscriptOrchestraReadPort
+  readonly transcriptRepository: CanonicalCaptionTranscriptEvidenceRepository
+}): CanonicalCaptionReviewedCorrectionOwnerServiceV2 {
+  assertCanonicalCaptionReviewedCorrectionOwnerService(input.ownerService)
+  assertCanonicalCaptionApprovedSnapshotReadPort(
+    input.approvedSnapshotReadPort,
+  )
+  assertCanonicalCaptionTranscriptEvidenceRepository(
+    input.transcriptRepository,
+  )
+  if (input.sourceTranscriptReadPort?.schemaVersion !==
+      CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION
+    || typeof input.sourceTranscriptReadPort.readCompleted !== 'function') {
+    throw new Error(
+      'Canonical Caption reviewed correction source transcript port is invalid.',
+    )
+  }
+  const service: CanonicalCaptionReviewedCorrectionOwnerServiceV2 = {
+    schemaVersion:
+      CANONICAL_CAPTION_REVIEWED_CORRECTION_OWNER_SERVICE_V2_VERSION,
+    async reconcileReviewedCorrectionForPlanningExpectation({
+      request: untrustedRequest,
+      sourceScopes,
+    }) {
+      const request = parseCanonicalCaptionReviewedCorrectionRequest(
+        untrustedRequest,
+      )
+      const planning =
+        await resolveCanonicalCaptionTranscriptPlanningExpectation({
+          approvedSnapshotReadPort: input.approvedSnapshotReadPort,
+          sourceTranscriptReadPort: input.sourceTranscriptReadPort,
+          canonicalReadScope: request.canonicalReadScope,
+          sourceScopes,
+        })
+      const sourceRecord = await readSourceTranscriptRecordTwice({
+        repository: input.transcriptRepository,
+        request,
+      })
+      if (sourceRecord.sourceScopeDigestSha256 !==
+          planning.sourceScopeDigestSha256) {
+        throw new Error(
+          'Canonical Caption reviewed correction crossed its planning source scope.',
+        )
+      }
+      const reconciled = await input.ownerService.reconcileReviewedCorrection({
+        request,
+      })
+      if (!sameRef(
+        reconciled.receipt.sourceAuthenticatedTranscriptRecordRef,
+        authenticatedTranscriptRecordRef(sourceRecord),
+      )) {
+        throw new Error(
+          'Canonical Caption reviewed correction crossed its source transcript record.',
+        )
+      }
+      const planningExpectationBinding =
+        createCanonicalCaptionTranscriptPlanningExpectationBindingForRecord({
+          planningExpectationRef: planning.planningExpectationRef,
+          transcriptRecord: reconciled.authenticatedTranscriptRecord,
+        })
+      await input.transcriptRepository
+        .persistPlanningExpectationBindingCreateOnly({
+          binding: planningExpectationBinding,
+        })
+      const reread = await input.transcriptRepository
+        .findExactForPlanningExpectation({
+          canonicalReadScope: request.canonicalReadScope,
+          planningExpectationRef: planning.planningExpectationRef,
+        })
+      if (!reread
+        || reread.binding.bindingDigestSha256 !==
+          planningExpectationBinding.bindingDigestSha256
+        || reread.transcriptRecord.recordDigestSha256 !==
+          reconciled.authenticatedTranscriptRecord.recordDigestSha256) {
+        throw new Error(
+          'Canonical Caption reviewed correction planning expectation did not reconcile.',
+        )
+      }
+      return Object.freeze({
+        correctionRecord: structuredClone(reconciled.correctionRecord),
+        authenticatedTranscriptRecord:
+          structuredClone(reread.transcriptRecord),
+        receipt: structuredClone(reconciled.receipt),
+        planningExpectationBinding: structuredClone(reread.binding),
       })
     },
   }

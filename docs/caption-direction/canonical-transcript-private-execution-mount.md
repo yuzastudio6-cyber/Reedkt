@@ -56,6 +56,14 @@ lineage. If the record or mapping is absent, the work remains waiting at
 `canonical_caption_authenticated_transcript_projection`. The runner no longer
 allows a Caption planning job to proceed from a bare transcript reference.
 
+If direct inspection rejects the first authenticated transcript, the additive
+reviewed-correction owner V2 derives that same expectation from twice-reread
+canonical source results and binds it only after the independent review and
+corrected transcript have been persisted through the existing repository. It
+does not alter the immutable work item. The expectation index is create-only,
+so an already-bound or rejected transcript cannot be silently replaced; that
+case fails closed and requires the canonical reapproval/revision path.
+
 ## Evidence and remaining boundary
 
 The focused source proof covers creation, exact reread, restart-safe discovery,

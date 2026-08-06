@@ -161,7 +161,7 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     ], [
       'complete_independent_audio_truth_review_required',
       'reviewer_completion_seam_must_emit_exact_review_artifact_and_request',
-      'mounted_reviewed_correction_owner_must_persist_and_reread_result',
+      'actual_reviewed_correction_owner_v2_expectation_binding_required',
       'corrected_transcript_must_bind_terminal_run_scope',
     ]),
   gate('visual_intelligence_authenticated_evidence',

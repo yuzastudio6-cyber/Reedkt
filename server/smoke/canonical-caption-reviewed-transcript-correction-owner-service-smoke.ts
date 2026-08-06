@@ -30,15 +30,27 @@ import {
 } from '../captions-specialist/caption-private-transcript-runtime'
 import {
   createCanonicalCaptionApprovedSnapshotReadPort,
+  createCanonicalCaptionTranscriptPlanningExpectationBindingForRecord,
   createCanonicalCaptionTranscriptEvidenceRepository,
   parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
 } from '../services/canonical-caption-transcript-support-service'
+import { createCanonicalSourceLedSourceFrameAuthority } from
+  '../services/canonical-source-led-content-analysis-evidence'
+import {
+  CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+  type CanonicalSourceTranscriptOrchestraReadScope,
+} from '../services/canonical-source-led-orchestra-content-analysis-reconciliation'
+import type { CanonicalVisualIntelligenceSourceTranscriptResult } from
+  '../services/canonical-source-visual-intelligence-analysis-contract'
+import { createCanonicalQualityFirstUserTriggeredGpuPolicy } from
+  '../edit-architecture/canonical-quality-first-user-triggered-gpu-policy'
 import {
   calculateCanonicalCaptionReviewedCorrectionArtifactBasisDigest,
   createCanonicalCaptionIndependentAudioTruthReview,
   createCanonicalCaptionReviewedCorrectionArtifact,
   createCanonicalCaptionReviewedCorrectionEvidenceReadPort,
   createCanonicalCaptionReviewedCorrectionOwnerService,
+  createCanonicalCaptionReviewedCorrectionOwnerServiceV2,
   createCanonicalCaptionReviewedCorrectionRepository,
   createCanonicalCaptionReviewedCorrectionRequest,
 } from '../services/canonical-caption-reviewed-transcript-correction'
@@ -58,6 +70,98 @@ const scope: CaptionCanonicalTranscriptReadScope = {
   planVersionId: 'caption-plan.v1',
   approvedSnapshotRef: ref(
     'caption.approved.snapshot', 'approved-edit-plan-snapshot-v1'),
+}
+const sourceFrameAuthority = createCanonicalSourceLedSourceFrameAuthority({
+  fpsNumerator: 30,
+  fpsDenominator: 1,
+  frameCount: 120,
+  timeBaseNumerator: 1,
+  timeBaseDenominator: 30,
+})
+const sourceScope: CanonicalSourceTranscriptOrchestraReadScope = {
+  ownerUserId: scope.ownerUserId,
+  workspaceId: scope.workspaceId,
+  projectId: scope.projectId,
+  editSessionId: scope.editSessionId,
+  analysisRunId: 'caption-analysis.owner-service',
+  sourceSequenceItemId: 'caption.source.sequence.owner-service.1',
+  mediaAssetId: 'caption.source.media.owner-service',
+  uploadedOrder: 1,
+  checksumSha256: sha256AuthorityValue('caption-reviewed-source'),
+  byteLength: 4_096,
+  durationFrames: 120,
+  sourceFrameAuthority,
+  finalizedMediaAuthorityRef: visualRef('caption-reviewed-finalized-source'),
+  sourceProbeAuthorityRef: visualRef('caption-reviewed-source-probe'),
+}
+const sourceTranscriptSegments = [{
+  segmentId: 'caption.original.owner-service.segment.1',
+  startFrame: 30,
+  endFrameExclusive: 120,
+  text: 'new arm software',
+  confidenceBasisPoints: 4_000,
+  wordsVerified: true,
+}]
+const sourceTranscriptCoverage = {
+  schemaVersion: 'canonical-source-audio-complete-timeline-coverage-v1' as const,
+  coveredStartFrame: 0 as const,
+  coveredEndFrameExclusive: 120,
+  completeAudioTimelineProcessed: true as const,
+  speechSegmentsMayOmitSilence: true as const,
+  embeddedInstructionDetectionRequired: true as const,
+}
+const sourceTranscriptDigestSha256 = sha256AuthorityValue(
+  sourceTranscriptSegments,
+)
+const sourceTranscriptResult: CanonicalVisualIntelligenceSourceTranscriptResult = {
+  schemaVersion: 'canonical-visual-intelligence-source-transcript-result-v1',
+  transcriptAuthorityRef: {
+    id: `caption-reviewed-transcript-${
+      sourceTranscriptDigestSha256.slice(0, 32)}`,
+    version: 1,
+    contentHash: `sha256:${sourceTranscriptDigestSha256}`,
+  },
+  transcript: {
+    status: 'completed',
+    modelId: 'faster-whisper-large-v3',
+    modelDigestSha256: sha256AuthorityValue('faster-whisper-large-v3'),
+    runtimeVersion: 'faster-whisper-1.2.1',
+    transcriptDigestSha256: sourceTranscriptDigestSha256,
+    segments: sourceTranscriptSegments,
+    coverage: {
+      ...sourceTranscriptCoverage,
+      coverageDigestSha256: sha256AuthorityValue(sourceTranscriptCoverage),
+    },
+    rawAudioPersisted: false,
+    modelDownloadPerformed: false,
+    networkAttempted: false,
+  },
+  execution: {
+    executionOwner: 'canonical_quality_first_source_transcript_router',
+    sourceAudioDisposition: 'transcribed_on_nvidia_a100_80gb_primary',
+    routeProfileId: 'quality_a100_80gb_user_triggered_heavy_job_v1',
+    acceleratorClass: 'nvidia_a100_80gb',
+    primaryAttemptOutcome: 'completed',
+    fallbackAttemptOutcome: 'not_attempted',
+    primaryAttemptTerminalFailureClass: null,
+    primaryAttemptReceiptRef: visualRef('caption-reviewed-attempt'),
+    completedAttemptReceiptRef: visualRef('caption-reviewed-attempt'),
+    completedRuntimeReleaseRef: visualRef('caption-reviewed-runtime-release'),
+    fallbackAdmissionRef: null,
+    attemptCostEvidenceRefs: [visualRef('caption-reviewed-cost')],
+    routePolicyDigestSha256:
+      `sha256:${createCanonicalQualityFirstUserTriggeredGpuPolicy().policyHash}`,
+    gpuAccelerationUsed: true,
+    cpuInferenceFallbackUsed: false,
+    completeAudioTimelineProcessed: true,
+    modelBytesPinnedBeforeExecution: true,
+    runtimeDownloadPerformed: false,
+    rawAudioPersisted: false,
+    transcriptRereadVerified: true,
+    customerCreditMutated: false,
+    systemFailureChargedToCustomer: false,
+    unapprovedOverageChargedToCustomer: false,
+  },
 }
 const objectPort = inMemoryObjectPort()
 const transcriptRepository = createCanonicalCaptionTranscriptEvidenceRepository({
@@ -237,6 +341,20 @@ const service = createCanonicalCaptionReviewedCorrectionOwnerService({
   correctionRepository,
   now: () => new Date('2026-08-05T17:05:00.000-04:00'),
 })
+const sourceTranscriptReadPort = Object.freeze({
+  schemaVersion: CANONICAL_SOURCE_TRANSCRIPT_ORCHESTRA_READ_PORT_VERSION,
+  async readCompleted(readScope: CanonicalSourceTranscriptOrchestraReadScope) {
+    return stableAuthorityStringify(readScope) ===
+      stableAuthorityStringify(sourceScope)
+      ? structuredClone(sourceTranscriptResult) : null
+  },
+})
+const serviceV2 = createCanonicalCaptionReviewedCorrectionOwnerServiceV2({
+  ownerService: service,
+  approvedSnapshotReadPort,
+  sourceTranscriptReadPort,
+  transcriptRepository,
+})
 
 // The request binds both final digests; the review binds the artifact's stable
 // digest basis, and the final artifact binds the exact review digest.
@@ -289,6 +407,91 @@ checks += 1
 
 const replay = await service.reconcileReviewedCorrection({ request })
 assert.deepEqual(replay, result)
+checks += 1
+
+const planningResult =
+  await serviceV2.reconcileReviewedCorrectionForPlanningExpectation({
+    request,
+    sourceScopes: [sourceScope],
+  })
+const sourcePlanningProjection = [{
+  sourceSequenceItemId: sourceScope.sourceSequenceItemId,
+  transcriptDigestSha256: sourceTranscriptDigestSha256,
+  transcriptCoverageDigestSha256:
+    sourceTranscriptResult.transcript.coverage.coverageDigestSha256,
+}]
+const planningExpectationDigestSha256 = sha256AuthorityValue(
+  sourcePlanningProjection,
+)
+const planningExpectationRef = ref(
+  `caption-source-transcript.${
+    planningExpectationDigestSha256.slice(0, 48)}`,
+  'canonical-source-transcript-planning-evidence-v1',
+  planningExpectationDigestSha256,
+)
+assert.deepEqual(
+  planningResult.planningExpectationBinding.planningExpectationRef,
+  planningExpectationRef,
+)
+assert.equal(
+  planningResult.authenticatedTranscriptRecord.canonicalTranscript
+    .segments[0]?.text,
+  'new AI software',
+)
+checks += 1
+
+const planningReread =
+  await transcriptRepository.findExactForPlanningExpectation({
+    canonicalReadScope: scope,
+    planningExpectationRef,
+  })
+assert.equal(
+  planningReread?.transcriptRecord.recordDigestSha256,
+  result.authenticatedTranscriptRecord.recordDigestSha256,
+)
+assert.equal(
+  planningReread?.transcriptRecord.canonicalTranscript.segments[0]?.text,
+  'new AI software',
+)
+checks += 1
+
+const forbiddenOriginalBinding =
+  createCanonicalCaptionTranscriptPlanningExpectationBindingForRecord({
+    planningExpectationRef,
+    transcriptRecord: originalRecord,
+  })
+await assert.rejects(
+  () => transcriptRepository.persistPlanningExpectationBindingCreateOnly({
+    binding: forbiddenOriginalBinding,
+  }),
+  /create-only collision/u,
+)
+checks += 1
+
+assert.throws(
+  () => createCanonicalCaptionReviewedCorrectionOwnerServiceV2({
+    ownerService: {
+      ...service,
+      reconcileReviewedCorrection: service.reconcileReviewedCorrection,
+    },
+    approvedSnapshotReadPort,
+    sourceTranscriptReadPort,
+    transcriptRepository,
+  }),
+  /owner service is invalid/u,
+)
+checks += 1
+
+await assert.rejects(
+  () => serviceV2.reconcileReviewedCorrectionForPlanningExpectation({
+    request,
+    sourceScopes: [{
+      ...sourceScope,
+      analysisRunId: 'caption-analysis.crossed',
+    }],
+  }),
+  /source transcript reread is unavailable/u,
+)
 checks += 1
 
 const crossedReceipt = structuredClone(result.receipt)
@@ -402,8 +605,13 @@ console.log(JSON.stringify({
     result.authenticatedTranscriptRecord.authenticatedReadBinding
       .bindingDigestSha256,
   correctionOwnerReceiptDigestSha256: result.receipt.receiptDigestSha256,
+  planningExpectationDigestSha256,
+  planningExpectationBindingDigestSha256:
+    planningResult.planningExpectationBinding.bindingDigestSha256,
   createOnlyReplayVerified: true,
   captionExecutionReadPortVerified: true,
+  approvedWorkPlanningExpectationResolvedToCorrectedTranscript: true,
+  rejectedTranscriptRemapRefused: true,
   actualIndependentAudioReviewExecutedByThisSmoke: false,
   callerSuppliedEvidenceAccepted: false,
   captionCreatedTranscriptOwner: false,
@@ -461,10 +669,7 @@ CanonicalCaptionTranscriptAuthenticatedEvidenceRecord {
     'caption.word-timing.owner-service',
     'canonical-caption-source-word-timing-evidence-v1')
   const evidenceRefs = [evidenceRef]
-  const sourceScopeDigestSha256 = sha256AuthorityValue({
-    fixture: 'caption-reviewed-correction-owner-service',
-    scope,
-  })
+  const sourceScopeDigestSha256 = sha256AuthorityValue([sourceScope])
   const sourceSpeechRef = ref(
     'caption.source.speech.owner-service',
     'canonical-caption-source-speech-evidence-projection-v1',
@@ -694,6 +899,14 @@ function ref(
   contentHash = sha256AuthorityValue(`${id}|${version}`),
 ): CaptionDomainRef {
   return { id, version, contentHash }
+}
+
+function visualRef(id: string, value = id) {
+  return {
+    id,
+    version: 1,
+    contentHash: `sha256:${sha256AuthorityValue(value)}`,
+  }
 }
 
 function digest(value: object, field: string): string {

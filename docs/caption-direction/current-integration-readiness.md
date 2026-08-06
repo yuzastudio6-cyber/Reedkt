@@ -57,7 +57,11 @@ source-complete:
 All five now have concrete composition mounts. The transcript remains in the
 canonical transcript owner and now also has a source-ready reviewed-correction
 mount that persists corrected results through the same authenticated evidence
-repository. Visual Intelligence and Track All/SAM 3.1 remain in their canonical
+repository. Its additive V2 composition also recomputes the exact source-led
+planning expectation, binds it create-only to the reviewed corrected record,
+and lets immutable approved V3 Caption work resolve that record without
+rewriting the plan. Any attempted remap to the rejected transcript fails
+closed. Visual Intelligence and Track All/SAM 3.1 remain in their canonical
 owner compositions, and the new
 `canonical-caption-shared-owner-private-composition-v1` mounts the existing
 Sound and B-roll owners through Caption's already-published support bridges.
@@ -138,7 +142,8 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
    completion seam now validates the full listening submission and produces the
    existing independent-review/correction/request contracts, but it cannot
    create those real artifacts before an audio-capable reviewer supplies the
-   decisions;
+   decisions. Once supplied, the V2 owner must create and reread the exact
+   expectation binding in the terminal run;
 2. consume an actual canonical Visual Intelligence owner record;
 3. consume an actual canonical Track All owner record;
 4. consume an actual canonical Sound result, exact final audio reread, and

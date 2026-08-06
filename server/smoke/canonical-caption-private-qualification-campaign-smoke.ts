@@ -119,7 +119,11 @@ CanonicalCaptionPrivateQualificationRunControllerInput {
         publicDeliveryGranted: false,
         productionAuthorityGranted: false,
       }),
-    inspectionBundle: {},
+    inspectionBundle: {
+      receiptKind: 'vertical_complete_time_v1',
+      receipt: {},
+      reviewSpecs: [],
+    },
     qualificationRequest:
       createCanonicalCaptionTerminalQualificationRequest({
         requestId: `caption-campaign-qualification-request-${index}`,
@@ -243,11 +247,14 @@ function fakeRunController(
   }
 }
 
-let qualificationCalls = 0
+const qualificationState = { calls: 0 }
+function qualificationCallCount(): number {
+  return qualificationState.calls
+}
 const waitingQualificationService = {
   schemaVersion: 'canonical-caption-private-internal-qualification-service-v1',
   async qualifyPrivateInternal(request) {
-    qualificationCalls += 1
+    qualificationState.calls += 1
     return {
       disposition: 'blocked_missing_canonical_private_evidence' as const,
       request,
@@ -294,7 +301,7 @@ check(waiting.disposition === 'waiting_for_complete_approved_runs'
   && !waiting.everyDeclaredRunReconciled
   && !waiting.catalogAssemblyAndReleaseAttempted
   && waiting.qualificationRecord === null
-  && qualificationCalls === 0,
+  && qualificationCallCount() === 0,
 'The campaign must reconcile every declared run and wait before catalog release.')
 check(parseCanonicalCaptionPrivateQualificationCampaignOutcome(waiting)
   .outcomeDigestSha256 === waiting.outcomeDigestSha256,
@@ -313,7 +320,7 @@ check(waitingCatalog.disposition ===
   && waitingCatalog.everyDeclaredRunReconciled
   && waitingCatalog.catalogAssemblyAndReleaseAttempted
   && !waitingCatalog.qualificationRecordPersistedAndExactReread
-  && qualificationCalls === 1,
+  && qualificationCallCount() === 1,
 'Recorded runs must advance to the catalog owner without fabricating coverage.')
 
 const invalidQualificationState = {
@@ -348,10 +355,12 @@ await assert.rejects(() => partiallyRecorded.reconcileCampaign(campaignInput([
 ])), /run catalog/u)
 checks += 1
 
-await assert.rejects(() => partiallyRecorded.reconcileCampaign({
-  ...campaignInput(),
-  productionAuthorityGrantedToCaption: true,
-}), /Invalid literal value|expected false/iu)
+const escalatedCampaign = structuredClone(campaignInput()) as unknown as
+  Record<string, unknown>
+escalatedCampaign.productionAuthorityGrantedToCaption = true
+await assert.rejects(() => partiallyRecorded.reconcileCampaign(
+  escalatedCampaign as unknown as ReturnType<typeof campaignInput>),
+/Invalid literal value|expected false/iu)
 checks += 1
 
 assert.throws(() =>

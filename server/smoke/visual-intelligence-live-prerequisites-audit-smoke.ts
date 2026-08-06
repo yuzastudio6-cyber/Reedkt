@@ -11,7 +11,9 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v11/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v12/u)
+assert.match(source, /observed_at="\$\(date -u/u)
+assert.match(source, /observedAt: \$observedAt/u)
 assert.match(source, /REGION='us-central1'/u)
 assert.match(source, /NVIDIA_A100_80GB_GPUS/u)
 assert.match(source, /NVIDIA_L4_GPUS/u)

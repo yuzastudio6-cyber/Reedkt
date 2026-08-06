@@ -19,12 +19,17 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  assertCanonicalSam31A100QualificationFoundationObservation,
+  canonicalSam31A100QualificationFoundationResourceRefs,
+  type CanonicalSam31A100QualificationFoundationReadPort,
+} from './canonical-sam3_1-a100-qualification-foundation-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_QUALIFICATION_STAGING_OWNER_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-staging-owner-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-staging-owner-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_GCS_STAGING_PORT_VERSION =
   'canonical-sam3_1-source-checkpoint-qualification-gcs-staging-port-v1' as const
 
@@ -159,13 +164,11 @@ export interface CanonicalSam31QualificationPrivateStagingPort {
 }
 
 interface CanonicalSam31QualificationStagingOwnerDependencies {
+  readonly foundationReadPort:
+    CanonicalSam31A100QualificationFoundationReadPort
   readonly sourceReadPort: CanonicalSam31QualificationStagingSourceReadPort
   readonly stagingPort: CanonicalSam31QualificationPrivateStagingPort
   readonly observationObjectPort: CanonicalCreateOnlyJsonObjectPort
-  readonly stagingAuthorityRef: z.input<typeof evidenceRefSchema>
-  readonly serviceIdentityRef: z.input<typeof evidenceRefSchema>
-  readonly privateNetworkPolicyRef: z.input<typeof evidenceRefSchema>
-  readonly instanceTemplateRef: z.input<typeof evidenceRefSchema>
   readonly now?: () => string
 }
 
@@ -192,13 +195,6 @@ export function createCanonicalSam31QualificationStagingOwner(
   input: CanonicalSam31QualificationStagingOwnerDependencies,
 ): CanonicalSam31QualificationStagingOwner {
   assertDependencies(input)
-  const refs = {
-    stagingAuthorityRef: evidenceRefSchema.parse(input.stagingAuthorityRef),
-    serviceIdentityRef: evidenceRefSchema.parse(input.serviceIdentityRef),
-    privateNetworkPolicyRef:
-      evidenceRefSchema.parse(input.privateNetworkPolicyRef),
-    instanceTemplateRef: evidenceRefSchema.parse(input.instanceTemplateRef),
-  }
   const now = input.now ?? (() => new Date().toISOString())
   return Object.freeze({
     async stageOne(inputValue: {
@@ -212,6 +208,17 @@ export function createCanonicalSam31QualificationStagingOwner(
         assertCanonicalSam31SourceCheckpointQualificationWorkerRequest(
           inputValue.workerRequest,
         )
+      const stageAt = now()
+      const foundation =
+        assertCanonicalSam31A100QualificationFoundationObservation(
+          await input.foundationReadPort.rereadCurrentFoundation({
+            purpose: 'private_artifact_staging',
+            at: stageAt,
+          }),
+          { purpose: 'private_artifact_staging', at: stageAt },
+        )
+      const refs =
+        canonicalSam31A100QualificationFoundationResourceRefs(foundation)
       const workerRequestReference = workerRequestRef(workerRequest)
       const priorObservation = await rereadObservation({
         port: input.observationObjectPort,
@@ -222,6 +229,15 @@ export function createCanonicalSam31QualificationStagingOwner(
           observation: priorObservation,
           workerRequest,
         })
+        assertObservationMatchesFoundation({
+          observation: priorObservation,
+          refs,
+        })
+        await assertPersistedStagingMatchesObservation({
+          port: input.stagingPort,
+          observation: priorObservation,
+        })
+        return priorObservation
       }
       const untrustedSources = await input.sourceReadPort.rereadExactSources({
         workerRequest,
@@ -303,7 +319,7 @@ export function createCanonicalSam31QualificationStagingOwner(
       })
       const observation = sealCanonicalSam31QualificationA100MountObservation({
         schemaVersion:
-          'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v1',
+          'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v2',
         source: 'canonical_server_sam3_1_qualification_private_mount_owner',
         evidenceClass: 'canonical_private_reread',
         attemptId,
@@ -354,7 +370,7 @@ export function createCanonicalSam31QualificationStagingOwner(
         objectBytesPathsUrlsOrCredentialsIncludedInWorkerRequest: false,
         signedUrlOrPublicObjectUsed: false,
         callerBucketPrefixPathOrObjectAccepted: false,
-        observedAt: priorObservation?.observedAt ?? now(),
+        observedAt: stageAt,
       })
       await persistObservationCreateOnly({
         port: input.observationObjectPort,
@@ -371,7 +387,7 @@ export function createCanonicalSam31QualificationStagingOwner(
       return reread
     },
 
-    rereadExactAttemptMount(request: {
+    async rereadExactAttemptMount(request: {
       readonly attemptId: string
       readonly workerRequest:
         CanonicalSam31SourceCheckpointQualificationWorkerRequest
@@ -381,18 +397,29 @@ export function createCanonicalSam31QualificationStagingOwner(
         assertCanonicalSam31SourceCheckpointQualificationWorkerRequest(
           request.workerRequest,
         )
-      return rereadObservation({
+      const rereadAt = now()
+      const foundation =
+        assertCanonicalSam31A100QualificationFoundationObservation(
+          await input.foundationReadPort.rereadCurrentFoundation({
+            purpose: 'private_artifact_staging',
+            at: rereadAt,
+          }),
+          { purpose: 'private_artifact_staging', at: rereadAt },
+        )
+      const refs =
+        canonicalSam31A100QualificationFoundationResourceRefs(foundation)
+      const observation = await rereadObservation({
         port: input.observationObjectPort,
         attemptId,
-      }).then((observation) => {
-        if (!observation) return null
-        if (
-          observation.qualificationId !== workerRequest.qualificationId
-          || !sameRef(observation.workerRequestRef,
-            workerRequestRef(workerRequest))
-        ) throw new Error('SAM 3.1 qualification mount crossed request.')
-        return observation
       })
+      if (!observation) return null
+      if (
+        observation.qualificationId !== workerRequest.qualificationId
+        || !sameRef(observation.workerRequestRef,
+          workerRequestRef(workerRequest))
+      ) throw new Error('SAM 3.1 qualification mount crossed request.')
+      assertObservationMatchesFoundation({ observation, refs })
+      return observation
     },
   })
 }
@@ -755,6 +782,80 @@ function assertObservationMatchesWorker(input: {
   ) throw new Error('SAM 3.1 qualification mount crossed worker request.')
 }
 
+function assertObservationMatchesFoundation(input: {
+  observation: CanonicalSam31QualificationA100MountObservation
+  refs: ReturnType<
+    typeof canonicalSam31A100QualificationFoundationResourceRefs
+  >
+}): void {
+  if (
+    !sameRef(input.observation.foundationResourceRef,
+      input.refs.foundationResourceRef)
+    || !sameRef(input.observation.stagingAuthorityRef,
+      input.refs.stagingAuthorityRef)
+    || !sameRef(input.observation.serviceIdentityRef,
+      input.refs.serviceIdentityRef)
+    || !sameRef(input.observation.privateNetworkPolicyRef,
+      input.refs.privateNetworkPolicyRef)
+    || !sameRef(input.observation.instanceTemplateRef,
+      input.refs.instanceTemplateRef)
+  ) throw new Error('SAM 3.1 qualification mount crossed foundation.')
+}
+
+async function assertPersistedStagingMatchesObservation(input: {
+  port: CanonicalSam31QualificationPrivateStagingPort
+  observation: CanonicalSam31QualificationA100MountObservation
+}): Promise<void> {
+  const remoteSubdirectory = input.observation.attemptRemoteSubdirectory
+  if (await input.port.resultObjectExists({ remoteSubdirectory })) {
+    throw new Error('SAM 3.1 qualification result already exists.')
+  }
+  const observedObjects = await Promise.all([
+    input.port.rereadStagedObject({
+      remoteSubdirectory,
+      objectName: REQUEST_OBJECT_NAME,
+    }),
+    input.port.rereadStagedObject({
+      remoteSubdirectory,
+      objectName: CHECKPOINT_OBJECT_NAME,
+    }),
+    input.port.rereadStagedObject({
+      remoteSubdirectory,
+      objectName: FIXTURE_OBJECT_NAME,
+    }),
+  ])
+  const expectedObjects = [
+    input.observation.requestObject,
+    input.observation.checkpointObject,
+    input.observation.probeFixtureObject,
+  ]
+  for (let index = 0; index < expectedObjects.length; index += 1) {
+    const observed = stagedObjectSchema.parse(observedObjects[index])
+    const expected = expectedObjects[index]
+    if (
+      observed.objectName !== expected.objectName
+      || observed.generation !== expected.storageGeneration
+      || observed.etag !== expected.storageEtag
+      || observed.byteLength !== expected.byteLength
+      || observed.sha256 !== expected.sha256
+      || !observed.createOnly
+      || !observed.exactDestinationGenerationEtagLengthSha256AndContentTypeReread
+    ) throw new Error('SAM 3.1 qualification staged object changed.')
+  }
+  const names = await input.port.listAttemptObjectNames({
+    remoteSubdirectory,
+  })
+  const expectedNames = [
+    `${remoteSubdirectory}/${CHECKPOINT_OBJECT_NAME}`,
+    `${remoteSubdirectory}/${FIXTURE_OBJECT_NAME}`,
+    `${remoteSubdirectory}/${REQUEST_OBJECT_NAME}`,
+  ].sort(utf16LexicalCompare)
+  if (stableAuthorityStringify([...names]) !==
+    stableAuthorityStringify(expectedNames)) {
+    throw new Error('SAM 3.1 qualification staging object set changed.')
+  }
+}
+
 async function persistObservationCreateOnly(input: {
   port: CanonicalCreateOnlyJsonObjectPort
   observation: CanonicalSam31QualificationA100MountObservation
@@ -843,7 +944,8 @@ function assertDependencies(
   input: CanonicalSam31QualificationStagingOwnerDependencies,
 ): void {
   if (
-    typeof input.sourceReadPort?.rereadExactSources !== 'function'
+    typeof input.foundationReadPort?.rereadCurrentFoundation !== 'function'
+    || typeof input.sourceReadPort?.rereadExactSources !== 'function'
     || input.stagingPort?.schemaVersion !==
       CANONICAL_SAM3_1_QUALIFICATION_GCS_STAGING_PORT_VERSION
     || typeof input.stagingPort?.createRequestJsonOnly !== 'function'

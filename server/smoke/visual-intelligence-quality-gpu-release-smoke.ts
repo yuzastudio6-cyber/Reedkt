@@ -57,6 +57,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-planning-visual-intelligence-operation-owner-smoke.ts',
   'canonical-source-transcript-a100-attempt-owner-smoke.ts',
   'canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts',
+  'canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts',
   'canonical-professional-gpu-funded-start-authority-store-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-publisher-smoke.ts',

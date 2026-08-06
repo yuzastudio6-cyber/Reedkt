@@ -21,12 +21,17 @@ import {
 import {
   createCanonicalSam31QualificationA100StateRepository,
 } from '../services/canonical-sam3_1-source-checkpoint-qualification-a100-runtime'
+import {
+  canonicalSam31A100QualificationFoundationResourceRefs,
+} from '../services/canonical-sam3_1-a100-qualification-foundation-owner'
 import { sha256AuthorityValue, stableAuthorityStringify } from
   '../services/private-edit-authority-store'
 import { candidate, canonicalIngest } from
   './canonical-sam3_1-source-checkpoint-qualification-smoke'
 import { release } from
   './canonical-sam3_1-qualification-image-supply-chain-build-phase-smoke'
+import { createFoundation, foundation } from
+  './canonical-sam3_1-a100-qualification-foundation-owner-smoke'
 
 export const attemptId = 'sam31-source-checkpoint-qualification-attempt-1'
 const now = '2026-08-04T18:00:00.000Z'
@@ -77,6 +82,7 @@ let batchBody: Readonly<Record<string, unknown>> | undefined
 let batchJobId = ''
 let batchState: 'RUNNING' | 'SUCCEEDED' = 'RUNNING'
 const phase = createCanonicalSam31SourceCheckpointQualificationA100Phase({
+  foundationReadPort: foundationPort(),
   imageReleaseReadPort: releasePort(),
   workerRequestReadPort: requestPort(),
   privateMountReadPort: mountPort(mount),
@@ -198,6 +204,8 @@ assert.equal(admission.accountEffectivePricingReread, true)
 assert.equal(admission.customerCreditsReserved, false)
 assert.equal(admission.customerCreditsSpent, false)
 assert.equal(admission.noExternalIpAddress, true)
+assert.equal(admission.foundationObservationRef.id,
+  'weeditpro-sam31-a100-qualification-foundation-observation')
 assert.equal(admission.privateNetworkResource,
   'projects/reeditpro/global/networks/weeditpro-gpu-private')
 assert.equal(admission.privateSubnetworkResource,
@@ -211,6 +219,7 @@ let unknownPostCalls = 0
 let unknownGetCalls = 0
 const unknownPhase =
   createCanonicalSam31SourceCheckpointQualificationA100Phase({
+    foundationReadPort: foundationPort(),
     imageReleaseReadPort: releasePort(),
     workerRequestReadPort: requestPort(),
     privateMountReadPort: mountPort(createMount('sam31-unknown-attempt')),
@@ -252,6 +261,7 @@ const wrongMount = structuredClone(mount)
 wrongMount.checkpointObject.sha256 = digest('wrong-checkpoint')
 await assert.rejects(async () => {
   const refusal = createCanonicalSam31SourceCheckpointQualificationA100Phase({
+    foundationReadPort: foundationPort(),
     imageReleaseReadPort: releasePort(),
     workerRequestReadPort: requestPort(),
     privateMountReadPort: mountPort(wrongMount),
@@ -272,6 +282,34 @@ await assert.rejects(async () => {
   })
 })
 
+let deniedCapacityPostCalls = 0
+await assert.rejects(async () => {
+  const denied = createCanonicalSam31SourceCheckpointQualificationA100Phase({
+    foundationReadPort: foundationPort(createFoundation({
+      capacityReady: false,
+    })),
+    imageReleaseReadPort: releasePort(),
+    workerRequestReadPort: requestPort(),
+    privateMountReadPort: mountPort(mount),
+    rateReadPort: ratePort(),
+    statePort: createCanonicalSam31QualificationA100StateRepository({
+      objectPort: createObjectPort().port,
+      prefix: 'private/sam3_1/source-checkpoint-qualification/v1/no-capacity',
+    }),
+    batchTransport: { async request() {
+      deniedCapacityPostCalls += 1
+      throw new Error('provider must not be reached without A100 quota')
+    } },
+    now: () => now,
+  })
+  await denied.admitAndStart({
+    attemptId: 'sam31-denied-capacity-attempt',
+    qualificationImageSupplyChainReleaseRef: releaseRef(),
+    workerRequestRef: requestRef(),
+  })
+})
+assert.equal(deniedCapacityPostCalls, 0)
+
 const tamperedSubmission = structuredClone(submission)
 tamperedSubmission.customerCreditsMutated = true as never
 assert.throws(() =>
@@ -287,7 +325,7 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-a100-phase',
-  checks: 60,
+  checks: 64,
   batchPostCalls: postCalls,
   batchGetCalls: getCalls,
   durableRecords: objectStore.records.size,
@@ -308,18 +346,17 @@ function createMount(id: string) {
   const remoteSubdirectory =
     `private/sam3_1/source-checkpoint-qualification/v1/attempts/`
     + sha256AuthorityValue(id)
+  const foundationRefs =
+    canonicalSam31A100QualificationFoundationResourceRefs(foundation)
   return sealCanonicalSam31QualificationA100MountObservation({
     schemaVersion:
-      'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v1',
+      'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v2',
     source: 'canonical_server_sam3_1_qualification_private_mount_owner',
     evidenceClass: 'canonical_private_reread',
     attemptId: id,
     qualificationId: workerRequest.qualificationId,
     workerRequestRef: requestRef(),
-    stagingAuthorityRef: ref('sam31-qualification-staging-authority'),
-    serviceIdentityRef: ref('sam31-qualification-service-identity'),
-    privateNetworkPolicyRef: ref('sam31-qualification-network-policy'),
-    instanceTemplateRef: ref('sam31-qualification-instance-template'),
+    ...foundationRefs,
     projectId: 'reeditpro',
     region: 'us-central1',
     privateBucketName: 'reeditpro-production-sam31-qualification-private',
@@ -373,6 +410,14 @@ function releasePort() {
   return {
     async rereadQualifiedQualificationImageRelease() {
       return structuredClone(release)
+    },
+  }
+}
+
+function foundationPort(value: unknown = foundation) {
+  return {
+    async rereadCurrentFoundation() {
+      return structuredClone(value)
     },
   }
 }

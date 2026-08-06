@@ -378,6 +378,14 @@ idempotent rerun then observed all five disabled and emitted
   `weeditpro-sam31-a100-qualification-foundation-receipt-v1`. Actual A100
   source/checkpoint qualification remains blocked by the official gated
   checkpoint/token and effective A100 80 GB quota.
+- The server-side staging and Batch admission bridge is now bound to a fresh
+  `canonical-sam3_1-a100-qualification-foundation-observation-v1`. Staging no
+  longer accepts service-identity, network, instance-template, or staging
+  authority references from its constructor. It derives them only from the
+  canonical foundation reread, and Batch admission additionally requires a
+  current capacity observation. A denied or zero A100 quota fails before the
+  Google Batch transport is called; the present live quota therefore remains
+  an honest hard block with zero GPU jobs and zero customer-credit mutation.
 
 The read-only operator command
 `npm run audit:visual-intelligence-live-prerequisites` reports A100/L4 quota,
@@ -392,7 +400,7 @@ reader—because cosign persists digest-bound signatures and attestations as OCI
 referrers; it retains no admin/delete or model/runtime authority. A blocked
 audit is expected until every external checkpoint, identity, KMS, storage,
 image, and A100 gate closes; it does not weaken or self-authorize a build or
-runtime. Audit version v11 additionally requires all fifteen frozen CPU-only
+runtime. Audit version v12 additionally requires all fifteen frozen CPU-only
 processing job definitions to be absent, the bounded private-search service to
 retain its exact immutable zero-idle control-plane shape under its dedicated
 identity, and all five fixed legacy CPU processing identities to be disabled or
@@ -400,6 +408,8 @@ absent. It also exact-rereads the complete A100 qualification foundation:
 dedicated identity and least-privilege roles, HSM-CMEK bucket, pinned Batch OS,
 private subnet, A100 80 GB instance template, and zero active qualification jobs
 or instances. GPU qualification still remains a separate evidence gate.
+Version v12 also timestamps each exact live reread so the canonical A100
+foundation owner can reject stale observations before staging or dispatch.
 
 The narrow foundation provisioner has now completed in project `reeditpro`.
 Cloud KMS and Binary Authorization are enabled; the image-builder, image-signer,

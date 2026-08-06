@@ -46,6 +46,7 @@ readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
 
 command -v gcloud >/dev/null
 command -v jq >/dev/null
+observed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 PROJECT_NUMBER="$(gcloud projects describe "${PROJECT_ID}" --format='value(projectNumber)')"
 CLOUD_BUILD_SERVICE_AGENT="service-${PROJECT_NUMBER}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
@@ -783,7 +784,8 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v11' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v12' \
+  --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
   --argjson a100Limit "${a100_limit}" \
@@ -830,6 +832,7 @@ jq -n \
   --argjson cloudBuildCanUseSigner "${cloud_build_can_use_signer}" \
   '{
     audit: $audit,
+    observedAt: $observedAt,
     projectId: $projectId,
     region: $region,
     gpuQuota: {

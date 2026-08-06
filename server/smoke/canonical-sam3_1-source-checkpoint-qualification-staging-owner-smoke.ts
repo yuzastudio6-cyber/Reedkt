@@ -24,8 +24,13 @@ import { candidate, canonicalIngest } from
   './canonical-sam3_1-source-checkpoint-qualification-smoke'
 import { release } from
   './canonical-sam3_1-qualification-image-supply-chain-build-phase-smoke'
+import { createFoundation } from
+  './canonical-sam3_1-a100-qualification-foundation-owner-smoke'
 
 const attemptId = 'sam31-qualification-staging-attempt-1'
+const stagingFoundation = createFoundation({
+  observedAt: '2026-08-04T18:30:30.000Z',
+})
 const fixtureHash = digest('sam31-qualification-private-probe')
 const workerRequest =
   createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
@@ -75,6 +80,10 @@ assert.equal(mounted.mountPath,
 assert.equal(mounted.requestCheckpointAndFixtureOnlyInputObjectSet, true)
 assert.equal(mounted.signedUrlOrPublicObjectUsed, false)
 assert.equal(mounted.callerBucketPrefixPathOrObjectAccepted, false)
+assert.equal(mounted.foundationResourceRef.id,
+  'weeditpro-sam31-a100-qualification-resource-foundation')
+assert.equal(mounted.serviceIdentityRef.id,
+  'weeditpro-sam31-a100-qualification-service-identity')
 assert.equal(mounted.checkpointObject.byteLength,
   workerRequest.checkpoint.byteLength)
 assert.equal(mounted.checkpointObject.sha256, workerRequest.checkpoint.sha256)
@@ -95,12 +104,26 @@ assert(!requestBody.includes(Buffer.from('"objectName"')))
 
 const replay = await owner.stageOne({ attemptId, workerRequest })
 assert.deepEqual(replay, mounted)
-assert.equal(staging.serverSideCopyCalls, 4)
+assert.equal(staging.serverSideCopyCalls, 2)
 assert.equal(objectStore.records.size, 1)
 assert.deepEqual(await owner.rereadExactAttemptMount({
   attemptId,
   workerRequest,
 }), mounted)
+
+const changedCheckpoint = staging.objects.get(
+  `${mounted.attemptRemoteSubdirectory}/checkpoint/sam3.1_multiplex.pt`,
+)
+assert(changedCheckpoint)
+staging.objects.set(
+  `${mounted.attemptRemoteSubdirectory}/checkpoint/sam3.1_multiplex.pt`,
+  { ...changedCheckpoint, etag: 'changed-etag' },
+)
+await assert.rejects(owner.stageOne({ attemptId, workerRequest }))
+staging.objects.set(
+  `${mounted.attemptRemoteSubdirectory}/checkpoint/sam3.1_multiplex.pt`,
+  changedCheckpoint,
+)
 
 await rejectsOwner({ missingSources: true })
 await rejectsOwner({ resultExists: true })
@@ -138,6 +161,9 @@ assert.match(sourceText, /sourceFile\.copy\(target,/u)
 assert.match(sourceText, /destinationKmsKeyName: TARGET_KMS_KEY/u)
 assert.match(sourceText, /kmsKeyName: TARGET_KMS_KEY/u)
 assert.match(sourceText, /preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
+assert.match(sourceText, /foundationReadPort\.rereadCurrentFoundation/u)
+assert.doesNotMatch(sourceText,
+  /readonly (?:stagingAuthorityRef|serviceIdentityRef|privateNetworkPolicyRef|instanceTemplateRef):/u)
 assert.match(sourceText,
   /downloadAndHash: value\.targetObjectName === FIXTURE_OBJECT_NAME/u)
 assert.doesNotMatch(sourceText, /from_pretrained|snapshot_download|hf_hub_download/u)
@@ -147,10 +173,12 @@ assert.doesNotMatch(sourceText,
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-source-checkpoint-qualification-staging-owner',
-  checks: 35,
+  checks: 43,
   privateObjects: staging.objects.size,
   observationRecords: objectStore.records.size,
   serverSideCopyCalls: staging.serverSideCopyCalls,
+  replayUsesCanonicalRereadWithoutRecopy: true,
+  changedStagedObjectRejected: true,
   checkpointBytesDownloadedByApplication:
     staging.checkpointBytesDownloadedByApplication,
   localCheckpointInstall: false,
@@ -166,6 +194,11 @@ function createOwner(input: {
   sourceOverride?: CanonicalSam31QualificationStagingSourceSet
 }) {
   return createCanonicalSam31QualificationStagingOwner({
+    foundationReadPort: {
+      async rereadCurrentFoundation() {
+        return structuredClone(stagingFoundation)
+      },
+    },
     sourceReadPort: {
       async rereadExactSources() {
         return structuredClone(input.sourceOverride ?? sourceSet)
@@ -173,10 +206,6 @@ function createOwner(input: {
     },
     stagingPort: input.staging,
     observationObjectPort: input.objectStore,
-    stagingAuthorityRef: ref('sam31-qualification-staging-authority'),
-    serviceIdentityRef: ref('sam31-qualification-service-identity'),
-    privateNetworkPolicyRef: ref('sam31-qualification-network-policy'),
-    instanceTemplateRef: ref('sam31-qualification-instance-template'),
     now: () => '2026-08-04T18:31:00.000Z',
   })
 }
@@ -191,13 +220,15 @@ async function rejectsOwner(options: Parameters<typeof createStagingPort>[0]) {
   })
   if (options?.missingSources) {
     const missing = createCanonicalSam31QualificationStagingOwner({
+      foundationReadPort: {
+        async rereadCurrentFoundation() {
+          return structuredClone(stagingFoundation)
+        },
+      },
       sourceReadPort: { async rereadExactSources() { return null } },
       stagingPort: createStagingPort(),
       observationObjectPort: createObjectPort().port,
-      stagingAuthorityRef: ref('sam31-qualification-staging-authority'),
-      serviceIdentityRef: ref('sam31-qualification-service-identity'),
-      privateNetworkPolicyRef: ref('sam31-qualification-network-policy'),
-      instanceTemplateRef: ref('sam31-qualification-instance-template'),
+      now: () => '2026-08-04T18:31:00.000Z',
     })
     await assert.rejects(missing.stageOne({ attemptId, workerRequest }))
     return

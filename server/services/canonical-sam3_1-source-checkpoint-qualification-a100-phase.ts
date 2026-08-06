@@ -17,18 +17,25 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  assertCanonicalSam31A100QualificationFoundationObservation,
+  canonicalSam31A100QualificationFoundationObservationRef,
+  canonicalSam31A100QualificationFoundationResourceRefs,
+  type CanonicalSam31A100QualificationFoundationObservation,
+  type CanonicalSam31A100QualificationFoundationReadPort,
+} from './canonical-sam3_1-a100-qualification-foundation-owner'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_MOUNT_OBSERVATION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-mount-observation-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_ADMISSION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-admission-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-admission-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_SUBMISSION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-submission-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-submission-v2' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_A100_JOB_OBSERVATION_VERSION =
-  'canonical-sam3_1-source-checkpoint-qualification-a100-job-observation-v1' as const
+  'canonical-sam3_1-source-checkpoint-qualification-a100-job-observation-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const REGION = 'us-central1' as const
@@ -93,6 +100,7 @@ const mountWithoutHashSchema = z.object({
   attemptId: safeId,
   qualificationId: safeId,
   workerRequestRef: evidenceRefSchema,
+  foundationResourceRef: evidenceRefSchema,
   stagingAuthorityRef: evidenceRefSchema,
   serviceIdentityRef: evidenceRefSchema,
   privateNetworkPolicyRef: evidenceRefSchema,
@@ -162,6 +170,7 @@ const admissionWithoutHashSchema = z.object({
   qualificationId: safeId,
   operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
   workerRequestRef: evidenceRefSchema,
+  foundationObservationRef: evidenceRefSchema,
   qualificationImageSupplyChainReleaseRef: evidenceRefSchema,
   qualificationImageRef: evidenceRefSchema,
   qualificationImageDigest: prefixedSha256,
@@ -425,6 +434,8 @@ export interface CanonicalSam31QualificationBatchTransport {
  */
 export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
   input: {
+    readonly foundationReadPort:
+      CanonicalSam31A100QualificationFoundationReadPort
     readonly imageReleaseReadPort:
       CanonicalSam31QualificationImageReleaseReadPort
     readonly workerRequestReadPort:
@@ -453,6 +464,14 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
       )
       const requestRef = evidenceRefSchema.parse(request.workerRequestRef)
       const admittedAt = now()
+      const foundation =
+        assertCanonicalSam31A100QualificationFoundationObservation(
+          await input.foundationReadPort.rereadCurrentFoundation({
+            purpose: 'a100_qualification_dispatch',
+            at: admittedAt,
+          }),
+          { purpose: 'a100_qualification_dispatch', at: admittedAt },
+        )
       const release = assertQualifiedRelease(
         await input.imageReleaseReadPort
           .rereadQualifiedQualificationImageRelease({ releaseRef }),
@@ -473,6 +492,7 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
         }),
         attemptId,
         workerRequest,
+        foundation,
       )
       const rate = assertA100Rate(
         await input.rateReadPort.rereadCurrentAccountEffectiveA100Rate({
@@ -487,6 +507,7 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
         release,
         workerRequest,
         mount,
+        foundation,
         rate,
         admittedAt,
       })
@@ -581,6 +602,9 @@ export function createCanonicalSam31SourceCheckpointQualificationA100Phase(
             await rereadReleaseForAdmission(input, admission),
         }),
       )
+      if (!sameRef(mountRef(mount), admission.mountObservationRef)) {
+        throw new Error('SAM 3.1 qualification mount crossed admission.')
+      }
       let response: {
         readonly status: number
         readonly json: unknown
@@ -736,6 +760,7 @@ function createAdmission(input: {
   release: CanonicalSam31QualificationImageSupplyChainRelease
   workerRequest: CanonicalSam31SourceCheckpointQualificationWorkerRequest
   mount: CanonicalSam31QualificationA100MountObservation
+  foundation: CanonicalSam31A100QualificationFoundationObservation
   rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   admittedAt: string
 }): CanonicalSam31QualificationA100Admission {
@@ -747,6 +772,10 @@ function createAdmission(input: {
     qualificationId: input.workerRequest.qualificationId,
     operationId: input.workerRequest.operationId,
     workerRequestRef: workerRequestRef(input.workerRequest),
+    foundationObservationRef:
+      canonicalSam31A100QualificationFoundationObservationRef(
+        input.foundation,
+      ),
     qualificationImageSupplyChainReleaseRef: releaseRef(input.release),
     qualificationImageRef: input.release.immutableImageRef,
     qualificationImageDigest: input.release.immutableImageDigest,
@@ -1146,13 +1175,26 @@ function assertMount(
   value: unknown,
   attemptId: string,
   request: CanonicalSam31SourceCheckpointQualificationWorkerRequest,
+  foundation: CanonicalSam31A100QualificationFoundationObservation,
 ): CanonicalSam31QualificationA100MountObservation {
   if (!value) throw new Error('SAM 3.1 qualification mount is missing.')
   const mount = assertCanonicalSam31QualificationA100MountObservation(value)
+  const foundationRefs =
+    canonicalSam31A100QualificationFoundationResourceRefs(foundation)
   if (
     mount.attemptId !== attemptId
     || mount.qualificationId !== request.qualificationId
     || !sameRef(mount.workerRequestRef, workerRequestRef(request))
+    || !sameRef(mount.foundationResourceRef,
+      foundationRefs.foundationResourceRef)
+    || !sameRef(mount.stagingAuthorityRef,
+      foundationRefs.stagingAuthorityRef)
+    || !sameRef(mount.serviceIdentityRef,
+      foundationRefs.serviceIdentityRef)
+    || !sameRef(mount.privateNetworkPolicyRef,
+      foundationRefs.privateNetworkPolicyRef)
+    || !sameRef(mount.instanceTemplateRef,
+      foundationRefs.instanceTemplateRef)
     || mount.requestObject.requestCanonicalHash !== request.requestHash
     || mount.checkpointObject.sha256 !== request.checkpoint.sha256
     || mount.checkpointObject.byteLength !== request.checkpoint.byteLength
@@ -1241,7 +1283,8 @@ function assertDependencies(input: Parameters<
   typeof createCanonicalSam31SourceCheckpointQualificationA100Phase
 >[0]): void {
   if (
-    typeof input.imageReleaseReadPort
+    typeof input.foundationReadPort?.rereadCurrentFoundation !== 'function'
+    || typeof input.imageReleaseReadPort
       ?.rereadQualifiedQualificationImageRelease !== 'function'
     || typeof input.workerRequestReadPort?.rereadExactWorkerRequest !==
       'function'

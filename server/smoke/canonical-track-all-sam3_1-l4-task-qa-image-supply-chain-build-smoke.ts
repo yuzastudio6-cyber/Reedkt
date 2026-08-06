@@ -19,6 +19,12 @@ import {
   createCanonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequest,
   canonicalTrackAllSam31L4TaskQaImageSupplyChainEvidenceReadRequestSchema,
 } from '../services/canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-evidence-read'
+import {
+  assertCanonicalTrackAllSam31L4TaskQaImageSecurityReviewOperatorAuthority,
+  createCanonicalTrackAllSam31L4TaskQaImageSecurityReviewOperator,
+  createCanonicalTrackAllSam31L4TaskQaImageSecurityReviewRepository,
+  TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_SECURITY_REVIEW_CONFIRMATION,
+} from '../services/canonical-track-all-sam3_1-l4-task-qa-image-security-review-operator'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -274,6 +280,119 @@ assert.throws(() =>
   }),
 )
 
+const securityReviewObjects = new Map<string, Buffer>()
+const securityReviewRepository =
+  createCanonicalTrackAllSam31L4TaskQaImageSecurityReviewRepository({
+    objectPort: {
+      async createOnly({ objectPath, body }) {
+        if (securityReviewObjects.has(objectPath)) return 'already_exists'
+        securityReviewObjects.set(objectPath, Buffer.from(body))
+        return 'created'
+      },
+      async readExact(objectPath) {
+        const value = securityReviewObjects.get(objectPath)
+        return value ? Buffer.from(value) : null
+      },
+    },
+  })
+const scanFixture = {
+  scanRef: ref('track-all-l4-scan', '7'),
+  scanCompletedAt: '2026-08-05T22:45:00.000Z',
+  occurrenceSnapshotUpdatedAt: '2026-08-05T22:46:00.000Z',
+  severityCounts: {
+    criticalCount: 0,
+    highCount: 0,
+    mediumCount: 3,
+    lowCount: 5,
+    unknownSeverityCount: 0,
+  },
+}
+const securityReviewOperator =
+  createCanonicalTrackAllSam31L4TaskQaImageSecurityReviewOperator({
+    repository: securityReviewRepository,
+    scanReadPort: {
+      async rereadExact(value) {
+        assert.equal(value.immutableImageDigest, `sha256:${'9'.repeat(64)}`)
+        return scanFixture
+      },
+    },
+    now: () => '2026-08-05T22:47:00.000Z',
+  })
+const securityReviewResult = await securityReviewOperator.review({
+  confirmation:
+    TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_SECURITY_REVIEW_CONFIRMATION,
+  imageBuildAuthority: reconciledImageAuthority,
+  imageBuildSubmission: reconciledImageSubmission,
+  imageBuildTerminal: reconciledImageTerminal,
+  supplyChainAdmission: reconciledAdmission,
+  supplyChainSubmission: reconciledSubmission,
+  supplyChainTerminal: reconciledTerminal,
+})
+assert.equal(
+  securityReviewResult.securityReview.status,
+  'approved_for_private_gpu_qualification',
+)
+assert.equal(securityReviewResult.scan.severityCounts.mediumCount, 3)
+assert.equal(securityReviewResult.runtimeReleaseGranted, false)
+assert.equal(securityReviewObjects.size, 2)
+const replayedSecurityReview = await securityReviewOperator.review({
+  confirmation:
+    TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_SECURITY_REVIEW_CONFIRMATION,
+  imageBuildAuthority: reconciledImageAuthority,
+  imageBuildSubmission: reconciledImageSubmission,
+  imageBuildTerminal: reconciledImageTerminal,
+  supplyChainAdmission: reconciledAdmission,
+  supplyChainSubmission: reconciledSubmission,
+  supplyChainTerminal: reconciledTerminal,
+})
+assert.equal(
+  replayedSecurityReview.securityReview.reviewHash,
+  securityReviewResult.securityReview.reviewHash,
+)
+assert.equal(securityReviewObjects.size, 2)
+await assert.rejects(() => securityReviewOperator.review({
+  confirmation: 'caller-approved',
+  imageBuildAuthority: reconciledImageAuthority,
+  imageBuildSubmission: reconciledImageSubmission,
+  imageBuildTerminal: reconciledImageTerminal,
+  supplyChainAdmission: reconciledAdmission,
+  supplyChainSubmission: reconciledSubmission,
+  supplyChainTerminal: reconciledTerminal,
+}))
+assert.throws(() =>
+  assertCanonicalTrackAllSam31L4TaskQaImageSecurityReviewOperatorAuthority({
+    ...securityReviewResult.authority,
+    runtimeReleaseGranted: true,
+  }),
+)
+const highSeverityOperator =
+  createCanonicalTrackAllSam31L4TaskQaImageSecurityReviewOperator({
+    repository: securityReviewRepository,
+    scanReadPort: {
+      async rereadExact() {
+        return {
+          ...scanFixture,
+          scanRef: ref('track-all-l4-high-scan', '8'),
+          severityCounts: {
+            ...scanFixture.severityCounts,
+            highCount: 1,
+          },
+        }
+      },
+    },
+    now: () => '2026-08-05T22:48:00.000Z',
+  })
+await assert.rejects(() => highSeverityOperator.review({
+  confirmation:
+    TRACK_ALL_SAM3_1_L4_TASK_QA_IMAGE_SECURITY_REVIEW_CONFIRMATION,
+  imageBuildAuthority: reconciledImageAuthority,
+  imageBuildSubmission: reconciledImageSubmission,
+  imageBuildTerminal: reconciledImageTerminal,
+  supplyChainAdmission: reconciledAdmission,
+  supplyChainSubmission: reconciledSubmission,
+  supplyChainTerminal: reconciledTerminal,
+}))
+
 let consumed = false
 let persistedSubmission: CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildSubmission | null = null
 let persistedTerminal: CanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildTerminal | null = null
@@ -418,11 +537,13 @@ assert.throws(() =>
 
 process.stdout.write(`${JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-image-supply-chain-build',
-  checks: 33,
+  checks: 40,
   immutableDigestBound: true,
   pinnedSbomAndKmsToolchain: true,
   nonRootCosignWorkspaceFilesPrecreatedWithBoundedWriteAccess: true,
   exactCloudBuildEchoRequired: true,
+  exactSecurityReviewOccurrenceSnapshotReread: true,
+  highCriticalAndUnknownSeverityFailClosed: true,
   automaticRetryAllowed: false,
   runtimeReleaseGranted: false,
   gpuJobDispatched: false,

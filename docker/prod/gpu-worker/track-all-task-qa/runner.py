@@ -900,9 +900,24 @@ def persist_response(payload: dict[str, Any]) -> str:
     return sha256_bytes(encoded)
 
 
+def failure_diagnostic_code(error: Exception) -> str:
+    safe_codes = {
+        "pinned CUDA/Kornia runtime changed": "cuda_runtime_identity_mismatch",
+        "task QA requires the exact L4 accelerator class": "accelerator_environment_mismatch",
+        "observed CUDA device is not the qualified NVIDIA L4": "l4_device_identity_mismatch",
+        "OpenCV CUDA did not observe exactly one L4": "opencv_cuda_device_count_mismatch",
+        "NVIDIA driver version is malformed": "nvidia_driver_version_malformed",
+        "entrypoint and runtime NVIDIA versions differ": "nvidia_driver_version_reconciliation_mismatch",
+        "CUDA driver-library mode is unsupported": "cuda_driver_library_mode_mismatch",
+        "exactly one CUDA driver library must be loaded": "cuda_driver_library_mapping_mismatch",
+    }
+    return safe_codes.get(str(error), "redacted_unknown_failure")
+
+
 def main() -> int:
     request: dict[str, Any] | None = None
     l4_invocation_id: str | None = None
+    failure_diagnostic: str | None = None
     try:
         l4_invocation_id = exact_id(
             os.environ.get("REEDITPRO_GPU_INVOCATION_ID"), "GPU invocation id"
@@ -912,7 +927,8 @@ def main() -> int:
         configure_sam31_input_paths(request["sam31InvocationId"])
         response = execute(request)
         exit_code = 0
-    except Exception:
+    except Exception as error:
+        failure_diagnostic = failure_diagnostic_code(error)
         response = failure_response(request, l4_invocation_id)
         exit_code = 1
     response_hash: str | None = None
@@ -921,10 +937,11 @@ def main() -> int:
     except Exception:
         exit_code = 1
     marker = {
-        "schemaVersion": "canonical-track-all-sam3_1-l4-task-qa-worker-exit-v2",
+        "schemaVersion": "canonical-track-all-sam3_1-l4-task-qa-worker-exit-v3",
         "status": response["status"],
         "responseSha256": response_hash,
         "responsePersisted": response_hash is not None,
+        "failureDiagnosticCode": failure_diagnostic,
     }
     sys.stdout.buffer.write(stable_json_bytes(marker) + b"\n")
     sys.stdout.buffer.flush()

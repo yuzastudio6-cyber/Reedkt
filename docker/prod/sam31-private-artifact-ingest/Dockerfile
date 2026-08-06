@@ -24,7 +24,11 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
       | grep -Eq '^[a-f0-9]{40}$' \
   && test "${WEEDITPRO_SOURCE_CLEAN}" = 'true' \
-  && apk add --no-cache 'ca-certificates=20260611-r0' \
+  && apk add --no-cache \
+      'ca-certificates=20260611-r0' \
+      'libcrypto3=3.5.7-r0' \
+      'libssl3=3.5.7-r0' \
+      'openssl=3.5.7-r0' \
   && rm -rf /usr/local/lib/node_modules/npm \
       /usr/local/bin/npm /usr/local/bin/npx /opt/yarn* \
   && test ! -e /usr/local/bin/npm \

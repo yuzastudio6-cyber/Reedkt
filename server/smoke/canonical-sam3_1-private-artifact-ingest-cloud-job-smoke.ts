@@ -18,6 +18,9 @@ assert.equal((dockerfile.match(/FROM node:24-alpine3\.22@sha256:/gu) ?? [])
 assert.match(dockerfile,
   /node:24-alpine3\.22@sha256:8106d433c31d51dfd2fcce29763020619e334dd8c5b34a2f0a357c6656d1ca97/u)
 assert.match(dockerfile, /ca-certificates=20260611-r0/u)
+assert.match(dockerfile, /libcrypto3=3\.5\.7-r0/u)
+assert.match(dockerfile, /libssl3=3\.5\.7-r0/u)
+assert.match(dockerfile, /openssl=3\.5\.7-r0/u)
 assert.match(dockerfile, /rm -rf \/usr\/local\/lib\/node_modules\/npm/u)
 assert.doesNotMatch(dockerfile, /COPY --from=dependencies|\/app\/node_modules/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_COMMIT_SHA/u)
@@ -76,7 +79,7 @@ assert.match(packageJson,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-artifact-ingest-cloud-job',
-  checks: 45,
+  checks: 48,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,

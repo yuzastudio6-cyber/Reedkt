@@ -223,6 +223,7 @@
     "deploy:sam3_1-official-artifact-ingest-job": "bash scripts/gcp/prod/21-deploy-sam31-official-artifact-ingest-job.sh",
     "build:sam3_1-private-artifact-ingest-bundle": "npm run typecheck:server && vite build --config vite.sam31-private-artifact-ingest.config.ts",
     "build:sam3_1-private-artifact-ingest-image": "bash scripts/gcp/prod/23-build-sam31-private-artifact-ingest-image.sh",
+    "deploy:sam3_1-private-artifact-ingest-job": "bash scripts/gcp/prod/24-deploy-sam31-private-artifact-ingest-job.sh",
     "smoke:sam3_1-source-checkpoint-qualification": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-smoke.ts",

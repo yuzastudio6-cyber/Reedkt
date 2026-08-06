@@ -3,11 +3,13 @@ import { readFile } from 'node:fs/promises'
 
 const root = process.cwd()
 const read = (path: string) => readFile(`${root}/${path}`, 'utf8')
-const [dockerfile, buildConfig, buildScript, viteConfig, cli, packageJson] =
+const [dockerfile, buildConfig, buildScript, deployScript, viteConfig, cli,
+  packageJson] =
   await Promise.all([
     read('docker/prod/sam31-private-artifact-ingest/Dockerfile'),
     read('scripts/gcp/prod/cloudbuild-sam31-private-artifact-ingest.yaml'),
     read('scripts/gcp/prod/23-build-sam31-private-artifact-ingest-image.sh'),
+    read('scripts/gcp/prod/24-deploy-sam31-private-artifact-ingest-job.sh'),
     read('vite.sam31-private-artifact-ingest.config.ts'),
     read('server/cli/canonical-sam3_1-private-artifact-ingest.ts'),
     read('package.json'),
@@ -54,6 +56,35 @@ assert.match(buildScript, /"cloudJobStarted":false/u)
 assert.match(buildScript, /"gpuStarted":false/u)
 assert.match(buildScript, /"customerCreditsMutated":false/u)
 
+assert.match(deployScript,
+  /BUILD_ID='03133c6e-91f2-468a-8dd3-e3333b96bbb2'/u)
+assert.match(deployScript,
+  /SOURCE_COMMIT='4c1ef11eb855de981bfd4fc90b69a2b3a43d3de1'/u)
+assert.match(deployScript,
+  /SOURCE_TREE='1add02c65b4ffd65845ee20d537fab863c51e0d2'/u)
+assert.match(deployScript,
+  /IMAGE_DIGEST='sha256:d2be82cef9b3a68a899a1c70d8050db660d81e0c45fa2d9532e00799ed65db87'/u)
+assert.match(deployScript, /slsa_build_level == 3/u)
+assert.match(deployScript, /FINISHED_SUCCESS/u)
+assert.match(deployScript, /contains\(\["NPM", "OS", "SECRET"\]\)/u)
+assert.match(deployScript,
+  /package_vulnerability_summary\.vulnerabilities/u)
+assert.match(deployScript, /privateIpGoogleAccess == true/u)
+assert.match(deployScript, /length == 0/u)
+assert.match(deployScript, /--network="\$\{NETWORK\}"/u)
+assert.match(deployScript, /--subnet="\$\{SUBNET\}"/u)
+assert.match(deployScript, /--vpc-egress=all-traffic/u)
+assert.match(deployScript, /--max-retries=0/u)
+assert.match(deployScript, /--task-timeout=4h/u)
+assert.match(deployScript, /gcloud storage cat/u)
+assert.match(deployScript, /canonical_private_publication/u)
+assert.match(deployScript, /authenticated_private_owner_reread/u)
+assert.match(deployScript, /canonical_private_reread/u)
+assert.match(deployScript, /roles\/storage\.objectViewer/u)
+assert.match(deployScript, /roles\/storage\.objectCreator/u)
+assert.doesNotMatch(deployScript, /gcloud run jobs execute/u)
+assert.doesNotMatch(deployScript, /--allow-unauthenticated/u)
+
 assert.match(viteConfig,
   /input: 'server\/cli\/canonical-sam3_1-private-artifact-ingest\.ts'/u)
 assert.match(viteConfig, /codeSplitting: false/u)
@@ -76,13 +107,18 @@ assert.match(packageJson,
   /"build:sam3_1-private-artifact-ingest-bundle": "npm run typecheck:server && vite build --config vite\.sam31-private-artifact-ingest\.config\.ts"/u)
 assert.match(packageJson,
   /"build:sam3_1-private-artifact-ingest-image": "bash scripts\/gcp\/prod\/23-build-sam31-private-artifact-ingest-image\.sh"/u)
+assert.match(packageJson,
+  /"deploy:sam3_1-private-artifact-ingest-job": "bash scripts\/gcp\/prod\/24-deploy-sam31-private-artifact-ingest-job\.sh"/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-artifact-ingest-cloud-job',
-  checks: 48,
+  checks: 72,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,
+  immutableImageSlsa3AndZeroVulnerabilitiesObserved: true,
+  privateNoNatNetworkRequired: true,
+  deploymentDoesNotExecuteJob: true,
   callerReferencesOnly: true,
   modelWeightsIncluded: false,
   modelInstalledOnDeveloperMachine: false,

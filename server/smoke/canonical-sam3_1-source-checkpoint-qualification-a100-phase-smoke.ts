@@ -129,10 +129,25 @@ assert(bodyText.includes(release.immutableImageUri))
 assert(bodyText.includes(mount.gcsRemotePath))
 assert(bodyText.includes('/mnt/disks/reeditpro/sam31-qualification'))
 assert(bodyText.includes('nvidia_a100_80gb'))
+assert(bodyText.includes('weeditpro-gpu-private'))
+assert(bodyText.includes('weeditpro-gpu-private-us-central1'))
 assert(!bodyText.includes('sam3.1_multiplex.pt'))
 assert(!bodyText.includes('gs://'))
 assert(!bodyText.includes('secret'))
 assert.equal((batchBody.taskGroups as Array<Record<string, unknown>>).length, 1)
+const allocationPolicy = batchBody.allocationPolicy as {
+  network: { networkInterfaces: Array<{
+    network: string
+    subnetwork: string
+    noExternalIpAddress: boolean
+  }> }
+}
+assert.deepEqual(allocationPolicy.network.networkInterfaces, [{
+  network: 'projects/reeditpro/global/networks/weeditpro-gpu-private',
+  subnetwork:
+    'projects/reeditpro/regions/us-central1/subnetworks/weeditpro-gpu-private-us-central1',
+  noExternalIpAddress: true,
+}])
 
 const duplicate = await phase.admitAndStart({
   attemptId,
@@ -181,6 +196,11 @@ assert.equal(admission.billingClassification,
 assert.equal(admission.accountEffectivePricingReread, true)
 assert.equal(admission.customerCreditsReserved, false)
 assert.equal(admission.customerCreditsSpent, false)
+assert.equal(admission.noExternalIpAddress, true)
+assert.equal(admission.privateNetworkResource,
+  'projects/reeditpro/global/networks/weeditpro-gpu-private')
+assert.equal(admission.privateSubnetworkResource,
+  'projects/reeditpro/regions/us-central1/subnetworks/weeditpro-gpu-private-us-central1')
 
 const unknownStore = createCanonicalSam31QualificationA100StateRepository({
   objectPort: createObjectPort().port,
@@ -259,16 +279,21 @@ const tamperedObservation = structuredClone(succeeded)
 tamperedObservation.actualCudaQualificationAccepted = true as never
 assert.throws(() =>
   assertCanonicalSam31QualificationA100JobObservation(tamperedObservation))
+const tamperedAdmission = structuredClone(admission)
+tamperedAdmission.noExternalIpAddress = false as never
+assert.throws(() =>
+  assertCanonicalSam31QualificationA100Admission(tamperedAdmission))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-a100-phase',
-  checks: 52,
+  checks: 58,
   batchPostCalls: postCalls,
   batchGetCalls: getCalls,
   durableRecords: objectStore.records.size,
   mountPath: mount.mountPath,
   attemptScopedRemotePath: mount.gcsRemotePath,
   scaleFromZero: admission.minimumIdleInstances === 0,
+  privateNetworkNoExternalIp: admission.noExternalIpAddress,
   accountEffectivePricingReread: admission.accountEffectivePricingReread,
   customerCreditsMutated: succeeded.customerCreditsMutated,
   sourceCheckpointQualificationGranted:

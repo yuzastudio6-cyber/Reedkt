@@ -167,6 +167,12 @@ resource and is never automatically retried. A successful Batch state still
 grants no qualification: the create-only worker result, actual usage/cost,
 network, log, and terminal evidence must be independently reread first.
 
+The Batch request also binds the fixed private `weeditpro-gpu-private` network
+and its `us-central1` subnet with `noExternalIpAddress:true`. Admission and
+terminal configuration reread preserve that exact tuple. A private bucket
+mount without this job-level no-external-IP policy is not an admissible
+network-none qualification, even when the instance template is fixed.
+
 The terminal evidence path is split into two additional one-writer stages.
 `canonical-sam3_1-source-checkpoint-qualification-result-evidence-v1`
 generation-rereads the private CMEK result object after the exact Batch job

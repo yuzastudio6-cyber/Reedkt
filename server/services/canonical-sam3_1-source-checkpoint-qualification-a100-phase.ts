@@ -38,6 +38,10 @@ const BATCH_ENDPOINT =
   'https://batch.googleapis.com/v1/projects/reeditpro/locations/us-central1/jobs' as const
 const INSTANCE_TEMPLATE =
   'projects/reeditpro/global/instanceTemplates/weeditpro-sam31-qualification-a100-v1' as const
+const PRIVATE_NETWORK =
+  'projects/reeditpro/global/networks/weeditpro-gpu-private' as const
+const PRIVATE_SUBNETWORK =
+  'projects/reeditpro/regions/us-central1/subnetworks/weeditpro-gpu-private-us-central1' as const
 const SERVICE_ACCOUNT =
   'reeditpro-sam31-qualification-sa@reeditpro.iam.gserviceaccount.com' as const
 const MOUNT_PATH = '/mnt/disks/reeditpro/sam31-qualification' as const
@@ -170,6 +174,9 @@ const admissionWithoutHashSchema = z.object({
   region: z.literal(REGION),
   batchCollection: z.literal(BATCH_COLLECTION),
   instanceTemplateResource: z.literal(INSTANCE_TEMPLATE),
+  privateNetworkResource: z.literal(PRIVATE_NETWORK),
+  privateSubnetworkResource: z.literal(PRIVATE_SUBNETWORK),
+  noExternalIpAddress: z.literal(true),
   serviceAccountEmail: z.literal(SERVICE_ACCOUNT),
   executionTarget: z.literal('google_cloud_batch_a2_ultra_job'),
   machineType: z.literal('a2-ultragpu-1g'),
@@ -749,6 +756,9 @@ function createAdmission(input: {
     region: REGION,
     batchCollection: BATCH_COLLECTION,
     instanceTemplateResource: INSTANCE_TEMPLATE,
+    privateNetworkResource: PRIVATE_NETWORK,
+    privateSubnetworkResource: PRIVATE_SUBNETWORK,
+    noExternalIpAddress: true,
     serviceAccountEmail: SERVICE_ACCOUNT,
     executionTarget: 'google_cloud_batch_a2_ultra_job',
     machineType: 'a2-ultragpu-1g',
@@ -841,6 +851,13 @@ function prepareBatchCreate(input: {
       },
     }],
     allocationPolicy: {
+      network: {
+        networkInterfaces: [{
+          network: PRIVATE_NETWORK,
+          subnetwork: PRIVATE_SUBNETWORK,
+          noExternalIpAddress: true,
+        }],
+      },
       location: {
         allowedLocations: ['zones/us-central1-a', 'zones/us-central1-c'],
       },
@@ -998,6 +1015,13 @@ function assertBatchConfigurationEcho(input: {
       }).passthrough(),
     }).passthrough()).length(1),
     allocationPolicy: z.object({
+      network: z.object({
+        networkInterfaces: z.array(z.object({
+          network: z.literal(PRIVATE_NETWORK),
+          subnetwork: z.literal(PRIVATE_SUBNETWORK),
+          noExternalIpAddress: z.literal(true),
+        }).strict()).length(1),
+      }).strict(),
       location: z.object({ allowedLocations: z.array(z.string()) }).passthrough(),
       instances: z.array(z.object({
         instanceTemplate: z.string(),
@@ -1010,6 +1034,8 @@ function assertBatchConfigurationEcho(input: {
   const runnable = group.taskSpec.runnables[0]!
   const volume = group.taskSpec.volumes[0]!
   const variables = group.taskSpec.environment.variables
+  const networkInterface = parsed.allocationPolicy.network
+    .networkInterfaces[0]!
   if (
     runnable.container.imageUri !== input.admission.qualificationImageUri
     || volume.gcs.remotePath !== input.mount.gcsRemotePath
@@ -1019,6 +1045,9 @@ function assertBatchConfigurationEcho(input: {
     || parsed.allocationPolicy.instances[0]?.instanceTemplate !==
       INSTANCE_TEMPLATE
     || parsed.allocationPolicy.serviceAccount.email !== SERVICE_ACCOUNT
+    || networkInterface.network !== PRIVATE_NETWORK
+    || networkInterface.subnetwork !== PRIVATE_SUBNETWORK
+    || networkInterface.noExternalIpAddress !== true
     || stableAuthorityStringify(
       parsed.allocationPolicy.location.allowedLocations,
     ) !== stableAuthorityStringify([

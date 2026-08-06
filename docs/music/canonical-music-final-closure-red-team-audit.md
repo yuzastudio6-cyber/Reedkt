@@ -1,11 +1,12 @@
-# Canonical Music v3.1 final-closure red-team audit
+# Canonical Music v3.2 final-closure red-team audit
 
-Date: 2026-08-05
+Date: 2026-08-06
 
 Branch: `codex/canonical-music-skill`
 
-Scope: the final execution-integrity delta from Music `3.0.0` to `3.1.0` and
-the additive canonical Sound public-support delta from `4.1.0` to `4.2.0`.
+Scope: the original execution-integrity delta through Music `3.1.0`, the
+post-green artifact/receipt/publication closure in Music `3.2.0`, and the
+additive canonical Sound public-support delta through `4.2.0`.
 This audit is evidence for the standalone departments; it does not implement
 the Head of Orchestra, final composition, mux, render, export, or delivery.
 
@@ -18,11 +19,13 @@ measured output evidence cannot be proved.
 
 Published identities at the audited source state:
 
-- Music: `3.1.0`, contract `music.skill_contract.v3`, manifest
-  `4d1c95cbfd4eeaa350c692e92f378f9eb76eb0174a1b72763ad2c968981733cd`.
+- Music: `3.2.0`, contract `music.skill_contract.v3`, manifest
+  `e7497e4c3297d8505f77d1454aa17cea741ad4ad7bc49601113a46d858013043`.
 - Sound: `4.2.0`, contract `sound.skill_contract.v4`, manifest
   `84ed4074e718aff8c48a3af6b7f981dc3442672721e1a20f1fef4546e800e122`.
 - Music cue grouping: `music.route.plan.cue_grouping.v3@3.1.0`.
+- Music cue sheet and constraint publication:
+  `music.route.plan.cue_sheet.v3@3.2.0`.
 - Music two-source support: `music.route.support.two_source_crossfade.v3@3.1.0`.
 - Sound two-source executor:
   `sound.route.edit.music_two_source_crossfade.v1@1.0.0`.
@@ -42,8 +45,11 @@ publication.
 | “Crossfade” is one-source fade metadata. | Two distinct real WAV sources, exact left/right hashes, 24-frame overlap, FFT/RMS window measurements, and the Sound public service receipt. | Rejected. Both frequencies are measurable in the overlap; source dominance changes across the output; duration, clipping, true peak, route, profile, parameters, and two-source lineage are receipt-bound. |
 | A stale, missing, duplicated, or unauthorized crossfade input is accepted. | Missing right source, equal-source checksum, stale checksum, out-of-authority overlap, excessive overlap, and receipt tampering. | Rejected in every case before usable output authority is returned. |
 | Duck attack/release values are labels and the audio jumps instantly. | Actual decoded output windows at the beginning/end of a protected range. | Rejected. The filter applies frame-based attack/hold/release ramps and records measured RMS progression; zero-length attack/release and reversed ranges are rejected. |
-| Music accepts a Sound receipt even when a requested parameter was ignored. | Per-operation requested/compiled/applied records and hashes for trim, fade, gain, normalization, ducking, pan, stem rendering, and technical QA. | Rejected. Music validates each operation, profile, route, exact range, source/output lineage, applied-parameter hash, measured QA, and receipt hash. |
-| Receipt fields can be edited without detection. | Tampered attack, pan, normalization target, source hash, output hash, mutation range, and receipt hash. | Rejected in all seven cases. |
+| Music accepts a Sound receipt even when a requested parameter was ignored. | Per-operation requested/compiled/applied records for all 17 one-source operations: trim/cut, fade, gain, normalization, loop, resample, channel conversion, time stretch, pitch shift, placement, ducking, EQ, dynamics, pan, stem rendering, and technical QA. | Rejected. Music validates each operation identity, exact expected parameters, profile, route, range, source/output lineage, measured evidence class, and receipt hash. Crossfade remains isolated on the two-source boundary. |
+| Receipt fields can be edited without detection. | Original seven field attacks, one requested-parameter mutation for every one-source operation, and removal of duck-ramp, pan-channel, and loudness/peak evidence with a recomputed per-operation hash. | Rejected in all 27 cases. |
+| The public result returns authoritative v3 records that its manifest does not declare. | Planning, real execution, QA, localized revision, handoff, technical Sound support, and crossfade output inventory. | Rejected. Cue-constraint resolutions and acceptance receipts are immutable artifacts; all v3 public-service outputs are manifest-declared and publication-validated. |
+| A multi-step Music route is declared but only its first step executes. | Cue-sheet plan step followed by exact constraint-resolution publication, with two independent step receipts and named output bindings. | Rejected. The Music route executor topologically executes all dependency steps and fails on cycles, missing dependencies, handlers, or required outputs. |
+| Publication accepts stale or unreachable authority. | Stale manifest, stale route, omitted public artifact, missing handler, undeclared step output, unsupported job, and unreachable final-output attacks. | Rejected by the dedicated negative publication cases. |
 | A new executable route has no exact handler or lies about outputs. | Shared publication validation, Music completeness validation, and Sound operation-handler coverage. | Rejected. Publication initially exposed the missing crossfade handler; the exact handler registration was added and the full shared registry now validates. |
 | The generic one-source Sound request can invoke the two-source route without the exact extension. | Generic Sound automation validation and capability-wide Sound acceptance. | Rejected. Generic automation forbids `crossfade`; the two-source operation is callable only through the dedicated typed Sound public boundary. |
 | Music can bypass Sound and run FFmpeg/provider internals. | Imports, operation registry, MusicSoundSupportPort, and receipt validation. | Rejected. Music uses the injected Sound public port; low-level Sound executor, command, path, credential, and provider details are absent from the Music request surface. |

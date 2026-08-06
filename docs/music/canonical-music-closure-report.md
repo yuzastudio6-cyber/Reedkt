@@ -1,6 +1,6 @@
-# Canonical Music v3.1 standalone closure report
+# Canonical Music v3.2 standalone closure report
 
-Date: 2026-08-05
+Date: 2026-08-06
 
 Branch: `codex/canonical-music-skill`
 
@@ -11,13 +11,13 @@ Status: `standalone_skill_complete`, `orchestra_ready`,
 
 ## Published identity and qualification
 
-- Skill key/version: `music` / `3.1.0`
+- Skill key/version: `music` / `3.2.0`
 - Contract: `music.skill_contract.v3`
-- Manifest hash: `4d1c95cbfd4eeaa350c692e92f378f9eb76eb0174a1b72763ad2c968981733cd`
+- Manifest hash: `e7497e4c3297d8505f77d1454aa17cea741ad4ad7bc49601113a46d858013043`
 - Top-level qualification: `planning_qualified`
 - Capability entries / supported jobs: 35
 - Internal mini-skills: 42
-- Tool capability manifests: 9
+- Tool capability manifests: 10
 - Exact immutable routes: 33
 - Exact fixture-executable direct jobs: 4
 - Exact private-internal executable direct jobs: 8
@@ -63,6 +63,11 @@ Music registers beside B-roll and Sound through the same shared schema, registry
 qualification vocabulary, assignment/plan/result envelopes, estimators, invalidation, revision,
 and publication validator. It introduces neither a Music-local generic kernel nor a Head of
 Orchestra facade.
+
+Music `3.2.0` publishes `music_cue_constraint_resolution_v3` through
+`music.route.plan.cue_sheet.v3@3.2.0` and publishes
+`music_acceptance_receipt_v3` as a canonical public-service output. Both are
+immutable artifact envelopes rather than unregistered result-only structures.
 
 ## Professional department and authority
 
@@ -159,6 +164,12 @@ route evidence, cost, and caller receipt. Music rejects mismatched hashes, missi
 manifests, or range escalation. Sound receipts determine actual Music mutation ranges. Nested Sound
 cost stays separate and is not double-counted. The ancestor chain prevents Music→Sound→Music cycles.
 
+The final receipt-integrity acceptance executes all 17 one-source operations
+through this port and rejects 27 targeted mutations. Normalization requires
+measured loudness and true peak, nonzero ducking requires measured attack and
+release ramps, pan requires decoded channel-balance evidence, and a peak limiter
+requires measured peak evidence. Crossfade cannot use this one-source boundary.
+
 True two-source Music crossfade uses a separate typed public boundary and exact route
 `sound.route.edit.music_two_source_crossfade.v1@1.0.0`. It binds two independently checksum-verified
 private sources, exact source windows, overlap frames/samples, gain curves, authority, route/profile,
@@ -175,6 +186,11 @@ and unreachable final output. Runtime rejects undeclared produced output and mis
 Step receipts contain actual timestamps, elapsed time, inputs, named output bindings, lineage,
 runtime evidence, cost, QA, provider attempt, and receipt hash; no total duration is fabricated across
 steps.
+
+Routes may contain multiple dependency-ordered steps. The executor performs a
+cycle-safe topological pass and creates a distinct receipt and named outputs for
+each step; the cue-sheet route proves both cue-sheet planning and exact
+constraint-resolution publication.
 
 QA is separated into planning, technical, structural/MusicSync, speech safety, narrative fit,
 vocal/lyric, reference/copy risk, culture/stereotype, continuity, provenance, and integration classes.
@@ -209,7 +225,7 @@ inventory only.
 | Command | Result |
 |---|---|
 | `npm run test:music-final-closure` | passed; six mandatory real-byte/grouping/receipt/manifest scenarios |
-| `npm run test:music-acceptance` | passed; includes Music v3.1, Sound 4.2, shared kernel, and B-roll |
+| `npm run test:music-acceptance` | passed; includes Music v3.2, Sound 4.2, shared kernel, and B-roll |
 | `npm run test:sound-acceptance` | passed within aggregate |
 | `npm run validate:skill-capability-manifests` | passed; 3 manifests |
 | `npm run test:edit-skill-capability-kernel` | passed |
@@ -218,9 +234,11 @@ inventory only.
 | `npm run qa:canonical-music-ui` | passed; Chromium 1/1 |
 | `npm run lint` | passed |
 | `npm run build` | passed; non-blocking existing chunk-size/dynamic-import warnings only |
-| `npm run check:secrets` | passed; 6,161 files, no secret values printed |
+| `npm run check:secrets` | passed; 6,171 files, no secret values printed |
 | `npm run check:frontend-boundary` | passed; 2,088 files |
 | `npm run audit:prod:high` | passed; 0 vulnerabilities |
+| `node database/canonical-v3-local/verify.mjs` | passed; 24 migrations / 227 files, remote mutation and production authority disabled |
+| `git fsck --full` | passed after quarantining validated AppleDouble metadata sidecars; only pre-existing unreachable objects reported |
 | `git diff --check`, `git diff --cached --check` | passed before closure commit |
 
 The dedicated workflow is `.github/workflows/canonical-music-acceptance.yml`. It installs the exact
@@ -276,8 +294,10 @@ exact acceptance records, real execution receipts, and the command matrix:
 - `170bc13d0` — align live Lyria prompts with provider policy
 - Live evidence commit — this report and immutable deployed canary record
 - `9cbfd4af6` — close cue grouping and Sound execution integrity
-- Final v3.1 acceptance evidence commit — six focused regressions, red-team audit,
-  CI wiring, and this updated closure record
+- Final v3.1 acceptance evidence commit — first six focused regressions and CI wiring
+- `07a0913cb` — complete operation tamper matrix, typed constraint/acceptance
+  artifacts, negative publication attacks, and dependency-ordered route execution
+- Final v3.2 closure-evidence commit — gap matrix, red-team audit, command record, and closure report
 
 Music is safe to close because its public contract, manifest, route graph, handlers, real private
 artifacts, rights, exact timing, Sound collaboration, measured QA, localized revision, final handoff,

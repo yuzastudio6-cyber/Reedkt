@@ -901,6 +901,15 @@ def persist_response(payload: dict[str, Any]) -> str:
 
 
 def failure_diagnostic_code(error: Exception) -> str:
+    if stage == "cuda_admission" and isinstance(error, ImportError):
+        return "cuda_dependency_import_failed"
+    error_type = type(error)
+    if (
+        stage == "cuda_admission"
+        and error_type.__module__ == "pynvml"
+        and error_type.__name__.startswith("NVMLError")
+    ):
+        return "nvidia_management_library_admission_failed"
     safe_codes = {
         "pinned CUDA/Kornia runtime changed": "cuda_runtime_identity_mismatch",
         "task QA requires the exact L4 accelerator class": "accelerator_environment_mismatch",

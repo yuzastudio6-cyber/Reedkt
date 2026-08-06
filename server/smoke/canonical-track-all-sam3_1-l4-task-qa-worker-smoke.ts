@@ -536,6 +536,20 @@ assert.equal(
   parseDriverVersion('compiler: gcc version 12.2.0\n'),
   '',
 )
+execFileSync('python3', ['-I', '-B', '-c', `
+import importlib.util
+from pathlib import Path
+
+path = Path('docker/prod/gpu-worker/track-all-task-qa/runner.py').resolve()
+spec = importlib.util.spec_from_file_location('track_all_l4_task_qa_runner', path)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+module.stage = 'cuda_admission'
+assert module.failure_diagnostic_code(ImportError('private path omitted')) == 'cuda_dependency_import_failed'
+NVMLError = type('NVMLError_DriverNotLoaded', (Exception,), {'__module__': 'pynvml'})
+assert module.failure_diagnostic_code(NVMLError('private detail omitted')) == 'nvidia_management_library_admission_failed'
+assert module.failure_diagnostic_code(RuntimeError('private path omitted')) == 'redacted_unknown_failure'
+`], { cwd: process.cwd(), stdio: 'pipe' })
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-worker',
@@ -547,6 +561,7 @@ console.log(JSON.stringify({
   korniaCudaSubstantiveMeasurementRequired: true,
   opencvCudaEveryMaskCrosscheckRequired: true,
   pinnedCudaRuntimeLibrariesRetainedAfterDriverSelection: true,
+  safeCudaDependencyAndNvmlDiagnostics: true,
   cpuOnlySubstantiveQaAllowed: false,
   immutableImageCandidateOnly: true,
   standardAndOpenKernelModuleDriverLinesAdmitted: true,

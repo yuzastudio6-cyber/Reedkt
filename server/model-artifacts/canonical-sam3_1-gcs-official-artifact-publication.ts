@@ -8,9 +8,14 @@ import {
   canonicalSam31PrivateArtifactObjectCoordinateSchema,
   type CanonicalSam31PrivateArtifactPublicationPort,
 } from './canonical-sam3_1-official-artifact-publication'
+import type {
+  CanonicalSam31PrivateObjectReadPort,
+} from './canonical-sam3_1-private-artifact-ingest'
 
 export const CANONICAL_SAM3_1_GCS_OFFICIAL_ARTIFACT_PUBLICATION_PORT_VERSION =
   'canonical-sam3_1-gcs-official-artifact-publication-port-v1' as const
+export const CANONICAL_SAM3_1_GCS_PRIVATE_ARTIFACT_READ_PORT_VERSION =
+  'canonical-sam3_1-gcs-private-artifact-read-port-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const MODEL_ARTIFACT_BUCKET =
@@ -126,6 +131,73 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
   })
 }
 
+/**
+ * Exact-generation streaming rereader used by the private ingest owner. It
+ * never materializes a multi-gigabyte checkpoint on the application host.
+ */
+export function createCanonicalSam31GcsPrivateArtifactReadPort(input: {
+  readonly projectId: typeof PROJECT_ID
+  readonly bucketName: typeof MODEL_ARTIFACT_BUCKET
+  readonly storage?: Storage
+}): CanonicalSam31PrivateObjectReadPort & {
+  readonly schemaVersion:
+    typeof CANONICAL_SAM3_1_GCS_PRIVATE_ARTIFACT_READ_PORT_VERSION
+} {
+  if (
+    input.projectId !== PROJECT_ID
+    || input.bucketName !== MODEL_ARTIFACT_BUCKET
+  ) throw new Error('SAM 3.1 GCS private read scope is not canonical.')
+  const storage = input.storage ?? new Storage({ projectId: input.projectId })
+  const port: CanonicalSam31PrivateObjectReadPort & {
+    readonly schemaVersion:
+      typeof CANONICAL_SAM3_1_GCS_PRIVATE_ARTIFACT_READ_PORT_VERSION
+  } = {
+    schemaVersion: CANONICAL_SAM3_1_GCS_PRIVATE_ARTIFACT_READ_PORT_VERSION,
+    async readExact(untrusted) {
+      const coordinate = canonicalSam31PrivateArtifactObjectCoordinateSchema
+        .parse(untrusted)
+      if (
+        coordinate.projectId !== input.projectId
+        || coordinate.bucketName !== input.bucketName
+        || !coordinate.objectName.startsWith(
+          'private/model-artifacts/sam3_1/',
+        )
+        || coordinate.objectName.includes('..')
+        || coordinate.objectName.includes('\\')
+        || coordinate.objectName.includes('//')
+      ) throw new Error('SAM 3.1 private artifact read path is invalid.')
+      const exact = storage.bucket(coordinate.bucketName).file(
+        coordinate.objectName,
+        { generation: coordinate.generation },
+      )
+      let before: Record<string, unknown>
+      try {
+        const response = await exact.getMetadata()
+        before = response[0] as unknown as Record<string, unknown>
+      } catch (error) {
+        if (cloudErrorCode(error) === 404) return null
+        throw error
+      }
+      assertExactReadMetadata(before, coordinate)
+      const afterResponse = await exact.getMetadata()
+      const after = afterResponse[0] as unknown as Record<string, unknown>
+      assertExactReadMetadata(after, coordinate)
+      return Object.freeze({
+        generationBeforeRead: coordinate.generation,
+        etagBeforeRead: coordinate.etag,
+        contentType: String(before.contentType ?? ''),
+        body: exact.createReadStream({
+          decompress: false,
+          validation: 'crc32c',
+        }),
+        generationAfterRead: coordinate.generation,
+        etagAfterRead: coordinate.etag,
+      })
+    },
+  }
+  return Object.freeze(port)
+}
+
 function assertPublicationInput(input: {
   readonly projectId: string
   readonly bucketName: string
@@ -159,6 +231,27 @@ function assertPublicationInput(input: {
     || (input.expectedSha256 !== undefined
       && !/^[a-f0-9]{64}$/u.test(input.expectedSha256))
   ) throw new Error('SAM 3.1 private artifact publication input is invalid.')
+}
+
+function assertExactReadMetadata(
+  metadata: Record<string, unknown>,
+  coordinate: {
+    readonly generation: string
+    readonly etag: string
+    readonly byteLength: number
+    readonly objectName: string
+  },
+): void {
+  const contentType = String(metadata.contentType ?? '')
+  const expectedContentType = coordinate.objectName.endsWith('.tar')
+    ? 'application/x-tar'
+    : 'application/octet-stream'
+  if (
+    String(metadata.generation ?? '') !== coordinate.generation
+    || String(metadata.etag ?? '') !== coordinate.etag
+    || Number(metadata.size ?? -1) !== coordinate.byteLength
+    || contentType !== expectedContentType
+  ) throw new Error('SAM 3.1 private artifact metadata changed.')
 }
 
 async function* measureAndBound(

@@ -214,6 +214,7 @@
     "smoke:source-analysis-orchestra-coordinator": "tsx server/smoke/canonical-source-analysis-orchestra-coordinator-smoke.ts",
     "smoke:source-analysis-orchestra-work-owner": "tsx server/smoke/canonical-source-analysis-orchestra-work-owner-smoke.ts",
     "smoke:sam3_1-official-artifact-publication": "tsx server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts",
+    "smoke:sam3_1-official-artifact-publication-repository": "tsx server/smoke/canonical-sam3_1-official-artifact-publication-repository-smoke.ts",
     "smoke:sam3_1-official-artifact-ingest-cloud-job": "tsx server/smoke/canonical-sam3_1-official-artifact-ingest-cloud-job-smoke.ts",
     "build:sam3_1-official-artifact-ingest-bundle": "npm run typecheck:server && vite build --config vite.sam31-official-artifact-ingest.config.ts",
     "build:sam3_1-official-artifact-ingest-image": "bash scripts/gcp/prod/20-build-sam31-official-artifact-ingest-image.sh",

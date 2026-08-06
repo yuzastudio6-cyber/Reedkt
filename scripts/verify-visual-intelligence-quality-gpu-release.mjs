@@ -49,6 +49,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-source-runtime-candidate-smoke.ts',
   'server/smoke/canonical-sam3_1-private-artifact-ingest-smoke.ts',
   'server/smoke/canonical-sam3_1-official-artifact-publication-smoke.ts',
+  'server/smoke/canonical-sam3_1-official-artifact-publication-repository-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',
   'server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-a100-qualification-foundation-repository-smoke.ts',

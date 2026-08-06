@@ -321,6 +321,13 @@ idempotent rerun then observed all five disabled and emitted
   approved A2 CPU quota does not substitute for GPU quota, and an alternate-
   region grant would not become dispatch authority until that region had its
   own exact private resource foundation.
+- A separate Vertex AI Custom Job quota request now asks for exactly one
+  general custom-model-training A100 80GB GPU in `us-central1`. It is pending.
+  This is an additional user-triggered, zero-persistent-endpoint capacity path,
+  not permission to use Vertex's restricted image-training quota and not a
+  runtime route yet. Even if granted, the route remains blocked until its own
+  immutable-container, private-network, attempt, usage-cost, terminal-reread,
+  and independent qualification contracts are frozen and proven.
 - The project has one L4 of Compute quota. The separately scoped Track All
   task-QA image now has an independently built, scanned, signed, and privately
   qualified L4 path; this does not qualify the checkpoint-bearing SAM 3.1

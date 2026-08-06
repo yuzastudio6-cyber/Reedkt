@@ -83,7 +83,11 @@ const sourceCoordinateSchema = z.object({
   publicOrSignedUrlUsed: z.literal(false),
 }).strict()
 
-const sourceSetSchema = z.object({
+export type CanonicalSam31QualificationStagingSourceCoordinate = z.infer<
+  typeof sourceCoordinateSchema
+>
+
+export const canonicalSam31QualificationStagingSourceSetSchema = z.object({
   schemaVersion: z.literal(
     'canonical-sam3_1-source-checkpoint-qualification-staging-source-set-v1',
   ),
@@ -99,8 +103,55 @@ const sourceSetSchema = z.object({
   observedAt: timestamp,
 }).strict()
 export type CanonicalSam31QualificationStagingSourceSet = z.infer<
-  typeof sourceSetSchema
+  typeof canonicalSam31QualificationStagingSourceSetSchema
 >
+
+export function createCanonicalSam31QualificationStagingSourceSet(input: {
+  readonly workerRequest:
+    CanonicalSam31SourceCheckpointQualificationWorkerRequest
+  readonly checkpoint: CanonicalSam31QualificationStagingSourceCoordinate
+  readonly probeFixture: CanonicalSam31QualificationStagingSourceCoordinate
+  readonly observedAt: string
+}): CanonicalSam31QualificationStagingSourceSet {
+  assertPlainSerializedData(input, 'sam31_qualification_staging_source_set')
+  const workerRequest =
+    assertCanonicalSam31SourceCheckpointQualificationWorkerRequest(
+      input.workerRequest,
+    )
+  const sources = canonicalSam31QualificationStagingSourceSetSchema.parse({
+    schemaVersion:
+      'canonical-sam3_1-source-checkpoint-qualification-staging-source-set-v1',
+    evidenceClass: 'canonical_private_reread',
+    workerRequestRef: workerRequestRef(workerRequest),
+    checkpoint: input.checkpoint,
+    probeFixture: input.probeFixture,
+    callerCoordinateAccepted: false,
+    observedAt: input.observedAt,
+  })
+  assertSourcesMatchRequest({ sources, workerRequest })
+  return sources
+}
+
+export function assertCanonicalSam31QualificationStagingSourceSet(
+  value: unknown,
+): CanonicalSam31QualificationStagingSourceSet {
+  assertPlainSerializedData(value, 'sam31_qualification_staging_source_set')
+  return canonicalSam31QualificationStagingSourceSetSchema.parse(value)
+}
+
+export function assertCanonicalSam31QualificationStagingSourceSetForWorker(
+  value: unknown,
+  workerRequestValue:
+    CanonicalSam31SourceCheckpointQualificationWorkerRequest,
+): CanonicalSam31QualificationStagingSourceSet {
+  const workerRequest =
+    assertCanonicalSam31SourceCheckpointQualificationWorkerRequest(
+      workerRequestValue,
+    )
+  const sources = assertCanonicalSam31QualificationStagingSourceSet(value)
+  assertSourcesMatchRequest({ sources, workerRequest })
+  return sources
+}
 
 const stagedObjectSchema = z.object({
   objectName: z.enum([
@@ -246,7 +297,9 @@ export function createCanonicalSam31QualificationStagingOwner(
         throw new Error('SAM 3.1 qualification staging sources are missing.')
       }
       assertPlainSerializedData(untrustedSources, 'sam31_staging_source_set')
-      const sources = sourceSetSchema.parse(untrustedSources)
+      const sources = canonicalSam31QualificationStagingSourceSetSchema.parse(
+        untrustedSources,
+      )
       assertSourcesMatchRequest({ sources, workerRequest })
       const remoteSubdirectory =
         `private/sam3_1/source-checkpoint-qualification/v1/attempts/`

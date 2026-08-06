@@ -226,6 +226,7 @@
     "publish:sam3_1-a100-foundation-observation": "tsx server/cli/publish-sam3_1-a100-qualification-foundation.ts --execute",
     "provision:sam3_1-a100-qualification-foundation": "bash scripts/gcp/prod/22-provision-sam31-a100-qualification-foundation.sh",
     "smoke:sam3_1-source-checkpoint-qualification-staging": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-staging-owner-smoke.ts",
+    "smoke:sam3_1-source-checkpoint-qualification-package": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-package-repository-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-result": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-result-owner-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-terminal": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-terminal-evidence-owner-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-release": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke.ts",

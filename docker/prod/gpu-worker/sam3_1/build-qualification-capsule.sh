@@ -17,6 +17,9 @@ readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d
 readonly FFMPEG_VERSION='8.0.3'
 readonly FFMPEG_SHA256='5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121'
 readonly FFMPEG_BYTES='17211188'
+readonly PKGCONF_VERSION='3.0.4'
+readonly PKGCONF_SHA256='67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829'
+readonly PKGCONF_BYTES='611767'
 readonly NV_CODEC_HEADERS_VERSION='n12.2.72.0'
 readonly NV_CODEC_HEADERS_COMMIT='157becbf51c8b813425572b75c06c370bd43d8fd'
 readonly NV_CODEC_HEADERS_SHA256='dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563'
@@ -43,6 +46,7 @@ allowed = {
     "codeload.github.com",
     "developer.download.nvidia.com",
     "download.pytorch.org",
+    "distfiles.ariadne.space",
     "ffmpeg.org",
     "files.pythonhosted.org",
     "github.com",
@@ -279,6 +283,11 @@ download_exact \
   "${FFMPEG_SHA256}" "${FFMPEG_BYTES}"
 
 download_exact \
+  "https://distfiles.ariadne.space/pkgconf/pkgconf-${PKGCONF_VERSION}.tar.gz" \
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/pkgconf-${PKGCONF_VERSION}.tar.gz" \
+  "${PKGCONF_SHA256}" "${PKGCONF_BYTES}"
+
+download_exact \
   "https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/${NV_CODEC_HEADERS_VERSION}.tar.gz" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg/nv-codec-headers-${NV_CODEC_HEADERS_VERSION}.tar.gz" \
   "${NV_CODEC_HEADERS_SHA256}" "${NV_CODEC_HEADERS_BYTES}"
@@ -293,6 +302,11 @@ receipt = {
   "ffmpegReleaseArchiveSha256": "${FFMPEG_SHA256}",
   "ffmpegReleaseArchiveByteLength": ${FFMPEG_BYTES},
   "ffmpegLicense": "LGPL-2.1-or-later",
+  "pkgconfVersion": "${PKGCONF_VERSION}",
+  "pkgconfSourceArchiveSha256": "${PKGCONF_SHA256}",
+  "pkgconfSourceArchiveByteLength": ${PKGCONF_BYTES},
+  "pkgconfLicense": "ISC",
+  "pkgconfBuiltFromSource": True,
   "nvCodecHeadersVersion": "${NV_CODEC_HEADERS_VERSION}",
   "nvCodecHeadersCommit": "${NV_CODEC_HEADERS_COMMIT}",
   "nvCodecHeadersArchiveSha256": "${NV_CODEC_HEADERS_SHA256}",
@@ -397,6 +411,8 @@ receipt = {
     "ffmpegSharedLibraryVersion": "8.0.3",
     "ffmpegNvdecRequired": True,
     "ffmpegCpuVideoDecodeFallbackAllowed": False,
+    "pkgconfVersion": "3.0.4",
+    "pkgconfBuiltOfflineFromPinnedSource": True,
     "offlineInstallRequired": True,
     "requireHashes": True,
     "dependencyResolutionAtRuntimeAllowed": False,

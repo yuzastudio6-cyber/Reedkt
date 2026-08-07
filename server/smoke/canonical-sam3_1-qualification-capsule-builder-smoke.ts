@@ -65,8 +65,10 @@ for (const expected of [
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
   '5ecb4aeb61b4f14f30ceed11ce892308f38232d82eee64605ae19583c51a8e72',
   '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121',
+  '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829',
   'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563',
   'download.pytorch.org',
+  'distfiles.ariadne.space',
   'ffmpeg.org',
   'github.com',
   'codeload.github.com',
@@ -91,7 +93,7 @@ for (const expected of [
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
 assert.equal((builder.match(/^download_wheel \\/gmu) ?? []).length, 22)
-assert.equal((builder.match(/^download_exact \\/gmu) ?? []).length, 4)
+assert.equal((builder.match(/^download_exact \\/gmu) ?? []).length, 5)
 const localWheelNames = [...builder.matchAll(/^download_wheel \\\n\s+'([^']+\.whl)'/gmu)]
   .map((match) => match[1])
 assert.equal(localWheelNames.length, 22)
@@ -206,7 +208,10 @@ for (const expected of [
   'torch.version.cuda == \'12.8\'',
   'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
   'ffmpeg-8.0.3.tar.gz',
+  'pkgconf-3.0.4.tar.gz',
   'nv-codec-headers-n12.2.72.0.tar.gz',
+  '/opt/weeditpro/pkgconf/bin/pkg-config',
+  "pkgconf --version)\" = '3.0.4'",
   '--enable-shared',
   '--enable-ffnvcodec',
   '--enable-nvdec',
@@ -217,6 +222,7 @@ for (const expected of [
   'h264_cuvid',
   'hevc_cuvid',
 ] as const) assert.ok(candidate.includes(expected), `candidate lost ${expected}`)
+assert.doesNotMatch(candidate, /(?:apt-get|curl |wget )/u)
 assert.equal((candidate.match(/^RUN --network=none /gmu) ?? []).length, 0)
 assert.equal((candidate.match(/^RUN /gmu) ?? []).length, 3)
 assert.doesNotMatch(candidate, /--break-system-packages/u)
@@ -289,6 +295,7 @@ console.log(JSON.stringify({
   deterministicLocalSdistWheelCount: 1,
   exactPinnedCudaForwardCompatibilityPackageCount: 1,
   exactPinnedFfmpegSourceArchiveCount: 1,
+  exactPinnedPkgconfSourceArchiveCount: 1,
   exactPinnedNvCodecHeadersArchiveCount: 1,
   torchcodecCudaWheelRequired: true,
   cpuVideoDecodeFallbackAllowed: false,

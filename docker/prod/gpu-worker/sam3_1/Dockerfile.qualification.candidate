@@ -15,13 +15,15 @@ WORKDIR /build
 
 COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz \
   /build/ffmpeg-8.0.3.tar.gz
+COPY sam31_private_build_input/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz \
+  /build/pkgconf-3.0.4.tar.gz
 COPY sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz \
   /build/nv-codec-headers-n12.2.72.0.tar.gz
 COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json \
   /build/ffmpeg-closure-receipt.json
 
 RUN test "$(uname -m)" = x86_64 \
-  && for command_name in cc make pkg-config sha256sum stat tar; do \
+  && for command_name in cc make sha256sum stat tar; do \
        command -v "${command_name}" >/dev/null \
          || { printf 'ERROR: missing FFmpeg builder utility: %s\n' \
            "${command_name}" >&2; exit 127; }; \
@@ -31,12 +33,30 @@ RUN test "$(uname -m)" = x86_64 \
     '/build/ffmpeg-8.0.3.tar.gz' | sha256sum --check --strict \
   && test "$(stat --format='%s' /build/ffmpeg-8.0.3.tar.gz)" = '17211188' \
   && printf '%s  %s\n' \
+    '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' \
+    '/build/pkgconf-3.0.4.tar.gz' | sha256sum --check --strict \
+  && test "$(stat --format='%s' /build/pkgconf-3.0.4.tar.gz)" = '611767' \
+  && printf '%s  %s\n' \
     'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' \
     '/build/nv-codec-headers-n12.2.72.0.tar.gz' \
     | sha256sum --check --strict \
   && test "$(stat --format='%s' \
     /build/nv-codec-headers-n12.2.72.0.tar.gz)" = '80935' \
-  && mkdir --mode=0755 /build/nv-codec-headers /build/ffmpeg \
+  && mkdir --mode=0755 /build/pkgconf /build/nv-codec-headers /build/ffmpeg \
+  && tar --extract --gzip --file /build/pkgconf-3.0.4.tar.gz \
+    --directory /build/pkgconf --strip-components=1 \
+    --no-same-owner --no-same-permissions \
+  && cd /build/pkgconf \
+  && ./configure \
+    --prefix=/opt/weeditpro/pkgconf \
+    --disable-shared \
+    --enable-static \
+  && make -j4 \
+  && make install \
+  && test "$(/opt/weeditpro/pkgconf/bin/pkgconf --version)" = '3.0.4' \
+  && rm -f /opt/weeditpro/pkgconf/bin/pkg-config \
+  && ln -s pkgconf /opt/weeditpro/pkgconf/bin/pkg-config \
+  && test "$(/opt/weeditpro/pkgconf/bin/pkg-config --version)" = '3.0.4' \
   && tar --extract --gzip \
     --file /build/nv-codec-headers-n12.2.72.0.tar.gz \
     --directory /build/nv-codec-headers --strip-components=1 \
@@ -47,7 +67,9 @@ RUN test "$(uname -m)" = x86_64 \
     --directory /build/ffmpeg --strip-components=1 \
     --no-same-owner --no-same-permissions \
   && cd /build/ffmpeg \
-  && PKG_CONFIG_PATH=/opt/weeditpro/ffnvcodec/lib/pkgconfig \
+  && PATH=/opt/weeditpro/pkgconf/bin:${PATH} \
+    PKG_CONFIG=/opt/weeditpro/pkgconf/bin/pkg-config \
+    PKG_CONFIG_PATH=/opt/weeditpro/ffnvcodec/lib/pkgconfig \
     ./configure \
       --prefix=/opt/weeditpro/ffmpeg \
       --enable-shared \
@@ -144,6 +166,8 @@ COPY sam31_private_build_input/dependency-closure/dependency-closure-receipt.jso
   /opt/reeditpro/sam3_1/qualification-artifacts/dependency-closure-receipt.json
 COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz \
   /opt/reeditpro/sam3_1/qualification-artifacts/ffmpeg-8.0.3.tar.gz
+COPY sam31_private_build_input/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz \
+  /opt/reeditpro/sam3_1/qualification-artifacts/pkgconf-3.0.4.tar.gz
 COPY sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz \
   /opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz
 COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json \
@@ -204,6 +228,13 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3_1/qualification-artifacts/ffmpeg-8.0.3.tar.gz)" \
     = '17211188' \
   && printf '%s  %s\n' \
+    '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' \
+    '/opt/reeditpro/sam3_1/qualification-artifacts/pkgconf-3.0.4.tar.gz' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /opt/reeditpro/sam3_1/qualification-artifacts/pkgconf-3.0.4.tar.gz)" \
+    = '611767' \
+  && printf '%s  %s\n' \
     'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' \
     '/opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz' \
     | sha256sum --check --strict \
@@ -211,7 +242,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz)" \
     = '80935' \
   && python -I -B -c \
-    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
+    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert closure['pkgconfVersion']=='3.0.4'; assert closure['pkgconfBuiltOfflineFromPinnedSource'] is True; assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['pkgconfVersion']=='3.0.4'; assert ffmpeg['pkgconfBuiltFromSource'] is True; assert ffmpeg['pkgconfLicense']=='ISC'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
   && printf '%s\n' "${SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256}" \
     > /opt/reeditpro/sam3_1/qualification-artifacts/wheel-manifest.sha256 \
   && printf '%s  %s\n' \

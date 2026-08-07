@@ -193,6 +193,14 @@ assert.doesNotMatch(
 assert.doesNotMatch(dockerfile, /sam3\.1_multiplex\.pt/u)
 assert.equal((dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
 assert.equal((dockerfile.match(/^RUN /gmu) ?? []).length, 3)
+assert.match(dockerfile, /pkgconf-3\.0\.4\.tar\.gz/u)
+assert.match(
+  dockerfile,
+  /67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829/u,
+)
+assert.match(dockerfile, /\/opt\/weeditpro\/pkgconf\/bin\/pkg-config/u)
+assert.match(dockerfile, /pkgconfBuiltOfflineFromPinnedSource/u)
+assert.doesNotMatch(dockerfile, /(?:apt-get|curl |wget )/u)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)

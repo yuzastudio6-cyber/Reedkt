@@ -122,6 +122,11 @@ the worker rereads it alongside the lock and dependency-closure receipt. The
 closure uses the official `torchcodec 0.10.0+cu128` wheel, not the CPU PyPI
 wheel. It also builds FFmpeg 8.0.3 shared libraries from the exact official
 release plus `nv-codec-headers n12.2.72.0` in a pinned CUDA 12.8 devel stage.
+Because that pinned compiler image contains no `pkg-config`, the same offline
+closure supplies official `pkgconf 3.0.4` source and builds its `pkg-config`
+compatibility entrypoint before FFmpeg configuration. The source archive,
+bytes, SHA-256, ISC license, version, and offline-source-build disposition are
+all bound in the native and aggregate dependency receipts.
 The configuration keeps FFmpeg LGPL-only: GPL, nonfree, and `libnpp` linkage
 are disabled, while FFNVCodec, NVDEC, CUVID, `h264_cuvid`, and `hevc_cuvid`
 are required. The canonical Cloud Build request applies Docker's
@@ -295,6 +300,7 @@ sam31_private_build_input/dependency-closure/requirements.lock.txt
 sam31_private_build_input/dependency-closure/wheelhouse/*
 sam31_private_build_input/dependency-closure/dependency-closure-receipt.json
 sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz
+sam31_private_build_input/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz
 sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz
 sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json
 sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb
@@ -328,8 +334,9 @@ forward-compatibility ingest receipt hashes. The CUDA package is the exact
 `570.211.01-0ubuntu1`, SHA-256
 `e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893`;
 the build verifies its package name, version, architecture, bytes, and receipt
-before extracting it offline. The native closure also binds FFmpeg 8.0.3 and
-NV-codec headers n12.2.72.0 by exact source bytes and license metadata. The
+before extracting it offline. The native closure also binds FFmpeg 8.0.3,
+pkgconf 3.0.4, and NV-codec headers n12.2.72.0 by exact source bytes and
+license metadata. The
 build fails unless the base runtime is exactly Python 3.12, PyTorch
 2.10.0+cu128, TorchVision 0.25.0, TorchCodec 0.10.0+cu128, FFmpeg 8.0.3, and
 CUDA 12.8. It installs no dependency from the network and runs as

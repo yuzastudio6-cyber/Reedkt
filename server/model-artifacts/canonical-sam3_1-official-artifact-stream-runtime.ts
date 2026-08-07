@@ -149,17 +149,36 @@ async function* archiveStream(root: string): AsyncIterable<Uint8Array> {
   })
   const exit = new Promise<{ readonly code: number | null; readonly signal: string | null }>(
     (resolve, reject) => {
-      child.once('error', reject)
+      child.once('error', (error) => reject(new Error(
+        'SAM 3.1 official source archive process failed.',
+        { cause: error },
+      )))
       child.once('close', (code, signal) => resolve({ code, signal }))
     },
   )
-  const stderr = collectBoundedDiagnostics(child.stderr)
+  const stderr = collectBoundedDiagnostics(child.stderr).catch((error) => {
+    throw new Error(
+      'SAM 3.1 official source archive diagnostics stream failed.',
+      { cause: error },
+    )
+  })
   try {
-    for await (const chunk of child.stdout) {
-      if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
-        throw new Error('SAM 3.1 Git archive stream is invalid.')
+    try {
+      for await (const chunk of child.stdout) {
+        if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
+          throw new Error('SAM 3.1 Git archive stream is invalid.')
+        }
+        yield chunk
       }
-      yield chunk
+    } catch (error) {
+      if (
+        error instanceof Error
+        && error.message === 'SAM 3.1 Git archive stream is invalid.'
+      ) throw error
+      throw new Error(
+        'SAM 3.1 official source archive output stream failed.',
+        { cause: error },
+      )
     }
     const outcome = await exit
     const diagnostic = await stderr

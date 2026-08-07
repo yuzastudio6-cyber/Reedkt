@@ -25,6 +25,10 @@ const authorityModel = readFileSync(
   'server/model-artifacts/canonical-sam3_1-qualification-image-build-authority.ts',
   'utf8',
 )
+const buildRuntime = readFileSync(
+  'server/services/canonical-sam3_1-qualification-image-build-runtime.ts',
+  'utf8',
+)
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   readonly scripts?: Readonly<Record<string, string>>
 }
@@ -65,6 +69,15 @@ for (const expected of [
 ] as const) assert.ok(
   capsulePublisher.includes(expected),
   `security-remediation reproducibility publisher lost ${expected}`,
+)
+
+for (const expected of [
+  "readonly auth?: Pick<GoogleAuth, 'request'>",
+  'createCanonicalSam31GoogleCloudBuildAuthenticatedTransport({',
+  'auth: input.auth',
+] as const) assert.ok(
+  buildRuntime.includes(expected),
+  `qualification build authenticated transport seam lost ${expected}`,
 )
 
 for (const expected of [

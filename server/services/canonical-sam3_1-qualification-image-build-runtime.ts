@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { Storage } from '@google-cloud/storage'
+import type { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
@@ -179,6 +180,7 @@ export function createCanonicalSam31QualificationImageBuildRepository(input: {
 
 export function createCanonicalSam31GcpQualificationImageBuildRuntime(input: {
   readonly storage?: Storage
+  readonly auth?: Pick<GoogleAuth, 'request'>
   readonly observeCreateResponse?: Parameters<
     typeof createCanonicalSam31QualificationImageBuildPhase
   >[0]['observeCreateResponse']
@@ -196,7 +198,9 @@ export function createCanonicalSam31GcpQualificationImageBuildRuntime(input: {
     authorityReadPort: repository,
     statePort: repository,
     authenticatedTransport:
-      createCanonicalSam31GoogleCloudBuildAuthenticatedTransport(),
+      createCanonicalSam31GoogleCloudBuildAuthenticatedTransport({
+        auth: input.auth,
+      }),
     observeCreateResponse: input.observeCreateResponse,
     now: input.now,
   })

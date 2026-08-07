@@ -29,6 +29,10 @@ const sourceProvenance = readFileSync(
   'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
   'utf8',
 )
+const qualificationImageAuthority = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-qualification-image-build-authority.ts',
+  'utf8',
+)
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   readonly scripts?: Readonly<Record<string, string>>
 }
@@ -100,6 +104,16 @@ for (const expected of [
 ] as const) assert.ok(
   sourceProvenance.includes(expected),
   `SAM 3.1 einops closure lost immutable ingest lineage ${expected}`,
+)
+
+for (const expected of [
+  'einops-0.8.2-py3-none-any.whl',
+  '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193',
+  'python-ingest/einops/einops-ingest-receipt.json',
+  'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+] as const) assert.ok(
+  qualificationImageAuthority.includes(expected),
+  `qualification authority lost exact einops admission ${expected}`,
 )
 
 assert.equal(

@@ -52,6 +52,10 @@ const PKGCONF_SHA256 =
   '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' as const
 const NV_CODEC_HEADERS_SHA256 =
   'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' as const
+const EINOPS_WHEEL_SHA256 =
+  '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193' as const
+const EINOPS_INGEST_RECEIPT_SHA256 =
+  'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -577,6 +581,10 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`
   const ffmpegReceiptPath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`
+  const einopsWheelPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl`
+  const einopsIngestReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`
   requirePresent(sourceArchivePath)
   requirePresent(patchedSourceArchivePath)
   requirePresent(cudaPackagePath)
@@ -586,6 +594,8 @@ function assertQualificationCapsuleEntries(
   requirePresent(pkgconfSourcePath)
   requirePresent(nvCodecHeadersSourcePath)
   requirePresent(ffmpegReceiptPath)
+  requirePresent(einopsWheelPath)
+  requirePresent(einopsIngestReceiptPath)
   if (canonical) {
     required(
       sourceArchivePath,
@@ -603,6 +613,8 @@ function assertQualificationCapsuleEntries(
     required(ffmpegSourcePath, FFMPEG_SHA256)
     required(pkgconfSourcePath, PKGCONF_SHA256)
     required(nvCodecHeadersSourcePath, NV_CODEC_HEADERS_SHA256)
+    required(einopsWheelPath, EINOPS_WHEEL_SHA256)
+    required(einopsIngestReceiptPath, EINOPS_INGEST_RECEIPT_SHA256)
   }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
@@ -666,5 +678,6 @@ function isAllowedEntry(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`,
   ].includes(path) || isWheelPath(path)
 }

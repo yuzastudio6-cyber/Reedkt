@@ -1043,7 +1043,7 @@ function buildSpecializedRelease(input: {
     },
     runtimeClosure: {
       pythonVersion: '3.12' as const,
-      torchVersion: '2.10.0' as const,
+      torchVersion: '2.10.0+cu128' as const,
       torchvisionVersion: '0.25.0+cu128' as const,
       cudaVersion: '12.8' as const,
       torchcodecVersion: '0.10.0' as const,

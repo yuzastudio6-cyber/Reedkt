@@ -656,7 +656,7 @@ const observationSchema = z.object({
     allocatedGpuCount: z.literal(1),
     baseImageDigest: z.literal(QUALIFICATION_BASE_IMAGE_DIGEST),
     pythonVersion: z.literal('3.12'),
-    torchVersion: z.literal('2.10.0'),
+    torchVersion: z.literal('2.10.0+cu128'),
     torchvisionVersion: z.literal('0.25.0+cu128'),
     torchcodecVersion: z.literal('0.10.0'),
     torchcodecCudaWheelVersion: z.literal('0.10.0+cu128'),
@@ -825,7 +825,7 @@ export function createCanonicalSam31SourceCheckpointQualificationObservation(
       allocatedGpuCount: result.runtime.allocatedGpuCount,
       baseImageDigest: result.runtime.baseImageDigest,
       pythonVersion: result.runtime.pythonVersion,
-      torchVersion: '2.10.0',
+      torchVersion: result.runtime.torchVersion,
       torchvisionVersion: result.runtime.torchvisionVersion,
       torchcodecVersion: result.runtime.torchcodecVersion,
       torchcodecCudaWheelVersion:

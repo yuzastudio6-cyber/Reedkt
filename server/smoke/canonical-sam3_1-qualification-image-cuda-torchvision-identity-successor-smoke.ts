@@ -96,6 +96,16 @@ for (const source of [
   source.includes('0.25.0+cu128'),
   'SAM 3.1 closure lost the exact CUDA-qualified TorchVision identity',
 )
+assert.ok(
+  runtimeRelease.includes("torchVersion: z.literal('2.10.0+cu128')"),
+  'SAM 3.1 runtime release lost the exact CUDA-qualified Torch identity',
+)
+assert.ok(
+  runtimeRelease.includes(
+    'sourceCheckpointQualification.controlledObservation',
+  ) && runtimeRelease.includes('.qualificationRuntime.torchvisionVersion'),
+  'SAM 3.1 runtime release stopped consuming qualified runtime identity',
+)
 
 for (const expected of [
   'pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',

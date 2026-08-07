@@ -27,7 +27,7 @@ const targets = {
     receiptId:
       'sam31-qualification-capsule-reproducibility-cuda-ffmpeg-isolated-20260807',
     primaryBuildId: 'b1dc5ddf-f614-41af-9c94-0ee1c15598f1',
-    confirmationBuildId: '1eb329b7-5d1b-4eed-a338-d1ab0aa4ec9d',
+    confirmationBuildId: '40fa1bb2-e516-4c55-b41b-c652cea6f972',
   },
 } as const
 const targetName = z.enum([

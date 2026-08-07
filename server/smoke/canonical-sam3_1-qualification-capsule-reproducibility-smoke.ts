@@ -15,6 +15,10 @@ const publisher = readFileSync(
   'server/cli/publish-canonical-sam3_1-qualification-capsule-reproducibility.ts',
   'utf8',
 )
+const cloudBuild = readFileSync(
+  'docker/prod/gpu-worker/sam3_1/cloudbuild.qualification-capsule.yaml',
+  'utf8',
+)
 for (const expected of [
   'private_closure_offline',
   'sam31-qualification-capsule-reproducibility-private-closure-offline-20260807',
@@ -36,10 +40,17 @@ for (const expected of [
   'sam31-qualification-capsule-reproducibility-pycocotools-offline-source-identity-corrected-20260807',
   '9d115018-1801-451f-b47b-de78d2c644d6',
   'c5e9dad3-1bff-4ac0-8faf-c8fe8c4e1e6b',
+  'security_remediation_corrected',
+  'sam31-qualification-capsule-reproducibility-security-remediation-corrected-20260807',
+  '3e29aa73-7307-454d-bd38-b911b67aeab1',
+  '6c209bca-9563-4a5f-be3e-a6b927ac2d6f',
 ] as const) assert.ok(
   publisher.includes(expected),
   `private offline-closure reproducibility publication lost ${expected}`,
 )
+assert.match(cloudBuild, /^timeout: 3600s$/mu)
+assert.match(cloudBuild, /^queueTtl: 3600s$/mu)
+assert.doesNotMatch(cloudBuild, /^queueTtl: 600s$/mu)
 
 const digest = (value: string) => sha256AuthorityValue(value)
 const capsuleSha = digest('capsule')

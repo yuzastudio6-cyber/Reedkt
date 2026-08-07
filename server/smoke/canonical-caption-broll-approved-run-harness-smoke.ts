@@ -98,6 +98,9 @@ import {
   createEditPlanningAuthorityService,
 } from '../services/edit-planning-authority-service'
 import {
+  readPrivateEditAuthorityAggregate,
+} from '../services/private-edit-authority-store'
+import {
   createProjectService,
 } from '../services/project-service'
 import {
@@ -403,12 +406,35 @@ try {
       },
     })
   if (preferenceRecord.lifecycle.locked) {
-    assert.equal(preferenceRecord.lifecycle.phase, 'approved_snapshot')
     assert.ok(preferenceRecord.lifecycle.authorityReferenceId)
+    const aggregate = await readPrivateEditAuthorityAggregate({
+      localStorageRoot: root,
+      ownerUserId,
+      workspaceId,
+    })
+    assert.ok(aggregate)
+    const persistedSnapshots = aggregate.snapshots.filter((candidate) =>
+      candidate.projectId === project.id
+      && candidate.editSessionId === editSessionId
+      && (
+        preferenceRecord.lifecycle.phase === 'approved_snapshot'
+          ? candidate.snapshotId
+            === preferenceRecord.lifecycle.authorityReferenceId
+          : preferenceRecord.lifecycle.phase === 'credit_reserved'
+            ? candidate.reservationId
+              === preferenceRecord.lifecycle.authorityReferenceId
+            : false
+      )
+    )
+    assert.equal(
+      persistedSnapshots.length,
+      1,
+      'The locked edit preferences must resolve one exact approved snapshot.',
+    )
     const persistedApprovedAuthority =
       await createEditPlanningAuthorityService(context)
         .loadApprovedExecutionAuthority(
-          preferenceRecord.lifecycle.authorityReferenceId,
+          persistedSnapshots[0]!.snapshotId,
           workspaceId,
         )
     assert.equal(persistedApprovedAuthority.snapshot.projectId, project.id)

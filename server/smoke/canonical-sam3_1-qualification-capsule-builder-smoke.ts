@@ -80,6 +80,19 @@ for (const expected of [
 
 assert.equal((builder.match(/^download_wheel \\/gmu) ?? []).length, 22)
 assert.equal((builder.match(/^download_exact \\/gmu) ?? []).length, 2)
+const localWheelNames = [...builder.matchAll(/^download_wheel \\\n\s+'([^']+\.whl)'/gmu)]
+  .map((match) => match[1])
+assert.equal(localWheelNames.length, 22)
+assert.ok(
+  localWheelNames.every((fileName) => fileName.length <= 100),
+  'every canonical local wheel name must fit one USTAR name component',
+)
+assert.ok(localWheelNames.includes(
+  'charset_normalizer-3.4.9-cp312-cp312-manylinux_2_28_x86_64.whl',
+))
+assert.ok(builder.includes(
+  'charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
+))
 assert.doesNotMatch(builder, /python -m pip download/u)
 assert.doesNotMatch(builder, /python -m pip install/u)
 assert.doesNotMatch(builder, /(?:apt-get|conda install|git clone)/u)

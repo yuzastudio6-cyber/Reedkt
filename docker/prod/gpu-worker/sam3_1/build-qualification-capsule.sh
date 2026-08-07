@@ -144,7 +144,7 @@ download_wheel \
   '62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775' \
   '136983'
 download_wheel \
-  'charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
+  'charset_normalizer-3.4.9-cp312-cp312-manylinux_2_28_x86_64.whl' \
   'https://files.pythonhosted.org/packages/01/c4/4fa4c8b3097a11f3c5f09a35b72ed6855fb1d332469504962ab7bafcc702/charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
   '5e226f6218febc71f6c1fc2fafb91c226f75bdc1d8fb12d66823716e891608fd' \
   '224256'

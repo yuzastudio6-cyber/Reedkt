@@ -92,7 +92,11 @@ import {
 } from '../services/canonical-specialist-support-resume-service'
 import {
   buildCurrentPlanningInputAuthorityExpectation,
+  planningInputAuthorityExpectationFromResolvedBinding,
 } from '../services/planning-input-authority-binding-service'
+import {
+  createEditPlanningAuthorityService,
+} from '../services/edit-planning-authority-service'
 import {
   createProjectService,
 } from '../services/project-service'
@@ -387,7 +391,7 @@ try {
       })
     ).preferenceRecord
   }
-  const planningInputAuthority =
+  let planningInputAuthority =
     await buildCurrentPlanningInputAuthorityExpectation({
       context,
       scope: {
@@ -398,6 +402,25 @@ try {
         editSessionId,
       },
     })
+  if (preferenceRecord.lifecycle.locked) {
+    assert.equal(preferenceRecord.lifecycle.phase, 'approved_snapshot')
+    assert.ok(preferenceRecord.lifecycle.authorityReferenceId)
+    const persistedApprovedAuthority =
+      await createEditPlanningAuthorityService(context)
+        .loadApprovedExecutionAuthority(
+          preferenceRecord.lifecycle.authorityReferenceId,
+          workspaceId,
+        )
+    assert.equal(persistedApprovedAuthority.snapshot.projectId, project.id)
+    assert.equal(
+      persistedApprovedAuthority.snapshot.editSessionId,
+      editSessionId,
+    )
+    planningInputAuthority =
+      planningInputAuthorityExpectationFromResolvedBinding(
+        persistedApprovedAuthority.planningInputAuthority,
+      )
+  }
   const values = preferenceRecord.values
   const plannerInput: PlannerInput = {
     projectName: 'Caption B-roll approved run',

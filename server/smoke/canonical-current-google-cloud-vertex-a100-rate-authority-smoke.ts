@@ -76,7 +76,7 @@ assert.equal(requests.length, 16)
 assert.equal(requests.filter((url) => url.includes('/skus/')).length, 16)
 assert.equal(requests.some((url) => url.includes(BILLING_ACCOUNT)), true)
 
-const authority = await repository.reread({
+export const authority = await repository.reread({
   rateAuthorityRef: receipt.rateAuthorityRef,
   at: '2026-08-06T16:10:00.000Z',
 })

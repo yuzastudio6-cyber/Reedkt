@@ -374,9 +374,17 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && python -m pip uninstall --yes --break-system-packages \
     pillow urllib3 wheel \
   && dpkg --purge python3-pip python3-wheel \
+  && rm -rf \
+    /usr/local/lib/python3.12/dist-packages/setuptools \
+    /usr/local/lib/python3.12/dist-packages/setuptools-*.dist-info \
+    /usr/local/lib/python3.12/dist-packages/_distutils_hack \
+    /usr/local/lib/python3.12/dist-packages/distutils-precedence.pth \
   && ! find /usr/local/lib/python3.12/dist-packages -maxdepth 1 \
     \( -iname 'pillow-*.dist-info' -o -iname 'urllib3-*.dist-info' \
-       -o -iname 'wheel-*.dist-info' \) -print -quit | grep -q . \
+       -o -iname 'wheel-*.dist-info' -o -iname 'setuptools-*.dist-info' \
+    \) -print -quit | grep -q . \
+  && python -I -B -c \
+    "import importlib.util; assert importlib.util.find_spec('setuptools') is None" \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
     "import importlib.metadata as m; assert m.version('pillow') == '12.3.0'; assert m.version('urllib3') == '2.7.0'" \
   && test -d /usr/local/lib/python3.12/dist-packages/torch/lib \

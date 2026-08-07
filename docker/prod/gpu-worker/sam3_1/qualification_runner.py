@@ -25,10 +25,10 @@ from typing import Any
 
 
 REQUEST_VERSION = (
-    "canonical-sam3_1-source-checkpoint-qualification-worker-request-v1"
+    "canonical-sam3_1-source-checkpoint-qualification-worker-request-v2"
 )
 RESULT_VERSION = (
-    "canonical-sam3_1-source-checkpoint-qualification-worker-result-v1"
+    "canonical-sam3_1-source-checkpoint-qualification-worker-result-v2"
 )
 OPERATION_ID = "tool.sam3_1.segment_and_track_subject.v1"
 CANDIDATE_VERSION = "canonical-sam3_1-source-runtime-candidate-v4"
@@ -49,14 +49,34 @@ PATCH_SHA256 = (
 CHECKPOINT_REVISION = "daa63191845a41281374e725f4c9e51c7a824460"
 CHECKPOINT_FILE = "sam3.1_multiplex.pt"
 
-QUALIFICATION_MOUNT = Path("/mnt/disks/reeditpro/sam31-qualification")
+EXPECTED_UID = 65_532
+EXPECTED_GID = 65_532
+MAX_REQUEST_BYTES = 512 * 1024
+MAX_RESULT_BYTES = 512 * 1024
+MAX_CHECKPOINT_BYTES = 5_000_000_000
+MAX_FIXTURE_BYTES = 64 * 1024 * 1024
+RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
+PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
+SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
+GPU_DECODE_BACKEND_OBSERVATIONS: list[str] = []
+
+ATTEMPT_ID = os.environ.get("WEEDITPRO_GPU_INVOCATION_ID", "")
+if SAFE_ID.fullmatch(ATTEMPT_ID) is None or ".." in ATTEMPT_ID:
+    raise RuntimeError("server-owned Vertex qualification attempt is invalid")
+ATTEMPT_DIGEST_SHA256 = hashlib.sha256(json.dumps(
+    ATTEMPT_ID,
+    sort_keys=True,
+    separators=(",", ":"),
+    ensure_ascii=False,
+    allow_nan=False,
+).encode("utf-8")).hexdigest()
+QUALIFICATION_MOUNT = Path(
+    "/gcs/reeditpro-production-sam31-qualification-private/private/sam3_1/"
+    "source-checkpoint-qualification/v2/attempts"
+) / ATTEMPT_DIGEST_SHA256
 REQUEST_PATH = QUALIFICATION_MOUNT / "request/request.json"
-CHECKPOINT_PATH = Path(
-    "/mnt/disks/reeditpro/sam31-qualification/checkpoint/sam3.1_multiplex.pt"
-)
-FIXTURE_PATH = Path(
-    "/mnt/disks/reeditpro/sam31-qualification/fixture/probe-person.mp4"
-)
+CHECKPOINT_PATH = QUALIFICATION_MOUNT / "checkpoint/sam3.1_multiplex.pt"
+FIXTURE_PATH = QUALIFICATION_MOUNT / "fixture/probe-person.mp4"
 RESULT_PATH = QUALIFICATION_MOUNT / "result/result.json"
 SOURCE_ARCHIVE_PATH = Path(
     "/opt/reeditpro/sam3_1/qualification-artifacts/sam3-source.tar"
@@ -81,18 +101,6 @@ DEPENDENCY_RECEIPT_PATH = Path(
 WHEEL_MANIFEST_HASH_PATH = Path(
     "/opt/reeditpro/sam3_1/qualification-artifacts/wheel-manifest.sha256"
 )
-
-EXPECTED_UID = 65_532
-EXPECTED_GID = 65_532
-MAX_REQUEST_BYTES = 512 * 1024
-MAX_RESULT_BYTES = 512 * 1024
-MAX_CHECKPOINT_BYTES = 5_000_000_000
-MAX_FIXTURE_BYTES = 64 * 1024 * 1024
-RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
-PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
-SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
-GPU_DECODE_BACKEND_OBSERVATIONS: list[str] = []
-
 
 def verify_ffmpeg_nvdec_runtime() -> None:
     ffmpeg = "/opt/weeditpro/ffmpeg/bin/ffmpeg"
@@ -266,7 +274,9 @@ def read_request() -> dict[str, Any]:
     request = json.loads(payload.decode("utf-8"))
     keys = {
         "schemaVersion", "source", "evidenceClass", "qualificationId",
-        "qualificationVersion", "operationId", "candidateRef",
+        "qualificationVersion", "attemptId", "attemptDigestSha256",
+        "historicalPackageRequestRef",
+        "operationId", "candidateRef",
         "officialArtifactPublicationRef", "ingestReceiptRef", "sourceArchive",
         "qualificationImage",
         "patchedSourceArchive", "checkpoint", "dependencyClosure",
@@ -288,11 +298,27 @@ def validate_request(request: dict[str, Any]) -> None:
         or request["source"]
         != "canonical_server_sam3_1_source_checkpoint_qualification_owner"
         or request["evidenceClass"] != "canonical_private_reread"
-        or request["qualificationVersion"] != 1
+        or request["qualificationVersion"] != 2
         or request["operationId"] != OPERATION_ID
+        or request["attemptId"] != ATTEMPT_ID
+        or request["attemptDigestSha256"] != ATTEMPT_DIGEST_SHA256
     ):
         raise ValueError("qualification request identity changed")
     exact_id(request["qualificationId"], "qualification id")
+    historical = exact_dict(
+        request["historicalPackageRequestRef"],
+        {"id", "version", "schemaVersion", "contentHash"},
+        "historical package request ref",
+    )
+    if (
+        historical["id"] != request["qualificationId"]
+        or historical["version"] != 1
+        or historical["schemaVersion"]
+        != "canonical-sam3_1-source-checkpoint-qualification-worker-request-v1"
+        or not isinstance(historical["contentHash"], str)
+        or PREFIXED_SHA256.fullmatch(historical["contentHash"]) is None
+    ):
+        raise ValueError("historical package request lineage changed")
     try:
         issued_at = datetime.fromisoformat(request["issuedAt"])
     except (TypeError, ValueError) as error:
@@ -470,10 +496,14 @@ def validate_request(request: dict[str, Any]) -> None:
         raise ValueError("qualification artifact refs lost exact bytes")
     runtime = request["runtime"]
     if runtime != {
-        "executionTarget": "google_cloud_batch_a2_ultra_job",
+        "routeId": "a100_80gb_heavy_primary",
+        "executionTarget": "google_cloud_vertex_custom_job_a2_ultra",
+        "customJobParent": "projects/reeditpro/locations/us-central1",
         "machineType": "a2-ultragpu-1g",
         "accelerator": "nvidia_a100_80gb",
+        "vertexAcceleratorType": "NVIDIA_A100_80GB",
         "allocatedGpuCount": 1,
+        "replicaCount": 1,
         "baseImageDigest": BASE_IMAGE_DIGEST,
         "pythonVersion": "3.12",
         "torchVersion": "2.10.0+cu128",
@@ -497,16 +527,26 @@ def validate_request(request: dict[str, Any]) -> None:
         "repeatedProbeRunCount": 3,
         "bfloat16AutocastRequired": True,
         "cudaOutputTensorsRequired": True,
+        "privateArtifactTransport": (
+            "vertex_ai_cloud_storage_fuse_fixed_attempt_scope"
+        ),
+        "privateArtifactBucket": (
+            "reeditpro-production-sam31-qualification-private"
+        ),
+        "attemptScopeDerivedOnlyFromServerAttemptId": True,
         "networkEgressAllowed": False,
         "runtimeDownloadAllowed": False,
         "developerMachineExecutionAllowed": False,
+        "persistentResourceAllowed": False,
+        "automaticRetryAllowed": False,
+        "minimumIdleInstances": 0,
         "callerCommandModuleClassModelPathUrlOrEnvironmentAccepted": False,
-        "automaticRetryAfterUnknownOutcomeAllowed": False,
     }:
         raise ValueError("qualification runtime policy changed")
     authority = request["authority"]
     if authority != {
         "sourceCheckpointQualificationOnly": True,
+        "legacyBatchRequestCastOrRelabelAllowed": False,
         "imageBuildStarted": False,
         "productionRuntimeDispatchAuthorized": False,
         "customerCreditsMutated": False,
@@ -819,14 +859,18 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     completed_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     payload = {
         "schemaVersion": RESULT_VERSION,
-        "source": "fixed_sam3_1_a100_source_checkpoint_qualification_worker",
+        "source": (
+            "fixed_sam3_1_vertex_a100_source_checkpoint_qualification_worker"
+        ),
         "evidenceClass": "canonical_private_reread",
         "qualificationId": request["qualificationId"],
-        "qualificationVersion": 1,
+        "qualificationVersion": 2,
+        "attemptId": ATTEMPT_ID,
+        "attemptDigestSha256": ATTEMPT_DIGEST_SHA256,
         "operationId": OPERATION_ID,
         "requestRef": {
             "id": request["qualificationId"],
-            "version": 1,
+            "version": 2,
             "schemaVersion": REQUEST_VERSION,
             "contentHash": f"sha256:{request['requestHash']}",
         },
@@ -852,7 +896,8 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             "unsafeCheckpointGlobalCount": 0,
         },
         "runtime": {
-            "executionTarget": "google_cloud_batch_a2_ultra_job",
+            "routeId": "a100_80gb_heavy_primary",
+            "executionTarget": "google_cloud_vertex_custom_job_a2_ultra",
             "machineType": "a2-ultragpu-1g",
             "accelerator": "nvidia_a100_80gb",
             "allocatedGpuCount": 1,
@@ -874,12 +919,21 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             "cpuVideoDecodeFallbackObserved": False,
             "cudaVersion": torch.version.cuda,
             "fixedBuilder": "build_sam3_multiplex_video_predictor",
+            "privateArtifactTransport": (
+                "vertex_ai_cloud_storage_fuse_fixed_attempt_scope"
+            ),
+            "exactAttemptScopeDerivedFromServerAttemptId": True,
+            "requestCheckpointAndFixtureRereadFromPrivateGenerationBoundScope": (
+                True
+            ),
+            "resultCreatedOnceInExactPrivateAttemptScope": True,
             "networkEgressObserved": False,
             "developerMachineExecutionObserved": False,
             "cpuOnlyModelExecutionObserved": False,
             "quantizationOrResolutionReductionUsed": False,
             "providerInferenceExecuted": False,
             "bfloat16AutocastExecuted": True,
+            "persistentResourceObserved": False,
         },
         "strictLoad": {
             "fixedBuilderImportedFromPinnedSource": True,
@@ -901,6 +955,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         "completedAt": completed_at,
         "authority": {
             "qualificationEvidenceOnly": True,
+            "legacyBatchResultCastOrRelabelAllowed": False,
             "imageBuildStarted": False,
             "productionRuntimeDispatchAuthorized": False,
             "customerCreditsMutated": False,

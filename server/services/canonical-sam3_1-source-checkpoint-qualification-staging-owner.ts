@@ -955,7 +955,7 @@ function targetNameFor(remoteSubdirectory: string, name: string): string {
 }
 
 function assertRemoteSubdirectory(value: string): void {
-  if (!/^private\/sam3_1\/source-checkpoint-qualification\/v1\/attempts\/[a-f0-9]{64}$/u
+  if (!/^private\/sam3_1\/source-checkpoint-qualification\/v(?:1|2)\/attempts\/[a-f0-9]{64}$/u
     .test(value)) {
     throw new Error('SAM 3.1 qualification remote subdirectory is invalid.')
   }

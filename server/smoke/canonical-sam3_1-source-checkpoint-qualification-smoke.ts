@@ -223,10 +223,13 @@ assert.match(runner, /frame\.device\.type != "cuda"/u)
 assert.match(runner, /"0\.10\.0\+cu128"/u)
 assert.match(
   runner,
-  /QUALIFICATION_MOUNT = Path\("\/mnt\/disks\/reeditpro\/sam31-qualification"\)/u,
+  /source-checkpoint-qualification\/v2\/attempts/u,
 )
 assert.match(runner, /REQUEST_PATH = QUALIFICATION_MOUNT \/ "request\/request\.json"/u)
-assert.doesNotMatch(runner, /Path\("\/mnt\/reeditpro\//u)
+assert.match(runner, /google_cloud_vertex_custom_job_a2_ultra/u)
+assert.match(runner, /WEEDITPRO_GPU_INVOCATION_ID/u)
+assert.doesNotMatch(runner, /\/mnt\/disks\/reeditpro/u)
+assert.doesNotMatch(runner, /google_cloud_batch_a2_ultra_job/u)
 assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
 assert.match(entrypoint, /nvidia_a100_80gb/u)
 assert.match(

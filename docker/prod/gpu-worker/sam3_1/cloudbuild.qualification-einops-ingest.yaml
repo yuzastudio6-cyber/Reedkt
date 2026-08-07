@@ -125,6 +125,10 @@ steps:
             raise SystemExit("einops license digest changed")
         destination.chmod(0o444)
         PY
+        # The pinned malware-scanner image runs as a fixed non-root identity.
+        # Keep the verified wheel immutable while allowing that isolated step
+        # to create only its scan-summary receipt in the shared build volume.
+        chmod 0777 /workspace/private-einops-ingest
   - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
     id: malware-scan-exact-einops-wheel
     waitFor:

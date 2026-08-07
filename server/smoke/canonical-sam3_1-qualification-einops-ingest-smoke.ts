@@ -25,6 +25,8 @@ for (const expected of [
   'einops wheel origin is not exact official PyPI HTTPS',
   'WeEditPro-SAM31-einops-ingest-v1',
   'pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081',
+  'destination.chmod(0o444)',
+  'chmod 0777 /workspace/private-einops-ingest',
   'malware-scan-exact-einops-wheel',
   'weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20',
   '--if-generation-match=0',

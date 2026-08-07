@@ -231,6 +231,7 @@
     "build:sam3_1-private-artifact-ingest-image": "bash scripts/gcp/prod/23-build-sam31-private-artifact-ingest-image.sh",
     "build:sam3_1-private-artifact-review-image": "bash scripts/gcp/prod/29-build-sam31-private-artifact-review-image.sh",
     "build:sam3_1-qualification-capsule": "bash scripts/gcp/prod/31-build-sam31-qualification-capsule.sh",
+    "grant:sam3_1-qualification-source-reader": "bash scripts/gcp/prod/32-grant-sam31-qualification-source-reader.sh",
     "deploy:sam3_1-private-artifact-review-job": "bash scripts/gcp/prod/30-deploy-sam31-private-artifact-review-job.sh",
     "build:sam3_1-authorized-terms-finalization-image": "bash scripts/gcp/prod/25-build-sam31-authorized-terms-finalization-image.sh",
     "deploy:sam3_1-authorized-terms-finalization-job": "bash scripts/gcp/prod/26-deploy-sam31-authorized-terms-finalization-job.sh",

@@ -19,6 +19,10 @@ const operator = readFileSync(
   'scripts/gcp/prod/31-build-sam31-qualification-capsule.sh',
   'utf8',
 )
+const sourceReaderGrant = readFileSync(
+  'scripts/gcp/prod/32-grant-sam31-qualification-source-reader.sh',
+  'utf8',
+)
 const gcloudIgnore = readFileSync(`${root}/.gcloudignore`, 'utf8')
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   scripts?: Record<string, string>
@@ -142,9 +146,34 @@ for (const expected of [
 ] as const) assert.ok(operator.includes(expected), `operator lost ${expected}`)
 assert.doesNotMatch(operator, /(?:secret|checkpoint|model-artifact|docker run)/iu)
 
+for (const expected of [
+  "readonly PROJECT_ID='reeditpro'",
+  "readonly BUCKET='reeditpro-production-reeditpro-model-artifacts'",
+  "'reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'",
+  "readonly ROLE='roles/storage.objectViewer'",
+  "readonly CONDITION_TITLE='weeditpro_sam31_qualification_source_read_v1'",
+  'objects/private/model-artifacts/sam3_1/source/',
+  'resource.name.startsWith',
+  'gcloud storage buckets add-iam-policy-binding',
+  'gcloud storage buckets get-iam-policy',
+  'checkpointReadAuthorized',
+  'objectWriteOrDeleteAuthorized',
+] as const) assert.ok(
+  sourceReaderGrant.includes(expected),
+  `source-reader grant lost ${expected}`,
+)
+assert.doesNotMatch(
+  sourceReaderGrant,
+  /(?:objectAdmin|objectCreator|storage\.admin|secretAccessor|checkpoint\/|gpu-worker)/iu,
+)
+
 assert.equal(
   packageJson.scripts?.['build:sam3_1-qualification-capsule'],
   'bash scripts/gcp/prod/31-build-sam31-qualification-capsule.sh',
+)
+assert.equal(
+  packageJson.scripts?.['grant:sam3_1-qualification-source-reader'],
+  'bash scripts/gcp/prod/32-grant-sam31-qualification-source-reader.sh',
 )
 
 console.log(JSON.stringify({

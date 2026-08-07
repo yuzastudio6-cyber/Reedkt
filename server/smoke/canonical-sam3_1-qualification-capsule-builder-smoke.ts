@@ -131,6 +131,8 @@ for (const expected of [
   "readonly REGION='us-central1'",
   "readonly CONFIRMATION='start-weeditpro-sam31-qualification-capsule-build-v1'",
   "readonly CONTEXT='docker/prod/gpu-worker/sam3_1'",
+  "readonly APPLE_COMMAND_LINE_TOOLS='/Library/Developer/CommandLineTools'",
+  'env DEVELOPER_DIR="${APPLE_COMMAND_LINE_TOOLS}"',
   'git status --short',
   'gcloud config get project',
   'git rev-parse HEAD',

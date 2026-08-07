@@ -6,6 +6,7 @@ readonly REGION='us-central1'
 readonly CONFIRMATION='start-weeditpro-sam31-qualification-capsule-build-v1'
 readonly CONTEXT='docker/prod/gpu-worker/sam3_1'
 readonly CONFIG="${CONTEXT}/cloudbuild.qualification-capsule.yaml"
+readonly APPLE_COMMAND_LINE_TOOLS='/Library/Developer/CommandLineTools'
 
 [[ $# -eq 0 ]] || { printf 'ERROR: caller arguments are forbidden.\n' >&2; exit 64; }
 [[ "${WEEDITPRO_CONFIRM_SAM31_QUALIFICATION_CAPSULE_BUILD:-}" = "${CONFIRMATION}" ]] \
@@ -17,13 +18,18 @@ done
 [[ -f "${CONFIG}" ]]
 [[ -f "${CONTEXT}/Dockerfile.qualification-capsule-builder" ]]
 [[ -f "${CONTEXT}/build-qualification-capsule.sh" ]]
-[[ -z "$(env -u DEVELOPER_DIR git status --short)" ]] \
+[[ -d "${APPLE_COMMAND_LINE_TOOLS}" ]] \
+  || { printf 'ERROR: Apple Command Line Tools are unavailable.\n' >&2; exit 1; }
+[[ -z "$(env DEVELOPER_DIR="${APPLE_COMMAND_LINE_TOOLS}" \
+  git status --short)" ]] \
   || { printf 'ERROR: source worktree must be clean.\n' >&2; exit 1; }
 [[ "$(gcloud config get project 2>/dev/null)" = "${PROJECT_ID}" ]] \
   || { printf 'ERROR: active gcloud project changed.\n' >&2; exit 1; }
 
-readonly COMMIT="$(env -u DEVELOPER_DIR git rev-parse HEAD)"
-readonly TREE="$(env -u DEVELOPER_DIR git rev-parse 'HEAD^{tree}')"
+readonly COMMIT="$(env DEVELOPER_DIR="${APPLE_COMMAND_LINE_TOOLS}" \
+  git rev-parse HEAD)"
+readonly TREE="$(env DEVELOPER_DIR="${APPLE_COMMAND_LINE_TOOLS}" \
+  git rev-parse 'HEAD^{tree}')"
 exec gcloud builds submit "${CONTEXT}" \
   --project="${PROJECT_ID}" \
   --region="${REGION}" \

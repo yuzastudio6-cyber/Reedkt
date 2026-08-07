@@ -56,7 +56,6 @@ async function main(): Promise<void> {
       createCanonicalSam31GcsOfficialArtifactPublicationPort({
         projectId: PROJECT_ID,
         bucketName: MODEL_ARTIFACT_BUCKET,
-        storage,
       }),
     publishedAt: new Date().toISOString(),
   })

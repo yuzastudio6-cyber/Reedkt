@@ -480,6 +480,14 @@ const cliSource = readFileSync(
   'server/cli/canonical-sam3_1-official-artifact-ingest.ts',
   'utf8',
 )
+const gcsPublicationSource = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-gcs-official-artifact-publication.ts',
+  'utf8',
+)
+const artifactPublicationSource = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-official-artifact-publication.ts',
+  'utf8',
+)
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   readonly scripts?: Readonly<Record<string, string>>
 }
@@ -494,6 +502,14 @@ assert.match(cliSource,
 assert.match(cliSource,
   /preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
 assert.doesNotMatch(cliSource, /hf_[A-Za-z0-9]{20,}/u)
+assert.match(gcsPublicationSource,
+  /RESUMABLE_CHUNK_BYTE_LENGTH = 8 \* 1024 \* 1024/u)
+assert.match(gcsPublicationSource, /contentLength: value\.expectedByteLength/u)
+assert.match(gcsPublicationSource, /autoRetry: false/u)
+assert.match(gcsPublicationSource,
+  /idempotencyStrategy: IdempotencyStrategy\.RetryNever/u)
+assert.match(artifactPublicationSource,
+  /CHECKPOINT_BYTE_LENGTH = 3_502_755_717/u)
 assert.equal(
   packageJson.scripts?.['publish:sam3_1-official-artifacts'],
   'tsx server/cli/canonical-sam3_1-official-artifact-ingest.ts --execute',
@@ -501,7 +517,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-publication',
-  checks: 50,
+  checks: 55,
   cloudOnly: true,
   officialSourcePinned: true,
   officialGatedCheckpointPinned: true,
@@ -509,6 +525,7 @@ console.log(JSON.stringify({
   authorizationRemovedBeforeRedirect: true,
   createOnlyGcsWrite: true,
   exactGenerationReread: true,
+  exactLengthBoundedMultiChunkResumableUpload: true,
   boundedFailureStageDiagnostics: true,
   rawFailureDetailExcludedFromOperatorLog: true,
   automaticRetryAllowed: false,

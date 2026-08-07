@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 
-import { Storage } from '@google-cloud/storage'
+import { IdempotencyStrategy, Storage } from '@google-cloud/storage'
 
 import {
   canonicalSam31PrivateArtifactObjectCoordinateSchema,
@@ -20,6 +20,7 @@ export const CANONICAL_SAM3_1_GCS_PRIVATE_ARTIFACT_READ_PORT_VERSION =
 const PROJECT_ID = 'reeditpro' as const
 const MODEL_ARTIFACT_BUCKET =
   'reeditpro-production-reeditpro-model-artifacts' as const
+const RESUMABLE_CHUNK_BYTE_LENGTH = 8 * 1024 * 1024
 
 type CanonicalSam31PrivateArtifactPublicationFailureCode =
   | 'artifact_identity_or_bounds_failed'
@@ -64,7 +65,14 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
     input.projectId !== PROJECT_ID
     || input.bucketName !== MODEL_ARTIFACT_BUCKET
   ) throw new Error('SAM 3.1 GCS publication coordinate is not canonical.')
-  const storage = input.storage ?? new Storage({ projectId: input.projectId })
+  const storage = input.storage ?? new Storage({
+    projectId: input.projectId,
+    retryOptions: {
+      autoRetry: false,
+      maxRetries: 0,
+      idempotencyStrategy: IdempotencyStrategy.RetryNever,
+    },
+  })
   return Object.freeze({
     schemaVersion:
       CANONICAL_SAM3_1_GCS_OFFICIAL_ARTIFACT_PUBLICATION_PORT_VERSION,
@@ -97,10 +105,14 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
         | undefined
       const destination = liveFile.createWriteStream({
         resumable: true,
+        chunkSize: value.expectedByteLength === undefined
+          ? undefined
+          : RESUMABLE_CHUNK_BYTE_LENGTH,
         validation: 'crc32c',
         preconditionOpts: { ifGenerationMatch: 0 },
         metadata: {
           contentType: value.contentType,
+          contentLength: value.expectedByteLength,
           cacheControl: 'private, no-store',
           metadata: {
             'weeditpro-artifact-kind': value.contentType

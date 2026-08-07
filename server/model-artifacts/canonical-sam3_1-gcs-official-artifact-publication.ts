@@ -26,9 +26,10 @@ type CanonicalSam31PrivateArtifactPublicationFailureCode =
   | 'artifact_stream_invalid'
   | 'source_acquisition_failed'
   | 'source_archive_command_failed'
-  | 'source_archive_diagnostics_failed'
-  | 'source_archive_output_failed'
-  | 'source_archive_process_failed'
+  | 'source_archive_cleanup_failed'
+  | 'source_archive_file_invalid'
+  | 'source_archive_file_read_failed'
+  | 'source_archive_identity_changed'
   | 'source_archive_stream_invalid'
   | 'source_identity_changed'
   | 'storage_authorization_failed'
@@ -433,15 +434,17 @@ function classifyPublicationFailure(
       || message
         === 'SAM 3.1 official source archive command did not complete.'
     ) return 'source_archive_command_failed'
-    if (
-      message
-        === 'SAM 3.1 official source archive diagnostics stream failed.'
-    ) return 'source_archive_diagnostics_failed'
-    if (
-      message === 'SAM 3.1 official source archive output stream failed.'
-    ) return 'source_archive_output_failed'
-    if (message === 'SAM 3.1 official source archive process failed.') {
-      return 'source_archive_process_failed'
+    if (message === 'SAM 3.1 official source archive cleanup failed.') {
+      return 'source_archive_cleanup_failed'
+    }
+    if (message === 'SAM 3.1 official source archive file is invalid.') {
+      return 'source_archive_file_invalid'
+    }
+    if (message === 'SAM 3.1 official source archive file read failed.') {
+      return 'source_archive_file_read_failed'
+    }
+    if (message === 'SAM 3.1 official source archive identity changed.') {
+      return 'source_archive_identity_changed'
     }
     if (message === 'SAM 3.1 Git archive stream is invalid.') {
       return 'source_archive_stream_invalid'

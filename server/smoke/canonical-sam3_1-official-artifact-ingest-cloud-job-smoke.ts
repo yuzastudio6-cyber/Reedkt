@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 const root = process.cwd()
 const read = (path: string) => readFile(`${root}/${path}`, 'utf8')
 const [dockerfile, buildConfig, buildScript, deployScript, viteConfig, cli,
-  packageJson] =
+  streamRuntime, packageJson] =
   await Promise.all([
     read('docker/prod/sam31-official-artifact-ingest/Dockerfile'),
     read('scripts/gcp/prod/cloudbuild-sam31-official-artifact-ingest.yaml'),
@@ -12,6 +12,9 @@ const [dockerfile, buildConfig, buildScript, deployScript, viteConfig, cli,
     read('scripts/gcp/prod/21-deploy-sam31-official-artifact-ingest-job.sh'),
     read('vite.sam31-official-artifact-ingest.config.ts'),
     read('server/cli/canonical-sam3_1-official-artifact-ingest.ts'),
+    read(
+      'server/model-artifacts/canonical-sam3_1-official-artifact-stream-runtime.ts',
+    ),
     read('package.json'),
   ])
 
@@ -107,16 +110,26 @@ assert.match(cli, /const EXPECTED_JOB = 'weeditpro-sam31-official-artifact-inges
 assert.match(cli, /publishCanonicalSam31OfficialPrivateArtifacts/u)
 assert.match(cli, /createCanonicalSam31CloudOfficialArtifactStreamPort/u)
 assert.match(cli, /createCanonicalSam31GcsOfficialArtifactPublicationPort/u)
+assert.match(streamRuntime, /SOURCE_ARCHIVE_BYTE_LENGTH = 73_605_120/u)
+assert.match(streamRuntime,
+  /5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a/u)
+assert.match(streamRuntime, /sam3-source\.tar/u)
+assert.match(streamRuntime, /assertPinnedArchiveIdentity/u)
+assert.match(streamRuntime, /createReadStream\(archivePath\)/u)
+assert.match(streamRuntime, /await rm\(root, \{ recursive: true, force: true \}\)/u)
+assert.doesNotMatch(streamRuntime, /writeFile.*sam3\.1_multiplex\.pt/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-ingest-cloud-job',
-  checks: 73,
+  checks: 80,
   dedicatedSourceBoundImage: true,
   dedicatedSingleEntryBundle: true,
   pinnedBaseAndCloudBuilder: true,
   immutableImageRequired: true,
   exactCleanBuildSlsaAndVulnerabilityScanRereadRequired: true,
   exactHumanTermsObjectRequired: true,
+  exactSourceArchiveStagedAndHashedInCloudOnly: true,
+  multiGigabyteCheckpointNeverStagedOnDeveloperMachine: true,
   exactEnabledSecretVersionRequired: true,
   dedicatedLeastPrivilegeServiceIdentity: true,
   cloudJobDeploymentDoesNotExecuteJob: true,

@@ -1,0 +1,19 @@
+steps:
+  - name: pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca
+    entrypoint: /bin/bash
+    args:
+      - -ceu
+      - |
+        python -I -B -c "import json,pathlib,sys,torch,torchvision; torch_lib=(pathlib.Path(torch.__file__).resolve().parent/'lib'); print(json.dumps({'pythonVersion': '.'.join(map(str, sys.version_info[:3])), 'pythonPrefix': sys.prefix, 'pythonBasePrefix': sys.base_prefix, 'torchVersion': torch.__version__, 'torchvisionVersion': torchvision.__version__, 'torchCudaVersion': torch.version.cuda, 'torchLibraryDirectory': str(torch_lib), 'torchLibraryDirectoryExists': torch_lib.is_dir()}, sort_keys=True))"
+        test -d /usr/local/lib/python3.12/dist-packages/torch/lib
+        find /usr/local/lib/python3.12/dist-packages/torch/lib -maxdepth 1 -type f \
+          \( -name 'libtorch*.so' -o -name 'libc10*.so' \) \
+          -printf '%p\n' | LC_ALL=C sort
+        find /usr/local/cuda /usr/local/lib/python3.12/dist-packages/nvidia \
+          -type f \( -name 'libcudart.so.12' -o -name 'libnvrtc.so.12' \) \
+          -printf '%p\n' 2>/dev/null | LC_ALL=C sort
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 600s

@@ -106,6 +106,20 @@ assert.equal(observation.authority.gpuRuntimeAuthorized, false)
 assert.equal(observation.authority.customerCreditsMutated, false)
 assert.equal(observation.authority.productionReady, false)
 
+const currentOfficialCdnObservation = await createVerifier({
+  fetchImpl: sequenceFetch(
+    metadataResponse(),
+    checkpointHeadResponse(
+      'https://us.aws.cdn.hf.co/signed/sam3.1_multiplex.pt',
+    ),
+  ),
+}).verifyOfficialGatedRepositoryAccess({ humanTermsIntent: intent })
+assert.equal(
+  currentOfficialCdnObservation.checkpointRedirectTargetOriginAllowlisted,
+  true,
+)
+assert.equal(currentOfficialCdnObservation.checkpointBytesDownloaded, false)
+
 await assert.rejects(createVerifier({
   fetchImpl: async () => new Response('denied', { status: 401 }),
 }).verifyOfficialGatedRepositoryAccess({ humanTermsIntent: intent }))
@@ -148,10 +162,11 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-hugging-face-official-access-verifier',
-  checks: 34,
+  checks: 36,
   exactOfficialMetadataRevisionAndFileObserved: true,
   exactPinnedSecretVersionResolved: true,
   checkpointHeadAuthorized: true,
+  currentOfficialUsAwsCdnHostAllowlistedExactly: true,
   checkpointRedirectFollowed: false,
   checkpointBytesDownloaded: false,
   responseBodyPersisted: false,

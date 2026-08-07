@@ -28,6 +28,7 @@ const CHECKPOINT_REPOSITORY = 'facebook/sam3.1' as const
 const CHECKPOINT_REVISION =
   'daa63191845a41281374e725f4c9e51c7a824460' as const
 const CHECKPOINT_FILE = 'sam3.1_multiplex.pt' as const
+const CHECKPOINT_BYTE_LENGTH = 3_502_755_717 as const
 const SOURCE_PREFIX = 'private/model-artifacts/sam3_1/source/' as const
 const CHECKPOINT_PREFIX =
   'private/model-artifacts/sam3_1/checkpoint/' as const
@@ -148,8 +149,7 @@ const publicationWithoutHashSchema = z.object({
         || value.sourceArchive.coordinate.byteLength !== SOURCE_BYTE_LENGTH
         || value.sourceArchive.coordinate.sha256 !== SOURCE_SHA256
         || !value.sourceArchive.expectedByteLengthAndSha256Enforced
-        || value.checkpoint.coordinate.byteLength < 3_000_000_000
-        || value.checkpoint.coordinate.byteLength > 5_000_000_000
+        || value.checkpoint.coordinate.byteLength !== CHECKPOINT_BYTE_LENGTH
         || !value.checkpoint.authorizedHumanTermsAcceptanceReread
         || !value.checkpoint.accessTokenReadFromPinnedSecretVersion
         || value.runtimeBinding.officialArtifactStreamPortVersion
@@ -300,8 +300,9 @@ export async function publishCanonicalSam31OfficialPrivateArtifacts(input: {
       objectName: checkpointObjectName,
       contentType: checkpoint.contentType,
       body: checkpoint.body,
-      minimumByteLength: canonical ? 3_000_000_000 : 1,
-      maximumByteLength: canonical ? 5_000_000_000 : 1024 * 1024,
+      minimumByteLength: canonical ? CHECKPOINT_BYTE_LENGTH : 1,
+      maximumByteLength: canonical ? CHECKPOINT_BYTE_LENGTH : 1024 * 1024,
+      expectedByteLength: canonical ? CHECKPOINT_BYTE_LENGTH : undefined,
     })
   const candidateRef = evidenceRefSchema.parse({
     id: `sam31-source-runtime-candidate-${candidate.candidateHash.slice(0, 24)}`,

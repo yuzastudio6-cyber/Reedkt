@@ -37,7 +37,7 @@ const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const CREATE_ENDPOINT =
-  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro' as const
 const DEFAULT_PREFIX =
   'private/track-all/sam3_1/v1/l4-task-qa/cloud-image-build'
 const CLOUD_PLATFORM_SCOPE =

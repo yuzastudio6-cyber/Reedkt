@@ -1,0 +1,257 @@
+steps:
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-official-source
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        mkdir -p private-staging
+        gcloud storage cp \
+          --if-generation-match=1786071963625032 \
+          gs://reeditpro-production-reeditpro-model-artifacts/private/model-artifacts/sam3_1/source/96914d2425f90a64f45ca977c2b5165418099543/sam31-weeditpro-official-ingest-20260806-v12-bb0aa9fdb01770a4/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar \
+          private-staging/sam3-source.tar
+        test "$$(stat --format='%s' private-staging/sam3-source.tar)" = 73605120
+        printf '%s  %s\n' \
+          5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a \
+          private-staging/sam3-source.tar | sha256sum --check --strict
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-reviewed-dependency-closure
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        mkdir -p private-staging private-dependency-closure/dependency-closure
+        gcloud storage cp \
+          --if-generation-match=1786094618776519 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/reproducibility/a096821a-07cb-4390-a91b-43bb794ed4e2/5a6360bedc2930bd338421a45b4cfed3e0bee6638ca97f8675d461d551ca2743.tar.gz \
+          private-staging/reviewed-dependency-closure-bootstrap.tar.gz
+        test "$$(stat --format='%s' private-staging/reviewed-dependency-closure-bootstrap.tar.gz)" = 218633787
+        printf '%s  %s\n' \
+          5a6360bedc2930bd338421a45b4cfed3e0bee6638ca97f8675d461d551ca2743 \
+          private-staging/reviewed-dependency-closure-bootstrap.tar.gz \
+          | sha256sum --check --strict
+        tar --extract --gzip \
+          --file=private-staging/reviewed-dependency-closure-bootstrap.tar.gz \
+          --directory=private-dependency-closure \
+          --strip-components=1 \
+          --no-same-owner --no-same-permissions \
+          sam31_private_build_input/dependency-closure
+        test -d private-dependency-closure/dependency-closure
+        test "$$(find private-dependency-closure/dependency-closure \
+          -type f | wc -l)" = 31
+        test -z "$$(find private-dependency-closure/dependency-closure \
+          -mindepth 1 ! -type d ! -type f -print -quit)"
+        mkdir -p \
+          private-dependency-closure/dependency-closure/cuda-npp \
+          private-dependency-closure/dependency-closure/os-security-updates \
+          private-dependency-closure/dependency-closure/wheelhouse \
+          private-dependency-closure/dependency-closure/python-ingest/einops \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools
+        gcloud storage cp \
+          --if-generation-match=1786101660398565 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/native-dependencies/libnpp-12-8/12.3.3.100-1/54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992.deb \
+          private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb)" = 131485608
+        printf '%s  %s\n' \
+          54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992 \
+          private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786106120404202 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/einops/0.8.2/54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193.whl \
+          private-dependency-closure/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl)" = 65638
+        printf '%s  %s\n' \
+          54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193 \
+          private-dependency-closure/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786106528199762 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/einops/0.8.2/ingest/69881838-2efb-40db-ba3a-fcfa0179c18e/einops-ingest-receipt.json \
+          private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json)" = 1778
+        printf '%s  %s\n' \
+          d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608 \
+          private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786112742762071 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/pycocotools/2.0.11/a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd.whl \
+          private-dependency-closure/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)" = 411685
+        printf '%s  %s\n' \
+          a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd \
+          private-dependency-closure/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786112748711226 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/pycocotools/2.0.11/ingest/d5088d0d-94eb-45d1-b020-f9d7683eb9bf/pycocotools-ingest-receipt.json \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json)" = 1782
+        printf '%s  %s\n' \
+          a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3 \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json \
+          | sha256sum --check --strict
+        rm -f \
+          private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.6.3-py3-none-any.whl
+        chmod 0444 prepare-qualification-security-closure.py
+        chmod 0777 \
+          private-dependency-closure/dependency-closure/wheelhouse \
+          private-dependency-closure/dependency-closure/os-security-updates
+  - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
+    id: prepare-exact-security-remediation-closure
+    waitFor:
+      - reread-exact-reviewed-dependency-closure
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
+        python3 -I -B prepare-qualification-security-closure.py
+        chmod 0444 \
+          private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl \
+          private-dependency-closure/dependency-closure/os-security-updates/*.deb \
+          private-dependency-closure/dependency-closure/os-security-updates/security-update-receipt.json
+        test "$$(find private-dependency-closure/dependency-closure \
+          -type f | wc -l)" = 40
+  - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
+    id: prepare-exact-patched-source
+    waitFor:
+      - reread-exact-official-source
+      - prepare-exact-security-remediation-closure
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        chmod 0555 prepare-qualification-source.sh
+        ./prepare-qualification-source.sh
+  - name: gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147
+    id: build-fixed-qualification-capsule
+    waitFor:
+      - prepare-exact-patched-source
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        docker build \
+          --pull=false \
+          --no-cache \
+          --platform=linux/amd64 \
+          --build-arg=WEEDITPRO_REPOSITORY_COMMIT=${_REPOSITORY_COMMIT} \
+          --build-arg=WEEDITPRO_REPOSITORY_TREE=${_REPOSITORY_TREE} \
+          --file=Dockerfile.qualification-capsule-builder \
+          --tag=weeditpro-sam31-qualification-capsule:source-bound-v1 \
+          .
+        container_id="$$(docker create \
+          weeditpro-sam31-qualification-capsule:source-bound-v1)"
+        trap 'docker rm --force "$${container_id}" >/dev/null 2>&1 || true' EXIT
+        mkdir -p /workspace/private-capsule-output
+        docker cp "$${container_id}:/output/." /workspace/private-capsule-output/
+        test "$$(find /workspace/private-capsule-output -maxdepth 1 \
+          -type f -name '*.tar.gz' | wc -l)" = 1
+        test "$$(find /workspace/private-capsule-output -maxdepth 1 \
+          -type f -name '*.capsule.json' | wc -l)" = 1
+        find /workspace/private-capsule-output -maxdepth 1 -type f \
+          -exec chmod 0444 '{}' +
+        chmod 0555 /workspace/private-capsule-output
+        mkdir -p /workspace/private-capsule-scan-output
+        chmod 0777 /workspace/private-capsule-scan-output
+        docker rm "$${container_id}" >/dev/null
+        trap - EXIT
+  - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
+    id: static-scan-fixed-capsule
+    waitFor:
+      - build-fixed-qualification-capsule
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
+        capsule="$$(find /workspace/private-capsule-output -maxdepth 1 \
+          -type f -name '*.tar.gz' -print)"
+        test -n "$${capsule}"
+        test "$$(printf '%s\n' "$${capsule}" | wc -l)" = 1
+        scanner_version="$$(clamscan --version)"
+        scan_output="$$(clamscan --infected --scan-archive=yes \
+          --max-filesize=4095M --max-scansize=4095M --max-recursion=32 \
+          --max-files=1000000 --max-scantime=0 "$${capsule}")"
+        printf '%s\n' "$${scan_output}"
+        known_viruses="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Known viruses:[[:space:]]*//p')"
+        scanned_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Scanned files:[[:space:]]*//p')"
+        infected_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Infected files:[[:space:]]*//p')"
+        test "$${known_viruses}" -ge 1000000
+        test "$${scanned_files}" -ge 1
+        test "$${infected_files}" = 0
+        python3 -I -B - \
+          "$${capsule}" \
+          /workspace/private-capsule-scan-output/capsule-malware-scan.json \
+          "$${scanner_version}" "$${known_viruses}" "$${scanned_files}" <<'PY'
+        import hashlib
+        import json
+        from pathlib import Path
+        import re
+        import sys
+
+        capsule_path = Path(sys.argv[1])
+        output_path = Path(sys.argv[2])
+        scanner_version = sys.argv[3]
+        known_viruses = int(sys.argv[4])
+        scanned_files = int(sys.argv[5])
+        capsule = capsule_path.read_bytes()
+        capsule_sha256 = hashlib.sha256(capsule).hexdigest()
+        if capsule_path.name != f"{capsule_sha256}.tar.gz":
+            raise SystemExit("capsule object name is not content addressed")
+        if re.fullmatch(r"ClamAV [0-9.]+/[0-9]+/.+", scanner_version) is None:
+            raise SystemExit("ClamAV version receipt is malformed")
+        record = {
+            "schemaVersion": "weeditpro-sam3_1-qualification-capsule-malware-scan-v1",
+            "buildId": "${BUILD_ID}",
+            "scannerImageDigest": "sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20",
+            "scannerVersion": scanner_version,
+            "signatureCount": known_viruses,
+            "scannedFileCount": scanned_files,
+            "infectedFileCount": 0,
+            "capsuleSha256": capsule_sha256,
+            "capsuleByteLength": len(capsule),
+            "archiveRecursionEnabled": True,
+            "scanPassed": True,
+            "checkpointIncluded": False,
+            "modelExecuted": False,
+            "developerMachineInstallPerformed": False,
+            "customerCreditsMutated": False,
+            "productionAuthorityGranted": False,
+        }
+        canonical = lambda value: json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        ).encode("utf-8")
+        record["scanReceiptHash"] = hashlib.sha256(canonical(record)).hexdigest()
+        output_path.write_bytes(canonical(record) + b"\n")
+        PY
+artifacts:
+  objects:
+    location: gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/reproducibility/${BUILD_ID}/
+    paths:
+      - private-capsule-output/*.tar.gz
+      - private-capsule-output/*.capsule.json
+      - private-capsule-scan-output/*.json
+timeout: 3600s
+queueTtl: 3600s
+serviceAccount: projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com
+options:
+  machineType: E2_HIGHCPU_8
+  diskSizeGb: '200'
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED
+  sourceProvenanceHash:
+    - SHA256
+tags:
+  - weeditpro
+  - sam3-1
+  - qualification-capsule-build

@@ -35,8 +35,10 @@ const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const DEFAULT_PREFIX =
   'private/track-all/sam3_1/v1/l4-task-qa/image-supply-chain-build/v1'
-const BUILD_ENDPOINT =
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const CLOUD_PLATFORM_SCOPE = 'https://www.googleapis.com/auth/cloud-platform'
 const MAXIMUM_RECORD_BYTES = 16 * 1024 * 1024
 const safePrefix = z.string().trim().min(1).max(512)
@@ -255,10 +257,10 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainTransport(
       readonly body?: Readonly<Record<string, unknown>>
     }) {
       const validUrl = request.method === 'POST'
-        ? request.url === BUILD_ENDPOINT
-        : request.url.startsWith(`${BUILD_ENDPOINT}/`)
+        ? request.url === BUILD_CREATE_ENDPOINT
+        : request.url.startsWith(`${BUILD_COLLECTION_ENDPOINT}/`)
           && /^[a-f0-9-]{36}$/u.test(
-            request.url.slice(BUILD_ENDPOINT.length + 1),
+            request.url.slice(BUILD_COLLECTION_ENDPOINT.length + 1),
           )
       if (!validUrl || (request.method === 'GET' && request.body)) {
         throw new Error('track_all_l4_supply_chain_url_not_allowlisted')

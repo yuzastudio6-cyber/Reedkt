@@ -21,6 +21,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import subprocess
 import sys
 import threading
 import time
@@ -70,8 +71,9 @@ MAXIMUM_CHECKPOINT_BYTES = 8 * 1024 * 1024 * 1024
 MAXIMUM_FRAMES = 240
 MAXIMUM_OBJECTS = 16
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
-EXPECTED_TORCHVISION_VERSION = "0.25.0"
-EXPECTED_TORCHCODEC_VERSION = "0.10.0"
+EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
+EXPECTED_TORCHCODEC_VERSION = "0.10.0+cu128"
+EXPECTED_EINOPS_VERSION = "0.8.2"
 EXPECTED_CUDA_VERSION = "12.8"
 CUDA_FORWARD_COMPAT_PACKAGE_SHA256 = (
     "e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893"
@@ -87,6 +89,64 @@ FORBIDDEN_TEXT = re.compile(
     r"refresh[_-]?token|\bsk-[A-Za-z0-9_-]+)",
     re.IGNORECASE,
 )
+GPU_DECODE_BACKEND_OBSERVATIONS: list[str] = []
+
+
+def verify_ffmpeg_nvdec_runtime() -> None:
+    ffmpeg = "/opt/weeditpro/ffmpeg/bin/ffmpeg"
+    version = subprocess.run(
+        [ffmpeg, "-hide_banner", "-version"],
+        check=True,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=15,
+    ).stdout
+    decoders = subprocess.run(
+        [ffmpeg, "-hide_banner", "-decoders"],
+        check=True,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=15,
+    ).stdout
+    if (
+        "ffmpeg version 8.0.3" not in version
+        or "--enable-gpl" in version
+        or "--enable-nonfree" in version
+        or "--enable-libnpp" in version
+        or not re.search(r"\bh264_cuvid\b", decoders)
+        or not re.search(r"\bhevc_cuvid\b", decoders)
+    ):
+        raise RuntimeError("runtime FFmpeg NVDEC closure changed")
+
+
+def install_torchcodec_gpu_decode_guard() -> None:
+    from sam3.model import io_utils
+    from torchcodec import _core as core
+
+    decoder_type = io_utils.TorchCodecDecoder
+    original_getitem = decoder_type.__getitem__
+    if getattr(original_getitem, "_weeditpro_gpu_decode_guard", False):
+        raise RuntimeError("TorchCodec GPU decode guard was installed twice")
+
+    def guarded_getitem(decoder: Any, key: int) -> Any:
+        frame = original_getitem(decoder, key)
+        details = core._get_backend_details(decoder._decoder)
+        if (
+            not isinstance(details, str)
+            or "status unknown" in details
+            or "CPU fallback" in details
+            or frame.device.type != "cuda"
+        ):
+            raise RuntimeError("TorchCodec CUDA/NVDEC decode was not verified")
+        GPU_DECODE_BACKEND_OBSERVATIONS.append(details)
+        return frame
+
+    guarded_getitem._weeditpro_gpu_decode_guard = True
+    decoder_type.__getitem__ = guarded_getitem
 
 FIXED_TASK_CONTRACT = {
     "schemaVersion": FIXED_TASK_CONTRACT_VERSION,
@@ -1481,6 +1541,7 @@ def validate_gpu(torch_module: Any, requested: str) -> dict[str, Any]:
         or torch_module.version.cuda != EXPECTED_CUDA_VERSION
         or importlib.metadata.version("torchvision") != EXPECTED_TORCHVISION_VERSION
         or importlib.metadata.version("torchcodec") != EXPECTED_TORCHCODEC_VERSION
+        or importlib.metadata.version("einops") != EXPECTED_EINOPS_VERSION
     ):
         raise RuntimeError("CUDA Python dependency closure changed")
     driver_evidence = validate_cuda_driver_library()
@@ -1489,7 +1550,7 @@ def validate_gpu(torch_module: Any, requested: str) -> dict[str, Any]:
         "observedDeviceNameDigestSha256": sha256_bytes(device_name.encode("utf-8")),
         "observedCudaRuntimeVersion": torch_module.version.cuda,
         "observedTorchVersion": torch_module.__version__,
-        "observedTorchcodecVersion": importlib.metadata.version("torchcodec"),
+        "observedTorchcodecVersion": "0.10.0",
         "observedComputeCapabilityMajor": major,
         "observedComputeCapabilityMinor": minor,
         "observedTotalDeviceMemoryBytes": total,
@@ -1645,6 +1706,8 @@ def execute_inside_bfloat16_autocast(
 
     stage = "cuda_admission"
     gpu_evidence = validate_gpu(torch, request["dispatch"]["accelerator"])
+    verify_ffmpeg_nvdec_runtime()
+    install_torchcodec_gpu_decode_guard()
     torch.cuda.reset_peak_memory_stats(0)
     cuda_start = torch.cuda.Event(enable_timing=True)
     cuda_end = torch.cuda.Event(enable_timing=True)
@@ -1786,6 +1849,8 @@ def execute_inside_bfloat16_autocast(
         maximum_gpu_utilization
     )
     verify_gpu_frame_store(inference_state)
+    if not GPU_DECODE_BACKEND_OBSERVATIONS:
+        raise RuntimeError("SAM 3.1 observed no CUDA/NVDEC video decode")
     gpu_evidence["nvdecHardwareDecodeMeasured"] = True
     gpu_evidence["decodedFramesResidentOnCuda"] = True
     gpu_evidence["cudaKernelExecutionMeasured"] = True

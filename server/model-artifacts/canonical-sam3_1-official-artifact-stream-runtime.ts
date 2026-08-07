@@ -1,5 +1,7 @@
-import { execFile, spawn } from 'node:child_process'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { createHash } from 'node:crypto'
+import { createReadStream } from 'node:fs'
+import { mkdtemp, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -21,6 +23,9 @@ const SOURCE_REPOSITORY =
 const SOURCE_REVISION =
   '96914d2425f90a64f45ca977c2b5165418099543' as const
 const SOURCE_TREE = '573deb167702e014829a5b830de8ae62abe891d5' as const
+const SOURCE_ARCHIVE_BYTE_LENGTH = 73_605_120 as const
+const SOURCE_ARCHIVE_SHA256 =
+  '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a' as const
 const CHECKPOINT_REPOSITORY = 'facebook/sam3.1' as const
 const CHECKPOINT_REVISION =
   'daa63191845a41281374e725f4c9e51c7a824460' as const
@@ -39,7 +44,7 @@ const SECRET_RESOURCE = new RegExp(
     + '[1-9][0-9]*$',
   'u',
 )
-const OFFICIAL_DOWNLOAD_HOST = /^(?:huggingface\.co|cdn-lfs(?:-[a-z0-9-]+)?\.huggingface\.co|cdn-lfs\.hf\.co|cas-bridge\.xethub\.hf\.co)$/u
+const OFFICIAL_DOWNLOAD_HOST = /^(?:huggingface\.co|cdn-lfs(?:-[a-z0-9-]+)?\.huggingface\.co|cdn-lfs\.hf\.co|cas-bridge\.xethub\.hf\.co|us\.aws\.cdn\.hf\.co)$/u
 
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
 
@@ -133,46 +138,102 @@ async function openPinnedGitArchive(): Promise<AsyncIterable<Uint8Array>> {
     if (revision !== SOURCE_REVISION || tree !== SOURCE_TREE) {
       throw new Error('SAM 3.1 official Git source identity changed.')
     }
-    return archiveStream(root)
+    const archivePath = join(root, 'sam3-source.tar')
+    await writePinnedGitArchive(root, archivePath)
+    await assertPinnedArchiveIdentity(archivePath)
+    return archiveFileStream(root, archivePath)
   } catch (error) {
     await rm(root, { recursive: true, force: true })
     throw error
   }
 }
 
-async function* archiveStream(root: string): AsyncIterable<Uint8Array> {
-  const child = spawn('git', [
-    '-C', root, 'archive', '--format=tar', '--prefix=sam3/', 'FETCH_HEAD',
-  ], {
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: safeGitEnvironment(),
-  })
-  const exit = new Promise<{ readonly code: number | null; readonly signal: string | null }>(
-    (resolve, reject) => {
-      child.once('error', reject)
-      child.once('close', (code, signal) => resolve({ code, signal }))
-    },
-  )
-  const stderr = collectBoundedDiagnostics(child.stderr)
+async function writePinnedGitArchive(
+  root: string,
+  archivePath: string,
+): Promise<void> {
   try {
-    for await (const chunk of child.stdout) {
-      if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
-        throw new Error('SAM 3.1 Git archive stream is invalid.')
-      }
-      yield chunk
+    await execFileAsync('git', [
+      '-C', root, 'archive', '--format=tar', '--prefix=sam3/',
+      `--output=${archivePath}`, 'FETCH_HEAD',
+    ], {
+      encoding: 'utf8',
+      maxBuffer: MAXIMUM_GIT_DIAGNOSTIC_BYTES,
+      timeout: 5 * 60 * 1000,
+      env: safeGitEnvironment(),
+    })
+  } catch (error) {
+    throw new Error(
+      'SAM 3.1 official source archive command failed.',
+      { cause: error },
+    )
+  }
+}
+
+async function assertPinnedArchiveIdentity(archivePath: string): Promise<void> {
+  try {
+    const metadata = await stat(archivePath)
+    if (!metadata.isFile() || metadata.size !== SOURCE_ARCHIVE_BYTE_LENGTH) {
+      throw new Error('SAM 3.1 official source archive identity changed.')
     }
-    const outcome = await exit
-    const diagnostic = await stderr
-    if (outcome.code !== 0 || outcome.signal !== null) {
+    const digest = createHash('sha256')
+    for await (const chunk of createReadStream(archivePath)) {
+      if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
+        throw new Error('SAM 3.1 official source archive file is invalid.')
+      }
+      digest.update(chunk)
+    }
+    if (digest.digest('hex') !== SOURCE_ARCHIVE_SHA256) {
+      throw new Error('SAM 3.1 official source archive identity changed.')
+    }
+  } catch (error) {
+    if (
+      error instanceof Error
+      && (
+        error.message === 'SAM 3.1 official source archive identity changed.'
+        || error.message === 'SAM 3.1 official source archive file is invalid.'
+      )
+    ) throw error
+    throw new Error('SAM 3.1 official source archive file read failed.', {
+      cause: error,
+    })
+  }
+}
+
+async function* archiveFileStream(
+  root: string,
+  archivePath: string,
+): AsyncIterable<Uint8Array> {
+  let cleanupFailure: unknown
+  try {
+    try {
+      for await (const chunk of createReadStream(archivePath)) {
+        if (!(chunk instanceof Uint8Array) || chunk.byteLength === 0) {
+          throw new Error('SAM 3.1 official source archive file is invalid.')
+        }
+        yield chunk
+      }
+    } catch (error) {
+      if (
+        error instanceof Error
+        && error.message === 'SAM 3.1 official source archive file is invalid.'
+      ) throw error
       throw new Error(
-        diagnostic
-          ? 'SAM 3.1 official source archive command failed.'
-          : 'SAM 3.1 official source archive command did not complete.',
+        'SAM 3.1 official source archive file read failed.',
+        { cause: error },
       )
     }
   } finally {
-    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
-    await rm(root, { recursive: true, force: true })
+    try {
+      await rm(root, { recursive: true, force: true })
+    } catch (error) {
+      cleanupFailure = error
+    }
+  }
+  if (cleanupFailure) {
+    throw new Error('SAM 3.1 official source archive cleanup failed.', {
+      cause: cleanupFailure,
+    })
   }
 }
 
@@ -275,22 +336,6 @@ function responseBody(response: Response): AsyncIterable<Uint8Array> {
     throw new Error('SAM 3.1 checkpoint response body is unavailable.')
   }
   return body as unknown as AsyncIterable<Uint8Array>
-}
-
-async function collectBoundedDiagnostics(
-  stream: AsyncIterable<Uint8Array>,
-): Promise<string> {
-  const chunks: Buffer[] = []
-  let byteLength = 0
-  for await (const chunk of stream) {
-    if (!(chunk instanceof Uint8Array)) continue
-    const remaining = MAXIMUM_GIT_DIAGNOSTIC_BYTES - byteLength
-    if (remaining <= 0) continue
-    const bounded = Buffer.from(chunk).subarray(0, remaining)
-    byteLength += bounded.byteLength
-    chunks.push(bounded)
-  }
-  return Buffer.concat(chunks).toString('utf8').trim()
 }
 
 function safeRuntimeValue(value: string | undefined): boolean {

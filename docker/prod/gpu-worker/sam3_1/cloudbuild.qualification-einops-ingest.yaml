@@ -1,0 +1,307 @@
+steps:
+  - name: pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
+    id: fetch-and-verify-exact-official-einops-wheel
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        mkdir -p /workspace/private-einops-ingest
+        python -I -B - <<'PY'
+        import email.parser
+        import hashlib
+        import os
+        from pathlib import Path, PurePosixPath
+        import stat
+        from urllib.parse import urlparse
+        from urllib.request import HTTPRedirectHandler, Request, build_opener
+        from zipfile import ZipFile
+
+        url = (
+            "https://files.pythonhosted.org/packages/2a/09/"
+            "f8d8f8f31e4483c10a906437b4ce31bdf3d6d417b73fe33f1a8b59e34228/"
+            "einops-0.8.2-py3-none-any.whl"
+        )
+        expected_sha256 = (
+            "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193"
+        )
+        expected_bytes = 65638
+        expected_license_sha256 = (
+            "30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434"
+        )
+        destination = Path(
+            "/workspace/private-einops-ingest/einops-0.8.2-py3-none-any.whl"
+        )
+        temporary = destination.with_suffix(".whl.partial")
+
+        def assert_allowed_https(value: str) -> None:
+            parsed = urlparse(value)
+            if (
+                parsed.scheme != "https"
+                or parsed.hostname != "files.pythonhosted.org"
+                or parsed.username
+                or parsed.password
+                or parsed.port not in (None, 443)
+            ):
+                raise SystemExit("einops wheel origin is not exact official PyPI HTTPS")
+
+        class ExactRedirectHandler(HTTPRedirectHandler):
+            def redirect_request(self, request, file_pointer, code, message,
+                                 headers, new_url):
+                assert_allowed_https(new_url)
+                return super().redirect_request(
+                    request, file_pointer, code, message, headers, new_url
+                )
+
+        assert_allowed_https(url)
+        temporary.unlink(missing_ok=True)
+        request = Request(
+            url,
+            headers={
+                "Accept-Encoding": "identity",
+                "User-Agent": "WeEditPro-SAM31-einops-ingest-v1",
+            },
+            method="GET",
+        )
+        digest = hashlib.sha256()
+        observed_bytes = 0
+        try:
+            with build_opener(ExactRedirectHandler()).open(
+                request, timeout=120
+            ) as response, temporary.open("xb") as output:
+                assert_allowed_https(response.geturl())
+                if response.status != 200:
+                    raise SystemExit("einops wheel response status changed")
+                while True:
+                    chunk = response.read(64 * 1024)
+                    if not chunk:
+                        break
+                    observed_bytes += len(chunk)
+                    if observed_bytes > expected_bytes:
+                        raise SystemExit("einops wheel exceeded exact byte bound")
+                    digest.update(chunk)
+                    output.write(chunk)
+                output.flush()
+                os.fsync(output.fileno())
+            if observed_bytes != expected_bytes:
+                raise SystemExit("einops wheel byte count changed")
+            if digest.hexdigest() != expected_sha256:
+                raise SystemExit("einops wheel digest changed")
+            os.replace(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
+
+        with ZipFile(destination) as archive:
+            members = archive.infolist()
+            for member in members:
+                path = PurePosixPath(member.filename)
+                file_type = (member.external_attr >> 16) & 0o170000
+                if (
+                    path.is_absolute()
+                    or ".." in path.parts
+                    or file_type == stat.S_IFLNK
+                ):
+                    raise SystemExit("einops wheel archive entry is unsafe")
+            metadata_names = [
+                item.filename for item in members
+                if item.filename.endswith(".dist-info/METADATA")
+            ]
+            license_names = [
+                item.filename for item in members
+                if item.filename.endswith(".dist-info/licenses/LICENSE")
+            ]
+            if len(metadata_names) != 1 or len(license_names) != 1:
+                raise SystemExit("einops wheel metadata or license shape changed")
+            metadata = email.parser.BytesParser().parsebytes(
+                archive.read(metadata_names[0])
+            )
+            license_bytes = archive.read(license_names[0])
+        if metadata["Name"] != "einops" or metadata["Version"] != "0.8.2":
+            raise SystemExit("einops wheel identity changed")
+        if metadata["Requires-Python"] != ">=3.9":
+            raise SystemExit("einops Python compatibility changed")
+        if len(license_bytes) != 1073:
+            raise SystemExit("einops license byte count changed")
+        if hashlib.sha256(license_bytes).hexdigest() != expected_license_sha256:
+            raise SystemExit("einops license digest changed")
+        destination.chmod(0o444)
+        PY
+        # The pinned malware-scanner image runs as a fixed non-root identity.
+        # Keep the verified wheel immutable while allowing that isolated step
+        # to create only its scan-summary receipt in the shared build volume.
+        chmod 0777 /workspace/private-einops-ingest
+  - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
+    id: malware-scan-exact-einops-wheel
+    waitFor:
+      - fetch-and-verify-exact-official-einops-wheel
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
+        wheel=/workspace/private-einops-ingest/einops-0.8.2-py3-none-any.whl
+        scanner_version="$$(clamscan --version)"
+        scan_output="$$(clamscan --infected --scan-archive=yes \
+          --max-filesize=32M --max-scansize=64M --max-recursion=16 \
+          --max-files=10000 --max-scantime=0 "$${wheel}")"
+        printf '%s\n' "$${scan_output}"
+        known_viruses="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Known viruses:[[:space:]]*//p')"
+        scanned_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Scanned files:[[:space:]]*//p')"
+        infected_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Infected files:[[:space:]]*//p')"
+        test "$${known_viruses}" -ge 1000000
+        test "$${scanned_files}" -ge 1
+        test "$${infected_files}" = 0
+        printf '%s\n%s\n%s\n' "$${scanner_version}" \
+          "$${known_viruses}" "$${scanned_files}" \
+          > /workspace/private-einops-ingest/scan-summary.txt
+        chmod 0444 /workspace/private-einops-ingest/scan-summary.txt
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-create-only-published-einops-wheel
+    waitFor:
+      - malware-scan-exact-einops-wheel
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        wheel=/workspace/private-einops-ingest/einops-0.8.2-py3-none-any.whl
+        object=gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/einops/0.8.2/54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193.whl
+        test "$$(stat --format='%s' "$${wheel}")" = 65638
+        printf '%s  %s\n' \
+          54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193 \
+          "$${wheel}" | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786106120404202 \
+          "$${object}" \
+          /workspace/private-einops-ingest/published-wheel-reread.whl
+        cmp "$${wheel}" \
+          /workspace/private-einops-ingest/published-wheel-reread.whl
+        gcloud storage objects describe "$${object}" --format=json \
+          > /workspace/private-einops-ingest/object-metadata.json
+  - name: pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
+    id: compile-exact-einops-ingest-receipt
+    waitFor:
+      - reread-exact-create-only-published-einops-wheel
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        python -I -B - \
+          /workspace/private-einops-ingest/object-metadata.json \
+          /workspace/private-einops-ingest/scan-summary.txt \
+          /workspace/private-einops-ingest/einops-ingest-receipt.json \
+          "${BUILD_ID}" "${_REPOSITORY_COMMIT}" "${_REPOSITORY_TREE}" <<'PY'
+        import hashlib
+        import json
+        from pathlib import Path
+        import re
+        import sys
+
+        metadata_path, scan_path, receipt_path = map(Path, sys.argv[1:4])
+        build_id, repository_commit, repository_tree = sys.argv[4:]
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        scanner_version, signature_count, scanned_files = scan_path.read_text(
+            encoding="utf-8"
+        ).splitlines()
+        generation = str(metadata.get("generation", ""))
+        etag = str(metadata.get("etag", ""))
+        if re.fullmatch(r"[1-9][0-9]{9,}", generation) is None or not etag:
+            raise SystemExit("einops private object identity is incomplete")
+        if int(metadata.get("size", -1)) != 65638:
+            raise SystemExit("einops private object byte count changed")
+        if metadata.get("content_type") != "application/zip":
+            raise SystemExit("einops private object content type changed")
+        if metadata.get("cache_control") != "no-store":
+            raise SystemExit("einops private object cache policy changed")
+        receipt = {
+            "schemaVersion": "weeditpro-sam3_1-einops-private-ingest-receipt-v1",
+            "buildId": build_id,
+            "createOnlyPublicationBuildId": (
+                "85180b43-5401-4a1c-bdc2-5acf74578185"
+            ),
+            "repositoryCommit": repository_commit,
+            "repositoryTree": repository_tree,
+            "packageName": "einops",
+            "packageVersion": "0.8.2",
+            "pythonRequires": ">=3.9",
+            "license": "MIT",
+            "licenseFileSha256": (
+                "30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434"
+            ),
+            "licenseFileByteLength": 1073,
+            "officialOrigin": "files.pythonhosted.org",
+            "officialWheelSha256": (
+                "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193"
+            ),
+            "officialWheelByteLength": 65638,
+            "privateObject": {
+                "bucketName": (
+                    "reeditpro-production-reeditpro-image-build-inputs"
+                ),
+                "objectName": (
+                    "private/image-build-inputs/sam3_1/qualification/"
+                    "python-wheels/einops/0.8.2/"
+                    "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193.whl"
+                ),
+                "generation": generation,
+                "etag": etag,
+                "byteLength": 65638,
+                "sha256": (
+                    "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193"
+                ),
+                "crc32c": str(metadata.get("crc32c_hash", "")),
+                "md5Hash": str(metadata.get("md5_hash", "")),
+                "contentType": "application/zip",
+                "cacheControl": "no-store",
+            },
+            "malwareScan": {
+                "scannerImageDigest": (
+                    "sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20"
+                ),
+                "scannerVersion": scanner_version,
+                "signatureCount": int(signature_count),
+                "scannedFileCount": int(scanned_files),
+                "infectedFileCount": 0,
+                "scanPassed": True,
+            },
+            "createOnlyPublicationRequired": True,
+            "developerMachineInstallPerformed": False,
+            "checkpointIncluded": False,
+            "modelExecuted": False,
+            "gpuJobDispatched": False,
+            "customerCreditsMutated": False,
+            "runtimeReleaseGranted": False,
+            "productionAuthorityGranted": False,
+        }
+        canonical = json.dumps(
+            receipt, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        ).encode("utf-8")
+        receipt["receiptHash"] = hashlib.sha256(canonical).hexdigest()
+        Path(receipt_path).write_text(
+            json.dumps(
+                receipt, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, allow_nan=False,
+            ) + "\n",
+            encoding="utf-8",
+        )
+        PY
+        chmod 0444 /workspace/private-einops-ingest/einops-ingest-receipt.json
+artifacts:
+  objects:
+    location: gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/einops/0.8.2/ingest/${BUILD_ID}/
+    paths:
+      - private-einops-ingest/einops-ingest-receipt.json
+timeout: 900s
+queueTtl: 600s
+serviceAccount: projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com
+options:
+  diskSizeGb: '100'
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED
+  sourceProvenanceHash:
+    - SHA256
+tags:
+  - weeditpro
+  - sam3-1
+  - qualification-einops-ingest

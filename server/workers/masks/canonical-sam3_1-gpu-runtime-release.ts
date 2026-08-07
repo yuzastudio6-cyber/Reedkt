@@ -247,10 +247,12 @@ const releaseObservationWithoutHashSchema = z.object({
   }).strict(),
   runtimeClosure: z.object({
     pythonVersion: z.literal('3.12'),
-    torchVersion: z.literal('2.10.0'),
-    torchvisionVersion: z.literal('0.25.0'),
+    torchVersion: z.literal('2.10.0+cu128'),
+    torchvisionVersion: z.literal('0.25.0+cu128'),
     cudaVersion: z.literal('12.8'),
     torchcodecVersion: z.literal('0.10.0'),
+    einopsVersion: z.literal('0.8.2'),
+    pycocotoolsVersion: z.literal('2.0.11'),
     cudaForwardCompatibilityPackageSha256: z.literal(
       'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
     ),
@@ -720,11 +722,27 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
       thirdPartyMirrorUsed: ingest.privateBoundary.thirdPartyMirrorAccepted,
     },
     runtimeClosure: {
-      pythonVersion: ingest.runtimeClosure.pythonVersion,
-      torchVersion: ingest.runtimeClosure.torchVersion,
-      torchvisionVersion: ingest.runtimeClosure.torchvisionVersion,
-      cudaVersion: ingest.runtimeClosure.cudaVersion,
-      torchcodecVersion: candidate.runtimeClosure.candidateTorchcodecVersion,
+      pythonVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.pythonVersion,
+      torchVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.torchVersion,
+      torchvisionVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.torchvisionVersion,
+      cudaVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.cudaVersion,
+      torchcodecVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.torchcodecVersion,
+      einopsVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.einopsVersion,
+      pycocotoolsVersion:
+        sourceCheckpointQualification.controlledObservation
+          .qualificationRuntime.pycocotoolsVersion,
       cudaForwardCompatibilityPackageSha256:
         candidate.runtimeClosure.cudaDriverCompatibility
           .cudaForwardCompatibilitySha256,

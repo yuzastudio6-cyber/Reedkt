@@ -45,6 +45,10 @@ const PRIVATE_INPUT_DIRECTORY = 'sam31_private_build_input' as const
 const MAX_CAPSULE_COMPRESSED_BYTES = 8 * 1024 * 1024 * 1024
 const MAX_CAPSULE_UNCOMPRESSED_BYTES = 16 * 1024 * 1024 * 1024
 const MAX_CAPSULE_ENTRIES = 512
+const PKGCONF_SHA256 =
+  '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' as const
+const CUDA_NPP_SHA256 =
+  '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -789,6 +793,8 @@ function assertMatchingBuildInputs(input: {
 export async function verifyCanonicalSam31PrivateBuildCapsuleBytes(
   coordinate: CanonicalSam31PrivateCapsuleCoordinate,
   port: CanonicalSam31PrivateBuildCapsuleReadPort,
+  expectedStorageContentType:
+    'application/gzip' | 'application/x-tar' = 'application/gzip',
 ): Promise<{
   readonly archiveEntries: readonly CanonicalSam31CapsuleArchiveEntry[]
   readonly archiveEntrySetSha256: string
@@ -800,7 +806,7 @@ export async function verifyCanonicalSam31PrivateBuildCapsuleBytes(
     || object.etagBeforeRead !== coordinate.etag
     || object.generationAfterRead !== coordinate.generation
     || object.etagAfterRead !== coordinate.etag
-    || object.contentType !== 'application/gzip'
+    || object.contentType !== expectedStorageContentType
   ) throw new Error('SAM 3.1 private build capsule metadata changed.')
   const digest = createHash('sha256')
   let byteLength = 0
@@ -889,15 +895,50 @@ function assertCapsuleManifestEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
     value.privateInput.dependencyClosureReceiptSha256,
   )
+  const ffmpegSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`
+  const pkgconfSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`
+  const nvCodecHeadersSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`
+  const ffmpegReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`
+  if (
+    !byPath.has(ffmpegSourcePath)
+    || !byPath.has(pkgconfSourcePath)
+    || !byPath.has(nvCodecHeadersSourcePath)
+    || !byPath.has(ffmpegReceiptPath)
+  ) {
+    throw new Error('Capsule FFmpeg source closure is missing.')
+  }
+  if (canonical) {
+    required(
+      ffmpegSourcePath,
+      '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121',
+    )
+    required(pkgconfSourcePath, PKGCONF_SHA256)
+    required(
+      nvCodecHeadersSourcePath,
+      'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563',
+    )
+  }
   const cudaPackagePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`
+  const cudaNppPackagePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`
+  const cudaNppReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`
   if (!byPath.has(cudaPackagePath)) {
     throw new Error('Capsule CUDA forward-compat package is missing.')
+  }
+  if (!byPath.has(cudaNppPackagePath) || !byPath.has(cudaNppReceiptPath)) {
+    throw new Error('Capsule CUDA NPP runtime closure is missing.')
   }
   if (canonical) required(
     cudaPackagePath,
     value.privateInput.cudaForwardCompatPackageSha256,
   )
+  if (canonical) required(cudaNppPackagePath, CUDA_NPP_SHA256)
   required(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     value.privateInput.cudaForwardCompatIngestReceiptSha256,
@@ -936,7 +977,15 @@ function assertCapsuleManifestEntries(
     || patchedArchive.byteLength !== 73_605_120
     || patchedArchive.sha256 !==
       value.privateInput.deterministicPatchedSourceArchiveSha256
+    || byPath.get(
+      `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    )?.byteLength !== 17_211_188
+    || byPath.get(pkgconfSourcePath)?.byteLength !== 611_767
+    || byPath.get(
+      `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
+    )?.byteLength !== 80_935
     || byPath.get(cudaPackagePath)?.byteLength !== 37_945_232
+    || byPath.get(cudaNppPackagePath)?.byteLength !== 131_485_608
   )) throw new Error('Canonical capsule bytes do not match frozen artifacts.')
 }
 
@@ -952,8 +1001,14 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/requirements.lock.txt`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/source-checkpoint-compatibility-receipt.json`,
   ].includes(path) || isAllowedWheelPath(path)
@@ -979,6 +1034,9 @@ async function inspectCanonicalTarStream(
   let pending = Buffer.alloc(0)
   let totalUncompressed = 0
   let zeroBlocks = 0
+  let headerCount = 0
+  let previousHeaderPath: string | null = null
+  const directoryPaths = new Set<string>()
   let current: {
     path: string
     byteLength: number
@@ -1034,21 +1092,36 @@ async function inspectCanonicalTarStream(
       if (zeroBlocks > 0) {
         throw new Error('SAM 3.1 capsule contains data after tar terminator.')
       }
-      if (entries.length >= MAX_CAPSULE_ENTRIES) {
+      headerCount += 1
+      if (headerCount > MAX_CAPSULE_ENTRIES) {
         throw new Error('SAM 3.1 capsule has too many entries.')
       }
       verifyTarHeaderChecksum(header)
       const type = header[156]
-      if (type !== 0 && type !== 48) {
+      if (type !== 0 && type !== 48 && type !== 53) {
         throw new Error('SAM 3.1 capsule contains a non-regular entry.')
       }
       const name = readTarString(header.subarray(0, 100))
       const prefix = readTarString(header.subarray(345, 500))
-      const path = prefix ? `${prefix}/${name}` : name
+      const rawPath = prefix ? `${prefix}/${name}` : name
+      const path = type === 53 && rawPath.endsWith('/')
+        ? rawPath.slice(0, -1)
+        : rawPath
       if (!isSafeCapsulePath(path)) {
         throw new Error('SAM 3.1 capsule entry path is unsafe.')
       }
+      if (previousHeaderPath !== null && !(previousHeaderPath < path)) {
+        throw new Error('SAM 3.1 capsule headers are not canonical.')
+      }
+      previousHeaderPath = path
       const byteLength = readTarOctal(header.subarray(124, 136))
+      if (type === 53) {
+        if (byteLength !== 0 || directoryPaths.has(path)) {
+          throw new Error('SAM 3.1 capsule directory is not canonical.')
+        }
+        directoryPaths.add(path)
+        continue
+      }
       if (byteLength <= 0 || byteLength > MAX_CAPSULE_UNCOMPRESSED_BYTES) {
         throw new Error('SAM 3.1 capsule entry length is invalid.')
       }
@@ -1068,6 +1141,10 @@ async function inspectCanonicalTarStream(
     if (!(entries[index - 1].path < entries[index].path)) {
       throw new Error('SAM 3.1 capsule tar entries are not canonical.')
     }
+  }
+  if ([...directoryPaths].some((directory) =>
+    !entries.some((entry) => entry.path.startsWith(`${directory}/`)))) {
+    throw new Error('SAM 3.1 capsule contains an empty directory.')
   }
   return entries
 }

@@ -298,8 +298,9 @@ function createPublication() {
   clone.sourceArchive.coordinate.sha256 =
     '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a'
   clone.sourceArchive.expectedByteLengthAndSha256Enforced = true
-  clone.checkpoint.coordinate.byteLength = 3_500_000_000
-  clone.checkpoint.coordinate.sha256 = digest('canonical-sam31-checkpoint')
+  clone.checkpoint.coordinate.byteLength = 3_502_755_717
+  clone.checkpoint.coordinate.sha256 =
+    '0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6'
   clone.checkpoint.authorizedHumanTermsAcceptanceReread = true
   clone.checkpoint.accessTokenReadFromPinnedSecretVersion = true
   clone.runtimeBinding.officialArtifactStreamPortVersion =

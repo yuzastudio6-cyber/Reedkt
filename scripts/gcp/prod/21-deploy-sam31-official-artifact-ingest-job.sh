@@ -12,11 +12,11 @@ readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-ingest-sa'
 readonly SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly MODEL_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 readonly CONTROL_BUCKET='reeditpro-production-reeditpro-control-plane-state'
-readonly BUILD_ID='563d55bf-bbdc-4bd4-8f46-298e52f24647'
-readonly SOURCE_COMMIT='a62f15e01c6c32c0ea41b95a49278ccc260b4cf5'
-readonly SOURCE_TREE='9268c325dc14e9edfb92610813936b399994ec66'
+readonly BUILD_ID='95cc2728-0879-4b1b-bfbc-24ad1400562c'
+readonly SOURCE_COMMIT='f5af5aaa21dc743de7ba3f336b6cbcc3eec70ca3'
+readonly SOURCE_TREE='a2bdb65b9f080e8f1621317545218ff66383c56c'
 readonly IMAGE_TAG="sam31-ingest-${SOURCE_COMMIT:0:16}"
-readonly IMAGE_DIGEST='sha256:a965f0109baadd0db69b9c9d524f16aa127377dd50fe39c0aa0abdae5be8d635'
+readonly IMAGE_DIGEST='sha256:f804584f7804ca8dd5fa709ef67b57f3f602aae0954f536c10eb898eda1784ed'
 readonly IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-official-artifact-ingest@${IMAGE_DIGEST}"
 readonly IMAGE_TAGGED="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-official-artifact-ingest:${IMAGE_TAG}"
 readonly IMAGE_BUILDER='projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
@@ -27,6 +27,32 @@ readonly CONFIRMATION='deploy-weeditpro-sam31-official-artifact-ingest-v1'
 fail() {
   printf 'ERROR: %s.\n' "$1" >&2
   exit 1
+}
+
+add_project_log_writer_binding_with_propagation_retry() {
+  local attempt diagnostic_file
+  diagnostic_file="$(mktemp \
+    "${TMPDIR:-/tmp}/weeditpro-sam31-ingest-iam.XXXXXX")"
+  for attempt in {1..12}; do
+    if gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role=roles/logging.logWriter --condition=None --quiet \
+      >/dev/null 2>"${diagnostic_file}"; then
+      rm -f "${diagnostic_file}"
+      return 0
+    fi
+    if ! grep -Fq 'does not exist' "${diagnostic_file}"; then
+      cat "${diagnostic_file}" >&2
+      rm -f "${diagnostic_file}"
+      fail 'project log-writer binding failed'
+    fi
+    if [[ "${attempt}" -eq 12 ]]; then
+      cat "${diagnostic_file}" >&2
+      rm -f "${diagnostic_file}"
+      fail 'new ingest service account did not propagate'
+    fi
+    sleep 5
+  done
 }
 
 [[ "${WEEDITPRO_CONFIRM_SAM31_ARTIFACT_INGEST_JOB_DEPLOY:-}" \
@@ -138,16 +164,14 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" \
     --display-name='WeEditPro SAM 3.1 official artifact ingest' \
     --description='Cloud-only byte-stream ingest; no model inference or media processing'
 fi
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/logging.logWriter --condition=None --quiet >/dev/null
+add_project_log_writer_binding_with_propagation_retry
 for role in roles/storage.objectCreator roles/storage.objectViewer; do
   gcloud storage buckets add-iam-policy-binding "gs://${MODEL_BUCKET}" \
     --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role="${role}" --quiet >/dev/null
+    --role="${role}" --condition=None --quiet >/dev/null
   gcloud storage buckets add-iam-policy-binding "gs://${CONTROL_BUCKET}" \
     --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role="${role}" --quiet >/dev/null
+    --role="${role}" --condition=None --quiet >/dev/null
 done
 gcloud secrets add-iam-policy-binding "${secret_name}" \
   --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \

@@ -16,8 +16,10 @@ export const CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_CLOUD_IMAGE_BUILD_SUBMISSION_
 const PROJECT_ID = 'reeditpro' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const CREATE_ENDPOINT =
+const CREATE_AUTHORITY_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const CREATE_TRANSPORT_ENDPOINT =
+  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro' as const
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
@@ -131,7 +133,7 @@ export interface CanonicalTrackAllSam31L4TaskQaCloudImageBuildStatePort {
 export interface CanonicalTrackAllSam31L4TaskQaCloudBuildTransport {
   request(input: {
     readonly method: 'POST'
-    readonly url: typeof CREATE_ENDPOINT
+    readonly url: typeof CREATE_TRANSPORT_ENDPOINT
     readonly body: Readonly<Record<string, unknown>>
   }): Promise<{ readonly status: number, readonly json: unknown }>
 }
@@ -192,7 +194,7 @@ export function createCanonicalTrackAllSam31L4TaskQaCloudImageBuildService(
       const buildRequest =
         compileCanonicalTrackAllSam31L4TaskQaCloudBuildRequest(authority)
       if (!buildRequest.cloudCallAuthorized
-        || buildRequest.endpoint !== CREATE_ENDPOINT) {
+        || buildRequest.endpoint !== CREATE_AUTHORITY_ENDPOINT) {
         throw new Error('Track All L4 cloud build request is not authorized.')
       }
       const buildRequestRef = {
@@ -226,7 +228,7 @@ export function createCanonicalTrackAllSam31L4TaskQaCloudImageBuildService(
       try {
         const response = await input.authenticatedTransport.request({
           method: 'POST',
-          url: CREATE_ENDPOINT,
+          url: CREATE_TRANSPORT_ENDPOINT,
           body: buildRequest.body,
         })
         providerHttpStatus = response.status

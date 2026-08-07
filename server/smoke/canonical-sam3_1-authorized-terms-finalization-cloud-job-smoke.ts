@@ -39,6 +39,8 @@ assert.match(verifier, /method: 'HEAD'/u)
 assert.match(verifier, /redirect: 'manual'/u)
 assert.match(verifier, /redirect: 'error'/u)
 assert.match(verifier, /secretmanager\.googleapis\.com/u)
+assert.match(verifier, /method: 'GET'/u)
+assert.doesNotMatch(verifier, /method: 'POST'/u)
 assert.match(verifier, /checkpointBytesDownloaded: false/u)
 assert.match(verifier, /responseBodyPersisted: false/u)
 assert.match(verifier, /secretValuePersistedLoggedOrReturned: false/u)
@@ -72,6 +74,14 @@ assert.doesNotMatch(buildScript, /gcloud run jobs execute/u)
 assert.match(deployScript, /weeditpro-sam31-terms-finalization/u)
 assert.match(deployScript,
   /WEEDITPRO_CONFIRM_SAM31_AUTHORIZED_TERMS_FINALIZATION_JOB_DEPLOY/u)
+assert.match(deployScript,
+  /BUILD_ID='98c7df64-1b6c-490c-8d39-f1d836e1a8c7'/u)
+assert.match(deployScript,
+  /SOURCE_COMMIT='dd5b9de4dde063328f1d0d3ca1713959f8444aa3'/u)
+assert.match(deployScript,
+  /SOURCE_TREE='c421e8115ac2e03d12bfe19bf76601784d59feed'/u)
+assert.match(deployScript,
+  /IMAGE_DIGEST='sha256:4945f14a5b4735557eb8e4a9b70bf81b7fb0c0cc364bc664bd5659184a0c19f3'/u)
 assert.match(deployScript,
   /canonical-sam3_1-authorized-human-terms-intent-v1/u)
 assert.match(deployScript,
@@ -125,7 +135,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-authorized-terms-finalization-cloud-job',
-  checks: 78,
+  checks: 82,
   sourceBoundCloudJobPackaged: true,
   immutableLinuxAmd64ImageBuildConfigured: true,
   sourceBoundImageBuiltAndScanPinned: true,

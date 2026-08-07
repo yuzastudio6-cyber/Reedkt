@@ -89,6 +89,59 @@ class FakeStorage {
   }
 }
 
+class FailingStorage {
+  bucket() {
+    return {
+      file: () => ({
+        createWriteStream: () => new Writable({
+          write(_chunk, _encoding, callback) {
+            const error = new Error(
+              'hf_PRIVATE_TOKEN /Users/private/sam3.1 source URL',
+            ) as Error & { code: number }
+            error.code = 403
+            callback(error)
+          },
+        }),
+      }),
+    }
+  }
+}
+
+class NamedFailingStorage {
+  bucket() {
+    return {
+      file: () => ({
+        createWriteStream: () => new Writable({
+          write(_chunk, _encoding, callback) {
+            const error = new Error(
+              'hf_PRIVATE_TOKEN /tmp/checkpoint mismatch',
+            ) as Error & { code: string }
+            error.name = 'RequestError'
+            error.code = 'FILE_NO_UPLOAD'
+            callback(error)
+          },
+        }),
+      }),
+    }
+  }
+}
+
+class FingerprintedFailingStorage {
+  bucket() {
+    return {
+      file: () => ({
+        createWriteStream: () => new Writable({
+          write(_chunk, _encoding, callback) {
+            callback(new Error(
+              'hf_PRIVATE_TOKEN /tmp/private-checkpoint diagnostic',
+            ))
+          },
+        }),
+      }),
+    }
+  }
+}
+
 const sourceBytes = Buffer.from('synthetic official source archive')
 const checkpointBytes = Buffer.from('synthetic official gated checkpoint')
 const terms = createTerms('synthetic_contract_fixture')
@@ -212,7 +265,7 @@ const redirectedPort = createCanonicalSam31CloudOfficialArtifactStreamPort({
       status: 302,
       headers: {
         location:
-          'https://cas-bridge.xethub.hf.co/private-signed-checkpoint-object',
+          'https://us.aws.cdn.hf.co/private-signed-checkpoint-object',
       },
     })
     return new Response(checkpointBytes, {
@@ -316,8 +369,123 @@ await assert.rejects(() => mismatchPort.publishCreateOnlyAndReread({
 }), /streaming publication failed/u)
 assert.equal(mismatchStorage.objectCount(), 0)
 
+const sourceFailureStorage = new FakeStorage()
+const sourceFailurePort = createCanonicalSam31GcsOfficialArtifactPublicationPort({
+  projectId: 'reeditpro',
+  bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+  storage: sourceFailureStorage as never,
+})
+await assert.rejects(() => sourceFailurePort.publishCreateOnlyAndReread({
+  projectId: 'reeditpro',
+  bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+  objectName:
+    'private/model-artifacts/sam3_1/source/source-failure/sam3-source.tar',
+  contentType: 'application/x-tar',
+  body: sourceAcquisitionFailureStream(),
+  minimumByteLength: 1,
+  maximumByteLength: 1024,
+}), /failed \[source_acquisition_failed\]\. context \[bytes_0_events_none\]\.$/u)
+assert.equal(sourceFailureStorage.objectCount(), 0)
+
+const storageFailurePort = createCanonicalSam31GcsOfficialArtifactPublicationPort({
+  projectId: 'reeditpro',
+  bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+  storage: new FailingStorage() as never,
+})
+let safeStorageFailure = ''
+try {
+  await storageFailurePort.publishCreateOnlyAndReread({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    objectName:
+      'private/model-artifacts/sam3_1/source/storage-failure/sam3-source.tar',
+    contentType: 'application/x-tar',
+    body: chunked(sourceBytes),
+    minimumByteLength: sourceBytes.byteLength,
+    maximumByteLength: sourceBytes.byteLength,
+  })
+} catch (error) {
+  safeStorageFailure = error instanceof Error ? error.message : String(error)
+}
+assert.equal(
+  safeStorageFailure,
+  'SAM 3.1 private artifact streaming publication failed '
+    + `[storage_authorization_failed]. context [bytes_${
+      sourceBytes.byteLength
+    }_events_none].`,
+)
+assert.doesNotMatch(safeStorageFailure, /hf_|\/Users|source URL/u)
+
+const namedStorageFailurePort =
+  createCanonicalSam31GcsOfficialArtifactPublicationPort({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    storage: new NamedFailingStorage() as never,
+  })
+await assert.rejects(() => namedStorageFailurePort.publishCreateOnlyAndReread({
+  projectId: 'reeditpro',
+  bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+  objectName:
+    'private/model-artifacts/sam3_1/source/named-failure/sam3-source.tar',
+  contentType: 'application/x-tar',
+  body: chunked(sourceBytes),
+  minimumByteLength: sourceBytes.byteLength,
+  maximumByteLength: sourceBytes.byteLength,
+}), new RegExp(
+  'failed \\[storage_node_file_no_upload\\]\\. context '
+    + `\\[bytes_${sourceBytes.byteLength}_events_none\\]\\.$`,
+  'u',
+))
+
+const fingerprintedStorageFailurePort =
+  createCanonicalSam31GcsOfficialArtifactPublicationPort({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    storage: new FingerprintedFailingStorage() as never,
+  })
+const privateFailureText =
+  'hf_PRIVATE_TOKEN /tmp/private-checkpoint diagnostic'
+const expectedSafeFingerprint = createHash('sha256')
+  .update(privateFailureText, 'utf8').digest('hex').slice(0, 24)
+let fingerprintedStorageFailure = ''
+try {
+  await fingerprintedStorageFailurePort.publishCreateOnlyAndReread({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    objectName:
+      'private/model-artifacts/sam3_1/source/fingerprint/sam3-source.tar',
+    contentType: 'application/x-tar',
+    body: chunked(sourceBytes),
+    minimumByteLength: sourceBytes.byteLength,
+    maximumByteLength: sourceBytes.byteLength,
+  })
+} catch (error) {
+  fingerprintedStorageFailure = error instanceof Error
+    ? error.message
+    : String(error)
+}
+assert.equal(
+  fingerprintedStorageFailure,
+  'SAM 3.1 private artifact streaming publication failed '
+    + '[storage_signature_l51_uncategorized_knone_'
+    + `${expectedSafeFingerprint}]. context `
+    + `[bytes_${sourceBytes.byteLength}_events_none].`,
+)
+assert.doesNotMatch(
+  fingerprintedStorageFailure,
+  /hf_PRIVATE_TOKEN|\/tmp\/private-checkpoint/u,
+)
+
 const cliSource = readFileSync(
   'server/cli/canonical-sam3_1-official-artifact-ingest.ts',
+  'utf8',
+)
+const gcsPublicationSource = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-gcs-official-artifact-publication.ts',
+  'utf8',
+)
+const artifactPublicationSource = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-official-artifact-publication.ts',
   'utf8',
 )
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
@@ -333,7 +501,19 @@ assert.match(cliSource,
   /canonical_private_reread/u)
 assert.match(cliSource,
   /preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
+assert.match(cliSource,
+  /const liveFile = bucket\.file\(objectName\)\n/u)
+assert.doesNotMatch(cliSource,
+  /bucket\.file\(objectName, \{\s*preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
 assert.doesNotMatch(cliSource, /hf_[A-Za-z0-9]{20,}/u)
+assert.match(gcsPublicationSource,
+  /RESUMABLE_CHUNK_BYTE_LENGTH = 8 \* 1024 \* 1024/u)
+assert.match(gcsPublicationSource, /contentLength: value\.expectedByteLength/u)
+assert.match(gcsPublicationSource, /autoRetry: false/u)
+assert.match(gcsPublicationSource,
+  /idempotencyStrategy: IdempotencyStrategy\.RetryNever/u)
+assert.match(artifactPublicationSource,
+  /CHECKPOINT_BYTE_LENGTH = 3_502_755_717/u)
 assert.equal(
   packageJson.scripts?.['publish:sam3_1-official-artifacts'],
   'tsx server/cli/canonical-sam3_1-official-artifact-ingest.ts --execute',
@@ -341,13 +521,17 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-publication',
-  checks: 39,
+  checks: 57,
   cloudOnly: true,
   officialSourcePinned: true,
   officialGatedCheckpointPinned: true,
+  currentOfficialUsAwsCdnHostAllowlistedExactly: true,
   authorizationRemovedBeforeRedirect: true,
   createOnlyGcsWrite: true,
   exactGenerationReread: true,
+  exactLengthBoundedMultiChunkResumableUpload: true,
+  boundedFailureStageDiagnostics: true,
+  rawFailureDetailExcludedFromOperatorLog: true,
   automaticRetryAllowed: false,
   developerMachineInstallAllowed: false,
   imageBuildAuthorized: receipt.authority.imageBuildAuthorized,
@@ -355,6 +539,20 @@ console.log(JSON.stringify({
   productionReady: receipt.authority.productionReady,
   publicationReceiptHash: receipt.publicationReceiptHash,
 }))
+
+function sourceAcquisitionFailureStream(): AsyncIterable<Uint8Array> {
+  return {
+    [Symbol.asyncIterator]() {
+      return {
+        async next(): Promise<IteratorResult<Uint8Array>> {
+          throw new Error('SAM 3.1 official source acquisition failed.', {
+            cause: new Error('private git diagnostic'),
+          })
+        },
+      }
+    },
+  }
+}
 
 function createTerms(
   evidenceClass: 'synthetic_contract_fixture' | 'canonical_private_reread',

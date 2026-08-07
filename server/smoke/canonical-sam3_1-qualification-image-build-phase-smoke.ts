@@ -26,6 +26,13 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  assertCanonicalSam31QualificationImageBuildReconciliation,
+  assertCanonicalSam31QualificationImageBuildReconciledTerminal,
+  canonicalSam31QualificationImageBuildSubmissionRef,
+  createCanonicalSam31QualificationImageBuildReconciler,
+  createCanonicalSam31QualificationImageBuildReconciledTerminalObserver,
+} from '../services/canonical-sam3_1-qualification-image-build-reconciliation'
 
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
@@ -114,7 +121,7 @@ const capsuleManifest =
           'sam31_private_build_input/dependency-closure/wheelhouse/',
         )),
       ),
-      dependencyWheelCount: 2,
+      dependencyWheelCount: 4,
       cudaForwardCompatPackageSha256:
         'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
       cudaForwardCompatIngestReceiptSha256: entrySha(
@@ -128,6 +135,7 @@ const capsuleManifest =
       coordinate: capsuleCoordinate,
       format: 'tar_gzip',
       contentType: 'application/gzip',
+      storageContentType: 'application/x-tar',
       capsuleArtifactRef: contentRef(
         'sam31-qualification-build-capsule', capsuleSha,
       ),
@@ -149,6 +157,7 @@ const capsuleManifest =
       networkDependencyInstallRequired: false,
       buildSecretsRequired: false,
       capsuleCreateOnlyAndPrivate: true,
+      reproducibilityRef: ref('sam31-qualification-capsule-reproducibility'),
       securityReviewRef: ref('sam31-qualification-capsule-security'),
       malwareScanRef: ref('sam31-qualification-capsule-malware'),
     },
@@ -270,7 +279,7 @@ const phase = createCanonicalSam31QualificationImageBuildPhase({
             name: 'operations/sam31-qualification-image-build-1',
             metadata: { build: {
               id: buildId,
-              name: `projects/reeditpro/locations/us-central1/builds/${buildId}`,
+              name: `projects/390722338345/locations/us-central1/builds/${buildId}`,
               projectId: 'reeditpro',
             } },
           },
@@ -325,6 +334,107 @@ assert.equal(terminal.gpuJobDispatched, false)
 assert.equal(terminal.customerCreditMutationCreated, false)
 assert.equal(terminal.productionReady, false)
 
+const liveRestShapeBuild = successBuild(
+  buildBody,
+  buildId,
+  authority.imageDestination.taggedUri,
+)
+const liveRestShapeOptions = liveRestShapeBuild.options as Record<
+  string,
+  unknown
+>
+liveRestShapeOptions.diskSizeGb = String(liveRestShapeOptions.diskSizeGb)
+const liveRestShapeTerminal =
+  await createCanonicalSam31QualificationImageBuildPhase({
+    authorityReadPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+    },
+    statePort: createStatePort().port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(liveRestShapeBuild) }
+      },
+    },
+    now: () => '2026-08-04T13:02:32.000Z',
+  }).observeOneQualificationImageBuild({ authority, submission })
+assert.equal(
+  liveRestShapeTerminal.disposition,
+  'qualification_image_built_pending_supply_chain_release',
+)
+assert.equal(liveRestShapeTerminal.exactBuildConfigurationEchoVerified, true)
+
+const malformedDiskSizeBuild = structuredClone(liveRestShapeBuild)
+const malformedDiskSizeOptions = malformedDiskSizeBuild.options as Record<
+  string,
+  unknown
+>
+malformedDiskSizeOptions.diskSizeGb = '0200'
+const malformedDiskSizeTerminal =
+  await createCanonicalSam31QualificationImageBuildPhase({
+    authorityReadPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+    },
+    statePort: createStatePort().port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(malformedDiskSizeBuild) }
+      },
+    },
+    now: () => '2026-08-04T13:02:33.000Z',
+  }).observeOneQualificationImageBuild({ authority, submission })
+assert.equal(malformedDiskSizeTerminal.disposition, 'outcome_unknown')
+assert.equal(malformedDiskSizeTerminal.imageBuiltAndPushed, false)
+
+const exactFailureBuild = successBuild(
+  buildBody,
+  buildId,
+  authority.imageDestination.taggedUri,
+)
+exactFailureBuild.status = 'FAILURE'
+delete exactFailureBuild.results
+const exactFailureSteps = exactFailureBuild.steps as Array<
+  Record<string, unknown>
+>
+exactFailureSteps[0] = {
+  ...exactFailureSteps[0],
+  status: 'FAILURE',
+  exitCode: 1,
+  timing: {
+    startTime: '2026-08-04T13:02:01.000Z',
+    endTime: '2026-08-04T13:02:30.000Z',
+  },
+}
+const exactFailureState = createStatePort()
+const exactFailureTerminal =
+  await createCanonicalSam31QualificationImageBuildPhase({
+    authorityReadPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+    },
+    statePort: exactFailureState.port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(exactFailureBuild) }
+      },
+    },
+    now: () => '2026-08-04T13:02:31.000Z',
+  }).observeOneQualificationImageBuild({ authority, submission })
+assertCanonicalSam31QualificationImageBuildTerminal(exactFailureTerminal)
+assert.equal(exactFailureTerminal.disposition, 'terminal_failure')
+assert.equal(exactFailureTerminal.cloudBuildStatus, 'FAILURE')
+assert.equal(exactFailureTerminal.exactBuildConfigurationEchoVerified, true)
+assert.equal(
+  exactFailureTerminal.exactStorageGenerationProvenanceVerified,
+  true,
+)
+assert.equal(exactFailureTerminal.imageBuiltAndPushed, false)
+assert.equal(exactFailureState.terminals.size, 1)
+
 let contractCloudCalls = 0
 const contractPhase = createCanonicalSam31QualificationImageBuildPhase({
   authorityReadPort: {
@@ -355,6 +465,199 @@ const nonOk = await createUnknownSubmission('non_ok')
 assert.equal(nonOk.disposition, 'outcome_unknown')
 assert.equal(nonOk.providerHttpStatus, 503)
 assert.equal(nonOk.automaticRetryAllowed, false)
+const providerResponseSummaries: unknown[] = []
+const badRequestPhase = createCanonicalSam31QualificationImageBuildPhase({
+  authorityReadPort: {
+    async rereadQualificationImageBuildAuthority() {
+      return structuredClone(authority)
+    },
+  },
+  statePort: createStatePort().port,
+  authenticatedTransport: {
+    async request() {
+      return {
+        status: 400,
+        json: { error: {
+          code: 400,
+          status: 'INVALID_ARGUMENT',
+          message: 'The build configuration is invalid.',
+        } },
+      }
+    },
+  },
+  observeCreateResponse(summary) {
+    providerResponseSummaries.push(summary)
+  },
+})
+const currentBadRequest = await badRequestPhase
+  .startOneQualificationImageBuild({ authorityRef })
+assert.equal(currentBadRequest.disposition, 'rejected_before_creation')
+assert.equal(currentBadRequest.providerOutcome, 'not_executed')
+assert.equal(currentBadRequest.durableAuthorityConsumptionCreated, true)
+assert.equal(currentBadRequest.durableSubmissionObservationCreated, true)
+assert.equal(providerResponseSummaries.length, 1)
+assert.equal(
+  (providerResponseSummaries[0] as { providerErrorReason: string })
+    .providerErrorReason,
+  'invalid_build_configuration',
+)
+
+const historicalBadRequestPayload = structuredClone(unknown) as Partial<
+  typeof unknown
+>
+delete historicalBadRequestPayload.submissionHash
+const badRequest = assertCanonicalSam31QualificationImageBuildSubmission({
+  ...historicalBadRequestPayload,
+  providerHttpStatus: 400,
+  submissionHash: sha256AuthorityValue({
+    ...historicalBadRequestPayload,
+    providerHttpStatus: 400,
+  }),
+})
+const badRequestRef = canonicalSam31QualificationImageBuildSubmissionRef(
+  badRequest,
+)
+const noBuildReconciliation =
+  await createCanonicalSam31QualificationImageBuildReconciler({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadSubmission() {
+        return structuredClone(badRequest)
+      },
+    },
+    transport: {
+      async request(request) {
+        assert(request.url.includes('projectId=reeditpro'))
+        return { status: 200, json: { builds: [] } }
+      },
+    },
+    now: () => '2026-08-04T13:03:00.000Z',
+  }).reconcileUnknownSubmission({
+    reconciliationId: 'sam31-qualification-reconciliation-no-build',
+    submissionRef: badRequestRef,
+  })
+assertCanonicalSam31QualificationImageBuildReconciliation(
+  noBuildReconciliation,
+)
+assert.equal(
+  noBuildReconciliation.disposition,
+  'precreation_rejection_no_build_found',
+)
+assert.equal(noBuildReconciliation.matchingBuildCount, 0)
+assert.equal(noBuildReconciliation.predecessorProviderExecutionKnownAbsent, true)
+assert.equal(noBuildReconciliation.automaticRetryAllowed, false)
+assert.equal(noBuildReconciliation.distinctSuccessorAuthorityMayBeIssued, true)
+
+const matchingBuildId = '55555555-5555-4555-8555-555555555555'
+const matchingBuild = successBuild(
+  buildBody,
+  matchingBuildId,
+  authority.imageDestination.taggedUri,
+)
+matchingBuild.createTime = new Date(
+  Date.parse(badRequest.observedAt) + 1_000,
+).toISOString()
+const matchedReconciliation =
+  await createCanonicalSam31QualificationImageBuildReconciler({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadSubmission() {
+        return structuredClone(badRequest)
+      },
+    },
+    transport: {
+      async request() {
+        return { status: 200, json: { builds: [matchingBuild] } }
+      },
+    },
+  }).reconcileUnknownSubmission({
+    reconciliationId: 'sam31-qualification-reconciliation-match',
+    submissionRef: badRequestRef,
+  })
+assert.equal(matchedReconciliation.disposition, 'matched_exact_build')
+assert.equal(matchedReconciliation.matchingBuildCount, 1)
+assert.equal(matchedReconciliation.distinctSuccessorAuthorityMayBeIssued, false)
+
+const acceptedPayload = structuredClone(badRequest) as Partial<
+  typeof badRequest
+>
+delete acceptedPayload.submissionHash
+const acceptedUnknown = assertCanonicalSam31QualificationImageBuildSubmission({
+  ...acceptedPayload,
+  providerHttpStatus: 200,
+  submissionHash: sha256AuthorityValue({
+    ...acceptedPayload,
+    providerHttpStatus: 200,
+  }),
+})
+const acceptedUnknownRef = canonicalSam31QualificationImageBuildSubmissionRef(
+  acceptedUnknown,
+)
+matchingBuild.name =
+  `projects/390722338345/locations/us-central1/builds/${matchingBuildId}`
+const acceptedReconciliation =
+  await createCanonicalSam31QualificationImageBuildReconciler({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadSubmission() {
+        return structuredClone(acceptedUnknown)
+      },
+    },
+    transport: {
+      async request() {
+        return { status: 200, json: { builds: [matchingBuild] } }
+      },
+    },
+  }).reconcileUnknownSubmission({
+    reconciliationId: 'sam31-qualification-reconciliation-accepted-match',
+    submissionRef: acceptedUnknownRef,
+  })
+assert.equal(acceptedReconciliation.disposition, 'matched_exact_build')
+assert.equal(acceptedReconciliation.providerHttpStatus, 200)
+assert.equal(
+  acceptedReconciliation.originalRegionalCreateRequestMissingRequiredProjectIdQuery,
+  false,
+)
+const acceptedReconciliationRef = {
+  id: acceptedReconciliation.reconciliationId,
+  version: 1 as const,
+  contentHash:
+    `sha256:${acceptedReconciliation.reconciliationHash}` as const,
+}
+const reconciledTerminal =
+  await createCanonicalSam31QualificationImageBuildReconciledTerminalObserver({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadReconciliation() {
+        return structuredClone(acceptedReconciliation)
+      },
+    },
+    transport: {
+      async request() {
+        return { status: 200, json: structuredClone(matchingBuild) }
+      },
+    },
+  }).observeTerminal({
+    terminalId: 'sam31-qualification-reconciled-terminal-1',
+    reconciliationRef: acceptedReconciliationRef,
+  })
+assertCanonicalSam31QualificationImageBuildReconciledTerminal(
+  reconciledTerminal,
+)
+assert.equal(
+  reconciledTerminal.disposition,
+  'qualification_image_built_pending_supply_chain_release',
+)
+assert.equal(reconciledTerminal.providerProjectIdentityNormalized, true)
+assert.equal(reconciledTerminal.runtimeReleaseGranted, false)
 
 const mismatchedPhase = createCanonicalSam31QualificationImageBuildPhase({
   authorityReadPort: {
@@ -418,7 +721,15 @@ console.log(JSON.stringify({
     checkpointAndQualificationReceiptExcluded: true,
     noSecretOrCallerBuildInput: true,
     outcomeUnknownHasNoAutomaticRetry: true,
+    synchronousProviderRejectionClassifiedNotExecuted: true,
+    providerErrorSummaryCredentialSafeAndDigestBound: true,
+    http400NoBuildReconciledBeforeSuccessorAuthority: true,
+    exactBuildMatchBlocksSuccessorAuthority: true,
+    acceptedCreateResponseReconciledWithoutDuplicateSubmission: true,
+    providerNumericProjectIdentityNormalized: true,
+    reconciledBuildObservedThroughExactTerminalLineage: true,
     exactTerminalEchoRequired: true,
+    exactFailedBuildConfigurationAndStorageProvenanceReread: true,
     immutableImagePendingSupplyChainRelease: true,
     sourceCheckpointQualificationGranted: false,
     runtimeReleaseGranted: false,
@@ -458,6 +769,8 @@ function successBuild(
     name: `projects/reeditpro/locations/us-central1/builds/${id}`,
     projectId: 'reeditpro',
     status: 'SUCCESS',
+    startTime: '2026-08-04T13:02:01.000Z',
+    finishTime: '2026-08-04T13:02:30.000Z',
     warnings: [],
     source: structuredClone(body.source),
     sourceProvenance: {
@@ -476,7 +789,7 @@ function successBuild(
       name: taggedImageUri,
       digest: `sha256:${sha(Buffer.from('qualification-image-digest'))}`,
       artifactRegistryPackage:
-        'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification',
+        `projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification/versions/sha256:${sha(Buffer.from('qualification-image-digest'))}`,
     }] },
   }
 }
@@ -666,12 +979,52 @@ function createCapsuleFiles(): Array<readonly [string, Buffer]> {
       Buffer.from('{"fixture":"cuda-ingest"}'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb',
+      Buffer.from('synthetic cuda npp runtime package'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json',
+      Buffer.from('{"fixture":"cuda-npp-runtime"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/dependency-closure-receipt.json',
       Buffer.from('{"fixture":"dependency-closure"}'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz',
+      Buffer.from('synthetic ffmpeg source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz',
+      Buffer.from('synthetic pkgconf source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz',
+      Buffer.from('synthetic nv codec headers source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json',
+      Buffer.from('{"fixture":"ffmpeg-closure"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/requirements.lock.txt',
       Buffer.from('fixture==1.0 --hash=sha256:fixture'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json',
+      Buffer.from('{"fixture":"einops-ingest"}'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json',
+      Buffer.from('{"fixture":"pycocotools-ingest"}'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl',
+      Buffer.from('synthetic einops wheel'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
+      Buffer.from('synthetic pycocotools wheel'),
     ],
     [
       'sam31_private_build_input/dependency-closure/wheelhouse/fixture_a-1.0-py3-none-any.whl',
@@ -759,7 +1112,7 @@ function capsuleReadPort(
       return {
         generationBeforeRead: coordinate.generation,
         etagBeforeRead: coordinate.etag,
-        contentType: 'application/gzip',
+        contentType: 'application/x-tar',
         body: chunked(bytes),
         generationAfterRead: coordinate.generation,
         etagAfterRead: coordinate.etag,

@@ -129,6 +129,10 @@ assert.equal(candidate.fixedApi.gpuDecodeBackend,
   'torchcodec_0_10_cuda_nvdec')
 assert.equal(candidate.runtimeClosure.reeditproGpuDecodePatchSemanticAuditPassed,
   true)
+assert.equal(
+  candidate.candidateHash,
+  'a619bd95c0223cab1247fd6e3e9d21276a0aea99a905d789ea6534c7f726b444',
+)
 assert.equal(candidate.runtimeClosure.reeditproPatchedSourceTree,
   'f3a58b95a0e460d76e1cf38abff0382a7307f67d')
 assert.equal(candidate.runtimeClosure.deterministicPatchedSourceArchiveSha256,
@@ -306,6 +310,25 @@ assert(sourceLock.includes(
 assert(sourceLock.includes(
   `cuda_forward_compat_package_sha256=${candidate.runtimeClosure.cudaDriverCompatibility.cudaForwardCompatibilitySha256}`,
 ))
+for (const einopsProvenance of [
+  'candidate_einops=0.8.2',
+  'candidate_einops_private_object_generation=1786106120404202',
+  'candidate_einops_ingest_receipt_generation=1786106528199762',
+  'candidate_einops_ingest_receipt_sha256=d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+  'candidate_einops_private_malware_scan_passed=true',
+  'candidate_einops_developer_machine_install_performed=false',
+  'sam_core_unconditionally_imports_einops=true',
+] as const) assert(sourceLock.includes(einopsProvenance))
+for (const pycocotoolsProvenance of [
+  'candidate_pycocotools=2.0.11',
+  'candidate_pycocotools_private_object_generation=1786112742762071',
+  'candidate_pycocotools_ingest_receipt_generation=1786112748711226',
+  'candidate_pycocotools_ingest_receipt_sha256=a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
+  'candidate_pycocotools_native_extension_import_verified=true',
+  'candidate_pycocotools_private_malware_scan_passed=true',
+  'candidate_pycocotools_developer_machine_install_performed=false',
+  'sam_core_unconditionally_imports_pycocotools=true',
+] as const) assert(sourceLock.includes(pycocotoolsProvenance))
 
 const gpuDecodePatch = readFileSync(resolve(
   process.cwd(),
@@ -380,6 +403,11 @@ for (const requiredRunnerFragment of [
   'WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE',
   'validate_cuda_driver_library()',
   'loaded_cuda_driver_library_path()',
+  'verify_ffmpeg_nvdec_runtime()',
+  'install_torchcodec_gpu_decode_guard()',
+  'core._get_backend_details(decoder._decoder)',
+  '"CPU fallback" in details',
+  'SAM 3.1 observed no CUDA/NVDEC video decode',
 ]) assert(sam31Runner.includes(requiredRunnerFragment))
 assert(!sam31Runner.includes('cv2.VideoCapture'))
 assert(!sam31Runner.includes('Image.open(SOURCE_PROXY_PATH'))
@@ -395,6 +423,7 @@ const sam31Dockerfile = readFileSync(resolve(
   'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate',
 ), 'utf8')
 for (const requiredDockerfileFragment of [
+  'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
   'pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
   'COPY sam31_private_build_input/source/',
   'sam3-patched-source.tar',
@@ -413,12 +442,40 @@ for (const requiredDockerfileFragment of [
   '/usr/local/cuda-12.8/compat/libcuda.so.1',
   'sys.version_info[:2] == (3, 12)',
   'PIP_NO_INDEX=1',
+  'WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv',
+  'ffmpeg-8.0.3.tar.gz',
+  'pkgconf-3.0.4.tar.gz',
+  'libnpp-12-8_12.3.3.100-1_amd64.deb',
+  'cuda-npp-runtime-receipt.json',
+  '/opt/weeditpro/cuda-npp/lib',
+  'libnppicc.so.12',
+  '/opt/weeditpro/cuda-npp/LICENSE',
+  'cudaNppRuntimeReceiptSha256',
+  'nv-codec-headers-n12.2.72.0.tar.gz',
+  '/opt/weeditpro/pkgconf/bin/pkg-config',
+  'pkgconfBuiltOfflineFromPinnedSource',
+  'torchcodecCpuWheelAccepted',
+  "m.version('torchcodec') == '0.10.0+cu128'",
+  "m.version('einops') == '0.8.2'",
+  '--enable-nvdec',
+  '--enable-cuvid',
+  '--disable-nvenc',
+  '--disable-libnpp',
   '--require-hashes',
   '--no-index',
   'USER 65532:65532',
   'NVIDIA_DRIVER_CAPABILITIES=compute,utility,video',
   'ENTRYPOINT ["/opt/reeditpro/sam3_1/entrypoint.sh"]',
-]) assert(sam31Dockerfile.includes(requiredDockerfileFragment))
+]) assert(
+  sam31Dockerfile.includes(requiredDockerfileFragment),
+  `SAM 3.1 candidate lost ${requiredDockerfileFragment}`,
+)
+assert(sam31Runner.includes('EXPECTED_EINOPS_VERSION = "0.8.2"'))
+assert(sam31Runner.includes(
+  'importlib.metadata.version("einops") != EXPECTED_EINOPS_VERSION',
+))
+assert.equal((sam31Dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
+assert.equal((sam31Dockerfile.match(/^RUN /gmu) ?? []).length, 3)
 for (const forbiddenDockerfileFragment of [
   'ADD http://',
   'ADD https://',
@@ -441,7 +498,9 @@ for (const requiredEntrypointFragment of [
   '/usr/local/cuda-12.8/compat',
   'WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE=cuda_compat_12_8',
   'WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE=host_driver',
-  'exec python -I -B /opt/reeditpro/sam3_1/runner.py',
+  '/opt/weeditpro/ffmpeg/lib/libavcodec.so.62',
+  'runtime_library_paths=',
+  'exec /opt/weeditpro/python-venv/bin/python',
 ]) assert(sam31Entrypoint.includes(requiredEntrypointFragment))
 
 const adversarial: Array<(
@@ -525,7 +584,7 @@ assert.throws(() => assertCanonicalSam31SourceRuntimeCandidate(wrongHash))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-runtime-candidate',
-  checks: 134,
+  checks: 145,
   operationId: candidate.operationId,
   sourceRevision: candidate.officialSource.sourceRevision,
   checkpointRevision: candidate.officialCheckpoint.repositoryRevision,

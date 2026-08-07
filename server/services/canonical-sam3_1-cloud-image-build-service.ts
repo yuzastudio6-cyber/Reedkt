@@ -18,8 +18,10 @@ export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_TERMINAL_OBSERVATION_VERSION =
 const PROJECT_ID = 'reeditpro' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_CREATE_ENDPOINT =
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const ARTIFACT_REGISTRY_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu' as const
 const safeId = z.string().trim().min(1).max(512)
@@ -423,7 +425,7 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_CREATE_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         status = response.status
         if (status < 200 || status >= 300) {

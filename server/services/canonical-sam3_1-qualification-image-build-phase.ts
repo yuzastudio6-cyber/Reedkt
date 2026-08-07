@@ -13,10 +13,17 @@ export const CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_TERMINAL_VERSION =
   'canonical-sam3_1-qualification-image-build-terminal-observation-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_ENDPOINT =
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  BUILD_COLLECTION,
+  `projects/${PROJECT_NUMBER}/locations/us-central1/builds`,
+])
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const ARTIFACT_REGISTRY_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification' as const
 const safeId = z.string().trim().min(1).max(512)
@@ -164,7 +171,9 @@ const terminalWithoutHashSchema = z.object({
         || !value.warningsAbsent
         || !value.immutableImageDigest
         || !value.immutableImageUri
-        || value.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+        || value.artifactRegistryPackage !== artifactRegistryVersion(
+          value.immutableImageDigest,
+        )
         || !value.durableTerminalObservationCreated
         || !value.imageBuiltAndPushed
       : value.immutableImageDigest !== null
@@ -213,6 +222,21 @@ export interface CanonicalSam31QualificationCloudBuildTransport {
   }): Promise<{ readonly status: number; readonly json: unknown }>
 }
 
+export interface CanonicalSam31QualificationCloudBuildCreateResponseSummary {
+  readonly providerHttpStatus: number
+  readonly responseSha256: string
+  readonly providerErrorCode: number | null
+  readonly providerErrorStatus: string | null
+  readonly providerErrorReason:
+    | 'required_project_id_query_missing'
+    | 'invalid_build_configuration'
+    | 'permission_denied'
+    | 'quota_or_capacity'
+    | 'unclassified'
+    | null
+  readonly safeProviderMessage: string | null
+}
+
 /**
  * Qualification-image phase of the canonical SAM 3.1 Cloud Build owner. It is
  * deliberately separate from the runtime-image phase while retaining the same
@@ -224,6 +248,9 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
   readonly statePort: CanonicalSam31QualificationImageBuildStatePort
   readonly authenticatedTransport:
     CanonicalSam31QualificationCloudBuildTransport
+  readonly observeCreateResponse?: (
+    summary: CanonicalSam31QualificationCloudBuildCreateResponseSummary,
+  ) => void
   readonly now?: () => string
 }) {
   return Object.freeze({
@@ -297,11 +324,42 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'POST',
-          url: BUILD_ENDPOINT,
+          url: BUILD_CREATE_ENDPOINT,
           body,
         })
         providerStatus = response.status
+        input.observeCreateResponse?.(
+          summarizeCanonicalSam31QualificationCloudBuildCreateResponse(
+            response.status,
+            response.json,
+          ),
+        )
         if (response.status < 200 || response.status >= 300) {
+          if (response.status >= 400 && response.status < 500) {
+            const rejected = buildSubmission({
+              disposition: 'rejected_before_creation',
+              authorityRef,
+              buildRequestHash,
+              buildRequestBodyRef,
+              providerHttpStatus: response.status,
+              cloudBuildOperationName: null,
+              cloudBuildId: null,
+              cloudBuildResource: null,
+              providerOutcome: 'not_executed',
+              durableAuthorityConsumptionCreated: true,
+              durableSubmissionObservationCreated: true,
+              imageBuildKnownStarted: false,
+              observedAt,
+            })
+            const persisted = await input.statePort
+              .persistQualificationSubmissionCreateOnly({
+                submission: rejected,
+              })
+            if (!persisted) {
+              throw new Error('Qualification rejection not durable.')
+            }
+            return rejected
+          }
           throw new Error('Qualification Cloud Build create failed.')
         }
         accepted = parseCreateOperation(response.json)
@@ -383,7 +441,7 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         providerStatus = response.status
         if (response.status < 200 || response.status >= 300) {
@@ -392,7 +450,7 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
         const build = parseBuildResource(response.json)
         if (
           build.id !== submission.cloudBuildId
-          || build.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          || !providerBuildNameMatches(build.name, submission.cloudBuildId)
         ) throw new Error('Qualification Cloud Build crossed identity.')
         if (['PENDING', 'QUEUED', 'WORKING'].includes(build.status)) {
           return buildTerminal({
@@ -411,13 +469,16 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
           })
         }
         if (build.status !== 'SUCCESS') {
+          const expectedBody =
+            compileCanonicalSam31QualificationImageBuildRequestBody(authority)
+          assertBuildConfigurationEcho(build, expectedBody)
           const failure = buildTerminal({
             ...base,
             disposition: 'terminal_failure',
             providerHttpStatus: response.status,
             cloudBuildStatus: build.status,
-            exactBuildConfigurationEchoVerified: false,
-            exactStorageGenerationProvenanceVerified: false,
+            exactBuildConfigurationEchoVerified: true,
+            exactStorageGenerationProvenanceVerified: true,
             warningsAbsent: build.warnings.length === 0,
             immutableImageDigest: null,
             immutableImageUri: null,
@@ -471,6 +532,49 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
         })
       }
     },
+  })
+}
+
+export function summarizeCanonicalSam31QualificationCloudBuildCreateResponse(
+  providerHttpStatus: number,
+  value: unknown,
+): CanonicalSam31QualificationCloudBuildCreateResponseSummary {
+  const responseSha256 = sha256AuthorityValue(value)
+  const root = z.object({
+    error: z.object({
+      code: z.number().int().min(100).max(599).optional(),
+      status: z.string().trim().min(1).max(128).optional(),
+      message: z.string().trim().min(1).max(4_096).optional(),
+    }).passthrough().optional(),
+  }).passthrough().safeParse(value)
+  const error = root.success ? root.data.error : undefined
+  const message = error?.message ?? ''
+  const normalized = message.toLowerCase()
+  const providerErrorReason = providerHttpStatus >= 200
+    && providerHttpStatus < 300
+    ? null
+    : normalized.includes('projectid')
+        && (normalized.includes('required') || normalized.includes('missing'))
+      ? 'required_project_id_query_missing'
+      : providerHttpStatus === 401 || providerHttpStatus === 403
+        || normalized.includes('permission')
+        || normalized.includes('not authorized')
+        ? 'permission_denied'
+        : providerHttpStatus === 429
+          || normalized.includes('quota')
+          || normalized.includes('capacity')
+          ? 'quota_or_capacity'
+          : providerHttpStatus === 400
+            || providerHttpStatus === 422
+            ? 'invalid_build_configuration'
+            : 'unclassified'
+  return Object.freeze({
+    providerHttpStatus,
+    responseSha256,
+    providerErrorCode: error?.code ?? null,
+    providerErrorStatus: error?.status ?? null,
+    providerErrorReason,
+    safeProviderMessage: safeProviderMessage(message),
   })
 }
 
@@ -556,7 +660,7 @@ function parseCreateOperation(value: unknown) {
   const build = record(record(root.metadata).build)
   const buildId = z.string().uuid().parse(build.id)
   if (
-    build.name !== `${BUILD_COLLECTION}/${buildId}`
+    !providerBuildNameMatches(z.string().parse(build.name), buildId)
     || build.projectId !== PROJECT_ID
   ) throw new Error('Qualification build create crossed project.')
   return { operationName, buildId }
@@ -600,10 +704,31 @@ function parseBuildResource(value: unknown) {
   }
 }
 
+function providerBuildNameMatches(name: string, buildId: string): boolean {
+  return [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => name === `${collection}/${buildId}`,
+  )
+}
+
 function assertBuildEcho(
   build: ParsedBuild,
   expected: Readonly<Record<string, unknown>>,
   authority: CanonicalSam31QualificationImageBuildAuthority,
+): void {
+  assertBuildConfigurationEcho(build, expected)
+  const image = build.results.images[0]
+  if (
+    build.status !== 'SUCCESS'
+    || build.warnings.length !== 0
+    || build.results.images.length !== 1
+    || image.name !== authority.imageDestination.taggedUri
+    || image.artifactRegistryPackage !== artifactRegistryVersion(image.digest)
+  ) throw new Error('Qualification Cloud Build output differs from authority.')
+}
+
+function assertBuildConfigurationEcho(
+  build: ParsedBuild,
+  expected: Readonly<Record<string, unknown>>,
 ): void {
   const raw = build.raw
   const actualStorage = record(record(raw.source).storageSource)
@@ -611,27 +736,22 @@ function assertBuildEcho(
   const resolvedStorage = record(
     build.sourceProvenance.resolvedStorageSource,
   )
-  const actualSteps = z.array(z.unknown()).parse(raw.steps)
-  const expectedSteps = z.array(z.unknown()).parse(expected.steps)
   const actualImages = z.array(z.string()).parse(raw.images)
   const expectedImages = z.array(z.string()).parse(expected.images)
   const actualOptions = record(raw.options)
   const expectedOptions = record(expected.options)
-  const image = build.results.images[0]
   if (
-    build.status !== 'SUCCESS'
-    || build.warnings.length !== 0
-    || build.results.images.length !== 1
-    || image.name !== authority.imageDestination.taggedUri
-    || image.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
-    || raw.serviceAccount !== expected.serviceAccount
+    raw.serviceAccount !== expected.serviceAccount
     || !sameJson(actualStorage, expectedStorage)
     || !sameJson(resolvedStorage, expectedStorage)
-    || !sameJson(actualSteps, expectedSteps)
+    || !sameBuildSteps(raw.steps, expected.steps)
     || !sameJson(actualImages, expectedImages)
     || !sameJson(raw.tags, expected.tags)
     || actualOptions.machineType !== expectedOptions.machineType
-    || actualOptions.diskSizeGb !== expectedOptions.diskSizeGb
+    || !sameCloudBuildInt64(
+      actualOptions.diskSizeGb,
+      expectedOptions.diskSizeGb,
+    )
     || actualOptions.requestedVerifyOption !==
       expectedOptions.requestedVerifyOption
     || actualOptions.logging !== expectedOptions.logging
@@ -643,7 +763,42 @@ function assertBuildEcho(
     || hasNonEmpty(raw.secrets)
     || hasNonEmpty(raw.availableSecrets)
     || hasNonEmpty(raw.buildTriggerId)
-  ) throw new Error('Qualification Cloud Build differs from authority.')
+  ) throw new Error('Qualification Cloud Build configuration differs from authority.')
+}
+
+function sameBuildSteps(observed: unknown, expected: unknown): boolean {
+  const observedSteps = z.array(z.object({
+    id: z.unknown(),
+    name: z.unknown(),
+    args: z.unknown(),
+  }).passthrough()).max(100).safeParse(observed)
+  const expectedSteps = z.array(z.object({
+    id: z.unknown(),
+    name: z.unknown(),
+    args: z.unknown(),
+  }).strict()).max(100).safeParse(expected)
+  if (!observedSteps.success || !expectedSteps.success) return false
+  return sameJson(observedSteps.data.map(({ id, name, args }) => ({
+    id,
+    name,
+    args,
+  })), expectedSteps.data)
+}
+
+function sameCloudBuildInt64(observed: unknown, expected: unknown): boolean {
+  const canonicalInt64 = z.union([
+    z.number().int().nonnegative().safe(),
+    z.string().regex(/^(0|[1-9][0-9]*)$/u),
+  ]).transform((value) => BigInt(value).toString())
+  const observedValue = canonicalInt64.safeParse(observed)
+  const expectedValue = canonicalInt64.safeParse(expected)
+  return observedValue.success
+    && expectedValue.success
+    && observedValue.data === expectedValue.data
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${ARTIFACT_REGISTRY_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 function buildSubmission(input: Omit<
@@ -760,4 +915,15 @@ function deepFreeze<T>(value: T): T {
     }
   }
   return value
+}
+
+function safeProviderMessage(value: string): string | null {
+  if (!value) return null
+  if (/\b(?:authorization|bearer|access[_ -]?token|refresh[_ -]?token|api[_ -]?key|password|credential|secret)\b/iu.test(value)) {
+    return '[provider message withheld by credential-safety policy]'
+  }
+  return value
+    .replace(/https?:\/\/\S+/giu, '[url]')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/giu, '[service-account]')
+    .slice(0, 1_000)
 }

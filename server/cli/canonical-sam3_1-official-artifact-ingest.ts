@@ -56,7 +56,6 @@ async function main(): Promise<void> {
       createCanonicalSam31GcsOfficialArtifactPublicationPort({
         projectId: PROJECT_ID,
         bucketName: MODEL_ARTIFACT_BUCKET,
-        storage,
       }),
     publishedAt: new Date().toISOString(),
   })
@@ -201,9 +200,10 @@ async function persistReceiptExact(input: {
     input.receipt.publicationAttemptId
   }-${input.receipt.publicationReceiptHash.slice(0, 24)}.json`
   const bucket = input.storage.bucket(CONTROL_PLANE_BUCKET)
-  const liveFile = bucket.file(objectName, {
-    preconditionOpts: { ifGenerationMatch: 0 },
-  })
+  // Keep the create-only precondition on the write. Putting it on the file
+  // handle also applies it to the metadata read below, which must occur only
+  // after the object has been created and therefore can never match zero.
+  const liveFile = bucket.file(objectName)
   try {
     await liveFile.save(body, {
       contentType: 'application/json',

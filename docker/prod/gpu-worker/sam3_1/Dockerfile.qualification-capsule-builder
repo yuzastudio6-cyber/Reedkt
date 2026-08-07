@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1
+# Cloud-only builder for the fixed WeEditPro SAM 3.1 qualification capsule.
+# It never contains the gated checkpoint and is never a runtime image.
+
+FROM pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
+
+ARG WEEDITPRO_REPOSITORY_COMMIT
+ARG WEEDITPRO_REPOSITORY_TREE
+
+ENV DEBIAN_FRONTEND=noninteractive \
+  PIP_DISABLE_PIP_VERSION_CHECK=1 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  SOURCE_DATE_EPOCH=0 \
+  TZ=UTC \
+  LANG=C \
+  LC_ALL=C
+
+WORKDIR /opt/weeditpro-capsule-builder
+
+COPY Dockerfile.qualification.candidate source/Dockerfile.qualification.candidate
+COPY qualification_runner.py source/qualification_runner.py
+COPY qualification_entrypoint.sh source/qualification_entrypoint.sh
+COPY source-provenance.lock source/source-provenance.lock
+COPY patches/0001-reeditpro-gpu-decode.patch source/patches/0001-reeditpro-gpu-decode.patch
+COPY build-qualification-capsule.sh build-qualification-capsule.sh
+COPY private-staging/sam3-source.tar private-staging/sam3-source.tar
+COPY private-dependency-closure/dependency-closure private-dependency-closure/dependency-closure
+COPY private-source-prep/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar private-source-prep/sam3-patched-source.tar
+
+RUN test "$(uname -m)" = x86_64 \
+  && test -n "${WEEDITPRO_REPOSITORY_COMMIT}" \
+  && test -n "${WEEDITPRO_REPOSITORY_TREE}" \
+  && for command_name in bash cut find gzip python sha256sum \
+       sort stat tar touch xargs; do \
+       command -v "${command_name}" >/dev/null \
+         || { printf 'ERROR: missing capsule-builder utility: %s\n' \
+           "${command_name}" >&2; exit 127; }; \
+     done \
+  && chmod 0555 build-qualification-capsule.sh \
+  && WEEDITPRO_REPOSITORY_COMMIT="${WEEDITPRO_REPOSITORY_COMMIT}" \
+     WEEDITPRO_REPOSITORY_TREE="${WEEDITPRO_REPOSITORY_TREE}" \
+     bash ./build-qualification-capsule.sh
+
+ENTRYPOINT []
+CMD ["/bin/false"]

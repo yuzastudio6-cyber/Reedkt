@@ -75,7 +75,12 @@ export const CANONICAL_SAM3_1_IMAGE_SECURITY_REVIEW_VERSION =
   'canonical-sam3_1-image-security-review-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const REGION = 'us-central1' as const
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  `projects/${PROJECT_ID}/locations/${REGION}/builds`,
+  `projects/${PROJECT_NUMBER}/locations/${REGION}/builds`,
+])
 const IMAGE_REPOSITORY =
   'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers' as const
 const IMAGE_NAME = 'reeditpro-sam31-gpu' as const
@@ -1642,7 +1647,7 @@ function verifyOriginalImageBuild(input: {
   const options = record(root.options)
   if (
     root.id !== input.terminal.cloudBuildId
-    || root.name !== input.terminal.cloudBuildResource
+    || !providerBuildNameMatches(root.name, input.terminal.cloudBuildId)
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
     || hasUnexpectedWarnings(root.warnings)
@@ -1695,7 +1700,7 @@ function verifyQualificationImageBuild(input: {
   const options = record(root.options)
   if (
     root.id !== input.terminal.cloudBuildId
-    || root.name !== input.terminal.cloudBuildResource
+    || !providerBuildNameMatches(root.name, input.terminal.cloudBuildId)
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
     || hasUnexpectedWarnings(root.warnings)
@@ -1763,7 +1768,10 @@ function verifySupplyChainBuild(input: {
   const expectedOptions = record(expected.options)
   if (
     root.id !== input.observation.cloudBuildId
-    || root.name !== input.observation.cloudBuildResource
+    || !providerBuildNameMatches(
+      root.name,
+      input.observation.cloudBuildId,
+    )
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
     || hasUnexpectedWarnings(root.warnings)
@@ -1821,7 +1829,10 @@ function verifyQualificationImageSupplyChainBuild(input: {
   const expectedOptions = record(expected.options)
   if (
     root.id !== input.observation.cloudBuildId
-    || root.name !== input.observation.cloudBuildResource
+    || !providerBuildNameMatches(
+      root.name,
+      input.observation.cloudBuildId,
+    )
     || root.projectId !== PROJECT_ID
     || root.status !== 'SUCCESS'
     || hasUnexpectedWarnings(root.warnings)
@@ -1846,6 +1857,13 @@ function verifyQualificationImageSupplyChainBuild(input: {
     || hasNonEmptyValue(root.availableSecrets)
     || hasNonEmptyValue(root.buildTriggerId)
   ) throw conflict('sam3_1_qualification_supply_build_echo_invalid')
+}
+
+function providerBuildNameMatches(value: unknown, buildId: string): boolean {
+  const parsed = z.string().safeParse(value)
+  return parsed.success && [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => parsed.data === `${collection}/${buildId}`,
+  )
 }
 
 export async function listCanonicalImageArtifactAnalysisOccurrences(

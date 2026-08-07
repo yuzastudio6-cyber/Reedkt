@@ -88,6 +88,9 @@ export interface CanonicalSam31AuthorizedTermsFinalizationRepository {
   readonly schemaVersion:
     typeof CANONICAL_SAM3_1_AUTHORIZED_TERMS_FINALIZATION_REPOSITORY_VERSION
   readonly evidenceClass: 'private_create_only_exact_reread'
+  persistHumanTermsIntentCreateOnly(input: {
+    readonly humanTermsIntent: CanonicalSam31AuthorizedHumanTermsIntent
+  }): Promise<'created' | 'identical_replay'>
   rereadHumanTermsIntent(input: {
     readonly humanTermsIntentRef: z.infer<typeof intentRefSchema>
   }): Promise<CanonicalSam31AuthorizedHumanTermsIntent | null>
@@ -346,6 +349,17 @@ export function createCanonicalSam31AuthorizedTermsFinalizationRepository(input:
     schemaVersion:
       CANONICAL_SAM3_1_AUTHORIZED_TERMS_FINALIZATION_REPOSITORY_VERSION,
     evidenceClass: 'private_create_only_exact_reread',
+    async persistHumanTermsIntentCreateOnly(untrusted) {
+      assertPlainSerializedData(untrusted, 'sam31_terms_intent_persist')
+      const parsed = assertCanonicalSam31AuthorizedHumanTermsIntent(
+        z.object({ humanTermsIntent: z.unknown() }).strict().parse(untrusted)
+          .humanTermsIntent,
+      )
+      return persistRecord(input.objectPort, refPath(
+        INTENT_PREFIX,
+        canonicalSam31AuthorizedHumanTermsIntentRef(parsed),
+      ), parsed)
+    },
     async rereadHumanTermsIntent(untrusted) {
       assertPlainSerializedData(untrusted, 'sam31_terms_intent_reread')
       const { humanTermsIntentRef } = z.object({

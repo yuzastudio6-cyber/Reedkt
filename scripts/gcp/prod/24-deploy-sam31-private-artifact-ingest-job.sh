@@ -7,17 +7,17 @@ set -euo pipefail
 readonly PROJECT_ID='reeditpro'
 readonly REGION='us-central1'
 readonly JOB='weeditpro-sam31-private-artifact-ingest'
-readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-private-ingest-sa'
+readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-prv-ingest-sa'
 readonly SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly CONTROL_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 readonly MODEL_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 readonly NETWORK='weeditpro-gpu-private'
 readonly SUBNET='weeditpro-gpu-private-us-central1'
-readonly BUILD_ID='03133c6e-91f2-468a-8dd3-e3333b96bbb2'
-readonly SOURCE_COMMIT='4c1ef11eb855de981bfd4fc90b69a2b3a43d3de1'
-readonly SOURCE_TREE='1add02c65b4ffd65845ee20d537fab863c51e0d2'
+readonly BUILD_ID='031bf059-0d4e-4957-8d38-5f01e6b76d22'
+readonly SOURCE_COMMIT='1a1c59682d26307929e6b1aa3d9cf70649548d34'
+readonly SOURCE_TREE='78bf6b723b9a8757f02f258fef8c1cc69ba91a9c'
 readonly IMAGE_TAG="sam31-private-ingest-${SOURCE_COMMIT:0:16}"
-readonly IMAGE_DIGEST='sha256:d2be82cef9b3a68a899a1c70d8050db660d81e0c45fa2d9532e00799ed65db87'
+readonly IMAGE_DIGEST='sha256:41305e2751bb418506313068c10658b6f3755d795b43c4b540cd76be87be4436'
 readonly IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-private-artifact-ingest@${IMAGE_DIGEST}"
 readonly IMAGE_TAGGED="${REGION}-docker.pkg.dev/${PROJECT_ID}/reeditpro-workers/weeditpro-sam31-private-artifact-ingest:${IMAGE_TAG}"
 readonly IMAGE_BUILDER='projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
@@ -27,6 +27,35 @@ readonly CONFIRMATION='deploy-weeditpro-sam31-private-artifact-ingest-v1'
 fail() {
   printf 'ERROR: %s.\n' "$1" >&2
   exit 1
+}
+
+retry_project_binding() {
+  local role="$1"
+  local attempt
+  for attempt in $(seq 1 12); do
+    if gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --condition=None --quiet >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+  fail "service-account project IAM propagation failed for ${role}"
+}
+
+retry_bucket_binding() {
+  local bucket="$1"
+  local role="$2"
+  local attempt
+  for attempt in $(seq 1 12); do
+    if gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
+      --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --condition=None --quiet >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+  fail "service-account bucket IAM propagation failed for ${bucket} ${role}"
 }
 
 [[ "${WEEDITPRO_CONFIRM_SAM31_PRIVATE_ARTIFACT_INGEST_JOB_DEPLOY:-}" \
@@ -169,17 +198,11 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" \
     --display-name='WeEditPro SAM 3.1 private artifact ingest' \
     --description='Network-isolated exact artifact reread; no inference or media processing'
 fi
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/logging.logWriter --condition=None --quiet >/dev/null
+retry_project_binding roles/logging.logWriter
 for bucket in "${MODEL_BUCKET}" "${CONTROL_BUCKET}"; do
-  gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
-    --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role=roles/storage.objectViewer --quiet >/dev/null
+  retry_bucket_binding "${bucket}" roles/storage.objectViewer
 done
-gcloud storage buckets add-iam-policy-binding "gs://${CONTROL_BUCKET}" \
-  --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/storage.objectCreator --quiet >/dev/null
+retry_bucket_binding "${CONTROL_BUCKET}" roles/storage.objectCreator
 
 gcloud run jobs deploy "${JOB}" \
   --project="${PROJECT_ID}" --region="${REGION}" \

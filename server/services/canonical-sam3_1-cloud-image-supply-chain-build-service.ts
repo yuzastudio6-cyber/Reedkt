@@ -20,10 +20,17 @@ export const CANONICAL_SAM3_1_IMAGE_SUPPLY_CHAIN_BUILD_OBSERVATION_VERSION =
   'canonical-sam3_1-image-supply-chain-build-observation-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_ENDPOINT =
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  BUILD_COLLECTION,
+  `projects/${PROJECT_NUMBER}/locations/us-central1/builds`,
+])
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const IMAGE_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu' as const
 const EVIDENCE_BUCKET =
@@ -536,7 +543,7 @@ export function createCanonicalSam31ImageSupplyChainBuildService(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'POST',
-          url: BUILD_ENDPOINT,
+          url: BUILD_CREATE_ENDPOINT,
           body: buildBody,
         })
         status = response.status
@@ -623,7 +630,7 @@ export function createCanonicalSam31ImageSupplyChainBuildService(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         providerStatus = response.status
         if (providerStatus < 200 || providerStatus >= 300) {
@@ -632,7 +639,10 @@ export function createCanonicalSam31ImageSupplyChainBuildService(input: {
         const build = parseBuildResource(response.json)
         if (
           build.id !== submission.cloudBuildId
-          || build.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          || !providerBuildNameMatches(
+            build.name,
+            submission.cloudBuildId,
+          )
         ) throw new Error('Supply-chain Cloud Build reread crossed identity.')
         if (['PENDING', 'QUEUED', 'WORKING'].includes(build.status)) {
           return buildObservation({
@@ -907,10 +917,16 @@ function parseBuildCreateOperation(value: unknown) {
   const build = record(record(root.metadata).build)
   const buildId = z.string().uuid().parse(build.id)
   if (
-    build.name !== `${BUILD_COLLECTION}/${buildId}`
+    !providerBuildNameMatches(z.string().parse(build.name), buildId)
     || build.projectId !== PROJECT_ID
   ) throw new Error('Supply-chain Cloud Build create crossed project.')
   return { operationName, buildId }
+}
+
+function providerBuildNameMatches(name: string, buildId: string): boolean {
+  return [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => name === `${collection}/${buildId}`,
+  )
 }
 
 function parseBuildResource(value: unknown) {

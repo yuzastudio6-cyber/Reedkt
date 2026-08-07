@@ -44,6 +44,44 @@ const PATCH_SHA256 =
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca' as const
 const CUDA_FORWARD_COMPAT_SHA256 =
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' as const
+const CUDA_NPP_SHA256 =
+  '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992' as const
+const FFMPEG_SHA256 =
+  '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121' as const
+const PKGCONF_SHA256 =
+  '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' as const
+const NV_CODEC_HEADERS_SHA256 =
+  'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' as const
+const EINOPS_WHEEL_SHA256 =
+  '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193' as const
+const EINOPS_INGEST_RECEIPT_SHA256 =
+  'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608' as const
+const PYCOCOTOOLS_WHEEL_SHA256 =
+  'a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd' as const
+const PYCOCOTOOLS_INGEST_RECEIPT_SHA256 =
+  'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3' as const
+const SECURITY_REMEDIATION_DOCKERFILE_SHA256 =
+  '5aa4c8914c1a9989a5764e7d5cf133ba4c32db0f1646d97b92701e974a009178' as const
+const SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256 =
+  '34e2d4993b315185b169373c12ee70ddf31dbb702ba97be5734fae8de5786481' as const
+const SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256 =
+  'c7b8b39acbb685bddc04ff4f30832a7ffd568a6b5954f973ca61d5e223ffbd3d' as const
+const SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256 =
+  '4f2dfbf929c5d6451fd5b21ed0dfb3ae54c7ed004b531ee97b4bc4dce9294843' as const
+const SECURITY_REMEDIATION_DEPENDENCY_CLOSURE_RECEIPT_SHA256 =
+  '333dad942d2dc750a9f3908e9db90aacd5b3de63240604ca7a5bdface4bbd2b2' as const
+const SECURITY_REMEDIATION_WHEEL_MANIFEST_SHA256 =
+  '415d1576d7c9b171566e30168a82d7e5149155eef29e8c01a586f9275e8fcc03' as const
+const OPENSSL_SECURITY_DEB_SHA256 =
+  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b' as const
+const LIBSSL3_SECURITY_DEB_SHA256 =
+  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b' as const
+const LIBSSL_DEV_SECURITY_DEB_SHA256 =
+  '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58' as const
+const SECURITY_UPDATE_RECEIPT_SHA256 =
+  'b3ff4e1e67b428818399c3261eb95a7c0e034d073b2f70fa65f8f1ab46f25a19' as const
+const URLLIB3_2_7_WHEEL_SHA256 =
+  '9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -140,6 +178,7 @@ const manifestWithoutHashSchema = z.object({
     coordinate: coordinateSchema,
     format: z.literal('tar_gzip'),
     contentType: z.literal('application/gzip'),
+    storageContentType: z.literal('application/x-tar'),
     capsuleArtifactRef: evidenceRefSchema,
     archiveEntries: z.array(archiveEntrySchema).min(14).max(512),
     archiveEntrySetSha256: sha256,
@@ -160,6 +199,7 @@ const manifestWithoutHashSchema = z.object({
     networkDependencyInstallRequired: z.literal(false),
     buildSecretsRequired: z.literal(false),
     capsuleCreateOnlyAndPrivate: z.literal(true),
+    reproducibilityRef: evidenceRefSchema,
     securityReviewRef: evidenceRefSchema,
     malwareScanRef: evidenceRefSchema,
   }).strict(),
@@ -256,7 +296,7 @@ const authorityWithoutHashSchema = z.object({
     serviceAccount: z.literal(
       'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
     ),
-    machineType: z.literal('E2_HIGHCPU_32'),
+    machineType: z.enum(['E2_HIGHCPU_32', 'E2_STANDARD_2']),
     diskSizeGb: z.literal('200'),
     timeout: z.literal('3600s'),
     queueTtl: z.literal('600s'),
@@ -341,6 +381,7 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
     readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
     readonly capsuleManifest: CanonicalSam31QualificationImageCapsuleManifest
     readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
+    readonly cloudBuildMachineType?: 'E2_HIGHCPU_32' | 'E2_STANDARD_2'
     readonly preparedAt: string
   },
 ): Promise<CanonicalSam31QualificationImageBuildAuthority> {
@@ -378,6 +419,7 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
   const inspection = await verifyCanonicalSam31PrivateBuildCapsuleBytes(
     manifest.capsule.coordinate,
     input.privateCapsuleReadPort,
+    manifest.capsule.storageContentType,
   )
   if (
     inspection.archiveEntrySetSha256 !==
@@ -442,7 +484,7 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
         'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147',
       serviceAccount:
         'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
-      machineType: 'E2_HIGHCPU_32',
+      machineType: input.cloudBuildMachineType ?? 'E2_HIGHCPU_32',
       diskSizeGb: '200',
       timeout: '3600s',
       queueTtl: '600s',
@@ -553,9 +595,90 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`
   const cudaPackagePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`
+  const cudaNppPackagePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`
+  const cudaNppReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`
+  const ffmpegSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`
+  const pkgconfSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`
+  const nvCodecHeadersSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`
+  const ffmpegReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`
+  const einopsWheelPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl`
+  const einopsIngestReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`
+  const pycocotoolsWheelPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl`
+  const pycocotoolsIngestReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`
+  const osSecurityPrefix =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/`
+  const opensslSecurityDebPath =
+    `${osSecurityPrefix}openssl_3.0.13-0ubuntu3.12_amd64.deb`
+  const libssl3SecurityDebPath =
+    `${osSecurityPrefix}libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`
+  const libsslDevSecurityDebPath =
+    `${osSecurityPrefix}libssl-dev_3.0.13-0ubuntu3.12_amd64.deb`
+  const securityUpdateReceiptPath =
+    `${osSecurityPrefix}security-update-receipt.json`
+  const urllib3SecurityWheelPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl`
+  const legacyUrllib3WheelPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/urllib3-2.6.3-py3-none-any.whl`
+  const securityRemediatedDockerfileHashes = new Set<string>([
+    SECURITY_REMEDIATION_DOCKERFILE_SHA256,
+    SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256,
+  ])
+  const dockerfileIsSecurityRemediated =
+    securityRemediatedDockerfileHashes.has(
+      manifest.repositorySource.dockerfileSha256,
+    )
+  const provenanceLockIsSecurityRemediated =
+    manifest.repositorySource.sourceProvenanceLockSha256 ===
+      SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256
+  const securityRemediated = canonical && dockerfileIsSecurityRemediated
+    && provenanceLockIsSecurityRemediated
+  if (
+    canonical && (
+      dockerfileIsSecurityRemediated !== provenanceLockIsSecurityRemediated
+      || (!securityRemediated && entries.some((entry) =>
+        entry.path.startsWith(osSecurityPrefix)))
+    )
+  ) throw new Error('Qualification capsule security lineage crossed.')
   requirePresent(sourceArchivePath)
   requirePresent(patchedSourceArchivePath)
   requirePresent(cudaPackagePath)
+  requirePresent(cudaNppPackagePath)
+  requirePresent(cudaNppReceiptPath)
+  requirePresent(ffmpegSourcePath)
+  requirePresent(pkgconfSourcePath)
+  requirePresent(nvCodecHeadersSourcePath)
+  requirePresent(ffmpegReceiptPath)
+  requirePresent(einopsWheelPath)
+  requirePresent(einopsIngestReceiptPath)
+  requirePresent(pycocotoolsWheelPath)
+  requirePresent(pycocotoolsIngestReceiptPath)
+  if (securityRemediated) {
+    requirePresent(opensslSecurityDebPath)
+    requirePresent(libssl3SecurityDebPath)
+    requirePresent(libsslDevSecurityDebPath)
+    requirePresent(securityUpdateReceiptPath)
+    requirePresent(urllib3SecurityWheelPath)
+    if (
+      byPath.has(legacyUrllib3WheelPath)
+      || manifest.privateInput.dependencyWheelCount !== 25
+      || manifest.privateInput.dependencyLockSha256 !==
+        SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256
+      || manifest.privateInput.dependencyClosureReceiptSha256 !==
+        SECURITY_REMEDIATION_DEPENDENCY_CLOSURE_RECEIPT_SHA256
+      || manifest.privateInput.dependencyWheelManifestSha256 !==
+        SECURITY_REMEDIATION_WHEEL_MANIFEST_SHA256
+    ) throw new Error('Qualification capsule security closure changed.')
+  }
   if (canonical) {
     required(
       sourceArchivePath,
@@ -569,6 +692,24 @@ function assertQualificationCapsuleEntries(
       cudaPackagePath,
       manifest.privateInput.cudaForwardCompatPackageSha256,
     )
+    required(cudaNppPackagePath, CUDA_NPP_SHA256)
+    required(ffmpegSourcePath, FFMPEG_SHA256)
+    required(pkgconfSourcePath, PKGCONF_SHA256)
+    required(nvCodecHeadersSourcePath, NV_CODEC_HEADERS_SHA256)
+    required(einopsWheelPath, EINOPS_WHEEL_SHA256)
+    required(einopsIngestReceiptPath, EINOPS_INGEST_RECEIPT_SHA256)
+    required(pycocotoolsWheelPath, PYCOCOTOOLS_WHEEL_SHA256)
+    required(
+      pycocotoolsIngestReceiptPath,
+      PYCOCOTOOLS_INGEST_RECEIPT_SHA256,
+    )
+    if (securityRemediated) {
+      required(opensslSecurityDebPath, OPENSSL_SECURITY_DEB_SHA256)
+      required(libssl3SecurityDebPath, LIBSSL3_SECURITY_DEB_SHA256)
+      required(libsslDevSecurityDebPath, LIBSSL_DEV_SECURITY_DEB_SHA256)
+      required(securityUpdateReceiptPath, SECURITY_UPDATE_RECEIPT_SHA256)
+      required(urllib3SecurityWheelPath, URLLIB3_2_7_WHEEL_SHA256)
+    }
   }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
@@ -626,5 +767,17 @@ function isAllowedEntry(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/security-update-receipt.json`,
   ].includes(path) || isWheelPath(path)
 }

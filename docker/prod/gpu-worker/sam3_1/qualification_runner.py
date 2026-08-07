@@ -18,6 +18,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import subprocess
 import sys
 import time
 from typing import Any
@@ -90,6 +91,64 @@ MAX_FIXTURE_BYTES = 64 * 1024 * 1024
 RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
 PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
+GPU_DECODE_BACKEND_OBSERVATIONS: list[str] = []
+
+
+def verify_ffmpeg_nvdec_runtime() -> None:
+    ffmpeg = "/opt/weeditpro/ffmpeg/bin/ffmpeg"
+    version = subprocess.run(
+        [ffmpeg, "-hide_banner", "-version"],
+        check=True,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=15,
+    ).stdout
+    decoders = subprocess.run(
+        [ffmpeg, "-hide_banner", "-decoders"],
+        check=True,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        timeout=15,
+    ).stdout
+    if (
+        "ffmpeg version 8.0.3" not in version
+        or "--enable-gpl" in version
+        or "--enable-nonfree" in version
+        or "--enable-libnpp" in version
+        or not re.search(r"\bh264_cuvid\b", decoders)
+        or not re.search(r"\bhevc_cuvid\b", decoders)
+    ):
+        raise RuntimeError("qualification FFmpeg NVDEC closure changed")
+
+
+def install_torchcodec_gpu_decode_guard() -> None:
+    from sam3.model import io_utils
+    from torchcodec import _core as core
+
+    decoder_type = io_utils.TorchCodecDecoder
+    original_getitem = decoder_type.__getitem__
+    if getattr(original_getitem, "_weeditpro_gpu_decode_guard", False):
+        raise RuntimeError("TorchCodec GPU decode guard was installed twice")
+
+    def guarded_getitem(decoder: Any, key: int) -> Any:
+        frame = original_getitem(decoder, key)
+        details = core._get_backend_details(decoder._decoder)
+        if (
+            not isinstance(details, str)
+            or "status unknown" in details
+            or "CPU fallback" in details
+            or frame.device.type != "cuda"
+        ):
+            raise RuntimeError("TorchCodec CUDA/NVDEC decode was not verified")
+        GPU_DECODE_BACKEND_OBSERVATIONS.append(details)
+        return frame
+
+    guarded_getitem._weeditpro_gpu_decode_guard = True
+    decoder_type.__getitem__ = guarded_getitem
 
 
 def stable_json_bytes(value: Any) -> bytes:
@@ -418,8 +477,14 @@ def validate_request(request: dict[str, Any]) -> None:
         "baseImageDigest": BASE_IMAGE_DIGEST,
         "pythonVersion": "3.12",
         "torchVersion": "2.10.0+cu128",
-        "torchvisionVersion": "0.25.0",
+        "torchvisionVersion": "0.25.0+cu128",
         "torchcodecVersion": "0.10.0",
+        "torchcodecCudaWheelVersion": "0.10.0+cu128",
+        "einopsVersion": "0.8.2",
+        "pycocotoolsVersion": "2.0.11",
+        "ffmpegVersion": "8.0.3",
+        "ffmpegNvdecAndCuvidRequired": True,
+        "cpuVideoDecodeFallbackAllowed": False,
         "cudaVersion": "12.8",
         "fixedBuilder": "build_sam3_multiplex_video_predictor",
         "maximumTrackedObjects": 16,
@@ -713,8 +778,9 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     if (
         sys.version_info[:2] != (3, 12)
         or torch.__version__ != "2.10.0+cu128"
-        or torchvision.__version__ != "0.25.0"
-        or importlib.metadata.version("torchcodec") != "0.10.0"
+        or torchvision.__version__ != "0.25.0+cu128"
+        or importlib.metadata.version("torchcodec") != "0.10.0+cu128"
+        or importlib.metadata.version("einops") != "0.8.2"
         or torch.version.cuda != "12.8"
         or not torch.cuda.is_available()
         or not torch.cuda.is_bf16_supported()
@@ -724,6 +790,8 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     properties = torch.cuda.get_device_properties(0)
     if "A100" not in properties.name or properties.total_memory < 79_000_000_000:
         raise RuntimeError("qualification requires one A100 80 GB GPU")
+    verify_ffmpeg_nvdec_runtime()
+    install_torchcodec_gpu_decode_guard()
     torch.use_deterministic_algorithms(True)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
@@ -738,6 +806,8 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     digests = {run["outputDigestSha256"] for run in runs}
     if len(digests) != 1:
         raise RuntimeError("qualification probe output was not deterministic")
+    if not GPU_DECODE_BACKEND_OBSERVATIONS:
+        raise RuntimeError("qualification observed no CUDA/NVDEC video decode")
     checkpoint_length_after, checkpoint_hash_after = file_sha256(
         CHECKPOINT_PATH, MAX_CHECKPOINT_BYTES
     )
@@ -792,7 +862,16 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             "pythonVersion": "3.12",
             "torchVersion": torch.__version__,
             "torchvisionVersion": torchvision.__version__,
-            "torchcodecVersion": importlib.metadata.version("torchcodec"),
+            "torchcodecVersion": "0.10.0",
+            "torchcodecCudaWheelVersion": importlib.metadata.version(
+                "torchcodec"
+            ),
+            "einopsVersion": importlib.metadata.version("einops"),
+            "pycocotoolsVersion": importlib.metadata.version("pycocotools"),
+            "ffmpegVersion": "8.0.3",
+            "ffmpegNvdecAndCuvidAvailable": True,
+            "gpuVideoDecodeBackendStatusVerified": True,
+            "cpuVideoDecodeFallbackObserved": False,
             "cudaVersion": torch.version.cuda,
             "fixedBuilder": "build_sam3_multiplex_video_predictor",
             "networkEgressObserved": False,

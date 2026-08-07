@@ -32,8 +32,10 @@ const PROJECT_ID = 'reeditpro' as const
 const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_ENDPOINT =
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const IMAGE_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-track-all-l4-task-qa' as const
 const EVIDENCE_BUCKET =
@@ -117,7 +119,7 @@ const admissionWithoutHashSchema = z.object({
     z.literal(ARTIFACT_PATHS[2]),
   ]),
   buildPolicy: z.object({
-    endpoint: z.literal(BUILD_ENDPOINT),
+    endpoint: z.literal(BUILD_COLLECTION_ENDPOINT),
     serviceAccount: z.literal(SIGNER_SERVICE_ACCOUNT),
     dockerBuilderImage: z.literal(DOCKER_BUILDER_IMAGE),
     syftImage: z.literal(SYFT_IMAGE),
@@ -383,7 +385,7 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildAdmissi
       `private/track-all/sam3_1/l4-task-qa/image-supply-chain/v1/${terminalRef.contentHash.slice(7)}`,
     evidenceArtifactPaths: [...ARTIFACT_PATHS],
     buildPolicy: {
-      endpoint: BUILD_ENDPOINT,
+      endpoint: BUILD_COLLECTION_ENDPOINT,
       serviceAccount: SIGNER_SERVICE_ACCOUNT,
       dockerBuilderImage: DOCKER_BUILDER_IMAGE,
       syftImage: SYFT_IMAGE,
@@ -576,7 +578,7 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService
       let accepted: { operationName: string; buildId: string } | null = null
       try {
         const response = await input.transport.request({
-          method: 'POST', url: BUILD_ENDPOINT, body,
+          method: 'POST', url: BUILD_CREATE_ENDPOINT, body,
         })
         status = response.status
         if (status < 200 || status >= 300) {
@@ -655,7 +657,8 @@ export function createCanonicalTrackAllSam31L4TaskQaImageSupplyChainBuildService
       let providerHttpStatus: number | null = null
       try {
         const response = await input.transport.request({
-          method: 'GET', url: `${BUILD_ENDPOINT}/${submission.cloudBuildId}`,
+          method: 'GET',
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         providerHttpStatus = response.status
         if (providerHttpStatus < 200 || providerHttpStatus >= 300) {

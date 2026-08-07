@@ -25,10 +25,17 @@ CANONICAL_SAM3_1_QUALIFICATION_IMAGE_SUPPLY_CHAIN_BUILD_OBSERVATION_VERSION =
   'canonical-sam3_1-qualification-image-supply-chain-build-observation-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_ENDPOINT =
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  BUILD_COLLECTION,
+  `projects/${PROJECT_NUMBER}/locations/us-central1/builds`,
+])
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const IMAGE_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification' as const
 const EVIDENCE_BUCKET =
@@ -69,6 +76,9 @@ const kmsKeyVersionSchema = z.string().regex(
 const immutableImageUriSchema = z.string().regex(
   /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-qualification@sha256:[a-f0-9]{64}$/u,
 )
+const artifactRegistryVersionSchema = z.string().regex(
+  /^projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/packages\/reeditpro-sam31-qualification\/versions\/sha256:[a-f0-9]{64}$/u,
+)
 const artifactPrefixSchema = z.string().regex(
   /^private\/sam3_1\/qualification-image-supply-chain\/v1\/[a-f0-9]{64}$/u,
 )
@@ -107,7 +117,7 @@ const admissionWithoutHashSchema = z.object({
   cloudImageBuildResource: z.string(),
   immutableImageUri: immutableImageUriSchema,
   immutableImageDigest: prefixedSha256,
-  artifactRegistryPackage: z.literal(IMAGE_PACKAGE),
+  artifactRegistryPackage: artifactRegistryVersionSchema,
   kmsKeyVersionResource: kmsKeyVersionSchema,
   kmsKeyUri: z.string().regex(
     /^gcpkms:\/\/projects\/reeditpro\/locations\/us-central1\/keyRings\/weeditpro-image-signing\/cryptoKeys\/sam31-image-signing\/cryptoKeyVersions\/[1-9][0-9]*$/u,
@@ -157,6 +167,9 @@ const admissionWithoutHashSchema = z.object({
     value.cloudImageBuildResource !==
       `${BUILD_COLLECTION}/${value.cloudImageBuildId}`
     || !value.immutableImageUri.endsWith(`@${value.immutableImageDigest}`)
+    || value.artifactRegistryPackage !== artifactRegistryVersion(
+      value.immutableImageDigest,
+    )
     || value.kmsKeyUri !== `gcpkms://${value.kmsKeyVersionResource}`
     || value.evidencePrefix !==
       `private/sam3_1/qualification-image-supply-chain/v1/${value.imageBuildTerminalObservationRef.contentHash.slice(7)}`
@@ -402,7 +415,9 @@ export function createCanonicalSam31QualificationImageSupplyChainAdmission(
       'qualification_image_built_pending_supply_chain_release'
     || !terminal.immutableImageUri
     || !terminal.immutableImageDigest
-    || terminal.artifactRegistryPackage !== IMAGE_PACKAGE
+    || terminal.artifactRegistryPackage !== artifactRegistryVersion(
+      terminal.immutableImageDigest,
+    )
     || terminal.cloudBuildId !== submission.cloudBuildId
     || !sameRef(submission.authorityRef, buildAuthorityRef)
     || !sameRef(terminal.authorityRef, buildAuthorityRef)
@@ -483,6 +498,85 @@ export function createCanonicalSam31QualificationImageSupplyChainAdmission(
     ...payload,
     admissionHash: sha256AuthorityValue(payload),
   })
+}
+
+export function
+createCanonicalSam31QualificationImageSupplyChainWorkspaceSuccessorAdmission(
+  input: {
+    readonly authority: CanonicalSam31QualificationImageBuildAuthority
+    readonly imageBuildSubmission:
+      CanonicalSam31QualificationImageBuildSubmission
+    readonly imageBuildTerminal:
+      CanonicalSam31QualificationImageBuildTerminal
+    readonly predecessorAdmission:
+      CanonicalSam31QualificationImageSupplyChainBuildAdmission
+    readonly predecessorSubmission:
+      CanonicalSam31QualificationImageSupplyChainBuildSubmission
+    readonly predecessorObservation:
+      CanonicalSam31QualificationImageSupplyChainBuildObservation
+    readonly admittedAt: string
+  },
+): CanonicalSam31QualificationImageSupplyChainBuildAdmission {
+  const predecessorAdmission =
+    assertCanonicalSam31QualificationImageSupplyChainAdmission(
+      input.predecessorAdmission,
+    )
+  const predecessorSubmission =
+    assertCanonicalSam31QualificationImageSupplyChainSubmission(
+      input.predecessorSubmission,
+    )
+  const predecessorObservation =
+    assertCanonicalSam31QualificationImageSupplyChainObservation(
+      input.predecessorObservation,
+    )
+  if (
+    predecessorObservation.disposition !== 'terminal_failure'
+    || predecessorObservation.cloudBuildStatus !== 'FAILURE'
+    || !predecessorObservation.durableTerminalObservationCreated
+    || predecessorObservation.allPinnedBuildStepsCompleted
+    || predecessorObservation.evidenceArtifactManifestUri !== null
+    || predecessorObservation.evidenceArtifactCount !== 0
+    || predecessorObservation.imageSupplyChainReleaseGranted
+    || predecessorSubmission.disposition !== 'submitted'
+    || !sameRef(
+      predecessorSubmission.admissionRef,
+      qualificationImageSupplyChainAdmissionReference(predecessorAdmission),
+    )
+    || !sameRef(
+      predecessorObservation.admissionRef,
+      qualificationImageSupplyChainAdmissionReference(predecessorAdmission),
+    )
+    || !sameRef(
+      predecessorObservation.submissionRef,
+      qualificationImageSupplyChainSubmissionReference(predecessorSubmission),
+    )
+    || predecessorObservation.cloudBuildId !==
+      predecessorSubmission.cloudBuildId
+    || predecessorAdmission.immutableImageDigest !==
+      predecessorObservation.immutableImageDigest
+    || predecessorAdmission.kmsKeyVersionResource !==
+      predecessorObservation.kmsKeyVersionResource
+  ) throw new Error('SAM 3.1 supply-chain successor lacks exact failure lineage.')
+  const successor = createCanonicalSam31QualificationImageSupplyChainAdmission({
+    admissionId:
+      `sam31-qualification-image-supply-chain-workspace-successor-${predecessorObservation.observationHash}`,
+    authority: input.authority,
+    imageBuildSubmission: input.imageBuildSubmission,
+    imageBuildTerminal: input.imageBuildTerminal,
+    kmsKeyVersionResource: predecessorAdmission.kmsKeyVersionResource,
+    admittedAt: input.admittedAt,
+  })
+  if (
+    successor.immutableImageDigest !== predecessorAdmission.immutableImageDigest
+    || successor.immutableImageUri !== predecessorAdmission.immutableImageUri
+    || successor.artifactRegistryPackage !==
+      predecessorAdmission.artifactRegistryPackage
+  ) throw new Error('SAM 3.1 supply-chain successor changed its image.')
+  return successor
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${IMAGE_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 export function createCanonicalSam31QualificationImageSupplyChainBuildPhase(
@@ -567,7 +661,7 @@ export function createCanonicalSam31QualificationImageSupplyChainBuildPhase(
       try {
         const response = await input.authenticatedTransport.request({
           method: 'POST',
-          url: BUILD_ENDPOINT,
+          url: BUILD_CREATE_ENDPOINT,
           body,
         })
         status = response.status
@@ -658,7 +752,7 @@ export function createCanonicalSam31QualificationImageSupplyChainBuildPhase(
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         providerStatus = response.status
         if (providerStatus < 200 || providerStatus >= 300) {
@@ -667,7 +761,10 @@ export function createCanonicalSam31QualificationImageSupplyChainBuildPhase(
         const build = parseBuildResource(response.json)
         if (
           build.id !== submission.cloudBuildId
-          || build.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          || !providerBuildNameMatches(
+            build.name,
+            submission.cloudBuildId,
+          )
         ) throw new Error('Supply-chain build crossed identity.')
         if (['PENDING', 'QUEUED', 'WORKING'].includes(build.status)) {
           return buildObservation({
@@ -759,8 +856,15 @@ export function compileCanonicalSam31QualificationImageSupplyChainBody(
   return deepFreeze({
     steps: [
       {
+        id: 'prepare-private-supply-chain-workspace',
+        name: admission.toolchain.dockerBuilderImage,
+        entrypoint: 'sh',
+        args: ['-ceu', 'chmod 1777 /workspace'],
+      },
+      {
         id: 'pull-immutable-sam31-qualification-image',
         name: admission.toolchain.dockerBuilderImage,
+        waitFor: ['prepare-private-supply-chain-workspace'],
         args: ['pull', image],
       },
       {
@@ -941,10 +1045,16 @@ function parseBuildCreateOperation(value: unknown) {
   const build = record(record(root.metadata).build)
   const buildId = z.string().uuid().parse(build.id)
   if (
-    build.name !== `${BUILD_COLLECTION}/${buildId}`
+    !providerBuildNameMatches(z.string().parse(build.name), buildId)
     || build.projectId !== PROJECT_ID
   ) throw new Error('Qualification supply-chain create crossed project.')
   return { operationName, buildId }
+}
+
+function providerBuildNameMatches(name: string, buildId: string): boolean {
+  return [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => name === `${collection}/${buildId}`,
+  )
 }
 
 function parseBuildResource(value: unknown) {
@@ -985,11 +1095,13 @@ function assertBuildEcho(
       || hasNonEmpty(step.secretEnv)
       || hasNonEmpty(step.volumes)
       || hasNonEmpty(step.dir)
-      || hasNonEmpty(step.entrypoint)
     ) throw new Error('Supply-chain step gained execution input.')
     return {
       id: step.id,
       name: step.name,
+      ...(typeof step.entrypoint === 'string' && step.entrypoint.length > 0
+        ? { entrypoint: step.entrypoint }
+        : {}),
       ...(Array.isArray(step.waitFor) && step.waitFor.length > 0
         ? { waitFor: step.waitFor }
         : {}),
@@ -1010,7 +1122,10 @@ function assertBuildEcho(
     || root.queueTtl !== expected.queueTtl
     || root.serviceAccount !== expected.serviceAccount
     || actualOptions.machineType !== expectedOptions.machineType
-    || actualOptions.diskSizeGb !== expectedOptions.diskSizeGb
+    || !sameCloudBuildInt64(
+      actualOptions.diskSizeGb,
+      expectedOptions.diskSizeGb,
+    )
     || actualOptions.requestedVerifyOption !==
       expectedOptions.requestedVerifyOption
     || actualOptions.logging !== expectedOptions.logging
@@ -1124,6 +1239,18 @@ function hasNonEmpty(value: unknown): boolean {
 
 function sameJson(left: unknown, right: unknown): boolean {
   return sha256AuthorityValue(left) === sha256AuthorityValue(right)
+}
+
+function sameCloudBuildInt64(observed: unknown, expected: unknown): boolean {
+  const canonicalInt64 = z.union([
+    z.number().int().nonnegative().safe(),
+    z.string().regex(/^(0|[1-9][0-9]*)$/u),
+  ]).transform((value) => BigInt(value).toString())
+  const observedValue = canonicalInt64.safeParse(observed)
+  const expectedValue = canonicalInt64.safeParse(expected)
+  return observedValue.success
+    && expectedValue.success
+    && observedValue.data === expectedValue.data
 }
 
 function deepFreeze<T>(value: T): T {

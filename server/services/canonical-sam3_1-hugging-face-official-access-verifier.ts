@@ -32,6 +32,7 @@ const ALLOWED_REDIRECT_HOSTS = new Set([
   'cas-bridge.xethub.hf.co',
   'cdn-lfs.hf.co',
   'huggingface.co',
+  'us.aws.cdn.hf.co',
 ])
 const evidenceRefSchema = z.object({
   id: z.string().trim().min(1).max(220)
@@ -214,7 +215,7 @@ async function createSecretManagerClient(): Promise<SecretManagerClientLike> {
       }
       const response = await client.request({
         url: `https://secretmanager.googleapis.com/v1/${input.name}:access`,
-        method: 'POST',
+        method: 'GET',
         responseType: 'json',
       })
       return [response.data]

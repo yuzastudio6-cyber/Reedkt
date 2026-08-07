@@ -88,7 +88,10 @@ const capsuleArchiveEntries = capsuleFiles.map(([path, bytes]) => ({
   byteLength: bytes.byteLength,
   sha256: sha(bytes),
 }))
-const capsuleBytes = createCanonicalTarGz(capsuleFiles)
+const capsuleBytes = createCanonicalTarGz(
+  [['docker', Buffer.alloc(0)], ...capsuleFiles],
+  { docker: 53 },
+)
 const capsuleSha = sha(capsuleBytes)
 const capsuleCoordinate = {
   projectId: 'reeditpro' as const,
@@ -839,9 +842,16 @@ function createQualification(
       baseImageDigest:
         'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
       pythonVersion: '3.12',
-      torchVersion: '2.10.0',
-      torchvisionVersion: '0.25.0',
+      torchVersion: '2.10.0+cu128',
+      torchvisionVersion: '0.25.0+cu128',
       torchcodecVersion: '0.10.0',
+      torchcodecCudaWheelVersion: '0.10.0+cu128',
+      einopsVersion: '0.8.2',
+      pycocotoolsVersion: '2.0.11',
+      ffmpegVersion: '8.0.3',
+      ffmpegNvdecAndCuvidAvailable: true,
+      gpuVideoDecodeBackendStatusVerified: true,
+      cpuVideoDecodeFallbackObserved: false,
       cudaVersion: '12.8',
       fixedBuilder: 'build_sam3_multiplex_video_predictor',
       networkEgressAllowed: false,
@@ -1227,8 +1237,32 @@ function createCapsuleFiles(
       Buffer.from('{"fixture":"cuda-ingest"}'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb',
+      Buffer.from('synthetic cuda npp runtime package'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json',
+      Buffer.from('{"fixture":"cuda-npp-runtime"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/dependency-closure-receipt.json',
       Buffer.from('{"fixture":"dependency-closure"}'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz',
+      Buffer.from('synthetic ffmpeg source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz',
+      Buffer.from('synthetic pkgconf source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz',
+      Buffer.from('synthetic nv-codec-headers source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json',
+      Buffer.from('{"fixture":"ffmpeg-closure"}'),
     ],
     [
       'sam31_private_build_input/dependency-closure/requirements.lock.txt',

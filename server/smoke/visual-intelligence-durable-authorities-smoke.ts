@@ -225,7 +225,7 @@ const runtimeRelease = createControlledVisualIntelligenceRuntimeRelease({
   providerSdkPackage: '@google/genai',
   providerSdkVersion: '2.15.0',
   providerApiVersion: 'v1alpha',
-  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v3',
+  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v4',
   profileRegistryVersion: 'visual-intelligence-profile-registry-v2',
   promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
   responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,

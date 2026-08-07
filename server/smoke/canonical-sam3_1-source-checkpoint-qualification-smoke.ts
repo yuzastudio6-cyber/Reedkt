@@ -145,6 +145,31 @@ assert.throws(() =>
     shortWorkerResult,
   ))
 
+const cpuDecodeFallback = structuredClone(canonicalWorkerEvidence.result)
+;(cpuDecodeFallback.runtime as unknown as {
+  cpuVideoDecodeFallbackObserved: boolean
+}).cpuVideoDecodeFallbackObserved = true
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(
+    cpuDecodeFallback,
+  ))
+
+const cpuTorchcodecWheel = structuredClone(canonicalWorkerEvidence.result)
+;(cpuTorchcodecWheel.runtime as unknown as {
+  torchcodecCudaWheelVersion: string
+}).torchcodecCudaWheelVersion = '0.10.0'
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(
+    cpuTorchcodecWheel,
+  ))
+
+const staleEinops = structuredClone(canonicalWorkerEvidence.result)
+;(staleEinops.runtime as unknown as {
+  einopsVersion: string
+}).einopsVersion = '0.8.1'
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(staleEinops))
+
 const dockerfile = readFileSync(
   new URL(
     '../../docker/prod/gpu-worker/sam3_1/Dockerfile.qualification.candidate',
@@ -173,9 +198,29 @@ assert.doesNotMatch(
   /source-checkpoint-compatibility-receipt\.json/u,
 )
 assert.doesNotMatch(dockerfile, /sam3\.1_multiplex\.pt/u)
+assert.equal((dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
+assert.equal((dockerfile.match(/^RUN /gmu) ?? []).length, 3)
+assert.match(dockerfile, /pkgconf-3\.0\.4\.tar\.gz/u)
+assert.match(
+  dockerfile,
+  /67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829/u,
+)
+assert.match(dockerfile, /\/opt\/weeditpro\/pkgconf\/bin\/pkg-config/u)
+assert.match(dockerfile, /pkgconfBuiltOfflineFromPinnedSource/u)
+assert.match(dockerfile, /libnpp-12-8_12\.3\.3\.100-1_amd64\.deb/u)
+assert.match(dockerfile, /cuda-npp-runtime-receipt\.json/u)
+assert.match(dockerfile, /\/opt\/weeditpro\/cuda-npp\/lib/u)
+assert.match(dockerfile, /libnppicc\.so\.12/u)
+assert.doesNotMatch(dockerfile, /(?:apt-get|curl |wget )/u)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)
+assert.match(runner, /verify_ffmpeg_nvdec_runtime\(\)/u)
+assert.match(runner, /install_torchcodec_gpu_decode_guard\(\)/u)
+assert.match(runner, /core\._get_backend_details\(decoder\._decoder\)/u)
+assert.match(runner, /"CPU fallback" in details/u)
+assert.match(runner, /frame\.device\.type != "cuda"/u)
+assert.match(runner, /"0\.10\.0\+cu128"/u)
 assert.match(
   runner,
   /QUALIFICATION_MOUNT = Path\("\/mnt\/disks\/reeditpro\/sam31-qualification"\)/u,
@@ -184,7 +229,10 @@ assert.match(runner, /REQUEST_PATH = QUALIFICATION_MOUNT \/ "request\/request\.j
 assert.doesNotMatch(runner, /Path\("\/mnt\/reeditpro\//u)
 assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
 assert.match(entrypoint, /nvidia_a100_80gb/u)
-assert.match(entrypoint, /exec python -I -B/u)
+assert.match(
+  entrypoint,
+  /exec \/opt\/weeditpro\/python-venv\/bin\/python \\\n {2}-I -B/u,
+)
 
 for (const mutate of [
   (value: CanonicalSam31SourceCheckpointQualificationObservation) => {
@@ -224,7 +272,7 @@ for (const mutate of [
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification',
-  checks: 56,
+  checks: 59,
   syntheticStatus: synthetic.status,
   canonicalStatus: canonical.status,
   qualificationRuns:
@@ -331,8 +379,15 @@ CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
         'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
       pythonVersion: '3.12',
       torchVersion: '2.10.0+cu128',
-      torchvisionVersion: '0.25.0',
+      torchvisionVersion: '0.25.0+cu128',
       torchcodecVersion: '0.10.0',
+      torchcodecCudaWheelVersion: '0.10.0+cu128',
+      einopsVersion: '0.8.2',
+      pycocotoolsVersion: '2.0.11',
+      ffmpegVersion: '8.0.3',
+      ffmpegNvdecAndCuvidAvailable: true,
+      gpuVideoDecodeBackendStatusVerified: true,
+      cpuVideoDecodeFallbackObserved: false,
       cudaVersion: '12.8',
       fixedBuilder: 'build_sam3_multiplex_video_predictor',
       networkEgressObserved: false,
@@ -497,9 +552,16 @@ function observation(
       baseImageDigest:
         'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
       pythonVersion: '3.12',
-      torchVersion: '2.10.0',
-      torchvisionVersion: '0.25.0',
+      torchVersion: '2.10.0+cu128',
+      torchvisionVersion: '0.25.0+cu128',
       torchcodecVersion: '0.10.0',
+      torchcodecCudaWheelVersion: '0.10.0+cu128',
+      einopsVersion: '0.8.2',
+      pycocotoolsVersion: '2.0.11',
+      ffmpegVersion: '8.0.3',
+      ffmpegNvdecAndCuvidAvailable: true,
+      gpuVideoDecodeBackendStatusVerified: true,
+      cpuVideoDecodeFallbackObserved: false,
       cudaVersion: '12.8',
       fixedBuilder: 'build_sam3_multiplex_video_predictor',
       networkEgressAllowed: false,

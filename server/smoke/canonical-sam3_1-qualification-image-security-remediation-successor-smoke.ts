@@ -21,6 +21,10 @@ const provenanceLock = readFileSync(
   'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
   'utf8',
 )
+const authorityModel = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-qualification-image-build-authority.ts',
+  'utf8',
+)
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   readonly scripts?: Readonly<Record<string, string>>
 }
@@ -80,6 +84,25 @@ for (const expected of [
   'qualification_image_inherited_pillow_urllib3_wheel_distributions_purged=true',
   'qualification_image_successor_security_scan_required=true',
 ] as const) assert.ok(provenanceLock.includes(expected))
+
+for (const expected of [
+  'SECURITY_REMEDIATION_DOCKERFILE_SHA256',
+  'SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256',
+  'SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256',
+  'SECURITY_REMEDIATION_DEPENDENCY_CLOSURE_RECEIPT_SHA256',
+  'SECURITY_REMEDIATION_WHEEL_MANIFEST_SHA256',
+  'OPENSSL_SECURITY_DEB_SHA256',
+  'LIBSSL3_SECURITY_DEB_SHA256',
+  'LIBSSL_DEV_SECURITY_DEB_SHA256',
+  'SECURITY_UPDATE_RECEIPT_SHA256',
+  'URLLIB3_2_7_WHEEL_SHA256',
+  'Qualification capsule security lineage crossed.',
+  'Qualification capsule security closure changed.',
+  'legacyUrllib3WheelPath',
+] as const) assert.ok(
+  authorityModel.includes(expected),
+  `security-remediation manifest admission lost ${expected}`,
+)
 
 assert.equal(
   packageJson.scripts?.[

@@ -461,7 +461,8 @@ try {
 assert.equal(
   fingerprintedStorageFailure,
   'SAM 3.1 private artifact streaming publication failed '
-    + `[storage_fingerprint_${expectedSafeFingerprint}].`,
+    + '[storage_signature_l51_uncategorized_knone_'
+    + `${expectedSafeFingerprint}].`,
 )
 assert.doesNotMatch(
   fingerprintedStorageFailure,

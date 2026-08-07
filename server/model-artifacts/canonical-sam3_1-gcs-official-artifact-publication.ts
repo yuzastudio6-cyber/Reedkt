@@ -38,7 +38,7 @@ type CanonicalSam31PrivateArtifactPublicationFailureCode =
   | 'storage_throttled'
   | 'storage_transport_unavailable'
   | 'storage_upload_failed'
-  | `storage_fingerprint_${string}`
+  | `storage_signature_${string}`
   | 'unclassified_failure'
   | `${'pipeline' | 'source' | 'storage'}_name_${string}`
   | `${'pipeline' | 'source' | 'storage'}_node_${string}`
@@ -486,10 +486,10 @@ function classifyPublicationFailure(
     if (runtimeName) {
       return `${origin}_name_${runtimeName.toLowerCase()}`
     }
-    const safeFingerprint = origin === 'storage'
-      ? safeErrorMessageFingerprint(cursor)
+    const safeSignature = origin === 'storage'
+      ? safeErrorMessageSignature(cursor)
       : undefined
-    if (safeFingerprint) return `storage_fingerprint_${safeFingerprint}`
+    if (safeSignature) return `storage_signature_${safeSignature}`
     const errorKind = safeErrorKind(cursor)
     if (errorKind) return `${origin}_${errorKind}`
 
@@ -504,10 +504,37 @@ function classifyPublicationFailure(
  * reviewed source-owned error literals while the original error remains in
  * the private cause chain.
  */
-function safeErrorMessageFingerprint(error: unknown): string | undefined {
+function safeErrorMessageSignature(error: unknown): string | undefined {
   const message = safeStaticErrorMessage(error)
   if (!message || message.length > 16_384) return
-  return createHash('sha256').update(message, 'utf8').digest('hex').slice(0, 24)
+  const lower = message.toLowerCase()
+  const categories = [
+    ['auth', /auth|credential|permission|access/u],
+    ['gcs', /bucket|object|storage/u],
+    ['upload', /upload|resumable/u],
+    ['stream', /stream|write|writable|close|destroy/u],
+    ['abort', /abort|cancel/u],
+    ['request', /request|response|status|header/u],
+    ['invalid', /invalid|undefined|null|missing|required/u],
+    ['integrity', /checksum|crc|hash|mismatch|metadata/u],
+    ['retry', /retry|attempt|timeout|deadline/u],
+    ['source', /source|git|file|archive/u],
+    ['network', /network|fetch|socket|dns|tls|certificate|url/u],
+  ] as const
+  const observed = categories
+    .filter(([, pattern]) => pattern.test(lower))
+    .map(([category]) => category)
+  const shape = ['code', 'status', 'statusCode', 'response', 'errors', 'cause']
+    .filter((key) => safeReflectGet(error as object, key) !== undefined)
+    .map((key) => key.toLowerCase())
+  const fingerprint = createHash('sha256')
+    .update(message, 'utf8').digest('hex').slice(0, 24)
+  return [
+    `l${message.length}`,
+    observed.length > 0 ? observed.join('-') : 'uncategorized',
+    shape.length > 0 ? `k${shape.join('-')}` : 'knone',
+    fingerprint,
+  ].join('_')
 }
 
 async function* observePublicationSource(

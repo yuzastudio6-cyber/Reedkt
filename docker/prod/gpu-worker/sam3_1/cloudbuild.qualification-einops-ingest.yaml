@@ -157,7 +157,7 @@ steps:
           > /workspace/private-einops-ingest/scan-summary.txt
         chmod 0444 /workspace/private-einops-ingest/scan-summary.txt
   - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
-    id: publish-create-only-exact-einops-wheel
+    id: reread-exact-create-only-published-einops-wheel
     waitFor:
       - malware-scan-exact-einops-wheel
     entrypoint: bash
@@ -171,16 +171,17 @@ steps:
           54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193 \
           "$${wheel}" | sha256sum --check --strict
         gcloud storage cp \
-          --if-generation-match=0 \
-          --cache-control=no-store \
-          --content-type=application/zip \
-          "$${wheel}" "$${object}"
+          --if-generation-match=1786106120404202 \
+          "$${object}" \
+          /workspace/private-einops-ingest/published-wheel-reread.whl
+        cmp "$${wheel}" \
+          /workspace/private-einops-ingest/published-wheel-reread.whl
         gcloud storage objects describe "$${object}" --format=json \
           > /workspace/private-einops-ingest/object-metadata.json
   - name: pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
     id: compile-exact-einops-ingest-receipt
     waitFor:
-      - publish-create-only-exact-einops-wheel
+      - reread-exact-create-only-published-einops-wheel
     entrypoint: bash
     args:
       - -ceu
@@ -208,13 +209,16 @@ steps:
             raise SystemExit("einops private object identity is incomplete")
         if int(metadata.get("size", -1)) != 65638:
             raise SystemExit("einops private object byte count changed")
-        if metadata.get("contentType") != "application/zip":
+        if metadata.get("content_type") != "application/zip":
             raise SystemExit("einops private object content type changed")
-        if metadata.get("cacheControl") != "no-store":
+        if metadata.get("cache_control") != "no-store":
             raise SystemExit("einops private object cache policy changed")
         receipt = {
             "schemaVersion": "weeditpro-sam3_1-einops-private-ingest-receipt-v1",
             "buildId": build_id,
+            "createOnlyPublicationBuildId": (
+                "85180b43-5401-4a1c-bdc2-5acf74578185"
+            ),
             "repositoryCommit": repository_commit,
             "repositoryTree": repository_tree,
             "packageName": "einops",
@@ -245,8 +249,8 @@ steps:
                 "sha256": (
                     "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193"
                 ),
-                "crc32c": str(metadata.get("crc32c", "")),
-                "md5Hash": str(metadata.get("md5Hash", "")),
+                "crc32c": str(metadata.get("crc32c_hash", "")),
+                "md5Hash": str(metadata.get("md5_hash", "")),
                 "contentType": "application/zip",
                 "cacheControl": "no-store",
             },

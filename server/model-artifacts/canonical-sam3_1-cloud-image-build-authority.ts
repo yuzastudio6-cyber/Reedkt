@@ -47,6 +47,8 @@ const MAX_CAPSULE_UNCOMPRESSED_BYTES = 16 * 1024 * 1024 * 1024
 const MAX_CAPSULE_ENTRIES = 512
 const PKGCONF_SHA256 =
   '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' as const
+const CUDA_NPP_SHA256 =
+  '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -922,13 +924,21 @@ function assertCapsuleManifestEntries(
   }
   const cudaPackagePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`
+  const cudaNppPackagePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`
+  const cudaNppReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`
   if (!byPath.has(cudaPackagePath)) {
     throw new Error('Capsule CUDA forward-compat package is missing.')
+  }
+  if (!byPath.has(cudaNppPackagePath) || !byPath.has(cudaNppReceiptPath)) {
+    throw new Error('Capsule CUDA NPP runtime closure is missing.')
   }
   if (canonical) required(
     cudaPackagePath,
     value.privateInput.cudaForwardCompatPackageSha256,
   )
+  if (canonical) required(cudaNppPackagePath, CUDA_NPP_SHA256)
   required(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     value.privateInput.cudaForwardCompatIngestReceiptSha256,
@@ -975,6 +985,7 @@ function assertCapsuleManifestEntries(
       `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
     )?.byteLength !== 80_935
     || byPath.get(cudaPackagePath)?.byteLength !== 37_945_232
+    || byPath.get(cudaNppPackagePath)?.byteLength !== 131_485_608
   )) throw new Error('Canonical capsule bytes do not match frozen artifacts.')
 }
 
@@ -996,6 +1007,8 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/source-checkpoint-compatibility-receipt.json`,
   ].includes(path) || isAllowedWheelPath(path)

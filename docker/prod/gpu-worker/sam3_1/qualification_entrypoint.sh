@@ -37,12 +37,17 @@ case "${driver_major}" in
 esac
 
 host_driver_paths=/usr/local/nvidia/lib64:/usr/local/nvidia/lib
-runtime_library_paths=/opt/weeditpro/ffmpeg/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.8/lib64
+runtime_library_paths=/opt/weeditpro/ffmpeg/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.8/lib64
 if [ ! -x /opt/weeditpro/ffmpeg/bin/ffmpeg ] \
   || [ ! -r /opt/weeditpro/ffmpeg/lib/libavcodec.so.62 ] \
   || [ ! -r /opt/weeditpro/ffmpeg/lib/libavformat.so.62 ] \
   || [ ! -r /opt/weeditpro/ffmpeg/lib/libavutil.so.60 ]; then
   echo "Pinned FFmpeg 8 shared-library closure is unavailable" >&2
+  exit 70
+fi
+if [ ! -r /opt/weeditpro/cuda-npp/lib/libnppc.so.12 ] \
+  || [ ! -r /opt/weeditpro/cuda-npp/lib/libnppicc.so.12 ]; then
+  echo "Pinned NVIDIA NPP runtime closure is unavailable" >&2
   exit 70
 fi
 if [ "${driver_major}" -ge 535 ] && [ "${driver_major}" -lt 570 ]; then

@@ -64,6 +64,10 @@ for (const expected of [
   'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
+  '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992',
+  '69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7',
+  'bc1f7c1797fda52d0b333f91d65af2add1deeaa0e4cf5b5ae8a58e1d54117fe2',
+  'e2c71babfd18a8e69542dd7e9ca018f9caa438094001a58e6bc4d8c999bf0d07',
   '5ecb4aeb61b4f14f30ceed11ce892308f38232d82eee64605ae19583c51a8e72',
   '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121',
   '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829',
@@ -85,6 +89,7 @@ for (const expected of [
   'weeditpro-sam3_1-python-dependency-closure-receipt-v1',
   'weeditpro-sam3_1-ffmpeg-nvdec-source-closure-receipt-v1',
   'weeditpro-cuda-forward-compat-ingest-receipt-v1',
+  'weeditpro-sam3_1-torchcodec-cuda-npp-runtime-receipt-v1',
   'weeditpro-sam3_1-qualification-capsule-builder-result-v1',
   'offlineInstallRequired',
   'dependencyResolutionAtRuntimeAllowed',
@@ -95,7 +100,7 @@ for (const expected of [
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
 assert.equal((builder.match(/^stage_wheel \\/gmu) ?? []).length, 22)
-assert.equal((builder.match(/^stage_exact \\/gmu) ?? []).length, 4)
+assert.equal((builder.match(/^stage_exact \\/gmu) ?? []).length, 5)
 const localWheelNames = [...builder.matchAll(/^stage_wheel \\\n\s+'([^']+\.whl)'/gmu)]
   .map((match) => match[1])
 assert.equal(localWheelNames.length, 22)
@@ -220,6 +225,12 @@ for (const expected of [
   'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
   'ffmpeg-8.0.3.tar.gz',
   'pkgconf-3.0.4.tar.gz',
+  'libnpp-12-8_12.3.3.100-1_amd64.deb',
+  'cuda-npp-runtime-receipt.json',
+  '/opt/weeditpro/cuda-npp/lib',
+  'libnppicc.so.12',
+  '/opt/weeditpro/cuda-npp/LICENSE',
+  'cudaNppRuntimeReceiptSha256',
   'nv-codec-headers-n12.2.72.0.tar.gz',
   '/opt/weeditpro/pkgconf/bin/pkg-config',
   "pkgconf --version)\" = '3.0.4'",
@@ -243,6 +254,7 @@ assert.match(
 )
 for (const expected of [
   '/opt/weeditpro/ffmpeg/lib',
+  '/opt/weeditpro/cuda-npp/lib',
   '/usr/local/cuda/lib64',
   'libavcodec.so.62',
   'libavformat.so.62',
@@ -305,6 +317,7 @@ console.log(JSON.stringify({
   exactPinnedPythonWheelCount: 22,
   deterministicLocalSdistWheelCount: 1,
   exactPinnedCudaForwardCompatibilityPackageCount: 1,
+  exactPinnedCudaNppRuntimePackageCount: 1,
   exactPinnedFfmpegSourceArchiveCount: 1,
   exactPinnedPkgconfSourceArchiveCount: 1,
   exactPinnedNvCodecHeadersArchiveCount: 1,

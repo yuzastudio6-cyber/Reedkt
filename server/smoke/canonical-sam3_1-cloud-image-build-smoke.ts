@@ -1235,6 +1235,14 @@ function createCapsuleFiles(
       Buffer.from('{"fixture":"cuda-ingest"}'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb',
+      Buffer.from('synthetic cuda npp runtime package'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json',
+      Buffer.from('{"fixture":"cuda-npp-runtime"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/dependency-closure-receipt.json',
       Buffer.from('{"fixture":"dependency-closure"}'),
     ],

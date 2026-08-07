@@ -422,6 +422,12 @@ for (const requiredDockerfileFragment of [
   'WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv',
   'ffmpeg-8.0.3.tar.gz',
   'pkgconf-3.0.4.tar.gz',
+  'libnpp-12-8_12.3.3.100-1_amd64.deb',
+  'cuda-npp-runtime-receipt.json',
+  '/opt/weeditpro/cuda-npp/lib',
+  'libnppicc.so.12',
+  '/opt/weeditpro/cuda-npp/LICENSE',
+  'cudaNppRuntimeReceiptSha256',
   'nv-codec-headers-n12.2.72.0.tar.gz',
   '/opt/weeditpro/pkgconf/bin/pkg-config',
   'pkgconfBuiltOfflineFromPinnedSource',
@@ -436,7 +442,10 @@ for (const requiredDockerfileFragment of [
   'USER 65532:65532',
   'NVIDIA_DRIVER_CAPABILITIES=compute,utility,video',
   'ENTRYPOINT ["/opt/reeditpro/sam3_1/entrypoint.sh"]',
-]) assert(sam31Dockerfile.includes(requiredDockerfileFragment))
+]) assert(
+  sam31Dockerfile.includes(requiredDockerfileFragment),
+  `SAM 3.1 candidate lost ${requiredDockerfileFragment}`,
+)
 assert.equal((sam31Dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
 assert.equal((sam31Dockerfile.match(/^RUN /gmu) ?? []).length, 3)
 for (const forbiddenDockerfileFragment of [

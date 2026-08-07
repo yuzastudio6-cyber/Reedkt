@@ -44,6 +44,8 @@ const PATCH_SHA256 =
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca' as const
 const CUDA_FORWARD_COMPAT_SHA256 =
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' as const
+const CUDA_NPP_SHA256 =
+  '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992' as const
 const FFMPEG_SHA256 =
   '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121' as const
 const PKGCONF_SHA256 =
@@ -563,6 +565,10 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`
   const cudaPackagePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`
+  const cudaNppPackagePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`
+  const cudaNppReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`
   const ffmpegSourcePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`
   const pkgconfSourcePath =
@@ -574,6 +580,8 @@ function assertQualificationCapsuleEntries(
   requirePresent(sourceArchivePath)
   requirePresent(patchedSourceArchivePath)
   requirePresent(cudaPackagePath)
+  requirePresent(cudaNppPackagePath)
+  requirePresent(cudaNppReceiptPath)
   requirePresent(ffmpegSourcePath)
   requirePresent(pkgconfSourcePath)
   requirePresent(nvCodecHeadersSourcePath)
@@ -591,6 +599,7 @@ function assertQualificationCapsuleEntries(
       cudaPackagePath,
       manifest.privateInput.cudaForwardCompatPackageSha256,
     )
+    required(cudaNppPackagePath, CUDA_NPP_SHA256)
     required(ffmpegSourcePath, FFMPEG_SHA256)
     required(pkgconfSourcePath, PKGCONF_SHA256)
     required(nvCodecHeadersSourcePath, NV_CODEC_HEADERS_SHA256)
@@ -651,6 +660,8 @@ function isAllowedEntry(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,

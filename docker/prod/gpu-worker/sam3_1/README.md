@@ -127,6 +127,11 @@ closure supplies official `pkgconf 3.0.4` source and builds its `pkg-config`
 compatibility entrypoint before FFmpeg configuration. The source archive,
 bytes, SHA-256, ISC license, version, and offline-source-build disposition are
 all bound in the native and aggregate dependency receipts.
+TorchCodec's CUDA wheel also declares `libnppicc.so.12`. The capsule therefore
+binds NVIDIA's exact Ubuntu 24.04 `libnpp-12-8` package version
+`12.3.3.100-1`, extracts only `libnppc.so.12` and `libnppicc.so.12`, verifies
+their exact bytes and hashes, and carries a closed NPP runtime receipt. It does
+not copy the complete CUDA toolkit or enable a CPU decode fallback.
 Capsule assembly does not refetch those packages from public origins. It
 rereads the exact generation of a previously reviewed, malware-scanned,
 content-addressed checkpoint-free capsule, verifies that bootstrap capsule's
@@ -313,6 +318,8 @@ sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.
 sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json
 sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb
 sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json
+sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb
+sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json
 sam31_private_build_input/release-receipts/private-artifact-build-binding.json
 sam31_private_build_input/release-receipts/source-checkpoint-compatibility-receipt.json
 ```
@@ -344,7 +351,11 @@ forward-compatibility ingest receipt hashes. The CUDA package is the exact
 the build verifies its package name, version, architecture, bytes, and receipt
 before extracting it offline. The native closure also binds FFmpeg 8.0.3,
 pkgconf 3.0.4, and NV-codec headers n12.2.72.0 by exact source bytes and
-license metadata. The build fails unless the base runtime is exactly Python
+license metadata. The exact NPP package is 131,485,608 bytes with SHA-256
+`54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992`.
+Only `libnppc.so.12.3.3.100` and `libnppicc.so.12.3.3.100` are copied into the
+closed runtime directory, and TorchCodec must link without missing libraries.
+The build fails unless the base runtime is exactly Python
 3.12, PyTorch
 2.10.0+cu128, TorchVision 0.25.0, TorchCodec 0.10.0+cu128, FFmpeg 8.0.3, and
 CUDA 12.8. It installs no dependency from the network and runs as

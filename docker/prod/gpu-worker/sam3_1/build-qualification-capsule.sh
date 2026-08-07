@@ -14,6 +14,15 @@ readonly SOURCE_SHA256='5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89
 readonly PATCHED_SOURCE_SHA256='b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb'
 readonly PATCH_SHA256='daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca'
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
+readonly CUDA_NPP_PACKAGE_VERSION='12.3.3.100-1'
+readonly CUDA_NPP_SHA256='54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992'
+readonly CUDA_NPP_BYTES='131485608'
+readonly CUDA_NPPC_SHA256='69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7'
+readonly CUDA_NPPC_BYTES='1656080'
+readonly CUDA_NPPICC_SHA256='bc1f7c1797fda52d0b333f91d65af2add1deeaa0e4cf5b5ae8a58e1d54117fe2'
+readonly CUDA_NPPICC_BYTES='9373288'
+readonly CUDA_NPP_LICENSE_SHA256='e2c71babfd18a8e69542dd7e9ca018f9caa438094001a58e6bc4d8c999bf0d07'
+readonly CUDA_NPP_LICENSE_BYTES='63021'
 readonly FFMPEG_VERSION='8.0.3'
 readonly FFMPEG_SHA256='5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121'
 readonly FFMPEG_BYTES='17211188'
@@ -56,6 +65,7 @@ mkdir -p \
   "${PRIVATE_ROOT}/source" \
   "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat" \
+  "${PRIVATE_ROOT}/dependency-closure/cuda-npp" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1" \
   /output
@@ -292,10 +302,62 @@ stage_exact \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb" \
   "${CUDA_COMPAT_SHA256}" "${CUDA_COMPAT_BYTES}"
 
+stage_exact \
+  "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/libnpp-12-8_${CUDA_NPP_PACKAGE_VERSION}_amd64.deb" \
+  "${PRIVATE_ROOT}/dependency-closure/cuda-npp/libnpp-12-8_${CUDA_NPP_PACKAGE_VERSION}_amd64.deb" \
+  "${CUDA_NPP_SHA256}" "${CUDA_NPP_BYTES}"
+
+python - \
+  "${PRIVATE_ROOT}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json" <<PY
+import json
+from pathlib import Path
+import sys
+receipt = {
+  "schemaVersion": "weeditpro-sam3_1-torchcodec-cuda-npp-runtime-receipt-v1",
+  "packageName": "libnpp-12-8",
+  "packageVersion": "${CUDA_NPP_PACKAGE_VERSION}",
+  "architecture": "amd64",
+  "source": "official_nvidia_cuda_ubuntu_2404_repository",
+  "packageSha256": "${CUDA_NPP_SHA256}",
+  "packageByteLength": ${CUDA_NPP_BYTES},
+  "license": "NVIDIA CUDA Toolkit EULA",
+  "licenseFileSha256": "${CUDA_NPP_LICENSE_SHA256}",
+  "licenseFileByteLength": ${CUDA_NPP_LICENSE_BYTES},
+  "torchcodecCudaWheelVersion": "0.10.0+cu128",
+  "exactTorchcodecElfNeededClosure": True,
+  "requiredLibraries": [
+    {
+      "fileName": "libnppc.so.12.3.3.100",
+      "soname": "libnppc.so.12",
+      "sha256": "${CUDA_NPPC_SHA256}",
+      "byteLength": ${CUDA_NPPC_BYTES},
+    },
+    {
+      "fileName": "libnppicc.so.12.3.3.100",
+      "soname": "libnppicc.so.12",
+      "sha256": "${CUDA_NPPICC_SHA256}",
+      "byteLength": ${CUDA_NPPICC_BYTES},
+    },
+  ],
+  "completeCudaToolkitCopied": False,
+  "cpuVideoDecodeFallbackAllowed": False,
+  "networkAtBuildAllowed": False,
+  "networkAtRuntimeAllowed": False,
+  "containsCheckpoint": False,
+  "containsCredentials": False,
+  "containsCustomerMedia": False,
+}
+Path(sys.argv[1]).write_text(
+  json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n",
+  encoding="utf-8",
+)
+PY
+
 python - "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/requirements.lock.txt" \
   "${PRIVATE_ROOT}/dependency-closure/dependency-closure-receipt.json" \
-  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json" <<'PY'
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json" \
+  "${PRIVATE_ROOT}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json" <<'PY'
 import email.parser
 import hashlib
 import json
@@ -304,7 +366,7 @@ import re
 import sys
 from zipfile import ZipFile
 
-wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path = map(
+wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path, npp_receipt_path = map(
     Path, sys.argv[1:]
 )
 expected = {
@@ -357,6 +419,13 @@ receipt = {
     "cudaVersionProvidedByPinnedBase": "12.8",
     "torchcodecCudaWheelVersion": "0.10.0+cu128",
     "torchcodecCpuWheelAccepted": False,
+    "cudaNppRuntimeReceiptSha256": hashlib.sha256(
+        npp_receipt_path.read_bytes()
+    ).hexdigest(),
+    "cudaNppPackageName": "libnpp-12-8",
+    "cudaNppPackageVersion": "12.3.3.100-1",
+    "torchcodecExactNppRuntimeClosureRequired": True,
+    "completeCudaToolkitCopied": False,
     "ffmpegClosureReceiptSha256": hashlib.sha256(
         ffmpeg_receipt_path.read_bytes()
     ).hexdigest(),

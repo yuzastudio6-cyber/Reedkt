@@ -142,7 +142,7 @@ ENV HF_HUB_OFFLINE=1 \
   PYTHONUNBUFFERED=1 \
   WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv \
   PATH=/opt/weeditpro/ffmpeg/bin:${PATH} \
-  LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/usr/local/cuda/lib64 \
+  LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/cuda/lib64 \
   CUDA_MODULE_LOADING=LAZY \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
@@ -176,6 +176,10 @@ COPY sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compa
   /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb
 COPY sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json \
   /opt/reeditpro/sam3_1/qualification-artifacts/cuda-forward-compat-ingest-receipt.json
+COPY sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb \
+  /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb
+COPY sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json \
+  /opt/reeditpro/sam3_1/qualification-artifacts/cuda-npp-runtime-receipt.json
 COPY docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch \
   /opt/reeditpro/sam3_1/qualification-artifacts/0001-reeditpro-gpu-decode.patch
 COPY docker/prod/gpu-worker/sam3_1/qualification_runner.py \
@@ -242,7 +246,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz)" \
     = '80935' \
   && python -I -B -c \
-    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert closure['pkgconfVersion']=='3.0.4'; assert closure['pkgconfBuiltOfflineFromPinnedSource'] is True; assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['pkgconfVersion']=='3.0.4'; assert ffmpeg['pkgconfBuiltFromSource'] is True; assert ffmpeg['pkgconfLicense']=='ISC'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
+    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); npp_path=root/'cuda-npp-runtime-receipt.json'; npp=json.loads(npp_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert closure['pkgconfVersion']=='3.0.4'; assert closure['pkgconfBuiltOfflineFromPinnedSource'] is True; assert closure['cudaNppRuntimeReceiptSha256']==hashlib.sha256(npp_path.read_bytes()).hexdigest(); assert closure['cudaNppPackageName']=='libnpp-12-8'; assert closure['cudaNppPackageVersion']=='12.3.3.100-1'; assert closure['torchcodecExactNppRuntimeClosureRequired'] is True; assert closure['completeCudaToolkitCopied'] is False; assert npp['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert npp['exactTorchcodecElfNeededClosure'] is True; assert npp['completeCudaToolkitCopied'] is False; assert npp['cpuVideoDecodeFallbackAllowed'] is False; assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['pkgconfVersion']=='3.0.4'; assert ffmpeg['pkgconfBuiltFromSource'] is True; assert ffmpeg['pkgconfLicense']=='ISC'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
   && printf '%s\n' "${SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256}" \
     > /opt/reeditpro/sam3_1/qualification-artifacts/wheel-manifest.sha256 \
   && printf '%s  %s\n' \
@@ -267,6 +271,48 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && dpkg-deb --extract \
     /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb / \
   && test -r /usr/local/cuda-12.8/compat/libcuda.so.1 \
+  && printf '%s  %s\n' \
+    '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992' \
+    '/tmp/libnpp-12-8_12.3.3.100-1_amd64.deb' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb)" = '131485608' \
+  && test "$(dpkg-deb --field \
+    /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb Package)" = 'libnpp-12-8' \
+  && test "$(dpkg-deb --field \
+    /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb Version)" = '12.3.3.100-1' \
+  && test "$(dpkg-deb --field \
+    /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb Architecture)" = 'amd64' \
+  && mkdir --mode=0755 \
+    /tmp/cuda-npp-root /opt/weeditpro/cuda-npp /opt/weeditpro/cuda-npp/lib \
+  && dpkg-deb --extract \
+    /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb /tmp/cuda-npp-root \
+  && cp /tmp/cuda-npp-root/usr/local/cuda-12.8/targets/x86_64-linux/lib/libnppc.so.12.3.3.100 \
+    /opt/weeditpro/cuda-npp/lib/ \
+  && cp /tmp/cuda-npp-root/usr/local/cuda-12.8/targets/x86_64-linux/lib/libnppicc.so.12.3.3.100 \
+    /opt/weeditpro/cuda-npp/lib/ \
+  && cp /tmp/cuda-npp-root/usr/share/doc/libnpp-12-8/copyright \
+    /opt/weeditpro/cuda-npp/LICENSE \
+  && printf '%s  %s\n' \
+    '69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7' \
+    '/opt/weeditpro/cuda-npp/lib/libnppc.so.12.3.3.100' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /opt/weeditpro/cuda-npp/lib/libnppc.so.12.3.3.100)" = '1656080' \
+  && printf '%s  %s\n' \
+    'bc1f7c1797fda52d0b333f91d65af2add1deeaa0e4cf5b5ae8a58e1d54117fe2' \
+    '/opt/weeditpro/cuda-npp/lib/libnppicc.so.12.3.3.100' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /opt/weeditpro/cuda-npp/lib/libnppicc.so.12.3.3.100)" = '9373288' \
+  && printf '%s  %s\n' \
+    'e2c71babfd18a8e69542dd7e9ca018f9caa438094001a58e6bc4d8c999bf0d07' \
+    '/opt/weeditpro/cuda-npp/LICENSE' | sha256sum --check --strict \
+  && test "$(stat --format='%s' /opt/weeditpro/cuda-npp/LICENSE)" = '63021' \
+  && ln -s libnppc.so.12.3.3.100 /opt/weeditpro/cuda-npp/lib/libnppc.so.12 \
+  && ln -s libnppicc.so.12.3.3.100 /opt/weeditpro/cuda-npp/lib/libnppicc.so.12 \
+  && ! ldd /opt/weeditpro/cuda-npp/lib/libnppicc.so.12.3.3.100 \
+    | grep -F 'not found' \
   && mkdir --mode=0755 /opt/reeditpro/sam3-source \
   && tar --extract \
     --file /opt/reeditpro/sam3_1/qualification-artifacts/sam3-patched-source.tar \
@@ -317,8 +363,12 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && find "${WEEDITPRO_PYTHON_VENV}/bin" -type f -exec chmod 0555 '{}' + \
   && find /opt/reeditpro/sam3-source -type d -exec chmod 0555 '{}' + \
   && find /opt/reeditpro/sam3-source -type f -exec chmod 0444 '{}' + \
+  && find /opt/weeditpro/cuda-npp -type d -exec chmod 0555 '{}' + \
+  && find /opt/weeditpro/cuda-npp -type f -exec chmod 0444 '{}' + \
   && rm -rf \
     /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
+    /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb \
+    /tmp/cuda-npp-root \
     /tmp/sam31-wheelhouse
 
 RUN groupadd --gid 65532 reeditpro \

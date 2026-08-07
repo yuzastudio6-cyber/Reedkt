@@ -1,5 +1,6 @@
 import {
   CANONICAL_BROLL_SKILL_COMPONENT_KEY,
+  CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION,
   canonicalBrollSkillPlanComponentSchema,
   createCanonicalBrollSkillPlanComponent,
   type CanonicalBrollSkillPlanComponent,
@@ -24,6 +25,20 @@ import {
   brollPlanningContextSchema,
   brollSkillAssignmentSchema,
 } from '../edit-skills/b-roll/b-roll-schemas'
+import {
+  brollMasterTimingPlanSchema,
+  brollPublicContextManifestSchema,
+  brollSourceInventorySchema,
+  brollVisualOwnershipManifestSchema,
+  type BrollMasterTimingPlan,
+  type BrollPublicContextManifest,
+  type BrollSourceInventory,
+  type BrollVisualOwnershipManifest,
+} from '../edit-skills/b-roll/b-roll-input-authorities'
+import {
+  sourceMediaArtifactV1Schema,
+  type SourceMediaArtifactV1,
+} from '../edit-skills/b-roll/b-roll-active-artifact-contracts'
 import { hashSkillValue } from '../edit-skills/core/skill-capability-manifest-hash'
 import {
   assertSkillQualificationReceipt,
@@ -42,6 +57,14 @@ export type CanonicalBrollComparableWorkItem =
     workItemType: string
   }
 
+export interface CanonicalBrollExecutionAuthorities {
+  sourceInventory: BrollSourceInventory
+  masterTimingProjection: BrollMasterTimingPlan
+  visualOwnership: BrollVisualOwnershipManifest
+  publicContextManifest: BrollPublicContextManifest
+  sourceMediaArtifacts: SourceMediaArtifactV1[]
+}
+
 export async function persistCanonicalBrollPlanComponent(input: {
   localStorageRoot: string
   assignment: BrollSkillAssignment
@@ -50,6 +73,7 @@ export async function persistCanonicalBrollPlanComponent(input: {
   planningQaReport: BrollPlanningQaReport
   workGraph: BrollCanonicalWorkGraph
   qualificationReceipt: SkillQualificationReceipt
+  executionAuthorities?: CanonicalBrollExecutionAuthorities
 }): Promise<{
   component: CanonicalBrollSkillPlanComponent
   componentRefs: Record<typeof CANONICAL_BROLL_SKILL_COMPONENT_KEY, AuthorityJsonBlobRef>
@@ -89,6 +113,9 @@ export async function persistCanonicalBrollPlanComponent(input: {
   )
   const workGraphArtifactRef = await persist(workGraph as unknown as Record<string, unknown>)
   const qualificationReceiptArtifactRef = await persist(qualificationReceipt as unknown as Record<string, unknown>)
+  const executionAuthorityRefs = input.executionAuthorities
+    ? await persistExecutionAuthorities(input.executionAuthorities, persist)
+    : undefined
   const component = createCanonicalBrollSkillPlanComponent({
     assignment,
     context,
@@ -102,6 +129,7 @@ export async function persistCanonicalBrollPlanComponent(input: {
     planningQaReportArtifactRef,
     workGraphArtifactRef,
     qualificationReceiptArtifactRef,
+    ...(executionAuthorityRefs ? { executionAuthorityRefs } : {}),
   })
   const componentRef = await persist(component as unknown as Record<string, unknown>)
   return {
@@ -178,6 +206,7 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   planningQaReport?: BrollPlanningQaReport
   workGraph?: BrollCanonicalWorkGraph
   qualificationReceipt?: SkillQualificationReceipt
+  executionAuthorities?: CanonicalBrollExecutionAuthorities
 }> {
   const projectedItems = input.canonicalWorkItems
     .filter(isBrollProjectedWorkItem)
@@ -246,6 +275,10 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   const qualificationReceipt = assertSkillQualificationReceipt(
     rawQualificationReceipt as SkillQualificationReceipt,
   )
+  const executionAuthorities = component.schemaVersion ===
+    CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+    ? await readExecutionAuthorities(component, read, assignment)
+    : undefined
   const rebuilt = createCanonicalBrollSkillPlanComponent({
     assignment,
     context,
@@ -259,6 +292,21 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     planningQaReportArtifactRef: component.planningQaReportArtifactRef,
     workGraphArtifactRef: component.workGraphArtifactRef,
     qualificationReceiptArtifactRef: component.qualificationReceiptArtifactRef,
+    ...(component.schemaVersion === CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+      ? {
+          executionAuthorityRefs: {
+            sourceInventoryArtifactRef:
+              component.sourceInventoryArtifactRef,
+            masterTimingProjectionArtifactRef:
+              component.masterTimingProjectionArtifactRef,
+            visualOwnershipArtifactRef:
+              component.visualOwnershipArtifactRef,
+            publicContextManifestArtifactRef:
+              component.publicContextManifestArtifactRef,
+            sourceMediaArtifactRefs: component.sourceMediaArtifactRefs,
+          },
+        }
+      : {}),
   })
   if (stableAuthorityStringify(rebuilt) !== stableAuthorityStringify(component)) {
     throw new Error('Canonical B-roll component no longer matches its content-addressed lineage.')
@@ -267,5 +315,113 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   if (stableAuthorityStringify(expectedItems) !== stableAuthorityStringify(projectedItems)) {
     throw new Error('Canonical B-roll work items no longer match the immutable skill work graph.')
   }
-  return { assignment, context, plan, planningQaReport, workGraph, qualificationReceipt }
+  return {
+    assignment,
+    context,
+    plan,
+    planningQaReport,
+    workGraph,
+    qualificationReceipt,
+    ...(executionAuthorities ? { executionAuthorities } : {}),
+  }
+}
+
+async function persistExecutionAuthorities(
+  input: CanonicalBrollExecutionAuthorities,
+  persist: (value: Record<string, unknown>) => Promise<AuthorityJsonBlobRef>,
+): Promise<{
+  sourceInventoryArtifactRef: AuthorityJsonBlobRef
+  masterTimingProjectionArtifactRef: AuthorityJsonBlobRef
+  visualOwnershipArtifactRef: AuthorityJsonBlobRef
+  publicContextManifestArtifactRef: AuthorityJsonBlobRef
+  sourceMediaArtifactRefs: Array<{
+    sourceId: string
+    artifactRef: AuthorityJsonBlobRef
+  }>
+}> {
+  const sourceInventory = brollSourceInventorySchema.parse(
+    input.sourceInventory)
+  const masterTimingProjection = brollMasterTimingPlanSchema.parse(
+    input.masterTimingProjection)
+  const visualOwnership = brollVisualOwnershipManifestSchema.parse(
+    input.visualOwnership)
+  const publicContextManifest = brollPublicContextManifestSchema.parse(
+    input.publicContextManifest)
+  const sourceMediaArtifacts = input.sourceMediaArtifacts.map((value) =>
+    sourceMediaArtifactV1Schema.parse(value))
+  const sourceMediaArtifactRefs = await Promise.all(
+    sourceMediaArtifacts.map(async (artifact) => ({
+      sourceId: artifact.sourceId,
+      artifactRef: await persist(
+        artifact as unknown as Record<string, unknown>),
+    })),
+  )
+  return {
+    sourceInventoryArtifactRef: await persist(
+      sourceInventory as unknown as Record<string, unknown>),
+    masterTimingProjectionArtifactRef: await persist(
+      masterTimingProjection as unknown as Record<string, unknown>),
+    visualOwnershipArtifactRef: await persist(
+      visualOwnership as unknown as Record<string, unknown>),
+    publicContextManifestArtifactRef: await persist(
+      publicContextManifest as unknown as Record<string, unknown>),
+    sourceMediaArtifactRefs,
+  }
+}
+
+async function readExecutionAuthorities(
+  component: Extract<CanonicalBrollSkillPlanComponent, {
+    schemaVersion: typeof CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+  }>,
+  read: (ref: AuthorityJsonBlobRef) => Promise<Record<string, unknown>>,
+  assignment: BrollSkillAssignment,
+): Promise<CanonicalBrollExecutionAuthorities> {
+  const [
+    rawSourceInventory,
+    rawMasterTimingProjection,
+    rawVisualOwnership,
+    rawPublicContextManifest,
+    ...rawSources
+  ] = await Promise.all([
+    read(component.sourceInventoryArtifactRef),
+    read(component.masterTimingProjectionArtifactRef),
+    read(component.visualOwnershipArtifactRef),
+    read(component.publicContextManifestArtifactRef),
+    ...component.sourceMediaArtifactRefs.map((item) =>
+      read(item.artifactRef)),
+  ])
+  const sourceInventory = brollSourceInventorySchema.parse(rawSourceInventory)
+  const masterTimingProjection = brollMasterTimingPlanSchema.parse(
+    rawMasterTimingProjection)
+  const visualOwnership = brollVisualOwnershipManifestSchema.parse(
+    rawVisualOwnership)
+  const publicContextManifest = brollPublicContextManifestSchema.parse(
+    rawPublicContextManifest)
+  const sourceMediaArtifacts = rawSources.map((value) =>
+    sourceMediaArtifactV1Schema.parse(value))
+  const sourceIds = sourceMediaArtifacts.map((item) => item.sourceId)
+  if (
+    sourceIds.join('|') !== component.sourceMediaArtifactRefs.map((item) =>
+      item.sourceId).join('|') ||
+    sourceInventory.assignmentId !== assignment.assignmentId ||
+    masterTimingProjection.assignmentId !== assignment.assignmentId ||
+    visualOwnership.assignmentId !== assignment.assignmentId ||
+    publicContextManifest.assignmentId !== assignment.assignmentId ||
+    sourceInventory.ownerUserId !== assignment.ownerUserId ||
+    visualOwnership.workspaceId !== assignment.workspaceId ||
+    publicContextManifest.projectId !== assignment.projectId ||
+    sourceInventory.candidates.some((candidate) =>
+      !sourceIds.includes(candidate.sourceId))
+  ) {
+    throw new Error(
+      'Canonical B-roll V2 execution inputs crossed immutable assignment authority.',
+    )
+  }
+  return {
+    sourceInventory,
+    masterTimingProjection,
+    visualOwnership,
+    publicContextManifest,
+    sourceMediaArtifacts,
+  }
 }

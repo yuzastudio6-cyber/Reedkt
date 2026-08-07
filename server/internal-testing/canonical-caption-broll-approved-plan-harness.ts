@@ -15,6 +15,7 @@ import {
   createSourceMediaArtifactV1,
   projectBrollCanonicalWorkItems,
   type BrollMasterTimingPlan,
+  type BrollPublicContextManifest,
   type CanonicalBrollMasterTimingProjectionBinding,
   type BrollPlanningContext,
   type BrollSkillAssignment,
@@ -90,6 +91,11 @@ export interface CanonicalCaptionBrollApprovedPlanHarnessResult {
   readonly assignment: SkillAssignment
   readonly brollAssignment: BrollSkillAssignment
   readonly context: BrollPlanningContext
+  readonly visualOwnership: ReturnType<
+    typeof createBrollVisualOwnershipManifest
+  >
+  readonly sourceInventory: ReturnType<typeof createBrollSourceInventory>
+  readonly publicContextManifest: BrollPublicContextManifest
   readonly publicPlan: EditSkillPublicPlan
   readonly publicApprovedWorkGraph: EditSkillApprovedWorkGraph
   readonly canonicalWorkGraph: ReturnType<
@@ -406,6 +412,13 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     planningQaReport,
     workGraph: canonicalWorkGraph,
     qualificationReceipt: runtime.qualificationRegistry.resolve(manifestRef),
+    executionAuthorities: {
+      sourceInventory,
+      masterTimingProjection: masterTimingPlan,
+      visualOwnership,
+      publicContextManifest: publicContext,
+      sourceMediaArtifacts: [sourceManifest],
+    },
   })
   const reread = await revalidateCanonicalBrollPlanAuthority({
     localStorageRoot: input.localStorageRoot,
@@ -442,6 +455,9 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     assignment,
     brollAssignment,
     context,
+    visualOwnership,
+    sourceInventory,
+    publicContextManifest: publicContext,
     publicPlan,
     publicApprovedWorkGraph,
     canonicalWorkGraph,

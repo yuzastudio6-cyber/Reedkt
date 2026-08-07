@@ -19,9 +19,12 @@ import {
   assertBrollPlanningContext,
 } from './b-roll-context-loader'
 import {
-  executeBrollExistingSource,
+  createBrollExistingSourceExecutionPipeline,
   type BrollExistingSourceExecutionInput,
+  type BrollExistingSourceExecutionPipeline,
   type BrollExistingSourceExecutionReceipt,
+  type BrollExistingSourceInspectionStage,
+  type BrollExistingSourceNormalizationStage,
   type BrollProviderRequestObserver,
 } from './b-roll-existing-source-execution'
 import {
@@ -34,7 +37,9 @@ import { assertBrollPlanRuntimeInvariants } from './b-roll-plan-compiler'
 import type { BrollPlanningQaReport } from './b-roll-planning-qa'
 import {
   executeBrollRemotionIntegration,
+  prepareBrollRemotionLayerManifest,
   type BrollIntegrationQaReport,
+  type BrollPreparedRemotionLayer,
   type BrollRemotionLayerManifest,
   type BrollResultReceipt,
 } from './b-roll-remotion-integration'
@@ -192,15 +197,21 @@ export interface BrollCanonicalPrivateWorkExecutor {
   ): Promise<SkillJobRuntimeAdapterResult>
 }
 
-type ExistingExecution = Awaited<ReturnType<typeof executeBrollExistingSource>>
+type ExistingExecution = Awaited<
+  ReturnType<BrollExistingSourceExecutionPipeline['finalize']>
+>
 type CandidateQaExecution = Awaited<ReturnType<typeof executeBrollCandidateQa>>
 type RemotionExecution = Awaited<ReturnType<typeof executeBrollRemotionIntegration>>
 
 interface BrollCanonicalPrivateExecutionState {
   validatedAuthority?: Awaited<ReturnType<typeof revalidateCanonicalBrollPlanAuthority>>
+  existingPipeline?: BrollExistingSourceExecutionPipeline
+  existingInspection?: BrollExistingSourceInspectionStage
+  existingNormalization?: BrollExistingSourceNormalizationStage
   existing?: ExistingExecution
   initialAttempt?: BrollCandidateAttemptEvidence
   candidateQa?: CandidateQaExecution
+  preparedIntegration?: BrollPreparedRemotionLayer
   integration?: RemotionExecution
   noAction?: {
     receipt: BrollCanonicalNoActionResultReceipt
@@ -454,11 +465,14 @@ implements BrollCanonicalPrivateWorkExecutor {
         ]
       }
       case 'prepare_b_roll_source': {
-        const execution = await this.#ensureExistingSource()
+        if (this.#input.route !== 'existing_source') {
+          throw new Error('Source preparation cannot run for a non-source B-roll route.')
+        }
+        const pipeline = await this.#ensureExistingPipeline()
         return [
-          execution.receipt.resultHash,
-          execution.receipt.normalizedCandidate.sha256,
-          execution.receipt.sourceQaReportHash,
+          pipeline.executionKey,
+          this.#input.plan.planHash,
+          this.#input.source.artifactRef.sha256,
         ]
       }
       case 'generate_b_roll_candidate': {
@@ -470,16 +484,23 @@ implements BrollCanonicalPrivateWorkExecutor {
           const qa = await this.#ensureCandidateQa()
           return [qa.qaReport.technicalInspectionHash, qa.version.rawCandidate.sha256]
         }
-        const source = await this.#ensureExistingSource()
-        return [source.receipt.sourceInspectionHash, source.receipt.selectedSourceArtifactRef.sha256]
+        const inspection = await this.#ensureExistingInspection()
+        return [
+          inspection.sourceInspectionHash,
+          inspection.inspectionStageHash,
+        ]
       }
       case 'normalize_b_roll_candidate_with_ffmpeg': {
         if (this.#input.route === 'generated_injected') {
           const qa = await this.#ensureCandidateQa()
           return [qa.version.normalizedCandidate.sha256, qa.version.candidateVersionHash]
         }
-        const source = await this.#ensureExistingSource()
-        return [source.receipt.normalizedCandidate.sha256, source.receipt.resultHash]
+        const normalization = await this.#ensureExistingNormalization()
+        return [
+          normalization.normalizedCandidate.sha256,
+          normalization.normalizationStageHash,
+          normalization.sourceQaReportHash,
+        ]
       }
       case 'run_b_roll_technical_qa': {
         if (this.#input.route === 'generated_injected') {
@@ -511,8 +532,11 @@ implements BrollCanonicalPrivateWorkExecutor {
         return [source.receipt.sourceQaReportHash]
       }
       case 'prepare_b_roll_remotion_layer': {
-        const integration = await this.#ensureIntegration()
-        return [integration.layerManifest.layerManifestHash, integration.receipt.selectedArtifact.normalizedArtifact.sha256]
+        const prepared = await this.#ensurePreparedIntegration()
+        return [
+          prepared.layerManifest.layerManifestHash,
+          prepared.layerManifest.selectedArtifact.normalizedArtifact.sha256,
+        ]
       }
       case 'render_b_roll_preview': {
         const integration = await this.#ensureIntegration()
@@ -584,7 +608,34 @@ implements BrollCanonicalPrivateWorkExecutor {
         if (this.#input.route !== 'existing_source') {
           throw new Error('Prepared source projection is unavailable for this route.')
         }
-        const execution = await this.#ensureExistingSource()
+        const pipeline = await this.#ensureExistingPipeline()
+        const sourceTrim = pipeline.sourceTrim
+        const frameCount = sourceTrim.endFrameExclusive -
+          sourceTrim.startFrameInclusive
+        const [costEvidenceRef, usageEvidenceRef] = await Promise.all([
+          putPrivateAuthorityJsonBlob({
+            localStorageRoot: this.#input.localStorageRoot,
+            value: {
+              schemaVersion: 'b_roll_existing_source_planning_cost_evidence_v1',
+              executionKey: pipeline.executionKey,
+              actualToolCostMicros: 0,
+              serviceFeeIncluded: false,
+              billingAuthorityGranted: false,
+            },
+          }),
+          putPrivateAuthorityJsonBlob({
+            localStorageRoot: this.#input.localStorageRoot,
+            value: {
+              schemaVersion: 'b_roll_existing_source_selection_usage_evidence_v1',
+              executionKey: pipeline.executionKey,
+              sourceId: this.#input.source.sourceId,
+              sourceArtifactSha256: this.#input.source.artifactRef.sha256,
+              exactSourceTrim: sourceTrim,
+              mediaToolExecuted: false,
+              providerRequestCount: 0,
+            },
+          }),
+        ])
         value = createBrollCandidateMediaManifest({
           schemaVersion: 'b_roll_candidate_media_manifest_v1',
           ...common,
@@ -596,16 +647,19 @@ implements BrollCanonicalPrivateWorkExecutor {
           configuredModelAlias: null,
           acceptedRuntimeModel: null,
           candidateVersion: 1,
-          privateObjectIdentityHash:
-            execution.receipt.normalizedCandidate.privateObjectIdentityHash,
-          objectSha256: execution.receipt.normalizedCandidate.sha256,
-          byteLength: execution.receipt.normalizedCandidate.byteLength,
-          mimeType: 'video/x-nut',
-          container: 'nut',
-          durationSeconds: execution.receipt.normalizedCandidate.frameCount /
-            execution.receipt.normalizedCandidate.frameRate,
-          frameCount: execution.receipt.normalizedCandidate.frameCount,
-          fps: execution.receipt.normalizedCandidate.frameRate as 24 | 30,
+          privateObjectIdentityHash: hashSkillValue({
+            kind: 'b_roll_approved_source_selection_v1',
+            executionKey: pipeline.executionKey,
+            sourceArtifactSha256: this.#input.source.artifactRef.sha256,
+            sourceTrim,
+          }),
+          objectSha256: this.#input.source.mediaManifest.objectSha256,
+          byteLength: this.#input.source.mediaManifest.byteLength,
+          mimeType: 'video/mp4',
+          container: 'mp4',
+          durationSeconds: frameCount / sourceTrim.fps,
+          frameCount,
+          fps: sourceTrim.fps as 24 | 30,
           width: this.#input.source.mediaManifest.width,
           height: this.#input.source.mediaManifest.height,
           audioStreamPresent: false,
@@ -613,8 +667,8 @@ implements BrollCanonicalPrivateWorkExecutor {
           referenceArtifactHashes: [],
           generationClassification: 'source_verified',
           proofSafetyClassification: 'source_verified_not_generated_proof',
-          costEvidenceRef: execution.receipt.sourceQaReportRef,
-          usageEvidenceRef: execution.receipt.sourceInspectionRef,
+          costEvidenceRef,
+          usageEvidenceRef,
           checksumReadbackVerified: true,
           privateOnly: true,
           publicDeliveryAllowed: false,
@@ -718,24 +772,26 @@ implements BrollCanonicalPrivateWorkExecutor {
           if (this.#input.route !== 'existing_source') {
             throw new Error('Candidate inspection projection is unavailable for this route.')
           }
-          const source = await this.#ensureExistingSource()
+          const inspection = await this.#ensureExistingInspection()
+          const sourceTrim = (await this.#ensureExistingPipeline()).sourceTrim
+          const frameCount = sourceTrim.endFrameExclusive -
+            sourceTrim.startFrameInclusive
           value = createBrollCandidateManifest({
             schemaVersion: 'b_roll_candidate_manifest_v1',
             ...common,
             ...work,
             candidateMediaManifestHash: media.mediaManifestHash,
-            technicalInspectionRef: source.receipt.sourceInspectionRef,
-            technicalInspectionHash: source.receipt.sourceInspectionHash,
-            objectiveQaRef: source.receipt.sourceQaReportRef,
-            objectiveQaHash: source.receipt.sourceQaReportHash,
-            durationSeconds: source.receipt.normalizedCandidate.frameCount /
-              source.receipt.normalizedCandidate.frameRate,
-            frameCount: source.receipt.normalizedCandidate.frameCount,
-            fps: source.receipt.normalizedCandidate.frameRate as 24 | 30,
+            technicalInspectionRef: inspection.sourceInspectionRef,
+            technicalInspectionHash: inspection.sourceInspectionHash,
+            objectiveQaRef: inspection.sourceInspectionRef,
+            objectiveQaHash: inspection.inspectionStageHash,
+            durationSeconds: frameCount / sourceTrim.fps,
+            frameCount,
+            fps: sourceTrim.fps as 24 | 30,
             width: this.#input.source.mediaManifest.width,
             height: this.#input.source.mediaManifest.height,
-            videoStreamCount: 1,
-            audioStreamCount: 0,
+            videoStreamCount: inspection.videoStreamCount,
+            audioStreamCount: inspection.audioStreamCount,
             blackFrameRatioMillionths: 0,
             frozenFrameRatioMillionths: 0,
             maximumFrozenRunFrames: 0,
@@ -753,7 +809,7 @@ implements BrollCanonicalPrivateWorkExecutor {
           if (this.#input.route !== 'existing_source') {
             throw new Error('Candidate normalization projection is unavailable for this route.')
           }
-          const source = await this.#ensureExistingSource()
+          const normalization = await this.#ensureExistingNormalization()
           const media = this.#latestMediaManifest()
           value = createBrollExistingSourceCandidateVersion({
             schemaVersion: 'b_roll_candidate_version_v1',
@@ -763,16 +819,16 @@ implements BrollCanonicalPrivateWorkExecutor {
             candidateMediaManifestHash: media.mediaManifestHash,
             sourceArtifactHash: this.#input.source.artifactRef.sha256,
             normalizedPrivateObjectIdentityHash:
-              source.receipt.normalizedCandidate.privateObjectIdentityHash,
-            normalizedObjectSha256: source.receipt.normalizedCandidate.sha256,
-            byteLength: source.receipt.normalizedCandidate.byteLength,
+              normalization.normalizedCandidate.privateObjectIdentityHash,
+            normalizedObjectSha256: normalization.normalizedCandidate.sha256,
+            byteLength: normalization.normalizedCandidate.byteLength,
             mimeType: 'video/x-nut',
             container: 'nut',
             videoCodec: 'ffv1',
-            frameCount: source.receipt.normalizedCandidate.frameCount,
-            fps: source.receipt.normalizedCandidate.frameRate,
+            frameCount: normalization.normalizedCandidate.frameCount,
+            fps: normalization.normalizedCandidate.frameRate,
             exactRange: this.#input.assignment.writeRangeAuthority.authorizedRange,
-            sourceQaReportHash: source.receipt.sourceQaReportHash,
+            sourceQaReportHash: normalization.sourceQaReportHash,
             automaticSelectionAllowed: false,
             outsideAuthorizedRangeModified: false,
             immutable: true,
@@ -836,7 +892,7 @@ implements BrollCanonicalPrivateWorkExecutor {
         break
       }
       case 'prepare_b_roll_remotion_layer':
-        value = (await this.#ensureIntegration()).layerManifest
+        value = (await this.#ensurePreparedIntegration()).layerManifest
         break
       case 'render_b_roll_preview': {
         const integration = await this.#ensureIntegration()
@@ -943,13 +999,14 @@ implements BrollCanonicalPrivateWorkExecutor {
     ) throw new Error('Canonical private B-roll ownership authority is stale or conflicting.')
   }
 
-  async #ensureExistingSource(): Promise<ExistingExecution> {
-    if (this.#state.existing) return this.#state.existing
+  async #ensureExistingPipeline(): Promise<BrollExistingSourceExecutionPipeline> {
+    if (this.#state.existingPipeline) return this.#state.existingPipeline
     await this.#ensureAuthority()
     if (this.#input.route !== 'existing_source') {
       throw new Error('Canonical private B-roll source execution is unavailable for this route.')
     }
-    this.#state.existing = await executeBrollExistingSource({
+    this.#state.existingPipeline =
+      await createBrollExistingSourceExecutionPipeline({
       localStorageRoot: this.#input.localStorageRoot,
       gate: this.#input.executionGate,
       component: this.#input.component,
@@ -959,6 +1016,29 @@ implements BrollCanonicalPrivateWorkExecutor {
       providerObserver: this.#input.providerObserver,
       now: this.#input.now,
     })
+    return this.#state.existingPipeline
+  }
+
+  async #ensureExistingInspection(): Promise<BrollExistingSourceInspectionStage> {
+    if (this.#state.existingInspection) return this.#state.existingInspection
+    const pipeline = await this.#ensureExistingPipeline()
+    this.#state.existingInspection = await pipeline.inspect()
+    return this.#state.existingInspection
+  }
+
+  async #ensureExistingNormalization(): Promise<BrollExistingSourceNormalizationStage> {
+    if (this.#state.existingNormalization) {
+      return this.#state.existingNormalization
+    }
+    const pipeline = await this.#ensureExistingPipeline()
+    this.#state.existingNormalization = await pipeline.normalize()
+    return this.#state.existingNormalization
+  }
+
+  async #ensureExistingSource(): Promise<ExistingExecution> {
+    if (this.#state.existing) return this.#state.existing
+    const pipeline = await this.#ensureExistingPipeline()
+    this.#state.existing = await pipeline.finalize()
     if (this.#state.existing.receipt.providerRequestCount !== 0) {
       throw new Error('Existing-source B-roll execution recorded a provider request.')
     }
@@ -1057,6 +1137,32 @@ implements BrollCanonicalPrivateWorkExecutor {
     return this.#state.candidateQa
   }
 
+  async #ensurePreparedIntegration(): Promise<BrollPreparedRemotionLayer> {
+    if (this.#state.preparedIntegration) {
+      return this.#state.preparedIntegration
+    }
+    if (this.#input.route === 'professional_no_action') {
+      throw new Error('Professional no-action B-roll cannot prepare a layer.')
+    }
+    const selection = this.#input.route === 'generated_injected'
+      ? await this.#candidateSelection()
+      : await this.#existingSelection()
+    this.#state.preparedIntegration =
+      await prepareBrollRemotionLayerManifest({
+        localStorageRoot: this.#input.localStorageRoot,
+        assignment: this.#input.assignment,
+        assignmentRef: this.#input.component.assignmentArtifactRef,
+        plan: this.#input.plan,
+        planRef: this.#input.component.planArtifactRef,
+        selection,
+        captionOverlay: this.#input.captionOverlay,
+        ...(this.#input.trackGraph
+          ? { trackGraph: this.#input.trackGraph }
+          : {}),
+      })
+    return this.#state.preparedIntegration
+  }
+
   async #ensureIntegration(): Promise<RemotionExecution> {
     if (this.#state.integration) return this.#state.integration
     if (this.#input.route === 'professional_no_action') {
@@ -1081,7 +1187,12 @@ implements BrollCanonicalPrivateWorkExecutor {
       idempotencyKey: `b-roll-integration-${this.#input.approvalHash}`,
       now: this.#input.now,
     })
+    const prepared = await this.#ensurePreparedIntegration()
     if (
+      this.#state.integration.layerManifest.layerManifestHash !==
+        prepared.layerManifest.layerManifestHash ||
+      stableAuthorityStringify(this.#state.integration.layerManifestRef) !==
+        stableAuthorityStringify(prepared.layerManifestRef) ||
       this.#state.integration.receipt.outsideAuthorizedRangeModified ||
       this.#state.integration.integrationQa.status !== 'passed' ||
       !this.#state.integration.receipt.preview.privateInternalOnly

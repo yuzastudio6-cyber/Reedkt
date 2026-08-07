@@ -371,6 +371,132 @@ export interface BrollRemotionIntegrationInput {
   now?: () => string
 }
 
+export type BrollRemotionLayerPreparationInput = Pick<
+  BrollRemotionIntegrationInput,
+  | 'localStorageRoot'
+  | 'assignment'
+  | 'assignmentRef'
+  | 'plan'
+  | 'planRef'
+  | 'selection'
+  | 'captionOverlay'
+  | 'trackGraph'
+>
+
+export interface BrollPreparedRemotionLayer {
+  layerManifest: BrollRemotionLayerManifest
+  layerManifestRef: AuthorityJsonBlobRef
+}
+
+/**
+ * Builds the exact renderer-layer contract without starting FFmpeg or
+ * Remotion. The render job may then consume the same immutable inputs under
+ * its own explicit multi-tool authority.
+ */
+export async function prepareBrollRemotionLayerManifest(
+  input: BrollRemotionLayerPreparationInput,
+): Promise<BrollPreparedRemotionLayer> {
+  const assignment = brollSkillAssignmentSchema.parse(input.assignment)
+  const plan = brollPlanArtifactSchema.parse(input.plan)
+  assertPlanAuthority(assignment, plan)
+  await assertAuthorityRef(input.localStorageRoot, input.assignmentRef, assignment)
+  await assertAuthorityRef(input.localStorageRoot, input.planRef, plan)
+  const caption = validateCaptionOverlay(input.captionOverlay, assignment)
+  const trackGraphRef = validateTrackGraph(input.trackGraph, assignment, plan)
+  const selection = await validateSelection(
+    input.localStorageRoot,
+    input.selection,
+    assignment,
+    plan,
+  )
+  const durationFrames =
+    assignment.writeRangeAuthority.authorizedRange.endFrameExclusive -
+    assignment.writeRangeAuthority.authorizedRange.startFrameInclusive
+  if (
+    selection.selectedArtifact.normalizedArtifact.frameCount !== durationFrames ||
+    selection.selectedArtifact.normalizedArtifact.frameRate !==
+      assignment.writeRangeAuthority.authorizedRange.fps
+  ) {
+    throw new Error(
+      'B-roll prepared layer selection does not match the exact timing range.',
+    )
+  }
+  const previewLayer = brollRemotionPreviewLayerForTreatment(
+    plan.displayTreatment,
+  )
+  const handoffs = await createCrossSkillHandoffs({
+    localStorageRoot: input.localStorageRoot,
+    assignment,
+    plan,
+    selection: selection.selectedArtifact,
+    outputQaHash: selection.outputQaHash,
+  })
+  const layerCore = layerManifestCoreSchema.parse({
+    schemaVersion: 'b_roll_remotion_layer_manifest_v1',
+    assignmentReference: {
+      assignmentId: assignment.assignmentId,
+      assignmentHash: assignment.assignmentHash,
+      artifactRef: input.assignmentRef,
+    },
+    manifestRef: assignment.manifestRef,
+    planReference: {
+      planId: plan.planId,
+      planHash: plan.planHash,
+      artifactRef: input.planRef,
+    },
+    selectedArtifact: selection.selectedArtifact,
+    exactTimelineRange: assignment.writeRangeAuthority.authorizedRange,
+    sourceTrim: selection.sourceTrim,
+    crop: {
+      mode: 'contain',
+      cropSafeSubjectArea: plan.shotSpecification?.cropSafeSubjectArea ??
+        'Preserve the approved source crop and all salient content.',
+      finalCropOwner: 'render',
+    },
+    scale: 1,
+    position: {
+      mode: previewLayer.position,
+      xPercent: previewLayer.xPercent,
+      yPercent: previewLayer.yPercent,
+      widthPercent: previewLayer.widthPercent,
+      heightPercent: previewLayer.heightPercent,
+      opacity: previewLayer.opacity,
+    },
+    displayTreatment: previewLayer.displayTreatment,
+    speakerVisibilityIntent: plan.speakerVisibilityIntent,
+    captionSafeBehavior: {
+      directive: plan.captionSafeBehavior,
+      captionOverlayRef: caption.reference,
+      reservedZoneCount: caption.reservedZoneCount,
+      collisionPolicy: 'caption_reserved_zone_contract_v1',
+      captionLayerOrder: 100,
+      finalOwner: 'captions',
+      brollMayMutateCaptions: false,
+    },
+    layerOrder: previewLayer.layerOrder,
+    audioDisposition: plan.audioDisposition,
+    transitionHandoff: handoffs.transition,
+    colorHandoff: handoffs.color,
+    soundHandoff: handoffs.sound,
+    trackGraphRef,
+    outputQaRef: selection.outputQaRef,
+    outputQaHash: selection.outputQaHash,
+    rendererOwner: 'render',
+    finalCompositionOwnedByBroll: false,
+    privatePreviewOnly: true,
+    outsideAuthorizedRangeModified: false,
+  })
+  const layerManifest = brollRemotionLayerManifestSchema.parse({
+    ...layerCore,
+    layerManifestHash: hashSkillValue(layerCore),
+  })
+  const layerManifestRef = await persistJson(
+    input.localStorageRoot,
+    layerManifest,
+  )
+  return Object.freeze({ layerManifest, layerManifestRef })
+}
+
 export async function executeBrollRemotionIntegration(
   input: BrollRemotionIntegrationInput,
 ): Promise<{

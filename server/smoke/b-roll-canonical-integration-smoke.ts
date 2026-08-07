@@ -159,7 +159,13 @@ const existingContext = context()
 const existing = compile(existingAssignment, existingContext)
 assert.equal(existing.workGraph.route, 'existing_source')
 assert.equal(existing.canonicalWorkItems.some((item) => item.approvedProviderRoute), false)
-assert.equal(existing.canonicalWorkItems.filter((item) => item.approvedToolIds.includes('ffmpeg')).length, 1)
+assert.equal(existing.canonicalWorkItems.filter((item) => item.approvedToolIds.includes('ffprobe')).length, 1)
+assert.equal(existing.canonicalWorkItems.filter((item) => item.approvedToolIds.includes('ffmpeg')).length, 2)
+assert.equal(existing.canonicalWorkItems.filter((item) => item.approvedToolIds.includes('remotion')).length, 1)
+assert.deepEqual(
+  existing.canonicalWorkItems.find((item) => item.approvedToolIds.includes('remotion'))?.approvedToolIds,
+  ['ffmpeg', 'remotion'],
+)
 
 const generatedAssignment = assignment({ sourceSequenceIds: [] })
 const generatedContext = context({ sourceCandidates: [] })

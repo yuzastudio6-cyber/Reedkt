@@ -172,7 +172,7 @@ async function assertPackageScripts(): Promise<number> {
     if (command.startsWith('npm run ')) continue
     assert.match(
       command,
-      /^tsx server\/(?:cli\/(?:generate-b-roll|gemini-omni-b-roll|qualify-b-roll|validate-b-roll)|smoke\/(?:b-roll-|canonical-caption-broll-|captions-specialist-broll-))/u,
+      /^tsx server\/(?:cli\/(?:generate-b-roll|gemini-omni-b-roll|qualify-b-roll|validate-b-roll)|smoke\/(?:b-roll-|canonical-caption-broll-|captions-specialist-broll-|canonical-broll-private-approved-execution-service-smoke\.ts$))/u,
       `B-roll package script ${key} does not resolve to the canonical implementation or its evidence.`,
     )
   }

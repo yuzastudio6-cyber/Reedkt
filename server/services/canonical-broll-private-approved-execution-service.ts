@@ -74,6 +74,10 @@ export interface CanonicalBrollPrivateApprovedExecutionService {
   readonly exactApprovedSnapshotGateRequired: true
   readonly durableOutputArtifactStoreRequired: true
   readonly providerRequestAllowed: false
+  executeWorkItem(workItemKey: string): Promise<{
+    workResult: EditSkillWorkResult
+    dispatchReceipt: RuntimeDispatchReceipt
+  }>
   executeAll(): Promise<{
     workResults: readonly EditSkillWorkResult[]
     dispatchReceipts: readonly RuntimeDispatchReceipt[]
@@ -217,6 +221,51 @@ export async function createCanonicalBrollPrivateApprovedExecutionService(
   ]))
   const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
 
+  const executeWorkItem = async (workItemKey: string) => {
+    const item = publicLifecycleAuthorities.approvedPublicWorkGraph.workItems
+      .find((candidate) => candidate.workItemKey === workItemKey)
+    if (!item) {
+      throw new Error(
+        'Canonical B-roll approved executor received work outside its graph.',
+      )
+    }
+    const binding = bindingByJob.get(item.jobType)
+    if (!binding) {
+      throw new Error(
+        'Canonical B-roll approved work item lacks its runtime binding.',
+      )
+    }
+    const outcome = await dispatcher.dispatchApprovedWorkItemToResult({
+      manifestRef,
+      workItem: item,
+      approval: publicLifecycleAuthorities.approval,
+      authorizedPhase: binding.allowedPhases[0]!,
+      inputArtifactTypes: binding.inputArtifactTypes,
+      adapterClass: 'canonical_private_execution_adapter',
+      environmentClass: 'canonical_private',
+      runtimeQualification: qualificationReceipt.qualificationStatus,
+      artifactStorageClass: input.artifactStore.storageClass,
+      artifactStore: input.artifactStore,
+      artifactScope: {
+        ownerUserId: assignment.ownerUserId,
+        workspaceId: assignment.workspaceId,
+        projectId: assignment.projectId,
+      },
+      privateArtifactAuthority: true,
+      providerAuthorityOperations:
+        editSkillReferenceCatalog.providerOperations,
+      toolAuthorityOperations: editSkillReferenceCatalog.toolOperations,
+      planId: publicLifecycleAuthorities.publicPlan.envelope.planId,
+      planHash: publicLifecycleAuthorities.publicPlan.envelope.planHash,
+      qaEvidenceArtifactRefs:
+        publicLifecycleAuthorities.publicPlan.evidenceRefs,
+    })
+    return Object.freeze({
+      workResult: outcome.workResult,
+      dispatchReceipt: outcome.receipt,
+    })
+  }
+
   return Object.freeze({
     schemaVersion:
       CANONICAL_BROLL_PRIVATE_APPROVED_EXECUTION_SERVICE_VERSION,
@@ -225,43 +274,14 @@ export async function createCanonicalBrollPrivateApprovedExecutionService(
     exactApprovedSnapshotGateRequired: true as const,
     durableOutputArtifactStoreRequired: true as const,
     providerRequestAllowed: false as const,
+    executeWorkItem,
     async executeAll() {
       const workResults: EditSkillWorkResult[] = []
       const dispatchReceipts: RuntimeDispatchReceipt[] = []
       for (const item of publicLifecycleAuthorities.approvedPublicWorkGraph
         .workItems) {
-        const binding = bindingByJob.get(item.jobType)
-        if (!binding) {
-          throw new Error(
-            'Canonical B-roll approved work item lacks its runtime binding.',
-          )
-        }
-        const outcome = await dispatcher.dispatchApprovedWorkItemToResult({
-          manifestRef,
-          workItem: item,
-          approval: publicLifecycleAuthorities.approval,
-          authorizedPhase: binding.allowedPhases[0]!,
-          inputArtifactTypes: binding.inputArtifactTypes,
-          adapterClass: 'canonical_private_execution_adapter',
-          environmentClass: 'canonical_private',
-          runtimeQualification: qualificationReceipt.qualificationStatus,
-          artifactStorageClass: input.artifactStore.storageClass,
-          artifactStore: input.artifactStore,
-          artifactScope: {
-            ownerUserId: assignment.ownerUserId,
-            workspaceId: assignment.workspaceId,
-            projectId: assignment.projectId,
-          },
-          privateArtifactAuthority: true,
-          providerAuthorityOperations:
-            editSkillReferenceCatalog.providerOperations,
-          toolAuthorityOperations: editSkillReferenceCatalog.toolOperations,
-          planId: publicLifecycleAuthorities.publicPlan.envelope.planId,
-          planHash: publicLifecycleAuthorities.publicPlan.envelope.planHash,
-          qaEvidenceArtifactRefs:
-            publicLifecycleAuthorities.publicPlan.evidenceRefs,
-        })
-        dispatchReceipts.push(outcome.receipt)
+        const outcome = await executeWorkItem(item.workItemKey)
+        dispatchReceipts.push(outcome.dispatchReceipt)
         workResults.push(outcome.workResult)
       }
       return Object.freeze({

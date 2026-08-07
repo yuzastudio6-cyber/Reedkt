@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import {
   persistCanonicalPrivateMediaArtifact,
+  readCanonicalPrivateMediaArtifact,
 } from '../../services/canonical-private-media-artifact-storage'
 import {
   putPrivateAuthorityJsonBlob,
@@ -123,6 +124,77 @@ const executionResultSchema = z.object({
   receiptRef: blobRefSchema,
 }).strict()
 
+const inspectionStageCoreSchema = z.object({
+  schemaVersion: z.literal('b_roll_existing_source_inspection_stage_v1'),
+  executionKey: skillSha256Schema,
+  approvedPlanSnapshotId: z.string().trim().min(1).max(180),
+  reservationId: z.string().trim().min(1).max(180),
+  assignmentHash: skillSha256Schema,
+  planHash: skillSha256Schema,
+  selectedSourceId: z.string().trim().min(1).max(180),
+  selectedSourceSha256: skillSha256Schema,
+  sourceInspectionRef: blobRefSchema,
+  sourceInspectionHash: skillSha256Schema,
+  ffprobeRequestHash: skillSha256Schema,
+  ffprobeResultHash: skillSha256Schema,
+  videoStreamCount: z.literal(1),
+  audioStreamCount: z.number().int().nonnegative().max(32),
+  privateInternalOnly: z.literal(true),
+  providerRequestCount: z.literal(0),
+}).strict()
+
+export const brollExistingSourceInspectionStageSchema =
+  inspectionStageCoreSchema.extend({
+    inspectionStageHash: skillSha256Schema,
+  }).strict().superRefine((value, context) => {
+    const { inspectionStageHash, ...core } = value
+    if (hashSkillValue(core) !== inspectionStageHash) {
+      context.addIssue({
+        code: 'custom',
+        message: 'B-roll source inspection stage hash is invalid.',
+      })
+    }
+  })
+
+const normalizationStageCoreSchema = z.object({
+  schemaVersion: z.literal('b_roll_existing_source_normalization_stage_v1'),
+  executionKey: skillSha256Schema,
+  approvedPlanSnapshotId: z.string().trim().min(1).max(180),
+  reservationId: z.string().trim().min(1).max(180),
+  assignmentHash: skillSha256Schema,
+  planHash: skillSha256Schema,
+  selectedSourceId: z.string().trim().min(1).max(180),
+  selectedSourceSha256: skillSha256Schema,
+  sourceInspectionHash: skillSha256Schema,
+  normalizedCandidate: resultCoreSchema.shape.normalizedCandidate,
+  sourceQaReportRef: blobRefSchema,
+  sourceQaReportHash: skillSha256Schema,
+  ffmpegRequestHash: skillSha256Schema,
+  ffmpegResultHash: skillSha256Schema,
+  privateInternalOnly: z.literal(true),
+  providerRequestCount: z.literal(0),
+}).strict()
+
+export const brollExistingSourceNormalizationStageSchema =
+  normalizationStageCoreSchema.extend({
+    normalizationStageHash: skillSha256Schema,
+  }).strict().superRefine((value, context) => {
+    const { normalizationStageHash, ...core } = value
+    if (hashSkillValue(core) !== normalizationStageHash) {
+      context.addIssue({
+        code: 'custom',
+        message: 'B-roll source normalization stage hash is invalid.',
+      })
+    }
+  })
+
+export type BrollExistingSourceInspectionStage = z.infer<
+  typeof brollExistingSourceInspectionStageSchema
+>
+export type BrollExistingSourceNormalizationStage = z.infer<
+  typeof brollExistingSourceNormalizationStageSchema
+>
+
 export type BrollExistingSourceExecutionReceipt = z.infer<
   typeof brollExistingSourceExecutionReceiptSchema
 >
@@ -148,9 +220,40 @@ export interface BrollExistingSourceExecutionInput {
   now?: () => string
 }
 
+export interface BrollExistingSourceExecutionPipeline {
+  readonly executionKey: string
+  readonly sourceTrim: z.infer<typeof skillFrameRangeSchema>
+  inspect(): Promise<BrollExistingSourceInspectionStage>
+  normalize(): Promise<BrollExistingSourceNormalizationStage>
+  finalize(): Promise<{
+    receipt: BrollExistingSourceExecutionReceipt
+    receiptRef: AuthorityJsonBlobRef
+    replayed: boolean
+  }>
+}
+
 export async function executeBrollExistingSource(
   input: BrollExistingSourceExecutionInput,
-): Promise<{ receipt: BrollExistingSourceExecutionReceipt; receiptRef: AuthorityJsonBlobRef; replayed: boolean }> {
+): Promise<{
+  receipt: BrollExistingSourceExecutionReceipt
+  receiptRef: AuthorityJsonBlobRef
+  replayed: boolean
+}> {
+  const pipeline = await createBrollExistingSourceExecutionPipeline(input)
+  await pipeline.inspect()
+  await pipeline.normalize()
+  return pipeline.finalize()
+}
+
+/**
+ * Splits the approved existing-source path into exact durable tool stages.
+ * FFprobe runs only in inspect(), FFmpeg runs only in normalize(), and
+ * finalize() is a byte-free control-plane projection. The legacy one-call
+ * executor above remains wire-compatible by invoking the same stages in order.
+ */
+export async function createBrollExistingSourceExecutionPipeline(
+  input: BrollExistingSourceExecutionInput,
+): Promise<BrollExistingSourceExecutionPipeline> {
   const gate = executionGateSchema.parse(input.gate)
   assertCanonicalBrollComponentRefPropagation({
     planComponentRefs: { [CANONICAL_BROLL_SKILL_COMPONENT_KEY]: gate.componentRef },
@@ -188,6 +291,10 @@ export async function executeBrollExistingSource(
     mediaManifest,
   })
   assertSourceBytes(input.source.bytes, source, mediaManifest)
+  const sourceTrim = plan.sourceTrim
+  if (!sourceTrim) {
+    throw new Error('B-roll existing-source execution lacks an approved trim.')
+  }
   const executionKey = hashSkillValue({
     schemaVersion: BROLL_EXISTING_SOURCE_EXECUTION_VERSION,
     approvedPlanSnapshotId: gate.approvedPlanSnapshotId,
@@ -199,17 +306,25 @@ export async function executeBrollExistingSource(
     idempotencyKeyHash: sha256Text(gate.idempotencyKey),
   })
   const indexPath = `b-roll/existing-source-executions/${executionKey.slice(0, 2)}/${executionKey}.json`
-  return withPrivateCooperativeFileLockWithinRoot({
-    rootPath: input.localStorageRoot,
-    relativePath: `b-roll/locks/${executionKey}.lock`,
-    operation: async () => {
-      const existing = await readExistingResult(input.localStorageRoot, indexPath)
-      if (existing) return { ...existing, replayed: true }
+  const inspectionIndexPath =
+    `b-roll/existing-source-inspections/${executionKey.slice(0, 2)}/${executionKey}.json`
+  const normalizationIndexPath =
+    `b-roll/existing-source-normalizations/${executionKey.slice(0, 2)}/${executionKey}.json`
+
+  const inspect = async (): Promise<BrollExistingSourceInspectionStage> =>
+    withPrivateCooperativeFileLockWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: `b-roll/locks/${executionKey}.inspect.lock`,
+      operation: async () => {
+        const existing = await readExistingInspectionStage(
+          input.localStorageRoot,
+          inspectionIndexPath,
+        )
+        if (existing) return existing
       const providerCountBefore = input.providerObserver.getRequestCount()
       if (!Number.isSafeInteger(providerCountBefore) || providerCountBefore < 0) {
         throw new Error('B-roll provider request observer is invalid.')
       }
-      const sourceTrim = plan.sourceTrim!
       const sourceCommitment = {
         mimeType: input.source.mimeType,
         sourceByteLength: input.source.bytes.byteLength,
@@ -229,7 +344,90 @@ export async function executeBrollExistingSource(
         },
       })
       if (!('resultJson' in inspection)) throw new Error('B-roll source inspection returned the wrong result type.')
-      const normalized = await input.mediaRuntime.execute({
+      assertInspectionEvidence({
+        inspection,
+        sourceObjectSha256: mediaManifest.objectSha256,
+      })
+      const providerCountAfter = input.providerObserver.getRequestCount()
+      if (providerCountAfter !== providerCountBefore) {
+        throw new Error('Existing-source B-roll inspection attempted a provider request.')
+      }
+      const sourceInspection = hashedArtifact({
+        schemaVersion: 'b_roll_source_inspection_v1',
+        manifestRef: assignment.manifestRef,
+        assignmentId: assignment.assignmentId,
+        sourceId: input.source.sourceId,
+        sourceSha256: mediaManifest.objectSha256,
+        ffprobeRequestHash: inspection.evidence.requestEnvelopeSha256,
+        ffprobeResultHash: inspection.resultJson.sha256,
+        binaryVersion: inspection.evidence.binaryVersion,
+        document: JSON.parse(
+          inspection.resultJson.bytes.toString('utf8'),
+        ) as Record<string, unknown>,
+        privateInternalOnly: true,
+      }, 'sourceInspectionHash')
+      const sourceInspectionRef = await persistJson(
+        input.localStorageRoot,
+        sourceInspection,
+      )
+      const streams = Array.isArray(sourceInspection.document.streams)
+        ? sourceInspection.document.streams as Array<Record<string, unknown>>
+        : []
+      const core = inspectionStageCoreSchema.parse({
+        schemaVersion: 'b_roll_existing_source_inspection_stage_v1',
+        executionKey,
+        approvedPlanSnapshotId: gate.approvedPlanSnapshotId,
+        reservationId: gate.reservationId,
+        assignmentHash: assignment.assignmentHash,
+        planHash: plan.planHash,
+        selectedSourceId: input.source.sourceId,
+        selectedSourceSha256: mediaManifest.objectSha256,
+        sourceInspectionRef,
+        sourceInspectionHash: sourceInspection.sourceInspectionHash,
+        ffprobeRequestHash: inspection.evidence.requestEnvelopeSha256,
+        ffprobeResultHash: inspection.resultJson.sha256,
+        videoStreamCount: streams.filter((stream) =>
+          stream.codec_type === 'video' || stream.codecType === 'video').length,
+        audioStreamCount: streams.filter((stream) =>
+          stream.codec_type === 'audio' || stream.codecType === 'audio').length,
+        privateInternalOnly: true,
+        providerRequestCount: 0,
+      })
+      const stage = brollExistingSourceInspectionStageSchema.parse({
+        ...core,
+        inspectionStageHash: hashSkillValue(core),
+      })
+      await writePrivateFileCreateOnlyWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: inspectionIndexPath,
+        content: Buffer.from(`${stableAuthorityStringify(stage)}\n`, 'utf8'),
+      })
+      return stage
+    },
+  })
+
+  const normalize = async (): Promise<BrollExistingSourceNormalizationStage> => {
+    const inspection = await inspect()
+    return withPrivateCooperativeFileLockWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: `b-roll/locks/${executionKey}.normalize.lock`,
+      operation: async () => {
+        const existing = await readExistingNormalizationStage(
+          input.localStorageRoot,
+          normalizationIndexPath,
+        )
+        if (existing) return existing
+        const providerCountBefore = input.providerObserver.getRequestCount()
+        if (!Number.isSafeInteger(providerCountBefore) || providerCountBefore < 0) {
+          throw new Error('B-roll provider request observer is invalid.')
+        }
+        const sourceCommitment = {
+          mimeType: input.source.mimeType,
+          sourceByteLength: input.source.bytes.byteLength,
+          sourceSha256: mediaManifest.objectSha256,
+          sourceBytesBase64: input.source.bytes.toString('base64'),
+        }
+        const normalized = await input.mediaRuntime.execute({
         schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
         toolId: 'ffmpeg',
         operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
@@ -250,11 +448,10 @@ export async function executeBrollExistingSource(
       ) throw new Error('B-roll normalization returned the wrong private media type.')
       const providerCountAfter = input.providerObserver.getRequestCount()
       if (providerCountAfter !== providerCountBefore) {
-        throw new Error('Existing-source B-roll execution attempted a provider request.')
+        throw new Error('Existing-source B-roll normalization attempted a provider request.')
       }
       const frameCount = sourceTrim.endFrameExclusive - sourceTrim.startFrameInclusive
-      assertMediaEvidence({
-        inspection,
+      assertNormalizationEvidence({
         normalized,
         sourceObjectSha256: mediaManifest.objectSha256,
         sourceTrim,
@@ -271,18 +468,6 @@ export async function executeBrollExistingSource(
         bytes: normalized.resultArtifact.bytes,
         expectedSha256: normalized.resultArtifact.sha256,
       })
-      const sourceInspection = hashedArtifact({
-        schemaVersion: 'b_roll_source_inspection_v1',
-        manifestRef: assignment.manifestRef,
-        assignmentId: assignment.assignmentId,
-        sourceId: input.source.sourceId,
-        sourceSha256: mediaManifest.objectSha256,
-        ffprobeRequestHash: inspection.evidence.requestEnvelopeSha256,
-        ffprobeResultHash: inspection.resultJson.sha256,
-        binaryVersion: inspection.evidence.binaryVersion,
-        document: JSON.parse(inspection.resultJson.bytes.toString('utf8')) as Record<string, unknown>,
-        privateInternalOnly: true,
-      }, 'sourceInspectionHash')
       const sourceQaReport = hashedArtifact({
         schemaVersion: 'b_roll_source_qa_report_v1',
         manifestRef: assignment.manifestRef,
@@ -303,6 +488,71 @@ export async function executeBrollExistingSource(
         },
         status: 'passed',
       }, 'sourceQaReportHash')
+      const sourceQaReportRef = await persistJson(
+        input.localStorageRoot,
+        sourceQaReport,
+      )
+      const core = normalizationStageCoreSchema.parse({
+        schemaVersion: 'b_roll_existing_source_normalization_stage_v1',
+        executionKey,
+        approvedPlanSnapshotId: gate.approvedPlanSnapshotId,
+        reservationId: gate.reservationId,
+        assignmentHash: assignment.assignmentHash,
+        planHash: plan.planHash,
+        selectedSourceId: input.source.sourceId,
+        selectedSourceSha256: mediaManifest.objectSha256,
+        sourceInspectionHash: inspection.sourceInspectionHash,
+        normalizedCandidate: {
+          privateObjectIdentityHash,
+          sha256: normalized.resultArtifact.sha256,
+          byteLength: normalized.resultArtifact.byteLength,
+          mimeType: normalized.resultArtifact.mimeType,
+          frameCount,
+          frameRate: sourceTrim.fps,
+          container: 'nut',
+          videoCodec: 'ffv1',
+        },
+        sourceQaReportRef,
+        sourceQaReportHash: sourceQaReport.sourceQaReportHash,
+        ffmpegRequestHash: normalized.evidence.requestEnvelopeSha256,
+        ffmpegResultHash: normalized.resultArtifact.sha256,
+        privateInternalOnly: true,
+        providerRequestCount: 0,
+      })
+      const stage = brollExistingSourceNormalizationStageSchema.parse({
+        ...core,
+        normalizationStageHash: hashSkillValue(core),
+      })
+      await writePrivateFileCreateOnlyWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: normalizationIndexPath,
+        content: Buffer.from(`${stableAuthorityStringify(stage)}\n`, 'utf8'),
+      })
+      return stage
+    },
+  })
+  }
+
+  const finalize = async () => {
+    const [inspection, normalization] = await Promise.all([
+      inspect(),
+      normalize(),
+    ])
+    return withPrivateCooperativeFileLockWithinRoot({
+      rootPath: input.localStorageRoot,
+      relativePath: `b-roll/locks/${executionKey}.finalize.lock`,
+      operation: async () => {
+      const existing = await readExistingResult(input.localStorageRoot, indexPath)
+      if (existing) return { ...existing, replayed: true }
+      const persistedNormalized = await readCanonicalPrivateMediaArtifact({
+        localStorageRoot: input.localStorageRoot,
+        privateObjectIdentityHash:
+          normalization.normalizedCandidate.privateObjectIdentityHash,
+      })
+      if (
+        !persistedNormalized ||
+        persistedNormalized.sha256 !== normalization.normalizedCandidate.sha256
+      ) throw new Error('B-roll normalized source artifact is missing before finalization.')
       const layerManifest = hashedArtifact({
         schemaVersion: 'b_roll_remotion_layer_manifest_v1',
         manifestRef: assignment.manifestRef,
@@ -313,10 +563,11 @@ export async function executeBrollExistingSource(
         visualOwner: plan.coordination.visualOwnership,
         authorizedRange: assignment.writeRangeAuthority.authorizedRange,
         sourceCandidate: {
-          privateObjectIdentityHash,
-          sha256: normalized.resultArtifact.sha256,
-          mimeType: normalized.resultArtifact.mimeType,
-          frameCount,
+          privateObjectIdentityHash:
+            normalization.normalizedCandidate.privateObjectIdentityHash,
+          sha256: normalization.normalizedCandidate.sha256,
+          mimeType: normalization.normalizedCandidate.mimeType,
+          frameCount: normalization.normalizedCandidate.frameCount,
           fps: sourceTrim.fps,
         },
         displayTreatment: plan.displayTreatment,
@@ -336,16 +587,14 @@ export async function executeBrollExistingSource(
         sourceMimeType: 'video/mp4',
         sourceTrim,
         timelineRange: assignment.writeRangeAuthority.authorizedRange,
-        normalizedCandidateSha256: normalized.resultArtifact.sha256,
+        normalizedCandidateSha256: normalization.normalizedCandidate.sha256,
         isolatedSourcePlaybackReady: true,
         compositeRemotionPreviewRequired: true,
         privateInternalOnly: true,
         outsideAuthorizedRangeModified: false,
       }, 'previewManifestHash')
-      const [sourceInspectionRef, sourceQaReportRef, layerManifestRef, previewManifestRef] =
+      const [layerManifestRef, previewManifestRef] =
         await Promise.all([
-          persistJson(input.localStorageRoot, sourceInspection),
-          persistJson(input.localStorageRoot, sourceQaReport),
           persistJson(input.localStorageRoot, layerManifest),
           persistJson(input.localStorageRoot, previewManifest),
         ])
@@ -363,20 +612,11 @@ export async function executeBrollExistingSource(
         selectedSourceId: input.source.sourceId,
         selectedSourceArtifactRef: source,
         sourceTrim,
-        sourceInspectionRef,
-        sourceInspectionHash: sourceInspection.sourceInspectionHash,
-        normalizedCandidate: {
-          privateObjectIdentityHash,
-          sha256: normalized.resultArtifact.sha256,
-          byteLength: normalized.resultArtifact.byteLength,
-          mimeType: normalized.resultArtifact.mimeType,
-          frameCount,
-          frameRate: sourceTrim.fps,
-          container: 'nut',
-          videoCodec: 'ffv1',
-        },
-        sourceQaReportRef,
-        sourceQaReportHash: sourceQaReport.sourceQaReportHash,
+        sourceInspectionRef: inspection.sourceInspectionRef,
+        sourceInspectionHash: inspection.sourceInspectionHash,
+        normalizedCandidate: normalization.normalizedCandidate,
+        sourceQaReportRef: normalization.sourceQaReportRef,
+        sourceQaReportHash: normalization.sourceQaReportHash,
         layerManifestRef,
         layerManifestHash: layerManifest.layerManifestHash,
         previewManifestRef,
@@ -398,6 +638,15 @@ export async function executeBrollExistingSource(
       })
       return { ...stored, replayed: false }
     },
+  })
+  }
+
+  return Object.freeze({
+    executionKey,
+    sourceTrim,
+    inspect,
+    normalize,
+    finalize,
   })
 }
 
@@ -468,17 +717,31 @@ function assertSourceBytes(
   ) throw new Error('B-roll source bytes do not match the approved source artifact.')
 }
 
-function assertMediaEvidence(input: {
+function assertInspectionEvidence(input: {
   inspection: OfflineFfprobeExecutionResult
-  normalized: OfflineFfmpegExecutionResult
   sourceObjectSha256: string
-  sourceTrim: z.infer<typeof skillFrameRangeSchema>
-  frameCount: number
 }): void {
   const inspection = input.inspection as unknown as {
     resultJson: { document: Record<string, unknown> }
     evidence: { sourceSha256: string; containerExitCode: number; oomKilled: boolean }
   }
+  const streams = Array.isArray(inspection.resultJson.document.streams)
+    ? inspection.resultJson.document.streams as Array<Record<string, unknown>>
+    : []
+  if (
+    !streams.some((stream) => stream.codecType === 'video') ||
+    inspection.evidence.sourceSha256 !== input.sourceObjectSha256 ||
+    inspection.evidence.containerExitCode !== 0 ||
+    inspection.evidence.oomKilled
+  ) throw new Error('B-roll existing-source FFprobe inspection failed.')
+}
+
+function assertNormalizationEvidence(input: {
+  normalized: OfflineFfmpegExecutionResult
+  sourceObjectSha256: string
+  sourceTrim: z.infer<typeof skillFrameRangeSchema>
+  frameCount: number
+}): void {
   const normalized = input.normalized as unknown as {
     evidence: {
       sourceSha256: string
@@ -489,15 +752,8 @@ function assertMediaEvidence(input: {
     }
     resultArtifact: { sha256: string }
   }
-  const streams = Array.isArray(inspection.resultJson.document.streams)
-    ? inspection.resultJson.document.streams as Array<Record<string, unknown>>
-    : []
   const semantic = normalized.evidence.semanticEvidence
   if (
-    !streams.some((stream) => stream.codecType === 'video') ||
-    inspection.evidence.sourceSha256 !== input.sourceObjectSha256 ||
-    inspection.evidence.containerExitCode !== 0 ||
-    inspection.evidence.oomKilled ||
     normalized.evidence.sourceSha256 !== input.sourceObjectSha256 ||
     normalized.evidence.resultSha256 !== normalized.resultArtifact.sha256 ||
     normalized.evidence.containerExitCode !== 0 ||
@@ -509,7 +765,7 @@ function assertMediaEvidence(input: {
     semantic.outputVideoCodec !== 'ffv1' ||
     semantic.outputProbeVerified !== true ||
     semantic.audioRemoved !== true
-  ) throw new Error('B-roll existing-source media QA failed.')
+  ) throw new Error('B-roll existing-source FFmpeg normalization failed.')
 }
 
 function hashedArtifact<T extends Record<string, unknown>, K extends string>(
@@ -524,6 +780,60 @@ async function persistJson(
   value: Record<string, unknown>,
 ): Promise<AuthorityJsonBlobRef> {
   return putPrivateAuthorityJsonBlob({ localStorageRoot, value, maxBytes: 2 * 1024 * 1024 })
+}
+
+async function readExistingInspectionStage(
+  localStorageRoot: string,
+  relativePath: string,
+): Promise<BrollExistingSourceInspectionStage | undefined> {
+  const text = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: localStorageRoot,
+    relativePath,
+  })
+  if (!text) return undefined
+  const stage = brollExistingSourceInspectionStageSchema.parse(JSON.parse(text))
+  const persisted = await readPrivateAuthorityJsonBlob({
+    localStorageRoot,
+    ref: stage.sourceInspectionRef,
+  })
+  if (
+    Array.isArray(persisted) ||
+    persisted.sourceInspectionHash !== stage.sourceInspectionHash
+  ) throw new Error('B-roll source inspection stage lost its persisted evidence.')
+  return stage
+}
+
+async function readExistingNormalizationStage(
+  localStorageRoot: string,
+  relativePath: string,
+): Promise<BrollExistingSourceNormalizationStage | undefined> {
+  const text = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: localStorageRoot,
+    relativePath,
+  })
+  if (!text) return undefined
+  const stage = brollExistingSourceNormalizationStageSchema.parse(
+    JSON.parse(text),
+  )
+  const [persisted, persistedQa] = await Promise.all([
+    readCanonicalPrivateMediaArtifact({
+      localStorageRoot,
+      privateObjectIdentityHash:
+        stage.normalizedCandidate.privateObjectIdentityHash,
+    }),
+    readPrivateAuthorityJsonBlob({
+      localStorageRoot,
+      ref: stage.sourceQaReportRef,
+    }),
+  ])
+  if (
+    !persisted ||
+    persisted.sha256 !== stage.normalizedCandidate.sha256 ||
+    persisted.bytes.byteLength !== stage.normalizedCandidate.byteLength ||
+    Array.isArray(persistedQa) ||
+    persistedQa.sourceQaReportHash !== stage.sourceQaReportHash
+  ) throw new Error('B-roll source normalization stage lost its media artifact.')
+  return stage
 }
 
 async function readExistingResult(

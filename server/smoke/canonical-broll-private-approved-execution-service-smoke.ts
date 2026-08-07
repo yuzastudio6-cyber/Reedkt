@@ -141,6 +141,50 @@ try {
     })
   const mediaRuntime = await activatePrivateOfflineMediaBinaryRuntime()
   const remotionRuntime = await activatePrivateOfflineRemotionRenderRuntime()
+  const runtimeCalls: Array<{
+    workItemKey: string
+    runtime: 'media' | 'remotion'
+    toolId: string
+  }> = []
+  let activeWorkItemKey = 'not-dispatching'
+  const tracedMediaRuntime = new Proxy(mediaRuntime, {
+    get(target, property, receiver) {
+      if (property === 'execute') {
+        return async (request: Parameters<typeof mediaRuntime.execute>[0]) => {
+          const toolId = (
+            typeof request === 'object' &&
+            request !== null &&
+            'toolId' in request &&
+            typeof request.toolId === 'string'
+          ) ? request.toolId : 'unknown'
+          runtimeCalls.push({
+            workItemKey: activeWorkItemKey,
+            runtime: 'media',
+            toolId,
+          })
+          return mediaRuntime.execute(request)
+        }
+      }
+      return Reflect.get(target, property, receiver)
+    },
+  })
+  const tracedRemotionRuntime = new Proxy(remotionRuntime, {
+    get(target, property, receiver) {
+      if (property === 'execute') {
+        return async (
+          request: Parameters<typeof remotionRuntime.execute>[0],
+        ) => {
+          runtimeCalls.push({
+            workItemKey: activeWorkItemKey,
+            runtime: 'remotion',
+            toolId: 'remotion',
+          })
+          return remotionRuntime.execute(request)
+        }
+      }
+      return Reflect.get(target, property, receiver)
+    },
+  })
   const serviceInput = {
     localStorageRoot: root,
     componentRef,
@@ -157,8 +201,8 @@ try {
       bytes: captionBytes,
       reservedZoneCount: 1,
     },
-    mediaRuntime,
-    remotionRuntime,
+    mediaRuntime: tracedMediaRuntime,
+    remotionRuntime: tracedRemotionRuntime,
     integrationInfrastructureCostMicros: 7_500,
     now: () => '2026-08-07T17:05:00.000Z',
   }
@@ -171,7 +215,45 @@ try {
     firstService.schemaVersion,
     CANONICAL_BROLL_PRIVATE_APPROVED_EXECUTION_SERVICE_VERSION,
   )
+  const expectedRuntimeCalls = new Map<string, string[]>([
+    ['inspect_b_roll_candidate_with_ffprobe', ['media:ffprobe']],
+    ['normalize_b_roll_candidate_with_ffmpeg', ['media:ffmpeg']],
+    ['render_b_roll_preview', ['media:ffmpeg', 'remotion:remotion']],
+  ])
+  for (const item of planned.publicApprovedWorkGraph.workItems) {
+    activeWorkItemKey = item.workItemKey
+    const before = runtimeCalls.length
+    const outcome = await firstService.executeWorkItem(item.workItemKey)
+    assert.equal(outcome.workResult.status, 'succeeded')
+    assert.equal(outcome.dispatchReceipt.status, 'succeeded')
+    assert.deepEqual(
+      runtimeCalls.slice(before).map((call) =>
+        `${call.runtime}:${call.toolId}`),
+      expectedRuntimeCalls.get(item.jobType) ?? [],
+      `Unexpected media runtime boundary for ${item.jobType}.`,
+    )
+  }
+  activeWorkItemKey = 'not-dispatching'
+  const runtimeCountAfterAtomicExecution = runtimeCalls.length
   const first = await firstService.executeAll()
+  assert.equal(runtimeCalls.length, runtimeCountAfterAtomicExecution)
+  assert.deepEqual(runtimeCalls.map((call) => call.workItemKey), [
+    planned.publicApprovedWorkGraph.workItems.find((item) =>
+      item.jobType === 'inspect_b_roll_candidate_with_ffprobe')!.workItemKey,
+    planned.publicApprovedWorkGraph.workItems.find((item) =>
+      item.jobType === 'normalize_b_roll_candidate_with_ffmpeg')!.workItemKey,
+    planned.publicApprovedWorkGraph.workItems.find((item) =>
+      item.jobType === 'render_b_roll_preview')!.workItemKey,
+    planned.publicApprovedWorkGraph.workItems.find((item) =>
+      item.jobType === 'render_b_roll_preview')!.workItemKey,
+  ])
+  const renderWorkItem = planned.canonicalWorkItems.find((item) =>
+    item.workItemKey.includes('render_b_roll_preview'))
+  assert.deepEqual(renderWorkItem?.approvedToolIds, ['ffmpeg', 'remotion'])
+  assert.deepEqual(renderWorkItem?.executionInput.approvedToolOperationIds, [
+    'tool.ffmpeg.execute_approved_media_recipe.v1',
+    'tool.remotion.render_approved_composition.v1',
+  ])
   assert.equal(first.workResults.length, planned.canonicalWorkItems.length)
   assert.equal(first.dispatchReceipts.length, planned.canonicalWorkItems.length)
   assert.ok(first.workResults.every((result) => result.status === 'succeeded'))
@@ -224,13 +306,14 @@ try {
   console.log(JSON.stringify({
     smoke: 'canonical_broll_private_approved_execution_service',
     status: 'passed',
-    checks: 14,
+    checks: 20,
     canonicalWorkItems: first.workResults.length,
     actualMediaRuntimeExecuted: true,
     remotionRuntimeExecuted: true,
     exactApprovedComponentReread: true,
     createOnlyArtifactPersistence: true,
     restartReplayVerified: true,
+    toolStagesBoundToExactWorkItems: true,
     providerRequestCount: 0,
     publicDeliveryCreated: false,
     productionAuthorityGranted: false,

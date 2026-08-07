@@ -339,11 +339,32 @@ export function assertBrollCanonicalWorkGraph(
   return parsed
 }
 
-function canonicalToolId(operationId: string): string | undefined {
-  if (operationId === 'tool.ffprobe.inspect_approved_media.v1') return 'ffprobe'
-  if (operationId === 'tool.ffmpeg.execute_approved_media_recipe.v1') return 'ffmpeg'
-  if (operationId === 'tool.remotion.render_approved_composition.v1') return 'remotion'
-  return undefined
+function canonicalToolIds(
+  item: BrollCanonicalWorkItem,
+): Array<'ffprobe' | 'ffmpeg' | 'remotion'> {
+  if (item.operationId === 'tool.ffprobe.inspect_approved_media.v1') {
+    return ['ffprobe']
+  }
+  if (item.operationId === 'tool.ffmpeg.execute_approved_media_recipe.v1') {
+    return ['ffmpeg']
+  }
+  if (item.operationId === 'tool.remotion.render_approved_composition.v1') {
+    return ['ffmpeg', 'remotion']
+  }
+  return []
+}
+
+function canonicalToolOperationIds(item: BrollCanonicalWorkItem): string[] {
+  const toolIds = canonicalToolIds(item)
+  return toolIds.map((toolId) => {
+    if (toolId === 'ffprobe') {
+      return 'tool.ffprobe.inspect_approved_media.v1'
+    }
+    if (toolId === 'ffmpeg') {
+      return 'tool.ffmpeg.execute_approved_media_recipe.v1'
+    }
+    return 'tool.remotion.render_approved_composition.v1'
+  })
 }
 
 function canonicalWorkItemType(item: BrollCanonicalWorkItem): CanonicalWorkItemInput['workItemType'] {
@@ -382,7 +403,8 @@ export function projectBrollCanonicalWorkItems(input: {
   ) throw new Error('B-roll canonical projection received stale work graph authority.')
 
   return input.workGraph.workItems.map((item): CanonicalWorkItemInput => {
-    const toolId = canonicalToolId(item.operationId)
+    const toolIds = canonicalToolIds(item)
+    const toolOperationIds = canonicalToolOperationIds(item)
     const outputKey = `${item.workItemKey}.output`
     return {
       workItemKey: item.workItemKey,
@@ -402,7 +424,9 @@ export function projectBrollCanonicalWorkItems(input: {
           callerSelectedExecutableAllowed: false,
           outsideAuthorizedRangeModified: false,
         },
-        ...(toolId ? { approvedToolOperationIds: [item.operationId] } : {}),
+        ...(toolOperationIds.length > 0
+          ? { approvedToolOperationIds: toolOperationIds }
+          : {}),
       },
       sourceSequenceItemIds: [...input.assignment.sourceSequenceIds],
       sourceCleanupDecisionIds: [],
@@ -420,7 +444,7 @@ export function projectBrollCanonicalWorkItems(input: {
           : [],
       }],
       dependencyKeys: [...item.dependencyKeys],
-      approvedToolIds: toolId ? [toolId] : [],
+      approvedToolIds: toolIds,
       ...(item.providerRouteId ? { approvedProviderRoute: item.providerRouteId } : {}),
       providerExecutionMode: item.providerRouteId ? 'primary' : 'none',
       fallbackPolicy: {

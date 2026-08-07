@@ -147,7 +147,7 @@ const approvedBrollExecutionInspectionRef = ref(
 const approvedRunExactFramePreterminalEvidenceRef = ref(
   'caption.broll.approved-run.v14.exact-frame-preterminal-evidence',
   'canonical-caption-approved-run-exact-frame-preterminal-evidence-v1',
-  '6fa744d54be25ddf6d2624f3fe65fd30f96b15c7c9ad7cb3fd71c7a5f31525e3')
+  '2f44fb5d94cdb7a58f81d546976f77b55a6e433c66e902356ed7dd0c79286966')
 const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
@@ -156,6 +156,18 @@ const realSourceMultiOutputDirectInspectionRef = ref(
   'caption.real-source.multi-output.direct-inspection-2026-08-05-v1',
   'caption-real-source-multi-output-direct-inspection-v1',
   'c4b686fdf2798eda32d1bb047b800b2269a90aed87fa513b0d4bcdbf9b91c34d')
+const originalSourceFinalQualityRuntimeIndexRef = ref(
+  'caption.original-source.final-quality.runtime-index.2026-08-07-v1',
+  'canonical-caption-original-source-final-quality-runtime-index-v1',
+  'c6fffac088ae92a62ccdff0660055d45a9846c84e7c033991f3b72bd47f0b01d')
+const originalSourceFinalQualityRenderRef = ref(
+  'caption.original-source.final-quality.render.2026-08-07-v1',
+  'caption-original-source-final-quality-render-v1',
+  '2d73a761c667c4d40ced1c160d0a5f550bdc4f5987cd3cc70c868892b7b79840')
+const originalSourceCompleteTimeInspectionRef = ref(
+  'caption.original-source.final-quality.direct-inspection.2026-08-07-v1',
+  'canonical-caption-original-source-final-quality-direct-inspection-receipt-v1',
+  '41acf13fe0cabc2cb43bd8a689696d0c9e9a7af0e9133edd779a0b5a4b93d28c')
 const brollProfessionalFullRenderRef = ref(
   'caption.broll-owner.professional.accepted.full.render',
   'caption-broll-owner-professional-private-render-v1',
@@ -210,6 +222,9 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
       brollProfessionalInspectionRef,
       approvedBrollExecutionInspectionRef,
       approvedRunExactFramePreterminalEvidenceRef,
+      originalSourceFinalQualityRuntimeIndexRef,
+      originalSourceFinalQualityRenderRef,
+      originalSourceCompleteTimeInspectionRef,
     ], [
       'representative_approved_runs_must_cover_all_forty_one_caption_jobs',
       'each_run_must_reread_every_projected_result_and_artifact',
@@ -219,6 +234,8 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
       realSourceDirectInspectionRef,
       realSourceMultiOutputDirectInspectionRef,
       brollProfessionalInspectionRef,
+      originalSourceFinalQualityRenderRef,
+      originalSourceCompleteTimeInspectionRef,
     ], [
       'shared_qualified_postrender_ai_review_required_for_each_output',
       'direct_agent_raster_inspection_must_remain_separate_evidence',
@@ -264,8 +281,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v10',
-  observedAt: '2026-08-07T23:59:45.000Z',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v11',
+  observedAt: '2026-08-07T23:59:55.000Z',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

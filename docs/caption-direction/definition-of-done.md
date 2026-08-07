@@ -3,17 +3,25 @@
 Terminal status for this Goal:
 `caption_specialist_private_internal_qualified`.
 
-Current CAP-20 candidate status:
-`ready_for_shared_pipeline_integration`. The Caption-owned boundary and the
-29-job admitted surface are complete; the terminal status is not yet claimed
-because 12 enhanced jobs still require authenticated evidence from five shared
-owners.
+Current post-CAP-20 status:
+`ready_for_shared_pipeline_integration`. All 41 Caption job implementations
+and source paths are complete, and all five canonical owner composition mounts
+exist. The terminal status is not yet claimed because the jobs and their owner
+evidence have not all passed in one exact canonical private qualification
+campaign.
 
 The machine-validated post-CAP-20 audit additionally freezes four downstream
 requirements after those owner results exist: canonical private-execution
 mounting and reread, qualified complete-time visual-AI review, independent
 final-QA reread, and the final Caption-owned per-job qualification projection.
 See [the exact audit](post-cap20-goal-completion-audit.md).
+
+The original uploaded talking-head source has now also passed an actual
+private `2160x3840@30` stable-caption render and all-127-frame direct visual
+inspection. See
+[the exact real-source evidence](post-cap20-original-source-final-quality-caption-evidence-2026-08-07.md).
+That closes the uncertainty around the non-proxy source/final-canvas path, but
+does not replace shared qualified Visual Intelligence or independent final QA.
 
 This is not a claim that the whole ReeditPro SaaS is publicly production-ready.
 It means the Captions Specialist is complete inside its boundary, privately

@@ -91,7 +91,7 @@ check(progress.gates.find((gate) =>
     (reference) => reference.version ===
       'canonical-caption-approved-run-exact-frame-preterminal-evidence-v1'
       && reference.contentHash ===
-        '6fa744d54be25ddf6d2624f3fe65fd30f96b15c7c9ad7cb3fd71c7a5f31525e3'),
+        '2f44fb5d94cdb7a58f81d546976f77b55a6e433c66e902356ed7dd0c79286966'),
 'B-roll evidence includes the create-only exact-frame preterminal projection')
 check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')
@@ -118,6 +118,26 @@ check(progress.gates.find((gate) =>
     ?.evidenceRefs.some((reference) => reference.version ===
       'caption-real-source-multi-output-direct-inspection-v1'),
 'real multi-output and approved B-roll execution evidence is inventoried without closing gates')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'canonical_backend_private_execution_mount')
+  ?.evidenceRefs.some((reference) => reference.version ===
+    'canonical-caption-original-source-final-quality-runtime-index-v1'
+    && reference.contentHash ===
+      'c6fffac088ae92a62ccdff0660055d45a9846c84e7c033991f3b72bd47f0b01d')
+  && progress.gates.find((gate) =>
+    gate.gapId === 'canonical_backend_private_execution_mount')
+    ?.evidenceRefs.some((reference) => reference.version ===
+      'caption-original-source-final-quality-render-v1'
+      && reference.contentHash ===
+        '2d73a761c667c4d40ced1c160d0a5f550bdc4f5987cd3cc70c868892b7b79840'),
+'the canonical execution gate inventories the exact original-source 4K runtime and render')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'qualified_ai_complete_time_visual_review')
+  ?.evidenceRefs.some((reference) => reference.version ===
+    'canonical-caption-original-source-final-quality-direct-inspection-receipt-v1'
+    && reference.contentHash ===
+      '41acf13fe0cabc2cb43bd8a689696d0c9e9a7af0e9133edd779a0b5a4b93d28c'),
+'complete-time direct inspection is inventoried without relabelling it as qualified visual AI')
 check(!progress.professionalAppearanceEvidence
   .qualifiedSharedPostrenderAiReviewClaimed
   && !progress.professionalAppearanceEvidence.independentFinalQaClaimed,

@@ -26,7 +26,7 @@ every-frame contact sheets, and all original-resolution spot-check rasters.
 - Create-only repository:
   `canonical-caption-approved-run-exact-frame-preterminal-repository-v1`
 - Evidence digest:
-  `6fa744d54be25ddf6d2624f3fe65fd30f96b15c7c9ad7cb3fd71c7a5f31525e3`
+  `2f44fb5d94cdb7a58f81d546976f77b55a6e433c66e902356ed7dd0c79286966`
 - Approved-run inspection package:
   `064d0a4a33b8ae051f48e90e3420dccc4c1f068dcde65cae3a8356ad440f8d26`
 - Exact-frame inspection receipt:

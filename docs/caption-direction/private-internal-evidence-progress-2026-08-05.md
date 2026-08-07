@@ -27,8 +27,8 @@ the evidence currently belongs to several independently scoped tests.
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner V2 is mounted in source and can create-only resolve immutable approved-work expectations to reviewed corrected transcripts while refusing remaps to the rejected record. A private review-preparation package covers all 11 source segments and 153 source words with two additional unapproved offline ASR observations; it preserves nine text disagreements, two timing disagreements, two brand-review spans, and one claim-sensitive number span. The source-complete reviewer-completion seam validates exact decisions and projects them into the existing review/correction/request contracts, but every real listener decision remains pending, so no actual independent review, correction artifact, corrected transcript, or expectation binding has been admitted. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. The Sound owner now has a create-only listening-review completion record and repository: it binds an independently authored reviewer submission to the exact Caption request, canonical Sound request/result, final-mix artifact, complete requested ranges, cue IDs, and optional playback-proxy derivation before the existing owner can expose authenticated Caption evidence. The prior hash-only smoke shortcut was removed. This environment could generate and technically verify a full-duration 48 kHz stereo inspection proxy, but it could not receive audio input, so no reviewer submission or accepted listening record was created. |
 | B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran against hash-pinned real talking-head media. Direct complete-time inspection accepted real-source B-roll/Caption co-composition, safe placement, Caption-above-visual ordering, and no clipping/collision. The later V14 run now has a create-only exact-frame preterminal projection that binds 17 Caption jobs, 13 B-roll work items, one resume, both 4K review renders, and all 254 represented frames. It remains outside terminal eligibility because its source picture is a disclosed 640x360 proxy and postrender/final-QA evidence is absent. |
-| Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
-| Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
+| Backend Caption execution | Seven actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair, output-specific 16:9 and 1:1 full/reduced pairs, and a source-master-bound `2160x3840@30` stable-caption delivery render. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
+| Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. The new source-master-bound stable-caption render adds all-127-frame contact-sheet review plus full-resolution cue-boundary samples. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
 ## Approved Caption + B-roll execution evidence
 
@@ -60,9 +60,19 @@ and **0/9 gates** instead of promoting a partial approved run.
 The exact-frame inspection is now separately sealed as
 `canonical-caption-approved-run-exact-frame-preterminal-evidence-v1` with
 digest
-`6fa744d54be25ddf6d2624f3fe65fd30f96b15c7c9ad7cb3fd71c7a5f31525e3`.
+`2f44fb5d94cdb7a58f81d546976f77b55a6e433c66e902356ed7dd0c79286966`.
 Create-only persistence and byte-identical replay passed. This advances the
 durable evidence inventory; it does not change the 0/41 or 0/9 terminal count.
+
+The original-upload delivery proof is separately bound by runtime-index hash
+`c6fffac088ae92a62ccdff0660055d45a9846c84e7c033991f3b72bd47f0b01d`,
+final MP4 hash
+`2d73a761c667c4d40ced1c160d0a5f550bdc4f5987cd3cc70c868892b7b79840`,
+and direct-inspection digest
+`41acf13fe0cabc2cb43bd8a689696d0c9e9a7af0e9133edd779a0b5a4b93d28c`.
+It removes the prior uncertainty around the non-proxy source/final-canvas
+Caption path while keeping the shared Visual Intelligence and independent
+final-QA gates open.
 
 Visual Intelligence, Track All/SAM 3.1, and independent final QA have
 source-ready adapters but no actual record for the terminal run. The final

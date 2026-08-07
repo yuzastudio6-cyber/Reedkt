@@ -3859,11 +3859,20 @@ async function executeFfprobeRequest(
   request: OfflineFfprobeExecutionRequest | OfflineFfprobeStreamingExecutionRequest,
   source: OfflineMediaBinaryServerInjectedInput,
 ): Promise<OfflineFfprobeExecutionResult> {
-  const command = ffprobeArguments(request)
-  const container = await createContainer(image, FFPROBE_ENTRYPOINT, command, {
-    observeCgroupResources: true,
-  })
+  // Uploaded MP4/MOV sources are not guaranteed to be streamable: the movie
+  // index may live at the end of the file and FFprobe must seek back into the
+  // payload. Stage the already checksum-bound server input in the existing
+  // create-only private spool, then expose it read-only to the confined
+  // container. This preserves exact-byte verification without assuming
+  // fast-start media or caller-visible paths.
+  const privateInput = await spoolVerifiedPrivateSeekableInput(source)
+  const command = ffprobeArguments(request, PRIVATE_SEEKABLE_INPUT_PATH)
+  let container: OfflineMediaBinaryContainerHandle | undefined
   try {
+    container = await createContainer(image, FFPROBE_ENTRYPOINT, command, {
+      observeCgroupResources: true,
+      privateInput,
+    })
     const before = await inspectContainer(container.id)
     const confinement = validateConfinement(
       before,
@@ -3872,9 +3881,9 @@ async function executeFfprobeRequest(
       command,
       container,
     )
-    const started = await dockerVerifiedInput(
+    const started = await dockerVerifiedSeekableInput(
       ['start', '--attach', '--interactive', container.id],
-      source,
+      privateInput,
       4 * 1024 * 1024,
       request.payload.inspectionProfileId === 'private_long_form_master_qa_v1'
         ? PRIVATE_LONG_FORM_MASTER_QA_TIMEOUT_MS
@@ -3956,7 +3965,11 @@ async function executeFfprobeRequest(
       },
     }
   } finally {
-    await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024).catch(() => undefined)
+    if (container) {
+      await dockerBuffer(['rm', '--force', container.id], undefined, 64 * 1024)
+        .catch(() => undefined)
+    }
+    await privateInput.cleanup().catch(() => undefined)
   }
 }
 
@@ -7251,6 +7264,7 @@ async function persistAuthority(image: OfflineMediaBinaryImageEvidence): Promise
 
 function ffprobeArguments(
   request: OfflineFfprobeExecutionRequest | OfflineFfprobeStreamingExecutionRequest,
+  inputPath = 'pipe:0',
 ): string[] {
   return [
     '-v', 'error',
@@ -7258,7 +7272,7 @@ function ffprobeArguments(
     '-show_entries',
     'format=format_name,start_time,duration,size:stream=index,codec_name,profile,level,codec_type,start_time,width,height,avg_frame_rate,r_frame_rate,duration,pix_fmt,color_space,color_transfer,color_primaries,color_range,sample_rate,channels,channel_layout,sample_fmt,bits_per_raw_sample,time_base,duration_ts,nb_read_frames',
     '-print_format', 'json',
-    '-i', 'pipe:0',
+    '-i', inputPath,
   ]
 }
 

@@ -332,6 +332,8 @@
     "smoke:canonical-caption-broll-approved-run-exact-frame-professional-inspection": "tsx server/smoke/canonical-caption-broll-approved-run-exact-frame-professional-inspection-smoke.ts",
     "smoke:canonical-caption-approved-run-exact-frame-preterminal-evidence": "tsx server/smoke/canonical-caption-approved-run-exact-frame-preterminal-evidence-smoke.ts",
     "smoke:canonical-caption-approved-run-exact-frame-preterminal-evidence-private": "tsx server/smoke/canonical-caption-approved-run-exact-frame-preterminal-evidence-private-smoke.ts",
+    "smoke:canonical-caption-original-source-final-quality-runtime": "tsx server/smoke/canonical-caption-original-source-final-quality-runtime-smoke.ts",
+    "smoke:canonical-caption-original-source-final-quality-inspection": "tsx server/smoke/canonical-caption-original-source-final-quality-inspection-smoke.ts",
     "smoke:canonical-broll-private-approved-execution": "tsx server/smoke/canonical-broll-private-approved-execution-service-smoke.ts",
     "smoke:canonical-private-edit-skill-artifact-store": "tsx server/smoke/canonical-private-edit-skill-artifact-store-smoke.ts",
     "smoke:canonical-caption-source-led-professional-planning-owner": "tsx server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts",

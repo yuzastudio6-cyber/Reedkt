@@ -522,7 +522,7 @@ CanonicalSam31SourceCheckpointQualificationObservation {
         'sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
       pythonVersion: '3.12',
       torchVersion: '2.10.0',
-      torchvisionVersion: '0.25.0',
+      torchvisionVersion: '0.25.0+cu128',
       torchcodecVersion: '0.10.0',
       torchcodecCudaWheelVersion: '0.10.0+cu128',
       einopsVersion: '0.8.2',

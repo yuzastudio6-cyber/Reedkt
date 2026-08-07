@@ -248,7 +248,7 @@ const releaseObservationWithoutHashSchema = z.object({
   runtimeClosure: z.object({
     pythonVersion: z.literal('3.12'),
     torchVersion: z.literal('2.10.0'),
-    torchvisionVersion: z.literal('0.25.0'),
+    torchvisionVersion: z.literal('0.25.0+cu128'),
     cudaVersion: z.literal('12.8'),
     torchcodecVersion: z.literal('0.10.0'),
     einopsVersion: z.literal('0.8.2'),

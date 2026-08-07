@@ -359,7 +359,7 @@ Only `libnppc.so.12.3.3.100` and `libnppicc.so.12.3.3.100` are copied into the
 closed runtime directory, and TorchCodec must link without missing libraries.
 The build fails unless the base runtime is exactly Python
 3.12, PyTorch
-2.10.0+cu128, TorchVision 0.25.0, TorchCodec 0.10.0+cu128, FFmpeg 8.0.3, and
+2.10.0+cu128, TorchVision 0.25.0+cu128, TorchCodec 0.10.0+cu128, FFmpeg 8.0.3, and
 CUDA 12.8. It installs no dependency from the network and runs as
 UID/GID 65532. The same immutable closure may be separately qualified on A100
 80 GB and L4, but each route still needs its own driver/library-path,

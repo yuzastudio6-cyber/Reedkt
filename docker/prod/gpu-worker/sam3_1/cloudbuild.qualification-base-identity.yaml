@@ -1,0 +1,12 @@
+steps:
+  - name: pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca
+    entrypoint: /bin/bash
+    args:
+      - -ceu
+      - |
+        python -I -B -c "import json,sys,torch,torchvision; print(json.dumps({'pythonVersion': '.'.join(map(str, sys.version_info[:3])), 'pythonPrefix': sys.prefix, 'pythonBasePrefix': sys.base_prefix, 'torchVersion': torch.__version__, 'torchvisionVersion': torchvision.__version__, 'torchCudaVersion': torch.version.cuda}, sort_keys=True))"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 600s

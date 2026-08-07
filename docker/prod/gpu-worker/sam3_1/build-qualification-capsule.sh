@@ -515,7 +515,7 @@ receipt = {
     "schemaVersion": "weeditpro-sam3_1-python-dependency-closure-receipt-v1",
     "pythonVersion": "3.12",
     "torchVersionProvidedByPinnedBase": "2.10.0+cu128",
-    "torchvisionVersionProvidedByPinnedBase": "0.25.0",
+    "torchvisionVersionProvidedByPinnedBase": "0.25.0+cu128",
     "cudaVersionProvidedByPinnedBase": "12.8",
     "torchcodecCudaWheelVersion": "0.10.0+cu128",
     "torchcodecCpuWheelAccepted": False,

@@ -254,7 +254,7 @@ for (const expected of [
   "sys.prefix == '/opt/weeditpro/python-venv'",
   'sys.base_prefix != sys.prefix',
   'torch.__version__ == \'2.10.0+cu128\'',
-  'torchvision.__version__ == \'0.25.0\'',
+  'torchvision.__version__ == \'0.25.0+cu128\'',
   "m.version('torchcodec') == '0.10.0+cu128'",
   "m.version('einops') == '0.8.2'",
   "m.version('pycocotools') == '2.0.11'",

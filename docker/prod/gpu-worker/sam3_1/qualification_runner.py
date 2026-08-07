@@ -477,7 +477,7 @@ def validate_request(request: dict[str, Any]) -> None:
         "baseImageDigest": BASE_IMAGE_DIGEST,
         "pythonVersion": "3.12",
         "torchVersion": "2.10.0+cu128",
-        "torchvisionVersion": "0.25.0",
+        "torchvisionVersion": "0.25.0+cu128",
         "torchcodecVersion": "0.10.0",
         "torchcodecCudaWheelVersion": "0.10.0+cu128",
         "einopsVersion": "0.8.2",
@@ -778,7 +778,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     if (
         sys.version_info[:2] != (3, 12)
         or torch.__version__ != "2.10.0+cu128"
-        or torchvision.__version__ != "0.25.0"
+        or torchvision.__version__ != "0.25.0+cu128"
         or importlib.metadata.version("torchcodec") != "0.10.0+cu128"
         or importlib.metadata.version("einops") != "0.8.2"
         or torch.version.cuda != "12.8"

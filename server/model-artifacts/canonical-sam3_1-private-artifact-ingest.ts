@@ -156,7 +156,7 @@ const ingestWithoutHashSchema = z.object({
   runtimeClosure: z.object({
     pythonVersion: z.literal('3.12'),
     torchVersion: z.literal('2.10.0'),
-    torchvisionVersion: z.literal('0.25.0'),
+    torchvisionVersion: z.literal('0.25.0+cu128'),
     cudaVersion: z.literal('12.8'),
     fixedBuilder: z.literal('build_sam3_multiplex_video_predictor'),
     flashAttention3Enabled: z.literal(false),

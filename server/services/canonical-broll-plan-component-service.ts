@@ -373,7 +373,9 @@ async function readExecutionAuthorities(
   component: Extract<CanonicalBrollSkillPlanComponent, {
     schemaVersion: typeof CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
   }>,
-  read: (ref: AuthorityJsonBlobRef) => Promise<Record<string, unknown>>,
+  read: (ref: AuthorityJsonBlobRef) => Promise<
+    Record<string, unknown> | unknown[]
+  >,
   assignment: BrollSkillAssignment,
 ): Promise<CanonicalBrollExecutionAuthorities> {
   const [

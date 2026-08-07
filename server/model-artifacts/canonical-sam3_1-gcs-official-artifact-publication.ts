@@ -38,6 +38,7 @@ type CanonicalSam31PrivateArtifactPublicationFailureCode =
   | 'storage_throttled'
   | 'storage_transport_unavailable'
   | 'storage_upload_failed'
+  | `storage_fingerprint_${string}`
   | 'unclassified_failure'
   | `${'pipeline' | 'source' | 'storage'}_name_${string}`
   | `${'pipeline' | 'source' | 'storage'}_node_${string}`
@@ -485,12 +486,28 @@ function classifyPublicationFailure(
     if (runtimeName) {
       return `${origin}_name_${runtimeName.toLowerCase()}`
     }
+    const safeFingerprint = origin === 'storage'
+      ? safeErrorMessageFingerprint(cursor)
+      : undefined
+    if (safeFingerprint) return `storage_fingerprint_${safeFingerprint}`
     const errorKind = safeErrorKind(cursor)
     if (errorKind) return `${origin}_${errorKind}`
 
     cursor = safeErrorCause(cursor)
   }
   return 'unclassified_failure'
+}
+
+/**
+ * Emits no provider, URL, path, credential, or free-form diagnostic text. The
+ * bounded digest only lets an operator compare a repeatable SDK failure with
+ * reviewed source-owned error literals while the original error remains in
+ * the private cause chain.
+ */
+function safeErrorMessageFingerprint(error: unknown): string | undefined {
+  const message = safeStaticErrorMessage(error)
+  if (!message || message.length > 16_384) return
+  return createHash('sha256').update(message, 'utf8').digest('hex').slice(0, 24)
 }
 
 async function* observePublicationSource(

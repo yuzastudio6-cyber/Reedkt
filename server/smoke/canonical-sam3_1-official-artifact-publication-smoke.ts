@@ -126,6 +126,22 @@ class NamedFailingStorage {
   }
 }
 
+class FingerprintedFailingStorage {
+  bucket() {
+    return {
+      file: () => ({
+        createWriteStream: () => new Writable({
+          write(_chunk, _encoding, callback) {
+            callback(new Error(
+              'hf_PRIVATE_TOKEN /tmp/private-checkpoint diagnostic',
+            ))
+          },
+        }),
+      }),
+    }
+  }
+}
+
 const sourceBytes = Buffer.from('synthetic official source archive')
 const checkpointBytes = Buffer.from('synthetic official gated checkpoint')
 const terms = createTerms('synthetic_contract_fixture')
@@ -415,6 +431,43 @@ await assert.rejects(() => namedStorageFailurePort.publishCreateOnlyAndReread({
   maximumByteLength: sourceBytes.byteLength,
 }), /failed \[storage_node_file_no_upload\]\.$/u)
 
+const fingerprintedStorageFailurePort =
+  createCanonicalSam31GcsOfficialArtifactPublicationPort({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    storage: new FingerprintedFailingStorage() as never,
+  })
+const privateFailureText =
+  'hf_PRIVATE_TOKEN /tmp/private-checkpoint diagnostic'
+const expectedSafeFingerprint = createHash('sha256')
+  .update(privateFailureText, 'utf8').digest('hex').slice(0, 24)
+let fingerprintedStorageFailure = ''
+try {
+  await fingerprintedStorageFailurePort.publishCreateOnlyAndReread({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    objectName:
+      'private/model-artifacts/sam3_1/source/fingerprint/sam3-source.tar',
+    contentType: 'application/x-tar',
+    body: chunked(sourceBytes),
+    minimumByteLength: sourceBytes.byteLength,
+    maximumByteLength: sourceBytes.byteLength,
+  })
+} catch (error) {
+  fingerprintedStorageFailure = error instanceof Error
+    ? error.message
+    : String(error)
+}
+assert.equal(
+  fingerprintedStorageFailure,
+  'SAM 3.1 private artifact streaming publication failed '
+    + `[storage_fingerprint_${expectedSafeFingerprint}].`,
+)
+assert.doesNotMatch(
+  fingerprintedStorageFailure,
+  /hf_PRIVATE_TOKEN|\/tmp\/private-checkpoint/u,
+)
+
 const cliSource = readFileSync(
   'server/cli/canonical-sam3_1-official-artifact-ingest.ts',
   'utf8',
@@ -440,7 +493,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-publication',
-  checks: 48,
+  checks: 50,
   cloudOnly: true,
   officialSourcePinned: true,
   officialGatedCheckpointPinned: true,

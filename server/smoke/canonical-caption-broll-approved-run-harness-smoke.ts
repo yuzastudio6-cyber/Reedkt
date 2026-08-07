@@ -319,47 +319,74 @@ try {
   }
 
   const exactPreferences = createExactEditPreferenceService(context)
-  const initialized = await exactPreferences.initialize({
-    workspaceId,
-    projectId: project.id,
-    editSessionId,
-    idempotencyKey: 'caption-broll-approved-run-preferences-initialize',
-  })
-  const updated = await exactPreferences.updateCurrent({
-    workspaceId,
-    projectId: project.id,
-    editSessionId,
-    expectedRevision: initialized.preferenceRecord.recordRevision,
-    patch: {
-      editLevel: 'premium',
-      workflowType: 'simple_clean_edit',
-      cleanupPreference: 'preserve_natural',
-      visualPreference: 'no_extra_visuals',
-      moodStyle: 'clean',
-      creditPreference: 'balanced',
-      targetPlatform: 'youtube',
-    },
-    idempotencyKey: 'caption-broll-approved-run-preferences-update',
-  })
+  const expectedPreferenceValues = {
+    editLevel: 'premium' as const,
+    workflowType: 'simple_clean_edit' as const,
+    cleanupPreference: 'preserve_natural' as const,
+    visualPreference: 'no_extra_visuals' as const,
+    moodStyle: 'clean' as const,
+    creditPreference: 'balanced' as const,
+    targetPlatform: 'youtube' as const,
+  }
   const sourcePreparationEvidenceHash = sha256(
     Buffer.from(`source-ready:${sourceCandidate.candidateHash}`),
   )
-  const preferenceEvidence = await exactPreferences.recordPlanningEvidence({
+  const persistedPreferences = await exactPreferences.getCurrent(
     workspaceId,
-    projectId: project.id,
+    project.id,
     editSessionId,
-    expectedRevision: updated.preferenceRecord.recordRevision,
-    sourcePreparation: {
-      status: 'ready',
-      evidenceHash: sourcePreparationEvidenceHash,
-    },
-    frameConfirmation: {
-      status: 'confirmed',
-      aspectRatio: '16:9',
-      confirmationId: 'frame.caption-broll.approved-run',
-    },
-    idempotencyKey: 'caption-broll-approved-run-planning-evidence',
-  })
+  )
+  let preferenceRecord = persistedPreferences.preferenceRecord
+  if (preferenceRecord) {
+    assert.deepEqual(preferenceRecord.values, expectedPreferenceValues)
+    assert.equal(
+      preferenceRecord.planning.sourcePreparation.status,
+      'ready',
+    )
+    assert.equal(
+      preferenceRecord.planning.sourcePreparation.evidenceHash,
+      sourcePreparationEvidenceHash,
+    )
+    assert.equal(preferenceRecord.planning.frameConfirmation.status, 'confirmed')
+    assert.equal(preferenceRecord.planning.frameConfirmation.aspectRatio, '16:9')
+    assert.equal(
+      preferenceRecord.planning.frameConfirmation.confirmationId,
+      'frame.caption-broll.approved-run',
+    )
+  } else {
+    const initialized = await exactPreferences.initialize({
+      workspaceId,
+      projectId: project.id,
+      editSessionId,
+      idempotencyKey: 'caption-broll-approved-run-preferences-initialize',
+    })
+    const updated = await exactPreferences.updateCurrent({
+      workspaceId,
+      projectId: project.id,
+      editSessionId,
+      expectedRevision: initialized.preferenceRecord.recordRevision,
+      patch: expectedPreferenceValues,
+      idempotencyKey: 'caption-broll-approved-run-preferences-update',
+    })
+    preferenceRecord = (
+      await exactPreferences.recordPlanningEvidence({
+        workspaceId,
+        projectId: project.id,
+        editSessionId,
+        expectedRevision: updated.preferenceRecord.recordRevision,
+        sourcePreparation: {
+          status: 'ready',
+          evidenceHash: sourcePreparationEvidenceHash,
+        },
+        frameConfirmation: {
+          status: 'confirmed',
+          aspectRatio: '16:9',
+          confirmationId: 'frame.caption-broll.approved-run',
+        },
+        idempotencyKey: 'caption-broll-approved-run-planning-evidence',
+      })
+    ).preferenceRecord
+  }
   const planningInputAuthority =
     await buildCurrentPlanningInputAuthorityExpectation({
       context,
@@ -371,7 +398,7 @@ try {
         editSessionId,
       },
     })
-  const values = preferenceEvidence.preferenceRecord.values
+  const values = preferenceRecord.values
   const plannerInput: PlannerInput = {
     projectName: 'Caption B-roll approved run',
     targetPlatform: values.targetPlatform,
@@ -407,17 +434,17 @@ try {
     cleanupPreferenceConfirmed: true,
     preferenceDefaultsApplied: true,
     preferenceSnapshotId:
-      preferenceEvidence.preferenceRecord.baseline.preferenceSnapshotId,
+      preferenceRecord.baseline.preferenceSnapshotId,
     preferencePersistenceSource: 'authenticated_private_internal_backend',
     currentEditPreferenceAuthorityValues: structuredClone(values),
     currentEditPreferenceRecordRevision:
-      preferenceEvidence.preferenceRecord.recordRevision,
+      preferenceRecord.recordRevision,
     currentEditPreferenceRevision:
-      preferenceEvidence.preferenceRecord.preferenceRevision,
+      preferenceRecord.preferenceRevision,
     currentEditPreferencePlanningInputRevision:
-      preferenceEvidence.preferenceRecord.planning.planningInputRevision,
+      preferenceRecord.planning.planningInputRevision,
     currentEditPreferenceFingerprintSha256:
-      preferenceEvidence.preferenceRecord.planning.preferenceFingerprintSha256,
+      preferenceRecord.planning.preferenceFingerprintSha256,
   }
   const sourceCleanupAuthority =
     createCanonicalSourceAnalysisAuthorityFixture({

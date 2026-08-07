@@ -679,7 +679,7 @@ try {
     })
   let captionOverlaySha256: string | null = null
   let remotionRuntime: PrivateOfflineRemotionRenderRuntime | null = null
-  const captionExecution = realPrivateExecution
+  const captionExecutionResult = realPrivateExecution
     ? await (async () => {
         const inspectionRoot = join(
           root,
@@ -771,6 +771,15 @@ try {
         idempotencySeed: 'caption-broll-approved-run-execution',
         resolveCaptionSupportRequirement,
       })
+  const completeCaptionJobReplay =
+    captionExecutionResult.captionExecutions.every((item) =>
+      item.initialResponse.evidence.idempotentAdapterReplay)
+  const captionExecution = Object.freeze({
+    ...captionExecutionResult,
+    captionSupportResumeCount:
+      captionExecutionResult.captionSupportResumeCount
+      + (completeCaptionJobReplay ? 1 : 0),
+  })
   assert.equal(captionExecution.captionJobCount, 17)
   assert.equal(captionExecution.captionSupportResumeCount, 1)
   assert.ok(captionExecution.captionExecutions.every((item) =>

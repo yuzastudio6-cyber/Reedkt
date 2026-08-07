@@ -4094,6 +4094,10 @@ async function execute(request, options = {}) {
     frame,
     path: `/tmp/reeditpro-remotion-${sha256(requestJson).slice(0, 24)}-frame-${frame}.png`,
   }))
+  const goldenFrameScale = request.payload.compositionProfileId ===
+    'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+    ? 1 / 6
+    : 1
   const browserExecutable = (await readFile('/app/browser-path.txt', 'utf8')).trim()
   if (!browserExecutable.startsWith('/app/node_modules/.remotion/chrome-headless-shell/')) {
     throw new Error('Prepared Remotion browser identity is invalid')
@@ -4600,6 +4604,7 @@ async function execute(request, options = {}) {
         frame: golden.frame,
         output: golden.path,
         imageFormat: 'png',
+        scale: goldenFrameScale,
         browserExecutable,
         chromeMode: 'headless-shell',
         chromiumOptions: { enableMultiProcessOnLinux: true },

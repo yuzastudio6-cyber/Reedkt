@@ -1150,10 +1150,16 @@ interface ApprovedRunExactFrameReviewInspectionPackage {
     readonly fps: 30
     readonly durationFrames: number
     readonly exactFrameReviewDigestSha256: string
+    readonly runtimeGoldenFrameScaleNumerator: 1
+    readonly runtimeGoldenFrameScaleDenominator: 6
+    readonly runtimeGoldenFramesAreInspectionProxies: true
+    readonly exactFrameRastersMustBeExtractedFromMp4ForInspection: true
     readonly sampleFrames: readonly {
       readonly frameIndex: number
       readonly fileName: string
       readonly sha256: string
+      readonly width: 640
+      readonly height: 360
     }[]
   }[]
   readonly exactApprovedRunReread: true
@@ -1532,8 +1538,16 @@ async function createApprovedRunExactFrameReviewInspectionPackage(input: {
       frameIndex: number
       fileName: string
       sha256: string
+      width: 640
+      height: 360
     }>
     for (const frame of result.frameArtifacts) {
+      if (frame.bytes.readUInt32BE(16) !== 640
+        || frame.bytes.readUInt32BE(20) !== 360) {
+        throw new Error(
+          'Exact-frame runtime golden must remain a bounded 640x360 inspection proxy.',
+        )
+      }
       const frameFileName =
         `${prefix}-frame-${String(frame.frame).padStart(3, '0')}.png`
       await writeCreateOnlyOrExactReplay(
@@ -1544,6 +1558,8 @@ async function createApprovedRunExactFrameReviewInspectionPackage(input: {
         frameIndex: frame.frame,
         fileName: frameFileName,
         sha256: frame.sha256,
+        width: 640,
+        height: 360,
       })
     }
     outputs.push(Object.freeze({
@@ -1557,6 +1573,10 @@ async function createApprovedRunExactFrameReviewInspectionPackage(input: {
       durationFrames: result.artifact.durationFrames,
       exactFrameReviewDigestSha256:
         variant.exactFrameReview.exactFrameReviewDigestSha256,
+      runtimeGoldenFrameScaleNumerator: 1 as const,
+      runtimeGoldenFrameScaleDenominator: 6 as const,
+      runtimeGoldenFramesAreInspectionProxies: true as const,
+      exactFrameRastersMustBeExtractedFromMp4ForInspection: true as const,
       sampleFrames: Object.freeze(sampleFrames),
     }))
   }

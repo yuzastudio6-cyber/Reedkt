@@ -127,6 +127,14 @@ closure supplies official `pkgconf 3.0.4` source and builds its `pkg-config`
 compatibility entrypoint before FFmpeg configuration. The source archive,
 bytes, SHA-256, ISC license, version, and offline-source-build disposition are
 all bound in the native and aggregate dependency receipts.
+Capsule assembly does not refetch those packages from public origins. It
+rereads the exact generation of a previously reviewed, malware-scanned,
+content-addressed checkpoint-free capsule, verifies that bootstrap capsule's
+218,633,787 bytes and SHA-256, safely extracts only its 31 regular
+dependency-closure files, and then revalidates every staged byte against the
+closed wheel, CUDA, FFmpeg, NV-codec-header, and pkgconf identities. Public
+source URLs remain provenance labels only; a missing or changed private staged
+file fails closed instead of triggering a network fallback.
 The configuration keeps FFmpeg LGPL-only: GPL, nonfree, and `libnpp` linkage
 are disabled, while FFNVCodec, NVDEC, CUVID, `h264_cuvid`, and `hevc_cuvid`
 are required. The canonical Cloud Build request applies Docker's

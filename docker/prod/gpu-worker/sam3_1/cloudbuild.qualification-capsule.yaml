@@ -14,10 +14,65 @@ steps:
         printf '%s  %s\n' \
           5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a \
           private-staging/sam3-source.tar | sha256sum --check --strict
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-reviewed-dependency-closure
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        mkdir -p private-staging private-dependency-closure/dependency-closure
+        gcloud storage cp \
+          --if-generation-match=1786094618776519 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/reproducibility/a096821a-07cb-4390-a91b-43bb794ed4e2/5a6360bedc2930bd338421a45b4cfed3e0bee6638ca97f8675d461d551ca2743.tar.gz \
+          private-staging/reviewed-dependency-closure-bootstrap.tar.gz
+        test "$$(stat --format='%s' private-staging/reviewed-dependency-closure-bootstrap.tar.gz)" = 218633787
+        printf '%s  %s\n' \
+          5a6360bedc2930bd338421a45b4cfed3e0bee6638ca97f8675d461d551ca2743 \
+          private-staging/reviewed-dependency-closure-bootstrap.tar.gz \
+          | sha256sum --check --strict
+        python3 -I -B - \
+          private-staging/reviewed-dependency-closure-bootstrap.tar.gz \
+          private-dependency-closure/dependency-closure <<'PY'
+        from pathlib import Path, PurePosixPath
+        import shutil
+        import sys
+        import tarfile
+
+        archive_path = Path(sys.argv[1])
+        destination = Path(sys.argv[2])
+        prefix = "sam31_private_build_input/dependency-closure/"
+        extracted = 0
+        with tarfile.open(archive_path, mode="r:gz") as archive:
+            for member in archive:
+                if not member.name.startswith(prefix):
+                    continue
+                relative = PurePosixPath(member.name[len(prefix):])
+                if not relative.parts:
+                    continue
+                if relative.is_absolute() or ".." in relative.parts:
+                    raise SystemExit("reviewed dependency closure path changed")
+                if member.isdir():
+                    continue
+                if not member.isfile():
+                    raise SystemExit("reviewed dependency closure type changed")
+                source = archive.extractfile(member)
+                if source is None:
+                    raise SystemExit("reviewed dependency closure body missing")
+                target = destination.joinpath(*relative.parts)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if target.exists():
+                    raise SystemExit("reviewed dependency closure duplicate path")
+                with source, target.open("xb") as output:
+                    shutil.copyfileobj(source, output, length=1024 * 1024)
+                extracted += 1
+        if extracted != 31:
+            raise SystemExit("reviewed dependency closure file set changed")
+        PY
   - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
     id: prepare-exact-patched-source
     waitFor:
       - reread-exact-official-source
+      - reread-exact-reviewed-dependency-closure
     entrypoint: bash
     args:
       - -ceu

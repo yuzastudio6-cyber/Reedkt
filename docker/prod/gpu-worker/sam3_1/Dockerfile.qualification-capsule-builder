@@ -25,6 +25,7 @@ COPY source-provenance.lock source/source-provenance.lock
 COPY patches/0001-reeditpro-gpu-decode.patch source/patches/0001-reeditpro-gpu-decode.patch
 COPY build-qualification-capsule.sh build-qualification-capsule.sh
 COPY private-staging/sam3-source.tar private-staging/sam3-source.tar
+COPY private-dependency-closure/dependency-closure private-dependency-closure/dependency-closure
 COPY private-source-prep/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar private-source-prep/sam3-patched-source.tar
 
 RUN test "$(uname -m)" = x86_64 \

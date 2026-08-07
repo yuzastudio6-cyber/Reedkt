@@ -29,74 +29,25 @@ readonly CUDA_COMPAT_BYTES='37945232'
 readonly REPOSITORY_COMMIT="${WEEDITPRO_REPOSITORY_COMMIT:?missing repository commit}"
 readonly REPOSITORY_TREE="${WEEDITPRO_REPOSITORY_TREE:?missing repository tree}"
 readonly WHEELHOUSE="${PRIVATE_ROOT}/dependency-closure/wheelhouse"
+readonly REVIEWED_DEPENDENCY_CLOSURE="${ROOT}/private-dependency-closure/dependency-closure"
 
-download_exact() {
-  local url="$1" destination="$2" expected_sha="$3" expected_bytes="$4"
-  python - "${url}" "${destination}" "${expected_sha}" "${expected_bytes}" <<'PY'
-import hashlib
-import os
-from pathlib import Path
-import sys
-from urllib.parse import urlparse
-from urllib.request import HTTPRedirectHandler, Request, build_opener
-
-url, destination_text, expected_sha, expected_bytes_text = sys.argv[1:]
-expected_bytes = int(expected_bytes_text)
-allowed = {
-    "codeload.github.com",
-    "developer.download.nvidia.com",
-    "download.pytorch.org",
-    "distfiles.ariadne.space",
-    "ffmpeg.org",
-    "files.pythonhosted.org",
-    "github.com",
+stage_exact() {
+  local source_url="$1" destination="$2" expected_sha="$3" expected_bytes="$4"
+  case "${source_url}" in
+    https://codeload.github.com/*|https://developer.download.nvidia.com/*|\
+    https://download.pytorch.org/*|https://distfiles.ariadne.space/*|\
+    https://ffmpeg.org/*|https://files.pythonhosted.org/*|https://github.com/*) ;;
+    *) printf 'ERROR: staged dependency origin is not allowlisted.\n' >&2; return 1 ;;
+  esac
+  test -f "${destination}"
+  test "$(stat --format='%s' "${destination}")" = "${expected_bytes}"
+  printf '%s  %s\n' "${expected_sha}" "${destination}" \
+    | sha256sum --check --strict
 }
 
-def validate(value: str) -> None:
-    parsed = urlparse(value)
-    if (parsed.scheme != "https" or parsed.hostname not in allowed or
-            parsed.username or parsed.password or parsed.port not in (None, 443)):
-        raise SystemExit("capsule download origin is not allowlisted")
-
-class Redirect(HTTPRedirectHandler):
-    def redirect_request(self, request, fp, code, message, headers, new_url):
-        validate(new_url)
-        return super().redirect_request(request, fp, code, message, headers, new_url)
-
-validate(url)
-destination = Path(destination_text)
-partial = destination.with_name(destination.name + ".partial")
-partial.unlink(missing_ok=True)
-digest = hashlib.sha256()
-observed = 0
-try:
-    request = Request(url, headers={
-        "Accept-Encoding": "identity",
-        "User-Agent": "WeEditPro-SAM31-capsule-builder-v1",
-    })
-    with build_opener(Redirect()).open(request, timeout=300) as response, partial.open("xb") as out:
-        validate(response.geturl())
-        if response.status != 200:
-            raise SystemExit("capsule download status changed")
-        while chunk := response.read(1024 * 1024):
-            observed += len(chunk)
-            if observed > expected_bytes:
-                raise SystemExit("capsule download exceeded bound")
-            digest.update(chunk)
-            out.write(chunk)
-        out.flush()
-        os.fsync(out.fileno())
-    if observed != expected_bytes or digest.hexdigest() != expected_sha:
-        raise SystemExit("capsule download identity changed")
-    os.replace(partial, destination)
-finally:
-    partial.unlink(missing_ok=True)
-PY
-}
-
-download_wheel() {
+stage_wheel() {
   local file_name="$1" url="$2" expected_sha="$3" expected_bytes="$4"
-  download_exact "${url}" "${WHEELHOUSE}/${file_name}" \
+  stage_exact "${url}" "${WHEELHOUSE}/${file_name}" \
     "${expected_sha}" "${expected_bytes}"
 }
 
@@ -108,6 +59,9 @@ mkdir -p \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1" \
   /output
+test -d "${REVIEWED_DEPENDENCY_CLOSURE}"
+cp -a "${REVIEWED_DEPENDENCY_CLOSURE}/." \
+  "${PRIVATE_ROOT}/dependency-closure/"
 
 readonly SOURCE_ARCHIVE="${PRIVATE_ROOT}/source/sam3-${SOURCE_REVISION}.tar"
 cp "${ROOT}/private-staging/sam3-source.tar" "${SOURCE_ARCHIVE}"
@@ -157,137 +111,135 @@ PY
 # Every CPython 3.12 Linux x86_64 dependency wheel is selected and verified by
 # exact immutable official PyPI or PyTorch wheel URL, byte length, and SHA-256.
 # There is no online dependency resolution in the image or qualification runtime.
-download_wheel \
+stage_wheel \
   'certifi-2026.7.22-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl' \
   '62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775' \
   '136983'
-download_wheel \
+stage_wheel \
   'charset_normalizer-3.4.9-cp312-cp312-manylinux_2_28_x86_64.whl' \
   'https://files.pythonhosted.org/packages/01/c4/4fa4c8b3097a11f3c5f09a35b72ed6855fb1d332469504962ab7bafcc702/charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
   '5e226f6218febc71f6c1fc2fafb91c226f75bdc1d8fb12d66823716e891608fd' \
   '224256'
-download_wheel \
+stage_wheel \
   'filelock-3.32.2-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/c1/e8/72f8cef9fdfeffe06213fe8508039396ee48daa0e3259457ed766173bfd6/filelock-3.32.2-py3-none-any.whl' \
   '87dd94cf281e586d135fa51132b8e3d9a598b316e90377a288663c9321036c82' \
   '98830'
-download_wheel \
+stage_wheel \
   'fsspec-2026.7.0-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/fd/3c/6a2bf344106328fd04963664a60b9bb6496fc25df8e962fcdc1367285fb9/fsspec-2026.7.0-py3-none-any.whl' \
   'b57ddbafedfaef7018c1ecab32aa200a9d7ca26b77965f64e48b70061249d279' \
   '206583'
-download_wheel \
+stage_wheel \
   'ftfy-6.1.1-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/e1/1e/bf736f9576a8979752b826b75cbd83663ff86634ea3055a766e2d8ad3ee5/ftfy-6.1.1-py3-none-any.whl' \
   '0ffd33fce16b54cccaec78d6ec73d95ad370e5df5a25255c8966a6147bd667ca' \
   '53098'
-download_wheel \
+stage_wheel \
   'hf_xet-1.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
   'https://files.pythonhosted.org/packages/67/4e/a28359bf1c1ecf11eba22123168c138698f7cb576ac678f5a2e16cd5da08/hf_xet-1.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
   'd62671bb130879cef0ee4c9ebe47a14af6c66ec53e6d84dc15936e5ffdfac82f' \
   '4464663'
-download_wheel \
+stage_wheel \
   'huggingface_hub-0.36.0-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/cb/bd/1a875e0d592d447cbc02805fd3fe0f497714d6a2583f59d14fa9ebad96eb/huggingface_hub-0.36.0-py3-none-any.whl' \
   '7bcc9ad17d5b3f07b57c78e79d527102d08313caa278a641993acddcb894548d' \
   '566094'
-download_wheel \
+stage_wheel \
   'idna-3.11-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/0e/61/66938bbb5fc52dbdf84594873d5b51fb1f7c7794e9c0f5bd885f30bc507b/idna-3.11-py3-none-any.whl' \
   '771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea' \
   '71008'
-download_wheel \
+stage_wheel \
   'numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl' \
   'https://files.pythonhosted.org/packages/0f/50/de23fde84e45f5c4fda2488c759b69990fd4512387a8632860f3ac9cd225/numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl' \
   '675d61ffbfa78604709862923189bad94014bef562cc35cf61d3a07bba02a7ed' \
   '17950613'
-download_wheel \
+stage_wheel \
   'packaging-26.3-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/63/34/ba1c580383c9eada3711951fef0795c80b829a078d72188184bcab9dd527/packaging-26.3-py3-none-any.whl' \
   'd7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c' \
   '129956'
-download_wheel \
+stage_wheel \
   'pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl' \
   'https://files.pythonhosted.org/packages/84/21/a35af28dcc61f37ed850a2d64c65c701321dfbf25085e469d5559360cbbf/pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl' \
   '78cb2c6865a35ab8ff8b75fd122f6033b92a62c82801110e48ddd6c936a45d91' \
   '6940830'
-download_wheel \
+stage_wheel \
   'portalocker-4.1.0-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/61/91/288c883303be067c1648f1e63ea38e5f8eb5ab7123fd3a9a7366148e58b7/portalocker-4.1.0-py3-none-any.whl' \
   'd985a430d265adf31adf12bc0bf3501aea59efc495e9104c057e5dfb7394c226' \
   '65914'
-download_wheel \
+stage_wheel \
   'pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
   'https://files.pythonhosted.org/packages/8b/9d/b3589d3877982d4f2329302ef98a8026e7f4443c765c46cfecc8858c6b4b/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
   'ba1cc08a7ccde2d2ec775841541641e4548226580ab850948cbfda66a1befcdc' \
   '807870'
-download_wheel \
+stage_wheel \
   'regex-2026.7.19-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
   'https://files.pythonhosted.org/packages/2a/8e/096d00c7c480ef2ff4265349b14e2261d4ab787ba1f74e2e80d1c58079c3/regex-2026.7.19-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
   '9dce8ec9695f531a1b8a6f314fd4b393adcccf2ea861db480cdf97a301d01a68' \
   '801798'
-download_wheel \
+stage_wheel \
   'requests-2.34.2-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl' \
   '2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0' \
   '73075'
-download_wheel \
+stage_wheel \
   'safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl' \
   'https://files.pythonhosted.org/packages/28/50/f203ff3a3ddfe19308efc83c5a3a29ed02bf786732ec35e68bf9162f3365/safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl' \
   'fd6f3f93c9a0a7cc2788ee63fb763353d4bd2e89b0751bc78fcf7dda00bea774' \
   '516040'
-download_wheel \
+stage_wheel \
   'timm-1.0.28-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/c1/76/de1bfac17d183c49c6d0887903d3064ced51cf1d9ba7a8d611c1a8808c4f/timm-1.0.28-py3-none-any.whl' \
   'e577b88da96b3a722ea5e2f042455ce6f715d398304d8e63b17d126ed7d89968' \
   '2597944'
-download_wheel \
+stage_wheel \
   'torchcodec-0.10.0+cu128-cp312-cp312-manylinux_2_28_x86_64.whl' \
   'https://download.pytorch.org/whl/cu128/torchcodec-0.10.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl' \
   '5ecb4aeb61b4f14f30ceed11ce892308f38232d82eee64605ae19583c51a8e72' \
   '2403046'
-download_wheel \
+stage_wheel \
   'tqdm-4.70.0-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/f9/1c/01bfd571a64e7f270e6bab5e33777debe0edc56759233ce84f27dec92d14/tqdm-4.70.0-py3-none-any.whl' \
   '7f585706bfddbdebf89daac705b2dfcc16890130727d3197ca62c732b4310953' \
   '80184'
-download_wheel \
+stage_wheel \
   'typing_extensions-4.16.0-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl' \
   '481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8' \
   '45571'
-download_wheel \
+stage_wheel \
   'urllib3-2.6.3-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/39/08/aaaad47bc4e9dc8c725e68f9d04865dbcb2052843ff09c97b08904852d84/urllib3-2.6.3-py3-none-any.whl' \
   'bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4' \
   '131584'
-download_wheel \
+stage_wheel \
   'wcwidth-0.8.2-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl' \
   'd63947694a0539a1d51e01eda7caf800c291020e6cdd7e28ad7b14dd33ad4f85' \
   '323166'
 
-download_exact \
-  'https://files.pythonhosted.org/packages/72/73/b3d451dfc523756cf177d3ebb0af76dc7751b341c60e2a21871be400ae29/iopath-0.1.10.tar.gz' \
-  "${WORK}/iopath-0.1.10.tar.gz" \
-  '3311c16a4d9137223e20f141655759933e1eda24f8bff166af834af3c645ef01' \
-  '42226'
-python -m pip wheel --disable-pip-version-check --no-cache-dir --no-deps \
-  --no-build-isolation --wheel-dir "${WHEELHOUSE}" \
-  "${WORK}/iopath-0.1.10.tar.gz"
+readonly IOPATH_WHEEL="${WHEELHOUSE}/iopath-0.1.10-py3-none-any.whl"
+test -f "${IOPATH_WHEEL}"
+test "$(stat --format='%s' "${IOPATH_WHEEL}")" = 31596
+printf '%s  %s\n' \
+  da148222e6160aa193fb0547e4d186669bd594ec8ba03831f8294977cc2ee453 \
+  "${IOPATH_WHEEL}" | sha256sum --check --strict
 
-download_exact \
+stage_exact \
   "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-${FFMPEG_VERSION}.tar.gz" \
   "${FFMPEG_SHA256}" "${FFMPEG_BYTES}"
 
-download_exact \
+stage_exact \
   "https://distfiles.ariadne.space/pkgconf/pkgconf-${PKGCONF_VERSION}.tar.gz" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg/pkgconf-${PKGCONF_VERSION}.tar.gz" \
   "${PKGCONF_SHA256}" "${PKGCONF_BYTES}"
 
-download_exact \
+stage_exact \
   "https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/${NV_CODEC_HEADERS_VERSION}.tar.gz" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg/nv-codec-headers-${NV_CODEC_HEADERS_VERSION}.tar.gz" \
   "${NV_CODEC_HEADERS_SHA256}" "${NV_CODEC_HEADERS_BYTES}"
@@ -335,7 +287,7 @@ Path("${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json").wr
 )
 PY
 
-download_exact \
+stage_exact \
   'https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb' \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb" \
   "${CUDA_COMPAT_SHA256}" "${CUDA_COMPAT_BYTES}"

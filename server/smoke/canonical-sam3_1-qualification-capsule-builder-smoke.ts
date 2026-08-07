@@ -45,6 +45,7 @@ for (const expected of [
   '0001-reeditpro-gpu-decode.patch',
   'build-qualification-capsule.sh',
   'private-staging/sam3-source.tar',
+  'private-dependency-closure/dependency-closure',
   'private-source-prep/sam3-patched-source.tar',
 ] as const) assert.ok(
   dockerfile.includes(expected),
@@ -74,8 +75,9 @@ for (const expected of [
   'codeload.github.com',
   'developer.download.nvidia.com',
   'files.pythonhosted.org',
-  'capsule download origin is not allowlisted',
-  'capsule download identity changed',
+  'staged dependency origin is not allowlisted',
+  'REVIEWED_DEPENDENCY_CLOSURE',
+  'da148222e6160aa193fb0547e4d186669bd594ec8ba03831f8294977cc2ee453',
   '--format=ustar',
   "--mtime='@0'",
   'gzip --no-name --best',
@@ -92,9 +94,9 @@ for (const expected of [
   'containsCustomerMedia',
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
-assert.equal((builder.match(/^download_wheel \\/gmu) ?? []).length, 22)
-assert.equal((builder.match(/^download_exact \\/gmu) ?? []).length, 5)
-const localWheelNames = [...builder.matchAll(/^download_wheel \\\n\s+'([^']+\.whl)'/gmu)]
+assert.equal((builder.match(/^stage_wheel \\/gmu) ?? []).length, 22)
+assert.equal((builder.match(/^stage_exact \\/gmu) ?? []).length, 4)
+const localWheelNames = [...builder.matchAll(/^stage_wheel \\\n\s+'([^']+\.whl)'/gmu)]
   .map((match) => match[1])
 assert.equal(localWheelNames.length, 22)
 assert.ok(
@@ -116,13 +118,13 @@ assert.ok(builder.includes(
 ))
 assert.doesNotMatch(builder, /python -m pip download/u)
 assert.doesNotMatch(builder, /python -m pip install/u)
+assert.doesNotMatch(builder, /python -m pip wheel/u)
+assert.doesNotMatch(builder, /from urllib|urlopen|HTTPRedirectHandler/u)
 assert.doesNotMatch(builder, /(?:apt-get|conda install|git clone)/u)
 assert.doesNotMatch(
   builder,
   /(?:sam3\.1_multiplex\.pt|huggingface\.co|HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS)/u,
 )
-assert.match(builder, /python -m pip wheel[\s\S]*--no-build-isolation/u)
-assert.match(builder, /'42226'/u)
 assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type f -exec touch -d '@0'/u)
 assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type d -exec chmod 0555/u)
 assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type f -exec chmod 0444/u)
@@ -149,6 +151,11 @@ for (const expected of [
   'reread-exact-official-source',
   '--if-generation-match=1786071963625032',
   '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a',
+  'reread-exact-reviewed-dependency-closure',
+  '--if-generation-match=1786094618776519',
+  '5a6360bedc2930bd338421a45b4cfed3e0bee6638ca97f8675d461d551ca2743',
+  'reviewed dependency closure file set changed',
+  'extracted != 31',
   'prepare-exact-patched-source',
   'gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec',
   'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147',
@@ -175,7 +182,7 @@ assert.doesNotMatch(
 assert.doesNotMatch(
   dockerfile,
   /\bcurl\b/u,
-  'The builder must use the bounded Python downloader instead of requiring curl',
+  'The builder must use only the staged private dependency closure',
 )
 
 for (const expected of [

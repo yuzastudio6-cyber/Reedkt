@@ -99,75 +99,22 @@ steps:
           | sha256sum --check --strict
         rm -f \
           private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.6.3-py3-none-any.whl
+  - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
+    id: prepare-exact-security-remediation-closure
+    waitFor:
+      - reread-exact-reviewed-dependency-closure
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
         python3 -I -B prepare-qualification-security-closure.py
-        test "$$(stat --format='%s' \
-          private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl)" = 131087
-        printf '%s  %s\n' \
-          9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897 \
-          private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl \
-          | sha256sum --check --strict
-        test "$$(stat --format='%s' \
-          private-dependency-closure/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb)" = 1002894
-        test "$$(stat --format='%s' \
-          private-dependency-closure/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb)" = 1942240
-        test "$$(stat --format='%s' \
-          private-dependency-closure/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb)" = 2407824
-        printf '%s  %s\n' \
-          321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b \
-          private-dependency-closure/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb \
-          | sha256sum --check --strict
-        printf '%s  %s\n' \
-          6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b \
-          private-dependency-closure/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb \
-          | sha256sum --check --strict
-        printf '%s  %s\n' \
-          9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58 \
-          private-dependency-closure/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb \
-          | sha256sum --check --strict
-        python3 -I -B - \
-          private-dependency-closure/dependency-closure/os-security-updates/security-update-receipt.json <<'PY'
-        import hashlib
-        import json
-        from pathlib import Path
-        import sys
-
-        root = Path(sys.argv[1]).parent
-        packages = []
-        for name in (
-            "libssl-dev_3.0.13-0ubuntu3.12_amd64.deb",
-            "libssl3t64_3.0.13-0ubuntu3.12_amd64.deb",
-            "openssl_3.0.13-0ubuntu3.12_amd64.deb",
-        ):
-            body = (root / name).read_bytes()
-            packages.append({
-                "fileName": name,
-                "byteLength": len(body),
-                "sha256": hashlib.sha256(body).hexdigest(),
-            })
-        receipt = {
-            "schemaVersion": "weeditpro-sam3_1-os-security-update-closure-v1",
-            "source": "official_ubuntu_noble_security_repository",
-            "opensslVersion": "3.0.13-0ubuntu3.12",
-            "packages": packages,
-            "offlineInstallRequired": True,
-            "unusedPython3PipAndWheelOsPackagesMustBePurged": True,
-            "inheritedPillowUrllib3AndWheelPythonDistributionsMustBePurged": True,
-            "containsCheckpoint": False,
-            "containsCredentials": False,
-            "containsCustomerMedia": False,
-        }
-        Path(sys.argv[1]).write_text(
-            json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n",
-            encoding="utf-8",
-        )
-        PY
         test "$$(find private-dependency-closure/dependency-closure \
           -type f | wc -l)" = 40
   - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
     id: prepare-exact-patched-source
     waitFor:
       - reread-exact-official-source
-      - reread-exact-reviewed-dependency-closure
+      - prepare-exact-security-remediation-closure
     entrypoint: bash
     args:
       - -ceu

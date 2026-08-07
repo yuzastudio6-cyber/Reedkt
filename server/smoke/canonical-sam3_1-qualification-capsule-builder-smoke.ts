@@ -72,17 +72,8 @@ for (const expected of [
   '--if-generation-match=1786112748711226',
   'd5088d0d-94eb-45d1-b020-f9d7683eb9bf/pycocotools-ingest-receipt.json',
   'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
-  'urllib3-2.7.0-py3-none-any.whl',
-  '9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897',
-  'openssl_3.0.13-0ubuntu3.12_amd64.deb',
-  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
-  'libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
-  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
-  'libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
-  '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58',
-  'weeditpro-sam3_1-os-security-update-closure-v1',
-  'official_ubuntu_noble_security_repository',
   'python3 -I -B prepare-qualification-security-closure.py',
+  'prepare-exact-security-remediation-closure',
   '| wc -l)" = 40',
 ] as const) assert.ok(
   cloudBuild.includes(expected),
@@ -98,17 +89,24 @@ for (const expected of [
   '"Accept-Encoding": "identity"',
   'response.read(expected_bytes + 1)',
   'exact dependency SHA-256 changed',
+  'weeditpro-sam3_1-os-security-update-closure-v1',
+  'official_ubuntu_noble_security_repository',
+  'security update package set changed',
   'urllib3-2.7.0-py3-none-any.whl',
+  '9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897',
   'openssl_3.0.13-0ubuntu3.12_amd64.deb',
+  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
   'libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
   'libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
+  '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58',
 ] as const) assert.ok(
   securityClosurePreparation.includes(expected),
   `security closure preparation lost ${expected}`,
 )
 assert.doesNotMatch(
   securityClosurePreparation,
-  /(?:HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|checkpoint|customer[_ -]media)/iu,
+  /(?:HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|sam3\.1_multiplex|huggingface\.co|\/checkpoint\/)/iu,
 )
 
 for (const expected of [

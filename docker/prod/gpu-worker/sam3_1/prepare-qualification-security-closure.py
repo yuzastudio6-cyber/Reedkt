@@ -8,6 +8,7 @@ before writing any package into the private build closure.
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 import urllib.error
 import urllib.request
@@ -88,6 +89,39 @@ def main() -> None:
         if hashlib.sha256(body).hexdigest() != expected_sha256:
             raise SystemExit("exact dependency SHA-256 changed")
         destination_path.write_bytes(body)
+
+    security_root = Path(
+        "private-dependency-closure/dependency-closure/os-security-updates",
+    )
+    receipt_path = security_root / "security-update-receipt.json"
+    if receipt_path.exists():
+        raise SystemExit("security update receipt destination changed")
+    packages = []
+    for package_path in sorted(security_root.glob("*.deb")):
+        body = package_path.read_bytes()
+        packages.append({
+            "fileName": package_path.name,
+            "byteLength": len(body),
+            "sha256": hashlib.sha256(body).hexdigest(),
+        })
+    if len(packages) != 3:
+        raise SystemExit("security update package set changed")
+    receipt = {
+        "schemaVersion": "weeditpro-sam3_1-os-security-update-closure-v1",
+        "source": "official_ubuntu_noble_security_repository",
+        "opensslVersion": "3.0.13-0ubuntu3.12",
+        "packages": packages,
+        "offlineInstallRequired": True,
+        "unusedPython3PipAndWheelOsPackagesMustBePurged": True,
+        "inheritedPillowUrllib3AndWheelPythonDistributionsMustBePurged": True,
+        "containsCheckpoint": False,
+        "containsCredentials": False,
+        "containsCustomerMedia": False,
+    }
+    receipt_path.write_text(
+        json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n",
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

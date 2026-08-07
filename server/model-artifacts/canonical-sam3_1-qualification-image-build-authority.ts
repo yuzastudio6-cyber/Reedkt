@@ -62,6 +62,8 @@ const PYCOCOTOOLS_INGEST_RECEIPT_SHA256 =
   'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3' as const
 const SECURITY_REMEDIATION_DOCKERFILE_SHA256 =
   '5aa4c8914c1a9989a5764e7d5cf133ba4c32db0f1646d97b92701e974a009178' as const
+const SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256 =
+  '34e2d4993b315185b169373c12ee70ddf31dbb702ba97be5734fae8de5786481' as const
 const SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256 =
   'c7b8b39acbb685bddc04ff4f30832a7ffd568a6b5954f973ca61d5e223ffbd3d' as const
 const SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256 =
@@ -627,9 +629,10 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl`
   const legacyUrllib3WheelPath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/urllib3-2.6.3-py3-none-any.whl`
-  const dockerfileIsSecurityRemediated =
-    manifest.repositorySource.dockerfileSha256 ===
-      SECURITY_REMEDIATION_DOCKERFILE_SHA256
+  const dockerfileIsSecurityRemediated = [
+    SECURITY_REMEDIATION_DOCKERFILE_SHA256,
+    SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256,
+  ].includes(manifest.repositorySource.dockerfileSha256)
   const provenanceLockIsSecurityRemediated =
     manifest.repositorySource.sourceProvenanceLockSha256 ===
       SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256

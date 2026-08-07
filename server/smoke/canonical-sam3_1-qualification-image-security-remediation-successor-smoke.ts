@@ -84,7 +84,7 @@ for (const expected of [
   'openssl_3.0.13-0ubuntu3.12_amd64.deb',
   'libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
   'libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
-  'python -m pip uninstall --yes pillow urllib3 wheel',
+  'python -m pip uninstall --yes --break-system-packages',
   'dpkg --purge python3-pip python3-wheel',
   "m.version('pillow') == '12.3.0'",
   "m.version('urllib3') == '2.7.0'",
@@ -100,6 +100,7 @@ for (const expected of [
 
 for (const expected of [
   'SECURITY_REMEDIATION_DOCKERFILE_SHA256',
+  'SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256',
   'SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256',
   'SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256',
   'SECURITY_REMEDIATION_DEPENDENCY_CLOSURE_RECEIPT_SHA256',

@@ -18,7 +18,7 @@ const EXPECTED_RUNNER_SHA256 =
 const EXPECTED_SOURCE_PROVENANCE_LOCK_SHA256 =
   'fec35ab135e5e7ab05548870080f96b42d195aaefc206838db48270adfa9e092'
 const predecessorTerminalRef = {
-  id: 'sam31-qualification-image-terminal-a58415ac30a996876a2fa',
+  id: 'sam31-qualification-image-terminal-a58415ac30a996876a2f',
   version: 1 as const,
   contentHash:
     'sha256:a58415ac30a996876a2fa75a6e05232ab0a315391c3dc562c2331b931a04c200' as const,

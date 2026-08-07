@@ -83,6 +83,12 @@ const targets = {
     primaryBuildId: '3e29aa73-7307-454d-bd38-b911b67aeab1',
     confirmationBuildId: '6c209bca-9563-4a5f-be3e-a6b927ac2d6f',
   },
+  security_remediation_pep668_uninstall_corrected: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-security-remediation-pep668-uninstall-corrected-20260807',
+    primaryBuildId: '0c93a02b-1952-4520-a1a1-89cf0f181219',
+    confirmationBuildId: '1dbde314-c57a-4144-9b12-0981736a92c9',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -97,6 +103,7 @@ const targetName = z.enum([
   'cuda_torchvision_identity_corrected',
   'native_library_closure_corrected',
   'security_remediation_corrected',
+  'security_remediation_pep668_uninstall_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

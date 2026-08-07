@@ -629,10 +629,14 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl`
   const legacyUrllib3WheelPath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/urllib3-2.6.3-py3-none-any.whl`
-  const dockerfileIsSecurityRemediated = [
+  const securityRemediatedDockerfileHashes = new Set<string>([
     SECURITY_REMEDIATION_DOCKERFILE_SHA256,
     SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256,
-  ].includes(manifest.repositorySource.dockerfileSha256)
+  ])
+  const dockerfileIsSecurityRemediated =
+    securityRemediatedDockerfileHashes.has(
+      manifest.repositorySource.dockerfileSha256,
+    )
   const provenanceLockIsSecurityRemediated =
     manifest.repositorySource.sourceProvenanceLockSha256 ===
       SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256

@@ -11,6 +11,10 @@ const sourcePreparation = readFileSync(
   `${root}/prepare-qualification-source.sh`,
   'utf8',
 )
+const securityClosurePreparation = readFileSync(
+  `${root}/prepare-qualification-security-closure.py`,
+  'utf8',
+)
 const cloudBuild = readFileSync(
   `${root}/cloudbuild.qualification-capsule.yaml`,
   'utf8',
@@ -78,11 +82,7 @@ for (const expected of [
   '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58',
   'weeditpro-sam3_1-os-security-update-closure-v1',
   'official_ubuntu_noble_security_repository',
-  'urllib.request.HTTPRedirectHandler',
-  'response.geturl() != url',
-  '"Accept-Encoding": "identity"',
-  'response.read(expected_bytes + 1)',
-  'exact dependency SHA-256 changed',
+  'python3 -I -B prepare-qualification-security-closure.py',
   '| wc -l)" = 40',
 ] as const) assert.ok(
   cloudBuild.includes(expected),
@@ -91,6 +91,24 @@ for (const expected of [
 assert.doesNotMatch(
   dockerfile,
   /(?:sam3\.1_multiplex\.pt|checkpoint\/|HF_TOKEN|huggingface\.co)/u,
+)
+for (const expected of [
+  'urllib.request.HTTPRedirectHandler',
+  'response.geturl() != url',
+  '"Accept-Encoding": "identity"',
+  'response.read(expected_bytes + 1)',
+  'exact dependency SHA-256 changed',
+  'urllib3-2.7.0-py3-none-any.whl',
+  'openssl_3.0.13-0ubuntu3.12_amd64.deb',
+  'libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+  'libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
+] as const) assert.ok(
+  securityClosurePreparation.includes(expected),
+  `security closure preparation lost ${expected}`,
+)
+assert.doesNotMatch(
+  securityClosurePreparation,
+  /(?:HF_TOKEN|GOOGLE_APPLICATION_CREDENTIALS|checkpoint|customer[_ -]media)/iu,
 )
 
 for (const expected of [
@@ -258,6 +276,7 @@ for (const expected of [
   '!Dockerfile.qualification.candidate',
   '!build-qualification-capsule.sh',
   '!prepare-qualification-source.sh',
+  '!prepare-qualification-security-closure.py',
   '!qualification_entrypoint.sh',
   '!qualification_runner.py',
   '!cloudbuild.qualification-pycocotools-ingest.yaml',

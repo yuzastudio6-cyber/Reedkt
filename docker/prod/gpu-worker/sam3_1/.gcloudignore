@@ -5,6 +5,7 @@
 !Dockerfile.qualification.candidate
 !build-qualification-capsule.sh
 !prepare-qualification-source.sh
+!prepare-qualification-security-closure.py
 !cloudbuild.qualification-capsule.yaml
 !cloudbuild.qualification-einops-ingest.yaml
 !cloudbuild.qualification-pycocotools-ingest.yaml

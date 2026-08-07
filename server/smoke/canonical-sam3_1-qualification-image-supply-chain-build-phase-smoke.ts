@@ -1064,7 +1064,7 @@ function createOperation(buildId: string) {
     name: 'operations/sam31-qualification-supply-chain-1',
     metadata: { build: {
       id: buildId,
-      name: `projects/reeditpro/locations/us-central1/builds/${buildId}`,
+      name: `projects/390722338345/locations/us-central1/builds/${buildId}`,
       projectId: 'reeditpro',
     } },
   }
@@ -1085,7 +1085,7 @@ function successfulBuild(
   }
   return {
     id: buildId,
-    name: `projects/reeditpro/locations/us-central1/builds/${buildId}`,
+    name: `projects/390722338345/locations/us-central1/builds/${buildId}`,
     projectId: 'reeditpro',
     status: 'SUCCESS',
     warnings: [],

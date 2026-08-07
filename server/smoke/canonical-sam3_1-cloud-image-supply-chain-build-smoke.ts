@@ -829,7 +829,7 @@ function buildCreateOperation(id: string) {
     metadata: {
       build: {
         id,
-        name: `projects/reeditpro/locations/us-central1/builds/${id}`,
+        name: `projects/390722338345/locations/us-central1/builds/${id}`,
         projectId: 'reeditpro',
       },
     },
@@ -850,7 +850,7 @@ function successfulSupplyChainBuild(
   }
   return {
     id,
-    name: `projects/reeditpro/locations/us-central1/builds/${id}`,
+    name: `projects/390722338345/locations/us-central1/builds/${id}`,
     projectId: 'reeditpro',
     status: 'SUCCESS',
     warnings: [],

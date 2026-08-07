@@ -166,11 +166,11 @@ assert.match(buildConfig, /sourceProvenanceHash:\s*\n\s*- SHA256/u)
 assert.match(buildScript, /git status --porcelain=v1/u)
 assert.match(buildScript, /cloudJobStarted":false/u)
 assert.match(deployScript,
-  /BUILD_ID='bd8328d0-c724-48a8-ad21-68e9de1ab46f'/u)
+  /BUILD_ID='4234171e-3518-496a-a20a-356984786f21'/u)
 assert.match(deployScript,
-  /SOURCE_COMMIT='a7672b066c209dc5c905ccfa2729daecf0aac379'/u)
+  /SOURCE_COMMIT='b0bd49f0b424d2937a20682020b7957f05312af2'/u)
 assert.match(deployScript,
-  /IMAGE_DIGEST='sha256:c5d1b829603e6fe5062a694225afdebf1c805bb64b627872f56b25a929dd5956'/u)
+  /IMAGE_DIGEST='sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20'/u)
 assert.match(deployScript, /--cpu=4 --memory=16Gi/u)
 assert.match(deployScript, /SERVICE_ACCOUNT_ID='weeditpro-sam31-review-sa'/u)
 assert.match(deployScript, /retry_project_binding roles\/logging\.logWriter/u)

@@ -464,6 +464,8 @@ mv "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches.tmp" \
 
 test -z "$(find "${BUILD_SOURCE}" -type l -print -quit)"
 find "${BUILD_SOURCE}" -type f -exec touch -d '@0' {} +
+find "${BUILD_SOURCE}" -type d -exec chmod 0555 {} +
+find "${BUILD_SOURCE}" -type f -exec chmod 0444 {} +
 
 readonly UNCOMPRESSED="${WORK}/sam31-qualification-build-source.tar"
 (

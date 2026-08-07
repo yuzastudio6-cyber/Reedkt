@@ -336,8 +336,8 @@ forward-compatibility ingest receipt hashes. The CUDA package is the exact
 the build verifies its package name, version, architecture, bytes, and receipt
 before extracting it offline. The native closure also binds FFmpeg 8.0.3,
 pkgconf 3.0.4, and NV-codec headers n12.2.72.0 by exact source bytes and
-license metadata. The
-build fails unless the base runtime is exactly Python 3.12, PyTorch
+license metadata. The build fails unless the base runtime is exactly Python
+3.12, PyTorch
 2.10.0+cu128, TorchVision 0.25.0, TorchCodec 0.10.0+cu128, FFmpeg 8.0.3, and
 CUDA 12.8. It installs no dependency from the network and runs as
 UID/GID 65532. The same immutable closure may be separately qualified on A100
@@ -347,7 +347,9 @@ release, and benchmark evidence.
 Before Cloud Build authority exists, the capsule owner streams and hashes the
 compressed object, expands it under a separate bounded limit, validates every
 USTAR header and checksum, admits only ordered zero-byte parent directories,
-rejects links/devices/sockets/traversal and data
+canonicalizes all archive directories to mode `0555` and files to `0444`,
+independent of the source worktree filesystem, and rejects
+links/devices/sockets/traversal and data
 after the terminator, and compares the exact ordered file path/length/SHA-256
 set with the closed manifest. Only the listed repository files, the two source
 archives, the fixed receipts, the pinned CUDA package, and flat `.whl` files

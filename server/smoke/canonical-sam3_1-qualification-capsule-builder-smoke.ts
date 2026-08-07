@@ -124,6 +124,8 @@ assert.doesNotMatch(
 assert.match(builder, /python -m pip wheel[\s\S]*--no-build-isolation/u)
 assert.match(builder, /'42226'/u)
 assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type f -exec touch -d '@0'/u)
+assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type d -exec chmod 0555/u)
+assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type f -exec chmod 0444/u)
 
 for (const expected of [
   '573deb167702e014829a5b830de8ae62abe891d5',

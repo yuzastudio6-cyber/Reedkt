@@ -37,6 +37,9 @@ const IMAGE_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification' as const
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const artifactRegistryVersionSchema = z.string().regex(
+  /^projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/packages\/reeditpro-sam31-qualification\/versions\/sha256:[a-f0-9]{64}$/u,
+)
 const timestamp = z.string().datetime({ offset: true })
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -161,7 +164,7 @@ const releaseWithoutHashSchema = z.object({
   immutableImageRef: evidenceRefSchema,
   immutableImageDigest: prefixedSha256,
   immutableImageUri: z.string(),
-  artifactRegistryPackage: z.literal(IMAGE_PACKAGE),
+  artifactRegistryPackage: artifactRegistryVersionSchema,
   sbom: observedEvidenceSchema.shape.sbom,
   vulnerabilityScan: observedEvidenceSchema.shape.vulnerabilityScan,
   signature: observedEvidenceSchema.shape.signature,
@@ -208,6 +211,9 @@ const releaseWithoutHashSchema = z.object({
     && value.sbom.exactArtifactReread
     && value.signature.exactSignatureVerificationPassed
     && value.provenance.exactAttestationRereadAndVerified
+    && value.artifactRegistryPackage === artifactRegistryVersion(
+      value.immutableImageDigest,
+    )
     && Date.parse(value.qualifiedAt) >= Date.parse(scan.scanCompletedAt)
   if (!qualified) context.addIssue({
     code: 'custom',
@@ -456,6 +462,8 @@ function assertLineage(input: {
     )
     || input.supplyAdmission.immutableImageDigest !==
       input.imageTerminal.immutableImageDigest
+    || input.supplyAdmission.artifactRegistryPackage !==
+      input.imageTerminal.artifactRegistryPackage
     || input.supplyObservation.immutableImageDigest !==
       input.imageTerminal.immutableImageDigest
   ) throw new Error('Qualification image supply-chain lineage crossed.')
@@ -467,6 +475,10 @@ function assertLineage(input: {
     supplyChainBuildSubmissionRef,
     supplyChainBuildObservationRef,
   }
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${IMAGE_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 function assertEvidenceLineage(input: {

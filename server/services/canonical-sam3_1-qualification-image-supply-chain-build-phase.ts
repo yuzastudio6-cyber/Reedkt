@@ -76,6 +76,9 @@ const kmsKeyVersionSchema = z.string().regex(
 const immutableImageUriSchema = z.string().regex(
   /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-qualification@sha256:[a-f0-9]{64}$/u,
 )
+const artifactRegistryVersionSchema = z.string().regex(
+  /^projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/packages\/reeditpro-sam31-qualification\/versions\/sha256:[a-f0-9]{64}$/u,
+)
 const artifactPrefixSchema = z.string().regex(
   /^private\/sam3_1\/qualification-image-supply-chain\/v1\/[a-f0-9]{64}$/u,
 )
@@ -114,7 +117,7 @@ const admissionWithoutHashSchema = z.object({
   cloudImageBuildResource: z.string(),
   immutableImageUri: immutableImageUriSchema,
   immutableImageDigest: prefixedSha256,
-  artifactRegistryPackage: z.literal(IMAGE_PACKAGE),
+  artifactRegistryPackage: artifactRegistryVersionSchema,
   kmsKeyVersionResource: kmsKeyVersionSchema,
   kmsKeyUri: z.string().regex(
     /^gcpkms:\/\/projects\/reeditpro\/locations\/us-central1\/keyRings\/weeditpro-image-signing\/cryptoKeys\/sam31-image-signing\/cryptoKeyVersions\/[1-9][0-9]*$/u,
@@ -164,6 +167,9 @@ const admissionWithoutHashSchema = z.object({
     value.cloudImageBuildResource !==
       `${BUILD_COLLECTION}/${value.cloudImageBuildId}`
     || !value.immutableImageUri.endsWith(`@${value.immutableImageDigest}`)
+    || value.artifactRegistryPackage !== artifactRegistryVersion(
+      value.immutableImageDigest,
+    )
     || value.kmsKeyUri !== `gcpkms://${value.kmsKeyVersionResource}`
     || value.evidencePrefix !==
       `private/sam3_1/qualification-image-supply-chain/v1/${value.imageBuildTerminalObservationRef.contentHash.slice(7)}`
@@ -409,7 +415,9 @@ export function createCanonicalSam31QualificationImageSupplyChainAdmission(
       'qualification_image_built_pending_supply_chain_release'
     || !terminal.immutableImageUri
     || !terminal.immutableImageDigest
-    || terminal.artifactRegistryPackage !== IMAGE_PACKAGE
+    || terminal.artifactRegistryPackage !== artifactRegistryVersion(
+      terminal.immutableImageDigest,
+    )
     || terminal.cloudBuildId !== submission.cloudBuildId
     || !sameRef(submission.authorityRef, buildAuthorityRef)
     || !sameRef(terminal.authorityRef, buildAuthorityRef)
@@ -490,6 +498,10 @@ export function createCanonicalSam31QualificationImageSupplyChainAdmission(
     ...payload,
     admissionHash: sha256AuthorityValue(payload),
   })
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${IMAGE_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 export function createCanonicalSam31QualificationImageSupplyChainBuildPhase(

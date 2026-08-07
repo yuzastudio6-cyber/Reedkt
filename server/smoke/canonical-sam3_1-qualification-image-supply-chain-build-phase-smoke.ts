@@ -714,9 +714,7 @@ function successfulQualificationImageBuild(
       images: [{
         name: value.imageDestination.taggedUri,
         digest: terminal.immutableImageDigest,
-        artifactRegistryPackage:
-          `${terminal.artifactRegistryPackage}/versions/`
-            + terminal.immutableImageDigest,
+        artifactRegistryPackage: terminal.artifactRegistryPackage,
       }],
     },
   }
@@ -1100,7 +1098,7 @@ function createImageBuildTerminal(
     immutableImageUri:
       `${authority.imageDestination.repository}/${authority.imageDestination.imageName}@${imageDigest}`,
     artifactRegistryPackage:
-      'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification',
+      `projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification/versions/${imageDigest}`,
     durableTerminalObservationCreated: true,
     imageBuiltAndPushed: true,
     sbomReread: false,

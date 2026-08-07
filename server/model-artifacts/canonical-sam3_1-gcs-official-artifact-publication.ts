@@ -37,7 +37,9 @@ type CanonicalSam31PrivateArtifactPublicationFailureCode =
   | 'storage_target_not_found'
   | 'storage_throttled'
   | 'storage_transport_unavailable'
+  | 'storage_upload_failed'
   | 'unclassified_failure'
+  | `${'pipeline' | 'source' | 'storage'}_name_${string}`
   | `${'pipeline' | 'source' | 'storage'}_node_${string}`
   | `${'pipeline' | 'source' | 'storage'}_${
     'abort_error' | 'range_error' | 'runtime_error' | 'type_error'
@@ -118,9 +120,9 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
           { cause: error },
         )
         const failureCode = selectMostSpecificFailureCode([
-          sourceFailure,
           storageFailure,
           classifyPublicationFailure(error, 'pipeline'),
+          sourceFailure,
         ])
         throw new Error(
           `SAM 3.1 private artifact streaming publication failed [${
@@ -384,15 +386,31 @@ async function hashBoundedStream(
 
 function cloudErrorCode(error: unknown): number | undefined {
   if (!error || typeof error !== 'object') return
-  let code: unknown
+  for (const key of ['code', 'statusCode', 'status'] as const) {
+    const parsed = safeHttpStatus(safeReflectGet(error, key))
+    if (parsed !== undefined) return parsed
+  }
+  const response = safeReflectGet(error, 'response')
+  if (response && typeof response === 'object') {
+    for (const key of ['statusCode', 'status'] as const) {
+      const parsed = safeHttpStatus(safeReflectGet(response, key))
+      if (parsed !== undefined) return parsed
+    }
+  }
+}
+
+function safeHttpStatus(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isInteger(value)) return value
+  if (typeof value === 'string' && /^[0-9]{3}$/u.test(value)) {
+    return Number.parseInt(value, 10)
+  }
+}
+
+function safeReflectGet(value: object, key: string): unknown {
   try {
-    code = Reflect.get(error, 'code')
+    return Reflect.get(value, key)
   } catch {
     return
-  }
-  if (typeof code === 'number') return code
-  if (typeof code === 'string' && /^[0-9]{3}$/u.test(code)) {
-    return Number.parseInt(code, 10)
   }
 }
 
@@ -457,10 +475,15 @@ function classifyPublicationFailure(
       || message === 'SAM 3.1 official artifact is below its byte bound.'
       || message === 'SAM 3.1 official artifact identity is not approved.'
     ) return 'artifact_identity_or_bounds_failed'
+    if (message === 'Upload failed') return 'storage_upload_failed'
 
     const runtimeCode = safeRuntimeErrorCode(cursor)
     if (runtimeCode) {
       return `${origin}_node_${runtimeCode.toLowerCase()}`
+    }
+    const runtimeName = safeRuntimeErrorName(cursor)
+    if (runtimeName) {
+      return `${origin}_name_${runtimeName.toLowerCase()}`
     }
     const errorKind = safeErrorKind(cursor)
     if (errorKind) return `${origin}_${errorKind}`
@@ -510,6 +533,23 @@ function safeRuntimeErrorCode(error: unknown): string | undefined {
   }
   return typeof code === 'string' && /^[A-Z][A-Z0-9_]{1,63}$/u.test(code)
     ? code
+    : undefined
+}
+
+function safeRuntimeErrorName(error: unknown): string | undefined {
+  if (!(error instanceof Error)) return
+  let name: string
+  try {
+    name = error.name
+  } catch {
+    return
+  }
+  return name !== 'Error'
+    && name !== 'TypeError'
+    && name !== 'RangeError'
+    && name !== 'AbortError'
+    && /^[A-Za-z][A-Za-z0-9]{1,63}$/u.test(name)
+    ? name
     : undefined
 }
 

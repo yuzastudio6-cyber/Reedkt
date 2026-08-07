@@ -107,6 +107,25 @@ class FailingStorage {
   }
 }
 
+class NamedFailingStorage {
+  bucket() {
+    return {
+      file: () => ({
+        createWriteStream: () => new Writable({
+          write(_chunk, _encoding, callback) {
+            const error = new Error(
+              'hf_PRIVATE_TOKEN /tmp/checkpoint mismatch',
+            ) as Error & { code: string }
+            error.name = 'RequestError'
+            error.code = 'FILE_NO_UPLOAD'
+            callback(error)
+          },
+        }),
+      }),
+    }
+  }
+}
+
 const sourceBytes = Buffer.from('synthetic official source archive')
 const checkpointBytes = Buffer.from('synthetic official gated checkpoint')
 const terms = createTerms('synthetic_contract_fixture')
@@ -379,6 +398,23 @@ assert.equal(
 )
 assert.doesNotMatch(safeStorageFailure, /hf_|\/Users|source URL/u)
 
+const namedStorageFailurePort =
+  createCanonicalSam31GcsOfficialArtifactPublicationPort({
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+    storage: new NamedFailingStorage() as never,
+  })
+await assert.rejects(() => namedStorageFailurePort.publishCreateOnlyAndReread({
+  projectId: 'reeditpro',
+  bucketName: 'reeditpro-production-reeditpro-model-artifacts',
+  objectName:
+    'private/model-artifacts/sam3_1/source/named-failure/sam3-source.tar',
+  contentType: 'application/x-tar',
+  body: chunked(sourceBytes),
+  minimumByteLength: sourceBytes.byteLength,
+  maximumByteLength: sourceBytes.byteLength,
+}), /failed \[storage_node_file_no_upload\]\.$/u)
+
 const cliSource = readFileSync(
   'server/cli/canonical-sam3_1-official-artifact-ingest.ts',
   'utf8',
@@ -404,7 +440,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-publication',
-  checks: 46,
+  checks: 48,
   cloudOnly: true,
   officialSourcePinned: true,
   officialGatedCheckpointPinned: true,

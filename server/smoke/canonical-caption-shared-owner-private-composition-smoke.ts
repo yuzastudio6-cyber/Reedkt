@@ -15,6 +15,7 @@ import {
 import {
   createCanonicalCaptionSharedOwnerPrivateComposition,
   createCanonicalCaptionSharedOwnerPrivateCompositionV2,
+  createCanonicalCaptionSharedOwnerPrivateCompositionV3,
 } from '../services/canonical-caption-shared-owner-private-composition'
 import {
   createCanonicalSpecialistSupportResumeRepository,
@@ -164,6 +165,34 @@ check(!compositionV2.brollSelectionOwnedByCaption
   && !compositionV2.runtimeAuthorityGrantedToCaption
   && !compositionV2.finalQaApprovalAuthorityGrantedToCaption,
 'The stronger inspection mount must preserve closed Caption authority.')
+
+const compositionV3 = createCanonicalCaptionSharedOwnerPrivateCompositionV3({
+  objectPort,
+  supportResumeRepository,
+  soundContextReadPort,
+  soundExecutionReadPort,
+  soundArtifactResolver: neverSoundResolver,
+  brollApprovedSnapshotReadPort,
+  brollPrivateVisualReviewReadPort,
+  brollArtifactStore: neverArtifactStore,
+  prefix: 'private/smoke/caption-owner-composition-v3',
+})
+check(compositionV3.schemaVersion
+  === 'canonical-caption-shared-owner-private-composition-v3'
+  && compositionV3.soundListeningReviewRepository.schemaVersion
+    === 'canonical-sound-caption-listening-review-repository-v1'
+  && compositionV3.soundOwner.schemaVersion
+    === 'canonical-sound-caption-owner-service-v1',
+'The V3 composition must mount the Sound-owned create-only review repository.')
+check(compositionV3.soundListeningReviewCreateOnlyOwnerMounted
+  && compositionV3.soundListeningReviewRepository.listeningReviewReadPort
+    .sourceAuthority === 'canonical_private_sound_listening_review_owner',
+'The Sound owner must consume its admitted repository reader, not caller QA.')
+check(!compositionV3.soundExecutionOwnedByCaption
+  && !compositionV3.runtimeAuthorityGrantedToCaption
+  && !compositionV3.finalQaApprovalAuthorityGrantedToCaption
+  && !compositionV3.productionAuthorityGranted,
+'The durable Sound review mount must preserve closed Caption authority.')
 
 assert.throws(() => createCanonicalCaptionSharedOwnerPrivateComposition({
   objectPort,

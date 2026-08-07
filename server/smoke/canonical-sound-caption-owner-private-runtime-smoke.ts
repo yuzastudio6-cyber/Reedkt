@@ -24,10 +24,12 @@ import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 import {
   createCanonicalSoundCaptionExecutionReadPort,
-  createCanonicalSoundCaptionListeningReview,
-  createCanonicalSoundCaptionListeningReviewReadPort,
   createCanonicalSoundCaptionOwnerService,
 } from '../services/canonical-sound-caption-owner-service'
+import { createCanonicalPrivateLocalJsonObjectPort } from
+  '../services/canonical-private-local-json-object-port'
+import { createCanonicalSoundCaptionListeningReviewRepository } from
+  '../services/canonical-sound-caption-listening-review-completion'
 import {
   buildExecutableSoundRequest,
   createCanonicalSoundTestRuntime,
@@ -242,7 +244,9 @@ try {
 
   const inspectedHash = process.env
     .REEDITPRO_CAPTION_SOUND_INSPECTED_ARTIFACT_SHA256
-  if (!inspectedHash) {
+  const listeningReviewRoot = process.env
+    .REEDITPRO_CAPTION_SOUND_LISTENING_REVIEW_ROOT
+  if (!inspectedHash || !listeningReviewRoot) {
     console.log(JSON.stringify({
       smoke: 'canonical_sound_caption_owner_private_runtime',
       status: 'needs_direct_listening_review',
@@ -251,12 +255,18 @@ try {
       synchronizedCueCount: soundResult.synchronizationPlacements?.length ?? 0,
       parentCapabilityPromoted: false,
       childRoutesIndependentlyQualified: true,
+      inspectedArtifactHashProvided: Boolean(inspectedHash),
+      createOnlyListeningReviewProvided: Boolean(listeningReviewRoot),
       captionRuntimeAuthority: false,
       publicDeliveryAuthority: false,
       productionAuthority: false,
     }, null, 2))
   } else {
     assert.deepEqual(evidence.finalArtifactHashes, [inspectedHash])
+    const resolvedListeningReviewRoot = resolve(listeningReviewRoot)
+    assert.equal(resolvedListeningReviewRoot === process.cwd()
+      || resolvedListeningReviewRoot.startsWith(`${process.cwd()}/`), false,
+    'The Sound listening review repository must remain outside the repo.')
     const canonicalRequestRef = ref(
       canonicalRequest.requestId,
       canonicalRequest.schemaVersion,
@@ -272,34 +282,20 @@ try {
       captionRequest.schemaVersion,
       captionRequest.requestDigestSha256,
     )
-    const review = createCanonicalSoundCaptionListeningReview({
-      schemaVersion: 'canonical-sound-caption-listening-review-v1',
-      reviewId: 'caption.sound.private-runtime.listening-review.v1',
+    const listeningReviewRepository =
+      createCanonicalSoundCaptionListeningReviewRepository({
+        objectPort: createCanonicalPrivateLocalJsonObjectPort({
+          localStorageRoot: resolvedListeningReviewRoot,
+        }),
+        prefix: 'canonical-sound-caption-listening-review',
+      })
+    const persistedReview = await listeningReviewRepository.rereadExact({
       captionSoundRequestRef: captionRequestRef,
       canonicalSoundRequestRef: canonicalRequestRef,
       canonicalSoundResultRef: canonicalResultRef,
-      finalMixArtifactRefs: finalArtifacts.map((artifact) => ref(
-        artifact.artifactId,
-        `${artifact.artifactType}.v${artifact.version}`,
-        artifact.checksumSha256,
-      )),
-      qaEvidenceHash: soundResult.finalCompositionHandoff.qaEvidenceHash,
-      reviewedFrameRanges: captionRequest.canonicalScope.authorizedFrameRanges,
-      reviewedCueIds: soundResult.cueManifest.cues.map((cue) => cue.cueId),
-      inspectionMode: 'complete_time_private_audio_review',
-      reviewerClass: 'qualified_audio_ai',
-      disposition: 'accepted_with_warnings',
-      actualAudioPlaybackCompleted: true,
-      everyRequestedRangeReviewed: true,
-      voiceClarityPassed: true,
-      noCueMasksDialogue: true,
-      sourceBytesIncluded: false,
-      mediaLocatorIncluded: false,
-      finalQaApprovalGranted: false,
-      publicDeliveryGranted: false,
-      productionAuthorityGranted: false,
-      reviewedAt: '2026-08-05T20:00:00.000Z',
     })
+    assert.ok(persistedReview,
+      'The exact create-only Sound listening review is not persisted.')
     const objectPort = memoryObjectPort(new Map())
     const owner = createCanonicalSoundCaptionOwnerService({
       objectPort,
@@ -309,8 +305,7 @@ try {
           result: JSON.parse(JSON.stringify(soundResult)) as unknown,
         })),
       listeningReviewReadPort:
-        createCanonicalSoundCaptionListeningReviewReadPort(async () =>
-          structuredClone(review)),
+        listeningReviewRepository.listeningReviewReadPort,
       artifactResolver: runtime.resolver,
       prefix: 'private/smoke/caption-sound-private-runtime',
     })
@@ -336,6 +331,8 @@ try {
       status: 'passed',
       actualMediaRuntimeExecuted: true,
       actualAudioPlaybackCompleted: true,
+      listeningReviewRecordDigestSha256:
+        persistedReview.recordDigestSha256,
       finalArtifactHashes: evidence.finalArtifactHashes,
       synchronizedCueCount: soundResult.synchronizationPlacements?.length ?? 0,
       admittedCaptionCueCount: parsed.cueResults.filter((cue) =>

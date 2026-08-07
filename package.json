@@ -321,6 +321,7 @@
     "smoke:canonical-caption-shared-owner-composition": "tsx server/smoke/canonical-caption-shared-owner-private-composition-smoke.ts",
     "smoke:canonical-sound-caption-owner": "tsx server/smoke/canonical-sound-caption-owner-service-smoke.ts",
     "smoke:canonical-sound-caption-owner-private-runtime": "tsx server/smoke/canonical-sound-caption-owner-private-runtime-smoke.ts",
+    "private:canonical-sound-caption-listening-review": "tsx server/cli/canonical-sound-caption-listening-review-completion.ts",
     "smoke:canonical-caption-specialist-planning": "tsx server/smoke/canonical-caption-specialist-planning-smoke.ts",
     "smoke:canonical-caption-source-led-professional-planning": "tsx server/smoke/canonical-caption-source-led-professional-planning-smoke.ts",
     "smoke:canonical-caption-source-led-professional-planning-owner": "tsx server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts",

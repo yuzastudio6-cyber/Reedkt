@@ -40,11 +40,17 @@ import {
   type CanonicalSoundCaptionListeningReviewReadPort,
   type CanonicalSoundCaptionOwnerService,
 } from './canonical-sound-caption-owner-service'
+import {
+  createCanonicalSoundCaptionListeningReviewRepository,
+  type CanonicalSoundCaptionListeningReviewRepository,
+} from './canonical-sound-caption-listening-review-completion'
 
 export const CANONICAL_CAPTION_SHARED_OWNER_PRIVATE_COMPOSITION_VERSION =
   'canonical-caption-shared-owner-private-composition-v1' as const
 export const CANONICAL_CAPTION_SHARED_OWNER_PRIVATE_COMPOSITION_V2_VERSION =
   'canonical-caption-shared-owner-private-composition-v2' as const
+export const CANONICAL_CAPTION_SHARED_OWNER_PRIVATE_COMPOSITION_V3_VERSION =
+  'canonical-caption-shared-owner-private-composition-v3' as const
 
 /**
  * Internal composition root for the two previously missing Caption owner
@@ -85,6 +91,17 @@ export interface CanonicalCaptionSharedOwnerPrivateCompositionV2
   readonly brollSelectedArtifactInspectionAuthorityMounted: true
 }
 
+export interface CanonicalCaptionSharedOwnerPrivateCompositionV3
+  extends Omit<CanonicalCaptionSharedOwnerPrivateCompositionV2,
+    'schemaVersion' | 'soundOwner'> {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_SHARED_OWNER_PRIVATE_COMPOSITION_V3_VERSION
+  readonly soundOwner: CanonicalSoundCaptionOwnerService
+  readonly soundListeningReviewRepository:
+    CanonicalSoundCaptionListeningReviewRepository
+  readonly soundListeningReviewCreateOnlyOwnerMounted: true
+}
+
 export interface CanonicalCaptionSharedOwnerPrivateCompositionInput {
   readonly objectPort: CanonicalCreateOnlyJsonObjectPort
   readonly supportResumeRepository: CanonicalSpecialistSupportResumeRepository
@@ -101,6 +118,10 @@ export interface CanonicalCaptionSharedOwnerPrivateCompositionInput {
   readonly prefix?: string
   readonly now?: () => Date
 }
+
+export type CanonicalCaptionSharedOwnerPrivateCompositionV3Input =
+  Omit<CanonicalCaptionSharedOwnerPrivateCompositionInput,
+    'soundListeningReviewReadPort'>
 
 export function createCanonicalCaptionSharedOwnerPrivateComposition(
   input: CanonicalCaptionSharedOwnerPrivateCompositionInput,
@@ -215,6 +236,82 @@ export function createCanonicalCaptionSharedOwnerPrivateCompositionV2(
     soundOwner,
     soundSupport,
     soundEvidenceRepository,
+    brollOwner,
+    brollSupport,
+    brollEvidenceRepository,
+    brollInspectionSourceAuthorityReadPort:
+      brollOwner.inspectionSourceAuthorityReadPort,
+    brollSelectedArtifactInspectionAuthorityMounted: true,
+    soundExecutionOwnedByCaption: false,
+    brollSelectionOwnedByCaption: false,
+    directPeerDispatchMounted: false,
+    providerAuthorityGranted: false,
+    runtimeAuthorityGrantedToCaption: false,
+    assetMutationAuthorityGrantedToCaption: false,
+    finalQaApprovalAuthorityGrantedToCaption: false,
+    billingAuthorityGrantedToCaption: false,
+    publicDeliveryAuthorityGranted: false,
+    productionAuthorityGranted: false,
+  })
+}
+
+export function createCanonicalCaptionSharedOwnerPrivateCompositionV3(
+  input: CanonicalCaptionSharedOwnerPrivateCompositionV3Input,
+): CanonicalCaptionSharedOwnerPrivateCompositionV3 {
+  const prefix = input.prefix
+    ?? 'private/orchestra/v1/caption-shared-owner-composition'
+  const soundListeningReviewRepository =
+    createCanonicalSoundCaptionListeningReviewRepository({
+      objectPort: input.objectPort,
+      prefix: `${prefix}/sound-listening-review`,
+    })
+  const soundOwner = createCanonicalSoundCaptionOwnerService({
+    objectPort: input.objectPort,
+    executionReadPort: input.soundExecutionReadPort,
+    listeningReviewReadPort:
+      soundListeningReviewRepository.listeningReviewReadPort,
+    artifactResolver: input.soundArtifactResolver,
+    prefix: `${prefix}/sound-owner`,
+  })
+  const soundEvidenceRepository =
+    createCanonicalCaptionSoundSyncEvidenceRepository({
+      objectPort: input.objectPort,
+      prefix: `${prefix}/sound-support`,
+    })
+  const soundSupport = createCanonicalCaptionSoundSyncSupportService({
+    supportResumeRepository: input.supportResumeRepository,
+    contextReadPort: input.soundContextReadPort,
+    ownerReadPort: soundOwner.ownerReadPort,
+    evidenceRepository: soundEvidenceRepository,
+    now: input.now,
+  })
+  const brollOwner = createCanonicalBrollCaptionOwnerServiceV2({
+    objectPort: input.objectPort,
+    artifactStore: input.brollArtifactStore,
+    approvedSnapshotReadPort: input.brollApprovedSnapshotReadPort,
+    privateVisualReviewReadPort: input.brollPrivateVisualReviewReadPort,
+    prefix: `${prefix}/broll-owner`,
+  })
+  const brollEvidenceRepository =
+    createCanonicalCaptionBrollEvidenceRepository({
+      objectPort: input.objectPort,
+      prefix: `${prefix}/broll-support`,
+    })
+  const brollSupport = createCanonicalCaptionBrollSupportService({
+    supportResumeRepository: input.supportResumeRepository,
+    approvedSnapshotReadPort: input.brollApprovedSnapshotReadPort,
+    ownerReadPort: brollOwner.ownerReadPort,
+    evidenceRepository: brollEvidenceRepository,
+    now: input.now,
+  })
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_SHARED_OWNER_PRIVATE_COMPOSITION_V3_VERSION,
+    soundOwner,
+    soundSupport,
+    soundEvidenceRepository,
+    soundListeningReviewRepository,
+    soundListeningReviewCreateOnlyOwnerMounted: true,
     brollOwner,
     brollSupport,
     brollEvidenceRepository,

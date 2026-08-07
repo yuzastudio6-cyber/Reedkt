@@ -28,10 +28,16 @@ import {
 } from '../orchestra/orchestra-skill-contracts'
 import {
   createCanonicalSoundCaptionExecutionReadPort,
-  createCanonicalSoundCaptionListeningReview,
   createCanonicalSoundCaptionListeningReviewReadPort,
   createCanonicalSoundCaptionOwnerService,
 } from '../services/canonical-sound-caption-owner-service'
+import {
+  CAPTION_SOUND_PRIVATE_RUNTIME_INSPECTION_PACKAGE_VERSION,
+  completeCanonicalSoundCaptionListeningReview,
+  createCanonicalSoundCaptionListeningPlaybackDerivation,
+  createCanonicalSoundCaptionListeningReviewerSubmission,
+  createCanonicalSoundCaptionListeningReviewRepository,
+} from '../services/canonical-sound-caption-listening-review-completion'
 import {
   buildSoundRequest,
 } from './sound-test-fixtures'
@@ -253,45 +259,194 @@ try {
   )
   const captionRequestRef = ref(
     caption.requestId, caption.schemaVersion, caption.requestDigestSha256)
-  const listeningReview = createCanonicalSoundCaptionListeningReview({
-    schemaVersion: 'canonical-sound-caption-listening-review-v1',
-    reviewId: 'canonical.sound.listening.caption.owner.smoke',
+  const finalMixArtifactRef = ref(
+    finalArtifact.artifactId,
+    `${finalArtifact.artifactType}.v${finalArtifact.version}`,
+    finalArtifact.checksumSha256,
+  )
+  const inspectionPackageRef = ref(
+    'caption.sound.private-runtime.inspection.smoke',
+    CAPTION_SOUND_PRIVATE_RUNTIME_INSPECTION_PACKAGE_VERSION,
+    sha('caption.sound.private-runtime.inspection.smoke'),
+  )
+  const reviewerSubmission =
+    createCanonicalSoundCaptionListeningReviewerSubmission({
+      schemaVersion:
+        'canonical-sound-caption-listening-reviewer-submission-v1',
+      submissionId: 'canonical.sound.listening.submission.caption.owner.smoke',
+      inspectionPackageRef,
+      captionSoundRequestRef: captionRequestRef,
+      canonicalSoundRequestRef: canonicalRequestRef,
+      canonicalSoundResultRef: canonicalResultRef,
+      finalMixArtifactRefs: [finalMixArtifactRef],
+      playbackArtifactRef: finalMixArtifactRef,
+      playbackDerivationReceiptRef: null,
+      reviewerClass: 'direct_private_human',
+      disposition: 'accepted',
+      completePlaybackCount: 1,
+      actualAudioPlaybackCompleted: true,
+      everyRequestedRangeReviewed: true,
+      voiceClarityPassed: true,
+      noCueMasksDialogue: true,
+      cueTimingAndRestraintPassed: true,
+      noUnexpectedAudioDefectsPassed: true,
+      observationCodes: [
+        'complete_time_coverage',
+        'voice_clarity',
+        'dialogue_masking',
+        'cue_timing_and_restraint',
+        'unexpected_audio_defects',
+      ],
+      warningCodes: [],
+      reviewedAt: '2026-08-05T20:00:00.000Z',
+      independentFromSoundExecutionRuntime: true,
+      sourceBytesIncluded: false,
+      mediaLocatorIncluded: false,
+      rawChatIncluded: false,
+      providerCallMade: false,
+      runtimeAuthorityGrantedToCaption: false,
+      assetAuthorityGrantedToCaption: false,
+      mixAuthorityGrantedToCaption: false,
+      costOrBillingAuthorityGrantedToCaption: false,
+      finalQaApprovalGrantedToCaption: false,
+      publicDeliveryGranted: false,
+      productionAuthorityGranted: false,
+    })
+  const listeningRecord = completeCanonicalSoundCaptionListeningReview({
+    inspectionPackageRef,
+    captionSoundRequest: caption,
+    canonicalSoundRequest: jsonClone(canonicalRequest),
+    canonicalSoundResult: jsonClone(canonicalResult),
+    reviewerSubmission,
+  })
+  const listeningReview = listeningRecord.listeningReview
+  check(listeningReview.schemaVersion
+    === 'canonical-sound-caption-listening-review-v1'
+    && listeningRecord.completionReceipt
+      .independentReviewProjectedIntoCanonicalSoundOwner,
+  'The independent reviewer submission must project into the existing Sound owner review.')
+  const values = new Map<string, Buffer>()
+  const objectPort = memoryObjectPort(values)
+  const listeningRepository =
+    createCanonicalSoundCaptionListeningReviewRepository({
+      objectPort,
+      prefix: 'private/smoke/canonical-sound-caption-listening-review',
+    })
+  check(await listeningRepository.persistCreateOnly(listeningRecord)
+    === 'created'
+    && await listeningRepository.persistCreateOnly(listeningRecord)
+      === 'identical_replay',
+  'The Sound listening record must persist create-only with exact replay.')
+  check((await listeningRepository.rereadExact({
     captionSoundRequestRef: captionRequestRef,
     canonicalSoundRequestRef: canonicalRequestRef,
     canonicalSoundResultRef: canonicalResultRef,
-    finalMixArtifactRefs: [ref(
-      finalArtifact.artifactId,
-      `${finalArtifact.artifactType}.v${finalArtifact.version}`,
-      finalArtifact.checksumSha256,
-    )],
-    qaEvidenceHash: qaReport.evidenceHash,
-    reviewedFrameRanges: caption.canonicalScope.authorizedFrameRanges,
-    reviewedCueIds: planned.cueManifest.cues.map((cue) => cue.cueId),
-    inspectionMode: 'complete_time_private_audio_review',
-    reviewerClass: 'direct_private_human',
-    disposition: 'accepted',
-    actualAudioPlaybackCompleted: true,
-    everyRequestedRangeReviewed: true,
-    voiceClarityPassed: true,
-    noCueMasksDialogue: true,
-    sourceBytesIncluded: false,
-    mediaLocatorIncluded: false,
-    finalQaApprovalGranted: false,
-    publicDeliveryGranted: false,
-    productionAuthorityGranted: false,
-    reviewedAt: '2026-08-05T20:00:00.000Z',
+  }))?.recordDigestSha256 === listeningRecord.recordDigestSha256,
+  'The Sound owner must reread the exact persisted listening record.')
+  const tamperedRecord = structuredClone(listeningRecord)
+  tamperedRecord.reviewerSubmission.warningCodes = ['forged_warning']
+  await reject(() => listeningRepository.persistCreateOnly(tamperedRecord))
+  const incompleteRecord = structuredClone(listeningRecord) as unknown as
+    Record<string, unknown>
+  delete incompleteRecord.playbackDerivationReceipt
+  await reject(() => listeningRepository.persistCreateOnly(
+    incompleteRecord as unknown as typeof listeningRecord))
+  const playbackProxyRef = ref(
+    'canonical.sound.listening.proxy.caption.owner.smoke',
+    'private-audio-pcm-s16le-v1',
+    sha('canonical sound listening proxy bytes'),
+  )
+  const playbackDerivation =
+    createCanonicalSoundCaptionListeningPlaybackDerivation({
+      schemaVersion:
+        'canonical-sound-caption-listening-playback-derivation-v1',
+      derivationId:
+        'canonical.sound.listening.derivation.caption.owner.smoke',
+      sourceFinalMixArtifactRef: finalMixArtifactRef,
+      playbackArtifactRef: playbackProxyRef,
+      conversionOperationRef: ref(
+        'canonical.sound.listening.conversion.caption.owner.smoke',
+        'tool.ffmpeg.execute_approved_media_recipe.v1'),
+      transformProfile: 'pcm_bit_depth_compatibility_proxy',
+      sourceSampleRate: 48_000,
+      playbackSampleRate: 48_000,
+      sourceChannelCount: 2,
+      playbackChannelCount: 2,
+      completeDurationPreserved: true,
+      channelLayoutPreserved: true,
+      resamplingPerformed: false,
+      trimmingPerformed: false,
+      gainOrDynamicsProcessingPerformed: false,
+      networkAccessUsed: false,
+      sourceArtifactRereadBeforeConversion: true,
+      playbackArtifactRereadAfterConversion: true,
+      mediaBytesIncluded: false,
+      mediaLocatorIncluded: false,
+      providerCallMade: false,
+      finalQaApprovalGranted: false,
+      publicDeliveryGranted: false,
+      productionAuthorityGranted: false,
+    })
+  const { submissionDigestSha256: _submissionDigest, ...submissionCore } =
+    reviewerSubmission
+  void _submissionDigest
+  const proxySubmission =
+    createCanonicalSoundCaptionListeningReviewerSubmission({
+      ...submissionCore,
+      submissionId:
+        'canonical.sound.listening.proxy-submission.caption.owner.smoke',
+      playbackArtifactRef: playbackProxyRef,
+      playbackDerivationReceiptRef: ref(
+        playbackDerivation.derivationId,
+        playbackDerivation.schemaVersion,
+        playbackDerivation.derivationDigestSha256,
+      ),
+    })
+  const proxyRecord = completeCanonicalSoundCaptionListeningReview({
+    inspectionPackageRef,
+    captionSoundRequest: caption,
+    canonicalSoundRequest: jsonClone(canonicalRequest),
+    canonicalSoundResult: jsonClone(canonicalResult),
+    reviewerSubmission: proxySubmission,
+    playbackDerivationReceipt: playbackDerivation,
   })
-  const values = new Map<string, Buffer>()
+  check(proxyRecord.playbackDerivationReceipt?.derivationDigestSha256
+    === playbackDerivation.derivationDigestSha256,
+  'A format-compatibility playback proxy must preserve exact derivation lineage.')
+  assert.throws(() => completeCanonicalSoundCaptionListeningReview({
+    inspectionPackageRef,
+    captionSoundRequest: caption,
+    canonicalSoundRequest: jsonClone(canonicalRequest),
+    canonicalSoundResult: jsonClone(canonicalResult),
+    reviewerSubmission: proxySubmission,
+  }))
+  checks += 1
+  const { derivationDigestSha256: _derivationDigest, ...derivationCore } =
+    playbackDerivation
+  void _derivationDigest
+  const crossedDerivation =
+    createCanonicalSoundCaptionListeningPlaybackDerivation({
+      ...derivationCore,
+      sourceFinalMixArtifactRef: ref(
+        'crossed.sound.final', 'private_sound_stem.v1'),
+    })
+  assert.throws(() => completeCanonicalSoundCaptionListeningReview({
+    inspectionPackageRef,
+    captionSoundRequest: caption,
+    canonicalSoundRequest: jsonClone(canonicalRequest),
+    canonicalSoundResult: jsonClone(canonicalResult),
+    reviewerSubmission: proxySubmission,
+    playbackDerivationReceipt: crossedDerivation,
+  }))
+  checks += 1
   const service = createCanonicalSoundCaptionOwnerService({
-    objectPort: memoryObjectPort(values),
+    objectPort,
     executionReadPort: createCanonicalSoundCaptionExecutionReadPort(
       async () => ({
         request: jsonClone(canonicalRequest),
         result: jsonClone(canonicalResult),
       })),
-    listeningReviewReadPort:
-      createCanonicalSoundCaptionListeningReviewReadPort(async () =>
-        structuredClone(listeningReview)),
+    listeningReviewReadPort: listeningRepository.listeningReviewReadPort,
     artifactResolver: {
       async resolve(artifact) {
         assert.equal(artifact.checksumSha256, finalArtifact.checksumSha256)

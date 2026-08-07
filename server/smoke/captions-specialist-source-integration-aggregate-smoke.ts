@@ -118,6 +118,8 @@ console.log(JSON.stringify({
   brollOwnerInspectionApprovedRunLaneMounted: true,
   brollOwnerSelectedArtifactSourceAuthorityMounted: true,
   callerSuppliedBrollInspectionAuthorityPortAccepted: false,
+  soundListeningReviewCreateOnlyOwnerMounted: true,
+  artifactHashOnlySoundReviewAccepted: false,
   mixedInspectionLaneCampaignMounted: true,
   finalPrivateQualificationServiceImplemented: true,
   actualQualificationCatalogPersisted: false,

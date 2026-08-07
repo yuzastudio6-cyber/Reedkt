@@ -174,7 +174,11 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
 2. consume an actual canonical Visual Intelligence owner record;
 3. consume an actual canonical Track All owner record;
 4. consume an actual canonical Sound result, exact final audio reread, and
-   complete-time listening review through the mounted owner service;
+   complete-time listening review through the mounted owner service. The
+   create-only independent-review repository and private completion operator
+   are mounted in source, and the old artifact-hash-only acceptance shortcut
+   has been removed. An audio-capable qualified reviewer must still author the
+   exact playback decision before this becomes actual evidence;
 5. bind the now-accepted real-source canonical B-roll work/artifacts,
    complete-time visual review, owner result, and Caption resume to the exact
    representative approved-run package rather than its separate evidence
@@ -216,6 +220,8 @@ and
 - `src/types/caption-current-job-readiness.ts`
 - `server/captions-specialist/caption-current-job-readiness.ts`
 - `server/services/canonical-sound-caption-owner-service.ts`
+- `server/services/canonical-sound-caption-listening-review-completion.ts`
+- `server/cli/canonical-sound-caption-listening-review-completion.ts`
 - `server/services/canonical-broll-caption-owner-service.ts`
 - `server/services/canonical-caption-shared-owner-private-composition.ts`
 - `server/smoke/canonical-sound-caption-owner-service-smoke.ts`

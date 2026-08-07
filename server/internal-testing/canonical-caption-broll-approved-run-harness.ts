@@ -35,6 +35,9 @@ import type {
   AuthorityApprovedSnapshotManifest,
 } from '../services/private-edit-authority-store'
 import {
+  readPrivateEditAuthorityAggregate,
+} from '../services/private-edit-authority-store'
+import {
   createEditPlanningAuthorityService,
 } from '../services/edit-planning-authority-service'
 import type { ServiceContext } from '../types'
@@ -265,33 +268,110 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     })
 
   const planning = createEditPlanningAuthorityService(input.context)
-  const published = await planning.publishCanonicalPlan({
-    workspaceId: input.workspaceId,
-    projectId: input.projectId,
-    editSessionId: input.editSessionId,
-    planningRequestId: publication.planningRequestIdSeed,
-    planningInputAuthority:
-      structuredClone(input.planningInputAuthority),
-    sourceMediaAuthority: structuredClone(input.sourceMediaAuthority),
-    canonicalPlan,
-    idempotencyKey: `${input.idempotencySeed}.publish`,
-  })
-  const publishedAuthority = published.authority as unknown as {
+  let publishedAuthority: {
     authorityRevision: number
     plan: { id: string; planHash: string }
     estimate: { estimateHash: string }
   }
-  const approved = await planning.approveAndFundCanonicalPlan({
-    workspaceId: input.workspaceId,
-    editPlanId: publishedAuthority.plan.id,
-    expectedAuthorityRevision: publishedAuthority.authorityRevision,
-    expectedPlanHash: publishedAuthority.plan.planHash,
-    expectedEstimateHash: publishedAuthority.estimate.estimateHash,
-    idempotencyKey: `${input.idempotencySeed}.approve`,
-  })
-  const approvedAuthority = approved.authority as unknown as {
+  let approvedAuthority: {
     authorityRevision: number
     snapshot: AuthorityApprovedSnapshotManifest
+  }
+  let publishedWarnings: readonly string[]
+  let approvedWarnings: readonly string[]
+  let approvedExecutionAuthority: Awaited<ReturnType<
+    ReturnType<typeof createEditPlanningAuthorityService>[
+      'loadApprovedExecutionAuthority'
+    ]
+  >>
+  const persistedAggregate = await readPrivateEditAuthorityAggregate({
+    localStorageRoot: input.context.env.localStorageRoot,
+    ownerUserId: input.ownerUserId,
+    workspaceId: input.workspaceId,
+  })
+  const persistedPublish = persistedAggregate?.idempotencyRecords.find(
+    (record) => record.operation === 'publish_plan'
+      && record.idempotencyKey === `${input.idempotencySeed}.publish`,
+  )
+  const persistedPlan = persistedPublish
+    ? persistedAggregate?.plans.find((plan) => plan.id === persistedPublish.responseId)
+    : undefined
+  const persistedSnapshots = persistedPlan
+    ? persistedAggregate?.snapshots.filter((candidate) =>
+        candidate.planId === persistedPlan.id)
+    : []
+  if (persistedPlan && persistedSnapshots?.length === 1) {
+    if (
+      persistedPlan.projectId !== input.projectId
+      || persistedPlan.editSessionId !== input.editSessionId
+      || persistedPlan.planningRequestId !== publication.planningRequestIdSeed
+    ) {
+      throw new Error(
+        'Persisted Caption+B-roll publication does not match the requested approved-run scope.',
+      )
+    }
+    approvedExecutionAuthority = await planning.loadApprovedExecutionAuthority(
+      persistedSnapshots[0]!.snapshotId,
+      input.workspaceId,
+    )
+    if (
+      hashSkillValue(approvedExecutionAuthority.components)
+        !== hashSkillValue(canonicalPlan.components)
+      || hashSkillValue(approvedExecutionAuthority.components.bRollSkill)
+        !== hashSkillValue(broll.persistedComponent.component)
+    ) {
+      throw new Error(
+        'Persisted Caption+B-roll approved components changed before replay.',
+      )
+    }
+    publishedAuthority = {
+      authorityRevision: persistedAggregate!.revision,
+      plan: persistedPlan,
+      estimate: approvedExecutionAuthority.estimate,
+    }
+    approvedAuthority = {
+      authorityRevision: persistedAggregate!.revision,
+      snapshot: approvedExecutionAuthority.snapshot,
+    }
+    publishedWarnings = [
+      'The exact persisted Caption+B-roll canonical plan was reread; no duplicate publication occurred.',
+    ]
+    approvedWarnings = [
+      'The exact immutable Caption+B-roll approved snapshot was reread; no duplicate approval or reservation occurred.',
+    ]
+  } else {
+    if (persistedPlan || (persistedSnapshots?.length ?? 0) > 0) {
+      throw new Error(
+        'Persisted Caption+B-roll publication has incomplete or ambiguous snapshot lineage.',
+      )
+    }
+    const published = await planning.publishCanonicalPlan({
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      editSessionId: input.editSessionId,
+      planningRequestId: publication.planningRequestIdSeed,
+      planningInputAuthority:
+        structuredClone(input.planningInputAuthority),
+      sourceMediaAuthority: structuredClone(input.sourceMediaAuthority),
+      canonicalPlan,
+      idempotencyKey: `${input.idempotencySeed}.publish`,
+    })
+    publishedAuthority = published.authority as unknown as typeof publishedAuthority
+    const approved = await planning.approveAndFundCanonicalPlan({
+      workspaceId: input.workspaceId,
+      editPlanId: publishedAuthority.plan.id,
+      expectedAuthorityRevision: publishedAuthority.authorityRevision,
+      expectedPlanHash: publishedAuthority.plan.planHash,
+      expectedEstimateHash: publishedAuthority.estimate.estimateHash,
+      idempotencyKey: `${input.idempotencySeed}.approve`,
+    })
+    approvedAuthority = approved.authority as unknown as typeof approvedAuthority
+    publishedWarnings = published.warnings
+    approvedWarnings = approved.warnings
+    approvedExecutionAuthority = await planning.loadApprovedExecutionAuthority(
+      approvedAuthority.snapshot.snapshotId,
+      input.workspaceId,
+    )
   }
   const snapshot = approvedAuthority.snapshot
   const packaged = await createCanonicalEditExecutionPackageService(
@@ -303,11 +383,6 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     purpose: 'private_internal_execution_handoff',
     idempotencyKey: `${input.idempotencySeed}.package`,
   })
-  const approvedExecutionAuthority =
-    await planning.loadApprovedExecutionAuthority(
-      snapshot.snapshotId,
-      input.workspaceId,
-    )
   assertApprovedRunLineage({
     request: captionRequest,
     approvedExecutionAuthority,
@@ -323,8 +398,8 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     captionPlanningProjection: captionPlanning.projection,
     broll,
     canonicalPlan,
-    published: { ...published, authority: publishedAuthority },
-    approved: { ...approved, authority: approvedAuthority },
+    published: { warnings: publishedWarnings, authority: publishedAuthority },
+    approved: { warnings: approvedWarnings, authority: approvedAuthority },
     approvedExecutionAuthority,
     approvedEditExecutionPackage: packaged.approvedEditExecutionPackage,
     toolCapabilityManifest: packaged.toolCapabilityManifest,

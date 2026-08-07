@@ -7,6 +7,10 @@ const dockerfile = readFileSync(
   'utf8',
 )
 const builder = readFileSync(`${root}/build-qualification-capsule.sh`, 'utf8')
+const sourcePreparation = readFileSync(
+  `${root}/prepare-qualification-source.sh`,
+  'utf8',
+)
 const cloudBuild = readFileSync(
   `${root}/cloudbuild.qualification-capsule.yaml`,
   'utf8',
@@ -37,6 +41,7 @@ for (const expected of [
   '0001-reeditpro-gpu-decode.patch',
   'build-qualification-capsule.sh',
   'private-staging/sam3-source.tar',
+  'private-source-prep/sam3-patched-source.tar',
 ] as const) assert.ok(
   dockerfile.includes(expected),
   `qualification capsule Dockerfile lost ${expected}`,
@@ -58,8 +63,6 @@ for (const expected of [
   'files.pythonhosted.org',
   'capsule download origin is not allowlisted',
   'capsule download identity changed',
-  'git write-tree',
-  'git apply --index',
   '--format=ustar',
   "--mtime='@0'",
   'gzip --no-name --best',
@@ -89,9 +92,29 @@ assert.match(builder, /'42226'/u)
 assert.match(builder, /find "\$\{BUILD_SOURCE\}" -type f -exec touch -d '@0'/u)
 
 for (const expected of [
+  '573deb167702e014829a5b830de8ae62abe891d5',
+  'f3a58b95a0e460d76e1cf38abff0382a7307f67d',
+  'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
+  'git write-tree',
+  'git apply --index',
+  'git archive --format=tar',
+  '--mtime="${COMMIT_TIME}"',
+  'private-source-prep',
+] as const) assert.ok(
+  sourcePreparation.includes(expected),
+  `source preparation lost ${expected}`,
+)
+assert.doesNotMatch(
+  sourcePreparation,
+  /(?:\b(?:apt-get|conda|pip|curl|wget)\b|git clone|huggingface|checkpoint)/iu,
+)
+
+for (const expected of [
   'reread-exact-official-source',
   '--if-generation-match=1786071963625032',
   '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a',
+  'prepare-exact-patched-source',
+  'gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec',
   'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147',
   '--platform=linux/amd64',
   '--no-cache',
@@ -125,6 +148,7 @@ for (const expected of [
   '!Dockerfile.qualification-capsule-builder',
   '!Dockerfile.qualification.candidate',
   '!build-qualification-capsule.sh',
+  '!prepare-qualification-source.sh',
   '!qualification_entrypoint.sh',
   '!qualification_runner.py',
   '!source-provenance.lock',

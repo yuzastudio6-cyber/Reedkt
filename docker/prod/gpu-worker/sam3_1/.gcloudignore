@@ -4,6 +4,7 @@
 !Dockerfile.qualification-capsule-builder
 !Dockerfile.qualification.candidate
 !build-qualification-capsule.sh
+!prepare-qualification-source.sh
 !cloudbuild.qualification-capsule.yaml
 !qualification_entrypoint.sh
 !qualification_runner.py

@@ -16,7 +16,6 @@ readonly PATCH_SHA256='daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
 readonly SOURCE_BYTES='73605120'
 readonly CUDA_COMPAT_BYTES='37945232'
-readonly COMMIT_TIME='2026-07-30T17:21:37-07:00'
 readonly REPOSITORY_COMMIT="${WEEDITPRO_REPOSITORY_COMMIT:?missing repository commit}"
 readonly REPOSITORY_TREE="${WEEDITPRO_REPOSITORY_TREE:?missing repository tree}"
 readonly WHEELHOUSE="${PRIVATE_ROOT}/dependency-closure/wheelhouse"
@@ -85,7 +84,6 @@ download_wheel() {
 
 rm -rf "${WORK}" /output
 mkdir -p \
-  "${WORK}/repository" \
   "${PRIVATE_ROOT}/source" \
   "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat" \
@@ -97,22 +95,9 @@ cp "${ROOT}/private-staging/sam3-source.tar" "${SOURCE_ARCHIVE}"
 printf '%s  %s\n' "${SOURCE_SHA256}" "${SOURCE_ARCHIVE}" | sha256sum --check --strict
 test "$(stat --format='%s' "${SOURCE_ARCHIVE}")" = "${SOURCE_BYTES}"
 
-tar --extract --file "${SOURCE_ARCHIVE}" --directory "${WORK}/repository" \
-  --strip-components=1 --no-same-owner --no-same-permissions
-(
-  cd "${WORK}/repository"
-  git init --quiet
-  git config user.name 'WeEditPro source preparation owner'
-  git config user.email 'build-owner@weeditpro.invalid'
-  git add --all
-  test "$(git write-tree)" = "${SOURCE_TREE}"
-  git apply --index "${ROOT}/source/patches/0001-reeditpro-gpu-decode.patch"
-  test "$(git write-tree)" = "${PATCHED_TREE}"
-  git archive --format=tar --prefix=sam3/ --mtime="${COMMIT_TIME}" \
-    "${PATCHED_TREE}" > \
-    "${PRIVATE_ROOT}/source/sam3-${SOURCE_REVISION}-reeditpro-gpu-decode.tar"
-)
 readonly PATCHED_ARCHIVE="${PRIVATE_ROOT}/source/sam3-${SOURCE_REVISION}-reeditpro-gpu-decode.tar"
+cp "${ROOT}/private-source-prep/sam3-patched-source.tar" \
+  "${PATCHED_ARCHIVE}"
 printf '%s  %s\n' "${PATCHED_SOURCE_SHA256}" "${PATCHED_ARCHIVE}" | sha256sum --check --strict
 test "$(stat --format='%s' "${PATCHED_ARCHIVE}")" = "${SOURCE_BYTES}"
 

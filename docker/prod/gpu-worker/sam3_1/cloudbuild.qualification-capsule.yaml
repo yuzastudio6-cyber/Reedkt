@@ -14,10 +14,20 @@ steps:
         printf '%s  %s\n' \
           5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a \
           private-staging/sam3-source.tar | sha256sum --check --strict
+  - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
+    id: prepare-exact-patched-source
+    waitFor:
+      - reread-exact-official-source
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        chmod 0555 prepare-qualification-source.sh
+        ./prepare-qualification-source.sh
   - name: gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147
     id: build-fixed-qualification-capsule
     waitFor:
-      - reread-exact-official-source
+      - prepare-exact-patched-source
     entrypoint: bash
     args:
       - -ceu

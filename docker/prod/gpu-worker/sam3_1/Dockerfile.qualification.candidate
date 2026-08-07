@@ -131,6 +131,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && python -m pip install \
     --no-index \
     --no-cache-dir \
+    --no-deps \
     --require-hashes \
     --find-links=/tmp/sam31-wheelhouse \
     --requirement=/opt/reeditpro/sam3_1/qualification-artifacts/requirements.lock.txt \

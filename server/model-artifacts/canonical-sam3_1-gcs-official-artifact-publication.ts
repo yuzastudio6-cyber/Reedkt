@@ -34,6 +34,10 @@ type CanonicalSam31PrivateArtifactPublicationFailureCode =
   | 'storage_throttled'
   | 'storage_transport_unavailable'
   | 'unclassified_failure'
+  | `${'pipeline' | 'source' | 'storage'}_node_${string}`
+  | `${'pipeline' | 'source' | 'storage'}_${
+    'abort_error' | 'range_error' | 'runtime_error' | 'type_error'
+  }`
 
 /**
  * Cloud-only streaming object publisher for the one-time SAM 3.1 source and
@@ -71,32 +75,49 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
         byteLength: 0,
         digest: createHash('sha256'),
       }
+      let sourceFailure:
+        | CanonicalSam31PrivateArtifactPublicationFailureCode
+        | undefined
+      let storageFailure:
+        | CanonicalSam31PrivateArtifactPublicationFailureCode
+        | undefined
+      const destination = liveFile.createWriteStream({
+        resumable: true,
+        validation: 'crc32c',
+        preconditionOpts: { ifGenerationMatch: 0 },
+        metadata: {
+          contentType: value.contentType,
+          cacheControl: 'private, no-store',
+          metadata: {
+            'weeditpro-artifact-kind': value.contentType
+              === 'application/x-tar'
+              ? 'sam31-official-source-archive'
+              : 'sam31-official-gated-checkpoint',
+            'weeditpro-create-only': 'true',
+          },
+        },
+      })
+      destination.once('error', (error: unknown) => {
+        storageFailure = classifyPublicationFailure(error, 'storage')
+      })
       try {
         await pipeline(
-          Readable.from(measureAndBound(value.body, value, measurement)),
-          liveFile.createWriteStream({
-            resumable: true,
-            validation: 'crc32c',
-            preconditionOpts: { ifGenerationMatch: 0 },
-            metadata: {
-              contentType: value.contentType,
-              cacheControl: 'private, no-store',
-              metadata: {
-                'weeditpro-artifact-kind': value.contentType
-                  === 'application/x-tar'
-                  ? 'sam31-official-source-archive'
-                  : 'sam31-official-gated-checkpoint',
-                'weeditpro-create-only': 'true',
-              },
-            },
-          }),
+          Readable.from(observePublicationSource(
+            measureAndBound(value.body, value, measurement),
+            (failure) => { sourceFailure = failure },
+          )),
+          destination,
         )
       } catch (error) {
         if (cloudErrorCode(error) === 412) throw new Error(
           'SAM 3.1 artifact object already exists; exact reconciliation is required.',
           { cause: error },
         )
-        const failureCode = classifyPublicationFailure(error)
+        const failureCode = selectMostSpecificFailureCode([
+          sourceFailure,
+          storageFailure,
+          classifyPublicationFailure(error, 'pipeline'),
+        ])
         throw new Error(
           `SAM 3.1 private artifact streaming publication failed [${
             failureCode
@@ -378,6 +399,7 @@ function cloudErrorCode(error: unknown): number | undefined {
  */
 function classifyPublicationFailure(
   error: unknown,
+  origin: 'pipeline' | 'source' | 'storage',
 ): CanonicalSam31PrivateArtifactPublicationFailureCode {
   let cursor: unknown = error
   for (let depth = 0; depth < 8 && cursor; depth += 1) {
@@ -420,9 +442,69 @@ function classifyPublicationFailure(
       || message === 'SAM 3.1 official artifact identity is not approved.'
     ) return 'artifact_identity_or_bounds_failed'
 
+    const runtimeCode = safeRuntimeErrorCode(cursor)
+    if (runtimeCode) {
+      return `${origin}_node_${runtimeCode.toLowerCase()}`
+    }
+    const errorKind = safeErrorKind(cursor)
+    if (errorKind) return `${origin}_${errorKind}`
+
     cursor = safeErrorCause(cursor)
   }
   return 'unclassified_failure'
+}
+
+async function* observePublicationSource(
+  body: AsyncIterable<Uint8Array>,
+  observe: (
+    code: CanonicalSam31PrivateArtifactPublicationFailureCode,
+  ) => void,
+): AsyncIterable<Uint8Array> {
+  try {
+    for await (const chunk of body) yield chunk
+  } catch (error) {
+    observe(classifyPublicationFailure(error, 'source'))
+    throw error
+  }
+}
+
+function selectMostSpecificFailureCode(
+  codes: readonly (
+    CanonicalSam31PrivateArtifactPublicationFailureCode | undefined
+  )[],
+): CanonicalSam31PrivateArtifactPublicationFailureCode {
+  const observed = codes.filter(
+    (code): code is CanonicalSam31PrivateArtifactPublicationFailureCode =>
+      Boolean(code),
+  )
+  return observed.find((code) =>
+    code !== 'unclassified_failure'
+    && !code.endsWith('_runtime_error'))
+    ?? observed.find((code) => code !== 'unclassified_failure')
+    ?? 'unclassified_failure'
+}
+
+function safeRuntimeErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') return
+  let code: unknown
+  try {
+    code = Reflect.get(error, 'code')
+  } catch {
+    return
+  }
+  return typeof code === 'string' && /^[A-Z][A-Z0-9_]{1,63}$/u.test(code)
+    ? code
+    : undefined
+}
+
+function safeErrorKind(
+  error: unknown,
+): 'abort_error' | 'range_error' | 'runtime_error' | 'type_error' | undefined {
+  if (error instanceof TypeError) return 'type_error'
+  if (error instanceof RangeError) return 'range_error'
+  if (error instanceof Error) {
+    return error.name === 'AbortError' ? 'abort_error' : 'runtime_error'
+  }
 }
 
 function safeStaticErrorMessage(error: unknown): string | undefined {

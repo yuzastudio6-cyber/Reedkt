@@ -45,6 +45,8 @@ const PRIVATE_INPUT_DIRECTORY = 'sam31_private_build_input' as const
 const MAX_CAPSULE_COMPRESSED_BYTES = 8 * 1024 * 1024 * 1024
 const MAX_CAPSULE_UNCOMPRESSED_BYTES = 16 * 1024 * 1024 * 1024
 const MAX_CAPSULE_ENTRIES = 512
+const PKGCONF_SHA256 =
+  '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -893,12 +895,15 @@ function assertCapsuleManifestEntries(
   )
   const ffmpegSourcePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`
+  const pkgconfSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`
   const nvCodecHeadersSourcePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`
   const ffmpegReceiptPath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`
   if (
     !byPath.has(ffmpegSourcePath)
+    || !byPath.has(pkgconfSourcePath)
     || !byPath.has(nvCodecHeadersSourcePath)
     || !byPath.has(ffmpegReceiptPath)
   ) {
@@ -909,6 +914,7 @@ function assertCapsuleManifestEntries(
       ffmpegSourcePath,
       '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121',
     )
+    required(pkgconfSourcePath, PKGCONF_SHA256)
     required(
       nvCodecHeadersSourcePath,
       'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563',
@@ -964,6 +970,7 @@ function assertCapsuleManifestEntries(
     || byPath.get(
       `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
     )?.byteLength !== 17_211_188
+    || byPath.get(pkgconfSourcePath)?.byteLength !== 611_767
     || byPath.get(
       `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
     )?.byteLength !== 80_935
@@ -984,6 +991,7 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/requirements.lock.txt`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,

@@ -1243,6 +1243,10 @@ function createCapsuleFiles(
       Buffer.from('synthetic ffmpeg source archive'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/ffmpeg/pkgconf-3.0.4.tar.gz',
+      Buffer.from('synthetic pkgconf source archive'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz',
       Buffer.from('synthetic nv-codec-headers source archive'),
     ],

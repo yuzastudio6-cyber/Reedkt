@@ -9,6 +9,14 @@ const start = readFileSync(
   'server/cli/start-canonical-sam3_1-qualification-image-build-pkgconf-offline-successor.ts',
   'utf8',
 )
+const qualificationImageAuthority = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-qualification-image-build-authority.ts',
+  'utf8',
+)
+const productionImageAuthority = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-cloud-image-build-authority.ts',
+  'utf8',
+)
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   readonly scripts?: Readonly<Record<string, string>>
 }
@@ -45,6 +53,19 @@ for (const expected of [
   publication.includes(expected),
   `pkgconf-offline publication lost ${expected}`,
 )
+
+for (const authority of [
+  qualificationImageAuthority,
+  productionImageAuthority,
+] as const) {
+  for (const expected of [
+    'pkgconf-3.0.4.tar.gz',
+    '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829',
+  ] as const) assert.ok(
+    authority.includes(expected),
+    `SAM 3.1 image authority lost exact pkgconf closure ${expected}`,
+  )
+}
 
 assert.equal(
   packageJson.scripts?.[

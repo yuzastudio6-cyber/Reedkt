@@ -175,6 +175,7 @@ assert.match(deployScript, /SERVICE_ACCOUNT_ID='weeditpro-sam31-review-sa'/u)
 assert.match(deployScript, /retry_project_binding roles\/logging\.logWriter/u)
 assert.match(deployScript,
   /retry_bucket_binding "\$\{CONTROL_BUCKET\}" roles\/storage\.objectCreator/u)
+assert.match(deployScript, /--role="\$\{role\}" --condition=None/u)
 assert.match(deployScript, /--max-retries=0 --task-timeout=4h/u)
 assert.match(deployScript, /--network="\$\{NETWORK\}"/u)
 assert.match(deployScript, /--vpc-egress=all-traffic/u)

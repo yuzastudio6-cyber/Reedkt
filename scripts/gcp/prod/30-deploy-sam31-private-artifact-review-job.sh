@@ -50,7 +50,7 @@ retry_bucket_binding() {
   for attempt in $(seq 1 12); do
     if gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
       --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-      --role="${role}" --quiet >/dev/null 2>&1; then
+      --role="${role}" --condition=None --quiet >/dev/null 2>&1; then
       return 0
     fi
     sleep 5

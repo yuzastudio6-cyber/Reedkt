@@ -13,7 +13,6 @@ const RELEVANT_DIRECTORY_ROOTS = [
 const RELEVANT_EXACT_FILES = [
   '.github/workflows/ui-qa.yml',
   'docs/edit-skills/manifests/b-roll-capability-manifest.generated.json',
-  'package.json',
   'server/cli/gemini-omni-b-roll-canary.ts',
   'server/cli/generate-b-roll-capability-manifest-doc.ts',
   'server/cli/qualify-b-roll-internal.ts',
@@ -23,6 +22,43 @@ const RELEVANT_EXACT_FILES = [
   'server/smoke/edit-skill-runtime-factory-smoke.ts',
   'server/smoke/ui-qa-media-runtime-workflow-smoke.ts',
   'server/services/canonical-broll-plan-component-service.ts',
+] as const
+
+export const BROLL_QUALIFICATION_RELEVANT_PACKAGE_SCRIPT_KEYS = [
+  'build',
+  'typecheck:server',
+  'lint',
+  'check:frontend-boundary',
+  'validate:skill-capability-manifests',
+  'test:edit-skill-capability-kernel',
+  'test:edit-skill-runtime-factory',
+  'test:ui-qa-media-runtime-workflow',
+  'test:b-roll-capability-manifest',
+  'test:b-roll-planning',
+  'test:b-roll-public-plugin',
+  'test:b-roll-caption-public-contract',
+  'test:b-roll-active-artifact-contracts',
+  'test:b-roll-runtime-bindings',
+  'test:b-roll-canonical-private-runtime',
+  'test:b-roll-public-canonical-lifecycle',
+  'test:b-roll-plan-invariants',
+  'test:b-roll-planning-qa',
+  'test:b-roll-qualification-evidence',
+  'test:b-roll-qualification-source-hash',
+  'test:b-roll-canonical-integration',
+  'generate:b-roll-capability-manifest',
+  'qualify:b-roll:internal',
+  'smoke:b-roll-existing-source',
+  'smoke:b-roll-provider-authority',
+  'smoke:b-roll-provider-lifecycle',
+  'smoke:b-roll-candidate-qa',
+  'smoke:b-roll-remotion-integration',
+  'smoke:b-roll-retirement',
+  'smoke:b-roll-end-to-end',
+  'canary:gemini-omni-b-roll',
+  'smoke:runtime-api-security',
+  'smoke:edit-execution-security-boundary',
+  'smoke:idempotency-boundary',
 ] as const
 
 const EXCLUDED_SUFFIXES = [
@@ -78,8 +114,40 @@ export function computeBrollRelevantSourceTreeHash(
     path,
     sha256: createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex'),
   }))
+  const packageScripts = readBrollQualificationPackageScripts(root)
   return hashSkillValue({
-    schemaVersion: 'b_roll_relevant_source_tree_v1',
+    schemaVersion: 'b_roll_relevant_source_tree_v2',
     files,
+    packageScripts,
   })
+}
+
+export function readBrollQualificationPackageScripts(
+  repositoryRoot = process.cwd(),
+): Readonly<Record<string, string>> {
+  const root = resolve(repositoryRoot)
+  const parsed = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8')) as {
+    scripts?: Record<string, unknown>
+  }
+  const scripts = parsed.scripts
+  if (!scripts || typeof scripts !== 'object' || Array.isArray(scripts)) {
+    throw new Error('B-roll qualification requires a package scripts object.')
+  }
+  return projectBrollQualificationPackageScripts(scripts)
+}
+
+export function projectBrollQualificationPackageScripts(
+  scripts: Readonly<Record<string, unknown>>,
+): Readonly<Record<string, string>> {
+  return Object.freeze(Object.fromEntries(
+    BROLL_QUALIFICATION_RELEVANT_PACKAGE_SCRIPT_KEYS.map((key) => {
+      const command = scripts[key]
+      if (typeof command !== 'string' || command.trim().length === 0) {
+        throw new Error(
+          `B-roll qualification package script is missing or invalid: ${key}.`,
+        )
+      }
+      return [key, command]
+    }),
+  ))
 }

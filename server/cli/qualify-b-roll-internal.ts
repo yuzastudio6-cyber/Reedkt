@@ -32,6 +32,7 @@ const PHASE_A_SCRIPTS = [
   'test:b-roll-planning',
   'test:b-roll-planning-qa',
   'test:b-roll-qualification-evidence',
+  'test:b-roll-qualification-source-hash',
   'test:b-roll-plan-invariants',
   'test:b-roll-public-plugin',
   'test:b-roll-caption-public-contract',

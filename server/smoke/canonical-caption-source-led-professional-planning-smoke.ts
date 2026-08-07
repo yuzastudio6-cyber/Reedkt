@@ -57,6 +57,11 @@ import {
   compileCanonicalSourceLedPlan,
 } from '../services/canonical-source-led-plan-compiler'
 import {
+  BROLL_CAPABILITY_MANIFEST,
+  createBrollMasterTimingPlan,
+} from '../edit-skills/b-roll'
+import { skillManifestReference } from '../edit-skills/core'
+import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import type {
@@ -210,6 +215,58 @@ const request = createCanonicalCaptionSourceLedProfessionalPlanningRequest({
   components: baseComponents,
   confirmedCaptionMarkerSetRef,
 })
+const embeddedTimingPlan = createBrollMasterTimingPlan({
+  schemaVersion: 'master_timing_plan_v1',
+  ownerUserId: 'owner.caption.source-led.1',
+  workspaceId: 'workspace.caption.source-led.1',
+  projectId: 'project.caption.source-led.1',
+  editSessionId: 'edit.caption.source-led.1',
+  assignmentId: 'broll.caption.source-led.1',
+  editPlanVersion: 1,
+  manifestRef: skillManifestReference(BROLL_CAPABILITY_MANIFEST),
+  fps: baseComponents.timingSummary.fps,
+  timelineRange: {
+    startFrameInclusive: 0,
+    endFrameExclusive: baseComponents.timingSummary.totalFrames,
+    fps: baseComponents.timingSummary.fps,
+  },
+  assignmentRange: {
+    startFrameInclusive: 0,
+    endFrameExclusive: baseComponents.segments[0]!.endFrameExclusive,
+    fps: baseComponents.timingSummary.fps,
+  },
+})
+const embeddedTimingHash = embeddedTimingPlan.timingHash
+const embeddedTimingComponents = {
+  ...structuredClone(baseComponents),
+  masterTimingPlan: embeddedTimingPlan,
+}
+const embeddedTimingRequest =
+  createCanonicalCaptionSourceLedProfessionalPlanningRequest({
+    canonicalScope: {
+      ...request.canonicalScope,
+      planningRequestId: `${request.canonicalScope.planningRequestId}.timing`,
+    },
+    components: embeddedTimingComponents,
+    confirmedCaptionMarkerSetRef,
+  })
+check(embeddedTimingRequest.masterTimingRef.contentHash === embeddedTimingHash,
+'Caption planning must consume a validated canonical MasterTiming digest '
+  + 'without creating a parallel whole-envelope digest.')
+const staleEmbeddedTimingComponents = structuredClone(
+  embeddedTimingComponents)
+staleEmbeddedTimingComponents.masterTimingPlan.timingHash =
+  sha256AuthorityValue('stale-timing')
+assert.throws(() =>
+  createCanonicalCaptionSourceLedProfessionalPlanningRequest({
+    canonicalScope: {
+      ...request.canonicalScope,
+      planningRequestId: `${request.canonicalScope.planningRequestId}.stale`,
+    },
+    components: staleEmbeddedTimingComponents,
+    confirmedCaptionMarkerSetRef,
+  }), /stale MasterTiming digest/u)
+checks += 1
 const selectedTrace = createProfessionalSkillCompositionTrace({
   planId: 'professional.caption.source-led.1',
   selectedSkills: [captionSelection()],

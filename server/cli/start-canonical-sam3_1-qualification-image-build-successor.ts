@@ -2,26 +2,26 @@ import {
   canonicalSam31QualificationImageSubmissionRef,
   createCanonicalSam31GcpQualificationImageBuildRuntime,
 } from '../services/canonical-sam3_1-qualification-image-build-runtime'
-import {
-  createCanonicalSam31GcpQualificationImageBuildReconciliationRuntime,
-} from '../services/canonical-sam3_1-qualification-image-build-reconciliation-runtime'
-
 const CONFIRMATION =
   'start-one-reconciled-sam31-qualification-image-successor-build' as const
 const targets = {
-  successor_2: {
-    reconciliationRef: {
-      id: 'sam31-qualification-image-build-reconciliation-57ef0b4aa3a0b93d',
+  successor_3: {
+    predecessorSubmissionRef: {
+      id: 'sam31-qualification-image-submission-eaa2828d9c91ceba4032',
       version: 1 as const,
       contentHash:
-        'sha256:4e0ebc7ae10a60e66d14950a9014fb8a1e814533c194c139a0cb1e6bfcb690ff' as const,
+        'sha256:eaa2828d9c91ceba40320c93af6bb36e58a58a66ddec4b53dbe0690c81b5b8a5' as const,
     },
     authorityRef: {
-      id: 'sam31-qualification-image-build-85b90c05fbbcb04a-successor-2',
+      id: 'sam31-qualification-image-build-85b90c05fbbcb04a-successor-3',
       version: 1 as const,
       contentHash:
-        'sha256:16d1861f1d5b4b6a7b8e56218d41a45281a86dfeaa6579a9f314ce45f9746506' as const,
+        'sha256:f442445f74a400459857773030e22dc70ef4320c83a8c5f36cb01e521473ab17' as const,
     },
+    providerResponseSha256:
+      'b3b90a05fa03914ef99c170183e10033ba37ec854a1ab8009eea31dbd04c9803',
+    predecessorMachineType: 'E2_HIGHCPU_32' as const,
+    successorMachineType: 'E2_STANDARD_2' as const,
   },
 } as const
 
@@ -32,24 +32,9 @@ if (
 
 if (
   process.env.WEEDITPRO_SAM31_QUALIFICATION_IMAGE_SUCCESSOR_BUILD_TARGET !==
-    'successor_2'
+    'successor_3'
 ) throw new Error('SAM 3.1 successor build target is invalid.')
-const target = targets.successor_2
-
-const reconciliationRuntime =
-  createCanonicalSam31GcpQualificationImageBuildReconciliationRuntime()
-const reconciliation = await reconciliationRuntime.rereadReconciliation({
-  reconciliationRef: target.reconciliationRef,
-})
-if (
-  !reconciliation
-  || reconciliation.disposition !==
-    'precreation_rejection_no_build_found'
-  || !reconciliation.predecessorProviderExecutionKnownAbsent
-  || reconciliation.predecessorImageBuildKnownStarted
-  || !reconciliation.distinctSuccessorAuthorityMayBeIssued
-  || reconciliation.automaticRetryAllowed
-) throw new Error('SAM 3.1 successor build is not reconciled.')
+const target = targets.successor_3
 
 let providerCreateResponseSummary: unknown = null
 const runtime = createCanonicalSam31GcpQualificationImageBuildRuntime({
@@ -57,6 +42,21 @@ const runtime = createCanonicalSam31GcpQualificationImageBuildRuntime({
     providerCreateResponseSummary = summary
   },
 })
+const predecessorSubmission = await runtime.repository.rereadSubmission({
+  submissionRef: target.predecessorSubmissionRef,
+})
+if (
+  !predecessorSubmission
+  || predecessorSubmission.disposition !== 'rejected_before_creation'
+  || predecessorSubmission.providerOutcome !== 'not_executed'
+  || predecessorSubmission.providerHttpStatus !== 400
+  || predecessorSubmission.cloudBuildOperationName !== null
+  || predecessorSubmission.cloudBuildId !== null
+  || predecessorSubmission.imageBuildKnownStarted
+  || !predecessorSubmission.durableAuthorityConsumptionCreated
+  || !predecessorSubmission.durableSubmissionObservationCreated
+  || predecessorSubmission.automaticRetryAllowed
+) throw new Error('SAM 3.1 predecessor provider rejection changed.')
 const successorAuthority = await runtime.repository
   .rereadQualificationImageBuildAuthority({
     authorityRef: target.authorityRef,
@@ -66,13 +66,18 @@ if (
   || successorAuthority.authorityId !== target.authorityRef.id
   || `sha256:${successorAuthority.authorityHash}` !==
     target.authorityRef.contentHash
+  || successorAuthority.cloudBuildPolicy.machineType !==
+    target.successorMachineType
 ) throw new Error('SAM 3.1 successor authority reread changed.')
 
 const submission = await runtime.startOneQualificationImageBuild({
   authorityRef: target.authorityRef,
 })
 console.log(JSON.stringify({
-  predecessorReconciliationRef: target.reconciliationRef,
+  predecessorSubmissionRef: target.predecessorSubmissionRef,
+  predecessorProviderResponseSha256: target.providerResponseSha256,
+  predecessorMachineType: target.predecessorMachineType,
+  successorMachineType: target.successorMachineType,
   distinctSuccessorAuthority: true,
   automaticRetryOfPredecessor: false,
   providerCreateResponseSummary,

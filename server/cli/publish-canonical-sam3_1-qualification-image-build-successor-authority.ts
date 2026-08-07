@@ -7,22 +7,45 @@ import {
 
 const CONFIRMATION =
   'publish-reconciled-sam31-qualification-image-successor-authority' as const
-const reconciliationRef = {
-  id: 'sam31-qualification-image-build-reconciliation-b062f52b26deca94',
-  version: 1 as const,
-  contentHash:
-    'sha256:bbe03fd142700e5459812852004916a3e44fd389fe272d09dc1a1a56f49dec0f' as const,
-}
+const targets = {
+  successor_1: {
+    reconciliationRef: {
+      id: 'sam31-qualification-image-build-reconciliation-b062f52b26deca94',
+      version: 1 as const,
+      contentHash:
+        'sha256:bbe03fd142700e5459812852004916a3e44fd389fe272d09dc1a1a56f49dec0f' as const,
+    },
+    authorityId:
+      'sam31-qualification-image-build-85b90c05fbbcb04a-successor-1',
+  },
+  successor_2: {
+    reconciliationRef: {
+      id: 'sam31-qualification-image-build-reconciliation-57ef0b4aa3a0b93d',
+      version: 1 as const,
+      contentHash:
+        'sha256:4e0ebc7ae10a60e66d14950a9014fb8a1e814533c194c139a0cb1e6bfcb690ff' as const,
+    },
+    authorityId:
+      'sam31-qualification-image-build-85b90c05fbbcb04a-successor-2',
+  },
+} as const
 
 if (
   process.env.WEEDITPRO_SAM31_QUALIFICATION_IMAGE_SUCCESSOR_AUTHORITY_CONFIRMATION !==
     CONFIRMATION
 ) throw new Error('SAM 3.1 successor authority confirmation is missing.')
 
+const targetName =
+  process.env.WEEDITPRO_SAM31_QUALIFICATION_IMAGE_SUCCESSOR_AUTHORITY_TARGET
+if (targetName !== 'successor_1' && targetName !== 'successor_2') {
+  throw new Error('SAM 3.1 successor authority target is invalid.')
+}
+const target = targets[targetName]
+
 const reconciliationRuntime =
   createCanonicalSam31GcpQualificationImageBuildReconciliationRuntime()
 const reconciliation = await reconciliationRuntime.rereadReconciliation({
-  reconciliationRef,
+  reconciliationRef: target.reconciliationRef,
 })
 if (
   !reconciliation
@@ -36,8 +59,7 @@ if (
 
 const authority = await publishCanonicalSam31QualificationImageBuildAuthority({
   manifestId: 'sam31-qualification-image-capsule-85b90c05fbbcb04a',
-  authorityId:
-    'sam31-qualification-image-build-85b90c05fbbcb04a-successor-1',
+  authorityId: target.authorityId,
   ingestReceiptRef: {
     id: 'sam31-ingest-sam31-weeditpro-official-ingest-20260806-v12',
     version: 1,
@@ -56,7 +78,7 @@ const authority = await publishCanonicalSam31QualificationImageBuildAuthority({
 console.log(JSON.stringify({
   publicationSchemaVersion:
     'canonical-sam3_1-qualification-image-successor-authority-publication-v1',
-  predecessorReconciliationRef: reconciliationRef,
+  predecessorReconciliationRef: target.reconciliationRef,
   predecessorProviderExecutionKnownAbsent: true,
   automaticRetryOfPredecessor: false,
   distinctSuccessorAuthority: true,

@@ -606,7 +606,7 @@ try {
 
 interface ApprovedExecutionInspectionPackage {
   readonly schemaVersion:
-    'caption-broll-approved-execution-inspection-package-v1'
+    'caption-broll-approved-execution-inspection-package-v2'
   readonly sourceEvidenceMode: 'real_private_media'
   readonly sourceSha256: string
   readonly approvedSnapshotRef: {
@@ -633,6 +633,23 @@ interface ApprovedExecutionInspectionPackage {
     readonly fileName: string
     readonly sha256: string
   }[]
+  readonly captionSampleStrips: readonly {
+    readonly frameIndex: number
+    readonly fileName: string
+    readonly sha256: string
+  }[]
+  readonly captionPixelCoverage: {
+    readonly crop: {
+      readonly x: 0
+      readonly y: 260
+      readonly width: 640
+      readonly height: 100
+    }
+    readonly expectedVisiblePixelCount: number
+    readonly minimumCoverageBasisPoints: number
+    readonly maximumCoverageBasisPoints: number
+    readonly everyFrameCoverageVerified: true
+  }
   readonly structuralVisualIntelligenceFixtureExcludedFromQualification: true
   readonly directRasterInspectionRequired: true
   readonly providerCalled: false
@@ -676,6 +693,12 @@ async function createApprovedExecutionInspectionPackage(input: {
     input.root,
     'caption-broll-approved-private-inspection',
   )
+  const captionOverlayPath = join(inspectionRoot, 'caption-overlay.png')
+  const captionPixelCoverage = measureCaptionPixelCoverage({
+    previewPath,
+    captionOverlayPath,
+    expectedFrameCount: preview.frameCount,
+  })
   await mkdir(inspectionRoot, { recursive: true })
   const contactSheetPath = join(inspectionRoot, 'all-frames-contact-sheet.png')
   const contactRows = Math.ceil(preview.frameCount / 8)
@@ -697,13 +720,18 @@ async function createApprovedExecutionInspectionPackage(input: {
     fileName: string
     sha256: string
   }> = []
+  const captionSampleStrips: Array<{
+    frameIndex: number
+    fileName: string
+    sha256: string
+  }> = []
   for (const frameIndex of sampleIndexes) {
     const fileName = `frame-${String(frameIndex).padStart(3, '0')}.png`
     const framePath = join(inspectionRoot, fileName)
     const frameProcess = spawnSync('ffmpeg', [
       '-hide_banner', '-loglevel', 'error', '-i', previewPath,
       '-vf', `select=eq(n\\,${frameIndex})`, '-frames:v', '1',
-      '-threads', '1', '-y', framePath,
+      '-vsync', '0', '-threads', '1', '-y', framePath,
     ], { encoding: 'utf8' })
     assert.equal(frameProcess.status, 0, frameProcess.stderr)
     sampleFrames.push({
@@ -711,10 +739,28 @@ async function createApprovedExecutionInspectionPackage(input: {
       fileName,
       sha256: sha256(await readFile(framePath)),
     })
+    const captionStripFileName =
+      `caption-${String(frameIndex).padStart(3, '0')}.png`
+    const captionStripPath = join(inspectionRoot, captionStripFileName)
+    const captionStripProcess = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error', '-i', previewPath,
+      '-vf',
+      `select=eq(n\\,${frameIndex}),crop=640:100:0:260,` +
+        'scale=1280:200:flags=neighbor,' +
+        'pad=1320:240:20:20:color=0x243047',
+      '-frames:v', '1', '-vsync', '0', '-threads', '1',
+      '-y', captionStripPath,
+    ], { encoding: 'utf8' })
+    assert.equal(captionStripProcess.status, 0, captionStripProcess.stderr)
+    captionSampleStrips.push({
+      frameIndex,
+      fileName: captionStripFileName,
+      sha256: sha256(await readFile(captionStripPath)),
+    })
   }
   const withoutDigest = {
     schemaVersion:
-      'caption-broll-approved-execution-inspection-package-v1' as const,
+      'caption-broll-approved-execution-inspection-package-v2' as const,
     sourceEvidenceMode: 'real_private_media' as const,
     sourceSha256: input.sourceSha256,
     approvedSnapshotRef: input.execution.approvedSnapshotRef,
@@ -733,6 +779,8 @@ async function createApprovedExecutionInspectionPackage(input: {
       representsEveryFrame: true as const,
     },
     sampleFrames,
+    captionSampleStrips,
+    captionPixelCoverage,
     structuralVisualIntelligenceFixtureExcludedFromQualification: true as const,
     directRasterInspectionRequired: true as const,
     providerCalled: false as const,
@@ -748,6 +796,70 @@ async function createApprovedExecutionInspectionPackage(input: {
     `${JSON.stringify(inspectionPackage, null, 2)}\n`,
   )
   return inspectionPackage
+}
+
+function measureCaptionPixelCoverage(input: {
+  previewPath: string
+  captionOverlayPath: string
+  expectedFrameCount: number
+}): ApprovedExecutionInspectionPackage['captionPixelCoverage'] {
+  const cropWidth = 640
+  const cropHeight = 100
+  const decoded = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', input.previewPath,
+    '-an', '-vf', 'crop=640:100:0:260,format=rgb24',
+    '-threads', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-',
+  ], { encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 })
+  assert.equal(decoded.status, 0, decoded.stderr.toString('utf8'))
+  const frameByteLength = cropWidth * cropHeight * 3
+  assert.equal(
+    decoded.stdout.byteLength,
+    frameByteLength * input.expectedFrameCount,
+  )
+  const overlay = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error', '-i', input.captionOverlayPath,
+    '-vf', 'crop=640:100:0:260,format=rgba',
+    '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-',
+  ], { encoding: 'buffer', maxBuffer: 4 * 1024 * 1024 })
+  assert.equal(overlay.status, 0, overlay.stderr.toString('utf8'))
+  assert.equal(overlay.stdout.byteLength, cropWidth * cropHeight * 4)
+  const expectedVisiblePixelOffsets: number[] = []
+  for (let offset = 0; offset < overlay.stdout.byteLength; offset += 4) {
+    if (overlay.stdout[offset + 3]! >= 64 && (
+      overlay.stdout[offset]! +
+      overlay.stdout[offset + 1]! +
+      overlay.stdout[offset + 2]!
+    ) >= 96) {
+      expectedVisiblePixelOffsets.push(offset / 4 * 3)
+    }
+  }
+  assert.ok(expectedVisiblePixelOffsets.length > 100)
+  const coverageRatios = Array.from(
+    { length: input.expectedFrameCount },
+    (_, frameIndex) => {
+      const start = frameIndex * frameByteLength
+      let visiblePixelCount = 0
+      for (const expectedOffset of expectedVisiblePixelOffsets) {
+        const offset = start + expectedOffset
+        const luma = decoded.stdout[offset]! * 0.2126
+          + decoded.stdout[offset + 1]! * 0.7152
+          + decoded.stdout[offset + 2]! * 0.0722
+        if (luma >= 64) visiblePixelCount += 1
+      }
+      return visiblePixelCount / expectedVisiblePixelOffsets.length
+    },
+  )
+  const minimumRatio = Math.min(...coverageRatios)
+  const maximumRatio = Math.max(...coverageRatios)
+  assert.ok(minimumRatio > 0.85)
+  assert.ok(maximumRatio - minimumRatio < 0.03)
+  return {
+    crop: { x: 0, y: 260, width: 640, height: 100 },
+    expectedVisiblePixelCount: expectedVisiblePixelOffsets.length,
+    minimumCoverageBasisPoints: Math.floor(minimumRatio * 10_000),
+    maximumCoverageBasisPoints: Math.ceil(maximumRatio * 10_000),
+    everyFrameCoverageVerified: true,
+  }
 }
 
 function probePrivateSource(path: string) {

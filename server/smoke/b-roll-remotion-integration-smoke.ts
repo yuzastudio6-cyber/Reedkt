@@ -38,26 +38,57 @@ import {
 const root = await mkdtemp(join(tmpdir(), 'reeditpro-broll-m9-'))
 const keepPrivateEvidence =
   process.env.REEDITPRO_BROLL_REMOTION_KEEP_PRIVATE_EVIDENCE === '1'
+const frameRate = 30
+const frameCount = 127
 try {
-  const sourcePath = join(root, 'source.mp4')
-  const captionPath = join(root, 'caption.png')
-  const generatedSource = spawnSync('ffmpeg', [
-    '-hide_banner', '-loglevel', 'error',
-    '-f', 'lavfi', '-i',
-    'color=c=0x1858a8:s=1280x720:r=24:d=3,format=yuv420p,hue=H=2*t:s=1',
-    '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
-    '-movflags', '+faststart', '-threads', '1', '-frames:v', '72', '-y', sourcePath,
-  ], { encoding: 'utf8' })
-  assert.equal(generatedSource.status, 0, generatedSource.stderr)
-  const generatedCaption = spawnSync('ffmpeg', [
-    '-hide_banner', '-loglevel', 'error',
-    '-f', 'lavfi', '-i',
-    'color=c=black@0.0:s=640x360,format=rgba,drawbox=x=64:y=280:w=512:h=48:color=0xE879F9@1.0:t=fill:replace=1',
-    '-frames:v', '1', '-f', 'image2', '-vcodec', 'png', '-y', captionPath,
-  ], { encoding: 'utf8' })
-  assert.equal(generatedCaption.status, 0, generatedCaption.stderr)
+  const externalSourcePath =
+    process.env.REEDITPRO_BROLL_REMOTION_SOURCE_FIXTURE_PATH?.trim() ?? ''
+  const externalSourceSha256 =
+    process.env.REEDITPRO_BROLL_REMOTION_SOURCE_FIXTURE_SHA256?.trim() ?? ''
+  if (Boolean(externalSourcePath) !== Boolean(externalSourceSha256)) {
+    throw new Error(
+      'Private source fixture path and exact SHA-256 must be supplied together.',
+    )
+  }
+  const sourcePath = externalSourcePath || join(root, 'source.mp4')
+  const externalCaptionPath =
+    process.env.REEDITPRO_BROLL_REMOTION_CAPTION_FIXTURE_PATH?.trim() ?? ''
+  const externalCaptionSha256 =
+    process.env.REEDITPRO_BROLL_REMOTION_CAPTION_FIXTURE_SHA256?.trim() ?? ''
+  if (Boolean(externalCaptionPath) !== Boolean(externalCaptionSha256)) {
+    throw new Error(
+      'Private Caption fixture path and exact SHA-256 must be supplied together.',
+    )
+  }
+  const captionPath = externalCaptionPath || join(root, 'caption.png')
+  if (!externalSourcePath) {
+    const generatedSource = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error',
+      '-f', 'lavfi', '-i',
+      `color=c=0x1858a8:s=1280x720:r=${frameRate}:d=${frameCount / frameRate},format=yuv420p,hue=H=2*t:s=1`,
+      '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p',
+      '-movflags', '+faststart', '-threads', '1', '-frames:v', String(frameCount),
+      '-y', sourcePath,
+    ], { encoding: 'utf8' })
+    assert.equal(generatedSource.status, 0, generatedSource.stderr)
+  }
+  if (!externalCaptionPath) {
+    const generatedCaption = spawnSync('ffmpeg', [
+      '-hide_banner', '-loglevel', 'error',
+      '-f', 'lavfi', '-i',
+      'color=c=black@0.0:s=640x360,format=rgba,drawbox=x=64:y=280:w=512:h=48:color=0xE879F9@1.0:t=fill:replace=1',
+      '-frames:v', '1', '-f', 'image2', '-vcodec', 'png', '-y', captionPath,
+    ], { encoding: 'utf8' })
+    assert.equal(generatedCaption.status, 0, generatedCaption.stderr)
+  }
   const sourceBytes = await readFile(sourcePath)
   const captionBytes = await readFile(captionPath)
+  if (externalSourceSha256) {
+    assert.equal(sha256(sourceBytes), externalSourceSha256)
+  }
+  if (externalCaptionSha256) {
+    assert.equal(sha256(captionBytes), externalCaptionSha256)
+  }
 
   const scope = {
     ownerUserId: 'user-m9',
@@ -77,8 +108,16 @@ try {
     ...scope,
   }
   const manifestRef = skillManifestReference(BROLL_CAPABILITY_MANIFEST)
-  const masterRange = { startFrameInclusive: 0, endFrameExclusive: 2_400, fps: 24 }
-  const authorizedRange = { startFrameInclusive: 120, endFrameExclusive: 192, fps: 24 }
+  const masterRange = {
+    startFrameInclusive: 0,
+    endFrameExclusive: 3_000,
+    fps: frameRate,
+  }
+  const authorizedRange = {
+    startFrameInclusive: 120,
+    endFrameExclusive: 120 + frameCount,
+    fps: frameRate,
+  }
   const assignment = createBrollAssignment({
     schemaVersion: 'b_roll_assignment_v1',
     assignmentId: 'assignment-m9',
@@ -99,7 +138,7 @@ try {
     reason: 'Use one concise source cutaway to clarify the workflow.',
     pointToProveClarifyCoverOrSupport: 'Clarify the visible workflow step.',
     expectedViewerBenefit: 'Understand the action without losing narration context.',
-    requestedVisualOwnership: 'primary',
+    requestedVisualOwnership: 'support',
     forbiddenInterpretations: ['Do not imply generated or unsupported proof.'],
     permittedSourceRoutes: ['use_existing_project_clip', 'use_no_broll'],
     providerPermission: 'forbidden',
@@ -119,7 +158,7 @@ try {
     authorizedRange,
     authorizedRangeHash: hashSkillValue(authorizedRange),
     sourceSha256: sourceArtifactRef.sha256,
-    fps: 24,
+    fps: frameRate,
     tracks: [{
       trackId: 'speaker-track-m9',
       startFrameInclusive: authorizedRange.startFrameInclusive,
@@ -150,7 +189,11 @@ try {
       sourceId: 'source-m9',
       sourceType: 'existing_project_clip',
       artifactRef: sourceArtifactRef,
-      sourceRange: { startFrameInclusive: 0, endFrameExclusive: 72, fps: 24 },
+      sourceRange: {
+        startFrameInclusive: 0,
+        endFrameExclusive: frameCount,
+        fps: frameRate,
+      },
       semanticRelevance: 0.99,
       visualQuality: 0.99,
       temporalFit: 0.99,
@@ -193,8 +236,8 @@ try {
       overwriteExistingArtifact: false,
       allowUnreviewedCodec: false,
       trimStartFrame: 0,
-      trimEndFrameExclusive: 72,
-      frameRate: 24,
+      trimEndFrameExclusive: frameCount,
+      frameRate,
       mimeType: 'video/mp4',
       sourceByteLength: sourceBytes.byteLength,
       sourceSha256: sourceArtifactRef.sha256,
@@ -226,8 +269,8 @@ try {
   const sourceInspection = hashed({
     schemaVersion: 'b_roll_source_inspection_v1',
     sourceSha256: sourceArtifactRef.sha256,
-    frameCount: 72,
-    frameRate: 24,
+    frameCount,
+    frameRate,
     status: 'passed',
   }, 'sourceInspectionHash')
   const sourceInspectionRef = await putPrivateAuthorityJsonBlob({
@@ -295,8 +338,8 @@ try {
       sha256: normalized.resultArtifact.sha256,
       byteLength: normalized.resultArtifact.byteLength,
       mimeType: 'video/x-nut' as const,
-      frameCount: 72,
-      frameRate: 24,
+      frameCount,
+      frameRate,
       container: 'nut' as const,
       videoCodec: 'ffv1' as const,
     },
@@ -352,7 +395,7 @@ try {
   assert.equal(result.receipt.selectedCandidateAutomatically, false)
   assert.equal(result.receipt.generatedAudioFinalMixAllowed, false)
   assert.equal(result.receipt.preview.privateInternalOnly, true)
-  assert.equal(result.receipt.preview.frameCount, 72)
+  assert.equal(result.receipt.preview.frameCount, frameCount)
   assert.equal(result.layerManifest.trackGraphRef?.artifactType, 'track_graph_v1')
   assert.equal(result.layerManifest.rendererOwner, 'render')
   assert.equal(result.layerManifest.captionSafeBehavior.finalOwner, 'captions')
@@ -363,7 +406,7 @@ try {
   assert.equal(result.receipt.costEvidence.providerCostMicros, 0)
   assert.equal(result.receipt.costEvidence.integrationInfrastructureCostMicros, 7_500)
   assert.equal(result.receipt.attemptHistory.length, 0)
-  assertStableCaptionOverlay({
+  const captionPixelCoverage = assertStableCaptionOverlay({
     previewPath: join(
       root,
       'b-roll',
@@ -371,7 +414,8 @@ try {
       'previews',
       `${result.receipt.preview.previewArtifactIdentityHash}.mp4`,
     ),
-    expectedFrameCount: 72,
+    captionPath,
+    expectedFrameCount: frameCount,
   })
 
   const replay = await executeBrollRemotionIntegration({
@@ -463,6 +507,7 @@ try {
     trackGraphArtifactType: result.layerManifest.trackGraphRef?.artifactType,
     finalOwners: result.receipt.handoffs,
     integrationQaChecksPassed: Object.keys(result.integrationQa.checks).length,
+    captionPixelCoverage,
     outsideAuthorizedRangeModified: false,
     actualProviderRequests: 0,
     replayed: replay.replayed,
@@ -488,53 +533,75 @@ function sha256(value: Buffer): string {
 
 function assertStableCaptionOverlay(input: {
   previewPath: string
+  captionPath: string
   expectedFrameCount: number
-}): void {
-  const cropWidth = 448
-  const cropHeight = 24
+}): {
+  expectedVisiblePixelCount: number
+  minimumCoverageBasisPoints: number
+  maximumCoverageBasisPoints: number
+  everyFrameCoverageVerified: true
+} {
+  const cropWidth = 640
+  const cropHeight = 100
   const decoded = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
     '-i', input.previewPath,
-    '-an', '-vf', 'crop=448:24:96:292,format=rgb24',
+    '-an', '-vf', 'crop=640:100:0:260,format=rgb24',
     '-threads', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-',
-  ], { encoding: 'buffer', maxBuffer: 8 * 1024 * 1024 })
+  ], { encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 })
   assert.equal(decoded.status, 0, decoded.stderr.toString('utf8'))
   const frameByteLength = cropWidth * cropHeight * 3
   assert.equal(decoded.stdout.byteLength, frameByteLength * input.expectedFrameCount)
-  const averages = Array.from({ length: input.expectedFrameCount }, (_, frameIndex) => {
-    const start = frameIndex * frameByteLength
-    let red = 0
-    let green = 0
-    let blue = 0
-    for (let offset = start; offset < start + frameByteLength; offset += 3) {
-      red += decoded.stdout[offset]!
-      green += decoded.stdout[offset + 1]!
-      blue += decoded.stdout[offset + 2]!
+  const overlay = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-i', input.captionPath,
+    '-vf', 'crop=640:100:0:260,format=rgba',
+    '-frames:v', '1', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-',
+  ], { encoding: 'buffer', maxBuffer: 4 * 1024 * 1024 })
+  assert.equal(overlay.status, 0, overlay.stderr.toString('utf8'))
+  assert.equal(overlay.stdout.byteLength, cropWidth * cropHeight * 4)
+  const expectedVisiblePixelOffsets: number[] = []
+  for (let offset = 0; offset < overlay.stdout.byteLength; offset += 4) {
+    if (overlay.stdout[offset + 3]! >= 64 && (
+      overlay.stdout[offset]! +
+      overlay.stdout[offset + 1]! +
+      overlay.stdout[offset + 2]!
+    ) >= 96) {
+      expectedVisiblePixelOffsets.push(offset / 4 * 3)
     }
-    const pixelCount = cropWidth * cropHeight
-    return {
-      red: red / pixelCount,
-      green: green / pixelCount,
-      blue: blue / pixelCount,
-    }
-  })
-  const channelRanges = Object.fromEntries(
-    (['red', 'green', 'blue'] as const).map((channel) => {
-      const values = averages.map((average) => average[channel])
-      return [channel, { minimum: Math.min(...values), maximum: Math.max(...values) }]
-    }),
+  }
+  assert.ok(expectedVisiblePixelOffsets.length > 100)
+  const coverageRatios = Array.from(
+    { length: input.expectedFrameCount },
+    (_, frameIndex) => {
+      const start = frameIndex * frameByteLength
+      let visiblePixelCount = 0
+      for (const expectedOffset of expectedVisiblePixelOffsets) {
+        const offset = start + expectedOffset
+        const luma = decoded.stdout[offset]! * 0.2126
+          + decoded.stdout[offset + 1]! * 0.7152
+          + decoded.stdout[offset + 2]! * 0.0722
+        if (luma >= 64) visiblePixelCount += 1
+      }
+      return visiblePixelCount / expectedVisiblePixelOffsets.length
+    },
   )
-  for (const average of averages) {
+  const minimumRatio = Math.min(...coverageRatios)
+  const maximumRatio = Math.max(...coverageRatios)
+  for (const coverageRatio of coverageRatios) {
     assert.ok(
-      average.red > 180 && average.green > 80 && average.green < 165 && average.blue > 180,
-      `Caption-owned pixels were replaced or darkened by the B-roll surface: ${JSON.stringify({ average, channelRanges })}`,
+      coverageRatio > 0.85,
+      `Caption-owned pixels were replaced or darkened by the B-roll surface: ${JSON.stringify({ minimumRatio, maximumRatio })}`,
     )
   }
-  for (const channel of ['red', 'green', 'blue'] as const) {
-    const values = averages.map((average) => average[channel])
-    assert.ok(
-      Math.max(...values) - Math.min(...values) < 8,
-      `Caption-owned ${channel} pixels changed beyond the bounded codec tolerance.`,
-    )
+  assert.ok(
+    maximumRatio - minimumRatio < 0.03,
+    `Caption-owned pixel coverage changed beyond tolerance: ${JSON.stringify({ minimumRatio, maximumRatio })}`,
+  )
+  return {
+    expectedVisiblePixelCount: expectedVisiblePixelOffsets.length,
+    minimumCoverageBasisPoints: Math.floor(minimumRatio * 10_000),
+    maximumCoverageBasisPoints: Math.ceil(maximumRatio * 10_000),
+    everyFrameCoverageVerified: true,
   }
 }

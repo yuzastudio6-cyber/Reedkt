@@ -248,6 +248,7 @@
     "publish:sam3_1-qualification-image-successor-authority": "tsx server/cli/publish-canonical-sam3_1-qualification-image-build-successor-authority.ts",
     "publish:sam3_1-qualification-image-pep668-successor-authority": "tsx server/cli/publish-canonical-sam3_1-qualification-image-build-pep668-successor-authority.ts",
     "start:sam3_1-qualification-image-successor-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build-successor.ts",
+    "start:sam3_1-qualification-image-pep668-successor-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build-pep668-successor.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation-owner": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts",

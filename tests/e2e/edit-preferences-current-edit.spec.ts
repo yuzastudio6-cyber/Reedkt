@@ -269,7 +269,7 @@ test.describe('saved and current Edit Preferences', () => {
     await page.getByTestId('edit-upload-gate-input').setInputFiles(approvedPreferenceSourceFixturePath)
     await expect(page.getByTestId('source-summary')).toContainText('fixture.mp4')
     await page.getByTestId('chat-composer-textarea').fill(
-      'Use the source only in its original order with one readable caption. Do not add music, sound effects, transitions, generated visuals, or extra scenes.',
+      'Use the source only in its original order. Do not add captions, music, sound effects, transitions, generated visuals, or extra scenes.',
     )
     await clickWhenReady(page.getByTestId('chat-composer-send'))
     await completeRequiredEditorSetupBeforeFootagePrep(page)

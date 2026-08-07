@@ -383,8 +383,13 @@ export function prepareCanonicalCaptionSpecialistPlanningProjection(input: {
   projection: CanonicalCaptionSpecialistPlanningProjection | null
   workItems: CanonicalWorkItemInput[]
 } {
+  const captionCompositionDisposition = input.components.professionalSkillPlan
+    ? parseCompositionTrace(input.components.professionalSkillPlan)
+        .entries[0].disposition
+    : null
   const hasAnyCaptionPlanningComponent = Boolean(
-    input.components.professionalSkillPlan
+    captionCompositionDisposition === 'selected'
+    || captionCompositionDisposition === 'restrained'
     || input.components.captionEarlyPlanningBundle
     || input.components.captionSpecialistPlanningBinding,
   )

@@ -28,6 +28,10 @@ export type CanonicalSourceLedPlanPresentationReceipt = {
   totalFrames: number
   fps: 30
   captionCueCount: number
+  captionCueAuthority:
+    | 'none'
+    | 'confirmed_edit_brief_markers'
+    | 'authenticated_source_transcript_segments'
   chatDirectionCount: number
   chatThreadRevision: number
   chatDirectionAuthorityDigestSha256: string
@@ -228,6 +232,7 @@ function parseReceipt(
     'totalFrames',
     'fps',
     'captionCueCount',
+    'captionCueAuthority',
     'requestAcceptedBrowserPlan',
     'requestAcceptedBrowserTiming',
     'requestAcceptedBrowserEstimate',
@@ -236,6 +241,9 @@ function parseReceipt(
     'exactPreferenceReread',
     'editBriefReread',
     'chatDirectionReread',
+  ], [
+    'sourceAnalysisEvidenceRef',
+    'sourceCleanupBindingDigestSha256',
   ])
   const permissions = exactRecord(root.permissions, [
     'planPresentedForReview',
@@ -249,6 +257,11 @@ function parseReceipt(
   ])
   const publication = parsePublishedPublication(root.publicationRequest)
   const warnings = safeStringArray(root.warnings)
+  const sourceAnalysisEvidenceRef = derivation
+    ? optionalSourceAnalysisEvidenceRef(derivation.sourceAnalysisEvidenceRef)
+    : null
+  const usesAnalyzedSourceRanges = derivation?.sourceRangePolicy ===
+    'head_intelligence_verified_visual_intelligence_cleanup'
   if (
     !identity ||
     identity.workspaceId !== input.scope.workspaceId ||
@@ -282,6 +295,14 @@ function parseReceipt(
     !isIntegerInRange(derivation.totalFrames, 24, Number.MAX_SAFE_INTEGER) ||
     derivation.fps !== 30 ||
     !isIntegerInRange(derivation.captionCueCount, 0, 7) ||
+    !isCaptionCueAuthority(derivation.captionCueAuthority) ||
+    ((derivation.captionCueCount === 0) !==
+      (derivation.captionCueAuthority === 'none')) ||
+    (usesAnalyzedSourceRanges
+      ? !sourceAnalysisEvidenceRef ||
+        !isSha(derivation.sourceCleanupBindingDigestSha256)
+      : derivation.sourceAnalysisEvidenceRef !== undefined ||
+        derivation.sourceCleanupBindingDigestSha256 !== undefined) ||
     derivation.requestAcceptedBrowserPlan !== false ||
     derivation.requestAcceptedBrowserTiming !== false ||
     derivation.requestAcceptedBrowserEstimate !== false ||
@@ -322,6 +343,7 @@ function parseReceipt(
       totalFrames: derivation.totalFrames as number,
       fps: 30,
       captionCueCount: derivation.captionCueCount as number,
+      captionCueAuthority: derivation.captionCueAuthority,
       chatDirectionCount: derivation.chatDirectionCount as number,
       chatThreadRevision: derivation.chatThreadRevision as number,
       chatDirectionAuthorityDigestSha256:
@@ -578,16 +600,36 @@ function isConfirmedAspectRatio(
 function exactRecord(
   value: unknown,
   keys: string[],
+  optionalKeys: string[] = [],
 ): Record<string, unknown> | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const record = value as Record<string, unknown>
-  const actualKeys = Object.keys(record).sort()
-  const expectedKeys = [...keys].sort()
-  if (
-    actualKeys.length !== expectedKeys.length ||
-    actualKeys.some((key, index) => key !== expectedKeys[index])
-  ) return null
+  const actualKeys = Object.keys(record)
+  const allowedKeys = new Set([...keys, ...optionalKeys])
+  if (keys.some((key) => !actualKeys.includes(key)) ||
+    actualKeys.some((key) => !allowedKeys.has(key))) return null
   return record
+}
+
+function optionalSourceAnalysisEvidenceRef(value: unknown): {
+  id: string
+  version: number
+  contentHash: string
+} | null {
+  if (value === undefined) return null
+  const ref = exactRecord(value, ['id', 'version', 'contentHash'])
+  if (!ref || !isSafeId(ref.id) ||
+    !isIntegerInRange(ref.version, 1, Number.MAX_SAFE_INTEGER) ||
+    !isSha(ref.contentHash)) return null
+  return ref as { id: string; version: number; contentHash: string }
+}
+
+function isCaptionCueAuthority(
+  value: unknown,
+): value is CanonicalSourceLedPlanPresentationReceipt['captionCueAuthority'] {
+  return value === 'none' ||
+    value === 'confirmed_edit_brief_markers' ||
+    value === 'authenticated_source_transcript_segments'
 }
 
 function allFalse(record: Record<string, unknown>, keys: string[]): boolean {

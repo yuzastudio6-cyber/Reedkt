@@ -1227,6 +1227,31 @@ check(canonicalCaptionSpecialistMissingApprovalGates(
   .length === 0,
 'Owner-approved no_captions restraint must not create Caption approval gates.')
 
+const unresolvedTrace = createProfessionalSkillCompositionTrace({
+  planId: 'professional.caption.plan.unresolved.1',
+  selectedSkills: [],
+})
+const unresolvedComponents = {
+  ...components({
+    trace: selectedTrace,
+    bundle: selectedBundle,
+    binding: selectedBinding,
+  }),
+  professionalSkillPlan: { compositionTrace: unresolvedTrace },
+  captionEarlyPlanningBundle: undefined,
+  captionSpecialistPlanningBinding: undefined,
+}
+const unresolved = prepareCanonicalCaptionSpecialistPlanningProjection({
+  ...scope,
+  components: unresolvedComponents,
+  estimate,
+  existingWorkItems: [snapshotValidation],
+})
+check(
+  unresolved.projection === null && unresolved.workItems.length === 0,
+  'An unresolved Caption composition trace must remain planning-only without fabricating partial Caption authority.',
+)
+
 assert.throws(() => prepareCanonicalCaptionSpecialistPlanningProjection({
   ...scope,
   components: {

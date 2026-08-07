@@ -56,6 +56,8 @@ import type {
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 import { parseCaptionEarlyPlanningBundle } from './caption-early-planning'
+import { canonicalCaptionMasterTimingDigest } from
+  './caption-master-timing-authority'
 import { sha256AuthorityValue, stableAuthorityStringify } from
   '../services/private-edit-authority-store'
 
@@ -801,7 +803,8 @@ function assertPlanningLineage(input: {
     || !inputRefKeys.has(refKey(transcriptPlanningRef(binding)))
     || !inputRefKeys.has(refKey(binding.masterTimingRef))
     || binding.masterTimingRef.contentHash
-      !== sha256AuthorityValue(input.components.masterTimingPlan)
+      !== canonicalCaptionMasterTimingDigest(
+        input.components.masterTimingPlan)
     || frame.width !== canonicalFrame.width
     || frame.height !== canonicalFrame.height
     || frame.fpsNumerator / frame.fpsDenominator !== canonicalFrame.fps

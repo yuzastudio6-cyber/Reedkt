@@ -42,6 +42,9 @@ import {
   parseCanonicalCaptionSpecialistPlanningBinding,
   prepareCanonicalCaptionSpecialistPlanningProjection,
 } from './caption-canonical-work-planning'
+import {
+  canonicalCaptionMasterTimingDigest,
+} from './caption-master-timing-authority'
 
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -235,7 +238,7 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningRequest(
     masterTimingRef: {
       id: `caption-master-timing.${identitySuffix}`,
       version: 'canonical-source-led-master-timing-ref-v1',
-      contentHash: canonicalMasterTimingDigest(
+      contentHash: canonicalCaptionMasterTimingDigest(
         input.components.masterTimingPlan),
     },
     sourceSequenceRef: {
@@ -666,35 +669,6 @@ function assertNoCaptionPlanningComponents(
       'Canonical source-led Caption planning cannot replace or merge pre-existing Caption components.',
     )
   }
-}
-
-/**
- * Shared timing owners may publish a self-digesting `master_timing_plan_v1`
- * projection. Caption must bind that canonical digest rather than hashing the
- * envelope a second time, which would manufacture a parallel clock identity.
- * Older plans without an embedded digest retain the historical whole-object
- * digest for backward compatibility.
- */
-function canonicalMasterTimingDigest(
-  masterTimingPlan: CanonicalPlanComponentsInput['masterTimingPlan'],
-): string {
-  const embeddedDigest = masterTimingPlan.timingHash
-  if (embeddedDigest === undefined) {
-    return sha256AuthorityValue(masterTimingPlan)
-  }
-  if (typeof embeddedDigest !== 'string' || !SHA256.test(embeddedDigest)) {
-    throw new Error(
-      'Canonical Caption planning rejected a malformed MasterTiming digest.',
-    )
-  }
-  const timingCore = { ...masterTimingPlan }
-  delete timingCore.timingHash
-  if (sha256AuthorityValue(timingCore) !== embeddedDigest) {
-    throw new Error(
-      'Canonical Caption planning rejected a stale MasterTiming digest.',
-    )
-  }
-  return embeddedDigest
 }
 
 function requestRef(

@@ -223,7 +223,6 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     userVisualPreference: 'balanced',
     claimSensitivity: 'none',
     generatedMediaWouldMislead: false,
-    primaryVisualOwner: 'b_roll',
     captionReservedZoneCount: 1,
     trackingRequired: false,
     sourceCandidates: [sourceCandidate],

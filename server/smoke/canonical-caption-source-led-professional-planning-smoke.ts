@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import type {
   ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
@@ -57,10 +60,8 @@ import {
   compileCanonicalSourceLedPlan,
 } from '../services/canonical-source-led-plan-compiler'
 import {
-  BROLL_CAPABILITY_MANIFEST,
-  createBrollMasterTimingPlan,
-} from '../edit-skills/b-roll'
-import { skillManifestReference } from '../edit-skills/core'
+  createCanonicalCaptionBrollApprovedPlanHarness,
+} from '../internal-testing/canonical-caption-broll-approved-plan-harness'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -191,7 +192,60 @@ const legacyPlan = requirePublication(legacyCompilation)
 const cleanPlan = requirePublication(cleanCompilation)
 const baseComponents = canonicalPlanComponentsSchema.parse(
   cleanPlan.canonicalPlan.components)
-const baseComponentsBefore = structuredClone(baseComponents)
+const brollStorageRoot = await mkdtemp(join(
+  tmpdir(),
+  'reeditpro-caption-source-led-broll-',
+))
+const firstSegment = baseComponents.segments[0]!
+const firstSource = baseComponents.sourceSequence[0]!
+const firstSourceAsset = sourceMediaAssets[0]!
+const brollHarness =
+  await createCanonicalCaptionBrollApprovedPlanHarness({
+    localStorageRoot: brollStorageRoot,
+    ownerUserId: 'owner.caption.source-led.1',
+    workspaceId: 'workspace.caption.source-led.1',
+    projectId: 'project.caption.source-led.1',
+    editSessionId: 'edit.caption.source-led.1',
+    planningRequestId: cleanPlan.planningRequestIdSeed,
+    assignmentId: 'broll.caption.source-led.1',
+    editPlanVersion: 1,
+    timelineRange: {
+      startFrameInclusive: 0,
+      endFrameExclusive: baseComponents.timingSummary.totalFrames,
+      fps: baseComponents.timingSummary.fps,
+    },
+    authorizedRange: {
+      startFrameInclusive: firstSegment.startFrame,
+      endFrameExclusive: firstSegment.endFrameExclusive,
+      fps: baseComponents.timingSummary.fps,
+    },
+    segmentIds: [firstSegment.segmentId],
+    confirmedAspectRatio: '16:9',
+    approvedAt: timestamp,
+    source: {
+      sourceSequenceItemId: firstSource.sourceSequenceItemId,
+      objectSha256: firstSourceAsset.checksumSha256,
+      byteLength: firstSourceAsset.byteSize,
+      durationFrames: Math.round(
+        firstSourceAsset.sourceMetadata.durationSeconds *
+          baseComponents.timingSummary.fps),
+      fps: baseComponents.timingSummary.fps,
+      width: firstSourceAsset.sourceMetadata.width,
+      height: firstSourceAsset.sourceMetadata.height,
+      sourceRange: {
+        startFrameInclusive: 0,
+        endFrameExclusive:
+          firstSegment.endFrameExclusive - firstSegment.startFrame,
+        fps: baseComponents.timingSummary.fps,
+      },
+    },
+  })
+const planningComponents = canonicalPlanComponentsSchema.parse({
+  ...structuredClone(baseComponents),
+  masterTimingPlan: brollHarness.masterTimingPlan,
+  bRollSkill: brollHarness.persistedComponent.component,
+})
+const planningComponentsBefore = structuredClone(planningComponents)
 const estimateBefore = structuredClone(cleanPlan.canonicalPlan.estimate)
 const workItemsBefore = structuredClone(cleanPlan.canonicalPlan.workItems)
 const confirmedCaptionMarkerSetRef = domainRef(
@@ -203,6 +257,23 @@ const confirmedCaptionMarkerSetRef = domainRef(
     endFrame: confirmedCaptionMarker.endFrame,
   }),
 )
+const backwardCompatibleTimingRequest =
+  createCanonicalCaptionSourceLedProfessionalPlanningRequest({
+    canonicalScope: {
+      ownerUserId: 'owner.caption.source-led.1',
+      workspaceId: 'workspace.caption.source-led.1',
+      projectId: 'project.caption.source-led.1',
+      editSessionId: 'edit.caption.source-led.1',
+      planningRequestId: `${cleanPlan.planningRequestIdSeed}.legacy-timing`,
+      outputId: 'output.caption.source-led.legacy-timing',
+    },
+    components: baseComponents,
+    confirmedCaptionMarkerSetRef,
+  })
+check(backwardCompatibleTimingRequest.masterTimingRef.contentHash ===
+  sha256AuthorityValue(baseComponents.masterTimingPlan),
+'Legacy MasterTiming envelopes without a self-digest must retain their '
+  + 'backward-compatible whole-object binding.')
 const request = createCanonicalCaptionSourceLedProfessionalPlanningRequest({
   canonicalScope: {
     ownerUserId: 'owner.caption.source-led.1',
@@ -212,49 +283,15 @@ const request = createCanonicalCaptionSourceLedProfessionalPlanningRequest({
     planningRequestId: cleanPlan.planningRequestIdSeed,
     outputId: 'output.caption.source-led.1',
   },
-  components: baseComponents,
+  components: planningComponents,
   confirmedCaptionMarkerSetRef,
 })
-const embeddedTimingPlan = createBrollMasterTimingPlan({
-  schemaVersion: 'master_timing_plan_v1',
-  ownerUserId: 'owner.caption.source-led.1',
-  workspaceId: 'workspace.caption.source-led.1',
-  projectId: 'project.caption.source-led.1',
-  editSessionId: 'edit.caption.source-led.1',
-  assignmentId: 'broll.caption.source-led.1',
-  editPlanVersion: 1,
-  manifestRef: skillManifestReference(BROLL_CAPABILITY_MANIFEST),
-  fps: baseComponents.timingSummary.fps,
-  timelineRange: {
-    startFrameInclusive: 0,
-    endFrameExclusive: baseComponents.timingSummary.totalFrames,
-    fps: baseComponents.timingSummary.fps,
-  },
-  assignmentRange: {
-    startFrameInclusive: 0,
-    endFrameExclusive: baseComponents.segments[0]!.endFrameExclusive,
-    fps: baseComponents.timingSummary.fps,
-  },
-})
-const embeddedTimingHash = embeddedTimingPlan.timingHash
-const embeddedTimingComponents = {
-  ...structuredClone(baseComponents),
-  masterTimingPlan: embeddedTimingPlan,
-}
-const embeddedTimingRequest =
-  createCanonicalCaptionSourceLedProfessionalPlanningRequest({
-    canonicalScope: {
-      ...request.canonicalScope,
-      planningRequestId: `${request.canonicalScope.planningRequestId}.timing`,
-    },
-    components: embeddedTimingComponents,
-    confirmedCaptionMarkerSetRef,
-  })
-check(embeddedTimingRequest.masterTimingRef.contentHash === embeddedTimingHash,
+check(request.masterTimingRef.contentHash ===
+  brollHarness.masterTimingPlan.timingHash,
 'Caption planning must consume a validated canonical MasterTiming digest '
   + 'without creating a parallel whole-envelope digest.')
 const staleEmbeddedTimingComponents = structuredClone(
-  embeddedTimingComponents)
+  planningComponents)
 staleEmbeddedTimingComponents.masterTimingPlan.timingHash =
   sha256AuthorityValue('stale-timing')
 assert.throws(() =>
@@ -295,7 +332,7 @@ const assignmentSpecs: Array<{
     sceneId: null,
     frameRange: { startFrame: 0, endFrameExclusive: request.totalFrames },
   })),
-  ...baseComponents.segments.flatMap((segment) =>
+  ...planningComponents.segments.flatMap((segment) =>
     requiredSceneJobs.map((jobType) => ({
       jobType,
       sceneId: segment.segmentId,
@@ -318,7 +355,7 @@ const binding = createCanonicalCaptionSpecialistPlanningBindingV2({
     version: selectedBundle.estimateInput.componentVersion,
     contentHash: selectedBundle.estimateInput.componentDigestSha256,
   },
-  scenePolicies: baseComponents.segments.map((segment) => ({
+  scenePolicies: planningComponents.segments.map((segment) => ({
     sceneId: segment.segmentId,
     trackingJobType: null,
     crossSystemTarget: null,
@@ -402,7 +439,7 @@ check(ready.status === 'ready' && stableReadCount === 2,
 const applied = applyCanonicalCaptionSourceLedProfessionalPlanning({
   request,
   authority,
-  components: baseComponents,
+  components: planningComponents,
   estimate: cleanPlan.canonicalPlan.estimate,
   workItems: cleanPlan.canonicalPlan.workItems,
 })
@@ -431,7 +468,8 @@ check(applied.projection.downstreamCaptionRenderWorkRequired
   && applied.projection.independentPrivateReviewRequired
   && !applied.projection.fullyApprovedCaptionExecutionCoverageClaimed,
 'Planning must preserve every downstream render and review gate without claiming completion.')
-check(JSON.stringify(baseComponents) === JSON.stringify(baseComponentsBefore)
+check(JSON.stringify(planningComponents) ===
+  JSON.stringify(planningComponentsBefore)
   && JSON.stringify(cleanPlan.canonicalPlan.estimate) ===
     JSON.stringify(estimateBefore)
   && JSON.stringify(cleanPlan.canonicalPlan.workItems) ===
@@ -440,18 +478,48 @@ check(JSON.stringify(baseComponents) === JSON.stringify(baseComponentsBefore)
 check(Boolean(canonicalPlanComponentsSchema.parse(applied.components)
   .captionSpecialistPlanningBinding),
 'The projected Caption components must remain valid canonical plan components.')
+const integratedEstimate = {
+  ...structuredClone(applied.estimate),
+  lineItems: [...structuredClone(applied.estimate.lineItems), {
+    lineKey: 'broll-source-led-professional-work',
+    label: 'Approved existing-source B-roll planning and private review',
+    category: 'b_roll',
+    estimatedCredits: brollHarness.estimatedCredits,
+    removable: false,
+    metadata: {
+      assignmentHash: brollHarness.brollAssignment.assignmentHash,
+      workGraphHash: brollHarness.canonicalWorkGraph.workGraphHash,
+      masterTimingHash: brollHarness.masterTimingPlan.timingHash,
+      estimateOwnerRemainsCanonical: true,
+      billingAuthorityGrantedToBroll: false,
+    },
+  }],
+}
+const integratedWorkItems = [
+  ...structuredClone(applied.workItems),
+  ...structuredClone(brollHarness.canonicalWorkItems),
+]
 check(publishCanonicalEditPlanSchema.shape.canonicalPlan.safeParse({
   ...cleanPlan.canonicalPlan,
   components: applied.components,
-  estimate: applied.estimate,
-  workItems: applied.workItems,
+  estimate: integratedEstimate,
+  workItems: integratedWorkItems,
 }).success,
-'The completed source-led Caption projection must remain publishable.')
+'One Caption+B-roll source-led plan must remain publishable with exact '
+  + 'component, estimate, work, source, scene, and MasterTiming lineage.')
+check(integratedWorkItems.filter((item) =>
+  item.workerClass === 'canonical_caption_specialist_worker_v1').length ===
+    assignmentSpecs.length
+  && integratedWorkItems.filter((item) =>
+    item.executionInput.bRollAtomicAuthority !== undefined).length ===
+      brollHarness.canonicalWorkItems.length,
+'The integrated plan must contain each Caption and B-roll owner projection '
+  + 'exactly once.')
 
 assert.throws(() => applyCanonicalCaptionSourceLedProfessionalPlanning({
   request,
   authority,
-  components: baseComponents,
+  components: planningComponents,
   estimate: legacyPlan.canonicalPlan.estimate,
   workItems: legacyPlan.canonicalPlan.workItems,
 }), /legacy exact-marker caption lane/u)
@@ -463,7 +531,7 @@ assert.throws(() => createCanonicalCaptionSourceLedProfessionalPlanningRequest({
 }), /cannot replace or merge pre-existing Caption components/u)
 checks += 1
 
-const changedBase = structuredClone(baseComponents)
+const changedBase = structuredClone(planningComponents)
 changedBase.qaPlan = { changedAfterOwnerRead: true }
 assert.throws(() => applyCanonicalCaptionSourceLedProfessionalPlanning({
   request,
@@ -525,7 +593,7 @@ const restraintRequest =
       ...request.canonicalScope,
       outputId: 'output.caption.source-led.restraint',
     },
-    components: baseComponents,
+    components: planningComponents,
   })
 const restraintTrace = createProfessionalSkillCompositionTrace({
   planId: 'professional.caption.source-led.restraint',
@@ -587,7 +655,7 @@ const restraintAuthority =
 const restrained = applyCanonicalCaptionSourceLedProfessionalPlanning({
   request: restraintRequest,
   authority: restraintAuthority,
-  components: baseComponents,
+  components: planningComponents,
   estimate: cleanPlan.canonicalPlan.estimate,
   workItems: cleanPlan.canonicalPlan.workItems,
 })
@@ -659,11 +727,15 @@ assert.throws(() =>
 /cycle/u)
 checks += 1
 
+await rm(brollStorageRoot, { recursive: true, force: true })
+
 console.log(JSON.stringify({
   smoke: 'canonical_caption_source_led_professional_planning',
   status: 'passed',
   checks,
   selectedAssignments: assignmentSpecs.length,
+  integratedBrollWorkItems: brollHarness.canonicalWorkItems.length,
+  onePublishableCaptionBrollPlan: true,
   legacyParallelRendererRejected: true,
   stableDoubleRereadRequired: true,
   canonicalPlannerReused: true,
@@ -812,7 +884,7 @@ function earlyPlanningInput(
       requestedMaximumCaptionCredits: noCaptions ? 0 : 40,
       fallbackIds: ['fallback.stable_libass'],
     },
-    scenes: baseComponents.segments.map((segment, index) => ({
+    scenes: planningComponents.segments.map((segment, index) => ({
       sceneId: segment.segmentId,
       planningFrameRange: {
         startFrame: segment.startFrame,

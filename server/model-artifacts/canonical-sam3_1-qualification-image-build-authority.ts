@@ -44,6 +44,10 @@ const PATCH_SHA256 =
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca' as const
 const CUDA_FORWARD_COMPAT_SHA256 =
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' as const
+const FFMPEG_SHA256 =
+  '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121' as const
+const NV_CODEC_HEADERS_SHA256 =
+  'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -557,9 +561,18 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`
   const cudaPackagePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`
+  const ffmpegSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`
+  const nvCodecHeadersSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`
+  const ffmpegReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`
   requirePresent(sourceArchivePath)
   requirePresent(patchedSourceArchivePath)
   requirePresent(cudaPackagePath)
+  requirePresent(ffmpegSourcePath)
+  requirePresent(nvCodecHeadersSourcePath)
+  requirePresent(ffmpegReceiptPath)
   if (canonical) {
     required(
       sourceArchivePath,
@@ -573,6 +586,8 @@ function assertQualificationCapsuleEntries(
       cudaPackagePath,
       manifest.privateInput.cudaForwardCompatPackageSha256,
     )
+    required(ffmpegSourcePath, FFMPEG_SHA256)
+    required(nvCodecHeadersSourcePath, NV_CODEC_HEADERS_SHA256)
   }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
@@ -630,5 +645,8 @@ function isAllowedEntry(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
   ].includes(path) || isWheelPath(path)
 }

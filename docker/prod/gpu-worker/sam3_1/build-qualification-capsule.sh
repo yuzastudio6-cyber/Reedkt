@@ -14,6 +14,13 @@ readonly SOURCE_SHA256='5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89
 readonly PATCHED_SOURCE_SHA256='b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb'
 readonly PATCH_SHA256='daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca'
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
+readonly FFMPEG_VERSION='8.0.3'
+readonly FFMPEG_SHA256='5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121'
+readonly FFMPEG_BYTES='17211188'
+readonly NV_CODEC_HEADERS_VERSION='n12.2.72.0'
+readonly NV_CODEC_HEADERS_COMMIT='157becbf51c8b813425572b75c06c370bd43d8fd'
+readonly NV_CODEC_HEADERS_SHA256='dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563'
+readonly NV_CODEC_HEADERS_BYTES='80935'
 readonly SOURCE_BYTES='73605120'
 readonly CUDA_COMPAT_BYTES='37945232'
 readonly REPOSITORY_COMMIT="${WEEDITPRO_REPOSITORY_COMMIT:?missing repository commit}"
@@ -32,7 +39,14 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 url, destination_text, expected_sha, expected_bytes_text = sys.argv[1:]
 expected_bytes = int(expected_bytes_text)
-allowed = {"developer.download.nvidia.com", "files.pythonhosted.org"}
+allowed = {
+    "codeload.github.com",
+    "developer.download.nvidia.com",
+    "download.pytorch.org",
+    "ffmpeg.org",
+    "files.pythonhosted.org",
+    "github.com",
+}
 
 def validate(value: str) -> None:
     parsed = urlparse(value)
@@ -87,6 +101,7 @@ mkdir -p \
   "${PRIVATE_ROOT}/source" \
   "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat" \
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1" \
   /output
 
@@ -136,8 +151,8 @@ Path("${PRIVATE_ROOT}/source/source-patch-application-receipt.json").write_text(
 PY
 
 # Every CPython 3.12 Linux x86_64 dependency wheel is selected and verified by
-# exact immutable PyPI file URL, byte length, and SHA-256. There is no online
-# dependency resolution in either the capsule build or qualification runtime.
+# exact immutable official PyPI or PyTorch wheel URL, byte length, and SHA-256.
+# There is no online dependency resolution in the image or qualification runtime.
 download_wheel \
   'certifi-2026.7.22-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl' \
@@ -224,10 +239,10 @@ download_wheel \
   'e577b88da96b3a722ea5e2f042455ce6f715d398304d8e63b17d126ed7d89968' \
   '2597944'
 download_wheel \
-  'torchcodec-0.10.0-cp312-cp312-manylinux_2_28_x86_64.whl' \
-  'https://files.pythonhosted.org/packages/29/34/ccc711b6dc581e43b8d8d227e4173a8826994ee7b68d6b3d82291f307325/torchcodec-0.10.0-cp312-cp312-manylinux_2_28_x86_64.whl' \
-  '6e43184d83ccced965b31cad5bb6200c779646fee2ec153a6d784b4def40c91b' \
-  '2083121'
+  'torchcodec-0.10.0+cu128-cp312-cp312-manylinux_2_28_x86_64.whl' \
+  'https://download.pytorch.org/whl/cu128/torchcodec-0.10.0%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl' \
+  '5ecb4aeb61b4f14f30ceed11ce892308f38232d82eee64605ae19583c51a8e72' \
+  '2403046'
 download_wheel \
   'tqdm-4.70.0-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/f9/1c/01bfd571a64e7f270e6bab5e33777debe0edc56759233ce84f27dec92d14/tqdm-4.70.0-py3-none-any.whl' \
@@ -259,13 +274,62 @@ python -m pip wheel --disable-pip-version-check --no-cache-dir --no-deps \
   "${WORK}/iopath-0.1.10.tar.gz"
 
 download_exact \
+  "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz" \
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-${FFMPEG_VERSION}.tar.gz" \
+  "${FFMPEG_SHA256}" "${FFMPEG_BYTES}"
+
+download_exact \
+  "https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/${NV_CODEC_HEADERS_VERSION}.tar.gz" \
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/nv-codec-headers-${NV_CODEC_HEADERS_VERSION}.tar.gz" \
+  "${NV_CODEC_HEADERS_SHA256}" "${NV_CODEC_HEADERS_BYTES}"
+
+python - \
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json" <<PY
+import json
+from pathlib import Path
+receipt = {
+  "schemaVersion": "weeditpro-sam3_1-ffmpeg-nvdec-source-closure-receipt-v1",
+  "ffmpegVersion": "${FFMPEG_VERSION}",
+  "ffmpegReleaseArchiveSha256": "${FFMPEG_SHA256}",
+  "ffmpegReleaseArchiveByteLength": ${FFMPEG_BYTES},
+  "ffmpegLicense": "LGPL-2.1-or-later",
+  "nvCodecHeadersVersion": "${NV_CODEC_HEADERS_VERSION}",
+  "nvCodecHeadersCommit": "${NV_CODEC_HEADERS_COMMIT}",
+  "nvCodecHeadersArchiveSha256": "${NV_CODEC_HEADERS_SHA256}",
+  "nvCodecHeadersArchiveByteLength": ${NV_CODEC_HEADERS_BYTES},
+  "nvCodecHeadersLicense": "MIT",
+  "cudaCompilerBaseImageDigest": "sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43",
+  "sharedLibrariesRequired": True,
+  "ffnvcodecRequired": True,
+  "nvdecRequired": True,
+  "cuvidRequired": True,
+  "h264CuvidDecoderRequired": True,
+  "hevcCuvidDecoderRequired": True,
+  "gplComponentsEnabled": False,
+  "nonfreeComponentsEnabled": False,
+  "libnppLinkedIntoFfmpeg": False,
+  "networkAtBuildAllowed": False,
+  "networkAtRuntimeAllowed": False,
+  "cpuVideoDecodeFallbackAllowed": False,
+  "containsCheckpoint": False,
+  "containsCredentials": False,
+  "containsCustomerMedia": False,
+}
+Path("${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json").write_text(
+  json.dumps(receipt, sort_keys=True, separators=(",", ":")) + "\n",
+  encoding="utf-8",
+)
+PY
+
+download_exact \
   'https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb' \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb" \
   "${CUDA_COMPAT_SHA256}" "${CUDA_COMPAT_BYTES}"
 
 python - "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/requirements.lock.txt" \
-  "${PRIVATE_ROOT}/dependency-closure/dependency-closure-receipt.json" <<'PY'
+  "${PRIVATE_ROOT}/dependency-closure/dependency-closure-receipt.json" \
+  "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json" <<'PY'
 import email.parser
 import hashlib
 import json
@@ -274,7 +338,9 @@ import re
 import sys
 from zipfile import ZipFile
 
-wheelhouse, lock_path, receipt_path = map(Path, sys.argv[1:])
+wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path = map(
+    Path, sys.argv[1:]
+)
 expected = {
   "certifi": "2026.7.22", "charset-normalizer": "3.4.9",
   "filelock": "3.32.2", "fsspec": "2026.7.0", "ftfy": "6.1.1",
@@ -282,7 +348,7 @@ expected = {
   "iopath": "0.1.10", "numpy": "1.26.4", "packaging": "26.3",
   "pillow": "12.3.0", "portalocker": "4.1.0", "pyyaml": "6.0.3",
   "regex": "2026.7.19", "requests": "2.34.2", "safetensors": "0.8.0",
-  "timm": "1.0.28", "torchcodec": "0.10.0", "tqdm": "4.70.0",
+  "timm": "1.0.28", "torchcodec": "0.10.0+cu128", "tqdm": "4.70.0",
   "typing-extensions": "4.16.0", "urllib3": "2.6.3", "wcwidth": "0.8.2",
 }
 
@@ -323,6 +389,14 @@ receipt = {
     "torchVersionProvidedByPinnedBase": "2.10.0+cu128",
     "torchvisionVersionProvidedByPinnedBase": "0.25.0",
     "cudaVersionProvidedByPinnedBase": "12.8",
+    "torchcodecCudaWheelVersion": "0.10.0+cu128",
+    "torchcodecCpuWheelAccepted": False,
+    "ffmpegClosureReceiptSha256": hashlib.sha256(
+        ffmpeg_receipt_path.read_bytes()
+    ).hexdigest(),
+    "ffmpegSharedLibraryVersion": "8.0.3",
+    "ffmpegNvdecRequired": True,
+    "ffmpegCpuVideoDecodeFallbackAllowed": False,
     "offlineInstallRequired": True,
     "requireHashes": True,
     "dependencyResolutionAtRuntimeAllowed": False,

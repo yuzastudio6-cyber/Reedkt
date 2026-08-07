@@ -891,6 +891,29 @@ function assertCapsuleManifestEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
     value.privateInput.dependencyClosureReceiptSha256,
   )
+  const ffmpegSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`
+  const nvCodecHeadersSourcePath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`
+  const ffmpegReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`
+  if (
+    !byPath.has(ffmpegSourcePath)
+    || !byPath.has(nvCodecHeadersSourcePath)
+    || !byPath.has(ffmpegReceiptPath)
+  ) {
+    throw new Error('Capsule FFmpeg source closure is missing.')
+  }
+  if (canonical) {
+    required(
+      ffmpegSourcePath,
+      '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121',
+    )
+    required(
+      nvCodecHeadersSourcePath,
+      'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563',
+    )
+  }
   const cudaPackagePath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`
   if (!byPath.has(cudaPackagePath)) {
@@ -938,6 +961,12 @@ function assertCapsuleManifestEntries(
     || patchedArchive.byteLength !== 73_605_120
     || patchedArchive.sha256 !==
       value.privateInput.deterministicPatchedSourceArchiveSha256
+    || byPath.get(
+      `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    )?.byteLength !== 17_211_188
+    || byPath.get(
+      `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
+    )?.byteLength !== 80_935
     || byPath.get(cudaPackagePath)?.byteLength !== 37_945_232
   )) throw new Error('Canonical capsule bytes do not match frozen artifacts.')
 }
@@ -954,6 +983,9 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/requirements.lock.txt`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/dependency-closure-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,

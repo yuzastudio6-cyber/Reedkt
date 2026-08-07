@@ -63,6 +63,13 @@ for (const expected of [
   'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
+  '5ecb4aeb61b4f14f30ceed11ce892308f38232d82eee64605ae19583c51a8e72',
+  '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121',
+  'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563',
+  'download.pytorch.org',
+  'ffmpeg.org',
+  'github.com',
+  'codeload.github.com',
   'developer.download.nvidia.com',
   'files.pythonhosted.org',
   'capsule download origin is not allowlisted',
@@ -72,6 +79,7 @@ for (const expected of [
   'gzip --no-name --best',
   'weeditpro-sam3_1-source-patch-application-receipt-v1',
   'weeditpro-sam3_1-python-dependency-closure-receipt-v1',
+  'weeditpro-sam3_1-ffmpeg-nvdec-source-closure-receipt-v1',
   'weeditpro-cuda-forward-compat-ingest-receipt-v1',
   'weeditpro-sam3_1-qualification-capsule-builder-result-v1',
   'offlineInstallRequired',
@@ -83,7 +91,7 @@ for (const expected of [
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
 assert.equal((builder.match(/^download_wheel \\/gmu) ?? []).length, 22)
-assert.equal((builder.match(/^download_exact \\/gmu) ?? []).length, 2)
+assert.equal((builder.match(/^download_exact \\/gmu) ?? []).length, 4)
 const localWheelNames = [...builder.matchAll(/^download_wheel \\\n\s+'([^']+\.whl)'/gmu)]
   .map((match) => match[1])
 assert.equal(localWheelNames.length, 22)
@@ -94,6 +102,13 @@ assert.ok(
 assert.ok(localWheelNames.includes(
   'charset_normalizer-3.4.9-cp312-cp312-manylinux_2_28_x86_64.whl',
 ))
+assert.ok(localWheelNames.includes(
+  'torchcodec-0.10.0+cu128-cp312-cp312-manylinux_2_28_x86_64.whl',
+))
+assert.doesNotMatch(
+  builder,
+  /torchcodec-0\.10\.0-cp312-cp312-manylinux_2_28_x86_64\.whl/u,
+)
 assert.ok(builder.includes(
   'charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
 ))
@@ -187,13 +202,36 @@ for (const expected of [
   'sys.base_prefix != sys.prefix',
   'torch.__version__ == \'2.10.0+cu128\'',
   'torchvision.__version__ == \'0.25.0\'',
-  "m.version('torchcodec') == '0.10.0'",
+  "m.version('torchcodec') == '0.10.0+cu128'",
   'torch.version.cuda == \'12.8\'',
+  'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
+  'ffmpeg-8.0.3.tar.gz',
+  'nv-codec-headers-n12.2.72.0.tar.gz',
+  '--enable-shared',
+  '--enable-ffnvcodec',
+  '--enable-nvdec',
+  '--enable-cuvid',
+  '--disable-libnpp',
+  "#define CONFIG_GPL 0",
+  "#define CONFIG_NONFREE 0",
+  'h264_cuvid',
+  'hevc_cuvid',
 ] as const) assert.ok(candidate.includes(expected), `candidate lost ${expected}`)
+assert.equal((candidate.match(/^RUN --network=none /gmu) ?? []).length, 2)
 assert.doesNotMatch(candidate, /--break-system-packages/u)
 assert.match(
   qualificationEntrypoint,
   /exec \/opt\/weeditpro\/python-venv\/bin\/python[\s\\]+-I -B/u,
+)
+for (const expected of [
+  '/opt/weeditpro/ffmpeg/lib',
+  '/usr/local/cuda/lib64',
+  'libavcodec.so.62',
+  'libavformat.so.62',
+  'libavutil.so.60',
+] as const) assert.ok(
+  qualificationEntrypoint.includes(expected),
+  `qualification entrypoint lost ${expected}`,
 )
 
 for (const expected of [
@@ -249,6 +287,10 @@ console.log(JSON.stringify({
   exactPinnedPythonWheelCount: 22,
   deterministicLocalSdistWheelCount: 1,
   exactPinnedCudaForwardCompatibilityPackageCount: 1,
+  exactPinnedFfmpegSourceArchiveCount: 1,
+  exactPinnedNvCodecHeadersArchiveCount: 1,
+  torchcodecCudaWheelRequired: true,
+  cpuVideoDecodeFallbackAllowed: false,
   runtimeDependencyResolutionAllowed: false,
   runtimeNetworkAllowed: false,
   pep668BypassAllowed: false,

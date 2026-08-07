@@ -4,6 +4,92 @@
 # source/checkpoint qualification receipt. The gated checkpoint and probe MP4
 # are mounted read-only only for one fixed qualification attempt.
 
+FROM nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43 AS weeditpro-ffmpeg-nvdec-builder
+
+ENV SOURCE_DATE_EPOCH=0 \
+  TZ=UTC \
+  LANG=C \
+  LC_ALL=C
+
+WORKDIR /build
+
+COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz \
+  /build/ffmpeg-8.0.3.tar.gz
+COPY sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz \
+  /build/nv-codec-headers-n12.2.72.0.tar.gz
+COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json \
+  /build/ffmpeg-closure-receipt.json
+
+RUN --network=none test "$(uname -m)" = x86_64 \
+  && for command_name in cc make pkg-config sha256sum stat tar; do \
+       command -v "${command_name}" >/dev/null \
+         || { printf 'ERROR: missing FFmpeg builder utility: %s\n' \
+           "${command_name}" >&2; exit 127; }; \
+     done \
+  && printf '%s  %s\n' \
+    '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121' \
+    '/build/ffmpeg-8.0.3.tar.gz' | sha256sum --check --strict \
+  && test "$(stat --format='%s' /build/ffmpeg-8.0.3.tar.gz)" = '17211188' \
+  && printf '%s  %s\n' \
+    'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' \
+    '/build/nv-codec-headers-n12.2.72.0.tar.gz' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /build/nv-codec-headers-n12.2.72.0.tar.gz)" = '80935' \
+  && mkdir --mode=0755 /build/nv-codec-headers /build/ffmpeg \
+  && tar --extract --gzip \
+    --file /build/nv-codec-headers-n12.2.72.0.tar.gz \
+    --directory /build/nv-codec-headers --strip-components=1 \
+    --no-same-owner --no-same-permissions \
+  && make -C /build/nv-codec-headers \
+    PREFIX=/opt/weeditpro/ffnvcodec install \
+  && tar --extract --gzip --file /build/ffmpeg-8.0.3.tar.gz \
+    --directory /build/ffmpeg --strip-components=1 \
+    --no-same-owner --no-same-permissions \
+  && cd /build/ffmpeg \
+  && PKG_CONFIG_PATH=/opt/weeditpro/ffnvcodec/lib/pkgconfig \
+    ./configure \
+      --prefix=/opt/weeditpro/ffmpeg \
+      --enable-shared \
+      --disable-static \
+      --disable-doc \
+      --disable-debug \
+      --disable-network \
+      --disable-autodetect \
+      --disable-x86asm \
+      --enable-ffnvcodec \
+      --enable-nvdec \
+      --enable-cuvid \
+      --disable-nvenc \
+      --disable-libnpp \
+      --disable-vulkan \
+      --disable-vaapi \
+      --disable-vdpau \
+      --extra-cflags=-I/opt/weeditpro/ffnvcodec/include \
+      --extra-ldflags=-Wl,-rpath,/opt/weeditpro/ffmpeg/lib \
+  && grep -Fx '#define CONFIG_GPL 0' config.h \
+  && grep -Fx '#define CONFIG_NONFREE 0' config.h \
+  && grep -Fx '#define CONFIG_FFNVCODEC 1' config.h \
+  && grep -Fx '#define CONFIG_NVDEC 1' config.h \
+  && grep -Fx '#define CONFIG_CUVID 1' config.h \
+  && make -j4 \
+  && make install \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -version \
+    | grep -F 'ffmpeg version 8.0.3' \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -buildconf \
+    | grep -F -- '--enable-cuvid' \
+  && ! LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -buildconf \
+    | grep -E -- '--enable-(gpl|nonfree|libnpp)' \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders \
+    | grep -E '[[:space:]]h264_cuvid[[:space:]]' \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders \
+    | grep -E '[[:space:]]hevc_cuvid[[:space:]]'
+
 FROM pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca
 
 ARG SAM31_DEPENDENCY_LOCK_SHA256
@@ -33,11 +119,16 @@ ENV HF_HUB_OFFLINE=1 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv \
+  PATH=/opt/weeditpro/ffmpeg/bin:${PATH} \
+  LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/usr/local/cuda/lib64 \
   CUDA_MODULE_LOADING=LAZY \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 
 WORKDIR /opt/reeditpro
+
+COPY --from=weeditpro-ffmpeg-nvdec-builder \
+  /opt/weeditpro/ffmpeg/ /opt/weeditpro/ffmpeg/
 
 COPY sam31_private_build_input/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar \
   /opt/reeditpro/sam3_1/qualification-artifacts/sam3-source.tar
@@ -51,6 +142,12 @@ COPY sam31_private_build_input/dependency-closure/wheelhouse/ \
   /tmp/sam31-wheelhouse/
 COPY sam31_private_build_input/dependency-closure/dependency-closure-receipt.json \
   /opt/reeditpro/sam3_1/qualification-artifacts/dependency-closure-receipt.json
+COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz \
+  /opt/reeditpro/sam3_1/qualification-artifacts/ffmpeg-8.0.3.tar.gz
+COPY sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz \
+  /opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz
+COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json \
+  /opt/reeditpro/sam3_1/qualification-artifacts/ffmpeg-closure-receipt.json
 COPY sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
   /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb
 COPY sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json \
@@ -64,7 +161,7 @@ COPY docker/prod/gpu-worker/sam3_1/qualification_entrypoint.sh \
 COPY docker/prod/gpu-worker/sam3_1/source-provenance.lock \
   /opt/reeditpro/sam3_1/source-provenance.lock
 
-RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
+RUN --network=none test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && test "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" != "" \
   && test "${SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256}" != "" \
   && test "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" != "" \
@@ -99,6 +196,22 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" \
     '/opt/reeditpro/sam3_1/qualification-artifacts/dependency-closure-receipt.json' \
     | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121' \
+    '/opt/reeditpro/sam3_1/qualification-artifacts/ffmpeg-8.0.3.tar.gz' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /opt/reeditpro/sam3_1/qualification-artifacts/ffmpeg-8.0.3.tar.gz)" \
+    = '17211188' \
+  && printf '%s  %s\n' \
+    'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' \
+    '/opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz' \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz)" \
+    = '80935' \
+  && python -I -B -c \
+    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
   && printf '%s\n' "${SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256}" \
     > /opt/reeditpro/sam3_1/qualification-artifacts/wheel-manifest.sha256 \
   && printf '%s  %s\n' \
@@ -152,7 +265,13 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     --target="${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages" \
     /opt/reeditpro/sam3-source \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
-    "import importlib.metadata as m; import sys; import torch; import torchvision; import torchcodec; import sam3; assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0'; assert m.version('torchcodec') == '0.10.0'; assert torch.version.cuda == '12.8'" \
+    "import importlib.metadata as m; import sys; import torch; import torchvision; import torchcodec; import sam3; assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0'; assert m.version('torchcodec') == '0.10.0+cu128'; assert torch.version.cuda == '12.8'" \
+  && ! ldd "${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages/torchcodec/libtorchcodec_core8.so" \
+    | grep -F 'not found' \
+  && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders \
+    | grep -E '[[:space:]]h264_cuvid[[:space:]]' \
+  && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders \
+    | grep -E '[[:space:]]hevc_cuvid[[:space:]]' \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -m py_compile \
     /opt/reeditpro/sam3_1/qualification_runner.py \
   && chmod 0555 \

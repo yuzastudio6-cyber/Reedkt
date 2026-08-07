@@ -145,6 +145,24 @@ assert.throws(() =>
     shortWorkerResult,
   ))
 
+const cpuDecodeFallback = structuredClone(canonicalWorkerEvidence.result)
+;(cpuDecodeFallback.runtime as unknown as {
+  cpuVideoDecodeFallbackObserved: boolean
+}).cpuVideoDecodeFallbackObserved = true
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(
+    cpuDecodeFallback,
+  ))
+
+const cpuTorchcodecWheel = structuredClone(canonicalWorkerEvidence.result)
+;(cpuTorchcodecWheel.runtime as unknown as {
+  torchcodecCudaWheelVersion: string
+}).torchcodecCudaWheelVersion = '0.10.0'
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(
+    cpuTorchcodecWheel,
+  ))
+
 const dockerfile = readFileSync(
   new URL(
     '../../docker/prod/gpu-worker/sam3_1/Dockerfile.qualification.candidate',
@@ -176,6 +194,12 @@ assert.doesNotMatch(dockerfile, /sam3\.1_multiplex\.pt/u)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)
+assert.match(runner, /verify_ffmpeg_nvdec_runtime\(\)/u)
+assert.match(runner, /install_torchcodec_gpu_decode_guard\(\)/u)
+assert.match(runner, /core\._get_backend_details\(decoder\._decoder\)/u)
+assert.match(runner, /"CPU fallback" in details/u)
+assert.match(runner, /frame\.device\.type != "cuda"/u)
+assert.match(runner, /"0\.10\.0\+cu128"/u)
 assert.match(
   runner,
   /QUALIFICATION_MOUNT = Path\("\/mnt\/disks\/reeditpro\/sam31-qualification"\)/u,
@@ -184,7 +208,10 @@ assert.match(runner, /REQUEST_PATH = QUALIFICATION_MOUNT \/ "request\/request\.j
 assert.doesNotMatch(runner, /Path\("\/mnt\/reeditpro\//u)
 assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
 assert.match(entrypoint, /nvidia_a100_80gb/u)
-assert.match(entrypoint, /exec python -I -B/u)
+assert.match(
+  entrypoint,
+  /exec \/opt\/weeditpro\/python-venv\/bin\/python \\\n {2}-I -B/u,
+)
 
 for (const mutate of [
   (value: CanonicalSam31SourceCheckpointQualificationObservation) => {
@@ -224,7 +251,7 @@ for (const mutate of [
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification',
-  checks: 56,
+  checks: 58,
   syntheticStatus: synthetic.status,
   canonicalStatus: canonical.status,
   qualificationRuns:
@@ -333,6 +360,11 @@ CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
       torchVersion: '2.10.0+cu128',
       torchvisionVersion: '0.25.0',
       torchcodecVersion: '0.10.0',
+      torchcodecCudaWheelVersion: '0.10.0+cu128',
+      ffmpegVersion: '8.0.3',
+      ffmpegNvdecAndCuvidAvailable: true,
+      gpuVideoDecodeBackendStatusVerified: true,
+      cpuVideoDecodeFallbackObserved: false,
       cudaVersion: '12.8',
       fixedBuilder: 'build_sam3_multiplex_video_predictor',
       networkEgressObserved: false,
@@ -500,6 +532,11 @@ function observation(
       torchVersion: '2.10.0',
       torchvisionVersion: '0.25.0',
       torchcodecVersion: '0.10.0',
+      torchcodecCudaWheelVersion: '0.10.0+cu128',
+      ffmpegVersion: '8.0.3',
+      ffmpegNvdecAndCuvidAvailable: true,
+      gpuVideoDecodeBackendStatusVerified: true,
+      cpuVideoDecodeFallbackObserved: false,
       cudaVersion: '12.8',
       fixedBuilder: 'build_sam3_multiplex_video_predictor',
       networkEgressAllowed: false,

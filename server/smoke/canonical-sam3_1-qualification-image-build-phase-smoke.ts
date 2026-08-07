@@ -881,6 +881,18 @@ function createCapsuleFiles(): Array<readonly [string, Buffer]> {
       Buffer.from('{"fixture":"dependency-closure"}'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz',
+      Buffer.from('synthetic ffmpeg source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz',
+      Buffer.from('synthetic nv codec headers source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json',
+      Buffer.from('{"fixture":"ffmpeg-closure"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/requirements.lock.txt',
       Buffer.from('fixture==1.0 --hash=sha256:fixture'),
     ],

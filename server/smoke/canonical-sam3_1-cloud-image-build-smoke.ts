@@ -845,6 +845,11 @@ function createQualification(
       torchVersion: '2.10.0',
       torchvisionVersion: '0.25.0',
       torchcodecVersion: '0.10.0',
+      torchcodecCudaWheelVersion: '0.10.0+cu128',
+      ffmpegVersion: '8.0.3',
+      ffmpegNvdecAndCuvidAvailable: true,
+      gpuVideoDecodeBackendStatusVerified: true,
+      cpuVideoDecodeFallbackObserved: false,
       cudaVersion: '12.8',
       fixedBuilder: 'build_sam3_multiplex_video_predictor',
       networkEgressAllowed: false,
@@ -1232,6 +1237,18 @@ function createCapsuleFiles(
     [
       'sam31_private_build_input/dependency-closure/dependency-closure-receipt.json',
       Buffer.from('{"fixture":"dependency-closure"}'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-8.0.3.tar.gz',
+      Buffer.from('synthetic ffmpeg source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz',
+      Buffer.from('synthetic nv-codec-headers source archive'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json',
+      Buffer.from('{"fixture":"ffmpeg-closure"}'),
     ],
     [
       'sam31_private_build_input/dependency-closure/requirements.lock.txt',

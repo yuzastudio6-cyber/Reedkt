@@ -380,6 +380,11 @@ for (const requiredRunnerFragment of [
   'WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE',
   'validate_cuda_driver_library()',
   'loaded_cuda_driver_library_path()',
+  'verify_ffmpeg_nvdec_runtime()',
+  'install_torchcodec_gpu_decode_guard()',
+  'core._get_backend_details(decoder._decoder)',
+  '"CPU fallback" in details',
+  'SAM 3.1 observed no CUDA/NVDEC video decode',
 ]) assert(sam31Runner.includes(requiredRunnerFragment))
 assert(!sam31Runner.includes('cv2.VideoCapture'))
 assert(!sam31Runner.includes('Image.open(SOURCE_PROXY_PATH'))
@@ -395,6 +400,7 @@ const sam31Dockerfile = readFileSync(resolve(
   'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate',
 ), 'utf8')
 for (const requiredDockerfileFragment of [
+  'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
   'pytorch/pytorch@sha256:b85566342b86d13a67712e9315d40cdc2dad7f8d86df1aff3831f80835edbcca',
   'COPY sam31_private_build_input/source/',
   'sam3-patched-source.tar',
@@ -413,6 +419,16 @@ for (const requiredDockerfileFragment of [
   '/usr/local/cuda-12.8/compat/libcuda.so.1',
   'sys.version_info[:2] == (3, 12)',
   'PIP_NO_INDEX=1',
+  'WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv',
+  'ffmpeg-8.0.3.tar.gz',
+  'nv-codec-headers-n12.2.72.0.tar.gz',
+  'torchcodecCpuWheelAccepted',
+  "m.version('torchcodec') == '0.10.0+cu128'",
+  '--enable-nvdec',
+  '--enable-cuvid',
+  '--disable-nvenc',
+  '--disable-libnpp',
+  'RUN --network=none',
   '--require-hashes',
   '--no-index',
   'USER 65532:65532',
@@ -441,7 +457,9 @@ for (const requiredEntrypointFragment of [
   '/usr/local/cuda-12.8/compat',
   'WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE=cuda_compat_12_8',
   'WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE=host_driver',
-  'exec python -I -B /opt/reeditpro/sam3_1/runner.py',
+  '/opt/weeditpro/ffmpeg/lib/libavcodec.so.62',
+  'runtime_library_paths=',
+  'exec /opt/weeditpro/python-venv/bin/python',
 ]) assert(sam31Entrypoint.includes(requiredEntrypointFragment))
 
 const adversarial: Array<(

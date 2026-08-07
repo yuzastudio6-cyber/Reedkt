@@ -427,7 +427,7 @@ function validateByRunnerFamily(
       if (payload.recipeProfileId !== 'approved_trim_transcode_v1') {
         throw new Error('Canonical B-roll normalization lost its approved FFmpeg profile.')
       }
-      requireCanonicalBrollToolBinding(workItem)
+      requireCanonicalBrollToolBinding(workItem, 'video/x-nut')
       return 'media_ffmpeg'
     }
     if (
@@ -447,7 +447,7 @@ function validateByRunnerFamily(
       ) {
         throw new Error('Canonical B-roll preview proxy lost its exact FFmpeg profile.')
       }
-      requireCanonicalBrollToolBinding(workItem)
+      requireCanonicalBrollToolBinding(workItem, 'video/x-matroska')
       return 'media_ffmpeg'
     }
     if (
@@ -568,7 +568,7 @@ function validateByRunnerFamily(
       ) {
         throw new Error('Canonical B-roll inspection lost its exact FFprobe profile.')
       }
-      requireCanonicalBrollToolBinding(workItem)
+      requireCanonicalBrollToolBinding(workItem, 'application/json')
       return 'media_ffprobe'
     }
     const finalQa = workItem.workItemType === 'run_final_qa' && workItem.workerClass === 'qa_worker' &&
@@ -598,7 +598,7 @@ function validateByRunnerFamily(
       ) {
         throw new Error('Canonical B-roll preview lost its exact Remotion profile.')
       }
-      requireCanonicalBrollToolBinding(workItem)
+      requireCanonicalBrollToolBinding(workItem, 'video/mp4')
       return 'remotion_final_composition'
     }
     const motionStudioProfile = resolveCanonicalMotionStudioRemotionProfile(structuredPayload)
@@ -945,6 +945,7 @@ function isCanonicalBrollToolWorkItem(
 
 function requireCanonicalBrollToolBinding(
   workItem: CanonicalToolPayloadWorkItem,
+  expectedContentType: string,
 ): void {
   const authority = workItem.executionInput.bRollAtomicAuthority as
     Record<string, unknown>
@@ -964,7 +965,7 @@ function requireCanonicalBrollToolBinding(
     expectedOutputKeys.length !== 1 ||
     expectedOutputKeys[0] !== workItem.expectedOutputs[0]?.outputKey ||
     workItem.expectedOutputs.length !== 1 ||
-    workItem.expectedOutputs[0]?.contentType !== 'application/json' ||
+    workItem.expectedOutputs[0]?.contentType !== expectedContentType ||
     workItem.expectedOutputs[0]?.assetRole === 'final'
   ) {
     throw new Error(

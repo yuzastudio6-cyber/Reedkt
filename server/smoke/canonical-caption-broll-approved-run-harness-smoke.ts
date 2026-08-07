@@ -308,6 +308,24 @@ try {
       item.executionInput.bRollAtomicAuthority !== undefined).length,
     13,
   )
+  const brollToolContentTypes = new Map(
+    run.approvedExecutionAuthority.workItems
+      .filter((item) => item.executionInput.bRollAtomicAuthority !== undefined)
+      .filter((item) => item.approvedToolIds.length > 0)
+      .map((item) => [
+        item.executionInput.operation,
+        item.expectedOutputs[0]?.contentType,
+      ]),
+  )
+  assert.deepEqual(brollToolContentTypes, new Map([
+    ['inspect_b_roll_candidate_with_ffprobe', 'application/json'],
+    ['normalize_b_roll_candidate_with_ffmpeg', 'video/x-nut'],
+    [
+      'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
+      'video/x-matroska',
+    ],
+    ['render_b_roll_preview', 'video/mp4'],
+  ]))
   assert.equal(
     run.approvedExecutionAuthority.workItems.filter((item) =>
       item.workerClass === 'canonical_caption_specialist_worker_v1').length,

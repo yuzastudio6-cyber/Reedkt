@@ -394,7 +394,13 @@ function canonicalAssetRole(item: BrollCanonicalWorkItem): CanonicalWorkItemInpu
 }
 
 function canonicalContentType(item: BrollCanonicalWorkItem): string {
-  void item
+  if (item.jobType === 'normalize_b_roll_candidate_with_ffmpeg') {
+    return 'video/x-nut'
+  }
+  if (item.jobType === 'prepare_b_roll_remotion_preview_proxy_with_ffmpeg') {
+    return 'video/x-matroska'
+  }
+  if (item.jobType === 'render_b_roll_preview') return 'video/mp4'
   return 'application/json'
 }
 

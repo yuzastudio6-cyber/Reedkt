@@ -44,7 +44,7 @@ steps:
         mkdir -p \
           private-dependency-closure/dependency-closure/cuda-npp \
           private-dependency-closure/dependency-closure/wheelhouse \
-          private-dependency-closure/dependency-closure/python-ingest/einops
+          private-dependency-closure/dependency-closure/python-ingest/einops \
           private-dependency-closure/dependency-closure/python-ingest/pycocotools
         gcloud storage cp \
           --if-generation-match=1786101660398565 \

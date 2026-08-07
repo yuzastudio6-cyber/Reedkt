@@ -30,6 +30,26 @@ the evidence currently belongs to several independently scoped tests.
 | Backend Caption execution | Six actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair plus output-specific 16:9 and 1:1 full/reduced pairs. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
 | Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
+## Approved Caption + B-roll execution evidence
+
+The current machine-readable progress record now also inventories the accepted
+`caption-broll-approved-execution-inspection-package-v2` private receipt with
+digest
+`55a496564486d7dd18cfd767b0d41009f910854b0843ec87adb6ce503ed4b96c`.
+That exact approved-snapshot run executed 17 Caption jobs, one bounded support
+resume, and 13 B-roll owner work items against hash-pinned real media. It
+verified Caption and B-roll replay, persisted the real libass overlay and
+Remotion composite, represented all 127 frames in the contact sheet, and
+measured retained Caption pixels on every decoded frame.
+
+The receipt advances both the B-roll owner and canonical backend-execution
+evidence inventories, but it does not close either terminal gate. Its Visual
+Intelligence result is an explicitly excluded structural fixture, the render
+is a technical layer-order preview rather than whole-edit appearance evidence,
+and it has not passed qualified postrender visual review or independent final
+QA under the same package. The terminal counts therefore remain **0/41 jobs**
+and **0/9 gates** instead of promoting a partial approved run.
+
 Visual Intelligence, Track All/SAM 3.1, and independent final QA have
 source-ready adapters but no actual record for the terminal run. The final
 per-job projection remains blocked by the first eight gates.

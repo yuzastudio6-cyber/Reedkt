@@ -80,6 +80,13 @@ check(progress.gates.find((gate) =>
       'caption-broll-owner-professional-direct-inspection-v1'),
 'B-roll evidence includes the repaired professional all-frame inspection')
 check(progress.gates.find((gate) =>
+  gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
+    (reference) => reference.version ===
+      'caption-broll-approved-execution-inspection-package-v2'
+      && reference.contentHash ===
+        '55a496564486d7dd18cfd767b0d41009f910854b0843ec87adb6ce503ed4b96c'),
+'B-roll evidence inventories the approved 17-job real-media execution proof')
+check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')
   ?.nextRequiredEvidenceCodes.includes(
     'canonical_approved_broll_run_authority_must_project_existing_receipt'),
@@ -96,10 +103,14 @@ check(progress.gates.find((gate) =>
   ?.evidenceRefs.some((reference) => reference.version ===
     'caption-real-source-multi-output-direct-inspection-v1')
   && progress.gates.find((gate) =>
+    gate.gapId === 'canonical_backend_private_execution_mount')
+    ?.evidenceRefs.some((reference) => reference.version ===
+      'caption-broll-approved-execution-inspection-package-v2')
+  && progress.gates.find((gate) =>
     gate.gapId === 'qualified_ai_complete_time_visual_review')
     ?.evidenceRefs.some((reference) => reference.version ===
       'caption-real-source-multi-output-direct-inspection-v1'),
-'real 16:9 and 1:1 inspection evidence is inventoried without closing gates')
+'real multi-output and approved B-roll execution evidence is inventoried without closing gates')
 check(!progress.professionalAppearanceEvidence
   .qualifiedSharedPostrenderAiReviewClaimed
   && !progress.professionalAppearanceEvidence.independentFinalQaClaimed,

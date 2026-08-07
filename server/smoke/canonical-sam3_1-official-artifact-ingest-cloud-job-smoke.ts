@@ -53,6 +53,8 @@ assert.match(buildScript,
   /build-weeditpro-sam31-official-artifact-ingest-v1/u)
 assert.match(buildScript, /git status --porcelain=v1/u)
 assert.match(buildScript, /git rev-parse 'HEAD\^\{tree\}'/u)
+assert.match(buildScript, /\/Library\/Developer\/CommandLineTools/u)
+assert.match(buildScript, /pinned Apple Command Line Tools Git is unavailable/u)
 assert.match(buildScript, /image_summary\.digest/u)
 assert.match(buildScript, /"modelOrCheckpointDownloaded":false/u)
 assert.match(buildScript, /"secretRead":false/u)

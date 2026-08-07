@@ -23,12 +23,15 @@ fail() {
   || fail 'active Google Cloud project is not the fixed project'
 [[ -f "${CONFIG}" ]] || fail 'fixed Cloud Build configuration is missing'
 
-source_commit="$(env -u DEVELOPER_DIR git rev-parse HEAD)"
-source_tree="$(env -u DEVELOPER_DIR git rev-parse 'HEAD^{tree}')"
+readonly COMMAND_LINE_TOOLS='/Library/Developer/CommandLineTools'
+[[ -x "${COMMAND_LINE_TOOLS}/usr/bin/git" ]] \
+  || fail 'pinned Apple Command Line Tools Git is unavailable'
+source_commit="$(DEVELOPER_DIR="${COMMAND_LINE_TOOLS}" git rev-parse HEAD)"
+source_tree="$(DEVELOPER_DIR="${COMMAND_LINE_TOOLS}" git rev-parse 'HEAD^{tree}')"
 [[ "${source_commit}" =~ ^[a-f0-9]{40}$ ]] \
   || fail 'source commit is invalid'
 [[ "${source_tree}" =~ ^[a-f0-9]{40}$ ]] || fail 'source tree is invalid'
-[[ -z "$(env -u DEVELOPER_DIR git status --porcelain=v1)" ]] \
+[[ -z "$(DEVELOPER_DIR="${COMMAND_LINE_TOOLS}" git status --porcelain=v1)" ]] \
   || fail 'source worktree must be clean'
 
 image_tag="sam31-ingest-${source_commit:0:16}"

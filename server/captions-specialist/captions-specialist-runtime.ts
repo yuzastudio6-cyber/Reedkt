@@ -64,6 +64,12 @@ import type {
   LivingFrameCaptionResponseV2,
 } from '../../src/types/caption-living-frame-boundary'
 import {
+  CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION,
+  type CaptionIncomingTypographyRequest,
+} from '../../src/types/caption-cross-system-coordination'
+import type { CaptionStoryTimingResolutionBinding } from
+  '../../src/types/caption-storytiming-motion'
+import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
   parseOrchestraSkillJobResult,
@@ -126,6 +132,9 @@ import {
   parseCaptionLivingFrameRequestV2,
   parseLivingFrameCaptionResponseV2,
 } from './caption-living-frame-boundary'
+import {
+  parseCaptionIncomingTypographyRequest,
+} from './caption-cross-system-coordination'
 
 interface CaptionRuntimeProfile {
   manifest: SkillCapabilityManifestV2
@@ -785,6 +794,9 @@ export function runCaptionsSpecialistJob(input: {
   livingFrameRequest?: unknown
   livingFrameResponse?: unknown
   incomingSupportRequest?: unknown
+  incomingTypographySceneGraph?: unknown
+  incomingTypographyStoryTimingResolution?:
+    CaptionStoryTimingResolutionBinding
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationV2Profile = call.manifestRef.id
@@ -862,6 +874,7 @@ export function runCaptionsSpecialistJob(input: {
   const incomingSupportArtifacts = call.inputArtifactRefs.filter(
     (artifact) => artifact.artifactType === 'source_skill_support_request')
   let incomingSupportRequest: SkillSupportRequestV2 | null = null
+  let incomingTypographyRequest: CaptionIncomingTypographyRequest | null = null
   if (input.incomingSupportRequest !== undefined) {
     try {
       incomingSupportRequest = parseSkillSupportRequestV2(
@@ -904,6 +917,47 @@ export function runCaptionsSpecialistJob(input: {
         call, 'blocked', ['input.incoming_support_request.binding.mismatch'],
         'The incoming support request does not match this Caption assignment.',
       )
+    }
+    if (incomingSupportRequest.typedPayloadType
+      === CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION) {
+      if (input.incomingTypographySceneGraph === undefined
+        || input.incomingTypographyStoryTimingResolution === undefined) {
+        return makeResult(profile,
+          call, 'blocked',
+          ['input.incoming_typography_request.source_context.missing'],
+          'The incoming typography request is missing exact Caption source context.',
+        )
+      }
+      try {
+        incomingTypographyRequest =
+          parseCaptionIncomingTypographyRequest(
+            incomingSupportRequest.typedPayload, {
+              sceneGraph: input.incomingTypographySceneGraph,
+              resolution: input.incomingTypographyStoryTimingResolution,
+            })
+      } catch {
+        return makeResult(profile,
+          call, 'blocked', ['input.incoming_typography_request.invalid'],
+          'The incoming typography request is invalid.',
+        )
+      }
+      if (!exactDomainScopeFields(call,
+        incomingTypographyRequest.canonicalScope)
+        || incomingTypographyRequest.requesterSkillId
+          !== incomingSupportRequest.requestingSkillKey
+        || incomingTypographyRequest.requesterOriginCallRef.id
+          !== incomingSupportRequest.originalCallRef.id
+        || !exactRef(incomingTypographyRequest.requesterOriginCallRef,
+          incomingSupportRequest.originalCallRef)
+        || incomingTypographyRequest.requestedCaptionJobType
+          !== incomingSupportRequest.requestedJobType
+        || incomingTypographyRequest.expectedCaptionArtifactType
+          !== incomingSupportRequest.requestedArtifactTypes[0]) {
+        return makeResult(profile,
+          call, 'blocked', ['input.incoming_typography_request.binding.mismatch'],
+          'The incoming typography request does not match this Caption assignment.',
+        )
+      }
     }
   }
 
@@ -1520,6 +1574,8 @@ export function runCaptionsSpecialistJob(input: {
         ?? 'no-canonical-transcript-payload',
       admittedLivingFrameResponse?.responseDigestSha256
         ?? 'no-living-frame-response',
+      ...(incomingTypographyRequest === null ? []
+        : [incomingTypographyRequest.requestDigestSha256]),
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -1564,6 +1620,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['living_frame.contract_admission.accepted']),
       ...(incomingSupportRequest === null ? []
         : ['incoming_support_request.exact_assignment.accepted']),
+      ...(incomingTypographyRequest === null ? []
+        : ['incoming_typography_request.closed_contract.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

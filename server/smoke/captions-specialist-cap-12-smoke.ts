@@ -18,6 +18,15 @@ import {
   parseLivingFrameCaptionResponseV2,
 } from '../captions-specialist/caption-living-frame-boundary'
 import {
+  captionCrossSystemOutboundPayloadRef,
+  createCaptionCrossSystemCoordinationPlan,
+  parseCaptionCrossSystemCoordinationPlan,
+  parseCaptionCrossSystemHandoffV2,
+  parseCaptionCrossSystemOutboundPayloadV2,
+  parseCaptionIncomingTypographyRequest,
+  parseCaptionIncomingTypographySupportBundle,
+} from '../captions-specialist/caption-cross-system-coordination'
+import {
   CAPTION_LIVING_FRAME_REQUEST_V2_VERSION,
   LIVING_FRAME_CAPTION_RESPONSE_V2_VERSION,
   type CaptionLivingFrameRequestV2,
@@ -32,17 +41,34 @@ import {
   type CaptionStoryTimingResolutionBinding,
 } from '../../src/types/caption-storytiming-motion'
 import {
+  CAPTION_CROSS_SYSTEM_HANDOFF_VERSION_V2,
+  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION,
+  CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION,
+  type CaptionCrossSystemHandoffV2,
+  type CaptionCrossSystemOutboundPayloadV2,
+  type CaptionCrossSystemReceiverV2,
+  type CaptionIncomingTypographyRequest,
+} from '../../src/types/caption-cross-system-coordination'
+import {
   SKILL_SUPPORT_REQUEST_VERSION,
   type SkillCanonicalScope,
   type SkillSupportRequest,
   type SkillSupportTarget,
 } from '../../src/types/orchestra-skill-contracts'
+import {
+  SKILL_SUPPORT_REQUEST_VERSION_V2,
+  type SkillSupportRequestV2,
+} from '../../src/types/orchestra-skill-support-request-v2'
 import type { CaptionDomainRef } from '../../src/types/caption-domain-contracts'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
   parseSkillSupportRequest,
 } from '../orchestra/orchestra-skill-contracts'
+import {
+  calculateSkillSupportRequestV2Digest,
+  parseSkillSupportRequestV2,
+} from '../orchestra/orchestra-skill-support-request-v2'
 import {
   CAPTIONS_CLOSED_AUTHORITY_BOUNDARY,
   runCaptionsSpecialistJob,
@@ -92,6 +118,14 @@ const registration = createCaptionStoryTimingRegistration({
   registrationId: 'caption.storytiming.cap12.fixture',
   sceneGraph: graph,
   masterTimingRef: CAP_11_MASTER_TIMING_REF,
+  handoffSourceNodeIds: [
+    'node.creative.phrase.cap11.statement',
+    'node.creative.phrase.cap11.hero.behind',
+    'node.creative.phrase.cap11.list',
+    'node.creative.phrase.cap11.environment',
+    'node.creative.phrase.cap11.anchor',
+    'node.creative.phrase.cap11.hero.full',
+  ],
   minimumStableReadFramesByNode: Object.fromEntries(
     graph.nodes.map((node) => [node.nodeId, 24]),
   ),
@@ -105,7 +139,9 @@ const phraseRange = (phraseId: string) => {
 const eventFrame = (intent: string, start: number, end: number) => {
   if (intent === 'caption_on') return start
   if (intent === 'motion_entry_end') return start + 4
+  if (intent === 'handoff') return start + 12
   if (intent === 'motion_exit_start') return end - 4
+  if (intent === 'restore') return end - 2
   if (intent === 'caption_off') return end - 1
   return start + 12
 }
@@ -533,6 +569,504 @@ const lock = createCaptionMotionLock({
   effectiveReadReport,
 })
 
+type OutboundFixtureSpec = {
+  receiver: CaptionCrossSystemReceiverV2
+  receiverSkillId: CaptionCrossSystemOutboundPayloadV2['receiverSkillId']
+  handoffKind: CaptionCrossSystemOutboundPayloadV2['handoffKind']
+  nodeId: string
+  phraseId: string
+  wordIds: string[]
+  sourceTruthPolicy:
+    CaptionCrossSystemOutboundPayloadV2['semantic']['sourceTruthPolicy']
+  transferRequested: boolean
+  capabilityCode: string
+  expectedArtifactType: string
+  supportTarget: SkillSupportTarget | null
+}
+
+const outboundFixtureSpecs: OutboundFixtureSpec[] = [{
+  receiver: 'living_frame',
+  receiverSkillId: 'motion.living_frame_storytelling',
+  handoffKind: 'caption_to_living_frame',
+  nodeId: 'node.creative.phrase.cap11.hero.full',
+  phraseId: 'phrase.cap11.hero.full',
+  wordIds: ['word.19', 'word.20', 'word.21'],
+  sourceTruthPolicy: 'canonical_transcript_lineage',
+  transferRequested: true,
+  capabilityCode: 'semantic_living_frame_transform',
+  expectedArtifactType: 'living_frame_caption_direction_response',
+  supportTarget: 'living_frame',
+}, {
+  receiver: 'transitions',
+  receiverSkillId: 'motion.transition_language',
+  handoffKind: 'caption_to_transition',
+  nodeId: 'node.creative.phrase.cap11.environment',
+  phraseId: 'phrase.cap11.environment',
+  wordIds: ['word.12', 'word.13', 'word.14', 'word.15'],
+  sourceTruthPolicy: 'canonical_transcript_lineage',
+  transferRequested: false,
+  capabilityCode: 'typographic_boundary_transition',
+  expectedArtifactType: 'caption_transition_support_result',
+  supportTarget: 'transitions',
+}, {
+  receiver: 'graphic',
+  receiverSkillId: 'graphics.visual_explain_layer',
+  handoffKind: 'caption_to_graphic',
+  nodeId: 'node.creative.phrase.cap11.statement',
+  phraseId: 'phrase.cap11.statement',
+  wordIds: ['word.1', 'word.2', 'word.3', 'word.4', 'word.5'],
+  sourceTruthPolicy: 'canonical_transcript_lineage',
+  transferRequested: true,
+  capabilityCode: 'semantic_visual_explain_layer',
+  expectedArtifactType: 'graphic_visual_layer_plan',
+  supportTarget: null,
+}, {
+  receiver: 'map',
+  receiverSkillId: 'graphics.map_route_visual',
+  handoffKind: 'caption_to_map',
+  nodeId: 'node.creative.phrase.cap11.anchor',
+  phraseId: 'phrase.cap11.anchor',
+  wordIds: ['word.16', 'word.17', 'word.18'],
+  sourceTruthPolicy: 'exact_geography_source_required',
+  transferRequested: true,
+  capabilityCode: 'exact_map_route_visual',
+  expectedArtifactType: 'map_route_visual_plan',
+  supportTarget: null,
+}, {
+  receiver: 'chart',
+  receiverSkillId: 'graphics.chart_or_data_visual',
+  handoffKind: 'caption_to_chart',
+  nodeId: 'node.creative.phrase.cap11.list',
+  phraseId: 'phrase.cap11.list',
+  wordIds: ['word.7', 'word.8', 'word.9', 'word.10', 'word.11'],
+  sourceTruthPolicy: 'exact_data_source_required',
+  transferRequested: true,
+  capabilityCode: 'exact_chart_data_visual',
+  expectedArtifactType: 'chart_data_visual_plan',
+  supportTarget: null,
+}, {
+  receiver: 'diagram',
+  receiverSkillId: 'dataviz.diagram_layout',
+  handoffKind: 'caption_to_diagram',
+  nodeId: 'node.creative.phrase.cap11.statement',
+  phraseId: 'phrase.cap11.statement',
+  wordIds: ['word.1', 'word.2', 'word.3', 'word.4', 'word.5'],
+  sourceTruthPolicy: 'exact_data_source_required',
+  transferRequested: true,
+  capabilityCode: 'exact_diagram_layout',
+  expectedArtifactType: 'diagram_layout_plan',
+  supportTarget: null,
+}, {
+  receiver: 'broll_owner',
+  receiverSkillId: 'b_roll',
+  handoffKind: 'caption_to_broll_constraints',
+  nodeId: 'node.creative.phrase.cap11.list',
+  phraseId: 'phrase.cap11.list',
+  wordIds: ['word.7', 'word.8', 'word.9', 'word.10', 'word.11'],
+  sourceTruthPolicy: 'exact_selected_media_required',
+  transferRequested: false,
+  capabilityCode: 'caption_broll_composition_constraints',
+  expectedArtifactType: 'b_roll_caption_constraint_acknowledgement',
+  supportTarget: 'broll_owner',
+}, {
+  receiver: 'stroke_motion',
+  receiverSkillId: 'motion.stroke_motion_storytelling',
+  handoffKind: 'caption_to_motion_support',
+  nodeId: 'node.creative.phrase.cap11.hero.behind',
+  phraseId: 'phrase.cap11.hero.behind',
+  wordIds: ['word.6'],
+  sourceTruthPolicy: 'canonical_transcript_lineage',
+  transferRequested: true,
+  capabilityCode: 'semantic_stroke_motion_support',
+  expectedArtifactType: 'stroke_motion_visual_plan',
+  supportTarget: null,
+}]
+
+function resolutionForNode(nodeId: string) {
+  const value = resolution.nodeResolutions.find((entry) =>
+    entry.nodeId === nodeId)
+  assert.ok(value, `Missing CAP-12 resolution for ${nodeId}.`)
+  return value
+}
+
+function eventRefFor(
+  nodeId: string,
+  intent: 'handoff' | 'motion_exit_start' | 'restore',
+): CaptionDomainRef {
+  const event = resolutionForNode(nodeId).semanticEventRefs.find((entry) =>
+    entry.eventIntent === intent)
+  assert.ok(event, `Missing ${intent} event for ${nodeId}.`)
+  return event.eventRef
+}
+
+function createOutboundPayload(
+  spec: OutboundFixtureSpec,
+): CaptionCrossSystemOutboundPayloadV2 {
+  const source = resolutionForNode(spec.nodeId)
+  const sourceNode = graph.nodes.find((node) => node.nodeId === spec.nodeId)
+  assert.ok(sourceNode?.accessibilityCounterpartNodeId)
+  const base: Omit<CaptionCrossSystemOutboundPayloadV2,
+  'payloadDigestSha256'> = {
+    schemaVersion: CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION,
+    payloadId: `caption.cross-system.payload.cap12.${spec.receiver}`,
+    canonicalScope: structuredClone(graph.canonicalScope),
+    originCaptionCallRef: ref('orchestra.call.cap12'),
+    receiver: spec.receiver,
+    receiverSkillId: spec.receiverSkillId,
+    handoffKind: spec.handoffKind,
+    sourceCaptionPlanRef: ref('caption.plan.cap12'),
+    sourceCaptionSceneGraphRef: {
+      id: graph.graphId,
+      version: graph.schemaVersion,
+      contentHash: graph.graphDigestSha256,
+    },
+    sourceCaptionMotionPlanRef: {
+      id: plan.planId,
+      version: plan.schemaVersion,
+      contentHash: plan.planDigestSha256,
+    },
+    canonicalTranscriptRef: CAP_11_TRANSCRIPT_REF,
+    confirmedOutputFrameRef: CAP_11_CONFIRMED_FRAME_REF,
+    masterTimingRef: CAP_11_MASTER_TIMING_REF,
+    storyTimingResolutionRef: {
+      id: resolution.resolutionId,
+      version: resolution.schemaVersion,
+      contentHash: resolution.resolutionDigestSha256,
+    },
+    sourceNodeId: spec.nodeId,
+    sourcePhraseId: spec.phraseId,
+    exactSourceWordIds: spec.wordIds,
+    authorizedRange: structuredClone(source.cueRange),
+    handoffFrameRequirement: {
+      handoffEventRef: eventRefFor(spec.nodeId, 'handoff'),
+      holdEventRef: eventRefFor(spec.nodeId, 'motion_exit_start'),
+      restoreEventRef: eventRefFor(spec.nodeId, 'restore'),
+      framesResolvedByStoryTiming: true,
+      captionManufacturedReceiverFrames: false,
+    },
+    semantic: {
+      conceptId: `concept.cap12.${spec.receiver}`,
+      purposeCode: `caption.${spec.receiver}.semantic_handoff`,
+      visualVerbCode: spec.transferRequested ? 'transform' : 'coordinate',
+      sourceTruthPolicy: spec.sourceTruthPolicy,
+    },
+    requestedReceivingCapability: {
+      capabilityCode: spec.capabilityCode,
+      expectedArtifactTypes: [spec.expectedArtifactType],
+      receiverOwnsExecution: true,
+    },
+    expectedVisualResultCode: `expected.${spec.receiver}.meaning_preserved`,
+    informationOwnership: {
+      ownerBeforeHandoff: 'captions',
+      transferRequested: spec.transferRequested,
+      ownerAfterAcceptedHandoff: spec.transferRequested
+        ? spec.receiverSkillId : 'captions',
+      captionRetainsCompleteAccessibleProjection: true,
+      duplicateInformationAfterAcceptedTransferAllowed: false,
+      captionRegainsInformationOwnershipOnFailure: true,
+    },
+    soundIntent: {
+      policy: spec.receiver === 'stroke_motion'
+        ? 'sound_optional' : 'sound_forbidden',
+      captionSoundRequestRef: null,
+      soundOwnerRemainsExternal: true,
+    },
+    accessibility: {
+      counterpartNodeIds: [sourceNode.accessibilityCounterpartNodeId],
+      completeWordingPreserved: true,
+      remainsAvailableDuringHandoff: true,
+      reducedMotionMeaningPreserved: true,
+    },
+    fallback: {
+      ladderCodes: [
+        `fallback.${spec.receiver}.stable_caption`,
+        'fallback.accessible_sidecar',
+      ],
+      selectedDefaultCode: `fallback.${spec.receiver}.stable_caption`,
+      restoreCreativeCaption: spec.transferRequested,
+      preserveAccessibleCaption: true,
+    },
+    requiredEvidence: {
+      artifactTypes: [spec.expectedArtifactType],
+      qaCodes: [
+        'semantic_timing_verified',
+        'accessible_counterpart_preserved',
+        'receiver_result_scope_verified',
+      ],
+      exactReceiverResultMustBeInjected: true,
+    },
+    returnToHq: {
+      hqMediated: true,
+      dispositionBeforeReceiverResult: 'needs_followup',
+      receiverResultMustBeInjected: true,
+      directPeerDispatchAllowed: false,
+      scopeExpansionAllowed: false,
+    },
+    sharedTargetAdmission: {
+      state: spec.supportTarget === null
+        ? 'pending_future_orchestra_target' : 'admitted_generic_v1',
+      targetSkillKey: spec.supportTarget,
+    },
+    privateArtifactPolicy: {
+      tenantScoped: true,
+      byteFreeCoordinationOnly: true,
+      rawChatIncluded: false,
+      mediaBytesIncluded: false,
+      urlsOrPathsIncluded: false,
+      credentialsIncluded: false,
+      executablePromptOrCodeIncluded: false,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseCaptionCrossSystemOutboundPayloadV2(withDigest({
+    ...base,
+    payloadDigestSha256: '',
+  }, 'payloadDigestSha256'), { resolution, sceneGraph: graph })
+}
+
+const outboundPayloads = outboundFixtureSpecs.map(createOutboundPayload)
+
+function outboundSupportRequest(
+  payload: CaptionCrossSystemOutboundPayloadV2,
+): SkillSupportRequest | undefined {
+  if (payload.receiver === 'living_frame') return lfSupport
+  if (payload.sharedTargetAdmission.targetSkillKey === null) return undefined
+  return createSupportRequest({
+    id: `support.cap12.v2.${payload.receiver}`,
+    target: payload.sharedTargetAdmission.targetSkillKey,
+    typedPayloadType: payload.schemaVersion,
+    typedPayload: payload,
+    artifactTypes:
+      payload.requestedReceivingCapability.expectedArtifactTypes,
+  })
+}
+
+function frozenCompatibilityHandoff(
+  receiver: CaptionCrossSystemReceiverV2,
+): CaptionCrossSystemHandoff | null {
+  if (receiver === 'living_frame') return handoffs[1]!.handoff
+  if (receiver === 'transitions') return handoffs[2]!.handoff
+  return null
+}
+
+function frozenCompatibilitySupportRequest(
+  receiver: CaptionCrossSystemReceiverV2,
+): SkillSupportRequest | undefined {
+  if (receiver === 'living_frame') return handoffs[1]!.supportRequest
+  if (receiver === 'transitions') return handoffs[2]!.supportRequest
+  return undefined
+}
+
+const outboundBundlesV2 = outboundPayloads.map((outboundPayload) => {
+  const supportRequest = outboundSupportRequest(outboundPayload)
+  const frozen = frozenCompatibilityHandoff(outboundPayload.receiver)
+  const frozenSupport = frozenCompatibilitySupportRequest(
+    outboundPayload.receiver)
+  const base: Omit<CaptionCrossSystemHandoffV2,
+  'handoffDigestSha256'> = {
+    schemaVersion: CAPTION_CROSS_SYSTEM_HANDOFF_VERSION_V2,
+    handoffId: `caption.cross-system.handoff.cap12.${outboundPayload.receiver}`,
+    canonicalScope: structuredClone(graph.canonicalScope),
+    receiver: outboundPayload.receiver,
+    receiverSkillId: outboundPayload.receiverSkillId,
+    handoffKind: outboundPayload.handoffKind,
+    outboundPayloadRef:
+      captionCrossSystemOutboundPayloadRef(outboundPayload),
+    supportRequestRef: supportRequest === undefined ? null : {
+      id: supportRequest.requestId,
+      version: supportRequest.schemaVersion,
+      contentHash: supportRequest.requestDigestSha256,
+    },
+    frozenCompatibilityHandoffRef: frozen === null ? null : {
+      id: frozen.handoffId,
+      version: frozen.schemaVersion,
+      contentHash: frozen.handoffDigestSha256,
+    },
+    coordinationState: supportRequest === undefined
+      ? 'awaiting_shared_target_registry' : 'support_request_ready',
+    receiverExecutionClaimed: false,
+    captionExecutedReceiverWork: false,
+    directPeerDispatchGranted: false,
+    timelineMutationGranted: false,
+    runtimeExecutionGranted: false,
+    assetCreationGranted: false,
+    finalQaApprovalGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  const handoff = parseCaptionCrossSystemHandoffV2(withDigest({
+    ...base,
+    handoffDigestSha256: '',
+  }, 'handoffDigestSha256'), {
+    resolution,
+    sceneGraph: graph,
+    outboundPayload,
+    supportRequest,
+    frozenCompatibilityHandoff: frozen,
+    frozenCompatibilitySupportRequest: frozenSupport,
+  })
+  return {
+    handoff,
+    outboundPayload,
+    ...(supportRequest === undefined ? {} : { supportRequest }),
+    frozenCompatibilityHandoff: frozen,
+    ...(frozenSupport === undefined
+      ? {} : { frozenCompatibilitySupportRequest: frozenSupport }),
+  }
+})
+
+function createIncomingTypographyPayload(input: {
+  requester: CaptionIncomingTypographyRequest['requester']
+  nodeId: string
+  phraseId: string
+  wordIds: string[]
+}): CaptionIncomingTypographyRequest {
+  const livingFrame = input.requester === 'living_frame'
+  const source = resolutionForNode(input.nodeId)
+  const base: Omit<CaptionIncomingTypographyRequest,
+  'requestDigestSha256'> = {
+    schemaVersion: CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION,
+    requestId: `caption.incoming.typography.cap12.${input.requester}`,
+    canonicalScope: structuredClone(graph.canonicalScope),
+    requester: input.requester,
+    requesterSkillId: livingFrame
+      ? 'motion.living_frame_storytelling' : 'motion.transition_language',
+    requesterOriginCallRef: ref(`orchestra.call.cap12.${input.requester}`),
+    requestedCaptionJobType: livingFrame
+      ? 'provide_speech_derived_typography_spec'
+      : 'provide_typographic_transition_component',
+    expectedCaptionArtifactType: livingFrame
+      ? 'caption_speech_derived_typography_spec'
+      : 'caption_typographic_transition_component',
+    sourceCaptionPlanRef: ref('caption.plan.cap12'),
+    canonicalTranscriptRef: CAP_11_TRANSCRIPT_REF,
+    confirmedOutputFrameRef: CAP_11_CONFIRMED_FRAME_REF,
+    masterTimingRef: CAP_11_MASTER_TIMING_REF,
+    storyTimingResolutionRef: {
+      id: resolution.resolutionId,
+      version: resolution.schemaVersion,
+      contentHash: resolution.resolutionDigestSha256,
+    },
+    sourceNodeId: input.nodeId,
+    sourcePhraseId: input.phraseId,
+    exactSourceWordIds: input.wordIds,
+    authorizedRange: structuredClone(source.cueRange),
+    requestedTypographyRoleCode: livingFrame
+      ? 'speech_derived_supporting_type' : 'boundary_typographic_component',
+    semanticPurposeCode: livingFrame
+      ? 'preserve_narration_lineage' : 'preserve_boundary_continuity',
+    continuityToken: `continuity.incoming.${input.requester}`,
+    requestedEventRefs: [
+      eventRefFor(input.nodeId, 'handoff'),
+      eventRefFor(input.nodeId, 'restore'),
+    ],
+    informationOwnership: {
+      captionsOwnsTypographySpecification: true,
+      requesterOwnsExternalDomainExecution: true,
+      requesterMayNotMutateCaptionPlan: true,
+      noInformationOwnershipTransferInferred: true,
+    },
+    accessibility: {
+      completeWordingRequired: true,
+      accessibleCounterpartRequired: true,
+      reducedMotionCounterpartRequired: true,
+    },
+    requiredEvidenceTypes: [
+      'canonical_transcript_lineage',
+      'storytiming_resolution',
+      'confirmed_output_frame',
+    ],
+    returnToHq: {
+      hqMediated: true,
+      captionResultMustReturnToRequesterThroughHq: true,
+      directPeerResponseAllowed: false,
+    },
+    privateArtifactPolicy: {
+      tenantScoped: true,
+      byteFreeCoordinationOnly: true,
+      rawChatIncluded: false,
+      mediaBytesIncluded: false,
+      urlsOrPathsIncluded: false,
+      credentialsIncluded: false,
+      executablePromptOrCodeIncluded: false,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseCaptionIncomingTypographyRequest(withDigest({
+    ...base,
+    requestDigestSha256: '',
+  }, 'requestDigestSha256'), { resolution, sceneGraph: graph })
+}
+
+function createIncomingSupportRequest(
+  payload: CaptionIncomingTypographyRequest,
+): SkillSupportRequestV2 {
+  const base: Omit<SkillSupportRequestV2, 'requestDigestSha256'> = {
+    schemaVersion: SKILL_SUPPORT_REQUEST_VERSION_V2,
+    requestId: `support.cap12.incoming.${payload.requester}`,
+    originalCallRef: payload.requesterOriginCallRef,
+    requestingSkillKey: payload.requesterSkillId,
+    targetSkillKey: 'captions',
+    requestedJobType: payload.requestedCaptionJobType,
+    reasonCode: `caption.typography.required.${payload.requester}`,
+    requestedArtifactTypes: [payload.expectedCaptionArtifactType],
+    canonicalScope: structuredClone(skillScope),
+    typedPayloadType: payload.schemaVersion,
+    typedPayload: payload,
+    mediationPolicy: {
+      hqMediated: true,
+      directPeerDispatchAllowed: false,
+      assigneeMayOnlyResumeAfterInjection: true,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseSkillSupportRequestV2({
+    ...base,
+    requestDigestSha256: calculateSkillSupportRequestV2Digest(
+      { ...base, requestDigestSha256: '' }),
+  })
+}
+
+const incomingPayloads = [
+  createIncomingTypographyPayload({
+    requester: 'living_frame',
+    nodeId: 'node.creative.phrase.cap11.hero.full',
+    phraseId: 'phrase.cap11.hero.full',
+    wordIds: ['word.19', 'word.20', 'word.21'],
+  }),
+  createIncomingTypographyPayload({
+    requester: 'transitions',
+    nodeId: 'node.creative.phrase.cap11.environment',
+    phraseId: 'phrase.cap11.environment',
+    wordIds: ['word.12', 'word.13', 'word.14', 'word.15'],
+  }),
+]
+const incomingBundles = incomingPayloads.map((payload) => ({
+  payload,
+  supportRequest: createIncomingSupportRequest(payload),
+}))
+incomingBundles.forEach((bundle) =>
+  parseCaptionIncomingTypographySupportBundle({
+    ...bundle,
+    sceneGraph: graph,
+    resolution,
+  }))
+
+const coordinationContext = {
+  sceneGraph: graph,
+  motionPlan: plan,
+  resolution,
+  outboundBundles: outboundBundlesV2,
+  incomingBundles,
+}
+export const CAP_12_CROSS_SYSTEM_COORDINATION_PLAN_FIXTURE =
+  createCaptionCrossSystemCoordinationPlan({
+    planId: 'caption.cross-system.coordination.cap12.fixture',
+    context: coordinationContext,
+  })
+const coordinationPlan = CAP_12_CROSS_SYSTEM_COORDINATION_PLAN_FIXTURE
+
 export const CAP_12_STORYTIMING_REGISTRATION_FIXTURE = registration
 export const CAP_12_STORYTIMING_RESOLUTION_FIXTURE = resolution
 export const CAP_12_MOTION_PLAN_FIXTURE = plan
@@ -626,6 +1160,60 @@ const compatibilityReceipt = runCaptionLivingFrameCompatibilitySmoke({
   v2Response: lfResponse,
 })
 assertions += compatibilityReceipt.assertions
+const incomingRuntimeSupport = incomingBundles[0]!.supportRequest
+const incomingRuntimeCallCandidate = createCaptionsHarnessCall({
+  callId: 'caption.incoming.typography.runtime.cap12',
+  jobType: 'provide_speech_derived_typography_spec',
+  scopeLevel: 'boundary',
+  approvedSnapshotRef: graph.canonicalScope.approvedSnapshotRef,
+  outputId: graph.canonicalScope.outputId,
+  sceneId: graph.canonicalScope.sceneId,
+  boundaryId: skillScope.boundaryId,
+  inputArtifactTypes: [
+    'canonical_transcript',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+  ],
+})
+incomingRuntimeCallCandidate.canonicalScope = structuredClone(skillScope)
+incomingRuntimeCallCandidate.inputArtifactRefs.push({
+  id: incomingRuntimeSupport.requestId,
+  version: incomingRuntimeSupport.schemaVersion,
+  contentHash: incomingRuntimeSupport.requestDigestSha256,
+  artifactType: 'source_skill_support_request',
+  producerSkillKey: 'head_of_orchestra',
+  privateArtifact: true,
+  byteFreeRef: true,
+  sourceSupportRequestRef: null,
+})
+const incomingRuntimeCall = parseOrchestraSkillCall({
+  ...incomingRuntimeCallCandidate,
+  callDigestSha256: digest(
+    incomingRuntimeCallCandidate as unknown as Record<string, unknown>,
+    'callDigestSha256'),
+})
+const incomingRuntimeMissingContextResult = runCaptionsSpecialistJob({
+  call: incomingRuntimeCall,
+  incomingSupportRequest: incomingRuntimeSupport,
+})
+check(incomingRuntimeMissingContextResult.disposition === 'blocked'
+  && incomingRuntimeMissingContextResult.reasonCodes.includes(
+    'input.incoming_typography_request.source_context.missing'),
+'The standalone Caption runtime must fail closed without exact incoming typography source context.')
+const incomingRuntimeResult = runCaptionsSpecialistJob({
+  call: incomingRuntimeCall,
+  incomingSupportRequest: incomingRuntimeSupport,
+  incomingTypographySceneGraph: graph,
+  incomingTypographyStoryTimingResolution: resolution,
+})
+check(incomingRuntimeResult.disposition === 'completed'
+  && incomingRuntimeResult.reasonCodes.includes(
+    'incoming_typography_request.closed_contract.accepted')
+  && incomingRuntimeResult.producedArtifactRefs.some((artifact) =>
+    artifact.artifactType === 'caption_speech_derived_typography_spec'
+      && artifact.sourceSupportRequestRef?.contentHash
+        === incomingRuntimeSupport.requestDigestSha256),
+'The standalone Caption runtime must accept and trace the closed incoming typography request.')
 const runtimeCallCandidate = createCaptionsHarnessCall({
   callId: 'caption.living-frame.runtime.cap12',
   jobType: 'plan_caption_to_visual_handoff',
@@ -799,6 +1387,250 @@ check(lfResponse.layoutDependencies.captionPlaneAboveLivingFrame
 check(!plan.runtimeExecutionGranted && !plan.finalQaApprovalGranted
   && !plan.productionAuthorityGranted,
   'CAP-12 must keep runtime, final QA, and production authority closed.')
+check(coordinationPlan.receiverCoverage.length === 8
+  && new Set(coordinationPlan.receiverCoverage).size === 8,
+  'The additive CAP-12 layer must cover all eight required receiver families.')
+check(coordinationPlan.counts.outboundHandoffs === 8
+  && coordinationPlan.counts.admittedOutboundSupportRequests === 3
+  && coordinationPlan.counts.pendingSharedTargetRegistrations === 5,
+  'The coordination ledger must distinguish admitted envelopes from future registry targets.')
+check(coordinationPlan.pendingSharedTargetReceivers.join('|')
+  === 'graphic|map|chart|diagram|stroke_motion'
+  && !coordinationPlan.futureOrchestraTargetRegistryComplete,
+  'Unregistered receiver targets must return to HQ without inventing peer dispatch.')
+check(coordinationPlan.counts.incomingTypographyRequests === 2
+  && incomingBundles.every((bundle) =>
+    bundle.supportRequest.targetSkillKey === 'captions'
+      && bundle.supportRequest.mediationPolicy.hqMediated),
+  'Living Frame and Transition typography requests must enter through mediated Caption support.')
+check(outboundPayloads.every((payload) =>
+  payload.returnToHq.dispositionBeforeReceiverResult === 'needs_followup'
+    && payload.requiredEvidence.exactReceiverResultMustBeInjected
+    && !payload.returnToHq.directPeerDispatchAllowed),
+  'Every outbound handoff must wait for exact HQ-injected receiver evidence.')
+check(outboundPayloads.find((payload) => payload.receiver === 'map')!
+  .semantic.sourceTruthPolicy === 'exact_geography_source_required'
+  && outboundPayloads.find((payload) => payload.receiver === 'chart')!
+    .semantic.sourceTruthPolicy === 'exact_data_source_required'
+  && outboundPayloads.find((payload) => payload.receiver === 'broll_owner')!
+    .semantic.sourceTruthPolicy === 'exact_selected_media_required',
+  'Map, chart, and B-roll handoffs must preserve their exact source-truth owners.')
+check(['living_frame', 'transitions'].every((receiver) =>
+  outboundBundlesV2.find((bundle) =>
+    bundle.outboundPayload.receiver === receiver)!
+    .handoff.frozenCompatibilityHandoffRef !== null),
+  'The V2 Living Frame and Transition receipts must bind their frozen V1 handoffs instead of replacing them.')
+check(registration.registrations.filter((entry) =>
+  entry.semanticEventIntents.includes('handoff')).every((entry) =>
+    entry.semanticEventIntents.includes('restore')),
+  'Every registered handoff node must also register Caption restoration timing.')
+check(!coordinationPlan.receiverExecutionClaimed
+  && !coordinationPlan.runtimeExecutionGranted
+  && !coordinationPlan.finalQaApprovalGranted
+  && !coordinationPlan.productionAuthorityGranted,
+  'The full handoff surface must retain every receiver and release authority boundary.')
+
+const wrongGraphicSkill = structuredClone(outboundPayloads.find((payload) =>
+  payload.receiver === 'graphic')!)
+wrongGraphicSkill.receiverSkillId = 'graphics.map_route_visual'
+wrongGraphicSkill.payloadDigestSha256 = digest(
+  wrongGraphicSkill as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  wrongGraphicSkill, { resolution, sceneGraph: graph }))
+
+const falseMapTruth = structuredClone(outboundPayloads.find((payload) =>
+  payload.receiver === 'map')!)
+falseMapTruth.semantic.sourceTruthPolicy = 'canonical_transcript_lineage'
+falseMapTruth.payloadDigestSha256 = digest(
+  falseMapTruth as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  falseMapTruth, { resolution, sceneGraph: graph }))
+
+const credentialShapedPurpose = structuredClone(outboundPayloads.find((payload) =>
+  payload.receiver === 'graphic')!)
+credentialShapedPurpose.semantic.purposeCode = 'password:supersecret'
+credentialShapedPurpose.payloadDigestSha256 = digest(
+  credentialShapedPurpose as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  credentialShapedPurpose, { resolution, sceneGraph: graph }))
+
+const substitutedSourceWords = structuredClone(outboundPayloads.find((payload) =>
+  payload.receiver === 'graphic')!)
+substitutedSourceWords.exactSourceWordIds[0] = 'word.unrelated'
+substitutedSourceWords.payloadDigestSha256 = digest(
+  substitutedSourceWords as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  substitutedSourceWords, { resolution, sceneGraph: graph }))
+
+const substitutedAccessibleCounterpart = structuredClone(
+  outboundPayloads.find((payload) => payload.receiver === 'graphic')!)
+substitutedAccessibleCounterpart.accessibility.counterpartNodeIds = [
+  substitutedAccessibleCounterpart.sourceNodeId,
+]
+substitutedAccessibleCounterpart.payloadDigestSha256 = digest(
+  substitutedAccessibleCounterpart as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  substitutedAccessibleCounterpart, { resolution, sceneGraph: graph }))
+
+const graphicBundle = outboundBundlesV2.find((bundle) =>
+  bundle.outboundPayload.receiver === 'graphic')!
+const crossedMotionPayload = structuredClone(graphicBundle.outboundPayload)
+crossedMotionPayload.sourceCaptionMotionPlanRef = ref('caption.motion.crossed')
+crossedMotionPayload.payloadDigestSha256 = digest(
+  crossedMotionPayload as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+const crossedMotionHandoff = structuredClone(graphicBundle.handoff)
+crossedMotionHandoff.outboundPayloadRef =
+  captionCrossSystemOutboundPayloadRef(crossedMotionPayload)
+crossedMotionHandoff.handoffDigestSha256 = digest(
+  crossedMotionHandoff as unknown as Record<string, unknown>,
+  'handoffDigestSha256')
+const crossedMotionContext = {
+  ...coordinationContext,
+  outboundBundles: coordinationContext.outboundBundles.map((bundle) =>
+    bundle.outboundPayload.receiver === 'graphic' ? {
+      handoff: crossedMotionHandoff,
+      outboundPayload: crossedMotionPayload,
+      frozenCompatibilityHandoff: null,
+    } : bundle),
+}
+expectThrow(() => createCaptionCrossSystemCoordinationPlan({
+  planId: 'caption.cross-system.coordination.cap12.crossed-motion',
+  context: crossedMotionContext,
+}))
+
+const brollOwnershipTakeover = structuredClone(outboundPayloads.find((payload) =>
+  payload.receiver === 'broll_owner')!)
+brollOwnershipTakeover.informationOwnership.transferRequested = true
+brollOwnershipTakeover.informationOwnership.ownerAfterAcceptedHandoff = 'b_roll'
+brollOwnershipTakeover.fallback.restoreCreativeCaption = true
+brollOwnershipTakeover.payloadDigestSha256 = digest(
+  brollOwnershipTakeover as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  brollOwnershipTakeover, { resolution, sceneGraph: graph }))
+
+const mapBundle = outboundBundlesV2.find((bundle) =>
+  bundle.outboundPayload.receiver === 'map')!
+const inventedMapSupport = createSupportRequest({
+  id: 'support.cap12.v2.map.invented-owner',
+  target: 'canonical_layout_owner',
+  typedPayloadType: mapBundle.outboundPayload.schemaVersion,
+  typedPayload: mapBundle.outboundPayload,
+  artifactTypes:
+    mapBundle.outboundPayload.requestedReceivingCapability.expectedArtifactTypes,
+})
+const mapPeerDispatch = structuredClone(mapBundle.handoff)
+mapPeerDispatch.coordinationState = 'support_request_ready'
+mapPeerDispatch.supportRequestRef = {
+  id: inventedMapSupport.requestId,
+  version: inventedMapSupport.schemaVersion,
+  contentHash: inventedMapSupport.requestDigestSha256,
+}
+mapPeerDispatch.handoffDigestSha256 = digest(
+  mapPeerDispatch as unknown as Record<string, unknown>,
+  'handoffDigestSha256')
+expectThrow(() => parseCaptionCrossSystemHandoffV2(mapPeerDispatch, {
+  resolution,
+  sceneGraph: graph,
+  outboundPayload: mapBundle.outboundPayload,
+  supportRequest: inventedMapSupport,
+}))
+
+const transitionBundle = outboundBundlesV2.find((bundle) =>
+  bundle.outboundPayload.receiver === 'transitions')!
+const unboundTransitionCompatibility = structuredClone(transitionBundle.handoff)
+unboundTransitionCompatibility.frozenCompatibilityHandoffRef = null
+unboundTransitionCompatibility.handoffDigestSha256 = digest(
+  unboundTransitionCompatibility as unknown as Record<string, unknown>,
+  'handoffDigestSha256')
+expectThrow(() => parseCaptionCrossSystemHandoffV2(
+  unboundTransitionCompatibility, {
+    resolution,
+    sceneGraph: graph,
+    outboundPayload: transitionBundle.outboundPayload,
+    supportRequest: transitionBundle.supportRequest,
+    frozenCompatibilityHandoff:
+      transitionBundle.frozenCompatibilityHandoff,
+    frozenCompatibilitySupportRequest:
+      transitionBundle.frozenCompatibilitySupportRequest,
+  }))
+
+const requesterTakeover = structuredClone(incomingPayloads[0])
+requesterTakeover.requesterSkillId = 'motion.transition_language'
+requesterTakeover.requestDigestSha256 = digest(
+  requesterTakeover as unknown as Record<string, unknown>,
+  'requestDigestSha256')
+expectThrow(() => parseCaptionIncomingTypographyRequest(
+  requesterTakeover, { resolution, sceneGraph: graph }))
+
+const incomingWithoutHandoffEvent = structuredClone(incomingPayloads[0])
+incomingWithoutHandoffEvent.requestedEventRefs = [
+  eventRefFor(incomingWithoutHandoffEvent.sourceNodeId, 'restore'),
+]
+incomingWithoutHandoffEvent.requestDigestSha256 = digest(
+  incomingWithoutHandoffEvent as unknown as Record<string, unknown>,
+  'requestDigestSha256')
+expectThrow(() => parseCaptionIncomingTypographyRequest(
+  incomingWithoutHandoffEvent, { resolution, sceneGraph: graph }))
+
+const crossedIncomingSupport = structuredClone(incomingBundles[0].supportRequest)
+crossedIncomingSupport.typedPayload = incomingPayloads[1]
+crossedIncomingSupport.requestDigestSha256 =
+  calculateSkillSupportRequestV2Digest({
+    ...crossedIncomingSupport,
+    requestDigestSha256: '',
+  })
+expectThrow(() => parseCaptionIncomingTypographySupportBundle({
+  payload: incomingPayloads[0],
+  supportRequest: crossedIncomingSupport,
+  sceneGraph: graph,
+  resolution,
+}))
+
+const duplicateCoordinationRef = structuredClone(coordinationPlan)
+duplicateCoordinationRef.outboundHandoffRefs.push(
+  duplicateCoordinationRef.outboundHandoffRefs[0]!)
+duplicateCoordinationRef.counts.outboundHandoffs += 1
+duplicateCoordinationRef.planDigestSha256 = digest(
+  duplicateCoordinationRef as unknown as Record<string, unknown>,
+  'planDigestSha256')
+expectThrow(() => parseCaptionCrossSystemCoordinationPlan(
+  duplicateCoordinationRef, coordinationContext))
+
+expectThrow(() => createCaptionCrossSystemCoordinationPlan({
+  planId: 'caption.cross-system.coordination.cap12.missing-receiver',
+  context: {
+    ...coordinationContext,
+    outboundBundles: coordinationContext.outboundBundles.slice(0, -1),
+  },
+}))
+
+expectThrow(() => createCaptionCrossSystemCoordinationPlan({
+  planId: 'caption.cross-system.coordination.cap12.missing-requester',
+  context: {
+    ...coordinationContext,
+    incomingBundles: coordinationContext.incomingBundles.slice(0, 1),
+  },
+}))
+
+const outboundAuthorityOverclaim = structuredClone(outboundPayloads[0])
+outboundAuthorityOverclaim.authorityBoundary.runtimeExecutionGranted = true as false
+outboundAuthorityOverclaim.payloadDigestSha256 = digest(
+  outboundAuthorityOverclaim as unknown as Record<string, unknown>,
+  'payloadDigestSha256')
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  outboundAuthorityOverclaim, { resolution, sceneGraph: graph }))
+
+const inheritedOutboundPayload = Object.create(outboundPayloads[0]) as
+  CaptionCrossSystemOutboundPayloadV2
+expectThrow(() => parseCaptionCrossSystemOutboundPayloadV2(
+  inheritedOutboundPayload, { resolution, sceneGraph: graph }))
 
 const badResolution = structuredClone(resolution)
 badResolution.nodeResolutions[0].cueRange.endFrameExclusive = 361
@@ -905,6 +1737,18 @@ console.log(JSON.stringify({
   resolvedNodeCount: resolution.nodeResolutions.length,
   typedMotionPrimitiveCount: plan.primitives.length,
   handoffKinds: plan.handoffs.map((item) => item.handoffKind),
+  additiveV2ReceiverCoverage: coordinationPlan.receiverCoverage,
+  additiveV2OutboundHandoffs: coordinationPlan.counts.outboundHandoffs,
+  additiveV2AdmittedSupportRequests:
+    coordinationPlan.counts.admittedOutboundSupportRequests,
+  additiveV2PendingFutureTargets:
+    coordinationPlan.pendingSharedTargetReceivers,
+  incomingTypographyRequests:
+    coordinationPlan.counts.incomingTypographyRequests,
+  captionOwnedFullHandoffSurfaceComplete:
+    coordinationPlan.captionOwnedHandoffSurfaceComplete,
+  futureOrchestraTargetRegistryComplete:
+    coordinationPlan.futureOrchestraTargetRegistryComplete,
   livingFrameSelectedSceneCount: lfResponse.selectedScene.selectedSceneIds.length,
   livingFrameV1RequestVersion: compatibilityReceipt.v1Request.schemaVersion,
   livingFrameV2RequestVersion: lfRequest.schemaVersion,

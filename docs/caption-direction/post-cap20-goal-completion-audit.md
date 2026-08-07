@@ -55,6 +55,17 @@ terminal-scope evidence remains incomplete or absent. Living Frame is not a
 sixth gap: CAP-11/CAP-12 already provide the accepted, versioned,
 non-executing typed boundary and Living Frame has independently verified it.
 
+The additive CAP-12 full-target correction now also provides Caption-owned
+typed payloads for Graphic, Map, Chart, Diagram, B-roll constraints, and Stroke
+Motion, plus mediated incoming typography requests from Living Frame and
+Transition. The neutral shared support-target registry can currently name only
+Living Frame, Transition, and B-roll among those receivers. Graphic, Map,
+Chart, Diagram, and Stroke Motion remain explicit future-Orchestra target
+registrations; they are not relabeled as the layout owner and do not authorize
+peer dispatch. This shared target-registration seam does not block existing
+Caption-owned source work or replace any of the nine terminal private-evidence
+gates listed above.
+
 The source-led professional Caption planning seam and its default deterministic
 server owner are now mounted. The owner rereads exact source-analysis evidence,
 attaches the professional composition trace, early bundle, estimate, and typed

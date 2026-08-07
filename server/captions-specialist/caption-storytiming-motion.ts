@@ -436,9 +436,16 @@ export function createCaptionStoryTimingRegistration(input: {
   sceneGraph: unknown
   masterTimingRef: CaptionDomainRef
   minimumStableReadFramesByNode?: Record<string, number>
+  handoffSourceNodeIds?: string[]
 }): CaptionStoryTimingRegistrationRequest {
   assertClosedContractTree(input, 'Caption StoryTiming registration input')
   const graph = parseCaptionMultiTrackSceneGraph(input.sceneGraph)
+  const handoffSourceNodeIds = new Set(input.handoffSourceNodeIds ?? [])
+  if (handoffSourceNodeIds.size !== (input.handoffSourceNodeIds ?? []).length
+    || [...handoffSourceNodeIds].some((nodeId) =>
+      !graph.nodes.some((node) => node.nodeId === nodeId))) {
+    throw new Error('Caption handoff timing registrations reference unknown nodes.')
+  }
   const base: Omit<CaptionStoryTimingRegistrationRequest, 'registrationDigestSha256'> = {
     schemaVersion: CAPTION_STORYTIMING_REGISTRATION_VERSION,
     registrationId: safeKey.parse(input.registrationId),
@@ -456,6 +463,8 @@ export function createCaptionStoryTimingRegistration(input: {
       semanticEventIntents: [
         'caption_on', 'motion_entry_end',
         ...(node.semanticRole === 'hero_concept' ? ['hero_hit' as const] : []),
+        ...(handoffSourceNodeIds.has(node.nodeId)
+          ? ['handoff' as const, 'restore' as const] : []),
         'motion_exit_start', 'caption_off',
       ],
       minimumStableReadFrames: input.minimumStableReadFramesByNode?.[node.nodeId] ?? 24,

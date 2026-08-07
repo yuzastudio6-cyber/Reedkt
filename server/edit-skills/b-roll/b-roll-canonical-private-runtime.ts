@@ -20,6 +20,7 @@ import {
 } from './b-roll-context-loader'
 import {
   executeBrollExistingSource,
+  type BrollExistingSourceExecutionInput,
   type BrollExistingSourceExecutionReceipt,
   type BrollProviderRequestObserver,
 } from './b-roll-existing-source-execution'
@@ -155,6 +156,7 @@ export type BrollCanonicalPrivateExecutionInput = BrollCanonicalPrivateCommonInp
     }
   | BrollCanonicalPrivateRenderableInput & {
       route: 'existing_source'
+      executionGate: BrollExistingSourceExecutionInput['gate']
       source: {
         sourceId: string
         artifactRef: EditSkillArtifactReference
@@ -947,21 +949,9 @@ implements BrollCanonicalPrivateWorkExecutor {
     if (this.#input.route !== 'existing_source') {
       throw new Error('Canonical private B-roll source execution is unavailable for this route.')
     }
-    const componentRef = this.#input.componentRef
     this.#state.existing = await executeBrollExistingSource({
       localStorageRoot: this.#input.localStorageRoot,
-      gate: {
-        approvedPlanSnapshotId: `b-roll-private-${this.#input.approvalHash.slice(0, 20)}`,
-        snapshotHash: hashSkillValue({ approvalHash: this.#input.approvalHash }),
-        reservationId: `b-roll-private-reservation-${this.#input.approvalHash.slice(0, 16)}`,
-        reservationStatus: 'reserved',
-        approved: true,
-        privateInternalExecution: true,
-        idempotencyKey: `b-roll-source-${this.#input.approvalHash}`,
-        componentRef,
-        snapshotComponentRef: componentRef,
-        executionPackageComponentRef: componentRef,
-      },
+      gate: this.#input.executionGate,
       component: this.#input.component,
       canonicalWorkItems: this.#input.canonicalWorkItems,
       source: this.#input.source,

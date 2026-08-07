@@ -997,14 +997,36 @@ try {
     publicGraph: sourceLifecycle.graph,
   })
   const providerObserver = { getRequestCount: () => 0 }
+  const sourceComponentRef =
+    sourceAuthority.persisted.componentRefs.bRollSkill
+  const sourceExecutionSnapshotHash = hashSkillValue({
+    assignmentHash: sourceFixture.brollAssignment.assignmentHash,
+    approvalHash: sourceLifecycle.approval.approvalHash,
+    approvedWorkGraphHash: sourceLifecycle.graph.approvedWorkGraphHash,
+  })
   activeCoordinator = new BrollCanonicalPrivateExecutionCoordinator({
     route: 'existing_source',
+    executionGate: {
+      approvedPlanSnapshotId:
+        'snapshot.caption-broll.public-canonical-existing-source',
+      snapshotHash: sourceExecutionSnapshotHash,
+      reservationId:
+        'reservation.caption-broll.public-canonical-existing-source',
+      reservationStatus: 'reserved',
+      approved: true,
+      privateInternalExecution: true,
+      idempotencyKey:
+        'b-roll-source.caption-broll.public-canonical-existing-source',
+      componentRef: sourceComponentRef,
+      snapshotComponentRef: sourceComponentRef,
+      executionPackageComponentRef: sourceComponentRef,
+    },
     localStorageRoot: root,
     approvalHash: sourceLifecycle.approval.approvalHash,
     approvedWorkGraphHash: sourceLifecycle.graph.approvedWorkGraphHash,
     approvedPublicWorkGraph: sourceLifecycle.graph,
     component: sourceAuthority.persisted.component,
-    componentRef: sourceAuthority.persisted.componentRefs.bRollSkill,
+    componentRef: sourceComponentRef,
     assignment: sourceFixture.brollAssignment,
     context: sourceFixture.context,
     visualOwnership: sourceFixture.ownership,
@@ -1108,11 +1130,7 @@ try {
       const approvedSnapshotRef = {
         id: 'snapshot.caption-broll.public-canonical-existing-source',
         version: 'approved-plan-snapshot-v1',
-        contentHash: hashSkillValue({
-          assignmentHash: sourceFixture.brollAssignment.assignmentHash,
-          approvalHash: sourceLifecycle.approval.approvalHash,
-          approvedWorkGraphHash: sourceLifecycle.graph.approvedWorkGraphHash,
-        }),
+        contentHash: sourceExecutionSnapshotHash,
       }
       const outputFrameRef = {
         id: 'output-frame.caption-broll.public-canonical-16x9',

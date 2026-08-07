@@ -297,6 +297,7 @@ try {
   })
   const coordinator = new BrollCanonicalPrivateExecutionCoordinator({
     route: 'existing_source',
+    executionGate: gate,
     localStorageRoot,
     approvalHash: approval.approvalHash,
     component: persisted.component,

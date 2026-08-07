@@ -9,7 +9,7 @@ import {
   type CanonicalCaptionBrollApprovedPlanHarnessInput,
 } from '../internal-testing/canonical-caption-broll-approved-plan-harness'
 import {
-  CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION,
+  CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION,
 } from '../edit-skills/b-roll/b-roll-canonical-plan-component'
 import { hashSkillValue } from '../edit-skills/core'
 import { revalidateCanonicalBrollPlanAuthority } from '../services/canonical-broll-plan-component-service'
@@ -119,13 +119,14 @@ try {
   const persistedComponent = result.persistedComponent.component
   check(
     persistedComponent.schemaVersion ===
-      CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
-      && persistedComponent.restartSafeExecutionInputsPersisted,
-    'The immutable B-roll component must persist versioned restart-safe execution inputs.',
+      CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
+      && persistedComponent.restartSafeExecutionInputsPersisted
+      && persistedComponent.restartSafePublicLifecyclePersisted,
+    'The immutable B-roll component must persist restart-safe execution and public lifecycle inputs.',
   )
   if (persistedComponent.schemaVersion !==
-    CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION) {
-    throw new Error('The Caption+B-roll harness requires the V2 execution component.')
+    CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION) {
+    throw new Error('The Caption+B-roll harness requires the V3 execution component.')
   }
   const reread = await revalidateCanonicalBrollPlanAuthority({
     localStorageRoot,
@@ -143,8 +144,13 @@ try {
       && reread.executionAuthorities.masterTimingProjection.timingHash ===
         result.masterTimingPlan.timingHash
       && reread.executionAuthorities.visualOwnership.assignmentId ===
-        input.assignmentId,
-    'Restart-safe reread must recover the exact source, timing, and ownership authorities.',
+        input.assignmentId
+      && reread.publicLifecycleAuthorities?.approval.approvalHash ===
+        result.publicApprovedWorkGraph.approval.approvalHash
+      && reread.publicLifecycleAuthorities.approvedPublicWorkGraph
+        .approvedWorkGraphHash ===
+          result.publicApprovedWorkGraph.approvedWorkGraphHash,
+    'Restart-safe reread must recover exact source, timing, ownership, approval, and public graph authorities.',
   )
   check(result.estimatedCredits > 0,
   'The approved B-roll plan must expose an estimate input without billing.')

@@ -21,6 +21,8 @@ export const CANONICAL_BROLL_SKILL_COMPONENT_VERSION =
   'canonical-b-roll-skill-plan-component-v1' as const
 export const CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION =
   'canonical-b-roll-skill-plan-component-v2' as const
+export const CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION =
+  'canonical-b-roll-skill-plan-component-v3' as const
 
 const blobRefSchema = z.object({
   sha256: skillSha256Schema,
@@ -71,17 +73,24 @@ const executionSourceArtifactRefSchema = z.object({
   artifactRef: blobRefSchema,
 }).strict()
 
-const componentV2CoreSchema = componentV1CoreSchema.omit({
-  schemaVersion: true,
-}).extend({
-  schemaVersion: z.literal(CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION),
+const executionAuthorityRefFields = {
   sourceInventoryArtifactRef: blobRefSchema,
   masterTimingProjectionArtifactRef: blobRefSchema,
   visualOwnershipArtifactRef: blobRefSchema,
   publicContextManifestArtifactRef: blobRefSchema,
   sourceMediaArtifactRefs: z.array(executionSourceArtifactRefSchema).max(8),
   restartSafeExecutionInputsPersisted: z.literal(true),
-}).strict().superRefine((component, context) => {
+} as const
+
+function validateExecutionSourceRefs(
+  component: {
+    sourceMediaArtifactRefs: Array<{
+      sourceId: string
+      artifactRef: { sha256: string }
+    }>
+  },
+  context: z.RefinementCtx,
+): void {
   const sourceIds = component.sourceMediaArtifactRefs.map((item) =>
     item.sourceId)
   const sourceHashes = component.sourceMediaArtifactRefs.map((item) =>
@@ -89,16 +98,23 @@ const componentV2CoreSchema = componentV1CoreSchema.omit({
   if (new Set(sourceIds).size !== sourceIds.length) {
     context.addIssue({
       code: 'custom',
-      message: 'Canonical B-roll V2 execution inputs repeat a source ID.',
+      message: 'Canonical B-roll execution inputs repeat a source ID.',
     })
   }
   if (new Set(sourceHashes).size !== sourceHashes.length) {
     context.addIssue({
       code: 'custom',
-      message: 'Canonical B-roll V2 execution inputs repeat a source artifact.',
+      message: 'Canonical B-roll execution inputs repeat a source artifact.',
     })
   }
-})
+}
+
+const componentV2CoreSchema = componentV1CoreSchema.omit({
+  schemaVersion: true,
+}).extend({
+  schemaVersion: z.literal(CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION),
+  ...executionAuthorityRefFields,
+}).strict().superRefine(validateExecutionSourceRefs)
 
 export const canonicalBrollSkillPlanComponentV2Schema =
 componentV2CoreSchema.extend({
@@ -113,10 +129,36 @@ componentV2CoreSchema.extend({
   }
 })
 
+const componentV3CoreSchema = componentV1CoreSchema.omit({
+  schemaVersion: true,
+}).extend({
+  schemaVersion: z.literal(CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION),
+  ...executionAuthorityRefFields,
+  publicAssignmentArtifactRef: blobRefSchema,
+  publicPlanArtifactRef: blobRefSchema,
+  publicApprovalArtifactRef: blobRefSchema,
+  approvedPublicWorkGraphArtifactRef: blobRefSchema,
+  restartSafePublicLifecyclePersisted: z.literal(true),
+}).strict().superRefine(validateExecutionSourceRefs)
+
+export const canonicalBrollSkillPlanComponentV3Schema =
+componentV3CoreSchema.extend({
+  componentHash: skillSha256Schema,
+}).strict().superRefine((component, context) => {
+  const { componentHash, ...core } = component
+  if (hashSkillValue(core) !== componentHash) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Canonical B-roll V3 component hash is stale or forged.',
+    })
+  }
+})
+
 export const canonicalBrollSkillPlanComponentSchema = z.discriminatedUnion(
   'schemaVersion', [
     canonicalBrollSkillPlanComponentV1Schema,
     canonicalBrollSkillPlanComponentV2Schema,
+    canonicalBrollSkillPlanComponentV3Schema,
   ],
 )
 
@@ -125,6 +167,9 @@ export type CanonicalBrollSkillPlanComponent = z.infer<
 >
 export type CanonicalBrollSkillPlanComponentV2 = z.infer<
   typeof canonicalBrollSkillPlanComponentV2Schema
+>
+export type CanonicalBrollSkillPlanComponentV3 = z.infer<
+  typeof canonicalBrollSkillPlanComponentV3Schema
 >
 
 export function createCanonicalBrollSkillPlanComponent(input: {
@@ -149,6 +194,12 @@ export function createCanonicalBrollSkillPlanComponent(input: {
       sourceId: string
       artifactRef: AuthorityJsonBlobRef
     }>
+  }
+  publicLifecycleRefs?: {
+    publicAssignmentArtifactRef: AuthorityJsonBlobRef
+    publicPlanArtifactRef: AuthorityJsonBlobRef
+    publicApprovalArtifactRef: AuthorityJsonBlobRef
+    approvedPublicWorkGraphArtifactRef: AuthorityJsonBlobRef
   }
 }): CanonicalBrollSkillPlanComponent {
   const planningQaReport = assertBrollPlanningQaReport({
@@ -211,8 +262,27 @@ export function createCanonicalBrollSkillPlanComponent(input: {
     outsideAuthorizedRangeModified: false,
   }
   if (!input.executionAuthorityRefs) {
+    if (input.publicLifecycleRefs) {
+      throw new Error(
+        'Canonical B-roll public lifecycle refs require execution authority refs.',
+      )
+    }
     const core = componentV1CoreSchema.parse(common)
     return canonicalBrollSkillPlanComponentV1Schema.parse({
+      ...core,
+      componentHash: hashSkillValue(core),
+    })
+  }
+  if (input.publicLifecycleRefs) {
+    const core = componentV3CoreSchema.parse({
+      ...common,
+      schemaVersion: CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION,
+      ...input.executionAuthorityRefs,
+      ...input.publicLifecycleRefs,
+      restartSafeExecutionInputsPersisted: true,
+      restartSafePublicLifecyclePersisted: true,
+    })
+    return canonicalBrollSkillPlanComponentV3Schema.parse({
       ...core,
       componentHash: hashSkillValue(core),
     })

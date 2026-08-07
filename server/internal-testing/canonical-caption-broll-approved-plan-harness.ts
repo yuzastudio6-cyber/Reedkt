@@ -419,6 +419,12 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
       publicContextManifest: publicContext,
       sourceMediaArtifacts: [sourceManifest],
     },
+    publicLifecycleAuthorities: {
+      publicAssignment: assignment,
+      publicPlan,
+      approval,
+      approvedPublicWorkGraph: publicApprovedWorkGraph,
+    },
   })
   const reread = await revalidateCanonicalBrollPlanAuthority({
     localStorageRoot: input.localStorageRoot,
@@ -430,7 +436,11 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
   })
   if (
     reread.assignment?.assignmentHash !== brollAssignment.assignmentHash ||
-    reread.workGraph?.workGraphHash !== canonicalWorkGraph.workGraphHash
+    reread.workGraph?.workGraphHash !== canonicalWorkGraph.workGraphHash ||
+    reread.publicLifecycleAuthorities?.approval.approvalHash !==
+      approval.approvalHash ||
+    reread.publicLifecycleAuthorities.approvedPublicWorkGraph
+      .approvedWorkGraphHash !== publicApprovedWorkGraph.approvedWorkGraphHash
   ) {
     throw new Error(
       'Caption+B-roll harness failed immutable component/work-graph reread.',

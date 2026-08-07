@@ -1,6 +1,7 @@
 import {
   CANONICAL_BROLL_SKILL_COMPONENT_KEY,
   CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION,
+  CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION,
   canonicalBrollSkillPlanComponentSchema,
   createCanonicalBrollSkillPlanComponent,
   type CanonicalBrollSkillPlanComponent,
@@ -41,6 +42,18 @@ import {
 } from '../edit-skills/b-roll/b-roll-active-artifact-contracts'
 import { hashSkillValue } from '../edit-skills/core/skill-capability-manifest-hash'
 import {
+  editSkillApprovedWorkGraphSchema,
+  editSkillPlanApprovalSchema,
+  editSkillPublicPlanSchema,
+  type EditSkillApprovedWorkGraph,
+  type EditSkillPlanApproval,
+  type EditSkillPublicPlan,
+} from '../edit-skills/core/edit-skill-plugin'
+import { skillAssignmentSchema } from
+  '../edit-skills/core/skill-assignment-schema'
+import type { SkillAssignment } from
+  '../edit-skills/core/skill-assignment-types'
+import {
   assertSkillQualificationReceipt,
   type SkillQualificationReceipt,
 } from '../edit-skills/core/skill-qualification-receipt'
@@ -65,6 +78,13 @@ export interface CanonicalBrollExecutionAuthorities {
   sourceMediaArtifacts: SourceMediaArtifactV1[]
 }
 
+export interface CanonicalBrollPublicLifecycleAuthorities {
+  publicAssignment: SkillAssignment
+  publicPlan: EditSkillPublicPlan
+  approval: EditSkillPlanApproval
+  approvedPublicWorkGraph: EditSkillApprovedWorkGraph
+}
+
 export async function persistCanonicalBrollPlanComponent(input: {
   localStorageRoot: string
   assignment: BrollSkillAssignment
@@ -74,6 +94,7 @@ export async function persistCanonicalBrollPlanComponent(input: {
   workGraph: BrollCanonicalWorkGraph
   qualificationReceipt: SkillQualificationReceipt
   executionAuthorities?: CanonicalBrollExecutionAuthorities
+  publicLifecycleAuthorities?: CanonicalBrollPublicLifecycleAuthorities
 }): Promise<{
   component: CanonicalBrollSkillPlanComponent
   componentRefs: Record<typeof CANONICAL_BROLL_SKILL_COMPONENT_KEY, AuthorityJsonBlobRef>
@@ -116,6 +137,17 @@ export async function persistCanonicalBrollPlanComponent(input: {
   const executionAuthorityRefs = input.executionAuthorities
     ? await persistExecutionAuthorities(input.executionAuthorities, persist)
     : undefined
+  if (input.publicLifecycleAuthorities && !executionAuthorityRefs) {
+    throw new Error(
+      'Canonical B-roll public lifecycle persistence requires execution authorities.',
+    )
+  }
+  const publicLifecycleRefs = input.publicLifecycleAuthorities
+    ? await persistPublicLifecycleAuthorities(
+        input.publicLifecycleAuthorities,
+        persist,
+      )
+    : undefined
   const component = createCanonicalBrollSkillPlanComponent({
     assignment,
     context,
@@ -130,6 +162,7 @@ export async function persistCanonicalBrollPlanComponent(input: {
     workGraphArtifactRef,
     qualificationReceiptArtifactRef,
     ...(executionAuthorityRefs ? { executionAuthorityRefs } : {}),
+    ...(publicLifecycleRefs ? { publicLifecycleRefs } : {}),
   })
   const componentRef = await persist(component as unknown as Record<string, unknown>)
   return {
@@ -207,6 +240,7 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   workGraph?: BrollCanonicalWorkGraph
   qualificationReceipt?: SkillQualificationReceipt
   executionAuthorities?: CanonicalBrollExecutionAuthorities
+  publicLifecycleAuthorities?: CanonicalBrollPublicLifecycleAuthorities
 }> {
   const projectedItems = input.canonicalWorkItems
     .filter(isBrollProjectedWorkItem)
@@ -276,8 +310,19 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     rawQualificationReceipt as SkillQualificationReceipt,
   )
   const executionAuthorities = component.schemaVersion ===
-    CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+    CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION ||
+    component.schemaVersion === CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
     ? await readExecutionAuthorities(component, read, assignment)
+    : undefined
+  const publicLifecycleAuthorities = component.schemaVersion ===
+    CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
+    ? await readPublicLifecycleAuthorities(
+        component,
+        read,
+        assignment,
+        plan,
+        workGraph,
+      )
     : undefined
   const rebuilt = createCanonicalBrollSkillPlanComponent({
     assignment,
@@ -292,7 +337,8 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     planningQaReportArtifactRef: component.planningQaReportArtifactRef,
     workGraphArtifactRef: component.workGraphArtifactRef,
     qualificationReceiptArtifactRef: component.qualificationReceiptArtifactRef,
-    ...(component.schemaVersion === CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+    ...(component.schemaVersion === CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION ||
+      component.schemaVersion === CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
       ? {
           executionAuthorityRefs: {
             sourceInventoryArtifactRef:
@@ -304,6 +350,19 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
             publicContextManifestArtifactRef:
               component.publicContextManifestArtifactRef,
             sourceMediaArtifactRefs: component.sourceMediaArtifactRefs,
+          },
+      }
+      : {}),
+    ...(component.schemaVersion === CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
+      ? {
+          publicLifecycleRefs: {
+            publicAssignmentArtifactRef:
+              component.publicAssignmentArtifactRef,
+            publicPlanArtifactRef: component.publicPlanArtifactRef,
+            publicApprovalArtifactRef:
+              component.publicApprovalArtifactRef,
+            approvedPublicWorkGraphArtifactRef:
+              component.approvedPublicWorkGraphArtifactRef,
           },
         }
       : {}),
@@ -323,6 +382,34 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     workGraph,
     qualificationReceipt,
     ...(executionAuthorities ? { executionAuthorities } : {}),
+    ...(publicLifecycleAuthorities ? { publicLifecycleAuthorities } : {}),
+  }
+}
+
+async function persistPublicLifecycleAuthorities(
+  input: CanonicalBrollPublicLifecycleAuthorities,
+  persist: (value: Record<string, unknown>) => Promise<AuthorityJsonBlobRef>,
+): Promise<{
+  publicAssignmentArtifactRef: AuthorityJsonBlobRef
+  publicPlanArtifactRef: AuthorityJsonBlobRef
+  publicApprovalArtifactRef: AuthorityJsonBlobRef
+  approvedPublicWorkGraphArtifactRef: AuthorityJsonBlobRef
+}> {
+  const publicAssignment = skillAssignmentSchema.parse(input.publicAssignment)
+  const publicPlan = editSkillPublicPlanSchema.parse(input.publicPlan)
+  const approval = editSkillPlanApprovalSchema.parse(input.approval)
+  const approvedPublicWorkGraph = editSkillApprovedWorkGraphSchema.parse(
+    input.approvedPublicWorkGraph,
+  )
+  return {
+    publicAssignmentArtifactRef: await persist(
+      publicAssignment as unknown as Record<string, unknown>),
+    publicPlanArtifactRef: await persist(
+      publicPlan as unknown as Record<string, unknown>),
+    publicApprovalArtifactRef: await persist(
+      approval as unknown as Record<string, unknown>),
+    approvedPublicWorkGraphArtifactRef: await persist(
+      approvedPublicWorkGraph as unknown as Record<string, unknown>),
   }
 }
 
@@ -371,7 +458,9 @@ async function persistExecutionAuthorities(
 
 async function readExecutionAuthorities(
   component: Extract<CanonicalBrollSkillPlanComponent, {
-    schemaVersion: typeof CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+    schemaVersion:
+      | typeof CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+      | typeof CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
   }>,
   read: (ref: AuthorityJsonBlobRef) => Promise<
     Record<string, unknown> | unknown[]
@@ -416,7 +505,7 @@ async function readExecutionAuthorities(
       !sourceIds.includes(candidate.sourceId))
   ) {
     throw new Error(
-      'Canonical B-roll V2 execution inputs crossed immutable assignment authority.',
+      'Canonical B-roll execution inputs crossed immutable assignment authority.',
     )
   }
   return {
@@ -425,5 +514,81 @@ async function readExecutionAuthorities(
     visualOwnership,
     publicContextManifest,
     sourceMediaArtifacts,
+  }
+}
+
+async function readPublicLifecycleAuthorities(
+  component: Extract<CanonicalBrollSkillPlanComponent, {
+    schemaVersion: typeof CANONICAL_BROLL_SKILL_COMPONENT_V3_VERSION
+  }>,
+  read: (ref: AuthorityJsonBlobRef) => Promise<
+    Record<string, unknown> | unknown[]
+  >,
+  assignment: BrollSkillAssignment,
+  plan: BrollPlanArtifact,
+  workGraph: BrollCanonicalWorkGraph,
+): Promise<CanonicalBrollPublicLifecycleAuthorities> {
+  const [
+    rawPublicAssignment,
+    rawPublicPlan,
+    rawApproval,
+    rawApprovedPublicWorkGraph,
+  ] = await Promise.all([
+    read(component.publicAssignmentArtifactRef),
+    read(component.publicPlanArtifactRef),
+    read(component.publicApprovalArtifactRef),
+    read(component.approvedPublicWorkGraphArtifactRef),
+  ])
+  const publicAssignment = skillAssignmentSchema.parse(rawPublicAssignment)
+  const publicPlan = editSkillPublicPlanSchema.parse(rawPublicPlan)
+  const approval = editSkillPlanApprovalSchema.parse(rawApproval)
+  const approvedPublicWorkGraph = editSkillApprovedWorkGraphSchema.parse(
+    rawApprovedPublicWorkGraph,
+  )
+  const range = assignment.writeRangeAuthority.authorizedRange
+  const privateKeys = workGraph.workItems.map((item) => item.workItemKey)
+  const publicKeys = approvedPublicWorkGraph.workItems.map((item) =>
+    item.workItemKey)
+  if (
+    publicAssignment.assignmentId !== assignment.assignmentId ||
+    publicAssignment.ownerUserId !== assignment.ownerUserId ||
+    publicAssignment.workspaceId !== assignment.workspaceId ||
+    publicAssignment.projectId !== assignment.projectId ||
+    publicAssignment.editSessionId !== assignment.editSessionId ||
+    hashSkillValue(publicAssignment.manifestRef) !==
+      hashSkillValue(assignment.manifestRef) ||
+    hashSkillValue(publicAssignment.authorizedRange) !== hashSkillValue(range) ||
+    publicAssignment.reason !== assignment.reason ||
+    publicAssignment.intendedViewerBenefit !== assignment.expectedViewerBenefit ||
+    publicAssignment.visualOwnership !== assignment.requestedVisualOwnership ||
+    publicPlan.envelope.assignmentId !== publicAssignment.assignmentId ||
+    publicPlan.envelope.assignmentHash !== publicAssignment.assignmentHash ||
+    publicPlan.envelope.planId !== plan.planId ||
+    publicPlan.envelope.planHash !== plan.planHash ||
+    publicPlan.payloadRef.sha256 !== hashSkillValue(plan) ||
+    approval.assignmentId !== publicAssignment.assignmentId ||
+    approval.assignmentHash !== publicAssignment.assignmentHash ||
+    approval.planId !== publicPlan.envelope.planId ||
+    approval.planHash !== publicPlan.envelope.planHash ||
+    hashSkillValue(approval.manifestRef) !==
+      hashSkillValue(assignment.manifestRef) ||
+    hashSkillValue(approval.authorizedRange) !== hashSkillValue(range) ||
+    approvedPublicWorkGraph.assignmentId !== publicAssignment.assignmentId ||
+    approvedPublicWorkGraph.assignmentHash !== publicAssignment.assignmentHash ||
+    approvedPublicWorkGraph.planId !== publicPlan.envelope.planId ||
+    approvedPublicWorkGraph.planHash !== publicPlan.envelope.planHash ||
+    approvedPublicWorkGraph.approval.approvalHash !== approval.approvalHash ||
+    approvedPublicWorkGraph.pluginWorkGraphHash !== workGraph.workGraphHash ||
+    publicKeys.join('|') !== privateKeys.join('|')
+  ) {
+    throw new Error(
+      'Canonical B-roll V3 public lifecycle crossed immutable plan authority.',
+    )
+  }
+  return {
+    publicAssignment,
+    publicPlan,
+    approval,
+    approvedPublicWorkGraph,
   }
 }

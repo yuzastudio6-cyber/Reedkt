@@ -1,6 +1,6 @@
 # Canonical B-roll owner inspection projection — 2026-08-06
 
-Status: `source_mounted_waiting_for_canonical_private_evidence`
+Status: `owner_runtime_requalified_waiting_for_terminal_canonical_private_evidence`
 
 ## Outcome
 
@@ -71,6 +71,59 @@ The focused source smoke passes 23 checks covering:
 
 The Caption source integration aggregate now contains 47 source suites and
 still reports all 41 Caption-owned job implementations source-ready.
+
+## Existing-owner runtime requalification
+
+The repository's existing `qualify:b-roll:internal` one-writer qualification
+was rerun after the shared Remotion authority changed. All 30 commands and all
+36 fixtures passed, including the canonical private runtime, public canonical
+lifecycle, existing-source path, Remotion integration, security boundaries,
+and idempotency checks. The public lifecycle created and reread the new
+selected-artifact source authority through the B-roll owner V2 service.
+
+- tested commit: `1a1ff94ae73acaacd684656e7c8720663a5502c3`;
+- relevant source tree:
+  `5c8818c03b9248629810ea45ed594d1a0689ca31cc256577d0c16793b71e81e7`;
+- dependency authority set:
+  `eb5eacaabc73595402066b10a4634aa89cb39a3d143eac1f8bd6e0a70b7146e8`;
+- qualification receipt:
+  `45ca884db777ff1c2076b35483928f81b3498c4db4fffbd846540b4480104f18`;
+- generated artifact:
+  `a88850bc05f812bba09132da4cf46f3decc66e16c6e78e5329a8d5d17e1ac82d`.
+
+This requalification used the technical engineering fixture for lifecycle
+proof. It did not replace or promote the separately accepted real-footage
+Caption/B-roll appearance evidence.
+
+The exact post-requalification technical replay was then visually inspected
+over its complete 72-frame contact sheet and original frames 0, 35, and 71.
+The label, Caption-above-B-roll order, Caption visibility, safe area, and lack
+of clipping/collision were accepted; professional appearance remained false.
+That replay created and exact-reread the owner-issued source authority:
+
+- inspection package:
+  `2589613dd471be5fbe3b25454c11876507fa984ed89073184631044e2c1d0ec5`;
+- direct technical inspection receipt:
+  `ccc38353ce07b5666d79506191289da9b95dc3aec3e7138f4be338c19baa5f48`;
+- source-authority contract digest:
+  `7704eda17ebfd77084227f8ab387d99d3fe7fc505ea7e617ca53218a531e5086`;
+- source-authority serialized-file SHA-256:
+  `3a4a2565c11b4c27598594991aab8ebd70c5841461abf27fa70bda70373249ff`;
+- owner-result digest:
+  `fccf57acb3254843f8f6bebbc1c901005c9d06b369058d7265fac6cef83ef20d`;
+- authenticated Caption evidence record:
+  `c40857874b7eebf449236dd80ab23860819df1db5cc39184d281b89234602441`;
+- sequential-resume record:
+  `9de25fc46544f6af685605b9e8cfb888474aaf2c84e7b3785dd8c1c47f6cde94`;
+- private runtime receipt file:
+  `43078823d08716163f72fa22e4c66cff66227df46840c18ef18268cf23d0d202`.
+
+The first direct replay also exposed and rejected an invalid assumption that
+the public plugin assignment/plan hashes should equal the internal B-roll
+assignment/plan hashes. They are intentionally distinct artifacts. The repair
+now binds them through the existing public envelope, payload digest, approved
+work graph, and shared assignment/plan IDs instead of casting one hash into the
+other.
 
 ## Honest remaining boundary
 

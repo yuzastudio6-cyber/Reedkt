@@ -912,9 +912,18 @@ function createInspectionSourceAuthority(input: {
     publicDeliveryGranted: false,
     productionAuthorityGranted: false,
   })
-  if (input.publicAssignment.assignmentHash
-      !== input.assignment.assignmentHash
-    || input.publicPlan.envelope.planHash !== input.plan.planHash
+  if (input.publicAssignment.assignmentId
+      !== input.assignment.assignmentId
+    || input.publicPlan.envelope.assignmentId
+      !== input.assignment.assignmentId
+    || input.publicPlan.envelope.assignmentHash
+      !== input.publicAssignment.assignmentHash
+    || input.publicPlan.envelope.planId !== input.plan.planId
+    || input.publicPlan.payloadRef.sha256 !== hashSkillValue(input.plan)
+    || input.approvedWorkGraph.assignmentHash
+      !== input.publicAssignment.assignmentHash
+    || input.approvedWorkGraph.planHash
+      !== input.publicPlan.envelope.planHash
     || input.result.brollResultReceiptRef.contentHash
       !== input.receipt.resultHash) {
     throw new Error(

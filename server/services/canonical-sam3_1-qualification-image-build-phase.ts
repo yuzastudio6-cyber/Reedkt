@@ -171,7 +171,9 @@ const terminalWithoutHashSchema = z.object({
         || !value.warningsAbsent
         || !value.immutableImageDigest
         || !value.immutableImageUri
-        || value.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+        || value.artifactRegistryPackage !== artifactRegistryVersion(
+          value.immutableImageDigest,
+        )
         || !value.durableTerminalObservationCreated
         || !value.imageBuiltAndPushed
       : value.immutableImageDigest !== null
@@ -720,7 +722,7 @@ function assertBuildEcho(
     || build.warnings.length !== 0
     || build.results.images.length !== 1
     || image.name !== authority.imageDestination.taggedUri
-    || image.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+    || image.artifactRegistryPackage !== artifactRegistryVersion(image.digest)
   ) throw new Error('Qualification Cloud Build output differs from authority.')
 }
 
@@ -746,7 +748,10 @@ function assertBuildConfigurationEcho(
     || !sameJson(actualImages, expectedImages)
     || !sameJson(raw.tags, expected.tags)
     || actualOptions.machineType !== expectedOptions.machineType
-    || actualOptions.diskSizeGb !== expectedOptions.diskSizeGb
+    || !sameCloudBuildInt64(
+      actualOptions.diskSizeGb,
+      expectedOptions.diskSizeGb,
+    )
     || actualOptions.requestedVerifyOption !==
       expectedOptions.requestedVerifyOption
     || actualOptions.logging !== expectedOptions.logging
@@ -778,6 +783,22 @@ function sameBuildSteps(observed: unknown, expected: unknown): boolean {
     name,
     args,
   })), expectedSteps.data)
+}
+
+function sameCloudBuildInt64(observed: unknown, expected: unknown): boolean {
+  const canonicalInt64 = z.union([
+    z.number().int().nonnegative().safe(),
+    z.string().regex(/^(0|[1-9][0-9]*)$/u),
+  ]).transform((value) => BigInt(value).toString())
+  const observedValue = canonicalInt64.safeParse(observed)
+  const expectedValue = canonicalInt64.safeParse(expected)
+  return observedValue.success
+    && expectedValue.success
+    && observedValue.data === expectedValue.data
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${ARTIFACT_REGISTRY_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 function buildSubmission(input: Omit<

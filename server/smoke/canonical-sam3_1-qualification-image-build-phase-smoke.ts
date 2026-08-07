@@ -334,6 +334,61 @@ assert.equal(terminal.gpuJobDispatched, false)
 assert.equal(terminal.customerCreditMutationCreated, false)
 assert.equal(terminal.productionReady, false)
 
+const liveRestShapeBuild = successBuild(
+  buildBody,
+  buildId,
+  authority.imageDestination.taggedUri,
+)
+const liveRestShapeOptions = liveRestShapeBuild.options as Record<
+  string,
+  unknown
+>
+liveRestShapeOptions.diskSizeGb = String(liveRestShapeOptions.diskSizeGb)
+const liveRestShapeTerminal =
+  await createCanonicalSam31QualificationImageBuildPhase({
+    authorityReadPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+    },
+    statePort: createStatePort().port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(liveRestShapeBuild) }
+      },
+    },
+    now: () => '2026-08-04T13:02:32.000Z',
+  }).observeOneQualificationImageBuild({ authority, submission })
+assert.equal(
+  liveRestShapeTerminal.disposition,
+  'qualification_image_built_pending_supply_chain_release',
+)
+assert.equal(liveRestShapeTerminal.exactBuildConfigurationEchoVerified, true)
+
+const malformedDiskSizeBuild = structuredClone(liveRestShapeBuild)
+const malformedDiskSizeOptions = malformedDiskSizeBuild.options as Record<
+  string,
+  unknown
+>
+malformedDiskSizeOptions.diskSizeGb = '0200'
+const malformedDiskSizeTerminal =
+  await createCanonicalSam31QualificationImageBuildPhase({
+    authorityReadPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+    },
+    statePort: createStatePort().port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(malformedDiskSizeBuild) }
+      },
+    },
+    now: () => '2026-08-04T13:02:33.000Z',
+  }).observeOneQualificationImageBuild({ authority, submission })
+assert.equal(malformedDiskSizeTerminal.disposition, 'outcome_unknown')
+assert.equal(malformedDiskSizeTerminal.imageBuiltAndPushed, false)
+
 const exactFailureBuild = successBuild(
   buildBody,
   buildId,
@@ -734,7 +789,7 @@ function successBuild(
       name: taggedImageUri,
       digest: `sha256:${sha(Buffer.from('qualification-image-digest'))}`,
       artifactRegistryPackage:
-        'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification',
+        `projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification/versions/sha256:${sha(Buffer.from('qualification-image-digest'))}`,
     }] },
   }
 }

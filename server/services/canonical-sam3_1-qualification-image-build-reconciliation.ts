@@ -242,7 +242,9 @@ const reconciledTerminalWithoutHashSchema = z.object({
         || !value.immutableImageDigest
         || value.immutableImageUri !==
           `${value.taggedImageUri.split(':')[0]}@${value.immutableImageDigest}`
-        || value.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+        || value.artifactRegistryPackage !== artifactRegistryVersion(
+          value.immutableImageDigest,
+        )
         || !value.durableTerminalObservationCreated
         || !value.imageBuiltAndPushed
       : value.immutableImageDigest !== null
@@ -708,9 +710,16 @@ function exactBuiltImage(
   const image = z.object({
     name: z.literal(authority.imageDestination.taggedUri),
     digest: prefixedSha256,
-    artifactRegistryPackage: z.literal(ARTIFACT_REGISTRY_PACKAGE),
+    artifactRegistryPackage: safeId,
   }).passthrough().parse(images[0])
+  if (image.artifactRegistryPackage !== artifactRegistryVersion(image.digest)) {
+    throw new Error('SAM 3.1 built image package version changed.')
+  }
   return image
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${ARTIFACT_REGISTRY_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 function providerBuildNameMatches(name: string, buildId: string): boolean {

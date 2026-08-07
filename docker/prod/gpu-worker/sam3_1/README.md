@@ -353,6 +353,8 @@ before extracting it offline. The native closure also binds FFmpeg 8.0.3,
 pkgconf 3.0.4, and NV-codec headers n12.2.72.0 by exact source bytes and
 license metadata. The exact NPP package is 131,485,608 bytes with SHA-256
 `54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992`.
+Capsule assembly rereads its create-only private object at generation
+`1786101660398565`; it never accepts a mutable package coordinate.
 Only `libnppc.so.12.3.3.100` and `libnppicc.so.12.3.3.100` are copied into the
 closed runtime directory, and TorchCodec must link without missing libraries.
 The build fails unless the base runtime is exactly Python

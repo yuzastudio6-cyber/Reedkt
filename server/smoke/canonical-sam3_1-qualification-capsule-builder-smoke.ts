@@ -51,6 +51,16 @@ for (const expected of [
   dockerfile.includes(expected),
   `qualification capsule Dockerfile lost ${expected}`,
 )
+for (const expected of [
+  '--if-generation-match=1786101660398565',
+  'native-dependencies/libnpp-12-8/12.3.3.100-1/54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992.deb',
+  'libnpp-12-8_12.3.3.100-1_amd64.deb',
+  '131485608',
+  '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992',
+] as const) assert.ok(
+  cloudBuild.includes(expected),
+  `qualification capsule Cloud Build lost ${expected}`,
+)
 assert.doesNotMatch(
   dockerfile,
   /(?:sam3\.1_multiplex\.pt|checkpoint\/|HF_TOKEN|huggingface\.co)/u,

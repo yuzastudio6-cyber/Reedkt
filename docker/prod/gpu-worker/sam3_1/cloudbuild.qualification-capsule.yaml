@@ -41,6 +41,17 @@ steps:
           -type f | wc -l)" = 31
         test -z "$$(find private-dependency-closure/dependency-closure \
           -mindepth 1 ! -type d ! -type f -print -quit)"
+        mkdir -p private-dependency-closure/dependency-closure/cuda-npp
+        gcloud storage cp \
+          --if-generation-match=1786101660398565 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/native-dependencies/libnpp-12-8/12.3.3.100-1/54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992.deb \
+          private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb)" = 131485608
+        printf '%s  %s\n' \
+          54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992 \
+          private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb \
+          | sha256sum --check --strict
   - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
     id: prepare-exact-patched-source
     waitFor:

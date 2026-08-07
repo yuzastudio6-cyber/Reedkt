@@ -2,8 +2,12 @@ import assert from 'node:assert/strict'
 
 import {
   assertCanonicalSam31QualificationCapsuleReproducibility,
+  canonicalSam31QualificationCapsuleReproducibilityDigest,
   createCanonicalSam31QualificationCapsuleReproducibility,
 } from '../model-artifacts/canonical-sam3_1-qualification-capsule-reproducibility'
+import {
+  createCanonicalSam31QualificationCapsuleReproducibilityRepository,
+} from '../services/canonical-sam3_1-qualification-capsule-reproducibility-runtime'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 const digest = (value: string) => sha256AuthorityValue(value)
@@ -22,7 +26,8 @@ const builder = {
   capsuleSha256: capsuleSha,
   capsuleByteLength: 200_521_471,
   archiveEntries: entries,
-  archiveEntrySetSha256: sha256AuthorityValue(entries),
+  archiveEntrySetSha256:
+    canonicalSam31QualificationCapsuleReproducibilityDigest(entries),
   dependencyWheelCount: 23,
   dependencyWheelManifestSha256: digest('wheels'),
   dependencyLockSha256: digest('lock'),
@@ -60,7 +65,11 @@ const scans = buildIds.map((buildId) => {
     customerCreditsMutated: false,
     productionAuthorityGranted: false,
   }
-  return { ...payload, scanReceiptHash: sha256AuthorityValue(payload) }
+  return {
+    ...payload,
+    scanReceiptHash:
+      canonicalSam31QualificationCapsuleReproducibilityDigest(payload),
+  }
 })
 const coordinates = buildIds.map((buildId, index) => ({
   projectId: 'reeditpro',
@@ -139,12 +148,39 @@ tamperedReceipt.capsuleByteLength += 1
 assert.throws(() =>
   assertCanonicalSam31QualificationCapsuleReproducibility(tamperedReceipt))
 
+const objects = new Map<string, Buffer>()
+const repository =
+  createCanonicalSam31QualificationCapsuleReproducibilityRepository({
+    objectPort: {
+      async createOnly({ objectPath, body }) {
+        if (objects.has(objectPath)) return 'already_exists'
+        objects.set(objectPath, Buffer.from(body))
+        return 'created'
+      },
+      async readExact(objectPath) {
+        const body = objects.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+  })
+const persisted = await repository.persistCreateOnly({ receipt })
+assert.equal(persisted.disposition, 'created')
+assert.deepEqual(
+  await repository.reread({ receiptRef: persisted.receiptRef }),
+  receipt,
+)
+assert.equal(
+  (await repository.persistCreateOnly({ receipt })).disposition,
+  'identical_replay',
+)
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-qualification-capsule-reproducibility',
   independentBuildCount: receipt.independentBuildCount,
   exactBuilderResultEqualityVerified: true,
   exactCapsuleShaByteLengthCrc32cAndMd5EqualityVerified: true,
   independentFullArchiveMalwareScansPassed: true,
+  createOnlyExactRereadVerified: true,
   crossBuildOrMetadataSubstitutionRejected: true,
   checkpointIncluded: false,
   modelExecuted: false,

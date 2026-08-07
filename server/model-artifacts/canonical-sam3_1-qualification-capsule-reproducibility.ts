@@ -1,12 +1,10 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
 import {
   assertPlainSerializedData,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
-import {
-  sha256AuthorityValue,
-  stableAuthorityStringify,
-} from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_QUALIFICATION_CAPSULE_REPRODUCIBILITY_VERSION =
   'canonical-sam3_1-qualification-capsule-reproducibility-v1' as const
@@ -66,7 +64,9 @@ const builderResultSchema = z.object({
 }).strict().superRefine((result, context) => {
   if (
     result.archiveEntrySetSha256 !==
-      sha256AuthorityValue(result.archiveEntries)
+      canonicalSam31QualificationCapsuleReproducibilityDigest(
+        result.archiveEntries,
+      )
     || result.archiveEntries.some((entry, index, entries) =>
       index > 0 && !(entries[index - 1].path < entry.path))
     || result.archiveEntries.some((entry) =>
@@ -207,8 +207,11 @@ export function createCanonicalSam31QualificationCapsuleReproducibility(
   const confirmation = parseBuild(input.confirmation)
   if (
     primary.scan.buildId === confirmation.scan.buildId
-    || stableAuthorityStringify(primary.builder) !==
-      stableAuthorityStringify(confirmation.builder)
+    || canonicalSam31QualificationCapsuleReproducibilityStringify(
+      primary.builder,
+    ) !== canonicalSam31QualificationCapsuleReproducibilityStringify(
+      confirmation.builder,
+    )
     || sha256.parse(input.primary.builderResultFileSha256) !==
       sha256.parse(input.confirmation.builderResultFileSha256)
     || !sameScan(primary.scan, confirmation.scan)
@@ -252,7 +255,8 @@ export function createCanonicalSam31QualificationCapsuleReproducibility(
   })
   return canonicalSam31QualificationCapsuleReproducibilitySchema.parse({
     ...payload,
-    receiptHash: sha256AuthorityValue(payload),
+    receiptHash:
+      canonicalSam31QualificationCapsuleReproducibilityDigest(payload),
   })
 }
 
@@ -263,10 +267,39 @@ export function assertCanonicalSam31QualificationCapsuleReproducibility(
   const parsed = canonicalSam31QualificationCapsuleReproducibilitySchema
     .parse(value)
   const { receiptHash, ...payload } = parsed
-  if (receiptHash !== sha256AuthorityValue(payload)) {
+  if (
+    receiptHash !==
+      canonicalSam31QualificationCapsuleReproducibilityDigest(payload)
+  ) {
     throw new Error('SAM 3.1 capsule reproducibility hash is invalid.')
   }
   return parsed
+}
+
+export function canonicalSam31QualificationCapsuleReproducibilityRef(
+  value: CanonicalSam31QualificationCapsuleReproducibility,
+) {
+  const receipt = assertCanonicalSam31QualificationCapsuleReproducibility(value)
+  return Object.freeze({
+    id: receipt.receiptId,
+    version: receipt.receiptVersion,
+    contentHash: `sha256:${receipt.receiptHash}` as const,
+  })
+}
+
+export function canonicalSam31QualificationCapsuleReproducibilityStringify(
+  value: unknown,
+): string {
+  return JSON.stringify(canonicalValue(value))
+}
+
+export function canonicalSam31QualificationCapsuleReproducibilityDigest(
+  value: unknown,
+): string {
+  return createHash('sha256').update(
+    canonicalSam31QualificationCapsuleReproducibilityStringify(value),
+    'utf8',
+  ).digest('hex')
 }
 
 function parseBuild(input: {
@@ -277,7 +310,10 @@ function parseBuild(input: {
   const builder = builderResultSchema.parse(input.builderResult)
   const scan = scanSchema.parse(input.malwareScan)
   const { scanReceiptHash, ...scanPayload } = scan
-  if (scanReceiptHash !== sha256AuthorityValue(scanPayload)) {
+  if (
+    scanReceiptHash !==
+      canonicalSam31QualificationCapsuleReproducibilityDigest(scanPayload)
+  ) {
     throw new Error('SAM 3.1 capsule scan hash is invalid.')
   }
   const coordinate = coordinateSchema.parse(input.coordinate)
@@ -301,8 +337,11 @@ function sameScan(
   Reflect.deleteProperty(leftPayload, 'scanReceiptHash')
   Reflect.deleteProperty(rightPayload, 'buildId')
   Reflect.deleteProperty(rightPayload, 'scanReceiptHash')
-  return stableAuthorityStringify(leftPayload) ===
-    stableAuthorityStringify(rightPayload)
+  return canonicalSam31QualificationCapsuleReproducibilityStringify(
+    leftPayload,
+  ) === canonicalSam31QualificationCapsuleReproducibilityStringify(
+    rightPayload,
+  )
 }
 
 function buildEvidence(
@@ -326,4 +365,17 @@ function buildEvidence(
       contentHash: `sha256:${sha256.parse(raw.malwareScanFileSha256)}` as const,
     },
   }
+}
+
+function canonicalValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, nested]) => nested !== undefined)
+        .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
+        .map(([key, nested]) => [key, canonicalValue(nested)]),
+    )
+  }
+  return value
 }

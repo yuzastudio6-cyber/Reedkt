@@ -789,6 +789,8 @@ function assertMatchingBuildInputs(input: {
 export async function verifyCanonicalSam31PrivateBuildCapsuleBytes(
   coordinate: CanonicalSam31PrivateCapsuleCoordinate,
   port: CanonicalSam31PrivateBuildCapsuleReadPort,
+  expectedStorageContentType:
+    'application/gzip' | 'application/x-tar' = 'application/gzip',
 ): Promise<{
   readonly archiveEntries: readonly CanonicalSam31CapsuleArchiveEntry[]
   readonly archiveEntrySetSha256: string
@@ -800,7 +802,7 @@ export async function verifyCanonicalSam31PrivateBuildCapsuleBytes(
     || object.etagBeforeRead !== coordinate.etag
     || object.generationAfterRead !== coordinate.generation
     || object.etagAfterRead !== coordinate.etag
-    || object.contentType !== 'application/gzip'
+    || object.contentType !== expectedStorageContentType
   ) throw new Error('SAM 3.1 private build capsule metadata changed.')
   const digest = createHash('sha256')
   let byteLength = 0

@@ -55,6 +55,15 @@ const missing = createCanonicalSam31GcsQualificationCapsuleReadPort({
 })
 assert.equal(await missing.readExact(coordinate), null)
 
+const wrongStorageContentType =
+  createCanonicalSam31GcsQualificationCapsuleReadPort({
+    storage: fakeStorage({
+      body,
+      contentType: 'application/gzip',
+    }).storage,
+  })
+await assert.rejects(() => wrongStorageContentType.readExact(coordinate))
+
 await assert.rejects(() => port.readExact({
   ...coordinate,
   objectName: 'private/model-artifacts/sam3_1/checkpoint.pt',
@@ -64,6 +73,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-qualification-capsule-runtime',
   exactGenerationStreamReread: true,
   metadataStableBeforeAndAfterBody: true,
+  exactCloudBuildArtifactStorageContentTypeBound: true,
   missingObjectFailsClosed: true,
   crossPrefixReadRejected: true,
   checkpointReadAuthorized: false,
@@ -77,6 +87,7 @@ function fakeStorage(input: {
   readonly body: Buffer
   readonly mutateAfterRead?: boolean
   readonly notFound?: boolean
+  readonly contentType?: string
 }): { readonly storage: Storage; readonly metadataReads: () => number } {
   let metadataReads = 0
   const metadata = () => {
@@ -88,7 +99,7 @@ function fakeStorage(input: {
         ? 'changed-etag'
         : coordinate.etag,
       size: String(input.body.byteLength),
-      contentType: 'application/gzip',
+      contentType: input.contentType ?? 'application/x-tar',
     }]
   }
   const storage = {

@@ -140,6 +140,7 @@ const manifestWithoutHashSchema = z.object({
     coordinate: coordinateSchema,
     format: z.literal('tar_gzip'),
     contentType: z.literal('application/gzip'),
+    storageContentType: z.literal('application/x-tar'),
     capsuleArtifactRef: evidenceRefSchema,
     archiveEntries: z.array(archiveEntrySchema).min(14).max(512),
     archiveEntrySetSha256: sha256,
@@ -378,6 +379,7 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
   const inspection = await verifyCanonicalSam31PrivateBuildCapsuleBytes(
     manifest.capsule.coordinate,
     input.privateCapsuleReadPort,
+    manifest.capsule.storageContentType,
   )
   if (
     inspection.archiveEntrySetSha256 !==

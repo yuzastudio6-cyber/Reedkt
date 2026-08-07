@@ -128,6 +128,7 @@ const capsuleManifest =
       coordinate: capsuleCoordinate,
       format: 'tar_gzip',
       contentType: 'application/gzip',
+      storageContentType: 'application/x-tar',
       capsuleArtifactRef: contentRef(
         'sam31-qualification-build-capsule', capsuleSha,
       ),
@@ -759,7 +760,7 @@ function capsuleReadPort(
       return {
         generationBeforeRead: coordinate.generation,
         etagBeforeRead: coordinate.etag,
-        contentType: 'application/gzip',
+        contentType: 'application/x-tar',
         body: chunked(bytes),
         generationAfterRead: coordinate.generation,
         etagAfterRead: coordinate.etag,

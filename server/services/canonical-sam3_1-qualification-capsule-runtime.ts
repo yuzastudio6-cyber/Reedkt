@@ -70,7 +70,7 @@ export function createCanonicalSam31GcsQualificationCapsuleReadPort(
       return Object.freeze({
         generationBeforeRead: coordinate.generation,
         etagBeforeRead: coordinate.etag,
-        contentType: 'application/gzip',
+        contentType: 'application/x-tar',
         body: exactBody({
           file,
           coordinate,
@@ -119,7 +119,7 @@ function assertExactMetadata(
     String(metadata.generation ?? '') !== coordinate.generation
     || String(metadata.etag ?? '') !== coordinate.etag
     || Number(metadata.size ?? -1) !== coordinate.byteLength
-    || String(metadata.contentType ?? '') !== 'application/gzip'
+    || String(metadata.contentType ?? '') !== 'application/x-tar'
   ) throw new Error('SAM 3.1 qualification capsule metadata changed.')
 }
 

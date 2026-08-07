@@ -45,6 +45,7 @@ steps:
           private-dependency-closure/dependency-closure/cuda-npp \
           private-dependency-closure/dependency-closure/wheelhouse \
           private-dependency-closure/dependency-closure/python-ingest/einops
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools
         gcloud storage cp \
           --if-generation-match=1786101660398565 \
           gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/native-dependencies/libnpp-12-8/12.3.3.100-1/54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992.deb \
@@ -75,8 +76,28 @@ steps:
           d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608 \
           private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json \
           | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786112742762071 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/pycocotools/2.0.11/a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd.whl \
+          private-dependency-closure/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl)" = 411685
+        printf '%s  %s\n' \
+          a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd \
+          private-dependency-closure/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786112748711226 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/pycocotools/2.0.11/ingest/d5088d0d-94eb-45d1-b020-f9d7683eb9bf/pycocotools-ingest-receipt.json \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json)" = 1782
+        printf '%s  %s\n' \
+          a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3 \
+          private-dependency-closure/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json \
+          | sha256sum --check --strict
         test "$$(find private-dependency-closure/dependency-closure \
-          -type f | wc -l)" = 34
+          -type f | wc -l)" = 36
   - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
     id: prepare-exact-patched-source
     waitFor:

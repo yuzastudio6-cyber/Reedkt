@@ -62,7 +62,12 @@ for (const expected of [
   '--if-generation-match=1786106528199762',
   '69881838-2efb-40db-ba3a-fcfa0179c18e/einops-ingest-receipt.json',
   'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
-  '| wc -l)" = 34',
+  '--if-generation-match=1786112742762071',
+  'pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
+  '--if-generation-match=1786112748711226',
+  'd5088d0d-94eb-45d1-b020-f9d7683eb9bf/pycocotools-ingest-receipt.json',
+  'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
+  '| wc -l)" = 36',
 ] as const) assert.ok(
   cloudBuild.includes(expected),
   `qualification capsule Cloud Build lost ${expected}`,
@@ -108,6 +113,10 @@ for (const expected of [
   '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193',
   '30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434',
   'samCoreUnconditionallyImportsEinops',
+  'weeditpro-sam3_1-pycocotools-private-ingest-receipt-v1',
+  'pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
+  'a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd',
+  'samCoreUnconditionallyImportsPycocotools',
   'weeditpro-sam3_1-ffmpeg-nvdec-source-closure-receipt-v1',
   'weeditpro-cuda-forward-compat-ingest-receipt-v1',
   'weeditpro-sam3_1-torchcodec-cuda-npp-runtime-receipt-v1',
@@ -120,11 +129,11 @@ for (const expected of [
   'containsCustomerMedia',
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
-assert.equal((builder.match(/^stage_wheel \\/gmu) ?? []).length, 23)
+assert.equal((builder.match(/^stage_wheel \\/gmu) ?? []).length, 24)
 assert.equal((builder.match(/^stage_exact \\/gmu) ?? []).length, 5)
 const localWheelNames = [...builder.matchAll(/^stage_wheel \\\n\s+'([^']+\.whl)'/gmu)]
   .map((match) => match[1])
-assert.equal(localWheelNames.length, 23)
+assert.equal(localWheelNames.length, 24)
 assert.ok(
   localWheelNames.every((fileName) => fileName.length <= 100),
   'every canonical local wheel name must fit one USTAR name component',
@@ -136,6 +145,9 @@ assert.ok(localWheelNames.includes(
   'torchcodec-0.10.0+cu128-cp312-cp312-manylinux_2_28_x86_64.whl',
 ))
 assert.ok(localWheelNames.includes('einops-0.8.2-py3-none-any.whl'))
+assert.ok(localWheelNames.includes(
+  'pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
+))
 assert.doesNotMatch(
   builder,
   /torchcodec-0\.10\.0-cp312-cp312-manylinux_2_28_x86_64\.whl/u,
@@ -223,6 +235,7 @@ for (const expected of [
   '!prepare-qualification-source.sh',
   '!qualification_entrypoint.sh',
   '!qualification_runner.py',
+  '!cloudbuild.qualification-pycocotools-ingest.yaml',
   '!source-provenance.lock',
   '!patches/0001-reeditpro-gpu-decode.patch',
 ] as const) assert.ok(gcloudIgnore.includes(expected), `.gcloudignore lost ${expected}`)
@@ -244,6 +257,7 @@ for (const expected of [
   'torchvision.__version__ == \'0.25.0\'',
   "m.version('torchcodec') == '0.10.0+cu128'",
   "m.version('einops') == '0.8.2'",
+  "m.version('pycocotools') == '2.0.11'",
   'torch.version.cuda == \'12.8\'',
   'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
   'ffmpeg-8.0.3.tar.gz',
@@ -251,6 +265,7 @@ for (const expected of [
   'libnpp-12-8_12.3.3.100-1_amd64.deb',
   'cuda-npp-runtime-receipt.json',
   'einops-ingest-receipt.json',
+  'pycocotools-ingest-receipt.json',
   '/opt/weeditpro/cuda-npp/lib',
   'libnppicc.so.12',
   '/opt/weeditpro/cuda-npp/LICENSE',
@@ -338,7 +353,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-qualification-capsule-builder',
   productName: 'WeEditPro',
   officialSourceGenerationBound: true,
-  exactPinnedPythonWheelCount: 23,
+  exactPinnedPythonWheelCount: 24,
   deterministicLocalSdistWheelCount: 1,
   exactPinnedCudaForwardCompatibilityPackageCount: 1,
   exactPinnedCudaNppRuntimePackageCount: 1,

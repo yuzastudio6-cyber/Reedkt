@@ -56,6 +56,10 @@ const EINOPS_WHEEL_SHA256 =
   '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193' as const
 const EINOPS_INGEST_RECEIPT_SHA256 =
   'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608' as const
+const PYCOCOTOOLS_WHEEL_SHA256 =
+  'a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd' as const
+const PYCOCOTOOLS_INGEST_RECEIPT_SHA256 =
+  'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -585,6 +589,10 @@ function assertQualificationCapsuleEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl`
   const einopsIngestReceiptPath =
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`
+  const pycocotoolsWheelPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl`
+  const pycocotoolsIngestReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`
   requirePresent(sourceArchivePath)
   requirePresent(patchedSourceArchivePath)
   requirePresent(cudaPackagePath)
@@ -596,6 +604,8 @@ function assertQualificationCapsuleEntries(
   requirePresent(ffmpegReceiptPath)
   requirePresent(einopsWheelPath)
   requirePresent(einopsIngestReceiptPath)
+  requirePresent(pycocotoolsWheelPath)
+  requirePresent(pycocotoolsIngestReceiptPath)
   if (canonical) {
     required(
       sourceArchivePath,
@@ -615,6 +625,11 @@ function assertQualificationCapsuleEntries(
     required(nvCodecHeadersSourcePath, NV_CODEC_HEADERS_SHA256)
     required(einopsWheelPath, EINOPS_WHEEL_SHA256)
     required(einopsIngestReceiptPath, EINOPS_INGEST_RECEIPT_SHA256)
+    required(pycocotoolsWheelPath, PYCOCOTOOLS_WHEEL_SHA256)
+    required(
+      pycocotoolsIngestReceiptPath,
+      PYCOCOTOOLS_INGEST_RECEIPT_SHA256,
+    )
   }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
@@ -679,5 +694,6 @@ function isAllowedEntry(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/nv-codec-headers-n12.2.72.0.tar.gz`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`,
   ].includes(path) || isWheelPath(path)
 }

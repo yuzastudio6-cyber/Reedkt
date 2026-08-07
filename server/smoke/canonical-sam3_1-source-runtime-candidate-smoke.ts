@@ -319,6 +319,16 @@ for (const einopsProvenance of [
   'candidate_einops_developer_machine_install_performed=false',
   'sam_core_unconditionally_imports_einops=true',
 ] as const) assert(sourceLock.includes(einopsProvenance))
+for (const pycocotoolsProvenance of [
+  'candidate_pycocotools=2.0.11',
+  'candidate_pycocotools_private_object_generation=1786112742762071',
+  'candidate_pycocotools_ingest_receipt_generation=1786112748711226',
+  'candidate_pycocotools_ingest_receipt_sha256=a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
+  'candidate_pycocotools_native_extension_import_verified=true',
+  'candidate_pycocotools_private_malware_scan_passed=true',
+  'candidate_pycocotools_developer_machine_install_performed=false',
+  'sam_core_unconditionally_imports_pycocotools=true',
+] as const) assert(sourceLock.includes(pycocotoolsProvenance))
 
 const gpuDecodePatch = readFileSync(resolve(
   process.cwd(),

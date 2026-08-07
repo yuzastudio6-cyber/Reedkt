@@ -26,6 +26,9 @@ readonly CUDA_NPP_LICENSE_BYTES='63021'
 readonly EINOPS_SHA256='54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193'
 readonly EINOPS_BYTES='65638'
 readonly EINOPS_INGEST_RECEIPT_SHA256='d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608'
+readonly PYCOCOTOOLS_SHA256='a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd'
+readonly PYCOCOTOOLS_BYTES='411685'
+readonly PYCOCOTOOLS_INGEST_RECEIPT_SHA256='a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3'
 readonly FFMPEG_VERSION='8.0.3'
 readonly FFMPEG_SHA256='5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121'
 readonly FFMPEG_BYTES='17211188'
@@ -71,6 +74,7 @@ mkdir -p \
   "${PRIVATE_ROOT}/dependency-closure/cuda-npp" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg" \
   "${PRIVATE_ROOT}/dependency-closure/python-ingest/einops" \
+  "${PRIVATE_ROOT}/dependency-closure/python-ingest/pycocotools" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1" \
   /output
 test -d "${REVIEWED_DEPENDENCY_CLOSURE}"
@@ -155,6 +159,11 @@ stage_wheel \
   'https://files.pythonhosted.org/packages/2a/09/f8d8f8f31e4483c10a906437b4ce31bdf3d6d417b73fe33f1a8b59e34228/einops-0.8.2-py3-none-any.whl' \
   "${EINOPS_SHA256}" \
   "${EINOPS_BYTES}"
+stage_wheel \
+  'pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
+  'https://files.pythonhosted.org/packages/23/59/dc81895beff4e1207a829d40d442ea87cefaac9f6499151965f05c479619/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl' \
+  "${PYCOCOTOOLS_SHA256}" \
+  "${PYCOCOTOOLS_BYTES}"
 stage_wheel \
   'hf_xet-1.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
   'https://files.pythonhosted.org/packages/67/4e/a28359bf1c1ecf11eba22123168c138698f7cb576ac678f5a2e16cd5da08/hf_xet-1.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
@@ -253,6 +262,12 @@ test -f "${EINOPS_INGEST_RECEIPT}"
 test "$(stat --format='%s' "${EINOPS_INGEST_RECEIPT}")" = 1778
 printf '%s  %s\n' "${EINOPS_INGEST_RECEIPT_SHA256}" \
   "${EINOPS_INGEST_RECEIPT}" | sha256sum --check --strict
+
+readonly PYCOCOTOOLS_INGEST_RECEIPT="${PRIVATE_ROOT}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json"
+test -f "${PYCOCOTOOLS_INGEST_RECEIPT}"
+test "$(stat --format='%s' "${PYCOCOTOOLS_INGEST_RECEIPT}")" = 1782
+printf '%s  %s\n' "${PYCOCOTOOLS_INGEST_RECEIPT_SHA256}" \
+  "${PYCOCOTOOLS_INGEST_RECEIPT}" | sha256sum --check --strict
 
 stage_exact \
   "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz" \
@@ -373,7 +388,8 @@ python - "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/dependency-closure-receipt.json" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json" \
-  "${PRIVATE_ROOT}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json" <<'PY'
+  "${PRIVATE_ROOT}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json" \
+  "${PRIVATE_ROOT}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json" <<'PY'
 import email.parser
 import hashlib
 import json
@@ -382,7 +398,7 @@ import re
 import sys
 from zipfile import ZipFile
 
-wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path, npp_receipt_path, einops_ingest_receipt_path = map(
+wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path, npp_receipt_path, einops_ingest_receipt_path, pycocotools_ingest_receipt_path = map(
     Path, sys.argv[1:]
 )
 expected = {
@@ -390,7 +406,8 @@ expected = {
   "einops": "0.8.2", "filelock": "3.32.2", "fsspec": "2026.7.0", "ftfy": "6.1.1",
   "hf-xet": "1.6.0", "huggingface-hub": "0.36.0", "idna": "3.11",
   "iopath": "0.1.10", "numpy": "1.26.4", "packaging": "26.3",
-  "pillow": "12.3.0", "portalocker": "4.1.0", "pyyaml": "6.0.3",
+  "pillow": "12.3.0", "portalocker": "4.1.0", "pycocotools": "2.0.11",
+  "pyyaml": "6.0.3",
   "regex": "2026.7.19", "requests": "2.34.2", "safetensors": "0.8.0",
   "timm": "1.0.28", "torchcodec": "0.10.0+cu128", "tqdm": "4.70.0",
   "typing-extensions": "4.16.0", "urllib3": "2.6.3", "wcwidth": "0.8.2",
@@ -454,6 +471,41 @@ if (
     or einops_ingest.get("modelExecuted") is not False
 ):
     raise SystemExit("einops private ingest receipt changed")
+pycocotools_ingest = json.loads(
+    pycocotools_ingest_receipt_path.read_text(encoding="utf-8")
+)
+pycocotools_ingest_without_hash = dict(pycocotools_ingest)
+embedded_pycocotools_receipt_hash = pycocotools_ingest_without_hash.pop(
+    "receiptHash", None
+)
+computed_pycocotools_receipt_hash = hashlib.sha256(json.dumps(
+    pycocotools_ingest_without_hash,
+    sort_keys=True,
+    separators=(",", ":"),
+    ensure_ascii=False,
+    allow_nan=False,
+).encode("utf-8")).hexdigest()
+if (
+    pycocotools_ingest.get("schemaVersion")
+    != "weeditpro-sam3_1-pycocotools-private-ingest-receipt-v1"
+    or pycocotools_ingest.get("packageName") != "pycocotools"
+    or pycocotools_ingest.get("packageVersion") != "2.0.11"
+    or pycocotools_ingest.get("officialWheelSha256")
+    != "a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd"
+    or pycocotools_ingest.get("officialWheelByteLength") != 411685
+    or pycocotools_ingest.get("license") != "FreeBSD"
+    or pycocotools_ingest.get("nativeExtensionImportVerified") is not True
+    or pycocotools_ingest.get("malwareScan", {}).get("scanPassed") is not True
+    or pycocotools_ingest.get("privateObject", {}).get("generation")
+    != "1786112742762071"
+    or pycocotools_ingest.get("privateObject", {}).get("etag")
+    != "CNfMvrzcjpYDEAE="
+    or embedded_pycocotools_receipt_hash
+    != computed_pycocotools_receipt_hash
+    or pycocotools_ingest.get("developerMachineInstallPerformed") is not False
+    or pycocotools_ingest.get("modelExecuted") is not False
+):
+    raise SystemExit("pycocotools private ingest receipt changed")
 lock_lines = [
     f'{record["name"]}=={record["version"]} --hash=sha256:{record["sha256"]}'
     for record in sorted(records, key=lambda item: item["name"])
@@ -477,6 +529,16 @@ receipt = {
     "einopsLicense": "MIT",
     "einopsLicenseFileSha256": "30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434",
     "samCoreUnconditionallyImportsEinops": True,
+    "pycocotoolsVersion": "2.0.11",
+    "pycocotoolsOfficialWheelSha256": "a82d1c9ed83f75da0b3f244f2a3cf559351a283307bd9b79a4ee2b93ab3231dd",
+    "pycocotoolsPrivateIngestReceiptSha256": hashlib.sha256(
+        pycocotools_ingest_receipt_path.read_bytes()
+    ).hexdigest(),
+    "pycocotoolsPrivateObjectGeneration": "1786112742762071",
+    "pycocotoolsPrivateObjectEtag": "CNfMvrzcjpYDEAE=",
+    "pycocotoolsLicense": "FreeBSD",
+    "pycocotoolsNativeExtensionImportVerified": True,
+    "samCoreUnconditionallyImportsPycocotools": True,
     "cudaNppRuntimeReceiptSha256": hashlib.sha256(
         npp_receipt_path.read_bytes()
     ).hexdigest(),

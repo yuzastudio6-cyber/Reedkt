@@ -59,6 +59,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-authorized-terms-finalization-cloud-job-smoke.ts',
   'server/smoke/canonical-sam3_1-private-artifact-ingest-cloud-job-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-capsule-builder-smoke.ts',
+  'server/smoke/canonical-sam3_1-qualification-pycocotools-ingest-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-capsule-reproducibility-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-image-einops-offline-successor-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',

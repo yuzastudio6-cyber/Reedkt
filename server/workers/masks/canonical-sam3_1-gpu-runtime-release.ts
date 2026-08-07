@@ -252,6 +252,7 @@ const releaseObservationWithoutHashSchema = z.object({
     cudaVersion: z.literal('12.8'),
     torchcodecVersion: z.literal('0.10.0'),
     einopsVersion: z.literal('0.8.2'),
+    pycocotoolsVersion: z.literal('2.0.11'),
     cudaForwardCompatibilityPackageSha256: z.literal(
       'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
     ),
@@ -727,6 +728,7 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
       cudaVersion: ingest.runtimeClosure.cudaVersion,
       torchcodecVersion: candidate.runtimeClosure.candidateTorchcodecVersion,
       einopsVersion: '0.8.2',
+      pycocotoolsVersion: '2.0.11',
       cudaForwardCompatibilityPackageSha256:
         candidate.runtimeClosure.cudaDriverCompatibility
           .cudaForwardCompatibilitySha256,

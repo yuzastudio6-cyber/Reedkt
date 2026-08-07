@@ -481,6 +481,7 @@ def validate_request(request: dict[str, Any]) -> None:
         "torchcodecVersion": "0.10.0",
         "torchcodecCudaWheelVersion": "0.10.0+cu128",
         "einopsVersion": "0.8.2",
+        "pycocotoolsVersion": "2.0.11",
         "ffmpegVersion": "8.0.3",
         "ffmpegNvdecAndCuvidRequired": True,
         "cpuVideoDecodeFallbackAllowed": False,
@@ -866,6 +867,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
                 "torchcodec"
             ),
             "einopsVersion": importlib.metadata.version("einops"),
+            "pycocotoolsVersion": importlib.metadata.version("pycocotools"),
             "ffmpegVersion": "8.0.3",
             "ffmpegNvdecAndCuvidAvailable": True,
             "gpuVideoDecodeBackendStatusVerified": True,

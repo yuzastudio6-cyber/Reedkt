@@ -526,6 +526,7 @@ CanonicalSam31SourceCheckpointQualificationObservation {
       torchcodecVersion: '0.10.0',
       torchcodecCudaWheelVersion: '0.10.0+cu128',
       einopsVersion: '0.8.2',
+      pycocotoolsVersion: '2.0.11',
       ffmpegVersion: '8.0.3',
       ffmpegNvdecAndCuvidAvailable: true,
       gpuVideoDecodeBackendStatusVerified: true,

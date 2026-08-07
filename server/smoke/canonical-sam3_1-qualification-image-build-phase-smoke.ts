@@ -121,7 +121,7 @@ const capsuleManifest =
           'sam31_private_build_input/dependency-closure/wheelhouse/',
         )),
       ),
-      dependencyWheelCount: 3,
+      dependencyWheelCount: 4,
       cudaForwardCompatPackageSha256:
         'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
       cudaForwardCompatIngestReceiptSha256: entrySha(
@@ -960,8 +960,16 @@ function createCapsuleFiles(): Array<readonly [string, Buffer]> {
       Buffer.from('{"fixture":"einops-ingest"}'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json',
+      Buffer.from('{"fixture":"pycocotools-ingest"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl',
       Buffer.from('synthetic einops wheel'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/wheelhouse/pycocotools-2.0.11-cp312-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl',
+      Buffer.from('synthetic pycocotools wheel'),
     ],
     [
       'sam31_private_build_input/dependency-closure/wheelhouse/fixture_a-1.0-py3-none-any.whl',

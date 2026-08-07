@@ -10,7 +10,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
     "contractVersion": "b_roll.skill_contract.v1",
     "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04"
   },
-  "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+  "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
   "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
   "dependencyAuthorityHashes": [
     {
@@ -39,7 +39,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
     },
     {
       "authorityKey": "remotion_approved_composition_operation_profile",
-      "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+      "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
     },
     {
       "authorityKey": "remotion_execution_protocol",
@@ -95,7 +95,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "no_action_emotional_moment",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -124,7 +124,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -171,12 +171,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -184,7 +184,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "ec7f32db2a4110c5ae8628e9fcb2d710af2da1f6c0e415a41007a030353d516f"
+      "evidenceHash": "d4f5f6b9d06a853fe90b7da704b0c5310e505aaadd15f58b48138ce67c9651e6"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -194,7 +194,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "existing_source_cutaway_zero_provider_requests",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -223,7 +223,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -270,12 +270,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -283,7 +283,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "21395568209939d14a6a8166101a696634159d96be1682fb0ddb3f4af052e640"
+      "evidenceHash": "65e47eb4037042e4bbb5f7d65dd51dcdc0348f4cfa6d638212ceeac41042337a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -293,7 +293,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "approved_user_asset_context",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -322,7 +322,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -369,12 +369,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -382,7 +382,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d16e5cd5de8c104fdab9c6eac4c50d653897a52aa3bf8639d5e2335518852000"
+      "evidenceHash": "2953461e043836b28f45fe5464c168c6c91d2a0c406ce77c9e549e80a47a2d0a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -392,7 +392,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "generated_context_candidate_planning",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -421,7 +421,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -468,12 +468,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -481,7 +481,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d37b81c5e1d2e734d7d101405a7938652ed371f5e01e8ea8b3461c264fdcc341"
+      "evidenceHash": "b53fbc61cb5983e03240ce902bf349e16fc193022e5f6186ddd9bd474cddde3b"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -491,7 +491,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "generated_proof_rejected",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -520,7 +520,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -567,12 +567,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -580,7 +580,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "c7ef43fdc4a60815b9434d96ce99fbd7ec4fe6bea6710843c1c80a59a49af0bb"
+      "evidenceHash": "609284f9f4621c10b2a80f39da20f7a333904c45a16871bccd2b21081c6fd3aa"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -590,7 +590,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "outside_range_mutation_rejected",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -619,7 +619,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -666,12 +666,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -679,7 +679,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "cd46ee8466a77226baf7d2ba748ff6cb05828fd27e67c1829b61adbef03701ae"
+      "evidenceHash": "ae8bab543a368d3837a184699585f7408846c812f63e86944df0402698d34265"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -689,7 +689,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "whole_video_context_read_only",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -718,7 +718,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -765,12 +765,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -778,7 +778,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "09195f9e86ae12e9fcc070fb60e64667019d485bd54cbc99fff1142c9a5d306c"
+      "evidenceHash": "681da4de89c6e7ad84ba594d019fa213823ba7ac6c7ea0de70346c02f4fc873d"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -788,7 +788,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "primary_visual_conflict",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -817,7 +817,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -864,12 +864,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -877,7 +877,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "871ab0b60b5e1a2b4565516980e797b9d7c9c213636bf3d4b75203701135ca83"
+      "evidenceHash": "463d6bbc4cac5be1e3910eb64e4d2dfc62a26f82d7e6c181a40b51a7fd17e84a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -887,7 +887,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "caption_collision_repair",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -916,7 +916,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -963,12 +963,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -976,7 +976,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "57c79e3ae09ebccc74bad81d318e43431eadcd1d3cca1ca0225d585fa2b7695f"
+      "evidenceHash": "ea41127863d42317b42f49589ff145747dd20c05f2477bd2883fb5fd913e7b21"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -986,7 +986,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "tracking_dependency_present",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1015,7 +1015,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1062,12 +1062,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1075,7 +1075,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "3ff30673283c14f3e759d1c7e27bc887021a5450c7a4e849ad7fcfcce296dc06"
+      "evidenceHash": "d4c98b773d868e37b026dd86ee79bef995a30e2258f82d1409212e2a16efffe2"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1085,7 +1085,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "tracking_dependency_missing",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1114,7 +1114,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1161,12 +1161,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1174,7 +1174,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "785462b8590186c95366f85ba2c26d74e4cea7201f9647115a5eed4fedef9c56"
+      "evidenceHash": "4a5dd07cd534a40d8ee5103f88634425aa3a0a1faafa2c5790739dcfd30aba60"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1184,7 +1184,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "repeated_concept_rejected",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1213,7 +1213,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1260,12 +1260,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1273,7 +1273,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d10ef03ababd0f08c69836c4d1de0b16287264483aca38d13b1aa5ef66c124f2"
+      "evidenceHash": "c5987053e0a9c84157b2acad3f67fabca0320f337eb56eba416e7f0ff34ee1eb"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1283,7 +1283,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "region_ineligible_uploaded_video_edit",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1312,7 +1312,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1359,12 +1359,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1372,7 +1372,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "0ddef91707f0a2b70d4fb7b21a8eea882621e7f03ad78e910742a44f1f902a74"
+      "evidenceHash": "31fd169786f9eedf2873683a03b3f9efb49c0c7a801d15e14e4f636858284083"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1382,7 +1382,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "unsupported_aspect_ratio_crop_safe_plan",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1411,7 +1411,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1458,12 +1458,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1471,7 +1471,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "6c9593821911e7f8e65ec5dadd621b4b7becb9d907cf70bdd676cb29599d8184"
+      "evidenceHash": "189b8ebf6e868973f9137fdc14eda21c51e99cd83dce6d281e90c9e4cd4d2b49"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1481,7 +1481,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "audio_disposition_handoff",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1510,7 +1510,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1557,12 +1557,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+        "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1570,7 +1570,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "82db40f5fff44116bc9d3f0ac39cb46aec99b9daa0366e00614d1e4c0f080ecd"
+      "evidenceHash": "32808ac6aee2c04c9d7357524983b83210e8a575c8aa5ed6ba31e1e5e327cdc8"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1580,7 +1580,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "provider_unknown_outcome",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1609,7 +1609,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1656,20 +1656,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "3d013686ba8046ce0ef6d7cf72ca15a0cea6c7e7b4d0bd358a76dd1c22bc6450"
+      "evidenceHash": "5bb079f945966ba495dfa46a4f791c5fbc5e6a0976c8598b501265d8f57436fb"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1679,7 +1679,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "stale_rate_authority_block",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1708,7 +1708,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1755,20 +1755,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "8b03f032ce12e7f5eb20c0e75a91f0e3a25ec0ece3a836e947b9bd1bc7dbc0ff"
+      "evidenceHash": "8fc2111619793c0fa1f0716c35fc5ac458a21dc24cf1907d285b098b54b9b400"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1778,7 +1778,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "retired_provider_route_rejected",
       "commandId": "npm.smoke:b-roll-retirement",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1807,7 +1807,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1854,12 +1854,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:26.463Z",
-      "completedAt": "2026-08-07T17:24:27.376Z",
+      "startedAt": "2026-08-07T17:38:58.630Z",
+      "completedAt": "2026-08-07T17:38:59.618Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d87d2ffb0d8e9f9496ef6dcae9e8ecc66c92902bad5d11efe0d2699edc612d37"
+        "453d058d5f54168f4cd658b27988f7360b68e5635990b8a039c001048435ac03"
       ],
       "stdoutDigest": "96bc80c965dce80ff32df343384011279756c504ef42e056460f6d8e64a5ba27",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -1867,7 +1867,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "70d578c0f6efe1908e75a0daa99e146e60a5f84ac87919bfd2e4b13dada64e11"
+      "evidenceHash": "9b2c1c34e4554890f243cf4e3faf69a170be94d31960d929b34b7784ac3e8c13"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1877,7 +1877,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "idempotent_provider_replay",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -1906,7 +1906,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -1953,20 +1953,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d88f3c509647e7ceb428a5682b79b442b3d3daa8d8ffadd713923ca9b04ab3ec"
+      "evidenceHash": "792b0ab07e69142798bae99165081e0e6237cfe8179ca13e9bf963c6b3261b99"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -1976,7 +1976,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "one_failed_candidate_refinement",
       "commandId": "npm.smoke:b-roll-end-to-end",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2005,7 +2005,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2052,20 +2052,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:27.376Z",
-      "completedAt": "2026-08-07T17:25:37.698Z",
+      "startedAt": "2026-08-07T17:38:59.619Z",
+      "completedAt": "2026-08-07T17:40:10.924Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "1a8990263e8adf4f85f5b45cd5a0f55d7ff429bd5293d8c1e23fb05afa064b44"
+        "c5296d4f04cb56aa9ca12e09d2eee02cdd0eaf74333487154c68bfdc7a32ac59"
       ],
-      "stdoutDigest": "ad8caf299a01925eb11eafe55c3ecc8c58e04a664f545684fa20baeb5566053c",
+      "stdoutDigest": "5eabc35de91b647ec87bf8744687e8c1a93626eb1479f4810aee8ea961cd55a6",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d701ae5469161c7783a5c5e857965628c9aebe68f6366d6c6cd6f35406521319"
+      "evidenceHash": "fd73f811b3f55f986b9fe80d29f001d915396e196d7dba4e9b01069c4caf19d2"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2075,7 +2075,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "refinement_limit_enforced",
       "commandId": "npm.smoke:b-roll-candidate-qa",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2104,7 +2104,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2151,20 +2151,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:20.643Z",
-      "completedAt": "2026-08-07T17:26:29.915Z",
+      "startedAt": "2026-08-07T17:40:50.031Z",
+      "completedAt": "2026-08-07T17:40:57.334Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f30cdfbaf940dfd7677e1c7880c576f321f154472f919300c0fd386b4ff186e1"
+        "e788b40592cffa305596599c6a6b8cf1ed256157d0a855a3c58fae222ff87dcf"
       ],
-      "stdoutDigest": "8cdc167d0f10e795096e12030b0da6d1598574965691ca5597ac1cc8d80fb48f",
+      "stdoutDigest": "892d0ad7227d44ea11cc131c9ca1d228f95723f4cb1b78eab0af4adba5774471",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "58003e48802ebff06af93af7669051b92635656401d9d82159e71e5396d86623"
+      "evidenceHash": "4de7a31772e810bda7a6e750a5ab9f7c1cf9ff85c346c91befd9223f5a465fc7"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2174,7 +2174,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "historical_provider_v1_v4_hash_preservation",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2203,7 +2203,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2250,20 +2250,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "36a5a07472879e556a592088b41d9622d81e91da48b10162ee0a8b3b8ae572e3"
+      "evidenceHash": "684dcce78ff9b10c92bffd85ab158762008c257086348530d4768095b221cc2f"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2273,7 +2273,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "cross_workspace_artifact_substitution",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2302,7 +2302,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2349,20 +2349,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "faa5a81f3ffbb26b1ba80b49b8ceb0d0a93dbfb6318da8eed532c030beec6268"
+      "evidenceHash": "d4d296caf091be892a493cbeaa2059a1a67eb1861d2e8d89b9e74bce38d75a39"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2372,7 +2372,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "source_checksum_substitution",
       "commandId": "npm.smoke:b-roll-existing-source",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2401,7 +2401,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2448,20 +2448,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:29.916Z",
-      "completedAt": "2026-08-07T17:26:41.110Z",
+      "startedAt": "2026-08-07T17:40:57.336Z",
+      "completedAt": "2026-08-07T17:41:08.184Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "19f6a0590e468e36d1d52eb8ddb387e0b6fc6d3def3cef0b31c621b86cd2c6d3"
+        "e2f70c53459d06525b85e215cfb708920185940bf73a71b80eb787652661d5ee"
       ],
-      "stdoutDigest": "1fb8de3ad289d610c26911268eb936fadc10be54ff48ac552cd0d425bc20576d",
+      "stdoutDigest": "1f0c0758cd71f6a06b5e6635635f613697cc1d830f10b1552dfaf927b1493a47",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "692cc7c796019c6bde8f23d6b0377c83675625ced4d2965ccc4b08963d7f175b"
+      "evidenceHash": "072f17426d9ae5be8f63b1fdb2489de6aef826e8ab7cb7f91f1b5d084984b0b2"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2471,7 +2471,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "provider_route_substitution",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2500,7 +2500,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2547,20 +2547,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "fc4d5b1fbc6cb4c9363f7b41ad31d8153b0820c9f254a7ddc317051f01e24b01"
+      "evidenceHash": "290697592006fc42ba19300bf1cca1cc487be3cbb4fafcab0ea90b05d88932d6"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2570,7 +2570,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "model_alias_substitution",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2599,7 +2599,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2646,20 +2646,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "1379293a98286416ea9929cffaf4380fe3b379b56b16fcf2bfbeb9ad8656c90c"
+      "evidenceHash": "99fec7bff92f0139d532d5b7ffb4171d3eb9ff0e8113db62c83529f22eac8e74"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2669,7 +2669,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "attempt_replay_modified_request",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2698,7 +2698,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2745,20 +2745,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "efa8dd3f02cf15acc3d57cca6163af3d3f34f30c13914d5724e9bcb3297d2496"
+      "evidenceHash": "e0b547ca2e58d6639e4d129a154d1d3344a0e6abffdbbd864a78f07c10ea039b"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2768,7 +2768,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "forged_qa_pass",
       "commandId": "npm.smoke:b-roll-candidate-qa",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2797,7 +2797,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2844,20 +2844,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:20.643Z",
-      "completedAt": "2026-08-07T17:26:29.915Z",
+      "startedAt": "2026-08-07T17:40:50.031Z",
+      "completedAt": "2026-08-07T17:40:57.334Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f30cdfbaf940dfd7677e1c7880c576f321f154472f919300c0fd386b4ff186e1"
+        "e788b40592cffa305596599c6a6b8cf1ed256157d0a855a3c58fae222ff87dcf"
       ],
-      "stdoutDigest": "8cdc167d0f10e795096e12030b0da6d1598574965691ca5597ac1cc8d80fb48f",
+      "stdoutDigest": "892d0ad7227d44ea11cc131c9ca1d228f95723f4cb1b78eab0af4adba5774471",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "baec472b1b36d97f236ef71d225b9a2f9edeb1f294aba7af3edf3c8ebd353b9a"
+      "evidenceHash": "f0ec993fc6e3eb00396c7a5cd86d38bd69b846fddb3ce1199f20c77d061042f8"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2867,7 +2867,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "forged_qualification_receipt",
       "commandId": "npm.smoke:b-roll-end-to-end",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2896,7 +2896,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -2943,20 +2943,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:27.376Z",
-      "completedAt": "2026-08-07T17:25:37.698Z",
+      "startedAt": "2026-08-07T17:38:59.619Z",
+      "completedAt": "2026-08-07T17:40:10.924Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "1a8990263e8adf4f85f5b45cd5a0f55d7ff429bd5293d8c1e23fb05afa064b44"
+        "c5296d4f04cb56aa9ca12e09d2eee02cdd0eaf74333487154c68bfdc7a32ac59"
       ],
-      "stdoutDigest": "ad8caf299a01925eb11eafe55c3ecc8c58e04a664f545684fa20baeb5566053c",
+      "stdoutDigest": "5eabc35de91b647ec87bf8744687e8c1a93626eb1479f4810aee8ea961cd55a6",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d418b929ac3eaca4d75b30b9d72d2874e53aa2de7072e643011bb2a2d7a7a737"
+      "evidenceHash": "69abe4291e24a4327be59b2f7efb5779973254b10128322f93c6bc6d7d956b80"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -2966,7 +2966,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "stale_manifest_hash",
       "commandId": "npm.test:b-roll-canonical-integration",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -2995,7 +2995,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3042,12 +3042,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:42.245Z",
-      "completedAt": "2026-08-07T17:26:43.055Z",
+      "startedAt": "2026-08-07T17:41:09.304Z",
+      "completedAt": "2026-08-07T17:41:10.176Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "13f1dec27f496a68e16e73e34ad6d2c9770e12b1f57e465e77d9bf44af1074b9"
+        "6ee4fc345746eb38bca132e8e528b28f1e138256fa201cf1170a7176ce808648"
       ],
       "stdoutDigest": "4dc5f6a7d278917973e6e34fcdb81796bc670436abe05ab0e37658a335fb0612",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3055,7 +3055,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "e748ce58705211cee453a39bc7b67123b85b3b17d6828ccd0cc344126d5ba4a1"
+      "evidenceHash": "189b718c5bf1f314d619faa3e72643239da11bc113945e9d0a7590d82b4c6446"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3065,7 +3065,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "stale_assignment_range",
       "commandId": "npm.test:b-roll-canonical-integration",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3094,7 +3094,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3141,12 +3141,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:42.245Z",
-      "completedAt": "2026-08-07T17:26:43.055Z",
+      "startedAt": "2026-08-07T17:41:09.304Z",
+      "completedAt": "2026-08-07T17:41:10.176Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "13f1dec27f496a68e16e73e34ad6d2c9770e12b1f57e465e77d9bf44af1074b9"
+        "6ee4fc345746eb38bca132e8e528b28f1e138256fa201cf1170a7176ce808648"
       ],
       "stdoutDigest": "4dc5f6a7d278917973e6e34fcdb81796bc670436abe05ab0e37658a335fb0612",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3154,7 +3154,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f6e0d8beba348b6a22ce16d93a7dcb3391b7ef7b015e6ed78cb67007ad35b17a"
+      "evidenceHash": "d870787ef6db84bb820080a48a51477e757fb86f400676283c0cea58a7e463ea"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3164,7 +3164,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "raw_credential_input",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3193,7 +3193,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3240,20 +3240,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "9242c158804d66fbf4959b12900cd115287d841d34695870a1dead01a3c2da51"
+      "evidenceHash": "fecd41eeb4743c2e26e51aa4ec13ed81f064fb9884a00411d53866ddcec2e0ad"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3263,7 +3263,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "raw_provider_url_persistence",
       "commandId": "npm.smoke:b-roll-provider-lifecycle",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3292,7 +3292,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3339,12 +3339,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:41.111Z",
-      "completedAt": "2026-08-07T17:26:42.245Z",
+      "startedAt": "2026-08-07T17:41:08.187Z",
+      "completedAt": "2026-08-07T17:41:09.301Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "32479a419e861492363d488fdbfbd832dd13b5d3acad89df4f91f8b7dfae7233"
+        "995cb7a4cf68e8cf11bc07b7bf0f3882420b8d14e01ce7c537c2748d855ea958"
       ],
       "stdoutDigest": "80e0e5a3287277cec660763219177cad75e4aad62102c7d207992f6671568a68",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3352,7 +3352,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "4249d9d2195ea528406c1514c0aa24c6044cb2be5f4935810d09297bfef2b7e4"
+      "evidenceHash": "d172401b294a9863d52e75a9cc4e3c7608d4705e6c5f086e4c0602b1d602b62b"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3362,7 +3362,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "work_item_outside_range",
       "commandId": "npm.test:b-roll-canonical-integration",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3391,7 +3391,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3438,12 +3438,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:42.245Z",
-      "completedAt": "2026-08-07T17:26:43.055Z",
+      "startedAt": "2026-08-07T17:41:09.304Z",
+      "completedAt": "2026-08-07T17:41:10.176Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "13f1dec27f496a68e16e73e34ad6d2c9770e12b1f57e465e77d9bf44af1074b9"
+        "6ee4fc345746eb38bca132e8e528b28f1e138256fa201cf1170a7176ce808648"
       ],
       "stdoutDigest": "4dc5f6a7d278917973e6e34fcdb81796bc670436abe05ab0e37658a335fb0612",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3451,7 +3451,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "323ad104bf0074f49ace8c68e1708c51becfd77164841da1be00a8f9f66518df"
+      "evidenceHash": "36cc6d6bbb1a33fa9ef4a1f33f3f5687d87ff9e32c1f8bbe7259550f3d7c1f1e"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3461,7 +3461,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "caller_selected_executable",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3490,7 +3490,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3537,20 +3537,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "adeeb636dace6d4d72db5be796e27ae2025ab3f68ee68c1b7296b9b772d75624"
+      "evidenceHash": "1a7e652a9b4ee5a172d496beb24528df1ff6b589011183dca30bf32b747add3f"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3560,7 +3560,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "second_provider_submission_inside_attempt",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3589,7 +3589,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3636,20 +3636,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+        "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "81cc2b6a7ba6fad24658de33275a1f0935a1a875f704f1211792bbe9bcc98385"
+      "evidenceHash": "e016915a78ced0c5795aed08f58b547ae9c0bbdb355b4382cf81acbaa0f7484b"
     }
   ],
   "commandEvidence": [
@@ -3661,7 +3661,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-planning",
       "commandId": "npm.test:b-roll-planning",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3690,7 +3690,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3737,12 +3737,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:43.776Z",
-      "completedAt": "2026-08-07T17:22:44.466Z",
+      "startedAt": "2026-08-07T17:37:09.611Z",
+      "completedAt": "2026-08-07T17:37:10.327Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "2e3c2205d4f1712b519718813c49289cfca5fcecbb97be381b4532e69ea72dfc"
+        "200864747db8b674a0ee6ca0774d12195446ff402017c900a9eab4bad8c56348"
       ],
       "stdoutDigest": "436c1fb791042aca179b736b34ba870f426d95472bd1396219043d1782cc3f4f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3750,7 +3750,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1"
+      "evidenceHash": "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3760,7 +3760,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-planning-qa",
       "commandId": "npm.test:b-roll-planning-qa",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3789,7 +3789,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3836,12 +3836,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:44.468Z",
-      "completedAt": "2026-08-07T17:22:45.101Z",
+      "startedAt": "2026-08-07T17:37:10.329Z",
+      "completedAt": "2026-08-07T17:37:10.988Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "291304783f9674d581dd5dce9d42c16f8464922665d639c225cb9c251f998eb5"
+        "e1169eda48eaaf44214e471a9c35337e646ef6b342d93db00feb9822aeeba079"
       ],
       "stdoutDigest": "5e4647738a6814218fd64885886005c6fc9f0e9796fb79920d50e1308ec2a4d6",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -3849,7 +3849,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "970d724d25e23421f889689abd1cffd0889ec9bddd1033914b55bffd4cc3b36c"
+      "evidenceHash": "fcfeb25b22a0de6347c861aabb4eccc9712ae3118c90ec8fe915a30fde156e22"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3859,7 +3859,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-qualification-evidence",
       "commandId": "npm.test:b-roll-qualification-evidence",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3888,7 +3888,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -3935,20 +3935,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:45.102Z",
-      "completedAt": "2026-08-07T17:22:45.776Z",
+      "startedAt": "2026-08-07T17:37:10.989Z",
+      "completedAt": "2026-08-07T17:37:11.559Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "5075fc1902a00999dc1c3185cf83fc5fe5106fc39489db332feb0f90b9582742"
+        "74d080450c833a71258eec0b0fd3d26a94bd14ac6811cf88e91099820fda902d"
       ],
-      "stdoutDigest": "44c5e55e1cdd23008aca61f29e26998aea2334a08e808693e22ecc703dfba6f3",
+      "stdoutDigest": "7987e4b332fc58876077dedabea434ae444a09bd3c0d43e1453a7e1648ce3eb8",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "a0a62f52dfb02120d0e9935d3e823b73661e243afba2ffa2147a8c6425975594"
+      "evidenceHash": "9d9d87e5719764af15995dd3144623c2bdc0e76bc078524b55f1f21ddfd78210"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -3958,7 +3958,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-qualification-source-hash",
       "commandId": "npm.test:b-roll-qualification-source-hash",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -3987,7 +3987,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4034,12 +4034,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:45.777Z",
-      "completedAt": "2026-08-07T17:22:46.138Z",
+      "startedAt": "2026-08-07T17:37:11.560Z",
+      "completedAt": "2026-08-07T17:37:11.907Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "7a125aa906586888972c1e832ac28b2db5c3d8c8cbc3052c483f441b5d4ee56c"
+        "3ced03405810400dfe38e7b0287190abf1539aed142239f7c555a5c53361149b"
       ],
       "stdoutDigest": "d8a973b81e2ef14880e8b8a113624ce008ae89fae2a08853d1909cf1204d2443",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4047,7 +4047,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "87fb1ca5441af094e1843872bda4f09cd78470f709ac25bbd2946eb3fca5d818"
+      "evidenceHash": "d7c80dc97c419f920dd9bb38a360f8ee0b4657e7c57c756efd7f2d0d4895cf28"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4057,7 +4057,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-plan-invariants",
       "commandId": "npm.test:b-roll-plan-invariants",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4086,7 +4086,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4133,12 +4133,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:46.139Z",
-      "completedAt": "2026-08-07T17:22:46.803Z",
+      "startedAt": "2026-08-07T17:37:11.907Z",
+      "completedAt": "2026-08-07T17:37:12.556Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "36f5b1be579bb640905f2798feb38b1933bfb27d6438393208025803ab1e9131"
+        "fcb264fdb136d94f08e49de54273909ee9ce0f89e893e80b0da17313761c1202"
       ],
       "stdoutDigest": "f91b6f1dc5380a9f206a9c7720fa43ec85956eddbe294142e5a1d013b783f644",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4146,7 +4146,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "5de3decdcd6997777fcb5a5c9266da1a6300df848f9c12b2d2ea05668eff6ef1"
+      "evidenceHash": "f7fa24e40cf58188fc0649715e476fd97c91ddcc5105178b6f49e4db38716cb5"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4156,7 +4156,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-public-plugin",
       "commandId": "npm.test:b-roll-public-plugin",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4185,7 +4185,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4232,12 +4232,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:46.803Z",
-      "completedAt": "2026-08-07T17:22:47.625Z",
+      "startedAt": "2026-08-07T17:37:12.556Z",
+      "completedAt": "2026-08-07T17:37:13.281Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "ee9220b0232e107a401e9cfae7755ef54150eb1b2a21ea2a385b3e548ea82ce5"
+        "4ee5c266c5529aa78313f793f44385f69687f93a6ab8dc9e61a0d59d4d6ab8b0"
       ],
       "stdoutDigest": "08b1b3e53fa4998967964e1fb33d8da6b19772f068adcd5e803638fd53b3acbf",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4245,7 +4245,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "8da879d33171f30224f96d30fef1b02f7c9cb16d7c406931f7eeea2974cb23f1"
+      "evidenceHash": "24554ff036572e28ac5205368b040bd028b5e122f012346e98c9b6686468b95d"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4255,7 +4255,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-caption-public-contract",
       "commandId": "npm.test:b-roll-caption-public-contract",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4284,7 +4284,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4331,12 +4331,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:47.625Z",
-      "completedAt": "2026-08-07T17:22:48.131Z",
+      "startedAt": "2026-08-07T17:37:13.281Z",
+      "completedAt": "2026-08-07T17:37:13.757Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "fe102bd966895b720de77fefcde626c4fc0fca941469c4a6b55959e121d528f0"
+        "4e7e982c12408eb4a22def61c0ad2db3423822556d9e07d3016ff7d47a476b44"
       ],
       "stdoutDigest": "684e979aa08d8c678586d8bba8cbb3164d15a423aaac3c31e2bcf21c39f26a52",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4344,7 +4344,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "e7bd355548e3b5ebe0b5168c0807e4d03505f78feff8ebdead43eeb38eba325d"
+      "evidenceHash": "ae280fa7964a44309a09784077d49f4f2bf481584ec323c4f5c8576b148cd947"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4354,7 +4354,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-active-artifact-contracts",
       "commandId": "npm.test:b-roll-active-artifact-contracts",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4383,7 +4383,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4430,12 +4430,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:48.131Z",
-      "completedAt": "2026-08-07T17:22:48.668Z",
+      "startedAt": "2026-08-07T17:37:13.758Z",
+      "completedAt": "2026-08-07T17:37:14.289Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "0df7895fce459fe7ebf7cb44f4a813fcda63ba00867d9eeafc783db6e563f52d"
+        "570c35e881aece36388e336e42900fa976211efd930f47f8ea06a4bef4937010"
       ],
       "stdoutDigest": "09c6f7a0ba44fd8c0d79332d8f75bdd4f4d162832c55ba34701ae8aca126ab35",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4443,7 +4443,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "8e78545e76b12683a328e8cef48eb0c16d1f974122e21225f87efa2c2ca0b0e2"
+      "evidenceHash": "fdc43fe1b64ca32e045430ec9bd3f98d9ee407b253a7f5afa82b4379d908c71f"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4453,7 +4453,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-runtime-bindings",
       "commandId": "npm.test:b-roll-runtime-bindings",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4482,7 +4482,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4529,12 +4529,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:48.668Z",
-      "completedAt": "2026-08-07T17:22:49.310Z",
+      "startedAt": "2026-08-07T17:37:14.290Z",
+      "completedAt": "2026-08-07T17:37:14.910Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "ffc4504f4d8dfee8a022a30e9d0f27754717366d0c290ae91872b949df83dfb4"
+        "08b090b19c9176752fd344de4a6122a38d8abbe8f9f1bfe2b35d305ecfa04813"
       ],
       "stdoutDigest": "acaf2f0ec7bc1ebb123a48fc7bd251b1302d90c0008ef61b15f3102b11529da3",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4542,7 +4542,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "7f905f84778117979613ca17ce360286d54e37fc83ddcb29ee7cca42bd7e8253"
+      "evidenceHash": "53e1c773d46bfd5cf7b0cd3162da83cc0f5d4d997e6aab68ab28507b4016c719"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4552,7 +4552,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:edit-skill-runtime-factory",
       "commandId": "npm.test:edit-skill-runtime-factory",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4581,7 +4581,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4628,12 +4628,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:49.310Z",
-      "completedAt": "2026-08-07T17:22:49.970Z",
+      "startedAt": "2026-08-07T17:37:14.911Z",
+      "completedAt": "2026-08-07T17:37:15.593Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "1519a0141b63a0b8b6c9d2c603dae5ffd06fe113f8755562dfc721d56909a4cd"
+        "df4de3b98cc755397834b14b30743eb58656a0652194bcda83d33b09076dfa74"
       ],
       "stdoutDigest": "a44fe01d1b7c6f071ba52553549d8097db783bcce5e48cc333e0452f982b916b",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4641,7 +4641,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f92f91abb428abe288dfc7d645d0f751f6d73fdc41156b84fef191ec93c4ea8c"
+      "evidenceHash": "d85e6ffc389842ec872df6762ec747f80ee4b3ede9eb17aeaab8cc2de0560f1a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4651,7 +4651,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:ui-qa-media-runtime-workflow",
       "commandId": "npm.test:ui-qa-media-runtime-workflow",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4680,7 +4680,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4727,12 +4727,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:49.970Z",
-      "completedAt": "2026-08-07T17:22:50.273Z",
+      "startedAt": "2026-08-07T17:37:15.594Z",
+      "completedAt": "2026-08-07T17:37:15.988Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "08cd9137e62466a94fc1495c3c51f8ce848c888f53307a131766803f0a0ba6cd"
+        "a800a482d20cfbc5b61d4cb5d2ef8900e6559e41ce53f5a2caac31602604051b"
       ],
       "stdoutDigest": "cfd2e098dfca4ec39dccfffc6393fc3ae57e5a39400727144a77f88aed543df7",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4740,7 +4740,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "c1717e72d79da12bb50f93560591949bffde544eca93268a8b4b56f55e624683"
+      "evidenceHash": "1090b10423b49ef09c7c7ba102ec176c0e6ffeed89856431b740a81932eba691"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4750,7 +4750,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-capability-manifest",
       "commandId": "npm.test:b-roll-capability-manifest",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4779,7 +4779,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4826,12 +4826,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:50.273Z",
-      "completedAt": "2026-08-07T17:22:50.898Z",
+      "startedAt": "2026-08-07T17:37:15.988Z",
+      "completedAt": "2026-08-07T17:37:16.646Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "e5d2571b08b0b8ad8cc3f1bfb72301d371bffe76b072258811975f12b296d8c8"
+        "3150be9383899a3a825dcb16fcc21bc891251a3cffeba54348e502737cef872e"
       ],
       "stdoutDigest": "552f898ee28b562992d70aeab241a3585f5fbc85b9012571860d8b7a77001a6f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4839,7 +4839,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "b9a7ddba1b2d7f0d31ba1ce94ff4fd04e0fc28d3ddb421284686b4fcb0b69361"
+      "evidenceHash": "be77f9a227ed0b6356a94d7b6932c2971e4052a9e15260771d3391fb8860c017"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4849,7 +4849,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.validate:skill-capability-manifests",
       "commandId": "npm.validate:skill-capability-manifests",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4878,7 +4878,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -4925,12 +4925,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:50.898Z",
-      "completedAt": "2026-08-07T17:22:51.494Z",
+      "startedAt": "2026-08-07T17:37:16.646Z",
+      "completedAt": "2026-08-07T17:37:17.257Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "133c587fe47ebae14a85e016259ab9269d70faa3107d179d222be3e5008251ed"
+        "b1ba772ecf3a8839efed5cf1cb215babc3aad3a54f80f091c50614d91f873536"
       ],
       "stdoutDigest": "557002ae23f164fd5db4169d32a5ecccb1db25ceab59565b520ff5c973b8cd37",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -4938,7 +4938,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "14865b50225cca5fb2586242b8eb7433dc696fcfebad855b581517aeff924ee7"
+      "evidenceHash": "f6026aaf16c2b28524bf562d56fd97afbe7551e3005fbd60c738859eddb69d38"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -4948,7 +4948,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:edit-skill-capability-kernel",
       "commandId": "npm.test:edit-skill-capability-kernel",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -4977,7 +4977,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5024,12 +5024,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:51.495Z",
-      "completedAt": "2026-08-07T17:22:51.876Z",
+      "startedAt": "2026-08-07T17:37:17.257Z",
+      "completedAt": "2026-08-07T17:37:17.680Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "090eebf9c0501eba8059dec9d1e9daeb1fc4574c0a8d7911e7fcbf4e339ea753"
+        "992caad8c75cb949696c2fc2db3398144ddbf76bb3dea72d4f7c3f17c01057f1"
       ],
       "stdoutDigest": "927f2c4c00186670f44eceef38bf85b4abb6c2ed7b802dc0c1be8746de394a5c",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -5037,7 +5037,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "b8d83599709b5b6f53281267a0faf25d75f0d3d82c3e6cd3f18ab17656fff6ad"
+      "evidenceHash": "ca20226bc9d5e00dbba7fc9477551971a96bd0bc85f5bd326a30056ae4beba5a"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5047,7 +5047,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.build",
       "commandId": "npm.build",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5076,7 +5076,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5123,20 +5123,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:22:51.876Z",
-      "completedAt": "2026-08-07T17:23:03.338Z",
+      "startedAt": "2026-08-07T17:37:17.681Z",
+      "completedAt": "2026-08-07T17:37:29.750Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "3520620ec37faac25ea6a9b72d6b2b17597e4bfde1eef504eb1e85f1d4304b57"
+        "aac38daa06d0646867df590b4c7e467048e09956b9b7f58623b097e5c5a5d9c0"
       ],
-      "stdoutDigest": "d771a7face064a41859794a698d0183c1210cca38025fea3c58fd7205b641717",
+      "stdoutDigest": "368ebb66245c30fa0328972e9f5cf8c90fa9a9ad205627ebd994f45bdf38c27d",
       "stderrDigest": "d0aad281cd654734a5aa2da4ed27b2c92510705c6b77ada9ead8011e3f768fa4",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "ce79de0dfe1b0c2106869374b953d7d2a14ccedad374a05ce2982939f81a0a4b"
+      "evidenceHash": "cb8ae5231572e06224fe1b9fd3d7e762520d8e380b7b9b68925c19585c97f7df"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5146,7 +5146,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.typecheck:server",
       "commandId": "npm.typecheck:server",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5175,7 +5175,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5222,12 +5222,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:23:03.339Z",
-      "completedAt": "2026-08-07T17:23:41.901Z",
+      "startedAt": "2026-08-07T17:37:29.751Z",
+      "completedAt": "2026-08-07T17:38:13.395Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "5311a0073b6a4e57b17c660151403f1eb09699b2dd7871de6dd0dcffcd13f920"
+        "d6b71fb410a848caabbcdd0f9a5c2cfdb4468573c57ba8b7839ea462cd64e508"
       ],
       "stdoutDigest": "660279b3fe57ad2c9d32ca3d0a3da9b94e8d3b5b85e14f8cbd68bba09cd0ceec",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -5235,7 +5235,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "87c40a1c87840957709f937527e44755e3e7c677d94a76564976c4dcd07f83e3"
+      "evidenceHash": "4b198df04e3f00d317cfec85c1fa62ab87381af22a978489956648ae6e0f4bf8"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5245,7 +5245,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.lint",
       "commandId": "npm.lint",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5274,7 +5274,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5321,12 +5321,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:23:41.902Z",
-      "completedAt": "2026-08-07T17:24:24.953Z",
+      "startedAt": "2026-08-07T17:38:13.396Z",
+      "completedAt": "2026-08-07T17:38:57.107Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "9a06cfbcaefb83a01b010e70a1dbf14d534836d1ec11f22ccec32680196347cb"
+        "36e32adae9445ec805b8a8ff761ccabb4dbc35d21c3ace836a5279970af9fea3"
       ],
       "stdoutDigest": "28f42b817f7241cde58e973824dd0081ac6589fcef5e35feb864cb6158f2a04e",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -5334,7 +5334,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "e5b49875b097148c36d5878c57459254d55b4f2c741a37473dc8cc8c26fd8cfa"
+      "evidenceHash": "419649a47e2810b766838a4c968f770cc05e7f57ea32fa011b39461d41121b7b"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5344,7 +5344,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.check:frontend-boundary",
       "commandId": "npm.check:frontend-boundary",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5373,7 +5373,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5420,12 +5420,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:24.953Z",
-      "completedAt": "2026-08-07T17:24:25.242Z",
+      "startedAt": "2026-08-07T17:38:57.108Z",
+      "completedAt": "2026-08-07T17:38:57.425Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "e4c15b0961b7a575b733f85053582be533dd655cab3a95ebba3fc67cbc850745"
+        "3f8748e4b8ab0d2da580108653a16c24d88e438b178fa9dab69b22deed65e2cd"
       ],
       "stdoutDigest": "b9820a7feb2049611b3eaf2231b100f0a86eea2b2369b1e77095a88ca502d461",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -5433,7 +5433,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "7fc3694a0bc61e4d8f6ec297ce5ca09a09daeaf92bd55d8fbc4acaf801f7903f"
+      "evidenceHash": "70da80df8a13d5b91939af332c6e237f491597d6dd7de12deb9454c8013dbff9"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5443,7 +5443,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-provider-authority",
       "commandId": "npm.smoke:b-roll-provider-authority",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5472,7 +5472,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5519,20 +5519,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:25.265Z",
-      "completedAt": "2026-08-07T17:24:26.461Z",
+      "startedAt": "2026-08-07T17:38:57.452Z",
+      "completedAt": "2026-08-07T17:38:58.628Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "08e44d12cbd55ab3974cfaee16ef790ce9b7ae32075550aee2db64ddd52d2340"
+        "ffea94413d06170c76459dbfa49ed418a26e68ef7a6d13db0ba4688f69c16784"
       ],
-      "stdoutDigest": "0be0e6992ab2d17a6ab01bbd6808de370865b5da984d19165b45489dde002b0b",
+      "stdoutDigest": "ca22ef12e44555ec358f74b86bc9ec8baf4c0baf99fc980d1ba1fb4aea856b70",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+      "evidenceHash": "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5542,7 +5542,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-retirement",
       "commandId": "npm.smoke:b-roll-retirement",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5571,7 +5571,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5618,12 +5618,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:26.463Z",
-      "completedAt": "2026-08-07T17:24:27.376Z",
+      "startedAt": "2026-08-07T17:38:58.630Z",
+      "completedAt": "2026-08-07T17:38:59.618Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "d5bc2b61c02c8cf5110b3c8471774e681f13295604e74886c15ac4e6f5c6d1f4"
+        "a0157f76d80503fcc49b6adb3992f08dfd05a16501a950e5195be339790d0935"
       ],
       "stdoutDigest": "96bc80c965dce80ff32df343384011279756c504ef42e056460f6d8e64a5ba27",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -5631,7 +5631,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "d87d2ffb0d8e9f9496ef6dcae9e8ecc66c92902bad5d11efe0d2699edc612d37"
+      "evidenceHash": "453d058d5f54168f4cd658b27988f7360b68e5635990b8a039c001048435ac03"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5641,7 +5641,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-end-to-end",
       "commandId": "npm.smoke:b-roll-end-to-end",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5670,7 +5670,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5717,20 +5717,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:24:27.376Z",
-      "completedAt": "2026-08-07T17:25:37.698Z",
+      "startedAt": "2026-08-07T17:38:59.619Z",
+      "completedAt": "2026-08-07T17:40:10.924Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "ef8a31d53de5e165eb1bec14fadbe0744f07f27374f4f3d627834a4d20b3f9c2"
+        "f28d8368d961d9161ee6eb8974057dbc4e09957e434ac7daccbe1a232efa495e"
       ],
-      "stdoutDigest": "ad8caf299a01925eb11eafe55c3ecc8c58e04a664f545684fa20baeb5566053c",
+      "stdoutDigest": "5eabc35de91b647ec87bf8744687e8c1a93626eb1479f4810aee8ea961cd55a6",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "1a8990263e8adf4f85f5b45cd5a0f55d7ff429bd5293d8c1e23fb05afa064b44"
+      "evidenceHash": "c5296d4f04cb56aa9ca12e09d2eee02cdd0eaf74333487154c68bfdc7a32ac59"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5740,7 +5740,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-canonical-private-runtime",
       "commandId": "npm.test:b-roll-canonical-private-runtime",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5769,7 +5769,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5816,20 +5816,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:25:37.700Z",
-      "completedAt": "2026-08-07T17:25:53.839Z",
+      "startedAt": "2026-08-07T17:40:10.934Z",
+      "completedAt": "2026-08-07T17:40:26.413Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "8e9684381b86f05e9aac9a99121bbe8d8e4756922870cc734066a2c186b047d2"
+        "ae3b2562f23ee849292cc896185afae2fc4bdeacf85e2bd0175b1f6da3ff25bb"
       ],
-      "stdoutDigest": "064283cc882d10121cb0c6c78ade6c01aa59d78c21165c4817f9ccfa50598e2d",
+      "stdoutDigest": "08101bcb3739519fba4911b57127f694468c87255283429344be2d5e17f20e6f",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "31f36f9a058c9eb5245130991509379577eeba9f2ec4148ec1c7d0cd735b7638"
+      "evidenceHash": "38aac3efc4be32515cada4943b22f968374371875b420e4f848953aca1f8c1d7"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5839,7 +5839,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-public-canonical-lifecycle",
       "commandId": "npm.test:b-roll-public-canonical-lifecycle",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5868,7 +5868,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -5915,20 +5915,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:25:53.840Z",
-      "completedAt": "2026-08-07T17:26:20.642Z",
+      "startedAt": "2026-08-07T17:40:26.416Z",
+      "completedAt": "2026-08-07T17:40:50.028Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "f374b1372ff191ca3c816390919f75763420e42119fe85577318945070cfb7eb"
+        "274271c23c0832640d01a795b8596b73ba712d4d132a40bbfb3bce765705e7b5"
       ],
-      "stdoutDigest": "7b859bf7205b02a33452844e7d86ffc7209cde1a50da757093e65b9d87a323f5",
+      "stdoutDigest": "dcb33daebeab67c8fb08e40c0f1148a1f7e06da3b79aa8cd94d410e327e1625c",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "6fc8cb85c8023f9c945ee2bef09327d66e20d563c8f8ec2fa577472d328befa4"
+      "evidenceHash": "5e3bb576a315007565b0dba4a84d671f0b4d7b9e9a5a8fa0db614145cef071f9"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -5938,7 +5938,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-candidate-qa",
       "commandId": "npm.smoke:b-roll-candidate-qa",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -5967,7 +5967,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6014,20 +6014,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:20.643Z",
-      "completedAt": "2026-08-07T17:26:29.915Z",
+      "startedAt": "2026-08-07T17:40:50.031Z",
+      "completedAt": "2026-08-07T17:40:57.334Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "0ac159b45964be5421dca6a30087abb3aa8bada6904399ab8e5cab1fac5b5665"
+        "af0eca3e5f49da659da7ef52413889ecedab699e5bdd263deee09b08fdcdd9b8"
       ],
-      "stdoutDigest": "8cdc167d0f10e795096e12030b0da6d1598574965691ca5597ac1cc8d80fb48f",
+      "stdoutDigest": "892d0ad7227d44ea11cc131c9ca1d228f95723f4cb1b78eab0af4adba5774471",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "f30cdfbaf940dfd7677e1c7880c576f321f154472f919300c0fd386b4ff186e1"
+      "evidenceHash": "e788b40592cffa305596599c6a6b8cf1ed256157d0a855a3c58fae222ff87dcf"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6037,7 +6037,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-existing-source",
       "commandId": "npm.smoke:b-roll-existing-source",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6066,7 +6066,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6113,20 +6113,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:29.916Z",
-      "completedAt": "2026-08-07T17:26:41.110Z",
+      "startedAt": "2026-08-07T17:40:57.336Z",
+      "completedAt": "2026-08-07T17:41:08.184Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "942e70dc23a51fab4c08c7b92bb0fbececde3bb683a33a31ae7e0b2e02bda18b"
+        "4458bb11450669bbb3d8901d71b12f7b143532625b8b633f886d91c147410e46"
       ],
-      "stdoutDigest": "1fb8de3ad289d610c26911268eb936fadc10be54ff48ac552cd0d425bc20576d",
+      "stdoutDigest": "1f0c0758cd71f6a06b5e6635635f613697cc1d830f10b1552dfaf927b1493a47",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "19f6a0590e468e36d1d52eb8ddb387e0b6fc6d3def3cef0b31c621b86cd2c6d3"
+      "evidenceHash": "e2f70c53459d06525b85e215cfb708920185940bf73a71b80eb787652661d5ee"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6136,7 +6136,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-provider-lifecycle",
       "commandId": "npm.smoke:b-roll-provider-lifecycle",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6165,7 +6165,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6212,12 +6212,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:41.111Z",
-      "completedAt": "2026-08-07T17:26:42.245Z",
+      "startedAt": "2026-08-07T17:41:08.187Z",
+      "completedAt": "2026-08-07T17:41:09.301Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "69e93e1194c3490f2cbbd554f1fe88c7642369cbf68a73667344819927b638d7"
+        "c112bb3d444cabc522c26e3fa2e73be0a09e61c22e03cdd9940a195de667e7fb"
       ],
       "stdoutDigest": "80e0e5a3287277cec660763219177cad75e4aad62102c7d207992f6671568a68",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -6225,7 +6225,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "32479a419e861492363d488fdbfbd832dd13b5d3acad89df4f91f8b7dfae7233"
+      "evidenceHash": "995cb7a4cf68e8cf11bc07b7bf0f3882420b8d14e01ce7c537c2748d855ea958"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6235,7 +6235,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.test:b-roll-canonical-integration",
       "commandId": "npm.test:b-roll-canonical-integration",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6264,7 +6264,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6311,12 +6311,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:42.245Z",
-      "completedAt": "2026-08-07T17:26:43.055Z",
+      "startedAt": "2026-08-07T17:41:09.304Z",
+      "completedAt": "2026-08-07T17:41:10.176Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "a2b4fbd20ca2f9633fdc0160ac286747d865a8ead2872a02c594ed570c8665c7"
+        "7bd0ffd1b21c1910ebc35703d84a43b9421298c2177088ac7f27967f9ac912d3"
       ],
       "stdoutDigest": "4dc5f6a7d278917973e6e34fcdb81796bc670436abe05ab0e37658a335fb0612",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -6324,7 +6324,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "13f1dec27f496a68e16e73e34ad6d2c9770e12b1f57e465e77d9bf44af1074b9"
+      "evidenceHash": "6ee4fc345746eb38bca132e8e528b28f1e138256fa201cf1170a7176ce808648"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6334,7 +6334,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:b-roll-remotion-integration",
       "commandId": "npm.smoke:b-roll-remotion-integration",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6363,7 +6363,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6410,12 +6410,12 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:43.056Z",
-      "completedAt": "2026-08-07T17:26:59.713Z",
+      "startedAt": "2026-08-07T17:41:10.179Z",
+      "completedAt": "2026-08-07T17:41:27.466Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "af054a325b00149cfcc1b4fa0fa300d1ca372c144240011ae5aaee8fbcecf56c"
+        "e1974fd5eadecd2c53502f46cb2bbc3cf9e251dd6718aaccc72bf0fc3d0c78cc"
       ],
       "stdoutDigest": "7f81240cbe02dcf6d5da1c4f211dad6ea0715e42ab06b1d517ac69bfa0171baf",
       "stderrDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
@@ -6423,7 +6423,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "7d71a85d96e67823082464c6b697586f781741b1e4951a1ae8fa4dfbef119912"
+      "evidenceHash": "2ea4f692586789fb4e149d069186d0b31b3330a43d22b372deafbe6f5511c503"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6433,7 +6433,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:runtime-api-security",
       "commandId": "npm.smoke:runtime-api-security",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6462,7 +6462,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6509,20 +6509,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:26:59.715Z",
-      "completedAt": "2026-08-07T17:27:02.948Z",
+      "startedAt": "2026-08-07T17:41:27.469Z",
+      "completedAt": "2026-08-07T17:41:30.710Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "65e95e0577923d6c83a00f8067914419acbeee931610838785bee3e610213d2a"
+        "0c738eac30e3411b4251be0b9bed556fbfd3a42bb111c6880a929709afb987c6"
       ],
       "stdoutDigest": "8863cee8cb96ba74586e53c128a8c83098922aa352fa8dcb318f424761cc47f9",
-      "stderrDigest": "85cc18dad5f146d8dba91c54a07d7d8dfd5d946b24b635c80ea5dacbf7f4998d",
+      "stderrDigest": "46c2a0cbc0f937eac22202ae7d8e40ffb2c9ada4ed3f0b32dd6479bcea167eb9",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "a949456e2320fadc3df273c6d4d6412fb8ea29c0d18169362a339047ce615192"
+      "evidenceHash": "cd4bb4b31c3760592333cc62f7137539e3b01508ac27e966b102a540ac8553e3"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6532,7 +6532,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:edit-execution-security-boundary",
       "commandId": "npm.smoke:edit-execution-security-boundary",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6561,7 +6561,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6608,20 +6608,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:27:02.948Z",
-      "completedAt": "2026-08-07T17:27:05.418Z",
+      "startedAt": "2026-08-07T17:41:30.712Z",
+      "completedAt": "2026-08-07T17:41:33.282Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "a099709900284eaec4ffda5f43a46ca51113b05970e26e631611e86123197d5f"
+        "2d6b617cde7156d0c080492dfdc5c2216c0afcdb8abc621660a592fdef9fa02c"
       ],
       "stdoutDigest": "2e4cf3bd3f1e8866e2a2895ebaa96d9adb47337701e15c830b0bddb4d676b262",
-      "stderrDigest": "81bf0161ffa78ee84f55d402d2a549092f36ccabd04ef6db76a18cac95de2763",
+      "stderrDigest": "34276c107e8fb5b5fecb8e8c0f348957ae922b71df8c82bd1970db27ca3bb1f4",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "614a9271014dcdb60f427165740171daa78ad46a80b555ba3df12df090b508fa"
+      "evidenceHash": "26450fbdca7114cb0fb53c575b0146588979b5479bee6940be30c78af30c5ca4"
     },
     {
       "schemaVersion": "skill-qualification-fixture-evidence-v1",
@@ -6631,7 +6631,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
       "fixtureKey": "command.smoke:idempotency-boundary",
       "commandId": "npm.smoke:idempotency-boundary",
-      "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+      "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
       "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
       "dependencyAuthorityHashes": [
         {
@@ -6660,7 +6660,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
         },
         {
           "authorityKey": "remotion_approved_composition_operation_profile",
-          "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+          "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
         },
         {
           "authorityKey": "remotion_execution_protocol",
@@ -6707,20 +6707,20 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
           "authorityHash": "7febbd7112ed752ed5003f64ab7d2ecd53cb52c859110e719c4d4a97a53dacda"
         }
       ],
-      "startedAt": "2026-08-07T17:27:05.419Z",
-      "completedAt": "2026-08-07T17:27:05.965Z",
+      "startedAt": "2026-08-07T17:41:33.283Z",
+      "completedAt": "2026-08-07T17:41:33.731Z",
       "exitStatus": 0,
       "passed": true,
       "evidenceArtifactHashes": [
-        "176777ebe734356e273e8e61deb5465cfa8924c9946498adf8ff2bd768c5b2b2"
+        "5f58b74f4e9b38083a996be929a19d740bf6dc5ddc030b4175a3c633f7e99c2d"
       ],
       "stdoutDigest": "4f138fdd4f5ea3c976859bd536780cd2076a0639a125e7997ea99d9ff5c193cf",
-      "stderrDigest": "7b8780e86102a18f1f56b407db2bb0894f913a3a1550318eace86c5ccbb6eefd",
+      "stderrDigest": "d81932a46d696ef5b0ce86ea0a3c19cb2db631df69690087040bde112b82387a",
       "environmentClass": "local_internal_qualification",
       "providerRequestCount": 0,
       "publicArtifactCount": 0,
       "productionMutationCount": 0,
-      "evidenceHash": "27aae213f1875258d9498667c14335edf87d747d1faeb4824b968a34b0f41c56"
+      "evidenceHash": "efc9e16847ad4d3f43bfa1d072c4e3bfb860ba8df210230539201e57c8d7b6b6"
     }
   ],
   "receipt": {
@@ -6733,7 +6733,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04"
     },
     "qualificationStatus": "internal_execution_qualified",
-    "testedCommitSha": "87561393ce9cd3b1a8bf90065d9cc1585d206951",
+    "testedCommitSha": "4957609a7e8ac694b845fda924e4f3ba74b4fea8",
     "relevantSourceTreeHash": "5433fb46798c3f0c68bcc67312afb8c9a432ce1feaa185a91751ffc15ce1ba96",
     "dependencyAuthorityHashes": [
       {
@@ -6762,7 +6762,7 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       },
       {
         "authorityKey": "remotion_approved_composition_operation_profile",
-        "authorityHash": "155f0482866f4397ba526c3bf7152d4c7e0456543d586c2e21e19bfaccacbc6f"
+        "authorityHash": "71d249216b1567e23f81ad72eb9bfd0f873a7155006473da6f3f9be7712efd97"
       },
       {
         "authorityKey": "remotion_execution_protocol",
@@ -6813,217 +6813,217 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       {
         "fixtureKey": "no_action_emotional_moment",
         "status": "passed",
-        "evidenceHash": "ec7f32db2a4110c5ae8628e9fcb2d710af2da1f6c0e415a41007a030353d516f",
+        "evidenceHash": "d4f5f6b9d06a853fe90b7da704b0c5310e505aaadd15f58b48138ce67c9651e6",
         "summary": "no action emotional moment passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "existing_source_cutaway_zero_provider_requests",
         "status": "passed",
-        "evidenceHash": "21395568209939d14a6a8166101a696634159d96be1682fb0ddb3f4af052e640",
+        "evidenceHash": "65e47eb4037042e4bbb5f7d65dd51dcdc0348f4cfa6d638212ceeac41042337a",
         "summary": "existing source cutaway zero provider requests passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "approved_user_asset_context",
         "status": "passed",
-        "evidenceHash": "d16e5cd5de8c104fdab9c6eac4c50d653897a52aa3bf8639d5e2335518852000",
+        "evidenceHash": "2953461e043836b28f45fe5464c168c6c91d2a0c406ce77c9e549e80a47a2d0a",
         "summary": "approved user asset context passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "generated_context_candidate_planning",
         "status": "passed",
-        "evidenceHash": "d37b81c5e1d2e734d7d101405a7938652ed371f5e01e8ea8b3461c264fdcc341",
+        "evidenceHash": "b53fbc61cb5983e03240ce902bf349e16fc193022e5f6186ddd9bd474cddde3b",
         "summary": "generated context candidate planning passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "generated_proof_rejected",
         "status": "passed",
-        "evidenceHash": "c7ef43fdc4a60815b9434d96ce99fbd7ec4fe6bea6710843c1c80a59a49af0bb",
+        "evidenceHash": "609284f9f4621c10b2a80f39da20f7a333904c45a16871bccd2b21081c6fd3aa",
         "summary": "generated proof rejected passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "outside_range_mutation_rejected",
         "status": "passed",
-        "evidenceHash": "cd46ee8466a77226baf7d2ba748ff6cb05828fd27e67c1829b61adbef03701ae",
+        "evidenceHash": "ae8bab543a368d3837a184699585f7408846c812f63e86944df0402698d34265",
         "summary": "outside range mutation rejected passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "whole_video_context_read_only",
         "status": "passed",
-        "evidenceHash": "09195f9e86ae12e9fcc070fb60e64667019d485bd54cbc99fff1142c9a5d306c",
+        "evidenceHash": "681da4de89c6e7ad84ba594d019fa213823ba7ac6c7ea0de70346c02f4fc873d",
         "summary": "whole video context read only passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "primary_visual_conflict",
         "status": "passed",
-        "evidenceHash": "871ab0b60b5e1a2b4565516980e797b9d7c9c213636bf3d4b75203701135ca83",
+        "evidenceHash": "463d6bbc4cac5be1e3910eb64e4d2dfc62a26f82d7e6c181a40b51a7fd17e84a",
         "summary": "primary visual conflict passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "caption_collision_repair",
         "status": "passed",
-        "evidenceHash": "57c79e3ae09ebccc74bad81d318e43431eadcd1d3cca1ca0225d585fa2b7695f",
+        "evidenceHash": "ea41127863d42317b42f49589ff145747dd20c05f2477bd2883fb5fd913e7b21",
         "summary": "caption collision repair passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "tracking_dependency_present",
         "status": "passed",
-        "evidenceHash": "3ff30673283c14f3e759d1c7e27bc887021a5450c7a4e849ad7fcfcce296dc06",
+        "evidenceHash": "d4c98b773d868e37b026dd86ee79bef995a30e2258f82d1409212e2a16efffe2",
         "summary": "tracking dependency present passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "tracking_dependency_missing",
         "status": "passed",
-        "evidenceHash": "785462b8590186c95366f85ba2c26d74e4cea7201f9647115a5eed4fedef9c56",
+        "evidenceHash": "4a5dd07cd534a40d8ee5103f88634425aa3a0a1faafa2c5790739dcfd30aba60",
         "summary": "tracking dependency missing passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "repeated_concept_rejected",
         "status": "passed",
-        "evidenceHash": "d10ef03ababd0f08c69836c4d1de0b16287264483aca38d13b1aa5ef66c124f2",
+        "evidenceHash": "c5987053e0a9c84157b2acad3f67fabca0320f337eb56eba416e7f0ff34ee1eb",
         "summary": "repeated concept rejected passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "region_ineligible_uploaded_video_edit",
         "status": "passed",
-        "evidenceHash": "0ddef91707f0a2b70d4fb7b21a8eea882621e7f03ad78e910742a44f1f902a74",
+        "evidenceHash": "31fd169786f9eedf2873683a03b3f9efb49c0c7a801d15e14e4f636858284083",
         "summary": "region ineligible uploaded video edit passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "unsupported_aspect_ratio_crop_safe_plan",
         "status": "passed",
-        "evidenceHash": "6c9593821911e7f8e65ec5dadd621b4b7becb9d907cf70bdd676cb29599d8184",
+        "evidenceHash": "189b8ebf6e868973f9137fdc14eda21c51e99cd83dce6d281e90c9e4cd4d2b49",
         "summary": "unsupported aspect ratio crop safe plan passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "audio_disposition_handoff",
         "status": "passed",
-        "evidenceHash": "82db40f5fff44116bc9d3f0ac39cb46aec99b9daa0366e00614d1e4c0f080ecd",
+        "evidenceHash": "32808ac6aee2c04c9d7357524983b83210e8a575c8aa5ed6ba31e1e5e327cdc8",
         "summary": "audio disposition handoff passed via npm.test:b-roll-planning."
       },
       {
         "fixtureKey": "provider_unknown_outcome",
         "status": "passed",
-        "evidenceHash": "3d013686ba8046ce0ef6d7cf72ca15a0cea6c7e7b4d0bd358a76dd1c22bc6450",
+        "evidenceHash": "5bb079f945966ba495dfa46a4f791c5fbc5e6a0976c8598b501265d8f57436fb",
         "summary": "provider unknown outcome passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "stale_rate_authority_block",
         "status": "passed",
-        "evidenceHash": "8b03f032ce12e7f5eb20c0e75a91f0e3a25ec0ece3a836e947b9bd1bc7dbc0ff",
+        "evidenceHash": "8fc2111619793c0fa1f0716c35fc5ac458a21dc24cf1907d285b098b54b9b400",
         "summary": "stale rate authority block passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "retired_provider_route_rejected",
         "status": "passed",
-        "evidenceHash": "70d578c0f6efe1908e75a0daa99e146e60a5f84ac87919bfd2e4b13dada64e11",
+        "evidenceHash": "9b2c1c34e4554890f243cf4e3faf69a170be94d31960d929b34b7784ac3e8c13",
         "summary": "retired provider route rejected passed via npm.smoke:b-roll-retirement."
       },
       {
         "fixtureKey": "idempotent_provider_replay",
         "status": "passed",
-        "evidenceHash": "d88f3c509647e7ceb428a5682b79b442b3d3daa8d8ffadd713923ca9b04ab3ec",
+        "evidenceHash": "792b0ab07e69142798bae99165081e0e6237cfe8179ca13e9bf963c6b3261b99",
         "summary": "idempotent provider replay passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "one_failed_candidate_refinement",
         "status": "passed",
-        "evidenceHash": "d701ae5469161c7783a5c5e857965628c9aebe68f6366d6c6cd6f35406521319",
+        "evidenceHash": "fd73f811b3f55f986b9fe80d29f001d915396e196d7dba4e9b01069c4caf19d2",
         "summary": "one failed candidate refinement passed via npm.smoke:b-roll-end-to-end."
       },
       {
         "fixtureKey": "refinement_limit_enforced",
         "status": "passed",
-        "evidenceHash": "58003e48802ebff06af93af7669051b92635656401d9d82159e71e5396d86623",
+        "evidenceHash": "4de7a31772e810bda7a6e750a5ab9f7c1cf9ff85c346c91befd9223f5a465fc7",
         "summary": "refinement limit enforced passed via npm.smoke:b-roll-candidate-qa."
       },
       {
         "fixtureKey": "historical_provider_v1_v4_hash_preservation",
         "status": "passed",
-        "evidenceHash": "36a5a07472879e556a592088b41d9622d81e91da48b10162ee0a8b3b8ae572e3",
+        "evidenceHash": "684dcce78ff9b10c92bffd85ab158762008c257086348530d4768095b221cc2f",
         "summary": "historical provider v1 v4 hash preservation passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "cross_workspace_artifact_substitution",
         "status": "passed",
-        "evidenceHash": "faa5a81f3ffbb26b1ba80b49b8ceb0d0a93dbfb6318da8eed532c030beec6268",
+        "evidenceHash": "d4d296caf091be892a493cbeaa2059a1a67eb1861d2e8d89b9e74bce38d75a39",
         "summary": "cross workspace artifact substitution passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "source_checksum_substitution",
         "status": "passed",
-        "evidenceHash": "692cc7c796019c6bde8f23d6b0377c83675625ced4d2965ccc4b08963d7f175b",
+        "evidenceHash": "072f17426d9ae5be8f63b1fdb2489de6aef826e8ab7cb7f91f1b5d084984b0b2",
         "summary": "source checksum substitution passed via npm.smoke:b-roll-existing-source."
       },
       {
         "fixtureKey": "provider_route_substitution",
         "status": "passed",
-        "evidenceHash": "fc4d5b1fbc6cb4c9363f7b41ad31d8153b0820c9f254a7ddc317051f01e24b01",
+        "evidenceHash": "290697592006fc42ba19300bf1cca1cc487be3cbb4fafcab0ea90b05d88932d6",
         "summary": "provider route substitution passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "model_alias_substitution",
         "status": "passed",
-        "evidenceHash": "1379293a98286416ea9929cffaf4380fe3b379b56b16fcf2bfbeb9ad8656c90c",
+        "evidenceHash": "99fec7bff92f0139d532d5b7ffb4171d3eb9ff0e8113db62c83529f22eac8e74",
         "summary": "model alias substitution passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "attempt_replay_modified_request",
         "status": "passed",
-        "evidenceHash": "efa8dd3f02cf15acc3d57cca6163af3d3f34f30c13914d5724e9bcb3297d2496",
+        "evidenceHash": "e0b547ca2e58d6639e4d129a154d1d3344a0e6abffdbbd864a78f07c10ea039b",
         "summary": "attempt replay modified request passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "forged_qa_pass",
         "status": "passed",
-        "evidenceHash": "baec472b1b36d97f236ef71d225b9a2f9edeb1f294aba7af3edf3c8ebd353b9a",
+        "evidenceHash": "f0ec993fc6e3eb00396c7a5cd86d38bd69b846fddb3ce1199f20c77d061042f8",
         "summary": "forged qa pass passed via npm.smoke:b-roll-candidate-qa."
       },
       {
         "fixtureKey": "forged_qualification_receipt",
         "status": "passed",
-        "evidenceHash": "d418b929ac3eaca4d75b30b9d72d2874e53aa2de7072e643011bb2a2d7a7a737",
+        "evidenceHash": "69abe4291e24a4327be59b2f7efb5779973254b10128322f93c6bc6d7d956b80",
         "summary": "forged qualification receipt passed via npm.smoke:b-roll-end-to-end."
       },
       {
         "fixtureKey": "stale_manifest_hash",
         "status": "passed",
-        "evidenceHash": "e748ce58705211cee453a39bc7b67123b85b3b17d6828ccd0cc344126d5ba4a1",
+        "evidenceHash": "189b718c5bf1f314d619faa3e72643239da11bc113945e9d0a7590d82b4c6446",
         "summary": "stale manifest hash passed via npm.test:b-roll-canonical-integration."
       },
       {
         "fixtureKey": "stale_assignment_range",
         "status": "passed",
-        "evidenceHash": "f6e0d8beba348b6a22ce16d93a7dcb3391b7ef7b015e6ed78cb67007ad35b17a",
+        "evidenceHash": "d870787ef6db84bb820080a48a51477e757fb86f400676283c0cea58a7e463ea",
         "summary": "stale assignment range passed via npm.test:b-roll-canonical-integration."
       },
       {
         "fixtureKey": "raw_credential_input",
         "status": "passed",
-        "evidenceHash": "9242c158804d66fbf4959b12900cd115287d841d34695870a1dead01a3c2da51",
+        "evidenceHash": "fecd41eeb4743c2e26e51aa4ec13ed81f064fb9884a00411d53866ddcec2e0ad",
         "summary": "raw credential input passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "raw_provider_url_persistence",
         "status": "passed",
-        "evidenceHash": "4249d9d2195ea528406c1514c0aa24c6044cb2be5f4935810d09297bfef2b7e4",
+        "evidenceHash": "d172401b294a9863d52e75a9cc4e3c7608d4705e6c5f086e4c0602b1d602b62b",
         "summary": "raw provider url persistence passed via npm.smoke:b-roll-provider-lifecycle."
       },
       {
         "fixtureKey": "work_item_outside_range",
         "status": "passed",
-        "evidenceHash": "323ad104bf0074f49ace8c68e1708c51becfd77164841da1be00a8f9f66518df",
+        "evidenceHash": "36cc6d6bbb1a33fa9ef4a1f33f3f5687d87ff9e32c1f8bbe7259550f3d7c1f1e",
         "summary": "work item outside range passed via npm.test:b-roll-canonical-integration."
       },
       {
         "fixtureKey": "caller_selected_executable",
         "status": "passed",
-        "evidenceHash": "adeeb636dace6d4d72db5be796e27ae2025ab3f68ee68c1b7296b9b772d75624",
+        "evidenceHash": "1a7e652a9b4ee5a172d496beb24528df1ff6b589011183dca30bf32b747add3f",
         "summary": "caller selected executable passed via npm.smoke:b-roll-provider-authority."
       },
       {
         "fixtureKey": "second_provider_submission_inside_attempt",
         "status": "passed",
-        "evidenceHash": "81cc2b6a7ba6fad24658de33275a1f0935a1a875f704f1211792bbe9bcc98385",
+        "evidenceHash": "e016915a78ced0c5795aed08f58b547ae9c0bbdb355b4382cf81acbaa0f7484b",
         "summary": "second provider submission inside attempt passed via npm.smoke:b-roll-provider-authority."
       }
     ],
@@ -7031,253 +7031,253 @@ export const GENERATED_BROLL_INTERNAL_QUALIFICATION_ARTIFACT: unknown = {
       {
         "fixtureKey": "no_action_emotional_moment",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "ec7f32db2a4110c5ae8628e9fcb2d710af2da1f6c0e415a41007a030353d516f"
+        "evidenceHash": "d4f5f6b9d06a853fe90b7da704b0c5310e505aaadd15f58b48138ce67c9651e6"
       },
       {
         "fixtureKey": "existing_source_cutaway_zero_provider_requests",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "21395568209939d14a6a8166101a696634159d96be1682fb0ddb3f4af052e640"
+        "evidenceHash": "65e47eb4037042e4bbb5f7d65dd51dcdc0348f4cfa6d638212ceeac41042337a"
       },
       {
         "fixtureKey": "approved_user_asset_context",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "d16e5cd5de8c104fdab9c6eac4c50d653897a52aa3bf8639d5e2335518852000"
+        "evidenceHash": "2953461e043836b28f45fe5464c168c6c91d2a0c406ce77c9e549e80a47a2d0a"
       },
       {
         "fixtureKey": "generated_context_candidate_planning",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "d37b81c5e1d2e734d7d101405a7938652ed371f5e01e8ea8b3461c264fdcc341"
+        "evidenceHash": "b53fbc61cb5983e03240ce902bf349e16fc193022e5f6186ddd9bd474cddde3b"
       },
       {
         "fixtureKey": "generated_proof_rejected",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "c7ef43fdc4a60815b9434d96ce99fbd7ec4fe6bea6710843c1c80a59a49af0bb"
+        "evidenceHash": "609284f9f4621c10b2a80f39da20f7a333904c45a16871bccd2b21081c6fd3aa"
       },
       {
         "fixtureKey": "outside_range_mutation_rejected",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "cd46ee8466a77226baf7d2ba748ff6cb05828fd27e67c1829b61adbef03701ae"
+        "evidenceHash": "ae8bab543a368d3837a184699585f7408846c812f63e86944df0402698d34265"
       },
       {
         "fixtureKey": "whole_video_context_read_only",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "09195f9e86ae12e9fcc070fb60e64667019d485bd54cbc99fff1142c9a5d306c"
+        "evidenceHash": "681da4de89c6e7ad84ba594d019fa213823ba7ac6c7ea0de70346c02f4fc873d"
       },
       {
         "fixtureKey": "primary_visual_conflict",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "871ab0b60b5e1a2b4565516980e797b9d7c9c213636bf3d4b75203701135ca83"
+        "evidenceHash": "463d6bbc4cac5be1e3910eb64e4d2dfc62a26f82d7e6c181a40b51a7fd17e84a"
       },
       {
         "fixtureKey": "caption_collision_repair",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "57c79e3ae09ebccc74bad81d318e43431eadcd1d3cca1ca0225d585fa2b7695f"
+        "evidenceHash": "ea41127863d42317b42f49589ff145747dd20c05f2477bd2883fb5fd913e7b21"
       },
       {
         "fixtureKey": "tracking_dependency_present",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "3ff30673283c14f3e759d1c7e27bc887021a5450c7a4e849ad7fcfcce296dc06"
+        "evidenceHash": "d4c98b773d868e37b026dd86ee79bef995a30e2258f82d1409212e2a16efffe2"
       },
       {
         "fixtureKey": "tracking_dependency_missing",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "785462b8590186c95366f85ba2c26d74e4cea7201f9647115a5eed4fedef9c56"
+        "evidenceHash": "4a5dd07cd534a40d8ee5103f88634425aa3a0a1faafa2c5790739dcfd30aba60"
       },
       {
         "fixtureKey": "repeated_concept_rejected",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "d10ef03ababd0f08c69836c4d1de0b16287264483aca38d13b1aa5ef66c124f2"
+        "evidenceHash": "c5987053e0a9c84157b2acad3f67fabca0320f337eb56eba416e7f0ff34ee1eb"
       },
       {
         "fixtureKey": "region_ineligible_uploaded_video_edit",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "0ddef91707f0a2b70d4fb7b21a8eea882621e7f03ad78e910742a44f1f902a74"
+        "evidenceHash": "31fd169786f9eedf2873683a03b3f9efb49c0c7a801d15e14e4f636858284083"
       },
       {
         "fixtureKey": "unsupported_aspect_ratio_crop_safe_plan",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "6c9593821911e7f8e65ec5dadd621b4b7becb9d907cf70bdd676cb29599d8184"
+        "evidenceHash": "189b8ebf6e868973f9137fdc14eda21c51e99cd83dce6d281e90c9e4cd4d2b49"
       },
       {
         "fixtureKey": "audio_disposition_handoff",
         "commandId": "npm.test:b-roll-planning",
-        "evidenceHash": "82db40f5fff44116bc9d3f0ac39cb46aec99b9daa0366e00614d1e4c0f080ecd"
+        "evidenceHash": "32808ac6aee2c04c9d7357524983b83210e8a575c8aa5ed6ba31e1e5e327cdc8"
       },
       {
         "fixtureKey": "provider_unknown_outcome",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "3d013686ba8046ce0ef6d7cf72ca15a0cea6c7e7b4d0bd358a76dd1c22bc6450"
+        "evidenceHash": "5bb079f945966ba495dfa46a4f791c5fbc5e6a0976c8598b501265d8f57436fb"
       },
       {
         "fixtureKey": "stale_rate_authority_block",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "8b03f032ce12e7f5eb20c0e75a91f0e3a25ec0ece3a836e947b9bd1bc7dbc0ff"
+        "evidenceHash": "8fc2111619793c0fa1f0716c35fc5ac458a21dc24cf1907d285b098b54b9b400"
       },
       {
         "fixtureKey": "retired_provider_route_rejected",
         "commandId": "npm.smoke:b-roll-retirement",
-        "evidenceHash": "70d578c0f6efe1908e75a0daa99e146e60a5f84ac87919bfd2e4b13dada64e11"
+        "evidenceHash": "9b2c1c34e4554890f243cf4e3faf69a170be94d31960d929b34b7784ac3e8c13"
       },
       {
         "fixtureKey": "idempotent_provider_replay",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "d88f3c509647e7ceb428a5682b79b442b3d3daa8d8ffadd713923ca9b04ab3ec"
+        "evidenceHash": "792b0ab07e69142798bae99165081e0e6237cfe8179ca13e9bf963c6b3261b99"
       },
       {
         "fixtureKey": "one_failed_candidate_refinement",
         "commandId": "npm.smoke:b-roll-end-to-end",
-        "evidenceHash": "d701ae5469161c7783a5c5e857965628c9aebe68f6366d6c6cd6f35406521319"
+        "evidenceHash": "fd73f811b3f55f986b9fe80d29f001d915396e196d7dba4e9b01069c4caf19d2"
       },
       {
         "fixtureKey": "refinement_limit_enforced",
         "commandId": "npm.smoke:b-roll-candidate-qa",
-        "evidenceHash": "58003e48802ebff06af93af7669051b92635656401d9d82159e71e5396d86623"
+        "evidenceHash": "4de7a31772e810bda7a6e750a5ab9f7c1cf9ff85c346c91befd9223f5a465fc7"
       },
       {
         "fixtureKey": "historical_provider_v1_v4_hash_preservation",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "36a5a07472879e556a592088b41d9622d81e91da48b10162ee0a8b3b8ae572e3"
+        "evidenceHash": "684dcce78ff9b10c92bffd85ab158762008c257086348530d4768095b221cc2f"
       },
       {
         "fixtureKey": "cross_workspace_artifact_substitution",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "faa5a81f3ffbb26b1ba80b49b8ceb0d0a93dbfb6318da8eed532c030beec6268"
+        "evidenceHash": "d4d296caf091be892a493cbeaa2059a1a67eb1861d2e8d89b9e74bce38d75a39"
       },
       {
         "fixtureKey": "source_checksum_substitution",
         "commandId": "npm.smoke:b-roll-existing-source",
-        "evidenceHash": "692cc7c796019c6bde8f23d6b0377c83675625ced4d2965ccc4b08963d7f175b"
+        "evidenceHash": "072f17426d9ae5be8f63b1fdb2489de6aef826e8ab7cb7f91f1b5d084984b0b2"
       },
       {
         "fixtureKey": "provider_route_substitution",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "fc4d5b1fbc6cb4c9363f7b41ad31d8153b0820c9f254a7ddc317051f01e24b01"
+        "evidenceHash": "290697592006fc42ba19300bf1cca1cc487be3cbb4fafcab0ea90b05d88932d6"
       },
       {
         "fixtureKey": "model_alias_substitution",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "1379293a98286416ea9929cffaf4380fe3b379b56b16fcf2bfbeb9ad8656c90c"
+        "evidenceHash": "99fec7bff92f0139d532d5b7ffb4171d3eb9ff0e8113db62c83529f22eac8e74"
       },
       {
         "fixtureKey": "attempt_replay_modified_request",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "efa8dd3f02cf15acc3d57cca6163af3d3f34f30c13914d5724e9bcb3297d2496"
+        "evidenceHash": "e0b547ca2e58d6639e4d129a154d1d3344a0e6abffdbbd864a78f07c10ea039b"
       },
       {
         "fixtureKey": "forged_qa_pass",
         "commandId": "npm.smoke:b-roll-candidate-qa",
-        "evidenceHash": "baec472b1b36d97f236ef71d225b9a2f9edeb1f294aba7af3edf3c8ebd353b9a"
+        "evidenceHash": "f0ec993fc6e3eb00396c7a5cd86d38bd69b846fddb3ce1199f20c77d061042f8"
       },
       {
         "fixtureKey": "forged_qualification_receipt",
         "commandId": "npm.smoke:b-roll-end-to-end",
-        "evidenceHash": "d418b929ac3eaca4d75b30b9d72d2874e53aa2de7072e643011bb2a2d7a7a737"
+        "evidenceHash": "69abe4291e24a4327be59b2f7efb5779973254b10128322f93c6bc6d7d956b80"
       },
       {
         "fixtureKey": "stale_manifest_hash",
         "commandId": "npm.test:b-roll-canonical-integration",
-        "evidenceHash": "e748ce58705211cee453a39bc7b67123b85b3b17d6828ccd0cc344126d5ba4a1"
+        "evidenceHash": "189b718c5bf1f314d619faa3e72643239da11bc113945e9d0a7590d82b4c6446"
       },
       {
         "fixtureKey": "stale_assignment_range",
         "commandId": "npm.test:b-roll-canonical-integration",
-        "evidenceHash": "f6e0d8beba348b6a22ce16d93a7dcb3391b7ef7b015e6ed78cb67007ad35b17a"
+        "evidenceHash": "d870787ef6db84bb820080a48a51477e757fb86f400676283c0cea58a7e463ea"
       },
       {
         "fixtureKey": "raw_credential_input",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "9242c158804d66fbf4959b12900cd115287d841d34695870a1dead01a3c2da51"
+        "evidenceHash": "fecd41eeb4743c2e26e51aa4ec13ed81f064fb9884a00411d53866ddcec2e0ad"
       },
       {
         "fixtureKey": "raw_provider_url_persistence",
         "commandId": "npm.smoke:b-roll-provider-lifecycle",
-        "evidenceHash": "4249d9d2195ea528406c1514c0aa24c6044cb2be5f4935810d09297bfef2b7e4"
+        "evidenceHash": "d172401b294a9863d52e75a9cc4e3c7608d4705e6c5f086e4c0602b1d602b62b"
       },
       {
         "fixtureKey": "work_item_outside_range",
         "commandId": "npm.test:b-roll-canonical-integration",
-        "evidenceHash": "323ad104bf0074f49ace8c68e1708c51becfd77164841da1be00a8f9f66518df"
+        "evidenceHash": "36cc6d6bbb1a33fa9ef4a1f33f3f5687d87ff9e32c1f8bbe7259550f3d7c1f1e"
       },
       {
         "fixtureKey": "caller_selected_executable",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "adeeb636dace6d4d72db5be796e27ae2025ab3f68ee68c1b7296b9b772d75624"
+        "evidenceHash": "1a7e652a9b4ee5a172d496beb24528df1ff6b589011183dca30bf32b747add3f"
       },
       {
         "fixtureKey": "second_provider_submission_inside_attempt",
         "commandId": "npm.smoke:b-roll-provider-authority",
-        "evidenceHash": "81cc2b6a7ba6fad24658de33275a1f0935a1a875f704f1211792bbe9bcc98385"
+        "evidenceHash": "e016915a78ced0c5795aed08f58b547ae9c0bbdb355b4382cf81acbaa0f7484b"
       }
     ],
     "buildEvidenceHashes": [
-      "ce79de0dfe1b0c2106869374b953d7d2a14ccedad374a05ce2982939f81a0a4b",
-      "87c40a1c87840957709f937527e44755e3e7c677d94a76564976c4dcd07f83e3",
-      "e5b49875b097148c36d5878c57459254d55b4f2c741a37473dc8cc8c26fd8cfa",
-      "7fc3694a0bc61e4d8f6ec297ce5ca09a09daeaf92bd55d8fbc4acaf801f7903f"
+      "cb8ae5231572e06224fe1b9fd3d7e762520d8e380b7b9b68925c19585c97f7df",
+      "4b198df04e3f00d317cfec85c1fa62ab87381af22a978489956648ae6e0f4bf8",
+      "419649a47e2810b766838a4c968f770cc05e7f57ea32fa011b39461d41121b7b",
+      "70da80df8a13d5b91939af332c6e237f491597d6dd7de12deb9454c8013dbff9"
     ],
     "testEvidenceHashes": [
-      "c31e601b3f38abc800f9e5efb742ed5b99574094ee807698463d44e899b2f4c1",
-      "970d724d25e23421f889689abd1cffd0889ec9bddd1033914b55bffd4cc3b36c",
-      "a0a62f52dfb02120d0e9935d3e823b73661e243afba2ffa2147a8c6425975594",
-      "87fb1ca5441af094e1843872bda4f09cd78470f709ac25bbd2946eb3fca5d818",
-      "5de3decdcd6997777fcb5a5c9266da1a6300df848f9c12b2d2ea05668eff6ef1",
-      "8da879d33171f30224f96d30fef1b02f7c9cb16d7c406931f7eeea2974cb23f1",
-      "e7bd355548e3b5ebe0b5168c0807e4d03505f78feff8ebdead43eeb38eba325d",
-      "8e78545e76b12683a328e8cef48eb0c16d1f974122e21225f87efa2c2ca0b0e2",
-      "7f905f84778117979613ca17ce360286d54e37fc83ddcb29ee7cca42bd7e8253",
-      "f92f91abb428abe288dfc7d645d0f751f6d73fdc41156b84fef191ec93c4ea8c",
-      "c1717e72d79da12bb50f93560591949bffde544eca93268a8b4b56f55e624683",
-      "b9a7ddba1b2d7f0d31ba1ce94ff4fd04e0fc28d3ddb421284686b4fcb0b69361",
-      "14865b50225cca5fb2586242b8eb7433dc696fcfebad855b581517aeff924ee7",
-      "b8d83599709b5b6f53281267a0faf25d75f0d3d82c3e6cd3f18ab17656fff6ad",
-      "ce79de0dfe1b0c2106869374b953d7d2a14ccedad374a05ce2982939f81a0a4b",
-      "87c40a1c87840957709f937527e44755e3e7c677d94a76564976c4dcd07f83e3",
-      "e5b49875b097148c36d5878c57459254d55b4f2c741a37473dc8cc8c26fd8cfa",
-      "7fc3694a0bc61e4d8f6ec297ce5ca09a09daeaf92bd55d8fbc4acaf801f7903f",
-      "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f",
-      "d87d2ffb0d8e9f9496ef6dcae9e8ecc66c92902bad5d11efe0d2699edc612d37",
-      "1a8990263e8adf4f85f5b45cd5a0f55d7ff429bd5293d8c1e23fb05afa064b44",
-      "31f36f9a058c9eb5245130991509379577eeba9f2ec4148ec1c7d0cd735b7638",
-      "6fc8cb85c8023f9c945ee2bef09327d66e20d563c8f8ec2fa577472d328befa4",
-      "f30cdfbaf940dfd7677e1c7880c576f321f154472f919300c0fd386b4ff186e1",
-      "19f6a0590e468e36d1d52eb8ddb387e0b6fc6d3def3cef0b31c621b86cd2c6d3",
-      "32479a419e861492363d488fdbfbd832dd13b5d3acad89df4f91f8b7dfae7233",
-      "13f1dec27f496a68e16e73e34ad6d2c9770e12b1f57e465e77d9bf44af1074b9",
-      "7d71a85d96e67823082464c6b697586f781741b1e4951a1ae8fa4dfbef119912",
-      "a949456e2320fadc3df273c6d4d6412fb8ea29c0d18169362a339047ce615192",
-      "614a9271014dcdb60f427165740171daa78ad46a80b555ba3df12df090b508fa",
-      "27aae213f1875258d9498667c14335edf87d747d1faeb4824b968a34b0f41c56"
+      "b4f61e45ef0f7d51e0b75925985275d128ecf71d216906aa3d8149ff10459dcc",
+      "fcfeb25b22a0de6347c861aabb4eccc9712ae3118c90ec8fe915a30fde156e22",
+      "9d9d87e5719764af15995dd3144623c2bdc0e76bc078524b55f1f21ddfd78210",
+      "d7c80dc97c419f920dd9bb38a360f8ee0b4657e7c57c756efd7f2d0d4895cf28",
+      "f7fa24e40cf58188fc0649715e476fd97c91ddcc5105178b6f49e4db38716cb5",
+      "24554ff036572e28ac5205368b040bd028b5e122f012346e98c9b6686468b95d",
+      "ae280fa7964a44309a09784077d49f4f2bf481584ec323c4f5c8576b148cd947",
+      "fdc43fe1b64ca32e045430ec9bd3f98d9ee407b253a7f5afa82b4379d908c71f",
+      "53e1c773d46bfd5cf7b0cd3162da83cc0f5d4d997e6aab68ab28507b4016c719",
+      "d85e6ffc389842ec872df6762ec747f80ee4b3ede9eb17aeaab8cc2de0560f1a",
+      "1090b10423b49ef09c7c7ba102ec176c0e6ffeed89856431b740a81932eba691",
+      "be77f9a227ed0b6356a94d7b6932c2971e4052a9e15260771d3391fb8860c017",
+      "f6026aaf16c2b28524bf562d56fd97afbe7551e3005fbd60c738859eddb69d38",
+      "ca20226bc9d5e00dbba7fc9477551971a96bd0bc85f5bd326a30056ae4beba5a",
+      "cb8ae5231572e06224fe1b9fd3d7e762520d8e380b7b9b68925c19585c97f7df",
+      "4b198df04e3f00d317cfec85c1fa62ab87381af22a978489956648ae6e0f4bf8",
+      "419649a47e2810b766838a4c968f770cc05e7f57ea32fa011b39461d41121b7b",
+      "70da80df8a13d5b91939af332c6e237f491597d6dd7de12deb9454c8013dbff9",
+      "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5",
+      "453d058d5f54168f4cd658b27988f7360b68e5635990b8a039c001048435ac03",
+      "c5296d4f04cb56aa9ca12e09d2eee02cdd0eaf74333487154c68bfdc7a32ac59",
+      "38aac3efc4be32515cada4943b22f968374371875b420e4f848953aca1f8c1d7",
+      "5e3bb576a315007565b0dba4a84d671f0b4d7b9e9a5a8fa0db614145cef071f9",
+      "e788b40592cffa305596599c6a6b8cf1ed256157d0a855a3c58fae222ff87dcf",
+      "e2f70c53459d06525b85e215cfb708920185940bf73a71b80eb787652661d5ee",
+      "995cb7a4cf68e8cf11bc07b7bf0f3882420b8d14e01ce7c537c2748d855ea958",
+      "6ee4fc345746eb38bca132e8e528b28f1e138256fa201cf1170a7176ce808648",
+      "2ea4f692586789fb4e149d069186d0b31b3330a43d22b372deafbe6f5511c503",
+      "cd4bb4b31c3760592333cc62f7137539e3b01508ac27e966b102a540ac8553e3",
+      "26450fbdca7114cb0fb53c575b0146588979b5479bee6940be30c78af30c5ca4",
+      "efc9e16847ad4d3f43bfa1d072c4e3bfb860ba8df210230539201e57c8d7b6b6"
     ],
     "securityEvidenceHashes": [
-      "a949456e2320fadc3df273c6d4d6412fb8ea29c0d18169362a339047ce615192",
-      "614a9271014dcdb60f427165740171daa78ad46a80b555ba3df12df090b508fa",
-      "27aae213f1875258d9498667c14335edf87d747d1faeb4824b968a34b0f41c56",
-      "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f"
+      "cd4bb4b31c3760592333cc62f7137539e3b01508ac27e966b102a540ac8553e3",
+      "26450fbdca7114cb0fb53c575b0146588979b5479bee6940be30c78af30c5ca4",
+      "efc9e16847ad4d3f43bfa1d072c4e3bfb860ba8df210230539201e57c8d7b6b6",
+      "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5"
     ],
     "providerEvidenceHashes": [
-      "f4442fb31db20f7733790f2d3a1e2d1833adcb05e6c10f774d98a068aa84182f",
-      "32479a419e861492363d488fdbfbd832dd13b5d3acad89df4f91f8b7dfae7233",
-      "f30cdfbaf940dfd7677e1c7880c576f321f154472f919300c0fd386b4ff186e1",
-      "1a8990263e8adf4f85f5b45cd5a0f55d7ff429bd5293d8c1e23fb05afa064b44",
-      "6fc8cb85c8023f9c945ee2bef09327d66e20d563c8f8ec2fa577472d328befa4"
+      "4047c243af4eb625a76e5c1fa3b7b3348dd1b31309005bbca77d0aca7c95aea5",
+      "995cb7a4cf68e8cf11bc07b7bf0f3882420b8d14e01ce7c537c2748d855ea958",
+      "e788b40592cffa305596599c6a6b8cf1ed256157d0a855a3c58fae222ff87dcf",
+      "c5296d4f04cb56aa9ca12e09d2eee02cdd0eaf74333487154c68bfdc7a32ac59",
+      "5e3bb576a315007565b0dba4a84d671f0b4d7b9e9a5a8fa0db614145cef071f9"
     ],
     "mediaEvidenceHashes": [
-      "31f36f9a058c9eb5245130991509379577eeba9f2ec4148ec1c7d0cd735b7638",
-      "19f6a0590e468e36d1d52eb8ddb387e0b6fc6d3def3cef0b31c621b86cd2c6d3",
-      "f30cdfbaf940dfd7677e1c7880c576f321f154472f919300c0fd386b4ff186e1",
-      "6fc8cb85c8023f9c945ee2bef09327d66e20d563c8f8ec2fa577472d328befa4"
+      "38aac3efc4be32515cada4943b22f968374371875b420e4f848953aca1f8c1d7",
+      "e2f70c53459d06525b85e215cfb708920185940bf73a71b80eb787652661d5ee",
+      "e788b40592cffa305596599c6a6b8cf1ed256157d0a855a3c58fae222ff87dcf",
+      "5e3bb576a315007565b0dba4a84d671f0b4d7b9e9a5a8fa0db614145cef071f9"
     ],
     "remotionEvidenceHashes": [
-      "31f36f9a058c9eb5245130991509379577eeba9f2ec4148ec1c7d0cd735b7638",
-      "19f6a0590e468e36d1d52eb8ddb387e0b6fc6d3def3cef0b31c621b86cd2c6d3",
-      "13f1dec27f496a68e16e73e34ad6d2c9770e12b1f57e465e77d9bf44af1074b9",
-      "7d71a85d96e67823082464c6b697586f781741b1e4951a1ae8fa4dfbef119912",
-      "6fc8cb85c8023f9c945ee2bef09327d66e20d563c8f8ec2fa577472d328befa4"
+      "38aac3efc4be32515cada4943b22f968374371875b420e4f848953aca1f8c1d7",
+      "e2f70c53459d06525b85e215cfb708920185940bf73a71b80eb787652661d5ee",
+      "6ee4fc345746eb38bca132e8e528b28f1e138256fa201cf1170a7176ce808648",
+      "2ea4f692586789fb4e149d069186d0b31b3330a43d22b372deafbe6f5511c503",
+      "5e3bb576a315007565b0dba4a84d671f0b4d7b9e9a5a8fa0db614145cef071f9"
     ],
-    "startedAt": "2026-08-07T17:22:43.776Z",
-    "completedAt": "2026-08-07T17:27:05.965Z",
-    "issuedAt": "2026-08-07T17:27:05.965Z",
-    "receiptHash": "6389004487545bb0a146f0138f4f51e9d11abf4f1ee1933495794dbe58daea69"
+    "startedAt": "2026-08-07T17:37:09.611Z",
+    "completedAt": "2026-08-07T17:41:33.731Z",
+    "issuedAt": "2026-08-07T17:41:33.731Z",
+    "receiptHash": "0505d7db0e5eca194927e42b2fc39136177eb329ffc016885582324fee47adfc"
   },
-  "artifactHash": "baa2fc8f3e4fd78276c69cedd6c4b23f4000e4f3cf0bcba404ea4dff06c246de"
+  "artifactHash": "36383fe3f36a6e2165dea0db15817627369f4f1c715eed72c6862b3601e9b8c7"
 } as const

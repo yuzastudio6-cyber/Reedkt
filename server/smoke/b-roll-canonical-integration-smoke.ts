@@ -164,14 +164,14 @@ assert.equal(existing.canonicalWorkItems.filter((item) => item.approvedToolIds.i
 assert.equal(existing.canonicalWorkItems.filter((item) => item.approvedToolIds.includes('remotion')).length, 1)
 assert.deepEqual(
   existing.canonicalWorkItems.find((item) => item.approvedToolIds.includes('remotion'))?.approvedToolIds,
-  ['ffmpeg', 'remotion'],
+  ['remotion'],
 )
 
 const generatedAssignment = assignment({ sourceSequenceIds: [] })
 const generatedContext = context({ sourceCandidates: [] })
 const generated = compile(generatedAssignment, generatedContext)
 assert.equal(generated.workGraph.route, 'gemini_omni')
-assert.equal(generated.workGraph.workItems.length, 11)
+assert.equal(generated.workGraph.workItems.length, 12)
 assert.equal(
   generated.canonicalWorkItems.filter((item) => item.approvedProviderRoute === 'gemini_omni_flash').length,
   1,

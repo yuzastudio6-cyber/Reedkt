@@ -23,6 +23,7 @@ COPY qualification_runner.py source/qualification_runner.py
 COPY qualification_entrypoint.sh source/qualification_entrypoint.sh
 COPY source-provenance.lock source/source-provenance.lock
 COPY patches/0001-reeditpro-gpu-decode.patch source/patches/0001-reeditpro-gpu-decode.patch
+COPY patches/0002-weeditpro-importlib-resources.patch source/patches/0002-weeditpro-importlib-resources.patch
 COPY build-qualification-capsule.sh build-qualification-capsule.sh
 COPY private-staging/sam3-source.tar private-staging/sam3-source.tar
 COPY private-dependency-closure/dependency-closure private-dependency-closure/dependency-closure

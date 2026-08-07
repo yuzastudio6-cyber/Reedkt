@@ -111,11 +111,26 @@ const targetName = z.enum([
   'security_remediation_corrected',
   'security_remediation_pep668_uninstall_corrected',
   'vertex_a100_setuptools_vendor_removed',
+  'vertex_a100_importlib_resources_setuptools_removed',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
+const buildId = z.string().uuid()
+const selectedTarget = targetName ===
+  'vertex_a100_importlib_resources_setuptools_removed'
+  ? {
+      receiptId:
+        'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-setuptools-removed-20260807',
+      primaryBuildId: buildId.parse(
+        process.env.WEEDITPRO_SAM31_CAPSULE_PRIMARY_BUILD_ID,
+      ),
+      confirmationBuildId: buildId.parse(
+        process.env.WEEDITPRO_SAM31_CAPSULE_CONFIRMATION_BUILD_ID,
+      ),
+    }
+  : targets[targetName]
 const result = await publishCanonicalSam31QualificationCapsuleReproducibility(
-  targets[targetName],
+  selectedTarget,
 )
 
 console.log(JSON.stringify(result, null, 2))

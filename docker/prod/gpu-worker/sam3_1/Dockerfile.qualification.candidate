@@ -129,6 +129,7 @@ LABEL io.weeditpro.product="WeEditPro" \
   io.weeditpro.source.revision="96914d2425f90a64f45ca977c2b5165418099543" \
   io.weeditpro.source.archive.sha256="5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a" \
   io.weeditpro.source.patch.sha256="daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca" \
+  io.weeditpro.source.importlib-resources-patch.sha256="6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f" \
   io.weeditpro.source.patched-archive.sha256="b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb" \
   io.weeditpro.checkpoint.revision="daa63191845a41281374e725f4c9e51c7a824460" \
   io.reeditpro.compatibility="legacy-cloud-coordinate-only"
@@ -190,6 +191,8 @@ COPY sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pyco
   /opt/reeditpro/sam3_1/qualification-artifacts/pycocotools-ingest-receipt.json
 COPY docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch \
   /opt/reeditpro/sam3_1/qualification-artifacts/0001-reeditpro-gpu-decode.patch
+COPY docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch \
+  /opt/reeditpro/sam3_1/qualification-artifacts/0002-weeditpro-importlib-resources.patch
 COPY docker/prod/gpu-worker/sam3_1/qualification_runner.py \
   /opt/reeditpro/sam3_1/qualification_runner.py
 COPY docker/prod/gpu-worker/sam3_1/qualification_entrypoint.sh \
@@ -348,6 +351,12 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     --strip-components=1 \
     --no-same-owner \
     --no-same-permissions \
+  && printf '%s  %s\n' \
+    '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' \
+    '/opt/reeditpro/sam3_1/qualification-artifacts/0002-weeditpro-importlib-resources.patch' \
+    | sha256sum --check --strict \
+  && python -I -B -c \
+    "import hashlib; from pathlib import Path; path=Path('/opt/reeditpro/sam3-source/sam3/model_builder.py'); body=path.read_bytes(); assert hashlib.sha256(body).hexdigest() == '8349e6d536e7eb1a233984a971a6c9fb3ccc4034d591b4f8f7946d49327f99bf'; text=body.decode('utf-8'); text=text.replace('import pkg_resources\\n', 'from importlib.resources import files\\n', 1); old='        bpe_path = pkg_resources.resource_filename(\\n            \"sam3\", \"assets/bpe_simple_vocab_16e6.txt.gz\"\\n        )'; new='        bpe_path = str(files(\"sam3\").joinpath(\"assets/bpe_simple_vocab_16e6.txt.gz\"))'; assert text.count(old) == 3; text=text.replace(old, new); output=text.encode('utf-8'); assert hashlib.sha256(output).hexdigest() == '9590d6a90c96ad632e7a646ba0e65508bcaf1cfeb0fbc3ad90fcc3f26614b76c'; path.write_bytes(output)" \
   && python -m venv \
     --without-pip \
     --system-site-packages \
@@ -372,21 +381,31 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
     "import importlib.metadata as m; import json; import sys; import torch; import torchvision; import torchcodec; import einops; import pycocotools.mask; import sam3; observed={'pythonVersion': '.'.join(map(str, sys.version_info[:3])), 'pythonPrefix': sys.prefix, 'pythonBasePrefix': sys.base_prefix, 'torchVersion': torch.__version__, 'torchvisionVersion': torchvision.__version__, 'torchcodecVersion': m.version('torchcodec'), 'einopsVersion': m.version('einops'), 'pycocotoolsVersion': m.version('pycocotools'), 'torchCudaVersion': torch.version.cuda}; print(json.dumps(observed, sort_keys=True)); assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0+cu128'; assert m.version('torchcodec') == '0.10.0+cu128'; assert m.version('einops') == '0.8.2'; assert m.version('pycocotools') == '2.0.11'; assert torch.version.cuda == '12.8'" \
   && python -m pip uninstall --yes --break-system-packages \
-    pillow urllib3 wheel \
-  && dpkg --purge python3-pip python3-wheel \
+    pillow setuptools urllib3 wheel \
+  && dpkg --purge \
+    python3-pip python3-wheel python3-setuptools python3-pkg-resources \
   && rm -rf \
     /usr/local/lib/python3.12/dist-packages/setuptools \
     /usr/local/lib/python3.12/dist-packages/setuptools-*.dist-info \
     /usr/local/lib/python3.12/dist-packages/_distutils_hack \
     /usr/local/lib/python3.12/dist-packages/distutils-precedence.pth \
-  && ! find /usr/local/lib/python3.12/dist-packages -maxdepth 1 \
+    /usr/lib/python3/dist-packages/setuptools \
+    /usr/lib/python3/dist-packages/setuptools-*.dist-info \
+    /usr/lib/python3/dist-packages/pkg_resources \
+    /usr/lib/python3/dist-packages/_distutils_hack \
+    /usr/lib/python3/dist-packages/distutils-precedence.pth \
+  && ! find \
+    /usr/local/lib/python3.12/dist-packages \
+    /usr/lib/python3/dist-packages \
+    -maxdepth 1 \
     \( -iname 'pillow-*.dist-info' -o -iname 'urllib3-*.dist-info' \
        -o -iname 'wheel-*.dist-info' -o -iname 'setuptools-*.dist-info' \
+       -o -iname 'pkg_resources' \
     \) -print -quit | grep -q . \
   && python -I -B -c \
-    "import importlib.util; assert importlib.util.find_spec('setuptools') is None" \
+    "import importlib.util; assert importlib.util.find_spec('setuptools') is None; assert importlib.util.find_spec('pkg_resources') is None" \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
-    "import importlib.metadata as m; assert m.version('pillow') == '12.3.0'; assert m.version('urllib3') == '2.7.0'" \
+    "import importlib.metadata as m; import sam3.model_builder as b; assert m.version('pillow') == '12.3.0'; assert m.version('urllib3') == '2.7.0'; assert b.files('sam3').joinpath('assets/bpe_simple_vocab_16e6.txt.gz').is_file()" \
   && test -d /usr/local/lib/python3.12/dist-packages/torch/lib \
   && test -d /usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib \
   && test -d /usr/local/lib/python3.12/dist-packages/nvidia/cuda_nvrtc/lib \

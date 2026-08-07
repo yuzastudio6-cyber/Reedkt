@@ -42,6 +42,8 @@ const PATCHED_SOURCE_SHA256 =
   'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb' as const
 const PATCH_SHA256 =
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca' as const
+const IMPORTLIB_RESOURCES_PATCH_SHA256 =
+  '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' as const
 const CUDA_FORWARD_COMPAT_SHA256 =
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' as const
 const CUDA_NPP_SHA256 =
@@ -66,8 +68,12 @@ const SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256 =
   '34e2d4993b315185b169373c12ee70ddf31dbb702ba97be5734fae8de5786481' as const
 const VERTEX_A100_SETUPTOOLS_VENDOR_REMOVED_DOCKERFILE_SHA256 =
   '37cfffa593263d3f73702f59a3693d987bd5aef8c25ed3d07e0e40ca7acc36a3' as const
+const VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256 =
+  'e8e0bb0b7c9d6ea9d2ca4c3e1bab861e54b7d9893f5a2febb2536ea781f7d39c' as const
 const SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256 =
   'c7b8b39acbb685bddc04ff4f30832a7ffd568a6b5954f973ca61d5e223ffbd3d' as const
+const IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256 =
+  'f8d8d67f986a20aa7320f05134c03f5d8876f7e1e057af297226e9e277f8e186' as const
 const SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256 =
   '4f2dfbf929c5d6451fd5b21ed0dfb3ae54c7ed004b531ee97b4bc4dce9294843' as const
 const SECURITY_REMEDIATION_DEPENDENCY_CLOSURE_RECEIPT_SHA256 =
@@ -159,6 +165,8 @@ const manifestWithoutHashSchema = z.object({
     entrypointSha256: sha256,
     sourceProvenanceLockSha256: sha256,
     gpuDecodePatchSha256: z.literal(PATCH_SHA256),
+    importlibResourcesPatchSha256:
+      z.literal(IMPORTLIB_RESOURCES_PATCH_SHA256).optional(),
   }).strict(),
   privateInput: z.object({
     directoryName: z.literal(PRIVATE_INPUT_DIRECTORY),
@@ -586,6 +594,16 @@ function assertQualificationCapsuleEntries(
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
     manifest.repositorySource.gpuDecodePatchSha256,
   )
+  const importlibResourcesPatchPath =
+    'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch'
+  if (manifest.repositorySource.importlibResourcesPatchSha256) {
+    required(
+      importlibResourcesPatchPath,
+      manifest.repositorySource.importlibResourcesPatchSha256,
+    )
+  } else if (byPath.has(importlibResourcesPatchPath)) {
+    throw new Error('Qualification capsule importlib patch is unbound.')
+  }
   const requirePresent = (path: string): void => {
     if (!byPath.has(path)) {
       throw new Error(`Qualification capsule entry ${path} is absent.`)
@@ -635,14 +653,32 @@ function assertQualificationCapsuleEntries(
     SECURITY_REMEDIATION_DOCKERFILE_SHA256,
     SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256,
     VERTEX_A100_SETUPTOOLS_VENDOR_REMOVED_DOCKERFILE_SHA256,
+    VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256,
   ])
   const dockerfileIsSecurityRemediated =
     securityRemediatedDockerfileHashes.has(
       manifest.repositorySource.dockerfileSha256,
     )
-  const provenanceLockIsSecurityRemediated =
-    manifest.repositorySource.sourceProvenanceLockSha256 ===
-      SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256
+  const provenanceLockIsSecurityRemediated = new Set<string>([
+    SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256,
+    IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256,
+  ]).has(manifest.repositorySource.sourceProvenanceLockSha256)
+  const importlibResourcesProfileSelected =
+    manifest.repositorySource.dockerfileSha256 ===
+      VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256
+    || manifest.repositorySource.sourceProvenanceLockSha256 ===
+      IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256
+    || manifest.repositorySource.importlibResourcesPatchSha256 !== undefined
+  if (
+    canonical && importlibResourcesProfileSelected && (
+      manifest.repositorySource.dockerfileSha256 !==
+        VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256
+      || manifest.repositorySource.sourceProvenanceLockSha256 !==
+        IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256
+      || manifest.repositorySource.importlibResourcesPatchSha256 !==
+        IMPORTLIB_RESOURCES_PATCH_SHA256
+    )
+  ) throw new Error('Qualification capsule importlib profile crossed.')
   const securityRemediated = canonical && dockerfileIsSecurityRemediated
     && provenanceLockIsSecurityRemediated
   if (
@@ -763,6 +799,7 @@ function isAllowedEntry(path: string): boolean {
     'docker/prod/gpu-worker/sam3_1/qualification_entrypoint.sh',
     'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
+    'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch',
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,

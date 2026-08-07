@@ -14,3 +14,4 @@
 !source-provenance.lock
 !patches/
 !patches/0001-reeditpro-gpu-decode.patch
+!patches/0002-weeditpro-importlib-resources.patch

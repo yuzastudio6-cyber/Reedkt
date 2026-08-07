@@ -197,6 +197,10 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
     byteLength: build.coordinate.byteLength,
     sha256: build.coordinate.sha256,
   }
+  const importlibResourcesPatchSha256 = optionalEntryHash(
+    build,
+    '0002-weeditpro-importlib-resources.patch',
+  )
   const manifest = createCanonicalSam31QualificationImageCapsuleManifest({
     evidenceClass: 'canonical_private_reread',
     status: 'private_capsule_verified',
@@ -230,6 +234,9 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
       sourceProvenanceLockSha256: entryHash(build, 'source-provenance.lock'),
       gpuDecodePatchSha256:
         'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
+      ...(importlibResourcesPatchSha256
+        ? { importlibResourcesPatchSha256 }
+        : {}),
     },
     privateInput: {
       directoryName: 'sam31_private_build_input',
@@ -379,6 +386,20 @@ function entryHash(
     throw new Error(`SAM 3.1 qualification entry ${suffix} is not unique.`)
   }
   return matches[0].sha256
+}
+
+function optionalEntryHash(
+  build: Awaited<ReturnType<
+    typeof rereadCanonicalSam31QualificationCapsuleBuildEvidence
+  >>,
+  suffix: string,
+): string | undefined {
+  const matches = build.builderResult.archiveEntries.filter((entry) =>
+    entry.path.endsWith(`/${suffix}`))
+  if (matches.length > 1) {
+    throw new Error(`SAM 3.1 qualification entry ${suffix} is not unique.`)
+  }
+  return matches[0]?.sha256
 }
 
 function buildRef(commit: string, fileSha256: string) {

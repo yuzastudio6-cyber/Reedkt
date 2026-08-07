@@ -48,6 +48,7 @@ for (const expected of [
   'qualification_entrypoint.sh',
   'source-provenance.lock',
   '0001-reeditpro-gpu-decode.patch',
+  '0002-weeditpro-importlib-resources.patch',
   'build-qualification-capsule.sh',
   'private-staging/sam3-source.tar',
   'private-dependency-closure/dependency-closure',
@@ -119,6 +120,7 @@ for (const expected of [
   '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a',
   'b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb',
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
+  '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f',
   'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
   '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992',
   '69c1468de02b2951a3c9755a76b8246b83fbf4d8f137fd1e843767a76c344ae7',
@@ -283,6 +285,7 @@ for (const expected of [
   '!cloudbuild.qualification-pycocotools-ingest.yaml',
   '!source-provenance.lock',
   '!patches/0001-reeditpro-gpu-decode.patch',
+  '!patches/0002-weeditpro-importlib-resources.patch',
 ] as const) assert.ok(gcloudIgnore.includes(expected), `.gcloudignore lost ${expected}`)
 assert.doesNotMatch(gcloudIgnore, /!Dockerfile\.candidate|!runner\.py|!entrypoint\.sh/u)
 
@@ -316,8 +319,12 @@ for (const expected of [
   'libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
   'libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
   "dpkg-query --showformat='${Version}' --show openssl",
-  'python -m pip uninstall --yes pillow urllib3 wheel',
-  'dpkg --purge python3-pip python3-wheel',
+  'pillow setuptools urllib3 wheel',
+  'python3-pip python3-wheel python3-setuptools python3-pkg-resources',
+  "find_spec('setuptools') is None",
+  "find_spec('pkg_resources') is None",
+  'from importlib.resources import files',
+  '9590d6a90c96ad632e7a646ba0e65508bcaf1cfeb0fbc3ad90fcc3f26614b76c',
   "m.version('pillow') == '12.3.0'",
   "m.version('urllib3') == '2.7.0'",
   '/opt/weeditpro/cuda-npp/lib',
@@ -341,7 +348,7 @@ assert.doesNotMatch(candidate, /(?:apt-get|curl |wget )/u)
 assert.doesNotMatch(candidate, /urllib3-2\.6\.3|pillow-12\.0|wheel-0\.45\.1/iu)
 assert.equal((candidate.match(/^RUN --network=none /gmu) ?? []).length, 0)
 assert.equal((candidate.match(/^RUN /gmu) ?? []).length, 3)
-assert.doesNotMatch(candidate, /--break-system-packages/u)
+assert.match(candidate, /--break-system-packages/u)
 assert.match(
   qualificationEntrypoint,
   /exec \/opt\/weeditpro\/python-venv\/bin\/python[\s\\]+-I -B/u,
@@ -431,7 +438,8 @@ console.log(JSON.stringify({
   cpuVideoDecodeFallbackAllowed: false,
   runtimeDependencyResolutionAllowed: false,
   runtimeNetworkAllowed: false,
-  pep668BypassAllowed: false,
+  pep668DependencyInstallBypassAllowed: false,
+  pep668UninstallOverrideBoundedToInheritedPackageRemoval: true,
   isolatedImmutablePythonEnvironmentRequired: true,
   checkpointIncluded: false,
   developerMachineInstallPerformed: false,

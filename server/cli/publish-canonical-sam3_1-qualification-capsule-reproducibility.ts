@@ -71,6 +71,12 @@ const targets = {
     primaryBuildId: 'c0be5124-c29d-483b-9d8e-c2f0847f38cc',
     confirmationBuildId: '5ae87019-d6d1-4f26-b9a5-d027374b97cf',
   },
+  native_library_closure_corrected: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-native-library-closure-corrected-20260807',
+    primaryBuildId: '313c8b75-4aae-4a31-a0ed-df1807013295',
+    confirmationBuildId: '18ae1a26-172b-481f-8c73-a15dbb82aab8',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -83,6 +89,7 @@ const targetName = z.enum([
   'einops_offline_source_identity_corrected',
   'pycocotools_offline_source_identity_corrected',
   'cuda_torchvision_identity_corrected',
+  'native_library_closure_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

@@ -65,6 +65,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-qualification-image-pycocotools-offline-successor-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-image-cuda-torchvision-identity-successor-smoke.ts',
   'server/smoke/canonical-sam3_1-native-library-closure-smoke.ts',
+  'server/smoke/canonical-sam3_1-qualification-image-native-library-closure-successor-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts',
   'server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-a100-qualification-foundation-repository-smoke.ts',

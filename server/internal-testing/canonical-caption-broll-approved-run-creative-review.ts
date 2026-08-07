@@ -34,6 +34,10 @@ import {
   createCaptionRemotionBrollOwnerApprovedRunReviewSpec,
 } from '../captions-specialist/caption-remotion-broll-owner-approved-run-review'
 import {
+  buildCaptionRemotionBrollOwnerApprovedRunExactFrameRequest,
+  createCaptionRemotionBrollOwnerApprovedRunExactFrameReview,
+} from '../captions-specialist/caption-remotion-broll-owner-approved-run-exact-frame-review'
+import {
   parseBrollCaptionOwnerReadResult,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
 import {
@@ -240,6 +244,16 @@ export function buildCanonicalCaptionBrollApprovedRunCreativeReview(
     reviewSpecId: `${input.reviewIdSeed}.reduced`,
     reducedMotion: true,
   })
+  const fullExactFrameReview =
+    createCaptionRemotionBrollOwnerApprovedRunExactFrameReview({
+      exactFrameReviewId: `${input.reviewIdSeed}.full.exact-frame`,
+      sourceReviewSpec: fullSpec,
+    })
+  const reducedExactFrameReview =
+    createCaptionRemotionBrollOwnerApprovedRunExactFrameReview({
+      exactFrameReviewId: `${input.reviewIdSeed}.reduced.exact-frame`,
+      sourceReviewSpec: reducedSpec,
+    })
   return Object.freeze({
     schemaVersion:
       CANONICAL_CAPTION_BROLL_APPROVED_RUN_CREATIVE_REVIEW_VERSION,
@@ -257,6 +271,22 @@ export function buildCanonicalCaptionBrollApprovedRunCreativeReview(
       ownerResult,
       remotionProxyBytes: input.remotionProxyBytes,
     }),
+    fullExactFrameReview,
+    reducedExactFrameReview,
+    fullExactFrameRequest:
+      buildCaptionRemotionBrollOwnerApprovedRunExactFrameRequest({
+        exactFrameReview: fullExactFrameReview,
+        sourceReviewSpec: fullSpec,
+        ownerResult,
+        remotionProxyBytes: input.remotionProxyBytes,
+      }),
+    reducedExactFrameRequest:
+      buildCaptionRemotionBrollOwnerApprovedRunExactFrameRequest({
+        exactFrameReview: reducedExactFrameReview,
+        sourceReviewSpec: reducedSpec,
+        ownerResult,
+        remotionProxyBytes: input.remotionProxyBytes,
+      }),
     exactApprovedRunAuthorityConsumed: true as const,
     exactOwnerResultConsumed: true as const,
     exactCanonicalTranscriptConsumed: true as const,

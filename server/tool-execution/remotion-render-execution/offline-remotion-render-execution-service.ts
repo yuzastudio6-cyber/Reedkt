@@ -13,6 +13,7 @@ import {
   type OfflineRemotionContainerStreamingOutputSink,
 } from './offline-remotion-render-docker-runtime'
 import {
+  isCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload,
   isCaptionBrollOwnerApprovedRunSceneGroupPayload,
   isCaptionBrollOwnerRealSourceSceneGroupPayload,
   isCaptionCreativeSceneGroupPayload,
@@ -342,6 +343,8 @@ async function executeWithImage(image: OfflineRemotionImageEvidence, value: unkn
   const expectedFrames = isMotionStudioRouteDrawPayload(request.payload)
     ? [0, 45, 90, 135, 179]
     : isCaptionBrollOwnerApprovedRunSceneGroupPayload(request.payload)
+      || isCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload(
+        request.payload)
       || isCaptionBrollOwnerRealSourceSceneGroupPayload(request.payload)
       || isCaptionRealSourceSceneGroupPayload(request.payload)
       || isCaptionRealSourceMultiOutputSceneGroupPayload(request.payload)

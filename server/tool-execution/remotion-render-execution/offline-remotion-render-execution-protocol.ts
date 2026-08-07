@@ -482,6 +482,21 @@ extends CommonCompositionPayload {
   layers: CaptionRemotionLayer[]
 }
 
+export type OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload =
+  Omit<OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload,
+    | 'compositionProfileId'
+    | 'width'
+    | 'height'
+    | 'privateReviewScaleNumerator'
+    | 'privateReviewScaleDenominator'> & {
+    compositionProfileId:
+      'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+    width: 3840
+    height: 2160
+    privateReviewScaleNumerator: 1
+    privateReviewScaleDenominator: 1
+  }
+
 export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority, OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_caption_final_v1'
   sourceStartFrame: number
@@ -725,6 +740,10 @@ export type OfflineRemotionRenderRequest = {
   | { payload: OfflineRemotionCaptionRealSourceMultiOutputSceneGroupPayload }
   | { payload: OfflineRemotionCaptionBrollOwnerRealSourceSceneGroupPayload }
   | { payload: OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload }
+  | {
+    payload:
+      OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload
+  }
 )
 
 export type OfflineRemotionRenderPlanningPayload = OfflineRemotionPreviewPlanningPayload
@@ -746,7 +765,8 @@ export function validateOfflineRemotionRenderPlanningPayload(value: unknown): Of
     isCaptionRealSourceSceneGroupPayload(request.payload) ||
     isCaptionRealSourceMultiOutputSceneGroupPayload(request.payload) ||
     isCaptionBrollOwnerRealSourceSceneGroupPayload(request.payload) ||
-    isCaptionBrollOwnerApprovedRunSceneGroupPayload(request.payload)
+    isCaptionBrollOwnerApprovedRunSceneGroupPayload(request.payload) ||
+    isCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload(request.payload)
   ) {
     throw validationFailure('Preview planning cannot contain final-composition source bytes.')
   }
@@ -1512,7 +1532,11 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
   if (payloadRecord.compositionProfileId ===
-    'caption_direction_broll_owner_approved_run_scene_group_v5') {
+      'caption_direction_broll_owner_approved_run_scene_group_v5'
+    || payloadRecord.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6') {
+    const exactFrame = payloadRecord.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
     const payload = exactRecord(payloadRecord, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
@@ -1572,13 +1596,15 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       'Caption approved-run B-roll normalized source frame count',
     )
     if (
-      common.width !== 640 || common.height !== 360 || common.fps !== 30
+      common.width !== (exactFrame ? 3_840 : 640)
+      || common.height !== (exactFrame ? 2_160 : 360)
+      || common.fps !== 30
       || payload.confirmedOutputWidth !== 3_840
       || payload.confirmedOutputHeight !== 2_160
       || payload.confirmedAspectRatioNumerator !== 16
       || payload.confirmedAspectRatioDenominator !== 9
       || payload.privateReviewScaleNumerator !== 1
-      || payload.privateReviewScaleDenominator !== 6
+      || payload.privateReviewScaleDenominator !== (exactFrame ? 1 : 6)
       || typeof payload.reducedMotion !== 'boolean'
       || payload.subjectMaskFixturePolicy !== 'none'
       || payload.backgroundStyle !== 'broll_owner_real_source_full_frame_v1'
@@ -1733,11 +1759,13 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       )
     }
     const normalizedPayload:
-    OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload = {
-      compositionProfileId:
-        'caption_direction_broll_owner_approved_run_scene_group_v5',
-      width: 640,
-      height: 360,
+    OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload
+    | OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload = {
+      compositionProfileId: exactFrame
+        ? 'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+        : 'caption_direction_broll_owner_approved_run_scene_group_v5',
+      width: exactFrame ? 3_840 : 640,
+      height: exactFrame ? 2_160 : 360,
       fps: 30,
       durationFrames: common.durationFrames,
       sceneGroupId: normalizedCreative.payload.sceneGroupId,
@@ -1751,7 +1779,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       confirmedAspectRatioNumerator: 16,
       confirmedAspectRatioDenominator: 9,
       privateReviewScaleNumerator: 1,
-      privateReviewScaleDenominator: 6,
+      privateReviewScaleDenominator: exactFrame ? 1 : 6,
       reducedMotion: normalizedCreative.payload.reducedMotion,
       subjectMaskFixturePolicy: 'none',
       backgroundStyle: 'broll_owner_real_source_full_frame_v1',
@@ -3197,6 +3225,15 @@ export function isCaptionBrollOwnerApprovedRunSceneGroupPayload(
   return 'compositionProfileId' in payload
     && payload.compositionProfileId ===
       'caption_direction_broll_owner_approved_run_scene_group_v5'
+}
+
+export function isCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is
+OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload {
+  return 'compositionProfileId' in payload
+    && payload.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
 }
 
 export function offlineRemotionRequestSha256(request: OfflineRemotionRenderRequest): string {

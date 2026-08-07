@@ -145,6 +145,9 @@ const requestedPrivateSourceSha256 =
 const requestedReviewedPreviewSha256 =
   process.env.REEDITPRO_CAPTION_BROLL_APPROVED_REVIEWED_PREVIEW_SHA256?.trim()
     ?? ''
+const requestedExactFrameReview =
+  process.env.REEDITPRO_CAPTION_BROLL_APPROVED_EXACT_FRAME_REVIEW?.trim()
+    === '1'
 const realPrivateExecution = requestedEvidenceRoot.length > 0 ||
   requestedPrivateSourcePath.length > 0 ||
   requestedPrivateSourceSha256.length > 0
@@ -163,6 +166,12 @@ if (requestedReviewedPreviewSha256.length > 0 && (
 )) {
   throw new Error(
     'The accepted B-roll preview must be one exact SHA-256 from this private approved run.',
+  )
+}
+if (requestedExactFrameReview
+  && requestedReviewedPreviewSha256.length === 0) {
+  throw new Error(
+    'Exact-frame Caption review requires the accepted preview from the same approved run.',
   )
 }
 const root = realPrivateExecution
@@ -909,6 +918,7 @@ try {
           baselineInspection: emittedInspectionPackage,
           acceptedPreviewSha256: requestedReviewedPreviewSha256,
           captionOverlaySha256: captionOverlaySha256!,
+          renderExactConfirmedFrame: requestedExactFrameReview,
         })
       : null
 
@@ -950,13 +960,27 @@ try {
     professionalCreativeReviewRendered:
       creativeReviewInspectionPackage !== null,
     professionalCreativeReviewInspectionPackageSha256:
-      creativeReviewInspectionPackage?.packageSha256 ?? null,
+      creativeReviewInspectionPackage?.proxy.packageSha256 ?? null,
     professionalCreativeReviewInspectionPackagePath:
       creativeReviewInspectionPackage === null
         ? null
         : join(
             root,
             'caption-broll-approved-professional-review',
+            'inspection-package.json',
+          ),
+    exactFrameCreativeReviewRendered:
+      creativeReviewInspectionPackage?.exactFrame !== null
+      && creativeReviewInspectionPackage?.exactFrame !== undefined,
+    exactFrameCreativeReviewInspectionPackageSha256:
+      creativeReviewInspectionPackage?.exactFrame?.packageSha256 ?? null,
+    exactFrameCreativeReviewInspectionPackagePath:
+      creativeReviewInspectionPackage?.exactFrame === null
+      || creativeReviewInspectionPackage?.exactFrame === undefined
+        ? null
+        : join(
+            root,
+            'caption-broll-approved-exact-frame-review',
             'inspection-package.json',
           ),
     providerCalled: false,
@@ -1096,6 +1120,55 @@ interface ApprovedRunCreativeReviewInspectionPackage {
   readonly packageSha256: string
 }
 
+interface ApprovedRunExactFrameReviewInspectionPackage {
+  readonly schemaVersion:
+    'caption-broll-approved-run-exact-frame-review-inspection-package-v1'
+  readonly sourceProxyReviewPackageRef: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+  }
+  readonly confirmedOutputFrame: {
+    readonly width: 3840
+    readonly height: 2160
+    readonly fps: 30
+    readonly exactConfirmedFrameRendered: true
+  }
+  readonly sourceProxyFrame: {
+    readonly width: 640
+    readonly height: 360
+    readonly sourceProxyUpscaleRequired: true
+    readonly sourceProxyAcceptedAsFinalPictureQuality: false
+  }
+  readonly outputs: readonly {
+    readonly motionVariant: 'full_motion' | 'reduced_motion'
+    readonly fileName: string
+    readonly sha256: string
+    readonly byteLength: number
+    readonly width: 3840
+    readonly height: 2160
+    readonly fps: 30
+    readonly durationFrames: number
+    readonly exactFrameReviewDigestSha256: string
+    readonly sampleFrames: readonly {
+      readonly frameIndex: number
+      readonly fileName: string
+      readonly sha256: string
+    }[]
+  }[]
+  readonly exactApprovedRunReread: true
+  readonly exactConfirmedFrameMatchesApprovedRun: true
+  readonly typographyAndLayoutEvaluatedAtConfirmedFrame: true
+  readonly directRasterInspectionRequired: true
+  readonly directRasterInspectionCompleted: false
+  readonly sourceQualityQualificationClaimed: false
+  readonly finalCustomerCanvasClaimed: false
+  readonly finalQaApprovalGranted: false
+  readonly publicDeliveryGranted: false
+  readonly productionAuthorityGranted: false
+  readonly packageSha256: string
+}
+
 function requiredRemotionRuntime(
   runtime: PrivateOfflineRemotionRenderRuntime | null,
 ): PrivateOfflineRemotionRenderRuntime {
@@ -1117,7 +1190,11 @@ async function createApprovedRunCreativeReviewInspectionPackage(input: {
   baselineInspection: ApprovedExecutionInspectionPackage
   acceptedPreviewSha256: string
   captionOverlaySha256: string
-}): Promise<ApprovedRunCreativeReviewInspectionPackage> {
+  renderExactConfirmedFrame: boolean
+}): Promise<{
+  proxy: ApprovedRunCreativeReviewInspectionPackage
+  exactFrame: ApprovedRunExactFrameReviewInspectionPackage | null
+}> {
   if (input.acceptedPreviewSha256 !==
       input.baselineInspection.previewSha256) {
     throw new Error(
@@ -1392,6 +1469,138 @@ async function createApprovedRunCreativeReviewInspectionPackage(input: {
     join(inspectionRoot, 'inspection-package.json'),
     Buffer.from(`${JSON.stringify(inspectionPackage, null, 2)}\n`),
   )
+  const exactFrame = input.renderExactConfirmedFrame
+    ? await createApprovedRunExactFrameReviewInspectionPackage({
+        root: input.root,
+        remotionRuntime: input.remotionRuntime,
+        creativeReview,
+        proxyInspectionPackage: inspectionPackage,
+      })
+    : null
+  return Object.freeze({ proxy: inspectionPackage, exactFrame })
+}
+
+async function createApprovedRunExactFrameReviewInspectionPackage(input: {
+  root: string
+  remotionRuntime: PrivateOfflineRemotionRenderRuntime
+  creativeReview: ReturnType<
+    typeof buildCanonicalCaptionBrollApprovedRunCreativeReview>
+  proxyInspectionPackage: ApprovedRunCreativeReviewInspectionPackage
+}): Promise<ApprovedRunExactFrameReviewInspectionPackage> {
+  const inspectionRoot = join(
+    input.root,
+    'caption-broll-approved-exact-frame-review',
+  )
+  await mkdir(inspectionRoot, { recursive: true, mode: 0o700 })
+  const outputs = [] as Array<
+    ApprovedRunExactFrameReviewInspectionPackage['outputs'][number]
+  >
+  for (const variant of [
+    {
+      motionVariant: 'full_motion' as const,
+      exactFrameReview: input.creativeReview.fullExactFrameReview,
+      request: input.creativeReview.fullExactFrameRequest,
+    },
+    {
+      motionVariant: 'reduced_motion' as const,
+      exactFrameReview: input.creativeReview.reducedExactFrameReview,
+      request: input.creativeReview.reducedExactFrameRequest,
+    },
+  ]) {
+    const result = await input.remotionRuntime.execute(variant.request)
+    assertApprovedRunCreativeRender({
+      result,
+      expectedFrames: variant.exactFrameReview.inspectionFrameNumbers,
+      expectedDurationFrames: variant.exactFrameReview.durationFrames,
+      expectedWidth: 3_840,
+      expectedHeight: 2_160,
+    })
+    const prefix = variant.motionVariant === 'full_motion'
+      ? 'full-motion-exact-frame'
+      : 'reduced-motion-exact-frame'
+    const fileName = `${prefix}.mp4`
+    await writeCreateOnlyOrExactReplay(
+      join(inspectionRoot, fileName),
+      result.artifact.bytes,
+    )
+    await writeCreateOnlyOrExactReplay(
+      join(inspectionRoot, `${prefix}-binding.json`),
+      Buffer.from(
+        `${JSON.stringify(variant.exactFrameReview, null, 2)}\n`),
+    )
+    const sampleFrames = [] as Array<{
+      frameIndex: number
+      fileName: string
+      sha256: string
+    }>
+    for (const frame of result.frameArtifacts) {
+      const frameFileName =
+        `${prefix}-frame-${String(frame.frame).padStart(3, '0')}.png`
+      await writeCreateOnlyOrExactReplay(
+        join(inspectionRoot, frameFileName),
+        frame.bytes,
+      )
+      sampleFrames.push({
+        frameIndex: frame.frame,
+        fileName: frameFileName,
+        sha256: frame.sha256,
+      })
+    }
+    outputs.push(Object.freeze({
+      motionVariant: variant.motionVariant,
+      fileName,
+      sha256: result.artifact.sha256,
+      byteLength: result.artifact.byteLength,
+      width: 3_840 as const,
+      height: 2_160 as const,
+      fps: 30 as const,
+      durationFrames: result.artifact.durationFrames,
+      exactFrameReviewDigestSha256:
+        variant.exactFrameReview.exactFrameReviewDigestSha256,
+      sampleFrames: Object.freeze(sampleFrames),
+    }))
+  }
+  const withoutDigest = {
+    schemaVersion:
+      'caption-broll-approved-run-exact-frame-review-inspection-package-v1' as const,
+    sourceProxyReviewPackageRef: {
+      id: 'caption-broll-approved-run-professional-review',
+      version:
+        input.proxyInspectionPackage.schemaVersion,
+      contentHash: input.proxyInspectionPackage.packageSha256,
+    },
+    confirmedOutputFrame: {
+      width: 3_840 as const,
+      height: 2_160 as const,
+      fps: 30 as const,
+      exactConfirmedFrameRendered: true as const,
+    },
+    sourceProxyFrame: {
+      width: 640 as const,
+      height: 360 as const,
+      sourceProxyUpscaleRequired: true as const,
+      sourceProxyAcceptedAsFinalPictureQuality: false as const,
+    },
+    outputs: Object.freeze(outputs),
+    exactApprovedRunReread: true as const,
+    exactConfirmedFrameMatchesApprovedRun: true as const,
+    typographyAndLayoutEvaluatedAtConfirmedFrame: true as const,
+    directRasterInspectionRequired: true as const,
+    directRasterInspectionCompleted: false as const,
+    sourceQualityQualificationClaimed: false as const,
+    finalCustomerCanvasClaimed: false as const,
+    finalQaApprovalGranted: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  const inspectionPackage = Object.freeze({
+    ...withoutDigest,
+    packageSha256: sha256(Buffer.from(JSON.stringify(withoutDigest))),
+  })
+  await writeCreateOnlyOrExactReplay(
+    join(inspectionRoot, 'inspection-package.json'),
+    Buffer.from(`${JSON.stringify(inspectionPackage, null, 2)}\n`),
+  )
   return inspectionPackage
 }
 
@@ -1467,12 +1676,16 @@ function assertApprovedRunCreativeRender(input: {
   result: OfflineRemotionRenderResult
   expectedFrames: readonly number[]
   expectedDurationFrames: number
+  expectedWidth?: 640 | 3840
+  expectedHeight?: 360 | 2160
 }): void {
   const result = input.result
   const semantic = result.evidence.semanticEvidence
+  const expectedWidth = input.expectedWidth ?? 640
+  const expectedHeight = input.expectedHeight ?? 360
   if (result.artifact.mimeType !== 'video/mp4'
-    || result.artifact.width !== 640
-    || result.artifact.height !== 360
+    || result.artifact.width !== expectedWidth
+    || result.artifact.height !== expectedHeight
     || result.artifact.fps !== 30
     || result.artifact.durationFrames !== input.expectedDurationFrames
     || JSON.stringify(result.frameArtifacts.map((frame) => frame.frame))
@@ -1490,6 +1703,8 @@ function assertApprovedRunCreativeRender(input: {
     || !semantic.brollFullFrameCutawayCompositionApplied
     || !semantic.requestedMotionVariantApplied
     || !semantic.frameGoldenArtifactsProduced
+    || (expectedWidth === 3_840
+      && !semantic.exactConfirmedOutputFrameRendered)
     || result.readiness.productReady
     || result.readiness.productionReady) {
     throw new Error(

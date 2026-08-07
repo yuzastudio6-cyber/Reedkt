@@ -41,6 +41,9 @@ import {
   verifyCanonicalSourceLedContentAnalysisEvidence,
 } from '../services/canonical-source-led-content-analysis-evidence'
 import {
+  validateOfflineRemotionRenderRequest,
+} from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
+import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import {
@@ -605,6 +608,23 @@ async function run(): Promise<void> {
     && built.fullRequest.payload.approvedSnapshotDigestSha256
       === ownerResult.canonicalScope.approvedSnapshotRef.contentHash,
   'The render request must bind exact proxy bytes and immutable snapshot.')
+  check(built.fullExactFrameRequest.payload.width === 3_840
+    && built.fullExactFrameRequest.payload.height === 2_160
+    && built.fullExactFrameRequest.payload.privateReviewScaleNumerator === 1
+    && built.fullExactFrameRequest.payload.privateReviewScaleDenominator === 1
+    && built.reducedExactFrameRequest.payload.reducedMotion
+    && built.fullExactFrameReview.typographyAndLayoutEvaluatedAtConfirmedFrame
+    && !built.fullExactFrameReview.sourceQualityQualificationClaimed
+    && !built.fullExactFrameReview.finalCustomerCanvasClaimed,
+  'The additive V6 lane must render exact confirmed-frame typography without promoting the review proxy to final picture quality.')
+  check(built.fullRequest.payload.width === 640
+    && built.fullRequest.payload.height === 360
+    && built.fullRequest.payload.privateReviewScaleDenominator === 6,
+  'The frozen V5 bounded review profile must remain unchanged.')
+  const forgedExactFrame = structuredClone(built.fullExactFrameRequest)
+  forgedExactFrame.payload.width = 640 as 3840
+  expectThrow(() => validateOfflineRemotionRenderRequest(forgedExactFrame),
+    /frame|policy|unsupported/iu)
   check(built.exactApprovedRunAuthorityConsumed
     && !built.directPeerDispatchPerformed
     && !built.finalCanvasAuthorityGranted
@@ -703,6 +723,7 @@ async function run(): Promise<void> {
     exactCanonicalTranscriptConsumed: true,
     exactBrollOwnerEvidenceConsumed: true,
     fullAndReducedRequestsBuilt: true,
+    exactConfirmedFrameRequestsBuilt: true,
     runtimeExecuted: false,
     finalCanvasAuthorityGranted: false,
     finalQaApprovalGranted: false,

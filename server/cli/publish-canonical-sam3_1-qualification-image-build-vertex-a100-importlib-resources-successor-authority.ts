@@ -20,7 +20,7 @@ const EXPECTED_SOURCE_PROVENANCE_LOCK_SHA256 =
 const EXPECTED_IMPORTLIB_RESOURCES_PATCH_SHA256 =
   '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f'
 const predecessorTerminalRef = {
-  id: 'sam31-qualification-image-terminal-177a6ccc87418c0551e',
+  id: 'sam31-qualification-image-terminal-177a6ccc87418c0551e3',
   version: 1 as const,
   contentHash:
     'sha256:177a6ccc87418c0551e36832c9cb980f928ab0e49f9253b87b9f304f52778d97' as const,

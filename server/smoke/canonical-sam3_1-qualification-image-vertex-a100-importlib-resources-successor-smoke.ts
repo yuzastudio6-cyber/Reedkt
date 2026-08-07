@@ -29,7 +29,7 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
 
 for (const source of [publication, start] as const) {
   for (const expected of [
-    'sam31-qualification-image-terminal-177a6ccc87418c0551e',
+    'sam31-qualification-image-terminal-177a6ccc87418c0551e3',
     'sha256:177a6ccc87418c0551e36832c9cb980f928ab0e49f9253b87b9f304f52778d97',
     '9eec8c96-b64b-45b3-8842-6f4040efd089',
     'sam31-qualification-image-build-vertex-a100-importlib-resources-successor-16',

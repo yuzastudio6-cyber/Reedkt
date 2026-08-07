@@ -10,6 +10,8 @@ export interface MediaProbeSummary {
   durationSeconds?: number
   width?: number
   height?: number
+  frameRateNumerator?: number
+  frameRateDenominator?: number
   videoCodec?: string
   audioCodec?: string
   audioSampleRateHertz?: number
@@ -72,11 +74,17 @@ async function parseFFprobeJson(stdout: string, inputPath: string): Promise<Medi
   const formatSize = typeof data.format?.size === 'string' ? Number(data.format.size) : undefined
   const fallbackStat = await stat(inputPath).catch(() => undefined)
   const formatName = typeof data.format?.format_name === 'string' ? data.format.format_name : undefined
+  const frameRate = resolveFfprobeFrameRate(
+    videoStream?.avg_frame_rate,
+    videoStream?.r_frame_rate,
+  )
 
   return {
     durationSeconds: Number.isFinite(duration) ? duration : undefined,
     width: typeof videoStream?.width === 'number' ? videoStream.width : undefined,
     height: typeof videoStream?.height === 'number' ? videoStream.height : undefined,
+    frameRateNumerator: frameRate?.frameRateNumerator,
+    frameRateDenominator: frameRate?.frameRateDenominator,
     videoCodec: typeof videoStream?.codec_name === 'string' ? videoStream.codec_name : undefined,
     audioCodec: typeof audioStream?.codec_name === 'string' ? audioStream.codec_name : undefined,
     audioSampleRateHertz: typeof audioStream?.sample_rate === 'string' && Number.isInteger(Number(audioStream.sample_rate))
@@ -103,6 +111,45 @@ async function parseFFprobeJson(stdout: string, inputPath: string): Promise<Medi
         .slice(0, 8),
     },
   }
+}
+
+export function resolveFfprobeFrameRate(
+  averageFrameRate: unknown,
+  nominalFrameRate: unknown,
+): Pick<MediaProbeSummary, 'frameRateNumerator' | 'frameRateDenominator'> | undefined {
+  return parseFfprobeFrameRate(averageFrameRate) ??
+    parseFfprobeFrameRate(nominalFrameRate)
+}
+
+function parseFfprobeFrameRate(
+  value: unknown,
+): Pick<MediaProbeSummary, 'frameRateNumerator' | 'frameRateDenominator'> | undefined {
+  if (typeof value !== 'string' || !/^\d+(?:\/\d+)?$/u.test(value)) {
+    return undefined
+  }
+  const [rawNumerator, rawDenominator = '1'] = value.split('/')
+  const numerator = Number(rawNumerator)
+  const denominator = Number(rawDenominator)
+  if (
+    !Number.isSafeInteger(numerator) || numerator <= 0 ||
+    !Number.isSafeInteger(denominator) || denominator <= 0
+  ) return undefined
+  const divisor = greatestCommonDivisor(numerator, denominator)
+  return {
+    frameRateNumerator: numerator / divisor,
+    frameRateDenominator: denominator / divisor,
+  }
+}
+
+function greatestCommonDivisor(left: number, right: number): number {
+  let dividend = left
+  let divisor = right
+  while (divisor !== 0) {
+    const remainder = dividend % divisor
+    dividend = divisor
+    divisor = remainder
+  }
+  return dividend
 }
 
 function numericField(value: unknown): number | undefined {

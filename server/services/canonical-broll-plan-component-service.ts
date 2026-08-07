@@ -6,6 +6,11 @@ import {
 } from '../edit-skills/b-roll/b-roll-canonical-plan-component'
 import type { BrollPlanningContext, BrollPlanArtifact, BrollSkillAssignment } from '../edit-skills/b-roll/b-roll-contracts'
 import {
+  assertCanonicalBrollMasterTimingProjectionBinding,
+  type CanonicalBrollMasterTimingProjectionBinding,
+  type CanonicalBrollTimingSummary,
+} from '../edit-skills/b-roll/b-roll-master-timing-projection-binding'
+import {
   brollPlanningQaReportSchema,
   type BrollPlanningQaReport,
 } from '../edit-skills/b-roll/b-roll-planning-qa'
@@ -162,6 +167,9 @@ function normalizeComparableWorkItem(
 export async function revalidateCanonicalBrollPlanAuthority(input: {
   localStorageRoot: string
   component?: CanonicalBrollSkillPlanComponent
+  masterTimingBinding?: CanonicalBrollMasterTimingProjectionBinding
+  canonicalMasterTimingPlan?: Record<string, unknown>
+  canonicalTimingSummary?: CanonicalBrollTimingSummary
   canonicalWorkItems: CanonicalBrollComparableWorkItem[]
 }): Promise<{
   assignment?: BrollSkillAssignment
@@ -175,7 +183,7 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     .filter(isBrollProjectedWorkItem)
     .map(normalizeComparableWorkItem)
   if (!input.component) {
-    if (projectedItems.length > 0) {
+    if (projectedItems.length > 0 || input.masterTimingBinding) {
       throw new Error('Canonical B-roll work items require an immutable B-roll plan component.')
     }
     return {}
@@ -206,6 +214,19 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
     'assignmentHash',
     'assignment',
   ) as unknown as BrollSkillAssignment
+  if (input.masterTimingBinding) {
+    if (!input.canonicalMasterTimingPlan || !input.canonicalTimingSummary) {
+      throw new Error(
+        'Canonical B-roll MasterTiming binding requires the exact canonical timing authorities.',
+      )
+    }
+    assertCanonicalBrollMasterTimingProjectionBinding({
+      binding: input.masterTimingBinding,
+      canonicalMasterTimingPlan: input.canonicalMasterTimingPlan,
+      canonicalTimingSummary: input.canonicalTimingSummary,
+      assignment,
+    })
+  }
   const context = assertHashedArtifact(
     brollPlanningContextSchema.parse(rawContext) as unknown as Record<string, unknown>,
     'contextHash',

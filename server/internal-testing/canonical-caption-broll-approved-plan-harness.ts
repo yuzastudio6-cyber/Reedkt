@@ -7,6 +7,7 @@ import {
   compileBrollCanonicalWorkGraph,
   createBrollAssignment,
   createBrollMasterTimingPlan,
+  createCanonicalBrollMasterTimingProjectionBinding,
   createBrollPlanningContext,
   createBrollPublicContextManifest,
   createBrollSourceInventory,
@@ -14,6 +15,7 @@ import {
   createSourceMediaArtifactV1,
   projectBrollCanonicalWorkItems,
   type BrollMasterTimingPlan,
+  type CanonicalBrollMasterTimingProjectionBinding,
   type BrollPlanningContext,
   type BrollSkillAssignment,
   type SourceMediaArtifactV1,
@@ -51,6 +53,13 @@ export interface CanonicalCaptionBrollApprovedPlanHarnessInput {
   readonly planningRequestId: string
   readonly assignmentId: string
   readonly editPlanVersion: number
+  readonly canonicalMasterTimingPlan: Record<string, unknown>
+  readonly canonicalTimingSummary: {
+    readonly validationStatus: 'passed' | 'warning'
+    readonly approvalBlocked: false
+    readonly fps: number
+    readonly totalFrames: number
+  }
   readonly timelineRange: SkillFrameRange
   readonly authorizedRange: SkillFrameRange
   readonly segmentIds: readonly string[]
@@ -61,6 +70,8 @@ export interface CanonicalCaptionBrollApprovedPlanHarnessInput {
     readonly objectSha256: string
     readonly byteLength: number
     readonly durationFrames: number
+    readonly frameRateNumerator: number
+    readonly frameRateDenominator: number
     readonly fps: number
     readonly width: number
     readonly height: number
@@ -72,6 +83,8 @@ export interface CanonicalCaptionBrollApprovedPlanHarnessResult {
   readonly harnessVersion:
     typeof CANONICAL_CAPTION_BROLL_APPROVED_PLAN_HARNESS_VERSION
   readonly masterTimingPlan: BrollMasterTimingPlan
+  readonly masterTimingBinding:
+    CanonicalBrollMasterTimingProjectionBinding
   readonly sourceManifest: SourceMediaArtifactV1
   readonly sourceManifestRef: EditSkillArtifactReference
   readonly assignment: SkillAssignment
@@ -144,7 +157,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     mimeType: 'video/mp4',
     container: 'mp4',
     durationFrames: input.source.durationFrames,
-    fps: input.source.fps,
+    fps: input.source.frameRateNumerator,
     width: input.source.width,
     height: input.source.height,
     provenanceVerified: true,
@@ -172,6 +185,18 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     timelineRange: input.timelineRange,
     assignmentRange: input.authorizedRange,
   })
+  const masterTimingBinding =
+    createCanonicalBrollMasterTimingProjectionBinding({
+      scope: {
+        ownerUserId: input.ownerUserId,
+        workspaceId: input.workspaceId,
+        projectId: input.projectId,
+        editSessionId: input.editSessionId,
+      },
+      canonicalMasterTimingPlan: input.canonicalMasterTimingPlan,
+      canonicalTimingSummary: input.canonicalTimingSummary,
+      brollTimingProjection: masterTimingPlan,
+    })
   const masterTimingRef = await artifactStore.putJson({
     artifactType: 'master_timing_plan_v1',
     ...scope,
@@ -385,6 +410,9 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
   const reread = await revalidateCanonicalBrollPlanAuthority({
     localStorageRoot: input.localStorageRoot,
     component: persistedComponent.component,
+    masterTimingBinding,
+    canonicalMasterTimingPlan: input.canonicalMasterTimingPlan,
+    canonicalTimingSummary: input.canonicalTimingSummary,
     canonicalWorkItems,
   })
   if (
@@ -408,6 +436,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
   return {
     harnessVersion: CANONICAL_CAPTION_BROLL_APPROVED_PLAN_HARNESS_VERSION,
     masterTimingPlan,
+    masterTimingBinding,
     sourceManifest,
     sourceManifestRef,
     assignment,
@@ -435,6 +464,8 @@ function assertInputTiming(
     input.timelineRange.fps !== input.authorizedRange.fps ||
     input.timelineRange.fps !== input.source.sourceRange.fps ||
     input.source.fps !== input.source.sourceRange.fps ||
+    input.source.frameRateDenominator !== 1 ||
+    input.source.frameRateNumerator !== input.source.fps ||
     input.authorizedRange.startFrameInclusive <
       input.timelineRange.startFrameInclusive ||
     input.authorizedRange.endFrameExclusive >

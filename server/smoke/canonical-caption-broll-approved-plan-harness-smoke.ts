@@ -29,6 +29,18 @@ try {
     planningRequestId: 'planning.caption-broll.approved-plan',
     assignmentId: 'assignment.caption-broll.approved-plan',
     editPlanVersion: 1,
+    canonicalMasterTimingPlan: {
+      schemaVersion: 'canonical-master-timing-smoke-v1',
+      masterTimingPlanId: 'master.caption-broll.approved-plan',
+      fps: 24,
+      totalFrames: 240,
+    },
+    canonicalTimingSummary: {
+      validationStatus: 'passed',
+      approvalBlocked: false,
+      fps: 24,
+      totalFrames: 240,
+    },
     timelineRange: {
       startFrameInclusive: 0,
       endFrameExclusive: 240,
@@ -47,6 +59,8 @@ try {
       objectSha256: '1'.repeat(64),
       byteLength: 1_024,
       durationFrames: 96,
+      frameRateNumerator: 24,
+      frameRateDenominator: 1,
       fps: 24,
       width: 320,
       height: 180,
@@ -64,7 +78,12 @@ try {
   'The internal qualification harness must expose one versioned identity.')
   check(result.masterTimingPlan.timingHash ===
     result.brollAssignment.masterTimingHash,
-  'The B-roll assignment must consume the exact canonical MasterTiming digest.')
+  'The B-roll assignment must consume its exact bounded timing projection.')
+  check(result.masterTimingBinding.brollTimingProjectionDigestSha256 ===
+    result.masterTimingPlan.timingHash
+    && result.masterTimingBinding
+      .canonicalMasterTimingRemainsSoleClockAuthority,
+  'The B-roll timing projection must bind to, and never replace, canonical MasterTiming.')
   check(result.sourceManifest.sourceId ===
     input.source.sourceSequenceItemId
     && result.sourceManifest.objectSha256 === input.source.objectSha256,
@@ -120,6 +139,19 @@ try {
           endFrameExclusive: 120,
           fps: 24,
         },
+      },
+    }),
+    /one exact contained timing/u,
+  )
+  checks += 1
+  await assert.rejects(
+    () => createCanonicalCaptionBrollApprovedPlanHarness({
+      ...input,
+      assignmentId: 'assignment.caption-broll.fractional-source-rate',
+      source: {
+        ...input.source,
+        frameRateNumerator: 30000,
+        frameRateDenominator: 1001,
       },
     }),
     /one exact contained timing/u,

@@ -199,6 +199,13 @@ const brollStorageRoot = await mkdtemp(join(
 const firstSegment = baseComponents.segments[0]!
 const firstSource = baseComponents.sourceSequence[0]!
 const firstSourceAsset = sourceMediaAssets[0]!
+const firstSourceMetadata = firstSourceAsset.sourceMetadata
+assert.ok(firstSourceAsset.checksumSha256)
+assert.ok(firstSourceMetadata?.durationSeconds)
+assert.ok(firstSourceMetadata.frameRateNumerator)
+assert.ok(firstSourceMetadata.frameRateDenominator)
+assert.ok(firstSourceMetadata.width)
+assert.ok(firstSourceMetadata.height)
 const brollHarness =
   await createCanonicalCaptionBrollApprovedPlanHarness({
     localStorageRoot: brollStorageRoot,
@@ -209,6 +216,8 @@ const brollHarness =
     planningRequestId: cleanPlan.planningRequestIdSeed,
     assignmentId: 'broll.caption.source-led.1',
     editPlanVersion: 1,
+    canonicalMasterTimingPlan: baseComponents.masterTimingPlan,
+    canonicalTimingSummary: baseComponents.timingSummary,
     timelineRange: {
       startFrameInclusive: 0,
       endFrameExclusive: baseComponents.timingSummary.totalFrames,
@@ -227,11 +236,14 @@ const brollHarness =
       objectSha256: firstSourceAsset.checksumSha256,
       byteLength: firstSourceAsset.byteSize,
       durationFrames: Math.round(
-        firstSourceAsset.sourceMetadata.durationSeconds *
-          baseComponents.timingSummary.fps),
+        firstSourceMetadata.durationSeconds *
+          firstSourceMetadata.frameRateNumerator /
+          firstSourceMetadata.frameRateDenominator),
+      frameRateNumerator: firstSourceMetadata.frameRateNumerator,
+      frameRateDenominator: firstSourceMetadata.frameRateDenominator,
       fps: baseComponents.timingSummary.fps,
-      width: firstSourceAsset.sourceMetadata.width,
-      height: firstSourceAsset.sourceMetadata.height,
+      width: firstSourceMetadata.width,
+      height: firstSourceMetadata.height,
       sourceRange: {
         startFrameInclusive: 0,
         endFrameExclusive:
@@ -242,8 +254,8 @@ const brollHarness =
   })
 const planningComponents = canonicalPlanComponentsSchema.parse({
   ...structuredClone(baseComponents),
-  masterTimingPlan: brollHarness.masterTimingPlan,
   bRollSkill: brollHarness.persistedComponent.component,
+  bRollMasterTimingBinding: brollHarness.masterTimingBinding,
 })
 const planningComponentsBefore = structuredClone(planningComponents)
 const estimateBefore = structuredClone(cleanPlan.canonicalPlan.estimate)
@@ -287,13 +299,21 @@ const request = createCanonicalCaptionSourceLedProfessionalPlanningRequest({
   confirmedCaptionMarkerSetRef,
 })
 check(request.masterTimingRef.contentHash ===
-  brollHarness.masterTimingPlan.timingHash,
-'Caption planning must consume a validated canonical MasterTiming digest '
-  + 'without creating a parallel whole-envelope digest.')
-const staleEmbeddedTimingComponents = structuredClone(
-  planningComponents)
-staleEmbeddedTimingComponents.masterTimingPlan.timingHash =
+  brollHarness.masterTimingBinding.canonicalMasterTimingDigestSha256
+  && request.masterTimingRef.contentHash ===
+    sha256AuthorityValue(baseComponents.masterTimingPlan),
+'Caption and B-roll planning must bind the same canonical MasterTiming '
+  + 'while B-roll retains only a non-authoritative projection.')
+const staleEmbeddedTimingComponents = structuredClone(planningComponents)
+const staleTimingBinding =
+  staleEmbeddedTimingComponents.bRollMasterTimingBinding
+assert.ok(staleTimingBinding)
+staleTimingBinding.canonicalMasterTimingDigestSha256 =
   sha256AuthorityValue('stale-timing')
+const { bindingDigestSha256: _staleBindingDigest, ...staleBindingCore } =
+  staleTimingBinding
+void _staleBindingDigest
+staleTimingBinding.bindingDigestSha256 = sha256AuthorityValue(staleBindingCore)
 assert.throws(() =>
   createCanonicalCaptionSourceLedProfessionalPlanningRequest({
     canonicalScope: {
@@ -302,7 +322,7 @@ assert.throws(() =>
     },
     components: staleEmbeddedTimingComponents,
     confirmedCaptionMarkerSetRef,
-  }), /stale MasterTiming digest/u)
+  }), /MasterTiming projection binding/u)
 checks += 1
 const selectedTrace = createProfessionalSkillCompositionTrace({
   planId: 'professional.caption.source-led.1',
@@ -770,6 +790,8 @@ function sourceAsset(
       durationSeconds: 1,
       width: 1_920,
       height: 1_080,
+      frameRateNumerator: 30,
+      frameRateDenominator: 1,
       videoCodec: 'h264',
       audioCodec: 'aac',
       hasVideo: true,

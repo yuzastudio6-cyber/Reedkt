@@ -388,6 +388,7 @@
     "smoke:supabase-auth-internal-test-execution": "tsx server/smoke/supabase-auth-internal-test-execution-smoke.ts",
     "smoke:editor-full-stack-private-review": "tsx server/smoke/editor-full-stack-private-review-smoke.ts",
     "smoke:upload": "tsx server/smoke/upload-storage-smoke.ts",
+    "smoke:media-ffprobe-frame-rate": "tsx server/smoke/media-ffprobe-frame-rate-smoke.ts",
     "smoke:upload-boundary-security": "tsx server/smoke/upload-boundary-security-smoke.ts",
     "smoke:local-resumable-source-upload": "tsx server/smoke/local-resumable-source-upload-smoke.ts",
     "smoke:canonical-durable-upload-target-authority": "tsx server/smoke/canonical-durable-upload-target-authority-smoke.ts",

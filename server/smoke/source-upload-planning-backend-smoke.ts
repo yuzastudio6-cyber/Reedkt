@@ -152,6 +152,8 @@ const server = createServer(async (request, response) => {
             durationSeconds: 9.2,
             width: 1920,
             height: 1080,
+            frameRateNumerator: 30000,
+            frameRateDenominator: 1001,
             videoCodec: 'h264',
             audioCodec: 'aac',
             formatName: 'mov,mp4,m4a,3gp,3g2,mj2',
@@ -238,6 +240,14 @@ try {
   assert.equal(result.plannedUploads[0]?.uploadPlan.sourceMetadata?.probeStatus, 'probed')
   assert.equal(result.plannedUploads[0]?.uploadPlan.sourceMetadata?.durationSeconds, 9.2)
   assert.equal(result.plannedUploads[0]?.uploadPlan.sourceMetadata?.width, 1920)
+  assert.equal(
+    result.plannedUploads[0]?.uploadPlan.sourceMetadata?.frameRateNumerator,
+    30000,
+  )
+  assert.equal(
+    result.plannedUploads[0]?.uploadPlan.sourceMetadata?.frameRateDenominator,
+    1001,
+  )
   assert.equal(result.plannedUploads[0]?.storageUpload?.status, 'uploaded')
   assert.equal(result.clips[0]?.fileName, 'uploaded-story.mp4')
   assert.equal(result.clips[0]?.duration, '00:09')

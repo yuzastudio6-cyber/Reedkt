@@ -692,6 +692,10 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       await revalidateCanonicalBrollPlanAuthority({
         localStorageRoot: context.env.localStorageRoot,
         component: canonicalPlan.components.bRollSkill,
+        masterTimingBinding:
+          canonicalPlan.components.bRollMasterTimingBinding,
+        canonicalMasterTimingPlan: canonicalPlan.components.masterTimingPlan,
+        canonicalTimingSummary: canonicalPlan.components.timingSummary,
         canonicalWorkItems: canonicalPlan.workItems,
       })
       validateCanonicalPlanDraft(
@@ -1321,6 +1325,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       await revalidateCanonicalBrollPlanAuthority({
         localStorageRoot: context.env.localStorageRoot,
         component: approvalComponents.bRollSkill,
+        masterTimingBinding: approvalComponents.bRollMasterTimingBinding,
+        canonicalMasterTimingPlan: approvalComponents.masterTimingPlan,
+        canonicalTimingSummary: approvalComponents.timingSummary,
         canonicalWorkItems: approvalToolWorkItems,
       })
       await loadCanonicalToolPayloadAuthority({
@@ -2618,6 +2625,9 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
       await revalidateCanonicalBrollPlanAuthority({
         localStorageRoot: context.env.localStorageRoot,
         component: approvedComponents.bRollSkill,
+        masterTimingBinding: approvedComponents.bRollMasterTimingBinding,
+        canonicalMasterTimingPlan: approvedComponents.masterTimingPlan,
+        canonicalTimingSummary: approvedComponents.timingSummary,
         canonicalWorkItems: workItems,
       })
       const toolExecutionAuthority = await loadCanonicalToolExecutionAuthority({

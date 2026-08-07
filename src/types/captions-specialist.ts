@@ -89,6 +89,21 @@ export const CAPTIONS_SUPPORTED_JOB_TYPES = [
 export type CaptionsSupportedJobType =
   typeof CAPTIONS_SUPPORTED_JOB_TYPES[number]
 
+export const CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES = [
+  'plan_caption_to_visual_handoff',
+  'provide_typographic_transition_support',
+  'provide_caption_to_visual_handoff_spec',
+  'provide_caption_broll_composition_constraints',
+  'provide_caption_living_frame_handoff_constraints',
+] as const satisfies readonly CaptionsSupportedJobType[]
+
+export type CaptionsCrossSystemOutputJobType =
+  typeof CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES[number]
+
+export const CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE =
+  'plan_caption_to_visual_handoff' as const satisfies
+  CaptionsCrossSystemOutputJobType
+
 export const CAPTIONS_UNSUPPORTED_JOB_TYPES = [
   'create_global_edit_plan',
   'mutate_timeline',

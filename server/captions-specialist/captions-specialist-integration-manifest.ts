@@ -4,6 +4,8 @@ import {
   type UnpublishedSkillCapabilityManifestV2,
 } from '../../src/types/skill-capability-manifest'
 import {
+  CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE,
+  CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES,
   CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
   CAPTIONS_SUPPORT_JOB_TYPES,
   type CaptionsSupportJobType,
@@ -49,14 +51,6 @@ export const CAPTIONS_SPECIALIST_INTEGRATION_V3_VERSION =
   'captions-specialist-integration-v3' as const
 export const CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID =
   'captions.cross-system.manifest-v3' as const
-
-const CAPTION_CROSS_SYSTEM_HANDOFF_JOB_TYPES = [
-  'plan_caption_to_visual_handoff',
-  'provide_typographic_transition_support',
-  'provide_caption_to_visual_handoff_spec',
-  'provide_caption_broll_composition_constraints',
-  'provide_caption_living_frame_handoff_constraints',
-] as const satisfies readonly CaptionsSupportedJobType[]
 
 const CAPTION_INCOMING_TYPOGRAPHY_JOB_TYPES = [
   'provide_speech_derived_typography_spec',
@@ -292,10 +286,10 @@ function integrateEntryV3(entry: SkillCapabilityEntry): SkillCapabilityEntry {
   const supportJob = (CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
     .includes(entry.supportedJobType)
   const crossSystemHandoff = (
-    CAPTION_CROSS_SYSTEM_HANDOFF_JOB_TYPES as readonly string[])
+    CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES as readonly string[])
     .includes(entry.supportedJobType)
   const coordinationPlan = entry.supportedJobType
-    === 'plan_caption_to_visual_handoff'
+    === CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE
   const incomingTypography = (
     CAPTION_INCOMING_TYPOGRAPHY_JOB_TYPES as readonly string[])
     .includes(entry.supportedJobType)

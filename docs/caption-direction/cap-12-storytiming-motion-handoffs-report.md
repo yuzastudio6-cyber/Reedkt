@@ -163,7 +163,7 @@ fixture exercises only a non-character diagram/archive response.
 
 ## Verification
 
-`smoke:captions-specialist-cap-12` passes 76 CAP-12 assertions after consuming
+`smoke:captions-specialist-cap-12` passes 82 CAP-12 assertions after consuming
 the exported CAP-11 graph fixture. It covers twelve node registrations and
 resolutions, semantic event coverage, authorized-range enforcement, stable-read
 math, twelve typed primitives and reduced-motion counterparts, all three
@@ -183,6 +183,15 @@ typography request, emits the requested Caption artifact, and binds that result
 back to the originating mediated support-request digest. It refuses that same
 request when the exact Scene Graph and StoryTiming resolution are not supplied
 for reread.
+
+The additive V3 runtime path also emits one aggregate coordination-plan
+reference, eight Caption-owned outbound payload references, and eight
+Caption-owned handoff references after exact dependency admission. The focused
+fixture proves the single Transition handoff path separately and rejects
+missing coordination context, crossed-call plans, wrong receivers, unrelated
+jobs carrying outbound evidence, and scene scope on the boundary-only
+aggregate job. These are private byte-free planning artifacts only; no receiver
+execution is claimed.
 
 Adversarial checks reject out-of-scope StoryTiming frames, inadequate effective
 read time despite a long cue, silently substituted output aspect ratio,

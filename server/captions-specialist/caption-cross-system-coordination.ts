@@ -54,6 +54,8 @@ import { parseCaptionCrossSystemHandoff } from
   './caption-storytiming-motion'
 import { parseCaptionMultiTrackSceneGraph } from
   './caption-multi-track-scene-graph'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
+  './caption-authority-boundary'
 
 const safeKey = z.string().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -695,6 +697,165 @@ function validAccessibleCounterparts(input: {
   })
 }
 
+export interface CreateCaptionCrossSystemOutboundPayloadV2Input
+  extends CaptionCrossSystemSourceContext {
+  payloadId: string
+  originCaptionCallRef: SkillContractRef
+  receiver: CaptionCrossSystemReceiverV2
+  sourceCaptionPlanRef: CaptionDomainRef
+  sourceCaptionMotionPlanRef: CaptionDomainRef
+  canonicalTranscriptRef: CaptionDomainRef
+  sourceNodeId: string
+  sourcePhraseId: string
+  authorizedRange?: CaptionDomainFrameRange
+  semantic: CaptionCrossSystemOutboundPayloadV2['semantic']
+  requestedReceivingCapability: Omit<
+    CaptionCrossSystemOutboundPayloadV2['requestedReceivingCapability'],
+    'receiverOwnsExecution'
+  >
+  expectedVisualResultCode: string
+  transferRequested: boolean
+  soundIntent: Omit<
+    CaptionCrossSystemOutboundPayloadV2['soundIntent'],
+    'soundOwnerRemainsExternal'
+  >
+  accessibilityCounterpartNodeIds?: string[]
+  fallback: Omit<
+    CaptionCrossSystemOutboundPayloadV2['fallback'],
+    'restoreCreativeCaption' | 'preserveAccessibleCaption'
+  >
+  requiredEvidence: Omit<
+    CaptionCrossSystemOutboundPayloadV2['requiredEvidence'],
+    'exactReceiverResultMustBeInjected'
+  >
+}
+
+function requiredSourceEvent(
+  source: CaptionStoryTimingResolutionBinding['nodeResolutions'][number],
+  intent: 'handoff' | 'motion_exit_start' | 'restore',
+): CaptionDomainRef {
+  const event = source.semanticEventRefs.find((candidate) =>
+    candidate.eventIntent === intent)
+  if (!event) {
+    throw new Error(
+      `Caption cross-system source is missing its ${intent} event.`,
+    )
+  }
+  return structuredClone(event.eventRef)
+}
+
+export function createCaptionCrossSystemOutboundPayloadV2(
+  input: CreateCaptionCrossSystemOutboundPayloadV2Input,
+): CaptionCrossSystemOutboundPayloadV2 {
+  assertClosedContractTree(input, 'Caption cross-system outbound creation')
+  assertNoUnsafeText(input, 'Caption cross-system outbound creation')
+  const { sceneGraph, resolution } = parseSourceContext(input)
+  const source = sourceResolution(
+    resolution, input.sourceNodeId, input.sourcePhraseId)
+  const sourceNode = sourceSceneNode(
+    sceneGraph, input.sourceNodeId, input.sourcePhraseId)
+  if (!source || !sourceNode
+    || sourceNode.accessibilityCounterpartNodeId === null) {
+    throw new Error(
+      'Caption cross-system creation requires an exact accessible source node.',
+    )
+  }
+  const profile = RECEIVER_PROFILE[input.receiver]
+  const counterpartNodeIds = input.accessibilityCounterpartNodeIds
+    ?? [sourceNode.accessibilityCounterpartNodeId]
+  const base: Omit<CaptionCrossSystemOutboundPayloadV2,
+  'payloadDigestSha256'> = {
+    schemaVersion: CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION,
+    payloadId: input.payloadId,
+    canonicalScope: structuredClone(sceneGraph.canonicalScope),
+    originCaptionCallRef: structuredClone(input.originCaptionCallRef),
+    receiver: input.receiver,
+    receiverSkillId: profile.skillId,
+    handoffKind: profile.kind,
+    sourceCaptionPlanRef: structuredClone(input.sourceCaptionPlanRef),
+    sourceCaptionSceneGraphRef: sceneGraphRef(sceneGraph),
+    sourceCaptionMotionPlanRef:
+      structuredClone(input.sourceCaptionMotionPlanRef),
+    canonicalTranscriptRef: structuredClone(input.canonicalTranscriptRef),
+    confirmedOutputFrameRef:
+      structuredClone(resolution.confirmedOutputFrameRef),
+    masterTimingRef: structuredClone(resolution.masterTimingRef),
+    storyTimingResolutionRef: resolutionRef(resolution),
+    sourceNodeId: input.sourceNodeId,
+    sourcePhraseId: input.sourcePhraseId,
+    exactSourceWordIds: [...sourceNode.exactSourceWordIds],
+    authorizedRange: structuredClone(input.authorizedRange ?? source.cueRange),
+    handoffFrameRequirement: {
+      handoffEventRef: requiredSourceEvent(source, 'handoff'),
+      holdEventRef: requiredSourceEvent(source, 'motion_exit_start'),
+      restoreEventRef: requiredSourceEvent(source, 'restore'),
+      framesResolvedByStoryTiming: true,
+      captionManufacturedReceiverFrames: false,
+    },
+    semantic: structuredClone(input.semantic),
+    requestedReceivingCapability: {
+      ...structuredClone(input.requestedReceivingCapability),
+      receiverOwnsExecution: true,
+    },
+    expectedVisualResultCode: input.expectedVisualResultCode,
+    informationOwnership: {
+      ownerBeforeHandoff: 'captions',
+      transferRequested: input.transferRequested,
+      ownerAfterAcceptedHandoff: input.transferRequested
+        ? profile.skillId : 'captions',
+      captionRetainsCompleteAccessibleProjection: true,
+      duplicateInformationAfterAcceptedTransferAllowed: false,
+      captionRegainsInformationOwnershipOnFailure: true,
+    },
+    soundIntent: {
+      ...structuredClone(input.soundIntent),
+      soundOwnerRemainsExternal: true,
+    },
+    accessibility: {
+      counterpartNodeIds: [...counterpartNodeIds],
+      completeWordingPreserved: true,
+      remainsAvailableDuringHandoff: true,
+      reducedMotionMeaningPreserved: true,
+    },
+    fallback: {
+      ...structuredClone(input.fallback),
+      restoreCreativeCaption: input.transferRequested,
+      preserveAccessibleCaption: true,
+    },
+    requiredEvidence: {
+      ...structuredClone(input.requiredEvidence),
+      exactReceiverResultMustBeInjected: true,
+    },
+    returnToHq: {
+      hqMediated: true,
+      dispositionBeforeReceiverResult: 'needs_followup',
+      receiverResultMustBeInjected: true,
+      directPeerDispatchAllowed: false,
+      scopeExpansionAllowed: false,
+    },
+    sharedTargetAdmission: {
+      state: profile.supportTarget === null
+        ? 'pending_future_orchestra_target' : 'admitted_generic_v1',
+      targetSkillKey: profile.supportTarget,
+    },
+    privateArtifactPolicy: {
+      tenantScoped: true,
+      byteFreeCoordinationOnly: true,
+      rawChatIncluded: false,
+      mediaBytesIncluded: false,
+      urlsOrPathsIncluded: false,
+      credentialsIncluded: false,
+      executablePromptOrCodeIncluded: false,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseCaptionCrossSystemOutboundPayloadV2({
+    ...base,
+    payloadDigestSha256: digestRecord(
+      { ...base, payloadDigestSha256: '' }, 'payloadDigestSha256'),
+  }, input)
+}
+
 export function parseCaptionCrossSystemOutboundPayloadV2(
   value: unknown,
   context: CaptionCrossSystemSourceContext,
@@ -845,6 +1006,70 @@ function frozenHandoffRef(value: CaptionCrossSystemHandoff): CaptionDomainRef {
     version: value.schemaVersion,
     contentHash: value.handoffDigestSha256,
   }
+}
+
+export interface CreateCaptionCrossSystemHandoffV2Input
+  extends CaptionCrossSystemSourceContext {
+  handoffId: string
+  outboundPayload: unknown
+  supportRequest?: unknown
+  frozenCompatibilityHandoff?: CaptionCrossSystemHandoff | null
+  frozenCompatibilitySupportRequest?: unknown
+}
+
+export function createCaptionCrossSystemHandoffV2(
+  input: CreateCaptionCrossSystemHandoffV2Input,
+): CaptionCrossSystemHandoffV2 {
+  assertClosedContractTree(input, 'Caption cross-system handoff creation')
+  assertNoUnsafeText(input, 'Caption cross-system handoff creation')
+  const outboundPayload = parseCaptionCrossSystemOutboundPayloadV2(
+    input.outboundPayload, input)
+  const supportRequest = input.supportRequest === undefined
+    ? null : parseSkillSupportRequest(input.supportRequest)
+  const frozen = input.frozenCompatibilityHandoff ?? null
+  const base: Omit<CaptionCrossSystemHandoffV2,
+  'handoffDigestSha256'> = {
+    schemaVersion: CAPTION_CROSS_SYSTEM_HANDOFF_VERSION_V2,
+    handoffId: input.handoffId,
+    canonicalScope: structuredClone(outboundPayload.canonicalScope),
+    receiver: outboundPayload.receiver,
+    receiverSkillId: outboundPayload.receiverSkillId,
+    handoffKind: outboundPayload.handoffKind,
+    outboundPayloadRef:
+      captionCrossSystemOutboundPayloadRef(outboundPayload),
+    supportRequestRef: supportRequest === null
+      ? null : skillSupportRequestRef(supportRequest),
+    frozenCompatibilityHandoffRef: frozen === null
+      ? null : frozenHandoffRef(frozen),
+    coordinationState: supportRequest === null
+      ? 'awaiting_shared_target_registry' : 'support_request_ready',
+    receiverExecutionClaimed: false,
+    captionExecutedReceiverWork: false,
+    directPeerDispatchGranted: false,
+    timelineMutationGranted: false,
+    runtimeExecutionGranted: false,
+    assetCreationGranted: false,
+    finalQaApprovalGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  return parseCaptionCrossSystemHandoffV2({
+    ...base,
+    handoffDigestSha256: digestRecord(
+      { ...base, handoffDigestSha256: '' }, 'handoffDigestSha256'),
+  }, {
+    resolution: input.resolution,
+    sceneGraph: input.sceneGraph,
+    outboundPayload,
+    ...(input.supportRequest === undefined
+      ? {} : { supportRequest: input.supportRequest }),
+    frozenCompatibilityHandoff: frozen,
+    ...(input.frozenCompatibilitySupportRequest === undefined ? {} : {
+      frozenCompatibilitySupportRequest:
+        input.frozenCompatibilitySupportRequest,
+    }),
+  })
 }
 
 export interface CaptionCrossSystemHandoffV2Context

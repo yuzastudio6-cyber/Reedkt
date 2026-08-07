@@ -19,7 +19,9 @@ import {
 } from '../captions-specialist/caption-living-frame-boundary'
 import {
   captionCrossSystemOutboundPayloadRef,
+  createCaptionCrossSystemHandoffV2,
   createCaptionCrossSystemCoordinationPlan,
+  createCaptionCrossSystemOutboundPayloadV2,
   parseCaptionCrossSystemCoordinationPlan,
   parseCaptionCrossSystemHandoffV2,
   parseCaptionCrossSystemOutboundPayloadV2,
@@ -41,10 +43,7 @@ import {
   type CaptionStoryTimingResolutionBinding,
 } from '../../src/types/caption-storytiming-motion'
 import {
-  CAPTION_CROSS_SYSTEM_HANDOFF_VERSION_V2,
-  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION,
   CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION,
-  type CaptionCrossSystemHandoffV2,
   type CaptionCrossSystemOutboundPayloadV2,
   type CaptionCrossSystemReceiverV2,
   type CaptionIncomingTypographyRequest,
@@ -227,16 +226,21 @@ function createSupportRequest(input: {
   typedPayloadType: string
   typedPayload: unknown
   artifactTypes: string[]
+  originalCallRef?: CaptionDomainRef
+  canonicalScope?: SkillCanonicalScope
+  reasonCode?: string
 }): SkillSupportRequest {
   const base: Omit<SkillSupportRequest, 'requestDigestSha256'> = {
     schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
     requestId: input.id,
-    originalCallRef: ref('orchestra.call.cap12'),
+    originalCallRef: structuredClone(
+      input.originalCallRef ?? ref('orchestra.call.cap12')),
     requestingSkillKey: 'captions',
     targetSkillKey: input.target,
-    reasonCode: `cap12.${input.target}.support_required`,
+    reasonCode: input.reasonCode
+      ?? `cap12.${input.target}.support_required`,
     requestedArtifactTypes: input.artifactTypes,
-    canonicalScope: structuredClone(skillScope),
+    canonicalScope: structuredClone(input.canonicalScope ?? skillScope),
     typedPayloadType: input.typedPayloadType,
     typedPayload: input.typedPayload,
     mediationPolicy: {
@@ -571,115 +575,79 @@ const lock = createCaptionMotionLock({
 
 type OutboundFixtureSpec = {
   receiver: CaptionCrossSystemReceiverV2
-  receiverSkillId: CaptionCrossSystemOutboundPayloadV2['receiverSkillId']
-  handoffKind: CaptionCrossSystemOutboundPayloadV2['handoffKind']
   nodeId: string
   phraseId: string
-  wordIds: string[]
   sourceTruthPolicy:
     CaptionCrossSystemOutboundPayloadV2['semantic']['sourceTruthPolicy']
   transferRequested: boolean
   capabilityCode: string
   expectedArtifactType: string
-  supportTarget: SkillSupportTarget | null
 }
 
 const outboundFixtureSpecs: OutboundFixtureSpec[] = [{
   receiver: 'living_frame',
-  receiverSkillId: 'motion.living_frame_storytelling',
-  handoffKind: 'caption_to_living_frame',
   nodeId: 'node.creative.phrase.cap11.hero.full',
   phraseId: 'phrase.cap11.hero.full',
-  wordIds: ['word.19', 'word.20', 'word.21'],
   sourceTruthPolicy: 'canonical_transcript_lineage',
   transferRequested: true,
   capabilityCode: 'semantic_living_frame_transform',
   expectedArtifactType: 'living_frame_caption_direction_response',
-  supportTarget: 'living_frame',
 }, {
   receiver: 'transitions',
-  receiverSkillId: 'motion.transition_language',
-  handoffKind: 'caption_to_transition',
   nodeId: 'node.creative.phrase.cap11.environment',
   phraseId: 'phrase.cap11.environment',
-  wordIds: ['word.12', 'word.13', 'word.14', 'word.15'],
   sourceTruthPolicy: 'canonical_transcript_lineage',
   transferRequested: false,
   capabilityCode: 'typographic_boundary_transition',
   expectedArtifactType: 'caption_transition_support_result',
-  supportTarget: 'transitions',
 }, {
   receiver: 'graphic',
-  receiverSkillId: 'graphics.visual_explain_layer',
-  handoffKind: 'caption_to_graphic',
   nodeId: 'node.creative.phrase.cap11.statement',
   phraseId: 'phrase.cap11.statement',
-  wordIds: ['word.1', 'word.2', 'word.3', 'word.4', 'word.5'],
   sourceTruthPolicy: 'canonical_transcript_lineage',
   transferRequested: true,
   capabilityCode: 'semantic_visual_explain_layer',
   expectedArtifactType: 'graphic_visual_layer_plan',
-  supportTarget: null,
 }, {
   receiver: 'map',
-  receiverSkillId: 'graphics.map_route_visual',
-  handoffKind: 'caption_to_map',
   nodeId: 'node.creative.phrase.cap11.anchor',
   phraseId: 'phrase.cap11.anchor',
-  wordIds: ['word.16', 'word.17', 'word.18'],
   sourceTruthPolicy: 'exact_geography_source_required',
   transferRequested: true,
   capabilityCode: 'exact_map_route_visual',
   expectedArtifactType: 'map_route_visual_plan',
-  supportTarget: null,
 }, {
   receiver: 'chart',
-  receiverSkillId: 'graphics.chart_or_data_visual',
-  handoffKind: 'caption_to_chart',
   nodeId: 'node.creative.phrase.cap11.list',
   phraseId: 'phrase.cap11.list',
-  wordIds: ['word.7', 'word.8', 'word.9', 'word.10', 'word.11'],
   sourceTruthPolicy: 'exact_data_source_required',
   transferRequested: true,
   capabilityCode: 'exact_chart_data_visual',
   expectedArtifactType: 'chart_data_visual_plan',
-  supportTarget: null,
 }, {
   receiver: 'diagram',
-  receiverSkillId: 'dataviz.diagram_layout',
-  handoffKind: 'caption_to_diagram',
   nodeId: 'node.creative.phrase.cap11.statement',
   phraseId: 'phrase.cap11.statement',
-  wordIds: ['word.1', 'word.2', 'word.3', 'word.4', 'word.5'],
   sourceTruthPolicy: 'exact_data_source_required',
   transferRequested: true,
   capabilityCode: 'exact_diagram_layout',
   expectedArtifactType: 'diagram_layout_plan',
-  supportTarget: null,
 }, {
   receiver: 'broll_owner',
-  receiverSkillId: 'b_roll',
-  handoffKind: 'caption_to_broll_constraints',
   nodeId: 'node.creative.phrase.cap11.list',
   phraseId: 'phrase.cap11.list',
-  wordIds: ['word.7', 'word.8', 'word.9', 'word.10', 'word.11'],
   sourceTruthPolicy: 'exact_selected_media_required',
   transferRequested: false,
   capabilityCode: 'caption_broll_composition_constraints',
   expectedArtifactType: 'b_roll_caption_constraint_acknowledgement',
-  supportTarget: 'broll_owner',
 }, {
   receiver: 'stroke_motion',
-  receiverSkillId: 'motion.stroke_motion_storytelling',
-  handoffKind: 'caption_to_motion_support',
   nodeId: 'node.creative.phrase.cap11.hero.behind',
   phraseId: 'phrase.cap11.hero.behind',
-  wordIds: ['word.6'],
   sourceTruthPolicy: 'canonical_transcript_lineage',
   transferRequested: true,
   capabilityCode: 'semantic_stroke_motion_support',
   expectedArtifactType: 'stroke_motion_visual_plan',
-  supportTarget: null,
 }]
 
 function resolutionForNode(nodeId: string) {
@@ -701,49 +669,22 @@ function eventRefFor(
 
 function createOutboundPayload(
   spec: OutboundFixtureSpec,
+  originCaptionCallRef: CaptionDomainRef = ref('orchestra.call.cap12'),
+  payloadIdPrefix = 'caption.cross-system.payload.cap12',
 ): CaptionCrossSystemOutboundPayloadV2 {
-  const source = resolutionForNode(spec.nodeId)
-  const sourceNode = graph.nodes.find((node) => node.nodeId === spec.nodeId)
-  assert.ok(sourceNode?.accessibilityCounterpartNodeId)
-  const base: Omit<CaptionCrossSystemOutboundPayloadV2,
-  'payloadDigestSha256'> = {
-    schemaVersion: CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION,
-    payloadId: `caption.cross-system.payload.cap12.${spec.receiver}`,
-    canonicalScope: structuredClone(graph.canonicalScope),
-    originCaptionCallRef: ref('orchestra.call.cap12'),
+  return createCaptionCrossSystemOutboundPayloadV2({
+    payloadId: `${payloadIdPrefix}.${spec.receiver}`,
+    originCaptionCallRef,
     receiver: spec.receiver,
-    receiverSkillId: spec.receiverSkillId,
-    handoffKind: spec.handoffKind,
     sourceCaptionPlanRef: ref('caption.plan.cap12'),
-    sourceCaptionSceneGraphRef: {
-      id: graph.graphId,
-      version: graph.schemaVersion,
-      contentHash: graph.graphDigestSha256,
-    },
     sourceCaptionMotionPlanRef: {
       id: plan.planId,
       version: plan.schemaVersion,
       contentHash: plan.planDigestSha256,
     },
     canonicalTranscriptRef: CAP_11_TRANSCRIPT_REF,
-    confirmedOutputFrameRef: CAP_11_CONFIRMED_FRAME_REF,
-    masterTimingRef: CAP_11_MASTER_TIMING_REF,
-    storyTimingResolutionRef: {
-      id: resolution.resolutionId,
-      version: resolution.schemaVersion,
-      contentHash: resolution.resolutionDigestSha256,
-    },
     sourceNodeId: spec.nodeId,
     sourcePhraseId: spec.phraseId,
-    exactSourceWordIds: spec.wordIds,
-    authorizedRange: structuredClone(source.cueRange),
-    handoffFrameRequirement: {
-      handoffEventRef: eventRefFor(spec.nodeId, 'handoff'),
-      holdEventRef: eventRefFor(spec.nodeId, 'motion_exit_start'),
-      restoreEventRef: eventRefFor(spec.nodeId, 'restore'),
-      framesResolvedByStoryTiming: true,
-      captionManufacturedReceiverFrames: false,
-    },
     semantic: {
       conceptId: `concept.cap12.${spec.receiver}`,
       purposeCode: `caption.${spec.receiver}.semantic_handoff`,
@@ -753,29 +694,13 @@ function createOutboundPayload(
     requestedReceivingCapability: {
       capabilityCode: spec.capabilityCode,
       expectedArtifactTypes: [spec.expectedArtifactType],
-      receiverOwnsExecution: true,
     },
     expectedVisualResultCode: `expected.${spec.receiver}.meaning_preserved`,
-    informationOwnership: {
-      ownerBeforeHandoff: 'captions',
-      transferRequested: spec.transferRequested,
-      ownerAfterAcceptedHandoff: spec.transferRequested
-        ? spec.receiverSkillId : 'captions',
-      captionRetainsCompleteAccessibleProjection: true,
-      duplicateInformationAfterAcceptedTransferAllowed: false,
-      captionRegainsInformationOwnershipOnFailure: true,
-    },
+    transferRequested: spec.transferRequested,
     soundIntent: {
       policy: spec.receiver === 'stroke_motion'
         ? 'sound_optional' : 'sound_forbidden',
       captionSoundRequestRef: null,
-      soundOwnerRemainsExternal: true,
-    },
-    accessibility: {
-      counterpartNodeIds: [sourceNode.accessibilityCounterpartNodeId],
-      completeWordingPreserved: true,
-      remainsAvailableDuringHandoff: true,
-      reducedMotionMeaningPreserved: true,
     },
     fallback: {
       ladderCodes: [
@@ -783,8 +708,6 @@ function createOutboundPayload(
         'fallback.accessible_sidecar',
       ],
       selectedDefaultCode: `fallback.${spec.receiver}.stable_caption`,
-      restoreCreativeCaption: spec.transferRequested,
-      preserveAccessibleCaption: true,
     },
     requiredEvidence: {
       artifactTypes: [spec.expectedArtifactType],
@@ -793,38 +716,14 @@ function createOutboundPayload(
         'accessible_counterpart_preserved',
         'receiver_result_scope_verified',
       ],
-      exactReceiverResultMustBeInjected: true,
     },
-    returnToHq: {
-      hqMediated: true,
-      dispositionBeforeReceiverResult: 'needs_followup',
-      receiverResultMustBeInjected: true,
-      directPeerDispatchAllowed: false,
-      scopeExpansionAllowed: false,
-    },
-    sharedTargetAdmission: {
-      state: spec.supportTarget === null
-        ? 'pending_future_orchestra_target' : 'admitted_generic_v1',
-      targetSkillKey: spec.supportTarget,
-    },
-    privateArtifactPolicy: {
-      tenantScoped: true,
-      byteFreeCoordinationOnly: true,
-      rawChatIncluded: false,
-      mediaBytesIncluded: false,
-      urlsOrPathsIncluded: false,
-      credentialsIncluded: false,
-      executablePromptOrCodeIncluded: false,
-    },
-    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
-  }
-  return parseCaptionCrossSystemOutboundPayloadV2(withDigest({
-    ...base,
-    payloadDigestSha256: '',
-  }, 'payloadDigestSha256'), { resolution, sceneGraph: graph })
+    resolution,
+    sceneGraph: graph,
+  })
 }
 
-const outboundPayloads = outboundFixtureSpecs.map(createOutboundPayload)
+const outboundPayloads = outboundFixtureSpecs.map((spec) =>
+  createOutboundPayload(spec))
 
 function outboundSupportRequest(
   payload: CaptionCrossSystemOutboundPayloadV2,
@@ -862,49 +761,15 @@ const outboundBundlesV2 = outboundPayloads.map((outboundPayload) => {
   const frozen = frozenCompatibilityHandoff(outboundPayload.receiver)
   const frozenSupport = frozenCompatibilitySupportRequest(
     outboundPayload.receiver)
-  const base: Omit<CaptionCrossSystemHandoffV2,
-  'handoffDigestSha256'> = {
-    schemaVersion: CAPTION_CROSS_SYSTEM_HANDOFF_VERSION_V2,
+  const handoff = createCaptionCrossSystemHandoffV2({
     handoffId: `caption.cross-system.handoff.cap12.${outboundPayload.receiver}`,
-    canonicalScope: structuredClone(graph.canonicalScope),
-    receiver: outboundPayload.receiver,
-    receiverSkillId: outboundPayload.receiverSkillId,
-    handoffKind: outboundPayload.handoffKind,
-    outboundPayloadRef:
-      captionCrossSystemOutboundPayloadRef(outboundPayload),
-    supportRequestRef: supportRequest === undefined ? null : {
-      id: supportRequest.requestId,
-      version: supportRequest.schemaVersion,
-      contentHash: supportRequest.requestDigestSha256,
-    },
-    frozenCompatibilityHandoffRef: frozen === null ? null : {
-      id: frozen.handoffId,
-      version: frozen.schemaVersion,
-      contentHash: frozen.handoffDigestSha256,
-    },
-    coordinationState: supportRequest === undefined
-      ? 'awaiting_shared_target_registry' : 'support_request_ready',
-    receiverExecutionClaimed: false,
-    captionExecutedReceiverWork: false,
-    directPeerDispatchGranted: false,
-    timelineMutationGranted: false,
-    runtimeExecutionGranted: false,
-    assetCreationGranted: false,
-    finalQaApprovalGranted: false,
-    billingAuthorityGranted: false,
-    publicDeliveryGranted: false,
-    productionAuthorityGranted: false,
-  }
-  const handoff = parseCaptionCrossSystemHandoffV2(withDigest({
-    ...base,
-    handoffDigestSha256: '',
-  }, 'handoffDigestSha256'), {
+    outboundPayload,
+    ...(supportRequest === undefined ? {} : { supportRequest }),
+    frozenCompatibilityHandoff: frozen,
+    ...(frozenSupport === undefined
+      ? {} : { frozenCompatibilitySupportRequest: frozenSupport }),
     resolution,
     sceneGraph: graph,
-    outboundPayload,
-    supportRequest,
-    frozenCompatibilityHandoff: frozen,
-    frozenCompatibilitySupportRequest: frozenSupport,
   })
   return {
     handoff,
@@ -1215,13 +1080,26 @@ check(incomingRuntimeResult.disposition === 'completed'
       && artifact.sourceSupportRequestRef?.contentHash
         === incomingRuntimeSupport.requestDigestSha256),
 'The standalone Caption runtime must accept and trace the closed incoming typography request.')
+const incomingRuntimeWithOutboundPlan = runCaptionsSpecialistJob({
+  call: incomingRuntimeCall,
+  incomingSupportRequest: incomingRuntimeSupport,
+  incomingTypographySceneGraph: graph,
+  incomingTypographyStoryTimingResolution: resolution,
+  crossSystemCoordinationPlan: coordinationPlan,
+  crossSystemCoordinationContext: coordinationContext,
+})
+check(incomingRuntimeWithOutboundPlan.disposition === 'blocked'
+  && incomingRuntimeWithOutboundPlan.reasonCodes.join('|')
+    === 'input.cross_system_coordination.unexpected',
+'An incoming-only Caption support job cannot smuggle an outbound coordination plan.')
 const runtimeCallCandidate = createCaptionsHarnessCall({
   callId: 'caption.living-frame.runtime.cap12',
   jobType: 'plan_caption_to_visual_handoff',
-  scopeLevel: 'scene',
+  scopeLevel: 'boundary',
   approvedSnapshotRef: lfRequest.canonicalScope.approvedSnapshotRef,
   outputId: lfRequest.canonicalScope.outputId,
   sceneId: lfRequest.canonicalScope.sceneId,
+  boundaryId: skillScope.boundaryId,
   runtimeProfile: 'cross_system_integration',
   inputArtifactTypes: [
     'canonical_transcript',
@@ -1259,6 +1137,19 @@ const runtimeCall = parseOrchestraSkillCall(withDigest({
   ...runtimeCallCandidate,
   callDigestSha256: '',
 }, 'callDigestSha256'))
+const wrongScopeRuntimeCall = structuredClone(runtimeCall)
+wrongScopeRuntimeCall.job.scopeLevel = 'scene'
+wrongScopeRuntimeCall.canonicalScope.boundaryId = null
+const wrongScopeRuntimeResult = runCaptionsSpecialistJob({
+  call: parseOrchestraSkillCall(withDigest({
+    ...wrongScopeRuntimeCall,
+    callDigestSha256: '',
+  }, 'callDigestSha256')),
+  livingFrameRequest: lfRequest,
+})
+check(wrongScopeRuntimeResult.disposition === 'blocked'
+  && wrongScopeRuntimeResult.reasonCodes.join('|') === 'manifest.scope.blocked',
+'The boundary-only aggregate handoff job rejects a scene-scoped assignment.')
 const runtimeInitial = runCaptionsSpecialistJob({
   call: runtimeCall,
   livingFrameRequest: lfRequest,
@@ -1272,6 +1163,69 @@ check(runtimeInitial.disposition === 'needs_followup'
     === 'living_frame_caption_direction_response',
 'The runtime emits the exact Caption-owned Living Frame V2 request.')
 const runtimeSupportRequest = runtimeInitial.supportRequests[0]
+const runtimeOriginRef: CaptionDomainRef = {
+  id: runtimeCall.callId,
+  version: runtimeCall.schemaVersion,
+  contentHash: runtimeCall.callDigestSha256,
+}
+const runtimeOutboundPayloads = outboundFixtureSpecs.map((spec) =>
+  createOutboundPayload(
+    spec,
+    runtimeOriginRef,
+    'caption.cross-system.payload.cap12.runtime',
+  ))
+const runtimeOutboundBundles = runtimeOutboundPayloads.map(
+  (outboundPayload) => {
+    const supportRequest = outboundPayload.receiver === 'living_frame'
+      ? runtimeSupportRequest
+      : outboundPayload.sharedTargetAdmission.targetSkillKey === null
+        ? undefined
+        : createSupportRequest({
+            id: `support.cap12.runtime.${outboundPayload.receiver}`,
+            target: outboundPayload.sharedTargetAdmission.targetSkillKey,
+            typedPayloadType: outboundPayload.schemaVersion,
+            typedPayload: outboundPayload,
+            artifactTypes: outboundPayload.requestedReceivingCapability
+              .expectedArtifactTypes,
+            originalCallRef: runtimeOriginRef,
+            canonicalScope: runtimeCall.canonicalScope,
+          })
+    const frozen = frozenCompatibilityHandoff(outboundPayload.receiver)
+    const frozenSupport = frozenCompatibilitySupportRequest(
+      outboundPayload.receiver)
+    const handoff = createCaptionCrossSystemHandoffV2({
+      handoffId:
+        `caption.cross-system.handoff.cap12.runtime.${outboundPayload.receiver}`,
+      outboundPayload,
+      ...(supportRequest === undefined ? {} : { supportRequest }),
+      frozenCompatibilityHandoff: frozen,
+      ...(frozenSupport === undefined ? {} : {
+        frozenCompatibilitySupportRequest: frozenSupport,
+      }),
+      resolution,
+      sceneGraph: graph,
+    })
+    return {
+      handoff,
+      outboundPayload,
+      ...(supportRequest === undefined ? {} : { supportRequest }),
+      frozenCompatibilityHandoff: frozen,
+      ...(frozenSupport === undefined ? {} : {
+        frozenCompatibilitySupportRequest: frozenSupport,
+      }),
+    }
+  })
+const runtimeCoordinationContext = {
+  sceneGraph: graph,
+  motionPlan: plan,
+  resolution,
+  outboundBundles: runtimeOutboundBundles,
+  incomingBundles,
+}
+const runtimeCoordinationPlan = createCaptionCrossSystemCoordinationPlan({
+  planId: 'caption.cross-system.coordination.cap12.runtime',
+  context: runtimeCoordinationContext,
+})
 const runtimeResumedCandidate = resumeCaptionsHarnessCall(
   runtimeCall, runtimeSupportRequest)
 runtimeResumedCandidate.injectedSupportArtifactRefs[0] = {
@@ -1286,16 +1240,181 @@ const runtimeResumedCall = parseOrchestraSkillCall(withDigest({
   ...runtimeResumedCandidate,
   callDigestSha256: '',
 }, 'callDigestSha256'))
-const runtimeAdmission = runCaptionsSpecialistJob({
+const missingRuntimeCoordination = runCaptionsSpecialistJob({
   call: runtimeResumedCall,
   resumeSupportRequest: runtimeSupportRequest,
   livingFrameRequest: lfRequest,
   livingFrameResponse: lfResponse,
 })
+check(missingRuntimeCoordination.disposition === 'blocked'
+  && missingRuntimeCoordination.reasonCodes.join('|')
+    === 'input.cross_system_coordination.plan_or_context.missing',
+'A V3 cross-system Caption job cannot complete from schemas without its exact coordination artifacts.')
+const runtimeAdmission = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  livingFrameRequest: lfRequest,
+  livingFrameResponse: lfResponse,
+  crossSystemCoordinationPlan: runtimeCoordinationPlan,
+  crossSystemCoordinationContext: runtimeCoordinationContext,
+})
 check(runtimeAdmission.disposition === 'completed'
   && runtimeAdmission.reasonCodes.includes(
-    'living_frame.contract_admission.accepted'),
-'The exact Living Frame response admits the Caption planning job.')
+    'living_frame.contract_admission.accepted')
+  && runtimeAdmission.reasonCodes.includes(
+    'cross_system_coordination.caption_artifacts.accepted')
+  && runtimeAdmission.producedArtifactRefs.filter((artifact) =>
+    artifact.artifactType === 'caption_cross_system_outbound_payload')
+    .length === 8
+  && runtimeAdmission.producedArtifactRefs.filter((artifact) =>
+    artifact.artifactType === 'caption_cross_system_handoff').length === 8
+  && runtimeAdmission.producedArtifactRefs.filter((artifact) =>
+    artifact.artifactType === 'caption_cross_system_coordination_plan')
+    .length === 1
+  && runtimeAdmission.producedArtifactRefs.filter((artifact) =>
+    artifact.artifactType.startsWith('caption_cross_system_'))
+    .every((artifact) => artifact.producerSkillKey === 'captions'
+      && artifact.privateArtifact
+      && artifact.byteFreeRef
+      && artifact.sourceSupportRequestRef === null),
+'The exact Living Frame response admits the Caption job and emits the complete private coordination surface.')
+const crossedRuntimeCoordination = runCaptionsSpecialistJob({
+  call: runtimeResumedCall,
+  resumeSupportRequest: runtimeSupportRequest,
+  livingFrameRequest: lfRequest,
+  livingFrameResponse: lfResponse,
+  crossSystemCoordinationPlan: coordinationPlan,
+  crossSystemCoordinationContext: coordinationContext,
+})
+check(crossedRuntimeCoordination.disposition === 'blocked'
+  && crossedRuntimeCoordination.reasonCodes.join('|')
+    === 'input.cross_system_coordination.call_or_scope.mismatch',
+'A digest-valid coordination plan from another Caption call fails closed.')
+const transitionJobCandidate = createCaptionsHarnessCall({
+  callId: 'caption.transition-support.runtime.cap12',
+  jobType: 'provide_typographic_transition_support',
+  scopeLevel: 'boundary',
+  approvedSnapshotRef: graph.canonicalScope.approvedSnapshotRef,
+  outputId: graph.canonicalScope.outputId,
+  sceneId: graph.canonicalScope.sceneId,
+  boundaryId: skillScope.boundaryId,
+  runtimeProfile: 'cross_system_integration',
+  inputArtifactTypes: [
+    'canonical_transcript',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+    'caption_sound_support_result',
+  ],
+})
+transitionJobCandidate.canonicalScope = structuredClone(skillScope)
+transitionJobCandidate.inputArtifactRefs =
+  transitionJobCandidate.inputArtifactRefs.map((artifact) => {
+    if (artifact.artifactType === 'canonical_transcript') {
+      return { ...artifact, ...CAP_11_TRANSCRIPT_REF }
+    }
+    if (artifact.artifactType === 'confirmed_output_frame') {
+      return { ...artifact, ...CAP_11_CONFIRMED_FRAME_REF }
+    }
+    if (artifact.artifactType === 'master_timing_or_planning_timing') {
+      return { ...artifact, ...CAP_11_MASTER_TIMING_REF }
+    }
+    return artifact
+  })
+const transitionJobCall = parseOrchestraSkillCall(withDigest({
+  ...transitionJobCandidate,
+  callDigestSha256: '',
+}, 'callDigestSha256'))
+const transitionOriginRef: CaptionDomainRef = {
+  id: transitionJobCall.callId,
+  version: transitionJobCall.schemaVersion,
+  contentHash: transitionJobCall.callDigestSha256,
+}
+const transitionSpec = outboundFixtureSpecs.find((spec) =>
+  spec.receiver === 'transitions')!
+const transitionPayload = createOutboundPayload(
+  transitionSpec,
+  transitionOriginRef,
+  'caption.cross-system.payload.cap12.single',
+)
+const transitionSupportRequest = createSupportRequest({
+  id: 'support.cap12.single.transitions',
+  target: 'transitions',
+  typedPayloadType: transitionPayload.schemaVersion,
+  typedPayload: transitionPayload,
+  artifactTypes:
+    transitionPayload.requestedReceivingCapability.expectedArtifactTypes,
+  originalCallRef: transitionOriginRef,
+  canonicalScope: transitionJobCall.canonicalScope,
+})
+const transitionHandoff = createCaptionCrossSystemHandoffV2({
+  handoffId: 'caption.cross-system.handoff.cap12.single.transitions',
+  outboundPayload: transitionPayload,
+  supportRequest: transitionSupportRequest,
+  frozenCompatibilityHandoff: frozenCompatibilityHandoff('transitions'),
+  frozenCompatibilitySupportRequest:
+    frozenCompatibilitySupportRequest('transitions'),
+  resolution,
+  sceneGraph: graph,
+})
+const transitionHandoffContext = {
+  sceneGraph: graph,
+  resolution,
+  outboundPayload: transitionPayload,
+  supportRequest: transitionSupportRequest,
+  frozenCompatibilityHandoff: frozenCompatibilityHandoff('transitions'),
+  frozenCompatibilitySupportRequest:
+    frozenCompatibilitySupportRequest('transitions'),
+}
+const transitionJobResult = runCaptionsSpecialistJob({
+  call: transitionJobCall,
+  crossSystemOutboundHandoff: transitionHandoff,
+  crossSystemOutboundHandoffContext: transitionHandoffContext,
+})
+check(transitionJobResult.disposition === 'completed'
+  && transitionJobResult.producedArtifactRefs.filter((artifact) =>
+    artifact.artifactType === 'caption_cross_system_outbound_payload'
+      || artifact.artifactType === 'caption_cross_system_handoff').length === 2,
+'A single transition-support assignment emits only its exact Caption-owned payload and handoff.')
+const brollSpec = outboundFixtureSpecs.find((spec) =>
+  spec.receiver === 'broll_owner')!
+const crossedReceiverPayload = createOutboundPayload(
+  brollSpec,
+  transitionOriginRef,
+  'caption.cross-system.payload.cap12.crossed-receiver',
+)
+const crossedReceiverSupport = createSupportRequest({
+  id: 'support.cap12.single.crossed-receiver',
+  target: 'broll_owner',
+  typedPayloadType: crossedReceiverPayload.schemaVersion,
+  typedPayload: crossedReceiverPayload,
+  artifactTypes:
+    crossedReceiverPayload.requestedReceivingCapability.expectedArtifactTypes,
+  originalCallRef: transitionOriginRef,
+  canonicalScope: transitionJobCall.canonicalScope,
+})
+const crossedReceiverHandoff = createCaptionCrossSystemHandoffV2({
+  handoffId: 'caption.cross-system.handoff.cap12.crossed-receiver',
+  outboundPayload: crossedReceiverPayload,
+  supportRequest: crossedReceiverSupport,
+  frozenCompatibilityHandoff: null,
+  resolution,
+  sceneGraph: graph,
+})
+const crossedReceiverResult = runCaptionsSpecialistJob({
+  call: transitionJobCall,
+  crossSystemOutboundHandoff: crossedReceiverHandoff,
+  crossSystemOutboundHandoffContext: {
+    sceneGraph: graph,
+    resolution,
+    outboundPayload: crossedReceiverPayload,
+    supportRequest: crossedReceiverSupport,
+    frozenCompatibilityHandoff: null,
+  },
+})
+check(crossedReceiverResult.disposition === 'blocked'
+  && crossedReceiverResult.reasonCodes.join('|')
+    === 'input.cross_system_handoff.call_scope_or_receiver.mismatch',
+'A digest-valid B-roll handoff cannot satisfy a Transition-only Caption job.')
 const missingRuntimeResponse = runCaptionsSpecialistJob({
   call: runtimeResumedCall,
   resumeSupportRequest: runtimeSupportRequest,

@@ -1,12 +1,15 @@
 import { createHash } from 'node:crypto'
 import {
   CAPTIONS_CAP_01_ARTIFACT_TYPE,
+  CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE,
+  CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES,
   CAPTIONS_LIVING_FRAME_JOB_TYPES,
   CAPTIONS_SPECIALIST_SKILL_KEY,
   CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
   CAPTIONS_SUPPORT_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
   CAPTIONS_UNSUPPORTED_JOB_TYPES,
+  type CaptionsCrossSystemOutputJobType,
   type CaptionsSupportJobType,
 } from '../../src/types/captions-specialist'
 import {
@@ -64,7 +67,12 @@ import type {
   LivingFrameCaptionResponseV2,
 } from '../../src/types/caption-living-frame-boundary'
 import {
+  CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
   CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION,
+  type CaptionCrossSystemOutboundPayloadV2,
+  type CaptionCrossSystemReceiverV2,
   type CaptionIncomingTypographyRequest,
 } from '../../src/types/caption-cross-system-coordination'
 import type { CaptionStoryTimingResolutionBinding } from
@@ -135,7 +143,14 @@ import {
   parseLivingFrameCaptionResponseV2,
 } from './caption-living-frame-boundary'
 import {
+  captionCrossSystemHandoffV2Ref,
+  captionCrossSystemOutboundPayloadRef,
+  parseCaptionCrossSystemCoordinationPlan,
+  parseCaptionCrossSystemHandoffV2,
+  parseCaptionCrossSystemOutboundPayloadV2,
   parseCaptionIncomingTypographyRequest,
+  type CaptionCrossSystemCoordinationPlanContext,
+  type CaptionCrossSystemHandoffV2Context,
 } from './caption-cross-system-coordination'
 
 interface CaptionRuntimeProfile {
@@ -145,6 +160,22 @@ interface CaptionRuntimeProfile {
 
 const LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE =
   'living_frame_caption_direction_response' as const
+
+const CROSS_SYSTEM_RECEIVERS_BY_JOB: Readonly<Record<
+  CaptionsCrossSystemOutputJobType,
+  readonly CaptionCrossSystemReceiverV2[]
+>> = Object.freeze({
+  plan_caption_to_visual_handoff: [
+    'living_frame', 'transitions', 'graphic', 'map', 'chart', 'diagram',
+    'broll_owner', 'stroke_motion',
+  ],
+  provide_typographic_transition_support: ['transitions'],
+  provide_caption_to_visual_handoff_spec: [
+    'graphic', 'map', 'chart', 'diagram', 'stroke_motion',
+  ],
+  provide_caption_broll_composition_constraints: ['broll_owner'],
+  provide_caption_living_frame_handoff_constraints: ['living_frame'],
+})
 
 export { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from './caption-authority-boundary'
 
@@ -402,6 +433,39 @@ function requiredArtifactTypes(
   )?.requiredEvidence ?? []
 }
 
+function producedArtifactTypes(
+  profile: CaptionRuntimeProfile,
+  jobType: string,
+): string[] {
+  return profile.manifest.capabilityEntries.find(
+    (entry) => entry.supportedJobType === jobType,
+  )?.producedArtifactTypes ?? []
+}
+
+function expectedOriginCallRef(call: OrchestraSkillCall): SkillContractRef {
+  return structuredClone(call.resumeOriginCallRef ?? callRef(call))
+}
+
+function captionCoordinationArtifactRef(
+  ref: SkillContractRef,
+  artifactType: string,
+  sourceSupportRequestRef: SkillContractRef | null,
+): SkillArtifactRef {
+  return {
+    ...structuredClone(ref),
+    artifactType,
+    producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
+    privateArtifact: true,
+    byteFreeRef: true,
+    sourceSupportRequestRef: sourceSupportRequestRef === null
+      ? null : structuredClone(sourceSupportRequestRef),
+  }
+}
+
+function artifactIdentity(ref: SkillArtifactRef): string {
+  return ref.id
+}
+
 function missingArtifacts(
   profile: CaptionRuntimeProfile,
   call: OrchestraSkillCall,
@@ -591,6 +655,18 @@ function exactSingleInputArtifactRef(
   return matches.length === 1 && exactRef(matches[0], expected)
 }
 
+function crossSystemCanonicalInputsMatch(
+  call: OrchestraSkillCall,
+  payload: CaptionCrossSystemOutboundPayloadV2,
+): boolean {
+  return exactSingleInputArtifactRef(
+    call, 'canonical_transcript', payload.canonicalTranscriptRef)
+    && exactSingleInputArtifactRef(
+      call, 'confirmed_output_frame', payload.confirmedOutputFrameRef)
+    && exactSingleInputArtifactRef(
+      call, 'master_timing_or_planning_timing', payload.masterTimingRef)
+}
+
 function brollRequestMatchesCall(
   call: OrchestraSkillCall,
   request: BrollCaptionOwnerReadRequest,
@@ -722,10 +798,13 @@ function livingFrameRequestMatchesCall(
 ): boolean {
   const scope = request.canonicalScope
   const callSnapshot = call.canonicalScope.approvedSnapshotRef
+  const scopeLevelMatches = (call.job.scopeLevel === 'scene'
+    && call.canonicalScope.boundaryId === null)
+    || (call.job.scopeLevel === 'boundary'
+      && call.canonicalScope.boundaryId !== null)
   return (CAPTIONS_LIVING_FRAME_JOB_TYPES as readonly string[])
     .includes(call.job.jobType)
-    && call.job.scopeLevel === 'scene'
-    && call.canonicalScope.boundaryId === null
+    && scopeLevelMatches
     && call.canonicalScope.ownerUserId === scope.ownerUserId
     && call.canonicalScope.workspaceId === scope.workspaceId
     && call.canonicalScope.projectId === scope.projectId
@@ -799,6 +878,10 @@ export function runCaptionsSpecialistJob(input: {
   incomingTypographySceneGraph?: unknown
   incomingTypographyStoryTimingResolution?:
     CaptionStoryTimingResolutionBinding
+  crossSystemCoordinationPlan?: unknown
+  crossSystemCoordinationContext?: CaptionCrossSystemCoordinationPlanContext
+  crossSystemOutboundHandoff?: unknown
+  crossSystemOutboundHandoffContext?: CaptionCrossSystemHandoffV2Context
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
   const integrationV3Profile = call.manifestRef.id
@@ -863,6 +946,16 @@ export function runCaptionsSpecialistJob(input: {
     return makeResult(profile,
       call, 'unsupported', ['unsupported.job'],
       'The requested job is outside Caption specialist ownership.',
+    )
+  }
+
+  const manifestEntry = manifest.capabilityEntries.find(
+    (candidate) => candidate.supportedJobType === call.job.jobType)
+  if (!manifestEntry
+    || !manifestEntry.supportedScopeLevels.includes(call.job.scopeLevel)) {
+    return makeResult(profile,
+      call, 'blocked', ['manifest.scope.blocked'],
+      'The requested Caption scope is not declared by this capability.',
     )
   }
 
@@ -1574,6 +1667,119 @@ export function runCaptionsSpecialistJob(input: {
     )
   }
 
+  const hasCoordinationPlanInput =
+    input.crossSystemCoordinationPlan !== undefined
+    || input.crossSystemCoordinationContext !== undefined
+  const hasSingleHandoffInput =
+    input.crossSystemOutboundHandoff !== undefined
+    || input.crossSystemOutboundHandoffContext !== undefined
+  const crossSystemJob = (
+    CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES as readonly string[])
+    .includes(call.job.jobType)
+  const crossSystemArtifactRefs: SkillArtifactRef[] = []
+  if (!integrationV3Profile || !crossSystemJob) {
+    if (hasCoordinationPlanInput || hasSingleHandoffInput) {
+      return makeResult(profile, call, 'blocked', [
+        'input.cross_system_coordination.unexpected',
+      ], 'Cross-system coordination evidence is not declared for this job.')
+    }
+  } else {
+    const sourceSupportRequestRef = incomingSupportRequest === null ? null : {
+      id: incomingSupportRequest.requestId,
+      version: incomingSupportRequest.schemaVersion,
+      contentHash: incomingSupportRequest.requestDigestSha256,
+    }
+    const originRef = expectedOriginCallRef(call)
+    if (call.job.jobType === CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE) {
+      if (hasSingleHandoffInput) {
+        return makeResult(profile, call, 'blocked', [
+          'input.cross_system_coordination.shape.ambiguous',
+        ], 'The aggregate Caption handoff job cannot accept a single handoff.')
+      }
+      if (input.crossSystemCoordinationPlan === undefined
+        || input.crossSystemCoordinationContext === undefined) {
+        return makeResult(profile, call, 'blocked', [
+          'input.cross_system_coordination.plan_or_context.missing',
+        ], 'The Caption handoff job requires its exact coordination plan and context.')
+      }
+      try {
+        const context = input.crossSystemCoordinationContext
+        const plan = parseCaptionCrossSystemCoordinationPlan(
+          input.crossSystemCoordinationPlan, context)
+        const outboundPayloads = context.outboundBundles.map((bundle) =>
+          parseCaptionCrossSystemOutboundPayloadV2(
+            bundle.outboundPayload, context))
+        if (!exactDomainScopeFields(call, plan.canonicalScope)
+          || outboundPayloads.some((payload) =>
+            !exactRef(payload.originCaptionCallRef, originRef)
+              || !crossSystemCanonicalInputsMatch(call, payload))) {
+          return makeResult(profile, call, 'blocked', [
+            'input.cross_system_coordination.call_or_scope.mismatch',
+          ], 'The Caption coordination plan is crossed with another call or scope.')
+        }
+        crossSystemArtifactRefs.push(captionCoordinationArtifactRef({
+          id: plan.planId,
+          version: plan.schemaVersion,
+          contentHash: plan.planDigestSha256,
+        }, CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+        sourceSupportRequestRef))
+        crossSystemArtifactRefs.push(...plan.outboundPayloadRefs.map((ref) =>
+          captionCoordinationArtifactRef(
+            ref, CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+            sourceSupportRequestRef)))
+        crossSystemArtifactRefs.push(...plan.outboundHandoffRefs.map((ref) =>
+          captionCoordinationArtifactRef(
+            ref, CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+            sourceSupportRequestRef)))
+      } catch {
+        return makeResult(profile, call, 'blocked', [
+          'input.cross_system_coordination.invalid',
+        ], 'The Caption coordination plan failed closed validation.')
+      }
+    } else {
+      if (hasCoordinationPlanInput) {
+        return makeResult(profile, call, 'blocked', [
+          'input.cross_system_coordination.shape.ambiguous',
+        ], 'This Caption support job accepts one exact outbound handoff only.')
+      }
+      if (input.crossSystemOutboundHandoff === undefined
+        || input.crossSystemOutboundHandoffContext === undefined) {
+        return makeResult(profile, call, 'blocked', [
+          'input.cross_system_handoff.payload_or_context.missing',
+        ], 'This Caption support job requires one exact outbound handoff.')
+      }
+      try {
+        const context = input.crossSystemOutboundHandoffContext
+        const payload = parseCaptionCrossSystemOutboundPayloadV2(
+          context.outboundPayload, context)
+        const handoff = parseCaptionCrossSystemHandoffV2(
+          input.crossSystemOutboundHandoff, context)
+        const allowedReceivers = CROSS_SYSTEM_RECEIVERS_BY_JOB[
+          call.job.jobType as CaptionsCrossSystemOutputJobType]
+        if (!exactDomainScopeFields(call, payload.canonicalScope)
+          || !exactRef(payload.originCaptionCallRef, originRef)
+          || !crossSystemCanonicalInputsMatch(call, payload)
+          || !allowedReceivers.includes(payload.receiver)) {
+          return makeResult(profile, call, 'blocked', [
+            'input.cross_system_handoff.call_scope_or_receiver.mismatch',
+          ], 'The Caption outbound handoff is crossed with another assignment.')
+        }
+        crossSystemArtifactRefs.push(captionCoordinationArtifactRef(
+          captionCrossSystemOutboundPayloadRef(payload),
+          CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+          sourceSupportRequestRef))
+        crossSystemArtifactRefs.push(captionCoordinationArtifactRef(
+          captionCrossSystemHandoffV2Ref(handoff),
+          CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+          sourceSupportRequestRef))
+      } catch {
+        return makeResult(profile, call, 'blocked', [
+          'input.cross_system_handoff.invalid',
+        ], 'The Caption outbound handoff failed closed validation.')
+      }
+    }
+  }
+
   const producedArtifactRefs: SkillArtifactRef[] = [{
     id: `${call.callId}.caption-receipt`,
     version: 'caption-specialist-job-receipt-v1',
@@ -1593,6 +1799,7 @@ export function runCaptionsSpecialistJob(input: {
         ?? 'no-living-frame-response',
       ...(incomingTypographyRequest === null ? []
         : [incomingTypographyRequest.requestDigestSha256]),
+      ...crossSystemArtifactRefs.map((artifact) => artifact.contentHash),
     ].join(':')),
     artifactType: CAPTIONS_CAP_01_ARTIFACT_TYPE,
     producerSkillKey: CAPTIONS_SPECIALIST_SKILL_KEY,
@@ -1616,8 +1823,20 @@ export function runCaptionsSpecialistJob(input: {
           id: incomingSupportRequest.requestId,
           version: incomingSupportRequest.schemaVersion,
           contentHash: incomingSupportRequest.requestDigestSha256,
-        },
-      }))) ]
+          },
+      }))),
+    ...crossSystemArtifactRefs,
+  ]
+  const declaredArtifactTypes = new Set(
+    producedArtifactTypes(profile, call.job.jobType))
+  if (producedArtifactRefs.some((artifact) =>
+    !declaredArtifactTypes.has(artifact.artifactType))
+    || new Set(producedArtifactRefs.map(artifactIdentity)).size
+      !== producedArtifactRefs.length) {
+    return makeResult(profile, call, 'blocked', [
+      'output.artifact_manifest_contract.mismatch',
+    ], 'Caption output artifacts do not match the exact capability manifest.')
+  }
   return makeResult(profile,
     call,
     'completed',
@@ -1639,6 +1858,8 @@ export function runCaptionsSpecialistJob(input: {
         : ['incoming_support_request.exact_assignment.accepted']),
       ...(incomingTypographyRequest === null ? []
         : ['incoming_typography_request.closed_contract.accepted']),
+      ...(crossSystemArtifactRefs.length === 0 ? []
+        : ['cross_system_coordination.caption_artifacts.accepted']),
     ],
     'Caption planning completed within the assigned scope.',
     [],

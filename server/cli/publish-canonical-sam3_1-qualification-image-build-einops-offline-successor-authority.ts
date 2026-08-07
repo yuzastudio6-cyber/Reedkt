@@ -68,7 +68,7 @@ const publication = await publishCanonicalSam31QualificationImageBuildAuthority(
   },
   reproducibilityReceiptRef: {
     id:
-      'sam31-qualification-capsule-reproducibility-einops-offline-20260807',
+      'sam31-qualification-capsule-reproducibility-einops-offline-source-identity-corrected-20260807',
     version: 1,
     contentHash: `sha256:${reproducibilityHash}`,
   },

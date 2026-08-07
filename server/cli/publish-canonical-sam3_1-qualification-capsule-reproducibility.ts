@@ -53,6 +53,12 @@ const targets = {
     primaryBuildId: '5339b681-9b0a-4e77-967a-5a8b065e452e',
     confirmationBuildId: 'a402319e-e524-4f91-ad86-d8ca30b40311',
   },
+  einops_offline_source_identity_corrected: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-einops-offline-source-identity-corrected-20260807',
+    primaryBuildId: 'd56d7f4a-d5d2-41a2-9098-db22a98f61b1',
+    confirmationBuildId: '6db247e8-9dda-46c8-9266-51d3de51cf34',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -62,6 +68,7 @@ const targetName = z.enum([
   'private_closure_offline',
   'npp_offline',
   'einops_offline',
+  'einops_offline_source_identity_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

@@ -739,10 +739,9 @@ export type OfflineRemotionRenderRequest = {
   | { payload: OfflineRemotionCaptionRealSourceSceneGroupPayload }
   | { payload: OfflineRemotionCaptionRealSourceMultiOutputSceneGroupPayload }
   | { payload: OfflineRemotionCaptionBrollOwnerRealSourceSceneGroupPayload }
-  | { payload: OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload }
   | {
-    payload:
-      OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload
+    payload: OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload
+      | OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload
   }
 )
 
@@ -1758,9 +1757,7 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
         'Caption approved-run B-roll inspection misses exact cue timing.',
       )
     }
-    const normalizedPayload:
-    OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload
-    | OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload = {
+    const normalizedPayload = {
       compositionProfileId: exactFrame
         ? 'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
         : 'caption_direction_broll_owner_approved_run_scene_group_v5',
@@ -1852,7 +1849,8 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
       completeTimeInspectionRequired: true,
       inspectionFrameNumbers,
       layers: normalizedCreative.payload.layers,
-    }
+    } as OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload
+      | OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload
     return {
       schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
       toolId: 'remotion',

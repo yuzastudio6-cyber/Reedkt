@@ -14,6 +14,7 @@ import type { CaptionRemotionBrollOwnerApprovedRunReviewSpec } from
 import {
   type OfflineRemotionCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload,
   type OfflineRemotionRenderRequest,
+  isCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload,
   validateOfflineRemotionRenderRequest,
 } from '../tool-execution/remotion-render-execution/offline-remotion-render-execution-protocol'
 import { calculateSkillContractDigest } from
@@ -245,8 +246,8 @@ export function buildCaptionRemotionBrollOwnerApprovedRunExactFrameRequest(
       privateReviewScaleDenominator: 1,
     },
   })
-  if (request.payload.compositionProfileId
-      !== CAPTION_REMOTION_BROLL_OWNER_APPROVED_RUN_EXACT_FRAME_PROFILE) {
+  if (!isCaptionBrollOwnerApprovedRunExactFrameSceneGroupPayload(
+    request.payload)) {
     throw new Error(
       'Caption approved-run exact-frame request lost its V6 profile.')
   }

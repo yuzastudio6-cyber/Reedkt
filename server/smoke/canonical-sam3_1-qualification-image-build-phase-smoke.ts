@@ -150,6 +150,7 @@ const capsuleManifest =
       networkDependencyInstallRequired: false,
       buildSecretsRequired: false,
       capsuleCreateOnlyAndPrivate: true,
+      reproducibilityRef: ref('sam31-qualification-capsule-reproducibility'),
       securityReviewRef: ref('sam31-qualification-capsule-security'),
       malwareScanRef: ref('sam31-qualification-capsule-malware'),
     },

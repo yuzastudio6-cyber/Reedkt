@@ -161,6 +161,7 @@ const manifestWithoutHashSchema = z.object({
     networkDependencyInstallRequired: z.literal(false),
     buildSecretsRequired: z.literal(false),
     capsuleCreateOnlyAndPrivate: z.literal(true),
+    reproducibilityRef: evidenceRefSchema,
     securityReviewRef: evidenceRefSchema,
     malwareScanRef: evidenceRefSchema,
   }).strict(),

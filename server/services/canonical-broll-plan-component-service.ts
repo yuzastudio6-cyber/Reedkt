@@ -587,7 +587,6 @@ async function readPublicLifecycleAuthorities(
     publicPlan.envelope.assignmentHash !== publicAssignment.assignmentHash &&
       'public_plan_assignment_hash',
     publicPlan.envelope.planId !== plan.planId && 'public_plan_id',
-    publicPlan.envelope.planHash !== plan.planHash && 'public_plan_hash',
     publicPlan.payloadRef.sha256 !== hashSkillValue(plan) &&
       'public_plan_payload',
     approval.assignmentId !== publicAssignment.assignmentId &&

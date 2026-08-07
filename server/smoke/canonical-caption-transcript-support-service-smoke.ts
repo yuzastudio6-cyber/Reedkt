@@ -2,15 +2,25 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 
 import {
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
   type CanonicalCaptionSpecialistWorkItemInput,
 } from '../../src/types/canonical-caption-specialist-execution'
+import {
+  CAPTIONS_CAP_01_ARTIFACT_TYPE,
+} from '../../src/types/captions-specialist'
+import {
+  CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+} from '../../src/types/caption-cross-system-coordination'
 import type {
   OrchestraSkillCall,
   OrchestraSkillJobResult,
+  SkillArtifactRef,
   SkillContractRef,
 } from '../../src/types/orchestra-skill-contracts'
 import {
@@ -85,6 +95,10 @@ import { parseSkillSupportRequestV2 } from
   '../orchestra/orchestra-skill-support-request-v2'
 import { createCanonicalCaptionBrollCrossSystemSourceFixture } from
   './canonical-caption-cross-system-source-fixture'
+import {
+  assertCanonicalCaptionCompletedProducedArtifacts,
+  canonicalCaptionProducedArtifactRefsDigest,
+} from '../services/canonical-caption-specialist-produced-artifact-contract'
 
 let checks = 0
 function check(value: unknown, message: string): void {
@@ -110,6 +124,28 @@ function skillCallRef(call: OrchestraSkillCall): SkillContractRef {
 function completedCrossSystemResult(
   call: OrchestraSkillCall,
 ): OrchestraSkillJobResult {
+  const sourceSupportRequestRef = call.inputArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'source_skill_support_request')
+  assert.ok(sourceSupportRequestRef)
+  const artifact = (suffix: string, artifactType: string,
+    sourceRequest: SkillContractRef | null) => ({
+    id: `caption.cross-system.${suffix}.${
+      call.callDigestSha256.slice(0, 40)}`,
+    version: 'caption-cross-system-runtime-receipt-v1',
+    contentHash: sha256AuthorityValue({
+      callDigestSha256: call.callDigestSha256,
+      artifactType,
+    }),
+    artifactType,
+    producerSkillKey: 'captions' as const,
+    privateArtifact: true as const,
+    byteFreeRef: true as const,
+    sourceSupportRequestRef: sourceRequest === null ? null : {
+      id: sourceRequest.id,
+      version: sourceRequest.version,
+      contentHash: sourceRequest.contentHash,
+    },
+  })
   const withoutDigest: Omit<OrchestraSkillJobResult,
     'resultDigestSha256'> = {
     schemaVersion: ORCHESTRA_SKILL_JOB_RESULT_VERSION,
@@ -123,20 +159,15 @@ function completedCrossSystemResult(
     qualificationSnapshotRef:
       structuredClone(call.qualificationSnapshotRef),
     canonicalScope: structuredClone(call.canonicalScope),
-    producedArtifactRefs: [{
-      id: `caption.cross-system.receipt.${
-        call.callDigestSha256.slice(0, 40)}`,
-      version: 'caption-cross-system-runtime-receipt-v1',
-      contentHash: sha256AuthorityValue({
-        callDigestSha256: call.callDigestSha256,
-        artifactType: 'caption_cross_system_runtime_receipt',
-      }),
-      artifactType: 'caption_cross_system_runtime_receipt',
-      producerSkillKey: 'captions',
-      privateArtifact: true,
-      byteFreeRef: true,
-      sourceSupportRequestRef: null,
-    }],
+    producedArtifactRefs: [
+      artifact('receipt', CAPTIONS_CAP_01_ARTIFACT_TYPE, null),
+      artifact('support', 'caption_broll_composition_constraints',
+        sourceSupportRequestRef),
+      artifact('payload', CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+        sourceSupportRequestRef),
+      artifact('handoff', CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+        sourceSupportRequestRef),
+    ],
     supportRequests: [],
     reasonCodes: ['caption.cross_system.execution_input.injected'],
     safeUserSummary:
@@ -1316,6 +1347,65 @@ check(crossSystemExecution.pair.result.disposition === 'completed'
   && crossSystemExecutionCalls === 1
   && crossSystemRuntimeInjectionVerified,
   'Canonical V3 execution must double-reread, persist, and inject the exact Caption cross-system source package.')
+check(crossSystemExecution.receipt.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION
+  && crossSystemExecution.receipt.crossSystemExecutionInputRef?.contentHash
+    === crossSystemExecution.crossSystemExecutionInputRef?.contentHash
+  && crossSystemExecution.receipt
+    .crossSystemExecutionInputPersistedCreateOnlyAndReread === true
+  && crossSystemExecution.receipt.producedArtifactCount === 4,
+'The V2 execution receipt must retain the exact cross-system source ref and complete produced-artifact count.')
+assert.doesNotThrow(() => assertCanonicalCaptionCompletedProducedArtifacts({
+  receipt: crossSystemExecution.receipt,
+  producedArtifactRefs: crossSystemExecution.pair.result.producedArtifactRefs,
+}))
+checks += 1
+assert.equal(crossSystemExecution.receipt.schemaVersion,
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION)
+const aggregateArtifact = (suffix: string, artifactType: string):
+SkillArtifactRef => ({
+  id: `caption.aggregate.${suffix}`,
+  version: 'caption-cross-system-runtime-receipt-v1',
+  contentHash: sha256AuthorityValue({ suffix, artifactType }),
+  artifactType,
+  producerSkillKey: 'captions',
+  privateArtifact: true,
+  byteFreeRef: true,
+  sourceSupportRequestRef: null,
+})
+const aggregateArtifacts: SkillArtifactRef[] = [
+  aggregateArtifact('receipt', CAPTIONS_CAP_01_ARTIFACT_TYPE),
+  aggregateArtifact('plan',
+    CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE),
+  ...Array.from({ length: 8 }, (_, index) => aggregateArtifact(
+    `payload-${index}`,
+    CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE)),
+  ...Array.from({ length: 8 }, (_, index) => aggregateArtifact(
+    `handoff-${index}`,
+    CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE)),
+]
+const aggregateReceipt = {
+  ...crossSystemExecution.receipt,
+  captionJobType: 'plan_caption_to_visual_handoff' as const,
+  producedArtifactCount: aggregateArtifacts.length,
+  producedArtifactRefsDigestSha256:
+    canonicalCaptionProducedArtifactRefsDigest(aggregateArtifacts),
+}
+assert.doesNotThrow(() => assertCanonicalCaptionCompletedProducedArtifacts({
+  receipt: aggregateReceipt,
+  producedArtifactRefs: aggregateArtifacts,
+}))
+assert.throws(() => assertCanonicalCaptionCompletedProducedArtifacts({
+  receipt: {
+    ...aggregateReceipt,
+    producedArtifactCount: aggregateArtifacts.length - 1,
+    producedArtifactRefsDigestSha256:
+      canonicalCaptionProducedArtifactRefsDigest(
+        aggregateArtifacts.slice(0, -1)),
+  },
+  producedArtifactRefs: aggregateArtifacts.slice(0, -1),
+}), /exact job contract/u)
+checks += 2
 const persistedCrossSystemInput =
   await crossSystemComposition.repository.rereadExact({
     originCaptionCallRef: skillCallRef(crossSystemExecution.pair.call),

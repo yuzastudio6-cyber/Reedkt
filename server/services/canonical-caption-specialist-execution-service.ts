@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import {
   CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
@@ -65,8 +66,9 @@ import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
 import type { CanonicalCaptionTranscriptAuthenticatedReadPort } from
   '../../src/types/canonical-caption-transcript-support'
-import type {
-  CanonicalCaptionCrossSystemExecutionInputReadPort,
+import {
+  CANONICAL_CAPTION_CROSS_SYSTEM_EXECUTION_INPUT_VERSION,
+  type CanonicalCaptionCrossSystemExecutionInputReadPort,
 } from '../../src/types/canonical-caption-cross-system-execution-input'
 import type {
   CaptionCrossSystemCoordinationPlanContext,
@@ -93,6 +95,9 @@ import {
 import {
   resolveCanonicalCaptionIncomingSupportRequestForCall,
 } from './canonical-caption-incoming-support-request-service'
+import {
+  canonicalCaptionProducedArtifactRefsDigest,
+} from './canonical-caption-specialist-produced-artifact-contract'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -279,9 +284,7 @@ z.discriminatedUnion('schemaVersion', [
   }
 })
 
-const receiptWithoutDigestSchema = z.object({
-  schemaVersion: z.literal(
-    CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION),
+const receiptCommonWithoutDigestSchema = z.object({
   receiptId: safeKey,
   executionPackageRef: refSchema,
   approvedSnapshotRef: refSchema,
@@ -316,8 +319,43 @@ const receiptWithoutDigestSchema = z.object({
   publicDeliveryGranted: z.literal(false),
   productionAuthorityGranted: z.literal(false),
 }).strict()
+const receiptV1WithoutDigestSchema = receiptCommonWithoutDigestSchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION),
+}).strict()
+const receiptV2WithoutDigestSchema = receiptCommonWithoutDigestSchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION),
+  producedArtifactCount: z.number().int().nonnegative().max(64),
+  producedArtifactRefsDigestSha256: rawSha256,
+  exactProducedArtifactRefsBound: z.literal(true),
+  crossSystemExecutionInputRef: refSchema.extend({
+    version: z.literal(
+      CANONICAL_CAPTION_CROSS_SYSTEM_EXECUTION_INPUT_VERSION),
+  }).strict().nullable(),
+  crossSystemExecutionInputPersistedCreateOnlyAndReread: z.boolean(),
+}).strict()
 const receiptSchema: z.ZodType<CanonicalCaptionSpecialistExecutionReceipt> =
-  receiptWithoutDigestSchema.extend({ receiptDigestSha256: rawSha256 }).strict()
+  z.discriminatedUnion('schemaVersion', [
+    receiptV1WithoutDigestSchema.extend({
+      receiptDigestSha256: rawSha256,
+    }).strict(),
+    receiptV2WithoutDigestSchema.extend({
+      receiptDigestSha256: rawSha256,
+    }).strict(),
+  ]).superRefine((receipt, context) => {
+    if (receipt.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION
+      && receipt.crossSystemExecutionInputPersistedCreateOnlyAndReread !==
+        (receipt.crossSystemExecutionInputRef !== null)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['crossSystemExecutionInputPersistedCreateOnlyAndReread'],
+        message:
+          'Caption cross-system persistence claim must match its exact input ref.',
+      })
+    }
+  })
 
 export interface CanonicalCaptionSpecialistExecutionPort {
   execute(input: {
@@ -520,6 +558,12 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     throw new Error('Canonical Caption call/result chain reread failed.')
   }
   const pair = resumeChain.currentPair
+  const crossSystemExecutionInputRef = crossSystemExecutionInput === null
+    ? null : {
+        id: crossSystemExecutionInput.inputId,
+        version: crossSystemExecutionInput.schemaVersion,
+        contentHash: crossSystemExecutionInput.inputDigestSha256,
+      }
   return {
     pair,
     receipt: createReceipt({
@@ -528,13 +572,9 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       workItem,
       job,
       pair,
+      crossSystemExecutionInputRef,
     }),
-    crossSystemExecutionInputRef: crossSystemExecutionInput === null
-      ? null : {
-          id: crossSystemExecutionInput.inputId,
-          version: crossSystemExecutionInput.schemaVersion,
-          contentHash: crossSystemExecutionInput.inputDigestSha256,
-        },
+    crossSystemExecutionInputRef,
   }
 }
 
@@ -1124,12 +1164,12 @@ function createReceipt(input: {
   workItem: CanonicalApprovedExecutionAuthority['workItems'][number]
   job: CanonicalApprovedExecutionAuthority['jobs'][number]
   pair: CanonicalSpecialistCallResultPair
+  crossSystemExecutionInputRef: SkillContractRef | null
 }): CanonicalCaptionSpecialistExecutionReceipt {
   const manifestEntry = input.authority.assetManifest.entries.find((entry) =>
     entry.approvedWorkItemId === input.workItem.id)!
   const result = parseOrchestraSkillJobResult(input.pair.result)
-  const payload = receiptWithoutDigestSchema.parse({
-    schemaVersion: CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION,
+  const commonPayload = receiptCommonWithoutDigestSchema.parse({
     receiptId: `caption.execution.${input.pair.pairDigestSha256.slice(0, 40)}`,
     executionPackageRef: {
       id: input.executionPackage.packageRecordId,
@@ -1194,6 +1234,27 @@ function createReceipt(input: {
     publicDeliveryGranted: false,
     productionAuthorityGranted: false,
   })
+  const useV2 = input.crossSystemExecutionInputRef !== null
+    || result.producedArtifactRefs.length !== 1
+  const payload = useV2
+    ? receiptV2WithoutDigestSchema.parse({
+        ...commonPayload,
+        schemaVersion:
+          CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
+        producedArtifactCount: result.producedArtifactRefs.length,
+        producedArtifactRefsDigestSha256:
+          canonicalCaptionProducedArtifactRefsDigest(
+            result.producedArtifactRefs),
+        exactProducedArtifactRefsBound: true,
+        crossSystemExecutionInputRef:
+          structuredClone(input.crossSystemExecutionInputRef),
+        crossSystemExecutionInputPersistedCreateOnlyAndReread:
+          input.crossSystemExecutionInputRef !== null,
+      })
+    : receiptV1WithoutDigestSchema.parse({
+        ...commonPayload,
+        schemaVersion: CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION,
+      })
   return parseCanonicalCaptionSpecialistExecutionReceipt({
     ...payload,
     receiptDigestSha256: digest(payload, 'receiptDigestSha256'),

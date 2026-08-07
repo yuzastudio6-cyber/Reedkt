@@ -22,8 +22,15 @@ import type {
   SkillContractRef,
   SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
-import { CAPTIONS_SUPPORTED_JOB_TYPES } from
+import {
+  CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES,
+  CAPTIONS_SUPPORTED_JOB_TYPES,
+} from
   '../../src/types/captions-specialist'
+import {
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
+} from '../../src/types/canonical-caption-specialist-execution'
 import {
   CAPTION_CANONICAL_TRANSCRIPT_AUTHENTICATED_READ_BINDING_VERSION,
   type CaptionCanonicalTranscriptReadScope,
@@ -659,11 +666,25 @@ async function buildRunEvidence(
       'completed_after_support_resume'].includes(chain.status)
       || chain.currentPair.pairDigestSha256 !== currentPair.pairDigestSha256
       || verified.receipt.captionResultRef.contentHash !==
-        currentPair.result.resultDigestSha256) {
+        currentPair.result.resultDigestSha256
+      || sha256AuthorityValue(verified.producedArtifactRefs) !==
+        sha256AuthorityValue(currentPair.result.producedArtifactRefs)) {
       throw new MissingCanonicalRunEvidence()
     }
     const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
       workItem.executionInput)
+    const crossSystemWork = workInput.schemaVersion ===
+        CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+      && (CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES as readonly string[])
+        .includes(workInput.captionJobType)
+    const receiptHasCrossSystemInput = verified.receipt.schemaVersion ===
+        CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION
+      && verified.receipt.crossSystemExecutionInputRef !== null
+    if (crossSystemWork !== receiptHasCrossSystemInput) {
+      throw new Error(
+        'Caption qualification cross-system source lineage is incomplete.',
+      )
+    }
     const ownerEvidence = await readOwnerEvidence({
       dependencies,
       request,

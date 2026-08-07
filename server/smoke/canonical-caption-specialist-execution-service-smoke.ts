@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path'
 import type { CanonicalCaptionSpecialistWorkItemInput } from
   '../../src/types/canonical-caption-specialist-execution'
 import {
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION,
@@ -35,6 +36,10 @@ import {
   parseCanonicalCaptionSpecialistExecutionReceipt,
   parseCanonicalCaptionSpecialistWorkItemInput,
 } from '../services/canonical-caption-specialist-execution-service'
+import {
+  assertCanonicalCaptionCompletedProducedArtifacts,
+  canonicalCaptionProducedArtifactRefsDigest,
+} from '../services/canonical-caption-specialist-produced-artifact-contract'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import type { CanonicalApprovedExecutionAuthority } from
@@ -948,6 +953,136 @@ check(incomingSupportExecution.pair.result.producedArtifactRefs.some(
     && artifact.sourceSupportRequestRef.contentHash
       === incomingSupportRequestRef.contentHash),
 'Caption must return the requested byte-free support artifact bound to the exact incoming request.')
+check(incomingSupportExecution.receipt.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION
+  && incomingSupportExecution.receipt.producedArtifactCount === 2
+  && incomingSupportExecution.receipt.producedArtifactRefsDigestSha256 ===
+    canonicalCaptionProducedArtifactRefsDigest(
+      incomingSupportExecution.pair.result.producedArtifactRefs)
+  && incomingSupportExecution.receipt.crossSystemExecutionInputRef === null
+  && incomingSupportExecution.receipt
+    .crossSystemExecutionInputPersistedCreateOnlyAndReread === false,
+'A multi-artifact incoming-support result must use V2 and bind its exact ordered artifacts without claiming cross-system input.')
+const falseCrossSystemPersistenceClaim = structuredClone(
+  incomingSupportExecution.receipt) as unknown as Record<string, unknown>
+falseCrossSystemPersistenceClaim
+  .crossSystemExecutionInputPersistedCreateOnlyAndReread = true
+falseCrossSystemPersistenceClaim.receiptDigestSha256 =
+  calculateSkillContractDigest(falseCrossSystemPersistenceClaim,
+    'receiptDigestSha256')
+assert.throws(() => parseCanonicalCaptionSpecialistExecutionReceipt(
+  falseCrossSystemPersistenceClaim), /persistence claim/u)
+checks += 1
+assert.doesNotThrow(() => assertCanonicalCaptionCompletedProducedArtifacts({
+  receipt: incomingSupportExecution.receipt,
+  producedArtifactRefs:
+    incomingSupportExecution.pair.result.producedArtifactRefs,
+}))
+checks += 1
+const changedIncomingArtifactRefs = structuredClone(
+  incomingSupportExecution.pair.result.producedArtifactRefs)
+changedIncomingArtifactRefs[1]!.contentHash = sha256AuthorityValue(
+  'changed-caption-support-artifact')
+assert.throws(() => assertCanonicalCaptionCompletedProducedArtifacts({
+  receipt: incomingSupportExecution.receipt,
+  producedArtifactRefs: changedIncomingArtifactRefs,
+}), /does not bind its exact artifacts/u)
+checks += 1
+
+const incomingArtifactIdentityHash = sha256AuthorityValue(
+  'caption-incoming-support-artifact-object')
+const incomingExecutionAttemptId = 'caption-incoming-support-attempt-1'
+const incomingImmutableLeaseHash = sha256AuthorityValue(
+  'caption-incoming-support-lease-1')
+const incomingJobAuthorityHash = sha256AuthorityValue(incomingSupportJob)
+const incomingReport = {
+  ...structuredClone(report),
+  identity: {
+    workspaceId: snapshot.workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    snapshotId: snapshot.snapshotId,
+    jobId: incomingSupportJob.id,
+    approvedWorkItemId: incomingSupportWorkItem.id,
+    expectedAssetId: incomingSupportManifestEntry.id,
+  },
+  executionFence: {
+    leaseId: 'caption-incoming-support-lease-1',
+    immutableLeaseHash: incomingImmutableLeaseHash,
+    leaseAttemptNumber: 1,
+    executionAttemptId: incomingExecutionAttemptId,
+    runnerClass: 'canonical_caption_specialist_planning_runner_v1',
+  },
+  authorityHashes: {
+    snapshotHash: snapshot.snapshotHash,
+    approvedAssetManifestHash: snapshot.approvedAssetManifestHash,
+    jobAuthorityHash: incomingJobAuthorityHash,
+  },
+  captionSpecialist: {
+    receipt: incomingSupportExecution.receipt,
+    callResultPairRef: {
+      id: incomingSupportExecution.pair.pairId,
+      version: incomingSupportExecution.pair.schemaVersion,
+      contentHash: incomingSupportExecution.pair.pairDigestSha256,
+    },
+    producedArtifactRefs:
+      incomingSupportExecution.pair.result.producedArtifactRefs,
+    supportRequestCount: 0,
+    exactCreateOnlyRereadVerified: true,
+    planningOnly: true,
+    renderedMediaClaimed: false,
+    finalQaClaimed: false,
+  },
+}
+const incomingReportBytes = Buffer.from(JSON.stringify(incomingReport), 'utf8')
+const incomingReportPath = join(artifactRoot,
+  canonicalInternalAuthorityArtifactRelativePath(
+    incomingArtifactIdentityHash))
+await mkdir(dirname(incomingReportPath), { recursive: true })
+await writeFile(incomingReportPath, incomingReportBytes)
+const incomingPersistedArtifact: PersistedArtifactResult = {
+  ...structuredClone(persistedArtifact),
+  artifactId: 'caption-incoming-support-planning-artifact-1',
+  identity: {
+    ...structuredClone(persistedArtifact.identity),
+    jobId: incomingSupportJob.id,
+    expectedAssetId: incomingSupportManifestEntry.id,
+  },
+  lineage: {
+    ...structuredClone(persistedArtifact.lineage),
+    assetId: incomingSupportManifestEntry.id,
+    approvedWorkItemId: incomingSupportWorkItem.id,
+    workItemKey: incomingSupportWorkItem.workItemKey,
+    jobAuthorityHash: incomingJobAuthorityHash,
+  },
+  content: {
+    sha256: createHash('sha256').update(incomingReportBytes).digest('hex'),
+    byteLength: incomingReportBytes.byteLength,
+    contentType: 'application/json',
+  },
+  storageIdentity: {
+    storageKind: 'private_local_test',
+    opaqueObjectIdentityHash: incomingArtifactIdentityHash,
+  },
+  actualRunEvidence: {
+    ...structuredClone(persistedArtifact.actualRunEvidence),
+    executionAttemptId: incomingExecutionAttemptId,
+    runnerEvidenceHash: sha256AuthorityValue(
+      'caption-incoming-support-runner-evidence'),
+    startedAt: incomingSupportExecution.receipt.persistedAt,
+    finishedAt: incomingSupportExecution.receipt.persistedAt,
+  },
+  createdAt: incomingSupportExecution.receipt.persistedAt,
+}
+const verifiedIncomingArtifact =
+  await verifyCanonicalCaptionSpecialistPlanningArtifact({
+    localStorageRoot: artifactRoot,
+    artifact: incomingPersistedArtifact,
+  })
+check(verifiedIncomingArtifact.producedArtifactRefs.length === 2
+  && verifiedIncomingArtifact.receipt.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
+'The private canonical artifact verifier must admit the exact two-artifact support result instead of enforcing the legacy one-artifact limit.')
 
 await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
   authority: incomingSupportAuthority,

@@ -7,9 +7,12 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
 } from '../../src/types/canonical-caption-specialist-execution'
+import type { SkillArtifactRef } from
+  '../../src/types/orchestra-skill-contracts'
 import {
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
   CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
@@ -39,6 +42,9 @@ import {
   parseCanonicalCaptionSpecialistWorkItemInput,
   parseCanonicalCaptionSpecialistExecutionReceipt,
 } from './canonical-caption-specialist-execution-service'
+import {
+  assertCanonicalCaptionCompletedProducedArtifacts,
+} from './canonical-caption-specialist-produced-artifact-contract'
 import {
   parseCanonicalCaptionPostrenderVisualQaWorkItemInput,
 } from '../captions-specialist/caption-postrender-visual-qa-work-binding'
@@ -1174,6 +1180,28 @@ function buildCaptionSpecialistEvidence(
       'Canonical Caption specialist planning receipt exceeded its authority.',
     )
   }
+  const producedArtifactRefs = structuredClone(
+    execution.pair.result.producedArtifactRefs)
+  const receiptCrossSystemRef = receipt.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION
+    ? receipt.crossSystemExecutionInputRef
+    : null
+  if (stableAuthorityStringify(receiptCrossSystemRef) !==
+      stableAuthorityStringify(execution.crossSystemExecutionInputRef)) {
+    throw invalidAuthority(
+      'Canonical Caption cross-system execution input was not receipt-bound.',
+    )
+  }
+  try {
+    assertCanonicalCaptionCompletedProducedArtifacts({
+      receipt,
+      producedArtifactRefs,
+    })
+  } catch {
+    throw invalidAuthority(
+      'Canonical Caption completed artifacts failed their exact receipt contract.',
+    )
+  }
   return {
     receipt,
     callResultPairRef: {
@@ -1181,8 +1209,7 @@ function buildCaptionSpecialistEvidence(
       version: execution.pair.schemaVersion,
       contentHash: execution.pair.pairDigestSha256,
     },
-    producedArtifactRefs: structuredClone(
-      execution.pair.result.producedArtifactRefs),
+    producedArtifactRefs,
     supportRequestCount: execution.pair.result.supportRequests.length,
     exactCreateOnlyRereadVerified: true as const,
     planningOnly: true as const,
@@ -1712,16 +1739,20 @@ function validCaptionSpecialistEvidence(value: unknown): boolean {
       record.receipt,
     )
     const pairRef = record.callResultPairRef as Record<string, unknown>
-    return receipt.resultDisposition === 'completed'
+    if (!(receipt.resultDisposition === 'completed'
       && record.supportRequestCount === 0
       && record.exactCreateOnlyRereadVerified === true
       && record.planningOnly === true
       && record.renderedMediaClaimed === false
       && record.finalQaClaimed === false
-      && record.producedArtifactRefs.length === 1
       && validInternalIdentity(pairRef.id)
       && pairRef.version === 'canonical-specialist-call-result-pair-v1'
-      && validSha256(pairRef.contentHash)
+      && validSha256(pairRef.contentHash))) return false
+    assertCanonicalCaptionCompletedProducedArtifacts({
+      receipt,
+      producedArtifactRefs: record.producedArtifactRefs as SkillArtifactRef[],
+    })
+    return true
   } catch {
     return false
   }

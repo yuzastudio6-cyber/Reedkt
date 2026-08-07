@@ -7,12 +7,17 @@ import {
 import type {
   CanonicalCaptionSpecialistExecutionReceipt,
 } from '../../src/types/canonical-caption-specialist-execution'
+import type { SkillArtifactRef } from
+  '../../src/types/orchestra-skill-contracts'
 import { ApiError } from '../errors/api-error'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
 import {
   parseCanonicalCaptionSpecialistExecutionReceipt,
 } from './canonical-caption-specialist-execution-service'
+import {
+  assertCanonicalCaptionCompletedProducedArtifacts,
+} from './canonical-caption-specialist-produced-artifact-contract'
 import { stableAuthorityStringify } from './private-edit-authority-store'
 
 const AUTHORITY_ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1'
@@ -281,11 +286,20 @@ export async function verifyCanonicalCaptionSpecialistPlanningArtifact(input: {
     captionSpecialist.planningOnly !== true ||
     captionSpecialist.renderedMediaClaimed !== false ||
     captionSpecialist.finalQaClaimed !== false ||
-    producedArtifactRefs.length !== 1 ||
     !producedArtifactRefs.every(validSkillArtifactRef)
   ) {
     throw invalidArtifact(
       'Private Caption planning artifact does not contain exact completed evidence.',
+    )
+  }
+  try {
+    assertCanonicalCaptionCompletedProducedArtifacts({
+      receipt,
+      producedArtifactRefs: producedArtifactRefs as SkillArtifactRef[],
+    })
+  } catch {
+    throw invalidArtifact(
+      'Private Caption planning artifacts do not match the exact receipt contract.',
     )
   }
   return {

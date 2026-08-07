@@ -35,12 +35,19 @@ const targets = {
     primaryBuildId: 'a0f5ea62-8769-4c35-b2de-f958ff8aa2fb',
     confirmationBuildId: '544d28c7-d87f-4a0e-bdf0-6291a8b1f6e1',
   },
+  private_closure_offline: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-private-closure-offline-20260807',
+    primaryBuildId: 'e0699b99-31bd-42ed-a342-549f9b989bc1',
+    confirmationBuildId: 'a4b00853-6919-430f-ad78-6c64509b42f0',
+  },
 } as const
 const targetName = z.enum([
   'original',
   'pep668_isolated',
   'cuda_ffmpeg_isolated',
   'docker_network_compatible',
+  'private_closure_offline',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

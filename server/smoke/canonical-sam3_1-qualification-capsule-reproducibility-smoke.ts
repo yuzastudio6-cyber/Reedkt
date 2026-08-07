@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import {
   assertCanonicalSam31QualificationCapsuleReproducibility,
@@ -9,6 +10,20 @@ import {
   createCanonicalSam31QualificationCapsuleReproducibilityRepository,
 } from '../services/canonical-sam3_1-qualification-capsule-reproducibility-runtime'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+
+const publisher = readFileSync(
+  'server/cli/publish-canonical-sam3_1-qualification-capsule-reproducibility.ts',
+  'utf8',
+)
+for (const expected of [
+  'private_closure_offline',
+  'sam31-qualification-capsule-reproducibility-private-closure-offline-20260807',
+  'e0699b99-31bd-42ed-a342-549f9b989bc1',
+  'a4b00853-6919-430f-ad78-6c64509b42f0',
+] as const) assert.ok(
+  publisher.includes(expected),
+  `private offline-closure reproducibility publication lost ${expected}`,
+)
 
 const digest = (value: string) => sha256AuthorityValue(value)
 const capsuleSha = digest('capsule')

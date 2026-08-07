@@ -43,6 +43,8 @@ export const CANONICAL_SAM3_1_QUALIFICATION_IMAGE_AUTHORITY_RUNTIME_VERSION =
 const CONTROL_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const RECORD_PREFIX = 'private/sam3_1/qualification-image-build/v1' as const
+const IMPORTLIB_RESOURCES_PATCH_SHA256 =
+  '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -197,10 +199,21 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
     byteLength: build.coordinate.byteLength,
     sha256: build.coordinate.sha256,
   }
-  const importlibResourcesPatchSha256 = optionalEntryHash(
+  const discoveredImportlibResourcesPatchSha256 = optionalEntryHash(
     build,
     '0002-weeditpro-importlib-resources.patch',
   )
+  const importlibResourcesPatchSha256 =
+    discoveredImportlibResourcesPatchSha256 === undefined
+      ? undefined
+      : discoveredImportlibResourcesPatchSha256 ===
+          IMPORTLIB_RESOURCES_PATCH_SHA256
+        ? IMPORTLIB_RESOURCES_PATCH_SHA256
+        : (() => {
+            throw new Error(
+              'SAM 3.1 importlib-resources patch digest changed.',
+            )
+          })()
   const manifest = createCanonicalSam31QualificationImageCapsuleManifest({
     evidenceClass: 'canonical_private_reread',
     status: 'private_capsule_verified',

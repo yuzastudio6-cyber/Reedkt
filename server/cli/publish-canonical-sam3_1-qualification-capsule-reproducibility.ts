@@ -112,15 +112,20 @@ const targetName = z.enum([
   'security_remediation_pep668_uninstall_corrected',
   'vertex_a100_setuptools_vendor_removed',
   'vertex_a100_importlib_resources_setuptools_removed',
+  'vertex_a100_importlib_resources_import_order_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
 const buildId = z.string().uuid()
 const selectedTarget = targetName ===
   'vertex_a100_importlib_resources_setuptools_removed'
+  || targetName ===
+    'vertex_a100_importlib_resources_import_order_corrected'
   ? {
       receiptId:
-        'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-setuptools-removed-20260807',
+        targetName === 'vertex_a100_importlib_resources_import_order_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-import-order-corrected-20260807'
+          : 'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-setuptools-removed-20260807',
       primaryBuildId: buildId.parse(
         process.env.WEEDITPRO_SAM31_CAPSULE_PRIMARY_BUILD_ID,
       ),

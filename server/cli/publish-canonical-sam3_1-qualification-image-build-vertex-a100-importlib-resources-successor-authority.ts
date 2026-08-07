@@ -10,7 +10,7 @@ import {
 const CONFIRMATION =
   'publish-sam31-qualification-image-vertex-a100-importlib-resources-successor-authority' as const
 const EXPECTED_DOCKERFILE_SHA256 =
-  'e8e0bb0b7c9d6ea9d2ca4c3e1bab861e54b7d9893f5a2febb2536ea781f7d39c'
+  '11a27c7f5818fc19b82224b9ed253b3d90bcb1474d17e84aa16104240d0c6bef'
 const EXPECTED_ENTRYPOINT_SHA256 =
   'd8ac47d0ee4598baa30060350dff35e68aed4fb578a88586d4fbbb880caa2ba1'
 const EXPECTED_RUNNER_SHA256 =
@@ -20,10 +20,10 @@ const EXPECTED_SOURCE_PROVENANCE_LOCK_SHA256 =
 const EXPECTED_IMPORTLIB_RESOURCES_PATCH_SHA256 =
   '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f'
 const predecessorTerminalRef = {
-  id: 'sam31-qualification-image-terminal-177a6ccc87418c0551e3',
+  id: 'sam31-qualification-image-terminal-a4081472fbdf531dbd61',
   version: 1 as const,
   contentHash:
-    'sha256:177a6ccc87418c0551e36832c9cb980f928ab0e49f9253b87b9f304f52778d97' as const,
+    'sha256:a4081472fbdf531dbd61f00251ca0fd4fc8f1a689c970a1b2b43b915ed6d19cb' as const,
 }
 
 if (
@@ -46,15 +46,15 @@ if (
   !predecessor
   || predecessor.disposition !== 'terminal_failure'
   || predecessor.cloudBuildStatus !== 'FAILURE'
-  || predecessor.cloudBuildId !== '9eec8c96-b64b-45b3-8842-6f4040efd089'
+  || predecessor.cloudBuildId !== '18ce3996-0f7e-4516-849a-a49ad68da0de'
   || predecessor.authorityRef.id !==
-    'sam31-qualification-image-build-vertex-a100-security-final-successor-15'
+    'sam31-qualification-image-build-vertex-a100-importlib-resources-successor-16'
   || predecessor.authorityRef.contentHash !==
-    'sha256:14a4128e3d201d97d88f10b70be20a730a0e27a293cd21fd0aa1861e14919926'
+    'sha256:3af03df3bac0cb499017cb4e33d0673d3b0e05debfaee0f56bf5e090847c5375'
   || predecessor.submissionRef.id !==
-    'sam31-qualification-image-submission-693f16207f4b12979292'
+    'sam31-qualification-image-submission-171a1c87868b18d2d637'
   || predecessor.submissionRef.contentHash !==
-    'sha256:693f16207f4b1297929200d7dd1379cbe7ccaf89e6db1851ebb8952745b22e91'
+    'sha256:171a1c87868b18d2d6373334c9131f0f93b35bf6c5caff08c658dc45858ec74d'
   || predecessor.immutableImageDigest !== null
   || predecessor.immutableImageUri !== null
   || predecessor.imageBuiltAndPushed
@@ -67,9 +67,9 @@ if (
 
 const publication = await publishCanonicalSam31QualificationImageBuildAuthority({
   manifestId:
-    'sam31-qualification-image-capsule-vertex-a100-importlib-resources-v1',
+    'sam31-qualification-image-capsule-vertex-a100-importlib-resources-import-order-corrected-v1',
   authorityId:
-    'sam31-qualification-image-build-vertex-a100-importlib-resources-successor-16',
+    'sam31-qualification-image-build-vertex-a100-importlib-resources-successor-17',
   ingestReceiptRef: {
     id: 'sam31-ingest-sam31-weeditpro-official-ingest-20260806-v12',
     version: 1,
@@ -79,7 +79,7 @@ const publication = await publishCanonicalSam31QualificationImageBuildAuthority(
   },
   reproducibilityReceiptRef: {
     id:
-      'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-setuptools-removed-20260807',
+      'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-import-order-corrected-20260807',
     version: 1,
     contentHash: `sha256:${reproducibilityHash}`,
   },
@@ -97,18 +97,18 @@ if (
   || authority.buildClosure.sourceProvenanceLockSha256 !==
     EXPECTED_SOURCE_PROVENANCE_LOCK_SHA256
   || authority.capsuleManifestRef.id !==
-    'sam31-qualification-image-capsule-vertex-a100-importlib-resources-v1'
+    'sam31-qualification-image-capsule-vertex-a100-importlib-resources-import-order-corrected-v1'
   || authority.cloudBuildPolicy.machineType !== 'E2_STANDARD_2'
 ) throw new Error('SAM 3.1 importlib-resources authority changed.')
 
 console.log(JSON.stringify({
   publicationSchemaVersion:
-    'canonical-sam3_1-qualification-image-vertex-a100-importlib-resources-successor-publication-v1',
+    'canonical-sam3_1-qualification-image-vertex-a100-importlib-resources-import-order-corrected-successor-publication-v1',
   predecessorTerminalRef,
   failureClassification:
-    'upstream_pkg_resources_runtime_dependency_remained_after_setuptools_security_removal',
+    'importlib_resources_transform_import_order_did_not_match_reviewed_patch_output',
   correction:
-    'replace_upstream_pkg_resources_with_standard_library_importlib_resources_then_purge_setuptools_and_pkg_resources',
+    'apply_reviewed_importlib_resources_patch_import_order_exactly_then_purge_setuptools_and_pkg_resources',
   importlibResourcesPatchSha256:
     EXPECTED_IMPORTLIB_RESOURCES_PATCH_SHA256,
   automaticRetryOfPredecessor: false,

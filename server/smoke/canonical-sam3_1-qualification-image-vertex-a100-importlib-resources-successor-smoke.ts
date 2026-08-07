@@ -29,14 +29,14 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
 
 for (const source of [publication, start] as const) {
   for (const expected of [
-    'sam31-qualification-image-terminal-177a6ccc87418c0551e3',
-    'sha256:177a6ccc87418c0551e36832c9cb980f928ab0e49f9253b87b9f304f52778d97',
-    '9eec8c96-b64b-45b3-8842-6f4040efd089',
-    'sam31-qualification-image-build-vertex-a100-importlib-resources-successor-16',
-    'e8e0bb0b7c9d6ea9d2ca4c3e1bab861e54b7d9893f5a2febb2536ea781f7d39c',
+    'sam31-qualification-image-terminal-a4081472fbdf531dbd61',
+    'sha256:a4081472fbdf531dbd61f00251ca0fd4fc8f1a689c970a1b2b43b915ed6d19cb',
+    '18ce3996-0f7e-4516-849a-a49ad68da0de',
+    'sam31-qualification-image-build-vertex-a100-importlib-resources-successor-17',
+    '11a27c7f5818fc19b82224b9ed253b3d90bcb1474d17e84aa16104240d0c6bef',
     'f8d8d67f986a20aa7320f05134c03f5d8876f7e1e057af297226e9e277f8e186',
-    'upstream_pkg_resources_runtime_dependency_remained_after_setuptools_security_removal',
-    'replace_upstream_pkg_resources_with_standard_library_importlib_resources_then_purge_setuptools_and_pkg_resources',
+    'importlib_resources_transform_import_order_did_not_match_reviewed_patch_output',
+    'apply_reviewed_importlib_resources_patch_import_order_exactly_then_purge_setuptools_and_pkg_resources',
     'automaticRetryOfPredecessor: false',
   ] as const) assert.ok(
     source.includes(expected),
@@ -51,6 +51,8 @@ for (const source of [publication, start] as const) {
 for (const expected of [
   'vertex_a100_importlib_resources_setuptools_removed',
   'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-setuptools-removed-20260807',
+  'vertex_a100_importlib_resources_import_order_corrected',
+  'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-import-order-corrected-20260807',
   'WEEDITPRO_SAM31_CAPSULE_PRIMARY_BUILD_ID',
   'WEEDITPRO_SAM31_CAPSULE_CONFIRMATION_BUILD_ID',
 ] as const) assert.ok(
@@ -68,6 +70,8 @@ for (const expected of [
   '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f',
   '8349e6d536e7eb1a233984a971a6c9fb3ccc4034d591b4f8f7946d49327f99bf',
   '9590d6a90c96ad632e7a646ba0e65508bcaf1cfeb0fbc3ad90fcc3f26614b76c',
+  "text.count('import os\\\\n') == 1",
+  "text.count('import pkg_resources\\\\n') == 1",
   'python3-setuptools python3-pkg-resources',
   "find_spec('setuptools') is None",
   "find_spec('pkg_resources') is None",

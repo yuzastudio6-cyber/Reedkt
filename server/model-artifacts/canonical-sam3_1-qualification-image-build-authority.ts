@@ -68,8 +68,10 @@ const SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256 =
   '34e2d4993b315185b169373c12ee70ddf31dbb702ba97be5734fae8de5786481' as const
 const VERTEX_A100_SETUPTOOLS_VENDOR_REMOVED_DOCKERFILE_SHA256 =
   '37cfffa593263d3f73702f59a3693d987bd5aef8c25ed3d07e0e40ca7acc36a3' as const
-const VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256 =
+const VERTEX_A100_IMPORTLIB_RESOURCES_IMPORT_ORDER_BUG_DOCKERFILE_SHA256 =
   'e8e0bb0b7c9d6ea9d2ca4c3e1bab861e54b7d9893f5a2febb2536ea781f7d39c' as const
+const VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256 =
+  '11a27c7f5818fc19b82224b9ed253b3d90bcb1474d17e84aa16104240d0c6bef' as const
 const SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256 =
   'c7b8b39acbb685bddc04ff4f30832a7ffd568a6b5954f973ca61d5e223ffbd3d' as const
 const IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256 =
@@ -653,6 +655,7 @@ function assertQualificationCapsuleEntries(
     SECURITY_REMEDIATION_DOCKERFILE_SHA256,
     SECURITY_REMEDIATION_PEP668_UNINSTALL_DOCKERFILE_SHA256,
     VERTEX_A100_SETUPTOOLS_VENDOR_REMOVED_DOCKERFILE_SHA256,
+    VERTEX_A100_IMPORTLIB_RESOURCES_IMPORT_ORDER_BUG_DOCKERFILE_SHA256,
     VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256,
   ])
   const dockerfileIsSecurityRemediated =
@@ -663,16 +666,22 @@ function assertQualificationCapsuleEntries(
     SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256,
     IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256,
   ]).has(manifest.repositorySource.sourceProvenanceLockSha256)
+  const importlibResourcesDockerfileHashes = new Set<string>([
+    VERTEX_A100_IMPORTLIB_RESOURCES_IMPORT_ORDER_BUG_DOCKERFILE_SHA256,
+    VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256,
+  ])
   const importlibResourcesProfileSelected =
-    manifest.repositorySource.dockerfileSha256 ===
-      VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256
+    importlibResourcesDockerfileHashes.has(
+      manifest.repositorySource.dockerfileSha256,
+    )
     || manifest.repositorySource.sourceProvenanceLockSha256 ===
       IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256
     || manifest.repositorySource.importlibResourcesPatchSha256 !== undefined
   if (
     canonical && importlibResourcesProfileSelected && (
-      manifest.repositorySource.dockerfileSha256 !==
-        VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256
+      !importlibResourcesDockerfileHashes.has(
+        manifest.repositorySource.dockerfileSha256,
+      )
       || manifest.repositorySource.sourceProvenanceLockSha256 !==
         IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256
       || manifest.repositorySource.importlibResourcesPatchSha256 !==

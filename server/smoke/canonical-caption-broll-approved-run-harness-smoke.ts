@@ -1219,6 +1219,7 @@ async function createApprovedRunCreativeReviewInspectionPackage(input: {
     publicPlan: input.run.broll.publicPlan,
     approvedWorkGraph: input.run.broll.publicApprovedWorkGraph,
     assignment: input.run.broll.brollAssignment,
+    masterTimingProjectionBinding: input.run.broll.masterTimingBinding,
     plan: input.run.broll.plan,
     workItemResults: input.execution.broll.workResults,
   })

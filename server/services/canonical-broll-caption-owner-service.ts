@@ -30,6 +30,10 @@ import {
 import type { BrollSkillAssignment } from '../edit-skills/b-roll/b-roll-contracts'
 import { BROLL_CAPABILITY_MANIFEST } from '../edit-skills/b-roll/b-roll-capability-manifest'
 import {
+  canonicalBrollMasterTimingProjectionBindingSchema,
+  type CanonicalBrollMasterTimingProjectionBinding,
+} from '../edit-skills/b-roll/b-roll-master-timing-projection-binding'
+import {
   brollRemotionLayerManifestSchema,
   brollResultReceiptSchema,
 } from '../edit-skills/b-roll/b-roll-remotion-integration'
@@ -251,6 +255,8 @@ export interface CanonicalBrollCaptionOwnerService {
     readonly publicPlan: EditSkillPublicPlan
     readonly approvedWorkGraph: EditSkillApprovedWorkGraph
     readonly assignment: BrollSkillAssignment
+    readonly masterTimingProjectionBinding?:
+      CanonicalBrollMasterTimingProjectionBinding
     readonly plan: unknown
     readonly workItemResults: readonly unknown[]
   }): Promise<BrollCaptionOwnerReadResult>
@@ -377,6 +383,11 @@ function createCanonicalBrollCaptionOwnerServiceInternal(
       const approvedWorkGraph = editSkillApprovedWorkGraphSchema.parse(
         untrusted.approvedWorkGraph)
       const assignment = brollSkillAssignmentSchema.parse(untrusted.assignment)
+      const masterTimingProjectionBinding =
+        untrusted.masterTimingProjectionBinding === undefined
+          ? undefined
+          : canonicalBrollMasterTimingProjectionBindingSchema.parse(
+              untrusted.masterTimingProjectionBinding)
       const plan = brollPlanArtifactSchema.parse(untrusted.plan)
       const workItemResults = untrusted.workItemResults.map((value) =>
         editSkillWorkResultSchema.parse(value))
@@ -387,6 +398,7 @@ function createCanonicalBrollCaptionOwnerServiceInternal(
         publicPlan,
         approvedWorkGraph,
         assignment,
+        masterTimingProjectionBinding,
         plan,
         workItemResults,
       })
@@ -585,6 +597,7 @@ function assertBrollExecutionLineage(input: {
   publicPlan: EditSkillPublicPlan
   approvedWorkGraph: EditSkillApprovedWorkGraph
   assignment: BrollSkillAssignment
+  masterTimingProjectionBinding?: CanonicalBrollMasterTimingProjectionBinding
   plan: z.infer<typeof brollPlanArtifactSchema>
   workItemResults: z.infer<typeof editSkillWorkResultSchema>[]
 }): void {
@@ -594,6 +607,7 @@ function assertBrollExecutionLineage(input: {
     publicPlan,
     approvedWorkGraph,
     assignment,
+    masterTimingProjectionBinding,
     plan,
     workItemResults,
   } = input
@@ -601,59 +615,142 @@ function assertBrollExecutionLineage(input: {
   const exactRange = assignment.writeRangeAuthority.authorizedRange
   const workItemByKey = new Map(approvedWorkGraph.workItems.map((item) =>
     [item.workItemKey, item]))
-  if (
-    publicAssignment.assignmentId !== assignment.assignmentId ||
-    publicAssignment.ownerUserId !== assignment.ownerUserId ||
-    publicAssignment.workspaceId !== assignment.workspaceId ||
-    publicAssignment.projectId !== assignment.projectId ||
-    publicAssignment.editSessionId !== assignment.editSessionId ||
-    hashSkillValue(publicAssignment.authorizedRange) !== hashSkillValue(exactRange) ||
-    publicAssignment.reason !== assignment.reason ||
-    publicAssignment.intendedViewerBenefit !== assignment.expectedViewerBenefit ||
-    publicAssignment.visualOwnership !== assignment.requestedVisualOwnership ||
+  const violations: string[] = []
+  const requireExact = (condition: boolean, code: string): void => {
+    if (!condition) violations.push(code)
+  }
+  requireExact(publicAssignment.assignmentId === assignment.assignmentId,
+    'assignment_id')
+  requireExact(publicAssignment.ownerUserId === assignment.ownerUserId,
+    'assignment_owner')
+  requireExact(publicAssignment.workspaceId === assignment.workspaceId,
+    'assignment_workspace')
+  requireExact(publicAssignment.projectId === assignment.projectId,
+    'assignment_project')
+  requireExact(publicAssignment.editSessionId === assignment.editSessionId,
+    'assignment_edit_session')
+  requireExact(
+    hashSkillValue(publicAssignment.authorizedRange)
+      === hashSkillValue(exactRange),
+    'assignment_range',
+  )
+  requireExact(publicAssignment.reason === assignment.reason,
+    'assignment_reason')
+  requireExact(
+    publicAssignment.intendedViewerBenefit === assignment.expectedViewerBenefit,
+    'assignment_viewer_benefit',
+  )
+  requireExact(
+    publicAssignment.visualOwnership === assignment.requestedVisualOwnership,
+    'assignment_visual_ownership',
+  )
+  requireExact(
     hashSkillValue(publicAssignment.manifestRef)
-      !== hashSkillValue(assignment.manifestRef) ||
-    publicPlan.envelope.assignmentId !== publicAssignment.assignmentId ||
-    publicPlan.envelope.assignmentHash !== publicAssignment.assignmentHash ||
-    publicPlan.envelope.planId !== plan.planId ||
-    publicPlan.payloadRef.artifactType !== 'b_roll_plan_v1' ||
-    publicPlan.payloadRef.sha256 !== hashSkillValue(plan) ||
-    approvedWorkGraph.assignmentId !== publicAssignment.assignmentId ||
-    approvedWorkGraph.assignmentHash !== publicAssignment.assignmentHash ||
-    approvedWorkGraph.planId !== publicPlan.envelope.planId ||
-    approvedWorkGraph.planHash !== publicPlan.envelope.planHash ||
-    approvedWorkGraph.approvedWorkGraphHash.length !== 64 ||
-    approvedWorkGraph.workItems.length !== workItemResults.length ||
-    workItemByKey.size !== approvedWorkGraph.workItems.length ||
-    assignment.ownerUserId !== scope.ownerUserId ||
-    assignment.workspaceId !== scope.workspaceId ||
-    assignment.projectId !== scope.projectId ||
-    assignment.editSessionId !== scope.editSessionId ||
-    !assignment.segmentIds.includes(scope.sceneId) ||
-    assignment.masterTimingHash !== scope.masterTimingHash ||
-    exactRange.startFrameInclusive !== scope.authorizedFrameRange.startFrameInclusive ||
-    exactRange.endFrameExclusive !== scope.authorizedFrameRange.endFrameExclusive ||
-    exactRange.fps !== scope.authorizedFrameRange.fps ||
-    plan.assignmentId !== assignment.assignmentId ||
-    plan.assignmentHash !== assignment.assignmentHash ||
-    request.planningConstraintRef.id !== plan.planId ||
-    request.planningConstraintRef.version !== plan.schemaVersion ||
-    request.planningConstraintRef.contentHash !== plan.planHash ||
-    workItemResults.length === 0 ||
-    workItemResults.some((result) =>
-      result.status !== 'succeeded' ||
-      result.assignmentId !== assignment.assignmentId ||
-      result.assignmentHash !== publicAssignment.assignmentHash ||
-      result.planId !== plan.planId ||
-      result.planHash !== publicPlan.envelope.planHash ||
-      result.manifestRef.manifestHash !== BROLL_CAPABILITY_MANIFEST.manifestHash ||
-      !workItemByKey.has(result.workItemKey) ||
-      workItemByKey.get(result.workItemKey)?.workItemHash !== result.workItemHash ||
-      result.outsideAuthorizedRangeModified ||
-      result.authorizedRange.startFrameInclusive !== exactRange.startFrameInclusive ||
-      result.authorizedRange.endFrameExclusive !== exactRange.endFrameExclusive ||
-      result.authorizedRange.fps !== exactRange.fps)
-  ) throw new Error('Canonical B-roll work crossed Caption scope or timing authority.')
+      === hashSkillValue(assignment.manifestRef),
+    'assignment_manifest',
+  )
+  requireExact(publicPlan.envelope.assignmentId
+    === publicAssignment.assignmentId, 'public_plan_assignment_id')
+  requireExact(publicPlan.envelope.assignmentHash
+    === publicAssignment.assignmentHash, 'public_plan_assignment_hash')
+  requireExact(publicPlan.envelope.planId === plan.planId,
+    'public_plan_id')
+  requireExact(publicPlan.payloadRef.artifactType === 'b_roll_plan_v1',
+    'public_plan_artifact_type')
+  requireExact(publicPlan.payloadRef.sha256 === hashSkillValue(plan),
+    'public_plan_payload_hash')
+  requireExact(approvedWorkGraph.assignmentId
+    === publicAssignment.assignmentId, 'work_graph_assignment_id')
+  requireExact(approvedWorkGraph.assignmentHash
+    === publicAssignment.assignmentHash, 'work_graph_assignment_hash')
+  requireExact(approvedWorkGraph.planId === publicPlan.envelope.planId,
+    'work_graph_plan_id')
+  requireExact(approvedWorkGraph.planHash === publicPlan.envelope.planHash,
+    'work_graph_plan_hash')
+  requireExact(approvedWorkGraph.approvedWorkGraphHash.length === 64,
+    'work_graph_hash')
+  requireExact(approvedWorkGraph.workItems.length === workItemResults.length,
+    'work_result_count')
+  requireExact(workItemByKey.size === approvedWorkGraph.workItems.length,
+    'work_item_key_uniqueness')
+  requireExact(assignment.ownerUserId === scope.ownerUserId, 'scope_owner')
+  requireExact(assignment.workspaceId === scope.workspaceId, 'scope_workspace')
+  requireExact(assignment.projectId === scope.projectId, 'scope_project')
+  requireExact(assignment.editSessionId === scope.editSessionId,
+    'scope_edit_session')
+  requireExact(assignment.segmentIds.includes(scope.sceneId), 'scope_scene')
+  if (masterTimingProjectionBinding === undefined) {
+    requireExact(assignment.masterTimingHash === scope.masterTimingHash,
+      'scope_master_timing')
+  } else {
+    requireExact(masterTimingProjectionBinding.ownerUserId
+      === scope.ownerUserId, 'timing_binding_owner')
+    requireExact(masterTimingProjectionBinding.workspaceId
+      === scope.workspaceId, 'timing_binding_workspace')
+    requireExact(masterTimingProjectionBinding.projectId
+      === scope.projectId, 'timing_binding_project')
+    requireExact(masterTimingProjectionBinding.editSessionId
+      === scope.editSessionId, 'timing_binding_edit_session')
+    requireExact(masterTimingProjectionBinding.assignmentId
+      === assignment.assignmentId, 'timing_binding_assignment')
+    requireExact(masterTimingProjectionBinding.canonicalMasterTimingDigestSha256
+      === scope.masterTimingHash, 'timing_binding_canonical_master_timing')
+    requireExact(masterTimingProjectionBinding.brollTimingProjectionDigestSha256
+      === assignment.masterTimingHash, 'timing_binding_broll_projection')
+    requireExact(hashSkillValue(masterTimingProjectionBinding.timelineRange)
+      === hashSkillValue(assignment.masterTimingRange),
+    'timing_binding_timeline_range')
+    requireExact(hashSkillValue(masterTimingProjectionBinding.assignmentRange)
+      === hashSkillValue(exactRange), 'timing_binding_assignment_range')
+  }
+  requireExact(exactRange.startFrameInclusive
+    === scope.authorizedFrameRange.startFrameInclusive, 'scope_range_start')
+  requireExact(exactRange.endFrameExclusive
+    === scope.authorizedFrameRange.endFrameExclusive, 'scope_range_end')
+  requireExact(exactRange.fps === scope.authorizedFrameRange.fps,
+    'scope_range_fps')
+  requireExact(plan.assignmentId === assignment.assignmentId,
+    'plan_assignment_id')
+  requireExact(plan.assignmentHash === assignment.assignmentHash,
+    'plan_assignment_hash')
+  requireExact(request.planningConstraintRef.id === plan.planId,
+    'request_plan_id')
+  requireExact(request.planningConstraintRef.version === plan.schemaVersion,
+    'request_plan_version')
+  requireExact(request.planningConstraintRef.contentHash === plan.planHash,
+    'request_plan_hash')
+  requireExact(workItemResults.length > 0, 'work_results_empty')
+  for (const result of workItemResults) {
+    const resultCode = (code: string) =>
+      `work_result.${result.workItemKey}.${code}`
+    requireExact(result.status === 'succeeded', resultCode('status'))
+    requireExact(result.assignmentId === assignment.assignmentId,
+      resultCode('assignment_id'))
+    requireExact(result.assignmentHash === publicAssignment.assignmentHash,
+      resultCode('assignment_hash'))
+    requireExact(result.planId === plan.planId, resultCode('plan_id'))
+    requireExact(result.planHash === publicPlan.envelope.planHash,
+      resultCode('plan_hash'))
+    requireExact(result.manifestRef.manifestHash
+      === BROLL_CAPABILITY_MANIFEST.manifestHash, resultCode('manifest_hash'))
+    requireExact(workItemByKey.has(result.workItemKey),
+      resultCode('unknown_work_item'))
+    requireExact(workItemByKey.get(result.workItemKey)?.workItemHash
+      === result.workItemHash, resultCode('work_item_hash'))
+    requireExact(!result.outsideAuthorizedRangeModified,
+      resultCode('outside_authorized_range'))
+    requireExact(result.authorizedRange.startFrameInclusive
+      === exactRange.startFrameInclusive, resultCode('range_start'))
+    requireExact(result.authorizedRange.endFrameExclusive
+      === exactRange.endFrameExclusive, resultCode('range_end'))
+    requireExact(result.authorizedRange.fps === exactRange.fps,
+      resultCode('range_fps'))
+  }
+  if (violations.length > 0) {
+    throw new Error(
+      `Canonical B-roll work crossed Caption scope or timing authority: ${violations.join(', ')}`,
+    )
+  }
 }
 
 function exactOutputRefs(

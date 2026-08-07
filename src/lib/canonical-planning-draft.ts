@@ -1529,7 +1529,7 @@ function buildPrivateReviewCanonicalPlan(input: {
         expectedOutputKeys: [outputKey],
         structuredPayload: {
           captionProfileId: 'approved_ass_track_render_v1',
-          fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+          fontPackProfileId: approvedCaptionFontPackProfile(cue.caption),
           collisionPolicy: 'fail_on_reserved_zone_collision',
           preserveSpeechTiming: true,
           width: input.frame.width,
@@ -2869,6 +2869,14 @@ function professionalCaptionLayout(frame: { width: number; height: number }): {
     fontSize: Math.max(72, Math.min(160, Math.round(shortEdge * 0.045))),
     marginV: Math.max(96, Math.min(360, Math.round(frame.height * 0.055))),
   }
+}
+
+function approvedCaptionFontPackProfile(
+  caption: string,
+): 'reeditpro_reviewed_fonts_v1' | 'reeditpro_reviewed_fonts_v2' {
+  return /^[\x20-\x7e]+$/u.test(caption)
+    ? 'reeditpro_reviewed_fonts_v1'
+    : 'reeditpro_reviewed_fonts_v2'
 }
 
 function validatedCaption(value: string | undefined): string | null {

@@ -36,6 +36,8 @@ import {
 } from '../tool-execution/remotion-render-execution'
 
 const root = await mkdtemp(join(tmpdir(), 'reeditpro-broll-m9-'))
+const keepPrivateEvidence =
+  process.env.REEDITPRO_BROLL_REMOTION_KEEP_PRIVATE_EVIDENCE === '1'
 try {
   const sourcePath = join(root, 'source.mp4')
   const captionPath = join(root, 'caption.png')
@@ -49,7 +51,8 @@ try {
   assert.equal(generatedSource.status, 0, generatedSource.stderr)
   const generatedCaption = spawnSync('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
-    '-f', 'lavfi', '-i', 'color=c=black@0.0:s=640x360,format=rgba',
+    '-f', 'lavfi', '-i',
+    'color=c=black@0.0:s=640x360,format=rgba,drawbox=x=64:y=280:w=512:h=48:color=0xE879F9@1.0:t=fill:replace=1',
     '-frames:v', '1', '-f', 'image2', '-vcodec', 'png', '-y', captionPath,
   ], { encoding: 'utf8' })
   assert.equal(generatedCaption.status, 0, generatedCaption.stderr)
@@ -360,6 +363,16 @@ try {
   assert.equal(result.receipt.costEvidence.providerCostMicros, 0)
   assert.equal(result.receipt.costEvidence.integrationInfrastructureCostMicros, 7_500)
   assert.equal(result.receipt.attemptHistory.length, 0)
+  assertStableCaptionOverlay({
+    previewPath: join(
+      root,
+      'b-roll',
+      'remotion-integrations',
+      'previews',
+      `${result.receipt.preview.previewArtifactIdentityHash}.mp4`,
+    ),
+    expectedFrameCount: 72,
+  })
 
   const replay = await executeBrollRemotionIntegration({
     localStorageRoot: root,
@@ -455,7 +468,11 @@ try {
     replayed: replay.replayed,
   }, null, 2))
 } finally {
-  await rm(root, { recursive: true, force: true })
+  if (keepPrivateEvidence) {
+    console.log(JSON.stringify({ privateDiagnosticRoot: root }))
+  } else {
+    await rm(root, { recursive: true, force: true })
+  }
 }
 
 function hashed<T extends Record<string, unknown>, K extends string>(
@@ -467,4 +484,57 @@ function hashed<T extends Record<string, unknown>, K extends string>(
 
 function sha256(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function assertStableCaptionOverlay(input: {
+  previewPath: string
+  expectedFrameCount: number
+}): void {
+  const cropWidth = 448
+  const cropHeight = 24
+  const decoded = spawnSync('ffmpeg', [
+    '-hide_banner', '-loglevel', 'error',
+    '-i', input.previewPath,
+    '-an', '-vf', 'crop=448:24:96:292,format=rgb24',
+    '-threads', '1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-',
+  ], { encoding: 'buffer', maxBuffer: 8 * 1024 * 1024 })
+  assert.equal(decoded.status, 0, decoded.stderr.toString('utf8'))
+  const frameByteLength = cropWidth * cropHeight * 3
+  assert.equal(decoded.stdout.byteLength, frameByteLength * input.expectedFrameCount)
+  const averages = Array.from({ length: input.expectedFrameCount }, (_, frameIndex) => {
+    const start = frameIndex * frameByteLength
+    let red = 0
+    let green = 0
+    let blue = 0
+    for (let offset = start; offset < start + frameByteLength; offset += 3) {
+      red += decoded.stdout[offset]!
+      green += decoded.stdout[offset + 1]!
+      blue += decoded.stdout[offset + 2]!
+    }
+    const pixelCount = cropWidth * cropHeight
+    return {
+      red: red / pixelCount,
+      green: green / pixelCount,
+      blue: blue / pixelCount,
+    }
+  })
+  const channelRanges = Object.fromEntries(
+    (['red', 'green', 'blue'] as const).map((channel) => {
+      const values = averages.map((average) => average[channel])
+      return [channel, { minimum: Math.min(...values), maximum: Math.max(...values) }]
+    }),
+  )
+  for (const average of averages) {
+    assert.ok(
+      average.red > 180 && average.green > 80 && average.green < 165 && average.blue > 180,
+      `Caption-owned pixels were replaced or darkened by the B-roll surface: ${JSON.stringify({ average, channelRanges })}`,
+    )
+  }
+  for (const channel of ['red', 'green', 'blue'] as const) {
+    const values = averages.map((average) => average[channel])
+    assert.ok(
+      Math.max(...values) - Math.min(...values) < 8,
+      `Caption-owned ${channel} pixels changed beyond the bounded codec tolerance.`,
+    )
+  }
 }

@@ -749,6 +749,11 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       dependencyAdmission.dependencyAuthority,
   })
   if (execution.pair.result.disposition !== 'completed') {
+    const originalCallRef = {
+      id: execution.pair.call.callId,
+      version: execution.pair.call.schemaVersion,
+      contentHash: execution.pair.call.callDigestSha256,
+    }
     const supportRequestRefs = execution.pair.result.supportRequests.map(
       (request) => ({
         id: request.requestId,
@@ -768,6 +773,7 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
         }),
         captionDisposition: execution.pair.result.disposition,
         reasonCodes: execution.pair.result.reasonCodes,
+        originalCallRef,
         supportRequestRefs,
       },
     )

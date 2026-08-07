@@ -1349,29 +1349,36 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
   const broll = props.brollPreviewLayer
   const technicalQaPreview = props.sourceMediaPolicy ===
     'approved_b_roll_qa_normalized_preview_proxy_v1'
-  const sourceStyle: React.CSSProperties = broll
+  const sourceContainerStyle: React.CSSProperties = broll
     ? {
         position: 'absolute',
         left: `${broll.xPercent}%`,
         top: `${broll.yPercent}%`,
         width: `${broll.widthPercent}%`,
         height: `${broll.heightPercent}%`,
-        objectFit: broll.crop,
-        transform: `scale(${broll.scale})`,
-        transformOrigin: 'center center',
         opacity: broll.opacity,
+        overflow: 'hidden',
         zIndex: broll.layerOrder,
       }
-    : { width: '100%', height: '100%', objectFit: 'contain' }
+    : { position: 'absolute', inset: 0, overflow: 'hidden' }
+  const sourceStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit: broll ? broll.crop : 'contain',
+    transform: broll ? `scale(${broll.scale})` : undefined,
+    transformOrigin: 'center center',
+  }
   return (
     <AbsoluteFill style={{ backgroundColor: props.panelBackground, overflow: 'hidden' }}>
-      <OffthreadVideo
-        src={props.sourceInternalUrl!}
-        startFrom={props.sourceStartFrame!}
-        endAt={props.sourceEndFrameExclusive!}
-        style={sourceStyle}
-        volume={replaceVoice ? 0 : 1}
-      />
+      <div style={sourceContainerStyle}>
+        <OffthreadVideo
+          src={props.sourceInternalUrl!}
+          startFrom={props.sourceStartFrame!}
+          endAt={props.sourceEndFrameExclusive!}
+          style={sourceStyle}
+          volume={replaceVoice ? 0 : 1}
+        />
+      </div>
       {replaceVoice && (
         <Audio
           src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl}

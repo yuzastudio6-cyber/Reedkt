@@ -465,12 +465,12 @@ export function createCanonicalCaptionTranscriptOwnerReadFixture(input: {
           diarizationArtifactRef: null,
           speakerDiarizationState: 'not_present',
           segments: source.transcript.segments.map((segment, segmentIndex) => {
-            const startMilliseconds = sourceFrameToMilliseconds(
+            const startMilliseconds = sourceFrameStartToMilliseconds(
               segment.startFrame,
               sourceScope.sourceFrameAuthority.fpsNumerator,
               sourceScope.sourceFrameAuthority.fpsDenominator,
             )
-            const endMillisecondsExclusive = sourceFrameToMilliseconds(
+            const endMillisecondsExclusive = sourceFrameEndToMilliseconds(
               segment.endFrameExclusive,
               sourceScope.sourceFrameAuthority.fpsNumerator,
               sourceScope.sourceFrameAuthority.fpsDenominator,
@@ -564,12 +564,22 @@ function sha(value: string): string {
   return createHash('sha256').update(value).digest('hex')
 }
 
-function sourceFrameToMilliseconds(
+function sourceFrameStartToMilliseconds(
   frame: number,
   fpsNumerator: number,
   fpsDenominator: number,
 ): number {
-  return Math.round(frame * 1_000 * fpsDenominator / fpsNumerator)
+  return Math.floor(frame * 1_000 * fpsDenominator / fpsNumerator)
+}
+
+function sourceFrameEndToMilliseconds(
+  frameExclusive: number,
+  fpsNumerator: number,
+  fpsDenominator: number,
+): number {
+  return Math.ceil(
+    frameExclusive * 1_000 * fpsDenominator / fpsNumerator,
+  )
 }
 
 function memoryObjectPort(

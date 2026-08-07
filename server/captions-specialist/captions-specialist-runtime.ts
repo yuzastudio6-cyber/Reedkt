@@ -1069,6 +1069,7 @@ export function runCaptionsSpecialistJob(input: {
   }
 
   let admittedVisualPacket: CaptionVisualIntelligenceEvidencePacket | null = null
+  let admittedEarlyVisualReportRef = false
   let visualPayload: CaptionVisualIntelligenceSupportPayload | null = null
   let canonicalVisualRecord:
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
@@ -1327,6 +1328,9 @@ export function runCaptionsSpecialistJob(input: {
           ], 'The Visual Intelligence packet does not match its injected artifact.',
         )
       }
+    } else if (request.targetSkillKey === 'visual_intelligence'
+      && earlyVisualReportRequestMatches(call, request)) {
+      admittedEarlyVisualReportRef = true
     } else if (request.targetSkillKey === 'visual_intelligence') {
       return makeResult(profile,
         call, 'blocked', ['input.visual_intelligence.payload.missing'],
@@ -1579,6 +1583,7 @@ export function runCaptionsSpecialistJob(input: {
 
   const additionallySatisfied = [
     ...(admittedVisualPacket === null ? [] : ['visual_intelligence_report']),
+    ...(admittedEarlyVisualReportRef ? ['visual_intelligence_report'] : []),
     ...(admittedBrollBinding === null
       ? [] : ['caption_broll_owner_read_binding']),
     ...(admittedLivingFrameResponse === null
@@ -1848,6 +1853,9 @@ export function runCaptionsSpecialistJob(input: {
       'planning.contract.completed',
       ...(admittedVisualPacket === null ? []
         : ['visual_intelligence.authenticated_admission.accepted']),
+      ...(admittedEarlyVisualReportRef
+        ? ['visual_intelligence.early_report_ref.accepted']
+        : []),
       ...(admittedTrackAllPacket === null ? []
         : ['track_all.authenticated_admission.accepted']),
       ...(admittedSoundResult === null ? []
@@ -1869,4 +1877,30 @@ export function runCaptionsSpecialistJob(input: {
     [],
     producedArtifactRefs,
   )
+}
+
+function earlyVisualReportRequestMatches(
+  call: OrchestraSkillCall,
+  request: SkillSupportRequest,
+): boolean {
+  const expectedPayload = {
+    exactArtifactTypes: ['visual_intelligence_report'],
+    typedPayloadRefRequired: true,
+    typedPayloadEmbedded: false,
+    requestIsByteFree: true,
+    rawMediaOrChatIncluded: false,
+  }
+  return call.job.jobType === 'plan_caption_blocking_preview'
+    && request.targetSkillKey === 'visual_intelligence'
+    && request.reasonCode === 'missing.visual_intelligence_report'
+    && request.requestedArtifactTypes.length === 1
+    && request.requestedArtifactTypes[0] === 'visual_intelligence_report'
+    && request.typedPayloadType ===
+      'caption-visual-intelligence-support-payload-ref-v1'
+    && JSON.stringify(request.typedPayload) === JSON.stringify(expectedPayload)
+    && call.injectedSupportArtifactRefs.length === 1
+    && call.injectedSupportArtifactRefs[0]?.artifactType ===
+      'visual_intelligence_report'
+    && call.injectedSupportArtifactRefs[0]?.producerSkillKey ===
+      'visual_intelligence'
 }

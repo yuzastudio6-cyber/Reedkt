@@ -24,6 +24,10 @@ for (const expected of [
   'sam31-qualification-capsule-reproducibility-npp-offline-20260807',
   '8ba8ba82-b8d0-43a6-bb08-9fafd517d78d',
   '1653c80d-7066-4314-be62-b0a3c6afd66c',
+  'einops_offline',
+  'sam31-qualification-capsule-reproducibility-einops-offline-20260807',
+  '5339b681-9b0a-4e77-967a-5a8b065e452e',
+  'a402319e-e524-4f91-ad86-d8ca30b40311',
 ] as const) assert.ok(
   publisher.includes(expected),
   `private offline-closure reproducibility publication lost ${expected}`,

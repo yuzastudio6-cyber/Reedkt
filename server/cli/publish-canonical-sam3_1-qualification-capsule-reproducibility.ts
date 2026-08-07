@@ -47,6 +47,12 @@ const targets = {
     primaryBuildId: '8ba8ba82-b8d0-43a6-bb08-9fafd517d78d',
     confirmationBuildId: '1653c80d-7066-4314-be62-b0a3c6afd66c',
   },
+  einops_offline: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-einops-offline-20260807',
+    primaryBuildId: '5339b681-9b0a-4e77-967a-5a8b065e452e',
+    confirmationBuildId: 'a402319e-e524-4f91-ad86-d8ca30b40311',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -55,6 +61,7 @@ const targetName = z.enum([
   'docker_network_compatible',
   'private_closure_offline',
   'npp_offline',
+  'einops_offline',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

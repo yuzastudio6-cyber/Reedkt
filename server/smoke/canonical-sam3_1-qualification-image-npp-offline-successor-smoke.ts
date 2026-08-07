@@ -61,7 +61,7 @@ for (const expected of [
   'npp_offline',
   'sam31-qualification-capsule-reproducibility-npp-offline-20260807',
   '8ba8ba82-b8d0-43a6-bb08-9fafd517d78d',
-  'c098bcd9-f2ad-4aea-97f8-510839d2f8f3',
+  '1653c80d-7066-4314-be62-b0a3c6afd66c',
 ] as const) assert.ok(
   capsulePublisher.includes(expected),
   `NPP-offline reproducibility publisher lost ${expected}`,

@@ -40,14 +40,92 @@ steps:
           -type f -name '*.tar.gz' | wc -l)" = 1
         test "$$(find /workspace/private-capsule-output -maxdepth 1 \
           -type f -name '*.capsule.json' | wc -l)" = 1
+        find /workspace/private-capsule-output -maxdepth 1 -type f \
+          -exec chmod 0444 '{}' +
+        chmod 0555 /workspace/private-capsule-output
+        mkdir -p /workspace/private-capsule-scan-output
+        chmod 0777 /workspace/private-capsule-scan-output
         docker rm "$${container_id}" >/dev/null
         trap - EXIT
+  - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
+    id: static-scan-fixed-capsule
+    waitFor:
+      - build-fixed-qualification-capsule
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
+        capsule="$$(find /workspace/private-capsule-output -maxdepth 1 \
+          -type f -name '*.tar.gz' -print)"
+        test -n "$${capsule}"
+        test "$$(printf '%s\n' "$${capsule}" | wc -l)" = 1
+        scanner_version="$$(clamscan --version)"
+        scan_output="$$(clamscan --infected --scan-archive=yes \
+          --max-filesize=4095M --max-scansize=4095M --max-recursion=32 \
+          --max-files=1000000 --max-scantime=0 "$${capsule}")"
+        printf '%s\n' "$${scan_output}"
+        known_viruses="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Known viruses:[[:space:]]*//p')"
+        scanned_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Scanned files:[[:space:]]*//p')"
+        infected_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Infected files:[[:space:]]*//p')"
+        test "$${known_viruses}" -ge 1000000
+        test "$${scanned_files}" -ge 1
+        test "$${infected_files}" = 0
+        python3 -I -B - \
+          "$${capsule}" \
+          /workspace/private-capsule-scan-output/capsule-malware-scan.json \
+          "$${scanner_version}" "$${known_viruses}" "$${scanned_files}" <<'PY'
+        import hashlib
+        import json
+        from pathlib import Path
+        import re
+        import sys
+
+        capsule_path = Path(sys.argv[1])
+        output_path = Path(sys.argv[2])
+        scanner_version = sys.argv[3]
+        known_viruses = int(sys.argv[4])
+        scanned_files = int(sys.argv[5])
+        capsule = capsule_path.read_bytes()
+        capsule_sha256 = hashlib.sha256(capsule).hexdigest()
+        if capsule_path.name != f"{capsule_sha256}.tar.gz":
+            raise SystemExit("capsule object name is not content addressed")
+        if re.fullmatch(r"ClamAV [0-9.]+/[0-9]+/.+", scanner_version) is None:
+            raise SystemExit("ClamAV version receipt is malformed")
+        record = {
+            "schemaVersion": "weeditpro-sam3_1-qualification-capsule-malware-scan-v1",
+            "buildId": "${BUILD_ID}",
+            "scannerImageDigest": "sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20",
+            "scannerVersion": scanner_version,
+            "signatureCount": known_viruses,
+            "scannedFileCount": scanned_files,
+            "infectedFileCount": 0,
+            "capsuleSha256": capsule_sha256,
+            "capsuleByteLength": len(capsule),
+            "archiveRecursionEnabled": True,
+            "scanPassed": True,
+            "checkpointIncluded": False,
+            "modelExecuted": False,
+            "developerMachineInstallPerformed": False,
+            "customerCreditsMutated": False,
+            "productionAuthorityGranted": False,
+        }
+        canonical = lambda value: json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        ).encode("utf-8")
+        record["scanReceiptHash"] = hashlib.sha256(canonical(record)).hexdigest()
+        output_path.write_bytes(canonical(record) + b"\n")
+        PY
 artifacts:
   objects:
     location: gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/reproducibility/${BUILD_ID}/
     paths:
       - private-capsule-output/*.tar.gz
       - private-capsule-output/*.capsule.json
+      - private-capsule-scan-output/*.json
 timeout: 3600s
 queueTtl: 600s
 serviceAccount: projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com

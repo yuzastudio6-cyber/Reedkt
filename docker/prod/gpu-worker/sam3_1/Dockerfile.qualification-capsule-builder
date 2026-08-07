@@ -29,7 +29,7 @@ COPY private-staging/sam3-source.tar private-staging/sam3-source.tar
 RUN test "$(uname -m)" = x86_64 \
   && test -n "${WEEDITPRO_REPOSITORY_COMMIT}" \
   && test -n "${WEEDITPRO_REPOSITORY_TREE}" \
-  && for command_name in bash curl cut find git gzip patch python sha256sum \
+  && for command_name in bash cut find git gzip patch python sha256sum \
        sort stat tar touch xargs; do \
        command -v "${command_name}" >/dev/null \
          || { printf 'ERROR: missing capsule-builder utility: %s\n' \

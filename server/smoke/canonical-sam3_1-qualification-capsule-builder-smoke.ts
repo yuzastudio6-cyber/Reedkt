@@ -99,10 +99,24 @@ for (const expected of [
   'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
   'CLOUD_LOGGING_ONLY',
   'requestedVerifyOption: VERIFIED',
+  'static-scan-fixed-capsule',
+  'weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20',
+  'weeditpro-sam3_1-qualification-capsule-malware-scan-v1',
+  '--scan-archive=yes',
+  '--max-filesize=4095M',
+  'capsule object name is not content addressed',
+  'signatureCount',
+  'infectedFileCount',
+  'private-capsule-scan-output/*.json',
 ] as const) assert.ok(cloudBuild.includes(expected), `Cloud Build lost ${expected}`)
 assert.doesNotMatch(
   cloudBuild,
-  /(?:secretEnv|availableSecrets|sam3\.1_multiplex\.pt|nvidia-l4|a100-80gb|customer[_ -]media)/iu,
+  /(?:secretEnv|availableSecrets|sam3\.1_multiplex\.pt|nvidia-l4|a100-80gb|customer[_ -]media|freshclam)/iu,
+)
+assert.doesNotMatch(
+  dockerfile,
+  /\bcurl\b/u,
+  'The builder must use the bounded Python downloader instead of requiring curl',
 )
 
 for (const expected of [

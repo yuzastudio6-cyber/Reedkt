@@ -129,7 +129,7 @@ const candidateWithoutHashSchema = z.object({
     cudaMinimumVersion: z.literal('12.6'),
     candidatePythonVersion: z.literal('3.12'),
     candidateTorchVersion: z.literal('2.10.0'),
-    candidateTorchvisionVersion: z.literal('0.25.0+cu128'),
+    candidateTorchvisionVersion: z.literal('0.25.0'),
     candidateTorchcodecVersion: z.literal('0.10.0'),
     candidateCudaVersion: z.literal('12.8'),
     reeditproGpuDecodePatchSha256: z.literal(
@@ -447,7 +447,7 @@ CanonicalSam31SourceRuntimeCandidate {
       cudaMinimumVersion: '12.6',
       candidatePythonVersion: '3.12',
       candidateTorchVersion: '2.10.0',
-      candidateTorchvisionVersion: '0.25.0+cu128',
+      candidateTorchvisionVersion: '0.25.0',
       candidateTorchcodecVersion: '0.10.0',
       candidateCudaVersion: '12.8',
       reeditproGpuDecodePatchSha256:

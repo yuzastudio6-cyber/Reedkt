@@ -131,7 +131,7 @@ assert.equal(candidate.runtimeClosure.reeditproGpuDecodePatchSemanticAuditPassed
   true)
 assert.equal(
   candidate.candidateHash,
-  '6e563477f0e9bcb846d3c0cf46d7aaeeb4aef28b897a58e55ff2f712862551f5',
+  'a619bd95c0223cab1247fd6e3e9d21276a0aea99a905d789ea6534c7f726b444',
 )
 assert.equal(candidate.runtimeClosure.reeditproPatchedSourceTree,
   'f3a58b95a0e460d76e1cf38abff0382a7307f67d')

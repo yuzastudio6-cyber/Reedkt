@@ -328,7 +328,7 @@ def inspect_source_archive(path: Path) -> dict[str, Any]:
         if not members or len(members) > MAX_TAR_ENTRIES:
             raise ValueError("source archive entry count is invalid")
         roots = {PurePosixPath(member.name.rstrip("/")).parts[0] for member in members}
-        expected_root = f"sam3-{SOURCE_REVISION}"
+        expected_root = "sam3"
         if roots != {expected_root}:
             raise ValueError("source archive root changed")
         prefix = f"{expected_root}/"

@@ -251,6 +251,7 @@ const releaseObservationWithoutHashSchema = z.object({
     torchvisionVersion: z.literal('0.25.0'),
     cudaVersion: z.literal('12.8'),
     torchcodecVersion: z.literal('0.10.0'),
+    einopsVersion: z.literal('0.8.2'),
     cudaForwardCompatibilityPackageSha256: z.literal(
       'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
     ),
@@ -725,6 +726,7 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
       torchvisionVersion: ingest.runtimeClosure.torchvisionVersion,
       cudaVersion: ingest.runtimeClosure.cudaVersion,
       torchcodecVersion: candidate.runtimeClosure.candidateTorchcodecVersion,
+      einopsVersion: candidate.runtimeClosure.candidateEinopsVersion,
       cudaForwardCompatibilityPackageSha256:
         candidate.runtimeClosure.cudaDriverCompatibility
           .cudaForwardCompatibilitySha256,

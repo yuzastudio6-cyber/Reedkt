@@ -41,7 +41,10 @@ steps:
           -type f | wc -l)" = 31
         test -z "$$(find private-dependency-closure/dependency-closure \
           -mindepth 1 ! -type d ! -type f -print -quit)"
-        mkdir -p private-dependency-closure/dependency-closure/cuda-npp
+        mkdir -p \
+          private-dependency-closure/dependency-closure/cuda-npp \
+          private-dependency-closure/dependency-closure/wheelhouse \
+          private-dependency-closure/dependency-closure/python-ingest/einops
         gcloud storage cp \
           --if-generation-match=1786101660398565 \
           gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/native-dependencies/libnpp-12-8/12.3.3.100-1/54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992.deb \
@@ -52,6 +55,28 @@ steps:
           54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992 \
           private-dependency-closure/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb \
           | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786106120404202 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/einops/0.8.2/54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193.whl \
+          private-dependency-closure/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl)" = 65638
+        printf '%s  %s\n' \
+          54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193 \
+          private-dependency-closure/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match=1786106528199762 \
+          gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/qualification/python-wheels/einops/0.8.2/ingest/69881838-2efb-40db-ba3a-fcfa0179c18e/einops-ingest-receipt.json \
+          private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json
+        test "$$(stat --format='%s' \
+          private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json)" = 1778
+        printf '%s  %s\n' \
+          d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608 \
+          private-dependency-closure/dependency-closure/python-ingest/einops/einops-ingest-receipt.json \
+          | sha256sum --check --strict
+        test "$$(find private-dependency-closure/dependency-closure \
+          -type f | wc -l)" = 34
   - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec
     id: prepare-exact-patched-source
     waitFor:

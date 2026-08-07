@@ -23,6 +23,9 @@ readonly CUDA_NPPICC_SHA256='bc1f7c1797fda52d0b333f91d65af2add1deeaa0e4cf5b5ae8a
 readonly CUDA_NPPICC_BYTES='9373288'
 readonly CUDA_NPP_LICENSE_SHA256='e2c71babfd18a8e69542dd7e9ca018f9caa438094001a58e6bc4d8c999bf0d07'
 readonly CUDA_NPP_LICENSE_BYTES='63021'
+readonly EINOPS_SHA256='54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193'
+readonly EINOPS_BYTES='65638'
+readonly EINOPS_INGEST_RECEIPT_SHA256='d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608'
 readonly FFMPEG_VERSION='8.0.3'
 readonly FFMPEG_SHA256='5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121'
 readonly FFMPEG_BYTES='17211188'
@@ -67,6 +70,7 @@ mkdir -p \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-npp" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg" \
+  "${PRIVATE_ROOT}/dependency-closure/python-ingest/einops" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1" \
   /output
 test -d "${REVIEWED_DEPENDENCY_CLOSURE}"
@@ -146,6 +150,11 @@ stage_wheel \
   'https://files.pythonhosted.org/packages/e1/1e/bf736f9576a8979752b826b75cbd83663ff86634ea3055a766e2d8ad3ee5/ftfy-6.1.1-py3-none-any.whl' \
   '0ffd33fce16b54cccaec78d6ec73d95ad370e5df5a25255c8966a6147bd667ca' \
   '53098'
+stage_wheel \
+  'einops-0.8.2-py3-none-any.whl' \
+  'https://files.pythonhosted.org/packages/2a/09/f8d8f8f31e4483c10a906437b4ce31bdf3d6d417b73fe33f1a8b59e34228/einops-0.8.2-py3-none-any.whl' \
+  "${EINOPS_SHA256}" \
+  "${EINOPS_BYTES}"
 stage_wheel \
   'hf_xet-1.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
   'https://files.pythonhosted.org/packages/67/4e/a28359bf1c1ecf11eba22123168c138698f7cb576ac678f5a2e16cd5da08/hf_xet-1.6.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl' \
@@ -238,6 +247,12 @@ test "$(stat --format='%s' "${IOPATH_WHEEL}")" = 31596
 printf '%s  %s\n' \
   da148222e6160aa193fb0547e4d186669bd594ec8ba03831f8294977cc2ee453 \
   "${IOPATH_WHEEL}" | sha256sum --check --strict
+
+readonly EINOPS_INGEST_RECEIPT="${PRIVATE_ROOT}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json"
+test -f "${EINOPS_INGEST_RECEIPT}"
+test "$(stat --format='%s' "${EINOPS_INGEST_RECEIPT}")" = 1778
+printf '%s  %s\n' "${EINOPS_INGEST_RECEIPT_SHA256}" \
+  "${EINOPS_INGEST_RECEIPT}" | sha256sum --check --strict
 
 stage_exact \
   "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.gz" \
@@ -357,7 +372,8 @@ python - "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/requirements.lock.txt" \
   "${PRIVATE_ROOT}/dependency-closure/dependency-closure-receipt.json" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json" \
-  "${PRIVATE_ROOT}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json" <<'PY'
+  "${PRIVATE_ROOT}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json" \
+  "${PRIVATE_ROOT}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json" <<'PY'
 import email.parser
 import hashlib
 import json
@@ -366,12 +382,12 @@ import re
 import sys
 from zipfile import ZipFile
 
-wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path, npp_receipt_path = map(
+wheelhouse, lock_path, receipt_path, ffmpeg_receipt_path, npp_receipt_path, einops_ingest_receipt_path = map(
     Path, sys.argv[1:]
 )
 expected = {
   "certifi": "2026.7.22", "charset-normalizer": "3.4.9",
-  "filelock": "3.32.2", "fsspec": "2026.7.0", "ftfy": "6.1.1",
+  "einops": "0.8.2", "filelock": "3.32.2", "fsspec": "2026.7.0", "ftfy": "6.1.1",
   "hf-xet": "1.6.0", "huggingface-hub": "0.36.0", "idna": "3.11",
   "iopath": "0.1.10", "numpy": "1.26.4", "packaging": "26.3",
   "pillow": "12.3.0", "portalocker": "4.1.0", "pyyaml": "6.0.3",
@@ -406,6 +422,38 @@ for wheel in sorted(wheelhouse.glob("*.whl"), key=lambda p: p.name):
 observed = {record["name"]: record["version"] for record in records}
 if observed != expected or len(records) != len(expected):
     raise SystemExit(f"wheel set changed: {observed}")
+einops_ingest = json.loads(einops_ingest_receipt_path.read_text(encoding="utf-8"))
+einops_ingest_without_hash = dict(einops_ingest)
+embedded_einops_receipt_hash = einops_ingest_without_hash.pop("receiptHash", None)
+computed_einops_receipt_hash = hashlib.sha256(json.dumps(
+    einops_ingest_without_hash,
+    sort_keys=True,
+    separators=(",", ":"),
+    ensure_ascii=False,
+    allow_nan=False,
+).encode("utf-8")).hexdigest()
+if (
+    einops_ingest.get("schemaVersion")
+    != "weeditpro-sam3_1-einops-private-ingest-receipt-v1"
+    or einops_ingest.get("packageName") != "einops"
+    or einops_ingest.get("packageVersion") != "0.8.2"
+    or einops_ingest.get("officialWheelSha256")
+    != "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193"
+    or einops_ingest.get("officialWheelByteLength") != 65638
+    or einops_ingest.get("license") != "MIT"
+    or einops_ingest.get("licenseFileSha256")
+    != "30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434"
+    or einops_ingest.get("licenseFileByteLength") != 1073
+    or einops_ingest.get("malwareScan", {}).get("scanPassed") is not True
+    or einops_ingest.get("privateObject", {}).get("generation")
+    != "1786106120404202"
+    or einops_ingest.get("privateObject", {}).get("etag")
+    != "COr52ebDjpYDEAE="
+    or embedded_einops_receipt_hash != computed_einops_receipt_hash
+    or einops_ingest.get("developerMachineInstallPerformed") is not False
+    or einops_ingest.get("modelExecuted") is not False
+):
+    raise SystemExit("einops private ingest receipt changed")
 lock_lines = [
     f'{record["name"]}=={record["version"]} --hash=sha256:{record["sha256"]}'
     for record in sorted(records, key=lambda item: item["name"])
@@ -419,6 +467,16 @@ receipt = {
     "cudaVersionProvidedByPinnedBase": "12.8",
     "torchcodecCudaWheelVersion": "0.10.0+cu128",
     "torchcodecCpuWheelAccepted": False,
+    "einopsVersion": "0.8.2",
+    "einopsOfficialWheelSha256": "54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193",
+    "einopsPrivateIngestReceiptSha256": hashlib.sha256(
+        einops_ingest_receipt_path.read_bytes()
+    ).hexdigest(),
+    "einopsPrivateObjectGeneration": "1786106120404202",
+    "einopsPrivateObjectEtag": "COr52ebDjpYDEAE=",
+    "einopsLicense": "MIT",
+    "einopsLicenseFileSha256": "30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434",
+    "samCoreUnconditionallyImportsEinops": True,
     "cudaNppRuntimeReceiptSha256": hashlib.sha256(
         npp_receipt_path.read_bytes()
     ).hexdigest(),

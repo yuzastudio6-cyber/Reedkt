@@ -129,6 +129,7 @@ assert.equal(candidate.fixedApi.gpuDecodeBackend,
   'torchcodec_0_10_cuda_nvdec')
 assert.equal(candidate.runtimeClosure.reeditproGpuDecodePatchSemanticAuditPassed,
   true)
+assert.equal(candidate.runtimeClosure.candidateEinopsVersion, '0.8.2')
 assert.equal(candidate.runtimeClosure.reeditproPatchedSourceTree,
   'f3a58b95a0e460d76e1cf38abff0382a7307f67d')
 assert.equal(candidate.runtimeClosure.deterministicPatchedSourceArchiveSha256,
@@ -306,6 +307,15 @@ assert(sourceLock.includes(
 assert(sourceLock.includes(
   `cuda_forward_compat_package_sha256=${candidate.runtimeClosure.cudaDriverCompatibility.cudaForwardCompatibilitySha256}`,
 ))
+for (const einopsProvenance of [
+  'candidate_einops=0.8.2',
+  'candidate_einops_private_object_generation=1786106120404202',
+  'candidate_einops_ingest_receipt_generation=1786106528199762',
+  'candidate_einops_ingest_receipt_sha256=d882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+  'candidate_einops_private_malware_scan_passed=true',
+  'candidate_einops_developer_machine_install_performed=false',
+  'sam_core_unconditionally_imports_einops=true',
+] as const) assert(sourceLock.includes(einopsProvenance))
 
 const gpuDecodePatch = readFileSync(resolve(
   process.cwd(),
@@ -433,6 +443,7 @@ for (const requiredDockerfileFragment of [
   'pkgconfBuiltOfflineFromPinnedSource',
   'torchcodecCpuWheelAccepted',
   "m.version('torchcodec') == '0.10.0+cu128'",
+  "m.version('einops') == '0.8.2'",
   '--enable-nvdec',
   '--enable-cuvid',
   '--disable-nvenc',
@@ -446,6 +457,10 @@ for (const requiredDockerfileFragment of [
   sam31Dockerfile.includes(requiredDockerfileFragment),
   `SAM 3.1 candidate lost ${requiredDockerfileFragment}`,
 )
+assert(sam31Runner.includes('EXPECTED_EINOPS_VERSION = "0.8.2"'))
+assert(sam31Runner.includes(
+  'importlib.metadata.version("einops") != EXPECTED_EINOPS_VERSION',
+))
 assert.equal((sam31Dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
 assert.equal((sam31Dockerfile.match(/^RUN /gmu) ?? []).length, 3)
 for (const forbiddenDockerfileFragment of [
@@ -556,7 +571,7 @@ assert.throws(() => assertCanonicalSam31SourceRuntimeCandidate(wrongHash))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-runtime-candidate',
-  checks: 134,
+  checks: 145,
   operationId: candidate.operationId,
   sourceRevision: candidate.officialSource.sourceRevision,
   checkpointRevision: candidate.officialCheckpoint.repositoryRevision,

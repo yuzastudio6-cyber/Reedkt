@@ -163,6 +163,13 @@ assert.throws(() =>
     cpuTorchcodecWheel,
   ))
 
+const staleEinops = structuredClone(canonicalWorkerEvidence.result)
+;(staleEinops.runtime as unknown as {
+  einopsVersion: string
+}).einopsVersion = '0.8.1'
+assert.throws(() =>
+  assertCanonicalSam31SourceCheckpointQualificationWorkerResult(staleEinops))
+
 const dockerfile = readFileSync(
   new URL(
     '../../docker/prod/gpu-worker/sam3_1/Dockerfile.qualification.candidate',
@@ -265,7 +272,7 @@ for (const mutate of [
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification',
-  checks: 58,
+  checks: 59,
   syntheticStatus: synthetic.status,
   canonicalStatus: canonical.status,
   qualificationRuns:
@@ -375,6 +382,7 @@ CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
       torchvisionVersion: '0.25.0',
       torchcodecVersion: '0.10.0',
       torchcodecCudaWheelVersion: '0.10.0+cu128',
+      einopsVersion: '0.8.2',
       ffmpegVersion: '8.0.3',
       ffmpegNvdecAndCuvidAvailable: true,
       gpuVideoDecodeBackendStatusVerified: true,
@@ -547,6 +555,7 @@ function observation(
       torchvisionVersion: '0.25.0',
       torchcodecVersion: '0.10.0',
       torchcodecCudaWheelVersion: '0.10.0+cu128',
+      einopsVersion: '0.8.2',
       ffmpegVersion: '8.0.3',
       ffmpegNvdecAndCuvidAvailable: true,
       gpuVideoDecodeBackendStatusVerified: true,

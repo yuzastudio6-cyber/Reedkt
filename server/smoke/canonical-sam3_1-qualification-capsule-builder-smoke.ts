@@ -57,6 +57,12 @@ for (const expected of [
   'libnpp-12-8_12.3.3.100-1_amd64.deb',
   '131485608',
   '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992',
+  '--if-generation-match=1786106120404202',
+  'einops-0.8.2-py3-none-any.whl',
+  '--if-generation-match=1786106528199762',
+  '69881838-2efb-40db-ba3a-fcfa0179c18e/einops-ingest-receipt.json',
+  'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+  '| wc -l)" = 34',
 ] as const) assert.ok(
   cloudBuild.includes(expected),
   `qualification capsule Cloud Build lost ${expected}`,
@@ -97,6 +103,11 @@ for (const expected of [
   'gzip --no-name --best',
   'weeditpro-sam3_1-source-patch-application-receipt-v1',
   'weeditpro-sam3_1-python-dependency-closure-receipt-v1',
+  'weeditpro-sam3_1-einops-private-ingest-receipt-v1',
+  'einops-0.8.2-py3-none-any.whl',
+  '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193',
+  '30d984364296f51ffaecad4b01ee127e95250c5068918d4b66fc96206723e434',
+  'samCoreUnconditionallyImportsEinops',
   'weeditpro-sam3_1-ffmpeg-nvdec-source-closure-receipt-v1',
   'weeditpro-cuda-forward-compat-ingest-receipt-v1',
   'weeditpro-sam3_1-torchcodec-cuda-npp-runtime-receipt-v1',
@@ -109,11 +120,11 @@ for (const expected of [
   'containsCustomerMedia',
 ] as const) assert.ok(builder.includes(expected), `capsule builder lost ${expected}`)
 
-assert.equal((builder.match(/^stage_wheel \\/gmu) ?? []).length, 22)
+assert.equal((builder.match(/^stage_wheel \\/gmu) ?? []).length, 23)
 assert.equal((builder.match(/^stage_exact \\/gmu) ?? []).length, 5)
 const localWheelNames = [...builder.matchAll(/^stage_wheel \\\n\s+'([^']+\.whl)'/gmu)]
   .map((match) => match[1])
-assert.equal(localWheelNames.length, 22)
+assert.equal(localWheelNames.length, 23)
 assert.ok(
   localWheelNames.every((fileName) => fileName.length <= 100),
   'every canonical local wheel name must fit one USTAR name component',
@@ -124,6 +135,7 @@ assert.ok(localWheelNames.includes(
 assert.ok(localWheelNames.includes(
   'torchcodec-0.10.0+cu128-cp312-cp312-manylinux_2_28_x86_64.whl',
 ))
+assert.ok(localWheelNames.includes('einops-0.8.2-py3-none-any.whl'))
 assert.doesNotMatch(
   builder,
   /torchcodec-0\.10\.0-cp312-cp312-manylinux_2_28_x86_64\.whl/u,
@@ -231,12 +243,14 @@ for (const expected of [
   'torch.__version__ == \'2.10.0+cu128\'',
   'torchvision.__version__ == \'0.25.0\'',
   "m.version('torchcodec') == '0.10.0+cu128'",
+  "m.version('einops') == '0.8.2'",
   'torch.version.cuda == \'12.8\'',
   'nvidia/cuda@sha256:4b9ed5fa8361736996499f64ecebf25d4ec37ff56e4d11323ccde10aa36e0c43',
   'ffmpeg-8.0.3.tar.gz',
   'pkgconf-3.0.4.tar.gz',
   'libnpp-12-8_12.3.3.100-1_amd64.deb',
   'cuda-npp-runtime-receipt.json',
+  'einops-ingest-receipt.json',
   '/opt/weeditpro/cuda-npp/lib',
   'libnppicc.so.12',
   '/opt/weeditpro/cuda-npp/LICENSE',
@@ -324,7 +338,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-qualification-capsule-builder',
   productName: 'WeEditPro',
   officialSourceGenerationBound: true,
-  exactPinnedPythonWheelCount: 22,
+  exactPinnedPythonWheelCount: 23,
   deterministicLocalSdistWheelCount: 1,
   exactPinnedCudaForwardCompatibilityPackageCount: 1,
   exactPinnedCudaNppRuntimePackageCount: 1,

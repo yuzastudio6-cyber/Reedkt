@@ -1047,6 +1047,7 @@ function buildSpecializedRelease(input: {
       torchvisionVersion: '0.25.0' as const,
       cudaVersion: '12.8' as const,
       torchcodecVersion: '0.10.0' as const,
+      einopsVersion: '0.8.2' as const,
       cudaForwardCompatibilityPackageSha256:
         'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' as const,
       cudaDriverLibrarySelectionEntrypointVersion:

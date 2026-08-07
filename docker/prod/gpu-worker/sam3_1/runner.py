@@ -73,6 +73,7 @@ MAXIMUM_OBJECTS = 16
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0"
 EXPECTED_TORCHCODEC_VERSION = "0.10.0+cu128"
+EXPECTED_EINOPS_VERSION = "0.8.2"
 EXPECTED_CUDA_VERSION = "12.8"
 CUDA_FORWARD_COMPAT_PACKAGE_SHA256 = (
     "e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893"
@@ -1540,6 +1541,7 @@ def validate_gpu(torch_module: Any, requested: str) -> dict[str, Any]:
         or torch_module.version.cuda != EXPECTED_CUDA_VERSION
         or importlib.metadata.version("torchvision") != EXPECTED_TORCHVISION_VERSION
         or importlib.metadata.version("torchcodec") != EXPECTED_TORCHCODEC_VERSION
+        or importlib.metadata.version("einops") != EXPECTED_EINOPS_VERSION
     ):
         raise RuntimeError("CUDA Python dependency closure changed")
     driver_evidence = validate_cuda_driver_library()

@@ -480,6 +480,7 @@ def validate_request(request: dict[str, Any]) -> None:
         "torchvisionVersion": "0.25.0",
         "torchcodecVersion": "0.10.0",
         "torchcodecCudaWheelVersion": "0.10.0+cu128",
+        "einopsVersion": "0.8.2",
         "ffmpegVersion": "8.0.3",
         "ffmpegNvdecAndCuvidRequired": True,
         "cpuVideoDecodeFallbackAllowed": False,
@@ -778,6 +779,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         or torch.__version__ != "2.10.0+cu128"
         or torchvision.__version__ != "0.25.0"
         or importlib.metadata.version("torchcodec") != "0.10.0+cu128"
+        or importlib.metadata.version("einops") != "0.8.2"
         or torch.version.cuda != "12.8"
         or not torch.cuda.is_available()
         or not torch.cuda.is_bf16_supported()
@@ -863,6 +865,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             "torchcodecCudaWheelVersion": importlib.metadata.version(
                 "torchcodec"
             ),
+            "einopsVersion": importlib.metadata.version("einops"),
             "ffmpegVersion": "8.0.3",
             "ffmpegNvdecAndCuvidAvailable": True,
             "gpuVideoDecodeBackendStatusVerified": True,

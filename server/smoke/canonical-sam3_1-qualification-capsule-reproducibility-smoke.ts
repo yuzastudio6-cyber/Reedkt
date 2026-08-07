@@ -47,7 +47,7 @@ const builder = {
   archiveEntries: entries,
   archiveEntrySetSha256:
     canonicalSam31QualificationCapsuleReproducibilityDigest(entries),
-  dependencyWheelCount: 23,
+  dependencyWheelCount: 24,
   dependencyWheelManifestSha256: digest('wheels'),
   dependencyLockSha256: digest('lock'),
   dependencyClosureReceiptSha256: digest('closure'),

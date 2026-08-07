@@ -238,6 +238,7 @@ function createResult() {
       torchvisionVersion: '0.25.0',
       torchcodecVersion: '0.10.0',
       torchcodecCudaWheelVersion: '0.10.0+cu128',
+      einopsVersion: '0.8.2',
       ffmpegVersion: '8.0.3',
       ffmpegNvdecAndCuvidAvailable: true,
       gpuVideoDecodeBackendStatusVerified: true,

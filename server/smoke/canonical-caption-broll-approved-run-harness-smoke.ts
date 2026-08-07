@@ -248,13 +248,19 @@ try {
     checksumSha256: sourceSha256,
     idempotencyKey: 'caption-broll-approved-run-upload-intent',
   })
-  await upload.uploadLocalObject(
-    uploadIntent.uploadIntent.id,
-    workspaceId,
-    sourceBytes,
-    'video/mp4',
-    sourceBytes.byteLength,
-  )
+  if (uploadIntent.uploadIntent.status === 'signed') {
+    await upload.uploadLocalObject(
+      uploadIntent.uploadIntent.id,
+      workspaceId,
+      sourceBytes,
+      'video/mp4',
+      sourceBytes.byteLength,
+    )
+  } else if (!['uploaded', 'finalized'].includes(uploadIntent.uploadIntent.status)) {
+    throw new Error(
+      'The persisted Caption+B-roll source upload is not replayable from its current state.',
+    )
+  }
   const finalized = await upload.finalizeUploadIntent({
     workspaceId,
     uploadIntentId: uploadIntent.uploadIntent.id,

@@ -6,6 +6,7 @@
 !build-qualification-capsule.sh
 !prepare-qualification-source.sh
 !cloudbuild.qualification-capsule.yaml
+!cloudbuild.qualification-einops-ingest.yaml
 !qualification_entrypoint.sh
 !qualification_runner.py
 !source-provenance.lock

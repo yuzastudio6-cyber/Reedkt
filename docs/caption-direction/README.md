@@ -117,6 +117,7 @@ The governing workflow invariant remains:
 - [Canonical terminal evidence assembly mount](canonical-terminal-evidence-assembly-mount-2026-08-05.md)
 - [Canonical resumed-chain execution mount](canonical-caption-resume-chain-execution-mount-2026-08-05.md)
 - [Backend workflow integration merge](backend-workflow-integration-merge.md)
+- [Post-CAP-20 backend-pipeline foundation integration (2026-08-07)](post-cap20-backend-pipeline-foundation-integration-2026-08-07.md)
 - [Current backend-base reconciliation](backend-base-reconciliation-2026-08-05.md)
 - [Canonical postapproval planning execution](canonical-postapproval-planning-execution.md)
 - [Canonical 41-job assignment reachability V2](canonical-caption-job-reachability-v2-2026-08-05.md)

@@ -88,7 +88,10 @@ const capsuleArchiveEntries = capsuleFiles.map(([path, bytes]) => ({
   byteLength: bytes.byteLength,
   sha256: sha(bytes),
 }))
-const capsuleBytes = createCanonicalTarGz(capsuleFiles)
+const capsuleBytes = createCanonicalTarGz(
+  [['docker', Buffer.alloc(0)], ...capsuleFiles],
+  { docker: 53 },
+)
 const capsuleSha = sha(capsuleBytes)
 const capsuleCoordinate = {
   projectId: 'reeditpro' as const,

@@ -5,6 +5,8 @@ import { z } from 'zod'
 
 import {
   assertCanonicalSam31QualificationCapsuleReproducibility,
+  assertCanonicalSam31QualificationCapsuleBuilderResult,
+  assertCanonicalSam31QualificationCapsuleMalwareScan,
   canonicalSam31QualificationCapsuleReproducibilityStringify,
   canonicalSam31QualificationCapsuleReproducibilityRef,
   createCanonicalSam31QualificationCapsuleReproducibility,
@@ -198,7 +200,11 @@ export async function publishCanonicalSam31QualificationCapsuleReproducibility(
   })
 }
 
-async function readBuildEvidence(storage: Storage, buildId: string) {
+export async function rereadCanonicalSam31QualificationCapsuleBuildEvidence(
+  storage: Storage,
+  untrustedBuildId: string,
+) {
+  const buildId = buildIdSchema.parse(untrustedBuildId)
   const prefix = `${INPUT_PREFIX}/${buildId}`
   const scan = await readExactJson(
     storage,
@@ -217,14 +223,21 @@ async function readBuildEvidence(storage: Storage, buildId: string) {
     .file(capsuleObjectName).getMetadata()
   const coordinate = capsuleCoordinate(metadata, capsuleObjectName)
   return Object.freeze({
-    builderResult: builder.value,
+    builderResult: assertCanonicalSam31QualificationCapsuleBuilderResult(
+      builder.value,
+    ),
     builderResultFileSha256: builder.sha256,
-    malwareScan: scan.value,
+    malwareScan: assertCanonicalSam31QualificationCapsuleMalwareScan(
+      scan.value,
+    ),
     malwareScanFileSha256: scan.sha256,
     coordinate,
     capsuleUpdatedAt: exactTimestamp(metadata.updated ?? metadata.timeCreated),
   })
 }
+
+const readBuildEvidence =
+  rereadCanonicalSam31QualificationCapsuleBuildEvidence
 
 async function readExactJson(
   storage: Storage,

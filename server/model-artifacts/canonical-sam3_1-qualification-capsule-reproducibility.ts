@@ -182,6 +182,33 @@ export type CanonicalSam31QualificationCapsuleCoordinate = z.infer<
   typeof coordinateSchema
 >
 
+export function assertCanonicalSam31QualificationCapsuleBuilderResult(
+  value: unknown,
+): CanonicalSam31QualificationCapsuleBuilderResult {
+  assertPlainSerializedData(value, 'sam31_capsule_builder_result')
+  return builderResultSchema.parse(value)
+}
+
+export function assertCanonicalSam31QualificationCapsuleMalwareScan(
+  value: unknown,
+): CanonicalSam31QualificationCapsuleMalwareScan {
+  assertPlainSerializedData(value, 'sam31_capsule_malware_scan')
+  const scan = scanSchema.parse(value)
+  const { scanReceiptHash, ...payload } = scan
+  if (
+    scanReceiptHash !==
+      canonicalSam31QualificationCapsuleReproducibilityDigest(payload)
+  ) throw new Error('SAM 3.1 capsule scan hash is invalid.')
+  return scan
+}
+
+export function assertCanonicalSam31QualificationCapsuleCoordinate(
+  value: unknown,
+): CanonicalSam31QualificationCapsuleCoordinate {
+  assertPlainSerializedData(value, 'sam31_capsule_coordinate')
+  return coordinateSchema.parse(value)
+}
+
 export function createCanonicalSam31QualificationCapsuleReproducibility(
   input: {
     readonly receiptId: string
@@ -307,16 +334,15 @@ function parseBuild(input: {
   readonly malwareScan: unknown
   readonly coordinate: unknown
 }) {
-  const builder = builderResultSchema.parse(input.builderResult)
-  const scan = scanSchema.parse(input.malwareScan)
-  const { scanReceiptHash, ...scanPayload } = scan
-  if (
-    scanReceiptHash !==
-      canonicalSam31QualificationCapsuleReproducibilityDigest(scanPayload)
-  ) {
-    throw new Error('SAM 3.1 capsule scan hash is invalid.')
-  }
-  const coordinate = coordinateSchema.parse(input.coordinate)
+  const builder = assertCanonicalSam31QualificationCapsuleBuilderResult(
+    input.builderResult,
+  )
+  const scan = assertCanonicalSam31QualificationCapsuleMalwareScan(
+    input.malwareScan,
+  )
+  const coordinate = assertCanonicalSam31QualificationCapsuleCoordinate(
+    input.coordinate,
+  )
   const expectedObject =
     `${PREFIX}${scan.buildId}/${builder.capsuleSha256}.tar.gz`
   if (

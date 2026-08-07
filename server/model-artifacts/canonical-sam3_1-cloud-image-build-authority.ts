@@ -981,6 +981,9 @@ async function inspectCanonicalTarStream(
   let pending = Buffer.alloc(0)
   let totalUncompressed = 0
   let zeroBlocks = 0
+  let headerCount = 0
+  let previousHeaderPath: string | null = null
+  const directoryPaths = new Set<string>()
   let current: {
     path: string
     byteLength: number
@@ -1036,21 +1039,36 @@ async function inspectCanonicalTarStream(
       if (zeroBlocks > 0) {
         throw new Error('SAM 3.1 capsule contains data after tar terminator.')
       }
-      if (entries.length >= MAX_CAPSULE_ENTRIES) {
+      headerCount += 1
+      if (headerCount > MAX_CAPSULE_ENTRIES) {
         throw new Error('SAM 3.1 capsule has too many entries.')
       }
       verifyTarHeaderChecksum(header)
       const type = header[156]
-      if (type !== 0 && type !== 48) {
+      if (type !== 0 && type !== 48 && type !== 53) {
         throw new Error('SAM 3.1 capsule contains a non-regular entry.')
       }
       const name = readTarString(header.subarray(0, 100))
       const prefix = readTarString(header.subarray(345, 500))
-      const path = prefix ? `${prefix}/${name}` : name
+      const rawPath = prefix ? `${prefix}/${name}` : name
+      const path = type === 53 && rawPath.endsWith('/')
+        ? rawPath.slice(0, -1)
+        : rawPath
       if (!isSafeCapsulePath(path)) {
         throw new Error('SAM 3.1 capsule entry path is unsafe.')
       }
+      if (previousHeaderPath !== null && !(previousHeaderPath < path)) {
+        throw new Error('SAM 3.1 capsule headers are not canonical.')
+      }
+      previousHeaderPath = path
       const byteLength = readTarOctal(header.subarray(124, 136))
+      if (type === 53) {
+        if (byteLength !== 0 || directoryPaths.has(path)) {
+          throw new Error('SAM 3.1 capsule directory is not canonical.')
+        }
+        directoryPaths.add(path)
+        continue
+      }
       if (byteLength <= 0 || byteLength > MAX_CAPSULE_UNCOMPRESSED_BYTES) {
         throw new Error('SAM 3.1 capsule entry length is invalid.')
       }
@@ -1070,6 +1088,10 @@ async function inspectCanonicalTarStream(
     if (!(entries[index - 1].path < entries[index].path)) {
       throw new Error('SAM 3.1 capsule tar entries are not canonical.')
     }
+  }
+  if ([...directoryPaths].some((directory) =>
+    !entries.some((entry) => entry.path.startsWith(`${directory}/`)))) {
+    throw new Error('SAM 3.1 capsule contains an empty directory.')
   }
   return entries
 }

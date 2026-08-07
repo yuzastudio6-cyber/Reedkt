@@ -241,6 +241,7 @@
     "smoke:sam3_1-qualification-capsule-runtime": "tsx server/smoke/canonical-sam3_1-qualification-capsule-runtime-smoke.ts",
     "smoke:sam3_1-qualification-capsule-reproducibility": "tsx server/smoke/canonical-sam3_1-qualification-capsule-reproducibility-smoke.ts",
     "publish:sam3_1-qualification-capsule-reproducibility": "tsx server/cli/publish-canonical-sam3_1-qualification-capsule-reproducibility.ts",
+    "publish:sam3_1-qualification-image-authority": "tsx server/cli/publish-canonical-sam3_1-qualification-image-build-authority.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation-owner": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts",

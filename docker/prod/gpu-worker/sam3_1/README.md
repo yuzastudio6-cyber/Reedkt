@@ -320,7 +320,8 @@ release, and benchmark evidence.
 
 Before Cloud Build authority exists, the capsule owner streams and hashes the
 compressed object, expands it under a separate bounded limit, validates every
-USTAR header and checksum, rejects links/devices/sockets/traversal and data
+USTAR header and checksum, admits only ordered zero-byte parent directories,
+rejects links/devices/sockets/traversal and data
 after the terminator, and compares the exact ordered file path/length/SHA-256
 set with the closed manifest. Only the listed repository files, the two source
 archives, the fixed receipts, the pinned CUDA package, and flat `.whl` files

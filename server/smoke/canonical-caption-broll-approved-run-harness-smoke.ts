@@ -10,6 +10,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
 } from '../../src/lib/approved-edit-execution-package-client'
+import { CAPTIONS_SUPPORTED_JOB_TYPES } from
+  '../../src/types/captions-specialist'
 import type { PlannerInput } from '../../src/types/reeditpro'
 import type { CanonicalCaptionQualificationRunReadiness } from
   '../../src/types/canonical-caption-qualification-run-readiness'
@@ -37,6 +39,11 @@ import {
   executeCanonicalCaptionApprovedJobClosure,
   executeCanonicalCaptionBrollApprovedRun,
 } from '../internal-testing/canonical-caption-broll-approved-execution-harness'
+import {
+  parseCanonicalCaptionApprovedExecutionCoverage,
+} from '../services/canonical-caption-approved-execution-coverage-service'
+import { calculateSkillContractDigest } from
+  '../orchestra/orchestra-skill-contracts'
 import {
   injectCanonicalCaptionVisualIntelligenceStructuralSupport,
 } from '../internal-testing/canonical-caption-visual-intelligence-structural-support-fixture'
@@ -791,6 +798,73 @@ try {
   })
   assert.equal(captionExecution.captionJobCount, 17)
   assert.equal(captionExecution.captionSupportResumeCount, 1)
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverage
+      .counts.declaredCaptionJobTypes,
+    41,
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverage
+      .counts.uniqueCoveredCaptionJobTypes,
+    17,
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverage
+      .counts.missingCaptionJobTypes,
+    24,
+  )
+  assert.deepEqual(
+    captionExecution.captionApprovedExecutionCoverage
+      .declaredCaptionJobTypes,
+    CAPTIONS_SUPPORTED_JOB_TYPES,
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverage.disposition,
+    'partial_catalog_execution_coverage',
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverage
+      .preterminalApprovedExecutionEvidenceOnly,
+    true,
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverage
+      .terminalQualificationClaimed,
+    false,
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverageCreateOnlyRereadVerified,
+    true,
+  )
+  assert.equal(
+    captionExecution.captionApprovedExecutionCoverageIdenticalReplayVerified,
+    true,
+  )
+  assert.match(
+    captionExecution.captionApprovedExecutionCoveragePersistenceDisposition,
+    /^(?:created|identical_replay)$/u,
+  )
+  const forgedPromotion = structuredClone(
+    captionExecution.captionApprovedExecutionCoverage,
+  ) as unknown as Record<string, unknown>
+  forgedPromotion.terminalQualificationClaimed = true
+  forgedPromotion.coverageDigestSha256 = calculateSkillContractDigest(
+    forgedPromotion,
+    'coverageDigestSha256',
+  )
+  assert.throws(() =>
+    parseCanonicalCaptionApprovedExecutionCoverage(forgedPromotion))
+  const duplicateOccurrence = structuredClone(
+    captionExecution.captionApprovedExecutionCoverage,
+  ) as unknown as Record<string, unknown>
+  const duplicateOccurrences = duplicateOccurrence.jobOccurrences as unknown[]
+  duplicateOccurrences.push(structuredClone(duplicateOccurrences[0]))
+  duplicateOccurrence.coverageDigestSha256 = calculateSkillContractDigest(
+    duplicateOccurrence,
+    'coverageDigestSha256',
+  )
+  assert.throws(() =>
+    parseCanonicalCaptionApprovedExecutionCoverage(duplicateOccurrence))
   assert.ok(captionExecution.captionExecutions.every((item) =>
     item.initialResponse.result.qaOutcome === 'passed'
     && item.replayResponse.evidence.idempotentAdapterReplay))
@@ -929,6 +1003,13 @@ try {
     executionPackageCreated: true,
     captionWorkItems: 17,
     captionApprovedJobsExecuted: captionExecution.captionJobCount,
+    captionApprovedExecutionCoveredJobTypes:
+      captionExecution.captionApprovedExecutionCoverage
+        .counts.uniqueCoveredCaptionJobTypes,
+    captionApprovedExecutionMissingJobTypes:
+      captionExecution.captionApprovedExecutionCoverage
+        .counts.missingCaptionJobTypes,
+    captionApprovedExecutionCoveragePreterminalOnly: true,
     captionSupportResumeCount:
       captionExecution.captionSupportResumeCount,
     visualIntelligenceSupportEvidenceClass:

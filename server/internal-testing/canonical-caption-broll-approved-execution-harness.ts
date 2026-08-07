@@ -15,6 +15,12 @@ import {
   classifyCanonicalInternalServerJob,
   createCanonicalPrivateJobExecutionAdapterService,
 } from '../services/canonical-private-job-execution-adapter-service'
+import {
+  assembleCanonicalCaptionApprovedExecutionCoverage,
+  createCanonicalCaptionApprovedExecutionCoverageRepository,
+} from '../services/canonical-caption-approved-execution-coverage-service'
+import { createCanonicalPrivateLocalJsonObjectPort } from
+  '../services/canonical-private-local-json-object-port'
 import { stableAuthorityStringify } from
   '../services/private-edit-authority-store'
 import type {
@@ -225,6 +231,46 @@ export async function executeCanonicalCaptionApprovedJobClosure(
     )
   }
 
+  const captionApprovedExecutionCoverage =
+    await assembleCanonicalCaptionApprovedExecutionCoverage({
+      context: input.context,
+      authority: input.approvedRun.approvedExecutionAuthority,
+      executionPackage: input.approvedRun.approvedEditExecutionPackage,
+      executions: captionExecutions,
+    })
+  const coverageRepository =
+    createCanonicalCaptionApprovedExecutionCoverageRepository({
+      objectPort: createCanonicalPrivateLocalJsonObjectPort({
+        localStorageRoot: input.context.env.localStorageRoot,
+      }),
+    })
+  const captionApprovedExecutionCoveragePersistenceDisposition =
+    await coverageRepository.persistCreateOnly({
+      coverage: captionApprovedExecutionCoverage,
+    })
+  const captionApprovedExecutionCoverageReplayDisposition =
+    await coverageRepository.persistCreateOnly({
+      coverage: captionApprovedExecutionCoverage,
+    })
+  if (captionApprovedExecutionCoverageReplayDisposition !==
+      'identical_replay') {
+    throw new Error(
+      'Caption approved execution coverage replay was not idempotent.',
+    )
+  }
+  const rereadCaptionApprovedExecutionCoverage =
+    await coverageRepository.rereadExact({
+      executionPackageRef:
+        captionApprovedExecutionCoverage.executionPackageRef,
+    })
+  if (!rereadCaptionApprovedExecutionCoverage
+    || stableAuthorityStringify(rereadCaptionApprovedExecutionCoverage) !==
+      stableAuthorityStringify(captionApprovedExecutionCoverage)) {
+    throw new Error(
+      'Caption approved execution coverage create-only reread failed.',
+    )
+  }
+
   return Object.freeze({
     approvedSnapshotRef: Object.freeze({
       id: input.approvedRun.approved.authority.snapshot.snapshotId,
@@ -235,6 +281,10 @@ export async function executeCanonicalCaptionApprovedJobClosure(
     }),
     captionExecutions: Object.freeze(captionExecutions),
     captionJobCount,
+    captionApprovedExecutionCoverage,
+    captionApprovedExecutionCoveragePersistenceDisposition,
+    captionApprovedExecutionCoverageCreateOnlyRereadVerified: true as const,
+    captionApprovedExecutionCoverageIdenticalReplayVerified: true as const,
     captionDependencyJobCount: captionExecutions.length - captionJobCount,
     captionSupportResumeCount: captionExecutions.reduce(
       (sum, item) => sum + item.supportResumeCount,

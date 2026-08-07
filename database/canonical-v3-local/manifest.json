@@ -313,7 +313,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "1b5fd62256b550b78b72c857c763f9e1c70ab42110295a6ace2381699c48fef0"
+      "sha256": "1f8ec141567e3aec3ca998b41997fba5d74cf978cf0e9e3a46cd372a00d5a34e"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
@@ -321,7 +321,7 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "445b4a28204628a2512ee50ed94bff4a6cdfde968e2936151869a10dc9471f58"
+      "sha256": "6107328069ab9d6d6cd047d33e3b2da750da64b967eb4cc39d85ad5887c518d1"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -497,7 +497,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "cf26ed8f8626d5fdc24b42dce174c38bc988bab13a645ebbcdaa0da9ba371cc9"
+      "sha256": "26e242b81b62e1ecf1d94b83ecdb8dda24d3800a8ed709e0c69917b5b61ae8ac"
     },
     {
       "path": "server/routes/upload-routes.ts",
@@ -593,7 +593,7 @@
     },
     {
       "path": "server/services/upload-service.ts",
-      "sha256": "eff3b544a2a11c4e1eb528083d8036205277082f7eefe8f941f0792a2147b2f5"
+      "sha256": "b916a04358d9868aac81d7cad324f01ab0472eec94679b6b7340430f883f158d"
     },
     {
       "path": "server/services/workspace-access-service.ts",
@@ -725,7 +725,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "3fb899083144ca0836d3f5682b5dd6f2ebaa11c69e90d571d1cae49f3074ccef"
+      "sha256": "986223e3d756394713d0d58c1d400636728382fd99c26d69095992f327f78243"
     },
     {
       "path": "server/upload-target-authority/canonical-durable-upload-target-authority.ts",
@@ -765,7 +765,7 @@
     },
     {
       "path": "server/validation/edit-planning-authority-schemas.ts",
-      "sha256": "4277269e43fa2b1f343b62865a68d3ec8f5872e6ccf09505cc652228a689b45d"
+      "sha256": "6ea9dc85bea8fdcf47eac54b5bf0a05efe04c04ce20e9122c004654f4304553e"
     },
     {
       "path": "server/validation/edit-reference-application-preparation-schemas.ts",
@@ -801,7 +801,7 @@
     },
     {
       "path": "src/lib/canonical-planning-draft.ts",
-      "sha256": "b20ad94f6df266b6b3cb0013c3d6f8be57bcb11ac48c607c6d736f1245185297"
+      "sha256": "477750dc1dbd69b7a89a10c356f66e9dfbf682dc185676821a73a34c66f12f79"
     },
     {
       "path": "src/lib/canonical-planning-publication-client.ts",
@@ -881,7 +881,7 @@
     },
     {
       "path": "tests/e2e/edit-preferences-current-edit.spec.ts",
-      "sha256": "4e6f764bda15a421138a96e3eb4dd9b259d8d6d5c498ff62c2c772ea8a5d254b"
+      "sha256": "45838eeeff22840cdfb801dc8477c3ce9d2cd05c195167836c20fcda953c7d6a"
     },
     {
       "path": "tests/e2e/edit-reference-canonical-real-file-flow.spec.ts",

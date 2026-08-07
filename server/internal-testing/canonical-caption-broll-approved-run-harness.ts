@@ -51,6 +51,7 @@ import type {
 import {
   createCanonicalCaptionBrollApprovedPlanHarness,
 } from './canonical-caption-broll-approved-plan-harness'
+import { hashSkillValue } from '../edit-skills/core'
 
 export const CANONICAL_CAPTION_BROLL_APPROVED_RUN_HARNESS_VERSION =
   'canonical-caption-broll-approved-run-harness-v1' as const
@@ -479,8 +480,9 @@ export function deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest(
     || authority.canonicalScope.approvedSnapshotRef === null
     || plan.assignmentId !== run.broll.brollAssignment.assignmentId
     || plan.assignmentHash !== run.broll.brollAssignment.assignmentHash
-    || plan.planHash !== run.broll.publicPlan.envelope.planHash
     || plan.planId !== run.broll.publicPlan.envelope.planId
+    || run.broll.publicPlan.payloadRef.artifactType !== 'b_roll_plan_v1'
+    || run.broll.publicPlan.payloadRef.sha256 !== hashSkillValue(plan)
     || snapshot.approvedByUserId !== authority.canonicalScope.ownerUserId) {
     throw new Error(
       'Canonical Caption+B-roll approved run cannot derive one exact owner-read request.',

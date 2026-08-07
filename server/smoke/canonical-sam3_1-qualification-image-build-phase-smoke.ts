@@ -362,7 +362,55 @@ const nonOk = await createUnknownSubmission('non_ok')
 assert.equal(nonOk.disposition, 'outcome_unknown')
 assert.equal(nonOk.providerHttpStatus, 503)
 assert.equal(nonOk.automaticRetryAllowed, false)
-const badRequest = await createUnknownSubmission('bad_request')
+const providerResponseSummaries: unknown[] = []
+const badRequestPhase = createCanonicalSam31QualificationImageBuildPhase({
+  authorityReadPort: {
+    async rereadQualificationImageBuildAuthority() {
+      return structuredClone(authority)
+    },
+  },
+  statePort: createStatePort().port,
+  authenticatedTransport: {
+    async request() {
+      return {
+        status: 400,
+        json: { error: {
+          code: 400,
+          status: 'INVALID_ARGUMENT',
+          message: 'The build configuration is invalid.',
+        } },
+      }
+    },
+  },
+  observeCreateResponse(summary) {
+    providerResponseSummaries.push(summary)
+  },
+})
+const currentBadRequest = await badRequestPhase
+  .startOneQualificationImageBuild({ authorityRef })
+assert.equal(currentBadRequest.disposition, 'rejected_before_creation')
+assert.equal(currentBadRequest.providerOutcome, 'not_executed')
+assert.equal(currentBadRequest.durableAuthorityConsumptionCreated, true)
+assert.equal(currentBadRequest.durableSubmissionObservationCreated, true)
+assert.equal(providerResponseSummaries.length, 1)
+assert.equal(
+  (providerResponseSummaries[0] as { providerErrorReason: string })
+    .providerErrorReason,
+  'invalid_build_configuration',
+)
+
+const historicalBadRequestPayload = structuredClone(unknown) as Partial<
+  typeof unknown
+>
+delete historicalBadRequestPayload.submissionHash
+const badRequest = assertCanonicalSam31QualificationImageBuildSubmission({
+  ...historicalBadRequestPayload,
+  providerHttpStatus: 400,
+  submissionHash: sha256AuthorityValue({
+    ...historicalBadRequestPayload,
+    providerHttpStatus: 400,
+  }),
+})
 const badRequestRef = canonicalSam31QualificationImageBuildSubmissionRef(
   badRequest,
 )
@@ -492,6 +540,8 @@ console.log(JSON.stringify({
     checkpointAndQualificationReceiptExcluded: true,
     noSecretOrCallerBuildInput: true,
     outcomeUnknownHasNoAutomaticRetry: true,
+    synchronousProviderRejectionClassifiedNotExecuted: true,
+    providerErrorSummaryCredentialSafeAndDigestBound: true,
     http400NoBuildReconciledBeforeSuccessorAuthority: true,
     exactBuildMatchBlocksSuccessorAuthority: true,
     exactTerminalEchoRequired: true,
@@ -505,9 +555,7 @@ console.log(JSON.stringify({
   },
 }, null, 2))
 
-async function createUnknownSubmission(
-  mode: 'throw' | 'non_ok' | 'bad_request',
-) {
+async function createUnknownSubmission(mode: 'throw' | 'non_ok') {
   const localState = createStatePort()
   const unknownPhase = createCanonicalSam31QualificationImageBuildPhase({
     authorityReadPort: {
@@ -519,9 +567,7 @@ async function createUnknownSubmission(
     authenticatedTransport: {
       async request() {
         if (mode === 'throw') throw new Error('network outcome unknown')
-        return mode === 'bad_request'
-          ? { status: 400, json: { error: 'missing projectId' } }
-          : { status: 503, json: { error: 'unavailable' } }
+        return { status: 503, json: { error: 'unavailable' } }
       },
     },
   })

@@ -179,6 +179,9 @@ export function createCanonicalSam31QualificationImageBuildRepository(input: {
 
 export function createCanonicalSam31GcpQualificationImageBuildRuntime(input: {
   readonly storage?: Storage
+  readonly observeCreateResponse?: Parameters<
+    typeof createCanonicalSam31QualificationImageBuildPhase
+  >[0]['observeCreateResponse']
   readonly now?: () => string
 } = {}) {
   const storage = input.storage ?? new Storage({ projectId: 'reeditpro' })
@@ -194,6 +197,7 @@ export function createCanonicalSam31GcpQualificationImageBuildRuntime(input: {
     statePort: repository,
     authenticatedTransport:
       createCanonicalSam31GoogleCloudBuildAuthenticatedTransport(),
+    observeCreateResponse: input.observeCreateResponse,
     now: input.now,
   })
   return Object.freeze({

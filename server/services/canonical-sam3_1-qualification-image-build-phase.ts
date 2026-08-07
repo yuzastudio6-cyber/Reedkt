@@ -215,6 +215,21 @@ export interface CanonicalSam31QualificationCloudBuildTransport {
   }): Promise<{ readonly status: number; readonly json: unknown }>
 }
 
+export interface CanonicalSam31QualificationCloudBuildCreateResponseSummary {
+  readonly providerHttpStatus: number
+  readonly responseSha256: string
+  readonly providerErrorCode: number | null
+  readonly providerErrorStatus: string | null
+  readonly providerErrorReason:
+    | 'required_project_id_query_missing'
+    | 'invalid_build_configuration'
+    | 'permission_denied'
+    | 'quota_or_capacity'
+    | 'unclassified'
+    | null
+  readonly safeProviderMessage: string | null
+}
+
 /**
  * Qualification-image phase of the canonical SAM 3.1 Cloud Build owner. It is
  * deliberately separate from the runtime-image phase while retaining the same
@@ -226,6 +241,9 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
   readonly statePort: CanonicalSam31QualificationImageBuildStatePort
   readonly authenticatedTransport:
     CanonicalSam31QualificationCloudBuildTransport
+  readonly observeCreateResponse?: (
+    summary: CanonicalSam31QualificationCloudBuildCreateResponseSummary,
+  ) => void
   readonly now?: () => string
 }) {
   return Object.freeze({
@@ -303,7 +321,38 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
           body,
         })
         providerStatus = response.status
+        input.observeCreateResponse?.(
+          summarizeCanonicalSam31QualificationCloudBuildCreateResponse(
+            response.status,
+            response.json,
+          ),
+        )
         if (response.status < 200 || response.status >= 300) {
+          if (response.status >= 400 && response.status < 500) {
+            const rejected = buildSubmission({
+              disposition: 'rejected_before_creation',
+              authorityRef,
+              buildRequestHash,
+              buildRequestBodyRef,
+              providerHttpStatus: response.status,
+              cloudBuildOperationName: null,
+              cloudBuildId: null,
+              cloudBuildResource: null,
+              providerOutcome: 'not_executed',
+              durableAuthorityConsumptionCreated: true,
+              durableSubmissionObservationCreated: true,
+              imageBuildKnownStarted: false,
+              observedAt,
+            })
+            const persisted = await input.statePort
+              .persistQualificationSubmissionCreateOnly({
+                submission: rejected,
+              })
+            if (!persisted) {
+              throw new Error('Qualification rejection not durable.')
+            }
+            return rejected
+          }
           throw new Error('Qualification Cloud Build create failed.')
         }
         accepted = parseCreateOperation(response.json)
@@ -473,6 +522,49 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
         })
       }
     },
+  })
+}
+
+export function summarizeCanonicalSam31QualificationCloudBuildCreateResponse(
+  providerHttpStatus: number,
+  value: unknown,
+): CanonicalSam31QualificationCloudBuildCreateResponseSummary {
+  const responseSha256 = sha256AuthorityValue(value)
+  const root = z.object({
+    error: z.object({
+      code: z.number().int().min(100).max(599).optional(),
+      status: z.string().trim().min(1).max(128).optional(),
+      message: z.string().trim().min(1).max(4_096).optional(),
+    }).passthrough().optional(),
+  }).passthrough().safeParse(value)
+  const error = root.success ? root.data.error : undefined
+  const message = error?.message ?? ''
+  const normalized = message.toLowerCase()
+  const providerErrorReason = providerHttpStatus >= 200
+    && providerHttpStatus < 300
+    ? null
+    : normalized.includes('projectid')
+        && (normalized.includes('required') || normalized.includes('missing'))
+      ? 'required_project_id_query_missing'
+      : providerHttpStatus === 401 || providerHttpStatus === 403
+        || normalized.includes('permission')
+        || normalized.includes('not authorized')
+        ? 'permission_denied'
+        : providerHttpStatus === 429
+          || normalized.includes('quota')
+          || normalized.includes('capacity')
+          ? 'quota_or_capacity'
+          : providerHttpStatus === 400
+            || providerHttpStatus === 422
+            ? 'invalid_build_configuration'
+            : 'unclassified'
+  return Object.freeze({
+    providerHttpStatus,
+    responseSha256,
+    providerErrorCode: error?.code ?? null,
+    providerErrorStatus: error?.status ?? null,
+    providerErrorReason,
+    safeProviderMessage: safeProviderMessage(message),
   })
 }
 
@@ -762,4 +854,15 @@ function deepFreeze<T>(value: T): T {
     }
   }
   return value
+}
+
+function safeProviderMessage(value: string): string | null {
+  if (!value) return null
+  if (/\b(?:authorization|bearer|access[_ -]?token|refresh[_ -]?token|api[_ -]?key|password|credential|secret)\b/iu.test(value)) {
+    return '[provider message withheld by credential-safety policy]'
+  }
+  return value
+    .replace(/https?:\/\/\S+/giu, '[url]')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/giu, '[service-account]')
+    .slice(0, 1_000)
 }

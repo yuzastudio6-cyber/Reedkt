@@ -249,6 +249,7 @@
     "smoke:sam3_1-qualification-image-einops-offline-successor": "tsx server/smoke/canonical-sam3_1-qualification-image-einops-offline-successor-smoke.ts",
     "smoke:sam3_1-qualification-image-pycocotools-offline-successor": "tsx server/smoke/canonical-sam3_1-qualification-image-pycocotools-offline-successor-smoke.ts",
     "smoke:sam3_1-qualification-image-cuda-torchvision-identity-successor": "tsx server/smoke/canonical-sam3_1-qualification-image-cuda-torchvision-identity-successor-smoke.ts",
+    "smoke:sam3_1-native-library-closure": "tsx server/smoke/canonical-sam3_1-native-library-closure-smoke.ts",
     "publish:sam3_1-qualification-capsule-reproducibility": "tsx server/cli/publish-canonical-sam3_1-qualification-capsule-reproducibility.ts",
     "publish:sam3_1-qualification-image-authority": "tsx server/cli/publish-canonical-sam3_1-qualification-image-build-authority.ts",
     "start:sam3_1-qualification-image-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build.ts",

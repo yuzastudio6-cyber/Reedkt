@@ -149,7 +149,7 @@ ENV HF_HUB_OFFLINE=1 \
   PYTHONUNBUFFERED=1 \
   WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv \
   PATH=/opt/weeditpro/ffmpeg/bin:${PATH} \
-  LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/cuda/lib64 \
+  LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/lib64 \
   CUDA_MODULE_LOADING=LAZY \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
@@ -361,6 +361,9 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3-source \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
     "import importlib.metadata as m; import json; import sys; import torch; import torchvision; import torchcodec; import einops; import pycocotools.mask; import sam3; observed={'pythonVersion': '.'.join(map(str, sys.version_info[:3])), 'pythonPrefix': sys.prefix, 'pythonBasePrefix': sys.base_prefix, 'torchVersion': torch.__version__, 'torchvisionVersion': torchvision.__version__, 'torchcodecVersion': m.version('torchcodec'), 'einopsVersion': m.version('einops'), 'pycocotoolsVersion': m.version('pycocotools'), 'torchCudaVersion': torch.version.cuda}; print(json.dumps(observed, sort_keys=True)); assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0+cu128'; assert m.version('torchcodec') == '0.10.0+cu128'; assert m.version('einops') == '0.8.2'; assert m.version('pycocotools') == '2.0.11'; assert torch.version.cuda == '12.8'" \
+  && test -d /usr/local/lib/python3.12/dist-packages/torch/lib \
+  && test -d /usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib \
+  && test -d /usr/local/lib/python3.12/dist-packages/nvidia/cuda_nvrtc/lib \
   && ! ldd "${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages/torchcodec/libtorchcodec_core8.so" \
     | grep -F 'not found' \
   && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders \

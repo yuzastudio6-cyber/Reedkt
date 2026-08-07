@@ -32,6 +32,10 @@ for (const expected of [
   'sam31-qualification-capsule-reproducibility-einops-offline-source-identity-corrected-20260807',
   'd56d7f4a-d5d2-41a2-9098-db22a98f61b1',
   '6db247e8-9dda-46c8-9266-51d3de51cf34',
+  'pycocotools_offline_source_identity_corrected',
+  'sam31-qualification-capsule-reproducibility-pycocotools-offline-source-identity-corrected-20260807',
+  '9d115018-1801-451f-b47b-de78d2c644d6',
+  'c5e9dad3-1bff-4ac0-8faf-c8fe8c4e1e6b',
 ] as const) assert.ok(
   publisher.includes(expected),
   `private offline-closure reproducibility publication lost ${expected}`,
@@ -55,7 +59,7 @@ const builder = {
   archiveEntries: entries,
   archiveEntrySetSha256:
     canonicalSam31QualificationCapsuleReproducibilityDigest(entries),
-  dependencyWheelCount: 24,
+  dependencyWheelCount: 25,
   dependencyWheelManifestSha256: digest('wheels'),
   dependencyLockSha256: digest('lock'),
   dependencyClosureReceiptSha256: digest('closure'),

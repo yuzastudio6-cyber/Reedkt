@@ -59,6 +59,12 @@ const targets = {
     primaryBuildId: 'd56d7f4a-d5d2-41a2-9098-db22a98f61b1',
     confirmationBuildId: '6db247e8-9dda-46c8-9266-51d3de51cf34',
   },
+  pycocotools_offline_source_identity_corrected: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-pycocotools-offline-source-identity-corrected-20260807',
+    primaryBuildId: '9d115018-1801-451f-b47b-de78d2c644d6',
+    confirmationBuildId: 'c5e9dad3-1bff-4ac0-8faf-c8fe8c4e1e6b',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -69,6 +75,7 @@ const targetName = z.enum([
   'npp_offline',
   'einops_offline',
   'einops_offline_source_identity_corrected',
+  'pycocotools_offline_source_identity_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

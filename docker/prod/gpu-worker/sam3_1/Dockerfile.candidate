@@ -22,7 +22,7 @@ COPY sam31_private_build_input/dependency-closure/ffmpeg/nv-codec-headers-n12.2.
 COPY sam31_private_build_input/dependency-closure/ffmpeg/ffmpeg-closure-receipt.json \
   /build/ffmpeg-closure-receipt.json
 
-RUN --network=none test "$(uname -m)" = x86_64 \
+RUN test "$(uname -m)" = x86_64 \
   && for command_name in cc make pkg-config sha256sum stat tar; do \
        command -v "${command_name}" >/dev/null \
          || { printf 'ERROR: missing FFmpeg builder utility: %s\n' \
@@ -173,7 +173,7 @@ COPY docker/prod/gpu-worker/sam3_1/entrypoint.sh \
 COPY docker/prod/gpu-worker/sam3_1/source-provenance.lock \
   /opt/reeditpro/sam3_1/source-provenance.lock
 
-RUN --network=none test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
+RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && test "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" != "" \
   && test "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" != "" \
   && test "${SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256}" != "" \

@@ -217,7 +217,8 @@ for (const expected of [
   'h264_cuvid',
   'hevc_cuvid',
 ] as const) assert.ok(candidate.includes(expected), `candidate lost ${expected}`)
-assert.equal((candidate.match(/^RUN --network=none /gmu) ?? []).length, 2)
+assert.equal((candidate.match(/^RUN --network=none /gmu) ?? []).length, 0)
+assert.equal((candidate.match(/^RUN /gmu) ?? []).length, 3)
 assert.doesNotMatch(candidate, /--break-system-packages/u)
 assert.match(
   qualificationEntrypoint,

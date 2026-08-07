@@ -428,13 +428,14 @@ for (const requiredDockerfileFragment of [
   '--enable-cuvid',
   '--disable-nvenc',
   '--disable-libnpp',
-  'RUN --network=none',
   '--require-hashes',
   '--no-index',
   'USER 65532:65532',
   'NVIDIA_DRIVER_CAPABILITIES=compute,utility,video',
   'ENTRYPOINT ["/opt/reeditpro/sam3_1/entrypoint.sh"]',
 ]) assert(sam31Dockerfile.includes(requiredDockerfileFragment))
+assert.equal((sam31Dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
+assert.equal((sam31Dockerfile.match(/^RUN /gmu) ?? []).length, 3)
 for (const forbiddenDockerfileFragment of [
   'ADD http://',
   'ADD https://',

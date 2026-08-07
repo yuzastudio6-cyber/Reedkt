@@ -124,7 +124,9 @@ wheel. It also builds FFmpeg 8.0.3 shared libraries from the exact official
 release plus `nv-codec-headers n12.2.72.0` in a pinned CUDA 12.8 devel stage.
 The configuration keeps FFmpeg LGPL-only: GPL, nonfree, and `libnpp` linkage
 are disabled, while FFNVCodec, NVDEC, CUVID, `h264_cuvid`, and `hevc_cuvid`
-are required. Both image-build RUN steps are network-none.
+are required. The canonical Cloud Build request applies Docker's
+`--network=none` to every image-build RUN step; the Dockerfiles deliberately
+avoid the unsupported BuildKit-only inline `RUN --network=none` syntax.
 
 The qualification worker checks TorchCodec's backend status after actual frame
 decode and fails if the status is unknown, if TorchCodec reports CPU fallback,

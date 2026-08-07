@@ -191,6 +191,8 @@ assert.doesNotMatch(
   /source-checkpoint-compatibility-receipt\.json/u,
 )
 assert.doesNotMatch(dockerfile, /sam3\.1_multiplex\.pt/u)
+assert.equal((dockerfile.match(/^RUN --network=none /gmu) ?? []).length, 0)
+assert.equal((dockerfile.match(/^RUN /gmu) ?? []).length, 3)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)

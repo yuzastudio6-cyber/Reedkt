@@ -147,44 +147,34 @@ try {
     toolId: string
   }> = []
   let activeWorkItemKey = 'not-dispatching'
-  const tracedMediaRuntime = new Proxy(mediaRuntime, {
-    get(target, property, receiver) {
-      if (property === 'execute') {
-        return async (request: Parameters<typeof mediaRuntime.execute>[0]) => {
-          const toolId = (
-            typeof request === 'object' &&
-            request !== null &&
-            'toolId' in request &&
-            typeof request.toolId === 'string'
-          ) ? request.toolId : 'unknown'
-          runtimeCalls.push({
-            workItemKey: activeWorkItemKey,
-            runtime: 'media',
-            toolId,
-          })
-          return mediaRuntime.execute(request)
-        }
-      }
-      return Reflect.get(target, property, receiver)
+  const tracedMediaRuntime: typeof mediaRuntime = {
+    ...mediaRuntime,
+    execute: (async (request: unknown) => {
+      const toolId = (
+        typeof request === 'object' &&
+        request !== null &&
+        'toolId' in request &&
+        typeof request.toolId === 'string'
+      ) ? request.toolId : 'unknown'
+      runtimeCalls.push({
+        workItemKey: activeWorkItemKey,
+        runtime: 'media',
+        toolId,
+      })
+      return mediaRuntime.execute(request)
+    }) as typeof mediaRuntime.execute,
+  }
+  const tracedRemotionRuntime: typeof remotionRuntime = {
+    ...remotionRuntime,
+    execute: async (request: unknown) => {
+      runtimeCalls.push({
+        workItemKey: activeWorkItemKey,
+        runtime: 'remotion',
+        toolId: 'remotion',
+      })
+      return remotionRuntime.execute(request)
     },
-  })
-  const tracedRemotionRuntime = new Proxy(remotionRuntime, {
-    get(target, property, receiver) {
-      if (property === 'execute') {
-        return async (
-          request: Parameters<typeof remotionRuntime.execute>[0],
-        ) => {
-          runtimeCalls.push({
-            workItemKey: activeWorkItemKey,
-            runtime: 'remotion',
-            toolId: 'remotion',
-          })
-          return remotionRuntime.execute(request)
-        }
-      }
-      return Reflect.get(target, property, receiver)
-    },
-  })
+  }
   const serviceInput = {
     localStorageRoot: root,
     componentRef,

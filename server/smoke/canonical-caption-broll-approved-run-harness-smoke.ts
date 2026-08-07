@@ -190,10 +190,21 @@ try {
       isMockUser: false,
     },
   }
-  const project = (await createProjectService(context).createProject({
-    workspaceId,
-    name: 'Caption B-roll approved-run harness',
-  })).project
+  const projectService = createProjectService(context)
+  const projectName = 'Caption B-roll approved-run harness'
+  const persistedProjectMatches = realPrivateExecution
+    ? (await projectService.listProjects(workspaceId)).projects.filter(
+        (candidate) => candidate.name === projectName,
+      )
+    : []
+  if (persistedProjectMatches.length > 1) {
+    throw new Error(
+      'The approved Caption+B-roll evidence root contains more than one matching project authority.',
+    )
+  }
+  const project = persistedProjectMatches[0] ?? (
+    await projectService.createProject({ workspaceId, name: projectName })
+  ).project
   const sourcePath = realPrivateExecution
     ? resolve(requestedPrivateSourcePath)
     : null

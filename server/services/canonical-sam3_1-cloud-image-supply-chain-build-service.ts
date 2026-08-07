@@ -22,8 +22,10 @@ export const CANONICAL_SAM3_1_IMAGE_SUPPLY_CHAIN_BUILD_OBSERVATION_VERSION =
 const PROJECT_ID = 'reeditpro' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_ENDPOINT =
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const IMAGE_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu' as const
 const EVIDENCE_BUCKET =
@@ -536,7 +538,7 @@ export function createCanonicalSam31ImageSupplyChainBuildService(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'POST',
-          url: BUILD_ENDPOINT,
+          url: BUILD_CREATE_ENDPOINT,
           body: buildBody,
         })
         status = response.status
@@ -623,7 +625,7 @@ export function createCanonicalSam31ImageSupplyChainBuildService(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         providerStatus = response.status
         if (providerStatus < 200 || providerStatus >= 300) {

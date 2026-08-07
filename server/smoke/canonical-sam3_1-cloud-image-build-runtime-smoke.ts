@@ -128,7 +128,7 @@ assert.equal(submission.providerOutcome, 'executed')
 assert.equal(submission.automaticRetryAllowed, false)
 assert.equal(authRequests.length, 1)
 assert.equal(authRequests[0].url,
-  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds')
+  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro')
 assert.equal(authRequests[0].method, 'POST')
 assert.equal(authRequests[0].retry, false)
 assert.equal(authRequests[0].maxRedirects, 0)

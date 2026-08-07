@@ -15,8 +15,10 @@ export const CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_TERMINAL_VERSION =
 const PROJECT_ID = 'reeditpro' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
-const BUILD_ENDPOINT =
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
+const BUILD_CREATE_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const ARTIFACT_REGISTRY_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification' as const
 const safeId = z.string().trim().min(1).max(512)
@@ -297,7 +299,7 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'POST',
-          url: BUILD_ENDPOINT,
+          url: BUILD_CREATE_ENDPOINT,
           body,
         })
         providerStatus = response.status
@@ -383,7 +385,7 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
         })
         providerStatus = response.status
         if (response.status < 200 || response.status >= 300) {

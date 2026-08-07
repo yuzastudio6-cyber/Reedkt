@@ -39,8 +39,9 @@ export const CANONICAL_SAM3_1_GOOGLE_CLOUD_BUILD_TRANSPORT_VERSION =
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RUNTIME_VERSION =
   'canonical-sam3_1-cloud-image-build-runtime-v1' as const
 
-const BUILD_ENDPOINT =
+const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds'
+const BUILD_CREATE_ENDPOINT = `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro`
 const BUILD_RESOURCE = new RegExp(
   '^https://cloudbuild\\.googleapis\\.com/v1/projects/reeditpro/locations/'
     + 'us-central1/builds/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-'
@@ -445,7 +446,7 @@ function assertCloudBuildTransportRequest(request: {
   const post = request.method === 'POST'
   if (
     post
-      ? request.url !== BUILD_ENDPOINT || request.body === undefined
+      ? request.url !== BUILD_CREATE_ENDPOINT || request.body === undefined
       : !BUILD_RESOURCE.test(request.url) || request.body !== undefined
   ) throw notReady('sam3_1_cloud_build_transport_request_not_allowlisted')
   if (request.body !== undefined) {

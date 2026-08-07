@@ -165,7 +165,7 @@ const service = createCanonicalTrackAllSam31L4TaskQaCloudImageBuildService({
       providerCalls += 1
       assert.equal(request.method, 'POST')
       assert.equal(request.url,
-        'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds')
+        'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro')
       assert.equal(request.body.serviceAccount,
         authority.cloudBuildPolicy.serviceAccount)
       assert.doesNotMatch(JSON.stringify(request.body),
@@ -355,7 +355,7 @@ const googleTransport =
   })
 assert.equal((await googleTransport.request({
   method: 'POST',
-  url: 'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds',
+  url: 'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro',
   body: { fixed: true },
 })).status, 200)
 assert.equal(adcRequests, 1)

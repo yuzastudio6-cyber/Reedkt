@@ -127,7 +127,7 @@ assert.equal(transportRequests.length, 1)
 assert.equal(transportRequests[0].method, 'POST')
 assert.equal(
   transportRequests[0].url,
-  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds',
+  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro',
 )
 assert.equal(
   JSON.stringify(transportRequests[0]).includes('sam3.1_multiplex.pt'),

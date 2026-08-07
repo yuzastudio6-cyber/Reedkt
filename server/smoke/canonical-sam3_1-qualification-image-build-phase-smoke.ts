@@ -26,6 +26,11 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  assertCanonicalSam31QualificationImageBuildReconciliation,
+  canonicalSam31QualificationImageBuildSubmissionRef,
+  createCanonicalSam31QualificationImageBuildReconciler,
+} from '../services/canonical-sam3_1-qualification-image-build-reconciliation'
 
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const syntheticIngest = await createSyntheticIngest()
@@ -357,6 +362,73 @@ const nonOk = await createUnknownSubmission('non_ok')
 assert.equal(nonOk.disposition, 'outcome_unknown')
 assert.equal(nonOk.providerHttpStatus, 503)
 assert.equal(nonOk.automaticRetryAllowed, false)
+const badRequest = await createUnknownSubmission('bad_request')
+const badRequestRef = canonicalSam31QualificationImageBuildSubmissionRef(
+  badRequest,
+)
+const noBuildReconciliation =
+  await createCanonicalSam31QualificationImageBuildReconciler({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadSubmission() {
+        return structuredClone(badRequest)
+      },
+    },
+    transport: {
+      async request(request) {
+        assert(request.url.includes('projectId=reeditpro'))
+        return { status: 200, json: { builds: [] } }
+      },
+    },
+    now: () => '2026-08-04T13:03:00.000Z',
+  }).reconcileUnknownSubmission({
+    reconciliationId: 'sam31-qualification-reconciliation-no-build',
+    submissionRef: badRequestRef,
+  })
+assertCanonicalSam31QualificationImageBuildReconciliation(
+  noBuildReconciliation,
+)
+assert.equal(
+  noBuildReconciliation.disposition,
+  'precreation_rejection_no_build_found',
+)
+assert.equal(noBuildReconciliation.matchingBuildCount, 0)
+assert.equal(noBuildReconciliation.predecessorProviderExecutionKnownAbsent, true)
+assert.equal(noBuildReconciliation.automaticRetryAllowed, false)
+assert.equal(noBuildReconciliation.distinctSuccessorAuthorityMayBeIssued, true)
+
+const matchingBuild = successBuild(
+  buildBody,
+  '55555555-5555-4555-8555-555555555555',
+  authority.imageDestination.taggedUri,
+)
+matchingBuild.createTime = new Date(
+  Date.parse(badRequest.observedAt) + 1_000,
+).toISOString()
+const matchedReconciliation =
+  await createCanonicalSam31QualificationImageBuildReconciler({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadSubmission() {
+        return structuredClone(badRequest)
+      },
+    },
+    transport: {
+      async request() {
+        return { status: 200, json: { builds: [matchingBuild] } }
+      },
+    },
+  }).reconcileUnknownSubmission({
+    reconciliationId: 'sam31-qualification-reconciliation-match',
+    submissionRef: badRequestRef,
+  })
+assert.equal(matchedReconciliation.disposition, 'matched_exact_build')
+assert.equal(matchedReconciliation.matchingBuildCount, 1)
+assert.equal(matchedReconciliation.distinctSuccessorAuthorityMayBeIssued, false)
 
 const mismatchedPhase = createCanonicalSam31QualificationImageBuildPhase({
   authorityReadPort: {
@@ -420,6 +492,8 @@ console.log(JSON.stringify({
     checkpointAndQualificationReceiptExcluded: true,
     noSecretOrCallerBuildInput: true,
     outcomeUnknownHasNoAutomaticRetry: true,
+    http400NoBuildReconciledBeforeSuccessorAuthority: true,
+    exactBuildMatchBlocksSuccessorAuthority: true,
     exactTerminalEchoRequired: true,
     immutableImagePendingSupplyChainRelease: true,
     sourceCheckpointQualificationGranted: false,
@@ -431,7 +505,9 @@ console.log(JSON.stringify({
   },
 }, null, 2))
 
-async function createUnknownSubmission(mode: 'throw' | 'non_ok') {
+async function createUnknownSubmission(
+  mode: 'throw' | 'non_ok' | 'bad_request',
+) {
   const localState = createStatePort()
   const unknownPhase = createCanonicalSam31QualificationImageBuildPhase({
     authorityReadPort: {
@@ -443,7 +519,9 @@ async function createUnknownSubmission(mode: 'throw' | 'non_ok') {
     authenticatedTransport: {
       async request() {
         if (mode === 'throw') throw new Error('network outcome unknown')
-        return { status: 503, json: { error: 'unavailable' } }
+        return mode === 'bad_request'
+          ? { status: 400, json: { error: 'missing projectId' } }
+          : { status: 503, json: { error: 'unavailable' } }
       },
     },
   })

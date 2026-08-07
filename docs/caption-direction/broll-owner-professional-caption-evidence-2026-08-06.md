@@ -118,7 +118,24 @@ caller-supplied receipts or authority. Exact replay produces the same canonical
 direct-inspection evidence digest.
 
 This closes the source-level canonical projection seam. It does not pretend the
-existing private receipt has already been projected inside a real terminal
-approved run. That still requires the backend one-writer to supply the exact
-approved-run authority and persist the bundle under the same package, snapshot,
-output, work graph, and source manifest used by the qualification reader.
+projection alone is an approved-run or terminal qualification result.
+
+## Approved-run and campaign mount
+
+The additive mixed-inspection qualification path now consumes that projection
+without changing its owner. `canonical-caption-private-qualification-run-
+controller-v2` persists and rereads the exact B-roll inspection bundle, invokes
+the existing projection service, then asks the existing canonical approved-run
+reader to assemble the complete run. Missing downstream evidence returns a
+waiting disposition and cannot be promoted.
+
+`canonical-caption-private-qualification-campaign-controller-v2` carries the
+result alongside uploaded-source runs using distinct request versions and an
+explicit inspection-lane field. It still requires multiple immutable approved
+snapshots and an exact declared catalog. The V1 uploaded-source controller and
+campaign remain unchanged for compatibility.
+
+This mount does not change the current terminal count. A fresh canonical run
+must still supply all work, owner, deterministic QA, qualified shared visual
+review, independent final-QA, and private-review evidence before the run or
+41-job catalog can advance.

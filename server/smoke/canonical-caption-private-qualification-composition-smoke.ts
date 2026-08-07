@@ -9,7 +9,12 @@ import {
   createCanonicalCaptionPrivateQualificationCompositionV3,
   createCanonicalCaptionPrivateQualificationCompositionV4,
   createCanonicalCaptionPrivateQualificationCompositionV5,
+  createCanonicalCaptionPrivateQualificationCompositionV6,
+  createCanonicalCaptionPrivateQualificationCompositionV7,
 } from '../services/canonical-caption-private-qualification-composition'
+import {
+  createCanonicalCaptionBrollOwnerInspectionAuthorityReadPort,
+} from '../services/canonical-caption-broll-owner-inspection-projection-service'
 import {
   createCanonicalCaptionRealSourceInspectionAuthorityReadPortV2,
 } from '../services/canonical-caption-real-source-inspection-projection-service'
@@ -69,6 +74,11 @@ const soundSyncEvidenceRepository = {
   async rereadEvidenceRecord() { return null },
 } as unknown as CanonicalCaptionSoundSyncEvidenceRepository
 const brollEvidenceRepository = {
+  async rereadEvidenceRecord() { return null },
+} as unknown as CanonicalCaptionBrollEvidenceRepository
+const brollEvidenceRepositoryV6 = {
+  schemaVersion: 'canonical-caption-broll-evidence-repository-v1',
+  async rereadOwnerResult() { return null },
   async rereadEvidenceRecord() { return null },
 } as unknown as CanonicalCaptionBrollEvidenceRepository
 const context = {
@@ -137,6 +147,35 @@ const compositionV5 =
     soundSyncEvidenceRepository,
     brollEvidenceRepository,
     prefix: 'private-internal/caption-qualification-composition-v5-smoke',
+  })
+const brollOwnerInspectionAuthorityReadPort =
+  createCanonicalCaptionBrollOwnerInspectionAuthorityReadPort(
+    async () => null)
+const compositionV6 =
+  createCanonicalCaptionPrivateQualificationCompositionV6({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository: brollEvidenceRepositoryV6,
+    brollOwnerInspectionAuthorityReadPort,
+    prefix: 'private-internal/caption-qualification-composition-v6-smoke',
+  })
+const compositionV7 =
+  createCanonicalCaptionPrivateQualificationCompositionV7({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository: brollEvidenceRepositoryV6,
+    brollOwnerInspectionAuthorityReadPort,
+    prefix: 'private-internal/caption-qualification-composition-v7-smoke',
   })
 
 check(composition.schemaVersion ===
@@ -217,6 +256,39 @@ check(compositionV5.campaignController.exactCatalogRunSetRequired
   && !compositionV5.campaignController.incompleteRunOrCatalogPromotionAllowed
   && compositionV5.campaignController.privateInternalQualificationHarnessOnly,
 'The campaign must remain a bounded internal harness and fail closed.')
+check(compositionV6.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v6'
+  && compositionV6.approvedRunControllerV2.schemaVersion ===
+    'canonical-caption-private-qualification-run-controller-v2'
+  && compositionV6.brollOwnerInspectionProjectionService.schemaVersion ===
+    'canonical-caption-broll-owner-inspection-projection-service-v1'
+  && compositionV6.brollOwnerInspectionBundleRepository.repositoryVersion ===
+    'canonical-caption-broll-owner-inspection-bundle-repository-v1',
+'The V6 composition must mount B-roll inspection through the shared '
+  + 'direct-evidence and approved-run owners.')
+check(compositionV6.approvedRunControllerV2.supportedInspectionLanes[0] ===
+  'uploaded_source'
+  && compositionV6.approvedRunControllerV2.supportedInspectionLanes[1] ===
+    'broll_owner'
+  && compositionV6.brollOwnerInspectionToRunEvidenceMounted
+  && compositionV6.mixedInspectionLaneControllerMounted
+  && !compositionV6.callerSuppliedBrollInspectionAuthorityAccepted,
+'The additive controller must preserve V1 while admitting only exact B-roll '
+  + 'owner evidence through its explicit lane.')
+check(compositionV7.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v7'
+  && compositionV7.campaignControllerV2.schemaVersion ===
+    'canonical-caption-private-qualification-campaign-controller-v2'
+  && compositionV7.mixedInspectionLaneCampaignMounted,
+'The V7 composition must carry both real-source inspection lanes through the '
+  + 'bounded multi-run campaign.')
+check(compositionV7.campaignControllerV2.exactCatalogRunSetRequired
+  && compositionV7.campaignControllerV2.multipleApprovedSnapshotsRequired
+  && compositionV7.campaignControllerV2.mixedInspectionLanesAllowed
+  && !compositionV7.campaignControllerV2.oneAllFeatureEditAllowed
+  && !compositionV7.campaignControllerV2
+    .incompleteRunOrCatalogPromotionAllowed,
+'The mixed-lane campaign must remain fail-closed and require multiple runs.')
 
 assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
   context,
@@ -249,6 +321,21 @@ assert.throws(() => createCanonicalCaptionPrivateQualificationCompositionV2({
 }))
 checks += 1
 
+assert.throws(() => createCanonicalCaptionPrivateQualificationCompositionV6({
+  context,
+  objectPort: objectPort(),
+  supportResumeRepository,
+  transcriptEvidenceRepository,
+  visualIntelligenceEvidenceRepository,
+  trackAllEvidenceRepository,
+  soundSyncEvidenceRepository,
+  brollEvidenceRepository: brollEvidenceRepositoryV6,
+  brollOwnerInspectionAuthorityReadPort: {
+    ...brollOwnerInspectionAuthorityReadPort,
+  },
+}))
+checks += 1
+
 console.log(JSON.stringify({
   smoke: 'canonical_caption_private_qualification_composition',
   status: 'passed',
@@ -258,6 +345,9 @@ console.log(JSON.stringify({
   tenantScopedRealSourceInspectionProjectionMounted: true,
   canonicalApprovedRunAuthorityAdapterMounted: true,
   inspectionToRunEvidenceMounted: true,
+  brollOwnerInspectionToRunEvidenceMounted: true,
+  mixedInspectionLaneControllerMounted: true,
+  mixedInspectionLaneCampaignMounted: true,
   exactOriginalSourceBindingRequired: true,
   historicalInspectionReceiptAutoPromoted: false,
   multipleApprovedRunsRequired: true,

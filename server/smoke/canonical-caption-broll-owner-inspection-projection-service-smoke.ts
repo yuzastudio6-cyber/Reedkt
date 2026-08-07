@@ -11,6 +11,9 @@ import type { BrollCaptionOwnerReadResult } from
   '../../src/types/caption-broll-owner-read-adapter'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
+import type {
+  CanonicalCaptionPrivateQualificationRunController,
+} from '../../src/types/canonical-caption-private-qualification-run-controller'
 import {
   createCaptionBrollOwnerProfessionalInspectionReceipt,
 } from '../captions-specialist/caption-broll-owner-professional-inspection'
@@ -21,6 +24,9 @@ import {
 import {
   createCaptionRemotionBrollOwnerReviewSpec,
 } from '../captions-specialist/caption-remotion-broll-owner-review'
+import {
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
+} from '../captions-specialist/caption-current-job-readiness'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import { createCaptionsHarnessCall } from
@@ -47,9 +53,21 @@ import {
   createCanonicalCaptionDirectVisualInspectionRepository,
 } from '../services/canonical-caption-direct-visual-inspection-evidence-service'
 import {
+  createCanonicalCaptionPrivateQualificationRunControllerV2,
+  parseCanonicalCaptionPrivateQualificationRunOutcomeV2,
+} from '../services/canonical-caption-private-qualification-run-controller-v2'
+import {
+  createCanonicalCaptionQualificationRunEvidenceAssembly,
+  createCanonicalCaptionQualificationRunEvidenceReadPort,
+  createCanonicalCaptionQualificationRunEvidenceRepository,
+} from '../services/canonical-caption-qualification-run-evidence-reader'
+import {
   createCanonicalSpecialistCallResultPair,
   createCanonicalSpecialistSupportResumeRepository,
 } from '../services/canonical-specialist-support-resume-service'
+import {
+  createCanonicalCaptionTerminalQualificationRequest,
+} from '../services/canonical-caption-terminal-qualification-service'
 import {
   buildCaptionBrollOwnerProfessionalReviewFixture,
 } from './captions-specialist-broll-owner-professional-review-smoke'
@@ -508,6 +526,129 @@ const replay = await service.project(request)
 check(replay.evidence.evidenceDigestSha256
   === outcome.evidence.evidenceDigestSha256,
 'Exact projection replay must reread byte-identical canonical evidence.')
+
+const runEvidenceAssembly =
+  createCanonicalCaptionQualificationRunEvidenceAssembly({
+    sourceReadPort:
+      createCanonicalCaptionQualificationRunEvidenceReadPort(
+        async () => null),
+    repository: createCanonicalCaptionQualificationRunEvidenceRepository({
+      objectPort,
+      prefix: 'private/smoke/caption-broll-inspection/run-evidence/v2',
+    }),
+  })
+const legacyUploadedSourceController:
+CanonicalCaptionPrivateQualificationRunController = {
+  schemaVersion: 'canonical-caption-private-qualification-run-controller-v1',
+  closedCaptionDirectInspectionReceiptRequired: true,
+  exactApprovedRunRereadRequired: true,
+  incompleteRunPromotionAllowed: false,
+  async reconcileApprovedRun() {
+    throw new Error('The B-roll-only proof must not enter the legacy lane.')
+  },
+}
+const approvedRunControllerV2 =
+  createCanonicalCaptionPrivateQualificationRunControllerV2({
+    legacyUploadedSourceController,
+    brollInspectionBundleRepository: bundleRepository,
+    brollInspectionProjectionService: service,
+    runEvidenceAssembly,
+  })
+const terminalRequest = createCanonicalCaptionTerminalQualificationRequest({
+  requestId: 'qualification.broll.inspection.full.1',
+  canonicalScope: {
+    ownerUserId: request.canonicalScope.ownerUserId,
+    workspaceId: request.canonicalScope.workspaceId,
+    projectId: request.canonicalScope.projectId,
+    editSessionId: request.canonicalScope.editSessionId,
+    planVersionId: request.canonicalScope.planVersionId,
+    approvedSnapshotRef: structuredClone(
+      request.canonicalScope.approvedSnapshotRef),
+  },
+  executionPackageRef: structuredClone(
+    request.canonicalScope.executionPackageRef),
+  currentJobReadinessRef: {
+    id: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerId,
+    version: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.schemaVersion,
+    contentHash:
+      CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerDigestSha256,
+  },
+  requiredOutputIds: [request.canonicalScope.outputId],
+  privateInternalQualificationRun: true,
+  callerSuppliedEvidenceAccepted: false,
+  browserLocalCompletionAccepted: false,
+  rawChatMediaBytesPathsUrlsOrCredentialsIncluded: false,
+  operationOrRuntimeAuthorityGrantedToCaption: false,
+  providerOrModelAuthorityGrantedToCaption: false,
+  assetMutationAuthorityGrantedToCaption: false,
+  finalQaApprovalAuthorityGrantedToCaption: false,
+  creditOrBillingAuthorityGrantedToCaption: false,
+  publicDeliveryAuthorityGrantedToCaption: false,
+  productionAuthorityGrantedToCaption: false,
+})
+const controllerInput = {
+  inspectionLane: 'broll_owner' as const,
+  inspectionRequest: request,
+  inspectionBundle: bundle,
+  qualificationRequest: terminalRequest,
+  captionOwnedClosedDirectInspectionReceiptProvided: true as const,
+  exactApprovedRunRereadRequired: true as const,
+  callerSuppliedCanonicalAuthorityAccepted: false as const,
+  browserLocalCompletionAccepted: false as const,
+  operationOrRuntimeAuthorityGrantedToCaption: false as const,
+  providerOrModelAuthorityGrantedToCaption: false as const,
+  assetMutationAuthorityGrantedToCaption: false as const,
+  finalQaApprovalAuthorityGrantedToCaption: false as const,
+  creditOrBillingAuthorityGrantedToCaption: false as const,
+  publicDeliveryAuthorityGrantedToCaption: false as const,
+  productionAuthorityGrantedToCaption: false as const,
+}
+const pendingRun = await approvedRunControllerV2
+  .reconcileApprovedRun(controllerInput)
+check(pendingRun.schemaVersion ===
+  'canonical-caption-private-qualification-run-outcome-v2'
+  && pendingRun.inspectionLane === 'broll_owner'
+  && pendingRun.disposition ===
+    'inspection_projected_waiting_for_complete_run'
+  && pendingRun.inspectionEvidenceRef.contentHash ===
+    outcome.evidence.evidenceDigestSha256
+  && pendingRun.qualificationRunEvidence === null
+  && pendingRun.qualificationRunEvidenceRef === null
+  && pendingRun.canonicalRunEvidenceSourceReadAttempted
+  && !pendingRun.qualificationRunEvidencePersistedAndExactReread
+  && !pendingRun.incompleteRunPromoted,
+'The V2 controller must reconcile B-roll inspection evidence and wait for '
+  + 'the still-missing canonical run gates.')
+const pendingRunReplay = await approvedRunControllerV2
+  .reconcileApprovedRun(controllerInput)
+check(pendingRunReplay.outcomeDigestSha256 ===
+  pendingRun.outcomeDigestSha256,
+'The B-roll approved-run reconciliation must replay deterministically.')
+const falselyPromotedRun = structuredClone(pendingRun) as unknown as
+  Record<string, unknown>
+falselyPromotedRun.qualificationRunEvidencePersistedAndExactReread = true
+falselyPromotedRun.outcomeDigestSha256 = calculateSkillContractDigest(
+  falselyPromotedRun, 'outcomeDigestSha256')
+assert.throws(() => parseCanonicalCaptionPrivateQualificationRunOutcomeV2(
+  falselyPromotedRun))
+checks += 1
+const crossedTerminalRequest =
+  createCanonicalCaptionTerminalQualificationRequest({
+    ...structuredClone(terminalRequest),
+    requestId: 'qualification.broll.inspection.crossed-output.1',
+    requiredOutputIds: ['output.broll.inspection.crossed'],
+  })
+await reject(() => approvedRunControllerV2.reconcileApprovedRun({
+  ...controllerInput,
+  qualificationRequest: crossedTerminalRequest,
+}))
+assert.throws(() => createCanonicalCaptionPrivateQualificationRunControllerV2({
+  legacyUploadedSourceController,
+  brollInspectionBundleRepository: bundleRepository,
+  brollInspectionProjectionService: { ...service },
+  runEvidenceAssembly,
+}))
+checks += 1
 
 const crossedSource = redigest({
   ...request,

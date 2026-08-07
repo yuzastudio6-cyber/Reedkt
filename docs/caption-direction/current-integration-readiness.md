@@ -290,6 +290,15 @@ continue into the canonical approved-run reader in one bounded operation. Its
 source smoke reaches the truthful waiting disposition because no fresh run
 contains all remaining evidence; it does not create or promote missing data.
 
+The additive V7 composition extends that same path to the accepted real B-roll
+owner inspection. Its V2 run controller discriminates uploaded-source and
+B-roll-owner requests, and its V2 campaign carries both through the existing
+multi-run catalog. The B-roll owner result, selected normalized media, crop,
+timing, occupancy, and source lineage remain independently reread and opaque to
+Caption. Frozen V1 controller/campaign behavior remains unchanged. This is a
+source-complete mount, not a terminal-evidence promotion; no fresh canonical
+run has yet satisfied the remaining downstream QA and private-review gates.
+
 ## Next milestone
 
 Run one authorized canonical private end-to-end qualification that supplies the

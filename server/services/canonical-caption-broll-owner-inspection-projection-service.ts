@@ -147,6 +147,20 @@ const authoritySchema = z.object({
   exactMasterTimingFrameAndSceneReread: z.literal(true),
   exactApprovedSourceManifestReread: z.literal(true),
 }).strict()
+const projectionOutcomeSchema = z.object({
+  disposition: z.literal(
+    'projected_canonical_direct_visual_inspection_evidence'),
+  request: z.unknown(),
+  evidence: z.unknown(),
+  captionReceiptAndReviewSpecsRereadTwice: z.literal(true),
+  brollOwnerEvidenceRereadTwice: z.literal(true),
+  canonicalApprovedRunAuthorityRereadTwice: z.literal(true),
+  canonicalApprovedRunAuthorityRef: refSchema,
+  evidencePersistedCreateOnlyAndReread: z.literal(true),
+  canonicalQualificationReaderMustRevalidateAuthority: z.literal(true),
+  currentProductStatusChanged: z.literal(false),
+  publicOrProductionAuthorityGranted: z.literal(false),
+}).strict()
 const bundleSchema = z.object({
   receipt: z.unknown(),
   acceptedFullMotionSpec: z.unknown(),
@@ -171,6 +185,7 @@ const admittedBundleReadPorts = new WeakSet<object>()
 const admittedBundleRepositories = new WeakSet<object>()
 const admittedOwnerEvidenceReadPorts = new WeakSet<object>()
 const admittedAuthorityReadPorts = new WeakSet<object>()
+const admittedProjectionServices = new WeakSet<object>()
 
 type RequestInput = Omit<
   CanonicalCaptionBrollOwnerInspectionProjectionRequest,
@@ -260,6 +275,44 @@ export function parseCanonicalCaptionBrollOwnerInspectionAuthority(
     throw new Error('Canonical Caption B-roll inspection authority invalid.')
   }
   return structuredClone(authority)
+}
+
+export function parseCanonicalCaptionBrollOwnerInspectionProjectionOutcome(
+  value: unknown,
+): CanonicalCaptionBrollOwnerInspectionProjectionOutcome {
+  assertClosedContractTree(value,
+    'Canonical Caption B-roll inspection projection outcome')
+  rejectUnsafeText(value)
+  const envelope = projectionOutcomeSchema.parse(value)
+  const request =
+    parseCanonicalCaptionBrollOwnerInspectionProjectionRequest(
+      envelope.request)
+  const evidence = parseCanonicalCaptionDirectVisualInspectionEvidence(
+    envelope.evidence)
+  const scope = evidence.canonicalScope
+  const requestScope = request.canonicalScope
+  if (scope.ownerUserId !== requestScope.ownerUserId
+    || scope.workspaceId !== requestScope.workspaceId
+    || scope.projectId !== requestScope.projectId
+    || scope.editSessionId !== requestScope.editSessionId
+    || scope.planVersionId !== requestScope.planVersionId
+    || !sameRef(scope.approvedSnapshotRef,
+      requestScope.approvedSnapshotRef)
+    || !sameRef(scope.executionPackageRef,
+      requestScope.executionPackageRef)
+    || scope.outputId !== requestScope.outputId
+    || !sameRef(evidence.confirmedOutputFrameRef,
+      request.confirmedOutputFrameRef)
+    || !sameRef(evidence.renderedArtifactRef,
+      request.renderedArtifactRef)
+    || !sameRef(evidence.deterministicQaRef,
+      request.deterministicQaRef)
+    || !sameRef(evidence.inspectionArtifactSetRef, request.receiptRef)) {
+    throw new Error(
+      'Canonical Caption B-roll inspection outcome crossed request lineage.')
+  }
+  return structuredClone({ ...envelope, request, evidence }) as
+    CanonicalCaptionBrollOwnerInspectionProjectionOutcome
 }
 
 export function createCanonicalCaptionBrollOwnerInspectionBundleReadPort(
@@ -460,7 +513,7 @@ export function createCanonicalCaptionBrollOwnerInspectionProjectionService(
     throw new Error(
       'Canonical Caption B-roll inspection projection ports invalid.')
   }
-  return Object.freeze({
+  const service = Object.freeze({
     schemaVersion:
       CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_VERSION,
     tenantScopedBundleRereadRequired: true as const,
@@ -597,7 +650,7 @@ export function createCanonicalCaptionBrollOwnerInspectionProjectionService(
         throw new Error(
           'Canonical Caption B-roll direct-inspection evidence reread failed.')
       }
-      return {
+      return parseCanonicalCaptionBrollOwnerInspectionProjectionOutcome({
         disposition:
           'projected_canonical_direct_visual_inspection_evidence',
         request,
@@ -614,9 +667,18 @@ export function createCanonicalCaptionBrollOwnerInspectionProjectionService(
         canonicalQualificationReaderMustRevalidateAuthority: true,
         currentProductStatusChanged: false,
         publicOrProductionAuthorityGranted: false,
-      }
+      })
     },
   })
+  admittedProjectionServices.add(service)
+  return service
+}
+
+export function isCanonicalCaptionBrollOwnerInspectionProjectionService(
+  value: unknown,
+): value is CanonicalCaptionBrollOwnerInspectionProjectionService {
+  return Boolean(value && typeof value === 'object'
+    && admittedProjectionServices.has(value as object))
 }
 
 interface SelectedInspectionEvidence {

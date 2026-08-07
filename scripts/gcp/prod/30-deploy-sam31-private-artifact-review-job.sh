@@ -7,7 +7,7 @@ set -euo pipefail
 readonly PROJECT_ID='reeditpro'
 readonly REGION='us-central1'
 readonly JOB='weeditpro-sam31-private-artifact-review'
-readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-private-review-sa'
+readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-review-sa'
 readonly SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly CONTROL_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 readonly MODEL_BUCKET='reeditpro-production-reeditpro-model-artifacts'

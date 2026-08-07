@@ -171,6 +171,7 @@ assert.match(deployScript,
 assert.match(deployScript,
   /IMAGE_DIGEST='sha256:c5d1b829603e6fe5062a694225afdebf1c805bb64b627872f56b25a929dd5956'/u)
 assert.match(deployScript, /--cpu=4 --memory=16Gi/u)
+assert.match(deployScript, /SERVICE_ACCOUNT_ID='weeditpro-sam31-review-sa'/u)
 assert.match(deployScript, /--max-retries=0 --task-timeout=4h/u)
 assert.match(deployScript, /--network="\$\{NETWORK\}"/u)
 assert.match(deployScript, /--vpc-egress=all-traffic/u)

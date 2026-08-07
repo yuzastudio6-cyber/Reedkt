@@ -38,6 +38,7 @@ export interface ApprovedCompositionProps {
     | 'caption_direction_real_source_scene_group_v2'
     | 'caption_direction_real_source_multi_output_scene_group_v3'
     | 'caption_direction_broll_owner_real_source_scene_group_v4'
+    | 'caption_direction_broll_owner_approved_run_scene_group_v5'
   deliveryProfileId?: 'uhd_2160'
   sourceStartFrame?: number
   sourceEndFrameExclusive?: number
@@ -413,6 +414,7 @@ export const ApprovedComposition: React.FC<ApprovedCompositionProps> = (props) =
       'caption_direction_real_source_scene_group_v2',
       'caption_direction_real_source_multi_output_scene_group_v3',
       'caption_direction_broll_owner_real_source_scene_group_v4',
+      'caption_direction_broll_owner_approved_run_scene_group_v5',
     ].includes(props.compositionProfileId ?? '') &&
     props.sourceInternalUrl && props.captionCreativeLayers &&
     props.captionCreativeLayers.length >= 2
@@ -663,6 +665,8 @@ React.FC<ApprovedCompositionProps> = (props) => {
   const { width, height } = useVideoConfig()
   const brollOwnerFullFrame = props.compositionProfileId ===
     'caption_direction_broll_owner_real_source_scene_group_v4'
+    || props.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_scene_group_v5'
   if (brollOwnerFullFrame) {
     const safeInset = Math.max(12, Math.round(height * 0.045))
     return (

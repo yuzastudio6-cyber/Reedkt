@@ -27,6 +27,7 @@ import {
 import {
   CANONICAL_CAPTION_BROLL_APPROVED_RUN_HARNESS_VERSION,
   createCanonicalCaptionBrollApprovedRunHarness,
+  deriveCanonicalCaptionBrollApprovedRunReviewAuthority,
 } from '../internal-testing/canonical-caption-broll-approved-run-harness'
 import {
   executeCanonicalCaptionApprovedJobClosure,
@@ -466,6 +467,35 @@ try {
   assert.equal(run.finalQaApproved, false)
   assert.equal(run.publicDeliveryCreated, false)
   assert.equal(run.productionAuthorityGranted, false)
+  const approvedReviewAuthority =
+    deriveCanonicalCaptionBrollApprovedRunReviewAuthority(run)
+  assert.equal(
+    approvedReviewAuthority.approvedRunLineage.approvedSnapshotRef.contentHash,
+    run.approved.authority.snapshot.snapshotHash,
+  )
+  assert.equal(
+    approvedReviewAuthority.approvedRunLineage.executionPackageRef.contentHash,
+    run.approvedEditExecutionPackage.packageHash,
+  )
+  assert.equal(
+    approvedReviewAuthority.approvedRunLineage
+      .captionPlanningProjectionRef.contentHash,
+    run.approvedExecutionAuthority.captionPlanningProjection
+      ?.projectionDigestSha256,
+  )
+  assert.equal(
+    approvedReviewAuthority.approvedRunLineage
+      .captionRenderedMediaWorkBindingRef.contentHash,
+    run.approvedExecutionAuthority.captionRenderedMediaWorkBinding
+      ?.bindingDigestSha256,
+  )
+  assert.equal(approvedReviewAuthority.confirmedOutputFrame.width, 3_840)
+  assert.equal(approvedReviewAuthority.confirmedOutputFrame.height, 2_160)
+  assert.equal(approvedReviewAuthority.confirmedOutputFrame.fpsNumerator, 30)
+  assert.equal(
+    approvedReviewAuthority.masterTimingHash,
+    run.captionRequest.masterTimingRef.contentHash,
+  )
 
   const resolveCaptionSupportRequirement = async (
     requirement: Parameters<
@@ -721,6 +751,7 @@ try {
     brollWorkItems: 13,
     exactBrollComponentPropagation: true,
     captionDownstreamQaDependenciesBound: true,
+    v5CreativeReviewAuthorityDerivedFromExactApprovedRun: true,
     qualificationReadinessFirstBlocker:
       qualificationReadiness.firstBlockerCode,
     unmountedQualificationReadinessFirstBlocker:

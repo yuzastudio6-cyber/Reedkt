@@ -4,6 +4,9 @@ import type {
 import type {
   CanonicalCaptionSourceLedProfessionalPlanningRequest,
 } from '../../src/types/canonical-caption-source-led-professional-planning'
+import type {
+  CaptionRemotionBrollOwnerApprovedRunReviewSpec,
+} from '../../src/types/caption-remotion-broll-owner-approved-run-review'
 import type { PlannerInput } from '../../src/types/reeditpro'
 import {
   applyCanonicalCaptionSourceLedProfessionalPlanning,
@@ -61,6 +64,19 @@ export interface CanonicalCaptionBrollApprovedRunHarnessInput {
   readonly sourceMediaAuthority: SourceMediaAuthorityExpectation
   readonly idempotencySeed: string
   readonly approvedAt: string
+}
+
+export interface CanonicalCaptionBrollApprovedRunReviewAuthority {
+  readonly canonicalScope:
+    CaptionRemotionBrollOwnerApprovedRunReviewSpec['canonicalScope']
+  readonly approvedRunLineage:
+    CaptionRemotionBrollOwnerApprovedRunReviewSpec['approvedRunLineage']
+  readonly confirmedOutputFrame:
+    CaptionRemotionBrollOwnerApprovedRunReviewSpec['confirmedOutputFrame']
+  readonly masterTimingRef:
+    CaptionRemotionBrollOwnerApprovedRunReviewSpec['masterTimingRef']
+  readonly masterTimingHash: string
+  readonly exactAuthorityDerivedFromCanonicalApprovedRun: true
 }
 
 /**
@@ -311,6 +327,130 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     finalQaApproved: false as const,
     publicDeliveryCreated: false as const,
     productionAuthorityGranted: false as const,
+  })
+}
+
+/**
+ * Derives the creative-review authority only from the immutable approved run.
+ * No caller-provided snapshot, package, frame, scene, timing, or Caption
+ * planning reference is accepted here. The returned authority still grants no
+ * render or asset mutation rights; it is an input to the bounded private V5
+ * review request after the canonical B-roll owner result has been reread.
+ */
+export function deriveCanonicalCaptionBrollApprovedRunReviewAuthority(
+  run: Awaited<ReturnType<
+    typeof createCanonicalCaptionBrollApprovedRunHarness
+  >>,
+): CanonicalCaptionBrollApprovedRunReviewAuthority {
+  const snapshot = run.approved.authority.snapshot
+  const executionPackage = run.approvedEditExecutionPackage
+  const projection = run.approvedExecutionAuthority.captionPlanningProjection
+  const renderedMediaBinding =
+    run.approvedExecutionAuthority.captionRenderedMediaWorkBinding
+  const firstSegment = run.canonicalPlan.components.segments[0]
+  const brollRange = run.broll.brollAssignment.writeRangeAuthority
+    .authorizedRange
+  if (!projection || !renderedMediaBinding || !firstSegment
+    || projection.outputId !== run.captionRequest.canonicalScope.outputId
+    || renderedMediaBinding.outputId !== projection.outputId
+    || renderedMediaBinding.planningProjectionRef.id
+      !== projection.projectionId
+    || renderedMediaBinding.planningProjectionRef.version
+      !== projection.schemaVersion
+    || renderedMediaBinding.planningProjectionRef.contentHash
+      !== projection.projectionDigestSha256
+    || renderedMediaBinding.planningBindingRef.id
+      !== projection.planningBindingRef.id
+    || renderedMediaBinding.planningBindingRef.version
+      !== projection.planningBindingRef.version
+    || renderedMediaBinding.planningBindingRef.contentHash
+      !== projection.planningBindingRef.contentHash
+    || renderedMediaBinding.confirmedOutputFrame.frameRef.id
+      !== run.captionRequest.confirmedOutputFrame.confirmedOutputFrameRef.id
+    || renderedMediaBinding.confirmedOutputFrame.frameRef.version
+      !== run.captionRequest.confirmedOutputFrame.confirmedOutputFrameRef.version
+    || renderedMediaBinding.confirmedOutputFrame.frameRef.contentHash
+      !== run.captionRequest.confirmedOutputFrame.confirmedOutputFrameRef
+        .contentHash
+    || renderedMediaBinding.masterTimingRef.id
+      !== run.captionRequest.masterTimingRef.id
+    || renderedMediaBinding.masterTimingRef.version
+      !== run.captionRequest.masterTimingRef.version
+    || renderedMediaBinding.masterTimingRef.contentHash
+      !== run.captionRequest.masterTimingRef.contentHash
+    || brollRange.startFrameInclusive !== firstSegment.startFrame
+    || brollRange.endFrameExclusive !== firstSegment.endFrameExclusive
+    || brollRange.fps !== run.canonicalPlan.components.timingSummary.fps
+    || executionPackage.approvedPlanSnapshotId !== snapshot.snapshotId
+    || executionPackage.snapshotHash !== snapshot.snapshotHash) {
+    throw new Error(
+      'Canonical Caption+B-roll approved run cannot derive exact V5 review authority.',
+    )
+  }
+  const approvedSnapshotRef = {
+    id: snapshot.snapshotId,
+    version: snapshot.schemaVersion,
+    contentHash: snapshot.snapshotHash,
+  }
+  const confirmed = renderedMediaBinding.confirmedOutputFrame
+  if (confirmed.width !== 3_840 || confirmed.height !== 2_160
+    || confirmed.fpsNumerator !== 30 || confirmed.fpsDenominator !== 1) {
+    throw new Error(
+      'Canonical Caption+B-roll V5 review requires the exact 4K@30 approved frame.',
+    )
+  }
+  return Object.freeze({
+    canonicalScope: Object.freeze({
+      ownerUserId: snapshot.approvedByUserId,
+      workspaceId: snapshot.workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+      approvedSnapshotRef: Object.freeze(approvedSnapshotRef),
+      outputId: projection.outputId,
+      sceneId: firstSegment.segmentId,
+      authorizedFrameRanges: [{
+        startFrame: brollRange.startFrameInclusive,
+        endFrameExclusive: brollRange.endFrameExclusive,
+      }],
+    }),
+    approvedRunLineage: Object.freeze({
+      approvedSnapshotRef: Object.freeze({ ...approvedSnapshotRef }),
+      executionPackageRef: Object.freeze({
+        id: executionPackage.packageRecordId,
+        version: executionPackage.schemaVersion,
+        contentHash: executionPackage.packageHash,
+      }),
+      captionPlanningProjectionRef: Object.freeze({
+        id: projection.projectionId,
+        version: projection.schemaVersion,
+        contentHash: projection.projectionDigestSha256,
+      }),
+      captionPlanningBindingRef: Object.freeze({
+        ...projection.planningBindingRef,
+      }),
+      captionRenderedMediaWorkBindingRef: Object.freeze({
+        id: renderedMediaBinding.bindingId,
+        version: renderedMediaBinding.schemaVersion,
+        contentHash: renderedMediaBinding.bindingDigestSha256,
+      }),
+      exactImmutableApprovedRunRereadVerified: true,
+      creativeReviewSupplementsCanonicalFinalCanvas: true,
+      creativeReviewReplacesCanonicalFinalCanvas: false,
+    }),
+    confirmedOutputFrame: Object.freeze({
+      frameRef: Object.freeze({ ...confirmed.frameRef }),
+      outputId: projection.outputId,
+      width: 3_840,
+      height: 2_160,
+      aspectRatioNumerator: 16,
+      aspectRatioDenominator: 9,
+      fpsNumerator: 30,
+      fpsDenominator: 1,
+    }),
+    masterTimingRef: Object.freeze({ ...renderedMediaBinding.masterTimingRef }),
+    masterTimingHash: renderedMediaBinding.masterTimingRef.contentHash,
+    exactAuthorityDerivedFromCanonicalApprovedRun: true,
   })
 }
 

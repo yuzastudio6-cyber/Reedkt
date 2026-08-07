@@ -406,6 +406,82 @@ extends CommonCompositionPayload {
   layers: CaptionRemotionLayer[]
 }
 
+export interface OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload
+extends CommonCompositionPayload {
+  compositionProfileId:
+    'caption_direction_broll_owner_approved_run_scene_group_v5'
+  width: 640
+  height: 360
+  fps: 30
+  sceneGroupId: string
+  sceneGroupDigestSha256: string
+  motionLockDigestSha256: string
+  storyTimingResolutionDigestSha256: string
+  masterTimingDigestSha256: string
+  confirmedOutputWidth: 3840
+  confirmedOutputHeight: 2160
+  confirmedAspectRatioNumerator: 16
+  confirmedAspectRatioDenominator: 9
+  privateReviewScaleNumerator: 1
+  privateReviewScaleDenominator: 6
+  reducedMotion: boolean
+  subjectMaskFixturePolicy: 'none'
+  backgroundStyle: 'broll_owner_real_source_full_frame_v1'
+  sourcePresentation: 'full_frame_cutaway_v1'
+  safePlacementPolicy: 'broll_center_safe_caption_lower_band_v1'
+  sourceMediaPolicy: 'approved_b_roll_qa_normalized_preview_proxy_v1'
+  sourceMimeType: 'video/x-matroska'
+  sourceByteLength: number
+  sourceSha256: string
+  sourceBytesBase64: string
+  sourceStartFrame: 0
+  sourceEndFrameExclusive: number
+  sourceFit: 'contain'
+  audioPolicy: 'source_audio_absent_owner_normalized'
+  masterTimelineStartFrame: number
+  masterTimelineEndFrameExclusive: number
+  approvedSnapshotDigestSha256: string
+  executionPackageDigestSha256: string
+  captionPlanningProjectionDigestSha256: string
+  captionPlanningBindingDigestSha256: string
+  captionRenderedMediaWorkBindingDigestSha256: string
+  ownerRequestDigestSha256: string
+  ownerResultDigestSha256: string
+  brollResultReceiptDigestSha256: string
+  selectedMediaManifestDigestSha256: string
+  layoutOccupancyDigestSha256: string
+  cropTimingDigestSha256: string
+  visibleTextEvidenceDigestSha256: string
+  authenticatedOwnerEvidenceDigestSha256: string
+  ownerCanonicalScopeDigestSha256: string
+  selectedNormalizedSourceSha256: string
+  selectedNormalizedSourceByteLength: number
+  selectedNormalizedSourceFrameCount: number
+  selectedNormalizedSourceFps: 30
+  remotionProxyProfileId:
+    'approved_b_roll_remotion_preview_proxy_matroska_v1'
+  remotionProxyDerivedFromSelectedArtifact: true
+  exactOwnerResultRereadVerified: true
+  exactImmutableApprovedRunRereadVerified: true
+  creativeReviewSupplementsCanonicalFinalCanvas: true
+  creativeReviewReplacesCanonicalFinalCanvas: false
+  sourceSelectionPerformedByCaption: false
+  cropOrTimingPerformedByCaption: false
+  captionWordingReviewDigestSha256: string
+  captionWordingReviewPolicy:
+    'canonical_approved_run_phrase_lineage_review_v1'
+  canonicalTranscriptDigestSha256: string
+  canonicalTranscriptEvidenceDigestSha256: string
+  exactSourceWordLineageBound: true
+  wordLockedMotionUsed: false
+  canonicalTranscriptQualificationClaimed: false
+  syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false
+  realSourcePixelsRequiredForProfessionalAppearance: true
+  completeTimeInspectionRequired: true
+  inspectionFrameNumbers: number[]
+  layers: CaptionRemotionLayer[]
+}
+
 export interface OfflineRemotionSingleSourceFinalCompositionPlanningPayload extends CommonCompositionPayload, OfflineRemotionFourKDeliveryMasterAuthority, OfflineRemotionLivingFrameOverlayAuthority, OfflineRemotionControlledVisualOverlayAuthority {
   compositionProfileId: 'approved_source_caption_final_v1'
   sourceStartFrame: number
@@ -648,6 +724,7 @@ export type OfflineRemotionRenderRequest = {
   | { payload: OfflineRemotionCaptionRealSourceSceneGroupPayload }
   | { payload: OfflineRemotionCaptionRealSourceMultiOutputSceneGroupPayload }
   | { payload: OfflineRemotionCaptionBrollOwnerRealSourceSceneGroupPayload }
+  | { payload: OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload }
 )
 
 export type OfflineRemotionRenderPlanningPayload = OfflineRemotionPreviewPlanningPayload
@@ -668,7 +745,8 @@ export function validateOfflineRemotionRenderPlanningPayload(value: unknown): Of
     isCaptionCreativeSceneGroupPayload(request.payload) ||
     isCaptionRealSourceSceneGroupPayload(request.payload) ||
     isCaptionRealSourceMultiOutputSceneGroupPayload(request.payload) ||
-    isCaptionBrollOwnerRealSourceSceneGroupPayload(request.payload)
+    isCaptionBrollOwnerRealSourceSceneGroupPayload(request.payload) ||
+    isCaptionBrollOwnerApprovedRunSceneGroupPayload(request.payload)
   ) {
     throw validationFailure('Preview planning cannot contain final-composition source bytes.')
   }
@@ -1433,6 +1511,327 @@ export function validateOfflineRemotionRenderRequest(value: unknown): OfflineRem
     request.operationId !== OFFLINE_REMOTION_RENDER_OPERATION
   ) throw validationFailure('Remotion request identity is unsupported.')
   const payloadRecord = record(request.payload, 'payload')
+  if (payloadRecord.compositionProfileId ===
+    'caption_direction_broll_owner_approved_run_scene_group_v5') {
+    const payload = exactRecord(payloadRecord, [
+      'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+      'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+      'storyTimingResolutionDigestSha256', 'masterTimingDigestSha256',
+      'confirmedOutputWidth', 'confirmedOutputHeight',
+      'confirmedAspectRatioNumerator', 'confirmedAspectRatioDenominator',
+      'privateReviewScaleNumerator', 'privateReviewScaleDenominator',
+      'reducedMotion', 'subjectMaskFixturePolicy', 'backgroundStyle',
+      'sourcePresentation', 'safePlacementPolicy', 'sourceMediaPolicy',
+      'sourceMimeType', 'sourceByteLength', 'sourceSha256',
+      'sourceBytesBase64', 'sourceStartFrame', 'sourceEndFrameExclusive',
+      'sourceFit', 'audioPolicy', 'masterTimelineStartFrame',
+      'masterTimelineEndFrameExclusive', 'approvedSnapshotDigestSha256',
+      'executionPackageDigestSha256',
+      'captionPlanningProjectionDigestSha256',
+      'captionPlanningBindingDigestSha256',
+      'captionRenderedMediaWorkBindingDigestSha256',
+      'ownerRequestDigestSha256', 'ownerResultDigestSha256',
+      'brollResultReceiptDigestSha256',
+      'selectedMediaManifestDigestSha256', 'layoutOccupancyDigestSha256',
+      'cropTimingDigestSha256', 'visibleTextEvidenceDigestSha256',
+      'authenticatedOwnerEvidenceDigestSha256',
+      'ownerCanonicalScopeDigestSha256',
+      'selectedNormalizedSourceSha256',
+      'selectedNormalizedSourceByteLength',
+      'selectedNormalizedSourceFrameCount', 'selectedNormalizedSourceFps',
+      'remotionProxyProfileId', 'remotionProxyDerivedFromSelectedArtifact',
+      'exactOwnerResultRereadVerified',
+      'exactImmutableApprovedRunRereadVerified',
+      'creativeReviewSupplementsCanonicalFinalCanvas',
+      'creativeReviewReplacesCanonicalFinalCanvas',
+      'sourceSelectionPerformedByCaption', 'cropOrTimingPerformedByCaption',
+      'captionWordingReviewDigestSha256', 'captionWordingReviewPolicy',
+      'canonicalTranscriptDigestSha256',
+      'canonicalTranscriptEvidenceDigestSha256',
+      'exactSourceWordLineageBound', 'wordLockedMotionUsed',
+      'canonicalTranscriptQualificationClaimed',
+      'syntheticEngineeringFixtureAcceptedAsProfessionalAppearance',
+      'realSourcePixelsRequiredForProfessionalAppearance',
+      'completeTimeInspectionRequired', 'inspectionFrameNumbers', 'layers',
+    ], 'Caption B-roll-owner approved-run scene-group payload')
+    const common = commonPayload(payload, 24, 900)
+    const masterTimelineStartFrame = integer(
+      payload.masterTimelineStartFrame, 0, 100_000_000,
+      'Caption approved-run B-roll master timeline start frame',
+    )
+    const masterTimelineEndFrameExclusive = integer(
+      payload.masterTimelineEndFrameExclusive, 1, 100_000_001,
+      'Caption approved-run B-roll master timeline end frame',
+    )
+    const selectedNormalizedSourceByteLength = integer(
+      payload.selectedNormalizedSourceByteLength, 1_024, 32 * 1024 * 1024,
+      'Caption approved-run B-roll normalized source byte length',
+    )
+    const selectedNormalizedSourceFrameCount = integer(
+      payload.selectedNormalizedSourceFrameCount, 24, 900,
+      'Caption approved-run B-roll normalized source frame count',
+    )
+    if (
+      common.width !== 640 || common.height !== 360 || common.fps !== 30
+      || payload.confirmedOutputWidth !== 3_840
+      || payload.confirmedOutputHeight !== 2_160
+      || payload.confirmedAspectRatioNumerator !== 16
+      || payload.confirmedAspectRatioDenominator !== 9
+      || payload.privateReviewScaleNumerator !== 1
+      || payload.privateReviewScaleDenominator !== 6
+      || typeof payload.reducedMotion !== 'boolean'
+      || payload.subjectMaskFixturePolicy !== 'none'
+      || payload.backgroundStyle !== 'broll_owner_real_source_full_frame_v1'
+      || payload.sourcePresentation !== 'full_frame_cutaway_v1'
+      || payload.safePlacementPolicy !==
+        'broll_center_safe_caption_lower_band_v1'
+      || payload.sourceMediaPolicy !==
+        'approved_b_roll_qa_normalized_preview_proxy_v1'
+      || payload.sourceStartFrame !== 0
+      || payload.sourceEndFrameExclusive !== common.durationFrames
+      || payload.sourceFit !== 'contain'
+      || payload.audioPolicy !== 'source_audio_absent_owner_normalized'
+      || masterTimelineEndFrameExclusive - masterTimelineStartFrame
+        !== common.durationFrames
+      || selectedNormalizedSourceFrameCount !== common.durationFrames
+      || payload.selectedNormalizedSourceFps !== 30
+      || payload.remotionProxyProfileId !==
+        'approved_b_roll_remotion_preview_proxy_matroska_v1'
+      || payload.remotionProxyDerivedFromSelectedArtifact !== true
+      || payload.exactOwnerResultRereadVerified !== true
+      || payload.exactImmutableApprovedRunRereadVerified !== true
+      || payload.creativeReviewSupplementsCanonicalFinalCanvas !== true
+      || payload.creativeReviewReplacesCanonicalFinalCanvas !== false
+      || payload.sourceSelectionPerformedByCaption !== false
+      || payload.cropOrTimingPerformedByCaption !== false
+      || payload.captionWordingReviewPolicy !==
+        'canonical_approved_run_phrase_lineage_review_v1'
+      || payload.exactSourceWordLineageBound !== true
+      || payload.wordLockedMotionUsed !== false
+      || payload.canonicalTranscriptQualificationClaimed !== false
+      || payload.syntheticEngineeringFixtureAcceptedAsProfessionalAppearance
+        !== false
+      || payload.realSourcePixelsRequiredForProfessionalAppearance !== true
+      || payload.completeTimeInspectionRequired !== true
+    ) {
+      throw validationFailure(
+        'Caption approved-run B-roll frame, source, timing, or authority policy is unsupported.',
+      )
+    }
+    for (const digest of [
+      payload.sceneGroupDigestSha256,
+      payload.motionLockDigestSha256,
+      payload.storyTimingResolutionDigestSha256,
+      payload.masterTimingDigestSha256,
+      payload.approvedSnapshotDigestSha256,
+      payload.executionPackageDigestSha256,
+      payload.captionPlanningProjectionDigestSha256,
+      payload.captionPlanningBindingDigestSha256,
+      payload.captionRenderedMediaWorkBindingDigestSha256,
+      payload.ownerRequestDigestSha256,
+      payload.ownerResultDigestSha256,
+      payload.brollResultReceiptDigestSha256,
+      payload.selectedMediaManifestDigestSha256,
+      payload.layoutOccupancyDigestSha256,
+      payload.cropTimingDigestSha256,
+      payload.visibleTextEvidenceDigestSha256,
+      payload.authenticatedOwnerEvidenceDigestSha256,
+      payload.ownerCanonicalScopeDigestSha256,
+      payload.selectedNormalizedSourceSha256,
+      payload.captionWordingReviewDigestSha256,
+      payload.canonicalTranscriptDigestSha256,
+      payload.canonicalTranscriptEvidenceDigestSha256,
+    ]) {
+      if (typeof digest !== 'string' || !SHA256.test(digest)) {
+        throw validationFailure(
+          'Caption approved-run B-roll evidence digest is invalid.',
+        )
+      }
+    }
+    const source = decodeCommittedBase64(
+      payload, 'source', 'video/x-matroska', 1_024, 16 * 1024 * 1024,
+    )
+    if (
+      source[0] !== 0x1a || source[1] !== 0x45
+      || source[2] !== 0xdf || source[3] !== 0xa3
+    ) {
+      throw validationFailure(
+        'Caption approved-run B-roll proxy Matroska signature is invalid.',
+      )
+    }
+    const normalizedCreative = validateOfflineRemotionRenderRequest({
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: {
+        compositionProfileId: 'caption_direction_creative_scene_group_v1',
+        width: 640,
+        height: 360,
+        fps: 30,
+        durationFrames: common.durationFrames,
+        sceneGroupId: payload.sceneGroupId,
+        sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+        motionLockDigestSha256: payload.motionLockDigestSha256,
+        storyTimingResolutionDigestSha256:
+          payload.storyTimingResolutionDigestSha256,
+        confirmedOutputWidth: 1_920,
+        confirmedOutputHeight: 1_080,
+        confirmedAspectRatioNumerator: 16,
+        confirmedAspectRatioDenominator: 9,
+        privateReviewScaleNumerator: 1,
+        privateReviewScaleDenominator: 3,
+        reducedMotion: payload.reducedMotion,
+        subjectMaskFixturePolicy: 'none',
+        backgroundStyle: 'editorial_night_sky_v1',
+        layers: payload.layers,
+      },
+    })
+    if (!isCaptionCreativeSceneGroupPayload(normalizedCreative.payload)) {
+      throw validationFailure(
+        'Caption approved-run B-roll layers lost their closed contract.',
+      )
+    }
+    if (
+      normalizedCreative.payload.layers.length !== 4
+      || normalizedCreative.payload.layers.some((layer) =>
+        layer.layoutBasisPoints.y < 5_400
+        || layer.layoutBasisPoints.y + layer.layoutBasisPoints.height > 9_300)
+    ) {
+      throw validationFailure(
+        'Caption approved-run B-roll layers leave the approved lower safe band.',
+      )
+    }
+    if (
+      !Array.isArray(payload.inspectionFrameNumbers)
+      || payload.inspectionFrameNumbers.length < 4
+      || payload.inspectionFrameNumbers.length > 16
+    ) {
+      throw validationFailure(
+        'Caption approved-run B-roll inspection frames are incomplete.',
+      )
+    }
+    const inspectionFrameNumbers = payload.inspectionFrameNumbers.map((frame) =>
+      integer(frame, 0, common.durationFrames - 1,
+        'Caption approved-run B-roll inspection frame'))
+    const requiredInspectionFrames = new Set([
+      0,
+      ...normalizedCreative.payload.layers.map((layer) => Math.floor(
+        (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1)
+        / 2,
+      )),
+      common.durationFrames - 1,
+    ])
+    if (
+      new Set(inspectionFrameNumbers).size !== inspectionFrameNumbers.length
+      || inspectionFrameNumbers.some((frame, index) =>
+        index > 0 && frame <= inspectionFrameNumbers[index - 1]!)
+      || [...requiredInspectionFrames].some((frame) =>
+        !inspectionFrameNumbers.includes(frame))
+    ) {
+      throw validationFailure(
+        'Caption approved-run B-roll inspection misses exact cue timing.',
+      )
+    }
+    const normalizedPayload:
+    OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload = {
+      compositionProfileId:
+        'caption_direction_broll_owner_approved_run_scene_group_v5',
+      width: 640,
+      height: 360,
+      fps: 30,
+      durationFrames: common.durationFrames,
+      sceneGroupId: normalizedCreative.payload.sceneGroupId,
+      sceneGroupDigestSha256: normalizedCreative.payload.sceneGroupDigestSha256,
+      motionLockDigestSha256: normalizedCreative.payload.motionLockDigestSha256,
+      storyTimingResolutionDigestSha256:
+        normalizedCreative.payload.storyTimingResolutionDigestSha256,
+      masterTimingDigestSha256: String(payload.masterTimingDigestSha256),
+      confirmedOutputWidth: 3_840,
+      confirmedOutputHeight: 2_160,
+      confirmedAspectRatioNumerator: 16,
+      confirmedAspectRatioDenominator: 9,
+      privateReviewScaleNumerator: 1,
+      privateReviewScaleDenominator: 6,
+      reducedMotion: normalizedCreative.payload.reducedMotion,
+      subjectMaskFixturePolicy: 'none',
+      backgroundStyle: 'broll_owner_real_source_full_frame_v1',
+      sourcePresentation: 'full_frame_cutaway_v1',
+      safePlacementPolicy: 'broll_center_safe_caption_lower_band_v1',
+      sourceMediaPolicy:
+        'approved_b_roll_qa_normalized_preview_proxy_v1',
+      sourceMimeType: 'video/x-matroska',
+      sourceByteLength: source.byteLength,
+      sourceSha256: String(payload.sourceSha256),
+      sourceBytesBase64: source.toString('base64'),
+      sourceStartFrame: 0,
+      sourceEndFrameExclusive: common.durationFrames,
+      sourceFit: 'contain',
+      audioPolicy: 'source_audio_absent_owner_normalized',
+      masterTimelineStartFrame,
+      masterTimelineEndFrameExclusive,
+      approvedSnapshotDigestSha256:
+        String(payload.approvedSnapshotDigestSha256),
+      executionPackageDigestSha256:
+        String(payload.executionPackageDigestSha256),
+      captionPlanningProjectionDigestSha256:
+        String(payload.captionPlanningProjectionDigestSha256),
+      captionPlanningBindingDigestSha256:
+        String(payload.captionPlanningBindingDigestSha256),
+      captionRenderedMediaWorkBindingDigestSha256:
+        String(payload.captionRenderedMediaWorkBindingDigestSha256),
+      ownerRequestDigestSha256: String(payload.ownerRequestDigestSha256),
+      ownerResultDigestSha256: String(payload.ownerResultDigestSha256),
+      brollResultReceiptDigestSha256:
+        String(payload.brollResultReceiptDigestSha256),
+      selectedMediaManifestDigestSha256:
+        String(payload.selectedMediaManifestDigestSha256),
+      layoutOccupancyDigestSha256:
+        String(payload.layoutOccupancyDigestSha256),
+      cropTimingDigestSha256: String(payload.cropTimingDigestSha256),
+      visibleTextEvidenceDigestSha256:
+        String(payload.visibleTextEvidenceDigestSha256),
+      authenticatedOwnerEvidenceDigestSha256:
+        String(payload.authenticatedOwnerEvidenceDigestSha256),
+      ownerCanonicalScopeDigestSha256:
+        String(payload.ownerCanonicalScopeDigestSha256),
+      selectedNormalizedSourceSha256:
+        String(payload.selectedNormalizedSourceSha256),
+      selectedNormalizedSourceByteLength,
+      selectedNormalizedSourceFrameCount,
+      selectedNormalizedSourceFps: 30,
+      remotionProxyProfileId:
+        'approved_b_roll_remotion_preview_proxy_matroska_v1',
+      remotionProxyDerivedFromSelectedArtifact: true,
+      exactOwnerResultRereadVerified: true,
+      exactImmutableApprovedRunRereadVerified: true,
+      creativeReviewSupplementsCanonicalFinalCanvas: true,
+      creativeReviewReplacesCanonicalFinalCanvas: false,
+      sourceSelectionPerformedByCaption: false,
+      cropOrTimingPerformedByCaption: false,
+      captionWordingReviewDigestSha256:
+        String(payload.captionWordingReviewDigestSha256),
+      captionWordingReviewPolicy:
+        'canonical_approved_run_phrase_lineage_review_v1',
+      canonicalTranscriptDigestSha256:
+        String(payload.canonicalTranscriptDigestSha256),
+      canonicalTranscriptEvidenceDigestSha256:
+        String(payload.canonicalTranscriptEvidenceDigestSha256),
+      exactSourceWordLineageBound: true,
+      wordLockedMotionUsed: false,
+      canonicalTranscriptQualificationClaimed: false,
+      syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
+      realSourcePixelsRequiredForProfessionalAppearance: true,
+      completeTimeInspectionRequired: true,
+      inspectionFrameNumbers,
+      layers: normalizedCreative.payload.layers,
+    }
+    return {
+      schemaVersion: OFFLINE_REMOTION_RENDER_REQUEST_PROTOCOL,
+      toolId: 'remotion',
+      operationId: OFFLINE_REMOTION_RENDER_OPERATION,
+      payload: normalizedPayload,
+    }
+  }
   if (payloadRecord.compositionProfileId ===
     'caption_direction_broll_owner_real_source_scene_group_v4') {
     const payload = exactRecord(payloadRecord, [
@@ -2790,6 +3189,14 @@ export function isCaptionBrollOwnerRealSourceSceneGroupPayload(
   return 'compositionProfileId' in payload
     && payload.compositionProfileId ===
       'caption_direction_broll_owner_real_source_scene_group_v4'
+}
+
+export function isCaptionBrollOwnerApprovedRunSceneGroupPayload(
+  payload: OfflineRemotionRenderRequest['payload'],
+): payload is OfflineRemotionCaptionBrollOwnerApprovedRunSceneGroupPayload {
+  return 'compositionProfileId' in payload
+    && payload.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_scene_group_v5'
 }
 
 export function offlineRemotionRequestSha256(request: OfflineRemotionRenderRequest): string {

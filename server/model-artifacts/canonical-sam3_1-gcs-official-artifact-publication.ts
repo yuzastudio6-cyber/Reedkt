@@ -82,6 +82,13 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
         byteLength: 0,
         digest: createHash('sha256'),
       }
+      const lifecycle = {
+        writing: false,
+        uri: false,
+        progress: false,
+        response: false,
+        finish: false,
+      }
       let sourceFailure:
         | CanonicalSam31PrivateArtifactPublicationFailureCode
         | undefined
@@ -107,6 +114,11 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
       destination.once('error', (error: unknown) => {
         storageFailure = classifyPublicationFailure(error, 'storage')
       })
+      destination.once('writing', () => { lifecycle.writing = true })
+      destination.once('uri', () => { lifecycle.uri = true })
+      destination.once('progress', () => { lifecycle.progress = true })
+      destination.once('response', () => { lifecycle.response = true })
+      destination.once('finish', () => { lifecycle.finish = true })
       try {
         await pipeline(
           Readable.from(observePublicationSource(
@@ -128,6 +140,8 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
         throw new Error(
           `SAM 3.1 private artifact streaming publication failed [${
             failureCode
+          }]. context [${
+            safeFailureContext(measurement.byteLength, lifecycle)
           }].`,
           { cause: error },
         )
@@ -175,6 +189,20 @@ export function createCanonicalSam31GcsOfficialArtifactPublicationPort(input: {
       })
     },
   })
+}
+
+function safeFailureContext(
+  byteLength: number,
+  lifecycle: Readonly<Record<
+    'writing' | 'uri' | 'progress' | 'response' | 'finish',
+    boolean
+  >>,
+): string {
+  const events = Object.entries(lifecycle)
+    .filter(([, observed]) => observed)
+    .map(([event]) => event)
+  return `bytes_${Number.isSafeInteger(byteLength) ? byteLength : 'invalid'}`
+    + `_events_${events.length > 0 ? events.join('-') : 'none'}`
 }
 
 /**

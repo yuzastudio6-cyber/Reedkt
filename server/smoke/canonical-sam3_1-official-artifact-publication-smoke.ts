@@ -384,7 +384,7 @@ await assert.rejects(() => sourceFailurePort.publishCreateOnlyAndReread({
   body: sourceAcquisitionFailureStream(),
   minimumByteLength: 1,
   maximumByteLength: 1024,
-}), /failed \[source_acquisition_failed\]\.$/u)
+}), /failed \[source_acquisition_failed\]\. context \[bytes_0_events_none\]\.$/u)
 assert.equal(sourceFailureStorage.objectCount(), 0)
 
 const storageFailurePort = createCanonicalSam31GcsOfficialArtifactPublicationPort({
@@ -410,7 +410,9 @@ try {
 assert.equal(
   safeStorageFailure,
   'SAM 3.1 private artifact streaming publication failed '
-    + '[storage_authorization_failed].',
+    + `[storage_authorization_failed]. context [bytes_${
+      sourceBytes.byteLength
+    }_events_none].`,
 )
 assert.doesNotMatch(safeStorageFailure, /hf_|\/Users|source URL/u)
 
@@ -429,7 +431,11 @@ await assert.rejects(() => namedStorageFailurePort.publishCreateOnlyAndReread({
   body: chunked(sourceBytes),
   minimumByteLength: sourceBytes.byteLength,
   maximumByteLength: sourceBytes.byteLength,
-}), /failed \[storage_node_file_no_upload\]\.$/u)
+}), new RegExp(
+  'failed \\[storage_node_file_no_upload\\]\\. context '
+    + `\\[bytes_${sourceBytes.byteLength}_events_none\\]\\.$`,
+  'u',
+))
 
 const fingerprintedStorageFailurePort =
   createCanonicalSam31GcsOfficialArtifactPublicationPort({
@@ -462,7 +468,8 @@ assert.equal(
   fingerprintedStorageFailure,
   'SAM 3.1 private artifact streaming publication failed '
     + '[storage_signature_l51_uncategorized_knone_'
-    + `${expectedSafeFingerprint}].`,
+    + `${expectedSafeFingerprint}]. context `
+    + `[bytes_${sourceBytes.byteLength}_events_none].`,
 )
 assert.doesNotMatch(
   fingerprintedStorageFailure,

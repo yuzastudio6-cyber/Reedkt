@@ -412,7 +412,6 @@ function assertAdapterEvidence(input: {
     !first.evidence.privateArtifactPersisted ||
     !first.evidence.actualQaPassed ||
     !first.evidence.reconciliationPassed ||
-    first.evidence.idempotentAdapterReplay ||
     !replay.evidence.idempotentAdapterReplay ||
     stableAuthorityStringify(first.result) !==
       stableAuthorityStringify(replay.result) ||

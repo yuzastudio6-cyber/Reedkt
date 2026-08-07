@@ -286,12 +286,20 @@ const RESULT_CONTRACT_DESCRIPTOR = {
   contractRole: 'authenticated_owner_read_result',
 } as const
 
+export const BROLL_CAPTION_OWNER_MANIFEST_REF = deepFreezeSkillValue({
+  schemaVersion: 'edit-skill-manifest-reference-v1' as const,
+  skillKey: 'b_roll' as const,
+  skillVersion: '1.0.0' as const,
+  contractVersion: 'b_roll.skill_contract.v1' as const,
+  manifestHash: BROLL_CAPABILITY_MANIFEST.manifestHash,
+})
+
 const receiptCore = {
   schemaVersion: BROLL_CAPTION_PUBLIC_CONTRACT_RECEIPT_VERSION,
   ownerSkillKey: 'b_roll',
   ownerSkillVersion: BROLL_CAPABILITY_MANIFEST.skillVersion,
   ownerContractVersion: BROLL_CAPABILITY_MANIFEST.contractVersion,
-  ownerManifestRef: skillManifestReference(BROLL_CAPABILITY_MANIFEST),
+  ownerManifestRef: BROLL_CAPTION_OWNER_MANIFEST_REF,
   requestContract: {
     ...REQUEST_CONTRACT_DESCRIPTOR,
     contractDigestSha256: hashSkillValue(REQUEST_CONTRACT_DESCRIPTOR),

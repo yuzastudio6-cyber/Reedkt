@@ -16,6 +16,8 @@ import {
   createCaptionBrollOwnerReadRequest,
   parseBrollCaptionOwnerReadResult,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
+import { BROLL_CAPTION_OWNER_MANIFEST_REF } from
+  '../edit-skills/b-roll/b-roll-caption-public-contract'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import { createCaptionsHarnessCall } from
@@ -228,6 +230,8 @@ const planningConstraintRef = ref(
   'constraint.broll.bridge.1', 'caption-broll-planning-constraint-v1')
 const ownerRequest = createCaptionBrollOwnerReadRequest({
   requestId: 'request.broll.bridge.1',
+  brollManifestRef: structuredClone(
+    BROLL_CAPTION_OWNER_MANIFEST_REF),
   canonicalScope: {
     ownerUserId: call.canonicalScope.ownerUserId,
     workspaceId: call.canonicalScope.workspaceId,

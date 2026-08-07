@@ -21,6 +21,8 @@ import {
   createCaptionBrollOwnerReadRequest,
   parseBrollCaptionOwnerReadResult,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
+import { BROLL_CAPTION_OWNER_MANIFEST_REF } from
+  '../edit-skills/b-roll/b-roll-caption-public-contract'
 import {
   isCaptionBrollOwnerRealSourceSceneGroupPayload,
   validateOfflineRemotionRenderRequest,
@@ -430,6 +432,8 @@ function ownerResultFixture(): BrollCaptionOwnerReadResult {
     'master_timing_plan_v1')
   const request = createCaptionBrollOwnerReadRequest({
     requestId: 'request.caption-broll.professional.v1',
+    brollManifestRef: structuredClone(
+      BROLL_CAPTION_OWNER_MANIFEST_REF),
     canonicalScope: {
       ownerUserId: 'caption-broll-professional-owner',
       workspaceId: 'caption-broll-professional-workspace',

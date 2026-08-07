@@ -10,6 +10,7 @@ import type { CaptionDomainRef } from
 import {
   BROLL_CAPTION_REQUEST_CONTRACT_DIGEST,
   BROLL_CAPTION_RESULT_CONTRACT_DIGEST,
+  BROLL_CAPTION_OWNER_MANIFEST_HASH,
   CAPTION_BROLL_OWNER_READ_ADAPTER_RECEIPT,
   adaptBrollOwnerReadResultToCaptionBinding,
   assertBrollCaptionOwnerReadResultForRequest,
@@ -30,6 +31,11 @@ import {
   createCaptionsHarnessCall,
   resumeCaptionsHarnessCall,
 } from '../internal-testing/captions-specialist-harness'
+import {
+  BROLL_CAPTION_OWNER_MANIFEST_REF,
+  brollCaptionOwnerReadRequestSchema,
+} from
+  '../edit-skills/b-roll/b-roll-caption-public-contract'
 
 let assertions = 0
 function check(condition: unknown, message: string): asserts condition {
@@ -77,6 +83,8 @@ const captionScope = {
 }
 const request = createCaptionBrollOwnerReadRequest({
   requestId: 'request.broll.caption.1',
+  brollManifestRef: structuredClone(
+    BROLL_CAPTION_OWNER_MANIFEST_REF),
   canonicalScope: {
     ownerUserId: captionScope.ownerUserId,
     workspaceId: captionScope.workspaceId,
@@ -101,6 +109,20 @@ const request = createCaptionBrollOwnerReadRequest({
 check(parseBrollCaptionOwnerReadRequest(request).requestDigestSha256
   === request.requestDigestSha256,
 'Caption creates the exact frozen B-roll owner-read V1 request.')
+check(brollCaptionOwnerReadRequestSchema.safeParse(request).success,
+'The current B-roll owner qualification manifest is accepted by both boundaries.')
+const historicalManifestRequest = redigest({
+  ...structuredClone(request),
+  brollManifestRef: {
+    ...structuredClone(request.brollManifestRef),
+    manifestHash: BROLL_CAPTION_OWNER_MANIFEST_HASH,
+  },
+}, 'requestDigestSha256')
+check(parseBrollCaptionOwnerReadRequest(historicalManifestRequest)
+  .brollManifestRef.manifestHash === BROLL_CAPTION_OWNER_MANIFEST_HASH,
+'Caption preserves the frozen historical receipt as compatible public provenance.')
+check(!brollCaptionOwnerReadRequestSchema.safeParse(historicalManifestRequest).success,
+'The canonical B-roll owner refuses a stale historical qualification manifest.')
 check(request.requestedReferenceRoles.join('|')
   === 'selectedMediaManifestRef|layoutOccupancyRef|cropTimingRef|visibleTextEvidenceRef',
 'The request asks for all four opaque B-roll reference roles in frozen order.')
@@ -263,6 +285,8 @@ const runtimeMasterTimingContractRef = {
 }
 const runtimeRequest = createCaptionBrollOwnerReadRequest({
   requestId: 'request.broll.runtime.1',
+  brollManifestRef: structuredClone(
+    BROLL_CAPTION_OWNER_MANIFEST_REF),
   canonicalScope: {
     ownerUserId: runtimeCall.canonicalScope.ownerUserId,
     workspaceId: runtimeCall.canonicalScope.workspaceId,

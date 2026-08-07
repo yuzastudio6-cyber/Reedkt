@@ -6,6 +6,7 @@ import {
   BROLL_CAPTION_PUBLIC_CONTRACT_RECEIPT_VERSION,
   CAPTION_BROLL_OWNER_READ_ADAPTER_VERSION,
   type BrollCaptionCanonicalScope,
+  type BrollCaptionManifestReference,
   type BrollCaptionOwnerReadRequest,
   type BrollCaptionOwnerReadResult,
   type CaptionBrollOwnerReadAdapterReceipt,
@@ -44,7 +45,7 @@ const manifestRefSchema = z.object({
   skillKey: z.literal('b_roll'),
   skillVersion: z.literal('1.0.0'),
   contractVersion: z.literal('b_roll.skill_contract.v1'),
-  manifestHash: z.literal(BROLL_CAPTION_OWNER_MANIFEST_HASH),
+  manifestHash: sha256,
 }).strict()
 const frameRangeSchema = z.object({
   startFrameInclusive: z.number().int().nonnegative()
@@ -261,6 +262,7 @@ export function parseBrollCaptionOwnerReadRequest(
 
 export function createCaptionBrollOwnerReadRequest(input: {
   requestId: string
+  brollManifestRef: BrollCaptionManifestReference
   canonicalScope: BrollCaptionCanonicalScope
   planningConstraintRef: BrollCaptionOwnerReadRequest['planningConstraintRef']
 }): BrollCaptionOwnerReadRequest {
@@ -272,13 +274,7 @@ export function createCaptionBrollOwnerReadRequest(input: {
     ownerSkillKey: 'b_roll',
     requestedJobType: 'provide_caption_broll_composition_constraints',
     mediationMode: 'hq_mediated_owner_read',
-    brollManifestRef: {
-      schemaVersion: 'edit-skill-manifest-reference-v1',
-      skillKey: 'b_roll',
-      skillVersion: '1.0.0',
-      contractVersion: 'b_roll.skill_contract.v1',
-      manifestHash: BROLL_CAPTION_OWNER_MANIFEST_HASH,
-    },
+    brollManifestRef: structuredClone(input.brollManifestRef),
     canonicalScope: structuredClone(input.canonicalScope),
     planningConstraintRef: structuredClone(input.planningConstraintRef),
     requestedReferenceRoles: [

@@ -17,6 +17,8 @@ import {
   createCaptionBrollOwnerReadRequest,
   parseBrollCaptionOwnerReadResult,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
+import { BROLL_CAPTION_OWNER_MANIFEST_REF } from
+  '../edit-skills/b-roll/b-roll-caption-public-contract'
 import {
   BROLL_CAPABILITY_MANIFEST,
   brollRemotionLayerManifestSchema,
@@ -90,6 +92,8 @@ function ownerResultFixture(
   )
   const request = createCaptionBrollOwnerReadRequest({
     requestId: 'request.caption-approved-run.broll.v1',
+    brollManifestRef: structuredClone(
+      BROLL_CAPTION_OWNER_MANIFEST_REF),
     canonicalScope: {
       ownerUserId: 'owner.caption-approved-run',
       workspaceId: 'workspace.caption-approved-run',

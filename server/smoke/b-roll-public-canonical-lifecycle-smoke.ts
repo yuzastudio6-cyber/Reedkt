@@ -44,6 +44,8 @@ import {
   type SkillAssignment,
   type SkillAssignmentInput,
 } from '../edit-skills/core'
+import { BROLL_CAPTION_OWNER_MANIFEST_REF } from
+  '../edit-skills/b-roll/b-roll-caption-public-contract'
 import {
   createEditSkillRuntime,
   createEditSkillRuntimeRegistries,
@@ -1200,6 +1202,8 @@ try {
       }
       const ownerRequest = createCaptionBrollOwnerReadRequest({
         requestId: 'request.caption-broll.public-canonical-existing-source',
+        brollManifestRef: structuredClone(
+          BROLL_CAPTION_OWNER_MANIFEST_REF),
         canonicalScope: {
           ownerUserId: scope.ownerUserId,
           workspaceId: scope.workspaceId,

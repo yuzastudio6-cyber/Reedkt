@@ -15,6 +15,9 @@ import {
   createCaptionBrollOwnerReadRequest,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
 import {
+  BROLL_CAPTION_OWNER_MANIFEST_REF,
+} from '../edit-skills/b-roll/b-roll-caption-public-contract'
+import {
   applyCanonicalCaptionSourceLedProfessionalPlanning,
   createCanonicalCaptionSourceLedProfessionalPlanningRequest,
   readCanonicalCaptionSourceLedProfessionalPlanning,
@@ -583,6 +586,9 @@ export function deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest(
   }
   return createCaptionBrollOwnerReadRequest({
     requestId: `${run.captionRequest.requestId}.broll-owner-read`,
+    brollManifestRef: structuredClone(
+      BROLL_CAPTION_OWNER_MANIFEST_REF,
+    ),
     canonicalScope: {
       ownerUserId: authority.canonicalScope.ownerUserId,
       workspaceId: authority.canonicalScope.workspaceId,

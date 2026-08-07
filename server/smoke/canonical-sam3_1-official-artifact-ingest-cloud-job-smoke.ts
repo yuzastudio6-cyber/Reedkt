@@ -27,10 +27,15 @@ assert.match(dockerfile, /libcrypto3=3\.5\.7-r0/u)
 assert.match(dockerfile, /libssl3=3\.5\.7-r0/u)
 assert.match(dockerfile, /openssl=3\.5\.7-r0/u)
 assert.match(dockerfile, /rm -rf \/usr\/local\/lib\/node_modules\/npm/u)
-assert.doesNotMatch(dockerfile, /COPY --from=dependencies|\/app\/node_modules/u)
+assert.doesNotMatch(dockerfile, /COPY --from=dependencies/u)
+assert.equal((dockerfile.match(/\/app\/node_modules\//gu) ?? []).length, 2)
 assert.doesNotMatch(dockerfile, /apt-get|bookworm|perl/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_COMMIT_SHA/u)
 assert.match(dockerfile, /WEEDITPRO_SOURCE_TREE_HASH/u)
+assert.match(dockerfile,
+  /node_modules\/abort-controller \.\/node_modules\/abort-controller/u)
+assert.match(dockerfile,
+  /node_modules\/event-target-shim \.\/node_modules\/event-target-shim/u)
 assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=6144/u)
 assert.match(dockerfile, /io\.weeditpro\.model\.weights\.included="false"/u)
 assert.match(dockerfile, /io\.weeditpro\.runtime\.inference\.allowed="false"/u)
@@ -104,6 +109,7 @@ assert.match(viteConfig,
 assert.match(viteConfig, /codeSplitting: false/u)
 assert.match(viteConfig, /copyPublicDir: false/u)
 assert.match(viteConfig, /noExternal: true/u)
+assert.match(viteConfig, /external: \['abort-controller'\]/u)
 assert.match(viteConfig,
   /outDir: 'dist-sam31-official-artifact-ingest'/u)
 assert.match(packageJson,

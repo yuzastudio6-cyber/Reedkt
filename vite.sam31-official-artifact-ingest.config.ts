@@ -19,5 +19,6 @@ export default defineConfig({
   ssr: {
     target: 'node',
     noExternal: true,
+    external: ['abort-controller'],
   },
 })

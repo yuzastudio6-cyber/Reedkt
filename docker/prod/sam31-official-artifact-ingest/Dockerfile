@@ -47,8 +47,14 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node \
   /app/dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js \
   ./dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js
+COPY --from=build --chown=node:node \
+  /app/node_modules/abort-controller ./node_modules/abort-controller
+COPY --from=build --chown=node:node \
+  /app/node_modules/event-target-shim ./node_modules/event-target-shim
 RUN test -f dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js \
   && test "$(find dist-sam31-official-artifact-ingest -type f | wc -l)" = '1' \
+  && test -f node_modules/abort-controller/package.json \
+  && test -f node_modules/event-target-shim/package.json \
   && test "$(id -u node)" != '0'
 USER node
 ENTRYPOINT ["node", "dist-sam31-official-artifact-ingest/weeditpro-sam31-official-artifact-ingest.js"]

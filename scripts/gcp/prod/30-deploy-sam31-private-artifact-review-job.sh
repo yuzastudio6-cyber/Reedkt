@@ -29,6 +29,35 @@ fail() {
   exit 1
 }
 
+retry_project_binding() {
+  local role="$1"
+  local attempt
+  for attempt in $(seq 1 12); do
+    if gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --condition=None --quiet >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+  fail "service-account project IAM propagation failed for ${role}"
+}
+
+retry_bucket_binding() {
+  local bucket="$1"
+  local role="$2"
+  local attempt
+  for attempt in $(seq 1 12); do
+    if gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
+      --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --quiet >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+  fail "service-account bucket IAM propagation failed for ${bucket} ${role}"
+}
+
 [[ "${WEEDITPRO_CONFIRM_SAM31_PRIVATE_ARTIFACT_REVIEW_JOB_DEPLOY:-}" \
   == "${CONFIRMATION}" ]] || fail 'exact job-deployment confirmation is missing'
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
@@ -127,17 +156,11 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" \
     --display-name='WeEditPro SAM 3.1 private artifact review' \
     --description='Network-isolated exact-byte static review; never model inference'
 fi
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/logging.logWriter --condition=None --quiet >/dev/null
+retry_project_binding roles/logging.logWriter
 for bucket in "${MODEL_BUCKET}" "${CONTROL_BUCKET}"; do
-  gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
-    --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role=roles/storage.objectViewer --quiet >/dev/null
+  retry_bucket_binding "${bucket}" roles/storage.objectViewer
 done
-gcloud storage buckets add-iam-policy-binding "gs://${CONTROL_BUCKET}" \
-  --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/storage.objectCreator --quiet >/dev/null
+retry_bucket_binding "${CONTROL_BUCKET}" roles/storage.objectCreator
 
 gcloud run jobs deploy "${JOB}" \
   --project="${PROJECT_ID}" --region="${REGION}" \

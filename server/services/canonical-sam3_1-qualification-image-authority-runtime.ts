@@ -141,6 +141,7 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
       readonly version: 1
       readonly contentHash: `sha256:${string}`
     }
+    readonly cloudBuildMachineType?: 'E2_HIGHCPU_32' | 'E2_STANDARD_2'
     readonly storage?: Storage
     readonly repository?: CanonicalSam31QualificationImageAuthorityRepository
   },
@@ -297,6 +298,7 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
     privateCapsuleReadPort: createCanonicalSam31GcsQualificationCapsuleReadPort({
       storage,
     }),
+    cloudBuildMachineType: input.cloudBuildMachineType,
     preparedAt: nextTimestamp(reproducibility.observedAt),
   })
   const manifestDisposition = await repository

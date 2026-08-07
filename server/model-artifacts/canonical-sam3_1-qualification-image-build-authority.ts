@@ -258,7 +258,7 @@ const authorityWithoutHashSchema = z.object({
     serviceAccount: z.literal(
       'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
     ),
-    machineType: z.literal('E2_HIGHCPU_32'),
+    machineType: z.enum(['E2_HIGHCPU_32', 'E2_STANDARD_2']),
     diskSizeGb: z.literal('200'),
     timeout: z.literal('3600s'),
     queueTtl: z.literal('600s'),
@@ -343,6 +343,7 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
     readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
     readonly capsuleManifest: CanonicalSam31QualificationImageCapsuleManifest
     readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
+    readonly cloudBuildMachineType?: 'E2_HIGHCPU_32' | 'E2_STANDARD_2'
     readonly preparedAt: string
   },
 ): Promise<CanonicalSam31QualificationImageBuildAuthority> {
@@ -445,7 +446,7 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
         'gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147',
       serviceAccount:
         'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
-      machineType: 'E2_HIGHCPU_32',
+      machineType: input.cloudBuildMachineType ?? 'E2_HIGHCPU_32',
       diskSizeGb: '200',
       timeout: '3600s',
       queueTtl: '600s',

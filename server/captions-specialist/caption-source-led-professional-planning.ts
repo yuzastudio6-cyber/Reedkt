@@ -45,6 +45,9 @@ import {
 import {
   canonicalCaptionMasterTimingDigest,
 } from './caption-master-timing-authority'
+import {
+  assertCanonicalBrollMasterTimingProjectionBinding,
+} from '../edit-skills/b-roll/b-roll-master-timing-projection-binding'
 
 const SAFE_KEY = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u
 const SHA256 = /^[a-f0-9]{64}$/u
@@ -668,6 +671,13 @@ function assertNoCaptionPlanningComponents(
     throw new Error(
       'Canonical source-led Caption planning cannot replace or merge pre-existing Caption components.',
     )
+  }
+  if (components.bRollMasterTimingBinding) {
+    assertCanonicalBrollMasterTimingProjectionBinding({
+      binding: components.bRollMasterTimingBinding,
+      canonicalMasterTimingPlan: components.masterTimingPlan,
+      canonicalTimingSummary: components.timingSummary,
+    })
   }
 }
 

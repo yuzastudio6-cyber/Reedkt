@@ -61,6 +61,9 @@ import {
   createCanonicalCaptionPostrenderVisualIntelligenceOwnerService,
 } from '../services/canonical-caption-postrender-visual-intelligence-owner-service'
 import {
+  executeCanonicalCaptionPostrenderVisualIntelligenceOwnerHarness,
+} from '../internal-testing/canonical-caption-postrender-visual-intelligence-owner-harness'
+import {
   createProfessionalHighVisualIntelligenceQualityPolicy,
   createVisualInspectionRequirement,
   createVisualInspectionResult,
@@ -68,7 +71,14 @@ import {
   createVisualIntelligenceReport,
   createVisualIntelligenceRequest,
   createVisualIntelligenceSpatialEvidence,
+  parseVisualIntelligenceRequest,
 } from '../visual-intelligence/visual-intelligence-contract'
+import {
+  createVisualIntelligenceInspectionCoordinator,
+} from '../visual-intelligence/visual-intelligence-inspection-coordinator'
+import type {
+  VisualIntelligenceLifecycleService,
+} from '../visual-intelligence/visual-intelligence-lifecycle-service'
 import {
   VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,
   VISUAL_INTELLIGENCE_PROMPT_VERSION,
@@ -617,6 +627,28 @@ check(durableEvidencePersisted.disposition === 'created'
     !key.includes(result.scope.ownerUserId)
     && !key.includes(result.output.outputId)),
 'Caption reconciliation must persist separately with digest-only private object names.')
+const durableEvidenceReread = await durableEvidenceRepository
+  .readCompletedEvidence({
+    ownerUserId: result.scope.ownerUserId,
+    workspaceId: result.scope.workspaceId,
+    projectId: result.scope.projectId,
+    editSessionId: result.scope.editSessionId,
+    approvedSnapshotId: result.scope.approvedSnapshotId,
+    approvedWorkItemId: result.approvedWorkItemRef.id,
+    outputId: result.output.outputId,
+  })
+const durableOutputReread = await durableEvidenceRepository
+  .readCompletedEvidenceForOutput({
+    ownerUserId: result.scope.ownerUserId,
+    workspaceId: result.scope.workspaceId,
+    projectId: result.scope.projectId,
+    editSessionId: result.scope.editSessionId,
+    approvedSnapshotId: result.scope.approvedSnapshotId,
+    outputId: result.output.outputId,
+  })
+check(durableEvidenceReread?.resultDigestSha256 === result.resultDigestSha256
+  && durableOutputReread?.resultDigestSha256 === result.resultDigestSha256,
+'Durable Caption evidence rereads must derive the same six-field output storage identity from richer exact locators.')
 const ownerService =
   createCanonicalCaptionPostrenderVisualIntelligenceOwnerService({
     requestPackageStore: {
@@ -661,6 +693,52 @@ const finalizationInput = {
     deterministicAndSemanticEvidenceAgree: true,
     exactApprovedPrivateRenderRereadVerified: true as const,
   }
+const captionPostrenderExecutionInput = {
+  schemaVersion:
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_INPUT_VERSION,
+  operation: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+  outputId: result.output.outputId,
+  confirmedOutputFrameRef: captionOutputFrameRef,
+  masterTimingRef: {
+    id: 'caption-master-timing-1',
+    version: 'caption-master-timing-v1',
+    contentHash: raw('caption-master-timing-1'),
+  },
+  canonicalMasterTimingId: 'caption-master-timing-1',
+  finalRenderWorkItemKey: 'caption-final-render-work-1',
+  finalRenderOutputKey: 'caption-final-render-output-1',
+  deterministicQaWorkItemKey: 'caption-deterministic-qa-work-1',
+  deterministicQaOutputKey: 'caption-deterministic-qa-output-1',
+  visualInspectionRequirementSchemaVersion:
+    'visual-inspection-requirement-v1',
+  visualIntelligenceRequestSchemaVersion:
+    'visual-intelligence-request-v1',
+  visualIntelligenceReportSchemaVersion:
+    'visual-intelligence-report-v1',
+  visualIntelligenceSpatialEvidenceSchemaVersion:
+    'visual-intelligence-spatial-evidence-v1',
+  ownerResultSchemaVersion:
+    'canonical-caption-postrender-visual-intelligence-result-v1',
+  ownerCapabilityId: 'visual_intelligence',
+  ownerOperationId: 'visual_intelligence.inspect_edit',
+  requiredInspectionProfiles: ['final_render_visual_qa'],
+  authenticatedCaptionReadRequired: true,
+  ownerResultCreatedOutsideCaptionReconciliation: true,
+  deterministicEveryFrameQaRequired: true,
+  completeRequestedRangeSemanticCoverageRequired: true,
+  semanticEveryFrameInspectionClaimAllowed: false,
+  semanticExactPixelInspectionClaimAllowed: false,
+  qwenVisualFallbackAllowed: false,
+  rawPromptAccepted: false,
+  browserCompletionAccepted: false,
+  directPeerDispatchRequested: false,
+  providerDispatchRequestedByCaption: false,
+  assetMutationRequested: false,
+  qaApprovalRequested: false,
+  billingAuthorityRequested: false,
+  publicDeliveryRequested: false,
+  productionAuthorityRequested: false,
+} as const
 const ownerFinalization = await ownerService.finalize(finalizationInput)
 check(ownerFinalization.disposition === 'idempotent_replay'
   && ownerFinalization.result.resultDigestSha256 === result.resultDigestSha256
@@ -670,6 +748,155 @@ await assert.rejects(() => ownerService.finalize({
   ...finalizationInput,
   unexpectedAuthorityClaim: true,
 } as never))
+assertions += 1
+
+const harnessLifecycle: VisualIntelligenceLifecycleService = {
+  async execute(untrusted) {
+    const candidate = parseVisualIntelligenceRequest(untrusted)
+    assert.equal(candidate.requestDigestSha256, request.requestDigestSha256)
+    return {
+      lifecycleVersion: 'visual-intelligence-lifecycle-service-v2',
+      status: 'cache_replay',
+      report: structuredClone(report),
+      reportRef: reportRef(),
+      spatialEvidence: structuredClone(spatialEvidence),
+      spatialEvidenceRef: {
+        id: spatialEvidence.spatialEvidenceId,
+        version: 1,
+        contentHash: spatialEvidence.spatialEvidenceDigestSha256,
+      },
+      providerCallMadeDuringInvocation: false,
+      costSettledDuringInvocation: false,
+      duplicateProviderCallAvoided: true,
+      duplicateCostSettlementAvoided: true,
+      directTimelineMutationPerformed: false,
+    }
+  },
+}
+const harnessCoordinator = createVisualIntelligenceInspectionCoordinator({
+  requestOwner: {
+    async prepareApprovedEditInspectionRequest() {
+      return structuredClone(request)
+    },
+  },
+  lifecycle: harnessLifecycle,
+})
+const harnessEvidenceRepository =
+  createControlledCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository()
+const durableOwnerRereadBeforeHarness = await durableOwnerRepository
+  .readPersistedResult({
+    ownerUserId: request.scope.ownerUserId,
+    workspaceId: request.scope.workspaceId,
+    projectId: request.scope.projectId,
+    editSessionId: request.scope.editSessionId,
+    approvedSnapshotId: request.scope.approvedSnapshotId!,
+    approvedWorkItemId: approvedWorkItemRef.id,
+    outputId: request.outputFrame!.outputId,
+    confirmedOutputFrameRef: captionOutputFrameRef,
+    requireCompleteRequestedRangeCoverage: true,
+  })
+check(durableOwnerRereadBeforeHarness?.resultDigestSha256
+  === result.resultDigestSha256,
+'The internal owner harness must start from the exact persisted owner result namespace.')
+const ownerHarness =
+  await executeCanonicalCaptionPostrenderVisualIntelligenceOwnerHarness({
+    coordinator: harnessCoordinator,
+    spatialEvidenceRepository: {
+      async readAcceptedSpatialEvidenceByReportRef() {
+        return structuredClone(spatialEvidence)
+      },
+    },
+    ownerService,
+    captionContext: {
+      canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort:
+        durableOwnerRepository,
+      canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository:
+        harnessEvidenceRepository,
+    } as unknown as ServiceContext,
+    requirement,
+    expectedScope: {
+      ownerUserId: request.scope.ownerUserId,
+      workspaceId: request.scope.workspaceId,
+      projectId: request.scope.projectId,
+      editSessionId: request.scope.editSessionId,
+      approvedSnapshotId: request.scope.approvedSnapshotId!,
+    },
+    approvedWorkItemId: approvedWorkItemRef.id,
+    captionExecutionInput: captionPostrenderExecutionInput,
+    finalizationAuthority: {
+      resultId: finalizationInput.resultId,
+      approvedSnapshotRef: finalizationInput.approvedSnapshotRef,
+      executionPackageRef: finalizationInput.executionPackageRef,
+      approvedWorkItemRef: finalizationInput.approvedWorkItemRef,
+      deterministicCompleteTimeQaRef:
+        finalizationInput.deterministicCompleteTimeQaRef,
+      independentArtifactQaRef:
+        finalizationInput.independentArtifactQaRef,
+      assetManifestReconciliationRef:
+        finalizationInput.assetManifestReconciliationRef,
+      captionConfirmedOutputFrameRef:
+        finalizationInput.captionConfirmedOutputFrameRef,
+      confirmedOutputFrameBindingDigestSha256:
+        finalizationInput.confirmedOutputFrameBindingDigestSha256,
+      confirmationRecordId: finalizationInput.confirmationRecordId,
+      deterministicAndSemanticEvidenceAgree:
+        finalizationInput.deterministicAndSemanticEvidenceAgree,
+      exactApprovedPrivateRenderRereadVerified:
+        finalizationInput.exactApprovedPrivateRenderRereadVerified,
+    },
+  })
+check(ownerHarness.internalQualificationHarnessOnly
+  && ownerHarness.ownerResultCreatedBeforeCaptionReconciliation
+  && ownerHarness.exactOwnerResultRereadByCaption
+  && ownerHarness.captionReconciliation.disposition === 'created'
+  && ownerHarness.captionReconciliationReplay.disposition
+    === 'idempotent_replay'
+  && !ownerHarness.directPeerDispatchPerformedByCaption
+  && !ownerHarness.providerCallMadeByCaption
+  && !ownerHarness.productionAuthorityGranted,
+'The bounded harness must execute the existing owner lifecycle before exact Caption resume without becoming a peer dispatcher or production route.')
+await assert.rejects(() =>
+  executeCanonicalCaptionPostrenderVisualIntelligenceOwnerHarness({
+    coordinator: harnessCoordinator,
+    spatialEvidenceRepository: {
+      async readAcceptedSpatialEvidenceByReportRef() { return null },
+    },
+    ownerService,
+    captionContext: {} as ServiceContext,
+    requirement,
+    expectedScope: {
+      ownerUserId: request.scope.ownerUserId,
+      workspaceId: request.scope.workspaceId,
+      projectId: request.scope.projectId,
+      editSessionId: request.scope.editSessionId,
+      approvedSnapshotId: request.scope.approvedSnapshotId!,
+    },
+    approvedWorkItemId: approvedWorkItemRef.id,
+    captionExecutionInput: captionPostrenderExecutionInput,
+    finalizationAuthority: {
+      resultId: finalizationInput.resultId,
+      approvedSnapshotRef: finalizationInput.approvedSnapshotRef,
+      executionPackageRef: finalizationInput.executionPackageRef,
+      approvedWorkItemRef: finalizationInput.approvedWorkItemRef,
+      deterministicCompleteTimeQaRef:
+        finalizationInput.deterministicCompleteTimeQaRef,
+      independentArtifactQaRef:
+        finalizationInput.independentArtifactQaRef,
+      assetManifestReconciliationRef:
+        finalizationInput.assetManifestReconciliationRef,
+      captionConfirmedOutputFrameRef:
+        finalizationInput.captionConfirmedOutputFrameRef,
+      confirmedOutputFrameBindingDigestSha256:
+        finalizationInput.confirmedOutputFrameBindingDigestSha256,
+      confirmationRecordId: finalizationInput.confirmationRecordId,
+      deterministicAndSemanticEvidenceAgree:
+        finalizationInput.deterministicAndSemanticEvidenceAgree,
+      exactApprovedPrivateRenderRereadVerified:
+        finalizationInput.exactApprovedPrivateRenderRereadVerified,
+    },
+  }),
+  /could not reread spatial evidence/u,
+)
 assertions += 1
 
 const outputAuthority =
@@ -777,52 +1004,7 @@ const coordinatorExecution =
     editSessionId: result.scope.editSessionId,
     approvedSnapshotId: result.scope.approvedSnapshotId,
     approvedWorkItemId: result.approvedWorkItemRef.id,
-    executionInput: {
-      schemaVersion:
-        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_INPUT_VERSION,
-      operation: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
-      outputId: result.output.outputId,
-      confirmedOutputFrameRef: captionOutputFrameRef,
-      masterTimingRef: {
-        id: 'caption-master-timing-1',
-        version: 'caption-master-timing-v1',
-        contentHash: raw('caption-master-timing-1'),
-      },
-      canonicalMasterTimingId: 'caption-master-timing-1',
-      finalRenderWorkItemKey: 'caption-final-render-work-1',
-      finalRenderOutputKey: 'caption-final-render-output-1',
-      deterministicQaWorkItemKey: 'caption-deterministic-qa-work-1',
-      deterministicQaOutputKey: 'caption-deterministic-qa-output-1',
-      visualInspectionRequirementSchemaVersion:
-        'visual-inspection-requirement-v1',
-      visualIntelligenceRequestSchemaVersion:
-        'visual-intelligence-request-v1',
-      visualIntelligenceReportSchemaVersion:
-        'visual-intelligence-report-v1',
-      visualIntelligenceSpatialEvidenceSchemaVersion:
-        'visual-intelligence-spatial-evidence-v1',
-      ownerResultSchemaVersion:
-        'canonical-caption-postrender-visual-intelligence-result-v1',
-      ownerCapabilityId: 'visual_intelligence',
-      ownerOperationId: 'visual_intelligence.inspect_edit',
-      requiredInspectionProfiles: ['final_render_visual_qa'],
-      authenticatedCaptionReadRequired: true,
-      ownerResultCreatedOutsideCaptionReconciliation: true,
-      deterministicEveryFrameQaRequired: true,
-      completeRequestedRangeSemanticCoverageRequired: true,
-      semanticEveryFrameInspectionClaimAllowed: false,
-      semanticExactPixelInspectionClaimAllowed: false,
-      qwenVisualFallbackAllowed: false,
-      rawPromptAccepted: false,
-      browserCompletionAccepted: false,
-      directPeerDispatchRequested: false,
-      providerDispatchRequestedByCaption: false,
-      assetMutationRequested: false,
-      qaApprovalRequested: false,
-      billingAuthorityRequested: false,
-      publicDeliveryRequested: false,
-      productionAuthorityRequested: false,
-    },
+    executionInput: captionPostrenderExecutionInput,
   })
 check(coordinatorExecution.disposition === 'created'
   && coordinatorExecution.exactRereadVerified

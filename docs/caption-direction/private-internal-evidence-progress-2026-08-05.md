@@ -191,6 +191,18 @@ fixtures make no provider call. The canonical approved workflow still must
 schedule and execute the real Visual Intelligence inspection before the
 existing Caption reconciliation work item can consume it.
 
+The additive internal owner-to-resume harness now proves that exact ordering
+through the existing owners and fixed a durable reread defect: persisted owner
+and Caption evidence use the six-field output identity for their object name,
+while the richer work-item/frame/coverage locator is checked after reread.
+Previously the read path hashed the richer locator and could falsely report a
+persisted result as missing. The 34-assertion source fixture now covers owner
+finalization, Caption reconciliation, and exact idempotent replay. It remains a
+controlled cache-replay fixture, not actual Visual Intelligence evidence. The
+canonical control-plane release/rate authorities required for a legitimate
+live Gemini run are still absent, so the gate and all terminal counts remain
+unchanged.
+
 Supply the missing evidence through those existing owners and populate that
 catalog. The rejected transcript now has the closed preparation package
 documented in

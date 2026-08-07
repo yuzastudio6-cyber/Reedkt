@@ -90,7 +90,10 @@ function createStore(
   prefix: string,
 ) {
   const read = async (locator: OutputLocator) => {
-    const body = await objectPort.readExact(objectPath(prefix, locator))
+    const body = await objectPort.readExact(objectPath(
+      prefix,
+      exactOutputLocator(locator),
+    ))
     if (!body) return null
     if (body.byteLength < 2 || body.byteLength > MAXIMUM_RESULT_BYTES) {
       throw conflict('result_bytes_invalid')
@@ -149,13 +152,20 @@ interface OutputLocator {
 function outputLocator(
   result: CanonicalCaptionPostrenderVisualIntelligenceResult,
 ): OutputLocator {
-  return {
-    ownerUserId: result.scope.ownerUserId,
-    workspaceId: result.scope.workspaceId,
-    projectId: result.scope.projectId,
-    editSessionId: result.scope.editSessionId,
-    approvedSnapshotId: result.scope.approvedSnapshotId,
+  return exactOutputLocator({
+    ...result.scope,
     outputId: result.output.outputId,
+  })
+}
+
+function exactOutputLocator(locator: OutputLocator): OutputLocator {
+  return {
+    ownerUserId: locator.ownerUserId,
+    workspaceId: locator.workspaceId,
+    projectId: locator.projectId,
+    editSessionId: locator.editSessionId,
+    approvedSnapshotId: locator.approvedSnapshotId,
+    outputId: locator.outputId,
   }
 }
 

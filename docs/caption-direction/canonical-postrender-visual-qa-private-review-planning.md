@@ -57,6 +57,16 @@ then allow Caption reconciliation. Until that one-writer path is exercised with
 the real private render, the internal end-to-end visual-review gate remains
 open.
 
+The bounded internal owner-to-resume harness now source-proves the latter half
+of that sequence: existing Visual Intelligence inspection, exact report/spatial
+reread, owner finalization, Caption reconciliation, create-only persistence,
+and idempotent replay. That proof also corrected a durable-store identity bug
+that made richer exact locators hash to a different object name than the
+six-field output identity used at write time. The harness remains test-only and
+its controlled cache replay is not model evidence. The real run still requires
+the canonical private Visual Intelligence release and account-effective-rate
+authorities plus an exact approved private render; none was fabricated here.
+
 The retired Qwen wire remains readable only through the explicit historical
 `canonical-caption-postrender-visual-qa-work-binding-v1` and work-input V1
 decoders. New planning cannot emit or execute it, and no V1 record is cast or

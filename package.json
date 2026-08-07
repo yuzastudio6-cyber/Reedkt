@@ -230,6 +230,7 @@
     "build:sam3_1-authorized-terms-finalization-bundle": "npm run typecheck:server && vite build --config vite.sam31-authorized-terms-finalization.config.ts",
     "build:sam3_1-private-artifact-ingest-image": "bash scripts/gcp/prod/23-build-sam31-private-artifact-ingest-image.sh",
     "build:sam3_1-private-artifact-review-image": "bash scripts/gcp/prod/29-build-sam31-private-artifact-review-image.sh",
+    "deploy:sam3_1-private-artifact-review-job": "bash scripts/gcp/prod/30-deploy-sam31-private-artifact-review-job.sh",
     "build:sam3_1-authorized-terms-finalization-image": "bash scripts/gcp/prod/25-build-sam31-authorized-terms-finalization-image.sh",
     "deploy:sam3_1-authorized-terms-finalization-job": "bash scripts/gcp/prod/26-deploy-sam31-authorized-terms-finalization-job.sh",
     "deploy:sam3_1-private-artifact-ingest-job": "bash scripts/gcp/prod/24-deploy-sam31-private-artifact-ingest-job.sh",

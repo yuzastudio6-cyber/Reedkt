@@ -127,7 +127,8 @@ assert.throws(() =>
   assertCanonicalSam31PrivateArtifactStaticAnalysisReceipt(cyclic))
 
 const root = process.cwd()
-const [dockerfile, reviewWorker, buildConfig, buildScript, packageJson] =
+const [dockerfile, reviewWorker, buildConfig, buildScript, deployScript,
+  packageJson] =
   await Promise.all([
     readFile(`${root}/docker/prod/sam31-private-artifact-review/Dockerfile`,
       'utf8'),
@@ -136,6 +137,8 @@ const [dockerfile, reviewWorker, buildConfig, buildScript, packageJson] =
     readFile(`${root}/scripts/gcp/prod/cloudbuild-sam31-private-artifact-review.yaml`,
       'utf8'),
     readFile(`${root}/scripts/gcp/prod/29-build-sam31-private-artifact-review-image.sh`,
+      'utf8'),
+    readFile(`${root}/scripts/gcp/prod/30-deploy-sam31-private-artifact-review-job.sh`,
       'utf8'),
     readFile(`${root}/package.json`, 'utf8'),
   ])
@@ -161,10 +164,26 @@ assert.match(buildConfig, /requestedVerifyOption:\s*VERIFIED/u)
 assert.match(buildConfig, /sourceProvenanceHash:\s*\n\s*- SHA256/u)
 assert.match(buildScript, /git status --porcelain=v1/u)
 assert.match(buildScript, /cloudJobStarted":false/u)
+assert.match(deployScript,
+  /BUILD_ID='bd8328d0-c724-48a8-ad21-68e9de1ab46f'/u)
+assert.match(deployScript,
+  /SOURCE_COMMIT='a7672b066c209dc5c905ccfa2729daecf0aac379'/u)
+assert.match(deployScript,
+  /IMAGE_DIGEST='sha256:c5d1b829603e6fe5062a694225afdebf1c805bb64b627872f56b25a929dd5956'/u)
+assert.match(deployScript, /--cpu=4 --memory=16Gi/u)
+assert.match(deployScript, /--max-retries=0 --task-timeout=4h/u)
+assert.match(deployScript, /--network="\$\{NETWORK\}"/u)
+assert.match(deployScript, /--vpc-egress=all-traffic/u)
+assert.match(deployScript, /contains\(\["OS", "PYPI", "SECRET"\]\)/u)
+assert.match(deployScript, /package_vulnerability_summary\.vulnerabilities/u)
+assert.doesNotMatch(deployScript, /gcloud run jobs execute/u)
+assert.doesNotMatch(deployScript, /--allow-unauthenticated|--set-secrets/u)
 assert.match(packageJson,
   /"smoke:sam3_1-private-artifact-static-analysis"/u)
 assert.match(packageJson,
   /"build:sam3_1-private-artifact-review-image"/u)
+assert.match(packageJson,
+  /"deploy:sam3_1-private-artifact-review-job"/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-artifact-static-analysis',

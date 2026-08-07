@@ -34,6 +34,9 @@ import {
   createCanonicalSam31QualificationImageSupplyChainReleaseRepository,
   prepareAndPersistCanonicalSam31QualificationImageSupplyChainRelease,
 } from '../services/canonical-sam3_1-cloud-image-supply-chain-release-runtime'
+import {
+  createCanonicalSam31QualificationImageSupplyChainBuildRuntime,
+} from '../services/canonical-sam3_1-qualification-image-supply-chain-build-runtime'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import { sha256AuthorityValue } from
@@ -162,6 +165,64 @@ assert.equal(observation.gpuQualificationJobDispatched, false)
 assert.equal(observation.runtimeReleaseGranted, false)
 assert.equal(observation.customerCreditMutationCreated, false)
 assert.equal(observation.productionReady, false)
+
+const runtimeObjects = createJsonObjectPort()
+let runtimeProviderCalls = 0
+let runtimeSubmittedBody: Readonly<Record<string, unknown>> | undefined
+const runtime =
+  createCanonicalSam31QualificationImageSupplyChainBuildRuntime({
+    objectPort: runtimeObjects.port,
+    authenticatedTransport: {
+      async request(request) {
+        runtimeProviderCalls += 1
+        if (request.method === 'POST') {
+          runtimeSubmittedBody = request.body
+          return { status: 200, json: createOperation(buildId) }
+        }
+        return {
+          status: 200,
+          json: successfulBuild(
+            buildId,
+            runtimeSubmittedBody ?? body,
+            admission.evidenceBucket,
+            admission.evidencePrefix,
+          ),
+        }
+      },
+    },
+    now: () => '2026-08-04T14:01:00.000Z',
+  })
+const runtimeAdmissionRef = await runtime.persistAdmissionCreateOnly({
+  admission,
+})
+const runtimeSubmission = await runtime.startOneSupplyChainBuild({
+  admissionRef: runtimeAdmissionRef,
+})
+const runtimeSubmissionRef =
+  qualificationImageSupplyChainSubmissionReference(runtimeSubmission)
+const runtimeObservation = await runtime.observeOnePersistedSupplyChainBuild({
+  admissionRef: runtimeAdmissionRef,
+  submissionRef: runtimeSubmissionRef,
+})
+assert.equal(
+  runtimeObservation.disposition,
+  'supply_chain_artifacts_ready_pending_exact_reread',
+)
+assert.equal(runtimeObservation.durableTerminalObservationCreated, true)
+assert.deepEqual(
+  await runtime.observeOnePersistedSupplyChainBuild({
+    admissionRef: runtimeAdmissionRef,
+    submissionRef: runtimeSubmissionRef,
+  }),
+  runtimeObservation,
+)
+assert.equal(runtimeProviderCalls, 2)
+assert.equal(
+  (await runtime.repository.rereadTerminalForSubmission({
+    submissionRef: runtimeSubmissionRef,
+  }))?.observationHash,
+  runtimeObservation.observationHash,
+)
 
 const supplyChainEvidence = createSupplyChainEvidence({
   authority,

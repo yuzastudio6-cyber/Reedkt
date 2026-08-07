@@ -734,8 +734,6 @@ function assertBuildConfigurationEcho(
   const resolvedStorage = record(
     build.sourceProvenance.resolvedStorageSource,
   )
-  const actualSteps = z.array(z.unknown()).parse(raw.steps)
-  const expectedSteps = z.array(z.unknown()).parse(expected.steps)
   const actualImages = z.array(z.string()).parse(raw.images)
   const expectedImages = z.array(z.string()).parse(expected.images)
   const actualOptions = record(raw.options)
@@ -744,7 +742,7 @@ function assertBuildConfigurationEcho(
     raw.serviceAccount !== expected.serviceAccount
     || !sameJson(actualStorage, expectedStorage)
     || !sameJson(resolvedStorage, expectedStorage)
-    || !sameJson(actualSteps, expectedSteps)
+    || !sameBuildSteps(raw.steps, expected.steps)
     || !sameJson(actualImages, expectedImages)
     || !sameJson(raw.tags, expected.tags)
     || actualOptions.machineType !== expectedOptions.machineType
@@ -761,6 +759,25 @@ function assertBuildConfigurationEcho(
     || hasNonEmpty(raw.availableSecrets)
     || hasNonEmpty(raw.buildTriggerId)
   ) throw new Error('Qualification Cloud Build configuration differs from authority.')
+}
+
+function sameBuildSteps(observed: unknown, expected: unknown): boolean {
+  const observedSteps = z.array(z.object({
+    id: z.unknown(),
+    name: z.unknown(),
+    args: z.unknown(),
+  }).passthrough()).max(100).safeParse(observed)
+  const expectedSteps = z.array(z.object({
+    id: z.unknown(),
+    name: z.unknown(),
+    args: z.unknown(),
+  }).strict()).max(100).safeParse(expected)
+  if (!observedSteps.success || !expectedSteps.success) return false
+  return sameJson(observedSteps.data.map(({ id, name, args }) => ({
+    id,
+    name,
+    args,
+  })), expectedSteps.data)
 }
 
 function buildSubmission(input: Omit<

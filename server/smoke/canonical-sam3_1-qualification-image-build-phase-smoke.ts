@@ -341,6 +341,18 @@ const exactFailureBuild = successBuild(
 )
 exactFailureBuild.status = 'FAILURE'
 delete exactFailureBuild.results
+const exactFailureSteps = exactFailureBuild.steps as Array<
+  Record<string, unknown>
+>
+exactFailureSteps[0] = {
+  ...exactFailureSteps[0],
+  status: 'FAILURE',
+  exitCode: 1,
+  timing: {
+    startTime: '2026-08-04T13:02:01.000Z',
+    endTime: '2026-08-04T13:02:30.000Z',
+  },
+}
 const exactFailureState = createStatePort()
 const exactFailureTerminal =
   await createCanonicalSam31QualificationImageBuildPhase({

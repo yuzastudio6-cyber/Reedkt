@@ -314,14 +314,32 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
       persistedSnapshots[0]!.snapshotId,
       input.workspaceId,
     )
+    const persistedComponents = approvedExecutionAuthority.components as
+      unknown as Record<string, unknown>
+    const derivedComponents = canonicalPlan.components as
+      unknown as Record<string, unknown>
+    const allowedDerivedOnlyComponentKeys = new Set([
+      'bRollMasterTimingBinding',
+    ])
+    const changedComponentKeys = [...new Set([
+      ...Object.keys(persistedComponents),
+      ...Object.keys(derivedComponents),
+    ])].filter((key) => {
+      if (!(key in persistedComponents)) {
+        return !allowedDerivedOnlyComponentKeys.has(key)
+      }
+      if (!(key in derivedComponents)) return true
+      return hashSkillValue(persistedComponents[key])
+        !== hashSkillValue(derivedComponents[key])
+    })
     if (
-      hashSkillValue(approvedExecutionAuthority.components)
-        !== hashSkillValue(canonicalPlan.components)
+      changedComponentKeys.length > 0
       || hashSkillValue(approvedExecutionAuthority.components.bRollSkill)
         !== hashSkillValue(broll.persistedComponent.component)
     ) {
       throw new Error(
-        'Persisted Caption+B-roll approved components changed before replay.',
+        'Persisted Caption+B-roll approved components changed before replay: '
+          + changedComponentKeys.join(', '),
       )
     }
     publishedAuthority = {

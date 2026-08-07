@@ -49,11 +49,11 @@ present across every decoded frame while B-roll stays below the Caption layer.
 
 ## Real private media receipt
 
-The accepted v2 inspection package is:
+The accepted v3 inspection package is:
 
-- schema: `caption-broll-approved-execution-inspection-package-v2`;
+- schema: `caption-broll-approved-execution-inspection-package-v3`;
 - package SHA-256:
-  `55a496564486d7dd18cfd767b0d41009f910854b0843ec87adb6ce503ed4b96c`;
+  `919b02ef4086332f8c414b598cef7249da2276f6ec88482f504c1d00acdaeef8`;
 - private source SHA-256:
   `833a101e4028ee6ed70ffe18fea942bd4be76e41901b4b4bbb4cd79f736724cc`;
 - libass overlay SHA-256:
@@ -64,6 +64,21 @@ The accepted v2 inspection package is:
   `3351b4c640d348a42beffcbe8a577bc289e7a94edc6027e21df5924290057fa5`;
 - exact duration: 127 frames at 30 fps; and
 - provider calls, public delivery, and production authority: zero/false.
+
+The V3 package additionally binds the exact
+`canonical-caption-qualification-run-readiness-v1` receipt:
+
+- readiness SHA-256:
+  `e427168906d6ebe1c05cfc0d43d85d3fbda1542cc71a81ad8d750d53bc9c8f66`;
+- repository absent:
+  `postrender_visual_intelligence_evidence_repository_missing`;
+- repository mounted but no qualified owner result:
+  `postrender_visual_intelligence_evidence_missing`; and
+- incomplete run promoted to qualification: false.
+
+This distinguishes a composition-mount defect from the actual missing
+qualified post-render result without accepting caller-supplied evidence or
+weakening the private-review owner.
 
 The private evidence remains outside Git under the user-scoped Codex private
 evidence root. No media bytes, private object path, credential, or provider
@@ -76,7 +91,7 @@ frames 0, 31, 63, 94, and 126. The full phrase remains readable and inside the
 lower safe band while the B-roll proxy remains in the upper-right region.
 
 Repeated full-frame images can be visually misrepresented by the inspection
-viewer when large identical regions are optimized. The v2 receipt therefore
+viewer when large identical regions are optimized. The v3 receipt therefore
 does not rely on thumbnails alone. It decodes the exact MP4 and compares every
 frame against the exact libass alpha/glyph mask:
 
@@ -88,6 +103,15 @@ frame against the exact libass alpha/glyph mask:
 
 The receipt also emits isolated, padded Caption strips so direct human/AI review
 does not depend on repeated full-frame thumbnail behavior.
+
+During the V3 inspection, the image viewer rendered one copy of frame 63 with
+missing glyph fragments even though the isolated Caption PNGs for frames 63,
+94, and 126 have the same SHA-256
+`abb3a934e6dd5ef82abdfad7da4e2a0c16299445503de7fb5057fb608cf38a1c`
+and compare byte-for-byte identical. Separate high-detail inspection rendered
+the identical copies correctly. The visual decision therefore uses the exact
+PNG bytes plus the all-frame decoded-pixel measurement, not the inconsistent
+viewer presentation.
 
 ## What this visual proves
 

@@ -82,10 +82,10 @@ check(progress.gates.find((gate) =>
 check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
     (reference) => reference.version ===
-      'caption-broll-approved-execution-inspection-package-v2'
+      'caption-broll-approved-execution-inspection-package-v3'
       && reference.contentHash ===
-        '55a496564486d7dd18cfd767b0d41009f910854b0843ec87adb6ce503ed4b96c'),
-'B-roll evidence inventories the approved 17-job real-media execution proof')
+        '919b02ef4086332f8c414b598cef7249da2276f6ec88482f504c1d00acdaeef8'),
+'B-roll evidence inventories the approved 17-job run and its exact readiness blocker')
 check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')
   ?.nextRequiredEvidenceCodes.includes(
@@ -105,7 +105,7 @@ check(progress.gates.find((gate) =>
   && progress.gates.find((gate) =>
     gate.gapId === 'canonical_backend_private_execution_mount')
     ?.evidenceRefs.some((reference) => reference.version ===
-      'caption-broll-approved-execution-inspection-package-v2')
+      'caption-broll-approved-execution-inspection-package-v3')
   && progress.gates.find((gate) =>
     gate.gapId === 'qualified_ai_complete_time_visual_review')
     ?.evidenceRefs.some((reference) => reference.version ===

@@ -33,14 +33,21 @@ the evidence currently belongs to several independently scoped tests.
 ## Approved Caption + B-roll execution evidence
 
 The current machine-readable progress record now also inventories the accepted
-`caption-broll-approved-execution-inspection-package-v2` private receipt with
+`caption-broll-approved-execution-inspection-package-v3` private receipt with
 digest
-`55a496564486d7dd18cfd767b0d41009f910854b0843ec87adb6ce503ed4b96c`.
+`919b02ef4086332f8c414b598cef7249da2276f6ec88482f504c1d00acdaeef8`.
 That exact approved-snapshot run executed 17 Caption jobs, one bounded support
 resume, and 13 B-roll owner work items against hash-pinned real media. It
 verified Caption and B-roll replay, persisted the real libass overlay and
 Remotion composite, represented all 127 frames in the contact sheet, and
-measured retained Caption pixels on every decoded frame.
+measured retained Caption pixels on every decoded frame. The V3 receipt also
+binds `canonical-caption-qualification-run-readiness-v1` digest
+`e427168906d6ebe1c05cfc0d43d85d3fbda1542cc71a81ad8d750d53bc9c8f66`
+and truthfully reports
+`postrender_visual_intelligence_evidence_missing` after the existing canonical
+evidence repository is mounted. The same diagnostic separately reports
+`postrender_visual_intelligence_evidence_repository_missing` when that owner
+store is absent; neither state promotes the run.
 
 The receipt advances both the B-roll owner and canonical backend-execution
 evidence inventories, but it does not close either terminal gate. Its Visual

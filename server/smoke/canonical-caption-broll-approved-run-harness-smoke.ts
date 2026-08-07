@@ -11,6 +11,11 @@ import type {
   ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
 } from '../../src/lib/approved-edit-execution-package-client'
 import type { PlannerInput } from '../../src/types/reeditpro'
+import type { CanonicalCaptionQualificationRunReadiness } from
+  '../../src/types/canonical-caption-qualification-run-readiness'
+import {
+  CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
+} from '../captions-specialist/caption-current-job-readiness'
 import {
   editSkillArtifactSchemaRegistry,
 } from '../edit-skills/internal-fixture-runtime'
@@ -34,11 +39,41 @@ import {
   createCanonicalPrivateEditSkillArtifactStore,
 } from '../services/canonical-private-edit-skill-artifact-store'
 import {
+  createCanonicalCaptionBrollEvidenceRepository,
+} from '../services/canonical-caption-broll-support-service'
+import {
+  createCanonicalCaptionDirectVisualInspectionRepository,
+} from '../services/canonical-caption-direct-visual-inspection-evidence-service'
+import {
+  createCanonicalCaptionQualificationRunReadinessService,
+} from '../services/canonical-caption-qualification-run-evidence-reader'
+import {
+  createCanonicalCaptionSoundSyncEvidenceRepository,
+} from '../services/canonical-caption-soundsync-support-service'
+import {
+  createCanonicalCaptionTerminalQualificationRequest,
+} from '../services/canonical-caption-terminal-qualification-service'
+import {
+  createCanonicalCaptionTrackAllEvidenceRepository,
+} from '../services/canonical-caption-track-all-support-service'
+import {
+  createCanonicalCaptionTranscriptEvidenceRepository,
+} from '../services/canonical-caption-transcript-support-service'
+import {
+  createCanonicalCaptionVisualIntelligenceEvidenceRepository,
+} from '../services/canonical-caption-visual-intelligence-support-service'
+import {
   createCanonicalPrivateLocalJsonObjectPort,
 } from '../services/canonical-private-local-json-object-port'
 import {
+  createCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+} from '../services/canonical-caption-postrender-visual-intelligence-durable-store'
+import {
   createExactEditPreferenceService,
 } from '../services/exact-edit-preference-service'
+import {
+  createCanonicalSpecialistSupportResumeRepository,
+} from '../services/canonical-specialist-support-resume-service'
 import {
   buildCurrentPlanningInputAuthorityExpectation,
 } from '../services/planning-input-authority-binding-service'
@@ -448,7 +483,14 @@ try {
     assert.equal(fixture.structuralFixtureOnly, true)
     assert.equal(fixture.privateQualificationEvidence, false)
   }
-  let inspectionPackage: ApprovedExecutionInspectionPackage | null = null
+  const objectPort = createCanonicalPrivateLocalJsonObjectPort({
+    localStorageRoot: root,
+  })
+  const postrenderVisualIntelligenceEvidenceRepository =
+    createCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository({
+      objectPort,
+    })
+  let captionOverlaySha256: string | null = null
   const captionExecution = realPrivateExecution
     ? await (async () => {
         const inspectionRoot = join(
@@ -507,9 +549,6 @@ try {
         await prepareOfflineRemotionDockerRuntime()
         const remotionRuntime =
           await activatePrivateOfflineRemotionRenderRuntime()
-        const objectPort = createCanonicalPrivateLocalJsonObjectPort({
-          localStorageRoot: root,
-        })
         const createBrollArtifactStore = () =>
           createCanonicalPrivateEditSkillArtifactStore({
             objectPort,
@@ -542,12 +581,7 @@ try {
             now: () => '2026-08-07T20:10:00.000Z',
           },
         })
-        inspectionPackage = await createApprovedExecutionInspectionPackage({
-          root,
-          sourceSha256,
-          captionOverlaySha256: caption.imageArtifact.sha256,
-          execution,
-        })
+        captionOverlaySha256 = caption.imageArtifact.sha256
         return execution
       })()
     : await executeCanonicalCaptionApprovedJobClosure({
@@ -564,6 +598,112 @@ try {
   assert.equal(captionExecution.providerCallPerformedByHarness, false)
   assert.equal(captionExecution.publicDeliveryCreated, false)
   assert.equal(captionExecution.productionAuthorityGranted, false)
+  const snapshot = run.approved.authority.snapshot
+  const qualificationRequest =
+    createCanonicalCaptionTerminalQualificationRequest({
+      requestId: 'caption.broll-approved-run.qualification-readiness',
+      canonicalScope: {
+        ownerUserId,
+        workspaceId,
+        projectId: project.id,
+        editSessionId,
+        planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+        approvedSnapshotRef: {
+          id: snapshot.snapshotId,
+          version: snapshot.schemaVersion,
+          contentHash: snapshot.snapshotHash,
+        },
+      },
+      executionPackageRef: {
+        id: run.approvedEditExecutionPackage.packageRecordId,
+        version: run.approvedEditExecutionPackage.schemaVersion,
+        contentHash: run.approvedEditExecutionPackage.packageHash,
+      },
+      currentJobReadinessRef: {
+        id: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerId,
+        version: CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.schemaVersion,
+        contentHash:
+          CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerDigestSha256,
+      },
+      requiredOutputIds: ['output.caption-broll.approved-run'],
+      privateInternalQualificationRun: true,
+      callerSuppliedEvidenceAccepted: false,
+      browserLocalCompletionAccepted: false,
+      rawChatMediaBytesPathsUrlsOrCredentialsIncluded: false,
+      operationOrRuntimeAuthorityGrantedToCaption: false,
+      providerOrModelAuthorityGrantedToCaption: false,
+      assetMutationAuthorityGrantedToCaption: false,
+      finalQaApprovalAuthorityGrantedToCaption: false,
+      creditOrBillingAuthorityGrantedToCaption: false,
+      publicDeliveryAuthorityGrantedToCaption: false,
+      productionAuthorityGrantedToCaption: false,
+    })
+  const qualificationReadinessService =
+    createCanonicalCaptionQualificationRunReadinessService({
+      context,
+      supportResumeRepository:
+        createCanonicalSpecialistSupportResumeRepository({
+          objectPort,
+          prefix: [
+            'private-internal/captions-specialist/v1',
+            ownerUserId,
+            workspaceId,
+          ].join('/'),
+        }),
+      transcriptEvidenceRepository:
+        createCanonicalCaptionTranscriptEvidenceRepository({ objectPort }),
+      visualIntelligenceEvidenceRepository:
+        createCanonicalCaptionVisualIntelligenceEvidenceRepository({
+          objectPort,
+        }),
+      trackAllEvidenceRepository:
+        createCanonicalCaptionTrackAllEvidenceRepository({ objectPort }),
+      soundSyncEvidenceRepository:
+        createCanonicalCaptionSoundSyncEvidenceRepository({ objectPort }),
+      brollEvidenceRepository:
+        createCanonicalCaptionBrollEvidenceRepository({ objectPort }),
+      directVisualInspectionRepository:
+        createCanonicalCaptionDirectVisualInspectionRepository({ objectPort }),
+    })
+  const unmountedQualificationReadiness =
+    await qualificationReadinessService.inspectExact({
+      request: qualificationRequest,
+    })
+  assert.equal(
+    unmountedQualificationReadiness.disposition,
+    'blocked_missing_canonical_evidence',
+  )
+  assert.equal(
+    unmountedQualificationReadiness.firstBlockerCode,
+    'postrender_visual_intelligence_evidence_repository_missing',
+  )
+  assert.equal(unmountedQualificationReadiness.runEvidenceRef, null)
+  assert.equal(unmountedQualificationReadiness.terminalStatusClaimed, false)
+  context.canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository =
+    postrenderVisualIntelligenceEvidenceRepository
+  const qualificationReadiness =
+    await qualificationReadinessService.inspectExact({
+      request: qualificationRequest,
+    })
+  assert.equal(
+    qualificationReadiness.disposition,
+    'blocked_missing_canonical_evidence',
+  )
+  assert.equal(
+    qualificationReadiness.firstBlockerCode,
+    'postrender_visual_intelligence_evidence_missing',
+  )
+  assert.equal(qualificationReadiness.runEvidenceRef, null)
+  assert.equal(qualificationReadiness.terminalStatusClaimed, false)
+  const inspectionPackage = realPrivateExecution
+    ? await createApprovedExecutionInspectionPackage({
+        root,
+        sourceSha256,
+        captionOverlaySha256: captionOverlaySha256!,
+        execution: captionExecution as CombinedApprovedExecution,
+        qualificationReadiness,
+      })
+    : null
   const emittedInspectionPackage = inspectionPackage as
     ApprovedExecutionInspectionPackage | null
 
@@ -581,6 +721,13 @@ try {
     brollWorkItems: 13,
     exactBrollComponentPropagation: true,
     captionDownstreamQaDependenciesBound: true,
+    qualificationReadinessFirstBlocker:
+      qualificationReadiness.firstBlockerCode,
+    unmountedQualificationReadinessFirstBlocker:
+      unmountedQualificationReadiness.firstBlockerCode,
+    qualificationReadinessDigestSha256:
+      qualificationReadiness.readinessDigestSha256,
+    incompleteRunPromotedToQualification: false,
     planningHarnessRuntimeDispatched: false,
     canonicalCaptionPlanningJobsExecuted: true,
     actualMediaExecutionCompleted: realPrivateExecution,
@@ -606,7 +753,7 @@ try {
 
 interface ApprovedExecutionInspectionPackage {
   readonly schemaVersion:
-    'caption-broll-approved-execution-inspection-package-v2'
+    'caption-broll-approved-execution-inspection-package-v3'
   readonly sourceEvidenceMode: 'real_private_media'
   readonly sourceSha256: string
   readonly approvedSnapshotRef: {
@@ -650,6 +797,15 @@ interface ApprovedExecutionInspectionPackage {
     readonly maximumCoverageBasisPoints: number
     readonly everyFrameCoverageVerified: true
   }
+  readonly qualificationReadiness: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+    readonly disposition: 'blocked_missing_canonical_evidence'
+    readonly firstBlockerCode:
+      'postrender_visual_intelligence_evidence_missing'
+    readonly terminalStatusClaimed: false
+  }
   readonly structuralVisualIntelligenceFixtureExcludedFromQualification: true
   readonly directRasterInspectionRequired: true
   readonly providerCalled: false
@@ -667,6 +823,7 @@ async function createApprovedExecutionInspectionPackage(input: {
   sourceSha256: string
   captionOverlaySha256: string
   execution: CombinedApprovedExecution
+  qualificationReadiness: CanonicalCaptionQualificationRunReadiness
 }): Promise<ApprovedExecutionInspectionPackage> {
   const snapshot = input.execution.broll.runtimeSnapshot
   const resultReceipt = snapshot.resultReceipt
@@ -760,7 +917,7 @@ async function createApprovedExecutionInspectionPackage(input: {
   }
   const withoutDigest = {
     schemaVersion:
-      'caption-broll-approved-execution-inspection-package-v2' as const,
+      'caption-broll-approved-execution-inspection-package-v3' as const,
     sourceEvidenceMode: 'real_private_media' as const,
     sourceSha256: input.sourceSha256,
     approvedSnapshotRef: input.execution.approvedSnapshotRef,
@@ -781,6 +938,15 @@ async function createApprovedExecutionInspectionPackage(input: {
     sampleFrames,
     captionSampleStrips,
     captionPixelCoverage,
+    qualificationReadiness: {
+      id: input.qualificationReadiness.readinessId,
+      version: input.qualificationReadiness.schemaVersion,
+      contentHash: input.qualificationReadiness.readinessDigestSha256,
+      disposition: 'blocked_missing_canonical_evidence' as const,
+      firstBlockerCode:
+        'postrender_visual_intelligence_evidence_missing' as const,
+      terminalStatusClaimed: false as const,
+    },
     structuralVisualIntelligenceFixtureExcludedFromQualification: true as const,
     directRasterInspectionRequired: true as const,
     providerCalled: false as const,

@@ -18,6 +18,14 @@ import {
 } from '../../src/types/canonical-caption-qualification-run-evidence'
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
+import {
+  CANONICAL_CAPTION_QUALIFICATION_RUN_BLOCKER_CODES,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_READINESS_SERVICE_VERSION,
+  CANONICAL_CAPTION_QUALIFICATION_RUN_READINESS_VERSION,
+  type CanonicalCaptionQualificationRunBlockerCode,
+  type CanonicalCaptionQualificationRunReadiness,
+  type CanonicalCaptionQualificationRunReadinessService,
+} from '../../src/types/canonical-caption-qualification-run-readiness'
 import type {
   SkillContractRef,
   SkillSupportRequest,
@@ -269,12 +277,51 @@ const legacyRecordV1Schema = recordSchema.extend({
     privateReviewAccepted: z.literal(true),
   }).strict(),
 }).strict()
+const runReadinessSchema:
+z.ZodType<CanonicalCaptionQualificationRunReadiness> = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_QUALIFICATION_RUN_READINESS_VERSION),
+  readinessId: safeKey,
+  readinessDigestSha256: sha256,
+  requestRef: refSchema,
+  disposition: z.enum([
+    'blocked_missing_canonical_evidence',
+    'ready_for_create_only_run_evidence_persistence',
+  ]),
+  firstBlockerCode: z.enum(
+    CANONICAL_CAPTION_QUALIFICATION_RUN_BLOCKER_CODES).nullable(),
+  runEvidenceRef: refSchema.nullable(),
+  canonicalRunEvidenceReadAttempted: z.literal(true),
+  allRequiredCanonicalEvidenceReread: z.boolean(),
+  firstMissingEvidenceReportedWithoutCallerSubstitution: z.literal(true),
+  readinessOnlyNoQualificationClaim: z.literal(true),
+  qualificationRecordCreated: z.literal(false),
+  terminalStatusClaimed: z.literal(false),
+  callerSuppliedEvidenceAccepted: z.literal(false),
+  browserLocalCompletionAccepted: z.literal(false),
+  sourceFixtureRelabeledAsRuntimeEvidence: z.literal(false),
+  operationOrRuntimeAuthorityGrantedToCaption: z.literal(false),
+  providerOrModelAuthorityGrantedToCaption: z.literal(false),
+  assetMutationAuthorityGrantedToCaption: z.literal(false),
+  finalQaApprovalAuthorityGrantedToCaption: z.literal(false),
+  creditOrBillingAuthorityGrantedToCaption: z.literal(false),
+  publicDeliveryAuthorityGrantedToCaption: z.literal(false),
+  productionAuthorityGrantedToCaption: z.literal(false),
+}).strict()
 
 const admittedReadPorts = new WeakSet<object>()
 const admittedRepositories = new WeakSet<object>()
 const admittedAssemblies = new WeakSet<object>()
+const admittedReadinessServices = new WeakSet<object>()
 
-class MissingCanonicalRunEvidence extends Error {}
+class MissingCanonicalRunEvidence extends Error {
+  readonly blockerCode: CanonicalCaptionQualificationRunBlockerCode
+
+  constructor(blockerCode: CanonicalCaptionQualificationRunBlockerCode) {
+    super(blockerCode)
+    this.blockerCode = blockerCode
+  }
+}
 
 export function parseCanonicalCaptionQualificationRunEvidence(
   value: unknown,
@@ -300,6 +347,26 @@ export function parseCanonicalCaptionQualificationRunEvidenceV1(
   const parsed = legacyRecordV1Schema.parse(value) as
     CanonicalCaptionQualificationRunEvidenceV1
   validateRunRecord(parsed)
+  return structuredClone(parsed)
+}
+
+export function parseCanonicalCaptionQualificationRunReadiness(
+  value: unknown,
+): CanonicalCaptionQualificationRunReadiness {
+  assertClosedContractTree(value, 'Canonical Caption run readiness')
+  rejectUnsafeText(value, 'Canonical Caption run readiness')
+  const parsed = runReadinessSchema.parse(value)
+  const ready = parsed.disposition ===
+    'ready_for_create_only_run_evidence_persistence'
+  if (parsed.readinessDigestSha256 !== calculateSkillContractDigest(
+    parsed as unknown as Record<string, unknown>, 'readinessDigestSha256')
+    || parsed.readinessId !== `caption.qualification.run-readiness.${
+      parsed.requestRef.contentHash.slice(0, 40)}`
+    || ready !== (parsed.firstBlockerCode === null)
+    || ready !== (parsed.runEvidenceRef !== null)
+    || ready !== parsed.allRequiredCanonicalEvidenceReread) {
+    throw new Error('Canonical Caption run readiness is inconsistent.')
+  }
   return structuredClone(parsed)
 }
 
@@ -511,6 +578,142 @@ export function createCanonicalCaptionQualificationRunEvidenceReader(input: {
     })
 }
 
+export function createCanonicalCaptionQualificationRunReadinessService(input: {
+  readonly context: ServiceContext
+  readonly supportResumeRepository:
+    CanonicalSpecialistSupportResumeRepository
+  readonly transcriptEvidenceRepository:
+    CanonicalCaptionTranscriptEvidenceRepository
+  readonly visualIntelligenceEvidenceRepository:
+    CanonicalCaptionVisualIntelligenceEvidenceRepository
+  readonly trackAllEvidenceRepository:
+    CanonicalCaptionTrackAllEvidenceRepository
+  readonly soundSyncEvidenceRepository:
+    CanonicalCaptionSoundSyncEvidenceRepository
+  readonly brollEvidenceRepository:
+    CanonicalCaptionBrollEvidenceRepository
+  readonly directVisualInspectionRepository:
+    CanonicalCaptionDirectVisualInspectionRepository
+}): CanonicalCaptionQualificationRunReadinessService {
+  assertDependencies(input)
+  const service = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_QUALIFICATION_RUN_READINESS_SERVICE_VERSION,
+    exactApprovedRunSourcesReread: true as const,
+    callerSuppliedEvidenceAccepted: false as const,
+    qualificationOrAuthorityPromotionAllowed: false as const,
+    async inspectExact(untrusted: unknown) {
+      const request = parseCanonicalCaptionTerminalQualificationRequest(
+        requestFromEnvelope(untrusted))
+      try {
+        return createRunReadiness({
+          request,
+          runEvidence: await buildRunEvidence(input, request),
+          blockerCode: null,
+        })
+      } catch (error) {
+        if (error instanceof MissingCanonicalRunEvidence) {
+          return createRunReadiness({
+            request,
+            runEvidence: null,
+            blockerCode: error.blockerCode,
+          })
+        }
+        if (error instanceof ApiError
+          && error.code === 'TOOL_NOT_READY'
+          && requiredGate(error) ===
+            'canonical_caption_postrender_visual_intelligence_evidence_repository') {
+          return createRunReadiness({
+            request,
+            runEvidence: null,
+            blockerCode:
+              'postrender_visual_intelligence_evidence_repository_missing',
+          })
+        }
+        if (error instanceof ApiError
+          && error.code === 'JOB_DEPENDENCY_NOT_READY') {
+          return createRunReadiness({
+            request,
+            runEvidence: null,
+            blockerCode: requiredGate(error) ===
+              'canonical_caption_postrender_visual_qa_evidence'
+              ? 'postrender_visual_intelligence_evidence_missing'
+              : 'private_job_dependency_not_ready',
+          })
+        }
+        throw error
+      }
+    },
+  })
+  admittedReadinessServices.add(service)
+  return service
+}
+
+export function isCanonicalCaptionQualificationRunReadinessService(
+  value: unknown,
+): value is CanonicalCaptionQualificationRunReadinessService {
+  return Boolean(value && typeof value === 'object'
+    && admittedReadinessServices.has(value as object))
+}
+
+function createRunReadiness(input: {
+  request: ReturnType<typeof createCanonicalCaptionTerminalQualificationRequest>
+  runEvidence: CanonicalCaptionQualificationRunEvidence | null
+  blockerCode: CanonicalCaptionQualificationRunBlockerCode | null
+}): CanonicalCaptionQualificationRunReadiness {
+  const ready = input.runEvidence !== null
+  if (ready !== (input.blockerCode === null)) {
+    throw new Error('Canonical Caption run readiness input is inconsistent.')
+  }
+  const exactRequestRef = requestRef(input.request)
+  const withoutDigest: Omit<CanonicalCaptionQualificationRunReadiness,
+    'readinessDigestSha256'> = {
+    schemaVersion: CANONICAL_CAPTION_QUALIFICATION_RUN_READINESS_VERSION,
+    readinessId: `caption.qualification.run-readiness.${
+      exactRequestRef.contentHash.slice(0, 40)}`,
+    requestRef: exactRequestRef,
+    disposition: ready
+      ? 'ready_for_create_only_run_evidence_persistence'
+      : 'blocked_missing_canonical_evidence',
+    firstBlockerCode: input.blockerCode,
+    runEvidenceRef: input.runEvidence ? {
+      id: input.runEvidence.recordId,
+      version: input.runEvidence.schemaVersion,
+      contentHash: input.runEvidence.recordDigestSha256,
+    } : null,
+    canonicalRunEvidenceReadAttempted: true,
+    allRequiredCanonicalEvidenceReread: ready,
+    firstMissingEvidenceReportedWithoutCallerSubstitution: true,
+    readinessOnlyNoQualificationClaim: true,
+    qualificationRecordCreated: false,
+    terminalStatusClaimed: false,
+    callerSuppliedEvidenceAccepted: false,
+    browserLocalCompletionAccepted: false,
+    sourceFixtureRelabeledAsRuntimeEvidence: false,
+    operationOrRuntimeAuthorityGrantedToCaption: false,
+    providerOrModelAuthorityGrantedToCaption: false,
+    assetMutationAuthorityGrantedToCaption: false,
+    finalQaApprovalAuthorityGrantedToCaption: false,
+    creditOrBillingAuthorityGrantedToCaption: false,
+    publicDeliveryAuthorityGrantedToCaption: false,
+    productionAuthorityGrantedToCaption: false,
+  }
+  return Object.freeze(parseCanonicalCaptionQualificationRunReadiness({
+    ...withoutDigest,
+    readinessDigestSha256: calculateSkillContractDigest({
+      ...withoutDigest,
+      readinessDigestSha256: '',
+    } as unknown as Record<string, unknown>, 'readinessDigestSha256'),
+  }))
+}
+
+function requiredGate(error: ApiError): string | null {
+  if (!error.details || typeof error.details !== 'object'
+    || Array.isArray(error.details)) return null
+  const value = (error.details as Record<string, unknown>).requiredGate
+  return typeof value === 'string' ? value : null
+}
+
 async function buildRunEvidence(
   dependencies: Parameters<
     typeof createCanonicalCaptionQualificationRunEvidenceReader>[0],
@@ -532,7 +735,8 @@ async function buildRunEvidence(
   if (!projection || !planningBindingValue
     || projection.disposition !==
       'planning_work_projected_downstream_caption_execution_required') {
-    throw new MissingCanonicalRunEvidence()
+    throw new MissingCanonicalRunEvidence(
+      'caption_planning_projection_or_binding_missing')
   }
   const planningBinding = parseCanonicalCaptionSpecialistPlanningBinding(
     planningBindingValue)
@@ -544,14 +748,18 @@ async function buildRunEvidence(
       packageRecordId: executionPackage.packageRecordId,
       outputId: projection.outputId,
     })
-  if (!privateReview) throw new MissingCanonicalRunEvidence()
+  if (!privateReview) {
+    throw new MissingCanonicalRunEvidence(
+      'caption_private_review_projection_missing')
+  }
   const parsedReview = parseCanonicalCaptionPrivateReviewEvidenceProjection(
     privateReview)
   if (!parsedReview.terminalPrivateInternalQualificationEligible
     || !parsedReview.privateReviewAccepted
     || parsedReview.canonicalPrivateReview.assemblyRef === null
     || parsedReview.canonicalPrivateReview.decisionRef === null) {
-    throw new MissingCanonicalRunEvidence()
+    throw new MissingCanonicalRunEvidence(
+      'caption_private_review_not_terminal_eligible')
   }
   const renderedArtifactRef = evidenceRef(
     parsedReview.output.renderedArtifactRef)
@@ -565,7 +773,10 @@ async function buildRunEvidence(
       outputId: projection.outputId,
       renderedArtifactRef,
     })
-  if (!directInspectionValue) throw new MissingCanonicalRunEvidence()
+  if (!directInspectionValue) {
+    throw new MissingCanonicalRunEvidence(
+      'caption_direct_visual_inspection_missing')
+  }
   const directInspection =
     parseCanonicalCaptionDirectVisualInspectionEvidence(
       directInspectionValue)
@@ -598,7 +809,10 @@ async function buildRunEvidence(
   }
   const artifactAggregate = await readPrivateArtifactQaAggregate(
     aggregateScope)
-  if (!artifactAggregate) throw new MissingCanonicalRunEvidence()
+  if (!artifactAggregate) {
+    throw new MissingCanonicalRunEvidence(
+      'private_artifact_qa_aggregate_missing')
+  }
   await verifyAllPrivateArtifactQaEvidenceBlobs({
     scope: aggregateScope,
     aggregate: artifactAggregate,
@@ -627,7 +841,10 @@ async function buildRunEvidence(
       editSessionId: request.canonicalScope.editSessionId,
       jobId: job.id,
     })
-    if (!completion) throw new MissingCanonicalRunEvidence()
+    if (!completion) {
+      throw new MissingCanonicalRunEvidence(
+        'caption_job_adapter_completion_missing')
+    }
     const selection = findCurrentPrivateTestSelection({
       aggregate: artifactAggregate,
       identity: {
@@ -639,7 +856,10 @@ async function buildRunEvidence(
         expectedAssetId: manifestEntry.id,
       },
     })
-    if (!selection) throw new MissingCanonicalRunEvidence()
+    if (!selection) {
+      throw new MissingCanonicalRunEvidence(
+        'caption_artifact_qa_selection_missing')
+    }
     assertCompletionSelection(completion, selection)
     const verified = await verifyCanonicalCaptionSpecialistPlanningArtifact({
       localStorageRoot: context.env.localStorageRoot,
@@ -647,7 +867,10 @@ async function buildRunEvidence(
     })
     const currentPairValue = await dependencies.supportResumeRepository
       .rereadCallResultPair({ callRef: verified.receipt.captionCallRef })
-    if (!currentPairValue) throw new MissingCanonicalRunEvidence()
+    if (!currentPairValue) {
+      throw new MissingCanonicalRunEvidence(
+        'current_specialist_call_result_pair_missing')
+    }
     const currentPair = parseCanonicalSpecialistCallResultPair(
       currentPairValue)
     if (currentPair.pairId !== verified.callResultPairRef.id
@@ -669,7 +892,8 @@ async function buildRunEvidence(
         currentPair.result.resultDigestSha256
       || sha256AuthorityValue(verified.producedArtifactRefs) !==
         sha256AuthorityValue(currentPair.result.producedArtifactRefs)) {
-      throw new MissingCanonicalRunEvidence()
+      throw new MissingCanonicalRunEvidence(
+        'specialist_support_resume_chain_incomplete')
     }
     const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
       workItem.executionInput)
@@ -881,7 +1105,10 @@ async function readOwnerEvidence(input: {
       canonicalReadScope: scope,
       canonicalTranscriptRef: asDomainRef(transcriptArtifact),
     })
-  if (!transcript) throw new MissingCanonicalRunEvidence()
+  if (!transcript) {
+    throw new MissingCanonicalRunEvidence(
+      'canonical_transcript_authenticated_read_missing')
+  }
   const transcriptBinding = transcript.authenticatedReadBinding
   const transcriptBindingRef: CaptionDomainRef = {
     id: transcriptBinding.bindingId,
@@ -926,7 +1153,10 @@ async function readOwnerEvidence(input: {
         .visualIntelligenceEvidenceRepository.rereadBySupportRequestRef({
           supportRequestRef,
         })
-      if (!value) throw new MissingCanonicalRunEvidence()
+      if (!value) {
+        throw new MissingCanonicalRunEvidence(
+          'visual_intelligence_authenticated_evidence_missing')
+      }
       const parsed =
         parseCanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord(
           value)
@@ -935,7 +1165,10 @@ async function readOwnerEvidence(input: {
     } else if (request.targetSkillKey === 'track_all') {
       const value = await input.dependencies.trackAllEvidenceRepository
         .rereadBySupportRequestRef({ supportRequestRef })
-      if (!value) throw new MissingCanonicalRunEvidence()
+      if (!value) {
+        throw new MissingCanonicalRunEvidence(
+          'track_all_authenticated_evidence_missing')
+      }
       const parsed = parseCanonicalCaptionTrackAllAuthenticatedEvidenceRecord(
         value)
       ownerRef = { id: parsed.recordId, version: parsed.schemaVersion,
@@ -943,7 +1176,10 @@ async function readOwnerEvidence(input: {
     } else if (request.targetSkillKey === 'soundsync') {
       const value = await input.dependencies.soundSyncEvidenceRepository
         .rereadEvidenceRecord({ supportRequestRef })
-      if (!value) throw new MissingCanonicalRunEvidence()
+      if (!value) {
+        throw new MissingCanonicalRunEvidence(
+          'soundsync_authenticated_evidence_missing')
+      }
       const parsed = parseCanonicalCaptionSoundSyncAuthenticatedEvidenceRecord(
         value)
       ownerRef = { id: parsed.soundSyncResult.resultId,
@@ -952,7 +1188,10 @@ async function readOwnerEvidence(input: {
     } else if (request.targetSkillKey === 'broll_owner') {
       const value = await input.dependencies.brollEvidenceRepository
         .rereadEvidenceRecord({ supportRequestRef })
-      if (!value) throw new MissingCanonicalRunEvidence()
+      if (!value) {
+        throw new MissingCanonicalRunEvidence(
+          'broll_authenticated_evidence_missing')
+      }
       const parsed = parseCanonicalCaptionBrollAuthenticatedEvidenceRecord(
         value)
       ownerRef = { id: parsed.captionBinding.bindingId,
@@ -1151,7 +1390,8 @@ function assertDirectVisualInspectionAuthority(input: {
   const { evidence, request, authority, executionPackage } = input
   const source = authority.sourceAssetManifest
   if (source.schemaVersion !== 'private-approved-source-binding-manifest-v1') {
-    throw new MissingCanonicalRunEvidence()
+    throw new MissingCanonicalRunEvidence(
+      'approved_source_media_binding_missing')
   }
   const expectedSourceAuthorityRef: CaptionDomainRef = {
     id: `${authority.snapshot.snapshotId}.approved-source-media`,

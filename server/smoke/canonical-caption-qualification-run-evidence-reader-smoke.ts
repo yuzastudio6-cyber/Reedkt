@@ -5,6 +5,8 @@ import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
 import type { CanonicalCaptionQualificationRunEvidence } from
   '../../src/types/canonical-caption-qualification-run-evidence'
+import type { CanonicalCaptionQualificationRunReadiness } from
+  '../../src/types/canonical-caption-qualification-run-readiness'
 import {
   CAPTION_CURRENT_JOB_READINESS_LEDGER_V2,
 } from '../captions-specialist/caption-current-job-readiness'
@@ -15,6 +17,7 @@ import {
   createCanonicalCaptionQualificationRunEvidenceAssembly,
   createCanonicalCaptionQualificationRunEvidenceReadPort,
   createCanonicalCaptionQualificationRunEvidenceRepository,
+  parseCanonicalCaptionQualificationRunReadiness,
   parseCanonicalCaptionQualificationRunEvidence,
   parseCanonicalCaptionQualificationRunEvidenceV1,
 } from '../services/canonical-caption-qualification-run-evidence-reader'
@@ -232,6 +235,66 @@ function memoryObjectPort(): {
 
 async function run(): Promise<void> {
   const record = buildRecord()
+  const blockedReadiness = buildReadiness({
+    blockerCode: 'caption_private_review_projection_missing',
+    runEvidenceRef: null,
+  })
+  check(blockedReadiness.disposition ===
+    'blocked_missing_canonical_evidence'
+    && blockedReadiness.firstBlockerCode ===
+      'caption_private_review_projection_missing'
+    && blockedReadiness.runEvidenceRef === null
+    && !blockedReadiness.allRequiredCanonicalEvidenceReread
+    && !blockedReadiness.terminalStatusClaimed,
+  'Run readiness must expose the first exact missing owner record without promoting qualification.')
+  const readyReadiness = buildReadiness({
+    blockerCode: null,
+    runEvidenceRef: {
+      id: record.recordId,
+      version: record.schemaVersion,
+      contentHash: record.recordDigestSha256,
+    },
+  })
+  check(readyReadiness.disposition ===
+    'ready_for_create_only_run_evidence_persistence'
+    && readyReadiness.allRequiredCanonicalEvidenceReread
+    && readyReadiness.firstBlockerCode === null
+    && readyReadiness.runEvidenceRef?.contentHash ===
+      record.recordDigestSha256,
+  'Ready diagnostics must point to exact run evidence without claiming the terminal status.')
+  const inconsistentReadiness = structuredClone(blockedReadiness) as unknown as
+    Record<string, unknown>
+  inconsistentReadiness.firstBlockerCode = null
+  inconsistentReadiness.readinessDigestSha256 = calculateSkillContractDigest(
+    inconsistentReadiness, 'readinessDigestSha256')
+  expectThrow(() => parseCanonicalCaptionQualificationRunReadiness(
+    inconsistentReadiness))
+  expectThrow(() => parseCanonicalCaptionQualificationRunReadiness({
+    ...blockedReadiness,
+    unknown: true,
+  }))
+  expectThrow(() => parseCanonicalCaptionQualificationRunReadiness({
+    ...blockedReadiness,
+    readinessDigestSha256: '0'.repeat(64),
+  }))
+  const promotedReadiness = structuredClone(blockedReadiness) as unknown as
+    Record<string, unknown>
+  promotedReadiness.productionAuthorityGrantedToCaption = true
+  promotedReadiness.readinessDigestSha256 = calculateSkillContractDigest(
+    promotedReadiness, 'readinessDigestSha256')
+  expectThrow(() => parseCanonicalCaptionQualificationRunReadiness(
+    promotedReadiness))
+  const inheritedReadiness = Object.create({
+    productionAuthorityGrantedToCaption: true,
+  }) as Record<string, unknown>
+  Object.assign(inheritedReadiness, blockedReadiness)
+  expectThrow(() => parseCanonicalCaptionQualificationRunReadiness(
+    inheritedReadiness))
+  const cyclicReadiness = structuredClone(blockedReadiness) as unknown as
+    Record<string, unknown>
+  cyclicReadiness.cycle = cyclicReadiness
+  expectThrow(() => parseCanonicalCaptionQualificationRunReadiness(
+    cyclicReadiness))
   check(parseCanonicalCaptionQualificationRunEvidence(record)
     .recordDigestSha256 === record.recordDigestSha256,
   'The exact closed qualification-run record must parse.')
@@ -441,6 +504,53 @@ async function run(): Promise<void> {
     syntheticEngineeringFixtureClaimedProfessionalAppearance: false,
     productionAuthorityGranted: false,
   }, null, 2))
+}
+
+function buildReadiness(input: {
+  blockerCode: CanonicalCaptionQualificationRunReadiness['firstBlockerCode']
+  runEvidenceRef: CaptionDomainRef | null
+}): CanonicalCaptionQualificationRunReadiness {
+  const ready = input.runEvidenceRef !== null
+  const requestRef = {
+    id: request.requestId,
+    version: request.schemaVersion,
+    contentHash: request.requestDigestSha256,
+  }
+  const withoutDigest: Omit<CanonicalCaptionQualificationRunReadiness,
+    'readinessDigestSha256'> = {
+    schemaVersion: 'canonical-caption-qualification-run-readiness-v1',
+    readinessId: `caption.qualification.run-readiness.${
+      requestRef.contentHash.slice(0, 40)}`,
+    requestRef,
+    disposition: ready
+      ? 'ready_for_create_only_run_evidence_persistence'
+      : 'blocked_missing_canonical_evidence',
+    firstBlockerCode: input.blockerCode,
+    runEvidenceRef: input.runEvidenceRef,
+    canonicalRunEvidenceReadAttempted: true,
+    allRequiredCanonicalEvidenceReread: ready,
+    firstMissingEvidenceReportedWithoutCallerSubstitution: true,
+    readinessOnlyNoQualificationClaim: true,
+    qualificationRecordCreated: false,
+    terminalStatusClaimed: false,
+    callerSuppliedEvidenceAccepted: false,
+    browserLocalCompletionAccepted: false,
+    sourceFixtureRelabeledAsRuntimeEvidence: false,
+    operationOrRuntimeAuthorityGrantedToCaption: false,
+    providerOrModelAuthorityGrantedToCaption: false,
+    assetMutationAuthorityGrantedToCaption: false,
+    finalQaApprovalAuthorityGrantedToCaption: false,
+    creditOrBillingAuthorityGrantedToCaption: false,
+    publicDeliveryAuthorityGrantedToCaption: false,
+    productionAuthorityGrantedToCaption: false,
+  }
+  return parseCanonicalCaptionQualificationRunReadiness({
+    ...withoutDigest,
+    readinessDigestSha256: calculateSkillContractDigest({
+      ...withoutDigest,
+      readinessDigestSha256: '',
+    } as unknown as Record<string, unknown>, 'readinessDigestSha256'),
+  })
 }
 
 void run()

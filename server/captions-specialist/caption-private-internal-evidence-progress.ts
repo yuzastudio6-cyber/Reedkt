@@ -141,9 +141,9 @@ const brollProfessionalInspectionRef = ref(
   'caption-broll-owner-professional-direct-inspection-v1',
   '93f1a59310c6fa5e41f57b39e4b6db6ae82d7b015a800b50ad3b6235ef818adc')
 const approvedBrollExecutionInspectionRef = ref(
-  'caption.broll-approved.execution.private-inspection.2026-08-07-v7',
-  'caption-broll-approved-execution-inspection-package-v2',
-  '55a496564486d7dd18cfd767b0d41009f910854b0843ec87adb6ce503ed4b96c')
+  'caption.broll-approved.execution.private-inspection.2026-08-07-v8',
+  'caption-broll-approved-execution-inspection-package-v3',
+  '919b02ef4086332f8c414b598cef7249da2276f6ec88482f504c1d00acdaeef8')
 const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
@@ -258,8 +258,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v8',
-  observedAt: '2026-08-07T07:56:49.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v9',
+  observedAt: '2026-08-07T11:48:00.000-04:00',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

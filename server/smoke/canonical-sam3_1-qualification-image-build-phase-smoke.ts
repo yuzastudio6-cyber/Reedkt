@@ -334,6 +334,40 @@ assert.equal(terminal.gpuJobDispatched, false)
 assert.equal(terminal.customerCreditMutationCreated, false)
 assert.equal(terminal.productionReady, false)
 
+const exactFailureBuild = successBuild(
+  buildBody,
+  buildId,
+  authority.imageDestination.taggedUri,
+)
+exactFailureBuild.status = 'FAILURE'
+delete exactFailureBuild.results
+const exactFailureState = createStatePort()
+const exactFailureTerminal =
+  await createCanonicalSam31QualificationImageBuildPhase({
+    authorityReadPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+    },
+    statePort: exactFailureState.port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(exactFailureBuild) }
+      },
+    },
+    now: () => '2026-08-04T13:02:31.000Z',
+  }).observeOneQualificationImageBuild({ authority, submission })
+assertCanonicalSam31QualificationImageBuildTerminal(exactFailureTerminal)
+assert.equal(exactFailureTerminal.disposition, 'terminal_failure')
+assert.equal(exactFailureTerminal.cloudBuildStatus, 'FAILURE')
+assert.equal(exactFailureTerminal.exactBuildConfigurationEchoVerified, true)
+assert.equal(
+  exactFailureTerminal.exactStorageGenerationProvenanceVerified,
+  true,
+)
+assert.equal(exactFailureTerminal.imageBuiltAndPushed, false)
+assert.equal(exactFailureState.terminals.size, 1)
+
 let contractCloudCalls = 0
 const contractPhase = createCanonicalSam31QualificationImageBuildPhase({
   authorityReadPort: {
@@ -628,6 +662,7 @@ console.log(JSON.stringify({
     providerNumericProjectIdentityNormalized: true,
     reconciledBuildObservedThroughExactTerminalLineage: true,
     exactTerminalEchoRequired: true,
+    exactFailedBuildConfigurationAndStorageProvenanceReread: true,
     immutableImagePendingSupplyChainRelease: true,
     sourceCheckpointQualificationGranted: false,
     runtimeReleaseGranted: false,

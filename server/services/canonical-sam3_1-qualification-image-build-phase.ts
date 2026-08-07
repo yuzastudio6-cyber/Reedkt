@@ -467,13 +467,16 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
           })
         }
         if (build.status !== 'SUCCESS') {
+          const expectedBody =
+            compileCanonicalSam31QualificationImageBuildRequestBody(authority)
+          assertBuildConfigurationEcho(build, expectedBody)
           const failure = buildTerminal({
             ...base,
             disposition: 'terminal_failure',
             providerHttpStatus: response.status,
             cloudBuildStatus: build.status,
-            exactBuildConfigurationEchoVerified: false,
-            exactStorageGenerationProvenanceVerified: false,
+            exactBuildConfigurationEchoVerified: true,
+            exactStorageGenerationProvenanceVerified: true,
             warningsAbsent: build.warnings.length === 0,
             immutableImageDigest: null,
             immutableImageUri: null,
@@ -710,6 +713,21 @@ function assertBuildEcho(
   expected: Readonly<Record<string, unknown>>,
   authority: CanonicalSam31QualificationImageBuildAuthority,
 ): void {
+  assertBuildConfigurationEcho(build, expected)
+  const image = build.results.images[0]
+  if (
+    build.status !== 'SUCCESS'
+    || build.warnings.length !== 0
+    || build.results.images.length !== 1
+    || image.name !== authority.imageDestination.taggedUri
+    || image.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+  ) throw new Error('Qualification Cloud Build output differs from authority.')
+}
+
+function assertBuildConfigurationEcho(
+  build: ParsedBuild,
+  expected: Readonly<Record<string, unknown>>,
+): void {
   const raw = build.raw
   const actualStorage = record(record(raw.source).storageSource)
   const expectedStorage = record(record(expected.source).storageSource)
@@ -722,14 +740,8 @@ function assertBuildEcho(
   const expectedImages = z.array(z.string()).parse(expected.images)
   const actualOptions = record(raw.options)
   const expectedOptions = record(expected.options)
-  const image = build.results.images[0]
   if (
-    build.status !== 'SUCCESS'
-    || build.warnings.length !== 0
-    || build.results.images.length !== 1
-    || image.name !== authority.imageDestination.taggedUri
-    || image.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
-    || raw.serviceAccount !== expected.serviceAccount
+    raw.serviceAccount !== expected.serviceAccount
     || !sameJson(actualStorage, expectedStorage)
     || !sameJson(resolvedStorage, expectedStorage)
     || !sameJson(actualSteps, expectedSteps)
@@ -748,7 +760,7 @@ function assertBuildEcho(
     || hasNonEmpty(raw.secrets)
     || hasNonEmpty(raw.availableSecrets)
     || hasNonEmpty(raw.buildTriggerId)
-  ) throw new Error('Qualification Cloud Build differs from authority.')
+  ) throw new Error('Qualification Cloud Build configuration differs from authority.')
 }
 
 function buildSubmission(input: Omit<

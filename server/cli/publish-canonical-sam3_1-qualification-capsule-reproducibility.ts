@@ -23,8 +23,18 @@ const targets = {
     primaryBuildId: 'a216ddf3-76be-4a80-92bd-7d6ef0282bce',
     confirmationBuildId: '8a4d6787-4b05-4bc9-9ac6-efdc91ad7ffd',
   },
+  cuda_ffmpeg_isolated: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-cuda-ffmpeg-isolated-20260807',
+    primaryBuildId: 'b1dc5ddf-f614-41af-9c94-0ee1c15598f1',
+    confirmationBuildId: '1eb329b7-5d1b-4eed-a338-d1ab0aa4ec9d',
+  },
 } as const
-const targetName = z.enum(['original', 'pep668_isolated']).parse(
+const targetName = z.enum([
+  'original',
+  'pep668_isolated',
+  'cuda_ffmpeg_isolated',
+]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
 const result = await publishCanonicalSam31QualificationCapsuleReproducibility(

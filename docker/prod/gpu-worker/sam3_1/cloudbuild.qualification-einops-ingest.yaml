@@ -1,12 +1,12 @@
 steps:
-  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+  - name: pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
     id: fetch-and-verify-exact-official-einops-wheel
     entrypoint: bash
     args:
       - -ceu
       - |
         mkdir -p /workspace/private-einops-ingest
-        python3 -I -B - <<'PY'
+        python -I -B - <<'PY'
         import email.parser
         import hashlib
         import os
@@ -173,7 +173,15 @@ steps:
           "$${wheel}" "$${object}"
         gcloud storage objects describe "$${object}" --format=json \
           > /workspace/private-einops-ingest/object-metadata.json
-        python3 -I -B - \
+  - name: pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
+    id: compile-exact-einops-ingest-receipt
+    waitFor:
+      - publish-create-only-exact-einops-wheel
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        python -I -B - \
           /workspace/private-einops-ingest/object-metadata.json \
           /workspace/private-einops-ingest/scan-summary.txt \
           /workspace/private-einops-ingest/einops-ingest-receipt.json \

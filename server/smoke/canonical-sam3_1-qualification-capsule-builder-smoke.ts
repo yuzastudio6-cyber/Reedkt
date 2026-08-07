@@ -74,6 +74,9 @@ for (const expected of [
   'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
   'python3 -I -B prepare-qualification-security-closure.py',
   'prepare-exact-security-remediation-closure',
+  'chmod 0444 prepare-qualification-security-closure.py',
+  'chmod 0777',
+  'os-security-updates/*.deb',
   '| wc -l)" = 40',
 ] as const) assert.ok(
   cloudBuild.includes(expected),

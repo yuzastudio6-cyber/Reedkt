@@ -99,6 +99,10 @@ steps:
           | sha256sum --check --strict
         rm -f \
           private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.6.3-py3-none-any.whl
+        chmod 0444 prepare-qualification-security-closure.py
+        chmod 0777 \
+          private-dependency-closure/dependency-closure/wheelhouse \
+          private-dependency-closure/dependency-closure/os-security-updates
   - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
     id: prepare-exact-security-remediation-closure
     waitFor:
@@ -108,6 +112,10 @@ steps:
       - -ceu
       - |
         python3 -I -B prepare-qualification-security-closure.py
+        chmod 0444 \
+          private-dependency-closure/dependency-closure/wheelhouse/urllib3-2.7.0-py3-none-any.whl \
+          private-dependency-closure/dependency-closure/os-security-updates/*.deb \
+          private-dependency-closure/dependency-closure/os-security-updates/security-update-receipt.json
         test "$$(find private-dependency-closure/dependency-closure \
           -type f | wc -l)" = 40
   - name: gcr.io/cloud-builders/git@sha256:cd777b3c8a45e42dcfdb30ddaa44497968b11c6d314cd462121012d7004b03ec

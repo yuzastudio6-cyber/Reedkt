@@ -149,9 +149,13 @@ import {
   parseCaptionCrossSystemHandoffV2,
   parseCaptionCrossSystemOutboundPayloadV2,
   parseCaptionIncomingTypographyRequest,
-  type CaptionCrossSystemCoordinationPlanContext,
-  type CaptionCrossSystemHandoffV2Context,
 } from './caption-cross-system-coordination'
+import type {
+  CaptionCrossSystemCoordinationPlanContext,
+  CaptionCrossSystemHandoffV2Context,
+} from '../../src/types/caption-cross-system-coordination'
+import type { CaptionMultiTrackSceneGraph } from
+  '../../src/types/caption-multi-track-scene-graph'
 
 interface CaptionRuntimeProfile {
   manifest: SkillCapabilityManifestV2
@@ -161,7 +165,7 @@ interface CaptionRuntimeProfile {
 const LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE =
   'living_frame_caption_direction_response' as const
 
-const CROSS_SYSTEM_RECEIVERS_BY_JOB: Readonly<Record<
+export const CAPTIONS_CROSS_SYSTEM_RECEIVERS_BY_JOB: Readonly<Record<
   CaptionsCrossSystemOutputJobType,
   readonly CaptionCrossSystemReceiverV2[]
 >> = Object.freeze({
@@ -875,7 +879,7 @@ export function runCaptionsSpecialistJob(input: {
   livingFrameRequest?: unknown
   livingFrameResponse?: unknown
   incomingSupportRequest?: unknown
-  incomingTypographySceneGraph?: unknown
+  incomingTypographySceneGraph?: CaptionMultiTrackSceneGraph
   incomingTypographyStoryTimingResolution?:
     CaptionStoryTimingResolutionBinding
   crossSystemCoordinationPlan?: unknown
@@ -1754,7 +1758,7 @@ export function runCaptionsSpecialistJob(input: {
           context.outboundPayload, context)
         const handoff = parseCaptionCrossSystemHandoffV2(
           input.crossSystemOutboundHandoff, context)
-        const allowedReceivers = CROSS_SYSTEM_RECEIVERS_BY_JOB[
+        const allowedReceivers = CAPTIONS_CROSS_SYSTEM_RECEIVERS_BY_JOB[
           call.job.jobType as CaptionsCrossSystemOutputJobType]
         if (!exactDomainScopeFields(call, payload.canonicalScope)
           || !exactRef(payload.originCaptionCallRef, originRef)

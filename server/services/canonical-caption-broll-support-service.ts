@@ -32,6 +32,10 @@ import type {
   SkillContractRef,
   SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
+import type { CanonicalCaptionCrossSystemExecutionInputReadPort } from
+  '../../src/types/canonical-caption-cross-system-execution-input'
+import type { CanonicalCaptionIncomingSupportRequestReadPort } from
+  '../../src/types/canonical-caption-specialist-execution'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
@@ -56,6 +60,12 @@ import {
   resumeCanonicalSpecialistWithAuthenticatedSupport,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
+import {
+  canonicalCaptionCrossSystemRuntimeInput,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from './canonical-caption-cross-system-execution-input-service'
+import { resolveCanonicalCaptionIncomingSupportRequestForCall } from
+  './canonical-caption-incoming-support-request-service'
 
 export const CANONICAL_CAPTION_BROLL_SUPPORT_SERVICE_VERSION =
   'canonical-caption-broll-support-service-v1' as const
@@ -288,6 +298,10 @@ export function createCanonicalCaptionBrollSupportService(input: {
     CanonicalCaptionBrollApprovedSnapshotReadPort
   readonly ownerReadPort: CanonicalCaptionBrollOwnerReadPort
   readonly evidenceRepository: CanonicalCaptionBrollEvidenceRepository
+  readonly crossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  readonly incomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
   readonly now?: () => Date
 }): CanonicalCaptionBrollSupportService {
   assertPorts(input)
@@ -419,11 +433,26 @@ export function createCanonicalCaptionBrollSupportService(input: {
                 request.selectedSupportRequestRef)) {
                 throw new Error('Caption B-roll resume evidence is unavailable.')
               }
+              const crossSystemExecutionInput =
+                await resolveCanonicalCaptionCrossSystemExecutionInput({
+                  call,
+                  readPort: input.crossSystemExecutionInputReadPort,
+                })
+              const incomingSupportRequest =
+                await resolveCanonicalCaptionIncomingSupportRequestForCall({
+                  call,
+                  readPort: input.incomingSupportRequestReadPort,
+                })
               return runCaptionsSpecialistJob({
                 call,
                 resumeSupportRequest,
                 brollOwnerReadRequest: exactRecord.ownerRequest,
                 brollOwnerReadResult: exactRecord.ownerResult,
+                ...(incomingSupportRequest === null ? {} : {
+                  incomingSupportRequest,
+                }),
+                ...canonicalCaptionCrossSystemRuntimeInput(
+                  crossSystemExecutionInput),
               })
             },
           },

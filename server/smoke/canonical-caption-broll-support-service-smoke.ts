@@ -6,6 +6,10 @@ import type {
 } from '../../src/types/caption-broll-owner-read-adapter'
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
+import {
+  SKILL_SUPPORT_REQUEST_VERSION_V2,
+  type SkillSupportRequestV2,
+} from '../../src/types/orchestra-skill-support-request-v2'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
@@ -16,8 +20,12 @@ import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import { createCaptionsHarnessCall } from
   '../internal-testing/captions-specialist-harness'
-import { calculateSkillContractDigest } from
-  '../orchestra/orchestra-skill-contracts'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-contracts'
+import { parseSkillSupportRequestV2 } from
+  '../orchestra/orchestra-skill-support-request-v2'
 import {
   createCanonicalCaptionBrollApprovedSnapshotReadPort,
   createCanonicalCaptionBrollEvidenceRepository,
@@ -26,9 +34,19 @@ import {
   parseCanonicalCaptionBrollAuthenticatedEvidenceRecord,
 } from '../services/canonical-caption-broll-support-service'
 import {
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition,
+  createCanonicalCaptionCrossSystemSourceReadPort,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from
+  '../services/canonical-caption-cross-system-execution-input-service'
+import { createCanonicalCaptionIncomingSupportRequestReadPort } from
+  '../services/canonical-caption-incoming-support-request-service'
+import {
   createCanonicalSpecialistCallResultPair,
   createCanonicalSpecialistSupportResumeRepository,
 } from '../services/canonical-specialist-support-resume-service'
+import { createCanonicalCaptionBrollCrossSystemSourceFixture } from
+  './canonical-caption-cross-system-source-fixture'
 
 let checks = 0
 function check(value: unknown, message: string): asserts value {
@@ -68,15 +86,139 @@ const evidenceRepository = createCanonicalCaptionBrollEvidenceRepository({
 })
 const approvedSnapshotRef = ref(
   'snapshot.broll.bridge.1', 'approved-plan-snapshot-v1')
-const call = createCaptionsHarnessCall({
+const baseCall = createCaptionsHarnessCall({
   callId: 'caption.broll.bridge.1',
   jobType: 'provide_caption_broll_composition_constraints',
   scopeLevel: 'scene',
-  runtimeProfile: 'post_cap20_integration',
+  runtimeProfile: 'cross_system_integration',
   approvedSnapshotRef,
   outputId: 'output.broll.bridge.1',
   sceneId: 'scene.broll.bridge.1',
 })
+const sourceCallCandidate = structuredClone(baseCall)
+sourceCallCandidate.callId = 'broll.caption-constraints.source-call.1'
+sourceCallCandidate.idempotencyKey =
+  'broll:caption-constraints:source-call:1'
+sourceCallCandidate.assigneeSkillKey = 'b_roll'
+sourceCallCandidate.job = {
+  jobId: 'broll.caption-constraints.source-job.1',
+  jobType: 'request_caption_broll_composition_constraints',
+  requestedMode: 'planning',
+  scopeLevel: 'scene',
+}
+sourceCallCandidate.manifestRef = ref(
+  'broll.caption-constraints.source-manifest.1',
+  'broll-caption-support-manifest-v1')
+sourceCallCandidate.qualificationSnapshotRef = ref(
+  'broll.caption-constraints.source-qualification.1',
+  'broll-caption-support-qualification-v1')
+sourceCallCandidate.inputArtifactRefs = []
+sourceCallCandidate.callDigestSha256 = calculateSkillContractDigest(
+  sourceCallCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256',
+)
+const sourceCall = parseOrchestraSkillCall(sourceCallCandidate)
+const incomingRequestWithoutDigest: Omit<SkillSupportRequestV2,
+  'requestDigestSha256'> = {
+  schemaVersion: SKILL_SUPPORT_REQUEST_VERSION_V2,
+  requestId: 'broll.caption-constraints.incoming-request.1',
+  originalCallRef: contractRef(callRefLike(sourceCall)),
+  requestingSkillKey: 'b_roll',
+  targetSkillKey: 'captions',
+  requestedJobType: 'provide_caption_broll_composition_constraints',
+  reasonCode: 'broll.caption_constraints.required',
+  requestedArtifactTypes: ['caption_broll_composition_constraints'],
+  canonicalScope: structuredClone(baseCall.canonicalScope),
+  typedPayloadType: 'broll-caption-constraints-request-v1',
+  typedPayload: {
+    requestedConstraintRole: 'caption_safe_selected_media_layout',
+    byteFreeRequest: true,
+    brollSelectionAuthorityRequested: false,
+  },
+  mediationPolicy: {
+    hqMediated: true,
+    directPeerDispatchAllowed: false,
+    assigneeMayOnlyResumeAfterInjection: true,
+  },
+  authorityBoundary: structuredClone(baseCall.authorityBoundary),
+}
+const incomingRequest = parseSkillSupportRequestV2(redigest({
+  ...incomingRequestWithoutDigest,
+  requestDigestSha256: '',
+}, 'requestDigestSha256'))
+const incomingRequestRef = {
+  id: incomingRequest.requestId,
+  version: incomingRequest.schemaVersion,
+  contentHash: incomingRequest.requestDigestSha256,
+}
+const callCandidate = structuredClone(baseCall)
+callCandidate.inputArtifactRefs.push({
+  ...incomingRequestRef,
+  artifactType: 'source_skill_support_request',
+  producerSkillKey: 'head_of_orchestra',
+  privateArtifact: true,
+  byteFreeRef: true,
+  sourceSupportRequestRef: null,
+})
+callCandidate.callDigestSha256 = calculateSkillContractDigest(
+  callCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256',
+)
+const call = parseOrchestraSkillCall(callCandidate)
+const incomingSupportRequestReadPort =
+  createCanonicalCaptionIncomingSupportRequestReadPort(
+    async ({ requestRef }) => requestRef.id === incomingRequestRef.id
+      && requestRef.version === incomingRequestRef.version
+      && requestRef.contentHash === incomingRequestRef.contentHash
+      ? {
+          request: structuredClone(incomingRequest),
+          originalCall: structuredClone(sourceCall),
+        }
+      : null,
+  )
+let crossSystemSourceReads = 0
+const crossSystemComposition =
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition({
+    objectPort,
+    sourceReadPort: createCanonicalCaptionCrossSystemSourceReadPort(
+      async ({ call: sourceCall }) => {
+        crossSystemSourceReads += 1
+        return createCanonicalCaptionBrollCrossSystemSourceFixture(
+          sourceCall, 'plan.broll.bridge.1')
+      },
+    ),
+    prefix: 'private/smoke/caption-broll/cross-system/v1',
+  })
+const persistedCrossSystemInput =
+  await resolveCanonicalCaptionCrossSystemExecutionInput({
+    call,
+    readPort: crossSystemComposition.readPort,
+    authorityBindings: {
+      executionPackageRef: ref(
+        'package.broll.bridge.1',
+        'canonical-approved-edit-execution-package-v5'),
+      approvedSnapshotRef,
+      approvedWorkItemRef: ref(
+        'work.broll.bridge.1',
+        'private-edit-authority-approved-work-item-v1'),
+      canonicalJobRef: ref(
+        'job.broll.bridge.1',
+        'private-edit-authority-derived-job-v1'),
+      plannedManifestEntryRef: ref(
+        'manifest-entry.broll.bridge.1',
+        'private-edit-asset-manifest-entry-v1'),
+      estimateRef: ref(
+        'estimate.broll.bridge.1',
+        'private-edit-authority-credit-estimate-v1'),
+      reservationRef: ref(
+        'reservation.broll.bridge.1',
+        'private-edit-authority-credit-reservation-v1'),
+    },
+  })
+check(persistedCrossSystemInput?.sourceInput.mode
+  === 'single_outbound_handoff'
+  && crossSystemSourceReads === 2,
+'The V3 B-roll support call must persist its exact Caption handoff before waiting on the owner.')
 const outputFrameArtifact = call.inputArtifactRefs.find((artifact) =>
   artifact.artifactType === 'confirmed_output_frame')
 const masterTimingArtifact = call.inputArtifactRefs.find((artifact) =>
@@ -110,6 +252,7 @@ const ownerRequest = createCaptionBrollOwnerReadRequest({
 })
 const initialResult = runCaptionsSpecialistJob({
   call,
+  incomingSupportRequest: incomingRequest,
   brollOwnerReadRequest: ownerRequest,
 })
 check(initialResult.disposition === 'needs_followup'
@@ -151,6 +294,8 @@ const service = createCanonicalCaptionBrollSupportService({
   approvedSnapshotReadPort,
   ownerReadPort,
   evidenceRepository,
+  crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
+  incomingSupportRequestReadPort,
   now: () => new Date('2026-08-05T17:01:00.000Z'),
 })
 const bridgeInput = {
@@ -173,8 +318,16 @@ check(outcome.evidenceRecord.authenticatedOwnerProjection.ownerKey
 'The generic resume ledger must carry one exact B-roll-owned artifact.')
 check(outcome.resumeRecord.resumedResult.disposition === 'completed'
   && outcome.resumeRecord.resumedResult.reasonCodes.includes(
-    'broll_owner.contract_admission.accepted'),
-'The same Caption job must resume and complete through authenticated evidence.')
+    'broll_owner.contract_admission.accepted')
+  && outcome.resumeRecord.resumedResult.reasonCodes.includes(
+    'cross_system_coordination.caption_artifacts.accepted')
+  && outcome.resumeRecord.resumedResult.producedArtifactRefs.some(
+    (artifact) => artifact.artifactType ===
+      'caption_cross_system_outbound_payload')
+  && outcome.resumeRecord.resumedResult.producedArtifactRefs.some(
+    (artifact) => artifact.artifactType === 'caption_cross_system_handoff')
+  && crossSystemSourceReads === 2,
+'The same Caption job must resume with authenticated evidence and its original persisted handoff package.')
 check(outcome.resumeRecord.directPeerDispatchPerformed === false
   && outcome.evidenceRecord.sourceSelectionPerformedByCaption === false
   && outcome.evidenceRecord.cropOrTimingPerformedByCaption === false

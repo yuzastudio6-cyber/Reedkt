@@ -30,6 +30,10 @@ import type {
   SkillContractRef,
   SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
+import type { CanonicalCaptionCrossSystemExecutionInputReadPort } from
+  '../../src/types/canonical-caption-cross-system-execution-input'
+import type { CanonicalCaptionIncomingSupportRequestReadPort } from
+  '../../src/types/canonical-caption-specialist-execution'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
@@ -53,6 +57,12 @@ import {
   resumeCanonicalSpecialistWithAuthenticatedSupport,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
+import {
+  canonicalCaptionCrossSystemRuntimeInput,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from './canonical-caption-cross-system-execution-input-service'
+import { resolveCanonicalCaptionIncomingSupportRequestForCall } from
+  './canonical-caption-incoming-support-request-service'
 
 export const CANONICAL_CAPTION_SOUNDSYNC_SUPPORT_SERVICE_VERSION =
   'canonical-caption-soundsync-support-service-v1' as const
@@ -271,6 +281,10 @@ export function createCanonicalCaptionSoundSyncSupportService(input: {
   readonly contextReadPort: CanonicalCaptionSoundSyncContextReadPort
   readonly ownerReadPort: CanonicalCaptionSoundSyncOwnerReadPort
   readonly evidenceRepository: CanonicalCaptionSoundSyncEvidenceRepository
+  readonly crossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  readonly incomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
   readonly now?: () => Date
 }): CanonicalCaptionSoundSyncSupportService {
   assertPorts(input)
@@ -418,12 +432,27 @@ export function createCanonicalCaptionSoundSyncSupportService(input: {
                 request.selectedSupportRequestRef)) {
                 throw new Error('Caption SoundSync resume evidence is unavailable.')
               }
+              const crossSystemExecutionInput =
+                await resolveCanonicalCaptionCrossSystemExecutionInput({
+                  call,
+                  readPort: input.crossSystemExecutionInputReadPort,
+                })
+              const incomingSupportRequest =
+                await resolveCanonicalCaptionIncomingSupportRequestForCall({
+                  call,
+                  readPort: input.incomingSupportRequestReadPort,
+                })
               return runCaptionsSpecialistJob({
                 call,
                 resumeSupportRequest,
                 soundSupportContext: exactRecord.canonicalContext,
                 soundSupportPayload: exactRecord.captionSoundRequest,
                 soundSupportResult: exactRecord.soundSyncResult,
+                ...(incomingSupportRequest === null ? {} : {
+                  incomingSupportRequest,
+                }),
+                ...canonicalCaptionCrossSystemRuntimeInput(
+                  crossSystemExecutionInput),
               })
             },
           },

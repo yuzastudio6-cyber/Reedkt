@@ -1,7 +1,6 @@
 import { z } from 'zod'
 
 import {
-  CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
@@ -13,10 +12,9 @@ import {
   type CanonicalCaptionSpecialistWorkItemInput,
 } from '../../src/types/canonical-caption-specialist-execution'
 import {
-  CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
   CAPTIONS_SUPPORT_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
-  type CaptionsSupportJobType,
+  CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES,
 } from
   '../../src/types/captions-specialist'
 import {
@@ -39,8 +37,6 @@ import {
   parseOrchestraSkillCall,
   parseOrchestraSkillJobResult,
 } from '../orchestra/orchestra-skill-contracts'
-import { parseSkillSupportRequestV2 } from
-  '../orchestra/orchestra-skill-support-request-v2'
 import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
   '../captions-specialist/captions-specialist-integration-manifest'
 import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2 } from
@@ -69,6 +65,13 @@ import type { CanonicalApprovedEditExecutionPackage } from
   '../edit-architecture/canonical-approved-edit-execution-package'
 import type { CanonicalCaptionTranscriptAuthenticatedReadPort } from
   '../../src/types/canonical-caption-transcript-support'
+import type {
+  CanonicalCaptionCrossSystemExecutionInputReadPort,
+} from '../../src/types/canonical-caption-cross-system-execution-input'
+import type {
+  CaptionCrossSystemCoordinationPlanContext,
+  CaptionCrossSystemHandoffV2Context,
+} from '../../src/types/caption-cross-system-coordination'
 import {
   canonicalWorkerLeaseDependencyAuthoritySchema,
   type CanonicalWorkerLeaseDependencyAuthority,
@@ -84,6 +87,13 @@ import {
   parseCanonicalCaptionTranscriptPlanningExpectationBinding,
 } from './canonical-caption-transcript-support-service'
 import {
+  canonicalCaptionCrossSystemRuntimeInput,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from './canonical-caption-cross-system-execution-input-service'
+import {
+  resolveCanonicalCaptionIncomingSupportRequestForCall,
+} from './canonical-caption-incoming-support-request-service'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
@@ -92,7 +102,6 @@ const safeKey = z.string().trim().min(1).max(180)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
-const admittedIncomingSupportReadPorts = new WeakSet<object>()
 const refSchema = z.object({
   id: safeKey,
   version: safeKey,
@@ -316,26 +325,17 @@ export interface CanonicalCaptionSpecialistExecutionPort {
     readonly canonicalTranscript?: unknown
     readonly canonicalTranscriptAuthenticatedReadBinding?: unknown
     readonly incomingSupportRequest?: SkillSupportRequestV2
+    readonly crossSystemCoordinationPlan?: unknown
+    readonly crossSystemCoordinationContext?:
+      CaptionCrossSystemCoordinationPlanContext
+    readonly crossSystemOutboundHandoff?: unknown
+    readonly crossSystemOutboundHandoffContext?:
+      CaptionCrossSystemHandoffV2Context
   }): Promise<unknown>
 }
 
-export function createCanonicalCaptionIncomingSupportRequestReadPort(
-  readExact: CanonicalCaptionIncomingSupportRequestReadPort['readExact'],
-): CanonicalCaptionIncomingSupportRequestReadPort {
-  if (typeof readExact !== 'function') {
-    throw new Error('Canonical Caption incoming-support reader is required.')
-  }
-  const port: CanonicalCaptionIncomingSupportRequestReadPort = Object.freeze({
-    schemaVersion:
-      CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION,
-    sourceAuthority:
-      'canonical_backend_persisted_specialist_support_request',
-    callerSuppliedRequestAccepted: false,
-    readExact,
-  })
-  admittedIncomingSupportReadPorts.add(port)
-  return port
-}
+export { createCanonicalCaptionIncomingSupportRequestReadPort } from
+  './canonical-caption-incoming-support-request-service'
 
 export function parseCanonicalCaptionSpecialistWorkItemInput(
   value: unknown,
@@ -378,6 +378,8 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly canonicalTranscriptPlanningExpectationBindingRef?: SkillContractRef
   readonly incomingSupportRequestReadPort?:
     CanonicalCaptionIncomingSupportRequestReadPort
+  readonly crossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
   /**
    * Exact read-only dependency proof derived by the canonical worker-lease
    * owner. Required for jobs whose immutable graph label is `blocked`; that
@@ -390,6 +392,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
 }): Promise<{
   readonly pair: CanonicalSpecialistCallResultPair
   readonly receipt: CanonicalCaptionSpecialistExecutionReceipt
+  readonly crossSystemExecutionInputRef: SkillContractRef | null
 }> {
   assertRepository(input.repository)
   const authority = structuredClone(input.authority)
@@ -440,6 +443,25 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     workInput,
     initialArtifactRefs,
   })
+  const crossSystemAuthority = workInput.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+    && (CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES as readonly string[])
+      .includes(workInput.captionJobType)
+    ? crossSystemAuthorityBindings({
+        authority,
+        executionPackage,
+        workItem,
+        job,
+      })
+    : undefined
+  const crossSystemExecutionInput =
+    await resolveCanonicalCaptionCrossSystemExecutionInput({
+      call,
+      readPort: input.crossSystemExecutionInputReadPort,
+      ...(crossSystemAuthority === undefined ? {} : {
+        authorityBindings: crossSystemAuthority,
+      }),
+    })
   const captionCallRef = callRef(call)
   const replay = await input.repository.rereadCallResultPair({
     callRef: captionCallRef,
@@ -456,9 +478,9 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       initialArtifactRefs,
       readPort: input.canonicalTranscriptReadPort,
     })
-    const incomingSupportRequest = await readIncomingSupportRequest({
+    const incomingSupportRequest =
+      await resolveCanonicalCaptionIncomingSupportRequestForCall({
       call,
-      workInput,
       readPort: input.incomingSupportRequestReadPort,
     })
     const rawResult = await (input.executionPort ?? defaultExecutionPort)
@@ -473,6 +495,8 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         ...(incomingSupportRequest === null ? {} : {
           incomingSupportRequest: structuredClone(incomingSupportRequest),
         }),
+        ...canonicalCaptionCrossSystemRuntimeInput(
+          crossSystemExecutionInput),
       })
     const result = parseOrchestraSkillJobResult(rawResult)
     const pair = createCanonicalSpecialistCallResultPair({
@@ -505,6 +529,12 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       job,
       pair,
     }),
+    crossSystemExecutionInputRef: crossSystemExecutionInput === null
+      ? null : {
+          id: crossSystemExecutionInput.inputId,
+          version: crossSystemExecutionInput.schemaVersion,
+          contentHash: crossSystemExecutionInput.inputDigestSha256,
+        },
   }
 }
 
@@ -522,6 +552,19 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
           }),
       ...(input.incomingSupportRequest === undefined ? {} : {
         incomingSupportRequest: input.incomingSupportRequest,
+      }),
+      ...(input.crossSystemCoordinationPlan === undefined ? {} : {
+        crossSystemCoordinationPlan: input.crossSystemCoordinationPlan,
+      }),
+      ...(input.crossSystemCoordinationContext === undefined ? {} : {
+        crossSystemCoordinationContext: input.crossSystemCoordinationContext,
+      }),
+      ...(input.crossSystemOutboundHandoff === undefined ? {} : {
+        crossSystemOutboundHandoff: input.crossSystemOutboundHandoff,
+      }),
+      ...(input.crossSystemOutboundHandoffContext === undefined ? {} : {
+        crossSystemOutboundHandoffContext:
+          input.crossSystemOutboundHandoffContext,
       }),
     })
   },
@@ -797,77 +840,6 @@ async function readCanonicalTranscriptEvidence(input: {
     canonicalTranscript: transcript,
     authenticatedReadBinding: binding,
   }
-}
-
-async function readIncomingSupportRequest(input: {
-  call: OrchestraSkillCall
-  workInput: CanonicalCaptionSpecialistWorkItemInput
-  readPort?: CanonicalCaptionIncomingSupportRequestReadPort
-}): Promise<SkillSupportRequestV2 | null> {
-  if ((input.workInput.schemaVersion !==
-      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
-    && input.workInput.schemaVersion !==
-      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION)
-    || input.workInput.sourceSupportRequestRef === null) return null
-  if (!input.readPort
-    || !admittedIncomingSupportReadPorts.has(input.readPort)
-    || input.readPort.schemaVersion !==
-      CANONICAL_CAPTION_INCOMING_SUPPORT_REQUEST_READ_PORT_VERSION
-    || input.readPort.sourceAuthority !==
-      'canonical_backend_persisted_specialist_support_request'
-    || input.readPort.callerSuppliedRequestAccepted) {
-    throw new Error(
-      'Canonical Caption incoming-support request reader is unavailable.',
-    )
-  }
-  const requestRef = structuredClone(input.workInput.sourceSupportRequestRef)
-  const firstValue = await input.readPort.readExact({ requestRef })
-  const secondValue = await input.readPort.readExact({ requestRef })
-  if (!firstValue || !secondValue
-    || stableAuthorityStringify(firstValue)
-      !== stableAuthorityStringify(secondValue)) {
-    throw new Error(
-      'Canonical Caption incoming-support request changed between rereads.',
-    )
-  }
-  const request = parseSkillSupportRequestV2(firstValue.request)
-  const originalCall = parseOrchestraSkillCall(firstValue.originalCall)
-  const exactRequestRef = {
-    id: request.requestId,
-    version: request.schemaVersion,
-    contentHash: request.requestDigestSha256,
-  }
-  const expectedArtifactType = CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[
-    input.workInput.captionJobType as CaptionsSupportJobType]
-  if (stableAuthorityStringify(exactRequestRef)
-      !== stableAuthorityStringify(requestRef)
-    || request.targetSkillKey !== 'captions'
-    || request.requestingSkillKey === 'captions'
-    || originalCall.assigneeSkillKey !== request.requestingSkillKey
-    || stableAuthorityStringify(request.originalCallRef)
-      !== stableAuthorityStringify({
-        id: originalCall.callId,
-        version: originalCall.schemaVersion,
-        contentHash: originalCall.callDigestSha256,
-      })
-    || stableAuthorityStringify(originalCall.canonicalScope)
-      !== stableAuthorityStringify(input.call.canonicalScope)
-    || request.requestedJobType !== input.workInput.captionJobType
-    || request.requestedArtifactTypes.length !== 1
-    || request.requestedArtifactTypes[0] !== expectedArtifactType
-    || stableAuthorityStringify(request.canonicalScope)
-      !== stableAuthorityStringify(input.call.canonicalScope)
-    || stableAuthorityStringify(request.originalCallRef)
-      === stableAuthorityStringify({
-        id: input.call.callId,
-        version: input.call.schemaVersion,
-        contentHash: input.call.callDigestSha256,
-      })) {
-    throw new Error(
-      'Canonical Caption incoming-support request crossed its assignment.',
-    )
-  }
-  return structuredClone(request)
 }
 
 function createCaptionCall(input: {
@@ -1226,6 +1198,59 @@ function createReceipt(input: {
     ...payload,
     receiptDigestSha256: digest(payload, 'receiptDigestSha256'),
   })
+}
+
+function crossSystemAuthorityBindings(input: {
+  authority: CanonicalApprovedExecutionAuthority
+  executionPackage: CanonicalApprovedEditExecutionPackage
+  workItem: CanonicalApprovedExecutionAuthority['workItems'][number]
+  job: CanonicalApprovedExecutionAuthority['jobs'][number]
+}) {
+  const manifestEntries = input.authority.assetManifest.entries.filter(
+    (entry) => entry.approvedWorkItemId === input.workItem.id,
+  )
+  if (manifestEntries.length !== 1) {
+    throw new Error(
+      'Canonical Caption cross-system work lacks one planned manifest entry.',
+    )
+  }
+  return {
+    executionPackageRef: {
+      id: input.executionPackage.packageRecordId,
+      version: input.executionPackage.schemaVersion,
+      contentHash: input.executionPackage.packageHash,
+    },
+    approvedSnapshotRef: {
+      id: input.authority.snapshot.snapshotId,
+      version: input.authority.snapshot.schemaVersion,
+      contentHash: input.authority.snapshot.snapshotHash,
+    },
+    approvedWorkItemRef: authorityRef(
+      input.workItem.id,
+      'private-edit-authority-approved-work-item-v1',
+      input.workItem,
+    ),
+    canonicalJobRef: authorityRef(
+      input.job.id,
+      'private-edit-authority-derived-job-v1',
+      input.job,
+    ),
+    plannedManifestEntryRef: authorityRef(
+      manifestEntries[0]!.id,
+      'private-edit-asset-manifest-entry-v1',
+      manifestEntries[0],
+    ),
+    estimateRef: {
+      id: input.authority.estimate.id,
+      version: 'private-edit-authority-credit-estimate-v1',
+      contentHash: input.authority.estimate.estimateHash,
+    },
+    reservationRef: authorityRef(
+      input.authority.reservation.id,
+      'private-edit-authority-credit-reservation-v1',
+      input.authority.reservation,
+    ),
+  }
 }
 
 function callRef(call: OrchestraSkillCall): SkillContractRef {

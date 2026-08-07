@@ -7,6 +7,10 @@ import type {
 import type {
   CanonicalCaptionSoundSyncContextReadPort,
 } from '../../src/types/canonical-caption-soundsync-support'
+import type { CanonicalCaptionCrossSystemExecutionInputReadPort } from
+  '../../src/types/canonical-caption-cross-system-execution-input'
+import type { CanonicalCaptionIncomingSupportRequestReadPort } from
+  '../../src/types/canonical-caption-specialist-execution'
 import type { EditSkillArtifactStore } from
   '../edit-skills/core/edit-skill-artifact-store'
 import type { CanonicalSoundArtifactResolver } from
@@ -115,6 +119,10 @@ export interface CanonicalCaptionSharedOwnerPrivateCompositionInput {
   readonly brollPrivateVisualReviewReadPort:
     CanonicalBrollCaptionPrivateVisualReviewReadPort
   readonly brollArtifactStore: EditSkillArtifactStore
+  readonly crossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  readonly incomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
   readonly prefix?: string
   readonly now?: () => Date
 }
@@ -145,6 +153,9 @@ export function createCanonicalCaptionSharedOwnerPrivateComposition(
     contextReadPort: input.soundContextReadPort,
     ownerReadPort: soundOwner.ownerReadPort,
     evidenceRepository: soundEvidenceRepository,
+    crossSystemExecutionInputReadPort:
+      input.crossSystemExecutionInputReadPort,
+    incomingSupportRequestReadPort: input.incomingSupportRequestReadPort,
     now: input.now,
   })
   const brollOwner = createCanonicalBrollCaptionOwnerService({
@@ -164,6 +175,9 @@ export function createCanonicalCaptionSharedOwnerPrivateComposition(
     approvedSnapshotReadPort: input.brollApprovedSnapshotReadPort,
     ownerReadPort: brollOwner.ownerReadPort,
     evidenceRepository: brollEvidenceRepository,
+    crossSystemExecutionInputReadPort:
+      input.crossSystemExecutionInputReadPort,
+    incomingSupportRequestReadPort: input.incomingSupportRequestReadPort,
     now: input.now,
   })
   return Object.freeze({
@@ -209,6 +223,9 @@ export function createCanonicalCaptionSharedOwnerPrivateCompositionV2(
     contextReadPort: input.soundContextReadPort,
     ownerReadPort: soundOwner.ownerReadPort,
     evidenceRepository: soundEvidenceRepository,
+    crossSystemExecutionInputReadPort:
+      input.crossSystemExecutionInputReadPort,
+    incomingSupportRequestReadPort: input.incomingSupportRequestReadPort,
     now: input.now,
   })
   const brollOwner = createCanonicalBrollCaptionOwnerServiceV2({
@@ -228,6 +245,9 @@ export function createCanonicalCaptionSharedOwnerPrivateCompositionV2(
     approvedSnapshotReadPort: input.brollApprovedSnapshotReadPort,
     ownerReadPort: brollOwner.ownerReadPort,
     evidenceRepository: brollEvidenceRepository,
+    crossSystemExecutionInputReadPort:
+      input.crossSystemExecutionInputReadPort,
+    incomingSupportRequestReadPort: input.incomingSupportRequestReadPort,
     now: input.now,
   })
   return Object.freeze({
@@ -283,6 +303,9 @@ export function createCanonicalCaptionSharedOwnerPrivateCompositionV3(
     contextReadPort: input.soundContextReadPort,
     ownerReadPort: soundOwner.ownerReadPort,
     evidenceRepository: soundEvidenceRepository,
+    crossSystemExecutionInputReadPort:
+      input.crossSystemExecutionInputReadPort,
+    incomingSupportRequestReadPort: input.incomingSupportRequestReadPort,
     now: input.now,
   })
   const brollOwner = createCanonicalBrollCaptionOwnerServiceV2({
@@ -302,6 +325,9 @@ export function createCanonicalCaptionSharedOwnerPrivateCompositionV3(
     approvedSnapshotReadPort: input.brollApprovedSnapshotReadPort,
     ownerReadPort: brollOwner.ownerReadPort,
     evidenceRepository: brollEvidenceRepository,
+    crossSystemExecutionInputReadPort:
+      input.crossSystemExecutionInputReadPort,
+    incomingSupportRequestReadPort: input.incomingSupportRequestReadPort,
     now: input.now,
   })
   return Object.freeze({

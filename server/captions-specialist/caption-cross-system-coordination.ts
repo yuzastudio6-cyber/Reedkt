@@ -6,7 +6,9 @@ import {
   CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION,
   CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION,
   type CaptionCrossSystemCoordinationPlan,
+  type CaptionCrossSystemCoordinationPlanContext,
   type CaptionCrossSystemHandoffV2,
+  type CaptionCrossSystemHandoffV2Context,
   type CaptionCrossSystemOutboundPayloadV2,
   type CaptionCrossSystemReceiverV2,
   type CaptionIncomingTypographyRequest,
@@ -493,8 +495,8 @@ function exactScope(
     && exactNullableRef(actual.approvedSnapshotRef, expected.approvedSnapshotRef)
     && actual.outputId === expected.outputId
     && actual.sceneId === expected.sceneId
-    && JSON.stringify(actual.authorizedFrameRanges)
-      === JSON.stringify(expected.authorizedFrameRanges)
+    && exactFrameRanges(
+      actual.authorizedFrameRanges, expected.authorizedFrameRanges)
 }
 
 function exactSkillScope(
@@ -509,8 +511,18 @@ function exactSkillScope(
     && actual.outputId === expected.outputId
     && actual.sceneId === expected.sceneId
     && actual.boundaryId !== null
-    && JSON.stringify(actual.authorizedFrameRanges)
-      === JSON.stringify(expected.authorizedFrameRanges)
+    && exactFrameRanges(
+      actual.authorizedFrameRanges, expected.authorizedFrameRanges)
+}
+
+function exactFrameRanges(
+  actual: CaptionDomainFrameRange[],
+  expected: CaptionDomainFrameRange[],
+): boolean {
+  return actual.length === expected.length
+    && actual.every((range, index) =>
+      range.startFrame === expected[index]?.startFrame
+      && range.endFrameExclusive === expected[index]?.endFrameExclusive)
 }
 
 function containsRange(
@@ -635,7 +647,7 @@ function validateReceiverTruthPolicy(
 }
 
 export interface CaptionCrossSystemSourceContext {
-  sceneGraph: unknown
+  sceneGraph: CaptionMultiTrackSceneGraph
   resolution: CaptionStoryTimingResolutionBinding
 }
 
@@ -651,10 +663,15 @@ function parseSourceContext(
   verifyDigest(context.resolution as unknown as Record<string, unknown>,
     'resolutionDigestSha256',
     'Caption cross-system StoryTiming resolution context')
-  if (!exactScope(context.resolution.canonicalScope, sceneGraph.canonicalScope)
-    || !exactRef(context.resolution.sceneGraphRef, sceneGraphRef(sceneGraph))) {
+  const scopeMatches = exactScope(
+    context.resolution.canonicalScope, sceneGraph.canonicalScope)
+  const graphRefMatches = exactRef(
+    context.resolution.sceneGraphRef, sceneGraphRef(sceneGraph))
+  if (!scopeMatches || !graphRefMatches) {
     throw new Error(
-      'Caption cross-system source context has crossed scene lineage.',
+      `Caption cross-system source context has crossed scene lineage (${
+        scopeMatches ? 'scope_ok' : 'scope_crossed'}, ${
+        graphRefMatches ? 'graph_ok' : 'graph_crossed'}).`,
     )
   }
   return { sceneGraph, resolution: context.resolution }
@@ -1012,9 +1029,9 @@ export interface CreateCaptionCrossSystemHandoffV2Input
   extends CaptionCrossSystemSourceContext {
   handoffId: string
   outboundPayload: unknown
-  supportRequest?: unknown
+  supportRequest?: SkillSupportRequest
   frozenCompatibilityHandoff?: CaptionCrossSystemHandoff | null
-  frozenCompatibilitySupportRequest?: unknown
+  frozenCompatibilitySupportRequest?: SkillSupportRequest
 }
 
 export function createCaptionCrossSystemHandoffV2(
@@ -1070,14 +1087,6 @@ export function createCaptionCrossSystemHandoffV2(
         input.frozenCompatibilitySupportRequest,
     }),
   })
-}
-
-export interface CaptionCrossSystemHandoffV2Context
-  extends CaptionCrossSystemSourceContext {
-  outboundPayload: unknown
-  supportRequest?: unknown
-  frozenCompatibilityHandoff?: CaptionCrossSystemHandoff | null
-  frozenCompatibilitySupportRequest?: unknown
 }
 
 export function parseCaptionCrossSystemHandoffV2(
@@ -1270,7 +1279,7 @@ export function parseCaptionIncomingTypographyRequest(
 export function parseCaptionIncomingTypographySupportBundle(input: {
   payload: unknown
   supportRequest: unknown
-  sceneGraph: unknown
+  sceneGraph: CaptionMultiTrackSceneGraph
   resolution: CaptionStoryTimingResolutionBinding
 }): {
   payload: CaptionIncomingTypographyRequest
@@ -1301,23 +1310,6 @@ export function parseCaptionIncomingTypographySupportBundle(input: {
     )
   }
   return { payload, supportRequest }
-}
-
-export interface CaptionCrossSystemCoordinationPlanContext {
-  sceneGraph: unknown
-  motionPlan: CaptionMotionPlan
-  resolution: CaptionStoryTimingResolutionBinding
-  outboundBundles: Array<{
-    handoff: unknown
-    outboundPayload: unknown
-    supportRequest?: unknown
-    frozenCompatibilityHandoff?: CaptionCrossSystemHandoff | null
-    frozenCompatibilitySupportRequest?: unknown
-  }>
-  incomingBundles: Array<{
-    payload: unknown
-    supportRequest: unknown
-  }>
 }
 
 function uniqueReceivers(values: CaptionCrossSystemReceiverV2[]) {

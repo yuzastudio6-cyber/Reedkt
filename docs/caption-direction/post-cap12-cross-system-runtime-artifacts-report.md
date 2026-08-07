@@ -83,6 +83,22 @@ unchanged. The V3 manifest and qualification hashes also remain unchanged:
 No media, model, provider, GPU, Docker, billing, public-delivery, or production
 runtime was started for this source milestone.
 
+## Additive canonical persistence checkpoint
+
+The later
+[`canonical-cross-system-execution-input-2026-08-07.md`](canonical-cross-system-execution-input-2026-08-07.md)
+checkpoint mounts these Caption-owned artifacts behind a create-only canonical
+execution-input repository. The exact approved snapshot, work, job, manifest,
+estimate, reservation, originating call, transcript, confirmed frame, and
+MasterTiming lineage are now reread on initial execution, replay, and
+HQ-mediated owner resume. It also preserves the original incoming V2 support
+assignment through every existing owner-resume service.
+
+That additive checkpoint raises the focused canonical transcript/persistence
+proof to 44 checks and the full B-roll wait-to-resume proof to 17 checks. It
+does not change the frozen V1/V2 wires, start any receiver runtime, or change
+the remaining terminal evidence gates.
+
 ## Remaining gates
 
 Receiver execution and authenticated receiver-result persistence remain with

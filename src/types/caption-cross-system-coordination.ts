@@ -4,10 +4,20 @@ import type {
   CaptionDomainRef,
 } from './caption-domain-contracts'
 import type {
+  CaptionCrossSystemHandoff,
+  CaptionMotionPlan,
+  CaptionStoryTimingResolutionBinding,
+} from './caption-storytiming-motion'
+import type { CaptionMultiTrackSceneGraph } from
+  './caption-multi-track-scene-graph'
+import type {
   SkillClosedAuthorityBoundary,
   SkillContractRef,
+  SkillSupportRequest,
   SkillSupportTarget,
 } from './orchestra-skill-contracts'
+import type { SkillSupportRequestV2 } from
+  './orchestra-skill-support-request-v2'
 
 export const CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_VERSION =
   'caption-cross-system-outbound-payload-v2' as const
@@ -245,6 +255,42 @@ export interface CaptionIncomingTypographyRequest {
     executablePromptOrCodeIncluded: false
   }
   authorityBoundary: SkillClosedAuthorityBoundary
+}
+
+/**
+ * Public, byte-free source context used to validate one Caption-owned outbound
+ * handoff. The context contains only immutable Caption contracts and neutral
+ * support-request records; it grants no receiver execution authority.
+ */
+export interface CaptionCrossSystemHandoffV2Context {
+  sceneGraph: CaptionMultiTrackSceneGraph
+  resolution: CaptionStoryTimingResolutionBinding
+  outboundPayload: CaptionCrossSystemOutboundPayloadV2
+  supportRequest?: SkillSupportRequest
+  frozenCompatibilityHandoff?: CaptionCrossSystemHandoff | null
+  frozenCompatibilitySupportRequest?: SkillSupportRequest
+}
+
+/**
+ * Exact aggregate source context for the complete Caption coordination plan.
+ * This is a public type-only surface so the canonical backend can persist and
+ * reread the Caption-owned artifacts without importing Caption implementation.
+ */
+export interface CaptionCrossSystemCoordinationPlanContext {
+  sceneGraph: CaptionMultiTrackSceneGraph
+  motionPlan: CaptionMotionPlan
+  resolution: CaptionStoryTimingResolutionBinding
+  outboundBundles: Array<{
+    handoff: CaptionCrossSystemHandoffV2
+    outboundPayload: CaptionCrossSystemOutboundPayloadV2
+    supportRequest?: SkillSupportRequest
+    frozenCompatibilityHandoff?: CaptionCrossSystemHandoff | null
+    frozenCompatibilitySupportRequest?: SkillSupportRequest
+  }>
+  incomingBundles: Array<{
+    payload: CaptionIncomingTypographyRequest
+    supportRequest: SkillSupportRequestV2
+  }>
 }
 
 export interface CaptionCrossSystemCoordinationPlan {

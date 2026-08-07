@@ -6,7 +6,16 @@ import {
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+  type CanonicalCaptionSpecialistWorkItemInput,
 } from '../../src/types/canonical-caption-specialist-execution'
+import type {
+  OrchestraSkillCall,
+  OrchestraSkillJobResult,
+  SkillContractRef,
+} from '../../src/types/orchestra-skill-contracts'
+import {
+  ORCHESTRA_SKILL_JOB_RESULT_VERSION,
+} from '../../src/types/orchestra-skill-contracts'
 
 import {
   CANONICAL_CAPTION_TRANSCRIPT_EVIDENCE_REPOSITORY_CURRENT_VERSION,
@@ -32,10 +41,19 @@ import {
   resolveCanonicalCaptionTranscriptExecutionMount,
 } from '../services/canonical-internal-authority-runner-service'
 import {
+  createCanonicalCaptionIncomingSupportRequestReadPort,
   executeCanonicalCaptionSpecialistWorkItem,
   parseCanonicalCaptionSpecialistWorkItemInput,
 } from
   '../services/canonical-caption-specialist-execution-service'
+import {
+  canonicalCaptionCrossSystemRuntimeInput,
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition,
+  createCanonicalCaptionCrossSystemSourceReadPort,
+  parseCanonicalCaptionCrossSystemExecutionInput,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from
+  '../services/canonical-caption-cross-system-execution-input-service'
 import { createCanonicalSpecialistSupportResumeRepository } from
   '../services/canonical-specialist-support-resume-service'
 import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 } from
@@ -52,6 +70,21 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
+  '../captions-specialist/caption-authority-boundary'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+  parseOrchestraSkillJobResult,
+} from '../orchestra/orchestra-skill-contracts'
+import {
+  SKILL_SUPPORT_REQUEST_VERSION_V2,
+  type SkillSupportRequestV2,
+} from '../../src/types/orchestra-skill-support-request-v2'
+import { parseSkillSupportRequestV2 } from
+  '../orchestra/orchestra-skill-support-request-v2'
+import { createCanonicalCaptionBrollCrossSystemSourceFixture } from
+  './canonical-caption-cross-system-source-fixture'
 
 let checks = 0
 function check(value: unknown, message: string): void {
@@ -64,6 +97,65 @@ function visualRef(id: string, value = id) {
     version: 1,
     contentHash: `sha256:${sha256AuthorityValue(value)}`,
   }
+}
+
+function skillCallRef(call: OrchestraSkillCall): SkillContractRef {
+  return {
+    id: call.callId,
+    version: call.schemaVersion,
+    contentHash: call.callDigestSha256,
+  }
+}
+
+function completedCrossSystemResult(
+  call: OrchestraSkillCall,
+): OrchestraSkillJobResult {
+  const withoutDigest: Omit<OrchestraSkillJobResult,
+    'resultDigestSha256'> = {
+    schemaVersion: ORCHESTRA_SKILL_JOB_RESULT_VERSION,
+    resultId: `caption.cross-system.result.${
+      call.callDigestSha256.slice(0, 40)}`,
+    disposition: 'completed',
+    originalCallRef: skillCallRef(call),
+    producerSkillKey: 'captions',
+    jobType: call.job.jobType,
+    manifestRef: structuredClone(call.manifestRef),
+    qualificationSnapshotRef:
+      structuredClone(call.qualificationSnapshotRef),
+    canonicalScope: structuredClone(call.canonicalScope),
+    producedArtifactRefs: [{
+      id: `caption.cross-system.receipt.${
+        call.callDigestSha256.slice(0, 40)}`,
+      version: 'caption-cross-system-runtime-receipt-v1',
+      contentHash: sha256AuthorityValue({
+        callDigestSha256: call.callDigestSha256,
+        artifactType: 'caption_cross_system_runtime_receipt',
+      }),
+      artifactType: 'caption_cross_system_runtime_receipt',
+      producerSkillKey: 'captions',
+      privateArtifact: true,
+      byteFreeRef: true,
+      sourceSupportRequestRef: null,
+    }],
+    supportRequests: [],
+    reasonCodes: ['caption.cross_system.execution_input.injected'],
+    safeUserSummary:
+      'Caption cross-system coordination input was injected from canonical evidence.',
+    replayBinding: {
+      idempotencyKey: call.idempotencyKey,
+      resumedFromSupportRequestRef:
+        structuredClone(call.resumeOfSupportRequestRef),
+      resumeOriginCallRef: structuredClone(call.resumeOriginCallRef),
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseOrchestraSkillJobResult({
+    ...withoutDigest,
+    resultDigestSha256: calculateSkillContractDigest(
+      withoutDigest as unknown as Record<string, unknown>,
+      'resultDigestSha256',
+    ),
+  })
 }
 
 const sourceFrameAuthority = createCanonicalSourceLedSourceFrameAuthority({
@@ -954,6 +1046,525 @@ await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
   }),
 }), /requires an exact postapproval transcript resolution/u)
 checks += 1
+
+const crossSystemCanonicalScope = {
+  ownerUserId: v3Snapshot.approvedByUserId,
+  workspaceId: v3Snapshot.workspaceId,
+  projectId: v3Snapshot.projectId,
+  editSessionId: v3Snapshot.editSessionId,
+  approvedSnapshotRef: {
+    id: v3Snapshot.snapshotId,
+    version: v3Snapshot.schemaVersion,
+    contentHash: v3Snapshot.snapshotHash,
+  },
+  outputId: 'output.caption.cross-system.1',
+  sceneId: 'scene.caption.cross-system.1',
+  boundaryId: null,
+  authorizedFrameRanges: [{ startFrame: 0, endFrameExclusive: 360 }],
+}
+const brollSourceCallWithoutDigest: Omit<OrchestraSkillCall,
+  'callDigestSha256'> = {
+  schemaVersion: 'orchestra-skill-call-v1',
+  callId: 'broll.caption-constraints.source-call.1',
+  idempotencyKey: 'broll:caption-constraints:source-call:1',
+  caller: {
+    callerKind: 'head_of_orchestra',
+    callerId: 'canonical-approved-edit-workflow',
+  },
+  assigneeSkillKey: 'b_roll',
+  job: {
+    jobId: 'broll.caption-constraints.source-job.1',
+    jobType: 'request_caption_broll_composition_constraints',
+    requestedMode: 'planning',
+    scopeLevel: 'scene',
+  },
+  canonicalScope: structuredClone(crossSystemCanonicalScope),
+  manifestRef: {
+    id: 'broll.caption-constraints.source-manifest.1',
+    version: 'broll-caption-support-manifest-v1',
+    contentHash: sha256AuthorityValue(
+      'broll-caption-support-manifest-1'),
+  },
+  qualificationSnapshotRef: {
+    id: 'broll.caption-constraints.source-qualification.1',
+    version: 'broll-caption-support-qualification-v1',
+    contentHash: sha256AuthorityValue(
+      'broll-caption-support-qualification-1'),
+  },
+  inputArtifactRefs: [],
+  injectedSupportArtifactRefs: [],
+  resumeOfSupportRequestRef: null,
+  resumeOriginCallRef: null,
+  authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  privateArtifactPolicy: {
+    tenantScoped: true,
+    byteFreeCoordinationOnly: true,
+    rawChatAllowed: false,
+    mediaBytesAllowed: false,
+    urlOrPathAllowed: false,
+  },
+}
+const brollSourceCall = parseOrchestraSkillCall({
+  ...brollSourceCallWithoutDigest,
+  callDigestSha256: calculateSkillContractDigest(
+    brollSourceCallWithoutDigest as unknown as Record<string, unknown>,
+    'callDigestSha256',
+  ),
+})
+const brollCaptionRequestWithoutDigest: Omit<SkillSupportRequestV2,
+  'requestDigestSha256'> = {
+  schemaVersion: SKILL_SUPPORT_REQUEST_VERSION_V2,
+  requestId: 'broll.caption-constraints.support-request.1',
+  originalCallRef: skillCallRef(brollSourceCall),
+  requestingSkillKey: 'b_roll',
+  targetSkillKey: 'captions',
+  requestedJobType: 'provide_caption_broll_composition_constraints',
+  reasonCode: 'broll.caption_constraints.required',
+  requestedArtifactTypes: ['caption_broll_composition_constraints'],
+  canonicalScope: structuredClone(crossSystemCanonicalScope),
+  typedPayloadType: 'broll-caption-constraints-request-v1',
+  typedPayload: {
+    requestedConstraintRole: 'caption_safe_selected_media_layout',
+    byteFreeRequest: true,
+    brollSelectionAuthorityRequested: false,
+    timelineMutationRequested: false,
+  },
+  mediationPolicy: {
+    hqMediated: true,
+    directPeerDispatchAllowed: false,
+    assigneeMayOnlyResumeAfterInjection: true,
+  },
+  authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+}
+const brollCaptionRequest = parseSkillSupportRequestV2({
+  ...brollCaptionRequestWithoutDigest,
+  requestDigestSha256: calculateSkillContractDigest(
+    brollCaptionRequestWithoutDigest as unknown as Record<string, unknown>,
+    'requestDigestSha256',
+  ),
+})
+const brollCaptionRequestRef = {
+  id: brollCaptionRequest.requestId,
+  version: brollCaptionRequest.schemaVersion,
+  contentHash: brollCaptionRequest.requestDigestSha256,
+}
+const brollCaptionRequestArtifact = {
+  ...brollCaptionRequestRef,
+  artifactType: 'source_skill_support_request' as const,
+  producerSkillKey: 'head_of_orchestra',
+  privateArtifact: true as const,
+  byteFreeRef: true as const,
+  sourceSupportRequestRef: null,
+}
+const brollCaptionRequestReadPort =
+  createCanonicalCaptionIncomingSupportRequestReadPort(
+    async ({ requestRef }) => stableAuthorityStringify(requestRef)
+      === stableAuthorityStringify(brollCaptionRequestRef)
+      ? {
+          request: structuredClone(brollCaptionRequest),
+          originalCall: structuredClone(brollSourceCall),
+        }
+      : null,
+  )
+
+const crossSystemWorkInput = parseCanonicalCaptionSpecialistWorkItemInput({
+  ...structuredClone(expectationMountWorkInput),
+  captionJobType: 'provide_caption_broll_composition_constraints',
+  scopeLevel: 'scene',
+  outputId: 'output.caption.cross-system.1',
+  sceneId: 'scene.caption.cross-system.1',
+  boundaryId: null,
+  authorizedFrameRanges: [{ startFrame: 0, endFrameExclusive: 360 }],
+  assignmentIntentRef: {
+    id: 'caption.assignment.cross-system.broll.1',
+    version: 'canonical-caption-specialist-job-assignment-v1',
+    contentHash: sha256AuthorityValue(
+      'caption-assignment-cross-system-broll-1'),
+  },
+  initialArtifactRefs: [
+    ...structuredClone(expectationMountWorkInput.initialArtifactRefs),
+    brollCaptionRequestArtifact,
+  ],
+  assignmentTrigger: 'hq_mediated_support_request',
+  sourceSupportRequestRef: brollCaptionRequestRef,
+  selectionEvidenceRef: {
+    id: 'caption.selection.cross-system.broll.1',
+    version: 'professional-skill-composition-trace-v1',
+    contentHash: sha256AuthorityValue(
+      'caption-selection-cross-system-broll-1'),
+  },
+}) as CanonicalCaptionSpecialistWorkItemInput
+const crossSystemExecutionInputRef = {
+  sha256: sha256AuthorityValue(crossSystemWorkInput),
+  byteLength: Buffer.byteLength(JSON.stringify(crossSystemWorkInput)),
+}
+const crossSystemExpectedOutput = {
+  ...structuredClone(v3ExpectedOutput),
+  segmentIds: [crossSystemWorkInput.sceneId!],
+  timingIds: ['timing.caption.cross-system.1'],
+}
+const crossSystemWorkItem = {
+  ...structuredClone(v3WorkItem),
+  id: 'approved-caption-cross-system-work-1',
+  sourceWorkItemId: 'caption-cross-system-source-work-1',
+  workItemKey: 'caption-cross-system-broll-constraints',
+  executionInputRef: crossSystemExecutionInputRef,
+  executionInputHash: crossSystemExecutionInputRef.sha256,
+  expectedOutputs: [crossSystemExpectedOutput],
+  executionInput: crossSystemWorkInput,
+}
+const crossSystemJob = {
+  ...structuredClone(v3Job),
+  id: 'caption-cross-system-job-1',
+  approvedWorkItemId: crossSystemWorkItem.id,
+  workItemKey: crossSystemWorkItem.workItemKey,
+  executionInputRef: crossSystemExecutionInputRef,
+  expectedAssetIds: ['caption-cross-system-manifest-entry-1'],
+}
+const crossSystemManifestEntry = {
+  ...structuredClone(v3ManifestEntry),
+  id: 'caption-cross-system-manifest-entry-1',
+  approvedWorkItemId: crossSystemWorkItem.id,
+  workItemKey: crossSystemWorkItem.workItemKey,
+  ...crossSystemExpectedOutput,
+}
+const crossSystemAuthority = {
+  ...structuredClone(v3Authority),
+  snapshot: {
+    ...structuredClone(v3Snapshot),
+    approvedWorkItemIds: [crossSystemWorkItem.id],
+  },
+  workItems: [crossSystemWorkItem],
+  jobs: [crossSystemJob],
+  assetManifest: {
+    ...structuredClone(v3Authority.assetManifest),
+    entries: [crossSystemManifestEntry],
+    requiredAssetCount: 1,
+    optionalAssetCount: 0,
+  },
+} as unknown as CanonicalApprovedExecutionAuthority
+const crossSystemExecutionPackage = {
+  ...structuredClone(v3ExecutionPackage),
+  packageRecordId: 'caption-cross-system-execution-package-1',
+  packageHash: sha256AuthorityValue('caption-cross-system-package-1'),
+  approvedWorkItems: [{
+    id: crossSystemWorkItem.id,
+    workItemKey: crossSystemWorkItem.workItemKey,
+    executionInputHash: crossSystemWorkItem.executionInputHash,
+  }],
+  jobs: [{
+    id: crossSystemJob.id,
+    approvedWorkItemId: crossSystemJob.approvedWorkItemId,
+    executionInputRef: crossSystemJob.executionInputRef,
+    dispatchState: 'not_authorized',
+  }],
+} as unknown as CanonicalApprovedEditExecutionPackage
+
+let crossSystemSourceReads = 0
+const crossSystemSourceReadPort =
+  createCanonicalCaptionCrossSystemSourceReadPort(async ({ call }) => {
+    crossSystemSourceReads += 1
+    return createCanonicalCaptionBrollCrossSystemSourceFixture(
+      call, approvedScope.planVersionId)
+  })
+const crossSystemObjects = new Map<string, Buffer>()
+const crossSystemComposition =
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition({
+    objectPort: memoryObjectPort(crossSystemObjects),
+    sourceReadPort: crossSystemSourceReadPort,
+    prefix: 'private/smoke/caption-cross-system/exact',
+  })
+const crossSystemSpecialistRepository =
+  createCanonicalSpecialistSupportResumeRepository({
+    objectPort: memoryObjectPort(new Map()),
+    prefix: 'private/smoke/caption-cross-system/specialist',
+  })
+let crossSystemExecutionCalls = 0
+let crossSystemRuntimeInjectionVerified = false
+const crossSystemExecution = await executeCanonicalCaptionSpecialistWorkItem({
+  authority: crossSystemAuthority,
+  executionPackage: crossSystemExecutionPackage,
+  jobId: crossSystemJob.id,
+  repository: crossSystemSpecialistRepository,
+  canonicalTranscriptReadPort: repository,
+  canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+  canonicalTranscriptAuthenticatedReadBindingRef:
+    expectationExecutionMount.bindingRef,
+  canonicalTranscriptPlanningExpectationBindingRef:
+    expectationMountBindingRef,
+  incomingSupportRequestReadPort: brollCaptionRequestReadPort,
+  crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
+  executionPort: {
+    async execute(input) {
+      crossSystemExecutionCalls += 1
+      crossSystemRuntimeInjectionVerified =
+        input.crossSystemCoordinationPlan === undefined
+        && input.crossSystemCoordinationContext === undefined
+        && input.crossSystemOutboundHandoff !== undefined
+        && input.crossSystemOutboundHandoffContext?.outboundPayload.receiver
+          === 'broll_owner'
+        && input.crossSystemOutboundHandoffContext.supportRequest
+          ?.targetSkillKey === 'broll_owner'
+      return completedCrossSystemResult(input.call)
+    },
+  },
+  now: () => new Date('2026-08-05T18:02:00.000Z'),
+})
+check(crossSystemExecution.pair.result.disposition === 'completed'
+  && crossSystemExecution.crossSystemExecutionInputRef !== null
+  && crossSystemSourceReads === 2
+  && crossSystemExecutionCalls === 1
+  && crossSystemRuntimeInjectionVerified,
+  'Canonical V3 execution must double-reread, persist, and inject the exact Caption cross-system source package.')
+const persistedCrossSystemInput =
+  await crossSystemComposition.repository.rereadExact({
+    originCaptionCallRef: skillCallRef(crossSystemExecution.pair.call),
+  })
+check(persistedCrossSystemInput !== null
+  && parseCanonicalCaptionCrossSystemExecutionInput(
+    persistedCrossSystemInput).inputDigestSha256
+    === crossSystemExecution.crossSystemExecutionInputRef?.contentHash
+  && persistedCrossSystemInput.sourceInput.mode
+    === 'single_outbound_handoff'
+  && persistedCrossSystemInput.authorityBindings.executionPackageRef.id
+    === crossSystemExecutionPackage.packageRecordId
+  && persistedCrossSystemInput.authorityBindings.approvedWorkItemRef.id
+    === crossSystemWorkItem.id
+  && persistedCrossSystemInput.authorityBindings.canonicalJobRef.id
+    === crossSystemJob.id
+  && persistedCrossSystemInput.authorityBindings.plannedManifestEntryRef.id
+    === crossSystemManifestEntry.id,
+  'The private package must bind the exact call, approved work, job, planned manifest, and execution package.')
+
+assert.ok(persistedCrossSystemInput
+  && persistedCrossSystemInput.sourceInput.mode ===
+    'single_outbound_handoff')
+const outboundResumeRequest = persistedCrossSystemInput.sourceInput
+  .outboundHandoffContext.supportRequest
+assert.ok(outboundResumeRequest)
+const outboundResumeRequestRef = {
+  id: outboundResumeRequest.requestId,
+  version: outboundResumeRequest.schemaVersion,
+  contentHash: outboundResumeRequest.requestDigestSha256,
+}
+const resumedCallCandidate = structuredClone(crossSystemExecution.pair.call)
+resumedCallCandidate.callId = `caption.cross-system.resume.${
+  crossSystemExecution.pair.call.callDigestSha256.slice(0, 32)}`
+resumedCallCandidate.idempotencyKey = `caption:cross-system:resume:${
+  crossSystemExecution.pair.call.callDigestSha256.slice(0, 48)}`
+resumedCallCandidate.injectedSupportArtifactRefs = [{
+  id: 'broll.caption-constraints.owner-result.1',
+  version: 'b_roll_caption_owner_read_result_v1',
+  contentHash: sha256AuthorityValue(
+    'broll-caption-constraints-owner-result-1'),
+  artifactType: 'b_roll_caption_constraint_acknowledgement',
+  producerSkillKey: 'broll_owner',
+  privateArtifact: true,
+  byteFreeRef: true,
+  sourceSupportRequestRef: outboundResumeRequestRef,
+}]
+resumedCallCandidate.resumeOfSupportRequestRef = outboundResumeRequestRef
+resumedCallCandidate.resumeOriginCallRef = skillCallRef(
+  crossSystemExecution.pair.call)
+resumedCallCandidate.callDigestSha256 = calculateSkillContractDigest(
+  resumedCallCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256',
+)
+const resumedCall = parseOrchestraSkillCall(resumedCallCandidate)
+const resumedCrossSystemInput =
+  await resolveCanonicalCaptionCrossSystemExecutionInput({
+    call: resumedCall,
+    readPort: crossSystemComposition.readPort,
+  })
+const resumedRuntimeInput = canonicalCaptionCrossSystemRuntimeInput(
+  resumedCrossSystemInput)
+check(resumedCrossSystemInput?.inputDigestSha256
+  === persistedCrossSystemInput.inputDigestSha256
+  && resumedRuntimeInput.crossSystemOutboundHandoff !== undefined
+  && resumedRuntimeInput.crossSystemOutboundHandoffContext
+    ?.outboundPayload.receiver === 'broll_owner'
+  && crossSystemSourceReads === 2,
+  'An HQ-mediated owner resume must reread and reinject the original immutable package without rebuilding it.')
+
+const crossSystemRuntimeExecution =
+  await executeCanonicalCaptionSpecialistWorkItem({
+    authority: crossSystemAuthority,
+    executionPackage: crossSystemExecutionPackage,
+    jobId: crossSystemJob.id,
+    repository: createCanonicalSpecialistSupportResumeRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-cross-system/real-runtime',
+    }),
+    canonicalTranscriptReadPort: repository,
+    canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+    canonicalTranscriptAuthenticatedReadBindingRef:
+      expectationExecutionMount.bindingRef,
+    canonicalTranscriptPlanningExpectationBindingRef:
+      expectationMountBindingRef,
+    incomingSupportRequestReadPort: brollCaptionRequestReadPort,
+    crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
+  })
+check(crossSystemRuntimeExecution.pair.result.disposition === 'needs_followup'
+  && crossSystemRuntimeExecution.pair.result.supportRequests.length === 1
+  && crossSystemRuntimeExecution.pair.result.supportRequests[0]
+    ?.targetSkillKey === 'broll_owner'
+  && crossSystemRuntimeExecution.pair.result.producedArtifactRefs.length === 0
+  && crossSystemRuntimeExecution.crossSystemExecutionInputRef?.contentHash
+    === persistedCrossSystemInput.inputDigestSha256
+  && crossSystemSourceReads === 2,
+  'The real Caption runtime must retain the persisted handoff package while it waits for exact B-roll owner evidence.')
+
+const crossSystemReplay = await executeCanonicalCaptionSpecialistWorkItem({
+  authority: crossSystemAuthority,
+  executionPackage: crossSystemExecutionPackage,
+  jobId: crossSystemJob.id,
+  repository: crossSystemSpecialistRepository,
+  canonicalTranscriptReadPort: repository,
+  canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+  canonicalTranscriptAuthenticatedReadBindingRef:
+    expectationExecutionMount.bindingRef,
+  canonicalTranscriptPlanningExpectationBindingRef:
+    expectationMountBindingRef,
+  incomingSupportRequestReadPort: brollCaptionRequestReadPort,
+  crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
+  executionPort: {
+    async execute(input) {
+      crossSystemExecutionCalls += 1
+      return completedCrossSystemResult(input.call)
+    },
+  },
+})
+check(crossSystemReplay.pair.pairDigestSha256
+  === crossSystemExecution.pair.pairDigestSha256
+  && crossSystemReplay.crossSystemExecutionInputRef?.contentHash
+    === crossSystemExecution.crossSystemExecutionInputRef?.contentHash
+  && crossSystemSourceReads === 2
+  && crossSystemExecutionCalls === 1,
+  'Canonical replay must reuse the same persisted package without rereading mutable source artifacts or rerunning Caption.')
+
+await assert.rejects(
+  () => executeCanonicalCaptionSpecialistWorkItem({
+    authority: crossSystemAuthority,
+    executionPackage: crossSystemExecutionPackage,
+    jobId: crossSystemJob.id,
+    repository: createCanonicalSpecialistSupportResumeRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-cross-system/missing-reader',
+    }),
+    canonicalTranscriptReadPort: repository,
+    canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+    canonicalTranscriptAuthenticatedReadBindingRef:
+      expectationExecutionMount.bindingRef,
+    canonicalTranscriptPlanningExpectationBindingRef:
+      expectationMountBindingRef,
+  }),
+  /cross-system execution-input reader is unavailable/u,
+)
+checks += 1
+
+let unstableSourceReads = 0
+const unstableComposition =
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition({
+    objectPort: memoryObjectPort(new Map()),
+    sourceReadPort: createCanonicalCaptionCrossSystemSourceReadPort(
+      async ({ call }) => {
+        unstableSourceReads += 1
+        return unstableSourceReads === 1
+          ? createCanonicalCaptionBrollCrossSystemSourceFixture(
+              call, approvedScope.planVersionId)
+          : null
+      },
+    ),
+    prefix: 'private/smoke/caption-cross-system/unstable',
+  })
+await assert.rejects(
+  () => executeCanonicalCaptionSpecialistWorkItem({
+    authority: crossSystemAuthority,
+    executionPackage: crossSystemExecutionPackage,
+    jobId: crossSystemJob.id,
+    repository: createCanonicalSpecialistSupportResumeRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-cross-system/unstable-specialist',
+    }),
+    canonicalTranscriptReadPort: repository,
+    canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+    canonicalTranscriptAuthenticatedReadBindingRef:
+      expectationExecutionMount.bindingRef,
+    canonicalTranscriptPlanningExpectationBindingRef:
+      expectationMountBindingRef,
+    crossSystemExecutionInputReadPort: unstableComposition.readPort,
+  }),
+  /source artifacts changed between rereads/u,
+)
+check(unstableSourceReads === 2,
+  'An unstable Caption artifact owner must be sampled twice and rejected before execution.')
+
+const crossedComposition =
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition({
+    objectPort: memoryObjectPort(new Map()),
+    sourceReadPort: createCanonicalCaptionCrossSystemSourceReadPort(
+      async ({ call }) => {
+        const crossedCallCandidate = structuredClone(call)
+        crossedCallCandidate.canonicalScope.workspaceId =
+          'workspace.caption.cross-system.crossed'
+        crossedCallCandidate.callDigestSha256 = calculateSkillContractDigest(
+          crossedCallCandidate as unknown as Record<string, unknown>,
+          'callDigestSha256',
+        )
+        const crossedCall = parseOrchestraSkillCall(crossedCallCandidate)
+        return createCanonicalCaptionBrollCrossSystemSourceFixture(
+          crossedCall, approvedScope.planVersionId)
+      },
+    ),
+    prefix: 'private/smoke/caption-cross-system/crossed',
+  })
+await assert.rejects(
+  () => executeCanonicalCaptionSpecialistWorkItem({
+    authority: crossSystemAuthority,
+    executionPackage: crossSystemExecutionPackage,
+    jobId: crossSystemJob.id,
+    repository: createCanonicalSpecialistSupportResumeRepository({
+      objectPort: memoryObjectPort(new Map()),
+      prefix: 'private/smoke/caption-cross-system/crossed-specialist',
+    }),
+    canonicalTranscriptReadPort: repository,
+    canonicalTranscriptRef: expectationExecutionMount.transcriptRef,
+    canonicalTranscriptAuthenticatedReadBindingRef:
+      expectationExecutionMount.bindingRef,
+    canonicalTranscriptPlanningExpectationBindingRef:
+      expectationMountBindingRef,
+    crossSystemExecutionInputReadPort: crossedComposition.readPort,
+  }),
+  /source lineage crossed canonical inputs/u,
+)
+checks += 1
+
+await assert.rejects(
+  () => resolveCanonicalCaptionCrossSystemExecutionInput({
+    call: crossSystemExecution.pair.call,
+    readPort: {
+      ...crossSystemComposition.readPort,
+      async readExact(input) {
+        return crossSystemComposition.readPort.readExact(input)
+      },
+    },
+  }),
+  /execution-input reader is unavailable/u,
+)
+checks += 1
+
+assert.ok(persistedCrossSystemInput)
+const authorityOverclaim = structuredClone(persistedCrossSystemInput)
+authorityOverclaim.providerCallPerformed = true as false
+authorityOverclaim.inputDigestSha256 = calculateSkillContractDigest(
+  authorityOverclaim as unknown as Record<string, unknown>,
+  'inputDigestSha256',
+)
+assert.throws(
+  () => parseCanonicalCaptionCrossSystemExecutionInput(authorityOverclaim),
+)
+checks += 1
+
 await assert.rejects(
   () => resolveCanonicalCaptionTranscriptExecutionMount({
     authority: {

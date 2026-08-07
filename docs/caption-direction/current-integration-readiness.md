@@ -150,6 +150,22 @@ HQ-mediated support-resume chain instead of remaining pinned to the initial
 current completed resumed call/result after an existing owner adapter has
 persisted that continuation. Missing owner projections or missing resume
 records remain pending; the executor cannot create or infer either one.
+
+The V3 cross-system lane now persists its Caption-owned coordination source as
+`canonical-caption-cross-system-execution-input-v1`. Initial execution binds
+the exact approved snapshot, work, job, manifest, estimate, reservation,
+originating call, transcript, confirmed frame, and MasterTiming lineage;
+replay and owner resume can only reread the same create-only record. The shared
+incoming-support resolver also rereads the original V2 assignment and owner
+call on every resume. The focused B-roll path proves the complete
+`needs_followup -> authenticated owner result -> resumed Caption completion ->
+outbound payload and handoff` sequence. Visual Intelligence, Track All,
+SoundSync, and B-roll all use this same source continuity seam. See
+[`canonical-cross-system-execution-input-2026-08-07.md`](canonical-cross-system-execution-input-2026-08-07.md).
+
+This is canonical source persistence and resume evidence, not receiver runtime
+or terminal qualification. It changes neither the 41/41 source-ready count nor
+the nine actual private-evidence gates below.
 The historical V1 terminal lane remains bound to readiness V2; the additive V2
 terminal lane binds readiness V3 and is the only current terminal lane.
 This is still not the same as an actual private qualification run: the count

@@ -65,11 +65,11 @@ assert.match(deployScript,
 assert.match(deployScript, /weeditpro-sam31-official-artifact-ingest/u)
 assert.match(deployScript, /weeditpro-sam31-ingest-sa/u)
 assert.match(deployScript,
-  /BUILD_ID='5680eb4c-c103-458e-8760-cfdf2549f7d2'/u)
+  /BUILD_ID='b2d24b6a-486b-4b68-ab1b-579fa3fc66f5'/u)
 assert.match(deployScript,
-  /SOURCE_COMMIT='5ff0ef79dda605841dcb2176a6817f4e4a46ae9a'/u)
+  /SOURCE_COMMIT='957b13dbf9542863d5ea49b123560e774dfca2f1'/u)
 assert.match(deployScript,
-  /SOURCE_TREE='95c04b8c04bb6c97197644c038156b4e21f2de6e'/u)
+  /SOURCE_TREE='04de06a4fedfbf744f1f05676beb13e9efdb1132'/u)
 assert.match(deployScript,
   /IMAGE_DIGEST='sha256:12e09216576b466f58c2eeba009b84828b8abdd3c8e44522623bd9066996f5e1'/u)
 assert.match(deployScript, /requestedVerifyOption == "VERIFIED"/u)

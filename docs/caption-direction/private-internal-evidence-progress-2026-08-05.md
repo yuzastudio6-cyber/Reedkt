@@ -179,6 +179,19 @@ representative source scenarios cover the union of all 41 declared jobs; no
 single scenario claims to exercise every feature. V1 planning bindings and
 work inputs remain strictly readable.
 
+The normal source-led owner now also consumes that lane instead of always
+stopping at the 17 baseline assignments. It uses only typed professional
+directive fields and high-confidence resolved `mappedPresetIds`, activates the
+existing scene-aware `caption_design` mini-skills, and projects the applicable
+advanced scene or boundary assignments. Raw directive text is ignored,
+ambiguous unscoped treatments fail closed, and initial planning still cannot
+manufacture an incoming support job without its later HQ-mediated request. The
+181-assertion focused regression covers 18 representative source-led profiles;
+see
+`canonical-source-led-advanced-caption-planning-2026-08-07.md`. This closes the
+normal-owner source-reachability defect but does not add actual advanced media
+or terminal evidence, so the 0/41 and 0/9 terminal counts remain unchanged.
+
 The active post-render visual-review source lane now uses Visual Intelligence
 instead of the retired Qwen wire. The hosted Visual Intelligence composition
 mounts separate create-only owner-result and Caption reconciliation stores, an

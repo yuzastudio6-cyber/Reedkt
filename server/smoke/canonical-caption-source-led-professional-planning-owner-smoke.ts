@@ -14,6 +14,9 @@ import {
   CANONICAL_CAPTION_SPECIALIST_PLANNING_PROJECTION_V3_VERSION,
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
+  CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS,
+} from '../../src/types/caption-source-led-intent-policy'
+import {
   canonicalPlanComponentsSchema,
 } from '../validation/edit-planning-authority-schemas'
 import {
@@ -95,7 +98,11 @@ assert.equal(
   selectedRead.authority.captionEarlyPlanningBundle.strategyPlan.primaryLanguage,
   'und',
 )
-checks += 1
+assert.equal(
+  selectedRead.authority.captionEarlyPlanningBundle.strategyPlan.projectMode,
+  'dynamic_short_form',
+)
+checks += 2
 assert.equal(
   selectedRead.authority.captionEarlyPlanningBundle.reservationPlan
     .reservations[0]?.selectedRegionId,
@@ -126,6 +133,8 @@ checks += 4
 assert.equal('assignmentIntents' in selectedBinding, true)
 if (!('assignmentIntents' in selectedBinding)) throw new Error('unreachable')
 assert.equal(selectedBinding.assignmentIntents.length, 17)
+const baselineSourceLedAssignmentTypes = selectedBinding.assignmentIntents.map(
+  (assignment) => assignment.jobType)
 checks += 1
 assert.equal(selectedRead.authority.captionEstimateLine?.category, 'caption_specialist')
 checks += 1
@@ -181,6 +190,208 @@ assert.equal(
   1,
 )
 checks += 1
+
+const spatialPlan = await advancedPlan({
+  captionStyle: 'sentence_block_captions',
+})
+assert.deepEqual(
+  assignmentTypes(spatialPlan),
+  [...baselineAssignmentTypes(), 'resolve_spatial_typography'],
+)
+assert.deepEqual(
+  spatialPlan.authority.captionEarlyPlanningBundle.strategyPlan
+    .selectedIntegrationClasses,
+  ['reserved_composition'],
+)
+checks += 2
+
+for (const presetId of [
+  'spatial_caption_compositing',
+  'caption_camera_coordination',
+] as const) {
+  const plan = await advancedPlan({}, [presetId])
+  assert.equal(
+    assignmentTypes(plan).includes('resolve_spatial_typography'),
+    true,
+  )
+  assert.equal(
+    plan.authority.captionEarlyPlanningBundle.strategyPlan
+      .selectedIntegrationClasses.includes('reserved_composition'),
+    true,
+  )
+  checks += 2
+}
+
+for (const [presetId, jobType] of [
+  ['subject_occluded_typography',
+    'resolve_subject_occluded_typography'],
+  ['object_anchored_typography',
+    'resolve_object_anchored_typography'],
+  ['environmental_typography',
+    'resolve_environmental_typography'],
+] as const) {
+  const plan = await advancedPlan({}, [presetId])
+  assert.equal(assignmentTypes(plan).includes('resolve_spatial_typography'), true)
+  assert.equal(assignmentTypes(plan).includes(jobType), true)
+  assert.equal(
+    plan.authority.captionSpecialistPlanningBinding.scenePolicies[0]
+      ?.trackingJobType,
+    jobType,
+  )
+  assert.equal(
+    plan.authority.captionEarlyPlanningBundle.supportRequirementCodes
+      .includes('track_all.mask_track_candidate_required'),
+    true,
+  )
+  checks += 4
+}
+
+const multiTrackPlan = await advancedPlan({}, [
+  'caption_speaker_identification',
+])
+assert.equal(
+  assignmentTypes(multiTrackPlan).includes(
+    'resolve_multi_track_caption_scene'),
+  true,
+)
+assert.equal(
+  assignmentTypes(multiTrackPlan).includes('resolve_spatial_typography'),
+  true,
+)
+checks += 2
+
+const heroPlan = await advancedPlan({}, ['hero_typography_direction'])
+assert.equal(assignmentTypes(heroPlan).includes('resolve_hero_typography'), true)
+assert.equal(
+  heroPlan.authority.captionEarlyPlanningBundle.approvalEnvelope
+    .maximumHeroMoments,
+  1,
+)
+assert.deepEqual(
+  heroPlan.authority.captionEarlyPlanningBundle.strategyPlan
+    .selectedIntegrationClasses,
+  ['structural_typography'],
+)
+checks += 3
+
+const persistentPlan = await advancedPlan({}, [
+  'persistent_topic_list_typography',
+])
+assert.equal(
+  assignmentTypes(persistentPlan).includes(
+    'resolve_persistent_topic_typography'),
+  true,
+)
+assert.equal(
+  assignmentTypes(persistentPlan).includes('resolve_spatial_typography'),
+  true,
+)
+checks += 2
+
+for (const target of [
+  'broll', 'living_frame', 'map', 'chart', 'diagram', 'transition',
+] as const) {
+  const plan = await advancedPlan({}, [
+    'caption_to_visual_bridge',
+    CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS[target],
+  ])
+  const binding = plan.authority.captionSpecialistPlanningBinding
+  assert.equal(binding.scenePolicies[0]?.crossSystemTarget, target)
+  assert.equal(
+    assignmentTypes(plan).includes('plan_caption_to_visual_handoff'),
+    true,
+  )
+  assert.equal(
+    assignmentTypes(plan).includes(
+      'provide_caption_to_visual_handoff_spec'),
+    false,
+  )
+  assert.equal(
+    assignmentTypes(plan).includes(
+      'provide_caption_broll_composition_constraints'),
+    false,
+  )
+  assert.equal(
+    assignmentTypes(plan).includes(
+      'provide_caption_living_frame_handoff_constraints'),
+    false,
+  )
+  assert.equal(
+    plan.authority.captionEarlyPlanningBundle.supportRequirementCodes
+      .includes(`support.${target}.handoff_required`),
+    true,
+  )
+  checks += 6
+}
+
+const brollCoCompositionPlan = await advancedPlan({}, [
+  'caption_broll_co_composition',
+])
+assert.equal(
+  brollCoCompositionPlan.authority.captionSpecialistPlanningBinding
+    .scenePolicies[0]?.crossSystemTarget,
+  'broll',
+)
+assert.equal(
+  assignmentTypes(brollCoCompositionPlan).includes(
+    'plan_caption_to_visual_handoff'),
+  true,
+)
+checks += 2
+
+const soundPlan = await advancedPlan({ soundStyle: 'energetic_social' }, [
+  'caption_sound_choreography',
+])
+assert.equal(
+  soundPlan.authority.captionEarlyPlanningBundle.approvalEnvelope
+    .captionSoundAllowed,
+  true,
+)
+assert.equal(
+  assignmentTypes(soundPlan).includes(
+    'prepare_caption_boundary_timing_requirements'),
+  true,
+)
+assert.equal(
+  assignmentTypes(soundPlan).includes(
+    'provide_typographic_transition_support'),
+  true,
+)
+checks += 3
+
+const untrustedTextPlan = await advancedPlan({}, [], {
+  rawUserRequest: 'Use hero typography and put captions behind the speaker.',
+  confidence: 'low',
+  mappedPresetIds: [
+    'hero_typography_direction',
+    'subject_occluded_typography',
+  ],
+})
+assert.deepEqual(assignmentTypes(untrustedTextPlan), baselineAssignmentTypes())
+checks += 1
+
+await assert.rejects(
+  () => advancedPlan({}, [
+    'caption_to_visual_bridge',
+    CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS.broll,
+    CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS.living_frame,
+  ]),
+  /scene-scoped clarification for multiple cross-system targets/u,
+)
+await assert.rejects(
+  () => advancedPlan({ soundStyle: 'clean_voice_only' }, [
+    'caption_sound_choreography',
+  ]),
+  /conflicts with the compiled clean-voice-only directive/u,
+)
+await assert.rejects(
+  () => advancedPlan({}, [
+    'subject_occluded_typography',
+    'object_anchored_typography',
+  ]),
+  /scene-scoped clarification for multiple tracking treatments/u,
+)
+checks += 3
 
 const compatibilityPort =
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
@@ -279,6 +490,49 @@ assert.equal(
 )
 checks += 1
 
+const restrainedWithStaleAdvancedDirective = structuredClone(
+  restrainedComponents)
+restrainedWithStaleAdvancedDirective.professionalEditingDirective = {
+  ...restrainedWithStaleAdvancedDirective.professionalEditingDirective,
+  customDirectives: [{
+    id: 'stale-advanced-caption-directive',
+    rawUserRequest: 'Stale advanced request superseded by no captions.',
+    interpretedMeaning: 'The exact no-captions restraint must win.',
+    mappedPresetIds: [
+      'caption_to_visual_bridge',
+      CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS.broll,
+      CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS.living_frame,
+    ],
+    customOverrides: [],
+    mustFollowRules: [],
+    avoidRules: [],
+    confidence: 'high',
+    clarifyingQuestions: [],
+  }],
+}
+const restrainedAdvancedComponents = canonicalPlanComponentsSchema.parse(
+  restrainedWithStaleAdvancedDirective)
+const restrainedAdvancedRead =
+  await readCanonicalCaptionSourceLedProfessionalPlanning({
+    port: createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+      components: restrainedAdvancedComponents,
+      confirmedCaptionMarkerSetRef: null,
+    }),
+    request: createRequest(restrainedAdvancedComponents),
+  })
+assert.equal(restrainedAdvancedRead.status, 'ready')
+if (restrainedAdvancedRead.status !== 'ready') throw new Error('unreachable')
+assert.equal(
+  restrainedAdvancedRead.authority.selectionDisposition,
+  'no_captions',
+)
+assert.equal(
+  'assignmentIntents' in
+    restrainedAdvancedRead.authority.captionSpecialistPlanningBinding,
+  false,
+)
+checks += 3
+
 const crossedComponents = structuredClone(selectedComponents)
 crossedComponents.compiledIntent = {
   ...crossedComponents.compiledIntent,
@@ -336,6 +590,9 @@ console.log(JSON.stringify({
   status: 'passed',
   checks,
   selectedAssignments: 17,
+  advancedSourceLedProfilesVerified: 18,
+  rawDirectiveTextInterpretedByCaptionOwner: false,
+  advancedSupportJobsCreatedWithoutTypedRequest: false,
   canonicalSourceAnalysisReread: true,
   safeRegionGeometryInvented: false,
   selectedWithoutSourceEvidence: 'blocked_requested',
@@ -347,6 +604,92 @@ console.log(JSON.stringify({
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,
 }, null, 2))
+
+async function advancedPlan(
+  directiveOverrides: Record<string, unknown>,
+  mappedPresetIds: string[] = [],
+  customDirectiveOverrides: Partial<{
+    rawUserRequest: string
+    interpretedMeaning: string
+    mappedPresetIds: string[]
+    confidence: 'low' | 'medium' | 'high'
+    clarifyingQuestions: string[]
+  }> = {},
+) {
+  const components = structuredClone(selectedComponents)
+  components.professionalEditingDirective = {
+    ...components.professionalEditingDirective,
+    ...directiveOverrides,
+    customDirectives: [
+      'Raw Caption request text must not activate owner policy.',
+      {
+        id: 'caption-owner-structured-directive',
+        rawUserRequest: 'Structured Caption treatment request.',
+        interpretedMeaning:
+          'Use only the exact mapped Caption mini-skill presets.',
+        mappedPresetIds,
+        customOverrides: [],
+        mustFollowRules: [],
+        avoidRules: [],
+        confidence: 'high',
+        clarifyingQuestions: [],
+        ...customDirectiveOverrides,
+      },
+    ],
+  }
+  const parsedComponents = canonicalPlanComponentsSchema.parse(components)
+  const request = createRequest(parsedComponents)
+  const port = createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+    components: parsedComponents,
+    sourceCleanupAuthority: selectedSourceAuthority,
+    confirmedCaptionMarkerSetRef: null,
+  })
+  const read = await readCanonicalCaptionSourceLedProfessionalPlanning({
+    port,
+    request,
+  })
+  assert.equal(read.status, 'ready')
+  if (read.status !== 'ready') throw new Error('unreachable')
+  assert.equal(
+    'assignmentIntents' in read.authority.captionSpecialistPlanningBinding,
+    true,
+  )
+  const projection = applyCanonicalCaptionSourceLedProfessionalPlanning({
+    request,
+    authority: read.authority,
+    components: parsedComponents,
+    estimate: selectedPublication.canonicalPlan.estimate,
+    workItems: selectedPublication.canonicalPlan.workItems,
+  })
+  if (!('assignmentIntents' in
+    read.authority.captionSpecialistPlanningBinding)) {
+    throw new Error('unreachable')
+  }
+  assert.equal(
+    projection.workItems.filter((item) =>
+      item.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS).length,
+    read.authority.captionSpecialistPlanningBinding.assignmentIntents.length,
+  )
+  assert.deepEqual(
+    projection.projection.projectedJobTypes,
+    read.authority.captionSpecialistPlanningBinding.assignmentIntents.map(
+      (assignment) => assignment.jobType),
+  )
+  checks += 4
+  return read
+}
+
+function assignmentTypes(
+  plan: Awaited<ReturnType<typeof advancedPlan>>,
+) {
+  const binding = plan.authority.captionSpecialistPlanningBinding
+  if (!('assignmentIntents' in binding)) throw new Error('unreachable')
+  return binding.assignmentIntents.map((assignment) => assignment.jobType)
+}
+
+function baselineAssignmentTypes() {
+  return [...baselineSourceLedAssignmentTypes]
+}
 
 function plannerInput(customInstructions: string): PlannerInput {
   return {

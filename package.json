@@ -238,6 +238,7 @@
     "deploy:sam3_1-private-artifact-ingest-job": "bash scripts/gcp/prod/24-deploy-sam31-private-artifact-ingest-job.sh",
     "smoke:sam3_1-source-checkpoint-qualification": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-smoke.ts",
     "smoke:sam3_1-qualification-capsule-builder": "tsx server/smoke/canonical-sam3_1-qualification-capsule-builder-smoke.ts",
+    "smoke:sam3_1-qualification-capsule-runtime": "tsx server/smoke/canonical-sam3_1-qualification-capsule-runtime-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation-owner": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts",

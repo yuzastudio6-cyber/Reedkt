@@ -130,7 +130,11 @@ if (compiled.plan.decision !== 'generate_with_gemini_omni') {
   throw new Error('Gemini B-roll safe canary did not compile the expected generated route.')
 }
 const workGraph = compileBrollCanonicalWorkGraph({ assignment, plan: compiled.plan })
-const canonicalWorkItems = projectBrollCanonicalWorkItems({ assignment, workGraph })
+const canonicalWorkItems = projectBrollCanonicalWorkItems({
+  assignment,
+  plan: compiled.plan,
+  workGraph,
+})
 const providerWorkItem = canonicalWorkItems.find((item) =>
   item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
 if (!providerWorkItem) throw new Error('Gemini B-roll safe canary provider work item is missing.')

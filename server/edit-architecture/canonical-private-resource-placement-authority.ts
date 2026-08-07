@@ -946,7 +946,11 @@ function toolFreeWorkerType(
   workerClass: string,
   workItemType: string,
 ): CanonicalPrivateExecutableWorkerType {
-  if (workerClass === 'authority_worker' || workerClass === 'private_test_worker') {
+  if (
+    workerClass === 'authority_worker' ||
+    workerClass === 'control_plane_worker' ||
+    workerClass === 'private_test_worker'
+  ) {
     return 'api_service'
   }
   if (workerClass === PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS) {

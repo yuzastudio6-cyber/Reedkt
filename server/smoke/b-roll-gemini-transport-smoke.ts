@@ -98,7 +98,11 @@ try {
     qa: editSkillQaRegistry,
   })
   const workGraph = compileBrollCanonicalWorkGraph({ assignment, plan: compiled.plan })
-  const canonicalWorkItems = projectBrollCanonicalWorkItems({ assignment, workGraph })
+  const canonicalWorkItems = projectBrollCanonicalWorkItems({
+    assignment,
+    plan: compiled.plan,
+    workGraph,
+  })
   const providerWorkItem = canonicalWorkItems.find((item) => item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
   assert.ok(providerWorkItem)
   const persisted = await persistCanonicalBrollPlanComponent({
@@ -477,7 +481,11 @@ try {
   })
   assert.equal(editCompiled.plan.decision, 'edit_uploaded_video_with_gemini_omni')
   const editWorkGraph = compileBrollCanonicalWorkGraph({ assignment: editAssignment, plan: editCompiled.plan })
-  const editCanonicalWorkItems = projectBrollCanonicalWorkItems({ assignment: editAssignment, workGraph: editWorkGraph })
+  const editCanonicalWorkItems = projectBrollCanonicalWorkItems({
+    assignment: editAssignment,
+    plan: editCompiled.plan,
+    workGraph: editWorkGraph,
+  })
   const editProviderWorkItem = editCanonicalWorkItems.find((item) =>
     item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
   assert.ok(editProviderWorkItem)

@@ -149,6 +149,7 @@ function compile(assignmentValue: BrollSkillAssignment, contextValue: BrollPlann
   })
   const canonicalWorkItems = projectBrollCanonicalWorkItems({
     assignment: assignmentValue,
+    plan: compiled.plan,
     workGraph,
   })
   return { ...compiled, workGraph, canonicalWorkItems }

@@ -438,6 +438,7 @@ async function privateAuthority(input: {
   assert.equal(input.publicGraph.pluginWorkGraphHash, workGraph.workGraphHash)
   const canonicalWorkItems = projectBrollCanonicalWorkItems({
     assignment: input.fixture.brollAssignment,
+    plan,
     workGraph,
   })
   const persisted = await persistCanonicalBrollPlanComponent({

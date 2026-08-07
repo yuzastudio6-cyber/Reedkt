@@ -135,7 +135,11 @@ try {
   assert.equal(compiled.plan.decision, 'generate_with_gemini_omni')
   assert.equal(compiled.plan.shotSpecification?.durationSeconds, 3)
   const workGraph = compileBrollCanonicalWorkGraph({ assignment, plan: compiled.plan })
-  const canonicalWorkItems = projectBrollCanonicalWorkItems({ assignment, workGraph })
+  const canonicalWorkItems = projectBrollCanonicalWorkItems({
+    assignment,
+    plan: compiled.plan,
+    workGraph,
+  })
   const providerWorkItem = canonicalWorkItems.find((item) =>
     item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
   assert.ok(providerWorkItem)

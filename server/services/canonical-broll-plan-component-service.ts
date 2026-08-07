@@ -373,7 +373,11 @@ export async function revalidateCanonicalBrollPlanAuthority(input: {
   if (stableAuthorityStringify(rebuilt) !== stableAuthorityStringify(component)) {
     throw new Error('Canonical B-roll component no longer matches its content-addressed lineage.')
   }
-  const expectedItems = projectBrollCanonicalWorkItems({ assignment, workGraph })
+  const expectedItems = projectBrollCanonicalWorkItems({
+    assignment,
+    plan,
+    workGraph,
+  })
   if (stableAuthorityStringify(expectedItems) !== stableAuthorityStringify(projectedItems)) {
     throw new Error('Canonical B-roll work items no longer match the immutable skill work graph.')
   }

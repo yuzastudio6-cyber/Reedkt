@@ -7,6 +7,10 @@ import { skillManifestReferenceSchema, skillSha256Schema } from '../core/skill-c
 import { isFrameRangeContained } from '../core/skill-range-authority'
 import type { BrollPlanArtifact, BrollSkillAssignment } from './b-roll-contracts'
 import { assertBrollPlanRuntimeInvariants } from './b-roll-plan-compiler'
+import {
+  brollRemotionPreviewDimensions,
+  brollRemotionPreviewLayerForTreatment,
+} from './b-roll-remotion-planning'
 
 const workItemSchema = z.object({
   workItemKey: z.string().trim().min(1).max(180),
@@ -394,11 +398,101 @@ function canonicalContentType(item: BrollCanonicalWorkItem): string {
   return 'application/json'
 }
 
+function approvedMediaFrameRate(
+  value: number,
+): 24 | 25 | 30 | 50 | 60 {
+  if (value === 24 || value === 25 || value === 30 || value === 50 || value === 60) {
+    return value
+  }
+  throw new Error(`B-roll tool planning does not support ${value} fps.`)
+}
+
+function brollToolPlanningPayload(input: {
+  item: BrollCanonicalWorkItem
+  assignment: BrollSkillAssignment
+  plan: BrollPlanArtifact
+}): Record<string, unknown> | undefined {
+  const { item, assignment, plan } = input
+  const authorizedRange = assignment.writeRangeAuthority.authorizedRange
+  const durationFrames = authorizedRange.endFrameExclusive -
+    authorizedRange.startFrameInclusive
+  const frameRate = approvedMediaFrameRate(authorizedRange.fps)
+  if (item.jobType === 'inspect_b_roll_candidate_with_ffprobe') {
+    return {
+      inspectionProfileId: 'source_intake_v1',
+      countFrames: true,
+      verifyDurationAndSync: true,
+      emitMachineJsonOnly: true,
+    }
+  }
+  if (item.jobType === 'normalize_b_roll_candidate_with_ffmpeg') {
+    const trim = plan.sourceTrim ?? {
+      startFrameInclusive: 0,
+      endFrameExclusive: durationFrames,
+      fps: frameRate,
+    }
+    return {
+      recipeProfileId: 'approved_trim_transcode_v1',
+      timestampPolicy: 'normalize_from_zero',
+      overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false,
+      trimStartFrame: trim.startFrameInclusive,
+      trimEndFrameExclusive: trim.endFrameExclusive,
+      frameRate: approvedMediaFrameRate(trim.fps),
+    }
+  }
+  if (item.jobType === 'prepare_b_roll_remotion_preview_proxy_with_ffmpeg') {
+    return {
+      recipeProfileId: 'approved_b_roll_remotion_preview_proxy_matroska_v1',
+      timestampPolicy: 'normalize_from_zero',
+      overwriteExistingArtifact: false,
+      allowUnreviewedCodec: false,
+      trimStartFrame: 0,
+      trimEndFrameExclusive: durationFrames,
+      frameRate,
+      outputContainer: 'matroska',
+      outputCodec: 'libvpx-vp9',
+      constantQuality: 12,
+      outputPixelFormat: 'yuv420p',
+      preserveAudio: false,
+      metadataPolicy: 'strip_all',
+      technicalProxyOnly: true,
+      creativeColorTransformApplied: false,
+    }
+  }
+  if (item.jobType === 'render_b_roll_preview') {
+    const [width, height] = brollRemotionPreviewDimensions(plan)
+    return {
+      compositionProfileId: 'approved_source_caption_final_v1',
+      width,
+      height,
+      fps: frameRate,
+      durationFrames,
+      sourceStartFrame: 0,
+      sourceEndFrameExclusive: durationFrames,
+      sourceFit: 'contain',
+      panelBackground: '#000000',
+      audioPolicy: 'preserve_source',
+      sourceMediaPolicy: 'approved_b_roll_qa_normalized_preview_proxy_v1',
+      brollPreviewLayer:
+        brollRemotionPreviewLayerForTreatment(plan.displayTreatment),
+      captionOverlayPolicy: 'approved_full_frame_rgba',
+    }
+  }
+  return undefined
+}
+
 export function projectBrollCanonicalWorkItems(input: {
   assignment: BrollSkillAssignment
+  plan: BrollPlanArtifact
   workGraph: BrollCanonicalWorkGraph
 }): CanonicalWorkItemInput[] {
+  const { planHash, ...planCore } = input.plan
   if (
+    input.plan.assignmentId !== input.assignment.assignmentId ||
+    input.plan.assignmentHash !== input.assignment.assignmentHash ||
+    planHash !== hashSkillValue(planCore) ||
+    input.plan.planningQaReportHash !== input.workGraph.planningQaReportHash ||
     input.workGraph.assignmentId !== input.assignment.assignmentId ||
     input.workGraph.assignmentHash !== input.assignment.assignmentHash ||
     hashSkillValue(input.workGraph.manifestRef) !== hashSkillValue(input.assignment.manifestRef) ||
@@ -415,6 +509,16 @@ export function projectBrollCanonicalWorkItems(input: {
     const toolIds = canonicalToolIds(item)
     const toolOperationIds = canonicalToolOperationIds(item)
     const outputKey = `${item.workItemKey}.output`
+    const structuredPayload = brollToolPlanningPayload({
+      item,
+      assignment: input.assignment,
+      plan: input.plan,
+    })
+    if ((toolIds.length > 0) !== Boolean(structuredPayload)) {
+      throw new Error(
+        `B-roll canonical tool work item ${item.jobType} lacks one exact runner payload.`,
+      )
+    }
     return {
       workItemKey: item.workItemKey,
       workItemType: canonicalWorkItemType(item),
@@ -434,7 +538,12 @@ export function projectBrollCanonicalWorkItems(input: {
           outsideAuthorizedRangeModified: false,
         },
         ...(toolOperationIds.length > 0
-          ? { approvedToolOperationIds: toolOperationIds }
+          ? {
+              operation: item.jobType,
+              approvedToolOperationIds: toolOperationIds,
+              expectedOutputKeys: [outputKey],
+              structuredPayload: structuredPayload!,
+            }
           : {}),
       },
       sourceSequenceItemIds: [...input.assignment.sourceSequenceIds],

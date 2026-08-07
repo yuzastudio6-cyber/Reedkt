@@ -151,7 +151,11 @@ try {
   })
   assert.equal(compiled.plan.decision, 'generate_with_gemini_omni')
   const workGraph = compileBrollCanonicalWorkGraph({ assignment, plan: compiled.plan })
-  const canonicalWorkItems = projectBrollCanonicalWorkItems({ assignment, workGraph })
+  const canonicalWorkItems = projectBrollCanonicalWorkItems({
+    assignment,
+    plan: compiled.plan,
+    workGraph,
+  })
   const providerWorkItem = canonicalWorkItems.find((item) =>
     item.approvedProviderRoute === BROLL_PROVIDER_ROUTE_ID)
   assert.ok(providerWorkItem)
@@ -468,6 +472,7 @@ try {
   })
   const noActionCanonicalItems = projectBrollCanonicalWorkItems({
     assignment: noActionAssignment,
+    plan: noActionCompiled.plan,
     workGraph: noActionGraph,
   })
   const noActionPersisted = await persistCanonicalBrollPlanComponent({

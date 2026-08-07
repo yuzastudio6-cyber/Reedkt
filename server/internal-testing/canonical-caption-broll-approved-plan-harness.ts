@@ -402,6 +402,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
   }
   const canonicalWorkItems = projectBrollCanonicalWorkItems({
     assignment: brollAssignment,
+    plan,
     workGraph: canonicalWorkGraph,
   })
   const persistedComponent = await persistCanonicalBrollPlanComponent({

@@ -202,7 +202,11 @@ try {
   })
   assert.equal(compiled.plan.decision, 'use_existing_project_clip')
   const workGraph = compileBrollCanonicalWorkGraph({ assignment, plan: compiled.plan })
-  const canonicalWorkItems = projectBrollCanonicalWorkItems({ assignment, workGraph })
+  const canonicalWorkItems = projectBrollCanonicalWorkItems({
+    assignment,
+    plan: compiled.plan,
+    workGraph,
+  })
   assert.equal(canonicalWorkItems.some((item) => item.approvedProviderRoute), false)
   const persisted = await persistCanonicalBrollPlanComponent({
     localStorageRoot,

@@ -61,6 +61,17 @@ This does not change the terminal count. The route's synthetic color-bar media
 is engineering evidence only and is not accepted as professional Caption
 appearance or qualified visual-AI review.
 
+The later V14 approved Caption + B-roll run now closes the separate
+exact-confirmed-frame typography/layout gap. It executes 17 approved Caption
+jobs and 13 B-roll work items, renders full and reduced variants at
+`3840x2160@30`, represents all 254 output frames in direct-inspection sheets,
+and opens original 4K entrance/hold/transition/exit rasters. The underlying
+B-roll input is still the disclosed `640x360` private proxy, so this evidence
+does not claim final source-picture quality or the final customer canvas. The
+run stops truthfully at `postrender_visual_intelligence_evidence_missing`.
+See
+[`post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md`](post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md).
+
 ## Outcome
 
 The additive `caption-current-job-readiness-ledger-v2` record provides the
@@ -195,10 +206,10 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
    are mounted in source, and the old artifact-hash-only acceptance shortcut
    has been removed. An audio-capable qualified reviewer must still author the
    exact playback decision before this becomes actual evidence;
-5. bind the now-accepted real-source canonical B-roll work/artifacts,
-   complete-time visual review, owner result, and Caption resume to the exact
-   representative approved-run package rather than its separate evidence
-   scope;
+5. project and reread the now-completed V14 canonical B-roll work/artifacts,
+   owner result, Caption resume, exact-frame renders, and direct inspection in
+   the terminal evidence assembly. The same-run approved execution now exists;
+   it must not be substituted by the older separate-scope receipts;
 6. complete all Caption work through the canonical backend work graph
    and persist/reread every result;
 7. run qualified complete-time visual-AI review for every rendered output;

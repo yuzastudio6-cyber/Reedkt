@@ -382,5 +382,12 @@ bright color-bar fixture remains technical plumbing evidence only. See
 and
 [`caption-broll-technical-fixture-layer-order-correction-2026-08-06.md`](./caption-broll-technical-fixture-layer-order-correction-2026-08-06.md).
 
+The same approved run now has a separate exact-frame qualification lane. It
+renders full and reduced variants at the confirmed `3840x2160@30` frame and
+binds direct inspection of every-frame sheets plus original 4K spot checks,
+while explicitly refusing to promote the `640x360` source proxy into final
+picture quality or final-canvas authority. See
+[`post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md`](./post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md).
+
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

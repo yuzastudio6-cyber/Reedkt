@@ -78,6 +78,11 @@ for (const expected of [
   '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58',
   'weeditpro-sam3_1-os-security-update-closure-v1',
   'official_ubuntu_noble_security_repository',
+  'urllib.request.HTTPRedirectHandler',
+  'response.geturl() != url',
+  '"Accept-Encoding": "identity"',
+  'response.read(expected_bytes + 1)',
+  'exact dependency SHA-256 changed',
   '| wc -l)" = 40',
 ] as const) assert.ok(
   cloudBuild.includes(expected),
@@ -238,7 +243,7 @@ for (const expected of [
 ] as const) assert.ok(cloudBuild.includes(expected), `Cloud Build lost ${expected}`)
 assert.doesNotMatch(
   cloudBuild,
-  /(?:secretEnv|availableSecrets|sam3\.1_multiplex\.pt|nvidia-l4|a100-80gb|customer[_ -]media|freshclam)/iu,
+  /(?:secretEnv|availableSecrets|sam3\.1_multiplex\.pt|nvidia-l4|a100-80gb|customer[_ -]media|freshclam|\bcurl\b)/iu,
 )
 assert.doesNotMatch(
   dockerfile,

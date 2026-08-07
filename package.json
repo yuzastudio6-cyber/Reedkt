@@ -327,6 +327,7 @@
     "smoke:canonical-caption-source-led-professional-planning": "tsx server/smoke/canonical-caption-source-led-professional-planning-smoke.ts",
     "smoke:canonical-caption-broll-approved-plan-harness": "tsx server/smoke/canonical-caption-broll-approved-plan-harness-smoke.ts",
     "smoke:canonical-caption-broll-approved-run-harness": "tsx server/smoke/canonical-caption-broll-approved-run-harness-smoke.ts",
+    "smoke:canonical-caption-broll-approved-run-creative-review": "tsx server/smoke/canonical-caption-broll-approved-run-creative-review-smoke.ts",
     "smoke:canonical-broll-private-approved-execution": "tsx server/smoke/canonical-broll-private-approved-execution-service-smoke.ts",
     "smoke:canonical-private-edit-skill-artifact-store": "tsx server/smoke/canonical-private-edit-skill-artifact-store-smoke.ts",
     "smoke:canonical-caption-source-led-professional-planning-owner": "tsx server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts",

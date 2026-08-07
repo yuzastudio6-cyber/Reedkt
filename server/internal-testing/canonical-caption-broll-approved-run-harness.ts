@@ -7,7 +7,13 @@ import type {
 import type {
   CaptionRemotionBrollOwnerApprovedRunReviewSpec,
 } from '../../src/types/caption-remotion-broll-owner-approved-run-review'
+import type {
+  BrollCaptionOwnerReadRequest,
+} from '../../src/types/caption-broll-owner-read-adapter'
 import type { PlannerInput } from '../../src/types/reeditpro'
+import {
+  createCaptionBrollOwnerReadRequest,
+} from '../captions-specialist/caption-broll-owner-read-adapter'
 import {
   applyCanonicalCaptionSourceLedProfessionalPlanning,
   createCanonicalCaptionSourceLedProfessionalPlanningRequest,
@@ -451,6 +457,64 @@ export function deriveCanonicalCaptionBrollApprovedRunReviewAuthority(
     masterTimingRef: Object.freeze({ ...renderedMediaBinding.masterTimingRef }),
     masterTimingHash: renderedMediaBinding.masterTimingRef.contentHash,
     exactAuthorityDerivedFromCanonicalApprovedRun: true,
+  })
+}
+
+/**
+ * Derives the one exact B-roll owner-read request from the immutable approved
+ * run. The B-roll plan itself remains the planning-constraint owner; Caption
+ * cannot replace it with a caller-authored request or a second selection lane.
+ */
+export function deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest(
+  run: Awaited<ReturnType<
+    typeof createCanonicalCaptionBrollApprovedRunHarness
+  >>,
+): BrollCaptionOwnerReadRequest {
+  const authority = deriveCanonicalCaptionBrollApprovedRunReviewAuthority(run)
+  const snapshot = run.approved.authority.snapshot
+  const plan = run.broll.plan
+  const range = authority.canonicalScope.authorizedFrameRanges[0]
+  if (!range
+    || authority.canonicalScope.sceneId === null
+    || authority.canonicalScope.approvedSnapshotRef === null
+    || plan.assignmentId !== run.broll.brollAssignment.assignmentId
+    || plan.assignmentHash !== run.broll.brollAssignment.assignmentHash
+    || plan.planHash !== run.broll.publicPlan.envelope.planHash
+    || plan.planId !== run.broll.publicPlan.envelope.planId
+    || snapshot.approvedByUserId !== authority.canonicalScope.ownerUserId) {
+    throw new Error(
+      'Canonical Caption+B-roll approved run cannot derive one exact owner-read request.',
+    )
+  }
+  return createCaptionBrollOwnerReadRequest({
+    requestId: `${run.captionRequest.requestId}.broll-owner-read`,
+    canonicalScope: {
+      ownerUserId: authority.canonicalScope.ownerUserId,
+      workspaceId: authority.canonicalScope.workspaceId,
+      projectId: authority.canonicalScope.projectId,
+      editSessionId: authority.canonicalScope.editSessionId,
+      planVersionId: authority.canonicalScope.planVersionId,
+      approvedSnapshotRef: {
+        ...authority.canonicalScope.approvedSnapshotRef,
+      },
+      outputId: authority.canonicalScope.outputId,
+      outputFrameRef: {
+        ...authority.confirmedOutputFrame.frameRef,
+      },
+      sceneId: authority.canonicalScope.sceneId,
+      authorizedFrameRange: {
+        startFrameInclusive: range.startFrame,
+        endFrameExclusive: range.endFrameExclusive,
+        fps: authority.confirmedOutputFrame.fpsNumerator,
+      },
+      masterTimingRef: { ...authority.masterTimingRef },
+      masterTimingHash: authority.masterTimingHash,
+    },
+    planningConstraintRef: {
+      id: plan.planId,
+      version: plan.schemaVersion,
+      contentHash: plan.planHash,
+    },
   })
 }
 

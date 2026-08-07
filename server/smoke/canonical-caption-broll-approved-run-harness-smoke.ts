@@ -27,8 +27,12 @@ import {
 import {
   CANONICAL_CAPTION_BROLL_APPROVED_RUN_HARNESS_VERSION,
   createCanonicalCaptionBrollApprovedRunHarness,
+  deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest,
   deriveCanonicalCaptionBrollApprovedRunReviewAuthority,
 } from '../internal-testing/canonical-caption-broll-approved-run-harness'
+import {
+  buildCanonicalCaptionBrollApprovedRunCreativeReview,
+} from '../internal-testing/canonical-caption-broll-approved-run-creative-review'
 import {
   executeCanonicalCaptionApprovedJobClosure,
   executeCanonicalCaptionBrollApprovedRun,
@@ -41,6 +45,14 @@ import {
 } from '../services/canonical-private-edit-skill-artifact-store'
 import {
   createCanonicalCaptionBrollEvidenceRepository,
+} from '../services/canonical-caption-broll-support-service'
+import {
+  createBrollCaptionPrivateVisualReview,
+  createCanonicalBrollCaptionOwnerServiceV2,
+  createCanonicalBrollCaptionPrivateVisualReviewReadPort,
+} from '../services/canonical-broll-caption-owner-service'
+import {
+  createCanonicalCaptionBrollApprovedSnapshotReadPort,
 } from '../services/canonical-caption-broll-support-service'
 import {
   createCanonicalCaptionDirectVisualInspectionRepository,
@@ -66,6 +78,9 @@ import {
 import {
   createCanonicalPrivateLocalJsonObjectPort,
 } from '../services/canonical-private-local-json-object-port'
+import {
+  readCanonicalPrivateMediaArtifact,
+} from '../services/canonical-private-media-artifact-storage'
 import {
   createCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
 } from '../services/canonical-caption-postrender-visual-intelligence-durable-store'
@@ -98,6 +113,20 @@ import {
   activatePrivateOfflineRemotionRenderRuntime,
   prepareOfflineRemotionDockerRuntime,
 } from '../tool-execution/remotion-render-execution'
+import type {
+  OfflineRemotionRenderResult,
+  PrivateOfflineRemotionRenderRuntime,
+} from '../tool-execution/remotion-render-execution'
+import {
+  brollRemotionPreviewProxyManifestSchema,
+} from '../edit-skills/b-roll/b-roll-active-artifact-contracts'
+import {
+  brollRemotionLayerManifestSchema,
+} from '../edit-skills/b-roll/b-roll-remotion-integration'
+import type {
+  EditSkillArtifactReference,
+  EditSkillArtifactStore,
+} from '../edit-skills/core'
 import type { ServiceContext } from '../types'
 
 const requestedEvidenceRoot =
@@ -106,6 +135,9 @@ const requestedPrivateSourcePath =
   process.env.REEDITPRO_CAPTION_BROLL_APPROVED_SOURCE_PATH?.trim() ?? ''
 const requestedPrivateSourceSha256 =
   process.env.REEDITPRO_CAPTION_BROLL_APPROVED_SOURCE_SHA256?.trim() ?? ''
+const requestedReviewedPreviewSha256 =
+  process.env.REEDITPRO_CAPTION_BROLL_APPROVED_REVIEWED_PREVIEW_SHA256?.trim()
+    ?? ''
 const realPrivateExecution = requestedEvidenceRoot.length > 0 ||
   requestedPrivateSourcePath.length > 0 ||
   requestedPrivateSourceSha256.length > 0
@@ -116,6 +148,14 @@ if (realPrivateExecution && (
 )) {
   throw new Error(
     'Real approved Caption+B-roll execution requires an evidence root, source path, and exact source SHA-256.',
+  )
+}
+if (requestedReviewedPreviewSha256.length > 0 && (
+  !realPrivateExecution ||
+  !/^[a-f0-9]{64}$/u.test(requestedReviewedPreviewSha256)
+)) {
+  throw new Error(
+    'The accepted B-roll preview must be one exact SHA-256 from this private approved run.',
   )
 }
 const root = realPrivateExecution
@@ -496,6 +536,24 @@ try {
     approvedReviewAuthority.masterTimingHash,
     run.captionRequest.masterTimingRef.contentHash,
   )
+  const brollOwnerReadRequest =
+    deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest(run)
+  assert.equal(
+    brollOwnerReadRequest.canonicalScope.approvedSnapshotRef.contentHash,
+    run.approved.authority.snapshot.snapshotHash,
+  )
+  assert.equal(
+    brollOwnerReadRequest.canonicalScope.outputFrameRef.contentHash,
+    approvedReviewAuthority.confirmedOutputFrame.frameRef.contentHash,
+  )
+  assert.equal(
+    brollOwnerReadRequest.canonicalScope.masterTimingHash,
+    approvedReviewAuthority.masterTimingHash,
+  )
+  assert.equal(
+    brollOwnerReadRequest.planningConstraintRef.contentHash,
+    run.broll.plan.planHash,
+  )
 
   const resolveCaptionSupportRequirement = async (
     requirement: Parameters<
@@ -516,11 +574,18 @@ try {
   const objectPort = createCanonicalPrivateLocalJsonObjectPort({
     localStorageRoot: root,
   })
+  const createBrollArtifactStore = () =>
+    createCanonicalPrivateEditSkillArtifactStore({
+      objectPort,
+      schemas: editSkillArtifactSchemaRegistry,
+      prefix: 'private/edit-skills/caption-broll-approved-runtime/v1',
+    })
   const postrenderVisualIntelligenceEvidenceRepository =
     createCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository({
       objectPort,
     })
   let captionOverlaySha256: string | null = null
+  let remotionRuntime: PrivateOfflineRemotionRenderRuntime | null = null
   const captionExecution = realPrivateExecution
     ? await (async () => {
         const inspectionRoot = join(
@@ -577,14 +642,7 @@ try {
         const mediaRuntime =
           await activatePrivateOfflineMediaBinaryRuntime()
         await prepareOfflineRemotionDockerRuntime()
-        const remotionRuntime =
-          await activatePrivateOfflineRemotionRenderRuntime()
-        const createBrollArtifactStore = () =>
-          createCanonicalPrivateEditSkillArtifactStore({
-            objectPort,
-            schemas: editSkillArtifactSchemaRegistry,
-            prefix: 'private/edit-skills/caption-broll-approved-runtime/v1',
-          })
+        remotionRuntime = await activatePrivateOfflineRemotionRenderRuntime()
         const execution = await executeCanonicalCaptionBrollApprovedRun({
           context,
           approvedRun: run,
@@ -736,6 +794,21 @@ try {
     : null
   const emittedInspectionPackage = inspectionPackage as
     ApprovedExecutionInspectionPackage | null
+  const creativeReviewInspectionPackage =
+    emittedInspectionPackage !== null
+    && requestedReviewedPreviewSha256.length > 0
+      ? await createApprovedRunCreativeReviewInspectionPackage({
+          root,
+          run,
+          execution: captionExecution as CombinedApprovedExecution,
+          artifactStore: createBrollArtifactStore(),
+          objectPort,
+          remotionRuntime: requiredRemotionRuntime(remotionRuntime),
+          baselineInspection: emittedInspectionPackage,
+          acceptedPreviewSha256: requestedReviewedPreviewSha256,
+          captionOverlaySha256: captionOverlaySha256!,
+        })
+      : null
 
   console.log(JSON.stringify({
     smoke: 'canonical_caption_broll_approved_run_harness',
@@ -772,6 +845,18 @@ try {
           'caption-broll-approved-private-inspection',
           'inspection-package.json',
         ),
+    professionalCreativeReviewRendered:
+      creativeReviewInspectionPackage !== null,
+    professionalCreativeReviewInspectionPackageSha256:
+      creativeReviewInspectionPackage?.packageSha256 ?? null,
+    professionalCreativeReviewInspectionPackagePath:
+      creativeReviewInspectionPackage === null
+        ? null
+        : join(
+            root,
+            'caption-broll-approved-professional-review',
+            'inspection-package.json',
+          ),
     providerCalled: false,
     publicDeliveryCreated: false,
     productionAuthorityGranted: false,
@@ -848,6 +933,483 @@ interface ApprovedExecutionInspectionPackage {
 type CombinedApprovedExecution = Awaited<ReturnType<
   typeof executeCanonicalCaptionBrollApprovedRun
 >>
+
+type ApprovedRun = Awaited<ReturnType<
+  typeof createCanonicalCaptionBrollApprovedRunHarness
+>>
+
+interface ApprovedRunCreativeReviewInspectionPackage {
+  readonly schemaVersion:
+    'caption-broll-approved-run-professional-review-inspection-package-v1'
+  readonly baselinePreviewSha256: string
+  readonly ownerRequestRef: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+  }
+  readonly ownerResultRef: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+  }
+  readonly inspectionSourceAuthorityRef: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+  }
+  readonly canonicalTranscriptRef: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+  }
+  readonly canonicalTranscriptEvidenceRef: {
+    readonly id: string
+    readonly version: string
+    readonly contentHash: string
+  }
+  readonly outputs: readonly {
+    readonly motionVariant: 'full_motion' | 'reduced_motion'
+    readonly fileName: string
+    readonly sha256: string
+    readonly byteLength: number
+    readonly width: 640
+    readonly height: 360
+    readonly fps: 30
+    readonly durationFrames: number
+    readonly reviewSpecDigestSha256: string
+    readonly sampleFrames: readonly {
+      readonly frameIndex: number
+      readonly fileName: string
+      readonly sha256: string
+    }[]
+  }[]
+  readonly exactApprovedRunReread: true
+  readonly exactBrollOwnerResultReread: true
+  readonly exactCanonicalTranscriptReread: true
+  readonly directRasterInspectionRequired: true
+  readonly directRasterInspectionCompleted: false
+  readonly finalQaApprovalGranted: false
+  readonly publicDeliveryGranted: false
+  readonly productionAuthorityGranted: false
+  readonly packageSha256: string
+}
+
+function requiredRemotionRuntime(
+  runtime: PrivateOfflineRemotionRenderRuntime | null,
+): PrivateOfflineRemotionRenderRuntime {
+  if (!runtime) {
+    throw new Error(
+      'The approved-run professional review requires the exact activated Remotion runtime.',
+    )
+  }
+  return runtime
+}
+
+async function createApprovedRunCreativeReviewInspectionPackage(input: {
+  root: string
+  run: ApprovedRun
+  execution: CombinedApprovedExecution
+  artifactStore: EditSkillArtifactStore
+  objectPort: ReturnType<typeof createCanonicalPrivateLocalJsonObjectPort>
+  remotionRuntime: PrivateOfflineRemotionRenderRuntime
+  baselineInspection: ApprovedExecutionInspectionPackage
+  acceptedPreviewSha256: string
+  captionOverlaySha256: string
+}): Promise<ApprovedRunCreativeReviewInspectionPackage> {
+  if (input.acceptedPreviewSha256 !==
+      input.baselineInspection.previewSha256) {
+    throw new Error(
+      'The accepted B-roll baseline does not match this exact approved run.',
+    )
+  }
+  const ownerRequest =
+    deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest(input.run)
+  const artifacts = await readExactBrollCreativeReviewArtifacts({
+    artifactStore: input.artifactStore,
+    execution: input.execution,
+    ownerUserId: ownerRequest.canonicalScope.ownerUserId,
+    workspaceId: ownerRequest.canonicalScope.workspaceId,
+    projectId: ownerRequest.canonicalScope.projectId,
+  })
+  const resultReceipt = input.execution.broll.runtimeSnapshot.resultReceipt
+  if (!resultReceipt || !('preview' in resultReceipt)
+    || resultReceipt.preview.sha256 !== input.acceptedPreviewSha256) {
+    throw new Error(
+      'The reviewed B-roll baseline crossed its canonical integration evidence.',
+    )
+  }
+  const privateVisualReview = createBrollCaptionPrivateVisualReview({
+    schemaVersion: 'b_roll_authenticated_owner_read_evidence_v1',
+    reviewId: `review.caption-broll.approved.${
+      input.acceptedPreviewSha256.slice(0, 32)}`,
+    previewArtifactSha256: input.acceptedPreviewSha256,
+    layerManifestHash: artifacts.layer.layerManifestHash,
+    integrationQaHash: resultReceipt.integrationQaHash,
+    reviewedFrameRange: {
+      ...ownerRequest.canonicalScope.authorizedFrameRange,
+    },
+    inspectionMode: 'complete_time_private_visual_review',
+    reviewerClass: 'qualified_visual_ai',
+    disposition: 'accepted',
+    visibleTextRegionRefs: [{
+      id: 'caption-overlay.caption-broll.approved-run',
+      version: 'caption_overlay_png_v1',
+      contentHash: input.captionOverlaySha256,
+    }],
+    captionSafeAreaVerified: true,
+    captionLayerAboveBrollVerified: true,
+    sourceBytesIncluded: false,
+    mediaLocatorIncluded: false,
+    finalQaApprovalGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+    reviewedAt: '2026-08-07T20:20:00.000Z',
+  })
+  const approvedSnapshotReadPort =
+    createCanonicalCaptionBrollApprovedSnapshotReadPort(async ({
+      approvedSnapshotRef,
+    }) => {
+      assert.deepEqual(
+        approvedSnapshotRef,
+        ownerRequest.canonicalScope.approvedSnapshotRef,
+      )
+      return {
+        canonicalScope: structuredClone(ownerRequest.canonicalScope),
+        planningConstraintRef: structuredClone(
+          ownerRequest.planningConstraintRef),
+      }
+    })
+  const privateVisualReviewReadPort =
+    createCanonicalBrollCaptionPrivateVisualReviewReadPort(async (read) => {
+      assert.equal(read.ownerRequestRef.id, ownerRequest.requestId)
+      assert.equal(
+        read.ownerRequestRef.contentHash,
+        ownerRequest.requestDigestSha256,
+      )
+      assert.equal(
+        read.previewArtifactRef.contentHash,
+        input.acceptedPreviewSha256,
+      )
+      assert.equal(
+        read.layerManifestRef.contentHash,
+        artifacts.layer.layerManifestHash,
+      )
+      assert.equal(
+        read.integrationQaRef.contentHash,
+        resultReceipt.integrationQaHash,
+      )
+      assert.deepEqual(
+        read.reviewedFrameRange,
+        ownerRequest.canonicalScope.authorizedFrameRange,
+      )
+      return structuredClone(privateVisualReview)
+    })
+  const ownerService = createCanonicalBrollCaptionOwnerServiceV2({
+    objectPort: input.objectPort,
+    artifactStore: input.artifactStore,
+    approvedSnapshotReadPort,
+    privateVisualReviewReadPort,
+    prefix: 'private/internal/caption-broll-approved-owner/v1',
+  })
+  const ownerResult = await ownerService.finalizeFromCanonicalWork({
+    request: ownerRequest,
+    publicAssignment: input.run.broll.assignment,
+    publicPlan: input.run.broll.publicPlan,
+    approvedWorkGraph: input.run.broll.publicApprovedWorkGraph,
+    assignment: input.run.broll.brollAssignment,
+    plan: input.run.broll.plan,
+    workItemResults: input.execution.broll.workResults,
+  })
+  const inspectionSourceAuthority =
+    await ownerService.inspectionSourceAuthorityReadPort.readExact({
+      ownerRequestRef: ownerResult.ownerRequestRef,
+      ownerResultRef: {
+        id: ownerResult.resultId,
+        version: ownerResult.schemaVersion,
+        contentHash: ownerResult.resultDigestSha256,
+      },
+    })
+  if (!inspectionSourceAuthority) {
+    throw new Error(
+      'The exact B-roll inspection source authority is unavailable.',
+    )
+  }
+  const storedProxy = await readCanonicalPrivateMediaArtifact({
+    localStorageRoot: input.root,
+    privateObjectIdentityHash: artifacts.proxy.privateObjectIdentityHash,
+  })
+  if (!storedProxy
+    || storedProxy.sha256 !== artifacts.proxy.objectSha256
+    || storedProxy.byteLength !== artifacts.proxy.byteLength) {
+    throw new Error(
+      'The owner-approved Remotion proxy changed before Caption review.',
+    )
+  }
+  const transcript = await readExactApprovedRunTranscript({
+    run: input.run,
+    objectPort: input.objectPort,
+  })
+  const creativeReview =
+    buildCanonicalCaptionBrollApprovedRunCreativeReview({
+      reviewIdSeed: 'caption.broll.approved-run.professional-review.v1',
+      approvedRunAuthority:
+        deriveCanonicalCaptionBrollApprovedRunReviewAuthority(input.run),
+      ownerResult,
+      inspectionSourceAuthority,
+      remotionLayerManifest: artifacts.layer,
+      remotionProxyManifest: artifacts.proxy,
+      remotionProxyBytes: storedProxy.bytes,
+      transcriptRecord: transcript.transcriptRecord,
+      transcriptExpectationBinding: transcript.binding,
+    })
+  const rendered = [] as Array<{
+    motionVariant: 'full_motion' | 'reduced_motion'
+    spec: typeof creativeReview.fullSpec
+    result: OfflineRemotionRenderResult
+  }>
+  for (const variant of [
+    {
+      motionVariant: 'full_motion' as const,
+      spec: creativeReview.fullSpec,
+      request: creativeReview.fullRequest,
+    },
+    {
+      motionVariant: 'reduced_motion' as const,
+      spec: creativeReview.reducedSpec,
+      request: creativeReview.reducedRequest,
+    },
+  ]) {
+    const result = await input.remotionRuntime.execute(variant.request)
+    assertApprovedRunCreativeRender({
+      result,
+      expectedFrames: variant.spec.inspectionFrameNumbers,
+      expectedDurationFrames:
+        ownerRequest.canonicalScope.authorizedFrameRange.endFrameExclusive
+        - ownerRequest.canonicalScope.authorizedFrameRange.startFrameInclusive,
+    })
+    rendered.push({
+      motionVariant: variant.motionVariant,
+      spec: variant.spec,
+      result,
+    })
+  }
+  const inspectionRoot = join(
+    input.root,
+    'caption-broll-approved-professional-review',
+  )
+  await mkdir(inspectionRoot, { recursive: true, mode: 0o700 })
+  const outputs = [] as Array<
+    ApprovedRunCreativeReviewInspectionPackage['outputs'][number]
+  >
+  for (const item of rendered) {
+    const prefix = item.motionVariant === 'full_motion'
+      ? 'full-motion' : 'reduced-motion'
+    const fileName = `${prefix}.mp4`
+    await writeCreateOnlyOrExactReplay(
+      join(inspectionRoot, fileName),
+      item.result.artifact.bytes,
+    )
+    await writeCreateOnlyOrExactReplay(
+      join(inspectionRoot, `${prefix}-spec.json`),
+      Buffer.from(`${JSON.stringify(item.spec, null, 2)}\n`),
+    )
+    const sampleFrames = [] as Array<{
+      frameIndex: number
+      fileName: string
+      sha256: string
+    }>
+    for (const frame of item.result.frameArtifacts) {
+      const frameFileName =
+        `${prefix}-frame-${String(frame.frame).padStart(3, '0')}.png`
+      await writeCreateOnlyOrExactReplay(
+        join(inspectionRoot, frameFileName),
+        frame.bytes,
+      )
+      sampleFrames.push({
+        frameIndex: frame.frame,
+        fileName: frameFileName,
+        sha256: frame.sha256,
+      })
+    }
+    outputs.push(Object.freeze({
+      motionVariant: item.motionVariant,
+      fileName,
+      sha256: item.result.artifact.sha256,
+      byteLength: item.result.artifact.byteLength,
+      width: 640 as const,
+      height: 360 as const,
+      fps: 30 as const,
+      durationFrames: item.result.artifact.durationFrames,
+      reviewSpecDigestSha256: item.spec.reviewSpecDigestSha256,
+      sampleFrames: Object.freeze(sampleFrames),
+    }))
+  }
+  const withoutDigest = {
+    schemaVersion:
+      'caption-broll-approved-run-professional-review-inspection-package-v1' as const,
+    baselinePreviewSha256: input.acceptedPreviewSha256,
+    ownerRequestRef: {
+      id: ownerRequest.requestId,
+      version: ownerRequest.schemaVersion,
+      contentHash: ownerRequest.requestDigestSha256,
+    },
+    ownerResultRef: {
+      id: ownerResult.resultId,
+      version: ownerResult.schemaVersion,
+      contentHash: ownerResult.resultDigestSha256,
+    },
+    inspectionSourceAuthorityRef: {
+      id: inspectionSourceAuthority.authorityId,
+      version: inspectionSourceAuthority.schemaVersion,
+      contentHash: inspectionSourceAuthority.authorityDigestSha256,
+    },
+    canonicalTranscriptRef: {
+      ...transcript.binding.canonicalTranscriptRef,
+    },
+    canonicalTranscriptEvidenceRef: {
+      id: transcript.transcriptRecord.recordId,
+      version: transcript.transcriptRecord.schemaVersion,
+      contentHash: transcript.transcriptRecord.recordDigestSha256,
+    },
+    outputs: Object.freeze(outputs),
+    exactApprovedRunReread: true as const,
+    exactBrollOwnerResultReread: true as const,
+    exactCanonicalTranscriptReread: true as const,
+    directRasterInspectionRequired: true as const,
+    directRasterInspectionCompleted: false as const,
+    finalQaApprovalGranted: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  const inspectionPackage = Object.freeze({
+    ...withoutDigest,
+    packageSha256: sha256(Buffer.from(JSON.stringify(withoutDigest))),
+  })
+  await writeCreateOnlyOrExactReplay(
+    join(inspectionRoot, 'inspection-package.json'),
+    Buffer.from(`${JSON.stringify(inspectionPackage, null, 2)}\n`),
+  )
+  return inspectionPackage
+}
+
+async function readExactBrollCreativeReviewArtifacts(input: {
+  artifactStore: EditSkillArtifactStore
+  execution: CombinedApprovedExecution
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+}) {
+  const refs = input.execution.broll.workResults.flatMap((result) =>
+    result.outputArtifactRefs)
+  const readOne = async (artifactType: string) => {
+    const matches = refs.filter((ref) => ref.artifactType === artifactType)
+    if (matches.length !== 1) {
+      throw new Error(`Approved B-roll run requires one ${artifactType}.`)
+    }
+    return input.artifactStore.readJson({
+      reference: matches[0] as EditSkillArtifactReference,
+      ownerUserId: input.ownerUserId,
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+    })
+  }
+  return Object.freeze({
+    layer: brollRemotionLayerManifestSchema.parse(
+      await readOne('b_roll_remotion_layer_manifest_v1')),
+    proxy: brollRemotionPreviewProxyManifestSchema.parse(
+      await readOne('b_roll_remotion_preview_proxy_manifest_v1')),
+  })
+}
+
+async function readExactApprovedRunTranscript(input: {
+  run: ApprovedRun
+  objectPort: ReturnType<typeof createCanonicalPrivateLocalJsonObjectPort>
+}) {
+  const snapshot = input.run.approved.authority.snapshot
+  const projection = input.run.approvedExecutionAuthority
+    .captionPlanningProjection
+  if (!projection
+    || !('canonicalTranscriptExpectationRef' in projection)) {
+    throw new Error(
+      'The approved Caption run lacks its canonical transcript expectation.',
+    )
+  }
+  const repository = createCanonicalCaptionTranscriptEvidenceRepository({
+    objectPort: input.objectPort,
+  })
+  const result = await repository.findExactForPlanningExpectation({
+    canonicalReadScope: {
+      ownerUserId: snapshot.approvedByUserId,
+      workspaceId: snapshot.workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+      approvedSnapshotRef: {
+        id: snapshot.snapshotId,
+        version: snapshot.schemaVersion,
+        contentHash: snapshot.snapshotHash,
+      },
+    },
+    planningExpectationRef: projection.canonicalTranscriptExpectationRef,
+  })
+  if (!result) {
+    throw new Error(
+      'The approved Caption run cannot reread its exact canonical transcript.',
+    )
+  }
+  return result
+}
+
+function assertApprovedRunCreativeRender(input: {
+  result: OfflineRemotionRenderResult
+  expectedFrames: readonly number[]
+  expectedDurationFrames: number
+}): void {
+  const result = input.result
+  const semantic = result.evidence.semanticEvidence
+  if (result.artifact.mimeType !== 'video/mp4'
+    || result.artifact.width !== 640
+    || result.artifact.height !== 360
+    || result.artifact.fps !== 30
+    || result.artifact.durationFrames !== input.expectedDurationFrames
+    || JSON.stringify(result.frameArtifacts.map((frame) => frame.frame))
+      !== JSON.stringify(input.expectedFrames)
+    || !semantic.captionRealSourceSceneGroupCompositionExecuted
+    || !semantic.approvedCaptionPrivateReviewProxyBytesVerified
+    || !semantic.exactSceneGroupDigestConsumed
+    || !semantic.exactMotionLockDigestConsumed
+    || !semantic.exactStoryTimingResolutionDigestConsumed
+    || !semantic.stableAccessibleCaptionAboveVisualLayersPreserved
+    || !semantic.brollOwnerSelectedMediaLineageConsumed
+    || !semantic.brollOwnerLayoutOccupancyLineageConsumed
+    || !semantic.brollOwnerCropTimingLineageConsumed
+    || !semantic.brollOwnerVisibleTextEvidenceLineageConsumed
+    || !semantic.brollFullFrameCutawayCompositionApplied
+    || !semantic.requestedMotionVariantApplied
+    || !semantic.frameGoldenArtifactsProduced
+    || result.readiness.productReady
+    || result.readiness.productionReady) {
+    throw new Error(
+      'The approved-run professional Caption render lacks exact bounded evidence.',
+    )
+  }
+}
+
+async function writeCreateOnlyOrExactReplay(
+  path: string,
+  bytes: Buffer,
+): Promise<void> {
+  try {
+    await writeFile(path, bytes, { mode: 0o600, flag: 'wx' })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+    assert.deepEqual(
+      await readFile(path),
+      bytes,
+      `Private Caption evidence at ${path} cannot be replaced.`,
+    )
+  }
+}
 
 async function createApprovedExecutionInspectionPackage(input: {
   root: string

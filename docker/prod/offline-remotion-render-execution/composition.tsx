@@ -682,7 +682,28 @@ React.FC<ApprovedCompositionProps> = (props) => {
           src={props.sourceInternalUrl!}
           startFrom={props.sourceStartFrame ?? 0}
           endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          style={{
+            position: 'absolute',
+            inset: '-7%',
+            width: '114%',
+            height: '114%',
+            objectFit: 'cover',
+            filter: 'blur(26px) brightness(0.42) saturate(0.8)',
+            opacity: 0.82,
+          }}
+          volume={0}
+        />
+        <OffthreadVideo
+          src={props.sourceInternalUrl!}
+          startFrom={props.sourceStartFrame ?? 0}
+          endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+          }}
           volume={0}
         />
         <AbsoluteFill

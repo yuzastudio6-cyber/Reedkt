@@ -98,6 +98,7 @@ export interface CanonicalCaptionBrollApprovedPlanHarnessResult {
   readonly publicContextManifest: BrollPublicContextManifest
   readonly publicPlan: EditSkillPublicPlan
   readonly publicApprovedWorkGraph: EditSkillApprovedWorkGraph
+  readonly plan: ReturnType<typeof brollPlanArtifactSchema.parse>
   readonly canonicalWorkGraph: ReturnType<
     typeof compileBrollCanonicalWorkGraph
   >
@@ -216,7 +217,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     editPlanVersion: input.editPlanVersion,
     manifestRef,
     assignmentRange: input.authorizedRange,
-    requestedOwnership: 'support',
+    requestedOwnership: 'primary',
     ownershipWindows: [],
   })
   const visualOwnershipRef = await artifactStore.putJson({
@@ -307,7 +308,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
       'Clarify the exact approved beat without fabricating proof.',
     expectedViewerBenefit:
       'See source-backed visual context while the Caption remains readable.',
-    requestedVisualOwnership: 'support',
+    requestedVisualOwnership: 'primary',
     forbiddenInterpretations: [
       'Do not present illustrative media as verified documentary proof.',
     ],
@@ -352,7 +353,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     intendedViewerBenefit: brollAssignment.expectedViewerBenefit,
     editorialContext:
       'Private Caption plus B-roll approved-plan qualification; future HQ-mediated owner assignment.',
-    visualOwnership: 'support',
+    visualOwnership: 'primary',
     contextArtifactRefs: [
       assignmentRef,
       contextRef,
@@ -471,6 +472,7 @@ export async function createCanonicalCaptionBrollApprovedPlanHarness(
     publicContextManifest: publicContext,
     publicPlan,
     publicApprovedWorkGraph,
+    plan,
     canonicalWorkGraph,
     canonicalWorkItems,
     persistedComponent,

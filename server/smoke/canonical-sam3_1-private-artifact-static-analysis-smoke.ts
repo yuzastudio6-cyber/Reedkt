@@ -142,6 +142,8 @@ const [dockerfile, reviewWorker, buildConfig, buildScript, packageJson] =
 assert.match(dockerfile,
   /clamav\/clamav@sha256:75fb5fd95fcbe1d7e6d240c369c1572b686ee2c95949d1042b5148de8eddebb4/u)
 assert.match(dockerfile, /python3=3\.12\.13-r0/u)
+assert.match(dockerfile, /apk upgrade --no-cache/u)
+assert.match(dockerfile, /rm -rf \/usr\/lib\/python3\.12\/ensurepip/u)
 assert.match(dockerfile, /freshclam --stdout/u)
 assert.match(dockerfile, /USER 100:100/u)
 assert.match(dockerfile, /model\.weights\.included="false"/u)

@@ -17,7 +17,9 @@ LABEL io.weeditpro.product="WeEditPro" \
 
 USER root
 
-RUN apk add --no-cache python3=3.12.13-r0 \
+RUN apk upgrade --no-cache \
+  && apk add --no-cache python3=3.12.13-r0 \
+  && rm -rf /usr/lib/python3.12/ensurepip \
   && freshclam --stdout \
   && rm -f /var/lib/clamav/freshclam.dat /var/lib/clamav/mirrors.dat \
   && clamscan --version \

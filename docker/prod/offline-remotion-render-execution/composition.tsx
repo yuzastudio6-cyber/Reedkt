@@ -699,10 +699,13 @@ React.FC<ApprovedCompositionProps> = (props) => {
           endAt={props.sourceEndFrameExclusive ?? props.durationFrames}
           style={{
             position: 'absolute',
-            inset: 0,
-            width: '100%',
+            top: 0,
+            bottom: 0,
+            left: '50%',
+            width: 'auto',
             height: '100%',
             objectFit: 'contain',
+            transform: 'translateX(-50%)',
           }}
           volume={0}
         />

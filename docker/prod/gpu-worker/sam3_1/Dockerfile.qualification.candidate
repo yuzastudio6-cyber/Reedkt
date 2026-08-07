@@ -180,6 +180,10 @@ COPY sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.10
   /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb
 COPY sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json \
   /opt/reeditpro/sam3_1/qualification-artifacts/cuda-npp-runtime-receipt.json
+COPY sam31_private_build_input/dependency-closure/os-security-updates/ \
+  /tmp/os-security-updates/
+COPY sam31_private_build_input/dependency-closure/os-security-updates/security-update-receipt.json \
+  /opt/reeditpro/sam3_1/qualification-artifacts/os-security-update-receipt.json
 COPY sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json \
   /opt/reeditpro/sam3_1/qualification-artifacts/einops-ingest-receipt.json
 COPY sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json \
@@ -198,6 +202,26 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && test "${SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256}" != "" \
   && test "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" != "" \
   && test "${SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256}" != "" \
+  && printf '%s  %s\n' \
+    '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b' \
+    '/tmp/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb' \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b' \
+    '/tmp/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb' \
+    | sha256sum --check --strict \
+  && printf '%s  %s\n' \
+    '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58' \
+    '/tmp/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb' \
+    | sha256sum --check --strict \
+  && dpkg --install \
+    /tmp/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb \
+    /tmp/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb \
+    /tmp/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb \
+  && test "$(dpkg-query --showformat='${Version}' --show openssl)" \
+    = '3.0.13-0ubuntu3.12' \
+  && test "$(dpkg-query --showformat='${Version}' --show libssl3t64)" \
+    = '3.0.13-0ubuntu3.12' \
   && printf '%s  %s\n' \
     '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a' \
     '/opt/reeditpro/sam3_1/qualification-artifacts/sam3-source.tar' \
@@ -250,7 +274,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3_1/qualification-artifacts/nv-codec-headers-n12.2.72.0.tar.gz)" \
     = '80935' \
   && python -I -B -c \
-    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); npp_path=root/'cuda-npp-runtime-receipt.json'; npp=json.loads(npp_path.read_text()); einops_path=root/'einops-ingest-receipt.json'; einops=json.loads(einops_path.read_text()); pycocotools_path=root/'pycocotools-ingest-receipt.json'; pycocotools=json.loads(pycocotools_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['einopsVersion']=='0.8.2'; assert closure['einopsPrivateIngestReceiptSha256']==hashlib.sha256(einops_path.read_bytes()).hexdigest(); assert closure['samCoreUnconditionallyImportsEinops'] is True; assert einops['packageName']=='einops'; assert einops['packageVersion']=='0.8.2'; assert einops['malwareScan']['scanPassed'] is True; assert closure['pycocotoolsVersion']=='2.0.11'; assert closure['pycocotoolsPrivateIngestReceiptSha256']==hashlib.sha256(pycocotools_path.read_bytes()).hexdigest(); assert closure['samCoreUnconditionallyImportsPycocotools'] is True; assert pycocotools['packageName']=='pycocotools'; assert pycocotools['packageVersion']=='2.0.11'; assert pycocotools['nativeExtensionImportVerified'] is True; assert pycocotools['malwareScan']['scanPassed'] is True; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert closure['pkgconfVersion']=='3.0.4'; assert closure['pkgconfBuiltOfflineFromPinnedSource'] is True; assert closure['cudaNppRuntimeReceiptSha256']==hashlib.sha256(npp_path.read_bytes()).hexdigest(); assert closure['cudaNppPackageName']=='libnpp-12-8'; assert closure['cudaNppPackageVersion']=='12.3.3.100-1'; assert closure['torchcodecExactNppRuntimeClosureRequired'] is True; assert closure['completeCudaToolkitCopied'] is False; assert npp['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert npp['exactTorchcodecElfNeededClosure'] is True; assert npp['completeCudaToolkitCopied'] is False; assert npp['cpuVideoDecodeFallbackAllowed'] is False; assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['pkgconfVersion']=='3.0.4'; assert ffmpeg['pkgconfBuiltFromSource'] is True; assert ffmpeg['pkgconfLicense']=='ISC'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
+    "import hashlib,json,pathlib; root=pathlib.Path('/opt/reeditpro/sam3_1/qualification-artifacts'); closure=json.loads((root/'dependency-closure-receipt.json').read_text()); security_path=root/'os-security-update-receipt.json'; security=json.loads(security_path.read_text()); ffmpeg_path=root/'ffmpeg-closure-receipt.json'; ffmpeg=json.loads(ffmpeg_path.read_text()); npp_path=root/'cuda-npp-runtime-receipt.json'; npp=json.loads(npp_path.read_text()); einops_path=root/'einops-ingest-receipt.json'; einops=json.loads(einops_path.read_text()); pycocotools_path=root/'pycocotools-ingest-receipt.json'; pycocotools=json.loads(pycocotools_path.read_text()); assert closure['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert closure['torchcodecCpuWheelAccepted'] is False; assert closure['einopsVersion']=='0.8.2'; assert closure['einopsPrivateIngestReceiptSha256']==hashlib.sha256(einops_path.read_bytes()).hexdigest(); assert closure['samCoreUnconditionallyImportsEinops'] is True; assert einops['packageName']=='einops'; assert einops['packageVersion']=='0.8.2'; assert einops['malwareScan']['scanPassed'] is True; assert closure['pycocotoolsVersion']=='2.0.11'; assert closure['pycocotoolsPrivateIngestReceiptSha256']==hashlib.sha256(pycocotools_path.read_bytes()).hexdigest(); assert closure['samCoreUnconditionallyImportsPycocotools'] is True; assert pycocotools['packageName']=='pycocotools'; assert pycocotools['packageVersion']=='2.0.11'; assert pycocotools['nativeExtensionImportVerified'] is True; assert pycocotools['malwareScan']['scanPassed'] is True; assert closure['osSecurityUpdateClosureSha256']==hashlib.sha256(security_path.read_bytes()).hexdigest(); assert closure['opensslVersion']=='3.0.13-0ubuntu3.12'; assert security['source']=='official_ubuntu_noble_security_repository'; assert security['offlineInstallRequired'] is True; assert closure['ffmpegClosureReceiptSha256']==hashlib.sha256(ffmpeg_path.read_bytes()).hexdigest(); assert closure['pkgconfVersion']=='3.0.4'; assert closure['pkgconfBuiltOfflineFromPinnedSource'] is True; assert closure['cudaNppRuntimeReceiptSha256']==hashlib.sha256(npp_path.read_bytes()).hexdigest(); assert closure['cudaNppPackageName']=='libnpp-12-8'; assert closure['cudaNppPackageVersion']=='12.3.3.100-1'; assert closure['torchcodecExactNppRuntimeClosureRequired'] is True; assert closure['completeCudaToolkitCopied'] is False; assert npp['torchcodecCudaWheelVersion']=='0.10.0+cu128'; assert npp['exactTorchcodecElfNeededClosure'] is True; assert npp['completeCudaToolkitCopied'] is False; assert npp['cpuVideoDecodeFallbackAllowed'] is False; assert ffmpeg['ffmpegVersion']=='8.0.3'; assert ffmpeg['pkgconfVersion']=='3.0.4'; assert ffmpeg['pkgconfBuiltFromSource'] is True; assert ffmpeg['pkgconfLicense']=='ISC'; assert ffmpeg['nvCodecHeadersVersion']=='n12.2.72.0'; assert ffmpeg['ffmpegLicense']=='LGPL-2.1-or-later'; assert ffmpeg['gplComponentsEnabled'] is False; assert ffmpeg['nonfreeComponentsEnabled'] is False; assert ffmpeg['libnppLinkedIntoFfmpeg'] is False; assert ffmpeg['cpuVideoDecodeFallbackAllowed'] is False" \
   && printf '%s\n' "${SAM31_DEPENDENCY_WHEEL_MANIFEST_SHA256}" \
     > /opt/reeditpro/sam3_1/qualification-artifacts/wheel-manifest.sha256 \
   && printf '%s  %s\n' \
@@ -347,6 +371,13 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3-source \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
     "import importlib.metadata as m; import json; import sys; import torch; import torchvision; import torchcodec; import einops; import pycocotools.mask; import sam3; observed={'pythonVersion': '.'.join(map(str, sys.version_info[:3])), 'pythonPrefix': sys.prefix, 'pythonBasePrefix': sys.base_prefix, 'torchVersion': torch.__version__, 'torchvisionVersion': torchvision.__version__, 'torchcodecVersion': m.version('torchcodec'), 'einopsVersion': m.version('einops'), 'pycocotoolsVersion': m.version('pycocotools'), 'torchCudaVersion': torch.version.cuda}; print(json.dumps(observed, sort_keys=True)); assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0+cu128'; assert m.version('torchcodec') == '0.10.0+cu128'; assert m.version('einops') == '0.8.2'; assert m.version('pycocotools') == '2.0.11'; assert torch.version.cuda == '12.8'" \
+  && python -m pip uninstall --yes pillow urllib3 wheel \
+  && dpkg --purge python3-pip python3-wheel \
+  && ! find /usr/local/lib/python3.12/dist-packages -maxdepth 1 \
+    \( -iname 'pillow-*.dist-info' -o -iname 'urllib3-*.dist-info' \
+       -o -iname 'wheel-*.dist-info' \) -print -quit | grep -q . \
+  && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
+    "import importlib.metadata as m; assert m.version('pillow') == '12.3.0'; assert m.version('urllib3') == '2.7.0'" \
   && test -d /usr/local/lib/python3.12/dist-packages/torch/lib \
   && test -d /usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib \
   && test -d /usr/local/lib/python3.12/dist-packages/nvidia/cuda_nvrtc/lib \
@@ -376,6 +407,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
     /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb \
     /tmp/cuda-npp-root \
+    /tmp/os-security-updates \
     /tmp/sam31-wheelhouse
 
 RUN groupadd --gid 65532 reeditpro \

@@ -51,7 +51,8 @@ stage_exact() {
   case "${source_url}" in
     https://codeload.github.com/*|https://developer.download.nvidia.com/*|\
     https://download.pytorch.org/*|https://distfiles.ariadne.space/*|\
-    https://ffmpeg.org/*|https://files.pythonhosted.org/*|https://github.com/*) ;;
+    https://ffmpeg.org/*|https://files.pythonhosted.org/*|https://github.com/*|\
+    https://security.ubuntu.com/*) ;;
     *) printf 'ERROR: staged dependency origin is not allowlisted.\n' >&2; return 1 ;;
   esac
   test -f "${destination}"
@@ -72,6 +73,7 @@ mkdir -p \
   "${WHEELHOUSE}" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-forward-compat" \
   "${PRIVATE_ROOT}/dependency-closure/cuda-npp" \
+  "${PRIVATE_ROOT}/dependency-closure/os-security-updates" \
   "${PRIVATE_ROOT}/dependency-closure/ffmpeg" \
   "${PRIVATE_ROOT}/dependency-closure/python-ingest/einops" \
   "${PRIVATE_ROOT}/dependency-closure/python-ingest/pycocotools" \
@@ -240,10 +242,10 @@ stage_wheel \
   '481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8' \
   '45571'
 stage_wheel \
-  'urllib3-2.6.3-py3-none-any.whl' \
-  'https://files.pythonhosted.org/packages/39/08/aaaad47bc4e9dc8c725e68f9d04865dbcb2052843ff09c97b08904852d84/urllib3-2.6.3-py3-none-any.whl' \
-  'bf272323e553dfb2e87d9bfd225ca7b0f467b919d7bbd355436d3fd37cb0acd4' \
-  '131584'
+  'urllib3-2.7.0-py3-none-any.whl' \
+  'https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl' \
+  '9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897' \
+  '131087'
 stage_wheel \
   'wcwidth-0.8.2-py3-none-any.whl' \
   'https://files.pythonhosted.org/packages/96/42/3e5985a0a7e57de470b320c6d6a1a67c844f6737a587f3d44dd13d1819e7/wcwidth-0.8.2-py3-none-any.whl' \
@@ -337,6 +339,60 @@ stage_exact \
   "${PRIVATE_ROOT}/dependency-closure/cuda-npp/libnpp-12-8_${CUDA_NPP_PACKAGE_VERSION}_amd64.deb" \
   "${CUDA_NPP_SHA256}" "${CUDA_NPP_BYTES}"
 
+stage_exact \
+  'https://security.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_3.0.13-0ubuntu3.12_amd64.deb' \
+  "${PRIVATE_ROOT}/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb" \
+  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b' \
+  '1002894'
+stage_exact \
+  'https://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb' \
+  "${PRIVATE_ROOT}/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb" \
+  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b' \
+  '1942240'
+stage_exact \
+  'https://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb' \
+  "${PRIVATE_ROOT}/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb" \
+  '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58' \
+  '2407824'
+python - \
+  "${PRIVATE_ROOT}/dependency-closure/os-security-updates/security-update-receipt.json" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+receipt = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+expected = {
+    "schemaVersion": "weeditpro-sam3_1-os-security-update-closure-v1",
+    "source": "official_ubuntu_noble_security_repository",
+    "opensslVersion": "3.0.13-0ubuntu3.12",
+    "packages": [
+        {
+            "fileName": "libssl-dev_3.0.13-0ubuntu3.12_amd64.deb",
+            "byteLength": 2407824,
+            "sha256": "9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58",
+        },
+        {
+            "fileName": "libssl3t64_3.0.13-0ubuntu3.12_amd64.deb",
+            "byteLength": 1942240,
+            "sha256": "6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b",
+        },
+        {
+            "fileName": "openssl_3.0.13-0ubuntu3.12_amd64.deb",
+            "byteLength": 1002894,
+            "sha256": "321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b",
+        },
+    ],
+    "offlineInstallRequired": True,
+    "unusedPython3PipAndWheelOsPackagesMustBePurged": True,
+    "inheritedPillowUrllib3AndWheelPythonDistributionsMustBePurged": True,
+    "containsCheckpoint": False,
+    "containsCredentials": False,
+    "containsCustomerMedia": False,
+}
+if receipt != expected:
+    raise SystemExit("OS security update closure receipt changed")
+PY
+
 python - \
   "${PRIVATE_ROOT}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json" <<PY
 import json
@@ -410,7 +466,7 @@ expected = {
   "pyyaml": "6.0.3",
   "regex": "2026.7.19", "requests": "2.34.2", "safetensors": "0.8.0",
   "timm": "1.0.28", "torchcodec": "0.10.0+cu128", "tqdm": "4.70.0",
-  "typing-extensions": "4.16.0", "urllib3": "2.6.3", "wcwidth": "0.8.2",
+  "typing-extensions": "4.16.0", "urllib3": "2.7.0", "wcwidth": "0.8.2",
 }
 
 def normalize(value: str) -> str:
@@ -554,6 +610,12 @@ receipt = {
     "ffmpegCpuVideoDecodeFallbackAllowed": False,
     "pkgconfVersion": "3.0.4",
     "pkgconfBuiltOfflineFromPinnedSource": True,
+    "osSecurityUpdateClosureSha256": hashlib.sha256(
+        (receipt_path.parent / "os-security-updates/security-update-receipt.json").read_bytes()
+    ).hexdigest(),
+    "opensslVersion": "3.0.13-0ubuntu3.12",
+    "unusedPython3PipAndWheelOsPackagesPurgedAtImageBuild": True,
+    "inheritedPillowUrllib3AndWheelPythonDistributionsPurgedAtImageBuild": True,
     "offlineInstallRequired": True,
     "requireHashes": True,
     "dependencyResolutionAtRuntimeAllowed": False,

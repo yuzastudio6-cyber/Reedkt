@@ -84,13 +84,20 @@ check(progress.gates.find((gate) =>
     (reference) => reference.version ===
       'caption-broll-approved-execution-inspection-package-v3'
       && reference.contentHash ===
-        '919b02ef4086332f8c414b598cef7249da2276f6ec88482f504c1d00acdaeef8'),
+        '064d0a4a33b8ae051f48e90e3420dccc4c1f068dcde65cae3a8356ad440f8d26'),
 'B-roll evidence inventories the approved 17-job run and its exact readiness blocker')
+check(progress.gates.find((gate) =>
+  gate.gapId === 'broll_owner_authenticated_read')?.evidenceRefs.some(
+    (reference) => reference.version ===
+      'canonical-caption-approved-run-exact-frame-preterminal-evidence-v1'
+      && reference.contentHash ===
+        '6fa744d54be25ddf6d2624f3fe65fd30f96b15c7c9ad7cb3fd71c7a5f31525e3'),
+'B-roll evidence includes the create-only exact-frame preterminal projection')
 check(progress.gates.find((gate) =>
   gate.gapId === 'broll_owner_authenticated_read')
   ?.nextRequiredEvidenceCodes.includes(
-    'canonical_approved_broll_run_authority_must_project_existing_receipt'),
-'B-roll now waits on canonical projection of the existing inspection receipt')
+    'final_quality_source_and_final_render_required'),
+'B-roll now waits on final-quality source and final-canvas evidence')
 check(progress.professionalAppearanceEvidence.realTalkingHeadPixelsInspected
   && progress.professionalAppearanceEvidence
     .acceptedForCaptionOwnedProfessionalAppearance

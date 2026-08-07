@@ -237,18 +237,16 @@ export function parseCaptionBrollApprovedRunExactFrameProfessionalInspectionRece
   value: unknown,
   context: CaptionBrollApprovedRunExactFrameInspectionContext,
 ): CaptionBrollApprovedRunExactFrameProfessionalInspectionReceipt {
-  assertClosedContractTree(value,
-    'Caption approved-run exact-frame professional inspection receipt')
-  const receipt = receiptSchema.parse(value)
+  const receipt =
+    parseClosedCaptionBrollApprovedRunExactFrameProfessionalInspectionReceipt(
+      value)
   const reviewPackage = packageSchema.parse(context.inspectionPackage)
   const full = parseCaptionRemotionBrollOwnerApprovedRunExactFrameReview(
     context.fullMotionExactFrameReview)
   const reduced = parseCaptionRemotionBrollOwnerApprovedRunExactFrameReview(
     context.reducedMotionExactFrameReview)
   const { packageSha256, ...packageCore } = reviewPackage
-  if (receipt.receiptDigestSha256 !== calculateSkillContractDigest(
-    receipt as unknown as Record<string, unknown>, 'receiptDigestSha256')
-    || packageSha256 !== createHash('sha256')
+  if (packageSha256 !== createHash('sha256')
       .update(JSON.stringify(packageCore)).digest('hex')
     || full.reducedMotion || !reduced.reducedMotion
     || !sameScope(receipt.canonicalScope, full.canonicalScope)
@@ -276,6 +274,53 @@ export function parseCaptionBrollApprovedRunExactFrameProfessionalInspectionRece
       === receipt.outputs[1].everyFrameContactSheet.rasterRef.contentHash) {
     throw new Error(
       'Caption approved-run exact-frame inspection crossed render or approved-run lineage.',
+    )
+  }
+  return structuredClone(receipt)
+}
+
+/**
+ * Revalidates the immutable receipt itself without accepting caller-provided
+ * media bytes or local locators. Canonical preterminal persistence uses this
+ * closed parser after the original inspection step has already validated the
+ * receipt against its exact render bindings and inspection package. Terminal
+ * qualification must still reread and validate those referenced authorities.
+ */
+export function parseClosedCaptionBrollApprovedRunExactFrameProfessionalInspectionReceipt(
+  value: unknown,
+): CaptionBrollApprovedRunExactFrameProfessionalInspectionReceipt {
+  assertClosedContractTree(value,
+    'Caption approved-run exact-frame professional inspection receipt')
+  const receipt = receiptSchema.parse(value)
+  const scopeRange = receipt.canonicalScope.authorizedFrameRanges[0]!
+  const rasterKeys = receipt.outputs.flatMap((output) => [
+    refKey(output.everyFrameContactSheet.rasterRef),
+    ...output.exactResolutionSpotChecks.map((item) => refKey(item.rasterRef)),
+    ...output.transitionSpotChecks.map((item) => refKey(item.rasterRef)),
+  ])
+  if (receipt.receiptDigestSha256 !== calculateSkillContractDigest(
+    receipt as unknown as Record<string, unknown>, 'receiptDigestSha256')
+    || receipt.canonicalScope.approvedSnapshotRef === null
+    || receipt.canonicalScope.sceneId === null
+    || !sameRef(receipt.canonicalScope.approvedSnapshotRef,
+      receipt.approvedSnapshotRef)
+    || scopeRange.startFrame !== 0
+    || scopeRange.endFrameExclusive !== 127
+    || receipt.outputs[0].exactResolutionSpotChecks
+      .map((item) => item.frameNumber).join('|') !== '0|24|49|88|126'
+    || receipt.outputs[1].exactResolutionSpotChecks
+      .map((item) => item.frameNumber).join('|') !== '0|24|49|88|126'
+    || receipt.outputs[0].transitionSpotChecks
+      .map((item) => item.frameNumber).join('|') !== '48|52|56|60'
+    || receipt.outputs[1].transitionSpotChecks
+      .map((item) => item.frameNumber).join('|') !== '48|52|56|60'
+    || new Set(rasterKeys).size !== rasterKeys.length
+    || sameRef(receipt.outputs[0].renderArtifactRef,
+      receipt.outputs[1].renderArtifactRef)
+    || sameRef(receipt.exactFrameInspectionPackageRef,
+      receipt.sourceProxyReviewPackageRef)) {
+    throw new Error(
+      'Caption approved-run exact-frame inspection receipt is inconsistent.',
     )
   }
   return structuredClone(receipt)
@@ -323,6 +368,12 @@ function sameRef(
 ): boolean {
   return left.id === right.id && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+function refKey(
+  value: { id: string, version: string, contentHash: string },
+): string {
+  return `${value.id}|${value.version}|${value.contentHash}`
 }
 
 function sameScope(

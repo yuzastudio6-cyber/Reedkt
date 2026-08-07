@@ -72,6 +72,15 @@ run stops truthfully at `postrender_visual_intelligence_evidence_missing`.
 See
 [`post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md`](post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md).
 
+That accepted receipt is now also projected into and reread from the
+create-only
+`canonical-caption-approved-run-exact-frame-preterminal-evidence-v1`
+repository. The projection binds the exact approved run, source digest,
+confirmed frame, both renders, all 254 represented frames, and the direct
+inspection receipt while keeping terminal eligibility, source-picture
+qualification, postrender AI review, and independent final QA false. See
+[`post-cap20-approved-run-exact-frame-preterminal-evidence-2026-08-07.md`](post-cap20-approved-run-exact-frame-preterminal-evidence-2026-08-07.md).
+
 ## Outcome
 
 The additive `caption-current-job-readiness-ledger-v2` record provides the
@@ -206,10 +215,12 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
    are mounted in source, and the old artifact-hash-only acceptance shortcut
    has been removed. An audio-capable qualified reviewer must still author the
    exact playback decision before this becomes actual evidence;
-5. project and reread the now-completed V14 canonical B-roll work/artifacts,
-   owner result, Caption resume, exact-frame renders, and direct inspection in
-   the terminal evidence assembly. The same-run approved execution now exists;
-   it must not be substituted by the older separate-scope receipts;
+5. reuse the now-persisted V14 preterminal projection only as exact
+   typography/layout and approved-run lineage evidence. Because its underlying
+   picture is a disclosed `640x360` proxy, it cannot enter the terminal bundle
+   as final source-picture or final-canvas evidence. A final-quality source and
+   final render must be bound to the same canonical campaign before the
+   terminal evidence assembly can consume this lane;
 6. complete all Caption work through the canonical backend work graph
    and persist/reread every result;
 7. run qualified complete-time visual-AI review for every rendered output;

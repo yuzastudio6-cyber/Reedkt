@@ -141,9 +141,13 @@ const brollProfessionalInspectionRef = ref(
   'caption-broll-owner-professional-direct-inspection-v1',
   '93f1a59310c6fa5e41f57b39e4b6db6ae82d7b015a800b50ad3b6235ef818adc')
 const approvedBrollExecutionInspectionRef = ref(
-  'caption.broll-approved.execution.private-inspection.2026-08-07-v8',
+  'caption.broll-approved.execution.private-inspection.2026-08-07-v14',
   'caption-broll-approved-execution-inspection-package-v3',
-  '919b02ef4086332f8c414b598cef7249da2276f6ec88482f504c1d00acdaeef8')
+  '064d0a4a33b8ae051f48e90e3420dccc4c1f068dcde65cae3a8356ad440f8d26')
+const approvedRunExactFramePreterminalEvidenceRef = ref(
+  'caption.broll.approved-run.v14.exact-frame-preterminal-evidence',
+  'canonical-caption-approved-run-exact-frame-preterminal-evidence-v1',
+  '6fa744d54be25ddf6d2624f3fe65fd30f96b15c7c9ad7cb3fd71c7a5f31525e3')
 const realSourceDirectInspectionRef = ref(
   'caption.real-source.complete-time.direct-inspection-2026-08-05-v1',
   'caption-real-source-complete-time-direct-inspection-v1',
@@ -193,10 +197,11 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
       brollDirectInspectionRef,
       brollProfessionalInspectionRef,
       approvedBrollExecutionInspectionRef,
+      approvedRunExactFramePreterminalEvidenceRef,
     ], [
-      'persist_exact_broll_inspection_bundle_in_terminal_scope',
-      'canonical_approved_broll_run_authority_must_project_existing_receipt',
-      'same_package_snapshot_output_and_work_graph_required',
+      'final_quality_source_and_final_render_required',
+      'preterminal_evidence_must_not_be_relabelled_as_terminal',
+      'same_campaign_owner_and_final_canvas_evidence_required',
     ]),
   gate('canonical_backend_private_execution_mount',
     'actual_evidence_incomplete', [
@@ -204,6 +209,7 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
       realSourceMultiOutputDirectInspectionRef,
       brollProfessionalInspectionRef,
       approvedBrollExecutionInspectionRef,
+      approvedRunExactFramePreterminalEvidenceRef,
     ], [
       'representative_approved_runs_must_cover_all_forty_one_caption_jobs',
       'each_run_must_reread_every_projected_result_and_artifact',
@@ -258,8 +264,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v9',
-  observedAt: '2026-08-07T11:48:00.000-04:00',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v10',
+  observedAt: '2026-08-07T23:59:45.000Z',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

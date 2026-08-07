@@ -388,6 +388,10 @@ binds direct inspection of every-frame sheets plus original 4K spot checks,
 while explicitly refusing to promote the `640x360` source proxy into final
 picture quality or final-canvas authority. See
 [`post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md`](./post-cap20-approved-run-broll-exact-frame-review-2026-08-07.md).
+The accepted receipt is also sealed in a separate create-only preterminal
+record so later qualification can reread the exact lineage without promoting
+the proxy-source review into terminal evidence. See
+[`post-cap20-approved-run-exact-frame-preterminal-evidence-2026-08-07.md`](./post-cap20-approved-run-exact-frame-preterminal-evidence-2026-08-07.md).
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

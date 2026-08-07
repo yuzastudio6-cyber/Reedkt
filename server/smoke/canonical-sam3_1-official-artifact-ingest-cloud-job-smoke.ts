@@ -65,13 +65,13 @@ assert.match(deployScript,
 assert.match(deployScript, /weeditpro-sam31-official-artifact-ingest/u)
 assert.match(deployScript, /weeditpro-sam31-ingest-sa/u)
 assert.match(deployScript,
-  /BUILD_ID='b2d24b6a-486b-4b68-ab1b-579fa3fc66f5'/u)
+  /BUILD_ID='36ad4f1c-cfa5-4839-8391-3b024c867ec8'/u)
 assert.match(deployScript,
-  /SOURCE_COMMIT='957b13dbf9542863d5ea49b123560e774dfca2f1'/u)
+  /SOURCE_COMMIT='85fca3ee99325543f007b09b17a9a56e51dee7a1'/u)
 assert.match(deployScript,
-  /SOURCE_TREE='04de06a4fedfbf744f1f05676beb13e9efdb1132'/u)
+  /SOURCE_TREE='9096845a53ec8d0907cb6305633f50d44aeda33c'/u)
 assert.match(deployScript,
-  /IMAGE_DIGEST='sha256:12e09216576b466f58c2eeba009b84828b8abdd3c8e44522623bd9066996f5e1'/u)
+  /IMAGE_DIGEST='sha256:dd4252995028f87784af11402625ece78e5222a80add929d9a34ecf90c7cccfc'/u)
 assert.match(deployScript, /requestedVerifyOption == "VERIFIED"/u)
 assert.match(deployScript, /sourceProvenanceHash == \["SHA256"\]/u)
 assert.match(deployScript, /slsa_build_level == 3/u)

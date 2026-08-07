@@ -82,6 +82,9 @@ assert.match(deployScript, /authenticated_private_owner_reread/u)
 assert.match(deployScript, /canonical_private_reread/u)
 assert.match(deployScript, /roles\/storage\.objectViewer/u)
 assert.match(deployScript, /roles\/storage\.objectCreator/u)
+assert.match(deployScript,
+  /SERVICE_ACCOUNT_ID='weeditpro-sam31-prv-ingest-sa'/u)
+assert.match(deployScript, /--role="\$\{role\}" --condition=None/u)
 assert.doesNotMatch(deployScript, /gcloud run jobs execute/u)
 assert.doesNotMatch(deployScript, /--allow-unauthenticated/u)
 

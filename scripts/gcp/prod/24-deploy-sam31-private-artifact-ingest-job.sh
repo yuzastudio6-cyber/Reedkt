@@ -7,7 +7,7 @@ set -euo pipefail
 readonly PROJECT_ID='reeditpro'
 readonly REGION='us-central1'
 readonly JOB='weeditpro-sam31-private-artifact-ingest'
-readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-private-ingest-sa'
+readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-prv-ingest-sa'
 readonly SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly CONTROL_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 readonly MODEL_BUCKET='reeditpro-production-reeditpro-model-artifacts'
@@ -27,6 +27,35 @@ readonly CONFIRMATION='deploy-weeditpro-sam31-private-artifact-ingest-v1'
 fail() {
   printf 'ERROR: %s.\n' "$1" >&2
   exit 1
+}
+
+retry_project_binding() {
+  local role="$1"
+  local attempt
+  for attempt in $(seq 1 12); do
+    if gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
+      --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --condition=None --quiet >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+  fail "service-account project IAM propagation failed for ${role}"
+}
+
+retry_bucket_binding() {
+  local bucket="$1"
+  local role="$2"
+  local attempt
+  for attempt in $(seq 1 12); do
+    if gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
+      --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --condition=None --quiet >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 5
+  done
+  fail "service-account bucket IAM propagation failed for ${bucket} ${role}"
 }
 
 [[ "${WEEDITPRO_CONFIRM_SAM31_PRIVATE_ARTIFACT_INGEST_JOB_DEPLOY:-}" \
@@ -169,17 +198,11 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" \
     --display-name='WeEditPro SAM 3.1 private artifact ingest' \
     --description='Network-isolated exact artifact reread; no inference or media processing'
 fi
-gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-  --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/logging.logWriter --condition=None --quiet >/dev/null
+retry_project_binding roles/logging.logWriter
 for bucket in "${MODEL_BUCKET}" "${CONTROL_BUCKET}"; do
-  gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
-    --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role=roles/storage.objectViewer --quiet >/dev/null
+  retry_bucket_binding "${bucket}" roles/storage.objectViewer
 done
-gcloud storage buckets add-iam-policy-binding "gs://${CONTROL_BUCKET}" \
-  --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/storage.objectCreator --quiet >/dev/null
+retry_bucket_binding "${CONTROL_BUCKET}" roles/storage.objectCreator
 
 gcloud run jobs deploy "${JOB}" \
   --project="${PROJECT_ID}" --region="${REGION}" \

@@ -501,6 +501,10 @@ assert.match(cliSource,
   /canonical_private_reread/u)
 assert.match(cliSource,
   /preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
+assert.match(cliSource,
+  /const liveFile = bucket\.file\(objectName\)\n/u)
+assert.doesNotMatch(cliSource,
+  /bucket\.file\(objectName, \{\s*preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
 assert.doesNotMatch(cliSource, /hf_[A-Za-z0-9]{20,}/u)
 assert.match(gcsPublicationSource,
   /RESUMABLE_CHUNK_BYTE_LENGTH = 8 \* 1024 \* 1024/u)
@@ -517,7 +521,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-artifact-publication',
-  checks: 55,
+  checks: 57,
   cloudOnly: true,
   officialSourcePinned: true,
   officialGatedCheckpointPinned: true,

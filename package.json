@@ -278,6 +278,7 @@
     "start:sam3_1-qualification-image-cuda-torchvision-identity-successor-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build-cuda-torchvision-identity-successor.ts",
     "start:sam3_1-qualification-image-native-library-closure-successor-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build-native-library-closure-successor.ts",
     "start:sam3_1-qualification-image-supply-chain-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-supply-chain-build.ts",
+    "start:sam3_1-qualification-image-supply-chain-workspace-successor": "tsx server/cli/start-canonical-sam3_1-qualification-image-supply-chain-workspace-successor.ts",
     "observe:sam3_1-qualification-image-supply-chain-build": "tsx server/cli/observe-canonical-sam3_1-qualification-image-supply-chain-build.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-smoke.ts",

@@ -20,6 +20,7 @@ import {
   compileCanonicalSam31QualificationImageSupplyChainBody,
   createCanonicalSam31QualificationImageSupplyChainAdmission,
   createCanonicalSam31QualificationImageSupplyChainBuildPhase,
+  createCanonicalSam31QualificationImageSupplyChainWorkspaceSuccessorAdmission,
   qualificationImageSupplyChainAdmissionReference,
   qualificationImageSupplyChainObservationReference,
   qualificationImageSupplyChainSubmissionReference,
@@ -76,12 +77,15 @@ const body = compileCanonicalSam31QualificationImageSupplyChainBody(admission)
 const serialized = JSON.stringify(body)
 const steps = body.steps as Array<Record<string, unknown>>
 assert.deepEqual(steps.map(({ id }) => id), [
+  'prepare-private-supply-chain-workspace',
   'pull-immutable-sam31-qualification-image',
   'archive-immutable-sam31-qualification-image',
   'generate-qualification-spdx-2-3-sbom',
   'sign-immutable-sam31-qualification-image',
   'verify-immutable-sam31-qualification-image-signature',
 ])
+assert.equal(steps[0].entrypoint, 'sh')
+assert.deepEqual(steps[0].args, ['-ceu', 'chmod 1777 /workspace'])
 assert(serialized.includes(admission.immutableImageUri))
 assert(serialized.includes('sam31-qualification-image.tar'))
 assert(serialized.includes('sam31-qualification.spdx.json'))
@@ -428,6 +432,72 @@ const mismatch = await mismatchPhase.observeOneSupplyChainBuild({
 })
 assert.equal(mismatch.disposition, 'outcome_unknown')
 assert.equal(mismatch.evidenceArtifactManifestUri, null)
+
+const failedBuild = successfulBuild(
+  buildId,
+  body,
+  admission.evidenceBucket,
+  admission.evidencePrefix,
+) as Record<string, unknown>
+failedBuild.status = 'FAILURE'
+delete failedBuild.results
+delete failedBuild.artifacts
+const failedObservation =
+  await createCanonicalSam31QualificationImageSupplyChainBuildPhase({
+    admissionReadPort: {
+      async rereadQualificationImageSupplyChainAdmission() {
+        return structuredClone(admission)
+      },
+    },
+    statePort: createStatePort().port,
+    authenticatedTransport: {
+      async request() {
+        return { status: 200, json: structuredClone(failedBuild) }
+      },
+    },
+    now: () => '2026-08-04T14:03:00.000Z',
+  }).observeOneSupplyChainBuild({ admission, submission })
+assert.equal(failedObservation.disposition, 'terminal_failure')
+const successorAdmission =
+  createCanonicalSam31QualificationImageSupplyChainWorkspaceSuccessorAdmission({
+    authority,
+    imageBuildSubmission,
+    imageBuildTerminal,
+    predecessorAdmission: admission,
+    predecessorSubmission: submission,
+    predecessorObservation: failedObservation,
+    admittedAt: '2026-08-04T14:04:00.000Z',
+  })
+assert.equal(
+  successorAdmission.admissionId,
+  `sam31-qualification-image-supply-chain-workspace-successor-${failedObservation.observationHash}`,
+)
+assert.equal(successorAdmission.immutableImageDigest, admission.immutableImageDigest)
+assert.equal(
+  successorAdmission.artifactRegistryPackage,
+  admission.artifactRegistryPackage,
+)
+const nonFailurePredecessor = structuredClone(failedObservation) as Record<
+  string,
+  unknown
+>
+nonFailurePredecessor.disposition = 'outcome_unknown'
+nonFailurePredecessor.cloudBuildStatus = null
+nonFailurePredecessor.durableTerminalObservationCreated = false
+delete nonFailurePredecessor.observationHash
+assert.throws(() =>
+  createCanonicalSam31QualificationImageSupplyChainWorkspaceSuccessorAdmission({
+    authority,
+    imageBuildSubmission,
+    imageBuildTerminal,
+    predecessorAdmission: admission,
+    predecessorSubmission: submission,
+    predecessorObservation: {
+      ...nonFailurePredecessor,
+      observationHash: sha256AuthorityValue(nonFailurePredecessor),
+    } as never,
+    admittedAt: '2026-08-04T14:04:00.000Z',
+  }))
 
 const wrongTerminal = structuredClone(imageBuildTerminal) as Record<
   string,

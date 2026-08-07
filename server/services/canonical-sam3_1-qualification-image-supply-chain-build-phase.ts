@@ -500,6 +500,81 @@ export function createCanonicalSam31QualificationImageSupplyChainAdmission(
   })
 }
 
+export function
+createCanonicalSam31QualificationImageSupplyChainWorkspaceSuccessorAdmission(
+  input: {
+    readonly authority: CanonicalSam31QualificationImageBuildAuthority
+    readonly imageBuildSubmission:
+      CanonicalSam31QualificationImageBuildSubmission
+    readonly imageBuildTerminal:
+      CanonicalSam31QualificationImageBuildTerminal
+    readonly predecessorAdmission:
+      CanonicalSam31QualificationImageSupplyChainBuildAdmission
+    readonly predecessorSubmission:
+      CanonicalSam31QualificationImageSupplyChainBuildSubmission
+    readonly predecessorObservation:
+      CanonicalSam31QualificationImageSupplyChainBuildObservation
+    readonly admittedAt: string
+  },
+): CanonicalSam31QualificationImageSupplyChainBuildAdmission {
+  const predecessorAdmission =
+    assertCanonicalSam31QualificationImageSupplyChainAdmission(
+      input.predecessorAdmission,
+    )
+  const predecessorSubmission =
+    assertCanonicalSam31QualificationImageSupplyChainSubmission(
+      input.predecessorSubmission,
+    )
+  const predecessorObservation =
+    assertCanonicalSam31QualificationImageSupplyChainObservation(
+      input.predecessorObservation,
+    )
+  if (
+    predecessorObservation.disposition !== 'terminal_failure'
+    || predecessorObservation.cloudBuildStatus !== 'FAILURE'
+    || !predecessorObservation.durableTerminalObservationCreated
+    || predecessorObservation.allPinnedBuildStepsCompleted
+    || predecessorObservation.evidenceArtifactManifestUri !== null
+    || predecessorObservation.evidenceArtifactCount !== 0
+    || predecessorObservation.imageSupplyChainReleaseGranted
+    || predecessorSubmission.disposition !== 'submitted'
+    || !sameRef(
+      predecessorSubmission.admissionRef,
+      qualificationImageSupplyChainAdmissionReference(predecessorAdmission),
+    )
+    || !sameRef(
+      predecessorObservation.admissionRef,
+      qualificationImageSupplyChainAdmissionReference(predecessorAdmission),
+    )
+    || !sameRef(
+      predecessorObservation.submissionRef,
+      qualificationImageSupplyChainSubmissionReference(predecessorSubmission),
+    )
+    || predecessorObservation.cloudBuildId !==
+      predecessorSubmission.cloudBuildId
+    || predecessorAdmission.immutableImageDigest !==
+      predecessorObservation.immutableImageDigest
+    || predecessorAdmission.kmsKeyVersionResource !==
+      predecessorObservation.kmsKeyVersionResource
+  ) throw new Error('SAM 3.1 supply-chain successor lacks exact failure lineage.')
+  const successor = createCanonicalSam31QualificationImageSupplyChainAdmission({
+    admissionId:
+      `sam31-qualification-image-supply-chain-workspace-successor-${predecessorObservation.observationHash}`,
+    authority: input.authority,
+    imageBuildSubmission: input.imageBuildSubmission,
+    imageBuildTerminal: input.imageBuildTerminal,
+    kmsKeyVersionResource: predecessorAdmission.kmsKeyVersionResource,
+    admittedAt: input.admittedAt,
+  })
+  if (
+    successor.immutableImageDigest !== predecessorAdmission.immutableImageDigest
+    || successor.immutableImageUri !== predecessorAdmission.immutableImageUri
+    || successor.artifactRegistryPackage !==
+      predecessorAdmission.artifactRegistryPackage
+  ) throw new Error('SAM 3.1 supply-chain successor changed its image.')
+  return successor
+}
+
 function artifactRegistryVersion(digest: string): string {
   return `${IMAGE_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
@@ -781,8 +856,15 @@ export function compileCanonicalSam31QualificationImageSupplyChainBody(
   return deepFreeze({
     steps: [
       {
+        id: 'prepare-private-supply-chain-workspace',
+        name: admission.toolchain.dockerBuilderImage,
+        entrypoint: 'sh',
+        args: ['-ceu', 'chmod 1777 /workspace'],
+      },
+      {
         id: 'pull-immutable-sam31-qualification-image',
         name: admission.toolchain.dockerBuilderImage,
+        waitFor: ['prepare-private-supply-chain-workspace'],
         args: ['pull', image],
       },
       {
@@ -1013,11 +1095,13 @@ function assertBuildEcho(
       || hasNonEmpty(step.secretEnv)
       || hasNonEmpty(step.volumes)
       || hasNonEmpty(step.dir)
-      || hasNonEmpty(step.entrypoint)
     ) throw new Error('Supply-chain step gained execution input.')
     return {
       id: step.id,
       name: step.name,
+      ...(typeof step.entrypoint === 'string' && step.entrypoint.length > 0
+        ? { entrypoint: step.entrypoint }
+        : {}),
       ...(Array.isArray(step.waitFor) && step.waitFor.length > 0
         ? { waitFor: step.waitFor }
         : {}),

@@ -562,40 +562,62 @@ async function readPublicLifecycleAuthorities(
   const privateKeys = workGraph.workItems.map((item) => item.workItemKey)
   const publicKeys = approvedPublicWorkGraph.workItems.map((item) =>
     item.workItemKey)
-  if (
-    publicAssignment.assignmentId !== assignment.assignmentId ||
-    publicAssignment.ownerUserId !== assignment.ownerUserId ||
-    publicAssignment.workspaceId !== assignment.workspaceId ||
-    publicAssignment.projectId !== assignment.projectId ||
-    publicAssignment.editSessionId !== assignment.editSessionId ||
+  const violations = [
+    publicAssignment.assignmentId !== assignment.assignmentId &&
+      'public_assignment_id',
+    publicAssignment.ownerUserId !== assignment.ownerUserId &&
+      'public_assignment_owner',
+    publicAssignment.workspaceId !== assignment.workspaceId &&
+      'public_assignment_workspace',
+    publicAssignment.projectId !== assignment.projectId &&
+      'public_assignment_project',
+    publicAssignment.editSessionId !== assignment.editSessionId &&
+      'public_assignment_edit_session',
     hashSkillValue(publicAssignment.manifestRef) !==
-      hashSkillValue(assignment.manifestRef) ||
-    hashSkillValue(publicAssignment.authorizedRange) !== hashSkillValue(range) ||
-    publicAssignment.reason !== assignment.reason ||
-    publicAssignment.intendedViewerBenefit !== assignment.expectedViewerBenefit ||
-    publicAssignment.visualOwnership !== assignment.requestedVisualOwnership ||
-    publicPlan.envelope.assignmentId !== publicAssignment.assignmentId ||
-    publicPlan.envelope.assignmentHash !== publicAssignment.assignmentHash ||
-    publicPlan.envelope.planId !== plan.planId ||
-    publicPlan.envelope.planHash !== plan.planHash ||
-    publicPlan.payloadRef.sha256 !== hashSkillValue(plan) ||
-    approval.assignmentId !== publicAssignment.assignmentId ||
-    approval.assignmentHash !== publicAssignment.assignmentHash ||
-    approval.planId !== publicPlan.envelope.planId ||
-    approval.planHash !== publicPlan.envelope.planHash ||
+      hashSkillValue(assignment.manifestRef) && 'public_assignment_manifest',
+    hashSkillValue(publicAssignment.authorizedRange) !== hashSkillValue(range) &&
+      'public_assignment_range',
+    publicAssignment.reason !== assignment.reason && 'public_assignment_reason',
+    publicAssignment.intendedViewerBenefit !== assignment.expectedViewerBenefit &&
+      'public_assignment_benefit',
+    publicAssignment.visualOwnership !== assignment.requestedVisualOwnership &&
+      'public_assignment_ownership',
+    publicPlan.envelope.assignmentId !== publicAssignment.assignmentId &&
+      'public_plan_assignment_id',
+    publicPlan.envelope.assignmentHash !== publicAssignment.assignmentHash &&
+      'public_plan_assignment_hash',
+    publicPlan.envelope.planId !== plan.planId && 'public_plan_id',
+    publicPlan.envelope.planHash !== plan.planHash && 'public_plan_hash',
+    publicPlan.payloadRef.sha256 !== hashSkillValue(plan) &&
+      'public_plan_payload',
+    approval.assignmentId !== publicAssignment.assignmentId &&
+      'approval_assignment_id',
+    approval.assignmentHash !== publicAssignment.assignmentHash &&
+      'approval_assignment_hash',
+    approval.planId !== publicPlan.envelope.planId && 'approval_plan_id',
+    approval.planHash !== publicPlan.envelope.planHash && 'approval_plan_hash',
     hashSkillValue(approval.manifestRef) !==
-      hashSkillValue(assignment.manifestRef) ||
-    hashSkillValue(approval.authorizedRange) !== hashSkillValue(range) ||
-    approvedPublicWorkGraph.assignmentId !== publicAssignment.assignmentId ||
-    approvedPublicWorkGraph.assignmentHash !== publicAssignment.assignmentHash ||
-    approvedPublicWorkGraph.planId !== publicPlan.envelope.planId ||
-    approvedPublicWorkGraph.planHash !== publicPlan.envelope.planHash ||
-    approvedPublicWorkGraph.approval.approvalHash !== approval.approvalHash ||
-    approvedPublicWorkGraph.pluginWorkGraphHash !== workGraph.workGraphHash ||
-    publicKeys.join('|') !== privateKeys.join('|')
-  ) {
+      hashSkillValue(assignment.manifestRef) && 'approval_manifest',
+    hashSkillValue(approval.authorizedRange) !== hashSkillValue(range) &&
+      'approval_range',
+    approvedPublicWorkGraph.assignmentId !== publicAssignment.assignmentId &&
+      'public_graph_assignment_id',
+    approvedPublicWorkGraph.assignmentHash !== publicAssignment.assignmentHash &&
+      'public_graph_assignment_hash',
+    approvedPublicWorkGraph.planId !== publicPlan.envelope.planId &&
+      'public_graph_plan_id',
+    approvedPublicWorkGraph.planHash !== publicPlan.envelope.planHash &&
+      'public_graph_plan_hash',
+    approvedPublicWorkGraph.approval.approvalHash !== approval.approvalHash &&
+      'public_graph_approval',
+    approvedPublicWorkGraph.pluginWorkGraphHash !== workGraph.workGraphHash &&
+      'public_graph_private_graph',
+    publicKeys.join('|') !== privateKeys.join('|') && 'public_graph_work_items',
+  ].filter((value): value is string => typeof value === 'string')
+  if (violations.length > 0) {
     throw new Error(
-      'Canonical B-roll V3 public lifecycle crossed immutable plan authority.',
+      `Canonical B-roll V3 public lifecycle crossed immutable plan authority: ${
+        violations.join(', ')}.`,
     )
   }
   return {

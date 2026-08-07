@@ -8,6 +8,11 @@ import {
   createCanonicalCaptionBrollApprovedPlanHarness,
   type CanonicalCaptionBrollApprovedPlanHarnessInput,
 } from '../internal-testing/canonical-caption-broll-approved-plan-harness'
+import {
+  CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION,
+} from '../edit-skills/b-roll/b-roll-canonical-plan-component'
+import { hashSkillValue } from '../edit-skills/core'
+import { revalidateCanonicalBrollPlanAuthority } from '../services/canonical-broll-plan-component-service'
 
 let checks = 0
 function check(value: unknown, message: string): void {
@@ -111,6 +116,36 @@ try {
     && result.persistedComponent.component.workGraphHash ===
       result.canonicalWorkGraph.workGraphHash,
   'The immutable B-roll component must bind the exact assignment and graph.')
+  const persistedComponent = result.persistedComponent.component
+  check(
+    persistedComponent.schemaVersion ===
+      CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION
+      && persistedComponent.restartSafeExecutionInputsPersisted,
+    'The immutable B-roll component must persist versioned restart-safe execution inputs.',
+  )
+  if (persistedComponent.schemaVersion !==
+    CANONICAL_BROLL_SKILL_COMPONENT_V2_VERSION) {
+    throw new Error('The Caption+B-roll harness requires the V2 execution component.')
+  }
+  const reread = await revalidateCanonicalBrollPlanAuthority({
+    localStorageRoot,
+    component: persistedComponent,
+    masterTimingBinding: result.masterTimingBinding,
+    canonicalMasterTimingPlan: input.canonicalMasterTimingPlan,
+    canonicalTimingSummary: input.canonicalTimingSummary,
+    canonicalWorkItems: result.canonicalWorkItems,
+  })
+  check(
+    reread.executionAuthorities?.sourceMediaArtifacts[0]?.sourceId ===
+      input.source.sourceSequenceItemId
+      && reread.executionAuthorities.sourceMediaArtifacts[0]?.objectSha256 ===
+        input.source.objectSha256
+      && reread.executionAuthorities.masterTimingProjection.timingHash ===
+        result.masterTimingPlan.timingHash
+      && reread.executionAuthorities.visualOwnership.assignmentId ===
+        input.assignmentId,
+    'Restart-safe reread must recover the exact source, timing, and ownership authorities.',
+  )
   check(result.estimatedCredits > 0,
   'The approved B-roll plan must expose an estimate input without billing.')
   check(!result.providerWorkPlanned && !result.runtimeDispatched
@@ -126,6 +161,56 @@ try {
       source: { ...input.source, fps: 30 },
     }),
     /one exact contained timing/u,
+  )
+  checks += 1
+
+  const { componentHash, ...componentCore } =
+    persistedComponent
+  check(
+    hashSkillValue(componentCore) === componentHash,
+    'The persisted V2 component digest must cover every restart-safe authority reference.',
+  )
+  const crossedSourceCore = {
+    ...componentCore,
+    sourceMediaArtifactRefs: persistedComponent.sourceMediaArtifactRefs.map(
+      (item, index) => index === 0
+        ? { ...item, sourceId: 'source.caption-broll.crossed-restart' }
+        : item,
+    ),
+  }
+  await assert.rejects(
+    () => revalidateCanonicalBrollPlanAuthority({
+      localStorageRoot,
+      component: {
+        ...crossedSourceCore,
+        componentHash: hashSkillValue(crossedSourceCore),
+      },
+      masterTimingBinding: result.masterTimingBinding,
+      canonicalMasterTimingPlan: input.canonicalMasterTimingPlan,
+      canonicalTimingSummary: input.canonicalTimingSummary,
+      canonicalWorkItems: result.canonicalWorkItems,
+    }),
+    /crossed immutable assignment authority/u,
+  )
+  checks += 1
+
+  const missingSourceCore = {
+    ...componentCore,
+    sourceMediaArtifactRefs: [],
+  }
+  await assert.rejects(
+    () => revalidateCanonicalBrollPlanAuthority({
+      localStorageRoot,
+      component: {
+        ...missingSourceCore,
+        componentHash: hashSkillValue(missingSourceCore),
+      },
+      masterTimingBinding: result.masterTimingBinding,
+      canonicalMasterTimingPlan: input.canonicalMasterTimingPlan,
+      canonicalTimingSummary: input.canonicalTimingSummary,
+      canonicalWorkItems: result.canonicalWorkItems,
+    }),
+    /crossed immutable assignment authority/u,
   )
   checks += 1
   await assert.rejects(

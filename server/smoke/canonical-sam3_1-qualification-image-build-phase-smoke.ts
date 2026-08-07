@@ -28,8 +28,10 @@ import {
 } from '../services/private-edit-authority-store'
 import {
   assertCanonicalSam31QualificationImageBuildReconciliation,
+  assertCanonicalSam31QualificationImageBuildReconciledTerminal,
   canonicalSam31QualificationImageBuildSubmissionRef,
   createCanonicalSam31QualificationImageBuildReconciler,
+  createCanonicalSam31QualificationImageBuildReconciledTerminalObserver,
 } from '../services/canonical-sam3_1-qualification-image-build-reconciliation'
 
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
@@ -277,7 +279,7 @@ const phase = createCanonicalSam31QualificationImageBuildPhase({
             name: 'operations/sam31-qualification-image-build-1',
             metadata: { build: {
               id: buildId,
-              name: `projects/reeditpro/locations/us-central1/builds/${buildId}`,
+              name: `projects/390722338345/locations/us-central1/builds/${buildId}`,
               projectId: 'reeditpro',
             } },
           },
@@ -447,9 +449,10 @@ assert.equal(noBuildReconciliation.predecessorProviderExecutionKnownAbsent, true
 assert.equal(noBuildReconciliation.automaticRetryAllowed, false)
 assert.equal(noBuildReconciliation.distinctSuccessorAuthorityMayBeIssued, true)
 
+const matchingBuildId = '55555555-5555-4555-8555-555555555555'
 const matchingBuild = successBuild(
   buildBody,
-  '55555555-5555-4555-8555-555555555555',
+  matchingBuildId,
   authority.imageDestination.taggedUri,
 )
 matchingBuild.createTime = new Date(
@@ -477,6 +480,83 @@ const matchedReconciliation =
 assert.equal(matchedReconciliation.disposition, 'matched_exact_build')
 assert.equal(matchedReconciliation.matchingBuildCount, 1)
 assert.equal(matchedReconciliation.distinctSuccessorAuthorityMayBeIssued, false)
+
+const acceptedPayload = structuredClone(badRequest) as Partial<
+  typeof badRequest
+>
+delete acceptedPayload.submissionHash
+const acceptedUnknown = assertCanonicalSam31QualificationImageBuildSubmission({
+  ...acceptedPayload,
+  providerHttpStatus: 200,
+  submissionHash: sha256AuthorityValue({
+    ...acceptedPayload,
+    providerHttpStatus: 200,
+  }),
+})
+const acceptedUnknownRef = canonicalSam31QualificationImageBuildSubmissionRef(
+  acceptedUnknown,
+)
+matchingBuild.name =
+  `projects/390722338345/locations/us-central1/builds/${matchingBuildId}`
+const acceptedReconciliation =
+  await createCanonicalSam31QualificationImageBuildReconciler({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadSubmission() {
+        return structuredClone(acceptedUnknown)
+      },
+    },
+    transport: {
+      async request() {
+        return { status: 200, json: { builds: [matchingBuild] } }
+      },
+    },
+  }).reconcileUnknownSubmission({
+    reconciliationId: 'sam31-qualification-reconciliation-accepted-match',
+    submissionRef: acceptedUnknownRef,
+  })
+assert.equal(acceptedReconciliation.disposition, 'matched_exact_build')
+assert.equal(acceptedReconciliation.providerHttpStatus, 200)
+assert.equal(
+  acceptedReconciliation.originalRegionalCreateRequestMissingRequiredProjectIdQuery,
+  false,
+)
+const acceptedReconciliationRef = {
+  id: acceptedReconciliation.reconciliationId,
+  version: 1 as const,
+  contentHash:
+    `sha256:${acceptedReconciliation.reconciliationHash}` as const,
+}
+const reconciledTerminal =
+  await createCanonicalSam31QualificationImageBuildReconciledTerminalObserver({
+    readPort: {
+      async rereadQualificationImageBuildAuthority() {
+        return structuredClone(authority)
+      },
+      async rereadReconciliation() {
+        return structuredClone(acceptedReconciliation)
+      },
+    },
+    transport: {
+      async request() {
+        return { status: 200, json: structuredClone(matchingBuild) }
+      },
+    },
+  }).observeTerminal({
+    terminalId: 'sam31-qualification-reconciled-terminal-1',
+    reconciliationRef: acceptedReconciliationRef,
+  })
+assertCanonicalSam31QualificationImageBuildReconciledTerminal(
+  reconciledTerminal,
+)
+assert.equal(
+  reconciledTerminal.disposition,
+  'qualification_image_built_pending_supply_chain_release',
+)
+assert.equal(reconciledTerminal.providerProjectIdentityNormalized, true)
+assert.equal(reconciledTerminal.runtimeReleaseGranted, false)
 
 const mismatchedPhase = createCanonicalSam31QualificationImageBuildPhase({
   authorityReadPort: {
@@ -544,6 +624,9 @@ console.log(JSON.stringify({
     providerErrorSummaryCredentialSafeAndDigestBound: true,
     http400NoBuildReconciledBeforeSuccessorAuthority: true,
     exactBuildMatchBlocksSuccessorAuthority: true,
+    acceptedCreateResponseReconciledWithoutDuplicateSubmission: true,
+    providerNumericProjectIdentityNormalized: true,
+    reconciledBuildObservedThroughExactTerminalLineage: true,
     exactTerminalEchoRequired: true,
     immutableImagePendingSupplyChainRelease: true,
     sourceCheckpointQualificationGranted: false,
@@ -584,6 +667,8 @@ function successBuild(
     name: `projects/reeditpro/locations/us-central1/builds/${id}`,
     projectId: 'reeditpro',
     status: 'SUCCESS',
+    startTime: '2026-08-04T13:02:01.000Z',
+    finishTime: '2026-08-04T13:02:30.000Z',
     warnings: [],
     source: structuredClone(body.source),
     sourceProvenance: {

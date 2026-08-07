@@ -244,6 +244,7 @@
     "publish:sam3_1-qualification-image-authority": "tsx server/cli/publish-canonical-sam3_1-qualification-image-build-authority.ts",
     "start:sam3_1-qualification-image-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build.ts",
     "reconcile:sam3_1-qualification-image-build": "tsx server/cli/reconcile-canonical-sam3_1-qualification-image-build.ts",
+    "observe:sam3_1-qualification-image-build-reconciliation": "tsx server/cli/observe-canonical-sam3_1-qualification-image-build-reconciliation.ts",
     "publish:sam3_1-qualification-image-successor-authority": "tsx server/cli/publish-canonical-sam3_1-qualification-image-build-successor-authority.ts",
     "start:sam3_1-qualification-image-successor-build": "tsx server/cli/start-canonical-sam3_1-qualification-image-build-successor.ts",
     "smoke:sam3_1-source-checkpoint-qualification-a100": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts",

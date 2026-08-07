@@ -25,6 +25,16 @@ const targets = {
         'sha256:57ef0b4aa3a0b93dfd23a57c795be80aa1c7ce191d277ac4ae32b5440eb8e1f4' as const,
     },
   },
+  successor_3: {
+    reconciliationId:
+      'sam31-qualification-image-build-reconciliation-3bffc6891ce985b7',
+    submissionRef: {
+      id: 'sam31-qualification-image-submission-3bffc6891ce985b7e9aa',
+      version: 1 as const,
+      contentHash:
+        'sha256:3bffc6891ce985b7e9aa89613a67cee4924e65c5b8536940e2616747efc9b070' as const,
+    },
+  },
 } as const
 
 if (
@@ -33,7 +43,11 @@ if (
 ) throw new Error('SAM 3.1 qualification reconciliation confirmation missing.')
 
 const targetName = process.env.WEEDITPRO_SAM31_QUALIFICATION_IMAGE_RECONCILIATION_TARGET
-if (targetName !== 'initial' && targetName !== 'successor_1') {
+if (
+  targetName !== 'initial'
+  && targetName !== 'successor_1'
+  && targetName !== 'successor_3'
+) {
   throw new Error('SAM 3.1 qualification reconciliation target is invalid.')
 }
 const target = targets[targetName]

@@ -6,10 +6,15 @@ import { z } from 'zod'
 
 import {
   assertCanonicalSam31QualificationImageBuildReconciliation,
+  assertCanonicalSam31QualificationImageBuildReconciledTerminal,
   canonicalSam31QualificationImageBuildListEndpoint,
   canonicalSam31QualificationImageBuildReconciliationRef,
+  canonicalSam31QualificationImageBuildReconciledTerminalRef,
+  canonicalSam31QualificationImageBuildResourceEndpointPattern,
   createCanonicalSam31QualificationImageBuildReconciler,
+  createCanonicalSam31QualificationImageBuildReconciledTerminalObserver,
   type CanonicalSam31QualificationImageBuildReconciliation,
+  type CanonicalSam31QualificationImageBuildReconciledTerminal,
 } from './canonical-sam3_1-qualification-image-build-reconciliation'
 import {
   createCanonicalSam31QualificationImageBuildRepository,
@@ -31,6 +36,8 @@ const CONTROL_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const PREFIX =
   'private/sam3_1/qualification-image-build-phase/v1/reconciliations' as const
+const TERMINAL_PREFIX =
+  'private/sam3_1/qualification-image-build-phase/v1/reconciled-terminals' as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const MAXIMUM_RECORD_BYTES = 1024 * 1024
@@ -98,6 +105,52 @@ export function createCanonicalSam31QualificationImageBuildReconciliationReposit
       ) throw new Error('SAM 3.1 reconciliation record changed.')
       return record
     },
+    async persistTerminalCreateOnly(request: {
+      readonly terminal:
+        CanonicalSam31QualificationImageBuildReconciledTerminal
+    }) {
+      const record =
+        assertCanonicalSam31QualificationImageBuildReconciledTerminal(
+          request.terminal,
+        )
+      const ref =
+        canonicalSam31QualificationImageBuildReconciledTerminalRef(record)
+      const body = recordBody(record)
+      const objectPath = `${TERMINAL_PREFIX}/${ref.contentHash.slice(7)}.json`
+      const result = await input.objectPort.createOnly({
+        objectPath,
+        body,
+        contentSha256: sha256(body),
+      })
+      const reread = await input.objectPort.readExact(objectPath)
+      if (!reread || !reread.equals(body)) {
+        throw new Error('SAM 3.1 reconciled terminal was not exactly reread.')
+      }
+      return result
+    },
+    async rereadTerminal(request: {
+      readonly terminalRef: EvidenceRef
+    }) {
+      const ref = evidenceRefSchema.parse(request.terminalRef)
+      const objectPath = `${TERMINAL_PREFIX}/${ref.contentHash.slice(7)}.json`
+      const body = await input.objectPort.readExact(objectPath)
+      if (!body) return null
+      if (body.byteLength < 2 || body.byteLength > MAXIMUM_RECORD_BYTES) {
+        throw new Error('SAM 3.1 reconciled terminal size is invalid.')
+      }
+      const record =
+        assertCanonicalSam31QualificationImageBuildReconciledTerminal(
+          JSON.parse(body.toString('utf8')),
+        )
+      if (
+        !sameRef(
+          ref,
+          canonicalSam31QualificationImageBuildReconciledTerminalRef(record),
+        )
+        || !recordBody(record).equals(body)
+      ) throw new Error('SAM 3.1 reconciled terminal changed.')
+      return record
+    },
   })
 }
 
@@ -115,12 +168,13 @@ export function createCanonicalSam31QualificationImageBuildListTransport(
   return Object.freeze({
     async request(request: {
       readonly method: 'GET'
-      readonly url: typeof canonicalSam31QualificationImageBuildListEndpoint
+      readonly url: string
     }) {
       if (
         request.method !== 'GET'
-        || request.url !==
-          canonicalSam31QualificationImageBuildListEndpoint
+        || (request.url !== canonicalSam31QualificationImageBuildListEndpoint
+          && !canonicalSam31QualificationImageBuildResourceEndpointPattern
+            .test(request.url))
       ) throw new Error('SAM 3.1 reconciliation URL is not allowlisted.')
       const response = await auth.request<unknown>({
         url: request.url,
@@ -174,6 +228,23 @@ export function createCanonicalSam31GcpQualificationImageBuildReconciliationRunt
     }),
     now: input.now,
   })
+  const terminalObserver =
+    createCanonicalSam31QualificationImageBuildReconciledTerminalObserver({
+      readPort: {
+        rereadQualificationImageBuildAuthority:
+          buildRepository.rereadQualificationImageBuildAuthority.bind(
+            buildRepository,
+          ),
+        rereadReconciliation:
+          reconciliationRepository.rereadReconciliation.bind(
+            reconciliationRepository,
+          ),
+      },
+      transport: createCanonicalSam31QualificationImageBuildListTransport({
+        auth: input.auth,
+      }),
+      now: input.now,
+    })
   return Object.freeze({
     schemaVersion:
       CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_RECONCILIATION_RUNTIME_VERSION,
@@ -203,6 +274,23 @@ export function createCanonicalSam31GcpQualificationImageBuildReconciliationRunt
     },
     rereadReconciliation:
       reconciliationRepository.rereadReconciliation,
+    async observeAndPersistOne(request: {
+      readonly terminalId: string
+      readonly reconciliationRef: EvidenceRef
+    }) {
+      const terminal = await terminalObserver.observeTerminal(request)
+      await reconciliationRepository.persistTerminalCreateOnly({ terminal })
+      const terminalRef =
+        canonicalSam31QualificationImageBuildReconciledTerminalRef(terminal)
+      const reread = await reconciliationRepository.rereadTerminal({
+        terminalRef,
+      })
+      if (!reread || reread.terminalHash !== terminal.terminalHash) {
+        throw new Error('SAM 3.1 reconciled terminal durable reread failed.')
+      }
+      return Object.freeze({ terminal: reread, terminalRef })
+    },
+    rereadTerminal: reconciliationRepository.rereadTerminal,
   })
 }
 

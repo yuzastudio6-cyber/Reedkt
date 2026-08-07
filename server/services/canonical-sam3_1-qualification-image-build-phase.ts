@@ -13,8 +13,13 @@ export const CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_TERMINAL_VERSION =
   'canonical-sam3_1-qualification-image-build-terminal-observation-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  BUILD_COLLECTION,
+  `projects/${PROJECT_NUMBER}/locations/us-central1/builds`,
+])
 const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
 const BUILD_CREATE_ENDPOINT =
@@ -443,7 +448,7 @@ export function createCanonicalSam31QualificationImageBuildPhase(input: {
         const build = parseBuildResource(response.json)
         if (
           build.id !== submission.cloudBuildId
-          || build.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          || !providerBuildNameMatches(build.name, submission.cloudBuildId)
         ) throw new Error('Qualification Cloud Build crossed identity.')
         if (['PENDING', 'QUEUED', 'WORKING'].includes(build.status)) {
           return buildTerminal({
@@ -650,7 +655,7 @@ function parseCreateOperation(value: unknown) {
   const build = record(record(root.metadata).build)
   const buildId = z.string().uuid().parse(build.id)
   if (
-    build.name !== `${BUILD_COLLECTION}/${buildId}`
+    !providerBuildNameMatches(z.string().parse(build.name), buildId)
     || build.projectId !== PROJECT_ID
   ) throw new Error('Qualification build create crossed project.')
   return { operationName, buildId }
@@ -692,6 +697,12 @@ function parseBuildResource(value: unknown) {
     },
     sourceProvenance: provenance,
   }
+}
+
+function providerBuildNameMatches(name: string, buildId: string): boolean {
+  return [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => name === `${collection}/${buildId}`,
+  )
 }
 
 function assertBuildEcho(

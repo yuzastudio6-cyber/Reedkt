@@ -19,9 +19,21 @@ import {
 
 export const CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_RECONCILIATION_VERSION =
   'canonical-sam3_1-qualification-image-build-reconciliation-v1' as const
+export const CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_RECONCILED_TERMINAL_VERSION =
+  'canonical-sam3_1-qualification-image-build-reconciled-terminal-v1' as const
 
+const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  BUILD_COLLECTION,
+  `projects/${PROJECT_NUMBER}/locations/us-central1/builds`,
+])
+const BUILD_RESOURCE_ENDPOINT_PREFIX =
+  'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds/' as const
+const ARTIFACT_REGISTRY_PACKAGE =
+  'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-qualification' as const
 const BUILD_LIST_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro&pageSize=100&filter=tags%3Dweeditpro%20AND%20tags%3Dsam3-1%20AND%20tags%3Dsource-checkpoint-qualification-image' as const
 const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
@@ -60,6 +72,7 @@ const reconciliationWithoutHashSchema = z.object({
   ),
   disposition: z.enum([
     'precreation_rejection_no_build_found',
+    'accepted_response_no_build_found',
     'matched_exact_build',
     'ambiguous',
   ]),
@@ -69,10 +82,10 @@ const reconciliationWithoutHashSchema = z.object({
   authorityRef: evidenceRefSchema,
   submissionRef: evidenceRefSchema,
   buildRequestHash: rawSha256,
-  providerHttpStatus: z.literal(400),
+  providerHttpStatus: z.union([z.literal(200), z.literal(400)]),
   cloudBuildCreateContractRef: evidenceRefSchema,
   originalRegionalCreateRequestMissingRequiredProjectIdQuery:
-    z.literal(true),
+    z.boolean(),
   correctedRegionalCreateRequestIncludesRequiredProjectIdQuery:
     z.literal(true),
   cloudBuildListRequestRef: evidenceRefSchema,
@@ -101,10 +114,15 @@ const reconciliationWithoutHashSchema = z.object({
 }).strict().superRefine((value, context) => {
   const notFound = value.disposition ===
     'precreation_rejection_no_build_found'
+  const acceptedNotFound = value.disposition ===
+    'accepted_response_no_build_found'
   const matched = value.disposition === 'matched_exact_build'
   if (
-    notFound
-      ? value.matchingBuildCount !== 0
+    value.originalRegionalCreateRequestMissingRequiredProjectIdQuery !==
+      (value.providerHttpStatus === 400)
+    || (notFound
+      ? value.providerHttpStatus !== 400
+        || value.matchingBuildCount !== 0
         || value.matchedCloudBuildId !== null
         || value.matchedCloudBuildResource !== null
         || value.matchedCloudBuildStatus !== null
@@ -114,7 +132,19 @@ const reconciliationWithoutHashSchema = z.object({
         || !value.predecessorProviderExecutionKnownAbsent
         || value.predecessorImageBuildKnownStarted
         || !value.distinctSuccessorAuthorityMayBeIssued
-      : matched
+      : acceptedNotFound
+        ? value.providerHttpStatus !== 200
+          || value.matchingBuildCount !== 0
+          || value.matchedCloudBuildId !== null
+          || value.matchedCloudBuildResource !== null
+          || value.matchedCloudBuildStatus !== null
+          || value.matchedCloudBuildCreateTime !== null
+          || value.exactFixedBuildRequestEchoVerified
+          || value.exactStorageGenerationProvenanceVerified
+          || value.predecessorProviderExecutionKnownAbsent
+          || value.predecessorImageBuildKnownStarted
+          || value.distinctSuccessorAuthorityMayBeIssued
+        : matched
         ? value.matchingBuildCount !== 1
           || !value.matchedCloudBuildId
           || value.matchedCloudBuildResource !==
@@ -135,7 +165,7 @@ const reconciliationWithoutHashSchema = z.object({
           || value.exactStorageGenerationProvenanceVerified
           || value.predecessorProviderExecutionKnownAbsent
           || value.predecessorImageBuildKnownStarted
-          || value.distinctSuccessorAuthorityMayBeIssued
+          || value.distinctSuccessorAuthorityMayBeIssued)
   ) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 qualification build reconciliation truth changed.',
@@ -150,6 +180,99 @@ export type CanonicalSam31QualificationImageBuildReconciliation = z.infer<
   typeof canonicalSam31QualificationImageBuildReconciliationSchema
 >
 
+const reconciledTerminalWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_RECONCILED_TERMINAL_VERSION,
+  ),
+  source: z.literal(
+    'canonical_sam3_1_qualification_image_build_reconciled_terminal_owner',
+  ),
+  disposition: z.enum([
+    'pending',
+    'qualification_image_built_pending_supply_chain_release',
+    'terminal_failure',
+    'outcome_unknown',
+  ]),
+  terminalId: safeId,
+  terminalVersion: z.literal(1),
+  operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
+  authorityRef: evidenceRefSchema,
+  submissionRef: evidenceRefSchema,
+  reconciliationRef: evidenceRefSchema,
+  buildRequestHash: rawSha256,
+  cloudBuildId: z.string().uuid(),
+  cloudBuildResource: safeId,
+  providerProjectIdentityNormalized: z.literal(true),
+  providerHttpStatus: z.literal(200),
+  cloudBuildStatus: buildStatusSchema,
+  cloudBuildCreateTime: timestamp,
+  cloudBuildStartTime: timestamp.nullable(),
+  cloudBuildFinishTime: timestamp.nullable(),
+  exactFixedBuildRequestEchoVerified: z.literal(true),
+  exactStorageGenerationProvenanceVerified: z.literal(true),
+  warningsAbsent: z.boolean(),
+  taggedImageUri: z.string().trim().min(1).max(2_048),
+  immutableImageDigest: prefixedSha256.nullable(),
+  immutableImageUri: z.string().trim().min(1).max(2_048).nullable(),
+  artifactRegistryPackage: safeId.nullable(),
+  durableTerminalObservationCreated: z.boolean(),
+  imageBuiltAndPushed: z.boolean(),
+  sbomReread: z.literal(false),
+  artifactAnalysisScanPassed: z.literal(false),
+  imageSignatureVerified: z.literal(false),
+  provenanceVerified: z.literal(false),
+  sourceCheckpointQualificationGranted: z.literal(false),
+  runtimeReleaseGranted: z.literal(false),
+  gpuJobDispatched: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  productionReady: z.literal(false),
+  observedAt: timestamp,
+}).strict().superRefine((value, context) => {
+  const success = value.disposition ===
+    'qualification_image_built_pending_supply_chain_release'
+  const pending = value.disposition === 'pending'
+  const failed = value.disposition === 'terminal_failure'
+  if (
+    value.cloudBuildResource !== `${BUILD_COLLECTION}/${value.cloudBuildId}`
+    || (success
+      ? value.cloudBuildStatus !== 'SUCCESS'
+        || !value.cloudBuildStartTime
+        || !value.cloudBuildFinishTime
+        || !value.warningsAbsent
+        || !value.immutableImageDigest
+        || value.immutableImageUri !==
+          `${value.taggedImageUri.split(':')[0]}@${value.immutableImageDigest}`
+        || value.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+        || !value.durableTerminalObservationCreated
+        || !value.imageBuiltAndPushed
+      : value.immutableImageDigest !== null
+        || value.immutableImageUri !== null
+        || value.artifactRegistryPackage !== null
+        || value.imageBuiltAndPushed)
+    || (pending
+      ? !['PENDING', 'QUEUED', 'WORKING'].includes(value.cloudBuildStatus)
+        || value.durableTerminalObservationCreated
+      : failed
+        ? ['PENDING', 'QUEUED', 'WORKING', 'SUCCESS', 'STATUS_UNKNOWN']
+          .includes(value.cloudBuildStatus)
+          || !value.durableTerminalObservationCreated
+        : value.disposition === 'outcome_unknown'
+          && (value.cloudBuildStatus !== 'STATUS_UNKNOWN'
+            || value.durableTerminalObservationCreated))
+  ) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 reconciled terminal truth changed.',
+  })
+})
+
+export const canonicalSam31QualificationImageBuildReconciledTerminalSchema =
+  reconciledTerminalWithoutHashSchema.extend({
+    terminalHash: rawSha256,
+  }).strict()
+export type CanonicalSam31QualificationImageBuildReconciledTerminal = z.infer<
+  typeof canonicalSam31QualificationImageBuildReconciledTerminalSchema
+>
+
 export interface CanonicalSam31QualificationImageBuildReconciliationReadPort {
   rereadQualificationImageBuildAuthority(input: {
     readonly authorityRef: z.infer<typeof evidenceRefSchema>
@@ -159,10 +282,26 @@ export interface CanonicalSam31QualificationImageBuildReconciliationReadPort {
   }): Promise<CanonicalSam31QualificationImageBuildSubmission | null>
 }
 
+export interface CanonicalSam31QualificationImageBuildReconciledTerminalReadPort {
+  rereadQualificationImageBuildAuthority(input: {
+    readonly authorityRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<CanonicalSam31QualificationImageBuildAuthority | null>
+  rereadReconciliation(input: {
+    readonly reconciliationRef: z.infer<typeof evidenceRefSchema>
+  }): Promise<CanonicalSam31QualificationImageBuildReconciliation | null>
+}
+
 export interface CanonicalSam31QualificationImageBuildListTransport {
   request(input: {
     readonly method: 'GET'
-    readonly url: typeof BUILD_LIST_ENDPOINT
+    readonly url: string
+  }): Promise<{ readonly status: number; readonly json: unknown }>
+}
+
+export interface CanonicalSam31QualificationImageBuildReadTransport {
+  request(input: {
+    readonly method: 'GET'
+    readonly url: string
   }): Promise<{ readonly status: number; readonly json: unknown }>
 }
 
@@ -186,7 +325,8 @@ export function createCanonicalSam31QualificationImageBuildReconciler(input: {
       if (
         submission.disposition !== 'outcome_unknown'
         || submission.providerOutcome !== 'unknown'
-        || submission.providerHttpStatus !== 400
+        || (submission.providerHttpStatus !== 200
+          && submission.providerHttpStatus !== 400)
         || submission.buildRequestHash === null
         || submission.cloudBuildOperationName !== null
         || submission.cloudBuildId !== null
@@ -225,12 +365,14 @@ export function createCanonicalSam31QualificationImageBuildReconciler(input: {
         disposition: matched
           ? 'matched_exact_build'
           : matches.length === 0
-            ? 'precreation_rejection_no_build_found'
+            ? submission.providerHttpStatus === 400
+              ? 'precreation_rejection_no_build_found'
+              : 'accepted_response_no_build_found'
             : 'ambiguous',
         authorityRef: submission.authorityRef,
         submissionRef: request.submissionRef,
         buildRequestHash: submission.buildRequestHash,
-        providerHttpStatus: 400,
+        providerHttpStatus: submission.providerHttpStatus,
         cloudBuildCreateContractRef: {
           id: 'google-cloud-build-v1-regional-create-contract-20260807',
           version: 1,
@@ -254,9 +396,109 @@ export function createCanonicalSam31QualificationImageBuildReconciler(input: {
         matchedCloudBuildCreateTime: matched?.createTime ?? null,
         exactFixedBuildRequestEchoVerified: matched !== null,
         exactStorageGenerationProvenanceVerified: matched !== null,
-        predecessorProviderExecutionKnownAbsent: matches.length === 0,
+        predecessorProviderExecutionKnownAbsent:
+          matches.length === 0 && submission.providerHttpStatus === 400,
         predecessorImageBuildKnownStarted: matched !== null,
-        distinctSuccessorAuthorityMayBeIssued: matches.length === 0,
+        distinctSuccessorAuthorityMayBeIssued:
+          matches.length === 0 && submission.providerHttpStatus === 400,
+        observedAt,
+      })
+    },
+  })
+}
+
+export function createCanonicalSam31QualificationImageBuildReconciledTerminalObserver(
+  input: {
+    readonly readPort:
+      CanonicalSam31QualificationImageBuildReconciledTerminalReadPort
+    readonly transport: CanonicalSam31QualificationImageBuildReadTransport
+    readonly now?: () => string
+  },
+) {
+  return Object.freeze({
+    observeTerminal: async (request: {
+      readonly terminalId: string
+      readonly reconciliationRef: z.infer<typeof evidenceRefSchema>
+    }): Promise<CanonicalSam31QualificationImageBuildReconciledTerminal> => {
+      const observedAt = input.now?.() ?? new Date().toISOString()
+      const reconciliation =
+        assertCanonicalSam31QualificationImageBuildReconciliation(
+          await input.readPort.rereadReconciliation({
+            reconciliationRef: request.reconciliationRef,
+          }),
+        )
+      if (
+        reconciliation.disposition !== 'matched_exact_build'
+        || !reconciliation.matchedCloudBuildId
+        || !sameRef(
+          request.reconciliationRef,
+          canonicalSam31QualificationImageBuildReconciliationRef(
+            reconciliation,
+          ),
+        )
+      ) throw new Error('SAM 3.1 exact build reconciliation changed.')
+      const authority = assertCanonicalSam31QualificationImageBuildAuthority(
+        await input.readPort.rereadQualificationImageBuildAuthority({
+          authorityRef: reconciliation.authorityRef,
+        }),
+      )
+      if (
+        authority.evidenceClass !== 'canonical_private_reread'
+        || authority.status !== 'authorized_for_private_cloud_build'
+        || !sameRef(authorityRef(authority), reconciliation.authorityRef)
+      ) throw new Error('SAM 3.1 terminal authority changed.')
+      const response = await input.transport.request({
+        method: 'GET',
+        url: `${BUILD_RESOURCE_ENDPOINT_PREFIX}${reconciliation.matchedCloudBuildId}`,
+      })
+      if (response.status !== 200) {
+        throw new Error('SAM 3.1 exact Cloud Build reread failed.')
+      }
+      const build = parseBuild(response.json)
+      if (
+        build.id !== reconciliation.matchedCloudBuildId
+        || build.projectId !== PROJECT_ID
+        || !providerBuildNameMatches(build.name, build.id)
+        || !exactBuildEchoMatches(
+          build,
+          authority,
+          reconciliation.matchedCloudBuildCreateTime
+            ?? '1970-01-01T00:00:00.000Z',
+        )
+      ) throw new Error('SAM 3.1 reconciled build identity changed.')
+      const success = build.status === 'SUCCESS'
+      const pending = ['PENDING', 'QUEUED', 'WORKING'].includes(build.status)
+      const image = success ? exactBuiltImage(build, authority) : null
+      return buildReconciledTerminal({
+        terminalId: request.terminalId,
+        disposition: success
+          ? 'qualification_image_built_pending_supply_chain_release'
+          : pending
+            ? 'pending'
+            : build.status === 'STATUS_UNKNOWN'
+              ? 'outcome_unknown'
+              : 'terminal_failure',
+        authorityRef: reconciliation.authorityRef,
+        submissionRef: reconciliation.submissionRef,
+        reconciliationRef: request.reconciliationRef,
+        buildRequestHash: reconciliation.buildRequestHash,
+        cloudBuildId: build.id,
+        cloudBuildResource: `${BUILD_COLLECTION}/${build.id}`,
+        providerHttpStatus: 200,
+        cloudBuildStatus: build.status,
+        cloudBuildCreateTime: build.createTime,
+        cloudBuildStartTime: build.startTime ?? null,
+        cloudBuildFinishTime: build.finishTime ?? null,
+        warningsAbsent: build.warnings.length === 0,
+        taggedImageUri: authority.imageDestination.taggedUri,
+        immutableImageDigest: image?.digest ?? null,
+        immutableImageUri: image
+          ? `${authority.imageDestination.repository}/${authority.imageDestination.imageName}@${image.digest}`
+          : null,
+        artifactRegistryPackage: image?.artifactRegistryPackage ?? null,
+        durableTerminalObservationCreated: success || (!pending
+          && build.status !== 'STATUS_UNKNOWN'),
+        imageBuiltAndPushed: image !== null,
         observedAt,
       })
     },
@@ -276,6 +518,19 @@ export function assertCanonicalSam31QualificationImageBuildReconciliation(
   return parsed
 }
 
+export function assertCanonicalSam31QualificationImageBuildReconciledTerminal(
+  value: unknown,
+): CanonicalSam31QualificationImageBuildReconciledTerminal {
+  assertPlainSerializedData(value, 'sam31_qualification_reconciled_terminal')
+  const parsed = canonicalSam31QualificationImageBuildReconciledTerminalSchema
+    .parse(value)
+  const { terminalHash, ...payload } = parsed
+  if (terminalHash !== sha256AuthorityValue(payload)) {
+    throw new Error('SAM 3.1 reconciled terminal hash changed.')
+  }
+  return parsed
+}
+
 export function canonicalSam31QualificationImageBuildReconciliationRef(
   value: unknown,
 ) {
@@ -286,6 +541,18 @@ export function canonicalSam31QualificationImageBuildReconciliationRef(
     id: record.reconciliationId,
     version: record.reconciliationVersion,
     contentHash: `sha256:${record.reconciliationHash}`,
+  })
+}
+
+export function canonicalSam31QualificationImageBuildReconciledTerminalRef(
+  value: unknown,
+) {
+  const record =
+    assertCanonicalSam31QualificationImageBuildReconciledTerminal(value)
+  return evidenceRefSchema.parse({
+    id: record.terminalId,
+    version: record.terminalVersion,
+    contentHash: `sha256:${record.terminalHash}`,
   })
 }
 
@@ -306,12 +573,13 @@ function buildReconciliation(input: {
   readonly reconciliationId: string
   readonly disposition:
     | 'precreation_rejection_no_build_found'
+    | 'accepted_response_no_build_found'
     | 'matched_exact_build'
     | 'ambiguous'
   readonly authorityRef: z.infer<typeof evidenceRefSchema>
   readonly submissionRef: z.infer<typeof evidenceRefSchema>
   readonly buildRequestHash: string
-  readonly providerHttpStatus: 400
+  readonly providerHttpStatus: 200 | 400
   readonly cloudBuildCreateContractRef: z.infer<typeof evidenceRefSchema>
   readonly cloudBuildListRequestRef: z.infer<typeof evidenceRefSchema>
   readonly cloudBuildListResponseSha256: string
@@ -333,7 +601,8 @@ function buildReconciliation(input: {
     source: 'canonical_sam3_1_qualification_image_build_reconciliation_owner',
     reconciliationVersion: 1,
     operationId: 'tool.sam3_1.segment_and_track_subject.v1',
-    originalRegionalCreateRequestMissingRequiredProjectIdQuery: true,
+    originalRegionalCreateRequestMissingRequiredProjectIdQuery:
+      input.providerHttpStatus === 400,
     correctedRegionalCreateRequestIncludesRequiredProjectIdQuery: true,
     cloudBuildListExactlyReread: true,
     cloudBuildListPaginationComplete: true,
@@ -350,6 +619,44 @@ function buildReconciliation(input: {
   return canonicalSam31QualificationImageBuildReconciliationSchema.parse({
     ...payload,
     reconciliationHash: sha256AuthorityValue(payload),
+  })
+}
+
+function buildReconciledTerminal(input: Omit<
+  z.input<typeof reconciledTerminalWithoutHashSchema>,
+  | 'schemaVersion' | 'source' | 'terminalVersion' | 'operationId'
+  | 'providerProjectIdentityNormalized'
+  | 'exactFixedBuildRequestEchoVerified'
+  | 'exactStorageGenerationProvenanceVerified'
+  | 'sbomReread' | 'artifactAnalysisScanPassed'
+  | 'imageSignatureVerified' | 'provenanceVerified'
+  | 'sourceCheckpointQualificationGranted' | 'runtimeReleaseGranted'
+  | 'gpuJobDispatched' | 'customerCreditsMutated' | 'productionReady'
+>) {
+  const payload = reconciledTerminalWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_SAM3_1_QUALIFICATION_IMAGE_BUILD_RECONCILED_TERMINAL_VERSION,
+    source:
+      'canonical_sam3_1_qualification_image_build_reconciled_terminal_owner',
+    terminalVersion: 1,
+    operationId: 'tool.sam3_1.segment_and_track_subject.v1',
+    providerProjectIdentityNormalized: true,
+    exactFixedBuildRequestEchoVerified: true,
+    exactStorageGenerationProvenanceVerified: true,
+    sbomReread: false,
+    artifactAnalysisScanPassed: false,
+    imageSignatureVerified: false,
+    provenanceVerified: false,
+    sourceCheckpointQualificationGranted: false,
+    runtimeReleaseGranted: false,
+    gpuJobDispatched: false,
+    customerCreditsMutated: false,
+    productionReady: false,
+    ...input,
+  })
+  return canonicalSam31QualificationImageBuildReconciledTerminalSchema.parse({
+    ...payload,
+    terminalHash: sha256AuthorityValue(payload),
   })
 }
 
@@ -372,8 +679,13 @@ function parseBuildList(value: unknown): {
 function parseBuild(value: unknown) {
   return z.object({
     id: z.string().uuid(),
+    name: safeId,
+    projectId: z.literal(PROJECT_ID),
     status: buildStatusSchema,
     createTime: timestamp,
+    startTime: timestamp.optional(),
+    finishTime: timestamp.optional(),
+    warnings: z.array(z.unknown()).max(1_000).default([]),
     source: z.unknown(),
     sourceProvenance: z.unknown().optional(),
     steps: z.unknown(),
@@ -383,7 +695,28 @@ function parseBuild(value: unknown) {
     serviceAccount: z.unknown(),
     options: z.unknown(),
     tags: z.unknown(),
+    results: z.unknown().optional(),
   }).passthrough().parse(value)
+}
+
+function exactBuiltImage(
+  build: ParsedBuild,
+  authority: CanonicalSam31QualificationImageBuildAuthority,
+) {
+  const results = record(build.results)
+  const images = z.array(z.unknown()).length(1).parse(results.images)
+  const image = z.object({
+    name: z.literal(authority.imageDestination.taggedUri),
+    digest: prefixedSha256,
+    artifactRegistryPackage: z.literal(ARTIFACT_REGISTRY_PACKAGE),
+  }).passthrough().parse(images[0])
+  return image
+}
+
+function providerBuildNameMatches(name: string, buildId: string): boolean {
+  return [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => name === `${collection}/${buildId}`,
+  )
 }
 
 function exactBuildEchoMatches(
@@ -476,3 +809,5 @@ function record(value: unknown): Record<string, unknown> {
 
 export const canonicalSam31QualificationImageBuildListEndpoint =
   BUILD_LIST_ENDPOINT
+export const canonicalSam31QualificationImageBuildResourceEndpointPattern =
+  /^https:\/\/cloudbuild\.googleapis\.com\/v1\/projects\/reeditpro\/locations\/us-central1\/builds\/[a-f0-9-]{36}$/u

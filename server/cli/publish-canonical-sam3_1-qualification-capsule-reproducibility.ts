@@ -29,11 +29,18 @@ const targets = {
     primaryBuildId: 'b1dc5ddf-f614-41af-9c94-0ee1c15598f1',
     confirmationBuildId: '40fa1bb2-e516-4c55-b41b-c652cea6f972',
   },
+  docker_network_compatible: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-docker-network-compatible-20260807',
+    primaryBuildId: 'a0f5ea62-8769-4c35-b2de-f958ff8aa2fb',
+    confirmationBuildId: '544d28c7-d87f-4a0e-bdf0-6291a8b1f6e1',
+  },
 } as const
 const targetName = z.enum([
   'original',
   'pep668_isolated',
   'cuda_ffmpeg_isolated',
+  'docker_network_compatible',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

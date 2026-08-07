@@ -6,6 +6,49 @@ This receipt distinguishes implemented source architecture from live cloud
 qualification. It does not call an unavailable candidate “installed” and does
 not authorize public or production use.
 
+## 2026-08-07 live-state correction
+
+This section supersedes older point-in-time blocker statements retained later
+in this receipt for audit history.
+
+- The human-gated `facebook/sam3.1` access request is approved. The exact
+  official source revision and gated `sam3.1_multiplex.pt` checkpoint revision
+  were ingested directly into the private WeEditPro model-artifact boundary.
+  The canonical ingest receipt is
+  `sam31-ingest-sam31-weeditpro-official-ingest-20260806-v12` with digest
+  `sha256:321dc704810497b92e63fa29cdbd168b903e9435fa24ba5b23903c3b6c919cf8`.
+  No checkpoint or model dependency was installed on, downloaded to, or
+  executed on a developer Mac.
+- The private checkpoint object is generation-bound, exact-hash reread, and
+  non-redistributable. The ingest receipt is image-build-review evidence only;
+  it grants no GPU launch, runtime, customer-credit, QA, public-delivery, or
+  production authority.
+- The offline CUDA 12.8 / PyTorch 2.10 / TorchCodec CUDA / pinned LGPL FFmpeg
+  capsule is reproducible and scanned. The current Docker correction removes
+  unsupported BuildKit-only inline `RUN --network=none` syntax while retaining
+  the canonical whole-build `docker build --network=none` boundary. The prior
+  legacy-builder parse failure is durably terminal and cannot be retried as if
+  its outcome were unknown; only a distinct successor authority may start the
+  corrected build.
+- Vertex AI has approved exactly one
+  `CustomModelTrainingA10080GBGPUsPerProjectPerRegion` unit in `us-central1`
+  under preference `weeditpro-vertex-a100-80gb-us-central1-1`. This supersedes
+  the denied raw Compute A100 quota as the heavy-primary route. Capacity alone
+  is not a SAM 3.1 runtime release.
+- The account-effective Vertex A100 training rate authority exists and binds
+  the A100, A2 vCPU, A2 RAM, disk, storage, and operations SKU set. Actual
+  attempt settlement still requires terminal usage and billing reread; plan or
+  caller-supplied duration cannot become charged usage.
+- Gemini 3.1 Pro Preview model discovery is confirmed for the provider-neutral
+  Visual Intelligence route. Live `professional_high` request/response,
+  privacy, structured-result, quality, usage, billing-export, and runtime-
+  release evidence remains required before it may replace the blocked provider
+  gate. Preview discovery is not described as GA or production qualification.
+- The current disposition remains fail-closed: there is no checkpoint-bearing
+  released SAM 3.1 image, no A100 model inference, no independently qualified
+  L4 heavy fallback, no qualified Gemini runtime release, no customer-credit
+  settlement, and no production readiness claim yet.
+
 ## Frozen architecture
 
 - The top-level skill is `visual_intelligence`.

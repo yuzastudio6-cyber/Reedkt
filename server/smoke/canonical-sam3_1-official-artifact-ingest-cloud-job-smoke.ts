@@ -71,7 +71,7 @@ assert.match(deployScript,
 assert.match(deployScript,
   /SOURCE_TREE='95c04b8c04bb6c97197644c038156b4e21f2de6e'/u)
 assert.match(deployScript,
-  /IMAGE_DIGEST='sha256:efe3a25b932d05e59a75846b6fb5f0fed040b6eb9cbbec8499da5fc1326e6ed9'/u)
+  /IMAGE_DIGEST='sha256:12e09216576b466f58c2eeba009b84828b8abdd3c8e44522623bd9066996f5e1'/u)
 assert.match(deployScript, /requestedVerifyOption == "VERIFIED"/u)
 assert.match(deployScript, /sourceProvenanceHash == \["SHA256"\]/u)
 assert.match(deployScript, /slsa_build_level == 3/u)

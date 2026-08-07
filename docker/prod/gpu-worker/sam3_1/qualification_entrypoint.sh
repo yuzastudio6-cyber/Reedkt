@@ -58,4 +58,5 @@ export WEEDITPRO_CUDA_DRIVER_LIBRARY_MODE
 export WEEDITPRO_OBSERVED_NVIDIA_DRIVER_VERSION="${driver_version}"
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
-exec python -I -B /opt/reeditpro/sam3_1/qualification_runner.py
+exec /opt/weeditpro/python-venv/bin/python \
+  -I -B /opt/reeditpro/sam3_1/qualification_runner.py

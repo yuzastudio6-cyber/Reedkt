@@ -29,8 +29,10 @@ ENV HF_HUB_OFFLINE=1 \
   TRANSFORMERS_OFFLINE=1 \
   PIP_DISABLE_PIP_VERSION_CHECK=1 \
   PIP_NO_INDEX=1 \
+  PYTHONNOUSERSITE=1 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
+  WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv \
   CUDA_MODULE_LOADING=LAZY \
   NVIDIA_VISIBLE_DEVICES=all \
   NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
@@ -128,11 +130,18 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     --strip-components=1 \
     --no-same-owner \
     --no-same-permissions \
+  && python -m venv \
+    --without-pip \
+    --system-site-packages \
+    "${WEEDITPRO_PYTHON_VENV}" \
+  && test -x "${WEEDITPRO_PYTHON_VENV}/bin/python" \
+  && test -d "${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages" \
   && python -m pip install \
     --no-index \
     --no-cache-dir \
     --no-deps \
     --require-hashes \
+    --target="${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages" \
     --find-links=/tmp/sam31-wheelhouse \
     --requirement=/opt/reeditpro/sam3_1/qualification-artifacts/requirements.lock.txt \
   && python -m pip install \
@@ -140,10 +149,12 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     --no-cache-dir \
     --no-deps \
     --no-build-isolation \
+    --target="${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages" \
     /opt/reeditpro/sam3-source \
-  && python -I -B -c \
-    "import importlib.metadata as m; import sys; import torch; import torchvision; import torchcodec; import sam3; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0'; assert m.version('torchcodec') == '0.10.0'; assert torch.version.cuda == '12.8'" \
-  && python -m py_compile /opt/reeditpro/sam3_1/qualification_runner.py \
+  && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
+    "import importlib.metadata as m; import sys; import torch; import torchvision; import torchcodec; import sam3; assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0'; assert m.version('torchcodec') == '0.10.0'; assert torch.version.cuda == '12.8'" \
+  && "${WEEDITPRO_PYTHON_VENV}/bin/python" -m py_compile \
+    /opt/reeditpro/sam3_1/qualification_runner.py \
   && chmod 0555 \
     /opt/reeditpro/sam3_1/qualification_runner.py \
     /opt/reeditpro/sam3_1/qualification_entrypoint.sh \
@@ -151,6 +162,9 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /opt/reeditpro/sam3_1/source-provenance.lock \
     /opt/reeditpro/sam3_1/qualification-artifacts/wheel-manifest.sha256 \
     /opt/reeditpro/sam3_1/qualification-artifacts/* \
+  && find "${WEEDITPRO_PYTHON_VENV}" -type d -exec chmod 0555 '{}' + \
+  && find "${WEEDITPRO_PYTHON_VENV}" -type f -exec chmod 0444 '{}' + \
+  && find "${WEEDITPRO_PYTHON_VENV}/bin" -type f -exec chmod 0555 '{}' + \
   && find /opt/reeditpro/sam3-source -type d -exec chmod 0555 '{}' + \
   && find /opt/reeditpro/sam3-source -type f -exec chmod 0444 '{}' + \
   && rm -rf \

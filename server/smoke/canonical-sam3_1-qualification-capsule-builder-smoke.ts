@@ -19,6 +19,10 @@ const candidate = readFileSync(
   `${root}/Dockerfile.qualification.candidate`,
   'utf8',
 )
+const qualificationEntrypoint = readFileSync(
+  `${root}/qualification_entrypoint.sh`,
+  'utf8',
+)
 const operator = readFileSync(
   'scripts/gcp/prod/31-build-sam31-qualification-capsule.sh',
   'utf8',
@@ -175,11 +179,22 @@ for (const expected of [
   '--no-cache-dir',
   '--no-deps',
   '--require-hashes',
+  'python -m venv',
+  '--without-pip',
+  '--system-site-packages',
+  '--target="${WEEDITPRO_PYTHON_VENV}/lib/python3.12/site-packages"',
+  "sys.prefix == '/opt/weeditpro/python-venv'",
+  'sys.base_prefix != sys.prefix',
   'torch.__version__ == \'2.10.0+cu128\'',
   'torchvision.__version__ == \'0.25.0\'',
   "m.version('torchcodec') == '0.10.0'",
   'torch.version.cuda == \'12.8\'',
 ] as const) assert.ok(candidate.includes(expected), `candidate lost ${expected}`)
+assert.doesNotMatch(candidate, /--break-system-packages/u)
+assert.match(
+  qualificationEntrypoint,
+  /exec \/opt\/weeditpro\/python-venv\/bin\/python[\s\\]+-I -B/u,
+)
 
 for (const expected of [
   "readonly PROJECT_ID='reeditpro'",
@@ -236,6 +251,8 @@ console.log(JSON.stringify({
   exactPinnedCudaForwardCompatibilityPackageCount: 1,
   runtimeDependencyResolutionAllowed: false,
   runtimeNetworkAllowed: false,
+  pep668BypassAllowed: false,
+  isolatedImmutablePythonEnvironmentRequired: true,
   checkpointIncluded: false,
   developerMachineInstallPerformed: false,
   immutableQualificationImageBuilt: false,

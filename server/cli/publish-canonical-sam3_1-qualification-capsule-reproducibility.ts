@@ -89,6 +89,12 @@ const targets = {
     primaryBuildId: '0c93a02b-1952-4520-a1a1-89cf0f181219',
     confirmationBuildId: '1dbde314-c57a-4144-9b12-0981736a92c9',
   },
+  vertex_a100_setuptools_vendor_removed: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-vertex-a100-setuptools-vendor-removed-20260807',
+    primaryBuildId: 'f9ef526f-d371-4222-8b24-c711e7d8c98a',
+    confirmationBuildId: '318d0af1-51dd-4a81-a35b-09d812be40c4',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -104,6 +110,7 @@ const targetName = z.enum([
   'native_library_closure_corrected',
   'security_remediation_corrected',
   'security_remediation_pep668_uninstall_corrected',
+  'vertex_a100_setuptools_vendor_removed',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )

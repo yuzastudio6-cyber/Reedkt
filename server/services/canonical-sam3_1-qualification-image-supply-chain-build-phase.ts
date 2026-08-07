@@ -1122,7 +1122,10 @@ function assertBuildEcho(
     || root.queueTtl !== expected.queueTtl
     || root.serviceAccount !== expected.serviceAccount
     || actualOptions.machineType !== expectedOptions.machineType
-    || actualOptions.diskSizeGb !== expectedOptions.diskSizeGb
+    || !sameCloudBuildInt64(
+      actualOptions.diskSizeGb,
+      expectedOptions.diskSizeGb,
+    )
     || actualOptions.requestedVerifyOption !==
       expectedOptions.requestedVerifyOption
     || actualOptions.logging !== expectedOptions.logging
@@ -1236,6 +1239,18 @@ function hasNonEmpty(value: unknown): boolean {
 
 function sameJson(left: unknown, right: unknown): boolean {
   return sha256AuthorityValue(left) === sha256AuthorityValue(right)
+}
+
+function sameCloudBuildInt64(observed: unknown, expected: unknown): boolean {
+  const canonicalInt64 = z.union([
+    z.number().int().nonnegative().safe(),
+    z.string().regex(/^(0|[1-9][0-9]*)$/u),
+  ]).transform((value) => BigInt(value).toString())
+  const observedValue = canonicalInt64.safeParse(observed)
+  const expectedValue = canonicalInt64.safeParse(expected)
+  return observedValue.success
+    && expectedValue.success
+    && observedValue.data === expectedValue.data
 }
 
 function deepFreeze<T>(value: T): T {

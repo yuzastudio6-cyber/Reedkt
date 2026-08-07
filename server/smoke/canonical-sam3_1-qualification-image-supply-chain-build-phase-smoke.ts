@@ -1222,7 +1222,13 @@ function successfulBuild(
     artifacts,
     timeout: body.timeout,
     queueTtl: body.queueTtl,
-    options: structuredClone(body.options),
+    options: {
+      ...structuredClone(body.options) as Record<string, unknown>,
+      // Cloud Build serializes this int64 field as a decimal string.
+      diskSizeGb: String(
+        (body.options as Record<string, unknown>).diskSizeGb,
+      ),
+    },
     serviceAccount: body.serviceAccount,
     tags: structuredClone(body.tags),
     results: {

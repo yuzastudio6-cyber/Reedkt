@@ -129,7 +129,10 @@ assert.equal(candidate.fixedApi.gpuDecodeBackend,
   'torchcodec_0_10_cuda_nvdec')
 assert.equal(candidate.runtimeClosure.reeditproGpuDecodePatchSemanticAuditPassed,
   true)
-assert.equal(candidate.runtimeClosure.candidateEinopsVersion, '0.8.2')
+assert.equal(
+  candidate.candidateHash,
+  'a619bd95c0223cab1247fd6e3e9d21276a0aea99a905d789ea6534c7f726b444',
+)
 assert.equal(candidate.runtimeClosure.reeditproPatchedSourceTree,
   'f3a58b95a0e460d76e1cf38abff0382a7307f67d')
 assert.equal(candidate.runtimeClosure.deterministicPatchedSourceArchiveSha256,

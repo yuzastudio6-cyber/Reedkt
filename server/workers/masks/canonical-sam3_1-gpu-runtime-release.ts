@@ -726,7 +726,7 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
       torchvisionVersion: ingest.runtimeClosure.torchvisionVersion,
       cudaVersion: ingest.runtimeClosure.cudaVersion,
       torchcodecVersion: candidate.runtimeClosure.candidateTorchcodecVersion,
-      einopsVersion: candidate.runtimeClosure.candidateEinopsVersion,
+      einopsVersion: '0.8.2',
       cudaForwardCompatibilityPackageSha256:
         candidate.runtimeClosure.cudaDriverCompatibility
           .cudaForwardCompatibilitySha256,

@@ -131,7 +131,6 @@ const candidateWithoutHashSchema = z.object({
     candidateTorchVersion: z.literal('2.10.0'),
     candidateTorchvisionVersion: z.literal('0.25.0'),
     candidateTorchcodecVersion: z.literal('0.10.0'),
-    candidateEinopsVersion: z.literal('0.8.2'),
     candidateCudaVersion: z.literal('12.8'),
     reeditproGpuDecodePatchSha256: z.literal(
       'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
@@ -450,7 +449,6 @@ CanonicalSam31SourceRuntimeCandidate {
       candidateTorchVersion: '2.10.0',
       candidateTorchvisionVersion: '0.25.0',
       candidateTorchcodecVersion: '0.10.0',
-      candidateEinopsVersion: '0.8.2',
       candidateCudaVersion: '12.8',
       reeditproGpuDecodePatchSha256:
         'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',

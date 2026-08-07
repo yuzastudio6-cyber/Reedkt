@@ -106,5 +106,8 @@ their other owner evidence is present in one exact canonical campaign.
 - final FFprobe H.264/AAC/BT.709/frame-count verification: passed;
 - all-frame raster extraction and direct inspection: accepted;
 - closed receipt exact-hash reread: passed;
+- B-roll dependency authority requalification against the corrected shared
+  FFprobe source: `internal_execution_qualified`, 31 commands, 36 fixtures,
+  receipt `1f7b29c3f21d875148add9bb7cc381a5164391a2792950b0ce92b07ae1e6e80c`,
+  artifact `8c7f7af195b147cf613a613c79491156c0cbdab7ba265cfbeba6bfa99ebff061`;
 - terminal/public/production claims: false.
-

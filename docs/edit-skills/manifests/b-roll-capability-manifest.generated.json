@@ -56,6 +56,12 @@
       "approvedPlanRequired": true,
       "blockingBehavior": "block",
       "condition": "approved_work_graph_contains_phase",
+      "phase": "private_preview_preparation"
+    },
+    {
+      "approvedPlanRequired": true,
+      "blockingBehavior": "block",
+      "condition": "approved_work_graph_contains_phase",
       "phase": "private_preview_render"
     },
     {
@@ -521,7 +527,7 @@
       ]
     }
   ],
-  "manifestHash": "40219ecc4319bc5639de87f16695ba9f87119ec7efce60acbd95fc60b1d4dec0",
+  "manifestHash": "2649b019715953e928fd6aae5313f6db8e56807d21706b0b8ccbb406ae378d04",
   "mayOverlapWith": [
     {
       "condition": "caption_safe_area_preserved",
@@ -882,6 +888,7 @@
     "b_roll_candidate_version_v1",
     "b_roll_qa_report_v1",
     "b_roll_remotion_layer_manifest_v1",
+    "b_roll_remotion_preview_proxy_manifest_v1",
     "b_roll_private_preview_media_manifest_v1",
     "b_roll_sound_handoff_v1",
     "b_roll_color_handoff_v1",
@@ -1428,6 +1435,24 @@
     },
     {
       "allowedPhases": [
+        "private_preview_preparation"
+      ],
+      "executionAllowed": true,
+      "jobType": "prepare_b_roll_remotion_preview_proxy_with_ffmpeg",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "planningAllowed": true,
+      "primaryVisualOwnershipPossible": true,
+      "producedArtifactTypes": [
+        "b_roll_remotion_preview_proxy_manifest_v1"
+      ],
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1",
+        "b_roll_remotion_layer_manifest_v1"
+      ],
+      "runtimeBindingRequired": true
+    },
+    {
+      "allowedPhases": [
         "private_preview_render"
       ],
       "executionAllowed": true,
@@ -1439,8 +1464,8 @@
         "b_roll_private_preview_media_manifest_v1"
       ],
       "requiredArtifactTypes": [
-        "b_roll_candidate_version_v1",
-        "b_roll_remotion_layer_manifest_v1"
+        "b_roll_remotion_layer_manifest_v1",
+        "b_roll_remotion_preview_proxy_manifest_v1"
       ],
       "runtimeBindingRequired": true
     },
@@ -1530,15 +1555,36 @@
       "automaticAlternateProviderFallback": false,
       "automaticRetry": false,
       "callerSelectable": false,
-      "description": "Render the range-bounded private preview.",
+      "description": "Prepare the exact non-creative private preview proxy.",
+      "minimumQualificationStatus": "internal_execution_qualified",
+      "operationIds": [
+        "tool.ffmpeg.execute_approved_media_recipe.v1"
+      ],
+      "priority": 29,
+      "requiredArtifactTypes": [
+        "b_roll_candidate_version_v1",
+        "b_roll_remotion_layer_manifest_v1"
+      ],
+      "requiresApproval": true,
+      "routeKey": "prepare_private_preview_proxy",
+      "routeKind": "tool",
+      "supportedJobTypes": [
+        "prepare_b_roll_remotion_preview_proxy_with_ffmpeg"
+      ]
+    },
+    {
+      "automaticAlternateProviderFallback": false,
+      "automaticRetry": false,
+      "callerSelectable": false,
+      "description": "Render the range-bounded private preview from the exact proxy.",
       "minimumQualificationStatus": "internal_execution_qualified",
       "operationIds": [
         "tool.remotion.render_approved_composition.v1"
       ],
       "priority": 30,
       "requiredArtifactTypes": [
-        "b_roll_candidate_version_v1",
-        "b_roll_remotion_layer_manifest_v1"
+        "b_roll_remotion_layer_manifest_v1",
+        "b_roll_remotion_preview_proxy_manifest_v1"
       ],
       "requiresApproval": true,
       "routeKey": "render_private_preview",

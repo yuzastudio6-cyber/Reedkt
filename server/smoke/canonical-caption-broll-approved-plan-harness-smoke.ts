@@ -99,7 +99,7 @@ try {
   check(result.publicApprovedWorkGraph.pluginWorkGraphHash ===
     result.canonicalWorkGraph.workGraphHash,
   'The public approval and canonical B-roll work graph must be identical.')
-  check(result.canonicalWorkItems.length === 12
+  check(result.canonicalWorkItems.length === 13
     && result.canonicalWorkItems.every((item) =>
       item.sourceSequenceItemIds.join('|') ===
         input.source.sourceSequenceItemId

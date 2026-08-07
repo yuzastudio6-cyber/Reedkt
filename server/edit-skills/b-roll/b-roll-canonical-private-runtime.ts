@@ -37,9 +37,11 @@ import { assertBrollPlanRuntimeInvariants } from './b-roll-plan-compiler'
 import type { BrollPlanningQaReport } from './b-roll-planning-qa'
 import {
   executeBrollRemotionIntegration,
+  prepareBrollRemotionPreviewProxy,
   prepareBrollRemotionLayerManifest,
   type BrollIntegrationQaReport,
   type BrollPreparedRemotionLayer,
+  type BrollPreparedRemotionPreviewProxy,
   type BrollRemotionLayerManifest,
   type BrollResultReceipt,
 } from './b-roll-remotion-integration'
@@ -77,6 +79,7 @@ import {
   createBrollCandidateMediaManifest,
   createBrollExistingSourceCandidateVersion,
   createBrollPrivatePreviewMediaManifest,
+  createBrollRemotionPreviewProxyManifest,
   createBrollRuntimeQaReport,
   sourceMediaArtifactV1Schema,
   type SourceMediaArtifactV1,
@@ -212,6 +215,7 @@ interface BrollCanonicalPrivateExecutionState {
   initialAttempt?: BrollCandidateAttemptEvidence
   candidateQa?: CandidateQaExecution
   preparedIntegration?: BrollPreparedRemotionLayer
+  preparedPreviewProxy?: BrollPreparedRemotionPreviewProxy
   integration?: RemotionExecution
   noAction?: {
     receipt: BrollCanonicalNoActionResultReceipt
@@ -536,6 +540,14 @@ implements BrollCanonicalPrivateWorkExecutor {
         return [
           prepared.layerManifest.layerManifestHash,
           prepared.layerManifest.selectedArtifact.normalizedArtifact.sha256,
+        ]
+      }
+      case 'prepare_b_roll_remotion_preview_proxy_with_ffmpeg': {
+        const prepared = await this.#ensurePreparedPreviewProxy()
+        return [
+          prepared.receipt.objectSha256,
+          prepared.receipt.ffmpegAttestationHash,
+          prepared.receipt.proxyReceiptHash,
         ]
       }
       case 'render_b_roll_preview': {
@@ -894,6 +906,33 @@ implements BrollCanonicalPrivateWorkExecutor {
       case 'prepare_b_roll_remotion_layer':
         value = (await this.#ensurePreparedIntegration()).layerManifest
         break
+      case 'prepare_b_roll_remotion_preview_proxy_with_ffmpeg': {
+        const prepared = await this.#ensurePreparedPreviewProxy()
+        value = createBrollRemotionPreviewProxyManifest({
+          schemaVersion: 'b_roll_remotion_preview_proxy_manifest_v1',
+          ...common,
+          ...approvedWork,
+          sourceNormalizedSha256: prepared.receipt.normalizedSha256,
+          privateObjectIdentityHash: prepared.receipt.privateObjectIdentityHash,
+          objectSha256: prepared.receipt.objectSha256,
+          byteLength: prepared.receipt.byteLength,
+          mimeType: 'video/x-matroska',
+          container: 'matroska',
+          frameCount: prepared.receipt.frameCount,
+          fps: prepared.receipt.fps,
+          ffmpegRequestHash: prepared.receipt.ffmpegRequestHash,
+          ffmpegAttestationHash: prepared.receipt.ffmpegAttestationHash,
+          checksumReadbackVerified: true,
+          technicalProxyOnly: true,
+          creativeColorTransformApplied: false,
+          audioRemoved: true,
+          privateOnly: true,
+          publicDeliveryAllowed: false,
+          finalCustomerExport: false,
+          outsideAuthorizedRangeModified: false,
+        })
+        break
+      }
       case 'render_b_roll_preview': {
         const integration = await this.#ensureIntegration()
         value = createBrollPrivatePreviewMediaManifest({
@@ -1163,6 +1202,30 @@ implements BrollCanonicalPrivateWorkExecutor {
     return this.#state.preparedIntegration
   }
 
+  async #ensurePreparedPreviewProxy(): Promise<BrollPreparedRemotionPreviewProxy> {
+    if (this.#state.preparedPreviewProxy) {
+      return this.#state.preparedPreviewProxy
+    }
+    if (this.#input.route === 'professional_no_action') {
+      throw new Error('Professional no-action B-roll cannot prepare a preview proxy.')
+    }
+    const selection = this.#input.route === 'generated_injected'
+      ? await this.#candidateSelection()
+      : await this.#existingSelection()
+    await this.#ensurePreparedIntegration()
+    this.#state.preparedPreviewProxy = await prepareBrollRemotionPreviewProxy({
+      localStorageRoot: this.#input.localStorageRoot,
+      assignment: this.#input.assignment,
+      assignmentRef: this.#input.component.assignmentArtifactRef,
+      plan: this.#input.plan,
+      planRef: this.#input.component.planArtifactRef,
+      selection,
+      mediaRuntime: this.#input.mediaRuntime,
+      idempotencyKey: `b-roll-preview-proxy-${this.#input.approvalHash}`,
+    })
+    return this.#state.preparedPreviewProxy
+  }
+
   async #ensureIntegration(): Promise<RemotionExecution> {
     if (this.#state.integration) return this.#state.integration
     if (this.#input.route === 'professional_no_action') {
@@ -1171,6 +1234,7 @@ implements BrollCanonicalPrivateWorkExecutor {
     const selection = this.#input.route === 'generated_injected'
       ? await this.#candidateSelection()
       : await this.#existingSelection()
+    const preparedPreviewProxy = await this.#ensurePreparedPreviewProxy()
     this.#state.integration = await executeBrollRemotionIntegration({
       localStorageRoot: this.#input.localStorageRoot,
       assignment: this.#input.assignment,
@@ -1182,6 +1246,7 @@ implements BrollCanonicalPrivateWorkExecutor {
       ...(this.#input.trackGraph ? { trackGraph: this.#input.trackGraph } : {}),
       mediaRuntime: this.#input.mediaRuntime,
       remotionRuntime: this.#input.remotionRuntime,
+      preparedPreviewProxy,
       integrationInfrastructureCostMicros:
         this.#input.integrationInfrastructureCostMicros,
       idempotencyKey: `b-roll-integration-${this.#input.approvalHash}`,
@@ -1256,7 +1321,9 @@ implements BrollCanonicalPrivateWorkExecutor {
       this.#input.plan.creditEstimate !== 0 ||
       this.#input.workGraph.workItems.some((item) =>
         ['prepare_b_roll_source', 'generate_b_roll_candidate',
-          'normalize_b_roll_candidate_with_ffmpeg', 'render_b_roll_preview']
+          'normalize_b_roll_candidate_with_ffmpeg',
+          'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
+          'render_b_roll_preview']
           .includes(item.jobType))
     ) throw new Error('Canonical private B-roll no-action result has executable media work.')
     const receipt = createBrollCanonicalNoActionResultReceipt({

@@ -595,6 +595,55 @@ export function createBrollPrivatePreviewMediaManifest(
   })
 }
 
+const remotionPreviewProxyCoreSchema = z.object({
+  schemaVersion: z.literal('b_roll_remotion_preview_proxy_manifest_v1'),
+  ...scopeShape,
+  planId: identity,
+  planHash: skillSha256Schema,
+  approvedWorkGraphHash: skillSha256Schema,
+  workItemKey: identity,
+  workItemHash: skillSha256Schema,
+  sourceNormalizedSha256: skillSha256Schema,
+  privateObjectIdentityHash: skillSha256Schema,
+  objectSha256: skillSha256Schema,
+  byteLength: z.number().int().positive().max(32 * 1024 * 1024),
+  mimeType: z.literal('video/x-matroska'),
+  container: z.literal('matroska'),
+  frameCount: z.number().int().positive().max(240),
+  fps: z.union([z.literal(24), z.literal(30)]),
+  ffmpegRequestHash: skillSha256Schema,
+  ffmpegAttestationHash: skillSha256Schema,
+  checksumReadbackVerified: z.literal(true),
+  technicalProxyOnly: z.literal(true),
+  creativeColorTransformApplied: z.literal(false),
+  audioRemoved: z.literal(true),
+  privateOnly: z.literal(true),
+  publicDeliveryAllowed: z.literal(false),
+  finalCustomerExport: z.literal(false),
+  outsideAuthorizedRangeModified: z.literal(false),
+}).strict()
+
+export const brollRemotionPreviewProxyManifestSchema =
+  remotionPreviewProxyCoreSchema.extend({
+    proxyManifestHash: skillSha256Schema,
+  }).strict().superRefine((value, context) => {
+    hashIssue(value, 'proxyManifestHash', context, 'B-roll Remotion preview proxy manifest')
+  })
+
+export type BrollRemotionPreviewProxyManifest = z.infer<
+  typeof brollRemotionPreviewProxyManifestSchema
+>
+
+export function createBrollRemotionPreviewProxyManifest(
+  input: z.input<typeof remotionPreviewProxyCoreSchema>,
+): BrollRemotionPreviewProxyManifest {
+  const core = remotionPreviewProxyCoreSchema.parse(input)
+  return brollRemotionPreviewProxyManifestSchema.parse({
+    ...core,
+    proxyManifestHash: hashSkillValue(core),
+  })
+}
+
 const noActionResultCoreSchema = z.object({
   schemaVersion: z.literal('b_roll_result_receipt_v1'),
   resultKind: z.literal('professional_no_action'),

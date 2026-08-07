@@ -140,6 +140,7 @@ function graphCreatesMedia(plan: BrollPlanArtifact, assignmentValue: BrollSkillA
       'prepare_b_roll_source',
       'generate_b_roll_candidate',
       'normalize_b_roll_candidate_with_ffmpeg',
+      'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
       'render_b_roll_preview',
     ].includes(item.jobType)),
     providerJobs: graph.workItems.filter((item) => item.workerClass === 'provider_worker'),

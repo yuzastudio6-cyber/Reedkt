@@ -192,8 +192,8 @@ async function dispatchInternal(
 for (const binding of BROLL_RUNTIME_BINDINGS) {
   dispatchReceipts.push(await dispatchInternal(binding.definition))
 }
-assert.equal(dispatchReceipts.length, 13)
-assert.equal(new Set(dispatchReceipts.map((receipt) => receipt.receiptHash)).size, 13)
+assert.equal(dispatchReceipts.length, 14)
+assert.equal(new Set(dispatchReceipts.map((receipt) => receipt.receiptHash)).size, 14)
 assert.equal(dispatchReceipts.every((receipt) => receipt.status === 'succeeded'), true)
 assert.equal(dispatchReceipts.reduce((total, receipt) => total + receipt.providerRequestCount, 0), 0)
 assert.equal(dispatchReceipts.reduce((total, receipt) => total + receipt.publicArtifactCount, 0), 0)

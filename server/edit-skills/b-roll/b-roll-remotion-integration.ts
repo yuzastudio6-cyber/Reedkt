@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import {
   persistCanonicalPrivateMediaArtifact,
+  readCanonicalPrivateMediaArtifact,
 } from '../../services/canonical-private-media-artifact-storage'
 import {
   putPrivateAuthorityJsonBlob,
@@ -366,6 +367,7 @@ export interface BrollRemotionIntegrationInput {
   }
   mediaRuntime: Pick<PrivateOfflineMediaBinaryRuntime, 'execute'>
   remotionRuntime: Pick<PrivateOfflineRemotionRenderRuntime, 'execute'>
+  preparedPreviewProxy?: BrollPreparedRemotionPreviewProxy
   integrationInfrastructureCostMicros: number
   idempotencyKey: string
   now?: () => string
@@ -388,10 +390,199 @@ export interface BrollPreparedRemotionLayer {
   layerManifestRef: AuthorityJsonBlobRef
 }
 
+const previewProxyReceiptCoreSchema = z.object({
+  schemaVersion: z.literal('b_roll_remotion_preview_proxy_receipt_v1'),
+  assignmentHash: skillSha256Schema,
+  planHash: skillSha256Schema,
+  normalizedSha256: skillSha256Schema,
+  preparationKey: skillSha256Schema,
+  privateObjectIdentityHash: skillSha256Schema,
+  objectSha256: skillSha256Schema,
+  byteLength: z.number().int().positive().max(32 * 1024 * 1024),
+  mimeType: z.literal('video/x-matroska'),
+  frameCount: z.number().int().positive().max(240),
+  fps: z.union([z.literal(24), z.literal(30)]),
+  ffmpegRequestHash: skillSha256Schema,
+  ffmpegAttestationHash: skillSha256Schema,
+  technicalProxyOnly: z.literal(true),
+  creativeColorTransformApplied: z.literal(false),
+  audioRemoved: z.literal(true),
+  privateInternalOnly: z.literal(true),
+  productionQualified: z.literal(false),
+}).strict()
+
+export const brollRemotionPreviewProxyReceiptSchema =
+  previewProxyReceiptCoreSchema.extend({
+    proxyReceiptHash: skillSha256Schema,
+  }).strict().superRefine((value, context) => {
+    const { proxyReceiptHash, ...core } = value
+    if (hashSkillValue(core) !== proxyReceiptHash) {
+      context.addIssue({ code: 'custom', message: 'B-roll preview proxy receipt hash is invalid.' })
+    }
+  })
+
+export type BrollRemotionPreviewProxyReceipt = z.infer<
+  typeof brollRemotionPreviewProxyReceiptSchema
+>
+
+export interface BrollPreparedRemotionPreviewProxy {
+  receipt: BrollRemotionPreviewProxyReceipt
+  receiptRef: AuthorityJsonBlobRef
+  bytes: Buffer
+  replayed: boolean
+}
+
+export interface BrollRemotionPreviewProxyPreparationInput {
+  localStorageRoot: string
+  assignment: BrollSkillAssignment
+  assignmentRef: AuthorityJsonBlobRef
+  plan: BrollPlanArtifact
+  planRef: AuthorityJsonBlobRef
+  selection: CandidateSelectionInput | ExistingSourceSelectionInput
+  mediaRuntime: Pick<PrivateOfflineMediaBinaryRuntime, 'execute'>
+  idempotencyKey: string
+}
+
+/**
+ * Executes only the exact technical FFmpeg proxy preparation. The returned
+ * object is content-addressed and can be reread by a later Remotion work item
+ * without re-executing FFmpeg.
+ */
+export async function prepareBrollRemotionPreviewProxy(
+  input: BrollRemotionPreviewProxyPreparationInput,
+): Promise<BrollPreparedRemotionPreviewProxy> {
+  const assignment = brollSkillAssignmentSchema.parse(input.assignment)
+  const plan = brollPlanArtifactSchema.parse(input.plan)
+  assertPlanAuthority(assignment, plan)
+  await assertAuthorityRef(input.localStorageRoot, input.assignmentRef, assignment)
+  await assertAuthorityRef(input.localStorageRoot, input.planRef, plan)
+  const selection = await validateSelection(
+    input.localStorageRoot,
+    input.selection,
+    assignment,
+    plan,
+  )
+  const durationFrames =
+    assignment.writeRangeAuthority.authorizedRange.endFrameExclusive -
+    assignment.writeRangeAuthority.authorizedRange.startFrameInclusive
+  if (
+    selection.selectedArtifact.normalizedArtifact.frameCount !== durationFrames ||
+    selection.selectedArtifact.normalizedArtifact.frameRate !==
+      assignment.writeRangeAuthority.authorizedRange.fps ||
+    typeof input.idempotencyKey !== 'string' || input.idempotencyKey.length < 1 ||
+    input.idempotencyKey.length > 240
+  ) throw new Error('B-roll preview proxy lacks exact timing or idempotency authority.')
+  const preparationKey = hashSkillValue({
+    domain: 'reeditpro:b-roll-remotion-preview-proxy-preparation:v1',
+    assignmentHash: assignment.assignmentHash,
+    planHash: plan.planHash,
+    normalizedSha256: selection.selectedArtifact.normalizedArtifact.sha256,
+    frameCount: durationFrames,
+    fps: selection.selectedArtifact.normalizedArtifact.frameRate,
+    idempotencyKeyHash: sha256Text(input.idempotencyKey),
+  })
+  const indexPath =
+    `b-roll/remotion-preview-proxies/${preparationKey.slice(0, 2)}/${preparationKey}.json`
+  return withPrivateCooperativeFileLockWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: `b-roll/remotion-preview-proxies/locks/${preparationKey}.lock`,
+    operation: async () => {
+      const replay = await readPreviewProxyReplay(input.localStorageRoot, indexPath)
+      if (replay) {
+        assertPreviewProxyLineage(replay, assignment, plan, selection, durationFrames)
+        return { ...replay, replayed: true }
+      }
+      const proxy = await input.mediaRuntime.execute({
+        schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
+        toolId: 'ffmpeg',
+        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
+        payload: {
+          recipeProfileId: OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
+          timestampPolicy: 'normalize_from_zero',
+          overwriteExistingArtifact: false,
+          allowUnreviewedCodec: false,
+          trimStartFrame: 0,
+          trimEndFrameExclusive: durationFrames,
+          frameRate: selection.selectedArtifact.normalizedArtifact.frameRate,
+          outputContainer: 'matroska',
+          outputCodec: 'libvpx-vp9',
+          constantQuality: 12,
+          outputPixelFormat: 'yuv420p',
+          preserveAudio: false,
+          metadataPolicy: 'strip_all',
+          technicalProxyOnly: true,
+          creativeColorTransformApplied: false,
+          mimeType: 'video/x-nut',
+          sourceByteLength: selection.normalizedBytes.byteLength,
+          sourceSha256: selection.selectedArtifact.normalizedArtifact.sha256,
+          sourceBytesBase64: selection.normalizedBytes.toString('base64'),
+        },
+      })
+      if (
+        !('resultArtifact' in proxy) ||
+        proxy.resultArtifact.mimeType !== 'video/x-matroska' ||
+        proxy.evidence.semanticEvidence.technicalProxyOnly !== true ||
+        proxy.evidence.semanticEvidence.creativeColorTransformApplied !== false ||
+        proxy.evidence.semanticEvidence.audioRemoved !== true ||
+        proxy.evidence.semanticEvidence.outputFrameCount !== durationFrames
+      ) throw new Error('B-roll Remotion preview proxy failed its exact non-creative contract.')
+      const privateObjectIdentityHash = hashSkillValue({
+        domain: 'reeditpro:b-roll-remotion-preview-proxy:v1',
+        preparationKey,
+        normalizedSha256: selection.selectedArtifact.normalizedArtifact.sha256,
+        proxySha256: proxy.resultArtifact.sha256,
+      })
+      await persistCanonicalPrivateMediaArtifact({
+        localStorageRoot: input.localStorageRoot,
+        privateObjectIdentityHash,
+        bytes: proxy.resultArtifact.bytes,
+        expectedSha256: proxy.resultArtifact.sha256,
+      })
+      const receiptCore = previewProxyReceiptCoreSchema.parse({
+        schemaVersion: 'b_roll_remotion_preview_proxy_receipt_v1',
+        assignmentHash: assignment.assignmentHash,
+        planHash: plan.planHash,
+        normalizedSha256: selection.selectedArtifact.normalizedArtifact.sha256,
+        preparationKey,
+        privateObjectIdentityHash,
+        objectSha256: proxy.resultArtifact.sha256,
+        byteLength: proxy.resultArtifact.byteLength,
+        mimeType: 'video/x-matroska',
+        frameCount: durationFrames,
+        fps: selection.selectedArtifact.normalizedArtifact.frameRate,
+        ffmpegRequestHash: proxy.evidence.requestEnvelopeSha256,
+        ffmpegAttestationHash: proxy.attestation.attestationHash,
+        technicalProxyOnly: true,
+        creativeColorTransformApplied: false,
+        audioRemoved: true,
+        privateInternalOnly: true,
+        productionQualified: false,
+      })
+      const receipt = brollRemotionPreviewProxyReceiptSchema.parse({
+        ...receiptCore,
+        proxyReceiptHash: hashSkillValue(receiptCore),
+      })
+      const receiptRef = await persistJson(input.localStorageRoot, receipt)
+      const index = { receipt, receiptRef }
+      await writePrivateFileCreateOnlyWithinRoot({
+        rootPath: input.localStorageRoot,
+        relativePath: indexPath,
+        content: Buffer.from(`${stableAuthorityStringify(index)}\n`, 'utf8'),
+      })
+      return {
+        receipt,
+        receiptRef,
+        bytes: proxy.resultArtifact.bytes,
+        replayed: false,
+      }
+    },
+  })
+}
+
 /**
  * Builds the exact renderer-layer contract without starting FFmpeg or
- * Remotion. The render job may then consume the same immutable inputs under
- * its own explicit multi-tool authority.
+ * Remotion. The separately approved FFmpeg proxy and Remotion render jobs may
+ * then consume the same immutable inputs without sharing tool authority.
  */
 export async function prepareBrollRemotionLayerManifest(
   input: BrollRemotionLayerPreparationInput,
@@ -530,12 +721,32 @@ export async function executeBrollRemotionIntegration(
     typeof input.idempotencyKey !== 'string' || input.idempotencyKey.length < 1 ||
     input.idempotencyKey.length > 240
   ) throw new Error('B-roll integration execution or cost authority is invalid.')
+  const preparedPreviewProxy = input.preparedPreviewProxy
+    ? await validatePreparedPreviewProxy({
+        localStorageRoot: input.localStorageRoot,
+        prepared: input.preparedPreviewProxy,
+        assignment,
+        plan,
+        selection,
+        durationFrames,
+      })
+    : await prepareBrollRemotionPreviewProxy({
+        localStorageRoot: input.localStorageRoot,
+        assignment,
+        assignmentRef: input.assignmentRef,
+        plan,
+        planRef: input.planRef,
+        selection: input.selection,
+        mediaRuntime: input.mediaRuntime,
+        idempotencyKey: `${input.idempotencyKey}:preview-proxy`,
+      })
   const previewLayer = brollRemotionPreviewLayerForTreatment(plan.displayTreatment)
   const executionKey = hashSkillValue({
     domain: 'reeditpro:b-roll-remotion-integration:v1',
     assignmentHash: assignment.assignmentHash,
     planHash: plan.planHash,
     normalizedSha256: selection.selectedArtifact.normalizedArtifact.sha256,
+    previewProxyReceiptHash: preparedPreviewProxy.receipt.proxyReceiptHash,
     outputQaHash: selection.outputQaHash,
     captionSha256: caption.reference.sha256,
     trackGraphSha256: trackGraphRef?.sha256 ?? null,
@@ -550,52 +761,6 @@ export async function executeBrollRemotionIntegration(
     operation: async () => {
       const replay = await readIntegrationReplay(input.localStorageRoot, indexPath)
       if (replay) return { ...replay, replayed: true }
-      const proxy = await input.mediaRuntime.execute({
-        schemaVersion: OFFLINE_MEDIA_BINARY_PROTOCOL,
-        toolId: 'ffmpeg',
-        operationId: OFFLINE_MEDIA_BINARY_OPERATIONS.ffmpeg,
-        payload: {
-          recipeProfileId: OFFLINE_BROLL_REMOTION_PREVIEW_PROXY_PROFILE,
-          timestampPolicy: 'normalize_from_zero',
-          overwriteExistingArtifact: false,
-          allowUnreviewedCodec: false,
-          trimStartFrame: 0,
-          trimEndFrameExclusive: durationFrames,
-          frameRate: selection.selectedArtifact.normalizedArtifact.frameRate,
-          outputContainer: 'matroska',
-          outputCodec: 'libvpx-vp9',
-          constantQuality: 12,
-          outputPixelFormat: 'yuv420p',
-          preserveAudio: false,
-          metadataPolicy: 'strip_all',
-          technicalProxyOnly: true,
-          creativeColorTransformApplied: false,
-          mimeType: 'video/x-nut',
-          sourceByteLength: selection.normalizedBytes.byteLength,
-          sourceSha256: selection.selectedArtifact.normalizedArtifact.sha256,
-          sourceBytesBase64: selection.normalizedBytes.toString('base64'),
-        },
-      })
-      if (
-        !('resultArtifact' in proxy) ||
-        proxy.resultArtifact.mimeType !== 'video/x-matroska' ||
-        proxy.evidence.semanticEvidence.technicalProxyOnly !== true ||
-        proxy.evidence.semanticEvidence.creativeColorTransformApplied !== false ||
-        proxy.evidence.semanticEvidence.audioRemoved !== true ||
-        proxy.evidence.semanticEvidence.outputFrameCount !== durationFrames
-      ) throw new Error('B-roll Remotion preview proxy failed its exact non-creative contract.')
-      const proxyIdentity = hashSkillValue({
-        domain: 'reeditpro:b-roll-remotion-preview-proxy:v1',
-        executionKey,
-        normalizedSha256: selection.selectedArtifact.normalizedArtifact.sha256,
-        proxySha256: proxy.resultArtifact.sha256,
-      })
-      await persistCanonicalPrivateMediaArtifact({
-        localStorageRoot: input.localStorageRoot,
-        privateObjectIdentityHash: proxyIdentity,
-        bytes: proxy.resultArtifact.bytes,
-        expectedSha256: proxy.resultArtifact.sha256,
-      })
       const [width, height] = previewDimensions(plan)
       const remotionRequest = buildOfflineRemotionFinalCompositionRequest({
         planningPayload: {
@@ -615,8 +780,8 @@ export async function executeBrollRemotionIntegration(
         },
         source: {
           mimeType: 'video/x-matroska',
-          bytes: proxy.resultArtifact.bytes,
-          sha256: proxy.resultArtifact.sha256,
+          bytes: preparedPreviewProxy.bytes,
+          sha256: preparedPreviewProxy.receipt.objectSha256,
         },
         captionOverlay: {
           mimeType: 'image/png',
@@ -722,7 +887,7 @@ export async function executeBrollRemotionIntegration(
           plan.planHash,
           selection.selectedArtifact.normalizedArtifact.sha256,
           selection.outputQaHash,
-          proxy.resultArtifact.sha256,
+          preparedPreviewProxy.receipt.objectSha256,
           remotion.artifact.sha256,
           layerManifest.layerManifestHash,
           handoffs.sound.artifactHash,
@@ -1237,6 +1402,89 @@ async function assertAuthorityRef(
     Array.isArray(stored) ||
     stableAuthorityStringify(stored) !== stableAuthorityStringify(expected)
   ) throw new Error('B-roll content-addressed authority reference changed after persistence.')
+}
+
+function assertPreviewProxyLineage(
+  prepared: Pick<BrollPreparedRemotionPreviewProxy, 'receipt' | 'bytes'>,
+  assignment: BrollSkillAssignment,
+  plan: BrollPlanArtifact,
+  selection: Awaited<ReturnType<typeof validateSelection>>,
+  durationFrames: number,
+): void {
+  const receipt = brollRemotionPreviewProxyReceiptSchema.parse(prepared.receipt)
+  if (
+    receipt.assignmentHash !== assignment.assignmentHash ||
+    receipt.planHash !== plan.planHash ||
+    receipt.normalizedSha256 !==
+      selection.selectedArtifact.normalizedArtifact.sha256 ||
+    receipt.frameCount !== durationFrames ||
+    receipt.fps !== selection.selectedArtifact.normalizedArtifact.frameRate ||
+    receipt.byteLength !== prepared.bytes.byteLength ||
+    receipt.objectSha256 !== sha256Bytes(prepared.bytes) ||
+    prepared.bytes.subarray(0, 4).toString('hex') !== '1a45dfa3' ||
+    !receipt.privateInternalOnly || receipt.productionQualified
+  ) throw new Error('B-roll preview proxy lost exact source, timing, or private-media lineage.')
+}
+
+async function validatePreparedPreviewProxy(input: {
+  localStorageRoot: string
+  prepared: BrollPreparedRemotionPreviewProxy
+  assignment: BrollSkillAssignment
+  plan: BrollPlanArtifact
+  selection: Awaited<ReturnType<typeof validateSelection>>
+  durationFrames: number
+}): Promise<BrollPreparedRemotionPreviewProxy> {
+  const receipt = brollRemotionPreviewProxyReceiptSchema.parse(input.prepared.receipt)
+  const receiptRef = blobRefSchema.parse(input.prepared.receiptRef)
+  await assertAuthorityRef(input.localStorageRoot, receiptRef, receipt)
+  const stored = await readCanonicalPrivateMediaArtifact({
+    localStorageRoot: input.localStorageRoot,
+    privateObjectIdentityHash: receipt.privateObjectIdentityHash,
+  })
+  if (
+    !stored || stored.sha256 !== receipt.objectSha256 ||
+    stored.byteLength !== receipt.byteLength ||
+    !stored.bytes.equals(input.prepared.bytes)
+  ) throw new Error('B-roll preview proxy changed after its canonical reread.')
+  const prepared = {
+    receipt,
+    receiptRef,
+    bytes: stored.bytes,
+    replayed: input.prepared.replayed,
+  }
+  assertPreviewProxyLineage(
+    prepared,
+    input.assignment,
+    input.plan,
+    input.selection,
+    input.durationFrames,
+  )
+  return prepared
+}
+
+async function readPreviewProxyReplay(
+  root: string,
+  relativePath: string,
+): Promise<Omit<BrollPreparedRemotionPreviewProxy, 'replayed'> | undefined> {
+  const text = await readPrivateTextFileIfExistsWithinRoot({
+    rootPath: root,
+    relativePath,
+  })
+  if (!text) return undefined
+  const value = z.object({
+    receipt: brollRemotionPreviewProxyReceiptSchema,
+    receiptRef: blobRefSchema,
+  }).strict().parse(JSON.parse(text))
+  await assertAuthorityRef(root, value.receiptRef, value.receipt)
+  const stored = await readCanonicalPrivateMediaArtifact({
+    localStorageRoot: root,
+    privateObjectIdentityHash: value.receipt.privateObjectIdentityHash,
+  })
+  if (
+    !stored || stored.sha256 !== value.receipt.objectSha256 ||
+    stored.byteLength !== value.receipt.byteLength
+  ) throw new Error('B-roll preview proxy replay lacks its exact private media artifact.')
+  return { ...value, bytes: stored.bytes }
 }
 
 async function readIntegrationReplay(

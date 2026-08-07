@@ -21,6 +21,7 @@ export const BROLL_JOB_TYPES = [
   'run_b_roll_technical_qa',
   'run_b_roll_semantic_visual_qa',
   'prepare_b_roll_remotion_layer',
+  'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
   'render_b_roll_preview',
   'run_b_roll_preview_qa',
   'project_b_roll_result_receipt',
@@ -35,6 +36,7 @@ export const BROLL_PHASES = [
   'media_normalization',
   'skill_output_qa',
   'layer_preparation',
+  'private_preview_preparation',
   'private_preview_render',
   'integration_qa',
   'result_projection',
@@ -69,6 +71,7 @@ const PRIMARY_VISUAL_MEDIA_JOBS = new Set([
   'prepare_b_roll_source',
   'generate_b_roll_candidate',
   'normalize_b_roll_candidate_with_ffmpeg',
+  'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
   'render_b_roll_preview',
 ])
 
@@ -200,7 +203,8 @@ export const BROLL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
   },
   allowedExecutionPhases: [
     'plan_validation', 'provider_generation', 'media_inspection', 'media_normalization',
-    'skill_output_qa', 'layer_preparation', 'private_preview_render', 'integration_qa', 'result_projection',
+    'skill_output_qa', 'layer_preparation', 'private_preview_preparation',
+    'private_preview_render', 'integration_qa', 'result_projection',
   ].map((phase) => ({
     phase,
     condition: 'approved_work_graph_contains_phase',
@@ -249,7 +253,8 @@ export const BROLL_CAPABILITY_MANIFEST = createSkillCapabilityManifest({
   toolRoutes: [
     routeCapability({ routeKey: 'inspect_candidate', routeKind: 'tool', supportedJobTypes: ['inspect_b_roll_candidate_with_ffprobe'], operationIds: ['tool.ffprobe.inspect_approved_media.v1'], requiredArtifactTypes: ['b_roll_candidate_media_manifest_v1'], priority: 10, requiresApproval: true, description: 'Inspect the exact private candidate represented by its strict media manifest.' }),
     routeCapability({ routeKey: 'normalize_candidate', routeKind: 'tool', supportedJobTypes: ['normalize_b_roll_candidate_with_ffmpeg'], operationIds: ['tool.ffmpeg.execute_approved_media_recipe.v1'], requiredArtifactTypes: ['b_roll_candidate_media_manifest_v1', 'b_roll_candidate_manifest_v1'], priority: 20, requiresApproval: true, description: 'Normalize an approved bounded candidate without exposing private bytes.' }),
-    routeCapability({ routeKey: 'render_private_preview', routeKind: 'tool', supportedJobTypes: ['render_b_roll_preview'], operationIds: ['tool.remotion.render_approved_composition.v1'], requiredArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'], priority: 30, requiresApproval: true, description: 'Render the range-bounded private preview.' }),
+    routeCapability({ routeKey: 'prepare_private_preview_proxy', routeKind: 'tool', supportedJobTypes: ['prepare_b_roll_remotion_preview_proxy_with_ffmpeg'], operationIds: ['tool.ffmpeg.execute_approved_media_recipe.v1'], requiredArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'], priority: 29, requiresApproval: true, description: 'Prepare the exact non-creative private preview proxy.' }),
+    routeCapability({ routeKey: 'render_private_preview', routeKind: 'tool', supportedJobTypes: ['render_b_roll_preview'], operationIds: ['tool.remotion.render_approved_composition.v1'], requiredArtifactTypes: ['b_roll_remotion_layer_manifest_v1', 'b_roll_remotion_preview_proxy_manifest_v1'], priority: 30, requiresApproval: true, description: 'Render the range-bounded private preview from the exact proxy.' }),
     routeCapability({ routeKey: 'existing_project_source', routeKind: 'source', supportedJobTypes: ['prepare_b_roll_source'], operationIds: ['b_roll.source.existing_project_clip.v1'], requiredArtifactTypes: ['source_media_artifact_v1'], priority: 2, requiresApproval: true, description: 'Use meaning-matched project source.' }),
     routeCapability({ routeKey: 'approved_user_asset', routeKind: 'source', supportedJobTypes: ['prepare_b_roll_source'], operationIds: ['b_roll.source.approved_user_asset.v1'], requiredArtifactTypes: ['approved_user_asset_v1', 'source_media_artifact_v1'], priority: 3, requiresApproval: true, description: 'Use a rights/privacy-approved user asset.' }),
     routeCapability({ routeKey: 'gemini_omni_edit', routeKind: 'provider', supportedJobTypes: ['generate_b_roll_candidate'], operationIds: ['provider.google.generate_b_roll_candidate.v1'], requiredArtifactTypes: ['b_roll_plan_v1', 'b_roll_provider_request_specification_v1', 'source_media_artifact_v1'], priority: 4, requiresApproval: true, description: 'Edit one approved bounded video source where eligible.' }),

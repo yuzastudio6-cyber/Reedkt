@@ -108,7 +108,7 @@ assert.ok(
   ),
 )
 assert.equal(productionRuntime.capabilityRegistry.listManifests().length, 1)
-assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 13)
+assert.equal(productionRuntime.runtimeBindingRegistry.list().length, 14)
 
 const canonicalPrivateRuntime = createEditSkillRuntime({
   environmentClass: 'canonical_private',
@@ -121,9 +121,9 @@ const canonicalPrivateRuntime = createEditSkillRuntime({
   ...dependencies(),
 })
 assert.equal(canonicalPrivateRuntime.environmentClass, 'canonical_private')
-assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 26)
+assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().length, 28)
 assert.equal(canonicalPrivateRuntime.runtimeBindingRegistry.list().filter((binding) =>
-  binding.definition.adapterClass === 'canonical_private_execution_adapter').length, 13)
+  binding.definition.adapterClass === 'canonical_private_execution_adapter').length, 14)
 const wrongEnvironmentDependencies = dependencies()
 assert.throws(() => createEditSkillRuntime({
   environmentClass: 'internal_fixture',

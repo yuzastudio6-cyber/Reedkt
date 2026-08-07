@@ -7,8 +7,10 @@ import {
   BROLL_PRODUCED_ARTIFACT_TYPES,
   brollCandidateMediaManifestSchema,
   brollPrivatePreviewMediaManifestSchema,
+  brollRemotionPreviewProxyManifestSchema,
   createBrollCandidateMediaManifest,
   createBrollPrivatePreviewMediaManifest,
+  createBrollRemotionPreviewProxyManifest,
   createSourceMediaArtifactV1,
   registerBrollArtifactSchemas,
 } from '../edit-skills/b-roll'
@@ -203,6 +205,43 @@ const preview = createBrollPrivatePreviewMediaManifest({
   finalCustomerExport: false,
   outsideAuthorizedRangeModified: false,
 })
+const previewProxy = createBrollRemotionPreviewProxyManifest({
+  schemaVersion: 'b_roll_remotion_preview_proxy_manifest_v1',
+  ...lineage,
+  planId: 'artifact-contract-plan',
+  planHash,
+  approvedWorkGraphHash: graphHash,
+  workItemKey: 'prepare-preview-proxy',
+  workItemHash,
+  sourceNormalizedSha256: hashSkillValue({ normalized: 'preview-source' }),
+  privateObjectIdentityHash: hashSkillValue({ privateObject: 'preview-proxy' }),
+  objectSha256: hashSkillValue({ bytes: 'preview-proxy' }),
+  byteLength: 24_576,
+  mimeType: 'video/x-matroska',
+  container: 'matroska',
+  frameCount: 72,
+  fps: 24,
+  ffmpegRequestHash: hashSkillValue({ request: 'ffmpeg-preview-proxy' }),
+  ffmpegAttestationHash: hashSkillValue({ attestation: 'ffmpeg-preview-proxy' }),
+  checksumReadbackVerified: true,
+  technicalProxyOnly: true,
+  creativeColorTransformApplied: false,
+  audioRemoved: true,
+  privateOnly: true,
+  publicDeliveryAllowed: false,
+  finalCustomerExport: false,
+  outsideAuthorizedRangeModified: false,
+})
+assert.doesNotThrow(() => brollRemotionPreviewProxyManifestSchema.parse(previewProxy))
+await store.putJson({
+  artifactType: 'b_roll_remotion_preview_proxy_manifest_v1',
+  ...scope,
+  value: previewProxy,
+})
+assert.throws(() => brollRemotionPreviewProxyManifestSchema.parse({
+  ...previewProxy,
+  technicalProxyOnly: false,
+}))
 assert.doesNotThrow(() => brollPrivatePreviewMediaManifestSchema.parse(preview))
 await store.putJson({
   artifactType: 'b_roll_private_preview_media_manifest_v1',
@@ -220,6 +259,7 @@ console.log(JSON.stringify({
   sourceArtifactHash: source.artifactHash,
   providerMediaManifestHash: providerMedia.mediaManifestHash,
   existingMediaManifestHash: existingMedia.mediaManifestHash,
+  previewProxyManifestHash: previewProxy.proxyManifestHash,
   privatePreviewManifestHash: preview.previewManifestHash,
   rawBytesInJson: false,
   providerUrlsInPublicBoundary: false,

@@ -126,9 +126,15 @@ export const BROLL_CANONICAL_WORK_DEFINITIONS: readonly BrollCanonicalWorkDefini
     qa: ['b_roll.integration.layer_order'],
   },
   {
+    jobType: 'prepare_b_roll_remotion_preview_proxy_with_ffmpeg', operationId: 'tool.ffmpeg.execute_approved_media_recipe.v1',
+    workerClass: 'media_processing_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'],
+    output: 'b_roll_remotion_preview_proxy_manifest_v1', allowedPhase: 'private_preview_preparation', toolOrProviderCredits: 1,
+    qa: ['b_roll.integration.preview_integrity'],
+  },
+  {
     jobType: 'render_b_roll_preview', operationId: 'tool.remotion.render_approved_composition.v1',
-    workerClass: 'render_worker', inputArtifactTypes: ['b_roll_candidate_version_v1', 'b_roll_remotion_layer_manifest_v1'],
-    output: 'b_roll_private_preview_media_manifest_v1', allowedPhase: 'private_preview_render', toolOrProviderCredits: 3,
+    workerClass: 'render_worker', inputArtifactTypes: ['b_roll_remotion_layer_manifest_v1', 'b_roll_remotion_preview_proxy_manifest_v1'],
+    output: 'b_roll_private_preview_media_manifest_v1', allowedPhase: 'private_preview_render', toolOrProviderCredits: 2,
     qa: ['b_roll.integration.preview_integrity'],
   },
   {
@@ -164,6 +170,7 @@ const generatedDefinitions = definitionsFor([
   'run_b_roll_technical_qa',
   'run_b_roll_semantic_visual_qa',
   'prepare_b_roll_remotion_layer',
+  'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
   'render_b_roll_preview',
   'run_b_roll_preview_qa',
   'project_b_roll_result_receipt',
@@ -179,6 +186,7 @@ const existingDefinitions = definitionsFor([
   'run_b_roll_technical_qa',
   'run_b_roll_semantic_visual_qa',
   'prepare_b_roll_remotion_layer',
+  'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
   'render_b_roll_preview',
   'run_b_roll_preview_qa',
   'project_b_roll_result_receipt',
@@ -205,6 +213,7 @@ const MEDIA_CREATING_JOB_TYPES = new Set([
   'prepare_b_roll_source',
   'generate_b_roll_candidate',
   'normalize_b_roll_candidate_with_ffmpeg',
+  'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
   'render_b_roll_preview',
 ])
 
@@ -349,7 +358,7 @@ function canonicalToolIds(
     return ['ffmpeg']
   }
   if (item.operationId === 'tool.remotion.render_approved_composition.v1') {
-    return ['ffmpeg', 'remotion']
+    return ['remotion']
   }
   return []
 }

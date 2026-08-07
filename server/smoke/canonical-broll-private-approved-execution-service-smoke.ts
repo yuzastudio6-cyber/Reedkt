@@ -208,7 +208,8 @@ try {
   const expectedRuntimeCalls = new Map<string, string[]>([
     ['inspect_b_roll_candidate_with_ffprobe', ['media:ffprobe']],
     ['normalize_b_roll_candidate_with_ffmpeg', ['media:ffmpeg']],
-    ['render_b_roll_preview', ['media:ffmpeg', 'remotion:remotion']],
+    ['prepare_b_roll_remotion_preview_proxy_with_ffmpeg', ['media:ffmpeg']],
+    ['render_b_roll_preview', ['remotion:remotion']],
   ])
   for (const item of planned.publicApprovedWorkGraph.workItems) {
     activeWorkItemKey = item.workItemKey
@@ -233,15 +234,21 @@ try {
     planned.publicApprovedWorkGraph.workItems.find((item) =>
       item.jobType === 'normalize_b_roll_candidate_with_ffmpeg')!.workItemKey,
     planned.publicApprovedWorkGraph.workItems.find((item) =>
-      item.jobType === 'render_b_roll_preview')!.workItemKey,
+      item.jobType === 'prepare_b_roll_remotion_preview_proxy_with_ffmpeg')!
+      .workItemKey,
     planned.publicApprovedWorkGraph.workItems.find((item) =>
       item.jobType === 'render_b_roll_preview')!.workItemKey,
   ])
+  const proxyWorkItem = planned.canonicalWorkItems.find((item) =>
+    item.workItemKey.includes('prepare_b_roll_remotion_preview_proxy_with_ffmpeg'))
   const renderWorkItem = planned.canonicalWorkItems.find((item) =>
     item.workItemKey.includes('render_b_roll_preview'))
-  assert.deepEqual(renderWorkItem?.approvedToolIds, ['ffmpeg', 'remotion'])
-  assert.deepEqual(renderWorkItem?.executionInput.approvedToolOperationIds, [
+  assert.deepEqual(proxyWorkItem?.approvedToolIds, ['ffmpeg'])
+  assert.deepEqual(proxyWorkItem?.executionInput.approvedToolOperationIds, [
     'tool.ffmpeg.execute_approved_media_recipe.v1',
+  ])
+  assert.deepEqual(renderWorkItem?.approvedToolIds, ['remotion'])
+  assert.deepEqual(renderWorkItem?.executionInput.approvedToolOperationIds, [
     'tool.remotion.render_approved_composition.v1',
   ])
   assert.equal(first.workResults.length, planned.canonicalWorkItems.length)

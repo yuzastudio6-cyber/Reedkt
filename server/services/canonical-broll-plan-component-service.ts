@@ -40,7 +40,10 @@ import {
   sourceMediaArtifactV1Schema,
   type SourceMediaArtifactV1,
 } from '../edit-skills/b-roll/b-roll-active-artifact-contracts'
-import { hashSkillValue } from '../edit-skills/core/skill-capability-manifest-hash'
+import {
+  canonicalSkillJson,
+  hashSkillValue,
+} from '../edit-skills/core/skill-capability-manifest-hash'
 import {
   editSkillApprovedWorkGraphSchema,
   editSkillPlanApprovalSchema,
@@ -491,6 +494,8 @@ async function readExecutionAuthorities(
   const sourceMediaArtifacts = rawSources.map((value) =>
     sourceMediaArtifactV1Schema.parse(value))
   const sourceIds = sourceMediaArtifacts.map((item) => item.sourceId)
+  const sourceMediaById = new Map(sourceMediaArtifacts.map((item) =>
+    [item.sourceId, item]))
   if (
     sourceIds.join('|') !== component.sourceMediaArtifactRefs.map((item) =>
       item.sourceId).join('|') ||
@@ -501,8 +506,16 @@ async function readExecutionAuthorities(
     sourceInventory.ownerUserId !== assignment.ownerUserId ||
     visualOwnership.workspaceId !== assignment.workspaceId ||
     publicContextManifest.projectId !== assignment.projectId ||
-    sourceInventory.candidates.some((candidate) =>
-      !sourceIds.includes(candidate.sourceId))
+    sourceInventory.candidates.some((candidate) => {
+      const media = sourceMediaById.get(candidate.sourceId)
+      return !media ||
+        candidate.artifactRef.sha256 !== hashSkillValue(media) ||
+        candidate.artifactRef.byteLength !==
+          Buffer.byteLength(canonicalSkillJson(media), 'utf8') ||
+        candidate.artifactRef.ownerUserId !== assignment.ownerUserId ||
+        candidate.artifactRef.workspaceId !== assignment.workspaceId ||
+        candidate.artifactRef.projectId !== assignment.projectId
+    })
   ) {
     throw new Error(
       'Canonical B-roll execution inputs crossed immutable assignment authority.',

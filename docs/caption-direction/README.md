@@ -372,5 +372,15 @@ rendered-review substitution, and retains all provider and QA ownership
 outside Caption. See
 [`post-cap20-visual-intelligence-spatial-adapter.md`](./post-cap20-visual-intelligence-spatial-adapter.md).
 
+The B-roll inspection lane now consumes an owner-issued, create-only,
+byte-free authority for the exact selected normalized artifact. The V8 private
+qualification composition derives the approved-run binding from canonical
+snapshot, package, work-graph, source-manifest, and private-review owners; it
+does not let Caption select B-roll or accept a caller-authored authority. The
+bright color-bar fixture remains technical plumbing evidence only. See
+[`canonical-broll-owner-inspection-projection-2026-08-06.md`](./canonical-broll-owner-inspection-projection-2026-08-06.md)
+and
+[`caption-broll-technical-fixture-layer-order-correction-2026-08-06.md`](./caption-broll-technical-fixture-layer-order-correction-2026-08-06.md).
+
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.

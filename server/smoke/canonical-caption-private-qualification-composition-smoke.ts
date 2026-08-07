@@ -4,6 +4,13 @@ import type { ServiceContext } from '../types'
 import type { CanonicalCaptionBrollEvidenceRepository } from
   '../services/canonical-caption-broll-support-service'
 import {
+  createCanonicalCaptionBrollApprovedSnapshotReadPort,
+} from '../services/canonical-caption-broll-support-service'
+import {
+  createCanonicalBrollCaptionOwnerServiceV2,
+  createCanonicalBrollCaptionPrivateVisualReviewReadPort,
+} from '../services/canonical-broll-caption-owner-service'
+import {
   createCanonicalCaptionPrivateQualificationComposition,
   createCanonicalCaptionPrivateQualificationCompositionV2,
   createCanonicalCaptionPrivateQualificationCompositionV3,
@@ -11,6 +18,7 @@ import {
   createCanonicalCaptionPrivateQualificationCompositionV5,
   createCanonicalCaptionPrivateQualificationCompositionV6,
   createCanonicalCaptionPrivateQualificationCompositionV7,
+  createCanonicalCaptionPrivateQualificationCompositionV8,
 } from '../services/canonical-caption-private-qualification-composition'
 import {
   createCanonicalCaptionBrollOwnerInspectionAuthorityReadPort,
@@ -84,6 +92,27 @@ const brollEvidenceRepositoryV6 = {
 const context = {
   env: { localStorageRoot: '/private-fixture-never-read' },
 } as unknown as ServiceContext
+const brollInspectionSourceOwner = createCanonicalBrollCaptionOwnerServiceV2({
+  objectPort: objectPort(),
+  artifactStore: {
+    storageClass: 'durable',
+    async putJson() {
+      throw new Error('Mount smoke must not write B-roll artifacts.')
+    },
+    async readJson() {
+      throw new Error('Mount smoke must not read B-roll artifacts.')
+    },
+  },
+  approvedSnapshotReadPort:
+    createCanonicalCaptionBrollApprovedSnapshotReadPort(async () => {
+      throw new Error('Mount smoke must not read approved snapshots.')
+    }),
+  privateVisualReviewReadPort:
+    createCanonicalBrollCaptionPrivateVisualReviewReadPort(async () => {
+      throw new Error('Mount smoke must not read private visual review.')
+    }),
+  prefix: 'private-internal/caption-broll-source-owner-smoke',
+})
 
 const composition = createCanonicalCaptionPrivateQualificationComposition({
   context,
@@ -176,6 +205,20 @@ const compositionV7 =
     brollEvidenceRepository: brollEvidenceRepositoryV6,
     brollOwnerInspectionAuthorityReadPort,
     prefix: 'private-internal/caption-qualification-composition-v7-smoke',
+  })
+const compositionV8 =
+  createCanonicalCaptionPrivateQualificationCompositionV8({
+    context,
+    objectPort: objectPort(),
+    supportResumeRepository,
+    transcriptEvidenceRepository,
+    visualIntelligenceEvidenceRepository,
+    trackAllEvidenceRepository,
+    soundSyncEvidenceRepository,
+    brollEvidenceRepository: brollEvidenceRepositoryV6,
+    brollInspectionSourceAuthorityReadPort:
+      brollInspectionSourceOwner.inspectionSourceAuthorityReadPort,
+    prefix: 'private-internal/caption-qualification-composition-v8-smoke',
   })
 
 check(composition.schemaVersion ===
@@ -289,6 +332,26 @@ check(compositionV7.campaignControllerV2.exactCatalogRunSetRequired
   && !compositionV7.campaignControllerV2
     .incompleteRunOrCatalogPromotionAllowed,
 'The mixed-lane campaign must remain fail-closed and require multiple runs.')
+check(compositionV8.schemaVersion ===
+  'canonical-caption-private-qualification-composition-v8'
+  && compositionV8.brollOwnerInspectionProjectionService.schemaVersion ===
+    'canonical-caption-broll-owner-inspection-projection-service-v2'
+  && compositionV8.campaignControllerV2.schemaVersion ===
+    'canonical-caption-private-qualification-campaign-controller-v2',
+'The V8 composition must mount the owner-issued B-roll selected-artifact lane.')
+check(compositionV8.canonicalApprovedBrollRunAuthorityAdapterMounted
+  && compositionV8.exactBrollSelectedArtifactMetadataRereadRequired
+  && compositionV8.brollOwnerInspectionProjectionService
+    .ownerSourceAuthorityRereadBeforeProjection
+  && compositionV8.brollOwnerInspectionProjectionService
+    .exactSelectedNormalizedArtifactMetadataRereadRequired,
+'The active B-roll lane must reread exact selected-artifact metadata before '
+  + 'projecting Caption evidence.')
+check(!compositionV8.callerSuppliedBrollInspectionAuthorityPortAccepted
+  && !compositionV8.callerSuppliedBrollInspectionAuthorityAccepted
+  && !compositionV8.operationOrRuntimeAuthorityGrantedToCaption
+  && !compositionV8.finalQaApprovalAuthorityGrantedToCaption,
+'The V8 mount must accept no caller authority or external Caption ownership.')
 
 assert.throws(() => createCanonicalCaptionPrivateQualificationComposition({
   context,
@@ -336,6 +399,21 @@ assert.throws(() => createCanonicalCaptionPrivateQualificationCompositionV6({
 }))
 checks += 1
 
+assert.throws(() => createCanonicalCaptionPrivateQualificationCompositionV8({
+  context,
+  objectPort: objectPort(),
+  supportResumeRepository,
+  transcriptEvidenceRepository,
+  visualIntelligenceEvidenceRepository,
+  trackAllEvidenceRepository,
+  soundSyncEvidenceRepository,
+  brollEvidenceRepository: brollEvidenceRepositoryV6,
+  brollInspectionSourceAuthorityReadPort: {
+    ...brollInspectionSourceOwner.inspectionSourceAuthorityReadPort,
+  },
+}))
+checks += 1
+
 console.log(JSON.stringify({
   smoke: 'canonical_caption_private_qualification_composition',
   status: 'passed',
@@ -348,6 +426,8 @@ console.log(JSON.stringify({
   brollOwnerInspectionToRunEvidenceMounted: true,
   mixedInspectionLaneControllerMounted: true,
   mixedInspectionLaneCampaignMounted: true,
+  canonicalApprovedBrollRunAuthorityAdapterMounted: true,
+  exactBrollSelectedArtifactMetadataRereadRequired: true,
   exactOriginalSourceBindingRequired: true,
   historicalInspectionReceiptAutoPromoted: false,
   multipleApprovedRunsRequired: true,

@@ -8,6 +8,9 @@ import type {
 import type { BrollCaptionOwnerReadResult } from
   './caption-broll-owner-read-adapter'
 import type { SkillContractRef } from './orchestra-skill-contracts'
+import type {
+  CanonicalBrollCaptionInspectionSourceAuthorityReadPort,
+} from './canonical-broll-caption-inspection-source-authority'
 
 export const CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_REQUEST_VERSION =
   'canonical-caption-broll-owner-inspection-projection-request-v1' as const
@@ -23,6 +26,8 @@ export const CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_AUTHORITY_READ_PORT_VERSIO
   'canonical-caption-broll-owner-inspection-authority-read-port-v1' as const
 export const CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_VERSION =
   'canonical-caption-broll-owner-inspection-projection-service-v1' as const
+export const CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_V2_VERSION =
+  'canonical-caption-broll-owner-inspection-projection-service-v2' as const
 
 export type CanonicalCaptionBrollOwnerInspectionVariant =
   | 'full_motion'
@@ -193,4 +198,15 @@ export interface CanonicalCaptionBrollOwnerInspectionProjectionService {
   project(
     request: CanonicalCaptionBrollOwnerInspectionProjectionRequest,
   ): Promise<CanonicalCaptionBrollOwnerInspectionProjectionOutcome>
+}
+
+export interface CanonicalCaptionBrollOwnerInspectionProjectionServiceV2
+  extends Omit<CanonicalCaptionBrollOwnerInspectionProjectionService,
+    'schemaVersion'> {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_V2_VERSION
+  readonly brollOwnerInspectionSourceAuthorityReadPort:
+    CanonicalBrollCaptionInspectionSourceAuthorityReadPort
+  readonly exactSelectedNormalizedArtifactMetadataRereadRequired: true
+  readonly ownerSourceAuthorityRereadBeforeProjection: true
 }

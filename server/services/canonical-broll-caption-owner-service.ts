@@ -4,9 +4,16 @@ import { z } from 'zod'
 
 import type {
   BrollCaptionManifestReference,
+  BrollCaptionOpaqueReference,
   BrollCaptionOwnerReadRequest,
   BrollCaptionOwnerReadResult,
 } from '../../src/types/caption-broll-owner-read-adapter'
+import {
+  CANONICAL_BROLL_CAPTION_INSPECTION_SOURCE_AUTHORITY_VERSION,
+  CANONICAL_BROLL_CAPTION_INSPECTION_SOURCE_READ_PORT_VERSION,
+  type CanonicalBrollCaptionInspectionSourceAuthority,
+  type CanonicalBrollCaptionInspectionSourceAuthorityReadPort,
+} from '../../src/types/canonical-broll-caption-inspection-source-authority'
 import type {
   CanonicalCaptionBrollApprovedSnapshotReadPort,
   CanonicalCaptionBrollOwnerReadPort,
@@ -56,6 +63,8 @@ import type { CanonicalCreateOnlyJsonObjectPort } from
 
 export const CANONICAL_BROLL_CAPTION_OWNER_SERVICE_VERSION =
   'canonical-broll-caption-owner-service-v1' as const
+export const CANONICAL_BROLL_CAPTION_OWNER_SERVICE_V2_VERSION =
+  'canonical-broll-caption-owner-service-v2' as const
 export const CANONICAL_BROLL_CAPTION_PRIVATE_VISUAL_REVIEW_READ_PORT_VERSION =
   'canonical-broll-caption-private-visual-review-read-port-v1' as const
 export const BROLL_CAPTION_AUTHENTICATED_OWNER_READ_EVIDENCE_VERSION =
@@ -77,6 +86,93 @@ const domainRefSchema = z.object({
   version: identity,
   contentHash: sha256,
 }).strict()
+
+const inspectionSourceAuthorityCoreSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_BROLL_CAPTION_INSPECTION_SOURCE_AUTHORITY_VERSION),
+  authorityId: identity,
+  canonicalScope: z.object({
+    ownerUserId: identity,
+    workspaceId: identity,
+    projectId: identity,
+    editSessionId: identity,
+    planVersionId: identity,
+    approvedSnapshotRef: domainRefSchema,
+    outputId: identity,
+    outputFrameRef: domainRefSchema,
+    sceneId: identity,
+    authorizedFrameRange: z.object({
+      startFrameInclusive: z.number().int().nonnegative(),
+      endFrameExclusive: z.number().int().positive(),
+      fps: z.number().int().positive().max(120),
+    }).strict(),
+    masterTimingRef: domainRefSchema,
+    masterTimingHash: sha256,
+  }).strict(),
+  ownerRequestRef: domainRefSchema,
+  ownerResultRef: domainRefSchema,
+  brollAssignmentRef: domainRefSchema,
+  brollPlanRef: domainRefSchema,
+  brollApprovedWorkGraphRef: domainRefSchema,
+  brollCanonicalWorkGraphRef: domainRefSchema,
+  brollResultReceiptRef: domainRefSchema,
+  selectedMediaManifestRef: domainRefSchema,
+  layoutOccupancyRef: domainRefSchema,
+  privateVisualReviewRef: domainRefSchema,
+  previewArtifactRef: domainRefSchema,
+  integrationQaRef: domainRefSchema,
+  selectedNormalizedArtifactRef: domainRefSchema,
+  selectedNormalizedArtifact: z.object({
+    privateObjectIdentityDigestSha256: sha256,
+    byteLength: z.number().int().positive().max(32 * 1024 * 1024),
+    mimeType: z.literal('video/x-nut'),
+    frameCount: z.number().int().min(24).max(240),
+    frameRate: z.union([z.literal(24), z.literal(30)]),
+    audioRemoved: z.literal(true),
+  }).strict(),
+  selectedSourceRoute: z.enum([
+    'existing_project_clip',
+    'approved_user_asset',
+    'gemini_omni_generated_candidate',
+    'gemini_omni_edited_uploaded_video',
+  ]),
+  exactCanonicalBrollWorkAndArtifactRereadVerified: z.literal(true),
+  exactPrivateVisualReviewRereadVerified: z.literal(true),
+  exactSelectedNormalizedArtifactIdentityVerified: z.literal(true),
+  persistedCreateOnlyAndExactReread: z.literal(true),
+  mediaBytesIncluded: z.literal(false),
+  mediaLocatorIncluded: z.literal(false),
+  rawChatIncluded: z.literal(false),
+  credentialsIncluded: z.literal(false),
+  sourceSelectionPerformedByCaption: z.literal(false),
+  cropOrTimingPerformedByCaption: z.literal(false),
+  runtimeOrDispatchAuthorityGranted: z.literal(false),
+  assetMutationAuthorityGranted: z.literal(false),
+  finalQaApprovalGranted: z.literal(false),
+  billingAuthorityGranted: z.literal(false),
+  publicDeliveryGranted: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+}).strict()
+
+const inspectionSourceAuthoritySchema =
+  inspectionSourceAuthorityCoreSchema.extend({
+    authorityDigestSha256: sha256,
+  }).strict().superRefine((value, context) => {
+    const { authorityDigestSha256, ...core } = value
+    if (hashSkillValue(core) !== authorityDigestSha256
+      || value.canonicalScope.masterTimingRef.contentHash
+        !== value.canonicalScope.masterTimingHash
+      || value.canonicalScope.authorizedFrameRange.endFrameExclusive
+        <= value.canonicalScope.authorizedFrameRange.startFrameInclusive
+      || value.selectedNormalizedArtifactRef.version
+        !== 'b_roll_selected_normalized_media_v1'
+      || value.selectedNormalizedArtifactRef.contentHash.length !== 64) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Canonical B-roll Caption inspection source authority invalid.',
+      })
+    }
+  })
 
 const privateVisualReviewCoreSchema = z.object({
   schemaVersion: z.literal(
@@ -135,6 +231,17 @@ export function createBrollCaptionPrivateVisualReview(
   })
 }
 
+export function parseCanonicalBrollCaptionInspectionSourceAuthority(
+  value: unknown,
+): CanonicalBrollCaptionInspectionSourceAuthority {
+  assertClosedContractTree(
+    value, 'Canonical B-roll Caption inspection source authority')
+  rejectUnsafeText(
+    value, 'Canonical B-roll Caption inspection source authority')
+  return structuredClone(inspectionSourceAuthoritySchema.parse(value)) as
+    CanonicalBrollCaptionInspectionSourceAuthority
+}
+
 export interface CanonicalBrollCaptionOwnerService {
   readonly schemaVersion: typeof CANONICAL_BROLL_CAPTION_OWNER_SERVICE_VERSION
   readonly ownerReadPort: CanonicalCaptionBrollOwnerReadPort
@@ -150,6 +257,15 @@ export interface CanonicalBrollCaptionOwnerService {
   readExact(input: {
     readonly request: BrollCaptionOwnerReadRequest
   }): Promise<BrollCaptionOwnerReadResult>
+}
+
+export interface CanonicalBrollCaptionOwnerServiceV2
+  extends Omit<CanonicalBrollCaptionOwnerService, 'schemaVersion'> {
+  readonly schemaVersion:
+    typeof CANONICAL_BROLL_CAPTION_OWNER_SERVICE_V2_VERSION
+  readonly inspectionSourceAuthorityReadPort:
+    CanonicalBrollCaptionInspectionSourceAuthorityReadPort
+  readonly selectedNormalizedArtifactAuthorityPersistedBeforeOwnerResult: true
 }
 
 export interface CanonicalBrollCaptionPrivateVisualReviewReadPort {
@@ -171,6 +287,7 @@ export interface CanonicalBrollCaptionPrivateVisualReviewReadPort {
 }
 
 const admittedVisualReviewReaders = new WeakSet<object>()
+const admittedInspectionSourceReaders = new WeakSet<object>()
 
 export function createCanonicalBrollCaptionPrivateVisualReviewReadPort(
   readExact: CanonicalBrollCaptionPrivateVisualReviewReadPort['readExact'],
@@ -189,14 +306,40 @@ export function createCanonicalBrollCaptionPrivateVisualReviewReadPort(
   return port
 }
 
-export function createCanonicalBrollCaptionOwnerService(input: {
+export function isCanonicalBrollCaptionInspectionSourceAuthorityReadPort(
+  value: unknown,
+): value is CanonicalBrollCaptionInspectionSourceAuthorityReadPort {
+  return Boolean(value && typeof value === 'object'
+    && admittedInspectionSourceReaders.has(value as object))
+}
+
+export interface CanonicalBrollCaptionOwnerServiceInput {
   readonly objectPort: CanonicalCreateOnlyJsonObjectPort
   readonly artifactStore: EditSkillArtifactStore
   readonly approvedSnapshotReadPort: CanonicalCaptionBrollApprovedSnapshotReadPort
   readonly privateVisualReviewReadPort:
     CanonicalBrollCaptionPrivateVisualReviewReadPort
   readonly prefix?: string
-}): CanonicalBrollCaptionOwnerService {
+}
+
+export function createCanonicalBrollCaptionOwnerService(
+  input: CanonicalBrollCaptionOwnerServiceInput,
+): CanonicalBrollCaptionOwnerService {
+  return createCanonicalBrollCaptionOwnerServiceInternal(input, false) as
+    CanonicalBrollCaptionOwnerService
+}
+
+export function createCanonicalBrollCaptionOwnerServiceV2(
+  input: CanonicalBrollCaptionOwnerServiceInput,
+): CanonicalBrollCaptionOwnerServiceV2 {
+  return createCanonicalBrollCaptionOwnerServiceInternal(input, true) as
+    CanonicalBrollCaptionOwnerServiceV2
+}
+
+function createCanonicalBrollCaptionOwnerServiceInternal(
+  input: CanonicalBrollCaptionOwnerServiceInput,
+  inspectionSourceAuthorityEnabled: boolean,
+): CanonicalBrollCaptionOwnerService | CanonicalBrollCaptionOwnerServiceV2 {
   assertDependencies(input)
   const prefix = prefixSchema.parse(input.prefix ?? DEFAULT_PREFIX)
   const read = async (requestInput: BrollCaptionOwnerReadRequest) => {
@@ -213,11 +356,19 @@ export function createCanonicalBrollCaptionOwnerService(input: {
   const ownerReadPort = createCanonicalCaptionBrollOwnerReadPort(
     async ({ request }) => read(request),
   )
-  const service: CanonicalBrollCaptionOwnerService = {
-    schemaVersion: CANONICAL_BROLL_CAPTION_OWNER_SERVICE_VERSION,
+  const inspectionSourceAuthorityReadPort = inspectionSourceAuthorityEnabled
+    ? createInspectionSourceAuthorityReadPort(input.objectPort, prefix)
+    : null
+  const service = {
+    schemaVersion: inspectionSourceAuthorityEnabled
+      ? CANONICAL_BROLL_CAPTION_OWNER_SERVICE_V2_VERSION
+      : CANONICAL_BROLL_CAPTION_OWNER_SERVICE_VERSION,
     ownerReadPort,
-    readExact: ({ request }) => read(request),
-    async finalizeFromCanonicalWork(untrusted) {
+    readExact: ({ request }: {
+      readonly request: BrollCaptionOwnerReadRequest
+    }) => read(request),
+    async finalizeFromCanonicalWork(untrusted: Parameters<
+      CanonicalBrollCaptionOwnerService['finalizeFromCanonicalWork']>[0]) {
       assertClosedContractTree(untrusted, 'Canonical B-roll Caption owner finalization')
       const request = parseBrollCaptionOwnerReadRequest(untrusted.request)
       const publicAssignment = skillAssignmentSchema.parse(
@@ -379,6 +530,36 @@ export function createCanonicalBrollCaptionOwnerService(input: {
         ...withoutDigest,
         resultDigestSha256: hashSkillValue(withoutDigest),
       })
+      if (inspectionSourceAuthorityReadPort) {
+        const sourceAuthority = createInspectionSourceAuthority({
+          request,
+          result,
+          publicAssignment,
+          publicPlan,
+          approvedWorkGraph,
+          assignment,
+          plan,
+          receipt,
+          preview,
+          review,
+        })
+        await persistJson(
+          input.objectPort,
+          inspectionSourceAuthorityPath(prefix, sourceAuthority.ownerResultRef),
+          sourceAuthority,
+        )
+        const rereadSourceAuthority =
+          await inspectionSourceAuthorityReadPort.readExact({
+            ownerRequestRef: sourceAuthority.ownerRequestRef,
+            ownerResultRef: sourceAuthority.ownerResultRef,
+          })
+        if (!rereadSourceAuthority
+          || hashSkillValue(rereadSourceAuthority)
+            !== hashSkillValue(sourceAuthority)) {
+          throw new Error(
+            'Canonical B-roll inspection source authority changed after persistence.')
+        }
+      }
       await persistJson(input.objectPort, resultPath(prefix, request), result)
       const reread = await read(request)
       if (hashSkillValue(reread) !== hashSkillValue(result)) {
@@ -387,7 +568,15 @@ export function createCanonicalBrollCaptionOwnerService(input: {
       return reread
     },
   }
-  return Object.freeze(service)
+  if (!inspectionSourceAuthorityReadPort) {
+    return Object.freeze(service) as CanonicalBrollCaptionOwnerService
+  }
+  return Object.freeze({
+    ...service,
+    inspectionSourceAuthorityReadPort,
+    selectedNormalizedArtifactAuthorityPersistedBeforeOwnerResult:
+      true as const,
+  }) as CanonicalBrollCaptionOwnerServiceV2
 }
 
 function assertBrollExecutionLineage(input: {
@@ -624,6 +813,155 @@ function createVisibleTextEvidence(
   return Object.freeze({ ...core, evidenceDigestSha256: hashSkillValue(core) })
 }
 
+function createInspectionSourceAuthority(input: {
+  request: BrollCaptionOwnerReadRequest
+  result: BrollCaptionOwnerReadResult
+  publicAssignment: SkillAssignment
+  publicPlan: EditSkillPublicPlan
+  approvedWorkGraph: EditSkillApprovedWorkGraph
+  assignment: BrollSkillAssignment
+  plan: z.infer<typeof brollPlanArtifactSchema>
+  receipt: z.infer<typeof brollResultReceiptSchema>
+  preview: z.infer<typeof brollPrivatePreviewMediaManifestSchema>
+  review: BrollCaptionPrivateVisualReview
+}): CanonicalBrollCaptionInspectionSourceAuthority {
+  const normalized = input.receipt.selectedArtifact.normalizedArtifact
+  const ownerResultRef = opaqueRef(
+    input.result.resultId,
+    input.result.schemaVersion,
+    input.result.resultDigestSha256,
+  )
+  const core = inspectionSourceAuthorityCoreSchema.parse({
+    schemaVersion:
+      CANONICAL_BROLL_CAPTION_INSPECTION_SOURCE_AUTHORITY_VERSION,
+    authorityId: `broll.caption.inspection-source.${
+      input.result.resultDigestSha256.slice(0, 40)}`,
+    canonicalScope: structuredClone(input.request.canonicalScope),
+    ownerRequestRef: structuredClone(input.result.ownerRequestRef),
+    ownerResultRef,
+    brollAssignmentRef: opaqueRef(
+      input.assignment.assignmentId,
+      input.assignment.schemaVersion,
+      input.assignment.assignmentHash,
+    ),
+    brollPlanRef: opaqueRef(
+      input.plan.planId,
+      input.plan.schemaVersion,
+      input.plan.planHash,
+    ),
+    brollApprovedWorkGraphRef: opaqueRef(
+      `${input.assignment.assignmentId}.approved-work-graph`,
+      input.approvedWorkGraph.schemaVersion,
+      input.approvedWorkGraph.approvedWorkGraphHash,
+    ),
+    brollCanonicalWorkGraphRef: opaqueRef(
+      `${input.assignment.assignmentId}.canonical-work-graph`,
+      input.approvedWorkGraph.pluginWorkGraphType,
+      input.approvedWorkGraph.pluginWorkGraphHash,
+    ),
+    brollResultReceiptRef: structuredClone(
+      input.result.brollResultReceiptRef),
+    selectedMediaManifestRef: structuredClone(
+      input.result.selectedMediaManifestRef),
+    layoutOccupancyRef: structuredClone(input.result.layoutOccupancyRef),
+    privateVisualReviewRef: opaqueRef(
+      input.review.reviewId,
+      input.review.schemaVersion,
+      input.review.reviewDigestSha256,
+    ),
+    previewArtifactRef: opaqueRef(
+      `broll.preview.${input.preview.objectSha256.slice(0, 32)}`,
+      input.preview.schemaVersion,
+      input.preview.objectSha256,
+    ),
+    integrationQaRef: opaqueRef(
+      `broll.integration-qa.${input.receipt.integrationQaHash.slice(0, 32)}`,
+      'b_roll_integration_qa_v1',
+      input.receipt.integrationQaHash,
+    ),
+    selectedNormalizedArtifactRef: opaqueRef(
+      `broll.selected-normalized.${
+        normalized.privateObjectIdentityHash.slice(0, 16)}`,
+      'b_roll_selected_normalized_media_v1',
+      normalized.sha256,
+    ),
+    selectedNormalizedArtifact: {
+      privateObjectIdentityDigestSha256:
+        normalized.privateObjectIdentityHash,
+      byteLength: normalized.byteLength,
+      mimeType: normalized.mimeType,
+      frameCount: normalized.frameCount,
+      frameRate: normalized.frameRate,
+      audioRemoved: normalized.audioRemoved,
+    },
+    selectedSourceRoute: input.receipt.selectedArtifact.sourceRoute,
+    exactCanonicalBrollWorkAndArtifactRereadVerified: true,
+    exactPrivateVisualReviewRereadVerified: true,
+    exactSelectedNormalizedArtifactIdentityVerified: true,
+    persistedCreateOnlyAndExactReread: true,
+    mediaBytesIncluded: false,
+    mediaLocatorIncluded: false,
+    rawChatIncluded: false,
+    credentialsIncluded: false,
+    sourceSelectionPerformedByCaption: false,
+    cropOrTimingPerformedByCaption: false,
+    runtimeOrDispatchAuthorityGranted: false,
+    assetMutationAuthorityGranted: false,
+    finalQaApprovalGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  })
+  if (input.publicAssignment.assignmentHash
+      !== input.assignment.assignmentHash
+    || input.publicPlan.envelope.planHash !== input.plan.planHash
+    || input.result.brollResultReceiptRef.contentHash
+      !== input.receipt.resultHash) {
+    throw new Error(
+      'Canonical B-roll inspection source authority crossed approved work.')
+  }
+  return parseCanonicalBrollCaptionInspectionSourceAuthority({
+    ...core,
+    authorityDigestSha256: hashSkillValue(core),
+  })
+}
+
+function createInspectionSourceAuthorityReadPort(
+  objectPort: CanonicalCreateOnlyJsonObjectPort,
+  prefix: string,
+): CanonicalBrollCaptionInspectionSourceAuthorityReadPort {
+  const port = Object.freeze({
+    schemaVersion:
+      CANONICAL_BROLL_CAPTION_INSPECTION_SOURCE_READ_PORT_VERSION,
+    sourceAuthority:
+      'canonical_b_roll_owner_private_inspection_source' as const,
+    callerSuppliedAuthorityAccepted: false as const,
+    async readExact(untrusted: {
+      readonly ownerRequestRef: BrollCaptionOpaqueReference
+      readonly ownerResultRef: BrollCaptionOpaqueReference
+    }) {
+      assertClosedContractTree(
+        untrusted, 'Canonical B-roll inspection source locator')
+      const ownerRequestRef = domainRefSchema.parse(untrusted.ownerRequestRef)
+      const ownerResultRef = domainRefSchema.parse(untrusted.ownerResultRef)
+      const authority = await readJson(
+        objectPort,
+        inspectionSourceAuthorityPath(prefix, ownerResultRef),
+        parseCanonicalBrollCaptionInspectionSourceAuthority,
+      )
+      if (!authority) return null
+      if (!sameRef(authority.ownerRequestRef, ownerRequestRef)
+        || !sameRef(authority.ownerResultRef, ownerResultRef)) {
+        throw new Error(
+          'Canonical B-roll inspection source authority crossed its locator.')
+      }
+      return authority
+    },
+  })
+  admittedInspectionSourceReaders.add(port)
+  return port
+}
+
 async function assertSnapshotAuthority(
   port: CanonicalCaptionBrollApprovedSnapshotReadPort,
   request: BrollCaptionOwnerReadRequest,
@@ -711,8 +1049,42 @@ function resultPath(prefix: string, request: BrollCaptionOwnerReadRequest): stri
   return `${prefix}/results/${request.requestDigestSha256}.json`
 }
 
+function inspectionSourceAuthorityPath(
+  prefix: string,
+  ownerResultRef: BrollCaptionOpaqueReference,
+): string {
+  const ref = domainRefSchema.parse(ownerResultRef)
+  return `${prefix}/inspection-source-authorities/${ref.contentHash}.json`
+}
+
 function opaqueRef(id: string, version: string, contentHash: string) {
   return domainRefSchema.parse({ id, version, contentHash })
+}
+
+function sameRef(
+  left: BrollCaptionOpaqueReference,
+  right: BrollCaptionOpaqueReference,
+): boolean {
+  return left.id === right.id
+    && left.version === right.version
+    && left.contentHash === right.contentHash
+}
+
+function rejectUnsafeText(value: unknown, label: string): void {
+  const stack: unknown[] = [value]
+  while (stack.length > 0) {
+    const current = stack.pop()
+    if (typeof current === 'string') {
+      if (/https?:\/\/|file:\/\/|data:|blob:|javascript:|\/(?:Users|Volumes|home|tmp)\/|(?:secret|token|password|credential)=/iu
+        .test(current)) {
+        throw new Error(`${label} contains unsafe text.`)
+      }
+    } else if (Array.isArray(current)) {
+      stack.push(...current)
+    } else if (current && typeof current === 'object') {
+      stack.push(...Object.values(current))
+    }
+  }
 }
 
 function assertResultMatchesRequest(

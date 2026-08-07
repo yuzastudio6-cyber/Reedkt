@@ -46,6 +46,18 @@ Added:
 - `canonical-caption-private-qualification-composition-v6`; and
 - `canonical-caption-private-qualification-composition-v7`.
 
+The additive V8 composition closes the formerly injected approved-run port:
+
+- `canonical-broll-caption-inspection-source-authority-v1` is persisted by
+  the B-roll owner before its result becomes readable;
+- `canonical-caption-broll-owner-inspection-projection-service-v2` rereads
+  that authority twice and verifies the selected artifact metadata against the
+  accepted Caption inspection specification; and
+- `canonical-caption-private-qualification-composition-v8` derives the
+  approved B-roll run authority from the immutable snapshot, execution
+  package, B-roll plan/work graph, source manifest, and canonical private
+  review instead of accepting a caller-supplied authority port.
+
 The B-roll projection service now exposes a closed outcome parser and nominal
 service admission. Its existing V1 wire shape is unchanged. Existing V1
 uploaded-source controller, campaign, and composition identities are not cast,
@@ -77,7 +89,7 @@ existing B-roll projection adapter only for its explicit lane.
 
 - focused B-roll projection and V2 approved-run controller smoke;
 - V2 multi-run campaign smoke;
-- V7 qualification composition smoke;
+- V8 qualification composition smoke;
 - server TypeScript check;
 - focused ESLint and Git diff validation;
 - complete Caption source-integration aggregate;
@@ -86,9 +98,10 @@ existing B-roll projection adapter only for its explicit lane.
 
 ## Tests passed
 
-The focused B-roll proof covers create-only replay, twice-reread owner and
-approved-run authority, canonical direct-inspection projection, V2 approved-run
-waiting behavior, output-crossing refusal, false-persistence refusal, and
+The focused B-roll proof covers create-only replay, twice-reread owner,
+selected-artifact source authority, and approved-run authority; canonical
+direct-inspection projection; V2 approved-run waiting behavior; output
+crossing; selected-artifact metadata forgery; false-persistence; and
 counterfeit service refusal. The campaign proof covers deterministic replay,
 multiple-snapshot enforcement, inspection-lane/request-version binding,
 counterfeit controller refusal, and no incomplete catalog promotion.

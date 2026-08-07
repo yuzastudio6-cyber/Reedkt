@@ -20,7 +20,11 @@ import type {
   CanonicalCaptionBrollOwnerInspectionAuthorityReadPort,
   CanonicalCaptionBrollOwnerInspectionBundleRepository,
   CanonicalCaptionBrollOwnerInspectionProjectionService,
+  CanonicalCaptionBrollOwnerInspectionProjectionServiceV2,
 } from '../../src/types/canonical-caption-broll-owner-inspection-projection'
+import type {
+  CanonicalBrollCaptionInspectionSourceAuthorityReadPort,
+} from '../../src/types/canonical-broll-caption-inspection-source-authority'
 import type {
   CanonicalCaptionDirectVisualInspectionRepository,
 } from '../../src/types/canonical-caption-direct-visual-inspection-evidence'
@@ -38,8 +42,10 @@ import type { CanonicalCaptionBrollEvidenceRepository } from
   './canonical-caption-broll-support-service'
 import {
   createCanonicalCaptionBrollOwnerEvidenceReadPortFromRepository,
+  createCanonicalCaptionApprovedBrollRunInspectionAuthorityReadPort,
   createCanonicalCaptionBrollOwnerInspectionBundleRepository,
   createCanonicalCaptionBrollOwnerInspectionProjectionService,
+  createCanonicalCaptionBrollOwnerInspectionProjectionServiceV2,
 } from './canonical-caption-broll-owner-inspection-projection-service'
 import {
   createCanonicalCaptionDirectVisualInspectionRepository,
@@ -103,6 +109,8 @@ export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V6_VERSION =
   'canonical-caption-private-qualification-composition-v6' as const
 export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V7_VERSION =
   'canonical-caption-private-qualification-composition-v7' as const
+export const CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V8_VERSION =
+  'canonical-caption-private-qualification-composition-v8' as const
 
 /**
  * Private qualification composition only. It reads existing canonical owners,
@@ -203,6 +211,18 @@ export interface CanonicalCaptionPrivateQualificationCompositionV7
   readonly campaignControllerV2:
     CanonicalCaptionPrivateQualificationCampaignControllerV2
   readonly mixedInspectionLaneCampaignMounted: true
+}
+
+export interface CanonicalCaptionPrivateQualificationCompositionV8
+  extends Omit<CanonicalCaptionPrivateQualificationCompositionV7,
+    'schemaVersion' | 'brollOwnerInspectionProjectionService'> {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V8_VERSION
+  readonly brollOwnerInspectionProjectionService:
+    CanonicalCaptionBrollOwnerInspectionProjectionServiceV2
+  readonly canonicalApprovedBrollRunAuthorityAdapterMounted: true
+  readonly exactBrollSelectedArtifactMetadataRereadRequired: true
+  readonly callerSuppliedBrollInspectionAuthorityPortAccepted: false
 }
 
 export interface CanonicalCaptionPrivateQualificationCompositionInput {
@@ -455,5 +475,68 @@ export function createCanonicalCaptionPrivateQualificationCompositionV7(
         qualificationService: base.qualificationService,
       }),
     mixedInspectionLaneCampaignMounted: true,
+  })
+}
+
+export function createCanonicalCaptionPrivateQualificationCompositionV8(
+  input: CanonicalCaptionPrivateQualificationCompositionInput & {
+    readonly brollInspectionSourceAuthorityReadPort:
+      CanonicalBrollCaptionInspectionSourceAuthorityReadPort
+  },
+): CanonicalCaptionPrivateQualificationCompositionV8 {
+  const prefix = input.prefix
+    ?? 'private-internal/captions-specialist/v1/qualification-composition'
+  const base = createCanonicalCaptionPrivateQualificationCompositionV5(input)
+  const brollOwnerInspectionBundleRepository =
+    createCanonicalCaptionBrollOwnerInspectionBundleRepository({
+      objectPort: input.objectPort,
+      prefix: `${prefix}/broll-owner-inspection-bundles`,
+    })
+  const ownerEvidenceReadPort =
+    createCanonicalCaptionBrollOwnerEvidenceReadPortFromRepository(
+      input.brollEvidenceRepository)
+  const brollOwnerInspectionProjectionService =
+    createCanonicalCaptionBrollOwnerInspectionProjectionServiceV2({
+      bundleReadPort: brollOwnerInspectionBundleRepository,
+      ownerEvidenceReadPort,
+      authorityReadPort:
+        createCanonicalCaptionApprovedBrollRunInspectionAuthorityReadPort({
+          context: input.context,
+          brollEvidenceRepository: input.brollEvidenceRepository,
+          brollInspectionSourceAuthorityReadPort:
+            input.brollInspectionSourceAuthorityReadPort,
+        }),
+      brollOwnerInspectionSourceAuthorityReadPort:
+        input.brollInspectionSourceAuthorityReadPort,
+      evidenceRepository: base.directVisualInspectionRepository,
+    })
+  const approvedRunControllerV2 =
+    createCanonicalCaptionPrivateQualificationRunControllerV2({
+      legacyUploadedSourceController: base.approvedRunController,
+      brollInspectionBundleRepository:
+        brollOwnerInspectionBundleRepository,
+      brollInspectionProjectionService:
+        brollOwnerInspectionProjectionService,
+      runEvidenceAssembly: base.runEvidenceAssembly,
+    })
+  return Object.freeze({
+    ...base,
+    schemaVersion:
+      CANONICAL_CAPTION_PRIVATE_QUALIFICATION_COMPOSITION_V8_VERSION,
+    brollOwnerInspectionBundleRepository,
+    brollOwnerInspectionProjectionService,
+    approvedRunControllerV2,
+    brollOwnerInspectionToRunEvidenceMounted: true,
+    mixedInspectionLaneControllerMounted: true,
+    callerSuppliedBrollInspectionAuthorityAccepted: false,
+    campaignControllerV2:
+      createCanonicalCaptionPrivateQualificationCampaignControllerV2({
+        approvedRunController: approvedRunControllerV2,
+        qualificationService: base.qualificationService,
+      }),
+    mixedInspectionLaneCampaignMounted: true,
+    canonicalApprovedBrollRunAuthorityAdapterMounted: true,
+    exactBrollSelectedArtifactMetadataRereadRequired: true,
+    callerSuppliedBrollInspectionAuthorityPortAccepted: false,
   })
 }

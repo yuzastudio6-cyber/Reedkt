@@ -14,6 +14,7 @@ import {
 } from '../services/canonical-caption-soundsync-support-service'
 import {
   createCanonicalCaptionSharedOwnerPrivateComposition,
+  createCanonicalCaptionSharedOwnerPrivateCompositionV2,
 } from '../services/canonical-caption-shared-owner-private-composition'
 import {
   createCanonicalSpecialistSupportResumeRepository,
@@ -133,6 +134,37 @@ check(!composition.providerAuthorityGranted
   && !composition.productionAuthorityGranted,
 'The source mount must grant no external authority.')
 
+const compositionV2 = createCanonicalCaptionSharedOwnerPrivateCompositionV2({
+  objectPort,
+  supportResumeRepository,
+  soundContextReadPort,
+  soundExecutionReadPort,
+  soundListeningReviewReadPort,
+  soundArtifactResolver: neverSoundResolver,
+  brollApprovedSnapshotReadPort,
+  brollPrivateVisualReviewReadPort,
+  brollArtifactStore: neverArtifactStore,
+  prefix: 'private/smoke/caption-owner-composition-v2',
+})
+check(compositionV2.schemaVersion
+  === 'canonical-caption-shared-owner-private-composition-v2'
+  && compositionV2.brollOwner.schemaVersion
+    === 'canonical-broll-caption-owner-service-v2',
+'The V2 owner composition must mount the additive B-roll source authority.')
+check(compositionV2.brollInspectionSourceAuthorityReadPort
+  === compositionV2.brollOwner.inspectionSourceAuthorityReadPort
+  && compositionV2.brollInspectionSourceAuthorityReadPort.sourceAuthority
+    === 'canonical_b_roll_owner_private_inspection_source',
+'Caption must receive only the exact owner-issued B-roll inspection reader.')
+check(compositionV2.brollSelectedArtifactInspectionAuthorityMounted
+  && compositionV2.brollOwner
+    .selectedNormalizedArtifactAuthorityPersistedBeforeOwnerResult,
+'The selected normalized artifact authority must precede owner-result visibility.')
+check(!compositionV2.brollSelectionOwnedByCaption
+  && !compositionV2.runtimeAuthorityGrantedToCaption
+  && !compositionV2.finalQaApprovalAuthorityGrantedToCaption,
+'The stronger inspection mount must preserve closed Caption authority.')
+
 assert.throws(() => createCanonicalCaptionSharedOwnerPrivateComposition({
   objectPort,
   supportResumeRepository,
@@ -185,6 +217,7 @@ console.log(JSON.stringify({
   checks,
   soundOwnerMounted: true,
   brollOwnerMounted: true,
+  brollSelectedArtifactInspectionAuthorityMounted: true,
   actualPrivateEvidenceConsumed: false,
   sourceOnly: true,
   directPeerDispatchMounted: false,

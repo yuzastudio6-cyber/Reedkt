@@ -4,6 +4,10 @@ import { z } from 'zod'
 
 import type { CaptionDomainRef } from
   '../../src/types/caption-domain-contracts'
+import type {
+  CanonicalBrollCaptionInspectionSourceAuthority,
+  CanonicalBrollCaptionInspectionSourceAuthorityReadPort,
+} from '../../src/types/canonical-broll-caption-inspection-source-authority'
 import {
   CANONICAL_CAPTION_BROLL_OWNER_EVIDENCE_READ_PORT_VERSION,
   CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_AUTHORITY_READ_PORT_VERSION,
@@ -12,6 +16,7 @@ import {
   CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_BUNDLE_REPOSITORY_VERSION,
   CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_REQUEST_VERSION,
   CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_VERSION,
+  CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_V2_VERSION,
   type CanonicalCaptionBrollOwnerEvidenceReadPort,
   type CanonicalCaptionBrollOwnerEvidenceSnapshot,
   type CanonicalCaptionBrollOwnerInspectionAuthority,
@@ -23,6 +28,7 @@ import {
   type CanonicalCaptionBrollOwnerInspectionProjectionOutcome,
   type CanonicalCaptionBrollOwnerInspectionProjectionRequest,
   type CanonicalCaptionBrollOwnerInspectionProjectionService,
+  type CanonicalCaptionBrollOwnerInspectionProjectionServiceV2,
   type CanonicalCaptionBrollOwnerInspectionScope,
 } from '../../src/types/canonical-caption-broll-owner-inspection-projection'
 import type {
@@ -60,6 +66,27 @@ import {
 } from './canonical-caption-direct-visual-inspection-evidence-service'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   './canonical-gcs-source-analysis-lifecycle-store'
+import type { ServiceContext } from '../types'
+import { ApiError } from '../errors/api-error'
+import {
+  isCanonicalBrollCaptionInspectionSourceAuthorityReadPort,
+  parseCanonicalBrollCaptionInspectionSourceAuthority,
+} from './canonical-broll-caption-owner-service'
+import {
+  createCanonicalEditExecutionPackageService,
+} from './canonical-edit-execution-package-service'
+import {
+  createCanonicalCaptionPrivateReviewEvidenceService,
+  parseCanonicalCaptionPrivateReviewEvidenceProjection,
+} from './canonical-caption-private-review-evidence-service'
+import {
+  createEditPlanningAuthorityService,
+} from './edit-planning-authority-service'
+import {
+  revalidateCanonicalBrollPlanAuthority,
+} from './canonical-broll-plan-component-service'
+import { getRequiredAuthUserId } from './service-helpers'
+import { sha256AuthorityValue } from './private-edit-authority-store'
 
 const safeKey = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -490,6 +517,54 @@ export function isCanonicalCaptionBrollOwnerInspectionAuthorityReadPort(
     && admittedAuthorityReadPorts.has(value as object))
 }
 
+/**
+ * Canonical one-writer adapter for an approved Caption+B-roll run. It accepts
+ * no caller-authored authority: every field is derived from the authenticated
+ * execution package, immutable approved snapshot, canonical Caption review,
+ * B-roll support repository, and the B-roll owner's private source record.
+ */
+export function createCanonicalCaptionApprovedBrollRunInspectionAuthorityReadPort(
+  input: {
+    readonly context: ServiceContext
+    readonly brollEvidenceRepository:
+      CanonicalCaptionBrollEvidenceRepository
+    readonly brollInspectionSourceAuthorityReadPort:
+      CanonicalBrollCaptionInspectionSourceAuthorityReadPort
+  },
+): CanonicalCaptionBrollOwnerInspectionAuthorityReadPort {
+  if (!input.context
+    || input.brollEvidenceRepository?.schemaVersion
+      !== CANONICAL_CAPTION_BROLL_EVIDENCE_REPOSITORY_VERSION
+    || typeof input.brollEvidenceRepository.rereadOwnerResult !== 'function'
+    || typeof input.brollEvidenceRepository.rereadEvidenceRecord !== 'function'
+    || !isCanonicalBrollCaptionInspectionSourceAuthorityReadPort(
+      input.brollInspectionSourceAuthorityReadPort)) {
+    throw new Error(
+      'Canonical approved Caption+B-roll authority dependencies invalid.')
+  }
+  const ownerEvidenceReadPort =
+    createCanonicalCaptionBrollOwnerEvidenceReadPortFromRepository(
+      input.brollEvidenceRepository)
+  return createCanonicalCaptionBrollOwnerInspectionAuthorityReadPort(
+    async ({ request }) => {
+      try {
+        return await readApprovedBrollRunInspectionAuthority({
+          context: input.context,
+          request,
+          ownerEvidenceReadPort,
+          sourceAuthorityReadPort:
+            input.brollInspectionSourceAuthorityReadPort,
+        })
+      } catch (error) {
+        if (error instanceof ApiError
+          && ['APPROVED_SNAPSHOT_REQUIRED', 'JOB_DEPENDENCY_NOT_READY']
+            .includes(error.code)) return null
+        throw error
+      }
+    },
+  )
+}
+
 export function createCanonicalCaptionBrollOwnerInspectionProjectionService(
   input: {
     readonly bundleReadPort:
@@ -674,9 +749,97 @@ export function createCanonicalCaptionBrollOwnerInspectionProjectionService(
   return service
 }
 
+export function createCanonicalCaptionBrollOwnerInspectionProjectionServiceV2(
+  input: {
+    readonly bundleReadPort:
+      CanonicalCaptionBrollOwnerInspectionBundleReadPort
+    readonly ownerEvidenceReadPort:
+      CanonicalCaptionBrollOwnerEvidenceReadPort
+    readonly authorityReadPort:
+      CanonicalCaptionBrollOwnerInspectionAuthorityReadPort
+    readonly brollOwnerInspectionSourceAuthorityReadPort:
+      CanonicalBrollCaptionInspectionSourceAuthorityReadPort
+    readonly evidenceRepository:
+      CanonicalCaptionDirectVisualInspectionRepository
+  },
+): CanonicalCaptionBrollOwnerInspectionProjectionServiceV2 {
+  if (!isCanonicalBrollCaptionInspectionSourceAuthorityReadPort(
+    input.brollOwnerInspectionSourceAuthorityReadPort)) {
+    throw new Error(
+      'Canonical B-roll owner inspection source authority reader invalid.')
+  }
+  const legacyCore = createCanonicalCaptionBrollOwnerInspectionProjectionService({
+    bundleReadPort: input.bundleReadPort,
+    ownerEvidenceReadPort: input.ownerEvidenceReadPort,
+    authorityReadPort: input.authorityReadPort,
+    evidenceRepository: input.evidenceRepository,
+  })
+  const service = Object.freeze({
+    schemaVersion:
+      CANONICAL_CAPTION_BROLL_OWNER_INSPECTION_SERVICE_V2_VERSION,
+    tenantScopedBundleRereadRequired: true as const,
+    brollOwnerEvidenceRereadRequired: true as const,
+    canonicalApprovedRunAuthorityRereadRequired: true as const,
+    canonicalQualificationReaderMustRevalidateAuthority: true as const,
+    callerSuppliedReceiptAccepted: false as const,
+    callerSuppliedOwnerEvidenceAccepted: false as const,
+    callerSuppliedAuthorityAccepted: false as const,
+    brollOwnerInspectionSourceAuthorityReadPort:
+      input.brollOwnerInspectionSourceAuthorityReadPort,
+    exactSelectedNormalizedArtifactMetadataRereadRequired: true as const,
+    ownerSourceAuthorityRereadBeforeProjection: true as const,
+    async project(untrusted: unknown) {
+      const request =
+        parseCanonicalCaptionBrollOwnerInspectionProjectionRequest(untrusted)
+      const locator = locatorFromRequest(request)
+      const firstBundle = await readBundle(input.bundleReadPort, locator)
+      const secondBundle = await readBundle(input.bundleReadPort, locator)
+      const firstOwnerEvidence = await readOwnerEvidence(
+        input.ownerEvidenceReadPort, request.supportRequestRef)
+      const secondOwnerEvidence = await readOwnerEvidence(
+        input.ownerEvidenceReadPort, request.supportRequestRef)
+      if (!firstBundle || !secondBundle
+        || !sameCanonical(firstBundle, secondBundle)
+        || !firstOwnerEvidence || !secondOwnerEvidence
+        || !sameCanonical(firstOwnerEvidence, secondOwnerEvidence)) {
+        throw new Error(
+          'Canonical B-roll owner inspection source preflight changed.')
+      }
+      const ownerResult = firstOwnerEvidence.ownerResult
+      const sourceLocator = {
+        ownerRequestRef: structuredClone(ownerResult.ownerRequestRef),
+        ownerResultRef: ownerResultRef(ownerResult),
+      }
+      const firstSource = await readBrollInspectionSourceAuthority(
+        input.brollOwnerInspectionSourceAuthorityReadPort, sourceLocator)
+      const secondSource = await readBrollInspectionSourceAuthority(
+        input.brollOwnerInspectionSourceAuthorityReadPort, sourceLocator)
+      if (!firstSource || !secondSource
+        || !sameCanonical(firstSource, secondSource)) {
+        throw new Error(
+          'Canonical B-roll owner inspection source authority missing or changed.')
+      }
+      const selected = selectInspectionEvidence({
+        request,
+        bundle: firstBundle,
+        ownerEvidence: firstOwnerEvidence,
+      })
+      assertBrollInspectionSourceAuthority({
+        request,
+        selected,
+        sourceAuthority: firstSource,
+      })
+      return legacyCore.project(request)
+    },
+  })
+  admittedProjectionServices.add(service)
+  return service
+}
+
 export function isCanonicalCaptionBrollOwnerInspectionProjectionService(
   value: unknown,
-): value is CanonicalCaptionBrollOwnerInspectionProjectionService {
+): value is CanonicalCaptionBrollOwnerInspectionProjectionService
+  | CanonicalCaptionBrollOwnerInspectionProjectionServiceV2 {
   return Boolean(value && typeof value === 'object'
     && admittedProjectionServices.has(value as object))
 }
@@ -811,6 +974,235 @@ function assertApprovedLineage(input: {
   }
 }
 
+async function readApprovedBrollRunInspectionAuthority(input: {
+  context: ServiceContext
+  request: CanonicalCaptionBrollOwnerInspectionProjectionRequest
+  ownerEvidenceReadPort: CanonicalCaptionBrollOwnerEvidenceReadPort
+  sourceAuthorityReadPort:
+    CanonicalBrollCaptionInspectionSourceAuthorityReadPort
+}): Promise<CanonicalCaptionBrollOwnerInspectionAuthority | null> {
+  const request =
+    parseCanonicalCaptionBrollOwnerInspectionProjectionRequest(input.request)
+  const scope = request.canonicalScope
+  const ownerUserId = getRequiredAuthUserId(input.context)
+  const packageResult = await createCanonicalEditExecutionPackageService(
+    input.context).getPackage(
+      scope.executionPackageRef.id, scope.workspaceId)
+  const executionPackage = packageResult.approvedEditExecutionPackage
+  const approvedAuthority = await createEditPlanningAuthorityService(
+    input.context).loadApprovedExecutionAuthority(
+      executionPackage.approvedPlanSnapshotId, scope.workspaceId)
+  const reviewValue = await createCanonicalCaptionPrivateReviewEvidenceService(
+    input.context).readForPackage({
+      workspaceId: scope.workspaceId,
+      packageRecordId: executionPackage.packageRecordId,
+      outputId: scope.outputId,
+    })
+  if (!reviewValue) return null
+  const review = parseCanonicalCaptionPrivateReviewEvidenceProjection(
+    reviewValue)
+  const sourceManifest = approvedAuthority.sourceAssetManifest
+  if (sourceManifest.schemaVersion
+    !== 'private-approved-source-binding-manifest-v1') return null
+  const firstOwnerEvidence = await readOwnerEvidence(
+    input.ownerEvidenceReadPort, request.supportRequestRef)
+  const secondOwnerEvidence = await readOwnerEvidence(
+    input.ownerEvidenceReadPort, request.supportRequestRef)
+  if (!firstOwnerEvidence || !secondOwnerEvidence
+    || !sameCanonical(firstOwnerEvidence, secondOwnerEvidence)) {
+    throw new Error(
+      'Canonical approved Caption+B-roll owner evidence missing or changed.')
+  }
+  const ownerResult = firstOwnerEvidence.ownerResult
+  const ownerResultReference = ownerResultRef(ownerResult)
+  const sourceLocator = {
+    ownerRequestRef: structuredClone(ownerResult.ownerRequestRef),
+    ownerResultRef: ownerResultReference,
+  }
+  const firstSourceAuthority = await readBrollInspectionSourceAuthority(
+    input.sourceAuthorityReadPort, sourceLocator)
+  const secondSourceAuthority = await readBrollInspectionSourceAuthority(
+    input.sourceAuthorityReadPort, sourceLocator)
+  if (!firstSourceAuthority || !secondSourceAuthority
+    || !sameCanonical(firstSourceAuthority, secondSourceAuthority)) {
+    throw new Error(
+      'Canonical approved Caption+B-roll source authority missing or changed.')
+  }
+  const broll = await revalidateCanonicalBrollPlanAuthority({
+    localStorageRoot: input.context.env.localStorageRoot,
+    component: approvedAuthority.components.bRollSkill,
+    canonicalWorkItems: approvedAuthority.workItems,
+  })
+  if (!broll.assignment || !broll.plan || !broll.workGraph) return null
+  const approvedSnapshotRef: CaptionDomainRef = {
+    id: approvedAuthority.snapshot.snapshotId,
+    version: approvedAuthority.snapshot.schemaVersion,
+    contentHash: approvedAuthority.snapshot.snapshotHash,
+  }
+  const executionPackageRef: CaptionDomainRef = {
+    id: executionPackage.packageRecordId,
+    version: executionPackage.schemaVersion,
+    contentHash: executionPackage.packageHash,
+  }
+  const renderedArtifactRef = normalizeCanonicalEvidenceRef(
+    review.output.renderedArtifactRef)
+  const deterministicQaRef = normalizeCanonicalEvidenceRef(
+    review.output.deterministicQaRef)
+  const ownerScope = ownerResult.canonicalScope
+  const brollRange = broll.assignment.writeRangeAuthority.authorizedRange
+  const expectedPlanVersionId = `${approvedAuthority.snapshot.planId}.v${
+    approvedAuthority.snapshot.planVersion}`
+  const expectedBrollRecordRef = recordRef(firstOwnerEvidence.evidenceRecord)
+  if (scope.ownerUserId !== ownerUserId
+    || scope.workspaceId !== approvedAuthority.snapshot.workspaceId
+    || scope.projectId !== approvedAuthority.snapshot.projectId
+    || scope.editSessionId !== approvedAuthority.snapshot.editSessionId
+    || scope.planVersionId !== expectedPlanVersionId
+    || !sameRef(scope.approvedSnapshotRef, approvedSnapshotRef)
+    || !sameRef(scope.executionPackageRef, executionPackageRef)
+    || executionPackage.approvedPlanSnapshotId
+      !== approvedAuthority.snapshot.snapshotId
+    || scope.outputId !== approvedAuthority.captionPlanningProjection?.outputId
+    || review.canonicalScope.ownerUserId !== ownerUserId
+    || review.canonicalScope.workspaceId !== scope.workspaceId
+    || review.canonicalScope.projectId !== scope.projectId
+    || review.canonicalScope.editSessionId !== scope.editSessionId
+    || review.canonicalScope.approvedSnapshotId
+      !== approvedAuthority.snapshot.snapshotId
+    || review.canonicalScope.approvedSnapshotHash
+      !== approvedAuthority.snapshot.snapshotHash
+    || review.canonicalScope.planId !== approvedAuthority.snapshot.planId
+    || review.canonicalScope.planVersion
+      !== approvedAuthority.snapshot.planVersion
+    || review.canonicalScope.packageRecordId
+      !== executionPackage.packageRecordId
+    || review.canonicalScope.packageHash !== executionPackage.packageHash
+    || review.output.outputId !== scope.outputId
+    || !sameRef(review.output.confirmedOutputFrameRef,
+      request.confirmedOutputFrameRef)
+    || !sameRef(renderedArtifactRef, request.renderedArtifactRef)
+    || !sameRef(deterministicQaRef, request.deterministicQaRef)
+    || !review.visualReview.actualModelInferenceVerified
+    || !review.visualReview.exactApprovedRenderBound
+    || ownerScope.ownerUserId !== scope.ownerUserId
+    || ownerScope.workspaceId !== scope.workspaceId
+    || ownerScope.projectId !== scope.projectId
+    || ownerScope.editSessionId !== scope.editSessionId
+    || ownerScope.planVersionId !== scope.planVersionId
+    || !sameRef(ownerScope.approvedSnapshotRef, scope.approvedSnapshotRef)
+    || ownerScope.outputId !== scope.outputId
+    || ownerScope.sceneId !== scope.sceneId
+    || ownerScope.authorizedFrameRange.startFrameInclusive
+      !== scope.authorizedFrameRange.startFrame
+    || ownerScope.authorizedFrameRange.endFrameExclusive
+      !== scope.authorizedFrameRange.endFrameExclusive
+    || ownerScope.authorizedFrameRange.fps
+      !== scope.authorizedFrameRange.fps
+    || !sameRef(ownerScope.outputFrameRef, request.confirmedOutputFrameRef)
+    || !sameRef(ownerScope.masterTimingRef, scope.masterTimingRef)
+    || ownerScope.masterTimingHash !== scope.masterTimingHash
+    || !sameRef(firstSourceAuthority.ownerRequestRef,
+      ownerResult.ownerRequestRef)
+    || !sameRef(firstSourceAuthority.ownerResultRef,
+      ownerResultReference)
+    || !sameRef(firstSourceAuthority.brollResultReceiptRef,
+      ownerResult.brollResultReceiptRef)
+    || !sameRef(firstSourceAuthority.selectedNormalizedArtifactRef,
+      request.expectedSelectedNormalizedArtifactRef)
+    || !sameRef(firstSourceAuthority.brollAssignmentRef, {
+      id: broll.assignment.assignmentId,
+      version: broll.assignment.schemaVersion,
+      contentHash: broll.assignment.assignmentHash,
+    })
+    || !sameRef(firstSourceAuthority.brollPlanRef, {
+      id: broll.plan.planId,
+      version: broll.plan.schemaVersion,
+      contentHash: broll.plan.planHash,
+    })
+    || firstSourceAuthority.brollCanonicalWorkGraphRef.version
+      !== broll.workGraph.schemaVersion
+    || firstSourceAuthority.brollCanonicalWorkGraphRef.contentHash
+      !== broll.workGraph.workGraphHash
+    || broll.assignment.ownerUserId !== scope.ownerUserId
+    || broll.assignment.workspaceId !== scope.workspaceId
+    || broll.assignment.projectId !== scope.projectId
+    || broll.assignment.editSessionId !== scope.editSessionId
+    || broll.assignment.editPlanVersion
+      !== approvedAuthority.snapshot.planVersion
+    || !broll.assignment.segmentIds.includes(scope.sceneId)
+    || broll.assignment.masterTimingHash !== scope.masterTimingHash
+    || brollRange.startFrameInclusive
+      !== scope.authorizedFrameRange.startFrame
+    || brollRange.endFrameExclusive
+      !== scope.authorizedFrameRange.endFrameExclusive
+    || brollRange.fps !== scope.authorizedFrameRange.fps
+    || !sameRef(expectedBrollRecordRef,
+      request.expectedBrollEvidenceRecordRef)
+    || !sameRef(ownerResultReference, request.expectedOwnerResultRef)) {
+    throw new Error(
+      'Caption+B-roll inspection authority crossed canonical approved-run lineage.')
+  }
+  const sourceMediaAuthorityRef: CaptionDomainRef = {
+    id: `${approvedAuthority.snapshot.snapshotId}.approved-source-media`,
+    version: sourceManifest.schemaVersion,
+    contentHash: sourceManifest.manifestHash,
+  }
+  const sourceMediaBindingRefs: CaptionDomainRef[] =
+    sourceManifest.bindings.map((binding) => ({
+      id: binding.mediaAssetId,
+      version: 'private-approved-source-binding-v1',
+      contentHash: binding.bindingHash,
+    })).sort((left, right) => compareUtf16(refKey(left), refKey(right)))
+  const identityDigest = sha256AuthorityValue({
+    canonicalScope: scope,
+    confirmedOutputFrameRef: request.confirmedOutputFrameRef,
+    renderedArtifactRef,
+    deterministicQaRef,
+    supportRequestRef: request.supportRequestRef,
+    brollEvidenceRecordRef: expectedBrollRecordRef,
+    ownerResultRef: ownerResultReference,
+    selectedNormalizedArtifactRef:
+      firstSourceAuthority.selectedNormalizedArtifactRef,
+    brollInspectionSourceAuthorityDigestSha256:
+      firstSourceAuthority.authorityDigestSha256,
+    sourceMediaAuthorityRef,
+    sourceMediaBindingRefs,
+  })
+  return createCanonicalCaptionBrollOwnerInspectionAuthority({
+    authorityId: `caption.approved-broll-run.inspection.${
+      identityDigest.slice(0, 40)}`,
+    canonicalScope: structuredClone(scope),
+    confirmedOutputFrameRef:
+      structuredClone(request.confirmedOutputFrameRef),
+    renderedArtifactRef,
+    deterministicQaRef,
+    supportRequestRef: structuredClone(request.supportRequestRef),
+    brollEvidenceRecordRef: expectedBrollRecordRef,
+    ownerResultRef: ownerResultReference,
+    selectedNormalizedArtifactRef: structuredClone(
+      firstSourceAuthority.selectedNormalizedArtifactRef),
+    sourceMediaAuthorityRef,
+    sourceMediaBindingRefs,
+    exactApprovedSnapshotExecutionPackageOutputAndBrollWorkReread: true,
+    exactBrollOwnerEvidenceAndSelectedArtifactReread: true,
+    exactMasterTimingFrameAndSceneReread: true,
+    exactApprovedSourceManifestReread: true,
+  })
+}
+
+function normalizeCanonicalEvidenceRef(value: {
+  readonly id: string
+  readonly version: number
+  readonly contentHash: string
+}): CaptionDomainRef {
+  return {
+    id: value.id,
+    version: String(value.version),
+    contentHash: value.contentHash.startsWith('sha256:')
+      ? value.contentHash.slice(7) : value.contentHash,
+  }
+}
+
 async function readBundle(
   port: CanonicalCaptionBrollOwnerInspectionBundleReadPort,
   locator: CanonicalCaptionBrollOwnerInspectionBundleLocator,
@@ -834,6 +1226,61 @@ async function readOwnerEvidence(
     throw new Error('Canonical Caption B-roll owner evidence pair crossed.')
   }
   return { ownerResult, evidenceRecord }
+}
+
+async function readBrollInspectionSourceAuthority(
+  port: CanonicalBrollCaptionInspectionSourceAuthorityReadPort,
+  locator: Parameters<CanonicalBrollCaptionInspectionSourceAuthorityReadPort[
+    'readExact']>[0],
+): Promise<CanonicalBrollCaptionInspectionSourceAuthority | null> {
+  const value = await port.readExact(structuredClone(locator))
+  return value === null ? null
+    : parseCanonicalBrollCaptionInspectionSourceAuthority(value)
+}
+
+function assertBrollInspectionSourceAuthority(input: {
+  request: CanonicalCaptionBrollOwnerInspectionProjectionRequest
+  selected: SelectedInspectionEvidence
+  sourceAuthority: CanonicalBrollCaptionInspectionSourceAuthority
+}): void {
+  const { request, selected, sourceAuthority } = input
+  const ownerResult = selected.ownerResult
+  const ownerScope = ownerResult.canonicalScope
+  const sourceScope = sourceAuthority.canonicalScope
+  const metadata = sourceAuthority.selectedNormalizedArtifact
+  const selectedEvidence = selected.reviewSpec.sourceEvidence
+  const expectedFrameCount =
+    ownerScope.authorizedFrameRange.endFrameExclusive
+    - ownerScope.authorizedFrameRange.startFrameInclusive
+  if (!sameRef(sourceAuthority.ownerRequestRef, ownerResult.ownerRequestRef)
+    || !sameRef(sourceAuthority.ownerResultRef, ownerResultRef(ownerResult))
+    || !sameRef(sourceAuthority.brollResultReceiptRef,
+      ownerResult.brollResultReceiptRef)
+    || !sameRef(sourceAuthority.selectedMediaManifestRef,
+      ownerResult.selectedMediaManifestRef)
+    || !sameRef(sourceAuthority.layoutOccupancyRef,
+      ownerResult.layoutOccupancyRef)
+    || !sameRef(sourceAuthority.privateVisualReviewRef,
+      ownerResult.authenticatedOwnerEvidenceRef)
+    || !sameRef(sourceAuthority.selectedNormalizedArtifactRef,
+      request.expectedSelectedNormalizedArtifactRef)
+    || !sameRef(sourceAuthority.selectedNormalizedArtifactRef,
+      selected.selectedNormalizedArtifactRef)
+    || metadata.byteLength
+      !== selectedEvidence.selectedNormalizedArtifactByteLength
+    || metadata.mimeType
+      !== selectedEvidence.selectedNormalizedArtifactMimeType
+    || metadata.frameCount
+      !== selectedEvidence.selectedNormalizedArtifactFrameCount
+    || metadata.frameRate
+      !== selectedEvidence.selectedNormalizedArtifactFps
+    || metadata.frameCount !== expectedFrameCount
+    || metadata.frameRate !== ownerScope.authorizedFrameRange.fps
+    || !selectedEvidence.selectedSourceAudioRemovedByOwner
+    || !sameCanonical(sourceScope, ownerScope)) {
+    throw new Error(
+      'Canonical B-roll owner inspection source crossed selected artifact lineage.')
+  }
 }
 
 async function readAuthority(

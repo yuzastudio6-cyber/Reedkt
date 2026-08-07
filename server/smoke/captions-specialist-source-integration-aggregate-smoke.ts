@@ -116,6 +116,8 @@ console.log(JSON.stringify({
   multiRunFortyOneJobCatalogImplemented: true,
   boundedMultiRunCampaignControllerImplemented: true,
   brollOwnerInspectionApprovedRunLaneMounted: true,
+  brollOwnerSelectedArtifactSourceAuthorityMounted: true,
+  callerSuppliedBrollInspectionAuthorityPortAccepted: false,
   mixedInspectionLaneCampaignMounted: true,
   finalPrivateQualificationServiceImplemented: true,
   actualQualificationCatalogPersisted: false,

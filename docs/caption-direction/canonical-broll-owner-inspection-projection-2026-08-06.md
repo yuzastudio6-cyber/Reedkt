@@ -1,6 +1,6 @@
 # Canonical B-roll owner inspection projection — 2026-08-06
 
-Status: `source_ready_waiting_for_exact_approved_run_authority`
+Status: `source_mounted_waiting_for_canonical_private_evidence`
 
 ## Outcome
 
@@ -16,6 +16,19 @@ Public identities:
 - `canonical-caption-broll-owner-inspection-evidence-read-port-v1`;
 - `canonical-caption-broll-owner-inspection-approved-run-authority-v1`; and
 - `canonical-caption-broll-owner-inspection-projection-service-v1`.
+
+The additive owner-backed mount now also publishes:
+
+- `canonical-broll-caption-inspection-source-authority-v1`;
+- `canonical-broll-caption-inspection-source-read-port-v1`;
+- `canonical-broll-caption-owner-service-v2`;
+- `canonical-caption-broll-owner-inspection-projection-service-v2`; and
+- `canonical-caption-private-qualification-composition-v8`.
+
+The V1 request and outcome wires remain unchanged. V2 strengthens only the
+private service composition: the B-roll owner persists a byte-free record for
+the exact selected normalized artifact before publishing its owner result, and
+Caption receives only the owner-issued nominal read port.
 
 ## Exact lineage
 
@@ -39,7 +52,7 @@ render, QA, confirmed frame, and approved source-manifest authority.
 
 ## Fail-closed evidence
 
-The focused source smoke passes 16 checks covering:
+The focused source smoke passes 23 checks covering:
 
 - exact create-only persistence and identical replay;
 - all 72 frames represented for the selected variant plus seven
@@ -50,20 +63,24 @@ The focused source smoke passes 16 checks covering:
 - caller-supplied receipt refusal;
 - changing/missing owner-evidence reread refusal;
 - changing approved-run authority refusal;
+- missing, changed, or forged selected-artifact source authority refusal;
+- exact selected artifact byte length, MIME type, frame count, FPS, and
+  audio-removal reconciliation;
 - unsorted source-binding refusal; and
 - create-only collision refusal.
 
-The Caption source integration aggregate now contains 46 source suites and
+The Caption source integration aggregate now contains 47 source suites and
 still reports all 41 Caption-owned job implementations source-ready.
 
 ## Honest remaining boundary
 
-This source adapter does not claim that the real private B-roll receipt has
-already entered a terminal canonical run. The current evidence remains accepted
-outside terminal scope until a real approved execution package supplies the
-exact authority, persists the exact bundle, projects it, and lets the existing
-qualification reader reread all owner and final-QA evidence under the same
-scope.
+This mount does not claim that the real private B-roll receipt has already
+entered a terminal canonical run. The current evidence remains accepted outside
+terminal scope until a real approved execution package contains the exact
+owner result, selected artifact, Caption render, deterministic QA, qualified
+postrender review, independent final QA, and private-review evidence under the
+same scope. The existing qualification reader must reread those records before
+any job can become terminally qualified.
 
 No provider/model call, media runtime, repair execution, asset mutation,
 final-QA approval, billing, public delivery, or production authority is granted.

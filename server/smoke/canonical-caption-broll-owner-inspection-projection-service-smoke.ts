@@ -9,6 +9,9 @@ import type { CaptionRemotionBrollOwnerReviewSpec } from
   '../../src/types/caption-remotion-broll-owner-review'
 import type { BrollCaptionOwnerReadResult } from
   '../../src/types/caption-broll-owner-read-adapter'
+import type {
+  CanonicalBrollCaptionInspectionSourceAuthority,
+} from '../../src/types/canonical-broll-caption-inspection-source-authority'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import type {
@@ -33,6 +36,11 @@ import { createCaptionsHarnessCall } from
   '../internal-testing/captions-specialist-harness'
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
+import { hashSkillValue } from '../edit-skills/core'
+import {
+  createCanonicalBrollCaptionOwnerServiceV2,
+  createCanonicalBrollCaptionPrivateVisualReviewReadPort,
+} from '../services/canonical-broll-caption-owner-service'
 import {
   createCanonicalCaptionBrollEvidenceRepository,
   createCanonicalCaptionBrollApprovedSnapshotReadPort,
@@ -47,6 +55,7 @@ import {
   createCanonicalCaptionBrollOwnerInspectionBundleRepository,
   createCanonicalCaptionBrollOwnerInspectionProjectionRequest,
   createCanonicalCaptionBrollOwnerInspectionProjectionService,
+  createCanonicalCaptionBrollOwnerInspectionProjectionServiceV2,
   parseCanonicalCaptionBrollOwnerInspectionAuthority,
 } from '../services/canonical-caption-broll-owner-inspection-projection-service'
 import {
@@ -467,6 +476,43 @@ const authority = createCanonicalCaptionBrollOwnerInspectionAuthority({
   exactApprovedSourceManifestReread: true,
 })
 
+const sourceAuthorityValues = new Map<string, Buffer>()
+const sourceAuthorityObjectPort = memoryObjectPort(sourceAuthorityValues)
+const sourceAuthorityPrefix =
+  'private/smoke/caption-broll-inspection/source-owner/v2'
+const brollSourceOwner = createCanonicalBrollCaptionOwnerServiceV2({
+  objectPort: sourceAuthorityObjectPort,
+  artifactStore: {
+    storageClass: 'durable',
+    async putJson() {
+      throw new Error('Projection smoke must not write B-roll artifacts.')
+    },
+    async readJson() {
+      throw new Error('Projection smoke must not read B-roll artifacts.')
+    },
+  },
+  approvedSnapshotReadPort:
+    createCanonicalCaptionBrollApprovedSnapshotReadPort(async () => {
+      throw new Error('Projection smoke must not reread a snapshot here.')
+    }),
+  privateVisualReviewReadPort:
+    createCanonicalBrollCaptionPrivateVisualReviewReadPort(async () => {
+      throw new Error('Projection smoke must not invent B-roll visual QA.')
+    }),
+  prefix: sourceAuthorityPrefix,
+})
+const inspectionSourceAuthority = brollInspectionSourceAuthorityFixture({
+  ownerResult,
+  selectedNormalizedArtifactRef,
+  selectedNormalizedArtifactByteLength: selectedBytes.byteLength,
+})
+const inspectionSourceAuthorityPath = `${sourceAuthorityPrefix}/`
+  + `inspection-source-authorities/${ownerResult.resultDigestSha256}.json`
+sourceAuthorityValues.set(
+  inspectionSourceAuthorityPath,
+  Buffer.from(JSON.stringify(inspectionSourceAuthority), 'utf8'),
+)
+
 let bundleReads = 0
 const bundleReadPort =
   createCanonicalCaptionBrollOwnerInspectionBundleReadPort(async (input) => {
@@ -526,6 +572,39 @@ const replay = await service.project(request)
 check(replay.evidence.evidenceDigestSha256
   === outcome.evidence.evidenceDigestSha256,
 'Exact projection replay must reread byte-identical canonical evidence.')
+
+const serviceV2 =
+  createCanonicalCaptionBrollOwnerInspectionProjectionServiceV2({
+    bundleReadPort,
+    ownerEvidenceReadPort,
+    authorityReadPort,
+    brollOwnerInspectionSourceAuthorityReadPort:
+      brollSourceOwner.inspectionSourceAuthorityReadPort,
+    evidenceRepository: directEvidenceRepository,
+  })
+const v2Outcome = await serviceV2.project(request)
+check(serviceV2.schemaVersion ===
+  'canonical-caption-broll-owner-inspection-projection-service-v2'
+  && serviceV2.ownerSourceAuthorityRereadBeforeProjection
+  && serviceV2.exactSelectedNormalizedArtifactMetadataRereadRequired
+  && v2Outcome.evidence.evidenceDigestSha256
+    === outcome.evidence.evidenceDigestSha256,
+'The V2 projection must reread the owner-issued selected-artifact metadata '
+  + 'without changing Caption evidence semantics.')
+const wrongMetadataAuthority = brollInspectionSourceAuthorityFixture({
+  ownerResult,
+  selectedNormalizedArtifactRef,
+  selectedNormalizedArtifactByteLength: selectedBytes.byteLength - 1,
+})
+sourceAuthorityValues.set(
+  inspectionSourceAuthorityPath,
+  Buffer.from(JSON.stringify(wrongMetadataAuthority), 'utf8'),
+)
+await reject(() => serviceV2.project(request))
+sourceAuthorityValues.set(
+  inspectionSourceAuthorityPath,
+  Buffer.from(JSON.stringify(inspectionSourceAuthority), 'utf8'),
+)
 
 const runEvidenceAssembly =
   createCanonicalCaptionQualificationRunEvidenceAssembly({
@@ -733,6 +812,76 @@ console.log(JSON.stringify({
   publicDeliveryGranted: false,
   productionAuthorityGranted: false,
 }, null, 2))
+
+function brollInspectionSourceAuthorityFixture(input: {
+  ownerResult: BrollCaptionOwnerReadResult
+  selectedNormalizedArtifactRef: CaptionDomainRef
+  selectedNormalizedArtifactByteLength: number
+}): CanonicalBrollCaptionInspectionSourceAuthority {
+  const core: Omit<CanonicalBrollCaptionInspectionSourceAuthority,
+    'authorityDigestSha256'> = {
+    schemaVersion:
+      'canonical-broll-caption-inspection-source-authority-v1',
+    authorityId: 'authority.broll.inspection.source.1',
+    canonicalScope: structuredClone(input.ownerResult.canonicalScope),
+    ownerRequestRef: structuredClone(input.ownerResult.ownerRequestRef),
+    ownerResultRef: ownerResultReference(input.ownerResult),
+    brollAssignmentRef: ref(
+      'assignment.broll.inspection.1', 'b_roll_assignment_v1'),
+    brollPlanRef: ref('plan.broll.inspection.1', 'b_roll_plan_v1'),
+    brollApprovedWorkGraphRef: ref(
+      'graph.broll.inspection.approved.1',
+      'edit-skill-approved-work-graph-v1'),
+    brollCanonicalWorkGraphRef: ref(
+      'graph.broll.inspection.canonical.1',
+      'b_roll_canonical_work_graph_v1'),
+    brollResultReceiptRef:
+      structuredClone(input.ownerResult.brollResultReceiptRef),
+    selectedMediaManifestRef:
+      structuredClone(input.ownerResult.selectedMediaManifestRef),
+    layoutOccupancyRef:
+      structuredClone(input.ownerResult.layoutOccupancyRef),
+    privateVisualReviewRef:
+      structuredClone(input.ownerResult.authenticatedOwnerEvidenceRef),
+    previewArtifactRef: ref(
+      'preview.broll.inspection.1',
+      'b_roll_private_preview_media_manifest_v1'),
+    integrationQaRef: ref(
+      'qa.broll.inspection.integration.1', 'b_roll_integration_qa_v1'),
+    selectedNormalizedArtifactRef:
+      structuredClone(input.selectedNormalizedArtifactRef),
+    selectedNormalizedArtifact: {
+      privateObjectIdentityDigestSha256:
+        hash('private-object.broll.inspection.1'),
+      byteLength: input.selectedNormalizedArtifactByteLength,
+      mimeType: 'video/x-nut',
+      frameCount: 72,
+      frameRate: 24,
+      audioRemoved: true,
+    },
+    selectedSourceRoute: 'existing_project_clip',
+    exactCanonicalBrollWorkAndArtifactRereadVerified: true,
+    exactPrivateVisualReviewRereadVerified: true,
+    exactSelectedNormalizedArtifactIdentityVerified: true,
+    persistedCreateOnlyAndExactReread: true,
+    mediaBytesIncluded: false,
+    mediaLocatorIncluded: false,
+    rawChatIncluded: false,
+    credentialsIncluded: false,
+    sourceSelectionPerformedByCaption: false,
+    cropOrTimingPerformedByCaption: false,
+    runtimeOrDispatchAuthorityGranted: false,
+    assetMutationAuthorityGranted: false,
+    finalQaApprovalGranted: false,
+    billingAuthorityGranted: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  return {
+    ...core,
+    authorityDigestSha256: hashSkillValue(core),
+  }
+}
 
 function ownerResultFixture(
   request: typeof ownerRequest,

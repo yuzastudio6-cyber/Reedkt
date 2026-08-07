@@ -87,7 +87,7 @@ import {
 import {
   createBrollCaptionPrivateVisualReview,
   createCanonicalBrollCaptionPrivateVisualReviewReadPort,
-  createCanonicalBrollCaptionOwnerService,
+  createCanonicalBrollCaptionOwnerServiceV2,
 } from '../services/canonical-broll-caption-owner-service'
 import {
   createCanonicalCaptionBrollApprovedSnapshotReadPort,
@@ -1061,7 +1061,8 @@ try {
     assert.ok(sourceSnapshot.resultReceipt
       && 'preview' in sourceSnapshot.resultReceipt)
     assert.ok(sourceSnapshot.layerManifest && sourceSnapshot.integrationQa)
-    const preview = sourceSnapshot.resultReceipt.preview
+    const canonicalSourceResultReceipt = sourceSnapshot.resultReceipt
+    const preview = canonicalSourceResultReceipt.preview
     const previewPath = join(
       root,
       'b-roll',
@@ -1272,7 +1273,7 @@ try {
           assert.deepEqual(read.reviewedFrameRange, authorizedRange)
           return structuredClone(privateVisualReview)
         })
-      const ownerService = createCanonicalBrollCaptionOwnerService({
+      const ownerService = createCanonicalBrollCaptionOwnerServiceV2({
         objectPort,
         artifactStore,
         approvedSnapshotReadPort,
@@ -1290,6 +1291,38 @@ try {
       })
       assert.equal(ownerResult.authenticatedOwnerEvidenceRef.contentHash,
         privateVisualReview.reviewDigestSha256)
+      const inspectionSourceAuthority =
+        await ownerService.inspectionSourceAuthorityReadPort.readExact({
+          ownerRequestRef: ownerResult.ownerRequestRef,
+          ownerResultRef: {
+            id: ownerResult.resultId,
+            version: ownerResult.schemaVersion,
+            contentHash: ownerResult.resultDigestSha256,
+          },
+        })
+      assert.ok(inspectionSourceAuthority)
+      assert.equal(
+        inspectionSourceAuthority.selectedNormalizedArtifactRef.contentHash,
+        canonicalSourceResultReceipt.selectedArtifact.normalizedArtifact.sha256,
+      )
+      assert.equal(
+        inspectionSourceAuthority.selectedNormalizedArtifact
+          .privateObjectIdentityDigestSha256,
+        canonicalSourceResultReceipt.selectedArtifact.normalizedArtifact
+          .privateObjectIdentityHash,
+      )
+      assert.equal(
+        inspectionSourceAuthority.selectedNormalizedArtifact.frameCount,
+        authorizedRange.endFrameExclusive
+          - authorizedRange.startFrameInclusive,
+      )
+      assert.equal(
+        inspectionSourceAuthority.selectedNormalizedArtifact.frameRate,
+        authorizedRange.fps,
+      )
+      assert.equal(inspectionSourceAuthority.sourceSelectionPerformedByCaption,
+        false)
+      assert.equal(inspectionSourceAuthority.finalQaApprovalGranted, false)
       const publicAssignmentCore = Object.fromEntries(
         Object.entries(sourceFixture.assignment).filter(([key]) =>
           key !== 'assignmentHash'),

@@ -20,6 +20,7 @@ import {
 import type {
   CanonicalCaptionBrollOwnerInspectionBundleRepository,
   CanonicalCaptionBrollOwnerInspectionProjectionService,
+  CanonicalCaptionBrollOwnerInspectionProjectionServiceV2,
 } from '../../src/types/canonical-caption-broll-owner-inspection-projection'
 import type {
   CanonicalCaptionQualificationRunEvidenceAssembly,
@@ -194,6 +195,7 @@ export function createCanonicalCaptionPrivateQualificationRunControllerV2(
       CanonicalCaptionBrollOwnerInspectionBundleRepository
     readonly brollInspectionProjectionService:
       CanonicalCaptionBrollOwnerInspectionProjectionService
+      | CanonicalCaptionBrollOwnerInspectionProjectionServiceV2
     readonly runEvidenceAssembly:
       CanonicalCaptionQualificationRunEvidenceAssembly
   },
@@ -464,6 +466,7 @@ function assertDependencies(input: {
     CanonicalCaptionBrollOwnerInspectionBundleRepository
   brollInspectionProjectionService:
     CanonicalCaptionBrollOwnerInspectionProjectionService
+    | CanonicalCaptionBrollOwnerInspectionProjectionServiceV2
   runEvidenceAssembly: CanonicalCaptionQualificationRunEvidenceAssembly
 }): void {
   const legacy = input.legacyUploadedSourceController

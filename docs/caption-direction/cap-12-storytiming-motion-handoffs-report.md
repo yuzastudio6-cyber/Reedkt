@@ -38,6 +38,14 @@ The additive compatibility lane introduces:
 - `caption-incoming-typography-request-v1`;
 - `caption-cross-system-coordination-plan-v1`.
 
+The additive `captions.specialist.integration.manifest.v3` now exposes these
+Caption-owned coordination outputs and the exact mediated incoming-support
+input through the future-HQ capability surface. Its hash is
+`670160edb63d4abebe8b33096a5ea70089000e6f46f8b079f5c3a046940ae0a9`;
+the bound planning-only qualification digest is
+`927769c6ee37009e5538752a23715be8e0f33f0c70b52e8c52b59ec5a33b3b81`.
+Earlier manifest identities and hashes remain frozen.
+
 The existing generic `caption-motion-lock-v1` remains readable. V2 adds exact
 scene-graph, StoryTiming-resolution, stable-read, renderer, and future Sound
 lineage without mutating V1.

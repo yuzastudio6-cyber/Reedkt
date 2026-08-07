@@ -9,6 +9,11 @@ import {
   type CaptionsSupportJobType,
   type CaptionsSupportedJobType,
 } from '../../src/types/captions-specialist'
+import {
+  CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+} from '../../src/types/caption-cross-system-coordination'
 import { publishSkillCapabilityManifestV2 } from
   '../orchestra/skill-capability-manifest'
 import { CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF } from
@@ -38,6 +43,25 @@ export const CAPTIONS_SPECIALIST_INTEGRATION_V2_VERSION =
   'captions-specialist-integration-v2' as const
 export const CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID =
   'captions.incoming-support-request-v2-reread' as const
+export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3_ID =
+  'captions.specialist.integration.manifest.v3' as const
+export const CAPTIONS_SPECIALIST_INTEGRATION_V3_VERSION =
+  'captions-specialist-integration-v3' as const
+export const CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID =
+  'captions.cross-system.manifest-v3' as const
+
+const CAPTION_CROSS_SYSTEM_HANDOFF_JOB_TYPES = [
+  'plan_caption_to_visual_handoff',
+  'provide_typographic_transition_support',
+  'provide_caption_to_visual_handoff_spec',
+  'provide_caption_broll_composition_constraints',
+  'provide_caption_living_frame_handoff_constraints',
+] as const satisfies readonly CaptionsSupportedJobType[]
+
+const CAPTION_INCOMING_TYPOGRAPHY_JOB_TYPES = [
+  'provide_speech_derived_typography_spec',
+  'provide_typographic_transition_component',
+] as const satisfies readonly CaptionsSupportedJobType[]
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -263,3 +287,112 @@ UnpublishedSkillCapabilityManifestV2 = {
 
 export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2 =
   publishSkillCapabilityManifestV2(unpublishedIntegrationManifestV2)
+
+function integrateEntryV3(entry: SkillCapabilityEntry): SkillCapabilityEntry {
+  const supportJob = (CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
+    .includes(entry.supportedJobType)
+  const crossSystemHandoff = (
+    CAPTION_CROSS_SYSTEM_HANDOFF_JOB_TYPES as readonly string[])
+    .includes(entry.supportedJobType)
+  const coordinationPlan = entry.supportedJobType
+    === 'plan_caption_to_visual_handoff'
+  const incomingTypography = (
+    CAPTION_INCOMING_TYPOGRAPHY_JOB_TYPES as readonly string[])
+    .includes(entry.supportedJobType)
+  return {
+    ...structuredClone(entry),
+    capabilityVersion: 'captions-capability-integration-v3',
+    qualificationEvidenceRefs: unique([
+      ...entry.qualificationEvidenceRefs,
+      CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID,
+    ]),
+    requiredInputs: unique([
+      ...entry.requiredInputs,
+      ...(supportJob ? ['source_skill_support_request'] : []),
+    ]),
+    requiredEvidence: unique([
+      ...entry.requiredEvidence,
+      ...(supportJob ? ['source_skill_support_request'] : []),
+    ]),
+    acceptedArtifactTypes: unique([
+      ...entry.acceptedArtifactTypes,
+      ...entry.requiredEvidence,
+      ...(supportJob ? ['source_skill_support_request'] : []),
+    ]),
+    producedArtifactTypes: unique([
+      ...entry.producedArtifactTypes,
+      ...(crossSystemHandoff ? [
+        CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+        CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+      ] : []),
+      ...(coordinationPlan
+        ? [CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE] : []),
+    ]),
+    integrationQa: unique([
+      ...entry.integrationQa,
+      ...(supportJob
+        ? ['source_support_request_declared_and_exactly_reread'] : []),
+      ...(crossSystemHandoff
+        ? ['cross_system_payload_and_handoff_declared_without_receiver_execution']
+        : []),
+      ...(incomingTypography
+        ? ['incoming_typography_typed_payload_closed_and_source_bound'] : []),
+    ]),
+    qualificationFixtures: unique([
+      ...entry.qualificationFixtures,
+      'captions.cross-system.manifest-v3',
+    ]),
+  }
+}
+
+const {
+  manifestHash: _integrationV2HashForV3,
+  ...integrationV2BodyForV3
+} = structuredClone(
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2) as SkillCapabilityManifestV2
+void _integrationV2HashForV3
+
+const capabilityEntriesV3 = integrationV2BodyForV3.capabilityEntries.map(
+  integrateEntryV3)
+
+const unpublishedIntegrationManifestV3:
+UnpublishedSkillCapabilityManifestV2 = {
+  ...integrationV2BodyForV3,
+  manifestId: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3_ID,
+  skillVersion: CAPTIONS_SPECIALIST_INTEGRATION_V3_VERSION,
+  qualificationEvidenceRefs: [
+    ...integrationV2BodyForV3.qualificationEvidenceRefs,
+    {
+      evidenceId: CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID,
+      evidenceType: 'smoke_test',
+      location: 'server/smoke/captions-specialist-cap-12-smoke.ts',
+      assertion:
+        'The manifest exposes the closed Caption cross-system payload, handoff, coordination, and mediated incoming-support surfaces without granting receiver execution.',
+    },
+  ],
+  optionalInputs: unique([
+    ...integrationV2BodyForV3.optionalInputs,
+    'source_skill_support_request',
+  ]),
+  acceptedArtifactTypes: unique(capabilityEntriesV3.flatMap((entry) =>
+    entry.acceptedArtifactTypes)),
+  producedArtifactTypes: unique(capabilityEntriesV3.flatMap((entry) =>
+    entry.producedArtifactTypes)),
+  integrationQa: unique([
+    ...integrationV2BodyForV3.integrationQa,
+    'global_artifact_catalog_equals_per_job_artifact_union',
+    'cross_system_artifacts_remain_caption_owned_coordination_only',
+  ]),
+  qualificationFixtures: unique([
+    ...integrationV2BodyForV3.qualificationFixtures,
+    'captions.cross-system.manifest-v3',
+  ]),
+  knownLimitations: [
+    ...integrationV2BodyForV3.knownLimitations,
+    'Cross-system artifact declarations prove Caption-owned planning and coordination output only; they do not claim receiver execution or result evidence.',
+  ],
+  capabilityEntries: capabilityEntriesV3,
+}
+
+export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 =
+  publishSkillCapabilityManifestV2(unpublishedIntegrationManifestV3)

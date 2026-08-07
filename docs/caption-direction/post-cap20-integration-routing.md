@@ -4,10 +4,16 @@ Milestone: `POST-CAP-20-INTEGRATION-ROUTING`
 
 Status: `source_complete_authenticated_owner_evidence_pending`
 
-- integration manifest hash:
-  `5a23bcae3cf008cd5c18484a00d77df5ec17efd27a6d99f454e11f87178e1ef2`;
-- integration qualification digest:
-  `963eccd82559bb4f2dd80cbd87a67e514b6ed897cd1a6a7c0f54f917a181d754`.
+- shared-owner integration manifest hash:
+  `66d8c5559f828ee6e61933b8c930c7b50b9dedd92458f7b46ffe939e9b2ad954`;
+- shared-owner integration qualification digest:
+  `88370247b34496bb1b62b340b31b726905bf71db191858dd43c3920a6b906231`;
+- incoming-support V2 manifest/qualification:
+  `ee006e4f3e487164e7bc08f64784eb7b73df4b47b4f3a1adba348c662c2a6035` /
+  `b4aa6c96eda9df92340f54d9d6fd7b92742546bed83fd5bd58ee1e371f37ed30`;
+- cross-system V3 manifest/qualification:
+  `670160edb63d4abebe8b33096a5ea70089000e6f46f8b079f5c3a046940ae0a9` /
+  `927769c6ee37009e5538752a23715be8e0f33f0c70b52e8c52b59ec5a33b3b81`.
 
 ## Outcome
 
@@ -59,6 +65,15 @@ The additive integration manifest and qualification use distinct IDs and
 digests. Both qualify planning and dependency routing only. Preview, private,
 final, and production execution remain blocked.
 
+The later V2 identity adds the exact incoming Caption support-result artifacts.
+The V3 identity closes the remaining manifest declaration gap: every support
+job requires and accepts `source_skill_support_request`, the top-level output
+catalog is exactly the union of per-job output declarations, and the relevant
+CAP-12 jobs expose `caption_cross_system_outbound_payload`,
+`caption_cross_system_handoff`, and
+`caption_cross_system_coordination_plan`. These are byte-free Caption-owned
+planning artifacts, not receiver execution or result evidence.
+
 ## Canonical backend bridge requirement
 
 The active backend and Caption branches both contain the strings
@@ -102,7 +117,7 @@ result injection and pixel-bound Caption readability evidence remain external.
 
 ## Tests
 
-The focused integration smoke passes 29 checks for frozen-hash compatibility,
+The focused integration smoke passes 41 checks for frozen-hash compatibility,
 all twelve
 conditional job requirements, SoundSync and B-roll routing, two-owner
 safe-region sequential resume, missing-transcript fail-closed behavior,

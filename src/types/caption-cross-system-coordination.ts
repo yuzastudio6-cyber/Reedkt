@@ -18,6 +18,13 @@ export const CAPTION_INCOMING_TYPOGRAPHY_REQUEST_VERSION =
 export const CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_VERSION =
   'caption-cross-system-coordination-plan-v1' as const
 
+export const CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE =
+  'caption_cross_system_outbound_payload' as const
+export const CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE =
+  'caption_cross_system_handoff' as const
+export const CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE =
+  'caption_cross_system_coordination_plan' as const
+
 export type CaptionCrossSystemReceiverV2 =
   | 'living_frame'
   | 'transitions'

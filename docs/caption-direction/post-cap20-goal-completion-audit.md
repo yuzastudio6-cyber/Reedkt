@@ -66,6 +66,13 @@ peer dispatch. This shared target-registration seam does not block existing
 Caption-owned source work or replace any of the nine terminal private-evidence
 gates listed above.
 
+The additive integration manifest V3 now publishes that exact cross-system
+artifact surface to future HQ callers. It declares the mediated source request
+for every support job, every Caption support-result artifact, and the outbound
+payload/handoff/coordination-plan outputs without changing the frozen CAP-12
+wire contracts or claiming receiver execution. This closes a source-manifest
+exposure gap; it does not satisfy any terminal private-evidence gate.
+
 The source-led professional Caption planning seam and its default deterministic
 server owner are now mounted. The owner rereads exact source-analysis evidence,
 attaches the professional composition trace, early bundle, estimate, and typed

@@ -45,9 +45,12 @@ import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
   '../captions-specialist/captions-specialist-integration-manifest'
 import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2 } from
   '../captions-specialist/captions-specialist-integration-manifest'
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 } from
+  '../captions-specialist/captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
 } from
   '../captions-specialist/captions-specialist-integration-qualification'
 import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
@@ -875,16 +878,21 @@ function createCaptionCall(input: {
   initialArtifactRefs:
     CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs']
 }): OrchestraSkillCall {
-  const assignmentInput = input.workInput.schemaVersion ===
-      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+  const sourceLedInput = input.workInput.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+  const assignmentInput = sourceLedInput
     || input.workInput.schemaVersion ===
-      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
-  const integrationManifest = assignmentInput
-    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2
-    : CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
-  const integrationQualification = assignmentInput
-    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2
-    : CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
+  const integrationManifest = sourceLedInput
+    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3
+    : assignmentInput
+      ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2
+      : CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
+  const integrationQualification = sourceLedInput
+    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+    : assignmentInput
+      ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2
+      : CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
   const manifestRef: SkillContractRef = {
     id: integrationManifest.manifestId,
     version: integrationManifest.manifestSchemaVersion,

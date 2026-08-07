@@ -38,6 +38,8 @@ import {
   '../services/canonical-caption-specialist-execution-service'
 import { createCanonicalSpecialistSupportResumeRepository } from
   '../services/canonical-specialist-support-resume-service'
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 } from
+  '../captions-specialist/captions-specialist-integration-manifest'
 import type { CanonicalApprovedExecutionAuthority } from
   '../services/edit-planning-authority-service'
 import type { CanonicalApprovedEditExecutionPackage } from
@@ -913,6 +915,10 @@ const v3Execution = await executeCanonicalCaptionSpecialistWorkItem({
   now: () => new Date('2026-08-05T18:01:00.000Z'),
 })
 check(v3Execution.pair.result.disposition === 'completed'
+  && v3Execution.pair.call.manifestRef.id
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId
+  && v3Execution.pair.call.manifestRef.contentHash
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash
   && v3Execution.pair.call.inputArtifactRefs.some((artifact) =>
     artifact.artifactType ===
       'canonical_transcript_planning_expectation_binding'

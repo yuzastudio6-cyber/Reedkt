@@ -84,11 +84,13 @@ import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from './captions-specialis
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
 } from
   './captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
 } from
   './captions-specialist-integration-qualification'
 import {
@@ -799,11 +801,19 @@ export function runCaptionsSpecialistJob(input: {
     CaptionStoryTimingResolutionBinding
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
+  const integrationV3Profile = call.manifestRef.id
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId
   const integrationV2Profile = call.manifestRef.id
     === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestId
   const integrationV1Profile = call.manifestRef.id
     === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId
-  const profile: CaptionRuntimeProfile = integrationV2Profile
+  const profile: CaptionRuntimeProfile = integrationV3Profile
+    ? {
+        manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+        qualification:
+          CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+      }
+    : integrationV2Profile
     ? {
         manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
         qualification:
@@ -1504,6 +1514,13 @@ export function runCaptionsSpecialistJob(input: {
     return makeResult(profile, call, 'blocked', [
       'input.canonical_transcript.authenticated_payload.missing',
     ], 'Caption planning must admit the exact persisted transcript payload.')
+  }
+  if (requiredArtifactTypes(profile, call.job.jobType).includes(
+    'source_skill_support_request')
+    && incomingSupportRequest === null) {
+    return makeResult(profile, call, 'blocked', [
+      'input.incoming_support_request.missing',
+    ], 'Caption support work requires the exact persisted HQ-mediated request.')
   }
   if (missing.length > 0) {
     const grouped = new Map<SkillSupportTarget, string[]>()

@@ -20,9 +20,15 @@ import {
 } from '../orchestra/orchestra-skill-contracts'
 import { CAPTIONS_SPECIALIST_MANIFEST } from '../captions-specialist/captions-specialist-manifest'
 import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from '../captions-specialist/captions-specialist-qualification'
-import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
+import {
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+} from
   '../captions-specialist/captions-specialist-integration-manifest'
-import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT } from
+import {
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+} from
   '../captions-specialist/captions-specialist-integration-qualification'
 import {
   CAPTIONS_CLOSED_AUTHORITY_BOUNDARY,
@@ -158,13 +164,22 @@ export function createCaptionsHarnessCall(input: {
   sceneId?: string | null
   boundaryId?: string | null
   approvedSnapshotRef?: SkillContractRef | null
-  runtimeProfile?: 'cap01_planning' | 'post_cap20_integration'
+  runtimeProfile?:
+    | 'cap01_planning'
+    | 'post_cap20_integration'
+    | 'cross_system_integration'
 }): OrchestraSkillCall {
+  const crossSystemProfile = input.runtimeProfile
+    === 'cross_system_integration'
   const integrationProfile = input.runtimeProfile === 'post_cap20_integration'
-  const manifest = integrationProfile
+  const manifest = crossSystemProfile
+    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3
+    : integrationProfile
     ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
     : CAPTIONS_SPECIALIST_MANIFEST
-  const qualification = integrationProfile
+  const qualification = crossSystemProfile
+    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+    : integrationProfile
     ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
     : CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT
   const callWithoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {

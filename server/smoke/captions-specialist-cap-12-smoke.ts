@@ -1169,6 +1169,7 @@ const incomingRuntimeCallCandidate = createCaptionsHarnessCall({
   outputId: graph.canonicalScope.outputId,
   sceneId: graph.canonicalScope.sceneId,
   boundaryId: skillScope.boundaryId,
+  runtimeProfile: 'cross_system_integration',
   inputArtifactTypes: [
     'canonical_transcript',
     'confirmed_output_frame',
@@ -1221,6 +1222,7 @@ const runtimeCallCandidate = createCaptionsHarnessCall({
   approvedSnapshotRef: lfRequest.canonicalScope.approvedSnapshotRef,
   outputId: lfRequest.canonicalScope.outputId,
   sceneId: lfRequest.canonicalScope.sceneId,
+  runtimeProfile: 'cross_system_integration',
   inputArtifactTypes: [
     'canonical_transcript',
     'confirmed_output_frame',

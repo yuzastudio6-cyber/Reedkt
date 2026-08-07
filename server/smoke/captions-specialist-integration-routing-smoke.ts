@@ -16,11 +16,18 @@ import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
 } from '../captions-specialist/captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
 } from '../captions-specialist/captions-specialist-integration-qualification'
+import {
+  CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+} from '../../src/types/caption-cross-system-coordination'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import {
@@ -94,6 +101,90 @@ check(CAPTIONS_SUPPORT_JOB_TYPES.every((jobType) => {
     && entry.integrationQa.includes(
       'incoming_support_request_v2_exact_reread_and_result_binding')
 }), 'all eight support jobs declare their exact V2 semantic result artifact')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId
+  === 'captions.specialist.integration.manifest.v3'
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash
+    === '670160edb63d4abebe8b33096a5ea70089000e6f46f8b079f5c3a046940ae0a9'
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash
+    !== CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestHash,
+'cross-system artifacts use an additive integration manifest identity')
+check(CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+  .manifestRef.contentHash
+  === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash
+  && CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3.jobEntries.length
+    === CAPTIONS_SUPPORTED_JOB_TYPES.length
+  && CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+    .snapshotDigestSha256
+    === '927769c6ee37009e5538752a23715be8e0f33f0c70b52e8c52b59ec5a33b3b81',
+'the V3 qualification binds every job to only the V3 manifest')
+check(CAPTIONS_SUPPORT_JOB_TYPES.every((jobType) => {
+  const entry = CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.capabilityEntries
+    .find((candidate) => candidate.supportedJobType === jobType)
+  return entry !== undefined
+    && entry.requiredInputs.includes('source_skill_support_request')
+    && entry.requiredEvidence.includes('source_skill_support_request')
+    && entry.acceptedArtifactTypes.includes('source_skill_support_request')
+}), 'all support jobs declare their exact HQ-mediated source request')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.capabilityEntries.every(
+  (entry) => entry.requiredEvidence.every((artifactType) =>
+    entry.acceptedArtifactTypes.includes(artifactType))),
+'every required evidence type is declared as an accepted artifact')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.acceptedArtifactTypes
+  .includes('source_skill_support_request')
+  && CAPTIONS_SUPPORT_JOB_TYPES.every((jobType) =>
+    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.producedArtifactTypes.includes(
+      CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[
+        jobType as CaptionsSupportJobType])),
+'the global V3 artifact catalog includes incoming requests and every support result')
+const crossSystemOutputJobs = [
+  'plan_caption_to_visual_handoff',
+  'provide_typographic_transition_support',
+  'provide_caption_to_visual_handoff_spec',
+  'provide_caption_broll_composition_constraints',
+  'provide_caption_living_frame_handoff_constraints',
+]
+check(crossSystemOutputJobs.every((jobType) => {
+  const entry = CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.capabilityEntries
+    .find((candidate) => candidate.supportedJobType === jobType)
+  return entry !== undefined
+    && entry.producedArtifactTypes.includes(
+      CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE)
+    && entry.producedArtifactTypes.includes(
+      CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE)
+}), 'every cross-system job advertises its Caption-owned payload and handoff')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.capabilityEntries.find(
+  (entry) => entry.supportedJobType === 'plan_caption_to_visual_handoff')!
+  .producedArtifactTypes.includes(
+    CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE)
+  && [
+    CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+    CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+    CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+  ].every((artifactType) =>
+    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.producedArtifactTypes.includes(
+      artifactType)),
+'the aggregate handoff job and global catalog expose the coordination plan')
+const declaredProducedArtifactTypes = [...new Set(
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.capabilityEntries.flatMap(
+    (entry) => entry.producedArtifactTypes))]
+check(JSON.stringify(
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.producedArtifactTypes)
+  === JSON.stringify(declaredProducedArtifactTypes),
+'the global produced-artifact catalog is exactly the per-job declaration union')
+
+const missingIncomingRequestCall = createCaptionsHarnessCall({
+  callId: 'captions.integration.v3-missing-incoming-request',
+  jobType: 'provide_speech_derived_typography_spec',
+  scopeLevel: 'scene',
+  runtimeProfile: 'cross_system_integration',
+})
+const missingIncomingRequestResult = runCaptionsSpecialistJob({
+  call: missingIncomingRequestCall,
+})
+check(missingIncomingRequestResult.disposition === 'blocked'
+  && missingIncomingRequestResult.reasonCodes.join('|')
+    === 'input.incoming_support_request.missing',
+'the V3 runtime fails closed when support work lacks its exact source request')
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -335,6 +426,11 @@ console.log(JSON.stringify({
     CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestHash,
   integrationQualificationDigest:
     CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
+      .snapshotDigestSha256,
+  crossSystemManifestHash:
+    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash,
+  crossSystemQualificationDigest:
+    CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
       .snapshotDigestSha256,
   conditionalJobs: conditionalByJob.size,
   soundResumeSteps: soundRun.resumeSteps.length,

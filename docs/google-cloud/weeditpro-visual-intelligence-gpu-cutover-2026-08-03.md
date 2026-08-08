@@ -898,6 +898,19 @@ checkpoint-bearing L4 fallback qualification. Live Gemini and GPU rate
 publication additionally remain blocked by billing-account price-read IAM and
 isolated model/SKU reconciliation; public list prices are not accepted as
 settlement authority.
+
+The account-effective GPU rate reader is now a versioned multi-region
+configuration. It binds the A100 heavy primary and normal L4 route to
+`us-central1`, while the independently qualified SAM 3.1 L4 heavy fallback is
+bound to `europe-west4`. Cloud Run L4 GPU, Jobs CPU, Jobs memory, and regional
+storage SKU identities are distinct for those two regions; the publisher
+observes all three routes under one exact billing-account scope before any
+create-only rate authority is persisted. The L4 deployment template uses the
+same fixed `europe-west4` fallback coordinate. This source alignment does not
+substitute public list prices for account-effective prices and starts no paid
+GPU job; live publication still requires the authenticated billing-account
+price reread.
+
 Legacy visual and CPU processing runtimes are now absent and their five live
 identities are retired; the private-search control plane is independently
 isolated. The implementation must not weaken or silently bypass the remaining

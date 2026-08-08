@@ -12,17 +12,26 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const GOOGLE_CLOUD_ACCOUNT_EFFECTIVE_GPU_RATE_READER_CONFIGURATION_VERSION =
-  'google-cloud-account-effective-gpu-rate-reader-configuration-v1' as const
+  'google-cloud-account-effective-gpu-rate-reader-configuration-v2' as const
 
 export const WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG_VERSION =
-  'weeditpro-google-cloud-gpu-rate-catalog-us-central1-v1' as const
+  'weeditpro-google-cloud-gpu-rate-catalog-multi-region-v2' as const
 
 export const WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG = {
   cloudRun: {
     serviceId: 'services/152E-C115-5142',
-    l4NoZonalRedundancySkuId: '2EEE-0BBD-C718',
-    jobsCpuSkuId: '257B-2A84-3396',
-    jobsMemorySkuId: '8A79-9F45-5F32',
+    regionalSkus: {
+      'us-central1': {
+        l4NoZonalRedundancySkuId: '2EEE-0BBD-C718',
+        jobsCpuSkuId: '257B-2A84-3396',
+        jobsMemorySkuId: '8A79-9F45-5F32',
+      },
+      'europe-west4': {
+        l4NoZonalRedundancySkuId: 'E70E-1400-67A3',
+        jobsCpuSkuId: '1B3A-C716-DDE8',
+        jobsMemorySkuId: '46A9-AB79-A9CD',
+      },
+    },
   },
   computeEngine: {
     serviceId: 'services/6F81-5844-456A',
@@ -33,6 +42,7 @@ export const WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG = {
   cloudStorage: {
     serviceId: 'services/95FF-2EF5-5EA1',
     standardUsRegionalSkuId: 'E5F0-6A5D-7BAD',
+    standardNetherlandsRegionalSkuId: '89D8-0CF9-9F2E',
     worldwideDownloadExcludingAsiaAustraliaSkuId: '22EB-AAE8-FBCD',
     regionalStandardClassAOperationsSkuId: '4DBF-185F-A415',
     regionalStandardClassBOperationsSkuId: '7870-010B-2763',
@@ -225,20 +235,28 @@ export function createWeEditProGoogleCloudGpuRateReaderConfiguration(input: {
       billingAccountResourceName,
     })}`,
   })
-  const storageComponents = [
+  const storageComponentsForRegion = (
+    region: 'us-central1' | 'europe-west4',
+  ) => [
     {
       componentClass: 'private_object_storage_gib_month' as const,
       cloudServiceName: 'cloud-storage',
-      skuRateBindingId: 'gcs-standard-us-regional-gib-month',
+      skuRateBindingId: region === 'us-central1'
+        ? 'gcs-standard-us-regional-gib-month'
+        : 'gcs-standard-netherlands-regional-gib-month',
       billingUnit: 'gib_month' as const,
       priceTerms: [{
         cloudServiceId: catalog.cloudStorage.serviceId,
-        skuId: catalog.cloudStorage.standardUsRegionalSkuId,
+        skuId: region === 'us-central1'
+          ? catalog.cloudStorage.standardUsRegionalSkuId
+          : catalog.cloudStorage.standardNetherlandsRegionalSkuId,
         quantityPerBillingUnit: 1,
         consumptionModel: catalog.defaultConsumptionModel,
         expectedApiUnit: 'GiBy.mo',
         expectedApiUnitQuantity: '1',
-        expectedGeoTaxonomy: 'multi_region_including_route_region' as const,
+        expectedGeoTaxonomy: region === 'us-central1'
+          ? 'multi_region_including_route_region' as const
+          : 'route_region' as const,
       }],
     },
     {
@@ -289,59 +307,64 @@ export function createWeEditProGoogleCloudGpuRateReaderConfiguration(input: {
       }],
     },
   ]
-  const l4Components = [
-    {
-      componentClass: 'cloud_run_l4_gpu_second' as const,
-      cloudServiceName: 'cloud-run',
-      skuRateBindingId: 'cloud-run-l4-no-zonal-redundancy-second',
-      billingUnit: 'gpu_second' as const,
-      priceTerms: [{
-        cloudServiceId: catalog.cloudRun.serviceId,
-        skuId: catalog.cloudRun.l4NoZonalRedundancySkuId,
-        quantityPerBillingUnit: 1,
-        consumptionModel: catalog.defaultConsumptionModel,
-        expectedApiUnit: 's',
-        expectedApiUnitQuantity: '1',
-        expectedGeoTaxonomy: 'route_region' as const,
-      }],
-    },
-    {
-      componentClass: 'cloud_run_vcpu_second' as const,
-      cloudServiceName: 'cloud-run',
-      skuRateBindingId: 'cloud-run-jobs-vcpu-second',
-      billingUnit: 'vcpu_second' as const,
-      priceTerms: [{
-        cloudServiceId: catalog.cloudRun.serviceId,
-        skuId: catalog.cloudRun.jobsCpuSkuId,
-        quantityPerBillingUnit: 1,
-        consumptionModel: catalog.defaultConsumptionModel,
-        expectedApiUnit: 's',
-        expectedApiUnitQuantity: '1',
-        expectedGeoTaxonomy: 'route_region' as const,
-      }],
-    },
-    {
-      componentClass: 'cloud_run_memory_gib_second' as const,
-      cloudServiceName: 'cloud-run',
-      skuRateBindingId: 'cloud-run-jobs-memory-gib-second',
-      billingUnit: 'gib_second' as const,
-      priceTerms: [{
-        cloudServiceId: catalog.cloudRun.serviceId,
-        skuId: catalog.cloudRun.jobsMemorySkuId,
-        quantityPerBillingUnit: 1,
-        consumptionModel: catalog.defaultConsumptionModel,
-        expectedApiUnit: 'GiBy.s',
-        expectedApiUnitQuantity: '1',
-        expectedGeoTaxonomy: 'route_region' as const,
-      }],
-    },
-    ...storageComponents,
-  ]
+  const l4ComponentsForRegion = (
+    region: 'us-central1' | 'europe-west4',
+  ) => {
+    const regionalSkus = catalog.cloudRun.regionalSkus[region]
+    return [
+      {
+        componentClass: 'cloud_run_l4_gpu_second' as const,
+        cloudServiceName: 'cloud-run',
+        skuRateBindingId: 'cloud-run-l4-no-zonal-redundancy-second',
+        billingUnit: 'gpu_second' as const,
+        priceTerms: [{
+          cloudServiceId: catalog.cloudRun.serviceId,
+          skuId: regionalSkus.l4NoZonalRedundancySkuId,
+          quantityPerBillingUnit: 1,
+          consumptionModel: catalog.defaultConsumptionModel,
+          expectedApiUnit: 's',
+          expectedApiUnitQuantity: '1',
+          expectedGeoTaxonomy: 'route_region' as const,
+        }],
+      },
+      {
+        componentClass: 'cloud_run_vcpu_second' as const,
+        cloudServiceName: 'cloud-run',
+        skuRateBindingId: 'cloud-run-jobs-vcpu-second',
+        billingUnit: 'vcpu_second' as const,
+        priceTerms: [{
+          cloudServiceId: catalog.cloudRun.serviceId,
+          skuId: regionalSkus.jobsCpuSkuId,
+          quantityPerBillingUnit: 1,
+          consumptionModel: catalog.defaultConsumptionModel,
+          expectedApiUnit: 's',
+          expectedApiUnitQuantity: '1',
+          expectedGeoTaxonomy: 'route_region' as const,
+        }],
+      },
+      {
+        componentClass: 'cloud_run_memory_gib_second' as const,
+        cloudServiceName: 'cloud-run',
+        skuRateBindingId: 'cloud-run-jobs-memory-gib-second',
+        billingUnit: 'gib_second' as const,
+        priceTerms: [{
+          cloudServiceId: catalog.cloudRun.serviceId,
+          skuId: regionalSkus.jobsMemorySkuId,
+          quantityPerBillingUnit: 1,
+          consumptionModel: catalog.defaultConsumptionModel,
+          expectedApiUnit: 'GiBy.s',
+          expectedApiUnitQuantity: '1',
+          expectedGeoTaxonomy: 'route_region' as const,
+        }],
+      },
+      ...storageComponentsForRegion(region),
+    ]
+  }
   return createGoogleCloudAccountEffectiveGpuRateReaderConfiguration({
     schemaVersion:
       GOOGLE_CLOUD_ACCOUNT_EFFECTIVE_GPU_RATE_READER_CONFIGURATION_VERSION,
-    configurationId: 'weeditpro-google-cloud-gpu-rate-reader-us-central1',
-    configurationVersion: 1,
+    configurationId: 'weeditpro-google-cloud-gpu-rate-reader-multi-region',
+    configurationVersion: 2,
     billingAccountResourceName,
     billingAccountPricingScopeRef,
     routes: [
@@ -388,18 +411,18 @@ export function createWeEditProGoogleCloudGpuRateReaderConfiguration(input: {
               },
             ],
           },
-          ...storageComponents,
+          ...storageComponentsForRegion('us-central1'),
         ],
       },
       {
         routeId: 'l4_heavy_fallback',
-        region: 'us-central1',
-        components: l4Components,
+        region: 'europe-west4',
+        components: l4ComponentsForRegion('europe-west4'),
       },
       {
         routeId: 'l4_standard_primary',
         region: 'us-central1',
-        components: l4Components,
+        components: l4ComponentsForRegion('us-central1'),
       },
     ],
   })

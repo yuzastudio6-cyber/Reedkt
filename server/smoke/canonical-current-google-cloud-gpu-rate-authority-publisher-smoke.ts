@@ -44,6 +44,9 @@ assert.deepEqual(first.routePublications.map((route) => route.routeId), [
   'l4_heavy_fallback',
   'l4_standard_primary',
 ])
+assert.deepEqual(first.routePublications.map((route) => route.region), [
+  'us-central1', 'europe-west4', 'us-central1',
+])
 assert.deepEqual(first.routePublications.map((route) => route.disposition), [
   'created', 'created', 'created',
 ])
@@ -119,7 +122,7 @@ assert.doesNotMatch(operatorSource, /serviceFee|wallet|creditMutation/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-current-google-cloud-gpu-rate-authority-publisher',
-  checks: 31,
+  checks: 32,
   allThreeRoutesObservedBeforePersistence: true,
   accountEffectiveBillingScopeAndReaderExact: true,
   partialOrCrossAccountSetRejectedBeforePersistence: true,
@@ -159,20 +162,23 @@ function rawObservation(
     | 'l4_standard_primary',
   billingCharacter = '8',
 ): CanonicalGoogleCloudGpuRateRawObservation {
+  const region = routeId === 'l4_heavy_fallback'
+    ? 'europe-west4' as const
+    : 'us-central1' as const
   const components = routeId === 'a100_80gb_heavy_primary'
     ? [
         component('a2_ultragpu_1g_machine_bundle',
-          'machine_hour', 5_068_797_890, 'a'),
-        ...commonComponents(),
+          'machine_hour', 5_068_797_890, 'a', region),
+        ...commonComponents(region),
       ]
     : [
         component('cloud_run_l4_gpu_second',
-          'gpu_second', 186_700, 'b'),
+          'gpu_second', 186_700, 'b', region),
         component('cloud_run_vcpu_second',
-          'vcpu_second', 18_000, 'c'),
+          'vcpu_second', 18_000, 'c', region),
         component('cloud_run_memory_gib_second',
-          'gib_second', 2_000, 'd'),
-        ...commonComponents(),
+          'gib_second', 2_000, 'd', region),
+        ...commonComponents(region),
       ]
   const payload = {
     sourceClass: 'billing_account_effective_pricing_api' as const,
@@ -181,7 +187,7 @@ function rawObservation(
     pricingReaderConfigurationRef:
       ref('gpu-rate-reader-configuration', '7'),
     routeId,
-    region: 'us-central1' as const,
+    region,
     currency: 'USD' as const,
     components,
     priceRecordSetRef: ref(`price-record-set-${routeId}`, '9'),
@@ -194,15 +200,15 @@ function rawObservation(
   }
 }
 
-function commonComponents() {
+function commonComponents(region: 'us-central1' | 'europe-west4') {
   return [
     component('private_object_storage_gib_month',
-      'gib_month', 20_000_000, 'e'),
-    component('network_egress_gib', 'gib', 120_000_000, 'f'),
+      'gib_month', 20_000_000, 'e', region),
+    component('network_egress_gib', 'gib', 120_000_000, 'f', region),
     component('object_class_a_per_1000',
-      'per_1000_operations', 5_000_000, '1'),
+      'per_1000_operations', 5_000_000, '1', region),
     component('object_class_b_per_1000',
-      'per_1000_operations', 400_000, '2'),
+      'per_1000_operations', 400_000, '2', region),
   ]
 }
 
@@ -226,6 +232,7 @@ function component(
     | 'per_1000_operations',
   usdNanos: number,
   character: string,
+  region: 'us-central1' | 'europe-west4',
 ) {
   const cloudServiceId = componentClass.startsWith('cloud_run')
     ? 'service-cloud-run'
@@ -256,7 +263,7 @@ function component(
       billingAccountPriceRef: ref(`account-price-${componentClass}`, character),
     }],
     skuDescriptionDigestSha256: character.repeat(64),
-    skuRegion: 'us-central1' as const,
+    skuRegion: region,
     billingUnit,
     maximumUsdNanosPerBillingUnit: usdNanos,
     currentPriceObservedAt: observedAt,

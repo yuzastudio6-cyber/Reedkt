@@ -58,7 +58,7 @@ const providerTimesSchema = z.object({
 }).strict().superRefine((value, context) => {
   if (
     Date.parse(value.startTime) < Date.parse(value.createTime)
-    || Date.parse(value.endTime) <= Date.parse(value.startTime)
+    || Date.parse(value.endTime) < Date.parse(value.startTime)
   ) context.addIssue({
     code: 'custom', message: 'Vertex qualification times are invalid.',
   })

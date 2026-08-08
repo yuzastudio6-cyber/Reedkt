@@ -27,6 +27,37 @@ const providerTimes = {
   startTime: '2026-08-06T16:11:00.000Z',
   endTime: '2026-08-06T16:13:00.000Z',
 }
+const secondPrecisionImmediateFailureUsage =
+  createCanonicalSam31VertexQualificationProviderUsage({
+    attemptId: request.attemptId,
+    executionRef,
+    workerRequestRef: ref(request.qualificationId, request.requestHash, 2),
+    workerResultRef: null,
+    providerTimes: {
+      createTime: '2026-08-06T16:10:00.000Z',
+      startTime: '2026-08-06T16:13:00.000Z',
+      endTime: '2026-08-06T16:13:00.000Z',
+    },
+    providerInferenceOrSubstantiveWorkOutcome: 'not_executed',
+    privateArtifactBytes: 4_294_967_296,
+    privateArtifactRetentionMilliseconds: 86_400_000,
+    networkEgressBytes: 0,
+    observedAt: '2026-08-06T16:14:00.000Z',
+  })
+assert.equal(
+  secondPrecisionImmediateFailureUsage.actualUsage.allocatedGpuMilliseconds,
+  0,
+)
+assert.equal(
+  secondPrecisionImmediateFailureUsage.actualUsage
+    .billableDurationMilliseconds,
+  30_000,
+)
+assert.equal(
+  secondPrecisionImmediateFailureUsage.actualUsage
+    .actualWallClockMilliseconds,
+  180_000,
+)
 const workerResult = sealCanonicalSam31VertexSourceCheckpointWorkerResult({
   schemaVersion:
     'canonical-sam3_1-source-checkpoint-qualification-worker-result-v2',
@@ -225,7 +256,7 @@ assert.equal(activeCapacity.disposition,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-vertex-terminal',
-  checks: 41,
+  checks: 44,
   exactWorkerResultGenerationReread: true,
   exactTerminalStateAndUsage: true,
   billingAccountEffectiveProvisionalCostCalculated: true,

@@ -18,7 +18,7 @@ import {
 export const CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION =
   'canonical-a100-vertex-attempt-cost-receipt-v1' as const
 export const CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_USAGE_VERSION =
-  'canonical-a100-vertex-provider-allocation-usage-v3' as const
+  'canonical-a100-vertex-provider-allocation-usage-v4' as const
 
 export const WEEDITPRO_USD_NANOS_PER_CREDIT = 100_000_000 as const
 export const VERTEX_A100_BILLING_INCREMENT_MILLISECONDS = 30_000 as const
@@ -107,8 +107,8 @@ const providerAllocationUsageWithoutHashSchema = z.object({
   providerStartTime: timestamp,
   providerEndTime: timestamp,
   coldStartMilliseconds: nonnegativeInteger,
-  allocatedGpuMilliseconds: positiveInteger,
-  actualWallClockMilliseconds: positiveInteger,
+  allocatedGpuMilliseconds: nonnegativeInteger,
+  actualWallClockMilliseconds: nonnegativeInteger,
   billableDurationMilliseconds: positiveInteger,
   billingIncrementMilliseconds: z.literal(
     VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
@@ -137,12 +137,12 @@ const providerAllocationUsageWithoutHashSchema = z.object({
   const end = Date.parse(usage.providerEndTime)
   const wallClock = end - create
   const billable = roundUpToIncrement(
-    wallClock,
+    Math.max(end - start, 1),
     VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
   )
   if (
     start < create
-    || end <= start
+    || end < start
     || usage.coldStartMilliseconds !== start - create
     || usage.allocatedGpuMilliseconds !== end - start
     || usage.actualWallClockMilliseconds !== wallClock
@@ -365,7 +365,7 @@ export function createCanonicalA100VertexProviderAllocationUsage(input: {
   const create = Date.parse(timestamp.parse(input.providerCreateTime))
   const start = Date.parse(timestamp.parse(input.providerStartTime))
   const end = Date.parse(timestamp.parse(input.providerEndTime))
-  if (start < create || end <= start) {
+  if (start < create || end < start) {
     throw new Error('Vertex A100 provider allocation times are invalid.')
   }
   const payload = providerAllocationUsageWithoutHashSchema.parse({
@@ -377,7 +377,7 @@ export function createCanonicalA100VertexProviderAllocationUsage(input: {
     allocatedGpuMilliseconds: end - start,
     actualWallClockMilliseconds: end - create,
     billableDurationMilliseconds: roundUpToIncrement(
-      end - create,
+      Math.max(end - start, 1),
       VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
     ),
     billingIncrementMilliseconds:

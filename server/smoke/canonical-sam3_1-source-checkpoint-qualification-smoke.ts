@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
@@ -232,6 +233,44 @@ assert.doesNotMatch(runner, /\/mnt\/disks\/reeditpro/u)
 assert.doesNotMatch(runner, /google_cloud_batch_a2_ultra_job/u)
 assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
 assert.match(entrypoint, /nvidia_a100_80gb/u)
+assert.doesNotMatch(
+  entrypoint,
+  /Kernel Module\[\[:space:\]\]\*\\\(\[0-9\]\[0-9\.\]\*\\\)/u,
+)
+const qualificationDriverParser = entrypoint.match(
+  /driver_version="\$\(\n[ ]{2}awk '\n(?<program>[\s\S]*?)\n[ ]{2}' "\$\{driver_version_file\}"\n\)"/u,
+)?.groups?.program
+assert.ok(
+  qualificationDriverParser,
+  'the exact qualification driver parser must remain testable',
+)
+const parseQualificationDriverVersion = (source: string) => execFileSync(
+  'awk',
+  [qualificationDriverParser],
+  { input: source, encoding: 'utf8' },
+).trim()
+assert.equal(
+  parseQualificationDriverVersion(
+    'NVRM version: NVIDIA UNIX x86_64 Kernel Module  535.216.03  Thu Apr  3 01:14:19 UTC 2025\n',
+  ),
+  '535.216.03',
+)
+assert.equal(
+  parseQualificationDriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  580.95.05  Release Build\n',
+  ),
+  '580.95.05',
+)
+assert.equal(
+  parseQualificationDriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64 malformed\n',
+  ),
+  '',
+)
+assert.equal(
+  parseQualificationDriverVersion('compiler: gcc version 12.2.0\n'),
+  '',
+)
 assert.match(
   entrypoint,
   /exec \/opt\/weeditpro\/python-venv\/bin\/python \\\n {2}-I -B/u,
@@ -275,7 +314,7 @@ for (const mutate of [
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification',
-  checks: 59,
+  checks: 63,
   syntheticStatus: synthetic.status,
   canonicalStatus: canonical.status,
   qualificationRuns:

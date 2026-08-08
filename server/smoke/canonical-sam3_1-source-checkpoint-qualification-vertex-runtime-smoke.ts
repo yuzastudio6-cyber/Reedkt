@@ -230,12 +230,14 @@ const providerUsage = await providerUsagePort.rereadExact({
   providerInferenceOrSubstantiveWorkOutcome: 'not_executed',
 }) as { actualUsage: {
   allocatedGpuMilliseconds: number
+  billableDurationMilliseconds: number
   workerPhaseBreakdownClaimed: boolean
   classAOperationCount: number
   classBOperationCount: number
   objectStorageOperationMeteringDisposition: string
 } }
 assert.equal(providerUsage.actualUsage.allocatedGpuMilliseconds, 120_000)
+assert.equal(providerUsage.actualUsage.billableDurationMilliseconds, 120_000)
 assert.equal(providerUsage.actualUsage.workerPhaseBreakdownClaimed, false)
 assert.equal(providerUsage.actualUsage.classAOperationCount, 0)
 assert.equal(providerUsage.actualUsage.classBOperationCount, 0)

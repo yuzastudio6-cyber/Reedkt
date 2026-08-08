@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -503,6 +504,45 @@ for (const requiredEntrypointFragment of [
   'exec /opt/weeditpro/python-venv/bin/python',
 ]) assert(sam31Entrypoint.includes(requiredEntrypointFragment))
 
+assert.doesNotMatch(
+  sam31Entrypoint,
+  /Kernel Module\[\[:space:\]\]\*\\\(\[0-9\]\[0-9\.\]\*\\\)/u,
+)
+const sam31DriverParser = sam31Entrypoint.match(
+  /driver_version="\$\(\n[ ]{2}awk '\n(?<program>[\s\S]*?)\n[ ]{2}' "\$\{driver_version_file\}"\n\)"/u,
+)?.groups?.program
+assert.ok(
+  sam31DriverParser,
+  'the exact SAM 3.1 runtime driver parser must remain testable',
+)
+const parseSam31DriverVersion = (source: string) => execFileSync(
+  'awk',
+  [sam31DriverParser],
+  { input: source, encoding: 'utf8' },
+).trim()
+assert.equal(
+  parseSam31DriverVersion(
+    'NVRM version: NVIDIA UNIX x86_64 Kernel Module  535.216.03  Thu Apr  3 01:14:19 UTC 2025\n',
+  ),
+  '535.216.03',
+)
+assert.equal(
+  parseSam31DriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  580.95.05  Release Build\n',
+  ),
+  '580.95.05',
+)
+assert.equal(
+  parseSam31DriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64 malformed\n',
+  ),
+  '',
+)
+assert.equal(
+  parseSam31DriverVersion('compiler: gcc version 12.2.0\n'),
+  '',
+)
+
 const adversarial: Array<(
   value: CanonicalSam31SourceRuntimeCandidate,
 ) => void> = [
@@ -584,7 +624,7 @@ assert.throws(() => assertCanonicalSam31SourceRuntimeCandidate(wrongHash))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-runtime-candidate',
-  checks: 145,
+  checks: 149,
   operationId: candidate.operationId,
   sourceRevision: candidate.officialSource.sourceRevision,
   checkpointRevision: candidate.officialCheckpoint.repositoryRevision,

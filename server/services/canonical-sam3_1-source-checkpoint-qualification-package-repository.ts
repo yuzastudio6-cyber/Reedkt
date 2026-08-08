@@ -16,6 +16,7 @@ import {
 import {
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE,
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA,
+  isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName,
 } from '../model-artifacts/canonical-sam3_1-official-probe-fixture'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
@@ -56,8 +57,6 @@ const QUALIFICATION_FIXTURE_BUCKET =
 const QUALIFICATION_FIXTURE_PREFIX = 'private/fixtures/sam31/' as const
 const QUALIFICATION_FIXTURE_OBJECT =
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.objectName
-const QUALIFICATION_KMS_KEY =
-  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName
 const QUALIFICATION_PROBE_WIDTH =
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.width
 const QUALIFICATION_PROBE_HEIGHT =
@@ -384,12 +383,15 @@ export function createCanonicalSam31GcsQualificationProbeFixtureReadPort(
       const generation = String(before.generation ?? '')
       const etag = String(before.etag ?? '')
       const byteLength = Number(before.size ?? -1)
+      const kmsKeyVersionName = String(before.kmsKeyName ?? '')
       if (
         !/^[1-9][0-9]{0,30}$/u.test(generation)
         || !etag
         || byteLength !== workerRequest.deterministicProbeFixture.byteLength
         || String(before.contentType ?? '') !== 'video/mp4'
-        || String(before.kmsKeyName ?? '') !== QUALIFICATION_KMS_KEY
+        || !isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName(
+          kmsKeyVersionName,
+        )
       ) throw new Error('SAM 3.1 qualification probe metadata changed.')
       const exact = storage.bucket(QUALIFICATION_FIXTURE_BUCKET).file(
         QUALIFICATION_FIXTURE_OBJECT,
@@ -404,7 +406,7 @@ export function createCanonicalSam31GcsQualificationProbeFixtureReadPort(
         || String(after.etag ?? '') !== etag
         || Number(after.size ?? -1) !== byteLength
         || String(after.contentType ?? '') !== 'video/mp4'
-        || String(after.kmsKeyName ?? '') !== QUALIFICATION_KMS_KEY
+        || String(after.kmsKeyName ?? '') !== kmsKeyVersionName
       ) throw new Error('SAM 3.1 qualification probe bytes changed.')
       return Object.freeze({
         bucketName: QUALIFICATION_FIXTURE_BUCKET,
@@ -451,6 +453,7 @@ export function createCanonicalSam31GcsQualificationProbeFixtureAuthorityReadPor
       const generation = String(before.generation ?? '')
       const etag = String(before.etag ?? '')
       const byteLength = Number(before.size ?? -1)
+      const kmsKeyVersionName = String(before.kmsKeyName ?? '')
       const customMetadata = z.record(z.string(), z.string()).parse(
         before.metadata ?? {},
       )
@@ -461,7 +464,9 @@ export function createCanonicalSam31GcsQualificationProbeFixtureAuthorityReadPor
         || byteLength <= 0
         || byteLength > 64 * 1024 * 1024
         || String(before.contentType ?? '') !== 'video/mp4'
-        || String(before.kmsKeyName ?? '') !== QUALIFICATION_KMS_KEY
+        || !isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName(
+          kmsKeyVersionName,
+        )
         || stableAuthorityStringify(customMetadata) !==
           stableAuthorityStringify(QUALIFICATION_PROBE_METADATA)
       ) throw new Error('SAM 3.1 qualification probe authority changed.')
@@ -477,7 +482,7 @@ export function createCanonicalSam31GcsQualificationProbeFixtureAuthorityReadPor
         || String(after.etag ?? '') !== etag
         || Number(after.size ?? -1) !== byteLength
         || String(after.contentType ?? '') !== 'video/mp4'
-        || String(after.kmsKeyName ?? '') !== QUALIFICATION_KMS_KEY
+        || String(after.kmsKeyName ?? '') !== kmsKeyVersionName
         || stableAuthorityStringify(after.metadata ?? {}) !==
           stableAuthorityStringify(QUALIFICATION_PROBE_METADATA)
       ) throw new Error('SAM 3.1 qualification probe authority reread changed.')

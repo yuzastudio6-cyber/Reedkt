@@ -19,6 +19,8 @@ const coordinate = {
   sha256: CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.sha256,
   contentType: 'video/mp4' as const,
   kmsKeyName: CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName,
+  kmsKeyVersionName:
+    `${CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName}/cryptoKeyVersions/1`,
   metadata: CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA,
 }
 
@@ -67,6 +69,16 @@ for (const mutation of [
   { customerMediaUsed: true },
   { customerCreditsMutated: true },
   { productionAuthorityGranted: true },
+  {
+    fixture: {
+      ...receipt.fixture,
+      coordinate: {
+        ...receipt.fixture.coordinate,
+        kmsKeyVersionName:
+          CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName,
+      },
+    },
+  },
   { receiptHash: '0'.repeat(64) },
 ] as const) {
   assert.throws(() => assertCanonicalSam31OfficialProbeFixtureReceipt({
@@ -99,7 +111,7 @@ await assert.rejects(() => publishCanonicalSam31OfficialProbeFixture({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-probe-fixture',
-  checks: 20,
+  checks: 21,
   officialPinnedAssetReusedWithoutTranscode: true,
   qualificationFrames: 64,
   customerMediaUsed: false,

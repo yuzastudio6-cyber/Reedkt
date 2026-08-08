@@ -7,6 +7,7 @@ import {
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA,
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_PUBLICATION_PORT_VERSION,
   CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_SOURCE_PORT_VERSION,
+  isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName,
   type CanonicalSam31OfficialProbeFixturePublicationPort,
   type CanonicalSam31OfficialProbeFixtureSourcePort,
 } from './canonical-sam3_1-official-probe-fixture'
@@ -168,9 +169,13 @@ async function rereadExactPrivateFixture(input: {
   const [metadataBefore] = await input.file.getMetadata()
   const generation = String(metadataBefore.generation ?? '')
   const etag = String(metadataBefore.etag ?? '')
+  const kmsKeyVersionName = String(metadataBefore.kmsKeyName ?? '')
   if (!/^[1-9][0-9]{0,30}$/u.test(generation) || !etag) {
     throw new Error('SAM 3.1 official probe private coordinate is invalid.')
   }
+  if (!isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName(
+    kmsKeyVersionName,
+  )) throw new Error('SAM 3.1 official probe CMEK version is invalid.')
   const exact = input.file.parent.file(input.file.name, { generation })
   const [reread] = await exact.download({ validation: 'crc32c' })
   const [metadataAfter] = await exact.getMetadata()
@@ -186,8 +191,7 @@ async function rereadExactPrivateFixture(input: {
     || Number(metadataAfter.size ?? -1) !==
       CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.byteLength
     || String(metadataAfter.contentType ?? '') !== 'video/mp4'
-    || String(metadataAfter.kmsKeyName ?? '') !==
-      CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName
+    || String(metadataAfter.kmsKeyName ?? '') !== kmsKeyVersionName
     || stableAuthorityStringify(metadata) !== stableAuthorityStringify(
       CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA,
     )
@@ -202,6 +206,7 @@ async function rereadExactPrivateFixture(input: {
     sha256: CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.sha256,
     contentType: 'video/mp4' as const,
     kmsKeyName: CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName,
+    kmsKeyVersionName,
     metadata: CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA,
   })
 }

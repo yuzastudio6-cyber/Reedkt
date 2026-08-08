@@ -308,7 +308,7 @@ function fakeProbeStorage(options: {
     size: String(probeFixtureBytes.byteLength),
     contentType: 'video/mp4',
     kmsKeyName:
-      'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification',
+      'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification/cryptoKeyVersions/1',
   }
   return {
     bucket(bucketName: string) {

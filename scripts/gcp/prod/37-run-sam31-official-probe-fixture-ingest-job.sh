@@ -48,9 +48,13 @@ metadata="$(gcloud storage objects describe \
 generation="$(jq -r '.generation // empty' <<<"${metadata}")"
 [[ "${generation}" =~ ^[1-9][0-9]{0,30}$ ]] \
   || fail 'probe fixture generation is invalid'
+observed_kms="$(jq -r '.kms_key // empty' <<<"${metadata}")"
+kms_version_prefix="${EXPECTED_KMS}/cryptoKeyVersions/"
+kms_version="${observed_kms#"${kms_version_prefix}"}"
 [[ "$(jq -r '.size // empty' <<<"${metadata}")" == "${EXPECTED_LENGTH}" \
   && "$(jq -r '.content_type // empty' <<<"${metadata}")" == 'video/mp4' \
-  && "$(jq -r '.kms_key // empty' <<<"${metadata}")" == "${EXPECTED_KMS}" ]] \
+  && "${observed_kms}" == "${kms_version_prefix}"* \
+  && "${kms_version}" =~ ^[1-9][0-9]{0,30}$ ]] \
   || fail 'probe fixture metadata changed'
 observed_sha256="$(gcloud storage cat \
   "gs://${BUCKET}/${OBJECT}#${generation}" --project="${PROJECT_ID}" \

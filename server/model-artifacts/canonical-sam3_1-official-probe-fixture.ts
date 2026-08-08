@@ -62,6 +62,16 @@ export const CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA = Object.freeze({
   weeditproCustomerMedia: 'false',
 })
 
+export function isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName(
+  value: unknown,
+): value is string {
+  if (typeof value !== 'string') return false
+  const prefix =
+    `${CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName}/cryptoKeyVersions/`
+  return value.startsWith(prefix)
+    && /^[1-9][0-9]{0,30}$/u.test(value.slice(prefix.length))
+}
+
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -91,6 +101,9 @@ const coordinateSchema = z.object({
   contentType: z.literal('video/mp4'),
   kmsKeyName: z.literal(
     CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName,
+  ),
+  kmsKeyVersionName: z.string().refine(
+    isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName,
   ),
   metadata: z.object({
     ...Object.fromEntries(

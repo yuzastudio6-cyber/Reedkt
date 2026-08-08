@@ -53,6 +53,9 @@ assert.match(runtime, /content-length/u)
 assert.match(runtime, /createHash\('sha256'\)/u)
 assert.match(runtime, /ifGenerationMatch: 0/u)
 assert.match(runtime, /kmsKeyName:/u)
+assert.match(runtime, /kmsKeyVersionName/u)
+assert.match(runtime,
+  /isCanonicalSam31OfficialProbeFixtureKmsKeyVersionName/u)
 assert.match(runtime, /validation: 'crc32c'/u)
 assert.match(runtime, /identical_replay/u)
 assert.doesNotMatch(runtime, /ffmpeg|ffprobe|spawn|execFile|python|torch/u)
@@ -91,6 +94,7 @@ assert.match(deployScript, /--max-retries=0/u)
 assert.doesNotMatch(deployScript, /--gpu|gcloud run jobs execute/u)
 assert.match(runScript, /gcloud run jobs execute/u)
 assert.match(runScript, /gcloud storage cat/u)
+assert.match(runScript, /cryptoKeyVersions/u)
 assert.match(runScript, /sourceMediaDecodedOrTranscodedDuringIngest/u)
 assert.doesNotMatch(runScript, /ffmpeg|ffprobe|python|docker/u)
 
@@ -108,7 +112,7 @@ assert.match(packagePublisher,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-probe-fixture-cloud-job',
-  checks: 57,
+  checks: 60,
   exactOfficialPinnedAsset: true,
   unchangedH264Bytes: true,
   cloudControlPlaneOnly: true,

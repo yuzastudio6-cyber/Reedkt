@@ -92,6 +92,9 @@ import {
   type CanonicalCaptionPostapprovalFinishReadPort,
 } from
   '../../src/types/canonical-caption-postapproval-finish-binding'
+import type {
+  CanonicalCaptionPostapprovalJobSelectionReadPort,
+} from '../../src/types/canonical-caption-postapproval-job-selection'
 import {
   CANONICAL_CAPTION_CROSS_SYSTEM_EXECUTION_INPUT_VERSION,
   type CanonicalCaptionCrossSystemExecutionInputReadPort,
@@ -122,6 +125,10 @@ import {
 import {
   parseCanonicalCaptionTranscriptPlanningExpectationBinding,
 } from './canonical-caption-transcript-support-service'
+import {
+  isCanonicalCaptionPostapprovalJobSelectionReadPort,
+  rereadCanonicalCaptionPostapprovalJobSelection,
+} from '../captions-specialist/caption-postapproval-job-selection'
 import {
   canonicalCaptionCrossSystemRuntimeInput,
   resolveCanonicalCaptionCrossSystemExecutionInput,
@@ -473,6 +480,12 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
    */
   readonly postapprovalFinishReadPort?:
     CanonicalCaptionPostapprovalFinishReadPort
+  /**
+   * Read-only trigger evidence for the three post-QA lifecycle jobs. The
+   * immutable work item stores the exact record ref; this port only rereads it.
+   */
+  readonly postapprovalJobSelectionReadPort?:
+    CanonicalCaptionPostapprovalJobSelectionReadPort
   readonly incomingSupportRequestReadPort?:
     CanonicalCaptionIncomingSupportRequestReadPort
   readonly crossSystemExecutionInputReadPort?:
@@ -559,6 +572,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
     workItem.executionInput)
   assertExpectedOutputAndManifest(authority, workItem)
+  await readCanonicalCaptionPostapprovalJobSelectionRecord({
+    authority,
+    workInput,
+    readPort: input.postapprovalJobSelectionReadPort,
+  })
   const postapprovalFinishRecord =
     await readCanonicalCaptionPostapprovalFinishRecord({
       authority,
@@ -1251,6 +1269,92 @@ export class CanonicalCaptionPostapprovalFinishUnavailableError
     this.name = 'CanonicalCaptionPostapprovalFinishUnavailableError'
     this.lookup = structuredClone(lookup)
   }
+}
+
+export class CanonicalCaptionPostapprovalJobSelectionUnavailableError
+  extends Error {
+  readonly recordRef: SkillContractRef
+
+  constructor(recordRef: SkillContractRef) {
+    super(
+      'Canonical Caption postapproval job-selection evidence is not available yet.',
+    )
+    this.name = 'CanonicalCaptionPostapprovalJobSelectionUnavailableError'
+    this.recordRef = structuredClone(recordRef)
+  }
+}
+
+const POSTAPPROVAL_JOB_SELECTION_TRIGGERS = new Set([
+  'canonical_caption_qa_repair',
+  'canonical_caption_output_recomposition',
+  'canonical_caption_result_inspection',
+])
+
+async function readCanonicalCaptionPostapprovalJobSelectionRecord(input: {
+  authority: CanonicalApprovedExecutionAuthority
+  workInput: CanonicalCaptionSpecialistWorkItemInput
+  readPort?: CanonicalCaptionPostapprovalJobSelectionReadPort
+}) {
+  if (input.workInput.schemaVersion !==
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
+    || !POSTAPPROVAL_JOB_SELECTION_TRIGGERS.has(
+      input.workInput.assignmentTrigger)) return null
+  if (input.workInput.outputId === null
+    || input.workInput.sceneId === null
+    || input.workInput.authorizedFrameRanges.length !== 1
+    || !isCanonicalCaptionPostapprovalJobSelectionReadPort(input.readPort)) {
+    throw new Error(
+      'Canonical Caption repair lifecycle requires its admitted job-selection reader.',
+    )
+  }
+  const frameRef = input.workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'confirmed_output_frame')
+  const timingRef = input.workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'master_timing_or_planning_timing')
+  if (!frameRef || !timingRef) {
+    throw new Error(
+      'Canonical Caption repair lifecycle lost frame or MasterTiming lineage.',
+    )
+  }
+  const record = await rereadCanonicalCaptionPostapprovalJobSelection({
+    readPort: input.readPort,
+    recordRef: input.workInput.selectionEvidenceRef,
+    expectedTargetPlanningScope: {
+      ownerUserId: input.authority.snapshot.approvedByUserId,
+      workspaceId: input.authority.snapshot.workspaceId,
+      projectId: input.authority.snapshot.projectId,
+      editSessionId: input.authority.snapshot.editSessionId,
+      planningRequestId: input.authority.plan.planningRequestId,
+      outputId: input.workInput.outputId,
+      sceneId: input.workInput.sceneId,
+      authorizedFrameRanges:
+        structuredClone(input.workInput.authorizedFrameRanges),
+      confirmedOutputFrameRef: {
+        id: frameRef.id,
+        version: frameRef.version,
+        contentHash: frameRef.contentHash,
+      },
+      masterTimingRef: {
+        id: timingRef.id,
+        version: timingRef.version,
+        contentHash: timingRef.contentHash,
+      },
+    },
+  })
+  if (!record) {
+    throw new CanonicalCaptionPostapprovalJobSelectionUnavailableError(
+      input.workInput.selectionEvidenceRef,
+    )
+  }
+  const selection = record.selections.find((candidate) =>
+    candidate.jobType === input.workInput.captionJobType)
+  if (!selection
+    || selection.trigger !== input.workInput.assignmentTrigger) {
+    throw new Error(
+      'Canonical Caption postapproval selection does not admit this exact job.',
+    )
+  }
+  return record
 }
 
 async function readCanonicalCaptionPostapprovalFinishRecord(input: {

@@ -5,6 +5,11 @@ import type {
   CanonicalCaptionSourceLedProfessionalPlanningRequest,
 } from '../../src/types/canonical-caption-source-led-professional-planning'
 import type {
+  CanonicalCaptionPostapprovalJobSelectionRecord,
+} from '../../src/types/canonical-caption-postapproval-job-selection'
+import type { CaptionDomainRef } from
+  '../../src/types/caption-domain-contracts'
+import type {
   CaptionRemotionBrollOwnerApprovedRunReviewSpec,
 } from '../../src/types/caption-remotion-broll-owner-approved-run-review'
 import type {
@@ -35,6 +40,11 @@ import {
 import {
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort,
 } from '../captions-specialist/caption-source-led-professional-planning-owner'
+import {
+  canonicalCaptionPostapprovalJobSelectionRecordRef,
+  createCanonicalCaptionPostapprovalJobSelectionRecord,
+  createCanonicalCaptionPostapprovalJobSelectionRepository,
+} from '../captions-specialist/caption-postapproval-job-selection'
 import type {
   CanonicalSourceLedCleanupAuthorityInput,
 } from '../services/canonical-source-led-plan-compiler'
@@ -53,6 +63,9 @@ import {
 import {
   createEditPlanningAuthorityService,
 } from '../services/edit-planning-authority-service'
+import {
+  createCanonicalPrivateLocalJsonObjectPort,
+} from '../services/canonical-private-local-json-object-port'
 import type { ServiceContext } from '../types'
 import {
   canonicalPlanComponentsSchema,
@@ -103,6 +116,32 @@ export interface CanonicalCaptionApprovedRunScenario {
   )[]
   readonly captionStyle?: CaptionStyleId
   readonly soundStyle?: SoundStyleId
+  readonly postapprovalLifecycleSource?:
+    CanonicalCaptionApprovedRunPostapprovalSource
+}
+
+export interface CanonicalCaptionApprovedRunPostapprovalSource {
+  readonly sourceScope: {
+    readonly ownerUserId: string
+    readonly workspaceId: string
+    readonly projectId: string
+    readonly editSessionId: string
+    readonly planVersionId: string
+    readonly approvedSnapshotRef: CaptionDomainRef
+    readonly outputId: string
+    readonly sceneId: string
+    readonly authorizedFrameRanges: readonly [{
+      readonly startFrame: number
+      readonly endFrameExclusive: number
+    }]
+    readonly confirmedOutputFrameRef: CaptionDomainRef
+    readonly masterTimingRef: CaptionDomainRef
+  }
+  readonly sourceExecutionPackageRef: CaptionDomainRef
+  readonly sourceCaptionPlanningProjectionRef: CaptionDomainRef
+  readonly sourcePostrenderVisualQaWorkBindingRef: CaptionDomainRef
+  readonly exactApprovedRunDerived: true
+  readonly privateQualificationEvidence: false
 }
 
 export interface CanonicalCaptionBrollApprovedRunReviewAuthority {
@@ -247,6 +286,132 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
       components: componentsWithBroll,
       confirmedCaptionMarkerSetRef: null,
     })
+  let postapprovalJobSelectionRecord:
+    CanonicalCaptionPostapprovalJobSelectionRecord | null = null
+  let postapprovalJobSelectionMount: Parameters<
+    typeof createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort
+  >[0]['postapprovalJobSelection']
+  const postapprovalSource = input.captionScenario
+    ?.postapprovalLifecycleSource
+  if (postapprovalSource) {
+    assertPostapprovalSourceTargetsRequest({
+      source: postapprovalSource,
+      request: captionRequest,
+      sceneId: firstSegment.segmentId,
+      startFrame: firstSegment.startFrame,
+      endFrameExclusive: firstSegment.endFrameExclusive,
+    })
+    const fixtureRef = (role: string, version: string): CaptionDomainRef => ({
+      id: `${postapprovalSource.sourceScope.approvedSnapshotRef.id}.${role}`,
+      version,
+      contentHash: hashSkillValue({
+        role,
+        sourceApprovedSnapshotRef:
+          postapprovalSource.sourceScope.approvedSnapshotRef,
+        sourceExecutionPackageRef:
+          postapprovalSource.sourceExecutionPackageRef,
+        sourcePostrenderVisualQaWorkBindingRef:
+          postapprovalSource.sourcePostrenderVisualQaWorkBindingRef,
+        sourceContractFixture: true,
+        privateQualificationEvidence: false,
+      }),
+    })
+    postapprovalJobSelectionRecord =
+      createCanonicalCaptionPostapprovalJobSelectionRecord({
+        evidenceMode: 'source_contract_fixture',
+        sourceScope: {
+          ownerUserId: postapprovalSource.sourceScope.ownerUserId,
+          workspaceId: postapprovalSource.sourceScope.workspaceId,
+          projectId: postapprovalSource.sourceScope.projectId,
+          editSessionId: postapprovalSource.sourceScope.editSessionId,
+          planVersionId: postapprovalSource.sourceScope.planVersionId,
+          approvedSnapshotRef: structuredClone(
+            postapprovalSource.sourceScope.approvedSnapshotRef,
+          ),
+          outputId: postapprovalSource.sourceScope.outputId,
+          sceneId: postapprovalSource.sourceScope.sceneId,
+          authorizedFrameRanges: postapprovalSource.sourceScope
+            .authorizedFrameRanges.map((range) => ({ ...range })),
+          confirmedOutputFrameRef: structuredClone(
+            postapprovalSource.sourceScope.confirmedOutputFrameRef,
+          ),
+          masterTimingRef: structuredClone(
+            postapprovalSource.sourceScope.masterTimingRef,
+          ),
+        },
+        sourceExecutionPackageRef:
+          structuredClone(postapprovalSource.sourceExecutionPackageRef),
+        sourceCaptionPlanningProjectionRef: structuredClone(
+          postapprovalSource.sourceCaptionPlanningProjectionRef,
+        ),
+        completeQaReportRef: fixtureRef(
+          'complete-qa-report',
+          'caption-complete-qa-report-v1',
+        ),
+        localRepairFallbackPlanRef: fixtureRef(
+          'local-repair-fallback-plan',
+          'caption-local-repair-fallback-plan-v1',
+        ),
+        accessibilityRecompositionPlanRef: fixtureRef(
+          'accessibility-recomposition-plan',
+          'caption-accessibility-export-plan-v1',
+        ),
+        directInspectionReceiptRef: fixtureRef(
+          'direct-inspection-receipt',
+          'caption-direct-visual-inspection-receipt-v1',
+        ),
+        postrenderVisualQaWorkBindingRef: structuredClone(
+          postapprovalSource.sourcePostrenderVisualQaWorkBindingRef,
+        ),
+        targetPlanningScope: {
+          ownerUserId: captionRequest.canonicalScope.ownerUserId,
+          workspaceId: captionRequest.canonicalScope.workspaceId,
+          projectId: captionRequest.canonicalScope.projectId,
+          editSessionId: captionRequest.canonicalScope.editSessionId,
+          planningRequestId:
+            captionRequest.canonicalScope.planningRequestId,
+          outputId: captionRequest.canonicalScope.outputId,
+          sceneId: firstSegment.segmentId,
+          authorizedFrameRanges: [{
+            startFrame: firstSegment.startFrame,
+            endFrameExclusive: firstSegment.endFrameExclusive,
+          }],
+          confirmedOutputFrameRef: structuredClone(
+            captionRequest.confirmedOutputFrame.confirmedOutputFrameRef,
+          ),
+          masterTimingRef: structuredClone(captionRequest.masterTimingRef),
+        },
+      })
+    const repository =
+      createCanonicalCaptionPostapprovalJobSelectionRepository({
+        objectPort: createCanonicalPrivateLocalJsonObjectPort({
+          localStorageRoot: input.context.env.localStorageRoot,
+        }),
+        prefix: [
+          'private-internal/captions-specialist/v1/postapproval-job-selection',
+          input.ownerUserId,
+          input.workspaceId,
+        ].join('/'),
+      })
+    await repository.persistCreateOnly({
+      record: postapprovalJobSelectionRecord,
+    })
+    const recordRef = canonicalCaptionPostapprovalJobSelectionRecordRef(
+      postapprovalJobSelectionRecord,
+    )
+    const reread = await repository.readPort.readExact({ recordRef })
+    if (!reread || reread.recordDigestSha256 !==
+      postapprovalJobSelectionRecord.recordDigestSha256) {
+      throw new Error(
+        'Caption approved-run postapproval selection reread failed.',
+      )
+    }
+    postapprovalJobSelectionMount = {
+      readPort: repository.readPort,
+      recordRef,
+      targetSceneId: firstSegment.segmentId,
+    }
+  }
   const captionOwnerRead =
     await readCanonicalCaptionSourceLedProfessionalPlanning({
       port: createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
@@ -254,6 +419,9 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
         sourceCleanupAuthority:
           structuredClone(input.sourceCleanupAuthority),
         confirmedCaptionMarkerSetRef: null,
+        ...(postapprovalJobSelectionMount === undefined ? {} : {
+          postapprovalJobSelection: postapprovalJobSelectionMount,
+        }),
       }),
       request: captionRequest,
     })
@@ -453,6 +621,10 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     approved: { warnings: approvedWarnings, authority: approvedAuthority },
     approvedExecutionAuthority,
     approvedEditExecutionPackage: packaged.approvedEditExecutionPackage,
+    captionPostapprovalJobSelectionRecord:
+      postapprovalJobSelectionRecord === null
+        ? null : Object.freeze(structuredClone(
+            postapprovalJobSelectionRecord)),
     toolCapabilityManifest: packaged.toolCapabilityManifest,
     runtimeDispatched: false as const,
     providerCalled: false as const,
@@ -461,6 +633,102 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     publicDeliveryCreated: false as const,
     productionAuthorityGranted: false as const,
   })
+}
+
+export function deriveCanonicalCaptionApprovedRunPostapprovalSource(
+  run: Awaited<ReturnType<
+    typeof createCanonicalCaptionBrollApprovedRunHarness
+  >>,
+): CanonicalCaptionApprovedRunPostapprovalSource {
+  const snapshot = run.approved.authority.snapshot
+  const projection = run.approvedExecutionAuthority.captionPlanningProjection
+  const postrenderBinding =
+    run.approvedExecutionAuthority.captionPostrenderVisualQaWorkBinding
+  const scene = run.canonicalPlan.components.segments[0]
+  if (!projection || !postrenderBinding || !scene
+    || projection.outputId !== run.captionRequest.canonicalScope.outputId
+    || !projection.projectedSceneIds.includes(scene.segmentId)
+    || postrenderBinding.outputId !== projection.outputId) {
+    throw new Error(
+      'Canonical Caption approved run cannot derive postapproval selection lineage.',
+    )
+  }
+  return Object.freeze({
+    sourceScope: Object.freeze({
+      ownerUserId: snapshot.approvedByUserId,
+      workspaceId: snapshot.workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+      approvedSnapshotRef: Object.freeze({
+        id: snapshot.snapshotId,
+        version: snapshot.schemaVersion,
+        contentHash: snapshot.snapshotHash,
+      }),
+      outputId: projection.outputId,
+      sceneId: scene.segmentId,
+      authorizedFrameRanges: Object.freeze([Object.freeze({
+        startFrame: scene.startFrame,
+        endFrameExclusive: scene.endFrameExclusive,
+      })]) as unknown as CanonicalCaptionApprovedRunPostapprovalSource[
+        'sourceScope']['authorizedFrameRanges'],
+      confirmedOutputFrameRef: Object.freeze(structuredClone(
+        run.captionRequest.confirmedOutputFrame.confirmedOutputFrameRef,
+      )),
+      masterTimingRef: Object.freeze(structuredClone(
+        run.captionRequest.masterTimingRef,
+      )),
+    }),
+    sourceExecutionPackageRef: Object.freeze({
+      id: run.approvedEditExecutionPackage.packageRecordId,
+      version: run.approvedEditExecutionPackage.schemaVersion,
+      contentHash: run.approvedEditExecutionPackage.packageHash,
+    }),
+    sourceCaptionPlanningProjectionRef: Object.freeze({
+      id: projection.projectionId,
+      version: projection.schemaVersion,
+      contentHash: projection.projectionDigestSha256,
+    }),
+    sourcePostrenderVisualQaWorkBindingRef: Object.freeze({
+      id: postrenderBinding.bindingId,
+      version: postrenderBinding.schemaVersion,
+      contentHash: postrenderBinding.bindingDigestSha256,
+    }),
+    exactApprovedRunDerived: true,
+    privateQualificationEvidence: false,
+  })
+}
+
+function assertPostapprovalSourceTargetsRequest(input: {
+  source: CanonicalCaptionApprovedRunPostapprovalSource
+  request: CanonicalCaptionSourceLedProfessionalPlanningRequest
+  sceneId: string
+  startFrame: number
+  endFrameExclusive: number
+}): void {
+  const sourceRange = input.source.sourceScope.authorizedFrameRanges[0]
+  if (!input.source.exactApprovedRunDerived
+    || input.source.privateQualificationEvidence
+    || input.source.sourceScope.ownerUserId !==
+      input.request.canonicalScope.ownerUserId
+    || input.source.sourceScope.workspaceId !==
+      input.request.canonicalScope.workspaceId
+    || input.source.sourceScope.projectId !==
+      input.request.canonicalScope.projectId
+    || input.source.sourceScope.outputId !==
+      input.request.canonicalScope.outputId
+    || sourceRange.startFrame !== input.startFrame
+    || sourceRange.endFrameExclusive !== input.endFrameExclusive
+    || input.source.sourceScope.confirmedOutputFrameRef.version !==
+      input.request.confirmedOutputFrame.confirmedOutputFrameRef.version
+    || input.source.sourceScope.confirmedOutputFrameRef.contentHash !==
+      input.request.confirmedOutputFrame.confirmedOutputFrameRef.contentHash
+    || input.source.sourceScope.masterTimingRef.version !==
+      input.request.masterTimingRef.version) {
+    throw new Error(
+      'Caption approved-run postapproval source crossed target planning scope.',
+    )
+  }
 }
 
 const approvedScenarioPresetOrder = [

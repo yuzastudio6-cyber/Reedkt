@@ -38,6 +38,7 @@ import type {
 } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import {
+  CanonicalCaptionPostapprovalJobSelectionUnavailableError,
   CanonicalCaptionPostapprovalFinishUnavailableError,
   executeCanonicalCaptionSpecialistWorkItem,
   parseCanonicalCaptionSpecialistWorkItemInput,
@@ -71,6 +72,9 @@ import {
 import {
   createCanonicalCaptionPostapprovalFinishRepository,
 } from './canonical-caption-postapproval-finish-service'
+import {
+  createCanonicalCaptionPostapprovalJobSelectionRepository,
+} from '../captions-specialist/caption-postapproval-job-selection'
 import {
   assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
   createCanonicalCaptionTranscriptEvidenceRepository,
@@ -747,6 +751,15 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
         input.workspaceId,
       ].join('/'),
     })
+  const postapprovalJobSelectionRepository =
+    createCanonicalCaptionPostapprovalJobSelectionRepository({
+      objectPort,
+      prefix: [
+        'private-internal/captions-specialist/v1/postapproval-job-selection',
+        input.actorUserId,
+        input.workspaceId,
+      ].join('/'),
+    })
   const transcriptRepository =
     createCanonicalCaptionTranscriptEvidenceRepository({ objectPort })
   const transcriptMount = await resolveCanonicalCaptionTranscriptExecutionMount({
@@ -785,6 +798,8 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       canonicalJobDependencyAuthority:
         dependencyAdmission.dependencyAuthority,
       postapprovalFinishReadPort: postapprovalFinishRepository.readPort,
+      postapprovalJobSelectionReadPort:
+        postapprovalJobSelectionRepository.readPort,
       ...(input.context.canonicalCaptionCrossSystemExecutionInputReadPort
         ? {
             crossSystemExecutionInputReadPort: input.context
@@ -799,6 +814,21 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
         : {}),
     })
   } catch (error) {
+    if (error instanceof
+      CanonicalCaptionPostapprovalJobSelectionUnavailableError) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical Caption repair lifecycle is waiting for its exact post-QA selection record.',
+        409,
+        {
+          requiredGate:
+            'canonical_caption_postapproval_job_selection',
+          postapprovalJobSelectionRecordRef: error.recordRef,
+          callerSuppliedEvidenceAccepted: false,
+          workCreationAuthorityGrantedToCaption: false,
+        },
+      )
+    }
     if (error instanceof
       CanonicalCaptionPostapprovalFinishUnavailableError) {
       throw new ApiError(

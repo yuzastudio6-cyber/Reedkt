@@ -15,6 +15,10 @@ import {
   type CaptionSourceLedCrossSystemTarget,
 } from '../../src/types/caption-source-led-intent-policy'
 import type {
+  CanonicalCaptionPostapprovalJobSelectionReadPort,
+  CanonicalCaptionPostapprovalJobSelectionRecord,
+} from '../../src/types/canonical-caption-postapproval-job-selection'
+import type {
   CanonicalCaptionSourceLedProfessionalPlanningReadPort,
   CanonicalCaptionSourceLedProfessionalPlanningRequest,
 } from '../../src/types/canonical-caption-source-led-professional-planning'
@@ -59,6 +63,10 @@ import {
   CAPTION_DESIGN_COMPOSITE,
   activateCaptionMiniSkillsForScene,
 } from './caption-design-composite'
+import {
+  canonicalCaptionPostapprovalJobSelectionRecordRef,
+  rereadCanonicalCaptionPostapprovalJobSelection,
+} from './caption-postapproval-job-selection'
 import { createCaptionEarlyPlanningBundle } from './caption-early-planning'
 import {
   createCanonicalCaptionSourceLedProfessionalPlanningAuthority,
@@ -152,6 +160,12 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
     readonly sourceCleanupAuthority?:
       CanonicalSourceLedCleanupAuthorityInput
     readonly confirmedCaptionMarkerSetRef: CaptionDomainRef | null
+    readonly postapprovalJobSelection?: {
+      readonly readPort:
+        CanonicalCaptionPostapprovalJobSelectionReadPort
+      readonly recordRef: CaptionDomainRef
+      readonly targetSceneId: string
+    }
   },
 ): CanonicalCaptionSourceLedProfessionalPlanningReadPort {
   const expectedComponentsDigest = sha256AuthorityValue(input.components)
@@ -164,6 +178,11 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
   const trace = parseProfessionalSkillCompositionTrace(
     skillPlan.compositionTrace)
   const disposition = trace.entries[0].disposition
+  if (input.postapprovalJobSelection && disposition !== 'selected') {
+    throw new Error(
+      'Canonical postapproval Caption selection requires an exact selected Caption composition trace.',
+    )
+  }
 
   return createCanonicalCaptionSourceLedProfessionalPlanningReadPort(
     async (request) => {
@@ -227,6 +246,25 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
       })
       const { earlyPlanningInput, policy } = earlyPlanning
       const bundle = createCaptionEarlyPlanningBundle(earlyPlanningInput)
+      const postapprovalJobSelection = input.postapprovalJobSelection
+        ? await readPostapprovalJobSelection({
+            request,
+            policy,
+            selection: input.postapprovalJobSelection,
+          })
+        : null
+      if (input.postapprovalJobSelection && !postapprovalJobSelection) {
+        return {
+          schemaVersion:
+            CANONICAL_CAPTION_SOURCE_LED_PROFESSIONAL_PLANNING_READ_PORT_VERSION,
+          status: 'blocked_requested',
+          requestRef: requestRef(request),
+          authority: null,
+          blockerCodes: [
+            'canonical_caption_postapproval_job_selection_not_ready',
+          ],
+        }
+      }
       const bindingBody: Omit<
         CanonicalCaptionSpecialistPlanningBindingV1,
         'schemaVersion' | 'bindingDigestSha256'
@@ -280,6 +318,7 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
               request,
               bundle,
               policy,
+              postapprovalJobSelection,
             }),
             assignmentsSelectedByCanonicalPlanOwner: true,
             oneAllFeatureEditFabricated: false,
@@ -628,6 +667,8 @@ function createAssignmentIntents(input: {
   request: CanonicalCaptionSourceLedProfessionalPlanningRequest
   bundle: ReturnType<typeof createCaptionEarlyPlanningBundle>
   policy: CaptionSourceLedPlanningPolicy
+  postapprovalJobSelection:
+    CanonicalCaptionPostapprovalJobSelectionRecord | null
 }): CanonicalCaptionSpecialistJobAssignmentIntent[] {
   const selectionEvidenceRef = bundleRef(input.bundle)
   const assignments: Array<{
@@ -717,7 +758,8 @@ function createAssignmentIntents(input: {
         ]
       }),
   ]
-  return assignments.map(({
+  const sourceLedAssignments:
+    CanonicalCaptionSpecialistJobAssignmentIntent[] = assignments.map(({
     jobType,
     scopeLevel,
     sceneId,
@@ -752,6 +794,79 @@ function createAssignmentIntents(input: {
       captionMayExpandScope: false,
       browserMayMarkComplete: false,
     }
+  })
+  const postapprovalAssignments = input.postapprovalJobSelection === null
+    ? [] : input.postapprovalJobSelection.selections.map((selection) => ({
+        assignmentId: derivedId('caption-postapproval-assignment', {
+          recordDigestSha256:
+            input.postapprovalJobSelection!.recordDigestSha256,
+          selectionId: selection.selectionId,
+          outputId: input.request.canonicalScope.outputId,
+        }),
+        jobType: selection.jobType,
+        scopeLevel: 'scene' as const,
+        outputId: input.request.canonicalScope.outputId,
+        sceneId:
+          input.postapprovalJobSelection!.targetPlanningScope.sceneId,
+        boundaryId: null,
+        authorizedFrameRange: structuredClone(
+          input.postapprovalJobSelection!.targetPlanningScope
+            .authorizedFrameRanges[0]!,
+        ),
+        trigger: selection.trigger,
+        selectionEvidenceRef:
+          canonicalCaptionPostapprovalJobSelectionRecordRef(
+            input.postapprovalJobSelection!,
+          ),
+        sourceSupportRequestRef: null,
+        reasonCodes: [
+          'selected_from_persisted_postapproval_caption_evidence',
+          ...selection.reasonCodes,
+        ],
+        callerMayCreateWork: false as const,
+        captionMayDispatchPeerDirectly: false as const,
+        captionMayExpandScope: false as const,
+        browserMayMarkComplete: false as const,
+      }))
+  return [...sourceLedAssignments, ...postapprovalAssignments]
+}
+
+async function readPostapprovalJobSelection(input: {
+  request: CanonicalCaptionSourceLedProfessionalPlanningRequest
+  policy: CaptionSourceLedPlanningPolicy
+  selection: {
+    readPort: CanonicalCaptionPostapprovalJobSelectionReadPort
+    recordRef: CaptionDomainRef
+    targetSceneId: string
+  }
+}): Promise<CanonicalCaptionPostapprovalJobSelectionRecord | null> {
+  const scene = input.policy.scenes.find((candidate) =>
+    candidate.sceneId === input.selection.targetSceneId)
+  if (!scene || scene.speechRole === 'none') {
+    throw new Error(
+      'Canonical postapproval Caption selection targets a non-captionable scene.',
+    )
+  }
+  return rereadCanonicalCaptionPostapprovalJobSelection({
+    readPort: input.selection.readPort,
+    recordRef: input.selection.recordRef,
+    expectedTargetPlanningScope: {
+      ownerUserId: input.request.canonicalScope.ownerUserId,
+      workspaceId: input.request.canonicalScope.workspaceId,
+      projectId: input.request.canonicalScope.projectId,
+      editSessionId: input.request.canonicalScope.editSessionId,
+      planningRequestId: input.request.canonicalScope.planningRequestId,
+      outputId: input.request.canonicalScope.outputId,
+      sceneId: scene.sceneId,
+      authorizedFrameRanges: [{
+        startFrame: scene.startFrame,
+        endFrameExclusive: scene.endFrameExclusive,
+      }],
+      confirmedOutputFrameRef:
+        structuredClone(input.request.confirmedOutputFrame
+          .confirmedOutputFrameRef),
+      masterTimingRef: structuredClone(input.request.masterTimingRef),
+    },
   })
 }
 

@@ -394,6 +394,7 @@
     "smoke:canonical-broll-private-approved-execution": "tsx server/smoke/canonical-broll-private-approved-execution-service-smoke.ts",
     "smoke:canonical-private-edit-skill-artifact-store": "tsx server/smoke/canonical-private-edit-skill-artifact-store-smoke.ts",
     "smoke:canonical-caption-source-led-professional-planning-owner": "tsx server/smoke/canonical-caption-source-led-professional-planning-owner-smoke.ts",
+    "smoke:canonical-caption-postapproval-job-selection": "tsx server/smoke/canonical-caption-postapproval-job-selection-smoke.ts",
     "smoke:canonical-caption-postrender-visual-qa-authenticated-read": "tsx server/smoke/canonical-caption-postrender-visual-qa-authenticated-read-smoke.ts",
     "smoke:canonical-caption-postrender-visual-intelligence-result": "tsx server/smoke/canonical-caption-postrender-visual-intelligence-result-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-worker": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-worker-smoke.ts",

@@ -38,6 +38,7 @@ import {
 import {
   CANONICAL_CAPTION_BROLL_APPROVED_RUN_HARNESS_VERSION,
   createCanonicalCaptionBrollApprovedRunHarness,
+  deriveCanonicalCaptionApprovedRunPostapprovalSource,
   deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest,
   deriveCanonicalCaptionBrollApprovedRunReviewAuthority,
   type CanonicalCaptionApprovedRunScenario,
@@ -1100,9 +1101,9 @@ try {
       baseTranscriptOwnerReadPort
   }
   if (advancedApprovedExecutionCampaign) {
-    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 8)
-    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 27)
-    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 14)
+    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 9)
+    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 30)
+    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 11)
     assert.equal(
       advancedApprovedExecutionCampaign.campaignIdenticalReplayVerified,
       true,
@@ -1122,6 +1123,9 @@ try {
         'resolve_environmental_typography',
         'resolve_hero_typography',
         'resolve_persistent_topic_typography',
+        'repair_caption_scene',
+        'recompose_caption_output',
+        'inspect_caption_specific_result',
         'provide_typographic_transition_support',
         'prepare_caption_boundary_timing_requirements',
       ],
@@ -1680,7 +1684,10 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
   }]
   const covered = new Set<CaptionsSupportedJobType>()
   const runRefs: CaptionDomainRef[] = []
-  for (const [index, entry] of scenarios.entries()) {
+  const executeScenario = async (
+    entry: (typeof scenarios)[number],
+    index: number,
+  ) => {
     const scenarioInput = await input.createScenarioInput(
       entry.scenario,
       index,
@@ -1716,6 +1723,89 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
       version: run.approvedEditExecutionPackage.schemaVersion,
       contentHash: run.approvedEditExecutionPackage.packageHash,
     })
+    return { run, scenarioInput }
+  }
+  const sourceEntry = scenarios[0]
+  if (!sourceEntry) {
+    throw new Error(
+      'Caption approved scenario campaign has no repair-selection source.',
+    )
+  }
+  const {
+    run: postapprovalSourceRun,
+  } = await executeScenario(sourceEntry, 0)
+  const postapprovalSource =
+    deriveCanonicalCaptionApprovedRunPostapprovalSource(
+      postapprovalSourceRun,
+    )
+  const postapprovalScenario: CanonicalCaptionApprovedRunScenario = {
+    scenarioId: 'postapproval-repair-lifecycle',
+    mappedPresetIds: ['spatial_caption_compositing'],
+    postapprovalLifecycleSource: postapprovalSource,
+  }
+  const preparedPostapprovalInput = await input.createScenarioInput(
+    postapprovalScenario,
+    scenarios.length,
+  )
+  const postapprovalInput: CanonicalCaptionBrollApprovedRunHarnessInput = {
+    ...preparedPostapprovalInput,
+    outputId: postapprovalSource.sourceScope.outputId,
+    captionScenario: postapprovalScenario,
+  }
+  const postapprovalRun =
+    await createCanonicalCaptionBrollApprovedRunHarness(postapprovalInput)
+  const postapprovalExpectedJobTypes = [
+    'repair_caption_scene',
+    'recompose_caption_output',
+    'inspect_caption_specific_result',
+  ] as const
+  for (const jobType of postapprovalExpectedJobTypes) {
+    assert.ok(
+      postapprovalRun.captionPlanningProjection.projectedJobTypes.includes(
+        jobType,
+      ),
+    )
+  }
+  assert.ok(postapprovalRun.captionPostapprovalJobSelectionRecord)
+  assert.equal(
+    postapprovalRun.captionPostapprovalJobSelectionRecord
+      .privateQualificationEvidence,
+    false,
+  )
+  const postapprovalExecution =
+    await executeCanonicalCaptionApprovedJobClosure({
+      context: postapprovalInput.context,
+      approvedRun: postapprovalRun,
+      idempotencySeed:
+        `${postapprovalInput.idempotencySeed}.execution`,
+      resolveCaptionSupportRequirement:
+        input.resolveCaptionSupportRequirement,
+      resolveCaptionPostapprovalFinishRequirement:
+        createSourceContractPostapprovalFinishResolver({
+          run: postapprovalRun,
+          objectPort: input.objectPort,
+        }),
+    })
+  assert.equal(
+    postapprovalExecution.captionJobCount,
+    postapprovalRun.captionPlanningProjection.projectedJobTypes.length,
+  )
+  assert.equal(
+    postapprovalExecution.captionApprovedExecutionCoverage
+      .terminalQualificationClaimed,
+    false,
+  )
+  for (const jobType of postapprovalExecution
+    .captionApprovedExecutionCoverage.coveredCaptionJobTypes) {
+    covered.add(jobType)
+  }
+  runRefs.push({
+    id: postapprovalRun.approvedEditExecutionPackage.packageRecordId,
+    version: postapprovalRun.approvedEditExecutionPackage.schemaVersion,
+    contentHash: postapprovalRun.approvedEditExecutionPackage.packageHash,
+  })
+  for (const [index, entry] of scenarios.slice(1).entries()) {
+    await executeScenario(entry, index + 1)
   }
   const baseline = new Set(input.baselineCoveredJobTypes)
   const coveredJobTypes = CAPTIONS_SUPPORTED_JOB_TYPES.filter((jobType) =>
@@ -1739,9 +1829,9 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
   })
   assert.deepEqual(campaign.coveredCaptionJobTypes, coveredJobTypes)
   assert.deepEqual(campaign.missingCaptionJobTypes, missingJobTypes)
-  assert.equal(campaign.counts.approvedRuns, 8)
-  assert.equal(campaign.counts.distinctApprovedSnapshots, 8)
-  assert.equal(campaign.counts.distinctExecutionPackages, 8)
+  assert.equal(campaign.counts.approvedRuns, 9)
+  assert.equal(campaign.counts.distinctApprovedSnapshots, 9)
+  assert.equal(campaign.counts.distinctExecutionPackages, 9)
   assert.equal(campaign.oneAllFeatureEditFabricated, false)
   assert.equal(campaign.terminalQualificationClaimed, false)
   const campaignRepository =

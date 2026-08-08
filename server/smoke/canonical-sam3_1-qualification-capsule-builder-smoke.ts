@@ -285,6 +285,7 @@ for (const expected of [
   '!cloudbuild.qualification-pycocotools-ingest.yaml',
   '!source-provenance.lock',
   '!patches/0001-reeditpro-gpu-decode.patch',
+  '!patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
   '!patches/0002-weeditpro-importlib-resources.patch',
 ] as const) assert.ok(gcloudIgnore.includes(expected), `.gcloudignore lost ${expected}`)
 assert.doesNotMatch(gcloudIgnore, /!Dockerfile\.candidate|!runner\.py|!entrypoint\.sh/u)

@@ -644,6 +644,18 @@ invocation of this operator boundary.
   `deploy:gpu-rate-publisher-job`, and `run:gpu-rate-publisher-job`. This closes
   the L4 pricing execution path without conflating Vertex training rates with
   Cloud Run/Compute Engine rates or granting either route runtime readiness.
+- The source/checkpoint-qualified production image build now has a separate
+  scale-from-zero control-plane operator boundary. The permanently unarmed
+  `weeditpro-sam31-runtime-image-operator` accepts only one exact persisted
+  build-authority ref and, for observation, its exact submission ref. It
+  reuses the canonical image-build owner, which rereads the qualification
+  release and fixed capsule, Dockerfile, image destination, and build arguments
+  before Cloud Build. The operator cannot accept model/checkpoint bytes, media,
+  storage coordinates, Dockerfiles, tags, commands, retries, or runtime-release
+  claims. Its build, deploy, and execution controls are
+  `build:sam3_1-runtime-image-operator-image`,
+  `deploy:sam3_1-runtime-image-operator-job`, and
+  `run:sam3_1-runtime-image-operator-once`.
 
 ## Current disposition
 

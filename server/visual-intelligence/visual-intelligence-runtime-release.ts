@@ -128,20 +128,35 @@ const releaseSchema = releaseWithoutDigestSchema.extend({
 }).strict()
 
 export type VisualIntelligenceRuntimeRelease = z.infer<typeof releaseSchema>
+export type VisualIntelligenceRuntimeReleasePublicationInput = z.input<
+  typeof releaseWithoutDigestSchema
+>
 
 const admittedReleases = new WeakSet<object>()
 
 /** Test-only constructor. Hosted runtime must use readVisualIntelligenceRuntimeRelease. */
 export function createControlledVisualIntelligenceRuntimeRelease(
-  input: z.input<typeof releaseWithoutDigestSchema>,
+  input: VisualIntelligenceRuntimeReleasePublicationInput,
+): VisualIntelligenceRuntimeRelease {
+  const release = compileVisualIntelligenceRuntimeReleaseForPublication(input)
+  admittedReleases.add(release)
+  return release
+}
+
+/**
+ * Produces canonical bytes for the create-only production publisher. The
+ * returned value is deliberately not admitted for hosted execution: only an
+ * exact immutable-object reread through readVisualIntelligenceRuntimeRelease
+ * can cross that boundary.
+ */
+export function compileVisualIntelligenceRuntimeReleaseForPublication(
+  input: VisualIntelligenceRuntimeReleasePublicationInput,
 ): VisualIntelligenceRuntimeRelease {
   const payload = releaseWithoutDigestSchema.parse(input)
-  const release = Object.freeze(releaseSchema.parse({
+  return Object.freeze(releaseSchema.parse({
     ...payload,
     releaseDigestSha256: digest(payload),
   }))
-  admittedReleases.add(release)
-  return release
 }
 
 export function parseVisualIntelligenceRuntimeRelease(

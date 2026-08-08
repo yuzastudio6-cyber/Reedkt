@@ -44,6 +44,7 @@ const requiredCoreQualificationSmokes = [
   'visual-intelligence-durable-authorities-smoke.ts',
   'visual-intelligence-account-effective-rate-read-port-smoke.ts',
   'visual-intelligence-account-effective-rate-publisher-smoke.ts',
+  'visual-intelligence-runtime-release-publisher-smoke.ts',
   'visual-intelligence-inspection-coordinator-smoke.ts',
   'visual-intelligence-active-cutover-smoke.ts',
   'canonical-specialist-support-resume-service-smoke.ts',

@@ -1269,6 +1269,14 @@ function createCapsuleFiles(
       Buffer.from('fixture==1.0 --hash=sha256:fixture'),
     ],
     [
+      'sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json',
+      Buffer.from('{"fixture":"einops-ingest"}'),
+    ],
+    [
+      'sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json',
+      Buffer.from('{"fixture":"pycocotools-ingest"}'),
+    ],
+    [
       'sam31_private_build_input/dependency-closure/wheelhouse/fixture_a-1.0-py3-none-any.whl',
       Buffer.from('synthetic wheel a'),
     ],

@@ -27,7 +27,10 @@ const PREFIX =
   'private/image-build-inputs/sam3_1/production/reproducibility/' as const
 const SCANNER_DIGEST =
   'sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20' as const
-const MAXIMUM_CAPSULE_BYTES = 8 * 1024 * 1024 * 1024
+// Pinned ClamAV accepts at most 4,095 MiB for the complete archive scan. The
+// evidence contract must never admit a capsule larger than the scanner can
+// actually inspect.
+const MAXIMUM_CAPSULE_BYTES = 4_095 * 1024 * 1024
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)

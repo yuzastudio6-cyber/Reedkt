@@ -425,6 +425,16 @@ function createEntries(input: {
       digest(Buffer.from('requirements-lock')),
     ),
     fixture(
+      'sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json',
+      256,
+      'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json',
+      256,
+      'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
+    ),
+    fixture(
       'sam31_private_build_input/dependency-closure/wheelhouse/einops-0.8.2-py3-none-any.whl',
       65_638,
       '54058201ac7087911181bfec4af6091bb59380360f069276601256a76af08193',

@@ -66,5 +66,23 @@ contain the qualification receipt but no checkpoint, credential, customer
 media, caller command, path, URL, image tag, or unreviewed dependency install.
 This promotion operation cannot start Cloud Build, a GPU/model job, runtime
 release, billing settlement, customer-credit mutation, QA approval, or
-production delivery. The actual two-build cloud producer and its live results
-remain the next gated stage.
+production delivery.
+
+The production-capsule source is prepared by the canonical
+`canonical_sam3_1-production-capsule-build-input-v1` one-writer boundary. It
+exact-rereads the final source/checkpoint qualification release, official
+private-ingest receipt, exact source qualification-capsule manifest and bytes,
+and a create-only image-build artifact binding. A browser, CLI caller, or build
+invocation cannot supply a path, URL, command, image tag, Dockerfile, GPU type,
+or replacement artifact.
+
+`scripts/gcp/prod/53-build-sam31-production-capsule-twice.sh` submits exactly
+two independent Cloud Build executions from the same clean Git commit/tree and
+the same generation-bound canonical records. Each execution builds inside a
+source-bound builder image, creates a sorted USTAR archive with fixed ownership
+and timestamp plus deterministic gzip metadata, scans the entire archive with
+the pinned private scanner, and uploads the capsule, builder result, and
+security review create-only. This stage does not build the runtime image,
+execute SAM 3.1, select an A100/L4, mutate customer credits, or grant a runtime
+release. The production capsule publisher must exact-reread both build results
+and refuse publication unless their capsule bytes and entry set are identical.

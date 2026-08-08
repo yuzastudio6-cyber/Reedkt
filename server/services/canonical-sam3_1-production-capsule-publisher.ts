@@ -260,6 +260,11 @@ export function createCanonicalSam31ProductionCapsulePublisher(input: {
         assertBuildMatchesQualification({
           evidence,
           qualificationRef: request.sourceCheckpointQualificationRef,
+          sourceQualificationCapsuleRef:
+            refSchema.parse(
+              release.qualification.controlledObservation
+                .dependencyClosureRef,
+            ),
           bindingRef,
         })
       }
@@ -533,6 +538,7 @@ function createManifest(input: {
 function assertBuildMatchesQualification(input: {
   readonly evidence: ProductionCapsuleBuildEvidence
   readonly qualificationRef: z.infer<typeof qualificationRefSchema>
+  readonly sourceQualificationCapsuleRef: z.infer<typeof refSchema>
   readonly bindingRef: z.infer<typeof refSchema>
 }): void {
   const builder = assertCanonicalSam31ProductionCapsuleBuilderResult(
@@ -545,6 +551,11 @@ function assertBuildMatchesQualification(input: {
     canonicalSam31ProductionCapsuleStringify(
       builder.sourceCheckpointQualificationRef,
     ) !== canonicalSam31ProductionCapsuleStringify(input.qualificationRef)
+    || canonicalSam31ProductionCapsuleStringify(
+      builder.sourceQualificationCapsuleRef,
+    ) !== canonicalSam31ProductionCapsuleStringify(
+      input.sourceQualificationCapsuleRef,
+    )
     || canonicalSam31ProductionCapsuleStringify(builder.artifactBindingRef)
       !== canonicalSam31ProductionCapsuleStringify(input.bindingRef)
     || security.buildId !== builder.buildId

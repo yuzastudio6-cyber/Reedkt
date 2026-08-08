@@ -335,6 +335,8 @@
     "smoke:sam3_1-source-checkpoint-qualification-release-read": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-read-repository-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-release": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke.ts",
     "smoke:sam3_1-production-capsule-publisher": "tsx server/smoke/canonical-sam3_1-production-capsule-publisher-smoke.ts",
+    "smoke:sam3_1-production-capsule-build-input": "tsx server/smoke/canonical-sam3_1-production-capsule-build-input-smoke.ts",
+    "prepare:sam3_1-production-capsule-build-inputs": "tsx server/cli/prepare-canonical-sam3_1-production-capsule-build-inputs.ts",
     "publish:sam3_1-production-capsule": "tsx server/cli/publish-canonical-sam3_1-production-capsule.ts",
     "smoke:sam3_1-production-image-authority-publisher": "tsx server/smoke/canonical-sam3_1-production-image-authority-publisher-smoke.ts",
     "publish:sam3_1-production-image-authority": "tsx server/cli/publish-canonical-sam3_1-production-image-authority.ts",

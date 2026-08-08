@@ -143,6 +143,17 @@ buildEvidence.set(confirmationId, mismatchedConfirmation)
 await assert.rejects(publisher.publish(request))
 buildEvidence.set(confirmationId, confirmation)
 
+const substitutedSourceCapsule = createBuild(
+  confirmationId,
+  '3102',
+  'confirmation-etag',
+  '2026-08-08T18:01:00.000Z',
+  { sourceQualificationCapsuleRef: ref('substituted-source-capsule') },
+)
+buildEvidence.set(confirmationId, substitutedSourceCapsule)
+await assert.rejects(publisher.publish(request))
+buildEvidence.set(confirmationId, confirmation)
+
 assert.throws(() => createCanonicalSam31ProductionCapsulePublisher({
   qualificationReleaseReadPort: {} as never,
   ingestReadPort: {} as never,
@@ -173,7 +184,7 @@ assert.throws(() => sealCanonicalSam31ProductionCapsuleSecurityReview({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-capsule-publisher',
-  checks: 24,
+  checks: 25,
   finalA100SourceCheckpointQualificationReread: true,
   independentBuildCount: 2,
   exactCapsuleBytesCrc32cMd5AndEntrySetMatched: true,
@@ -196,7 +207,10 @@ function createBuild(
   generation: string,
   etag: string,
   reviewedAt: string,
-  overrides: { readonly repositoryTree?: string } = {},
+  overrides: {
+    readonly repositoryTree?: string
+    readonly sourceQualificationCapsuleRef?: ReturnType<typeof ref>
+  } = {},
 ) {
   const builderResult = sealCanonicalSam31ProductionCapsuleBuilderResult({
     schemaVersion: 'weeditpro-sam3_1-production-capsule-builder-result-v1',
@@ -211,7 +225,9 @@ function createBuild(
     sourceCheckpointQualificationRef:
       release.sourceCheckpointQualificationRef,
     artifactBindingRef: bindingRef,
-    sourceQualificationCapsuleRef: ref('sam31-qualified-source-capsule'),
+    sourceQualificationCapsuleRef:
+      overrides.sourceQualificationCapsuleRef
+        ?? sourceQualificationCapsuleRef(),
     sourceQualificationCapsuleExactlyReread: true,
     dockerfileSha256: entryHash(
       'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate',
@@ -353,6 +369,16 @@ function createEntries() {
       'b'.repeat(64),
     ),
     fixture(
+      'sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json',
+      1_778,
+      'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json',
+      1_782,
+      'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
+    ),
+    fixture(
       'sam31_private_build_input/dependency-closure/dependency-closure-receipt.json',
       128,
       'c'.repeat(64),
@@ -432,6 +458,17 @@ function ref(id: string, digest = '9'.repeat(64)) {
     id,
     version: 1 as const,
     contentHash: `sha256:${digest}` as const,
+  }
+}
+
+function sourceQualificationCapsuleRef() {
+  const source =
+    release.qualification.controlledObservation.dependencyClosureRef
+  assert.equal(source.version, 1)
+  return {
+    id: source.id,
+    version: 1 as const,
+    contentHash: source.contentHash,
   }
 }
 

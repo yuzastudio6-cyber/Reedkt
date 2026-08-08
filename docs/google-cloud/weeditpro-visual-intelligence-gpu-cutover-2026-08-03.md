@@ -650,6 +650,15 @@ invocation of this operator boundary.
   confirms the separately qualified L4 normal task-QA job has three completed
   scale-from-zero executions and is idle. That lane does not qualify the SAM
   3.1 heavy L4 fallback.
+- Live-prerequisite audit v16 no longer hard-codes the Vertex route as
+  unavailable. It fail-closes over six exact source hashes covering the
+  restart-safe runtime, create-only repository, launch port, terminal
+  reconciliation, A100 cost authority, and focused runtime proof. The
+  2026-08-08 read reports `routeArchitectureQualified: true`,
+  `routeArchitectureSourceBindingCount: 6`, and
+  `dispatchCapacityReady: true`; any source drift makes those route claims
+  false. This is dispatch-capacity evidence, not authorization to launch a
+  paid job.
 - Live A100 admission remains fail-closed because neither available operator
   identity can read billing-account-specific SKU prices. Public list prices
   are not substituted. The L4 heavy fallback also remains unreleased until it
@@ -759,12 +768,15 @@ real qualified SAM 3.1 Track All result completes that full canonical chain.
 
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
-and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing
-SAM 3.1 installation remains blocked by Meta checkpoint access, the still-open
-official source/checkpoint compatibility issue, A100 80GB quota, and independent
-heavy-image A100/L4 qualification. Live Gemini and GPU pricing additionally
-remain blocked by billing-account price-read IAM and isolated model/SKU
-reconciliation.
+and live CUDA qualification, but remains rate-blocked. The official private
+SAM 3.1 source and checkpoint have been ingested, the signed qualification
+image is available, and Vertex A100 80 GB capacity plus the restart-safe route
+architecture are ready. What remains is the paid live A100 source/checkpoint
+compatibility and quality qualification, followed by an independently compared
+checkpoint-bearing L4 fallback qualification. Live Gemini and GPU rate
+publication additionally remain blocked by billing-account price-read IAM and
+isolated model/SKU reconciliation; public list prices are not accepted as
+settlement authority.
 Legacy visual and CPU processing runtimes are now absent and their five live
 identities are retired; the private-search control plane is independently
 isolated. The implementation must not weaken or silently bypass the remaining

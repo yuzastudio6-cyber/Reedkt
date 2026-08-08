@@ -30,6 +30,14 @@ PRIVATE_SEARCH_IMAGE='us-central1-docker.pkg.dev/reeditpro/reeditpro-staging-wor
 A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_PREFERENCE_ID='weeditpro-vertex-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_ID='CustomModelTrainingA10080GBGPUsPerProjectPerRegion'
+readonly -a VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS=(
+  '2ea8b90428dec4f4e06bf423fe41a84e95f1e11eab620ade8f15726fcbb9d823|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
+  '7c0e862d3a8a2cb6a9a0de25e866acb18a52af873c9b4763aab483eccdbb6d04|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-repository.ts'
+  '86c50ad418cb8fe89b1bbb601203e8f4c16c9a5452ab236d37abe40ffd1928db|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port.ts'
+  'a4c9a25fcb4b1a754a872e2396a7d15ff92b5e5bac2f8d9c7d7c60e1d9b67e7f|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'
+  '416b46ceb0282dacf693214b3efcbea42469dbaa3bebcbf9f9d5a82e8800b2a0|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
+  '6dba9f843d62888cb48abc6294622519a1607bc4659cc0f7aa6b6eec2d50a914|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'
+)
 readonly -a A100_CAPACITY_CANDIDATE_REGIONS=(
   'us-central1'
   'us-east4'
@@ -62,6 +70,15 @@ readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
 command -v gcloud >/dev/null
 command -v jq >/dev/null
 observed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+
+sha256_file() {
+  local path="$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "${path}" | awk '{print $1}'
+  else
+    shasum -a 256 "${path}" | awk '{print $1}'
+  fi
+}
 
 PROJECT_NUMBER="$(gcloud projects describe "${PROJECT_ID}" --format='value(projectNumber)')"
 CLOUD_BUILD_SERVICE_AGENT="service-${PROJECT_NUMBER}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
@@ -294,11 +311,24 @@ vertex_a100_quota_preference_metadata="$(read_json_or_empty \
   gcloud beta quotas preferences describe \
   "${VERTEX_A100_QUOTA_PREFERENCE_ID}" --project="${PROJECT_ID}" \
   --format=json)"
+vertex_a100_route_architecture_qualified='true'
+for binding in "${VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS[@]}"; do
+  expected_source_hash="${binding%%|*}"
+  source_path="${binding#*|}"
+  if [[ ! -f "${source_path}" ]] \
+    || [[ "$(sha256_file "${source_path}")" != "${expected_source_hash}" ]]; then
+    vertex_a100_route_architecture_qualified='false'
+    break
+  fi
+done
+vertex_a100_route_architecture_source_binding_count="${#VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS[@]}"
 vertex_a100_custom_job_capacity="$(jq -n \
   --arg expectedName "projects/${PROJECT_ID}/locations/global/quotaPreferences/${VERTEX_A100_QUOTA_PREFERENCE_ID}" \
   --arg expectedQuotaId "${VERTEX_A100_QUOTA_ID}" \
   --arg expectedRegion "${REGION}" \
   --argjson regionalQuotaLimit "${vertex_a100_quota_limit}" \
+  --argjson routeArchitectureQualified "${vertex_a100_route_architecture_qualified}" \
+  --argjson routeArchitectureSourceBindingCount "${vertex_a100_route_architecture_source_binding_count}" \
   --argjson metadata "${vertex_a100_quota_preference_metadata}" \
   'def number_or_zero: (tonumber? // 0);
   (($metadata.quotaConfig.preferredValue // "0") | number_or_zero) as $preferred
@@ -334,8 +364,14 @@ vertex_a100_custom_job_capacity="$(jq -n \
       userTriggeredCustomJobOnly: true,
       persistentEndpointAllowed: false,
       restrictedImageTrainingQuotaMayBeUsed: false,
-      routeArchitectureQualified: false,
-      dispatchCapacityReady: false
+      routeArchitectureQualified: $routeArchitectureQualified,
+      routeArchitectureSourceBindingCount: $routeArchitectureSourceBindingCount,
+      dispatchCapacityReady: (
+        $regionalQuotaLimit >= 1
+        and $granted >= 1
+        and ($reconciling == false)
+        and $routeArchitectureQualified
+      )
     }')"
 
 enabled_secret_version_count() {
@@ -1082,7 +1118,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v15' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v16' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \

@@ -53,3 +53,18 @@ authentication and account-effective pricing observation remain external live
 preconditions. No model/checkpoint is installed or executed on the developer
 machine, no GPU job is dispatched, no customer credits are changed, and
 production readiness remains false.
+
+The production-capsule promotion boundary is now source-closed separately from
+the builder. `canonical-sam3_1-production-capsule-publisher-v1` accepts only the
+exact final source/checkpoint qualification reference and two distinct Cloud
+Build UUIDs. It rereads both complete build results, both complete security
+reviews, and both private object coordinates; requires byte-for-byte equality
+across SHA-256, byte length, CRC32C, MD5, and the canonically ordered archive
+entry set; and persists the reproducibility receipt, artifact binding, and
+production capsule manifest create-only with exact reread. The capsule must
+contain the qualification receipt but no checkpoint, credential, customer
+media, caller command, path, URL, image tag, or unreviewed dependency install.
+This promotion operation cannot start Cloud Build, a GPU/model job, runtime
+release, billing settlement, customer-credit mutation, QA approval, or
+production delivery. The actual two-build cloud producer and its live results
+remain the next gated stage.

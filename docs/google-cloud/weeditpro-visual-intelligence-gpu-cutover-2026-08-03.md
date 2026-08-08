@@ -650,7 +650,7 @@ invocation of this operator boundary.
   confirms the separately qualified L4 normal task-QA job has three completed
   scale-from-zero executions and is idle. That lane does not qualify the SAM
   3.1 heavy L4 fallback.
-- Live-prerequisite audit v16 no longer hard-codes the Vertex route as
+- Live-prerequisite audit v17 no longer hard-codes the Vertex route as
   unavailable. It fail-closes over six exact source hashes covering the
   restart-safe runtime, create-only repository, launch port, terminal
   reconciliation, A100 cost authority, and focused runtime proof. The
@@ -659,6 +659,14 @@ invocation of this operator boundary.
   `dispatchCapacityReady: true`; any source drift makes those route claims
   false. This is dispatch-capacity evidence, not authorization to launch a
   paid job.
+- The internal qualification cost receipt is now explicitly provisional.
+  Vertex create/start/end allocation time, request/result artifact bytes,
+  retention, and zero egress remain exact-reread inputs. The runtime no longer
+  invents fixed Class A/Class B object-storage operation counts: both counts
+  stay zero in the provisional calculation, their cost is deferred to Cloud
+  Billing invoice reconciliation, and the receipt cannot claim a final
+  invoice-reconciled cost or charge customer credits. This keeps A100
+  qualification cost observable without overstating provider usage truth.
 - Live A100 admission remains fail-closed because neither available operator
   identity can read billing-account-specific SKU prices. Public list prices
   are not substituted. The L4 heavy fallback also remains unreleased until it

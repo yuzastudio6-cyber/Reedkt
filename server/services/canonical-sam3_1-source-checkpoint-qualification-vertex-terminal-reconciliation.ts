@@ -28,11 +28,11 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_PROVIDER_USAGE_VERSION =
-  'canonical-sam3_1-vertex-qualification-provider-usage-v2' as const
+  'canonical-sam3_1-vertex-qualification-provider-usage-v3' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_PLATFORM_STOP_VERSION =
   'canonical-sam3_1-vertex-qualification-platform-stop-v1' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_COST_RECEIPT_VERSION =
-  'canonical-sam3_1-vertex-qualification-cost-receipt-v1' as const
+  'canonical-sam3_1-vertex-qualification-cost-receipt-v2' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_TERMINAL_RESULT_VERSION =
   'canonical-sam3_1-vertex-qualification-terminal-result-v1' as const
 
@@ -92,6 +92,8 @@ const providerUsageWithoutHashSchema = z.object({
   actualUsage: canonicalA100VertexProviderAllocationUsageSchema,
   exactProviderCreateStartEndTimesReread: z.literal(true),
   exactRequestAndResultByteCountsReread: z.literal(true),
+  objectStorageOperationCountsInventedOrWorkerSupplied: z.literal(false),
+  provisionalCostExcludesUnreconciledObjectStorageOperations: z.literal(true),
   workerPhaseBreakdownClaimed: z.literal(false),
   workerSuppliedUsagePriceOrCostAccepted: z.literal(false),
   runtimeNetworkDownloadObserved: z.literal(false),
@@ -186,7 +188,12 @@ const costReceiptWithoutHashSchema = z.object({
   internalQualificationCostOnly: z.literal(true),
   serviceFeeIncluded: z.literal(false),
   customerWalletLedgerReservationOrCreditMutationPerformed: z.literal(false),
-  exactPlatformUsageAndCurrentAccountRateReread: z.literal(true),
+  exactProviderAllocationArtifactBytesAndCurrentAccountRateReread:
+    z.literal(true),
+  objectStorageOperationCostDeferredToCloudBillingInvoiceReconciliation:
+    z.literal(true),
+  provisionalInternalQualificationCost: z.literal(true),
+  finalCloudBillingInvoiceReconciledCostClaimed: z.literal(false),
   activeA100GpuInstancesAfterTerminalAttempt: z.literal(0),
   automaticRetryAllowed: z.literal(false),
   cloudBillingInvoiceReconciliationRequired: z.literal(true),
@@ -198,6 +205,8 @@ const costReceiptWithoutHashSchema = z.object({
   if (
     value.weeditproAbsorbedInfrastructureCostUsdNanos !==
       value.actualInfrastructureCost.totalInfrastructureCostUsdNanos
+    || value.actualInfrastructureCost.objectClassAOperationsUsdNanos !== 0
+    || value.actualInfrastructureCost.objectClassBOperationsUsdNanos !== 0
     || Date.parse(value.recordedAt) <
       Date.parse(value.actualUsage.providerEndTime)
   ) context.addIssue({
@@ -353,8 +362,6 @@ export function createCanonicalSam31VertexQualificationProviderUsage(
     readonly privateArtifactBytes: number
     readonly privateArtifactRetentionMilliseconds: number
     readonly networkEgressBytes: number
-    readonly classAOperationCount: number
-    readonly classBOperationCount: number
     readonly observedAt: string
   },
 ): CanonicalSam31VertexQualificationProviderUsage {
@@ -368,8 +375,6 @@ export function createCanonicalSam31VertexQualificationProviderUsage(
     privateArtifactRetentionMilliseconds:
       input.privateArtifactRetentionMilliseconds,
     networkEgressBytes: input.networkEgressBytes,
-    classAOperationCount: input.classAOperationCount,
-    classBOperationCount: input.classBOperationCount,
   })
   const payload = providerUsageWithoutHashSchema.parse({
     schemaVersion:
@@ -387,6 +392,8 @@ export function createCanonicalSam31VertexQualificationProviderUsage(
     actualUsage,
     exactProviderCreateStartEndTimesReread: true,
     exactRequestAndResultByteCountsReread: true,
+    objectStorageOperationCountsInventedOrWorkerSupplied: false,
+    provisionalCostExcludesUnreconciledObjectStorageOperations: true,
     workerPhaseBreakdownClaimed: false,
     workerSuppliedUsagePriceOrCostAccepted: false,
     runtimeNetworkDownloadObserved: false,
@@ -756,7 +763,11 @@ function createCostReceipt(input: {
     internalQualificationCostOnly: true,
     serviceFeeIncluded: false,
     customerWalletLedgerReservationOrCreditMutationPerformed: false,
-    exactPlatformUsageAndCurrentAccountRateReread: true,
+    exactProviderAllocationArtifactBytesAndCurrentAccountRateReread: true,
+    objectStorageOperationCostDeferredToCloudBillingInvoiceReconciliation:
+      true,
+    provisionalInternalQualificationCost: true,
+    finalCloudBillingInvoiceReconciledCostClaimed: false,
     activeA100GpuInstancesAfterTerminalAttempt: 0,
     automaticRetryAllowed: false,
     cloudBillingInvoiceReconciliationRequired: true,

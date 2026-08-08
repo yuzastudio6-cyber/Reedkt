@@ -189,9 +189,18 @@ const providerUsage = await providerUsagePort.rereadExact({
 }) as { actualUsage: {
   allocatedGpuMilliseconds: number
   workerPhaseBreakdownClaimed: boolean
+  classAOperationCount: number
+  classBOperationCount: number
+  objectStorageOperationMeteringDisposition: string
 } }
 assert.equal(providerUsage.actualUsage.allocatedGpuMilliseconds, 120_000)
 assert.equal(providerUsage.actualUsage.workerPhaseBreakdownClaimed, false)
+assert.equal(providerUsage.actualUsage.classAOperationCount, 0)
+assert.equal(providerUsage.actualUsage.classBOperationCount, 0)
+assert.equal(
+  providerUsage.actualUsage.objectStorageOperationMeteringDisposition,
+  'deferred_to_cloud_billing_invoice_reconciliation',
+)
 assert.ok(launched.executionRef)
 const consumptionEvent = events.findIndex((value) =>
   value === 'persist:consumptions')
@@ -235,7 +244,7 @@ assert.equal(providerCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-qualification-runtime',
-  checks: 29,
+  checks: 34,
   exactHistoricalPackageReread: true,
   createOnlyWorkerRequestAdmissionConsumptionAndExecution: true,
   consumptionPersistedBeforeProviderCall: true,
@@ -244,6 +253,8 @@ console.log(JSON.stringify({
   immutableImageQuotaAndAccountRateRereadBeforeLaunch: true,
   exactCloudQuotaPreferenceAndRegionalLimitReread: true,
   providerBillableAllocationUsedWithoutInventedWorkerPhases: true,
+  storageOperationCountsNotInvented: true,
+  storageOperationCostDeferredToInvoiceReconciliation: true,
   restartSafeTerminalReconciliationSeam: true,
   callerPathUrlCommandModelOrPriceAccepted: false,
   customerCreditsMutated: false,

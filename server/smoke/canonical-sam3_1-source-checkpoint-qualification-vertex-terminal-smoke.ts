@@ -4,6 +4,7 @@ import {
   sealCanonicalSam31VertexSourceCheckpointWorkerResult,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification-vertex'
 import {
+  canonicalSam31VertexQualificationCostReceiptSchema,
   canonicalSam31VertexQualificationPlatformStopSchema,
   createCanonicalSam31VertexQualificationProviderUsage,
   createCanonicalSam31VertexQualificationTerminalReconciler,
@@ -131,6 +132,39 @@ assert.equal(costReceipt.actualInfrastructureCost.totalInfrastructureCostUsdNano
   costReceipt.weeditproAbsorbedInfrastructureCostUsdNanos)
 assert.equal(costReceipt.actualInfrastructureCost.totalInfrastructureCostUsdNanos
   > 0, true)
+assert.equal(costReceipt.actualUsage.classAOperationCount, 0)
+assert.equal(costReceipt.actualUsage.classBOperationCount, 0)
+assert.equal(
+  costReceipt.actualUsage.objectStorageOperationMeteringDisposition,
+  'deferred_to_cloud_billing_invoice_reconciliation',
+)
+assert.equal(
+  costReceipt.objectStorageOperationCostDeferredToCloudBillingInvoiceReconciliation,
+  true,
+)
+assert.equal(costReceipt.provisionalInternalQualificationCost, true)
+assert.equal(costReceipt.finalCloudBillingInvoiceReconciledCostClaimed, false)
+assert.equal(
+  costReceipt.actualInfrastructureCost.objectClassAOperationsUsdNanos,
+  0,
+)
+assert.equal(
+  costReceipt.actualInfrastructureCost.objectClassBOperationsUsdNanos,
+  0,
+)
+const inventedOperationCost = structuredClone(costReceipt)
+inventedOperationCost.actualInfrastructureCost.objectClassAOperationsUsdNanos =
+  1
+inventedOperationCost.actualInfrastructureCost.totalInfrastructureCostUsdNanos +=
+  1
+inventedOperationCost.weeditproAbsorbedInfrastructureCostUsdNanos += 1
+const { receiptHash: _receiptHash, ...inventedOperationCostPayload } =
+  inventedOperationCost
+assert.equal(_receiptHash.length, 64)
+assert.throws(() => canonicalSam31VertexQualificationCostReceiptSchema.parse({
+  ...inventedOperationCostPayload,
+  receiptHash: sha256AuthorityValue(inventedOperationCostPayload),
+}))
 
 let pendingResultReads = 0
 const pending = await createReconciler({
@@ -191,10 +225,13 @@ assert.equal(activeCapacity.disposition,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-vertex-terminal',
-  checks: 32,
+  checks: 41,
   exactWorkerResultGenerationReread: true,
   exactTerminalStateAndUsage: true,
-  billingAccountEffectiveCostReconciled: true,
+  billingAccountEffectiveProvisionalCostCalculated: true,
+  storageOperationCountsInvented: false,
+  storageOperationCostDeferredToInvoiceReconciliation: true,
+  finalInvoiceReconciledCostClaimed: false,
   internalQualificationCostAbsorbedByWeEditPro: true,
   customerCreditsMutated: false,
   activeA100GpuInstancesAfterObservation: 0,
@@ -251,8 +288,6 @@ function createReconciler(input: {
           privateArtifactBytes: 4_294_967_296,
           privateArtifactRetentionMilliseconds: 86_400_000,
           networkEgressBytes: 0,
-          classAOperationCount: 5,
-          classBOperationCount: 8,
           observedAt: '2026-08-06T16:14:00.000Z',
         })
       },

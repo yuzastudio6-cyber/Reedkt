@@ -18,7 +18,7 @@ import {
 export const CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION =
   'canonical-a100-vertex-attempt-cost-receipt-v1' as const
 export const CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_USAGE_VERSION =
-  'canonical-a100-vertex-provider-allocation-usage-v2' as const
+  'canonical-a100-vertex-provider-allocation-usage-v3' as const
 
 export const WEEDITPRO_USD_NANOS_PER_CREDIT = 100_000_000 as const
 export const VERTEX_A100_BILLING_INCREMENT_MILLISECONDS = 30_000 as const
@@ -121,8 +121,13 @@ const providerAllocationUsageWithoutHashSchema = z.object({
   privateArtifactBytes: nonnegativeInteger,
   privateArtifactRetentionMilliseconds: nonnegativeInteger,
   networkEgressBytes: nonnegativeInteger,
-  classAOperationCount: nonnegativeInteger,
-  classBOperationCount: nonnegativeInteger,
+  classAOperationCount: z.literal(0),
+  classBOperationCount: z.literal(0),
+  objectStorageOperationMeteringDisposition: z.literal(
+    'deferred_to_cloud_billing_invoice_reconciliation',
+  ),
+  objectStorageOperationCostIncludedInProvisionalCost: z.literal(false),
+  finalInvoiceReconciledUsageClaimed: z.literal(false),
   exactProviderCreateStartEndTimesReread: z.literal(true),
   workerPhaseBreakdownClaimed: z.literal(false),
   workerSuppliedBillableDurationOrPricingAccepted: z.literal(false),
@@ -355,8 +360,6 @@ export function createCanonicalA100VertexProviderAllocationUsage(input: {
   readonly privateArtifactBytes: number
   readonly privateArtifactRetentionMilliseconds: number
   readonly networkEgressBytes: number
-  readonly classAOperationCount: number
-  readonly classBOperationCount: number
 }): CanonicalA100VertexProviderAllocationUsage {
   assertPlainSerializedData(input, 'vertex_a100_provider_allocation_usage')
   const create = Date.parse(timestamp.parse(input.providerCreateTime))
@@ -388,8 +391,12 @@ export function createCanonicalA100VertexProviderAllocationUsage(input: {
     privateArtifactRetentionMilliseconds:
       input.privateArtifactRetentionMilliseconds,
     networkEgressBytes: input.networkEgressBytes,
-    classAOperationCount: input.classAOperationCount,
-    classBOperationCount: input.classBOperationCount,
+    classAOperationCount: 0,
+    classBOperationCount: 0,
+    objectStorageOperationMeteringDisposition:
+      'deferred_to_cloud_billing_invoice_reconciliation',
+    objectStorageOperationCostIncludedInProvisionalCost: false,
+    finalInvoiceReconciledUsageClaimed: false,
     exactProviderCreateStartEndTimesReread: true,
     workerPhaseBreakdownClaimed: false,
     workerSuppliedBillableDurationOrPricingAccepted: false,

@@ -441,8 +441,6 @@ export function createCanonicalSam31VertexQualificationProviderUsageReadPort(
         privateArtifactRetentionMilliseconds:
           PRIVATE_ARTIFACT_RETENTION_MILLISECONDS,
         networkEgressBytes: 0,
-        classAOperationCount: value.workerResult === null ? 3 : 4,
-        classBOperationCount: value.workerResult === null ? 6 : 8,
         observedAt: timestamp.parse(now()),
       })
       const reread = await input.store.createOnlyAndReread(usage)

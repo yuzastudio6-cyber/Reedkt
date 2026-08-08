@@ -31,12 +31,12 @@ A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_PREFERENCE_ID='weeditpro-vertex-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_ID='CustomModelTrainingA10080GBGPUsPerProjectPerRegion'
 readonly -a VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS=(
-  '2ea8b90428dec4f4e06bf423fe41a84e95f1e11eab620ade8f15726fcbb9d823|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
+  'f5aead402b54e9f48538e885f2cb5ccbe3e0dee14e0db8bcccfe1f793282ef82|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
   '7c0e862d3a8a2cb6a9a0de25e866acb18a52af873c9b4763aab483eccdbb6d04|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-repository.ts'
   '86c50ad418cb8fe89b1bbb601203e8f4c16c9a5452ab236d37abe40ffd1928db|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port.ts'
-  'a4c9a25fcb4b1a754a872e2396a7d15ff92b5e5bac2f8d9c7d7c60e1d9b67e7f|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'
-  '416b46ceb0282dacf693214b3efcbea42469dbaa3bebcbf9f9d5a82e8800b2a0|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
-  '6dba9f843d62888cb48abc6294622519a1607bc4659cc0f7aa6b6eec2d50a914|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'
+  'bd733a8c308ec0c89f4654cb2300f9debab66fe6d9d41e7e8f94d64c1c48a509|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'
+  '19534cd84230a9991b3011feef8fbedca1bd532409d21e98899f13b9a805ffc4|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
+  '0cd836d80f101e723e4fe7e7d18ef84cced34b4a843a469566c3c81cd0adef14|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'
 )
 readonly -a A100_CAPACITY_CANDIDATE_REGIONS=(
   'us-central1'
@@ -1118,7 +1118,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v16' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v17' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \

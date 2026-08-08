@@ -639,6 +639,34 @@ invocation of this operator boundary.
 
 ## Current disposition
 
+### 2026-08-08 account-effective A100 price publisher deployment
+
+- Commit `e772222cd` publishes the dedicated scale-from-zero Vertex A100
+  account-effective rate operator. Cloud Build
+  `0af2c057-2774-4b99-9048-4da408a3b71b` produced immutable image digest
+  `sha256:eef5362894af6918f17e5f5acb0302bf83c76bcc0b91b054edc2d7e900891a07`
+  from exact tree `65b192b540dcaf7ef16e727367816e25423706a9`.
+  Artifact Analysis reports SLSA level 3, completed NPM/OS/secret analysis,
+  and zero discovered vulnerabilities.
+- Cloud Run Job `weeditpro-vertex-a100-rate-publisher` is deployed in
+  `us-central1` under the canonical API service identity. Its permanent
+  configuration contains only `WEEDITPRO_VERTEX_A100_RATE_OPERATOR_ACTION`
+  set to `disabled`, with one task, zero retries, no GPU, no public principal,
+  and zero idle instances.
+- One bounded execution,
+  `weeditpro-vertex-a100-rate-publisher-t6vp4`, exercised the canonical service
+  identity and failed before publication with
+  `Vertex A100 account-effective price reread failed.` The repository still
+  contains only the previously published expired authority; no partial or
+  replacement authority was created. The job reread unarmed afterward with
+  zero running executions.
+- This execution started no SAM/Gemini model, GPU, provider, or media runtime
+  and mutated no customer credit, wallet, billing account, payment method,
+  public-delivery, or production authority. The remaining live gate is the
+  billing administrator's read-only `billing.billingAccountPrice.get` grant
+  for the canonical backend identity. The A100 qualification remains
+  correctly unlaunched until a fresh authority is published.
+
 ### 2026-08-08 restart-safe Vertex A100 qualification runtime milestone
 
 - Commit `552062710` adds the canonical one-writer Vertex Custom Job

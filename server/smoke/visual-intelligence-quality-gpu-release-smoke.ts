@@ -64,6 +64,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-source-checkpoint-qualification-package-publisher-smoke.ts',
   'canonical-sam3_1-official-probe-fixture-smoke.ts',
   'canonical-sam3_1-official-probe-fixture-cloud-job-smoke.ts',
+  'canonical-sam3_1-qualification-package-publisher-cloud-job-smoke.ts',
   'canonical-sam3_1-qualification-a100-rate-owner-smoke.ts',
   'canonical-professional-gpu-funded-start-authority-store-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',

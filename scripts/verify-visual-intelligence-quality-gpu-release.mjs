@@ -61,6 +61,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-private-artifact-ingest-cloud-job-smoke.ts',
   'server/smoke/canonical-sam3_1-official-probe-fixture-smoke.ts',
   'server/smoke/canonical-sam3_1-official-probe-fixture-cloud-job-smoke.ts',
+  'server/smoke/canonical-sam3_1-qualification-package-publisher-cloud-job-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-capsule-builder-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-pycocotools-ingest-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-capsule-reproducibility-smoke.ts',

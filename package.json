@@ -347,6 +347,8 @@
     "smoke:sam3_1-production-image-security-review": "tsx server/smoke/canonical-sam3_1-production-image-security-review-operator-smoke.ts",
     "review:sam3_1-production-image-security": "tsx server/cli/review-canonical-sam3_1-production-image-security.ts",
     "publish:sam3_1-production-image-supply-chain-release": "tsx server/cli/publish-canonical-sam3_1-production-image-supply-chain-release.ts",
+    "publish:sam3_1-gpu-runtime-release": "tsx server/cli/publish-canonical-sam3_1-gpu-runtime-release.ts",
+    "smoke:sam3_1-gpu-runtime-release-publication": "tsx server/smoke/canonical-sam3_1-gpu-runtime-release-publication-coordinator-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build-runtime": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts",
     "smoke:sam3_1-funded-gpu-runtime-composition": "tsx server/smoke/canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts",

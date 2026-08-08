@@ -261,6 +261,17 @@ idempotent rerun then observed all five disabled and emitted
   compilation factory joins that repository with the existing final route-
   qualification repository and the compilation-authority store, so an
   in-memory object cannot satisfy the production release path.
+- The route-specific release publication gap is now closed in source. The
+  canonical publication coordinator accepts only exact upstream and component
+  refs, rereads the source/checkpoint release, private ingest, immutable image
+  supply-chain release, final qualification record, and compilation authority,
+  and then persists the specialized/generic release pair create-only. It
+  derives the release ID, fixed A100/L4 route shape, qualification time, and
+  30-day expiry on the server; callers cannot submit those fields or any
+  qualification boolean. The bounded
+  `publish:sam3_1-gpu-runtime-release` command exposes only opaque refs and an
+  explicit operator confirmation. Publication starts no GPU job, mutates no
+  customer credit, and grants no public-delivery or production authority.
 - Driver/CUDA component evidence now has a canonical route-specific owner.
   It rereads the immutable SAM 3.1 task, professional GPU launch, admitted
   runtime result, and create-only worker response from their durable stores;

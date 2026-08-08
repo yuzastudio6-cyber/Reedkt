@@ -504,12 +504,17 @@ function parseSupportRequirement(
     ? error.details.reasonCodes as string[]
     : []
   if (!originalCallRef || supportRequestRefs.length === 0) return null
+  // A Caption result may advertise its complete ordered owner dependency list
+  // (for example Visual Intelligence followed by Track All). The qualification
+  // coordinator must admit exactly one current request per resume turn so the
+  // next owner is not marked consumed before its promoted predecessor exists.
+  const currentSupportRequest = supportRequestRefs[0]!
   return Object.freeze({
     jobId: input.jobId,
     ownerUserId: input.ownerUserId,
     workspaceId: input.workspaceId,
     originalCallRef,
-    supportRequestRefs: Object.freeze(supportRequestRefs),
+    supportRequestRefs: Object.freeze([currentSupportRequest]),
     reasonCodes: Object.freeze([...reasonCodes]),
   })
 }

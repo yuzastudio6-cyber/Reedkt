@@ -78,6 +78,9 @@ import {
   injectCanonicalCaptionVisualIntelligenceStructuralSupport,
 } from '../internal-testing/canonical-caption-visual-intelligence-structural-support-fixture'
 import {
+  injectCanonicalCaptionTrackAllStructuralSupport,
+} from '../internal-testing/canonical-caption-track-all-structural-support-fixture'
+import {
   createCanonicalPrivateEditSkillArtifactStore,
 } from '../services/canonical-private-edit-skill-artifact-store'
 import {
@@ -705,14 +708,30 @@ try {
       >[0]['resolveCaptionSupportRequirement']>
     >[0],
   ) => {
-    const fixture =
-      await injectCanonicalCaptionVisualIntelligenceStructuralSupport({
+    const target = requirement.supportRequestRefs[0]?.targetSkillKey
+    if (target === 'visual_intelligence') {
+      const fixture =
+        await injectCanonicalCaptionVisualIntelligenceStructuralSupport({
+          context,
+          requirement,
+          now: () => new Date('2026-08-07T20:05:00.000Z'),
+        })
+      assert.equal(fixture.structuralFixtureOnly, true)
+      assert.equal(fixture.privateQualificationEvidence, false)
+      return
+    }
+    if (target === 'track_all') {
+      const fixture = await injectCanonicalCaptionTrackAllStructuralSupport({
         context,
         requirement,
-        now: () => new Date('2026-08-07T20:05:00.000Z'),
       })
-    assert.equal(fixture.structuralFixtureOnly, true)
-    assert.equal(fixture.privateQualificationEvidence, false)
+      assert.equal(fixture.structuralFixtureOnly, true)
+      assert.equal(fixture.privateQualificationEvidence, false)
+      return
+    }
+    throw new Error(
+      `Caption approved campaign has no structural owner fixture for ${target ?? 'unknown'}.`,
+    )
   }
   const objectPort = createCanonicalPrivateLocalJsonObjectPort({
     localStorageRoot: root,
@@ -1044,9 +1063,9 @@ try {
       baseTranscriptOwnerReadPort
   }
   if (advancedApprovedExecutionCampaign) {
-    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 3)
-    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 21)
-    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 20)
+    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 6)
+    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 24)
+    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 17)
     assert.equal(
       advancedApprovedExecutionCampaign.campaignIdenticalReplayVerified,
       true,
@@ -1060,6 +1079,9 @@ try {
       [
         'resolve_multi_track_caption_scene',
         'resolve_spatial_typography',
+        'resolve_subject_occluded_typography',
+        'resolve_object_anchored_typography',
+        'resolve_environmental_typography',
         'resolve_hero_typography',
         'resolve_persistent_topic_typography',
       ],
@@ -1566,6 +1588,24 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
       mappedPresetIds: ['hero_typography_direction'],
     },
     expectedNewJobTypes: ['resolve_hero_typography'],
+  }, {
+    scenario: {
+      scenarioId: 'subject-occluded',
+      mappedPresetIds: ['subject_occluded_typography'],
+    },
+    expectedNewJobTypes: ['resolve_subject_occluded_typography'],
+  }, {
+    scenario: {
+      scenarioId: 'object-anchored',
+      mappedPresetIds: ['object_anchored_typography'],
+    },
+    expectedNewJobTypes: ['resolve_object_anchored_typography'],
+  }, {
+    scenario: {
+      scenarioId: 'environmental',
+      mappedPresetIds: ['environmental_typography'],
+    },
+    expectedNewJobTypes: ['resolve_environmental_typography'],
   }]
   const covered = new Set<CaptionsSupportedJobType>()
   const runRefs: CaptionDomainRef[] = []
@@ -1628,9 +1668,9 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
   })
   assert.deepEqual(campaign.coveredCaptionJobTypes, coveredJobTypes)
   assert.deepEqual(campaign.missingCaptionJobTypes, missingJobTypes)
-  assert.equal(campaign.counts.approvedRuns, 3)
-  assert.equal(campaign.counts.distinctApprovedSnapshots, 3)
-  assert.equal(campaign.counts.distinctExecutionPackages, 3)
+  assert.equal(campaign.counts.approvedRuns, 6)
+  assert.equal(campaign.counts.distinctApprovedSnapshots, 6)
+  assert.equal(campaign.counts.distinctExecutionPackages, 6)
   assert.equal(campaign.oneAllFeatureEditFabricated, false)
   assert.equal(campaign.terminalQualificationClaimed, false)
   const campaignRepository =

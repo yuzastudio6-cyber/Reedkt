@@ -20,10 +20,14 @@ function hash(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex')
 }
 
-function approvedCall() {
+function approvedCall(jobType:
+  | 'resolve_subject_occluded_typography'
+  | 'resolve_object_anchored_typography'
+  | 'resolve_environmental_typography' =
+    'resolve_subject_occluded_typography') {
   return createCaptionsHarnessCall({
-    callId: 'captions.async-owner-harness.subject-occlusion',
-    jobType: 'resolve_subject_occluded_typography',
+    callId: `captions.async-owner-harness.${jobType}`,
+    jobType,
     scopeLevel: 'scene',
     runtimeProfile: 'post_cap20_integration',
     approvedSnapshotRef: {
@@ -80,6 +84,23 @@ check(run.resumeSteps.every((step) =>
     && artifact.sourceSupportRequestRef?.contentHash
       === step.selectedSupportRequest.requestDigestSha256)),
   'every injected artifact binds the exact selected owner and request digest')
+
+for (const jobType of [
+  'resolve_object_anchored_typography',
+  'resolve_environmental_typography',
+] as const) {
+  const advancedCall = approvedCall(jobType)
+  const advancedFixture = createCaptionsAuthenticatedOwnerFixture(advancedCall)
+  const advancedRun = await runCaptionsInternalHarnessToCompletionAsync({
+    call: advancedCall,
+    initialRuntimeEvidence: advancedFixture.initialRuntimeEvidence,
+    resolveSupportRequest: async (context) =>
+      advancedFixture.resolveSupportRequest(context),
+  })
+  check(advancedRun.finalResult.disposition === 'completed'
+    && advancedRun.resumeSteps.length === 2,
+  `${jobType} completes the exact Visual Intelligence to Track All chain`)
+}
 
 await assert.rejects(async () => {
   const badCall = approvedCall()

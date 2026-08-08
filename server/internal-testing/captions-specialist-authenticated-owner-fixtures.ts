@@ -310,7 +310,12 @@ function resolveVisual(
   }
 }
 
-function resolveTrack(
+/**
+ * Builds a closed Track All owner-result fixture for contract and structural
+ * orchestration tests only. The returned record is never qualification proof;
+ * callers must preserve that boundary when persisting it for a test chain.
+ */
+export function createCaptionTrackAllContractFixtureResolution(
   context: CaptionsHarnessSupportResolutionContext,
 ): CaptionsHarnessSupportResolution {
   const request = context.selectedSupportRequest
@@ -320,14 +325,17 @@ function resolveTrack(
   const expectedFrames = requestedRange.endFrameExclusive
     - requestedRange.startFrame
   const sourceFrameMappingRef = payload.sourceFrameMappingRef
+  const subjectRequest = payload.subjectRequests[0]!
   const subjectEvidence: CaptionTrackAllSubjectEvidence = {
-    subjectRequestId: payload.subjectRequests[0]!.subjectRequestId,
+    subjectRequestId: subjectRequest.subjectRequestId,
     subjectEvidenceId: `caption.track.subject-evidence.${suffix}`,
-    subjectRole: payload.subjectRequests[0]!.subjectRole,
+    subjectRole: subjectRequest.subjectRole,
     frameRange: structuredClone(requestedRange),
-    maskSequenceRef: domainRef(`caption.track.mask-sequence.${suffix}`),
+    maskSequenceRef: subjectRequest.maskRequired
+      ? domainRef(`caption.track.mask-sequence.${suffix}`) : null,
     trackManifestRef: domainRef(`caption.track.manifest.${suffix}`),
-    anchorManifestRef: null,
+    anchorManifestRef: subjectRequest.anchorRequired
+      ? domainRef(`caption.track.anchor-manifest.${suffix}`) : null,
     sourceFrameMappingRef: structuredClone(sourceFrameMappingRef),
     outputFrameDigestSha256: payload.confirmedOutputFrameDigestSha256,
     temporalQa: {
@@ -350,7 +358,9 @@ function resolveTrack(
       tool: 'opencv',
       operation: 'temporal_median_check',
       inputArtifactRef: domainRef(`caption.track.mask-raw.${suffix}`),
-      outputArtifactRef: domainRef(`caption.track.mask-sequence.${suffix}`),
+      outputArtifactRef: subjectRequest.maskRequired
+        ? domainRef(`caption.track.mask-sequence.${suffix}`)
+        : domainRef(`caption.track.manifest.${suffix}`),
       executionEvidenceRef: domainRef(`caption.track.opencv-evidence.${suffix}`),
       actualExecutionObserved: true,
     }],
@@ -481,9 +491,10 @@ function resolveTrack(
 export function createCaptionsAuthenticatedOwnerFixture(
   call: OrchestraSkillCall,
 ): CaptionsAuthenticatedOwnerFixture {
-  if (call.job.jobType !== 'resolve_subject_occluded_typography') {
+  const trackProfile = authenticatedTrackFixtureProfile(call.job.jobType)
+  if (trackProfile === null) {
     throw new Error(
-      'The authenticated multi-owner fixture is scoped to subject occlusion.')
+      'The authenticated multi-owner fixture requires an advanced Track All Caption job.')
   }
   const scope = domainScope(call)
   const frameDigest = hash(`caption.output-frame:${scope.outputId}`)
@@ -510,7 +521,7 @@ export function createCaptionsAuthenticatedOwnerFixture(
       'caption.source-private.multi-owner'),
     canonicalLayoutOccupancyRef: domainRef(
       'caption.layout-occupancy.multi-owner'),
-    requiredObservationRoles: ['safe_candidate', 'face'],
+    requiredObservationRoles: [...trackProfile.visualObservationRoles],
     expectedOutcomeRefs: [domainRef('caption.outcome.safe.multi-owner')],
   })
   const trackSupport = createCaptionTrackAllSupport({
@@ -518,7 +529,7 @@ export function createCaptionsAuthenticatedOwnerFixture(
     requestId: `${call.callId}.support.track_all`,
     idempotencyKey: call.idempotencyKey,
     originalCallRef: callRef(call),
-    purpose: 'subject_occlusion',
+    purpose: trackProfile.purpose,
     canonicalScope: scope,
     pictureLockRef: domainRef('caption.picture-lock.multi-owner'),
     finishReadinessRef: domainRef('caption.finish-readiness.multi-owner'),
@@ -531,15 +542,15 @@ export function createCaptionsAuthenticatedOwnerFixture(
       'caption.source-frame-mapping.multi-owner'),
     subjectRequests: [{
       subjectRequestId: 'caption.subject-request.multi-owner',
-      subjectRole: 'primary_speaker',
+      subjectRole: trackProfile.subjectRole,
       visualObservationRefs: [domainRef(
         'caption.visual-observation.multi-owner')],
       sourcePhraseRefs: [domainRef('caption.source-phrase.multi-owner')],
-      maskRequired: true,
+      maskRequired: trackProfile.maskRequired,
       trackRequired: true,
-      anchorRequired: false,
-      preserveHairAndFineEdges: true,
-      preserveContactObjects: false,
+      anchorRequired: trackProfile.anchorRequired,
+      preserveHairAndFineEdges: trackProfile.preserveHairAndFineEdges,
+      preserveContactObjects: trackProfile.preserveContactObjects,
     }],
     korniaRefinementAllowed: false,
   })
@@ -561,7 +572,9 @@ export function createCaptionsAuthenticatedOwnerFixture(
         return resolved
       }
       if (context.selectedSupportRequest.targetSkillKey === 'track_all') {
-        const resolved = resolveTrack(context)
+        const resolved = createCaptionTrackAllContractFixtureResolution(
+          context,
+        )
         if (admittedVisualRecord !== null) {
           resolved.runtimeEvidence.canonicalVisualIntelligenceEvidenceRecord =
             admittedVisualRecord
@@ -574,4 +587,41 @@ export function createCaptionsAuthenticatedOwnerFixture(
     sourceFixtureOnly: true,
     liveProviderOrGpuRuntimeObservedByFixtureBuilder: false,
   }
+}
+
+function authenticatedTrackFixtureProfile(jobType: string) {
+  if (jobType === 'resolve_subject_occluded_typography') {
+    return {
+      purpose: 'subject_occlusion' as const,
+      subjectRole: 'primary_speaker' as const,
+      visualObservationRoles: ['safe_candidate', 'face', 'gesture'] as const,
+      maskRequired: true,
+      anchorRequired: false,
+      preserveHairAndFineEdges: true,
+      preserveContactObjects: false,
+    }
+  }
+  if (jobType === 'resolve_object_anchored_typography') {
+    return {
+      purpose: 'object_anchor' as const,
+      subjectRole: 'important_object' as const,
+      visualObservationRoles: ['safe_candidate', 'important_object'] as const,
+      maskRequired: false,
+      anchorRequired: true,
+      preserveHairAndFineEdges: false,
+      preserveContactObjects: true,
+    }
+  }
+  if (jobType === 'resolve_environmental_typography') {
+    return {
+      purpose: 'environmental_anchor' as const,
+      subjectRole: 'environmental_surface' as const,
+      visualObservationRoles: ['safe_candidate', 'important_object'] as const,
+      maskRequired: false,
+      anchorRequired: true,
+      preserveHairAndFineEdges: false,
+      preserveContactObjects: false,
+    }
+  }
+  return null
 }

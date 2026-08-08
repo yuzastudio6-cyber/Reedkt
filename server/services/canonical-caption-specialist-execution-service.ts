@@ -26,6 +26,9 @@ import type { CanonicalSpecialistCallResultPair } from
 import type {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-visual-intelligence-support'
+import type {
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-track-all-support'
 import {
   ORCHESTRA_SKILL_CALL_VERSION,
   ORCHESTRA_SKILL_JOB_RESULT_VERSION,
@@ -60,6 +63,8 @@ import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import { createCaptionVisualIntelligenceSupport } from
   '../captions-specialist/caption-visual-intelligence-support'
+import { createCaptionTrackAllSupport } from
+  '../captions-specialist/caption-track-all-support'
 import { canonicalCaptionAssignmentTriggerForJob } from
   '../captions-specialist/caption-canonical-work-planning'
 import {
@@ -90,6 +95,10 @@ import type {
   CaptionVisualIntelligenceSupportPayload,
   CaptionVisualObservationRole,
 } from '../../src/types/caption-visual-intelligence-support'
+import type {
+  CaptionTrackAllPurpose,
+  CaptionTrackAllSupportPayload,
+} from '../../src/types/caption-track-all-support'
 import {
   canonicalWorkerLeaseDependencyAuthoritySchema,
   type CanonicalWorkerLeaseDependencyAuthority,
@@ -386,8 +395,11 @@ export interface CanonicalCaptionSpecialistExecutionPort {
     readonly canonicalTranscript?: unknown
     readonly canonicalTranscriptAuthenticatedReadBinding?: unknown
     readonly visualIntelligenceSupportPayload?: unknown
+    readonly trackAllSupportPayload?: unknown
     readonly canonicalVisualIntelligenceEvidenceRecord?:
       CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
+    readonly canonicalTrackAllEvidenceRecord?:
+      CanonicalCaptionTrackAllAuthenticatedEvidenceRecord
     readonly resumeSupportRequest?: SkillSupportRequest
     readonly incomingSupportRequest?: SkillSupportRequestV2
     readonly crossSystemCoordinationPlan?: unknown
@@ -463,6 +475,16 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     }): Promise<
       CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null
     >
+  }>
+  /**
+   * Read-only authenticated Track All/SAM evidence. The Track All owner seals
+   * and persists the record; the canonical Caption execution owner only
+   * rereads it to continue the exact support chain after visual occupancy.
+   */
+  readonly trackAllEvidenceReadPort?: Readonly<{
+    rereadBySupportRequestRef(input: {
+      readonly supportRequestRef: SkillContractRef
+    }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecord | null>
   }>
   /**
    * Exact read-only dependency proof derived by the canonical worker-lease
@@ -666,6 +688,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
               call: resumedCall,
               resumeSupportRequest,
               canonicalVisualIntelligenceEvidenceRecord: exactEvidence,
+              ...canonicalCaptionTrackAllSupportRuntimeInput({
+                call: resumedCall,
+                record: postapprovalFinishRecord,
+                visualEvidence: exactEvidence,
+              }),
               ...(transcriptEvidence === null ? {} : {
                 canonicalTranscript:
                   structuredClone(transcriptEvidence.canonicalTranscript),
@@ -689,6 +716,98 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       if (!resumed) {
         throw new Error(
           'Canonical Caption resumed call/result chain reread failed.',
+        )
+      }
+      resumeChain = resumed
+    }
+  }
+  if (resumeChain.status === 'waiting_for_persisted_resume_record') {
+    const currentRequest = resumeChain.currentPair.result.supportRequests[0]
+    const currentRequestRef = currentRequest === undefined
+      ? null : {
+          id: currentRequest.requestId,
+          version: currentRequest.schemaVersion,
+          contentHash: currentRequest.requestDigestSha256,
+        }
+    if (currentRequest?.targetSkillKey === 'track_all'
+      && currentRequestRef !== null
+      && input.trackAllEvidenceReadPort) {
+      const exactEvidence = await input.trackAllEvidenceReadPort
+        .rereadBySupportRequestRef({
+          supportRequestRef: currentRequestRef,
+        })
+      if (!exactEvidence
+        || exactEvidence.originalCallRef.id
+          !== resumeChain.currentPair.call.callId
+        || exactEvidence.originalCallRef.version
+          !== resumeChain.currentPair.call.schemaVersion
+        || exactEvidence.originalCallRef.contentHash
+          !== resumeChain.currentPair.call.callDigestSha256
+        || exactEvidence.supportRequestRef.id !== currentRequestRef.id
+        || exactEvidence.supportRequestRef.version !== currentRequestRef.version
+        || exactEvidence.supportRequestRef.contentHash
+          !== currentRequestRef.contentHash) {
+        throw new Error(
+          'Canonical Caption Track All resume evidence crossed the current call.',
+        )
+      }
+      const priorVisualStep = [...resumeChain.records].reverse().find(
+        (record) => record.selectedSupportRequest.targetSkillKey ===
+          'visual_intelligence',
+      )
+      const priorVisualRequestRef = priorVisualStep === undefined
+        ? null : {
+            id: priorVisualStep.selectedSupportRequest.requestId,
+            version: priorVisualStep.selectedSupportRequest.schemaVersion,
+            contentHash:
+              priorVisualStep.selectedSupportRequest.requestDigestSha256,
+          }
+      const exactVisualEvidence = priorVisualRequestRef === null
+        || !input.visualIntelligenceEvidenceReadPort
+        ? null : await input.visualIntelligenceEvidenceReadPort
+          .rereadBySupportRequestRef({
+            supportRequestRef: priorVisualRequestRef,
+          })
+      if (!exactVisualEvidence) {
+        throw new Error(
+          'Canonical Caption Track All resume requires the promoted Visual Intelligence evidence reread.',
+        )
+      }
+      await resumeCanonicalSpecialistWithAuthenticatedSupport({
+        priorCallRef: callRef(resumeChain.currentPair.call),
+        selectedSupportRequestRef: currentRequestRef,
+        repository: input.repository,
+        specialistExecutionPort: {
+          execute: async ({ call: resumedCall, resumeSupportRequest }) =>
+            (input.executionPort ?? defaultExecutionPort).execute({
+              call: resumedCall,
+              resumeSupportRequest,
+              canonicalVisualIntelligenceEvidenceRecord:
+                exactVisualEvidence,
+              canonicalTrackAllEvidenceRecord: exactEvidence,
+              ...(transcriptEvidence === null ? {} : {
+                canonicalTranscript:
+                  structuredClone(transcriptEvidence.canonicalTranscript),
+                canonicalTranscriptAuthenticatedReadBinding: structuredClone(
+                  transcriptEvidence.authenticatedReadBinding),
+              }),
+              ...(incomingSupportRequest === null ? {} : {
+                incomingSupportRequest:
+                  structuredClone(incomingSupportRequest),
+              }),
+              ...canonicalCaptionCrossSystemRuntimeInput(
+                crossSystemExecutionInput),
+            }),
+        },
+        now: input.now,
+      })
+      const resumed = await rereadCanonicalSpecialistSupportResumeChain({
+        initialCallRef: captionCallRef,
+        repository: input.repository,
+      })
+      if (!resumed) {
+        throw new Error(
+          'Canonical Caption Track All resumed chain reread failed.',
         )
       }
       resumeChain = resumed
@@ -731,11 +850,18 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
         visualIntelligenceSupportPayload:
           input.visualIntelligenceSupportPayload,
       }),
+      ...(input.trackAllSupportPayload === undefined ? {} : {
+        trackAllSupportPayload: input.trackAllSupportPayload,
+      }),
       ...(input.canonicalVisualIntelligenceEvidenceRecord === undefined
         ? {} : {
             canonicalVisualIntelligenceEvidenceRecord:
               input.canonicalVisualIntelligenceEvidenceRecord,
           }),
+      ...(input.canonicalTrackAllEvidenceRecord === undefined ? {} : {
+        canonicalTrackAllEvidenceRecord:
+          input.canonicalTrackAllEvidenceRecord,
+      }),
       ...(input.resumeSupportRequest === undefined ? {} : {
         resumeSupportRequest: input.resumeSupportRequest,
       }),
@@ -834,6 +960,115 @@ function createCanonicalCaptionVisualIntelligenceSupportPayload(input: {
       structuredClone(input.record.binding.captionPlanningProjectionRef),
     ],
   }).payload
+}
+
+function canonicalCaptionTrackAllSupportRuntimeInput(input: {
+  call: OrchestraSkillCall
+  record: ReturnType<
+    typeof parseCanonicalCaptionPostapprovalFinishRecord
+  > | null
+  visualEvidence: CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
+}): { trackAllSupportPayload: CaptionTrackAllSupportPayload } | object {
+  const purpose = canonicalCaptionTrackAllPurpose(input.call.job.jobType)
+  if (purpose === null) return {}
+  if (!input.record || input.call.canonicalScope.sceneId === null
+    || input.call.canonicalScope.authorizedFrameRanges.length !== 1) {
+    throw new Error(
+      'Canonical Caption Track All work requires its exact postapproval finish record.',
+    )
+  }
+  const packet = input.visualEvidence.captionEvidencePacket
+  if (packet.purpose !== 'final_frame_occupancy'
+    || packet.canonicalScope.sceneId !== input.call.canonicalScope.sceneId
+    || packet.canonicalScope.outputId !== input.call.canonicalScope.outputId) {
+    throw new Error(
+      'Canonical Caption Track All request crossed visual occupancy authority.',
+    )
+  }
+  const visualRoles = purpose === 'subject_occlusion'
+    ? new Set(['speaker', 'face', 'gesture'])
+    : new Set(['important_object'])
+  const relevantObservations = packet.observations.filter((observation) =>
+    visualRoles.has(observation.role))
+  const selectedObservations = relevantObservations.length > 0
+    ? relevantObservations : packet.observations
+  const visualObservationRefs = selectedObservations.map((observation) => ({
+    id: observation.observationId,
+    version: packet.schemaVersion,
+    contentHash: packet.packetDigestSha256,
+  }))
+  const sourcePhraseRefs = input.call.inputArtifactRefs
+    .filter((artifact) => artifact.artifactType === 'canonical_transcript')
+    .map((artifact) => ({
+      id: artifact.id,
+      version: artifact.version,
+      contentHash: artifact.contentHash,
+    }))
+  if (visualObservationRefs.length === 0 || sourcePhraseRefs.length !== 1) {
+    throw new Error(
+      'Canonical Caption Track All request requires visual observations and one transcript lineage.',
+    )
+  }
+  const lock = input.record.pictureLock
+  const subjectRole = purpose === 'subject_occlusion'
+    ? 'primary_speaker' as const
+    : purpose === 'object_anchor'
+      ? 'important_object' as const
+      : 'environmental_surface' as const
+  const anchored = purpose !== 'subject_occlusion'
+  return {
+    trackAllSupportPayload: createCaptionTrackAllSupport({
+      payloadId:
+        `caption.track-support.${input.call.callDigestSha256.slice(0, 40)}`,
+      requestId: `${input.call.callId}.support.track_all`,
+      idempotencyKey: input.call.idempotencyKey,
+      originalCallRef: callRef(input.call),
+      purpose,
+      canonicalScope: structuredClone(input.record.binding.canonicalScope),
+      pictureLockRef: structuredClone(input.record.binding.pictureLockRef),
+      finishReadinessRef:
+        structuredClone(input.record.binding.finishReadinessRef),
+      visualOccupancyManifestRef: {
+        id: packet.packetId,
+        version: packet.schemaVersion,
+        contentHash: packet.packetDigestSha256,
+      },
+      confirmedOutputFrameDigestSha256:
+        lock.confirmedOutputFrame.confirmedOutputFrameDigestSha256,
+      sourcePrivateArtifactRef:
+        structuredClone(lock.compositionBindings.nearFinalVisualProxyRef),
+      sourceFrameMappingRef:
+        structuredClone(lock.timelineBindings.sourceRangesRef),
+      subjectRequests: [{
+        subjectRequestId:
+          `caption.track-subject.${input.call.callDigestSha256.slice(0, 36)}`,
+        subjectRole,
+        visualObservationRefs,
+        sourcePhraseRefs,
+        maskRequired: purpose === 'subject_occlusion',
+        trackRequired: true,
+        anchorRequired: anchored,
+        preserveHairAndFineEdges: purpose === 'subject_occlusion',
+        preserveContactObjects: purpose === 'object_anchor',
+      }],
+      korniaRefinementAllowed: false,
+    }).payload,
+  }
+}
+
+function canonicalCaptionTrackAllPurpose(
+  jobType: string,
+): CaptionTrackAllPurpose | null {
+  if (jobType === 'resolve_subject_occluded_typography') {
+    return 'subject_occlusion'
+  }
+  if (jobType === 'resolve_object_anchored_typography') {
+    return 'object_anchor'
+  }
+  if (jobType === 'resolve_environmental_typography') {
+    return 'environmental_anchor'
+  }
+  return null
 }
 
 function captionVisualObservationRoles(

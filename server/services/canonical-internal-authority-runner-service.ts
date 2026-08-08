@@ -63,6 +63,9 @@ import {
   createCanonicalCaptionVisualIntelligenceEvidenceRepository,
 } from './canonical-caption-visual-intelligence-support-service'
 import {
+  createCanonicalCaptionTrackAllEvidenceRepository,
+} from './canonical-caption-track-all-support-service'
+import {
   createCanonicalCaptionPostapprovalFinishRepository,
 } from './canonical-caption-postapproval-finish-service'
 import {
@@ -727,6 +730,8 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
   })
   const visualIntelligenceEvidenceRepository =
     createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
+  const trackAllEvidenceRepository =
+    createCanonicalCaptionTrackAllEvidenceRepository({ objectPort })
   const postapprovalFinishRepository =
     createCanonicalCaptionPostapprovalFinishRepository({
       objectPort,
@@ -769,6 +774,7 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       } : {}),
       visualIntelligenceEvidenceReadPort:
         visualIntelligenceEvidenceRepository,
+      trackAllEvidenceReadPort: trackAllEvidenceRepository,
       canonicalJobDependencyAuthority:
         dependencyAdmission.dependencyAuthority,
       postapprovalFinishReadPort: postapprovalFinishRepository.readPort,

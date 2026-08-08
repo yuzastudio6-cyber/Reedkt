@@ -31,12 +31,16 @@ A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_PREFERENCE_ID='weeditpro-vertex-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_ID='CustomModelTrainingA10080GBGPUsPerProjectPerRegion'
 readonly -a VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS=(
-  'f5aead402b54e9f48538e885f2cb5ccbe3e0dee14e0db8bcccfe1f793282ef82|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
+  '7e1db29add1cdb9b14760322899614b046cdc99733055e28003bfd3082716cb3|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
   '7c0e862d3a8a2cb6a9a0de25e866acb18a52af873c9b4763aab483eccdbb6d04|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-repository.ts'
   '86c50ad418cb8fe89b1bbb601203e8f4c16c9a5452ab236d37abe40ffd1928db|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port.ts'
   'bd733a8c308ec0c89f4654cb2300f9debab66fe6d9d41e7e8f94d64c1c48a509|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'
   '19534cd84230a9991b3011feef8fbedca1bd532409d21e98899f13b9a805ffc4|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
   '0cd836d80f101e723e4fe7e7d18ef84cced34b4a843a469566c3c81cd0adef14|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'
+  'baf12ad5139b1f78ad75a02e261501e48701e559b1631653a3661e6f64e527f7|server/cli/canonical-sam3_1-source-checkpoint-qualification-vertex-operator.ts'
+  '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6|server/cli/start-canonical-sam3_1-source-checkpoint-qualification-vertex.ts'
+  '6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e|server/cli/reconcile-canonical-sam3_1-source-checkpoint-qualification-vertex.ts'
+  'a406645710420cc1c726b94d4731b7d13f54c33190e15ce49d2fb3fdb8e374ae|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-operator-smoke.ts'
 )
 readonly -a A100_CAPACITY_CANDIDATE_REGIONS=(
   'us-central1'
@@ -1118,7 +1122,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v17' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v18' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \

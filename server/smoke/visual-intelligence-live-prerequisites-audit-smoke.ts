@@ -11,7 +11,7 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v17/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v18/u)
 assert.match(source, /observed_at="\$\(date -u/u)
 assert.match(source, /observedAt: \$observedAt/u)
 assert.match(source, /REGION='us-central1'/u)
@@ -51,12 +51,16 @@ assert.match(source, /routeArchitectureQualified: \$routeArchitectureQualified/u
 assert.match(source, /routeArchitectureSourceBindingCount: \$routeArchitectureSourceBindingCount/u)
 assert.match(source, /and \$routeArchitectureQualified/u)
 for (const sourceHash of [
-  'f5aead402b54e9f48538e885f2cb5ccbe3e0dee14e0db8bcccfe1f793282ef82',
+  '7e1db29add1cdb9b14760322899614b046cdc99733055e28003bfd3082716cb3',
   '7c0e862d3a8a2cb6a9a0de25e866acb18a52af873c9b4763aab483eccdbb6d04',
   '86c50ad418cb8fe89b1bbb601203e8f4c16c9a5452ab236d37abe40ffd1928db',
   'bd733a8c308ec0c89f4654cb2300f9debab66fe6d9d41e7e8f94d64c1c48a509',
   '19534cd84230a9991b3011feef8fbedca1bd532409d21e98899f13b9a805ffc4',
   '0cd836d80f101e723e4fe7e7d18ef84cced34b4a843a469566c3c81cd0adef14',
+  'baf12ad5139b1f78ad75a02e261501e48701e559b1631653a3661e6f64e527f7',
+  '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
+  '6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e',
+  'a406645710420cc1c726b94d4731b7d13f54c33190e15ce49d2fb3fdb8e374ae',
 ] as const) assert.match(source, new RegExp(sourceHash, 'u'))
 assert.match(source, /disposition/u)
 assert.match(source, /capacityGranted/u)

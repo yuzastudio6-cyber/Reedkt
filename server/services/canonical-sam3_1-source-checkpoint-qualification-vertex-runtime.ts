@@ -150,7 +150,10 @@ export function createCanonicalSam31VertexQualificationRuntime(
     async prepareAndStage(untrusted: {
       readonly attemptId: string
       readonly historicalPackageRequestRef:
-        z.input<typeof evidenceRefSchema>
+        z.input<typeof evidenceRefSchema> & {
+          readonly schemaVersion:
+            'canonical-sam3_1-source-checkpoint-qualification-worker-request-v1'
+        }
       readonly issuedAt: string
     }) {
       assertPlainSerializedData(untrusted, 'sam31_vertex_prepare_stage')

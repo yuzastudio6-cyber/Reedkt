@@ -641,7 +641,7 @@ invocation of this operator boundary.
   produced no qualified result retains an `unknown` substantive-work outcome
   while its WeEditPro-absorbed infrastructure cost remains reconcilable.
 - The complete provider-neutral Visual Intelligence/GPU source release suite
-  now runs 124 green smokes, including the new Vertex request, staging,
+  now runs 125 green smokes, including the new Vertex request, staging,
   launch, terminal, restart-safe runtime, and cost boundaries. This is source
   qualification only: no live A100 job or Gemini provider call was started,
   no customer credits were mutated, and production remains false.
@@ -650,15 +650,26 @@ invocation of this operator boundary.
   confirms the separately qualified L4 normal task-QA job has three completed
   scale-from-zero executions and is idle. That lane does not qualify the SAM
   3.1 heavy L4 fallback.
-- Live-prerequisite audit v17 no longer hard-codes the Vertex route as
-  unavailable. It fail-closes over six exact source hashes covering the
+- Live-prerequisite audit v18 no longer hard-codes the Vertex route as
+  unavailable. It fail-closes over ten exact source hashes covering the
   restart-safe runtime, create-only repository, launch port, terminal
-  reconciliation, A100 cost authority, and focused runtime proof. The
+  reconciliation, A100 cost authority, focused runtime proof, and bounded
+  start/reconcile operator pair. The
   2026-08-08 read reports `routeArchitectureQualified: true`,
-  `routeArchitectureSourceBindingCount: 6`, and
+  `routeArchitectureSourceBindingCount: 10`, and
   `dispatchCapacityReady: true`; any source drift makes those route claims
   false. This is dispatch-capacity evidence, not authorization to launch a
   paid job.
+- The source-bound route now includes a bounded operator pair. The start
+  command prepares and starts exactly one qualification attempt only from the
+  immutable historical request, signed-image release, and current account-rate
+  authority references. The reconcile command accepts only the persisted
+  execution reference. Neither command accepts a checkpoint path, image URI,
+  GPU class, price, arbitrary command, automatic retry, or customer-credit
+  mutation. Both remain fail-closed until the account-effective A100 rate
+  authority exists:
+  `npm run start:sam3_1-source-checkpoint-qualification-vertex` and
+  `npm run reconcile:sam3_1-source-checkpoint-qualification-vertex`.
 - The internal qualification cost receipt is now explicitly provisional.
   Vertex create/start/end allocation time, request/result artifact bytes,
   retention, and zero egress remain exact-reread inputs. The runtime no longer

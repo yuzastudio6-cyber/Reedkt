@@ -475,6 +475,12 @@ function createManifest(input: {
       entrypointSha256: builder.entrypointSha256,
       sourceProvenanceLockSha256: builder.sourceProvenanceLockSha256,
       gpuDecodePatchSha256: builder.gpuDecodePatchSha256,
+      ...(builder.multiplexSessionGpuForwardingPatchSha256
+        ? {
+            multiplexSessionGpuForwardingPatchSha256:
+              builder.multiplexSessionGpuForwardingPatchSha256,
+          }
+        : {}),
     },
     privateInput: {
       directoryName: 'sam31_private_build_input',

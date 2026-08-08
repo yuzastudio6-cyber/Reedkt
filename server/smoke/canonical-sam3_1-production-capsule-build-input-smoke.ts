@@ -144,6 +144,10 @@ for (const expected of [
   'weeditpro-sam3_1-production-capsule-builder-result-v1',
   'sourceCheckpointQualificationReceiptIncluded',
   'callerPathUrlCommandImageTagOrBuildArgumentAccepted',
+  '0003-weeditpro-multiplex-session-gpu-forwarding.patch',
+  'multiplexSessionGpuForwardingPatchSha256',
+  '"runnerSha256": by_path[repository_paths[4]]["sha256"]',
+  '"sourceProvenanceLockSha256": by_path[repository_paths[5]]["sha256"]',
 ] as const) assert.ok(builder.includes(expected), `builder lost ${expected}`)
 assert.doesNotMatch(
   builder,
@@ -155,6 +159,7 @@ for (const expected of [
   'entrypoint.sh',
   'source-provenance.lock',
   '0001-reeditpro-gpu-decode.patch',
+  '0003-weeditpro-multiplex-session-gpu-forwarding.patch',
   'build-production-capsule.sh',
   'pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081',
 ] as const) assert.ok(dockerfile.includes(expected),

@@ -344,10 +344,13 @@ payload = {
     "sourceQualificationCapsuleRef": metadata["sourceQualificationCapsuleRef"],
     "sourceQualificationCapsuleExactlyReread": True,
     "dockerfileSha256": by_path[repository_paths[0]]["sha256"],
-    "runnerSha256": by_path[repository_paths[3]]["sha256"],
+    "runnerSha256": by_path[repository_paths[4]]["sha256"],
     "entrypointSha256": by_path[repository_paths[1]]["sha256"],
-    "sourceProvenanceLockSha256": by_path[repository_paths[4]]["sha256"],
+    "sourceProvenanceLockSha256": by_path[repository_paths[5]]["sha256"],
     "gpuDecodePatchSha256": by_path[repository_paths[2]]["sha256"],
+    "multiplexSessionGpuForwardingPatchSha256": by_path[
+        repository_paths[3]
+    ]["sha256"],
     "capsuleSha256": sha(capsule_body),
     "capsuleByteLength": len(capsule_body),
     "archiveEntries": entries,

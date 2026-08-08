@@ -623,6 +623,38 @@ invocation of this operator boundary.
 
 ## Current disposition
 
+### 2026-08-08 restart-safe Vertex A100 qualification runtime milestone
+
+- Commit `552062710` adds the canonical one-writer Vertex Custom Job
+  qualification composition for the official SAM 3.1 source/checkpoint
+  package. It rereads the immutable request, signed qualification-image
+  release, live Vertex A100 80 GB quota preference and regional quota, and the
+  current billing-account-effective rate authority before provider creation.
+- Worker requests, admissions, single-use consumptions, executions,
+  provider-allocation usage, and internal qualification-cost receipts are
+  create-only and exact-reread. An identical replay returns the prior
+  execution instead of creating a second paid job. A consumed admission with
+  an uncertain create outcome blocks automatic retry until canonical
+  reconciliation.
+- Terminal reconciliation bills from provider create/start/end allocation
+  times without inventing worker-phase timing. A failed job that started but
+  produced no qualified result retains an `unknown` substantive-work outcome
+  while its WeEditPro-absorbed infrastructure cost remains reconcilable.
+- The complete provider-neutral Visual Intelligence/GPU source release suite
+  now runs 124 green smokes, including the new Vertex request, staging,
+  launch, terminal, restart-safe runtime, and cost boundaries. This is source
+  qualification only: no live A100 job or Gemini provider call was started,
+  no customer credits were mutated, and production remains false.
+- The live read-only audit confirms one granted Vertex Custom Training A100
+  80 GB quota and one L4 quota with zero active qualification jobs. It also
+  confirms the separately qualified L4 normal task-QA job has three completed
+  scale-from-zero executions and is idle. That lane does not qualify the SAM
+  3.1 heavy L4 fallback.
+- Live A100 admission remains fail-closed because neither available operator
+  identity can read billing-account-specific SKU prices. Public list prices
+  are not substituted. The L4 heavy fallback also remains unreleased until it
+  is compared against an approved live A100 quality baseline.
+
 The Orchestra can now discover Track All through the same provider-neutral
 `skill-capability-manifest-v1` boundary used by Visual Intelligence. The Track
 All manifest exposes only `track_subject_geometry` at complete-scene scope. It

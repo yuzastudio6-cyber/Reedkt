@@ -49,6 +49,8 @@ assert.match(deployScript, /weeditpro-sam31-package-sa/u)
 assert.doesNotMatch(deployScript, /SERVICE_ACCOUNT_ID='[^']{31,}'/u)
 assert.match(deployScript,
   /add_project_log_writer_binding_with_propagation_retry/u)
+assert.match(deployScript,
+  /add_bucket_binding_with_propagation_retry/u)
 assert.match(deployScript, /roles\/storage\.objectCreator/u)
 assert.match(deployScript, /roles\/storage\.objectViewer/u)
 assert.match(deployScript, /roles\/cloudkms\.cryptoKeyDecrypter/u)
@@ -75,7 +77,7 @@ assert.match(packageJson,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-qualification-package-publisher-cloud-job',
-  checks: 49,
+  checks: 50,
   canonicalOneWriterPublisherReused: true,
   metadataOnlyControlPlane: true,
   scaleFromZero: true,

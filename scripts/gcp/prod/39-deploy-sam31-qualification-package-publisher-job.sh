@@ -54,6 +54,32 @@ add_project_log_writer_binding_with_propagation_retry() {
   done
 }
 
+add_bucket_binding_with_propagation_retry() {
+  local bucket="$1" role="$2" attempt diagnostic_file
+  diagnostic_file="$(mktemp \
+    "${TMPDIR:-/tmp}/weeditpro-sam31-package-bucket-iam.XXXXXX")"
+  for attempt in {1..12}; do
+    if gcloud storage buckets add-iam-policy-binding "gs://${bucket}" \
+      --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
+      --role="${role}" --condition=None --quiet \
+      >/dev/null 2>"${diagnostic_file}"; then
+      rm -f "${diagnostic_file}"
+      return 0
+    fi
+    if ! grep -Fq 'does not exist' "${diagnostic_file}"; then
+      cat "${diagnostic_file}" >&2
+      rm -f "${diagnostic_file}"
+      fail 'bucket IAM binding failed'
+    fi
+    if [[ "${attempt}" -eq 12 ]]; then
+      cat "${diagnostic_file}" >&2
+      rm -f "${diagnostic_file}"
+      fail 'new package publisher account did not propagate to storage'
+    fi
+    sleep 5
+  done
+}
+
 [[ "${WEEDITPRO_CONFIRM_SAM31_QUALIFICATION_PACKAGE_PUBLISHER_JOB_DEPLOY:-}" \
   == "${CONFIRMATION}" ]] || fail 'exact job-deployment confirmation is missing'
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
@@ -128,13 +154,10 @@ if ! gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" \
 fi
 add_project_log_writer_binding_with_propagation_retry
 for role in roles/storage.objectCreator roles/storage.objectViewer; do
-  gcloud storage buckets add-iam-policy-binding "gs://${CONTROL_BUCKET}" \
-    --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-    --role="${role}" --condition=None --quiet >/dev/null
+  add_bucket_binding_with_propagation_retry "${CONTROL_BUCKET}" "${role}"
 done
-gcloud storage buckets add-iam-policy-binding "gs://${FIXTURE_BUCKET}" \
-  --project="${PROJECT_ID}" --member="serviceAccount:${SERVICE_ACCOUNT}" \
-  --role=roles/storage.objectViewer --condition=None --quiet >/dev/null
+add_bucket_binding_with_propagation_retry \
+  "${FIXTURE_BUCKET}" roles/storage.objectViewer
 gcloud kms keys add-iam-policy-binding "${KMS_KEY}" \
   --project="${PROJECT_ID}" --location="${REGION}" \
   --keyring="${KMS_KEY_RING}" \

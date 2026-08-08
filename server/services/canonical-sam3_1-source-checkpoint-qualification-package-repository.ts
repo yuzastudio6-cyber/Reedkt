@@ -41,6 +41,8 @@ export const CANONICAL_SAM3_1_QUALIFICATION_PACKAGE_RECORD_VERSION =
   'canonical-sam3_1-source-checkpoint-qualification-package-record-v1' as const
 export const CANONICAL_SAM3_1_QUALIFICATION_PROBE_FIXTURE_GCS_PORT_VERSION =
   'canonical-sam3_1-source-checkpoint-qualification-probe-fixture-gcs-port-v1' as const
+export const CANONICAL_SAM3_1_QUALIFICATION_PROBE_FIXTURE_AUTHORITY_PORT_VERSION =
+  'canonical-sam3_1-source-checkpoint-qualification-probe-fixture-authority-port-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_BUCKET =
@@ -52,6 +54,18 @@ const QUALIFICATION_FIXTURE_OBJECT =
   `${QUALIFICATION_FIXTURE_PREFIX}probe-person-v1.mp4` as const
 const QUALIFICATION_KMS_KEY =
   'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification' as const
+const QUALIFICATION_PROBE_WIDTH = 128 as const
+const QUALIFICATION_PROBE_HEIGHT = 128 as const
+const QUALIFICATION_PROBE_FRAME_COUNT = 3 as const
+const QUALIFICATION_PROBE_METADATA = Object.freeze({
+  weeditproProbeSchemaVersion:
+    'canonical-sam3_1-qualification-probe-fixture-v1',
+  weeditproProbeWidth: String(QUALIFICATION_PROBE_WIDTH),
+  weeditproProbeHeight: String(QUALIFICATION_PROBE_HEIGHT),
+  weeditproProbeFrameCount: String(QUALIFICATION_PROBE_FRAME_COUNT),
+  weeditproProbePrompt: 'person',
+  weeditproCustomerMedia: 'false',
+})
 const DEFAULT_PREFIX =
   'private/sam3_1/source-checkpoint-qualification/v1/packages'
 const MAXIMUM_RECORD_BYTES = 4 * 1024 * 1024
@@ -109,6 +123,21 @@ export interface CanonicalSam31QualificationProbeFixtureReadPort {
     readonly workerRequest:
       CanonicalSam31SourceCheckpointQualificationWorkerRequest
   }): Promise<unknown | null>
+}
+
+export interface CanonicalSam31QualificationProbeFixtureAuthorityReadPort {
+  readonly schemaVersion:
+    typeof CANONICAL_SAM3_1_QUALIFICATION_PROBE_FIXTURE_AUTHORITY_PORT_VERSION
+  rereadCurrentProbeFixtureAuthority(): Promise<{
+    readonly artifactRef: z.infer<typeof evidenceRefSchema>
+    readonly byteLength: number
+    readonly sha256: string
+    readonly width: typeof QUALIFICATION_PROBE_WIDTH
+    readonly height: typeof QUALIFICATION_PROBE_HEIGHT
+    readonly frameCount: typeof QUALIFICATION_PROBE_FRAME_COUNT
+    readonly exactGenerationEtagLengthSha256ContentTypeKmsAndMetadataReread: true
+    readonly customerMediaUsed: false
+  } | null>
 }
 
 export interface CanonicalSam31QualificationPackageRepository
@@ -390,6 +419,83 @@ export function createCanonicalSam31GcsQualificationProbeFixtureReadPort(
           workerRequest.deterministicProbeFixture.artifactRef,
         exactGenerationEtagLengthSha256AndContentTypeReread: true as const,
         publicOrSignedUrlUsed: false as const,
+      })
+    },
+  })
+}
+
+/**
+ * Server-owned bootstrap read for the fixed non-customer probe. The worker
+ * request is compiled from this exact reread and the package repository reads
+ * the bytes again after compilation, so callers never supply fixture hashes,
+ * dimensions, coordinates, URLs, or media bytes.
+ */
+export function createCanonicalSam31GcsQualificationProbeFixtureAuthorityReadPort(
+  input?: { readonly storage?: Storage },
+): CanonicalSam31QualificationProbeFixtureAuthorityReadPort {
+  const storage = input?.storage ?? new Storage({ projectId: PROJECT_ID })
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_SAM3_1_QUALIFICATION_PROBE_FIXTURE_AUTHORITY_PORT_VERSION,
+    async rereadCurrentProbeFixtureAuthority() {
+      const live = storage.bucket(QUALIFICATION_FIXTURE_BUCKET)
+        .file(QUALIFICATION_FIXTURE_OBJECT)
+      let before: Record<string, unknown>
+      try {
+        const metadataResult = await live.getMetadata()
+        before = metadataResult[0] as unknown as Record<string, unknown>
+      } catch (error) {
+        if (cloudErrorCode(error) === 404) return null
+        throw error
+      }
+      const generation = String(before.generation ?? '')
+      const etag = String(before.etag ?? '')
+      const byteLength = Number(before.size ?? -1)
+      const customMetadata = z.record(z.string(), z.string()).parse(
+        before.metadata ?? {},
+      )
+      if (
+        !/^[1-9][0-9]{0,30}$/u.test(generation)
+        || !etag
+        || !Number.isSafeInteger(byteLength)
+        || byteLength <= 0
+        || byteLength > 64 * 1024 * 1024
+        || String(before.contentType ?? '') !== 'video/mp4'
+        || String(before.kmsKeyName ?? '') !== QUALIFICATION_KMS_KEY
+        || stableAuthorityStringify(customMetadata) !==
+          stableAuthorityStringify(QUALIFICATION_PROBE_METADATA)
+      ) throw new Error('SAM 3.1 qualification probe authority changed.')
+      const exact = storage.bucket(QUALIFICATION_FIXTURE_BUCKET).file(
+        QUALIFICATION_FIXTURE_OBJECT,
+        { generation },
+      )
+      const [body] = await exact.download({ validation: 'crc32c' })
+      const [after] = await exact.getMetadata()
+      if (
+        body.byteLength !== byteLength
+        || String(after.generation ?? '') !== generation
+        || String(after.etag ?? '') !== etag
+        || Number(after.size ?? -1) !== byteLength
+        || String(after.contentType ?? '') !== 'video/mp4'
+        || String(after.kmsKeyName ?? '') !== QUALIFICATION_KMS_KEY
+        || stableAuthorityStringify(after.metadata ?? {}) !==
+          stableAuthorityStringify(QUALIFICATION_PROBE_METADATA)
+      ) throw new Error('SAM 3.1 qualification probe authority reread changed.')
+      const sha256 = digest(body)
+      return Object.freeze({
+        artifactRef: evidenceRefSchema.parse({
+          id: `sam31-qualification-probe-${sha256.slice(0, 24)}`,
+          version: 1,
+          contentHash: `sha256:${sha256}`,
+        }),
+        byteLength,
+        sha256,
+        width: QUALIFICATION_PROBE_WIDTH,
+        height: QUALIFICATION_PROBE_HEIGHT,
+        frameCount: QUALIFICATION_PROBE_FRAME_COUNT,
+        exactGenerationEtagLengthSha256ContentTypeKmsAndMetadataReread:
+          true as const,
+        customerMediaUsed: false as const,
       })
     },
   })

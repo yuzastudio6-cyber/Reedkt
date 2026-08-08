@@ -73,6 +73,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-a100-phase-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-staging-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-package-repository-smoke.ts',
+  'server/smoke/canonical-sam3_1-source-checkpoint-qualification-package-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-staging-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-smoke.ts',

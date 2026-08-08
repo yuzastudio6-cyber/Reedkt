@@ -122,7 +122,8 @@ const port = createCanonicalSam31VertexQualificationLaunchPort({
       capturedRequest = structuredClone(value) as Record<string, unknown>
       return {
         data: {
-          name: 'projects/reeditpro/locations/us-central1/customJobs/123456789',
+          name:
+            'projects/390722338345/locations/us-central1/customJobs/123456789',
           displayName: expectedDisplayName(attemptId),
           state: 'JOB_STATE_PENDING',
         },
@@ -146,6 +147,11 @@ assert.equal(accepted.automaticRetryAllowed, false)
 assert.equal(accepted.customerCreditsMutated, false)
 assert.equal(accepted.sourceCheckpointQualificationGranted, false)
 assert.equal(accepted.productionReady, false)
+assert.equal(
+  (persistedExecution as { providerObservationMode: string })
+    .providerObservationMode,
+  'exact_create_response',
+)
 const providerCallsBeforeReplay = events.filter((value) =>
   value === 'provider').length
 const replay = await port.startOne({
@@ -242,7 +248,9 @@ assert.equal(refused.disposition, 'rejected_before_creation')
 assert.equal(refused.providerCallStarted, false)
 assert.equal(callsAfterRefusal, 0)
 
-let unknownCalls = 0
+let unknownCreateCalls = 0
+let unknownRecoveryReads = 0
+let unknownExecution: unknown = null
 const unknownConsumptions = new Map<string, unknown>()
 const unknownPort = createCanonicalSam31VertexQualificationLaunchPort({
   admissionRepository: admissionRepository(new Map()),
@@ -262,12 +270,36 @@ const unknownPort = createCanonicalSam31VertexQualificationLaunchPort({
     },
   },
   executionRepository: {
-    async createOnlyAndReread(value) { return value },
-    async reread() { return null },
-    async rereadByAdmission() { return null },
+    async createOnlyAndReread(value) {
+      unknownExecution = structuredClone(value)
+      return structuredClone(value)
+    },
+    async reread() { return structuredClone(unknownExecution) },
+    async rereadByAdmission() { return structuredClone(unknownExecution) },
   },
   auth: {
-    async request() { unknownCalls += 1; throw new Error('network unknown') },
+    async request(value) {
+      if (value.method === 'POST') {
+        unknownCreateCalls += 1
+        throw new Error('network unknown')
+      }
+      unknownRecoveryReads += 1
+      assert.equal(value.method, 'GET')
+      assert.deepEqual(value.params, {
+        filter: `displayName="${expectedDisplayName(attemptId)}"`,
+        pageSize: 2,
+      })
+      return {
+        data: {
+          customJobs: [{
+            name:
+              'projects/390722338345/locations/us-central1/customJobs/987654321',
+            displayName: expectedDisplayName(attemptId),
+            state: 'JOB_STATE_RUNNING',
+          }],
+        },
+      } as never
+    },
   },
   now: () => observedAt,
 })
@@ -281,17 +313,30 @@ const unknown = await unknownPort.startOne({
 assert.equal(unknown.disposition, 'outcome_unknown_requires_reconciliation')
 assert.equal(unknown.substantiveQualificationOutcome, 'unknown')
 assert.equal(unknown.automaticRetryAllowed, false)
-assert.equal(unknownCalls, 1)
-const unknownReplay = await unknownPort.startOne({
-  workerRequest: request,
-  stagingObservation,
-  imageSupplyChainRelease: release,
-  rateAuthority,
-  quotaObservation,
+assert.equal(unknownCreateCalls, 1)
+assert.ok(unknown.consumptionRef)
+const recovered = await unknownPort.recoverUnknownCreate({
+  admissionRef: unknown.admissionRef,
+  consumptionRef: unknown.consumptionRef,
+  customJobCreateRequestRef: unknown.customJobCreateRequestRef,
 })
-assert.equal(unknownReplay.disposition,
-  'outcome_unknown_requires_reconciliation')
-assert.equal(unknownCalls, 1)
+assert.equal(recovered.disposition, 'accepted')
+assert.ok(recovered.executionRef)
+assert.equal(unknownCreateCalls, 1)
+assert.equal(unknownRecoveryReads, 1)
+assert.equal(
+  (unknownExecution as { providerObservationMode: string })
+    .providerObservationMode,
+  'reconciled_unknown_create',
+)
+const recoveredReplay = await unknownPort.recoverUnknownCreate({
+  admissionRef: unknown.admissionRef,
+  consumptionRef: unknown.consumptionRef,
+  customJobCreateRequestRef: unknown.customJobCreateRequestRef,
+})
+assert.deepEqual(recoveredReplay.executionRef, recovered.executionRef)
+assert.equal(unknownCreateCalls, 1)
+assert.equal(unknownRecoveryReads, 1)
 
 const crossed = structuredClone(stagingObservation)
 crossed.attemptId = 'crossed-attempt'
@@ -306,7 +351,7 @@ assert.equal(crossedResult.disposition, 'rejected_before_creation')
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-vertex-launch',
-  checks: 43,
+  checks: 53,
   exactA10080VertexCustomJob: true,
   createOnlyConsumptionBeforeProvider: true,
   privateVpcAndCmek: true,
@@ -316,6 +361,7 @@ console.log(JSON.stringify({
   unknownOutcomeBlocksAutomaticRetry: true,
   identicalReplayCreatesNoSecondCustomJob: true,
   uncertainCreateReplayCreatesNoSecondCustomJob: true,
+  unknownCreateAdoptedByExactReadOnlyReread: true,
   customerCreditsMutated: false,
   sourceCheckpointQualificationGranted: false,
   productionReady: false,

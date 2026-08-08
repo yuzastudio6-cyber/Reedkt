@@ -256,6 +256,23 @@ export function createCanonicalSam31VertexQualificationRuntime(
       })
     },
 
+    async recoverUnknownCreate(untrusted: {
+      readonly admissionRef: z.input<typeof evidenceRefSchema>
+      readonly consumptionRef: z.input<typeof evidenceRefSchema>
+      readonly customJobCreateRequestRef: z.input<typeof evidenceRefSchema>
+    }) {
+      assertPlainSerializedData(
+        untrusted,
+        'sam31_vertex_recover_unknown_create',
+      )
+      const request = z.object({
+        admissionRef: evidenceRefSchema,
+        consumptionRef: evidenceRefSchema,
+        customJobCreateRequestRef: evidenceRefSchema,
+      }).strict().parse(untrusted)
+      return input.launchPort.recoverUnknownCreate(request)
+    },
+
     async reconcileOne(untrusted: {
       readonly executionRef: z.input<typeof evidenceRefSchema>
     }) {
@@ -670,6 +687,7 @@ function assertDependencies(
     || typeof input.rateRepository?.reread !== 'function'
     || typeof input.quotaReadPort?.rereadCurrent !== 'function'
     || typeof input.launchPort?.startOne !== 'function'
+    || typeof input.launchPort?.recoverUnknownCreate !== 'function'
     || typeof input.terminalReconciler?.reconcileOne !== 'function'
   ) throw new Error('Vertex qualification runtime is not configured.')
 }

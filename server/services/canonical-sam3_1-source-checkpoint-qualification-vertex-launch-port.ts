@@ -27,7 +27,7 @@ export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_ADMISSION_VERSION =
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_CONSUMPTION_VERSION =
   'canonical-sam3_1-vertex-a100-qualification-consumption-v1' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_EXECUTION_VERSION =
-  'canonical-sam3_1-vertex-a100-qualification-execution-v1' as const
+  'canonical-sam3_1-vertex-a100-qualification-execution-v2' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_LAUNCH_RESULT_VERSION =
   'canonical-sam3_1-vertex-a100-qualification-launch-result-v1' as const
 
@@ -58,6 +58,15 @@ const evidenceRefSchema = z.object({
   version: z.number().int().positive().safe(),
   contentHash: prefixedSha256,
 }).strict()
+const providerJobStateSchema = z.enum([
+  'JOB_STATE_PENDING',
+  'JOB_STATE_QUEUED',
+  'JOB_STATE_RUNNING',
+  'JOB_STATE_SUCCEEDED',
+  'JOB_STATE_FAILED',
+  'JOB_STATE_CANCELLED',
+  'JOB_STATE_EXPIRED',
+])
 
 const quotaWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -184,13 +193,17 @@ const executionWithoutHashSchema = z.object({
   consumptionRef: evidenceRefSchema,
   customJobCreateRequestRef: evidenceRefSchema,
   customJobResourceName: z.string().regex(
-    /^projects\/reeditpro\/locations\/us-central1\/customJobs\/[0-9]+$/u,
+    /^projects\/390722338345\/locations\/us-central1\/customJobs\/[0-9]+$/u,
   ),
   displayName: safeId,
-  initialState: z.enum(['JOB_STATE_PENDING', 'JOB_STATE_QUEUED']),
-  providerResponseDigestSha256: sha256,
-  exactCreateResponsePersistedAndReread: z.literal(true),
-  terminalStateClaimed: z.literal(false),
+  stateAtExecutionBinding: providerJobStateSchema,
+  providerObservationMode: z.enum([
+    'exact_create_response',
+    'reconciled_unknown_create',
+  ]),
+  providerExecutionObservationDigestSha256: sha256,
+  exactProviderExecutionObservationPersistedAndReread: z.literal(true),
+  terminalOutcomeClaimed: z.literal(false),
   customerCreditsMutated: z.literal(false),
   persistedAt: timestamp,
 }).strict()
@@ -278,6 +291,13 @@ export interface CanonicalSam31VertexQualificationExecutionRepository {
   ): Promise<unknown>
 }
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
+type ProviderExecutionObservation = Readonly<{
+  name: string
+  displayName: string
+  state: z.infer<typeof providerJobStateSchema>
+  observationMode: 'exact_create_response' | 'reconciled_unknown_create'
+  digest: string
+}>
 
 export function createCanonicalSam31VertexQualificationLaunchPort(input: {
   readonly admissionRepository:
@@ -340,9 +360,43 @@ export function createCanonicalSam31VertexQualificationLaunchPort(input: {
           )
           if (!prior) {
             providerCallStarted = true
-            throw new Error(
-              'Prior Vertex create outcome requires reconciliation.',
-            )
+            const provider = await rereadUnknownCreate({
+              auth,
+              prepared,
+              timeout,
+            })
+            const execution = createExecution({
+              admission,
+              consumption,
+              createRequestRef: prepared.createRequestRef,
+              provider,
+              persistedAt: observedAt,
+            })
+            const recovered =
+              assertCanonicalSam31VertexQualificationExecution(
+                await input.executionRepository.createOnlyAndReread(
+                  execution,
+                ),
+              )
+            if (stableAuthorityStringify(recovered) !==
+              stableAuthorityStringify(execution)) {
+              throw new Error(
+                'Reconciled Vertex qualification execution changed.',
+              )
+            }
+            return launchResult({
+              admissionRef: ref(admission.attemptId,
+                admission.admissionHash),
+              attemptId: admission.attemptId,
+              consumption,
+              createRequestRef: prepared.createRequestRef,
+              executionRef: ref(execution.executionId,
+                execution.executionHash, 2),
+              disposition: 'accepted',
+              providerCallStarted: true,
+              outcome: 'not_executed',
+              observedAt,
+            })
           }
           const execution = assertCanonicalSam31VertexQualificationExecution(
             prior,
@@ -360,7 +414,11 @@ export function createCanonicalSam31VertexQualificationLaunchPort(input: {
             attemptId: admission.attemptId,
             consumption,
             createRequestRef: prepared.createRequestRef,
-            executionRef: ref(execution.executionId, execution.executionHash),
+            executionRef: ref(
+              execution.executionId,
+              execution.executionHash,
+              2,
+            ),
             disposition: 'accepted',
             providerCallStarted: true,
             outcome: 'not_executed',
@@ -398,7 +456,7 @@ export function createCanonicalSam31VertexQualificationLaunchPort(input: {
           attemptId: admission.attemptId,
           consumption,
           createRequestRef: prepared.createRequestRef,
-          executionRef: ref(execution.executionId, execution.executionHash),
+          executionRef: ref(execution.executionId, execution.executionHash, 2),
           disposition: 'accepted',
           providerCallStarted: true,
           outcome: 'not_executed',
@@ -427,6 +485,93 @@ export function createCanonicalSam31VertexQualificationLaunchPort(input: {
           observedAt,
         })
       }
+    },
+
+    async recoverUnknownCreate(untrusted: {
+      readonly admissionRef: unknown
+      readonly consumptionRef: unknown
+      readonly customJobCreateRequestRef: unknown
+    }): Promise<CanonicalSam31VertexQualificationLaunchResult> {
+      assertPlainSerializedData(
+        untrusted,
+        'sam31_vertex_unknown_create_recovery',
+      )
+      const request = z.object({
+        admissionRef: evidenceRefSchema,
+        consumptionRef: evidenceRefSchema,
+        customJobCreateRequestRef: evidenceRefSchema,
+      }).strict().parse(untrusted)
+      const admission = assertCanonicalSam31VertexQualificationAdmission(
+        await input.admissionRepository.reread(request.admissionRef),
+      )
+      const consumption = assertCanonicalSam31VertexQualificationConsumption(
+        await input.consumptionPort.reread(request.consumptionRef),
+      )
+      const prepared = prepareRequest(admission)
+      if (
+        !sameRef(
+          request.admissionRef,
+          ref(admission.attemptId, admission.admissionHash),
+        )
+        || consumption.attemptId !== admission.attemptId
+        || !sameRef(consumption.admissionRef, request.admissionRef)
+        || !sameRef(consumption.customJobCreateRequestRef,
+          request.customJobCreateRequestRef)
+        || !sameRef(prepared.createRequestRef,
+          request.customJobCreateRequestRef)
+      ) throw new Error('Vertex unknown-create recovery crossed authority.')
+      const prior = await input.executionRepository.rereadByAdmission(
+        request.admissionRef,
+      )
+      const observedAt = now()
+      if (prior) {
+        const execution = assertCanonicalSam31VertexQualificationExecution(
+          prior,
+        )
+        assertExecutionLineage({
+          execution,
+          admission,
+          consumptionRef: request.consumptionRef,
+          createRequestRef: request.customJobCreateRequestRef,
+        })
+        return launchResult({
+          admissionRef: request.admissionRef,
+          attemptId: admission.attemptId,
+          consumption,
+          createRequestRef: request.customJobCreateRequestRef,
+          executionRef: ref(execution.executionId, execution.executionHash, 2),
+          disposition: 'accepted',
+          providerCallStarted: true,
+          outcome: 'not_executed',
+          observedAt,
+        })
+      }
+      const provider = await rereadUnknownCreate({ auth, prepared, timeout })
+      const execution = createExecution({
+        admission,
+        consumption,
+        createRequestRef: request.customJobCreateRequestRef,
+        provider,
+        persistedAt: observedAt,
+      })
+      const persisted = assertCanonicalSam31VertexQualificationExecution(
+        await input.executionRepository.createOnlyAndReread(execution),
+      )
+      if (stableAuthorityStringify(persisted) !==
+        stableAuthorityStringify(execution)) {
+        throw new Error('Recovered Vertex qualification execution changed.')
+      }
+      return launchResult({
+        admissionRef: request.admissionRef,
+        attemptId: admission.attemptId,
+        consumption,
+        createRequestRef: request.customJobCreateRequestRef,
+        executionRef: ref(execution.executionId, execution.executionHash, 2),
+        disposition: 'accepted',
+        providerCallStarted: true,
+        outcome: 'not_executed',
+        observedAt,
+      })
     },
   })
 }
@@ -639,7 +784,7 @@ function createExecution(input: {
   admission: CanonicalSam31VertexQualificationAdmission
   consumption: CanonicalSam31VertexQualificationConsumption
   createRequestRef: z.infer<typeof evidenceRefSchema>
-  provider: ReturnType<typeof parseCreateResponse>
+  provider: ProviderExecutionObservation
   persistedAt: string
 }) {
   const payload = executionWithoutHashSchema.parse({
@@ -656,10 +801,11 @@ function createExecution(input: {
     customJobCreateRequestRef: input.createRequestRef,
     customJobResourceName: input.provider.name,
     displayName: input.provider.displayName,
-    initialState: input.provider.state,
-    providerResponseDigestSha256: input.provider.digest,
-    exactCreateResponsePersistedAndReread: true,
-    terminalStateClaimed: false,
+    stateAtExecutionBinding: input.provider.state,
+    providerObservationMode: input.provider.observationMode,
+    providerExecutionObservationDigestSha256: input.provider.digest,
+    exactProviderExecutionObservationPersistedAndReread: true,
+    terminalOutcomeClaimed: false,
     customerCreditsMutated: false,
     persistedAt: input.persistedAt,
   })
@@ -669,12 +815,32 @@ function createExecution(input: {
   })
 }
 
+function assertExecutionLineage(input: {
+  execution: CanonicalSam31VertexQualificationExecution
+  admission: CanonicalSam31VertexQualificationAdmission
+  consumptionRef: z.infer<typeof evidenceRefSchema>
+  createRequestRef: z.infer<typeof evidenceRefSchema>
+}) {
+  if (
+    input.execution.attemptId !== input.admission.attemptId
+    || !sameRef(
+      input.execution.admissionRef,
+      ref(input.admission.attemptId, input.admission.admissionHash),
+    )
+    || !sameRef(input.execution.consumptionRef, input.consumptionRef)
+    || !sameRef(
+      input.execution.customJobCreateRequestRef,
+      input.createRequestRef,
+    )
+  ) throw new Error('Prior Vertex execution crossed admission.')
+}
+
 function parseCreateResponse(value: unknown,
   prepared: ReturnType<typeof prepareRequest>) {
   assertPlainSerializedData(value, 'sam31_vertex_create_response')
   const parsed = z.object({
     name: z.string().regex(
-      /^projects\/reeditpro\/locations\/us-central1\/customJobs\/[0-9]+$/u,
+      /^projects\/390722338345\/locations\/us-central1\/customJobs\/[0-9]+$/u,
     ),
     displayName: safeId,
     state: z.enum(['JOB_STATE_PENDING', 'JOB_STATE_QUEUED']),
@@ -684,11 +850,64 @@ function parseCreateResponse(value: unknown,
   }
   return Object.freeze({
     ...parsed,
+    observationMode: 'exact_create_response' as const,
     digest: sha256AuthorityValue({
       name: parsed.name,
       displayName: parsed.displayName,
       state: parsed.state,
+      observationMode: 'exact_create_response',
       createRequestRef: prepared.createRequestRef,
+    }),
+  })
+}
+
+async function rereadUnknownCreate(input: {
+  auth: GoogleAuthRequest
+  prepared: ReturnType<typeof prepareRequest>
+  timeout: number
+}) {
+  const response = await input.auth.request({
+    url: `${API_ORIGIN}/v1/${CUSTOM_JOB_PARENT}/customJobs`,
+    method: 'GET',
+    params: {
+      filter: `displayName="${input.prepared.displayName}"`,
+      pageSize: 2,
+    },
+    timeout: input.timeout,
+    retry: false,
+    maxRedirects: 0,
+    responseType: 'json',
+    maxContentLength: 2 * 1024 * 1024,
+  })
+  assertPlainSerializedData(
+    response.data,
+    'sam31_vertex_unknown_create_reconciliation',
+  )
+  const parsed = z.object({
+    customJobs: z.array(z.object({
+      name: z.string().regex(
+        /^projects\/390722338345\/locations\/us-central1\/customJobs\/[0-9]+$/u,
+      ),
+      displayName: safeId,
+      state: providerJobStateSchema,
+    }).passthrough()).max(2),
+    nextPageToken: z.string().optional(),
+  }).passthrough().parse(response.data)
+  if (
+    parsed.customJobs.length !== 1
+    || (parsed.nextPageToken ?? '') !== ''
+    || parsed.customJobs[0].displayName !== input.prepared.displayName
+  ) throw new Error('Vertex unknown create outcome is not singular.')
+  const provider = parsed.customJobs[0]
+  return Object.freeze({
+    ...provider,
+    observationMode: 'reconciled_unknown_create' as const,
+    digest: sha256AuthorityValue({
+      name: provider.name,
+      displayName: provider.displayName,
+      state: provider.state,
+      observationMode: 'reconciled_unknown_create',
+      createRequestRef: input.prepared.createRequestRef,
     }),
   })
 }

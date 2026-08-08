@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Executes exactly one start or reconcile action using execution-only env
+# Executes exactly one start, unknown-create recovery, or terminal reconcile
+# action using execution-only env
 # overrides. The deployed job remains unarmed before and after the execution.
 
 readonly PROJECT_ID='reeditpro'
@@ -24,8 +25,10 @@ safe_id() {
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
   || fail 'active Google Cloud project is not the fixed project'
 action="${WEEDITPRO_SAM31_VERTEX_OPERATOR_RUN_ACTION:-}"
-[[ "${action}" == 'start_one' || "${action}" == 'reconcile_one' ]] \
-  || fail 'operator action must be start_one or reconcile_one'
+[[ "${action}" == 'start_one' \
+  || "${action}" == 'recover_unknown_create' \
+  || "${action}" == 'reconcile_one' ]] \
+  || fail 'operator action is invalid'
 
 job_before="$(gcloud run jobs describe "${JOB}" --project="${PROJECT_ID}" \
   --region="${REGION}" --format=json)"
@@ -72,6 +75,39 @@ if [[ "${action}" == 'start_one' ]]; then
   overrides+=",WEEDITPRO_SAM31_VERTEX_CURRENT_RATE_AUTHORITY_ID=${rate_id}"
   overrides+=",WEEDITPRO_SAM31_VERTEX_CURRENT_RATE_AUTHORITY_VERSION=${rate_version}"
   overrides+=",WEEDITPRO_SAM31_VERTEX_CURRENT_RATE_AUTHORITY_SHA256=${rate_hash}"
+elif [[ "${action}" == 'recover_unknown_create' ]]; then
+  admission_id="${WEEDITPRO_SAM31_VERTEX_ADMISSION_ID:-}"
+  admission_version="${WEEDITPRO_SAM31_VERTEX_ADMISSION_VERSION:-}"
+  admission_hash="${WEEDITPRO_SAM31_VERTEX_ADMISSION_SHA256:-}"
+  consumption_id="${WEEDITPRO_SAM31_VERTEX_CONSUMPTION_ID:-}"
+  consumption_version="${WEEDITPRO_SAM31_VERTEX_CONSUMPTION_VERSION:-}"
+  consumption_hash="${WEEDITPRO_SAM31_VERTEX_CONSUMPTION_SHA256:-}"
+  create_request_id="${WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_ID:-}"
+  create_request_version="${WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_VERSION:-}"
+  create_request_hash="${WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_SHA256:-}"
+  for value in "${admission_id}" "${consumption_id}" "${create_request_id}"; do
+    safe_id "${value}" || fail 'unknown-create recovery ID is invalid'
+  done
+  for value in "${admission_version}" "${consumption_version}" \
+    "${create_request_version}"; do
+    [[ "${value}" =~ ^[1-9][0-9]{0,15}$ ]] \
+      || fail 'unknown-create recovery version is invalid'
+  done
+  for value in "${admission_hash}" "${consumption_hash}" \
+    "${create_request_hash}"; do
+    [[ "${value}" =~ ^[a-f0-9]{64}$ ]] \
+      || fail 'unknown-create recovery hash is invalid'
+  done
+  overrides+=",WEEDITPRO_SAM31_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION=recover-unknown-create-sam31-vertex-source-checkpoint-qualification-v1"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_ADMISSION_ID=${admission_id}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_ADMISSION_VERSION=${admission_version}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_ADMISSION_SHA256=${admission_hash}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_CONSUMPTION_ID=${consumption_id}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_CONSUMPTION_VERSION=${consumption_version}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_CONSUMPTION_SHA256=${consumption_hash}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_ID=${create_request_id}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_VERSION=${create_request_version}"
+  overrides+=",WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_SHA256=${create_request_hash}"
 else
   execution_id="${WEEDITPRO_SAM31_VERTEX_EXECUTION_ID:-}"
   execution_version="${WEEDITPRO_SAM31_VERTEX_EXECUTION_VERSION:-}"
@@ -120,12 +156,16 @@ jq -e '
   and .runtimeReleaseGranted == false
   and .productionReady == false
 ' <<<"${receipt}" >/dev/null || fail 'canonical operator authority changed'
-if [[ "${action}" == 'start_one' ]]; then
+if [[ "${action}" == 'start_one' \
+  || "${action}" == 'recover_unknown_create' ]]; then
   jq -e '
     .launch.disposition == "accepted"
     and .launch.providerCallStarted == true
     and .launch.executionRef != null
-    and .prepared.status == "staged_not_dispatched"
+    and (if .action == "start_one"
+      then .prepared.status == "staged_not_dispatched"
+      else (.prepared // null) == null
+      end)
   ' <<<"${receipt}" >/dev/null || fail 'Vertex start was not accepted exactly once'
 fi
 

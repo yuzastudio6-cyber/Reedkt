@@ -169,6 +169,7 @@ export function createCanonicalSam31VertexQualificationRuntimeRepository(
         objectPath: path(prefix, 'executions', ref(
           value.executionId,
           value.executionHash,
+          2,
         )),
         value,
         parse: assertCanonicalSam31VertexQualificationExecution,

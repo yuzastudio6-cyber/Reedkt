@@ -18,11 +18,13 @@ const [cli, vite, dockerfile, buildConfig, buildScript, deployScript,
 ])
 
 assert.match(cli, /weeditpro-sam31-vertex-operator/u)
-assert.match(cli, /z\.enum\(\['start_one', 'reconcile_one'\]\)/u)
+assert.match(cli, /'start_one',[\s\S]*'recover_unknown_create',[\s\S]*'reconcile_one'/u)
 assert.match(cli, /CLOUD_RUN_TASK_INDEX !== '0'/u)
 assert.match(cli, /process\.argv\[2\] !== '--execute'/u)
 assert.match(cli, /startCanonicalSam31VertexQualificationFromEnvironment/u)
 assert.match(cli, /reconcileCanonicalSam31VertexQualificationFromEnvironment/u)
+assert.match(cli,
+  /recoverUnknownCanonicalSam31VertexQualificationFromEnvironment/u)
 assert.doesNotMatch(cli, /execFile|spawn|ffmpeg|ffprobe|python|torch/u)
 
 assert.match(vite,
@@ -59,6 +61,9 @@ assert.match(runScript, /--update-env-vars/u)
 assert.match(runScript, /operatorRemainsUnarmed/u)
 assert.match(runScript, /automaticRetryAllowed == false/u)
 assert.match(runScript, /customerCreditsMutated == false/u)
+assert.match(runScript, /recover_unknown_create/u)
+assert.match(runScript,
+  /UNKNOWN_CREATE_RECOVERY_CONFIRMATION=recover-unknown-create/u)
 assert.doesNotMatch(runScript, /ffmpeg|ffprobe|python|docker|--gpu/u)
 
 assert.match(packageJson,
@@ -72,10 +77,11 @@ assert.match(packageJson,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-qualification-cloud-operator',
-  checks: 55,
+  checks: 59,
   exactCanonicalRuntimeReused: true,
   deployedConfigurationPermanentlyUnarmed: true,
-  executionOnlyStartOrReconcileOverrides: true,
+  executionOnlyStartRecoveryOrReconcileOverrides: true,
+  exactReadOnlyUnknownCreateAdoption: true,
   scaleFromZero: true,
   modelOrCheckpointBytesAcceptedByOperator: false,
   automaticRetryAllowed: false,

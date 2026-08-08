@@ -13,6 +13,8 @@ export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_START_CONFIRMATION =
   'start-one-sam31-vertex-source-checkpoint-qualification-v1' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_RECONCILE_CONFIRMATION =
   'reconcile-one-sam31-vertex-source-checkpoint-qualification-v1' as const
+export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION =
+  'recover-unknown-create-sam31-vertex-source-checkpoint-qualification-v1' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -42,10 +44,24 @@ const reconcileEnvironmentSchema = z.object({
   executionVersion: positiveVersion,
   executionSha256: rawSha256,
 }).strict()
+const unknownCreateRecoveryEnvironmentSchema = z.object({
+  confirmation: z.literal(
+    CANONICAL_SAM3_1_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION,
+  ),
+  admissionId: safeId,
+  admissionVersion: positiveVersion,
+  admissionSha256: rawSha256,
+  consumptionId: safeId,
+  consumptionVersion: positiveVersion,
+  consumptionSha256: rawSha256,
+  customJobCreateRequestId: safeId,
+  customJobCreateRequestVersion: positiveVersion,
+  customJobCreateRequestSha256: rawSha256,
+}).strict()
 
 type Runtime = Pick<
   ReturnType<typeof createCanonicalSam31VertexQualificationRuntime>,
-  'prepareAndStage' | 'admitAndStart' | 'reconcileOne'
+  'prepareAndStage' | 'admitAndStart' | 'recoverUnknownCreate' | 'reconcileOne'
 >
 type Environment = Readonly<Record<string, string | undefined>>
 
@@ -87,6 +103,43 @@ export async function startCanonicalSam31VertexQualificationFromEnvironment(
     action: 'start_one' as const,
     attemptId: parsed.attemptId,
     prepared,
+    launch,
+    callerModelCheckpointImageGpuClassPriceOrCommandAccepted: false as const,
+    automaticRetryAllowed: false as const,
+    customerCreditsMutated: false as const,
+    sourceCheckpointQualificationGranted: false as const,
+    runtimeReleaseGranted: false as const,
+    productionReady: false as const,
+  })
+}
+
+export async function recoverUnknownCanonicalSam31VertexQualificationFromEnvironment(
+  environment: Environment,
+  runtime?: Runtime,
+) {
+  const parsed = parseUnknownCreateRecoveryEnvironment(environment)
+  const selectedRuntime =
+    runtime ?? createCanonicalSam31GcpVertexQualificationRuntime()
+  const launch = await selectedRuntime.recoverUnknownCreate({
+    admissionRef: {
+      id: parsed.admissionId,
+      version: parsed.admissionVersion,
+      contentHash: `sha256:${parsed.admissionSha256}` as const,
+    },
+    consumptionRef: {
+      id: parsed.consumptionId,
+      version: parsed.consumptionVersion,
+      contentHash: `sha256:${parsed.consumptionSha256}` as const,
+    },
+    customJobCreateRequestRef: {
+      id: parsed.customJobCreateRequestId,
+      version: parsed.customJobCreateRequestVersion,
+      contentHash: `sha256:${parsed.customJobCreateRequestSha256}` as const,
+    },
+  })
+  return Object.freeze({
+    schemaVersion: CANONICAL_SAM3_1_VERTEX_QUALIFICATION_OPERATOR_VERSION,
+    action: 'recover_unknown_create' as const,
     launch,
     callerModelCheckpointImageGpuClassPriceOrCommandAccepted: false as const,
     automaticRetryAllowed: false as const,
@@ -164,4 +217,28 @@ function parseReconcileEnvironment(environment: Environment) {
     'sam31_vertex_reconcile_environment',
   )
   return reconcileEnvironmentSchema.parse(selectedEnvironment)
+}
+
+function parseUnknownCreateRecoveryEnvironment(environment: Environment) {
+  const selectedEnvironment = {
+    confirmation: environment
+      .WEEDITPRO_SAM31_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION,
+    admissionId: environment.WEEDITPRO_SAM31_VERTEX_ADMISSION_ID,
+    admissionVersion: environment.WEEDITPRO_SAM31_VERTEX_ADMISSION_VERSION,
+    admissionSha256: environment.WEEDITPRO_SAM31_VERTEX_ADMISSION_SHA256,
+    consumptionId: environment.WEEDITPRO_SAM31_VERTEX_CONSUMPTION_ID,
+    consumptionVersion: environment.WEEDITPRO_SAM31_VERTEX_CONSUMPTION_VERSION,
+    consumptionSha256: environment.WEEDITPRO_SAM31_VERTEX_CONSUMPTION_SHA256,
+    customJobCreateRequestId:
+      environment.WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_ID,
+    customJobCreateRequestVersion:
+      environment.WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_VERSION,
+    customJobCreateRequestSha256:
+      environment.WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_SHA256,
+  }
+  assertPlainSerializedData(
+    selectedEnvironment,
+    'sam31_vertex_unknown_create_recovery_environment',
+  )
+  return unknownCreateRecoveryEnvironmentSchema.parse(selectedEnvironment)
 }

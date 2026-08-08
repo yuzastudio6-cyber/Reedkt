@@ -445,7 +445,7 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
           await input.executionRepository.reread(executionRef),
         )
         if (!sameRef(executionRef, ref(
-          execution.executionId, execution.executionHash,
+          execution.executionId, execution.executionHash, 2,
         ))) throw new Error('Vertex qualification execution reread differs.')
         attemptId = execution.attemptId
         admissionRef = execution.admissionRef

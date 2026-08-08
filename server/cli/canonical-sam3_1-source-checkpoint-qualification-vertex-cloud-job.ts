@@ -1,12 +1,17 @@
 import { z } from 'zod'
 
 import {
+  recoverUnknownCanonicalSam31VertexQualificationFromEnvironment,
   reconcileCanonicalSam31VertexQualificationFromEnvironment,
   startCanonicalSam31VertexQualificationFromEnvironment,
 } from './canonical-sam3_1-source-checkpoint-qualification-vertex-operator'
 
 const EXPECTED_JOB = 'weeditpro-sam31-vertex-operator' as const
-const actionSchema = z.enum(['start_one', 'reconcile_one'])
+const actionSchema = z.enum([
+  'start_one',
+  'recover_unknown_create',
+  'reconcile_one',
+])
 const safeRuntimeValue = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -18,9 +23,13 @@ async function main(): Promise<void> {
   )
   const result = action === 'start_one'
     ? await startCanonicalSam31VertexQualificationFromEnvironment(process.env)
-    : await reconcileCanonicalSam31VertexQualificationFromEnvironment(
-      process.env,
-    )
+    : action === 'recover_unknown_create'
+      ? await recoverUnknownCanonicalSam31VertexQualificationFromEnvironment(
+        process.env,
+      )
+      : await reconcileCanonicalSam31VertexQualificationFromEnvironment(
+        process.env,
+      )
   process.stdout.write(`${JSON.stringify(result)}\n`)
 }
 

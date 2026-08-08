@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs'
 import {
   CANONICAL_SAM3_1_VERTEX_QUALIFICATION_RECONCILE_CONFIRMATION,
   CANONICAL_SAM3_1_VERTEX_QUALIFICATION_START_CONFIRMATION,
+  CANONICAL_SAM3_1_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION,
+  recoverUnknownCanonicalSam31VertexQualificationFromEnvironment,
   reconcileCanonicalSam31VertexQualificationFromEnvironment,
   startCanonicalSam31VertexQualificationFromEnvironment,
 } from '../cli/canonical-sam3_1-source-checkpoint-qualification-vertex-operator'
@@ -63,7 +65,7 @@ const runtime = {
       disposition: 'accepted' as const,
       executionRef: {
         id: 'sam31-vertex-execution',
-        version: 1,
+        version: 2,
         contentHash: `sha256:${digestD}` as const,
       },
     }
@@ -73,7 +75,7 @@ const runtime = {
     assert.deepEqual(value, {
       executionRef: {
         id: 'sam31-vertex-execution',
-        version: 1,
+        version: 2,
         contentHash: `sha256:${digestD}`,
       },
     })
@@ -81,6 +83,35 @@ const runtime = {
       disposition: 'pending' as const,
       checkbackAllowed: true as const,
       retryAllowedWithoutCanonicalReconciliation: false as const,
+    }
+  },
+  async recoverUnknownCreate(value: Record<string, unknown>) {
+    events.push('recover')
+    assert.deepEqual(value, {
+      admissionRef: {
+        id: 'sam31-vertex-admission',
+        version: 1,
+        contentHash: `sha256:${digestA}`,
+      },
+      consumptionRef: {
+        id: 'sam31-vertex-consumption',
+        version: 1,
+        contentHash: `sha256:${digestB}`,
+      },
+      customJobCreateRequestRef: {
+        id: 'sam31-vertex-create-request',
+        version: 1,
+        contentHash: `sha256:${digestC}`,
+      },
+    })
+    return {
+      disposition: 'accepted' as const,
+      providerCallStarted: true as const,
+      executionRef: {
+        id: 'sam31-vertex-execution-recovered',
+        version: 2,
+        contentHash: `sha256:${digestD}` as const,
+      },
     }
   },
 }
@@ -113,23 +144,42 @@ assert.equal(started.automaticRetryAllowed, false)
 assert.equal(started.customerCreditsMutated, false)
 assert.equal(started.productionReady, false)
 
+const recovered =
+  await recoverUnknownCanonicalSam31VertexQualificationFromEnvironment({
+    WEEDITPRO_SAM31_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION:
+      CANONICAL_SAM3_1_VERTEX_QUALIFICATION_UNKNOWN_CREATE_RECOVERY_CONFIRMATION,
+    WEEDITPRO_SAM31_VERTEX_ADMISSION_ID: 'sam31-vertex-admission',
+    WEEDITPRO_SAM31_VERTEX_ADMISSION_VERSION: '1',
+    WEEDITPRO_SAM31_VERTEX_ADMISSION_SHA256: digestA,
+    WEEDITPRO_SAM31_VERTEX_CONSUMPTION_ID: 'sam31-vertex-consumption',
+    WEEDITPRO_SAM31_VERTEX_CONSUMPTION_VERSION: '1',
+    WEEDITPRO_SAM31_VERTEX_CONSUMPTION_SHA256: digestB,
+    WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_ID: 'sam31-vertex-create-request',
+    WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_VERSION: '1',
+    WEEDITPRO_SAM31_VERTEX_CREATE_REQUEST_SHA256: digestC,
+  }, runtime as never)
+assert.deepEqual(events, ['prepare', 'start', 'recover'])
+assert.equal(recovered.action, 'recover_unknown_create')
+assert.equal(recovered.launch.disposition, 'accepted')
+assert.equal(recovered.automaticRetryAllowed, false)
+
 await assert.rejects(
   startCanonicalSam31VertexQualificationFromEnvironment({
     ...startEnvironment,
     WEEDITPRO_SAM31_VERTEX_QUALIFICATION_CONFIRMATION: 'wrong',
   }, runtime as never),
 )
-assert.deepEqual(events, ['prepare', 'start'])
+assert.deepEqual(events, ['prepare', 'start', 'recover'])
 
 const reconciled =
   await reconcileCanonicalSam31VertexQualificationFromEnvironment({
     WEEDITPRO_SAM31_VERTEX_QUALIFICATION_RECONCILE_CONFIRMATION:
       CANONICAL_SAM3_1_VERTEX_QUALIFICATION_RECONCILE_CONFIRMATION,
     WEEDITPRO_SAM31_VERTEX_EXECUTION_ID: 'sam31-vertex-execution',
-    WEEDITPRO_SAM31_VERTEX_EXECUTION_VERSION: '1',
+    WEEDITPRO_SAM31_VERTEX_EXECUTION_VERSION: '2',
     WEEDITPRO_SAM31_VERTEX_EXECUTION_SHA256: digestD,
   }, runtime as never)
-assert.deepEqual(events, ['prepare', 'start', 'reconcile'])
+assert.deepEqual(events, ['prepare', 'start', 'recover', 'reconcile'])
 assert.equal(reconciled.action, 'reconcile_one')
 assert.equal(reconciled.terminal.disposition, 'pending')
 assert.equal(reconciled.automaticRetryAllowed, false)
@@ -147,10 +197,11 @@ for (const path of [
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-qualification-operator',
-  checks: 30,
+  checks: 39,
   exactPrepareThenStartOrder: true,
   exactHistoricalImageAndRateRefs: true,
   restartSafeReconcileByExecutionRef: true,
+  unknownCreateRecoveredByExactPersistedRefs: true,
   invalidConfirmationCallsRuntime: false,
   callerModelCheckpointImageGpuClassPriceOrCommandAccepted: false,
   automaticRetryAllowed: false,

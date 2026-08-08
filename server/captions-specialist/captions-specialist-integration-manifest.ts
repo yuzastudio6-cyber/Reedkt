@@ -51,6 +51,12 @@ export const CAPTIONS_SPECIALIST_INTEGRATION_V3_VERSION =
   'captions-specialist-integration-v3' as const
 export const CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID =
   'captions.cross-system.manifest-v3' as const
+export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4_ID =
+  'captions.specialist.integration.manifest.v4' as const
+export const CAPTIONS_SPECIALIST_INTEGRATION_V4_VERSION =
+  'captions-specialist-integration-v4' as const
+export const CAPTIONS_CROSS_SYSTEM_PLANNING_LIFECYCLE_EVIDENCE_ID =
+  'captions.cross-system.planning-lifecycle-v4' as const
 
 const CAPTION_INCOMING_TYPOGRAPHY_JOB_TYPES = [
   'provide_speech_derived_typography_spec',
@@ -390,3 +396,75 @@ UnpublishedSkillCapabilityManifestV2 = {
 
 export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 =
   publishSkillCapabilityManifestV2(unpublishedIntegrationManifestV3)
+
+function integrateEntryV4(entry: SkillCapabilityEntry): SkillCapabilityEntry {
+  const planningOnlyCrossSystem = entry.supportedJobType
+    === CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE
+    || entry.supportedJobType === 'provide_caption_to_visual_handoff_spec'
+  if (!planningOnlyCrossSystem) return structuredClone(entry)
+  return {
+    ...structuredClone(entry),
+    capabilityVersion: 'captions-capability-integration-v4',
+    qualificationEvidenceRefs: unique([
+      ...entry.qualificationEvidenceRefs,
+      CAPTIONS_CROSS_SYSTEM_PLANNING_LIFECYCLE_EVIDENCE_ID,
+    ]),
+    requiredEvidence: entry.requiredEvidence.filter((artifactType) =>
+      artifactType !== 'caption_living_frame_handoff_binding'),
+    integrationQa: unique([
+      ...entry.integrationQa,
+      'coordination_planning_must_precede_receiver_result_admission',
+      'living_frame_result_required_only_by_dedicated_constraints_job',
+    ]),
+    qualificationFixtures: unique([
+      ...entry.qualificationFixtures,
+      'captions.cross-system.planning-lifecycle-v4',
+    ]),
+  }
+}
+
+const {
+  manifestHash: _integrationV3HashForV4,
+  ...integrationV3BodyForV4
+} = structuredClone(
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3) as SkillCapabilityManifestV2
+void _integrationV3HashForV4
+
+const capabilityEntriesV4 = integrationV3BodyForV4.capabilityEntries.map(
+  integrateEntryV4)
+
+const unpublishedIntegrationManifestV4:
+UnpublishedSkillCapabilityManifestV2 = {
+  ...integrationV3BodyForV4,
+  manifestId: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4_ID,
+  skillVersion: CAPTIONS_SPECIALIST_INTEGRATION_V4_VERSION,
+  qualificationEvidenceRefs: [
+    ...integrationV3BodyForV4.qualificationEvidenceRefs,
+    {
+      evidenceId: CAPTIONS_CROSS_SYSTEM_PLANNING_LIFECYCLE_EVIDENCE_ID,
+      evidenceType: 'smoke_test',
+      location:
+        'server/smoke/canonical-caption-broll-approved-run-harness-smoke.ts',
+      assertion:
+        'The aggregate Caption coordination plan creates only mediated handoff artifacts and does not require a receiver result before planning completes.',
+    },
+  ],
+  acceptedArtifactTypes: unique(capabilityEntriesV4.flatMap((entry) =>
+    entry.acceptedArtifactTypes)),
+  integrationQa: unique([
+    ...integrationV3BodyForV4.integrationQa,
+    'cross_system_planning_precedes_receiver_result_admission',
+  ]),
+  qualificationFixtures: unique([
+    ...integrationV3BodyForV4.qualificationFixtures,
+    'captions.cross-system.planning-lifecycle-v4',
+  ]),
+  knownLimitations: [
+    ...integrationV3BodyForV4.knownLimitations,
+    'The aggregate coordination artifact does not claim that Living Frame or any other receiver executed or returned evidence.',
+  ],
+  capabilityEntries: capabilityEntriesV4,
+}
+
+export const CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4 =
+  publishSkillCapabilityManifestV2(unpublishedIntegrationManifestV4)

@@ -66,7 +66,7 @@ import {
   '../services/canonical-caption-cross-system-execution-input-service'
 import { createCanonicalSpecialistSupportResumeRepository } from
   '../services/canonical-specialist-support-resume-service'
-import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 } from
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4 } from
   '../captions-specialist/captions-specialist-integration-manifest'
 import type { CanonicalApprovedExecutionAuthority } from
   '../services/edit-planning-authority-service'
@@ -87,6 +87,12 @@ import {
   parseOrchestraSkillCall,
   parseOrchestraSkillJobResult,
 } from '../orchestra/orchestra-skill-contracts'
+import { createCaptionBrollOwnerReadRequest } from
+  '../captions-specialist/caption-broll-owner-read-adapter'
+import { BROLL_CAPTION_OWNER_MANIFEST_REF } from
+  '../edit-skills/b-roll/b-roll-caption-public-contract'
+import { createCanonicalCaptionBrollOwnerRequestReadPort } from
+  '../services/canonical-caption-broll-owner-request-input-service'
 import {
   SKILL_SUPPORT_REQUEST_VERSION_V2,
   type SkillSupportRequestV2,
@@ -1039,16 +1045,16 @@ const v3Execution = await executeCanonicalCaptionSpecialistWorkItem({
 })
 check(v3Execution.pair.result.disposition === 'completed'
   && v3Execution.pair.call.manifestRef.id
-    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestId
   && v3Execution.pair.call.manifestRef.contentHash
-    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash
   && v3Execution.pair.call.inputArtifactRefs.some((artifact) =>
     artifact.artifactType ===
       'canonical_transcript_planning_expectation_binding'
     && artifact.contentHash === expectationMountBindingRef?.contentHash)
   && v3Execution.pair.call.inputArtifactRefs.every((artifact) =>
     artifact.artifactType !== 'canonical_transcript_planning_expectation'),
-  'Approved V3 work must execute only after the exact expectation is replaced by authenticated transcript lineage.')
+  'Approved V3 work input must execute on the current integration manifest only after the exact expectation is replaced by authenticated transcript lineage.')
 await assert.rejects(() => executeCanonicalCaptionSpecialistWorkItem({
   authority: v3Authority,
   executionPackage: v3ExecutionPackage,
@@ -1229,6 +1235,55 @@ const crossSystemExecutionInputRef = {
   sha256: sha256AuthorityValue(crossSystemWorkInput),
   byteLength: Buffer.byteLength(JSON.stringify(crossSystemWorkInput)),
 }
+const crossSystemOutputFrameArtifact =
+  crossSystemWorkInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'confirmed_output_frame')
+const crossSystemMasterTimingArtifact =
+  crossSystemWorkInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'master_timing_or_planning_timing')
+assert.ok(crossSystemOutputFrameArtifact && crossSystemMasterTimingArtifact)
+const brollOwnerRequest = createCaptionBrollOwnerReadRequest({
+  requestId: 'caption.broll.owner-request.cross-system.1',
+  brollManifestRef: structuredClone(BROLL_CAPTION_OWNER_MANIFEST_REF),
+  canonicalScope: {
+    ownerUserId: crossSystemCanonicalScope.ownerUserId,
+    workspaceId: crossSystemCanonicalScope.workspaceId,
+    projectId: crossSystemCanonicalScope.projectId,
+    editSessionId: crossSystemCanonicalScope.editSessionId,
+    planVersionId: approvedScope.planVersionId,
+    approvedSnapshotRef:
+      structuredClone(crossSystemCanonicalScope.approvedSnapshotRef),
+    outputId: crossSystemCanonicalScope.outputId,
+    outputFrameRef: {
+      id: crossSystemOutputFrameArtifact.id,
+      version: crossSystemOutputFrameArtifact.version,
+      contentHash: crossSystemOutputFrameArtifact.contentHash,
+    },
+    sceneId: crossSystemCanonicalScope.sceneId,
+    authorizedFrameRange: {
+      startFrameInclusive:
+        crossSystemCanonicalScope.authorizedFrameRanges[0]!.startFrame,
+      endFrameExclusive:
+        crossSystemCanonicalScope.authorizedFrameRanges[0]!.endFrameExclusive,
+      fps: 30,
+    },
+    masterTimingRef: {
+      id: crossSystemMasterTimingArtifact.id,
+      version: crossSystemMasterTimingArtifact.version,
+      contentHash: crossSystemMasterTimingArtifact.contentHash,
+    },
+    masterTimingHash: crossSystemMasterTimingArtifact.contentHash,
+  },
+  planningConstraintRef: {
+    id: 'caption.broll.planning-constraint.cross-system.1',
+    version: 'caption-broll-planning-constraint-v1',
+    contentHash: sha256AuthorityValue(
+      'caption-broll-planning-constraint-cross-system-1'),
+  },
+})
+const brollOwnerRequestReadPort =
+  createCanonicalCaptionBrollOwnerRequestReadPort(async () =>
+    structuredClone(brollOwnerRequest))
 const crossSystemExpectedOutput = {
   ...structuredClone(v3ExpectedOutput),
   segmentIds: [crossSystemWorkInput.sceneId!],
@@ -1324,6 +1379,7 @@ const crossSystemExecution = await executeCanonicalCaptionSpecialistWorkItem({
   canonicalTranscriptPlanningExpectationBindingRef:
     expectationMountBindingRef,
   incomingSupportRequestReadPort: brollCaptionRequestReadPort,
+  brollOwnerRequestReadPort,
   crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
   executionPort: {
     async execute(input) {
@@ -1492,6 +1548,7 @@ const crossSystemRuntimeExecution =
     canonicalTranscriptPlanningExpectationBindingRef:
       expectationMountBindingRef,
     incomingSupportRequestReadPort: brollCaptionRequestReadPort,
+    brollOwnerRequestReadPort,
     crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
   })
 check(crossSystemRuntimeExecution.pair.result.disposition === 'needs_followup'
@@ -1516,6 +1573,7 @@ const crossSystemReplay = await executeCanonicalCaptionSpecialistWorkItem({
   canonicalTranscriptPlanningExpectationBindingRef:
     expectationMountBindingRef,
   incomingSupportRequestReadPort: brollCaptionRequestReadPort,
+  brollOwnerRequestReadPort,
   crossSystemExecutionInputReadPort: crossSystemComposition.readPort,
   executionPort: {
     async execute(input) {

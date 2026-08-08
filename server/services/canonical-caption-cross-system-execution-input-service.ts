@@ -38,9 +38,11 @@ import {
 import {
   CAPTIONS_CROSS_SYSTEM_RECEIVERS_BY_JOB,
 } from '../captions-specialist/captions-specialist-runtime'
-import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 } from
+import { parseCaptionLivingFrameRequestV2 } from
+  '../captions-specialist/caption-living-frame-boundary'
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4 } from
   '../captions-specialist/captions-specialist-integration-manifest'
-import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3 } from
+import { CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4 } from
   '../captions-specialist/captions-specialist-integration-qualification'
 import {
   calculateSkillContractDigest,
@@ -292,7 +294,7 @@ export function createCanonicalCaptionCrossSystemExecutionInputReadPort(input: {
         authorityBindings: authorityBindingsSchema.nullable(),
       }).strict().parse(untrusted)
       const call = parseOrchestraSkillCall(envelope.call)
-      if (!isV3CrossSystemCall(call)) return null
+      if (!isCurrentCrossSystemCall(call)) return null
       const originRef = originCallRef(call)
       let executionInput = await input.repository.rereadExact({
         originCaptionCallRef: originRef,
@@ -373,7 +375,7 @@ export async function resolveCanonicalCaptionCrossSystemExecutionInput(input: {
     CanonicalCaptionCrossSystemExecutionAuthorityBindings
 }): Promise<CanonicalCaptionCrossSystemExecutionInput | null> {
   const call = parseOrchestraSkillCall(input.call)
-  if (!isV3CrossSystemCall(call)) return null
+  if (!isCurrentCrossSystemCall(call)) return null
   if (!input.readPort
     || !admittedExecutionInputReadPorts.has(input.readPort)
     || input.readPort.schemaVersion !==
@@ -409,6 +411,7 @@ export async function resolveCanonicalCaptionCrossSystemExecutionInput(input: {
 export function canonicalCaptionCrossSystemRuntimeInput(
   executionInput: CanonicalCaptionCrossSystemExecutionInput | null,
 ): {
+  readonly livingFrameRequest?: unknown
   readonly crossSystemCoordinationPlan?: unknown
   readonly crossSystemCoordinationContext?:
     CaptionCrossSystemCoordinationPlanContext
@@ -418,14 +421,44 @@ export function canonicalCaptionCrossSystemRuntimeInput(
 } {
   if (executionInput === null) return {}
   if (executionInput.sourceInput.mode === 'aggregate_coordination_plan') {
+    const context = executionInput.sourceInput.coordinationContext
+    const livingFrameBundles = context.outboundBundles.filter((bundle) => {
+        const payload = parseCaptionCrossSystemOutboundPayloadV2(
+          bundle.outboundPayload, context,
+        )
+        return payload.receiver === 'living_frame'
+      })
+    if (livingFrameBundles.length > 1) {
+      throw new Error(
+        'Canonical Caption coordination input contains duplicate Living Frame requests.',
+      )
+    }
+    const livingFrameSupportRequest = livingFrameBundles[0]?.supportRequest
+    const livingFrameRequest = livingFrameSupportRequest === undefined
+      ? undefined
+      : parseCaptionLivingFrameRequestV2(
+          livingFrameSupportRequest.typedPayload)
     return {
+      ...(livingFrameRequest === undefined ? {} : {
+        livingFrameRequest: structuredClone(livingFrameRequest),
+      }),
       crossSystemCoordinationPlan:
         structuredClone(executionInput.sourceInput.coordinationPlan),
       crossSystemCoordinationContext:
         structuredClone(executionInput.sourceInput.coordinationContext),
     }
   }
+  const context = executionInput.sourceInput.outboundHandoffContext
+  const payload = parseCaptionCrossSystemOutboundPayloadV2(
+    context.outboundPayload, context)
+  const livingFrameRequest = payload.receiver !== 'living_frame'
+    || context.supportRequest === undefined
+    ? undefined
+    : parseCaptionLivingFrameRequestV2(context.supportRequest.typedPayload)
   return {
+    ...(livingFrameRequest === undefined ? {} : {
+      livingFrameRequest: structuredClone(livingFrameRequest),
+    }),
     crossSystemOutboundHandoff:
       structuredClone(executionInput.sourceInput.outboundHandoff),
     crossSystemOutboundHandoffContext:
@@ -439,7 +472,7 @@ function createExecutionInput(input: {
   sourceInput: CanonicalCaptionCrossSystemSourceInput
 }): CanonicalCaptionCrossSystemExecutionInput {
   const call = parseOrchestraSkillCall(input.call)
-  if (!isV3CrossSystemCall(call)
+  if (!isCurrentCrossSystemCall(call)
     || call.resumeOriginCallRef !== null) {
     throw new Error(
       'Canonical Caption cross-system input requires one original cross-system call.',
@@ -552,7 +585,7 @@ function assertExecutionInputMatchesCall(input: {
   const call = parseOrchestraSkillCall(input.call)
   const originRef = originCallRef(call)
   const value = input.executionInput
-  if (!isV3CrossSystemCall(call)
+  if (!isCurrentCrossSystemCall(call)
     || !sameRef(value.originCaptionCallRef, originRef)
     || value.captionJobType !== call.job.jobType
     || !sameCanonical(value.canonicalScope, call.canonicalScope)
@@ -647,20 +680,20 @@ function isCrossSystemJob(
     .includes(jobType)
 }
 
-function isV3CrossSystemCall(call: OrchestraSkillCall): boolean {
+function isCurrentCrossSystemCall(call: OrchestraSkillCall): boolean {
   return isCrossSystemJob(call.job.jobType)
     && call.manifestRef.id ===
-      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId
+      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestId
     && call.manifestRef.version ===
-      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestSchemaVersion
+      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestSchemaVersion
     && call.manifestRef.contentHash ===
-      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash
+      CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash
     && call.qualificationSnapshotRef.id ===
-      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3.snapshotId
+      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4.snapshotId
     && call.qualificationSnapshotRef.version ===
-      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3.schemaVersion
+      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4.schemaVersion
     && call.qualificationSnapshotRef.contentHash ===
-      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+      CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4
         .snapshotDigestSha256
 }
 

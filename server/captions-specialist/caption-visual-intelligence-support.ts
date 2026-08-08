@@ -530,6 +530,7 @@ export function createCaptionVisualIntelligenceSupportRequest(input: {
   requestId: string
   originalCallRef: SkillContractRef
   payload: unknown
+  canonicalSkillScope?: SkillCanonicalScope
 }): SkillSupportRequest {
   assertClosedContractTree(
     input, 'Caption Visual Intelligence support request input')
@@ -544,7 +545,9 @@ export function createCaptionVisualIntelligenceSupportRequest(input: {
     requestedArtifactTypes: [payload.purpose === 'final_frame_occupancy'
       ? 'caption_visual_intelligence_occupancy_evidence'
       : 'caption_visual_intelligence_rendered_inspection_evidence'],
-    canonicalScope: skillScope(payload.canonicalScope),
+    canonicalScope: input.canonicalSkillScope === undefined
+      ? skillScope(payload.canonicalScope)
+      : structuredClone(input.canonicalSkillScope),
     typedPayloadType: CAPTION_VISUAL_INTELLIGENCE_SUPPORT_PAYLOAD_VERSION,
     typedPayload: payload,
     mediationPolicy: {

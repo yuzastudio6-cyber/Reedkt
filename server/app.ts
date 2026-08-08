@@ -135,6 +135,14 @@ export interface ReeditProApiAppOptions {
     RuntimeState[
       'canonicalCaptionTranscriptPlanningExpectationOwnerReadPort'
     ]
+  canonicalCaptionIncomingSupportRequestReadPort?:
+    RuntimeState['canonicalCaptionIncomingSupportRequestReadPort']
+  canonicalCaptionBrollOwnerRequestReadPort?:
+    RuntimeState['canonicalCaptionBrollOwnerRequestReadPort']
+  canonicalCaptionCrossSystemExecutionInputReadPort?:
+    RuntimeState['canonicalCaptionCrossSystemExecutionInputReadPort']
+  canonicalCaptionSoundSupportInputReadPort?:
+    RuntimeState['canonicalCaptionSoundSupportInputReadPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -373,6 +381,30 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
           canonicalCaptionTranscriptPlanningExpectationOwnerReadPort:
             options
               .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionIncomingSupportRequestReadPort
+      ? {
+          canonicalCaptionIncomingSupportRequestReadPort:
+            options.canonicalCaptionIncomingSupportRequestReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionBrollOwnerRequestReadPort
+      ? {
+          canonicalCaptionBrollOwnerRequestReadPort:
+            options.canonicalCaptionBrollOwnerRequestReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionCrossSystemExecutionInputReadPort
+      ? {
+          canonicalCaptionCrossSystemExecutionInputReadPort:
+            options.canonicalCaptionCrossSystemExecutionInputReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionSoundSupportInputReadPort
+      ? {
+          canonicalCaptionSoundSupportInputReadPort:
+            options.canonicalCaptionSoundSupportInputReadPort,
         }
       : {}),
     ...(options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort

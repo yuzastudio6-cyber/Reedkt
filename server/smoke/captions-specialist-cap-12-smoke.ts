@@ -73,6 +73,12 @@ import {
   runCaptionsSpecialistJob,
 } from '../captions-specialist/captions-specialist-runtime'
 import {
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+} from '../captions-specialist/captions-specialist-integration-manifest'
+import {
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+} from '../captions-specialist/captions-specialist-integration-qualification'
+import {
   createCaptionsHarnessCall,
   resumeCaptionsHarnessCall,
 } from '../internal-testing/captions-specialist-harness'
@@ -1107,6 +1113,19 @@ const runtimeCallCandidate = createCaptionsHarnessCall({
     'master_timing_or_planning_timing',
   ],
 })
+runtimeCallCandidate.manifestRef = {
+  id: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId,
+  version: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestSchemaVersion,
+  contentHash: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash,
+}
+runtimeCallCandidate.qualificationSnapshotRef = {
+  id: CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3.snapshotId,
+  version:
+    CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3.schemaVersion,
+  contentHash:
+    CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+      .snapshotDigestSha256,
+}
 runtimeCallCandidate.canonicalScope = {
   ...runtimeCallCandidate.canonicalScope,
   ownerUserId: lfRequest.canonicalScope.ownerUserId,

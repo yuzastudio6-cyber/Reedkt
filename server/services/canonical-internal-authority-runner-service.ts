@@ -800,10 +800,22 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       postapprovalFinishReadPort: postapprovalFinishRepository.readPort,
       postapprovalJobSelectionReadPort:
         postapprovalJobSelectionRepository.readPort,
+      ...(input.context.canonicalCaptionIncomingSupportRequestReadPort
+        ? {
+            incomingSupportRequestReadPort: input.context
+              .canonicalCaptionIncomingSupportRequestReadPort,
+          }
+        : {}),
       ...(input.context.canonicalCaptionCrossSystemExecutionInputReadPort
         ? {
             crossSystemExecutionInputReadPort: input.context
               .canonicalCaptionCrossSystemExecutionInputReadPort,
+          }
+        : {}),
+      ...(input.context.canonicalCaptionBrollOwnerRequestReadPort
+        ? {
+            brollOwnerRequestReadPort: input.context
+              .canonicalCaptionBrollOwnerRequestReadPort,
           }
         : {}),
       ...(input.context.canonicalCaptionSoundSupportInputReadPort

@@ -32,6 +32,16 @@ backend boundary and binds the returned semantic Caption artifact to it. This
 proves bounded support production, not a peer
 dispatcher or a central Orchestra implementation.
 
+The unfiltered approved execution campaign has now exercised that source
+surface end to end across 16 distinct approved snapshots and execution
+packages. It covered **41/41** Caption job types with no missing jobs, persisted
+one create-only campaign record, replayed it byte-identically, and reread it
+exactly. It did not fabricate a one-edit/all-features graph. The receipt is
+[`post-cap20-approved-execution-campaign-2026-08-08.md`](post-cap20-approved-execution-campaign-2026-08-08.md).
+Because its owner inputs are explicitly structural fixtures and it creates no
+new final media or qualified review, it advances canonical execution coverage
+without changing the terminal count.
+
 The 0/41 terminal count is intentional until one fresh canonical private run
 rereads real results, rendered outputs, qualified complete-time visual review,
 and independent private review. It is not a regression of the Caption source
@@ -221,8 +231,10 @@ The owner-mount gap is closed. Nine actual private evidence gates remain:
    as final source-picture or final-canvas evidence. A final-quality source and
    final render must be bound to the same canonical campaign before the
    terminal evidence assembly can consume this lane;
-6. complete all Caption work through the canonical backend work graph
-   and persist/reread every result;
+6. reuse the passed 16-run/41-job approved execution campaign as structural
+   coverage, then bind those jobs to actual authenticated owner evidence,
+   final-quality media, and exact persisted/reread results in the terminal
+   qualification scope;
 7. run qualified complete-time visual-AI review for every rendered output;
 8. reread independent final-QA/private-review evidence against the exact repaired
    output; and
@@ -333,6 +345,13 @@ run controller. It can now persist the accepted direct-inspection record and
 continue into the canonical approved-run reader in one bounded operation. Its
 source smoke reaches the truthful waiting disposition because no fresh run
 contains all remaining evidence; it does not create or promote missing data.
+
+The standalone approved-execution campaign has now gone beyond that bounded
+source smoke and persisted/reread 16 preterminal run records covering all 41
+jobs. The campaign is intentionally not admitted to terminal qualification
+because the real owner evidence, final media, complete-time qualified visual
+review, listening review, and independent final QA remain absent from that
+exact campaign.
 
 The additive V7 composition extends that same path to the accepted real B-roll
 owner inspection. Its V2 run controller discriminates uploaded-source and

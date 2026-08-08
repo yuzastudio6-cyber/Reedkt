@@ -16,6 +16,7 @@ import {
   CAPTIONS_SUPPORT_JOB_TYPES,
   CAPTIONS_SUPPORTED_JOB_TYPES,
   CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES,
+  CAPTIONS_SOUND_SUPPORT_JOB_TYPES,
 } from
   '../../src/types/captions-specialist'
 import {
@@ -44,6 +45,8 @@ import {
 } from '../../src/types/orchestra-skill-contracts'
 import type { SkillSupportRequestV2 } from
   '../../src/types/orchestra-skill-support-request-v2'
+import type { CanonicalCaptionBrollOwnerRequestReadPort } from
+  '../../src/types/canonical-caption-broll-owner-request-input'
 import { assertClosedContractTree } from
   '../../src/lib/closed-contract-validation'
 import {
@@ -55,12 +58,12 @@ import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST } from
   '../captions-specialist/captions-specialist-integration-manifest'
 import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2 } from
   '../captions-specialist/captions-specialist-integration-manifest'
-import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3 } from
+import { CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4 } from
   '../captions-specialist/captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
-  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4,
 } from
   '../captions-specialist/captions-specialist-integration-qualification'
 import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
@@ -76,6 +79,8 @@ import {
   '../captions-specialist/caption-track-all-support'
 import { canonicalCaptionAssignmentTriggerForJob } from
   '../captions-specialist/caption-canonical-work-planning'
+import { resolveCanonicalCaptionBrollOwnerRequestForCall } from
+  './canonical-caption-broll-owner-request-input-service'
 import {
   admitCaptionCanonicalTranscriptFromAuthenticatedRead,
   parseCaptionCanonicalTranscriptAuthenticatedReadBinding,
@@ -421,6 +426,8 @@ export interface CanonicalCaptionSpecialistExecutionPort {
     readonly soundSupportContext?: unknown
     readonly soundSupportPayload?: unknown
     readonly soundSupportResult?: unknown
+    readonly brollOwnerReadRequest?: unknown
+    readonly livingFrameRequest?: unknown
     readonly resumeSupportRequest?: SkillSupportRequest
     readonly incomingSupportRequest?: SkillSupportRequestV2
     readonly crossSystemCoordinationPlan?: unknown
@@ -490,6 +497,8 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     CanonicalCaptionIncomingSupportRequestReadPort
   readonly crossSystemExecutionInputReadPort?:
     CanonicalCaptionCrossSystemExecutionInputReadPort
+  readonly brollOwnerRequestReadPort?:
+    CanonicalCaptionBrollOwnerRequestReadPort
   /**
    * Exact late-bound motion-lock/StoryTiming inputs used only to author the
    * typed CaptionSoundCueRequest. SoundSync remains the cue/mix owner.
@@ -660,6 +669,11 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       call,
       readPort: input.incomingSupportRequestReadPort,
     })
+  const brollOwnerReadRequest =
+    await resolveCanonicalCaptionBrollOwnerRequestForCall({
+      call,
+      readPort: input.brollOwnerRequestReadPort,
+    })
   const replay = await input.repository.rereadCallResultPair({
     callRef: captionCallRef,
   })
@@ -681,6 +695,9 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         ...(incomingSupportRequest === null ? {} : {
           incomingSupportRequest: structuredClone(incomingSupportRequest),
         }),
+        ...(brollOwnerReadRequest === null ? {} : {
+          brollOwnerReadRequest: structuredClone(brollOwnerReadRequest),
+        }),
         ...(visualIntelligenceSupportPayload === null ? {} : {
           visualIntelligenceSupportPayload: structuredClone(
             visualIntelligenceSupportPayload),
@@ -688,7 +705,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         ...canonicalCaptionCrossSystemRuntimeInput(
           crossSystemExecutionInput),
         ...soundSupportRuntimeInput,
-      })
+    })
     const result = parseOrchestraSkillJobResult(rawResult)
     const pair = createCanonicalSpecialistCallResultPair({
       call,
@@ -1005,6 +1022,12 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
       ...(input.soundSupportResult === undefined ? {} : {
         soundSupportResult: input.soundSupportResult,
       }),
+      ...(input.brollOwnerReadRequest === undefined ? {} : {
+        brollOwnerReadRequest: input.brollOwnerReadRequest,
+      }),
+      ...(input.livingFrameRequest === undefined ? {} : {
+        livingFrameRequest: input.livingFrameRequest,
+      }),
       ...(input.resumeSupportRequest === undefined ? {} : {
         resumeSupportRequest: input.resumeSupportRequest,
       }),
@@ -1044,6 +1067,7 @@ const POSTAPPROVAL_VISUAL_INTELLIGENCE_JOB_TYPES = new Set([
   'resolve_front_of_subject_typography',
   'resolve_object_anchored_typography',
   'resolve_environmental_typography',
+  'provide_caption_safe_region_constraints',
   'resolve_hero_typography',
   'resolve_persistent_topic_typography',
   'repair_caption_scene',
@@ -1219,6 +1243,14 @@ function canonicalCaptionTrackAllPurpose(
   if (jobType === 'resolve_subject_occluded_typography') {
     return 'subject_occlusion'
   }
+  if (jobType === 'provide_caption_safe_region_constraints') {
+    // The current Track All public contract has no separate safe-region
+    // purpose. This request needs the same exact full-range speaker/face/
+    // gesture mask evidence as subject occlusion, but Caption consumes that
+    // evidence only to derive protected regions; it grants no depth, layer,
+    // or placement authority to the requester.
+    return 'subject_occlusion'
+  }
   if (jobType === 'resolve_front_of_subject_typography') {
     return 'subject_foreground'
   }
@@ -1368,6 +1400,10 @@ async function readCanonicalCaptionPostapprovalFinishRecord(input: {
     CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION) {
     required = POSTAPPROVAL_FINISH_TRIGGERS.has(
       input.workInput.assignmentTrigger)
+      || input.workInput.captionJobType ===
+        'provide_caption_safe_region_constraints'
+      || (CAPTIONS_SOUND_SUPPORT_JOB_TYPES as readonly string[])
+        .includes(input.workInput.captionJobType)
   }
   if (!required) return null
   const projection = input.authority.captionPlanningProjection
@@ -1762,12 +1798,12 @@ function createCaptionCall(input: {
     || input.workInput.schemaVersion ===
       CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V2_VERSION
   const integrationManifest = sourceLedInput
-    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3
+    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4
     : assignmentInput
       ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2
       : CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
   const integrationQualification = sourceLedInput
-    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4
     : assignmentInput
       ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2
       : CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT

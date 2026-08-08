@@ -38,9 +38,10 @@ Nine evidence/integration gaps block the terminal status:
 5. bind the accepted real-source authenticated B-roll owner result to the same
    qualification package/snapshot/output/work graph rather than its separate
    co-composition evidence scope;
-6. run representative approved Caption jobs through the mounted canonical
-   backend execution bundle, persist/reread every projected result, and cover
-   the 41-job catalog across multiple honest runs;
+6. bind the now-passed 16-run/41-job canonical approved execution campaign to
+   final-quality media and actual authenticated owner evidence in the same
+   terminal qualification scope. The preterminal campaign already persists,
+   replays, and rereads every job across honest scenario-specific runs;
 7. qualified complete-time visual-AI review for every rendered output, kept
    separate from deterministic technical QA and direct sampled-frame
    inspection;
@@ -79,9 +80,14 @@ attaches the professional composition trace, early bundle, estimate, and typed
 assignments to a fresh source-led plan before approval, and reuses the existing
 canonical work owner. A selected professional plan removes and rereads after
 the legacy exact-marker renderer so no parallel Caption owner is created. This
-closes the source-code attachment gap inside item 6; item 6 remains terminally
-incomplete until representative approved runs persist and reread actual results
-across the 41-job catalog.
+closes the source-code attachment gap inside item 6. The later unfiltered
+approved campaign also closes the 41-job structural execution-coverage gap: 16
+distinct approved snapshots/packages covered 41/41 jobs, persisted create-only,
+replayed byte-identically, and reread exactly. Item 6 remains terminally
+incomplete only because structural owner fixtures and source-contract outputs
+cannot substitute for final-quality media and actual authenticated owner
+evidence in the terminal scope. See
+[`post-cap20-approved-execution-campaign-2026-08-08.md`](post-cap20-approved-execution-campaign-2026-08-08.md).
 
 That path now uses an additive V3 transcript expectation rather than treating a
 preapproval source-analysis digest as a finished canonical transcript. The
@@ -98,9 +104,10 @@ scope.
 - The current `SkillQualificationSnapshot` is the CAP-01 planning snapshot. It
   must not be presented as a private-execution qualification snapshot.
 - The top-level standalone runtime proves bounded planning calls, support
-  requests, exact resume binding, and results. The canonical backend still has
-  to run the newly mounted source-led plan through approved private execution
-  and persist/reread its results.
+  requests, exact resume binding, and results. The canonical backend has now
+  also run the complete 41-job surface through 16 approved scenario-specific
+  work graphs and persisted/reread the campaign. Those structural owner
+  fixtures remain preterminal and cannot replace actual media/owner evidence.
 - Direct inspection now covers every rendered frame through complete-time
   contact sheets for the real 9:16, 16:9, and 1:1 full/reduced variants. It is
   valid Caption-owned visual evidence, but it is not a qualified shared
@@ -160,8 +167,9 @@ engineering fixtures remain technical-only.
 
 ## Known limitations and scoped blockers
 
-The exact nine gaps above remain open. The active feature status is suitable
-for canonical backend integration and internal end-to-end testing preparation,
+The exact nine evidence gates above remain open, although the structural
+execution-coverage portion of gate 6 is now complete. The active feature status
+is suitable for canonical backend integration and internal end-to-end testing,
 but not for the terminal Caption qualification claim.
 
 ## Next work

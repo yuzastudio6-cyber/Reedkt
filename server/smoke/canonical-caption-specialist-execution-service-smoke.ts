@@ -707,6 +707,7 @@ const sourceCallWithoutDigest: Omit<OrchestraSkillCall,
   },
   canonicalScope: {
     ...structuredClone(first.pair.call.canonicalScope),
+    approvedSnapshotRef: null,
     sceneId: 'scene-main',
     authorizedFrameRanges: structuredClone(workInput.authorizedFrameRanges),
   },
@@ -733,21 +734,7 @@ const incomingSupportRequestWithoutDigest: Omit<SkillSupportRequestV2,
   requestedJobType: 'provide_speech_derived_typography_spec',
   reasonCode: 'speech_typography_required_for_visual_handoff',
   requestedArtifactTypes: ['caption_speech_derived_typography_spec'],
-  canonicalScope: {
-    ownerUserId: snapshot.approvedByUserId,
-    workspaceId: snapshot.workspaceId,
-    projectId: snapshot.projectId,
-    editSessionId: snapshot.editSessionId,
-    approvedSnapshotRef: {
-      id: snapshot.snapshotId,
-      version: snapshot.schemaVersion,
-      contentHash: snapshot.snapshotHash,
-    },
-    outputId: workInput.outputId,
-    sceneId: 'scene-main',
-    boundaryId: null,
-    authorizedFrameRanges: structuredClone(workInput.authorizedFrameRanges),
-  },
+  canonicalScope: structuredClone(sourceCall.canonicalScope),
   typedPayloadType: 'caption-speech-typography-support-context-v1',
   typedPayload: {
     schemaVersion: 'caption-speech-typography-support-context-v1',
@@ -933,7 +920,7 @@ const incomingSupportExecution =
     now: () => new Date('2026-08-05T12:04:00.000Z'),
   })
 check(incomingSupportExecution.pair.result.disposition === 'completed',
-  'The canonical incoming-support assignment must reach Caption execution.')
+  'The canonical preapproval incoming-support assignment must bind the later immutable approved snapshot and reach Caption execution without mutating its request.')
 const incomingSupportCall = incomingSupportExecution.pair.call
 check(incomingSupportCall.inputArtifactRefs.some((artifact) =>
     artifact.artifactType === 'source_skill_support_request'

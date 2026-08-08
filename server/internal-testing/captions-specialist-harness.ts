@@ -22,12 +22,12 @@ import { CAPTIONS_SPECIALIST_MANIFEST } from '../captions-specialist/captions-sp
 import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from '../captions-specialist/captions-specialist-qualification'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
-  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4,
 } from
   '../captions-specialist/captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
-  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4,
 } from
   '../captions-specialist/captions-specialist-integration-qualification'
 import {
@@ -173,12 +173,12 @@ export function createCaptionsHarnessCall(input: {
     === 'cross_system_integration'
   const integrationProfile = input.runtimeProfile === 'post_cap20_integration'
   const manifest = crossSystemProfile
-    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3
+    ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4
     : integrationProfile
     ? CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST
     : CAPTIONS_SPECIALIST_MANIFEST
   const qualification = crossSystemProfile
-    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+    ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4
     : integrationProfile
     ? CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
     : CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT

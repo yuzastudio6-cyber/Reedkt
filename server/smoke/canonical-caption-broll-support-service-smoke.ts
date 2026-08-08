@@ -101,6 +101,10 @@ const sourceCallCandidate = structuredClone(baseCall)
 sourceCallCandidate.callId = 'broll.caption-constraints.source-call.1'
 sourceCallCandidate.idempotencyKey =
   'broll:caption-constraints:source-call:1'
+sourceCallCandidate.caller = {
+  callerKind: 'head_of_orchestra',
+  callerId: 'canonical-approved-edit-workflow',
+}
 sourceCallCandidate.assigneeSkillKey = 'b_roll'
 sourceCallCandidate.job = {
   jobId: 'broll.caption-constraints.source-job.1',

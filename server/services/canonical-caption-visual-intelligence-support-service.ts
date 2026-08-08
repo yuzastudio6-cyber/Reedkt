@@ -1072,7 +1072,6 @@ function supportScopeMatches(
     )
     && scope.outputId === payload.canonicalScope.outputId
     && scope.sceneId === payload.canonicalScope.sceneId
-    && scope.boundaryId === null
     && sameRangeList(
       scope.authorizedFrameRanges,
       payload.canonicalScope.authorizedFrameRanges,

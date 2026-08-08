@@ -5,6 +5,13 @@ import type {
   ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
 } from '../../src/lib/approved-edit-execution-package-client'
 import type { PlannerInput } from '../../src/types/reeditpro'
+import type {
+  OrchestraSkillCall,
+  SkillCanonicalScope,
+  SkillContractRef,
+} from '../../src/types/orchestra-skill-contracts'
+import type { SkillSupportRequestV2 } from
+  '../../src/types/orchestra-skill-support-request-v2'
 import {
   CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
   CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION,
@@ -27,6 +34,20 @@ import {
 import {
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort,
 } from '../captions-specialist/caption-source-led-professional-planning-owner'
+import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
+  '../captions-specialist/caption-authority-boundary'
+import {
+  calculateSkillContractDigest,
+  parseOrchestraSkillCall,
+} from '../orchestra/orchestra-skill-contracts'
+import {
+  calculateSkillSupportRequestV2Digest,
+  parseSkillSupportRequestV2,
+} from '../orchestra/orchestra-skill-support-request-v2'
+import {
+  createCanonicalCaptionIncomingSupportRequestAdmission,
+  createCanonicalCaptionIncomingSupportRequestRepository,
+} from '../services/canonical-caption-incoming-support-request-service'
 import {
   compileCanonicalSourceLedPlan,
 } from '../services/canonical-source-led-plan-compiler'
@@ -587,6 +608,130 @@ await assert.rejects(() =>
 )
 checks += 1
 
+const supportScene = selectedComponents.segments[0]!
+const incomingSupportScope: SkillCanonicalScope = {
+  ownerUserId: selectedRequest.canonicalScope.ownerUserId,
+  workspaceId: selectedRequest.canonicalScope.workspaceId,
+  projectId: selectedRequest.canonicalScope.projectId,
+  editSessionId: selectedRequest.canonicalScope.editSessionId,
+  approvedSnapshotRef: null,
+  outputId: selectedRequest.canonicalScope.outputId,
+  sceneId: supportScene.segmentId,
+  boundaryId: null,
+  authorizedFrameRanges: [{
+    startFrame: supportScene.startFrame,
+    endFrameExclusive: supportScene.endFrameExclusive,
+  }],
+}
+const incomingOriginCall = supportCall({
+  callId: 'living-frame-caption-owner-support-origin',
+  assigneeSkillKey: 'living_frame',
+  jobType: 'request_caption_typography_support',
+  scope: incomingSupportScope,
+})
+const incomingSupportRequest = supportRequest({
+  requestId: 'caption-owner-incoming-typography-support',
+  originalCall: incomingOriginCall,
+  scope: incomingSupportScope,
+})
+const incomingSupportAdmission =
+  createCanonicalCaptionIncomingSupportRequestAdmission({
+    request: incomingSupportRequest,
+    originalCall: incomingOriginCall,
+    admittedAt: '2026-08-08T15:10:00.000Z',
+  })
+const supportObjects = new Map<string, Buffer>()
+const incomingSupportRepository =
+  createCanonicalCaptionIncomingSupportRequestRepository({
+    objectPort: {
+      async createOnly({ objectPath, body }) {
+        const existing = supportObjects.get(objectPath)
+        if (existing) {
+          assert.deepEqual(existing, body)
+          return 'already_exists'
+        }
+        supportObjects.set(objectPath, Buffer.from(body))
+        return 'created'
+      },
+      async readExact(objectPath) {
+        const body = supportObjects.get(objectPath)
+        return body === undefined ? null : Buffer.from(body)
+      },
+    },
+  })
+await incomingSupportRepository.persistCreateOnly({
+  admission: incomingSupportAdmission,
+})
+const incomingSupportRead =
+  await readCanonicalCaptionSourceLedProfessionalPlanning({
+    port: createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+      components: selectedComponents,
+      sourceCleanupAuthority: selectedSourceAuthority,
+      confirmedCaptionMarkerSetRef: null,
+      incomingSupportRequests: [{
+        readPort: incomingSupportRepository.readPort,
+        requestRef: incomingSupportAdmission.requestRef,
+      }],
+    }),
+    request: selectedRequest,
+  })
+assert.equal(incomingSupportRead.status, 'ready')
+if (incomingSupportRead.status !== 'ready') throw new Error('unreachable')
+const incomingBinding =
+  incomingSupportRead.authority.captionSpecialistPlanningBinding
+assert.ok('assignmentIntents' in incomingBinding)
+if (!('assignmentIntents' in incomingBinding)) throw new Error('unreachable')
+const supportAssignment = incomingBinding.assignmentIntents.find(
+  (assignment) => assignment.jobType ===
+    'provide_speech_derived_typography_spec')
+assert.ok(supportAssignment)
+assert.equal(supportAssignment.trigger, 'hq_mediated_support_request')
+assert.deepEqual(
+  supportAssignment.sourceSupportRequestRef,
+  incomingSupportAdmission.requestRef,
+)
+const incomingProjection = applyCanonicalCaptionSourceLedProfessionalPlanning({
+  request: selectedRequest,
+  authority: incomingSupportRead.authority,
+  components: selectedComponents,
+  estimate: selectedPublication.canonicalPlan.estimate,
+  workItems: selectedPublication.canonicalPlan.workItems,
+})
+const supportWorkItem = incomingProjection.workItems.find((item) =>
+  item.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS
+  && item.executionInput.captionJobType ===
+    'provide_speech_derived_typography_spec')
+assert.ok(supportWorkItem)
+assert.equal(
+  (supportWorkItem.executionInput.initialArtifactRefs as Array<{
+    artifactType: string
+    contentHash: string
+  }>).some((artifact) =>
+    artifact.artifactType === 'source_skill_support_request'
+    && artifact.contentHash ===
+      incomingSupportRequest.requestDigestSha256),
+  true,
+)
+checks += 7
+
+await assert.rejects(() =>
+  readCanonicalCaptionSourceLedProfessionalPlanning({
+    port: createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+      components: selectedComponents,
+      sourceCleanupAuthority: selectedSourceAuthority,
+      confirmedCaptionMarkerSetRef: null,
+      incomingSupportRequests: [{
+        readPort: incomingSupportRepository.readPort,
+        requestRef: incomingSupportAdmission.requestRef,
+      }, {
+        readPort: incomingSupportRepository.readPort,
+        requestRef: incomingSupportAdmission.requestRef,
+      }],
+    }),
+    request: selectedRequest,
+  }), /duplicated a request/u)
+checks += 1
+
 console.log(JSON.stringify({
   smoke: 'canonical_caption_source_led_professional_planning_owner',
   status: 'passed',
@@ -595,6 +740,7 @@ console.log(JSON.stringify({
   advancedSourceLedProfilesVerified: 18,
   rawDirectiveTextInterpretedByCaptionOwner: false,
   advancedSupportJobsCreatedWithoutTypedRequest: false,
+  incomingSupportRequestPersistedAndSelected: true,
   canonicalSourceAnalysisReread: true,
   safeRegionGeometryInvented: false,
   selectedWithoutSourceEvidence: 'blocked_requested',
@@ -803,4 +949,98 @@ function requirePublication(
 
 function sha(value: string): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function supportCall(input: {
+  callId: string
+  assigneeSkillKey: string
+  jobType: string
+  scope: SkillCanonicalScope
+}): OrchestraSkillCall {
+  const withoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
+    schemaVersion: 'orchestra-skill-call-v1',
+    callId: input.callId,
+    idempotencyKey: `${input.callId}-idempotency`,
+    caller: {
+      callerKind: 'head_of_orchestra',
+      callerId: 'canonical-approved-edit-workflow',
+    },
+    assigneeSkillKey: input.assigneeSkillKey,
+    job: {
+      jobId: `${input.callId}-job`,
+      jobType: input.jobType,
+      requestedMode: 'planning',
+      scopeLevel: 'scene',
+    },
+    canonicalScope: structuredClone(input.scope),
+    manifestRef: supportRef(`${input.assigneeSkillKey}-manifest`),
+    qualificationSnapshotRef:
+      supportRef(`${input.assigneeSkillKey}-qualification`),
+    inputArtifactRefs: [],
+    injectedSupportArtifactRefs: [],
+    resumeOfSupportRequestRef: null,
+    resumeOriginCallRef: null,
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+    privateArtifactPolicy: {
+      tenantScoped: true,
+      byteFreeCoordinationOnly: true,
+      rawChatAllowed: false,
+      mediaBytesAllowed: false,
+      urlOrPathAllowed: false,
+    },
+  }
+  return parseOrchestraSkillCall({
+    ...withoutDigest,
+    callDigestSha256: calculateSkillContractDigest(
+      withoutDigest as unknown as Record<string, unknown>,
+      'callDigestSha256',
+    ),
+  })
+}
+
+function supportRequest(input: {
+  requestId: string
+  originalCall: OrchestraSkillCall
+  scope: SkillCanonicalScope
+}): SkillSupportRequestV2 {
+  const withoutDigest: Omit<SkillSupportRequestV2, 'requestDigestSha256'> = {
+    schemaVersion: 'skill-support-request-v2',
+    requestId: input.requestId,
+    originalCallRef: {
+      id: input.originalCall.callId,
+      version: input.originalCall.schemaVersion,
+      contentHash: input.originalCall.callDigestSha256,
+    },
+    requestingSkillKey: input.originalCall.assigneeSkillKey,
+    targetSkillKey: 'captions',
+    requestedJobType: 'provide_speech_derived_typography_spec',
+    reasonCode: 'speech_typography_required_for_visual_handoff',
+    requestedArtifactTypes: ['caption_speech_derived_typography_spec'],
+    canonicalScope: structuredClone(input.scope),
+    typedPayloadType: 'caption-speech-typography-support-context-v1',
+    typedPayload: {
+      schemaVersion: 'caption-speech-typography-support-context-v1',
+      semanticConceptRef: supportRef('caption-semantic-concept'),
+      requesterMayDispatchCaptionDirectly: false,
+    },
+    mediationPolicy: {
+      hqMediated: true,
+      directPeerDispatchAllowed: false,
+      assigneeMayOnlyResumeAfterInjection: true,
+    },
+    authorityBoundary: { ...CAPTIONS_CLOSED_AUTHORITY_BOUNDARY },
+  }
+  return parseSkillSupportRequestV2({
+    ...withoutDigest,
+    requestDigestSha256: calculateSkillSupportRequestV2Digest(
+      withoutDigest as unknown as Record<string, unknown>),
+  })
+}
+
+function supportRef(id: string): SkillContractRef {
+  return {
+    id,
+    version: 'contract-v1',
+    contentHash: sha(id),
+  }
 }

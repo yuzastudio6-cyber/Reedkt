@@ -52,7 +52,10 @@ const sourceOnlyScripts = [
   'smoke:canonical-caption-postrender-visual-qa-authenticated-read',
   'smoke:canonical-caption-terminal-qualification',
   'smoke:canonical-caption-direct-visual-inspection-evidence',
-  'smoke:canonical-caption-broll-approved-run-harness',
+  // The full approved-run harness now executes a 16-run/41-job campaign and
+  // is an authoritative standalone gate rather than a two-minute nested
+  // source check. Keep this aggregate bounded to the source-only plan seam.
+  'smoke:canonical-caption-broll-approved-plan-harness',
   'smoke:canonical-caption-approved-run-exact-frame-preterminal-evidence',
   'smoke:canonical-caption-real-source-inspection-projection',
   'smoke:canonical-caption-broll-owner-inspection-projection',
@@ -118,6 +121,7 @@ console.log(JSON.stringify({
   syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
   multiRunFortyOneJobCatalogImplemented: true,
   boundedMultiRunCampaignControllerImplemented: true,
+  approvedRunCampaignExecutedBySourceAggregate: false,
   brollOwnerInspectionApprovedRunLaneMounted: true,
   approvedRunExactFramePreterminalRepositoryImplemented: true,
   actualV14PreterminalPersistenceClaimedBySourceAggregate: false,

@@ -17,11 +17,13 @@ import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4,
 } from '../captions-specialist/captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4,
 } from '../captions-specialist/captions-specialist-integration-qualification'
 import {
   CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
@@ -171,9 +173,49 @@ check(JSON.stringify(
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.producedArtifactTypes)
   === JSON.stringify(declaredProducedArtifactTypes),
 'the global produced-artifact catalog is exactly the per-job declaration union')
+check(CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestId
+  === 'captions.specialist.integration.manifest.v4'
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash
+    !== CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash,
+'the coordination lifecycle correction uses an additive V4 manifest identity')
+check(CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4
+  .manifestRef.contentHash
+  === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash
+  && CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4.jobEntries.length
+    === CAPTIONS_SUPPORTED_JOB_TYPES.length,
+'the V4 qualification binds every job to only the V4 manifest')
+const aggregateCoordinationEntryV4 =
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.capabilityEntries.find(
+    (entry) => entry.supportedJobType === 'plan_caption_to_visual_handoff')!
+const captionToVisualSpecEntryV4 =
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.capabilityEntries.find(
+    (entry) => entry.supportedJobType
+      === 'provide_caption_to_visual_handoff_spec')!
+const livingFrameConstraintEntryV4 =
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.capabilityEntries.find(
+    (entry) => entry.supportedJobType
+      === 'provide_caption_living_frame_handoff_constraints')!
+check(!aggregateCoordinationEntryV4.requiredEvidence.includes(
+  'caption_living_frame_handoff_binding')
+  && !captionToVisualSpecEntryV4.requiredEvidence.includes(
+    'caption_living_frame_handoff_binding')
+  && livingFrameConstraintEntryV4.requiredEvidence.includes(
+    'caption_living_frame_handoff_binding'),
+'coordination planning precedes receiver results while the dedicated Living Frame constraint job consumes them')
+check([
+  CAPTION_CROSS_SYSTEM_OUTBOUND_PAYLOAD_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_HANDOFF_ARTIFACT_TYPE,
+  CAPTION_CROSS_SYSTEM_COORDINATION_PLAN_ARTIFACT_TYPE,
+].every((artifactType) =>
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.producedArtifactTypes.includes(
+    artifactType))
+  && CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.capabilityEntries.every(
+    (entry) => entry.requiredEvidence.every((artifactType) =>
+      entry.acceptedArtifactTypes.includes(artifactType))),
+'V4 preserves every cross-system output and declares all required evidence as accepted')
 
 const missingIncomingRequestCall = createCaptionsHarnessCall({
-  callId: 'captions.integration.v3-missing-incoming-request',
+  callId: 'captions.integration.v4-missing-incoming-request',
   jobType: 'provide_speech_derived_typography_spec',
   scopeLevel: 'scene',
   runtimeProfile: 'cross_system_integration',
@@ -184,7 +226,7 @@ const missingIncomingRequestResult = runCaptionsSpecialistJob({
 check(missingIncomingRequestResult.disposition === 'blocked'
   && missingIncomingRequestResult.reasonCodes.join('|')
     === 'input.incoming_support_request.missing',
-'the V3 runtime fails closed when support work lacks its exact source request')
+'the V4 runtime fails closed when support work lacks its exact source request')
 
 const conditionalByJob = new Map(
   CAPTION_CAP20_SHARED_OWNER_INTEGRATION_HANDOFF.conditionalJobBindings.map(
@@ -332,12 +374,12 @@ const safeRegionRun = runCaptionsInternalHarnessToCompletion({
   call: safeRegionCall,
 })
 check(safeRegionRun.initialResult.supportRequests.map((request) =>
-  request.targetSkillKey).join('|') === 'track_all|visual_intelligence',
-'safe-region planning requests both exact Track All and Visual Intelligence evidence')
+  request.targetSkillKey).join('|') === 'visual_intelligence|track_all',
+'safe-region planning requests Visual Intelligence before the dependent exact Track All evidence')
 check(safeRegionRun.resumeSteps.length === 1
   && safeRegionRun.finalResult.disposition === 'blocked'
   && safeRegionRun.finalResult.reasonCodes.join('|')
-    === 'input.track_all.payload.missing',
+    === 'input.visual_intelligence.payload.missing',
 'safe-region integration stops at the first owner lacking exact typed evidence')
 
 const missingTranscriptCall = createCaptionsHarnessCall({
@@ -428,9 +470,9 @@ console.log(JSON.stringify({
     CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT
       .snapshotDigestSha256,
   crossSystemManifestHash:
-    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestHash,
+    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash,
   crossSystemQualificationDigest:
-    CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3
+    CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4
       .snapshotDigestSha256,
   conditionalJobs: conditionalByJob.size,
   soundResumeSteps: soundRun.resumeSteps.length,

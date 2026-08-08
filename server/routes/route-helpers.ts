@@ -117,6 +117,18 @@ export function getServiceContext(request: Request): ServiceContext {
     canonicalCaptionTranscriptPlanningExpectationOwnerReadPort:
       runtimeRequest.runtime
         .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+    canonicalCaptionIncomingSupportRequestReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionIncomingSupportRequestReadPort,
+    canonicalCaptionBrollOwnerRequestReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionBrollOwnerRequestReadPort,
+    canonicalCaptionCrossSystemExecutionInputReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionCrossSystemExecutionInputReadPort,
+    canonicalCaptionSoundSupportInputReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionSoundSupportInputReadPort,
   }
 }
 

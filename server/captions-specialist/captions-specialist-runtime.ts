@@ -20,6 +20,7 @@ import {
   type OrchestraSkillCall,
   type OrchestraSkillJobResult,
   type SkillArtifactRef,
+  type SkillCanonicalScope,
   type SkillContractRef,
   type SkillQualificationSnapshot,
   type SkillSupportRequest,
@@ -94,12 +95,14 @@ import {
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4,
 } from
   './captions-specialist-integration-manifest'
 import {
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V2,
   CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4,
 } from
   './captions-specialist-integration-qualification'
 import {
@@ -169,6 +172,21 @@ interface CaptionRuntimeProfile {
 const LIVING_FRAME_CAPTION_RESPONSE_ARTIFACT_TYPE =
   'living_frame_caption_direction_response' as const
 
+const SUPPORT_TARGET_RESOLUTION_ORDER: readonly SkillSupportTarget[] = [
+  // Track All request construction consumes the exact authenticated Visual
+  // Intelligence occupancy packet. Preserve that dependency even when an
+  // older frozen capability manifest lists the resulting artifacts in a
+  // different presentation order.
+  'visual_intelligence',
+  'track_all',
+  'canonical_timing_owner',
+  'canonical_layout_owner',
+  'soundsync',
+  'broll_owner',
+  'living_frame',
+  'transitions',
+]
+
 export const CAPTIONS_CROSS_SYSTEM_RECEIVERS_BY_JOB: Readonly<Record<
   CaptionsCrossSystemOutputJobType,
   readonly CaptionCrossSystemReceiverV2[]
@@ -198,6 +216,18 @@ function exactRef(
   return actual.id === expected.id
     && actual.version === expected.version
     && actual.contentHash === expected.contentHash
+}
+
+function incomingSupportScopeMatchesApprovedCall(
+  requestScope: SkillCanonicalScope,
+  callScope: SkillCanonicalScope,
+): boolean {
+  const { approvedSnapshotRef: requestSnapshot, ...requestRest } = requestScope
+  const { approvedSnapshotRef: callSnapshot, ...callRest } = callScope
+  return JSON.stringify(requestRest) === JSON.stringify(callRest)
+    && (requestSnapshot === null
+      ? callSnapshot !== null
+      : callSnapshot !== null && exactRef(requestSnapshot, callSnapshot))
 }
 
 function callRef(call: OrchestraSkillCall): SkillContractRef {
@@ -516,6 +546,17 @@ function exactScopeForDomainPayload(
     && exactDomainScopeFields(call, scope)
 }
 
+function exactVisualScopeForDomainPayload(
+  call: OrchestraSkillCall,
+  scope: CaptionDomainCanonicalScope,
+): boolean {
+  return exactDomainScopeFields(call, scope)
+    && ((call.job.scopeLevel === 'scene'
+      && call.canonicalScope.boundaryId === null)
+      || (call.job.scopeLevel === 'boundary'
+        && call.canonicalScope.boundaryId !== null))
+}
+
 function exactSoundScopeForPayload(
   call: OrchestraSkillCall,
   scope: CaptionDomainCanonicalScope,
@@ -616,6 +657,9 @@ function expectedTrackAllPurpose(
   jobType: string,
 ): CaptionTrackAllPurposeV2 | null {
   if (jobType === 'resolve_subject_occluded_typography') {
+    return 'subject_occlusion'
+  }
+  if (jobType === 'provide_caption_safe_region_constraints') {
     return 'subject_occlusion'
   }
   if (jobType === 'resolve_front_of_subject_typography') {
@@ -894,13 +938,21 @@ export function runCaptionsSpecialistJob(input: {
   crossSystemOutboundHandoffContext?: CaptionCrossSystemHandoffV2Context
 }): OrchestraSkillJobResult {
   const call = parseOrchestraSkillCall(input.call)
+  const integrationV4Profile = call.manifestRef.id
+    === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestId
   const integrationV3Profile = call.manifestRef.id
     === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3.manifestId
   const integrationV2Profile = call.manifestRef.id
     === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2.manifestId
   const integrationV1Profile = call.manifestRef.id
     === CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST.manifestId
-  const profile: CaptionRuntimeProfile = integrationV3Profile
+  const profile: CaptionRuntimeProfile = integrationV4Profile
+    ? {
+        manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4,
+        qualification:
+          CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4,
+      }
+    : integrationV3Profile
     ? {
         manifest: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
         qualification:
@@ -1023,8 +1075,8 @@ export function runCaptionsSpecialistJob(input: {
       || incomingSupportRequest.requestedArtifactTypes.length !== 1
       || incomingSupportRequest.requestedArtifactTypes[0]
         !== expectedArtifactType
-      || JSON.stringify(incomingSupportRequest.canonicalScope)
-        !== JSON.stringify(call.canonicalScope)
+      || !incomingSupportScopeMatchesApprovedCall(
+        incomingSupportRequest.canonicalScope, call.canonicalScope)
       || exactRef(incomingSupportRequest.originalCallRef, callRef(call))) {
       return makeResult(profile,
         call, 'blocked', ['input.incoming_support_request.binding.mismatch'],
@@ -1121,7 +1173,8 @@ export function runCaptionsSpecialistJob(input: {
       )
     }
     if (visualPayload.purpose !== 'final_frame_occupancy'
-      || !exactScopeForDomainPayload(call, visualPayload.canonicalScope)) {
+      || !exactVisualScopeForDomainPayload(
+        call, visualPayload.canonicalScope)) {
       return makeResult(profile,
         call, 'blocked', ['input.visual_intelligence.payload.scope.mismatch'],
         'The Caption Visual Intelligence payload does not match the assigned scene.',
@@ -1348,7 +1401,7 @@ export function runCaptionsSpecialistJob(input: {
       )
     } else if (canonicalVisualRecord !== null) {
       const packet = canonicalVisualRecord.captionEvidencePacket
-      if (!exactScopeForDomainPayload(call, packet.canonicalScope)
+      if (!exactVisualScopeForDomainPayload(call, packet.canonicalScope)
         || packet.evidenceMode !== 'authenticated_private_runtime'
         || packet.authenticatedReadResultRef === null
         || !promotedVisualPacketArtifactMatches(call, packet)) {
@@ -1651,12 +1704,17 @@ export function runCaptionsSpecialistJob(input: {
       }
       grouped.set(target, [...(grouped.get(target) ?? []), artifactType])
     }
-    const requests = [...grouped.entries()].map(([target, items]) => {
+    const requests = [...grouped.entries()]
+      .sort(([left], [right]) =>
+        SUPPORT_TARGET_RESOLUTION_ORDER.indexOf(left)
+        - SUPPORT_TARGET_RESOLUTION_ORDER.indexOf(right))
+      .map(([target, items]) => {
       if (target === 'visual_intelligence' && visualPayload !== null) {
         return createCaptionVisualIntelligenceSupportRequest({
           requestId: `${call.callId}.support.visual_intelligence`,
           originalCallRef: callRef(call),
           payload: visualPayload,
+          canonicalSkillScope: call.canonicalScope,
         })
       }
       if (target === 'track_all' && trackAllPayload !== null) {
@@ -1685,8 +1743,8 @@ export function runCaptionsSpecialistJob(input: {
       if (target === 'living_frame' && livingFrameRequest !== null) {
         return makeLivingFrameSupportRequest(call, livingFrameRequest)
       }
-      return makeSupportRequest(call, target, items)
-    })
+        return makeSupportRequest(call, target, items)
+      })
     return makeResult(profile,
       call,
       'needs_followup',
@@ -1706,7 +1764,9 @@ export function runCaptionsSpecialistJob(input: {
     CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES as readonly string[])
     .includes(call.job.jobType)
   const crossSystemArtifactRefs: SkillArtifactRef[] = []
-  if (!integrationV3Profile || !crossSystemJob) {
+  const currentCrossSystemProfile = integrationV3Profile
+    || integrationV4Profile
+  if (!currentCrossSystemProfile || !crossSystemJob) {
     if (hasCoordinationPlanInput || hasSingleHandoffInput) {
       return makeResult(profile, call, 'blocked', [
         'input.cross_system_coordination.unexpected',

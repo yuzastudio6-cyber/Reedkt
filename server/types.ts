@@ -94,6 +94,11 @@ import type {
   CanonicalCaptionCrossSystemExecutionInputReadPort,
 } from '../src/types/canonical-caption-cross-system-execution-input'
 import type {
+  CanonicalCaptionIncomingSupportRequestReadPort,
+} from '../src/types/canonical-caption-specialist-execution'
+import type { CanonicalCaptionBrollOwnerRequestReadPort } from
+  '../src/types/canonical-caption-broll-owner-request-input'
+import type {
   CanonicalCaptionSoundSupportInputReadPort,
 } from '../src/types/canonical-caption-soundsync-support'
 import type {
@@ -213,6 +218,10 @@ export interface RuntimeState {
     CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
   canonicalCaptionCrossSystemExecutionInputReadPort?:
     CanonicalCaptionCrossSystemExecutionInputReadPort
+  canonicalCaptionIncomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
+  canonicalCaptionBrollOwnerRequestReadPort?:
+    CanonicalCaptionBrollOwnerRequestReadPort
   canonicalCaptionSoundSupportInputReadPort?:
     CanonicalCaptionSoundSupportInputReadPort
   canonicalCaptionSoundSyncEvidenceRepository?:
@@ -305,6 +314,10 @@ export interface ServiceContext {
     CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
   canonicalCaptionCrossSystemExecutionInputReadPort?:
     CanonicalCaptionCrossSystemExecutionInputReadPort
+  canonicalCaptionIncomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
+  canonicalCaptionBrollOwnerRequestReadPort?:
+    CanonicalCaptionBrollOwnerRequestReadPort
   canonicalCaptionSoundSupportInputReadPort?:
     CanonicalCaptionSoundSupportInputReadPort
   canonicalCaptionSoundSyncEvidenceRepository?:

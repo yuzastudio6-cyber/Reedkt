@@ -372,6 +372,7 @@
     "smoke:canonical-caption-visual-intelligence-support": "tsx server/smoke/canonical-caption-visual-intelligence-support-service-smoke.ts",
     "smoke:canonical-caption-track-all-support": "tsx server/smoke/canonical-caption-track-all-support-service-smoke.ts",
     "smoke:canonical-caption-specialist-execution": "tsx server/smoke/canonical-caption-specialist-execution-service-smoke.ts",
+    "smoke:canonical-caption-incoming-support-request": "tsx server/smoke/canonical-caption-incoming-support-request-service-smoke.ts",
     "smoke:canonical-caption-transcript-support": "tsx server/smoke/canonical-caption-transcript-support-service-smoke.ts",
     "smoke:canonical-caption-broll-support": "tsx server/smoke/canonical-caption-broll-support-service-smoke.ts",
     "smoke:canonical-caption-soundsync-support": "tsx server/smoke/canonical-caption-soundsync-support-service-smoke.ts",

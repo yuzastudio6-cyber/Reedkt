@@ -22,6 +22,9 @@ import type {
   CanonicalCaptionSourceLedProfessionalPlanningReadPort,
   CanonicalCaptionSourceLedProfessionalPlanningRequest,
 } from '../../src/types/canonical-caption-source-led-professional-planning'
+import type {
+  CanonicalCaptionIncomingSupportRequestReadPort,
+} from '../../src/types/canonical-caption-specialist-execution'
 import {
   CANONICAL_CAPTION_SOURCE_LED_PROFESSIONAL_PLANNING_READ_PORT_VERSION,
 } from '../../src/types/canonical-caption-source-led-professional-planning'
@@ -34,8 +37,15 @@ import {
 } from '../../src/types/canonical-caption-specialist-planning'
 import {
   CAPTIONS_VIDEO_JOB_TYPES,
+  CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
+  CAPTIONS_SUPPORT_JOB_TYPES,
+  type CaptionsSupportJobType,
   type CaptionsSupportedJobType,
 } from '../../src/types/captions-specialist'
+import type { OrchestraSkillCall, SkillContractRef } from
+  '../../src/types/orchestra-skill-contracts'
+import type { SkillSupportRequestV2 } from
+  '../../src/types/orchestra-skill-support-request-v2'
 import {
   parseProfessionalSkillCompositionTrace,
 } from '../../src/lib/professional-skills/professional-skill-composition-trace'
@@ -51,7 +61,7 @@ import {
 import {
   verifyCanonicalSourceLedContentAnalysisEvidence,
 } from '../services/canonical-source-led-content-analysis-evidence'
-import { sha256AuthorityValue } from
+import { sha256AuthorityValue, stableAuthorityStringify } from
   '../services/private-edit-authority-store'
 import {
   canonicalCaptionAssignmentTriggerForJob,
@@ -67,6 +77,13 @@ import {
   canonicalCaptionPostapprovalJobSelectionRecordRef,
   rereadCanonicalCaptionPostapprovalJobSelection,
 } from './caption-postapproval-job-selection'
+import {
+  isCanonicalCaptionIncomingSupportRequestReadPort,
+} from '../services/canonical-caption-incoming-support-request-service'
+import { parseSkillSupportRequestV2 } from
+  '../orchestra/orchestra-skill-support-request-v2'
+import { parseOrchestraSkillCall } from
+  '../orchestra/orchestra-skill-contracts'
 import { createCaptionEarlyPlanningBundle } from './caption-early-planning'
 import {
   createCanonicalCaptionSourceLedProfessionalPlanningAuthority,
@@ -148,6 +165,24 @@ interface PlanningSourceScene {
   reasonCodes: string[]
 }
 
+export interface CanonicalCaptionIncomingSupportPlanningAdmission {
+  readonly readPort: CanonicalCaptionIncomingSupportRequestReadPort
+  readonly requestRef: SkillContractRef
+}
+
+interface AdmittedIncomingSupportPlanningRequest {
+  readonly request: SkillSupportRequestV2
+  readonly originalCall: OrchestraSkillCall
+  readonly requestRef: SkillContractRef
+  readonly scopeLevel: 'video' | 'scene' | 'boundary'
+  readonly sceneId: string | null
+  readonly boundaryId: string | null
+  readonly frameRange: {
+    readonly startFrame: number
+    readonly endFrameExclusive: number
+  }
+}
+
 /**
  * Canonical preapproval owner for the normal source-led route. It consumes
  * only the already-reread source-analysis authority and existing Caption
@@ -166,6 +201,8 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
       readonly recordRef: CaptionDomainRef
       readonly targetSceneId: string
     }
+    readonly incomingSupportRequests?: readonly
+      CanonicalCaptionIncomingSupportPlanningAdmission[]
   },
 ): CanonicalCaptionSourceLedProfessionalPlanningReadPort {
   const expectedComponentsDigest = sha256AuthorityValue(input.components)
@@ -181,6 +218,12 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
   if (input.postapprovalJobSelection && disposition !== 'selected') {
     throw new Error(
       'Canonical postapproval Caption selection requires an exact selected Caption composition trace.',
+    )
+  }
+  if ((input.incomingSupportRequests?.length ?? 0) > 8
+    || (input.incomingSupportRequests && disposition !== 'selected')) {
+    throw new Error(
+      'Canonical incoming Caption support planning exceeds its bounded selected scope.',
     )
   }
 
@@ -253,6 +296,11 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
             selection: input.postapprovalJobSelection,
           })
         : null
+      const incomingSupportRequests = await readIncomingSupportRequests({
+        request,
+        policy,
+        admissions: input.incomingSupportRequests ?? [],
+      })
       if (input.postapprovalJobSelection && !postapprovalJobSelection) {
         return {
           schemaVersion:
@@ -319,6 +367,7 @@ export function createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort(
               bundle,
               policy,
               postapprovalJobSelection,
+              incomingSupportRequests,
             }),
             assignmentsSelectedByCanonicalPlanOwner: true,
             oneAllFeatureEditFabricated: false,
@@ -669,6 +718,8 @@ function createAssignmentIntents(input: {
   policy: CaptionSourceLedPlanningPolicy
   postapprovalJobSelection:
     CanonicalCaptionPostapprovalJobSelectionRecord | null
+  incomingSupportRequests:
+    readonly AdmittedIncomingSupportPlanningRequest[]
 }): CanonicalCaptionSpecialistJobAssignmentIntent[] {
   const selectionEvidenceRef = bundleRef(input.bundle)
   const assignments: Array<{
@@ -828,7 +879,148 @@ function createAssignmentIntents(input: {
         captionMayExpandScope: false as const,
         browserMayMarkComplete: false as const,
       }))
-  return [...sourceLedAssignments, ...postapprovalAssignments]
+  const incomingSupportAssignments = input.incomingSupportRequests.map(
+    (admission) => ({
+      assignmentId: derivedId('caption-incoming-support-assignment', {
+        requestRef: admission.requestRef,
+        outputId: input.request.canonicalScope.outputId,
+      }),
+      jobType: admission.request.requestedJobType as CaptionsSupportJobType,
+      scopeLevel: admission.scopeLevel,
+      outputId: input.request.canonicalScope.outputId,
+      sceneId: admission.sceneId,
+      boundaryId: admission.boundaryId,
+      authorizedFrameRange: structuredClone(admission.frameRange),
+      trigger: 'hq_mediated_support_request' as const,
+      selectionEvidenceRef: structuredClone(admission.requestRef),
+      sourceSupportRequestRef: structuredClone(admission.requestRef),
+      reasonCodes: [
+        'selected_from_exact_hq_mediated_support_request',
+        admission.request.reasonCode,
+      ],
+      callerMayCreateWork: false as const,
+      captionMayDispatchPeerDirectly: false as const,
+      captionMayExpandScope: false as const,
+      browserMayMarkComplete: false as const,
+    }),
+  )
+  return [
+    ...sourceLedAssignments,
+    ...postapprovalAssignments,
+    ...incomingSupportAssignments,
+  ]
+}
+
+async function readIncomingSupportRequests(input: {
+  request: CanonicalCaptionSourceLedProfessionalPlanningRequest
+  policy: CaptionSourceLedPlanningPolicy
+  admissions: readonly CanonicalCaptionIncomingSupportPlanningAdmission[]
+}): Promise<readonly AdmittedIncomingSupportPlanningRequest[]> {
+  const requestRefKeys = new Set<string>()
+  const admitted: AdmittedIncomingSupportPlanningRequest[] = []
+  for (const admission of input.admissions) {
+    if (!isCanonicalCaptionIncomingSupportRequestReadPort(admission.readPort)
+      || admission.readPort.schemaVersion !==
+        'canonical-caption-incoming-support-request-read-port-v1'
+      || admission.readPort.sourceAuthority !==
+        'canonical_backend_persisted_specialist_support_request'
+      || admission.readPort.callerSuppliedRequestAccepted) {
+      throw new Error(
+        'Canonical incoming Caption support planning requires its admitted reader.',
+      )
+    }
+    const ref = structuredClone(admission.requestRef)
+    const refKey = `${ref.id}|${ref.version}|${ref.contentHash}`
+    if (requestRefKeys.has(refKey)) {
+      throw new Error(
+        'Canonical incoming Caption support planning duplicated a request.',
+      )
+    }
+    requestRefKeys.add(refKey)
+    const first = await admission.readPort.readExact({ requestRef: ref })
+    const second = await admission.readPort.readExact({ requestRef: ref })
+    if (!first || !second
+      || stableAuthorityStringify(first)
+        !== stableAuthorityStringify(second)) {
+      throw new Error(
+        'Canonical incoming Caption support request changed between rereads.',
+      )
+    }
+    const request = parseSkillSupportRequestV2(first.request)
+    const originalCall = parseOrchestraSkillCall(first.originalCall)
+    const repeatedRequest = parseSkillSupportRequestV2(second.request)
+    const repeatedCall = parseOrchestraSkillCall(second.originalCall)
+    if (stableAuthorityStringify(request)
+        !== stableAuthorityStringify(repeatedRequest)
+      || stableAuthorityStringify(originalCall)
+        !== stableAuthorityStringify(repeatedCall)
+      || request.requestId !== ref.id
+      || request.schemaVersion !== ref.version
+      || request.requestDigestSha256 !== ref.contentHash
+      || request.originalCallRef.id !== originalCall.callId
+      || request.originalCallRef.version !== originalCall.schemaVersion
+      || request.originalCallRef.contentHash !==
+        originalCall.callDigestSha256
+      || originalCall.caller.callerKind !== 'head_of_orchestra'
+      || originalCall.assigneeSkillKey !== request.requestingSkillKey
+      || stableAuthorityStringify(originalCall.canonicalScope)
+        !== stableAuthorityStringify(request.canonicalScope)
+      || request.canonicalScope.approvedSnapshotRef !== null
+      || request.canonicalScope.ownerUserId !==
+        input.request.canonicalScope.ownerUserId
+      || request.canonicalScope.workspaceId !==
+        input.request.canonicalScope.workspaceId
+      || request.canonicalScope.projectId !==
+        input.request.canonicalScope.projectId
+      || request.canonicalScope.editSessionId !==
+        input.request.canonicalScope.editSessionId
+      || request.canonicalScope.outputId !==
+        input.request.canonicalScope.outputId
+      || request.canonicalScope.authorizedFrameRanges.length !== 1
+      || request.targetSkillKey !== 'captions'
+      || request.requestingSkillKey === 'captions'
+      || !(CAPTIONS_SUPPORT_JOB_TYPES as readonly string[])
+        .includes(request.requestedJobType)) {
+      throw new Error(
+        'Canonical incoming Caption support request crossed its planning scope.',
+      )
+    }
+    const jobType = request.requestedJobType as CaptionsSupportJobType
+    if (request.requestedArtifactTypes.length !== 1
+      || request.requestedArtifactTypes[0] !==
+        CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES[jobType]) {
+      throw new Error(
+        'Canonical incoming Caption support request selected the wrong artifact.',
+      )
+    }
+    const frameRange = request.canonicalScope.authorizedFrameRanges[0]!
+    const sceneId = request.canonicalScope.sceneId
+    const boundaryId = request.canonicalScope.boundaryId
+    const scene = sceneId === null ? null : input.policy.scenes.find(
+      (candidate) => candidate.sceneId === sceneId)
+    if (frameRange.startFrame < 0
+      || frameRange.endFrameExclusive > input.request.totalFrames
+      || frameRange.endFrameExclusive <= frameRange.startFrame
+      || (sceneId !== null && (!scene || scene.speechRole === 'none'
+        || frameRange.startFrame !== scene.startFrame
+        || frameRange.endFrameExclusive !== scene.endFrameExclusive))) {
+      throw new Error(
+        'Canonical incoming Caption support request exceeded its source-led range.',
+      )
+    }
+    admitted.push({
+      request,
+      originalCall,
+      requestRef: ref,
+      scopeLevel: boundaryId !== null
+        ? 'boundary'
+        : sceneId !== null ? 'scene' : 'video',
+      sceneId,
+      boundaryId,
+      frameRange: structuredClone(frameRange),
+    })
+  }
+  return Object.freeze(admitted)
 }
 
 async function readPostapprovalJobSelection(input: {
@@ -1069,7 +1261,11 @@ function createCaptionSourceLedPlanningPolicy(input: {
           sceneId: scene.sceneId,
           target: features.crossSystemTarget,
         }),
-        jobTypes: ['plan_caption_to_visual_handoff', ...transitionJobs],
+        jobTypes: [
+          'plan_caption_to_visual_handoff',
+          ...transitionJobs,
+          'inspect_caption_boundary_behavior',
+        ],
         reasonCode: 'selected_caption_to_visual_boundary_requirement',
       })
     }

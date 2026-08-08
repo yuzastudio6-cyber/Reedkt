@@ -19,12 +19,15 @@ import {
   CAPTIONS_SPECIALIST_INTEGRATION_EVIDENCE_ID,
   CAPTIONS_INCOMING_SUPPORT_REQUEST_V2_EVIDENCE_ID,
   CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID,
+  CAPTIONS_CROSS_SYSTEM_PLANNING_LIFECYCLE_EVIDENCE_ID,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V2,
   CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V3,
+  CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4,
   CAPTIONS_SPECIALIST_INTEGRATION_VERSION,
   CAPTIONS_SPECIALIST_INTEGRATION_V2_VERSION,
   CAPTIONS_SPECIALIST_INTEGRATION_V3_VERSION,
+  CAPTIONS_SPECIALIST_INTEGRATION_V4_VERSION,
 } from './captions-specialist-integration-manifest'
 
 const manifestRef = {
@@ -183,6 +186,59 @@ parseSkillQualificationSnapshot({
   ...snapshotV3WithoutDigest,
   snapshotDigestSha256: calculateSkillContractDigest(
     { ...snapshotV3WithoutDigest, snapshotDigestSha256: '' },
+    'snapshotDigestSha256'),
+})
+
+const manifestV4Ref = {
+  id: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestId,
+  version:
+    CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestSchemaVersion,
+  contentHash: CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash,
+}
+
+const snapshotV4WithoutDigest: Omit<SkillQualificationSnapshot,
+  'snapshotDigestSha256'> = {
+  ...snapshotV3WithoutDigest,
+  snapshotId: 'captions.specialist.qualification.integration-v4',
+  manifestRef: manifestV4Ref,
+  observedAt: '2026-08-08T00:00:00.000Z',
+  jobEntries: CAPTIONS_SUPPORTED_JOB_TYPES.map((jobType) => {
+    const capability = CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4
+      .capabilityEntries.find((entry) => entry.supportedJobType === jobType)!
+    const planningLifecycle = capability.qualificationEvidenceRefs.includes(
+      CAPTIONS_CROSS_SYSTEM_PLANNING_LIFECYCLE_EVIDENCE_ID)
+    return {
+      jobType,
+      status: 'qualified' as const,
+      qualifiedModes: ['planning'] as const,
+      blockerCodes: [],
+      routeRefs: [{
+        id: 'captions.planning.no-output',
+        version: 'captions-planning-route-v4',
+        contentHash: hashText(
+          `captions.planning.no-output:integration-v4:${jobType}`),
+      }],
+      evidenceRefs: [{
+        id: planningLifecycle
+          ? CAPTIONS_CROSS_SYSTEM_PLANNING_LIFECYCLE_EVIDENCE_ID
+          : CAPTIONS_CROSS_SYSTEM_MANIFEST_EVIDENCE_ID,
+        version: CAPTIONS_SPECIALIST_INTEGRATION_V4_VERSION,
+        contentHash: sourceAuditRef.contentHash,
+      }],
+      requiredEvidenceTypes: [...capability.requiredEvidence],
+      contractDigestSha256: hashText(
+        `${CAPTIONS_SPECIALIST_CONTRACT_VERSION}:${jobType}:integration-v4-planning`),
+      manifestDigestSha256:
+        CAPTIONS_SPECIALIST_INTEGRATION_MANIFEST_V4.manifestHash,
+    }
+  }),
+}
+
+export const CAPTIONS_SPECIALIST_INTEGRATION_QUALIFICATION_SNAPSHOT_V4 =
+parseSkillQualificationSnapshot({
+  ...snapshotV4WithoutDigest,
+  snapshotDigestSha256: calculateSkillContractDigest(
+    { ...snapshotV4WithoutDigest, snapshotDigestSha256: '' },
     'snapshotDigestSha256'),
 })
 

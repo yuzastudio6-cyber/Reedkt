@@ -39,6 +39,7 @@ import {
 } from '../captions-specialist/caption-source-led-professional-planning'
 import {
   createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort,
+  type CanonicalCaptionIncomingSupportPlanningAdmission,
 } from '../captions-specialist/caption-source-led-professional-planning-owner'
 import {
   canonicalCaptionPostapprovalJobSelectionRecordRef,
@@ -106,6 +107,25 @@ export interface CanonicalCaptionBrollApprovedRunHarnessInput {
    * never bypasses the normal Caption owner, estimate, snapshot, or package.
    */
   readonly captionScenario?: CanonicalCaptionApprovedRunScenario
+  readonly incomingCaptionSupportRequests?: readonly
+    CanonicalCaptionIncomingSupportPlanningAdmission[]
+  /**
+   * Private-internal seam for admitting source-derived, preapproval neutral
+   * support requests after the canonical draft has established the exact
+   * Caption scene scope. It cannot approve, schedule, or execute the requests.
+   */
+  readonly admitIncomingCaptionSupportRequests?: (input: {
+    readonly ownerUserId: string
+    readonly workspaceId: string
+    readonly projectId: string
+    readonly editSessionId: string
+    readonly outputId: string
+    readonly sceneId: string
+    readonly frameRange: {
+      readonly startFrame: number
+      readonly endFrameExclusive: number
+    }
+  }) => Promise<readonly CanonicalCaptionIncomingSupportPlanningAdmission[]>
 }
 
 export interface CanonicalCaptionApprovedRunScenario {
@@ -286,6 +306,26 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
       components: componentsWithBroll,
       confirmedCaptionMarkerSetRef: null,
     })
+  if (input.incomingCaptionSupportRequests !== undefined
+    && input.admitIncomingCaptionSupportRequests !== undefined) {
+    throw new Error(
+      'Caption approved-run harness cannot accept two support-request owners.',
+    )
+  }
+  const incomingCaptionSupportRequests =
+    input.incomingCaptionSupportRequests
+    ?? await input.admitIncomingCaptionSupportRequests?.({
+      ownerUserId: input.ownerUserId,
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      editSessionId: input.editSessionId,
+      outputId: input.outputId,
+      sceneId: firstSegment.segmentId,
+      frameRange: {
+        startFrame: firstSegment.startFrame,
+        endFrameExclusive: firstSegment.endFrameExclusive,
+      },
+    })
   let postapprovalJobSelectionRecord:
     CanonicalCaptionPostapprovalJobSelectionRecord | null = null
   let postapprovalJobSelectionMount: Parameters<
@@ -419,6 +459,9 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
         sourceCleanupAuthority:
           structuredClone(input.sourceCleanupAuthority),
         confirmedCaptionMarkerSetRef: null,
+        ...(incomingCaptionSupportRequests === undefined ? {} : {
+          incomingSupportRequests: incomingCaptionSupportRequests,
+        }),
         ...(postapprovalJobSelectionMount === undefined ? {} : {
           postapprovalJobSelection: postapprovalJobSelectionMount,
         }),

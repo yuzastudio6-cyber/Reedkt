@@ -20,6 +20,9 @@ import {
   createCanonicalCaptionVisualIntelligenceSupportService,
   parseCaptionVisualIntelligenceSupportPayload,
 } from '../services/canonical-caption-visual-intelligence-support-service'
+import {
+  resolveCanonicalCaptionIncomingSupportRequestForCall,
+} from '../services/canonical-caption-incoming-support-request-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from
   '../services/canonical-private-local-json-object-port'
 import {
@@ -257,7 +260,19 @@ async function injectEarlyVisualReportRef(input: {
       repository: input.repository,
       specialistExecutionPort: {
         async execute({ call, resumeSupportRequest }) {
-          return runCaptionsSpecialistJob({ call, resumeSupportRequest })
+          const incomingSupportRequest =
+            await resolveCanonicalCaptionIncomingSupportRequestForCall({
+              call,
+              readPort: input.input.context
+                .canonicalCaptionIncomingSupportRequestReadPort,
+            })
+          return runCaptionsSpecialistJob({
+            call,
+            resumeSupportRequest,
+            ...(incomingSupportRequest === null ? {} : {
+              incomingSupportRequest,
+            }),
+          })
         },
       },
       now: input.input.now,

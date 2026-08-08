@@ -27,7 +27,7 @@ the evidence currently belongs to several independently scoped tests.
 | Canonical transcript | A real private Faster-Whisper run occurred, but direct inspection rejected the transcript. The reviewed-correction owner V2 is mounted in source and can create-only resolve immutable approved-work expectations to reviewed corrected transcripts while refusing remaps to the rejected record. A private review-preparation package covers all 11 source segments and 153 source words with two additional unapproved offline ASR observations; it preserves nine text disagreements, two timing disagreements, two brand-review spans, and one claim-sensitive number span. The source-complete reviewer-completion seam validates exact decisions and projects them into the existing review/correction/request contracts, but every real listener decision remains pending, so no actual independent review, correction artifact, corrected transcript, or expectation binding has been admitted. |
 | SoundSync | The actual private Sound/media path executed. Its inspection package explicitly reports `directListeningReviewCompleted: false`, so it is incomplete. The Sound owner now has a create-only listening-review completion record and repository: it binds an independently authored reviewer submission to the exact Caption request, canonical Sound request/result, final-mix artifact, complete requested ranges, cue IDs, and optional playback-proxy derivation before the existing owner can expose authenticated Caption evidence. The prior hash-only smoke shortcut was removed. This environment could generate and technically verify a full-duration 48 kHz stereo inspection proxy, but it could not receive audio input, so no reviewer submission or accepted listening record was created. |
 | B-roll | The canonical B-roll owner, libass overlay, Remotion composite, owner result, authenticated Caption evidence, and sequential resume all ran against hash-pinned real talking-head media. Direct complete-time inspection accepted real-source B-roll/Caption co-composition, safe placement, Caption-above-visual ordering, and no clipping/collision. The later V14 run now has a create-only exact-frame preterminal projection that binds 17 Caption jobs, 13 B-roll work items, one resume, both 4K review renders, and all 254 represented frames. It remains outside terminal eligibility because its source picture is a disclosed 640x360 proxy and postrender/final-QA evidence is absent. |
-| Backend Caption execution | Seven actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair, output-specific 16:9 and 1:1 full/reduced pairs, and a source-master-bound `2160x3840@30` stable-caption delivery render. A set of representative approved runs has not yet completed and reread all 41 Caption job types through their own canonical work graphs/packages. One fabricated all-feature work graph is neither expected nor accepted. |
+| Backend Caption execution | Seven actual real-source Caption renders now exist and were inspected: the original 9:16 full/reduced pair, output-specific 16:9 and 1:1 full/reduced pairs, and a source-master-bound `2160x3840@30` stable-caption delivery render. Separately, the unfiltered approved-run campaign completed 16 distinct approved snapshots/packages and covered all 41 Caption job types through their own canonical work graphs. Its create-only campaign record replayed byte-identically and reread exactly. It is preterminal structural execution evidence; its structural owner fixtures and source-contract outputs do not replace final-quality media or actual authenticated owner records in the terminal scope. One fabricated all-feature work graph is neither expected nor accepted. |
 | Complete-time visual review | Every rendered frame of the real talking-head 9:16, 16:9, and 1:1 full/reduced variants was represented and inspected. The new source-master-bound stable-caption render adds all-127-frame contact-sheet review plus full-resolution cue-boundary samples. This proves Caption-owned professional appearance for the bounded fixtures; it is not the shared qualified postrender-AI lifecycle and not independent final QA. |
 
 ## Approved Caption + B-roll execution evidence
@@ -77,6 +77,15 @@ final-QA gates open.
 Visual Intelligence, Track All/SAM 3.1, and independent final QA have
 source-ready adapters but no actual record for the terminal run. The final
 per-job projection remains blocked by the first eight gates.
+
+The separate 16-run approved execution campaign is recorded in
+[`post-cap20-approved-execution-campaign-2026-08-08.md`](post-cap20-approved-execution-campaign-2026-08-08.md).
+It covers **41/41** job types with **0** missing, preserves 16 distinct approved
+snapshots and execution packages, and verifies create-only persistence,
+byte-identical replay, and exact reread. It advances the backend-execution
+inventory without changing the **0/41 terminal jobs** or **0/9 terminal gates**
+because it intentionally contains no new final media, qualified model review,
+listening review, or independent final QA.
 
 ## The images the engineering fixtures produce
 
@@ -173,14 +182,16 @@ and approved-source-manifest lineage. Its 16-check source regression is green;
 the current private receipt remains outside terminal scope until the backend
 one-writer supplies that real approved-run authority and persisted bundle.
 
-The V5 composition now mounts the missing multi-run campaign connection. It
+The V5 composition mounts the multi-run campaign connection. It
 requires the campaign's declared run set to match the catalog exactly, requires
 multiple immutable approved snapshots, reconciles each run through the V4
 controller, and calls the existing catalog/final-release owner only when every
-run is recorded. Its source regression proves both waiting states; it does not
-claim that a real catalog or private-internal record exists. The evidence truth
-therefore remains **0/41 terminal jobs** and **0/9 terminal gates** for one exact
-persisted catalog until representative real runs populate it.
+run is recorded. The standalone approved-run harness has now populated and
+reread a preterminal 16-run execution-coverage campaign for all 41 job types.
+That campaign deliberately uses structural support evidence and does not carry
+the final media/owner/visual/listening/final-QA bundle required by the private
+qualification controller. The evidence truth therefore remains **0/41 terminal
+jobs** and **0/9 terminal gates**.
 
 When that real catalog is complete, the final record also publishes the
 standard 41-entry `SkillQualificationSnapshot` for `planning` and

@@ -610,11 +610,15 @@ function parseQuotaPreference(value: unknown) {
       preferredValue: z.union([z.string(), z.number()]),
       grantedValue: z.union([z.string(), z.number()]),
     }).passthrough(),
-    reconciling: z.boolean(),
+    reconciling: z.boolean().optional(),
   }).passthrough().parse(value)
   const preferredValue = Number(parsed.quotaConfig.preferredValue)
   const grantedValue = Number(parsed.quotaConfig.grantedValue)
-  if (preferredValue !== 1 || grantedValue !== 1 || parsed.reconciling) {
+  if (
+    preferredValue !== 1
+    || grantedValue !== 1
+    || parsed.reconciling === true
+  ) {
     throw new Error('Vertex A100 quota preference is not granted.')
   }
   return { preferredValue: 1 as const, grantedValue: 1 as const,

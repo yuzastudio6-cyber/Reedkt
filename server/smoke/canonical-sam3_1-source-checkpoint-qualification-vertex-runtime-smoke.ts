@@ -66,7 +66,6 @@ const quotaReadPort = createCanonicalSam31VertexQualificationQuotaReadPort({
         quotaId: 'CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
         dimensions: { region: 'us-central1' },
         quotaConfig: { preferredValue: '1', grantedValue: '1' },
-        reconciling: false,
       } } as never
       return { data: {
         name:
@@ -87,6 +86,35 @@ assert.equal(observedQuota.grantedValue, 1)
 assert.equal(observedQuota.preferredValue, 1)
 assert.equal(observedQuota.reconciling, false)
 assert.equal(quotaApiCalls, 2)
+const reconcilingQuotaReadPort =
+  createCanonicalSam31VertexQualificationQuotaReadPort({
+    auth: {
+      async request(input) {
+        const url = String(input.url)
+        if (url.includes('/quotaPreferences/')) return { data: {
+          name:
+            'projects/reeditpro/locations/global/quotaPreferences/weeditpro-vertex-a100-80gb-us-central1-1',
+          service: 'aiplatform.googleapis.com',
+          quotaId: 'CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
+          dimensions: { region: 'us-central1' },
+          quotaConfig: { preferredValue: '1', grantedValue: '1' },
+          reconciling: true,
+        } } as never
+        return { data: {
+          name:
+            'projects/reeditpro/locations/global/services/aiplatform.googleapis.com/quotaInfos/CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
+          service: 'aiplatform.googleapis.com',
+          quotaId: 'CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
+          dimensionsInfos: [{
+            dimensions: { region: 'us-central1' },
+            details: { value: '1' },
+          }],
+        } } as never
+      },
+    },
+    now: () => '2026-08-06T16:09:00.000Z',
+  })
+await assert.rejects(reconcilingQuotaReadPort.rereadCurrent())
 let providerCalls = 0
 const launchPort = createCanonicalSam31VertexQualificationLaunchPort({
   admissionRepository: runtimeRepository.admissions,
@@ -244,7 +272,7 @@ assert.equal(providerCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-qualification-runtime',
-  checks: 34,
+  checks: 37,
   exactHistoricalPackageReread: true,
   createOnlyWorkerRequestAdmissionConsumptionAndExecution: true,
   consumptionPersistedBeforeProviderCall: true,
@@ -252,6 +280,8 @@ console.log(JSON.stringify({
   priorExecutionRereadOnReplay: true,
   immutableImageQuotaAndAccountRateRereadBeforeLaunch: true,
   exactCloudQuotaPreferenceAndRegionalLimitReread: true,
+  omittedFalseReconcilingFieldAccepted: true,
+  explicitTrueReconcilingFieldRejected: true,
   providerBillableAllocationUsedWithoutInventedWorkerPhases: true,
   storageOperationCountsNotInvented: true,
   storageOperationCostDeferredToInvoiceReconciliation: true,

@@ -79,7 +79,9 @@ assert.doesNotMatch(buildConfig, /secretEnv|availableSecrets/u)
 assert.match(buildScript, /git status --porcelain=v1/u)
 assert.match(buildScript, /--format=json/u)
 assert.match(buildScript, /"assetFetched":false/u)
-assert.match(deployScript, /weeditpro-sam31-probe-ingest-sa/u)
+assert.match(deployScript, /weeditpro-sam31-probe-sa/u)
+assert.doesNotMatch(deployScript,
+  /SERVICE_ACCOUNT_ID='[^']{31,}'/u)
 assert.match(deployScript,
   /add_project_log_writer_binding_with_propagation_retry/u)
 assert.match(deployScript, /vulnerabilities \/\/ \{\}/u)
@@ -106,7 +108,7 @@ assert.match(packagePublisher,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-official-probe-fixture-cloud-job',
-  checks: 56,
+  checks: 57,
   exactOfficialPinnedAsset: true,
   unchangedH264Bytes: true,
   cloudControlPlaneOnly: true,

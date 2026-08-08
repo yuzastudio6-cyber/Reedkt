@@ -6,7 +6,7 @@ set -euo pipefail
 readonly PROJECT_ID='reeditpro'
 readonly REGION='us-central1'
 readonly JOB='weeditpro-sam31-official-probe-fixture-ingest'
-readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-probe-ingest-sa'
+readonly SERVICE_ACCOUNT_ID='weeditpro-sam31-probe-sa'
 readonly SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
 readonly IMAGE_NAME='weeditpro-sam31-official-probe-fixture-ingest'
 readonly REPOSITORY='reeditpro-workers'

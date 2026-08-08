@@ -11,11 +11,21 @@ export const CAPTION_TRACK_ALL_EVIDENCE_PACKET_VERSION =
   'caption-track-all-evidence-packet-v1' as const
 export const CAPTION_TRACK_ALL_ADMISSION_VERSION =
   'caption-track-all-admission-v1' as const
+export const CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION =
+  'caption-track-all-support-payload-v2' as const
+export const CAPTION_TRACK_ALL_EVIDENCE_PACKET_V2_VERSION =
+  'caption-track-all-evidence-packet-v2' as const
+export const CAPTION_TRACK_ALL_ADMISSION_V2_VERSION =
+  'caption-track-all-admission-v2' as const
 
 export type CaptionTrackAllPurpose =
   | 'subject_occlusion'
   | 'object_anchor'
   | 'environmental_anchor'
+
+export type CaptionTrackAllPurposeV2 =
+  | CaptionTrackAllPurpose
+  | 'subject_foreground'
 
 export interface CaptionTrackAllSupportPayload {
   schemaVersion: typeof CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_VERSION
@@ -230,3 +240,49 @@ export interface CaptionTrackAllSupportBundle {
   payload: CaptionTrackAllSupportPayload
   supportRequest: SkillSupportRequest
 }
+
+/**
+ * Additive V2 keeps the frozen V1 wire intact while adding an exact
+ * foreground-subject purpose. Foreground typography still needs the subject
+ * mask and track for depth, gesture, and collision evidence; it must not
+ * relabel a behind-subject request.
+ */
+export interface CaptionTrackAllSupportPayloadV2
+  extends Omit<CaptionTrackAllSupportPayload,
+    'schemaVersion' | 'purpose' | 'depthIntent'> {
+  schemaVersion: typeof CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION
+  purpose: CaptionTrackAllPurposeV2
+  depthIntent:
+    | CaptionTrackAllSupportPayload['depthIntent']
+    | 'in_front_of_subject'
+}
+
+export interface CaptionTrackAllEvidencePacketV2
+  extends Omit<CaptionTrackAllEvidencePacket,
+    'schemaVersion' | 'purpose'> {
+  schemaVersion: typeof CAPTION_TRACK_ALL_EVIDENCE_PACKET_V2_VERSION
+  purpose: CaptionTrackAllPurposeV2
+}
+
+export interface CaptionTrackAllAdmissionV2
+  extends Omit<CaptionTrackAllAdmission, 'schemaVersion'> {
+  schemaVersion: typeof CAPTION_TRACK_ALL_ADMISSION_V2_VERSION
+  textInFrontOfSubjectAllowed: boolean
+}
+
+export interface CaptionTrackAllSupportBundleV2 {
+  payload: CaptionTrackAllSupportPayloadV2
+  supportRequest: SkillSupportRequest
+}
+
+export type CaptionTrackAllSupportPayloadAny =
+  | CaptionTrackAllSupportPayload
+  | CaptionTrackAllSupportPayloadV2
+
+export type CaptionTrackAllEvidencePacketAny =
+  | CaptionTrackAllEvidencePacket
+  | CaptionTrackAllEvidencePacketV2
+
+export type CaptionTrackAllAdmissionAny =
+  | CaptionTrackAllAdmission
+  | CaptionTrackAllAdmissionV2

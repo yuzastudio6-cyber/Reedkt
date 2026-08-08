@@ -35,13 +35,13 @@ import type {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-visual-intelligence-support'
 import type {
-  CaptionTrackAllEvidencePacket,
-  CaptionTrackAllPurpose,
-  CaptionTrackAllSupportPayload,
+  CaptionTrackAllEvidencePacketAny,
+  CaptionTrackAllPurposeV2,
+  CaptionTrackAllSupportPayloadAny,
 } from '../../src/types/caption-track-all-support'
-import type {
-  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
-} from '../../src/types/canonical-caption-track-all-support'
+import {
+  type CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny,
+} from '../../src/types/caption-canonical-track-all-foreground-support'
 import type { CaptionDomainCanonicalScope } from
   '../../src/types/caption-domain-contracts'
 import type { SkillCapabilityManifestV2 } from
@@ -122,11 +122,14 @@ import {
 } from './caption-canonical-visual-intelligence-evidence-read'
 import {
   createCaptionTrackAllSupportRequest,
+  createCaptionTrackAllSupportRequestV2,
   parseCaptionTrackAllEvidencePacket,
+  parseCaptionTrackAllEvidencePacketV2,
   parseCaptionTrackAllSupportPayload,
+  parseCaptionTrackAllSupportPayloadV2,
 } from './caption-track-all-support'
 import {
-  parseCaptionCanonicalTrackAllEvidenceRecord,
+  parseCaptionCanonicalTrackAllEvidenceRecordAny,
 } from './caption-canonical-track-all-evidence-read'
 import {
   createCaptionSoundSupportRequest,
@@ -575,7 +578,7 @@ function visualPacketArtifactType(
 function trackAllPacketArtifactMatches(
   call: OrchestraSkillCall,
   request: SkillSupportRequest,
-  packet: CaptionTrackAllEvidencePacket,
+  packet: CaptionTrackAllEvidencePacketAny,
 ): boolean {
   const injected = call.injectedSupportArtifactRefs
   if (injected.length !== 1) return false
@@ -596,7 +599,7 @@ function trackAllPacketArtifactMatches(
 
 function promotedTrackAllPacketArtifactMatches(
   call: OrchestraSkillCall,
-  packet: CaptionTrackAllEvidencePacket,
+  packet: CaptionTrackAllEvidencePacketAny,
 ): boolean {
   return call.inputArtifactRefs.some((artifact) =>
     artifact.id === packet.packetId
@@ -609,9 +612,14 @@ function promotedTrackAllPacketArtifactMatches(
     && artifact.sourceSupportRequestRef === null)
 }
 
-function expectedTrackAllPurpose(jobType: string): CaptionTrackAllPurpose | null {
+function expectedTrackAllPurpose(
+  jobType: string,
+): CaptionTrackAllPurposeV2 | null {
   if (jobType === 'resolve_subject_occluded_typography') {
     return 'subject_occlusion'
+  }
+  if (jobType === 'resolve_front_of_subject_typography') {
+    return 'subject_foreground'
   }
   if (jobType === 'resolve_object_anchored_typography') return 'object_anchor'
   if (jobType === 'resolve_environmental_typography') {
@@ -1071,10 +1079,10 @@ export function runCaptionsSpecialistJob(input: {
   let visualPayload: CaptionVisualIntelligenceSupportPayload | null = null
   let canonicalVisualRecord:
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
-  let trackAllPayload: CaptionTrackAllSupportPayload | null = null
-  let admittedTrackAllPacket: CaptionTrackAllEvidencePacket | null = null
+  let trackAllPayload: CaptionTrackAllSupportPayloadAny | null = null
+  let admittedTrackAllPacket: CaptionTrackAllEvidencePacketAny | null = null
   let canonicalTrackAllRecord:
-  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord | null = null
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny | null = null
   let soundContext: CaptionSoundContext | null = null
   let soundPayload: CaptionSoundCueRequest | null = null
   let admittedSoundResult: CaptionSoundSupportResult | null = null
@@ -1129,7 +1137,7 @@ export function runCaptionsSpecialistJob(input: {
       )
     }
     try {
-      canonicalTrackAllRecord = parseCaptionCanonicalTrackAllEvidenceRecord(
+      canonicalTrackAllRecord = parseCaptionCanonicalTrackAllEvidenceRecordAny(
         input.canonicalTrackAllEvidenceRecord)
       trackAllPayload = canonicalTrackAllRecord.supportPayload
     } catch {
@@ -1140,8 +1148,12 @@ export function runCaptionsSpecialistJob(input: {
     }
   } else if (input.trackAllSupportPayload !== undefined) {
     try {
-      trackAllPayload = parseCaptionTrackAllSupportPayload(
-        input.trackAllSupportPayload)
+      trackAllPayload = expectedTrackAllPurpose(call.job.jobType)
+          === 'subject_foreground'
+        ? parseCaptionTrackAllSupportPayloadV2(
+          input.trackAllSupportPayload)
+        : parseCaptionTrackAllSupportPayload(
+          input.trackAllSupportPayload)
     } catch {
       return makeResult(profile,
         call, 'blocked', ['input.track_all.payload.invalid'],
@@ -1367,10 +1379,16 @@ export function runCaptionsSpecialistJob(input: {
         admittedTrackAllPacket = canonicalTrackAllRecord.captionEvidencePacket
       } else {
         try {
-          admittedTrackAllPacket = parseCaptionTrackAllEvidencePacket(
-            input.trackAllEvidencePacket,
-            { payload: trackAllPayload, supportRequest: request },
-          )
+          admittedTrackAllPacket = trackAllPayload.schemaVersion ===
+            'caption-track-all-support-payload-v2'
+            ? parseCaptionTrackAllEvidencePacketV2(
+              input.trackAllEvidencePacket,
+              { payload: trackAllPayload, supportRequest: request },
+            )
+            : parseCaptionTrackAllEvidencePacket(
+              input.trackAllEvidencePacket,
+              { payload: trackAllPayload, supportRequest: request },
+            )
         } catch {
           return makeResult(profile,
             call, 'blocked', ['input.track_all.authenticated_admission.failed'],
@@ -1642,11 +1660,15 @@ export function runCaptionsSpecialistJob(input: {
         })
       }
       if (target === 'track_all' && trackAllPayload !== null) {
-        return createCaptionTrackAllSupportRequest({
+        const supportInput = {
           requestId: `${call.callId}.support.track_all`,
           originalCallRef: callRef(call),
           payload: trackAllPayload,
-        })
+        }
+        return trackAllPayload.schemaVersion ===
+          'caption-track-all-support-payload-v2'
+          ? createCaptionTrackAllSupportRequestV2(supportInput)
+          : createCaptionTrackAllSupportRequest(supportInput)
       }
       if (target === 'soundsync'
         && soundPayload !== null && soundContext !== null) {

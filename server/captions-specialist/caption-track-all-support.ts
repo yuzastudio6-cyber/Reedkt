@@ -1,14 +1,24 @@
 import { z } from 'zod'
 import {
   CAPTION_TRACK_ALL_ADMISSION_VERSION,
+  CAPTION_TRACK_ALL_ADMISSION_V2_VERSION,
   CAPTION_TRACK_ALL_EVIDENCE_PACKET_VERSION,
+  CAPTION_TRACK_ALL_EVIDENCE_PACKET_V2_VERSION,
   CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_VERSION,
+  CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION,
   type CaptionTrackAllAdmission,
+  type CaptionTrackAllAdmissionV2,
   type CaptionTrackAllEvidencePacket,
+  type CaptionTrackAllEvidencePacketAny,
+  type CaptionTrackAllEvidencePacketV2,
   type CaptionTrackAllPurpose,
+  type CaptionTrackAllPurposeV2,
   type CaptionTrackAllSubjectEvidence,
   type CaptionTrackAllSupportBundle,
+  type CaptionTrackAllSupportBundleV2,
   type CaptionTrackAllSupportPayload,
+  type CaptionTrackAllSupportPayloadAny,
+  type CaptionTrackAllSupportPayloadV2,
 } from '../../src/types/caption-track-all-support'
 import type {
   CaptionDomainCanonicalScope,
@@ -53,6 +63,10 @@ const scopeSchema: z.ZodType<CaptionDomainCanonicalScope> = z.object({
 const purposeSchema = z.enum([
   'subject_occlusion', 'object_anchor', 'environmental_anchor',
 ])
+const purposeV2Schema = z.enum([
+  'subject_occlusion', 'subject_foreground', 'object_anchor',
+  'environmental_anchor',
+])
 const subjectRoleSchema = z.enum([
   'primary_speaker', 'secondary_speaker', 'hand', 'product',
   'important_object', 'environmental_surface',
@@ -73,7 +87,7 @@ const qaThresholdSchema = z.object({
   identitySwapCountAllowed: z.literal(0),
   lostAnchorFrameCountAllowed: z.literal(0),
 }).strict()
-const supportPayloadSchema: z.ZodType<CaptionTrackAllSupportPayload> = z.object({
+const supportPayloadSchema = z.object({
   schemaVersion: z.literal(CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_VERSION),
   payloadId: safeKey,
   payloadDigestSha256: sha256,
@@ -136,6 +150,11 @@ const supportPayloadSchema: z.ZodType<CaptionTrackAllSupportPayload> = z.object(
   directPeerDispatchRequested: z.literal(false),
   trackAllRemainsArtifactOwner: z.literal(true),
 }).strict()
+const supportPayloadV2Schema: z.ZodType<CaptionTrackAllSupportPayloadV2> =
+  supportPayloadSchema.extend({
+    schemaVersion: z.literal(CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION),
+    purpose: purposeV2Schema,
+  }).strict()
 const temporalQaSchema = z.object({
   measuredFrameCount: z.number().int().positive(),
   expectedFrameCount: z.number().int().positive(),
@@ -173,7 +192,7 @@ const subjectEvidenceSchema: z.ZodType<CaptionTrackAllSubjectEvidence> = z.objec
   }).strict()).max(64),
   evidenceRefs: z.array(refSchema).min(1).max(512),
 }).strict()
-const packetSchema: z.ZodType<CaptionTrackAllEvidencePacket> = z.object({
+const packetSchema = z.object({
   schemaVersion: z.literal(CAPTION_TRACK_ALL_EVIDENCE_PACKET_VERSION),
   packetId: safeKey,
   packetDigestSha256: sha256,
@@ -223,7 +242,12 @@ const packetSchema: z.ZodType<CaptionTrackAllEvidencePacket> = z.object({
   publicDeliveryGranted: z.literal(false),
   productionAuthorityGranted: z.literal(false),
 }).strict()
-const admissionSchema: z.ZodType<CaptionTrackAllAdmission> = z.object({
+const packetV2Schema: z.ZodType<CaptionTrackAllEvidencePacketV2> =
+  packetSchema.extend({
+    schemaVersion: z.literal(CAPTION_TRACK_ALL_EVIDENCE_PACKET_V2_VERSION),
+    purpose: purposeV2Schema,
+  }).strict()
+const admissionSchema = z.object({
   schemaVersion: z.literal(CAPTION_TRACK_ALL_ADMISSION_VERSION),
   admissionId: safeKey,
   admissionDigestSha256: sha256,
@@ -257,6 +281,11 @@ const admissionSchema: z.ZodType<CaptionTrackAllAdmission> = z.object({
   finalCanvasAuthorityClaimed: z.literal(false),
   productionAuthorityClaimed: z.literal(false),
 }).strict()
+const admissionV2Schema: z.ZodType<CaptionTrackAllAdmissionV2> =
+  admissionSchema.extend({
+    schemaVersion: z.literal(CAPTION_TRACK_ALL_ADMISSION_V2_VERSION),
+    textInFrontOfSubjectAllowed: z.boolean(),
+  }).strict()
 
 const DEFAULT_QA_THRESHOLDS: CaptionTrackAllSupportPayload['qaThresholds'] = {
   minimumBinaryIntersectionOverUnionBasisPoints: 7_000,
@@ -305,7 +334,7 @@ function verifyDigest(value: Record<string, unknown>, field: string, label: stri
   }
 }
 
-function payloadRef(payload: CaptionTrackAllSupportPayload): CaptionDomainRef {
+function payloadRef(payload: CaptionTrackAllSupportPayloadAny): CaptionDomainRef {
   return { id: payload.payloadId, version: payload.schemaVersion, contentHash: payload.payloadDigestSha256 }
 }
 
@@ -313,7 +342,7 @@ function requestRef(request: SkillSupportRequest): SkillContractRef {
   return { id: request.requestId, version: request.schemaVersion, contentHash: request.requestDigestSha256 }
 }
 
-function packetRef(packet: CaptionTrackAllEvidencePacket): CaptionDomainRef {
+function packetRef(packet: CaptionTrackAllEvidencePacketAny): CaptionDomainRef {
   return { id: packet.packetId, version: packet.schemaVersion, contentHash: packet.packetDigestSha256 }
 }
 
@@ -331,7 +360,10 @@ function skillScope(scope: CaptionDomainCanonicalScope): SkillCanonicalScope {
   }
 }
 
-function supportScopeMatches(scope: SkillCanonicalScope, payload: CaptionTrackAllSupportPayload): boolean {
+function supportScopeMatches(
+  scope: SkillCanonicalScope,
+  payload: CaptionTrackAllSupportPayloadAny,
+): boolean {
   const expected = skillScope(payload.canonicalScope)
   return scope.ownerUserId === expected.ownerUserId
     && scope.workspaceId === expected.workspaceId
@@ -349,7 +381,16 @@ function expectedDepthIntent(purpose: CaptionTrackAllPurpose): CaptionTrackAllSu
   return 'environmental_surface'
 }
 
-function expectedArtifacts(payload: Pick<CaptionTrackAllSupportPayload, 'subjectRequests'>): CaptionTrackAllSupportPayload['expectedArtifactTypes'] {
+function expectedDepthIntentV2(
+  purpose: CaptionTrackAllPurposeV2,
+): CaptionTrackAllSupportPayloadV2['depthIntent'] {
+  if (purpose === 'subject_foreground') return 'in_front_of_subject'
+  return expectedDepthIntent(purpose)
+}
+
+function expectedArtifacts(
+  payload: Pick<CaptionTrackAllSupportPayloadAny, 'subjectRequests'>,
+): CaptionTrackAllSupportPayload['expectedArtifactTypes'] {
   return [
     ...(payload.subjectRequests.some((subject) => subject.maskRequired)
       ? ['mask_sequence' as const] : []),
@@ -359,9 +400,9 @@ function expectedArtifacts(payload: Pick<CaptionTrackAllSupportPayload, 'subject
   ]
 }
 
-export function parseCaptionTrackAllSupportPayload(value: unknown): CaptionTrackAllSupportPayload {
-  assertClosedContractTree(value, 'Caption Track All support payload')
-  const parsed = supportPayloadSchema.parse(value)
+function validateSupportPayload(
+  parsed: CaptionTrackAllSupportPayloadAny,
+): void {
   const subjects = new Set(parsed.subjectRequests.map((subject) => subject.subjectRequestId))
   const cacheIdentity = calculateSkillContractDigest({
     purpose: parsed.purpose,
@@ -384,10 +425,15 @@ export function parseCaptionTrackAllSupportPayload(value: unknown): CaptionTrack
         !== subject.visualObservationRefs.length
       || new Set(subject.sourcePhraseRefs.map(refKey)).size
         !== subject.sourcePhraseRefs.length)
-    || parsed.depthIntent !== expectedDepthIntent(parsed.purpose)
-    || (parsed.purpose === 'subject_occlusion'
+    || parsed.depthIntent !== (parsed.schemaVersion ===
+      CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION
+      ? expectedDepthIntentV2(parsed.purpose)
+      : expectedDepthIntent(parsed.purpose))
+    || ((parsed.purpose === 'subject_occlusion'
+      || parsed.purpose === 'subject_foreground')
       && parsed.subjectRequests.some((subject) => !subject.maskRequired))
     || (parsed.purpose !== 'subject_occlusion'
+      && parsed.purpose !== 'subject_foreground'
       && parsed.subjectRequests.some((subject) => !subject.anchorRequired))
     || new Set(parsed.refinementPolicy.deterministicOperations).size
       !== parsed.refinementPolicy.deterministicOperations.length
@@ -400,6 +446,21 @@ export function parseCaptionTrackAllSupportPayload(value: unknown): CaptionTrack
     'payloadDigestSha256',
     'Caption Track All support payload',
   )
+}
+
+export function parseCaptionTrackAllSupportPayload(value: unknown): CaptionTrackAllSupportPayload {
+  assertClosedContractTree(value, 'Caption Track All support payload')
+  const parsed = supportPayloadSchema.parse(value)
+  validateSupportPayload(parsed)
+  return parsed
+}
+
+export function parseCaptionTrackAllSupportPayloadV2(
+  value: unknown,
+): CaptionTrackAllSupportPayloadV2 {
+  assertClosedContractTree(value, 'Caption Track All V2 support payload')
+  const parsed = supportPayloadV2Schema.parse(value)
+  validateSupportPayload(parsed)
   return parsed
 }
 
@@ -502,6 +563,112 @@ export function createCaptionTrackAllSupport(input: {
   return { payload, supportRequest }
 }
 
+export function createCaptionTrackAllSupportV2(input: {
+  payloadId: string
+  requestId: string
+  idempotencyKey: string
+  originalCallRef: SkillContractRef
+  purpose: CaptionTrackAllPurposeV2
+  canonicalScope: CaptionDomainCanonicalScope
+  pictureLockRef: CaptionDomainRef
+  finishReadinessRef: CaptionDomainRef
+  visualOccupancyManifestRef: CaptionDomainRef
+  confirmedOutputFrameDigestSha256: string
+  sourcePrivateArtifactRef: CaptionDomainRef
+  sourceFrameMappingRef: CaptionDomainRef
+  subjectRequests: CaptionTrackAllSupportPayloadV2['subjectRequests']
+  korniaRefinementAllowed: boolean
+}): CaptionTrackAllSupportBundleV2 {
+  assertClosedContractTree(input, 'Caption Track All V2 support input')
+  if (input.canonicalScope.sceneId === null
+    || input.canonicalScope.authorizedFrameRanges.length !== 1) {
+    throw new Error('Caption Track All V2 support requires one exact scene range.')
+  }
+  const refinementPolicy = {
+    opencvMaskQaRequired: true as const,
+    korniaRefinementAllowed: input.korniaRefinementAllowed,
+    korniaCannotReplacePrimarySegmentation: true as const,
+    deterministicOperations: [
+      'morphological_cleanup', 'hole_fill', 'edge_feather_measurement',
+      'temporal_median_check', 'connected_component_filter',
+    ] as CaptionTrackAllSupportPayloadV2['refinementPolicy'][
+      'deterministicOperations'],
+  }
+  const requestedRange = input.canonicalScope.authorizedFrameRanges[0]!
+  const cachePolicyWithoutDigest = {
+    purpose: input.purpose,
+    canonicalScope: input.canonicalScope,
+    sourcePrivateArtifactRef: input.sourcePrivateArtifactRef,
+    sourceFrameMappingRef: input.sourceFrameMappingRef,
+    confirmedOutputFrameDigestSha256: input.confirmedOutputFrameDigestSha256,
+    requestedRange,
+    subjectRequests: input.subjectRequests,
+    qaThresholds: DEFAULT_QA_THRESHOLDS,
+    refinementPolicy,
+  }
+  const withoutDigest: Omit<CaptionTrackAllSupportPayloadV2,
+    'payloadDigestSha256'> = {
+    schemaVersion: CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION,
+    payloadId: safeKey.parse(input.payloadId),
+    purpose: input.purpose,
+    canonicalScope: structuredClone(input.canonicalScope),
+    pictureLockRef: structuredClone(input.pictureLockRef),
+    finishReadinessRef: structuredClone(input.finishReadinessRef),
+    visualOccupancyManifestRef:
+      structuredClone(input.visualOccupancyManifestRef),
+    confirmedOutputFrameDigestSha256:
+      sha256.parse(input.confirmedOutputFrameDigestSha256),
+    sourcePrivateArtifactRef:
+      structuredClone(input.sourcePrivateArtifactRef),
+    sourceFrameMappingRef: structuredClone(input.sourceFrameMappingRef),
+    requestedSceneId: input.canonicalScope.sceneId,
+    requestedRange: structuredClone(requestedRange),
+    subjectRequests: structuredClone(input.subjectRequests),
+    depthIntent: expectedDepthIntentV2(input.purpose),
+    qaThresholds: { ...DEFAULT_QA_THRESHOLDS },
+    refinementPolicy,
+    cachePolicy: {
+      cacheIdentityDigestSha256: calculateSkillContractDigest(
+        { ...cachePolicyWithoutDigest, cacheIdentityDigestSha256: '' },
+        'cacheIdentityDigestSha256',
+      ),
+      exactSourceRangeSubjectFrameAndPolicyBound: true,
+      crossSceneReuseAllowed: false,
+      crossOutputReuseAllowed: false,
+      staleReuseAllowed: false,
+    },
+    fallbackLadder: [
+      'retry_track_all_same_approved_input', 'opencv_kornia_refine',
+      'safe_top_plane', 'stable_libass', 'user_review',
+    ],
+    expectedArtifactTypes: expectedArtifacts({
+      subjectRequests: input.subjectRequests,
+    }),
+    byteFreeRequest: true,
+    rawChatIncluded: false,
+    mediaBytesIncluded: false,
+    mediaLocatorIncluded: false,
+    modelPromptIncluded: false,
+    providerCredentialIncluded: false,
+    samRuntimeSelectedOrDispatchedByCaption: false,
+    directPeerDispatchRequested: false,
+    trackAllRemainsArtifactOwner: true,
+  }
+  const payload = parseCaptionTrackAllSupportPayloadV2({
+    ...withoutDigest,
+    payloadDigestSha256: calculateSkillContractDigest(
+      { ...withoutDigest, payloadDigestSha256: '' },
+      'payloadDigestSha256',
+    ),
+  })
+  const supportRequest = createCaptionTrackAllSupportRequestV2({
+    requestId: input.requestId,
+    originalCallRef: input.originalCallRef,
+    payload,
+  })
+  return { payload, supportRequest }
+}
+
 export function createCaptionTrackAllSupportRequest(input: {
   requestId: string
   originalCallRef: SkillContractRef
@@ -509,6 +676,31 @@ export function createCaptionTrackAllSupportRequest(input: {
 }): SkillSupportRequest {
   assertClosedContractTree(input, 'Caption Track All support request input')
   const payload = parseCaptionTrackAllSupportPayload(input.payload)
+  return createCaptionTrackAllSupportRequestForPayload({
+    ...input,
+    payload,
+  })
+}
+
+export function createCaptionTrackAllSupportRequestV2(input: {
+  requestId: string
+  originalCallRef: SkillContractRef
+  payload: unknown
+}): SkillSupportRequest {
+  assertClosedContractTree(input, 'Caption Track All V2 support request input')
+  const payload = parseCaptionTrackAllSupportPayloadV2(input.payload)
+  return createCaptionTrackAllSupportRequestForPayload({
+    ...input,
+    payload,
+  })
+}
+
+function createCaptionTrackAllSupportRequestForPayload(input: {
+  requestId: string
+  originalCallRef: SkillContractRef
+  payload: CaptionTrackAllSupportPayloadAny
+}): SkillSupportRequest {
+  const { payload } = input
   const requestWithoutDigest: Omit<SkillSupportRequest, 'requestDigestSha256'> = {
     schemaVersion: SKILL_SUPPORT_REQUEST_VERSION,
     requestId: safeKey.parse(input.requestId),
@@ -581,15 +773,22 @@ function subjectQa(input: {
   return { passed: blockers.length === 0, blockers }
 }
 
-export function parseCaptionTrackAllEvidencePacket(
+function parseCaptionTrackAllEvidencePacketAny(
   value: unknown,
   input: { payload: unknown; supportRequest: unknown },
-): CaptionTrackAllEvidencePacket {
+  version: 'v1' | 'v2',
+): CaptionTrackAllEvidencePacketAny {
   assertClosedContractTree(value, 'Caption Track All evidence packet')
-  const payload = parseCaptionTrackAllSupportPayload(input.payload)
+  const payload = version === 'v2'
+    ? parseCaptionTrackAllSupportPayloadV2(input.payload)
+    : parseCaptionTrackAllSupportPayload(input.payload)
   const request = parseSkillSupportRequest(input.supportRequest)
-  const embeddedPayload = parseCaptionTrackAllSupportPayload(request.typedPayload)
-  const parsed = packetSchema.parse(value)
+  const embeddedPayload = version === 'v2'
+    ? parseCaptionTrackAllSupportPayloadV2(request.typedPayload)
+    : parseCaptionTrackAllSupportPayload(request.typedPayload)
+  const parsed = version === 'v2'
+    ? packetV2Schema.parse(value)
+    : packetSchema.parse(value)
   const fixture = parsed.evidenceMode === 'contract_fixture'
   const requestById = new Map(payload.subjectRequests.map((item) => [item.subjectRequestId, item]))
   const subjectIds = new Set(parsed.subjectEvidence.map((item) => item.subjectRequestId))
@@ -671,6 +870,22 @@ export function parseCaptionTrackAllEvidencePacket(
   return parsed
 }
 
+export function parseCaptionTrackAllEvidencePacket(
+  value: unknown,
+  input: { payload: unknown; supportRequest: unknown },
+): CaptionTrackAllEvidencePacket {
+  return parseCaptionTrackAllEvidencePacketAny(
+    value, input, 'v1') as CaptionTrackAllEvidencePacket
+}
+
+export function parseCaptionTrackAllEvidencePacketV2(
+  value: unknown,
+  input: { payload: unknown; supportRequest: unknown },
+): CaptionTrackAllEvidencePacketV2 {
+  return parseCaptionTrackAllEvidencePacketAny(
+    value, input, 'v2') as CaptionTrackAllEvidencePacketV2
+}
+
 export function createCaptionTrackAllEvidencePacketForContractFixture(input: {
   packetId: string
   payload: unknown
@@ -734,6 +949,84 @@ export function createCaptionTrackAllEvidencePacketForContractFixture(input: {
     productionAuthorityGranted: false,
   }
   return parseCaptionTrackAllEvidencePacket({
+    ...withoutDigest,
+    packetDigestSha256: calculateSkillContractDigest(
+      { ...withoutDigest, packetDigestSha256: '' },
+      'packetDigestSha256',
+    ),
+  }, { payload, supportRequest: request })
+}
+
+export function createCaptionTrackAllEvidencePacketV2ForContractFixture(input: {
+  packetId: string
+  payload: unknown
+  supportRequest: unknown
+  trackAllResultRef: CaptionDomainRef
+  subjectEvidence: CaptionTrackAllSubjectEvidence[]
+  cacheDisposition?: 'new_result' | 'exact_cache_reuse'
+  originalResultRef?: CaptionDomainRef | null
+}): CaptionTrackAllEvidencePacketV2 {
+  const payload = parseCaptionTrackAllSupportPayloadV2(input.payload)
+  const request = parseSkillSupportRequest(input.supportRequest)
+  const disposition = input.cacheDisposition ?? 'new_result'
+  const withoutDigest: Omit<CaptionTrackAllEvidencePacketV2,
+    'packetDigestSha256'> = {
+    schemaVersion: CAPTION_TRACK_ALL_EVIDENCE_PACKET_V2_VERSION,
+    packetId: safeKey.parse(input.packetId),
+    supportRequestRef: requestRef(request),
+    supportPayloadRef: payloadRef(payload),
+    canonicalScope: structuredClone(payload.canonicalScope),
+    purpose: payload.purpose,
+    pictureLockRef: structuredClone(payload.pictureLockRef),
+    finishReadinessRef: structuredClone(payload.finishReadinessRef),
+    visualOccupancyManifestRef:
+      structuredClone(payload.visualOccupancyManifestRef),
+    sourcePrivateArtifactRef:
+      structuredClone(payload.sourcePrivateArtifactRef),
+    sourceFrameMappingRef: structuredClone(payload.sourceFrameMappingRef),
+    confirmedOutputFrameDigestSha256:
+      payload.confirmedOutputFrameDigestSha256,
+    requestedSceneId: payload.requestedSceneId,
+    requestedRange: structuredClone(payload.requestedRange),
+    producerSkillKey: 'track_all',
+    selectedSegmentationRoute: 'sam3_1',
+    canonicalSam31OperationId:
+      'tool.sam3_1.segment_and_track_subject.v1',
+    trackAllResultRef: structuredClone(input.trackAllResultRef),
+    authenticatedReadResultRef: null,
+    canonicalSam31RuntimeResultAdmissionRef: null,
+    subjectEvidence: structuredClone(input.subjectEvidence),
+    cache: {
+      cacheIdentityDigestSha256:
+        payload.cachePolicy.cacheIdentityDigestSha256,
+      disposition,
+      originalResultRef: disposition === 'new_result'
+        ? null
+        : structuredClone(input.originalResultRef ?? input.trackAllResultRef),
+      exactSourceRangeSubjectFrameAndPolicyMatch: true,
+      staleArtifactReused: false,
+    },
+    evidenceMode: 'contract_fixture',
+    exactCanonicalScopeReread: false,
+    exactPrivateArtifactsReread: false,
+    exactSam31ResultLineageVerified: false,
+    actualSam31GpuExecutionObserved: false,
+    actualOpenCvExecutionObserved: false,
+    actualKorniaExecutionObserved: false,
+    independentMaskArtifactQaCompleted: false,
+    privateVisualReviewCompleted: false,
+    browserLocalStateUsed: false,
+    rawMaskBytesIncluded: false,
+    pathsOrUrlsIncluded: false,
+    providerCredentialIncluded: false,
+    runtimeOrDispatchAuthorityGrantedToCaption: false,
+    assetMutationAuthorityGrantedToCaption: false,
+    finalQaApprovalGrantedToCaption: false,
+    billingAuthorityGrantedToCaption: false,
+    publicDeliveryGranted: false,
+    productionAuthorityGranted: false,
+  }
+  return parseCaptionTrackAllEvidencePacketV2({
     ...withoutDigest,
     packetDigestSha256: calculateSkillContractDigest(
       { ...withoutDigest, packetDigestSha256: '' },
@@ -861,6 +1154,159 @@ export function createCaptionTrackAllAdmission(input: {
     productionAuthorityClaimed: false,
   }
   return parseCaptionTrackAllAdmission({
+    ...withoutDigest,
+    admissionDigestSha256: calculateSkillContractDigest(
+      { ...withoutDigest, admissionDigestSha256: '' },
+      'admissionDigestSha256',
+    ),
+  }, { packet, payload, supportRequest: request })
+}
+
+export function parseCaptionTrackAllAdmissionV2(
+  value: unknown,
+  input: { packet: unknown; payload: unknown; supportRequest: unknown },
+): CaptionTrackAllAdmissionV2 {
+  assertClosedContractTree(value, 'Caption Track All V2 admission')
+  const payload = parseCaptionTrackAllSupportPayloadV2(input.payload)
+  const request = parseSkillSupportRequest(input.supportRequest)
+  const packet = parseCaptionTrackAllEvidencePacketV2(
+    input.packet, { payload, supportRequest: request })
+  const parsed = admissionV2Schema.parse(value)
+  const subjectAdmissions = packet.subjectEvidence.map((subject) => {
+    const subjectRequest = payload.subjectRequests.find((item) =>
+      item.subjectRequestId === subject.subjectRequestId)!
+    const qa = subjectQa({
+      subject,
+      request: subjectRequest,
+      thresholds: payload.qaThresholds,
+    })
+    return { subject, qa }
+  })
+  const runtimeQualified =
+    packet.evidenceMode === 'authenticated_private_runtime'
+    && packet.exactCanonicalScopeReread
+    && packet.exactPrivateArtifactsReread
+    && packet.exactSam31ResultLineageVerified
+    && packet.actualSam31GpuExecutionObserved
+    && packet.actualOpenCvExecutionObserved
+    && packet.independentMaskArtifactQaCompleted
+    && packet.privateVisualReviewCompleted
+  const qaPassed = subjectAdmissions.every((item) => item.qa.passed)
+  const expectedDisposition = !runtimeQualified
+    ? 'blocked_private_runtime_evidence' as const
+    : qaPassed ? 'admitted_for_caption_scene_graph' as const
+      : 'blocked_temporal_qa' as const
+  const admitted = expectedDisposition === 'admitted_for_caption_scene_graph'
+  const expectedSubjects = subjectAdmissions.map(({ subject, qa }) => ({
+    subjectRequestId: subject.subjectRequestId,
+    subjectEvidenceId: subject.subjectEvidenceId,
+    qaPassed: qa.passed,
+    maskSequenceRef: subject.maskSequenceRef,
+    trackManifestRef: subject.trackManifestRef,
+    anchorManifestRef: subject.anchorManifestRef,
+    blockerCodes: qa.blockers,
+  }))
+  if (!exactScope(parsed.canonicalScope, payload.canonicalScope)
+    || !exactRef(parsed.supportRequestRef, requestRef(request))
+    || !exactRef(parsed.evidencePacketRef, packetRef(packet))
+    || parsed.requestedSceneId !== payload.requestedSceneId
+    || JSON.stringify(parsed.subjectAdmissions)
+      !== JSON.stringify(expectedSubjects)
+    || parsed.disposition !== expectedDisposition
+    || parsed.textBehindSubjectAllowed !==
+      (admitted && payload.purpose === 'subject_occlusion')
+    || parsed.textInFrontOfSubjectAllowed !==
+      (admitted && payload.purpose === 'subject_foreground')
+    || parsed.objectAnchorAllowed !== (admitted
+      && (payload.purpose === 'object_anchor'
+        || payload.purpose === 'environmental_anchor'))
+    || parsed.selectedFallback !== (admitted ? 'none' : 'safe_top_plane')
+    || parsed.cacheReuseAccepted !== (runtimeQualified
+      && packet.cache.disposition === 'exact_cache_reuse')) {
+    throw new Error(
+      'Caption Track All V2 admission is overclaimed or inconsistent.')
+  }
+  verifyDigest(
+    parsed as unknown as Record<string, unknown>,
+    'admissionDigestSha256',
+    'Caption Track All V2 admission',
+  )
+  return parsed
+}
+
+export function createCaptionTrackAllAdmissionV2(input: {
+  admissionId: string
+  packet: unknown
+  payload: unknown
+  supportRequest: unknown
+}): CaptionTrackAllAdmissionV2 {
+  const payload = parseCaptionTrackAllSupportPayloadV2(input.payload)
+  const request = parseSkillSupportRequest(input.supportRequest)
+  const packet = parseCaptionTrackAllEvidencePacketV2(
+    input.packet, { payload, supportRequest: request })
+  const subjectAdmissions = packet.subjectEvidence.map((subject) => {
+    const subjectRequest = payload.subjectRequests.find((item) =>
+      item.subjectRequestId === subject.subjectRequestId)!
+    const qa = subjectQa({
+      subject,
+      request: subjectRequest,
+      thresholds: payload.qaThresholds,
+    })
+    return {
+      subjectRequestId: subject.subjectRequestId,
+      subjectEvidenceId: subject.subjectEvidenceId,
+      qaPassed: qa.passed,
+      maskSequenceRef: subject.maskSequenceRef,
+      trackManifestRef: subject.trackManifestRef,
+      anchorManifestRef: subject.anchorManifestRef,
+      blockerCodes: qa.blockers,
+    }
+  })
+  const runtimeQualified =
+    packet.evidenceMode === 'authenticated_private_runtime'
+    && packet.exactCanonicalScopeReread
+    && packet.exactPrivateArtifactsReread
+    && packet.exactSam31ResultLineageVerified
+    && packet.actualSam31GpuExecutionObserved
+    && packet.actualOpenCvExecutionObserved
+    && packet.independentMaskArtifactQaCompleted
+    && packet.privateVisualReviewCompleted
+  const qaPassed = subjectAdmissions.every((item) => item.qaPassed)
+  const disposition = !runtimeQualified
+    ? 'blocked_private_runtime_evidence' as const
+    : qaPassed ? 'admitted_for_caption_scene_graph' as const
+      : 'blocked_temporal_qa' as const
+  const admitted = disposition === 'admitted_for_caption_scene_graph'
+  const withoutDigest: Omit<CaptionTrackAllAdmissionV2,
+    'admissionDigestSha256'> = {
+    schemaVersion: CAPTION_TRACK_ALL_ADMISSION_V2_VERSION,
+    admissionId: safeKey.parse(input.admissionId),
+    canonicalScope: structuredClone(payload.canonicalScope),
+    supportRequestRef: requestRef(request),
+    evidencePacketRef: packetRef(packet),
+    requestedSceneId: payload.requestedSceneId,
+    subjectAdmissions,
+    disposition,
+    textBehindSubjectAllowed:
+      admitted && payload.purpose === 'subject_occlusion',
+    textInFrontOfSubjectAllowed:
+      admitted && payload.purpose === 'subject_foreground',
+    objectAnchorAllowed: admitted
+      && (payload.purpose === 'object_anchor'
+        || payload.purpose === 'environmental_anchor'),
+    selectedFallback: admitted ? 'none' : 'safe_top_plane',
+    cacheReuseAccepted: runtimeQualified
+      && packet.cache.disposition === 'exact_cache_reuse',
+    trackAllRemainsArtifactOwner: true,
+    sam31RemainsCanonicalRuntimeOwner: true,
+    captionExecutedSam31: false,
+    captionSelectedGpuRoute: false,
+    captionCreatedMaskAsset: false,
+    captionGrantedFinalQa: false,
+    finalCanvasAuthorityClaimed: false,
+    productionAuthorityClaimed: false,
+  }
+  return parseCaptionTrackAllAdmissionV2({
     ...withoutDigest,
     admissionDigestSha256: calculateSkillContractDigest(
       { ...withoutDigest, admissionDigestSha256: '' },

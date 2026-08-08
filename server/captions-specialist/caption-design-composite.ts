@@ -498,7 +498,10 @@ const integrationComponents: Record<string, string[]> = {
   clean_phrase: [],
   active_word: ['semantic_phrase_design', 'semantic_color_direction', 'caption_animation'],
   semantic_kinetic: ['semantic_phrase_design', 'semantic_scale_direction', 'semantic_kinetic_typography'],
-  spatial_composite: ['spatial_sentence_composition', 'spatial_caption_compositing'],
+  spatial_composite: [
+    'spatial_sentence_composition', 'spatial_caption_compositing',
+    'typographic_depth_choreography',
+  ],
   subject_occluded: ['typographic_depth_choreography', 'subject_occluded_typography', 'occlusion_readability_qa'],
   object_anchored: ['object_anchored_typography', 'typographic_depth_choreography'],
   environmental: ['environmental_typography', 'typographic_depth_choreography'],

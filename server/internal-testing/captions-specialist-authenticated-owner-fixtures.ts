@@ -1,8 +1,11 @@
 import { createHash } from 'node:crypto'
 
 import type {
-  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
-} from '../../src/types/canonical-caption-track-all-support'
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny,
+} from '../../src/types/caption-canonical-track-all-foreground-support'
+import {
+  CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION,
+} from '../../src/types/caption-canonical-track-all-foreground-support'
 import type {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-visual-intelligence-support'
@@ -12,6 +15,9 @@ import type {
 } from '../../src/types/caption-domain-contracts'
 import type {
   CaptionTrackAllSubjectEvidence,
+} from '../../src/types/caption-track-all-support'
+import {
+  CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION,
 } from '../../src/types/caption-track-all-support'
 import type {
   CaptionVisualEvidenceObservation,
@@ -30,6 +36,7 @@ import type {
 } from '../../src/types/visual-intelligence'
 import {
   parseCaptionCanonicalTrackAllEvidenceRecord,
+  parseCaptionCanonicalTrackAllEvidenceRecordV3,
 } from '../captions-specialist/caption-canonical-track-all-evidence-read'
 import {
   parseCaptionCanonicalVisualIntelligenceEvidenceRecord,
@@ -39,10 +46,15 @@ import {
 } from '../captions-specialist/caption-canonical-specialist-resume-read'
 import {
   createCaptionTrackAllAdmission,
+  createCaptionTrackAllAdmissionV2,
   createCaptionTrackAllEvidencePacketForContractFixture,
+  createCaptionTrackAllEvidencePacketV2ForContractFixture,
   createCaptionTrackAllSupport,
+  createCaptionTrackAllSupportV2,
   parseCaptionTrackAllEvidencePacket,
+  parseCaptionTrackAllEvidencePacketV2,
   parseCaptionTrackAllSupportPayload,
+  parseCaptionTrackAllSupportPayloadV2,
 } from '../captions-specialist/caption-track-all-support'
 import {
   createCaptionVisualEvidencePacketForContractFixture,
@@ -319,7 +331,11 @@ export function createCaptionTrackAllContractFixtureResolution(
   context: CaptionsHarnessSupportResolutionContext,
 ): CaptionsHarnessSupportResolution {
   const request = context.selectedSupportRequest
-  const payload = parseCaptionTrackAllSupportPayload(request.typedPayload)
+  const foregroundV2 = request.typedPayloadType ===
+    CAPTION_TRACK_ALL_SUPPORT_PAYLOAD_V2_VERSION
+  const payload = foregroundV2
+    ? parseCaptionTrackAllSupportPayloadV2(request.typedPayload)
+    : parseCaptionTrackAllSupportPayload(request.typedPayload)
   const suffix = hash(request.requestDigestSha256).slice(0, 12)
   const requestedRange = payload.requestedRange
   const expectedFrames = requestedRange.endFrameExclusive
@@ -369,7 +385,7 @@ export function createCaptionTrackAllContractFixtureResolution(
       domainRef(`caption.track.private-review.${suffix}`),
     ],
   }
-  const fixturePacket = createCaptionTrackAllEvidencePacketForContractFixture({
+  const packetInput = {
     packetId: `caption.track.packet.${suffix}`,
     payload,
     supportRequest: request,
@@ -381,7 +397,10 @@ export function createCaptionTrackAllContractFixtureResolution(
         actualExecutionObserved: false,
       })),
     }],
-  })
+  }
+  const fixturePacket = foregroundV2
+    ? createCaptionTrackAllEvidencePacketV2ForContractFixture(packetInput)
+    : createCaptionTrackAllEvidencePacketForContractFixture(packetInput)
   const sceneEvidenceRef = domainRef(
     `caption.track.scene-evidence.${suffix}`,
     'canonical-track-all-sam3_1-caption-scene-evidence-v1')
@@ -391,7 +410,7 @@ export function createCaptionTrackAllContractFixtureResolution(
   const samAdmissionRef = domainRef(
     `caption.track.sam31-admission.${suffix}`,
     'canonical-sam3_1-runtime-result-admission-v1')
-  const packet = parseCaptionTrackAllEvidencePacket(redigest({
+  const packetValue = redigest({
     ...structuredClone(fixturePacket),
     authenticatedReadResultRef: sceneEvidenceRef,
     canonicalSam31RuntimeResultAdmissionRef: samAdmissionRef,
@@ -406,16 +425,25 @@ export function createCaptionTrackAllContractFixtureResolution(
     independentMaskArtifactQaCompleted: true,
     privateVisualReviewCompleted: true,
     packetDigestSha256: '',
-  } as unknown as Record<string, unknown>, 'packetDigestSha256'), {
-    payload,
-    supportRequest: request,
-  })
-  const admission = createCaptionTrackAllAdmission({
+  } as unknown as Record<string, unknown>, 'packetDigestSha256')
+  const packet = foregroundV2
+    ? parseCaptionTrackAllEvidencePacketV2(packetValue, {
+      payload,
+      supportRequest: request,
+    })
+    : parseCaptionTrackAllEvidencePacket(packetValue, {
+      payload,
+      supportRequest: request,
+    })
+  const admissionInput = {
     admissionId: `caption.track.admission.${suffix}`,
     packet,
     payload,
     supportRequest: request,
-  })
+  }
+  const admission = foregroundV2
+    ? createCaptionTrackAllAdmissionV2(admissionInput)
+    : createCaptionTrackAllAdmission(admissionInput)
   const artifact: SkillArtifactRef = {
     id: packet.packetId,
     version: packet.schemaVersion,
@@ -433,12 +461,10 @@ export function createCaptionTrackAllContractFixtureResolution(
     ownerKey: 'track_all',
     artifact,
   })
-  const recordWithoutDigest: Omit<
-    CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
-    'recordDigestSha256'
-  > = {
-    schemaVersion:
-      'canonical-caption-track-all-authenticated-evidence-record-v2',
+  const recordWithoutDigest = {
+    schemaVersion: foregroundV2
+      ? CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION
+      : 'canonical-caption-track-all-authenticated-evidence-record-v2',
     recordId: `caption.track.record.${suffix}`,
     originalCallRef: structuredClone(request.originalCallRef),
     supportRequestRef: requestRef(request),
@@ -476,10 +502,14 @@ export function createCaptionTrackAllContractFixtureResolution(
     publicDeliveryGranted: false,
     productionAuthorityGranted: false,
   }
-  const record = parseCaptionCanonicalTrackAllEvidenceRecord(redigest({
+  const recordValue = redigest({
     ...recordWithoutDigest,
     recordDigestSha256: '',
-  }, 'recordDigestSha256'))
+  }, 'recordDigestSha256')
+  const record: CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny =
+    foregroundV2
+      ? parseCaptionCanonicalTrackAllEvidenceRecordV3(recordValue)
+      : parseCaptionCanonicalTrackAllEvidenceRecord(recordValue)
   return {
     injectedSupportArtifactRefs: [artifact],
     runtimeEvidence: {
@@ -524,7 +554,7 @@ export function createCaptionsAuthenticatedOwnerFixture(
     requiredObservationRoles: [...trackProfile.visualObservationRoles],
     expectedOutcomeRefs: [domainRef('caption.outcome.safe.multi-owner')],
   })
-  const trackSupport = createCaptionTrackAllSupport({
+  const trackSupportInput = {
     payloadId: 'caption.track.multi-owner.payload',
     requestId: `${call.callId}.support.track_all`,
     idempotencyKey: call.idempotencyKey,
@@ -547,13 +577,22 @@ export function createCaptionsAuthenticatedOwnerFixture(
         'caption.visual-observation.multi-owner')],
       sourcePhraseRefs: [domainRef('caption.source-phrase.multi-owner')],
       maskRequired: trackProfile.maskRequired,
-      trackRequired: true,
+      trackRequired: true as const,
       anchorRequired: trackProfile.anchorRequired,
       preserveHairAndFineEdges: trackProfile.preserveHairAndFineEdges,
       preserveContactObjects: trackProfile.preserveContactObjects,
     }],
     korniaRefinementAllowed: false,
-  })
+  }
+  const trackSupport = trackProfile.purpose === 'subject_foreground'
+    ? createCaptionTrackAllSupportV2({
+      ...trackSupportInput,
+      purpose: trackProfile.purpose,
+    })
+    : createCaptionTrackAllSupport({
+      ...trackSupportInput,
+      purpose: trackProfile.purpose,
+    })
   let admittedVisualRecord:
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null = null
   return {
@@ -593,6 +632,17 @@ function authenticatedTrackFixtureProfile(jobType: string) {
   if (jobType === 'resolve_subject_occluded_typography') {
     return {
       purpose: 'subject_occlusion' as const,
+      subjectRole: 'primary_speaker' as const,
+      visualObservationRoles: ['safe_candidate', 'face', 'gesture'] as const,
+      maskRequired: true,
+      anchorRequired: false,
+      preserveHairAndFineEdges: true,
+      preserveContactObjects: false,
+    }
+  }
+  if (jobType === 'resolve_front_of_subject_typography') {
+    return {
+      purpose: 'subject_foreground' as const,
       subjectRole: 'primary_speaker' as const,
       visualObservationRoles: ['safe_candidate', 'face', 'gesture'] as const,
       maskRequired: true,

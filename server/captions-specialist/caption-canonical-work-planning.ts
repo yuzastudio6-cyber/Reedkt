@@ -72,6 +72,7 @@ const refSchema = z.object({
 }).strict()
 const trackingJobSchema = z.enum([
   'resolve_subject_occluded_typography',
+  'resolve_front_of_subject_typography',
   'resolve_object_anchored_typography',
   'resolve_environmental_typography',
 ])

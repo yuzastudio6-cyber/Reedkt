@@ -2,10 +2,10 @@ import type { SkillContractRef } from
   '../../src/types/orchestra-skill-contracts'
 import type { ServiceContext } from '../types'
 import {
-  parseCaptionCanonicalTrackAllEvidenceRecord,
+  parseCaptionCanonicalTrackAllEvidenceRecordAny,
 } from '../captions-specialist/caption-canonical-track-all-evidence-read'
 import {
-  createCanonicalCaptionTrackAllEvidenceRepository,
+  createCanonicalCaptionTrackAllEvidenceRepositoryV3,
 } from '../services/canonical-caption-track-all-support-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from
   '../services/canonical-private-local-json-object-port'
@@ -95,9 +95,9 @@ export async function injectCanonicalCaptionTrackAllStructuralSupport(input: {
       'Structural Caption Track All fixture did not produce one closed record.',
     )
   }
-  const record = parseCaptionCanonicalTrackAllEvidenceRecord(
-    resolution.runtimeEvidence.canonicalTrackAllEvidenceRecord,
-  )
+  const rawRecord = resolution.runtimeEvidence
+    .canonicalTrackAllEvidenceRecord
+  const record = parseCaptionCanonicalTrackAllEvidenceRecordAny(rawRecord)
   if (record.supportRequestRef.id !== selectedRef.id
     || record.supportRequestRef.version !== selectedRef.version
     || record.supportRequestRef.contentHash !== selectedRef.contentHash
@@ -112,7 +112,7 @@ export async function injectCanonicalCaptionTrackAllStructuralSupport(input: {
     projection: record.authenticatedOwnerProjection,
   })
   const evidenceRepository =
-    createCanonicalCaptionTrackAllEvidenceRepository({ objectPort })
+    createCanonicalCaptionTrackAllEvidenceRepositoryV3({ objectPort })
   await evidenceRepository.persistCreateOnly({ record })
   const [projectionReread, evidenceReread] = await Promise.all([
     supportRepository.rereadAuthenticatedOwnerProjection({

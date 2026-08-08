@@ -5,8 +5,15 @@ import {
   type CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-track-all-support'
 import {
+  CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION,
+  type CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny,
+  type CanonicalCaptionTrackAllAuthenticatedEvidenceRecordV3,
+} from '../../src/types/caption-canonical-track-all-foreground-support'
+import {
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_ADAPTER_VERSION,
+  CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_ADAPTER_V3_VERSION,
   type CaptionCanonicalTrackAllEvidenceReadAdapterReceipt,
+  type CaptionCanonicalTrackAllEvidenceReadAdapterReceiptV3,
 } from '../../src/types/caption-canonical-track-all-evidence-read'
 import type {
   SkillArtifactRef,
@@ -23,8 +30,11 @@ import {
 } from './caption-canonical-specialist-resume-read'
 import {
   parseCaptionTrackAllAdmission,
+  parseCaptionTrackAllAdmissionV2,
   parseCaptionTrackAllEvidencePacket,
+  parseCaptionTrackAllEvidencePacketV2,
   parseCaptionTrackAllSupportPayload,
+  parseCaptionTrackAllSupportPayloadV2,
 } from './caption-track-all-support'
 
 const safeKey = z.string().min(1).max(240)
@@ -77,6 +87,10 @@ const recordEnvelopeSchema = z.object({
   publicDeliveryGranted: z.literal(false),
   productionAuthorityGranted: z.literal(false),
 }).strict()
+const recordEnvelopeV3Schema = recordEnvelopeSchema.extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION),
+}).strict()
 
 const receiptSchema:
 z.ZodType<CaptionCanonicalTrackAllEvidenceReadAdapterReceipt> = z.object({
@@ -112,6 +126,39 @@ z.ZodType<CaptionCanonicalTrackAllEvidenceReadAdapterReceipt> = z.object({
   publicDeliveryGranted: z.literal(false),
   productionAuthorityGranted: z.literal(false),
 }).strict()
+const receiptV3Schema:
+z.ZodType<CaptionCanonicalTrackAllEvidenceReadAdapterReceiptV3> = z.object({
+  schemaVersion: z.literal(
+    CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_ADAPTER_V3_VERSION),
+  adapterId: safeKey,
+  adapterDigestSha256: rawSha256,
+  priorAdapterReceiptRef: z.object({
+    id: safeKey,
+    version: z.literal(
+      CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_ADAPTER_VERSION),
+    contentHash: rawSha256,
+  }).strict(),
+  consumedRecordVersion: z.literal(
+    CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION),
+  captionParserEntrypointId: z.literal(
+    'parseCaptionCanonicalTrackAllEvidenceRecordV3'),
+  frozenV2ReceiptPreserved: z.literal(true),
+  frozenTrackAllV1WirePreserved: z.literal(true),
+  foregroundPurposeRequiresCaptionTrackAllV2: z.literal(true),
+  exactForegroundDepthAndAdmissionBindingRequired: z.literal(true),
+  backendImplementationImported: z.literal(false),
+  structuralSourceFixtureExercised: z.literal(true),
+  actualCanonicalEvidenceRecordConsumed: z.literal(false),
+  canonicalTrackAllProducerMounted: z.literal(false),
+  canonicalTrackAllRuntimeRequiredForQualification: z.literal(true),
+  directPeerDispatchAdded: z.literal(false),
+  runtimeExecutionAuthorityGranted: z.literal(false),
+  assetMutationAuthorityGranted: z.literal(false),
+  costOrBillingAuthorityGranted: z.literal(false),
+  finalQaApprovalGranted: z.literal(false),
+  publicDeliveryGranted: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+}).strict()
 
 function sameRef(left: SkillContractRef, right: SkillContractRef): boolean {
   return left.id === right.id
@@ -133,22 +180,36 @@ function sameArtifactRef(
     && sameRef(left.sourceSupportRequestRef, right.sourceSupportRequestRef)
 }
 
-export function parseCaptionCanonicalTrackAllEvidenceRecord(
+function parseCaptionCanonicalTrackAllEvidenceRecordForVersion(
   value: unknown,
-): CanonicalCaptionTrackAllAuthenticatedEvidenceRecord {
+  version: 'v2' | 'v3',
+): CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny {
   assertClosedContractTree(value, 'Caption canonical Track All evidence record')
-  const envelope = recordEnvelopeSchema.parse(value)
-  const supportPayload = parseCaptionTrackAllSupportPayload(
-    envelope.supportPayload)
+  const envelope = version === 'v3'
+    ? recordEnvelopeV3Schema.parse(value)
+    : recordEnvelopeSchema.parse(value)
+  const supportPayload = version === 'v3'
+    ? parseCaptionTrackAllSupportPayloadV2(envelope.supportPayload)
+    : parseCaptionTrackAllSupportPayload(envelope.supportPayload)
   const supportRequest = parseSkillSupportRequest(envelope.supportRequest)
-  const packet = parseCaptionTrackAllEvidencePacket(
-    envelope.captionEvidencePacket,
-    { payload: supportPayload, supportRequest },
-  )
-  const admission = parseCaptionTrackAllAdmission(
-    envelope.captionAdmission,
-    { packet, payload: supportPayload, supportRequest },
-  )
+  const packet = version === 'v3'
+    ? parseCaptionTrackAllEvidencePacketV2(
+      envelope.captionEvidencePacket,
+      { payload: supportPayload, supportRequest },
+    )
+    : parseCaptionTrackAllEvidencePacket(
+      envelope.captionEvidencePacket,
+      { payload: supportPayload, supportRequest },
+    )
+  const admission = version === 'v3'
+    ? parseCaptionTrackAllAdmissionV2(
+      envelope.captionAdmission,
+      { packet, payload: supportPayload, supportRequest },
+    )
+    : parseCaptionTrackAllAdmission(
+      envelope.captionAdmission,
+      { packet, payload: supportPayload, supportRequest },
+    )
   const projection = parseCaptionCanonicalAuthenticatedSpecialistProjection(
     envelope.authenticatedOwnerProjection)
   const requestRef: SkillContractRef = {
@@ -193,6 +254,12 @@ export function parseCaptionCanonicalTrackAllEvidenceRecord(
       !== JSON.stringify(supportRequest.canonicalScope)
     || projection.artifactRefs.length !== 1
     || !sameArtifactRef(projection.artifactRefs[0], expectedArtifact)
+    || (version === 'v3'
+      && (supportPayload.purpose !== 'subject_foreground'
+        || !('textInFrontOfSubjectAllowed' in admission)
+        || admission.textInFrontOfSubjectAllowed !== true
+        || admission.textBehindSubjectAllowed
+        || admission.objectAnchorAllowed))
     || envelope.recordDigestSha256 !== calculateSkillContractDigest(
       envelope as unknown as Record<string, unknown>,
       'recordDigestSha256')) {
@@ -205,7 +272,40 @@ export function parseCaptionCanonicalTrackAllEvidenceRecord(
     captionEvidencePacket: packet,
     captionAdmission: admission,
     authenticatedOwnerProjection: projection,
-  } as CanonicalCaptionTrackAllAuthenticatedEvidenceRecord)
+  } as CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny)
+}
+
+export function parseCaptionCanonicalTrackAllEvidenceRecord(
+  value: unknown,
+): CanonicalCaptionTrackAllAuthenticatedEvidenceRecord {
+  return parseCaptionCanonicalTrackAllEvidenceRecordForVersion(
+    value, 'v2') as CanonicalCaptionTrackAllAuthenticatedEvidenceRecord
+}
+
+export function parseCaptionCanonicalTrackAllEvidenceRecordV3(
+  value: unknown,
+): CanonicalCaptionTrackAllAuthenticatedEvidenceRecordV3 {
+  return parseCaptionCanonicalTrackAllEvidenceRecordForVersion(
+    value, 'v3') as CanonicalCaptionTrackAllAuthenticatedEvidenceRecordV3
+}
+
+export function parseCaptionCanonicalTrackAllEvidenceRecordAny(
+  value: unknown,
+): CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny {
+  assertClosedContractTree(
+    value, 'Caption canonical Track All versioned evidence record')
+  const version = z.object({
+    schemaVersion: z.enum([
+      CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_VERSION,
+      CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION,
+    ]),
+  }).passthrough().parse(value).schemaVersion
+  return parseCaptionCanonicalTrackAllEvidenceRecordForVersion(
+    value,
+    version ===
+      CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION
+      ? 'v3' : 'v2',
+  )
 }
 
 export function parseCaptionCanonicalTrackAllEvidenceReadReceipt(
@@ -218,6 +318,21 @@ export function parseCaptionCanonicalTrackAllEvidenceReadReceipt(
     receipt as unknown as Record<string, unknown>,
     'adapterDigestSha256')) {
     throw new Error('Caption canonical Track All evidence-read receipt is stale.')
+  }
+  return structuredClone(receipt)
+}
+
+export function parseCaptionCanonicalTrackAllEvidenceReadReceiptV3(
+  value: unknown,
+): CaptionCanonicalTrackAllEvidenceReadAdapterReceiptV3 {
+  assertClosedContractTree(
+    value, 'Caption canonical Track All V3 evidence-read receipt')
+  const receipt = receiptV3Schema.parse(value)
+  if (receipt.adapterDigestSha256 !== calculateSkillContractDigest(
+    receipt as unknown as Record<string, unknown>,
+    'adapterDigestSha256')) {
+    throw new Error(
+      'Caption canonical Track All V3 evidence-read receipt is stale.')
   }
   return structuredClone(receipt)
 }
@@ -262,6 +377,50 @@ export const CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT =
     ...receiptWithoutDigest,
     adapterDigestSha256: calculateSkillContractDigest({
       ...receiptWithoutDigest,
+      adapterDigestSha256: '',
+    }, 'adapterDigestSha256'),
+  })
+
+const receiptV3WithoutDigest: Omit<
+  CaptionCanonicalTrackAllEvidenceReadAdapterReceiptV3,
+  'adapterDigestSha256'
+> = {
+  schemaVersion:
+    CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_ADAPTER_V3_VERSION,
+  adapterId: 'captions.canonical.track-all.evidence-read.adapter.v3',
+  priorAdapterReceiptRef: {
+    id: CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterId,
+    version: CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.schemaVersion,
+    contentHash:
+      CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterDigestSha256,
+  },
+  consumedRecordVersion:
+    CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_V3_VERSION,
+  captionParserEntrypointId:
+    'parseCaptionCanonicalTrackAllEvidenceRecordV3',
+  frozenV2ReceiptPreserved: true,
+  frozenTrackAllV1WirePreserved: true,
+  foregroundPurposeRequiresCaptionTrackAllV2: true,
+  exactForegroundDepthAndAdmissionBindingRequired: true,
+  backendImplementationImported: false,
+  structuralSourceFixtureExercised: true,
+  actualCanonicalEvidenceRecordConsumed: false,
+  canonicalTrackAllProducerMounted: false,
+  canonicalTrackAllRuntimeRequiredForQualification: true,
+  directPeerDispatchAdded: false,
+  runtimeExecutionAuthorityGranted: false,
+  assetMutationAuthorityGranted: false,
+  costOrBillingAuthorityGranted: false,
+  finalQaApprovalGranted: false,
+  publicDeliveryGranted: false,
+  productionAuthorityGranted: false,
+}
+
+export const CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3 =
+  parseCaptionCanonicalTrackAllEvidenceReadReceiptV3({
+    ...receiptV3WithoutDigest,
+    adapterDigestSha256: calculateSkillContractDigest({
+      ...receiptV3WithoutDigest,
       adapterDigestSha256: '',
     }, 'adapterDigestSha256'),
   })

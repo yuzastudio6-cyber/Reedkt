@@ -1100,9 +1100,9 @@ try {
       baseTranscriptOwnerReadPort
   }
   if (advancedApprovedExecutionCampaign) {
-    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 7)
-    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 26)
-    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 15)
+    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 8)
+    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 27)
+    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 14)
     assert.equal(
       advancedApprovedExecutionCampaign.campaignIdenticalReplayVerified,
       true,
@@ -1117,6 +1117,7 @@ try {
         'resolve_multi_track_caption_scene',
         'resolve_spatial_typography',
         'resolve_subject_occluded_typography',
+        'resolve_front_of_subject_typography',
         'resolve_object_anchored_typography',
         'resolve_environmental_typography',
         'resolve_hero_typography',
@@ -1651,6 +1652,12 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
     expectedNewJobTypes: ['resolve_subject_occluded_typography'],
   }, {
     scenario: {
+      scenarioId: 'front-of-subject',
+      mappedPresetIds: ['front_of_subject_typography'],
+    },
+    expectedNewJobTypes: ['resolve_front_of_subject_typography'],
+  }, {
+    scenario: {
       scenarioId: 'object-anchored',
       mappedPresetIds: ['object_anchored_typography'],
     },
@@ -1732,9 +1739,9 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
   })
   assert.deepEqual(campaign.coveredCaptionJobTypes, coveredJobTypes)
   assert.deepEqual(campaign.missingCaptionJobTypes, missingJobTypes)
-  assert.equal(campaign.counts.approvedRuns, 7)
-  assert.equal(campaign.counts.distinctApprovedSnapshots, 7)
-  assert.equal(campaign.counts.distinctExecutionPackages, 7)
+  assert.equal(campaign.counts.approvedRuns, 8)
+  assert.equal(campaign.counts.distinctApprovedSnapshots, 8)
+  assert.equal(campaign.counts.distinctExecutionPackages, 8)
   assert.equal(campaign.oneAllFeatureEditFabricated, false)
   assert.equal(campaign.terminalQualificationClaimed, false)
   const campaignRepository =

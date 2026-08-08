@@ -63,7 +63,7 @@ import {
   createCanonicalCaptionVisualIntelligenceEvidenceRepository,
 } from './canonical-caption-visual-intelligence-support-service'
 import {
-  createCanonicalCaptionTrackAllEvidenceRepository,
+  createCanonicalCaptionTrackAllEvidenceRepositoryV3,
 } from './canonical-caption-track-all-support-service'
 import {
   createCanonicalCaptionSoundSyncEvidenceRepository,
@@ -734,7 +734,7 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
   const visualIntelligenceEvidenceRepository =
     createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
   const trackAllEvidenceRepository =
-    createCanonicalCaptionTrackAllEvidenceRepository({ objectPort })
+    createCanonicalCaptionTrackAllEvidenceRepositoryV3({ objectPort })
   const soundSyncEvidenceRepository = input.context
     .canonicalCaptionSoundSyncEvidenceRepository
     ?? createCanonicalCaptionSoundSyncEvidenceRepository({ objectPort })

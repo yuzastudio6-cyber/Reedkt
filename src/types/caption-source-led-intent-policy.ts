@@ -14,6 +14,7 @@ export const CAPTION_SOURCE_LED_ADVANCED_PRESET_IDS = [
   'caption_speaker_identification',
   'spatial_caption_compositing',
   'subject_occluded_typography',
+  'front_of_subject_typography',
   'object_anchored_typography',
   'environmental_typography',
   'persistent_topic_list_typography',

@@ -27,8 +27,10 @@ import type {
   CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-visual-intelligence-support'
 import type {
-  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
-} from '../../src/types/canonical-caption-track-all-support'
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny,
+} from '../../src/types/caption-canonical-track-all-foreground-support'
+import type { CaptionTrackAllPurposeV2 } from
+  '../../src/types/caption-track-all-support'
 import type {
   CanonicalCaptionSoundSupportInputReadPort,
   CanonicalCaptionSoundSyncAuthenticatedEvidenceRecord,
@@ -67,7 +69,10 @@ import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import { createCaptionVisualIntelligenceSupport } from
   '../captions-specialist/caption-visual-intelligence-support'
-import { createCaptionTrackAllSupport } from
+import {
+  createCaptionTrackAllSupport,
+  createCaptionTrackAllSupportV2,
+} from
   '../captions-specialist/caption-track-all-support'
 import { canonicalCaptionAssignmentTriggerForJob } from
   '../captions-specialist/caption-canonical-work-planning'
@@ -100,8 +105,7 @@ import type {
   CaptionVisualObservationRole,
 } from '../../src/types/caption-visual-intelligence-support'
 import type {
-  CaptionTrackAllPurpose,
-  CaptionTrackAllSupportPayload,
+  CaptionTrackAllSupportPayloadAny,
 } from '../../src/types/caption-track-all-support'
 import {
   canonicalWorkerLeaseDependencyAuthoritySchema,
@@ -406,7 +410,7 @@ export interface CanonicalCaptionSpecialistExecutionPort {
     readonly canonicalVisualIntelligenceEvidenceRecord?:
       CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
     readonly canonicalTrackAllEvidenceRecord?:
-      CanonicalCaptionTrackAllAuthenticatedEvidenceRecord
+      CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny
     readonly soundSupportContext?: unknown
     readonly soundSupportPayload?: unknown
     readonly soundSupportResult?: unknown
@@ -500,7 +504,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly trackAllEvidenceReadPort?: Readonly<{
     rereadBySupportRequestRef(input: {
       readonly supportRequestRef: SkillContractRef
-    }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecord | null>
+    }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny | null>
   }>
   /** Read-only SoundSync evidence projected and sealed by the Sound owner. */
   readonly soundSyncEvidenceReadPort?: Readonly<{
@@ -1089,7 +1093,7 @@ function canonicalCaptionTrackAllSupportRuntimeInput(input: {
     typeof parseCanonicalCaptionPostapprovalFinishRecord
   > | null
   visualEvidence: CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
-}): { trackAllSupportPayload: CaptionTrackAllSupportPayload } | object {
+}): { trackAllSupportPayload: CaptionTrackAllSupportPayloadAny } | object {
   const purpose = canonicalCaptionTrackAllPurpose(input.call.job.jobType)
   if (purpose === null) return {}
   if (!input.record || input.call.canonicalScope.sceneId === null
@@ -1106,7 +1110,9 @@ function canonicalCaptionTrackAllSupportRuntimeInput(input: {
       'Canonical Caption Track All request crossed visual occupancy authority.',
     )
   }
-  const visualRoles = purpose === 'subject_occlusion'
+  const subjectDepthPurpose = purpose === 'subject_occlusion'
+    || purpose === 'subject_foreground'
+  const visualRoles = subjectDepthPurpose
     ? new Set(['speaker', 'face', 'gesture'])
     : new Set(['important_object'])
   const relevantObservations = packet.observations.filter((observation) =>
@@ -1131,57 +1137,72 @@ function canonicalCaptionTrackAllSupportRuntimeInput(input: {
     )
   }
   const lock = input.record.pictureLock
-  const subjectRole = purpose === 'subject_occlusion'
+  const subjectRole = subjectDepthPurpose
     ? 'primary_speaker' as const
     : purpose === 'object_anchor'
       ? 'important_object' as const
       : 'environmental_surface' as const
-  const anchored = purpose !== 'subject_occlusion'
+  const anchored = !subjectDepthPurpose
+  const supportInput = {
+    payloadId:
+      `caption.track-support.${input.call.callDigestSha256.slice(0, 40)}`,
+    requestId: `${input.call.callId}.support.track_all`,
+    idempotencyKey: input.call.idempotencyKey,
+    originalCallRef: callRef(input.call),
+    purpose,
+    canonicalScope: structuredClone(input.record.binding.canonicalScope),
+    pictureLockRef: structuredClone(input.record.binding.pictureLockRef),
+    finishReadinessRef:
+      structuredClone(input.record.binding.finishReadinessRef),
+    visualOccupancyManifestRef: {
+      id: packet.packetId,
+      version: packet.schemaVersion,
+      contentHash: packet.packetDigestSha256,
+    },
+    confirmedOutputFrameDigestSha256:
+      lock.confirmedOutputFrame.confirmedOutputFrameDigestSha256,
+    sourcePrivateArtifactRef:
+      structuredClone(lock.compositionBindings.nearFinalVisualProxyRef),
+    sourceFrameMappingRef:
+      structuredClone(lock.timelineBindings.sourceRangesRef),
+    subjectRequests: [{
+      subjectRequestId:
+        `caption.track-subject.${input.call.callDigestSha256.slice(0, 36)}`,
+      subjectRole,
+      visualObservationRefs,
+      sourcePhraseRefs,
+      maskRequired: subjectDepthPurpose,
+      trackRequired: true as const,
+      anchorRequired: anchored,
+      preserveHairAndFineEdges: subjectDepthPurpose,
+      preserveContactObjects: purpose === 'object_anchor',
+    }],
+    korniaRefinementAllowed: false,
+  }
+  if (purpose === 'subject_foreground') {
+    return {
+      trackAllSupportPayload: createCaptionTrackAllSupportV2({
+        ...supportInput,
+        purpose,
+      }).payload,
+    }
+  }
   return {
     trackAllSupportPayload: createCaptionTrackAllSupport({
-      payloadId:
-        `caption.track-support.${input.call.callDigestSha256.slice(0, 40)}`,
-      requestId: `${input.call.callId}.support.track_all`,
-      idempotencyKey: input.call.idempotencyKey,
-      originalCallRef: callRef(input.call),
+      ...supportInput,
       purpose,
-      canonicalScope: structuredClone(input.record.binding.canonicalScope),
-      pictureLockRef: structuredClone(input.record.binding.pictureLockRef),
-      finishReadinessRef:
-        structuredClone(input.record.binding.finishReadinessRef),
-      visualOccupancyManifestRef: {
-        id: packet.packetId,
-        version: packet.schemaVersion,
-        contentHash: packet.packetDigestSha256,
-      },
-      confirmedOutputFrameDigestSha256:
-        lock.confirmedOutputFrame.confirmedOutputFrameDigestSha256,
-      sourcePrivateArtifactRef:
-        structuredClone(lock.compositionBindings.nearFinalVisualProxyRef),
-      sourceFrameMappingRef:
-        structuredClone(lock.timelineBindings.sourceRangesRef),
-      subjectRequests: [{
-        subjectRequestId:
-          `caption.track-subject.${input.call.callDigestSha256.slice(0, 36)}`,
-        subjectRole,
-        visualObservationRefs,
-        sourcePhraseRefs,
-        maskRequired: purpose === 'subject_occlusion',
-        trackRequired: true,
-        anchorRequired: anchored,
-        preserveHairAndFineEdges: purpose === 'subject_occlusion',
-        preserveContactObjects: purpose === 'object_anchor',
-      }],
-      korniaRefinementAllowed: false,
     }).payload,
   }
 }
 
 function canonicalCaptionTrackAllPurpose(
   jobType: string,
-): CaptionTrackAllPurpose | null {
+): CaptionTrackAllPurposeV2 | null {
   if (jobType === 'resolve_subject_occluded_typography') {
     return 'subject_occlusion'
+  }
+  if (jobType === 'resolve_front_of_subject_typography') {
+    return 'subject_foreground'
   }
   if (jobType === 'resolve_object_anchored_typography') {
     return 'object_anchor'

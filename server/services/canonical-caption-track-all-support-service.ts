@@ -10,6 +10,9 @@ import {
   CANONICAL_CAPTION_TRACK_ALL_AUTHENTICATED_EVIDENCE_RECORD_VERSION,
   CANONICAL_TRACK_ALL_SAM3_1_CAPTION_SCENE_EVIDENCE_VERSION,
 } from '../../src/types/canonical-caption-track-all-support'
+import {
+  type CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny,
+} from '../../src/types/caption-canonical-track-all-foreground-support'
 import type {
   CaptionDomainCanonicalScope,
   CaptionDomainFrameRange,
@@ -72,6 +75,9 @@ import {
   canonicalCaptionCrossSystemRuntimeInput,
   resolveCanonicalCaptionCrossSystemExecutionInput,
 } from './canonical-caption-cross-system-execution-input-service'
+import {
+  parseCaptionCanonicalTrackAllEvidenceRecordAny,
+} from '../captions-specialist/caption-canonical-track-all-evidence-read'
 import { resolveCanonicalCaptionIncomingSupportRequestForCall } from
   './canonical-caption-incoming-support-request-service'
 import { runCaptionsSpecialistJob } from
@@ -88,6 +94,8 @@ export const CANONICAL_TRACK_ALL_SAM3_1_CAPTION_SCENE_EVIDENCE_REPOSITORY_VERSIO
   'canonical-track-all-sam3_1-caption-scene-evidence-repository-v1' as const
 export const CANONICAL_CAPTION_TRACK_ALL_EVIDENCE_REPOSITORY_VERSION =
   'canonical-caption-track-all-evidence-repository-v2' as const
+export const CANONICAL_CAPTION_TRACK_ALL_EVIDENCE_REPOSITORY_V3_VERSION =
+  'canonical-caption-track-all-evidence-repository-v3' as const
 export const CANONICAL_CAPTION_TRACK_ALL_SUPPORT_SERVICE_VERSION =
   'canonical-caption-track-all-support-service-v2' as const
 
@@ -474,6 +482,17 @@ export interface CanonicalCaptionTrackAllEvidenceRepository {
   rereadBySupportRequestRef(input: {
     readonly supportRequestRef: SkillContractRef
   }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecord | null>
+}
+
+export interface CanonicalCaptionTrackAllEvidenceRepositoryV3 {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_TRACK_ALL_EVIDENCE_REPOSITORY_V3_VERSION
+  persistCreateOnly(input: {
+    readonly record: CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny
+  }): Promise<'created' | 'identical_replay'>
+  rereadBySupportRequestRef(input: {
+    readonly supportRequestRef: SkillContractRef
+  }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecordAny | null>
 }
 
 export interface CanonicalCaptionTrackAllSupportService {
@@ -880,6 +899,37 @@ export function createCanonicalCaptionTrackAllEvidenceRepository(input: {
         input.objectPort,
         recordPath(prefix, ref),
         parseCanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
+      )
+    },
+  }
+  return Object.freeze(repository)
+}
+
+export function createCanonicalCaptionTrackAllEvidenceRepositoryV3(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix?: string
+}): CanonicalCaptionTrackAllEvidenceRepositoryV3 {
+  assertObjectPort(input.objectPort)
+  const prefix = prefixSchema.parse(input.prefix ?? RECORD_PREFIX)
+  const repository: CanonicalCaptionTrackAllEvidenceRepositoryV3 = {
+    schemaVersion:
+      CANONICAL_CAPTION_TRACK_ALL_EVIDENCE_REPOSITORY_V3_VERSION,
+    async persistCreateOnly({ record: value }) {
+      const record = parseCaptionCanonicalTrackAllEvidenceRecordAny(value)
+      return persistExact(
+        input.objectPort,
+        recordPath(prefix, record.supportRequestRef),
+        record,
+        parseCaptionCanonicalTrackAllEvidenceRecordAny,
+      )
+    },
+    async rereadBySupportRequestRef({ supportRequestRef: untrusted }) {
+      assertClosedContractTree(untrusted, 'Caption Track All V3 record read ref')
+      const ref = skillRefSchema.parse(untrusted)
+      return readExact(
+        input.objectPort,
+        recordPath(prefix, ref),
+        parseCaptionCanonicalTrackAllEvidenceRecordAny,
       )
     },
   }

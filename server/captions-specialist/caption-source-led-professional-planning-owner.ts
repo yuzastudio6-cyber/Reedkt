@@ -98,6 +98,7 @@ const professionalCaptionDirectiveSchema = z.object({
 
 type TrackingJobType =
   | 'resolve_subject_occluded_typography'
+  | 'resolve_front_of_subject_typography'
   | 'resolve_object_anchored_typography'
   | 'resolve_environmental_typography'
 
@@ -671,6 +672,10 @@ function createAssignmentIntents(input: {
         if (active.has('subject_occluded_typography')) {
           advancedJobTypes.add('resolve_subject_occluded_typography')
         }
+        if (scene.trackingJobType ===
+          'resolve_front_of_subject_typography') {
+          advancedJobTypes.add('resolve_front_of_subject_typography')
+        }
         if (active.has('object_anchored_typography')) {
           advancedJobTypes.add('resolve_object_anchored_typography')
         }
@@ -835,6 +840,8 @@ function createCaptionSourceLedPlanningPolicy(input: {
     const trackingRequests: TrackingJobType[] = [
       ...(advancedPresetIds.has('subject_occluded_typography')
         ? ['resolve_subject_occluded_typography' as const] : []),
+      ...(advancedPresetIds.has('front_of_subject_typography')
+        ? ['resolve_front_of_subject_typography' as const] : []),
       ...(advancedPresetIds.has('object_anchored_typography')
         ? ['resolve_object_anchored_typography' as const] : []),
       ...(advancedPresetIds.has('environmental_typography')
@@ -876,6 +883,10 @@ function createCaptionSourceLedPlanningPolicy(input: {
     if (features.trackingJobType ===
       'resolve_subject_occluded_typography') {
       integrationClasses.add('subject_occluded')
+    }
+    if (features.trackingJobType ===
+      'resolve_front_of_subject_typography') {
+      integrationClasses.add('spatial_composite')
     }
     if (features.trackingJobType ===
       'resolve_object_anchored_typography') {
@@ -1002,7 +1013,8 @@ function createCaptionSourceLedPlanningPolicy(input: {
     maximumHeroMoments: input.restrained
       ? 0 : advancedPresetIds.has('hero_typography_direction') ? 1 : 0,
     subjectOverlapAllowed: !input.restrained
-      && advancedPresetIds.has('subject_occluded_typography'),
+      && (advancedPresetIds.has('subject_occluded_typography')
+        || advancedPresetIds.has('front_of_subject_typography')),
     objectAnchoringAllowed: !input.restrained
       && (advancedPresetIds.has('object_anchored_typography')
         || advancedPresetIds.has('environmental_typography')),

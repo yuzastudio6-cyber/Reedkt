@@ -22,6 +22,7 @@ export const CANONICAL_CAPTION_SPECIALIST_JOB_ASSIGNMENT_VERSION =
 
 export type CanonicalCaptionTrackingJobType =
   | 'resolve_subject_occluded_typography'
+  | 'resolve_front_of_subject_typography'
   | 'resolve_object_anchored_typography'
   | 'resolve_environmental_typography'
 

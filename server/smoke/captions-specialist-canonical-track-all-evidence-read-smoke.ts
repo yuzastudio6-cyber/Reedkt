@@ -18,7 +18,9 @@ import type {
 } from '../../src/types/canonical-specialist-support-resume'
 import {
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT,
+  CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3,
   parseCaptionCanonicalTrackAllEvidenceReadReceipt,
+  parseCaptionCanonicalTrackAllEvidenceReadReceiptV3,
   parseCaptionCanonicalTrackAllEvidenceRecord,
 } from '../captions-specialist/caption-canonical-track-all-evidence-read'
 import {
@@ -336,6 +338,15 @@ check(parseCaptionCanonicalTrackAllEvidenceReadReceipt(
   CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT).backendSource.sourceCommit
   === 'b4241b6023de986de634fd1a20b705dbedf811cb',
 'The Caption adapter receipt pins the exact backend source commit.')
+check(parseCaptionCanonicalTrackAllEvidenceReadReceiptV3(
+  CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3,
+).priorAdapterReceiptRef.contentHash ===
+  CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterDigestSha256
+  && !CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3
+    .actualCanonicalEvidenceRecordConsumed
+  && !CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3
+    .canonicalTrackAllProducerMounted,
+'The additive foreground receipt preserves V2 and stays structural-only.')
 
 const initial = runCaptionsSpecialistJob({
   call: runtimeCall,
@@ -489,6 +500,10 @@ console.log(JSON.stringify({
     CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.schemaVersion,
   adapterDigestSha256:
     CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT.adapterDigestSha256,
+  foregroundAdapterVersion:
+    CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3.schemaVersion,
+  foregroundAdapterDigestSha256:
+    CAPTION_CANONICAL_TRACK_ALL_EVIDENCE_READ_RECEIPT_V3.adapterDigestSha256,
   canonicalRecordVersion: record.schemaVersion,
   resumeAdmissionVersion:
     CAPTION_CANONICAL_TRACK_ALL_RESUME_ADMISSION_RECEIPT.schemaVersion,

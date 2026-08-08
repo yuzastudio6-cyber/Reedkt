@@ -225,6 +225,8 @@ for (const presetId of [
 for (const [presetId, jobType] of [
   ['subject_occluded_typography',
     'resolve_subject_occluded_typography'],
+  ['front_of_subject_typography',
+    'resolve_front_of_subject_typography'],
   ['object_anchored_typography',
     'resolve_object_anchored_typography'],
   ['environmental_typography',

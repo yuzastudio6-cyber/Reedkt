@@ -1,11 +1,17 @@
 import { createHash } from 'node:crypto'
 import {
   createCaptionTrackAllAdmission,
+  createCaptionTrackAllAdmissionV2,
   createCaptionTrackAllEvidencePacketForContractFixture,
+  createCaptionTrackAllEvidencePacketV2ForContractFixture,
   createCaptionTrackAllSupport,
+  createCaptionTrackAllSupportV2,
   parseCaptionTrackAllAdmission,
+  parseCaptionTrackAllAdmissionV2,
   parseCaptionTrackAllEvidencePacket,
+  parseCaptionTrackAllEvidencePacketV2,
   parseCaptionTrackAllSupportPayload,
+  parseCaptionTrackAllSupportPayloadV2,
 } from '../captions-specialist/caption-track-all-support'
 import {
   calculateSkillContractDigest,
@@ -395,6 +401,105 @@ check(
   'CAP-09 cannot promote final QA, Remotion canvas, or production authority.',
 )
 
+const foregroundScope: CaptionDomainCanonicalScope = {
+  ...scope,
+  sceneId: 'scene.text.in.front.of.subject',
+}
+const foregroundSubjectRequest = {
+  ...subjectRequest,
+  subjectRequestId: 'subject.request.foreground.primary.speaker',
+  sourcePhraseRefs: [ref('phrase.in.front.of.subject')],
+}
+const foregroundSupport = createCaptionTrackAllSupportV2({
+  payloadId: 'caption.track.all.payload.subject.foreground',
+  requestId: 'caption.track.all.support.subject.foreground',
+  idempotencyKey: 'caption.track.all.subject.foreground.idempotency',
+  originalCallRef: ref(
+    'call.cap09.subject.foreground', 'orchestra-skill-call-v1'),
+  purpose: 'subject_foreground',
+  canonicalScope: foregroundScope,
+  pictureLockRef: support.payload.pictureLockRef,
+  finishReadinessRef: support.payload.finishReadinessRef,
+  visualOccupancyManifestRef: support.payload.visualOccupancyManifestRef,
+  confirmedOutputFrameDigestSha256: frameDigest,
+  sourcePrivateArtifactRef: support.payload.sourcePrivateArtifactRef,
+  sourceFrameMappingRef,
+  subjectRequests: [foregroundSubjectRequest],
+  korniaRefinementAllowed: true,
+})
+check(
+  foregroundSupport.payload.schemaVersion
+    === 'caption-track-all-support-payload-v2'
+    && foregroundSupport.payload.purpose === 'subject_foreground'
+    && foregroundSupport.payload.depthIntent === 'in_front_of_subject'
+    && foregroundSupport.supportRequest.typedPayloadType
+      === 'caption-track-all-support-payload-v2',
+  'Front-of-subject work must use the additive V2 semantic lane.',
+)
+expectThrow(() => parseCaptionTrackAllSupportPayload(
+  foregroundSupport.payload))
+check(
+  parseCaptionTrackAllSupportPayloadV2(foregroundSupport.payload)
+    .purpose === 'subject_foreground',
+  'The V2 parser must preserve the exact foreground semantic purpose.',
+)
+
+const wrongForegroundDepth = structuredClone(foregroundSupport.payload)
+wrongForegroundDepth.depthIntent = 'behind_subject'
+wrongForegroundDepth.payloadDigestSha256 = calculateSkillContractDigest(
+  wrongForegroundDepth as unknown as Record<string, unknown>,
+  'payloadDigestSha256',
+)
+expectThrow(() => parseCaptionTrackAllSupportPayloadV2(wrongForegroundDepth))
+
+const foregroundEvidence: CaptionTrackAllSubjectEvidence = {
+  ...structuredClone(subjectEvidence),
+  subjectRequestId: foregroundSubjectRequest.subjectRequestId,
+  subjectEvidenceId: 'subject.evidence.foreground.primary.speaker',
+}
+const foregroundPacket =
+  createCaptionTrackAllEvidencePacketV2ForContractFixture({
+    packetId: 'caption.track.all.packet.subject.foreground',
+    payload: foregroundSupport.payload,
+    supportRequest: foregroundSupport.supportRequest,
+    trackAllResultRef: ref('track.all.result.subject.foreground'),
+    subjectEvidence: [foregroundEvidence],
+  })
+check(
+  parseCaptionTrackAllEvidencePacketV2(foregroundPacket, {
+    payload: foregroundSupport.payload,
+    supportRequest: foregroundSupport.supportRequest,
+  }).purpose === 'subject_foreground',
+  'The V2 packet must remain exactly bound to foreground evidence.',
+)
+const foregroundAdmission = createCaptionTrackAllAdmissionV2({
+  admissionId: 'caption.track.all.admission.subject.foreground',
+  packet: foregroundPacket,
+  payload: foregroundSupport.payload,
+  supportRequest: foregroundSupport.supportRequest,
+})
+check(
+  foregroundAdmission.disposition === 'blocked_private_runtime_evidence'
+    && !foregroundAdmission.textBehindSubjectAllowed
+    && !foregroundAdmission.textInFrontOfSubjectAllowed
+    && !foregroundAdmission.objectAnchorAllowed
+    && foregroundAdmission.selectedFallback === 'safe_top_plane',
+  'A foreground contract fixture must stay on the safe top-plane fallback.',
+)
+const foregroundOverclaim = structuredClone(foregroundAdmission)
+foregroundOverclaim.disposition = 'admitted_for_caption_scene_graph'
+foregroundOverclaim.textInFrontOfSubjectAllowed = true
+foregroundOverclaim.selectedFallback = 'none'
+foregroundOverclaim.admissionDigestSha256 = calculateSkillContractDigest(
+  foregroundOverclaim as unknown as Record<string, unknown>,
+  'admissionDigestSha256',
+)
+expectThrow(() => parseCaptionTrackAllAdmissionV2(foregroundOverclaim, {
+  packet: foregroundPacket,
+  payload: foregroundSupport.payload,
+  supportRequest: foregroundSupport.supportRequest,
+}))
+
 const runtimeCallSeed = createCaptionsHarnessCall({
   callId: 'captions.track-all.runtime-admission',
   jobType: 'resolve_subject_occluded_typography',
@@ -568,6 +673,8 @@ process.stdout.write(`${JSON.stringify({
   actualOpenCvExecutionObserved: false,
   actualKorniaExecutionObserved: false,
   realTextBehindSubjectFixtureExecuted: false,
+  frontOfSubjectV2SemanticLaneVerified: true,
+  frontOfSubjectContractFixtureAdmitted: false,
   typedRuntimeAdmissionPathReady: true,
   contractFixtureRuntimeAdmissionRejected: true,
   captionExecutedSam31: false,

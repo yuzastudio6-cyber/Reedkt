@@ -9,6 +9,7 @@ PROJECT_ID='reeditpro'
 REGION='us-central1'
 ARTIFACT_REPOSITORY='reeditpro-workers'
 IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu'
+QUALIFICATION_IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-qualification'
 TRACK_ALL_L4_TASK_QA_IMAGE_URI='us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-track-all-l4-task-qa'
 IMAGE_BUILDER_SERVICE_ACCOUNT='reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com'
 IMAGE_SIGNER_SERVICE_ACCOUNT='reeditpro-image-signer-sa@reeditpro.iam.gserviceaccount.com'
@@ -20,6 +21,8 @@ MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+SAM31_PRIVATE_ARTIFACT_INGEST_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/private-artifact-ingest/v3"
+SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/qualification-image-supply-chain-release/v1/qualified-releases"
 MASK_BUCKET='reeditpro-production-reeditpro-masks'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
@@ -80,6 +83,30 @@ read_json_or_empty() {
   if ! "$@" 2>/dev/null; then
     printf '{}\n'
   fi
+}
+
+read_bounded_json_record_set() {
+  local prefix="$1"
+  local maximum_records="$2"
+  local records='[]'
+  local object=''
+  local record=''
+  local observed_count=0
+
+  while IFS= read -r object; do
+    [[ -z "${object}" ]] && continue
+    if ((observed_count >= maximum_records)); then
+      break
+    fi
+    record="$(read_json_or_empty gcloud storage cat "${object}")"
+    if jq -e 'type == "object"' <<<"${record}" >/dev/null; then
+      records="$(jq -c --argjson record "${record}" \
+        '. + [$record]' <<<"${records}")"
+      observed_count=$((observed_count + 1))
+    fi
+  done < <(gcloud storage ls --recursive "${prefix}/**" 2>/dev/null || true)
+
+  printf '%s\n' "${records}"
 }
 
 policy_has_member_role() {
@@ -478,6 +505,14 @@ sam31_image_count="$(
       --format='value(version)' 2>/dev/null || true
   } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
 )"
+sam31_qualification_image_count="$(
+  {
+    gcloud artifacts docker images list "${QUALIFICATION_IMAGE_URI}" \
+      --project="${PROJECT_ID}" \
+      --include-tags \
+      --format='value(version)' 2>/dev/null || true
+  } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
+)"
 track_all_l4_task_qa_image_count="$(
   {
     gcloud artifacts docker images list "${TRACK_ALL_L4_TASK_QA_IMAGE_URI}" \
@@ -486,6 +521,143 @@ track_all_l4_task_qa_image_count="$(
       --format='value(version)' 2>/dev/null || true
   } | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' '
 )"
+
+private_artifact_ingest_records="$(read_bounded_json_record_set \
+  "${SAM31_PRIVATE_ARTIFACT_INGEST_PREFIX}" 128)"
+private_artifact_ingest_observation="$(jq -n \
+  --argjson records "${private_artifact_ingest_records}" \
+  'def raw_sha: test("^[a-f0-9]{64}$");
+  def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  [$records[] | select(
+    .schemaVersion == "canonical-sam3_1-private-artifact-ingest-receipt-v3"
+    and .source == "canonical_sam3_1_private_artifact_ingest_owner"
+    and .status == "ready_for_immutable_image_build_review"
+    and .operationId == "tool.sam3_1.segment_and_track_subject.v1"
+    and (.ingestReceiptHash | type == "string" and raw_sha)
+    and .sourceArchive.repository == "https://github.com/facebookresearch/sam3.git"
+    and (.sourceArchive.coordinate.sha256 | type == "string" and raw_sha)
+    and .sourceArchive.artifactRef.contentHash ==
+      ("sha256:" + .sourceArchive.coordinate.sha256)
+    and .sourceArchive.exactStreamedByteLengthAndSha256Verified == true
+    and .sourceArchive.generationAndEtagStableBeforeAndAfterRead == true
+    and .sourceArchive.unsignedSourceRevisionAcceptedBySecurityReview == true
+    and .checkpoint.repository == "facebook/sam3.1"
+    and .checkpoint.fileName == "sam3.1_multiplex.pt"
+    and (.checkpoint.coordinate.sha256 | type == "string" and raw_sha)
+    and .checkpoint.artifactRef.contentHash ==
+      ("sha256:" + .checkpoint.coordinate.sha256)
+    and .checkpoint.exactStreamedByteLengthAndSha256Verified == true
+    and .checkpoint.generationAndEtagStableBeforeAndAfterRead == true
+    and .checkpoint.torchWeightsOnlyLoadRequired == true
+    and .authority.canonicalTermsAcceptanceObserved == true
+    and .authority.exactSourceAndCheckpointReread == true
+    and .authority.imageBuildReviewEligible == true
+    and .authority.artifactIngestEvidenceOnly == true
+    and .authority.imageBuildStarted == false
+    and .authority.runtimeExecuted == false
+    and .authority.workDispatched == false
+    and .authority.costOrCreditMutationCreated == false
+    and .authority.publicDeliveryAuthorized == false
+    and .authority.productionReady == false
+    and (.sourceArchive.artifactRef.contentHash | prefixed_sha)
+    and (.checkpoint.artifactRef.contentHash | prefixed_sha)
+  )] as $ready
+  | ($ready | sort_by(.preparedAt) | last // null) as $latest
+  | {
+      recordsObserved: ($records | length),
+      readyReceiptsObserved: ($ready | length),
+      latestReadyReceipt: (
+        if $latest == null then null else {
+          ingestReceiptId: $latest.ingestReceiptId,
+          ingestReceiptHash: $latest.ingestReceiptHash,
+          sourceRevision: $latest.sourceArchive.revision,
+          sourceSha256: $latest.sourceArchive.coordinate.sha256,
+          checkpointRevision: $latest.checkpoint.revision,
+          checkpointSha256: $latest.checkpoint.coordinate.sha256,
+          preparedAt: $latest.preparedAt
+        } end
+      ),
+      ready: (($ready | length) >= 1)
+    }')"
+
+qualification_image_supply_chain_release_records="$(
+  read_bounded_json_record_set "${SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX}" 128
+)"
+qualification_image_supply_chain_release_observation="$(jq -n \
+  --argjson records "${qualification_image_supply_chain_release_records}" \
+  'def raw_sha: test("^[a-f0-9]{64}$");
+  def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  [$records[] | select(
+    .schemaVersion ==
+      "canonical-sam3_1-qualification-image-supply-chain-release-v1"
+    and .source == "canonical_sam3_1_cloud_image_supply_chain_owner"
+    and .buildPurpose == "source_checkpoint_qualification"
+    and .imageRole == "qualification_image"
+    and .evidenceClass == "canonical_private_reread"
+    and .status == "image_supply_chain_qualified"
+    and .operationId == "tool.sam3_1.segment_and_track_subject.v1"
+    and (.releaseHash | type == "string" and raw_sha)
+    and (.immutableImageDigest | type == "string" and prefixed_sha)
+    and .immutableImageUri ==
+      ("us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/" +
+       "reeditpro-sam31-qualification@" + .immutableImageDigest)
+    and .artifactRegistryPackage ==
+      ("projects/reeditpro/locations/us-central1/repositories/" +
+       "reeditpro-workers/packages/reeditpro-sam31-qualification/versions/" +
+       .immutableImageDigest)
+    and .sbom.completeOsAndApplicationPackageInventory == true
+    and .sbom.exactArtifactReread == true
+    and .vulnerabilityScan.criticalCount == 0
+    and .vulnerabilityScan.highCount == 0
+    and .vulnerabilityScan.unknownSeverityCount == 0
+    and .vulnerabilityScan.exactOccurrencesReread == true
+    and .vulnerabilityScan.securityReviewApprovedForPrivateGpuQualification == true
+    and .signature.exactSignatureVerificationPassed == true
+    and .provenance.exactAttestationRereadAndVerified == true
+    and .authority.exactImmutableImageReread == true
+    and .authority.exactSupplyChainBuildReread == true
+    and .authority.exactThreeArtifactSetReread == true
+    and .authority.exactSbomReread == true
+    and .authority.vulnerabilityScanPassed == true
+    and .authority.imageSignatureVerified == true
+    and .authority.buildProvenanceVerified == true
+    and .authority.qualificationImageSupplyChainQualified == true
+    and .authority.sourceCheckpointQualificationImageAdmissible == true
+    and .authority.sourceCheckpointQualificationGranted == false
+    and .authority.gpuQualificationJobDispatched == false
+    and .authority.a100RuntimeQualified == false
+    and .authority.l4RuntimeQualified == false
+    and .authority.runtimeReleaseGranted == false
+    and .authority.customerCreditMutationAllowed == false
+    and .authority.publicDeliveryAuthorized == false
+    and .authority.productionReady == false
+  )] as $qualified
+  | ($qualified | sort_by(.qualifiedAt) | last // null) as $latest
+  | {
+      recordsObserved: ($records | length),
+      qualifiedReleasesObserved: ($qualified | length),
+      latestQualifiedRelease: (
+        if $latest == null then null else {
+          releaseId: $latest.releaseId,
+          releaseHash: $latest.releaseHash,
+          immutableImageDigest: $latest.immutableImageDigest,
+          immutableImageUri: $latest.immutableImageUri,
+          qualifiedAt: $latest.qualifiedAt,
+          vulnerabilityCounts: {
+            critical: $latest.vulnerabilityScan.criticalCount,
+            high: $latest.vulnerabilityScan.highCount,
+            medium: $latest.vulnerabilityScan.mediumCount,
+            low: $latest.vulnerabilityScan.lowCount,
+            unknown: $latest.vulnerabilityScan.unknownSeverityCount
+          },
+          exactSignatureVerificationPassed:
+            $latest.signature.exactSignatureVerificationPassed,
+          exactAttestationRereadAndVerified:
+            $latest.provenance.exactAttestationRereadAndVerified
+        } end
+      ),
+      ready: (($qualified | length) >= 1)
+    }')"
 
 missing_services_json="$(
   if ((${#missing_services[@]} == 0)); then
@@ -910,7 +1082,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v14' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v15' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
@@ -929,7 +1101,10 @@ jq -n \
   --argjson legacyCpuIdentityObservations "${legacy_cpu_identity_observations}" \
   --argjson legacyCpuIdentitiesRetired "${legacy_cpu_identities_retired}" \
   --argjson sam31ImageCount "${sam31_image_count}" \
+  --argjson sam31QualificationImageCount "${sam31_qualification_image_count}" \
   --argjson trackAllL4TaskQaImageCount "${track_all_l4_task_qa_image_count}" \
+  --argjson privateArtifactIngest "${private_artifact_ingest_observation}" \
+  --argjson imageSupplyChainRelease "${qualification_image_supply_chain_release_observation}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson a100QualificationFoundation "${a100_qualification_foundation}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
@@ -979,13 +1154,24 @@ jq -n \
         [$a100CapacityCandidates[] | select(.dispatchCapacityReady)] | length
       ),
       vertexA100CustomJobCapacity: $vertexA100CustomJobCapacity,
-      capacityPrerequisitesReady: ($a100Limit >= 1 and $l4Limit >= 1)
+      capacityPrerequisitesReady: (
+        $l4Limit >= 1
+        and (
+          $a100Limit >= 1
+          or $vertexA100CustomJobCapacity.capacityGranted
+        )
+      )
     },
     a100QualificationFoundation: $a100QualificationFoundation,
     privateArtifactAccess: {
       huggingFaceTokenEnabledVersions: $huggingFaceTokenEnabledVersions,
       modelWeightTokenEnabledVersions: $modelWeightTokenEnabledVersions,
-      ready: ($huggingFaceTokenEnabledVersions >= 1 and $modelWeightTokenEnabledVersions >= 1)
+      historicalFreshAccessTokenSecretObserved:
+        ($huggingFaceTokenEnabledVersions >= 1),
+      legacyModelWeightTokenSecretRequired: false,
+      freshAccessTokenCurrentlyRequired: false,
+      officialPrivateArtifactIngest: $privateArtifactIngest,
+      ready: $privateArtifactIngest.ready
     },
     cloudApis: {
       missing: $missingServices,
@@ -1073,14 +1259,20 @@ jq -n \
       legacyIdentitiesRetired: $legacyCpuIdentitiesRetired,
       clean: ($privateSearchControlPlane.ready and $legacyCpuIdentitiesRetired)
     },
-    immutableSam31ImagesObserved: $sam31ImageCount,
+    immutableSam31ImagesObserved: (
+      $sam31ImageCount + $sam31QualificationImageCount
+    ),
+    immutableSam31ProductionImagesObserved: $sam31ImageCount,
+    immutableSam31QualificationImagesObserved:
+      $sam31QualificationImageCount,
     immutableTrackAllL4TaskQaImagesObserved: $trackAllL4TaskQaImageCount,
     immutableGpuWorkerImageSetReady: (
       $sam31ImageCount >= 1 and $trackAllL4TaskQaImageCount >= 1
     ),
     accountEffectiveGeminiPricing: $accountPricing,
     sourceCheckpointCompatibilityReceiptObserved: false,
-    imageSupplyChainReleaseObserved: false,
+    qualificationImageSupplyChainRelease: $imageSupplyChainRelease,
+    imageSupplyChainReleaseObserved: $imageSupplyChainRelease.ready,
     liveGeminiQualificationObserved: false,
     liveGpuQualificationObserved: false,
     customerCreditsMutated: false,

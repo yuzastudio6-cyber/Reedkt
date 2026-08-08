@@ -49,7 +49,17 @@ assert.match(readiness, /account_price_read_request_rejected/u)
 assert.match(readiness, /billing_account_price_permission_required/u)
 assert.match(readiness, /responseData\?\.error === 'invalid_grant'/u)
 assert.match(readiness, /responseData\?\.error_subtype === 'invalid_rapt'/u)
+assert.match(readiness, /execFileSync/u)
+assert.match(readiness, /'gcloud'/u)
+assert.match(readiness, /'auth', 'print-access-token', '--quiet'/u)
+assert.match(readiness, /gcloud_active_account_fallback/u)
+assert.match(readiness, /redirect: 'error'/u)
+assert.match(readiness, /billingAccountPriceReadReady/u)
 assert.doesNotMatch(readiness, /error_description/u)
+assert.doesNotMatch(readiness,
+  /console\.(?:log|error)\(\s*(?:gcloudAccessToken|accessToken|token)\b/u)
+assert.doesNotMatch(readiness,
+  /JSON\.stringify\([^)]*\b(?:gcloudAccessToken|accessToken)\b/u)
 
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-account-price-reader-grant',

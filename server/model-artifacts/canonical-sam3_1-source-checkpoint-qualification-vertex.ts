@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
 import {
@@ -21,6 +23,26 @@ const safeId = z.string().trim().min(1).max(240)
   .refine((value) => !value.includes('..'))
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
+
+function canonicalWireValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalWireValue)
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, entryValue]) => entryValue !== undefined)
+        .sort(([leftKey], [rightKey]) =>
+          leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0)
+        .map(([key, entryValue]) => [key, canonicalWireValue(entryValue)]),
+    )
+  }
+  return value
+}
+
+function sha256CanonicalWireValue(value: unknown): string {
+  return createHash('sha256')
+    .update(JSON.stringify(canonicalWireValue(value)), 'utf8')
+    .digest('hex')
+}
 
 const requestV1Shape =
   canonicalSam31SourceCheckpointQualificationWorkerRequestSchema.shape
@@ -365,7 +387,7 @@ export function createCanonicalSam31VertexSourceCheckpointWorkerRequest(input: {
   })
   return canonicalSam31VertexSourceCheckpointWorkerRequestSchema.parse({
     ...payload,
-    requestHash: sha256AuthorityValue(payload),
+    requestHash: sha256CanonicalWireValue(payload),
   })
 }
 
@@ -376,7 +398,7 @@ export function assertCanonicalSam31VertexSourceCheckpointWorkerRequest(
   const parsed = canonicalSam31VertexSourceCheckpointWorkerRequestSchema
     .parse(value)
   const { requestHash, ...payload } = parsed
-  if (requestHash !== sha256AuthorityValue(payload)) {
+  if (requestHash !== sha256CanonicalWireValue(payload)) {
     throw new Error('Vertex qualification worker request hash is invalid.')
   }
   return parsed
@@ -389,7 +411,7 @@ export function sealCanonicalSam31VertexSourceCheckpointWorkerResult(
   const payload = vertexResultWithoutHashSchema.parse(value)
   return canonicalSam31VertexSourceCheckpointWorkerResultSchema.parse({
     ...payload,
-    resultHash: sha256AuthorityValue(payload),
+    resultHash: sha256CanonicalWireValue(payload),
   })
 }
 
@@ -400,7 +422,7 @@ export function assertCanonicalSam31VertexSourceCheckpointWorkerResult(
   const parsed = canonicalSam31VertexSourceCheckpointWorkerResultSchema
     .parse(value)
   const { resultHash, ...payload } = parsed
-  if (resultHash !== sha256AuthorityValue(payload)) {
+  if (resultHash !== sha256CanonicalWireValue(payload)) {
     throw new Error('Vertex qualification worker result hash is invalid.')
   }
   return parsed

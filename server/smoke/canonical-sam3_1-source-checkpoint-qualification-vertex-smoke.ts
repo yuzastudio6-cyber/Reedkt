@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
@@ -15,6 +16,29 @@ import {
   createCanonicalSam31QualificationWorkerEvidenceFixture,
 } from './fixtures/canonical-sam3_1-qualification-worker-fixture'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
+
+function pythonCompatibleCanonicalValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(pythonCompatibleCanonicalValue)
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, entryValue]) => entryValue !== undefined)
+        .sort(([leftKey], [rightKey]) =>
+          leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0)
+        .map(([key, entryValue]) => [
+          key,
+          pythonCompatibleCanonicalValue(entryValue),
+        ]),
+    )
+  }
+  return value
+}
+
+function pythonCompatibleSha256(value: unknown): string {
+  return createHash('sha256')
+    .update(JSON.stringify(pythonCompatibleCanonicalValue(value)), 'utf8')
+    .digest('hex')
+}
 
 export const historical = createCanonicalSam31QualificationWorkerEvidenceFixture({
   candidate,
@@ -40,6 +64,8 @@ assert.equal(
   assertCanonicalSam31VertexSourceCheckpointWorkerRequest(request).requestHash,
   request.requestHash,
 )
+const { requestHash, ...requestPayload } = request
+assert.equal(requestHash, pythonCompatibleSha256(requestPayload))
 
 export const result = sealCanonicalSam31VertexSourceCheckpointWorkerResult({
   schemaVersion:
@@ -124,6 +150,8 @@ assert.equal(
   assertCanonicalSam31VertexSourceCheckpointWorkerResult(result).resultHash,
   result.resultHash,
 )
+const { resultHash, ...resultPayload } = result
+assert.equal(resultHash, pythonCompatibleSha256(resultPayload))
 
 const crossedAttempt = structuredClone(request)
 crossedAttempt.attemptId = 'sam31-vertex-attempt-002'
@@ -148,6 +176,7 @@ assert.match(runner, /WEEDITPRO_GPU_INVOCATION_ID/u)
 assert.match(runner,
   /vertex_ai_cloud_storage_fuse_fixed_attempt_scope/u)
 assert.match(runner, /google_cloud_vertex_custom_job_a2_ultra/u)
+assert.match(runner, /sort_keys=True/u)
 assert.doesNotMatch(runner, /google_cloud_batch_a2_ultra_job/u)
 assert.doesNotMatch(runner, /\/mnt\/disks\/reeditpro/u)
 assert.doesNotMatch(runner,
@@ -157,5 +186,5 @@ console.log(JSON.stringify({
   contract: 'canonical-sam3_1-vertex-source-checkpoint-worker-v2',
   requestHash: request.requestHash,
   resultHash: result.resultHash,
-  checks: 19,
+  checks: 22,
 }, null, 2))

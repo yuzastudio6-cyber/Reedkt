@@ -10,7 +10,17 @@ import type {
 import type {
   BrollCaptionOwnerReadRequest,
 } from '../../src/types/caption-broll-owner-read-adapter'
-import type { PlannerInput } from '../../src/types/reeditpro'
+import type {
+  CaptionStyleId,
+  PlannerInput,
+  SoundStyleId,
+} from '../../src/types/reeditpro'
+import {
+  CAPTION_SOURCE_LED_ADVANCED_PRESET_IDS,
+  CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS,
+  type CaptionSourceLedAdvancedPresetId,
+  type CaptionSourceLedCrossSystemTargetPresetId,
+} from '../../src/types/caption-source-led-intent-policy'
 import {
   createCaptionBrollOwnerReadRequest,
 } from '../captions-specialist/caption-broll-owner-read-adapter'
@@ -77,6 +87,22 @@ export interface CanonicalCaptionBrollApprovedRunHarnessInput {
   readonly sourceMediaAuthority: SourceMediaAuthorityExpectation
   readonly idempotencySeed: string
   readonly approvedAt: string
+  /**
+   * Closed private-internal qualification scenario compiled into the final
+   * canonical plan before approval. It is not accepted by a public route and
+   * never bypasses the normal Caption owner, estimate, snapshot, or package.
+   */
+  readonly captionScenario?: CanonicalCaptionApprovedRunScenario
+}
+
+export interface CanonicalCaptionApprovedRunScenario {
+  readonly scenarioId: string
+  readonly mappedPresetIds: readonly (
+    CaptionSourceLedAdvancedPresetId |
+    CaptionSourceLedCrossSystemTargetPresetId
+  )[]
+  readonly captionStyle?: CaptionStyleId
+  readonly soundStyle?: SoundStyleId
 }
 
 export interface CanonicalCaptionBrollApprovedRunReviewAuthority {
@@ -118,8 +144,12 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
       }`,
     )
   }
-  const baseComponents = canonicalPlanComponentsSchema.parse(
+  const compiledComponents = canonicalPlanComponentsSchema.parse(
     publication.canonicalPlan.components,
+  )
+  const baseComponents = applyCaptionApprovedRunScenario(
+    compiledComponents,
+    input.captionScenario,
   )
   const firstSegment = baseComponents.segments[0]
   const firstSequenceItem = baseComponents.sourceSequence[0]
@@ -430,6 +460,69 @@ export async function createCanonicalCaptionBrollApprovedRunHarness(
     finalQaApproved: false as const,
     publicDeliveryCreated: false as const,
     productionAuthorityGranted: false as const,
+  })
+}
+
+const approvedScenarioPresetOrder = [
+  ...CAPTION_SOURCE_LED_ADVANCED_PRESET_IDS,
+  ...Object.values(CAPTION_SOURCE_LED_CROSS_SYSTEM_TARGET_PRESET_IDS),
+] as const
+
+function applyCaptionApprovedRunScenario(
+  components: ReturnType<typeof canonicalPlanComponentsSchema.parse>,
+  scenario: CanonicalCaptionApprovedRunScenario | undefined,
+): ReturnType<typeof canonicalPlanComponentsSchema.parse> {
+  if (scenario === undefined) return components
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/u.test(scenario.scenarioId)
+    || scenario.mappedPresetIds.length < 1
+    || scenario.mappedPresetIds.length > 4
+    || new Set(scenario.mappedPresetIds).size !==
+      scenario.mappedPresetIds.length) {
+    throw new Error(
+      'Caption approved-run scenario identity or preset cardinality is invalid.',
+    )
+  }
+  const order = new Map(approvedScenarioPresetOrder.map((id, index) =>
+    [id, index]))
+  const presetIndexes = scenario.mappedPresetIds.map((id) => order.get(id))
+  if (presetIndexes.some((index) => index === undefined)
+    || presetIndexes.some((index, position) => position > 0
+      && index! <= presetIndexes[position - 1]!)) {
+    throw new Error(
+      'Caption approved-run scenario presets are unknown or non-canonical.',
+    )
+  }
+  const directive = structuredClone(components.professionalEditingDirective)
+  if (!Array.isArray(directive.customDirectives)) {
+    throw new Error(
+      'Caption approved-run scenario requires the compiled directive list.',
+    )
+  }
+  return canonicalPlanComponentsSchema.parse({
+    ...structuredClone(components),
+    professionalEditingDirective: {
+      ...directive,
+      ...(scenario.captionStyle === undefined
+        ? {} : { captionStyle: scenario.captionStyle }),
+      ...(scenario.soundStyle === undefined
+        ? {} : { soundStyle: scenario.soundStyle }),
+      customDirectives: [
+        ...structuredClone(directive.customDirectives),
+        {
+          id: `caption-approved-run-scenario.${scenario.scenarioId}`,
+          rawUserRequest:
+            'Private internal Caption qualification scenario.',
+          interpretedMeaning:
+            'Exercise only the exact versioned Caption preset identifiers.',
+          mappedPresetIds: [...scenario.mappedPresetIds],
+          customOverrides: [],
+          mustFollowRules: [],
+          avoidRules: [],
+          confidence: 'high',
+          clarifyingQuestions: [],
+        },
+      ],
+    },
   })
 }
 

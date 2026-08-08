@@ -16,7 +16,10 @@ import type {
   CaptionDependencyObservation,
   CaptionFinishDependencyKind,
 } from '../../src/types/caption-finish-readiness'
-import { CAPTIONS_SUPPORTED_JOB_TYPES } from
+import {
+  CAPTIONS_SUPPORTED_JOB_TYPES,
+  type CaptionsSupportedJobType,
+} from
   '../../src/types/captions-specialist'
 import type { PlannerInput } from '../../src/types/reeditpro'
 import type { CanonicalCaptionQualificationRunReadiness } from
@@ -37,6 +40,8 @@ import {
   createCanonicalCaptionBrollApprovedRunHarness,
   deriveCanonicalCaptionBrollApprovedRunOwnerReadRequest,
   deriveCanonicalCaptionBrollApprovedRunReviewAuthority,
+  type CanonicalCaptionApprovedRunScenario,
+  type CanonicalCaptionBrollApprovedRunHarnessInput,
 } from '../internal-testing/canonical-caption-broll-approved-run-harness'
 import {
   buildCanonicalCaptionBrollApprovedRunCreativeReview,
@@ -45,10 +50,17 @@ import {
   executeCanonicalCaptionApprovedJobClosure,
   executeCanonicalCaptionBrollApprovedRun,
   type CanonicalCaptionPostapprovalFinishRequirement,
+  type CanonicalCaptionSupportResumeRequirement,
 } from '../internal-testing/canonical-caption-broll-approved-execution-harness'
 import {
+  createCanonicalCaptionApprovedExecutionCoverageRepository,
   parseCanonicalCaptionApprovedExecutionCoverage,
 } from '../services/canonical-caption-approved-execution-coverage-service'
+import {
+  assembleCanonicalCaptionApprovedExecutionCampaign,
+  createCanonicalCaptionApprovedExecutionCampaignRepository,
+  parseCanonicalCaptionApprovedExecutionCampaign,
+} from '../services/canonical-caption-approved-execution-campaign-service'
 import {
   createCanonicalCaptionPostapprovalFinishRecord,
   createCanonicalCaptionPostapprovalFinishRepository,
@@ -894,6 +906,165 @@ try {
     captionExecution.captionApprovedExecutionCoveragePersistenceDisposition,
     /^(?:created|identical_replay)$/u,
   )
+  const baseTranscriptOwnerReadPort =
+    context.canonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+  let advancedApprovedExecutionCampaign: Awaited<ReturnType<
+    typeof executeSourceAdvancedApprovedExecutionCampaign
+  >> | null = null
+  try {
+    if (!realPrivateExecution) {
+      advancedApprovedExecutionCampaign =
+        await executeSourceAdvancedApprovedExecutionCampaign({
+          objectPort,
+          resolveCaptionSupportRequirement,
+          baselineCoveredJobTypes:
+            captionExecution.captionApprovedExecutionCoverage
+              .coveredCaptionJobTypes,
+          async createScenarioInput(scenario, index) {
+            const scenarioEditSessionId =
+              `${editSessionId}.scenario.${scenario.scenarioId}`
+            const scenarioPreferenceService =
+              createExactEditPreferenceService(context)
+            const initialized = await scenarioPreferenceService.initialize({
+              workspaceId,
+              projectId: project.id,
+              editSessionId: scenarioEditSessionId,
+              idempotencyKey:
+                `caption-approved-scenario.${scenario.scenarioId}.preferences.initialize`,
+            })
+            const updated = await scenarioPreferenceService.updateCurrent({
+              workspaceId,
+              projectId: project.id,
+              editSessionId: scenarioEditSessionId,
+              expectedRevision:
+                initialized.preferenceRecord.recordRevision,
+              patch: expectedPreferenceValues,
+              idempotencyKey:
+                `caption-approved-scenario.${scenario.scenarioId}.preferences.update`,
+            })
+            const recorded = await scenarioPreferenceService
+              .recordPlanningEvidence({
+                workspaceId,
+                projectId: project.id,
+                editSessionId: scenarioEditSessionId,
+                expectedRevision: updated.preferenceRecord.recordRevision,
+                sourcePreparation: {
+                  status: 'ready',
+                  evidenceHash: sourcePreparationEvidenceHash,
+                },
+                frameConfirmation: {
+                  status: 'confirmed',
+                  aspectRatio: '16:9',
+                  confirmationId:
+                    `frame.caption-approved-scenario.${scenario.scenarioId}`,
+                },
+                idempotencyKey:
+                  `caption-approved-scenario.${scenario.scenarioId}.planning-evidence`,
+              })
+            const scenarioPlanningInputAuthority =
+              await buildCurrentPlanningInputAuthorityExpectation({
+                context,
+                scope: {
+                  localStorageRoot: root,
+                  ownerUserId,
+                  workspaceId,
+                  projectId: project.id,
+                  editSessionId: scenarioEditSessionId,
+                },
+              })
+            const scenarioSourceCleanupAuthority =
+              createCanonicalSourceAnalysisAuthorityFixture({
+                hasSpeech: true,
+                workspaceId,
+                projectId: project.id,
+                editSessionId: scenarioEditSessionId,
+                sourceSequenceItemId,
+                mediaAssetId: finalized.mediaAsset.id,
+                uploadedOrder: 1,
+                checksumSha256: sourceSha256,
+                byteLength: sourceBytes.byteLength,
+                durationFrames: Math.round(
+                  sourceMetadata.durationSeconds *
+                    sourceMetadata.frameRateNumerator /
+                    sourceMetadata.frameRateDenominator,
+                ),
+                transcriptText:
+                  'Ideas move through the frame while captions remain readable.',
+              })
+            context.canonicalCaptionTranscriptPlanningExpectationOwnerReadPort =
+              createCanonicalCaptionTranscriptOwnerReadFixture({
+                ownerUserId,
+                readSourceAnalysisAuthority: () =>
+                  scenarioSourceCleanupAuthority,
+              })
+            const scenarioPreferences = recorded.preferenceRecord
+            return {
+              ...approvedRunHarnessInput,
+              editSessionId: scenarioEditSessionId,
+              outputId:
+                `output.caption-approved-scenario.${scenario.scenarioId}`,
+              plannerInput: {
+                ...structuredClone(plannerInput),
+                projectName:
+                  `Caption approved scenario ${scenario.scenarioId}`,
+                customInstructions: [
+                  plannerInput.customInstructions,
+                  `Internal scenario identity: ${scenario.scenarioId}.`,
+                ].join(' '),
+                userInstructionHistory: [
+                  ...(plannerInput.userInstructionHistory ?? []),
+                  `Internal scenario identity: ${scenario.scenarioId}.`,
+                ],
+                preferenceSnapshotId:
+                  scenarioPreferences.baseline.preferenceSnapshotId,
+                currentEditPreferenceAuthorityValues:
+                  structuredClone(scenarioPreferences.values),
+                currentEditPreferenceRecordRevision:
+                  scenarioPreferences.recordRevision,
+                currentEditPreferenceRevision:
+                  scenarioPreferences.preferenceRevision,
+                currentEditPreferencePlanningInputRevision:
+                  scenarioPreferences.planning.planningInputRevision,
+                currentEditPreferenceFingerprintSha256:
+                  scenarioPreferences.planning.preferenceFingerprintSha256,
+              },
+              sourceCleanupAuthority: scenarioSourceCleanupAuthority,
+              planningInputAuthority: scenarioPlanningInputAuthority,
+              idempotencySeed:
+                `caption-approved-scenario.${scenario.scenarioId}`,
+              approvedAt:
+                `2026-08-07T20:${String(20 + index).padStart(2, '0')}:00.000Z`,
+              captionScenario: scenario,
+            }
+          },
+        })
+    }
+  } finally {
+    context.canonicalCaptionTranscriptPlanningExpectationOwnerReadPort =
+      baseTranscriptOwnerReadPort
+  }
+  if (advancedApprovedExecutionCampaign) {
+    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 3)
+    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 21)
+    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 20)
+    assert.equal(
+      advancedApprovedExecutionCampaign.campaignIdenticalReplayVerified,
+      true,
+    )
+    assert.equal(
+      advancedApprovedExecutionCampaign.campaignExactRereadVerified,
+      true,
+    )
+    assert.deepEqual(
+      advancedApprovedExecutionCampaign.newlyCoveredJobTypes,
+      [
+        'resolve_multi_track_caption_scene',
+        'resolve_spatial_typography',
+        'resolve_hero_typography',
+        'resolve_persistent_topic_typography',
+      ],
+    )
+  }
   const forgedPromotion = structuredClone(
     captionExecution.captionApprovedExecutionCoverage,
   ) as unknown as Record<string, unknown>
@@ -1090,6 +1261,26 @@ try {
     postapprovalFinishBoundCaptionJobsExecuted:
       captionExecution.postapprovalFinishBoundCaptionJobCount,
     sourceContractPictureLockFixtureRelabeledAsPrivateQualification: false,
+    advancedApprovedExecutionCampaign:
+      advancedApprovedExecutionCampaign === null ? null : {
+        approvedRunCount:
+          advancedApprovedExecutionCampaign.approvedRunCount,
+        coveredJobTypeCount:
+          advancedApprovedExecutionCampaign.coveredJobTypeCount,
+        missingJobTypeCount:
+          advancedApprovedExecutionCampaign.missingJobTypeCount,
+        newlyCoveredJobTypes:
+          advancedApprovedExecutionCampaign.newlyCoveredJobTypes,
+        campaignRef: advancedApprovedExecutionCampaign.campaignRef,
+        campaignPersistenceDisposition:
+          advancedApprovedExecutionCampaign.campaignPersistenceDisposition,
+        campaignIdenticalReplayVerified:
+          advancedApprovedExecutionCampaign.campaignIdenticalReplayVerified,
+        campaignExactRereadVerified:
+          advancedApprovedExecutionCampaign.campaignExactRereadVerified,
+        oneAllFeatureEditFabricated: false,
+        terminalQualificationClaimed: false,
+      },
     visualIntelligenceSupportEvidenceClass:
       'structural_fixture_not_private_qualification',
     brollWorkItems: 13,
@@ -1332,6 +1523,181 @@ interface ApprovedRunExactFrameReviewInspectionPackage {
   readonly publicDeliveryGranted: false
   readonly productionAuthorityGranted: false
   readonly packageSha256: string
+}
+
+async function executeSourceAdvancedApprovedExecutionCampaign(input: {
+  objectPort: ReturnType<typeof createCanonicalPrivateLocalJsonObjectPort>
+  resolveCaptionSupportRequirement: (
+    requirement: CanonicalCaptionSupportResumeRequirement,
+  ) => Promise<void>
+  baselineCoveredJobTypes: readonly CaptionsSupportedJobType[]
+  createScenarioInput: (
+    scenario: CanonicalCaptionApprovedRunScenario,
+    index: number,
+  ) => Promise<CanonicalCaptionBrollApprovedRunHarnessInput>
+}) {
+  const scenarios: readonly {
+    scenario: CanonicalCaptionApprovedRunScenario
+    expectedNewJobTypes: readonly CaptionsSupportedJobType[]
+  }[] = [{
+    scenario: {
+      scenarioId: 'speaker-spatial',
+      mappedPresetIds: [
+        'caption_speaker_identification',
+        'spatial_caption_compositing',
+      ],
+    },
+    expectedNewJobTypes: [
+      'resolve_multi_track_caption_scene',
+      'resolve_spatial_typography',
+    ],
+  }, {
+    scenario: {
+      scenarioId: 'persistent-topic',
+      mappedPresetIds: ['persistent_topic_list_typography'],
+    },
+    expectedNewJobTypes: [
+      'resolve_spatial_typography',
+      'resolve_persistent_topic_typography',
+    ],
+  }, {
+    scenario: {
+      scenarioId: 'hero',
+      mappedPresetIds: ['hero_typography_direction'],
+    },
+    expectedNewJobTypes: ['resolve_hero_typography'],
+  }]
+  const covered = new Set<CaptionsSupportedJobType>()
+  const runRefs: CaptionDomainRef[] = []
+  for (const [index, entry] of scenarios.entries()) {
+    const scenarioInput = await input.createScenarioInput(
+      entry.scenario,
+      index,
+    )
+    const run = await createCanonicalCaptionBrollApprovedRunHarness(
+      scenarioInput,
+    )
+    const projected = run.captionPlanningProjection.projectedJobTypes
+    for (const jobType of entry.expectedNewJobTypes) {
+      assert.ok(projected.includes(jobType))
+    }
+    const execution = await executeCanonicalCaptionApprovedJobClosure({
+      context: scenarioInput.context,
+      approvedRun: run,
+      idempotencySeed:
+        `${scenarioInput.idempotencySeed}.execution`,
+      resolveCaptionSupportRequirement:
+        input.resolveCaptionSupportRequirement,
+      resolveCaptionPostapprovalFinishRequirement:
+        createSourceContractPostapprovalFinishResolver({
+          run,
+          objectPort: input.objectPort,
+        }),
+    })
+    assert.equal(execution.captionJobCount, projected.length)
+    assert.equal(execution.captionPostapprovalFinishResumeCount, 1)
+    assert.equal(execution.captionApprovedExecutionCoverage
+      .terminalQualificationClaimed, false)
+    for (const jobType of execution.captionApprovedExecutionCoverage
+      .coveredCaptionJobTypes) covered.add(jobType)
+    runRefs.push({
+      id: run.approvedEditExecutionPackage.packageRecordId,
+      version: run.approvedEditExecutionPackage.schemaVersion,
+      contentHash: run.approvedEditExecutionPackage.packageHash,
+    })
+  }
+  const baseline = new Set(input.baselineCoveredJobTypes)
+  const coveredJobTypes = CAPTIONS_SUPPORTED_JOB_TYPES.filter((jobType) =>
+    covered.has(jobType))
+  const newlyCoveredJobTypes = coveredJobTypes.filter((jobType) =>
+    !baseline.has(jobType))
+  const missingJobTypes = CAPTIONS_SUPPORTED_JOB_TYPES.filter((jobType) =>
+    !covered.has(jobType))
+  if (new Set(runRefs.map((ref) => ref.contentHash)).size !== runRefs.length) {
+    throw new Error(
+      'Caption approved scenario campaign reused an execution package.',
+    )
+  }
+  const coverageRepository =
+    createCanonicalCaptionApprovedExecutionCoverageRepository({
+      objectPort: input.objectPort,
+    })
+  const campaign = await assembleCanonicalCaptionApprovedExecutionCampaign({
+    executionPackageRefs: runRefs,
+    coverageRepository,
+  })
+  assert.deepEqual(campaign.coveredCaptionJobTypes, coveredJobTypes)
+  assert.deepEqual(campaign.missingCaptionJobTypes, missingJobTypes)
+  assert.equal(campaign.counts.approvedRuns, 3)
+  assert.equal(campaign.counts.distinctApprovedSnapshots, 3)
+  assert.equal(campaign.counts.distinctExecutionPackages, 3)
+  assert.equal(campaign.oneAllFeatureEditFabricated, false)
+  assert.equal(campaign.terminalQualificationClaimed, false)
+  const campaignRepository =
+    createCanonicalCaptionApprovedExecutionCampaignRepository({
+      objectPort: input.objectPort,
+    })
+  const firstPersistence = await campaignRepository.persistCreateOnly({
+    campaign,
+  })
+  const replayPersistence = await campaignRepository.persistCreateOnly({
+    campaign,
+  })
+  const campaignRef: CaptionDomainRef = {
+    id: campaign.campaignId,
+    version: campaign.schemaVersion,
+    contentHash: campaign.campaignDigestSha256,
+  }
+  const rereadCampaign = await campaignRepository.rereadExact({ campaignRef })
+  assert.ok(rereadCampaign)
+  assert.deepEqual(rereadCampaign, campaign)
+  assert.match(firstPersistence, /^(?:created|identical_replay)$/u)
+  assert.equal(replayPersistence, 'identical_replay')
+  await assert.rejects(() =>
+    assembleCanonicalCaptionApprovedExecutionCampaign({
+      executionPackageRefs: [runRefs[0]!],
+      coverageRepository,
+    }))
+  await assert.rejects(() =>
+    assembleCanonicalCaptionApprovedExecutionCampaign({
+      executionPackageRefs: [runRefs[0]!, runRefs[0]!],
+      coverageRepository,
+    }))
+  const crossedPackage = structuredClone(campaign)
+  crossedPackage.runs[0]!.executionPackageRef = structuredClone(
+    crossedPackage.runs[1]!.executionPackageRef)
+  crossedPackage.campaignDigestSha256 = calculateSkillContractDigest(
+    crossedPackage as unknown as Record<string, unknown>,
+    'campaignDigestSha256',
+  )
+  assert.throws(() =>
+    parseCanonicalCaptionApprovedExecutionCampaign(crossedPackage))
+  const promoted = structuredClone(campaign) as unknown as Record<
+    string,
+    unknown
+  >
+  promoted.terminalQualificationClaimed = true
+  promoted.campaignDigestSha256 = calculateSkillContractDigest(
+    promoted,
+    'campaignDigestSha256',
+  )
+  assert.throws(() =>
+    parseCanonicalCaptionApprovedExecutionCampaign(promoted))
+  return Object.freeze({
+    approvedRunCount: runRefs.length,
+    runRefs: Object.freeze(runRefs.map((ref) => Object.freeze(ref))),
+    campaignRef: Object.freeze(campaignRef),
+    campaignPersistenceDisposition: firstPersistence,
+    campaignIdenticalReplayVerified: true as const,
+    campaignExactRereadVerified: true as const,
+    coveredJobTypes: Object.freeze(coveredJobTypes),
+    newlyCoveredJobTypes: Object.freeze(newlyCoveredJobTypes),
+    missingJobTypes: Object.freeze(missingJobTypes),
+    coveredJobTypeCount: coveredJobTypes.length,
+    missingJobTypeCount: missingJobTypes.length,
+    oneAllFeatureEditFabricated: false as const,
+    terminalQualificationClaimed: false as const,
+  })
 }
 
 function postapprovalFinishDependencyKinds():

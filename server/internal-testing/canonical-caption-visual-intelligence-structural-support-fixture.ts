@@ -145,7 +145,7 @@ export async function injectCanonicalCaptionVisualIntelligenceStructuralSupport(
     evidenceRepository,
     now: input.now,
   })
-  const outcome = await service.projectAndResumeAuthenticatedEvidence({
+  const evidenceRecord = await service.projectAuthenticatedEvidence({
     authenticatedOwnerUserId: pair.call.canonicalScope.ownerUserId,
     priorCallRef: input.requirement.originalCallRef,
     selectedSupportRequestRef: selectedRef,
@@ -156,15 +156,12 @@ export async function injectCanonicalCaptionVisualIntelligenceStructuralSupport(
     schemaVersion:
       CANONICAL_CAPTION_VISUAL_INTELLIGENCE_STRUCTURAL_SUPPORT_FIXTURE_VERSION,
     evidenceRecordRef: Object.freeze({
-      id: outcome.evidenceRecord.recordId,
-      version: outcome.evidenceRecord.schemaVersion,
-      contentHash: outcome.evidenceRecord.recordDigestSha256,
+      id: evidenceRecord.recordId,
+      version: evidenceRecord.schemaVersion,
+      contentHash: evidenceRecord.recordDigestSha256,
     }),
-    resumeRecordRef: Object.freeze({
-      id: outcome.resumeRecord.recordId,
-      version: outcome.resumeRecord.schemaVersion,
-      contentHash: outcome.resumeRecord.recordDigestSha256,
-    }),
+    resumeRecordRef: null,
+    resumeOwnedByCanonicalCaptionExecution: true as const,
     structuralFixtureOnly: true as const,
     liveProviderCallPerformed: false as const,
     actualVisualInferenceClaimedByThisFixture: false as const,
@@ -298,6 +295,7 @@ function createStructuralEvidence(
     ...payload.requestedRange,
     frameRate,
   }
+  const probeRef = visualRef(`probe-${seed}`)
   const visualRequest = createVisualIntelligenceRequest({
     requestId: `caption-vi-structural-request-${seed.slice(0, 24)}`,
     idempotencyKey: `caption-vi-structural-${seed.slice(0, 24)}`,
@@ -322,13 +320,13 @@ function createStructuralEvidence(
       frameRate,
       finalizedMediaAuthorityRef: visualRef(`finalized-${seed}`),
       immutableStorageObjectAuthorityRef: visualRef(`storage-${seed}`),
-      mediaProbeEvidenceRef: visualRef(`probe-${seed}`),
+      mediaProbeEvidenceRef: probeRef,
       privateArtifact: true,
       exactGenerationRereadRequiredAtDispatch: true,
     }],
     comparisonArtifacts: [],
     requestedRanges: [visualRange],
-    requiredEvidenceRefs: [visualRef(`probe-${seed}`)],
+    requiredEvidenceRefs: [probeRef],
     expectedOutcomeRefs: payload.expectedOutcomeRefs.map(domainToVisualRef),
     outputFrame: {
       outputId: payload.confirmedOutputFrame.outputId,
@@ -443,6 +441,17 @@ function createStructuralEvidence(
     segments: [],
     findings: [],
     evidence: [{
+      evidenceId: `caption-probe-evidence-${seed.slice(0, 24)}`,
+      evidenceRef: probeRef,
+      artifactId: payload.sourcePrivateArtifactRef.id,
+      range: visualRange,
+      authority: 'media_probe',
+      producingTool: 'ffprobe',
+      toolVersion: 'structural-fixture-only-v1',
+      summary: 'Schema-compatible private media-probe fixture only.',
+      privateEvidence: true,
+      providerInstructionAccepted: false,
+    }, {
       evidenceId: `caption-structural-evidence-${seed.slice(0, 24)}`,
       evidenceRef: semanticRef,
       artifactId: payload.sourcePrivateArtifactRef.id,
@@ -454,7 +463,15 @@ function createStructuralEvidence(
       privateEvidence: true,
       providerInstructionAccepted: false,
     }],
-    deterministicToolExecutions: [],
+    deterministicToolExecutions: [{
+      tool: 'ffprobe',
+      requirement: 'required',
+      executionClass: 'l4_gpu_standard',
+      releaseRef: visualRef(`probe-release-${seed}`),
+      executionRef: visualRef(`probe-execution-${seed}`),
+      substantiveCpuExecutionUsed: false,
+      sourceArtifactChecksumBound: true,
+    }],
     expectedOutcomeRefs: payload.expectedOutcomeRefs.map(domainToVisualRef),
     disposition: 'pass',
     reinspectionRequired: false,

@@ -60,6 +60,9 @@ import { createCanonicalEditExecutionPackageService } from './canonical-edit-exe
 import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
 import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
 import {
+  createCanonicalCaptionVisualIntelligenceEvidenceRepository,
+} from './canonical-caption-visual-intelligence-support-service'
+import {
   createCanonicalCaptionPostapprovalFinishRepository,
 } from './canonical-caption-postapproval-finish-service'
 import {
@@ -722,6 +725,8 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       input.workspaceId,
     ].join('/'),
   })
+  const visualIntelligenceEvidenceRepository =
+    createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
   const postapprovalFinishRepository =
     createCanonicalCaptionPostapprovalFinishRepository({
       objectPort,
@@ -759,9 +764,11 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       canonicalTranscriptAuthenticatedReadBindingRef:
         transcriptMount.bindingRef,
       ...('planningExpectationBindingRef' in transcriptMount ? {
-        canonicalTranscriptPlanningExpectationBindingRef:
-          transcriptMount.planningExpectationBindingRef,
+      canonicalTranscriptPlanningExpectationBindingRef:
+        transcriptMount.planningExpectationBindingRef,
       } : {}),
+      visualIntelligenceEvidenceReadPort:
+        visualIntelligenceEvidenceRepository,
       canonicalJobDependencyAuthority:
         dependencyAdmission.dependencyAuthority,
       postapprovalFinishReadPort: postapprovalFinishRepository.readPort,

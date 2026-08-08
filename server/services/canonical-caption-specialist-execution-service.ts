@@ -23,11 +23,15 @@ import {
 } from '../../src/types/canonical-caption-specialist-planning'
 import type { CanonicalSpecialistCallResultPair } from
   '../../src/types/canonical-specialist-support-resume'
+import type {
+  CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-visual-intelligence-support'
 import {
   ORCHESTRA_SKILL_CALL_VERSION,
   ORCHESTRA_SKILL_JOB_RESULT_VERSION,
   type OrchestraSkillCall,
   type SkillContractRef,
+  type SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
 import type { SkillSupportRequestV2 } from
   '../../src/types/orchestra-skill-support-request-v2'
@@ -54,6 +58,8 @@ import { CAPTIONS_CLOSED_AUTHORITY_BOUNDARY } from
   '../captions-specialist/caption-authority-boundary'
 import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
+import { createCaptionVisualIntelligenceSupport } from
+  '../captions-specialist/caption-visual-intelligence-support'
 import { canonicalCaptionAssignmentTriggerForJob } from
   '../captions-specialist/caption-canonical-work-planning'
 import {
@@ -80,6 +86,10 @@ import type {
   CaptionCrossSystemCoordinationPlanContext,
   CaptionCrossSystemHandoffV2Context,
 } from '../../src/types/caption-cross-system-coordination'
+import type {
+  CaptionVisualIntelligenceSupportPayload,
+  CaptionVisualObservationRole,
+} from '../../src/types/caption-visual-intelligence-support'
 import {
   canonicalWorkerLeaseDependencyAuthoritySchema,
   type CanonicalWorkerLeaseDependencyAuthority,
@@ -89,6 +99,7 @@ import type { CanonicalApprovedExecutionAuthority } from
 import {
   createCanonicalSpecialistCallResultPair,
   rereadCanonicalSpecialistSupportResumeChain,
+  resumeCanonicalSpecialistWithAuthenticatedSupport,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
 import {
@@ -374,6 +385,10 @@ export interface CanonicalCaptionSpecialistExecutionPort {
     readonly call: OrchestraSkillCall
     readonly canonicalTranscript?: unknown
     readonly canonicalTranscriptAuthenticatedReadBinding?: unknown
+    readonly visualIntelligenceSupportPayload?: unknown
+    readonly canonicalVisualIntelligenceEvidenceRecord?:
+      CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
+    readonly resumeSupportRequest?: SkillSupportRequest
     readonly incomingSupportRequest?: SkillSupportRequestV2
     readonly crossSystemCoordinationPlan?: unknown
     readonly crossSystemCoordinationContext?:
@@ -436,6 +451,19 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     CanonicalCaptionIncomingSupportRequestReadPort
   readonly crossSystemExecutionInputReadPort?:
     CanonicalCaptionCrossSystemExecutionInputReadPort
+  /**
+   * Read-only authenticated owner evidence used only by the canonical Caption
+   * execution owner when it resumes an already-projected Visual Intelligence
+   * support request. The owner bridge persists evidence; Caption rereads and
+   * consumes it without acquiring dispatch, provider, or QA authority.
+   */
+  readonly visualIntelligenceEvidenceReadPort?: Readonly<{
+    rereadBySupportRequestRef(input: {
+      readonly supportRequestRef: SkillContractRef
+    }): Promise<
+      CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord | null
+    >
+  }>
   /**
    * Exact read-only dependency proof derived by the canonical worker-lease
    * owner. Required for jobs whose immutable graph label is `blocked`; that
@@ -532,7 +560,23 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         authorityBindings: crossSystemAuthority,
       }),
     })
+  const visualIntelligenceSupportPayload =
+    createCanonicalCaptionVisualIntelligenceSupportPayload({
+      call,
+      record: postapprovalFinishRecord,
+    })
   const captionCallRef = callRef(call)
+  const transcriptEvidence = await readCanonicalTranscriptEvidence({
+    authority,
+    workInput,
+    initialArtifactRefs,
+    readPort: input.canonicalTranscriptReadPort,
+  })
+  const incomingSupportRequest =
+    await resolveCanonicalCaptionIncomingSupportRequestForCall({
+      call,
+      readPort: input.incomingSupportRequestReadPort,
+    })
   const replay = await input.repository.rereadCallResultPair({
     callRef: captionCallRef,
   })
@@ -542,17 +586,6 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       throw new Error('Canonical Caption call replay crossed approved authority.')
     }
   } else {
-    const transcriptEvidence = await readCanonicalTranscriptEvidence({
-      authority,
-      workInput,
-      initialArtifactRefs,
-      readPort: input.canonicalTranscriptReadPort,
-    })
-    const incomingSupportRequest =
-      await resolveCanonicalCaptionIncomingSupportRequestForCall({
-      call,
-      readPort: input.incomingSupportRequestReadPort,
-    })
     const rawResult = await (input.executionPort ?? defaultExecutionPort)
       .execute({
         call: structuredClone(call),
@@ -564,6 +597,10 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         }),
         ...(incomingSupportRequest === null ? {} : {
           incomingSupportRequest: structuredClone(incomingSupportRequest),
+        }),
+        ...(visualIntelligenceSupportPayload === null ? {} : {
+          visualIntelligenceSupportPayload: structuredClone(
+            visualIntelligenceSupportPayload),
         }),
         ...canonicalCaptionCrossSystemRuntimeInput(
           crossSystemExecutionInput),
@@ -582,12 +619,80 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       throw new Error('Canonical Caption call/result reread failed.')
     }
   }
-  const resumeChain = await rereadCanonicalSpecialistSupportResumeChain({
+  let resumeChain = await rereadCanonicalSpecialistSupportResumeChain({
     initialCallRef: captionCallRef,
     repository: input.repository,
   })
   if (!resumeChain) {
     throw new Error('Canonical Caption call/result chain reread failed.')
+  }
+  if (resumeChain.status === 'waiting_for_persisted_resume_record') {
+    const currentRequest = resumeChain.currentPair.result.supportRequests[0]
+    const currentRequestRef = currentRequest === undefined
+      ? null : {
+          id: currentRequest.requestId,
+          version: currentRequest.schemaVersion,
+          contentHash: currentRequest.requestDigestSha256,
+        }
+    if (currentRequest?.targetSkillKey === 'visual_intelligence'
+      && currentRequestRef !== null
+      && input.visualIntelligenceEvidenceReadPort) {
+      const exactEvidence = await input.visualIntelligenceEvidenceReadPort
+        .rereadBySupportRequestRef({
+          supportRequestRef: currentRequestRef,
+        })
+      if (!exactEvidence
+        || exactEvidence.originalCallRef.id
+          !== resumeChain.currentPair.call.callId
+        || exactEvidence.originalCallRef.version
+          !== resumeChain.currentPair.call.schemaVersion
+        || exactEvidence.originalCallRef.contentHash
+          !== resumeChain.currentPair.call.callDigestSha256
+        || exactEvidence.supportRequestRef.id !== currentRequestRef.id
+        || exactEvidence.supportRequestRef.version !== currentRequestRef.version
+        || exactEvidence.supportRequestRef.contentHash
+          !== currentRequestRef.contentHash) {
+        throw new Error(
+          'Canonical Caption Visual Intelligence resume evidence crossed the current call.',
+        )
+      }
+      await resumeCanonicalSpecialistWithAuthenticatedSupport({
+        priorCallRef: callRef(resumeChain.currentPair.call),
+        selectedSupportRequestRef: currentRequestRef,
+        repository: input.repository,
+        specialistExecutionPort: {
+          execute: async ({ call: resumedCall, resumeSupportRequest }) =>
+            (input.executionPort ?? defaultExecutionPort).execute({
+              call: resumedCall,
+              resumeSupportRequest,
+              canonicalVisualIntelligenceEvidenceRecord: exactEvidence,
+              ...(transcriptEvidence === null ? {} : {
+                canonicalTranscript:
+                  structuredClone(transcriptEvidence.canonicalTranscript),
+                canonicalTranscriptAuthenticatedReadBinding: structuredClone(
+                  transcriptEvidence.authenticatedReadBinding),
+              }),
+              ...(incomingSupportRequest === null ? {} : {
+                incomingSupportRequest:
+                  structuredClone(incomingSupportRequest),
+              }),
+              ...canonicalCaptionCrossSystemRuntimeInput(
+                crossSystemExecutionInput),
+            }),
+        },
+        now: input.now,
+      })
+      const resumed = await rereadCanonicalSpecialistSupportResumeChain({
+        initialCallRef: captionCallRef,
+        repository: input.repository,
+      })
+      if (!resumed) {
+        throw new Error(
+          'Canonical Caption resumed call/result chain reread failed.',
+        )
+      }
+      resumeChain = resumed
+    }
   }
   const pair = resumeChain.currentPair
   const crossSystemExecutionInputRef = crossSystemExecutionInput === null
@@ -622,6 +727,18 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
             canonicalTranscriptAuthenticatedReadBinding:
               input.canonicalTranscriptAuthenticatedReadBinding,
           }),
+      ...(input.visualIntelligenceSupportPayload === undefined ? {} : {
+        visualIntelligenceSupportPayload:
+          input.visualIntelligenceSupportPayload,
+      }),
+      ...(input.canonicalVisualIntelligenceEvidenceRecord === undefined
+        ? {} : {
+            canonicalVisualIntelligenceEvidenceRecord:
+              input.canonicalVisualIntelligenceEvidenceRecord,
+          }),
+      ...(input.resumeSupportRequest === undefined ? {} : {
+        resumeSupportRequest: input.resumeSupportRequest,
+      }),
       ...(input.incomingSupportRequest === undefined ? {} : {
         incomingSupportRequest: input.incomingSupportRequest,
       }),
@@ -650,6 +767,97 @@ const POSTAPPROVAL_FINISH_TRIGGERS = new Set([
   'canonical_caption_result_inspection',
   'canonical_caption_boundary_inspection',
 ])
+
+const POSTAPPROVAL_VISUAL_INTELLIGENCE_JOB_TYPES = new Set([
+  'resolve_multi_track_caption_scene',
+  'resolve_spatial_typography',
+  'resolve_subject_occluded_typography',
+  'resolve_front_of_subject_typography',
+  'resolve_object_anchored_typography',
+  'resolve_environmental_typography',
+  'resolve_hero_typography',
+  'resolve_persistent_topic_typography',
+  'repair_caption_scene',
+  'recompose_caption_output',
+  'inspect_caption_specific_result',
+  'inspect_caption_boundary_behavior',
+])
+
+function createCanonicalCaptionVisualIntelligenceSupportPayload(input: {
+  call: OrchestraSkillCall
+  record: ReturnType<
+    typeof parseCanonicalCaptionPostapprovalFinishRecord
+  > | null
+}): CaptionVisualIntelligenceSupportPayload | null {
+  if (!POSTAPPROVAL_VISUAL_INTELLIGENCE_JOB_TYPES.has(
+    input.call.job.jobType,
+  )) return null
+  if (!input.record || input.call.canonicalScope.sceneId === null
+    || input.call.canonicalScope.authorizedFrameRanges.length !== 1) {
+    throw new Error(
+      'Canonical Caption visual occupancy work requires its exact postapproval finish record.',
+    )
+  }
+  const lock = input.record.pictureLock
+  const frame = lock.confirmedOutputFrame
+  const roles = captionVisualObservationRoles(input.call.job.jobType)
+  return createCaptionVisualIntelligenceSupport({
+    payloadId:
+      `caption.visual-support.${input.call.callDigestSha256.slice(0, 40)}`,
+    requestId:
+      `${input.call.callId}.support.visual_intelligence`,
+    idempotencyKey: input.call.idempotencyKey,
+    originalCallRef: callRef(input.call),
+    purpose: 'final_frame_occupancy',
+    canonicalScope: structuredClone(input.record.binding.canonicalScope),
+    pictureLockRef: structuredClone(input.record.binding.pictureLockRef),
+    finishReadinessRef:
+      structuredClone(input.record.binding.finishReadinessRef),
+    confirmedOutputFrame: {
+      outputId: frame.outputId,
+      width: frame.width,
+      height: frame.height,
+      aspectRatioNumerator: frame.aspectRatioNumerator,
+      aspectRatioDenominator: frame.aspectRatioDenominator,
+      fpsNumerator: frame.fpsNumerator,
+      fpsDenominator: frame.fpsDenominator,
+      confirmedOutputFrameDigestSha256:
+        frame.confirmedOutputFrameDigestSha256,
+    },
+    sourcePrivateArtifactRef:
+      structuredClone(lock.compositionBindings.nearFinalVisualProxyRef),
+    canonicalLayoutOccupancyRef:
+      structuredClone(lock.compositionBindings.occupancyRef),
+    requiredObservationRoles: roles,
+    expectedOutcomeRefs: [
+      structuredClone(input.record.binding.earlyPlanningBundleRef),
+      structuredClone(input.record.binding.captionPlanningProjectionRef),
+    ],
+  }).payload
+}
+
+function captionVisualObservationRoles(
+  jobType: string,
+): CaptionVisualObservationRole[] {
+  const roles = new Set<CaptionVisualObservationRole>([
+    'safe_candidate',
+    'speaker',
+    'face',
+  ])
+  if (jobType.includes('object_anchored')
+    || jobType.includes('environmental')) {
+    roles.add('important_object')
+  }
+  if (jobType.includes('persistent') || jobType.includes('hero')
+    || jobType.includes('inspection')) {
+    roles.add('screen_text')
+  }
+  if (jobType.includes('occluded')
+    || jobType.includes('front_of_subject')) {
+    roles.add('gesture')
+  }
+  return [...roles]
+}
 
 /**
  * Exact resumable dependency signal for late V3 Caption work. It carries only

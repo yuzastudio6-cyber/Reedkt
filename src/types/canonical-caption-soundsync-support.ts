@@ -16,7 +16,11 @@ import type {
   CanonicalAuthenticatedSpecialistSupportArtifactProjection,
   CanonicalSpecialistSupportResumeRecord,
 } from './canonical-specialist-support-resume'
-import type { SkillContractRef, SkillSupportRequest } from
+import type {
+  OrchestraSkillCall,
+  SkillContractRef,
+  SkillSupportRequest,
+} from
   './orchestra-skill-contracts'
 
 export const CANONICAL_CAPTION_SOUNDSYNC_AUTHENTICATED_EVIDENCE_RECORD_VERSION =
@@ -25,6 +29,8 @@ export const CANONICAL_CAPTION_SOUNDSYNC_CONTEXT_READ_PORT_VERSION =
   'canonical-caption-soundsync-context-read-port-v1' as const
 export const CANONICAL_CAPTION_SOUNDSYNC_OWNER_READ_PORT_VERSION =
   'canonical-caption-soundsync-owner-read-port-v1' as const
+export const CANONICAL_CAPTION_SOUND_SUPPORT_INPUT_READ_PORT_VERSION =
+  'canonical-caption-sound-support-input-read-port-v1' as const
 
 export interface CanonicalCaptionSoundSyncContext {
   sceneGraph: CaptionMultiTrackSceneGraph
@@ -64,6 +70,36 @@ export interface CanonicalCaptionSoundSyncOwnerReadPort {
     readonly supportRequest: SkillSupportRequest
     readonly captionSoundRequest: CaptionSoundCueRequest
   }): Promise<unknown>
+}
+
+/**
+ * Exact late-bound inputs required for Caption to author a semantic SoundSync
+ * request. The shared approved-snapshot/MasterTiming/StoryTiming owners supply
+ * these values after motion lock; Caption receives no cue-selection, mix,
+ * runtime, asset, or billing authority.
+ */
+export interface CanonicalCaptionSoundSupportInput {
+  canonicalContext: CanonicalCaptionSoundSyncContext
+  dialogueTrackRef: CaptionDomainRef
+  dialogueActivityRef: CaptionDomainRef
+  maximumRequestedCueCount: number
+}
+
+export interface CanonicalCaptionSoundSupportInputReadRequest {
+  call: OrchestraSkillCall
+  postapprovalFinishBindingRef: CaptionDomainRef
+  pictureLockRef: CaptionDomainRef
+  finishReadinessRef: CaptionDomainRef
+}
+
+export interface CanonicalCaptionSoundSupportInputReadPort {
+  readonly schemaVersion:
+    typeof CANONICAL_CAPTION_SOUND_SUPPORT_INPUT_READ_PORT_VERSION
+  readonly sourceAuthority:
+    'canonical_approved_snapshot_master_timing_story_timing_owner'
+  readonly callerSuppliedContextAccepted: false
+  readExact(input: CanonicalCaptionSoundSupportInputReadRequest):
+    Promise<CanonicalCaptionSoundSupportInput | null>
 }
 
 export interface CanonicalCaptionSoundSyncAuthenticatedEvidenceRecord {

@@ -90,6 +90,15 @@ import type {
 import type {
   CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
 } from './services/canonical-caption-transcript-support-service'
+import type {
+  CanonicalCaptionCrossSystemExecutionInputReadPort,
+} from '../src/types/canonical-caption-cross-system-execution-input'
+import type {
+  CanonicalCaptionSoundSupportInputReadPort,
+} from '../src/types/canonical-caption-soundsync-support'
+import type {
+  CanonicalCaptionSoundSyncEvidenceRepository,
+} from './services/canonical-caption-soundsync-support-service'
 
 export interface AuthContext {
   userId: string
@@ -202,6 +211,12 @@ export interface RuntimeState {
     CanonicalCaptionSourceLedProfessionalPlanningReadPort
   canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
     CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+  canonicalCaptionCrossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  canonicalCaptionSoundSupportInputReadPort?:
+    CanonicalCaptionSoundSupportInputReadPort
+  canonicalCaptionSoundSyncEvidenceRepository?:
+    CanonicalCaptionSoundSyncEvidenceRepository
 }
 
 export type RuntimeRequest = Request & {
@@ -288,4 +303,10 @@ export interface ServiceContext {
     CanonicalCaptionSourceLedProfessionalPlanningReadPort
   canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
     CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+  canonicalCaptionCrossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  canonicalCaptionSoundSupportInputReadPort?:
+    CanonicalCaptionSoundSupportInputReadPort
+  canonicalCaptionSoundSyncEvidenceRepository?:
+    CanonicalCaptionSoundSyncEvidenceRepository
 }

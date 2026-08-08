@@ -29,6 +29,10 @@ import type {
 import type {
   CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
 } from '../../src/types/canonical-caption-track-all-support'
+import type {
+  CanonicalCaptionSoundSupportInputReadPort,
+  CanonicalCaptionSoundSyncAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-soundsync-support'
 import {
   ORCHESTRA_SKILL_CALL_VERSION,
   ORCHESTRA_SKILL_JOB_RESULT_VERSION,
@@ -118,6 +122,9 @@ import {
   canonicalCaptionCrossSystemRuntimeInput,
   resolveCanonicalCaptionCrossSystemExecutionInput,
 } from './canonical-caption-cross-system-execution-input-service'
+import {
+  resolveCanonicalCaptionSoundSupportRuntimeInput,
+} from './canonical-caption-sound-support-input-service'
 import {
   resolveCanonicalCaptionIncomingSupportRequestForCall,
 } from './canonical-caption-incoming-support-request-service'
@@ -400,6 +407,9 @@ export interface CanonicalCaptionSpecialistExecutionPort {
       CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
     readonly canonicalTrackAllEvidenceRecord?:
       CanonicalCaptionTrackAllAuthenticatedEvidenceRecord
+    readonly soundSupportContext?: unknown
+    readonly soundSupportPayload?: unknown
+    readonly soundSupportResult?: unknown
     readonly resumeSupportRequest?: SkillSupportRequest
     readonly incomingSupportRequest?: SkillSupportRequestV2
     readonly crossSystemCoordinationPlan?: unknown
@@ -464,6 +474,12 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly crossSystemExecutionInputReadPort?:
     CanonicalCaptionCrossSystemExecutionInputReadPort
   /**
+   * Exact late-bound motion-lock/StoryTiming inputs used only to author the
+   * typed CaptionSoundCueRequest. SoundSync remains the cue/mix owner.
+   */
+  readonly soundSupportInputReadPort?:
+    CanonicalCaptionSoundSupportInputReadPort
+  /**
    * Read-only authenticated owner evidence used only by the canonical Caption
    * execution owner when it resumes an already-projected Visual Intelligence
    * support request. The owner bridge persists evidence; Caption rereads and
@@ -485,6 +501,12 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
     rereadBySupportRequestRef(input: {
       readonly supportRequestRef: SkillContractRef
     }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecord | null>
+  }>
+  /** Read-only SoundSync evidence projected and sealed by the Sound owner. */
+  readonly soundSyncEvidenceReadPort?: Readonly<{
+    rereadEvidenceRecord(input: {
+      readonly supportRequestRef: SkillContractRef
+    }): Promise<CanonicalCaptionSoundSyncAuthenticatedEvidenceRecord | null>
   }>
   /**
    * Exact read-only dependency proof derived by the canonical worker-lease
@@ -582,6 +604,23 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         authorityBindings: crossSystemAuthority,
       }),
     })
+  const soundSupportRuntimeInput =
+    await resolveCanonicalCaptionSoundSupportRuntimeInput({
+      call,
+      readPort: input.soundSupportInputReadPort,
+      postapprovalFinishBindingRef: postapprovalFinishRecord === null
+        ? null : {
+            id: postapprovalFinishRecord.binding.bindingId,
+            version: postapprovalFinishRecord.binding.schemaVersion,
+            contentHash:
+              postapprovalFinishRecord.binding.bindingDigestSha256,
+          },
+      pictureLockRef: postapprovalFinishRecord === null
+        ? null : structuredClone(postapprovalFinishRecord.binding.pictureLockRef),
+      finishReadinessRef: postapprovalFinishRecord === null
+        ? null : structuredClone(
+            postapprovalFinishRecord.binding.finishReadinessRef),
+    })
   const visualIntelligenceSupportPayload =
     createCanonicalCaptionVisualIntelligenceSupportPayload({
       call,
@@ -626,6 +665,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
         }),
         ...canonicalCaptionCrossSystemRuntimeInput(
           crossSystemExecutionInput),
+        ...soundSupportRuntimeInput,
       })
     const result = parseOrchestraSkillJobResult(rawResult)
     const pair = createCanonicalSpecialistCallResultPair({
@@ -705,6 +745,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
               }),
               ...canonicalCaptionCrossSystemRuntimeInput(
                 crossSystemExecutionInput),
+              ...soundSupportRuntimeInput,
             }),
         },
         now: input.now,
@@ -797,6 +838,7 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
               }),
               ...canonicalCaptionCrossSystemRuntimeInput(
                 crossSystemExecutionInput),
+              ...soundSupportRuntimeInput,
             }),
         },
         now: input.now,
@@ -808,6 +850,76 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       if (!resumed) {
         throw new Error(
           'Canonical Caption Track All resumed chain reread failed.',
+        )
+      }
+      resumeChain = resumed
+    }
+  }
+  if (resumeChain.status === 'waiting_for_persisted_resume_record') {
+    const currentRequest = resumeChain.currentPair.result.supportRequests[0]
+    const currentRequestRef = currentRequest === undefined
+      ? null : {
+          id: currentRequest.requestId,
+          version: currentRequest.schemaVersion,
+          contentHash: currentRequest.requestDigestSha256,
+        }
+    if (currentRequest?.targetSkillKey === 'soundsync'
+      && currentRequestRef !== null
+      && input.soundSyncEvidenceReadPort) {
+      const exactEvidence = await input.soundSyncEvidenceReadPort
+        .rereadEvidenceRecord({
+          supportRequestRef: currentRequestRef,
+        })
+      if (!exactEvidence
+        || exactEvidence.priorCallRef.id
+          !== resumeChain.currentPair.call.callId
+        || exactEvidence.priorCallRef.version
+          !== resumeChain.currentPair.call.schemaVersion
+        || exactEvidence.priorCallRef.contentHash
+          !== resumeChain.currentPair.call.callDigestSha256
+        || exactEvidence.supportRequestRef.id !== currentRequestRef.id
+        || exactEvidence.supportRequestRef.version !== currentRequestRef.version
+        || exactEvidence.supportRequestRef.contentHash
+          !== currentRequestRef.contentHash) {
+        throw new Error(
+          'Canonical Caption SoundSync resume evidence crossed the current call.',
+        )
+      }
+      await resumeCanonicalSpecialistWithAuthenticatedSupport({
+        priorCallRef: callRef(resumeChain.currentPair.call),
+        selectedSupportRequestRef: currentRequestRef,
+        repository: input.repository,
+        specialistExecutionPort: {
+          execute: async ({ call: resumedCall, resumeSupportRequest }) =>
+            (input.executionPort ?? defaultExecutionPort).execute({
+              call: resumedCall,
+              resumeSupportRequest,
+              soundSupportContext: exactEvidence.canonicalContext,
+              soundSupportPayload: exactEvidence.captionSoundRequest,
+              soundSupportResult: exactEvidence.soundSyncResult,
+              ...(transcriptEvidence === null ? {} : {
+                canonicalTranscript:
+                  structuredClone(transcriptEvidence.canonicalTranscript),
+                canonicalTranscriptAuthenticatedReadBinding: structuredClone(
+                  transcriptEvidence.authenticatedReadBinding),
+              }),
+              ...(incomingSupportRequest === null ? {} : {
+                incomingSupportRequest:
+                  structuredClone(incomingSupportRequest),
+              }),
+              ...canonicalCaptionCrossSystemRuntimeInput(
+                crossSystemExecutionInput),
+            }),
+        },
+        now: input.now,
+      })
+      const resumed = await rereadCanonicalSpecialistSupportResumeChain({
+        initialCallRef: captionCallRef,
+        repository: input.repository,
+      })
+      if (!resumed) {
+        throw new Error(
+          'Canonical Caption SoundSync resumed chain reread failed.',
         )
       }
       resumeChain = resumed
@@ -861,6 +973,15 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
       ...(input.canonicalTrackAllEvidenceRecord === undefined ? {} : {
         canonicalTrackAllEvidenceRecord:
           input.canonicalTrackAllEvidenceRecord,
+      }),
+      ...(input.soundSupportContext === undefined ? {} : {
+        soundSupportContext: input.soundSupportContext,
+      }),
+      ...(input.soundSupportPayload === undefined ? {} : {
+        soundSupportPayload: input.soundSupportPayload,
+      }),
+      ...(input.soundSupportResult === undefined ? {} : {
+        soundSupportResult: input.soundSupportResult,
       }),
       ...(input.resumeSupportRequest === undefined ? {} : {
         resumeSupportRequest: input.resumeSupportRequest,

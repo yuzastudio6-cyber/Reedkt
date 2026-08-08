@@ -18,6 +18,8 @@ import { runCaptionsSpecialistJob } from
   '../captions-specialist/captions-specialist-runtime'
 import { createCaptionsHarnessCall } from
   '../internal-testing/captions-specialist-harness'
+import { createCanonicalCaptionSoundSyncStructuralContext } from
+  '../internal-testing/canonical-caption-soundsync-structural-support-fixture'
 import {
   calculateSkillContractDigest,
   parseOrchestraSkillCall,
@@ -30,11 +32,17 @@ import {
   parseCanonicalCaptionSoundSyncAuthenticatedEvidenceRecord,
 } from '../services/canonical-caption-soundsync-support-service'
 import {
+  createCanonicalCaptionSoundSupportInputReadPort,
+  resolveCanonicalCaptionSoundSupportRuntimeInput,
+} from '../services/canonical-caption-sound-support-input-service'
+import {
   createCanonicalSpecialistCallResultPair,
   createCanonicalSpecialistSupportResumeRepository,
+  rereadCanonicalSpecialistSupportResumeChain,
 } from '../services/canonical-specialist-support-resume-service'
 import {
   CAP_11_APPROVAL_ENVELOPE_REF,
+  CAP_11_CONFIRMED_FRAME_REF,
   CAP_11_SCENE_GRAPH_FIXTURE,
 } from './captions-specialist-cap-11-smoke'
 import {
@@ -113,9 +121,85 @@ callCandidate.inputArtifactRefs[masterTimingIndex] = {
   ...callCandidate.inputArtifactRefs[masterTimingIndex]!,
   ...structuredClone(context.storyTimingResolution.masterTimingRef),
 }
+const confirmedFrameIndex = callCandidate.inputArtifactRefs.findIndex(
+  (artifact) => artifact.artifactType === 'confirmed_output_frame')
+assert.ok(confirmedFrameIndex >= 0)
+callCandidate.inputArtifactRefs[confirmedFrameIndex] = {
+  ...callCandidate.inputArtifactRefs[confirmedFrameIndex]!,
+  ...structuredClone(CAP_11_CONFIRMED_FRAME_REF),
+}
 const call = parseOrchestraSkillCall(redigest(
   callCandidate as unknown as Record<string, unknown>,
   'callDigestSha256'))
+const postapprovalFinishBindingRef = ref(
+  'caption.finish.binding.soundsync.bridge',
+  'canonical-caption-postapproval-finish-binding-v1')
+let soundInputReads = 0
+const soundRuntimeInput =
+  await resolveCanonicalCaptionSoundSupportRuntimeInput({
+    call,
+    postapprovalFinishBindingRef,
+    pictureLockRef: context.sceneGraph.pictureLockRef,
+    finishReadinessRef: context.sceneGraph.finishReadinessRef,
+    readPort: createCanonicalCaptionSoundSupportInputReadPort(
+      async (request) => {
+        soundInputReads += 1
+        assert.deepEqual(
+          request.postapprovalFinishBindingRef,
+          postapprovalFinishBindingRef,
+        )
+        return {
+          canonicalContext: structuredClone(context),
+          dialogueTrackRef: ref(
+            'dialogue.track.soundsync.bridge',
+            'canonical-dialogue-track-v1'),
+          dialogueActivityRef: ref(
+            'dialogue.activity.soundsync.bridge',
+            'dialogue-activity-v1'),
+          maximumRequestedCueCount: 2,
+        }
+      }),
+  })
+check(soundInputReads === 2
+  && soundRuntimeInput.soundSupportContext !== undefined
+  && soundRuntimeInput.soundSupportPayload !== undefined,
+'The canonical Caption runner must double-reread exact motion-lock and StoryTiming inputs before authoring a SoundSync request.')
+const remappedCallCandidate = structuredClone(callCandidate)
+remappedCallCandidate.canonicalScope.authorizedFrameRanges = [{
+  startFrame: 60,
+  endFrameExclusive: 240,
+}]
+const remappedCall = parseOrchestraSkillCall(redigest(
+  remappedCallCandidate as unknown as Record<string, unknown>,
+  'callDigestSha256'))
+const remappedContext = createCanonicalCaptionSoundSyncStructuralContext({
+  call: remappedCall,
+  pictureLockRef: context.sceneGraph.pictureLockRef,
+  finishReadinessRef: context.sceneGraph.finishReadinessRef,
+})
+const remappedRuntimeInput =
+  await resolveCanonicalCaptionSoundSupportRuntimeInput({
+    call: remappedCall,
+    postapprovalFinishBindingRef,
+    pictureLockRef: remappedContext.sceneGraph.pictureLockRef,
+    finishReadinessRef: remappedContext.sceneGraph.finishReadinessRef,
+    readPort: createCanonicalCaptionSoundSupportInputReadPort(async () => ({
+      canonicalContext: structuredClone(remappedContext),
+      dialogueTrackRef: ref(
+        'dialogue.track.soundsync.remapped',
+        'canonical-dialogue-track-v1'),
+      dialogueActivityRef: ref(
+        'dialogue.activity.soundsync.remapped',
+        'dialogue-activity-v1'),
+      maximumRequestedCueCount: 2,
+    })),
+  })
+const remappedPayload = remappedRuntimeInput.soundSupportPayload as {
+  densityBudget: { windowRange: { startFrame: number; endFrameExclusive: number } }
+}
+check(remappedPayload.densityBudget.windowRange.startFrame === 60
+  && remappedPayload.densityBudget.windowRange.endFrameExclusive === 240,
+'Structural Sound inputs must remap StoryTiming and motion into the exact approved call range rather than reusing CAP-12 fixture frames.')
 const bundle = createCaptionSoundSupportBundle({
   requestId,
   idempotencyKey: call.idempotencyKey,
@@ -192,9 +276,18 @@ const bridgeInput = {
   priorCallRef: callRef(call),
   selectedSupportRequestRef: requestRef(supportRequest),
 }
+const projectedOnly = await service.projectAuthenticatedEvidence(bridgeInput)
+const projectedOnlyChain =
+  await rereadCanonicalSpecialistSupportResumeChain({
+    initialCallRef: callRef(call),
+    repository: supportResumeRepository,
+  })
+check(projectedOnly.recordDigestSha256.length === 64
+  && projectedOnlyChain?.status === 'waiting_for_persisted_resume_record',
+'The Sound owner projection must persist authenticated evidence without becoming a second Caption resume owner.')
 const outcome = await service.projectAndResumeAuthenticatedEvidence(bridgeInput)
-check(contextReads === 2 && ownerReads === 2,
-  'Canonical Caption context and SoundSync result must each be reread twice.')
+check(contextReads === 4 && ownerReads === 4,
+  'Projection-only replay and canonical resume must each reread Caption context and SoundSync result twice.')
 check(outcome.evidenceRecord.soundSyncResult.evidenceMode
   === 'authenticated_private_runtime'
   && outcome.evidenceRecord.captionAdmission.disposition

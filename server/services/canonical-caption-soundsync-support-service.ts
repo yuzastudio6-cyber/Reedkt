@@ -179,6 +179,11 @@ export interface CanonicalCaptionSoundSyncEvidenceRepository {
 export interface CanonicalCaptionSoundSyncSupportService {
   readonly schemaVersion:
     typeof CANONICAL_CAPTION_SOUNDSYNC_SUPPORT_SERVICE_VERSION
+  projectAuthenticatedEvidence(input: {
+    readonly authenticatedOwnerUserId: string
+    readonly priorCallRef: SkillContractRef
+    readonly selectedSupportRequestRef: SkillContractRef
+  }): Promise<CanonicalCaptionSoundSyncAuthenticatedEvidenceRecord>
   projectAndResumeAuthenticatedEvidence(input: {
     readonly authenticatedOwnerUserId: string
     readonly priorCallRef: SkillContractRef
@@ -276,7 +281,7 @@ export function createCanonicalCaptionSoundSyncEvidenceRepository(input: {
   })
 }
 
-export function createCanonicalCaptionSoundSyncSupportService(input: {
+interface CanonicalCaptionSoundSyncSupportServiceInput {
   readonly supportResumeRepository: CanonicalSpecialistSupportResumeRepository
   readonly contextReadPort: CanonicalCaptionSoundSyncContextReadPort
   readonly ownerReadPort: CanonicalCaptionSoundSyncOwnerReadPort
@@ -286,137 +291,21 @@ export function createCanonicalCaptionSoundSyncSupportService(input: {
   readonly incomingSupportRequestReadPort?:
     CanonicalCaptionIncomingSupportRequestReadPort
   readonly now?: () => Date
-}): CanonicalCaptionSoundSyncSupportService {
+}
+
+export function createCanonicalCaptionSoundSyncSupportService(
+  input: CanonicalCaptionSoundSyncSupportServiceInput,
+): CanonicalCaptionSoundSyncSupportService {
   assertPorts(input)
   return Object.freeze({
     schemaVersion: CANONICAL_CAPTION_SOUNDSYNC_SUPPORT_SERVICE_VERSION,
+    async projectAuthenticatedEvidence(untrusted: unknown) {
+      return projectAuthenticatedSoundSyncEvidence(input, untrusted)
+    },
     async projectAndResumeAuthenticatedEvidence(untrusted: unknown) {
-      assertClosedContractTree(untrusted, 'Caption SoundSync bridge input')
-      const request = z.object({
-        authenticatedOwnerUserId: safeKey,
-        priorCallRef: refSchema,
-        selectedSupportRequestRef: refSchema,
-      }).strict().parse(untrusted)
-      const pair = await input.supportResumeRepository.rereadCallResultPair({
-        callRef: request.priorCallRef,
-      })
-      if (!pair || !sameRef(callRef(pair.call), request.priorCallRef)) {
-        throw new Error('Caption prior call/result pair is unavailable.')
-      }
-      const selected = pair.result.supportRequests[0]
-      if (!selected || !sameRef(supportRequestRef(selected),
-        request.selectedSupportRequestRef)) {
-        throw new Error('Caption SoundSync request is not current.')
-      }
-      const support = parseSkillSupportRequest(selected)
-      const envelope = soundRequestEnvelopeSchema.parse(support.typedPayload)
-      const contextRequest = contextReadRequest(
-        support, envelope as unknown as CaptionSoundCueRequest)
-      const canonicalContext = await rereadContext(
-        input.contextReadPort, contextRequest)
-      const captionSoundRequest = parseCaptionSoundCueRequest(
-        support.typedPayload, canonicalContext)
-      const supportRequest = parseCaptionSoundSupportRequest(
-        support, captionSoundRequest, canonicalContext)
-      assertSoundRequestMatchesCall(pair.call, captionSoundRequest)
-      if (request.authenticatedOwnerUserId
-        !== captionSoundRequest.canonicalScope.ownerUserId) {
-        throw new Error('Caption SoundSync authenticated owner mismatch.')
-      }
-      const bundle = { payload: captionSoundRequest, supportRequest }
-      const soundSyncResult = await rereadSoundSyncResult(
-        input.ownerReadPort, bundle, canonicalContext)
-      if (soundSyncResult.evidenceMode !== 'authenticated_private_runtime') {
-        throw new Error('Caption SoundSync result is not authenticated.')
-      }
-      await input.evidenceRepository.persistOwnerResultCreateOnly({
-        supportRequestRef: request.selectedSupportRequestRef,
-        bundle,
-        context: canonicalContext,
-        soundSyncResult,
-      })
-      const persistedResult = await input.evidenceRepository
-        .rereadOwnerResult({
-          supportRequestRef: request.selectedSupportRequestRef,
-          bundle,
-          context: canonicalContext,
-        })
-      if (!persistedResult || !sameCanonical(
-        persistedResult, soundSyncResult)) {
-        throw new Error('Caption SoundSync result persistence failed.')
-      }
-      const admission = createCaptionSoundAdmission({
-        admissionId:
-          `caption.soundsync.admission.${persistedResult.resultDigestSha256.slice(0, 32)}`,
-        bundle,
-        context: canonicalContext,
-        supportResult: persistedResult,
-      })
-      if (admission.disposition !== 'authenticated_private_ready'
-        || !admission.dialogueProtectedFinalMixVerified) {
-        throw new Error('Caption SoundSync dialogue protection is not ready.')
-      }
-      const projection =
-        createCanonicalAuthenticatedSpecialistSupportArtifactProjection({
-          schemaVersion:
-            'canonical-authenticated-specialist-support-artifact-projection-v1',
-          projectionId:
-            `caption.soundsync.projection.${persistedResult.resultDigestSha256.slice(0, 32)}`,
-          originalCallRef: supportRequest.originalCallRef,
-          supportRequestRef: request.selectedSupportRequestRef,
-          ownerResultRef: soundResultRef(persistedResult),
-          ownerKey: 'soundsync',
-          canonicalScope: supportRequest.canonicalScope,
-          artifactRefs: [soundResultArtifactRef(
-            persistedResult, request.selectedSupportRequestRef)],
-          authenticatedPrincipalVerified: true,
-          exactApprovedSnapshotReread: true,
-          exactCanonicalScopeReread: true,
-          exactOwnerResultReread: true,
-          ownerResultPersistedBeforeProjection: true,
-          browserLocalStateUsed: false,
-          rawChatMediaBytesPathsUrlsOrCredentialsAccepted: false,
-          directPeerDispatchPerformed: false,
-          timelineMutationPerformed: false,
-          runtimeExecutionAuthorityGrantedToSpecialist: false,
-          assetMutationAuthorityGrantedToSpecialist: false,
-          costOrBillingAuthorityGrantedToSpecialist: false,
-          finalQaApprovalGrantedToSpecialist: false,
-          publicDeliveryGranted: false,
-          productionAuthorityGranted: false,
-        })
-      await input.supportResumeRepository
-        .persistAuthenticatedOwnerProjectionCreateOnly({ projection })
-      const projectionReread = await input.supportResumeRepository
-        .rereadAuthenticatedOwnerProjection({
-          supportRequestRef: request.selectedSupportRequestRef,
-        })
-      if (!projectionReread || projectionReread.projectionDigestSha256
-        !== projection.projectionDigestSha256) {
-        throw new Error('Caption SoundSync projection reread failed.')
-      }
-      const evidenceRecord = createRecord({
-        priorCallRef: request.priorCallRef,
-        supportRequestRef: request.selectedSupportRequestRef,
-        supportRequest,
-        captionSoundRequest,
-        canonicalContext,
-        soundSyncResult: persistedResult,
-        captionAdmission: admission,
-        authenticatedOwnerProjection: projectionReread,
-        createdAt: pair.persistedAt,
-      })
-      await input.evidenceRepository.persistEvidenceRecordCreateOnly({
-        record: evidenceRecord,
-      })
-      const recordReread = await input.evidenceRepository
-        .rereadEvidenceRecord({
-          supportRequestRef: request.selectedSupportRequestRef,
-        })
-      if (!recordReread || recordReread.recordDigestSha256
-        !== evidenceRecord.recordDigestSha256) {
-        throw new Error('Caption SoundSync evidence record reread failed.')
-      }
+      const request = parseBridgeInput(untrusted)
+      const recordReread = await projectAuthenticatedSoundSyncEvidence(
+        input, request)
       const resumeRecord =
         await resumeCanonicalSpecialistWithAuthenticatedSupport({
           priorCallRef: request.priorCallRef,
@@ -461,6 +350,140 @@ export function createCanonicalCaptionSoundSyncSupportService(input: {
       return freeze({ evidenceRecord: recordReread, resumeRecord })
     },
   })
+}
+
+async function projectAuthenticatedSoundSyncEvidence(
+  input: CanonicalCaptionSoundSyncSupportServiceInput,
+  untrusted: unknown,
+): Promise<CanonicalCaptionSoundSyncAuthenticatedEvidenceRecord> {
+  const request = parseBridgeInput(untrusted)
+  const pair = await input.supportResumeRepository.rereadCallResultPair({
+    callRef: request.priorCallRef,
+  })
+  if (!pair || !sameRef(callRef(pair.call), request.priorCallRef)) {
+    throw new Error('Caption prior call/result pair is unavailable.')
+  }
+  const selected = pair.result.supportRequests[0]
+  if (!selected || !sameRef(supportRequestRef(selected),
+    request.selectedSupportRequestRef)) {
+    throw new Error('Caption SoundSync request is not current.')
+  }
+  const support = parseSkillSupportRequest(selected)
+  const envelope = soundRequestEnvelopeSchema.parse(support.typedPayload)
+  const contextRequest = contextReadRequest(
+    support, envelope as unknown as CaptionSoundCueRequest)
+  const canonicalContext = await rereadContext(
+    input.contextReadPort, contextRequest)
+  const captionSoundRequest = parseCaptionSoundCueRequest(
+    support.typedPayload, canonicalContext)
+  const supportRequest = parseCaptionSoundSupportRequest(
+    support, captionSoundRequest, canonicalContext)
+  assertSoundRequestMatchesCall(pair.call, captionSoundRequest)
+  if (request.authenticatedOwnerUserId
+    !== captionSoundRequest.canonicalScope.ownerUserId) {
+    throw new Error('Caption SoundSync authenticated owner mismatch.')
+  }
+  const bundle = { payload: captionSoundRequest, supportRequest }
+  const soundSyncResult = await rereadSoundSyncResult(
+    input.ownerReadPort, bundle, canonicalContext)
+  if (soundSyncResult.evidenceMode !== 'authenticated_private_runtime') {
+    throw new Error('Caption SoundSync result is not authenticated.')
+  }
+  await input.evidenceRepository.persistOwnerResultCreateOnly({
+    supportRequestRef: request.selectedSupportRequestRef,
+    bundle,
+    context: canonicalContext,
+    soundSyncResult,
+  })
+  const persistedResult = await input.evidenceRepository.rereadOwnerResult({
+    supportRequestRef: request.selectedSupportRequestRef,
+    bundle,
+    context: canonicalContext,
+  })
+  if (!persistedResult || !sameCanonical(persistedResult, soundSyncResult)) {
+    throw new Error('Caption SoundSync result persistence failed.')
+  }
+  const admission = createCaptionSoundAdmission({
+    admissionId:
+      `caption.soundsync.admission.${persistedResult.resultDigestSha256.slice(0, 32)}`,
+    bundle,
+    context: canonicalContext,
+    supportResult: persistedResult,
+  })
+  if (admission.disposition !== 'authenticated_private_ready'
+    || !admission.dialogueProtectedFinalMixVerified) {
+    throw new Error('Caption SoundSync dialogue protection is not ready.')
+  }
+  const projection =
+    createCanonicalAuthenticatedSpecialistSupportArtifactProjection({
+      schemaVersion:
+        'canonical-authenticated-specialist-support-artifact-projection-v1',
+      projectionId:
+        `caption.soundsync.projection.${persistedResult.resultDigestSha256.slice(0, 32)}`,
+      originalCallRef: supportRequest.originalCallRef,
+      supportRequestRef: request.selectedSupportRequestRef,
+      ownerResultRef: soundResultRef(persistedResult),
+      ownerKey: 'soundsync',
+      canonicalScope: supportRequest.canonicalScope,
+      artifactRefs: [soundResultArtifactRef(
+        persistedResult, request.selectedSupportRequestRef)],
+      authenticatedPrincipalVerified: true,
+      exactApprovedSnapshotReread: true,
+      exactCanonicalScopeReread: true,
+      exactOwnerResultReread: true,
+      ownerResultPersistedBeforeProjection: true,
+      browserLocalStateUsed: false,
+      rawChatMediaBytesPathsUrlsOrCredentialsAccepted: false,
+      directPeerDispatchPerformed: false,
+      timelineMutationPerformed: false,
+      runtimeExecutionAuthorityGrantedToSpecialist: false,
+      assetMutationAuthorityGrantedToSpecialist: false,
+      costOrBillingAuthorityGrantedToSpecialist: false,
+      finalQaApprovalGrantedToSpecialist: false,
+      publicDeliveryGranted: false,
+      productionAuthorityGranted: false,
+    })
+  await input.supportResumeRepository
+    .persistAuthenticatedOwnerProjectionCreateOnly({ projection })
+  const projectionReread = await input.supportResumeRepository
+    .rereadAuthenticatedOwnerProjection({
+      supportRequestRef: request.selectedSupportRequestRef,
+    })
+  if (!projectionReread || projectionReread.projectionDigestSha256
+    !== projection.projectionDigestSha256) {
+    throw new Error('Caption SoundSync projection reread failed.')
+  }
+  const evidenceRecord = createRecord({
+    priorCallRef: request.priorCallRef,
+    supportRequestRef: request.selectedSupportRequestRef,
+    supportRequest,
+    captionSoundRequest,
+    canonicalContext,
+    soundSyncResult: persistedResult,
+    captionAdmission: admission,
+    authenticatedOwnerProjection: projectionReread,
+    createdAt: pair.persistedAt,
+  })
+  await input.evidenceRepository.persistEvidenceRecordCreateOnly({
+    record: evidenceRecord,
+  })
+  const recordReread = await input.evidenceRepository.rereadEvidenceRecord({
+    supportRequestRef: request.selectedSupportRequestRef,
+  })
+  if (!recordReread || recordReread.recordDigestSha256
+    !== evidenceRecord.recordDigestSha256) {
+    throw new Error('Caption SoundSync evidence record reread failed.')
+  }
+  return recordReread
+}
+
+function parseBridgeInput(value: unknown) {
+  assertClosedContractTree(value, 'Caption SoundSync bridge input')
+  return z.object({
+    authenticatedOwnerUserId: safeKey,
+    priorCallRef: refSchema,
+    selectedSupportRequestRef: refSchema,
+  }).strict().parse(value)
 }
 
 export function parseCanonicalCaptionSoundSyncAuthenticatedEvidenceRecord(

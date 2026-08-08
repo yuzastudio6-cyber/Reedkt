@@ -81,6 +81,9 @@ import {
   injectCanonicalCaptionTrackAllStructuralSupport,
 } from '../internal-testing/canonical-caption-track-all-structural-support-fixture'
 import {
+  createCanonicalCaptionSoundSyncStructuralSupportFixture,
+} from '../internal-testing/canonical-caption-soundsync-structural-support-fixture'
+import {
   createCanonicalPrivateEditSkillArtifactStore,
 } from '../services/canonical-private-edit-skill-artifact-store'
 import {
@@ -103,6 +106,13 @@ import {
 import {
   createCanonicalCaptionSoundSyncEvidenceRepository,
 } from '../services/canonical-caption-soundsync-support-service'
+import {
+  createCanonicalCaptionCrossSystemExecutionInputPrivateComposition,
+  createCanonicalCaptionCrossSystemSourceReadPort,
+} from '../services/canonical-caption-cross-system-execution-input-service'
+import {
+  createCanonicalCaptionTransitionCrossSystemSourceFixture,
+} from './canonical-caption-cross-system-source-fixture'
 import {
   createCanonicalCaptionTerminalQualificationRequest,
 } from '../services/canonical-caption-terminal-qualification-service'
@@ -701,6 +711,12 @@ try {
     run.broll.plan.planHash,
   )
 
+  const soundStructuralFixture =
+    createCanonicalCaptionSoundSyncStructuralSupportFixture({ context })
+  context.canonicalCaptionSoundSupportInputReadPort =
+    soundStructuralFixture.inputReadPort
+  context.canonicalCaptionSoundSyncEvidenceRepository =
+    soundStructuralFixture.evidenceRepository
   const resolveCaptionSupportRequirement = async (
     requirement: Parameters<
       NonNullable<Parameters<
@@ -729,6 +745,12 @@ try {
       assert.equal(fixture.privateQualificationEvidence, false)
       return
     }
+    if (target === 'soundsync') {
+      const fixture = await soundStructuralFixture.inject(requirement)
+      assert.equal(fixture.structuralFixtureOnly, true)
+      assert.equal(fixture.privateQualificationEvidence, false)
+      return
+    }
     throw new Error(
       `Caption approved campaign has no structural owner fixture for ${target ?? 'unknown'}.`,
     )
@@ -736,6 +758,21 @@ try {
   const objectPort = createCanonicalPrivateLocalJsonObjectPort({
     localStorageRoot: root,
   })
+  const crossSystemComposition =
+    createCanonicalCaptionCrossSystemExecutionInputPrivateComposition({
+      objectPort,
+      sourceReadPort: createCanonicalCaptionCrossSystemSourceReadPort(
+        async ({ call }) =>
+          createCanonicalCaptionTransitionCrossSystemSourceFixture(
+            call,
+            `plan.${call.canonicalScope.approvedSnapshotRef?.id
+              ?? 'unapproved'}`,
+          )),
+      prefix:
+        'private-internal/captions-specialist/v1/cross-system-transition',
+    })
+  context.canonicalCaptionCrossSystemExecutionInputReadPort =
+    crossSystemComposition.readPort
   await assert.rejects(
     () => executeCanonicalCaptionApprovedJobClosure({
       context,
@@ -1063,9 +1100,9 @@ try {
       baseTranscriptOwnerReadPort
   }
   if (advancedApprovedExecutionCampaign) {
-    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 6)
-    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 24)
-    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 17)
+    assert.equal(advancedApprovedExecutionCampaign.approvedRunCount, 7)
+    assert.equal(advancedApprovedExecutionCampaign.coveredJobTypeCount, 26)
+    assert.equal(advancedApprovedExecutionCampaign.missingJobTypeCount, 15)
     assert.equal(
       advancedApprovedExecutionCampaign.campaignIdenticalReplayVerified,
       true,
@@ -1084,6 +1121,8 @@ try {
         'resolve_environmental_typography',
         'resolve_hero_typography',
         'resolve_persistent_topic_typography',
+        'provide_typographic_transition_support',
+        'prepare_caption_boundary_timing_requirements',
       ],
     )
   }
@@ -1108,6 +1147,22 @@ try {
   )
   assert.throws(() =>
     parseCanonicalCaptionApprovedExecutionCoverage(duplicateOccurrence))
+  const sceneBoundBoundaryOccurrence = structuredClone(
+    captionExecution.captionApprovedExecutionCoverage,
+  ) as unknown as Record<string, unknown>
+  const boundaryOccurrence = (sceneBoundBoundaryOccurrence
+    .jobOccurrences as Array<Record<string, unknown>>)[0]!
+  boundaryOccurrence.scopeLevel = 'boundary'
+  boundaryOccurrence.sceneId = 'scene.caption.boundary-regression'
+  boundaryOccurrence.boundaryId = 'boundary.caption.regression'
+  sceneBoundBoundaryOccurrence.coverageDigestSha256 =
+    calculateSkillContractDigest(
+      sceneBoundBoundaryOccurrence,
+      'coverageDigestSha256',
+    )
+  assert.doesNotThrow(() =>
+    parseCanonicalCaptionApprovedExecutionCoverage(
+      sceneBoundBoundaryOccurrence))
   assert.ok(captionExecution.captionExecutions.every((item) =>
     item.initialResponse.result.qaOutcome === 'passed'
     && item.replayResponse.evidence.idempotentAdapterReplay))
@@ -1606,6 +1661,15 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
       mappedPresetIds: ['environmental_typography'],
     },
     expectedNewJobTypes: ['resolve_environmental_typography'],
+  }, {
+    scenario: {
+      scenarioId: 'caption-sound-boundary',
+      mappedPresetIds: ['caption_sound_choreography'],
+    },
+    expectedNewJobTypes: [
+      'provide_typographic_transition_support',
+      'prepare_caption_boundary_timing_requirements',
+    ],
   }]
   const covered = new Set<CaptionsSupportedJobType>()
   const runRefs: CaptionDomainRef[] = []
@@ -1668,9 +1732,9 @@ async function executeSourceAdvancedApprovedExecutionCampaign(input: {
   })
   assert.deepEqual(campaign.coveredCaptionJobTypes, coveredJobTypes)
   assert.deepEqual(campaign.missingCaptionJobTypes, missingJobTypes)
-  assert.equal(campaign.counts.approvedRuns, 6)
-  assert.equal(campaign.counts.distinctApprovedSnapshots, 6)
-  assert.equal(campaign.counts.distinctExecutionPackages, 6)
+  assert.equal(campaign.counts.approvedRuns, 7)
+  assert.equal(campaign.counts.distinctApprovedSnapshots, 7)
+  assert.equal(campaign.counts.distinctExecutionPackages, 7)
   assert.equal(campaign.oneAllFeatureEditFabricated, false)
   assert.equal(campaign.terminalQualificationClaimed, false)
   const campaignRepository =

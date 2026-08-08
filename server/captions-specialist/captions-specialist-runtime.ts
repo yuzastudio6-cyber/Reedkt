@@ -4,6 +4,7 @@ import {
   CAPTIONS_CROSS_SYSTEM_COORDINATION_JOB_TYPE,
   CAPTIONS_CROSS_SYSTEM_OUTPUT_JOB_TYPES,
   CAPTIONS_LIVING_FRAME_JOB_TYPES,
+  CAPTIONS_SOUND_SUPPORT_JOB_TYPES,
   CAPTIONS_SPECIALIST_SKILL_KEY,
   CAPTIONS_SUPPORT_JOB_OUTPUT_ARTIFACT_TYPES,
   CAPTIONS_SUPPORT_JOB_TYPES,
@@ -620,11 +621,8 @@ function expectedTrackAllPurpose(jobType: string): CaptionTrackAllPurpose | null
 }
 
 function isSoundSupportJob(jobType: string): boolean {
-  return [
-    'provide_typographic_transition_support',
-    'prepare_caption_boundary_timing_requirements',
-    'provide_typographic_transition_component',
-  ].includes(jobType)
+  return (CAPTIONS_SOUND_SUPPORT_JOB_TYPES as readonly string[])
+    .includes(jobType)
 }
 
 function soundResultArtifactMatches(

@@ -151,6 +151,12 @@ export const CAPTIONS_TRACKING_JOB_TYPES = [
   'resolve_environmental_typography',
 ] as const
 
+export const CAPTIONS_SOUND_SUPPORT_JOB_TYPES = [
+  'provide_typographic_transition_support',
+  'prepare_caption_boundary_timing_requirements',
+  'provide_typographic_transition_component',
+] as const satisfies readonly CaptionsSupportedJobType[]
+
 export const CAPTIONS_LIVING_FRAME_JOB_TYPES = [
   'plan_caption_to_visual_handoff',
   'provide_caption_to_visual_handoff_spec',

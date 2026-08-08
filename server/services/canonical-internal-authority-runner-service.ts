@@ -66,6 +66,9 @@ import {
   createCanonicalCaptionTrackAllEvidenceRepository,
 } from './canonical-caption-track-all-support-service'
 import {
+  createCanonicalCaptionSoundSyncEvidenceRepository,
+} from './canonical-caption-soundsync-support-service'
+import {
   createCanonicalCaptionPostapprovalFinishRepository,
 } from './canonical-caption-postapproval-finish-service'
 import {
@@ -732,6 +735,9 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
     createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
   const trackAllEvidenceRepository =
     createCanonicalCaptionTrackAllEvidenceRepository({ objectPort })
+  const soundSyncEvidenceRepository = input.context
+    .canonicalCaptionSoundSyncEvidenceRepository
+    ?? createCanonicalCaptionSoundSyncEvidenceRepository({ objectPort })
   const postapprovalFinishRepository =
     createCanonicalCaptionPostapprovalFinishRepository({
       objectPort,
@@ -775,9 +781,22 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       visualIntelligenceEvidenceReadPort:
         visualIntelligenceEvidenceRepository,
       trackAllEvidenceReadPort: trackAllEvidenceRepository,
+      soundSyncEvidenceReadPort: soundSyncEvidenceRepository,
       canonicalJobDependencyAuthority:
         dependencyAdmission.dependencyAuthority,
       postapprovalFinishReadPort: postapprovalFinishRepository.readPort,
+      ...(input.context.canonicalCaptionCrossSystemExecutionInputReadPort
+        ? {
+            crossSystemExecutionInputReadPort: input.context
+              .canonicalCaptionCrossSystemExecutionInputReadPort,
+          }
+        : {}),
+      ...(input.context.canonicalCaptionSoundSupportInputReadPort
+        ? {
+            soundSupportInputReadPort: input.context
+              .canonicalCaptionSoundSupportInputReadPort,
+          }
+        : {}),
     })
   } catch (error) {
     if (error instanceof

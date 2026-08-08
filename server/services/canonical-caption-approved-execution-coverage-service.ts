@@ -552,7 +552,7 @@ function validOccurrenceScope(
     ? value.sceneId === null && value.boundaryId === null
     : value.scopeLevel === 'scene'
       ? value.sceneId !== null && value.boundaryId === null
-      : value.sceneId === null && value.boundaryId !== null
+      : value.boundaryId !== null
 }
 
 function compareOccurrences(

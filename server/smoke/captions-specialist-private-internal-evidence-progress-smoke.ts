@@ -132,6 +132,21 @@ check(progress.gates.find((gate) =>
         '2d73a761c667c4d40ced1c160d0a5f550bdc4f5987cd3cc70c868892b7b79840'),
 'the canonical execution gate inventories the exact original-source 4K runtime and render')
 check(progress.gates.find((gate) =>
+  gate.gapId === 'canonical_backend_private_execution_mount')
+  ?.evidenceRefs.some((reference) => reference.version ===
+    'canonical-caption-approved-execution-campaign-v1'
+    && reference.contentHash ===
+      '2528766a9b029cde32aacb94000caf6d966fccb81a6e62e03b6fc905fd2e1fea')
+  && progress.gates.find((gate) =>
+    gate.gapId === 'canonical_backend_private_execution_mount')
+    ?.nextRequiredEvidenceCodes.includes(
+      'actual_owner_evidence_and_final_quality_media_required_in_terminal_scope')
+  && !progress.gates.find((gate) =>
+    gate.gapId === 'canonical_backend_private_execution_mount')
+    ?.nextRequiredEvidenceCodes.includes(
+      'representative_approved_runs_must_cover_all_forty_one_caption_jobs'),
+'the 16-run campaign closes structural execution coverage without claiming terminal media evidence')
+check(progress.gates.find((gate) =>
   gate.gapId === 'qualified_ai_complete_time_visual_review')
   ?.evidenceRefs.some((reference) => reference.version ===
     'canonical-caption-original-source-final-quality-direct-inspection-receipt-v1'

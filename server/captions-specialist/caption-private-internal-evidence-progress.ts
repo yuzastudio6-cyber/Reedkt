@@ -168,6 +168,10 @@ const originalSourceCompleteTimeInspectionRef = ref(
   'caption.original-source.final-quality.direct-inspection.2026-08-07-v1',
   'canonical-caption-original-source-final-quality-direct-inspection-receipt-v1',
   '41acf13fe0cabc2cb43bd8a689696d0c9e9a7af0e9133edd779a0b5a4b93d28c')
+const approvedExecutionCampaignRef = ref(
+  'caption.approved-execution-campaign.77c6cc5730426608eceb07268521ea2e8b178054',
+  'canonical-caption-approved-execution-campaign-v1',
+  '2528766a9b029cde32aacb94000caf6d966fccb81a6e62e03b6fc905fd2e1fea')
 const brollProfessionalFullRenderRef = ref(
   'caption.broll-owner.professional.accepted.full.render',
   'caption-broll-owner-professional-private-render-v1',
@@ -219,15 +223,15 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     'actual_evidence_incomplete', [
       realSourceDirectInspectionRef,
       realSourceMultiOutputDirectInspectionRef,
-      brollProfessionalInspectionRef,
+      approvedExecutionCampaignRef,
       approvedBrollExecutionInspectionRef,
       approvedRunExactFramePreterminalEvidenceRef,
       originalSourceFinalQualityRuntimeIndexRef,
       originalSourceFinalQualityRenderRef,
       originalSourceCompleteTimeInspectionRef,
     ], [
-      'representative_approved_runs_must_cover_all_forty_one_caption_jobs',
-      'each_run_must_reread_every_projected_result_and_artifact',
+      'approved_execution_campaign_is_preterminal_structural_evidence_only',
+      'actual_owner_evidence_and_final_quality_media_required_in_terminal_scope',
     ]),
   gate('qualified_ai_complete_time_visual_review',
     'actual_evidence_incomplete', [
@@ -281,8 +285,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-07-v11',
-  observedAt: '2026-08-07T23:59:55.000Z',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-08-v12',
+  observedAt: '2026-08-08T12:00:00.000Z',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

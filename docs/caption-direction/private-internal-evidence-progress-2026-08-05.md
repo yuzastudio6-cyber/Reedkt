@@ -87,6 +87,49 @@ inventory without changing the **0/41 terminal jobs** or **0/9 terminal gates**
 because it intentionally contains no new final media, qualified model review,
 listening review, or independent final QA.
 
+## 2026-08-08 evidence-ledger and direct-raster re-audit
+
+The machine-readable progress record now inventories that exact campaign under
+the canonical backend-execution gate instead of repeating a B-roll inspection
+reference. The gate no longer asks for representative execution of all 41 jobs:
+the 16-run campaign closed that structural question. Its remaining requirement
+is intentionally narrower and stricter: final-quality media plus actual
+authenticated owner evidence must meet in the exact terminal qualification
+scope. The campaign remains preterminal evidence.
+
+The private rasters were also reopened at their exact cue boundaries. For the
+source-master-bound stable-caption render:
+
+- frame `4` is caption-free and frame `5` begins `Hey guys — today.` without a
+  partial glyph, stale plate, or face obstruction;
+- frame `37` retains the first cue and frame `38` cleanly replaces it with
+  `I'm launching my new AI software.` without overlap;
+- frame `122` retains the second cue and frame `123` is caption-free;
+- the single-line delivery treatment stays inside the horizontal and bottom
+  safe margins, remains readable over the shirt, and never covers the face or
+  raised hand.
+
+The exact frame hashes remain those sealed in the direct-inspection receipt:
+
+- `4/5`: `8bfec2433455de15db204d4fa528b7565051ad8f806bbc4a15c3443565a9a277`
+  / `c5e59eb25f35f16a9958d36bea16319c5f4dce11f880080515f1ca2aea81d329`;
+- `37/38`: `a942f971003d1bb92ee265b8f77f4220eec69bcd8fa1c4abbe4c83fb091decad`
+  / `32b7608c8add59315a32229eca2d6ec44f2bdf1d3984cf70958a988cc7f5ed99`;
+- `122/123`: `685e1ad2995ba1fc8c82c0b046455a033bd5be04c701f0755a7bbc73ac1bb213`
+  / `ea5a7a3c3989ebc818cdc53cec91085fa7f856b5706354c1eb273a967c682ce6`.
+
+The creative widescreen real-source treatment was separately reopened at
+frames `80` and `118`. It keeps the talking-head source in an unobstructed
+right-side panel and uses the left-side hierarchy for the cyan semantic keyword
+`AI` plus the complete accessible phrase. Full and reduced-motion rasters are
+pixel-identical at the inspected settled states: frame `80` hashes to
+`b51fd7b68ad68b490a45adce8f7af7f50f37c31278d34d0c7319027170588495`
+in both variants, and frame `118` hashes to
+`763902e9664e97ca6e4446116ab92193cb64f149836246aa5b19035f125afaab`
+in both variants. This is Caption-owned appearance and reduced-motion parity
+evidence, not a substitute for canonical transcript accuracy, qualified shared
+Visual Intelligence review, or independent final QA.
+
 ## The images the engineering fixtures produce
 
 Color bars, geometry blocks, timers, and exaggerated plates are test media.

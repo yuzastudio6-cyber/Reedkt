@@ -39,6 +39,8 @@ const TARGET_BUCKET =
   'reeditpro-production-sam31-qualification-private' as const
 const TARGET_KMS_KEY =
   'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification' as const
+const TARGET_KMS_KEY_VERSION_PREFIX =
+  `${TARGET_KMS_KEY}/cryptoKeyVersions/` as const
 const MOUNT_PATH = '/mnt/disks/reeditpro/sam31-qualification' as const
 const REQUEST_OBJECT_NAME = 'request/request.json' as const
 const CHECKPOINT_OBJECT_NAME =
@@ -772,7 +774,7 @@ async function rereadTarget(input: {
     || !etag.safeParse(etagValue).success
     || length !== input.expectedLength
     || contentType !== input.expectedContentType
-    || kmsKeyName !== TARGET_KMS_KEY
+    || !isTargetKmsKeyVersionName(kmsKeyName)
     || custom.weeditproSha256 !== input.expectedSha256
     || custom.weeditproCreateOnly !== 'true'
     || (input.sourceCopy
@@ -799,6 +801,10 @@ async function rereadTarget(input: {
     || String(stable.etag ?? '') !== etagValue
     || Number(stable.size ?? -1) !== length
     || String(stable.contentType ?? '') !== contentType
+    || String(stable.kmsKeyName ?? '') !== kmsKeyName
+    || stableAuthorityStringify(customMetadata(
+      stable as unknown as Record<string, unknown>,
+    )) !== stableAuthorityStringify(custom)
   ) throw new Error('SAM 3.1 qualification target changed during reread.')
   return stagedObjectSchema.parse({
     objectName: input.objectName,
@@ -814,6 +820,13 @@ async function rereadTarget(input: {
       input.expectedSourceCoordinateDigestSha256,
     createOnly: true,
   })
+}
+
+function isTargetKmsKeyVersionName(value: string): boolean {
+  if (!value.startsWith(TARGET_KMS_KEY_VERSION_PREFIX)) return false
+  return /^[1-9][0-9]*$/u.test(
+    value.slice(TARGET_KMS_KEY_VERSION_PREFIX.length),
+  )
 }
 
 function assertObservationMatchesWorker(input: {

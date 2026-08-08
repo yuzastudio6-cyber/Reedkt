@@ -2,6 +2,8 @@ import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
+import type { Storage } from '@google-cloud/storage'
+
 import {
   createCanonicalSam31SourceCheckpointQualificationWorkerRequest,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
@@ -13,6 +15,7 @@ import {
 } from '../services/canonical-sam3_1-source-checkpoint-qualification-a100-phase'
 import {
   CANONICAL_SAM3_1_QUALIFICATION_GCS_STAGING_PORT_VERSION,
+  createCanonicalSam31QualificationGcsStagingPort,
   createCanonicalSam31QualificationStagingOwner,
   type CanonicalSam31QualificationPrivateStagingPort,
   type CanonicalSam31QualificationStagedObject,
@@ -160,6 +163,10 @@ const sourceText = readFileSync(new URL(
 assert.match(sourceText, /sourceFile\.copy\(target,/u)
 assert.match(sourceText, /destinationKmsKeyName: TARGET_KMS_KEY/u)
 assert.match(sourceText, /kmsKeyName: TARGET_KMS_KEY/u)
+assert.match(sourceText, /TARGET_KMS_KEY_VERSION_PREFIX/u)
+assert.match(sourceText, /!isTargetKmsKeyVersionName\(kmsKeyName\)/u)
+assert.match(sourceText,
+  /String\(stable\.kmsKeyName \?\? ''\) !== kmsKeyName/u)
 assert.match(sourceText, /preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
 assert.match(sourceText, /foundationReadPort\.rereadCurrentFoundation/u)
 assert.doesNotMatch(sourceText,
@@ -170,14 +177,87 @@ assert.doesNotMatch(sourceText, /from_pretrained|snapshot_download|hf_hub_downlo
 assert.doesNotMatch(sourceText,
   /\.getSignedUrl\(|\.makePublic\(|predefinedAcl:\s*['"]publicRead/u)
 
+const gcsRequestBody = Buffer.from('{"qualification":"sam31"}', 'utf8')
+const gcsRequestSha256 = digest(gcsRequestBody)
+const gcsMetadata = {
+  generation: '301',
+  etag: 'gcs-versioned-kms-etag',
+  size: String(gcsRequestBody.byteLength),
+  contentType: 'application/json',
+  kmsKeyName:
+    'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification/cryptoKeyVersions/1',
+  metadata: {
+    weeditproSha256: gcsRequestSha256,
+    weeditproCreateOnly: 'true',
+  },
+}
+const versionedKmsStorage = {
+  bucket() {
+    return {
+      file() {
+        return {
+          async save() {},
+          async getMetadata() { return [structuredClone(gcsMetadata)] },
+          async download() { return [Buffer.from(gcsRequestBody)] },
+        }
+      },
+    }
+  },
+} as unknown as Storage
+const versionedKmsStaging = createCanonicalSam31QualificationGcsStagingPort({
+  storage: versionedKmsStorage,
+})
+const versionedKmsObject = await versionedKmsStaging.createRequestJsonOnly({
+  remoteSubdirectory:
+    `private/sam3_1/source-checkpoint-qualification/v2/attempts/${digest('versioned-kms-attempt')}`,
+  body: gcsRequestBody,
+  sha256: gcsRequestSha256,
+})
+assert.equal(
+  (versionedKmsObject as CanonicalSam31QualificationStagedObject)
+    .destinationKmsKeyName,
+  'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification',
+)
+
+const unversionedKmsMetadata = structuredClone(gcsMetadata)
+unversionedKmsMetadata.kmsKeyName =
+  'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification'
+const unversionedKmsStorage = {
+  bucket() {
+    return {
+      file() {
+        return {
+          async save() {},
+          async getMetadata() {
+            return [structuredClone(unversionedKmsMetadata)]
+          },
+          async download() { return [Buffer.from(gcsRequestBody)] },
+        }
+      },
+    }
+  },
+} as unknown as Storage
+await assert.rejects(
+  createCanonicalSam31QualificationGcsStagingPort({
+    storage: unversionedKmsStorage,
+  }).createRequestJsonOnly({
+    remoteSubdirectory:
+      `private/sam3_1/source-checkpoint-qualification/v2/attempts/${digest('unversioned-kms-attempt')}`,
+    body: gcsRequestBody,
+    sha256: gcsRequestSha256,
+  }),
+)
+
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-source-checkpoint-qualification-staging-owner',
-  checks: 43,
+  checks: 48,
   privateObjects: staging.objects.size,
   observationRecords: objectStore.records.size,
   serverSideCopyCalls: staging.serverSideCopyCalls,
   replayUsesCanonicalRereadWithoutRecopy: true,
+  versionedDestinationKmsKeyAccepted: true,
+  unversionedDestinationKmsKeyRejected: true,
   changedStagedObjectRejected: true,
   checkpointBytesDownloadedByApplication:
     staging.checkpointBytesDownloadedByApplication,

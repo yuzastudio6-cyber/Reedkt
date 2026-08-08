@@ -86,6 +86,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-operator-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-qualification-cloud-operator-smoke.ts',
   'server/smoke/canonical-vertex-a100-rate-cloud-publisher-smoke.ts',
+  'server/smoke/canonical-gpu-rate-cloud-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-a100-rate-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-result-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-terminal-evidence-owner-smoke.ts',

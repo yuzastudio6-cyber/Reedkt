@@ -636,6 +636,14 @@ invocation of this operator boundary.
   Account Viewer access, execution fails before publication and no A100 job may
   start. Public list price, a stale authority, and another payer account remain
   inadmissible substitutes.
+- The distinct all-route GPU publisher uses the same private execution pattern
+  for `a100_80gb_heavy_primary`, `l4_heavy_fallback`, and
+  `l4_standard_primary`. It must observe the complete payer-account SKU set for
+  all three routes before it persists any authority. Build, deploy, and bounded
+  execution are exposed only as `build:gpu-rate-publisher-image`,
+  `deploy:gpu-rate-publisher-job`, and `run:gpu-rate-publisher-job`. This closes
+  the L4 pricing execution path without conflating Vertex training rates with
+  Cloud Run/Compute Engine rates or granting either route runtime readiness.
 
 ## Current disposition
 

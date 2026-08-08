@@ -165,7 +165,11 @@ export function createCanonicalSam31VertexQualificationStagingOwner(input: {
       }
       const historical = assertHistoricalRequest(
         await input.historicalWorkerRequestReadPort.rereadExactWorkerRequest({
-          workerRequestRef: request.historicalPackageRequestRef,
+          workerRequestRef: {
+            id: request.historicalPackageRequestRef.id,
+            version: request.historicalPackageRequestRef.version,
+            contentHash: request.historicalPackageRequestRef.contentHash,
+          },
         }),
         request,
       )

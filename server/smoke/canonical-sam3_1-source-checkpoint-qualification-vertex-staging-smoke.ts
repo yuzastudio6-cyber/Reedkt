@@ -121,7 +121,14 @@ const stagingPort: CanonicalSam31QualificationPrivateStagingPort = {
 }
 const owner = createCanonicalSam31VertexQualificationStagingOwner({
   historicalWorkerRequestReadPort: {
-    async rereadExactWorkerRequest() { return structuredClone(historical) },
+    async rereadExactWorkerRequest(input) {
+      assert.deepEqual(input.workerRequestRef, {
+        id: request.historicalPackageRequestRef.id,
+        version: request.historicalPackageRequestRef.version,
+        contentHash: request.historicalPackageRequestRef.contentHash,
+      })
+      return structuredClone(historical)
+    },
   },
   historicalSourceReadPort: {
     async rereadExactSources() { return structuredClone(sourceSet) },

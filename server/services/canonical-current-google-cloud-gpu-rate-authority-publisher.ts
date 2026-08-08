@@ -20,7 +20,7 @@ export const CANONICAL_CURRENT_GOOGLE_CLOUD_GPU_RATE_AUTHORITY_PUBLICATION_RECEI
 
 const routeDefinitions = [
   { routeId: 'a100_80gb_heavy_primary', region: 'us-central1' },
-  { routeId: 'l4_heavy_fallback', region: 'us-central1' },
+  { routeId: 'l4_heavy_fallback', region: 'europe-west4' },
   { routeId: 'l4_standard_primary', region: 'us-central1' },
 ] as const
 const safeId = z.string().trim().min(1).max(120)
@@ -38,7 +38,7 @@ const evidenceRefSchema = z.object({
 }).strict()
 const routePublicationSchema = z.object({
   routeId: z.enum(CANONICAL_GOOGLE_CLOUD_GPU_RATE_ROUTE_IDS),
-  region: z.literal('us-central1'),
+  region: z.enum(['us-central1', 'europe-west4']),
   rateAuthorityRef: evidenceRefSchema,
   disposition: z.enum(['created', 'identical_replay']),
 }).strict()

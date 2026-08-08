@@ -78,6 +78,15 @@ Visual Intelligence, Track All/SAM 3.1, and independent final QA have
 source-ready adapters but no actual record for the terminal run. The final
 per-job projection remains blocked by the first eight gates.
 
+The Caption branch now also consumes the current canonical backend Visual
+Intelligence/SAM 3.1 qualification and runtime-release foundation at
+`997f510247afd00d9fbffc8f20cb6ac2e4ad9073`. Its complete 140-smoke source
+release suite is green. Those publishers and route authorities remove source
+foundation drift, but their checked-in evidence is intentionally contract/
+fixture scoped and reports no live Gemini call, GPU job, or Caption-scoped
+owner result. See
+[`post-cap20-canonical-visual-track-owner-foundation-merge-2026-08-08.md`](post-cap20-canonical-visual-track-owner-foundation-merge-2026-08-08.md).
+
 The separate 16-run approved execution campaign is recorded in
 [`post-cap20-approved-execution-campaign-2026-08-08.md`](post-cap20-approved-execution-campaign-2026-08-08.md).
 It covers **41/41** job types with **0** missing, preserves 16 distinct approved

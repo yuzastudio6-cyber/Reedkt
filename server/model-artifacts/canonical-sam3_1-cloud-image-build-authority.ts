@@ -226,6 +226,9 @@ const capsuleManifestWithoutHashSchema = z.object({
     gpuDecodePatchSha256: z.literal(
       'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
     ),
+    multiplexSessionGpuForwardingPatchSha256: z.literal(
+      'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+    ).optional(),
   }).strict(),
   privateInput: z.object({
     directoryName: z.literal(PRIVATE_INPUT_DIRECTORY),
@@ -244,6 +247,9 @@ const capsuleManifestWithoutHashSchema = z.object({
       'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893',
     ),
     cudaForwardCompatIngestReceiptSha256: sha256,
+    multiplexSessionGpuForwardingPatchSha256: z.literal(
+      'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+    ).optional(),
     artifactBuildBindingRecordHash: sha256,
     artifactBuildBindingFileSha256: sha256,
     sourceCheckpointQualificationRecordHash: sha256,
@@ -674,6 +680,13 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
         capsule.privateInput.sourceCheckpointCompatibilityReceiptSha256,
       cudaForwardCompatIngestReceiptSha256:
         capsule.privateInput.cudaForwardCompatIngestReceiptSha256,
+      ...(capsule.repositorySource.multiplexSessionGpuForwardingPatchSha256
+        ? {
+            multiplexSessionGpuForwardingPatchSha256:
+              capsule.repositorySource
+                .multiplexSessionGpuForwardingPatchSha256,
+          }
+        : {}),
     },
     cloudBuildPolicy: {
       projectId: PROJECT_ID,
@@ -883,6 +896,16 @@ function assertCapsuleManifestEntries(
     patchPath,
     value.repositorySource.gpuDecodePatchSha256,
   )
+  const multiplexSessionGpuForwardingPatchPath =
+    'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch'
+  if (value.repositorySource.multiplexSessionGpuForwardingPatchSha256) {
+    required(
+      multiplexSessionGpuForwardingPatchPath,
+      value.repositorySource.multiplexSessionGpuForwardingPatchSha256,
+    )
+  } else if (byPath.has(multiplexSessionGpuForwardingPatchPath)) {
+    throw new Error('Capsule GPU-forwarding patch is unbound.')
+  }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
     value.privateInput.patchApplicationReceiptSha256,
@@ -943,6 +966,24 @@ function assertCapsuleManifestEntries(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     value.privateInput.cudaForwardCompatIngestReceiptSha256,
   )
+  const einopsIngestReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`
+  const pycocotoolsIngestReceiptPath =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`
+  if (
+    !byPath.has(einopsIngestReceiptPath)
+    || !byPath.has(pycocotoolsIngestReceiptPath)
+  ) throw new Error('Capsule reviewed Python ingest receipts are missing.')
+  if (canonical) {
+    required(
+      einopsIngestReceiptPath,
+      'd882124bbea8f586e16df53c7062ffce3d9e1499c350ae1ccec0b25fab870608',
+    )
+    required(
+      pycocotoolsIngestReceiptPath,
+      'a47f679998c2a8d93d1f8e579a94a00bf4c9ca6ac9f7f40a9486a645177fdea3',
+    )
+  }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,
     value.privateInput.artifactBuildBindingFileSha256,
@@ -996,6 +1037,7 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
     'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
+    'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
@@ -1009,6 +1051,8 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/source-checkpoint-compatibility-receipt.json`,
   ].includes(path) || isAllowedWheelPath(path)

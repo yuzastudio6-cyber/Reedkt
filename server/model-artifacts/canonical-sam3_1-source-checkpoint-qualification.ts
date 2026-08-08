@@ -30,6 +30,8 @@ const SOURCE_SHA256 =
 const GPU_DECODE_PATCH_SHA256 =
   'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca' as const
 const EMPTY_EVIDENCE_SHA256 = '0'.repeat(64)
+const REAL_ROPE_CACHE_DERIVATION_POLICY =
+  'sam3_1_real_rope_cache_from_complex_buffer_v1' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -314,6 +316,17 @@ const qualificationWorkerResultWithoutHashSchema = z.object({
     strictCheckpointLoadRequested: z.literal(true),
     missingCheckpointKeyCount: z.literal(0),
     unexpectedCheckpointKeyCount: z.literal(0),
+    sourceCheckpointKeyCount: positiveInteger,
+    sourceCheckpointKeySetSha256: sha256,
+    deterministicRuntimeBufferDerivationPolicy: z.literal(
+      REAL_ROPE_CACHE_DERIVATION_POLICY,
+    ),
+    sourceComplexRopeBufferCount: z.literal(32),
+    derivedRuntimeBufferKeyCount: z.literal(64),
+    derivedRuntimeBufferKeySetSha256: sha256,
+    derivedRuntimeBufferValuesMatchedSourceComplexBuffers: z.literal(true),
+    sourceCheckpointFileMutated: z.literal(false),
+    learnedParameterOrCheckpointWeightSynthesized: z.literal(false),
     checkpointKeyCount: positiveInteger,
     modelStateKeyCount: positiveInteger,
     checkpointKeySetSha256: sha256,
@@ -323,6 +336,13 @@ const qualificationWorkerResultWithoutHashSchema = z.object({
     if (
       load.checkpointKeyCount !== load.modelStateKeyCount
       || load.checkpointKeySetSha256 !== load.modelStateKeySetSha256
+      || load.checkpointKeyCount !==
+        load.sourceCheckpointKeyCount + load.derivedRuntimeBufferKeyCount
+      || load.sourceCheckpointKeySetSha256 === load.checkpointKeySetSha256
+      || load.derivedRuntimeBufferKeySetSha256 ===
+        load.checkpointKeySetSha256
+      || load.sourceCheckpointKeySetSha256 ===
+        load.derivedRuntimeBufferKeySetSha256
     ) context.addIssue({
       code: 'custom',
       message: 'SAM 3.1 strict-load key evidence differs.',
@@ -687,6 +707,18 @@ const observationSchema = z.object({
     strictCheckpointLoadRequested: z.boolean(),
     missingCheckpointKeyCount: nonnegativeInteger,
     unexpectedCheckpointKeyCount: nonnegativeInteger,
+    sourceCheckpointKeyCount: nonnegativeInteger,
+    sourceCheckpointKeySetSha256: sha256,
+    deterministicRuntimeBufferDerivationPolicy: z.enum([
+      'not_executed',
+      REAL_ROPE_CACHE_DERIVATION_POLICY,
+    ]),
+    sourceComplexRopeBufferCount: nonnegativeInteger,
+    derivedRuntimeBufferKeyCount: nonnegativeInteger,
+    derivedRuntimeBufferKeySetSha256: sha256,
+    derivedRuntimeBufferValuesMatchedSourceComplexBuffers: z.boolean(),
+    sourceCheckpointFileMutated: z.literal(false),
+    learnedParameterOrCheckpointWeightSynthesized: z.literal(false),
     checkpointKeyCount: nonnegativeInteger,
     modelStateKeyCount: nonnegativeInteger,
     checkpointKeySetSha256: sha256,
@@ -874,6 +906,25 @@ export function createCanonicalSam31SourceCheckpointQualificationObservation(
         result.strictLoad.missingCheckpointKeyCount,
       unexpectedCheckpointKeyCount:
         result.strictLoad.unexpectedCheckpointKeyCount,
+      sourceCheckpointKeyCount:
+        result.strictLoad.sourceCheckpointKeyCount,
+      sourceCheckpointKeySetSha256:
+        result.strictLoad.sourceCheckpointKeySetSha256,
+      deterministicRuntimeBufferDerivationPolicy:
+        result.strictLoad.deterministicRuntimeBufferDerivationPolicy,
+      sourceComplexRopeBufferCount:
+        result.strictLoad.sourceComplexRopeBufferCount,
+      derivedRuntimeBufferKeyCount:
+        result.strictLoad.derivedRuntimeBufferKeyCount,
+      derivedRuntimeBufferKeySetSha256:
+        result.strictLoad.derivedRuntimeBufferKeySetSha256,
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers:
+        result.strictLoad
+          .derivedRuntimeBufferValuesMatchedSourceComplexBuffers,
+      sourceCheckpointFileMutated:
+        result.strictLoad.sourceCheckpointFileMutated,
+      learnedParameterOrCheckpointWeightSynthesized:
+        result.strictLoad.learnedParameterOrCheckpointWeightSynthesized,
       checkpointKeyCount: result.strictLoad.checkpointKeyCount,
       modelStateKeyCount: result.strictLoad.modelStateKeyCount,
       checkpointKeySetSha256:
@@ -1044,7 +1095,19 @@ const qualificationWithoutHashSchema = z.object({
     && probe.strictCheckpointLoadRequested
     && probe.missingCheckpointKeyCount === 0
     && probe.unexpectedCheckpointKeyCount === 0
+    && probe.sourceCheckpointKeyCount > 0
+    && probe.sourceCheckpointKeySetSha256 !== EMPTY_EVIDENCE_SHA256
+    && probe.deterministicRuntimeBufferDerivationPolicy ===
+      REAL_ROPE_CACHE_DERIVATION_POLICY
+    && probe.sourceComplexRopeBufferCount === 32
+    && probe.derivedRuntimeBufferKeyCount === 64
+    && probe.derivedRuntimeBufferKeySetSha256 !== EMPTY_EVIDENCE_SHA256
+    && probe.derivedRuntimeBufferValuesMatchedSourceComplexBuffers
+    && !probe.sourceCheckpointFileMutated
+    && !probe.learnedParameterOrCheckpointWeightSynthesized
     && probe.checkpointKeyCount > 0
+    && probe.checkpointKeyCount ===
+      probe.sourceCheckpointKeyCount + probe.derivedRuntimeBufferKeyCount
     && probe.checkpointKeyCount === probe.modelStateKeyCount
     && probe.checkpointKeySetSha256 === probe.modelStateKeySetSha256
     && probe.checkpointAndModelKeySetsExact
@@ -1090,6 +1153,15 @@ const qualificationWithoutHashSchema = z.object({
     && !probe.strictCheckpointLoadRequested
     && probe.missingCheckpointKeyCount === 0
     && probe.unexpectedCheckpointKeyCount === 0
+    && probe.sourceCheckpointKeyCount === 0
+    && probe.sourceCheckpointKeySetSha256 === EMPTY_EVIDENCE_SHA256
+    && probe.deterministicRuntimeBufferDerivationPolicy === 'not_executed'
+    && probe.sourceComplexRopeBufferCount === 0
+    && probe.derivedRuntimeBufferKeyCount === 0
+    && probe.derivedRuntimeBufferKeySetSha256 === EMPTY_EVIDENCE_SHA256
+    && !probe.derivedRuntimeBufferValuesMatchedSourceComplexBuffers
+    && !probe.sourceCheckpointFileMutated
+    && !probe.learnedParameterOrCheckpointWeightSynthesized
     && probe.checkpointKeyCount === 0
     && probe.modelStateKeyCount === 0
     && !probe.checkpointAndModelKeySetsExact

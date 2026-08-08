@@ -1,0 +1,279 @@
+steps:
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-canonical-control-records
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        mkdir -p private-staging
+        case '${_SOURCE_CAPSULE_MANIFEST_OBJECT}' in
+          private/sam3_1/qualification-image-build/v1/manifest/*.json) ;;
+          *) printf 'ERROR: source capsule manifest object is not canonical.\n' >&2; exit 1 ;;
+        esac
+        case '${_QUALIFICATION_RELEASE_OBJECT}' in
+          private/sam3_1/source-checkpoint-qualification/v1/releases/*.json) ;;
+          *) printf 'ERROR: qualification release object is not canonical.\n' >&2; exit 1 ;;
+        esac
+        case '${_ARTIFACT_BINDING_OBJECT}' in
+          private/sam3_1/cloud-image-build/v1/artifact-bindings/*.json) ;;
+          *) printf 'ERROR: artifact binding object is not canonical.\n' >&2; exit 1 ;;
+        esac
+        for value in \
+          '${_SOURCE_CAPSULE_MANIFEST_OBJECT}' \
+          '${_QUALIFICATION_RELEASE_OBJECT}' \
+          '${_ARTIFACT_BINDING_OBJECT}'; do
+          case "$${value}" in *..*|*\\*|//*|/*) exit 1 ;; esac
+        done
+        gcloud storage cp \
+          --if-generation-match='${_SOURCE_CAPSULE_MANIFEST_GENERATION}' \
+          'gs://reeditpro-production-reeditpro-control-plane-state/${_SOURCE_CAPSULE_MANIFEST_OBJECT}' \
+          private-staging/source-qualification-capsule-manifest.json
+        printf '%s  %s\n' '${_SOURCE_CAPSULE_MANIFEST_SHA256}' \
+          private-staging/source-qualification-capsule-manifest.json \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match='${_QUALIFICATION_RELEASE_GENERATION}' \
+          'gs://reeditpro-production-reeditpro-control-plane-state/${_QUALIFICATION_RELEASE_OBJECT}' \
+          private-staging/source-checkpoint-qualification-release.json
+        printf '%s  %s\n' '${_QUALIFICATION_RELEASE_SHA256}' \
+          private-staging/source-checkpoint-qualification-release.json \
+          | sha256sum --check --strict
+        gcloud storage cp \
+          --if-generation-match='${_ARTIFACT_BINDING_GENERATION}' \
+          'gs://reeditpro-production-reeditpro-control-plane-state/${_ARTIFACT_BINDING_OBJECT}' \
+          private-staging/private-artifact-build-binding.json
+        printf '%s  %s\n' '${_ARTIFACT_BINDING_SHA256}' \
+          private-staging/private-artifact-build-binding.json \
+          | sha256sum --check --strict
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-qualified-source-capsule
+    waitFor:
+      - reread-exact-canonical-control-records
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        python3 -I -B - <<'PY'
+        import json
+        from pathlib import Path
+        import re
+        import shlex
+
+        value = json.loads(Path(
+            'private-staging/source-qualification-capsule-manifest.json'
+        ).read_text(encoding='utf-8'))
+        coordinate = value.get('capsule', {}).get('coordinate', {})
+        object_name = coordinate.get('objectName')
+        generation = coordinate.get('generation')
+        digest = coordinate.get('sha256')
+        byte_length = coordinate.get('byteLength')
+        if (
+            coordinate.get('projectId') != 'reeditpro'
+            or coordinate.get('bucketName')
+               != 'reeditpro-production-reeditpro-image-build-inputs'
+            or not isinstance(object_name, str)
+            or not object_name.startswith(
+                'private/image-build-inputs/sam3_1/qualification/reproducibility/'
+            )
+            or not object_name.endswith('.tar.gz')
+            or '..' in object_name or '\\' in object_name or '//' in object_name
+            or not isinstance(generation, str)
+            or re.fullmatch(r'[1-9][0-9]{0,30}', generation) is None
+            or not isinstance(digest, str)
+            or re.fullmatch(r'[a-f0-9]{64}', digest) is None
+            or not isinstance(byte_length, int)
+            or byte_length <= 0 or byte_length > 8 * 1024 * 1024 * 1024
+        ):
+            raise SystemExit('qualification capsule coordinate changed')
+        Path('private-staging/source-capsule.env').write_text(
+            f'object_name={shlex.quote(object_name)}\n'
+            f'generation={shlex.quote(generation)}\n'
+            f'digest={shlex.quote(digest)}\n'
+            f'byte_length={byte_length}\n',
+            encoding='ascii',
+        )
+        PY
+        . private-staging/source-capsule.env
+        gcloud storage cp --if-generation-match="$${generation}" \
+          "gs://reeditpro-production-reeditpro-image-build-inputs/$${object_name}" \
+          private-staging/source-qualification-capsule.tar.gz
+        test "$$(stat --format='%s' \
+          private-staging/source-qualification-capsule.tar.gz)" \
+          = "$${byte_length}"
+        printf '%s  %s\n' "$${digest}" \
+          private-staging/source-qualification-capsule.tar.gz \
+          | sha256sum --check --strict
+  - name: gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147
+    id: build-fixed-production-capsule
+    waitFor:
+      - reread-exact-qualified-source-capsule
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        docker build \
+          --pull=false \
+          --no-cache \
+          --platform=linux/amd64 \
+          --build-arg=WEEDITPRO_BUILD_ID=$BUILD_ID \
+          --build-arg=WEEDITPRO_REPOSITORY_COMMIT=${_REPOSITORY_COMMIT} \
+          --build-arg=WEEDITPRO_REPOSITORY_TREE=${_REPOSITORY_TREE} \
+          --file=Dockerfile.production-capsule-builder \
+          --tag=weeditpro-sam31-production-capsule:source-bound-v1 \
+          .
+        container_id="$$(docker create \
+          weeditpro-sam31-production-capsule:source-bound-v1)"
+        trap 'docker rm --force "$${container_id}" >/dev/null 2>&1 || true' EXIT
+        mkdir -p /workspace/private-production-capsule-output
+        docker cp "$${container_id}:/output/." \
+          /workspace/private-production-capsule-output/
+        test "$$(find /workspace/private-production-capsule-output -maxdepth 1 \
+          -type f -name '*.tar.gz' | wc -l)" = 1
+        test "$$(find /workspace/private-production-capsule-output -maxdepth 1 \
+          -type f -name '*.capsule.json' | wc -l)" = 1
+        find /workspace/private-production-capsule-output -maxdepth 1 \
+          -type f -exec chmod 0444 '{}' +
+        chmod 0555 /workspace/private-production-capsule-output
+        mkdir -p /workspace/private-production-capsule-security
+        chmod 0777 /workspace/private-production-capsule-security
+        docker rm "$${container_id}" >/dev/null
+        trap - EXIT
+  - name: us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20
+    id: full-archive-security-review
+    waitFor:
+      - build-fixed-production-capsule
+    entrypoint: sh
+    args:
+      - -ceu
+      - |
+        capsule="$$(find /workspace/private-production-capsule-output \
+          -maxdepth 1 -type f -name '*.tar.gz' -print)"
+        builder="$$(find /workspace/private-production-capsule-output \
+          -maxdepth 1 -type f -name '*.capsule.json' -print)"
+        test -n "$${capsule}" && test -n "$${builder}"
+        test "$$(printf '%s\n' "$${capsule}" | wc -l)" = 1
+        test "$$(printf '%s\n' "$${builder}" | wc -l)" = 1
+        test "$$(stat --format='%s' "$${capsule}")" -le 4293918720
+        scanner_version="$$(clamscan --version)"
+        scan_output="$$(clamscan --infected --scan-archive=yes \
+          --max-filesize=4095M --max-scansize=4095M --max-recursion=32 \
+          --max-files=1000000 --max-scantime=0 "$${capsule}")"
+        printf '%s\n' "$${scan_output}"
+        known_viruses="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Known viruses:[[:space:]]*//p')"
+        scanned_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Scanned files:[[:space:]]*//p')"
+        infected_files="$$(printf '%s\n' "$${scan_output}" \
+          | sed -n 's/^Infected files:[[:space:]]*//p')"
+        test "$${known_viruses}" -ge 1000000
+        test "$${scanned_files}" -ge 1
+        test "$${infected_files}" = 0
+        python3 -I -B - "$${capsule}" "$${builder}" \
+          /workspace/private-production-capsule-security/capsule-security-review.json \
+          "$${scanner_version}" "$${known_viruses}" "$${scanned_files}" \
+          "$BUILD_ID" <<'PY'
+        import datetime
+        import hashlib
+        import json
+        from pathlib import Path
+        import re
+        import sys
+
+        capsule_path, builder_path, output_path = map(Path, sys.argv[1:4])
+        scanner_version, known_viruses, scanned_files, build_id = sys.argv[4:]
+        canonical = lambda value: json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        ).encode('utf-8')
+        builder_body = builder_path.read_bytes().rstrip(b'\n')
+        builder = json.loads(builder_body)
+        builder_payload = dict(builder)
+        builder_hash = builder_payload.pop('builderResultHash', None)
+        capsule = capsule_path.read_bytes()
+        capsule_sha = hashlib.sha256(capsule).hexdigest()
+        if (
+            canonical(builder) != builder_body
+            or hashlib.sha256(canonical(builder_payload)).hexdigest()
+               != builder_hash
+            or builder.get('buildId') != build_id
+            or builder.get('capsuleSha256') != capsule_sha
+            or builder.get('capsuleByteLength') != len(capsule)
+            or capsule_path.name != f'{capsule_sha}.tar.gz'
+            or re.fullmatch(r'ClamAV [0-9.]+/[0-9]+/.+', scanner_version)
+               is None
+        ):
+            raise SystemExit('production capsule builder evidence changed')
+        payload = {
+            'schemaVersion': 'weeditpro-sam3_1-production-capsule-security-review-v1',
+            'source': 'weeditpro_sam3_1_production_capsule_security_owner',
+            'evidenceClass': 'canonical_private_cloud_scan',
+            'buildId': build_id,
+            'builderResultRef': {
+                'id': f'sam31-production-capsule-builder.{build_id}',
+                'version': 1,
+                'contentHash': f'sha256:{builder_hash}',
+            },
+            'scannerImageDigest': 'sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20',
+            'scannerVersion': scanner_version,
+            'signatureCount': int(known_viruses),
+            'scannedFileCount': int(scanned_files),
+            'infectedFileCount': 0,
+            'capsuleSha256': capsule_sha,
+            'capsuleByteLength': len(capsule),
+            'archiveEntrySetSha256': builder['archiveEntrySetSha256'],
+            'archiveRecursionEnabled': True,
+            'scanPassed': True,
+            'prohibitedEntryScanPassed': True,
+            'absoluteParentTraversalSymlinkDeviceAndSocketEntriesAbsent': True,
+            'checkpointIncluded': False,
+            'qualificationReceiptIncluded': True,
+            'modelExecuted': False,
+            'developerMachineInstallPerformed': False,
+            'customerCreditsMutated': False,
+            'runtimeReleaseGranted': False,
+            'productionAuthorityGranted': False,
+            'reviewedAt': datetime.datetime.now(
+                datetime.timezone.utc
+            ).isoformat().replace('+00:00', 'Z'),
+        }
+        record = dict(payload)
+        record['securityReviewHash'] = hashlib.sha256(
+            canonical(payload)
+        ).hexdigest()
+        output_path.write_bytes(canonical(record) + b'\n')
+        PY
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: upload-create-only-production-evidence
+    waitFor:
+      - full-archive-security-review
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        readonly destination='gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/sam3_1/production/reproducibility/'$BUILD_ID
+        capsule="$$(find /workspace/private-production-capsule-output \
+          -maxdepth 1 -type f -name '*.tar.gz' -print)"
+        builder="$$(find /workspace/private-production-capsule-output \
+          -maxdepth 1 -type f -name '*.capsule.json' -print)"
+        gcloud storage cp --if-generation-match=0 \
+          --content-type=application/gzip "$${capsule}" "$${destination}/"
+        gcloud storage cp --if-generation-match=0 \
+          --content-type=application/json "$${builder}" "$${destination}/"
+        gcloud storage cp --if-generation-match=0 \
+          --content-type=application/json \
+          /workspace/private-production-capsule-security/capsule-security-review.json \
+          "$${destination}/"
+timeout: 3600s
+queueTtl: 3600s
+serviceAccount: projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com
+options:
+  machineType: E2_HIGHCPU_8
+  diskSizeGb: '200'
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED
+  sourceProvenanceHash:
+    - SHA256
+tags:
+  - weeditpro
+  - sam3-1
+  - production-capsule-build

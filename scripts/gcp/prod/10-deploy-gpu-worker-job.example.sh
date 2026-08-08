@@ -9,6 +9,7 @@ source "${SCRIPT_DIR}/lib/gcloud-common.sh"
 confirm_prod_action
 
 readonly L4_DEFINITION_CONFIRMATION='deploy-weeditpro-qualified-l4-job-definitions-v1'
+readonly SAM31_L4_FALLBACK_REGION='europe-west4'
 readonly CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 readonly MASK_BUCKET='reeditpro-production-reeditpro-masks'
 if [[ "${WEEDITPRO_DEPLOY_QUALIFIED_L4_JOB_DEFINITIONS:-false}" \
@@ -55,7 +56,7 @@ run_gcloud run jobs deploy reeditpro-professional-l4 \
 
 run_gcloud run jobs deploy reeditpro-sam31-l4-fallback \
   --project="${GCP_PROJECT_ID}" \
-  --region="${GCP_REGION}" \
+  --region="${SAM31_L4_FALLBACK_REGION}" \
   --image="${SAM31_IMAGE}" \
   --service-account="$(service_account_email "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}")" \
   --cpu=8 \

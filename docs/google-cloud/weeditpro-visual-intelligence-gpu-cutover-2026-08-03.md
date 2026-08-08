@@ -261,6 +261,17 @@ idempotent rerun then observed all five disabled and emitted
   compilation factory joins that repository with the existing final route-
   qualification repository and the compilation-authority store, so an
   in-memory object cannot satisfy the production release path.
+- The route-specific release publication gap is now closed in source. The
+  canonical publication coordinator accepts only exact upstream and component
+  refs, rereads the source/checkpoint release, private ingest, immutable image
+  supply-chain release, final qualification record, and compilation authority,
+  and then persists the specialized/generic release pair create-only. It
+  derives the release ID, fixed A100/L4 route shape, qualification time, and
+  30-day expiry on the server; callers cannot submit those fields or any
+  qualification boolean. The bounded
+  `publish:sam3_1-gpu-runtime-release` command exposes only opaque refs and an
+  explicit operator confirmation. Publication starts no GPU job, mutates no
+  customer credit, and grants no public-delivery or production authority.
 - Driver/CUDA component evidence now has a canonical route-specific owner.
   It rereads the immutable SAM 3.1 task, professional GPU launch, admitted
   runtime result, and create-only worker response from their durable stores;
@@ -620,8 +631,159 @@ invocation of this operator boundary.
   no billing mutation, payment, wallet, credit, provider, or production
   authority. The current operator cannot execute it because their billing-
   account IAM policy access is absent.
+- The account-price runtime no longer depends on developer-machine Application
+  Default Credentials. A dedicated source-bound Cloud Run Job remains
+  permanently unarmed and runs under the canonical backend service identity.
+  `npm run run:vertex-a100-rate-publisher-job` resolves the exact project-linked
+  billing account at invocation, supplies it only as an execution override,
+  performs one account-effective eight-SKU reread, persists the immutable rate
+  authority create-only, and returns to zero. Its image contains no billing
+  coordinate, model, checkpoint, media tool, GPU runtime, customer ledger, or
+  credit mutation path. Build and deployment remain separately gated by
+  `build:vertex-a100-rate-publisher-image` and
+  `deploy:vertex-a100-rate-publisher-job`.
+- This service-identity operator does not bypass billing IAM. Until a billing
+  administrator grants the canonical backend identity read-only Billing
+  Account Viewer access, execution fails before publication and no A100 job may
+  start. Public list price, a stale authority, and another payer account remain
+  inadmissible substitutes.
+- The distinct all-route GPU publisher uses the same private execution pattern
+  for `a100_80gb_heavy_primary`, `l4_heavy_fallback`, and
+  `l4_standard_primary`. It must observe the complete payer-account SKU set for
+  all three routes before it persists any authority. Build, deploy, and bounded
+  execution are exposed only as `build:gpu-rate-publisher-image`,
+  `deploy:gpu-rate-publisher-job`, and `run:gpu-rate-publisher-job`. This closes
+  the L4 pricing execution path without conflating Vertex training rates with
+  Cloud Run/Compute Engine rates or granting either route runtime readiness.
+- The source/checkpoint-qualified production image build now has a separate
+  scale-from-zero control-plane operator boundary. The permanently unarmed
+  `weeditpro-sam31-runtime-image-operator` accepts only one exact persisted
+  build-authority ref and, for observation, its exact submission ref. It
+  reuses the canonical image-build owner, which rereads the qualification
+  release and fixed capsule, Dockerfile, image destination, and build arguments
+  before Cloud Build. The operator cannot accept model/checkpoint bytes, media,
+  storage coordinates, Dockerfiles, tags, commands, retries, or runtime-release
+  claims. Its build, deploy, and execution controls are
+  `build:sam3_1-runtime-image-operator-image`,
+  `deploy:sam3_1-runtime-image-operator-job`, and
+  `run:sam3_1-runtime-image-operator-once`.
 
 ## Current disposition
+
+### 2026-08-08 all-route GPU price publisher deployment
+
+- Commit `691061d55` publishes the scale-from-zero account-effective rate
+  operator for `a100_80gb_heavy_primary`, `l4_heavy_fallback`, and
+  `l4_standard_primary`. Cloud Build
+  `adc8c662-19a5-4dc5-ab65-85c7a7930cff` produced immutable image digest
+  `sha256:7778e5dee8532b74e328f7abf5092a43ddbf4c0dcb2bb8284a606d8c134261ee`
+  from exact tree `1e4c80c0800a30c5dfb34811b5d706f47cc69cce`.
+  Artifact Analysis reports SLSA level 3, completed NPM/OS/secret analysis,
+  and zero discovered vulnerabilities.
+- Cloud Run Job `weeditpro-gpu-rate-publisher` is deployed privately in
+  `us-central1` under the canonical API service identity. Its permanent
+  configuration contains only `WEEDITPRO_GPU_RATE_OPERATOR_ACTION=disabled`,
+  with one task, zero retries, no GPU, no public principal, and zero idle
+  instances.
+- One bounded execution, `weeditpro-gpu-rate-publisher-mwbl7`, exercised the
+  canonical service identity and failed before any route publication with
+  `Google Cloud account-effective price reread failed.` No all-route rate
+  record exists, no partial A100 or L4 authority was persisted, the job reread
+  unarmed after execution, and the running execution count returned to zero.
+- This execution started no SAM/Gemini model, GPU, provider, or media runtime
+  and mutated no customer credit, wallet, billing account, payment method,
+  public-delivery, or production authority. The active operator identity
+  cannot read or modify the billing-account IAM policy, so the remaining live
+  gate is still the billing administrator's narrow read-only
+  `billing.billingAccountPrice.get` grant for the canonical backend identity.
+
+### 2026-08-08 account-effective A100 price publisher deployment
+
+- Commit `e772222cd` publishes the dedicated scale-from-zero Vertex A100
+  account-effective rate operator. Cloud Build
+  `0af2c057-2774-4b99-9048-4da408a3b71b` produced immutable image digest
+  `sha256:eef5362894af6918f17e5f5acb0302bf83c76bcc0b91b054edc2d7e900891a07`
+  from exact tree `65b192b540dcaf7ef16e727367816e25423706a9`.
+  Artifact Analysis reports SLSA level 3, completed NPM/OS/secret analysis,
+  and zero discovered vulnerabilities.
+- Cloud Run Job `weeditpro-vertex-a100-rate-publisher` is deployed in
+  `us-central1` under the canonical API service identity. Its permanent
+  configuration contains only `WEEDITPRO_VERTEX_A100_RATE_OPERATOR_ACTION`
+  set to `disabled`, with one task, zero retries, no GPU, no public principal,
+  and zero idle instances.
+- One bounded execution,
+  `weeditpro-vertex-a100-rate-publisher-t6vp4`, exercised the canonical service
+  identity and failed before publication with
+  `Vertex A100 account-effective price reread failed.` The repository still
+  contains only the previously published expired authority; no partial or
+  replacement authority was created. The job reread unarmed afterward with
+  zero running executions.
+- This execution started no SAM/Gemini model, GPU, provider, or media runtime
+  and mutated no customer credit, wallet, billing account, payment method,
+  public-delivery, or production authority. The remaining live gate is the
+  billing administrator's read-only `billing.billingAccountPrice.get` grant
+  for the canonical backend identity. The A100 qualification remains
+  correctly unlaunched until a fresh authority is published.
+
+### 2026-08-08 restart-safe Vertex A100 qualification runtime milestone
+
+- Commit `552062710` adds the canonical one-writer Vertex Custom Job
+  qualification composition for the official SAM 3.1 source/checkpoint
+  package. It rereads the immutable request, signed qualification-image
+  release, live Vertex A100 80 GB quota preference and regional quota, and the
+  current billing-account-effective rate authority before provider creation.
+- Worker requests, admissions, single-use consumptions, executions,
+  provider-allocation usage, and internal qualification-cost receipts are
+  create-only and exact-reread. An identical replay returns the prior
+  execution instead of creating a second paid job. A consumed admission with
+  an uncertain create outcome blocks automatic retry until canonical
+  reconciliation.
+- Terminal reconciliation bills from provider create/start/end allocation
+  times without inventing worker-phase timing. A failed job that started but
+  produced no qualified result retains an `unknown` substantive-work outcome
+  while its WeEditPro-absorbed infrastructure cost remains reconcilable.
+- The complete provider-neutral Visual Intelligence/GPU source release suite
+  now runs 125 green smokes, including the new Vertex request, staging,
+  launch, terminal, restart-safe runtime, and cost boundaries. This is source
+  qualification only: no live A100 job or Gemini provider call was started,
+  no customer credits were mutated, and production remains false.
+- The live read-only audit confirms one granted Vertex Custom Training A100
+  80 GB quota and one L4 quota with zero active qualification jobs. It also
+  confirms the separately qualified L4 normal task-QA job has three completed
+  scale-from-zero executions and is idle. That lane does not qualify the SAM
+  3.1 heavy L4 fallback.
+- Live-prerequisite audit v18 no longer hard-codes the Vertex route as
+  unavailable. It fail-closes over ten exact source hashes covering the
+  restart-safe runtime, create-only repository, launch port, terminal
+  reconciliation, A100 cost authority, focused runtime proof, and bounded
+  start/reconcile operator pair. The
+  2026-08-08 read reports `routeArchitectureQualified: true`,
+  `routeArchitectureSourceBindingCount: 10`, and
+  `dispatchCapacityReady: true`; any source drift makes those route claims
+  false. This is dispatch-capacity evidence, not authorization to launch a
+  paid job.
+- The source-bound route now includes a bounded operator pair. The start
+  command prepares and starts exactly one qualification attempt only from the
+  immutable historical request, signed-image release, and current account-rate
+  authority references. The reconcile command accepts only the persisted
+  execution reference. Neither command accepts a checkpoint path, image URI,
+  GPU class, price, arbitrary command, automatic retry, or customer-credit
+  mutation. Both remain fail-closed until the account-effective A100 rate
+  authority exists:
+  `npm run start:sam3_1-source-checkpoint-qualification-vertex` and
+  `npm run reconcile:sam3_1-source-checkpoint-qualification-vertex`.
+- The internal qualification cost receipt is now explicitly provisional.
+  Vertex create/start/end allocation time, request/result artifact bytes,
+  retention, and zero egress remain exact-reread inputs. The runtime no longer
+  invents fixed Class A/Class B object-storage operation counts: both counts
+  stay zero in the provisional calculation, their cost is deferred to Cloud
+  Billing invoice reconciliation, and the receipt cannot claim a final
+  invoice-reconciled cost or charge customer credits. This keeps A100
+  qualification cost observable without overstating provider usage truth.
+- Live A100 admission remains fail-closed because neither available operator
+  identity can read billing-account-specific SKU prices. Public list prices
+  are not substituted. The L4 heavy fallback also remains unreleased until it
+  is compared against an approved live A100 quality baseline.
 
 The Orchestra can now discover Track All through the same provider-neutral
 `skill-capability-manifest-v1` boundary used by Visual Intelligence. The Track
@@ -727,12 +889,28 @@ real qualified SAM 3.1 Track All result completes that full canonical chain.
 
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
-and live CUDA qualification, but remains rate-blocked. Live checkpoint-bearing
-SAM 3.1 installation remains blocked by Meta checkpoint access, the still-open
-official source/checkpoint compatibility issue, A100 80GB quota, and independent
-heavy-image A100/L4 qualification. Live Gemini and GPU pricing additionally
-remain blocked by billing-account price-read IAM and isolated model/SKU
-reconciliation.
+and live CUDA qualification, but remains rate-blocked. The official private
+SAM 3.1 source and checkpoint have been ingested, the signed qualification
+image is available, and Vertex A100 80 GB capacity plus the restart-safe route
+architecture are ready. What remains is the paid live A100 source/checkpoint
+compatibility and quality qualification, followed by an independently compared
+checkpoint-bearing L4 fallback qualification. Live Gemini and GPU rate
+publication additionally remain blocked by billing-account price-read IAM and
+isolated model/SKU reconciliation; public list prices are not accepted as
+settlement authority.
+
+The account-effective GPU rate reader is now a versioned multi-region
+configuration. It binds the A100 heavy primary and normal L4 route to
+`us-central1`, while the independently qualified SAM 3.1 L4 heavy fallback is
+bound to `europe-west4`. Cloud Run L4 GPU, Jobs CPU, Jobs memory, and regional
+storage SKU identities are distinct for those two regions; the publisher
+observes all three routes under one exact billing-account scope before any
+create-only rate authority is persisted. The L4 deployment template uses the
+same fixed `europe-west4` fallback coordinate. This source alignment does not
+substitute public list prices for account-effective prices and starts no paid
+GPU job; live publication still requires the authenticated billing-account
+price reread.
+
 Legacy visual and CPU processing runtimes are now absent and their five live
 identities are retired; the private-search control plane is independently
 isolated. The implementation must not weaken or silently bypass the remaining

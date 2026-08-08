@@ -43,6 +43,14 @@ GPU_DECODE_PATCH_SHA256 = (
 )
 CHECKPOINT_REVISION = "daa63191845a41281374e725f4c9e51c7a824460"
 CHECKPOINT_FILE_NAME = "sam3.1_multiplex.pt"
+REAL_ROPE_CACHE_DERIVATION_POLICY = (
+    "sam3_1_real_rope_cache_from_complex_buffer_v1"
+)
+DETECTOR_ROPE_CACHE_BASE = re.compile(
+    r"^(?:sam3_model|detector)\.backbone\.vision_backbone\.trunk\."
+    r"blocks\.(?P<block>[0-9]+)\.attn\.freqs_cis$"
+)
+EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))
 
 CHECKPOINT_PATH = Path(
     "/mnt/reeditpro/model-artifacts/sam3_1/sam3.1_multiplex.pt"
@@ -147,6 +155,41 @@ def install_torchcodec_gpu_decode_guard() -> None:
 
     guarded_getitem._weeditpro_gpu_decode_guard = True
     decoder_type.__getitem__ = guarded_getitem
+
+
+def install_sam31_multiplex_session_compatibility_guard(predictor: Any) -> None:
+    """Require the complete GPU-only session API on the installed model.
+
+    The separately hashed source patch forwards every base-predictor session
+    option through both multiplex overrides. Refuse an unpatched or open-ended
+    signature here so no compatibility shim can silently discard CUDA decode
+    controls or state-offload policy.
+    """
+    import inspect
+
+    model = getattr(predictor, "model", None)
+    original_init_state = getattr(model, "init_state", None)
+    if not callable(original_init_state):
+        raise RuntimeError("SAM 3.1 multiplex init_state is unavailable")
+    parameters = inspect.signature(original_init_state).parameters
+    required_parameters = {
+        "resource_path",
+        "offload_video_to_cpu",
+        "offload_state_to_cpu",
+        "async_loading_frames",
+        "use_torchcodec",
+        "use_cv2",
+        "input_is_mp4",
+        "gpu_acceleration",
+        "gpu_device",
+    }
+    if not required_parameters.issubset(parameters):
+        raise RuntimeError("SAM 3.1 multiplex init_state signature changed")
+    if any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    ):
+        raise RuntimeError("SAM 3.1 multiplex init_state became open-ended")
 
 FIXED_TASK_CONTRACT = {
     "schemaVersion": FIXED_TASK_CONTRACT_VERSION,
@@ -1106,6 +1149,153 @@ def validate_settings(value: Any) -> None:
         raise ValueError("SAM 3.1 fixed settings changed")
 
 
+def checkpoint_state_dict(checkpoint: Any) -> dict[str, Any]:
+    if isinstance(checkpoint, dict) and isinstance(checkpoint.get("model"), dict):
+        checkpoint = checkpoint["model"]
+    if not isinstance(checkpoint, dict) or not checkpoint:
+        raise RuntimeError("checkpoint state dictionary is invalid")
+    return checkpoint
+
+
+def normalize_checkpoint_key(key: str) -> str:
+    if key.startswith("sam3_model."):
+        return "detector." + key[len("sam3_model.") :]
+    if key.startswith("sam2_predictor."):
+        return "tracker." + key[len("sam2_predictor.") :]
+    return key
+
+
+def normalize_checkpoint_keys(checkpoint: Any) -> list[str]:
+    state = checkpoint_state_dict(checkpoint)
+    normalized: list[str] = []
+    for key in state:
+        if not isinstance(key, str):
+            raise RuntimeError("checkpoint key is not text")
+        normalized.append(normalize_checkpoint_key(key))
+    if len(normalized) != len(set(normalized)):
+        raise RuntimeError("checkpoint key normalization collided")
+    return sorted(normalized)
+
+
+def derive_real_rope_runtime_caches(
+    torch: Any, checkpoint: Any
+) -> list[str]:
+    state = checkpoint_state_dict(checkpoint)
+    bases: dict[int, str] = {}
+    for key in state:
+        if not isinstance(key, str):
+            raise RuntimeError("checkpoint key is not text")
+        match = DETECTOR_ROPE_CACHE_BASE.fullmatch(key)
+        if match is None:
+            continue
+        block = int(match.group("block"))
+        if block in bases:
+            raise RuntimeError("checkpoint has duplicate detector RoPE cache block")
+        bases[block] = key
+    if tuple(sorted(bases)) != EXPECTED_DETECTOR_ROPE_BLOCKS:
+        raise RuntimeError("checkpoint detector complex RoPE cache set changed")
+
+    derived_keys: list[str] = []
+    for block in EXPECTED_DETECTOR_ROPE_BLOCKS:
+        base_key = bases[block]
+        base = state[base_key]
+        if (
+            not torch.is_tensor(base)
+            or not torch.is_complex(base)
+            or base.device.type != "cpu"
+            or base.dtype != torch.complex64
+            or base.requires_grad
+        ):
+            raise RuntimeError("checkpoint detector RoPE cache is not complex")
+        real_key = f"{base_key}_real"
+        imag_key = f"{base_key}_imag"
+        if real_key in state or imag_key in state:
+            raise RuntimeError("checkpoint already contains derived real RoPE cache")
+        real = base.real.contiguous().clone()
+        imag = base.imag.contiguous().clone()
+        if (
+            real.shape != base.shape
+            or imag.shape != base.shape
+            or real.device.type != "cpu"
+            or imag.device.type != "cpu"
+            or real.dtype != torch.float32
+            or imag.dtype != torch.float32
+            or not torch.equal(real, base.real)
+            or not torch.equal(imag, base.imag)
+            or not torch.equal(torch.complex(real, imag), base)
+        ):
+            raise RuntimeError("deterministic real RoPE cache derivation changed")
+        state[real_key] = real
+        state[imag_key] = imag
+        derived_keys.extend(
+            [normalize_checkpoint_key(real_key), normalize_checkpoint_key(imag_key)]
+        )
+    if len(derived_keys) != 64 or len(set(derived_keys)) != 64:
+        raise RuntimeError("derived real RoPE cache key set changed")
+    return sorted(derived_keys)
+
+
+def build_predictor_with_strict_rope_cache_derivation(torch: Any) -> Any:
+    from sam3.model_builder import build_sam3_multiplex_video_predictor
+
+    unsafe_globals = torch.serialization.get_unsafe_globals_in_checkpoint(
+        str(CHECKPOINT_PATH)
+    )
+    if unsafe_globals:
+        raise RuntimeError("checkpoint contains unsafe serialized globals")
+    original_load = torch.load
+    load_count = 0
+    source_keys: list[str] = []
+    augmented_keys: list[str] = []
+    derived_keys: list[str] = []
+
+    def observed_load(*args: Any, **kwargs: Any) -> Any:
+        nonlocal load_count, source_keys, augmented_keys, derived_keys
+        load_count += 1
+        if (
+            load_count != 1
+            or not args
+            or Path(args[0]) != CHECKPOINT_PATH
+            or kwargs.get("weights_only") is not True
+            or kwargs.get("map_location") != "cpu"
+        ):
+            raise RuntimeError("checkpoint load contract changed")
+        loaded = original_load(*args, **kwargs)
+        source_keys = normalize_checkpoint_keys(loaded)
+        derived_keys = derive_real_rope_runtime_caches(torch, loaded)
+        augmented_keys = normalize_checkpoint_keys(loaded)
+        return loaded
+
+    torch.load = observed_load
+    try:
+        predictor = build_sam3_multiplex_video_predictor(
+            checkpoint_path=str(CHECKPOINT_PATH),
+            max_num_objects=MAXIMUM_OBJECTS,
+            multiplex_count=MAXIMUM_OBJECTS,
+            use_fa3=False,
+            use_rope_real=True,
+            compile=False,
+            warm_up=False,
+            default_output_prob_thresh=0.5,
+            async_loading_frames=True,
+            gpu_accelerated_decode=True,
+            strict_checkpoint_load=True,
+            return_cuda_output_tensors=True,
+        )
+    finally:
+        torch.load = original_load
+    model_keys = sorted(predictor.model.state_dict().keys())
+    if load_count != 1:
+        raise RuntimeError("checkpoint was not loaded exactly once")
+    if set(source_keys).intersection(derived_keys):
+        raise RuntimeError("derived RoPE cache was present in source checkpoint")
+    if sorted(source_keys + derived_keys) != augmented_keys:
+        raise RuntimeError("checkpoint augmentation exceeded derived RoPE caches")
+    if augmented_keys != model_keys:
+        raise RuntimeError("strict checkpoint and model key sets differ")
+    return predictor
+
+
 def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
     _byte_length, _digest, contents = read_bounded_regular_file(
         path,
@@ -1719,22 +1909,8 @@ def execute_inside_bfloat16_autocast(
     with contextlib.redirect_stdout(captured_stdout), contextlib.redirect_stderr(
         captured_stderr
     ):
-        from sam3.model_builder import build_sam3_multiplex_video_predictor
-
-        predictor = build_sam3_multiplex_video_predictor(
-            checkpoint_path=str(CHECKPOINT_PATH),
-            max_num_objects=MAXIMUM_OBJECTS,
-            multiplex_count=MAXIMUM_OBJECTS,
-            use_fa3=False,
-            use_rope_real=True,
-            compile=False,
-            warm_up=False,
-            default_output_prob_thresh=0.5,
-            async_loading_frames=True,
-            gpu_accelerated_decode=True,
-            strict_checkpoint_load=True,
-            return_cuda_output_tensors=True,
-        )
+        predictor = build_predictor_with_strict_rope_cache_derivation(torch)
+        install_sam31_multiplex_session_compatibility_guard(predictor)
     verify_bfloat16_autocast(torch)
     gpu_evidence["bfloat16AutocastUsed"] = True
     build_log = captured_stdout.getvalue() + captured_stderr.getvalue()

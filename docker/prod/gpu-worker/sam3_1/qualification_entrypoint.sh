@@ -16,11 +16,31 @@ if [ ! -r "${driver_version_file}" ]; then
   exit 70
 fi
 
-driver_version="$({
-  sed -n \
-    's/.*Kernel Module[[:space:]]*\([0-9][0-9.]*\).*/\1/p' \
-    "${driver_version_file}"
-} | sed -n '1p')"
+driver_version="$(
+  awk '
+    function is_driver_version(candidate, pieces, count, part_index) {
+      count = split(candidate, pieces, ".")
+      if (count < 2 || count > 4) {
+        return 0
+      }
+      for (part_index = 1; part_index <= count; part_index += 1) {
+        if (pieces[part_index] !~ /^[0-9]+$/) {
+          return 0
+        }
+      }
+      return 1
+    }
+
+    /^NVRM version:/ {
+      for (field = 1; field <= NF; field += 1) {
+        if (is_driver_version($field)) {
+          print $field
+          exit
+        }
+      }
+    }
+  ' "${driver_version_file}"
+)"
 driver_major="${driver_version%%.*}"
 
 case "${driver_version}" in

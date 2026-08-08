@@ -19,6 +19,8 @@ export function createCanonicalSam31QualificationWorkerEvidenceFixture(input: {
   readonly qualifiedAt: string
 }): CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
   const checkpointKeySetHash = digest('sam31-checkpoint-key-set')
+  const sourceCheckpointKeySetHash = digest('sam31-source-checkpoint-key-set')
+  const derivedRopeCacheKeySetHash = digest('sam31-derived-rope-cache-key-set')
   const fixtureHash = digest('sam31-fixed-person-probe-mp4')
   const qualificationImageDigest = digest('sam31-qualification-image')
   const request = createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
@@ -144,6 +146,16 @@ export function createCanonicalSam31QualificationWorkerEvidenceFixture(input: {
       strictCheckpointLoadRequested: true,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: 193,
+      sourceCheckpointKeySetSha256: sourceCheckpointKeySetHash,
+      deterministicRuntimeBufferDerivationPolicy:
+        'sam3_1_real_rope_cache_from_complex_buffer_v1',
+      sourceComplexRopeBufferCount: 32,
+      derivedRuntimeBufferKeyCount: 64,
+      derivedRuntimeBufferKeySetSha256: derivedRopeCacheKeySetHash,
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: true,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: 257,
       modelStateKeyCount: 257,
       checkpointKeySetSha256: checkpointKeySetHash,

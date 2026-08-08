@@ -50,7 +50,7 @@ export interface GcpQualityFirstGpuRuntimeTemplate {
   routeRole: 'heavy_primary' | 'heavy_fallback' | 'standard_primary'
   serviceAccountKey: Extract<GcpProductionServiceAccountKey, 'gpu_ai_worker'>
   imageName: string
-  region: 'us-central1'
+  region: 'us-central1' | 'europe-west4'
   allowedZones: readonly ['us-central1-a', 'us-central1-c'] | readonly []
   machineType: 'a2-ultragpu-1g' | 'cloud_run_nvidia_l4'
   accelerator: 'nvidia_a100_80gb' | 'nvidia_l4'
@@ -191,7 +191,7 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     routeRole: 'heavy_fallback',
     serviceAccountKey: 'gpu_ai_worker',
     imageName: 'reeditpro-sam31-gpu',
-    region: 'us-central1',
+    region: 'europe-west4',
     allowedZones: [],
     machineType: 'cloud_run_nvidia_l4',
     accelerator: 'nvidia_l4',

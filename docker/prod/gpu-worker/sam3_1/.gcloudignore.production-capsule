@@ -1,0 +1,12 @@
+# Submit only the reviewed checkpoint-free SAM 3.1 production capsule source.
+**
+!.gcloudignore.production-capsule
+!Dockerfile.production-capsule-builder
+!Dockerfile.candidate
+!build-production-capsule.sh
+!cloudbuild.production-capsule.yaml
+!entrypoint.sh
+!runner.py
+!source-provenance.lock
+!patches/
+!patches/0001-reeditpro-gpu-decode.patch

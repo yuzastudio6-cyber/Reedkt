@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
@@ -214,21 +215,83 @@ assert.match(dockerfile, /libnppicc\.so\.12/u)
 assert.doesNotMatch(dockerfile, /(?:apt-get|curl |wget )/u)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
+assert.match(
+  runner,
+  /sam3_1_real_rope_cache_from_complex_buffer_v1/u,
+)
+assert.match(runner, /EXPECTED_DETECTOR_ROPE_BLOCKS = tuple\(range\(32\)\)/u)
+assert.match(runner, /checkpoint already contains derived real RoPE cache/u)
+assert.match(runner, /len\(derived_keys\) != 64/u)
+assert.match(runner, /checkpoint augmentation exceeded derived RoPE caches/u)
+assert.match(runner, /learnedParameterOrCheckpointWeightSynthesized/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)
 assert.match(runner, /verify_ffmpeg_nvdec_runtime\(\)/u)
 assert.match(runner, /install_torchcodec_gpu_decode_guard\(\)/u)
+assert.equal(
+  (runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
+    ?? []).length,
+  2,
+)
+assert.match(
+  runner,
+  /"offload_state_to_cpu",\s*"async_loading_frames",\s*"use_torchcodec",\s*"use_cv2",\s*"input_is_mp4",\s*"gpu_acceleration",\s*"gpu_device"/u,
+)
+assert.match(runner, /inspect\.Parameter\.VAR_KEYWORD/u)
+assert.match(runner, /SAM 3\.1 multiplex init_state signature changed/u)
+assert.match(runner, /SAM 3\.1 multiplex init_state became open-ended/u)
 assert.match(runner, /core\._get_backend_details\(decoder\._decoder\)/u)
 assert.match(runner, /"CPU fallback" in details/u)
 assert.match(runner, /frame\.device\.type != "cuda"/u)
 assert.match(runner, /"0\.10\.0\+cu128"/u)
 assert.match(
   runner,
-  /QUALIFICATION_MOUNT = Path\("\/mnt\/disks\/reeditpro\/sam31-qualification"\)/u,
+  /source-checkpoint-qualification\/v2\/attempts/u,
 )
 assert.match(runner, /REQUEST_PATH = QUALIFICATION_MOUNT \/ "request\/request\.json"/u)
-assert.doesNotMatch(runner, /Path\("\/mnt\/reeditpro\//u)
+assert.match(runner, /google_cloud_vertex_custom_job_a2_ultra/u)
+assert.match(runner, /WEEDITPRO_GPU_INVOCATION_ID/u)
+assert.doesNotMatch(runner, /\/mnt\/disks\/reeditpro/u)
+assert.doesNotMatch(runner, /google_cloud_batch_a2_ultra_job/u)
 assert.doesNotMatch(runner, /requests\.|urllib|huggingface_hub/u)
 assert.match(entrypoint, /nvidia_a100_80gb/u)
+assert.doesNotMatch(
+  entrypoint,
+  /Kernel Module\[\[:space:\]\]\*\\\(\[0-9\]\[0-9\.\]\*\\\)/u,
+)
+const qualificationDriverParser = entrypoint.match(
+  /driver_version="\$\(\n[ ]{2}awk '\n(?<program>[\s\S]*?)\n[ ]{2}' "\$\{driver_version_file\}"\n\)"/u,
+)?.groups?.program
+assert.ok(
+  qualificationDriverParser,
+  'the exact qualification driver parser must remain testable',
+)
+const parseQualificationDriverVersion = (source: string) => execFileSync(
+  'awk',
+  [qualificationDriverParser],
+  { input: source, encoding: 'utf8' },
+).trim()
+assert.equal(
+  parseQualificationDriverVersion(
+    'NVRM version: NVIDIA UNIX x86_64 Kernel Module  535.216.03  Thu Apr  3 01:14:19 UTC 2025\n',
+  ),
+  '535.216.03',
+)
+assert.equal(
+  parseQualificationDriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  580.95.05  Release Build\n',
+  ),
+  '580.95.05',
+)
+assert.equal(
+  parseQualificationDriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64 malformed\n',
+  ),
+  '',
+)
+assert.equal(
+  parseQualificationDriverVersion('compiler: gcc version 12.2.0\n'),
+  '',
+)
 assert.match(
   entrypoint,
   /exec \/opt\/weeditpro\/python-venv\/bin\/python \\\n {2}-I -B/u,
@@ -272,7 +335,7 @@ for (const mutate of [
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification',
-  checks: 59,
+  checks: 63,
   syntheticStatus: synthetic.status,
   canonicalStatus: canonical.status,
   qualificationRuns:
@@ -296,6 +359,8 @@ console.log(JSON.stringify({
 function workerEvidence():
 CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
   const checkpointKeySetHash = digest('sam31-checkpoint-key-set')
+  const sourceCheckpointKeySetHash = digest('sam31-source-checkpoint-key-set')
+  const derivedRopeCacheKeySetHash = digest('sam31-derived-rope-cache-key-set')
   const fixtureHash = digest('sam31-fixed-person-probe-mp4')
   const qualificationImageDigest = digest('sam31-qualification-image')
   const request = createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
@@ -404,6 +469,16 @@ CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
       strictCheckpointLoadRequested: true,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: 193,
+      sourceCheckpointKeySetSha256: sourceCheckpointKeySetHash,
+      deterministicRuntimeBufferDerivationPolicy:
+        'sam3_1_real_rope_cache_from_complex_buffer_v1',
+      sourceComplexRopeBufferCount: 32,
+      derivedRuntimeBufferKeyCount: 64,
+      derivedRuntimeBufferKeySetSha256: derivedRopeCacheKeySetHash,
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: true,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: 257,
       modelStateKeyCount: 257,
       checkpointKeySetSha256: checkpointKeySetHash,
@@ -490,6 +565,8 @@ function observation(
   admitted: boolean,
 ): CanonicalSam31SourceCheckpointQualificationObservation {
   const keySetHash = digest('sam31-checkpoint-key-set')
+  const sourceKeySetHash = digest('sam31-source-checkpoint-key-set')
+  const derivedKeySetHash = digest('sam31-derived-rope-cache-key-set')
   return {
     evidenceClass,
     qualificationId: `sam31-source-checkpoint-${evidenceClass}`,
@@ -583,6 +660,21 @@ function observation(
       strictCheckpointLoadRequested: admitted,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: admitted ? 193 : 0,
+      sourceCheckpointKeySetSha256: admitted
+        ? sourceKeySetHash
+        : '0'.repeat(64),
+      deterministicRuntimeBufferDerivationPolicy: admitted
+        ? 'sam3_1_real_rope_cache_from_complex_buffer_v1'
+        : 'not_executed',
+      sourceComplexRopeBufferCount: admitted ? 32 : 0,
+      derivedRuntimeBufferKeyCount: admitted ? 64 : 0,
+      derivedRuntimeBufferKeySetSha256: admitted
+        ? derivedKeySetHash
+        : '0'.repeat(64),
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: admitted,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: admitted ? 257 : 0,
       modelStateKeyCount: admitted ? 257 : 0,
       checkpointKeySetSha256: admitted ? keySetHash : '0'.repeat(64),

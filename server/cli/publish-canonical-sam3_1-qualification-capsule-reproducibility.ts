@@ -89,6 +89,12 @@ const targets = {
     primaryBuildId: '0c93a02b-1952-4520-a1a1-89cf0f181219',
     confirmationBuildId: '1dbde314-c57a-4144-9b12-0981736a92c9',
   },
+  vertex_a100_setuptools_vendor_removed: {
+    receiptId:
+      'sam31-qualification-capsule-reproducibility-vertex-a100-setuptools-vendor-removed-20260807',
+    primaryBuildId: 'f9ef526f-d371-4222-8b24-c711e7d8c98a',
+    confirmationBuildId: '318d0af1-51dd-4a81-a35b-09d812be40c4',
+  },
 } as const
 const targetName = z.enum([
   'original',
@@ -104,11 +110,49 @@ const targetName = z.enum([
   'native_library_closure_corrected',
   'security_remediation_corrected',
   'security_remediation_pep668_uninstall_corrected',
+  'vertex_a100_setuptools_vendor_removed',
+  'vertex_a100_importlib_resources_setuptools_removed',
+  'vertex_a100_importlib_resources_import_order_corrected',
+  'vertex_driver_parser_corrected',
+  'rope_cache_derivation_corrected',
+  'multiplex_session_api_compatibility_corrected',
+  'multiplex_session_gpu_forwarding_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
+const buildId = z.string().uuid()
+const selectedTarget = targetName ===
+    'vertex_a100_importlib_resources_setuptools_removed'
+  || targetName ===
+    'vertex_a100_importlib_resources_import_order_corrected'
+  || targetName === 'vertex_driver_parser_corrected'
+  || targetName === 'rope_cache_derivation_corrected'
+  || targetName === 'multiplex_session_api_compatibility_corrected'
+  || targetName === 'multiplex_session_gpu_forwarding_corrected'
+  ? {
+      receiptId:
+        targetName === 'multiplex_session_gpu_forwarding_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-multiplex-session-gpu-forwarding-corrected-v1'
+          : targetName === 'multiplex_session_api_compatibility_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-multiplex-session-api-compatibility-corrected-v1'
+          : targetName === 'rope_cache_derivation_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-rope-cache-derivation-corrected-v1'
+          : targetName === 'vertex_driver_parser_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-vertex-driver-parser-corrected-v1'
+          : targetName ===
+              'vertex_a100_importlib_resources_import_order_corrected'
+            ? 'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-import-order-corrected-20260807'
+            : 'sam31-qualification-capsule-reproducibility-vertex-a100-importlib-resources-setuptools-removed-20260807',
+      primaryBuildId: buildId.parse(
+        process.env.WEEDITPRO_SAM31_CAPSULE_PRIMARY_BUILD_ID,
+      ),
+      confirmationBuildId: buildId.parse(
+        process.env.WEEDITPRO_SAM31_CAPSULE_CONFIRMATION_BUILD_ID,
+      ),
+    }
+  : targets[targetName]
 const result = await publishCanonicalSam31QualificationCapsuleReproducibility(
-  targets[targetName],
+  selectedTarget,
 )
 
 console.log(JSON.stringify(result, null, 2))

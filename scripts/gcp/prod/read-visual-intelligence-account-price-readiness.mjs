@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { execFileSync } from 'node:child_process'
+
 import { GoogleAuth } from 'google-auth-library'
 
 const billingAccountResourceName =
@@ -30,18 +32,24 @@ const auth = new GoogleAuth({
 
 let exactSkuPriceReads = 0
 let status = 'ready'
+let credentialSource = 'application_default_credentials'
+let gcloudAccessToken = null
 for (const skuId of exactSkuIds) {
   try {
-    await auth.request({
-      url: `https://cloudbilling.googleapis.com/v2beta/${billingAccountResourceName}/skus/${skuId}/price`,
-      method: 'GET',
-      params: { currencyCode: 'USD' },
-      timeout: 15_000,
-      retry: false,
-      maxRedirects: 0,
-      responseType: 'json',
-      maxContentLength: 2 * 1024 * 1024,
-    })
+    if (gcloudAccessToken === null) {
+      await auth.request({
+        url: priceUrl(skuId),
+        method: 'GET',
+        params: { currencyCode: 'USD' },
+        timeout: 15_000,
+        retry: false,
+        maxRedirects: 0,
+        responseType: 'json',
+        maxContentLength: 2 * 1024 * 1024,
+      })
+    } else {
+      await readWithGcloudAccessToken(skuId, gcloudAccessToken)
+    }
     exactSkuPriceReads += 1
   } catch (error) {
     const httpStatus = Number(error?.response?.status ?? error?.code ?? 0)
@@ -50,27 +58,83 @@ for (const skuId of exactSkuIds) {
       httpStatus === 400
       && responseData?.error === 'invalid_grant'
       && responseData?.error_subtype === 'invalid_rapt'
-    status = applicationDefaultReauthenticationRequired
-      ? 'application_default_reauthentication_required'
-      : httpStatus === 400
-        ? 'account_price_read_request_rejected'
-        : httpStatus === 401
+    if (applicationDefaultReauthenticationRequired && gcloudAccessToken === null) {
+      try {
+        gcloudAccessToken = readGcloudAccessToken()
+        credentialSource = 'gcloud_active_account_fallback'
+        await readWithGcloudAccessToken(skuId, gcloudAccessToken)
+        exactSkuPriceReads += 1
+        continue
+      } catch (fallbackError) {
+        status = classifyHttpStatus(Number(fallbackError?.httpStatus ?? 0), {
+          unavailableStatus: 'application_default_reauthentication_required',
+        })
+        break
+      }
+    }
+    status = classifyHttpStatus(httpStatus)
+    break
+  }
+}
+
+emit({ status, exactSkuPriceReads, credentialSource })
+
+function priceUrl(skuId) {
+  const coordinate = encodeURIComponent(billingAccountResourceName)
+    .replace(/%2F/giu, '/')
+  return `https://cloudbilling.googleapis.com/v2beta/${coordinate}/skus/${skuId}/price?currencyCode=USD`
+}
+
+function readGcloudAccessToken() {
+  const token = execFileSync(
+    'gcloud',
+    ['auth', 'print-access-token', '--quiet'],
+    {
+      encoding: 'utf8',
+      maxBuffer: 8 * 1024,
+      stdio: ['ignore', 'pipe', 'ignore'],
+      timeout: 15_000,
+    },
+  ).trim()
+  if (token.length < 20 || token.length > 4096 || /\s/u.test(token)) {
+    throw new Error('gcloud access token was unavailable')
+  }
+  return token
+}
+
+async function readWithGcloudAccessToken(skuId, accessToken) {
+  const response = await fetch(priceUrl(skuId), {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    redirect: 'error',
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!response.ok) {
+    const error = new Error('Account-effective price read failed')
+    error.httpStatus = response.status
+    throw error
+  }
+}
+
+function classifyHttpStatus(httpStatus, {
+  unavailableStatus = 'account_price_read_unavailable',
+} = {}) {
+  return httpStatus === 400
+    ? 'account_price_read_request_rejected'
+    : httpStatus === 401
       ? 'authentication_required'
       : httpStatus === 403
         ? 'billing_account_price_permission_required'
         : httpStatus === 404
           ? 'account_price_not_found'
-          : 'account_price_read_unavailable'
-    break
-  }
+          : unavailableStatus
 }
 
-emit({ status, exactSkuPriceReads })
-
-function emit({ status, exactSkuPriceReads }) {
+function emit({ status, exactSkuPriceReads, credentialSource = 'none' }) {
   console.log(JSON.stringify({
     audit: 'weeditpro-gemini-account-effective-price-readiness-v1',
     status,
+    credentialSource,
     expectedSkuPriceReads: exactSkuIds.length,
     exactSkuPriceReads,
     billingAccountPriceReadReady:

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -291,6 +292,18 @@ assert(sourceLock.includes(
   'checkpoint_pinned_source_compatibility_may_be_assumed=false',
 ))
 assert(sourceLock.includes('checkpoint_unreviewed_key_rewrite_allowed=false'))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_policy=sam3_1_real_rope_cache_from_complex_buffer_v1',
+))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_source_count=32',
+))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_output_count=64',
+))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_synthesizes_learned_parameters=false',
+))
 assert(sourceLock.includes('minimum_idle_a100_jobs=0'))
 assert(sourceLock.includes('minimum_idle_l4_jobs=0'))
 assert(sourceLock.includes('runtime_download_allowed=false'))
@@ -383,6 +396,12 @@ for (const requiredRunnerFragment of [
   'os.O_EXCL',
   '/mnt/reeditpro/private/canonical-professional-gpu/',
   'gpu_accelerated_decode=True',
+  'sam3_1_real_rope_cache_from_complex_buffer_v1',
+  'install_sam31_multiplex_session_compatibility_guard(predictor)',
+  'SAM 3.1 multiplex init_state signature changed',
+  'SAM 3.1 multiplex init_state became open-ended',
+  'EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))',
+  'checkpoint augmentation exceeded derived RoPE caches',
   '"offload_video_to_cpu": False',
   '"offload_state_to_cpu": False',
   'with torch.autocast(',
@@ -409,6 +428,17 @@ for (const requiredRunnerFragment of [
   '"CPU fallback" in details',
   'SAM 3.1 observed no CUDA/NVDEC video decode',
 ]) assert(sam31Runner.includes(requiredRunnerFragment))
+assert.equal(
+  (sam31Runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
+    ?? []).length,
+  2,
+)
+assert.match(
+  sam31Runner,
+  /"offload_state_to_cpu",\s*"async_loading_frames",\s*"use_torchcodec",\s*"use_cv2",\s*"input_is_mp4",\s*"gpu_acceleration",\s*"gpu_device"/u,
+)
+assert.match(sam31Runner, /SAM 3\.1 multiplex init_state signature changed/u)
+assert.match(sam31Runner, /SAM 3\.1 multiplex init_state became open-ended/u)
 assert(!sam31Runner.includes('cv2.VideoCapture'))
 assert(!sam31Runner.includes('Image.open(SOURCE_PROXY_PATH'))
 assert(!sam31Runner.includes('np.asarray(mask)'))
@@ -503,6 +533,45 @@ for (const requiredEntrypointFragment of [
   'exec /opt/weeditpro/python-venv/bin/python',
 ]) assert(sam31Entrypoint.includes(requiredEntrypointFragment))
 
+assert.doesNotMatch(
+  sam31Entrypoint,
+  /Kernel Module\[\[:space:\]\]\*\\\(\[0-9\]\[0-9\.\]\*\\\)/u,
+)
+const sam31DriverParser = sam31Entrypoint.match(
+  /driver_version="\$\(\n[ ]{2}awk '\n(?<program>[\s\S]*?)\n[ ]{2}' "\$\{driver_version_file\}"\n\)"/u,
+)?.groups?.program
+assert.ok(
+  sam31DriverParser,
+  'the exact SAM 3.1 runtime driver parser must remain testable',
+)
+const parseSam31DriverVersion = (source: string) => execFileSync(
+  'awk',
+  [sam31DriverParser],
+  { input: source, encoding: 'utf8' },
+).trim()
+assert.equal(
+  parseSam31DriverVersion(
+    'NVRM version: NVIDIA UNIX x86_64 Kernel Module  535.216.03  Thu Apr  3 01:14:19 UTC 2025\n',
+  ),
+  '535.216.03',
+)
+assert.equal(
+  parseSam31DriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64  580.95.05  Release Build\n',
+  ),
+  '580.95.05',
+)
+assert.equal(
+  parseSam31DriverVersion(
+    'NVRM version: NVIDIA UNIX Open Kernel Module for x86_64 malformed\n',
+  ),
+  '',
+)
+assert.equal(
+  parseSam31DriverVersion('compiler: gcc version 12.2.0\n'),
+  '',
+)
+
 const adversarial: Array<(
   value: CanonicalSam31SourceRuntimeCandidate,
 ) => void> = [
@@ -584,7 +653,7 @@ assert.throws(() => assertCanonicalSam31SourceRuntimeCandidate(wrongHash))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-runtime-candidate',
-  checks: 145,
+  checks: 149,
   operationId: candidate.operationId,
   sourceRevision: candidate.officialSource.sourceRevision,
   checkpointRevision: candidate.officialCheckpoint.repositoryRevision,

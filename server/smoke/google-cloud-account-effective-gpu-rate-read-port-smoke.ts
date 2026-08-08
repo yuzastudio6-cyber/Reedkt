@@ -45,10 +45,33 @@ assert.deepEqual(
 )
 assert.equal(routes[1].components[0].priceTerms[0].skuId,
   WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudRun
-    .l4NoZonalRedundancySkuId)
+    .regionalSkus['europe-west4'].l4NoZonalRedundancySkuId)
 assert.equal(routes[2].components[0].priceTerms[0].skuId,
   WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudRun
-    .l4NoZonalRedundancySkuId)
+    .regionalSkus['us-central1'].l4NoZonalRedundancySkuId)
+assert.deepEqual(routes.map((route) => route.region), [
+  'us-central1',
+  'europe-west4',
+  'us-central1',
+])
+assert.deepEqual(
+  routes[1].components.slice(0, 3).map((component) =>
+    component.priceTerms[0].skuId),
+  [
+    'E70E-1400-67A3',
+    '1B3A-C716-DDE8',
+    '46A9-AB79-A9CD',
+  ],
+)
+assert.deepEqual(
+  routes[2].components.slice(0, 3).map((component) =>
+    component.priceTerms[0].skuId),
+  [
+    '2EEE-0BBD-C718',
+    '257B-2A84-3396',
+    '8A79-9F45-5F32',
+  ],
+)
 
 const calls: Array<Record<string, unknown>> = []
 const exactBySku = new Map(routes.flatMap((configuredRoute) =>
@@ -131,6 +154,27 @@ assert.equal(assertCanonicalCurrentGoogleCloudGpuRateAuthority(
   '2026-08-03T16:59:59.999Z',
 ).rateAuthorityHash, authority.rateAuthorityHash)
 
+calls.length = 0
+const fallbackAuthority = await observeCanonicalCurrentGoogleCloudGpuRateAuthority({
+  rateAuthorityId: 'account-current-l4-fallback-rate-v2',
+  rateAuthorityVersion: 2,
+  routeId: 'l4_heavy_fallback',
+  region: 'europe-west4',
+  readPort: createGoogleCloudAccountEffectiveGpuRateReadPort({
+    configuration,
+    auth,
+    now: fixedClock(),
+  }),
+})
+assert.equal(fallbackAuthority.region, 'europe-west4')
+assert.equal(fallbackAuthority.components[0].skuPriceTerms[0].skuId,
+  WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudRun
+    .regionalSkus['europe-west4'].l4NoZonalRedundancySkuId)
+assert.equal(fallbackAuthority.components[3].skuPriceTerms[0].skuId,
+  WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudStorage
+    .standardNetherlandsRegionalSkuId)
+assert.equal(calls.length, 14)
+
 await assert.rejects(() => readPort.readCurrentRouteRate({
   routeId: 'l4_standard_primary',
   region: 'europe-west4',
@@ -192,7 +236,7 @@ await assert.rejects(
 
 console.log(JSON.stringify({
   smoke: 'google-cloud-account-effective-gpu-rate-read-port',
-  checks: 44,
+  checks: 51,
   sourceClass: authority.sourceClass,
   authenticatedPriceReads: calls.filter((call) =>
     String(call.url).endsWith('/price')).length,
@@ -285,9 +329,15 @@ function money(usdNanos: number) {
 
 function rateForSku(skuId: string) {
   const catalog = WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG
-  if (skuId === catalog.cloudRun.l4NoZonalRedundancySkuId) return 186_700
-  if (skuId === catalog.cloudRun.jobsCpuSkuId) return 18_000
-  if (skuId === catalog.cloudRun.jobsMemorySkuId) return 2_000
+  const cloudRunSkus = Object.values(catalog.cloudRun.regionalSkus)
+  if (cloudRunSkus.some((region) =>
+    skuId === region.l4NoZonalRedundancySkuId)) return 186_700
+  if (cloudRunSkus.some((region) => skuId === region.jobsCpuSkuId)) {
+    return 18_000
+  }
+  if (cloudRunSkus.some((region) => skuId === region.jobsMemorySkuId)) {
+    return 2_000
+  }
   if (skuId === catalog.computeEngine.a10080GbOnDemandSkuId) {
     return 3_928_080_000
   }
@@ -299,6 +349,9 @@ function rateForSku(skuId: string) {
   }
   if (skuId === catalog.cloudStorage.standardUsRegionalSkuId) {
     return 20_000_000
+  }
+  if (skuId === catalog.cloudStorage.standardNetherlandsRegionalSkuId) {
+    return 23_000_000
   }
   if (skuId === catalog.cloudStorage.regionalStandardClassAOperationsSkuId) {
     return 5_000_000

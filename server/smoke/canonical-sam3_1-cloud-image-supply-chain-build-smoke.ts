@@ -47,15 +47,15 @@ import { sha256AuthorityValue } from
 import type { VisualIntelligencePrivateObjectReadPort } from
   '../visual-intelligence/visual-intelligence-private-object-read-port'
 
-const authority = createAuthority()
-const imageBuildSubmission = createImageBuildSubmission(authority)
-const imageBuildTerminal = createImageBuildTerminal(
+export const authority = createAuthority()
+export const imageBuildSubmission = createImageBuildSubmission(authority)
+export const imageBuildTerminal = createImageBuildTerminal(
   authority,
   imageBuildSubmission,
 )
 const kmsKeyVersionResource =
   'projects/reeditpro/locations/us-central1/keyRings/weeditpro-image-signing/cryptoKeys/sam31-image-signing/cryptoKeyVersions/7'
-const admission = createCanonicalSam31ImageSupplyChainBuildAdmission({
+export const admission = createCanonicalSam31ImageSupplyChainBuildAdmission({
   admissionId: 'sam31-image-supply-chain-build-admission-smoke',
   authority,
   imageBuildSubmission,
@@ -163,7 +163,7 @@ const service = createCanonicalSam31ImageSupplyChainBuildService({
 })
 
 const admissionRef = imageSupplyChainBuildAdmissionReference(admission)
-const submission = await service.startOneSupplyChainBuild({ admissionRef })
+export const submission = await service.startOneSupplyChainBuild({ admissionRef })
 assert.equal(submission.disposition, 'submitted')
 assert.equal(submission.providerOutcome, 'executed')
 assert.equal(submission.durableAdmissionConsumptionCreated, true)
@@ -184,7 +184,7 @@ assert.equal(duplicate.disposition, 'rejected_before_creation')
 assert.equal(duplicate.providerOutcome, 'not_executed')
 assert.equal(providerCalls, 1)
 
-const observation = await service.observeOneSupplyChainBuild({
+export const observation = await service.observeOneSupplyChainBuild({
   admission,
   submission,
 })

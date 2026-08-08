@@ -685,6 +685,21 @@ function blockersFor(
   )
 }
 
+/**
+ * Returns the job-specific blockers that remain after the canonical Gemini
+ * Pro High runtime release has been exact-reread.  The runtime release closes
+ * only the shared provider and native media-transport gates.  OCR, Track All,
+ * and final complete-time/private-review evidence remain independently owned
+ * and must never be inferred from the provider release.
+ */
+export function listVisualIntelligenceOrchestraResidualBlockersAfterRuntimeRelease(
+  definition: VisualIntelligenceOrchestraJobDefinition,
+): string[] {
+  return blockersFor(definition).filter((blocker) => !BLOCKERS.includes(
+    blocker,
+  ))
+}
+
 function input(
   requirementId: string,
   artifactType: string,

@@ -17,6 +17,8 @@ import {
 
 export const CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION =
   'canonical-a100-vertex-attempt-cost-receipt-v1' as const
+export const CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_USAGE_VERSION =
+  'canonical-a100-vertex-provider-allocation-usage-v2' as const
 
 export const WEEDITPRO_USD_NANOS_PER_CREDIT = 100_000_000 as const
 export const VERTEX_A100_BILLING_INCREMENT_MILLISECONDS = 30_000 as const
@@ -95,6 +97,62 @@ export const canonicalA100VertexAttemptUsageSchema =
   usageWithoutHashSchema.extend({ usageHash: sha256 }).strict()
 export type CanonicalA100VertexAttemptUsage = z.infer<
   typeof canonicalA100VertexAttemptUsageSchema
+>
+
+const providerAllocationUsageWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_USAGE_VERSION,
+  ),
+  providerCreateTime: timestamp,
+  providerStartTime: timestamp,
+  providerEndTime: timestamp,
+  coldStartMilliseconds: nonnegativeInteger,
+  allocatedGpuMilliseconds: positiveInteger,
+  actualWallClockMilliseconds: positiveInteger,
+  billableDurationMilliseconds: positiveInteger,
+  billingIncrementMilliseconds: z.literal(
+    VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
+  ),
+  allocatedGpuCount: z.literal(1),
+  allocatedVcpuCount: z.literal(12),
+  allocatedMemoryGiB: z.literal(170),
+  bootDiskType: z.literal('pd-ssd'),
+  bootDiskSizeGb: z.literal(200),
+  privateArtifactBytes: nonnegativeInteger,
+  privateArtifactRetentionMilliseconds: nonnegativeInteger,
+  networkEgressBytes: nonnegativeInteger,
+  classAOperationCount: nonnegativeInteger,
+  classBOperationCount: nonnegativeInteger,
+  exactProviderCreateStartEndTimesReread: z.literal(true),
+  workerPhaseBreakdownClaimed: z.literal(false),
+  workerSuppliedBillableDurationOrPricingAccepted: z.literal(false),
+}).strict().superRefine((usage, context) => {
+  const create = Date.parse(usage.providerCreateTime)
+  const start = Date.parse(usage.providerStartTime)
+  const end = Date.parse(usage.providerEndTime)
+  const wallClock = end - create
+  const billable = roundUpToIncrement(
+    wallClock,
+    VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
+  )
+  if (
+    start < create
+    || end <= start
+    || usage.coldStartMilliseconds !== start - create
+    || usage.allocatedGpuMilliseconds !== end - start
+    || usage.actualWallClockMilliseconds !== wallClock
+    || usage.billableDurationMilliseconds !== billable
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Vertex A100 provider allocation usage is invalid.',
+  })
+})
+
+export const canonicalA100VertexProviderAllocationUsageSchema =
+  providerAllocationUsageWithoutHashSchema.extend({ usageHash: sha256 })
+    .strict()
+export type CanonicalA100VertexProviderAllocationUsage = z.infer<
+  typeof canonicalA100VertexProviderAllocationUsageSchema
 >
 
 const costBreakdownSchema = z.object({
@@ -284,16 +342,78 @@ export function createCanonicalA100VertexAttemptUsage(input: {
   })
 }
 
+/**
+ * Provider-billed allocation truth for one-shot Vertex Custom Jobs. This is
+ * intentionally separate from v1 worker-phase usage: Vertex create/start/end
+ * timestamps are the billing authority, while a worker cannot observe its own
+ * cold-start or post-exit drain interval and must not invent that split.
+ */
+export function createCanonicalA100VertexProviderAllocationUsage(input: {
+  readonly providerCreateTime: string
+  readonly providerStartTime: string
+  readonly providerEndTime: string
+  readonly privateArtifactBytes: number
+  readonly privateArtifactRetentionMilliseconds: number
+  readonly networkEgressBytes: number
+  readonly classAOperationCount: number
+  readonly classBOperationCount: number
+}): CanonicalA100VertexProviderAllocationUsage {
+  assertPlainSerializedData(input, 'vertex_a100_provider_allocation_usage')
+  const create = Date.parse(timestamp.parse(input.providerCreateTime))
+  const start = Date.parse(timestamp.parse(input.providerStartTime))
+  const end = Date.parse(timestamp.parse(input.providerEndTime))
+  if (start < create || end <= start) {
+    throw new Error('Vertex A100 provider allocation times are invalid.')
+  }
+  const payload = providerAllocationUsageWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_USAGE_VERSION,
+    providerCreateTime: input.providerCreateTime,
+    providerStartTime: input.providerStartTime,
+    providerEndTime: input.providerEndTime,
+    coldStartMilliseconds: start - create,
+    allocatedGpuMilliseconds: end - start,
+    actualWallClockMilliseconds: end - create,
+    billableDurationMilliseconds: roundUpToIncrement(
+      end - create,
+      VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
+    ),
+    billingIncrementMilliseconds:
+      VERTEX_A100_BILLING_INCREMENT_MILLISECONDS,
+    allocatedGpuCount: 1,
+    allocatedVcpuCount: 12,
+    allocatedMemoryGiB: 170,
+    bootDiskType: 'pd-ssd',
+    bootDiskSizeGb: 200,
+    privateArtifactBytes: input.privateArtifactBytes,
+    privateArtifactRetentionMilliseconds:
+      input.privateArtifactRetentionMilliseconds,
+    networkEgressBytes: input.networkEgressBytes,
+    classAOperationCount: input.classAOperationCount,
+    classBOperationCount: input.classBOperationCount,
+    exactProviderCreateStartEndTimesReread: true,
+    workerPhaseBreakdownClaimed: false,
+    workerSuppliedBillableDurationOrPricingAccepted: false,
+  })
+  return canonicalA100VertexProviderAllocationUsageSchema.parse({
+    ...payload,
+    usageHash: sha256AuthorityValue(payload),
+  })
+}
+
 export function calculateCanonicalA100VertexInfrastructureCost(input: {
   readonly rateAuthority: CanonicalCurrentGoogleCloudVertexA100RateAuthority
-  readonly usage: CanonicalA100VertexAttemptUsage
+  readonly usage:
+    | CanonicalA100VertexAttemptUsage
+    | CanonicalA100VertexProviderAllocationUsage
   readonly at: string
 }): CanonicalA100VertexInfrastructureCost {
   const rate = assertCanonicalCurrentGoogleCloudVertexA100RateAuthority(
     input.rateAuthority,
     input.at,
   )
-  const usage = assertCanonicalA100VertexAttemptUsage(input.usage)
+  const usage = 'schemaVersion' in input.usage
+    ? assertCanonicalA100VertexProviderAllocationUsage(input.usage)
+    : assertCanonicalA100VertexAttemptUsage(input.usage)
   const component = (componentClass:
     CanonicalCurrentGoogleCloudVertexA100RateAuthority['components'][number][
       'componentClass'
@@ -471,6 +591,18 @@ export function assertCanonicalA100VertexAttemptUsage(
   const { usageHash, ...payload } = usage
   if (usageHash !== sha256AuthorityValue(payload)) {
     throw new Error('Vertex A100 attempt usage digest is invalid.')
+  }
+  return usage
+}
+
+export function assertCanonicalA100VertexProviderAllocationUsage(
+  value: unknown,
+): CanonicalA100VertexProviderAllocationUsage {
+  assertPlainSerializedData(value, 'vertex_a100_provider_allocation_usage')
+  const usage = canonicalA100VertexProviderAllocationUsageSchema.parse(value)
+  const { usageHash, ...payload } = usage
+  if (usageHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Vertex A100 provider allocation usage digest is invalid.')
   }
   return usage
 }

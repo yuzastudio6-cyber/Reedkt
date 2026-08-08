@@ -5,7 +5,7 @@ import {
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification-vertex'
 import {
   canonicalSam31VertexQualificationPlatformStopSchema,
-  canonicalSam31VertexQualificationWorkerUsageSchema,
+  createCanonicalSam31VertexQualificationProviderUsage,
   createCanonicalSam31VertexQualificationTerminalReconciler,
   type CanonicalSam31VertexQualificationCostReceipt,
 } from '../services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation'
@@ -148,7 +148,7 @@ const failedCosts: CanonicalSam31VertexQualificationCostReceipt[] = []
 const failed = await createReconciler({
   providerState: 'JOB_STATE_FAILED',
   workerResult: null,
-  outcome: 'not_executed',
+  outcome: 'unknown',
   onResultRead() { failedResultReads += 1 },
   onCost(value) { failedCosts.push(value) },
 }).reconcileOne({ executionRef })
@@ -208,7 +208,7 @@ function createReconciler(input: {
   providerState: 'JOB_STATE_RUNNING' | 'JOB_STATE_SUCCEEDED'
     | 'JOB_STATE_FAILED' | 'network_throw'
   workerResult: unknown
-  outcome: 'executed' | 'not_executed'
+  outcome: 'executed' | 'not_executed' | 'unknown'
   activeA100GpuInstances?: 0 | 1
   onResultRead?: () => void
   onCost?: (value: CanonicalSam31VertexQualificationCostReceipt) => void
@@ -223,6 +223,7 @@ function createReconciler(input: {
     executionRepository: {
       async createOnlyAndReread(value) { return structuredClone(value) },
       async reread() { return structuredClone(persistedExecution) },
+      async rereadByAdmission() { return structuredClone(persistedExecution) },
     },
     requestReadPort: {
       async rereadExact() { return structuredClone(request) },
@@ -233,39 +234,26 @@ function createReconciler(input: {
         return structuredClone(input.workerResult)
       },
     },
-    workerUsageReadPort: {
+    providerUsageReadPort: {
       async rereadExact(value) {
-        const payload = {
-          schemaVersion:
-            'canonical-sam3_1-vertex-qualification-worker-usage-v1' as const,
-          source:
-            'fixed_sam3_1_vertex_qualification_worker_metrics_owner' as const,
-          evidenceClass: 'canonical_private_reread' as const,
+        assert.equal(
+          value.providerInferenceOrSubstantiveWorkOutcome,
+          input.outcome,
+        )
+        return createCanonicalSam31VertexQualificationProviderUsage({
           attemptId: request.attemptId,
           executionRef: value.executionRef,
           workerRequestRef: ref(request.qualificationId, request.requestHash, 2),
           workerResultRef: value.workerResultRef,
           providerTimes: value.providerTimes,
-          providerInferenceOrSubstantiveWorkOutcome: input.outcome,
-          runtimeAndModelLoadMilliseconds: 40_000,
-          activeGpuMilliseconds: 70_000,
-          drainAndShutdownMilliseconds: 10_000,
+          providerInferenceOrSubstantiveWorkOutcome:
+            value.providerInferenceOrSubstantiveWorkOutcome,
           privateArtifactBytes: 4_294_967_296,
           privateArtifactRetentionMilliseconds: 86_400_000,
-          networkEgressBytes: 0 as const,
+          networkEgressBytes: 0,
           classAOperationCount: 5,
           classBOperationCount: 8,
-          exactImmutableWorkerMetricsReread: true as const,
-          workerSuppliedProviderTimesBillableDurationPriceOrCostAccepted:
-            false as const,
-          runtimeNetworkDownloadObserved: false as const,
-          cpuOnlySubstantiveExecutionObserved: false as const,
-          rawMediaPathsUrlsSecretsCredentialsOrBillingAccountIncluded:
-            false as const,
           observedAt: '2026-08-06T16:14:00.000Z',
-        }
-        return canonicalSam31VertexQualificationWorkerUsageSchema.parse({
-          ...payload, evidenceHash: sha256AuthorityValue(payload),
         })
       },
     },

@@ -243,6 +243,7 @@
     "smoke:sam3_1-source-checkpoint-qualification-vertex-staging": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-staging-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-vertex-launch": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-smoke.ts",
     "smoke:sam3_1-source-checkpoint-qualification-vertex-terminal": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-smoke.ts",
+    "smoke:sam3_1-source-checkpoint-qualification-vertex-runtime": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts",
     "smoke:sam3_1-qualification-capsule-builder": "tsx server/smoke/canonical-sam3_1-qualification-capsule-builder-smoke.ts",
     "smoke:sam3_1-qualification-einops-ingest": "tsx server/smoke/canonical-sam3_1-qualification-einops-ingest-smoke.ts",
     "smoke:sam3_1-qualification-pycocotools-ingest": "tsx server/smoke/canonical-sam3_1-qualification-pycocotools-ingest-smoke.ts",

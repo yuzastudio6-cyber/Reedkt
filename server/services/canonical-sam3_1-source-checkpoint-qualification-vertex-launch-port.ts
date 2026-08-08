@@ -251,8 +251,11 @@ export type CanonicalSam31VertexQualificationLaunchResult = z.infer<
 >
 
 export interface CanonicalSam31VertexQualificationConsumptionPort {
-  createOnlyAndReread(
+  createOnly(
     value: CanonicalSam31VertexQualificationConsumption,
+  ): Promise<'created' | 'already_exists'>
+  reread(
+    consumptionRef: z.infer<typeof evidenceRefSchema>,
   ): Promise<unknown>
 }
 export interface CanonicalSam31VertexQualificationAdmissionRepository {
@@ -269,6 +272,9 @@ export interface CanonicalSam31VertexQualificationExecutionRepository {
   ): Promise<unknown>
   reread(
     executionRef: z.infer<typeof evidenceRefSchema>,
+  ): Promise<unknown>
+  rereadByAdmission(
+    admissionRef: z.infer<typeof evidenceRefSchema>,
   ): Promise<unknown>
 }
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
@@ -315,12 +321,51 @@ export function createCanonicalSam31VertexQualificationLaunchPort(input: {
         prepared = prepareRequest(admission)
         consumption = createConsumption(admission,
           prepared.createRequestRef, observedAt)
+        const consumptionRef = ref(
+          `sam31-vertex-consumption-${consumption.consumptionHash.slice(0, 24)}`,
+          consumption.consumptionHash,
+        )
+        const consumptionDisposition =
+          await input.consumptionPort.createOnly(consumption)
         const consumed = assertCanonicalSam31VertexQualificationConsumption(
-          await input.consumptionPort.createOnlyAndReread(consumption),
+          await input.consumptionPort.reread(consumptionRef),
         )
         if (stableAuthorityStringify(consumed) !==
           stableAuthorityStringify(consumption)) {
           throw new Error('Vertex qualification consumption reread changed.')
+        }
+        if (consumptionDisposition === 'already_exists') {
+          const prior = await input.executionRepository.rereadByAdmission(
+            ref(admission.attemptId, admission.admissionHash),
+          )
+          if (!prior) {
+            providerCallStarted = true
+            throw new Error(
+              'Prior Vertex create outcome requires reconciliation.',
+            )
+          }
+          const execution = assertCanonicalSam31VertexQualificationExecution(
+            prior,
+          )
+          if (
+            execution.attemptId !== admission.attemptId
+            || !sameRef(execution.admissionRef,
+              ref(admission.attemptId, admission.admissionHash))
+            || !sameRef(execution.consumptionRef, consumptionRef)
+            || !sameRef(execution.customJobCreateRequestRef,
+              prepared.createRequestRef)
+          ) throw new Error('Prior Vertex execution crossed admission.')
+          return launchResult({
+            admissionRef: ref(admission.attemptId, admission.admissionHash),
+            attemptId: admission.attemptId,
+            consumption,
+            createRequestRef: prepared.createRequestRef,
+            executionRef: ref(execution.executionId, execution.executionHash),
+            disposition: 'accepted',
+            providerCallStarted: true,
+            outcome: 'not_executed',
+            observedAt,
+          })
         }
         providerCallStarted = true
         const response = await auth.request({

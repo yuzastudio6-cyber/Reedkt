@@ -26,7 +26,8 @@ import {
 } from './canonical-sam3_1-source-checkpoint-qualification-smoke'
 
 const observedAt = '2026-08-06T16:10:00.000Z'
-const historical = createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
+export const historicalPackageRequest =
+createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
   qualificationId: 'sam31-vertex-source-checkpoint-qualification',
   candidate,
   ingestReceipt: canonicalIngest,
@@ -61,7 +62,7 @@ const historical = createCanonicalSam31SourceCheckpointQualificationWorkerReques
 })
 const attemptId = 'sam31-vertex-qualification-attempt-001'
 export const request = createCanonicalSam31VertexSourceCheckpointWorkerRequest({
-  historicalPackageRequest: historical,
+  historicalPackageRequest,
   attemptId,
   issuedAt: '2026-08-06T16:06:00.000Z',
 })
@@ -89,12 +90,21 @@ const events: string[] = []
 let capturedRequest: Record<string, unknown> | null = null
 export let persistedExecution: unknown = null
 export const admissions = new Map<string, unknown>()
+const consumptions = new Map<string, unknown>()
 const port = createCanonicalSam31VertexQualificationLaunchPort({
   admissionRepository: admissionRepository(admissions, events),
   consumptionPort: {
-    async createOnlyAndReread(value) {
+    async createOnly(value) {
       events.push('consumed')
-      return structuredClone(value)
+      const key = value.consumptionHash
+      if (consumptions.has(key)) return 'already_exists'
+      consumptions.set(key, structuredClone(value))
+      return 'created'
+    },
+    async reread(value) {
+      return structuredClone(
+        consumptions.get(value.contentHash.slice(7)) ?? null,
+      )
     },
   },
   executionRepository: {
@@ -104,6 +114,7 @@ const port = createCanonicalSam31VertexQualificationLaunchPort({
       return structuredClone(value)
     },
     async reread() { return structuredClone(persistedExecution) },
+    async rereadByAdmission() { return structuredClone(persistedExecution) },
   },
   auth: {
     async request(value) {
@@ -135,6 +146,19 @@ assert.equal(accepted.automaticRetryAllowed, false)
 assert.equal(accepted.customerCreditsMutated, false)
 assert.equal(accepted.sourceCheckpointQualificationGranted, false)
 assert.equal(accepted.productionReady, false)
+const providerCallsBeforeReplay = events.filter((value) =>
+  value === 'provider').length
+const replay = await port.startOne({
+  workerRequest: request,
+  stagingObservation,
+  imageSupplyChainRelease: release,
+  rateAuthority,
+  quotaObservation,
+})
+assert.equal(replay.disposition, 'accepted')
+assert.deepEqual(replay.executionRef, accepted.executionRef)
+assert.equal(events.filter((value) => value === 'provider').length,
+  providerCallsBeforeReplay)
 
 const providerRequest = capturedRequest as unknown as {
   url: string
@@ -194,11 +218,13 @@ let callsAfterRefusal = 0
 const refusalPort = createCanonicalSam31VertexQualificationLaunchPort({
   admissionRepository: admissionRepository(new Map()),
   consumptionPort: {
-    async createOnlyAndReread() { throw new Error('create-only conflict') },
+    async createOnly() { throw new Error('create-only conflict') },
+    async reread() { return null },
   },
   executionRepository: {
     async createOnlyAndReread(value) { return value },
     async reread() { return null },
+    async rereadByAdmission() { return null },
   },
   auth: {
     async request() { callsAfterRefusal += 1; throw new Error('unreachable') },
@@ -217,14 +243,28 @@ assert.equal(refused.providerCallStarted, false)
 assert.equal(callsAfterRefusal, 0)
 
 let unknownCalls = 0
+const unknownConsumptions = new Map<string, unknown>()
 const unknownPort = createCanonicalSam31VertexQualificationLaunchPort({
   admissionRepository: admissionRepository(new Map()),
+  // This attempt has no prior single-use record.
   consumptionPort: {
-    async createOnlyAndReread(value) { return structuredClone(value) },
+    async createOnly(value) {
+      if (unknownConsumptions.has(value.consumptionHash)) {
+        return 'already_exists'
+      }
+      unknownConsumptions.set(value.consumptionHash, structuredClone(value))
+      return 'created'
+    },
+    async reread(value) {
+      return structuredClone(
+        unknownConsumptions.get(value.contentHash.slice(7)) ?? null,
+      )
+    },
   },
   executionRepository: {
     async createOnlyAndReread(value) { return value },
     async reread() { return null },
+    async rereadByAdmission() { return null },
   },
   auth: {
     async request() { unknownCalls += 1; throw new Error('network unknown') },
@@ -242,6 +282,16 @@ assert.equal(unknown.disposition, 'outcome_unknown_requires_reconciliation')
 assert.equal(unknown.substantiveQualificationOutcome, 'unknown')
 assert.equal(unknown.automaticRetryAllowed, false)
 assert.equal(unknownCalls, 1)
+const unknownReplay = await unknownPort.startOne({
+  workerRequest: request,
+  stagingObservation,
+  imageSupplyChainRelease: release,
+  rateAuthority,
+  quotaObservation,
+})
+assert.equal(unknownReplay.disposition,
+  'outcome_unknown_requires_reconciliation')
+assert.equal(unknownCalls, 1)
 
 const crossed = structuredClone(stagingObservation)
 crossed.attemptId = 'crossed-attempt'
@@ -256,7 +306,7 @@ assert.equal(crossedResult.disposition, 'rejected_before_creation')
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-checkpoint-qualification-vertex-launch',
-  checks: 38,
+  checks: 43,
   exactA10080VertexCustomJob: true,
   createOnlyConsumptionBeforeProvider: true,
   privateVpcAndCmek: true,
@@ -264,6 +314,8 @@ console.log(JSON.stringify({
   noCallerCommandArgsPathModelOrUrl: true,
   scaleFromZeroNoPersistentResource: true,
   unknownOutcomeBlocksAutomaticRetry: true,
+  identicalReplayCreatesNoSecondCustomJob: true,
+  uncertainCreateReplayCreatesNoSecondCustomJob: true,
   customerCreditsMutated: false,
   sourceCheckpointQualificationGranted: false,
   productionReady: false,

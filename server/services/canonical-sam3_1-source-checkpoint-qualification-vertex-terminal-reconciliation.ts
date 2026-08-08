@@ -11,9 +11,9 @@ import {
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-rate-authority'
 import {
   calculateCanonicalA100VertexInfrastructureCost,
-  canonicalA100VertexAttemptUsageSchema,
+  canonicalA100VertexProviderAllocationUsageSchema,
   canonicalA100VertexInfrastructureCostSchema,
-  createCanonicalA100VertexAttemptUsage,
+  createCanonicalA100VertexProviderAllocationUsage,
 } from '../tool-cost-metering/canonical-a100-vertex-attempt-cost-authority'
 import {
   assertCanonicalSam31VertexQualificationAdmission,
@@ -27,8 +27,8 @@ import {
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
-export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_WORKER_USAGE_VERSION =
-  'canonical-sam3_1-vertex-qualification-worker-usage-v1' as const
+export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_PROVIDER_USAGE_VERSION =
+  'canonical-sam3_1-vertex-qualification-provider-usage-v2' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_PLATFORM_STOP_VERSION =
   'canonical-sam3_1-vertex-qualification-platform-stop-v1' as const
 export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_COST_RECEIPT_VERSION =
@@ -73,11 +73,13 @@ const terminalStateSchema = z.enum([
 ])
 const providerStateSchema = z.union([pendingStateSchema, terminalStateSchema])
 
-const workerUsageWithoutHashSchema = z.object({
+const providerUsageWithoutHashSchema = z.object({
   schemaVersion: z.literal(
-    CANONICAL_SAM3_1_VERTEX_QUALIFICATION_WORKER_USAGE_VERSION,
+    CANONICAL_SAM3_1_VERTEX_QUALIFICATION_PROVIDER_USAGE_VERSION,
   ),
-  source: z.literal('fixed_sam3_1_vertex_qualification_worker_metrics_owner'),
+  source: z.literal(
+    'canonical_server_sam3_1_vertex_provider_allocation_usage_owner',
+  ),
   evidenceClass: z.literal('canonical_private_reread'),
   attemptId: safeId,
   executionRef: evidenceRefSchema,
@@ -87,40 +89,32 @@ const workerUsageWithoutHashSchema = z.object({
   providerInferenceOrSubstantiveWorkOutcome: z.enum([
     'executed', 'not_executed', 'unknown',
   ]),
-  runtimeAndModelLoadMilliseconds: nonnegativeInteger,
-  activeGpuMilliseconds: nonnegativeInteger,
-  drainAndShutdownMilliseconds: nonnegativeInteger,
-  privateArtifactBytes: nonnegativeInteger,
-  privateArtifactRetentionMilliseconds: nonnegativeInteger,
-  networkEgressBytes: z.literal(0),
-  classAOperationCount: nonnegativeInteger,
-  classBOperationCount: nonnegativeInteger,
-  exactImmutableWorkerMetricsReread: z.literal(true),
-  workerSuppliedProviderTimesBillableDurationPriceOrCostAccepted:
-    z.literal(false),
+  actualUsage: canonicalA100VertexProviderAllocationUsageSchema,
+  exactProviderCreateStartEndTimesReread: z.literal(true),
+  exactRequestAndResultByteCountsReread: z.literal(true),
+  workerPhaseBreakdownClaimed: z.literal(false),
+  workerSuppliedUsagePriceOrCostAccepted: z.literal(false),
   runtimeNetworkDownloadObserved: z.literal(false),
   cpuOnlySubstantiveExecutionObserved: z.literal(false),
   rawMediaPathsUrlsSecretsCredentialsOrBillingAccountIncluded:
     z.literal(false),
   observedAt: timestamp,
 }).strict().superRefine((value, context) => {
-  const duration = Date.parse(value.providerTimes.endTime)
-    - Date.parse(value.providerTimes.startTime)
-  const phases = value.runtimeAndModelLoadMilliseconds
-    + value.activeGpuMilliseconds + value.drainAndShutdownMilliseconds
   if (
-    phases !== duration
+    value.actualUsage.providerCreateTime !== value.providerTimes.createTime
+    || value.actualUsage.providerStartTime !== value.providerTimes.startTime
+    || value.actualUsage.providerEndTime !== value.providerTimes.endTime
     || Date.parse(value.observedAt) < Date.parse(value.providerTimes.endTime)
     || (value.workerResultRef !== null
       && value.providerInferenceOrSubstantiveWorkOutcome !== 'executed')
   ) context.addIssue({
-    code: 'custom', message: 'Vertex qualification worker usage is invalid.',
+    code: 'custom', message: 'Vertex qualification provider usage is invalid.',
   })
 })
-export const canonicalSam31VertexQualificationWorkerUsageSchema =
-  workerUsageWithoutHashSchema.extend({ evidenceHash: sha256 }).strict()
-export type CanonicalSam31VertexQualificationWorkerUsage = z.infer<
-  typeof canonicalSam31VertexQualificationWorkerUsageSchema
+export const canonicalSam31VertexQualificationProviderUsageSchema =
+  providerUsageWithoutHashSchema.extend({ evidenceHash: sha256 }).strict()
+export type CanonicalSam31VertexQualificationProviderUsage = z.infer<
+  typeof canonicalSam31VertexQualificationProviderUsageSchema
 >
 
 const platformStopWithoutHashSchema = z.object({
@@ -173,16 +167,16 @@ const costReceiptWithoutHashSchema = z.object({
   admissionRef: evidenceRefSchema,
   executionRef: evidenceRefSchema,
   cloudTerminalObservationRef: evidenceRefSchema,
-  workerUsageEvidenceRef: evidenceRefSchema,
+  providerUsageEvidenceRef: evidenceRefSchema,
   platformStopEvidenceRef: evidenceRefSchema,
   currentAccountRateAuthorityRef: evidenceRefSchema,
   terminalOutcome: z.enum([
     'completed', 'weeditpro_failed', 'canceled', 'expired',
   ]),
   providerInferenceOrSubstantiveWorkOutcome: z.enum([
-    'executed', 'not_executed',
+    'executed', 'not_executed', 'unknown',
   ]),
-  actualUsage: canonicalA100VertexAttemptUsageSchema,
+  actualUsage: canonicalA100VertexProviderAllocationUsageSchema,
   actualInfrastructureCost: canonicalA100VertexInfrastructureCostSchema,
   billingAccountEffectiveVertexUsageSkuSetUsed: z.literal(true),
   billingAccountIdentifierIncluded: z.literal(false),
@@ -236,7 +230,7 @@ const terminalResultWithoutHashSchema = z.object({
   ]).nullable(),
   workerResultRef: evidenceRefSchema.nullable(),
   cloudTerminalObservationRef: evidenceRefSchema.nullable(),
-  workerUsageEvidenceRef: evidenceRefSchema.nullable(),
+  providerUsageEvidenceRef: evidenceRefSchema.nullable(),
   platformStopEvidenceRef: evidenceRefSchema.nullable(),
   currentAccountRateAuthorityRef: evidenceRefSchema.nullable(),
   costReceiptRef: evidenceRefSchema.nullable(),
@@ -257,7 +251,7 @@ const terminalResultWithoutHashSchema = z.object({
   observedAt: timestamp,
 }).strict().superRefine((value, context) => {
   const terminalRefs = [
-    value.cloudTerminalObservationRef, value.workerUsageEvidenceRef,
+    value.cloudTerminalObservationRef, value.providerUsageEvidenceRef,
     value.platformStopEvidenceRef, value.currentAccountRateAuthorityRef,
     value.costReceiptRef,
   ]
@@ -313,12 +307,17 @@ export interface CanonicalSam31VertexQualificationWorkerResultReadPort {
     executionRef: z.infer<typeof evidenceRefSchema>
   }): Promise<unknown>
 }
-export interface CanonicalSam31VertexQualificationWorkerUsageReadPort {
+export interface CanonicalSam31VertexQualificationProviderUsageReadPort {
   rereadExact(input: {
     request: CanonicalSam31VertexSourceCheckpointWorkerRequest
     executionRef: z.infer<typeof evidenceRefSchema>
     workerResultRef: z.infer<typeof evidenceRefSchema> | null
+    workerResult: ReturnType<
+      typeof assertCanonicalSam31VertexSourceCheckpointWorkerResult
+    > | null
     providerTimes: z.infer<typeof providerTimesSchema>
+    providerInferenceOrSubstantiveWorkOutcome:
+      'executed' | 'not_executed' | 'unknown'
   }): Promise<unknown>
 }
 export interface CanonicalSam31VertexQualificationPlatformStopReadPort {
@@ -342,14 +341,73 @@ export interface CanonicalSam31VertexQualificationCostReceiptStore {
 }
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
 
+export function createCanonicalSam31VertexQualificationProviderUsage(
+  input: {
+    readonly attemptId: string
+    readonly executionRef: z.input<typeof evidenceRefSchema>
+    readonly workerRequestRef: z.input<typeof evidenceRefSchema>
+    readonly workerResultRef: z.input<typeof evidenceRefSchema> | null
+    readonly providerTimes: z.input<typeof providerTimesSchema>
+    readonly providerInferenceOrSubstantiveWorkOutcome:
+      'executed' | 'not_executed' | 'unknown'
+    readonly privateArtifactBytes: number
+    readonly privateArtifactRetentionMilliseconds: number
+    readonly networkEgressBytes: number
+    readonly classAOperationCount: number
+    readonly classBOperationCount: number
+    readonly observedAt: string
+  },
+): CanonicalSam31VertexQualificationProviderUsage {
+  assertPlainSerializedData(input, 'sam31_vertex_provider_usage_input')
+  const providerTimes = providerTimesSchema.parse(input.providerTimes)
+  const actualUsage = createCanonicalA100VertexProviderAllocationUsage({
+    providerCreateTime: providerTimes.createTime,
+    providerStartTime: providerTimes.startTime,
+    providerEndTime: providerTimes.endTime,
+    privateArtifactBytes: input.privateArtifactBytes,
+    privateArtifactRetentionMilliseconds:
+      input.privateArtifactRetentionMilliseconds,
+    networkEgressBytes: input.networkEgressBytes,
+    classAOperationCount: input.classAOperationCount,
+    classBOperationCount: input.classBOperationCount,
+  })
+  const payload = providerUsageWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_SAM3_1_VERTEX_QUALIFICATION_PROVIDER_USAGE_VERSION,
+    source:
+      'canonical_server_sam3_1_vertex_provider_allocation_usage_owner',
+    evidenceClass: 'canonical_private_reread',
+    attemptId: input.attemptId,
+    executionRef: input.executionRef,
+    workerRequestRef: input.workerRequestRef,
+    workerResultRef: input.workerResultRef,
+    providerTimes,
+    providerInferenceOrSubstantiveWorkOutcome:
+      input.providerInferenceOrSubstantiveWorkOutcome,
+    actualUsage,
+    exactProviderCreateStartEndTimesReread: true,
+    exactRequestAndResultByteCountsReread: true,
+    workerPhaseBreakdownClaimed: false,
+    workerSuppliedUsagePriceOrCostAccepted: false,
+    runtimeNetworkDownloadObserved: false,
+    cpuOnlySubstantiveExecutionObserved: false,
+    rawMediaPathsUrlsSecretsCredentialsOrBillingAccountIncluded: false,
+    observedAt: input.observedAt,
+  })
+  return canonicalSam31VertexQualificationProviderUsageSchema.parse({
+    ...payload,
+    evidenceHash: sha256AuthorityValue(payload),
+  })
+}
+
 export function createCanonicalSam31VertexQualificationTerminalReconciler(
   input: {
     admissionRepository: CanonicalSam31VertexQualificationAdmissionRepository
     executionRepository: CanonicalSam31VertexQualificationExecutionRepository
     requestReadPort: CanonicalSam31VertexQualificationWorkerRequestReadPort
     resultReadPort: CanonicalSam31VertexQualificationWorkerResultReadPort
-    workerUsageReadPort:
-      CanonicalSam31VertexQualificationWorkerUsageReadPort
+    providerUsageReadPort:
+      CanonicalSam31VertexQualificationProviderUsageReadPort
     platformStopReadPort:
       CanonicalSam31VertexQualificationPlatformStopReadPort
     rateReadPort: CanonicalSam31VertexQualificationRateReadPort
@@ -417,7 +475,7 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
             attemptId, admissionRef, executionRef, workerRequestRef,
             disposition: 'pending', providerState: provider.state,
             terminalOutcome: null, workerResultRef: null,
-            cloudTerminalObservationRef: null, workerUsageEvidenceRef: null,
+            cloudTerminalObservationRef: null, providerUsageEvidenceRef: null,
             platformStopEvidenceRef: null, currentRateAuthorityRef: null,
             costReceiptRef: null, exactWorkerResultGenerationReread: false,
             observedAt,
@@ -441,8 +499,11 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
           'sam31-vertex-terminal', { executionRef, provider },
         )
         let workerResultRef: z.infer<typeof evidenceRefSchema> | null = null
+        let workerResult: ReturnType<
+          typeof assertCanonicalSam31VertexSourceCheckpointWorkerResult
+        > | null = null
         if (terminalOutcome === 'completed') {
-          const workerResult =
+          workerResult =
             assertCanonicalSam31VertexSourceCheckpointWorkerResult(
               await input.resultReadPort.rereadExact({ request, executionRef }),
             )
@@ -452,18 +513,25 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
             workerResult.resultHash,
           )
         }
-        const workerUsage = assertWorkerUsage(
-          await input.workerUsageReadPort.rereadExact({
-            request, executionRef, workerResultRef, providerTimes,
+        const providerUsage = assertProviderUsage(
+          await input.providerUsageReadPort.rereadExact({
+            request, executionRef, workerResultRef, workerResult,
+            providerTimes,
+            providerInferenceOrSubstantiveWorkOutcome:
+              terminalOutcome === 'completed'
+                ? 'executed'
+                : provider.startTime === undefined
+                  ? 'not_executed'
+                  : 'unknown',
           }),
         )
-        assertWorkerUsageLineage({
-          value: workerUsage, request, executionRef, workerResultRef,
+        assertProviderUsageLineage({
+          value: providerUsage, request, executionRef, workerResultRef,
           providerTimes, terminalOutcome,
         })
-        const workerUsageEvidenceRef = ref(
-          `sam31-vertex-worker-usage-${workerUsage.evidenceHash.slice(0, 32)}`,
-          workerUsage.evidenceHash,
+        const providerUsageEvidenceRef = ref(
+          `sam31-vertex-provider-usage-${providerUsage.evidenceHash.slice(0, 32)}`,
+          providerUsage.evidenceHash,
         )
         const platformStop = assertPlatformStop(
           await input.platformStopReadPort.rereadExact({
@@ -490,31 +558,16 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
           rate.rateAuthorityId, rate.rateAuthorityHash,
           rate.rateAuthorityVersion,
         ))) throw new Error('Vertex qualification rate authority differs.')
-        const usage = createCanonicalA100VertexAttemptUsage({
-          providerCreateTime: providerTimes.createTime,
-          providerStartTime: providerTimes.startTime,
-          providerEndTime: providerTimes.endTime,
-          runtimeAndModelLoadMilliseconds:
-            workerUsage.runtimeAndModelLoadMilliseconds,
-          activeGpuMilliseconds: workerUsage.activeGpuMilliseconds,
-          drainAndShutdownMilliseconds:
-            workerUsage.drainAndShutdownMilliseconds,
-          privateArtifactBytes: workerUsage.privateArtifactBytes,
-          privateArtifactRetentionMilliseconds:
-            workerUsage.privateArtifactRetentionMilliseconds,
-          networkEgressBytes: workerUsage.networkEgressBytes,
-          classAOperationCount: workerUsage.classAOperationCount,
-          classBOperationCount: workerUsage.classBOperationCount,
-        })
+        const usage = providerUsage.actualUsage
         const cost = calculateCanonicalA100VertexInfrastructureCost({
           rateAuthority: rate, usage, at: observedAt,
         })
         const costReceipt = createCostReceipt({
           attemptId, admissionRef, executionRef, cloudTerminalObservationRef,
-          workerUsageEvidenceRef, platformStopEvidenceRef,
+          providerUsageEvidenceRef, platformStopEvidenceRef,
           currentAccountRateAuthorityRef: admission.currentAccountRateAuthorityRef,
           terminalOutcome, outcome:
-            workerUsage.providerInferenceOrSubstantiveWorkOutcome,
+            providerUsage.providerInferenceOrSubstantiveWorkOutcome,
           usage, cost, recordedAt: observedAt,
         })
         const persistedCost = assertCostReceipt(
@@ -528,7 +581,7 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
           attemptId, admissionRef, executionRef, workerRequestRef,
           disposition: 'terminal', providerState: provider.state,
           terminalOutcome, workerResultRef, cloudTerminalObservationRef,
-          workerUsageEvidenceRef, platformStopEvidenceRef,
+          providerUsageEvidenceRef, platformStopEvidenceRef,
           currentRateAuthorityRef: admission.currentAccountRateAuthorityRef,
           costReceiptRef: ref(costReceipt.receiptId, costReceipt.receiptHash),
           exactWorkerResultGenerationReread: terminalOutcome === 'completed',
@@ -544,7 +597,7 @@ export function createCanonicalSam31VertexQualificationTerminalReconciler(
           workerRequestRef: workerRequestRef ?? fallback,
           disposition: 'outcome_unknown_requires_reconciliation',
           providerState: null, terminalOutcome: null, workerResultRef: null,
-          cloudTerminalObservationRef: null, workerUsageEvidenceRef: null,
+          cloudTerminalObservationRef: null, providerUsageEvidenceRef: null,
           platformStopEvidenceRef: null, currentRateAuthorityRef: null,
           costReceiptRef: null, exactWorkerResultGenerationReread: false,
           observedAt,
@@ -598,13 +651,13 @@ function assertWorkerResultMatchesRequest(
   ) throw new Error('Vertex qualification worker result differs.')
 }
 
-function assertWorkerUsage(value: unknown) {
-  assertPlainSerializedData(value, 'sam31_vertex_worker_usage')
-  const parsed = canonicalSam31VertexQualificationWorkerUsageSchema
+function assertProviderUsage(value: unknown) {
+  assertPlainSerializedData(value, 'sam31_vertex_provider_usage')
+  const parsed = canonicalSam31VertexQualificationProviderUsageSchema
     .parse(value)
   const { evidenceHash, ...payload } = parsed
   if (evidenceHash !== sha256AuthorityValue(payload)) {
-    throw new Error('Vertex qualification worker usage hash differs.')
+    throw new Error('Vertex qualification provider usage hash differs.')
   }
   return parsed
 }
@@ -620,8 +673,8 @@ function assertPlatformStop(value: unknown) {
   return parsed
 }
 
-function assertWorkerUsageLineage(input: {
-  value: CanonicalSam31VertexQualificationWorkerUsage
+function assertProviderUsageLineage(input: {
+  value: CanonicalSam31VertexQualificationProviderUsage
   request: CanonicalSam31VertexSourceCheckpointWorkerRequest
   executionRef: z.infer<typeof evidenceRefSchema>
   workerResultRef: z.infer<typeof evidenceRefSchema> | null
@@ -637,10 +690,11 @@ function assertWorkerUsageLineage(input: {
     || !sameNullableRef(input.value.workerResultRef, input.workerResultRef)
     || stableAuthorityStringify(input.value.providerTimes) !==
       stableAuthorityStringify(input.providerTimes)
-    || input.value.providerInferenceOrSubstantiveWorkOutcome === 'unknown'
     || (input.terminalOutcome === 'completed'
       && input.value.providerInferenceOrSubstantiveWorkOutcome !== 'executed')
-  ) throw new Error('Vertex qualification worker usage lineage differs.')
+    || (input.terminalOutcome !== 'completed'
+      && input.value.providerInferenceOrSubstantiveWorkOutcome === 'executed')
+  ) throw new Error('Vertex qualification provider usage lineage differs.')
 }
 
 function assertPlatformStopLineage(input: {
@@ -665,18 +719,15 @@ function createCostReceipt(input: {
   admissionRef: z.infer<typeof evidenceRefSchema>
   executionRef: z.infer<typeof evidenceRefSchema>
   cloudTerminalObservationRef: z.infer<typeof evidenceRefSchema>
-  workerUsageEvidenceRef: z.infer<typeof evidenceRefSchema>
+  providerUsageEvidenceRef: z.infer<typeof evidenceRefSchema>
   platformStopEvidenceRef: z.infer<typeof evidenceRefSchema>
   currentAccountRateAuthorityRef: z.infer<typeof evidenceRefSchema>
   terminalOutcome: 'completed' | 'failed' | 'canceled' | 'expired'
   outcome: 'executed' | 'not_executed' | 'unknown'
-  usage: z.infer<typeof canonicalA100VertexAttemptUsageSchema>
+  usage: z.infer<typeof canonicalA100VertexProviderAllocationUsageSchema>
   cost: z.infer<typeof canonicalA100VertexInfrastructureCostSchema>
   recordedAt: string
 }) {
-  if (input.outcome === 'unknown') {
-    throw new Error('Unknown qualification outcome cannot settle cost.')
-  }
   const payload = costReceiptWithoutHashSchema.parse({
     schemaVersion: CANONICAL_SAM3_1_VERTEX_QUALIFICATION_COST_RECEIPT_VERSION,
     source: 'canonical_server_sam3_1_vertex_qualification_cost_owner',
@@ -688,7 +739,7 @@ function createCostReceipt(input: {
     admissionRef: input.admissionRef,
     executionRef: input.executionRef,
     cloudTerminalObservationRef: input.cloudTerminalObservationRef,
-    workerUsageEvidenceRef: input.workerUsageEvidenceRef,
+    providerUsageEvidenceRef: input.providerUsageEvidenceRef,
     platformStopEvidenceRef: input.platformStopEvidenceRef,
     currentAccountRateAuthorityRef: input.currentAccountRateAuthorityRef,
     terminalOutcome: input.terminalOutcome === 'failed'
@@ -741,7 +792,7 @@ function terminalResult(input: {
   ]
   workerResultRef: z.infer<typeof evidenceRefSchema> | null
   cloudTerminalObservationRef: z.infer<typeof evidenceRefSchema> | null
-  workerUsageEvidenceRef: z.infer<typeof evidenceRefSchema> | null
+  providerUsageEvidenceRef: z.infer<typeof evidenceRefSchema> | null
   platformStopEvidenceRef: z.infer<typeof evidenceRefSchema> | null
   currentRateAuthorityRef: z.infer<typeof evidenceRefSchema> | null
   costReceiptRef: z.infer<typeof evidenceRefSchema> | null
@@ -764,7 +815,7 @@ function terminalResult(input: {
     terminalOutcome: input.terminalOutcome,
     workerResultRef: input.workerResultRef,
     cloudTerminalObservationRef: input.cloudTerminalObservationRef,
-    workerUsageEvidenceRef: input.workerUsageEvidenceRef,
+    providerUsageEvidenceRef: input.providerUsageEvidenceRef,
     platformStopEvidenceRef: input.platformStopEvidenceRef,
     currentAccountRateAuthorityRef: input.currentRateAuthorityRef,
     costReceiptRef: input.costReceiptRef,

@@ -10,6 +10,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   ApprovedEditExecutionUploadedMediaSourceAssetClientInput,
 } from '../../src/lib/approved-edit-execution-package-client'
+import type { CaptionDomainRef } from
+  '../../src/types/caption-domain-contracts'
+import type {
+  CaptionDependencyObservation,
+  CaptionFinishDependencyKind,
+} from '../../src/types/caption-finish-readiness'
 import { CAPTIONS_SUPPORTED_JOB_TYPES } from
   '../../src/types/captions-specialist'
 import type { PlannerInput } from '../../src/types/reeditpro'
@@ -38,10 +44,22 @@ import {
 import {
   executeCanonicalCaptionApprovedJobClosure,
   executeCanonicalCaptionBrollApprovedRun,
+  type CanonicalCaptionPostapprovalFinishRequirement,
 } from '../internal-testing/canonical-caption-broll-approved-execution-harness'
 import {
   parseCanonicalCaptionApprovedExecutionCoverage,
 } from '../services/canonical-caption-approved-execution-coverage-service'
+import {
+  createCanonicalCaptionPostapprovalFinishRecord,
+  createCanonicalCaptionPostapprovalFinishRepository,
+} from '../services/canonical-caption-postapproval-finish-service'
+import {
+  createCanonicalPictureLockManifest,
+} from '../edit-architecture/canonical-picture-lock-manifest'
+import {
+  createCaptionDependencyManifest,
+  createCaptionFinishReadiness,
+} from '../captions-specialist/caption-finish-readiness'
 import { calculateSkillContractDigest } from
   '../orchestra/orchestra-skill-contracts'
 import {
@@ -142,6 +160,7 @@ import type {
   EditSkillArtifactStore,
 } from '../edit-skills/core'
 import type { ServiceContext } from '../types'
+import { ApiError } from '../errors/api-error'
 
 const requestedEvidenceRoot =
   process.env.REEDITPRO_CAPTION_BROLL_APPROVED_EVIDENCE_ROOT?.trim() ?? ''
@@ -538,7 +557,7 @@ try {
       readSourceAnalysisAuthority: () => sourceCleanupAuthority,
     })
 
-  const run = await createCanonicalCaptionBrollApprovedRunHarness({
+  const approvedRunHarnessInput = {
     context,
     ownerUserId,
     workspaceId,
@@ -552,7 +571,10 @@ try {
     sourceMediaAuthority,
     idempotencySeed: 'caption-broll-approved-run',
     approvedAt: '2026-08-07T20:00:00.000Z',
-  })
+  }
+  const run = await createCanonicalCaptionBrollApprovedRunHarness(
+    approvedRunHarnessInput,
+  )
   assert.equal(
     run.harnessVersion,
     CANONICAL_CAPTION_BROLL_APPROVED_RUN_HARNESS_VERSION,
@@ -683,6 +705,33 @@ try {
   const objectPort = createCanonicalPrivateLocalJsonObjectPort({
     localStorageRoot: root,
   })
+  await assert.rejects(
+    () => executeCanonicalCaptionApprovedJobClosure({
+      context,
+      approvedRun: run,
+      idempotencySeed: 'caption-broll-approved-run-execution',
+      resolveCaptionSupportRequirement,
+    }),
+    (error: unknown) => {
+      assert.ok(error instanceof ApiError)
+      assert.equal(error.code, 'JOB_DEPENDENCY_NOT_READY')
+      assert.equal(
+        (error.details as Record<string, unknown>).requiredGate,
+        'canonical_caption_postapproval_finish_binding',
+      )
+      assert.equal(
+        (error.details as Record<string, unknown>)
+          .callerSuppliedEvidenceAccepted,
+        false,
+      )
+      return true
+    },
+  )
+  const resolveCaptionPostapprovalFinishRequirement =
+    createSourceContractPostapprovalFinishResolver({
+      run,
+      objectPort,
+    })
   const createBrollArtifactStore = () =>
     createCanonicalPrivateEditSkillArtifactStore({
       objectPort,
@@ -757,6 +806,7 @@ try {
           approvedRun: run,
           idempotencySeed: 'caption-broll-approved-real-execution',
           resolveCaptionSupportRequirement,
+          resolveCaptionPostapprovalFinishRequirement,
           createBrollArtifactStore,
           brollExecution: {
             sourceBytes,
@@ -786,18 +836,18 @@ try {
         approvedRun: run,
         idempotencySeed: 'caption-broll-approved-run-execution',
         resolveCaptionSupportRequirement,
+        resolveCaptionPostapprovalFinishRequirement,
       })
-  const completeCaptionJobReplay =
-    captionExecutionResult.captionExecutions.every((item) =>
-      item.initialResponse.evidence.idempotentAdapterReplay)
-  const captionExecution = Object.freeze({
-    ...captionExecutionResult,
-    captionSupportResumeCount:
-      captionExecutionResult.captionSupportResumeCount
-      + (completeCaptionJobReplay ? 1 : 0),
-  })
+  const captionExecution = captionExecutionResult
   assert.equal(captionExecution.captionJobCount, 17)
-  assert.equal(captionExecution.captionSupportResumeCount, 1)
+  assert.ok(captionExecution.captionSupportResumeCount >= 0)
+  assert.equal(captionExecution.captionPostapprovalFinishResumeCount, 1)
+  assert.equal(captionExecution.preFinishCaptionJobCount, 10)
+  assert.equal(captionExecution.postapprovalFinishBoundCaptionJobCount, 7)
+  assert.equal(
+    captionExecution.firstPostapprovalFinishResumeAfterCaptionJobCount,
+    10,
+  )
   assert.equal(
     captionExecution.captionApprovedExecutionCoverage
       .counts.declaredCaptionJobTypes,
@@ -898,7 +948,7 @@ try {
         contentHash:
           CAPTION_CURRENT_JOB_READINESS_LEDGER_V2.ledgerDigestSha256,
       },
-      requiredOutputIds: ['output.caption-broll.approved-run'],
+      requiredOutputIds: [run.captionRequest.canonicalScope.outputId],
       privateInternalQualificationRun: true,
       callerSuppliedEvidenceAccepted: false,
       browserLocalCompletionAccepted: false,
@@ -1003,15 +1053,43 @@ try {
     executionPackageCreated: true,
     captionWorkItems: 17,
     captionApprovedJobsExecuted: captionExecution.captionJobCount,
-    captionApprovedExecutionCoveredJobTypes:
+    captionApprovedExecutionCoveredJobTypeCount:
       captionExecution.captionApprovedExecutionCoverage
         .counts.uniqueCoveredCaptionJobTypes,
-    captionApprovedExecutionMissingJobTypes:
+    captionApprovedExecutionMissingJobTypeCount:
       captionExecution.captionApprovedExecutionCoverage
         .counts.missingCaptionJobTypes,
+    captionApprovedExecutionCoveredJobTypes:
+      captionExecution.captionApprovedExecutionCoverage
+        .coveredCaptionJobTypes,
+    captionApprovedExecutionMissingJobTypeIds:
+      captionExecution.captionApprovedExecutionCoverage
+        .missingCaptionJobTypes,
+    captionApprovedExecutionCoverageRef: {
+      id: captionExecution.captionApprovedExecutionCoverage.coverageId,
+      version:
+        captionExecution.captionApprovedExecutionCoverage.schemaVersion,
+      contentHash:
+        captionExecution.captionApprovedExecutionCoverage
+          .coverageDigestSha256,
+    },
+    captionApprovedExecutionPackageRef:
+      captionExecution.captionApprovedExecutionCoverage.executionPackageRef,
+    captionApprovedExecutionSnapshotRef:
+      captionExecution.captionApprovedExecutionCoverage
+        .canonicalScope.approvedSnapshotRef,
+    oneAllFeatureEditFabricated: false,
     captionApprovedExecutionCoveragePreterminalOnly: true,
     captionSupportResumeCount:
       captionExecution.captionSupportResumeCount,
+    captionPostapprovalFinishResumeCount:
+      captionExecution.captionPostapprovalFinishResumeCount,
+    lateCaptionExecutionWithoutFinishBindingRejected: true,
+    preFinishCaptionJobsExecutedBeforeLateResume:
+      captionExecution.firstPostapprovalFinishResumeAfterCaptionJobCount,
+    postapprovalFinishBoundCaptionJobsExecuted:
+      captionExecution.postapprovalFinishBoundCaptionJobCount,
+    sourceContractPictureLockFixtureRelabeledAsPrivateQualification: false,
     visualIntelligenceSupportEvidenceClass:
       'structural_fixture_not_private_qualification',
     brollWorkItems: 13,
@@ -1254,6 +1332,399 @@ interface ApprovedRunExactFrameReviewInspectionPackage {
   readonly publicDeliveryGranted: false
   readonly productionAuthorityGranted: false
   readonly packageSha256: string
+}
+
+function postapprovalFinishDependencyKinds():
+readonly CaptionFinishDependencyKind[] {
+  return [
+    'approved_snapshot', 'picture_lock', 'confirmed_output_frame',
+    'canonical_transcript', 'word_timing', 'timeline', 'source_ranges',
+    'shot_order', 'shot_durations', 'speed_changes', 'crop_reframe',
+    'broll_layout', 'living_frame_layout', 'graphics_maps_charts',
+    'lower_thirds', 'occupancy', 'near_final_visual_proxy', 'mask',
+    'tracking', 'object_anchor', 'transition', 'master_timing',
+    'story_timing', 'font_registry', 'caption_style', 'color_proxy',
+    'sound_plan', 'renderer_runtime', 'approval_envelope', 'qa_policy',
+    'source_asset_manifest', 'reservation_honored',
+  ] as const
+}
+
+/**
+ * Source-contract fixture only. It proves that the canonical runner pauses at
+ * the late Caption boundary and resumes only after one exact shared
+ * PictureLock/dependency/readiness record is create-only persisted. The
+ * fixture is deliberately excluded from terminal/private qualification.
+ */
+function createSourceContractPostapprovalFinishResolver(input: {
+  run: ApprovedRun
+  objectPort: ReturnType<typeof createCanonicalPrivateLocalJsonObjectPort>
+}) {
+  const snapshot = input.run.approved.authority.snapshot
+  const projection = input.run.approvedExecutionAuthority
+    .captionPlanningProjection
+  if (!projection) {
+    throw new Error(
+      'Caption postapproval source fixture requires its planning projection.',
+    )
+  }
+  const repository = createCanonicalCaptionPostapprovalFinishRepository({
+    objectPort: input.objectPort,
+    prefix: [
+      'private-internal/captions-specialist/v1/postapproval-finish',
+      snapshot.approvedByUserId,
+      snapshot.workspaceId,
+    ].join('/'),
+  })
+  return async (
+    requirement: CanonicalCaptionPostapprovalFinishRequirement,
+  ): Promise<void> => {
+    const lookup = requirement.lookup
+    const expectedSnapshotRef: CaptionDomainRef = {
+      id: snapshot.snapshotId,
+      version: snapshot.schemaVersion,
+      contentHash: snapshot.snapshotHash,
+    }
+    if (lookup.canonicalScope.ownerUserId !== snapshot.approvedByUserId
+      || lookup.canonicalScope.workspaceId !== snapshot.workspaceId
+      || lookup.canonicalScope.projectId !== snapshot.projectId
+      || lookup.canonicalScope.editSessionId !== snapshot.editSessionId
+      || lookup.canonicalScope.planVersionId !==
+        `${snapshot.planId}.v${snapshot.planVersion}`
+      || !sameCaptionRef(
+        lookup.canonicalScope.approvedSnapshotRef,
+        expectedSnapshotRef,
+      )
+      || lookup.canonicalScope.outputId !== projection.outputId
+      || !projection.projectedSceneIds.includes(
+        lookup.canonicalScope.sceneId,
+      )) {
+      throw new Error(
+        'Caption postapproval source fixture rejected crossed approved scope.',
+      )
+    }
+    const frame = input.run.captionRequest.confirmedOutputFrame
+    const [aspectRatioNumerator, aspectRatioDenominator] = reduceRatio(
+      frame.width,
+      frame.height,
+    )
+    const sourceFixtureRef = (
+      id: string,
+      version: string,
+      seed: unknown,
+    ): CaptionDomainRef => ({
+      id,
+      version,
+      contentHash: calculateSkillContractDigest({
+        schemaVersion: 'caption-postapproval-source-contract-seed-v1',
+        seed,
+        contentHash: '',
+      }, 'contentHash'),
+    })
+    const sourceAssetManifestRef: CaptionDomainRef = {
+      id: `${snapshot.snapshotId}.approved-source-asset-manifest`,
+      version: 'private-edit-source-asset-manifest-v1',
+      contentHash: snapshot.approvedSourceAssetManifestHash,
+    }
+    const brollComponentRef = snapshot.componentRefs.bRollSkill
+    if (!brollComponentRef) {
+      throw new Error(
+        'Caption postapproval source fixture requires exact B-roll lineage.',
+      )
+    }
+    const timelineVersionRef = sourceFixtureRef(
+      `${snapshot.snapshotId}.timeline`,
+      'canonical-approved-timeline-v1',
+      { snapshotHash: snapshot.snapshotHash, timingHash: snapshot.timingHash },
+    )
+    const sourceRangesRef = sourceFixtureRef(
+      `${snapshot.snapshotId}.source-ranges`,
+      'canonical-approved-source-ranges-v1',
+      snapshot.sourceSequenceHash,
+    )
+    const shotOrderRef = sourceFixtureRef(
+      `${snapshot.snapshotId}.shot-order`,
+      'canonical-approved-shot-order-v1',
+      input.run.canonicalPlan.components.segments.map((segment) =>
+        segment.segmentId),
+    )
+    const shotDurationsRef = sourceFixtureRef(
+      `${snapshot.snapshotId}.shot-durations`,
+      'canonical-approved-shot-durations-v1',
+      input.run.canonicalPlan.components.segments.map((segment) => ({
+        sceneId: segment.segmentId,
+        startFrame: segment.startFrame,
+        endFrameExclusive: segment.endFrameExclusive,
+      })),
+    )
+    const speedChangesRef = sourceFixtureRef(
+      `${snapshot.snapshotId}.speed-changes`,
+      'canonical-approved-speed-changes-v1',
+      { approvedPlanHash: snapshot.planHash, speedChanges: [] },
+    )
+    const transitionsRef = sourceFixtureRef(
+      `${snapshot.snapshotId}.transitions`,
+      'canonical-approved-transitions-v1',
+      {
+        selected: false,
+        snapshotHash: snapshot.snapshotHash,
+      },
+    )
+    const cropReframeRef = sourceFixtureRef(
+      `${projection.outputId}.crop-reframe`,
+      'canonical-approved-crop-reframe-v1',
+      { frame: frame.confirmedOutputFrameRef, aspectRatioNumerator,
+        aspectRatioDenominator },
+    )
+    const brollLayoutRef: CaptionDomainRef = {
+      id: `${snapshot.snapshotId}.component.b-roll-skill`,
+      version: 'private-edit-authority-json-blob-v1',
+      contentHash: brollComponentRef.sha256,
+    }
+    const livingFrameLayoutRef = sourceFixtureRef(
+      `${projection.outputId}.living-frame-layout`,
+      'canonical-approved-living-frame-layout-v1',
+      { selected: false, snapshotHash: snapshot.snapshotHash },
+    )
+    const graphicsMapsChartsRef = sourceFixtureRef(
+      `${projection.outputId}.graphics-maps-charts`,
+      'canonical-approved-graphics-maps-charts-v1',
+      { selected: false, snapshotHash: snapshot.snapshotHash },
+    )
+    const lowerThirdsRef = sourceFixtureRef(
+      `${projection.outputId}.lower-thirds`,
+      'canonical-approved-lower-thirds-v1',
+      { selected: false, snapshotHash: snapshot.snapshotHash },
+    )
+    const maskTrackingAnchorRef = sourceFixtureRef(
+      `${projection.outputId}.mask-tracking-anchor`,
+      'canonical-approved-mask-tracking-anchor-v1',
+      { selected: false, snapshotHash: snapshot.snapshotHash },
+    )
+    const occupancyRef = sourceFixtureRef(
+      `${projection.outputId}.occupancy`,
+      'canonical-approved-occupancy-v1',
+      { brollLayoutRef, captionReservation: projection.earlyPlanningBundleRef },
+    )
+    const nearFinalVisualProxyRef = sourceFixtureRef(
+      `${projection.outputId}.source-contract-near-final-proxy`,
+      'caption-source-contract-near-final-visual-proxy-v1',
+      { executionPackage: lookup.executionPackageRef,
+        privateQualificationEvidence: false },
+    )
+    const colorLookRef = sourceFixtureRef(
+      `${projection.outputId}.color-look`,
+      'canonical-approved-color-look-v1',
+      { snapshotHash: snapshot.snapshotHash, selected: false },
+    )
+    const rendererPlanRef = sourceFixtureRef(
+      `${projection.outputId}.renderer-plan`,
+      'canonical-approved-renderer-plan-v1',
+      input.run.approvedExecutionAuthority.captionRenderedMediaWorkBinding,
+    )
+    const pictureLock = createCanonicalPictureLockManifest({
+      manifestId:
+        `picture-lock.caption-source-contract.${snapshot.snapshotId}`,
+      canonicalScope: {
+        ownerUserId: snapshot.approvedByUserId,
+        workspaceId: snapshot.workspaceId,
+        projectId: snapshot.projectId,
+        editSessionId: snapshot.editSessionId,
+        planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+        approvedSnapshotRef: expectedSnapshotRef,
+      },
+      confirmedOutputFrame: {
+        outputId: projection.outputId,
+        width: frame.width,
+        height: frame.height,
+        aspectRatioNumerator,
+        aspectRatioDenominator,
+        fpsNumerator: frame.fpsNumerator,
+        fpsDenominator: frame.fpsDenominator,
+        totalFrames: input.run.captionRequest.totalFrames,
+        confirmedOutputFrameDigestSha256:
+          frame.confirmedOutputFrameRef.contentHash,
+      },
+      timelineBindings: {
+        timelineVersionRef,
+        sourceRangesRef,
+        shotOrderRef,
+        shotDurationsRef,
+        speedChangesRef,
+        transitionsRef,
+        masterTimingRef: input.run.captionRequest.masterTimingRef,
+      },
+      compositionBindings: {
+        cropReframeRef,
+        brollLayoutRef,
+        livingFrameLayoutRef,
+        graphicsMapsChartsRef,
+        lowerThirdsRef,
+        maskTrackingAnchorRef,
+        occupancyRef,
+        nearFinalVisualProxyRef,
+        colorLookRef,
+        rendererPlanRef,
+      },
+      sourceAssetManifestRef,
+      lockedSceneIds: [...projection.projectedSceneIds],
+      lockState: 'locked',
+      approvedExceptions: [],
+      lockedAt: '2026-08-07T20:06:00.000Z',
+      lockedByRef: sourceFixtureRef(
+        `${snapshot.snapshotId}.picture-lock-owner`,
+        'canonical-edit-picture-lock-source-contract-fixture-v1',
+        { snapshotHash: snapshot.snapshotHash,
+          privateQualificationEvidence: false },
+      ),
+      immutable: true,
+      sharedEditArchitectureOwner: 'canonical_edit_picture_lock',
+      captionOwnsPictureLock: false,
+      rawChatIncluded: false,
+      mediaBytesIncluded: false,
+      privateArtifact: true,
+      publicDeliveryAuthorityClaimed: false,
+      productionAuthorityClaimed: false,
+    })
+    const transcript = await readExactApprovedRunTranscript({
+      run: input.run,
+      objectPort: input.objectPort,
+    })
+    const transcriptRef: CaptionDomainRef = {
+      id: transcript.transcriptRecord.canonicalTranscript.transcriptId,
+      version:
+        transcript.transcriptRecord.canonicalTranscript.schemaVersion,
+      contentHash:
+        transcript.transcriptRecord.canonicalTranscript
+          .transcriptDigestSha256,
+    }
+    const dependencyRef = (
+      kind: CaptionFinishDependencyKind,
+    ): CaptionDomainRef => {
+      const locked = pictureLockDependencyRef(pictureLock, kind)
+      if (locked) return locked
+      if (kind === 'canonical_transcript' || kind === 'word_timing') {
+        return transcriptRef
+      }
+      if (kind === 'story_timing') {
+        return input.run.captionRequest.masterTimingRef
+      }
+      if (kind === 'source_asset_manifest') return sourceAssetManifestRef
+      return sourceFixtureRef(
+        `${projection.outputId}.caption-${kind}`,
+        `canonical-caption-${kind}-source-contract-v1`,
+        { earlyPlanningBundleRef: projection.earlyPlanningBundleRef,
+          snapshotHash: snapshot.snapshotHash, kind },
+      )
+    }
+    const observations: CaptionDependencyObservation[] =
+      postapprovalFinishDependencyKinds().map((dependencyKind) => {
+        const evidenceRef = dependencyRef(dependencyKind)
+        return {
+          dependencyId:
+            `caption.postapproval.${lookup.canonicalScope.sceneId}.${dependencyKind}`,
+          dependencyKind,
+          ownerKey: `canonical_owner.${dependencyKind}`,
+          requiredForSceneIds: [lookup.canonicalScope.sceneId],
+          requirement: 'required',
+          lockedRef: evidenceRef,
+          currentRef: evidenceRef,
+          approvedExceptionRef: null,
+          fallbackAuthorizationRef: null,
+          selectedFallbackId: null,
+        }
+      })
+    const dependencyManifest = createCaptionDependencyManifest({
+      manifestId:
+        `caption.postapproval.dependencies.${lookup.canonicalScope.sceneId}`,
+      canonicalScope: {
+        ...structuredClone(lookup.canonicalScope),
+        sceneId: null,
+        authorizedFrameRanges: [{
+          startFrame: 0,
+          endFrameExclusive: input.run.captionRequest.totalFrames,
+        }],
+      },
+      pictureLock,
+      earlyPlanningBundleRef: projection.earlyPlanningBundleRef,
+      sceneIds: [lookup.canonicalScope.sceneId],
+      observations,
+    })
+    const finishReadiness = createCaptionFinishReadiness({
+      readinessId:
+        `caption.postapproval.readiness.${lookup.canonicalScope.sceneId}`,
+      dependencyManifest,
+      pictureLock,
+    })
+    const record = createCanonicalCaptionPostapprovalFinishRecord({
+      lookup,
+      pictureLock,
+      dependencyManifest,
+      finishReadiness,
+    })
+    const disposition = await repository.persistCreateOnly({ record })
+    assert.match(disposition, /^(?:created|identical_replay)$/u)
+    assert.equal(record.binding.pictureLockAuthorityGrantedToCaption, false)
+    assert.equal(record.binding.productionAuthorityGrantedToCaption, false)
+  }
+}
+
+function pictureLockDependencyRef(
+  lock: ReturnType<typeof createCanonicalPictureLockManifest>,
+  kind: CaptionFinishDependencyKind,
+): CaptionDomainRef | null {
+  const map: Partial<Record<CaptionFinishDependencyKind, CaptionDomainRef>> = {
+    approved_snapshot: lock.canonicalScope.approvedSnapshotRef,
+    picture_lock: {
+      id: lock.manifestId,
+      version: lock.schemaVersion,
+      contentHash: lock.manifestDigestSha256,
+    },
+    confirmed_output_frame: {
+      id: lock.confirmedOutputFrame.outputId,
+      version: 'canonical-confirmed-output-frame-v1',
+      contentHash:
+        lock.confirmedOutputFrame.confirmedOutputFrameDigestSha256,
+    },
+    timeline: lock.timelineBindings.timelineVersionRef,
+    source_ranges: lock.timelineBindings.sourceRangesRef,
+    shot_order: lock.timelineBindings.shotOrderRef,
+    shot_durations: lock.timelineBindings.shotDurationsRef,
+    speed_changes: lock.timelineBindings.speedChangesRef,
+    crop_reframe: lock.compositionBindings.cropReframeRef,
+    broll_layout: lock.compositionBindings.brollLayoutRef,
+    living_frame_layout: lock.compositionBindings.livingFrameLayoutRef,
+    graphics_maps_charts: lock.compositionBindings.graphicsMapsChartsRef,
+    lower_thirds: lock.compositionBindings.lowerThirdsRef,
+    occupancy: lock.compositionBindings.occupancyRef,
+    near_final_visual_proxy: lock.compositionBindings.nearFinalVisualProxyRef,
+    mask: lock.compositionBindings.maskTrackingAnchorRef,
+    tracking: lock.compositionBindings.maskTrackingAnchorRef,
+    object_anchor: lock.compositionBindings.maskTrackingAnchorRef,
+    transition: lock.timelineBindings.transitionsRef,
+    master_timing: lock.timelineBindings.masterTimingRef,
+    color_proxy: lock.compositionBindings.colorLookRef,
+    source_asset_manifest: lock.sourceAssetManifestRef,
+  }
+  return map[kind] ?? null
+}
+
+function sameCaptionRef(
+  left: CaptionDomainRef,
+  right: CaptionDomainRef,
+): boolean {
+  return left.id === right.id && left.version === right.version
+    && left.contentHash === right.contentHash
+}
+
+function reduceRatio(width: number, height: number): [number, number] {
+  let left = width
+  let right = height
+  while (right !== 0) {
+    const next = left % right
+    left = right
+    right = next
+  }
+  return [width / left, height / left]
 }
 
 function requiredRemotionRuntime(

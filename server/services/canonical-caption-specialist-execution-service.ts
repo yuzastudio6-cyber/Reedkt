@@ -67,6 +67,12 @@ import type { CanonicalApprovedEditExecutionPackage } from
 import type { CanonicalCaptionTranscriptAuthenticatedReadPort } from
   '../../src/types/canonical-caption-transcript-support'
 import {
+  CANONICAL_CAPTION_POSTAPPROVAL_FINISH_READ_PORT_VERSION,
+  type CanonicalCaptionPostapprovalFinishLookup,
+  type CanonicalCaptionPostapprovalFinishReadPort,
+} from
+  '../../src/types/canonical-caption-postapproval-finish-binding'
+import {
   CANONICAL_CAPTION_CROSS_SYSTEM_EXECUTION_INPUT_VERSION,
   type CanonicalCaptionCrossSystemExecutionInputReadPort,
 } from '../../src/types/canonical-caption-cross-system-execution-input'
@@ -99,6 +105,10 @@ import {
   canonicalCaptionProducedArtifactRefsDigest,
 } from './canonical-caption-specialist-produced-artifact-contract'
 import {
+  isCanonicalCaptionPostapprovalFinishReadPort,
+  parseCanonicalCaptionPostapprovalFinishRecord,
+} from './canonical-caption-postapproval-finish-service'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
@@ -128,6 +138,7 @@ const initialArtifactTypeSchema = z.enum([
   'canonical_transcript_planning_expectation',
   'canonical_transcript_planning_expectation_binding',
   'canonical_transcript_authenticated_read_binding',
+  'canonical_caption_postapproval_finish_binding',
   'confirmed_output_frame',
   'master_timing_or_planning_timing',
   'source_skill_support_request',
@@ -210,6 +221,7 @@ z.discriminatedUnion('schemaVersion', [
     'canonical_transcript_authenticated_read_binding',
   )
   if (new Set(types).size !== types.length
+    || types.includes('canonical_caption_postapproval_finish_binding')
     || (sourceLedExpectation
       ? !types.includes('canonical_transcript_planning_expectation')
         || types.includes('canonical_transcript')
@@ -414,6 +426,12 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   readonly canonicalTranscriptRef?: SkillContractRef
   /** Exact immutable expectation-to-authenticated-transcript resolution. */
   readonly canonicalTranscriptPlanningExpectationBindingRef?: SkillContractRef
+  /**
+   * Canonical private read-only gate for V3 work that is intentionally late
+   * bound after shared PictureLock and Caption finish-readiness resolution.
+   */
+  readonly postapprovalFinishReadPort?:
+    CanonicalCaptionPostapprovalFinishReadPort
   readonly incomingSupportRequestReadPort?:
     CanonicalCaptionIncomingSupportRequestReadPort
   readonly crossSystemExecutionInputReadPort?:
@@ -465,6 +483,13 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
   const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
     workItem.executionInput)
   assertExpectedOutputAndManifest(authority, workItem)
+  const postapprovalFinishRecord =
+    await readCanonicalCaptionPostapprovalFinishRecord({
+      authority,
+      executionPackage,
+      workInput,
+      readPort: input.postapprovalFinishReadPort,
+    })
   const initialArtifactRefs = resolveInitialArtifactRefs({
     workInput,
     postApprovalTranscriptRef: input.canonicalTranscriptRef,
@@ -472,6 +497,13 @@ export async function executeCanonicalCaptionSpecialistWorkItem(input: {
       input.canonicalTranscriptAuthenticatedReadBindingRef,
     postApprovalExpectationBindingRef:
       input.canonicalTranscriptPlanningExpectationBindingRef,
+    postApprovalFinishBindingRef:
+      postapprovalFinishRecord === null ? undefined : {
+        id: postapprovalFinishRecord.binding.bindingId,
+        version: postapprovalFinishRecord.binding.schemaVersion,
+        contentHash:
+          postapprovalFinishRecord.binding.bindingDigestSha256,
+      },
   })
 
   const call = createCaptionCall({
@@ -610,11 +642,137 @@ const defaultExecutionPort: CanonicalCaptionSpecialistExecutionPort = {
   },
 }
 
+const POSTAPPROVAL_FINISH_TRIGGERS = new Set([
+  'approved_picture_lock',
+  'approved_boundary_requirement',
+  'canonical_caption_qa_repair',
+  'canonical_caption_output_recomposition',
+  'canonical_caption_result_inspection',
+  'canonical_caption_boundary_inspection',
+])
+
+/**
+ * Exact resumable dependency signal for late V3 Caption work. It carries only
+ * the byte-free server-derived lookup; it is not a caller evidence channel.
+ */
+export class CanonicalCaptionPostapprovalFinishUnavailableError
+  extends Error {
+  readonly lookup: CanonicalCaptionPostapprovalFinishLookup
+
+  constructor(lookup: CanonicalCaptionPostapprovalFinishLookup) {
+    super(
+      'Canonical Caption postapproval finish evidence is not available yet.',
+    )
+    this.name = 'CanonicalCaptionPostapprovalFinishUnavailableError'
+    this.lookup = structuredClone(lookup)
+  }
+}
+
+async function readCanonicalCaptionPostapprovalFinishRecord(input: {
+  authority: CanonicalApprovedExecutionAuthority
+  executionPackage: CanonicalApprovedEditExecutionPackage
+  workInput: CanonicalCaptionSpecialistWorkItemInput
+  readPort?: CanonicalCaptionPostapprovalFinishReadPort
+}) {
+  let required = false
+  if (input.workInput.schemaVersion ===
+    CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION) {
+    required = POSTAPPROVAL_FINISH_TRIGGERS.has(
+      input.workInput.assignmentTrigger)
+  }
+  if (!required) return null
+  const projection = input.authority.captionPlanningProjection
+  const snapshot = input.authority.snapshot
+  if (!projection || input.workInput.outputId === null
+    || input.workInput.sceneId === null
+    || !isCanonicalCaptionPostapprovalFinishReadPort(input.readPort)
+    || input.readPort.schemaVersion !==
+      CANONICAL_CAPTION_POSTAPPROVAL_FINISH_READ_PORT_VERSION
+    || input.readPort.sourceAuthority !==
+      'canonical_caption_postapproval_finish_repository'
+    || input.readPort.callerSuppliedEvidenceAccepted) {
+    throw new Error(
+      'Canonical Caption late work requires its admitted postapproval finish reader.',
+    )
+  }
+  const lookup = {
+    canonicalScope: {
+      ownerUserId: snapshot.approvedByUserId,
+      workspaceId: snapshot.workspaceId,
+      projectId: snapshot.projectId,
+      editSessionId: snapshot.editSessionId,
+      planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+      approvedSnapshotRef: {
+        id: snapshot.snapshotId,
+        version: snapshot.schemaVersion,
+        contentHash: snapshot.snapshotHash,
+      },
+      outputId: input.workInput.outputId,
+      sceneId: input.workInput.sceneId,
+      authorizedFrameRanges:
+        structuredClone(input.workInput.authorizedFrameRanges),
+    },
+    executionPackageRef: {
+      id: input.executionPackage.packageRecordId,
+      version: input.executionPackage.schemaVersion,
+      contentHash: input.executionPackage.packageHash,
+    },
+    captionPlanningProjectionRef: {
+      id: projection.projectionId,
+      version: projection.schemaVersion,
+      contentHash: projection.projectionDigestSha256,
+    },
+  }
+  const first = await input.readPort.readExact(lookup)
+  const second = await input.readPort.readExact(lookup)
+  if (first === null && second === null) {
+    throw new CanonicalCaptionPostapprovalFinishUnavailableError(lookup)
+  }
+  if (!first || !second
+    || stableAuthorityStringify(first) !== stableAuthorityStringify(second)) {
+    throw new Error(
+      'Canonical Caption postapproval finish evidence changed between exact rereads.',
+    )
+  }
+  const record = parseCanonicalCaptionPostapprovalFinishRecord(first)
+  const frameRef = input.workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'confirmed_output_frame')
+  const timingRef = input.workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'master_timing_or_planning_timing')
+  const pictureLock = record.pictureLock
+  if (stableAuthorityStringify(record.binding.canonicalScope) !==
+      stableAuthorityStringify(lookup.canonicalScope)
+    || !sameRef(record.binding.executionPackageRef,
+      lookup.executionPackageRef)
+    || !sameRef(record.binding.captionPlanningProjectionRef,
+      lookup.captionPlanningProjectionRef)
+    || !sameRef(record.binding.earlyPlanningBundleRef,
+      projection.earlyPlanningBundleRef)
+    || !frameRef || frameRef.contentHash !==
+      pictureLock.confirmedOutputFrame.confirmedOutputFrameDigestSha256
+    || !timingRef || !sameRef(timingRef,
+      pictureLock.timelineBindings.masterTimingRef)) {
+    throw new Error(
+      'Canonical Caption postapproval finish evidence crossed approved frame, timing, planning, or package authority.',
+    )
+  }
+  return record
+}
+
+function sameRef(
+  left: SkillContractRef,
+  right: SkillContractRef,
+): boolean {
+  return left.id === right.id && left.version === right.version
+    && left.contentHash === right.contentHash
+}
+
 function resolveInitialArtifactRefs(input: {
   workInput: CanonicalCaptionSpecialistWorkItemInput
   postApprovalTranscriptRef?: SkillContractRef
   postApprovalBindingRef?: SkillContractRef
   postApprovalExpectationBindingRef?: SkillContractRef
+  postApprovalFinishBindingRef?: SkillContractRef
 }): CanonicalCaptionSpecialistWorkItemInput['initialArtifactRefs'] {
   const expectation = input.workInput.initialArtifactRefs.find((artifact) =>
     artifact.artifactType === 'canonical_transcript_planning_expectation')
@@ -626,6 +784,9 @@ function resolveInitialArtifactRefs(input: {
   const existingExpectationBinding = input.workInput.initialArtifactRefs.find(
     (artifact) => artifact.artifactType ===
       'canonical_transcript_planning_expectation_binding')
+  const existingFinishBinding = input.workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_caption_postapproval_finish_binding')
   const sourceLedExpectation = input.workInput.schemaVersion ===
     CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_INPUT_V3_VERSION
   if (sourceLedExpectation && (!expectation
@@ -644,6 +805,11 @@ function resolveInitialArtifactRefs(input: {
   if (existingExpectationBinding) {
     throw new Error(
       'Canonical Caption immutable work cannot pre-inject transcript expectation resolution.',
+    )
+  }
+  if (existingFinishBinding) {
+    throw new Error(
+      'Canonical Caption immutable work cannot pre-inject postapproval finish evidence.',
     )
   }
   if (!sourceLedExpectation && input.postApprovalTranscriptRef
@@ -704,6 +870,16 @@ function resolveInitialArtifactRefs(input: {
         byteFreeRef: true,
         sourceSupportRequestRef: null,
       })
+  const finishBindingArtifact =
+    input.postApprovalFinishBindingRef === undefined ? null
+      : initialArtifactSchema.parse({
+          ...refSchema.parse(input.postApprovalFinishBindingRef),
+          artifactType: 'canonical_caption_postapproval_finish_binding',
+          producerSkillKey: 'caption_finish_readiness',
+          privateArtifact: true,
+          byteFreeRef: true,
+          sourceSupportRequestRef: null,
+        })
   const resolved = [
     ...structuredClone(input.workInput.initialArtifactRefs).filter(
       (artifact) => artifact.artifactType !==
@@ -712,6 +888,7 @@ function resolveInitialArtifactRefs(input: {
     bindingArtifact,
     ...(expectationBindingArtifact === null
       ? [] : [expectationBindingArtifact]),
+    ...(finishBindingArtifact === null ? [] : [finishBindingArtifact]),
   ]
   if (resolved.length > 8) {
     throw new Error(

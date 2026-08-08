@@ -33,6 +33,7 @@ export type CanonicalCaptionInitialArtifactType =
   | 'canonical_transcript_planning_expectation'
   | 'canonical_transcript_planning_expectation_binding'
   | 'canonical_transcript_authenticated_read_binding'
+  | 'canonical_caption_postapproval_finish_binding'
   | 'confirmed_output_frame'
   | 'master_timing_or_planning_timing'
   | 'source_skill_support_request'

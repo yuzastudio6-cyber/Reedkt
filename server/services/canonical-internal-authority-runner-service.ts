@@ -38,6 +38,7 @@ import type {
 } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import {
+  CanonicalCaptionPostapprovalFinishUnavailableError,
   executeCanonicalCaptionSpecialistWorkItem,
   parseCanonicalCaptionSpecialistWorkItemInput,
   parseCanonicalCaptionSpecialistExecutionReceipt,
@@ -58,6 +59,9 @@ import {
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
 import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
+import {
+  createCanonicalCaptionPostapprovalFinishRepository,
+} from './canonical-caption-postapproval-finish-service'
 import {
   assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
   createCanonicalCaptionTranscriptEvidenceRepository,
@@ -718,6 +722,15 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
       input.workspaceId,
     ].join('/'),
   })
+  const postapprovalFinishRepository =
+    createCanonicalCaptionPostapprovalFinishRepository({
+      objectPort,
+      prefix: [
+        'private-internal/captions-specialist/v1/postapproval-finish',
+        input.actorUserId,
+        input.workspaceId,
+      ].join('/'),
+    })
   const transcriptRepository =
     createCanonicalCaptionTranscriptEvidenceRepository({ objectPort })
   const transcriptMount = await resolveCanonicalCaptionTranscriptExecutionMount({
@@ -732,22 +745,44 @@ export async function prepareCanonicalCaptionPlanningExecution(input: {
         }
       : {}),
   })
-  const execution = await executeCanonicalCaptionSpecialistWorkItem({
-    authority: input.authority,
-    executionPackage: packageRead.approvedEditExecutionPackage,
-    jobId: input.jobId,
-    repository,
-    canonicalTranscriptReadPort: transcriptMount.readPort,
-    canonicalTranscriptRef: transcriptMount.transcriptRef,
-    canonicalTranscriptAuthenticatedReadBindingRef:
-      transcriptMount.bindingRef,
-    ...('planningExpectationBindingRef' in transcriptMount ? {
-      canonicalTranscriptPlanningExpectationBindingRef:
-        transcriptMount.planningExpectationBindingRef,
-    } : {}),
-    canonicalJobDependencyAuthority:
-      dependencyAdmission.dependencyAuthority,
-  })
+  let execution: Awaited<ReturnType<
+    typeof executeCanonicalCaptionSpecialistWorkItem
+  >>
+  try {
+    execution = await executeCanonicalCaptionSpecialistWorkItem({
+      authority: input.authority,
+      executionPackage: packageRead.approvedEditExecutionPackage,
+      jobId: input.jobId,
+      repository,
+      canonicalTranscriptReadPort: transcriptMount.readPort,
+      canonicalTranscriptRef: transcriptMount.transcriptRef,
+      canonicalTranscriptAuthenticatedReadBindingRef:
+        transcriptMount.bindingRef,
+      ...('planningExpectationBindingRef' in transcriptMount ? {
+        canonicalTranscriptPlanningExpectationBindingRef:
+          transcriptMount.planningExpectationBindingRef,
+      } : {}),
+      canonicalJobDependencyAuthority:
+        dependencyAdmission.dependencyAuthority,
+      postapprovalFinishReadPort: postapprovalFinishRepository.readPort,
+    })
+  } catch (error) {
+    if (error instanceof
+      CanonicalCaptionPostapprovalFinishUnavailableError) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical Caption late resolution is waiting for exact PictureLock and finish-readiness evidence.',
+        409,
+        {
+          requiredGate: 'canonical_caption_postapproval_finish_binding',
+          postapprovalFinishLookup: error.lookup,
+          callerSuppliedEvidenceAccepted: false,
+          pictureLockAuthorityGrantedToCaption: false,
+        },
+      )
+    }
+    throw error
+  }
   if (execution.pair.result.disposition !== 'completed') {
     const originalCallRef = {
       id: execution.pair.call.callId,

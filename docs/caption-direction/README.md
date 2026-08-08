@@ -396,3 +396,10 @@ the proxy-source review into terminal evidence. See
 
 Provider spending, secrets, billing, public rollout, irreversible migrations,
 and destructive compatibility removal remain outside this checkpoint.
+
+The canonical approved-worker integration now enforces the late Caption finish
+gate as well: V3 PictureLock-, repair-, recomposition-, and inspection-triggered
+jobs cannot execute until an exact create-only PictureLock/dependency/readiness
+record is reread for the same snapshot, output, scene, package, projection,
+frame, and MasterTiming. The additive evidence report is
+[`post-cap20-approved-picture-lock-finish-gate-2026-08-07.md`](./post-cap20-approved-picture-lock-finish-gate-2026-08-07.md).

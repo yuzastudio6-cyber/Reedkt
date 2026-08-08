@@ -375,6 +375,7 @@
     "smoke:canonical-caption-transcript-support": "tsx server/smoke/canonical-caption-transcript-support-service-smoke.ts",
     "smoke:canonical-caption-broll-support": "tsx server/smoke/canonical-caption-broll-support-service-smoke.ts",
     "smoke:canonical-caption-soundsync-support": "tsx server/smoke/canonical-caption-soundsync-support-service-smoke.ts",
+    "smoke:canonical-caption-postapproval-finish": "tsx server/smoke/canonical-caption-postapproval-finish-service-smoke.ts",
     "smoke:canonical-caption-shared-owner-composition": "tsx server/smoke/canonical-caption-shared-owner-private-composition-smoke.ts",
     "smoke:canonical-sound-caption-owner": "tsx server/smoke/canonical-sound-caption-owner-service-smoke.ts",
     "smoke:canonical-sound-caption-owner-private-runtime": "tsx server/smoke/canonical-sound-caption-owner-private-runtime-smoke.ts",

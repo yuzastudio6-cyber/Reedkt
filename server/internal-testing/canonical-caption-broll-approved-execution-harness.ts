@@ -3,6 +3,9 @@ import { hashSkillValue } from '../edit-skills/core'
 import { ApiError } from '../errors/api-error'
 import type { SkillContractRef } from
   '../../src/types/orchestra-skill-contracts'
+import type {
+  CanonicalCaptionPostapprovalFinishLookup,
+} from '../../src/types/canonical-caption-postapproval-finish-binding'
 import type { CanonicalPrivateJobExecutionAdapterResponse } from
   '../validation/canonical-private-job-execution-adapter-schemas'
 import type { ServiceContext } from '../types'
@@ -19,6 +22,9 @@ import {
   assembleCanonicalCaptionApprovedExecutionCoverage,
   createCanonicalCaptionApprovedExecutionCoverageRepository,
 } from '../services/canonical-caption-approved-execution-coverage-service'
+import {
+  parseCanonicalCaptionPostapprovalFinishLookup,
+} from '../services/canonical-caption-postapproval-finish-service'
 import { createCanonicalPrivateLocalJsonObjectPort } from
   '../services/canonical-private-local-json-object-port'
 import { stableAuthorityStringify } from
@@ -29,6 +35,15 @@ import type {
 
 export const CANONICAL_CAPTION_BROLL_APPROVED_EXECUTION_HARNESS_VERSION =
   'canonical-caption-broll-approved-execution-harness-v1' as const
+
+const POSTAPPROVAL_FINISH_TRIGGERS = new Set([
+  'approved_picture_lock',
+  'approved_boundary_requirement',
+  'canonical_caption_qa_repair',
+  'canonical_caption_output_recomposition',
+  'canonical_caption_result_inspection',
+  'canonical_caption_boundary_inspection',
+])
 
 type ApprovedRun = Awaited<ReturnType<
   typeof createCanonicalCaptionBrollApprovedRunHarness
@@ -60,12 +75,23 @@ export interface CanonicalCaptionSupportResumeRequirement {
   readonly reasonCodes: readonly string[]
 }
 
+export interface CanonicalCaptionPostapprovalFinishRequirement {
+  readonly jobId: string
+  readonly lookup: CanonicalCaptionPostapprovalFinishLookup
+  readonly requiredGate: 'canonical_caption_postapproval_finish_binding'
+  readonly callerSuppliedEvidenceAccepted: false
+  readonly pictureLockAuthorityGrantedToCaption: false
+}
+
 export interface CanonicalCaptionBrollApprovedExecutionHarnessInput {
   readonly context: ServiceContext
   readonly approvedRun: ApprovedRun
   readonly idempotencySeed: string
   readonly resolveCaptionSupportRequirement?: (
     requirement: CanonicalCaptionSupportResumeRequirement,
+  ) => Promise<void>
+  readonly resolveCaptionPostapprovalFinishRequirement?: (
+    requirement: CanonicalCaptionPostapprovalFinishRequirement,
   ) => Promise<void>
   readonly createBrollArtifactStore: () => EditSkillArtifactStore
   readonly brollExecution: BrollExecutionInput
@@ -78,6 +104,9 @@ export interface CanonicalCaptionApprovedJobClosureInput {
   readonly resolveCaptionSupportRequirement?: (
     requirement: CanonicalCaptionSupportResumeRequirement,
   ) => Promise<void>
+  readonly resolveCaptionPostapprovalFinishRequirement?: (
+    requirement: CanonicalCaptionPostapprovalFinishRequirement,
+  ) => Promise<void>
 }
 
 export interface CanonicalCaptionApprovedJobExecutionEvidence {
@@ -87,6 +116,7 @@ export interface CanonicalCaptionApprovedJobExecutionEvidence {
   readonly initialResponse: CanonicalPrivateJobExecutionAdapterResponse
   readonly replayResponse: CanonicalPrivateJobExecutionAdapterResponse
   readonly supportResumeCount: number
+  readonly postapprovalFinishResumeCount: number
 }
 
 /**
@@ -99,8 +129,6 @@ export async function executeCanonicalCaptionBrollApprovedRun(
   input: CanonicalCaptionBrollApprovedExecutionHarnessInput,
 ) {
   assertInputAuthority(input)
-  const caption = await executeCanonicalCaptionApprovedJobClosure(input)
-
   const brollInput = canonicalBrollExecutionInput(input)
   const firstBrollService =
     await createCanonicalBrollPrivateApprovedExecutionService({
@@ -135,6 +163,12 @@ export async function executeCanonicalCaptionBrollApprovedRun(
     )
   }
 
+  // The frozen early Caption plan already exists in the approved snapshot.
+  // Private B-roll execution and restart-reread must complete before this
+  // coordinator allows the postapproval PictureLock callback to resolve late
+  // Caption work.
+  const caption = await executeCanonicalCaptionApprovedJobClosure(input)
+
   return Object.freeze({
     schemaVersion:
       CANONICAL_CAPTION_BROLL_APPROVED_EXECUTION_HARNESS_VERSION,
@@ -154,6 +188,7 @@ export async function executeCanonicalCaptionApprovedJobClosure(
     input.context,
   )
   const captionExecutions: CanonicalCaptionApprovedJobExecutionEvidence[] = []
+  let firstPostapprovalFinishResumeAfterCaptionJobCount: number | null = null
 
   for (const { job, workItem, captionJob } of orderedJobs) {
     const request = {
@@ -166,7 +201,9 @@ export async function executeCanonicalCaptionApprovedJobClosure(
       idempotencyKey: `${input.idempotencySeed}.caption-job.${job.id}`,
     }
     let supportResumeCount = 0
+    let postapprovalFinishResumeCount = 0
     const resumedSupportRequests = new Set<string>()
+    const resumedFinishLookups = new Set<string>()
     let initialResponse: CanonicalPrivateJobExecutionAdapterResponse | null =
       null
     while (initialResponse === null) {
@@ -181,25 +218,58 @@ export async function executeCanonicalCaptionApprovedJobClosure(
           workspaceId:
             input.approvedRun.approved.authority.snapshot.workspaceId,
         })
-        if (!requirement || !input.resolveCaptionSupportRequirement) throw error
-        for (const ref of requirement.supportRequestRefs) {
-          const key = contractRefKey(ref)
-          if (resumedSupportRequests.has(key)) {
+        if (requirement && input.resolveCaptionSupportRequirement) {
+          for (const ref of requirement.supportRequestRefs) {
+            const key = contractRefKey(ref)
+            if (resumedSupportRequests.has(key)) {
+              throw new Error(
+                'Caption approved execution repeated the same unresolved support request.',
+                { cause: error },
+              )
+            }
+            resumedSupportRequests.add(key)
+          }
+          supportResumeCount += 1
+          if (supportResumeCount > 8) {
             throw new Error(
-              'Caption approved execution repeated the same unresolved support request.',
+              'Caption approved execution exceeded its bounded support-resume depth.',
               { cause: error },
             )
           }
-          resumedSupportRequests.add(key)
+          await input.resolveCaptionSupportRequirement(requirement)
+          continue
         }
-        supportResumeCount += 1
-        if (supportResumeCount > 8) {
-          throw new Error(
-            'Caption approved execution exceeded its bounded support-resume depth.',
-            { cause: error },
+        const finishRequirement = parsePostapprovalFinishRequirement({
+          error,
+          jobId: job.id,
+        })
+        if (finishRequirement
+          && input.resolveCaptionPostapprovalFinishRequirement) {
+          const key = stableAuthorityStringify(finishRequirement.lookup)
+          if (resumedFinishLookups.has(key)) {
+            throw new Error(
+              'Caption approved execution repeated the same unresolved postapproval finish requirement.',
+              { cause: error },
+            )
+          }
+          resumedFinishLookups.add(key)
+          postapprovalFinishResumeCount += 1
+          if (postapprovalFinishResumeCount > 1) {
+            throw new Error(
+              'One Caption job exceeded its bounded postapproval finish-resume depth.',
+              { cause: error },
+            )
+          }
+          if (firstPostapprovalFinishResumeAfterCaptionJobCount === null) {
+            firstPostapprovalFinishResumeAfterCaptionJobCount =
+              captionExecutions.filter((item) => item.captionJob).length
+          }
+          await input.resolveCaptionPostapprovalFinishRequirement(
+            finishRequirement,
           )
+          continue
         }
-        await input.resolveCaptionSupportRequirement(requirement)
+        throw error
       }
     }
     const replayResponse = await adapter.execute(request)
@@ -218,11 +288,18 @@ export async function executeCanonicalCaptionApprovedJobClosure(
       initialResponse,
       replayResponse,
       supportResumeCount,
+      postapprovalFinishResumeCount,
     }))
   }
 
   const captionJobCount = captionExecutions.filter((item) =>
     item.captionJob).length
+  const postapprovalFinishBoundCaptionJobCount = orderedJobs.filter((item) =>
+    item.captionJob && POSTAPPROVAL_FINISH_TRIGGERS.has(
+      String(item.workItem.executionInput.assignmentTrigger),
+    )).length
+  const preFinishCaptionJobCount = captionJobCount -
+    postapprovalFinishBoundCaptionJobCount
   if (captionJobCount !== input.approvedRun.approvedExecutionAuthority.workItems
     .filter((item) =>
       item.workerClass === 'canonical_caption_specialist_worker_v1').length) {
@@ -290,6 +367,13 @@ export async function executeCanonicalCaptionApprovedJobClosure(
       (sum, item) => sum + item.supportResumeCount,
       0,
     ),
+    captionPostapprovalFinishResumeCount: captionExecutions.reduce(
+      (sum, item) => sum + item.postapprovalFinishResumeCount,
+      0,
+    ),
+    preFinishCaptionJobCount,
+    postapprovalFinishBoundCaptionJobCount,
+    firstPostapprovalFinishResumeAfterCaptionJobCount,
     immutableApprovedPackageReread: true as const,
     canonicalOneJobAdapterUsedForCaption: true as const,
     directPeerDispatchPerformed: false as const,
@@ -401,6 +485,8 @@ function parseSupportRequirement(
   if (!(error instanceof ApiError) ||
     error.code !== 'JOB_DEPENDENCY_NOT_READY' ||
     !isRecord(error.details)) return null
+  if (!('originalCallRef' in error.details)
+    || !('supportRequestRefs' in error.details)) return null
   const originalCallRef = parseSkillRef(error.details.originalCallRef)
   const supportRequestRefs = Array.isArray(error.details.supportRequestRefs)
     ? error.details.supportRequestRefs.map((value) => {
@@ -425,6 +511,30 @@ function parseSupportRequirement(
     originalCallRef,
     supportRequestRefs: Object.freeze(supportRequestRefs),
     reasonCodes: Object.freeze([...reasonCodes]),
+  })
+}
+
+function parsePostapprovalFinishRequirement(input: {
+  error: unknown
+  jobId: string
+}): CanonicalCaptionPostapprovalFinishRequirement | null {
+  const { error } = input
+  if (!(error instanceof ApiError)
+    || error.code !== 'JOB_DEPENDENCY_NOT_READY'
+    || !isRecord(error.details)
+    || error.details.requiredGate !==
+      'canonical_caption_postapproval_finish_binding'
+    || error.details.callerSuppliedEvidenceAccepted !== false
+    || error.details.pictureLockAuthorityGrantedToCaption !== false
+    || !('postapprovalFinishLookup' in error.details)) return null
+  return Object.freeze({
+    jobId: input.jobId,
+    lookup: parseCanonicalCaptionPostapprovalFinishLookup(
+      error.details.postapprovalFinishLookup,
+    ),
+    requiredGate: 'canonical_caption_postapproval_finish_binding',
+    callerSuppliedEvidenceAccepted: false,
+    pictureLockAuthorityGrantedToCaption: false,
   })
 }
 

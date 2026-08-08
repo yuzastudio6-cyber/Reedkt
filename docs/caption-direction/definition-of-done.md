@@ -16,6 +16,12 @@ mounting and reread, qualified complete-time visual-AI review, independent
 final-QA reread, and the final Caption-owned per-job qualification projection.
 See [the exact audit](post-cap20-goal-completion-audit.md).
 
+The approved-worker path now also enforces the shared PictureLock and
+CaptionFinishReadiness boundary for late V3 jobs. The baseline approved run
+proves ten early jobs before one exact finish resume and seven late jobs after
+it, without relabeling the structural lock fixture as terminal evidence. See
+[the exact finish-gate report](post-cap20-approved-picture-lock-finish-gate-2026-08-07.md).
+
 The original uploaded talking-head source has now also passed an actual
 private `2160x3840@30` stable-caption render and all-127-frame direct visual
 inspection. See

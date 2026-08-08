@@ -65,6 +65,7 @@ export const CANONICAL_SAM3_1_VERTEX_QUALIFICATION_RUNTIME_VERSION =
   'canonical-sam3_1-vertex-source-checkpoint-qualification-runtime-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const REGION = 'us-central1' as const
 const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
@@ -80,6 +81,8 @@ const QUOTA_PREFERENCE_NAME =
   `projects/${PROJECT_ID}/locations/global/quotaPreferences/${QUOTA_PREFERENCE_ID}` as const
 const QUOTA_INFO_NAME =
   `projects/${PROJECT_ID}/locations/global/services/aiplatform.googleapis.com/quotaInfos/${QUOTA_ID}` as const
+const QUOTA_INFO_CANONICAL_NAME =
+  `projects/${PROJECT_NUMBER}/locations/global/services/aiplatform.googleapis.com/quotaInfos/${QUOTA_ID}` as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const PRIVATE_ARTIFACT_RETENTION_MILLISECONDS = 86_400_000 as const
@@ -628,18 +631,25 @@ function parseQuotaPreference(value: unknown) {
 function parseQuotaInfo(value: unknown) {
   assertPlainSerializedData(value, 'sam31_vertex_quota_info')
   const parsed = z.object({
-    name: z.literal(QUOTA_INFO_NAME),
+    name: z.literal(QUOTA_INFO_CANONICAL_NAME),
     service: z.literal('aiplatform.googleapis.com'),
     quotaId: z.literal(QUOTA_ID),
     dimensionsInfos: z.array(z.object({
-      dimensions: z.record(z.string(), z.string()),
-      details: z.object({ value: z.union([z.string(), z.number()]) })
-        .passthrough(),
+      dimensions: z.record(z.string(), z.string()).optional(),
+      details: z.object({
+        value: z.union([z.string(), z.number()]).optional(),
+      }).passthrough(),
+      applicableLocations: z.array(z.string()).min(1),
     }).passthrough()).min(1),
   }).passthrough().parse(value)
-  const regional = parsed.dimensionsInfos.find((item) =>
-    item.dimensions.region === REGION)
-  const regionalLimit = Number(regional?.details.value ?? 0)
+  const regional = parsed.dimensionsInfos.filter((item) =>
+    item.dimensions?.region === REGION)
+  if (
+    regional.length !== 1
+    || stableAuthorityStringify(regional[0].applicableLocations) !==
+      stableAuthorityStringify([REGION])
+  ) throw new Error('Vertex A100 regional quota scope is invalid.')
+  const regionalLimit = Number(regional[0].details.value ?? Number.NaN)
   if (!Number.isSafeInteger(regionalLimit) || regionalLimit < 0) {
     throw new Error('Vertex A100 quota info is invalid.')
   }

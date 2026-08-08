@@ -69,13 +69,25 @@ const quotaReadPort = createCanonicalSam31VertexQualificationQuotaReadPort({
       } } as never
       return { data: {
         name:
-          'projects/reeditpro/locations/global/services/aiplatform.googleapis.com/quotaInfos/CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
+          'projects/390722338345/locations/global/services/aiplatform.googleapis.com/quotaInfos/CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
         service: 'aiplatform.googleapis.com',
         quotaId: 'CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
-        dimensionsInfos: [{
-          dimensions: { region: 'us-central1' },
-          details: { value: '1' },
-        }],
+        dimensionsInfos: [
+          {
+            dimensions: { region: 'europe-west4' },
+            details: {},
+            applicableLocations: ['europe-west4'],
+          },
+          {
+            dimensions: { region: 'us-central1' },
+            details: { value: '1' },
+            applicableLocations: ['us-central1'],
+          },
+          {
+            details: {},
+            applicableLocations: ['us-west3'],
+          },
+        ],
       } } as never
     },
   },
@@ -102,12 +114,13 @@ const reconcilingQuotaReadPort =
         } } as never
         return { data: {
           name:
-            'projects/reeditpro/locations/global/services/aiplatform.googleapis.com/quotaInfos/CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
+            'projects/390722338345/locations/global/services/aiplatform.googleapis.com/quotaInfos/CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
           service: 'aiplatform.googleapis.com',
           quotaId: 'CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
           dimensionsInfos: [{
             dimensions: { region: 'us-central1' },
             details: { value: '1' },
+            applicableLocations: ['us-central1'],
           }],
         } } as never
       },
@@ -272,7 +285,7 @@ assert.equal(providerCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-qualification-runtime',
-  checks: 37,
+  checks: 42,
   exactHistoricalPackageReread: true,
   createOnlyWorkerRequestAdmissionConsumptionAndExecution: true,
   consumptionPersistedBeforeProviderCall: true,
@@ -282,6 +295,9 @@ console.log(JSON.stringify({
   exactCloudQuotaPreferenceAndRegionalLimitReread: true,
   omittedFalseReconcilingFieldAccepted: true,
   explicitTrueReconcilingFieldRejected: true,
+  canonicalProjectNumberQuotaInfoAccepted: true,
+  sparseUnrelatedDimensionsIgnored: true,
+  exactRegionalQuotaScopeRequired: true,
   providerBillableAllocationUsedWithoutInventedWorkerPhases: true,
   storageOperationCountsNotInvented: true,
   storageOperationCostDeferredToInvoiceReconciliation: true,

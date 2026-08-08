@@ -397,6 +397,10 @@ for (const requiredRunnerFragment of [
   '/mnt/reeditpro/private/canonical-professional-gpu/',
   'gpu_accelerated_decode=True',
   'sam3_1_real_rope_cache_from_complex_buffer_v1',
+  'install_sam31_multiplex_session_compatibility_guard(predictor)',
+  'SAM 3.1 multiplex init_state signature changed',
+  'SAM 3.1 multiplex init_state became open-ended',
+  'SAM 3.1 state offload is forbidden',
   'EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))',
   'checkpoint augmentation exceeded derived RoPE caches',
   '"offload_video_to_cpu": False',
@@ -425,6 +429,15 @@ for (const requiredRunnerFragment of [
   '"CPU fallback" in details',
   'SAM 3.1 observed no CUDA/NVDEC video decode',
 ]) assert(sam31Runner.includes(requiredRunnerFragment))
+assert.equal(
+  (sam31Runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
+    ?? []).length,
+  2,
+)
+assert.match(
+  sam31Runner,
+  /kwargs\.pop\("offload_state_to_cpu", None\) is not False/u,
+)
 assert(!sam31Runner.includes('cv2.VideoCapture'))
 assert(!sam31Runner.includes('Image.open(SOURCE_PROXY_PATH'))
 assert(!sam31Runner.includes('np.asarray(mask)'))

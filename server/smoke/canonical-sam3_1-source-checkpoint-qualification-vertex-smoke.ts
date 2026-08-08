@@ -177,6 +177,15 @@ assert.match(runner,
   /vertex_ai_cloud_storage_fuse_fixed_attempt_scope/u)
 assert.match(runner, /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(runner, /sort_keys=True/u)
+assert.equal(
+  (runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
+    ?? []).length,
+  2,
+)
+assert.match(
+  runner,
+  /kwargs\.pop\("offload_state_to_cpu", None\) is not False/u,
+)
 assert.doesNotMatch(runner, /google_cloud_batch_a2_ultra_job/u)
 assert.doesNotMatch(runner, /\/mnt\/disks\/reeditpro/u)
 assert.doesNotMatch(runner,

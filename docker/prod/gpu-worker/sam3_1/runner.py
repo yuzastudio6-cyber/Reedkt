@@ -156,6 +156,45 @@ def install_torchcodec_gpu_decode_guard() -> None:
     guarded_getitem._weeditpro_gpu_decode_guard = True
     decoder_type.__getitem__ = guarded_getitem
 
+
+def install_sam31_multiplex_session_compatibility_guard(predictor: Any) -> None:
+    """Bridge the pinned SAM 3.1 base predictor to its multiplex init API.
+
+    The pinned shared predictor still forwards the legacy SAM 2 state-offload
+    option, but SAM 3.1 multiplex deliberately omits it. Preserve the public
+    session lifecycle while removing only an explicit false value. CPU state
+    offload and open-ended future signatures remain fail-closed.
+    """
+    import inspect
+
+    model = getattr(predictor, "model", None)
+    original_init_state = getattr(model, "init_state", None)
+    if not callable(original_init_state):
+        raise RuntimeError("SAM 3.1 multiplex init_state is unavailable")
+    parameters = inspect.signature(original_init_state).parameters
+    required_parameters = {
+        "resource_path",
+        "offload_video_to_cpu",
+        "async_loading_frames",
+    }
+    if not required_parameters.issubset(parameters):
+        raise RuntimeError("SAM 3.1 multiplex init_state signature changed")
+    if "offload_state_to_cpu" in parameters:
+        return
+    if any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    ):
+        raise RuntimeError("SAM 3.1 multiplex init_state became open-ended")
+
+    def guarded_init_state(*args: Any, **kwargs: Any) -> Any:
+        if kwargs.pop("offload_state_to_cpu", None) is not False:
+            raise RuntimeError("SAM 3.1 state offload is forbidden")
+        return original_init_state(*args, **kwargs)
+
+    guarded_init_state._weeditpro_sam31_multiplex_session_guard = True
+    model.init_state = guarded_init_state
+
 FIXED_TASK_CONTRACT = {
     "schemaVersion": FIXED_TASK_CONTRACT_VERSION,
     "operationId": OPERATION_ID,
@@ -1875,6 +1914,7 @@ def execute_inside_bfloat16_autocast(
         captured_stderr
     ):
         predictor = build_predictor_with_strict_rope_cache_derivation(torch)
+        install_sam31_multiplex_session_compatibility_guard(predictor)
     verify_bfloat16_autocast(torch)
     gpu_evidence["bfloat16AutocastUsed"] = True
     build_log = captured_stdout.getvalue() + captured_stderr.getvalue()

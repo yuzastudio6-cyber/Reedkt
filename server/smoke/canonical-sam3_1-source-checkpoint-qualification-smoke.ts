@@ -227,6 +227,16 @@ assert.match(runner, /learnedParameterOrCheckpointWeightSynthesized/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)
 assert.match(runner, /verify_ffmpeg_nvdec_runtime\(\)/u)
 assert.match(runner, /install_torchcodec_gpu_decode_guard\(\)/u)
+assert.equal(
+  (runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
+    ?? []).length,
+  2,
+)
+assert.match(
+  runner,
+  /kwargs\.pop\("offload_state_to_cpu", None\) is not False/u,
+)
+assert.match(runner, /inspect\.Parameter\.VAR_KEYWORD/u)
 assert.match(runner, /core\._get_backend_details\(decoder\._decoder\)/u)
 assert.match(runner, /"CPU fallback" in details/u)
 assert.match(runner, /frame\.device\.type != "cuda"/u)

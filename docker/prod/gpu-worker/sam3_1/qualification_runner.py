@@ -167,6 +167,46 @@ def install_torchcodec_gpu_decode_guard() -> None:
     decoder_type.__getitem__ = guarded_getitem
 
 
+def install_sam31_multiplex_session_compatibility_guard(predictor: Any) -> None:
+    """Bridge the pinned SAM 3.1 base predictor to its multiplex init API.
+
+    Meta's pinned shared predictor forwards the legacy SAM 2 state-offload
+    option, while the SAM 3.1 multiplex model intentionally has no such
+    parameter. Keep the public predictor session lifecycle, but permit removal
+    of that single option only when it is explicitly false. No CPU offload or
+    broader signature adaptation is allowed.
+    """
+    import inspect
+
+    model = getattr(predictor, "model", None)
+    original_init_state = getattr(model, "init_state", None)
+    if not callable(original_init_state):
+        raise RuntimeError("SAM 3.1 multiplex init_state is unavailable")
+    parameters = inspect.signature(original_init_state).parameters
+    required_parameters = {
+        "resource_path",
+        "offload_video_to_cpu",
+        "async_loading_frames",
+    }
+    if not required_parameters.issubset(parameters):
+        raise RuntimeError("SAM 3.1 multiplex init_state signature changed")
+    if "offload_state_to_cpu" in parameters:
+        return
+    if any(
+        parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters.values()
+    ):
+        raise RuntimeError("SAM 3.1 multiplex init_state became open-ended")
+
+    def guarded_init_state(*args: Any, **kwargs: Any) -> Any:
+        if kwargs.pop("offload_state_to_cpu", None) is not False:
+            raise RuntimeError("SAM 3.1 state offload is forbidden")
+        return original_init_state(*args, **kwargs)
+
+    guarded_init_state._weeditpro_sam31_multiplex_session_guard = True
+    model.init_state = guarded_init_state
+
+
 def stable_json_bytes(value: Any) -> bytes:
     return json.dumps(
         value,
@@ -761,6 +801,7 @@ def load_predictor_once(
             strict_checkpoint_load=True,
             return_cuda_output_tensors=True,
         )
+        install_sam31_multiplex_session_compatibility_guard(predictor)
     finally:
         torch.load = original_load
     if load_count != 1:

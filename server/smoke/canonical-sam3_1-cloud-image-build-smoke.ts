@@ -873,6 +873,21 @@ function createQualification(
       strictCheckpointLoadRequested: admitted,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: admitted ? 193 : 0,
+      sourceCheckpointKeySetSha256: admitted
+        ? sha(Buffer.from('sam31-source-checkpoint-key-set'))
+        : '0'.repeat(64),
+      deterministicRuntimeBufferDerivationPolicy: admitted
+        ? 'sam3_1_real_rope_cache_from_complex_buffer_v1'
+        : 'not_executed',
+      sourceComplexRopeBufferCount: admitted ? 32 : 0,
+      derivedRuntimeBufferKeyCount: admitted ? 64 : 0,
+      derivedRuntimeBufferKeySetSha256: admitted
+        ? sha(Buffer.from('sam31-derived-rope-cache-key-set'))
+        : '0'.repeat(64),
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: admitted,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: admitted ? 257 : 0,
       modelStateKeyCount: admitted ? 257 : 0,
       checkpointKeySetSha256: admitted ? keySetHash : '0'.repeat(64),

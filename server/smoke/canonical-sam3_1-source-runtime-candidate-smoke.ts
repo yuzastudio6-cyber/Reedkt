@@ -292,6 +292,18 @@ assert(sourceLock.includes(
   'checkpoint_pinned_source_compatibility_may_be_assumed=false',
 ))
 assert(sourceLock.includes('checkpoint_unreviewed_key_rewrite_allowed=false'))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_policy=sam3_1_real_rope_cache_from_complex_buffer_v1',
+))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_source_count=32',
+))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_output_count=64',
+))
+assert(sourceLock.includes(
+  'checkpoint_deterministic_runtime_buffer_derivation_synthesizes_learned_parameters=false',
+))
 assert(sourceLock.includes('minimum_idle_a100_jobs=0'))
 assert(sourceLock.includes('minimum_idle_l4_jobs=0'))
 assert(sourceLock.includes('runtime_download_allowed=false'))
@@ -384,6 +396,9 @@ for (const requiredRunnerFragment of [
   'os.O_EXCL',
   '/mnt/reeditpro/private/canonical-professional-gpu/',
   'gpu_accelerated_decode=True',
+  'sam3_1_real_rope_cache_from_complex_buffer_v1',
+  'EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))',
+  'checkpoint augmentation exceeded derived RoPE caches',
   '"offload_video_to_cpu": False',
   '"offload_state_to_cpu": False',
   'with torch.autocast(',

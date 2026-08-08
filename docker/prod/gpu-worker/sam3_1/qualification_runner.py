@@ -59,6 +59,14 @@ RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
 PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
 GPU_DECODE_BACKEND_OBSERVATIONS: list[str] = []
+REAL_ROPE_CACHE_DERIVATION_POLICY = (
+    "sam3_1_real_rope_cache_from_complex_buffer_v1"
+)
+DETECTOR_ROPE_CACHE_BASE = re.compile(
+    r"^(?:sam3_model|detector)\.backbone\.vision_backbone\.trunk\."
+    r"blocks\.(?P<block>[0-9]+)\.attn\.freqs_cis$"
+)
+EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))
 
 ATTEMPT_ID = os.environ.get("WEEDITPRO_GPU_INVOCATION_ID", "")
 if SAFE_ID.fullmatch(ATTEMPT_ID) is None or ".." in ATTEMPT_ID:
@@ -614,26 +622,95 @@ def key_set_digest(keys: list[str]) -> str:
     return sha256_bytes(stable_json_bytes(sorted(keys)))
 
 
-def normalize_checkpoint_keys(checkpoint: Any) -> list[str]:
+def checkpoint_state_dict(checkpoint: Any) -> dict[str, Any]:
     if isinstance(checkpoint, dict) and isinstance(checkpoint.get("model"), dict):
         checkpoint = checkpoint["model"]
     if not isinstance(checkpoint, dict) or not checkpoint:
         raise RuntimeError("checkpoint state dictionary is invalid")
+    return checkpoint
+
+
+def normalize_checkpoint_key(key: str) -> str:
+    if key.startswith("sam3_model."):
+        return "detector." + key[len("sam3_model.") :]
+    if key.startswith("sam2_predictor."):
+        return "tracker." + key[len("sam2_predictor.") :]
+    return key
+
+
+def normalize_checkpoint_keys(checkpoint: Any) -> list[str]:
+    checkpoint = checkpoint_state_dict(checkpoint)
     normalized = []
     for key in checkpoint.keys():
         if not isinstance(key, str):
             raise RuntimeError("checkpoint key is not text")
-        if key.startswith("sam3_model."):
-            key = "detector." + key[len("sam3_model.") :]
-        elif key.startswith("sam2_predictor."):
-            key = "tracker." + key[len("sam2_predictor.") :]
-        normalized.append(key)
+        normalized.append(normalize_checkpoint_key(key))
     if len(set(normalized)) != len(normalized):
         raise RuntimeError("checkpoint key normalization collided")
     return sorted(normalized)
 
 
-def load_predictor_once(torch: Any) -> tuple[Any, list[str], list[str]]:
+def derive_real_rope_runtime_caches(
+    torch: Any, checkpoint: Any
+) -> tuple[list[str], int]:
+    state = checkpoint_state_dict(checkpoint)
+    bases: dict[int, str] = {}
+    for key in state:
+        if not isinstance(key, str):
+            raise RuntimeError("checkpoint key is not text")
+        match = DETECTOR_ROPE_CACHE_BASE.fullmatch(key)
+        if match is None:
+            continue
+        block = int(match.group("block"))
+        if block in bases:
+            raise RuntimeError("checkpoint has duplicate detector RoPE cache block")
+        bases[block] = key
+    if tuple(sorted(bases)) != EXPECTED_DETECTOR_ROPE_BLOCKS:
+        raise RuntimeError("checkpoint detector complex RoPE cache set changed")
+
+    derived_keys: list[str] = []
+    for block in EXPECTED_DETECTOR_ROPE_BLOCKS:
+        base_key = bases[block]
+        base = state[base_key]
+        if (
+            not torch.is_tensor(base)
+            or not torch.is_complex(base)
+            or base.device.type != "cpu"
+            or base.dtype != torch.complex64
+            or base.requires_grad
+        ):
+            raise RuntimeError("checkpoint detector RoPE cache is not complex")
+        real_key = f"{base_key}_real"
+        imag_key = f"{base_key}_imag"
+        if real_key in state or imag_key in state:
+            raise RuntimeError("checkpoint already contains derived real RoPE cache")
+        real = base.real.contiguous().clone()
+        imag = base.imag.contiguous().clone()
+        if (
+            real.shape != base.shape
+            or imag.shape != base.shape
+            or real.device.type != "cpu"
+            or imag.device.type != "cpu"
+            or real.dtype != torch.float32
+            or imag.dtype != torch.float32
+            or not torch.equal(real, base.real)
+            or not torch.equal(imag, base.imag)
+            or not torch.equal(torch.complex(real, imag), base)
+        ):
+            raise RuntimeError("deterministic real RoPE cache derivation changed")
+        state[real_key] = real
+        state[imag_key] = imag
+        derived_keys.extend(
+            [normalize_checkpoint_key(real_key), normalize_checkpoint_key(imag_key)]
+        )
+    if len(derived_keys) != 64 or len(set(derived_keys)) != 64:
+        raise RuntimeError("derived real RoPE cache key set changed")
+    return sorted(derived_keys), len(bases)
+
+
+def load_predictor_once(
+    torch: Any,
+) -> tuple[Any, list[str], list[str], list[str], list[str], int]:
     from sam3.model_builder import build_sam3_multiplex_video_predictor
 
     unsafe_globals = torch.serialization.get_unsafe_globals_in_checkpoint(
@@ -643,10 +720,14 @@ def load_predictor_once(torch: Any) -> tuple[Any, list[str], list[str]]:
         raise RuntimeError("checkpoint contains unsafe serialized globals")
     original_load = torch.load
     load_count = 0
+    source_checkpoint_keys: list[str] = []
     checkpoint_keys: list[str] = []
+    derived_keys: list[str] = []
+    source_complex_rope_buffer_count = 0
 
     def observed_load(*args: Any, **kwargs: Any) -> Any:
-        nonlocal load_count, checkpoint_keys
+        nonlocal load_count, source_checkpoint_keys, checkpoint_keys
+        nonlocal derived_keys, source_complex_rope_buffer_count
         load_count += 1
         if (
             load_count != 1
@@ -657,6 +738,10 @@ def load_predictor_once(torch: Any) -> tuple[Any, list[str], list[str]]:
         ):
             raise RuntimeError("checkpoint load contract changed")
         loaded = original_load(*args, **kwargs)
+        source_checkpoint_keys = normalize_checkpoint_keys(loaded)
+        derived_keys, source_complex_rope_buffer_count = (
+            derive_real_rope_runtime_caches(torch, loaded)
+        )
         checkpoint_keys = normalize_checkpoint_keys(loaded)
         return loaded
 
@@ -683,7 +768,18 @@ def load_predictor_once(torch: Any) -> tuple[Any, list[str], list[str]]:
     model_keys = sorted(predictor.model.state_dict().keys())
     if checkpoint_keys != model_keys:
         raise RuntimeError("strict checkpoint and model key sets differ")
-    return predictor, checkpoint_keys, model_keys
+    if set(source_checkpoint_keys).intersection(derived_keys):
+        raise RuntimeError("derived RoPE cache was present in source checkpoint")
+    if sorted(source_checkpoint_keys + derived_keys) != checkpoint_keys:
+        raise RuntimeError("checkpoint augmentation exceeded derived RoPE caches")
+    return (
+        predictor,
+        source_checkpoint_keys,
+        checkpoint_keys,
+        model_keys,
+        derived_keys,
+        source_complex_rope_buffer_count,
+    )
 
 
 def run_probe(
@@ -841,7 +937,14 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         enabled=True,
         cache_enabled=False,
     ):
-        predictor, checkpoint_keys, model_keys = load_predictor_once(torch)
+        (
+            predictor,
+            source_checkpoint_keys,
+            checkpoint_keys,
+            model_keys,
+            derived_rope_cache_keys,
+            source_complex_rope_buffer_count,
+        ) = load_predictor_once(torch)
         runs = [run_probe(predictor, torch, request, ordinal) for ordinal in range(1, 4)]
     digests = {run["outputDigestSha256"] for run in runs}
     if len(digests) != 1:
@@ -942,6 +1045,21 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             "strictCheckpointLoadRequested": True,
             "missingCheckpointKeyCount": 0,
             "unexpectedCheckpointKeyCount": 0,
+            "sourceCheckpointKeyCount": len(source_checkpoint_keys),
+            "sourceCheckpointKeySetSha256": key_set_digest(
+                source_checkpoint_keys
+            ),
+            "deterministicRuntimeBufferDerivationPolicy": (
+                REAL_ROPE_CACHE_DERIVATION_POLICY
+            ),
+            "sourceComplexRopeBufferCount": source_complex_rope_buffer_count,
+            "derivedRuntimeBufferKeyCount": len(derived_rope_cache_keys),
+            "derivedRuntimeBufferKeySetSha256": key_set_digest(
+                derived_rope_cache_keys
+            ),
+            "derivedRuntimeBufferValuesMatchedSourceComplexBuffers": True,
+            "sourceCheckpointFileMutated": False,
+            "learnedParameterOrCheckpointWeightSynthesized": False,
             "checkpointKeyCount": len(checkpoint_keys),
             "modelStateKeyCount": len(model_keys),
             "checkpointKeySetSha256": key_set_digest(checkpoint_keys),

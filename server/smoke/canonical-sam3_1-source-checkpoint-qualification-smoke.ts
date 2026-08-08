@@ -215,6 +215,15 @@ assert.match(dockerfile, /libnppicc\.so\.12/u)
 assert.doesNotMatch(dockerfile, /(?:apt-get|curl |wget )/u)
 assert.match(runner, /get_unsafe_globals_in_checkpoint/u)
 assert.match(runner, /strict_checkpoint_load=True/u)
+assert.match(
+  runner,
+  /sam3_1_real_rope_cache_from_complex_buffer_v1/u,
+)
+assert.match(runner, /EXPECTED_DETECTOR_ROPE_BLOCKS = tuple\(range\(32\)\)/u)
+assert.match(runner, /checkpoint already contains derived real RoPE cache/u)
+assert.match(runner, /len\(derived_keys\) != 64/u)
+assert.match(runner, /checkpoint augmentation exceeded derived RoPE caches/u)
+assert.match(runner, /learnedParameterOrCheckpointWeightSynthesized/u)
 assert.match(runner, /for ordinal in range\(1, 4\)/u)
 assert.match(runner, /verify_ffmpeg_nvdec_runtime\(\)/u)
 assert.match(runner, /install_torchcodec_gpu_decode_guard\(\)/u)
@@ -338,6 +347,8 @@ console.log(JSON.stringify({
 function workerEvidence():
 CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
   const checkpointKeySetHash = digest('sam31-checkpoint-key-set')
+  const sourceCheckpointKeySetHash = digest('sam31-source-checkpoint-key-set')
+  const derivedRopeCacheKeySetHash = digest('sam31-derived-rope-cache-key-set')
   const fixtureHash = digest('sam31-fixed-person-probe-mp4')
   const qualificationImageDigest = digest('sam31-qualification-image')
   const request = createCanonicalSam31SourceCheckpointQualificationWorkerRequest({
@@ -446,6 +457,16 @@ CanonicalSam31SourceCheckpointQualificationWorkerEvidence {
       strictCheckpointLoadRequested: true,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: 193,
+      sourceCheckpointKeySetSha256: sourceCheckpointKeySetHash,
+      deterministicRuntimeBufferDerivationPolicy:
+        'sam3_1_real_rope_cache_from_complex_buffer_v1',
+      sourceComplexRopeBufferCount: 32,
+      derivedRuntimeBufferKeyCount: 64,
+      derivedRuntimeBufferKeySetSha256: derivedRopeCacheKeySetHash,
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: true,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: 257,
       modelStateKeyCount: 257,
       checkpointKeySetSha256: checkpointKeySetHash,
@@ -532,6 +553,8 @@ function observation(
   admitted: boolean,
 ): CanonicalSam31SourceCheckpointQualificationObservation {
   const keySetHash = digest('sam31-checkpoint-key-set')
+  const sourceKeySetHash = digest('sam31-source-checkpoint-key-set')
+  const derivedKeySetHash = digest('sam31-derived-rope-cache-key-set')
   return {
     evidenceClass,
     qualificationId: `sam31-source-checkpoint-${evidenceClass}`,
@@ -625,6 +648,21 @@ function observation(
       strictCheckpointLoadRequested: admitted,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: admitted ? 193 : 0,
+      sourceCheckpointKeySetSha256: admitted
+        ? sourceKeySetHash
+        : '0'.repeat(64),
+      deterministicRuntimeBufferDerivationPolicy: admitted
+        ? 'sam3_1_real_rope_cache_from_complex_buffer_v1'
+        : 'not_executed',
+      sourceComplexRopeBufferCount: admitted ? 32 : 0,
+      derivedRuntimeBufferKeyCount: admitted ? 64 : 0,
+      derivedRuntimeBufferKeySetSha256: admitted
+        ? derivedKeySetHash
+        : '0'.repeat(64),
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: admitted,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: admitted ? 257 : 0,
       modelStateKeyCount: admitted ? 257 : 0,
       checkpointKeySetSha256: admitted ? keySetHash : '0'.repeat(64),

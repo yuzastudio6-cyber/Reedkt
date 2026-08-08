@@ -190,6 +190,12 @@ function createResultPort(options?: {
 
 function createResult() {
   const keySetHash = digest(Buffer.from('sam31-checkpoint-key-set'))
+  const sourceKeySetHash = digest(
+    Buffer.from('sam31-source-checkpoint-key-set'),
+  )
+  const derivedKeySetHash = digest(
+    Buffer.from('sam31-derived-rope-cache-key-set'),
+  )
   const outputHash = digest(Buffer.from('sam31-deterministic-output'))
   return sealCanonicalSam31SourceCheckpointQualificationWorkerResult({
     schemaVersion:
@@ -260,6 +266,16 @@ function createResult() {
       strictCheckpointLoadRequested: true,
       missingCheckpointKeyCount: 0,
       unexpectedCheckpointKeyCount: 0,
+      sourceCheckpointKeyCount: 193,
+      sourceCheckpointKeySetSha256: sourceKeySetHash,
+      deterministicRuntimeBufferDerivationPolicy:
+        'sam3_1_real_rope_cache_from_complex_buffer_v1',
+      sourceComplexRopeBufferCount: 32,
+      derivedRuntimeBufferKeyCount: 64,
+      derivedRuntimeBufferKeySetSha256: derivedKeySetHash,
+      derivedRuntimeBufferValuesMatchedSourceComplexBuffers: true,
+      sourceCheckpointFileMutated: false,
+      learnedParameterOrCheckpointWeightSynthesized: false,
       checkpointKeyCount: 257,
       modelStateKeyCount: 257,
       checkpointKeySetSha256: keySetHash,

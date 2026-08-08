@@ -62,7 +62,7 @@ const workerRequest =
     issuedAt: '2026-08-04T18:00:00.000Z',
   })
 const probeFixtureSource = {
-  bucketName: 'reeditpro-production-sam31-qualification-fixtures',
+  bucketName: 'reeditpro-production-sam31-qualification-private',
   objectName: 'private/fixtures/sam31/probe-person-v1.mp4',
   generation: '81',
   etag: 'probe-person-v1-etag',
@@ -313,7 +313,7 @@ function fakeProbeStorage(options: {
   return {
     bucket(bucketName: string) {
       assert.equal(bucketName,
-        'reeditpro-production-sam31-qualification-fixtures')
+        'reeditpro-production-sam31-qualification-private')
       return {
         file(objectName: string) {
           assert.equal(objectName,

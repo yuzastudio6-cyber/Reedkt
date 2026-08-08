@@ -14,6 +14,10 @@ import {
   type CanonicalSam31SourceCheckpointQualificationWorkerRequest,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
 import {
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE,
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA,
+} from '../model-artifacts/canonical-sam3_1-official-probe-fixture'
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -48,24 +52,20 @@ const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const QUALIFICATION_FIXTURE_BUCKET =
-  'reeditpro-production-sam31-qualification-fixtures' as const
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.bucketName
 const QUALIFICATION_FIXTURE_PREFIX = 'private/fixtures/sam31/' as const
 const QUALIFICATION_FIXTURE_OBJECT =
-  `${QUALIFICATION_FIXTURE_PREFIX}probe-person-v1.mp4` as const
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.objectName
 const QUALIFICATION_KMS_KEY =
-  'projects/reeditpro/locations/us-central1/keyRings/weeditpro-private-artifacts/cryptoKeys/sam31-qualification' as const
-const QUALIFICATION_PROBE_WIDTH = 128 as const
-const QUALIFICATION_PROBE_HEIGHT = 128 as const
-const QUALIFICATION_PROBE_FRAME_COUNT = 3 as const
-const QUALIFICATION_PROBE_METADATA = Object.freeze({
-  weeditproProbeSchemaVersion:
-    'canonical-sam3_1-qualification-probe-fixture-v1',
-  weeditproProbeWidth: String(QUALIFICATION_PROBE_WIDTH),
-  weeditproProbeHeight: String(QUALIFICATION_PROBE_HEIGHT),
-  weeditproProbeFrameCount: String(QUALIFICATION_PROBE_FRAME_COUNT),
-  weeditproProbePrompt: 'person',
-  weeditproCustomerMedia: 'false',
-})
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.kmsKeyName
+const QUALIFICATION_PROBE_WIDTH =
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.width
+const QUALIFICATION_PROBE_HEIGHT =
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.height
+const QUALIFICATION_PROBE_FRAME_COUNT =
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.qualificationFrameCount
+const QUALIFICATION_PROBE_METADATA =
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE_METADATA
 const DEFAULT_PREFIX =
   'private/sam3_1/source-checkpoint-qualification/v1/packages'
 const MAXIMUM_RECORD_BYTES = 4 * 1024 * 1024

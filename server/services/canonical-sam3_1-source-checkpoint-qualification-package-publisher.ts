@@ -22,6 +22,9 @@ import {
   createCanonicalSam31SourceRuntimeCandidate,
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import {
+  CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE,
+} from '../model-artifacts/canonical-sam3_1-official-probe-fixture'
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
 import {
@@ -115,9 +118,11 @@ const evidenceSchema = z.object({
     artifactRef: refSchema,
     byteLength: z.number().int().positive().max(64 * 1024 * 1024).safe(),
     sha256: rawSha256,
-    width: z.literal(128),
-    height: z.literal(128),
-    frameCount: z.literal(3),
+    width: z.literal(CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.width),
+    height: z.literal(CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.height),
+    frameCount: z.literal(
+      CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE.qualificationFrameCount,
+    ),
   }).strict(),
   exactIngestReviewImageAuthorityManifestReleaseAndProbeReread: z.literal(true),
   checkpointWeightsOnlyExecutionStillRequiredInWorker: z.literal(true),

@@ -184,8 +184,10 @@ assert.equal(
 )
 assert.match(
   runner,
-  /kwargs\.pop\("offload_state_to_cpu", None\) is not False/u,
+  /"offload_state_to_cpu",\s*"async_loading_frames",\s*"use_torchcodec",\s*"use_cv2",\s*"input_is_mp4",\s*"gpu_acceleration",\s*"gpu_device"/u,
 )
+assert.match(runner, /SAM 3\.1 multiplex init_state signature changed/u)
+assert.match(runner, /SAM 3\.1 multiplex init_state became open-ended/u)
 assert.doesNotMatch(runner, /google_cloud_batch_a2_ultra_job/u)
 assert.doesNotMatch(runner, /\/mnt\/disks\/reeditpro/u)
 assert.doesNotMatch(runner,

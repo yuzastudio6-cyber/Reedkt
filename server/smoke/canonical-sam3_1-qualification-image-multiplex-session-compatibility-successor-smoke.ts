@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 const publicationPath =
@@ -17,6 +18,10 @@ const qualificationRunner = readFileSync(
 )
 const productionRunner = readFileSync(
   'docker/prod/gpu-worker/sam3_1/runner.py',
+  'utf8',
+)
+const gpuForwardingPatch = readFileSync(
+  'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
   'utf8',
 )
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
@@ -68,13 +73,29 @@ for (const source of [qualificationRunner, productionRunner] as const) {
   for (const expected of [
     'SAM 3.1 multiplex init_state signature changed',
     'SAM 3.1 multiplex init_state became open-ended',
-    'kwargs.pop("offload_state_to_cpu", None) is not False',
-    'SAM 3.1 state offload is forbidden',
+    '"offload_state_to_cpu"',
+    '"gpu_acceleration"',
+    '"gpu_device"',
   ] as const) assert.ok(
     source.includes(expected),
     `multiplex-session runtime guard lost ${expected}`,
   )
 }
+
+assert.equal(
+  createHash('sha256').update(gpuForwardingPatch).digest('hex'),
+  'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+)
+assert.equal(
+  (gpuForwardingPatch.match(/offload_state_to_cpu=offload_state_to_cpu/gmu)
+    ?? []).length,
+  2,
+)
+assert.equal(
+  (gpuForwardingPatch.match(/gpu_acceleration=gpu_acceleration/gmu)
+    ?? []).length,
+  2,
+)
 
 assert.equal(
   packageJson.scripts?.[
@@ -92,9 +113,10 @@ assert.equal(
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-qualification-image-multiplex-session-compatibility-successor',
-  officialSam31SourceMutated: false,
+  officialSam31ArchiveMutated: false,
+  installedMultiplexSourcePatched: true,
   cpuStateOffloadAllowed: false,
-  legacyFalseOptionRemovedOnlyAtMultiplexBoundary: true,
+  gpuDecodeOptionsForwardedAcrossEveryMultiplexOverride: true,
   predecessorAutomaticallyRetried: false,
   modelExecuted: false,
   gpuJobStarted: false,

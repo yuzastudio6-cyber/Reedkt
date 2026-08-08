@@ -234,9 +234,11 @@ assert.equal(
 )
 assert.match(
   runner,
-  /kwargs\.pop\("offload_state_to_cpu", None\) is not False/u,
+  /"offload_state_to_cpu",\s*"async_loading_frames",\s*"use_torchcodec",\s*"use_cv2",\s*"input_is_mp4",\s*"gpu_acceleration",\s*"gpu_device"/u,
 )
 assert.match(runner, /inspect\.Parameter\.VAR_KEYWORD/u)
+assert.match(runner, /SAM 3\.1 multiplex init_state signature changed/u)
+assert.match(runner, /SAM 3\.1 multiplex init_state became open-ended/u)
 assert.match(runner, /core\._get_backend_details\(decoder\._decoder\)/u)
 assert.match(runner, /"CPU fallback" in details/u)
 assert.match(runner, /frame\.device\.type != "cuda"/u)

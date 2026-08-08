@@ -261,6 +261,8 @@ cp "${ROOT}/source/source-provenance.lock" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/source-provenance.lock"
 cp "${ROOT}/source/patches/0001-reeditpro-gpu-decode.patch" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch"
+cp "${ROOT}/source/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch" \
+  "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch"
 
 test -z "$(find "${BUILD_SOURCE}" -mindepth 1 ! -type d ! -type f -print -quit)"
 find "${BUILD_SOURCE}" -type f -exec touch -d '@0' '{}' +
@@ -313,6 +315,7 @@ repository_paths = [
     "docker/prod/gpu-worker/sam3_1/Dockerfile.candidate",
     "docker/prod/gpu-worker/sam3_1/entrypoint.sh",
     "docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch",
+    "docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch",
     "docker/prod/gpu-worker/sam3_1/runner.py",
     "docker/prod/gpu-worker/sam3_1/source-provenance.lock",
 ]

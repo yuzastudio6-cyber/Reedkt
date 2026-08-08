@@ -116,6 +116,7 @@ const targetName = z.enum([
   'vertex_driver_parser_corrected',
   'rope_cache_derivation_corrected',
   'multiplex_session_api_compatibility_corrected',
+  'multiplex_session_gpu_forwarding_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
@@ -127,9 +128,12 @@ const selectedTarget = targetName ===
   || targetName === 'vertex_driver_parser_corrected'
   || targetName === 'rope_cache_derivation_corrected'
   || targetName === 'multiplex_session_api_compatibility_corrected'
+  || targetName === 'multiplex_session_gpu_forwarding_corrected'
   ? {
       receiptId:
-        targetName === 'multiplex_session_api_compatibility_corrected'
+        targetName === 'multiplex_session_gpu_forwarding_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-multiplex-session-gpu-forwarding-corrected-v1'
+          : targetName === 'multiplex_session_api_compatibility_corrected'
           ? 'sam31-qualification-capsule-reproducibility-multiplex-session-api-compatibility-corrected-v1'
           : targetName === 'rope_cache_derivation_corrected'
           ? 'sam31-qualification-capsule-reproducibility-rope-cache-derivation-corrected-v1'

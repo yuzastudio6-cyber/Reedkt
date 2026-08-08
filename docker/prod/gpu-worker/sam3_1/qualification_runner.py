@@ -168,13 +168,12 @@ def install_torchcodec_gpu_decode_guard() -> None:
 
 
 def install_sam31_multiplex_session_compatibility_guard(predictor: Any) -> None:
-    """Bridge the pinned SAM 3.1 base predictor to its multiplex init API.
+    """Require the complete GPU-only session API on the installed model.
 
-    Meta's pinned shared predictor forwards the legacy SAM 2 state-offload
-    option, while the SAM 3.1 multiplex model intentionally has no such
-    parameter. Keep the public predictor session lifecycle, but permit removal
-    of that single option only when it is explicitly false. No CPU offload or
-    broader signature adaptation is allowed.
+    The separately hashed source patch forwards every base-predictor session
+    option through both multiplex overrides. Refuse an unpatched or open-ended
+    signature here so no compatibility shim can silently discard CUDA decode
+    controls or state-offload policy.
     """
     import inspect
 
@@ -186,25 +185,21 @@ def install_sam31_multiplex_session_compatibility_guard(predictor: Any) -> None:
     required_parameters = {
         "resource_path",
         "offload_video_to_cpu",
+        "offload_state_to_cpu",
         "async_loading_frames",
+        "use_torchcodec",
+        "use_cv2",
+        "input_is_mp4",
+        "gpu_acceleration",
+        "gpu_device",
     }
     if not required_parameters.issubset(parameters):
         raise RuntimeError("SAM 3.1 multiplex init_state signature changed")
-    if "offload_state_to_cpu" in parameters:
-        return
     if any(
         parameter.kind is inspect.Parameter.VAR_KEYWORD
         for parameter in parameters.values()
     ):
         raise RuntimeError("SAM 3.1 multiplex init_state became open-ended")
-
-    def guarded_init_state(*args: Any, **kwargs: Any) -> Any:
-        if kwargs.pop("offload_state_to_cpu", None) is not False:
-            raise RuntimeError("SAM 3.1 state offload is forbidden")
-        return original_init_state(*args, **kwargs)
-
-    guarded_init_state._weeditpro_sam31_multiplex_session_guard = True
-    model.init_state = guarded_init_state
 
 
 def stable_json_bytes(value: Any) -> bytes:

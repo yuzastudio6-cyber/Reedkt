@@ -130,6 +130,7 @@ LABEL io.weeditpro.product="WeEditPro" \
   io.weeditpro.source.archive.sha256="5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a" \
   io.weeditpro.source.patch.sha256="daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca" \
   io.weeditpro.source.importlib-resources-patch.sha256="6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f" \
+  io.weeditpro.source.multiplex-session-gpu-forwarding-patch.sha256="fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b" \
   io.weeditpro.source.patched-archive.sha256="b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb" \
   io.weeditpro.checkpoint.revision="daa63191845a41281374e725f4c9e51c7a824460" \
   io.reeditpro.compatibility="legacy-cloud-coordinate-only"
@@ -193,6 +194,8 @@ COPY docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch \
   /opt/reeditpro/sam3_1/qualification-artifacts/0001-reeditpro-gpu-decode.patch
 COPY docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch \
   /opt/reeditpro/sam3_1/qualification-artifacts/0002-weeditpro-importlib-resources.patch
+COPY docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch \
+  /opt/reeditpro/sam3_1/qualification-artifacts/0003-weeditpro-multiplex-session-gpu-forwarding.patch
 COPY docker/prod/gpu-worker/sam3_1/qualification_runner.py \
   /opt/reeditpro/sam3_1/qualification_runner.py
 COPY docker/prod/gpu-worker/sam3_1/qualification_entrypoint.sh \
@@ -351,6 +354,12 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     --strip-components=1 \
     --no-same-owner \
     --no-same-permissions \
+  && printf '%s  %s\n' \
+    'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b' \
+    '/opt/reeditpro/sam3_1/qualification-artifacts/0003-weeditpro-multiplex-session-gpu-forwarding.patch' \
+    | sha256sum --check --strict \
+  && python -I -B -c \
+    "import hashlib; from pathlib import Path; path=Path('/opt/reeditpro/sam3-source/sam3/model/sam3_multiplex_tracking.py'); body=path.read_bytes(); assert hashlib.sha256(body).hexdigest() == 'fde68920b0073ec6eea2ad63351fb1c133c9abdd866c2cb9f9d28c8a2d969038'; text=body.decode('utf-8'); signature='        offload_video_to_cpu=False,\n        async_loading_frames=False,\n        use_torchcodec=False,\n        use_cv2=False,\n        input_is_mp4=False,\n'; forwarded='            offload_video_to_cpu=offload_video_to_cpu,\n            async_loading_frames=async_loading_frames,\n            use_torchcodec=use_torchcodec,\n            use_cv2=use_cv2,\n            input_is_mp4=input_is_mp4,\n'; assert text.count(signature) == 2; assert text.count(forwarded) == 2; text=text.replace(signature, '        offload_video_to_cpu=False,\n        offload_state_to_cpu=False,\n        async_loading_frames=False,\n        use_torchcodec=False,\n        use_cv2=False,\n        input_is_mp4=False,\n        gpu_acceleration=False,\n        gpu_device=None,\n'); text=text.replace(forwarded, '            offload_video_to_cpu=offload_video_to_cpu,\n            offload_state_to_cpu=offload_state_to_cpu,\n            async_loading_frames=async_loading_frames,\n            use_torchcodec=use_torchcodec,\n            use_cv2=use_cv2,\n            input_is_mp4=input_is_mp4,\n            gpu_acceleration=gpu_acceleration,\n            gpu_device=gpu_device,\n'); output=text.encode('utf-8'); assert hashlib.sha256(output).hexdigest() == 'e9fd77f867968f0740e420971fd0405a0b511ac8684019660767f5b07d26ab41'; path.write_bytes(output)" \
   && printf '%s  %s\n' \
     '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' \
     '/opt/reeditpro/sam3_1/qualification-artifacts/0002-weeditpro-importlib-resources.patch' \

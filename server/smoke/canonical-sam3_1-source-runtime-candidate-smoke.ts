@@ -400,7 +400,6 @@ for (const requiredRunnerFragment of [
   'install_sam31_multiplex_session_compatibility_guard(predictor)',
   'SAM 3.1 multiplex init_state signature changed',
   'SAM 3.1 multiplex init_state became open-ended',
-  'SAM 3.1 state offload is forbidden',
   'EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))',
   'checkpoint augmentation exceeded derived RoPE caches',
   '"offload_video_to_cpu": False',
@@ -436,8 +435,10 @@ assert.equal(
 )
 assert.match(
   sam31Runner,
-  /kwargs\.pop\("offload_state_to_cpu", None\) is not False/u,
+  /"offload_state_to_cpu",\s*"async_loading_frames",\s*"use_torchcodec",\s*"use_cv2",\s*"input_is_mp4",\s*"gpu_acceleration",\s*"gpu_device"/u,
 )
+assert.match(sam31Runner, /SAM 3\.1 multiplex init_state signature changed/u)
+assert.match(sam31Runner, /SAM 3\.1 multiplex init_state became open-ended/u)
 assert(!sam31Runner.includes('cv2.VideoCapture'))
 assert(!sam31Runner.includes('Image.open(SOURCE_PROXY_PATH'))
 assert(!sam31Runner.includes('np.asarray(mask)'))

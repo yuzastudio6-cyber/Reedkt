@@ -1,0 +1,54 @@
+diff --git a/sam3/model/sam3_multiplex_tracking.py b/sam3/model/sam3_multiplex_tracking.py
+index 961cb51..8eccb53 100644
+--- a/sam3/model/sam3_multiplex_tracking.py
++++ b/sam3/model/sam3_multiplex_tracking.py
+@@ -1908,18 +1908,24 @@ class Sam3MultiplexTrackingProd(Sam3MultiplexTracking):
+         self,
+         resource_path,
+         offload_video_to_cpu=False,
++        offload_state_to_cpu=False,
+         async_loading_frames=False,
+         use_torchcodec=False,
+         use_cv2=False,
+         input_is_mp4=False,
++        gpu_acceleration=False,
++        gpu_device=None,
+     ):
+         inference_state = super().init_state(
+             resource_path=resource_path,
+             offload_video_to_cpu=offload_video_to_cpu,
++            offload_state_to_cpu=offload_state_to_cpu,
+             async_loading_frames=async_loading_frames,
+             use_torchcodec=use_torchcodec,
+             use_cv2=use_cv2,
+             input_is_mp4=input_is_mp4,
++            gpu_acceleration=gpu_acceleration,
++            gpu_device=gpu_device,
+         )
+         # Initialize generator state for batched processing
+         inference_state["generator_state"] = {
+@@ -2290,18 +2296,24 @@ class Sam3MultiplexTrackingWithInteractivity(Sam3MultiplexTracking):
+         self,
+         resource_path,
+         offload_video_to_cpu=False,
++        offload_state_to_cpu=False,
+         async_loading_frames=False,
+         use_torchcodec=False,
+         use_cv2=False,
+         input_is_mp4=False,
++        gpu_acceleration=False,
++        gpu_device=None,
+     ):
+         inference_state = super().init_state(
+             resource_path=resource_path,
+             offload_video_to_cpu=offload_video_to_cpu,
++            offload_state_to_cpu=offload_state_to_cpu,
+             async_loading_frames=async_loading_frames,
+             use_torchcodec=use_torchcodec,
+             use_cv2=use_cv2,
+             input_is_mp4=input_is_mp4,
++            gpu_acceleration=gpu_acceleration,
++            gpu_device=gpu_device,
+         )
+         # initialize extra states
+         inference_state["action_history"] = []  # for logging user actions

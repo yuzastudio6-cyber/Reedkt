@@ -22,6 +22,7 @@ COPY runner.py source/runner.py
 COPY entrypoint.sh source/entrypoint.sh
 COPY source-provenance.lock source/source-provenance.lock
 COPY patches/0001-reeditpro-gpu-decode.patch source/patches/0001-reeditpro-gpu-decode.patch
+COPY patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch source/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch
 COPY build-production-capsule.sh build-production-capsule.sh
 COPY private-staging/source-qualification-capsule.tar.gz private-staging/source-qualification-capsule.tar.gz
 COPY private-staging/source-qualification-capsule-manifest.json private-staging/source-qualification-capsule-manifest.json

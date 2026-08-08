@@ -64,6 +64,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-source-checkpoint-qualification-package-repository-smoke.ts',
   'canonical-sam3_1-source-checkpoint-qualification-package-publisher-smoke.ts',
   'canonical-sam3_1-production-image-publication-coordinator-smoke.ts',
+  'canonical-sam3_1-production-image-security-review-operator-smoke.ts',
   'canonical-sam3_1-official-probe-fixture-smoke.ts',
   'canonical-sam3_1-official-probe-fixture-cloud-job-smoke.ts',
   'canonical-sam3_1-qualification-package-publisher-cloud-job-smoke.ts',

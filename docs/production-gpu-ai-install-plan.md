@@ -102,3 +102,29 @@ confirmation. The coordinator cannot start an image build, choose a GPU,
 execute a model, grant a runtime release, mutate customer credits, approve QA,
 or grant production authority. The separately deployed unarmed image operator
 remains the sole boundary that may consume the returned authority.
+
+The production image now has an explicit, separately admitted supply-chain
+sequence after that one-time image build finishes:
+
+1. `npm run start:sam3_1-production-image-supply-chain-build` exact-rereads the
+   production image authority, image-build submission, and terminal immutable
+   digest before it submits the pinned SBOM/signature/provenance build;
+2. `npm run observe:sam3_1-production-image-supply-chain-build` observes only
+   the exact persisted admission and submission and persists the terminal
+   supply-chain observation;
+3. `npm run review:sam3_1-production-image-security` rereads the complete image
+   and supply-chain lineage, then rereads the current Artifact Analysis
+   occurrence snapshot. It refuses approval when critical, high, or unknown
+   severity findings are nonzero and stores the approval create-only with exact
+   reread; and
+4. `npm run publish:sam3_1-production-image-supply-chain-release` lets the
+   existing canonical evidence reader and release repository verify the exact
+   SBOM, signature, provenance, vulnerability snapshot, and independent review
+   before publishing the immutable supply-chain release.
+
+Every command requires its own exact confirmation and immutable record refs.
+The review is authorization only for independent private A100 80 GB and L4
+image qualification. None of these commands dispatches a GPU job, loads SAM
+3.1, selects a runtime tier, mutates a customer reservation or credit balance,
+or grants runtime/public/production release. A successful supply-chain release
+therefore remains necessary but insufficient for WeEditPro runtime admission.

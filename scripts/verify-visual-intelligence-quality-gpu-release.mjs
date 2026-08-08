@@ -98,6 +98,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-production-capsule-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-production-image-authority-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-production-image-publication-coordinator-smoke.ts',
+  'server/smoke/canonical-sam3_1-production-image-security-review-operator-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-image-build-phase-smoke.ts',
   'server/smoke/canonical-sam3_1-qualification-image-supply-chain-build-phase-smoke.ts',
   'server/smoke/canonical-sam3_1-cloud-image-build-smoke.ts',

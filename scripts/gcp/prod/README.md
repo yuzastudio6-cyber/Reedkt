@@ -76,6 +76,23 @@ not call cloud-mutating scripts.
     an opaque authority for `52-run-sam31-runtime-image-operator-once.sh`.
     Publication cannot start the image build, a GPU/model job, a credit
     mutation, or a runtime/production release.
+18. After the separately deployed image operator has completed the exact
+    production image build and persisted its immutable digest, run the
+    production supply-chain stages in order:
+    - `npm run start:sam3_1-production-image-supply-chain-build` with
+      `start-one-weeditpro-sam31-production-image-supply-chain-build-v1`;
+    - `npm run observe:sam3_1-production-image-supply-chain-build` with
+      `observe-one-weeditpro-sam31-production-image-supply-chain-build-v1`;
+    - `npm run review:sam3_1-production-image-security` with
+      `approve-weeditpro-sam31-production-image-for-private-a100-l4-qualification-v1`;
+      and
+    - `npm run publish:sam3_1-production-image-supply-chain-release` with
+      `publish-one-weeditpro-sam31-production-image-supply-chain-release-v1`.
+    Each command exact-rereads the persisted refs returned by the preceding
+    owner. The security review requires a fresh Artifact Analysis occurrence
+    snapshot with zero critical, high, or unknown findings. The resulting
+    release authorizes neither GPU dispatch nor SAM 3.1 execution; independent
+    A100 80 GB and L4 qualification remains mandatory.
 
 The historical CPU/render/QA/tool-readiness deployment scripts and the manual
 GPU-smoke execution script fail closed. Fresh execution must enter through the

@@ -647,6 +647,33 @@ invocation of this operator boundary.
 
 ## Current disposition
 
+### 2026-08-08 all-route GPU price publisher deployment
+
+- Commit `691061d55` publishes the scale-from-zero account-effective rate
+  operator for `a100_80gb_heavy_primary`, `l4_heavy_fallback`, and
+  `l4_standard_primary`. Cloud Build
+  `adc8c662-19a5-4dc5-ab65-85c7a7930cff` produced immutable image digest
+  `sha256:7778e5dee8532b74e328f7abf5092a43ddbf4c0dcb2bb8284a606d8c134261ee`
+  from exact tree `1e4c80c0800a30c5dfb34811b5d706f47cc69cce`.
+  Artifact Analysis reports SLSA level 3, completed NPM/OS/secret analysis,
+  and zero discovered vulnerabilities.
+- Cloud Run Job `weeditpro-gpu-rate-publisher` is deployed privately in
+  `us-central1` under the canonical API service identity. Its permanent
+  configuration contains only `WEEDITPRO_GPU_RATE_OPERATOR_ACTION=disabled`,
+  with one task, zero retries, no GPU, no public principal, and zero idle
+  instances.
+- One bounded execution, `weeditpro-gpu-rate-publisher-mwbl7`, exercised the
+  canonical service identity and failed before any route publication with
+  `Google Cloud account-effective price reread failed.` No all-route rate
+  record exists, no partial A100 or L4 authority was persisted, the job reread
+  unarmed after execution, and the running execution count returned to zero.
+- This execution started no SAM/Gemini model, GPU, provider, or media runtime
+  and mutated no customer credit, wallet, billing account, payment method,
+  public-delivery, or production authority. The active operator identity
+  cannot read or modify the billing-account IAM policy, so the remaining live
+  gate is still the billing administrator's narrow read-only
+  `billing.billingAccountPrice.get` grant for the canonical backend identity.
+
 ### 2026-08-08 account-effective A100 price publisher deployment
 
 - Commit `e772222cd` publishes the dedicated scale-from-zero Vertex A100

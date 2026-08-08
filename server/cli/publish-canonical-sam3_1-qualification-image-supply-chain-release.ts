@@ -82,7 +82,7 @@ const [imageBuildAuthority, imageBuildSubmission, imageBuildTerminal,
   imageRuntime.repository.rereadTerminal({
     terminalRef: refs.imageTerminalRef,
   }),
-  supplyRuntime.repository.rereadAdmission({
+  supplyRuntime.repository.rereadQualificationImageSupplyChainAdmission({
     admissionRef: refs.supplyAdmissionRef,
   }),
   supplyRuntime.repository.rereadSubmission({

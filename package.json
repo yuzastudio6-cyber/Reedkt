@@ -340,6 +340,8 @@
     "publish:sam3_1-production-capsule": "tsx server/cli/publish-canonical-sam3_1-production-capsule.ts",
     "smoke:sam3_1-production-image-authority-publisher": "tsx server/smoke/canonical-sam3_1-production-image-authority-publisher-smoke.ts",
     "publish:sam3_1-production-image-authority": "tsx server/cli/publish-canonical-sam3_1-production-image-authority.ts",
+    "smoke:sam3_1-production-image-publication-coordinator": "tsx server/smoke/canonical-sam3_1-production-image-publication-coordinator-smoke.ts",
+    "publish:sam3_1-production-image-from-builds": "tsx server/cli/publish-canonical-sam3_1-production-image-from-builds.ts",
     "smoke:sam3_1-image-supply-chain-build": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-smoke.ts",
     "smoke:sam3_1-image-supply-chain-build-runtime": "tsx server/smoke/canonical-sam3_1-cloud-image-supply-chain-build-runtime-smoke.ts",
     "smoke:sam3_1-funded-gpu-runtime-composition": "tsx server/smoke/canonical-sam3_1-funded-gpu-runtime-composition-smoke.ts",

@@ -86,3 +86,19 @@ security review create-only. This stage does not build the runtime image,
 execute SAM 3.1, select an A100/L4, mutate customer credits, or grant a runtime
 release. The production capsule publisher must exact-reread both build results
 and refuse publication unless their capsule bytes and entry set are identical.
+
+`canonical-sam3_1-production-image-publication-coordinator-v1` closes the
+source-side gap between those two successful build records and the existing
+scale-zero image operator. It accepts only the final source/checkpoint
+qualification reference and two distinct Cloud Build UUIDs. It invokes the
+canonical capsule publisher, validates the complete closed result, and passes
+only the resulting capsule-manifest reference to the canonical production
+image-authority publisher. It cross-binds the qualification, artifact binding,
+and capsule manifest before returning the opaque build-authority reference.
+The bounded CLI is `npm run publish:sam3_1-production-image-from-builds` and
+requires the exact
+`publish-one-qualified-sam31-production-image-from-two-builds-v1`
+confirmation. The coordinator cannot start an image build, choose a GPU,
+execute a model, grant a runtime release, mutate customer credits, approve QA,
+or grant production authority. The separately deployed unarmed image operator
+remains the sole boundary that may consume the returned authority.

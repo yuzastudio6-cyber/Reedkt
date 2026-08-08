@@ -68,6 +68,14 @@ not call cloud-mutating scripts.
     interactive terminal. It creates one numeric Secret Manager version and
     no local checkpoint, model installation, image, GPU job, or production
     authority.
+17. `53-build-sam31-production-capsule-twice.sh` submits the two independent,
+    deterministic, checkpoint-free production capsule builds only after the
+    final source/checkpoint qualification release. After both build records
+    exist, `npm run publish:sam3_1-production-image-from-builds` sequences the
+    existing capsule and image-authority one-writer publishers and returns only
+    an opaque authority for `52-run-sam31-runtime-image-operator-once.sh`.
+    Publication cannot start the image build, a GPU/model job, a credit
+    mutation, or a runtime/production release.
 
 The historical CPU/render/QA/tool-readiness deployment scripts and the manual
 GPU-smoke execution script fail closed. Fresh execution must enter through the

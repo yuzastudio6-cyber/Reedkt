@@ -16,3 +16,40 @@ M15C consumes the GPU readiness and model-weight metadata for BiRefNet and SAM2.
 ## Milestone 15D Consumption
 
 M15D consumes GPU readiness and model-weight metadata for Real-ESRGAN and FILM. It adds sample-first enhancement and selected-clip interpolation scaffolds only; it does not download model weights, run unapproved GPU jobs, final render/export, or treat package availability as model-weight approval.
+
+## Current SAM 3.1 production boundary (2026-08-08)
+
+The historical M15C SAM2 scaffold is read-only compatibility evidence. New
+segmentation and tracking work uses `tool.sam3_1.segment_and_track_subject.v1`;
+SAM2/SAM2.1 cannot receive a new dispatch.
+
+The production path is deliberately split into immutable one-writer stages:
+
+1. privately ingest and reread the official pinned SAM 3.1 source and
+   checkpoint without installing either on a developer machine;
+2. qualify the exact source/checkpoint pairing on one scale-from-zero A100
+   80 GB job;
+3. create and independently scan a checkpoint-free production build capsule
+   containing the exact qualification and artifact-binding receipts;
+4. publish that capsule, binding, and Cloud Build authority create-only through
+   `canonical-sam3_1-production-image-authority-publisher-v1`;
+5. let the separately deployed, unarmed scale-zero image operator consume the
+   exact authority once; and
+6. qualify the immutable production image independently on A100 and L4 before
+   any runtime release.
+
+The publisher accepts only an exact source/checkpoint qualification ref and an
+exact production capsule-manifest ref. It cannot accept a command, Dockerfile,
+path, bucket, image tag, retry policy, checkpoint bytes, runtime-release flag,
+GPU dispatch, customer-credit mutation, QA approval, or production authority.
+The durable repository stores the artifact binding, capsule manifest, and build
+authority in separate create-only exact-reread collections. A production image
+tag remains non-authoritative until its immutable digest, scans, signatures,
+provenance, A100 qualification, L4 qualification, and runtime release are all
+present.
+
+Source completion is not runtime completion. At this checkpoint, Google Cloud
+authentication and account-effective pricing observation remain external live
+preconditions. No model/checkpoint is installed or executed on the developer
+machine, no GPU job is dispatched, no customer credits are changed, and
+production readiness remains false.

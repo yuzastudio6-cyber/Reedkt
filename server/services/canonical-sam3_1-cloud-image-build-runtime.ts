@@ -5,7 +5,11 @@ import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
+  assertCanonicalSam31ImageBuildArtifactBinding,
+  assertCanonicalSam31PrivateImageBuildCapsuleManifest,
   assertCanonicalSam31CloudImageBuildAuthority,
+  type CanonicalSam31ImageBuildArtifactBinding,
+  type CanonicalSam31PrivateImageBuildCapsuleManifest,
   type CanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
 import { ApiError } from '../errors/api-error'
@@ -33,7 +37,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_REPOSITORY_VERSION =
-  'canonical-sam3_1-cloud-image-build-repository-v1' as const
+  'canonical-sam3_1-cloud-image-build-repository-v2' as const
 export const CANONICAL_SAM3_1_GOOGLE_CLOUD_BUILD_TRANSPORT_VERSION =
   'canonical-sam3_1-google-cloud-build-transport-v1' as const
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RUNTIME_VERSION =
@@ -106,6 +110,18 @@ export interface CanonicalSam31CloudImageBuildRepository
   readonly schemaVersion:
     typeof CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_REPOSITORY_VERSION
   readonly evidenceClass: 'create_only_exact_reread'
+  persistArtifactBindingCreateOnly(input: {
+    readonly binding: CanonicalSam31ImageBuildArtifactBinding
+  }): Promise<EvidenceRef>
+  rereadArtifactBinding(input: {
+    readonly bindingRef: EvidenceRef
+  }): Promise<CanonicalSam31ImageBuildArtifactBinding | null>
+  persistCapsuleManifestCreateOnly(input: {
+    readonly manifest: CanonicalSam31PrivateImageBuildCapsuleManifest
+  }): Promise<EvidenceRef>
+  rereadCapsuleManifest(input: {
+    readonly manifestRef: EvidenceRef
+  }): Promise<CanonicalSam31PrivateImageBuildCapsuleManifest | null>
   persistBuildAuthorityCreateOnly(input: {
     readonly authority: CanonicalSam31CloudImageBuildAuthority
   }): Promise<EvidenceRef>
@@ -115,6 +131,28 @@ export interface CanonicalSam31CloudImageBuildRepository
   rereadTerminalObservation(input: {
     readonly observationRef: EvidenceRef
   }): Promise<CanonicalSam31CloudImageBuildTerminalObservation | null>
+}
+
+export function canonicalSam31ImageBuildArtifactBindingRef(
+  binding: CanonicalSam31ImageBuildArtifactBinding,
+): EvidenceRef {
+  const parsed = assertCanonicalSam31ImageBuildArtifactBinding(binding)
+  return evidenceRefSchema.parse({
+    id: `sam31-build-binding-${parsed.bindingHash.slice(0, 24)}`,
+    version: 1,
+    contentHash: `sha256:${parsed.bindingHash}`,
+  })
+}
+
+export function canonicalSam31PrivateImageBuildCapsuleManifestRef(
+  manifest: CanonicalSam31PrivateImageBuildCapsuleManifest,
+): EvidenceRef {
+  const parsed = assertCanonicalSam31PrivateImageBuildCapsuleManifest(manifest)
+  return evidenceRefSchema.parse({
+    id: parsed.manifestId,
+    version: parsed.manifestVersion,
+    contentHash: `sha256:${parsed.manifestHash}`,
+  })
 }
 
 export function canonicalSam31CloudImageBuildAuthorityRef(
@@ -166,6 +204,59 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
   const repository: CanonicalSam31CloudImageBuildRepository = {
     schemaVersion: CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_REPOSITORY_VERSION,
     evidenceClass: 'create_only_exact_reread',
+
+    async persistArtifactBindingCreateOnly({ binding }) {
+      const parsed = assertCanonicalSam31ImageBuildArtifactBinding(binding)
+      const ref = canonicalSam31ImageBuildArtifactBindingRef(parsed)
+      await persistExact(
+        input.objectPort,
+        recordPath(prefix, 'artifact-bindings', ref),
+        parsed,
+      )
+      return ref
+    },
+
+    async rereadArtifactBinding({ bindingRef }) {
+      const ref = evidenceRefSchema.parse(bindingRef)
+      const value = await readExact(
+        input.objectPort,
+        recordPath(prefix, 'artifact-bindings', ref),
+        assertCanonicalSam31ImageBuildArtifactBinding,
+      )
+      if (!value) return null
+      if (!sameRef(ref, canonicalSam31ImageBuildArtifactBindingRef(value))) {
+        throw conflict('sam3_1_build_binding_reread_ref_mismatch')
+      }
+      return value
+    },
+
+    async persistCapsuleManifestCreateOnly({ manifest }) {
+      const parsed = assertCanonicalSam31PrivateImageBuildCapsuleManifest(
+        manifest,
+      )
+      const ref = canonicalSam31PrivateImageBuildCapsuleManifestRef(parsed)
+      await persistExact(
+        input.objectPort,
+        recordPath(prefix, 'capsule-manifests', ref),
+        parsed,
+      )
+      return ref
+    },
+
+    async rereadCapsuleManifest({ manifestRef }) {
+      const ref = evidenceRefSchema.parse(manifestRef)
+      const value = await readExact(
+        input.objectPort,
+        recordPath(prefix, 'capsule-manifests', ref),
+        assertCanonicalSam31PrivateImageBuildCapsuleManifest,
+      )
+      if (!value) return null
+      if (!sameRef(
+        ref,
+        canonicalSam31PrivateImageBuildCapsuleManifestRef(value),
+      )) throw conflict('sam3_1_capsule_manifest_reread_ref_mismatch')
+      return value
+    },
 
     async persistBuildAuthorityCreateOnly({ authority }) {
       const parsed = assertCanonicalSam31CloudImageBuildAuthority(authority)

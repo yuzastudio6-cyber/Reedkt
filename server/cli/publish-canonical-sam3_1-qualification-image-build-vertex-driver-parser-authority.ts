@@ -69,7 +69,8 @@ if (
 ) throw new Error('SAM 3.1 driver-parser image authority changed.')
 
 console.log(JSON.stringify({
-  schemaVersion:
+  ...publication,
+  publicationSchemaVersion:
     'canonical-sam3_1-qualification-image-vertex-driver-parser-authority-publication-v1',
   correction: 'accept_legacy_and_modern_nvidia_kernel_driver_version_shapes',
   failedAttemptAutomaticallyRetried: false,
@@ -77,7 +78,6 @@ console.log(JSON.stringify({
   gpuQualificationJobDispatched: false,
   customerCreditsMutated: false,
   productionReady: false,
-  ...publication,
 }, null, 2))
 
 function sourceHash(path: string) {

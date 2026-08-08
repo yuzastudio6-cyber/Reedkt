@@ -7,6 +7,7 @@ import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  assertCanonicalSam31ImageSecurityReview,
   canonicalImageSecurityReviewRef,
   createCanonicalSam31GcpQualificationImageSupplyChainEvidenceReadPort,
   createCanonicalSam31ImageSecurityReview,
@@ -201,13 +202,16 @@ const review = createCanonicalSam31ImageSecurityReview({
 })
 const securityReviewRef =
   await releaseRepository.persistApprovedSecurityReviewCreateOnly({ review })
-const rereadReview = await releaseRepository.rereadApprovedReview({
+const untrustedRereadReview = await releaseRepository.rereadApprovedReview({
   immutableImageDigest: imageBuildTerminal.immutableImageDigest,
   vulnerabilityScanRef: vulnerabilityScan.scanRef,
   scanCompletedAt: vulnerabilityScan.scanCompletedAt,
   occurrenceSnapshotUpdatedAt: vulnerabilityScan.occurrenceSnapshotUpdatedAt,
   severityCounts: vulnerabilityScan.severityCounts,
 })
+const rereadReview = untrustedRereadReview === null
+  ? null
+  : assertCanonicalSam31ImageSecurityReview(untrustedRereadReview)
 if (
   !rereadReview
   || canonicalImageSecurityReviewRef(rereadReview).contentHash !==

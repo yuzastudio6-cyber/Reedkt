@@ -114,6 +114,7 @@ const targetName = z.enum([
   'vertex_a100_importlib_resources_setuptools_removed',
   'vertex_a100_importlib_resources_import_order_corrected',
   'vertex_driver_parser_corrected',
+  'rope_cache_derivation_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
@@ -123,9 +124,12 @@ const selectedTarget = targetName ===
   || targetName ===
     'vertex_a100_importlib_resources_import_order_corrected'
   || targetName === 'vertex_driver_parser_corrected'
+  || targetName === 'rope_cache_derivation_corrected'
   ? {
       receiptId:
-        targetName === 'vertex_driver_parser_corrected'
+        targetName === 'rope_cache_derivation_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-rope-cache-derivation-corrected-v1'
+          : targetName === 'vertex_driver_parser_corrected'
           ? 'sam31-qualification-capsule-reproducibility-vertex-driver-parser-corrected-v1'
           : targetName ===
               'vertex_a100_importlib_resources_import_order_corrected'

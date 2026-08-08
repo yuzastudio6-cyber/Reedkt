@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 const publicationPath =
@@ -21,6 +22,10 @@ const productionRunner = readFileSync(
 )
 const sourceLock = readFileSync(
   'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
+  'utf8',
+)
+const imageAuthority = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-qualification-image-build-authority.ts',
   'utf8',
 )
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
@@ -75,6 +80,23 @@ for (const expected of [
 ] as const) assert.ok(
   sourceLock.includes(expected),
   `RoPE-cache source policy lost ${expected}`,
+)
+
+const sourceLockSha256 = createHash('sha256')
+  .update(sourceLock)
+  .digest('hex')
+assert.ok(
+  imageAuthority.includes(
+    `const ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256 =\n  '${sourceLockSha256}' as const`,
+  ),
+  'qualification image authority does not admit the exact RoPE source lock',
+)
+assert.equal(
+  imageAuthority.match(
+    /ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256/gu,
+  )?.length,
+  3,
+  'RoPE source lock must bind its definition, security closure, and importlib profile',
 )
 
 assert.equal(

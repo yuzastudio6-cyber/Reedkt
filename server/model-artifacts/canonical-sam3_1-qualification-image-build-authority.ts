@@ -76,6 +76,8 @@ const SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256 =
   'c7b8b39acbb685bddc04ff4f30832a7ffd568a6b5954f973ca61d5e223ffbd3d' as const
 const IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256 =
   'f8d8d67f986a20aa7320f05134c03f5d8876f7e1e057af297226e9e277f8e186' as const
+const ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256 =
+  '1fea649953ba0007dfe58bf4ec4fd7d25f455548394c31fccdfa62bc803a856d' as const
 const SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256 =
   '4f2dfbf929c5d6451fd5b21ed0dfb3ae54c7ed004b531ee97b4bc4dce9294843' as const
 const SECURITY_REMEDIATION_DEPENDENCY_CLOSURE_RECEIPT_SHA256 =
@@ -665,25 +667,32 @@ function assertQualificationCapsuleEntries(
   const provenanceLockIsSecurityRemediated = new Set<string>([
     SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256,
     IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256,
+    ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256,
   ]).has(manifest.repositorySource.sourceProvenanceLockSha256)
   const importlibResourcesDockerfileHashes = new Set<string>([
     VERTEX_A100_IMPORTLIB_RESOURCES_IMPORT_ORDER_BUG_DOCKERFILE_SHA256,
     VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256,
   ])
+  const importlibResourcesSourceProvenanceLockHashes = new Set<string>([
+    IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256,
+    ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256,
+  ])
   const importlibResourcesProfileSelected =
     importlibResourcesDockerfileHashes.has(
       manifest.repositorySource.dockerfileSha256,
     )
-    || manifest.repositorySource.sourceProvenanceLockSha256 ===
-      IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256
+    || importlibResourcesSourceProvenanceLockHashes.has(
+      manifest.repositorySource.sourceProvenanceLockSha256,
+    )
     || manifest.repositorySource.importlibResourcesPatchSha256 !== undefined
   if (
     canonical && importlibResourcesProfileSelected && (
       !importlibResourcesDockerfileHashes.has(
         manifest.repositorySource.dockerfileSha256,
       )
-      || manifest.repositorySource.sourceProvenanceLockSha256 !==
-        IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256
+      || !importlibResourcesSourceProvenanceLockHashes.has(
+        manifest.repositorySource.sourceProvenanceLockSha256,
+      )
       || manifest.repositorySource.importlibResourcesPatchSha256 !==
         IMPORTLIB_RESOURCES_PATCH_SHA256
     )

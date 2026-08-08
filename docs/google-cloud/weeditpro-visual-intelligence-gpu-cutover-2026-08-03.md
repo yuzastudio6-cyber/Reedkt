@@ -620,6 +620,22 @@ invocation of this operator boundary.
   no billing mutation, payment, wallet, credit, provider, or production
   authority. The current operator cannot execute it because their billing-
   account IAM policy access is absent.
+- The account-price runtime no longer depends on developer-machine Application
+  Default Credentials. A dedicated source-bound Cloud Run Job remains
+  permanently unarmed and runs under the canonical backend service identity.
+  `npm run run:vertex-a100-rate-publisher-job` resolves the exact project-linked
+  billing account at invocation, supplies it only as an execution override,
+  performs one account-effective eight-SKU reread, persists the immutable rate
+  authority create-only, and returns to zero. Its image contains no billing
+  coordinate, model, checkpoint, media tool, GPU runtime, customer ledger, or
+  credit mutation path. Build and deployment remain separately gated by
+  `build:vertex-a100-rate-publisher-image` and
+  `deploy:vertex-a100-rate-publisher-job`.
+- This service-identity operator does not bypass billing IAM. Until a billing
+  administrator grants the canonical backend identity read-only Billing
+  Account Viewer access, execution fails before publication and no A100 job may
+  start. Public list price, a stale authority, and another payer account remain
+  inadmissible substitutes.
 
 ## Current disposition
 

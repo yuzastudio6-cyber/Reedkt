@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises'
 const root = process.cwd()
 const read = (path: string) => readFile(`${root}/${path}`, 'utf8')
 const [cli, vite, dockerfile, buildConfig, buildScript, deployScript,
-  runScript, packageJson] = await Promise.all([
+  runScript, ignoreFile, packageJson] = await Promise.all([
   read('server/cli/canonical-sam3_1-runtime-image-cloud-job.ts'),
   read('vite.sam31-runtime-image-operator.config.ts'),
   read('docker/prod/sam31-runtime-image-operator/Dockerfile'),
@@ -12,6 +12,7 @@ const [cli, vite, dockerfile, buildConfig, buildScript, deployScript,
   read('scripts/gcp/prod/50-build-sam31-runtime-image-operator-image.sh'),
   read('scripts/gcp/prod/51-deploy-sam31-runtime-image-operator-job.sh'),
   read('scripts/gcp/prod/52-run-sam31-runtime-image-operator-once.sh'),
+  read('scripts/gcp/prod/sam31-runtime-image-operator.gcloudignore'),
   read('package.json'),
 ])
 
@@ -52,7 +53,15 @@ assert.match(buildConfig, /requestedVerifyOption:\s*VERIFIED/u)
 assert.match(buildConfig, /sourceProvenanceHash:\s*\n\s*- SHA256/u)
 assert.doesNotMatch(buildConfig, /secretEnv|availableSecrets/u)
 assert.match(buildScript, /git status --porcelain=v1/u)
+assert.match(buildScript,
+  /--ignore-file="\$\{IGNORE_FILE\}"/u)
 assert.match(buildScript, /"sam31RuntimeImageBuildStarted":false/u)
+assert.match(ignoreFile, /^\*$/mu)
+assert.match(ignoreFile, /^!server\/\*\*$/mu)
+assert.match(ignoreFile, /^!src\/lib\/\*\*$/mu)
+assert.match(ignoreFile,
+  /^!docker\/prod\/sam31-runtime-image-operator\/Dockerfile$/mu)
+assert.doesNotMatch(ignoreFile, /^!docs\/|^!tests\/|^!test-results\//mu)
 
 assert.match(deployScript, /reeditpro-api-sa@reeditpro/u)
 assert.match(deployScript, /roles\/cloudbuild\.builds\.editor/u)

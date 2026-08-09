@@ -9,6 +9,7 @@ readonly REGION='us-central1'
 readonly REPOSITORY='reeditpro-workers'
 readonly IMAGE_NAME='weeditpro-sam31-runtime-image-operator'
 readonly CONFIG='scripts/gcp/prod/cloudbuild-sam31-runtime-image-operator.yaml'
+readonly IGNORE_FILE='scripts/gcp/prod/sam31-runtime-image-operator.gcloudignore'
 readonly CONFIRMATION='build-weeditpro-sam31-runtime-image-operator-v1'
 readonly COMMAND_LINE_TOOLS='/Library/Developer/CommandLineTools'
 
@@ -22,6 +23,7 @@ fail() {
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
   || fail 'active Google Cloud project is not the fixed project'
 [[ -f "${CONFIG}" ]] || fail 'fixed Cloud Build configuration is missing'
+[[ -f "${IGNORE_FILE}" ]] || fail 'fixed Cloud Build ignore file is missing'
 [[ -x "${COMMAND_LINE_TOOLS}/usr/bin/git" ]] \
   || fail 'pinned Apple Command Line Tools Git is unavailable'
 
@@ -38,6 +40,7 @@ image_tag="sam31-runtime-image-operator-${source_commit:0:16}"
 image="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${IMAGE_NAME}:${image_tag}"
 build="$(gcloud builds submit . \
   --project="${PROJECT_ID}" --region="${REGION}" --config="${CONFIG}" \
+  --ignore-file="${IGNORE_FILE}" \
   --substitutions="_IMAGE=${image},_SOURCE_COMMIT_SHA=${source_commit},_SOURCE_TREE_HASH=${source_tree}" \
   --format=json --quiet)"
 build_id="$(jq -r '.id // empty' <<<"${build}")"

@@ -105,6 +105,10 @@ This closes a stale source-binding defect only. It proves that a bounded paid
 qualification can be admitted later; it neither authorizes nor starts that
 qualification and it supplies no Caption-scoped owner result.
 
+The exact current launch-input and bounded internal-cost observation is recorded
+separately in
+[`post-cap20-sam31-live-qualification-launch-preflight-2026-08-08.md`](post-cap20-sam31-live-qualification-launch-preflight-2026-08-08.md).
+
 ## Media inspected
 
 None. This checkpoint integrates and validates owner source/runtime authority;

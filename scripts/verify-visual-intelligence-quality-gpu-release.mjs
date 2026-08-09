@@ -23,6 +23,7 @@ const smokes = [
   'server/smoke/visual-intelligence-model-billing-sku-live-executor-smoke.ts',
   'server/smoke/visual-intelligence-model-billing-sku-live-gcs-store-smoke.ts',
   'server/smoke/visual-intelligence-model-billing-sku-reconciliation-service-smoke.ts',
+  'server/smoke/visual-intelligence-model-billing-sku-operator-entrypoints-smoke.ts',
   'server/smoke/visual-intelligence-runtime-release-publisher-smoke.ts',
   'server/smoke/visual-intelligence-inspection-coordinator-smoke.ts',
   'server/smoke/visual-intelligence-active-cutover-smoke.ts',

@@ -153,6 +153,31 @@ persists the detailed billing window, enforces the admitted internal-spend
 ceiling, and invokes the existing model/SKU finalizer into durable exact-reread
 storage. Over-budget evidence is retained while qualification fails closed.
 
+The source tree exposes two separate internal operator entrypoints:
+
+- `npm run private:visual-intelligence-model-billing-sku-live-qualification`
+  accepts only `--execute`, the exact
+  `REEDITPRO_CONFIRM_VI_MODEL_SKU_LIVE_QUALIFICATION` confirmation, the fixed
+  `reeditpro` project, the current GCS control-plane bucket, and an exact
+  persisted admission ID/version/SHA-256. Before any provider request it also
+  resolves application-default credentials and requires the canonical
+  `reeditpro-api-sa@reeditpro.iam.gserviceaccount.com` service identity. The
+  entrypoint cannot mint its own admission and cannot retry a request.
+- `npm run private:visual-intelligence-model-billing-sku-reconciliation`
+  accepts only `--execute`, the exact
+  `REEDITPRO_CONFIRM_VI_MODEL_SKU_RECONCILIATION` confirmation, the same exact
+  admission plus live-result ID/version/SHA-256, and bounded detailed-billing
+  query project/dataset/table/maximum-bytes settings. It imports no Gemini
+  generator and makes no provider request.
+
+Both entrypoints parse an explicit current-process environment-variable
+allowlist rather than the complete process environment; neither loads a local
+`.env` file. Their focused operator smoke proves missing confirmation fails
+before Google authentication or external queries. These
+commands are callable source surfaces, not permission to run them: no persisted
+spend admission or owner authorization has been supplied for this milestone,
+so neither command was executed against Google Cloud.
+
 The remaining Visual Intelligence work is the actual operator-approved run and
 fresh external ingestion, followed by this existing reconciliation service. It
 must not be implemented as a Caption service, accept caller-authored evidence

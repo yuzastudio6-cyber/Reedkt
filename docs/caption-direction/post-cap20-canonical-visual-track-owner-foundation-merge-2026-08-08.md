@@ -158,3 +158,13 @@ fresh Cloud Audit, isolation, detailed billing, admitted-spend enforcement, and
 the finalizer into a durable model/SKU qualification repository. Actual paid
 execution and fresh external audit/billing ingestion remain open before Visual
 Intelligence can produce the actual Caption evidence required here.
+
+The owner now also exposes separately gated live-execution and read-only
+reconciliation CLI entrypoints. They require explicit allowlisted environment
+bindings, exact persisted admission/result refs, fixed service identity, and
+independent confirmations; the live entrypoint cannot mint its own approval and
+the reconciliation entrypoint cannot import or call the provider generator.
+The focused operator proof passes 32 checks without authenticating or issuing
+an external query. The current complete Visual Intelligence/GPU source gate is
+153 smokes; this remains source qualification, not paid execution or terminal
+Caption evidence.

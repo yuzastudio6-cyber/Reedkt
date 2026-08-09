@@ -63,7 +63,7 @@ check(progress.gates.find((gate) =>
   && progress.gates.find((gate) =>
     gate.gapId === 'visual_intelligence_authenticated_evidence')
     ?.nextRequiredEvidenceCodes.includes(
-      'canonical_visual_intelligence_same_sku_concurrency_isolation_authority_required')
+      'actual_canonical_visual_intelligence_provider_traffic_isolation_authority_required')
   && !progress.gates.find((gate) =>
     gate.gapId === 'visual_intelligence_authenticated_evidence')
     ?.nextRequiredEvidenceCodes.includes(

@@ -162,6 +162,12 @@ export interface VisualIntelligenceProviderTrafficGuardPort {
   ): Promise<VisualIntelligenceProviderTrafficGuardReleaseReceipt>
 }
 
+export interface VisualIntelligenceProviderTrafficGuardEvidenceReadPort {
+  readExactReleaseReceipt(
+    releaseReceiptRef: VisualIntelligenceEvidenceRef,
+  ): Promise<VisualIntelligenceProviderTrafficGuardReleaseReceipt | null>
+}
+
 /**
  * A single project/service/model guard shared by ordinary Visual Intelligence
  * calls and the isolated billing qualification. It serializes only provider
@@ -172,7 +178,8 @@ export function createVisualIntelligenceGcsProviderTrafficGuard(input: {
   readonly bucketName: string
   readonly storage?: Storage
   readonly now?: () => Date
-}): VisualIntelligenceProviderTrafficGuardPort {
+}): VisualIntelligenceProviderTrafficGuardPort
+  & VisualIntelligenceProviderTrafficGuardEvidenceReadPort {
   if (
     input.projectId !== 'reeditpro'
     || !bucketNameSchema.safeParse(input.bucketName).success
@@ -262,6 +269,40 @@ export function createVisualIntelligenceGcsProviderTrafficGuard(input: {
       })
       await persistReleaseReceipt({ bucket, receipt: finalReceipt })
       return Object.freeze(finalReceipt)
+    },
+    async readExactReleaseReceipt(
+      untrusted: VisualIntelligenceEvidenceRef,
+    ) {
+      const releaseReceiptRef = evidenceRefSchema.parse(untrusted)
+      const objectName = `${RELEASE_PREFIX}${
+        releaseReceiptRef.contentHash.slice(7)}.json`
+      const file = bucket.file(objectName)
+      let body: Buffer
+      try {
+        [body] = await file.download({ validation: 'crc32c' })
+      } catch (error) {
+        if (cloudErrorCode(error) === 404) return null
+        throw new Error(
+          'Visual Intelligence provider guard release reread failed.',
+          { cause: error },
+        )
+      }
+      if (body.byteLength < 2 || body.byteLength > MAXIMUM_RECORD_BYTES) {
+        throw new Error(
+          'Visual Intelligence provider guard release exceeded its bound.',
+        )
+      }
+      const receipt =
+        parseVisualIntelligenceProviderTrafficGuardReleaseReceipt(
+          parseJson(body),
+        )
+      if (
+        !sameRef(receipt.releaseReceiptRef, releaseReceiptRef)
+        || visualIntelligenceCanonicalJson(receipt) !== body.toString('utf8')
+      ) throw new Error(
+        'Visual Intelligence provider guard release exact reread changed.',
+      )
+      return receipt
     },
   })
 }

@@ -142,8 +142,14 @@ qualification finalizer. The reader has 22 focused checks, the repository has
 source-release gate. Billing rows alone never infer same-SKU traffic isolation;
 the finalizer instead requires an exact exclusive-guard plus Cloud Audit window
 authority. Production-runtime v19 now mounts the create-only singleton provider
-guard for both ordinary and qualification calls, with 32 focused checks. The
-shared owner still lacks its live qualification executor and the Cloud Audit
-window reader/isolation-authority finalizer. Those shared owner
-source gaps must be closed centrally before Visual Intelligence can produce
+guard for both ordinary and qualification calls, with 34 focused checks. The
+shared owner now includes the project-wide Cloud Audit Data Access reader,
+create-only sanitized observation repository, exact guard-release reread,
+two-route registry contract, isolation-authority finalizer, and create-only
+authority repository. Their focused proofs reject missing, extra, crossed,
+wrong-principal, failed, paginated, stale, tampered, inherited, and
+accessor-backed evidence without returning raw provider payloads. The shared
+owner still lacks the live qualification executor and its exact route-registry
+publication/mount. That remaining source gap must be closed centrally before
+Visual Intelligence can produce
 the actual Caption evidence required here.

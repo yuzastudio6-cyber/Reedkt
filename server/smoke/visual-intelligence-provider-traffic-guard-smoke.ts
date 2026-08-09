@@ -60,6 +60,15 @@ assert.equal(ordinaryRelease.immutableReleaseReceiptCreateOnlyPersisted, true)
 assert.equal(ordinaryRelease.immutableReleaseReceiptExactReread, true)
 assert.equal(ordinaryRelease.providerCallMadeByGuard, false)
 assert.equal(ordinaryRelease.productionReleaseAuthorityGranted, false)
+assert.deepEqual(
+  await guard.readExactReleaseReceipt(ordinaryRelease.releaseReceiptRef),
+  ordinaryRelease,
+)
+assert.equal(await guard.readExactReleaseReceipt({
+  id: 'missing-release',
+  version: 1,
+  contentHash: `sha256:${'0'.repeat(64)}`,
+}), null)
 
 const qualification = await guard.acquire({
   mode: 'model_billing_sku_qualification',
@@ -129,7 +138,7 @@ assert.throws(() => createVisualIntelligenceGcsProviderTrafficGuard({
 
 console.log(JSON.stringify({
   smoke: 'visual-intelligence-provider-traffic-guard',
-  checks: 32,
+  checks: 34,
   status: 'passed',
   ordinaryBlocksQualification: true,
   qualificationBlocksOrdinary: true,

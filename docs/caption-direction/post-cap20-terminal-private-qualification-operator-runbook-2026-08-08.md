@@ -125,19 +125,28 @@ classes, and create-only qualification persistence. It makes no provider or
 billing-export call itself. A create-only project/service/model singleton guard
 is now mounted in production-runtime v19; every canonical Visual Intelligence
 provider call must acquire it, and the isolated qualification mode excludes
-ordinary calls. The shared owner still does not have the canonical live
-model/SKU qualification executor or the exact Cloud Audit window reader and
-isolation-authority finalizer needed to close the no-other-traffic proof. The
-private release prefixes also
-contain no live model/SKU qualification, runtime-component qualification, or
-runtime release record.
+ordinary calls. The shared owner now also has a bounded project-wide Cloud
+Audit Data Access window reader, a create-only sanitized audit-observation
+repository, exact guard-release reread, a two-route registry contract, an
+audit-backed isolation-authority finalizer, and a create-only isolation
+authority repository. The reader queries the entire Vertex GenerateContent
+service/method window with a five-entry detection page, accepts exactly four
+request-reference correlation labels in order, rejects pagination or any
+extra call, verifies the exact provider principal, and returns no raw prompt,
+media locator, request, or response payload. None of those owners makes a
+provider call. The shared owner still does not have the canonical live
+model/SKU qualification executor that emits the four correlated calls,
+publishes the exact route registry, and invokes these readers/finalizers after
+Cloud Audit and billing-export ingestion are fresh. The private release
+prefixes also contain no live model/SKU qualification, runtime-component
+qualification, or runtime release record.
 
-Those remaining source gaps must be implemented at the existing shared Visual
-Intelligence owner before a live provider qualification is attempted. They
-must bind two isolated standard/long-context provider attempts, exact provider
+That remaining source gap must be implemented at the existing shared Visual
+Intelligence owner before a live provider qualification is attempted. It must
+bind two isolated standard/long-context provider attempts, exact provider
 usage, the detailed billing-export window, the six exact SKU identities, no
 other model/SKU traffic, immutable create-only persistence, and exact reread.
-They must not be implemented as a Caption service, accept caller-authored
+It must not be implemented as a Caption service, accept caller-authored
 evidence booleans, or bypass the canonical provider/cost lifecycle.
 
 The Visual Intelligence owner must complete its existing isolated provider

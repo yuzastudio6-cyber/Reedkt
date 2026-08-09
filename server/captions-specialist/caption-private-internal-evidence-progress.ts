@@ -195,7 +195,7 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
   gate('visual_intelligence_authenticated_evidence',
     'source_ready_missing_actual_evidence', [], [
       'canonical_visual_intelligence_live_model_sku_qualification_executor_required',
-      'canonical_visual_intelligence_same_sku_concurrency_isolation_authority_required',
+      'actual_canonical_visual_intelligence_provider_traffic_isolation_authority_required',
       'actual_canonical_visual_intelligence_owner_record_required',
       'exact_terminal_run_scope_and_output_frame_binding_required',
     ]),

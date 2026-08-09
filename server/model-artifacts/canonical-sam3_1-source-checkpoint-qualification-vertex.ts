@@ -40,8 +40,19 @@ function canonicalWireValue(value: unknown): unknown {
 
 function sha256CanonicalWireValue(value: unknown): string {
   return createHash('sha256')
-    .update(JSON.stringify(canonicalWireValue(value)), 'utf8')
+    .update(canonicalSam31VertexSourceCheckpointWireStringify(value), 'utf8')
     .digest('hex')
+}
+
+/**
+ * Exact locale-independent wire encoding shared with the pinned Python worker.
+ * Python emits sort_keys JSON, while the repository-wide authority helper still
+ * uses localeCompare and therefore is not an admissible byte comparator here.
+ */
+export function canonicalSam31VertexSourceCheckpointWireStringify(
+  value: unknown,
+): string {
+  return JSON.stringify(canonicalWireValue(value))
 }
 
 const requestV1Shape =

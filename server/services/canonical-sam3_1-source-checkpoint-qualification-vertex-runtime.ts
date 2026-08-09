@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import {
   assertCanonicalSam31VertexSourceCheckpointWorkerResult,
+  canonicalSam31VertexSourceCheckpointWireStringify,
   createCanonicalSam31VertexSourceCheckpointWorkerRequest,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification-vertex'
 import {
@@ -519,7 +520,8 @@ export function createCanonicalSam31VertexQualificationGcsResultReadPort(
       }
       const result =
         assertCanonicalSam31VertexSourceCheckpointWorkerResult(decoded)
-      if (stableAuthorityStringify(result) !== body.toString('utf8')) {
+      if (canonicalSam31VertexSourceCheckpointWireStringify(result)
+        !== body.toString('utf8')) {
         throw new Error('Vertex qualification result bytes changed.')
       }
       return result

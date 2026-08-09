@@ -200,6 +200,8 @@
     "smoke:visual-intelligence-production-runtime": "tsx server/smoke/visual-intelligence-production-runtime-smoke.ts",
     "smoke:visual-intelligence-account-effective-rate": "tsx server/smoke/visual-intelligence-account-effective-rate-read-port-smoke.ts",
     "smoke:visual-intelligence-account-effective-rate-publisher": "tsx server/smoke/visual-intelligence-account-effective-rate-publisher-smoke.ts",
+    "smoke:visual-intelligence-model-billing-sku-live-qualification": "tsx server/smoke/visual-intelligence-model-billing-sku-live-qualification-smoke.ts",
+    "execute:visual-intelligence-model-billing-sku-live-qualification": "tsx server/cli/execute-visual-intelligence-model-billing-sku-live-qualification.ts",
     "smoke:visual-intelligence-runtime-release-publisher": "tsx server/smoke/visual-intelligence-runtime-release-publisher-smoke.ts",
     "smoke:visual-intelligence-source-cleanup-binding": "tsx server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts",
     "smoke:source-analysis-l4-probe-attempt": "tsx server/smoke/canonical-source-analysis-l4-probe-attempt-owner-smoke.ts",

@@ -1234,6 +1234,7 @@ function successfulBuildResource(
   const source = structuredClone(body.source) as {
     storageSource: Record<string, string>
   }
+  const digest = `sha256:${sha(Buffer.from('sam31-built-immutable-image'))}`
   return {
     id,
     name: `projects/reeditpro/locations/us-central1/builds/${id}`,
@@ -1255,10 +1256,10 @@ function successfulBuildResource(
     results: {
       images: [{
         name: taggedImageUri,
-        digest:
-          `sha256:${sha(Buffer.from('sam31-built-immutable-image'))}`,
+        digest,
         artifactRegistryPackage:
-          'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu',
+          'projects/reeditpro/locations/us-central1/repositories/'
+          + `reeditpro-workers/packages/reeditpro-sam31-gpu/versions/${digest}`,
       }],
     },
   }

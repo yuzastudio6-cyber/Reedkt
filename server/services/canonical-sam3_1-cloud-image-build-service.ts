@@ -665,7 +665,12 @@ export function createCanonicalSam31CloudImageBuildService(input: {
           warningsAbsent: true,
           immutableImageDigest: image.digest,
           immutableImageUri,
-          artifactRegistryPackage: image.artifactRegistryPackage,
+          // Cloud Build returns the immutable package *version* resource in
+          // results.images[].artifactRegistryPackage. The terminal contract
+          // intentionally retains the stable parent package while the echo
+          // check above proves that the provider version suffix is the exact
+          // immutable digest that was just observed.
+          artifactRegistryPackage: ARTIFACT_REGISTRY_PACKAGE,
           durableTerminalObservationCreated: true,
           imageBuiltAndPushed: true,
         })
@@ -911,9 +916,13 @@ function assertCloudBuildEcho(
     || build.warnings.length !== 0
     || build.results.images.length !== 1
     || image.name !== authority.imageDestination.taggedUri
-    || image.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
+    || image.artifactRegistryPackage !== artifactRegistryVersion(image.digest)
     || !exactBuildRequestEchoMatches(build, expectedBody)
   ) throw new Error('Cloud Build terminal resource differs from authority.')
+}
+
+function artifactRegistryVersion(digest: string): string {
+  return `${ARTIFACT_REGISTRY_PACKAGE}/versions/${prefixedSha256.parse(digest)}`
 }
 
 function buildSubmission(input: Omit<

@@ -913,6 +913,8 @@ function successfulSupplyChainBuild(
     startTime: '2026-08-03T20:00:30Z',
     endTime: '2026-08-03T20:00:40Z',
   }
+  const options = structuredClone(value.options) as Record<string, unknown>
+  options.diskSizeGb = String(options.diskSizeGb)
   return {
     id,
     name: `projects/390722338345/locations/us-central1/builds/${id}`,
@@ -923,7 +925,7 @@ function successfulSupplyChainBuild(
     artifacts,
     timeout: value.timeout,
     queueTtl: value.queueTtl,
-    options: structuredClone(value.options),
+    options,
     serviceAccount: value.serviceAccount,
     tags: structuredClone(value.tags),
     results: {

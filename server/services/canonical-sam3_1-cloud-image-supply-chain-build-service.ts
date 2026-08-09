@@ -1007,7 +1007,8 @@ function assertCloudBuildEcho(
     || root.queueTtl !== expected.queueTtl
     || root.serviceAccount !== expected.serviceAccount
     || actualOptions.machineType !== expectedOptions.machineType
-    || actualOptions.diskSizeGb !== expectedOptions.diskSizeGb
+    || canonicalCloudBuildInteger(actualOptions.diskSizeGb) !==
+      canonicalCloudBuildInteger(expectedOptions.diskSizeGb)
     || actualOptions.requestedVerifyOption !==
       expectedOptions.requestedVerifyOption
     || actualOptions.logging !== expectedOptions.logging
@@ -1026,6 +1027,13 @@ function assertCloudBuildEcho(
       `gs://${admission.evidenceBucket}/${admission.evidencePrefix}/`,
     )
   ) throw new Error('Supply-chain Cloud Build differs from admission.')
+}
+
+function canonicalCloudBuildInteger(value: unknown): string {
+  if (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0) {
+    return String(value)
+  }
+  return z.string().regex(/^(?:0|[1-9][0-9]{0,9})$/u).parse(value)
 }
 
 function buildSubmission(input: Omit<

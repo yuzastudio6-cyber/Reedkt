@@ -216,14 +216,19 @@ action and requires explicit authorization immediately before launch.
 Before any authorized attempt:
 
 1. rerun `npm run audit:visual-intelligence-live-prerequisites`;
-2. run
+2. before publishing a replacement package, run
+   `npm run audit:sam3_1-qualification-package-publisher-configuration`
+   against the exact desired ingest, review, image-release, qualification-ID,
+   and issue-time tuple; require the reviewed source-bound build/deploy owner
+   before any metadata-only execution;
+3. run
    `npm run inspect:sam3_1-source-checkpoint-qualification-vertex-launch`
    against the exact candidate package, immutable image release, and rate
    authority so the canonical read-only owner rereads route lineage, quota,
    and the bounded cost;
-3. fail closed on expiration or any source/image/package drift;
-4. use one new attempt ID and no automatic retry; and
-5. use only the canonical
+4. fail closed on expiration or any source/image/package drift;
+5. use one new attempt ID and no automatic retry; and
+6. use only the canonical
    `start:sam3_1-source-checkpoint-qualification-vertex` and
    `reconcile:sam3_1-source-checkpoint-qualification-vertex` owners.
 

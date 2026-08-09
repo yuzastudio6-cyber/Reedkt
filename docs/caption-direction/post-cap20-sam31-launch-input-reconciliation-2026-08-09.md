@@ -76,6 +76,13 @@ That publication must reuse the existing reviewed official source/checkpoint,
 artifact review, probe fixture, and package repository owners. It must not be
 implemented as a Caption-owned package writer.
 
+The read-only Cloud Run configuration audit now proves that the existing
+publisher job is private, idle, zero-retry, and digest-pinned, but its deployed
+environment still points to an older qualification and image release. Its
+sole current configuration blocker is `desired_package_inputs_not_deployed`.
+See
+[`post-cap20-sam31-package-publisher-configuration-audit-2026-08-09.md`](post-cap20-sam31-package-publisher-configuration-audit-2026-08-09.md).
+
 After publication, rerun this read-only preflight with the new exact package
 reference. Only an exact `ready_for_explicit_paid_launch_authorization` result
 may be presented for explicit spend authorization. No GPU launch, model

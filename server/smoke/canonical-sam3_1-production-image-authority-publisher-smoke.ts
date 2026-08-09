@@ -160,6 +160,37 @@ const manifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
   preparedAt: '2026-08-08T17:00:00.000Z',
 })
 
+for (const requiredSecurityEntry of [
+  'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch',
+  'sam31_private_build_input/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb',
+]) {
+  const tampered = structuredClone(manifest) as unknown as {
+    schemaVersion?: unknown
+    source?: unknown
+    manifestHash?: unknown
+    capsule: {
+      archiveEntries: Array<{
+        path: string
+        byteLength: number
+        sha256: string
+      }>
+      archiveEntrySetSha256: string
+    }
+  }
+  delete tampered.schemaVersion
+  delete tampered.source
+  delete tampered.manifestHash
+  tampered.capsule.archiveEntries = tampered.capsule.archiveEntries.filter(
+    ({ path }) => path !== requiredSecurityEntry,
+  )
+  tampered.capsule.archiveEntrySetSha256 = sha256AuthorityValue(
+    tampered.capsule.archiveEntries,
+  )
+  assert.throws(() => createCanonicalSam31PrivateImageBuildCapsuleManifest(
+    tampered as never,
+  ))
+}
+
 const objectStore = createObjectPort()
 const repository = createCanonicalSam31CloudImageBuildRepository({
   objectPort: objectStore.port,
@@ -311,7 +342,7 @@ assert.throws(() => createCanonicalSam31ProductionImageAuthorityPublisher({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-image-authority-publisher',
-  checks: 23,
+  checks: 25,
   exactQualifiedReleaseReread: true,
   exactPrivateIngestReread: true,
   vertexArtifactBindingExactReread: true,
@@ -320,6 +351,7 @@ console.log(JSON.stringify({
   realAuthorityConstructorSeparatesTrustedReadPortFromSerializedEvidence: true,
   accessorReadPortRejectedWithoutInvocation: true,
   multiplexSessionGpuForwardingPatchBound: true,
+  importlibResourcesPatchAndOsSecurityClosureBound: true,
   accountEffectiveCloudBuildCpuQuotaRespected: true,
   historicalBatchQualificationCastOrRelabelUsed: false,
   callerCommandPathTagRetryOrRuntimeAuthorityAccepted: false,
@@ -456,6 +488,9 @@ function createEntries(input: {
       'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
     ),
     fileEntry(
+      'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch',
+    ),
+    fileEntry(
       'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
     ),
     fileEntry(
@@ -482,6 +517,26 @@ function createEntries(input: {
       'sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json',
       256,
       digest(Buffer.from('cuda-npp-receipt')),
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
+      2_407_824,
+      '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+      1_942_240,
+      '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb',
+      1_002_894,
+      '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/os-security-updates-receipt.json',
+      862,
+      'b3ff4e1e67b428818399c3261eb95a7c0e034d073b2f70fa65f8f1ab46f25a19',
     ),
     fixture(
       'sam31_private_build_input/dependency-closure/dependency-closure-receipt.json',

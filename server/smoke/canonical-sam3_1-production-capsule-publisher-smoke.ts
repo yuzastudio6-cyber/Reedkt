@@ -453,6 +453,9 @@ function createEntries() {
       'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
     ),
     repositoryFile(
+      'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch',
+    ),
+    repositoryFile(
       'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
     ),
     repositoryFile(
@@ -479,6 +482,26 @@ function createEntries() {
       'sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json',
       128,
       'b'.repeat(64),
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
+      2_407_824,
+      '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
+      1_942_240,
+      '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb',
+      1_002_894,
+      '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
+    ),
+    fixture(
+      'sam31_private_build_input/dependency-closure/os-security-updates/os-security-updates-receipt.json',
+      862,
+      'b3ff4e1e67b428818399c3261eb95a7c0e034d073b2f70fa65f8f1ab46f25a19',
     ),
     fixture(
       'sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json',

@@ -49,6 +49,16 @@ const PKGCONF_SHA256 =
   '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' as const
 const CUDA_NPP_SHA256 =
   '54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992' as const
+const IMPORTLIB_RESOURCES_PATCH_SHA256 =
+  '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' as const
+const OPENSSL_LIBSSL_DEV_SHA256 =
+  '9a5cf7bc8e876ef4498ddf0180b6fafe0e52c2a8da2f06f8bc78c2a6fc92ec58' as const
+const OPENSSL_LIBSSL3_SHA256 =
+  '6a963adb1106fca567d24d4a1e5da0bad25de79ac2564cd1ba846e677e1c951b' as const
+const OPENSSL_BINARY_SHA256 =
+  '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b' as const
+const OS_SECURITY_UPDATES_RECEIPT_SHA256 =
+  'b3ff4e1e67b428818399c3261eb95a7c0e034d073b2f70fa65f8f1ab46f25a19' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -921,6 +931,12 @@ function assertCapsuleManifestEntries(
     patchPath,
     value.repositorySource.gpuDecodePatchSha256,
   )
+  const importlibResourcesPatchPath =
+    'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch'
+  if (canonical) required(
+    importlibResourcesPatchPath,
+    IMPORTLIB_RESOURCES_PATCH_SHA256,
+  )
   const multiplexSessionGpuForwardingPatchPath =
     'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch'
   if (value.repositorySource.multiplexSessionGpuForwardingPatchSha256) {
@@ -997,6 +1013,25 @@ function assertCapsuleManifestEntries(
     value.privateInput.cudaForwardCompatPackageSha256,
   )
   if (canonical) required(cudaNppPackagePath, CUDA_NPP_SHA256)
+  const osSecurityUpdatesPrefix =
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/`
+  const libsslDevPackagePath =
+    `${osSecurityUpdatesPrefix}libssl-dev_3.0.13-0ubuntu3.12_amd64.deb`
+  const libssl3PackagePath =
+    `${osSecurityUpdatesPrefix}libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`
+  const opensslPackagePath =
+    `${osSecurityUpdatesPrefix}openssl_3.0.13-0ubuntu3.12_amd64.deb`
+  const osSecurityUpdatesReceiptPath =
+    `${osSecurityUpdatesPrefix}os-security-updates-receipt.json`
+  if (canonical) {
+    required(libsslDevPackagePath, OPENSSL_LIBSSL_DEV_SHA256)
+    required(libssl3PackagePath, OPENSSL_LIBSSL3_SHA256)
+    required(opensslPackagePath, OPENSSL_BINARY_SHA256)
+    required(
+      osSecurityUpdatesReceiptPath,
+      OS_SECURITY_UPDATES_RECEIPT_SHA256,
+    )
+  }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     value.privateInput.cudaForwardCompatIngestReceiptSha256,
@@ -1062,6 +1097,11 @@ function assertCapsuleManifestEntries(
     )?.byteLength !== 80_935
     || byPath.get(cudaPackagePath)?.byteLength !== 37_945_232
     || byPath.get(cudaNppPackagePath)?.byteLength !== 131_485_608
+    || byPath.get(importlibResourcesPatchPath)?.byteLength !== 1_056
+    || byPath.get(libsslDevPackagePath)?.byteLength !== 2_407_824
+    || byPath.get(libssl3PackagePath)?.byteLength !== 1_942_240
+    || byPath.get(opensslPackagePath)?.byteLength !== 1_002_894
+    || byPath.get(osSecurityUpdatesReceiptPath)?.byteLength !== 862
   )) throw new Error('Canonical capsule bytes do not match frozen artifacts.')
 }
 
@@ -1072,6 +1112,7 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
     'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
+    'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch',
     'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
     'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar`,
@@ -1087,6 +1128,10 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/os-security-updates-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,

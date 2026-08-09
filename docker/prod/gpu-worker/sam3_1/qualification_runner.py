@@ -1122,12 +1122,60 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
     return {**payload, "resultHash": sha256_bytes(stable_json_bytes(payload))}
 
 
+def create_result_directory() -> None:
+    """Create the one fixed Cloud Storage FUSE result directory safely.
+
+    Vertex exposes existing bucket objects through implicit directories, but a
+    directory with no object below it does not exist. The staging owner cannot
+    create the result object before launch because the worker must create that
+    object exactly once. Create only the fixed, attempt-derived directory here;
+    no caller path or environment value participates in this operation.
+    """
+    try:
+        attempt_status = QUALIFICATION_MOUNT.lstat()
+    except OSError as error:
+        raise RuntimeError(
+            "qualification attempt directory is unavailable"
+        ) from error
+    if not stat.S_ISDIR(attempt_status.st_mode):
+        raise RuntimeError("qualification attempt directory is unavailable")
+
+    result_directory = RESULT_PATH.parent
+    try:
+        result_directory.mkdir(mode=0o700, parents=False, exist_ok=False)
+    except OSError as error:
+        raise RuntimeError(
+            "qualification result directory could not be created"
+        ) from error
+    try:
+        result_status = result_directory.lstat()
+        first_entry = next(result_directory.iterdir(), None)
+    except OSError as error:
+        raise RuntimeError(
+            "qualification result directory is unavailable"
+        ) from error
+    if not stat.S_ISDIR(result_status.st_mode):
+        raise RuntimeError("qualification result directory is unavailable")
+    if first_entry is not None:
+        raise RuntimeError("qualification result directory is not empty")
+
+
 def write_result(result: dict[str, Any]) -> None:
     payload = stable_json_bytes(result)
     if len(payload) > MAX_RESULT_BYTES:
         raise RuntimeError("qualification result exceeded its byte bound")
-    if RESULT_PATH.parent.is_symlink() or not RESULT_PATH.parent.is_dir():
+    result_directory = RESULT_PATH.parent
+    try:
+        result_status = result_directory.lstat()
+        first_entry = next(result_directory.iterdir(), None)
+    except OSError as error:
+        raise RuntimeError(
+            "qualification result directory is unavailable"
+        ) from error
+    if not stat.S_ISDIR(result_status.st_mode):
         raise RuntimeError("qualification result directory is unavailable")
+    if first_entry is not None:
+        raise RuntimeError("qualification result directory is not empty")
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_CLOEXEC", 0)
     flags |= getattr(os, "O_NOFOLLOW", 0)
     descriptor = os.open(RESULT_PATH, flags, 0o600)
@@ -1141,12 +1189,25 @@ def write_result(result: dict[str, Any]) -> None:
         os.fsync(descriptor)
     finally:
         os.close(descriptor)
+    _, reread_sha256, reread_payload = read_regular_file(
+        RESULT_PATH,
+        MAX_RESULT_BYTES,
+        retain=True,
+    )
+    if (
+        reread_payload != payload
+        or reread_sha256 != sha256_bytes(payload)
+    ):
+        raise RuntimeError("qualification result changed during reread")
 
 
 def main() -> None:
     if len(sys.argv) != 1 or os.environ.get("PYTHONPATH"):
         raise RuntimeError("qualification worker accepts no arguments or PYTHONPATH")
     request = read_request()
+    # Claim this exact attempt before model execution. A Vertex process restart
+    # cannot repeat inference under the same request because mkdir is exclusive.
+    create_result_directory()
     write_result(execute(request))
 
 

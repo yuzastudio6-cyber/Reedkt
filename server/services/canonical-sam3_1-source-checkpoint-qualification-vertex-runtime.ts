@@ -492,13 +492,15 @@ export function createCanonicalSam31VertexQualificationGcsResultReadPort(
       const generation = String(metadata.generation ?? '')
       const size = Number(metadata.size ?? -1)
       const etag = String(metadata.etag ?? '')
+      const contentType = String(metadata.contentType ?? '')
       if (
         !/^[1-9][0-9]{0,30}$/u.test(generation)
         || !etag
         || !Number.isSafeInteger(size)
         || size < 2
         || size > 4 * 1024 * 1024
-        || metadata.contentType !== 'application/json'
+        || !['application/json', 'application/octet-stream']
+          .includes(contentType)
       ) throw new Error('Vertex qualification result metadata is invalid.')
       const exact = input.storage.bucket(PRIVATE_BUCKET).file(objectName, {
         generation,
@@ -509,6 +511,7 @@ export function createCanonicalSam31VertexQualificationGcsResultReadPort(
         body.byteLength !== size
         || String(stable.generation ?? '') !== generation
         || String(stable.etag ?? '') !== etag
+        || String(stable.contentType ?? '') !== contentType
       ) throw new Error('Vertex qualification result identity changed.')
       let decoded: unknown
       try { decoded = JSON.parse(body.toString('utf8')) } catch {

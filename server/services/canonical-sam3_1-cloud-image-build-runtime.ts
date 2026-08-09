@@ -17,6 +17,7 @@ import {
 } from './canonical-gcs-source-analysis-lifecycle-store'
 import {
   assertCanonicalSam31CloudImageBuildSubmission,
+  assertCanonicalSam31CloudImageBuildReconciliation,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
   assertCanonicalSam31AnyCloudImageBuildAuthority,
   createCanonicalSam31CloudImageBuildService,
@@ -26,6 +27,7 @@ import {
   type CanonicalSam31CloudImageBuildQualificationReleaseReadPort,
   type CanonicalSam31CloudImageBuildStatePort,
   type CanonicalSam31CloudImageBuildSubmission,
+  type CanonicalSam31CloudImageBuildReconciliation,
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from './canonical-sam3_1-cloud-image-build-service'
 import {
@@ -46,6 +48,8 @@ export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RUNTIME_VERSION =
 const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds'
 const BUILD_CREATE_ENDPOINT = `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro`
+const BUILD_LIST_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro&pageSize=100`
 const BUILD_RESOURCE = new RegExp(
   '^https://cloudbuild\\.googleapis\\.com/v1/projects/reeditpro/locations/'
     + 'us-central1/builds/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-'
@@ -127,6 +131,9 @@ export interface CanonicalSam31CloudImageBuildRepository
   rereadSubmission(input: {
     readonly submissionRef: EvidenceRef
   }): Promise<CanonicalSam31CloudImageBuildSubmission | null>
+  rereadReconciliation(input: {
+    readonly reconciliationRef: EvidenceRef
+  }): Promise<CanonicalSam31CloudImageBuildReconciliation | null>
   rereadTerminalObservation(input: {
     readonly observationRef: EvidenceRef
   }): Promise<CanonicalSam31CloudImageBuildTerminalObservation | null>
@@ -173,6 +180,19 @@ export function canonicalSam31CloudImageBuildSubmissionRef(
     id: `sam31-cloud-build-submission-${parsed.submissionHash.slice(0, 24)}`,
     version: 1,
     contentHash: `sha256:${parsed.submissionHash}`,
+  })
+}
+
+export function canonicalSam31CloudImageBuildReconciliationRef(
+  reconciliation: CanonicalSam31CloudImageBuildReconciliation,
+): EvidenceRef {
+  const parsed = assertCanonicalSam31CloudImageBuildReconciliation(
+    reconciliation,
+  )
+  return evidenceRefSchema.parse({
+    id: parsed.reconciliationId,
+    version: parsed.reconciliationVersion,
+    contentHash: `sha256:${parsed.reconciliationHash}`,
   })
 }
 
@@ -329,6 +349,22 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
       return true
     },
 
+    async persistReconciliationCreateOnly({ reconciliation }) {
+      const parsed = assertCanonicalSam31CloudImageBuildReconciliation(
+        reconciliation,
+      )
+      await persistExact(
+        input.objectPort,
+        recordPath(
+          prefix,
+          'reconciliations',
+          canonicalSam31CloudImageBuildReconciliationRef(parsed),
+        ),
+        parsed,
+      )
+      return true
+    },
+
     async persistTerminalObservationCreateOnly({ observation }) {
       const parsed = assertCanonicalSam31CloudImageBuildTerminalObservation(
         observation,
@@ -356,6 +392,21 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
       if (!sameRef(ref, canonicalSam31CloudImageBuildSubmissionRef(value))) {
         throw conflict('sam3_1_build_submission_reread_ref_mismatch')
       }
+      return value
+    },
+
+    async rereadReconciliation({ reconciliationRef }) {
+      const ref = evidenceRefSchema.parse(reconciliationRef)
+      const value = await readExact(
+        input.objectPort,
+        recordPath(prefix, 'reconciliations', ref),
+        assertCanonicalSam31CloudImageBuildReconciliation,
+      )
+      if (!value) return null
+      if (!sameRef(
+        ref,
+        canonicalSam31CloudImageBuildReconciliationRef(value),
+      )) throw conflict('sam3_1_build_reconciliation_reread_ref_mismatch')
       return value
     },
 
@@ -471,9 +522,33 @@ export function createCanonicalSam31CloudImageBuildRuntime(input: {
       ) || !sameRef(submission.authorityRef, request.authorityRef)) {
         throw conflict('sam3_1_cloud_build_persisted_lineage_mismatch')
       }
+      let reconciliation: CanonicalSam31CloudImageBuildReconciliation
+        | undefined
+      if (
+        submission.disposition === 'outcome_unknown'
+        && submission.providerOutcome === 'unknown'
+      ) {
+        const created = await service.reconcileUnknownImageBuild({
+          reconciliationId:
+            `sam31-cloud-build-reconciliation-${submission.submissionHash.slice(0, 24)}`,
+          authority,
+          submission,
+        })
+        const reconciliationRef =
+          canonicalSam31CloudImageBuildReconciliationRef(created)
+        const reread = await input.repository.rereadReconciliation({
+          reconciliationRef,
+        })
+        if (!reread
+          || reread.reconciliationHash !== created.reconciliationHash) {
+          throw conflict('sam3_1_cloud_build_reconciliation_not_exactly_reread')
+        }
+        reconciliation = reread
+      }
       const observation = await service.observeOneImageBuild({
         authority,
         submission,
+        reconciliation,
       })
       if (!observation.durableTerminalObservationCreated) return observation
       const observationRef =
@@ -539,7 +614,9 @@ function assertCloudBuildTransportRequest(request: {
   if (
     post
       ? request.url !== BUILD_CREATE_ENDPOINT || request.body === undefined
-      : !BUILD_RESOURCE.test(request.url) || request.body !== undefined
+      : (request.url !== BUILD_LIST_ENDPOINT
+          && !BUILD_RESOURCE.test(request.url))
+        || request.body !== undefined
   ) throw notReady('sam3_1_cloud_build_transport_request_not_allowlisted')
   if (request.body !== undefined) {
     assertClosedJson(request.body, 'sam3_1_cloud_build_request')

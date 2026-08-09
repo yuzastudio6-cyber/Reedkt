@@ -73,7 +73,7 @@ const fakeAuth = {
             build: {
               id: buildId,
               name:
-                `projects/reeditpro/locations/us-central1/builds/${buildId}`,
+                `projects/390722338345/locations/us-central1/builds/${buildId}`,
               projectId: 'reeditpro',
             },
           },
@@ -178,6 +178,75 @@ assert.equal(
   terminal.observationHash,
 )
 
+const { authorityHash: _authorityHash, ...reconciliationAuthorityPayload } =
+  structuredClone(authority)
+assert.equal(_authorityHash, authority.authorityHash)
+reconciliationAuthorityPayload.authorityId =
+  'sam31-cloud-runtime-reconciliation-smoke-authority'
+const reconciliationAuthority = assertCanonicalSam31CloudImageBuildAuthority({
+  ...reconciliationAuthorityPayload,
+  authorityHash: sha256AuthorityValue(reconciliationAuthorityPayload),
+})
+const reconciliationBuildBody = compileCanonicalSam31CloudBuildRequestBody(
+  reconciliationAuthority,
+)
+const reconciliationBuild = successfulBuildResource(
+  buildId,
+  reconciliationBuildBody,
+  reconciliationAuthority.imageDestination.taggedUri,
+)
+reconciliationBuild.status = 'WORKING'
+reconciliationBuild.createTime = '2026-08-03T18:05:01.000Z'
+reconciliationBuild.results = { images: [] }
+let reconciliationRequests = 0
+const reconciliationRuntime = createCanonicalSam31CloudImageBuildRuntime({
+  repository,
+  qualificationReleaseReadPort: {
+    async rereadQualificationRelease() {
+      return structuredClone(qualificationRelease)
+    },
+  },
+  authenticatedTransport: {
+    async request(request) {
+      reconciliationRequests += 1
+      if (request.method === 'POST') return { status: 200, json: {} }
+      if (request.url.endsWith('pageSize=100')) return {
+        status: 200,
+        json: { builds: [structuredClone(reconciliationBuild)] },
+      }
+      return { status: 200, json: structuredClone(reconciliationBuild) }
+    },
+  },
+  now: () => '2026-08-03T18:05:00.000Z',
+})
+const reconciliationAuthorityRef =
+  await reconciliationRuntime.persistBuildAuthorityCreateOnly({
+    authority: reconciliationAuthority,
+  })
+const unknownSubmission = await reconciliationRuntime.startOneImageBuild({
+  authorityRef: reconciliationAuthorityRef,
+})
+assert.equal(unknownSubmission.disposition, 'outcome_unknown')
+assert.equal(unknownSubmission.providerHttpStatus, 200)
+assert.equal(unknownSubmission.automaticRetryAllowed, false)
+const reconciledPending =
+  await reconciliationRuntime.observeOnePersistedImageBuild({
+    authorityRef: reconciliationAuthorityRef,
+    submissionRef: canonicalSam31CloudImageBuildSubmissionRef(
+      unknownSubmission,
+    ),
+  })
+assert.equal(reconciledPending.disposition, 'pending')
+assert.equal(reconciledPending.cloudBuildId, buildId)
+assert.equal(reconciliationRequests, 3)
+
+await transport.request({
+  method: 'GET',
+  url:
+    'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro&pageSize=100',
+})
+assert.equal(authRequests.at(-1)?.method, 'GET')
+
 const callCountBeforeRefusals = authRequests.length
 await assert.rejects(() => transport.request({
   method: 'POST',
@@ -241,7 +310,7 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-build-runtime',
-  checks: 44,
+  checks: 53,
   googleAdcTransportPresent: true,
   exactCloudBuildOriginAllowlisted: true,
   automaticHttpRetryAllowed: false,
@@ -249,6 +318,7 @@ console.log(JSON.stringify({
   durableSingleUseConsumption: true,
   fixedPrivateControlPlaneStateBucket: true,
   exactAuthoritySubmissionAndTerminalReread: true,
+  acceptedUnknownBuildReconciledAndRereadWithoutRetry: true,
   checkpointIncludedInBuildRequest: false,
   developerMachineModelInstallAllowed: false,
   imageBuildExecutedAgainstProvider: false,
@@ -383,6 +453,7 @@ function successfulBuildResource(
     name: `projects/reeditpro/locations/us-central1/builds/${id}`,
     projectId: 'reeditpro',
     status: 'SUCCESS',
+    createTime: '2026-08-03T18:00:00.000Z',
     warnings: [],
     source,
     sourceProvenance: {
@@ -390,8 +461,11 @@ function successfulBuildResource(
     },
     steps: structuredClone(body.steps),
     images: structuredClone(body.images),
+    timeout: body.timeout,
+    queueTtl: body.queueTtl,
     options: structuredClone(body.options),
     serviceAccount: body.serviceAccount,
+    tags: structuredClone(body.tags),
     results: {
       images: [{
         name: taggedImageUri,

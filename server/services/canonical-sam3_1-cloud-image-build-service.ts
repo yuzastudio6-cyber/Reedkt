@@ -33,12 +33,19 @@ export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_TERMINAL_OBSERVATION_VERSION =
   'canonical-sam3_1-cloud-image-build-terminal-observation-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
+const PROJECT_NUMBER = '390722338345' as const
 const BUILD_COLLECTION =
   'projects/reeditpro/locations/us-central1/builds' as const
+const PROVIDER_BUILD_COLLECTIONS = new Set([
+  BUILD_COLLECTION,
+  `projects/${PROJECT_NUMBER}/locations/us-central1/builds`,
+])
 const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds' as const
 const BUILD_CREATE_ENDPOINT =
   `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
+const BUILD_LIST_ENDPOINT =
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro&pageSize=100` as const
 const ARTIFACT_REGISTRY_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu' as const
 const safeId = z.string().trim().min(1).max(512)
@@ -133,6 +140,81 @@ export const canonicalSam31CloudImageBuildSubmissionSchema =
   submissionWithoutHashSchema.extend({ submissionHash: rawSha256 }).strict()
 export type CanonicalSam31CloudImageBuildSubmission = z.infer<
   typeof canonicalSam31CloudImageBuildSubmissionSchema
+>
+
+export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RECONCILIATION_VERSION =
+  'canonical-sam3_1-cloud-image-build-reconciliation-v1' as const
+const buildStatusSchema = z.enum([
+  'PENDING', 'QUEUED', 'WORKING', 'SUCCESS', 'FAILURE', 'INTERNAL_ERROR',
+  'TIMEOUT', 'CANCELLED', 'EXPIRED', 'STATUS_UNKNOWN',
+])
+const reconciliationWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RECONCILIATION_VERSION,
+  ),
+  source: z.literal('canonical_sam3_1_cloud_image_build_reconciliation_owner'),
+  disposition: z.enum(['matched_exact_build', 'no_match', 'ambiguous']),
+  reconciliationId: safeId,
+  reconciliationVersion: z.literal(1),
+  authorityRef: authorityRefSchema,
+  submissionRef: authorityRefSchema,
+  buildRequestHash: rawSha256,
+  providerHttpStatus: z.literal(200),
+  cloudBuildListResponseSha256: rawSha256,
+  matchingBuildCount: z.number().int().min(0).max(100),
+  cloudBuildId: z.string().uuid().nullable(),
+  cloudBuildResource: safeId.nullable(),
+  providerCloudBuildResource: safeId.nullable(),
+  cloudBuildStatus: buildStatusSchema.nullable(),
+  cloudBuildCreateTime: timestamp.nullable(),
+  providerProjectIdentityNormalized: z.boolean(),
+  exactBuildConfigurationEchoVerified: z.boolean(),
+  exactStorageGenerationProvenanceVerified: z.boolean(),
+  predecessorImageBuildKnownStarted: z.boolean(),
+  automaticRetryAllowed: z.literal(false),
+  runtimeReleaseGranted: z.literal(false),
+  gpuJobDispatched: z.literal(false),
+  customerCreditMutationCreated: z.literal(false),
+  productionReady: z.literal(false),
+  observedAt: timestamp,
+}).strict().superRefine((value, context) => {
+  const matched = value.disposition === 'matched_exact_build'
+  if (
+    matched
+      ? value.matchingBuildCount !== 1
+        || !value.cloudBuildId
+        || value.cloudBuildResource !==
+          `${BUILD_COLLECTION}/${value.cloudBuildId}`
+        || !value.providerCloudBuildResource
+        || !value.cloudBuildStatus
+        || !value.cloudBuildCreateTime
+        || !value.providerProjectIdentityNormalized
+        || !value.exactBuildConfigurationEchoVerified
+        || !value.exactStorageGenerationProvenanceVerified
+        || !value.predecessorImageBuildKnownStarted
+      : value.cloudBuildId !== null
+        || value.cloudBuildResource !== null
+        || value.providerCloudBuildResource !== null
+        || value.cloudBuildStatus !== null
+        || value.cloudBuildCreateTime !== null
+        || value.providerProjectIdentityNormalized
+        || value.exactBuildConfigurationEchoVerified
+        || value.exactStorageGenerationProvenanceVerified
+        || value.predecessorImageBuildKnownStarted
+        || (value.disposition === 'no_match'
+          ? value.matchingBuildCount !== 0
+          : value.matchingBuildCount < 2)
+  ) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 Cloud Build reconciliation lost exact build truth.',
+  })
+})
+export const canonicalSam31CloudImageBuildReconciliationSchema =
+  reconciliationWithoutHashSchema.extend({
+    reconciliationHash: rawSha256,
+  }).strict()
+export type CanonicalSam31CloudImageBuildReconciliation = z.infer<
+  typeof canonicalSam31CloudImageBuildReconciliationSchema
 >
 
 const terminalWithoutHashSchema = z.object({
@@ -242,6 +324,9 @@ export interface CanonicalSam31CloudImageBuildStatePort {
   }): Promise<boolean>
   persistSubmissionCreateOnly(input: {
     readonly submission: CanonicalSam31CloudImageBuildSubmission
+  }): Promise<boolean>
+  persistReconciliationCreateOnly(input: {
+    readonly reconciliation: CanonicalSam31CloudImageBuildReconciliation
   }): Promise<boolean>
   persistTerminalObservationCreateOnly(input: {
     readonly observation: CanonicalSam31CloudImageBuildTerminalObservation
@@ -402,9 +487,82 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       }
     },
 
+    reconcileUnknownImageBuild: async (request: {
+      readonly reconciliationId: string
+      readonly authority: CanonicalSam31AnyCloudImageBuildAuthority
+      readonly submission: CanonicalSam31CloudImageBuildSubmission
+    }): Promise<CanonicalSam31CloudImageBuildReconciliation> => {
+      const observedAt = input.now?.() ?? new Date().toISOString()
+      const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
+        request.authority,
+      )
+      const submission = assertCanonicalSam31CloudImageBuildSubmission(
+        request.submission,
+      )
+      const submissionRef = submissionReference(submission)
+      const expectedBody = compileCloudBuildBody(authority)
+      if (
+        submission.disposition !== 'outcome_unknown'
+        || submission.providerOutcome !== 'unknown'
+        || submission.providerHttpStatus !== 200
+        || submission.buildRequestHash !== sha256AuthorityValue(expectedBody)
+        || submission.cloudBuildId !== null
+        || submission.cloudBuildResource !== null
+        || submission.imageBuildKnownStarted
+        || !sameRef(submission.authorityRef, authorityReference(authority))
+      ) throw new Error('SAM 3.1 Cloud Build submission is not reconcilable.')
+      const response = await input.authenticatedTransport.request({
+        method: 'GET',
+        url: BUILD_LIST_ENDPOINT,
+      })
+      if (response.status !== 200) {
+        throw new Error('SAM 3.1 Cloud Build list reread failed.')
+      }
+      const list = parseCloudBuildList(response.json)
+      const submittedAt = Date.parse(submission.observedAt)
+      const matches = list.filter((build) => {
+        const createdAt = Date.parse(build.createTime)
+        return createdAt >= submittedAt - 5_000
+          && createdAt <= submittedAt + 300_000
+          && exactBuildRequestEchoMatches(build, expectedBody)
+      })
+      const match = matches.length === 1 ? matches[0] : null
+      const reconciliation = buildReconciliation({
+        reconciliationId: request.reconciliationId,
+        disposition: match
+          ? 'matched_exact_build'
+          : matches.length === 0 ? 'no_match' : 'ambiguous',
+        authorityRef: submission.authorityRef,
+        submissionRef,
+        buildRequestHash: submission.buildRequestHash,
+        providerHttpStatus: 200,
+        cloudBuildListResponseSha256: sha256AuthorityValue(response.json),
+        matchingBuildCount: matches.length,
+        cloudBuildId: match?.id ?? null,
+        cloudBuildResource: match
+          ? `${BUILD_COLLECTION}/${match.id}` : null,
+        providerCloudBuildResource: match?.name ?? null,
+        cloudBuildStatus: match?.status ?? null,
+        cloudBuildCreateTime: match?.createTime ?? null,
+        providerProjectIdentityNormalized: match !== null,
+        exactBuildConfigurationEchoVerified: match !== null,
+        exactStorageGenerationProvenanceVerified: match !== null,
+        predecessorImageBuildKnownStarted: match !== null,
+        observedAt,
+      })
+      const persisted = await input.statePort.persistReconciliationCreateOnly({
+        reconciliation,
+      })
+      if (!persisted) {
+        throw new Error('SAM 3.1 Cloud Build reconciliation was not durable.')
+      }
+      return reconciliation
+    },
+
     observeOneImageBuild: async (request: {
       readonly authority: CanonicalSam31AnyCloudImageBuildAuthority
       readonly submission: CanonicalSam31CloudImageBuildSubmission
+      readonly reconciliation?: CanonicalSam31CloudImageBuildReconciliation
     }): Promise<CanonicalSam31CloudImageBuildTerminalObservation> => {
       const observedAt = input.now?.() ?? new Date().toISOString()
       const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
@@ -413,21 +571,30 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       const submission = assertCanonicalSam31CloudImageBuildSubmission(
         request.submission,
       )
+      const reconciliation = request.reconciliation === undefined
+        ? null
+        : assertCanonicalSam31CloudImageBuildReconciliation(
+          request.reconciliation,
+        )
+      const reconciled = submission.disposition === 'outcome_unknown'
+        && reconciliation?.disposition === 'matched_exact_build'
+        && sameRef(reconciliation.authorityRef, submission.authorityRef)
+        && sameRef(reconciliation.submissionRef, submissionReference(submission))
+        && reconciliation.buildRequestHash === submission.buildRequestHash
+      const cloudBuildId = submission.disposition === 'submitted'
+        ? submission.cloudBuildId
+        : reconciled ? reconciliation.cloudBuildId : null
       if (
-        submission.disposition !== 'submitted'
-        || !submission.cloudBuildId
+        !cloudBuildId
+        || (submission.disposition !== 'submitted' && !reconciled)
         || !sameRef(submission.authorityRef, authorityReference(authority))
       ) throw new Error('SAM 3.1 Cloud Build observation is not admitted.')
-      const submissionRef = {
-        id: `sam31-cloud-build-submission-${submission.submissionHash.slice(0, 24)}`,
-        version: 1 as const,
-        contentHash: `sha256:${submission.submissionHash}` as const,
-      }
+      const submissionRef = submissionReference(submission)
       const base = {
         authorityRef: submission.authorityRef,
         submissionRef,
-        cloudBuildId: submission.cloudBuildId,
-        cloudBuildResource: `${BUILD_COLLECTION}/${submission.cloudBuildId}`,
+        cloudBuildId,
+        cloudBuildResource: `${BUILD_COLLECTION}/${cloudBuildId}`,
         taggedImageUri: authority.imageDestination.taggedUri,
         observedAt,
       }
@@ -435,7 +602,7 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       try {
         const response = await input.authenticatedTransport.request({
           method: 'GET',
-          url: `${BUILD_COLLECTION_ENDPOINT}/${submission.cloudBuildId}`,
+          url: `${BUILD_COLLECTION_ENDPOINT}/${cloudBuildId}`,
         })
         status = response.status
         if (status < 200 || status >= 300) {
@@ -443,8 +610,8 @@ export function createCanonicalSam31CloudImageBuildService(input: {
         }
         const build = parseCloudBuildResource(response.json)
         if (
-          build.id !== submission.cloudBuildId
-          || build.name !== `${BUILD_COLLECTION}/${submission.cloudBuildId}`
+          build.id !== cloudBuildId
+          || !providerBuildNameMatches(build.name, cloudBuildId)
         ) throw new Error('Cloud Build reread crossed build identity.')
         if (['PENDING', 'QUEUED', 'WORKING'].includes(build.status)) {
           return buildTerminalObservation({
@@ -573,6 +740,18 @@ export function assertCanonicalSam31CloudImageBuildSubmission(
   return parsed
 }
 
+export function assertCanonicalSam31CloudImageBuildReconciliation(
+  value: unknown,
+): CanonicalSam31CloudImageBuildReconciliation {
+  assertClosedPlainData(value, 'sam3_1_cloud_image_build_reconciliation')
+  const parsed = canonicalSam31CloudImageBuildReconciliationSchema.parse(value)
+  const { reconciliationHash, ...payload } = parsed
+  if (reconciliationHash !== sha256AuthorityValue(payload)) {
+    throw new Error('SAM 3.1 Cloud Build reconciliation hash is invalid.')
+  }
+  return parsed
+}
+
 export function assertCanonicalSam31CloudImageBuildTerminalObservation(
   value: unknown,
 ): CanonicalSam31CloudImageBuildTerminalObservation {
@@ -662,7 +841,7 @@ function parseCloudBuildCreateOperation(value: unknown): {
   const build = record(metadata.build)
   const buildId = z.string().uuid().parse(build.id)
   if (
-    build.name !== `${BUILD_COLLECTION}/${buildId}`
+    !providerBuildNameMatches(z.string().parse(build.name), buildId)
     || build.projectId !== PROJECT_ID
   ) throw new Error('Cloud Build create operation crossed project or build.')
   return { operationName, buildId }
@@ -687,6 +866,7 @@ function parseCloudBuildResource(value: unknown) {
     name: z.string().parse(root.name),
     projectId: z.literal(PROJECT_ID).parse(root.projectId),
     status,
+    createTime: timestamp.parse(root.createTime),
     warnings: Array.isArray(root.warnings) ? root.warnings : [],
     results: {
       images: Array.isArray(results.images)
@@ -706,23 +886,23 @@ function parseCloudBuildResource(value: unknown) {
   }
 }
 
+function parseCloudBuildList(value: unknown): readonly ParsedBuild[] {
+  assertClosedPlainData(value, 'cloud_build_list')
+  const root = z.object({
+    builds: z.array(z.unknown()).max(100).default([]),
+    nextPageToken: z.string().optional(),
+  }).passthrough().parse(value)
+  if (root.nextPageToken) {
+    throw new Error('SAM 3.1 Cloud Build list pagination is incomplete.')
+  }
+  return root.builds.map(parseCloudBuildResource)
+}
+
 function assertCloudBuildEcho(
   build: ParsedBuild,
   expectedBody: Readonly<Record<string, unknown>>,
   authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): void {
-  const raw = build.raw
-  const expected = expectedBody
-  const actualSource = record(raw.source)
-  const actualStorage = record(actualSource.storageSource)
-  const expectedStorage = record(record(expected.source).storageSource)
-  const resolvedStorage = record(build.sourceProvenance.resolvedStorageSource)
-  const actualSteps = z.array(z.unknown()).parse(raw.steps)
-  const expectedSteps = z.array(z.unknown()).parse(expected.steps)
-  const actualImages = z.array(z.string()).parse(raw.images)
-  const expectedImages = z.array(z.string()).parse(expected.images)
-  const actualOptions = record(raw.options)
-  const expectedOptions = record(expected.options)
   const image = build.results.images[0]
   if (
     build.status !== 'SUCCESS'
@@ -730,24 +910,7 @@ function assertCloudBuildEcho(
     || build.results.images.length !== 1
     || image.name !== authority.imageDestination.taggedUri
     || image.artifactRegistryPackage !== ARTIFACT_REGISTRY_PACKAGE
-    || raw.serviceAccount !== expected.serviceAccount
-    || !sameJson(actualStorage, expectedStorage)
-    || !sameJson(resolvedStorage, expectedStorage)
-    || !sameJson(actualSteps, expectedSteps)
-    || !sameJson(actualImages, expectedImages)
-    || actualOptions.machineType !== expectedOptions.machineType
-    || actualOptions.diskSizeGb !== expectedOptions.diskSizeGb
-    || actualOptions.requestedVerifyOption !==
-      expectedOptions.requestedVerifyOption
-    || actualOptions.logging !== expectedOptions.logging
-    || !sameJson(
-      actualOptions.sourceProvenanceHash,
-      expectedOptions.sourceProvenanceHash,
-    )
-    || hasNonEmptyValue(raw.substitutions)
-    || hasNonEmptyValue(raw.secrets)
-    || hasNonEmptyValue(raw.availableSecrets)
-    || hasNonEmptyValue(raw.buildTriggerId)
+    || !exactBuildRequestEchoMatches(build, expectedBody)
   ) throw new Error('Cloud Build terminal resource differs from authority.')
 }
 
@@ -780,6 +943,34 @@ function buildSubmission(input: Omit<
   return canonicalSam31CloudImageBuildSubmissionSchema.parse({
     ...payload,
     submissionHash: sha256AuthorityValue(payload),
+  })
+}
+
+function buildReconciliation(input: Omit<
+  z.input<typeof reconciliationWithoutHashSchema>,
+  | 'schemaVersion'
+  | 'source'
+  | 'reconciliationVersion'
+  | 'automaticRetryAllowed'
+  | 'runtimeReleaseGranted'
+  | 'gpuJobDispatched'
+  | 'customerCreditMutationCreated'
+  | 'productionReady'
+>): CanonicalSam31CloudImageBuildReconciliation {
+  const payload = reconciliationWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RECONCILIATION_VERSION,
+    source: 'canonical_sam3_1_cloud_image_build_reconciliation_owner',
+    reconciliationVersion: 1,
+    automaticRetryAllowed: false,
+    runtimeReleaseGranted: false,
+    gpuJobDispatched: false,
+    customerCreditMutationCreated: false,
+    productionReady: false,
+    ...input,
+  })
+  return canonicalSam31CloudImageBuildReconciliationSchema.parse({
+    ...payload,
+    reconciliationHash: sha256AuthorityValue(payload),
   })
 }
 
@@ -828,6 +1019,16 @@ function authorityReference(
     version: authority.authorityVersion,
     contentHash: `sha256:${authority.authorityHash}` as const,
   }
+}
+
+function submissionReference(
+  submission: CanonicalSam31CloudImageBuildSubmission,
+) {
+  return authorityRefSchema.parse({
+    id: `sam31-cloud-build-submission-${submission.submissionHash.slice(0, 24)}`,
+    version: 1,
+    contentHash: `sha256:${submission.submissionHash}`,
+  })
 }
 
 function safeAuthorityRef(value: unknown): z.infer<typeof authorityRefSchema> {
@@ -896,6 +1097,73 @@ function hasNonEmptyValue(value: unknown): boolean {
 
 function sameJson(left: unknown, right: unknown): boolean {
   return sha256AuthorityValue(left) === sha256AuthorityValue(right)
+}
+
+function providerBuildNameMatches(name: string, buildId: string): boolean {
+  return [...PROVIDER_BUILD_COLLECTIONS].some(
+    (collection) => name === `${collection}/${buildId}`,
+  )
+}
+
+function exactBuildRequestEchoMatches(
+  build: ParsedBuild,
+  expectedBody: Readonly<Record<string, unknown>>,
+): boolean {
+  try {
+    const expectedSource = record(expectedBody.source)
+    const expectedStorage = record(expectedSource.storageSource)
+    const observedResolvedStorage = record(
+      build.sourceProvenance.resolvedStorageSource,
+    )
+    const raw = build.raw
+    return build.projectId === PROJECT_ID
+      && providerBuildNameMatches(build.name, build.id)
+      && sameJson(raw.source, expectedSource)
+      && sameBuildSteps(raw.steps, expectedBody.steps)
+      && sameJson(raw.images, expectedBody.images)
+      && raw.timeout === expectedBody.timeout
+      && raw.queueTtl === expectedBody.queueTtl
+      && raw.serviceAccount === expectedBody.serviceAccount
+      && sameBuildOptions(raw.options, expectedBody.options)
+      && sameJson(raw.tags, expectedBody.tags)
+      && sameJson(observedResolvedStorage, expectedStorage)
+      && !hasNonEmptyValue(raw.substitutions)
+      && !hasNonEmptyValue(raw.secrets)
+      && !hasNonEmptyValue(raw.availableSecrets)
+      && !hasNonEmptyValue(raw.buildTriggerId)
+  } catch {
+    return false
+  }
+}
+
+function sameBuildSteps(observed: unknown, expected: unknown): boolean {
+  const observedSteps = z.array(z.object({
+    id: z.unknown(),
+    name: z.unknown(),
+    args: z.unknown(),
+  }).passthrough()).max(100).safeParse(observed)
+  const expectedSteps = z.array(z.object({
+    id: z.unknown(),
+    name: z.unknown(),
+    args: z.unknown(),
+  }).strict()).max(100).safeParse(expected)
+  if (!observedSteps.success || !expectedSteps.success) return false
+  return sameJson(observedSteps.data.map(({ id, name, args }) => ({
+    id, name, args,
+  })), expectedSteps.data)
+}
+
+function sameBuildOptions(observed: unknown, expected: unknown): boolean {
+  const keys = [
+    'machineType', 'diskSizeGb', 'sourceProvenanceHash',
+    'requestedVerifyOption', 'logging',
+  ] as const
+  const observedRecord = record(observed)
+  const expectedRecord = record(expected)
+  return sameJson(
+    Object.fromEntries(keys.map((key) => [key, observedRecord[key]])),
+    Object.fromEntries(keys.map((key) => [key, expectedRecord[key]])),
+  )
 }
 
 function assertClosedPlainData(value: unknown, label: string): void {

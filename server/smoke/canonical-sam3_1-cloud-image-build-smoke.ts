@@ -33,6 +33,7 @@ import {
 } from './fixtures/canonical-sam3_1-qualification-worker-fixture'
 import {
   assertCanonicalSam31CloudImageBuildSubmission,
+  assertCanonicalSam31CloudImageBuildReconciliation,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
   compileCanonicalSam31CloudBuildRequestBody,
   createCanonicalSam31CloudImageBuildService,
@@ -374,7 +375,7 @@ const service = createCanonicalSam31CloudImageBuildService({
             metadata: {
               build: {
                 id: buildId,
-                name: `projects/reeditpro/locations/us-central1/builds/${buildId}`,
+                name: `projects/390722338345/locations/us-central1/builds/${buildId}`,
                 projectId: 'reeditpro',
               },
             },
@@ -654,6 +655,71 @@ assert.equal(
 )
 assert.equal(unknownCalls, 1)
 
+let reconciliationCloudCalls = 0
+const reconciliationState = createStatePort()
+const reconciliationBuild = successfulBuildResource(
+  buildId,
+  buildBody,
+  authority.imageDestination.taggedUri,
+)
+reconciliationBuild.status = 'WORKING'
+reconciliationBuild.createTime = '2026-08-03T13:05:01.000Z'
+reconciliationBuild.name =
+  `projects/390722338345/locations/us-central1/builds/${buildId}`
+reconciliationBuild.results = { images: [] }
+const reconciliationService = createCanonicalSam31CloudImageBuildService({
+  authorityReadPort: {
+    async rereadBuildAuthority() {
+      return structuredClone(authority)
+    },
+  },
+  qualificationReleaseReadPort,
+  statePort: reconciliationState.port,
+  authenticatedTransport: {
+    async request(request) {
+      reconciliationCloudCalls += 1
+      if (request.method === 'POST') return { status: 200, json: {} }
+      if (request.url.endsWith('pageSize=100')) return {
+        status: 200,
+        json: { builds: [structuredClone(reconciliationBuild)] },
+      }
+      return { status: 200, json: structuredClone(reconciliationBuild) }
+    },
+  },
+  now: () => '2026-08-03T13:05:00.000Z',
+})
+const acceptedButUnparsed = await reconciliationService.startOneImageBuild({
+  authorityRef,
+})
+assert.equal(acceptedButUnparsed.disposition, 'outcome_unknown')
+assert.equal(acceptedButUnparsed.providerHttpStatus, 200)
+assert.equal(acceptedButUnparsed.providerOutcome, 'unknown')
+assert.equal(acceptedButUnparsed.automaticRetryAllowed, false)
+const reconciliation = await reconciliationService.reconcileUnknownImageBuild({
+  reconciliationId: 'sam31-cloud-build-reconciliation-smoke',
+  authority,
+  submission: acceptedButUnparsed,
+})
+assert.equal(reconciliation.disposition, 'matched_exact_build')
+assert.equal(reconciliation.cloudBuildId, buildId)
+assert.equal(reconciliation.providerProjectIdentityNormalized, true)
+assert.equal(reconciliation.exactBuildConfigurationEchoVerified, true)
+assert.equal(reconciliation.automaticRetryAllowed, false)
+assert.equal(
+  assertCanonicalSam31CloudImageBuildReconciliation(reconciliation)
+    .reconciliationHash,
+  reconciliation.reconciliationHash,
+)
+assert.equal(
+  (await reconciliationService.observeOneImageBuild({
+    authority,
+    submission: acceptedButUnparsed,
+    reconciliation,
+  })).disposition,
+  'pending',
+)
+assert.equal(reconciliationCloudCalls, 3)
+
 let knownBuildCalls = 0
 const lostSubmissionBaseState = createStatePort()
 const lostSubmissionService = createCanonicalSam31CloudImageBuildService({
@@ -755,13 +821,14 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-build',
-  checks: 77,
+  checks: 89,
   qualificationReleaseRereadRequired: true,
   cloudBuildSubmitted: submission.disposition === 'submitted',
   exactStorageGenerationProvenanceVerified:
     terminal.exactStorageGenerationProvenanceVerified,
   checkpointIncludedInImage: authority.authority.checkpointIncludedInImage,
   automaticRetryAllowed: submission.automaticRetryAllowed,
+  unknownAcceptedBuildReconciledWithoutRetry: true,
   imageScanPassed: terminal.imageScanPassed,
   a100RuntimeQualified: terminal.a100RuntimeQualified,
   l4RuntimeQualified: terminal.l4RuntimeQualified,
@@ -1172,6 +1239,7 @@ function successfulBuildResource(
     name: `projects/reeditpro/locations/us-central1/builds/${id}`,
     projectId: 'reeditpro',
     status: 'SUCCESS',
+    createTime: '2026-08-03T13:02:00.000Z',
     source,
     steps: structuredClone(body.steps),
     images: structuredClone(body.images),
@@ -1199,6 +1267,7 @@ function successfulBuildResource(
 function createStatePort() {
   const consumed = new Set<string>()
   const submissions = new Set<string>()
+  const reconciliations = new Set<string>()
   const terminals = new Set<string>()
   const port: CanonicalSam31CloudImageBuildStatePort = {
     async consumeAuthorityCreateOnly(input) {
@@ -1212,13 +1281,18 @@ function createStatePort() {
       submissions.add(submission.submissionHash)
       return true
     },
+    async persistReconciliationCreateOnly({ reconciliation }) {
+      if (reconciliations.has(reconciliation.reconciliationHash)) return false
+      reconciliations.add(reconciliation.reconciliationHash)
+      return true
+    },
     async persistTerminalObservationCreateOnly({ observation }) {
       if (terminals.has(observation.observationHash)) return false
       terminals.add(observation.observationHash)
       return true
     },
   }
-  return { port, consumed, submissions, terminals }
+  return { port, consumed, submissions, reconciliations, terminals }
 }
 
 function createCapsuleFiles(

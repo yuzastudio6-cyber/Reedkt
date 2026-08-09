@@ -8,9 +8,6 @@ import {
 import {
   assertPlainSerializedData,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
-import {
-  sha256AuthorityValue,
-} from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_BUILDER_RESULT_VERSION =
   'weeditpro-sam3_1-production-capsule-builder-result-v2' as const
@@ -123,7 +120,7 @@ const builderWithoutHashSchema = z.object({
 }).strict().superRefine((value, context) => {
   const entries = value.archiveEntries
   if (
-    value.archiveEntrySetSha256 !== sha256AuthorityValue(entries)
+    value.archiveEntrySetSha256 !== productionCapsuleValueSha256(entries)
     || entries.some((entry, index) => index > 0
       && !(entries[index - 1].path < entry.path))
     || entries.some((entry) => isProhibitedCheckpointArchiveEntry(entry.path))
@@ -258,7 +255,7 @@ export function sealCanonicalSam31ProductionCapsuleBuilderResult(
   const payload = builderWithoutHashSchema.parse(value)
   return canonicalSam31ProductionCapsuleBuilderResultSchema.parse({
     ...payload,
-    builderResultHash: sha256AuthorityValue(payload),
+    builderResultHash: productionCapsuleValueSha256(payload),
   })
 }
 
@@ -268,7 +265,7 @@ export function assertCanonicalSam31ProductionCapsuleBuilderResult(
   assertPlainSerializedData(value, 'sam31_production_capsule_builder_result')
   const parsed = canonicalSam31ProductionCapsuleBuilderResultSchema.parse(value)
   const { builderResultHash, ...payload } = parsed
-  if (builderResultHash !== sha256AuthorityValue(payload)) {
+  if (builderResultHash !== productionCapsuleValueSha256(payload)) {
     throw new Error('Production capsule builder-result hash is invalid.')
   }
   return parsed
@@ -281,7 +278,7 @@ export function sealCanonicalSam31ProductionCapsuleSecurityReview(
   const payload = securityWithoutHashSchema.parse(value)
   return canonicalSam31ProductionCapsuleSecurityReviewSchema.parse({
     ...payload,
-    securityReviewHash: sha256AuthorityValue(payload),
+    securityReviewHash: productionCapsuleValueSha256(payload),
   })
 }
 
@@ -293,7 +290,7 @@ export function assertCanonicalSam31ProductionCapsuleSecurityReview(
     value,
   )
   const { securityReviewHash, ...payload } = parsed
-  if (securityReviewHash !== sha256AuthorityValue(payload)) {
+  if (securityReviewHash !== productionCapsuleValueSha256(payload)) {
     throw new Error('Production capsule security-review hash is invalid.')
   }
   return parsed
@@ -362,7 +359,7 @@ export function createCanonicalSam31ProductionCapsuleReproducibility(input: {
   })
   return canonicalSam31ProductionCapsuleReproducibilitySchema.parse({
     ...payload,
-    receiptHash: sha256AuthorityValue(payload),
+    receiptHash: productionCapsuleValueSha256(payload),
   })
 }
 
@@ -374,7 +371,7 @@ export function assertCanonicalSam31ProductionCapsuleReproducibility(
     value,
   )
   const { receiptHash, ...payload } = parsed
-  if (receiptHash !== sha256AuthorityValue(payload)) {
+  if (receiptHash !== productionCapsuleValueSha256(payload)) {
     throw new Error('Production capsule reproducibility hash is invalid.')
   }
   return parsed
@@ -417,6 +414,12 @@ export function canonicalSam31ProductionCapsuleStringify(
   value: unknown,
 ): string {
   return JSON.stringify(canonicalProductionCapsuleJsonValue(value))
+}
+
+function productionCapsuleValueSha256(value: unknown): string {
+  return createHash('sha256')
+    .update(canonicalSam31ProductionCapsuleStringify(value))
+    .digest('hex')
 }
 
 function canonicalProductionCapsuleJsonValue(value: unknown): unknown {

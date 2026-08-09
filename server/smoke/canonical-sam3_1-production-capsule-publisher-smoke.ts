@@ -26,7 +26,6 @@ import {
   createCanonicalSam31GcsProductionCapsuleBuildReadPort,
 } from '../services/canonical-sam3_1-production-capsule-publisher'
 import {
-  sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import { release } from
@@ -99,7 +98,7 @@ const publisher = createCanonicalSam31ProductionCapsulePublisher({
     verificationCalls += 1
     return {
       archiveEntries: entries,
-      archiveEntrySetSha256: sha256AuthorityValue(entries),
+      archiveEntrySetSha256: capsuleValueSha(entries),
     }
   },
 })
@@ -347,9 +346,9 @@ function createBuild(
     capsuleSha256: capsuleSha,
     capsuleByteLength: 1_024,
     archiveEntries: entries,
-    archiveEntrySetSha256: sha256AuthorityValue(entries),
+    archiveEntrySetSha256: capsuleValueSha(entries),
     dependencyWheelCount: 2,
-    dependencyWheelManifestSha256: sha256AuthorityValue(entries.filter(
+    dependencyWheelManifestSha256: capsuleValueSha(entries.filter(
       (entry) => entry.path.startsWith(
         'sam31_private_build_input/dependency-closure/wheelhouse/',
       ),
@@ -399,7 +398,7 @@ function createBuild(
     infectedFileCount: 0,
     capsuleSha256: capsuleSha,
     capsuleByteLength: 1_024,
-    archiveEntrySetSha256: sha256AuthorityValue(entries),
+    archiveEntrySetSha256: capsuleValueSha(entries),
     archiveRecursionEnabled: true,
     scanPassed: true,
     prohibitedEntryScanPassed: true,
@@ -573,6 +572,13 @@ function sourceQualificationCapsuleRef() {
     version: 1 as const,
     contentHash: source.contentHash,
   }
+}
+
+function capsuleValueSha(value: unknown): string {
+  return sha(Buffer.from(
+    canonicalSam31ProductionCapsuleStringify(value),
+    'utf8',
+  ))
 }
 
 function sha(value: Uint8Array): string {

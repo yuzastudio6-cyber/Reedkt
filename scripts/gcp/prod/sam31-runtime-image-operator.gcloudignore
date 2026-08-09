@@ -15,6 +15,9 @@
 !docker/prod/sam31-runtime-image-operator/Dockerfile
 !server/
 !server/**
+!scripts/
+!scripts/validation/
+!scripts/validation/project-edit-brief-owner-evidence-example-generator.ts
 !src/
 !src/server/
 !src/server/**

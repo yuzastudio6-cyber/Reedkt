@@ -58,6 +58,8 @@ assert.match(buildScript,
 assert.match(buildScript, /"sam31RuntimeImageBuildStarted":false/u)
 assert.match(ignoreFile, /^\*$/mu)
 assert.match(ignoreFile, /^!server\/\*\*$/mu)
+assert.match(ignoreFile,
+  /^!scripts\/validation\/project-edit-brief-owner-evidence-example-generator\.ts$/mu)
 assert.match(ignoreFile, /^!src\/lib\/\*\*$/mu)
 assert.match(ignoreFile,
   /^!docker\/prod\/sam31-runtime-image-operator\/Dockerfile$/mu)

@@ -95,7 +95,8 @@ jq -e --arg action "${action}" '
     then .disposition == "submitted" and .imageBuildKnownStarted == true
     else (.disposition == "pending"
       or .disposition
-        == "image_built_pending_scan_signature_and_gpu_qualification")
+        == "image_built_pending_scan_signature_and_gpu_qualification"
+      or .disposition == "terminal_failure")
       and .imageBuildKnownStarted == true
     end)
   and .runtimeReleaseGranted == false

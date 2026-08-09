@@ -25,6 +25,7 @@ assert.match(cli, /--action=\$\{command\.action === 'start_one'/u)
 assert.match(cli, /result\.disposition === 'submitted'/u)
 assert.match(cli,
   /image_built_pending_scan_signature_and_gpu_qualification/u)
+assert.match(cli, /result\.disposition === 'terminal_failure'/u)
 assert.doesNotMatch(cli, /execFile|spawn|ffmpeg|ffprobe|python|torch|cuda/u)
 
 assert.match(vite, /canonical-sam3_1-runtime-image-cloud-job\.ts/u)
@@ -74,6 +75,7 @@ assert.match(runScript, /automaticRetryAllowed == false/u)
 assert.match(runScript, /\.disposition == "submitted"/u)
 assert.match(runScript,
   /image_built_pending_scan_signature_and_gpu_qualification/u)
+assert.match(runScript, /\.disposition == "terminal_failure"/u)
 assert.match(runScript, /modelOrCheckpointBytesReadLocally == false/u)
 assert.doesNotMatch(runScript,
   /ffmpeg|ffprobe|python|docker|--gpu|checkpoint-uri|dockerfile|image-tag/u)
@@ -91,7 +93,7 @@ assert.match(packageJson,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-runtime-image-cloud-operator',
-  checks: 71,
+  checks: 73,
   canonicalImageBuildRuntimeReused: true,
   sourceCheckpointQualificationRequiredByOwner: true,
   callerBuildInputAccepted: false,

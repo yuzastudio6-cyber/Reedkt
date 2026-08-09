@@ -68,6 +68,7 @@ async function main(): Promise<void> {
     : result.disposition === 'pending'
       || result.disposition ===
         'image_built_pending_scan_signature_and_gpu_qualification'
+      || result.disposition === 'terminal_failure'
   if (!accepted) process.exitCode = 1
 }
 

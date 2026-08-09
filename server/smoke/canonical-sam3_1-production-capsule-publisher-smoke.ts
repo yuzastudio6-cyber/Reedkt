@@ -3,11 +3,14 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
+import type { Storage } from '@google-cloud/storage'
+
 import {
   createCanonicalSam31VertexImageBuildBinding,
 } from '../model-artifacts/canonical-sam3_1-vertex-production-build-binding'
 import {
   canonicalSam31ProductionCapsuleBuilderResultRef,
+  canonicalSam31ProductionCapsuleStringify,
   sealCanonicalSam31ProductionCapsuleBuilderResult,
   sealCanonicalSam31ProductionCapsuleSecurityReview,
 } from '../model-artifacts/canonical-sam3_1-production-capsule-build-evidence'
@@ -20,6 +23,7 @@ import {
 import {
   createCanonicalSam31ProductionCapsulePublisher,
   createCanonicalSam31ProductionCapsuleReproducibilityRepository,
+  createCanonicalSam31GcsProductionCapsuleBuildReadPort,
 } from '../services/canonical-sam3_1-production-capsule-publisher'
 import {
   sha256AuthorityValue,
@@ -186,9 +190,36 @@ assert.throws(() => sealCanonicalSam31ProductionCapsuleSecurityReview({
   infectedFileCount: 1,
 } as never))
 
+const canonicalCloudBuildReadPort =
+  createCanonicalSam31GcsProductionCapsuleBuildReadPort({
+    storage: createBuildStorage(primary, '\n'),
+  })
+const canonicalCloudBuildReread = await canonicalCloudBuildReadPort
+  .rereadBuild({ buildId: primaryId })
+assert.equal(
+  canonicalCloudBuildReread?.builderResult.builderResultHash,
+  primary.builderResult.builderResultHash,
+)
+assert.equal(
+  canonicalCloudBuildReread?.securityReview.securityReviewHash,
+  primary.securityReview.securityReviewHash,
+)
+await assert.rejects(
+  createCanonicalSam31GcsProductionCapsuleBuildReadPort({
+    storage: createBuildStorage(primary, ''),
+  }).rereadBuild({ buildId: primaryId }),
+  /JSON is not canonical/u,
+)
+await assert.rejects(
+  createCanonicalSam31GcsProductionCapsuleBuildReadPort({
+    storage: createBuildStorage(primary, '\n\n'),
+  }).rereadBuild({ buildId: primaryId }),
+  /JSON is not canonical/u,
+)
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-capsule-publisher',
-  checks: 25,
+  checks: 29,
   finalA100SourceCheckpointQualificationReread: true,
   independentBuildCount: 2,
   exactCapsuleBytesCrc32cMd5AndEntrySetMatched: true,
@@ -206,6 +237,67 @@ console.log(JSON.stringify({
   customerCreditsMutated: false,
   productionReady: false,
 }, null, 2))
+
+function createBuildStorage(
+  build: ReturnType<typeof createBuild>,
+  suffix: string,
+): Storage {
+  const prefix =
+    `private/image-build-inputs/sam3_1/production/reproducibility/${build.builderResult.buildId}`
+  const securityObject = `${prefix}/capsule-security-review.json`
+  const builderObject =
+    `${prefix}/${build.securityReview.capsuleSha256}.capsule.json`
+  const capsuleObject = build.coordinate.objectName
+  const bodies = new Map<string, Buffer>([
+    [securityObject, Buffer.from(
+      `${canonicalSam31ProductionCapsuleStringify(build.securityReview)}${suffix}`,
+      'utf8',
+    )],
+    [builderObject, Buffer.from(
+      `${canonicalSam31ProductionCapsuleStringify(build.builderResult)}${suffix}`,
+      'utf8',
+    )],
+  ])
+  const jsonMetadata = (objectName: string) => ({
+    generation: '4101',
+    etag: `etag-${objectName.length}`,
+    size: String(bodies.get(objectName)?.byteLength ?? -1),
+    contentType: 'application/json',
+  })
+  const capsuleMetadata = {
+    generation: build.coordinate.generation,
+    etag: build.coordinate.etag,
+    size: String(build.coordinate.byteLength),
+    contentType: build.coordinate.storageContentType,
+    crc32c: build.coordinate.crc32c,
+    md5Hash: build.coordinate.md5Hash,
+  }
+  return {
+    bucket(bucketName: string) {
+      assert.equal(
+        bucketName,
+        'reeditpro-production-reeditpro-image-build-inputs',
+      )
+      return {
+        file(objectName: string) {
+          return {
+            async getMetadata() {
+              if (objectName === capsuleObject) return [capsuleMetadata]
+              const body = bodies.get(objectName)
+              if (!body) throw Object.assign(new Error('not found'), { code: 404 })
+              return [jsonMetadata(objectName)]
+            },
+            async download() {
+              const body = bodies.get(objectName)
+              if (!body) throw Object.assign(new Error('not found'), { code: 404 })
+              return [body]
+            },
+          }
+        },
+      }
+    },
+  } as unknown as Storage
+}
 
 function createBuild(
   id: string,

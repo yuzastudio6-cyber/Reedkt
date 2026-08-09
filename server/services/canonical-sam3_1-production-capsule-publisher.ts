@@ -699,8 +699,9 @@ async function readExactJson(
     throw new Error('Production capsule evidence JSON is invalid.')
   }
   assertPlainSerializedData(value, 'sam31_production_capsule_evidence_json')
-  if (canonicalSam31ProductionCapsuleStringify(value)
-    !== body.toString('utf8')) {
+  const canonicalWire =
+    `${canonicalSam31ProductionCapsuleStringify(value)}\n`
+  if (canonicalWire !== body.toString('utf8')) {
     throw new Error('Production capsule evidence JSON is not canonical.')
   }
   return value

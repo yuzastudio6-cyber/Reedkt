@@ -209,6 +209,9 @@ configure_least_privilege_iam() {
   grant_bucket_role \
     "${CONTROL_PLANE_BUCKET}" "${API_SA}" roles/storage.objectViewer
   grant_bucket_role \
+    "${CONTROL_PLANE_BUCKET}" \
+    "${IMAGE_BUILDER_SA}" roles/storage.objectViewer
+  grant_bucket_role \
     "${IMAGE_BUILD_INPUT_BUCKET}" "${API_SA}" roles/storage.objectCreator
   grant_bucket_role \
     "${IMAGE_BUILD_INPUT_BUCKET}" "${API_SA}" roles/storage.objectViewer

@@ -56,6 +56,14 @@ assert.equal(
     .length,
   5,
 )
+assert.match(
+  source,
+  /grant_bucket_role \\\n\s+"\$\{CONTROL_PLANE_BUCKET\}" \\\n\s+"\$\{IMAGE_BUILDER_SA\}" roles\/storage\.objectViewer/u,
+)
+assert.doesNotMatch(
+  source,
+  /grant_bucket_role \\\n\s+"\$\{CONTROL_PLANE_BUCKET\}" \\\n\s+"\$\{IMAGE_BUILDER_SA\}" roles\/storage\.objectCreator/u,
+)
 
 for (const forbidden of [
   /reeditpro-cpu-worker-sa/u,

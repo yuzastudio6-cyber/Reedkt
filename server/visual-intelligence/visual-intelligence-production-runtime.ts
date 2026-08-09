@@ -171,6 +171,10 @@ import {
   createVisualIntelligenceGcsConcurrencyPort,
 } from './visual-intelligence-gcs-concurrency-port'
 import {
+  createVisualIntelligenceGcsProviderTrafficGuard,
+  type VisualIntelligenceProviderTrafficGuardPort,
+} from './visual-intelligence-provider-traffic-guard'
+import {
   createVisualIntelligenceDurableLifecycleStore,
   type VisualIntelligenceDurableLifecycleStore,
 } from './visual-intelligence-gcs-lifecycle-store'
@@ -212,7 +216,7 @@ import {
 } from '../tool-cost-metering/google-cloud-account-effective-gpu-rate-read-port'
 
 export const VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION =
-  'visual-intelligence-production-runtime-v18' as const
+  'visual-intelligence-production-runtime-v19' as const
 
 export interface VisualIntelligenceProductionRuntime {
   readonly schemaVersion: typeof VISUAL_INTELLIGENCE_PRODUCTION_RUNTIME_VERSION
@@ -250,6 +254,7 @@ export interface VisualIntelligenceProductionRuntime {
   readonly sourceVideoUnderstandingReadPort:
     CanonicalSourceVisualIntelligenceOrchestraReadPort
   readonly orchestraJobRuntimePort: VisualIntelligenceOrchestraJobRuntime
+  readonly providerTrafficGuardPort: VisualIntelligenceProviderTrafficGuardPort
   readonly costOwner: VisualIntelligenceAccountEffectiveCostOwner
   readonly sourceCleanupAuthorityRepository:
     CanonicalSourceCleanupAuthorityRepository
@@ -350,6 +355,8 @@ export interface VisualIntelligenceProductionRuntimeDependencies {
   readonly privateObjectReadPort?: VisualIntelligencePrivateObjectReadPort
   readonly objectPort?: CanonicalCreateOnlyJsonObjectPort
   readonly concurrencyPort?: VisualIntelligenceConcurrencyPort
+  readonly providerTrafficGuardPort?:
+    VisualIntelligenceProviderTrafficGuardPort
   readonly generatePort?: VisualIntelligenceGeminiGeneratePort
   readonly sourceAnalysisL4VisualEvidenceCurrentRateReadPort?:
     CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort
@@ -744,6 +751,13 @@ export async function createVisualIntelligenceProductionRuntime(
       bucketName: coordinates.controlPlaneBucket,
       storage: requireStorage(),
     })
+  const providerTrafficGuardPort = dependencies.providerTrafficGuardPort
+    ?? createVisualIntelligenceGcsProviderTrafficGuard({
+      projectId: coordinates.projectId,
+      bucketName: coordinates.controlPlaneBucket,
+      storage: requireStorage(),
+      now: dependencies.now,
+    })
   const orchestraLifecyclePort = createVisualIntelligenceLifecycleService({
     provider,
     admissionPort: canonicalRequestPackageStore,
@@ -752,6 +766,7 @@ export async function createVisualIntelligenceProductionRuntime(
     reportRepository: durableStore,
     spatialEvidenceRepository: durableStore,
     concurrencyPort,
+    providerTrafficGuardPort,
   })
   const orchestraJobRuntimePort =
     createVisualIntelligenceOrchestraJobRuntime({
@@ -786,6 +801,7 @@ export async function createVisualIntelligenceProductionRuntime(
     sourceVideoUnderstandingBindingStore,
     sourceVideoUnderstandingReadPort,
     orchestraJobRuntimePort,
+    providerTrafficGuardPort,
     costOwner,
     sourceCleanupAuthorityRepository,
     sourceAnalysisRequestAuthorityRepository,

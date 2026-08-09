@@ -33,6 +33,9 @@ import {
   VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,
   getVisualIntelligenceProfileDefinition,
 } from '../visual-intelligence/visual-intelligence-profile-registry'
+import type {
+  VisualIntelligenceProviderTrafficGuardPort,
+} from '../visual-intelligence/visual-intelligence-provider-traffic-guard'
 
 const rawSha = (digit: string) => digit.repeat(64)
 const ref = (id: string, value: unknown = { id }) =>
@@ -571,6 +574,24 @@ function createConcurrencyPort(events: string[]): VisualIntelligenceConcurrencyP
   }
 }
 
+function createProviderTrafficGuardPort(
+  events: string[],
+): VisualIntelligenceProviderTrafficGuardPort {
+  return {
+    async acquire(input) {
+      events.push('provider_traffic_guard_acquired')
+      return {
+        status: 'acquired',
+        lease: { ownerId: input.ownerId } as never,
+      }
+    },
+    async release() {
+      events.push('provider_traffic_guard_released')
+      return {} as never
+    },
+  }
+}
+
 async function main() {
   const events: string[] = []
   const counter = { calls: 0 }
@@ -601,6 +622,7 @@ async function main() {
     reportRepository: lifecycleRepository,
     spatialEvidenceRepository: lifecycleRepository,
     concurrencyPort: createConcurrencyPort(events),
+    providerTrafficGuardPort: createProviderTrafficGuardPort(events),
   })
 
   const firstRequest = buildRequest({
@@ -624,9 +646,11 @@ async function main() {
       semanticEvidence[0]?.evidenceRef.contentHash,
   ), true)
   assert.equal(counter.calls, 1)
-  assert.deepEqual(events.slice(-6), [
+  assert.deepEqual(events.slice(-8), [
     'attempt_created',
+    'provider_traffic_guard_acquired',
     'provider_started',
+    'provider_traffic_guard_released',
     'report_persisted',
     'spatial_evidence_persisted',
     'attempt_completed',
@@ -699,6 +723,44 @@ async function main() {
   assert.equal(comparison.report.planningMayConsumeValidatedEvidence, true)
   assert.equal(counter.calls, 5)
 
+  const isolatedEvents: string[] = []
+  const isolatedRepository = createReportRepository(isolatedEvents)
+  const isolatedService = createVisualIntelligenceLifecycleService({
+    provider: createProvider(counter),
+    admissionPort: {
+      async verifyAndRereadExact(request) {
+        return {
+          status: 'admitted',
+          admissionRef: ref(`admission-${request.requestId}`),
+          providerReleaseRef,
+          exactScopeRereadVerified: true,
+          exactArtifactAuthorityRereadVerified: true,
+          exactCostPreflightRereadVerified: true,
+          killSwitchesVerifiedClosed: true,
+          retentionPrivacyVerified: true,
+        }
+      },
+    },
+    evidencePreparationPort: {
+      async prepare({ request }) { return preparedEvidence(request) },
+    },
+    attemptStore: createAttemptStore(isolatedEvents),
+    reportRepository: isolatedRepository,
+    spatialEvidenceRepository: isolatedRepository,
+    concurrencyPort: createConcurrencyPort(isolatedEvents),
+    providerTrafficGuardPort: {
+      async acquire() { return { status: 'occupied' } },
+      async release() { return {} as never },
+    },
+  })
+  await assert.rejects(() => isolatedService.execute(buildRequest({
+    requestId: 'request-provider-traffic-isolated',
+    idempotencyKey: 'idempotency-provider-traffic-isolated',
+    checksum: rawSha('9'),
+  })), /not ready/iu)
+  assert.equal(isolatedEvents.includes('failed_not_executed'), true)
+  assert.equal(counter.calls, 5)
+
   const blockedService = createVisualIntelligenceLifecycleService({
     provider: createProvider(counter),
     admissionPort: {
@@ -713,6 +775,7 @@ async function main() {
     reportRepository: createReportRepository([]),
     spatialEvidenceRepository: createReportRepository([]),
     concurrencyPort: createConcurrencyPort([]),
+    providerTrafficGuardPort: createProviderTrafficGuardPort([]),
   })
   await assert.rejects(() => blockedService.execute(buildRequest({
     requestId: 'request-blocked',
@@ -749,6 +812,7 @@ async function main() {
     reportRepository: createReportRepository(unknownEvents),
     spatialEvidenceRepository: createReportRepository(unknownEvents),
     concurrencyPort: createConcurrencyPort(unknownEvents),
+    providerTrafficGuardPort: createProviderTrafficGuardPort(unknownEvents),
   })
   await assert.rejects(() => unknownService.execute(buildRequest({
     requestId: 'request-unknown',
@@ -804,6 +868,7 @@ async function main() {
     reportRepository: createReportRepository(rejectedEvents),
     spatialEvidenceRepository: createReportRepository(rejectedEvents),
     concurrencyPort: createConcurrencyPort(rejectedEvents),
+    providerTrafficGuardPort: createProviderTrafficGuardPort(rejectedEvents),
   })
   await assert.rejects(() => rejectedService.execute(buildRequest({
     requestId: 'request-invalid-provider-range',

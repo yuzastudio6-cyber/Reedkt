@@ -36,6 +36,9 @@ import {
 import {
   getVisualIntelligenceSkillDefinitionForRequest,
 } from './visual-intelligence-skill-registry'
+import type {
+  VisualIntelligenceProviderTrafficGuardPort,
+} from './visual-intelligence-provider-traffic-guard'
 
 export const VISUAL_INTELLIGENCE_LIFECYCLE_SERVICE_VERSION =
   'visual-intelligence-lifecycle-service-v2' as const
@@ -165,12 +168,16 @@ export function createVisualIntelligenceLifecycleService(input: {
   readonly reportRepository: VisualIntelligenceReportRepository
   readonly spatialEvidenceRepository: VisualIntelligenceSpatialEvidenceRepository
   readonly concurrencyPort: VisualIntelligenceConcurrencyPort
+  readonly providerTrafficGuardPort: VisualIntelligenceProviderTrafficGuardPort
   readonly maximumConcurrentProviderCallsPerWorkspace?: number
 }): VisualIntelligenceLifecycleService {
   const maximumConcurrentProviderCalls =
     input.maximumConcurrentProviderCallsPerWorkspace ?? 2
   if (
     input.provider.adapterId !== 'vertex_gemini_pro'
+    || !input.providerTrafficGuardPort
+    || typeof input.providerTrafficGuardPort.acquire !== 'function'
+    || typeof input.providerTrafficGuardPort.release !== 'function'
     || !Number.isInteger(maximumConcurrentProviderCalls)
     || maximumConcurrentProviderCalls < 1
     || maximumConcurrentProviderCalls > 16
@@ -303,32 +310,68 @@ export function createVisualIntelligenceLifecycleService(input: {
           })
           throw notReady('visual_intelligence_dispatch_compilation_failed')
         }
-        await input.attemptStore.markProviderCallStarted({
-          attemptRef: attempt.attemptRef,
-          dispatchConfigurationDigestSha256: dispatchDigest,
-          maximumAttempts: 1,
-          attemptOrdinal: 1,
-          uncertainProviderOutcomeRetryAllowed: false,
-        })
-        let providerResult: Awaited<ReturnType<VisualIntelligenceProvider['execute']>>
+        let trafficGuard: Awaited<ReturnType<
+          VisualIntelligenceProviderTrafficGuardPort['acquire']
+        >>
         try {
-          providerResult = await input.provider.execute(providerRequest)
-        } catch (error) {
-          const providerFailureOutcome = classifyProviderFailure(error)
+          trafficGuard = await input.providerTrafficGuardPort.acquire({
+            mode: 'ordinary_visual_intelligence_request',
+            ownerId: request.requestId,
+            requestedLeaseTtlMs: 15 * 60 * 1_000,
+          })
+        } catch {
           await input.attemptStore.markFailed({
             attemptRef: attempt.attemptRef,
-            outcome: providerFailureOutcome,
-            blockerCode: providerFailureOutcome === 'executed_rejected'
-              ? 'visual_intelligence_provider_result_not_admissible'
-              : 'visual_intelligence_provider_outcome_unknown_reconciliation_required',
+            outcome: 'not_executed',
+            blockerCode:
+              'visual_intelligence_provider_traffic_guard_unavailable',
             automaticRetryAllowed: false,
           })
-          if (providerFailureOutcome === 'executed_rejected') {
-            throw notReady('visual_intelligence_provider_result_not_admissible')
-          }
           throw notReady(
-            'visual_intelligence_provider_outcome_unknown_reconciliation_required',
+            'visual_intelligence_provider_traffic_guard_unavailable',
           )
+        }
+        if (trafficGuard.status !== 'acquired') {
+          await input.attemptStore.markFailed({
+            attemptRef: attempt.attemptRef,
+            outcome: 'not_executed',
+            blockerCode: 'visual_intelligence_provider_traffic_isolated',
+            automaticRetryAllowed: false,
+          })
+          throw notReady('visual_intelligence_provider_traffic_isolated')
+        }
+        let providerResult: Awaited<ReturnType<VisualIntelligenceProvider['execute']>>
+        try {
+          await input.attemptStore.markProviderCallStarted({
+            attemptRef: attempt.attemptRef,
+            dispatchConfigurationDigestSha256: dispatchDigest,
+            maximumAttempts: 1,
+            attemptOrdinal: 1,
+            uncertainProviderOutcomeRetryAllowed: false,
+          })
+          try {
+            providerResult = await input.provider.execute(providerRequest)
+          } catch (error) {
+            const providerFailureOutcome = classifyProviderFailure(error)
+            await input.attemptStore.markFailed({
+              attemptRef: attempt.attemptRef,
+              outcome: providerFailureOutcome,
+              blockerCode: providerFailureOutcome === 'executed_rejected'
+                ? 'visual_intelligence_provider_result_not_admissible'
+                : 'visual_intelligence_provider_outcome_unknown_reconciliation_required',
+              automaticRetryAllowed: false,
+            })
+            if (providerFailureOutcome === 'executed_rejected') {
+              throw notReady(
+                'visual_intelligence_provider_result_not_admissible',
+              )
+            }
+            throw notReady(
+              'visual_intelligence_provider_outcome_unknown_reconciliation_required',
+            )
+          }
+        } finally {
+          await input.providerTrafficGuardPort.release(trafficGuard.lease)
         }
 
         let normalizedResult: ReturnType<

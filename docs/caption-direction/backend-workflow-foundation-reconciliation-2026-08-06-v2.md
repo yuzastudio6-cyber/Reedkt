@@ -13,7 +13,7 @@ through published backend commit
 
 The three merge conflicts were confined to the shared Visual Intelligence
 composition identity and its assertions. They were resolved by advancing the
-runtime to `visual-intelligence-production-runtime-v18` while preserving both:
+runtime through `visual-intelligence-production-runtime-v19` while preserving both:
 
 - Caption's postrender owner-result repository, Caption evidence repository,
   and postrender owner service; and

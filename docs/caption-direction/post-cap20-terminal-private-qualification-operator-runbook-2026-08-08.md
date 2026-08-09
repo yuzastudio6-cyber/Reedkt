@@ -122,10 +122,13 @@ precondition and exact generation/etag/digest/canonical-JSON reread. The
 finalizer requires two implicit-cache request pairs (standard and long), four
 exact guarded provider calls, exact usage/audit/isolation rereads, all six SKU
 classes, and create-only qualification persistence. It makes no provider or
-billing-export call itself. The shared owner still does not have the canonical
-live model/SKU qualification executor or the separate guard/audit-backed
-concurrency-isolation authority needed to close that proof. The private release
-prefixes also
+billing-export call itself. A create-only project/service/model singleton guard
+is now mounted in production-runtime v19; every canonical Visual Intelligence
+provider call must acquire it, and the isolated qualification mode excludes
+ordinary calls. The shared owner still does not have the canonical live
+model/SKU qualification executor or the exact Cloud Audit window reader and
+isolation-authority finalizer needed to close the no-other-traffic proof. The
+private release prefixes also
 contain no live model/SKU qualification, runtime-component qualification, or
 runtime release record.
 

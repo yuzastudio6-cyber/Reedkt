@@ -47,6 +47,7 @@ const requiredCoreQualificationSmokes = [
   'visual-intelligence-detailed-billing-export-read-port-smoke.ts',
   'visual-intelligence-detailed-billing-export-observation-repository-smoke.ts',
   'visual-intelligence-model-billing-sku-qualification-finalizer-smoke.ts',
+  'visual-intelligence-provider-traffic-guard-smoke.ts',
   'visual-intelligence-runtime-release-publisher-smoke.ts',
   'visual-intelligence-orchestra-qualification-publisher-smoke.ts',
   'visual-intelligence-inspection-coordinator-smoke.ts',

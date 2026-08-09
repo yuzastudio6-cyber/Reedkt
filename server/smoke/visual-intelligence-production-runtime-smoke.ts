@@ -57,6 +57,9 @@ import type {
   VisualIntelligenceConcurrencyPort,
 } from '../visual-intelligence/visual-intelligence-lifecycle-service'
 import type {
+  VisualIntelligenceProviderTrafficGuardPort,
+} from '../visual-intelligence/visual-intelligence-provider-traffic-guard'
+import type {
   VisualIntelligencePrivateObjectReadPort,
 } from '../visual-intelligence/visual-intelligence-private-object-read-port'
 import {
@@ -313,6 +316,8 @@ class MemoryObjectPort implements CanonicalCreateOnlyJsonObjectPort {
 
 let acquired = 0
 let released = 0
+let trafficGuardAcquired = 0
+let trafficGuardReleased = 0
 const concurrencyPort: VisualIntelligenceConcurrencyPort = {
   async acquire(input) {
     acquired += 1
@@ -322,6 +327,19 @@ const concurrencyPort: VisualIntelligenceConcurrencyPort = {
     }
   },
   async release() { released += 1 },
+}
+const providerTrafficGuardPort: VisualIntelligenceProviderTrafficGuardPort = {
+  async acquire(input) {
+    trafficGuardAcquired += 1
+    return {
+      status: 'acquired',
+      lease: { ownerId: input.ownerId } as never,
+    }
+  },
+  async release() {
+    trafficGuardReleased += 1
+    return {} as never
+  },
 }
 let providerPayload: unknown = null
 let providerCalls = 0
@@ -356,11 +374,13 @@ const runtime = await createVisualIntelligenceProductionRuntime(env, {
   privateObjectReadPort,
   objectPort,
   concurrencyPort,
+  providerTrafficGuardPort,
   generatePort,
   now: () => now,
 })
 assert.ok(runtime)
-assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v18')
+assert.equal(runtime.schemaVersion, 'visual-intelligence-production-runtime-v19')
+assert.equal(runtime.providerTrafficGuardPort, providerTrafficGuardPort)
 assert.equal(runtime.captionPostrenderOwnerResultRepository.authorityBoundary,
   'canonical_visual_intelligence_postrender_owner')
 assert.equal(runtime.captionPostrenderEvidenceRepository.repositoryVersion,
@@ -974,6 +994,8 @@ assert.ok(orchestraExecution.consumerBindingRef)
 assert.equal(providerCalls, 1)
 assert.equal(acquired, 1)
 assert.equal(released, 1)
+assert.equal(trafficGuardAcquired, 1)
+assert.equal(trafficGuardReleased, 1)
 const sourceVisualEvidence = await runtime.sourceVideoUnderstandingReadPort
   .readCompletedSourceVideoUnderstanding(sourceBindingScope)
 assert.ok(sourceVisualEvidence)

@@ -141,7 +141,9 @@ qualification finalizer. The reader has 22 focused checks, the repository has
 28, the finalizer has 36, and all are part of the Visual Intelligence
 source-release gate. Billing rows alone never infer same-SKU traffic isolation;
 the finalizer instead requires an exact exclusive-guard plus Cloud Audit window
-authority. The shared owner still lacks its live qualification executor and
-the concrete guard/audit-backed concurrency-isolation owner. Those shared owner
+authority. Production-runtime v19 now mounts the create-only singleton provider
+guard for both ordinary and qualification calls, with 32 focused checks. The
+shared owner still lacks its live qualification executor and the Cloud Audit
+window reader/isolation-authority finalizer. Those shared owner
 source gaps must be closed centrally before Visual Intelligence can produce
 the actual Caption evidence required here.

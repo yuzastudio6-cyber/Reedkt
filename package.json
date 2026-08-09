@@ -490,6 +490,7 @@
     "smoke:visual-intelligence-detailed-billing-export-read-port": "tsx server/smoke/visual-intelligence-detailed-billing-export-read-port-smoke.ts",
     "smoke:visual-intelligence-detailed-billing-export-observation-repository": "tsx server/smoke/visual-intelligence-detailed-billing-export-observation-repository-smoke.ts",
     "smoke:visual-intelligence-model-billing-sku-qualification-finalizer": "tsx server/smoke/visual-intelligence-model-billing-sku-qualification-finalizer-smoke.ts",
+    "smoke:visual-intelligence-provider-traffic-guard": "tsx server/smoke/visual-intelligence-provider-traffic-guard-smoke.ts",
     "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:a100-vertex-custom-job-launch": "tsx server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts",
     "smoke:a100-vertex-custom-job-terminal": "tsx server/smoke/canonical-a100-vertex-custom-job-terminal-port-smoke.ts",

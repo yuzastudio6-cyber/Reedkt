@@ -10,7 +10,6 @@ import {
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
   sha256AuthorityValue,
-  stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_BUILDER_RESULT_VERSION =
@@ -417,7 +416,26 @@ export function canonicalSam31ProductionCapsuleReproducibilityRef(
 export function canonicalSam31ProductionCapsuleStringify(
   value: unknown,
 ): string {
-  return stableAuthorityStringify(value)
+  return JSON.stringify(canonicalProductionCapsuleJsonValue(value))
+}
+
+function canonicalProductionCapsuleJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(canonicalProductionCapsuleJsonValue)
+  }
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, nested]) => nested !== undefined)
+        .sort(([leftKey], [rightKey]) =>
+          leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0)
+        .map(([key, nested]) => [
+          key,
+          canonicalProductionCapsuleJsonValue(nested),
+        ]),
+    )
+  }
+  return value
 }
 
 export function canonicalSam31ProductionCapsuleFileSha256(

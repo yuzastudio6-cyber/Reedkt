@@ -216,10 +216,14 @@ await assert.rejects(
   }).rereadBuild({ buildId: primaryId }),
   /JSON is not canonical/u,
 )
+assert.equal(
+  canonicalSam31ProductionCapsuleStringify({ aa: 2, a_a: 1 }),
+  '{"a_a":1,"aa":2}',
+)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-capsule-publisher',
-  checks: 29,
+  checks: 30,
   finalA100SourceCheckpointQualificationReread: true,
   independentBuildCount: 2,
   exactCapsuleBytesCrc32cMd5AndEntrySetMatched: true,

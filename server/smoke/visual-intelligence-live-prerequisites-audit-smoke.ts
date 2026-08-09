@@ -51,16 +51,16 @@ assert.match(source, /routeArchitectureQualified: \$routeArchitectureQualified/u
 assert.match(source, /routeArchitectureSourceBindingCount: \$routeArchitectureSourceBindingCount/u)
 assert.match(source, /and \$routeArchitectureQualified/u)
 for (const sourceHash of [
-  '7e1db29add1cdb9b14760322899614b046cdc99733055e28003bfd3082716cb3',
-  '7c0e862d3a8a2cb6a9a0de25e866acb18a52af873c9b4763aab483eccdbb6d04',
-  '86c50ad418cb8fe89b1bbb601203e8f4c16c9a5452ab236d37abe40ffd1928db',
-  'bd733a8c308ec0c89f4654cb2300f9debab66fe6d9d41e7e8f94d64c1c48a509',
-  '19534cd84230a9991b3011feef8fbedca1bd532409d21e98899f13b9a805ffc4',
-  '0cd836d80f101e723e4fe7e7d18ef84cced34b4a843a469566c3c81cd0adef14',
-  'baf12ad5139b1f78ad75a02e261501e48701e559b1631653a3661e6f64e527f7',
+  'de62b7e84ebfcd8ee2ea6c7cedb457e2526bed1cae9669ae967558d74dffd14b',
+  '5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596',
+  '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464',
+  'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
+  '07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25',
+  'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9',
+  '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
   '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
   '6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e',
-  'a406645710420cc1c726b94d4731b7d13f54c33190e15ce49d2fb3fdb8e374ae',
+  '2f0829a64706fae863af428a306f370b496b46e6a272434b3a6d0415e41b787a',
 ] as const) assert.match(source, new RegExp(sourceHash, 'u'))
 assert.match(source, /disposition/u)
 assert.match(source, /capacityGranted/u)

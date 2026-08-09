@@ -15,6 +15,13 @@ fail() {
   exit 1
 }
 
+safe_id() {
+  # Bash 3.2 rejects ERE repetition bounds above 255. Keep this aligned with
+  # the canonical server authority's 240-character safe-ID ceiling.
+  [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$ \
+    && "$1" != *'..'* ]]
+}
+
 [[ "${WEEDITPRO_CONFIRM_SAM31_RUNTIME_IMAGE_OPERATOR_RUN:-}" \
   == "${CONFIRMATION}" ]] || fail 'exact operator confirmation is missing'
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
@@ -24,16 +31,12 @@ action="${WEEDITPRO_SAM31_RUNTIME_IMAGE_ACTION:-}"
   || fail 'operator action is invalid'
 authority_id="${WEEDITPRO_SAM31_RUNTIME_IMAGE_AUTHORITY_ID:-}"
 authority_sha="${WEEDITPRO_SAM31_RUNTIME_IMAGE_AUTHORITY_SHA256:-}"
-[[ "${authority_id}" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$ \
-  && "${authority_id}" != *..* \
-  && "${authority_id}" != *://* ]] || fail 'authority ID is invalid'
+safe_id "${authority_id}" || fail 'authority ID is invalid'
 [[ "${authority_sha}" =~ ^[a-f0-9]{64}$ ]] || fail 'authority hash is invalid'
 submission_id="${WEEDITPRO_SAM31_RUNTIME_IMAGE_SUBMISSION_ID:-}"
 submission_sha="${WEEDITPRO_SAM31_RUNTIME_IMAGE_SUBMISSION_SHA256:-}"
 if [[ "${action}" == 'observe_one' ]]; then
-  [[ "${submission_id}" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]{0,511}$ \
-    && "${submission_id}" != *..* \
-    && "${submission_id}" != *://* ]] || fail 'submission ID is invalid'
+  safe_id "${submission_id}" || fail 'submission ID is invalid'
   [[ "${submission_sha}" =~ ^[a-f0-9]{64}$ ]] \
     || fail 'submission hash is invalid'
 elif [[ -n "${submission_id}" || -n "${submission_sha}" ]]; then

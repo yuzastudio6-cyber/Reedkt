@@ -65,6 +65,9 @@ assert.doesNotMatch(deployScript, /gcloud run jobs execute|--gpu/u)
 
 assert.match(runScript, /gcloud run jobs execute/u)
 assert.match(runScript, /--update-env-vars/u)
+assert.match(runScript,
+  /safe_id\(\).*\{0,239\}.*\*'\.\.'\*/su)
+assert.doesNotMatch(runScript, /\{0,511\}/u)
 assert.match(runScript, /start_one.*observe_one/su)
 assert.match(runScript, /operatorRemainsUnarmed/u)
 assert.match(runScript, /automaticRetryAllowed == false/u)
@@ -88,12 +91,13 @@ assert.match(packageJson,
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-runtime-image-cloud-operator',
-  checks: 69,
+  checks: 71,
   canonicalImageBuildRuntimeReused: true,
   sourceCheckpointQualificationRequiredByOwner: true,
   callerBuildInputAccepted: false,
   deployedConfigurationPermanentlyUnarmed: true,
   executionOnlyStartOrObserveOverrides: true,
+  macOsBashCompatibleCanonicalSafeIds: true,
   scaleFromZero: true,
   modelOrCheckpointBytesAcceptedByOperator: false,
   automaticRetryAllowed: false,

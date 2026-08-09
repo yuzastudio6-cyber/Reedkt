@@ -76,8 +76,12 @@ const VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256 =
   '11a27c7f5818fc19b82224b9ed253b3d90bcb1474d17e84aa16104240d0c6bef' as const
 const MULTIPLEX_SESSION_GPU_FORWARDING_DOCKERFILE_SHA256 =
   'c4f7fb48d9e0f7673a7b62e5ebbb33ba3e849a1f24ef22bc9cfb85f86c66e634' as const
+const FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256 =
+  '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de' as const
 const GPU_KERNEL_CACHE_DOCKERFILE_SHA256 =
   'a9cef996f277941ff817467803efd5295d72420165059a15e4ae1157934e51ad' as const
+const FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256 =
+  '3f285519af937ac409c374738cbce13459504489ea466d6d924b4d3872722557' as const
 const GPU_KERNEL_CACHE_ENTRYPOINT_SHA256 =
   '141ca662e8dafbfecc417d5091e63519220081122907c6e1e8f0e67ec2e91c01' as const
 const SECURITY_REMEDIATION_SOURCE_PROVENANCE_LOCK_SHA256 =
@@ -90,6 +94,8 @@ const MULTIPLEX_SESSION_GPU_FORWARDING_SOURCE_PROVENANCE_LOCK_SHA256 =
   'ef68bfab3fb5b71958d795ccd3c3a357ff717e1272cab87572e37d9f754026ef' as const
 const GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256 =
   '330e3e934c7d21a17f7f4dc1d9a1530d49bc2e76b9ba3e861cf72b2eb6db78d8' as const
+const FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256 =
+  'f358419e20136361dc32d2e7b1db6d78f3eaa18ef1a5f30cacbda75d6ef81037' as const
 const GPU_KERNEL_CACHE_POLICY =
   'sam3_1_ephemeral_nonroot_private_gpu_kernel_cache_v1' as const
 const SECURITY_REMEDIATION_DEPENDENCY_LOCK_SHA256 =
@@ -187,6 +193,8 @@ const manifestWithoutHashSchema = z.object({
       z.literal(IMPORTLIB_RESOURCES_PATCH_SHA256).optional(),
     multiplexSessionGpuForwardingPatchSha256:
       z.literal(MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256).optional(),
+    forwardPropagationFrameCountPatchSha256:
+      z.literal(FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256).optional(),
     gpuKernelCachePolicy: z.literal(GPU_KERNEL_CACHE_POLICY).optional(),
   }).strict(),
   privateInput: z.object({
@@ -316,6 +324,8 @@ const authorityWithoutHashSchema = z.object({
     cudaForwardCompatIngestReceiptSha256: sha256,
     multiplexSessionGpuForwardingPatchSha256:
       z.literal(MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256).optional(),
+    forwardPropagationFrameCountPatchSha256:
+      z.literal(FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256).optional(),
     gpuKernelCachePolicy: z.literal(GPU_KERNEL_CACHE_POLICY).optional(),
   }).strict(),
   cloudBuildPolicy: z.object({
@@ -515,6 +525,13 @@ export async function prepareCanonicalSam31QualificationImageBuildAuthority(
                 .multiplexSessionGpuForwardingPatchSha256,
           }
         : {}),
+      ...(manifest.repositorySource.forwardPropagationFrameCountPatchSha256
+        ? {
+            forwardPropagationFrameCountPatchSha256:
+              manifest.repositorySource
+                .forwardPropagationFrameCountPatchSha256,
+          }
+        : {}),
       ...(manifest.repositorySource.gpuKernelCachePolicy
         ? { gpuKernelCachePolicy: manifest.repositorySource.gpuKernelCachePolicy }
         : {}),
@@ -648,6 +665,18 @@ function assertQualificationCapsuleEntries(
   } else if (byPath.has(multiplexSessionGpuForwardingPatchPath)) {
     throw new Error('Qualification capsule GPU-forwarding patch is unbound.')
   }
+  const forwardPropagationFrameCountPatchPath =
+    'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch'
+  if (manifest.repositorySource.forwardPropagationFrameCountPatchSha256) {
+    required(
+      forwardPropagationFrameCountPatchPath,
+      manifest.repositorySource.forwardPropagationFrameCountPatchSha256,
+    )
+  } else if (byPath.has(forwardPropagationFrameCountPatchPath)) {
+    throw new Error(
+      'Qualification capsule forward-propagation frame-count patch is unbound.',
+    )
+  }
   const requirePresent = (path: string): void => {
     if (!byPath.has(path)) {
       throw new Error(`Qualification capsule entry ${path} is absent.`)
@@ -701,6 +730,7 @@ function assertQualificationCapsuleEntries(
     VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256,
     MULTIPLEX_SESSION_GPU_FORWARDING_DOCKERFILE_SHA256,
     GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
+    FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
   ])
   const dockerfileIsSecurityRemediated =
     securityRemediatedDockerfileHashes.has(
@@ -712,18 +742,21 @@ function assertQualificationCapsuleEntries(
     ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256,
     MULTIPLEX_SESSION_GPU_FORWARDING_SOURCE_PROVENANCE_LOCK_SHA256,
     GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
+    FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
   ]).has(manifest.repositorySource.sourceProvenanceLockSha256)
   const importlibResourcesDockerfileHashes = new Set<string>([
     VERTEX_A100_IMPORTLIB_RESOURCES_IMPORT_ORDER_BUG_DOCKERFILE_SHA256,
     VERTEX_A100_IMPORTLIB_RESOURCES_DOCKERFILE_SHA256,
     MULTIPLEX_SESSION_GPU_FORWARDING_DOCKERFILE_SHA256,
     GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
+    FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
   ])
   const importlibResourcesSourceProvenanceLockHashes = new Set<string>([
     IMPORTLIB_RESOURCES_SOURCE_PROVENANCE_LOCK_SHA256,
     ROPE_CACHE_DERIVATION_SOURCE_PROVENANCE_LOCK_SHA256,
     MULTIPLEX_SESSION_GPU_FORWARDING_SOURCE_PROVENANCE_LOCK_SHA256,
     GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
+    FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
   ])
   const importlibResourcesProfileSelected =
     importlibResourcesDockerfileHashes.has(
@@ -749,10 +782,12 @@ function assertQualificationCapsuleEntries(
     [
       MULTIPLEX_SESSION_GPU_FORWARDING_DOCKERFILE_SHA256,
       GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
+      FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
     ].includes(manifest.repositorySource.dockerfileSha256)
     || [
       MULTIPLEX_SESSION_GPU_FORWARDING_SOURCE_PROVENANCE_LOCK_SHA256,
       GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
+      FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
     ].includes(manifest.repositorySource.sourceProvenanceLockSha256)
     || manifest.repositorySource
       .multiplexSessionGpuForwardingPatchSha256 !== undefined
@@ -767,6 +802,11 @@ function assertQualificationCapsuleEntries(
         GPU_KERNEL_CACHE_DOCKERFILE_SHA256
       && manifest.repositorySource.sourceProvenanceLockSha256 ===
         GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256
+    ) || (
+      manifest.repositorySource.dockerfileSha256 ===
+        FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+      && manifest.repositorySource.sourceProvenanceLockSha256 ===
+        FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
     )
   if (
     canonical && multiplexSessionGpuForwardingProfileSelected && (
@@ -776,26 +816,60 @@ function assertQualificationCapsuleEntries(
           MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256
     )
   ) throw new Error('Qualification capsule GPU-forwarding profile crossed.')
-  const gpuKernelCacheProfileSelected =
-    manifest.repositorySource.dockerfileSha256 ===
-      GPU_KERNEL_CACHE_DOCKERFILE_SHA256
+  const gpuKernelCacheProfileSelected = [
+    GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
+    FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
+  ].includes(manifest.repositorySource.dockerfileSha256)
     || manifest.repositorySource.entrypointSha256 ===
       GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
-    || manifest.repositorySource.sourceProvenanceLockSha256 ===
-      GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256
+    || [
+      GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
+      FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
+    ].includes(manifest.repositorySource.sourceProvenanceLockSha256)
     || manifest.repositorySource.gpuKernelCachePolicy !== undefined
+  const exactGpuKernelCacheSourceProfile =
+    manifest.repositorySource.entrypointSha256 ===
+      GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
+    && (
+      (
+        manifest.repositorySource.dockerfileSha256 ===
+          GPU_KERNEL_CACHE_DOCKERFILE_SHA256
+        && manifest.repositorySource.sourceProvenanceLockSha256 ===
+          GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256
+      ) || (
+        manifest.repositorySource.dockerfileSha256 ===
+          FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+        && manifest.repositorySource.sourceProvenanceLockSha256 ===
+          FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
+      )
+    )
   if (
     canonical && gpuKernelCacheProfileSelected && (
-      manifest.repositorySource.dockerfileSha256 !==
-        GPU_KERNEL_CACHE_DOCKERFILE_SHA256
-      || manifest.repositorySource.entrypointSha256 !==
-        GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
-      || manifest.repositorySource.sourceProvenanceLockSha256 !==
-        GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256
+      !exactGpuKernelCacheSourceProfile
       || manifest.repositorySource.gpuKernelCachePolicy !==
         GPU_KERNEL_CACHE_POLICY
     )
   ) throw new Error('Qualification capsule GPU-kernel cache profile crossed.')
+  const forwardPropagationFrameCountProfileSelected =
+    manifest.repositorySource.dockerfileSha256 ===
+      FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+    || manifest.repositorySource.sourceProvenanceLockSha256 ===
+      FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
+    || manifest.repositorySource
+      .forwardPropagationFrameCountPatchSha256 !== undefined
+  if (
+    canonical && forwardPropagationFrameCountProfileSelected && (
+      manifest.repositorySource.dockerfileSha256 !==
+        FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+      || manifest.repositorySource.sourceProvenanceLockSha256 !==
+        FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
+      || manifest.repositorySource
+        .forwardPropagationFrameCountPatchSha256 !==
+          FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256
+    )
+  ) throw new Error(
+    'Qualification capsule forward-propagation frame-count profile crossed.',
+  )
   const securityRemediated = canonical && dockerfileIsSecurityRemediated
     && provenanceLockIsSecurityRemediated
   if (

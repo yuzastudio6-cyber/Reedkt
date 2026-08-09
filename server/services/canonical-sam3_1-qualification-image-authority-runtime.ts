@@ -47,12 +47,18 @@ const IMPORTLIB_RESOURCES_PATCH_SHA256 =
   '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' as const
 const MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256 =
   'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b' as const
+const FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256 =
+  '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de' as const
 const GPU_KERNEL_CACHE_DOCKERFILE_SHA256 =
   'a9cef996f277941ff817467803efd5295d72420165059a15e4ae1157934e51ad' as const
+const FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256 =
+  '3f285519af937ac409c374738cbce13459504489ea466d6d924b4d3872722557' as const
 const GPU_KERNEL_CACHE_ENTRYPOINT_SHA256 =
   '141ca662e8dafbfecc417d5091e63519220081122907c6e1e8f0e67ec2e91c01' as const
 const GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256 =
   '330e3e934c7d21a17f7f4dc1d9a1530d49bc2e76b9ba3e861cf72b2eb6db78d8' as const
+const FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256 =
+  'f358419e20136361dc32d2e7b1db6d78f3eaa18ef1a5f30cacbda75d6ef81037' as const
 const GPU_KERNEL_CACHE_POLICY =
   'sam3_1_ephemeral_nonroot_private_gpu_kernel_cache_v1' as const
 const safeId = z.string().trim().min(1).max(240)
@@ -239,6 +245,21 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
               'SAM 3.1 multiplex-session GPU-forwarding patch digest changed.',
             )
           })()
+  const discoveredForwardPropagationFrameCountPatchSha256 = optionalEntryHash(
+    build,
+    '0004-weeditpro-forward-propagation-frame-count.patch',
+  )
+  const forwardPropagationFrameCountPatchSha256 =
+    discoveredForwardPropagationFrameCountPatchSha256 === undefined
+      ? undefined
+      : discoveredForwardPropagationFrameCountPatchSha256 ===
+          FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256
+        ? FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256
+        : (() => {
+            throw new Error(
+              'SAM 3.1 forward-propagation frame-count patch digest changed.',
+            )
+          })()
   const dockerfileSha256 = entryHash(
     build,
     'Dockerfile.qualification.candidate',
@@ -248,19 +269,50 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
     build,
     'source-provenance.lock',
   )
-  const gpuKernelCacheFieldsObserved = [
-    dockerfileSha256 === GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
-    entrypointSha256 === GPU_KERNEL_CACHE_ENTRYPOINT_SHA256,
-    sourceProvenanceLockSha256 ===
+  const gpuKernelCacheProfileSelected = [
+    GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
+    FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
+  ].includes(dockerfileSha256)
+    || entrypointSha256 === GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
+    || [
       GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
-  ]
-  const gpuKernelCachePolicy = gpuKernelCacheFieldsObserved.every(Boolean)
+      FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
+    ].includes(sourceProvenanceLockSha256)
+  const exactGpuKernelCacheSourceProfile =
+    entrypointSha256 === GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
+    && (
+      (
+        dockerfileSha256 === GPU_KERNEL_CACHE_DOCKERFILE_SHA256
+        && sourceProvenanceLockSha256 ===
+          GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256
+      ) || (
+        dockerfileSha256 ===
+          FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+        && sourceProvenanceLockSha256 ===
+          FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
+      )
+    )
+  const gpuKernelCachePolicy = exactGpuKernelCacheSourceProfile
     ? GPU_KERNEL_CACHE_POLICY
-    : gpuKernelCacheFieldsObserved.some(Boolean)
+    : gpuKernelCacheProfileSelected
       ? (() => {
           throw new Error('SAM 3.1 GPU-kernel cache source profile crossed.')
         })()
       : undefined
+  const forwardPropagationFrameCountProfileSelected =
+    dockerfileSha256 === FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+    || sourceProvenanceLockSha256 ===
+      FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
+    || forwardPropagationFrameCountPatchSha256 !== undefined
+  if (forwardPropagationFrameCountProfileSelected && (
+    dockerfileSha256 !== FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256
+    || sourceProvenanceLockSha256 !==
+      FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256
+    || forwardPropagationFrameCountPatchSha256 !==
+      FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256
+  )) throw new Error(
+    'SAM 3.1 forward-propagation frame-count source profile crossed.',
+  )
   const manifest = createCanonicalSam31QualificationImageCapsuleManifest({
     evidenceClass: 'canonical_private_reread',
     status: 'private_capsule_verified',
@@ -299,6 +351,9 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
         : {}),
       ...(multiplexSessionGpuForwardingPatchSha256
         ? { multiplexSessionGpuForwardingPatchSha256 }
+        : {}),
+      ...(forwardPropagationFrameCountPatchSha256
+        ? { forwardPropagationFrameCountPatchSha256 }
         : {}),
       ...(gpuKernelCachePolicy ? { gpuKernelCachePolicy } : {}),
     },

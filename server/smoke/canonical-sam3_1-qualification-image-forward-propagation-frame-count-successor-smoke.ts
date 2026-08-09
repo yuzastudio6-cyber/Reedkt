@@ -47,6 +47,14 @@ const provenance = readFileSync(
   'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
   'utf8',
 )
+const authorityRuntime = readFileSync(
+  'server/services/canonical-sam3_1-qualification-image-authority-runtime.ts',
+  'utf8',
+)
+const authorityContract = readFileSync(
+  'server/model-artifacts/canonical-sam3_1-qualification-image-build-authority.ts',
+  'utf8',
+)
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
   readonly scripts?: Readonly<Record<string, string>>
 }
@@ -132,6 +140,28 @@ for (const expected of [
   'fixed_forward_propagation_limit_semantics=exact_frame_count',
   'fixed_forward_propagation_end_index_formula=start_plus_maximum_minus_one',
 ] as const) assert.ok(provenance.includes(expected), `provenance lost ${expected}`)
+
+for (const source of [authorityRuntime, authorityContract] as const) {
+  for (const expected of [
+    'FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256',
+    '3f285519af937ac409c374738cbce13459504489ea466d6d924b4d3872722557',
+    'f358419e20136361dc32d2e7b1db6d78f3eaa18ef1a5f30cacbda75d6ef81037',
+    'forwardPropagationFrameCountPatchSha256',
+  ] as const) assert.ok(
+    source.includes(expected),
+    `authority profile lost ${expected}`,
+  )
+}
+assert.ok(authorityRuntime.includes(
+  'forward-propagation frame-count source profile crossed',
+))
+assert.ok(authorityContract.includes(
+  'forward-propagation frame-count profile crossed',
+))
+assert.match(
+  publication,
+  /forwardPropagationFrameCountPatchSha256\s*!==\s*\n?\s*PATCH_SHA256/u,
+)
 
 assert.equal(
   packageJson.scripts?.[

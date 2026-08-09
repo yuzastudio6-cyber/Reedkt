@@ -77,6 +77,8 @@ if (
     'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
   )
   || authority.buildClosure.gpuKernelCachePolicy !== CACHE_POLICY
+  || authority.buildClosure.forwardPropagationFrameCountPatchSha256 !==
+    PATCH_SHA256
   || authority.cloudBuildPolicy.machineType !== 'E2_STANDARD_2'
 ) throw new Error(
   'SAM 3.1 forward-propagation-frame-count image authority changed.',

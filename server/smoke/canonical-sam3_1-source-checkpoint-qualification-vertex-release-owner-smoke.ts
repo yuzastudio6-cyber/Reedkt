@@ -399,7 +399,7 @@ const compileRequest = {
   qualificationCostReceiptRef: costRef,
   securityComplianceClearanceRef: clearanceRef,
 }
-const release = await owner.compileAndPersist(compileRequest)
+export const release = await owner.compileAndPersist(compileRequest)
 assert.deepEqual(assertCanonicalSam31VertexQualificationRelease(release), release)
 assert.equal(release.qualification.qualificationVersion, 2)
 assert.equal(release.qualification.workerRequest.qualificationVersion, 2)

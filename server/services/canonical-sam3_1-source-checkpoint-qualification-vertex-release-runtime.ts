@@ -421,7 +421,9 @@ function createReleaseReadPort(input: {
     async rereadExecution() {
       return input.runtimeRepository.executions.reread(input.executionRef)
     },
-    async rereadTerminalReconciliation({ terminalReconciliationRef }) {
+    async rereadTerminalReconciliation({ terminalReconciliationRef }: {
+      readonly terminalReconciliationRef: EvidenceRef
+    }) {
       if (!sameRef(terminalReconciliationRef, input.terminalRef)) return null
       return readHashed({
         port: input.objectPort,
@@ -430,7 +432,9 @@ function createReleaseReadPort(input: {
         hashKey: 'resultHash',
       })
     },
-    async rereadProviderUsage({ providerUsageRef }) {
+    async rereadProviderUsage({ providerUsageRef }: {
+      readonly providerUsageRef: EvidenceRef
+    }) {
       return readHashed({
         port: input.objectPort,
         path: runtimeRefPath('provider-usage', providerUsageRef),
@@ -438,7 +442,9 @@ function createReleaseReadPort(input: {
         hashKey: 'evidenceHash',
       })
     },
-    async rereadPlatformStop({ platformStopRef }) {
+    async rereadPlatformStop({ platformStopRef }: {
+      readonly platformStopRef: EvidenceRef
+    }) {
       return readHashed({
         port: input.objectPort,
         path: `${RUNTIME_PREFIX}/platform-stop/`
@@ -447,13 +453,17 @@ function createReleaseReadPort(input: {
         hashKey: 'evidenceHash',
       })
     },
-    async rereadCurrentAccountRate({ rateRef }) {
+    async rereadCurrentAccountRate({ rateRef }: {
+      readonly rateRef: EvidenceRef
+    }) {
       return input.rateRepository.reread({
         rateAuthorityRef: rateRef,
         at: input.terminal.observedAt,
       })
     },
-    async rereadQualificationCostReceipt({ costRef }) {
+    async rereadQualificationCostReceipt({ costRef }: {
+      readonly costRef: EvidenceRef
+    }) {
       return readHashed({
         port: input.objectPort,
         path: runtimeRefPath('costs', costRef),
@@ -461,7 +471,9 @@ function createReleaseReadPort(input: {
         hashKey: 'receiptHash',
       })
     },
-    async rereadSecurityComplianceClearance({ clearanceRef }) {
+    async rereadSecurityComplianceClearance({ clearanceRef }: {
+      readonly clearanceRef: EvidenceRef
+    }) {
       if (!sameRef(clearanceRef, input.clearanceRef)) return null
       const value = await readJson(
         input.objectPort,

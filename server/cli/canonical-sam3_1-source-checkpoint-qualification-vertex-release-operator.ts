@@ -39,10 +39,17 @@ const environmentSchema = z.object({
 }).strict()
 
 type Environment = Readonly<Record<string, string | undefined>>
-type Runtime = Pick<
-  ReturnType<typeof createCanonicalSam31VertexQualificationReleaseRuntime>,
-  'publish'
+type CanonicalRuntime = ReturnType<
+  typeof createCanonicalSam31VertexQualificationReleaseRuntime
 >
+type PublishInput = Parameters<CanonicalRuntime['publish']>[0]
+type PublishResult = Awaited<ReturnType<CanonicalRuntime['publish']>>
+type Runtime = {
+  publish(value: PublishInput): Promise<Pick<
+    PublishResult,
+    'status' | 'secondCustomJobCreated' | 'customerCreditsMutated'
+  >>
+}
 
 export async function publishCanonicalSam31VertexQualificationReleaseFromEnvironment(
   environment: Environment,

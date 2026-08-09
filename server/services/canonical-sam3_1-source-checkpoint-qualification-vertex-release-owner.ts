@@ -206,6 +206,18 @@ export type CanonicalSam31VertexQualificationRelease = z.infer<
   typeof canonicalSam31VertexQualificationReleaseSchema
 >
 
+export interface CanonicalSam31VertexQualificationReleaseObjectReadPort {
+  rereadQualificationRelease(input: {
+    readonly sourceCheckpointQualificationRef: {
+      readonly id: string
+      readonly version: 2
+      readonly schemaVersion:
+        typeof CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION
+      readonly contentHash: string
+    }
+  }): Promise<CanonicalSam31VertexQualificationRelease | null>
+}
+
 type EvidenceRef = z.infer<typeof evidenceRefSchema>
 
 export interface CanonicalSam31VertexQualificationReleaseReadPort {
@@ -654,6 +666,54 @@ export function canonicalSam31VertexQualificationReleasePath(
 ) {
   return 'private/sam3_1/source-checkpoint-qualification/v2/releases/'
     + `${sha256AuthorityValue(safeId.parse(qualificationId))}.json`
+}
+
+export function createCanonicalSam31VertexQualificationReleaseObjectReadPort(
+  input: { readonly objectPort: CanonicalCreateOnlyJsonObjectPort },
+): CanonicalSam31VertexQualificationReleaseObjectReadPort {
+  if (typeof input.objectPort?.readExact !== 'function') {
+    throw new Error('Vertex SAM 3.1 release object read port is invalid.')
+  }
+  return Object.freeze({
+    async rereadQualificationRelease({ sourceCheckpointQualificationRef }: {
+      readonly sourceCheckpointQualificationRef: {
+        readonly id: string
+        readonly version: 2
+        readonly schemaVersion:
+          typeof CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION
+        readonly contentHash: string
+      }
+    }) {
+      const expected = z.object({
+        id: safeId,
+        version: z.literal(2),
+        schemaVersion: z.literal(
+          CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
+        ),
+        contentHash: prefixedSha256,
+      }).strict().parse(sourceCheckpointQualificationRef)
+      const body = await input.objectPort.readExact(
+        canonicalSam31VertexQualificationReleasePath(expected.id),
+      )
+      if (!body) return null
+      let value: unknown
+      try { value = JSON.parse(body.toString('utf8')) } catch {
+        throw new Error('Vertex SAM 3.1 release JSON is invalid.')
+      }
+      const release = assertCanonicalSam31VertexQualificationRelease(value)
+      if (
+        release.sourceCheckpointQualificationRef.id !== expected.id
+        || release.sourceCheckpointQualificationRef.version !==
+          expected.version
+        || release.sourceCheckpointQualificationRef.schemaVersion !==
+          expected.schemaVersion
+        || release.sourceCheckpointQualificationRef.contentHash !==
+          expected.contentHash
+        || stableAuthorityStringify(release) !== body.toString('utf8')
+      ) throw new Error('Vertex SAM 3.1 release object reference changed.')
+      return release
+    },
+  })
 }
 
 function releasePath(qualificationId: string) {

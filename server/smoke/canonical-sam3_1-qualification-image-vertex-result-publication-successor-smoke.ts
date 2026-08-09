@@ -124,6 +124,11 @@ assert.equal(
 )
 
 const body = Buffer.from(stableAuthorityStringify(result), 'utf8')
+const executionRef = {
+  id: 'sam31-result-publication-smoke-execution',
+  version: 1,
+  contentHash: `sha256:${'d'.repeat(64)}` as const,
+}
 function storageWithContentType(contentType: string) {
   const metadata = {
     generation: '1786250000000001',
@@ -154,13 +159,13 @@ function storageWithContentType(contentType: string) {
 
 const fuseResult = await createCanonicalSam31VertexQualificationGcsResultReadPort({
   storage: storageWithContentType('application/octet-stream') as never,
-}).rereadExact({ request })
+}).rereadExact({ request, executionRef })
 assert.deepEqual(fuseResult, result)
 
 await assert.rejects(
   createCanonicalSam31VertexQualificationGcsResultReadPort({
     storage: storageWithContentType('text/plain') as never,
-  }).rereadExact({ request }),
+  }).rereadExact({ request, executionRef }),
   /metadata is invalid/u,
 )
 

@@ -269,15 +269,15 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
     build,
     'source-provenance.lock',
   )
-  const gpuKernelCacheProfileSelected = [
+  const gpuKernelCacheProfileSelected = new Set<string>([
     GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
     FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
-  ].includes(dockerfileSha256)
+  ]).has(dockerfileSha256)
     || entrypointSha256 === GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
-    || [
+    || new Set<string>([
       GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
       FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
-    ].includes(sourceProvenanceLockSha256)
+    ]).has(sourceProvenanceLockSha256)
   const exactGpuKernelCacheSourceProfile =
     entrypointSha256 === GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
     && (

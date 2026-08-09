@@ -779,16 +779,16 @@ function assertQualificationCapsuleEntries(
     )
   ) throw new Error('Qualification capsule importlib profile crossed.')
   const multiplexSessionGpuForwardingProfileSelected =
-    [
+    new Set<string>([
       MULTIPLEX_SESSION_GPU_FORWARDING_DOCKERFILE_SHA256,
       GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
       FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
-    ].includes(manifest.repositorySource.dockerfileSha256)
-    || [
+    ]).has(manifest.repositorySource.dockerfileSha256)
+    || new Set<string>([
       MULTIPLEX_SESSION_GPU_FORWARDING_SOURCE_PROVENANCE_LOCK_SHA256,
       GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
       FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
-    ].includes(manifest.repositorySource.sourceProvenanceLockSha256)
+    ]).has(manifest.repositorySource.sourceProvenanceLockSha256)
     || manifest.repositorySource
       .multiplexSessionGpuForwardingPatchSha256 !== undefined
   const exactGpuForwardingSourceProfile =
@@ -816,16 +816,16 @@ function assertQualificationCapsuleEntries(
           MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256
     )
   ) throw new Error('Qualification capsule GPU-forwarding profile crossed.')
-  const gpuKernelCacheProfileSelected = [
+  const gpuKernelCacheProfileSelected = new Set<string>([
     GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
     FORWARD_PROPAGATION_FRAME_COUNT_DOCKERFILE_SHA256,
-  ].includes(manifest.repositorySource.dockerfileSha256)
+  ]).has(manifest.repositorySource.dockerfileSha256)
     || manifest.repositorySource.entrypointSha256 ===
       GPU_KERNEL_CACHE_ENTRYPOINT_SHA256
-    || [
+    || new Set<string>([
       GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
       FORWARD_PROPAGATION_FRAME_COUNT_SOURCE_PROVENANCE_LOCK_SHA256,
-    ].includes(manifest.repositorySource.sourceProvenanceLockSha256)
+    ]).has(manifest.repositorySource.sourceProvenanceLockSha256)
     || manifest.repositorySource.gpuKernelCachePolicy !== undefined
   const exactGpuKernelCacheSourceProfile =
     manifest.repositorySource.entrypointSha256 ===

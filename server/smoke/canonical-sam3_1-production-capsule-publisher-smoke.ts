@@ -4,21 +4,17 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import {
-  createCanonicalSam31ImageBuildArtifactBinding,
-} from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
+  createCanonicalSam31VertexImageBuildBinding,
+} from '../model-artifacts/canonical-sam3_1-vertex-production-build-binding'
 import {
   canonicalSam31ProductionCapsuleBuilderResultRef,
   sealCanonicalSam31ProductionCapsuleBuilderResult,
   sealCanonicalSam31ProductionCapsuleSecurityReview,
 } from '../model-artifacts/canonical-sam3_1-production-capsule-build-evidence'
-import {
-  createCanonicalSam31SourceRuntimeCandidate,
-} from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
-  canonicalSam31ImageBuildArtifactBindingRef,
   createCanonicalSam31CloudImageBuildRepository,
 } from '../services/canonical-sam3_1-cloud-image-build-runtime'
 import {
@@ -30,17 +26,16 @@ import {
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import { release } from
-  './canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke'
-import { canonicalIngest } from
-  './canonical-sam3_1-source-checkpoint-qualification-smoke'
+  './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner-smoke'
 
-const candidate = createCanonicalSam31SourceRuntimeCandidate()
-const binding = createCanonicalSam31ImageBuildArtifactBinding({
-  candidate,
-  ingestReceipt: canonicalIngest,
-  sourceCheckpointQualification: release.qualification,
+const canonicalIngest = release.qualification.ingestReceipt
+const binding = createCanonicalSam31VertexImageBuildBinding({
+  release,
 })
-const bindingRef = canonicalSam31ImageBuildArtifactBindingRef(binding)
+const bindingRef = ref(
+  `sam31-vertex-build-binding-${binding.bindingHash.slice(0, 24)}`,
+  binding.bindingHash,
+)
 const entries = createEntries()
 const capsuleSha = sha(Buffer.from('production-capsule-double-build-smoke'))
 const primaryId = '11111111-1111-4111-8111-111111111111'
@@ -56,6 +51,7 @@ const buildEvidence = new Map([
 const objectStore = createObjectPort()
 const imageBuildRepository = createCanonicalSam31CloudImageBuildRepository({
   objectPort: objectStore.port,
+  prefix: 'private/sam3_1/cloud-image-build/v2',
 })
 const reproducibilityRepository =
   createCanonicalSam31ProductionCapsuleReproducibilityRepository({
@@ -79,8 +75,15 @@ const publisher = createCanonicalSam31ProductionCapsulePublisher({
         : null
     },
   },
+  artifactBindingReadPort: {
+    async rereadArtifactBinding({ bindingRef: requested }) {
+      return requested.contentHash === bindingRef.contentHash
+        ? structuredClone(binding)
+        : null
+    },
+  },
   buildReadPort: {
-    schemaVersion: 'canonical-sam3_1-production-capsule-build-read-port-v1',
+    schemaVersion: 'canonical-sam3_1-production-capsule-build-read-port-v2',
     async rereadBuild({ buildId }) {
       return structuredClone(buildEvidence.get(buildId) ?? null)
     },
@@ -157,6 +160,7 @@ buildEvidence.set(confirmationId, confirmation)
 assert.throws(() => createCanonicalSam31ProductionCapsulePublisher({
   qualificationReleaseReadPort: {} as never,
   ingestReadPort: {} as never,
+  artifactBindingReadPort: {} as never,
   buildReadPort: {} as never,
   reproducibilityRepository,
   imageBuildRepository,
@@ -190,7 +194,8 @@ console.log(JSON.stringify({
   exactCapsuleBytesCrc32cMd5AndEntrySetMatched: true,
   bothCapsuleBodiesIndependentlyReread: true,
   independentSecurityReviewsPassed: true,
-  artifactBindingPersistedCreateOnlyAndReread: true,
+  vertexArtifactBindingReread: true,
+  historicalBatchQualificationCastOrRelabelUsed: false,
   reproducibilityPersistedCreateOnlyAndReread: true,
   manifestPersistedCreateOnlyAndReread: true,
   checkpointIncluded: false,
@@ -213,7 +218,7 @@ function createBuild(
   } = {},
 ) {
   const builderResult = sealCanonicalSam31ProductionCapsuleBuilderResult({
-    schemaVersion: 'weeditpro-sam3_1-production-capsule-builder-result-v1',
+    schemaVersion: 'weeditpro-sam3_1-production-capsule-builder-result-v2',
     source: 'weeditpro_sam3_1_production_capsule_builder',
     evidenceClass: 'canonical_private_cloud_build',
     buildId: id,
@@ -276,13 +281,15 @@ function createBuild(
     ),
     checkpointIncluded: false,
     sourceCheckpointQualificationReceiptIncluded: true,
+    vertexQualificationEvidenceBound: true,
+    historicalBatchQualificationCastOrRelabelUsed: false,
     containsCredentials: false,
     containsCustomerMedia: false,
     networkDependencyInstallRequired: false,
     callerPathUrlCommandImageTagOrBuildArgumentAccepted: false,
   })
   const securityReview = sealCanonicalSam31ProductionCapsuleSecurityReview({
-    schemaVersion: 'weeditpro-sam3_1-production-capsule-security-review-v1',
+    schemaVersion: 'weeditpro-sam3_1-production-capsule-security-review-v2',
     source: 'weeditpro_sam3_1_production_capsule_security_owner',
     evidenceClass: 'canonical_private_cloud_scan',
     buildId: id,
@@ -463,7 +470,7 @@ function ref(id: string, digest = '9'.repeat(64)) {
 
 function sourceQualificationCapsuleRef() {
   const source =
-    release.qualification.controlledObservation.dependencyClosureRef
+    release.qualification.workerRequest.dependencyClosure.artifactRef
   assert.equal(source.version, 1)
   return {
     id: source.id,

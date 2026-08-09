@@ -11,11 +11,11 @@ steps:
           *) printf 'ERROR: source capsule manifest object is not canonical.\n' >&2; exit 1 ;;
         esac
         case '${_QUALIFICATION_RELEASE_OBJECT}' in
-          private/sam3_1/source-checkpoint-qualification/v1/releases/*.json) ;;
+          private/sam3_1/source-checkpoint-qualification/v2/releases/*.json) ;;
           *) printf 'ERROR: qualification release object is not canonical.\n' >&2; exit 1 ;;
         esac
         case '${_ARTIFACT_BINDING_OBJECT}' in
-          private/sam3_1/cloud-image-build/v1/artifact-bindings/*.json) ;;
+          private/sam3_1/cloud-image-build/v2/artifact-bindings/*.json) ;;
           *) printf 'ERROR: artifact binding object is not canonical.\n' >&2; exit 1 ;;
         esac
         for value in \
@@ -119,10 +119,10 @@ steps:
           --build-arg=WEEDITPRO_REPOSITORY_COMMIT=${_REPOSITORY_COMMIT} \
           --build-arg=WEEDITPRO_REPOSITORY_TREE=${_REPOSITORY_TREE} \
           --file=Dockerfile.production-capsule-builder \
-          --tag=weeditpro-sam31-production-capsule:source-bound-v1 \
+          --tag=weeditpro-sam31-production-capsule:source-bound-v2 \
           .
         container_id="$$(docker create \
-          weeditpro-sam31-production-capsule:source-bound-v1)"
+          weeditpro-sam31-production-capsule:source-bound-v2)"
         trap 'docker rm --force "$${container_id}" >/dev/null 2>&1 || true' EXIT
         mkdir -p /workspace/private-production-capsule-output
         docker cp "$${container_id}:/output/." \
@@ -204,7 +204,7 @@ steps:
         ):
             raise SystemExit('production capsule builder evidence changed')
         payload = {
-            'schemaVersion': 'weeditpro-sam3_1-production-capsule-security-review-v1',
+            'schemaVersion': 'weeditpro-sam3_1-production-capsule-security-review-v2',
             'source': 'weeditpro_sam3_1_production_capsule_security_owner',
             'evidenceClass': 'canonical_private_cloud_scan',
             'buildId': build_id,

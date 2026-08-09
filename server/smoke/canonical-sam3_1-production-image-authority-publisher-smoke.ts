@@ -4,17 +4,19 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import {
-  CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
-  createCanonicalSam31ImageBuildArtifactBinding,
   createCanonicalSam31PrivateImageBuildCapsuleManifest,
-  assertCanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
+import {
+  CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
+  assertCanonicalSam31VertexCloudImageBuildAuthority,
+} from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
+import { createCanonicalSam31VertexImageBuildBinding } from
+  '../model-artifacts/canonical-sam3_1-vertex-production-build-binding'
 import { createCanonicalSam31SourceRuntimeCandidate } from
   '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import type { CanonicalCreateOnlyJsonObjectPort } from
   '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
-  canonicalSam31ImageBuildArtifactBindingRef,
   canonicalSam31PrivateImageBuildCapsuleManifestRef,
   createCanonicalSam31CloudImageBuildRepository,
 } from '../services/canonical-sam3_1-cloud-image-build-runtime'
@@ -26,16 +28,18 @@ import {
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import { release } from
-  './canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke'
-import { canonicalIngest } from
-  './canonical-sam3_1-source-checkpoint-qualification-smoke'
+  './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner-smoke'
 
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
-const binding = createCanonicalSam31ImageBuildArtifactBinding({
-  candidate,
-  ingestReceipt: canonicalIngest,
-  sourceCheckpointQualification: release.qualification,
+const canonicalIngest = release.qualification.ingestReceipt
+const binding = createCanonicalSam31VertexImageBuildBinding({
+  release,
 })
+const bindingRef = {
+  id: `sam31-vertex-build-binding-${binding.bindingHash.slice(0, 24)}`,
+  version: 1 as const,
+  contentHash: `sha256:${binding.bindingHash}` as const,
+}
 const bindingBytes = Buffer.from(stableAuthorityStringify(binding), 'utf8')
 const qualificationBytes = Buffer.from(
   stableAuthorityStringify(release.qualification),
@@ -53,7 +57,7 @@ const manifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
     schemaVersion: candidate.schemaVersion,
     candidateHash: candidate.candidateHash,
   },
-  artifactBindingRef: canonicalSam31ImageBuildArtifactBindingRef(binding),
+  artifactBindingRef: bindingRef,
   repositorySource: {
     commitSha: '1'.repeat(40),
     treeSha: '2'.repeat(40),
@@ -176,6 +180,13 @@ const publisher = createCanonicalSam31ProductionImageAuthorityPublisher({
         : null
     },
   },
+  artifactBindingReadPort: {
+    async rereadArtifactBinding({ bindingRef: requested }) {
+      return requested.contentHash === bindingRef.contentHash
+        ? structuredClone(binding)
+        : null
+    },
+  },
   repository,
   privateCapsuleReadPort: { async readExact() { return null } },
   async prepareAuthority(input) {
@@ -208,14 +219,22 @@ assert.equal(prepareCalls.length, 1)
 assert.deepEqual(publication.capsuleManifestRef, manifestRef)
 assert.deepEqual(
   publication.artifactBindingRef,
-  canonicalSam31ImageBuildArtifactBindingRef(binding),
+  bindingRef,
 )
-assert.ok(await repository.rereadArtifactBinding({
-  bindingRef: publication.artifactBindingRef,
-}))
-assert.ok(await repository.rereadBuildAuthority({
+const rereadAuthority = await repository.rereadBuildAuthority({
   authorityRef: publication.authorityRef,
-}))
+})
+assert.equal(
+  rereadAuthority?.schemaVersion,
+  CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
+)
+assert.equal(
+  rereadAuthority?.schemaVersion ===
+    CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION
+    ? rereadAuthority.historicalBatchQualificationCastOrRelabelUsed
+    : true,
+  false,
+)
 
 await assert.rejects(publisher.publish({ ...request, command: 'docker build' }))
 await assert.rejects(publisher.publish({
@@ -235,18 +254,20 @@ await assert.rejects(publisher.publish({
 assert.throws(() => createCanonicalSam31ProductionImageAuthorityPublisher({
   qualificationReleaseReadPort: {} as never,
   ingestReadPort: {} as never,
+  artifactBindingReadPort: {} as never,
   repository,
   privateCapsuleReadPort: { async readExact() { return null } },
 }))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-image-authority-publisher',
-  checks: 17,
+  checks: 19,
   exactQualifiedReleaseReread: true,
   exactPrivateIngestReread: true,
-  artifactBindingCreateOnlyAndReread: true,
+  vertexArtifactBindingExactReread: true,
   capsuleManifestCreateOnlyAndReread: true,
-  buildAuthorityCreateOnlyAndReread: true,
+  vertexBuildAuthorityV3CreateOnlyAndReread: true,
+  historicalBatchQualificationCastOrRelabelUsed: false,
   callerCommandPathTagRetryOrRuntimeAuthorityAccepted: false,
   developerMachineModelOrCheckpointInstallPerformed: false,
   imageBuildStarted: false,
@@ -257,8 +278,10 @@ console.log(JSON.stringify({
 
 function createAuthority(preparedAt: string) {
   const payload = {
-    schemaVersion: CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
-    source: 'canonical_sam3_1_cloud_image_build_authority_owner' as const,
+    schemaVersion:
+      CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
+    source:
+      'canonical_sam3_1_vertex_cloud_image_build_authority_owner' as const,
     evidenceClass: 'canonical_private_reread' as const,
     status: 'authorized_for_private_cloud_build' as const,
     authorityId:
@@ -269,7 +292,7 @@ function createAuthority(preparedAt: string) {
     ingestReceiptRef: binding.ingestReceiptRef,
     sourceCheckpointQualificationRef:
       release.sourceCheckpointQualificationRef,
-    artifactBindingRef: canonicalSam31ImageBuildArtifactBindingRef(binding),
+    artifactBindingRef: bindingRef,
     capsuleManifestRef:
       canonicalSam31PrivateImageBuildCapsuleManifestRef(manifest),
     capsuleCoordinate: manifest.capsule.coordinate,
@@ -346,8 +369,10 @@ function createAuthority(preparedAt: string) {
       productionReady: false as const,
     },
     preparedAt,
+    vertexQualificationEvidenceBound: true as const,
+    historicalBatchQualificationCastOrRelabelUsed: false as const,
   }
-  return assertCanonicalSam31CloudImageBuildAuthority({
+  return assertCanonicalSam31VertexCloudImageBuildAuthority({
     ...payload,
     authorityHash: sha256AuthorityValue(payload),
   })

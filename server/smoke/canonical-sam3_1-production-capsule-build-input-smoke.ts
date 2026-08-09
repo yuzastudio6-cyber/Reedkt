@@ -141,7 +141,10 @@ for (const expected of [
   '--format=ustar',
   "--mtime='@0'",
   'gzip --no-name --best',
-  'weeditpro-sam3_1-production-capsule-builder-result-v1',
+  'weeditpro-sam3_1-production-capsule-builder-result-v2',
+  'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
+  'canonical-sam3_1-image-build-artifact-binding-v3',
+  'historicalBatchQualificationCastOrRelabelUsed',
   'sourceCheckpointQualificationReceiptIncluded',
   'callerPathUrlCommandImageTagOrBuildArgumentAccepted',
   '0003-weeditpro-multiplex-session-gpu-forwarding.patch',
@@ -176,7 +179,9 @@ for (const expected of [
   'upload-create-only-production-evidence',
   '--if-generation-match=0',
   '--content-type=application/gzip',
-  'weeditpro-sam3_1-production-capsule-security-review-v1',
+  'weeditpro-sam3_1-production-capsule-security-review-v2',
+  'private/sam3_1/source-checkpoint-qualification/v2/releases/',
+  'private/sam3_1/cloud-image-build/v2/artifact-bindings/',
   'weeditpro-sam31-private-artifact-review@sha256:51c995ea5e6ef0ee43e2f011f45657acd4ce038dc5d6510852630fa1f5543a20',
   'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
 ] as const) assert.ok(cloudBuild.includes(expected),
@@ -189,7 +194,8 @@ assert.equal((launcher.match(/gcloud builds submit/gmu) ?? []).length, 2)
 for (const expected of [
   'caller arguments are forbidden',
   'source worktree must be clean',
-  'prepare:sam3_1-production-capsule-build-inputs',
+  'prepare:sam3_1-production-capsule-vertex-build-inputs',
+  'canonicalVertexReleaseManifestIngestAndBindingReread',
   'ready_for_two_independent_cloud_builds',
   'primaryBuildId',
   'confirmationBuildId',
@@ -207,8 +213,8 @@ for (const expected of [
 ] as const) assert.ok(gcloudIgnore.includes(expected),
   `.gcloudignore lost ${expected}`)
 assert.equal(
-  packageJson.scripts?.['prepare:sam3_1-production-capsule-build-inputs'],
-  'tsx server/cli/prepare-canonical-sam3_1-production-capsule-build-inputs.ts',
+  packageJson.scripts?.['prepare:sam3_1-production-capsule-vertex-build-inputs'],
+  'tsx server/cli/prepare-canonical-sam3_1-production-capsule-vertex-build-inputs.ts',
 )
 
 console.log(JSON.stringify({

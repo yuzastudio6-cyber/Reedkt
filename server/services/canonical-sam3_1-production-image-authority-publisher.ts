@@ -2,26 +2,27 @@ import { z } from 'zod'
 import { Storage } from '@google-cloud/storage'
 
 import {
-  CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
-} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+  createCanonicalSam31VertexImageBuildBinding,
+} from '../model-artifacts/canonical-sam3_1-vertex-production-build-binding'
 import {
   assertCanonicalSam31PrivateImageBuildCapsuleManifest,
-  createCanonicalSam31ImageBuildArtifactBinding,
-  prepareCanonicalSam31CloudImageBuildAuthority,
   type CanonicalSam31PrivateBuildCapsuleReadPort,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
+import {
+  prepareCanonicalSam31VertexCloudImageBuildAuthority,
+} from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
 import { createCanonicalSam31SourceRuntimeCandidate } from
   '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import { assertCanonicalSam31PrivateArtifactIngestReceipt } from
   '../model-artifacts/canonical-sam3_1-private-artifact-ingest'
 import {
-  createCanonicalSam31QualificationReleaseObjectReadPort,
-  assertCanonicalSam31QualificationRelease,
-  type CanonicalSam31QualificationReleaseObjectReadPort,
-} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
+  CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
+  assertCanonicalSam31VertexQualificationRelease,
+  createCanonicalSam31VertexQualificationReleaseObjectReadPort,
+  type CanonicalSam31VertexQualificationReleaseObjectReadPort,
+} from './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner'
 import {
   canonicalSam31CloudImageBuildAuthorityRef,
-  canonicalSam31ImageBuildArtifactBindingRef,
   canonicalSam31PrivateImageBuildCapsuleManifestRef,
   createCanonicalSam31CloudImageBuildRepository,
   type CanonicalSam31CloudImageBuildRepository,
@@ -30,13 +31,17 @@ import { createCanonicalSam31GcpPrivateArtifactIngestRepository } from
   './canonical-sam3_1-private-artifact-ingest-repository'
 import { createCanonicalSam31GcsProductionCapsuleReadPort } from
   './canonical-sam3_1-production-capsule-runtime'
+import {
+  createCanonicalSam31VertexImageBuildBindingReadPort,
+  type CanonicalSam31VertexImageBuildBindingReadPort,
+} from './canonical-sam3_1-production-capsule-publisher'
 import { createCanonicalGcsSourceAnalysisJsonObjectPort } from
   './canonical-gcs-source-analysis-lifecycle-store'
 import { assertPlainSerializedData } from
   './canonical-professional-gpu-job-lifecycle-service'
 
 export const CANONICAL_SAM3_1_PRODUCTION_IMAGE_AUTHORITY_PUBLISHER_VERSION =
-  'canonical-sam3_1-production-image-authority-publisher-v1' as const
+  'canonical-sam3_1-production-image-authority-publisher-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -48,8 +53,9 @@ const referenceSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 const qualificationReferenceSchema = referenceSchema.extend({
+  version: z.literal(2),
   schemaVersion: z.literal(
-    CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+    CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
   ),
 }).strict()
 const requestSchema = z.object({
@@ -84,18 +90,21 @@ export interface CanonicalSam31ProductionImageAuthorityIngestReadPort {
  */
 export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
   readonly qualificationReleaseReadPort:
-    CanonicalSam31QualificationReleaseObjectReadPort
+    CanonicalSam31VertexQualificationReleaseObjectReadPort
   readonly ingestReadPort:
     CanonicalSam31ProductionImageAuthorityIngestReadPort
+  readonly artifactBindingReadPort:
+    CanonicalSam31VertexImageBuildBindingReadPort
   readonly repository: CanonicalSam31CloudImageBuildRepository
   readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
-  readonly prepareAuthority?: typeof prepareCanonicalSam31CloudImageBuildAuthority
+  readonly prepareAuthority?:
+    typeof prepareCanonicalSam31VertexCloudImageBuildAuthority
   readonly now?: () => string
 }) {
   assertDependencies(input)
   const now = input.now ?? (() => new Date().toISOString())
   const prepareAuthority = input.prepareAuthority
-    ?? prepareCanonicalSam31CloudImageBuildAuthority
+    ?? prepareCanonicalSam31VertexCloudImageBuildAuthority
   return Object.freeze({
     schemaVersion:
       CANONICAL_SAM3_1_PRODUCTION_IMAGE_AUTHORITY_PUBLISHER_VERSION,
@@ -114,7 +123,9 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
       if (!releaseRaw || !capsuleRaw) {
         throw new Error('SAM 3.1 production image authority evidence is absent.')
       }
-      const release = assertCanonicalSam31QualificationRelease(releaseRaw)
+      const release = assertCanonicalSam31VertexQualificationRelease(
+        releaseRaw,
+      )
       const capsule = assertCanonicalSam31PrivateImageBuildCapsuleManifest(
         capsuleRaw,
       )
@@ -129,7 +140,8 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
       )
       const ingestRaw = await input.ingestReadPort
         .rereadPrivateArtifactIngest({
-          ingestReceiptRef: release.qualification.ingestReceiptRef,
+          ingestReceiptRef:
+            release.qualification.workerRequest.ingestReceiptRef,
         })
       if (!ingestRaw) {
         throw new Error('SAM 3.1 production image ingest evidence is absent.')
@@ -138,13 +150,26 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
         ingestRaw,
       )
       const candidate = createCanonicalSam31SourceRuntimeCandidate()
-      const binding = createCanonicalSam31ImageBuildArtifactBinding({
-        candidate,
-        ingestReceipt: ingest,
-        sourceCheckpointQualification: release.qualification,
+      if (ingest.ingestReceiptHash !==
+        release.qualification.ingestReceipt.ingestReceiptHash) {
+        throw new Error('SAM 3.1 production image ingest crossed release.')
+      }
+      const expectedBinding = createCanonicalSam31VertexImageBuildBinding({
+        release,
       })
+      const expectedBindingRef = referenceSchema.parse({
+        id:
+          `sam31-vertex-build-binding-${expectedBinding.bindingHash.slice(0, 24)}`,
+        version: 1,
+        contentHash: `sha256:${expectedBinding.bindingHash}`,
+      })
+      const binding = await input.artifactBindingReadPort
+        .rereadArtifactBinding({ bindingRef: expectedBindingRef })
+      if (!binding || binding.bindingHash !== expectedBinding.bindingHash) {
+        throw new Error('SAM 3.1 Vertex artifact binding reread changed.')
+      }
       assertSameRef(
-        canonicalSam31ImageBuildArtifactBindingRef(binding),
+        expectedBindingRef,
         capsule.artifactBindingRef,
         'SAM 3.1 production capsule crossed its artifact binding.',
       )
@@ -162,14 +187,6 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
         || !capsule.repositorySource.sourceClean
       ) throw new Error('SAM 3.1 production qualification is not admissible.')
 
-      const bindingRef = await input.repository
-        .persistArtifactBindingCreateOnly({ binding })
-      const bindingReread = await input.repository.rereadArtifactBinding({
-        bindingRef,
-      })
-      if (!bindingReread || bindingReread.bindingHash !== binding.bindingHash) {
-        throw new Error('SAM 3.1 artifact binding exact reread changed.')
-      }
       const manifestRef = await input.repository
         .persistCapsuleManifestCreateOnly({ manifest: capsule })
       const manifestReread = await input.repository.rereadCapsuleManifest({
@@ -185,7 +202,7 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
         candidate,
         ingestReceipt: ingest,
         sourceCheckpointQualification: release.qualification,
-        artifactBinding: bindingReread,
+        artifactBinding: binding,
         capsuleManifest: manifestReread,
         privateCapsuleReadPort: input.privateCapsuleReadPort,
         preparedAt,
@@ -210,7 +227,7 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
         disposition: 'authorized_for_private_cloud_build' as const,
         sourceCheckpointQualificationRef:
           structuredClone(request.sourceCheckpointQualificationRef),
-        artifactBindingRef: structuredClone(bindingRef),
+        artifactBindingRef: structuredClone(expectedBindingRef),
         capsuleManifestRef: structuredClone(manifestRef),
         authorityRef: structuredClone(authorityRef),
         imageDestination: structuredClone(authorityReread.imageDestination),
@@ -241,10 +258,17 @@ export function createCanonicalSam31GcpProductionImageAuthorityPublisher(
   })
   return createCanonicalSam31ProductionImageAuthorityPublisher({
     qualificationReleaseReadPort:
-      createCanonicalSam31QualificationReleaseObjectReadPort({ objectPort }),
+      createCanonicalSam31VertexQualificationReleaseObjectReadPort({
+        objectPort,
+      }),
     ingestReadPort:
       createCanonicalSam31GcpPrivateArtifactIngestRepository({ storage }),
-    repository: createCanonicalSam31CloudImageBuildRepository({ objectPort }),
+    artifactBindingReadPort:
+      createCanonicalSam31VertexImageBuildBindingReadPort({ objectPort }),
+    repository: createCanonicalSam31CloudImageBuildRepository({
+      objectPort,
+      prefix: 'private/sam3_1/cloud-image-build/v2',
+    }),
     privateCapsuleReadPort:
       createCanonicalSam31GcsProductionCapsuleReadPort({ storage }),
     now: input.now,
@@ -252,18 +276,20 @@ export function createCanonicalSam31GcpProductionImageAuthorityPublisher(
 }
 
 function assertDependencies(input: {
-  qualificationReleaseReadPort: CanonicalSam31QualificationReleaseObjectReadPort
+  qualificationReleaseReadPort:
+    CanonicalSam31VertexQualificationReleaseObjectReadPort
   ingestReadPort: CanonicalSam31ProductionImageAuthorityIngestReadPort
+  artifactBindingReadPort: CanonicalSam31VertexImageBuildBindingReadPort
   repository: CanonicalSam31CloudImageBuildRepository
   privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
-  prepareAuthority?: typeof prepareCanonicalSam31CloudImageBuildAuthority
+  prepareAuthority?: typeof prepareCanonicalSam31VertexCloudImageBuildAuthority
 }): void {
   if (
     typeof input.qualificationReleaseReadPort?.rereadQualificationRelease
       !== 'function'
     || typeof input.ingestReadPort?.rereadPrivateArtifactIngest !== 'function'
-    || typeof input.repository?.persistArtifactBindingCreateOnly !== 'function'
-    || typeof input.repository?.rereadArtifactBinding !== 'function'
+    || typeof input.artifactBindingReadPort?.rereadArtifactBinding !==
+      'function'
     || typeof input.repository?.persistCapsuleManifestCreateOnly !== 'function'
     || typeof input.repository?.rereadCapsuleManifest !== 'function'
     || typeof input.repository?.persistBuildAuthorityCreateOnly !== 'function'

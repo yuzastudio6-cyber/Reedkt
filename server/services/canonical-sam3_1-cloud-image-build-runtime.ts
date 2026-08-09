@@ -12,6 +12,10 @@ import {
   type CanonicalSam31PrivateImageBuildCapsuleManifest,
   type CanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
+import {
+  assertCanonicalSam31VertexCloudImageBuildAuthority,
+  type CanonicalSam31VertexCloudImageBuildAuthority,
+} from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
 import { ApiError } from '../errors/api-error'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
@@ -29,19 +33,19 @@ import {
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from './canonical-sam3_1-cloud-image-build-service'
 import {
-  createCanonicalSam31QualificationReleaseObjectReadPort,
-} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
+  createCanonicalSam31VertexQualificationReleaseObjectReadPort,
+} from './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_REPOSITORY_VERSION =
-  'canonical-sam3_1-cloud-image-build-repository-v2' as const
+  'canonical-sam3_1-cloud-image-build-repository-v3' as const
 export const CANONICAL_SAM3_1_GOOGLE_CLOUD_BUILD_TRANSPORT_VERSION =
   'canonical-sam3_1-google-cloud-build-transport-v1' as const
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_RUNTIME_VERSION =
-  'canonical-sam3_1-cloud-image-build-runtime-v1' as const
+  'canonical-sam3_1-cloud-image-build-runtime-v2' as const
 
 const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds'
@@ -56,7 +60,7 @@ const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform'
 const CONTROL_PLANE_STATE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state'
-const DEFAULT_PREFIX = 'private/sam3_1/cloud-image-build/v1'
+const DEFAULT_PREFIX = 'private/sam3_1/cloud-image-build/v2'
 const MAXIMUM_RECORD_BYTES = 16 * 1024 * 1024
 const safePrefix = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/u)
@@ -103,6 +107,9 @@ const consumptionSchema = consumptionWithoutHashSchema.extend({
 
 type EvidenceRef = z.infer<typeof evidenceRefSchema>
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
+export type CanonicalSam31AnyCloudImageBuildAuthority =
+  | CanonicalSam31CloudImageBuildAuthority
+  | CanonicalSam31VertexCloudImageBuildAuthority
 
 export interface CanonicalSam31CloudImageBuildRepository
   extends CanonicalSam31CloudImageBuildAuthorityReadPort,
@@ -123,7 +130,7 @@ export interface CanonicalSam31CloudImageBuildRepository
     readonly manifestRef: EvidenceRef
   }): Promise<CanonicalSam31PrivateImageBuildCapsuleManifest | null>
   persistBuildAuthorityCreateOnly(input: {
-    readonly authority: CanonicalSam31CloudImageBuildAuthority
+    readonly authority: CanonicalSam31AnyCloudImageBuildAuthority
   }): Promise<EvidenceRef>
   rereadSubmission(input: {
     readonly submissionRef: EvidenceRef
@@ -156,9 +163,9 @@ export function canonicalSam31PrivateImageBuildCapsuleManifestRef(
 }
 
 export function canonicalSam31CloudImageBuildAuthorityRef(
-  authority: CanonicalSam31CloudImageBuildAuthority,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): EvidenceRef {
-  const parsed = assertCanonicalSam31CloudImageBuildAuthority(authority)
+  const parsed = assertAnyCloudImageBuildAuthority(authority)
   return evidenceRefSchema.parse({
     id: parsed.authorityId,
     version: parsed.authorityVersion,
@@ -259,7 +266,7 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
     },
 
     async persistBuildAuthorityCreateOnly({ authority }) {
-      const parsed = assertCanonicalSam31CloudImageBuildAuthority(authority)
+      const parsed = assertAnyCloudImageBuildAuthority(authority)
       const ref = canonicalSam31CloudImageBuildAuthorityRef(parsed)
       await persistExact(
         input.objectPort,
@@ -274,7 +281,7 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
       const value = await readExact(
         input.objectPort,
         recordPath(prefix, 'authorities', ref),
-        assertCanonicalSam31CloudImageBuildAuthority,
+        assertAnyCloudImageBuildAuthority,
       )
       if (!value) return null
       if (!sameRef(ref, canonicalSam31CloudImageBuildAuthorityRef(value))) {
@@ -376,6 +383,28 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
     },
   }
   return Object.freeze(repository)
+}
+
+function assertAnyCloudImageBuildAuthority(
+  value: unknown,
+): CanonicalSam31AnyCloudImageBuildAuthority {
+  if (hasOwnDataSchemaVersion(
+    value,
+    'canonical-sam3_1-cloud-image-build-authority-v3',
+  )) return assertCanonicalSam31VertexCloudImageBuildAuthority(value)
+  return assertCanonicalSam31CloudImageBuildAuthority(value)
+}
+
+function hasOwnDataSchemaVersion(value: unknown, expected: string): boolean {
+  try {
+    if (value === null || typeof value !== 'object') return false
+    const descriptor = Object.getOwnPropertyDescriptor(value, 'schemaVersion')
+    return descriptor !== undefined
+      && 'value' in descriptor
+      && descriptor.value === expected
+  } catch {
+    return false
+  }
 }
 
 /** Google ADC transport with one fixed API origin, no retry, and no redirect. */
@@ -513,7 +542,9 @@ export function createCanonicalSam31GcpCloudImageBuildRuntime(input: {
   const runtime = createCanonicalSam31CloudImageBuildRuntime({
     repository,
     qualificationReleaseReadPort:
-      createCanonicalSam31QualificationReleaseObjectReadPort({ objectPort }),
+      createCanonicalSam31VertexQualificationReleaseObjectReadPort({
+        objectPort,
+      }),
     authenticatedTransport: input.authenticatedTransport,
     auth: input.auth,
     requestTimeoutMilliseconds: input.requestTimeoutMilliseconds,

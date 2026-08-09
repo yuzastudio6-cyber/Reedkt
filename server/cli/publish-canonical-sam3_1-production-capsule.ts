@@ -5,7 +5,7 @@ import {
 } from '../services/canonical-sam3_1-production-capsule-publisher'
 
 const CONFIRMATION =
-  'publish-one-qualified-sam31-production-capsule-v1' as const
+  'publish-one-qualified-sam31-production-capsule-v2' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -42,9 +42,9 @@ const result = await createCanonicalSam31GcpProductionCapsulePublisher()
   .publish({
     sourceCheckpointQualificationRef: {
       id: environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID,
-      version: 1,
+      version: 2,
       schemaVersion:
-        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
       contentHash:
         `sha256:${environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256}`,
     },

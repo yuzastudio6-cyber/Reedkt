@@ -93,16 +93,19 @@ if not isinstance(qualification_ref, dict):
     raise SystemExit("qualification ref is absent")
 if (
     qualification_ref.get("schemaVersion")
-    != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
-    or qualification_ref.get("version") != 1
+    != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v2"
+    or qualification_ref.get("version") != 2
     or qualification_ref.get("contentHash") != f"sha256:{qualification_hash}"
 ):
     raise SystemExit("qualification ref crossed final receipt")
 
-controlled = qualification.get("controlledObservation")
-if not isinstance(controlled, dict):
-    raise SystemExit("controlled qualification observation is absent")
-source_capsule_ref = controlled.get("dependencyClosureRef")
+worker_request = qualification.get("workerRequest")
+if not isinstance(worker_request, dict):
+    raise SystemExit("Vertex qualification worker request is absent")
+dependency_closure = worker_request.get("dependencyClosure")
+if not isinstance(dependency_closure, dict):
+    raise SystemExit("Vertex qualification dependency closure is absent")
+source_capsule_ref = dependency_closure.get("artifactRef")
 if not safe_ref(source_capsule_ref):
     raise SystemExit("source qualification capsule ref is malformed")
 manifest_ref = {
@@ -114,7 +117,15 @@ if source_capsule_ref != manifest_ref:
     raise SystemExit("qualification did not use this exact source capsule")
 if (
     binding.get("status") != "private_artifacts_admitted"
+    or binding.get("schemaVersion")
+       != "canonical-sam3_1-image-build-artifact-binding-v3"
     or binding.get("sourceCheckpointQualificationRef") != qualification_ref
+    or binding.get("qualificationTruth", {}).get(
+        "exactVertexA100ExecutionReread"
+    ) is not True
+    or binding.get("qualificationTruth", {}).get(
+        "legacyBatchCastOrRelabelUsed"
+    ) is not False
     or binding.get("authority", {}).get("sourceCheckpointQualificationReread")
        is not True
     or binding.get("authority", {}).get("imageBuildAuthorized") is not False
@@ -174,11 +185,11 @@ private_input = manifest.get("privateInput", {})
 if (
     len(wheels) != private_input.get("dependencyWheelCount")
     or sha(canonical(wheels)) != private_input.get("dependencyWheelManifestSha256")
-    or controlled.get("dependencyLockSha256")
+    or dependency_closure.get("lockSha256")
        != private_input.get("dependencyLockSha256")
-    or controlled.get("dependencyClosureReceiptSha256")
+    or dependency_closure.get("receiptSha256")
        != private_input.get("dependencyClosureReceiptSha256")
-    or controlled.get("dependencyWheelManifestSha256")
+    or dependency_closure.get("wheelManifestSha256")
        != private_input.get("dependencyWheelManifestSha256")
 ):
     raise SystemExit("source capsule dependency lineage changed")
@@ -225,7 +236,7 @@ metadata = {
     "sourceCheckpointQualificationRef": qualification_ref,
     "sourceQualificationCapsuleRef": source_capsule_ref,
     "artifactBindingRef": {
-        "id": f"sam31-build-binding-{binding['bindingHash'][:24]}",
+        "id": f"sam31-vertex-build-binding-{binding['bindingHash'][:24]}",
         "version": 1,
         "contentHash": f"sha256:{binding['bindingHash']}",
     },
@@ -326,7 +337,7 @@ source_bundle = {
 }
 capsule_body = capsule.read_bytes()
 payload = {
-    "schemaVersion": "weeditpro-sam3_1-production-capsule-builder-result-v1",
+    "schemaVersion": "weeditpro-sam3_1-production-capsule-builder-result-v2",
     "source": "weeditpro_sam3_1_production_capsule_builder",
     "evidenceClass": "canonical_private_cloud_build",
     "buildId": build_id,
@@ -367,6 +378,8 @@ payload = {
     "sourceCheckpointCompatibilityReceiptSha256": metadata["sourceCheckpointCompatibilityReceiptSha256"],
     "checkpointIncluded": False,
     "sourceCheckpointQualificationReceiptIncluded": True,
+    "vertexQualificationEvidenceBound": True,
+    "historicalBatchQualificationCastOrRelabelUsed": False,
     "containsCredentials": False,
     "containsCustomerMedia": False,
     "networkDependencyInstallRequired": False,

@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 import {
-  CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
-} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+  CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
+} from './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner'
 import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
@@ -14,7 +14,7 @@ import {
 } from './canonical-sam3_1-production-image-authority-publisher'
 
 export const CANONICAL_SAM3_1_PRODUCTION_IMAGE_PUBLICATION_COORDINATOR_VERSION =
-  'canonical-sam3_1-production-image-publication-coordinator-v1' as const
+  'canonical-sam3_1-production-image-publication-coordinator-v2' as const
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/-]*$/u)
@@ -27,8 +27,9 @@ const refSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 const qualificationRefSchema = refSchema.extend({
+  version: z.literal(2),
   schemaVersion: z.literal(
-    CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+    CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
   ),
 }).strict()
 const requestSchema = z.object({
@@ -197,8 +198,8 @@ function assertSameQualification(
 }
 
 function assertSameRef(
-  left: z.infer<typeof refSchema>,
-  right: z.infer<typeof refSchema>,
+  left: { readonly id: string; readonly version: number; readonly contentHash: string },
+  right: { readonly id: string; readonly version: number; readonly contentHash: string },
   message: string,
 ): void {
   if (

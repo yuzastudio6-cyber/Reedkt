@@ -5,10 +5,27 @@ import {
   type CanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
 import {
+  assertCanonicalSam31VertexCloudImageBuildAuthority,
+  type CanonicalSam31VertexCloudImageBuildAuthority,
+} from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
+import {
   assertCanonicalSam31QualificationRelease,
   type CanonicalSam31QualificationRelease,
 } from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
+import {
+  assertCanonicalSam31VertexQualificationRelease,
+  type CanonicalSam31VertexQualificationRelease,
+} from './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner'
 import { sha256AuthorityValue } from './private-edit-authority-store'
+
+export type CanonicalSam31AnyCloudImageBuildAuthority =
+  | CanonicalSam31CloudImageBuildAuthority
+  | CanonicalSam31VertexCloudImageBuildAuthority
+type CanonicalSam31AnyQualificationRelease =
+  | CanonicalSam31QualificationRelease
+  | CanonicalSam31VertexQualificationRelease
+type CanonicalSam31AnyQualificationRef =
+  CanonicalSam31AnyCloudImageBuildAuthority['sourceCheckpointQualificationRef']
 
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_SUBMISSION_VERSION =
   'canonical-sam3_1-cloud-image-build-submission-v1' as const
@@ -207,19 +224,14 @@ export type CanonicalSam31CloudImageBuildTerminalObservation = z.infer<
 export interface CanonicalSam31CloudImageBuildAuthorityReadPort {
   rereadBuildAuthority(input: {
     readonly authorityRef: z.infer<typeof authorityRefSchema>
-  }): Promise<CanonicalSam31CloudImageBuildAuthority | null>
+  }): Promise<CanonicalSam31AnyCloudImageBuildAuthority | null>
 }
 
 export interface CanonicalSam31CloudImageBuildQualificationReleaseReadPort {
   rereadQualificationRelease(input: {
-    readonly sourceCheckpointQualificationRef: {
-      readonly id: string
-      readonly version: 1
-      readonly schemaVersion:
-        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1'
-      readonly contentHash: string
-    }
-  }): Promise<CanonicalSam31QualificationRelease | null>
+    readonly sourceCheckpointQualificationRef:
+      CanonicalSam31AnyQualificationRef
+  }): Promise<CanonicalSam31AnyQualificationRelease | null>
 }
 
 export interface CanonicalSam31CloudImageBuildStatePort {
@@ -260,10 +272,10 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       readonly authorityRef: z.infer<typeof authorityRefSchema>
     }): Promise<CanonicalSam31CloudImageBuildSubmission> => {
       const observedAt = input.now?.() ?? new Date().toISOString()
-      let authority: CanonicalSam31CloudImageBuildAuthority
+      let authority: CanonicalSam31AnyCloudImageBuildAuthority
       try {
         const parsedRef = authorityRefSchema.parse(request.authorityRef)
-        authority = assertCanonicalSam31CloudImageBuildAuthority(
+        authority = assertAnyCloudImageBuildAuthority(
           await input.authorityReadPort.rereadBuildAuthority({
             authorityRef: parsedRef,
           }),
@@ -274,15 +286,13 @@ export function createCanonicalSam31CloudImageBuildService(input: {
           || authority.status !== 'authorized_for_private_cloud_build'
           || !authority.authority.cloudImageBuildAuthorized
         ) throw new Error('SAM 3.1 image build authority is not canonical.')
-        const qualificationRelease =
-          assertCanonicalSam31QualificationRelease(
-            await input.qualificationReleaseReadPort
-              .rereadQualificationRelease({
-                sourceCheckpointQualificationRef:
-                  authority.sourceCheckpointQualificationRef,
-              }),
-          )
-        assertQualificationRelease(authority, qualificationRelease)
+        assertQualificationReleaseForAuthority(
+          authority,
+          await input.qualificationReleaseReadPort.rereadQualificationRelease({
+            sourceCheckpointQualificationRef:
+              authority.sourceCheckpointQualificationRef,
+          }),
+        )
       } catch {
         return buildSubmission({
           disposition: 'rejected_before_creation',
@@ -393,11 +403,11 @@ export function createCanonicalSam31CloudImageBuildService(input: {
     },
 
     observeOneImageBuild: async (request: {
-      readonly authority: CanonicalSam31CloudImageBuildAuthority
+      readonly authority: CanonicalSam31AnyCloudImageBuildAuthority
       readonly submission: CanonicalSam31CloudImageBuildSubmission
     }): Promise<CanonicalSam31CloudImageBuildTerminalObservation> => {
       const observedAt = input.now?.() ?? new Date().toISOString()
-      const authority = assertCanonicalSam31CloudImageBuildAuthority(
+      const authority = assertAnyCloudImageBuildAuthority(
         request.authority,
       )
       const submission = assertCanonicalSam31CloudImageBuildSubmission(
@@ -514,9 +524,21 @@ export function createCanonicalSam31CloudImageBuildService(input: {
   })
 }
 
+function assertQualificationReleaseForAuthority(
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
+  release: unknown,
+): CanonicalSam31AnyQualificationRelease {
+  const parsed = authority.schemaVersion ===
+    'canonical-sam3_1-cloud-image-build-authority-v3'
+    ? assertCanonicalSam31VertexQualificationRelease(release)
+    : assertCanonicalSam31QualificationRelease(release)
+  assertQualificationRelease(authority, parsed)
+  return parsed
+}
+
 function assertQualificationRelease(
-  authority: CanonicalSam31CloudImageBuildAuthority,
-  release: CanonicalSam31QualificationRelease,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
+  release: CanonicalSam31AnyQualificationRelease,
 ): void {
   const expected = authority.sourceCheckpointQualificationRef
   const actual = release.sourceCheckpointQualificationRef
@@ -566,15 +588,15 @@ export function assertCanonicalSam31CloudImageBuildTerminalObservation(
 }
 
 export function compileCanonicalSam31CloudBuildRequestBody(
-  authority: CanonicalSam31CloudImageBuildAuthority,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): Readonly<Record<string, unknown>> {
   return compileCloudBuildBody(
-    assertCanonicalSam31CloudImageBuildAuthority(authority),
+    assertAnyCloudImageBuildAuthority(authority),
   )
 }
 
 function compileCloudBuildBody(
-  authority: CanonicalSam31CloudImageBuildAuthority,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): Readonly<Record<string, unknown>> {
   const policy = authority.cloudBuildPolicy
   const coordinate = authority.capsuleCoordinate
@@ -687,7 +709,7 @@ function parseCloudBuildResource(value: unknown) {
 function assertCloudBuildEcho(
   build: ParsedBuild,
   expectedBody: Readonly<Record<string, unknown>>,
-  authority: CanonicalSam31CloudImageBuildAuthority,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): void {
   const raw = build.raw
   const expected = expectedBody
@@ -798,7 +820,9 @@ function buildTerminalObservation(input: Omit<
   })
 }
 
-function authorityReference(authority: CanonicalSam31CloudImageBuildAuthority) {
+function authorityReference(
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
+) {
   return {
     id: authority.authorityId,
     version: authority.authorityVersion,
@@ -818,10 +842,32 @@ function safeAuthorityRef(value: unknown): z.infer<typeof authorityRefSchema> {
 
 function assertAuthorityRef(
   ref: z.infer<typeof authorityRefSchema>,
-  authority: CanonicalSam31CloudImageBuildAuthority,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): void {
   if (!sameRef(ref, authorityReference(authority))) {
     throw new Error('SAM 3.1 image build authority reread crossed identity.')
+  }
+}
+
+function assertAnyCloudImageBuildAuthority(
+  value: unknown,
+): CanonicalSam31AnyCloudImageBuildAuthority {
+  if (hasOwnDataSchemaVersion(
+    value,
+    'canonical-sam3_1-cloud-image-build-authority-v3',
+  )) return assertCanonicalSam31VertexCloudImageBuildAuthority(value)
+  return assertCanonicalSam31CloudImageBuildAuthority(value)
+}
+
+function hasOwnDataSchemaVersion(value: unknown, expected: string): boolean {
+  try {
+    if (value === null || typeof value !== 'object') return false
+    const descriptor = Object.getOwnPropertyDescriptor(value, 'schemaVersion')
+    return descriptor !== undefined
+      && 'value' in descriptor
+      && descriptor.value === expected
+  } catch {
+    return false
   }
 }
 

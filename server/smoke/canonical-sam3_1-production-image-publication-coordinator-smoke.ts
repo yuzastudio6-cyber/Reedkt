@@ -6,9 +6,9 @@ import {
 
 const qualification = {
   id: 'sam31-source-checkpoint-qualification',
-  version: 1 as const,
+  version: 2 as const,
   schemaVersion:
-    'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1' as const,
+    'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2' as const,
   contentHash: `sha256:${'1'.repeat(64)}`,
 }
 const artifactBindingRef = ref('sam31-artifact-binding', '2')
@@ -113,7 +113,7 @@ console.log(JSON.stringify({
 
 function createCapsuleResult() {
   return {
-    schemaVersion: 'canonical-sam3_1-production-capsule-publisher-v1',
+    schemaVersion: 'canonical-sam3_1-production-capsule-publisher-v2',
     disposition: 'capsule_ready_for_image_authority_publication',
     sourceCheckpointQualificationRef: qualification,
     artifactBindingRef,
@@ -134,7 +134,7 @@ function createCapsuleResult() {
 function createAuthorityResult() {
   return {
     schemaVersion:
-      'canonical-sam3_1-production-image-authority-publisher-v1',
+      'canonical-sam3_1-production-image-authority-publisher-v2',
     disposition: 'authorized_for_private_cloud_build',
     sourceCheckpointQualificationRef: qualification,
     artifactBindingRef,

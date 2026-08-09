@@ -46,6 +46,12 @@ if (!authority || !submission || !terminalObservation
   || !supplyChainBuildObservation) {
   throw new Error('SAM 3.1 production supply-chain release lineage is absent.')
 }
+if (authority.schemaVersion !==
+  'canonical-sam3_1-cloud-image-build-authority-v2') {
+  throw new Error(
+    'Vertex-qualified SAM 3.1 supply-chain release v2 is not frozen.',
+  )
+}
 const releaseRepository =
   createCanonicalSam31GcpImageSupplyChainReleaseRepository()
 const evidenceReadPort =

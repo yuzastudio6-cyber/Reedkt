@@ -3,8 +3,8 @@ import { createHash } from 'node:crypto'
 import { z } from 'zod'
 
 import {
-  CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
-} from './canonical-sam3_1-source-checkpoint-qualification'
+  CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
+} from '../services/canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner'
 import {
   assertPlainSerializedData,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
@@ -14,11 +14,11 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_BUILDER_RESULT_VERSION =
-  'weeditpro-sam3_1-production-capsule-builder-result-v1' as const
+  'weeditpro-sam3_1-production-capsule-builder-result-v2' as const
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_SECURITY_REVIEW_VERSION =
-  'weeditpro-sam3_1-production-capsule-security-review-v1' as const
+  'weeditpro-sam3_1-production-capsule-security-review-v2' as const
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_REPRODUCIBILITY_VERSION =
-  'canonical-sam3_1-production-capsule-reproducibility-v1' as const
+  'canonical-sam3_1-production-capsule-reproducibility-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const BUCKET =
@@ -47,8 +47,9 @@ const evidenceRefSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 const qualificationRefSchema = evidenceRefSchema.extend({
+  version: z.literal(2),
   schemaVersion: z.literal(
-    CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
+    CANONICAL_SAM3_1_VERTEX_COMPATIBILITY_QUALIFICATION_VERSION,
   ),
 }).strict()
 const archiveEntrySchema = z.object({
@@ -114,6 +115,8 @@ const builderWithoutHashSchema = z.object({
   sourceCheckpointCompatibilityReceiptSha256: sha256,
   checkpointIncluded: z.literal(false),
   sourceCheckpointQualificationReceiptIncluded: z.literal(true),
+  vertexQualificationEvidenceBound: z.literal(true),
+  historicalBatchQualificationCastOrRelabelUsed: z.literal(false),
   containsCredentials: z.literal(false),
   containsCustomerMedia: z.literal(false),
   networkDependencyInstallRequired: z.literal(false),

@@ -3,8 +3,8 @@ set -Eeuo pipefail
 
 readonly PROJECT_ID='reeditpro'
 readonly REGION='us-central1'
-readonly CONFIRMATION='start-two-independent-weeditpro-sam31-production-capsule-builds-v1'
-readonly INPUT_CONFIRMATION='prepare-one-sam31-production-capsule-two-build-input-v1'
+readonly CONFIRMATION='start-two-independent-weeditpro-sam31-production-capsule-builds-v2'
+readonly INPUT_CONFIRMATION='prepare-one-sam31-production-capsule-two-vertex-build-input-v2'
 readonly CONTEXT='docker/prod/gpu-worker/sam3_1'
 readonly CONFIG="${CONTEXT}/cloudbuild.production-capsule.yaml"
 readonly IGNORE_FILE="${CONTEXT}/.gcloudignore.production-capsule"
@@ -40,8 +40,8 @@ readonly COMMIT="$(env COPYFILE_DISABLE=1 \
 readonly TREE="$(env COPYFILE_DISABLE=1 \
   DEVELOPER_DIR="${APPLE_COMMAND_LINE_TOOLS}" git rev-parse 'HEAD^{tree}')"
 readonly INPUTS="$(
-  WEEDITPRO_SAM31_PRODUCTION_CAPSULE_BUILD_INPUT_CONFIRMATION="${INPUT_CONFIRMATION}" \
-    npm run --silent prepare:sam3_1-production-capsule-build-inputs
+  WEEDITPRO_SAM31_PRODUCTION_CAPSULE_VERTEX_BUILD_INPUT_CONFIRMATION="${INPUT_CONFIRMATION}" \
+    npm run --silent prepare:sam3_1-production-capsule-vertex-build-inputs
 )"
 readonly SUBSTITUTIONS="$(INPUTS="${INPUTS}" \
   python3 -I -B - "${COMMIT}" "${TREE}" <<'PY'
@@ -54,7 +54,10 @@ value = json.loads(os.environ['INPUTS'])
 commit, tree = sys.argv[1:]
 if (
     value.get('status') != 'ready_for_two_independent_cloud_builds'
-    or value.get('canonicalReleaseManifestIngestAndBindingReread') is not True
+    or value.get('canonicalVertexReleaseManifestIngestAndBindingReread')
+       is not True
+    or value.get('legacyBatchRequestResultOrReleaseCastOrRelabelUsed')
+       is not False
     or value.get('callerPathUrlCommandImageTagBuildArgumentOrGpuAccepted')
        is not False
     or value.get('cloudBuildStarted') is not False
@@ -118,11 +121,13 @@ confirmation_id = confirmation.get('id')
 if not primary_id or not confirmation_id or primary_id == confirmation_id:
     raise SystemExit('Cloud Build did not return two independent build ids')
 print(json.dumps({
-    'schemaVersion': 'weeditpro-sam3_1-production-capsule-two-build-submission-v1',
+    'schemaVersion': 'weeditpro-sam3_1-production-capsule-two-build-submission-v2',
     'primaryBuildId': primary_id,
     'confirmationBuildId': confirmation_id,
     'independentBuildCount': 2,
     'sourceCheckpointQualificationRefReread': True,
+    'vertexQualificationEvidenceReread': True,
+    'historicalBatchQualificationCastOrRelabelUsed': False,
     'customerCreditsMutated': False,
     'imageBuildStarted': False,
     'modelExecuted': False,

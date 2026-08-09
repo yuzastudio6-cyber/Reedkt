@@ -312,7 +312,7 @@ export type CanonicalSam31PrivateImageBuildCapsuleManifest = z.infer<
   typeof canonicalSam31PrivateImageBuildCapsuleManifestSchema
 >
 
-const buildAuthorityWithoutHashSchema = z.object({
+export const canonicalSam31CloudImageBuildAuthorityBaseSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
   ),
@@ -420,32 +420,38 @@ const buildAuthorityWithoutHashSchema = z.object({
     productionReady: z.literal(false),
   }).strict(),
   preparedAt: timestamp,
-}).strict().superRefine((value, context) => {
-  const canonical = value.evidenceClass === 'canonical_private_reread'
-  const expectedTag = `sam31-96914d2-${value.capsuleCoordinate.sha256.slice(0, 16)}`
-  if (
-    value.imageDestination.tag !== expectedTag
-    || value.imageDestination.taggedUri !==
-      `${IMAGE_REPOSITORY}/${IMAGE_NAME}:${expectedTag}`
-    || value.buildClosure.artifactBuildBindingRecordHash !==
-      value.artifactBindingRef.contentHash.slice('sha256:'.length)
-    || value.buildClosure.sourceCheckpointQualificationRecordHash !==
-      value.sourceCheckpointQualificationRef.contentHash.slice(
-        'sha256:'.length,
-      )
-    || (canonical
-      ? value.status !== 'authorized_for_private_cloud_build'
-        || !value.authority.privateArtifactBindingReread
-        || !value.authority.privateCapsuleReread
-        || !value.authority.sourceCheckpointQualificationReread
-        || !value.authority.cloudImageBuildAuthorized
-      : value.status !== 'contract_only'
-        || value.authority.cloudImageBuildAuthorized)
-  ) context.addIssue({
-    code: 'custom',
-    message: 'SAM 3.1 cloud image build authority lost exact build lineage.',
-  })
-})
+}).strict()
+
+const buildAuthorityWithoutHashSchema =
+  canonicalSam31CloudImageBuildAuthorityBaseSchema.superRefine(
+    (value, context) => {
+      const canonical = value.evidenceClass === 'canonical_private_reread'
+      const expectedTag =
+        `sam31-96914d2-${value.capsuleCoordinate.sha256.slice(0, 16)}`
+      if (
+        value.imageDestination.tag !== expectedTag
+        || value.imageDestination.taggedUri !==
+          `${IMAGE_REPOSITORY}/${IMAGE_NAME}:${expectedTag}`
+        || value.buildClosure.artifactBuildBindingRecordHash !==
+          value.artifactBindingRef.contentHash.slice('sha256:'.length)
+        || value.buildClosure.sourceCheckpointQualificationRecordHash !==
+          value.sourceCheckpointQualificationRef.contentHash.slice(
+            'sha256:'.length,
+          )
+        || (canonical
+          ? value.status !== 'authorized_for_private_cloud_build'
+            || !value.authority.privateArtifactBindingReread
+            || !value.authority.privateCapsuleReread
+            || !value.authority.sourceCheckpointQualificationReread
+            || !value.authority.cloudImageBuildAuthorized
+          : value.status !== 'contract_only'
+            || value.authority.cloudImageBuildAuthorized)
+      ) context.addIssue({
+        code: 'custom',
+        message: 'SAM 3.1 cloud image build authority lost exact build lineage.',
+      })
+    },
+  )
 
 export const canonicalSam31CloudImageBuildAuthoritySchema =
   buildAuthorityWithoutHashSchema.extend({ authorityHash: sha256 }).strict()

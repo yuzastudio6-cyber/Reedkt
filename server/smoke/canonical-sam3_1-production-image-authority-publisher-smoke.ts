@@ -9,6 +9,7 @@ import {
 import {
   CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
   assertCanonicalSam31VertexCloudImageBuildAuthority,
+  prepareCanonicalSam31VertexCloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
 import { createCanonicalSam31VertexImageBuildBinding } from
   '../model-artifacts/canonical-sam3_1-vertex-production-build-binding'
@@ -162,6 +163,42 @@ const repository = createCanonicalSam31CloudImageBuildRepository({
 const manifestRef = await repository.persistCapsuleManifestCreateOnly({
   manifest,
 })
+
+await assert.rejects(
+  prepareCanonicalSam31VertexCloudImageBuildAuthority({
+    authorityId: 'sam31-real-constructor-port-separation',
+    candidate,
+    ingestReceipt: canonicalIngest,
+    sourceCheckpointQualification: release.qualification,
+    artifactBinding: binding,
+    capsuleManifest: manifest,
+    privateCapsuleReadPort: { async readExact() { return null } },
+    preparedAt: '2026-08-08T17:00:30.000Z',
+  }),
+  /private build capsule is missing/u,
+)
+let readPortAccessorInvoked = false
+const accessorReadPort = {}
+Object.defineProperty(accessorReadPort, 'readExact', {
+  get() {
+    readPortAccessorInvoked = true
+    return async () => null
+  },
+})
+await assert.rejects(
+  prepareCanonicalSam31VertexCloudImageBuildAuthority({
+    authorityId: 'sam31-accessor-read-port-rejected',
+    candidate,
+    ingestReceipt: canonicalIngest,
+    sourceCheckpointQualification: release.qualification,
+    artifactBinding: binding,
+    capsuleManifest: manifest,
+    privateCapsuleReadPort: accessorReadPort as never,
+    preparedAt: '2026-08-08T17:00:31.000Z',
+  }),
+  /private capsule read port is not trusted/u,
+)
+assert.equal(readPortAccessorInvoked, false)
 const prepareCalls: unknown[] = []
 const publisher = createCanonicalSam31ProductionImageAuthorityPublisher({
   qualificationReleaseReadPort: {
@@ -261,12 +298,14 @@ assert.throws(() => createCanonicalSam31ProductionImageAuthorityPublisher({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-image-authority-publisher',
-  checks: 19,
+  checks: 21,
   exactQualifiedReleaseReread: true,
   exactPrivateIngestReread: true,
   vertexArtifactBindingExactReread: true,
   capsuleManifestCreateOnlyAndReread: true,
   vertexBuildAuthorityV3CreateOnlyAndReread: true,
+  realAuthorityConstructorSeparatesTrustedReadPortFromSerializedEvidence: true,
+  accessorReadPortRejectedWithoutInvocation: true,
   historicalBatchQualificationCastOrRelabelUsed: false,
   callerCommandPathTagRetryOrRuntimeAuthorityAccepted: false,
   developerMachineModelOrCheckpointInstallPerformed: false,

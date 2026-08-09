@@ -97,37 +97,46 @@ export type CanonicalSam31VertexCloudImageBuildAuthority = z.infer<
   typeof canonicalSam31VertexCloudImageBuildAuthoritySchema
 >
 
+interface CanonicalSam31VertexCloudImageBuildAuthorityInput {
+  readonly authorityId: string
+  readonly candidate: CanonicalSam31SourceRuntimeCandidate
+  readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
+  readonly sourceCheckpointQualification:
+    CanonicalSam31VertexCompatibilityQualification
+  readonly artifactBinding: CanonicalSam31VertexImageBuildBinding
+  readonly capsuleManifest: CanonicalSam31PrivateImageBuildCapsuleManifest
+  readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
+  readonly preparedAt: string
+}
+
 export async function prepareCanonicalSam31VertexCloudImageBuildAuthority(
-  input: {
-    readonly authorityId: string
-    readonly candidate: CanonicalSam31SourceRuntimeCandidate
-    readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
-    readonly sourceCheckpointQualification:
-      CanonicalSam31VertexCompatibilityQualification
-    readonly artifactBinding: CanonicalSam31VertexImageBuildBinding
-    readonly capsuleManifest: CanonicalSam31PrivateImageBuildCapsuleManifest
-    readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
-    readonly preparedAt: string
-  },
+  input: CanonicalSam31VertexCloudImageBuildAuthorityInput,
 ): Promise<CanonicalSam31VertexCloudImageBuildAuthority> {
-  assertPlainSerializedData(input, 'sam31_vertex_image_build_authority_input')
-  const candidate = assertCanonicalSam31SourceRuntimeCandidate(input.candidate)
+  const { serializedInput, privateCapsuleReadPort } =
+    splitCanonicalSam31VertexCloudImageBuildAuthorityInput(input)
+  assertPlainSerializedData(
+    serializedInput,
+    'sam31_vertex_image_build_authority_input',
+  )
+  const candidate = assertCanonicalSam31SourceRuntimeCandidate(
+    serializedInput.candidate,
+  )
   const ingest = assertCanonicalSam31PrivateArtifactIngestReceipt(
-    input.ingestReceipt,
+    serializedInput.ingestReceipt,
   )
   const qualification = assertCanonicalSam31VertexCompatibilityQualification(
-    input.sourceCheckpointQualification,
+    serializedInput.sourceCheckpointQualification,
   )
   const binding = assertCanonicalSam31VertexImageBuildBinding(
-    input.artifactBinding,
+    serializedInput.artifactBinding,
   )
   const capsule = assertCanonicalSam31PrivateImageBuildCapsuleManifest(
-    input.capsuleManifest,
+    serializedInput.capsuleManifest,
   )
   assertExactInputs({ candidate, ingest, qualification, binding, capsule })
   const inspection = await verifyCanonicalSam31PrivateBuildCapsuleBytes(
     capsule.capsule.coordinate,
-    input.privateCapsuleReadPort,
+    privateCapsuleReadPort,
   )
   if (
     inspection.archiveEntrySetSha256 !==
@@ -142,7 +151,7 @@ export async function prepareCanonicalSam31VertexCloudImageBuildAuthority(
     source: 'canonical_sam3_1_vertex_cloud_image_build_authority_owner',
     evidenceClass: 'canonical_private_reread',
     status: 'authorized_for_private_cloud_build',
-    authorityId: input.authorityId,
+    authorityId: serializedInput.authorityId,
     authorityVersion: 1,
     operationId: candidate.operationId,
     candidateRef: ingest.candidateRef,
@@ -242,12 +251,97 @@ export async function prepareCanonicalSam31VertexCloudImageBuildAuthority(
     },
     vertexQualificationEvidenceBound: true,
     historicalBatchQualificationCastOrRelabelUsed: false,
-    preparedAt: input.preparedAt,
+    preparedAt: serializedInput.preparedAt,
   })
   return canonicalSam31VertexCloudImageBuildAuthoritySchema.parse({
     ...payload,
     authorityHash: sha256AuthorityValue(payload),
   })
+}
+
+function splitCanonicalSam31VertexCloudImageBuildAuthorityInput(
+  input: CanonicalSam31VertexCloudImageBuildAuthorityInput,
+): {
+  readonly serializedInput: Omit<
+    CanonicalSam31VertexCloudImageBuildAuthorityInput,
+    'privateCapsuleReadPort'
+  >
+  readonly privateCapsuleReadPort: CanonicalSam31PrivateBuildCapsuleReadPort
+} {
+  const expectedKeys = [
+    'authorityId',
+    'candidate',
+    'ingestReceipt',
+    'sourceCheckpointQualification',
+    'artifactBinding',
+    'capsuleManifest',
+    'privateCapsuleReadPort',
+    'preparedAt',
+  ] as const
+  let descriptors: PropertyDescriptorMap
+  try {
+    if (
+      input === null
+      || typeof input !== 'object'
+      || Object.getPrototypeOf(input) !== Object.prototype
+    ) throw new Error('input is not a plain object')
+    const keys = Reflect.ownKeys(input)
+    if (
+      keys.length !== expectedKeys.length
+      || keys.some((key) =>
+        typeof key !== 'string'
+        || !expectedKeys.includes(key as typeof expectedKeys[number]))
+    ) throw new Error('input fields are not exact')
+    descriptors = Object.getOwnPropertyDescriptors(input)
+  } catch {
+    throw new Error(
+      'Vertex SAM 3.1 image build authority input is not a closed plain object.',
+    )
+  }
+  const ownValue = <Key extends typeof expectedKeys[number]>(key: Key) => {
+    const descriptor = descriptors[key]
+    if (!descriptor || !('value' in descriptor)) {
+      throw new Error(
+        'Vertex SAM 3.1 image build authority input contains an accessor.',
+      )
+    }
+    return descriptor.value as CanonicalSam31VertexCloudImageBuildAuthorityInput[Key]
+  }
+  const privateCapsuleReadPort = ownValue('privateCapsuleReadPort')
+  let readDescriptor: PropertyDescriptor | undefined
+  try {
+    if (
+      privateCapsuleReadPort === null
+      || typeof privateCapsuleReadPort !== 'object'
+    ) throw new Error('read port is not an object')
+    readDescriptor = Object.getOwnPropertyDescriptor(
+      privateCapsuleReadPort,
+      'readExact',
+    )
+  } catch {
+    throw new Error(
+      'Vertex SAM 3.1 private capsule read port is not trusted.',
+    )
+  }
+  if (
+    !readDescriptor
+    || !('value' in readDescriptor)
+    || typeof readDescriptor.value !== 'function'
+  ) throw new Error('Vertex SAM 3.1 private capsule read port is not trusted.')
+  return {
+    serializedInput: {
+      authorityId: ownValue('authorityId'),
+      candidate: ownValue('candidate'),
+      ingestReceipt: ownValue('ingestReceipt'),
+      sourceCheckpointQualification: ownValue(
+        'sourceCheckpointQualification',
+      ),
+      artifactBinding: ownValue('artifactBinding'),
+      capsuleManifest: ownValue('capsuleManifest'),
+      preparedAt: ownValue('preparedAt'),
+    },
+    privateCapsuleReadPort,
+  }
 }
 
 export function assertCanonicalSam31VertexCloudImageBuildAuthority(

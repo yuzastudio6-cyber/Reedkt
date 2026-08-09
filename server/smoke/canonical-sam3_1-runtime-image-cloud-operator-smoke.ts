@@ -57,6 +57,7 @@ assert.match(buildScript,
   /--ignore-file="\$\{IGNORE_FILE\}"/u)
 assert.match(buildScript, /"sam31RuntimeImageBuildStarted":false/u)
 assert.match(ignoreFile, /^\*$/mu)
+assert.match(ignoreFile, /^!tsconfig\.app\.json$/mu)
 assert.match(ignoreFile, /^!server\/\*\*$/mu)
 assert.match(ignoreFile,
   /^!scripts\/validation\/project-edit-brief-owner-evidence-example-generator\.ts$/mu)

@@ -487,6 +487,7 @@
     "publish:sam3_1-official-artifacts": "tsx server/cli/canonical-sam3_1-official-artifact-ingest.ts --execute",
     "smoke:visual-intelligence-live-prerequisites-audit": "tsx server/smoke/visual-intelligence-live-prerequisites-audit-smoke.ts",
     "smoke:visual-intelligence-account-price-reader-grant": "tsx server/smoke/visual-intelligence-account-price-reader-grant-smoke.ts",
+    "smoke:visual-intelligence-detailed-billing-export-read-port": "tsx server/smoke/visual-intelligence-detailed-billing-export-read-port-smoke.ts",
     "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:a100-vertex-custom-job-launch": "tsx server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts",
     "smoke:a100-vertex-custom-job-terminal": "tsx server/smoke/canonical-a100-vertex-custom-job-terminal-port-smoke.ts",

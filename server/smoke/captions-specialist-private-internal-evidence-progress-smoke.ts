@@ -63,8 +63,16 @@ check(progress.gates.find((gate) =>
   && progress.gates.find((gate) =>
     gate.gapId === 'visual_intelligence_authenticated_evidence')
     ?.nextRequiredEvidenceCodes.includes(
+      'canonical_visual_intelligence_model_sku_qualification_finalizer_required')
+  && progress.gates.find((gate) =>
+    gate.gapId === 'visual_intelligence_authenticated_evidence')
+    ?.nextRequiredEvidenceCodes.includes(
+      'canonical_visual_intelligence_billing_observation_create_only_repository_required')
+  && !progress.gates.find((gate) =>
+    gate.gapId === 'visual_intelligence_authenticated_evidence')
+    ?.nextRequiredEvidenceCodes.includes(
       'canonical_visual_intelligence_detailed_billing_export_reconciliation_reader_required'),
-'Visual Intelligence cannot be treated as live-ready before its canonical qualification executor and billing-export reader exist')
+'Visual Intelligence records the implemented billing reader while keeping its executor, finalizer, and persistence gaps open')
 check(progress.gates.find((gate) =>
   gate.gapId === 'soundsync_authenticated_evidence')?.status
     === 'actual_evidence_incomplete',

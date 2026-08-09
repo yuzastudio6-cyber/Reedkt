@@ -135,7 +135,11 @@ Caption qualification scenes, independent audio reviews, same-campaign final
 media reconciliation, qualified complete-time visual review, and independent
 final QA/private review remain required. The later terminal audit also found
 that the shared Visual Intelligence owner has a strict model/SKU qualification
-contract and immutable reader but no live qualification executor/finalizer or
-detailed billing-export reconciliation reader. Those shared owner source gaps
-must be closed centrally before Visual Intelligence can produce the actual
-Caption evidence required here.
+contract, immutable reader, and now a fail-closed detailed billing-export
+reconciliation read port. The reader has 22 focused checks and is part of the
+Visual Intelligence source-release gate; it deliberately does not infer
+same-SKU traffic isolation from billing rows. The shared owner still lacks its
+live qualification executor/finalizer, create-only billing-observation
+repository, and separate concurrency-isolation authority. Those shared owner
+source gaps must be closed centrally before Visual Intelligence can produce
+the actual Caption evidence required here.

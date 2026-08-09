@@ -110,13 +110,19 @@ Gemini or construct provider evidence itself. The current backend owner and
 Caption adapter are source-ready for an already-qualified owner result, but the
 shared live owner path is not source-complete. The repository currently has the
 strict model/SKU qualification contract, immutable read port, account-effective
-rate reader, and downstream Visual Intelligence lifecycle. It does not have a
-canonical live model/SKU qualification executor/finalizer or a detailed
-billing-export reconciliation reader. The private release prefixes also
+rate reader, detailed billing-export reconciliation read port, and downstream
+Visual Intelligence lifecycle. The billing reader is parameterized, bounded,
+requires the exact six-SKU set, rejects missing/extra/stale rows, and does not
+claim that billing rows alone prove the absence of concurrent same-SKU traffic.
+It does not make a provider call and grants no dispatch, customer-pricing,
+credit, or production authority. The shared owner still does not have the
+canonical live model/SKU qualification executor/finalizer, a create-only
+billing-observation repository, or the separate concurrency-isolation
+authority needed to close that proof. The private release prefixes also
 contain no live model/SKU qualification, runtime-component qualification, or
 runtime release record.
 
-Those two source gaps must be implemented at the existing shared Visual
+Those remaining source gaps must be implemented at the existing shared Visual
 Intelligence owner before a live provider qualification is attempted. They
 must bind two isolated standard/long-context provider attempts, exact provider
 usage, the detailed billing-export window, the six exact SKU identities, no

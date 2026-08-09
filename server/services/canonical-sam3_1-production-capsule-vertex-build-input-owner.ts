@@ -63,6 +63,29 @@ const recordCoordinateSchema = z.object({
   byteLength: positiveInteger.max(MAXIMUM_RECORD_BYTES),
   sha256: rawSha256,
 }).strict()
+const sourceCapsuleManifestCoordinateSchema = z.object({
+  projectId: z.literal(PROJECT_ID),
+  bucketName: z.literal(
+    'reeditpro-production-reeditpro-image-build-inputs',
+  ),
+  objectName: z.string().min(1).max(1_024)
+    .refine((value) => value.startsWith(
+      'private/image-build-inputs/sam3_1/qualification/reproducibility/',
+    ))
+    .refine((value) => value.endsWith('.tar.gz'))
+    .refine((value) => !value.includes('..')
+      && !value.includes('\\') && !value.includes('//')),
+  generation: z.string().regex(/^[1-9][0-9]{0,30}$/u),
+  etag: z.string().trim().min(1).max(512),
+  byteLength: positiveInteger.max(8 * 1024 * 1024 * 1024),
+  sha256: rawSha256,
+}).strict()
+const sourceCapsuleCoordinateSchema =
+  sourceCapsuleManifestCoordinateSchema.extend({
+    storageContentType: z.enum(['application/gzip', 'application/x-tar']),
+    crc32c: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/u),
+    md5Hash: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/u),
+  }).strict()
 const projectionSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_SAM3_1_PRODUCTION_CAPSULE_VERTEX_BUILD_INPUT_VERSION,
@@ -76,26 +99,7 @@ const projectionSchema = z.object({
     version: z.literal(1),
   }).strict(),
   artifactBindingRef: refSchema.extend({ version: z.literal(1) }).strict(),
-  sourceQualificationCapsuleCoordinate: z.object({
-    projectId: z.literal(PROJECT_ID),
-    bucketName: z.literal(
-      'reeditpro-production-reeditpro-image-build-inputs',
-    ),
-    objectName: z.string().min(1).max(1_024)
-      .refine((value) => value.startsWith(
-        'private/image-build-inputs/sam3_1/qualification/reproducibility/',
-      ))
-      .refine((value) => value.endsWith('.tar.gz'))
-      .refine((value) => !value.includes('..')
-        && !value.includes('\\') && !value.includes('//')),
-    generation: z.string().regex(/^[1-9][0-9]{0,30}$/u),
-    etag: z.string().trim().min(1).max(512),
-    byteLength: positiveInteger.max(8 * 1024 * 1024 * 1024),
-    sha256: rawSha256,
-    storageContentType: z.enum(['application/gzip', 'application/x-tar']),
-    crc32c: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/u),
-    md5Hash: z.string().regex(/^[A-Za-z0-9+/]+={0,2}$/u),
-  }).strict(),
+  sourceQualificationCapsuleCoordinate: sourceCapsuleCoordinateSchema,
   sourceCapsuleManifestRecord: recordCoordinateSchema,
   qualificationReleaseRecord: recordCoordinateSchema,
   artifactBindingRecord: recordCoordinateSchema,
@@ -120,7 +124,10 @@ type CapsuleManifest = {
   readonly manifestVersion: 1
   readonly manifestHash: string
   readonly candidateRef: { readonly candidateHash: string }
-  readonly capsule: { readonly coordinate: unknown }
+  readonly capsule: {
+    readonly coordinate: unknown
+    readonly storageContentType: unknown
+  }
   readonly securityBoundary: { readonly checkpointBytesIncluded: false }
 }
 
@@ -143,6 +150,16 @@ export function createCanonicalSam31ProductionCapsuleVertexBuildInputOwner(
       rereadCapsuleManifest(input: {
         readonly manifestRef: z.infer<typeof refSchema>
       }): Promise<CapsuleManifest | null>
+    }
+    readonly sourceCapsuleMetadataReadPort: {
+      rereadCapsuleMetadata(input: {
+        readonly coordinate: z.infer<
+          typeof sourceCapsuleManifestCoordinateSchema
+        >
+        readonly expectedStorageContentType: z.infer<
+          typeof sourceCapsuleCoordinateSchema
+        >['storageContentType']
+      }): Promise<z.infer<typeof sourceCapsuleCoordinateSchema> | null>
     }
     readonly bindingStore: {
       persistAndReread(input: {
@@ -214,6 +231,27 @@ export function createCanonicalSam31ProductionCapsuleVertexBuildInputOwner(
         || manifest.securityBoundary.checkpointBytesIncluded
       ) throw notReady('source_capsule_crossed_vertex_qualification')
 
+      const manifestCapsuleCoordinate =
+        sourceCapsuleManifestCoordinateSchema.parse(
+          manifest.capsule.coordinate,
+        )
+      const expectedStorageContentType = sourceCapsuleCoordinateSchema.shape
+        .storageContentType.parse(manifest.capsule.storageContentType)
+      const sourceQualificationCapsuleCoordinate =
+        await input.sourceCapsuleMetadataReadPort.rereadCapsuleMetadata({
+          coordinate: manifestCapsuleCoordinate,
+          expectedStorageContentType,
+        })
+      if (!sourceQualificationCapsuleCoordinate
+        || !sameCapsuleCoordinate(
+          manifestCapsuleCoordinate,
+          sourceQualificationCapsuleCoordinate,
+        )
+        || sourceQualificationCapsuleCoordinate.storageContentType !==
+          expectedStorageContentType) {
+        throw notReady('source_capsule_metadata_reread_changed')
+      }
+
       const binding = createCanonicalSam31VertexImageBuildBinding({ release })
       const artifactBindingRef = await input.bindingStore.persistAndReread({
         binding,
@@ -252,7 +290,7 @@ export function createCanonicalSam31ProductionCapsuleVertexBuildInputOwner(
           request.sourceCheckpointQualificationRef,
         sourceQualificationCapsuleManifestRef: sourceManifestRef,
         artifactBindingRef,
-        sourceQualificationCapsuleCoordinate: manifest.capsule.coordinate,
+        sourceQualificationCapsuleCoordinate,
         sourceCapsuleManifestRecord,
         qualificationReleaseRecord,
         artifactBindingRecord,
@@ -290,6 +328,8 @@ export function createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner(
       createCanonicalSam31QualificationImageAuthorityRepository({
         objectPort,
       }),
+    sourceCapsuleMetadataReadPort:
+      createExactSourceCapsuleMetadataReadPort(storage),
     bindingStore: {
       async persistAndReread({ binding }) {
         const parsed = assertCanonicalSam31VertexImageBuildBinding(binding)
@@ -316,6 +356,77 @@ export function createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner(
     },
     controlRecordReadPort: createExactControlRecordReadPort(storage),
   })
+}
+
+function createExactSourceCapsuleMetadataReadPort(storage: Storage) {
+  return Object.freeze({
+    async rereadCapsuleMetadata(input: {
+      readonly coordinate: z.infer<
+        typeof sourceCapsuleManifestCoordinateSchema
+      >
+      readonly expectedStorageContentType: z.infer<
+        typeof sourceCapsuleCoordinateSchema
+      >['storageContentType']
+    }) {
+      const coordinate = sourceCapsuleManifestCoordinateSchema.parse(
+        input.coordinate,
+      )
+      const expectedStorageContentType = sourceCapsuleCoordinateSchema.shape
+        .storageContentType.parse(input.expectedStorageContentType)
+      const file = storage.bucket(coordinate.bucketName).file(
+        coordinate.objectName,
+        { generation: coordinate.generation },
+      )
+      let before: FileMetadata
+      try {
+        ;[before] = await file.getMetadata()
+      } catch (error) {
+        if (cloudErrorCode(error) === 404) return null
+        throw error
+      }
+      const [after] = await file.getMetadata()
+      const beforeCoordinate = metadataCapsuleCoordinate({
+        coordinate,
+        expectedStorageContentType,
+        metadata: before,
+      })
+      const afterCoordinate = metadataCapsuleCoordinate({
+        coordinate,
+        expectedStorageContentType,
+        metadata: after,
+      })
+      if (!sameSourceCapsuleCoordinate(
+        beforeCoordinate,
+        afterCoordinate,
+      )) throw notReady('source_capsule_metadata_reread_changed')
+      return beforeCoordinate
+    },
+  })
+}
+
+function metadataCapsuleCoordinate(input: {
+  readonly coordinate: z.infer<
+    typeof sourceCapsuleManifestCoordinateSchema
+  >
+  readonly expectedStorageContentType: z.infer<
+    typeof sourceCapsuleCoordinateSchema
+  >['storageContentType']
+  readonly metadata: FileMetadata
+}) {
+  const parsed = sourceCapsuleCoordinateSchema.parse({
+    ...input.coordinate,
+    generation: String(input.metadata.generation ?? ''),
+    etag: String(input.metadata.etag ?? ''),
+    byteLength: Number(input.metadata.size ?? -1),
+    storageContentType: String(input.metadata.contentType ?? ''),
+    crc32c: String(input.metadata.crc32c ?? ''),
+    md5Hash: String(input.metadata.md5Hash ?? ''),
+  })
+  if (!sameCapsuleCoordinate(input.coordinate, parsed)
+    || parsed.storageContentType !== input.expectedStorageContentType) {
+    throw notReady('source_capsule_metadata_reread_changed')
+  }
+  return parsed
 }
 
 function createExactControlRecordReadPort(storage: Storage) {
@@ -376,6 +487,29 @@ function bindingPath(ref: z.infer<typeof refSchema>) {
 function sameRef(left: z.infer<typeof refSchema>, right: z.infer<typeof refSchema>) {
   return left.id === right.id && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+function sameCapsuleCoordinate(
+  left: z.infer<typeof sourceCapsuleManifestCoordinateSchema>,
+  right: z.infer<typeof sourceCapsuleManifestCoordinateSchema>,
+) {
+  return left.projectId === right.projectId
+    && left.bucketName === right.bucketName
+    && left.objectName === right.objectName
+    && left.generation === right.generation
+    && left.etag === right.etag
+    && left.byteLength === right.byteLength
+    && left.sha256 === right.sha256
+}
+
+function sameSourceCapsuleCoordinate(
+  left: z.infer<typeof sourceCapsuleCoordinateSchema>,
+  right: z.infer<typeof sourceCapsuleCoordinateSchema>,
+) {
+  return sameCapsuleCoordinate(left, right)
+    && left.storageContentType === right.storageContentType
+    && left.crc32c === right.crc32c
+    && left.md5Hash === right.md5Hash
 }
 
 function notReady(code: string) {

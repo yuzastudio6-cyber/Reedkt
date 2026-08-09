@@ -158,6 +158,9 @@ assert.ok(authorityRuntime.includes(
 assert.ok(authorityContract.includes(
   'forward-propagation frame-count profile crossed',
 ))
+assert.ok(authorityContract.includes(
+  "'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch'",
+))
 assert.match(
   publication,
   /forwardPropagationFrameCountPatchSha256\s*!==\s*\n?\s*PATCH_SHA256/u,

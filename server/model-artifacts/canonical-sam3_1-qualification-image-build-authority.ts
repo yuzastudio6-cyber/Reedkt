@@ -992,6 +992,7 @@ function isAllowedEntry(path: string): boolean {
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
     'docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch',
     'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
+    'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,

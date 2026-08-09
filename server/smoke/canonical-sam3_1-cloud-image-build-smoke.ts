@@ -679,7 +679,7 @@ const reconciliationService = createCanonicalSam31CloudImageBuildService({
     async request(request) {
       reconciliationCloudCalls += 1
       if (request.method === 'POST') return { status: 200, json: {} }
-      if (request.url.endsWith('pageSize=100')) return {
+      if (request.url.includes('private-offline-image-build')) return {
         status: 200,
         json: { builds: [structuredClone(reconciliationBuild)] },
       }

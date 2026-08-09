@@ -45,7 +45,9 @@ const BUILD_COLLECTION_ENDPOINT =
 const BUILD_CREATE_ENDPOINT =
   `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro` as const
 const BUILD_LIST_ENDPOINT =
-  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro&pageSize=100` as const
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro&pageSize=100&filter=`
+  + 'tags%3Dweeditpro%20AND%20tags%3Dsam3-1%20AND%20'
+  + 'tags%3Dprivate-offline-image-build' as const
 const ARTIFACT_REGISTRY_PACKAGE =
   'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu' as const
 const safeId = z.string().trim().min(1).max(512)

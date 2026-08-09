@@ -210,7 +210,7 @@ const reconciliationRuntime = createCanonicalSam31CloudImageBuildRuntime({
     async request(request) {
       reconciliationRequests += 1
       if (request.method === 'POST') return { status: 200, json: {} }
-      if (request.url.endsWith('pageSize=100')) return {
+      if (request.url.includes('private-offline-image-build')) return {
         status: 200,
         json: { builds: [structuredClone(reconciliationBuild)] },
       }
@@ -243,7 +243,7 @@ assert.equal(reconciliationRequests, 3)
 await transport.request({
   method: 'GET',
   url:
-    'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro&pageSize=100',
+    'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds?projectId=reeditpro&pageSize=100&filter=tags%3Dweeditpro%20AND%20tags%3Dsam3-1%20AND%20tags%3Dprivate-offline-image-build',
 })
 assert.equal(authRequests.at(-1)?.method, 'GET')
 

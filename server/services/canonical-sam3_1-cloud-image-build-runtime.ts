@@ -49,7 +49,9 @@ const BUILD_COLLECTION_ENDPOINT =
   'https://cloudbuild.googleapis.com/v1/projects/reeditpro/locations/us-central1/builds'
 const BUILD_CREATE_ENDPOINT = `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro`
 const BUILD_LIST_ENDPOINT =
-  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro&pageSize=100`
+  `${BUILD_COLLECTION_ENDPOINT}?projectId=reeditpro&pageSize=100&filter=`
+  + 'tags%3Dweeditpro%20AND%20tags%3Dsam3-1%20AND%20'
+  + 'tags%3Dprivate-offline-image-build'
 const BUILD_RESOURCE = new RegExp(
   '^https://cloudbuild\\.googleapis\\.com/v1/projects/reeditpro/locations/'
     + 'us-central1/builds/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-'

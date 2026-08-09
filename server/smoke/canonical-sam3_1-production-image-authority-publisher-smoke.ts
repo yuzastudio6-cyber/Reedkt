@@ -278,6 +278,7 @@ assert.equal(
   rereadAuthority?.buildClosure.multiplexSessionGpuForwardingPatchSha256,
   manifest.repositorySource.multiplexSessionGpuForwardingPatchSha256,
 )
+assert.equal(rereadAuthority?.cloudBuildPolicy.machineType, 'E2_HIGHCPU_8')
 
 await assert.rejects(publisher.publish({ ...request, command: 'docker build' }))
 await assert.rejects(publisher.publish({
@@ -304,7 +305,7 @@ assert.throws(() => createCanonicalSam31ProductionImageAuthorityPublisher({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-image-authority-publisher',
-  checks: 22,
+  checks: 23,
   exactQualifiedReleaseReread: true,
   exactPrivateIngestReread: true,
   vertexArtifactBindingExactReread: true,
@@ -313,6 +314,7 @@ console.log(JSON.stringify({
   realAuthorityConstructorSeparatesTrustedReadPortFromSerializedEvidence: true,
   accessorReadPortRejectedWithoutInvocation: true,
   multiplexSessionGpuForwardingPatchBound: true,
+  accountEffectiveCloudBuildCpuQuotaRespected: true,
   historicalBatchQualificationCastOrRelabelUsed: false,
   callerCommandPathTagRetryOrRuntimeAuthorityAccepted: false,
   developerMachineModelOrCheckpointInstallPerformed: false,
@@ -388,7 +390,7 @@ function createAuthority(preparedAt: string) {
       builderImageObservedAt: '2026-08-03T12:51:34Z' as const,
       serviceAccount:
         'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com' as const,
-      machineType: 'E2_HIGHCPU_32' as const,
+      machineType: 'E2_HIGHCPU_8' as const,
       diskSizeGb: '200' as const,
       timeout: '3600s' as const,
       queueTtl: '600s' as const,

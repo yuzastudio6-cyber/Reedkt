@@ -221,7 +221,10 @@ export async function prepareCanonicalSam31VertexCloudImageBuildAuthority(
       builderImageObservedAt: '2026-08-03T12:51:34Z',
       serviceAccount:
         'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
-      machineType: 'E2_HIGHCPU_32',
+      // This is image assembly, not model inference. Keep the build inside
+      // the observed ten-CPU public-pool quota; A100/L4 runtime policy is
+      // independently bound and unchanged.
+      machineType: 'E2_HIGHCPU_8',
       diskSizeGb: '200',
       timeout: '3600s',
       queueTtl: '600s',

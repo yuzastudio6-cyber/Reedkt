@@ -392,7 +392,10 @@ export const canonicalSam31CloudImageBuildAuthorityBaseSchema = z.object({
     serviceAccount: z.literal(
       'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
     ),
-    machineType: z.literal('E2_HIGHCPU_32'),
+    // E2_HIGHCPU_32 remains readable for immutable historical authorities.
+    // Fresh Vertex production authorities use E2_HIGHCPU_8 because the
+    // project's account-effective public-pool ceiling is ten build CPUs.
+    machineType: z.enum(['E2_HIGHCPU_32', 'E2_HIGHCPU_8']),
     diskSizeGb: z.literal('200'),
     timeout: z.literal('3600s'),
     queueTtl: z.literal('600s'),

@@ -50,7 +50,15 @@ test.describe('canonical V3 local Edit Preference browser lifecycle', () => {
     )
     if (!fixtureDefinition) throw new Error('The controlled reference-video fixture is unavailable.')
     const fixture = await materializeEditReferenceControlledMediaFixture({
-      outputRoot: path.join(storageRoot, 'controlled-mounted-v3-fixtures'),
+      // A failed test can cause Playwright to restart this worker and rerun
+      // beforeAll. Keep create-only fixture materialization isolated per
+      // worker instance so the restarted worker does not collide with the
+      // first worker's exact files.
+      outputRoot: path.join(
+        storageRoot,
+        'controlled-mounted-v3-fixtures',
+        `worker-${testInfo.workerIndex}`,
+      ),
       definition: fixtureDefinition,
       timeoutMs: 60_000,
     })
@@ -315,6 +323,7 @@ test.describe('canonical V3 local Edit Preference browser lifecycle', () => {
     )
     expect(path.isAbsolute(storageRoot)).toBe(true)
     const fixture = await prepareCanonicalV3MountedEditReferenceApplyFixture({
+      apiBaseUrl,
       endpointOrigin: localSupabaseUrl,
       anonKey: localSupabaseAnonKey,
       authenticatedAccessToken: ownerAccessToken,

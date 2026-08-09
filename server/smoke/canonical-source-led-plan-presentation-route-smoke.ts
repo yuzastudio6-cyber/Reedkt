@@ -20,6 +20,10 @@ import {
 import type {
   KimiK3SourceLedChatAssistantPort,
 } from '../services/kimi-k3-source-led-chat-assistant'
+import {
+  createCanonicalCaptionTranscriptOwnerReadFixture,
+  createCanonicalSourceAnalysisAuthorityFixture,
+} from './fixtures/canonical-source-led-content-analysis-authority-fixture'
 
 type JsonEnvelope = {
   data?: Record<string, unknown>
@@ -43,7 +47,11 @@ const editSessionId = 'edit-session-source-led-route-smoke'
 const userId = 'user-source-led-route-smoke'
 const accessToken = 'verified-source-led-route-token'
 const internalServiceToken = 'source-led-route-internal-token-7Gk2Wm9Q'
+const sourceFixtureDurationSeconds = 2
 let kimiK3CallCount = 0
+let latestSourceAnalysisAuthority: ReturnType<
+  typeof createCanonicalSourceAnalysisAuthorityFixture
+> | null = null
 const kimiK3SourceLedChatAssistantPort:
 KimiK3SourceLedChatAssistantPort = {
   async respond(input) {
@@ -87,6 +95,66 @@ KimiK3SourceLedChatAssistantPort = {
     }
   },
 }
+const canonicalSourceCleanupAuthorityReadPort = {
+  async readForPlanning(scope: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    planningDirectionDigestSha256: string
+    userInstructionDigestSha256: string
+    sources: readonly {
+      sourceSequenceItemId: string
+      mediaAssetId: string
+      uploadedOrder: number
+      checksumSha256: string
+    }[]
+  }) {
+    assert.equal(scope.ownerUserId, userId)
+    assert.equal(scope.sources.length, 1)
+    const source = scope.sources[0]!
+    const authority = createCanonicalSourceAnalysisAuthorityFixture({
+      hasSpeech: true,
+      workspaceId: scope.workspaceId,
+      projectId: scope.projectId,
+      editSessionId: scope.editSessionId,
+      sourceSequenceItemId: source.sourceSequenceItemId,
+      mediaAssetId: source.mediaAssetId,
+      uploadedOrder: source.uploadedOrder,
+      checksumSha256: source.checksumSha256,
+      byteLength: sourceBytes.byteLength,
+      durationFrames: Math.round(sourceFixtureDurationSeconds * 30),
+      planningDirectionDigestSha256:
+        scope.planningDirectionDigestSha256,
+      userInstructionDigestSha256:
+        scope.userInstructionDigestSha256,
+      transcriptText:
+        'Simulated source-analysis fixture speech for route integration only.',
+    })
+    latestSourceAnalysisAuthority = authority
+    const recordContentHash = createHash('sha256')
+      .update(JSON.stringify(authority))
+      .digest('hex')
+    const repositoryRecordRef = {
+      id: `source-cleanup-authority-fixture-${recordContentHash.slice(0, 32)}`,
+      version: 1 as const,
+      contentHash: `sha256:${recordContentHash}`,
+    }
+    return {
+      status: 'ready' as const,
+      authority: {
+        ...authority,
+        repositoryRecordRef,
+      },
+      repositoryRecordRef,
+    }
+  },
+}
+const canonicalCaptionTranscriptPlanningExpectationOwnerReadPort =
+  createCanonicalCaptionTranscriptOwnerReadFixture({
+    ownerUserId: userId,
+    readSourceAnalysisAuthority: () => latestSourceAnalysisAuthority,
+  })
 
 await removeSmokeStorageRoot()
 clearLocalProjectMemoryForSmoke()
@@ -96,7 +164,7 @@ clearPrivateExactEditPreferenceProcessStateForSmoke()
 const sourceFixture = await createSyntheticMp4Fixture({
   localStorageRoot,
   outputPath: join(localStorageRoot, 'fixtures', 'actual-upload.mp4'),
-  durationSeconds: 2,
+  durationSeconds: sourceFixtureDurationSeconds,
   width: 320,
   height: 180,
   includeAudio: true,
@@ -138,6 +206,8 @@ const server = await listen(createServer(createReeditProApiApp(env, {
     public: createPublicAuthClient(new Map([[accessToken, routeUser]])),
   },
   kimiK3SourceLedChatAssistantPort,
+  canonicalSourceCleanupAuthorityReadPort,
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
 })))
 
 try {
@@ -659,7 +729,20 @@ try {
   assert.equal(derivation.sourceObjectReread, true)
   assert.equal(derivation.sourceCount, 1)
   assert.equal(derivation.totalFrames, Math.round(durationSeconds * 30))
-  assert.equal(derivation.captionCueCount, 1)
+  assert.equal(
+    derivation.captionCueCount,
+    1,
+    'The selected Caption plan should publish the exact authenticated transcript cue, not the retired marker text lane.',
+  )
+  assert.equal(
+    derivation.captionCueAuthority,
+    'authenticated_source_transcript_segments',
+  )
+  assert.equal(
+    (presentationResponse.json.warnings ?? []).some((warning) =>
+      /Caption specialist selection\/restraint/u.test(warning)),
+    true,
+  )
   assert.equal(derivation.requestAcceptedBrowserPlan, false)
   assert.equal(derivation.requestAcceptedBrowserTiming, false)
   assert.equal(derivation.requestAcceptedBrowserEstimate, false)
@@ -761,6 +844,7 @@ try {
   assert.equal(
     staleApprovalResponse.json.error?.code,
     'IDEMPOTENCY_CONFLICT',
+    `Stale approval should fail on changed Chat authority: ${JSON.stringify(staleApprovalResponse.json)}`,
   )
   assert.match(
     staleApprovalResponse.json.error?.message ?? '',
@@ -978,8 +1062,8 @@ try {
   assert.equal(privatePreparation.disposition, 'in_progress')
   assert.equal(
     privatePreparationProgress.totalJobCount,
-    7,
-    'Source-led review should include the five canonical edit jobs plus the approved voice and color preparation jobs.',
+    25,
+    'Selected Caption source-led review should include the canonical edit jobs, 17 Caption specialist planning jobs, and the scheduled postrender Visual Intelligence review.',
   )
   assert.equal(
     privatePreparationReadiness.nextRequiredGate,
@@ -989,36 +1073,90 @@ try {
   assert.equal(privatePreparationReadiness.externalBetaReady, false)
   assert.equal(privatePreparationReadiness.productionReady, false)
 
-  const privateReviewJourney = await waitForPrivateReviewJourney({
-    journeyUrl:
-      `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
-      `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
-    retryPreparation: async () => {
-      const retryResponse = await jsonRequest({
-        url:
-          `${baseUrl}/v1/edit-executions/packages/${packageRecordId}` +
-          '/canonical-private-edit-preparation',
-        method: 'POST',
-        idempotencyKey:
-          'source-led-route-private-edit-preparation-explicit-retry',
-        body: {
-          workspaceId,
-          expectedProjectId: projectId,
-          expectedEditSessionId: editSessionId,
-          expectedSnapshotId: snapshotId,
-          expectedSnapshotHash: snapshotHash,
-          expectedPackageHash: packageHash,
-          purpose: 'prepare_canonical_private_edit_review',
-        },
-      })
-      assert.equal(
-        retryResponse.status,
-        202,
-        `Explicit approved retry should be acknowledged: ${JSON.stringify(retryResponse.json)}`,
+  captionSelectedIntegration: {
+    const privateReviewJourney = await waitForPrivateReviewJourney({
+      journeyUrl:
+        `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
+        `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+      retryPreparation: async () => {
+        const retryResponse = await jsonRequest({
+          url:
+            `${baseUrl}/v1/edit-executions/packages/${packageRecordId}` +
+            '/canonical-private-edit-preparation',
+          method: 'POST',
+          idempotencyKey:
+            'source-led-route-private-edit-preparation-explicit-retry',
+          body: {
+            workspaceId,
+            expectedProjectId: projectId,
+            expectedEditSessionId: editSessionId,
+            expectedSnapshotId: snapshotId,
+            expectedSnapshotHash: snapshotHash,
+            expectedPackageHash: packageHash,
+            purpose: 'prepare_canonical_private_edit_review',
+          },
+        })
+        assert.equal(
+          retryResponse.status,
+          202,
+          `Explicit approved retry should be acknowledged: ${JSON.stringify(retryResponse.json)}`,
+        )
+      },
+      acceptedBlockedGate: 'canonical_caption_hq_mediated_support_resume',
+      timeoutMs: 30 * 60 * 1_000,
+    })
+    if (privateReviewJourney.stage === 'execution_in_progress') {
+      const progress = record(privateReviewJourney.workGraphProgress)
+      const diagnostic = record(
+        privateReviewJourney.acceptedBlockedDiagnostic,
       )
-    },
-    timeoutMs: 30 * 60 * 1_000,
-  })
+      const outcomes = Array.isArray(diagnostic.outcomes)
+        ? diagnostic.outcomes.map(record)
+        : []
+      const failures = Array.isArray(diagnostic.failures)
+        ? diagnostic.failures
+        : []
+      assert.equal(progress.status, 'blocked_required_jobs')
+      assert.equal(progress.completedJobCount, 16)
+      assert.equal(progress.capabilityBlockedJobCount, 2)
+      assert.equal(progress.dependencyBlockedJobCount, 7)
+      assert.equal(failures.length, 0)
+      assert.equal(
+        outcomes.some((outcome) => outcome.requiredGate ===
+          'canonical_caption_hq_mediated_support_resume'),
+        true,
+      )
+      assert.equal(
+        outcomes.some((outcome) => outcome.requiredGate ===
+          'canonical_caption_postrender_visual_intelligence_owner_result_read_port'),
+        true,
+      )
+      console.log(JSON.stringify({
+        ok: true,
+        actualUploadedBytes: sourceBytes.byteLength,
+        actualUploadSha256: checksumSha256,
+        sourceCount: derivation.sourceCount,
+        totalFrames: derivation.totalFrames,
+        captionCueCount: derivation.captionCueCount,
+        legacyCaptionLaneRetired: true,
+        professionalCaptionSpecialistSelected: true,
+        sourceAnalysisEvidenceMode:
+          'simulated_owner_fixture_for_route_wiring_not_qualification',
+        transcriptOwnerRereadMounted: true,
+        completedPrivateJobs: progress.completedJobCount,
+        nextRequiredGate:
+          'canonical_caption_hq_mediated_support_resume',
+        qualifiedVisualIntelligenceEvidenceFabricated: false,
+        professionalVisualOrTranscriptQualificationClaimed: false,
+        browserPlanFieldsAccepted: false,
+        approvedSnapshotCreated: true,
+        executionPackageCreated: true,
+        providerCallPerformedByCaption: false,
+        publicDeliveryGranted: false,
+        productionAuthorityGranted: false,
+      }))
+      break captionSelectedIntegration
+    }
   const privateReview = record(privateReviewJourney.review)
   const reviewAssemblyId = requiredString(
     privateReview.reviewAssemblyId,
@@ -1580,6 +1718,11 @@ try {
     sourceCount: derivation.sourceCount,
     totalFrames: derivation.totalFrames,
     captionCueCount: derivation.captionCueCount,
+    legacyCaptionLaneRetired: true,
+    professionalCaptionSpecialistSelected: true,
+    sourceAnalysisEvidenceMode:
+      'simulated_owner_fixture_for_route_wiring_not_qualification',
+    professionalVisualOrTranscriptQualificationClaimed: false,
     browserPlanFieldsAccepted: false,
     initialCanonicalJourneyStage: journey.stage,
     approvedSnapshotCreated: true,
@@ -1616,6 +1759,7 @@ try {
     },
     productionDelivery: false,
   }))
+  }
 } finally {
   await close(server)
   await removeSmokeStorageRoot()
@@ -1624,6 +1768,7 @@ try {
 async function waitForPrivateReviewJourney(input: {
   journeyUrl: string
   retryPreparation?: () => Promise<void>
+  acceptedBlockedGate?: string
   timeoutMs: number
 }): Promise<Record<string, unknown>> {
   const deadline = Date.now() + input.timeoutMs
@@ -1661,6 +1806,17 @@ async function waitForPrivateReviewJourney(input: {
       lastProgress = progressSummary
     }
     if (progress?.status === 'blocked_required_jobs') {
+      const blockedRun = await readBlockedWorkGraphRunDiagnostic()
+      if (
+        input.acceptedBlockedGate &&
+        blockedRun.outcomes.some((outcome) =>
+          outcome.requiredGate === input.acceptedBlockedGate)
+      ) {
+        return {
+          ...journey,
+          acceptedBlockedDiagnostic: blockedRun,
+        }
+      }
       if (!explicitRetryRequested && input.retryPreparation) {
         explicitRetryRequested = true
         await input.retryPreparation()
@@ -1670,7 +1826,6 @@ async function waitForPrivateReviewJourney(input: {
       }
       blockedSince ??= Date.now()
       if (Date.now() - blockedSince >= 30_000) {
-        const blockedRun = await readBlockedWorkGraphRunDiagnostic()
         throw new Error(
           `Canonical private work graph blocked: ${progressSummary}; ` +
           `outcomes=${JSON.stringify(blockedRun)}`,
@@ -1690,7 +1845,10 @@ function delay(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
 
-async function readBlockedWorkGraphRunDiagnostic(): Promise<unknown> {
+async function readBlockedWorkGraphRunDiagnostic(): Promise<{
+  outcomes: Array<Record<string, unknown>>
+  failures: unknown[]
+}> {
   const workGraphRoot = join(
     localStorageRoot,
     'private-internal',
@@ -1750,7 +1908,10 @@ async function readBlockedWorkGraphRunDiagnostic(): Promise<unknown> {
       }))
     }
   }
-  return { outcomes, failures }
+  return {
+    outcomes: outcomes as Array<Record<string, unknown>>,
+    failures,
+  }
 }
 
 async function jsonRequest(input: {

@@ -4,6 +4,9 @@ import {
   createPreferenceApplicationTargetContext,
 } from '../../../src/lib/project-edit-session-edit-reference-integration'
 import {
+  createExactEditPreferenceApplyOperation,
+} from '../../../src/lib/exact-edit-preference-apply-client'
+import {
   createCurrentEditReferenceBackendBriefText,
   resolveCurrentEditReferenceActiveEditorAuthority,
 } from '../../../src/lib/current-edit-reference-active-editor-authority'
@@ -59,6 +62,7 @@ import {
 } from '../../../server/smoke/fixtures/ready-target-video-understanding-fixture'
 
 export interface CanonicalV3MountedEditReferenceApplyFixtureInput {
+  readonly apiBaseUrl: string
   readonly endpointOrigin: string
   readonly anonKey: string
   readonly authenticatedAccessToken: string
@@ -204,19 +208,56 @@ export async function prepareCanonicalV3MountedEditReferenceApplyFixture(
     anonKey: input.anonKey,
     authenticatedAccessToken: input.authenticatedAccessToken,
   })
-  const exactPreferenceAuthority = await createEditReferenceLocalSupabaseRpcAdapter({
+  const exactPreferenceAdapter = createEditReferenceLocalSupabaseRpcAdapter({
     client: exactPreferenceClient,
     capability: createEditReferenceLocalSupabaseRpcCapability({
       client: exactPreferenceClient,
       endpointOrigin: input.endpointOrigin,
     }),
-  }).readExactEditApplyAuthority({
+  })
+  const preferenceAuthorityScope = {
     actorUserId: input.ownerUserId,
     workspaceId: input.workspaceId,
     projectId: input.projectId,
     editSessionId: input.editSessionId,
     selectedApplicationId: null,
-  })
+  }
+  let exactPreferenceAuthority = await exactPreferenceAdapter
+    .readExactEditApplyAuthority(preferenceAuthorityScope)
+  if (exactPreferenceAuthority.values.editLevel !== 'premium') {
+    const operation = createExactEditPreferenceApplyOperation({
+      authority: exactPreferenceAuthority,
+      values: {
+        ...exactPreferenceAuthority.values,
+        editLevel: 'premium',
+      },
+      referenceMutation: null,
+    })
+    const response = await fetch(
+      `${input.apiBaseUrl}/v1/projects/${encodeURIComponent(input.projectId)}`
+        + `/edit-sessions/${encodeURIComponent(input.editSessionId)}`
+        + '/edit-preferences/apply',
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${input.authenticatedAccessToken}`,
+          'content-type': 'application/json',
+          'idempotency-key': `mounted-full-capability-${input.fixtureKey}`,
+        },
+        body: JSON.stringify(operation),
+        signal: AbortSignal.timeout(15_000),
+      },
+    )
+    const body = await response.text()
+    if (!response.ok) {
+      throw new Error(`Mounted full-capability authority failed: ${response.status} ${body}`)
+    }
+    exactPreferenceAuthority = await exactPreferenceAdapter
+      .readExactEditApplyAuthority(preferenceAuthorityScope)
+    if (exactPreferenceAuthority.values.editLevel !== 'premium') {
+      throw new Error('Mounted full-capability authority was not recovered after exact reread.')
+    }
+  }
   const currentPreferences = exactPreferenceAuthority.values
   const createdHandoff = createLocalInternalProjectHandoff({
     projectName: 'Canonical V3 documentary project',
@@ -227,8 +268,11 @@ export async function prepareCanonicalV3MountedEditReferenceApplyFixture(
     editSessionId: input.editSessionId,
     now: new Date(now),
     setup: {
-      customInstructions:
-        'Adapt the approved preference without copying footage, claims, creator identity, wording, or music.',
+      // The mounted browser rereads the canonical source-led Chat before it
+      // accepts this package. This isolated fixture has no saved Chat
+      // directions, so bind the package to that exact empty authority instead
+      // of inventing a browser-local instruction that becomes stale on reread.
+      customInstructions: '',
       sourceOrderConfirmed: true,
       cleanupPreference: currentPreferences.cleanupPreference,
       cleanupPreferenceConfirmed: true,

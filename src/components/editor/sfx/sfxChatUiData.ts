@@ -82,9 +82,10 @@ export type SFXChatData = {
 }
 
 export const sfxProviderLabels: Record<SFXProvider, string> = {
-  mirelo_sfx_v1_5: 'Production-quality sound route',
+  mirelo_sfx_v1_6: 'Sound generation route · fixture-qualified',
+  mirelo_sfx_v1_5: 'Legacy sound route · compatibility only',
   mmaudio_v2: 'Draft sound route',
-  mmaudio_v: 'Draft sound route',
+  mmaudio_v: 'Legacy draft route alias',
   reeditpro_internal_library: 'Internal library - reusable approved sounds',
   no_sfx: 'No SFX - valid professional choice',
   manual_upload: 'Manual upload - user-provided sound',

@@ -39,6 +39,8 @@ import {
   resolveLivingFrameSelectionPolicy,
 } from '../living-frame/living-frame-selection-policy'
 import { listProfessionalSkillDefinitions } from './professional-skill-registry'
+import { createProfessionalSkillCompositionTrace } from
+  './professional-skill-composition-trace'
 
 function normalizeText(value: string | undefined) {
   return (value ?? '').toLowerCase().replace(/[_-]+/g, ' ')
@@ -410,6 +412,42 @@ function briefDrivenSource(input: ProfessionalSkillPlannerInput): ProfessionalSk
   return brief.ready ? 'edit_brief' : 'edit_brief'
 }
 
+function captionPreferenceSkillIds(
+  preference: NonNullable<NonNullable<
+    ProfessionalSkillPlannerInput['planningContext']
+  >['editBrief']>['captionPreference'],
+): string[] {
+  switch (preference) {
+    case 'none':
+      return ['captions.no_caption_policy']
+    case 'minimal':
+      return [
+        'captions.clean_readable_captions',
+        'captions.small_premium_subtitles',
+      ]
+    case 'standard':
+      return ['captions.clean_readable_captions']
+    case 'dynamic':
+      return [
+        'captions.clean_readable_captions',
+        'captions.keyword_emphasis',
+      ]
+    case 'bold_creator':
+      return [
+        'captions.clean_readable_captions',
+        'captions.bold_social_captions',
+      ]
+    case 'premium_subtle':
+      return [
+        'captions.clean_readable_captions',
+        'captions.small_premium_subtitles',
+      ]
+    case 'ai_decides':
+    case undefined:
+      return []
+  }
+}
+
 function reasonsForSkill(definition: ProfessionalSkillDefinition, sources: ProfessionalSkillSelectionSource[]) {
   if (sources.includes('user_prompt')) return `Selected because the edit request asks for ${definition.userFacingName.toLowerCase()}.`
   if (sources.includes('edit_brief')) return `Selected from optional Edit Brief direction for ${definition.userFacingName.toLowerCase()}.`
@@ -580,6 +618,15 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
         selected.set(definition.id, addSelectionSource(selected.get(definition.id) ?? [], briefSource))
       }
     }
+
+    for (const skillId of captionPreferenceSkillIds(
+      input.planningContext.editBrief.captionPreference,
+    )) {
+      selected.set(
+        skillId,
+        addSelectionSource(selected.get(skillId) ?? [], briefSource),
+      )
+    }
   }
 
   for (const definition of definitions) {
@@ -626,6 +673,17 @@ function selectSkillIds(input: ProfessionalSkillPlannerInput) {
     for (const skillId of ['motion.controlled_2d_motion', 'color.image_consistency']) {
       const current = selected.get(skillId)
       if (current) selected.set(skillId, addSelectionSource(current, 'edit_level'))
+    }
+  }
+
+  if (selected.has('captions.no_caption_policy')) {
+    for (const definition of definitions) {
+      if (
+        definition.family === 'captions' &&
+        definition.id !== 'captions.no_caption_policy'
+      ) {
+        selected.delete(definition.id)
+      }
     }
   }
 
@@ -739,9 +797,15 @@ export function createProfessionalSkillPlan(input: ProfessionalSkillPlannerInput
       ? 'No Edit Brief was provided; planning continues from prompt and source context.'
       : '',
   ].filter(Boolean)
+  const planId = `${input.plannerInput.projectName || 'project'}-professional-skill-plan`
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const compositionTrace = createProfessionalSkillCompositionTrace({
+    planId,
+    selectedSkills,
+  })
 
   return {
-    id: `${input.plannerInput.projectName || 'project'}-professional-skill-plan`.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+    id: planId,
     status,
     source: 'professional_skill_planner',
     selectedSkillCount: selectedSkills.length,
@@ -761,6 +825,7 @@ export function createProfessionalSkillPlan(input: ProfessionalSkillPlannerInput
     editBriefOptional: true,
     promptFirstPlanning: true,
     noUserVisibleToolNames: true,
+    compositionTrace,
   }
 }
 

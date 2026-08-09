@@ -9,7 +9,7 @@ type InlineSFXPromptPreviewCardProps = {
 
 export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPreviewCardProps) {
   const isMMAudioPrompt = promptPlan.provider === 'mmaudio_v2' || promptPlan.provider === 'mmaudio_v'
-  const isProductionRoute = promptPlan.provider === 'mirelo_sfx_v1_5'
+  const isMireloRoute = promptPlan.provider === 'mirelo_sfx_v1_6' || promptPlan.provider === 'mirelo_sfx_v1_5'
 
   return (
     <section className="inline-chat-card sfx-inline-card sfx-prompt-preview-card">
@@ -23,7 +23,7 @@ export function InlineSFXPromptPreviewCard({ promptPlan }: InlineSFXPromptPrevie
 
       <p className="sfx-muted-note">Audio asset brief only. ReeditPro has not called an SFX asset service.</p>
       {isMMAudioPrompt && <p className="sfx-muted-note">Draft route briefs stay short because they are expected to use video context.</p>}
-      {isProductionRoute && <p className="sfx-muted-note">Production route briefs are more controlled for final-polish sound design.</p>}
+      {isMireloRoute && <p className="sfx-muted-note">This route is fixture-qualified for controlled planning and remains blocked for production execution.</p>}
 
       <div className="sfx-score-grid">
         <span><strong>Route status</strong>Gated until approval</span>

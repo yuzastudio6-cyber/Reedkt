@@ -1,5 +1,10 @@
 # Creative Skill System Implementation Handoff
 
+Status: historical implementation-sequence record. Its RP-SKILLS-08 statements
+describe the repository at that earlier docs-only milestone. Current B-roll
+runtime authority is the canonical `b_roll@1.0.0` capability manifest documented
+in [`docs/edit-skills/b-roll/architecture.md`](../edit-skills/b-roll/architecture.md).
+
 ## What This Audit Established
 
 `RP-SKILLS-00` created a documentation-only foundation for future Creative Skill System work. It did not implement skills.

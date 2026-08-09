@@ -1,0 +1,846 @@
+import { z } from 'zod'
+
+import {
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+  CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+  type CanonicalCaptionPrivateReviewEvidenceProjectionAny,
+  type CanonicalCaptionPrivateReviewEvidenceProjection,
+  type CanonicalCaptionPrivateReviewEvidenceProjectionV2,
+} from '../../src/types/canonical-caption-private-review-evidence-projection'
+import type {
+  CanonicalCaptionPrivateReviewDependencyBinding,
+} from '../../src/types/canonical-caption-private-review-dependency-binding'
+import type { CaptionDomainRef } from
+  '../../src/types/caption-domain-contracts'
+import type {
+  CanonicalCaptionPostrenderVisualQaCompletedEnvelope,
+} from './canonical-caption-postrender-visual-qa-evidence-service'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceResult,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION,
+} from './canonical-caption-postrender-visual-intelligence-evidence-repository'
+import {
+  parseCanonicalCaptionPostrenderVisualIntelligenceResult,
+} from './canonical-caption-postrender-visual-intelligence-result'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION,
+  parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope,
+} from './canonical-caption-postrender-visual-qa-evidence-service'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-evidence'
+import type { ServiceContext } from '../types'
+import type {
+  CanonicalPrivateReviewAssemblyResponse,
+} from '../validation/canonical-private-review-assembly-schemas'
+import type {
+  CanonicalPrivateReviewDecisionResponse,
+} from '../validation/canonical-private-review-decision-schemas'
+import { canonicalPrivateReviewAssemblyResponseSchema } from
+  '../validation/canonical-private-review-assembly-schemas'
+import { canonicalPrivateReviewDecisionResponseSchema } from
+  '../validation/canonical-private-review-decision-schemas'
+import { assertClosedContractTree } from
+  '../../src/lib/closed-contract-validation'
+import { calculateSkillContractDigest } from
+  '../orchestra/orchestra-skill-contracts'
+import { ApiError } from '../errors/api-error'
+import {
+  createCanonicalEditExecutionPackageService,
+} from './canonical-edit-execution-package-service'
+import { createCanonicalPrivateReviewAssemblyService } from
+  './canonical-private-review-assembly-service'
+import { createCanonicalPrivateReviewDecisionService } from
+  './canonical-private-review-decision-service'
+import { createEditPlanningAuthorityService } from
+  './edit-planning-authority-service'
+import { getRequiredAuthUserId } from './service-helpers'
+import { sha256AuthorityValue } from './private-edit-authority-store'
+
+export const CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_SERVICE_VERSION =
+  'canonical-caption-private-review-evidence-service-v2' as const
+
+const safeKey = z.string().trim().min(1).max(240)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
+  .refine((value) => !value.includes('..'))
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const domainRef = z.object({
+  id: safeKey,
+  version: safeKey,
+  contentHash: sha256,
+}).strict()
+const evidenceRef = z.object({
+  id: safeKey,
+  version: z.number().int().positive(),
+  contentHash: prefixedSha256,
+}).strict()
+const projectionSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION),
+  projectionId: safeKey,
+  projectionDigestSha256: sha256,
+  canonicalScope: z.object({
+    ownerUserId: safeKey,
+    workspaceId: safeKey,
+    projectId: safeKey,
+    editSessionId: safeKey,
+    approvedSnapshotId: safeKey,
+    approvedSnapshotHash: sha256,
+    planId: safeKey,
+    planVersion: z.number().int().positive(),
+    packageRecordId: safeKey,
+    packageHash: sha256,
+  }).strict(),
+  output: z.object({
+    outputId: safeKey,
+    confirmedOutputFrameRef: domainRef,
+    width: z.number().int().positive().max(8_192),
+    height: z.number().int().positive().max(8_192),
+    fpsNumerator: z.number().int().positive().max(240_000),
+    fpsDenominator: z.number().int().positive().max(10_000),
+    renderedArtifactRef: evidenceRef,
+    deterministicQaRef: evidenceRef,
+  }).strict(),
+  sourceRefs: z.object({
+    privateReviewDependencyBindingRef: domainRef,
+    postrenderVisualQaEvidenceRef: evidenceRef,
+    workRequestRef: evidenceRef,
+    normalizedResultRef: evidenceRef,
+  }).strict(),
+  visualReview: z.object({
+    decision: z.enum([
+      'passed', 'repair_required', 'needs_human_review',
+      'blocked_evidence_reconciliation',
+    ]),
+    actualModelInferenceVerified: z.literal(true),
+    exactApprovedRenderBound: z.literal(true),
+    canonicalEvidenceReconciled: z.boolean(),
+    actualCompleteTimeVisualReviewPassed: z.boolean(),
+    smallestScopeRepairRequired: z.boolean(),
+    privateHumanReviewRequired: z.boolean(),
+  }).strict(),
+  canonicalPrivateReview: z.object({
+    assemblyRef: domainRef.nullable(),
+    decisionRef: domainRef.nullable(),
+    decision: z.enum([
+      'accept_private_internal_review', 'request_revision',
+    ]).nullable(),
+    finalArtifactSha256: sha256.nullable(),
+    finalQaArtifactSha256: sha256.nullable(),
+    exactAssemblyReread: z.boolean(),
+    exactDecisionReread: z.boolean(),
+    immutableApprovedSnapshotPreserved: z.boolean(),
+    immutableReviewManifestPreserved: z.boolean(),
+  }).strict(),
+  disposition: z.enum([
+    'blocked_visual_evidence_reconciliation',
+    'repair_required_before_private_review',
+    'waiting_for_private_review_assembly',
+    'waiting_for_private_review_decision',
+    'canonical_revision_requested',
+    'private_review_accepted_visual_pass',
+    'private_review_accepted_visual_uncertainty_unresolved',
+  ]),
+  privateReviewAssemblyAllowed: z.boolean(),
+  privateReviewDecisionRecorded: z.boolean(),
+  privateReviewAccepted: z.boolean(),
+  terminalPrivateInternalQualificationEligible: z.boolean(),
+  requiresNewApprovedSnapshot: z.boolean(),
+  browserLocalCompletionAccepted: z.literal(false),
+  captionCreatedPrivateReviewDecision: z.literal(false),
+  captionExecutedRepair: z.literal(false),
+  approvedSnapshotMutationGranted: z.literal(false),
+  operationDispatchAuthority: z.literal(false),
+  providerOrModelRuntimeAuthority: z.literal(false),
+  assetMutationAuthority: z.literal(false),
+  finalQaApprovalAuthority: z.literal(false),
+  creditOrBillingAuthority: z.literal(false),
+  publicDeliveryAuthority: z.literal(false),
+  productionAuthority: z.literal(false),
+}).strict() satisfies z.ZodType<
+  CanonicalCaptionPrivateReviewEvidenceProjection
+>
+
+const projectionSchemaV2: z.ZodType<
+  CanonicalCaptionPrivateReviewEvidenceProjectionV2
+> = projectionSchema.omit({
+  schemaVersion: true,
+  sourceRefs: true,
+}).extend({
+  schemaVersion: z.literal(
+    CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION),
+  sourceRefs: z.object({
+    privateReviewDependencyBindingRef: domainRef,
+    visualEvidenceOwner: z.literal('visual_intelligence'),
+    postrenderVisualEvidenceRef: domainRef,
+    workRequestRef: evidenceRef,
+    normalizedResultRef: evidenceRef,
+  }).strict(),
+}).strict()
+
+interface ProjectionAuthority {
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  approvedSnapshotId: string
+  approvedSnapshotHash: string
+  planId: string
+  planVersion: number
+  packageRecordId: string
+  packageHash: string
+  approvedVisualQaWorkItemId: string
+  dependencyBinding: CanonicalCaptionPrivateReviewDependencyBinding
+}
+
+export function createCanonicalCaptionPrivateReviewEvidenceService(
+  context: ServiceContext,
+) {
+  return {
+    async readForPackage(input: {
+      workspaceId: string
+      packageRecordId: string
+      outputId?: string
+    }): Promise<CanonicalCaptionPrivateReviewEvidenceProjectionAny | null> {
+      const ownerUserId = getRequiredAuthUserId(context)
+      const packageResult = await createCanonicalEditExecutionPackageService(
+        context).getPackage(input.packageRecordId, input.workspaceId)
+      const executionPackage = packageResult.approvedEditExecutionPackage
+      const authority = await createEditPlanningAuthorityService(context)
+        .loadApprovedExecutionAuthority(
+          executionPackage.approvedPlanSnapshotId, input.workspaceId)
+      const dependencyBinding =
+        authority.captionPrivateReviewDependencyBinding
+      if (!dependencyBinding) return null
+      if (input.outputId !== undefined
+        && dependencyBinding.outputId !== input.outputId) {
+        throw conflict('caption_private_review_output_crossed')
+      }
+      const visualWorkItem = authority.workItems.find((item) =>
+        item.workItemKey === dependencyBinding.requiredReviewArtifacts[2]
+          .workItemKey)
+      if (!visualWorkItem) {
+        throw conflict('caption_private_review_visual_work_item_missing')
+      }
+      const legacyRepository =
+        context.canonicalCaptionPostrenderVisualQaEvidenceRepository
+      const activeRepository = context
+        .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+      if (legacyRepository && legacyRepository.repositoryVersion !==
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_REPOSITORY_VERSION) {
+        throw conflict('caption_private_review_legacy_repository_incompatible')
+      }
+      if (activeRepository && activeRepository.repositoryVersion !==
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_EVIDENCE_REPOSITORY_VERSION) {
+        throw conflict('caption_private_review_active_repository_incompatible')
+      }
+      if (!legacyRepository && !activeRepository) {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'Canonical Caption private review is waiting for its visual-evidence repository.',
+          503,
+          {
+            requiredGate:
+              'canonical_caption_postrender_visual_intelligence_evidence_repository',
+          },
+        )
+      }
+      const locator = {
+        ownerUserId,
+        workspaceId: input.workspaceId,
+        projectId: executionPackage.projectId,
+        editSessionId: executionPackage.editSessionId,
+        approvedSnapshotId: executionPackage.approvedPlanSnapshotId,
+        outputId: dependencyBinding.outputId,
+      }
+      const legacyCompleted = legacyRepository
+        ? await legacyRepository.readCompletedEvidence(locator)
+        : null
+      const activeCompleted = activeRepository
+        ? await activeRepository.readCompletedEvidenceForOutput(locator)
+        : null
+      if (legacyCompleted && activeCompleted) {
+        throw conflict('caption_private_review_multiple_visual_owner_results')
+      }
+      const completed = activeCompleted ?? legacyCompleted
+      if (!completed) {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption private review is waiting for persisted visual evidence.',
+          409,
+          { requiredGate: 'canonical_caption_postrender_visual_qa_evidence' },
+        )
+      }
+      const assembly = await optionalMissing(() =>
+        createCanonicalPrivateReviewAssemblyService(context).getCompleted({
+          workspaceId: input.workspaceId,
+          packageRecordId: input.packageRecordId,
+        }))
+      const decision = assembly
+        ? await optionalMissing(() =>
+            createCanonicalPrivateReviewDecisionService(context).getCompleted({
+              workspaceId: input.workspaceId,
+              reviewAssemblyId: assembly.identity.reviewAssemblyId,
+            }))
+        : null
+      return buildCanonicalCaptionPrivateReviewEvidenceProjection({
+        authority: {
+          ownerUserId,
+          workspaceId: authority.snapshot.workspaceId,
+          projectId: authority.snapshot.projectId,
+          editSessionId: authority.snapshot.editSessionId,
+          approvedSnapshotId: authority.snapshot.snapshotId,
+          approvedSnapshotHash: authority.snapshot.snapshotHash,
+          planId: authority.snapshot.planId,
+          planVersion: authority.snapshot.planVersion,
+          packageRecordId: executionPackage.packageRecordId,
+          packageHash: executionPackage.packageHash,
+          approvedVisualQaWorkItemId: visualWorkItem.id,
+          dependencyBinding,
+        },
+        completed,
+        assembly,
+        decision,
+      })
+    },
+  }
+}
+
+export function buildCanonicalCaptionPrivateReviewEvidenceProjection(input: {
+  authority: ProjectionAuthority
+  completed: CanonicalCaptionPostrenderVisualQaCompletedEnvelope
+    | CanonicalCaptionPostrenderVisualIntelligenceResult
+  assembly: CanonicalPrivateReviewAssemblyResponse | null
+  decision: CanonicalPrivateReviewDecisionResponse | null
+}): CanonicalCaptionPrivateReviewEvidenceProjectionAny {
+  const authority = input.authority
+  const binding = authority.dependencyBinding
+  const visual = normalizeCaptionVisualReviewEvidence(input.completed)
+  const assembly = input.assembly === null ? null
+    : canonicalPrivateReviewAssemblyResponseSchema.parse(input.assembly)
+  const decision = input.decision === null ? null
+    : canonicalPrivateReviewDecisionResponseSchema.parse(input.decision)
+  if ((assembly && !validResponseHash(assembly, 'responseHash'))
+    || (decision && !validResponseHash(decision, 'responseHash'))) {
+    throw conflict('caption_private_review_canonical_response_hash_invalid')
+  }
+  assertExactCaptionReviewLineage({ authority, visual, assembly, decision })
+  const visualDecision = visual.decision
+  const assemblyAllowed = visualDecision === 'passed'
+    || visualDecision === 'needs_human_review'
+  const accepted = decision?.decision === 'accept_private_internal_review'
+  const revision = decision?.decision === 'request_revision'
+  const disposition: CanonicalCaptionPrivateReviewEvidenceProjection[
+    'disposition'] = visualDecision === 'blocked_evidence_reconciliation'
+    ? 'blocked_visual_evidence_reconciliation'
+    : visualDecision === 'repair_required' && !revision
+      ? 'repair_required_before_private_review'
+      : revision
+        ? 'canonical_revision_requested'
+        : !assembly
+          ? 'waiting_for_private_review_assembly'
+          : !decision
+            ? 'waiting_for_private_review_decision'
+            : visualDecision === 'passed'
+              ? 'private_review_accepted_visual_pass'
+              : 'private_review_accepted_visual_uncertainty_unresolved'
+  const common = {
+    projectionId: `caption.private-review.evidence.${
+      unprefix(visual.evidenceDigestSha256).slice(0, 40)}`,
+    canonicalScope: {
+      ownerUserId: authority.ownerUserId,
+      workspaceId: authority.workspaceId,
+      projectId: authority.projectId,
+      editSessionId: authority.editSessionId,
+      approvedSnapshotId: authority.approvedSnapshotId,
+      approvedSnapshotHash: authority.approvedSnapshotHash,
+      planId: authority.planId,
+      planVersion: authority.planVersion,
+      packageRecordId: authority.packageRecordId,
+      packageHash: authority.packageHash,
+    },
+    output: {
+      outputId: binding.outputId,
+      confirmedOutputFrameRef: structuredClone(
+        binding.confirmedOutputFrameRef),
+      width: visual.output.width,
+      height: visual.output.height,
+      fpsNumerator: visual.output.fpsNumerator,
+      fpsDenominator: visual.output.fpsDenominator,
+      renderedArtifactRef: structuredClone(visual.privateRenderArtifactRef),
+      deterministicQaRef: structuredClone(visual.deterministicQaRef),
+    },
+    visualReview: {
+      decision: visualDecision,
+      actualModelInferenceVerified: true,
+      exactApprovedRenderBound: true,
+      canonicalEvidenceReconciled:
+        visual.canonicalEvidenceReconciled,
+      actualCompleteTimeVisualReviewPassed:
+        visual.actualCompleteTimeVisualReviewPassed,
+      smallestScopeRepairRequired:
+        visual.smallestScopeRepairRequired,
+      privateHumanReviewRequired:
+        visual.privateHumanReviewRequired,
+    },
+    canonicalPrivateReview: {
+      assemblyRef: assembly ? {
+        id: assembly.identity.reviewAssemblyId,
+        version: assembly.schemaVersion,
+        contentHash: assembly.responseHash,
+      } : null,
+      decisionRef: decision ? {
+        id: decision.identity.reviewDecisionId,
+        version: decision.schemaVersion,
+        contentHash: decision.responseHash,
+      } : null,
+      decision: decision?.decision ?? null,
+      finalArtifactSha256: assembly?.finalArtifact.sha256 ?? null,
+      finalQaArtifactSha256: assembly?.finalQaArtifact.sha256 ?? null,
+      exactAssemblyReread: assembly !== null,
+      exactDecisionReread: decision !== null,
+      immutableApprovedSnapshotPreserved:
+        decision?.authority.immutableApprovedSnapshotPreserved ?? false,
+      immutableReviewManifestPreserved:
+        decision?.authority.immutableReviewManifestPreserved ?? false,
+    },
+    disposition,
+    privateReviewAssemblyAllowed: assemblyAllowed,
+    privateReviewDecisionRecorded: decision !== null,
+    privateReviewAccepted: accepted,
+    terminalPrivateInternalQualificationEligible:
+      accepted && visualDecision === 'passed',
+    requiresNewApprovedSnapshot:
+      visualDecision === 'repair_required' || revision,
+    browserLocalCompletionAccepted: false,
+    captionCreatedPrivateReviewDecision: false,
+    captionExecutedRepair: false,
+    approvedSnapshotMutationGranted: false,
+    operationDispatchAuthority: false,
+    providerOrModelRuntimeAuthority: false,
+    assetMutationAuthority: false,
+    finalQaApprovalAuthority: false,
+    creditOrBillingAuthority: false,
+    publicDeliveryAuthority: false,
+    productionAuthority: false,
+  } satisfies Omit<CanonicalCaptionPrivateReviewEvidenceProjection,
+    'schemaVersion' | 'projectionDigestSha256' | 'sourceRefs'>
+  const privateReviewDependencyBindingRef = {
+    id: binding.bindingId,
+    version: binding.schemaVersion,
+    contentHash: binding.bindingDigestSha256,
+  }
+  const withoutDigest = visual.sourceKind === 'visual_intelligence'
+    ? {
+        ...common,
+        schemaVersion:
+          CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION,
+        sourceRefs: {
+          privateReviewDependencyBindingRef,
+          visualEvidenceOwner: 'visual_intelligence' as const,
+          postrenderVisualEvidenceRef:
+            structuredClone(visual.sourceResultRef),
+          workRequestRef: structuredClone(visual.workRequestRef),
+          normalizedResultRef: structuredClone(visual.normalizedResultRef),
+        },
+      } satisfies Omit<CanonicalCaptionPrivateReviewEvidenceProjectionV2,
+        'projectionDigestSha256'>
+    : {
+        ...common,
+        schemaVersion:
+          CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_VERSION,
+        sourceRefs: {
+          privateReviewDependencyBindingRef,
+          postrenderVisualQaEvidenceRef: {
+            id: visual.evidenceId,
+            version: 1,
+            contentHash: visual.evidenceDigestSha256,
+          },
+          workRequestRef: structuredClone(visual.workRequestRef),
+          normalizedResultRef: structuredClone(visual.normalizedResultRef),
+        },
+      } satisfies Omit<CanonicalCaptionPrivateReviewEvidenceProjection,
+        'projectionDigestSha256'>
+  return parseCanonicalCaptionPrivateReviewEvidenceProjection({
+    ...withoutDigest,
+    projectionDigestSha256: calculateSkillContractDigest({
+      ...withoutDigest,
+      projectionDigestSha256: '',
+    } as unknown as Record<string, unknown>, 'projectionDigestSha256'),
+  })
+}
+
+export function parseCanonicalCaptionPrivateReviewEvidenceProjection(
+  value: unknown,
+): CanonicalCaptionPrivateReviewEvidenceProjectionAny {
+  assertClosedContractTree(value,
+    'Canonical Caption private-review evidence projection')
+  const schemaVersion = (value as { schemaVersion?: unknown }).schemaVersion
+  const parsed = schemaVersion ===
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION
+    ? projectionSchemaV2.parse(value)
+    : projectionSchema.parse(value)
+  if (parsed.projectionDigestSha256 !== calculateSkillContractDigest(
+    parsed as unknown as Record<string, unknown>,
+    'projectionDigestSha256')) {
+    throw conflict('caption_private_review_projection_digest_invalid')
+  }
+  if (parsed.schemaVersion ===
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION
+    && (parsed.sourceRefs.visualEvidenceOwner !== 'visual_intelligence'
+      || parsed.sourceRefs.postrenderVisualEvidenceRef.version !==
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION)) {
+    throw conflict('caption_private_review_visual_owner_lineage_invalid')
+  }
+  const accepted = parsed.canonicalPrivateReview.decision ===
+    'accept_private_internal_review'
+  const revision = parsed.canonicalPrivateReview.decision ===
+    'request_revision'
+  const assemblyPresent = parsed.canonicalPrivateReview.assemblyRef !== null
+  const decisionPresent = parsed.canonicalPrivateReview.decisionRef !== null
+  const expectedDisposition = deriveDisposition({
+    visualDecision: parsed.visualReview.decision,
+    assemblyPresent,
+    decision: parsed.canonicalPrivateReview.decision,
+  })
+  const visualPassed = parsed.visualReview.decision === 'passed'
+  const visualRepair = parsed.visualReview.decision === 'repair_required'
+  const visualHuman = parsed.visualReview.decision === 'needs_human_review'
+  const visualBlocked = parsed.visualReview.decision ===
+    'blocked_evidence_reconciliation'
+  if (
+    parsed.privateReviewDecisionRecorded !== decisionPresent
+    || parsed.privateReviewAccepted !== accepted
+    || parsed.canonicalPrivateReview.exactAssemblyReread !== assemblyPresent
+    || parsed.canonicalPrivateReview.exactDecisionReread !== decisionPresent
+    || decisionPresent !== (parsed.canonicalPrivateReview.decision !== null)
+    || (decisionPresent && !assemblyPresent)
+    || assemblyPresent !== (
+      parsed.canonicalPrivateReview.finalArtifactSha256 !== null)
+    || assemblyPresent !== (
+      parsed.canonicalPrivateReview.finalQaArtifactSha256 !== null)
+    || (assemblyPresent && !parsed.privateReviewAssemblyAllowed)
+    || decisionPresent !== (
+      parsed.canonicalPrivateReview.immutableApprovedSnapshotPreserved)
+    || decisionPresent !== (
+      parsed.canonicalPrivateReview.immutableReviewManifestPreserved)
+    || parsed.terminalPrivateInternalQualificationEligible !== (
+      accepted && parsed.visualReview.decision === 'passed')
+    || parsed.requiresNewApprovedSnapshot !== (
+      parsed.visualReview.decision === 'repair_required' || revision)
+    || parsed.privateReviewAssemblyAllowed !== (
+      parsed.visualReview.decision === 'passed'
+      || parsed.visualReview.decision === 'needs_human_review')
+    || parsed.disposition !== expectedDisposition
+    || visualPassed !==
+      parsed.visualReview.actualCompleteTimeVisualReviewPassed
+    || visualRepair !== parsed.visualReview.smallestScopeRepairRequired
+    || visualHuman !== parsed.visualReview.privateHumanReviewRequired
+    || visualBlocked === parsed.visualReview.canonicalEvidenceReconciled
+  ) throw conflict('caption_private_review_projection_semantics_invalid')
+  return structuredClone(parsed)
+}
+
+export function canonicalCaptionPrivateReviewVisualEvidenceRef(
+  projection: CanonicalCaptionPrivateReviewEvidenceProjectionAny,
+): CaptionDomainRef {
+  if (projection.schemaVersion ===
+      CANONICAL_CAPTION_PRIVATE_REVIEW_EVIDENCE_PROJECTION_V2_VERSION) {
+    return structuredClone(projection.sourceRefs.postrenderVisualEvidenceRef)
+  }
+  return {
+    id: projection.sourceRefs.postrenderVisualQaEvidenceRef.id,
+    version: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+    contentHash: unprefix(
+      projection.sourceRefs.postrenderVisualQaEvidenceRef.contentHash),
+  }
+}
+
+interface NormalizedCaptionVisualReviewEvidence {
+  sourceKind: 'visual_intelligence' | 'legacy_qwen_read_only'
+  sourceResultRef: {
+    id: string
+    version: string
+    contentHash: string
+  }
+  evidenceId: string
+  evidenceDigestSha256: string
+  scope: {
+    ownerUserId: string
+    workspaceId: string
+    projectId: string
+    editSessionId: string
+    approvedSnapshotId: string
+  }
+  approvedSnapshotRef: { id: string; version: number; contentHash: string }
+  executionPackageRef: { id: string; version: number; contentHash: string }
+  approvedWorkItemRef: { id: string; version: number; contentHash: string }
+  output: {
+    outputId: string
+    confirmedOutputFrameRef: {
+      id: string
+      version: string
+      contentHash: string
+    }
+    width: number
+    height: number
+    fpsNumerator: number
+    fpsDenominator: number
+  }
+  privateRenderArtifactRef: { id: string; version: number; contentHash: string }
+  deterministicQaRef: { id: string; version: number; contentHash: string }
+  workRequestRef: { id: string; version: number; contentHash: string }
+  normalizedResultRef: { id: string; version: number; contentHash: string }
+  decision: CanonicalCaptionPrivateReviewEvidenceProjection[
+    'visualReview']['decision']
+  actualModelInferenceVerified: true
+  exactApprovedRenderBound: true
+  canonicalEvidenceReconciled: boolean
+  actualCompleteTimeVisualReviewPassed: boolean
+  smallestScopeRepairRequired: boolean
+  privateHumanReviewRequired: boolean
+}
+
+function normalizeCaptionVisualReviewEvidence(
+  value: CanonicalCaptionPostrenderVisualQaCompletedEnvelope
+    | CanonicalCaptionPostrenderVisualIntelligenceResult,
+): NormalizedCaptionVisualReviewEvidence {
+  if ('schemaVersion' in value && value.schemaVersion ===
+    'canonical-caption-postrender-visual-intelligence-result-v1') {
+    const result = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
+      value)
+    return {
+      sourceKind: 'visual_intelligence',
+      sourceResultRef: {
+        id: result.resultId,
+        version:
+          CANONICAL_CAPTION_POSTRENDER_VISUAL_INTELLIGENCE_RESULT_VERSION,
+        contentHash: unprefix(result.resultDigestSha256),
+      },
+      evidenceId: result.resultId,
+      evidenceDigestSha256: result.resultDigestSha256,
+      scope: structuredClone(result.scope),
+      approvedSnapshotRef: structuredClone(result.approvedSnapshotRef),
+      executionPackageRef: structuredClone(result.executionPackageRef),
+      approvedWorkItemRef: structuredClone(result.approvedWorkItemRef),
+      output: {
+        outputId: result.output.outputId,
+        confirmedOutputFrameRef:
+          structuredClone(result.output.captionConfirmedOutputFrameRef),
+        width: result.output.width,
+        height: result.output.height,
+        fpsNumerator: result.output.fpsNumerator,
+        fpsDenominator: result.output.fpsDenominator,
+      },
+      privateRenderArtifactRef:
+        structuredClone(result.privateRenderArtifactRef),
+      deterministicQaRef:
+        structuredClone(result.deterministicCompleteTimeQaRef),
+      workRequestRef: structuredClone(result.visualIntelligenceRequestRef),
+      normalizedResultRef:
+        structuredClone(result.visualInspectionResultRef),
+      decision: result.decision,
+      actualModelInferenceVerified: true,
+      exactApprovedRenderBound: true,
+      canonicalEvidenceReconciled: result.canonicalEvidenceReconciled,
+      actualCompleteTimeVisualReviewPassed:
+        result.completeTimelineCompositeReviewPassed,
+      smallestScopeRepairRequired: result.smallestScopeRepairRequired,
+      privateHumanReviewRequired: result.privateHumanReviewRequired,
+    }
+  }
+  const envelope = parseCanonicalCaptionPostrenderVisualQaCompletedEnvelope(
+    value)
+  return {
+    sourceKind: 'legacy_qwen_read_only',
+    sourceResultRef: {
+      id: envelope.evidence.evidenceId,
+      version: CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_EVIDENCE_VERSION,
+      contentHash: unprefix(envelope.evidence.evidenceDigestSha256),
+    },
+    evidenceId: envelope.evidence.evidenceId,
+    evidenceDigestSha256: envelope.evidence.evidenceDigestSha256,
+    scope: {
+      ownerUserId: envelope.evidence.ownerUserId,
+      ...structuredClone(envelope.evidence.scope),
+    },
+    approvedSnapshotRef:
+      structuredClone(envelope.workRequest.approvedSnapshotRef),
+    executionPackageRef:
+      structuredClone(envelope.workRequest.executionPackageRef),
+    approvedWorkItemRef:
+      structuredClone(envelope.workRequest.approvedWorkItemRef),
+    output: {
+      outputId: envelope.normalizedResult.output.outputId,
+      confirmedOutputFrameRef: structuredClone(
+        envelope.normalizedResult.output.confirmedOutputFrameRef),
+      width: envelope.normalizedResult.output.width,
+      height: envelope.normalizedResult.output.height,
+      fpsNumerator: envelope.normalizedResult.output.fpsNumerator,
+      fpsDenominator: envelope.normalizedResult.output.fpsDenominator,
+    },
+    privateRenderArtifactRef:
+      structuredClone(envelope.workRequest.privateRenderArtifactRef),
+    deterministicQaRef:
+      structuredClone(envelope.workRequest.deterministicQaRef),
+    workRequestRef: structuredClone(envelope.evidence.workRequestRef),
+    normalizedResultRef:
+      structuredClone(envelope.evidence.normalizedDecisionRef),
+    decision: envelope.evidence.decision,
+    actualModelInferenceVerified: true,
+    exactApprovedRenderBound: true,
+    canonicalEvidenceReconciled:
+      envelope.evidence.canonicalEvidenceReconciled,
+    actualCompleteTimeVisualReviewPassed:
+      envelope.evidence.actualCompleteTimeVisualReviewPassed,
+    smallestScopeRepairRequired:
+      envelope.evidence.smallestScopeRepairRequired,
+    privateHumanReviewRequired:
+      envelope.evidence.privateHumanReviewRequired,
+  }
+}
+
+function assertExactCaptionReviewLineage(input: {
+  authority: ProjectionAuthority
+  visual: NormalizedCaptionVisualReviewEvidence
+  assembly: CanonicalPrivateReviewAssemblyResponse | null
+  decision: CanonicalPrivateReviewDecisionResponse | null
+}): void {
+  const { authority, visual, assembly, decision } = input
+  const binding = authority.dependencyBinding
+  const scope = visual.scope
+  const exactOutput = visual.output
+  if (
+    scope.ownerUserId !== authority.ownerUserId
+    || scope.workspaceId !== authority.workspaceId
+    || scope.projectId !== authority.projectId
+    || scope.editSessionId !== authority.editSessionId
+    || scope.approvedSnapshotId !== authority.approvedSnapshotId
+    || visual.approvedSnapshotRef.id !== authority.approvedSnapshotId
+    || unprefix(visual.approvedSnapshotRef.contentHash)
+      !== authority.approvedSnapshotHash
+    || visual.executionPackageRef.id !== authority.packageRecordId
+    || unprefix(visual.executionPackageRef.contentHash)
+      !== authority.packageHash
+    || visual.approvedWorkItemRef.id
+      !== authority.approvedVisualQaWorkItemId
+    || binding.outputId !== exactOutput.outputId
+    || !sameDomainRef(binding.confirmedOutputFrameRef,
+      exactOutput.confirmedOutputFrameRef)
+    || visual.actualModelInferenceVerified !== true
+    || visual.exactApprovedRenderBound !== true
+  ) throw conflict('caption_private_review_exact_lineage_mismatch')
+  if (assembly) {
+    if (
+      !['passed', 'needs_human_review'].includes(visual.decision)
+      || assembly.identity.workspaceId !== authority.workspaceId
+      || assembly.identity.projectId !== authority.projectId
+      || assembly.identity.editSessionId !== authority.editSessionId
+      || assembly.identity.packageRecordId !== authority.packageRecordId
+      || assembly.identity.approvedPlanSnapshotId
+        !== authority.approvedSnapshotId
+      || assembly.finalArtifact.artifactId
+        !== visual.privateRenderArtifactRef.id
+      || assembly.finalArtifact.sha256
+        !== unprefix(visual.privateRenderArtifactRef.contentHash)
+      || assembly.finalQaArtifact.artifactId !== visual.deterministicQaRef.id
+      || assembly.finalQaArtifact.sha256
+        !== unprefix(visual.deterministicQaRef.contentHash)
+      || assembly.finalQaArtifact.finalQaGatesPassed !== true
+      || assembly.readiness.privateReviewReady !== true
+    ) throw conflict('caption_private_review_assembly_lineage_mismatch')
+  }
+  if (decision) {
+    if (!assembly
+      || decision.identity.workspaceId !== authority.workspaceId
+      || decision.identity.projectId !== authority.projectId
+      || decision.identity.editSessionId !== authority.editSessionId
+      || decision.identity.packageRecordId !== authority.packageRecordId
+      || decision.identity.approvedPlanSnapshotId
+        !== authority.approvedSnapshotId
+      || decision.identity.reviewAssemblyId
+        !== assembly.identity.reviewAssemblyId
+      || decision.authority.reviewManifestSha256
+        !== assembly.manifest.manifestSha256
+      || decision.authority.finalArtifactSha256
+        !== assembly.finalArtifact.sha256
+      || decision.authority.immutableApprovedSnapshotPreserved !== true
+      || decision.authority.immutableReviewManifestPreserved !== true
+      || (decision.decision === 'accept_private_internal_review'
+        && !['passed', 'needs_human_review'].includes(
+          visual.decision))) {
+      throw conflict('caption_private_review_decision_lineage_mismatch')
+    }
+  }
+}
+
+function deriveDisposition(input: {
+  visualDecision:
+    CanonicalCaptionPrivateReviewEvidenceProjection['visualReview']['decision']
+  assemblyPresent: boolean
+  decision: CanonicalCaptionPrivateReviewEvidenceProjection[
+    'canonicalPrivateReview']['decision']
+}): CanonicalCaptionPrivateReviewEvidenceProjection['disposition'] {
+  if (input.visualDecision === 'blocked_evidence_reconciliation') {
+    return 'blocked_visual_evidence_reconciliation'
+  }
+  if (input.visualDecision === 'repair_required'
+    && input.decision !== 'request_revision') {
+    return 'repair_required_before_private_review'
+  }
+  if (input.decision === 'request_revision') {
+    return 'canonical_revision_requested'
+  }
+  if (!input.assemblyPresent) return 'waiting_for_private_review_assembly'
+  if (input.decision === null) return 'waiting_for_private_review_decision'
+  return input.visualDecision === 'passed'
+    ? 'private_review_accepted_visual_pass'
+    : 'private_review_accepted_visual_uncertainty_unresolved'
+}
+
+function sameDomainRef(
+  left: { id: string; version: string; contentHash: string },
+  right: { id: string; version: string; contentHash: string },
+): boolean {
+  return left.id === right.id && left.version === right.version
+    && left.contentHash === right.contentHash
+}
+
+function unprefix(value: string): string {
+  return value.startsWith('sha256:') ? value.slice(7) : value
+}
+
+function validResponseHash(
+  value: Record<string, unknown>,
+  field: string,
+): boolean {
+  const { [field]: received, ...withoutHash } = value
+  return received === sha256AuthorityValue(withoutHash)
+}
+
+async function optionalMissing<T>(operation: () => Promise<T>): Promise<T | null> {
+  try {
+    return await operation()
+  } catch (error) {
+    if (error instanceof ApiError
+      && error.code === 'JOB_DEPENDENCY_NOT_READY'
+      && error.status === 409
+      && /has not completed/u.test(error.message)) return null
+    throw error
+  }
+}
+
+function conflict(reason: string): ApiError {
+  return new ApiError(
+    'IDEMPOTENCY_CONFLICT',
+    'Canonical Caption private-review evidence conflicts with immutable lineage.',
+    409,
+    { reason },
+  )
+}

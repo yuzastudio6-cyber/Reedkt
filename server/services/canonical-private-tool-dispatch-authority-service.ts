@@ -957,7 +957,10 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
     expectedAsset.assetRole === 'final' && expectedAsset.contentType === 'video/mp4' &&
     workItem.approvedToolIds.length === 1 && workItem.approvedToolIds[0] === 'remotion' &&
     body.operationId === 'tool.remotion.render_approved_composition.v1' &&
-    finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
+    // A caption-track plan may intentionally contain zero cues when the source
+    // has no verified transcript evidence. That preserves the approved
+    // no-invented-caption restraint while keeping the track-shaped contract.
+    finalCompositionCaptionCueCount >= 0 && finalCompositionCaptionCueCount <= 7 &&
     workItem.dependencyKeys.length ===
       1 + finalCompositionCaptionCueCount + finalCompositionVoiceTrackCount +
         finalCompositionSupplementalAudioTrackCount +

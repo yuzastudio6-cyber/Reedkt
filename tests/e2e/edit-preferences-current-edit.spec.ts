@@ -220,6 +220,8 @@ test.describe('saved and current Edit Preferences', () => {
     await clickWhenReady(page.getByRole('button', { name: /^Prepare source$/i }))
     await clickWhenReady(page.getByRole('button', { name: /^Create edit plan$/i }))
     await expect(await findPlanReview(page)).toBeVisible()
+    const preferenceRevisionBeforeApply =
+      (await readHandoff(page))?.setup.preferenceRevision ?? 0
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-trigger'))
     await openAdvancedPreferences(page)
@@ -238,12 +240,16 @@ test.describe('saved and current Edit Preferences', () => {
       stage: 'source_uploaded',
       setup: {
         cleanupPreference: 'light_cleanup',
-        preferenceRevision: 1,
+        preferenceRevision: preferenceRevisionBeforeApply + 1,
       },
     })
     expect(invalidated?.approvedSnapshotId).toBeUndefined()
     expect(invalidated?.approvedCreditReservationId).toBeUndefined()
     expect(invalidated?.privateReview).toBeUndefined()
+
+    await page.reload()
+    await expect(page.getByTestId('plan-review-card')).toHaveCount(0)
+    await expect(page.getByTestId('planning-preparation')).toContainText(/Prepare the source/i)
     await expectNoHorizontalOverflow(page)
   })
 
@@ -263,7 +269,7 @@ test.describe('saved and current Edit Preferences', () => {
     await page.getByTestId('edit-upload-gate-input').setInputFiles(approvedPreferenceSourceFixturePath)
     await expect(page.getByTestId('source-summary')).toContainText('fixture.mp4')
     await page.getByTestId('chat-composer-textarea').fill(
-      'Use the source only in its original order with one readable caption. Do not add music, sound effects, transitions, generated visuals, or extra scenes.',
+      'Use the source only in its original order. Do not add captions, music, sound effects, transitions, generated visuals, or extra scenes.',
     )
     await clickWhenReady(page.getByTestId('chat-composer-send'))
     await completeRequiredEditorSetupBeforeFootagePrep(page)
@@ -297,12 +303,16 @@ test.describe('saved and current Edit Preferences', () => {
     expect(approvedAfterOpen?.approvedCreditReservationId).toBe(approvedBeforeOpen?.approvedCreditReservationId)
 
     await clickWhenReady(page.getByTestId('current-edit-preferences-locked').getByRole('button', { name: /^Return to Chat$/i }))
-    await expect(page.getByText(/Approval is safely recorded/i)).toBeVisible()
     await expect(page).not.toHaveURL(/view=preferences/)
+    await expect(page.getByText(/Approval is safely recorded/i)).toBeVisible()
 
     await page.getByTestId('chat-composer-textarea').fill('Use the product demo workflow, light cleanup, premium mood, and save credits.')
     await clickWhenReady(page.getByTestId('chat-composer-send'))
-    await expect(page.getByText(/previous plan is cleared.*cleanup direction must be planned again/i)).toBeVisible()
+    await expect(page.getByText(/previous plan is cleared.*confirm the updated setup/i)).toBeVisible()
+    await clickWhenReady(page.getByRole('button', { name: /^Confirm cleanup$/i }))
+    await expect.poll(async () =>
+      (await readHandoff(page))?.setup.cleanupPreferenceConfirmed,
+    ).toBe(true)
 
     const revised = await readHandoff(page)
     expect(revised).toMatchObject({

@@ -69,6 +69,8 @@ export const privateSourceMediaMetadataSchema = z.object({
   durationSeconds: z.number().nonnegative().finite().optional(),
   width: z.number().int().positive().max(32_768).optional(),
   height: z.number().int().positive().max(32_768).optional(),
+  frameRateNumerator: z.number().int().positive().max(1_000_000_000).optional(),
+  frameRateDenominator: z.number().int().positive().max(1_000_000_000).optional(),
   videoCodec: z.string().trim().min(1).max(120).optional(),
   audioCodec: z.string().trim().min(1).max(120).optional(),
   audioSampleRateHertz: z.number().int().positive().max(384_000).optional(),
@@ -84,7 +86,27 @@ export const privateSourceMediaMetadataSchema = z.object({
   hasVideo: z.boolean(),
   hasAudio: z.boolean(),
   unavailableReason: z.string().trim().min(1).max(240).optional(),
-}).strict()
+}).strict().superRefine((metadata, context) => {
+  const hasNumerator = metadata.frameRateNumerator !== undefined
+  const hasDenominator = metadata.frameRateDenominator !== undefined
+  if (hasNumerator !== hasDenominator) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['frameRateNumerator'],
+      message: 'Source frame rate requires an exact numerator and denominator.',
+    })
+  }
+  if (
+    hasNumerator &&
+    (metadata.probeStatus !== 'probed' || metadata.hasVideo !== true)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['frameRateNumerator'],
+      message: 'Source frame rate is valid only for a successfully probed video stream.',
+    })
+  }
+})
 
 export const privateMediaAssetAuthorityRecordSchema = z.object({
   id: privateUploadMediaSafeIdSchema,

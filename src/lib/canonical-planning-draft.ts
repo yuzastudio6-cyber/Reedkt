@@ -393,6 +393,10 @@ export type CanonicalPlanComponentsDraft = {
   }
   fallbackPolicy: JsonRecord
   editBriefAudioPlanning?: CanonicalEditBriefAudioPlanningBinding
+  professionalSkillPlan?: JsonRecord
+  captionEarlyPlanningBundle?: JsonRecord
+  captionSpecialistPlanningBinding?: JsonRecord
+  bRollSkill?: JsonRecord
   livingFrame?: LivingFrameProfessionalSkillComponent
   motionStudioStorytellingStyleAuthority?: CanonicalStorytellingStyleAuthorityDraft
   motionStudioStorytellingProductionAuthority?: JsonRecord
@@ -934,6 +938,14 @@ export function buildCanonicalPlanningDraft(input: {
           unapprovedFallbackAllowed: false,
           policy: toJsonValue(plan.agentQAFallbackPlan ?? {}),
         },
+    ...(plan.professionalSkillPlan
+      ? {
+          professionalSkillPlan: toJsonRecord(
+            plan.professionalSkillPlan,
+            { status: 'not_provided' },
+          ),
+        }
+      : {}),
     ...(editBriefAudioPlanning.binding
       ? { editBriefAudioPlanning: editBriefAudioPlanning.binding }
       : {}),
@@ -1435,7 +1447,9 @@ function buildPrivateReviewCanonicalPlan(input: {
   // The timed-track profile is the canonical zero-or-many representation.
   // Keep the legacy single-cue profile only for exactly one full-duration
   // approved cue; a caption-free edit carries an empty, verified cue track.
-  const captionTrackComposition = captionCues.length !== 1
+  const captionTrackComposition = captionCues.length !== 1 ||
+    captionCues[0]!.startFrame !== 0 ||
+    captionCues[0]!.endFrameExclusive !== input.totalFrames
   const replaceSourceAudio = voiceDeliverySources.length > 0
   const sourceTransitions = input.approvedSourceTransitions.transitions
   const approvedHardCutTransitions =
@@ -1515,7 +1529,7 @@ function buildPrivateReviewCanonicalPlan(input: {
         expectedOutputKeys: [outputKey],
         structuredPayload: {
           captionProfileId: 'approved_ass_track_render_v1',
-          fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+          fontPackProfileId: approvedCaptionFontPackProfile(cue.caption),
           collisionPolicy: 'fail_on_reserved_zone_collision',
           preserveSpeechTiming: true,
           width: input.frame.width,
@@ -2857,9 +2871,26 @@ function professionalCaptionLayout(frame: { width: number; height: number }): {
   }
 }
 
+function approvedCaptionFontPackProfile(
+  caption: string,
+): 'reeditpro_reviewed_fonts_v1' | 'reeditpro_reviewed_fonts_v2' {
+  return /^[\x20-\x7e]+$/u.test(caption)
+    ? 'reeditpro_reviewed_fonts_v1'
+    : 'reeditpro_reviewed_fonts_v2'
+}
+
 function validatedCaption(value: string | undefined): string | null {
-  if (!value || value.length > 120 || value !== value.trim() || !/^[\x20-\x7E]+$/.test(value)) return null
-  if (/[{}\\[\]]/.test(value) || /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/i.test(value)) return null
+  const hasUnsafeControlCharacter = value
+    ? Array.from(value).some((character) => {
+        const codePoint = character.codePointAt(0)!
+        return codePoint <= 31 || codePoint === 127
+      })
+    : false
+  if (!value || Array.from(value).length > 120 || value !== value.trim()
+    || hasUnsafeControlCharacter) return null
+  if (/[{}\\[\]]/u.test(value) || value.includes('\\')
+    || /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/iu
+      .test(value)) return null
   return value
 }
 
@@ -2873,7 +2904,7 @@ function approvedCaptionCues(
   endFrameExclusive: number
 }> | null {
   const timingItems = plan.masterTimingPlan?.captionTimingItems ?? []
-  if (timingItems.length > 7) return null
+  if (timingItems.length > 128) return null
   if (timingItems.length === 0) return []
   const seenTimingIds = new Set<string>()
   let previousEndFrame = 0
@@ -2893,10 +2924,6 @@ function approvedCaptionCues(
     return [{ timingId, caption, startFrame, endFrameExclusive }]
   })
   if (cues.length !== timingItems.length) return null
-  if (
-    cues.length === 1 &&
-    (cues[0]!.startFrame !== 0 || cues[0]!.endFrameExclusive !== totalFrames)
-  ) return null
   return cues
 }
 

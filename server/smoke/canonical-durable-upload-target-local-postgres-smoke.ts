@@ -51,8 +51,9 @@ const ownerB = '22222222-2222-4222-8222-222222222222'
 const workspaceA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const workspaceB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
 const projectA = 'aaaaaaaa-1000-4000-8000-000000000001'
-const createdAt = '2026-07-29T15:00:00.000Z'
-const expiresAt = '2026-07-29T15:15:00.000Z'
+const fixtureClockStartedAtMs = Date.now()
+const createdAt = fixtureTimestampAfterMinutes(0)
+const expiresAt = fixtureTimestampAfterMinutes(15)
 const authorizationEvidenceHash = hash('authorized-user-a')
 const localEscrowKeyMaterial = Buffer.from(
   hashCanonicalUploadTargetValue({ fixture: 'local-envelope-key-v1' }),
@@ -389,7 +390,7 @@ assert.equal(
 
 const expiringCandidate = candidateFor(
   'expiring',
-  '2026-07-29T15:01:00.000Z',
+  fixtureTimestampAfterMinutes(1),
 )
 const expiringResult = await resolveCanonicalUploadIntentAndTarget({
   port: authorityA.port,
@@ -406,7 +407,7 @@ const expiringEscrowIdentity = {
   uploadIntentId: expiringResult.intent.uploadIntentId,
   attemptId: expiringResult.issuanceAttemptId,
 }
-escrowClock = '2026-07-29T15:02:00.000Z'
+escrowClock = fixtureTimestampAfterMinutes(2)
 const expiryRecoveryEscrow = createEscrow(ownerA, jwtSecret)
 assert.equal(await expiryRecoveryEscrow.escrow.read(expiringEscrowIdentity), undefined)
 assert.equal(await expiryRecoveryEscrow.escrow.read(expiringEscrowIdentity), undefined)
@@ -572,6 +573,10 @@ function localTargetFor(
 
 function hash(value: string): string {
   return hashCanonicalUploadTargetValue({ fixture: value })
+}
+
+function fixtureTimestampAfterMinutes(minutes: number): string {
+  return new Date(fixtureClockStartedAtMs + minutes * 60_000).toISOString()
 }
 
 function createLocalAuthenticatedJwt(subject: string, secret: string): string {

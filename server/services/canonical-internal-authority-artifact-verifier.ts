@@ -4,12 +4,25 @@ import {
   CANONICAL_LIVING_FRAME_FINAL_OVERLAY_POLICY,
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import type {
+  CanonicalCaptionSpecialistExecutionReceipt,
+} from '../../src/types/canonical-caption-specialist-execution'
+import type { SkillArtifactRef } from
+  '../../src/types/orchestra-skill-contracts'
 import { ApiError } from '../errors/api-error'
 import { readPrivateFileIfExistsWithinRoot } from '../security/private-local-persistence'
 import type { PersistedArtifactResult } from '../validation/private-artifact-qa-authority-schemas'
+import {
+  parseCanonicalCaptionSpecialistExecutionReceipt,
+} from './canonical-caption-specialist-execution-service'
+import {
+  assertCanonicalCaptionCompletedProducedArtifacts,
+} from './canonical-caption-specialist-produced-artifact-contract'
 import { stableAuthorityStringify } from './private-edit-authority-store'
 
 const AUTHORITY_ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1'
+const CAPTION_SPECIALIST_ARTIFACT_SCHEMA_VERSION =
+  'canonical-caption-specialist-planning-artifact-v1'
 const AUTHORITY_PROFILES = {
   authority_validation_evidence: {
     validationProfile: 'snapshot',
@@ -53,6 +66,38 @@ export interface VerifiedCanonicalInternalAuthorityArtifact {
     | 'canonical_authority_validation_runner_v1'
     | 'canonical_source_trim_validation_runner_v1'
     | 'canonical_living_frame_layer_manifest_runner_v1'
+}
+
+export interface VerifiedCanonicalCaptionSpecialistPlanningArtifact {
+  sha256: string
+  byteLength: number
+  privateObjectIdentityHash: string
+  semanticReportHash: string
+  leaseId: string
+  immutableLeaseHash: string
+  leaseAttemptNumber: number
+  executionAttemptId: string
+  runnerClass: 'canonical_caption_specialist_planning_runner_v1'
+  receipt: CanonicalCaptionSpecialistExecutionReceipt
+  callResultPairRef: {
+    id: string
+    version: 'canonical-specialist-call-result-pair-v1'
+    contentHash: string
+  }
+  producedArtifactRefs: Array<{
+    id: string
+    version: string
+    contentHash: string
+    artifactType: string
+    producerSkillKey: string
+    privateArtifact: true
+    byteFreeRef: true
+    sourceSupportRequestRef: {
+      id: string
+      version: string
+      contentHash: string
+    } | null
+  }>
 }
 
 /**
@@ -143,6 +188,139 @@ export async function verifyCanonicalInternalAuthorityArtifact(input: {
   }
 }
 
+/**
+ * Re-opens the create-only Caption planning artifact and binds the embedded
+ * completed receipt back to the exact private artifact/QA record. This is a
+ * read-only verifier; it cannot execute or resume the specialist.
+ */
+export async function verifyCanonicalCaptionSpecialistPlanningArtifact(input: {
+  localStorageRoot: string
+  artifact: PersistedArtifactResult
+}): Promise<VerifiedCanonicalCaptionSpecialistPlanningArtifact> {
+  const artifact = input.artifact
+  const runnerClass = 'canonical_caption_specialist_planning_runner_v1'
+  if (
+    artifact.lineage.artifactType !== 'caption_specialist_job_receipt' ||
+    artifact.identity.expectedAssetId !== artifact.lineage.assetId ||
+    artifact.identity.jobId === '' ||
+    artifact.lineage.assetRole !== 'qa' ||
+    artifact.lineage.contentType !== 'application/json' ||
+    artifact.content.contentType !== 'application/json' ||
+    artifact.content.byteLength <= 0 ||
+    artifact.content.byteLength > MAXIMUM_AUTHORITY_ARTIFACT_BYTES ||
+    artifact.storageIdentity.storageKind !== 'private_local_test' ||
+    artifact.placeholder.isPlaceholder ||
+    artifact.evidenceClass !== 'private_internal_test_attested' ||
+    artifact.liveRuntimeEligible !== false ||
+    artifact.actualRunEvidence.state !== 'actual_run_evidence_placeholder' ||
+    artifact.actualRunEvidence.runnerClass !== runnerClass ||
+    artifact.actualRunEvidence.actualRunVerified !== false ||
+    artifact.actualRunEvidence.toolIds.length !== 0 ||
+    artifact.actualRunEvidence.providerRoute !== undefined
+  ) {
+    throw invalidArtifact(
+      'Private Caption planning artifact record is not an exact internal-runner result.',
+    )
+  }
+  const privateObjectIdentityHash =
+    artifact.storageIdentity.opaqueObjectIdentityHash
+  const bytes = await readPrivateFileIfExistsWithinRoot({
+    rootPath: input.localStorageRoot,
+    relativePath: canonicalInternalAuthorityArtifactRelativePath(
+      privateObjectIdentityHash),
+  })
+  if (!bytes || bytes.byteLength !== artifact.content.byteLength
+    || sha256Bytes(bytes) !== artifact.content.sha256) {
+    throw invalidArtifact(
+      'Private Caption planning artifact bytes are missing or changed.',
+    )
+  }
+  const report = parseCaptionSpecialistReport(bytes)
+  const identity = asRecord(report.identity)
+  const authorityHashes = asRecord(report.authorityHashes)
+  const executionFence = asRecord(report.executionFence)
+  if (
+    identity.workspaceId !== artifact.identity.workspaceId ||
+    identity.projectId !== artifact.identity.projectId ||
+    identity.editSessionId !== artifact.identity.editSessionId ||
+    identity.snapshotId !== artifact.identity.snapshotId ||
+    identity.jobId !== artifact.identity.jobId ||
+    identity.approvedWorkItemId !== artifact.lineage.approvedWorkItemId ||
+    identity.expectedAssetId !== artifact.identity.expectedAssetId ||
+    authorityHashes.snapshotHash !== artifact.lineage.snapshotHash ||
+    authorityHashes.approvedAssetManifestHash !==
+      artifact.lineage.approvedAssetManifestHash ||
+    authorityHashes.jobAuthorityHash !== artifact.lineage.jobAuthorityHash ||
+    typeof executionFence.leaseId !== 'string' ||
+    !validSha256(executionFence.immutableLeaseHash) ||
+    !Number.isInteger(executionFence.leaseAttemptNumber) ||
+    Number(executionFence.leaseAttemptNumber) <= 0 ||
+    executionFence.executionAttemptId !==
+      artifact.actualRunEvidence.executionAttemptId ||
+    executionFence.runnerClass !== runnerClass
+  ) {
+    throw invalidArtifact(
+      'Private Caption planning artifact semantic lineage is inconsistent.',
+    )
+  }
+  const captionSpecialist = asRecord(report.captionSpecialist)
+  const receipt = parseCanonicalCaptionSpecialistExecutionReceipt(
+    captionSpecialist.receipt)
+  const pairRef = asRecord(captionSpecialist.callResultPairRef)
+  const producedArtifactRefs = Array.isArray(
+    captionSpecialist.producedArtifactRefs)
+    ? captionSpecialist.producedArtifactRefs
+    : []
+  if (
+    receipt.resultDisposition !== 'completed' ||
+    receipt.approvedSnapshotRef.id !== artifact.identity.snapshotId ||
+    receipt.approvedSnapshotRef.contentHash !== artifact.lineage.snapshotHash ||
+    receipt.approvedWorkItemRef.id !== artifact.lineage.approvedWorkItemId ||
+    receipt.canonicalJobRef.id !== artifact.identity.jobId ||
+    receipt.plannedManifestEntryRef.id !== artifact.identity.expectedAssetId ||
+    !validIdentity(pairRef.id) ||
+    pairRef.version !== 'canonical-specialist-call-result-pair-v1' ||
+    !validSha256(pairRef.contentHash) ||
+    captionSpecialist.supportRequestCount !== 0 ||
+    captionSpecialist.exactCreateOnlyRereadVerified !== true ||
+    captionSpecialist.planningOnly !== true ||
+    captionSpecialist.renderedMediaClaimed !== false ||
+    captionSpecialist.finalQaClaimed !== false ||
+    !producedArtifactRefs.every(validSkillArtifactRef)
+  ) {
+    throw invalidArtifact(
+      'Private Caption planning artifact does not contain exact completed evidence.',
+    )
+  }
+  try {
+    assertCanonicalCaptionCompletedProducedArtifacts({
+      receipt,
+      producedArtifactRefs: producedArtifactRefs as SkillArtifactRef[],
+    })
+  } catch {
+    throw invalidArtifact(
+      'Private Caption planning artifacts do not match the exact receipt contract.',
+    )
+  }
+  return {
+    sha256: artifact.content.sha256,
+    byteLength: artifact.content.byteLength,
+    privateObjectIdentityHash,
+    semanticReportHash: sha256Text(stableAuthorityStringify(report)),
+    leaseId: String(executionFence.leaseId),
+    immutableLeaseHash: String(executionFence.immutableLeaseHash),
+    leaseAttemptNumber: Number(executionFence.leaseAttemptNumber),
+    executionAttemptId: artifact.actualRunEvidence.executionAttemptId,
+    runnerClass,
+    receipt,
+    callResultPairRef: structuredClone(pairRef) as
+      VerifiedCanonicalCaptionSpecialistPlanningArtifact['callResultPairRef'],
+    producedArtifactRefs: structuredClone(producedArtifactRefs) as
+      VerifiedCanonicalCaptionSpecialistPlanningArtifact[
+        'producedArtifactRefs'],
+  }
+}
+
 export function canonicalInternalAuthorityArtifactRelativePath(identityHash: string): string {
   if (!/^[a-f0-9]{64}$/.test(identityHash)) {
     throw invalidArtifact('Private canonical authority artifact object identity is invalid.')
@@ -191,6 +369,41 @@ function parseSemanticReport(
     stableAuthorityStringify(receivedCheckIds) !== stableAuthorityStringify(REQUIRED_CHECK_IDS)
   ) {
     throw invalidArtifact('Private canonical authority artifact failed semantic verification.')
+  }
+  return report
+}
+
+function parseCaptionSpecialistReport(bytes: Buffer): Record<string, unknown> {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw invalidArtifact('Private Caption planning artifact is not valid JSON.')
+  }
+  const report = asRecord(parsed)
+  const checks = Array.isArray(report.checks) ? report.checks : []
+  const receivedCheckIds = checks.map((check) => {
+    const record = asRecord(check)
+    if (record.status !== 'passed' || typeof record.checkId !== 'string') {
+      throw invalidArtifact(
+        'Private Caption planning artifact contains a failed check.')
+    }
+    return record.checkId
+  })
+  if (
+    report.schemaVersion !== CAPTION_SPECIALIST_ARTIFACT_SCHEMA_VERSION ||
+    report.source !== 'immutable_canonical_edit_authority' ||
+    report.valid !== true ||
+    report.validationProfile !== 'caption_specialist' ||
+    report.sourceTrim !== null ||
+    report.livingFrameLayer !== null ||
+    report.captionPostrenderVisualQa !== null ||
+    !report.captionSpecialist ||
+    stableAuthorityStringify(receivedCheckIds) !==
+      stableAuthorityStringify(REQUIRED_CHECK_IDS)
+  ) {
+    throw invalidArtifact(
+      'Private Caption planning artifact failed semantic verification.')
   }
   return report
 }
@@ -278,6 +491,24 @@ function validIdentity(value: unknown): value is string {
   return typeof value === 'string' &&
     /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(value) &&
     !value.includes('..')
+}
+
+function validSkillArtifactRef(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const ref = value as Record<string, unknown>
+  const support = ref.sourceSupportRequestRef
+  return validIdentity(ref.id)
+    && validIdentity(ref.version)
+    && validSha256(ref.contentHash)
+    && validIdentity(ref.artifactType)
+    && validIdentity(ref.producerSkillKey)
+    && ref.privateArtifact === true
+    && ref.byteFreeRef === true
+    && (support === null || (typeof support === 'object'
+      && !Array.isArray(support)
+      && validIdentity((support as Record<string, unknown>).id)
+      && validIdentity((support as Record<string, unknown>).version)
+      && validSha256((support as Record<string, unknown>).contentHash)))
 }
 
 function sha256Bytes(bytes: Buffer): string {

@@ -6,6 +6,17 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_INPUT_VERSION,
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import {
+  CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION,
+  CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-specialist-execution'
+import type { SkillArtifactRef } from
+  '../../src/types/orchestra-skill-contracts'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
 import { ApiError } from '../errors/api-error'
 import {
   readPrivateFileIfExistsWithinRoot,
@@ -26,7 +37,56 @@ import type {
   PersistedArtifactResult,
 } from '../validation/private-artifact-qa-authority-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
-import { createCanonicalWorkerLeaseAuthorityService } from './canonical-worker-lease-authority-service'
+import {
+  CanonicalCaptionPostapprovalJobSelectionUnavailableError,
+  CanonicalCaptionPostapprovalFinishUnavailableError,
+  executeCanonicalCaptionSpecialistWorkItem,
+  parseCanonicalCaptionSpecialistWorkItemInput,
+  parseCanonicalCaptionSpecialistExecutionReceipt,
+} from './canonical-caption-specialist-execution-service'
+import {
+  assertCanonicalCaptionCompletedProducedArtifacts,
+} from './canonical-caption-specialist-produced-artifact-contract'
+import {
+  parseCanonicalCaptionPostrenderVisualQaWorkItemInput,
+} from '../captions-specialist/caption-postrender-visual-qa-work-binding'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_COORDINATOR_RUNNER_CLASS,
+  prepareCanonicalCaptionPostrenderVisualQaExecution,
+} from './canonical-caption-postrender-visual-qa-coordinator-service'
+import {
+  parseCanonicalCaptionPostrenderVisualIntelligenceResult,
+} from './canonical-caption-postrender-visual-intelligence-result'
+import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
+import { createCanonicalPrivateLocalJsonObjectPort } from './canonical-private-local-json-object-port'
+import { createCanonicalSpecialistSupportResumeRepository } from './canonical-specialist-support-resume-service'
+import {
+  createCanonicalCaptionVisualIntelligenceEvidenceRepository,
+} from './canonical-caption-visual-intelligence-support-service'
+import {
+  createCanonicalCaptionTrackAllEvidenceRepositoryV3,
+} from './canonical-caption-track-all-support-service'
+import {
+  createCanonicalCaptionSoundSyncEvidenceRepository,
+} from './canonical-caption-soundsync-support-service'
+import {
+  createCanonicalCaptionPostapprovalFinishRepository,
+} from './canonical-caption-postapproval-finish-service'
+import {
+  createCanonicalCaptionPostapprovalJobSelectionRepository,
+} from '../captions-specialist/caption-postapproval-job-selection'
+import {
+  assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+  createCanonicalCaptionTranscriptEvidenceRepository,
+  parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord,
+  parseCanonicalCaptionTranscriptPlanningExpectationBinding,
+  type CanonicalCaptionTranscriptEvidenceRepository,
+  type CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+} from './canonical-caption-transcript-support-service'
+import {
+  createCanonicalWorkerLeaseAuthorityService,
+  inspectCanonicalWorkerLeaseDependencyAdmission,
+} from './canonical-worker-lease-authority-service'
 import { createEditPlanningAuthorityService } from './edit-planning-authority-service'
 import {
   createPrivateArtifactQaAuthorityService,
@@ -46,6 +106,10 @@ import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 const ARTIFACT_SCHEMA_VERSION = 'canonical-authority-validation-artifact-v1' as const
+const CAPTION_ARTIFACT_SCHEMA_VERSION =
+  'canonical-caption-specialist-planning-artifact-v1' as const
+const CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION =
+  'canonical-caption-postrender-visual-intelligence-evidence-artifact-v2' as const
 const MAXIMUM_ARTIFACT_BYTES = 1024 * 1024
 const authorityArtifactWriteLocks = new Map<string, Promise<void>>()
 
@@ -111,6 +175,29 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
       })
       if (!workItem || !expectedAsset) throw invalidAuthority('Canonical authority validation lineage is incomplete.')
 
+      const captionExecution = profile.kind === 'caption_specialist'
+        ? await prepareCanonicalCaptionPlanningExecution({
+            context,
+            actorUserId,
+            workspaceId: access.workspaceId,
+            authority,
+            jobId: body.jobId,
+          })
+        : null
+      const captionVisualQaExecution = profile.kind ===
+        'caption_postrender_visual_qa'
+        ? await prepareCanonicalCaptionPostrenderVisualQaExecution({
+            context,
+            actorUserId,
+            workspaceId: access.workspaceId,
+            projectId: body.projectId,
+            editSessionId: body.editSessionId,
+            approvedSnapshotId: authority.snapshot.snapshotId,
+            approvedWorkItemId: workItem.id,
+            executionInput: workItem.executionInput,
+          })
+        : null
+
       const begunExecution = await leaseService.beginInternalExecution({
         workspaceId: body.workspaceId,
         projectId: body.projectId,
@@ -136,6 +223,8 @@ export function createCanonicalInternalAuthorityRunnerService(context: ServiceCo
         expectedAssetId: expectedAsset.id,
         selectedDependencyArtifacts:
           lease.dependencyAuthority.selectedArtifacts,
+        captionExecution,
+        captionVisualQaExecution,
       })
       const bytes = Buffer.from(`${stableAuthorityStringify(report)}\n`, 'utf8')
       if (bytes.byteLength <= 0 || bytes.byteLength > MAXIMUM_ARTIFACT_BYTES) {
@@ -361,8 +450,467 @@ type Readiness = Awaited<ReturnType<
 type Lease = Awaited<ReturnType<
   ReturnType<typeof createCanonicalWorkerLeaseAuthorityService>['verifyActive']
 >>['workerLeaseVerification']['lease']
+type CaptionExecution = Awaited<ReturnType<
+  typeof executeCanonicalCaptionSpecialistWorkItem
+>>
+type CaptionVisualQaExecution = Awaited<ReturnType<
+  typeof prepareCanonicalCaptionPostrenderVisualQaExecution
+>>
 
 type InternalValidationProfile = ReturnType<typeof internalValidationProfile>
+
+export async function resolveCanonicalCaptionTranscriptExecutionMount(input: {
+  authority: Authority
+  jobId: string
+  transcriptRepository: CanonicalCaptionTranscriptEvidenceRepository
+  planningExpectationOwnerReadPort?:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+}) {
+  const workItem = input.authority.workItems.find((candidate) =>
+    candidate.id === input.authority.jobs.find((candidate) =>
+      candidate.id === input.jobId)?.approvedWorkItemId)
+  if (!workItem) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption work authority is unavailable.',
+      409,
+      { requiredGate: 'canonical_caption_work_item_reread' },
+    )
+  }
+  const workInput = parseCanonicalCaptionSpecialistWorkItemInput(
+    workItem.executionInput)
+  const transcriptRef = workInput.initialArtifactRefs.find((artifact) =>
+    artifact.artifactType === 'canonical_transcript')
+  const planningExpectationRef = workInput.initialArtifactRefs.find(
+    (artifact) => artifact.artifactType ===
+      'canonical_transcript_planning_expectation',
+  )
+  if ((!transcriptRef && !planningExpectationRef)
+    || (transcriptRef && planningExpectationRef)) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption transcript or planning-expectation authority is unavailable.',
+      409,
+      { requiredGate: 'canonical_caption_transcript_ref' },
+    )
+  }
+  const snapshot = input.authority.snapshot
+  const canonicalReadScope = {
+    ownerUserId: snapshot.approvedByUserId,
+    workspaceId: snapshot.workspaceId,
+    projectId: snapshot.projectId,
+    editSessionId: snapshot.editSessionId,
+    planVersionId: `${snapshot.planId}.v${snapshot.planVersion}`,
+    approvedSnapshotRef: {
+      id: snapshot.snapshotId,
+      version: snapshot.schemaVersion,
+      contentHash: snapshot.snapshotHash,
+    },
+  }
+  let planningResolution = planningExpectationRef
+    ? await input.transcriptRepository.findExactForPlanningExpectation({
+        canonicalReadScope,
+        planningExpectationRef: {
+          id: planningExpectationRef.id,
+          version: planningExpectationRef.version,
+          contentHash: planningExpectationRef.contentHash,
+        },
+      })
+    : null
+  if (planningExpectationRef && !planningResolution
+    && input.planningExpectationOwnerReadPort) {
+    const ownerReadPort = input.planningExpectationOwnerReadPort
+    assertCanonicalCaptionTranscriptPlanningExpectationOwnerReadPort(
+      ownerReadPort,
+    )
+    const exactPlanningExpectationRef = {
+      id: planningExpectationRef.id,
+      version: planningExpectationRef.version,
+      contentHash: planningExpectationRef.contentHash,
+    }
+    const ownerReadInput = {
+      canonicalReadScope,
+      planningExpectationRef: exactPlanningExpectationRef,
+    }
+    const firstOwnerRead = await ownerReadPort.readExact(ownerReadInput)
+    const secondOwnerRead = await ownerReadPort.readExact(ownerReadInput)
+    if ((firstOwnerRead === null) !== (secondOwnerRead === null)
+      || (firstOwnerRead && secondOwnerRead
+        && stableAuthorityStringify(firstOwnerRead) !==
+          stableAuthorityStringify(secondOwnerRead))) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical Caption transcript owner reread is not stable.',
+        409,
+        {
+          requiredGate:
+            'canonical_caption_transcript_owner_projection_stable_reread',
+        },
+      )
+    }
+    if (firstOwnerRead && secondOwnerRead) {
+      let ownerTranscriptRecord
+      let ownerExpectationBinding
+      try {
+        ownerTranscriptRecord =
+          parseCanonicalCaptionTranscriptAuthenticatedEvidenceRecord(
+            firstOwnerRead.transcriptRecord,
+          )
+        ownerExpectationBinding =
+          parseCanonicalCaptionTranscriptPlanningExpectationBinding(
+            firstOwnerRead.expectationBinding,
+          )
+      } catch {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption transcript owner projection is invalid.',
+          409,
+          {
+            requiredGate:
+              'canonical_caption_transcript_owner_projection_validation',
+          },
+        )
+      }
+      const transcriptRefFromRecord = {
+        id: ownerTranscriptRecord.canonicalTranscript.transcriptId,
+        version: ownerTranscriptRecord.canonicalTranscript.schemaVersion,
+        contentHash:
+          ownerTranscriptRecord.canonicalTranscript.transcriptDigestSha256,
+      }
+      const authenticatedReadBindingRefFromRecord = {
+        id: ownerTranscriptRecord.authenticatedReadBinding.bindingId,
+        version:
+          ownerTranscriptRecord.authenticatedReadBinding.schemaVersion,
+        contentHash:
+          ownerTranscriptRecord.authenticatedReadBinding.bindingDigestSha256,
+      }
+      if (stableAuthorityStringify(
+        ownerTranscriptRecord.canonicalReadScope,
+      ) !== stableAuthorityStringify(canonicalReadScope)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.canonicalReadScope,
+        ) !== stableAuthorityStringify(canonicalReadScope)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.planningExpectationRef,
+        ) !== stableAuthorityStringify(exactPlanningExpectationRef)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.canonicalTranscriptRef,
+        ) !== stableAuthorityStringify(transcriptRefFromRecord)
+        || stableAuthorityStringify(
+          ownerExpectationBinding.authenticatedReadBindingRef,
+        ) !== stableAuthorityStringify(
+          authenticatedReadBindingRefFromRecord,
+        )
+        || ownerExpectationBinding
+          .authenticatedTranscriptRecordDigestSha256 !==
+          ownerTranscriptRecord.recordDigestSha256
+        || ownerExpectationBinding.sourceScopeDigestSha256 !==
+          ownerTranscriptRecord.sourceScopeDigestSha256) {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption transcript owner projection lineage is crossed.',
+          409,
+          {
+            requiredGate:
+              'canonical_caption_transcript_owner_projection_lineage',
+          },
+        )
+      }
+      await input.transcriptRepository.persistCreateOnly({
+        record: ownerTranscriptRecord,
+      })
+      await input.transcriptRepository
+        .persistPlanningExpectationBindingCreateOnly({
+          binding: ownerExpectationBinding,
+        })
+      const persistedResolution = await input.transcriptRepository
+        .findExactForPlanningExpectation({
+          canonicalReadScope,
+          planningExpectationRef: exactPlanningExpectationRef,
+        })
+      if (!persistedResolution
+        || stableAuthorityStringify(persistedResolution.transcriptRecord) !==
+          stableAuthorityStringify(ownerTranscriptRecord)
+        || stableAuthorityStringify(persistedResolution.binding) !==
+          stableAuthorityStringify(ownerExpectationBinding)) {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Canonical Caption transcript owner projection did not persist and reread exactly.',
+          409,
+          {
+            requiredGate:
+              'canonical_caption_transcript_owner_projection_persistence',
+          },
+        )
+      }
+      planningResolution = persistedResolution
+    }
+  }
+  const transcriptRecord = planningResolution?.transcriptRecord ??
+    (transcriptRef ? await input.transcriptRepository.findExactForExecution({
+      canonicalReadScope,
+      canonicalTranscriptRef: {
+        id: transcriptRef.id,
+        version: transcriptRef.version,
+        contentHash: transcriptRef.contentHash,
+      },
+    }) : null)
+  if (!transcriptRecord) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption planning is waiting for the exact postapproval transcript projection.',
+      409,
+      {
+        requiredGate: 'canonical_caption_authenticated_transcript_projection',
+      },
+    )
+  }
+  const binding = transcriptRecord.authenticatedReadBinding
+  const resolvedTranscript = transcriptRecord.canonicalTranscript
+  const expectationBinding = planningResolution?.binding
+  return Object.freeze({
+    readPort: input.transcriptRepository,
+    transcriptRef: Object.freeze({
+      id: resolvedTranscript.transcriptId,
+      version: resolvedTranscript.schemaVersion,
+      contentHash: resolvedTranscript.transcriptDigestSha256,
+    }),
+    bindingRef: Object.freeze({
+      id: binding.bindingId,
+      version: binding.schemaVersion,
+      contentHash: binding.bindingDigestSha256,
+    }),
+    ...(expectationBinding === undefined ? {} : {
+      planningExpectationBindingRef: Object.freeze({
+        id: expectationBinding.bindingId,
+        version: expectationBinding.schemaVersion,
+        contentHash: expectationBinding.bindingDigestSha256,
+      }),
+    }),
+    recordDigestSha256: transcriptRecord.recordDigestSha256,
+  })
+}
+
+export async function prepareCanonicalCaptionPlanningExecution(input: {
+  context: ServiceContext
+  actorUserId: string
+  workspaceId: string
+  authority: Authority
+  jobId: string
+}): Promise<CaptionExecution> {
+  const dependencyAdmission =
+    await inspectCanonicalWorkerLeaseDependencyAdmission(input.context, {
+      workspaceId: input.workspaceId,
+      projectId: input.authority.snapshot.projectId,
+      editSessionId: input.authority.snapshot.editSessionId,
+      jobId: input.jobId,
+    })
+  const packageService = createCanonicalEditExecutionPackageService(
+    input.context,
+  )
+  const locator = await packageService.findPackageBySnapshot(
+    input.authority.snapshot.snapshotId,
+    input.workspaceId,
+  )
+  if (!locator) {
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption execution is waiting for its exact approved package.',
+      409,
+      { requiredGate: 'canonical_caption_approved_execution_package_reread' },
+    )
+  }
+  const packageRead = await packageService.getPackage(
+    locator.packageRecordId,
+    input.workspaceId,
+  )
+  const objectPort = createCanonicalPrivateLocalJsonObjectPort({
+    localStorageRoot: input.context.env.localStorageRoot,
+  })
+  const repository = createCanonicalSpecialistSupportResumeRepository({
+    objectPort,
+    prefix: [
+      'private-internal/captions-specialist/v1',
+      input.actorUserId,
+      input.workspaceId,
+    ].join('/'),
+  })
+  const visualIntelligenceEvidenceRepository =
+    createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
+  const trackAllEvidenceRepository =
+    createCanonicalCaptionTrackAllEvidenceRepositoryV3({ objectPort })
+  const soundSyncEvidenceRepository = input.context
+    .canonicalCaptionSoundSyncEvidenceRepository
+    ?? createCanonicalCaptionSoundSyncEvidenceRepository({ objectPort })
+  const postapprovalFinishRepository =
+    createCanonicalCaptionPostapprovalFinishRepository({
+      objectPort,
+      prefix: [
+        'private-internal/captions-specialist/v1/postapproval-finish',
+        input.actorUserId,
+        input.workspaceId,
+      ].join('/'),
+    })
+  const postapprovalJobSelectionRepository =
+    createCanonicalCaptionPostapprovalJobSelectionRepository({
+      objectPort,
+      prefix: [
+        'private-internal/captions-specialist/v1/postapproval-job-selection',
+        input.actorUserId,
+        input.workspaceId,
+      ].join('/'),
+    })
+  const transcriptRepository =
+    createCanonicalCaptionTranscriptEvidenceRepository({ objectPort })
+  const transcriptMount = await resolveCanonicalCaptionTranscriptExecutionMount({
+    authority: input.authority,
+    jobId: input.jobId,
+    transcriptRepository,
+    ...(input.context
+      .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+      ? {
+          planningExpectationOwnerReadPort: input.context
+            .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+        }
+      : {}),
+  })
+  let execution: Awaited<ReturnType<
+    typeof executeCanonicalCaptionSpecialistWorkItem
+  >>
+  try {
+    execution = await executeCanonicalCaptionSpecialistWorkItem({
+      authority: input.authority,
+      executionPackage: packageRead.approvedEditExecutionPackage,
+      jobId: input.jobId,
+      repository,
+      canonicalTranscriptReadPort: transcriptMount.readPort,
+      canonicalTranscriptRef: transcriptMount.transcriptRef,
+      canonicalTranscriptAuthenticatedReadBindingRef:
+        transcriptMount.bindingRef,
+      ...('planningExpectationBindingRef' in transcriptMount ? {
+      canonicalTranscriptPlanningExpectationBindingRef:
+        transcriptMount.planningExpectationBindingRef,
+      } : {}),
+      visualIntelligenceEvidenceReadPort:
+        visualIntelligenceEvidenceRepository,
+      trackAllEvidenceReadPort: trackAllEvidenceRepository,
+      soundSyncEvidenceReadPort: soundSyncEvidenceRepository,
+      canonicalJobDependencyAuthority:
+        dependencyAdmission.dependencyAuthority,
+      postapprovalFinishReadPort: postapprovalFinishRepository.readPort,
+      postapprovalJobSelectionReadPort:
+        postapprovalJobSelectionRepository.readPort,
+      ...(input.context.canonicalCaptionIncomingSupportRequestReadPort
+        ? {
+            incomingSupportRequestReadPort: input.context
+              .canonicalCaptionIncomingSupportRequestReadPort,
+          }
+        : {}),
+      ...(input.context.canonicalCaptionCrossSystemExecutionInputReadPort
+        ? {
+            crossSystemExecutionInputReadPort: input.context
+              .canonicalCaptionCrossSystemExecutionInputReadPort,
+          }
+        : {}),
+      ...(input.context.canonicalCaptionBrollOwnerRequestReadPort
+        ? {
+            brollOwnerRequestReadPort: input.context
+              .canonicalCaptionBrollOwnerRequestReadPort,
+          }
+        : {}),
+      ...(input.context.canonicalCaptionSoundSupportInputReadPort
+        ? {
+            soundSupportInputReadPort: input.context
+              .canonicalCaptionSoundSupportInputReadPort,
+          }
+        : {}),
+    })
+  } catch (error) {
+    if (error instanceof
+      CanonicalCaptionPostapprovalJobSelectionUnavailableError) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical Caption repair lifecycle is waiting for its exact post-QA selection record.',
+        409,
+        {
+          requiredGate:
+            'canonical_caption_postapproval_job_selection',
+          postapprovalJobSelectionRecordRef: error.recordRef,
+          callerSuppliedEvidenceAccepted: false,
+          workCreationAuthorityGrantedToCaption: false,
+        },
+      )
+    }
+    if (error instanceof
+      CanonicalCaptionPostapprovalFinishUnavailableError) {
+      throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Canonical Caption late resolution is waiting for exact PictureLock and finish-readiness evidence.',
+        409,
+        {
+          requiredGate: 'canonical_caption_postapproval_finish_binding',
+          postapprovalFinishLookup: error.lookup,
+          callerSuppliedEvidenceAccepted: false,
+          pictureLockAuthorityGrantedToCaption: false,
+        },
+      )
+    }
+    throw error
+  }
+  if (execution.pair.result.disposition !== 'completed') {
+    const originalCallRef = {
+      id: execution.pair.call.callId,
+      version: execution.pair.call.schemaVersion,
+      contentHash: execution.pair.call.callDigestSha256,
+    }
+    const supportRequestRefs = execution.pair.result.supportRequests.map(
+      (request) => ({
+        id: request.requestId,
+        version: request.schemaVersion,
+        contentHash: request.requestDigestSha256,
+        targetSkillKey: request.targetSkillKey,
+      }),
+    )
+    throw new ApiError(
+      'JOB_DEPENDENCY_NOT_READY',
+      'Canonical Caption planning is waiting for exact authenticated owner evidence.',
+      409,
+      {
+        requiredGate: canonicalCaptionResultRequiredGate({
+          reasonCodes: execution.pair.result.reasonCodes,
+          supportRequestCount: supportRequestRefs.length,
+        }),
+        captionDisposition: execution.pair.result.disposition,
+        reasonCodes: execution.pair.result.reasonCodes,
+        originalCallRef,
+        supportRequestRefs,
+      },
+    )
+  }
+  return execution
+}
+
+function canonicalCaptionResultRequiredGate(input: {
+  reasonCodes: readonly string[]
+  supportRequestCount: number
+}): string {
+  if (input.supportRequestCount > 0) {
+    return 'canonical_caption_hq_mediated_support_resume'
+  }
+  if (input.reasonCodes.some((code) =>
+    code.startsWith('input.canonical_transcript.authenticated_read.'))) {
+    return 'canonical_caption_authenticated_transcript_projection'
+  }
+  if (input.reasonCodes.includes(
+    'input.canonical_transcript.authenticated_payload.missing')) {
+    return 'canonical_caption_authenticated_transcript_payload'
+  }
+  if (input.reasonCodes.includes(
+    'input.canonical_transcript.admission.failed')) {
+    return 'canonical_caption_authenticated_transcript_admission'
+  }
+  return 'canonical_caption_specialist_result_completion'
+}
 
 function assertCanonicalAuthorityValidationJob(input: {
   profile: InternalValidationProfile
@@ -459,7 +1007,7 @@ function assertCanonicalAuthorityValidationJob(input: {
           candidate.outputKey === payload.componentDependency.outputKey)
       : undefined
     if (
-      readiness.job.canonicalGraphState !== 'ready' ||
+      readiness.job.canonicalGraphState !== 'blocked' ||
       readiness.job.dependencyJobIds.length !== 1 ||
       readiness.dependencyEvidenceState !==
         'required_results_and_qa_not_committed' ||
@@ -489,6 +1037,103 @@ function assertCanonicalAuthorityValidationJob(input: {
     ) {
       throw invalidAuthority(
         'Canonical Living Frame layer-manifest job is not exactly executable.',
+      )
+    }
+    return
+  }
+  if (profile.kind === 'caption_specialist') {
+    const workInput = workItem
+      ? parseCanonicalCaptionSpecialistWorkItemInput(workItem.executionInput)
+      : null
+    const dependencyCount = readiness.job.dependencyJobIds.length
+    const selectedDependencyJobIds = new Set(
+      lease.dependencyAuthority.selectedArtifacts.map(
+        (artifact) => artifact.dependencyJobId),
+    )
+    const dependencyAuthorityMatches = dependencyCount === 0
+      ? lease.dependencyAuthority.state === 'not_required_for_root_job'
+        && lease.dependencyAuthority.selectedArtifacts.length === 0
+      : lease.dependencyAuthority.state ===
+          'private_test_dependencies_verified'
+        && lease.dependencyAuthority.selectedArtifacts.length >= dependencyCount
+        && selectedDependencyJobIds.size === dependencyCount
+        && readiness.job.dependencyJobIds.every((dependencyJobId) =>
+          selectedDependencyJobIds.has(dependencyJobId))
+    if (
+      readiness.job.canonicalGraphState !==
+        (dependencyCount === 0 ? 'ready' : 'blocked') ||
+      !dependencyAuthorityMatches ||
+      !workInput ||
+      workItem.workItemType !== 'custom' ||
+      workItem.workerClass !== CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS ||
+      workInput.operation !== CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION ||
+      workItem.expectedOutputs[0]?.outputKey !== expectedAsset.outputKey ||
+      expectedAsset.artifactType !== 'caption_specialist_job_receipt' ||
+      expectedAsset.assetRole !== 'qa' ||
+      expectedAsset.rendererLayerIds.length !== 0
+    ) {
+      throw invalidAuthority(
+        'Canonical Caption specialist planning job is not exactly executable.',
+      )
+    }
+    return
+  }
+  if (profile.kind === 'caption_postrender_visual_qa') {
+    const workInput = workItem
+      ? parseCanonicalCaptionPostrenderVisualQaWorkItemInput(
+          workItem.executionInput)
+      : null
+    const dependencyWorkItem = workInput
+      ? authority.workItems.find((candidate) =>
+          candidate.workItemKey === workInput.deterministicQaWorkItemKey)
+      : undefined
+    const dependencyJob = dependencyWorkItem
+      ? authority.jobs.find((candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id)
+      : undefined
+    const dependencyAsset = dependencyWorkItem && workInput
+      ? authority.assetManifest.entries.find((candidate) =>
+          candidate.approvedWorkItemId === dependencyWorkItem.id
+          && candidate.outputKey === workInput.deterministicQaOutputKey)
+      : undefined
+    const selectedArtifact = lease.dependencyAuthority.selectedArtifacts[0]
+    if (
+      readiness.job.canonicalGraphState !== 'blocked'
+      || readiness.job.dependencyJobIds.length !== 1
+      || lease.dependencyAuthority.state !==
+        'private_test_dependencies_verified'
+      || lease.dependencyAuthority.selectedArtifacts.length !== 1
+      || !selectedArtifact || !workInput
+      || workItem.workItemType !== 'custom'
+      || workItem.workerClass !==
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS
+      || workInput.operation !==
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION
+      || workItem.dependencyKeys.length !== 1
+      || workItem.dependencyKeys[0]
+        !== workInput.deterministicQaWorkItemKey
+      || workItem.maximumCreditBudget !== 0
+      || workItem.expectedOutputs[0]?.outputKey !== expectedAsset.outputKey
+      || expectedAsset.artifactType !==
+        'canonical_caption_postrender_visual_intelligence_result'
+      || expectedAsset.assetRole !== 'qa'
+      || !dependencyWorkItem || !dependencyJob || !dependencyAsset
+      || dependencyWorkItem.workItemType !== 'run_final_qa'
+      || dependencyWorkItem.workerClass !== 'qa_worker'
+      || dependencyAsset.artifactType !== 'final_qa_report'
+      || dependencyAsset.contentType !== 'application/json'
+      || stableAuthorityStringify(expectedAsset.segmentIds)
+        !== stableAuthorityStringify(dependencyAsset.segmentIds)
+      || stableAuthorityStringify(expectedAsset.timingIds)
+        !== stableAuthorityStringify(dependencyAsset.timingIds)
+      || stableAuthorityStringify(expectedAsset.rendererLayerIds)
+        !== stableAuthorityStringify(dependencyAsset.rendererLayerIds)
+      || selectedArtifact.dependencyJobId !== dependencyJob.id
+      || selectedArtifact.expectedAssetId !== dependencyAsset.id
+      || readiness.job.dependencyJobIds[0] !== dependencyJob.id
+    ) {
+      throw invalidAuthority(
+        'Canonical Caption post-render visual-QA job is not exactly executable.',
       )
     }
     return
@@ -533,6 +1178,8 @@ function buildAuthorityValidationReport(input: {
   expectedAssetId: string
   selectedDependencyArtifacts:
     Lease['dependencyAuthority']['selectedArtifacts']
+  captionExecution: CaptionExecution | null
+  captionVisualQaExecution: CaptionVisualQaExecution | null
 }) {
   const workItem = input.authority.workItems.find((item) => item.id === input.workItemId)!
   const cleanupDecisions = input.profile.kind === 'source_trim'
@@ -549,8 +1196,19 @@ function buildAuthorityValidationReport(input: {
           input.selectedDependencyArtifacts,
       })
     : null
+  const captionSpecialist = input.profile.kind === 'caption_specialist'
+    ? buildCaptionSpecialistEvidence(input.captionExecution)
+    : null
+  const captionPostrenderVisualQa = input.profile.kind ===
+    'caption_postrender_visual_qa'
+    ? buildCaptionPostrenderVisualQaEvidence(input.captionVisualQaExecution)
+    : null
   return {
-    schemaVersion: ARTIFACT_SCHEMA_VERSION,
+    schemaVersion: input.profile.kind === 'caption_specialist'
+      ? CAPTION_ARTIFACT_SCHEMA_VERSION
+      : input.profile.kind === 'caption_postrender_visual_qa'
+        ? CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION
+        : ARTIFACT_SCHEMA_VERSION,
     source: 'immutable_canonical_edit_authority',
     identity: {
       workspaceId: input.body.workspaceId,
@@ -609,7 +1267,100 @@ function buildAuthorityValidationReport(input: {
         }
       : null,
     livingFrameLayer,
+    captionSpecialist,
+    captionPostrenderVisualQa,
     valid: true as const,
+  }
+}
+
+function buildCaptionSpecialistEvidence(
+  execution: CaptionExecution | null,
+) {
+  if (!execution || execution.pair.result.disposition !== 'completed') {
+    throw invalidAuthority(
+      'Canonical Caption specialist planning result is not complete.',
+    )
+  }
+  const receipt = parseCanonicalCaptionSpecialistExecutionReceipt(
+    execution.receipt,
+  )
+  if (receipt.resultDisposition !== 'completed'
+    || receipt.providerCallPerformed
+    || receipt.mediaRuntimePerformed
+    || receipt.assetMutationPerformed
+    || receipt.finalQaApprovalGranted
+    || receipt.publicDeliveryGranted
+    || receipt.productionAuthorityGranted) {
+    throw invalidAuthority(
+      'Canonical Caption specialist planning receipt exceeded its authority.',
+    )
+  }
+  const producedArtifactRefs = structuredClone(
+    execution.pair.result.producedArtifactRefs)
+  const receiptCrossSystemRef = receipt.schemaVersion ===
+      CANONICAL_CAPTION_SPECIALIST_EXECUTION_RECEIPT_V2_VERSION
+    ? receipt.crossSystemExecutionInputRef
+    : null
+  if (stableAuthorityStringify(receiptCrossSystemRef) !==
+      stableAuthorityStringify(execution.crossSystemExecutionInputRef)) {
+    throw invalidAuthority(
+      'Canonical Caption cross-system execution input was not receipt-bound.',
+    )
+  }
+  try {
+    assertCanonicalCaptionCompletedProducedArtifacts({
+      receipt,
+      producedArtifactRefs,
+    })
+  } catch {
+    throw invalidAuthority(
+      'Canonical Caption completed artifacts failed their exact receipt contract.',
+    )
+  }
+  return {
+    receipt,
+    callResultPairRef: {
+      id: execution.pair.pairId,
+      version: execution.pair.schemaVersion,
+      contentHash: execution.pair.pairDigestSha256,
+    },
+    producedArtifactRefs,
+    supportRequestCount: execution.pair.result.supportRequests.length,
+    exactCreateOnlyRereadVerified: true as const,
+    planningOnly: true as const,
+    renderedMediaClaimed: false as const,
+    finalQaClaimed: false as const,
+  }
+}
+
+function buildCaptionPostrenderVisualQaEvidence(
+  execution: CaptionVisualQaExecution | null,
+) {
+  if (!execution || !execution.exactRereadVerified) {
+    throw invalidAuthority(
+      'Canonical Caption post-render visual-QA evidence was not exactly reconciled.',
+    )
+  }
+  const evidence = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
+    execution.result)
+  return {
+    evidence,
+    visualInspectionRequirementRef:
+      structuredClone(evidence.visualInspectionRequirementRef),
+    visualIntelligenceRequestRef:
+      structuredClone(evidence.visualIntelligenceRequestRef),
+    visualIntelligenceReportRef:
+      structuredClone(evidence.visualIntelligenceReportRef),
+    visualIntelligenceResultRef: structuredClone(execution.resultRef),
+    persistenceDisposition: execution.disposition,
+    canonicalOwnerResultRereadVerified: true as const,
+    evidenceCreateOnlyRereadVerified: true as const,
+    actualModelInferenceVerifiedFromCanonicalOwner: true as const,
+    providerCallMadeByCaptionRunner: false as const,
+    qaApprovalGranted: false as const,
+    repairExecutionGranted: false as const,
+    publicDeliveryGranted: false as const,
+    productionAuthorityGranted: false as const,
   }
 }
 
@@ -987,29 +1738,139 @@ function parseAuthorityValidationArtifact(bytes: Buffer): Record<string, unknown
   const validationProfile = record.validationProfile
   const sourceTrim = record.sourceTrim
   const livingFrameLayer = record.livingFrameLayer
+  const captionSpecialist = record.captionSpecialist
+  const captionPostrenderVisualQa = record.captionPostrenderVisualQa
+  const captionProfile = validationProfile === 'caption_specialist'
+  const captionVisualQaProfile = validationProfile ===
+    'caption_postrender_visual_qa'
   if (
-    record.schemaVersion !== ARTIFACT_SCHEMA_VERSION ||
+    (captionProfile
+      ? record.schemaVersion !== CAPTION_ARTIFACT_SCHEMA_VERSION
+      : captionVisualQaProfile
+        ? record.schemaVersion !== CAPTION_VISUAL_QA_ARTIFACT_SCHEMA_VERSION
+        : record.schemaVersion !== ARTIFACT_SCHEMA_VERSION) ||
     record.source !== 'immutable_canonical_edit_authority' ||
     record.valid !== true ||
     !Array.isArray(record.checks) ||
     record.checks.length !== 9 ||
     record.checks.some((check) => !check || typeof check !== 'object' ||
       (check as Record<string, unknown>).status !== 'passed') ||
-    !['snapshot', 'source_trim', 'living_frame_layer'].includes(
+    ![
+      'snapshot',
+      'source_trim',
+      'living_frame_layer',
+      'caption_specialist',
+      'caption_postrender_visual_qa',
+    ].includes(
       String(validationProfile),
     ) ||
     (validationProfile === 'snapshot' &&
-      (sourceTrim !== null || livingFrameLayer !== null)) ||
+      (sourceTrim !== null || livingFrameLayer !== null
+        || (captionSpecialist !== null && captionSpecialist !== undefined)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
     (validationProfile === 'source_trim' &&
       (!validSourceTrimEvidence(sourceTrim) ||
-        livingFrameLayer !== null)) ||
+        livingFrameLayer !== null ||
+        (captionSpecialist !== null && captionSpecialist !== undefined)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
     (validationProfile === 'living_frame_layer' &&
       (sourceTrim !== null ||
-        !validLivingFrameLayerEvidence(livingFrameLayer)))
+        !validLivingFrameLayerEvidence(livingFrameLayer) ||
+        (captionSpecialist !== null && captionSpecialist !== undefined)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
+    (validationProfile === 'caption_specialist' &&
+      (sourceTrim !== null || livingFrameLayer !== null
+        || !validCaptionSpecialistEvidence(captionSpecialist)
+        || (captionPostrenderVisualQa !== null
+          && captionPostrenderVisualQa !== undefined))) ||
+    (validationProfile === 'caption_postrender_visual_qa' &&
+      (sourceTrim !== null || livingFrameLayer !== null
+        || (captionSpecialist !== null && captionSpecialist !== undefined)
+        || !validCaptionPostrenderVisualQaEvidence(
+          captionPostrenderVisualQa)))
   ) {
     throw new ApiError('VALIDATION_FAILED', 'Canonical authority validation artifact failed semantic QA.', 409)
   }
   return record
+}
+
+function validCaptionPostrenderVisualQaEvidence(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  try {
+    const evidence = parseCanonicalCaptionPostrenderVisualIntelligenceResult(
+      record.evidence)
+    return evidence.actualVisualIntelligenceInferenceVerified === true
+      && evidence.deterministicCompleteTimeQaPassed === true
+      && evidence.completeRequestedRangeSemanticCoverageVerified === true
+      && evidence.semanticModelEveryTimelineFrameInspectedClaimed === false
+      && evidence.semanticModelExactPixelInspectionClaimed === false
+      && evidence.deterministicEveryFrameTechnicalQaRemainsSeparate === true
+      && evidence.qwenVisualFallbackUsed === false
+      && record.canonicalOwnerResultRereadVerified === true
+      && record.evidenceCreateOnlyRereadVerified === true
+      && record.actualModelInferenceVerifiedFromCanonicalOwner === true
+      && record.providerCallMadeByCaptionRunner === false
+      && record.qaApprovalGranted === false
+      && record.repairExecutionGranted === false
+      && record.publicDeliveryGranted === false
+      && record.productionAuthorityGranted === false
+      && ['created', 'idempotent_replay'].includes(
+        String(record.persistenceDisposition))
+      && refMatches(record.visualInspectionRequirementRef,
+        evidence.visualInspectionRequirementRef)
+      && refMatches(record.visualIntelligenceRequestRef,
+        evidence.visualIntelligenceRequestRef)
+      && refMatches(record.visualIntelligenceReportRef,
+        evidence.visualIntelligenceReportRef)
+      && refMatches(record.visualIntelligenceResultRef, {
+        id: evidence.resultId,
+        version: 1,
+        contentHash: evidence.resultDigestSha256,
+      })
+  } catch {
+    return false
+  }
+}
+
+function refMatches(left: unknown, right: unknown): boolean {
+  return stableArtifactQaStringify(left) === stableArtifactQaStringify(right)
+}
+
+function validCaptionSpecialistEvidence(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const record = value as Record<string, unknown>
+  if (!record.receipt || typeof record.receipt !== 'object'
+    || Array.isArray(record.receipt)
+    || !record.callResultPairRef
+    || typeof record.callResultPairRef !== 'object'
+    || Array.isArray(record.callResultPairRef)
+    || !Array.isArray(record.producedArtifactRefs)) return false
+  try {
+    const receipt = parseCanonicalCaptionSpecialistExecutionReceipt(
+      record.receipt,
+    )
+    const pairRef = record.callResultPairRef as Record<string, unknown>
+    if (!(receipt.resultDisposition === 'completed'
+      && record.supportRequestCount === 0
+      && record.exactCreateOnlyRereadVerified === true
+      && record.planningOnly === true
+      && record.renderedMediaClaimed === false
+      && record.finalQaClaimed === false
+      && validInternalIdentity(pairRef.id)
+      && pairRef.version === 'canonical-specialist-call-result-pair-v1'
+      && validSha256(pairRef.contentHash))) return false
+    assertCanonicalCaptionCompletedProducedArtifacts({
+      receipt,
+      producedArtifactRefs: record.producedArtifactRefs as SkillArtifactRef[],
+    })
+    return true
+  } catch {
+    return false
+  }
 }
 
 function validLivingFrameLayerEvidence(value: unknown): boolean {
@@ -1147,6 +2008,37 @@ function internalValidationProfile(purpose: RunCanonicalInternalAuthorityJobInpu
         CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
       artifactDomain:
         'canonical_internal_living_frame_layer_manifest_artifact_v1' as const,
+    }
+  }
+  if (
+    purpose ===
+      'execute_canonical_internal_caption_specialist_planning'
+  ) {
+    return {
+      kind: 'caption_specialist' as const,
+      source:
+        'canonical_internal_caption_specialist_planning_runner' as const,
+      runnerClass:
+        'canonical_caption_specialist_planning_runner_v1' as const,
+      operation: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+      artifactDomain:
+      'canonical_internal_caption_specialist_planning_artifact_v1' as const,
+    }
+  }
+  if (
+    purpose ===
+      'execute_canonical_internal_caption_postrender_visual_qa_reconciliation'
+  ) {
+    return {
+      kind: 'caption_postrender_visual_qa' as const,
+      source:
+        'canonical_internal_caption_postrender_visual_qa_coordinator' as const,
+      runnerClass:
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_COORDINATOR_RUNNER_CLASS,
+      operation:
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+      artifactDomain:
+        'canonical_internal_caption_postrender_visual_intelligence_artifact_v2' as const,
     }
   }
   return {

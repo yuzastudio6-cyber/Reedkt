@@ -14,14 +14,21 @@ import type {
 } from '../types/edit-planning-db'
 import type { EditLevel, EditPlan, ProfessionalEditingDirective } from '../types/reeditpro'
 import type { PlanningBriefInput } from '../types/planning-context'
+import type { CaptionSpecialistApprovedSnapshotExtension } from
+  '../types/caption-specialist-integration'
+import { parseCaptionSpecialistApprovedSnapshotExtension } from
+  './caption-direction/caption-specialist-integration'
 
 type CreateApprovedPlanSnapshotParams = {
   projectId: string
   editSessionId: string
   approvedBy: string
+  approvedSnapshotId?: string
   plan: EditPlan
   editBriefSnapshot?: PlanningBriefInput
   sourceMediaAssets?: ApprovedSourceMediaBindingInput[]
+  captionSpecialistSnapshotExtension?:
+    CaptionSpecialistApprovedSnapshotExtension
 }
 
 type ApprovedSourceMediaBindingInput = {
@@ -327,7 +334,16 @@ function modelConstraintsForLevel(editLevel: EditLevel) {
 }
 
 export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotParams): ApprovedPlanSnapshot {
-  const { approvedBy, editBriefSnapshot, editSessionId, plan, projectId, sourceMediaAssets = [] } = params
+  const {
+    approvedBy,
+    approvedSnapshotId,
+    captionSpecialistSnapshotExtension,
+    editBriefSnapshot,
+    editSessionId,
+    plan,
+    projectId,
+    sourceMediaAssets = [],
+  } = params
 
   if (plan.professionalSkillPlan?.livingFrame) {
     throw new Error(
@@ -384,6 +400,8 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
   }
 
   const approvedAt = nowIso()
+  const snapshotId = approvedSnapshotId ??
+    `approved-snapshot-${projectId}-${Date.now()}`
   const editLevel = getEditLevel(plan)
   const sourceSequence = createSourceSequence(projectId, editSessionId, plan, approvedAt, sourceMediaAssets)
   const editPlanVersion = createEditPlanVersion(projectId, editSessionId, plan, approvedBy, approvedAt)
@@ -397,9 +415,39 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
   const qaPlan = createQAReportRecord(projectId, plan, approvedAt)
   const professionalEditingDirective = getProfessionalDirective(plan)
   const planningInputTrace = plan.planningInputTrace
+  const captionSnapshotExtension = captionSpecialistSnapshotExtension
+    ? parseCaptionSpecialistApprovedSnapshotExtension(
+        captionSpecialistSnapshotExtension)
+    : undefined
+  const captionCompositionTrace = plan.professionalSkillPlan?.compositionTrace
+  const captionTraceEntry = captionCompositionTrace?.entries[0]
+  if (captionSnapshotExtension && (
+    captionSnapshotExtension.projectId !== projectId
+    || captionSnapshotExtension.editSessionId !== editSessionId
+    || captionSnapshotExtension.approvedSnapshotId !== snapshotId
+    || captionSnapshotExtension.approvedPlanVersionId !== editPlanVersion.id
+    || captionSnapshotExtension.ownerUserId !== approvedBy
+    || !captionCompositionTrace
+    || captionSnapshotExtension.compositionTraceRef.id
+      !== captionCompositionTrace.traceId
+    || captionSnapshotExtension.compositionTraceRef.version
+      !== captionCompositionTrace.schemaVersion
+    || captionSnapshotExtension.compositionTraceRef.contentHash
+      !== captionCompositionTrace.traceDigestSha256
+    || captionSnapshotExtension.selectionDisposition
+      !== captionTraceEntry?.disposition
+    || captionSnapshotExtension.outputScopes.some((output) =>
+      output.aspectRatio !== plan.aspectRatioFramePlan?.selectedAspectRatio
+      || output.width !== plan.aspectRatioFramePlan?.canvasWidth
+      || output.height !== plan.aspectRatioFramePlan?.canvasHeight)
+  )) {
+    throw new Error(
+      'Caption specialist snapshot extension does not match this exact approved snapshot scope.',
+    )
+  }
 
   return {
-    id: `approved-snapshot-${projectId}-${Date.now()}`,
+    id: snapshotId,
     projectId,
     editSessionId,
     editPlanVersionId: editPlanVersion.id,
@@ -466,6 +514,7 @@ export function createApprovedPlanSnapshot(params: CreateApprovedPlanSnapshotPar
     adaptiveEditStrategy: plan.adaptiveEditStrategy,
     adaptiveEditStrategyPlan: plan.adaptiveEditStrategyPlan,
     professionalSkillPlan: plan.professionalSkillPlan,
+    captionSpecialistSnapshotExtension: captionSnapshotExtension,
     toolRegistrySummary: plan.toolRegistrySummary,
     toolStrategyPlan: plan.toolStrategyPlan,
     colorPipelinePlan: plan.colorPipelinePlan,

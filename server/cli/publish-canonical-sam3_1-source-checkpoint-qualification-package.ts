@@ -74,4 +74,3 @@ createCanonicalSam31GcpSourceCheckpointQualificationPackagePublisher()
   })
 
 process.stdout.write(`${JSON.stringify(publication)}\n`)
-

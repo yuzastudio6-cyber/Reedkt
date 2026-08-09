@@ -10,6 +10,9 @@ import type {
   CaptionTrackAllSupportPayload,
 } from '../../src/types/caption-track-all-support'
 import type {
+  CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
+} from '../../src/types/canonical-caption-track-all-support'
+import type {
   OrchestraSkillCall as CaptionOrchestraSkillCall,
   OrchestraSkillJobResult as CaptionOrchestraSkillJobResult,
   SkillClosedAuthorityBoundary,
@@ -31,12 +34,23 @@ import {
 } from '../orchestra/orchestra-skill-contracts'
 import {
   createCanonicalCaptionTrackAllEvidenceRepository,
+  createCanonicalCaptionTrackAllEvidenceRepositoryV3,
   createCanonicalCaptionTrackAllSupportService,
   createCanonicalTrackAllSam31CaptionSceneEvidenceRepository,
   parseCanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
   parseCanonicalTrackAllSam31CaptionSceneEvidence,
   parseCaptionTrackAllSupportPayload,
 } from '../services/canonical-caption-track-all-support-service'
+import {
+  createCaptionTrackAllSupportV2,
+} from '../captions-specialist/caption-track-all-support'
+import {
+  parseCaptionCanonicalTrackAllEvidenceRecordAny,
+  parseCaptionCanonicalTrackAllEvidenceRecordV3,
+} from '../captions-specialist/caption-canonical-track-all-evidence-read'
+import {
+  createCaptionTrackAllContractFixtureResolution,
+} from '../internal-testing/captions-specialist-authenticated-owner-fixtures'
 import {
   createCanonicalTrackAllSam31TaskQaOwner,
   createCanonicalTrackAllSam31TaskQaRepository,
@@ -1298,6 +1312,132 @@ check(
     .recordDigestSha256 === record.recordDigestSha256,
   'The complete authenticated record must validate independently.',
 )
+
+const {
+  callDigestSha256: _foregroundSourceCallDigest,
+  ...foregroundCallWithoutDigest
+} = captionCall
+assert.equal(
+  _foregroundSourceCallDigest,
+  captionCall.callDigestSha256,
+)
+const foregroundCall = parseOrchestraSkillCall({
+  ...foregroundCallWithoutDigest,
+  callId: 'caption-resolve-front-of-subject-call',
+  idempotencyKey: 'caption-resolve-front-of-subject-idempotency',
+  job: {
+    ...foregroundCallWithoutDigest.job,
+    jobId: 'caption-resolve-front-of-subject-job',
+    jobType: 'resolve_front_of_subject_typography',
+  },
+  callDigestSha256: digest({
+    ...foregroundCallWithoutDigest,
+    callId: 'caption-resolve-front-of-subject-call',
+    idempotencyKey: 'caption-resolve-front-of-subject-idempotency',
+    job: {
+      ...foregroundCallWithoutDigest.job,
+      jobId: 'caption-resolve-front-of-subject-job',
+      jobType: 'resolve_front_of_subject_typography',
+    },
+  }, 'callDigestSha256'),
+})
+const foregroundSupport = createCaptionTrackAllSupportV2({
+  payloadId: 'caption-front-of-subject-track-all-payload',
+  requestId: 'caption-front-of-subject-track-all-request',
+  idempotencyKey: foregroundCall.idempotencyKey,
+  originalCallRef: callRef(foregroundCall),
+  purpose: 'subject_foreground',
+  canonicalScope: structuredClone(payload.canonicalScope),
+  pictureLockRef: structuredClone(payload.pictureLockRef),
+  finishReadinessRef: structuredClone(payload.finishReadinessRef),
+  visualOccupancyManifestRef:
+    structuredClone(payload.visualOccupancyManifestRef),
+  confirmedOutputFrameDigestSha256:
+    payload.confirmedOutputFrameDigestSha256,
+  sourcePrivateArtifactRef: structuredClone(payload.sourcePrivateArtifactRef),
+  sourceFrameMappingRef: structuredClone(payload.sourceFrameMappingRef),
+  subjectRequests: structuredClone(payload.subjectRequests),
+  korniaRefinementAllowed: payload.refinementPolicy.korniaRefinementAllowed,
+})
+const foregroundWaitingResult = captionResultFixture(
+  foregroundCall,
+  foregroundSupport.supportRequest,
+)
+const foregroundResolution = createCaptionTrackAllContractFixtureResolution({
+  stepNumber: 1,
+  currentCall: foregroundCall,
+  currentResult: foregroundWaitingResult,
+  selectedSupportRequest: foregroundSupport.supportRequest,
+})
+const foregroundRawRecord = foregroundResolution.runtimeEvidence
+  .canonicalTrackAllEvidenceRecord
+if (!foregroundRawRecord) {
+  throw new Error('Foreground fixture did not produce an exact V3 record.')
+}
+const foregroundRecord = parseCaptionCanonicalTrackAllEvidenceRecordV3(
+  foregroundRawRecord,
+)
+assert.equal(
+  foregroundRecord.schemaVersion,
+  'canonical-caption-track-all-authenticated-evidence-record-v3',
+)
+const versionedRepositoryObjects = new Map<string, Buffer>()
+const versionedRepositoryPort = memoryObjectPort(versionedRepositoryObjects)
+const frozenV2Repository = createCanonicalCaptionTrackAllEvidenceRepository({
+  objectPort: versionedRepositoryPort,
+  prefix: 'private/smoke/caption-track-all/version-boundary/v2',
+})
+const foregroundV3Repository =
+  createCanonicalCaptionTrackAllEvidenceRepositoryV3({
+    objectPort: versionedRepositoryPort,
+    prefix: 'private/smoke/caption-track-all/version-boundary/v3',
+  })
+await assert.rejects(() => frozenV2Repository.persistCreateOnly({
+  record: foregroundRecord as unknown as
+    CanonicalCaptionTrackAllAuthenticatedEvidenceRecord,
+}))
+assertions += 1
+check(
+  frozenV2Repository.schemaVersion
+    === 'canonical-caption-track-all-evidence-repository-v2'
+    && foregroundV3Repository.schemaVersion
+      === 'canonical-caption-track-all-evidence-repository-v3',
+  'The frozen V2 and additive V3 repositories retain distinct identities.',
+)
+check(
+  await foregroundV3Repository.persistCreateOnly({
+    record: foregroundRecord,
+  }) === 'created',
+  'The additive V3 repository must persist the exact foreground record.',
+)
+const foregroundRecordReread =
+  await foregroundV3Repository.rereadBySupportRequestRef({
+    supportRequestRef: requestRef(foregroundSupport.supportRequest),
+  })
+check(
+  foregroundRecordReread !== null
+    && foregroundRecordReread.schemaVersion === foregroundRecord.schemaVersion
+    && foregroundRecordReread.recordDigestSha256
+      === foregroundRecord.recordDigestSha256,
+  'The additive V3 repository must reread the exact foreground record.',
+)
+let foregroundVersionGetterInvoked = false
+const hostileForegroundRecord = Object.defineProperty({}, 'schemaVersion', {
+  enumerable: true,
+  get() {
+    foregroundVersionGetterInvoked = true
+    return foregroundRecord.schemaVersion
+  },
+})
+assert.throws(() => parseCaptionCanonicalTrackAllEvidenceRecordAny(
+  hostileForegroundRecord))
+assert.equal(foregroundVersionGetterInvoked, false)
+assertions += 1
+assert.throws(() => parseCaptionCanonicalTrackAllEvidenceRecordAny(
+  new Proxy({}, {
+    ownKeys() { throw new Error('hostile foreground record proxy') },
+  })))
+assertions += 1
 const finalizationRuntime =
   createCanonicalTrackAllSam31CaptionEvidenceFinalizationRuntime({
     taskQaOwner,

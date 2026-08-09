@@ -1,6 +1,12 @@
 # Canonical Post-render Qwen Visual-QA Shared Lifecycle Contract
 
-Status: `work_request_and_public_result_shapes_frozen_execution_lifecycle_pending`
+Status:
+`historical_read_only_superseded_by_visual_intelligence_v2`
+
+This V1 wire is retained only to reread immutable historical snapshots. New
+Caption work must use `canonical-caption-postrender-visual-qa-work-binding-v2`
+and the active Visual Intelligence `final_render_visual_qa` owner result. The
+V1 contract below must not be scheduled, cast, or relabelled as active evidence.
 
 This source-only boundary freezes one frontend-safe shared result shape for
 `qwen2_5_vl_visual_understanding` / `postrender_private_visual_qa` /
@@ -16,6 +22,11 @@ Its coverage record distinguishes `complete` from `bounded_representative`,
 counts sampled and unsampled canonical segments, and states that the model may
 claim inspection only for the provided sample artifacts. Representative
 sampling therefore cannot be promoted into a whole-video inspection claim.
+For this V1 frame-sample lane, a completed `passed` decision is additionally
+allowed only when exact full-motion samples cover every frame of the rendered
+timeline. All-segment sampling by itself is insufficient. Because V1 caps the
+sample set at 4,096 frames, longer edits remain blocked for a future versioned
+full-review-video input rather than receiving an overstated complete-time pass.
 
 The result binds the exact approved snapshot and work item, queue/lease,
 provider grant/attempt/run, estimate and internal-cost lineage, persisted
@@ -30,8 +41,46 @@ fixture only proves the public record fails closed when its digest, scope,
 attempt, frame lineage, replay tuple, chronology, or authority boundary is
 changed. It does not prove that Qwen ran.
 
-Before an authenticated route may return a completed result, the canonical
-backend still must implement and verify the actual owner lifecycle:
+The Caption integration now adds a separate
+`canonical-postrender-visual-qa-normalized-result-v1` shared-owner record and
+`canonical-caption-postrender-visual-qa-evidence-v1` record. The lifecycle
+result proves that the model execution and its lineage occurred; the normalized
+result owns the exact `passed`, `repair_required`,
+`needs_human_review`, or `blocked_evidence_reconciliation` decision. This
+separation prevents an executed model attempt from being treated as a passing
+QA decision. Caption derives its evidence only from the digest-bound normalized
+record. A caller cannot attach a different Caption decision to the same
+lifecycle receipt.
+
+The source-complete read side now includes the versioned
+`canonical-caption-postrender-visual-qa-evidence-repository-v2` create-only
+repository contract,
+exact reread verification, an authenticated tenant/snapshot/output-frame
+projection, and the mounted
+`POST /v1/postrender-visual-qa/caption/authenticated-read` route. It returns
+only `not_found`, `pending`, or a validated completed product state. It rejects
+stale frames, cross-canvas evidence, browser-local completion, representative
+coverage presented as complete-time coverage, and elevated authority claims.
+The controlled repository used by the smoke is test-only and is not real model
+or media evidence.
+
+Repository V1 is retained only as a published identity receipt. V2 is required
+because its completed envelope additionally binds the exact normalized-result
+payload; V1 data is never silently interpreted as V2.
+
+The canonical private job adapter now recognizes the planned Caption
+post-render coordinator as one tool-free, provider-free reconciliation job. It
+uses `canonical-caption-postrender-visual-qa-owner-result-read-port-v1` to
+reread the shared owner's work request, lifecycle result, and normalized result;
+then it persists and rereads the Caption projection through the existing
+evidence repository. A missing owner port, missing result, stale output,
+cross-canvas result, incomplete coverage, or mismatched normalized decision
+fails closed before the Caption job consumes a lease. The adapter does not call
+Qwen and cannot substitute a Caption-specific dispatcher.
+
+Before the authenticated route may return a real completed result in an
+internal edit, the canonical backend still must implement and verify the
+remaining owner lifecycle:
 
 1. approved snapshot/work/estimate/reservation reread;
 2. one-use queue claim and worker lease;
@@ -39,9 +88,12 @@ backend still must implement and verify the actual owner lifecycle:
 4. exact approved RGB frame-byte reread and request hashing;
 5. one terminal attempt with usage and resource-cost evidence;
 6. schema-constrained server normalization without raw model text;
-7. create-only result persistence and exact reread;
-8. independent artifact QA and manifest reconciliation;
-9. authenticated, tenant-scoped pending/completed read projection; and
+7. qualification and injection of the durable shared-owner read port and
+   create-only repository adapter used by the internal backend composition;
+8. independent artifact QA and manifest reconciliation supplied to the now
+   validated evidence record;
+9. authenticated projection from those real persisted records through the now
+   mounted read route; and
 10. repair N+1 and private-review dependencies owned by the existing QA flow.
 
 The older `private-gcp-qwen25vl-visual-understanding-v1` plan/evidence contract
@@ -50,3 +102,7 @@ cannot satisfy this lifecycle by itself because it deliberately records
 be relabeled either: it is bound to the separate Gemini visual-calibration MP4
 operation. The execution owner therefore requires an additive versioned Qwen
 post-render lifecycle, not reinterpretation of either record.
+
+The source smoke uses a synthetic, digest-valid lifecycle fixture only to prove
+the repository and projection fail closed. It makes no provider call and is
+never counted as qualified complete-time model evidence.

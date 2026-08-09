@@ -6,6 +6,11 @@ import { canonicalStorytellingStyleAuthoritySchema } from './canonical-storytell
 import { canonicalMotionStudioStorytellingProductionAuthoritySchema } from './canonical-motion-studio-storytelling-production-authority-schemas'
 import { canonicalLivingFramePlanningBindingSchema } from './canonical-living-frame-planning-binding-schemas'
 import { exactEditPreferenceValuesSchema } from './exact-edit-preference-schemas'
+import { canonicalBrollSkillPlanComponentSchema } from '../edit-skills/b-roll/b-roll-canonical-plan-component'
+import {
+  assertCanonicalBrollMasterTimingProjectionBinding,
+  canonicalBrollMasterTimingProjectionBindingSchema,
+} from '../edit-skills/b-roll/b-roll-master-timing-projection-binding'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 import {
   PROFESSIONAL_EXPORT_ASPECT_RATIOS,
@@ -315,11 +320,41 @@ export const canonicalPlanComponentsSchema = z.object({
   providerPolicy: providerPolicySchema,
   fallbackPolicy: jsonObjectSchema,
   editBriefAudioPlanning: canonicalEditBriefAudioPlanningSchema.optional(),
+  professionalSkillPlan: jsonObjectSchema.optional(),
+  captionEarlyPlanningBundle: jsonObjectSchema.optional(),
+  captionSpecialistPlanningBinding: jsonObjectSchema.optional(),
+  bRollSkill: canonicalBrollSkillPlanComponentSchema.optional(),
+  bRollMasterTimingBinding:
+    canonicalBrollMasterTimingProjectionBindingSchema.optional(),
   livingFrame: canonicalLivingFramePlanningBindingSchema.optional(),
   motionStudioStorytellingStyleAuthority: canonicalStorytellingStyleAuthoritySchema.optional(),
   motionStudioStorytellingProductionAuthority:
     canonicalMotionStudioStorytellingProductionAuthoritySchema.optional(),
 }).strict().superRefine((components, context) => {
+  if (components.bRollMasterTimingBinding && !components.bRollSkill) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['bRollMasterTimingBinding'],
+      message: 'A B-roll MasterTiming projection binding requires the exact B-roll plan component.',
+    })
+  }
+  if (components.bRollMasterTimingBinding) {
+    try {
+      assertCanonicalBrollMasterTimingProjectionBinding({
+        binding: components.bRollMasterTimingBinding,
+        canonicalMasterTimingPlan: components.masterTimingPlan,
+        canonicalTimingSummary: components.timingSummary,
+      })
+    } catch (error) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['bRollMasterTimingBinding'],
+        message: error instanceof Error
+          ? error.message
+          : 'B-roll MasterTiming projection binding is invalid.',
+      })
+    }
+  }
   const productionAuthority = components.motionStudioStorytellingProductionAuthority
   if (!productionAuthority) {
     if (components.sourceSequence.length === 0) {

@@ -11,7 +11,7 @@ export interface OfflineLibassCaptionRequest {
   operationId: typeof OFFLINE_LIBASS_CAPTION_OPERATION
   payload: {
     captionProfileId: 'approved_ass_track_render_v1'
-    fontPackProfileId: 'reeditpro_reviewed_fonts_v1'
+    fontPackProfileId: 'reeditpro_reviewed_fonts_v1' | 'reeditpro_reviewed_fonts_v2'
     collisionPolicy: 'fail_on_reserved_zone_collision'
     preserveSpeechTiming: true
     width: number
@@ -38,6 +38,7 @@ export function validateOfflineLibassCaptionRequest(value: unknown): OfflineLiba
   if (![
     '640x360',
     '360x640',
+    '480x480',
     '720x405',
     '405x720',
     '3840x2160',
@@ -48,17 +49,18 @@ export function validateOfflineLibassCaptionRequest(value: unknown): OfflineLiba
   ].includes(`${width}x${height}`)) {
     throw invalid('libass approved review or 4K delivery-master frame is unsupported.')
   }
-  const caption = safeCaption(payload.caption)
+  const fontPackProfileId = payload.fontPackProfileId
   if (
     payload.captionProfileId !== 'approved_ass_track_render_v1' ||
-    payload.fontPackProfileId !== 'reeditpro_reviewed_fonts_v1' ||
+    (fontPackProfileId !== 'reeditpro_reviewed_fonts_v1' && fontPackProfileId !== 'reeditpro_reviewed_fonts_v2') ||
     payload.collisionPolicy !== 'fail_on_reserved_zone_collision' ||
     payload.preserveSpeechTiming !== true || ![2, 8].includes(Number(payload.alignment))
   ) throw invalid('libass caption policy is unsupported.')
+  const caption = safeCaption(payload.caption, fontPackProfileId)
   return {
     schemaVersion: OFFLINE_LIBASS_CAPTION_PROTOCOL, toolId: 'libass', operationId: OFFLINE_LIBASS_CAPTION_OPERATION,
     payload: {
-      captionProfileId: 'approved_ass_track_render_v1', fontPackProfileId: 'reeditpro_reviewed_fonts_v1',
+      captionProfileId: 'approved_ass_track_render_v1', fontPackProfileId,
       collisionPolicy: 'fail_on_reserved_zone_collision', preserveSpeechTiming: true,
       width, height, timestampMs: integer(payload.timestampMs, 0, 1999, 'timestampMs'),
       fontSize: integer(payload.fontSize, 18, 160, 'fontSize'), marginV: integer(payload.marginV, 20, 360, 'marginV'),
@@ -80,11 +82,44 @@ function integer(value: unknown, min: number, max: number, label: string): numbe
   if (!Number.isSafeInteger(value) || Number(value) < min || Number(value) > max) throw invalid(`${label} is outside bounds.`)
   return Number(value)
 }
-function safeCaption(value: unknown): string {
-  if (typeof value !== 'string' || value.length < 1 || value.length > 120 || value !== value.trim()) throw invalid('Caption text is outside bounds.')
-  if (!/^[\x20-\x7E]+$/.test(value) || ['{', '}', '\\', '[', ']'].some((token) => value.includes(token)) || /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/i.test(value)) {
+function safeCaption(
+  value: unknown,
+  fontPackProfileId: OfflineLibassCaptionRequest['payload']['fontPackProfileId'],
+): string {
+  if (typeof value !== 'string' || value.length < 1 || value !== value.trim()) throw invalid('Caption text is outside bounds.')
+  const unsafeSyntax = ['{', '}', '\\', '[', ']'].some((token) => value.includes(token)) ||
+    /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/i.test(value)
+  if (fontPackProfileId === 'reeditpro_reviewed_fonts_v1') {
+    if (value.length > 120 || !/^[\x20-\x7E]+$/.test(value) || unsafeSyntax) {
+      throw invalid('Caption text contains unsupported ASS, path, URL, or command syntax.')
+    }
+    return value
+  }
+  if (
+    Array.from(value).length > 256 || Buffer.byteLength(value, 'utf8') > 1024 ||
+    /[\p{Cc}\p{Cs}\p{Cf}\p{Zl}\p{Zp}]/u.test(value) || value.includes('\uFFFD') ||
+    containsUnicodeNoncharacter(value) || containsUnsupportedEmoji(value) || unsafeSyntax
+  ) {
     throw invalid('Caption text contains unsupported ASS, path, URL, or command syntax.')
   }
   return value
+}
+function containsUnsupportedEmoji(value: string): boolean {
+  for (const character of value) {
+    const codePoint = character.codePointAt(0)!
+    if (
+      codePoint === 0x20e3 || codePoint === 0xfe0f ||
+      (codePoint >= 0x2600 && codePoint <= 0x27bf) ||
+      (codePoint >= 0x1f000 && codePoint <= 0x1faff)
+    ) return true
+  }
+  return false
+}
+function containsUnicodeNoncharacter(value: string): boolean {
+  for (const character of value) {
+    const codePoint = character.codePointAt(0)!
+    if ((codePoint >= 0xfdd0 && codePoint <= 0xfdef) || (codePoint & 0xffff) >= 0xfffe) return true
+  }
+  return false
 }
 function invalid(message: string): ApiError { return new ApiError('VALIDATION_FAILED', message, 400) }

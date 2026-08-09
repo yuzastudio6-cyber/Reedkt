@@ -23,6 +23,7 @@ import {
 } from '../../src/types/caption-visual-intelligence-support'
 import type {
   CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  CanonicalSpecialistSupportResumeRecord,
 } from '../../src/types/canonical-specialist-support-resume'
 import type {
   SkillArtifactRef,
@@ -30,6 +31,10 @@ import type {
   SkillContractRef,
   SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
+import type { CanonicalCaptionCrossSystemExecutionInputReadPort } from
+  '../../src/types/canonical-caption-cross-system-execution-input'
+import type { CanonicalCaptionIncomingSupportRequestReadPort } from
+  '../../src/types/canonical-caption-specialist-execution'
 import type {
   VisualIntelligenceAuthenticatedReadResult,
   VisualIntelligenceEvidenceRef,
@@ -46,8 +51,17 @@ import {
 import {
   createCanonicalAuthenticatedSpecialistSupportArtifactProjection,
   parseCanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  resumeCanonicalSpecialistWithAuthenticatedSupport,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
+import {
+  canonicalCaptionCrossSystemRuntimeInput,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from './canonical-caption-cross-system-execution-input-service'
+import { resolveCanonicalCaptionIncomingSupportRequestForCall } from
+  './canonical-caption-incoming-support-request-service'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -320,6 +334,17 @@ export interface CanonicalCaptionVisualIntelligenceSupportService {
     readonly visualIntelligenceRequestRef: VisualIntelligenceEvidenceRef
     readonly visualIntelligenceReportRef: VisualIntelligenceEvidenceRef
   }): Promise<CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord>
+  projectAndResumeAuthenticatedEvidence(input: {
+    readonly authenticatedOwnerUserId: string
+    readonly priorCallRef: SkillContractRef
+    readonly selectedSupportRequestRef: SkillContractRef
+    readonly visualIntelligenceRequestRef: VisualIntelligenceEvidenceRef
+    readonly visualIntelligenceReportRef: VisualIntelligenceEvidenceRef
+  }): Promise<{
+    readonly evidenceRecord:
+      CanonicalCaptionVisualIntelligenceAuthenticatedEvidenceRecord
+    readonly resumeRecord: CanonicalSpecialistSupportResumeRecord
+  }>
 }
 
 export function parseCaptionVisualIntelligenceSupportPayload(
@@ -516,12 +541,7 @@ export function createCanonicalCaptionVisualIntelligenceEvidenceRepository(
 }
 
 export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
-  readonly supportResumeRepository: Pick<
-    CanonicalSpecialistSupportResumeRepository,
-    | 'rereadCallResultPair'
-    | 'persistAuthenticatedOwnerProjectionCreateOnly'
-    | 'rereadAuthenticatedOwnerProjection'
-  >
+  readonly supportResumeRepository: CanonicalSpecialistSupportResumeRepository
   readonly visualIntelligenceRequestStore: Pick<
     VisualIntelligenceCanonicalRequestPackageStore,
     'rereadCanonicalRequestByRef'
@@ -534,6 +554,11 @@ export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
   >
   readonly evidenceRepository:
     CanonicalCaptionVisualIntelligenceEvidenceRepository
+  readonly crossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  readonly incomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
+  readonly now?: () => Date
 }): CanonicalCaptionVisualIntelligenceSupportService {
   assertPorts(input)
   const service: CanonicalCaptionVisualIntelligenceSupportService = {
@@ -639,7 +664,7 @@ export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
             `caption.vi.projection.${packet.packetDigestSha256.slice(0, 32)}`,
           originalCallRef: supportRequest.originalCallRef,
           supportRequestRef: supportRequestRef(supportRequest),
-          ownerResultRef: visualReportSkillRef(report),
+          ownerResultRef: authenticatedReadResultRef,
           ownerKey: 'visual_intelligence',
           canonicalScope: supportRequest.canonicalScope,
           artifactRefs: [captionPacketArtifactRef(packet, supportRequest)],
@@ -689,6 +714,55 @@ export function createCanonicalCaptionVisualIntelligenceSupportService(input: {
         throw new Error('Caption Visual Intelligence evidence did not reconcile.')
       }
       return reread
+    },
+    async projectAndResumeAuthenticatedEvidence(value: Parameters<
+      CanonicalCaptionVisualIntelligenceSupportService[
+        'projectAndResumeAuthenticatedEvidence'
+      ]
+    >[0]) {
+      const evidenceRecord = await service.projectAuthenticatedEvidence(value)
+      const resumeRecord =
+        await resumeCanonicalSpecialistWithAuthenticatedSupport({
+          priorCallRef: evidenceRecord.originalCallRef,
+          selectedSupportRequestRef: evidenceRecord.supportRequestRef,
+          repository: input.supportResumeRepository,
+          specialistExecutionPort: {
+            execute: async ({ call, resumeSupportRequest }) => {
+              const exactRecord = await input.evidenceRepository
+                .rereadBySupportRequestRef({
+                  supportRequestRef: supportRequestRef(resumeSupportRequest),
+                })
+              if (!exactRecord || exactRecord.recordDigestSha256
+                !== evidenceRecord.recordDigestSha256) {
+                throw new Error(
+                  'Caption Visual Intelligence resume evidence is unavailable.',
+                )
+              }
+              const crossSystemExecutionInput =
+                await resolveCanonicalCaptionCrossSystemExecutionInput({
+                  call,
+                  readPort: input.crossSystemExecutionInputReadPort,
+                })
+              const incomingSupportRequest =
+                await resolveCanonicalCaptionIncomingSupportRequestForCall({
+                  call,
+                  readPort: input.incomingSupportRequestReadPort,
+                })
+              return runCaptionsSpecialistJob({
+                call,
+                resumeSupportRequest,
+                canonicalVisualIntelligenceEvidenceRecord: exactRecord,
+                ...(incomingSupportRequest === null ? {} : {
+                  incomingSupportRequest,
+                }),
+                ...canonicalCaptionCrossSystemRuntimeInput(
+                  crossSystemExecutionInput),
+              })
+            },
+          },
+          now: input.now,
+        })
+      return Object.freeze({ evidenceRecord, resumeRecord })
     },
   }
   return Object.freeze(service)
@@ -998,7 +1072,6 @@ function supportScopeMatches(
     )
     && scope.outputId === payload.canonicalScope.outputId
     && scope.sceneId === payload.canonicalScope.sceneId
-    && scope.boundaryId === null
     && sameRangeList(
       scope.authorizedFrameRanges,
       payload.canonicalScope.authorizedFrameRanges,
@@ -1048,14 +1121,6 @@ function readResultRef(
     id: `caption.vi.authenticated-read.${result.resultDigestSha256.slice(7, 39)}`,
     version: result.schemaVersion,
     contentHash: stripSha(result.resultDigestSha256),
-  }
-}
-
-function visualReportSkillRef(report: VisualIntelligenceReport): SkillContractRef {
-  return {
-    id: report.reportId,
-    version: report.schemaVersion,
-    contentHash: stripSha(report.reportDigestSha256),
   }
 }
 
@@ -1277,12 +1342,7 @@ function assertObjectPort(port: CanonicalCreateOnlyJsonObjectPort): void {
 }
 
 function assertPorts(input: {
-  supportResumeRepository: Pick<
-    CanonicalSpecialistSupportResumeRepository,
-    | 'rereadCallResultPair'
-    | 'persistAuthenticatedOwnerProjectionCreateOnly'
-    | 'rereadAuthenticatedOwnerProjection'
-  >
+  supportResumeRepository: CanonicalSpecialistSupportResumeRepository
   visualIntelligenceRequestStore: Pick<
     VisualIntelligenceCanonicalRequestPackageStore,
     'rereadCanonicalRequestByRef'
@@ -1301,6 +1361,12 @@ function assertPorts(input: {
       ?.persistAuthenticatedOwnerProjectionCreateOnly !== 'function'
     || typeof input.supportResumeRepository
       ?.rereadAuthenticatedOwnerProjection !== 'function'
+    || typeof input.supportResumeRepository
+      ?.persistCallResultPairCreateOnly !== 'function'
+    || typeof input.supportResumeRepository
+      ?.persistResumeRecordCreateOnly !== 'function'
+    || typeof input.supportResumeRepository
+      ?.rereadResumeRecordByResumedCall !== 'function'
     || typeof input.visualIntelligenceRequestStore
       ?.rereadCanonicalRequestByRef !== 'function'
     || typeof input.visualIntelligenceAuthenticatedReadService?.read !== 'function'

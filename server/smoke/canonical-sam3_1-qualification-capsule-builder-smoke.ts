@@ -323,7 +323,9 @@ for (const expected of [
   'libssl3t64_3.0.13-0ubuntu3.12_amd64.deb',
   'libssl-dev_3.0.13-0ubuntu3.12_amd64.deb',
   "dpkg-query --showformat='${Version}' --show openssl",
+  'python -m pip uninstall --yes --break-system-packages',
   'pillow setuptools urllib3 wheel',
+  'dpkg --purge',
   'python3-pip python3-wheel python3-setuptools python3-pkg-resources',
   "find_spec('setuptools') is None",
   "find_spec('pkg_resources') is None",
@@ -352,7 +354,7 @@ assert.doesNotMatch(candidate, /(?:apt-get|curl |wget )/u)
 assert.doesNotMatch(candidate, /urllib3-2\.6\.3|pillow-12\.0|wheel-0\.45\.1/iu)
 assert.equal((candidate.match(/^RUN --network=none /gmu) ?? []).length, 0)
 assert.equal((candidate.match(/^RUN /gmu) ?? []).length, 3)
-assert.match(candidate, /--break-system-packages/u)
+assert.equal((candidate.match(/--break-system-packages/gu) ?? []).length, 1)
 assert.match(
   qualificationEntrypoint,
   /exec \/opt\/weeditpro\/python-venv\/bin\/python[\s\\]+-I -B/u,

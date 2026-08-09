@@ -247,6 +247,10 @@ try {
   assert.equal(initialPlan.receipt?.totalFrames, 480)
   assert.equal(initialPlan.receipt?.captionCueCount, 1)
   assert.equal(
+    initialPlan.receipt?.captionCueAuthority,
+    'confirmed_edit_brief_markers',
+  )
+  assert.equal(
     initialPlan.receipt?.publicationProfile,
     'bounded_private_composition',
   )
@@ -485,6 +489,7 @@ function sourceLedPlanPresentationFixture(): Record<string, unknown> {
       totalFrames: 480,
       fps: 30,
       captionCueCount: 1,
+      captionCueAuthority: 'confirmed_edit_brief_markers',
       requestAcceptedBrowserPlan: false,
       requestAcceptedBrowserTiming: false,
       requestAcceptedBrowserEstimate: false,

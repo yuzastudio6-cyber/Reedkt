@@ -11,6 +11,8 @@ import { createControlledLocalStorytellingProductionAuthorityReader } from './mo
 import { createApprovalRoutes } from './routes/approval-routes'
 import { createCanonicalCloudDispatchRoutes } from
   './routes/canonical-cloud-dispatch-routes'
+import { createCaptionPostrenderVisualQaRoutes } from
+  './routes/caption-postrender-visual-qa-routes'
 import { createChatRoutes } from './routes/chat-routes'
 import { createCreditDataRoutes } from './routes/credit-data-routes'
 import { createCreditEstimateRoutes } from './routes/credit-estimate-routes'
@@ -119,6 +121,28 @@ export interface ReeditProApiAppOptions {
     RuntimeState['trackAllSam31CaptionEvidenceFinalizationRuntimePort']
   trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
     RuntimeState['trackAllSam31TaskQaEvidenceFinalizationRuntimePort']
+  canonicalCaptionPostrenderVisualQaEvidenceRepository?:
+    RuntimeState['canonicalCaptionPostrenderVisualQaEvidenceRepository']
+  canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
+    RuntimeState['canonicalCaptionPostrenderVisualQaOwnerResultReadPort']
+  canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository?:
+    RuntimeState['canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository']
+  canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort?:
+    RuntimeState['canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort']
+  canonicalCaptionSourceLedProfessionalPlanningReadPort?:
+    RuntimeState['canonicalCaptionSourceLedProfessionalPlanningReadPort']
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
+    RuntimeState[
+      'canonicalCaptionTranscriptPlanningExpectationOwnerReadPort'
+    ]
+  canonicalCaptionIncomingSupportRequestReadPort?:
+    RuntimeState['canonicalCaptionIncomingSupportRequestReadPort']
+  canonicalCaptionBrollOwnerRequestReadPort?:
+    RuntimeState['canonicalCaptionBrollOwnerRequestReadPort']
+  canonicalCaptionCrossSystemExecutionInputReadPort?:
+    RuntimeState['canonicalCaptionCrossSystemExecutionInputReadPort']
+  canonicalCaptionSoundSupportInputReadPort?:
+    RuntimeState['canonicalCaptionSoundSupportInputReadPort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -320,6 +344,69 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.trackAllSam31CaptionEvidenceFinalizationRuntimePort,
         }
       : {}),
+    ...(options.canonicalCaptionPostrenderVisualQaEvidenceRepository
+      ? {
+          canonicalCaptionPostrenderVisualQaEvidenceRepository:
+            options.canonicalCaptionPostrenderVisualQaEvidenceRepository,
+        }
+      : {}),
+    ...(options.canonicalCaptionPostrenderVisualQaOwnerResultReadPort
+      ? {
+          canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
+            options.canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+      ? {
+          canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository:
+            options
+              .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+        }
+      : {}),
+    ...(options.canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
+      ? {
+          canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort:
+            options
+              .canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionSourceLedProfessionalPlanningReadPort
+      ? {
+          canonicalCaptionSourceLedProfessionalPlanningReadPort:
+            options.canonicalCaptionSourceLedProfessionalPlanningReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionTranscriptPlanningExpectationOwnerReadPort
+      ? {
+          canonicalCaptionTranscriptPlanningExpectationOwnerReadPort:
+            options
+              .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionIncomingSupportRequestReadPort
+      ? {
+          canonicalCaptionIncomingSupportRequestReadPort:
+            options.canonicalCaptionIncomingSupportRequestReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionBrollOwnerRequestReadPort
+      ? {
+          canonicalCaptionBrollOwnerRequestReadPort:
+            options.canonicalCaptionBrollOwnerRequestReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionCrossSystemExecutionInputReadPort
+      ? {
+          canonicalCaptionCrossSystemExecutionInputReadPort:
+            options.canonicalCaptionCrossSystemExecutionInputReadPort,
+        }
+      : {}),
+    ...(options.canonicalCaptionSoundSupportInputReadPort
+      ? {
+          canonicalCaptionSoundSupportInputReadPort:
+            options.canonicalCaptionSoundSupportInputReadPort,
+        }
+      : {}),
     ...(options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
       ? {
           trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
@@ -417,6 +504,7 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createRenderRoutes())
   app.use(createVisualIntelligenceOrchestraRoutes())
   app.use(createVisualIntelligenceRoutes())
+  app.use(createCaptionPostrenderVisualQaRoutes())
   app.use(createTrackAllSam31Routes())
   app.use(createProviderGatewayRoutes())
 

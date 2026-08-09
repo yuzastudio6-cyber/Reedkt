@@ -4,6 +4,9 @@ import type {
 } from '../../src/lib/approved-edit-execution-package-client'
 import type { PlannerInput } from '../../src/types/reeditpro'
 import {
+  parseProfessionalSkillCompositionTrace,
+} from '../../src/lib/professional-skills/professional-skill-composition-trace'
+import {
   compileCanonicalSourceLedPlan,
 } from '../services/canonical-source-led-plan-compiler'
 import {
@@ -22,6 +25,9 @@ import {
 import {
   validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
 } from '../tool-execution/media-binary-execution'
+import {
+  createCanonicalSourceAnalysisAuthorityFixture,
+} from './fixtures/canonical-source-led-content-analysis-authority-fixture'
 
 const sha = (character: string) => character.repeat(64).slice(0, 64)
 const timestamp = '2026-07-28T15:00:00.000Z'
@@ -41,9 +47,9 @@ const plannerInput: PlannerInput = {
   visualPreference: 'no_extra_visuals',
   referenceUrl: '',
   customInstructions:
-    'Preserve both source videos in order and render only the confirmed caption.',
+    'Preserve both source videos in order and keep the edit clean.',
   userInstructionHistory: [
-    'Preserve both source videos in order and render only the confirmed caption.',
+    'Preserve both source videos in order and keep the edit clean.',
   ],
   creditPreference: 'balanced',
   clips: [{
@@ -255,6 +261,41 @@ assert.equal(compiled.evidence.browserTimingAccepted, false)
 assert.equal(compiled.evidence.sourceCount, 2)
 assert.equal(compiled.evidence.totalFrames, 60)
 assert.equal(compiled.evidence.captionCueCount, 1)
+const selectedCompositionTrace = parseProfessionalSkillCompositionTrace(
+  compiled.canonicalDraft.components.professionalSkillPlan?.compositionTrace,
+)
+assert.equal(selectedCompositionTrace.entries[0].disposition, 'selected')
+assert.deepEqual(
+  selectedCompositionTrace.entries[0].selectionSources,
+  ['edit_brief', 'edit_cue'],
+)
+assert.equal(
+  selectedCompositionTrace.selectionInferredFromLegacyOptionalComponent,
+  false,
+)
+const captionCleanProfessionalRecompile = compileCanonicalSourceLedPlan({
+  plannerInput,
+  sourceMediaAssets,
+  editBrief,
+  confirmedCaptionMarkers: [],
+  professionalCaptionSelectionMarkers: [captionMarker],
+})
+assert.equal(captionCleanProfessionalRecompile.evidence.captionCueCount, 0)
+const captionCleanCompositionTrace = parseProfessionalSkillCompositionTrace(
+  captionCleanProfessionalRecompile.canonicalDraft.components
+    .professionalSkillPlan?.compositionTrace,
+)
+assert.equal(captionCleanCompositionTrace.entries[0].disposition, 'selected')
+assert.deepEqual(
+  captionCleanCompositionTrace.entries[0].selectionSources,
+  ['edit_brief', 'edit_cue'],
+)
+assert.equal(
+  captionCleanProfessionalRecompile.canonicalDraft.publication?.canonicalPlan
+    .workItems.some((item) =>
+      item.workerClass === 'canonical_caption_specialist_worker_v1'),
+  false,
+)
 assert.equal(fractionalCompiled.evidence.totalFrames, fractionalDurationFrames)
 assert.deepEqual(
   fractionalCompiled.plan.masterTimingPlan?.captionTimingItems.map((caption) => [
@@ -566,6 +607,13 @@ const captionFreeWithExplicitBrief = compileCanonicalSourceLedPlan({
     confirmedCaptionMarkers: [],
   })
 assert.equal(captionFreeWithExplicitBrief.evidence.captionCueCount, 0)
+assert.equal(
+  parseProfessionalSkillCompositionTrace(
+    captionFreeWithExplicitBrief.canonicalDraft.components
+      .professionalSkillPlan?.compositionTrace,
+  ).entries[0].disposition,
+  'restrained',
+)
 assert.deepEqual(
   captionFreeWithExplicitBrief.plan.masterTimingPlan?.captionTimingItems,
   [],
@@ -576,9 +624,56 @@ const captionFreeWithoutOptionalBrief = compileCanonicalSourceLedPlan({
   confirmedCaptionMarkers: [],
 })
 assert.equal(captionFreeWithoutOptionalBrief.evidence.captionCueCount, 0)
+assert.equal(
+  parseProfessionalSkillCompositionTrace(
+    captionFreeWithoutOptionalBrief.canonicalDraft.components
+      .professionalSkillPlan?.compositionTrace,
+  ).entries[0].disposition,
+  'unresolved',
+)
 assert.deepEqual(
   captionFreeWithoutOptionalBrief.plan.masterTimingPlan?.captionTimingItems,
   [],
+)
+const unicodeTranscriptText = 'Ideas move through the frame — こんにちは'
+const unicodePlannerInput: PlannerInput = {
+  ...plannerInput,
+  clips: [plannerInput.clips[0]!],
+  sourceSequenceMode: 'single_complete_video',
+}
+const unicodeSourceMediaAssets = [sourceMediaAssets[0]!]
+const unicodeTranscriptCompiled = compileCanonicalSourceLedPlan({
+  plannerInput: unicodePlannerInput,
+  sourceMediaAssets: unicodeSourceMediaAssets,
+  editBrief,
+  confirmedCaptionMarkers: [],
+  professionalCaptionSelectionMarkers: [{
+    ...captionMarker,
+    editSessionId: 'unicode-source-led-edit',
+    endSeconds: 1,
+    endFrame: 30,
+  }],
+  sourceCleanupAuthority: createCanonicalSourceAnalysisAuthorityFixture({
+    hasSpeech: true,
+    sourceSequenceItemId:
+      unicodeSourceMediaAssets[0]!.sourceSequenceItemId,
+    mediaAssetId: unicodeSourceMediaAssets[0]!.mediaAssetId,
+    uploadedOrder: unicodeSourceMediaAssets[0]!.uploadedOrder,
+    checksumSha256: unicodeSourceMediaAssets[0]!.checksumSha256,
+    byteLength: unicodeSourceMediaAssets[0]!.byteSize,
+    durationFrames: 30,
+    transcriptText: unicodeTranscriptText,
+  }),
+})
+assert.equal(
+  unicodeTranscriptCompiled.evidence.captionCueAuthority,
+  'authenticated_source_transcript_segments',
+)
+assert.deepEqual(
+  unicodeTranscriptCompiled.plan.masterTimingPlan?.captionTimingItems.map(
+    (caption) => caption.captionText,
+  ),
+  [unicodeTranscriptText],
 )
 assert.throws(
   () => compileCanonicalSourceLedPlan({
@@ -641,5 +736,5 @@ console.log(JSON.stringify({
   publicationWorkItemCount:
     compiled.canonicalDraft.publication?.canonicalPlan.workItems.length,
   fractionalDurationFrames,
-  adversarialAssertions: 6,
+  adversarialAssertions: 17,
 }, null, 2))

@@ -129,6 +129,9 @@ import {
   createProfessionalPreparationDisplayItems,
   resolveApprovedSnapshotInternalTestAdapterToolNames,
 } from '../../lib/professional-skills'
+import {
+  createCaptionSpecialistPlanningPresentation,
+} from '../../lib/caption-direction/caption-specialist-integration'
 import { inferSourceSequenceMode, reorderClipsByMove } from '../../lib/source-sequence'
 import { hideInternalToolNamesInCopy } from '../../lib/tool-display-labels'
 import type { CanonicalEditJourneyStage } from '../../lib/canonical-edit-journey'
@@ -144,6 +147,7 @@ import { useCanonicalPrivateFinalDownload } from '../../hooks/useCanonicalPrivat
 import { useCanonicalPrivateReview } from '../../hooks/useCanonicalPrivateReview'
 import { useCanonicalSourceLedCaptionRevision } from '../../hooks/useCanonicalSourceLedCaptionRevision'
 import { useCanonicalSourceLedPlanPresentation } from '../../hooks/useCanonicalSourceLedPlanPresentation'
+import { useCaptionSpecialistStatus } from '../../hooks/useCaptionSpecialistStatus'
 import type { ContextAwareMockEditPlanResult, EditBriefState, EditBriefStatus, MediaKind, ReeditProChatMessage } from '../../types'
 import type { ApprovedPlanSnapshot } from '../../types/edit-planning-db'
 import type {
@@ -179,9 +183,11 @@ import { ChatMessageList } from './ChatMessageList'
 import { ChatThread } from './ChatThread'
 import { CanonicalJourneyStatusCard } from './CanonicalJourneyStatusCard'
 import { CanonicalPlanReviewController } from './CanonicalPlanReviewController'
+import { CaptionSpecialistStatusCard } from './CaptionSpecialistStatusCard'
 import {
   canonicalPlanApprovalReadyForPresentedPlan,
   recoverCanonicalPresentedPlanIdentity,
+  type CanonicalPresentedPlanIdentity,
 } from '../../lib/canonical-plan-approval-readiness'
 import {
   CleanupSetup,
@@ -1130,7 +1136,6 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const canonicalPrivateReviewRecovered =
     canonicalPrivateReviewAccepted ||
     canonicalJourneyValue?.stage === 'private_review_ready'
-  const canonicalEstimateReady = Boolean(canonicalJourneyValue?.plan)
   const canonicalApprovalRecorded = Boolean(
     canonicalPlanningBackendConnected &&
     (
@@ -1178,17 +1183,26 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     )
   }, [editorEditSessionId, editorProjectId, hasProjectEditRoute, projectPersistenceScope])
   const [backendRecoveredHandoff, setBackendRecoveredHandoff] = useState<LocalInternalProjectHandoff | undefined>()
-  const localProjectHandoff = useMemo(
-    () => getLocalInternalEditHandoff(editorProjectId, editorEditSessionId) ??
+  const localProjectHandoff = useMemo(() => {
+    // The persistence receipt is the revision signal for the browser-local
+    // handoff; parsing it on unrelated renders would create an unstable object.
+    void editPersistenceStatus?.handoffUpdatedAt
+    return getLocalInternalEditHandoff(editorProjectId, editorEditSessionId) ??
       (
         backendRecoveredHandoff?.workspaceId === projectPersistenceScope.workspaceId &&
         backendRecoveredHandoff.projectId === editorProjectId &&
         backendRecoveredHandoff.editSessionId === editorEditSessionId
           ? backendRecoveredHandoff
           : undefined
-      ),
-    [backendRecoveredHandoff, editorEditSessionId, editorProjectId, getLocalInternalEditHandoff, projectPersistenceScope.workspaceId],
-  )
+      )
+  }, [
+    backendRecoveredHandoff,
+    editPersistenceStatus?.handoffUpdatedAt,
+    editorEditSessionId,
+    editorProjectId,
+    getLocalInternalEditHandoff,
+    projectPersistenceScope.workspaceId,
+  ])
   const restoredSetup = localProjectHandoff?.setup
   const isLocalProjectHandoff = Boolean(localProjectHandoff)
   const isProjectWorkspace = hasProjectEditRoute || isLocalProjectHandoff
@@ -1344,7 +1358,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [editingCategory, setEditingCategory] = useState<EditingCategory>(initialEditingCategory)
   const [editLevel, setEditLevel] = useState<EditLevel>(initialEditPreferenceValues.editLevel)
   const [editLevelConfirmed, setEditLevelConfirmed] = useState(
-    isProjectWorkspace ? true : restoredSetup?.editLevelConfirmed ?? false,
+    restoredSetup?.editLevelConfirmed ?? isProjectWorkspace,
   )
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>(initialEditPreferenceValues.targetPlatform)
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(restoredSetup?.aspectRatio ?? (isProjectWorkspace ? 'let_ai_decide' : initialScenario.aspectRatio))
@@ -1358,6 +1372,8 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [creditPreference, setCreditPreference] = useState<CreditPreference>(initialEditPreferenceValues.creditPreference)
   const [currentEditPreferenceRevision, setCurrentEditPreferenceRevision] = useState(restoredSetup?.preferenceRevision ?? 0)
   const [currentEditPreferenceUpdatedAt, setCurrentEditPreferenceUpdatedAt] = useState(restoredSetup?.preferenceUpdatedAt)
+  const [invalidatedCanonicalPlanPresentation, setInvalidatedCanonicalPlanPresentation] =
+    useState(restoredSetup?.invalidatedCanonicalPlanPresentation)
   const [currentEditPreferenceAuthorityValues, setCurrentEditPreferenceAuthorityValues] =
     useState<LocalInternalEditPreferenceValues>(() => (
       restoredSetup?.preferenceAuthorityValues ?? {
@@ -1489,6 +1505,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const [intentApproved, setIntentApproved] = useState(false)
   const [approved, setApproved] = useState(false)
   const [approvedSnapshot, setApprovedSnapshot] = useState<ApprovedPlanSnapshot | null>(null)
+  const captionSpecialistStatus = useCaptionSpecialistStatus({
+    enabled: canonicalPlanningBackendConnected && isProjectWorkspace,
+    scope: projectPersistenceScope,
+    snapshotExtension:
+      approvedSnapshot?.captionSpecialistSnapshotExtension,
+  })
   const [executionRehearsal, setExecutionRehearsal] = useState<EditSessionExecutionRehearsal | null>(null)
   const [sourceMediaAssets, setSourceMediaAssets] = useState<ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]>(() =>
     localProjectHandoff?.sourceMediaAssets?.length
@@ -1501,6 +1523,27 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     useState<LocalSourcePreparationRecovery | undefined>(
       () => restoredSetup?.sourcePreparationRecovery,
     )
+  const restoredSetupStateRef = useRef<LocalInternalEditSetupSnapshot | undefined>(undefined)
+  useEffect(() => {
+    if (!restoredSetup || restoredSetupStateRef.current === restoredSetup) return
+    const restoreTimer = window.setTimeout(() => {
+      restoredSetupStateRef.current = restoredSetup
+      if (typeof restoredSetup.editLevelConfirmed === 'boolean') {
+        setEditLevelConfirmed(restoredSetup.editLevelConfirmed)
+      }
+      if (typeof restoredSetup.cleanupPreferenceConfirmed === 'boolean') {
+        setCleanupPreferenceConfirmed(restoredSetup.cleanupPreferenceConfirmed)
+      }
+      if (typeof restoredSetup.visualPreferenceConfirmed === 'boolean') {
+        setVisualPreferenceConfirmed(restoredSetup.visualPreferenceConfirmed)
+      }
+      setInvalidatedCanonicalPlanPresentation(
+        restoredSetup.invalidatedCanonicalPlanPresentation,
+      )
+      setSourcePreparationRecovery(restoredSetup.sourcePreparationRecovery)
+    }, 0)
+    return () => window.clearTimeout(restoreTimer)
+  }, [restoredSetup])
   const [activeEditBriefState, setActiveEditBriefState] = useState<EditBriefState | undefined>(
     () => localProjectHandoff?.editBriefState,
   )
@@ -1812,19 +1855,28 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     runSourceBoundPrep: runSourceBoundFootagePrep,
   } = useMockFootagePrep({ initialSourceBoundInput: recoveredFootagePrepInput })
   const effectivePreviewReady = previewReady || Boolean(contextMockPreview) || Boolean(privateInternalTestRun?.privateInternalDownloadPath)
+  const exactEditRevisionSetupActive = Boolean(
+    localProjectHandoff?.stage === 'source_uploaded' &&
+    localProjectHandoff.revisionPlanContext?.freshPlanRequired === true,
+  )
   const currentEditPreferencesLocked = Boolean(
     approvalChecking ||
     approved ||
     approvedSnapshot ||
-    canonicalApprovalRecorded ||
-    canonicalJourneyValue?.stage === 'revision_requested' ||
-    (
-      canonicalJourneyValue?.stage !== 'replanning_required' &&
-      (canonicalJourneyValue?.plan?.version ?? 0) > 1
-    ) ||
     progressStarted ||
     privateInternalTestRun ||
-    (localProjectHandoff && currentEditPreferenceLockedStages.has(localProjectHandoff.stage)),
+    (
+      !exactEditRevisionSetupActive &&
+      (
+        canonicalApprovalRecorded ||
+        canonicalJourneyValue?.stage === 'revision_requested' ||
+        (
+          canonicalJourneyValue?.stage !== 'replanning_required' &&
+          (canonicalJourneyValue?.plan?.version ?? 0) > 1
+        ) ||
+        (localProjectHandoff && currentEditPreferenceLockedStages.has(localProjectHandoff.stage))
+      )
+    )
   )
   const currentEditDraftPlanExists = Boolean(contextAwarePlanResult)
   const currentEditReferenceAuthorityResolution = useMemo(
@@ -2122,9 +2174,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   const basePlan = useMemo(() => createGuidedMockEditPlan(plannerInput), [plannerInput])
   const plan = contextAwarePlanResult?.editPlan ?? basePlan
-  const visibleEstimateReady = canonicalPlanningBackendConnected
-    ? canonicalEstimateReady
-    : Boolean(contextAwarePlanResult)
+  const captionSpecialistPlanningPresentation = useMemo(() => {
+    if (!plan.professionalSkillPlan?.compositionTrace) return null
+    try {
+      return createCaptionSpecialistPlanningPresentation(
+        plan.professionalSkillPlan,
+      )
+    } catch {
+      return null
+    }
+  }, [plan.professionalSkillPlan])
+  const captionSpecialistPresentation =
+    captionSpecialistStatus.presentation
+      ?? captionSpecialistPlanningPresentation
   const liveApprovalPlanningFingerprint = useMemo(
     () => contextAwarePlanResult
       ? createCompiledPlanningFingerprint(
@@ -2180,10 +2242,61 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const planEditLevel = plan.compiledIntent?.resolvedSettings.editLevel ?? editLevel
   const categoryLabel = getCategoryLabel(editingCategory)
   const confirmedMaterialPlanningConflicts = findConfirmedMaterialPlanningConflicts(plannerInput, plan.compiledIntent)
+  const pendingCanonicalChatSetupExchange = canonicalChatThread?.exchanges
+    .slice()
+    .reverse()
+    .find((exchange) =>
+      exchange.effect.status === 'waiting_for_setup_confirmation')
+  const pendingCanonicalChatRequestedSettings =
+    pendingCanonicalChatSetupExchange?.effect.requestedSettings
+  const canonicalChatHasPendingSetupConfirmation = Boolean(
+    pendingCanonicalChatSetupExchange,
+  )
+  const sourceLedCaptionRevisionPresentedPlan =
+    canonicalSourceLedCaptionRevision.result?.status === 'ready'
+      ? {
+          planId:
+            canonicalSourceLedCaptionRevision.result.receipt
+              .replacementPlanId,
+          planVersion:
+            canonicalSourceLedCaptionRevision.result.receipt
+              .replacementPlanVersion,
+          planHash:
+            canonicalSourceLedCaptionRevision.result.receipt
+              .replacementPlanHash,
+        }
+      : undefined
+  const canonicalApprovedPlanPresentation =
+    canonicalPlanApproval.result?.status === 'approved'
+      ? {
+          planId: canonicalPlanApproval.result.receipt.plan.planId,
+          planVersion:
+            canonicalPlanApproval.result.receipt.plan.planVersion,
+          planHash: canonicalPlanApproval.result.receipt.plan.planHash,
+        }
+      : undefined
+  const canonicalPresentedPlanCandidate =
+    canonicalPlanningPublication.result?.presentedPlan ??
+    sourceLedCaptionRevisionPresentedPlan ??
+    canonicalApprovedPlanPresentation ??
+    recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue)
+  const canonicalPlanPresentationInvalidated = canonicalPlanPresentationMatches(
+    canonicalPresentedPlanCandidate,
+    invalidatedCanonicalPlanPresentation,
+  )
+  const canonicalPresentedPlan = canonicalPlanPresentationInvalidated
+    ? undefined
+    : canonicalPresentedPlanCandidate
   const cleanupReady = cleanupPreferenceConfirmed && plan.sourceCleanupPlan?.status === 'confirmed'
   const trimReviewReady = Boolean(plan.trimReviewPlan && !plan.trimReviewPlan.approvalBlocked)
   const setupReady = sourceOrderConfirmed && aspectRatioConfirmed && cleanupReady && trimReviewReady && visualPreferenceConfirmed && confirmedMaterialPlanningConflicts.length === 0
   const canonicalCleanEditorStage = recoveredCleanEditorStage(canonicalJourneyValue?.stage)
+  const preferenceAwareCanonicalCleanEditorStage =
+    canonicalPlanPresentationInvalidated &&
+    !canonicalChatHasPendingSetupConfirmation &&
+    canonicalCleanEditorStage === 'plan_review'
+      ? 'planning'
+      : canonicalCleanEditorStage
   const localCleanEditorStage: CleanEditorStage = (
     effectivePreviewReady
       ? 'private_review'
@@ -2204,9 +2317,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                     : 'planning'
   )
   const cleanEditorStage: CleanEditorStage =
-    canonicalCleanEditorStage === 'planning' && !setupReady
+    canonicalPlanPresentationInvalidated && canonicalChatHasPendingSetupConfirmation
       ? localCleanEditorStage
-      : canonicalCleanEditorStage ?? localCleanEditorStage
+      : preferenceAwareCanonicalCleanEditorStage === 'planning' &&
+          !setupReady &&
+          !canonicalPlanPresentationInvalidated
+        ? localCleanEditorStage
+        : preferenceAwareCanonicalCleanEditorStage ?? localCleanEditorStage
   const sourceUploadComplete = durableUploadedPrivateSourceAssets(sourceMediaAssets).length > 0
   const editChatLockedUntilUpload = isProjectWorkspace && !sourceUploadComplete
   const privateUploadedSourcesReadyForPrep = uploadedPrivateSourceAssetsCoverClips(sourceMediaAssets, clips)
@@ -2252,24 +2369,9 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     : ''
   const localPlanningContextReadyForApproval =
     Boolean(contextAwarePlanResult) && !planningContextApprovalBlockedReason
-  const sourceLedCaptionRevisionPresentedPlan =
-    canonicalSourceLedCaptionRevision.result?.status === 'ready'
-      ? {
-          planId:
-            canonicalSourceLedCaptionRevision.result.receipt
-              .replacementPlanId,
-          planVersion:
-            canonicalSourceLedCaptionRevision.result.receipt
-              .replacementPlanVersion,
-          planHash:
-            canonicalSourceLedCaptionRevision.result.receipt
-              .replacementPlanHash,
-        }
-      : undefined
-  const canonicalPresentedPlan =
-    canonicalPlanningPublication.result?.presentedPlan ??
-    sourceLedCaptionRevisionPresentedPlan ??
-    recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue)
+  const visibleEstimateReady = canonicalPlanningBackendConnected
+    ? Boolean(canonicalJourneyValue?.plan) && !canonicalPlanPresentationInvalidated
+    : Boolean(contextAwarePlanResult)
   const canonicalPublicationStatus =
     canonicalPlanningPublication.result?.status ??
     (
@@ -2283,7 +2385,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     canonicalPlanningBackendConnected &&
     !canonicalPlanningPublication.result?.presentedPlan &&
     !sourceLedCaptionRevisionPresentedPlan &&
-    Boolean(recoverCanonicalPresentedPlanIdentity(canonicalJourneyValue))
+    Boolean(canonicalPresentedPlan)
   const planningContextReadyForApproval =
     canonicalPlanningBackendConnected
       ? Boolean(canonicalPresentedPlan)
@@ -2341,9 +2443,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   const approvalErrorMessage = runtimeMessages.find((message) => message.type === 'assistant_error')?.content ?? ''
   const editWorkspaceBlockedReason = privateInternalTestRunError || privateInternalDownloadError || planningContextApprovalBlockedReason || approvalErrorMessage
   const canonicalWorkspaceStage = recoveredEditWorkspaceStage(canonicalJourneyValue?.stage)
+  const preferenceAwareCanonicalWorkspaceStage = canonicalPlanPresentationInvalidated
+    ? null
+    : canonicalWorkspaceStage
   const editWorkspaceStage: EditWorkspaceStage = editWorkspaceBlockedReason
     ? 'blocked'
-    : canonicalWorkspaceStage ?? (
+    : preferenceAwareCanonicalWorkspaceStage ?? (
       isProjectWorkspace && !sourceUploadComplete
         ? 'upload_required'
         : privateInternalReviewDecision === 'changes_requested' || localProjectHandoff?.stage === 'revision_requested'
@@ -2603,6 +2708,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       preferenceOverrideKeys: getCurrentEditPreferenceOverrideKeys(nextPreferenceValues, nextPreferenceBaseline),
       preferenceRevision: currentEditPreferenceRevision,
       preferenceUpdatedAt: currentEditPreferenceUpdatedAt,
+      invalidatedCanonicalPlanPresentation,
       referenceAttached,
       referenceUrl,
       referenceSkipped,
@@ -2909,9 +3015,12 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       ...operation.preferencePatch,
     } as LocalInternalEditPreferenceValues
     const changedFields = receipt.changedPreferenceFields
-    const nextEditLevelConfirmed = changedFields.includes('editLevel')
-      ? true
-      : editLevelConfirmed
+    const persistedSetupBeforeApply = getLocalInternalEditHandoff(
+      editorProjectId,
+      editorEditSessionId,
+    )?.setup
+    const nextEditLevelConfirmed =
+      persistedSetupBeforeApply?.editLevelConfirmed ?? editLevelConfirmed
     const nextCleanupPreferenceConfirmed = changedFields.includes('cleanupPreference')
       ? true
       : cleanupPreferenceConfirmed
@@ -2921,6 +3030,13 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     const requiresSourcePreparation = receipt.sourcePreparationDisposition === 'requires_repreparation'
     const requiresFrameConfirmation = receipt.outputFrameDisposition === 'requires_reconfirmation'
     const hadDraftPlan = currentEditDraftPlanExists
+    const invalidatedPlanPresentation = canonicalPresentedPlan
+      ? {
+          ...canonicalPresentedPlan,
+          invalidatedAtPreferenceRevision: receipt.committedPreferenceRevision,
+          browserPlanningAuthority: false as const,
+        }
+      : invalidatedCanonicalPlanPresentation
 
     persistCurrentEditSetupAfterPlanInvalidation({
       ...next,
@@ -2934,6 +3050,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       preferenceOverrideKeys: getCurrentEditPreferenceOverrideKeys(next, currentEditPreferenceBaseline),
       preferenceRevision: receipt.committedPreferenceRevision,
       preferenceUpdatedAt: receipt.committedAt,
+      invalidatedCanonicalPlanPresentation: invalidatedPlanPresentation,
       sourcePreparationRecovery: requiresSourcePreparation ? undefined : sourcePreparationRecovery,
     }, { syncBackend: false })
 
@@ -2951,6 +3068,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setCurrentEditPreferenceRevision(receipt.committedPreferenceRevision)
     setCurrentEditPreferenceAuthorityIdentity(null)
     setCurrentEditPreferenceUpdatedAt(receipt.committedAt)
+    setInvalidatedCanonicalPlanPresentation(invalidatedPlanPresentation)
     setCurrentEditPreferenceDraftDirty(false)
     setCurrentEditPreferenceApplyEpoch((value) => value + 1)
 
@@ -3721,16 +3839,22 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     setCleanupPreferenceConfirmed(false)
     setAspectRatioSource('user_selected')
     setIntentApproved(false)
-    if (!isProjectWorkspace) setEditLevelConfirmed(false)
-    setVisualPreferenceConfirmed(false)
+    if (!isProjectWorkspace) {
+      setEditLevelConfirmed(false)
+      setVisualPreferenceConfirmed(false)
+    }
     persistCurrentEditSetupAfterPlanInvalidation({
       aspectRatio: ratio,
       frameTemplateType: nextFrameTemplateType,
       aspectRatioConfirmed: false,
       cleanupPreferenceConfirmed: false,
       aspectRatioSource: 'user_selected',
-      editLevelConfirmed: isProjectWorkspace ? true : false,
-      visualPreferenceConfirmed: false,
+      ...(isProjectWorkspace
+        ? {}
+        : {
+            editLevelConfirmed: false,
+            visualPreferenceConfirmed: false,
+          }),
     })
   }
 
@@ -3867,22 +3991,38 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
 
   async function handleConfirmCleanupPreference() {
     const nextCleanupPreference = cleanupPreference ?? plan.sourceCleanupPlan?.recommendedPreference.recommendedPreference ?? 'balanced_cleanup'
+    const shouldApplyCanonicalVisualDefault =
+      canonicalPlanningBackendConnected &&
+      !visualPreferenceConfirmed &&
+      !pendingCanonicalChatRequestedSettings?.visualPreference
     if (!await applyCanonicalSetupPreferencePatch({
       cleanupPreference: nextCleanupPreference,
-      ...(canonicalPlanningBackendConnected
+      ...(pendingCanonicalChatRequestedSettings?.workflowType
+        ? { workflowType: pendingCanonicalChatRequestedSettings.workflowType }
+        : {}),
+      ...(pendingCanonicalChatRequestedSettings?.moodStyle
+        ? { moodStyle: pendingCanonicalChatRequestedSettings.moodStyle }
+        : {}),
+      ...(pendingCanonicalChatRequestedSettings?.creditPreference
+        ? { creditPreference: pendingCanonicalChatRequestedSettings.creditPreference }
+        : {}),
+      ...(pendingCanonicalChatRequestedSettings?.targetPlatform
+        ? { targetPlatform: pendingCanonicalChatRequestedSettings.targetPlatform }
+        : {}),
+      ...(shouldApplyCanonicalVisualDefault
         ? { visualPreference: 'keep_visuals_minimal' as const }
         : {}),
     })) return
     setCleanupPreference(nextCleanupPreference)
     setCleanupPreferenceConfirmed(true)
-    if (canonicalPlanningBackendConnected) {
+    if (shouldApplyCanonicalVisualDefault) {
       setVisualPreference('keep_visuals_minimal')
       setVisualPreferenceConfirmed(true)
     }
     persistCurrentEditSetupAfterPlanInvalidation({
       cleanupPreference: nextCleanupPreference,
       cleanupPreferenceConfirmed: true,
-      ...(canonicalPlanningBackendConnected
+      ...(shouldApplyCanonicalVisualDefault
         ? {
             visualPreference: 'keep_visuals_minimal' as const,
             visualPreferenceConfirmed: true,
@@ -3958,13 +4098,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   function handleReviseSetupFromPlanReview() {
     setAspectRatioConfirmed(false)
     setCleanupPreferenceConfirmed(false)
-    if (!isProjectWorkspace) setEditLevelConfirmed(false)
-    setVisualPreferenceConfirmed(canonicalPlanningBackendConnected)
+    if (!isProjectWorkspace) {
+      setEditLevelConfirmed(false)
+      setVisualPreferenceConfirmed(false)
+    }
     persistCurrentEditSetupAfterPlanInvalidation({
       aspectRatioConfirmed: false,
       cleanupPreferenceConfirmed: false,
-      editLevelConfirmed: isProjectWorkspace ? true : false,
-      visualPreferenceConfirmed: canonicalPlanningBackendConnected,
+      ...(isProjectWorkspace
+        ? {}
+        : {
+            editLevelConfirmed: false,
+            visualPreferenceConfirmed: false,
+          }),
     })
     showRevisionMessage(
       canonicalPlanningBackendConnected
@@ -4912,10 +5058,14 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
   }
 
   function createTypedRevisionPlanContext(request: string): LocalInternalProjectHandoff['revisionPlanContext'] | undefined {
-    const existingReview = localProjectHandoff?.privateReview
-    const previousApprovedSnapshotId = localProjectHandoff?.approvedSnapshotId ?? approvedSnapshot?.id
+    const currentHandoff = getLocalInternalEditHandoff(
+      editorProjectId,
+      editorEditSessionId,
+    )
+    const existingReview = currentHandoff?.privateReview
+    const previousApprovedSnapshotId = currentHandoff?.approvedSnapshotId ?? approvedSnapshot?.id
     const previousCreditReservationId =
-      localProjectHandoff?.approvedCreditReservationId ?? privateInternalTestRun?.creditReservationId
+      currentHandoff?.approvedCreditReservationId ?? privateInternalTestRun?.creditReservationId
     const hasPreviousApprovedWork = Boolean(
       previousApprovedSnapshotId ||
       previousCreditReservationId ||
@@ -4930,7 +5080,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
       privateInternalReviewVideoMetadata?.playable === true ||
       existingReview?.manifestVerified === true ||
       Boolean(canonicalPrivateReview.media)
-    const previousStage = localProjectHandoff?.stage ??
+    const previousStage = currentHandoff?.stage ??
       (privateInternalReviewDecision === 'accepted_for_internal_testing'
         ? 'private_review_accepted'
         : privateInternalReviewDecision === 'changes_requested'
@@ -5054,28 +5204,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             setupPatch.visualPreferenceConfirmed = false
           }
         }
-        if (
-          requested.workflowType
-          && !requiredSetup.has('workflow_context')
-        ) {
+        if (requested.workflowType) {
           setWorkflowType(requested.workflowType)
           setupPatch.workflowType = requested.workflowType
         }
-        if (requested.moodStyle && !requiredSetup.has('mood')) {
+        if (requested.moodStyle) {
           setMoodStyle(requested.moodStyle)
           setupPatch.moodStyle = requested.moodStyle
         }
-        if (
-          requested.creditPreference
-          && !requiredSetup.has('cost_posture')
-        ) {
+        if (requested.creditPreference) {
           setCreditPreference(requested.creditPreference)
           setupPatch.creditPreference = requested.creditPreference
         }
-        if (
-          requested.targetPlatform
-          && !requiredSetup.has('destination')
-        ) {
+        if (requested.targetPlatform) {
           setTargetPlatform(requested.targetPlatform)
           setupPatch.targetPlatform = requested.targetPlatform
         }
@@ -5087,7 +5228,34 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         setSourceSequenceMode(nextSourceSequenceMode)
         setupPatch.sourceSequenceMode = nextSourceSequenceMode
         if (exchange.effect.draftPlanInvalidated) {
-          persistCurrentEditSetupAfterPlanInvalidation(setupPatch)
+          const typedRevisionPlanContext = createTypedRevisionPlanContext(
+            nextMessage,
+          )
+          const invalidatedPlanPresentation = canonicalPresentedPlan
+            ? {
+                ...canonicalPresentedPlan,
+                invalidatedAtPreferenceRevision: currentEditPreferenceRevision,
+                browserPlanningAuthority: false as const,
+              }
+            : undefined
+          if (requested.cleanupPreference) {
+            setSourcePreparationRecovery(undefined)
+            resetFootagePrep()
+            setupPatch.sourcePreparationRecovery = undefined
+          }
+          setupPatch.invalidatedCanonicalPlanPresentation =
+            invalidatedPlanPresentation
+          setInvalidatedCanonicalPlanPresentation(
+            invalidatedPlanPresentation,
+          )
+          persistCurrentEditSetupAfterPlanInvalidation(setupPatch, {
+            revisionPlanContext: typedRevisionPlanContext,
+          })
+          showRevisionMessage(
+            requiredSetup.size > 0
+              ? 'The previous plan is cleared. Confirm the updated setup before creating a fresh plan and estimate.'
+              : 'The previous plan is cleared. The saved direction will shape a fresh plan and estimate.',
+          )
         }
       } catch {
         setCanonicalChatError(
@@ -5250,8 +5418,10 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         id: 'clean-message-editor-greeting',
       }),
     ]
-    const canonicalJourneyVisible = canonicalJourney.loading || (
-      canonicalJourney.result !== null && canonicalJourney.result.status !== 'not_configured'
+    const canonicalJourneyVisible = !canonicalPlanPresentationInvalidated && (
+      canonicalJourney.loading || (
+        canonicalJourney.result !== null && canonicalJourney.result.status !== 'not_configured'
+      )
     )
     if (canonicalJourneyVisible) {
       const canonicalStatus = canonicalJourney.loading
@@ -5388,6 +5558,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
     canonicalChatThread,
     canonicalJourney.loading,
     canonicalJourney.result,
+    canonicalPlanPresentationInvalidated,
     canonicalPrivateReviewAccepted,
     cleanEditorStage,
     clips.length,
@@ -5504,6 +5675,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
             onReviseSetup={handleReviseSetupFromPlanReview}
             planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
             plan={plan}
+            planSupplement={captionSpecialistPresentation ? (
+              <CaptionSpecialistStatusCard
+                presentation={captionSpecialistPresentation}
+              />
+            ) : undefined}
             planningPublication={
               canonicalPlanningBackendConnected &&
               !recoveredCanonicalPlanPresentation
@@ -5570,6 +5746,17 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 </div>
                 <span className="clean-edit-step-meta">{visiblePlanEstimateCredits} estimated credits</span>
               </header>
+              {captionSpecialistPresentation ? (
+                <CaptionSpecialistStatusCard
+                  compact
+                  presentation={captionSpecialistPresentation}
+                />
+              ) : null}
+              {captionSpecialistStatus.message ? (
+                <p className="clean-edit-inline-warning" role="status">
+                  {captionSpecialistStatus.message}
+                </p>
+              ) : null}
               <div className="clean-edit-step-actions">
                 <span>
                   {canonicalPrivateReviewAccepted
@@ -5594,6 +5781,17 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               </div>
               <span className="clean-edit-step-meta">{contextMockPreview?.creditsUsed ?? visiblePlanEstimateCredits} estimated credits</span>
             </header>
+            {captionSpecialistPresentation ? (
+              <CaptionSpecialistStatusCard
+                compact
+                presentation={captionSpecialistPresentation}
+              />
+            ) : null}
+            {captionSpecialistStatus.message ? (
+              <p className="clean-edit-inline-warning" role="status">
+                {captionSpecialistStatus.message}
+              </p>
+            ) : null}
             {privateFinalQaSummary ? <p className="clean-review-summary">{privateFinalQaSummary}</p> : null}
             {privateInternalDownloadFile ? (
               <video
@@ -5622,7 +5820,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 <textarea
                   maxLength={500}
                   onChange={(event) => setPrivateInternalReviewNote(event.target.value)}
-                  placeholder="Required only when requesting changes"
+                  placeholder="Describe any edit change—caption wording, size, motion, placement, or something else"
                   rows={3}
                   value={privateInternalReviewNote}
                 />
@@ -6122,6 +6320,11 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
               onReviseSetup={handleReviseSetupFromPlanReview}
               planApproval={canonicalPlanningBackendConnected ? canonicalPlanApproval : undefined}
               plan={plan}
+              planSupplement={captionSpecialistPresentation ? (
+                <CaptionSpecialistStatusCard
+                  presentation={captionSpecialistPresentation}
+                />
+              ) : undefined}
               planningPublication={
                 canonicalPlanningBackendConnected &&
                 !recoveredCanonicalPlanPresentation
@@ -6391,7 +6594,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                     <textarea
                       maxLength={500}
                       onChange={(event) => setPrivateInternalReviewNote(event.target.value)}
-                      placeholder="Optional for acceptance. Required when requesting changes."
+                      placeholder="Optional for approval. For changes, describe caption wording, size, motion, placement, or any other edit change."
                       rows={3}
                       value={privateInternalReviewNote}
                     />
@@ -6710,7 +6913,7 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
                 data-editor-stage={cleanEditorStage}
                 data-testid="editor-stage"
               >
-                {setupReady || activeWorkspaceView === 'brief' ? (
+                {cleanEditorStage === 'planning' || activeWorkspaceView === 'brief' ? (
                   renderProjectPlanningPrepSurface({
                     active: activeWorkspaceView === 'brief' ? false : cleanEditorStage === 'planning',
                     briefWorkspaceActive: activeWorkspaceView === 'brief',
@@ -6817,6 +7020,19 @@ export function ChatNativeEditor({ onOpenTimeline, projectPersistenceScope }: Ch
         />
       ) : null}
     </section>
+  )
+}
+
+function canonicalPlanPresentationMatches(
+  candidate: CanonicalPresentedPlanIdentity | undefined,
+  invalidated: LocalInternalEditSetupSnapshot['invalidatedCanonicalPlanPresentation'],
+): boolean {
+  return Boolean(
+    candidate &&
+    invalidated &&
+    candidate.planId === invalidated.planId &&
+    candidate.planVersion === invalidated.planVersion &&
+    candidate.planHash === invalidated.planHash,
   )
 }
 

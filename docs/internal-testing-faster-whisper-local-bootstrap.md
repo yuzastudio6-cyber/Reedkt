@@ -45,4 +45,10 @@ npm run test:internal-testing:real-video-end-to-end-readiness
 
 This does not approve production model weights, public delivery, paid production, external beta, Supabase/GCS writes, provider calls, live Qwen calls, or final export. It does not commit model files, package downloads, cache files, captions, previews, media, or generated artifacts to the repo.
 
+The bootstrap removes only Hugging Face's downloader-owned `.cache` metadata
+from the final model directory before manifest creation. The reviewed runtime
+therefore contains and hashes exactly the four allowlisted model files named in
+the manifest; mutable download locks and metadata can never satisfy model-byte
+qualification.
+
 Normal readiness and real-video acceptance commands still fail closed when the manifest, local model directory, or Python package/API is missing. They do not install packages or download models.

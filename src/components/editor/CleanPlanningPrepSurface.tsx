@@ -147,10 +147,15 @@ export function CleanPlanningPrepSurface({
   ])
 
   useEffect(() => {
-    if (planningContext.planningContext && !planningContext.latestPlanResult) {
+    if (
+      !editBriefLocked &&
+      planningContext.planningContext &&
+      !planningContext.latestPlanResult
+    ) {
       onContextAwarePlanInvalidated()
     }
   }, [
+    editBriefLocked,
     onContextAwarePlanInvalidated,
     planningContext.latestPlanResult,
     planningContext.planningContext,

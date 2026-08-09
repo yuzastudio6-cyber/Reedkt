@@ -32,6 +32,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install isolated local database test prerequisites
+        run: |
+          sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+            -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+          sudo env DEBIAN_FRONTEND=noninteractive timeout 300s \
+            apt-get install --yes postgresql-client jq
+          psql --version
+          jq --version
+
+      - name: Install pinned Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520
+        with:
+          version: 2.105.0
+
+      - name: Verify isolated local database CLI
+        run: |
+          supabase --version
+          supabase db reset --help >/dev/null
+
       - name: Check frontend/server boundary
         run: npm run check:frontend-boundary
 
@@ -45,6 +64,22 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Install private-pipeline media runtime
+        shell: bash
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get update \
+              -o Acquire::Retries=3 -o Acquire::http::Timeout=30
+            sudo env DEBIAN_FRONTEND=noninteractive timeout 300s apt-get install --yes ffmpeg
+          fi
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
+
+      - name: Prepare exact professional-editor media image
+        run: |
+          npx tsx server/cli/prepare-professional-editor-media-runtime.ts
+          docker builder prune --force
+
       - name: Lint
         run: npm run lint
 
@@ -57,10 +92,9 @@ jobs:
       - name: Browser E2E
         run: npm run test:e2e
 
-      - name: Install private-pipeline media runtime
-        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
-
       - name: Server typecheck
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: npm run typecheck:server
 
       - name: Security boundary smokes

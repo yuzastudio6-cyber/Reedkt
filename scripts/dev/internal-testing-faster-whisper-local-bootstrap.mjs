@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -87,9 +87,22 @@ const downloadResult = await runCapture(defaultVenvPython, ['-c', buildSnapshotD
 })
 const snapshot = JSON.parse(downloadResult.stdout.trim())
 
+// huggingface_hub writes local-dir bookkeeping below .cache even when the
+// requested model payload is fully pinned. Those mutable download records are
+// not runtime model inputs and must not enter the reviewed model manifest.
+// Remove only that exact downloader-owned directory before checking and
+// hashing the four allowlisted runtime files.
+await rm(join(modelPath, '.cache'), { recursive: true, force: true })
+
 for (const expectedFile of expectedFiles) {
   const fullPath = join(modelPath, expectedFile)
   if (!existsSync(fullPath)) throw new Error(`Expected model file is missing after bootstrap: ${expectedFile}`)
+}
+const actualFiles = listFiles(modelPath)
+  .map((filePath) => filePath.slice(modelPath.length + 1))
+  .sort()
+if (JSON.stringify(actualFiles) !== JSON.stringify([...expectedFiles].sort())) {
+  throw new Error('Downloaded model directory contains unreviewed runtime files.')
 }
 
 const modelDirectorySha256 = hashDirectory(modelPath)

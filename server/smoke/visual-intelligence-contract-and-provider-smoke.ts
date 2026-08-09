@@ -854,9 +854,11 @@ async function main() {
   const providerIsolation = await auditProductionGeminiProviderIsolation()
   assert.deepEqual(providerIsolation.sdkImportFiles, [
     'server/visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter.ts',
+    'server/visual-intelligence/visual-intelligence-model-billing-sku-live-executor.ts',
   ])
   assert.deepEqual(providerIsolation.directInvocationFiles, [
     'server/visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter.ts',
+    'server/visual-intelligence/visual-intelligence-model-billing-sku-live-executor.ts',
   ])
 
   console.log(JSON.stringify({
@@ -884,9 +886,9 @@ async function main() {
         : 0,
     spatialRejectedBeforeSettlement: spatialSettlementCalls.length === 1,
     providerOutcomeClassification: 'executed_rejected',
-    isolatedProductionGeminiSdkImporterCount:
+    canonicalGeminiSdkImporterCount:
       providerIsolation.sdkImportFiles.length,
-    isolatedProductionGeminiInvokerCount:
+    canonicalGeminiInvokerCount:
       providerIsolation.directInvocationFiles.length,
     deterministicEvidenceVersion:
       VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,

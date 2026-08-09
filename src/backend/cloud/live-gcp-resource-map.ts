@@ -23,6 +23,7 @@ export type ReeditProSecretName =
   | 'reeditpro-prod-supabase-url'
   | 'reeditpro-prod-supabase-service-role-key'
   | 'reeditpro-prod-openai-api-key'
+  | 'reeditpro-prod-gemini-api-key'
   | 'reeditpro-prod-kimi-api-key'
   | 'reeditpro-prod-qwen-api-key'
   | 'reeditpro-prod-deepseek-api-key'
@@ -126,6 +127,7 @@ export const REEDITPRO_LIVE_GCP_RESOURCE_MAP: ReeditProLiveGcpResourceMap = {
     'reeditpro-prod-supabase-url': 'reeditpro-prod-supabase-url',
     'reeditpro-prod-supabase-service-role-key': 'reeditpro-prod-supabase-service-role-key',
     'reeditpro-prod-openai-api-key': 'reeditpro-prod-openai-api-key',
+    'reeditpro-prod-gemini-api-key': 'reeditpro-prod-gemini-api-key',
     'reeditpro-prod-kimi-api-key': 'reeditpro-prod-kimi-api-key',
     'reeditpro-prod-qwen-api-key': 'reeditpro-prod-qwen-api-key',
     'reeditpro-prod-deepseek-api-key': 'reeditpro-prod-deepseek-api-key',
@@ -154,6 +156,7 @@ export const REEDITPRO_LIVE_GCP_RESOURCE_MAP: ReeditProLiveGcpResourceMap = {
   },
   providerSecretByRoute: {
     gpt_image_2: 'reeditpro-prod-openai-api-key',
+    gemini_omni_flash: 'reeditpro-prod-gemini-api-key',
     kimi_k3_provider_boundary: 'reeditpro-prod-kimi-api-key',
     gpt_5_6_terra_provider_boundary: 'reeditpro-prod-openai-api-key',
     qwen_3_7_provider_boundary: 'reeditpro-prod-qwen-api-key',

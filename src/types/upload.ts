@@ -99,6 +99,8 @@ export interface SourceMediaMetadata {
   durationSeconds?: number
   width?: number
   height?: number
+  frameRateNumerator?: number
+  frameRateDenominator?: number
   videoCodec?: string
   audioCodec?: string
   formatName?: string

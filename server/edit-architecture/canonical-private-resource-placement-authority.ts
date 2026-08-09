@@ -21,6 +21,10 @@ import {
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_TOOL_OPERATION,
   CANONICAL_LIVING_FRAME_REMBG_GPU_MASK_WORKER_CLASS,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
+import { CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS } from
+  '../../src/types/canonical-caption-specialist-execution'
+import { CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS } from
+  '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
 import type {
   CanonicalToolExecutionAuthority,
 } from './canonical-tool-execution-authority'
@@ -134,6 +138,7 @@ const workItemPlacementCoreSchema = placementCoreSchema.extend({
     'tool_registry_contract_only',
     'tool_free_control_plane_policy',
     'living_frame_operation_admission_pending',
+    'caption_postrender_visual_qa_owner_reconciliation',
     'long_form_controller_contract_only',
     'provider_route_contract_only',
   ]),
@@ -202,6 +207,26 @@ function validatePlacementEvidence(
         code: 'custom',
         message:
           'Living Frame pending-operation placement must remain tool-free and execution blocked.',
+      })
+    }
+  }
+  if (
+    entry.placementSource ===
+      'caption_postrender_visual_qa_owner_reconciliation'
+  ) {
+    if (
+      toolBacked
+      || entry.privateExecutionReady
+      || entry.runtimeRunnerClass
+      || entry.toolIdentityHash
+      || entry.toolProofHash
+      || !entry.requiredGate
+      || entry.providerExecutionMode !== 'none'
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message:
+          'Caption post-render visual-QA reconciliation must remain blocked until the canonical owner read port is mounted.',
       })
     }
   }
@@ -533,9 +558,13 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
     const livingFrameOperationPending =
       workItem.workerClass ===
       CANONICAL_LIVING_FRAME_PENDING_OPERATION_WORKER_CLASS
+    const captionPostrenderVisualQaReconciliation =
+      workItem.workerClass ===
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS
     const privateExecutionReady =
       !longFormController &&
       !livingFrameOperationPending &&
+      !captionPostrenderVisualQaReconciliation &&
       workItem.providerExecutionMode === 'none'
     const withoutHash = {
       workItemKey: workItem.workItemKey,
@@ -549,6 +578,8 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
         ? 'long_form_controller_contract_only' as const
         : livingFrameOperationPending
           ? 'living_frame_operation_admission_pending' as const
+        : captionPostrenderVisualQaReconciliation
+          ? 'caption_postrender_visual_qa_owner_reconciliation' as const
         : privateExecutionReady
           ? 'tool_free_control_plane_policy' as const
           : 'provider_route_contract_only' as const,
@@ -560,6 +591,8 @@ export function createCanonicalApprovedWorkGraphResourcePlacementAuthority(input
               ? 'canonical_professional_long_form_controller_service_only_no_worker_dispatch' as const
               : livingFrameOperationPending
                 ? 'canonical_living_frame_dependency_input_operation_admission' as const
+              : captionPostrenderVisualQaReconciliation
+                ? 'canonical_caption_postrender_visual_intelligence_owner_result_read_port' as const
               : 'provider_activation_and_approved_route' as const,
           }
         : {}),
@@ -913,7 +946,11 @@ function toolFreeWorkerType(
   workerClass: string,
   workItemType: string,
 ): CanonicalPrivateExecutableWorkerType {
-  if (workerClass === 'authority_worker' || workerClass === 'private_test_worker') {
+  if (
+    workerClass === 'authority_worker' ||
+    workerClass === 'control_plane_worker' ||
+    workerClass === 'private_test_worker'
+  ) {
     return 'api_service'
   }
   if (workerClass === PROFESSIONAL_LONG_FORM_CONTROLLER_WORKER_CLASS) {
@@ -926,6 +963,13 @@ function toolFreeWorkerType(
     return 'api_service'
   }
   if (workerClass === 'provider_worker') return 'cpu_analysis_worker'
+  if (workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS) {
+    return 'cpu_analysis_worker'
+  }
+  if (workerClass ===
+    CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS) {
+    return 'qa_worker'
+  }
   if (workerClass === 'qa_worker' || workItemType === 'run_final_qa' ||
     workItemType === 'run_asset_qa' || workItemType === 'run_timing_qa') {
     return 'qa_worker'

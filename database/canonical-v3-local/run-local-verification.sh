@@ -4,16 +4,18 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_ROOT="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
 DATABASE_URL="${REEDITPRO_CANONICAL_V3_DATABASE_URL:-postgresql://postgres:postgres@127.0.0.1:57432/postgres}"
-SUPABASE_BIN="${SUPABASE_BIN:-$(command -v supabase)}"
-PSQL_BIN="${PSQL_BIN:-$(command -v psql)}"
-JQ_BIN="${JQ_BIN:-$(command -v jq)}"
+SUPABASE_BIN="${SUPABASE_BIN:-$(command -v supabase || true)}"
+PSQL_BIN="${PSQL_BIN:-$(command -v psql || true)}"
+JQ_BIN="${JQ_BIN:-$(command -v jq || true)}"
+CURL_BIN="${CURL_BIN:-$(command -v curl || true)}"
 
 if [[ ! "${DATABASE_URL}" =~ ^postgres(ql)?://[^@]+@(127\.0\.0\.1|localhost):57432/postgres([?].*)?$ ]]; then
   echo "Refusing non-local canonical V3 database URL." >&2
   exit 64
 fi
-if [[ -z "${SUPABASE_BIN}" || -z "${PSQL_BIN}" || -z "${JQ_BIN}" ]]; then
-  echo "Supabase CLI, psql, and jq are required." >&2
+if [[ -z "${SUPABASE_BIN}" || -z "${PSQL_BIN}" || -z "${JQ_BIN}" \
+  || -z "${CURL_BIN}" ]]; then
+  echo "Supabase CLI, psql, jq, and curl are required." >&2
   exit 69
 fi
 
@@ -38,6 +40,33 @@ trap cleanup EXIT
 
 "${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" db reset --local --no-seed
 
+LOCAL_STATUS_JSON="$(
+  "${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" status --output json 2>/dev/null
+)"
+LOCAL_API_URL="$(
+  printf '%s' "${LOCAL_STATUS_JSON}" | "${JQ_BIN}" -er '.API_URL'
+)"
+LOCAL_ANON_KEY="$(
+  printf '%s' "${LOCAL_STATUS_JSON}" | "${JQ_BIN}" -er '.ANON_KEY'
+)"
+POSTGREST_READY=false
+for (( readiness_attempt = 1; readiness_attempt <= 30; readiness_attempt += 1 )); do
+  postgrest_response_code="$(
+    "${CURL_BIN}" --silent --show-error --output /dev/null \
+      --write-out '%{http_code}' --header "apikey: ${LOCAL_ANON_KEY}" \
+      "${LOCAL_API_URL}/rest/v1/" 2>/dev/null || true
+  )"
+  if [[ "${postgrest_response_code}" == '200' ]]; then
+    POSTGREST_READY=true
+    break
+  fi
+  sleep 1
+done
+if [[ "${POSTGREST_READY}" != true ]]; then
+  echo "Canonical V3 local PostgREST did not become ready after reset." >&2
+  exit 70
+fi
+
 for test_file in \
   "${SCRIPT_DIR}/tests/001_two_user_two_workspace_rls.sql" \
   "${SCRIPT_DIR}/tests/002_edit_reference_v6_lifecycle_rpc.sql" \
@@ -55,7 +84,6 @@ done
 
 npx --no-install tsx "${REPOSITORY_ROOT}/server/smoke/edit-reference-local-supabase-rpc-adapter-smoke.ts"
 
-LOCAL_STATUS_JSON="$("${SUPABASE_BIN}" --workdir "${SCRIPT_DIR}" status --output json 2>/dev/null)"
 export REEDITPRO_CANONICAL_V3_API_URL="$(
   printf '%s' "${LOCAL_STATUS_JSON}" | "${JQ_BIN}" -er '.API_URL'
 )"

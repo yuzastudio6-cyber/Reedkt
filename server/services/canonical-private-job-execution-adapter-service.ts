@@ -9,6 +9,14 @@ import {
   CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION,
 } from '../../src/types/living-frame-canonical-work-graph-projection'
 import {
+  CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS,
+  CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-specialist-execution'
+import {
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS,
+  CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+} from '../../src/types/canonical-caption-postrender-visual-qa-work-binding'
+import {
   readPrivateFileIfExistsWithinRoot,
   writePrivateFileCreateOnlyWithinRoot,
 } from '../security/private-local-persistence'
@@ -36,7 +44,13 @@ import {
   type ExecuteCanonicalPrivateJobAdapterBody,
 } from '../validation/canonical-private-job-execution-adapter-schemas'
 import type { CanonicalExecutionReadinessEnvelope } from '../validation/canonical-execution-readiness-schemas'
-import { createCanonicalInternalAuthorityRunnerService } from './canonical-internal-authority-runner-service'
+import {
+  createCanonicalInternalAuthorityRunnerService,
+  prepareCanonicalCaptionPlanningExecution,
+} from './canonical-internal-authority-runner-service'
+import {
+  prepareCanonicalCaptionPostrenderVisualQaExecution,
+} from './canonical-caption-postrender-visual-qa-coordinator-service'
 import { createCanonicalPrivateAiCapabilityExecutionService } from './canonical-private-ai-capability-execution-service'
 import { createCanonicalPrivateAudioFluxAnalysisExecutionService } from './canonical-private-audioflux-analysis-execution-service'
 import { createCanonicalPrivateBrowserGraphicsExecutionService } from './canonical-private-browser-graphics-execution-service'
@@ -95,6 +109,87 @@ interface PersistedAdapterFailure {
   schemaVersion: 'canonical-private-job-execution-adapter-failure-idempotency-v1'
   requestHash: string
   failure: CanonicalPrivateJobExecutionAdapterFailure
+}
+
+export type CanonicalInternalServerJobKind =
+  | 'authority_validation'
+  | 'source_trim_validation'
+  | 'living_frame_layer_manifest'
+  | 'caption_specialist_planning'
+  | 'caption_postrender_visual_qa_reconciliation'
+
+export interface CanonicalInternalServerJobProfile {
+  kind: CanonicalInternalServerJobKind
+  operationId: string
+  runnerClass: string
+  purpose:
+    | 'execute_canonical_internal_authority_validation'
+    | 'execute_canonical_internal_source_trim_validation'
+    | 'execute_canonical_internal_living_frame_layer_manifest'
+    | 'execute_canonical_internal_caption_specialist_planning'
+    | 'execute_canonical_internal_caption_postrender_visual_qa_reconciliation'
+}
+
+export function classifyCanonicalInternalServerJob(workItem: {
+  approvedToolIds: string[]
+  workItemType: string
+  workerClass: string
+  executionInput: Record<string, unknown>
+}): CanonicalInternalServerJobProfile | null {
+  if (workItem.approvedToolIds.length !== 0) return null
+  if (workItem.workItemType === 'validate_approved_snapshot') {
+    return {
+      kind: 'authority_validation',
+      operationId: 'internal.validate_snapshot_manifest.v1',
+      runnerClass: 'canonical_authority_validation_runner_v1',
+      purpose: 'execute_canonical_internal_authority_validation',
+    }
+  }
+  if (workItem.workItemType === 'prepare_source_trim') {
+    return {
+      kind: 'source_trim_validation',
+      operationId: 'internal.validate_approved_source_trim_plan.v1',
+      runnerClass: 'canonical_source_trim_validation_runner_v1',
+      purpose: 'execute_canonical_internal_source_trim_validation',
+    }
+  }
+  if (workItem.workItemType === 'prepare_remotion_layer'
+    && workItem.executionInput.operation ===
+      CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION) {
+    return {
+      kind: 'living_frame_layer_manifest',
+      operationId: 'internal.compile_approved_living_frame_remotion_layer_manifest.v1',
+      runnerClass: 'canonical_living_frame_layer_manifest_runner_v1',
+      purpose: 'execute_canonical_internal_living_frame_layer_manifest',
+    }
+  }
+  if (workItem.workItemType === 'custom'
+    && workItem.workerClass === CANONICAL_CAPTION_SPECIALIST_WORKER_CLASS
+    && workItem.executionInput.operation ===
+      CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION) {
+    return {
+      kind: 'caption_specialist_planning',
+      operationId: CANONICAL_CAPTION_SPECIALIST_WORK_ITEM_OPERATION,
+      runnerClass: 'canonical_caption_specialist_planning_runner_v1',
+      purpose: 'execute_canonical_internal_caption_specialist_planning',
+    }
+  }
+  if (workItem.workItemType === 'custom'
+    && workItem.workerClass ===
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORKER_CLASS
+    && workItem.executionInput.operation ===
+      CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION) {
+    return {
+      kind: 'caption_postrender_visual_qa_reconciliation',
+      operationId:
+        CANONICAL_CAPTION_POSTRENDER_VISUAL_QA_WORK_ITEM_OPERATION,
+      runnerClass:
+        'canonical_caption_postrender_visual_intelligence_coordinator_runner_v2',
+      purpose:
+        'execute_canonical_internal_caption_postrender_visual_qa_reconciliation',
+    }
+  }
+  return null
 }
 
 export async function readCanonicalPrivateJobAdapterCompletion(input: {
@@ -236,19 +331,12 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         expectedAssets,
         readiness.job.expectedAssetIds.length,
       )
-      const internalAuthorityJob = workItem.approvedToolIds.length === 0 &&
-        workItem.workItemType === 'validate_approved_snapshot'
-      const internalSourceTrimJob = workItem.approvedToolIds.length === 0 &&
-        workItem.workItemType === 'prepare_source_trim'
-      const internalLivingFrameLayerJob =
-        workItem.approvedToolIds.length === 0 &&
-        workItem.workItemType === 'prepare_remotion_layer' &&
-        workItem.executionInput.operation ===
-          CANONICAL_LIVING_FRAME_REMOTION_LAYER_WORK_ITEM_OPERATION
-      const internalServerJob =
-        internalAuthorityJob ||
-        internalSourceTrimJob ||
-        internalLivingFrameLayerJob
+      const internalProfile = classifyCanonicalInternalServerJob(workItem)
+      const internalServerJob = internalProfile !== null
+      const internalCaptionSpecialistJob = internalProfile?.kind ===
+        'caption_specialist_planning'
+      const internalCaptionPostrenderVisualQaJob = internalProfile?.kind ===
+        'caption_postrender_visual_qa_reconciliation'
       let resolvedProvenTool: ReturnType<typeof getProvenEndToEndToolIdentity>
       if (!internalServerJob) {
         if (workItem.approvedToolIds.length !== 1) {
@@ -276,20 +364,10 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
         }
       }
       const canonicalToolId = internalServerJob ? null : resolvedProvenTool!.canonicalToolId
-      const operationId = internalServerJob
-        ? internalLivingFrameLayerJob
-          ? 'internal.compile_approved_living_frame_remotion_layer_manifest.v1'
-          : internalSourceTrimJob
-            ? 'internal.validate_approved_source_trim_plan.v1'
-            : 'internal.validate_snapshot_manifest.v1'
-        : resolvedProvenTool!.operationId
-      const runnerClass = internalServerJob
-        ? internalLivingFrameLayerJob
-          ? 'canonical_living_frame_layer_manifest_runner_v1'
-          : internalSourceTrimJob
-            ? 'canonical_source_trim_validation_runner_v1'
-            : 'canonical_authority_validation_runner_v1'
-        : resolvedProvenTool!.runtime.runnerClass!
+      const operationId = internalProfile?.operationId ??
+        resolvedProvenTool!.operationId
+      const runnerClass = internalProfile?.runnerClass ??
+        resolvedProvenTool!.runtime.runnerClass!
       const ffmpegMezzanineFinalization = !internalServerJob &&
         resolvedProvenTool!.canonicalToolId === 'ffmpeg' &&
         workItem.workItemType === 'render_final_export' &&
@@ -404,6 +482,27 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
           throw adapterFailureError(failure, originalError)
         }
       }
+      if (internalCaptionSpecialistJob) {
+        await prepareCanonicalCaptionPlanningExecution({
+          context,
+          actorUserId,
+          workspaceId: body.workspaceId,
+          authority,
+          jobId,
+        })
+      }
+      if (internalCaptionPostrenderVisualQaJob) {
+        await prepareCanonicalCaptionPostrenderVisualQaExecution({
+          context,
+          actorUserId,
+          workspaceId: body.workspaceId,
+          projectId: body.projectId,
+          editSessionId: body.editSessionId,
+          approvedSnapshotId: authority.snapshot.snapshotId,
+          approvedWorkItemId: workItem.id,
+          executionInput: workItem.executionInput,
+        })
+      }
       const stageKey = (stage: string) => `job-adapter:${stage}:${sha256(`${idempotencyKey}\u0000${jobId}`).slice(0, 48)}`
       const leaseService = createCanonicalWorkerLeaseAuthorityService(context)
       const claim = (await leaseService.claim({
@@ -496,11 +595,7 @@ export function createCanonicalPrivateJobExecutionAdapterService(context: Servic
             editSessionId: body.editSessionId,
             jobId,
             expectedAssetId: expectedAsset.id,
-            purpose: internalLivingFrameLayerJob
-              ? 'execute_canonical_internal_living_frame_layer_manifest'
-              : internalSourceTrimJob
-                ? 'execute_canonical_internal_source_trim_validation'
-                : 'execute_canonical_internal_authority_validation',
+            purpose: internalProfile!.purpose,
           }, leaseAuthority))
         } else {
           const provenTool = resolvedProvenTool!

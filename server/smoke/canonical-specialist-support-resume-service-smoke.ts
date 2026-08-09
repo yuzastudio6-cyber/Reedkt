@@ -22,7 +22,9 @@ import {
   createCanonicalAuthenticatedSpecialistSupportArtifactProjection,
   createCanonicalSpecialistCallResultPair,
   createCanonicalSpecialistSupportResumeRepository,
+  parseCanonicalSpecialistSupportResumeChainReread,
   parseCanonicalSpecialistSupportResumeRecord,
+  rereadCanonicalSpecialistSupportResumeChain,
   resumeCanonicalSpecialistWithAuthenticatedSupport,
 } from '../services/canonical-specialist-support-resume-service'
 
@@ -59,6 +61,15 @@ assert.equal(await repository.persistCallResultPairCreateOnly({
 assert.equal(await repository.persistCallResultPairCreateOnly({
   pair: initialPair,
 }), 'identical_replay')
+const waitingForVisual = await rereadCanonicalSpecialistSupportResumeChain({
+  initialCallRef: callRef(initialCall),
+  repository,
+})
+assert.equal(waitingForVisual?.status,
+  'waiting_for_authenticated_owner_projection')
+assert.equal(waitingForVisual?.stepCount, 0)
+assert.equal(waitingForVisual?.pendingSupportRequestRef?.contentHash,
+  visualRequest.requestDigestSha256)
 let repositoryGetterInvoked = false
 const hostilePairRequest = Object.defineProperty({}, 'pair', {
   enumerable: true,
@@ -79,6 +90,15 @@ const visualProjection = projectionFixture(
 assert.equal(await repository.persistAuthenticatedOwnerProjectionCreateOnly({
   projection: visualProjection,
 }), 'created')
+const waitingForFirstResume =
+  await rereadCanonicalSpecialistSupportResumeChain({
+    initialCallRef: callRef(initialCall),
+    repository,
+  })
+assert.equal(waitingForFirstResume?.status,
+  'waiting_for_persisted_resume_record')
+assert.equal(waitingForFirstResume?.authenticatedOwnerProjectionRef
+  ?.contentHash, visualProjection.projectionDigestSha256)
 
 let executions = 0
 const executionPort = {
@@ -128,6 +148,16 @@ assert.deepEqual(
   parseCanonicalSpecialistSupportResumeRecord(firstResume),
   firstResume,
 )
+const waitingForTrackAll =
+  await rereadCanonicalSpecialistSupportResumeChain({
+    initialCallRef: callRef(initialCall),
+    repository,
+  })
+assert.equal(waitingForTrackAll?.status,
+  'waiting_for_authenticated_owner_projection')
+assert.equal(waitingForTrackAll?.stepCount, 1)
+assert.equal(waitingForTrackAll?.currentPair.result.disposition,
+  'needs_followup')
 
 const trackAllRequest = firstResume.resumedResult.supportRequests[0]
 assert.ok(trackAllRequest)
@@ -162,6 +192,36 @@ assert.equal(secondResume.resumedCall.injectedSupportArtifactRefs[0]
 assert.equal(secondResume.resumedCall.injectedSupportArtifactRefs[0]
   .producerSkillKey, 'track_all')
 assert.equal(executions, 2)
+const completedChain = await rereadCanonicalSpecialistSupportResumeChain({
+  initialCallRef: callRef(initialCall),
+  repository,
+})
+assert.equal(completedChain?.status, 'completed_after_support_resume')
+assert.equal(completedChain?.stepCount, 2)
+assert.equal(completedChain?.currentPair.result.resultDigestSha256,
+  secondResume.resumedResult.resultDigestSha256)
+assert.equal(parseCanonicalSpecialistSupportResumeChainReread(completedChain)
+  .chainDigestSha256, completedChain?.chainDigestSha256)
+await assert.rejects(() => rereadCanonicalSpecialistSupportResumeChain({
+  initialCallRef: callRef(initialCall),
+  repository: {
+    ...repository,
+    async rereadResumeRecordByResumedCall() {
+      return secondResume
+    },
+  },
+}), /crossed current head/u)
+await assert.rejects(() => rereadCanonicalSpecialistSupportResumeChain({
+  initialCallRef: callRef(initialCall),
+  repository: {
+    ...repository,
+    async rereadCallResultPair(input) {
+      if (input.callRef.contentHash
+        === firstResume.resumedCall.callDigestSha256) return initialPair
+      return repository.rereadCallResultPair(input)
+    },
+  },
+}), /resumed call\/result pair is unavailable/u)
 
 const crossedScopeProjection = createCanonicalAuthenticatedSpecialistSupportArtifactProjection({
   ...projectionWithoutDigest(visualProjection),
@@ -248,7 +308,7 @@ assert.doesNotMatch(bridgeSource,
 
 console.log(JSON.stringify({
   smoke: 'canonical-specialist-support-resume-service',
-  checks: 48,
+  checks: 62,
   exactFrozenGenericSpecialistContractsParsed: true,
   exactFrozenGenericDependencyHashesMatched: true,
   sameVersionDifferentWireShapesExplicitlyDetected: true,
@@ -260,6 +320,7 @@ console.log(JSON.stringify({
   lostOrCrossedOwnerEvidenceFailsClosed: true,
   hostileRepositoryWriteRejectedWithoutGetterInvocation: true,
   exactImmediateCallRequestAndResultLineage: true,
+  exactPersistedResumeChainHeadReread: true,
   boundedResumeDepth: 32,
   directPeerDispatchPerformed: false,
   timelineRuntimeAssetQaOrBillingAuthorityMutated: false,

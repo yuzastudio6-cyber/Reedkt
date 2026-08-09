@@ -42,12 +42,6 @@ if (!imageBuildAuthority || !imageBuildSubmission || !imageBuildTerminal
   || !supplyChainObservation) {
   throw new Error('SAM 3.1 production security review lineage is absent.')
 }
-if (imageBuildAuthority.schemaVersion !==
-  'canonical-sam3_1-cloud-image-build-authority-v2') {
-  throw new Error(
-    'Vertex-qualified SAM 3.1 security review v2 is not frozen.',
-  )
-}
 const result = await createCanonicalSam31GcpProductionImageSecurityReviewRuntime()
   .operator.review({
     confirmation: SAM3_1_PRODUCTION_IMAGE_SECURITY_REVIEW_CONFIRMATION,

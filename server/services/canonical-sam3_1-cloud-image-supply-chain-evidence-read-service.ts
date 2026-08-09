@@ -4,10 +4,6 @@ import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import { ApiError } from '../errors/api-error'
-import {
-  assertCanonicalSam31CloudImageBuildAuthority,
-  type CanonicalSam31CloudImageBuildAuthority,
-} from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
 import type {
   CanonicalSam31CloudImageSupplyChainEvidenceReadPort,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
@@ -19,9 +15,11 @@ import type {
   CanonicalSam31QualificationImageSupplyChainEvidenceReadPort,
 } from '../model-artifacts/canonical-sam3_1-qualification-image-supply-chain-release'
 import {
+  assertCanonicalSam31AnyCloudImageBuildAuthority,
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
   compileCanonicalSam31CloudBuildRequestBody,
+  type CanonicalSam31AnyCloudImageBuildAuthority,
   type CanonicalSam31CloudImageBuildSubmission,
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from './canonical-sam3_1-cloud-image-build-service'
@@ -306,7 +304,7 @@ export function createCanonicalSam31ImageSupplyChainGoogleReadTransport(
  * action. It only rereads and cross-validates canonical private evidence.
  */
 export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
-  readonly imageBuildAuthority: CanonicalSam31CloudImageBuildAuthority
+  readonly imageBuildAuthority: CanonicalSam31AnyCloudImageBuildAuthority
   readonly imageBuildSubmission: CanonicalSam31CloudImageBuildSubmission
   readonly imageBuildTerminalObservation:
     CanonicalSam31CloudImageBuildTerminalObservation
@@ -320,7 +318,7 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
   readonly googleReadTransport: CanonicalSam31ImageSupplyChainGoogleReadTransport
   readonly securityReviewReadPort: CanonicalSam31ImageSecurityReviewReadPort
 }): CanonicalSam31CloudImageSupplyChainEvidenceReadPort {
-  const authority = assertCanonicalSam31CloudImageBuildAuthority(
+  const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
     input.imageBuildAuthority,
   )
   const imageSubmission = assertCanonicalSam31CloudImageBuildSubmission(
@@ -535,7 +533,7 @@ export function createCanonicalSam31ImageSupplyChainEvidenceReadPort(input: {
 }
 
 export function createCanonicalSam31GcpImageSupplyChainEvidenceReadPort(input: {
-  readonly imageBuildAuthority: CanonicalSam31CloudImageBuildAuthority
+  readonly imageBuildAuthority: CanonicalSam31AnyCloudImageBuildAuthority
   readonly imageBuildSubmission: CanonicalSam31CloudImageBuildSubmission
   readonly imageBuildTerminalObservation:
     CanonicalSam31CloudImageBuildTerminalObservation
@@ -1022,7 +1020,7 @@ function qualificationBuildTerminalRef(
 }
 
 function assertCanonicalLineage(input: {
-  authority: CanonicalSam31CloudImageBuildAuthority
+  authority: CanonicalSam31AnyCloudImageBuildAuthority
   imageSubmission: CanonicalSam31CloudImageBuildSubmission
   imageTerminal: CanonicalSam31CloudImageBuildTerminalObservation
   supplyAdmission: CanonicalSam31ImageSupplyChainBuildAdmission
@@ -1098,7 +1096,7 @@ function assertCanonicalLineage(input: {
 function assertRequestLineage(
   request: SupplyChainEvidenceReadRequest,
   input: {
-    authority: CanonicalSam31CloudImageBuildAuthority
+    authority: CanonicalSam31AnyCloudImageBuildAuthority
     imageSubmission: CanonicalSam31CloudImageBuildSubmission
     imageTerminal: CanonicalSam31CloudImageBuildTerminalObservation
   },
@@ -1632,7 +1630,7 @@ export function verifyCanonicalImageMetadata(
 
 function verifyOriginalImageBuild(input: {
   value: unknown
-  authority: CanonicalSam31CloudImageBuildAuthority
+  authority: CanonicalSam31AnyCloudImageBuildAuthority
   submission: CanonicalSam31CloudImageBuildSubmission
   terminal: CanonicalSam31CloudImageBuildTerminalObservation
 }): void {

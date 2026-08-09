@@ -4,16 +4,14 @@ import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
-  assertCanonicalSam31CloudImageBuildAuthority,
-  type CanonicalSam31CloudImageBuildAuthority,
-} from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
-import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
 import {
+  assertCanonicalSam31AnyCloudImageBuildAuthority,
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
+  type CanonicalSam31AnyCloudImageBuildAuthority,
   type CanonicalSam31CloudImageBuildSubmission,
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from './canonical-sam3_1-cloud-image-build-service'
@@ -316,7 +314,7 @@ export function createCanonicalSam31ProductionImageSecurityReviewOperator(
       CANONICAL_SAM3_1_PRODUCTION_IMAGE_SECURITY_REVIEW_OPERATOR_VERSION,
     async review(value: {
       readonly confirmation: string
-      readonly imageBuildAuthority: CanonicalSam31CloudImageBuildAuthority
+      readonly imageBuildAuthority: CanonicalSam31AnyCloudImageBuildAuthority
       readonly imageBuildSubmission: CanonicalSam31CloudImageBuildSubmission
       readonly imageBuildTerminal:
         CanonicalSam31CloudImageBuildTerminalObservation
@@ -476,14 +474,14 @@ export function createCanonicalSam31GcpProductionImageSecurityReviewRuntime(
 }
 
 function requireExactProductionLineage(value: {
-  readonly imageBuildAuthority: CanonicalSam31CloudImageBuildAuthority
+  readonly imageBuildAuthority: CanonicalSam31AnyCloudImageBuildAuthority
   readonly imageBuildSubmission: CanonicalSam31CloudImageBuildSubmission
   readonly imageBuildTerminal: CanonicalSam31CloudImageBuildTerminalObservation
   readonly supplyChainAdmission: CanonicalSam31ImageSupplyChainBuildAdmission
   readonly supplyChainSubmission: CanonicalSam31ImageSupplyChainBuildSubmission
   readonly supplyChainObservation: CanonicalSam31ImageSupplyChainBuildObservation
 }) {
-  const authority = assertCanonicalSam31CloudImageBuildAuthority(
+  const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
     value.imageBuildAuthority,
   )
   const submission = assertCanonicalSam31CloudImageBuildSubmission(

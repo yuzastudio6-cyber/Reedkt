@@ -40,12 +40,6 @@ const [authority, imageBuildSubmission, imageBuildTerminalObservation] =
 if (!authority || !imageBuildSubmission || !imageBuildTerminalObservation) {
   throw new Error('SAM 3.1 production image build lineage is absent.')
 }
-if (authority.schemaVersion !==
-  'canonical-sam3_1-cloud-image-build-authority-v2') {
-  throw new Error(
-    'Vertex-qualified SAM 3.1 supply-chain admission v2 is not frozen.',
-  )
-}
 const runtime = createCanonicalSam31GcpImageSupplyChainBuildRuntime()
 const admission = createCanonicalSam31ImageSupplyChainBuildAdmission({
   admissionId:

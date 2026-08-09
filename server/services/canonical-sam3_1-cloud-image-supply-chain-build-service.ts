@@ -1,12 +1,10 @@
 import { z } from 'zod'
 
 import {
-  assertCanonicalSam31CloudImageBuildAuthority,
-  type CanonicalSam31CloudImageBuildAuthority,
-} from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
-import {
+  assertCanonicalSam31AnyCloudImageBuildAuthority,
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
+  type CanonicalSam31AnyCloudImageBuildAuthority,
   type CanonicalSam31CloudImageBuildSubmission,
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from './canonical-sam3_1-cloud-image-build-service'
@@ -357,14 +355,14 @@ export interface CanonicalSam31ImageSupplyChainCloudBuildTransport {
 
 export function createCanonicalSam31ImageSupplyChainBuildAdmission(input: {
   readonly admissionId: string
-  readonly authority: CanonicalSam31CloudImageBuildAuthority
+  readonly authority: CanonicalSam31AnyCloudImageBuildAuthority
   readonly imageBuildSubmission: CanonicalSam31CloudImageBuildSubmission
   readonly imageBuildTerminalObservation:
     CanonicalSam31CloudImageBuildTerminalObservation
   readonly kmsKeyVersionResource: string
   readonly admittedAt: string
 }): CanonicalSam31ImageSupplyChainBuildAdmission {
-  const authority = assertCanonicalSam31CloudImageBuildAuthority(
+  const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
     input.authority,
   )
   const submission = assertCanonicalSam31CloudImageBuildSubmission(
@@ -881,7 +879,7 @@ export function imageSupplyChainBuildObservationReference(
 }
 
 function buildAuthorityReference(
-  authority: CanonicalSam31CloudImageBuildAuthority,
+  authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ) {
   return evidenceRefSchema.parse({
     id: authority.authorityId,

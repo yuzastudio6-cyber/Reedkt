@@ -6,6 +6,10 @@ import {
   assertCanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
 import {
+  CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
+  assertCanonicalSam31VertexCloudImageBuildAuthority,
+} from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
+import {
   assertCanonicalSam31CloudImageSupplyChainRelease,
   prepareCanonicalSam31CloudImageSupplyChainRelease,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
@@ -19,6 +23,7 @@ import {
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
   compileCanonicalSam31CloudBuildRequestBody,
+  type CanonicalSam31AnyCloudImageBuildAuthority,
 } from '../services/canonical-sam3_1-cloud-image-build-service'
 import {
   assertCanonicalSam31ImageSupplyChainBuildAdmission,
@@ -47,7 +52,8 @@ import { sha256AuthorityValue } from
 import type { VisualIntelligencePrivateObjectReadPort } from
   '../visual-intelligence/visual-intelligence-private-object-read-port'
 
-export const authority = createAuthority()
+const legacyAuthority = createLegacyAuthority()
+export const authority = createVertexAuthority(legacyAuthority)
 export const imageBuildSubmission = createImageBuildSubmission(authority)
 export const imageBuildTerminal = createImageBuildTerminal(
   authority,
@@ -79,6 +85,23 @@ assert.equal(
   assertCanonicalSam31ImageSupplyChainBuildAdmission(admission).admissionHash,
   admission.admissionHash,
 )
+assert.equal(
+  authority.schemaVersion,
+  CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
+)
+assert.equal(authority.historicalBatchQualificationCastOrRelabelUsed, false)
+const legacyAdmission = createCanonicalSam31ImageSupplyChainBuildAdmission({
+  admissionId: 'sam31-image-supply-chain-legacy-read-smoke',
+  authority: legacyAuthority,
+  imageBuildSubmission: createImageBuildSubmission(legacyAuthority),
+  imageBuildTerminalObservation: createImageBuildTerminal(
+    legacyAuthority,
+    createImageBuildSubmission(legacyAuthority),
+  ),
+  kmsKeyVersionResource,
+  admittedAt: '2026-08-03T20:00:00.000Z',
+})
+assert.equal(legacyAdmission.status, 'authorized_for_private_supply_chain_build')
 
 const body = compileCanonicalSam31ImageSupplyChainCloudBuildBody(admission)
 const serialized = JSON.stringify(body)
@@ -581,7 +604,10 @@ assert.equal(unknownCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-supply-chain-build',
-  checks: 105,
+  checks: 108,
+  exactVertexV3ImageBuildAuthorityAccepted: true,
+  historicalV2ImageBuildAuthorityStillReadable: true,
+  historicalBatchQualificationCastOrRelabelUsed: false,
   exactImmutableImageDigestBound: true,
   exactNumericHsmKeyVersionBound: true,
   pinnedSbomAndSignatureToolImages: true,
@@ -609,7 +635,7 @@ console.log(JSON.stringify({
   observationHash: observation.observationHash,
 }, null, 2))
 
-function createAuthority() {
+function createLegacyAuthority() {
   const capsuleSha256 = 'a'.repeat(64)
   const ref = (id: string, hash = '1'.repeat(64)) => ({
     id,
@@ -727,7 +753,41 @@ function createAuthority() {
   })
 }
 
-function createImageBuildSubmission(value: ReturnType<typeof createAuthority>) {
+function createVertexAuthority(
+  legacy: ReturnType<typeof createLegacyAuthority>,
+) {
+  const qualificationHash = '1'.repeat(64)
+  const { authorityHash: _historicalHash, ...legacyPayload } = legacy
+  void _historicalHash
+  const payload = {
+    ...legacyPayload,
+    schemaVersion:
+      CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION,
+    source:
+      'canonical_sam3_1_vertex_cloud_image_build_authority_owner' as const,
+    sourceCheckpointQualificationRef: {
+      id: 'sam31-vertex-source-checkpoint-supply-chain-smoke',
+      version: 2 as const,
+      schemaVersion:
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2' as const,
+      contentHash: `sha256:${qualificationHash}` as const,
+    },
+    buildClosure: {
+      ...legacy.buildClosure,
+      sourceCheckpointQualificationRecordHash: qualificationHash,
+    },
+    vertexQualificationEvidenceBound: true as const,
+    historicalBatchQualificationCastOrRelabelUsed: false as const,
+  }
+  return assertCanonicalSam31VertexCloudImageBuildAuthority({
+    ...payload,
+    authorityHash: sha256AuthorityValue(payload),
+  })
+}
+
+function createImageBuildSubmission(
+  value: CanonicalSam31AnyCloudImageBuildAuthority,
+) {
   const authorityRef = {
     id: value.authorityId,
     version: value.authorityVersion,
@@ -774,7 +834,7 @@ function createImageBuildSubmission(value: ReturnType<typeof createAuthority>) {
 }
 
 function createImageBuildTerminal(
-  value: ReturnType<typeof createAuthority>,
+  value: CanonicalSam31AnyCloudImageBuildAuthority,
   submission: ReturnType<typeof createImageBuildSubmission>,
 ) {
   const digest = `sha256:${'b'.repeat(64)}` as const

@@ -7,15 +7,9 @@ import { z } from 'zod'
 import {
   assertCanonicalSam31ImageBuildArtifactBinding,
   assertCanonicalSam31PrivateImageBuildCapsuleManifest,
-  assertCanonicalSam31CloudImageBuildAuthority,
   type CanonicalSam31ImageBuildArtifactBinding,
   type CanonicalSam31PrivateImageBuildCapsuleManifest,
-  type CanonicalSam31CloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-build-authority'
-import {
-  assertCanonicalSam31VertexCloudImageBuildAuthority,
-  type CanonicalSam31VertexCloudImageBuildAuthority,
-} from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
 import { ApiError } from '../errors/api-error'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
@@ -24,7 +18,9 @@ import {
 import {
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
+  assertCanonicalSam31AnyCloudImageBuildAuthority,
   createCanonicalSam31CloudImageBuildService,
+  type CanonicalSam31AnyCloudImageBuildAuthority,
   type CanonicalSam31CloudBuildAuthenticatedTransport,
   type CanonicalSam31CloudImageBuildAuthorityReadPort,
   type CanonicalSam31CloudImageBuildQualificationReleaseReadPort,
@@ -107,10 +103,6 @@ const consumptionSchema = consumptionWithoutHashSchema.extend({
 
 type EvidenceRef = z.infer<typeof evidenceRefSchema>
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
-export type CanonicalSam31AnyCloudImageBuildAuthority =
-  | CanonicalSam31CloudImageBuildAuthority
-  | CanonicalSam31VertexCloudImageBuildAuthority
-
 export interface CanonicalSam31CloudImageBuildRepository
   extends CanonicalSam31CloudImageBuildAuthorityReadPort,
     CanonicalSam31CloudImageBuildStatePort {
@@ -165,7 +157,7 @@ export function canonicalSam31PrivateImageBuildCapsuleManifestRef(
 export function canonicalSam31CloudImageBuildAuthorityRef(
   authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): EvidenceRef {
-  const parsed = assertAnyCloudImageBuildAuthority(authority)
+  const parsed = assertCanonicalSam31AnyCloudImageBuildAuthority(authority)
   return evidenceRefSchema.parse({
     id: parsed.authorityId,
     version: parsed.authorityVersion,
@@ -266,7 +258,7 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
     },
 
     async persistBuildAuthorityCreateOnly({ authority }) {
-      const parsed = assertAnyCloudImageBuildAuthority(authority)
+      const parsed = assertCanonicalSam31AnyCloudImageBuildAuthority(authority)
       const ref = canonicalSam31CloudImageBuildAuthorityRef(parsed)
       await persistExact(
         input.objectPort,
@@ -281,7 +273,7 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
       const value = await readExact(
         input.objectPort,
         recordPath(prefix, 'authorities', ref),
-        assertAnyCloudImageBuildAuthority,
+        assertCanonicalSam31AnyCloudImageBuildAuthority,
       )
       if (!value) return null
       if (!sameRef(ref, canonicalSam31CloudImageBuildAuthorityRef(value))) {
@@ -383,28 +375,6 @@ export function createCanonicalSam31CloudImageBuildRepository(input: {
     },
   }
   return Object.freeze(repository)
-}
-
-function assertAnyCloudImageBuildAuthority(
-  value: unknown,
-): CanonicalSam31AnyCloudImageBuildAuthority {
-  if (hasOwnDataSchemaVersion(
-    value,
-    'canonical-sam3_1-cloud-image-build-authority-v3',
-  )) return assertCanonicalSam31VertexCloudImageBuildAuthority(value)
-  return assertCanonicalSam31CloudImageBuildAuthority(value)
-}
-
-function hasOwnDataSchemaVersion(value: unknown, expected: string): boolean {
-  try {
-    if (value === null || typeof value !== 'object') return false
-    const descriptor = Object.getOwnPropertyDescriptor(value, 'schemaVersion')
-    return descriptor !== undefined
-      && 'value' in descriptor
-      && descriptor.value === expected
-  } catch {
-    return false
-  }
 }
 
 /** Google ADC transport with one fixed API origin, no retry, and no redirect. */

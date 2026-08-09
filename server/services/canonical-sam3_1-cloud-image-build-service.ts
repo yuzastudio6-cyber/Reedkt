@@ -275,7 +275,7 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       let authority: CanonicalSam31AnyCloudImageBuildAuthority
       try {
         const parsedRef = authorityRefSchema.parse(request.authorityRef)
-        authority = assertAnyCloudImageBuildAuthority(
+        authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
           await input.authorityReadPort.rereadBuildAuthority({
             authorityRef: parsedRef,
           }),
@@ -407,7 +407,7 @@ export function createCanonicalSam31CloudImageBuildService(input: {
       readonly submission: CanonicalSam31CloudImageBuildSubmission
     }): Promise<CanonicalSam31CloudImageBuildTerminalObservation> => {
       const observedAt = input.now?.() ?? new Date().toISOString()
-      const authority = assertAnyCloudImageBuildAuthority(
+      const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
         request.authority,
       )
       const submission = assertCanonicalSam31CloudImageBuildSubmission(
@@ -591,7 +591,7 @@ export function compileCanonicalSam31CloudBuildRequestBody(
   authority: CanonicalSam31AnyCloudImageBuildAuthority,
 ): Readonly<Record<string, unknown>> {
   return compileCloudBuildBody(
-    assertAnyCloudImageBuildAuthority(authority),
+    assertCanonicalSam31AnyCloudImageBuildAuthority(authority),
   )
 }
 
@@ -849,7 +849,7 @@ function assertAuthorityRef(
   }
 }
 
-function assertAnyCloudImageBuildAuthority(
+export function assertCanonicalSam31AnyCloudImageBuildAuthority(
   value: unknown,
 ): CanonicalSam31AnyCloudImageBuildAuthority {
   if (hasOwnDataSchemaVersion(

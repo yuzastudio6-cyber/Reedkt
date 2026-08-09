@@ -1,12 +1,10 @@
 import { z } from 'zod'
 
 import {
-  assertCanonicalSam31CloudImageBuildAuthority,
-  type CanonicalSam31CloudImageBuildAuthority,
-} from './canonical-sam3_1-cloud-image-build-authority'
-import {
+  assertCanonicalSam31AnyCloudImageBuildAuthority,
   assertCanonicalSam31CloudImageBuildSubmission,
   assertCanonicalSam31CloudImageBuildTerminalObservation,
+  type CanonicalSam31AnyCloudImageBuildAuthority,
   type CanonicalSam31CloudImageBuildSubmission,
   type CanonicalSam31CloudImageBuildTerminalObservation,
 } from '../services/canonical-sam3_1-cloud-image-build-service'
@@ -213,13 +211,13 @@ export interface CanonicalSam31CloudImageSupplyChainEvidenceReadPort {
 
 export async function prepareCanonicalSam31CloudImageSupplyChainRelease(input: {
   readonly releaseId: string
-  readonly authority: CanonicalSam31CloudImageBuildAuthority
+  readonly authority: CanonicalSam31AnyCloudImageBuildAuthority
   readonly submission: CanonicalSam31CloudImageBuildSubmission
   readonly terminalObservation: CanonicalSam31CloudImageBuildTerminalObservation
   readonly evidenceReadPort: CanonicalSam31CloudImageSupplyChainEvidenceReadPort
   readonly qualifiedAt: string
 }): Promise<CanonicalSam31CloudImageSupplyChainRelease> {
-  const authority = assertCanonicalSam31CloudImageBuildAuthority(
+  const authority = assertCanonicalSam31AnyCloudImageBuildAuthority(
     input.authority,
   )
   const submission = assertCanonicalSam31CloudImageBuildSubmission(
@@ -344,7 +342,7 @@ export function assertCanonicalSam31CloudImageSupplyChainRelease(
 }
 
 function assertEvidenceLineage(input: {
-  authority: CanonicalSam31CloudImageBuildAuthority
+  authority: CanonicalSam31AnyCloudImageBuildAuthority
   submission: CanonicalSam31CloudImageBuildSubmission
   terminal: CanonicalSam31CloudImageBuildTerminalObservation
   evidence: z.infer<typeof observedEvidenceSchema>
@@ -383,7 +381,7 @@ function assertEvidenceLineage(input: {
   ) throw new Error('SAM 3.1 supply-chain evidence crossed image or build.')
 }
 
-function authorityRef(authority: CanonicalSam31CloudImageBuildAuthority) {
+function authorityRef(authority: CanonicalSam31AnyCloudImageBuildAuthority) {
   return {
     id: authority.authorityId,
     version: authority.authorityVersion,

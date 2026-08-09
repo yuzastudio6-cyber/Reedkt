@@ -145,16 +145,21 @@ proves restart-safe admission, registry, context, result, attempt, and terminal
 rereads; it accepts and persists no raw prompt corpus. Focused source fixtures
 use an in-memory provider port and make no real provider call.
 
-The remaining Visual Intelligence work is actual operator-approved execution
-and post-execution reconciliation. A future authorized run must use the
-existing executor and durable store, then wait for Cloud Audit and detailed
-billing-export ingestion, create the audit/isolation and billing observations,
-apply the admitted internal-spend ceiling to actual cost, and run the existing
-model/SKU finalizer. It must not be implemented as a Caption service, accept
-caller-authored evidence booleans, bypass the canonical provider/cost lifecycle,
-or promote the sanitized executor result by itself. The private release
-prefixes still contain no live model/SKU qualification, runtime-component
-qualification, or runtime release record.
+The shared owner now also has a source-qualified post-execution reconciliation
+service and a create-only model/SKU qualification repository. After the live
+executor has stopped, the service rereads its result and admission, queries the
+entire project-wide audit window, persists/finalizes isolation, queries and
+persists the detailed billing window, enforces the admitted internal-spend
+ceiling, and invokes the existing model/SKU finalizer into durable exact-reread
+storage. Over-budget evidence is retained while qualification fails closed.
+
+The remaining Visual Intelligence work is the actual operator-approved run and
+fresh external ingestion, followed by this existing reconciliation service. It
+must not be implemented as a Caption service, accept caller-authored evidence
+booleans, bypass the canonical provider/cost lifecycle, or promote the sanitized
+executor result by itself. The private release prefixes still contain no live
+model/SKU qualification, runtime-component qualification, or runtime release
+record.
 
 The Visual Intelligence owner must complete its existing isolated provider
 qualification and then execute against the exact terminal approved snapshot,

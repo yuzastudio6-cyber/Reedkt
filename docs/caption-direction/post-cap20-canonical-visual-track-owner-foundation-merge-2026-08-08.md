@@ -153,7 +153,8 @@ owner now also contains the bounded live qualification executor and its
 restart-safe create-only GCS evidence store. Their controlled fixtures prove
 four no-retry correlated calls, exact route-registry/admission reread, sanitized
 context/result persistence, one attempt, and one terminal record without making
-a real provider call. Actual paid execution plus fresh Cloud Audit, isolation,
-detailed billing, internal-spend, and finalizer reconciliation remain open
-before Visual Intelligence can produce the actual Caption evidence required
-here.
+a real provider call. The source-qualified post-execution service now composes
+fresh Cloud Audit, isolation, detailed billing, admitted-spend enforcement, and
+the finalizer into a durable model/SKU qualification repository. Actual paid
+execution and fresh external audit/billing ingestion remain open before Visual
+Intelligence can produce the actual Caption evidence required here.

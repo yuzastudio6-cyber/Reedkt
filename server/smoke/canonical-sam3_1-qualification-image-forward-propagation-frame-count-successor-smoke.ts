@@ -23,6 +23,10 @@ const capsuleBuilder = readFileSync(
   'docker/prod/gpu-worker/sam3_1/build-qualification-capsule.sh',
   'utf8',
 )
+const reproducibilityPublisher = readFileSync(
+  'server/cli/publish-canonical-sam3_1-qualification-capsule-reproducibility.ts',
+  'utf8',
+)
 const qualificationRunner = readFileSync(
   'docker/prod/gpu-worker/sam3_1/qualification_runner.py',
   'utf8',
@@ -80,6 +84,14 @@ for (const source of [
     '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
   ] as const) assert.ok(source.includes(expected), `build closure lost ${expected}`)
 }
+
+for (const expected of [
+  'forward_propagation_frame_count_corrected',
+  'sam31-qualification-capsule-reproducibility-forward-propagation-frame-count-corrected-v1',
+] as const) assert.ok(
+  reproducibilityPublisher.includes(expected),
+  `reproducibility publisher lost ${expected}`,
+)
 
 for (const source of [qualificationDockerfile, productionDockerfile] as const) {
   for (const expected of [

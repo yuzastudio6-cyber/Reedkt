@@ -169,7 +169,9 @@ for (const expected of [
   `production builder Dockerfile lost ${expected}`)
 for (const expected of [
   'reread-exact-canonical-control-records',
+  'validate-qualified-source-capsule-coordinate',
   'reread-exact-qualified-source-capsule',
+  'python:3.13.11-slim-bookworm@sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0',
   '--if-generation-match',
   'build-fixed-production-capsule',
   'full-archive-security-review',

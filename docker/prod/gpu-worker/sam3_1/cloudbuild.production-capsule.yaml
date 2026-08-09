@@ -53,11 +53,11 @@ steps:
         printf '%s  %s\n' '${_ARTIFACT_BINDING_SHA256}' \
           private-staging/private-artifact-build-binding.json \
           | sha256sum --check --strict
-  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
-    id: reread-exact-qualified-source-capsule
+  - name: python:3.13.11-slim-bookworm@sha256:20080e807bfc404f8450b185cf0fc95d553462673598549613735f70a5b4d5d0
+    id: validate-qualified-source-capsule-coordinate
     waitFor:
       - reread-exact-canonical-control-records
-    entrypoint: bash
+    entrypoint: sh
     args:
       - -ceu
       - |
@@ -101,6 +101,14 @@ steps:
             encoding='ascii',
         )
         PY
+  - name: gcr.io/google.com/cloudsdktool/google-cloud-cli@sha256:38b6345faa0554a3bfae9a79f175379cc8e95d2290dd7070848e2f8497e62428
+    id: reread-exact-qualified-source-capsule
+    waitFor:
+      - validate-qualified-source-capsule-coordinate
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
         . private-staging/source-capsule.env
         gcloud storage cp --if-generation-match="$${generation}" \
           "gs://reeditpro-production-reeditpro-image-build-inputs/$${object_name}" \

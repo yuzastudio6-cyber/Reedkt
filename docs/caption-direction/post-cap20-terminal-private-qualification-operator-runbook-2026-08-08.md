@@ -216,17 +216,25 @@ action and requires explicit authorization immediately before launch.
 Before any authorized attempt:
 
 1. rerun `npm run audit:visual-intelligence-live-prerequisites`;
-2. reread the exact current package, immutable image release, rate authority,
-   route bindings, quota, and active-job count;
+2. run
+   `npm run inspect:sam3_1-source-checkpoint-qualification-vertex-launch`
+   against the exact candidate package, immutable image release, and rate
+   authority so the canonical read-only owner rereads route lineage, quota,
+   and the bounded cost;
 3. fail closed on expiration or any source/image/package drift;
 4. use one new attempt ID and no automatic retry; and
 5. use only the canonical
    `start:sam3_1-source-checkpoint-qualification-vertex` and
    `reconcile:sam3_1-source-checkpoint-qualification-vertex` owners.
 
-The last read-only preflight bounded the maximum two-hour compute plus
-prorated boot-disk cost at **$11.672325712**. That observation is not standing
-authorization and must be refreshed before launch.
+The current `2026-08-09T03:46:05.827Z` read-only preflight still bounds the
+maximum two-hour compute plus prorated boot-disk cost at **$11.672325712**, but
+it returns `blocked_canonical_inputs_not_current` because the newest signed
+qualification image is not bound to the last package. The existing canonical
+package publisher must create/reread a new metadata-only package before the
+preflight can become ready. This observation is not standing authorization and
+must be refreshed again before launch. See
+[`post-cap20-sam31-launch-input-reconciliation-2026-08-09.md`](post-cap20-sam31-launch-input-reconciliation-2026-08-09.md).
 
 A successful generic source/checkpoint qualification is still not the Caption
 Track All gate. The exact terminal scene must subsequently obtain an admitted

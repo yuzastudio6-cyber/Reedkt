@@ -95,6 +95,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-staging-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-smoke.ts',
+  'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-preflight-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-operator-smoke.ts',

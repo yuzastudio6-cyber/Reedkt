@@ -6,6 +6,12 @@ Status: `exact_launch_inputs_ready_paid_job_not_authorized_or_started`
 
 Target: `caption_specialist_private_internal_qualified`
 
+> Historical receipt correction (2026-08-09): this exact input set is no
+> longer the current launch candidate. A newer signed qualification image was
+> published after this package, so the package/image lineage now fails closed.
+> See
+> [`post-cap20-sam31-launch-input-reconciliation-2026-08-09.md`](post-cap20-sam31-launch-input-reconciliation-2026-08-09.md).
+
 ## Outcome
 
 A read-only operator preflight now proves that the canonical backend has one
@@ -82,9 +88,10 @@ independent scene QA, and the exact approved snapshot/output/frame/work lineage.
 
 ## External authorization boundary
 
-Starting the bounded paid Vertex job is the first remaining action in this
-lane that requires explicit external-spend authorization. When authorized, the
-existing canonical start/reconcile operator must be used with a fresh rate
-reread and a new single-attempt ID. No Caption-owned dispatcher or alternate
-GPU owner may be introduced.
-
+This historical receipt must not be used to start the bounded paid Vertex job.
+The current package/image mismatch must first be resolved through the existing
+canonical package publisher and the new read-only preflight must return ready.
+After that correction, the paid start remains an explicit external-spend
+authorization boundary. The existing canonical start/reconcile operator must
+be used with a fresh rate reread and a new single-attempt ID. No Caption-owned
+dispatcher or alternate GPU owner may be introduced.

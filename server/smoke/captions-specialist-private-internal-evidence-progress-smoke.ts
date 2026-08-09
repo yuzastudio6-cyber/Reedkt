@@ -57,6 +57,15 @@ check(progress.gates.find((gate) =>
     'canonical-caption-transcript-correction-review-package-v1'),
 'the private transcript gate inventories the real correction review package')
 check(progress.gates.find((gate) =>
+  gate.gapId === 'visual_intelligence_authenticated_evidence')
+  ?.nextRequiredEvidenceCodes.includes(
+    'canonical_visual_intelligence_live_model_sku_qualification_executor_required')
+  && progress.gates.find((gate) =>
+    gate.gapId === 'visual_intelligence_authenticated_evidence')
+    ?.nextRequiredEvidenceCodes.includes(
+      'canonical_visual_intelligence_detailed_billing_export_reconciliation_reader_required'),
+'Visual Intelligence cannot be treated as live-ready before its canonical qualification executor and billing-export reader exist')
+check(progress.gates.find((gate) =>
   gate.gapId === 'soundsync_authenticated_evidence')?.status
     === 'actual_evidence_incomplete',
 'the real Sound execution remains incomplete without listening review')

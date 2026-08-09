@@ -107,9 +107,22 @@ Focused source evidence:
 
 Caption must consume a canonical Visual Intelligence result; it must not call
 Gemini or construct provider evidence itself. The current backend owner and
-Caption adapter are source-ready, but the private release prefixes contain no
-live model/SKU qualification, runtime-component qualification, or runtime
-release record.
+Caption adapter are source-ready for an already-qualified owner result, but the
+shared live owner path is not source-complete. The repository currently has the
+strict model/SKU qualification contract, immutable read port, account-effective
+rate reader, and downstream Visual Intelligence lifecycle. It does not have a
+canonical live model/SKU qualification executor/finalizer or a detailed
+billing-export reconciliation reader. The private release prefixes also
+contain no live model/SKU qualification, runtime-component qualification, or
+runtime release record.
+
+Those two source gaps must be implemented at the existing shared Visual
+Intelligence owner before a live provider qualification is attempted. They
+must bind two isolated standard/long-context provider attempts, exact provider
+usage, the detailed billing-export window, the six exact SKU identities, no
+other model/SKU traffic, immutable create-only persistence, and exact reread.
+They must not be implemented as a Caption service, accept caller-authored
+evidence booleans, or bypass the canonical provider/cost lifecycle.
 
 The Visual Intelligence owner must complete its existing isolated provider
 qualification and then execute against the exact terminal approved snapshot,

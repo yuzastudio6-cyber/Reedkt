@@ -194,6 +194,8 @@ const expectedGates: CaptionPrivateInternalEvidenceGateProgress[] = [
     ]),
   gate('visual_intelligence_authenticated_evidence',
     'source_ready_missing_actual_evidence', [], [
+      'canonical_visual_intelligence_live_model_sku_qualification_executor_required',
+      'canonical_visual_intelligence_detailed_billing_export_reconciliation_reader_required',
       'actual_canonical_visual_intelligence_owner_record_required',
       'exact_terminal_run_scope_and_output_frame_binding_required',
     ]),
@@ -285,8 +287,8 @@ export function parseCaptionPrivateInternalEvidenceProgress(
 const withoutDigest: Omit<CaptionPrivateInternalEvidenceProgress,
   'progressDigestSha256'> = {
   schemaVersion: CAPTION_PRIVATE_INTERNAL_EVIDENCE_PROGRESS_VERSION,
-  progressId: 'captions.private-internal.evidence-progress.2026-08-08-v12',
-  observedAt: '2026-08-08T12:00:00.000Z',
+  progressId: 'captions.private-internal.evidence-progress.2026-08-08-v13',
+  observedAt: '2026-08-08T12:30:00.000Z',
   sourceCurrentJobReadinessRef: jobReadinessRef(),
   counts: {
     declaredCaptionJobs: 41,

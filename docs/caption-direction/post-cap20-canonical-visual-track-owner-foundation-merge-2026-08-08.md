@@ -133,4 +133,9 @@ The merge removes source-foundation drift as a future integration risk. It does
 not close the actual terminal evidence gaps: real owner execution on the exact
 Caption qualification scenes, independent audio reviews, same-campaign final
 media reconciliation, qualified complete-time visual review, and independent
-final QA/private review remain required.
+final QA/private review remain required. The later terminal audit also found
+that the shared Visual Intelligence owner has a strict model/SKU qualification
+contract and immutable reader but no live qualification executor/finalizer or
+detailed billing-export reconciliation reader. Those shared owner source gaps
+must be closed centrally before Visual Intelligence can produce the actual
+Caption evidence required here.

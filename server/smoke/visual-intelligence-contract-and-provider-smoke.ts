@@ -854,10 +854,26 @@ async function main() {
   const providerIsolation = await auditProductionGeminiProviderIsolation()
   assert.deepEqual(providerIsolation.sdkImportFiles, [
     'server/visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter.ts',
+    'server/visual-intelligence/visual-intelligence-model-billing-sku-live-qualification.ts',
   ])
   assert.deepEqual(providerIsolation.directInvocationFiles, [
     'server/visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter.ts',
+    'server/visual-intelligence/visual-intelligence-model-billing-sku-live-qualification.ts',
   ])
+  const isolatedBillingQualificationSource = await readFile(resolve(
+    'server/visual-intelligence/'
+      + 'visual-intelligence-model-billing-sku-live-qualification.ts',
+  ), 'utf8')
+  assert.match(isolatedBillingQualificationSource,
+    /live_isolated_vertex_usage_pending_billing_export_reconciliation/u)
+  assert.match(isolatedBillingQualificationSource,
+    /automaticProviderRetryAllowed: z\.literal\(false\)/u)
+  assert.match(isolatedBillingQualificationSource,
+    /customerCreditsMutated: z\.literal\(false\)/u)
+  assert.match(isolatedBillingQualificationSource,
+    /productionReleaseAuthorityGranted: z\.literal\(false\)/u)
+  assert.doesNotMatch(isolatedBillingQualificationSource,
+    /createVisualIntelligenceLifecycleService|VisualIntelligenceProductionRuntime/u)
 
   console.log(JSON.stringify({
     status: 'visual_intelligence_contract_and_provider_smoke_passed',
@@ -888,6 +904,7 @@ async function main() {
       providerIsolation.sdkImportFiles.length,
     isolatedProductionGeminiInvokerCount:
       providerIsolation.directInvocationFiles.length,
+    isolatedBillingQualificationCannotBecomeRuntimeAuthority: true,
     deterministicEvidenceVersion:
       VISUAL_INTELLIGENCE_DETERMINISTIC_EVIDENCE_VERSION,
     requestDigestSha256: request.requestDigestSha256,

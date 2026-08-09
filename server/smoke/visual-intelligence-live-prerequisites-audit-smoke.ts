@@ -11,7 +11,7 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v19/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v20/u)
 assert.match(source, /observed_at="\$\(date -u/u)
 assert.match(source, /observedAt: \$observedAt/u)
 assert.match(source, /REGION='us-central1'/u)
@@ -51,10 +51,12 @@ assert.match(source, /routeArchitectureQualified: \$routeArchitectureQualified/u
 assert.match(source, /routeArchitectureSourceBindingCount: \$routeArchitectureSourceBindingCount/u)
 assert.match(source, /and \$routeArchitectureQualified/u)
 for (const sourceHash of [
-  'de62b7e84ebfcd8ee2ea6c7cedb457e2526bed1cae9669ae967558d74dffd14b',
+  '00c962fb1baf39dd9e3b88fc0254a69673cf2ef3da1bb977a8de7e21837cc2d2',
+  '77b076c2eb20e848ea6b63fa94a6eaa1452931e21f383c7d08113eacbeef62e4',
   '5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596',
   '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464',
   'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
+  'f986ae3a1e87559ce9299ee98f78bc9d05a745bb51511ac1f812245634c84c37',
   '07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25',
   'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9',
   '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
@@ -158,12 +160,22 @@ assert.match(source, /gcloud storage cat/u)
 assert.match(source,
   /canonical-sam3_1-private-artifact-ingest-receipt-v3/u)
 assert.match(source, /officialPrivateArtifactIngest/u)
+assert.match(source,
+  /canonical-sam3_1-source-checkpoint-qualification-release-v2/u)
+assert.match(source,
+  /canonical-sam3_1-source-checkpoint-compatibility-qualification-v2/u)
+assert.match(source, /vertex_qualification_release_observation/u)
+assert.match(source,
+  /exactOfficialSam31A100CudaCompatibilityQualified/u)
+assert.match(source,
+  /productionRuntimeReleaseGrantedByThisObservation: false/u)
 assert.match(source, /legacyModelWeightTokenSecretRequired: false/u)
 assert.match(source, /freshAccessTokenCurrentlyRequired: false/u)
 assert.match(source,
   /canonical-sam3_1-qualification-image-supply-chain-release-v1/u)
 assert.match(source, /qualificationImageSupplyChainRelease/u)
-assert.match(source, /sourceCheckpointCompatibilityReceiptObserved: false/u)
+assert.match(source,
+  /sourceCheckpointCompatibilityReceiptObserved:\s*\n\s*\$vertexSourceQualification\.ready/u)
 assert.match(source,
   /imageSupplyChainReleaseObserved: \$imageSupplyChainRelease\.ready/u)
 assert.match(source, /liveGeminiQualificationObserved: false/u)

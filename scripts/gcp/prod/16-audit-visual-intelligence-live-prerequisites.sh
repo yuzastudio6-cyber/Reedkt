@@ -23,6 +23,7 @@ IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 BILLING_EXPORT_DATASET='weeditpro_billing_export'
 SAM31_PRIVATE_ARTIFACT_INGEST_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/private-artifact-ingest/v3"
+SAM31_VERTEX_QUALIFICATION_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/source-checkpoint-qualification/v2/releases"
 SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/qualification-image-supply-chain-release/v1/qualified-releases"
 MASK_BUCKET='reeditpro-production-reeditpro-masks'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
@@ -32,10 +33,12 @@ A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_PREFERENCE_ID='weeditpro-vertex-a100-80gb-us-central1-1'
 VERTEX_A100_QUOTA_ID='CustomModelTrainingA10080GBGPUsPerProjectPerRegion'
 readonly -a VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS=(
-  'de62b7e84ebfcd8ee2ea6c7cedb457e2526bed1cae9669ae967558d74dffd14b|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
+  '00c962fb1baf39dd9e3b88fc0254a69673cf2ef3da1bb977a8de7e21837cc2d2|server/model-artifacts/canonical-sam3_1-source-checkpoint-qualification-vertex.ts'
+  '77b076c2eb20e848ea6b63fa94a6eaa1452931e21f383c7d08113eacbeef62e4|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'
   '5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-repository.ts'
   '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port.ts'
   'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'
+  'f986ae3a1e87559ce9299ee98f78bc9d05a745bb51511ac1f812245634c84c37|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner.ts'
   '07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
   'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'
   '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731|server/cli/canonical-sam3_1-source-checkpoint-qualification-vertex-operator.ts'
@@ -661,6 +664,95 @@ private_artifact_ingest_observation="$(jq -n \
       ready: (($ready | length) >= 1)
     }')"
 
+vertex_qualification_release_records="$(read_bounded_json_record_set \
+  "${SAM31_VERTEX_QUALIFICATION_RELEASE_PREFIX}" 128)"
+vertex_qualification_release_observation="$(jq -n \
+  --argjson records "${vertex_qualification_release_records}" \
+  'def raw_sha: test("^[a-f0-9]{64}$");
+  def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  [$records[] | select(
+    .schemaVersion ==
+      "canonical-sam3_1-source-checkpoint-qualification-release-v2"
+    and .source ==
+      "canonical_sam3_1_vertex_source_checkpoint_qualification_release_owner"
+    and .evidenceClass == "canonical_private_reread"
+    and .status == "qualified_for_private_image_build"
+    and .qualificationVersion == 2
+    and (.releaseHash | type == "string" and raw_sha)
+    and .sourceCheckpointQualificationRef.schemaVersion ==
+      "canonical-sam3_1-source-checkpoint-compatibility-qualification-v2"
+    and .sourceCheckpointQualificationRef.id == .qualificationId
+    and .sourceCheckpointQualificationRef.version == 2
+    and (.sourceCheckpointQualificationRef.contentHash |
+      type == "string" and prefixed_sha)
+    and (.qualification.qualificationHash | type == "string" and raw_sha)
+    and .sourceCheckpointQualificationRef.contentHash ==
+      ("sha256:" + .qualification.qualificationHash)
+    and .qualification.qualificationId == .qualificationId
+    and .qualification.qualificationVersion == 2
+    and .qualification.qualificationTruth
+      .officialSam31SourceAndCheckpointReread == true
+    and .qualification.qualificationTruth
+      .exactVertexRequestResultAdmissionExecutionAndTerminalReread == true
+    and .qualification.qualificationTruth.exactA10080GbExecutionVerified == true
+    and .qualification.qualificationTruth
+      .actualCudaModelInferenceExecuted == true
+    and .qualification.qualificationTruth
+      .completeForwardPropagationExecuted == true
+    and .qualification.qualificationTruth
+      .deterministicRepeatedProbeVerified == true
+    and .qualification.qualificationTruth.strictCheckpointLoadVerified == true
+    and .qualification.qualificationTruth.networkEgressObserved == false
+    and .qualification.qualificationTruth.cpuOnlyModelExecutionObserved == false
+    and .qualification.qualificationTruth.cpuVideoDecodeFallbackObserved == false
+    and .qualification.qualificationTruth
+      .quantizationOrResolutionReductionUsed == false
+    and .qualification.qualificationTruth.automaticRetryUsed == false
+    and .qualification.qualificationTruth.persistentGpuResourceObserved == false
+    and .qualification.qualificationTruth
+      .activeA100GpuInstancesAfterObservation == 0
+    and .qualification.qualificationTruth
+      .billingAccountEffectiveRateAndUsageReread == true
+    and .qualification.qualificationTruth
+      .legacyBatchRequestOrResultCastOrRelabelUsed == false
+    and .sourceCheckpointQualificationGranted == true
+    and .privateImageBuildReviewEligible == true
+    and .imageBuildStarted == false
+    and .runtimeReleaseGranted == false
+    and .customerMediaProcessed == false
+    and .customerCreditsMutated == false
+    and .customerBillingAuthorityGranted == false
+    and .qaApproved == false
+    and .publicDeliveryAuthorized == false
+    and .productionReady == false
+  )] as $qualified
+  | ($qualified | sort_by(.releasedAt) | last // null) as $latest
+  | {
+      recordsObserved: ($records | length),
+      qualifiedReleasesObserved: ($qualified | length),
+      latestQualifiedRelease: (
+        if $latest == null then null else {
+          qualificationId: $latest.qualificationId,
+          releaseHash: $latest.releaseHash,
+          qualificationHash: $latest.qualification.qualificationHash,
+          sourceCheckpointQualificationRef:
+            $latest.sourceCheckpointQualificationRef,
+          vertexExecutionRef:
+            $latest.qualification.exactEvidenceRefs.executionRef,
+          platformStopEvidenceRef:
+            $latest.qualification.exactEvidenceRefs.platformStopEvidenceRef,
+          qualificationCostReceiptRef:
+            $latest.qualification.exactEvidenceRefs.qualificationCostReceiptRef,
+          releasedAt: $latest.releasedAt
+        } end
+      ),
+      exactOfficialSam31A100CudaCompatibilityQualified:
+        (($qualified | length) >= 1),
+      productionImageBuildAuthorizedByThisObservation: false,
+      productionRuntimeReleaseGrantedByThisObservation: false,
+      ready: (($qualified | length) >= 1)
+    }')"
+
 qualification_image_supply_chain_release_records="$(
   read_bounded_json_record_set "${SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX}" 128
 )"
@@ -1163,7 +1255,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v19' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v20' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
@@ -1185,6 +1277,7 @@ jq -n \
   --argjson sam31QualificationImageCount "${sam31_qualification_image_count}" \
   --argjson trackAllL4TaskQaImageCount "${track_all_l4_task_qa_image_count}" \
   --argjson privateArtifactIngest "${private_artifact_ingest_observation}" \
+  --argjson vertexSourceQualification "${vertex_qualification_release_observation}" \
   --argjson imageSupplyChainRelease "${qualification_image_supply_chain_release_observation}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson billingExportFoundation "${billing_export_foundation}" \
@@ -1353,7 +1446,10 @@ jq -n \
     ),
     accountEffectiveGeminiPricing: $accountPricing,
     accountEffectiveBillingExportFoundation: $billingExportFoundation,
-    sourceCheckpointCompatibilityReceiptObserved: false,
+    sourceCheckpointCompatibilityQualification:
+      $vertexSourceQualification,
+    sourceCheckpointCompatibilityReceiptObserved:
+      $vertexSourceQualification.ready,
     qualificationImageSupplyChainRelease: $imageSupplyChainRelease,
     imageSupplyChainReleaseObserved: $imageSupplyChainRelease.ready,
     liveGeminiQualificationObserved: false,

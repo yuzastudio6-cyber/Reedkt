@@ -6,6 +6,48 @@ This receipt distinguishes implemented source architecture from live cloud
 qualification. It does not call an unavailable candidate “installed” and does
 not authorize public or production use.
 
+## 2026-08-09 live-state correction
+
+This section supersedes the older source/checkpoint and provider-migration
+status statements retained below for audit history.
+
+- The official SAM 3.1 source/checkpoint compatibility probe has now executed
+  successfully on a real Vertex AI A100 80 GB worker. The create-only release
+  is stored at
+  `private/sam3_1/source-checkpoint-qualification/v2/releases/5e96b235feaa2ea29c4d8d0b0c9051a2b456b13ead19b8dc698da280d08bcc10.json`.
+  Its release SHA-256 is
+  `c1bcdbca2ddc4058d8f29960a9381fb47bd763db1346bba4ff6a443fbb005b36`
+  and its qualification SHA-256 is
+  `ba8708871ddace51ca8ed0602beeaa8a406c66494848a07ef6f58d377e7085d9`.
+  The probe proved strict checkpoint loading, actual CUDA model execution,
+  complete forward propagation, repeatability, no CPU model/decode fallback,
+  no quantization or resolution reduction, terminal scale-to-zero, and an
+  account-effective attempt-cost reread. It did not process customer media or
+  mutate customer credits.
+- This compatibility release authorizes only the next private production-image
+  build review. It is not a Track All runtime release and does not prove actual
+  full-video segmentation/tracking, eight-minute throughput, temporal mask
+  quality, an L4 fallback, final task QA, or private end-to-end admission.
+- The production capsule, Vertex-qualified image-build binding, v3 cloud image
+  authority, and post-build supply-chain owner now consume the exact Vertex
+  qualification lineage without casting it to the historical Batch v1 wire.
+  The live immutable production image build and its independent supply-chain
+  release are still pending.
+- The provider-neutral `visual_intelligence` source runtime, Orchestra
+  capability manifest, Gemini Pro High adapter, authenticated result stores,
+  cost owner, and active Qwen retirement gates are implemented and source-
+  green. Remaining Gemini work is live `professional_high` qualification,
+  account-effective model-rate publication, usage/billing reconciliation, and
+  runtime-release publication—not another source-level Qwen replacement.
+- The read-only cloud prerequisites audit is now v20. It rereads the exact
+  Vertex compatibility release separately from production-image and full GPU
+  runtime releases, so the successful probe can no longer be hidden or
+  overstated as end-to-end readiness.
+- The current terminal disposition remains fail-closed: production SAM 3.1
+  image, A100 Track All runtime, independently qualified L4 fallback, live
+  Gemini Pro High runtime, customer credit settlement/refund proof, and the
+  combined private WeEditPro end-to-end test are still required.
+
 ## 2026-08-07 live-state correction
 
 This section supersedes older point-in-time blocker statements retained later

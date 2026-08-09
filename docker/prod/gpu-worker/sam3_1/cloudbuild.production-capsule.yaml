@@ -113,7 +113,7 @@ steps:
         gcloud storage cp --if-generation-match="$${generation}" \
           "gs://reeditpro-production-reeditpro-image-build-inputs/$${object_name}" \
           private-staging/source-qualification-capsule.tar.gz
-        test "$$(stat --format='%s' \
+        test "$$(wc -c < \
           private-staging/source-qualification-capsule.tar.gz)" \
           = "$${byte_length}"
         printf '%s  %s\n' "$${digest}" \
@@ -169,7 +169,7 @@ steps:
         test -n "$${capsule}" && test -n "$${builder}"
         test "$$(printf '%s\n' "$${capsule}" | wc -l)" = 1
         test "$$(printf '%s\n' "$${builder}" | wc -l)" = 1
-        test "$$(stat --format='%s' "$${capsule}")" -le 4293918720
+        test "$$(wc -c < "$${capsule}")" -le 4293918720
         scanner_version="$$(clamscan --version)"
         scan_output="$$(clamscan --infected --scan-archive=yes \
           --max-filesize=4095M --max-scansize=4095M --max-recursion=32 \

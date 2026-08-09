@@ -179,7 +179,7 @@ for (const expected of [
   'build-fixed-production-capsule',
   'full-archive-security-review',
   '--scan-archive=yes',
-  "stat --format='%s'",
+  'wc -c <',
   '4293918720',
   'upload-create-only-production-evidence',
   '--if-generation-match=0',
@@ -191,6 +191,7 @@ for (const expected of [
   'projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
 ] as const) assert.ok(cloudBuild.includes(expected),
   `production Cloud Build lost ${expected}`)
+assert.doesNotMatch(cloudBuild, /stat --format/u)
 assert.doesNotMatch(
   cloudBuild,
   /(?:secretEnv|availableSecrets|sam3\.1_multiplex\.pt|nvidia-l4|a100-80gb|freshclam|\bcurl\b)/iu,

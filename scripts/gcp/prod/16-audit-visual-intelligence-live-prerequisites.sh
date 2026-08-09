@@ -21,6 +21,7 @@ MODEL_ARTIFACT_BUCKET='reeditpro-production-reeditpro-model-artifacts'
 IMAGE_BUILD_INPUT_BUCKET='reeditpro-production-reeditpro-image-build-inputs'
 IMAGE_SUPPLY_CHAIN_EVIDENCE_BUCKET='reeditpro-production-reeditpro-image-supply-chain-evidence'
 CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
+BILLING_EXPORT_DATASET='weeditpro_billing_export'
 SAM31_PRIVATE_ARTIFACT_INGEST_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/private-artifact-ingest/v3"
 SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/qualification-image-supply-chain-release/v1/qualified-releases"
 MASK_BUCKET='reeditpro-production-reeditpro-masks'
@@ -73,6 +74,7 @@ readonly -a LEGACY_CPU_PROCESSING_IDENTITIES=(
 
 command -v gcloud >/dev/null
 command -v jq >/dev/null
+command -v bq >/dev/null
 observed_at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
 sha256_file() {
@@ -396,6 +398,8 @@ required_services=(
   'artifactregistry.googleapis.com'
   'batch.googleapis.com'
   'binaryauthorization.googleapis.com'
+  'bigquery.googleapis.com'
+  'bigquerydatatransfer.googleapis.com'
   'cloudbilling.googleapis.com'
   'cloudbuild.googleapis.com'
   'cloudkms.googleapis.com'
@@ -428,6 +432,43 @@ account_pricing_json="$(
   WEEDITPRO_BILLING_ACCOUNT_RESOURCE_NAME="${billing_account_resource}" \
     node scripts/gcp/prod/read-visual-intelligence-account-price-readiness.mjs
 )"
+billing_export_dataset_metadata="$(
+  read_json_or_empty bq show --project_id="${PROJECT_ID}" --format=prettyjson \
+    "${PROJECT_ID}:${BILLING_EXPORT_DATASET}"
+)"
+billing_export_tables="$(
+  bq ls --project_id="${PROJECT_ID}" --format=prettyjson \
+    "${PROJECT_ID}:${BILLING_EXPORT_DATASET}" 2>/dev/null || true
+)"
+if ! jq -e 'type == "array"' <<<"${billing_export_tables}" >/dev/null 2>&1; then
+  billing_export_tables='[]'
+fi
+billing_export_foundation="$(jq -n \
+  --arg projectId "${PROJECT_ID}" \
+  --arg datasetId "${BILLING_EXPORT_DATASET}" \
+  --argjson metadata "${billing_export_dataset_metadata}" \
+  --argjson tables "${billing_export_tables}" \
+  '($tables | if type == "array" then . else [] end) as $tableSet
+  | ([$tableSet[]?.tableReference.tableId? | strings]) as $tableIds
+  | {
+      projectId: $projectId,
+      datasetId: $datasetId,
+      datasetExists: ($metadata.id == ($projectId + ":" + $datasetId)),
+      location: ($metadata.location // null),
+      detailedUsageCostExportTableObserved: any(
+        $tableIds[]?; startswith("gcp_billing_export_resource_v1_")
+      ),
+      pricingExportTableObserved: any(
+        $tableIds[]?; . == "cloud_pricing_export"
+      ),
+      exportDataPrinted: false,
+      ready: (
+        $metadata.id == ($projectId + ":" + $datasetId)
+        and $metadata.location == "US"
+        and any($tableIds[]?; startswith("gcp_billing_export_resource_v1_"))
+        and any($tableIds[]?; . == "cloud_pricing_export")
+      )
+    }')"
 missing_services=()
 for service in "${required_services[@]}"; do
   if ! grep -Fxq "${service}" <<<"${enabled_services}"; then
@@ -1122,7 +1163,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v18' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v19' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
@@ -1146,6 +1187,7 @@ jq -n \
   --argjson privateArtifactIngest "${private_artifact_ingest_observation}" \
   --argjson imageSupplyChainRelease "${qualification_image_supply_chain_release_observation}" \
   --argjson accountPricing "${account_pricing_json}" \
+  --argjson billingExportFoundation "${billing_export_foundation}" \
   --argjson a100QualificationFoundation "${a100_qualification_foundation}" \
   --argjson imageBuilderIdentity "${image_builder_identity}" \
   --argjson imageSignerIdentity "${image_signer_identity}" \
@@ -1310,6 +1352,7 @@ jq -n \
       $sam31ImageCount >= 1 and $trackAllL4TaskQaImageCount >= 1
     ),
     accountEffectiveGeminiPricing: $accountPricing,
+    accountEffectiveBillingExportFoundation: $billingExportFoundation,
     sourceCheckpointCompatibilityReceiptObserved: false,
     qualificationImageSupplyChainRelease: $imageSupplyChainRelease,
     imageSupplyChainReleaseObserved: $imageSupplyChainRelease.ready,

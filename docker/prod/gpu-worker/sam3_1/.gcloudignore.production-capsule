@@ -10,3 +10,5 @@
 !source-provenance.lock
 !patches/
 !patches/0001-reeditpro-gpu-decode.patch
+!patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch
+!patches/0004-weeditpro-forward-propagation-frame-count.patch

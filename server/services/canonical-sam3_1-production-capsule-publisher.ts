@@ -513,6 +513,11 @@ function createManifest(input: {
   readonly preparedAt: string
 }) {
   const builder = input.primary.builderResult
+  if (!builder.forwardPropagationFrameCountPatchSha256) {
+    throw new Error(
+      'Production capsule omitted the SAM 3.1 frame-count propagation patch.',
+    )
+  }
   return createCanonicalSam31PrivateImageBuildCapsuleManifest({
     evidenceClass: 'canonical_private_reread',
     status: 'private_capsule_verified',
@@ -544,6 +549,8 @@ function createManifest(input: {
               builder.multiplexSessionGpuForwardingPatchSha256,
           }
         : {}),
+      forwardPropagationFrameCountPatchSha256:
+        builder.forwardPropagationFrameCountPatchSha256,
     },
     privateInput: {
       directoryName: 'sam31_private_build_input',

@@ -210,6 +210,13 @@ export async function prepareCanonicalSam31VertexCloudImageBuildAuthority(
                 .multiplexSessionGpuForwardingPatchSha256,
           }
         : {}),
+      ...(capsule.repositorySource.forwardPropagationFrameCountPatchSha256
+        ? {
+            forwardPropagationFrameCountPatchSha256:
+              capsule.repositorySource
+                .forwardPropagationFrameCountPatchSha256,
+          }
+        : {}),
     },
     cloudBuildPolicy: {
       projectId: 'reeditpro',

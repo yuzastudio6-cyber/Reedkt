@@ -95,6 +95,9 @@ const builderWithoutHashSchema = z.object({
   multiplexSessionGpuForwardingPatchSha256: z.literal(
     'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
   ).optional(),
+  forwardPropagationFrameCountPatchSha256: z.literal(
+    '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
+  ).optional(),
   capsuleSha256: sha256,
   capsuleByteLength: positiveInteger.max(MAXIMUM_CAPSULE_BYTES),
   archiveEntries: z.array(archiveEntrySchema).min(16).max(512),

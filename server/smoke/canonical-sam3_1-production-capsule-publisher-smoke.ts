@@ -343,6 +343,10 @@ function createBuild(
     ),
     gpuDecodePatchSha256:
       'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
+    multiplexSessionGpuForwardingPatchSha256:
+      'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+    forwardPropagationFrameCountPatchSha256:
+      '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
     capsuleSha256: capsuleSha,
     capsuleByteLength: 1_024,
     archiveEntries: entries,
@@ -447,6 +451,12 @@ function createEntries() {
     repositoryFile('docker/prod/gpu-worker/sam3_1/entrypoint.sh'),
     repositoryFile(
       'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
+    ),
+    repositoryFile(
+      'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
+    ),
+    repositoryFile(
+      'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     ),
     repositoryFile('docker/prod/gpu-worker/sam3_1/runner.py'),
     repositoryFile('docker/prod/gpu-worker/sam3_1/source-provenance.lock'),

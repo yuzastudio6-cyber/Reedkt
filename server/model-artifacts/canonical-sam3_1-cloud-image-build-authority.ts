@@ -229,6 +229,9 @@ const capsuleManifestWithoutHashSchema = z.object({
     multiplexSessionGpuForwardingPatchSha256: z.literal(
       'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
     ).optional(),
+    forwardPropagationFrameCountPatchSha256: z.literal(
+      '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
+    ).optional(),
   }).strict(),
   privateInput: z.object({
     directoryName: z.literal(PRIVATE_INPUT_DIRECTORY),
@@ -377,6 +380,9 @@ export const canonicalSam31CloudImageBuildAuthorityBaseSchema = z.object({
     cudaForwardCompatIngestReceiptSha256: sha256,
     multiplexSessionGpuForwardingPatchSha256: z.literal(
       'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+    ).optional(),
+    forwardPropagationFrameCountPatchSha256: z.literal(
+      '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
     ).optional(),
   }).strict(),
   cloudBuildPolicy: z.object({
@@ -699,6 +705,13 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
                 .multiplexSessionGpuForwardingPatchSha256,
           }
         : {}),
+      ...(capsule.repositorySource.forwardPropagationFrameCountPatchSha256
+        ? {
+            forwardPropagationFrameCountPatchSha256:
+              capsule.repositorySource
+                .forwardPropagationFrameCountPatchSha256,
+          }
+        : {}),
     },
     cloudBuildPolicy: {
       projectId: PROJECT_ID,
@@ -918,6 +931,16 @@ function assertCapsuleManifestEntries(
   } else if (byPath.has(multiplexSessionGpuForwardingPatchPath)) {
     throw new Error('Capsule GPU-forwarding patch is unbound.')
   }
+  const forwardPropagationFrameCountPatchPath =
+    'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch'
+  if (value.repositorySource.forwardPropagationFrameCountPatchSha256) {
+    required(
+      forwardPropagationFrameCountPatchPath,
+      value.repositorySource.forwardPropagationFrameCountPatchSha256,
+    )
+  } else if (byPath.has(forwardPropagationFrameCountPatchPath)) {
+    throw new Error('Capsule frame-count patch is unbound.')
+  }
   required(
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,
     value.privateInput.patchApplicationReceiptSha256,
@@ -1050,6 +1073,7 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
     'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
+    'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/sam3-96914d2425f90a64f45ca977c2b5165418099543-reeditpro-gpu-decode.tar`,
     `${PRIVATE_INPUT_DIRECTORY}/source/source-patch-application-receipt.json`,

@@ -86,6 +86,8 @@ const manifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
       'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
     multiplexSessionGpuForwardingPatchSha256:
       'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+    forwardPropagationFrameCountPatchSha256:
+      '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
   },
   privateInput: {
     directoryName: 'sam31_private_build_input',
@@ -278,6 +280,10 @@ assert.equal(
   rereadAuthority?.buildClosure.multiplexSessionGpuForwardingPatchSha256,
   manifest.repositorySource.multiplexSessionGpuForwardingPatchSha256,
 )
+assert.equal(
+  rereadAuthority?.buildClosure.forwardPropagationFrameCountPatchSha256,
+  manifest.repositorySource.forwardPropagationFrameCountPatchSha256,
+)
 assert.equal(rereadAuthority?.cloudBuildPolicy.machineType, 'E2_HIGHCPU_8')
 
 await assert.rejects(publisher.publish({ ...request, command: 'docker build' }))
@@ -379,6 +385,8 @@ function createAuthority(preparedAt: string) {
         manifest.privateInput.cudaForwardCompatIngestReceiptSha256,
       multiplexSessionGpuForwardingPatchSha256:
         manifest.repositorySource.multiplexSessionGpuForwardingPatchSha256,
+      forwardPropagationFrameCountPatchSha256:
+        manifest.repositorySource.forwardPropagationFrameCountPatchSha256,
     },
     cloudBuildPolicy: {
       projectId: 'reeditpro' as const,
@@ -449,6 +457,9 @@ function createEntries(input: {
     ),
     fileEntry(
       'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
+    ),
+    fileEntry(
+      'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     ),
     fileEntry('docker/prod/gpu-worker/sam3_1/runner.py'),
     fileEntry('docker/prod/gpu-worker/sam3_1/source-provenance.lock'),

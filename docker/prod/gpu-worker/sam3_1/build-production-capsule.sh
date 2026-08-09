@@ -279,6 +279,8 @@ cp "${ROOT}/source/patches/0001-reeditpro-gpu-decode.patch" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch"
 cp "${ROOT}/source/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch"
+cp "${ROOT}/source/patches/0004-weeditpro-forward-propagation-frame-count.patch" \
+  "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch"
 
 test -z "$(find "${BUILD_SOURCE}" -mindepth 1 ! -type d ! -type f -print -quit)"
 find "${BUILD_SOURCE}" -type f -exec touch -d '@0' '{}' +
@@ -332,6 +334,7 @@ repository_paths = [
     "docker/prod/gpu-worker/sam3_1/entrypoint.sh",
     "docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch",
     "docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch",
+    "docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch",
     "docker/prod/gpu-worker/sam3_1/runner.py",
     "docker/prod/gpu-worker/sam3_1/source-provenance.lock",
 ]
@@ -360,12 +363,15 @@ payload = {
     "sourceQualificationCapsuleRef": metadata["sourceQualificationCapsuleRef"],
     "sourceQualificationCapsuleExactlyReread": True,
     "dockerfileSha256": by_path[repository_paths[0]]["sha256"],
-    "runnerSha256": by_path[repository_paths[4]]["sha256"],
+    "runnerSha256": by_path[repository_paths[5]]["sha256"],
     "entrypointSha256": by_path[repository_paths[1]]["sha256"],
-    "sourceProvenanceLockSha256": by_path[repository_paths[5]]["sha256"],
+    "sourceProvenanceLockSha256": by_path[repository_paths[6]]["sha256"],
     "gpuDecodePatchSha256": by_path[repository_paths[2]]["sha256"],
     "multiplexSessionGpuForwardingPatchSha256": by_path[
         repository_paths[3]
+    ]["sha256"],
+    "forwardPropagationFrameCountPatchSha256": by_path[
+        repository_paths[4]
     ]["sha256"],
     "capsuleSha256": sha(capsule_body),
     "capsuleByteLength": len(capsule_body),

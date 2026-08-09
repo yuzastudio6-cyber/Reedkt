@@ -35,7 +35,12 @@ capsule_path, manifest_path, release_path, binding_path, output_root, metadata_p
 
 def canonical(value):
     return json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        # These are generation-bound records written by the canonical
+        # JavaScript owner. Preserve their exact observed wire-key order when
+        # recomputing embedded hashes; Python's lexical key order is not the
+        # producer's canonical comparator. The raw object SHA was verified by
+        # the preceding Cloud Build step.
+        value, sort_keys=False, separators=(",", ":"), ensure_ascii=False,
         allow_nan=False,
     ).encode("utf-8")
 

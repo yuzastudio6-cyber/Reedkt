@@ -375,6 +375,9 @@ export const canonicalSam31CloudImageBuildAuthorityBaseSchema = z.object({
     sourceCheckpointQualificationRecordHash: sha256,
     sourceCheckpointCompatibilityReceiptSha256: sha256,
     cudaForwardCompatIngestReceiptSha256: sha256,
+    multiplexSessionGpuForwardingPatchSha256: z.literal(
+      'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
+    ).optional(),
   }).strict(),
   cloudBuildPolicy: z.object({
     projectId: z.literal(PROJECT_ID),

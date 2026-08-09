@@ -84,6 +84,8 @@ const manifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
     ),
     gpuDecodePatchSha256:
       'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
+    multiplexSessionGpuForwardingPatchSha256:
+      'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b',
   },
   privateInput: {
     directoryName: 'sam31_private_build_input',
@@ -272,6 +274,10 @@ assert.equal(
     : true,
   false,
 )
+assert.equal(
+  rereadAuthority?.buildClosure.multiplexSessionGpuForwardingPatchSha256,
+  manifest.repositorySource.multiplexSessionGpuForwardingPatchSha256,
+)
 
 await assert.rejects(publisher.publish({ ...request, command: 'docker build' }))
 await assert.rejects(publisher.publish({
@@ -298,7 +304,7 @@ assert.throws(() => createCanonicalSam31ProductionImageAuthorityPublisher({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-image-authority-publisher',
-  checks: 21,
+  checks: 22,
   exactQualifiedReleaseReread: true,
   exactPrivateIngestReread: true,
   vertexArtifactBindingExactReread: true,
@@ -306,6 +312,7 @@ console.log(JSON.stringify({
   vertexBuildAuthorityV3CreateOnlyAndReread: true,
   realAuthorityConstructorSeparatesTrustedReadPortFromSerializedEvidence: true,
   accessorReadPortRejectedWithoutInvocation: true,
+  multiplexSessionGpuForwardingPatchBound: true,
   historicalBatchQualificationCastOrRelabelUsed: false,
   callerCommandPathTagRetryOrRuntimeAuthorityAccepted: false,
   developerMachineModelOrCheckpointInstallPerformed: false,
@@ -368,6 +375,8 @@ function createAuthority(preparedAt: string) {
         manifest.privateInput.sourceCheckpointCompatibilityReceiptSha256,
       cudaForwardCompatIngestReceiptSha256:
         manifest.privateInput.cudaForwardCompatIngestReceiptSha256,
+      multiplexSessionGpuForwardingPatchSha256:
+        manifest.repositorySource.multiplexSessionGpuForwardingPatchSha256,
     },
     cloudBuildPolicy: {
       projectId: 'reeditpro' as const,
@@ -435,6 +444,9 @@ function createEntries(input: {
     fileEntry('docker/prod/gpu-worker/sam3_1/entrypoint.sh'),
     fileEntry(
       'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
+    ),
+    fileEntry(
+      'docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
     ),
     fileEntry('docker/prod/gpu-worker/sam3_1/runner.py'),
     fileEntry('docker/prod/gpu-worker/sam3_1/source-provenance.lock'),

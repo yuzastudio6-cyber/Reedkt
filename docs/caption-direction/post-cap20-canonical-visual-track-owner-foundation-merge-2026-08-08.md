@@ -109,6 +109,10 @@ The exact current launch-input and bounded internal-cost observation is recorded
 separately in
 [`post-cap20-sam31-live-qualification-launch-preflight-2026-08-08.md`](post-cap20-sam31-live-qualification-launch-preflight-2026-08-08.md).
 
+The exact remaining internal-only review, owner-evidence, terminal-campaign,
+render, repair, and release order is frozen in
+[`post-cap20-terminal-private-qualification-operator-runbook-2026-08-08.md`](post-cap20-terminal-private-qualification-operator-runbook-2026-08-08.md).
+
 ## Media inspected
 
 None. This checkpoint integrates and validates owner source/runtime authority;

@@ -162,6 +162,10 @@ fixed_paths = {
     "sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-forward-compat-ingest-receipt.json",
     "sam31_private_build_input/dependency-closure/cuda-npp/libnpp-12-8_12.3.3.100-1_amd64.deb",
     "sam31_private_build_input/dependency-closure/cuda-npp/cuda-npp-runtime-receipt.json",
+    "sam31_private_build_input/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb",
+    "sam31_private_build_input/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb",
+    "sam31_private_build_input/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb",
+    "sam31_private_build_input/dependency-closure/os-security-updates/security-update-receipt.json",
     "sam31_private_build_input/dependency-closure/python-ingest/einops/einops-ingest-receipt.json",
     "sam31_private_build_input/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json",
 }
@@ -277,6 +281,8 @@ cp "${ROOT}/source/source-provenance.lock" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/source-provenance.lock"
 cp "${ROOT}/source/patches/0001-reeditpro-gpu-decode.patch" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch"
+cp "${ROOT}/source/patches/0002-weeditpro-importlib-resources.patch" \
+  "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch"
 cp "${ROOT}/source/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch"
 cp "${ROOT}/source/patches/0004-weeditpro-forward-propagation-frame-count.patch" \
@@ -337,6 +343,7 @@ repository_paths = [
     "docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch",
     "docker/prod/gpu-worker/sam3_1/runner.py",
     "docker/prod/gpu-worker/sam3_1/source-provenance.lock",
+    "docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch",
 ]
 source_bundle = {
     "repositoryCommit": repository_commit,

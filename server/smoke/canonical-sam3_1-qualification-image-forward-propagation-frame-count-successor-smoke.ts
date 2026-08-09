@@ -23,6 +23,14 @@ const capsuleBuilder = readFileSync(
   'docker/prod/gpu-worker/sam3_1/build-qualification-capsule.sh',
   'utf8',
 )
+const capsuleBuilderDockerfile = readFileSync(
+  'docker/prod/gpu-worker/sam3_1/Dockerfile.qualification-capsule-builder',
+  'utf8',
+)
+const capsuleGcloudIgnore = readFileSync(
+  'docker/prod/gpu-worker/sam3_1/.gcloudignore',
+  'utf8',
+)
 const reproducibilityPublisher = readFileSync(
   'server/cli/publish-canonical-sam3_1-qualification-capsule-reproducibility.ts',
   'utf8',
@@ -78,12 +86,24 @@ for (const source of [
   qualificationDockerfile,
   productionDockerfile,
   capsuleBuilder,
+  capsuleBuilderDockerfile,
+  capsuleGcloudIgnore,
 ] as const) {
-  for (const expected of [
-    '0004-weeditpro-forward-propagation-frame-count.patch',
-    '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
-  ] as const) assert.ok(source.includes(expected), `build closure lost ${expected}`)
+  assert.ok(
+    source.includes('0004-weeditpro-forward-propagation-frame-count.patch'),
+    'build closure lost patch 0004',
+  )
 }
+for (const source of [
+  qualificationDockerfile,
+  productionDockerfile,
+  capsuleBuilder,
+] as const) assert.ok(
+  source.includes(
+    '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de',
+  ),
+  'build closure lost patch 0004 digest',
+)
 
 for (const expected of [
   'forward_propagation_frame_count_corrected',

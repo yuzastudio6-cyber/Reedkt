@@ -80,6 +80,13 @@ was not force-enabled: the eight bindings and their focused source regression
 were updated to the exact current bytes, and an independent whole-binding
 recalculation now reports no mismatch.
 
+The focused source regression now independently SHA-256 hashes all ten declared
+files and compares those bytes to the audit binding set. A future runtime,
+repository, launch, reconciliation, cost, operator, or focused-proof edit will
+therefore fail the normal source release suite until the exact reviewed binding
+is deliberately refreshed; a source-green release can no longer carry a stale
+route-readiness set unnoticed.
+
 `weeditpro-visual-intelligence-live-prerequisites-v18`, observed at
 `2026-08-09T00:00:42Z`, now reports:
 

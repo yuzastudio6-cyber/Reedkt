@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 const source = readFileSync(
@@ -50,18 +51,38 @@ assert.match(source, /sha256_file/u)
 assert.match(source, /routeArchitectureQualified: \$routeArchitectureQualified/u)
 assert.match(source, /routeArchitectureSourceBindingCount: \$routeArchitectureSourceBindingCount/u)
 assert.match(source, /and \$routeArchitectureQualified/u)
-for (const sourceHash of [
-  '273d442863455e30d548423ff7ec4719d1985c804f8b9a2721ac8a94704fc70b',
-  '5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596',
-  '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464',
-  'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
-  '07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25',
-  'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9',
-  '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
-  '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
-  '6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e',
-  '2f0829a64706fae863af428a306f370b496b46e6a272434b3a6d0415e41b787a',
-] as const) assert.match(source, new RegExp(sourceHash, 'u'))
+const exactVertexRouteBindings = [
+  ['273d442863455e30d548423ff7ec4719d1985c804f8b9a2721ac8a94704fc70b',
+    'server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime.ts'],
+  ['5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596',
+    'server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-repository.ts'],
+  ['9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464',
+    'server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port.ts'],
+  ['d14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
+    'server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'],
+  ['07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25',
+    'server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'],
+  ['e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9',
+    'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'],
+  ['4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
+    'server/cli/canonical-sam3_1-source-checkpoint-qualification-vertex-operator.ts'],
+  ['12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
+    'server/cli/start-canonical-sam3_1-source-checkpoint-qualification-vertex.ts'],
+  ['6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e',
+    'server/cli/reconcile-canonical-sam3_1-source-checkpoint-qualification-vertex.ts'],
+  ['2f0829a64706fae863af428a306f370b496b46e6a272434b3a6d0415e41b787a',
+    'server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-operator-smoke.ts'],
+] as const
+assert.equal(exactVertexRouteBindings.length, 10)
+assert.equal(new Set(exactVertexRouteBindings.map(([, path]) => path)).size, 10)
+for (const [sourceHash, path] of exactVertexRouteBindings) {
+  assert.match(source, new RegExp(`${sourceHash}\\|${path}`, 'u'))
+  assert.equal(
+    createHash('sha256').update(readFileSync(path)).digest('hex'),
+    sourceHash,
+    `Vertex route source binding drifted for ${path}`,
+  )
+}
 assert.match(source, /disposition/u)
 assert.match(source, /capacityGranted/u)
 assert.match(source, /a100QualificationFoundation/u)

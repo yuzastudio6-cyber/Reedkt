@@ -495,6 +495,8 @@
     "smoke:visual-intelligence-provider-audit-window-observation-repository": "tsx server/smoke/visual-intelligence-provider-audit-window-observation-repository-smoke.ts",
     "smoke:visual-intelligence-provider-traffic-isolation-authority-finalizer": "tsx server/smoke/visual-intelligence-provider-traffic-isolation-authority-finalizer-smoke.ts",
     "smoke:visual-intelligence-provider-traffic-isolation-authority-repository": "tsx server/smoke/visual-intelligence-provider-traffic-isolation-authority-repository-smoke.ts",
+    "smoke:visual-intelligence-model-billing-sku-live-executor": "tsx server/smoke/visual-intelligence-model-billing-sku-live-executor-smoke.ts",
+    "smoke:visual-intelligence-model-billing-sku-live-gcs-store": "tsx server/smoke/visual-intelligence-model-billing-sku-live-gcs-store-smoke.ts",
     "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:a100-vertex-custom-job-launch": "tsx server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts",
     "smoke:a100-vertex-custom-job-terminal": "tsx server/smoke/canonical-a100-vertex-custom-job-terminal-port-smoke.ts",

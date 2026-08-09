@@ -107,8 +107,9 @@ Focused source evidence:
 
 Caption must consume a canonical Visual Intelligence result; it must not call
 Gemini or construct provider evidence itself. The current backend owner and
-Caption adapter are source-ready for an already-qualified owner result, but the
-shared live owner path is not source-complete. The repository currently has the
+Caption adapter are source-ready for an already-qualified owner result. The
+shared live owner path is source-complete through its bounded executor and
+durable evidence store, but it has not been executed. The repository has the
 strict model/SKU qualification contract, immutable read port, account-effective
 rate reader, detailed billing-export reconciliation read port, create-only
 billing-observation repository, model/SKU qualification finalizer, and
@@ -134,20 +135,26 @@ service/method window with a five-entry detection page, accepts exactly four
 request-reference correlation labels in order, rejects pagination or any
 extra call, verifies the exact provider principal, and returns no raw prompt,
 media locator, request, or response payload. None of those owners makes a
-provider call. The shared owner still does not have the canonical live
-model/SKU qualification executor that emits the four correlated calls,
-publishes the exact route registry, and invokes these readers/finalizers after
-Cloud Audit and billing-export ingestion are fresh. The private release
-prefixes also contain no live model/SKU qualification, runtime-component
-qualification, or runtime release record.
+provider call. The shared owner now also has the canonical bounded live
+model/SKU executor and one durable create-only GCS store. The executor consumes
+an explicit expiring single-use internal-spend admission, rereads the exact
+route registry, holds the shared provider guard across exactly four no-retry
+standard/long implicit-cache requests, verifies and persists sanitized
+context/result evidence, and seals one terminal attempt. The durable store
+proves restart-safe admission, registry, context, result, attempt, and terminal
+rereads; it accepts and persists no raw prompt corpus. Focused source fixtures
+use an in-memory provider port and make no real provider call.
 
-That remaining source gap must be implemented at the existing shared Visual
-Intelligence owner before a live provider qualification is attempted. It must
-bind two isolated standard/long-context provider attempts, exact provider
-usage, the detailed billing-export window, the six exact SKU identities, no
-other model/SKU traffic, immutable create-only persistence, and exact reread.
-It must not be implemented as a Caption service, accept caller-authored
-evidence booleans, or bypass the canonical provider/cost lifecycle.
+The remaining Visual Intelligence work is actual operator-approved execution
+and post-execution reconciliation. A future authorized run must use the
+existing executor and durable store, then wait for Cloud Audit and detailed
+billing-export ingestion, create the audit/isolation and billing observations,
+apply the admitted internal-spend ceiling to actual cost, and run the existing
+model/SKU finalizer. It must not be implemented as a Caption service, accept
+caller-authored evidence booleans, bypass the canonical provider/cost lifecycle,
+or promote the sanitized executor result by itself. The private release
+prefixes still contain no live model/SKU qualification, runtime-component
+qualification, or runtime release record.
 
 The Visual Intelligence owner must complete its existing isolated provider
 qualification and then execute against the exact terminal approved snapshot,

@@ -149,7 +149,11 @@ two-route registry contract, isolation-authority finalizer, and create-only
 authority repository. Their focused proofs reject missing, extra, crossed,
 wrong-principal, failed, paginated, stale, tampered, inherited, and
 accessor-backed evidence without returning raw provider payloads. The shared
-owner still lacks the live qualification executor and its exact route-registry
-publication/mount. That remaining source gap must be closed centrally before
-Visual Intelligence can produce
-the actual Caption evidence required here.
+owner now also contains the bounded live qualification executor and its
+restart-safe create-only GCS evidence store. Their controlled fixtures prove
+four no-retry correlated calls, exact route-registry/admission reread, sanitized
+context/result persistence, one attempt, and one terminal record without making
+a real provider call. Actual paid execution plus fresh Cloud Audit, isolation,
+detailed billing, internal-spend, and finalizer reconciliation remain open
+before Visual Intelligence can produce the actual Caption evidence required
+here.

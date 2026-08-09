@@ -7,6 +7,7 @@ import type {
   VisualIntelligenceEvidenceRef,
 } from '../../src/types/visual-intelligence'
 import {
+  createVisualIntelligenceEvidenceRef,
   visualIntelligenceCanonicalJson,
   visualIntelligenceDigest,
 } from './visual-intelligence-contract'
@@ -264,6 +265,20 @@ export function parseVisualIntelligenceDetailedBillingExportObservationPublicati
     'Visual Intelligence billing observation receipt digest is invalid.',
   )
   return Object.freeze(receipt)
+}
+
+export function visualIntelligenceDetailedBillingExportObservationPublicationReceiptRef(
+  value: VisualIntelligenceDetailedBillingExportObservationPublicationReceipt,
+): VisualIntelligenceEvidenceRef {
+  const receipt =
+    parseVisualIntelligenceDetailedBillingExportObservationPublicationReceipt(
+      value,
+    )
+  return createVisualIntelligenceEvidenceRef(
+    `${receipt.observationRef.id}.publication-receipt`,
+    receipt,
+    receipt.observationRef.version,
+  )
 }
 
 async function exactCoordinate(input: {

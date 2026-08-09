@@ -13,6 +13,7 @@ const smokes = [
   'server/smoke/visual-intelligence-account-effective-rate-publisher-smoke.ts',
   'server/smoke/visual-intelligence-detailed-billing-export-read-port-smoke.ts',
   'server/smoke/visual-intelligence-detailed-billing-export-observation-repository-smoke.ts',
+  'server/smoke/visual-intelligence-model-billing-sku-qualification-finalizer-smoke.ts',
   'server/smoke/visual-intelligence-runtime-release-publisher-smoke.ts',
   'server/smoke/visual-intelligence-inspection-coordinator-smoke.ts',
   'server/smoke/visual-intelligence-active-cutover-smoke.ts',

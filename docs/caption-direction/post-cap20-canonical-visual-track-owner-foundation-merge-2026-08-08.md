@@ -136,10 +136,12 @@ media reconciliation, qualified complete-time visual review, and independent
 final QA/private review remain required. The later terminal audit also found
 that the shared Visual Intelligence owner has a strict model/SKU qualification
 contract, immutable reader, fail-closed detailed billing-export reconciliation
-read port, and create-only observation repository. The reader has 22 focused
-checks, the repository has 28, and both are part of the Visual Intelligence
-source-release gate; neither infers same-SKU traffic isolation from billing
-rows. The shared owner still lacks its live qualification executor/finalizer
-and separate concurrency-isolation authority. Those shared owner
+read port, create-only observation repository, and guarded model/SKU
+qualification finalizer. The reader has 22 focused checks, the repository has
+28, the finalizer has 36, and all are part of the Visual Intelligence
+source-release gate. Billing rows alone never infer same-SKU traffic isolation;
+the finalizer instead requires an exact exclusive-guard plus Cloud Audit window
+authority. The shared owner still lacks its live qualification executor and
+the concrete guard/audit-backed concurrency-isolation owner. Those shared owner
 source gaps must be closed centrally before Visual Intelligence can produce
 the actual Caption evidence required here.

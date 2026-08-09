@@ -63,6 +63,10 @@ check(progress.gates.find((gate) =>
   && progress.gates.find((gate) =>
     gate.gapId === 'visual_intelligence_authenticated_evidence')
     ?.nextRequiredEvidenceCodes.includes(
+      'canonical_visual_intelligence_same_sku_concurrency_isolation_authority_required')
+  && !progress.gates.find((gate) =>
+    gate.gapId === 'visual_intelligence_authenticated_evidence')
+    ?.nextRequiredEvidenceCodes.includes(
       'canonical_visual_intelligence_model_sku_qualification_finalizer_required')
   && !progress.gates.find((gate) =>
     gate.gapId === 'visual_intelligence_authenticated_evidence')
@@ -72,7 +76,7 @@ check(progress.gates.find((gate) =>
     gate.gapId === 'visual_intelligence_authenticated_evidence')
     ?.nextRequiredEvidenceCodes.includes(
       'canonical_visual_intelligence_detailed_billing_export_reconciliation_reader_required'),
-'Visual Intelligence records its implemented billing reader and repository while keeping executor, finalizer, and isolation gaps open')
+'Visual Intelligence records its implemented billing reader, repository, and finalizer while keeping executor and isolation gaps open')
 check(progress.gates.find((gate) =>
   gate.gapId === 'soundsync_authenticated_evidence')?.status
     === 'actual_evidence_incomplete',

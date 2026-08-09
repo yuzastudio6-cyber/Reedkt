@@ -463,6 +463,7 @@ for (const requiredDockerfileFragment of [
   'source-checkpoint-compatibility-receipt.json',
   'SAM31_PRIVATE_ARTIFACT_BUILD_BINDING_FILE_SHA256',
   'SAM31_SOURCE_CHECKPOINT_COMPATIBILITY_RECEIPT_SHA256',
+  'json.dumps(v,sort_keys=False',
   'SAM31_CUDA_FORWARD_COMPAT_INGEST_RECEIPT_SHA256',
   candidate.runtimeClosure.cudaDriverCompatibility
     .cudaForwardCompatibilityFileName,
@@ -500,6 +501,7 @@ for (const requiredDockerfileFragment of [
   sam31Dockerfile.includes(requiredDockerfileFragment),
   `SAM 3.1 candidate lost ${requiredDockerfileFragment}`,
 )
+assert(!sam31Dockerfile.includes('json.dumps(v,sort_keys=True'))
 assert(sam31Runner.includes('EXPECTED_EINOPS_VERSION = "0.8.2"'))
 assert(sam31Runner.includes(
   'importlib.metadata.version("einops") != EXPECTED_EINOPS_VERSION',

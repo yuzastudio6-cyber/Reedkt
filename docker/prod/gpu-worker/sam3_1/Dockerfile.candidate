@@ -217,6 +217,9 @@ COPY docker/prod/gpu-worker/sam3_1/entrypoint.sh \
 COPY docker/prod/gpu-worker/sam3_1/source-provenance.lock \
   /opt/reeditpro/sam3_1/source-provenance.lock
 
+# The v2 qualification owner emits its already-canonical object key order.
+# Preserve that wire order here: Python's lexical sort is not Node's current
+# authority comparator, while the enclosing receipt file is separately pinned.
 RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
   && test "${SAM31_DEPENDENCY_CLOSURE_RECEIPT_SHA256}" != "" \
   && test "${SAM31_PATCH_APPLICATION_RECEIPT_SHA256}" != "" \
@@ -275,7 +278,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     '/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json' \
     | sha256sum --check --strict \
   && python -I -B -c \
-    "import hashlib,json; p='/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json'; v=json.load(open(p,encoding='utf-8')); h=v.pop('qualificationHash'); assert h == '${SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH}'; assert hashlib.sha256(json.dumps(v,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest() == h" \
+    "import hashlib,json; p='/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json'; v=json.load(open(p,encoding='utf-8')); h=v.pop('qualificationHash'); assert h == '${SAM31_SOURCE_CHECKPOINT_QUALIFICATION_HASH}'; assert hashlib.sha256(json.dumps(v,sort_keys=False,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest() == h" \
   && printf '%s  %s\n' \
     'e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893' \
     '/tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb' \

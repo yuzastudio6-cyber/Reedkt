@@ -1,9 +1,17 @@
+import { Storage } from '@google-cloud/storage'
 import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
+  createCanonicalGcsSourceAnalysisJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
   visualIntelligenceCanonicalJson,
 } from '../visual-intelligence/visual-intelligence-contract'
+import {
+  createVisualIntelligenceModelBillingSkuInternalSpendApprovalRepository,
+  createVisualIntelligenceModelBillingSkuLiveAdmissionAuthorityVerificationPort,
+} from '../visual-intelligence/visual-intelligence-model-billing-sku-live-admission-owner'
 import {
   createGoogleVertexModelBillingSkuQualificationGeneratePort,
   createVisualIntelligenceModelBillingSkuLiveExecutor,
@@ -61,12 +69,25 @@ if (providerCredentials.client_email !== EXACT_PROVIDER_PRINCIPAL) {
   )
 }
 
+const storage = new Storage({ projectId: env.GOOGLE_CLOUD_PROJECT_ID })
 const store = createVisualIntelligenceModelBillingSkuLiveGcsStore({
   projectId: env.GOOGLE_CLOUD_PROJECT_ID,
   bucketName: env.GCS_CONTROL_PLANE_STATE_BUCKET,
+  storage,
 })
+const approvalRepository =
+  createVisualIntelligenceModelBillingSkuInternalSpendApprovalRepository({
+    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
+      bucketName: env.GCS_CONTROL_PLANE_STATE_BUCKET,
+    }),
+  })
 const executor = createVisualIntelligenceModelBillingSkuLiveExecutor({
   admissionReadPort: store.admissionReadPort,
+  admissionAuthorityVerificationPort:
+    createVisualIntelligenceModelBillingSkuLiveAdmissionAuthorityVerificationPort({
+      approvalRepository,
+    }),
   providerTrafficGuardPort: createVisualIntelligenceGcsProviderTrafficGuard({
     projectId: env.GOOGLE_CLOUD_PROJECT_ID,
     bucketName: env.GCS_CONTROL_PLANE_STATE_BUCKET,

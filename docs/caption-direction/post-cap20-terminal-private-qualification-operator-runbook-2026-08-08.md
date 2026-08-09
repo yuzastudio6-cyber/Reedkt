@@ -153,8 +153,18 @@ persists the detailed billing window, enforces the admitted internal-spend
 ceiling, and invokes the existing model/SKU finalizer into durable exact-reread
 storage. Over-budget evidence is retained while qualification fails closed.
 
-The source tree exposes two separate internal operator entrypoints:
+The source tree exposes three separate internal operator entrypoints:
 
+- `npm run private:visual-intelligence-model-billing-sku-admission` is the
+  no-provider-call preparation boundary. It requires its own exact current-
+  process confirmation, canonical API service identity, immutable runtime-
+  release coordinates, exact account-effective rate-authority coordinates and
+  ref, one stable authorization/qualification identity, a maximum internal-
+  spend ceiling, and an authorization/expiry window of at most one hour. It
+  exact-rereads the admitted release and current rate owner, creates the
+  conservative cost preflight, persists/rereads the fixed two-route guard
+  registry, persists/rereads the expiring internal-spend approval, and only
+  then persists/rereads the single-use admission. It cannot call Gemini.
 - `npm run private:visual-intelligence-model-billing-sku-live-qualification`
   accepts only `--execute`, the exact
   `REEDITPRO_CONFIRM_VI_MODEL_SKU_LIVE_QUALIFICATION` confirmation, the fixed
@@ -162,7 +172,9 @@ The source tree exposes two separate internal operator entrypoints:
   persisted admission ID/version/SHA-256. Before any provider request it also
   resolves application-default credentials and requires the canonical
   `reeditpro-api-sa@reeditpro.iam.gserviceaccount.com` service identity. The
-  entrypoint cannot mint its own admission and cannot retry a request.
+  entrypoint cannot mint its own admission, must independently reread the
+  matching unexpired internal-spend approval before acquiring the provider
+  guard, and cannot retry a request.
 - `npm run private:visual-intelligence-model-billing-sku-reconciliation`
   accepts only `--execute`, the exact
   `REEDITPRO_CONFIRM_VI_MODEL_SKU_RECONCILIATION` confirmation, the same exact
@@ -170,13 +182,13 @@ The source tree exposes two separate internal operator entrypoints:
   query project/dataset/table/maximum-bytes settings. It imports no Gemini
   generator and makes no provider request.
 
-Both entrypoints parse an explicit current-process environment-variable
-allowlist rather than the complete process environment; neither loads a local
-`.env` file. Their focused operator smoke proves missing confirmation fails
+All three entrypoints parse an explicit current-process environment-variable
+allowlist rather than the complete process environment; none loads a local
+`.env` file. Their focused operator smokes prove missing confirmation fails
 before Google authentication or external queries. These
 commands are callable source surfaces, not permission to run them: no persisted
 spend admission or owner authorization has been supplied for this milestone,
-so neither command was executed against Google Cloud.
+so none of the commands was executed against Google Cloud.
 
 The remaining Visual Intelligence work is the actual operator-approved run and
 fresh external ingestion, followed by this existing reconciliation service. It

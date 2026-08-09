@@ -56,6 +56,7 @@ const requiredCoreQualificationSmokes = [
   'visual-intelligence-model-billing-sku-live-executor-smoke.ts',
   'visual-intelligence-model-billing-sku-live-gcs-store-smoke.ts',
   'visual-intelligence-model-billing-sku-reconciliation-service-smoke.ts',
+  'visual-intelligence-model-billing-sku-live-admission-owner-smoke.ts',
   'visual-intelligence-model-billing-sku-operator-entrypoints-smoke.ts',
   'visual-intelligence-runtime-release-publisher-smoke.ts',
   'visual-intelligence-orchestra-qualification-publisher-smoke.ts',

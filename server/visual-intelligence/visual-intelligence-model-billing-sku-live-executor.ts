@@ -253,6 +253,12 @@ export interface VisualIntelligenceModelBillingSkuLiveAdmissionReadPort {
   ): Promise<VisualIntelligenceModelBillingSkuLiveAdmission | null>
 }
 
+export interface VisualIntelligenceModelBillingSkuLiveAdmissionAuthorityVerificationPort {
+  verifyAndRereadExact(
+    admission: VisualIntelligenceModelBillingSkuLiveAdmission,
+  ): Promise<boolean>
+}
+
 export interface VisualIntelligenceModelBillingContextEvidenceRepository
 extends VisualIntelligenceModelBillingContextEvidenceReadPort {
   persistCreateOnly(
@@ -429,6 +435,8 @@ export function createVisualIntelligenceModelBillingSkuLiveExecutor(
   dependencies: {
     readonly admissionReadPort:
       VisualIntelligenceModelBillingSkuLiveAdmissionReadPort
+    readonly admissionAuthorityVerificationPort:
+      VisualIntelligenceModelBillingSkuLiveAdmissionAuthorityVerificationPort
     readonly providerTrafficGuardPort: VisualIntelligenceProviderTrafficGuardPort
     readonly generatePort:
       VisualIntelligenceModelBillingSkuQualificationGeneratePort
@@ -460,6 +468,10 @@ export function createVisualIntelligenceModelBillingSkuLiveExecutor(
       )
       const admission = parseVisualIntelligenceModelBillingSkuLiveAdmission(
         admissionRaw,
+      )
+      if (!await dependencies.admissionAuthorityVerificationPort
+        .verifyAndRereadExact(admission)) throw new Error(
+        'Visual Intelligence live qualification admission authority is invalid.',
       )
       const observedAt = now()
       const registry = await dependencies.routeRegistryReadPort.readExact(
@@ -978,6 +990,8 @@ function validNow(now: Date): Date {
 
 function validateDependencies(dependencies: {
   admissionReadPort: VisualIntelligenceModelBillingSkuLiveAdmissionReadPort
+  admissionAuthorityVerificationPort:
+    VisualIntelligenceModelBillingSkuLiveAdmissionAuthorityVerificationPort
   providerTrafficGuardPort: VisualIntelligenceProviderTrafficGuardPort
   generatePort: VisualIntelligenceModelBillingSkuQualificationGeneratePort
   contextEvidenceRepository:
@@ -992,6 +1006,8 @@ function validateDependencies(dependencies: {
 }): void {
   if (
     typeof dependencies.admissionReadPort?.readExact !== 'function'
+    || typeof dependencies.admissionAuthorityVerificationPort
+      ?.verifyAndRereadExact !== 'function'
     || typeof dependencies.providerTrafficGuardPort?.acquire !== 'function'
     || typeof dependencies.providerTrafficGuardPort?.release !== 'function'
     || typeof dependencies.generatePort?.generate !== 'function'

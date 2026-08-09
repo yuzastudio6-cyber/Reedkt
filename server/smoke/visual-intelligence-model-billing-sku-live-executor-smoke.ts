@@ -58,6 +58,9 @@ const executor = createVisualIntelligenceModelBillingSkuLiveExecutor({
       return key(reference) === key(admissionRef) ? admission : null
     },
   },
+  admissionAuthorityVerificationPort: {
+    async verifyAndRereadExact() { return true },
+  },
   providerTrafficGuardPort: guard,
   generatePort,
   contextEvidenceRepository: contextRepository,
@@ -241,8 +244,28 @@ await assert.rejects(() => createExecutor({
     ),
 }), /not current/u)
 
+const invalidAuthorityAdmission = liveAdmission({
+  admissionId: 'invalid-authority-admission',
+  qualificationId: 'invalid-authority-qualification',
+})
+const invalidAuthorityCalls: GenerateCall[] = []
+await assert.rejects(() => createExecutor({
+  admission: invalidAuthorityAdmission,
+  generatePort: exactGeneratePort(invalidAuthorityCalls),
+  authorityInvalid: true,
+}).execute({
+  admissionRef:
+    visualIntelligenceModelBillingSkuLiveAdmissionRef(
+      invalidAuthorityAdmission,
+    ),
+}), /admission authority is invalid/u)
+assert.equal(invalidAuthorityCalls.length, 0)
+
 assert.throws(() => createVisualIntelligenceModelBillingSkuLiveExecutor({
   admissionReadPort: null as never,
+  admissionAuthorityVerificationPort: {
+    async verifyAndRereadExact() { return true },
+  },
   providerTrafficGuardPort: guard,
   generatePort,
   contextEvidenceRepository: contextRepository,
@@ -270,6 +293,7 @@ function createExecutor(input: {
   generatePort: VisualIntelligenceModelBillingSkuQualificationGeneratePort
   attemptStore?: ReturnType<typeof memoryAttemptStore>
   registryMissing?: boolean
+  authorityInvalid?: boolean
 }) {
   now = new Date('2026-08-08T10:00:00.000Z')
   const localAdmissionRef =
@@ -280,6 +304,9 @@ function createExecutor(input: {
         return key(reference) === key(localAdmissionRef)
           ? input.admission : null
       },
+    },
+    admissionAuthorityVerificationPort: {
+      async verifyAndRereadExact() { return !input.authorityInvalid },
     },
     providerTrafficGuardPort: createVisualIntelligenceGcsProviderTrafficGuard({
       projectId: 'reeditpro',

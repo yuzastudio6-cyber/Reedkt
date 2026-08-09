@@ -34,6 +34,7 @@ for (const phrase of [
   'I_APPROVE_EXACTLY_FOUR_INTERNAL_GEMINI_REQUESTS_NO_RETRY',
   "process.argv[2] !== '--execute'",
   'createVisualIntelligenceModelBillingSkuLiveGcsStore',
+  'createVisualIntelligenceModelBillingSkuLiveAdmissionAuthorityVerificationPort',
   'createVisualIntelligenceGcsProviderTrafficGuard',
   'createGoogleVertexModelBillingSkuQualificationGeneratePort',
   'createVisualIntelligenceModelBillingSkuLiveExecutor',

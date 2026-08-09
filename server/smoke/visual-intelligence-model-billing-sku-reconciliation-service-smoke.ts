@@ -84,6 +84,9 @@ const guard = createVisualIntelligenceGcsProviderTrafficGuard({
 let controlledProviderCalls = 0
 const executor = createVisualIntelligenceModelBillingSkuLiveExecutor({
   admissionReadPort: liveStore.admissionReadPort,
+  admissionAuthorityVerificationPort: {
+    async verifyAndRereadExact() { return true },
+  },
   providerTrafficGuardPort: guard,
   generatePort: generatePort(() => { controlledProviderCalls += 1 }),
   contextEvidenceRepository: liveStore.contextEvidenceRepository,

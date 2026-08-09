@@ -74,6 +74,9 @@ const guard = createVisualIntelligenceGcsProviderTrafficGuard({
 })
 const executor = createVisualIntelligenceModelBillingSkuLiveExecutor({
   admissionReadPort: store.admissionReadPort,
+  admissionAuthorityVerificationPort: {
+    async verifyAndRereadExact() { return true },
+  },
   providerTrafficGuardPort: guard,
   generatePort: generatePort(calls),
   contextEvidenceRepository: store.contextEvidenceRepository,
@@ -127,6 +130,9 @@ await assert.rejects(() => restarted.attemptStore.markTerminal({
 const callCountBeforeReplay = calls.length
 await assert.rejects(() => createVisualIntelligenceModelBillingSkuLiveExecutor({
   admissionReadPort: restarted.admissionReadPort,
+  admissionAuthorityVerificationPort: {
+    async verifyAndRereadExact() { return true },
+  },
   providerTrafficGuardPort: guard,
   generatePort: generatePort(calls),
   contextEvidenceRepository: restarted.contextEvidenceRepository,

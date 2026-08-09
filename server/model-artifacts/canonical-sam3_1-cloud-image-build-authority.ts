@@ -1022,7 +1022,7 @@ function assertCapsuleManifestEntries(
   const opensslPackagePath =
     `${osSecurityUpdatesPrefix}openssl_3.0.13-0ubuntu3.12_amd64.deb`
   const osSecurityUpdatesReceiptPath =
-    `${osSecurityUpdatesPrefix}os-security-updates-receipt.json`
+    `${osSecurityUpdatesPrefix}security-update-receipt.json`
   if (canonical) {
     required(libsslDevPackagePath, OPENSSL_LIBSSL_DEV_SHA256)
     required(libssl3PackagePath, OPENSSL_LIBSSL3_SHA256)
@@ -1131,7 +1131,7 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/libssl-dev_3.0.13-0ubuntu3.12_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/libssl3t64_3.0.13-0ubuntu3.12_amd64.deb`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/openssl_3.0.13-0ubuntu3.12_amd64.deb`,
-    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/os-security-updates-receipt.json`,
+    `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/os-security-updates/security-update-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/einops/einops-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/dependency-closure/python-ingest/pycocotools/pycocotools-ingest-receipt.json`,
     `${PRIVATE_INPUT_DIRECTORY}/release-receipts/private-artifact-build-binding.json`,

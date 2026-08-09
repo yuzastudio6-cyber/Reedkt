@@ -499,7 +499,7 @@ function createEntries() {
       '321b30ad5a1c3783cb3d73ae439f824f6d3874d76a93a62f4a984959b490aa7b',
     ),
     fixture(
-      'sam31_private_build_input/dependency-closure/os-security-updates/os-security-updates-receipt.json',
+      'sam31_private_build_input/dependency-closure/os-security-updates/security-update-receipt.json',
       862,
       'b3ff4e1e67b428818399c3261eb95a7c0e034d073b2f70fa65f8f1ab46f25a19',
     ),

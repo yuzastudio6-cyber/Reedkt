@@ -15,6 +15,7 @@ readonly PATCHED_SOURCE_SHA256='b692268f0e295673d5c5cc2fc14e7813847effc5e371e32c
 readonly PATCH_SHA256='daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca'
 readonly IMPORTLIB_RESOURCES_PATCH_SHA256='6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f'
 readonly MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256='fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b'
+readonly FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256='2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de'
 readonly CUDA_COMPAT_SHA256='e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893'
 readonly CUDA_NPP_PACKAGE_VERSION='12.3.3.100-1'
 readonly CUDA_NPP_SHA256='54febea3b7a793e65318647c0548c0fea2416ef0a7dc70c672c6877f3bcba992'
@@ -105,6 +106,9 @@ test "$(sha256sum "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/importlib-resou
 cp "${ROOT}/source/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/multiplex-session-gpu-forwarding.patch.tmp"
 test "$(sha256sum "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/multiplex-session-gpu-forwarding.patch.tmp" | cut -d' ' -f1)" = "${MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256}"
+cp "${ROOT}/source/patches/0004-weeditpro-forward-propagation-frame-count.patch" \
+  "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/forward-propagation-frame-count.patch.tmp"
+test "$(sha256sum "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/forward-propagation-frame-count.patch.tmp" | cut -d' ' -f1)" = "${FORWARD_PROPAGATION_FRAME_COUNT_PATCH_SHA256}"
 
 python - "${PRIVATE_ROOT}/source/source-patch-application-receipt.json" <<PY
 import json
@@ -676,6 +680,8 @@ mv "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/importlib-resources.patch.tmp"
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch"
 mv "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/multiplex-session-gpu-forwarding.patch.tmp" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch"
+mv "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/forward-propagation-frame-count.patch.tmp" \
+  "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch"
 
 test -z "$(find "${BUILD_SOURCE}" -type l -print -quit)"
 find "${BUILD_SOURCE}" -type f -exec touch -d '@0' {} +

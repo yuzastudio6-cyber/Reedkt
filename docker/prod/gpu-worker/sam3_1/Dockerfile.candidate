@@ -133,6 +133,7 @@ LABEL io.weeditpro.operation.id="tool.sam3_1.segment_and_track_subject.v1" \
   io.reeditpro.source.archive.sha256="5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a" \
   io.reeditpro.source.patch.sha256="daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca" \
   io.weeditpro.source.multiplex-session-gpu-forwarding-patch.sha256="fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b" \
+  io.weeditpro.source.forward-propagation-frame-count-patch.sha256="2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de" \
   io.reeditpro.source.patched-tree="f3a58b95a0e460d76e1cf38abff0382a7307f67d" \
   io.reeditpro.source.patched-archive.sha256="b692268f0e295673d5c5cc2fc14e7813847effc5e371e32cb18c1861b4c8adfb" \
   io.reeditpro.checkpoint.revision="daa63191845a41281374e725f4c9e51c7a824460" \
@@ -207,6 +208,8 @@ COPY docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch \
   /tmp/0001-reeditpro-gpu-decode.patch
 COPY docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch \
   /tmp/0003-weeditpro-multiplex-session-gpu-forwarding.patch
+COPY docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch \
+  /tmp/0004-weeditpro-forward-propagation-frame-count.patch
 COPY docker/prod/gpu-worker/sam3_1/runner.py \
   /opt/reeditpro/sam3_1/runner.py
 COPY docker/prod/gpu-worker/sam3_1/entrypoint.sh \
@@ -353,6 +356,12 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     | sha256sum --check --strict \
   && python -I -B -c \
     "import hashlib; from pathlib import Path; path=Path('/opt/reeditpro/sam3-source/sam3/model/sam3_multiplex_tracking.py'); body=path.read_bytes(); assert hashlib.sha256(body).hexdigest() == 'fde68920b0073ec6eea2ad63351fb1c133c9abdd866c2cb9f9d28c8a2d969038'; text=body.decode('utf-8'); signature='        offload_video_to_cpu=False,\n        async_loading_frames=False,\n        use_torchcodec=False,\n        use_cv2=False,\n        input_is_mp4=False,\n'; forwarded='            offload_video_to_cpu=offload_video_to_cpu,\n            async_loading_frames=async_loading_frames,\n            use_torchcodec=use_torchcodec,\n            use_cv2=use_cv2,\n            input_is_mp4=input_is_mp4,\n'; assert text.count(signature) == 2; assert text.count(forwarded) == 2; text=text.replace(signature, '        offload_video_to_cpu=False,\n        offload_state_to_cpu=False,\n        async_loading_frames=False,\n        use_torchcodec=False,\n        use_cv2=False,\n        input_is_mp4=False,\n        gpu_acceleration=False,\n        gpu_device=None,\n'); text=text.replace(forwarded, '            offload_video_to_cpu=offload_video_to_cpu,\n            offload_state_to_cpu=offload_state_to_cpu,\n            async_loading_frames=async_loading_frames,\n            use_torchcodec=use_torchcodec,\n            use_cv2=use_cv2,\n            input_is_mp4=input_is_mp4,\n            gpu_acceleration=gpu_acceleration,\n            gpu_device=gpu_device,\n'); output=text.encode('utf-8'); assert hashlib.sha256(output).hexdigest() == 'e9fd77f867968f0740e420971fd0405a0b511ac8684019660767f5b07d26ab41'; path.write_bytes(output)" \
+  && printf '%s  %s\n' \
+    '2540f5ba2a4d3f8931554e254d2f1c2c79abd28461f902477b7d64a04784f6de' \
+    '/tmp/0004-weeditpro-forward-propagation-frame-count.patch' \
+    | sha256sum --check --strict \
+  && python -I -B -c \
+    "import hashlib; from pathlib import Path; path=Path('/opt/reeditpro/sam3-source/sam3/model/sam3_multiplex_tracking.py'); body=path.read_bytes(); assert hashlib.sha256(body).hexdigest() == 'e9fd77f867968f0740e420971fd0405a0b511ac8684019660767f5b07d26ab41'; text=body.decode('utf-8'); old='            end_frame_idx = start_frame_idx + max_frame_num_to_track\n'; new='            end_frame_idx = start_frame_idx + max_frame_num_to_track - 1\n'; assert text.count(old) == 1; assert text.count(new) == 0; text=text.replace(old, new, 1); output=text.encode('utf-8'); assert hashlib.sha256(output).hexdigest() == '05678adccf05342514e1bbdb09a572fd68db66578dce07d2d5d11bc783090b03'; path.write_bytes(output)" \
   && python -m venv \
     --without-pip \
     --system-site-packages \
@@ -421,6 +430,7 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /tmp/sam3-patched-source.tar \
     /tmp/0001-reeditpro-gpu-decode.patch \
     /tmp/0003-weeditpro-multiplex-session-gpu-forwarding.patch \
+    /tmp/0004-weeditpro-forward-propagation-frame-count.patch \
     /tmp/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb \
     /tmp/libnpp-12-8_12.3.3.100-1_amd64.deb \
     /tmp/cuda-npp-root \

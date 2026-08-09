@@ -68,10 +68,14 @@ not call cloud-mutating scripts.
     interactive terminal. It creates one numeric Secret Manager version and
     no local checkpoint, model installation, image, GPU job, or production
     authority.
-17. `53-build-sam31-production-capsule-twice.sh` submits the two independent,
-    deterministic, checkpoint-free production capsule builds only after the
-    final source/checkpoint qualification release. After both build records
-    exist, `npm run publish:sam3_1-production-image-from-builds` sequences the
+17. `53-build-sam31-production-capsule-twice.sh` consumes two deterministic
+    build slots under one create-only cloud admission and submits the two
+    independent, checkpoint-free production capsule builds only after the
+    final source/checkpoint qualification release. A restart exact-rereads a
+    completed slot or reconciles a consumed uncertain slot from the exact
+    Cloud Build substitutions; it never automatically resubmits that slot.
+    After both build records exist,
+    `npm run publish:sam3_1-production-image-from-builds` sequences the
     existing capsule and image-authority one-writer publishers and returns only
     an opaque authority for `52-run-sam31-runtime-image-operator-once.sh`.
     Publication cannot start the image build, a GPU/model job, a credit

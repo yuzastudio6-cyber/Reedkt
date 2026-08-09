@@ -5,6 +5,14 @@ steps:
     args:
       - -ceu
       - |
+        case '${_PRODUCTION_CAPSULE_PUBLICATION_ID}' in
+          *[!a-f0-9]*|'') printf 'ERROR: production publication id is invalid.\n' >&2; exit 1 ;;
+        esac
+        test "$$(printf '%s' '${_PRODUCTION_CAPSULE_PUBLICATION_ID}' | wc -c)" = 64
+        case '${_PRODUCTION_CAPSULE_BUILD_SLOT}' in
+          primary|confirmation) ;;
+          *) printf 'ERROR: production build slot is invalid.\n' >&2; exit 1 ;;
+        esac
         mkdir -p private-staging
         case '${_SOURCE_CAPSULE_MANIFEST_OBJECT}' in
           private/sam3_1/qualification-image-build/v1/manifest/*.json) ;;

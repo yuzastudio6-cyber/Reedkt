@@ -362,6 +362,7 @@
     "smoke:sam3_1-source-checkpoint-qualification-release": "tsx server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke.ts",
     "smoke:sam3_1-production-capsule-publisher": "tsx server/smoke/canonical-sam3_1-production-capsule-publisher-smoke.ts",
     "smoke:sam3_1-production-capsule-build-input": "tsx server/smoke/canonical-sam3_1-production-capsule-build-input-smoke.ts",
+    "smoke:sam3_1-production-capsule-dual-build-launcher": "tsx server/smoke/canonical-sam3_1-production-capsule-dual-build-launcher-smoke.ts",
     "smoke:sam3_1-production-capsule-vertex-build-input": "tsx server/smoke/canonical-sam3_1-production-capsule-vertex-build-input-smoke.ts",
     "prepare:sam3_1-production-capsule-build-inputs": "tsx server/cli/prepare-canonical-sam3_1-production-capsule-build-inputs.ts",
     "prepare:sam3_1-production-capsule-vertex-build-inputs": "tsx server/cli/prepare-canonical-sam3_1-production-capsule-vertex-build-inputs.ts",

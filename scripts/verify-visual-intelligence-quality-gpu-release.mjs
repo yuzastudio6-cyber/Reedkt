@@ -95,6 +95,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-read-repository-smoke.ts',
   'server/smoke/canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-production-capsule-build-input-smoke.ts',
+  'server/smoke/canonical-sam3_1-production-capsule-dual-build-launcher-smoke.ts',
   'server/smoke/canonical-sam3_1-production-capsule-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-production-image-authority-publisher-smoke.ts',
   'server/smoke/canonical-sam3_1-production-image-publication-coordinator-smoke.ts',

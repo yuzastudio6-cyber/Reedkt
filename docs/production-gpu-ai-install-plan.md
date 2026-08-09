@@ -69,16 +69,21 @@ release, billing settlement, customer-credit mutation, QA approval, or
 production delivery.
 
 The production-capsule source is prepared by the canonical
-`canonical_sam3_1-production-capsule-build-input-v1` one-writer boundary. It
+`canonical-sam3_1-production-capsule-build-input-v2` Vertex-qualified
+one-writer boundary. It
 exact-rereads the final source/checkpoint qualification release, official
 private-ingest receipt, exact source qualification-capsule manifest and bytes,
 and a create-only image-build artifact binding. A browser, CLI caller, or build
 invocation cannot supply a path, URL, command, image tag, Dockerfile, GPU type,
 or replacement artifact.
 
-`scripts/gcp/prod/53-build-sam31-production-capsule-twice.sh` submits exactly
-two independent Cloud Build executions from the same clean Git commit/tree and
-the same generation-bound canonical records. Each execution builds inside a
+`scripts/gcp/prod/53-build-sam31-production-capsule-twice.sh` creates one
+deterministic, create-only cloud admission and consumes exactly two independent
+Cloud Build slots from the same clean Git commit/tree and the same
+generation-bound canonical records. Each slot is persisted before its provider
+call. A restart exact-rereads a completed slot or reconciles a consumed
+uncertain slot from its publication/slot/commit/tree substitutions; it never
+automatically resubmits a consumed slot. Each execution builds inside a
 source-bound builder image, creates a sorted USTAR archive with fixed ownership
 and timestamp plus deterministic gzip metadata, scans the entire archive with
 the pinned private scanner, and uploads the capsule, builder result, and
@@ -87,7 +92,7 @@ execute SAM 3.1, select an A100/L4, mutate customer credits, or grant a runtime
 release. The production capsule publisher must exact-reread both build results
 and refuse publication unless their capsule bytes and entry set are identical.
 
-`canonical-sam3_1-production-image-publication-coordinator-v1` closes the
+`canonical-sam3_1-production-image-publication-coordinator-v2` closes the
 source-side gap between those two successful build records and the existing
 scale-zero image operator. It accepts only the final source/checkpoint
 qualification reference and two distinct Cloud Build UUIDs. It invokes the
@@ -97,7 +102,7 @@ image-authority publisher. It cross-binds the qualification, artifact binding,
 and capsule manifest before returning the opaque build-authority reference.
 The bounded CLI is `npm run publish:sam3_1-production-image-from-builds` and
 requires the exact
-`publish-one-qualified-sam31-production-image-from-two-builds-v1`
+`publish-one-qualified-sam31-production-image-from-two-builds-v2`
 confirmation. The coordinator cannot start an image build, choose a GPU,
 execute a model, grant a runtime release, mutate customer credits, approve QA,
 or grant production authority. The separately deployed unarmed image operator

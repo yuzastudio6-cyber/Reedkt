@@ -190,7 +190,7 @@ assert.doesNotMatch(
   cloudBuild,
   /(?:secretEnv|availableSecrets|sam3\.1_multiplex\.pt|nvidia-l4|a100-80gb|freshclam|\bcurl\b)/iu,
 )
-assert.equal((launcher.match(/gcloud builds submit/gmu) ?? []).length, 2)
+assert.equal((launcher.match(/gcloud builds submit/gmu) ?? []).length, 1)
 for (const expected of [
   'caller arguments are forbidden',
   'source worktree must be clean',
@@ -201,7 +201,25 @@ for (const expected of [
   'confirmationBuildId',
   'independentBuildCount',
   '--ignore-file',
+  'durableCreateOnlyAdmissionReread',
+  'durableCreateOnlyConsumptionPerSlot',
+  'durableSubmissionRereadPerSlot',
+  'automaticRetryAllowed',
+  'uncertainOutcomeRequiresObservation',
+  'outcome remains unknown; automatic retry is forbidden',
+  'submit_or_reread_slot primary',
+  'submit_or_reread_slot confirmation',
+  '--if-generation-match=0',
+  'gcloud builds list',
 ] as const) assert.ok(launcher.includes(expected), `launcher lost ${expected}`)
+assert.match(launcher, /automaticRetryAllowed': False/u)
+assert.doesNotMatch(launcher, /automaticRetryAllowed': True/u)
+for (const expected of [
+  '_PRODUCTION_CAPSULE_PUBLICATION_ID',
+  '_PRODUCTION_CAPSULE_BUILD_SLOT',
+  'primary|confirmation',
+] as const) assert.ok(cloudBuild.includes(expected),
+  `production Cloud Build lost durable dual-build identity ${expected}`)
 for (const expected of [
   '!.gcloudignore.production-capsule',
   '!Dockerfile.production-capsule-builder',
@@ -219,11 +237,14 @@ assert.equal(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-capsule-build-input',
-  checks: 41,
+  checks: 52,
   exactFinalQualificationReread: true,
   exactSourceQualificationCapsuleReread: true,
   artifactBindingCreatedAndReread: true,
   twoIndependentCloudBuildSubmissionsRequired: true,
+  durableOneUseBuildSlotConsumption: true,
+  uncertainOutcomeAutomaticRetryAllowed: false,
+  restartReconcilesInsteadOfResubmitting: true,
   deterministicArchive: true,
   fullArchiveSecurityReviewPerBuild: true,
   checkpointIncluded: false,

@@ -35,12 +35,13 @@ export const VISUAL_INTELLIGENCE_MODEL_BILLING_SKU_LIVE_EXECUTION_VERSION =
 
 const OBJECT_PREFIX =
   'private/visual-intelligence/qualifications/gemini-billing-sku/v1/executions'
-const API_VERSION = 'v1alpha'
+const API_VERSION = 'v1'
 const DEFAULT_TIMEOUT_MS = 900_000
 const MAX_LONG_PROMPT_CHARACTERS = 4_000_000
 const INITIAL_LONG_TOKEN_MARKER_COUNT = 210_500
 const LONG_CONTEXT_TOKEN_MARGIN = 2_048
 const MAX_TOKEN_CALIBRATION_PASSES = 3
+const QUALIFICATION_MAX_OUTPUT_TOKENS = 4_096
 const MAXIMUM_INTERNAL_QUALIFICATION_COST_USD_MICROS = 10_000_000
 
 const safeId = z.string().trim().min(1).max(240)
@@ -321,7 +322,10 @@ export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
     throw new Error('Visual Intelligence live provider timeout is invalid.')
   }
   const client = new GoogleGenAI({
-    vertexai: true,
+    // Gemini 3.1 Pro is exposed through the Gemini Enterprise Agent Platform
+    // global v1 surface. The legacy Vertex v1alpha route returns 404 for this
+    // model even though the exact model ID is valid.
+    enterprise: true,
     project: input.projectId,
     location: input.location,
     httpOptions: {
@@ -393,7 +397,10 @@ async function executeOne(input: {
       'This is an isolated WeEditPro billing-path qualification. Return '
       + 'only a JSON object with acknowledgement set to qualified.',
     candidateCount: 1,
-    maxOutputTokens: 256,
+    // High thinking consumes the same output-token envelope. A 256-token
+    // envelope terminates the real model at MAX_TOKENS before its bounded JSON
+    // response; 4,096 remains tightly bounded while allowing High reasoning.
+    maxOutputTokens: QUALIFICATION_MAX_OUTPUT_TOKENS,
     responseMimeType: 'application/json',
     responseJsonSchema: {
       type: 'object',
@@ -470,33 +477,68 @@ async function executeOne(input: {
     )
   }
   const providerRequestFinishedAtIso = timestamp.parse(input.now())
-  const usagePayload = usageWithoutDigestSchema.parse({
-    schemaVersion:
-      'visual-intelligence-model-billing-sku-provider-usage-v1',
-    qualificationId: input.qualificationId,
-    contextClass: input.contextClass,
-    exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
-    responseId: generated.responseId,
-    returnedModelVersion: generated.modelVersion,
-    finishReason: generated.finishReason,
-    candidateCount: generated.candidateCount,
-    promptTokenCount: generated.promptTokenCount,
-    candidateTokenCount: generated.candidateTokenCount,
-    thinkingTokenCount: generated.thinkingTokenCount,
-    cachedTokenCount: generated.cachedTokenCount,
-    totalTokenCount: generated.totalTokenCount,
-    countedPromptTokenCount: input.countedPromptTokenCount,
-    requestConfigurationDigestSha256:
-      visualIntelligenceDigest({ contentIdentity, config }),
-    providerRequestStartedAtIso,
-    providerRequestFinishedAtIso,
-    exactReturnedModelIdVerified: true,
-    providerToolsEnabled: false,
-    automaticProviderRetryEnabled: false,
-    customerCreditsMutated: false,
-    customerPricingAuthorityGranted: false,
-    productionReleaseAuthorityGranted: false,
-  })
+  let usagePayload: z.infer<typeof usageWithoutDigestSchema>
+  try {
+    usagePayload = usageWithoutDigestSchema.parse({
+      schemaVersion:
+        'visual-intelligence-model-billing-sku-provider-usage-v1',
+      qualificationId: input.qualificationId,
+      contextClass: input.contextClass,
+      exactModelId: VISUAL_INTELLIGENCE_MODEL_ID,
+      responseId: generated.responseId,
+      returnedModelVersion: generated.modelVersion,
+      finishReason: generated.finishReason,
+      candidateCount: generated.candidateCount,
+      promptTokenCount: generated.promptTokenCount,
+      candidateTokenCount: generated.candidateTokenCount,
+      thinkingTokenCount: generated.thinkingTokenCount,
+      cachedTokenCount: generated.cachedTokenCount,
+      totalTokenCount: generated.totalTokenCount,
+      countedPromptTokenCount: input.countedPromptTokenCount,
+      requestConfigurationDigestSha256:
+        visualIntelligenceDigest({ contentIdentity, config }),
+      providerRequestStartedAtIso,
+      providerRequestFinishedAtIso,
+      exactReturnedModelIdVerified: true,
+      providerToolsEnabled: false,
+      automaticProviderRetryEnabled: false,
+      customerCreditsMutated: false,
+      customerPricingAuthorityGranted: false,
+      productionReleaseAuthorityGranted: false,
+    })
+  } catch (error) {
+    await persistExact(
+      input.objectPort,
+      `${input.pathPrefix}/${labelContext}-response-rejected.json`,
+      {
+        schemaVersion:
+          'visual-intelligence-model-billing-sku-provider-response-rejection-v1',
+        qualificationId: input.qualificationId,
+        contextClass: input.contextClass,
+        requestRef,
+        responseIdDigestSha256: `sha256:${createHash('sha256')
+          .update(generated.responseId, 'utf8').digest('hex')}`,
+        returnedModelVersion: generated.modelVersion,
+        finishReason: generated.finishReason,
+        promptTokenCount: generated.promptTokenCount,
+        candidateTokenCount: generated.candidateTokenCount,
+        thinkingTokenCount: generated.thinkingTokenCount,
+        cachedTokenCount: generated.cachedTokenCount,
+        totalTokenCount: generated.totalTokenCount,
+        providerResponseExecuted: true,
+        qualificationAccepted: false,
+        automaticRetryAllowed: false,
+        customerCreditsMutated: false,
+        productionReleaseAuthorityGranted: false,
+        observedAt: providerRequestFinishedAtIso,
+      },
+    )
+    throw new Error(
+      'Visual Intelligence live provider response was rejected; automatic '
+        + 'retry is blocked.',
+      { cause: error },
+    )
+  }
   const usage = usageSchema.parse({
     ...usagePayload,
     usageDigestSha256: visualIntelligenceDigest(usagePayload),

@@ -49,6 +49,7 @@ for (const untrusted of observedConfigs) {
     mediaResolution?: string
     labels?: Record<string, string>
     httpOptions?: { retryOptions?: { attempts?: number } }
+    maxOutputTokens?: number
   }
   assert.equal(config.thinkingConfig?.thinkingLevel, ThinkingLevel.HIGH)
   assert.equal(
@@ -58,6 +59,7 @@ for (const untrusted of observedConfigs) {
   assert.equal(config.labels?.capability, 'visual-intelligence')
   assert.equal(config.labels?.operation, 'billing-sku-qualification')
   assert.equal(config.httpOptions?.retryOptions?.attempts, 1)
+  assert.equal(config.maxOutputTokens, 4_096)
 }
 assert.notEqual(
   receipt.standardContextProviderRequestRef.contentHash,

@@ -106,11 +106,12 @@ assert.equal(legacyAdmission.status, 'authorized_for_private_supply_chain_build'
 const body = compileCanonicalSam31ImageSupplyChainCloudBuildBody(admission)
 const serialized = JSON.stringify(body)
 const steps = body.steps as Array<Record<string, unknown>>
-assert.equal(steps.length, 5)
+assert.equal(steps.length, 6)
 assert.deepEqual(steps.map(({ id }) => id), [
   'pull-immutable-sam31-image',
   'archive-immutable-sam31-image',
   'generate-spdx-2-3-sbom',
+  'prepare-nonroot-signature-output',
   'sign-immutable-sam31-image',
   'verify-immutable-sam31-image-signature',
 ])
@@ -118,6 +119,10 @@ assert(serialized.includes(admission.immutableImageUri))
 assert(!serialized.includes(authority.imageDestination.taggedUri))
 assert(serialized.includes('docker-archive:/workspace/sam31-image.tar'))
 assert(serialized.includes('spdx-json=/workspace/sam31.spdx.json'))
+assert(serialized.includes('--network=none'))
+assert(serialized.includes('--volume=/workspace:/workspace'))
+assert(serialized.includes('--entrypoint=/bin/sh'))
+assert(serialized.includes('chmod 0777 /workspace'))
 assert(serialized.includes('--use-signing-config=false'))
 assert(serialized.includes('--tlog-upload=false'))
 assert(serialized.includes('--insecure-ignore-tlog=true'))
@@ -604,7 +609,7 @@ assert.equal(unknownCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-supply-chain-build',
-  checks: 108,
+  checks: 112,
   exactVertexV3ImageBuildAuthorityAccepted: true,
   historicalV2ImageBuildAuthorityStillReadable: true,
   historicalBatchQualificationCastOrRelabelUsed: false,

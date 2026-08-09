@@ -751,9 +751,24 @@ export function compileCanonicalSam31ImageSupplyChainCloudBuildBody(
         ],
       },
       {
+        id: 'prepare-nonroot-signature-output',
+        name: admission.toolchain.dockerBuilderImage,
+        waitFor: ['generate-spdx-2-3-sbom'],
+        args: [
+          'run',
+          '--rm',
+          '--network=none',
+          '--volume=/workspace:/workspace',
+          '--entrypoint=/bin/sh',
+          admission.toolchain.dockerBuilderImage,
+          '-ceu',
+          'chmod 0777 /workspace',
+        ],
+      },
+      {
         id: 'sign-immutable-sam31-image',
         name: admission.toolchain.cosignImage,
-        waitFor: ['generate-spdx-2-3-sbom'],
+        waitFor: ['prepare-nonroot-signature-output'],
         args: [
           'sign',
           '--yes',

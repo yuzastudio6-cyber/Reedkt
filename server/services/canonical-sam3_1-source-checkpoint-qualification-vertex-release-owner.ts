@@ -214,7 +214,11 @@ export interface CanonicalSam31VertexQualificationReleaseReadPort {
     readonly requestRef: EvidenceRef
   }): Promise<unknown>
   rereadWorkerRequest(input: { readonly requestRef: EvidenceRef }): Promise<unknown>
-  rereadWorkerResult(input: { readonly resultRef: EvidenceRef }): Promise<unknown>
+  rereadWorkerResult(input: {
+    readonly resultRef: EvidenceRef
+    readonly workerRequestRef: EvidenceRef
+    readonly executionRef: EvidenceRef
+  }): Promise<unknown>
   rereadAdmission(input: { readonly admissionRef: EvidenceRef }): Promise<unknown>
   rereadExecution(input: { readonly executionRef: EvidenceRef }): Promise<unknown>
   rereadTerminalReconciliation(input: {
@@ -285,7 +289,11 @@ export function createCanonicalSam31VertexQualificationReleaseOwner(input: {
         input.readPort.rereadWorkerRequest({
           requestRef: request.workerRequestRef,
         }),
-        input.readPort.rereadWorkerResult({ resultRef: request.workerResultRef }),
+        input.readPort.rereadWorkerResult({
+          resultRef: request.workerResultRef,
+          workerRequestRef: request.workerRequestRef,
+          executionRef: request.executionRef,
+        }),
         input.readPort.rereadAdmission({ admissionRef: request.admissionRef }),
         input.readPort.rereadExecution({ executionRef: request.executionRef }),
         input.readPort.rereadTerminalReconciliation({

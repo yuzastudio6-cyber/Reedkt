@@ -69,6 +69,35 @@ pre-patch command shape.
 - model downloads: `0`;
 - customer-credit mutations: `0`.
 
+## Read-only live foundation audit
+
+The post-merge read-only cloud audit initially failed closed because eight of
+the ten exact Vertex A100 route source hashes still described earlier revisions
+of the canonical runtime, repository, launch, reconciliation, cost, operator,
+and focused-smoke files. Those files had been deliberately hardened by later
+backend commits, but the audit binding set had not been refreshed. The route
+was not force-enabled: the eight bindings and their focused source regression
+were updated to the exact current bytes, and an independent whole-binding
+recalculation now reports no mismatch.
+
+`weeditpro-visual-intelligence-live-prerequisites-v18`, observed at
+`2026-08-09T00:00:42Z`, now reports:
+
+- ten of ten Vertex route source bindings exact;
+- `routeArchitectureQualified: true`;
+- one granted Vertex Custom Training A100 80 GB quota in `us-central1`;
+- `dispatchCapacityReady: true` and zero active qualification jobs;
+- official private SAM 3.1 source/checkpoint ingest ready;
+- the latest immutable qualification image supply-chain release verified;
+- `sourceCheckpointCompatibilityReceiptObserved: false`;
+- `liveGpuQualificationObserved: false`;
+- `liveGeminiQualificationObserved: false`; and
+- `productionReady: false`.
+
+This closes a stale source-binding defect only. It proves that a bounded paid
+qualification can be admitted later; it neither authorizes nor starts that
+qualification and it supplies no Caption-scoped owner result.
+
 ## Media inspected
 
 None. This checkpoint integrates and validates owner source/runtime authority;

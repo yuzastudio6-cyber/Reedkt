@@ -139,6 +139,7 @@ LABEL io.weeditpro.operation.id="tool.sam3_1.segment_and_track_subject.v1" \
   io.reeditpro.runtime.network="none" \
   io.reeditpro.runtime.gpu.routes="nvidia-a100-80gb-primary,nvidia-l4-fallback" \
   io.reeditpro.runtime.cpu.substantive="forbidden" \
+  io.weeditpro.runtime.gpu-kernel-cache="ephemeral-nonroot-private-v1" \
   io.reeditpro.runtime.qualification="candidate-only"
 
 ENV HF_HUB_OFFLINE=1 \
@@ -148,6 +149,11 @@ ENV HF_HUB_OFFLINE=1 \
   PYTHONNOUSERSITE=1 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
+  HOME=/var/lib/weeditpro/sam31 \
+  XDG_CACHE_HOME=/var/cache/weeditpro/sam31/xdg \
+  TRITON_CACHE_DIR=/var/cache/weeditpro/sam31/triton \
+  TORCHINDUCTOR_CACHE_DIR=/var/cache/weeditpro/sam31/torchinductor \
+  CUDA_CACHE_PATH=/var/cache/weeditpro/sam31/cuda \
   WEEDITPRO_PYTHON_VENV=/opt/weeditpro/python-venv \
   PATH=/opt/weeditpro/ffmpeg/bin:${PATH} \
   LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/opt/weeditpro/cuda-npp/lib:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cuda_runtime/lib:/usr/local/lib/python3.12/dist-packages/nvidia/cuda_nvrtc/lib:/usr/local/cuda/lib64 \
@@ -426,11 +432,18 @@ RUN groupadd --gid 65532 reeditpro \
     --uid 65532 \
     --gid 65532 \
     --no-create-home \
-    --home-dir /nonexistent \
+    --home-dir /var/lib/weeditpro/sam31 \
     --shell /usr/sbin/nologin \
-    reeditpro
+    reeditpro \
+  && install -d --owner=65532 --group=65532 --mode=0700 \
+    /var/lib/weeditpro/sam31 \
+    /var/cache/weeditpro/sam31 \
+    /var/cache/weeditpro/sam31/xdg \
+    /var/cache/weeditpro/sam31/triton \
+    /var/cache/weeditpro/sam31/torchinductor \
+    /var/cache/weeditpro/sam31/cuda
 
 USER 65532:65532
-WORKDIR /nonexistent
+WORKDIR /var/lib/weeditpro/sam31
 
 ENTRYPOINT ["/opt/reeditpro/sam3_1/entrypoint.sh"]

@@ -1,6 +1,42 @@
 #!/bin/sh
 set -eu
 
+umask 077
+
+assert_private_runtime_directory() {
+  expected_path="$1"
+  expected_value="$2"
+  variable_name="$3"
+  if [ "${expected_value}" != "${expected_path}" ]; then
+    echo "${variable_name} changed from its admitted path" >&2
+    exit 70
+  fi
+  if [ ! -d "${expected_path}" ] || [ -L "${expected_path}" ]; then
+    echo "${variable_name} is absent or symlinked" >&2
+    exit 70
+  fi
+  if [ "$(stat -c '%u:%g:%a' "${expected_path}")" != "65532:65532:700" ]; then
+    echo "${variable_name} ownership or mode changed" >&2
+    exit 70
+  fi
+  if [ ! -w "${expected_path}" ] || [ ! -x "${expected_path}" ]; then
+    echo "${variable_name} is not private-writable" >&2
+    exit 70
+  fi
+}
+
+assert_private_runtime_directory \
+  /var/lib/weeditpro/sam31 "${HOME:-}" HOME
+assert_private_runtime_directory \
+  /var/cache/weeditpro/sam31/xdg "${XDG_CACHE_HOME:-}" XDG_CACHE_HOME
+assert_private_runtime_directory \
+  /var/cache/weeditpro/sam31/triton "${TRITON_CACHE_DIR:-}" TRITON_CACHE_DIR
+assert_private_runtime_directory \
+  /var/cache/weeditpro/sam31/torchinductor \
+  "${TORCHINDUCTOR_CACHE_DIR:-}" TORCHINDUCTOR_CACHE_DIR
+assert_private_runtime_directory \
+  /var/cache/weeditpro/sam31/cuda "${CUDA_CACHE_PATH:-}" CUDA_CACHE_PATH
+
 # Select the CUDA driver-library path before Python or PyTorch can load
 # libcuda. Cloud Run L4 currently exposes the 535 driver branch, so the
 # pinned CUDA 12.8 runtime must use NVIDIA's exact forward-compatibility

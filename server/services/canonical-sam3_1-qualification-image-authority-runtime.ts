@@ -47,6 +47,14 @@ const IMPORTLIB_RESOURCES_PATCH_SHA256 =
   '6ce1e6954069aff28498284f4cd140cd9530a3f236d04bc507c799fe8ea3521f' as const
 const MULTIPLEX_SESSION_GPU_FORWARDING_PATCH_SHA256 =
   'fb5c047013629d27d7b8f2aecbf8343a402d2e36de3e24dc1be4347f83d9c86b' as const
+const GPU_KERNEL_CACHE_DOCKERFILE_SHA256 =
+  'a9cef996f277941ff817467803efd5295d72420165059a15e4ae1157934e51ad' as const
+const GPU_KERNEL_CACHE_ENTRYPOINT_SHA256 =
+  '141ca662e8dafbfecc417d5091e63519220081122907c6e1e8f0e67ec2e91c01' as const
+const GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256 =
+  '330e3e934c7d21a17f7f4dc1d9a1530d49bc2e76b9ba3e861cf72b2eb6db78d8' as const
+const GPU_KERNEL_CACHE_POLICY =
+  'sam3_1_ephemeral_nonroot_private_gpu_kernel_cache_v1' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -231,6 +239,28 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
               'SAM 3.1 multiplex-session GPU-forwarding patch digest changed.',
             )
           })()
+  const dockerfileSha256 = entryHash(
+    build,
+    'Dockerfile.qualification.candidate',
+  )
+  const entrypointSha256 = entryHash(build, 'qualification_entrypoint.sh')
+  const sourceProvenanceLockSha256 = entryHash(
+    build,
+    'source-provenance.lock',
+  )
+  const gpuKernelCacheFieldsObserved = [
+    dockerfileSha256 === GPU_KERNEL_CACHE_DOCKERFILE_SHA256,
+    entrypointSha256 === GPU_KERNEL_CACHE_ENTRYPOINT_SHA256,
+    sourceProvenanceLockSha256 ===
+      GPU_KERNEL_CACHE_SOURCE_PROVENANCE_LOCK_SHA256,
+  ]
+  const gpuKernelCachePolicy = gpuKernelCacheFieldsObserved.every(Boolean)
+    ? GPU_KERNEL_CACHE_POLICY
+    : gpuKernelCacheFieldsObserved.some(Boolean)
+      ? (() => {
+          throw new Error('SAM 3.1 GPU-kernel cache source profile crossed.')
+        })()
+      : undefined
   const manifest = createCanonicalSam31QualificationImageCapsuleManifest({
     evidenceClass: 'canonical_private_reread',
     status: 'private_capsule_verified',
@@ -258,10 +288,10 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
       sourceClean: true,
       dockerfilePath:
         'docker/prod/gpu-worker/sam3_1/Dockerfile.qualification.candidate',
-      dockerfileSha256: entryHash(build, 'Dockerfile.qualification.candidate'),
+      dockerfileSha256,
       runnerSha256: entryHash(build, 'qualification_runner.py'),
-      entrypointSha256: entryHash(build, 'qualification_entrypoint.sh'),
-      sourceProvenanceLockSha256: entryHash(build, 'source-provenance.lock'),
+      entrypointSha256,
+      sourceProvenanceLockSha256,
       gpuDecodePatchSha256:
         'daf5dfb59dbe6809eb2731b43e13d91b1679c271f0f4af11962236ffe83eb6ca',
       ...(importlibResourcesPatchSha256
@@ -270,6 +300,7 @@ export async function publishCanonicalSam31QualificationImageBuildAuthority(
       ...(multiplexSessionGpuForwardingPatchSha256
         ? { multiplexSessionGpuForwardingPatchSha256 }
         : {}),
+      ...(gpuKernelCachePolicy ? { gpuKernelCachePolicy } : {}),
     },
     privateInput: {
       directoryName: 'sam31_private_build_input',

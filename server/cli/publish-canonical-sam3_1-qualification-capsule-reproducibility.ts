@@ -117,6 +117,7 @@ const targetName = z.enum([
   'rope_cache_derivation_corrected',
   'multiplex_session_api_compatibility_corrected',
   'multiplex_session_gpu_forwarding_corrected',
+  'gpu_kernel_cache_corrected',
 ]).parse(
   process.env.WEEDITPRO_SAM31_CAPSULE_REPRODUCIBILITY_TARGET,
 )
@@ -129,9 +130,12 @@ const selectedTarget = targetName ===
   || targetName === 'rope_cache_derivation_corrected'
   || targetName === 'multiplex_session_api_compatibility_corrected'
   || targetName === 'multiplex_session_gpu_forwarding_corrected'
+  || targetName === 'gpu_kernel_cache_corrected'
   ? {
       receiptId:
-        targetName === 'multiplex_session_gpu_forwarding_corrected'
+        targetName === 'gpu_kernel_cache_corrected'
+          ? 'sam31-qualification-capsule-reproducibility-gpu-kernel-cache-corrected-v1'
+          : targetName === 'multiplex_session_gpu_forwarding_corrected'
           ? 'sam31-qualification-capsule-reproducibility-multiplex-session-gpu-forwarding-corrected-v1'
           : targetName === 'multiplex_session_api_compatibility_corrected'
           ? 'sam31-qualification-capsule-reproducibility-multiplex-session-api-compatibility-corrected-v1'

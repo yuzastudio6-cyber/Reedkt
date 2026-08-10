@@ -218,6 +218,29 @@ if spec is None or spec.loader is None:
     raise RuntimeError("SAM 3.1 runner module could not be loaded")
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)
+selected_driver_path = runner.select_loaded_cuda_driver_library_path([
+    ("/usr/local/nvidia/lib64/libcuda.so.580.82.07", (7, 11)),
+    ("/usr/lib/x86_64-linux-gnu/libcuda.so.580.82.07", (7, 11)),
+])
+if selected_driver_path != "/usr/lib/x86_64-linux-gnu/libcuda.so.580.82.07":
+    raise AssertionError("CUDA driver alias selection is not canonical")
+try:
+    runner.select_loaded_cuda_driver_library_path([
+        ("/usr/local/nvidia/lib64/libcuda.so.580.82.07", (7, 11)),
+        ("/untrusted/libcuda.so.580.82.07", (8, 12)),
+    ])
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("multiple CUDA driver files were accepted")
+if runner.failure_diagnostic_code(
+    RuntimeError("loaded CUDA driver library does not match its mode")
+) != "driver_file_mode_mismatch":
+    raise AssertionError("known CUDA failure was not safely classified")
+if runner.failure_diagnostic_code(
+    RuntimeError("private unexpected detail")
+) != "unclassified_fail_closed":
+    raise AssertionError("unknown CUDA failure detail was exposed")
 payload = json.load(sys.stdin)
 runner.validate_model_artifacts(payload["v1"])
 runner.validate_model_artifacts(payload["v2"])
@@ -464,6 +487,9 @@ print(json.dumps({
     "vertexQualificationReceiptV2Accepted": True,
     "vertexImageBindingV3Accepted": True,
     "bakedBindingRelabelRejected": True,
+    "providerMountAliasesCollapsedByFileIdentity": True,
+    "multipleDriverFilesRejected": True,
+    "safeCudaDiagnosticTaxonomyVerified": True,
 }))
 `, resolve(
     process.cwd(),
@@ -491,6 +517,9 @@ assert.deepEqual(
     vertexQualificationReceiptV2Accepted: true,
     vertexImageBindingV3Accepted: true,
     bakedBindingRelabelRejected: true,
+    providerMountAliasesCollapsedByFileIdentity: true,
+    multipleDriverFilesRejected: true,
+    safeCudaDiagnosticTaxonomyVerified: true,
   },
 )
 
@@ -680,7 +709,7 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 55,
+  checks: 60,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

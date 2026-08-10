@@ -100,7 +100,6 @@ CUDA_FORWARD_COMPAT_PACKAGE_SHA256 = (
     "e980bf55b8d1f6390f07968df46644c971a52f4e4129067d33d1445fac716893"
 )
 CUDA_FORWARD_COMPAT_PATH = "/usr/local/cuda-12.8/compat"
-HOST_DRIVER_PATHS = ("/usr/local/nvidia/lib64", "/usr/local/nvidia/lib")
 RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
 PREFIXED_SHA256 = re.compile(r"^sha256:[a-f0-9]{64}$")
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
@@ -1949,16 +1948,32 @@ class GpuComputeSampler:
         return max(self._samples)
 
 
+def select_loaded_cuda_driver_library_path(
+    observations: list[tuple[str, tuple[int, int]]],
+) -> str:
+    paths_by_file: dict[tuple[int, int], set[str]] = {}
+    for path, file_identity in observations:
+        paths_by_file.setdefault(file_identity, set()).add(path)
+    if len(paths_by_file) != 1:
+        raise RuntimeError("exactly one CUDA driver library file must be loaded")
+    observed_paths = next(iter(paths_by_file.values()))
+    return min(observed_paths, key=lambda value: value.encode("utf-16-be"))
+
+
 def loaded_cuda_driver_library_path() -> str:
-    paths: set[str] = set()
+    observations: list[tuple[str, tuple[int, int]]] = []
     with Path("/proc/self/maps").open("r", encoding="utf-8") as maps:
         for line in maps:
             path = line.rstrip().split(maxsplit=5)[-1]
             if path.startswith("/") and "/libcuda.so" in path:
-                paths.add(path)
-    if len(paths) != 1:
-        raise RuntimeError("exactly one CUDA driver library must be loaded")
-    return next(iter(paths))
+                try:
+                    stat = os.stat(path)
+                except OSError as error:
+                    raise RuntimeError(
+                        "loaded CUDA driver library cannot be identified"
+                    ) from error
+                observations.append((path, (stat.st_dev, stat.st_ino)))
+    return select_loaded_cuda_driver_library_path(observations)
 
 
 def validate_cuda_driver_library() -> dict[str, Any]:
@@ -1991,9 +2006,12 @@ def validate_cuda_driver_library() -> dict[str, Any]:
     forward_compatibility_loaded = loaded_path.startswith(
         f"{CUDA_FORWARD_COMPAT_PATH}/"
     )
-    host_driver_loaded = any(
-        loaded_path.startswith(f"{root}/") for root in HOST_DRIVER_PATHS
-    )
+    # NVIDIA's container runtime controls the host-library mount location. Vertex
+    # has used both /usr/local/nvidia and distribution-native library roots. The
+    # immutable image contains no non-compatibility libcuda, so host mode is
+    # proven by one loaded underlying libcuda file outside the pinned CUDA 12.8
+    # compatibility directory, not by a provider-specific mount-path spelling.
+    host_driver_loaded = not forward_compatibility_loaded
     if (
         mode == "cuda_compat_12_8"
         and (not forward_compatibility_loaded or host_driver_loaded)
@@ -2513,6 +2531,24 @@ def failure_response(request: dict[str, Any] | None, error: Exception) -> dict[s
     return payload
 
 
+def failure_diagnostic_code(error: Exception) -> str:
+    allowed = {
+        "launch accelerator and task accelerator differ": "accelerator_binding_mismatch",
+        "CUDA bfloat16 GPU is unavailable": "cuda_bfloat16_unavailable",
+        "observed GPU does not match the admitted route": "accelerator_identity_mismatch",
+        "CUDA Python dependency closure changed": "cuda_python_closure_mismatch",
+        "NVIDIA driver version evidence is malformed": "driver_version_malformed",
+        "entrypoint and NVML driver versions differ": "driver_version_reread_mismatch",
+        "CUDA driver-library mode is not admitted": "driver_mode_mismatch",
+        "loaded CUDA driver library cannot be identified": "driver_file_unidentifiable",
+        "exactly one CUDA driver library file must be loaded": "driver_file_count_mismatch",
+        "loaded CUDA driver library does not match its mode": "driver_file_mode_mismatch",
+        "runtime FFmpeg NVDEC closure changed": "ffmpeg_nvdec_closure_mismatch",
+        "TorchCodec GPU decode guard was installed twice": "decode_guard_duplicate",
+    }
+    return allowed.get(str(error), "unclassified_fail_closed")
+
+
 def main() -> int:
     global stage
     request_value: dict[str, Any] | None = None
@@ -2534,6 +2570,15 @@ def main() -> int:
         exit_code = 0
     except Exception as error:
         response = failure_response(request_value, error)
+        diagnostic = {
+            "schemaVersion": "canonical-sam3_1-gpu-worker-diagnostic-v1",
+            "terminalStage": response["terminalStage"],
+            "diagnosticCode": failure_diagnostic_code(error),
+            "rawExceptionTextPersisted": False,
+        }
+        sys.stderr.buffer.write(stable_json_bytes(diagnostic))
+        sys.stderr.buffer.write(b"\n")
+        sys.stderr.buffer.flush()
         exit_code = 1
     response_hash: str | None = None
     try:

@@ -22,9 +22,9 @@ import {
   canonicalProfessionalToolGpuDispatchAdmissionSchema,
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
 import {
-  canonicalCurrentGoogleCloudGpuRateAuthoritySchema,
-  type CanonicalCurrentGoogleCloudGpuRateAuthority,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  type CanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
   createCanonicalTrackAllSam31OrchestraBinding,
 } from '../workers/masks/canonical-track-all-sam3_1-orchestra-binding'
@@ -365,7 +365,7 @@ function reissueAdmission(input: {
 }
 
 function shiftRate(
-  source: CanonicalCurrentGoogleCloudGpuRateAuthority,
+  source: CanonicalProfessionalGoogleCloudGpuRateAuthority,
   nextObservedAt: string,
 ) {
   const shifted = structuredClone(source)
@@ -378,18 +378,25 @@ function shiftRate(
     ...component,
     currentPriceObservedAt: nextObservedAt,
   }))
-  const pricingReadDigestSha256 = sha256AuthorityValue({
+  const pricingReadDigestPayload = {
     sourceClass: prior.sourceClass,
     billingAccountPricingScopeRef: prior.billingAccountPricingScopeRef,
     pricingReaderConfigurationRef: prior.pricingReaderConfigurationRef,
     routeId: prior.routeId,
+    ...('pricingSetMode' in prior ? {
+      executionTarget: prior.executionTarget,
+      pricingSetMode: prior.pricingSetMode,
+    } : {}),
     region: prior.region,
     currency: prior.currency,
     components,
     priceRecordSetRef: prior.priceRecordSetRef,
     pricingReadStartedAt,
     pricingReadFinishedAt: nextObservedAt,
-  })
+  }
+  const pricingReadDigestSha256 = sha256AuthorityValue(
+    pricingReadDigestPayload,
+  )
   const payload = {
     ...prior,
     components,
@@ -400,13 +407,13 @@ function shiftRate(
     expiresAt: new Date(Date.parse(nextObservedAt) + 86_400_000)
       .toISOString(),
   }
-  return canonicalCurrentGoogleCloudGpuRateAuthoritySchema.parse({
+  return assertCanonicalProfessionalGoogleCloudGpuRateAuthority({
     ...payload,
     rateAuthorityHash: sha256AuthorityValue(payload),
-  })
+  }, nextObservedAt)
 }
 
-function rateRef(rate: CanonicalCurrentGoogleCloudGpuRateAuthority) {
+function rateRef(rate: CanonicalProfessionalGoogleCloudGpuRateAuthority) {
   return ref(
     rate.rateAuthorityId,
     rate.rateAuthorityHash,

@@ -26,6 +26,9 @@ import { authority as currentVertexRate } from
 import { record as releasePair } from
   './canonical-sam3_1-gpu-runtime-release-registry-smoke'
 
+assert.ok(currentVertexRate)
+const currentVertexRateAuthority = currentVertexRate
+
 const NOW = '2026-08-06T16:10:00.000Z'
 const target = createCanonicalProfessionalGpuRuntimeLaunchTarget({
   runtimeRelease: releasePair.runtimeRelease,
@@ -38,6 +41,12 @@ const providerRequests: Array<Record<string, unknown>> = []
 const sequence: string[] = []
 
 const vertexLaunchPort = createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: {
+    async persistLaunchContextCreateOnlyAndReread(value) {
+      sequence.push('durable_launch_context')
+      return structuredClone(value)
+    },
+  },
   consumptionPort: {
     async consumeCreateOnlyAndReread(value) {
       sequence.push('durable_consumption')
@@ -85,7 +94,7 @@ const adapter = createCanonicalA100VertexProfessionalGpuLaunchAdapter({
       assert.deepEqual(input.rateAuthorityRef,
         admission.currentRateAuthorityRef)
       assert.equal(input.at, NOW)
-      return structuredClone(currentVertexRate)
+      return structuredClone(currentVertexRateAuthority)
     },
   },
   quotaReadPort: {
@@ -106,6 +115,7 @@ const result = await adapter.startOneShotJob({
 })
 assert.equal(result.disposition, 'accepted')
 assert.deepEqual(sequence, [
+  'durable_launch_context',
   'durable_consumption',
   'vertex_create',
   'durable_execution',
@@ -152,7 +162,7 @@ const expiredQuotaAdapter =
       async rereadReleasePair() { return structuredClone(releasePair) },
     },
     rateAuthorityReadPort: {
-      async reread() { return structuredClone(currentVertexRate) },
+      async reread() { return structuredClone(currentVertexRateAuthority) },
     },
     quotaReadPort: {
       async rereadCurrent() {
@@ -219,10 +229,10 @@ function buildAdmission() {
     estimateRef: ref('estimate'),
     estimateMaximumReservedToolCostCredits: 300,
     currentRateAuthorityRef: {
-      id: currentVertexRate.rateAuthorityId,
-      version: currentVertexRate.rateAuthorityVersion,
+      id: currentVertexRateAuthority.rateAuthorityId,
+      version: currentVertexRateAuthority.rateAuthorityVersion,
       contentHash:
-        `sha256:${currentVertexRate.rateAuthorityHash}` as const,
+        `sha256:${currentVertexRateAuthority.rateAuthorityHash}` as const,
     },
     placementPolicyRef: {
       schemaVersion:

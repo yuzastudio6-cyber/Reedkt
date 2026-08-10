@@ -406,6 +406,46 @@ export function assertCanonicalA100VertexTerminalCostContext(
   return { ...parsed, authority }
 }
 
+export function createCanonicalA100VertexTerminalCostContext(input: {
+  readonly execution: CanonicalA100VertexCustomJobExecutionRecord
+  readonly authority: CanonicalA100VertexCustomJobLaunchAuthority
+}): CanonicalA100VertexTerminalCostContext {
+  const execution = assertCanonicalA100VertexCustomJobExecutionRecord(
+    input.execution,
+  )
+  const authority = assertCanonicalA100VertexCustomJobLaunchAuthority(
+    input.authority,
+  )
+  const executionRef = ref(
+    execution.executionRecordId,
+    execution.executionRecordHash,
+  )
+  if (!sameRef(execution.authorityRef, ref(
+    authority.authorityId,
+    authority.authorityHash,
+  )) || !sameRef(execution.releaseRef, authority.releaseRef)) {
+    throw new Error('Vertex A100 terminal context authority differs.')
+  }
+  const payload = contextWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_A100_VERTEX_TERMINAL_COST_CONTEXT_VERSION,
+    source:
+      'canonical_server_a100_vertex_terminal_cost_context_repository',
+    evidenceClass: 'canonical_private_reread',
+    executionRef,
+    authority,
+    releaseRef: execution.releaseRef,
+    exactApprovalSnapshotFrameTimingWorkLeaseReservationEstimateTriggerEnvelopeReleaseAndRateReread:
+      true,
+    callerUsageOutcomePriceCostOrReceiptIdAccepted: false,
+    customerWalletOrLedgerMutationAuthorityGranted: false,
+    preparedAt: execution.persistedAt,
+  })
+  return Object.freeze(assertCanonicalA100VertexTerminalCostContext({
+    ...payload,
+    contextHash: sha256AuthorityValue(payload),
+  }))
+}
+
 export function assertCanonicalA100VertexWorkerUsageEvidence(
   value: unknown,
 ): CanonicalA100VertexWorkerUsageEvidence {

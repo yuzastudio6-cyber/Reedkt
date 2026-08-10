@@ -1,4 +1,12 @@
+import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
+
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  createCanonicalA100VertexCustomJobDurableStore,
+} from '../services/canonical-a100-vertex-custom-job-durable-store'
 
 import {
   CANONICAL_A100_VERTEX_CUSTOM_JOB_LAUNCH_AUTHORITY_VERSION,
@@ -22,6 +30,7 @@ const sequence: string[] = []
 let observedRequest: Record<string, unknown> | null = null
 let persistedExecution: Record<string, unknown> | null = null
 const launchPort = createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: passthroughLaunchContextRepository(sequence),
   consumptionPort: {
     async consumeCreateOnlyAndReread(record) {
       sequence.push('consumed')
@@ -55,7 +64,12 @@ const launchPort = createCanonicalA100VertexCustomJobLaunchPort({
 
 const result = await launchPort.startOneShotJob({ authority, release })
 assert.equal(result.disposition, 'accepted')
-assert.deepEqual(sequence, ['consumed', 'provider', 'persisted'])
+assert.deepEqual(sequence, [
+  'launch_context',
+  'consumed',
+  'provider',
+  'persisted',
+])
 assert.ok(result.consumptionRef)
 assert.ok(result.customJobExecutionRef)
 assert.ok(persistedExecution)
@@ -127,8 +141,50 @@ assert.deepEqual(body.encryptionSpec, {
 assert.equal(JSON.stringify(body).includes('sam2'), false)
 assert.equal(JSON.stringify(body).includes('qwen'), false)
 
+const durableObjects = new Map<string, Buffer>()
+const durableStore = createCanonicalA100VertexCustomJobDurableStore({
+  objectPort: memoryObjectPort(durableObjects),
+  prefix: 'private/smoke/vertex-a100-launch/v1',
+})
+const durableLaunch = await createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: durableStore,
+  consumptionPort: durableStore,
+  executionRepository: durableStore,
+  auth: {
+    async request(providerRequest) {
+      const requestBody = providerRequest.data as { displayName: string }
+      return { data: {
+        name: 'projects/reeditpro/locations/us-central1/customJobs/23456',
+        displayName: requestBody.displayName,
+        state: 'JOB_STATE_PENDING',
+      } } as never
+    },
+  },
+  now: () => NOW,
+}).startOneShotJob({ authority, release })
+assert.equal(durableLaunch.disposition, 'accepted')
+assert.ok(durableLaunch.customJobExecutionRef)
+assert.equal(durableObjects.size, 4)
+assert.equal([...durableObjects.keys()].some((path) =>
+  path.includes('/authorities/')), true)
+assert.equal([...durableObjects.keys()].some((path) =>
+  path.includes('/releases/')), true)
+const durableExecution = await durableStore.rereadExecution({
+  executionRef: durableLaunch.customJobExecutionRef,
+})
+const durableTerminalContext = await durableStore
+  .rereadPrivateTerminalCostContext({
+    execution: durableExecution,
+    executionRef: durableLaunch.customJobExecutionRef,
+  })
+assert.deepEqual(durableTerminalContext.executionRef,
+  durableLaunch.customJobExecutionRef)
+assert.deepEqual(durableTerminalContext.releaseRef, release.releaseRef)
+assert.deepEqual(durableTerminalContext.authority, authority)
+
 let consumptionFailureProviderCalls = 0
 const consumptionFailure = await createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: passthroughLaunchContextRepository(),
   consumptionPort: {
     async consumeCreateOnlyAndReread() {
       throw new Error('duplicate authority consumption')
@@ -149,6 +205,7 @@ assert.equal(consumptionFailure.providerCallStarted, false)
 assert.equal(consumptionFailureProviderCalls, 0)
 
 const unknown = await createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: passthroughLaunchContextRepository(),
   consumptionPort: {
     async consumeCreateOnlyAndReread(record) {
       return structuredClone(record)
@@ -170,6 +227,7 @@ assert.equal(unknown.automaticRetryAllowed, false)
 
 let tamperProviderCalls = 0
 const tamperPort = createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: passthroughLaunchContextRepository(),
   consumptionPort: {
     async consumeCreateOnlyAndReread(record) {
       return record
@@ -208,6 +266,7 @@ assert.equal(crossedReleaseResult.disposition, 'rejected_before_creation')
 assert.equal(tamperProviderCalls, 0)
 
 const persistenceFailure = await createCanonicalA100VertexCustomJobLaunchPort({
+  launchContextRepository: passthroughLaunchContextRepository(),
   consumptionPort: {
     async consumeCreateOnlyAndReread(record) {
       return structuredClone(record)
@@ -263,8 +322,10 @@ console.log(JSON.stringify({
     immutableImageOnly: true,
     privateVpcAndCmekBound: true,
     scaleFromZeroNoPersistentEndpoint: true,
+    launchAuthorityAndReleasePersistedBeforeProvider: true,
     consumptionBeforeProvider: true,
     providerResourcePersistedAndReread: true,
+    terminalContextReconstructedFromDurableExactRereads: true,
     persistenceFailureRequiresReconciliation: true,
     duplicateConsumptionRejectedBeforeProvider: true,
     unknownOutcomeRetryForbidden: true,
@@ -425,6 +486,40 @@ function unreachableExecutionRepository() {
   return {
     async createOnlyAndReread(): Promise<never> {
       throw new Error('execution persistence must not be reached')
+    },
+  }
+}
+
+function passthroughLaunchContextRepository(sequence?: string[]) {
+  return {
+    async persistLaunchContextCreateOnlyAndReread(value: {
+      readonly authority: CanonicalA100VertexCustomJobLaunchAuthority
+      readonly release: CanonicalA100VertexCustomJobRelease
+    }) {
+      sequence?.push('launch_context')
+      return structuredClone(value)
+    },
+  }
+}
+
+function memoryObjectPort(
+  values: Map<string, Buffer>,
+): CanonicalCreateOnlyJsonObjectPort {
+  return {
+    async createOnly(input) {
+      assert.equal(createHash('sha256').update(input.body).digest('hex'),
+        input.contentSha256)
+      const prior = values.get(input.objectPath)
+      if (prior) {
+        if (!prior.equals(input.body)) throw new Error('create-only collision')
+        return 'already_exists'
+      }
+      values.set(input.objectPath, Buffer.from(input.body))
+      return 'created'
+    },
+    async readExact(objectPath) {
+      const value = values.get(objectPath)
+      return value ? Buffer.from(value) : null
     },
   }
 }

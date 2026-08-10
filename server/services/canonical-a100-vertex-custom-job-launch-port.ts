@@ -305,6 +305,13 @@ export interface CanonicalA100VertexCustomJobConsumptionPort {
   ): Promise<unknown>
 }
 
+export interface CanonicalA100VertexCustomJobLaunchContextRepository {
+  persistLaunchContextCreateOnlyAndReread(input: {
+    readonly authority: CanonicalA100VertexCustomJobLaunchAuthority
+    readonly release: CanonicalA100VertexCustomJobRelease
+  }): Promise<unknown>
+}
+
 export interface CanonicalA100VertexCustomJobExecutionRepository {
   createOnlyAndReread(
     record: CanonicalA100VertexCustomJobExecutionRecord,
@@ -314,6 +321,8 @@ export interface CanonicalA100VertexCustomJobExecutionRepository {
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
 
 export function createCanonicalA100VertexCustomJobLaunchPort(input: {
+  readonly launchContextRepository:
+    CanonicalA100VertexCustomJobLaunchContextRepository
   readonly consumptionPort: CanonicalA100VertexCustomJobConsumptionPort
   readonly executionRepository: CanonicalA100VertexCustomJobExecutionRepository
   readonly auth?: GoogleAuthRequest
@@ -346,6 +355,17 @@ export function createCanonicalA100VertexCustomJobLaunchPort(input: {
         )
         release = assertCanonicalA100VertexCustomJobRelease(request.release)
         assertAuthorityReleaseMatch(authority, release, observedAt)
+        const launchContext = parseLaunchContext(await input
+          .launchContextRepository.persistLaunchContextCreateOnlyAndReread({
+            authority,
+            release,
+          }))
+        if (stableAuthorityStringify(launchContext.authority) !==
+            stableAuthorityStringify(authority)
+          || stableAuthorityStringify(launchContext.release) !==
+            stableAuthorityStringify(release)) {
+          throw new Error('Vertex launch context reread changed.')
+        }
         prepared = prepareCreateRequest({ authority, release })
         consumption = createConsumption({
           authority,
@@ -436,6 +456,23 @@ export function createCanonicalA100VertexCustomJobLaunchPort(input: {
         })
       }
     },
+  })
+}
+
+function parseLaunchContext(value: unknown): {
+  readonly authority: CanonicalA100VertexCustomJobLaunchAuthority
+  readonly release: CanonicalA100VertexCustomJobRelease
+} {
+  assertPlainSerializedData(value, 'vertex_a100_launch_context')
+  const parsed = z.object({
+    authority: z.unknown(),
+    release: z.unknown(),
+  }).strict().parse(value)
+  return Object.freeze({
+    authority: assertCanonicalA100VertexCustomJobLaunchAuthority(
+      parsed.authority,
+    ),
+    release: assertCanonicalA100VertexCustomJobRelease(parsed.release),
   })
 }
 

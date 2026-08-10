@@ -361,6 +361,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       objectPort: controlPlaneObjectPort,
     })
   const vertexA100LaunchPort = createCanonicalA100VertexCustomJobLaunchPort({
+    launchContextRepository: vertexA100DurableStore,
     consumptionPort: vertexA100DurableStore,
     executionRepository: vertexA100DurableStore,
   })
@@ -373,7 +374,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     })
   const rawCloudLaunchPort: CanonicalProfessionalGpuCloudJobLaunchPort =
     Object.freeze({
-      async startOneShotJob(request) {
+      async startOneShotJob(request: Parameters<
+        CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
+      >[0]) {
         if (request.admission.routeId === 'a100_80gb_heavy_primary') {
           if (request.target.executionTarget !==
             'google_cloud_vertex_custom_job_a2_ultra') {

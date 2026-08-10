@@ -56,7 +56,8 @@ export function createCanonicalA100VertexProfessionalGpuLaunchAdapter(input: {
     'rereadReleasePair'
   >
   readonly rateAuthorityReadPort:
-    CanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository
+    Pick<CanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository,
+      'reread'>
   readonly quotaReadPort: CanonicalSam31VertexQualificationQuotaReadPort
   readonly vertexLaunchPort: VertexLaunchPort
   readonly now?: () => string
@@ -69,7 +70,9 @@ export function createCanonicalA100VertexProfessionalGpuLaunchAdapter(input: {
   }
   const now = input.now ?? (() => new Date().toISOString())
   return Object.freeze({
-    async startOneShotJob(untrusted) {
+    async startOneShotJob(untrusted: Parameters<
+      CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
+    >[0]) {
       const admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
         untrusted.admission,
       )

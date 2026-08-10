@@ -241,6 +241,19 @@ if runner.failure_diagnostic_code(
     RuntimeError("cuda_bfloat16_kernel_probe_failed")
 ) != "cuda_bfloat16_kernel_probe_failed":
     raise AssertionError("bfloat16 kernel failure was not safely classified")
+if runner.failure_diagnostic_code(
+    RuntimeError("nvml_initialization_failed")
+) != "nvml_initialization_failed":
+    raise AssertionError("NVML initialization failure was not safely classified")
+if runner.failure_diagnostic_code(
+    RuntimeError("nvml_driver_version_probe_failed")
+) != "nvml_driver_version_probe_failed":
+    raise AssertionError("NVML driver probe failure was not safely classified")
+runner.stage = "cuda_admission"
+if runner.failure_diagnostic_code(
+    ImportError("private package detail")
+) != "cuda_dependency_import_failed":
+    raise AssertionError("CUDA dependency import failure was not safely classified")
 try:
     runner.guarded_cuda_probe(
         "cuda_device_properties_probe_failed",

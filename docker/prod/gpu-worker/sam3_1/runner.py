@@ -1979,11 +1979,14 @@ def loaded_cuda_driver_library_path() -> str:
 def validate_cuda_driver_library() -> dict[str, Any]:
     from pynvml import nvmlInit, nvmlShutdown, nvmlSystemGetDriverVersion
 
-    nvmlInit()
+    guarded_cuda_probe("nvml_initialization_failed", nvmlInit)
     try:
-        observed = nvmlSystemGetDriverVersion()
+        observed = guarded_cuda_probe(
+            "nvml_driver_version_probe_failed",
+            nvmlSystemGetDriverVersion,
+        )
     finally:
-        nvmlShutdown()
+        guarded_cuda_probe("nvml_shutdown_failed", nvmlShutdown)
     if isinstance(observed, bytes):
         observed = observed.decode("ascii", errors="strict")
     if not isinstance(observed, str) or not re.fullmatch(
@@ -2599,6 +2602,8 @@ def failure_response(request: dict[str, Any] | None, error: Exception) -> dict[s
 
 
 def failure_diagnostic_code(error: Exception) -> str:
+    if stage == "cuda_admission" and isinstance(error, ImportError):
+        return "cuda_dependency_import_failed"
     allowed = {
         "launch accelerator and task accelerator differ": "accelerator_binding_mismatch",
         "CUDA bfloat16 GPU is unavailable": "cuda_bfloat16_unavailable",
@@ -2617,6 +2622,9 @@ def failure_diagnostic_code(error: Exception) -> str:
         "cuda_device_name_probe_failed": "cuda_device_name_probe_failed",
         "cuda_device_capability_probe_failed": "cuda_device_capability_probe_failed",
         "cuda_device_properties_probe_failed": "cuda_device_properties_probe_failed",
+        "nvml_initialization_failed": "nvml_initialization_failed",
+        "nvml_driver_version_probe_failed": "nvml_driver_version_probe_failed",
+        "nvml_shutdown_failed": "nvml_shutdown_failed",
         "cuda_bfloat16_kernel_probe_failed": "cuda_bfloat16_kernel_probe_failed",
         "CUDA bfloat16 kernel result is invalid": "cuda_bfloat16_kernel_result_invalid",
         "SAM 3.1 CUDA bfloat16 autocast was not entered": "cuda_autocast_not_entered",

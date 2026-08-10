@@ -15,6 +15,7 @@ main() {
   assert_operator_boundary
   local billing_account_resource="${WEEDITPRO_BILLING_ACCOUNT_RESOURCE_NAME}"
   local billing_account_id="${billing_account_resource#billingAccounts/}"
+  local operator_principal="${WEEDITPRO_ACCOUNT_PRICE_READER_OPERATOR_PRINCIPAL}"
 
   gcloud billing accounts add-iam-policy-binding "${billing_account_id}" \
     --member="serviceAccount:${API_SERVICE_ACCOUNT}" \
@@ -34,11 +35,32 @@ main() {
     fail 'the exact Billing Account Viewer binding did not reread'
   fi
 
+  gcloud iam service-accounts add-iam-policy-binding \
+    "${API_SERVICE_ACCOUNT}" \
+    --project="${PROJECT_ID}" \
+    --member="${operator_principal}" \
+    --role=roles/iam.serviceAccountTokenCreator \
+    --quiet \
+    --format=none >/dev/null
+  local service_account_policy
+  service_account_policy="$(gcloud iam service-accounts get-iam-policy \
+    "${API_SERVICE_ACCOUNT}" --project="${PROJECT_ID}" --format=json)"
+  if ! jq -e \
+    --arg member "${operator_principal}" \
+    'any(.bindings[]?;
+      .role == "roles/iam.serviceAccountTokenCreator"
+      and any(.members[]?; . == $member))' \
+    <<<"${service_account_policy}" >/dev/null; then
+    fail 'the exact service-account impersonation binding did not reread'
+  fi
+
   printf '%s\n' '{'
   printf '  "operation":"weeditpro_visual_intelligence_price_reader_grant_v1",\n'
   printf '  "projectId":"%s",\n' "${PROJECT_ID}"
   printf '  "serviceAccount":"%s",\n' "${API_SERVICE_ACCOUNT}"
   printf '  "role":"roles/billing.viewer",\n'
+  printf '  "operatorImpersonationRole":"roles/iam.serviceAccountTokenCreator",\n'
+  printf '  "operatorPrincipalDisclosed":false,\n'
   printf '  "billingAccountResourceDisclosed":false,\n'
   printf '  "billingMutationAuthorityGranted":false,\n'
   printf '  "paymentAuthorityGranted":false,\n'
@@ -54,6 +76,9 @@ assert_operator_boundary() {
   fi
   if [[ ! "${WEEDITPRO_BILLING_ACCOUNT_RESOURCE_NAME:-}" =~ ^billingAccounts/[A-Z0-9]{6}-[A-Z0-9]{6}-[A-Z0-9]{6}$ ]]; then
     fail 'the billing account coordinate is missing or invalid'
+  fi
+  if [[ ! "${WEEDITPRO_ACCOUNT_PRICE_READER_OPERATOR_PRINCIPAL:-}" =~ ^user:[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}$ ]]; then
+    fail 'the read-only audit operator principal is missing or invalid'
   fi
   local active_project
   active_project="$(gcloud config get-value project 2>/dev/null)"

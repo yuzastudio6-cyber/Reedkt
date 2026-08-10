@@ -2,8 +2,9 @@
 
 import { execFileSync } from 'node:child_process'
 
-import { GoogleAuth } from 'google-auth-library'
-
+const projectId = 'reeditpro'
+const canonicalPricingServiceAccount =
+  'reeditpro-api-sa@reeditpro.iam.gserviceaccount.com'
 const billingAccountResourceName =
   process.env.WEEDITPRO_BILLING_ACCOUNT_RESOURCE_NAME ?? ''
 
@@ -26,53 +27,27 @@ if (!/^billingAccounts\/[A-Z0-9-]+$/u.test(billingAccountResourceName)) {
   process.exit(0)
 }
 
-const auth = new GoogleAuth({
-  scopes: ['https://www.googleapis.com/auth/cloud-billing.readonly'],
-})
-
 let exactSkuPriceReads = 0
 let status = 'ready'
-let credentialSource = 'application_default_credentials'
-let gcloudAccessToken = null
+const credentialSource = 'canonical_api_service_account_impersonation'
+let canonicalServiceAccountAccessToken
+try {
+  canonicalServiceAccountAccessToken = readCanonicalServiceAccountAccessToken()
+} catch {
+  emit({
+    status: 'canonical_service_account_impersonation_permission_required',
+    exactSkuPriceReads,
+    credentialSource,
+  })
+  process.exit(0)
+}
+
 for (const skuId of exactSkuIds) {
   try {
-    if (gcloudAccessToken === null) {
-      await auth.request({
-        url: priceUrl(skuId),
-        method: 'GET',
-        params: { currencyCode: 'USD' },
-        timeout: 15_000,
-        retry: false,
-        maxRedirects: 0,
-        responseType: 'json',
-        maxContentLength: 2 * 1024 * 1024,
-      })
-    } else {
-      await readWithGcloudAccessToken(skuId, gcloudAccessToken)
-    }
+    await readWithAccessToken(skuId, canonicalServiceAccountAccessToken)
     exactSkuPriceReads += 1
   } catch (error) {
-    const httpStatus = Number(error?.response?.status ?? error?.code ?? 0)
-    const responseData = error?.response?.data
-    const applicationDefaultReauthenticationRequired =
-      httpStatus === 400
-      && responseData?.error === 'invalid_grant'
-      && responseData?.error_subtype === 'invalid_rapt'
-    if (applicationDefaultReauthenticationRequired && gcloudAccessToken === null) {
-      try {
-        gcloudAccessToken = readGcloudAccessToken()
-        credentialSource = 'gcloud_active_account_fallback'
-        await readWithGcloudAccessToken(skuId, gcloudAccessToken)
-        exactSkuPriceReads += 1
-        continue
-      } catch (fallbackError) {
-        status = classifyHttpStatus(Number(fallbackError?.httpStatus ?? 0), {
-          unavailableStatus: 'application_default_reauthentication_required',
-        })
-        break
-      }
-    }
-    status = classifyHttpStatus(httpStatus)
+    status = classifyHttpStatus(Number(error?.httpStatus ?? 0))
     break
   }
 }
@@ -85,10 +60,16 @@ function priceUrl(skuId) {
   return `https://cloudbilling.googleapis.com/v2beta/${coordinate}/skus/${skuId}/price?currencyCode=USD`
 }
 
-function readGcloudAccessToken() {
+function readCanonicalServiceAccountAccessToken() {
   const token = execFileSync(
     'gcloud',
-    ['auth', 'print-access-token', '--quiet'],
+    [
+      'auth',
+      'print-access-token',
+      `--impersonate-service-account=${canonicalPricingServiceAccount}`,
+      `--project=${projectId}`,
+      '--quiet',
+    ],
     {
       encoding: 'utf8',
       maxBuffer: 8 * 1024,
@@ -102,7 +83,7 @@ function readGcloudAccessToken() {
   return token
 }
 
-async function readWithGcloudAccessToken(skuId, accessToken) {
+async function readWithAccessToken(skuId, accessToken) {
   const response = await fetch(priceUrl(skuId), {
     method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -142,6 +123,9 @@ function emit({ status, exactSkuPriceReads, credentialSource = 'none' }) {
     billingAccountResourceDisclosed: false,
     pricePayloadDisclosed: false,
     accessTokenDisclosed: false,
+    canonicalPricingServiceIdentityUsed:
+      status === 'ready'
+      && credentialSource === 'canonical_api_service_account_impersonation',
     exactModelSkuCompatibilityQualificationObserved: false,
     stateMutated: false,
   }))

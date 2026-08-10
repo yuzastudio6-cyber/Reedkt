@@ -192,14 +192,17 @@ for (const skuId of [
   '3CE8-93F8-3C8F',
 ] as const) assert.match(accountPriceReadinessSource, new RegExp(skuId, 'u'))
 assert.match(accountPriceReadinessSource,
-  /cloud-billing\.readonly/u)
+  /canonical_api_service_account_impersonation/u)
+assert.match(accountPriceReadinessSource,
+  /--impersonate-service-account=\$\{canonicalPricingServiceAccount\}/u)
 assert.match(accountPriceReadinessSource, /billingAccountPriceReadReady/u)
 assert.match(accountPriceReadinessSource,
   /billing_account_price_permission_required/u)
 assert.match(accountPriceReadinessSource,
   /exactModelSkuCompatibilityQualificationObserved: false/u)
-assert.match(accountPriceReadinessSource, /maxRedirects: 0/u)
-assert.match(accountPriceReadinessSource, /retry: false/u)
+assert.match(accountPriceReadinessSource, /redirect: 'error'/u)
+assert.match(accountPriceReadinessSource, /AbortSignal\.timeout\(15_000\)/u)
+assert.doesNotMatch(accountPriceReadinessSource, /application_default_credentials/u)
 assert.match(accountPriceReadinessSource, /stateMutated: false/u)
 assert.doesNotMatch(accountPriceReadinessSource,
   /console\.(?:log|error)\([^)]*billingAccountResourceName/u)

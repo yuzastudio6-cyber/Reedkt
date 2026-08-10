@@ -249,6 +249,91 @@ if runner.failure_diagnostic_code(
     RuntimeError("nvml_driver_version_probe_failed")
 ) != "nvml_driver_version_probe_failed":
     raise AssertionError("NVML driver probe failure was not safely classified")
+if runner.failure_diagnostic_code(
+    RuntimeError("nvml_library_load_failed")
+) != "nvml_library_load_failed":
+    raise AssertionError("NVML library failure was not safely classified")
+if runner.failure_diagnostic_code(
+    RuntimeError("nvml_symbol_resolution_failed")
+) != "nvml_symbol_resolution_failed":
+    raise AssertionError("NVML symbol failure was not safely classified")
+if runner.failure_diagnostic_code(
+    RuntimeError("nvml_decoder_utilization_probe_failed")
+) != "nvml_decoder_utilization_probe_failed":
+    raise AssertionError("NVML decoder failure was not safely classified")
+if "pynvml" in Path(runner_path).read_text(encoding="utf-8"):
+    raise AssertionError("undeclared pynvml dependency remains in the worker")
+
+class FakeNvmlFunction:
+    def __init__(self, implementation):
+        self.implementation = implementation
+        self.argtypes = None
+        self.restype = None
+
+    def __call__(self, *args):
+        return self.implementation(*args)
+
+class FakeNvmlLibrary:
+    def __init__(self):
+        self.nvmlInit_v2 = FakeNvmlFunction(lambda: 0)
+        self.nvmlShutdown = FakeNvmlFunction(lambda: 0)
+        self.nvmlSystemGetDriverVersion = FakeNvmlFunction(
+            self.get_driver_version
+        )
+        self.nvmlDeviceGetHandleByIndex_v2 = FakeNvmlFunction(
+            self.get_handle
+        )
+        self.nvmlDeviceGetUtilizationRates = FakeNvmlFunction(
+            self.get_utilization
+        )
+        self.nvmlDeviceGetDecoderUtilization = FakeNvmlFunction(
+            self.get_decoder_utilization
+        )
+
+    @staticmethod
+    def get_driver_version(destination, length):
+        value = b"580.82.07\0"
+        if int(length) < len(value):
+            return 7
+        runner.ctypes.memmove(destination, value, len(value))
+        return 0
+
+    @staticmethod
+    def get_handle(index, destination):
+        if int(index) != 0:
+            return 2
+        destination._obj.value = 0xA100
+        return 0
+
+    @staticmethod
+    def get_utilization(_handle, destination):
+        destination._obj.gpu = 87
+        destination._obj.memory = 64
+        return 0
+
+    @staticmethod
+    def get_decoder_utilization(_handle, utilization, sampling_period):
+        utilization._obj.value = 71
+        sampling_period._obj.value = 16_000
+        return 0
+
+original_cdll = runner.ctypes.CDLL
+runner.ctypes.CDLL = lambda *_args, **_kwargs: FakeNvmlLibrary()
+try:
+    nvml = runner.load_fixed_nvml_binding()
+    nvml.initialize()
+    if nvml.driver_version() != b"580.82.07":
+        raise AssertionError("fixed NVML driver-version ABI returned wrong data")
+    nvml_handle = nvml.device_handle()
+    if nvml_handle.value != 0xA100:
+        raise AssertionError("fixed NVML device-handle ABI returned wrong data")
+    if nvml.gpu_utilization_percent(nvml_handle) != 87:
+        raise AssertionError("fixed NVML compute-utilization ABI returned wrong data")
+    if nvml.decoder_utilization_percent(nvml_handle) != 71:
+        raise AssertionError("fixed NVML decoder-utilization ABI returned wrong data")
+    nvml.shutdown()
+finally:
+    runner.ctypes.CDLL = original_cdll
 runner.stage = "cuda_admission"
 if runner.failure_diagnostic_code(
     ImportError("private package detail")

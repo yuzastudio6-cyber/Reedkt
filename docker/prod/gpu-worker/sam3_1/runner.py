@@ -12,6 +12,7 @@ It never accepts a request, path, URL, command, model, or route on stdin.
 from __future__ import annotations
 
 import contextlib
+import ctypes
 import hashlib
 import importlib.metadata
 import io
@@ -1864,6 +1865,128 @@ def read_artifact_build_binding(
     return value
 
 
+class _NvmlUtilization(ctypes.Structure):
+    _fields_ = [
+        ("gpu", ctypes.c_uint),
+        ("memory", ctypes.c_uint),
+    ]
+
+
+class FixedNvmlBinding:
+    """Minimal fixed NVML ABI used by the immutable GPU worker.
+
+    The production image deliberately carries no runtime package installer.
+    NVIDIA's container runtime supplies ``libnvidia-ml.so.1`` with the host
+    driver.  Binding only the six fixed symbols used by this worker avoids an
+    undeclared Python-package dependency while keeping every NVML call
+    fail-closed and attributable to the loaded host driver.
+    """
+
+    def __init__(self) -> None:
+        self._library = ctypes.CDLL(
+            "libnvidia-ml.so.1",
+            mode=getattr(ctypes, "RTLD_LOCAL", 0),
+        )
+        self._init = self._symbol("nvmlInit_v2")
+        self._init.argtypes = []
+        self._init.restype = ctypes.c_int
+        self._shutdown = self._symbol("nvmlShutdown")
+        self._shutdown.argtypes = []
+        self._shutdown.restype = ctypes.c_int
+        self._driver_version = self._symbol("nvmlSystemGetDriverVersion")
+        self._driver_version.argtypes = [
+            ctypes.POINTER(ctypes.c_char),
+            ctypes.c_uint,
+        ]
+        self._driver_version.restype = ctypes.c_int
+        self._handle_by_index = self._symbol("nvmlDeviceGetHandleByIndex_v2")
+        self._handle_by_index.argtypes = [
+            ctypes.c_uint,
+            ctypes.POINTER(ctypes.c_void_p),
+        ]
+        self._handle_by_index.restype = ctypes.c_int
+        self._utilization = self._symbol("nvmlDeviceGetUtilizationRates")
+        self._utilization.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(_NvmlUtilization),
+        ]
+        self._utilization.restype = ctypes.c_int
+        self._decoder_utilization = self._symbol(
+            "nvmlDeviceGetDecoderUtilization"
+        )
+        self._decoder_utilization.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_uint),
+            ctypes.POINTER(ctypes.c_uint),
+        ]
+        self._decoder_utilization.restype = ctypes.c_int
+
+    def _symbol(self, name: str) -> Any:
+        try:
+            return getattr(self._library, name)
+        except AttributeError as error:
+            raise RuntimeError("nvml_symbol_resolution_failed") from error
+
+    @staticmethod
+    def _check(code: int, diagnostic: str) -> None:
+        if int(code) != 0:
+            raise RuntimeError(diagnostic)
+
+    def initialize(self) -> None:
+        self._check(self._init(), "nvml_initialization_failed")
+
+    def shutdown(self) -> None:
+        self._check(self._shutdown(), "nvml_shutdown_failed")
+
+    def driver_version(self) -> bytes:
+        value = ctypes.create_string_buffer(96)
+        self._check(
+            self._driver_version(value, ctypes.sizeof(value)),
+            "nvml_driver_version_probe_failed",
+        )
+        return bytes(value.value)
+
+    def device_handle(self) -> ctypes.c_void_p:
+        handle = ctypes.c_void_p()
+        self._check(
+            self._handle_by_index(0, ctypes.byref(handle)),
+            "nvml_device_handle_probe_failed",
+        )
+        if handle.value is None:
+            raise RuntimeError("nvml_device_handle_probe_failed")
+        return handle
+
+    def gpu_utilization_percent(self, handle: ctypes.c_void_p) -> int:
+        utilization = _NvmlUtilization()
+        self._check(
+            self._utilization(handle, ctypes.byref(utilization)),
+            "nvml_gpu_utilization_probe_failed",
+        )
+        return int(utilization.gpu)
+
+    def decoder_utilization_percent(self, handle: ctypes.c_void_p) -> int:
+        utilization = ctypes.c_uint()
+        sampling_period = ctypes.c_uint()
+        self._check(
+            self._decoder_utilization(
+                handle,
+                ctypes.byref(utilization),
+                ctypes.byref(sampling_period),
+            ),
+            "nvml_decoder_utilization_probe_failed",
+        )
+        return int(utilization.value)
+
+
+def load_fixed_nvml_binding() -> FixedNvmlBinding:
+    try:
+        return FixedNvmlBinding()
+    except RuntimeError:
+        raise
+    except Exception as error:
+        raise RuntimeError("nvml_library_load_failed") from error
+
+
 class NvdecSampler:
     def __init__(self) -> None:
         self._stop = threading.Event()
@@ -1874,24 +1997,17 @@ class NvdecSampler:
     def start(self) -> None:
         def sample() -> None:
             try:
-                from pynvml import (
-                    nvmlDeviceGetDecoderUtilization,
-                    nvmlDeviceGetHandleByIndex,
-                    nvmlInit,
-                    nvmlShutdown,
-                )
-
-                nvmlInit()
+                nvml = load_fixed_nvml_binding()
+                nvml.initialize()
                 try:
-                    handle = nvmlDeviceGetHandleByIndex(0)
+                    handle = nvml.device_handle()
                     while not self._stop.is_set():
-                        utilization, _sampling_period = (
-                            nvmlDeviceGetDecoderUtilization(handle)
+                        self._samples.append(
+                            nvml.decoder_utilization_percent(handle)
                         )
-                        self._samples.append(int(utilization))
                         self._stop.wait(0.02)
                 finally:
-                    nvmlShutdown()
+                    nvml.shutdown()
             except Exception as error:  # evidence failure blocks the attempt
                 self._error = error
 
@@ -1917,22 +2033,17 @@ class GpuComputeSampler:
     def start(self) -> None:
         def sample() -> None:
             try:
-                from pynvml import (
-                    nvmlDeviceGetHandleByIndex,
-                    nvmlDeviceGetUtilizationRates,
-                    nvmlInit,
-                    nvmlShutdown,
-                )
-
-                nvmlInit()
+                nvml = load_fixed_nvml_binding()
+                nvml.initialize()
                 try:
-                    handle = nvmlDeviceGetHandleByIndex(0)
+                    handle = nvml.device_handle()
                     while not self._stop.is_set():
-                        utilization = nvmlDeviceGetUtilizationRates(handle)
-                        self._samples.append(int(utilization.gpu))
+                        self._samples.append(
+                            nvml.gpu_utilization_percent(handle)
+                        )
                         self._stop.wait(0.01)
                 finally:
-                    nvmlShutdown()
+                    nvml.shutdown()
             except Exception as error:  # evidence failure blocks the attempt
                 self._error = error
 
@@ -1977,16 +2088,15 @@ def loaded_cuda_driver_library_path() -> str:
 
 
 def validate_cuda_driver_library() -> dict[str, Any]:
-    from pynvml import nvmlInit, nvmlShutdown, nvmlSystemGetDriverVersion
-
-    guarded_cuda_probe("nvml_initialization_failed", nvmlInit)
+    nvml = load_fixed_nvml_binding()
+    guarded_cuda_probe("nvml_initialization_failed", nvml.initialize)
     try:
         observed = guarded_cuda_probe(
             "nvml_driver_version_probe_failed",
-            nvmlSystemGetDriverVersion,
+            nvml.driver_version,
         )
     finally:
-        guarded_cuda_probe("nvml_shutdown_failed", nvmlShutdown)
+        guarded_cuda_probe("nvml_shutdown_failed", nvml.shutdown)
     if isinstance(observed, bytes):
         observed = observed.decode("ascii", errors="strict")
     if not isinstance(observed, str) or not re.fullmatch(
@@ -2623,7 +2733,14 @@ def failure_diagnostic_code(error: Exception) -> str:
         "cuda_device_capability_probe_failed": "cuda_device_capability_probe_failed",
         "cuda_device_properties_probe_failed": "cuda_device_properties_probe_failed",
         "nvml_initialization_failed": "nvml_initialization_failed",
+        "nvml_library_load_failed": "nvml_library_load_failed",
+        "nvml_symbol_resolution_failed": "nvml_symbol_resolution_failed",
         "nvml_driver_version_probe_failed": "nvml_driver_version_probe_failed",
+        "nvml_device_handle_probe_failed": "nvml_device_handle_probe_failed",
+        "nvml_gpu_utilization_probe_failed": "nvml_gpu_utilization_probe_failed",
+        "nvml_decoder_utilization_probe_failed": (
+            "nvml_decoder_utilization_probe_failed"
+        ),
         "nvml_shutdown_failed": "nvml_shutdown_failed",
         "cuda_bfloat16_kernel_probe_failed": "cuda_bfloat16_kernel_probe_failed",
         "CUDA bfloat16 kernel result is invalid": "cuda_bfloat16_kernel_result_invalid",

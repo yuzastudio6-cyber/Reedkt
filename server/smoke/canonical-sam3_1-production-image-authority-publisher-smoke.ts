@@ -31,6 +31,22 @@ import {
 import { release } from
   './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner-smoke'
 
+const productionCapsuleRuntimeSource = readFileSync(resolve(
+  'server/services/canonical-sam3_1-production-capsule-runtime.ts',
+), 'utf8')
+assert.match(
+  productionCapsuleRuntimeSource,
+  /const CAPSULE_READ_TIMEOUT_MILLISECONDS = 30 \* 60 \* 1_000/u,
+)
+assert.match(
+  productionCapsuleRuntimeSource,
+  /timeout: CAPSULE_READ_TIMEOUT_MILLISECONDS/u,
+)
+assert.match(
+  productionCapsuleRuntimeSource,
+  /retryOptions: \{ autoRetry: false, maxRetries: 0 \}/u,
+)
+
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const canonicalIngest = release.qualification.ingestReceipt
 const binding = createCanonicalSam31VertexImageBuildBinding({

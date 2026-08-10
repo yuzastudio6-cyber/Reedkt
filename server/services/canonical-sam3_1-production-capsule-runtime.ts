@@ -15,6 +15,7 @@ const BUCKET =
 const PREFIX =
   'private/image-build-inputs/sam3_1/production/reproducibility/' as const
 const MAXIMUM_CAPSULE_BYTES = 8 * 1024 * 1024 * 1024
+const CAPSULE_READ_TIMEOUT_MILLISECONDS = 30 * 60 * 1_000
 const coordinateSchema = z.object({
   projectId: z.literal(PROJECT_ID),
   bucketName: z.literal(BUCKET),
@@ -40,6 +41,7 @@ export function createCanonicalSam31GcsProductionCapsuleReadPort(
 } {
   const storage = input.storage ?? new Storage({
     projectId: PROJECT_ID,
+    timeout: CAPSULE_READ_TIMEOUT_MILLISECONDS,
     retryOptions: { autoRetry: false, maxRetries: 0 },
   })
   return Object.freeze({

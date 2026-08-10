@@ -95,6 +95,8 @@ const terminal = assertCanonicalA100VertexCustomJobTerminalRead(
 )
 assert.equal(terminal.disposition, 'terminal')
 assert.equal(terminal.terminalOutcome, 'completed')
+assert.deepEqual(terminal.cloudCapacityTeardownObservationRef,
+  terminalCostEvidence.cloudCapacityTeardownObservationRef)
 assert.equal(terminal.providerJobTerminalStateReread, true)
 assert.equal(terminal.workerStoppedVerified, true)
 assert.equal(terminal.activeA100GpuInstancesAfterObservation, 0)
@@ -271,6 +273,8 @@ function buildCostEvidence(input: {
     evidenceClass: 'canonical_private_reread' as const,
     executionRef,
     cloudTerminalObservationRef: input.cloudTerminalObservationRef,
+    cloudCapacityTeardownObservationRef:
+      ref('platform-usage-reread-1', '9'.repeat(64)),
     workerUsageEvidenceRef: ref('worker-usage-1', '6'.repeat(64)),
     currentAccountPriceAuthorityRef: ref('account-price-1', '7'.repeat(64)),
     attemptCostReceiptRef: ref('attempt-cost-1', '8'.repeat(64)),

@@ -410,6 +410,8 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
         evidenceClass: 'canonical_private_reread' as const,
         executionRef,
         cloudTerminalObservationRef,
+        cloudCapacityTeardownObservationRef:
+          platform.platformUsageRereadRef,
         workerUsageEvidenceRef,
         currentAccountPriceAuthorityRef: authority.currentRateAuthorityRef,
         attemptCostReceiptRef: ref(receipt.receiptId, receipt.receiptHash),

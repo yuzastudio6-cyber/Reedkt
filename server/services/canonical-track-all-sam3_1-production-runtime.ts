@@ -42,6 +42,9 @@ import {
   createCanonicalA100VertexCustomJobTerminalPort,
 } from './canonical-a100-vertex-custom-job-terminal-port'
 import {
+  createCanonicalA100VertexProfessionalGpuTerminalObservationPort,
+} from './canonical-a100-vertex-professional-gpu-terminal-adapter'
+import {
   createCanonicalA100VertexTerminalCostEvidenceReadPort,
 } from './canonical-a100-vertex-terminal-cost-evidence-service'
 import {
@@ -85,6 +88,13 @@ import {
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
+  createCanonicalSam31GcsPrivateOutputRereadPort,
+} from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
+import {
+  createCanonicalSam31A100ResultFinalizationRuntime,
+  type CanonicalSam31A100ResultFinalizationRuntimePort,
+} from './canonical-sam3_1-a100-result-finalization-service'
+import {
   createCanonicalSpecialistSupportResumeRepository,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
@@ -126,7 +136,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v13' as const
+  'canonical-track-all-sam3_1-production-runtime-v14' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -142,6 +152,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly a100VertexCustomJobTerminalReadPort: ReturnType<
     typeof createCanonicalA100VertexCustomJobTerminalPort
   >
+  readonly sam31A100ResultFinalizationRuntimePort:
+    CanonicalSam31A100ResultFinalizationRuntimePort
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly trackAllSam31CaptionEvidenceFinalizationRuntimePort:
@@ -413,6 +425,24 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       executionRepository: vertexA100DurableStore,
       costEvidenceReadPort: vertexA100TerminalCostEvidenceReadPort,
     })
+  const a100VertexProfessionalGpuTerminalObservationPort =
+    createCanonicalA100VertexProfessionalGpuTerminalObservationPort({
+      terminalReadPort: a100VertexCustomJobTerminalReadPort,
+    })
+  const sam31A100ResultFinalizationRuntimePort =
+    createCanonicalSam31A100ResultFinalizationRuntime({
+      lifecycleStore,
+      terminalObservationPort:
+        a100VertexProfessionalGpuTerminalObservationPort,
+      taskStore,
+      privateOutputRereadPort:
+        createCanonicalSam31GcsPrivateOutputRereadPort({
+          storage,
+          projectId,
+          bucketName: privateGpuObjectBucketName,
+        }),
+      resultStore: sam31RuntimeResultStore,
+    })
   const rawCloudLaunchPort: CanonicalProfessionalGpuCloudJobLaunchPort =
     Object.freeze({
       async startOneShotJob(request: Parameters<
@@ -503,6 +533,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     }),
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
     a100VertexCustomJobTerminalReadPort,
+    sam31A100ResultFinalizationRuntimePort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,
     trackAllSam31CaptionEvidenceFinalizationRuntimePort,

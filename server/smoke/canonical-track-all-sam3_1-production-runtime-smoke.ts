@@ -26,9 +26,17 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v13')
+  'canonical-track-all-sam3_1-production-runtime-v14')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
+assert.equal(
+  runtime.sam31A100ResultFinalizationRuntimePort.schemaVersion,
+  'canonical-sam3_1-a100-result-finalization-v1',
+)
+assert.equal(
+  typeof runtime.sam31A100ResultFinalizationRuntimePort.finalize,
+  'function',
+)
 assert.equal(runtime.runtimeMode,
   'vertex_a100_cloud_run_l4_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -178,6 +186,12 @@ assert.match(productionRuntimeSource,
 assert.match(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobTerminalPort/u)
 assert.match(productionRuntimeSource,
+  /createCanonicalA100VertexProfessionalGpuTerminalObservationPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalSam31GcsPrivateOutputRereadPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalSam31A100ResultFinalizationRuntime/u)
+assert.match(productionRuntimeSource,
   /createCanonicalA100VertexProviderAllocationCostReceiptStore/u)
 assert.match(productionRuntimeSource,
   /createCanonicalSam31VertexQualificationQuotaReadPort/u)
@@ -206,10 +220,12 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 64,
+  checks: 69,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   vertexA100DurableLaunchAndLiveQuotaRereadMounted: true,
+  vertexA100TerminalToCanonicalResultBridgeMounted: true,
+  exactPrivateGcsMaskRereadMounted: true,
   historicalBatchA100LaunchMounted: false,
   authenticatedRouteUsesDurableProductionRuntime: true,
   pricingFundingRateReleaseSourceProxyTaskAndLifecyclePortsComposed: true,

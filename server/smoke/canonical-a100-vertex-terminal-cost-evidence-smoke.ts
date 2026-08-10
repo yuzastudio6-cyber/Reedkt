@@ -173,6 +173,8 @@ const terminalReadPayload = {
   providerState: 'JOB_STATE_SUCCEEDED' as const,
   terminalOutcome: 'completed' as const,
   cloudTerminalObservationRef,
+  cloudCapacityTeardownObservationRef:
+    completedEvidence.cloudCapacityTeardownObservationRef,
   workerUsageEvidenceRef: completedEvidence.workerUsageEvidenceRef,
   currentAccountPriceAuthorityRef:
     completedEvidence.currentAccountPriceAuthorityRef,

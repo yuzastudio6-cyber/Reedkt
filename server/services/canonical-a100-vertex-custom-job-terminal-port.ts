@@ -13,9 +13,9 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_TERMINAL_COST_EVIDENCE_VERSION =
-  'canonical-a100-vertex-custom-job-terminal-cost-evidence-v2' as const
+  'canonical-a100-vertex-custom-job-terminal-cost-evidence-v3' as const
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_TERMINAL_READ_VERSION =
-  'canonical-a100-vertex-custom-job-terminal-read-v2' as const
+  'canonical-a100-vertex-custom-job-terminal-read-v3' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com' as const
 const CLOUD_PLATFORM_SCOPE =
@@ -58,6 +58,7 @@ const costEvidenceWithoutHashSchema = z.object({
   evidenceClass: z.literal('canonical_private_reread'),
   executionRef: evidenceRefSchema,
   cloudTerminalObservationRef: evidenceRefSchema,
+  cloudCapacityTeardownObservationRef: evidenceRefSchema,
   workerUsageEvidenceRef: evidenceRefSchema,
   currentAccountPriceAuthorityRef: evidenceRefSchema,
   attemptCostReceiptRef: evidenceRefSchema,
@@ -102,6 +103,7 @@ const terminalReadWithoutHashSchema = z.object({
     'expired',
   ]).nullable(),
   cloudTerminalObservationRef: evidenceRefSchema.nullable(),
+  cloudCapacityTeardownObservationRef: evidenceRefSchema.nullable(),
   workerUsageEvidenceRef: evidenceRefSchema.nullable(),
   currentAccountPriceAuthorityRef: evidenceRefSchema.nullable(),
   attemptCostReceiptRef: evidenceRefSchema.nullable(),
@@ -133,6 +135,7 @@ const terminalReadWithoutHashSchema = z.object({
 }).strict().superRefine((result, context) => {
   const terminalRefs = [
     result.cloudTerminalObservationRef,
+    result.cloudCapacityTeardownObservationRef,
     result.workerUsageEvidenceRef,
     result.currentAccountPriceAuthorityRef,
     result.attemptCostReceiptRef,
@@ -416,6 +419,8 @@ function terminalRead(input: {
     terminalOutcome: input.terminalOutcome,
     cloudTerminalObservationRef:
       input.costEvidence?.cloudTerminalObservationRef ?? null,
+    cloudCapacityTeardownObservationRef:
+      input.costEvidence?.cloudCapacityTeardownObservationRef ?? null,
     workerUsageEvidenceRef: input.costEvidence?.workerUsageEvidenceRef ?? null,
     currentAccountPriceAuthorityRef:
       input.costEvidence?.currentAccountPriceAuthorityRef ?? null,

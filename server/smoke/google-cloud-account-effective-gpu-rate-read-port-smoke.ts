@@ -45,22 +45,22 @@ assert.deepEqual(
 )
 assert.equal(routes[1].components[0].priceTerms[0].skuId,
   WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudRun
-    .regionalSkus['europe-west4'].l4NoZonalRedundancySkuId)
+    .regionalSkus['us-central1'].l4NoZonalRedundancySkuId)
 assert.equal(routes[2].components[0].priceTerms[0].skuId,
   WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudRun
     .regionalSkus['us-central1'].l4NoZonalRedundancySkuId)
 assert.deepEqual(routes.map((route) => route.region), [
   'us-central1',
-  'europe-west4',
+  'us-central1',
   'us-central1',
 ])
 assert.deepEqual(
   routes[1].components.slice(0, 3).map((component) =>
     component.priceTerms[0].skuId),
   [
-    'E70E-1400-67A3',
-    '1B3A-C716-DDE8',
-    '46A9-AB79-A9CD',
+    '2EEE-0BBD-C718',
+    '257B-2A84-3396',
+    '8A79-9F45-5F32',
   ],
 )
 assert.deepEqual(
@@ -159,20 +159,20 @@ const fallbackAuthority = await observeCanonicalCurrentGoogleCloudGpuRateAuthori
   rateAuthorityId: 'account-current-l4-fallback-rate-v2',
   rateAuthorityVersion: 2,
   routeId: 'l4_heavy_fallback',
-  region: 'europe-west4',
+  region: 'us-central1',
   readPort: createGoogleCloudAccountEffectiveGpuRateReadPort({
     configuration,
     auth,
     now: fixedClock(),
   }),
 })
-assert.equal(fallbackAuthority.region, 'europe-west4')
+assert.equal(fallbackAuthority.region, 'us-central1')
 assert.equal(fallbackAuthority.components[0].skuPriceTerms[0].skuId,
   WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudRun
-    .regionalSkus['europe-west4'].l4NoZonalRedundancySkuId)
+    .regionalSkus['us-central1'].l4NoZonalRedundancySkuId)
 assert.equal(fallbackAuthority.components[3].skuPriceTerms[0].skuId,
   WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudStorage
-    .standardNetherlandsRegionalSkuId)
+    .standardUsRegionalSkuId)
 assert.equal(calls.length, 14)
 
 await assert.rejects(() => readPort.readCurrentRouteRate({

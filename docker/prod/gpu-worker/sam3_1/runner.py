@@ -52,19 +52,32 @@ DETECTOR_ROPE_CACHE_BASE = re.compile(
 )
 EXPECTED_DETECTOR_ROPE_BLOCKS = tuple(range(32))
 
-CHECKPOINT_PATH = Path(
+LEGACY_MOUNT_CHECKPOINT_PATH = Path(
     "/mnt/reeditpro/model-artifacts/sam3_1/sam3.1_multiplex.pt"
 )
+VERTEX_A100_CHECKPOINT_PATH = Path(
+    "/gcs/reeditpro-production-reeditpro-model-artifacts/private/"
+    "model-artifacts/sam3_1/checkpoint/"
+    "daa63191845a41281374e725f4c9e51c7a824460/"
+    "sam31-weeditpro-official-ingest-20260806-v12-bb0aa9fdb01770a4/"
+    "sam3.1_multiplex.pt"
+)
+CHECKPOINT_PATH = LEGACY_MOUNT_CHECKPOINT_PATH
 ARTIFACT_BUILD_BINDING_PATH = Path(
     "/opt/reeditpro/sam3_1/private-artifact-build-binding.json"
 )
 COMPATIBILITY_RECEIPT_PATH = Path(
     "/opt/reeditpro/sam3_1/source-checkpoint-compatibility-receipt.json"
 )
-PRIVATE_INVOCATION_PARENT = Path(
+LEGACY_MOUNT_PRIVATE_INVOCATION_PARENT = Path(
     "/mnt/reeditpro/private/canonical-professional-gpu/"
     "sam3_1/v1/invocations"
 )
+VERTEX_A100_PRIVATE_INVOCATION_PARENT = Path(
+    "/gcs/reeditpro-production-reeditpro-masks/"
+    "private/canonical-professional-gpu/sam3_1/v1/invocations"
+)
+PRIVATE_INVOCATION_PARENT = LEGACY_MOUNT_PRIVATE_INVOCATION_PARENT
 SOURCE_PROXY_PATH = Path("/nonexistent/sam3_1-mask-proxy.mp4")
 PRIVATE_OUTPUT_ROOT = Path("/nonexistent/sam3_1-mask-sequence")
 MANIFEST_PATH = PRIVATE_OUTPUT_ROOT / "manifest.json"
@@ -353,6 +366,25 @@ def configure_invocation_paths(invocation_id: str) -> Path:
         if root.is_symlink() or not root.is_dir():
             raise ValueError(f"{label} is unavailable or unsafe")
     return task_path
+
+
+def configure_execution_mounts(accelerator_class: str) -> None:
+    """Select only the fixed platform-owned private artifact mount.
+
+    Vertex AI Custom Jobs expose authorized Cloud Storage buckets through the
+    platform Cloud Storage FUSE root at /gcs. The separately qualified Cloud
+    Run L4 lane retains its preconfigured /mnt/reeditpro volume. No caller or
+    environment value may select a bucket, object, checkpoint, or path.
+    """
+    global CHECKPOINT_PATH, PRIVATE_INVOCATION_PARENT
+    if accelerator_class == "nvidia_a100_80gb":
+        CHECKPOINT_PATH = VERTEX_A100_CHECKPOINT_PATH
+        PRIVATE_INVOCATION_PARENT = VERTEX_A100_PRIVATE_INVOCATION_PARENT
+    elif accelerator_class == "nvidia_l4":
+        CHECKPOINT_PATH = LEGACY_MOUNT_CHECKPOINT_PATH
+        PRIVATE_INVOCATION_PARENT = LEGACY_MOUNT_PRIVATE_INVOCATION_PARENT
+    else:
+        raise ValueError("GPU execution mount route is invalid")
 
 
 def validate_task(value: Any, invocation_id: str) -> dict[str, Any]:
@@ -2209,6 +2241,11 @@ def main() -> int:
             os.environ.get("REEDITPRO_GPU_INVOCATION_ID"),
             "GPU invocation identity",
         )
+        accelerator_class = exact_id(
+            os.environ.get("WEEDITPRO_GPU_ACCELERATOR_CLASS"),
+            "GPU accelerator class",
+        )
+        configure_execution_mounts(accelerator_class)
         task_path = configure_invocation_paths(invocation_id)
         task = read_task(task_path, invocation_id)
         request_value = task["runtimeRequest"]

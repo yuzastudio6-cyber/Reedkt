@@ -12,7 +12,7 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const GOOGLE_CLOUD_ACCOUNT_EFFECTIVE_GPU_RATE_READER_CONFIGURATION_VERSION =
-  'google-cloud-account-effective-gpu-rate-reader-configuration-v2' as const
+  'google-cloud-account-effective-gpu-rate-reader-configuration-v3' as const
 
 export const WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG_VERSION =
   'weeditpro-google-cloud-gpu-rate-catalog-multi-region-v2' as const
@@ -363,8 +363,8 @@ export function createWeEditProGoogleCloudGpuRateReaderConfiguration(input: {
   return createGoogleCloudAccountEffectiveGpuRateReaderConfiguration({
     schemaVersion:
       GOOGLE_CLOUD_ACCOUNT_EFFECTIVE_GPU_RATE_READER_CONFIGURATION_VERSION,
-    configurationId: 'weeditpro-google-cloud-gpu-rate-reader-multi-region',
-    configurationVersion: 2,
+    configurationId: 'weeditpro-google-cloud-gpu-rate-reader-same-region',
+    configurationVersion: 3,
     billingAccountResourceName,
     billingAccountPricingScopeRef,
     routes: [
@@ -416,8 +416,8 @@ export function createWeEditProGoogleCloudGpuRateReaderConfiguration(input: {
       },
       {
         routeId: 'l4_heavy_fallback',
-        region: 'europe-west4',
-        components: l4ComponentsForRegion('europe-west4'),
+        region: 'us-central1',
+        components: l4ComponentsForRegion('us-central1'),
       },
       {
         routeId: 'l4_standard_primary',

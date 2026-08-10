@@ -45,7 +45,7 @@ assert.deepEqual(first.routePublications.map((route) => route.routeId), [
   'l4_standard_primary',
 ])
 assert.deepEqual(first.routePublications.map((route) => route.region), [
-  'us-central1', 'europe-west4', 'us-central1',
+  'us-central1', 'us-central1', 'us-central1',
 ])
 assert.deepEqual(first.routePublications.map((route) => route.disposition), [
   'created', 'created', 'created',
@@ -162,9 +162,7 @@ function rawObservation(
     | 'l4_standard_primary',
   billingCharacter = '8',
 ): CanonicalGoogleCloudGpuRateRawObservation {
-  const region = routeId === 'l4_heavy_fallback'
-    ? 'europe-west4' as const
-    : 'us-central1' as const
+  const region = 'us-central1' as const
   const components = routeId === 'a100_80gb_heavy_primary'
     ? [
         component('a2_ultragpu_1g_machine_bundle',

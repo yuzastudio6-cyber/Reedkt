@@ -14,13 +14,13 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_CURRENT_GOOGLE_CLOUD_GPU_RATE_AUTHORITY_PUBLISHER_VERSION =
-  'canonical-current-google-cloud-gpu-rate-authority-publisher-v1' as const
+  'canonical-current-google-cloud-gpu-rate-authority-publisher-v2' as const
 export const CANONICAL_CURRENT_GOOGLE_CLOUD_GPU_RATE_AUTHORITY_PUBLICATION_RECEIPT_VERSION =
-  'canonical-current-google-cloud-gpu-rate-authority-publication-receipt-v1' as const
+  'canonical-current-google-cloud-gpu-rate-authority-publication-receipt-v2' as const
 
 const routeDefinitions = [
   { routeId: 'a100_80gb_heavy_primary', region: 'us-central1' },
-  { routeId: 'l4_heavy_fallback', region: 'europe-west4' },
+  { routeId: 'l4_heavy_fallback', region: 'us-central1' },
   { routeId: 'l4_standard_primary', region: 'us-central1' },
 ] as const
 const safeId = z.string().trim().min(1).max(120)

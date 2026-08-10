@@ -6,6 +6,29 @@ This receipt distinguishes implemented source architecture from live cloud
 qualification. It does not call an unavailable candidate “installed” and does
 not authorize public or production use.
 
+## 2026-08-10 Vertex transport and same-region fallback source milestone
+
+This section supersedes the older Batch-primary and cross-region L4 source
+statements retained below for audit history. It does not claim that the
+successor image or either production route has completed runtime qualification.
+
+- The SAM 3.1 production runner now selects its private mounts from the exact
+  server-owned accelerator class. Vertex A100 80 GB uses the platform Cloud
+  Storage FUSE roots under `/gcs` for the generation-bound v12 checkpoint and
+  create-only invocation objects. The separately qualified Cloud Run L4 route
+  retains its controlled `/mnt/reeditpro` mount. A caller cannot provide a
+  checkpoint, bucket, object, task root, or output path.
+- The account-effective GPU rate-reader configuration advances to v3 and the
+  all-route publisher advances to v2. Both the A100 heavy primary and L4 heavy
+  fallback are now bound to `us-central1`; the fallback no longer silently
+  crosses into `europe-west4`. Historical v2/v1 rate records remain immutable
+  readback evidence and cannot authorize the successor runtime.
+- The current immutable image digest predates this transport correction. A new
+  twice-built, malware-scanned, SBOM-attested, KMS-signed immutable image must
+  be published before live A100 or L4 qualification starts. Runtime readiness,
+  eight-minute performance, temporal quality, terminal cost settlement, and
+  Track All/Visual Intelligence admission therefore remain false.
+
 ## 2026-08-10 immutable production-image supply-chain milestone
 
 This section supersedes the older production-image status statements retained

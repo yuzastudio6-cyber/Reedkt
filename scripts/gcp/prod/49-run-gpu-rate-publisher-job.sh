@@ -59,7 +59,7 @@ for _attempt in {1..12}; do
     --project="${PROJECT_ID}" --limit=100 --order=asc --format=json)"
   receipt="$(jq -c '[.[]?.jsonPayload
     | select(.schemaVersion
-      == "canonical-current-google-cloud-gpu-rate-authority-publication-receipt-v1")][0] // empty' \
+      == "canonical-current-google-cloud-gpu-rate-authority-publication-receipt-v2")][0] // empty' \
     <<<"${logs}")"
   [[ -n "${receipt}" ]] && break
   sleep 5

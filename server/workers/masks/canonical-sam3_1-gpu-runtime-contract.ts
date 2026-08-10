@@ -8,6 +8,9 @@ import {
   CANONICAL_SAM3_1_SOURCE_RUNTIME_CANDIDATE_VERSION,
 } from '../../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 import {
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+} from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../../services/private-edit-authority-store'
@@ -173,12 +176,8 @@ const modelArtifactsSchema = z.object({
   checkpointFileName: z.literal('sam3.1_multiplex.pt'),
   checkpointByteLength: positiveInteger,
   checkpointSha256: sha256,
-  sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema.extend({
-    version: z.literal(1),
-    schemaVersion: z.literal(
-      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-    ),
-  }).strict(),
+  sourceCheckpointCompatibilityQualificationRef:
+    canonicalSam31SourceCheckpointQualificationReferenceSchema,
   immutableImageReleaseRef: evidenceRefSchema,
   immutableImageDigest: prefixedSha256,
   humanTermsAcceptanceAndLegalReviewReread: z.literal(true),

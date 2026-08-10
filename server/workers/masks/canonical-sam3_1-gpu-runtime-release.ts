@@ -22,10 +22,12 @@ import {
   type CanonicalSam31CloudImageSupplyChainRelease,
 } from '../../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
 import {
-  assertCanonicalSam31SourceCheckpointQualification,
-  canonicalSam31SourceCheckpointQualificationRef,
-  type CanonicalSam31SourceCheckpointQualification,
-} from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+  assertCanonicalSam31QualifiedSourceCheckpointAuthority,
+  canonicalSam31QualifiedSourceCheckpointAuthorityRef,
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+  projectCanonicalSam31QualifiedSourceCheckpointAuthority,
+  type CanonicalSam31QualifiedSourceCheckpointAuthority,
+} from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
   sha256AuthorityValue,
 } from '../../services/private-edit-authority-store'
@@ -104,12 +106,8 @@ const routeSchema = z.object({
 })
 
 export const canonicalSam31GpuRuntimeQualificationSchema = z.object({
-  sourceCheckpointCompatibilityQualificationRef: evidenceRefSchema.extend({
-    version: z.literal(1),
-    schemaVersion: z.literal(
-      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-    ),
-  }).strict(),
+  sourceCheckpointCompatibilityQualificationRef:
+    canonicalSam31SourceCheckpointQualificationReferenceSchema,
   cudaDriverRuntimeQualificationRef: evidenceRefSchema,
   observedNvidiaDriverVersion: z.string().regex(
     /^[0-9]+(?:\.[0-9]+){1,3}$/u,
@@ -366,7 +364,7 @@ export function compileCanonicalSam31GpuRuntimeRelease(input: {
   readonly candidate: CanonicalSam31SourceRuntimeCandidate
   readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
   readonly sourceCheckpointQualification:
-    CanonicalSam31SourceCheckpointQualification
+    CanonicalSam31QualifiedSourceCheckpointAuthority
   readonly imageSupplyChainRelease?:
     CanonicalSam31CloudImageSupplyChainRelease
   readonly release: Sam31GpuRuntimeReleaseInput
@@ -381,7 +379,7 @@ export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
   readonly candidate: CanonicalSam31SourceRuntimeCandidate
   readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
   readonly sourceCheckpointQualification:
-    CanonicalSam31SourceCheckpointQualification
+    CanonicalSam31QualifiedSourceCheckpointAuthority
   readonly imageSupplyChainRelease:
     CanonicalSam31CloudImageSupplyChainRelease
   readonly release: CanonicalSam31GpuRuntimeReleaseInputWithoutQualification
@@ -404,7 +402,7 @@ export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
     input.ingestReceipt,
   )
   const sourceCheckpointQualification =
-    assertCanonicalSam31SourceCheckpointQualification(
+    assertCanonicalSam31QualifiedSourceCheckpointAuthority(
       input.sourceCheckpointQualification,
     )
   const imageSupplyChain = assertCanonicalSam31CloudImageSupplyChainRelease(
@@ -419,7 +417,7 @@ export async function prepareCanonicalSam31GpuRuntimeRelease(input: {
     contentHash: `sha256:${ingest.ingestReceiptHash}` as const,
   }
   const sourceCheckpointCompatibilityQualificationRef =
-    canonicalSam31SourceCheckpointQualificationRef(
+    canonicalSam31QualifiedSourceCheckpointAuthorityRef(
       sourceCheckpointQualification,
     )
   const imageSupplyChainReleaseRef = {
@@ -586,7 +584,7 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
   readonly candidate: CanonicalSam31SourceRuntimeCandidate
   readonly ingestReceipt: CanonicalSam31PrivateArtifactIngestReceipt
   readonly sourceCheckpointQualification:
-    CanonicalSam31SourceCheckpointQualification
+    CanonicalSam31QualifiedSourceCheckpointAuthority
   readonly imageSupplyChainRelease?:
     CanonicalSam31CloudImageSupplyChainRelease
   readonly release: Sam31GpuRuntimeReleaseInput
@@ -599,8 +597,12 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
     input.ingestReceipt,
   )
   const sourceCheckpointQualification =
-    assertCanonicalSam31SourceCheckpointQualification(
+    assertCanonicalSam31QualifiedSourceCheckpointAuthority(
       input.sourceCheckpointQualification,
+    )
+  const sourceQualification =
+    projectCanonicalSam31QualifiedSourceCheckpointAuthority(
+      sourceCheckpointQualification,
     )
   const release = releaseInputSchema.parse(input.release)
   if (
@@ -621,14 +623,14 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
     || ingest.candidateRef.schemaVersion !== candidate.schemaVersion
     || ingest.operationId !== candidate.operationId
     || ingest.evidenceClass !== release.evidenceClass
-    || sourceCheckpointQualification.candidateRef.candidateHash !==
+    || sourceQualification.candidateRef.candidateHash !==
       candidate.candidateHash
-    || sourceCheckpointQualification.ingestReceiptRef.contentHash !==
+    || sourceQualification.ingestReceiptRef.contentHash !==
       `sha256:${ingest.ingestReceiptHash}`
-    || sourceCheckpointQualification.evidenceClass !== release.evidenceClass
+    || sourceQualification.evidenceClass !== release.evidenceClass
     || !sameEvidenceRef(
       release.qualification.sourceCheckpointCompatibilityQualificationRef,
-      canonicalSam31SourceCheckpointQualificationRef(
+      canonicalSam31QualifiedSourceCheckpointAuthorityRef(
         sourceCheckpointQualification,
       ),
     )
@@ -644,12 +646,10 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
     : null
   if (canonical) {
     if (
-      sourceCheckpointQualification.status !==
+      sourceQualification.status !==
         'qualified_for_private_image_build'
-      || !sourceCheckpointQualification.authority
-        .securityLicenseAndCompatibilityQualified
-      || !sourceCheckpointQualification.authority
-        .privateImageBuildReviewEligible
+      || !sourceQualification.securityLicenseAndCompatibilityQualified
+      || !sourceQualification.privateImageBuildReviewEligible
       || !imageSupplyChain
       || imageSupplyChain.evidenceClass !== 'canonical_private_reread'
       || imageSupplyChain.status !== 'image_supply_chain_qualified'
@@ -673,10 +673,9 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
       )
     ) throw new Error('SAM 3.1 release lacks qualified image supply chain.')
   } else if (
-    sourceCheckpointQualification.status !== 'contract_only'
-    || sourceCheckpointQualification.authority
-      .securityLicenseAndCompatibilityQualified
-    || sourceCheckpointQualification.authority.privateImageBuildReviewEligible
+    sourceQualification.status !== 'contract_only'
+    || sourceQualification.securityLicenseAndCompatibilityQualified
+    || sourceQualification.privateImageBuildReviewEligible
     || (imageSupplyChain
       && imageSupplyChain.evidenceClass !== 'synthetic_contract_fixture')
   ) {
@@ -723,26 +722,19 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
     },
     runtimeClosure: {
       pythonVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.pythonVersion,
+        sourceQualification.runtime.pythonVersion,
       torchVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.torchVersion,
+        sourceQualification.runtime.torchVersion,
       torchvisionVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.torchvisionVersion,
+        sourceQualification.runtime.torchvisionVersion,
       cudaVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.cudaVersion,
+        sourceQualification.runtime.cudaVersion,
       torchcodecVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.torchcodecVersion,
+        sourceQualification.runtime.torchcodecVersion,
       einopsVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.einopsVersion,
+        sourceQualification.runtime.einopsVersion,
       pycocotoolsVersion:
-        sourceCheckpointQualification.controlledObservation
-          .qualificationRuntime.pycocotoolsVersion,
+        sourceQualification.runtime.pycocotoolsVersion,
       cudaForwardCompatibilityPackageSha256:
         candidate.runtimeClosure.cudaDriverCompatibility
           .cudaForwardCompatibilitySha256,

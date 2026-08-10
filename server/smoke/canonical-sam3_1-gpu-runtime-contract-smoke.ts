@@ -164,6 +164,41 @@ const request = buildCanonicalSam31GpuRuntimeRequest({
 })
 assert.deepEqual(assertCanonicalSam31GpuRuntimeRequest(request), request)
 
+const { requestBindingSha256: _v2Binding, ...v2RequestPayload } = request
+void _v2Binding
+const vertexQualifiedRequest = buildCanonicalSam31GpuRuntimeRequest({
+  ...v2RequestPayload,
+  modelArtifacts: {
+    ...request.modelArtifacts,
+    sourceCheckpointCompatibilityQualificationRef: {
+      ...request.modelArtifacts.sourceCheckpointCompatibilityQualificationRef,
+      version: 2,
+      schemaVersion:
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
+    },
+  },
+})
+assert.equal(
+  vertexQualifiedRequest.modelArtifacts
+    .sourceCheckpointCompatibilityQualificationRef.version,
+  2,
+)
+assert.deepEqual(
+  assertCanonicalSam31GpuRuntimeRequest(vertexQualifiedRequest),
+  vertexQualifiedRequest,
+)
+const relabeledVertexRequest = structuredClone(vertexQualifiedRequest)
+relabeledVertexRequest.modelArtifacts
+  .sourceCheckpointCompatibilityQualificationRef.version = 1 as never
+const relabeledVertexPayload = { ...relabeledVertexRequest }
+Reflect.deleteProperty(relabeledVertexPayload, 'requestBindingSha256')
+relabeledVertexRequest.requestBindingSha256 = sha256AuthorityValue(
+  relabeledVertexPayload,
+)
+assert.throws(() => assertCanonicalSam31GpuRuntimeRequest(
+  relabeledVertexRequest,
+))
+
 const response = buildCanonicalSam31GpuRuntimeResponse({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-response-v1',
   operationId: request.operationId,
@@ -350,13 +385,14 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 46,
+  checks: 49,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,
   trackedObjectProductCap: request.settings.maximumTrackedObjectsProductCap,
   cpuOnlyInferenceAllowed: request.dispatch.cpuOnlyInferenceAllowed,
   runtimeNetworkAllowed: request.modelArtifacts.runtimeDownloadAllowed,
+  vertexV2QualificationAcceptedWithoutRelabel: true,
   adversarialCases: adversarial.length + 5,
   requestBindingSha256: request.requestBindingSha256,
   responseBindingSha256: response.responseBindingSha256,

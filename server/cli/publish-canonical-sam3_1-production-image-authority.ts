@@ -34,9 +34,9 @@ const result = await createCanonicalSam31GcpProductionImageAuthorityPublisher()
   .publish({
     sourceCheckpointQualificationRef: {
       id: environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID,
-      version: 1,
+      version: 2,
       schemaVersion:
-        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
+        'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
       contentHash:
         `sha256:${environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256}`,
     },

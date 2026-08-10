@@ -13,8 +13,14 @@ import {
   type CanonicalSam31CloudImageSupplyChainRelease,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
 import {
-  canonicalSam31SourceCheckpointQualificationRef,
-} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification'
+  assertCanonicalSam31QualifiedSourceCheckpointRelease,
+  canonicalSam31QualifiedSourceCheckpointAuthorityRef,
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+  createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort,
+  projectCanonicalSam31QualifiedSourceCheckpointAuthority,
+  type CanonicalSam31QualifiedSourceCheckpointRelease,
+  type CanonicalSam31SourceCheckpointQualificationReference,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -46,11 +52,6 @@ import {
   type CanonicalSam31PrivateArtifactIngestRepository,
 } from './canonical-sam3_1-private-artifact-ingest-repository'
 import {
-  assertCanonicalSam31QualificationRelease,
-  createCanonicalSam31QualificationReleaseObjectReadPort,
-  type CanonicalSam31QualificationRelease,
-} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
-import {
   sha256AuthorityValue,
 } from './private-edit-authority-store'
 
@@ -74,11 +75,8 @@ const refSchema = z.object({
   version: z.literal(1),
   contentHash: prefixedSha256,
 }).strict()
-const sourceQualificationRefSchema = refSchema.extend({
-  schemaVersion: z.literal(
-    'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-  ),
-}).strict()
+const sourceQualificationRefSchema =
+  canonicalSam31SourceCheckpointQualificationReferenceSchema
 const routeIdSchema = z.enum([
   'a100_80gb_heavy_primary',
   'l4_heavy_fallback',
@@ -144,7 +142,7 @@ export type CanonicalSam31GpuRuntimeReleasePublicationReceipt = z.infer<
 export interface CanonicalSam31SourceQualificationReleaseReadPort {
   rereadQualificationRelease(input: {
     readonly sourceCheckpointQualificationRef:
-      z.infer<typeof sourceQualificationRefSchema>
+      CanonicalSam31SourceCheckpointQualificationReference
   }): Promise<unknown | null>
 }
 
@@ -203,11 +201,16 @@ export function createCanonicalSam31GpuRuntimeReleasePublicationCoordinator(
             request.sourceCheckpointQualificationRef,
         })
       if (!sourceReleaseRaw) throw conflict('source_release_missing')
-      const sourceRelease = assertCanonicalSam31QualificationRelease(
+      const sourceRelease =
+        assertCanonicalSam31QualifiedSourceCheckpointRelease(
         sourceReleaseRaw,
       )
       assertSourceRelease(request, sourceRelease)
-      const ingestRef = sourceRelease.qualification.ingestReceiptRef
+      const sourceQualification =
+        projectCanonicalSam31QualifiedSourceCheckpointAuthority(
+          sourceRelease.qualification,
+        )
+      const ingestRef = sourceQualification.ingestReceiptRef
       const [ingestRaw, imageRaw] = await Promise.all([
         input.ingestReadPort.rereadPrivateArtifactIngest({
           ingestReceiptRef: ingestRef,
@@ -363,7 +366,9 @@ export function createCanonicalSam31GcpGpuRuntimeReleasePublicationCoordinator(
     })
   return createCanonicalSam31GpuRuntimeReleasePublicationCoordinator({
     sourceQualificationReadPort:
-      createCanonicalSam31QualificationReleaseObjectReadPort({ objectPort }),
+      createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort({
+        objectPort,
+      }),
     ingestReadPort:
       createCanonicalSam31PrivateArtifactIngestRepository({ objectPort }),
     imageSupplyChainReadPort:
@@ -416,7 +421,7 @@ function assertDependencies(input: {
 
 function assertSourceRelease(
   request: PublicationRequest,
-  release: CanonicalSam31QualificationRelease,
+  release: CanonicalSam31QualifiedSourceCheckpointRelease,
 ): void {
   if (
     release.status !== 'qualified_for_private_image_build'
@@ -426,7 +431,9 @@ function assertSourceRelease(
       request.sourceCheckpointQualificationRef,
     )
     || !sameQualificationRef(
-      canonicalSam31SourceCheckpointQualificationRef(release.qualification),
+      canonicalSam31QualifiedSourceCheckpointAuthorityRef(
+        release.qualification,
+      ),
       request.sourceCheckpointQualificationRef,
     )
   ) throw conflict('source_release_scope_mismatch')
@@ -435,11 +442,13 @@ function assertSourceRelease(
 function assertUpstreamLineage(input: {
   request: PublicationRequest
   candidate: ReturnType<typeof createCanonicalSam31SourceRuntimeCandidate>
-  sourceRelease: CanonicalSam31QualificationRelease
+  sourceRelease: CanonicalSam31QualifiedSourceCheckpointRelease
   ingest: CanonicalSam31PrivateArtifactIngestReceipt
   image: CanonicalSam31CloudImageSupplyChainRelease
 }): void {
-  const ingestRef = input.sourceRelease.qualification.ingestReceiptRef
+  const ingestRef = projectCanonicalSam31QualifiedSourceCheckpointAuthority(
+    input.sourceRelease.qualification,
+  ).ingestReceiptRef
   if (
     input.ingest.candidateRef.schemaVersion !== input.candidate.schemaVersion
     || input.ingest.candidateRef.candidateHash !== input.candidate.candidateHash

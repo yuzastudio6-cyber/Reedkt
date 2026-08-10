@@ -21,6 +21,9 @@ import {
   canonicalSam31GpuRuntimeQualificationEvidenceRef,
   type CanonicalSam31GpuRuntimeQualificationEvidence,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-qualification-evidence'
+import {
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 
 export const
 CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION =
@@ -145,11 +148,8 @@ const authorityWithoutHashSchema = z.object({
     candidateHash: sha256,
   }).strict(),
   privateArtifactIngestReceiptRef: refSchema,
-  sourceCheckpointCompatibilityQualificationRef: refSchema.extend({
-    schemaVersion: z.literal(
-      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-    ),
-  }).strict(),
+  sourceCheckpointCompatibilityQualificationRef:
+    canonicalSam31SourceCheckpointQualificationReferenceSchema,
   imageSupplyChainReleaseRef: refSchema,
   serviceIdentityRef: refSchema,
   immutableImageRef: refSchema,

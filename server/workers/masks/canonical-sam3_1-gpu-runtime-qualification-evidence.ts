@@ -9,6 +9,9 @@ import {
 import {
   assertPlainSerializedData,
 } from '../../services/canonical-professional-gpu-job-lifecycle-service'
+import {
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+} from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 
 export const CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_EVIDENCE_VERSION =
   'canonical-sam3_1-gpu-runtime-qualification-evidence-v1' as const
@@ -29,11 +32,8 @@ const evidenceRefSchema = z.object({
 const versionOneRefSchema = evidenceRefSchema.extend({
   version: z.literal(1),
 }).strict()
-const sourceCheckpointQualificationRefSchema = versionOneRefSchema.extend({
-  schemaVersion: z.literal(
-    'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-  ),
-}).strict()
+const sourceCheckpointQualificationRefSchema =
+  canonicalSam31SourceCheckpointQualificationReferenceSchema
 
 const routeSchema = z.object({
   routeId: z.enum([

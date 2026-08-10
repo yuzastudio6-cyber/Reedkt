@@ -86,8 +86,9 @@ createCanonicalSam31GcpGpuRuntimeReleasePublicationCoordinator().publish({
       environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID,
       environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256,
     ),
+    version: 2,
     schemaVersion:
-      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
+      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
   },
   imageSupplyChainReleaseRef: ref(
     environment.WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_RELEASE_ID,

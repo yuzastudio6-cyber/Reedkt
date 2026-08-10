@@ -38,10 +38,13 @@ import {
   type CanonicalSam31GpuRuntimeQualificationEvidenceRepository,
 } from './canonical-sam3_1-gpu-runtime-qualification-evidence-repository'
 import {
-  assertCanonicalSam31QualificationRelease,
-  createCanonicalSam31QualificationReleaseObjectReadPort,
-  type CanonicalSam31QualificationRelease,
-} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
+  assertCanonicalSam31QualifiedSourceCheckpointRelease,
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+  createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort,
+  projectCanonicalSam31QualifiedSourceCheckpointAuthority,
+  type CanonicalSam31QualifiedSourceCheckpointRelease,
+  type CanonicalSam31SourceCheckpointQualificationReference,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
   stableAuthorityStringify,
 } from './private-edit-authority-store'
@@ -59,11 +62,8 @@ const refSchema = z.object({
   version: z.literal(1),
   contentHash: prefixedSha256,
 }).strict()
-const sourceQualificationRefSchema = refSchema.extend({
-  schemaVersion: z.literal(
-    'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-  ),
-}).strict()
+const sourceQualificationRefSchema =
+  canonicalSam31SourceCheckpointQualificationReferenceSchema
 export const canonicalSam31GpuRuntimeQualificationEvidenceOwnerRequestSchema =
 z.object({
   candidateRef: z.object({
@@ -93,7 +93,7 @@ type OwnerRequest = z.infer<typeof requestSchema>
 export interface CanonicalSam31GpuRuntimeQualificationEvidenceOwnerReadPort {
   rereadSourceCheckpointQualificationRelease(input: {
     readonly sourceCheckpointQualificationRef:
-      z.infer<typeof sourceQualificationRefSchema>
+      CanonicalSam31SourceCheckpointQualificationReference
   }): Promise<unknown | null>
   rereadImageSupplyChainRelease(input: {
     readonly imageSupplyChainReleaseRef: EvidenceRef
@@ -154,7 +154,8 @@ export function createCanonicalSam31GpuRuntimeQualificationEvidenceOwner(
       if (!sourceValue || !imageValue) {
         throw conflict('canonical_upstream_record_missing')
       }
-      const sourceRelease = assertCanonicalSam31QualificationRelease(
+      const sourceRelease =
+        assertCanonicalSam31QualifiedSourceCheckpointRelease(
         sourceValue,
       )
       const imageRelease = assertCanonicalSam31CloudImageSupplyChainRelease(
@@ -269,7 +270,7 @@ export function createCanonicalSam31GpuRuntimeQualificationEvidenceOwnerFromObje
   },
 ): CanonicalSam31GpuRuntimeQualificationEvidenceOwner {
   const sourceReleaseReadPort =
-    createCanonicalSam31QualificationReleaseObjectReadPort({
+    createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort({
       objectPort: input.objectPort,
     })
   const imageRepository =
@@ -342,22 +343,25 @@ async function rereadComponent(
 
 function assertUpstreamLineage(input: {
   request: OwnerRequest
-  sourceRelease: CanonicalSam31QualificationRelease
+  sourceRelease: CanonicalSam31QualifiedSourceCheckpointRelease
   imageRelease: CanonicalSam31CloudImageSupplyChainRelease
 }): void {
   const release = input.sourceRelease
   const image = input.imageRelease
+  const source = projectCanonicalSam31QualifiedSourceCheckpointAuthority(
+    release.qualification,
+  )
   if (
     !sameRef(
       release.sourceCheckpointQualificationRef,
       input.request.sourceCheckpointCompatibilityQualificationRef,
     )
-    || release.qualification.candidateRef.schemaVersion !==
+    || source.candidateRef.schemaVersion !==
       input.request.candidateRef.schemaVersion
-    || release.qualification.candidateRef.candidateHash !==
+    || source.candidateRef.candidateHash !==
       input.request.candidateRef.candidateHash
     || !sameRef(
-      release.qualification.ingestReceiptRef,
+      source.ingestReceiptRef,
       input.request.privateArtifactIngestReceiptRef,
     )
     || release.status !== 'qualified_for_private_image_build'

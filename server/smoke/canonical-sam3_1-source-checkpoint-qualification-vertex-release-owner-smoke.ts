@@ -8,6 +8,12 @@ import {
   sealCanonicalSam31VertexSourceCheckpointWorkerResult,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualification-vertex'
 import {
+  assertCanonicalSam31QualifiedSourceCheckpointRelease,
+  canonicalSam31QualifiedSourceCheckpointAuthorityRef,
+  projectCanonicalSam31QualifiedSourceCheckpointAuthority,
+  projectCanonicalSam31QualifiedSourceCheckpointRelease,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
+import {
   calculateCanonicalA100VertexInfrastructureCost,
 } from '../tool-cost-metering/canonical-a100-vertex-attempt-cost-authority'
 import type {
@@ -412,6 +418,27 @@ assert.equal(release.sourceCheckpointQualificationGranted, true)
 assert.equal(release.privateImageBuildReviewEligible, true)
 assert.equal(release.imageBuildStarted, false)
 assert.equal(release.productionReady, false)
+assert.deepEqual(
+  assertCanonicalSam31QualifiedSourceCheckpointRelease(release),
+  release,
+)
+const qualifiedSource = projectCanonicalSam31QualifiedSourceCheckpointAuthority(
+  release.qualification,
+)
+assert.equal(qualifiedSource.authorityRef.version, 2)
+assert.equal(qualifiedSource.vertexEvidenceKeptDistinctFromHistoricalBatchEvidence,
+  true)
+assert.equal(qualifiedSource.securityLicenseAndCompatibilityQualified, true)
+assert.deepEqual(
+  canonicalSam31QualifiedSourceCheckpointAuthorityRef(release.qualification),
+  release.sourceCheckpointQualificationRef,
+)
+const qualifiedRelease = projectCanonicalSam31QualifiedSourceCheckpointRelease(
+  release,
+)
+assert.equal(qualifiedRelease.exactCanonicalReread, true)
+assert.equal(qualifiedRelease.compatibilityProbe
+  .actualCudaModelInferenceExecuted, true)
 const replay = await owner.compileAndPersist(compileRequest)
 assert.equal(replay.releaseHash, release.releaseHash)
 assert.equal(objects.size, 1)
@@ -437,7 +464,7 @@ await assert.rejects(owner.compileAndPersist(crossedRequestRef))
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner',
-  checks: 22,
+  checks: 29,
   officialSam31VertexA100EvidenceQualified: true,
   legacyBatchCastOrRelabelUsed: false,
   exactRequestResultAdmissionExecutionTerminalAndCostReread: true,

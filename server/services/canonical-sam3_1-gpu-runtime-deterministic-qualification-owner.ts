@@ -27,10 +27,13 @@ import {
   type CanonicalSam31GpuRuntimeQualificationComponentEvidenceRepository,
 } from './canonical-sam3_1-gpu-runtime-qualification-component-evidence-repository'
 import {
-  assertCanonicalSam31QualificationRelease,
-  createCanonicalSam31QualificationReleaseObjectReadPort,
-  type CanonicalSam31QualificationRelease,
-} from './canonical-sam3_1-source-checkpoint-qualification-release-owner'
+  assertCanonicalSam31QualifiedSourceCheckpointRelease,
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+  createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort,
+  projectCanonicalSam31QualifiedSourceCheckpointRelease,
+  type CanonicalSam31QualifiedSourceCheckpointRelease,
+  type CanonicalSam31SourceCheckpointQualificationReference,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
   assertCanonicalSam31GpuRuntimeResponse,
   type CanonicalSam31GpuRuntimeResponse,
@@ -59,11 +62,8 @@ const refSchema = z.object({
   version: z.literal(1),
   contentHash: prefixedSha256,
 }).strict()
-const sourceQualificationRefSchema = refSchema.extend({
-  schemaVersion: z.literal(
-    'canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
-  ),
-}).strict()
+const sourceQualificationRefSchema =
+  canonicalSam31SourceCheckpointQualificationReferenceSchema
 const runRequestSchema = z.object({
   runOrdinal: z.number().int().min(1).max(30),
   invocationId: safeId,
@@ -92,7 +92,7 @@ type RunRequest = z.infer<typeof runRequestSchema>
 export interface CanonicalSam31GpuRuntimeDeterministicQualificationReadPort {
   rereadQualificationRelease(input: {
     readonly sourceCheckpointQualificationRef:
-      z.infer<typeof sourceQualificationRefSchema>
+      CanonicalSam31SourceCheckpointQualificationReference
   }): Promise<unknown | null>
   rereadTask(input: {
     readonly invocationId: string
@@ -153,7 +153,8 @@ export function createCanonicalSam31GpuRuntimeDeterministicQualificationOwner(
           request.sourceCheckpointQualificationRef,
       })
       if (!releaseValue) throw conflict('qualification_release_missing')
-      const release = assertCanonicalSam31QualificationRelease(releaseValue)
+      const release =
+        assertCanonicalSam31QualifiedSourceCheckpointRelease(releaseValue)
       assertQualificationRelease(request, release)
       const runs = await Promise.all(request.runs.map(async (runRequest) => {
         const [taskValue, launchValue, resultValue, responseValue] =
@@ -258,9 +259,10 @@ export function createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFro
   const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
     objectPort: input.objectPort,
   })
-  const releaseReadPort = createCanonicalSam31QualificationReleaseObjectReadPort({
-    objectPort: input.objectPort,
-  })
+  const releaseReadPort =
+    createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort({
+      objectPort: input.objectPort,
+    })
   return createCanonicalSam31GpuRuntimeDeterministicQualificationOwner({
     readPort: {
       rereadQualificationRelease({ sourceCheckpointQualificationRef }) {
@@ -306,14 +308,15 @@ export function createCanonicalSam31GcpGpuRuntimeDeterministicQualificationOwner
 function compileRun(input: {
   request: z.infer<typeof requestSchema>
   runRequest: RunRequest
-  release: CanonicalSam31QualificationRelease
+  release: CanonicalSam31QualifiedSourceCheckpointRelease
   task: CanonicalSam31GpuTaskRecord
   launch: CanonicalProfessionalGpuJobLaunch
   result: CanonicalSam31GpuRuntimeResultAdmission
   response: CanonicalSam31GpuRuntimeResponse
 }) {
   const { request, runRequest, release, task, launch, result, response } = input
-  const probe = release.qualification.controlledObservation.compatibilityProbe
+  const source = projectCanonicalSam31QualifiedSourceCheckpointRelease(release)
+  const probe = source.compatibilityProbe
   const gpu = response.gpuEvidence
   const exact = runRequest.invocationId === task.invocationId
     && sameRef(runRequest.taskRef, ref(task.taskId, task.taskRecordHash))
@@ -362,27 +365,27 @@ function compileRun(input: {
       request.deterministicProbeFixtureRef,
     )
     && task.runtimeRequest.modelArtifacts.sourceCandidateRef.candidateHash ===
-      release.qualification.candidateRef.candidateHash
+      source.qualification.candidateRef.candidateHash
     && task.runtimeRequest.modelArtifacts.privateArtifactIngestReceiptRef
-      .contentHash === release.qualification.ingestReceiptRef.contentHash
+      .contentHash === source.qualification.ingestReceiptRef.contentHash
     && task.runtimeRequest.modelArtifacts.sourceRevision ===
-      release.qualification.sourceArchive.revision
+      source.sourceArchive.revision
     && task.runtimeRequest.modelArtifacts.sourceArchiveRef.contentHash ===
-      release.qualification.sourceArchive.artifactRef.contentHash
+      source.sourceArchive.artifactRef.contentHash
     && task.runtimeRequest.modelArtifacts.sourceArchiveByteLength ===
-      release.qualification.sourceArchive.byteLength
+      source.sourceArchive.byteLength
     && task.runtimeRequest.modelArtifacts.sourceArchiveSha256 ===
-      release.qualification.sourceArchive.sha256
+      source.sourceArchive.sha256
     && task.runtimeRequest.modelArtifacts.checkpointRef.contentHash ===
-      release.qualification.checkpoint.artifactRef.contentHash
+      source.checkpoint.artifactRef.contentHash
     && task.runtimeRequest.modelArtifacts.checkpointRepositoryRevision ===
-      release.qualification.checkpoint.repositoryRevision
+      source.checkpoint.repositoryRevision
     && task.runtimeRequest.modelArtifacts.checkpointFileName ===
-      release.qualification.checkpoint.fileName
+      source.checkpoint.fileName
     && task.runtimeRequest.modelArtifacts.checkpointByteLength ===
-      release.qualification.checkpoint.byteLength
+      source.checkpoint.byteLength
     && task.runtimeRequest.modelArtifacts.checkpointSha256 ===
-      release.qualification.checkpoint.sha256
+      source.checkpoint.sha256
     && task.runtimeRequest.modelArtifacts.immutableImageDigest ===
       launch.immutableImageDigest
     && result.status === 'ready_for_independent_mask_artifact_qa'
@@ -409,7 +412,7 @@ function compileRun(input: {
     && launch.accelerator === task.runtimeRequest.dispatch.accelerator
     && release.status === 'qualified_for_private_image_build'
     && release.sourceCheckpointQualificationGranted
-    && release.deterministicA100CompatibilityProbeVerified
+    && source.deterministicA100CompatibilityProbeVerified
     && probe.exactDependencyWheelAndNativeClosureReread
     && probe.strictCheckpointLoadRequested
     && probe.missingCheckpointKeyCount === 0
@@ -459,8 +462,9 @@ function compileRun(input: {
 
 function assertQualificationRelease(
   request: z.infer<typeof requestSchema>,
-  release: CanonicalSam31QualificationRelease,
+  release: CanonicalSam31QualifiedSourceCheckpointRelease,
 ): void {
+  const source = projectCanonicalSam31QualifiedSourceCheckpointRelease(release)
   if (
     !sameRef(
       request.sourceCheckpointQualificationRef,
@@ -468,9 +472,8 @@ function assertQualificationRelease(
     )
     || release.evidenceClass !== 'canonical_private_reread'
     || release.status !== 'qualified_for_private_image_build'
-    || !release.exactCandidateIngestRequestResultTerminalAndClearanceReread
-    || !release.exactAttemptJobImageCheckpointProbeAndCostLineage
-    || !release.sourceCheckpointQualificationGranted
+    || !source.exactCanonicalReread
+    || !source.sourceCheckpointQualificationGranted
   ) throw conflict('source_checkpoint_qualification_release_mismatch')
 }
 

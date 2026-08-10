@@ -2037,11 +2037,23 @@ def validate_cuda_driver_library() -> dict[str, Any]:
 def validate_gpu(torch_module: Any, requested: str) -> dict[str, Any]:
     if os.environ.get("WEEDITPRO_GPU_ACCELERATOR_CLASS") != requested:
         raise RuntimeError("launch accelerator and task accelerator differ")
-    if not torch_module.cuda.is_available() or not torch_module.cuda.is_bf16_supported():
+    if not guarded_cuda_probe(
+        "cuda_availability_probe_failed",
+        torch_module.cuda.is_available,
+    ):
         raise RuntimeError("CUDA bfloat16 GPU is unavailable")
-    device_name = torch_module.cuda.get_device_name(0)
-    major, minor = torch_module.cuda.get_device_capability(0)
-    total = torch_module.cuda.get_device_properties(0).total_memory
+    device_name = guarded_cuda_probe(
+        "cuda_device_name_probe_failed",
+        lambda: torch_module.cuda.get_device_name(0),
+    )
+    major, minor = guarded_cuda_probe(
+        "cuda_device_capability_probe_failed",
+        lambda: torch_module.cuda.get_device_capability(0),
+    )
+    total = guarded_cuda_probe(
+        "cuda_device_properties_probe_failed",
+        lambda: torch_module.cuda.get_device_properties(0).total_memory,
+    )
     exact_class = (
         requested == "nvidia_a100_80gb"
         and "A100" in device_name.upper()
@@ -2086,6 +2098,54 @@ def validate_gpu(torch_module: Any, requested: str) -> dict[str, Any]:
         "cpuOnlyInferenceUsed": False,
         **driver_evidence,
     }
+
+
+def guarded_cuda_probe(diagnostic_message: str, operation: Any) -> Any:
+    try:
+        return operation()
+    except Exception as error:
+        raise RuntimeError(diagnostic_message) from error
+
+
+def verify_cuda_bfloat16_operation(torch_module: Any) -> None:
+    """Prove bfloat16 with a real CUDA kernel, not a helper heuristic.
+
+    PyTorch's ``is_bf16_supported`` helper is an indirect capability heuristic
+    and may itself fail while initializing a provider-specific CUDA runtime.
+    The release gate needs stronger evidence anyway: two fixed bfloat16 CUDA
+    matrices must execute, synchronize, and return a finite bfloat16 result on
+    device zero before model loading is allowed.
+    """
+
+    def execute_probe() -> Any:
+        left = torch_module.ones(
+            (16, 16),
+            dtype=torch_module.bfloat16,
+            device="cuda:0",
+        )
+        right = torch_module.full(
+            (16, 16),
+            2,
+            dtype=torch_module.bfloat16,
+            device="cuda:0",
+        )
+        result = torch_module.matmul(left, right)
+        torch_module.cuda.synchronize(0)
+        return result
+
+    result = guarded_cuda_probe(
+        "cuda_bfloat16_kernel_probe_failed",
+        execute_probe,
+    )
+    if (
+        not torch_module.is_tensor(result)
+        or getattr(result.device, "type", None) != "cuda"
+        or result.dtype != torch_module.bfloat16
+        or result.shape != (16, 16)
+        or not bool(torch_module.isfinite(result).all().item())
+        or float(result[0, 0].item()) != 32.0
+    ):
+        raise RuntimeError("CUDA bfloat16 kernel result is invalid")
 
 
 def verify_bfloat16_autocast(torch_module: Any) -> None:
@@ -2173,10 +2233,17 @@ def persist_mask(
 def execute(request: dict[str, Any]) -> dict[str, Any]:
     global stage
     stage = "cuda_admission"
-    import torch
+    try:
+        import torch
+    except Exception as error:
+        raise RuntimeError("pytorch_cuda_import_failed") from error
 
-    if not torch.cuda.is_available() or not torch.cuda.is_bf16_supported():
+    if not guarded_cuda_probe(
+        "cuda_availability_probe_failed",
+        torch.cuda.is_available,
+    ):
         raise RuntimeError("CUDA bfloat16 GPU is unavailable")
+    verify_cuda_bfloat16_operation(torch)
     with torch.autocast(
         device_type="cuda",
         dtype=torch.bfloat16,
@@ -2545,6 +2612,15 @@ def failure_diagnostic_code(error: Exception) -> str:
         "loaded CUDA driver library does not match its mode": "driver_file_mode_mismatch",
         "runtime FFmpeg NVDEC closure changed": "ffmpeg_nvdec_closure_mismatch",
         "TorchCodec GPU decode guard was installed twice": "decode_guard_duplicate",
+        "pytorch_cuda_import_failed": "pytorch_cuda_import_failed",
+        "cuda_availability_probe_failed": "cuda_availability_probe_failed",
+        "cuda_device_name_probe_failed": "cuda_device_name_probe_failed",
+        "cuda_device_capability_probe_failed": "cuda_device_capability_probe_failed",
+        "cuda_device_properties_probe_failed": "cuda_device_properties_probe_failed",
+        "cuda_bfloat16_kernel_probe_failed": "cuda_bfloat16_kernel_probe_failed",
+        "CUDA bfloat16 kernel result is invalid": "cuda_bfloat16_kernel_result_invalid",
+        "SAM 3.1 CUDA bfloat16 autocast was not entered": "cuda_autocast_not_entered",
+        "SAM 3.1 CUDA autocast dtype changed": "cuda_autocast_dtype_mismatch",
     }
     return allowed.get(str(error), "unclassified_fail_closed")
 

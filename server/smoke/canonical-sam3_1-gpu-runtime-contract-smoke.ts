@@ -238,6 +238,20 @@ if runner.failure_diagnostic_code(
 ) != "driver_file_mode_mismatch":
     raise AssertionError("known CUDA failure was not safely classified")
 if runner.failure_diagnostic_code(
+    RuntimeError("cuda_bfloat16_kernel_probe_failed")
+) != "cuda_bfloat16_kernel_probe_failed":
+    raise AssertionError("bfloat16 kernel failure was not safely classified")
+try:
+    runner.guarded_cuda_probe(
+        "cuda_device_properties_probe_failed",
+        lambda: (_ for _ in ()).throw(RuntimeError("private provider detail")),
+    )
+except RuntimeError as error:
+    if str(error) != "cuda_device_properties_probe_failed":
+        raise AssertionError("CUDA probe exposed a provider exception")
+else:
+    raise AssertionError("failed CUDA probe was accepted")
+if runner.failure_diagnostic_code(
     RuntimeError("private unexpected detail")
 ) != "unclassified_fail_closed":
     raise AssertionError("unknown CUDA failure detail was exposed")

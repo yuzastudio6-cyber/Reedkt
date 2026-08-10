@@ -626,7 +626,7 @@ function assertVisualIntelligenceRuntimeConfigured(env: RuntimeEnv): void {
     )
     ||
     !env.visualIntelligenceReleaseObjectName!.startsWith(
-      'private/visual-intelligence/releases/gemini-pro-high/v1/',
+      'private/visual-intelligence/releases/gemini-pro-high/v2/',
     )
     || !env.visualIntelligenceReleaseObjectName!.endsWith('.json')
     || !env.visualIntelligenceRateObjectName!.startsWith(

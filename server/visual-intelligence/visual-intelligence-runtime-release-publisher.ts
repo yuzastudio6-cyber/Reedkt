@@ -39,17 +39,17 @@ import {
 } from './visual-intelligence-contract'
 
 export const VISUAL_INTELLIGENCE_RUNTIME_QUALIFICATION_COMPONENT_VERSION =
-  'visual-intelligence-runtime-qualification-component-v1' as const
+  'visual-intelligence-runtime-qualification-component-v2' as const
 export const VISUAL_INTELLIGENCE_RUNTIME_RELEASE_PUBLISHER_VERSION =
-  'visual-intelligence-runtime-release-publisher-v1' as const
+  'visual-intelligence-runtime-release-publisher-v2' as const
 export const VISUAL_INTELLIGENCE_RUNTIME_RELEASE_PUBLICATION_RECEIPT_VERSION =
-  'visual-intelligence-runtime-release-publication-receipt-v1' as const
+  'visual-intelligence-runtime-release-publication-receipt-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const RELEASE_PREFIX =
-  'private/visual-intelligence/releases/gemini-pro-high/v1/' as const
+  'private/visual-intelligence/releases/gemini-pro-high/v2/' as const
 const QUALIFICATION_PREFIX =
-  'private/visual-intelligence/qualifications/runtime-release/v1/' as const
+  'private/visual-intelligence/qualifications/runtime-release/v2/' as const
 const MAXIMUM_COMPONENT_BYTES = 512 * 1024
 const MAXIMUM_RELEASE_BYTES = 512 * 1024
 const bucketNameSchema = z.string()
@@ -119,7 +119,7 @@ const componentWithoutDigestSchema = z.object({
   evidenceClass: z.literal('canonical_private_exact_reread'),
   component: componentNameSchema,
   projectId: z.literal(PROJECT_ID),
-  vertexLocation: z.enum(['global', 'us-central1', 'europe-west4']),
+  vertexLocation: z.literal('global'),
   capabilityId: z.literal(VISUAL_INTELLIGENCE_CAPABILITY_ID),
   providerAdapterId: z.literal(VISUAL_INTELLIGENCE_PROVIDER_ADAPTER_ID),
   providerId: z.literal(VISUAL_INTELLIGENCE_PROVIDER_ID),
@@ -333,12 +333,16 @@ export async function publishVisualIntelligenceRuntimeRelease(input: {
     thinkingLevel: VISUAL_INTELLIGENCE_THINKING_LEVEL,
     mediaResolution: VISUAL_INTELLIGENCE_MEDIA_RESOLUTION,
     providerAuthentication: 'vertex_application_default_credentials',
+    providerTransport: 'gemini_enterprise_agent_platform',
     providerSdkPackage: '@google/genai',
     providerSdkVersion: '2.15.0',
     providerApiVersion:
       VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
     providerAdapterVersion:
       VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION,
+    enterpriseAgentPlatformTransportQualified: true,
+    legacyVertexAiClientFlagAllowed: false,
+    globalEndpointRequired: true,
     profileRegistryVersion: VISUAL_INTELLIGENCE_PROFILE_REGISTRY_VERSION,
     promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
     responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,

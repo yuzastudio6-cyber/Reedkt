@@ -65,7 +65,7 @@ class MemoryObjectPort implements CanonicalCreateOnlyJsonObjectPort {
 
 const rateAuthorityRef = ref('billing-account-effective-rate')
 const runtimeRelease = createControlledVisualIntelligenceRuntimeRelease({
-  schemaVersion: 'visual-intelligence-runtime-release-v1',
+  schemaVersion: 'visual-intelligence-runtime-release-v2',
   evidenceClass:
     'canonical_immutable_visual_intelligence_gemini_pro_high_release_reread',
   projectId: 'reeditpro',
@@ -91,10 +91,14 @@ const runtimeRelease = createControlledVisualIntelligenceRuntimeRelease({
   thinkingLevel: 'high',
   mediaResolution: 'high',
   providerAuthentication: 'vertex_application_default_credentials',
+  providerTransport: 'gemini_enterprise_agent_platform',
   providerSdkPackage: '@google/genai',
   providerSdkVersion: '2.15.0',
-  providerApiVersion: 'v1alpha',
-  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v4',
+  providerApiVersion: 'v1',
+  providerAdapterVersion: 'vertex-gemini-pro-visual-intelligence-adapter-v5',
+  enterpriseAgentPlatformTransportQualified: true,
+  legacyVertexAiClientFlagAllowed: false,
+  globalEndpointRequired: true,
   profileRegistryVersion: 'visual-intelligence-profile-registry-v2',
   promptVersion: VISUAL_INTELLIGENCE_PROMPT_VERSION,
   responseSchemaVersion: VISUAL_INTELLIGENCE_RESPONSE_SCHEMA_VERSION,

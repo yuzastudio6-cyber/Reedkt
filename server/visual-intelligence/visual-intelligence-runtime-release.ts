@@ -28,11 +28,11 @@ import type {
 } from './visual-intelligence-private-object-read-port'
 
 export const VISUAL_INTELLIGENCE_RUNTIME_RELEASE_VERSION =
-  'visual-intelligence-runtime-release-v1' as const
+  'visual-intelligence-runtime-release-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const RELEASE_PREFIX =
-  'private/visual-intelligence/releases/gemini-pro-high/v1/' as const
+  'private/visual-intelligence/releases/gemini-pro-high/v2/' as const
 const MAX_RELEASE_BYTES = 512 * 1024
 const GCS_BUCKET = /^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$/u
 const GENERATION = /^[1-9][0-9]{0,30}$/u
@@ -50,7 +50,7 @@ const releaseWithoutDigestSchema = z.object({
     'canonical_immutable_visual_intelligence_gemini_pro_high_release_reread',
   ),
   projectId: z.literal(PROJECT_ID),
-  vertexLocation: z.enum(['global', 'us-central1', 'europe-west4']),
+  vertexLocation: z.literal('global'),
   lifecycleBucketName: z.string().regex(GCS_BUCKET),
   runtimeReleaseIdentityRef: evidenceRefSchema,
   lifecycleRepositoryReleaseRef: evidenceRefSchema,
@@ -72,6 +72,7 @@ const releaseWithoutDigestSchema = z.object({
   thinkingLevel: z.literal(VISUAL_INTELLIGENCE_THINKING_LEVEL),
   mediaResolution: z.literal(VISUAL_INTELLIGENCE_MEDIA_RESOLUTION),
   providerAuthentication: z.literal('vertex_application_default_credentials'),
+  providerTransport: z.literal('gemini_enterprise_agent_platform'),
   providerSdkPackage: z.literal('@google/genai'),
   providerSdkVersion: z.literal('2.15.0'),
   providerApiVersion: z.literal(
@@ -80,6 +81,9 @@ const releaseWithoutDigestSchema = z.object({
   providerAdapterVersion: z.literal(
     VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION,
   ),
+  enterpriseAgentPlatformTransportQualified: z.literal(true),
+  legacyVertexAiClientFlagAllowed: z.literal(false),
+  globalEndpointRequired: z.literal(true),
   profileRegistryVersion: z.literal(
     VISUAL_INTELLIGENCE_PROFILE_REGISTRY_VERSION,
   ),

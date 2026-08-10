@@ -516,7 +516,10 @@ async function main() {
     ),
     /not ready/iu,
   )
-  assert.equal(VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION, 'v1alpha')
+  assert.equal(VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION, 'v1')
+  assert.equal(dispatch.geminiEnterpriseAgentPlatformEnabled, true)
+  assert.equal(dispatch.legacyVertexAiClientFlagEnabled, false)
+  assert.equal(dispatch.globalEndpointRequired, true)
   assert.equal(dispatch.config.temperature, undefined)
   assert.equal(dispatch.config.topP, undefined)
   assert.equal(dispatch.config.seed, undefined)
@@ -686,6 +689,12 @@ async function main() {
     generatePort,
     costSettlementPort,
   })
+  assert.throws(() => createVertexGeminiProVisualIntelligenceAdapter({
+    projectId: 'reeditpro',
+    location: 'us-central1',
+    generatePort,
+    costSettlementPort,
+  }), /not ready/iu)
   const result = await adapter.execute(providerInput)
   assert.equal(calls.length, 1)
   assert.equal(

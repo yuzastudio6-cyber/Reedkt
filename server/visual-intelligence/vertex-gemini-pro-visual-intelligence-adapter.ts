@@ -37,9 +37,9 @@ import {
 } from './visual-intelligence-profile-registry'
 
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION =
-  'vertex-gemini-pro-visual-intelligence-adapter-v4' as const
+  'vertex-gemini-pro-visual-intelligence-adapter-v5' as const
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
-  'v1alpha' as const
+  'v1' as const
 
 const DEFAULT_TIMEOUT_MS = 600_000
 const MAX_TIMEOUT_MS = 900_000
@@ -131,6 +131,9 @@ export interface CompiledVertexGeminiProVisualIntelligenceDispatch {
       | 'vertex_gcs_image'
   }>
   readonly applicationDefaultCredentialsRequired: true
+  readonly geminiEnterpriseAgentPlatformEnabled: true
+  readonly legacyVertexAiClientFlagEnabled: false
+  readonly globalEndpointRequired: true
   readonly apiKeyAccepted: false
   readonly providerToolsEnabled: false
   readonly searchGroundingEnabled: false
@@ -201,6 +204,7 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
   if (
     !safeIdentity(options.projectId)
+    || options.location !== 'global'
     || !validProviderTimeoutMs(timeoutMs)
   ) throw notReady('vertex_gemini_pro_adapter_configuration_invalid')
   const generatePort = options.generatePort
@@ -335,6 +339,7 @@ export function createVertexGeminiProVisualIntelligenceAdapter(
         },
         sanitizedDiagnostics: [
           'vertex_adc_authenticated',
+          'gemini_enterprise_agent_platform_global_v1',
           'professional_high_explicit',
           'single_provider_attempt',
           'structured_result_validated',
@@ -428,6 +433,9 @@ export function compileVertexGeminiProVisualIntelligenceDispatch(
       validated.privateMediaInputs.map((item) => item.artifactId),
     orderedMediaRangeBindings: compiledMedia.bindings,
     applicationDefaultCredentialsRequired: true,
+    geminiEnterpriseAgentPlatformEnabled: true,
+    legacyVertexAiClientFlagEnabled: false,
+    globalEndpointRequired: true,
     apiKeyAccepted: false,
     providerToolsEnabled: false,
     searchGroundingEnabled: false,
@@ -600,11 +608,11 @@ function frameBoundaryToProtobufDuration(
 
 function createGoogleGenAiVertexGeneratePort(input: {
   projectId: string
-  location: string
+  location: 'global'
   timeoutMs: number
 }): VisualIntelligenceGeminiGeneratePort {
   const client = new GoogleGenAI({
-    vertexai: true,
+    enterprise: true,
     project: input.projectId,
     location: input.location,
     httpOptions: {

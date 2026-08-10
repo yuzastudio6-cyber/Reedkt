@@ -86,6 +86,11 @@ const admitted = await readVisualIntelligenceRuntimeRelease({
 assert.equal(admitted.exactModelId, 'gemini-3.1-pro-preview')
 assert.equal(admitted.thinkingLevel, 'high')
 assert.equal(admitted.mediaResolution, 'high')
+assert.equal(admitted.providerTransport, 'gemini_enterprise_agent_platform')
+assert.equal(admitted.providerApiVersion, 'v1')
+assert.equal(admitted.enterpriseAgentPlatformTransportQualified, true)
+assert.equal(admitted.legacyVertexAiClientFlagAllowed, false)
+assert.equal(admitted.globalEndpointRequired, true)
 assert.equal(admitted.qwenVisualFallbackAllowed, false)
 assert.equal(admitted.selfHostedVisualModelFallbackAllowed, false)
 assert.equal(admitted.authenticatedUserTriggerRequired, true)
@@ -200,7 +205,7 @@ function createComponent(
   index: number,
 ): VisualIntelligenceRuntimeQualificationComponent {
   return createControlledVisualIntelligenceRuntimeQualificationComponent({
-    schemaVersion: 'visual-intelligence-runtime-qualification-component-v1',
+    schemaVersion: 'visual-intelligence-runtime-qualification-component-v2',
     source: 'canonical_server_visual_intelligence_qualification_owner',
     evidenceClass: 'canonical_private_exact_reread',
     component,
@@ -238,7 +243,7 @@ function storeComponent(
 function componentCoordinate(
   component: VisualIntelligenceRuntimeQualificationComponent,
 ): VisualIntelligenceRuntimeQualificationCoordinate {
-  const objectName = `private/visual-intelligence/qualifications/runtime-release/v1/${component.component}/${component.qualificationRef.id}.json`
+  const objectName = `private/visual-intelligence/qualifications/runtime-release/v2/${component.component}/${component.qualificationRef.id}.json`
   const body = Buffer.from(visualIntelligenceCanonicalJson(component), 'utf8')
   return {
     component: component.component,

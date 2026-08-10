@@ -8,7 +8,7 @@ import {
 
 const bucketName = 'reeditpro-control-plane'
 const objectName =
-  'private/visual-intelligence/releases/gemini-pro-high/v1/release.json'
+  'private/visual-intelligence/releases/gemini-pro-high/v2/release.json'
 const body = Buffer.from('{"release":"qualified"}', 'utf8')
 let stored = {
   generation: '101',

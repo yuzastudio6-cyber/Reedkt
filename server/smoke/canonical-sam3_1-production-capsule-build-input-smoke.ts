@@ -256,6 +256,7 @@ for (const expected of [
   '!cloudbuild.production-capsule.yaml',
   '!entrypoint.sh',
   '!runner.py',
+  '!patches/0002-weeditpro-importlib-resources.patch',
   '!patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
   '!patches/0004-weeditpro-forward-propagation-frame-count.patch',
 ] as const) assert.ok(gcloudIgnore.includes(expected),

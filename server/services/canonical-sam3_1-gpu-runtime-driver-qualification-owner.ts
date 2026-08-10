@@ -204,14 +204,28 @@ export function createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObject
     readonly now?: () => string
   },
 ): CanonicalSam31GpuRuntimeDriverQualificationOwner {
+  return createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPorts({
+    controlPlaneObjectPort: input.objectPort,
+    privateGpuObjectPort: input.objectPort,
+    now: input.now,
+  })
+}
+
+export function createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPorts(
+  input: {
+    readonly controlPlaneObjectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly privateGpuObjectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly now?: () => string
+  },
+): CanonicalSam31GpuRuntimeDriverQualificationOwner {
   const taskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
-    objectPort: input.objectPort,
+    objectPort: input.privateGpuObjectPort,
   })
   const resultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
-    objectPort: input.objectPort,
+    objectPort: input.privateGpuObjectPort,
   })
   const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
-    objectPort: input.objectPort,
+    objectPort: input.controlPlaneObjectPort,
   })
   return createCanonicalSam31GpuRuntimeDriverQualificationOwner({
     readPort: {
@@ -232,7 +246,7 @@ export function createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObject
     },
     componentRepository:
       createCanonicalSam31GpuRuntimeQualificationComponentEvidenceRepository({
-        objectPort: input.objectPort,
+        objectPort: input.controlPlaneObjectPort,
       }),
     now: input.now,
   })
@@ -243,10 +257,15 @@ export function createCanonicalSam31GcpGpuRuntimeDriverQualificationOwner(
 ): CanonicalSam31GpuRuntimeDriverQualificationOwner {
   // These immutable cloud resource IDs intentionally retain their established
   // identity after the WeEditPro product rename.
-  return createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPort({
-    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
-      storage: input.storage ?? new Storage({ projectId: 'reeditpro' }),
+  const storage = input.storage ?? new Storage({ projectId: 'reeditpro' })
+  return createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPorts({
+    controlPlaneObjectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
       bucketName: 'reeditpro-production-reeditpro-control-plane-state',
+    }),
+    privateGpuObjectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
+      bucketName: 'reeditpro-production-reeditpro-masks',
     }),
     now: input.now,
   })

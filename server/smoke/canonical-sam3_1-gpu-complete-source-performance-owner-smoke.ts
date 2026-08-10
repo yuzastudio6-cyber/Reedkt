@@ -12,6 +12,7 @@ import {
   canonicalSam31GpuCompleteSourceStitchEvidenceRef,
   createCanonicalSam31GpuCompleteSourcePerformanceOwner,
   createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPort,
+  createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPorts,
   createCanonicalSam31GpuCompleteSourcePerformanceRepository,
   persistCanonicalSam31GpuCompleteSourceOwnerInput,
   sealCanonicalSam31GpuCompleteSourceExecutionObservation,
@@ -74,7 +75,7 @@ const observation = sealCanonicalSam31GpuCompleteSourceExecutionObservation({
     routeId: 'a100_80gb_heavy_primary',
     gpuProfileId: 'quality_a100_80gb_user_triggered_heavy_job_v1',
     runtimeRegion: 'us-central1',
-    executionTarget: 'google_cloud_batch_a2_ultra_job',
+    executionTarget: 'google_cloud_vertex_custom_job_a2_ultra',
     machineType: 'a2-ultragpu-1g',
     accelerator: 'nvidia_a100_80gb',
   },
@@ -232,6 +233,49 @@ const wiredEvidence = await wiredOwner.compileAndPersistPerformanceEvidence({
 assert.equal(wiredEvidence.chunkCount, 48)
 assert.equal(wiredEvidence.phaseTiming.wallTimeMilliseconds, 420_000)
 
+const splitControlObjectPort = memoryObjectPort(new Map())
+const splitPrivateObjectPort = memoryObjectPort(new Map())
+const splitTaskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
+  objectPort: splitPrivateObjectPort,
+})
+const splitResultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
+  objectPort: splitPrivateObjectPort,
+})
+const splitLifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+  objectPort: splitControlObjectPort,
+})
+const splitRefs = await persistCanonicalSam31GpuCompleteSourceOwnerInput({
+  objectPort: splitControlObjectPort,
+  observation,
+  stitchEvidence: stitch,
+})
+for (const fixture of fixtures) {
+  await splitTaskStore.persistTaskCreateOnly(fixture.task)
+  await splitLifecycleStore.createLaunchRecordOnly({ record: fixture.launch })
+  await splitResultStore.persistResultAdmissionCreateOnly(fixture.result)
+  const responseBody = Buffer.from(
+    stableAuthorityStringify(fixture.response),
+    'utf8',
+  )
+  await splitPrivateObjectPort.createOnly({
+    objectPath:
+      `private/canonical-professional-gpu/sam3_1/v1/invocations/${fixture.request.invocationId}/response.json`,
+    body: responseBody,
+    contentSha256: digest(responseBody),
+  })
+}
+const splitEvidence = await
+createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPorts({
+  controlPlaneObjectPort: splitControlObjectPort,
+  privateGpuObjectPort: splitPrivateObjectPort,
+  now: () => '2026-08-04T19:10:00.000Z',
+}).compileAndPersistPerformanceEvidence({
+  performanceEvidenceId: 'sam31-eight-minute-performance-evidence-split-store',
+  ...splitRefs,
+})
+assert.equal(splitEvidence.chunkCount, 48)
+assert.equal(splitEvidence.phaseTiming.wallTimeMilliseconds, 420_000)
+
 await assert.rejects(() => ownerWith({ missingChunk: 17 })
   .compileAndPersistPerformanceEvidence(request))
 await assert.rejects(() => owner.compileAndPersistPerformanceEvidence({
@@ -290,7 +334,7 @@ await assert.rejects(() => owner.compileAndPersistPerformanceEvidence(cyclic))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-complete-source-performance-owner',
-  checks: 38,
+  checks: 39,
   exactEightMinuteSourceCovered: true,
   orderedChunkCount: 48,
   exactChunkTaskLaunchResponseResultAndCostReread: true,
@@ -298,6 +342,7 @@ console.log(JSON.stringify({
   wallClockPhaseTelemetryReread: true,
   scaleToZeroVerifiedForEveryChunk: true,
   durableCanonicalStoreFactoryWired: true,
+  splitControlPlaneAndPrivateGpuStoresWired: true,
   callerPerformanceClaimsAccepted: false,
   liveGpuJobStarted: false,
   customerCreditsMutated: false,

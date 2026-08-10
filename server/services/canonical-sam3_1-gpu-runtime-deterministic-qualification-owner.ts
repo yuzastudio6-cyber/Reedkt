@@ -251,18 +251,32 @@ export function createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFro
     readonly now?: () => string
   },
 ): CanonicalSam31GpuRuntimeDeterministicQualificationOwner {
+  return createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPorts({
+    controlPlaneObjectPort: input.objectPort,
+    privateGpuObjectPort: input.objectPort,
+    now: input.now,
+  })
+}
+
+export function createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPorts(
+  input: {
+    readonly controlPlaneObjectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly privateGpuObjectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly now?: () => string
+  },
+): CanonicalSam31GpuRuntimeDeterministicQualificationOwner {
   const taskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
-    objectPort: input.objectPort,
+    objectPort: input.privateGpuObjectPort,
   })
   const resultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
-    objectPort: input.objectPort,
+    objectPort: input.privateGpuObjectPort,
   })
   const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
-    objectPort: input.objectPort,
+    objectPort: input.controlPlaneObjectPort,
   })
   const releaseReadPort =
     createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort({
-      objectPort: input.objectPort,
+      objectPort: input.controlPlaneObjectPort,
     })
   return createCanonicalSam31GpuRuntimeDeterministicQualificationOwner({
     readPort: {
@@ -288,7 +302,7 @@ export function createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFro
     },
     componentRepository:
       createCanonicalSam31GpuRuntimeQualificationComponentEvidenceRepository({
-        objectPort: input.objectPort,
+        objectPort: input.controlPlaneObjectPort,
       }),
     now: input.now,
   })
@@ -297,10 +311,15 @@ export function createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFro
 export function createCanonicalSam31GcpGpuRuntimeDeterministicQualificationOwner(
   input: { readonly storage?: Storage; readonly now?: () => string } = {},
 ): CanonicalSam31GpuRuntimeDeterministicQualificationOwner {
-  return createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPort({
-    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
-      storage: input.storage ?? new Storage({ projectId: 'reeditpro' }),
+  const storage = input.storage ?? new Storage({ projectId: 'reeditpro' })
+  return createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPorts({
+    controlPlaneObjectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
       bucketName: 'reeditpro-production-reeditpro-control-plane-state',
+    }),
+    privateGpuObjectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
+      bucketName: 'reeditpro-production-reeditpro-masks',
     }),
     now: input.now,
   })

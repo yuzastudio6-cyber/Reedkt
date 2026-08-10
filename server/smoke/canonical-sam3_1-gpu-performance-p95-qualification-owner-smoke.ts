@@ -234,7 +234,7 @@ function completeSourceEvidence(
       routeId: 'a100_80gb_heavy_primary',
       gpuProfileId: 'quality_a100_80gb_user_triggered_heavy_job_v1',
       runtimeRegion: 'us-central1',
-      executionTarget: 'google_cloud_batch_a2_ultra_job',
+      executionTarget: 'google_cloud_vertex_custom_job_a2_ultra',
       machineType: 'a2-ultragpu-1g',
       accelerator: 'nvidia_a100_80gb',
     },

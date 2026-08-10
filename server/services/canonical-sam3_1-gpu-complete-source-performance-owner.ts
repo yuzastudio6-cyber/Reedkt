@@ -71,7 +71,7 @@ const routeSchema = z.object({
   ]),
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -605,25 +605,39 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectP
     readonly now?: () => string
   },
 ) {
+  return createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPorts({
+    controlPlaneObjectPort: input.objectPort,
+    privateGpuObjectPort: input.objectPort,
+    now: input.now,
+  })
+}
+
+export function createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPorts(
+  input: {
+    readonly controlPlaneObjectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly privateGpuObjectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly now?: () => string
+  },
+) {
   const taskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
-    objectPort: input.objectPort,
+    objectPort: input.privateGpuObjectPort,
   })
   const resultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
-    objectPort: input.objectPort,
+    objectPort: input.privateGpuObjectPort,
   })
   const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
-    objectPort: input.objectPort,
+    objectPort: input.controlPlaneObjectPort,
   })
   return createCanonicalSam31GpuCompleteSourcePerformanceOwner({
     readPort: {
       rereadExecutionGroupObservation({ executionGroupObservationRef }) {
-        return readTypedObject(input.objectPort,
+        return readTypedObject(input.controlPlaneObjectPort,
           recordPath(DEFAULT_PREFIX, 'execution-groups',
             executionGroupObservationRef),
           assertCanonicalSam31GpuCompleteSourceExecutionObservation)
       },
       rereadStitchEvidence({ stitchEvidenceRef }) {
-        return readTypedObject(input.objectPort,
+        return readTypedObject(input.controlPlaneObjectPort,
           recordPath(DEFAULT_PREFIX, 'stitches', stitchEvidenceRef),
           assertCanonicalSam31GpuCompleteSourceStitchEvidence)
       },
@@ -643,7 +657,7 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectP
       },
     },
     repository: createCanonicalSam31GpuCompleteSourcePerformanceRepository({
-      objectPort: input.objectPort,
+      objectPort: input.controlPlaneObjectPort,
     }),
     now: input.now,
   })
@@ -652,10 +666,15 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectP
 export function createCanonicalSam31GcpGpuCompleteSourcePerformanceOwner(
   input: { readonly storage?: Storage; readonly now?: () => string } = {},
 ) {
-  return createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPort({
-    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
-      storage: input.storage ?? new Storage({ projectId: 'reeditpro' }),
+  const storage = input.storage ?? new Storage({ projectId: 'reeditpro' })
+  return createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPorts({
+    controlPlaneObjectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
       bucketName: 'reeditpro-production-reeditpro-control-plane-state',
+    }),
+    privateGpuObjectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage,
+      bucketName: 'reeditpro-production-reeditpro-masks',
     }),
     now: input.now,
   })

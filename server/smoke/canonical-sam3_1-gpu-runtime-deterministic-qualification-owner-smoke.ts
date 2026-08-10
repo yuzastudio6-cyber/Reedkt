@@ -11,6 +11,7 @@ import {
 import {
   createCanonicalSam31GpuRuntimeDeterministicQualificationOwner,
   createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPort,
+  createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPorts,
   type CanonicalSam31GpuRuntimeDeterministicQualificationReadPort,
 } from '../services/canonical-sam3_1-gpu-runtime-deterministic-qualification-owner'
 import {
@@ -168,6 +169,54 @@ const wiredComponent = await wiredOwner
 assert.equal(wiredComponent.componentKind, 'deterministic_run_set')
 assert.equal(wiredComponent.payload.length, 30)
 
+const splitControlObjectPort = memoryObjectPort(new Map())
+const splitPrivateObjectPort = memoryObjectPort(new Map())
+const splitTaskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
+  objectPort: splitPrivateObjectPort,
+})
+const splitResultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
+  objectPort: splitPrivateObjectPort,
+})
+const splitLifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+  objectPort: splitControlObjectPort,
+})
+await splitControlObjectPort.createOnly({
+  objectPath:
+    'private/sam3_1/source-checkpoint-qualification/v1/releases/'
+      + `${sha256AuthorityValue(
+        sourceCheckpointQualificationRelease
+          .sourceCheckpointQualificationRef.id,
+      )}.json`,
+  body: releaseBytes,
+  contentSha256: digest(releaseBytes),
+})
+for (const fixture of fixtures) {
+  await splitTaskStore.persistTaskCreateOnly(fixture.task)
+  await splitLifecycleStore.createLaunchRecordOnly({ record: fixture.launch })
+  await splitResultStore.persistResultAdmissionCreateOnly(fixture.result)
+  const responseBytes = Buffer.from(
+    stableAuthorityStringify(fixture.response),
+    'utf8',
+  )
+  await splitPrivateObjectPort.createOnly({
+    objectPath:
+      `private/canonical-professional-gpu/sam3_1/v1/invocations/${fixture.request.invocationId}/response.json`,
+    body: responseBytes,
+    contentSha256: digest(responseBytes),
+  })
+}
+const splitComponent = await
+createCanonicalSam31GpuRuntimeDeterministicQualificationOwnerFromObjectPorts({
+  controlPlaneObjectPort: splitControlObjectPort,
+  privateGpuObjectPort: splitPrivateObjectPort,
+  now: () => '2026-08-04T18:02:00.000Z',
+}).compileAndPersistDeterministicQualificationComponent({
+  ...request,
+  componentId: 'sam31-a100-deterministic-run-set-split-store',
+})
+assert.equal(splitComponent.componentKind, 'deterministic_run_set')
+assert.equal(splitComponent.payload.length, 30)
+
 await assert.rejects(() =>
   owner.compileAndPersistDeterministicQualificationComponent({
     ...request,
@@ -243,7 +292,7 @@ await assert.rejects(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-deterministic-qualification-owner',
-  checks: 36,
+  checks: 37,
   exactThirtyCanonicalRunsReread: true,
   exactSourceCheckpointQualificationReleaseReread: true,
   oneProbeFixtureAndOneMaskSetDigestRequired: true,
@@ -251,6 +300,7 @@ console.log(JSON.stringify({
   exactA100RouteImageCudaNvdecBfloat16AndScaleZeroRequired: true,
   accountEffectiveAttemptCostRequiredEveryRun: true,
   durableCanonicalStoreFactoryWired: true,
+  splitControlPlaneAndPrivateGpuStoresWired: true,
   callerDeterminismClaimsAccepted: false,
   liveGpuJobStarted: false,
   customerCreditsMutated: false,

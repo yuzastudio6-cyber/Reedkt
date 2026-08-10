@@ -10,6 +10,7 @@ import {
 import {
   createCanonicalSam31GpuRuntimeDriverQualificationOwner,
   createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPort,
+  createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPorts,
   type CanonicalSam31GpuRuntimeDriverQualificationReadPort,
 } from '../services/canonical-sam3_1-gpu-runtime-driver-qualification-owner'
 import {
@@ -136,6 +137,41 @@ const wiredComponent = await wiredOwner
 assert.equal(wiredComponent.componentKind, 'driver_and_cuda')
 assert.equal(wiredComponent.route.routeId, 'a100_80gb_heavy_primary')
 
+const splitControlObjectPort = memoryObjectPort(new Map())
+const splitPrivateObjectPort = memoryObjectPort(new Map())
+const splitTaskStore = createCanonicalSam31GpuTaskStoreFromObjectPort({
+  objectPort: splitPrivateObjectPort,
+})
+const splitResultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
+  objectPort: splitPrivateObjectPort,
+})
+const splitLifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+  objectPort: splitControlObjectPort,
+})
+await splitTaskStore.persistTaskCreateOnly(canonicalSam31A100TaskFixture)
+await splitLifecycleStore.createLaunchRecordOnly({
+  record: canonicalSam31A100LaunchFixture,
+})
+await splitResultStore.persistResultAdmissionCreateOnly(
+  canonicalSam31A100ResultAdmissionFixture,
+)
+await splitPrivateObjectPort.createOnly({
+  objectPath:
+    `private/canonical-professional-gpu/sam3_1/v1/invocations/${request.invocationId}/response.json`,
+  body: responseBytes,
+  contentSha256: createHash('sha256').update(responseBytes).digest('hex'),
+})
+const splitComponent = await
+createCanonicalSam31GpuRuntimeDriverQualificationOwnerFromObjectPorts({
+  controlPlaneObjectPort: splitControlObjectPort,
+  privateGpuObjectPort: splitPrivateObjectPort,
+  now: () => '2026-08-04T17:02:00.000Z',
+}).compileAndPersistDriverQualificationComponent({
+  ...request,
+  componentId: 'sam31-a100-driver-component-split-store',
+})
+assert.equal(splitComponent.componentKind, 'driver_and_cuda')
+
 await assert.rejects(() => ownerWith({
   ...readPort,
   async rereadLaunch() { return null },
@@ -185,13 +221,14 @@ await assert.rejects(() => owner.compileAndPersistDriverQualificationComponent(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-driver-qualification-owner',
-  checks: 23,
+  checks: 24,
   exactTaskLaunchResultAndResponseReread: true,
   exactDriverAndCudaLibraryEvidenceCompiled: true,
   immutableImageAndA100RouteBound: true,
   accountEffectiveCostAndScaleZeroResultRequired: true,
   createOnlyComponentPersistenceAndExactReread: true,
   durableCanonicalStoreFactoryWired: true,
+  splitControlPlaneAndPrivateGpuStoresWired: true,
   callerQualificationClaimsAccepted: false,
   liveGpuJobStarted: false,
   customerCreditsMutated: false,

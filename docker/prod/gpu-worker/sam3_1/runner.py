@@ -236,6 +236,24 @@ def stable_json_bytes(value: Any) -> bytes:
     ).encode("utf-8")
 
 
+def observed_canonical_json_bytes(value: Any) -> bytes:
+    """Preserve the canonical JavaScript owner's observed key order.
+
+    Qualification and image-build records are serialized by the canonical
+    JavaScript owner after its locale-based recursive ordering. The capsule
+    builder verifies that exact wire order before copying the records into the
+    immutable image. Re-sorting those keys with Python's code-point comparator
+    would compute a different digest for otherwise identical v2/v3 records.
+    """
+    return json.dumps(
+        value,
+        sort_keys=False,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+
+
 def sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
 
@@ -1339,7 +1357,10 @@ def build_predictor_with_strict_rope_cache_derivation(torch: Any) -> Any:
     return predictor
 
 
-def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
+def read_closed_receipt(
+    path: Path,
+    expected_ref: dict[str, Any],
+) -> dict[str, Any]:
     _byte_length, _digest, contents = read_bounded_regular_file(
         path,
         1024 * 1024,
@@ -1347,9 +1368,43 @@ def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
     )
     if contents is None:
         raise ValueError("baked release receipt is missing")
-    value = exact_keys(
-        json.loads(contents.decode("utf-8")),
+    value = json.loads(contents.decode("utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("source checkpoint qualification receipt is invalid")
+    expected_ref = exact_keys(
+        expected_ref,
+        {"id", "version", "schemaVersion", "contentHash"},
+        "expected source checkpoint qualification ref",
+    )
+    exact_ref(
         {
+            "id": expected_ref["id"],
+            "version": expected_ref["version"],
+            "contentHash": expected_ref["contentHash"],
+        },
+        "expected source checkpoint qualification ref",
+    )
+    qualification_hash = exact_raw_sha(
+        value.get("qualificationHash"),
+        "source checkpoint qualification hash",
+    )
+    payload = dict(value)
+    del payload["qualificationHash"]
+    if (
+        observed_canonical_json_bytes(value) != contents
+        or sha256_bytes(observed_canonical_json_bytes(payload))
+        != qualification_hash
+        or expected_ref["contentHash"] != f"sha256:{qualification_hash}"
+        or value.get("schemaVersion") != expected_ref["schemaVersion"]
+        or value.get("qualificationId") != expected_ref["id"]
+        or value.get("qualificationVersion") != expected_ref["version"]
+    ):
+        raise ValueError("baked release receipt digest changed")
+
+    if value["schemaVersion"] == (
+        "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
+    ):
+        exact_keys(value, {
             "schemaVersion",
             "source",
             "evidenceClass",
@@ -1367,17 +1422,8 @@ def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
             "authority",
             "qualifiedAt",
             "qualificationHash",
-        },
-        "source checkpoint qualification receipt",
-    )
-    qualification_hash = exact_raw_sha(
-        value["qualificationHash"], "source checkpoint qualification hash"
-    )
-    payload = dict(value)
-    del payload["qualificationHash"]
-    authority = exact_keys(
-        value["authority"],
-        {
+        }, "source checkpoint qualification receipt")
+        authority = exact_keys(value["authority"], {
             "qualificationEvidenceOnly",
             "securityLicenseAndCompatibilityQualified",
             "privateImageBuildReviewEligible",
@@ -1388,18 +1434,14 @@ def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
             "qaApproved",
             "publicDeliveryAuthorized",
             "productionReady",
-        },
-        "source checkpoint qualification authority",
-    )
-    if (
-        value["schemaVersion"]
-        != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
-        or value["source"]
-        != "canonical_sam3_1_source_checkpoint_qualification_owner"
-        or value["evidenceClass"] != "canonical_private_reread"
-        or value["status"] != "qualified_for_private_image_build"
-        or value["operationId"] != OPERATION_ID
-        or authority != {
+        }, "source checkpoint qualification authority")
+        if (
+            value["source"]
+            != "canonical_sam3_1_source_checkpoint_qualification_owner"
+            or value["evidenceClass"] != "canonical_private_reread"
+            or value["status"] != "qualified_for_private_image_build"
+            or value["operationId"] != OPERATION_ID
+            or authority != {
             "qualificationEvidenceOnly": True,
             "securityLicenseAndCompatibilityQualified": True,
             "privateImageBuildReviewEligible": True,
@@ -1410,18 +1452,153 @@ def read_closed_receipt(path: Path, expected_hash: str) -> dict[str, Any]:
             "qaApproved": False,
             "publicDeliveryAuthorized": False,
             "productionReady": False,
-        }
-        or sha256_bytes(stable_json_bytes(payload)) != qualification_hash
-        or qualification_hash != expected_hash
+            }
+        ):
+            raise ValueError("baked release receipt authority changed")
+        return value
+
+    if value["schemaVersion"] != (
+        "canonical-sam3_1-source-checkpoint-compatibility-qualification-v2"
     ):
-        raise ValueError("baked release receipt digest changed")
+        raise ValueError("baked release receipt version is unsupported")
+    exact_keys(value, {
+        "schemaVersion",
+        "source",
+        "evidenceClass",
+        "status",
+        "qualificationId",
+        "qualificationVersion",
+        "candidate",
+        "ingestReceipt",
+        "workerRequest",
+        "workerResult",
+        "admission",
+        "execution",
+        "terminalReconciliation",
+        "providerUsage",
+        "platformStop",
+        "currentAccountRateAuthority",
+        "qualificationCostReceipt",
+        "securityComplianceClearance",
+        "exactEvidenceRefs",
+        "qualificationTruth",
+        "authority",
+        "qualifiedAt",
+        "qualificationHash",
+    }, "Vertex source checkpoint qualification receipt")
+    evidence_refs = exact_keys(value["exactEvidenceRefs"], {
+        "workerRequestRef",
+        "workerResultRef",
+        "admissionRef",
+        "executionRef",
+        "cloudTerminalObservationRef",
+        "providerUsageEvidenceRef",
+        "platformStopEvidenceRef",
+        "currentAccountRateAuthorityRef",
+        "qualificationCostReceiptRef",
+        "securityComplianceClearanceRef",
+    }, "Vertex qualification evidence refs")
+    worker_request_ref = exact_keys(evidence_refs["workerRequestRef"], {
+        "id", "version", "schemaVersion", "contentHash",
+    }, "Vertex qualification worker request ref")
+    worker_result_ref = exact_keys(evidence_refs["workerResultRef"], {
+        "id", "version", "schemaVersion", "contentHash",
+    }, "Vertex qualification worker result ref")
+    for label, evidence_ref in evidence_refs.items():
+        if label in {"workerRequestRef", "workerResultRef"}:
+            exact_ref({
+                "id": evidence_ref["id"],
+                "version": evidence_ref["version"],
+                "contentHash": evidence_ref["contentHash"],
+            }, label)
+        else:
+            exact_ref(evidence_ref, label)
+    qualification_truth = exact_keys(value["qualificationTruth"], {
+        "officialSam31SourceAndCheckpointReread",
+        "exactVertexRequestResultAdmissionExecutionAndTerminalReread",
+        "exactA10080GbExecutionVerified",
+        "actualCudaModelInferenceExecuted",
+        "completeForwardPropagationExecuted",
+        "deterministicRepeatedProbeVerified",
+        "strictCheckpointLoadVerified",
+        "networkEgressObserved",
+        "cpuOnlyModelExecutionObserved",
+        "cpuVideoDecodeFallbackObserved",
+        "quantizationOrResolutionReductionUsed",
+        "automaticRetryUsed",
+        "persistentGpuResourceObserved",
+        "activeA100GpuInstancesAfterObservation",
+        "billingAccountEffectiveRateAndUsageReread",
+        "cloudInvoiceReconciliationStillRequired",
+        "legacyBatchRequestOrResultCastOrRelabelUsed",
+    }, "Vertex qualification truth")
+    authority = exact_keys(value["authority"], {
+        "sourceCheckpointQualificationGranted",
+        "privateImageBuildReviewEligible",
+        "imageBuildStarted",
+        "productionRuntimeDispatchAuthorized",
+        "customerMediaProcessed",
+        "customerCreditsMutated",
+        "customerBillingAuthorityGranted",
+        "qaApproved",
+        "publicDeliveryAuthorized",
+        "productionReady",
+    }, "Vertex source checkpoint qualification authority")
+    candidate = value["candidate"]
+    if not isinstance(candidate, dict):
+        raise ValueError("Vertex source candidate is invalid")
+    if (
+        value["source"]
+        != "canonical_sam3_1_vertex_source_checkpoint_qualification_owner"
+        or value["evidenceClass"] != "canonical_private_reread"
+        or value["status"] != "qualified_for_private_image_build"
+        or candidate.get("operationId") != OPERATION_ID
+        or worker_request_ref["id"] != expected_ref["id"]
+        or worker_request_ref["version"] != 2
+        or worker_request_ref["schemaVersion"]
+        != "canonical-sam3_1-source-checkpoint-qualification-worker-request-v2"
+        or worker_result_ref["schemaVersion"]
+        != "canonical-sam3_1-source-checkpoint-qualification-worker-result-v2"
+        or qualification_truth != {
+            "officialSam31SourceAndCheckpointReread": True,
+            "exactVertexRequestResultAdmissionExecutionAndTerminalReread": True,
+            "exactA10080GbExecutionVerified": True,
+            "actualCudaModelInferenceExecuted": True,
+            "completeForwardPropagationExecuted": True,
+            "deterministicRepeatedProbeVerified": True,
+            "strictCheckpointLoadVerified": True,
+            "networkEgressObserved": False,
+            "cpuOnlyModelExecutionObserved": False,
+            "cpuVideoDecodeFallbackObserved": False,
+            "quantizationOrResolutionReductionUsed": False,
+            "automaticRetryUsed": False,
+            "persistentGpuResourceObserved": False,
+            "activeA100GpuInstancesAfterObservation": 0,
+            "billingAccountEffectiveRateAndUsageReread": True,
+            "cloudInvoiceReconciliationStillRequired": True,
+            "legacyBatchRequestOrResultCastOrRelabelUsed": False,
+        }
+        or authority != {
+            "sourceCheckpointQualificationGranted": True,
+            "privateImageBuildReviewEligible": True,
+            "imageBuildStarted": False,
+            "productionRuntimeDispatchAuthorized": False,
+            "customerMediaProcessed": False,
+            "customerCreditsMutated": False,
+            "customerBillingAuthorityGranted": False,
+            "qaApproved": False,
+            "publicDeliveryAuthorized": False,
+            "productionReady": False,
+        }
+    ):
+        raise ValueError("Vertex source checkpoint qualification changed")
     return value
 
 
 def read_artifact_build_binding(
     path: Path,
     expected_ingest_receipt_hash: str,
-    expected_qualification_hash: str,
+    expected_qualification_ref: dict[str, Any],
 ) -> dict[str, Any]:
     _byte_length, _digest, contents = read_bounded_regular_file(
         path,
@@ -1430,9 +1607,16 @@ def read_artifact_build_binding(
     )
     if contents is None:
         raise ValueError("baked artifact build binding is missing")
-    value = exact_keys(
-        json.loads(contents.decode("utf-8")),
-        {
+    value = json.loads(contents.decode("utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("artifact build binding is invalid")
+    expected_qualification_ref = exact_keys(
+        expected_qualification_ref,
+        {"id", "version", "schemaVersion", "contentHash"},
+        "expected source checkpoint qualification ref",
+    )
+    schema_version = value.get("schemaVersion")
+    common_keys = {
             "schemaVersion",
             "source",
             "evidenceClass",
@@ -1447,13 +1631,23 @@ def read_artifact_build_binding(
             "privacyBoundary",
             "authority",
             "bindingHash",
-        },
-        "artifact build binding",
-    )
+    }
+    if schema_version == "canonical-sam3_1-image-build-artifact-binding-v2":
+        exact_keys(value, common_keys, "artifact build binding")
+    elif schema_version == "canonical-sam3_1-image-build-artifact-binding-v3":
+        exact_keys(value, common_keys | {
+            "vertexQualificationEvidenceRefs",
+            "qualificationTruth",
+        }, "Vertex artifact build binding")
+    else:
+        raise ValueError("artifact build binding version is unsupported")
     binding_hash = exact_raw_sha(value["bindingHash"], "build binding hash")
     payload = dict(value)
     del payload["bindingHash"]
-    if sha256_bytes(stable_json_bytes(payload)) != binding_hash:
+    if (
+        observed_canonical_json_bytes(value) != contents
+        or sha256_bytes(observed_canonical_json_bytes(payload)) != binding_hash
+    ):
         raise ValueError("artifact build binding digest changed")
     ingest_ref = exact_keys(
         value["ingestReceiptRef"],
@@ -1482,22 +1676,30 @@ def read_artifact_build_binding(
         "source checkpoint qualification ref",
     )
     if (
-        value["schemaVersion"]
-        != "canonical-sam3_1-image-build-artifact-binding-v2"
-        or value["source"] != "canonical_sam3_1_image_build_artifact_owner"
-        or value["evidenceClass"] != "canonical_private_reread"
+        value["evidenceClass"] != "canonical_private_reread"
         or value["status"] != "private_artifacts_admitted"
         or value["operationId"] != OPERATION_ID
         or ingest_ref["schemaVersion"]
         != "canonical-sam3_1-private-artifact-ingest-receipt-v3"
         or ingest_ref["contentHash"]
         != f"sha256:{expected_ingest_receipt_hash}"
-        or qualification_ref["schemaVersion"]
-        != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
-        or qualification_ref["contentHash"]
-        != f"sha256:{expected_qualification_hash}"
+        or qualification_ref != expected_qualification_ref
     ):
         raise ValueError("artifact build binding identity changed")
+    source_archive = exact_keys(
+        value["sourceArchive"],
+        {
+            "repository",
+            "revision",
+            "artifactRef",
+            "byteLength",
+            "sha256",
+            "licenseRef",
+            "securityReviewRef",
+            "malwareScanRef",
+        },
+        "artifact build source archive binding",
+    )
     checkpoint = exact_keys(
         value["checkpoint"],
         {
@@ -1528,9 +1730,7 @@ def read_artifact_build_binding(
         },
         "artifact build privacy boundary",
     )
-    authority = exact_keys(
-        value["authority"],
-        {
+    authority_keys = {
             "sanitizedBuildBindingOnly",
             "privateArtifactIngestReread",
             "sourceCheckpointQualificationReread",
@@ -1540,11 +1740,32 @@ def read_artifact_build_binding(
             "checkpointRedistributionAuthorized",
             "qaApproved",
             "productionReady",
-        },
-        "artifact build authority",
+    }
+    if schema_version == "canonical-sam3_1-image-build-artifact-binding-v3":
+        authority_keys.add("customerCreditsMutated")
+    authority = exact_keys(
+        value["authority"], authority_keys, "artifact build authority"
     )
+    expected_authority = {
+        "sanitizedBuildBindingOnly": True,
+        "privateArtifactIngestReread": True,
+        "sourceCheckpointQualificationReread": True,
+        "imageBuildAuthorized": False,
+        "imageBuildStarted": False,
+        "runtimeAuthorized": False,
+        "checkpointRedistributionAuthorized": False,
+        "qaApproved": False,
+        "productionReady": False,
+    }
+    if schema_version == "canonical-sam3_1-image-build-artifact-binding-v3":
+        expected_authority["customerCreditsMutated"] = False
     if (
-        checkpoint["repository"] != "facebook/sam3.1"
+        source_archive["repository"]
+        != "https://github.com/facebookresearch/sam3.git"
+        or source_archive["revision"] != SOURCE_REVISION
+        or source_archive["byteLength"] != SOURCE_ARCHIVE_BYTE_LENGTH
+        or source_archive["sha256"] != SOURCE_ARCHIVE_SHA256
+        or checkpoint["repository"] != "facebook/sam3.1"
         or checkpoint["revision"] != CHECKPOINT_REVISION
         or checkpoint["fileName"] != CHECKPOINT_FILE_NAME
         or checkpoint["checkpointBytesIncludedInImageBuildCapsule"] is not False
@@ -1557,19 +1778,68 @@ def read_artifact_build_binding(
             "browserOrCallerDataIncluded": False,
             "opaqueEvidenceRefsOnly": True,
         }
-        or authority != {
-            "sanitizedBuildBindingOnly": True,
-            "privateArtifactIngestReread": True,
-            "sourceCheckpointQualificationReread": True,
-            "imageBuildAuthorized": False,
-            "imageBuildStarted": False,
-            "runtimeAuthorized": False,
-            "checkpointRedistributionAuthorized": False,
-            "qaApproved": False,
-            "productionReady": False,
-        }
+        or authority != expected_authority
     ):
         raise ValueError("artifact build privacy or authority boundary changed")
+    if schema_version == "canonical-sam3_1-image-build-artifact-binding-v2":
+        if (
+            value["source"] != "canonical_sam3_1_image_build_artifact_owner"
+            or qualification_ref["version"] != 1
+            or qualification_ref["schemaVersion"] != (
+                "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
+            )
+        ):
+            raise ValueError("historical artifact build binding changed")
+    else:
+        vertex_refs = exact_keys(value["vertexQualificationEvidenceRefs"], {
+            "workerRequestRef",
+            "workerResultRef",
+            "admissionRef",
+            "executionRef",
+            "terminalReconciliationRef",
+            "providerUsageEvidenceRef",
+            "platformStopEvidenceRef",
+            "currentAccountRateAuthorityRef",
+            "qualificationCostReceiptRef",
+            "securityComplianceClearanceRef",
+        }, "Vertex artifact build evidence refs")
+        for label, evidence_ref in vertex_refs.items():
+            exact_ref(evidence_ref, label)
+        qualification_truth = exact_keys(value["qualificationTruth"], {
+            "exactVertexA100ExecutionReread",
+            "actualCudaModelInferenceExecuted",
+            "completeForwardPropagationExecuted",
+            "deterministicRepeatedProbeVerified",
+            "strictCheckpointLoadVerified",
+            "cpuOnlySubstantiveExecutionObserved",
+            "cpuVideoDecodeFallbackObserved",
+            "legacyBatchCastOrRelabelUsed",
+            "scaleFromZeroVerified",
+            "accountEffectivePricingReread",
+        }, "Vertex artifact build qualification truth")
+        if (
+            value["source"]
+            != "canonical_sam3_1_vertex_image_build_artifact_owner"
+            or qualification_ref["version"] != 2
+            or qualification_ref["schemaVersion"] != (
+                "canonical-sam3_1-source-checkpoint-compatibility-qualification-v2"
+            )
+            or vertex_refs["workerRequestRef"]["id"] != qualification_ref["id"]
+            or vertex_refs["workerRequestRef"]["version"] != 2
+            or qualification_truth != {
+                "exactVertexA100ExecutionReread": True,
+                "actualCudaModelInferenceExecuted": True,
+                "completeForwardPropagationExecuted": True,
+                "deterministicRepeatedProbeVerified": True,
+                "strictCheckpointLoadVerified": True,
+                "cpuOnlySubstantiveExecutionObserved": False,
+                "cpuVideoDecodeFallbackObserved": False,
+                "legacyBatchCastOrRelabelUsed": False,
+                "scaleFromZeroVerified": True,
+                "accountEffectivePricingReread": True,
+            }
+        ):
+            raise ValueError("Vertex artifact build qualification changed")
     prohibited_keys = {
         "coordinate",
         "bucketName",
@@ -1927,15 +2197,15 @@ def execute_inside_bfloat16_autocast(
     ][
         "contentHash"
     ].removeprefix("sha256:")
-    compatibility_hash = request["modelArtifacts"][
+    compatibility_ref = request["modelArtifacts"][
         "sourceCheckpointCompatibilityQualificationRef"
-    ]["contentHash"].removeprefix("sha256:")
+    ]
     read_artifact_build_binding(
         ARTIFACT_BUILD_BINDING_PATH,
         ingest_receipt_hash,
-        compatibility_hash,
+        compatibility_ref,
     )
-    read_closed_receipt(COMPATIBILITY_RECEIPT_PATH, compatibility_hash)
+    read_closed_receipt(COMPATIBILITY_RECEIPT_PATH, compatibility_ref)
 
     stage = "cuda_admission"
     gpu_evidence = validate_gpu(torch, request["dispatch"]["accelerator"])

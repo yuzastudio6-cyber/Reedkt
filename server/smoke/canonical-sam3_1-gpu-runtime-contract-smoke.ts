@@ -205,9 +205,12 @@ const pythonArtifactIdentityProbe = spawnSync(
   'python3',
   ['-I', '-B', '-c', String.raw`
 import copy
+import hashlib
 import importlib.util
 import json
+from pathlib import Path
 import sys
+import tempfile
 
 runner_path = sys.argv[1]
 spec = importlib.util.spec_from_file_location("sam31_production_runner", runner_path)
@@ -226,7 +229,242 @@ except ValueError:
     pass
 else:
     raise AssertionError("cross-version qualification relabel was accepted")
-print(json.dumps({"v1Accepted": True, "v2Accepted": True, "relabelRejected": True}))
+
+def fixture_ref(identity, version=1):
+    return {
+        "id": identity,
+        "version": version,
+        "contentHash": "sha256:" + hashlib.sha256(identity.encode()).hexdigest(),
+    }
+
+qualification_id = "sam31-vertex-qualification-fixture"
+worker_request_ref = {
+    **fixture_ref(qualification_id, 2),
+    "schemaVersion": (
+        "canonical-sam3_1-source-checkpoint-qualification-worker-request-v2"
+    ),
+}
+worker_result_ref = {
+    **fixture_ref("sam31-vertex-worker-result"),
+    "schemaVersion": (
+        "canonical-sam3_1-source-checkpoint-qualification-worker-result-v2"
+    ),
+}
+qualification_payload = {
+    "schemaVersion": (
+        "canonical-sam3_1-source-checkpoint-compatibility-qualification-v2"
+    ),
+    "source": "canonical_sam3_1_vertex_source_checkpoint_qualification_owner",
+    "evidenceClass": "canonical_private_reread",
+    "status": "qualified_for_private_image_build",
+    "qualificationId": qualification_id,
+    "qualificationVersion": 2,
+    "candidate": {"operationId": runner.OPERATION_ID},
+    "ingestReceipt": {},
+    "workerRequest": {},
+    "workerResult": {},
+    "admission": {},
+    "execution": {},
+    "terminalReconciliation": {},
+    "providerUsage": {},
+    "platformStop": {},
+    "currentAccountRateAuthority": {},
+    "qualificationCostReceipt": {},
+    "securityComplianceClearance": {},
+    "exactEvidenceRefs": {
+        "workerRequestRef": worker_request_ref,
+        "workerResultRef": worker_result_ref,
+        "admissionRef": fixture_ref("sam31-vertex-admission"),
+        "executionRef": fixture_ref("sam31-vertex-execution"),
+        "cloudTerminalObservationRef": fixture_ref("sam31-vertex-terminal"),
+        "providerUsageEvidenceRef": fixture_ref("sam31-vertex-usage"),
+        "platformStopEvidenceRef": fixture_ref("sam31-vertex-stop"),
+        "currentAccountRateAuthorityRef": fixture_ref("sam31-vertex-rate"),
+        "qualificationCostReceiptRef": fixture_ref("sam31-vertex-cost"),
+        "securityComplianceClearanceRef": fixture_ref("sam31-vertex-security"),
+    },
+    "qualificationTruth": {
+        "officialSam31SourceAndCheckpointReread": True,
+        "exactVertexRequestResultAdmissionExecutionAndTerminalReread": True,
+        "exactA10080GbExecutionVerified": True,
+        "actualCudaModelInferenceExecuted": True,
+        "completeForwardPropagationExecuted": True,
+        "deterministicRepeatedProbeVerified": True,
+        "strictCheckpointLoadVerified": True,
+        "networkEgressObserved": False,
+        "cpuOnlyModelExecutionObserved": False,
+        "cpuVideoDecodeFallbackObserved": False,
+        "quantizationOrResolutionReductionUsed": False,
+        "automaticRetryUsed": False,
+        "persistentGpuResourceObserved": False,
+        "activeA100GpuInstancesAfterObservation": 0,
+        "billingAccountEffectiveRateAndUsageReread": True,
+        "cloudInvoiceReconciliationStillRequired": True,
+        "legacyBatchRequestOrResultCastOrRelabelUsed": False,
+    },
+    "authority": {
+        "sourceCheckpointQualificationGranted": True,
+        "privateImageBuildReviewEligible": True,
+        "imageBuildStarted": False,
+        "productionRuntimeDispatchAuthorized": False,
+        "customerMediaProcessed": False,
+        "customerCreditsMutated": False,
+        "customerBillingAuthorityGranted": False,
+        "qaApproved": False,
+        "publicDeliveryAuthorized": False,
+        "productionReady": False,
+    },
+    "qualifiedAt": "2026-08-10T00:00:00.000Z",
+}
+qualification_hash = hashlib.sha256(
+    runner.observed_canonical_json_bytes(qualification_payload)
+).hexdigest()
+qualification = {
+    **qualification_payload,
+    "qualificationHash": qualification_hash,
+}
+qualification_ref = {
+    "id": qualification_id,
+    "version": 2,
+    "schemaVersion": qualification_payload["schemaVersion"],
+    "contentHash": "sha256:" + qualification_hash,
+}
+ingest_hash = hashlib.sha256(b"sam31-ingest").hexdigest()
+plain_vertex_refs = {
+    name: fixture_ref("binding-" + name)
+    for name in (
+        "workerRequestRef",
+        "workerResultRef",
+        "admissionRef",
+        "executionRef",
+        "terminalReconciliationRef",
+        "providerUsageEvidenceRef",
+        "platformStopEvidenceRef",
+        "currentAccountRateAuthorityRef",
+        "qualificationCostReceiptRef",
+        "securityComplianceClearanceRef",
+    )
+}
+plain_vertex_refs["workerRequestRef"] = fixture_ref(qualification_id, 2)
+binding_payload = {
+    "schemaVersion": "canonical-sam3_1-image-build-artifact-binding-v3",
+    "source": "canonical_sam3_1_vertex_image_build_artifact_owner",
+    "evidenceClass": "canonical_private_reread",
+    "status": "private_artifacts_admitted",
+    "operationId": runner.OPERATION_ID,
+    "candidateRef": {
+        "schemaVersion": "canonical-sam3_1-source-runtime-candidate-v4",
+        "candidateHash": hashlib.sha256(b"candidate").hexdigest(),
+    },
+    "ingestReceiptRef": {
+        **fixture_ref("sam31-ingest"),
+        "schemaVersion": "canonical-sam3_1-private-artifact-ingest-receipt-v3",
+        "contentHash": "sha256:" + ingest_hash,
+    },
+    "sourceCheckpointQualificationRef": qualification_ref,
+    "termsAcceptanceRef": fixture_ref("terms"),
+    "sourceArchive": {
+        "repository": "https://github.com/facebookresearch/sam3.git",
+        "revision": runner.SOURCE_REVISION,
+        "artifactRef": fixture_ref("source"),
+        "byteLength": runner.SOURCE_ARCHIVE_BYTE_LENGTH,
+        "sha256": runner.SOURCE_ARCHIVE_SHA256,
+        "licenseRef": fixture_ref("source-license"),
+        "securityReviewRef": fixture_ref("source-security"),
+        "malwareScanRef": fixture_ref("source-malware"),
+    },
+    "checkpoint": {
+        "repository": "facebook/sam3.1",
+        "revision": runner.CHECKPOINT_REVISION,
+        "fileName": runner.CHECKPOINT_FILE_NAME,
+        "artifactRef": fixture_ref("checkpoint"),
+        "manifestRef": fixture_ref("checkpoint-manifest"),
+        "byteLength": 3_502_755_717,
+        "sha256": hashlib.sha256(b"checkpoint").hexdigest(),
+        "licenseRef": fixture_ref("checkpoint-license"),
+        "securityReviewRef": fixture_ref("checkpoint-security"),
+        "malwareScanRef": fixture_ref("checkpoint-malware"),
+        "checkpointBytesIncludedInImageBuildCapsule": False,
+        "checkpointRereadOnlyAtQualifiedRuntime": True,
+    },
+    "vertexQualificationEvidenceRefs": plain_vertex_refs,
+    "qualificationTruth": {
+        "exactVertexA100ExecutionReread": True,
+        "actualCudaModelInferenceExecuted": True,
+        "completeForwardPropagationExecuted": True,
+        "deterministicRepeatedProbeVerified": True,
+        "strictCheckpointLoadVerified": True,
+        "cpuOnlySubstantiveExecutionObserved": False,
+        "cpuVideoDecodeFallbackObserved": False,
+        "legacyBatchCastOrRelabelUsed": False,
+        "scaleFromZeroVerified": True,
+        "accountEffectivePricingReread": True,
+    },
+    "privacyBoundary": {
+        "sourceOrCheckpointStorageCoordinateIncluded": False,
+        "bucketObjectGenerationEtagIncluded": False,
+        "checkpointBytesIncluded": False,
+        "providerOrRepositoryTokenIncluded": False,
+        "browserOrCallerDataIncluded": False,
+        "opaqueEvidenceRefsOnly": True,
+    },
+    "authority": {
+        "sanitizedBuildBindingOnly": True,
+        "privateArtifactIngestReread": True,
+        "sourceCheckpointQualificationReread": True,
+        "imageBuildAuthorized": False,
+        "imageBuildStarted": False,
+        "runtimeAuthorized": False,
+        "checkpointRedistributionAuthorized": False,
+        "customerCreditsMutated": False,
+        "qaApproved": False,
+        "productionReady": False,
+    },
+}
+binding = {
+    **binding_payload,
+    "bindingHash": hashlib.sha256(
+        runner.observed_canonical_json_bytes(binding_payload)
+    ).hexdigest(),
+}
+with tempfile.TemporaryDirectory() as root:
+    qualification_path = Path(root) / "qualification.json"
+    binding_path = Path(root) / "binding.json"
+    qualification_path.write_bytes(
+        runner.observed_canonical_json_bytes(qualification)
+    )
+    binding_path.write_bytes(runner.observed_canonical_json_bytes(binding))
+    runner.read_closed_receipt(qualification_path, qualification_ref)
+    runner.read_artifact_build_binding(
+        binding_path, ingest_hash, qualification_ref
+    )
+    relabeled_binding = copy.deepcopy(binding)
+    relabeled_binding["sourceCheckpointQualificationRef"]["version"] = 1
+    relabeled_payload = dict(relabeled_binding)
+    del relabeled_payload["bindingHash"]
+    relabeled_binding["bindingHash"] = hashlib.sha256(
+        runner.observed_canonical_json_bytes(relabeled_payload)
+    ).hexdigest()
+    binding_path.write_bytes(
+        runner.observed_canonical_json_bytes(relabeled_binding)
+    )
+    try:
+        runner.read_artifact_build_binding(
+            binding_path, ingest_hash, qualification_ref
+        )
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("cross-version baked binding relabel was accepted")
+
+print(json.dumps({
+    "v1Accepted": True,
+    "v2Accepted": True,
+    "relabelRejected": True,
+    "vertexQualificationReceiptV2Accepted": True,
+    "vertexImageBindingV3Accepted": True,
+    "bakedBindingRelabelRejected": True,
+}))
 `, resolve(
     process.cwd(),
     'docker/prod/gpu-worker/sam3_1/runner.py',
@@ -246,7 +484,14 @@ assert.equal(
 )
 assert.deepEqual(
   JSON.parse(pythonArtifactIdentityProbe.stdout),
-  { v1Accepted: true, v2Accepted: true, relabelRejected: true },
+  {
+    v1Accepted: true,
+    v2Accepted: true,
+    relabelRejected: true,
+    vertexQualificationReceiptV2Accepted: true,
+    vertexImageBindingV3Accepted: true,
+    bakedBindingRelabelRejected: true,
+  },
 )
 
 const response = buildCanonicalSam31GpuRuntimeResponse({
@@ -435,7 +680,7 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 52,
+  checks: 55,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

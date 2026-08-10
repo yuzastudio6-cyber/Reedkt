@@ -6,6 +6,53 @@ This receipt distinguishes implemented source architecture from live cloud
 qualification. It does not call an unavailable candidate “installed” and does
 not authorize public or production use.
 
+## 2026-08-10 immutable production-image supply-chain milestone
+
+This section supersedes the older production-image status statements retained
+below for audit history. It does not supersede the still-open A100/L4 runtime
+qualification and end-to-end admission gates.
+
+- Two independent checkpoint-free production-capsule builds produced the exact
+  same SHA-256,
+  `83160c1ee505844e04dd72e7859055c52df9b0f2fdb4da5a0fc6c9ab827886c6`,
+  and both bounded malware scans reported zero infected files.
+- The successor immutable production image is
+  `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:282eb98d9eafebfdd4fbdd72bdce5e8aff11528fb9b56e3f6e9c7ef939954281`.
+  The checkpoint remains outside the image and outside developer machines.
+- The post-build supply-chain job created and exact-reread an SPDX 2.3 SBOM,
+  verified a Cosign KMS signature for the immutable digest, and matched the
+  original Cloud Build SLSA-v1 provenance. The independent Artifact Analysis
+  snapshot reported zero critical, zero high, 114 medium, seven low, and zero
+  unknown-severity findings. The private-GPU security owner approved this
+  image for bounded A100/L4 qualification only.
+- The create-only supply-chain release is
+  `sam31-production-image-supply-chain-release-c583dfbc52140fc57e6f38d5`
+  with release SHA-256
+  `29070af8d441602a9ca81ee7931206fa5d0506066b6a8dca6b4123df301e4e00`.
+  Its SBOM SHA-256 is
+  `dce3ada7fe6ebd4a87883528fc5889c0fc67d633d8ef05ebbd1ce72bbd8d90c1`;
+  its verified signature receipt SHA-256 is
+  `bbc9f317e7a0928a06a8e20be022a6c44e28559ed4f7a2ccc28d1c2ec9d0fbed`;
+  and its SLSA-v1 attestation SHA-256 is
+  `37451796d48549c6064ca2c67edbd7145ebd8c93fa012f8182fb245d69331ddd`.
+- Live quota truth now selects Vertex AI Custom Jobs in `us-central1` as the
+  A100 80 GB heavy-primary execution target. The exact Vertex training quota
+  is one and is dispatch-ready; direct Compute/Batch A100 quota is zero and
+  denied. Historical Batch contracts and records remain readable, but they
+  must not authorize new A100 work.
+- The fresh billing-account-effective Vertex A100 rate authority is
+  `vertex-a100-rate:vertex-a100-us-central1-weeditpro-vertex-a100-rate-publisher-wv2f8`
+  with SHA-256
+  `49e18950c3dd1b719edaa531ff636f05cdb381eeb5d0ba72ba9c4e6879eba82e`.
+  It binds the exact Vertex A100, A2 vCPU/RAM, disk, storage, and operations
+  SKU set. Plan fields still cannot self-attest actual usage or charged cost.
+- Image publication remains deliberately separate from runtime readiness.
+  A100 Vertex task/checkpoint transport, real production segmentation and
+  temporal quality, the eight-minute target, independent L4 fallback quality,
+  terminal usage/cost settlement, and combined Track All/Visual Intelligence
+  end-to-end proof are still required before a runtime release may be called
+  ready.
+
 ## 2026-08-09 live-state correction
 
 This section supersedes the older source/checkpoint and provider-migration

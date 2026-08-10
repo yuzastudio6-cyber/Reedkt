@@ -9,7 +9,8 @@ readonly CONFIRMATION='start-two-independent-weeditpro-sam31-production-capsule-
 readonly INPUT_CONFIRMATION='prepare-one-sam31-production-capsule-two-vertex-build-input-v2'
 readonly CONTEXT='docker/prod/gpu-worker/sam3_1'
 readonly CONFIG="${CONTEXT}/cloudbuild.production-capsule.yaml"
-readonly IGNORE_FILE="${CONTEXT}/.gcloudignore.production-capsule"
+readonly IGNORE_FILE='.gcloudignore.production-capsule'
+readonly IGNORE_PATH="${CONTEXT}/${IGNORE_FILE}"
 readonly APPLE_COMMAND_LINE_TOOLS='/Library/Developer/CommandLineTools'
 
 [[ $# -eq 0 ]] || { printf 'ERROR: caller arguments are forbidden.\n' >&2; exit 64; }
@@ -28,7 +29,7 @@ done
 [[ -f "${CONFIG}" ]]
 [[ -f "${CONTEXT}/Dockerfile.production-capsule-builder" ]]
 [[ -f "${CONTEXT}/build-production-capsule.sh" ]]
-[[ -f "${IGNORE_FILE}" ]]
+[[ -f "${IGNORE_PATH}" ]]
 [[ -d "${APPLE_COMMAND_LINE_TOOLS}" ]] \
   || { printf 'ERROR: Apple Command Line Tools are unavailable.\n' >&2; exit 1; }
 [[ -z "$(env COPYFILE_DISABLE=1 DEVELOPER_DIR="${APPLE_COMMAND_LINE_TOOLS}" \
@@ -52,7 +53,7 @@ INPUTS="$(
 readonly INPUTS
 
 env INPUTS="${INPUTS}" python3 -I -B - \
-  "${COMMIT}" "${TREE}" "${CONFIG}" "${IGNORE_FILE}" \
+  "${COMMIT}" "${TREE}" "${CONFIG}" "${IGNORE_PATH}" \
   "${CONTEXT}/Dockerfile.production-capsule-builder" \
   "${CONTEXT}/build-production-capsule.sh" \
   >"${WORK}/admission.json" <<'PY'

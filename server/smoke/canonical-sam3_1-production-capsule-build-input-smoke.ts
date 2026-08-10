@@ -229,6 +229,19 @@ for (const expected of [
 ] as const) assert.ok(launcher.includes(expected), `launcher lost ${expected}`)
 assert.match(launcher, /automaticRetryAllowed': False/u)
 assert.doesNotMatch(launcher, /automaticRetryAllowed': True/u)
+assert.match(
+  launcher,
+  /readonly IGNORE_FILE='\.gcloudignore\.production-capsule'/u,
+)
+assert.match(
+  launcher,
+  /readonly IGNORE_PATH="\$\{CONTEXT\}\/\$\{IGNORE_FILE\}"/u,
+)
+assert.match(launcher, /--ignore-file="\$\{IGNORE_FILE\}"/u)
+assert.doesNotMatch(
+  launcher,
+  /--ignore-file="\$\{CONTEXT\}\/\.gcloudignore\.production-capsule"/u,
+)
 for (const expected of [
   '_PRODUCTION_CAPSULE_PUBLICATION_ID',
   '_PRODUCTION_CAPSULE_BUILD_SLOT',

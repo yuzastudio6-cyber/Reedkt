@@ -98,6 +98,7 @@ assert.equal(terminal.terminalOutcome, 'completed')
 assert.equal(terminal.providerJobTerminalStateReread, true)
 assert.equal(terminal.workerStoppedVerified, true)
 assert.equal(terminal.activeA100GpuInstancesAfterObservation, 0)
+assert.equal(terminal.zeroActiveA100ClaimScopedToThisOneShotAttempt, true)
 assert.equal(terminal.exactVertexPlatformUsageAndAccountEffectivePriceReread,
   true)
 assert.equal(terminal.costReceiptPersistedBeforeSettlement, true)
@@ -278,6 +279,7 @@ function buildCostEvidence(input: {
     exactBillingAccountEffectivePriceReread: true as const,
     attemptCostReceiptPersistedBeforeSettlement: true as const,
     activeA100GpuInstancesAfterObservation: 0 as const,
+    zeroActiveA100ClaimScopedToThisOneShotAttempt: true as const,
     systemFailureOrUnknownCostChargedToCustomer: false as const,
     unapprovedOverageChargedToCustomer: false as const,
     customerWalletOrLedgerMutated: false as const,

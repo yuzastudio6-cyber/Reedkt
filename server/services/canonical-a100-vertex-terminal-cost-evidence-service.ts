@@ -19,19 +19,19 @@ import {
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 import {
-  assertCanonicalA100VertexAttemptCostReceipt,
-  createCanonicalA100VertexAttemptCostReceipt,
-  createCanonicalA100VertexAttemptUsage,
-  type CanonicalA100VertexAttemptCostReceipt,
+  assertCanonicalA100VertexProviderAllocationCostReceipt,
+  createCanonicalA100VertexProviderAllocationCostReceipt,
+  createCanonicalA100VertexProviderAllocationUsage,
+  type CanonicalA100VertexProviderAllocationCostReceipt,
 } from '../tool-cost-metering/canonical-a100-vertex-attempt-cost-authority'
 import {
   assertCanonicalCurrentGoogleCloudVertexA100RateAuthority,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-rate-authority'
 
 export const CANONICAL_A100_VERTEX_WORKER_USAGE_EVIDENCE_VERSION =
-  'canonical-a100-vertex-worker-usage-evidence-v1' as const
+  'canonical-a100-vertex-worker-usage-evidence-v2' as const
 export const CANONICAL_A100_VERTEX_PLATFORM_USAGE_EVIDENCE_VERSION =
-  'canonical-a100-vertex-platform-usage-evidence-v1' as const
+  'canonical-a100-vertex-platform-usage-evidence-v2' as const
 export const CANONICAL_A100_VERTEX_TERMINAL_COST_CONTEXT_VERSION =
   'canonical-a100-vertex-terminal-cost-context-v1' as const
 
@@ -52,10 +52,13 @@ const providerTimesSchema = z.object({
   createTime: timestamp,
   startTime: timestamp,
   endTime: timestamp,
+  providerStartTimeObserved: z.boolean(),
 }).strict().superRefine((times, context) => {
   if (
     Date.parse(times.startTime) < Date.parse(times.createTime)
     || Date.parse(times.endTime) <= Date.parse(times.startTime)
+    || (!times.providerStartTimeObserved
+      && times.startTime !== times.createTime)
   ) context.addIssue({
     code: 'custom',
     message: 'Vertex A100 provider terminal times are invalid.',
@@ -100,15 +103,41 @@ const workerUsageWithoutHashSchema = z.object({
     'not_executed',
     'unknown',
   ]),
-  runtimeAndModelLoadMilliseconds: nonnegativeInteger,
-  activeGpuMilliseconds: nonnegativeInteger,
-  drainAndShutdownMilliseconds: nonnegativeInteger,
+  runtimeResponseStatus: z.enum([
+    'completed',
+    'failed',
+    'not_created_before_worker_start',
+  ]),
+  runtimeTerminalStage: z.enum([
+    'not_started',
+    'request_validation',
+    'artifact_verification',
+    'cuda_admission',
+    'model_load',
+    'session_start',
+    'prompt',
+    'propagation',
+    'output_persistence',
+    'artifact_reread',
+    'completed',
+  ]),
+  workerWallTimeMilliseconds: nonnegativeInteger,
+  modelLoadMilliseconds: nonnegativeInteger,
+  promptMilliseconds: nonnegativeInteger,
+  propagationMilliseconds: nonnegativeInteger,
+  outputPersistenceMilliseconds: nonnegativeInteger,
+  cudaEventInferenceMilliseconds: nonnegativeInteger,
+  peakCudaAllocatedBytes: nonnegativeInteger,
+  peakCudaReservedBytes: nonnegativeInteger,
+  outputFileCount: nonnegativeInteger,
   privateArtifactBytes: nonnegativeInteger,
   privateArtifactRetentionMilliseconds: nonnegativeInteger,
   networkEgressBytes: nonnegativeInteger,
   classAOperationCount: nonnegativeInteger,
   classBOperationCount: nonnegativeInteger,
   exactImmutableTaskWorkerMetricsReread: z.literal(true),
+  workerWallTimeDoesNotDefineProviderAllocationOrBilling: z.literal(true),
+  providerAllocationIncludesUnobservableWorkerStartupAndDrain: z.literal(true),
   workerSuppliedProviderTimesBillableDurationPriceOrCostAccepted:
     z.literal(false),
   runtimeNetworkDownloadObserved: z.literal(false),
@@ -118,15 +147,31 @@ const workerUsageWithoutHashSchema = z.object({
 }).strict().superRefine((usage, context) => {
   const available = Date.parse(usage.providerTimes.endTime)
     - Date.parse(usage.providerTimes.startTime)
-  const phases = usage.runtimeAndModelLoadMilliseconds
-    + usage.activeGpuMilliseconds
-    + usage.drainAndShutdownMilliseconds
+  const measuredPhases = usage.modelLoadMilliseconds
+    + usage.promptMilliseconds
+    + usage.propagationMilliseconds
+    + usage.outputPersistenceMilliseconds
+  const completed = usage.runtimeResponseStatus === 'completed'
+  const statusExact = completed
+    ? usage.runtimeTerminalStage === 'completed'
+      && usage.providerInferenceOrSubstantiveWorkOutcome === 'executed'
+    : usage.runtimeResponseStatus === 'failed'
+      ? usage.runtimeTerminalStage !== 'completed'
+        && usage.runtimeTerminalStage !== 'not_started'
+      : usage.runtimeTerminalStage === 'not_started'
+        && usage.providerInferenceOrSubstantiveWorkOutcome === 'not_executed'
   if (
-    phases !== available
+    !statusExact
+    || usage.workerWallTimeMilliseconds > available
+    || measuredPhases > usage.workerWallTimeMilliseconds
+    || usage.cudaEventInferenceMilliseconds >
+      usage.workerWallTimeMilliseconds
+    || (completed && (usage.outputFileCount < 1
+      || usage.privateArtifactBytes < 1))
     || Date.parse(usage.observedAt) < Date.parse(usage.providerTimes.endTime)
   ) context.addIssue({
     code: 'custom',
-    message: 'Vertex A100 worker phases differ from the provider interval.',
+    message: 'Vertex A100 worker evidence exceeds the provider allocation.',
   })
 })
 export const canonicalA100VertexWorkerUsageEvidenceSchema =
@@ -154,6 +199,7 @@ const platformUsageWithoutHashSchema = z.object({
   persistentEndpointPresent: z.literal(false),
   minimumIdleInstances: z.literal(0),
   exactOneShotA2UltraAllocationReread: z.literal(true),
+  zeroActiveWorkerClaimScopedToThisOneShotCustomJob: z.literal(true),
   allocatedGpuCount: z.literal(1),
   allocatedVcpuCount: z.literal(12),
   allocatedMemoryGiB: z.literal(170),
@@ -179,7 +225,7 @@ export interface CanonicalA100VertexTerminalCostContextReadPort {
   rereadPrivateTerminalCostContext(input: {
     readonly execution: CanonicalA100VertexCustomJobExecutionRecord
     readonly executionRef: z.infer<typeof evidenceRefSchema>
-  }): Promise<unknown>
+  }): Promise<CanonicalA100VertexTerminalCostContext>
 }
 
 export interface CanonicalA100VertexWorkerUsageEvidenceReadPort {
@@ -187,6 +233,7 @@ export interface CanonicalA100VertexWorkerUsageEvidenceReadPort {
     readonly execution: CanonicalA100VertexCustomJobExecutionRecord
     readonly executionRef: z.infer<typeof evidenceRefSchema>
     readonly cloudTerminalObservationRef: z.infer<typeof evidenceRefSchema>
+    readonly providerTimes: z.infer<typeof providerTimesSchema>
   }): Promise<unknown>
 }
 
@@ -196,6 +243,7 @@ export interface CanonicalA100VertexPlatformUsageEvidenceReadPort {
     readonly executionRef: z.infer<typeof evidenceRefSchema>
     readonly cloudTerminalObservationRef: z.infer<typeof evidenceRefSchema>
     readonly workerUsageEvidenceRef: z.infer<typeof evidenceRefSchema>
+    readonly providerTimes: z.infer<typeof providerTimesSchema>
   }): Promise<unknown>
 }
 
@@ -208,7 +256,7 @@ export interface CanonicalA100VertexCurrentRateAuthorityReadPort {
 
 export interface CanonicalA100VertexAttemptCostReceiptStore {
   createAttemptCostReceiptOnly(input: {
-    readonly receipt: CanonicalA100VertexAttemptCostReceipt
+    readonly receipt: CanonicalA100VertexProviderAllocationCostReceipt
   }): Promise<'created' | 'already_exists'>
   rereadAttemptCostReceipt(input: {
     readonly receiptId: string
@@ -266,6 +314,7 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
           execution,
           executionRef,
           cloudTerminalObservationRef,
+          providerTimes,
         }),
       )
       assertWorker({
@@ -287,6 +336,7 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
             executionRef,
             cloudTerminalObservationRef,
             workerUsageEvidenceRef,
+            providerTimes,
           }),
       )
       assertPlatform({
@@ -322,22 +372,16 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
       ) throw new Error(
         'Vertex A100 substantive-work outcome requires reconciliation.',
       )
-      const usage = createCanonicalA100VertexAttemptUsage({
+      const usage = createCanonicalA100VertexProviderAllocationUsage({
         providerCreateTime: providerTimes.createTime,
         providerStartTime: providerTimes.startTime,
         providerEndTime: providerTimes.endTime,
-        runtimeAndModelLoadMilliseconds:
-          worker.runtimeAndModelLoadMilliseconds,
-        activeGpuMilliseconds: worker.activeGpuMilliseconds,
-        drainAndShutdownMilliseconds: worker.drainAndShutdownMilliseconds,
         privateArtifactBytes: worker.privateArtifactBytes,
         privateArtifactRetentionMilliseconds:
           worker.privateArtifactRetentionMilliseconds,
         networkEgressBytes: worker.networkEgressBytes,
-        classAOperationCount: worker.classAOperationCount,
-        classBOperationCount: worker.classBOperationCount,
       })
-      const receipt = createCanonicalA100VertexAttemptCostReceipt({
+      const receipt = createCanonicalA100VertexProviderAllocationCostReceipt({
         receiptId:
           `vertex-a100-cost.${execution.executionRecordHash.slice(0, 48)}`,
         authority,
@@ -375,6 +419,7 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
         exactBillingAccountEffectivePriceReread: true as const,
         attemptCostReceiptPersistedBeforeSettlement: true as const,
         activeA100GpuInstancesAfterObservation: 0 as const,
+        zeroActiveA100ClaimScopedToThisOneShotAttempt: true as const,
         systemFailureOrUnknownCostChargedToCustomer: false as const,
         unapprovedOverageChargedToCustomer: false as const,
         customerWalletOrLedgerMutated: false as const,
@@ -471,14 +516,14 @@ export function assertCanonicalA100VertexPlatformUsageEvidence(
 }
 
 async function persistAndRereadReceipt(
-  receipt: CanonicalA100VertexAttemptCostReceipt,
+  receipt: CanonicalA100VertexProviderAllocationCostReceipt,
   store: CanonicalA100VertexAttemptCostReceiptStore,
 ): Promise<void> {
   const disposition = await store.createAttemptCostReceiptOnly({ receipt })
   if (disposition !== 'created' && disposition !== 'already_exists') {
     throw new Error('Vertex A100 cost receipt persistence failed.')
   }
-  const reread = assertCanonicalA100VertexAttemptCostReceipt(
+  const reread = assertCanonicalA100VertexProviderAllocationCostReceipt(
     await store.rereadAttemptCostReceipt({ receiptId: receipt.receiptId }),
   )
   if (stableAuthorityStringify(reread) !== stableAuthorityStringify(receipt)) {

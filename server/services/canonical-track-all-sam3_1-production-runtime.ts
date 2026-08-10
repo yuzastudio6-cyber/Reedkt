@@ -39,6 +39,17 @@ import {
   createCanonicalA100VertexCustomJobLaunchPort,
 } from './canonical-a100-vertex-custom-job-launch-port'
 import {
+  createCanonicalA100VertexCustomJobTerminalPort,
+} from './canonical-a100-vertex-custom-job-terminal-port'
+import {
+  createCanonicalA100VertexTerminalCostEvidenceReadPort,
+} from './canonical-a100-vertex-terminal-cost-evidence-service'
+import {
+  createCanonicalA100VertexPlatformUsageReadPort,
+  createCanonicalA100VertexProviderAllocationCostReceiptStore,
+  createCanonicalSam31A100VertexWorkerUsageReadPort,
+} from './canonical-a100-vertex-production-terminal-adapters'
+import {
   createCanonicalA100VertexProfessionalGpuLaunchAdapter,
 } from './canonical-a100-vertex-professional-gpu-launch-adapter'
 import {
@@ -115,7 +126,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v12' as const
+  'canonical-track-all-sam3_1-production-runtime-v13' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -128,6 +139,9 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSkillQualificationRegistryReadPort
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly a100VertexCustomJobTerminalReadPort: ReturnType<
+    typeof createCanonicalA100VertexCustomJobTerminalPort
+  >
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly trackAllSam31CaptionEvidenceFinalizationRuntimePort:
@@ -360,6 +374,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalA100VertexCustomJobDurableStore({
       objectPort: controlPlaneObjectPort,
     })
+  const vertexA100QuotaReadPort =
+    createCanonicalSam31VertexQualificationQuotaReadPort()
   const vertexA100LaunchPort = createCanonicalA100VertexCustomJobLaunchPort({
     launchContextRepository: vertexA100DurableStore,
     consumptionPort: vertexA100DurableStore,
@@ -369,8 +385,33 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalA100VertexProfessionalGpuLaunchAdapter({
       releasePairReadPort: releasePairRegistry,
       rateAuthorityReadPort: currentVertexA100RateAuthorityRepository,
-      quotaReadPort: createCanonicalSam31VertexQualificationQuotaReadPort(),
+      quotaReadPort: vertexA100QuotaReadPort,
       vertexLaunchPort: vertexA100LaunchPort,
+    })
+  const vertexA100TerminalCostEvidenceReadPort =
+    createCanonicalA100VertexTerminalCostEvidenceReadPort({
+      contextReadPort: vertexA100DurableStore,
+      workerUsageReadPort:
+        createCanonicalSam31A100VertexWorkerUsageReadPort({
+          taskStore,
+          launchContextReadPort: vertexA100DurableStore,
+          objectPort: controlPlaneObjectPort,
+        }),
+      platformUsageReadPort: createCanonicalA100VertexPlatformUsageReadPort({
+        executionReadPort: vertexA100DurableStore,
+        quotaReadPort: vertexA100QuotaReadPort,
+        objectPort: controlPlaneObjectPort,
+      }),
+      rateAuthorityReadPort: currentVertexA100RateAuthorityRepository,
+      receiptStore:
+        createCanonicalA100VertexProviderAllocationCostReceiptStore({
+          objectPort: controlPlaneObjectPort,
+        }),
+    })
+  const a100VertexCustomJobTerminalReadPort =
+    createCanonicalA100VertexCustomJobTerminalPort({
+      executionRepository: vertexA100DurableStore,
+      costEvidenceReadPort: vertexA100TerminalCostEvidenceReadPort,
     })
   const rawCloudLaunchPort: CanonicalProfessionalGpuCloudJobLaunchPort =
     Object.freeze({
@@ -461,6 +502,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       ),
     }),
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    a100VertexCustomJobTerminalReadPort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,
     trackAllSam31CaptionEvidenceFinalizationRuntimePort,

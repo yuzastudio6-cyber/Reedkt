@@ -9,6 +9,8 @@ import {
   assertCanonicalA100VertexCustomJobLaunchAuthority,
   type CanonicalA100VertexCustomJobLaunchAuthority,
 } from './canonical-a100-vertex-custom-job-launch-port'
+import { assertPlainSerializedData } from
+  './canonical-professional-gpu-job-lifecycle-service'
 import {
   assertCanonicalA100VertexCustomJobTerminalRead,
   type CanonicalA100VertexCustomJobExecutionReadRepository,
@@ -24,8 +26,16 @@ import {
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 import {
   assertCanonicalA100VertexAttemptCostReceipt,
+  assertCanonicalA100VertexProviderAllocationCostReceipt,
+  CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION,
+  CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_COST_RECEIPT_VERSION,
   type CanonicalA100VertexAttemptCostReceipt,
+  type CanonicalA100VertexProviderAllocationCostReceipt,
 } from '../tool-cost-metering/canonical-a100-vertex-attempt-cost-authority'
+
+type CanonicalA100VertexSettleableCostReceipt =
+  | CanonicalA100VertexAttemptCostReceipt
+  | CanonicalA100VertexProviderAllocationCostReceipt
 
 export const CANONICAL_A100_VERTEX_ATTEMPT_CREDIT_SETTLEMENT_VERSION =
   'canonical-a100-vertex-attempt-credit-settlement-v1' as const
@@ -128,7 +138,7 @@ export async function settleCanonicalA100VertexAttemptCredits(input: {
     || terminal.terminalOutcome === null
     || terminal.providerInferenceOrSubstantiveWorkOutcome === 'unknown'
   ) throw conflict('terminal_result_not_settleable')
-  const receipt = assertCanonicalA100VertexAttemptCostReceipt(
+  const receipt = assertCanonicalA100VertexSettleableCostReceipt(
     await input.receiptReadPort.rereadAttemptCostReceipt({
       receiptId: terminal.attemptCostReceiptRef.id,
     }),
@@ -385,7 +395,7 @@ function assertExactLineage(input: {
   >
   executionRef: z.infer<typeof evidenceRefSchema>
   terminal: CanonicalA100VertexCustomJobTerminalRead
-  receipt: CanonicalA100VertexAttemptCostReceipt
+  receipt: CanonicalA100VertexSettleableCostReceipt
 }): AuthorityA100VertexAttemptCreditSettlementRecord['terminalOutcome'] {
   const { authority, execution, executionRef, terminal, receipt } = input
   const exactReceiptOutcome = terminal.terminalOutcome === 'completed'
@@ -438,7 +448,7 @@ function sameExisting(input: {
   execution: ReturnType<
     typeof assertCanonicalA100VertexCustomJobExecutionRecord
   >
-  receipt: CanonicalA100VertexAttemptCostReceipt
+  receipt: CanonicalA100VertexSettleableCostReceipt
 }): boolean {
   return input.settlement.vertexTerminalReadHash ===
       input.terminal.terminalReadHash
@@ -463,6 +473,21 @@ function sameRef(
   return left.id === right.id
     && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+function assertCanonicalA100VertexSettleableCostReceipt(
+  value: unknown,
+): CanonicalA100VertexSettleableCostReceipt {
+  assertPlainSerializedData(value, 'vertex_a100_settleable_cost_receipt')
+  const version = (value as { readonly schemaVersion?: unknown }).schemaVersion
+  if (version === CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION) {
+    return assertCanonicalA100VertexAttemptCostReceipt(value)
+  }
+  if (version ===
+    CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_COST_RECEIPT_VERSION) {
+    return assertCanonicalA100VertexProviderAllocationCostReceipt(value)
+  }
+  throw conflict('attempt_cost_receipt_version_unsupported')
 }
 
 function conflict(reason: string): ApiError {

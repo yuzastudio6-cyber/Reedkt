@@ -32,6 +32,23 @@ import {
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_DURABLE_STORE_VERSION =
   'canonical-a100-vertex-custom-job-durable-store-v1' as const
 
+export interface CanonicalA100VertexLaunchContextReadPort {
+  rereadLaunchAuthority(input: {
+    readonly authorityRef: {
+      readonly id: string
+      readonly version: number
+      readonly contentHash: string
+    }
+  }): Promise<CanonicalA100VertexCustomJobLaunchAuthority>
+  rereadLaunchRelease(input: {
+    readonly releaseRef: {
+      readonly id: string
+      readonly version: number
+      readonly contentHash: string
+    }
+  }): Promise<CanonicalA100VertexCustomJobRelease>
+}
+
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/v2/vertex-a100-launch'
 const MAXIMUM_RECORD_BYTES = 4 * 1024 * 1024
@@ -44,6 +61,7 @@ export function createCanonicalA100VertexCustomJobDurableStore(input: {
   & CanonicalA100VertexCustomJobExecutionRepository
   & CanonicalA100VertexCustomJobExecutionReadRepository
   & CanonicalA100VertexTerminalCostContextReadPort
+  & CanonicalA100VertexLaunchContextReadPort
   & { readonly schemaVersion:
     typeof CANONICAL_A100_VERTEX_CUSTOM_JOB_DURABLE_STORE_VERSION } {
   if (!input.objectPort
@@ -121,6 +139,36 @@ export function createCanonicalA100VertexCustomJobDurableStore(input: {
         contentHash: `sha256:${execution.executionRecordHash}`,
       })) throw new Error('Vertex A100 execution ref differs.')
       return execution
+    },
+    async rereadLaunchAuthority(request: Parameters<
+      CanonicalA100VertexLaunchContextReadPort['rereadLaunchAuthority']
+    >[0]) {
+      const authority = await readAndParse({
+        objectPort: input.objectPort,
+        objectPath:
+          `${prefix}/authorities/${hashFromRef(request.authorityRef)}.json`,
+        parse: assertCanonicalA100VertexCustomJobLaunchAuthority,
+      })
+      if (!sameRef(request.authorityRef, {
+        id: authority.authorityId,
+        version: 1,
+        contentHash: `sha256:${authority.authorityHash}`,
+      })) throw new Error('Vertex A100 durable authority ref differs.')
+      return authority
+    },
+    async rereadLaunchRelease(request: Parameters<
+      CanonicalA100VertexLaunchContextReadPort['rereadLaunchRelease']
+    >[0]) {
+      const release = await readAndParse({
+        objectPort: input.objectPort,
+        objectPath:
+          `${prefix}/releases/${hashFromRef(request.releaseRef)}.json`,
+        parse: assertCanonicalA100VertexCustomJobRelease,
+      })
+      if (!sameRef(request.releaseRef, release.releaseRef)) {
+        throw new Error('Vertex A100 durable release ref differs.')
+      }
+      return release
     },
     async rereadPrivateTerminalCostContext(request: Parameters<
       CanonicalA100VertexTerminalCostContextReadPort[

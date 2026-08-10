@@ -20,14 +20,15 @@ import {
   CANONICAL_A100_VERTEX_PLATFORM_USAGE_EVIDENCE_VERSION,
   CANONICAL_A100_VERTEX_TERMINAL_COST_CONTEXT_VERSION,
   CANONICAL_A100_VERTEX_WORKER_USAGE_EVIDENCE_VERSION,
+  assertCanonicalA100VertexTerminalCostContext,
   canonicalA100VertexPlatformUsageEvidenceSchema,
   canonicalA100VertexTerminalCostContextSchema,
   canonicalA100VertexWorkerUsageEvidenceSchema,
   createCanonicalA100VertexTerminalCostEvidenceReadPort,
 } from '../services/canonical-a100-vertex-terminal-cost-evidence-service'
 import {
-  assertCanonicalA100VertexAttemptCostReceipt,
-  type CanonicalA100VertexAttemptCostReceipt,
+  assertCanonicalA100VertexProviderAllocationCostReceipt,
+  type CanonicalA100VertexProviderAllocationCostReceipt,
 } from '../tool-cost-metering/canonical-a100-vertex-attempt-cost-authority'
 import {
   CANONICAL_CURRENT_GOOGLE_CLOUD_VERTEX_A100_RATE_AUTHORITY_VERSION,
@@ -50,6 +51,7 @@ const PROVIDER_TIMES = {
   createTime: CREATE_TIME,
   startTime: START_TIME,
   endTime: END_TIME,
+  providerStartTimeObserved: true,
 }
 
 const settlementFixtures = buildSettlementFixtures()
@@ -66,7 +68,10 @@ const workerUsageEvidenceRef = ref(
 )
 const platform = buildPlatform(workerUsageEvidenceRef)
 const context = buildContext()
-const receipts = new Map<string, CanonicalA100VertexAttemptCostReceipt>()
+const receipts = new Map<
+  string,
+  CanonicalA100VertexProviderAllocationCostReceipt
+>()
 let rateReads = 0
 let receiptCreates = 0
 
@@ -114,11 +119,12 @@ assert.equal(rateReads, 1)
 assert.equal(receiptCreates, 1)
 assert.equal(receipts.size, 1)
 
-const completedReceipt = assertCanonicalA100VertexAttemptCostReceipt(
+const completedReceipt = assertCanonicalA100VertexProviderAllocationCostReceipt(
   receipts.values().next().value,
 )
 assert.equal(completedReceipt.actualUsage.actualWallClockMilliseconds, 240_000)
-assert.equal(completedReceipt.actualUsage.billableDurationMilliseconds, 240_000)
+assert.equal(completedReceipt.actualUsage.allocatedGpuMilliseconds, 180_000)
+assert.equal(completedReceipt.actualUsage.billableDurationMilliseconds, 180_000)
 assert.equal(completedReceipt.actualUsage.coldStartMilliseconds, 60_000)
 assert.equal(completedReceipt.actualUsage.allocatedVcpuCount, 12)
 assert.equal(completedReceipt.actualUsage.allocatedMemoryGiB, 170)
@@ -126,32 +132,32 @@ assert.equal(completedReceipt.actualUsage.bootDiskSizeGb, 200)
 assert.equal(
   completedReceipt.actualInfrastructureCost
     .vertexTrainingA10080GbUsdNanos,
-  301_152_800,
+  225_864_600,
 )
 assert.equal(
   completedReceipt.actualInfrastructureCost
     .vertexTrainingA2CoreUsdNanos,
-  29_082_120,
+  21_811_590,
 )
 assert.equal(
   completedReceipt.actualInfrastructureCost
     .vertexTrainingA2RamUsdNanos,
-  55_222_234,
+  41_416_675,
 )
 assert.equal(
   completedReceipt.actualInfrastructureCost
     .vertexTrainingPdSsdUsdNanos,
-  3_620_371,
+  2_715_278,
 )
 assert.equal(completedReceipt.actualInfrastructureCost
   .privateObjectStorageUsdNanos, 20_000_000)
 assert.equal(completedReceipt.actualInfrastructureCost
   .networkEgressUsdNanos, 60_000_000)
 assert.equal(completedReceipt.actualInfrastructureCost
-  .objectClassAOperationsUsdNanos, 50_000)
+  .objectClassAOperationsUsdNanos, 0)
 assert.equal(completedReceipt.actualInfrastructureCost
-  .objectClassBOperationsUsdNanos, 8_000)
-assert.equal(completedReceipt.customerEligibleToolCostCredits, 5)
+  .objectClassBOperationsUsdNanos, 0)
+assert.equal(completedReceipt.customerEligibleToolCostCredits, 4)
 assert.equal(completedReceipt.serviceFeeIncluded, false)
 assert.equal(completedReceipt.separateManagementFeeSkuSetCharged, false)
 assert.equal(completedReceipt.computeEngineReservationOrSpotSkuSetCharged,
@@ -178,6 +184,7 @@ const terminalReadPayload = {
   providerJobTerminalStateReread: true,
   workerStoppedVerified: true,
   activeA100GpuInstancesAfterObservation: 0 as const,
+  zeroActiveA100ClaimScopedToThisOneShotAttempt: true as const,
   exactVertexPlatformUsageAndAccountEffectivePriceReread: true,
   costReceiptPersistedBeforeSettlement: true,
   checkbackAllowed: false,
@@ -239,7 +246,7 @@ try {
     settlementInput,
   )
   assert.equal(settled.idempotentReplay, false)
-  assert.equal(settled.settlement.customerChargedCredits, 5)
+  assert.equal(settled.settlement.customerChargedCredits, 4)
   assert.equal(settled.settlement.serviceFeeSettledHere, false)
   assert.equal(settled.externalCustomerWalletMutated, false)
   const replayed = await settleCanonicalA100VertexAttemptCredits(
@@ -253,8 +260,8 @@ try {
     workspaceId: authority.workspaceId,
     ownerUserId,
   })
-  assert.equal(aggregate?.wallet.spentCredits, 5)
-  assert.equal(aggregate?.wallet.reservedCredits, 495)
+  assert.equal(aggregate?.wallet.spentCredits, 4)
+  assert.equal(aggregate?.wallet.reservedCredits, 496)
   assert.equal(aggregate?.gpuAttemptCreditSettlements.length, 1)
 } finally {
   await rm(settlementRoot, { recursive: true, force: true })
@@ -270,7 +277,10 @@ await port.rereadUsageAccountPriceAndCost({
 assert.equal(receiptCreates, 2)
 assert.equal(receipts.size, 1)
 
-const failedReceipts = new Map<string, CanonicalA100VertexAttemptCostReceipt>()
+const failedReceipts = new Map<
+  string,
+  CanonicalA100VertexProviderAllocationCostReceipt
+>()
 const failedWorker = buildWorker('not_executed')
 const failedWorkerRef = ref(
   `vertex-a100-worker-usage.${execution.executionRecordHash.slice(0, 32)}`,
@@ -294,7 +304,7 @@ const failedEvidence = await createCanonicalA100VertexTerminalCostEvidenceReadPo
 })
 assert.equal(failedEvidence.providerInferenceOrSubstantiveWorkOutcome,
   'not_executed')
-const failedReceipt = assertCanonicalA100VertexAttemptCostReceipt(
+const failedReceipt = assertCanonicalA100VertexProviderAllocationCostReceipt(
   failedReceipts.values().next().value,
 )
 assert.equal(failedReceipt.customerEligibleToolCostCredits, 0)
@@ -405,15 +415,16 @@ await assert.rejects(port.rereadUsageAccountPriceAndCost({
 
 const tampered = structuredClone(completedReceipt)
 tampered.actualInfrastructureCost.totalInfrastructureCostUsdNanos += 1
-assert.throws(() => assertCanonicalA100VertexAttemptCostReceipt(tampered))
+assert.throws(() =>
+  assertCanonicalA100VertexProviderAllocationCostReceipt(tampered))
 
 console.log(JSON.stringify({
   smoke: 'canonical-a100-vertex-terminal-cost-evidence',
   checks: {
-    exactProviderAndWorkerPhaseMetering: true,
+    exactProviderAllocationMeteringSeparateFromWorkerPhases: true,
     thirtySecondBillingIncrementApplied: true,
     exactA100CoreRamAndPdSsdRatesApplied: true,
-    privateStorageNetworkAndOperationsApplied: true,
+    privateStorageAndNetworkAppliedOperationsDeferredToInvoice: true,
     accountEffectiveUsageSkuSetOnly: true,
     managementAndReservationFeesNotDoubleCounted: true,
     completedCostConvertedToCreditsAtTenCents: true,
@@ -637,10 +648,12 @@ function buildContext() {
     customerWalletOrLedgerMutationAuthorityGranted: false as const,
     preparedAt: CREATE_TIME,
   }
-  return canonicalA100VertexTerminalCostContextSchema.parse({
+  return assertCanonicalA100VertexTerminalCostContext(
+    canonicalA100VertexTerminalCostContextSchema.parse({
     ...payload,
     contextHash: sha256AuthorityValue(payload),
-  })
+    }),
+  )
 }
 
 function buildWorker(outcome: 'executed' | 'not_executed' | 'unknown') {
@@ -653,15 +666,33 @@ function buildWorker(outcome: 'executed' | 'not_executed' | 'unknown') {
     cloudTerminalObservationRef,
     providerTimes: PROVIDER_TIMES,
     providerInferenceOrSubstantiveWorkOutcome: outcome,
-    runtimeAndModelLoadMilliseconds: 60_000,
-    activeGpuMilliseconds: 100_000,
-    drainAndShutdownMilliseconds: 20_000,
+    runtimeResponseStatus: outcome === 'executed'
+      ? 'completed' as const
+      : outcome === 'not_executed'
+        ? 'not_created_before_worker_start' as const
+        : 'failed' as const,
+    runtimeTerminalStage: outcome === 'executed'
+      ? 'completed' as const
+      : outcome === 'not_executed'
+        ? 'not_started' as const
+        : 'propagation' as const,
+    workerWallTimeMilliseconds: 170_000,
+    modelLoadMilliseconds: 60_000,
+    promptMilliseconds: 10_000,
+    propagationMilliseconds: 80_000,
+    outputPersistenceMilliseconds: 20_000,
+    cudaEventInferenceMilliseconds: 89_000,
+    peakCudaAllocatedBytes: 12_000_000_000,
+    peakCudaReservedBytes: 16_000_000_000,
+    outputFileCount: outcome === 'executed' ? 2 : 0,
     privateArtifactBytes: 1024 ** 3,
     privateArtifactRetentionMilliseconds: 30 * 24 * 60 * 60 * 1_000,
     networkEgressBytes: 512 * 1024 ** 2,
     classAOperationCount: 10,
     classBOperationCount: 20,
     exactImmutableTaskWorkerMetricsReread: true as const,
+    workerWallTimeDoesNotDefineProviderAllocationOrBilling: true as const,
+    providerAllocationIncludesUnobservableWorkerStartupAndDrain: true as const,
     workerSuppliedProviderTimesBillableDurationPriceOrCostAccepted:
       false as const,
     runtimeNetworkDownloadObserved: false as const,
@@ -693,6 +724,7 @@ function buildPlatform(workerRef: ReturnType<typeof ref>) {
     persistentEndpointPresent: false as const,
     minimumIdleInstances: 0 as const,
     exactOneShotA2UltraAllocationReread: true as const,
+    zeroActiveWorkerClaimScopedToThisOneShotCustomJob: true as const,
     allocatedGpuCount: 1 as const,
     allocatedVcpuCount: 12 as const,
     allocatedMemoryGiB: 170 as const,
@@ -708,12 +740,12 @@ function buildPlatform(workerRef: ReturnType<typeof ref>) {
 }
 
 function memoryReceiptStore(
-  records: Map<string, CanonicalA100VertexAttemptCostReceipt>,
+  records: Map<string, CanonicalA100VertexProviderAllocationCostReceipt>,
   onCreate: () => void = () => undefined,
 ) {
   return {
     async createAttemptCostReceiptOnly(input: {
-      receipt: CanonicalA100VertexAttemptCostReceipt
+      receipt: CanonicalA100VertexProviderAllocationCostReceipt
     }) {
       onCreate()
       const previous = records.get(input.receipt.receiptId)

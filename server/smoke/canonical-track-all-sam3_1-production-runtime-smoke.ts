@@ -26,7 +26,9 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v12')
+  'canonical-track-all-sam3_1-production-runtime-v13')
+assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
+  'function')
 assert.equal(runtime.runtimeMode,
   'vertex_a100_cloud_run_l4_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
@@ -173,6 +175,10 @@ assert.match(productionRuntimeSource,
   /createCanonicalA100VertexProfessionalGpuLaunchAdapter/u)
 assert.match(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobDurableStore/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalA100VertexCustomJobTerminalPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalA100VertexProviderAllocationCostReceiptStore/u)
 assert.match(productionRuntimeSource,
   /createCanonicalSam31VertexQualificationQuotaReadPort/u)
 assert.match(productionRuntimeSource,

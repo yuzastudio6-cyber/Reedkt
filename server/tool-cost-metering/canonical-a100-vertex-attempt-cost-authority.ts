@@ -17,6 +17,8 @@ import {
 
 export const CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION =
   'canonical-a100-vertex-attempt-cost-receipt-v1' as const
+export const CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_COST_RECEIPT_VERSION =
+  'canonical-a100-vertex-provider-allocation-cost-receipt-v2' as const
 export const CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_USAGE_VERSION =
   'canonical-a100-vertex-provider-allocation-usage-v4' as const
 
@@ -190,7 +192,7 @@ export type CanonicalA100VertexInfrastructureCost = z.infer<
   typeof canonicalA100VertexInfrastructureCostSchema
 >
 
-const receiptWithoutHashSchema = z.object({
+const receiptWithoutHashBaseSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_A100_VERTEX_ATTEMPT_COST_RECEIPT_VERSION,
   ),
@@ -260,7 +262,10 @@ const receiptWithoutHashSchema = z.object({
   productionAuthorityGranted: z.literal(false),
   attemptStartedAt: timestamp,
   recordedAt: timestamp,
-}).strict().superRefine((receipt, context) => {
+}).strict()
+
+const receiptWithoutHashSchema = receiptWithoutHashBaseSchema
+  .superRefine((receipt, context) => {
   const actual = receipt.actualInfrastructureCost
     .totalInfrastructureCostUsdNanos
   const approvedNanos = receipt.approvedReservedToolCostCredits
@@ -284,12 +289,60 @@ const receiptWithoutHashSchema = z.object({
     code: 'custom',
     message: 'Vertex A100 receipt lost charge, failure, or time truth.',
   })
-})
+  })
 
 export const canonicalA100VertexAttemptCostReceiptSchema =
   receiptWithoutHashSchema.extend({ receiptHash: sha256 }).strict()
 export type CanonicalA100VertexAttemptCostReceipt = z.infer<
   typeof canonicalA100VertexAttemptCostReceiptSchema
+>
+
+const providerAllocationReceiptWithoutHashSchema =
+  receiptWithoutHashBaseSchema
+  .omit({ schemaVersion: true, actualUsage: true })
+  .extend({
+    schemaVersion: z.literal(
+      CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_COST_RECEIPT_VERSION,
+    ),
+    actualUsage: canonicalA100VertexProviderAllocationUsageSchema,
+    exactProviderAllocationTimesAndCurrentAccountRateReread: z.literal(true),
+    workerPhaseBreakdownClaimed: z.literal(false),
+    objectStorageOperationCostIncludedInProvisionalCost: z.literal(false),
+  }).strict().superRefine((receipt, context) => {
+    const actual = receipt.actualInfrastructureCost
+      .totalInfrastructureCostUsdNanos
+    const approvedNanos = receipt.approvedReservedToolCostCredits
+      * WEEDITPRO_USD_NANOS_PER_CREDIT
+    const completed = receipt.terminalOutcome === 'completed'
+    const eligible = completed ? Math.min(actual, approvedNanos) : 0
+    const eligibleCredits = creditsForUsdNanos(eligible)
+    const exact = (!completed
+        || receipt.providerInferenceOrSubstantiveWorkOutcome === 'executed')
+      && receipt.customerEligibleInfrastructureCostUsdNanos === eligible
+      && receipt.customerEligibleToolCostCredits === eligibleCredits
+      && receipt.weeditproAbsorbedInfrastructureCostUsdNanos ===
+        actual - eligible
+      && receipt.creditsRecommendedToRetainForRemainingApprovedPlanWork ===
+        receipt.approvedReservedToolCostCredits - eligibleCredits
+      && Date.parse(receipt.recordedAt) >=
+        Date.parse(receipt.actualUsage.providerEndTime)
+      && Date.parse(receipt.attemptStartedAt) <=
+        Date.parse(receipt.actualUsage.providerCreateTime)
+      && receipt.actualUsage.classAOperationCount === 0
+      && receipt.actualUsage.classBOperationCount === 0
+      && receipt.actualInfrastructureCost.objectClassAOperationsUsdNanos === 0
+      && receipt.actualInfrastructureCost.objectClassBOperationsUsdNanos === 0
+    if (!exact) context.addIssue({
+      code: 'custom',
+      message: 'Vertex A100 provider-allocation receipt lost cost truth.',
+    })
+  })
+
+export const canonicalA100VertexProviderAllocationCostReceiptSchema =
+  providerAllocationReceiptWithoutHashSchema.extend({ receiptHash: sha256 })
+    .strict()
+export type CanonicalA100VertexProviderAllocationCostReceipt = z.infer<
+  typeof canonicalA100VertexProviderAllocationCostReceiptSchema
 >
 
 export function createCanonicalA100VertexAttemptUsage(input: {
@@ -590,6 +643,121 @@ export function createCanonicalA100VertexAttemptCostReceipt(input: {
   })
 }
 
+export function createCanonicalA100VertexProviderAllocationCostReceipt(input: {
+  readonly receiptId: string
+  readonly authority: CanonicalA100VertexCustomJobLaunchAuthority
+  readonly executionRef: z.input<typeof evidenceRefSchema>
+  readonly cloudTerminalObservationRef: z.input<typeof evidenceRefSchema>
+  readonly workerUsageEvidenceRef: z.input<typeof evidenceRefSchema>
+  readonly platformUsageRereadRef: z.input<typeof evidenceRefSchema>
+  readonly rateAuthority: CanonicalCurrentGoogleCloudVertexA100RateAuthority
+  readonly actualUsage: CanonicalA100VertexProviderAllocationUsage
+  readonly terminalOutcome:
+    'completed' | 'weeditpro_failed' | 'canceled' | 'expired'
+  readonly providerInferenceOrSubstantiveWorkOutcome:
+    'executed' | 'not_executed'
+  readonly attemptStartedAt: string
+  readonly recordedAt: string
+}): CanonicalA100VertexProviderAllocationCostReceipt {
+  const authority = assertCanonicalA100VertexCustomJobLaunchAuthority(
+    input.authority,
+  )
+  const rate = assertCanonicalCurrentGoogleCloudVertexA100RateAuthority(
+    input.rateAuthority,
+    input.recordedAt,
+  )
+  const usage = assertCanonicalA100VertexProviderAllocationUsage(
+    input.actualUsage,
+  )
+  if (!sameRef(authority.currentRateAuthorityRef, ref(
+    rate.rateAuthorityId,
+    rate.rateAuthorityHash,
+    rate.rateAuthorityVersion,
+  ))) throw new Error('Vertex A100 launch and rate authority differ.')
+  const cost = calculateCanonicalA100VertexInfrastructureCost({
+    rateAuthority: rate,
+    usage,
+    at: input.recordedAt,
+  })
+  const completed = input.terminalOutcome === 'completed'
+  const ceiling = authority.maximumReservedToolCostCredits
+    * WEEDITPRO_USD_NANOS_PER_CREDIT
+  const eligible = completed
+    ? Math.min(cost.totalInfrastructureCostUsdNanos, ceiling)
+    : 0
+  const eligibleCredits = creditsForUsdNanos(eligible)
+  const payload = providerAllocationReceiptWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_A100_VERTEX_PROVIDER_ALLOCATION_COST_RECEIPT_VERSION,
+    source: 'canonical_server_a100_vertex_attempt_usage_and_cost_owner',
+    evidenceClass: 'canonical_private_reread',
+    receiptId: input.receiptId,
+    authorityRef: ref(authority.authorityId, authority.authorityHash),
+    releaseRef: authority.releaseRef,
+    executionRef: input.executionRef,
+    approvedSnapshotRef: authority.approvedSnapshotRef,
+    confirmedOutputFrameRef: authority.confirmedOutputFrameRef,
+    masterTimingRef: authority.masterTimingRef,
+    approvedWorkItemRef: authority.approvedWorkItemRef,
+    workerLeaseRef: authority.workerLeaseRef,
+    fundedReservationRef: authority.fundedReservationRef,
+    approvedEstimateRef: authority.approvedEstimateRef,
+    userApprovalRecordRef: authority.userApprovalRecordRef,
+    userTriggerRecordRef: authority.userTriggerRecordRef,
+    executionAttemptRef: authority.executionAttemptRef,
+    executionEnvelopeRef: authority.executionEnvelopeRef,
+    cloudTerminalObservationRef: input.cloudTerminalObservationRef,
+    workerUsageEvidenceRef: input.workerUsageEvidenceRef,
+    platformUsageRereadRef: input.platformUsageRereadRef,
+    rateAuthorityRef: authority.currentRateAuthorityRef,
+    routeId: authority.routeId,
+    executionTarget: authority.executionTarget,
+    machineType: rate.machineType,
+    accelerator: rate.accelerator,
+    providerInferenceOrSubstantiveWorkOutcome:
+      input.providerInferenceOrSubstantiveWorkOutcome,
+    terminalOutcome: input.terminalOutcome,
+    actualUsage: usage,
+    actualInfrastructureCost: cost,
+    approvedReservedToolCostCredits:
+      authority.maximumReservedToolCostCredits,
+    creditValueUsdNanos: WEEDITPRO_USD_NANOS_PER_CREDIT,
+    customerEligibleInfrastructureCostUsdNanos: eligible,
+    customerEligibleToolCostCredits: eligibleCredits,
+    weeditproAbsorbedInfrastructureCostUsdNanos:
+      cost.totalInfrastructureCostUsdNanos - eligible,
+    creditsRecommendedToRetainForRemainingApprovedPlanWork:
+      authority.maximumReservedToolCostCredits - eligibleCredits,
+    serviceFeeIncluded: false,
+    billingAccountIdentifierIncluded: false,
+    billingAccountEffectiveVertexUsageSkuSetUsed: true,
+    separateManagementFeeSkuSetCharged: false,
+    computeEngineReservationOrSpotSkuSetCharged: false,
+    mixedOrDoubleCountedPricingAccepted: false,
+    exactPlatformUsageAndCurrentAccountRateReread: true,
+    exactProviderAllocationTimesAndCurrentAccountRateReread: true,
+    workerPhaseBreakdownClaimed: false,
+    objectStorageOperationCostIncludedInProvisionalCost: false,
+    unapprovedOverageAbsorbedByWeEditPro: true,
+    failedCanceledExpiredCostChargedToCustomer: false,
+    cloudBillingInvoiceReconciliationRequired: true,
+    createOnlyPersistenceRequired: true,
+    terminalAttemptStoppedWorker: true,
+    activeA100GpuInstancesAfterTerminalAttempt: 0,
+    automaticRetryAllowed: false,
+    customerWalletOrLedgerMutationPerformed: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    attemptStartedAt: input.attemptStartedAt,
+    recordedAt: input.recordedAt,
+  })
+  return canonicalA100VertexProviderAllocationCostReceiptSchema.parse({
+    ...payload,
+    receiptHash: sha256AuthorityValue(payload),
+  })
+}
+
 export function assertCanonicalA100VertexAttemptUsage(
   value: unknown,
 ): CanonicalA100VertexAttemptUsage {
@@ -624,6 +792,20 @@ export function assertCanonicalA100VertexAttemptCostReceipt(
     throw new Error('Vertex A100 attempt cost receipt digest is invalid.')
   }
   assertCanonicalA100VertexAttemptUsage(receipt.actualUsage)
+  return receipt
+}
+
+export function assertCanonicalA100VertexProviderAllocationCostReceipt(
+  value: unknown,
+): CanonicalA100VertexProviderAllocationCostReceipt {
+  assertPlainSerializedData(value, 'vertex_a100_provider_allocation_receipt')
+  const receipt = canonicalA100VertexProviderAllocationCostReceiptSchema
+    .parse(value)
+  const { receiptHash, ...payload } = receipt
+  if (receiptHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Vertex A100 provider-allocation receipt digest is invalid.')
+  }
+  assertCanonicalA100VertexProviderAllocationUsage(receipt.actualUsage)
   return receipt
 }
 

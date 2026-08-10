@@ -13,9 +13,9 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_TERMINAL_COST_EVIDENCE_VERSION =
-  'canonical-a100-vertex-custom-job-terminal-cost-evidence-v1' as const
+  'canonical-a100-vertex-custom-job-terminal-cost-evidence-v2' as const
 export const CANONICAL_A100_VERTEX_CUSTOM_JOB_TERMINAL_READ_VERSION =
-  'canonical-a100-vertex-custom-job-terminal-read-v1' as const
+  'canonical-a100-vertex-custom-job-terminal-read-v2' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com' as const
 const CLOUD_PLATFORM_SCOPE =
@@ -70,6 +70,7 @@ const costEvidenceWithoutHashSchema = z.object({
   exactBillingAccountEffectivePriceReread: z.literal(true),
   attemptCostReceiptPersistedBeforeSettlement: z.literal(true),
   activeA100GpuInstancesAfterObservation: z.literal(0),
+  zeroActiveA100ClaimScopedToThisOneShotAttempt: z.literal(true),
   systemFailureOrUnknownCostChargedToCustomer: z.literal(false),
   unapprovedOverageChargedToCustomer: z.literal(false),
   customerWalletOrLedgerMutated: z.literal(false),
@@ -115,6 +116,7 @@ const terminalReadWithoutHashSchema = z.object({
   providerJobTerminalStateReread: z.boolean(),
   workerStoppedVerified: z.boolean(),
   activeA100GpuInstancesAfterObservation: z.literal(0).nullable(),
+  zeroActiveA100ClaimScopedToThisOneShotAttempt: z.boolean(),
   exactVertexPlatformUsageAndAccountEffectivePriceReread: z.boolean(),
   costReceiptPersistedBeforeSettlement: z.boolean(),
   checkbackAllowed: z.boolean(),
@@ -144,6 +146,7 @@ const terminalReadWithoutHashSchema = z.object({
       && result.providerJobTerminalStateReread
       && result.workerStoppedVerified
       && result.activeA100GpuInstancesAfterObservation === 0
+      && result.zeroActiveA100ClaimScopedToThisOneShotAttempt
       && result.exactVertexPlatformUsageAndAccountEffectivePriceReread
       && result.costReceiptPersistedBeforeSettlement
       && !result.checkbackAllowed
@@ -157,6 +160,7 @@ const terminalReadWithoutHashSchema = z.object({
         && !result.providerJobTerminalStateReread
         && !result.workerStoppedVerified
         && result.activeA100GpuInstancesAfterObservation === null
+        && !result.zeroActiveA100ClaimScopedToThisOneShotAttempt
         && !result.exactVertexPlatformUsageAndAccountEffectivePriceReread
         && !result.costReceiptPersistedBeforeSettlement
         && result.checkbackAllowed
@@ -167,6 +171,7 @@ const terminalReadWithoutHashSchema = z.object({
         && !result.providerJobTerminalStateReread
         && !result.workerStoppedVerified
         && result.activeA100GpuInstancesAfterObservation === null
+        && !result.zeroActiveA100ClaimScopedToThisOneShotAttempt
         && !result.exactVertexPlatformUsageAndAccountEffectivePriceReread
         && !result.costReceiptPersistedBeforeSettlement
         && !result.checkbackAllowed
@@ -185,7 +190,7 @@ export type CanonicalA100VertexCustomJobTerminalRead = z.infer<
 export interface CanonicalA100VertexCustomJobExecutionReadRepository {
   rereadExecution(input: {
     readonly executionRef: z.infer<typeof evidenceRefSchema>
-  }): Promise<unknown>
+  }): Promise<CanonicalA100VertexCustomJobExecutionRecord>
 }
 
 export interface CanonicalA100VertexTerminalCostEvidenceReadPort {
@@ -198,6 +203,7 @@ export interface CanonicalA100VertexTerminalCostEvidenceReadPort {
       readonly createTime: string
       readonly startTime: string
       readonly endTime: string
+      readonly providerStartTimeObserved: boolean
     }
   }): Promise<CanonicalA100VertexCustomJobTerminalCostEvidence>
 }
@@ -287,6 +293,7 @@ export function createCanonicalA100VertexCustomJobTerminalPort(input: {
               createTime: provider.createTime,
               startTime: provider.startTime ?? provider.createTime,
               endTime: provider.endTime,
+              providerStartTimeObserved: provider.startTime !== null,
             },
           }),
         )
@@ -421,6 +428,7 @@ function terminalRead(input: {
     providerJobTerminalStateReread: terminal,
     workerStoppedVerified: terminal,
     activeA100GpuInstancesAfterObservation: terminal ? 0 : null,
+    zeroActiveA100ClaimScopedToThisOneShotAttempt: terminal,
     exactVertexPlatformUsageAndAccountEffectivePriceReread: terminal,
     costReceiptPersistedBeforeSettlement: terminal,
     checkbackAllowed: pending,

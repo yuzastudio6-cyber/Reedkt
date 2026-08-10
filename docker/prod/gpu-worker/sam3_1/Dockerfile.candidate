@@ -429,9 +429,12 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     "import importlib.metadata as m; import json; import sys; import torch; import torchvision; import torchcodec; import einops; import pycocotools.mask; import sam3; observed={'pythonVersion': '.'.join(map(str, sys.version_info[:3])), 'pythonPrefix': sys.prefix, 'pythonBasePrefix': sys.base_prefix, 'torchVersion': torch.__version__, 'torchvisionVersion': torchvision.__version__, 'torchcodecVersion': m.version('torchcodec'), 'einopsVersion': m.version('einops'), 'pycocotoolsVersion': m.version('pycocotools'), 'torchCudaVersion': torch.version.cuda}; print(json.dumps(observed, sort_keys=True)); assert sys.prefix == '/opt/weeditpro/python-venv'; assert sys.base_prefix != sys.prefix; assert sys.version_info[:2] == (3, 12); assert torch.__version__ == '2.10.0+cu128'; assert torchvision.__version__ == '0.25.0+cu128'; assert m.version('torchcodec') == '0.10.0+cu128'; assert m.version('einops') == '0.8.2'; assert m.version('pycocotools') == '2.0.11'; assert torch.version.cuda == '12.8'" \
   && python -m pip uninstall --yes --break-system-packages \
     pillow setuptools urllib3 wheel \
+  && python -m pip uninstall --yes --break-system-packages pip \
   && dpkg --purge \
     python3-pip python3-wheel python3-setuptools python3-pkg-resources \
   && rm -rf \
+    /usr/local/lib/python3.12/dist-packages/pip \
+    /usr/local/lib/python3.12/dist-packages/pip-*.dist-info \
     /usr/local/lib/python3.12/dist-packages/setuptools \
     /usr/local/lib/python3.12/dist-packages/setuptools-*.dist-info \
     /usr/local/lib/python3.12/dist-packages/_distutils_hack \
@@ -441,18 +444,26 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     /usr/lib/python3/dist-packages/pkg_resources \
     /usr/lib/python3/dist-packages/_distutils_hack \
     /usr/lib/python3/dist-packages/distutils-precedence.pth \
+  && for bin_dir in /usr/local/bin /usr/bin /opt/conda/bin; do \
+       if test -d "${bin_dir}"; then \
+         find "${bin_dir}" -mindepth 1 -maxdepth 1 \
+           \( -name 'pip' -o -name 'pip3' -o -name 'pip3.*' \) \
+           -delete; \
+       fi; \
+     done \
   && ! find \
     /usr/local/lib/python3.12/dist-packages \
     /usr/lib/python3/dist-packages \
     -maxdepth 1 \
-    \( -iname 'pillow-*.dist-info' -o -iname 'urllib3-*.dist-info' \
+    \( -iname 'pip' -o -iname 'pip-*.dist-info' \
+       -o -iname 'pillow-*.dist-info' -o -iname 'urllib3-*.dist-info' \
        -o -iname 'wheel-*.dist-info' -o -iname 'setuptools-*.dist-info' \
        -o -iname 'pkg_resources' \
     \) -print -quit | grep -q . \
   && ! command -v pip >/dev/null 2>&1 \
   && ! command -v pip3 >/dev/null 2>&1 \
   && python -I -B -c \
-    "import importlib.util; assert importlib.util.find_spec('setuptools') is None; assert importlib.util.find_spec('pkg_resources') is None" \
+    "import importlib.util; assert importlib.util.find_spec('pip') is None; assert importlib.util.find_spec('setuptools') is None; assert importlib.util.find_spec('pkg_resources') is None" \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -I -B -c \
     "import importlib.metadata as m; import sam3.model_builder as b; assert m.version('pillow') == '12.3.0'; assert m.version('urllib3') == '2.7.0'; assert b.files('sam3').joinpath('assets/bpe_simple_vocab_16e6.txt.gz').is_file()" \
   && test -d /usr/local/lib/python3.12/dist-packages/torch/lib \

@@ -300,7 +300,7 @@ export function createCanonicalSam31A100RuntimeQualificationLaunchService(
       'private_pre_release_a100_one_shot_exact_prerequisite_reread' as const,
     async start(untrusted: unknown) {
       const request = startRequestSchema.parse(untrusted)
-      const admittedAt = timestamp.parse(now())
+      const rereadStartedAt = timestamp.parse(now())
       const [sourceRaw, imageRaw, a100RateRaw, l4RateRaw, quotaRaw] =
         await Promise.all([
           input.sourceCheckpointReadPort.rereadQualificationRelease({
@@ -312,18 +312,19 @@ export function createCanonicalSam31A100RuntimeQualificationLaunchService(
           }),
           input.vertexRateReadPort.reread({
             rateAuthorityRef: request.currentA100RateAuthorityRef,
-            at: admittedAt,
+            at: rereadStartedAt,
           }),
           input.gpuRateReadPort.rereadApprovedCurrentRate({
             rateAuthorityRef: request.currentL4FallbackRateAuthorityRef,
             routeId: 'l4_heavy_fallback',
-            at: admittedAt,
+            at: rereadStartedAt,
           }),
           input.quotaReadPort.rereadCurrent(),
         ])
       if (!sourceRaw || !imageRaw || !a100RateRaw || !l4RateRaw) {
         throw conflict('current_prerequisite_missing')
       }
+      const admittedAt = timestamp.parse(now())
       const sourceRelease =
         assertCanonicalSam31QualifiedSourceCheckpointRelease(sourceRaw)
       const source = projectCanonicalSam31QualifiedSourceCheckpointRelease(

@@ -107,6 +107,41 @@ assert.equal(terminal.costReceiptPersistedBeforeSettlement, true)
 assert.equal(terminal.customerWalletOrLedgerMutated, false)
 assert.equal(terminalCostReads, 1)
 
+let advancingClockReads = 0
+const costPersistedAfterInitialObservation = buildCostEvidence({
+  cloudTerminalObservationRef: terminalObservationRef,
+  outcome: 'executed',
+  observedAt: '2026-08-06T20:00:00.500Z',
+})
+const terminalWithAdvancingClock =
+  await createCanonicalA100VertexCustomJobTerminalPort({
+    executionRepository: exactExecutionRepository(),
+    costEvidenceReadPort: {
+      async rereadUsageAccountPriceAndCost() {
+        return costPersistedAfterInitialObservation
+      },
+    },
+    auth: providerJobAuth({
+      name: execution.customJobResourceName,
+      displayName: execution.displayName,
+      state: 'JOB_STATE_SUCCEEDED',
+      createTime: CREATE_TIME,
+      startTime: START_TIME,
+      endTime: END_TIME,
+    }),
+    now: () => {
+      advancingClockReads += 1
+      return advancingClockReads === 1
+        ? NOW
+        : '2026-08-06T20:00:01.000Z'
+    },
+  }).reread({ executionRef })
+assert.equal(terminalWithAdvancingClock.disposition, 'terminal')
+assert.equal(
+  terminalWithAdvancingClock.observedAt,
+  '2026-08-06T20:00:01.000Z',
+)
+
 for (const [state, outcome] of [
   ['JOB_STATE_FAILED', 'failed'],
   ['JOB_STATE_CANCELLED', 'canceled'],
@@ -225,6 +260,7 @@ console.log(JSON.stringify({
     exactPinnedVertexGetRequest: true,
     pendingCheckbackWithoutCostClaim: true,
     terminalUsagePriceAndCostReread: true,
+    terminalTimestampCapturedAfterCostPersistence: true,
     workerStoppedAndZeroActiveGpuRequired: true,
     failedCanceledExpiredMapped: true,
     staleCostEvidenceRequiresReconciliation: true,

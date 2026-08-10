@@ -1093,6 +1093,10 @@ def validate_model_artifacts(value: Any) -> None:
         },
         "model source checkpoint qualification ref",
     )
+    compatibility_identity = (
+        compatibility_ref["version"],
+        compatibility_ref["schemaVersion"],
+    )
     if (
         artifacts["sourceRevision"] != SOURCE_REVISION
         or artifacts["sourceArchiveByteLength"] != SOURCE_ARCHIVE_BYTE_LENGTH
@@ -1106,9 +1110,16 @@ def validate_model_artifacts(value: Any) -> None:
         != f"sha256:{artifacts['checkpointSha256']}"
         or artifacts["immutableImageReleaseRef"]["contentHash"]
         != artifacts["immutableImageDigest"]
-        or compatibility_ref["version"] != 1
-        or compatibility_ref["schemaVersion"]
-        != "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1"
+        or compatibility_identity not in {
+            (
+                1,
+                "canonical-sam3_1-source-checkpoint-compatibility-qualification-v1",
+            ),
+            (
+                2,
+                "canonical-sam3_1-source-checkpoint-compatibility-qualification-v2",
+            ),
+        }
         or artifacts["humanTermsAcceptanceAndLegalReviewReread"] is not True
         or artifacts["sourceAndCheckpointMalwareScanReread"] is not True
         or artifacts["runtimeDownloadAllowed"] is not False

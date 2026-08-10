@@ -42,6 +42,8 @@ import {
 } from '../tool-cost-metering/canonical-a100-vertex-attempt-cost-authority'
 import {
   assertCanonicalSam31GpuRuntimeResponse,
+  canonicalSam31GpuRuntimeResponseSchema,
+  type CanonicalSam31GpuRuntimeResponse,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
 import {
   assertCanonicalSam31GpuTaskRecord,
@@ -124,12 +126,23 @@ export function createCanonicalSam31A100VertexWorkerUsageReadPort(input: {
       let response: ReturnType<typeof assertCanonicalSam31GpuRuntimeResponse>
         | null = null
       try {
-        response = assertCanonicalSam31GpuRuntimeResponse({
-          request: task.runtimeRequest,
-          response: await input.taskStore.rereadRuntimeResponse(
-            task.invocationId,
-          ),
-        })
+        const rawResponse = await input.taskStore.rereadRuntimeResponse(
+          task.invocationId,
+        )
+        try {
+          response = assertCanonicalSam31GpuRuntimeResponse({
+            request: task.runtimeRequest,
+            response: rawResponse,
+          })
+        } catch (boundResponseError) {
+          try {
+            response = assertCanonicalSam31UnboundRequestValidationFailure(
+              rawResponse,
+            )
+          } catch {
+            throw boundResponseError
+          }
+        }
       } catch (error) {
         if (providerTimes.providerStartTimeObserved) throw error
       }
@@ -199,6 +212,32 @@ export function createCanonicalSam31A100VertexWorkerUsageReadPort(input: {
       })
     },
   })
+}
+
+export function assertCanonicalSam31UnboundRequestValidationFailure(
+  value: unknown,
+): CanonicalSam31GpuRuntimeResponse {
+  const response = canonicalSam31GpuRuntimeResponseSchema.parse(value)
+  const { responseBindingSha256, ...payload } = response
+  const emptyBinding = '0'.repeat(64)
+  if (
+    responseBindingSha256 !== sha256AuthorityValue(payload)
+    || response.status !== 'failed'
+    || response.terminalStage !== 'request_validation'
+    || response.failureCode !== 'request_rejected'
+    || response.requestBindingSha256 !== emptyBinding
+    || response.dispatchAdmissionDigestSha256 !== emptyBinding
+    || response.gpuEvidence !== null
+    || response.runtimeMeasurement !== null
+    || response.outputSummary !== null
+    || response.modelSourceAndCheckpointHashesVerifiedBeforeAndAfter
+    || response.sourceCheckpointCompatibilityQualificationReread
+  ) {
+    throw new Error(
+      'SAM 3.1 unbound request-validation failure is invalid.',
+    )
+  }
+  return response
 }
 
 export function createCanonicalA100VertexPlatformUsageReadPort(input: {
@@ -317,6 +356,19 @@ export function createCanonicalA100VertexProviderAllocationCostReceiptStore(
 ): CanonicalA100VertexAttemptCostReceiptStore {
   const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
   return Object.freeze({
+    async rereadAttemptCostReceiptIfPresent({ receiptId }: {
+      receiptId: string
+    }) {
+      const safeId = evidenceRefSchema.shape.id.parse(receiptId)
+      const objectPath = `${prefix}/cost/${safeId}.json`
+      const body = await input.objectPort.readExact(objectPath)
+      if (body === null) return null
+      return readJson({
+        port: input.objectPort,
+        objectPath,
+        parse: assertCanonicalA100VertexProviderAllocationCostReceipt,
+      })
+    },
     async createAttemptCostReceiptOnly({ receipt }: {
       receipt: CanonicalA100VertexProviderAllocationCostReceipt
     }) {

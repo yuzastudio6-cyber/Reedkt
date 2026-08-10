@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import { resolve } from 'node:path'
 
 import {
   assertCanonicalSam31GpuRuntimeRequest,
@@ -199,6 +201,54 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeRequest(
   relabeledVertexRequest,
 ))
 
+const pythonArtifactIdentityProbe = spawnSync(
+  'python3',
+  ['-I', '-B', '-c', String.raw`
+import copy
+import importlib.util
+import json
+import sys
+
+runner_path = sys.argv[1]
+spec = importlib.util.spec_from_file_location("sam31_production_runner", runner_path)
+if spec is None or spec.loader is None:
+    raise RuntimeError("SAM 3.1 runner module could not be loaded")
+runner = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(runner)
+payload = json.load(sys.stdin)
+runner.validate_model_artifacts(payload["v1"])
+runner.validate_model_artifacts(payload["v2"])
+relabeled = copy.deepcopy(payload["v2"])
+relabeled["sourceCheckpointCompatibilityQualificationRef"]["version"] = 1
+try:
+    runner.validate_model_artifacts(relabeled)
+except ValueError:
+    pass
+else:
+    raise AssertionError("cross-version qualification relabel was accepted")
+print(json.dumps({"v1Accepted": True, "v2Accepted": True, "relabelRejected": True}))
+`, resolve(
+    process.cwd(),
+    'docker/prod/gpu-worker/sam3_1/runner.py',
+  )],
+  {
+    input: JSON.stringify({
+      v1: request.modelArtifacts,
+      v2: vertexQualifiedRequest.modelArtifacts,
+    }),
+    encoding: 'utf8',
+  },
+)
+assert.equal(
+  pythonArtifactIdentityProbe.status,
+  0,
+  `${pythonArtifactIdentityProbe.stdout}\n${pythonArtifactIdentityProbe.stderr}`,
+)
+assert.deepEqual(
+  JSON.parse(pythonArtifactIdentityProbe.stdout),
+  { v1Accepted: true, v2Accepted: true, relabelRejected: true },
+)
+
 const response = buildCanonicalSam31GpuRuntimeResponse({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-response-v1',
   operationId: request.operationId,
@@ -385,7 +435,7 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 49,
+  checks: 52,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

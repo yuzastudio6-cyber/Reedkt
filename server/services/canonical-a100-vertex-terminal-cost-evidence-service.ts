@@ -56,7 +56,7 @@ const providerTimesSchema = z.object({
 }).strict().superRefine((times, context) => {
   if (
     Date.parse(times.startTime) < Date.parse(times.createTime)
-    || Date.parse(times.endTime) <= Date.parse(times.startTime)
+    || Date.parse(times.endTime) < Date.parse(times.startTime)
     || (!times.providerStartTimeObserved
       && times.startTime !== times.createTime)
   ) context.addIssue({
@@ -255,6 +255,9 @@ export interface CanonicalA100VertexCurrentRateAuthorityReadPort {
 }
 
 export interface CanonicalA100VertexAttemptCostReceiptStore {
+  rereadAttemptCostReceiptIfPresent(input: {
+    readonly receiptId: string
+  }): Promise<unknown | null>
   createAttemptCostReceiptOnly(input: {
     readonly receipt: CanonicalA100VertexProviderAllocationCostReceipt
   }): Promise<'created' | 'already_exists'>
@@ -308,6 +311,29 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
       )
       const authority = context.authority
       assertContext({ context, authority, execution, executionRef })
+
+      const receiptId =
+        `vertex-a100-cost.${execution.executionRecordHash.slice(0, 48)}`
+      const existingReceiptValue =
+        await input.receiptStore.rereadAttemptCostReceiptIfPresent({
+          receiptId,
+        })
+      if (existingReceiptValue !== null) {
+        const existingReceipt =
+          assertCanonicalA100VertexProviderAllocationCostReceipt(
+            existingReceiptValue,
+          )
+        assertExistingReceiptMatchesAttempt({
+          receipt: existingReceipt,
+          receiptId,
+          authority,
+          executionRef,
+          cloudTerminalObservationRef,
+          providerTimes,
+          terminalOutcome,
+        })
+        return costEvidenceFromReceipt(existingReceipt)
+      }
 
       const worker = assertCanonicalA100VertexWorkerUsageEvidence(
         await input.workerUsageReadPort.rereadPrivateWorkerUsage({
@@ -382,8 +408,7 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
         networkEgressBytes: worker.networkEgressBytes,
       })
       const receipt = createCanonicalA100VertexProviderAllocationCostReceipt({
-        receiptId:
-          `vertex-a100-cost.${execution.executionRecordHash.slice(0, 48)}`,
+        receiptId,
         authority,
         executionRef,
         cloudTerminalObservationRef,
@@ -402,40 +427,95 @@ export function createCanonicalA100VertexTerminalCostEvidenceReadPort(input: {
         recordedAt: observedAt,
       })
       await persistAndRereadReceipt(receipt, input.receiptStore)
-      const payload = {
-        schemaVersion:
-          CANONICAL_A100_VERTEX_CUSTOM_JOB_TERMINAL_COST_EVIDENCE_VERSION,
-        source:
-          'canonical_server_a100_vertex_usage_account_price_and_cost_owner' as const,
-        evidenceClass: 'canonical_private_reread' as const,
-        executionRef,
-        cloudTerminalObservationRef,
-        cloudCapacityTeardownObservationRef:
-          platform.platformUsageRereadRef,
-        workerUsageEvidenceRef,
-        currentAccountPriceAuthorityRef: authority.currentRateAuthorityRef,
-        attemptCostReceiptRef: ref(receipt.receiptId, receipt.receiptHash),
-        providerInferenceOrSubstantiveWorkOutcome:
-          worker.providerInferenceOrSubstantiveWorkOutcome,
-        exactVertexPlatformUsageReread: true as const,
-        exactBillingAccountEffectivePriceReread: true as const,
-        attemptCostReceiptPersistedBeforeSettlement: true as const,
-        activeA100GpuInstancesAfterObservation: 0 as const,
-        zeroActiveA100ClaimScopedToThisOneShotAttempt: true as const,
-        systemFailureOrUnknownCostChargedToCustomer: false as const,
-        unapprovedOverageChargedToCustomer: false as const,
-        customerWalletOrLedgerMutated: false as const,
-        callerWorkerPriceUsageOrCostClaimAccepted: false as const,
-        observedAt,
-      }
-      return Object.freeze(
-        canonicalA100VertexCustomJobTerminalCostEvidenceSchema.parse({
-          ...payload,
-          evidenceHash: sha256AuthorityValue(payload),
-        }),
-      )
+      return costEvidenceFromReceipt(receipt)
     },
   })
+}
+
+function costEvidenceFromReceipt(
+  receipt: CanonicalA100VertexProviderAllocationCostReceipt,
+) {
+  const payload = {
+    schemaVersion:
+      CANONICAL_A100_VERTEX_CUSTOM_JOB_TERMINAL_COST_EVIDENCE_VERSION,
+    source:
+      'canonical_server_a100_vertex_usage_account_price_and_cost_owner' as const,
+    evidenceClass: 'canonical_private_reread' as const,
+    executionRef: receipt.executionRef,
+    cloudTerminalObservationRef: receipt.cloudTerminalObservationRef,
+    cloudCapacityTeardownObservationRef: receipt.platformUsageRereadRef,
+    workerUsageEvidenceRef: receipt.workerUsageEvidenceRef,
+    currentAccountPriceAuthorityRef: receipt.rateAuthorityRef,
+    attemptCostReceiptRef: ref(receipt.receiptId, receipt.receiptHash),
+    providerInferenceOrSubstantiveWorkOutcome:
+      receipt.providerInferenceOrSubstantiveWorkOutcome,
+    exactVertexPlatformUsageReread: true as const,
+    exactBillingAccountEffectivePriceReread: true as const,
+    attemptCostReceiptPersistedBeforeSettlement: true as const,
+    activeA100GpuInstancesAfterObservation: 0 as const,
+    zeroActiveA100ClaimScopedToThisOneShotAttempt: true as const,
+    systemFailureOrUnknownCostChargedToCustomer: false as const,
+    unapprovedOverageChargedToCustomer: false as const,
+    customerWalletOrLedgerMutated: false as const,
+    callerWorkerPriceUsageOrCostClaimAccepted: false as const,
+    observedAt: receipt.recordedAt,
+  }
+  return Object.freeze(
+    canonicalA100VertexCustomJobTerminalCostEvidenceSchema.parse({
+      ...payload,
+      evidenceHash: sha256AuthorityValue(payload),
+    }),
+  )
+}
+
+function assertExistingReceiptMatchesAttempt(input: {
+  receipt: CanonicalA100VertexProviderAllocationCostReceipt
+  receiptId: string
+  authority: CanonicalA100VertexCustomJobLaunchAuthority
+  executionRef: z.infer<typeof evidenceRefSchema>
+  cloudTerminalObservationRef: z.infer<typeof evidenceRefSchema>
+  providerTimes: z.infer<typeof providerTimesSchema>
+  terminalOutcome: 'completed' | 'failed' | 'canceled' | 'expired'
+}): void {
+  const expectedTerminalOutcome = input.terminalOutcome === 'failed'
+    ? 'weeditpro_failed'
+    : input.terminalOutcome
+  const authorityRefs = [
+    ['approvedSnapshotRef', input.authority.approvedSnapshotRef],
+    ['confirmedOutputFrameRef', input.authority.confirmedOutputFrameRef],
+    ['masterTimingRef', input.authority.masterTimingRef],
+    ['approvedWorkItemRef', input.authority.approvedWorkItemRef],
+    ['workerLeaseRef', input.authority.workerLeaseRef],
+    ['fundedReservationRef', input.authority.fundedReservationRef],
+    ['approvedEstimateRef', input.authority.approvedEstimateRef],
+    ['userApprovalRecordRef', input.authority.userApprovalRecordRef],
+    ['userTriggerRecordRef', input.authority.userTriggerRecordRef],
+    ['executionAttemptRef', input.authority.executionAttemptRef],
+    ['executionEnvelopeRef', input.authority.executionEnvelopeRef],
+  ] as const
+  const refsMatch = authorityRefs.every(([field, expected]) =>
+    sameRef(input.receipt[field], expected))
+  if (
+    input.receipt.receiptId !== input.receiptId
+    || !sameRef(input.receipt.authorityRef, ref(
+      input.authority.authorityId,
+      input.authority.authorityHash,
+    ))
+    || !sameRef(input.receipt.releaseRef, input.authority.releaseRef)
+    || !sameRef(input.receipt.executionRef, input.executionRef)
+    || !sameRef(input.receipt.cloudTerminalObservationRef,
+      input.cloudTerminalObservationRef)
+    || !sameRef(input.receipt.rateAuthorityRef,
+      input.authority.currentRateAuthorityRef)
+    || !refsMatch
+    || input.receipt.terminalOutcome !== expectedTerminalOutcome
+    || input.receipt.actualUsage.providerCreateTime !==
+      input.providerTimes.createTime
+    || input.receipt.actualUsage.providerStartTime !==
+      input.providerTimes.startTime
+    || input.receipt.actualUsage.providerEndTime !== input.providerTimes.endTime
+    || input.receipt.attemptStartedAt !== input.authority.admittedAt
+  ) throw new Error('Vertex A100 existing cost receipt lineage differs.')
 }
 
 export function assertCanonicalA100VertexTerminalCostContext(

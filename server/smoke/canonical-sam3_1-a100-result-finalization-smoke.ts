@@ -5,6 +5,9 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  assertCanonicalSam31UnboundRequestValidationFailure,
+} from '../services/canonical-a100-vertex-production-terminal-adapters'
+import {
   createCanonicalProfessionalGpuDurableLifecycleStore,
 } from '../services/canonical-professional-gpu-durable-lifecycle-store'
 import {
@@ -17,6 +20,9 @@ import {
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 import {
+  buildCanonicalSam31GpuRuntimeResponse,
+} from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
+import {
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -27,6 +33,44 @@ import {
 } from './canonical-sam3_1-gpu-task-owner-smoke'
 
 const objects = new Map<string, Buffer>()
+
+const unboundRequestValidationFailure = buildCanonicalSam31GpuRuntimeResponse({
+  schemaVersion: 'canonical-sam3_1-gpu-runtime-response-v1',
+  operationId: 'tool.sam3_1.segment_and_track_subject.v1',
+  requestBindingSha256: '0'.repeat(64),
+  dispatchAdmissionDigestSha256: '0'.repeat(64),
+  status: 'failed',
+  terminalStage: 'request_validation',
+  gpuEvidence: null,
+  runtimeMeasurement: null,
+  outputSummary: null,
+  failureCode: 'request_rejected',
+  modelSourceAndCheckpointHashesVerifiedBeforeAndAfter: false,
+  sourceCheckpointCompatibilityQualificationReread: false,
+  serverCostReceiptIncluded: false,
+  customerCreditsMutated: false,
+  qaApproved: false,
+  publicDeliveryAuthorized: false,
+  productionAuthorityGranted: false,
+})
+assert.deepEqual(
+  assertCanonicalSam31UnboundRequestValidationFailure(
+    unboundRequestValidationFailure,
+  ),
+  unboundRequestValidationFailure,
+)
+const {
+  responseBindingSha256: _unboundResponseBinding,
+  ...unboundRequestValidationPayload
+} = unboundRequestValidationFailure
+void _unboundResponseBinding
+assert.throws(() => assertCanonicalSam31UnboundRequestValidationFailure(
+  buildCanonicalSam31GpuRuntimeResponse({
+    ...unboundRequestValidationPayload,
+    requestBindingSha256: task.runtimeRequest.requestBindingSha256,
+  }),
+))
+
 const objectPort = memoryObjectPort(objects)
 const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
   objectPort,
@@ -94,6 +138,8 @@ console.log(JSON.stringify({
     resultAdmissionCreatedOnlyAfterTerminalAndOutput: true,
     restartSafeIdempotentReread: true,
     crossedInvocationRejected: true,
+    exactUnboundRequestValidationFailureSettlesAsNotExecuted: true,
+    boundOrRelabeledFailureCannotUseUnboundPath: true,
     qaAssetsCreditsRenderPublicProductionRemainClosed: true,
   },
 }, null, 2))

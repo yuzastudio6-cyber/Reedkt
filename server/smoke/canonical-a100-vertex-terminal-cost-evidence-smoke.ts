@@ -276,7 +276,7 @@ await port.rereadUsageAccountPriceAndCost({
   terminalOutcome: 'completed',
   providerTimes: PROVIDER_TIMES,
 })
-assert.equal(receiptCreates, 2)
+assert.equal(receiptCreates, 1)
 assert.equal(receipts.size, 1)
 
 const failedReceipts = new Map<
@@ -313,6 +313,76 @@ assert.equal(failedReceipt.customerEligibleToolCostCredits, 0)
 assert.equal(failedReceipt.customerEligibleInfrastructureCostUsdNanos, 0)
 assert.equal(failedReceipt.weeditproAbsorbedInfrastructureCostUsdNanos,
   failedReceipt.actualInfrastructureCost.totalInfrastructureCostUsdNanos)
+
+const zeroDurationProviderTimes = {
+  createTime: CREATE_TIME,
+  startTime: END_TIME,
+  endTime: END_TIME,
+  providerStartTimeObserved: true,
+}
+const {
+  evidenceHash: _failedWorkerHash,
+  ...failedWorkerPayload
+} = failedWorker
+void _failedWorkerHash
+const zeroDurationWorkerPayload = {
+  ...failedWorkerPayload,
+  providerTimes: zeroDurationProviderTimes,
+  runtimeResponseStatus: 'failed' as const,
+  runtimeTerminalStage: 'request_validation' as const,
+  workerWallTimeMilliseconds: 0,
+  modelLoadMilliseconds: 0,
+  promptMilliseconds: 0,
+  propagationMilliseconds: 0,
+  outputPersistenceMilliseconds: 0,
+  cudaEventInferenceMilliseconds: 0,
+  peakCudaAllocatedBytes: 0,
+  peakCudaReservedBytes: 0,
+  outputFileCount: 0,
+}
+const zeroDurationWorker = canonicalA100VertexWorkerUsageEvidenceSchema.parse({
+  ...zeroDurationWorkerPayload,
+  evidenceHash: sha256AuthorityValue(zeroDurationWorkerPayload),
+})
+const zeroDurationWorkerRef = ref(
+  `vertex-a100-worker-usage.${execution.executionRecordHash.slice(0, 32)}`,
+  zeroDurationWorker.evidenceHash,
+)
+const zeroDurationPlatform = buildPlatform(
+  zeroDurationWorkerRef,
+  zeroDurationProviderTimes,
+)
+const zeroDurationReceipts = new Map<
+  string,
+  CanonicalA100VertexProviderAllocationCostReceipt
+>()
+const zeroDurationEvidence = await createCanonicalA100VertexTerminalCostEvidenceReadPort({
+  contextReadPort: fixedPort(context),
+  workerUsageReadPort: fixedPort(zeroDurationWorker,
+    'rereadPrivateWorkerUsage'),
+  platformUsageReadPort: fixedPort(zeroDurationPlatform,
+    'rereadPlatformUsageAndStoppedCapacity'),
+  rateAuthorityReadPort: { async reread() { return structuredClone(rate) } },
+  receiptStore: memoryReceiptStore(zeroDurationReceipts),
+  now: () => OBSERVED_AT,
+}).rereadUsageAccountPriceAndCost({
+  execution,
+  executionRef,
+  cloudTerminalObservationRef,
+  terminalOutcome: 'failed',
+  providerTimes: zeroDurationProviderTimes,
+})
+assert.equal(
+  zeroDurationEvidence.providerInferenceOrSubstantiveWorkOutcome,
+  'not_executed',
+)
+const zeroDurationReceipt = assertCanonicalA100VertexProviderAllocationCostReceipt(
+  zeroDurationReceipts.values().next().value,
+)
+assert.equal(zeroDurationReceipt.actualUsage.allocatedGpuMilliseconds, 0)
+assert.equal(zeroDurationReceipt.actualUsage.billableDurationMilliseconds,
+  30_000)
+assert.equal(zeroDurationReceipt.customerEligibleToolCostCredits, 0)
 
 const failedTerminalPayload = {
   ...terminalReadPayload,
@@ -433,7 +503,9 @@ console.log(JSON.stringify({
     approvedReservationSpentExactlyOnce: true,
     idempotentCreditSettlementExactReread: true,
     systemFailureCostAbsorbedByWeEditPro: true,
+    providerSecondPrecisionZeroDurationFailureSettledAtMinimumIncrement: true,
     receiptCreateOnlyAndExactReread: true,
+    restartRereadsFrozenAttemptReceiptWithoutRepricing: true,
     staleCrossedUnknownAndTamperedEvidenceRejected: true,
     workerStoppedAndActiveA100ZeroRequired: true,
     serviceFeeWalletQaPublicAndProductionRemainClosed: true,
@@ -708,7 +780,10 @@ function buildWorker(outcome: 'executed' | 'not_executed' | 'unknown') {
   })
 }
 
-function buildPlatform(workerRef: ReturnType<typeof ref>) {
+function buildPlatform(
+  workerRef: ReturnType<typeof ref>,
+  providerTimes = PROVIDER_TIMES,
+) {
   const payload = {
     schemaVersion: CANONICAL_A100_VERTEX_PLATFORM_USAGE_EVIDENCE_VERSION,
     source: 'canonical_server_vertex_platform_usage_owner' as const,
@@ -716,7 +791,7 @@ function buildPlatform(workerRef: ReturnType<typeof ref>) {
     executionRef,
     authorityRef: ref(authority.authorityId, authority.authorityHash),
     cloudTerminalObservationRef,
-    providerTimes: PROVIDER_TIMES,
+    providerTimes,
     workerUsageEvidenceRef: workerRef,
     platformUsageRereadRef: ref('platform-usage', sha('platform-usage')),
     providerJobTerminalStateReread: true as const,
@@ -746,6 +821,10 @@ function memoryReceiptStore(
   onCreate: () => void = () => undefined,
 ) {
   return {
+    async rereadAttemptCostReceiptIfPresent(input: { receiptId: string }) {
+      const value = records.get(input.receiptId)
+      return value ? structuredClone(value) : null
+    },
     async createAttemptCostReceiptOnly(input: {
       receipt: CanonicalA100VertexProviderAllocationCostReceipt
     }) {

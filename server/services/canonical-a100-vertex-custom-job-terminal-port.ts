@@ -308,8 +308,12 @@ export function createCanonicalA100VertexCustomJobTerminalPort(input: {
           )
           || provider.endTime === null
           || Date.parse(costEvidence.observedAt) < Date.parse(provider.endTime)
-          || Date.parse(observedAt) < Date.parse(costEvidence.observedAt)
         ) throw new Error('Vertex terminal cost evidence differs or is stale.')
+        const terminalObservedAt = timestamp.parse(now())
+        if (Date.parse(terminalObservedAt) <
+          Date.parse(costEvidence.observedAt)) {
+          throw new Error('Vertex terminal cost evidence differs or is stale.')
+        }
         return terminalRead({
           executionRef,
           disposition: 'terminal',
@@ -319,7 +323,7 @@ export function createCanonicalA100VertexCustomJobTerminalPort(input: {
           createTime: provider.createTime,
           startTime: provider.startTime,
           endTime: provider.endTime,
-          observedAt,
+          observedAt: terminalObservedAt,
         })
       } catch {
         return terminalRead({

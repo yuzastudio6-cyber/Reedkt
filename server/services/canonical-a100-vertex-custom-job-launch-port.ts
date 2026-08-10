@@ -49,7 +49,7 @@ const immutableImageUri = z.string().trim().max(512).regex(
   /^us-central1-docker\.pkg\.dev\/reeditpro\/[a-z0-9._-]+\/[a-z0-9._/-]+@sha256:[a-f0-9]{64}$/u,
 )
 const customJobResourceName = z.string().regex(
-  /^projects\/reeditpro\/locations\/us-central1\/customJobs\/[0-9]+$/u,
+  /^projects\/(?:reeditpro|390722338345)\/locations\/us-central1\/customJobs\/[0-9]+$/u,
 )
 
 const releaseWithoutHashSchema = z.object({

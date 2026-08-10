@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
 import {
-  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
-  type CanonicalCurrentGoogleCloudGpuRateAuthority,
-} from './canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  isCanonicalVertexA100RateAuthority,
+  type CanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from './canonical-professional-google-cloud-gpu-rate-authority'
 import {
   assertCanonicalQualityFirstProfessionalToolGpuPlacement,
   createCanonicalQualityFirstProfessionalToolGpuPlacement,
@@ -175,7 +176,7 @@ const estimateWithoutHashSchema = z.object({
   }).strict(),
   gpuPolicyRef: z.object({
     schemaVersion: z.literal(
-      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
     ),
     policyHash: sha256,
   }).strict(),
@@ -402,7 +403,7 @@ const costCalculationSchema = z.object({
   }).strict(),
   gpuPolicyRef: z.object({
     schemaVersion: z.literal(
-      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
     ),
     policyHash: sha256,
   }).strict(),
@@ -471,9 +472,11 @@ export type CanonicalProfessionalToolGpuCostCalculation = z.infer<
 
 export function calculateCanonicalProfessionalToolGpuCost(input: {
   readonly toolId: ProfessionalToolCatalogId
-  readonly primaryRateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly primaryRateAuthority:
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly primaryUsageRange: CanonicalProfessionalToolGpuUsageRange
-  readonly fallbackRateAuthority?: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly fallbackRateAuthority?:
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly fallbackUsageRange?: CanonicalProfessionalToolGpuUsageRange
   readonly primaryPreInferenceFailureHighUsage?:
     CanonicalProfessionalToolGpuUsage
@@ -538,7 +541,7 @@ export function calculateCanonicalProfessionalToolGpuCost(input: {
   )
   const fallback = heavy
     ? createRouteEstimate(
-        fallbackRate as CanonicalCurrentGoogleCloudGpuRateAuthority,
+        fallbackRate as CanonicalProfessionalGoogleCloudGpuRateAuthority,
         input.fallbackUsageRange as CanonicalProfessionalToolGpuUsageRange,
       )
     : null
@@ -616,9 +619,11 @@ export function calculateCanonicalProfessionalToolGpuCost(input: {
 export function createCanonicalProfessionalToolGpuCostEstimate(input: {
   readonly estimateId: string
   readonly scope: z.input<typeof estimateScopeSchema>
-  readonly primaryRateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly primaryRateAuthority:
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly primaryUsageRange: CanonicalProfessionalToolGpuUsageRange
-  readonly fallbackRateAuthority?: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly fallbackRateAuthority?:
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly fallbackUsageRange?: CanonicalProfessionalToolGpuUsageRange
   readonly primaryPreInferenceFailureHighUsage?:
     CanonicalProfessionalToolGpuUsage
@@ -691,7 +696,7 @@ export function createCanonicalProfessionalToolGpuAttemptCostReceipt(input: {
   readonly fundedReservationRef: z.input<typeof evidenceRefSchema>
   readonly executionAttemptId: string
   readonly routeId: z.infer<typeof routeIdSchema>
-  readonly rateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly rateAuthority: CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly workerUsageEvidenceRef: z.input<typeof evidenceRefSchema>
   readonly platformUsageRereadRef: z.input<typeof evidenceRefSchema>
   readonly priorPrimaryFailureReceiptRef?: z.input<typeof evidenceRefSchema>
@@ -828,7 +833,7 @@ export function assertCanonicalProfessionalToolGpuAttemptCostReceipt(
 }
 
 function createRouteEstimate(
-  rate: CanonicalCurrentGoogleCloudGpuRateAuthority,
+  rate: CanonicalProfessionalGoogleCloudGpuRateAuthority,
   range: CanonicalProfessionalToolGpuUsageRange,
 ): z.infer<typeof routeEstimateSchema> {
   const point = (usageInput: CanonicalProfessionalToolGpuUsage) => {
@@ -859,7 +864,7 @@ function usageForRoute(
   const exactAllocation = a100
     ? usage.allocatedVcpuCount === 12
       && usage.allocatedMemoryGiB === 170
-      && usage.allocatedLocalScratchGiB === 375
+      && usage.allocatedLocalScratchGiB === 0
     : usage.allocatedVcpuCount === 8
       && usage.allocatedMemoryGiB === 32
       && usage.allocatedLocalScratchGiB === 0
@@ -870,23 +875,31 @@ function usageForRoute(
 }
 
 function costFor(
-  rate: CanonicalCurrentGoogleCloudGpuRateAuthority,
+  rate: CanonicalProfessionalGoogleCloudGpuRateAuthority,
   usage: z.infer<typeof usageSchema>,
 ): z.infer<typeof costBreakdownSchema> {
   const component = (
-    name: CanonicalCurrentGoogleCloudGpuRateAuthority['components'][number]['componentClass'],
+    name: CanonicalProfessionalGoogleCloudGpuRateAuthority['components'][number]['componentClass'],
   ) => {
     const found = rate.components.find((item) => item.componentClass === name)
     if (!found) throw new Error(`GPU rate component is missing: ${name}`)
     return found.maximumUsdNanosPerBillingUnit
   }
-  const a100 = rate.routeId === 'a100_80gb_heavy_primary'
+  const a100 = isCanonicalVertexA100RateAuthority(rate)
+  const vertexBillableMilliseconds = a100
+    ? Math.ceil(usage.totalBillableMilliseconds / 30_000) * 30_000
+    : usage.totalBillableMilliseconds
   const acceleratorOrMachineUsdNanos = a100
     ? ceilProductDivision(
-        component('a2_ultragpu_1g_machine_bundle'),
-        usage.totalBillableMilliseconds,
-        1,
+        component('vertex_training_a100_80gb_hour'),
+        vertexBillableMilliseconds,
+        usage.allocatedGpuCount,
         60 * 60 * 1_000,
+      ) + ceilProductDivision(
+        component('vertex_training_pd_ssd_gib_month'),
+        vertexBillableMilliseconds,
+        200,
+        THIRTY_DAY_MONTH_MILLISECONDS,
       )
     : ceilProductDivision(
         component('cloud_run_l4_gpu_second'),
@@ -894,17 +907,21 @@ function costFor(
         usage.allocatedGpuCount,
         1_000,
       )
-  const vcpuUsdNanos = a100 ? 0 : ceilProductDivision(
-    component('cloud_run_vcpu_second'),
-    usage.totalBillableMilliseconds,
+  const vcpuUsdNanos = ceilProductDivision(
+    component(a100
+      ? 'vertex_training_a2_core_hour'
+      : 'cloud_run_vcpu_second'),
+    a100 ? vertexBillableMilliseconds : usage.totalBillableMilliseconds,
     usage.allocatedVcpuCount,
-    1_000,
+    a100 ? 60 * 60 * 1_000 : 1_000,
   )
-  const memoryUsdNanos = a100 ? 0 : ceilProductDivision(
-    component('cloud_run_memory_gib_second'),
-    usage.totalBillableMilliseconds,
+  const memoryUsdNanos = ceilProductDivision(
+    component(a100
+      ? 'vertex_training_a2_ram_gib_hour'
+      : 'cloud_run_memory_gib_second'),
+    a100 ? vertexBillableMilliseconds : usage.totalBillableMilliseconds,
     usage.allocatedMemoryGiB,
-    1_000,
+    a100 ? 60 * 60 * 1_000 : 1_000,
   )
   const privateStorageUsdNanos = ceilProductDivision(
     component('private_object_storage_gib_month'),
@@ -955,11 +972,11 @@ function costFor(
  * not create a customer settlement or mutate credits.
  */
 export function calculateCanonicalProfessionalGpuInfrastructureCost(input: {
-  readonly rateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly rateAuthority: CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly usage: CanonicalProfessionalToolGpuUsage
   readonly observedAt: string
 }): CanonicalProfessionalGpuInfrastructureCost {
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     input.rateAuthority,
     input.observedAt,
   )
@@ -967,11 +984,14 @@ export function calculateCanonicalProfessionalGpuInfrastructureCost(input: {
 }
 
 function assertRateForRoute(
-  value: CanonicalCurrentGoogleCloudGpuRateAuthority,
+  value: CanonicalProfessionalGoogleCloudGpuRateAuthority,
   routeId: z.infer<typeof routeIdSchema>,
   at: string,
-): CanonicalCurrentGoogleCloudGpuRateAuthority {
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(value, at)
+): CanonicalProfessionalGoogleCloudGpuRateAuthority {
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
+    value,
+    at,
+  )
   if (rate.routeId !== routeId) throw new Error(
     'Current cloud rate does not match the required GPU route.',
   )

@@ -46,7 +46,10 @@ export type GcpQualityFirstGpuRouteId =
 export interface GcpQualityFirstGpuRuntimeTemplate {
   routeId: GcpQualityFirstGpuRouteId
   name: string
-  runtimeKind: 'google_cloud_batch_job' | 'google_cloud_run_job'
+  runtimeKind:
+    | 'google_cloud_batch_job'
+    | 'google_cloud_vertex_custom_job'
+    | 'google_cloud_run_job'
   routeRole: 'heavy_primary' | 'heavy_fallback' | 'standard_primary'
   serviceAccountKey: Extract<GcpProductionServiceAccountKey, 'gpu_ai_worker'>
   imageName: string
@@ -156,19 +159,19 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
   {
     routeId: 'a100_80gb_heavy_primary',
     name: 'reeditpro-sam31-a100-primary',
-    runtimeKind: 'google_cloud_batch_job',
+    runtimeKind: 'google_cloud_vertex_custom_job',
     routeRole: 'heavy_primary',
     serviceAccountKey: 'gpu_ai_worker',
     imageName: 'reeditpro-sam31-gpu',
     region: 'us-central1',
-    allowedZones: ['us-central1-a', 'us-central1-c'],
+    allowedZones: [],
     machineType: 'a2-ultragpu-1g',
     accelerator: 'nvidia_a100_80gb',
     gpuCount: 1,
     gpuMemoryGiB: 80,
     cpu: 12,
     memoryGiB: 170,
-    localScratchGiB: 375,
+    localScratchGiB: 0,
     minimumIdleInstances: 0,
     maximumConcurrentAttemptsPerInstance: 1,
     maximumTaskRetries: 0,
@@ -181,7 +184,7 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     productionQualified: false,
     notes: [
       'Primary route for SAM 3.1 and every other approved heavy model or heavy processing profile.',
-      'Each approved attempt creates one bounded Batch job; no idle A100 pool or prewarming is allowed.',
+      'Each approved attempt creates one bounded Vertex AI Custom Job; no persistent resource, idle A100 pool, or prewarming is allowed.',
     ],
   },
   {
@@ -191,7 +194,7 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     routeRole: 'heavy_fallback',
     serviceAccountKey: 'gpu_ai_worker',
     imageName: 'reeditpro-sam31-gpu',
-    region: 'europe-west4',
+    region: 'us-central1',
     allowedZones: [],
     machineType: 'cloud_run_nvidia_l4',
     accelerator: 'nvidia_l4',
@@ -252,7 +255,7 @@ export const GCP_PRODUCTION_LEGACY_CLOUD_RUN_JOB_TEMPLATES = Object.freeze({
   historicalReadbackOnly: true,
   mayAuthorizeNewWork: false,
   replacementTopology:
-    'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+    'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
 })
 
 export const GCP_PRODUCTION_BUCKETS: GcpProductionBucketTemplate[] = [

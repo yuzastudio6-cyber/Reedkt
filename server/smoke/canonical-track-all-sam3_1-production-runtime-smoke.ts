@@ -26,9 +26,9 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v11')
+  'canonical-track-all-sam3_1-production-runtime-v12')
 assert.equal(runtime.runtimeMode,
-  'cloud_run_gcs_user_triggered_scale_from_zero')
+  'vertex_a100_cloud_run_l4_gcs_user_triggered_scale_from_zero')
 assert.equal(runtime.a100HeavyPrimary, true)
 assert.equal(runtime.a100PrimaryRequiresQualifiedReleaseAtAdmission, true)
 assert.equal(
@@ -163,6 +163,22 @@ assert.throws(() => createCanonicalTrackAllSam31ProductionRuntime({
 }), /processed-media/u)
 
 const entrypoint = readFileSync('server/index.ts', 'utf8')
+const productionRuntimeSource = readFileSync(
+  'server/services/canonical-track-all-sam3_1-production-runtime.ts',
+  'utf8',
+)
+assert.match(productionRuntimeSource,
+  /createCanonicalA100VertexCustomJobLaunchPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalA100VertexProfessionalGpuLaunchAdapter/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalA100VertexCustomJobDurableStore/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalSam31VertexQualificationQuotaReadPort/u)
+assert.match(productionRuntimeSource,
+  /google_cloud_vertex_custom_job_a2_ultra/u)
+assert.doesNotMatch(productionRuntimeSource,
+  /google_cloud_batch_a2_ultra_job/u)
 assert.match(entrypoint, /createCanonicalTrackAllSam31ProductionRuntime/u)
 assert.match(
   entrypoint,
@@ -184,9 +200,11 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 58,
+  checks: 64,
   localAndMockRuntimeMounted: false,
-  cloudRunGcsCompositionMounted: true,
+  vertexA100AndCloudRunL4GcsCompositionMounted: true,
+  vertexA100DurableLaunchAndLiveQuotaRereadMounted: true,
+  historicalBatchA100LaunchMounted: false,
   authenticatedRouteUsesDurableProductionRuntime: true,
   pricingFundingRateReleaseSourceProxyTaskAndLifecyclePortsComposed: true,
   privateGpuTaskAndProxyShareServerConfiguredBucket: true,

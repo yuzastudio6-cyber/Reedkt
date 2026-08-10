@@ -6,9 +6,9 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_QUALITY_FIRST_USER_TRIGGERED_GPU_POLICY_VERSION =
-  'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2' as const
-export const REEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION =
-  'reeditpro-quality-first-short-edit-target-v1' as const
+  'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3' as const
+export const WEEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION =
+  'weeditpro-quality-first-short-edit-target-v2' as const
 
 export const CANONICAL_QUALITY_FIRST_GPU_REGIONS = [
   'us-central1',
@@ -76,7 +76,7 @@ const acceleratorProfileSchema = z.object({
     'standard_primary',
   ]),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -101,14 +101,14 @@ const acceleratorProfileSchema = z.object({
 }).strict().superRefine((profile, context) => {
   const a100 = profile.profileId === PROFILE_IDS[0]
   const exact = a100
-    ? profile.executionTarget === 'google_cloud_batch_a2_ultra_job'
+    ? profile.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
       && profile.routeRole === 'heavy_primary'
       && profile.machineType === 'a2-ultragpu-1g'
       && profile.accelerator === 'nvidia_a100_80gb'
       && profile.gpuMemoryGiB === 80
       && profile.minimumVcpu === 12
       && profile.minimumMemoryGiB === 170
-      && profile.localScratchGiB === 375
+      && profile.localScratchGiB === 0
     : profile.executionTarget === 'google_cloud_run_l4_job'
       && profile.routeRole === (
         profile.profileId === PROFILE_IDS[1]
@@ -205,8 +205,10 @@ const policyWithoutHashSchema = z.object({
   serviceClass: z.literal('quality_first_user_triggered_scale_to_zero_gpu'),
   migration: z.object({
     supersedesPolicyVersion: z.literal(
-      'canonical-standard-l4-edit-performance-policy-v1',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
     ),
+    priorBatchA100PolicyRemainsHistoricalReadable: z.literal(true),
+    priorBatchA100PolicyMayAuthorizeNewPlan: z.literal(false),
     priorL4PrimaryPolicyRemainsHistoricalReadable: z.literal(true),
     priorL4PrimaryPolicyMayAuthorizeNewPlan: z.literal(false),
     a100IsPrimaryForHeavyProcessing: z.literal(true),
@@ -266,8 +268,8 @@ const policyWithoutHashSchema = z.object({
     exactPrebuiltImageAndPrivateModelArtifactRequired: z.literal(true),
   }).strict(),
   target: z.object({
-    schemaVersion: z.literal(
-      REEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION,
+      schemaVersion: z.literal(
+      WEEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION,
     ),
     rawFootageCeilingSeconds: z.literal(480),
     maximumUserTriggeredEndToEndSecondsIncludingColdStart: z.literal(480),
@@ -285,13 +287,11 @@ const policyWithoutHashSchema = z.object({
       z.literal('us-central1'),
       z.literal('europe-west4'),
     ]),
-    usA100Zones: z.tuple([
-      z.literal('us-central1-a'),
-      z.literal('us-central1-c'),
-    ]),
-    europeA100Zones: z.tuple([
-      z.literal('europe-west4-a'),
-    ]),
+    vertexA100Region: z.literal('us-central1'),
+    vertexCustomJobParent: z.literal(
+      'projects/reeditpro/locations/us-central1',
+    ),
+    directComputeOrBatchA100MayAuthorizeNewWork: z.literal(false),
     l4FallbackUsesSameRegionAsPrimary: z.literal(true),
     l4StandardUsesPrivateDataLocalRegion: z.literal(true),
     sourceLifecycleArtifactAndWorkerRegionMustMatch: z.literal(true),
@@ -358,7 +358,9 @@ const policyWithoutHashSchema = z.object({
     z.literal(
       'authenticated_account_effective_cloud_price_live_reread_and_credit_estimate_bridge',
     ),
-    z.literal('a100_80gb_batch_identity_quota_image_and_runtime_qualification'),
+    z.literal(
+      'a100_80gb_vertex_custom_job_identity_quota_image_and_runtime_qualification',
+    ),
     z.literal('l4_cloud_run_fallback_identity_quota_image_and_runtime_qualification'),
     z.literal('l4_standard_media_render_qa_identity_image_and_gpu_kernel_qualification'),
     z.literal('same_region_private_object_transport_for_both_gpu_routes'),
@@ -428,7 +430,9 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
     serviceClass: 'quality_first_user_triggered_scale_to_zero_gpu',
     migration: {
       supersedesPolicyVersion:
-        'canonical-standard-l4-edit-performance-policy-v1',
+        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+      priorBatchA100PolicyRemainsHistoricalReadable: true,
+      priorBatchA100PolicyMayAuthorizeNewPlan: false,
       priorL4PrimaryPolicyRemainsHistoricalReadable: true,
       priorL4PrimaryPolicyMayAuthorizeNewPlan: false,
       a100IsPrimaryForHeavyProcessing: true,
@@ -484,7 +488,7 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
       exactPrebuiltImageAndPrivateModelArtifactRequired: true,
     },
     target: {
-      schemaVersion: REEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION,
+      schemaVersion: WEEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION,
       rawFootageCeilingSeconds: 480,
       maximumUserTriggeredEndToEndSecondsIncludingColdStart: 480,
       approvedTriggerToTerminalResultMeasured: true,
@@ -499,8 +503,9 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
     regionalPlacement: {
       approvedPrivateDataLocalRuntimeRegions:
         CANONICAL_QUALITY_FIRST_GPU_REGIONS,
-      usA100Zones: ['us-central1-a', 'us-central1-c'],
-      europeA100Zones: ['europe-west4-a'],
+      vertexA100Region: 'us-central1',
+      vertexCustomJobParent: 'projects/reeditpro/locations/us-central1',
+      directComputeOrBatchA100MayAuthorizeNewWork: false,
       l4FallbackUsesSameRegionAsPrimary: true,
       l4StandardUsesPrivateDataLocalRegion: true,
       sourceLifecycleArtifactAndWorkerRegionMustMatch: true,
@@ -512,13 +517,13 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
       acceleratorProfile({
         profileId: PROFILE_IDS[0],
         routeRole: 'heavy_primary',
-        executionTarget: 'google_cloud_batch_a2_ultra_job',
+        executionTarget: 'google_cloud_vertex_custom_job_a2_ultra',
         machineType: 'a2-ultragpu-1g',
         accelerator: 'nvidia_a100_80gb',
         gpuMemoryGiB: 80,
         minimumVcpu: 12,
         minimumMemoryGiB: 170,
-        localScratchGiB: 375,
+        localScratchGiB: 0,
       }),
       acceleratorProfile({
         profileId: PROFILE_IDS[1],
@@ -643,7 +648,7 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
     },
     remainingGates: [
       'authenticated_account_effective_cloud_price_live_reread_and_credit_estimate_bridge',
-      'a100_80gb_batch_identity_quota_image_and_runtime_qualification',
+      'a100_80gb_vertex_custom_job_identity_quota_image_and_runtime_qualification',
       'l4_cloud_run_fallback_identity_quota_image_and_runtime_qualification',
       'l4_standard_media_render_qa_identity_image_and_gpu_kernel_qualification',
       'same_region_private_object_transport_for_both_gpu_routes',
@@ -700,14 +705,14 @@ function acceleratorProfile(input: {
   profileId: (typeof PROFILE_IDS)[number]
   routeRole: 'heavy_primary' | 'heavy_fallback' | 'standard_primary'
   executionTarget:
-    | 'google_cloud_batch_a2_ultra_job'
+    | 'google_cloud_vertex_custom_job_a2_ultra'
     | 'google_cloud_run_l4_job'
   machineType: 'a2-ultragpu-1g' | 'cloud_run_nvidia_l4'
   accelerator: 'nvidia_a100_80gb' | 'nvidia_l4'
   gpuMemoryGiB: 80 | 24
   minimumVcpu: 12 | 8
   minimumMemoryGiB: 170 | 32
-  localScratchGiB: 375 | 0
+  localScratchGiB: 0
 }) {
   return {
     ...input,

@@ -31,7 +31,7 @@ export const CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_REPOSITORY_VERSION =
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_STATE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
-const DEFAULT_PREFIX = 'private/sam3_1/gpu-runtime-qualification/v1'
+const DEFAULT_PREFIX = 'private/sam3_1/gpu-runtime-qualification/v2'
 const MAXIMUM_RECORD_BYTES = 4 * 1024 * 1024
 const safePrefix = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/u)
@@ -285,8 +285,8 @@ function recordBody(value: unknown): Buffer {
 }
 
 function sameRef(
-  left: QualificationEvidenceRef,
-  right: QualificationEvidenceRef,
+  left: { readonly id: string; readonly version: number; readonly contentHash: string },
+  right: { readonly id: string; readonly version: number; readonly contentHash: string },
 ): boolean {
   return left.id === right.id
     && left.version === right.version

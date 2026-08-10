@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_PRIVATE_ARTIFACT_INGEST_VERSION,
+} from './canonical-sam3_1-private-artifact-ingest'
+import {
   CANONICAL_SAM3_1_SOURCE_CHECKPOINT_QUALIFICATION_VERSION,
   assertCanonicalSam31SourceCheckpointQualification,
   canonicalSam31SourceCheckpointQualificationRef,
@@ -132,10 +135,13 @@ export function createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPo
     input,
   )
   return Object.freeze({
-    async rereadQualificationRelease({ sourceCheckpointQualificationRef }) {
+    async rereadQualificationRelease(input: {
+      readonly sourceCheckpointQualificationRef:
+        CanonicalSam31SourceCheckpointQualificationReference
+    }) {
       const reference =
         canonicalSam31SourceCheckpointQualificationReferenceSchema.parse(
-          sourceCheckpointQualificationRef,
+          input.sourceCheckpointQualificationRef,
         )
       return reference.version === 1
         ? historical.rereadQualificationRelease({
@@ -284,6 +290,7 @@ export function projectCanonicalSam31QualifiedSourceCheckpointAuthority(
     ingestReceiptRef: Object.freeze({
       id: authority.ingestReceipt.ingestReceiptId,
       version: authority.ingestReceipt.ingestReceiptVersion,
+      schemaVersion: CANONICAL_SAM3_1_PRIVATE_ARTIFACT_INGEST_VERSION,
       contentHash: `sha256:${authority.ingestReceipt.ingestReceiptHash}`,
     }),
     runtime: Object.freeze({

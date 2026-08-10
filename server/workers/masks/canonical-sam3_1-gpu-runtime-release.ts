@@ -44,7 +44,7 @@ import {
 } from './canonical-sam3_1-gpu-runtime-qualification-evidence'
 
 export const CANONICAL_SAM3_1_GPU_RUNTIME_RELEASE_VERSION =
-  'canonical-sam3_1-gpu-runtime-release-v1' as const
+  'canonical-sam3_1-gpu-runtime-release-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -74,7 +74,7 @@ const routeSchema = z.object({
   ]),
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -86,12 +86,12 @@ const routeSchema = z.object({
   const a100 = route.routeId === 'a100_80gb_heavy_primary'
   const exact = a100
     ? route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[0]
-      && route.executionTarget === 'google_cloud_batch_a2_ultra_job'
+      && route.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
       && route.machineType === 'a2-ultragpu-1g'
       && route.accelerator === 'nvidia_a100_80gb'
       && route.allocatedVcpuCount === 12
       && route.allocatedMemoryGiB === 170
-      && route.allocatedLocalScratchGiB === 375
+      && route.allocatedLocalScratchGiB === 0
     : route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[1]
       && route.executionTarget === 'google_cloud_run_l4_job'
       && route.machineType === 'cloud_run_nvidia_l4'
@@ -783,7 +783,7 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
   })
   const genericPayload = {
     schemaVersion:
-      'canonical-professional-tool-gpu-runtime-release-observation-v2' as const,
+      'canonical-professional-tool-gpu-runtime-release-observation-v3' as const,
     source: 'canonical_server_gpu_runtime_release_registry' as const,
     evidenceClass: release.evidenceClass,
     releaseId: release.releaseId,

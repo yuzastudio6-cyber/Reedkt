@@ -6,6 +6,7 @@ import {
   type CanonicalSam31CloudImageSupplyChainRelease,
 } from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
 import {
+  CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_EVIDENCE_VERSION,
   assertCanonicalSam31GpuRuntimeQualificationEvidence,
   canonicalSam31GpuRuntimeDeterministicRunSchema,
   canonicalSam31GpuRuntimeDriverEvidenceSchema,
@@ -177,7 +178,7 @@ export function createCanonicalSam31GpuRuntimeQualificationEvidenceOwner(
       }
       const payload = {
         schemaVersion:
-          'canonical-sam3_1-gpu-runtime-qualification-evidence-v1' as const,
+          CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_EVIDENCE_VERSION,
         source:
           'canonical_server_sam3_1_gpu_runtime_qualification_owner' as const,
         evidenceClass: 'canonical_private_reread' as const,

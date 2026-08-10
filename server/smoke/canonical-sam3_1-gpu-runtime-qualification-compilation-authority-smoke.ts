@@ -304,7 +304,7 @@ export const released = await prepareCanonicalSam31GpuRuntimeRelease({
       ...canonicalEvidence.route,
       allocatedVcpuCount: 12,
       allocatedMemoryGiB: 170,
-      allocatedLocalScratchGiB: 375,
+      allocatedLocalScratchGiB: 0,
     },
     serviceIdentityRef: canonicalEvidence.serviceIdentityRef,
     immutableImageRef: canonicalEvidence.immutableImageRef,
@@ -347,7 +347,7 @@ await assert.rejects(prepareCanonicalSam31GpuRuntimeRelease({
       ...canonicalEvidence.route,
       allocatedVcpuCount: 12,
       allocatedMemoryGiB: 170,
-      allocatedLocalScratchGiB: 375,
+      allocatedLocalScratchGiB: 0,
     },
     serviceIdentityRef: canonicalEvidence.serviceIdentityRef,
     immutableImageRef: canonicalEvidence.immutableImageRef,
@@ -437,7 +437,7 @@ function component(
 ): CanonicalSam31GpuRuntimeQualificationComponentEvidence {
   const withoutHash = {
     schemaVersion:
-      'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v1' as const,
+      'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v2' as const,
     source:
       'canonical_sam3_1_gpu_runtime_qualification_component_owner' as const,
     evidenceClass: 'canonical_private_reread' as const,

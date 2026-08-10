@@ -12,9 +12,9 @@ import {
   parseOrchestraSkillCall,
 } from '../orchestra/orchestra-skill-capability-contract'
 import {
-  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
-  type CanonicalCurrentGoogleCloudGpuRateAuthority,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  type CanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
   assertCanonicalProfessionalGpuRuntimeLaunchTarget,
   assertPlainSerializedData,
@@ -658,14 +658,14 @@ async function rereadRate(input: {
   ref: z.infer<typeof refSchema>
   routeId: z.infer<typeof routeIdSchema>
   at: string
-}): Promise<CanonicalCurrentGoogleCloudGpuRateAuthority> {
+}): Promise<CanonicalProfessionalGoogleCloudGpuRateAuthority> {
   const value = await input.port.rereadApprovedCurrentRate({
     rateAuthorityRef: input.ref,
     routeId: input.routeId,
     at: input.at,
   })
   assertPlainSerializedData(value, 'sam31_task_current_rate')
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     value,
     input.at,
   )
@@ -677,7 +677,7 @@ async function rereadRate(input: {
 }
 
 function rateRef(
-  rate: CanonicalCurrentGoogleCloudGpuRateAuthority,
+  rate: CanonicalProfessionalGoogleCloudGpuRateAuthority,
 ): z.infer<typeof refSchema> {
   return refSchema.parse({
     id: rate.rateAuthorityId,

@@ -917,7 +917,7 @@ function buildAdmission(input: {
     },
     gpuPolicyRef: {
       schemaVersion:
-        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2' as const,
+        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3' as const,
       policyHash: sha('gpu-policy'),
     },
     runtimeReleaseRef: input.releaseRef,

@@ -473,18 +473,18 @@ function releaseRoute(routeId: z.infer<typeof routeIdSchema>) {
         gpuProfileId:
           'quality_a100_80gb_user_triggered_heavy_job_v1' as const,
         runtimeRegion: 'us-central1' as const,
-        executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
+        executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
         machineType: 'a2-ultragpu-1g' as const,
         accelerator: 'nvidia_a100_80gb' as const,
         allocatedVcpuCount: 12 as const,
         allocatedMemoryGiB: 170 as const,
-        allocatedLocalScratchGiB: 375 as const,
+        allocatedLocalScratchGiB: 0 as const,
       }
     : {
         routeId,
         gpuProfileId:
           'quality_l4_user_triggered_heavy_fallback_job_v1' as const,
-        runtimeRegion: 'europe-west4' as const,
+        runtimeRegion: 'us-central1' as const,
         executionTarget: 'google_cloud_run_l4_job' as const,
         machineType: 'cloud_run_nvidia_l4' as const,
         accelerator: 'nvidia_l4' as const,

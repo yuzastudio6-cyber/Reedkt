@@ -55,7 +55,7 @@ const launchTarget = {
   operationId: admission.operationId,
   routeId: admission.routeId,
   runtimeRegion: 'us-central1' as const,
-  executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
+  executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
   machineType: 'a2-ultragpu-1g' as const,
   accelerator: 'nvidia_a100_80gb' as const,
   immutableImageRef: ref('sam31-a100-image'),
@@ -532,7 +532,7 @@ function buildAdmission(admissionId: string, executionAttemptId: string) {
     },
     gpuPolicyRef: {
       schemaVersion:
-        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2' as const,
+        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3' as const,
       policyHash: sha256AuthorityValue('gpu-policy'),
     },
     runtimeReleaseRef: ref('sam31-private-runtime-release-1'),

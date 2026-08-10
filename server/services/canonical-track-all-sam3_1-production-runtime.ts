@@ -12,6 +12,9 @@ import {
   createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
 } from './canonical-current-google-cloud-gpu-rate-authority-repository'
 import {
+  createCanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository,
+} from './canonical-current-google-cloud-vertex-a100-rate-authority-repository'
+import {
   createCanonicalProfessionalGpuDurableLifecycleStore,
 } from './canonical-professional-gpu-durable-lifecycle-store'
 import {
@@ -26,6 +29,21 @@ import {
 import {
   createGoogleCloudProfessionalGpuJobLaunchPort,
 } from './canonical-professional-google-cloud-gpu-job-launch-port'
+import type {
+  CanonicalProfessionalGpuCloudJobLaunchPort,
+} from './canonical-professional-gpu-job-lifecycle-service'
+import {
+  createCanonicalA100VertexCustomJobDurableStore,
+} from './canonical-a100-vertex-custom-job-durable-store'
+import {
+  createCanonicalA100VertexCustomJobLaunchPort,
+} from './canonical-a100-vertex-custom-job-launch-port'
+import {
+  createCanonicalA100VertexProfessionalGpuLaunchAdapter,
+} from './canonical-a100-vertex-professional-gpu-launch-adapter'
+import {
+  createCanonicalSam31VertexQualificationQuotaReadPort,
+} from './canonical-sam3_1-source-checkpoint-qualification-vertex-runtime'
 import {
   createCanonicalGcsSam31ApprovedTrackAllTaskSourceRepository,
 } from './canonical-sam3_1-approved-track-all-task-source-repository'
@@ -97,14 +115,15 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v11' as const
+  'canonical-track-all-sam3_1-production-runtime-v12' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
 export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly schemaVersion:
     typeof CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION
-  readonly runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero'
+  readonly runtimeMode:
+    'vertex_a100_cloud_run_l4_gcs_user_triggered_scale_from_zero'
   readonly skillQualificationRegistryReadPort:
     CanonicalSkillQualificationRegistryReadPort
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
@@ -195,6 +214,31 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository({
       objectPort: controlPlaneObjectPort,
     })
+  const currentVertexA100RateAuthorityRepository =
+    createCanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const currentExecutionRateAuthorityReadPort = Object.freeze({
+    async rereadApprovedCurrentRate(request: {
+      readonly rateAuthorityRef: {
+        readonly id: string
+        readonly version: number
+        readonly contentHash: string
+      }
+      readonly routeId:
+        | 'a100_80gb_heavy_primary'
+        | 'l4_heavy_fallback'
+        | 'l4_standard_primary'
+      readonly at: string
+    }) {
+      return request.routeId === 'a100_80gb_heavy_primary'
+        ? currentVertexA100RateAuthorityRepository.reread({
+          rateAuthorityRef: request.rateAuthorityRef,
+          at: request.at,
+        })
+        : currentRateAuthorityRepository.rereadApprovedCurrentRate(request)
+    },
+  })
   const runtimeConfigurationRepository =
     createCanonicalGcsProfessionalGoogleCloudGpuRuntimeConfigurationRepository({
       storage,
@@ -308,16 +352,51 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       taskQaOwner: captionTrackAllTaskQaOwner,
       supportService: captionTrackAllSupportService,
     })
-  const rawCloudLaunchPort = createGoogleCloudProfessionalGpuJobLaunchPort({
+  const l4CloudLaunchPort = createGoogleCloudProfessionalGpuJobLaunchPort({
     releaseReadPort: runtimeConfigurationRepository,
     privateObjectTransportReadPort: runtimeConfigurationRepository,
   })
+  const vertexA100DurableStore =
+    createCanonicalA100VertexCustomJobDurableStore({
+      objectPort: controlPlaneObjectPort,
+    })
+  const vertexA100LaunchPort = createCanonicalA100VertexCustomJobLaunchPort({
+    consumptionPort: vertexA100DurableStore,
+    executionRepository: vertexA100DurableStore,
+  })
+  const vertexA100ProfessionalLaunchPort =
+    createCanonicalA100VertexProfessionalGpuLaunchAdapter({
+      releasePairReadPort: releasePairRegistry,
+      rateAuthorityReadPort: currentVertexA100RateAuthorityRepository,
+      quotaReadPort: createCanonicalSam31VertexQualificationQuotaReadPort(),
+      vertexLaunchPort: vertexA100LaunchPort,
+    })
+  const rawCloudLaunchPort: CanonicalProfessionalGpuCloudJobLaunchPort =
+    Object.freeze({
+      async startOneShotJob(request) {
+        if (request.admission.routeId === 'a100_80gb_heavy_primary') {
+          if (request.target.executionTarget !==
+            'google_cloud_vertex_custom_job_a2_ultra') {
+            throw new Error(
+              'Current A100 work may launch only through Vertex Custom Jobs.',
+            )
+          }
+          return vertexA100ProfessionalLaunchPort.startOneShotJob(request)
+        }
+        if ((request.admission.routeId !== 'l4_standard_primary'
+            && request.admission.routeId !== 'l4_heavy_fallback')
+          || request.target.executionTarget !== 'google_cloud_run_l4_job') {
+          throw new Error('Current L4 work may launch only through Cloud Run.')
+        }
+        return l4CloudLaunchPort.startOneShotJob(request)
+      },
+    })
   const runtimeComposition = createCanonicalSam31FundedGpuRuntimeComposition({
     taskContextRepository,
     approvedTaskMaterialSourceReadPort:
       approvedTaskMaterialSourceRepository,
     releasePairReadPort: releasePairRegistry,
-    rateAuthorityReadPort: currentRateAuthorityRepository,
+    rateAuthorityReadPort: currentExecutionRateAuthorityReadPort,
     privateInputStagingPort,
     taskStore,
     rawCloudLaunchPort,
@@ -334,8 +413,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
         releasePairRegistry,
       ),
     rereadApprovedCurrentRate:
-      currentRateAuthorityRepository.rereadApprovedCurrentRate.bind(
-        currentRateAuthorityRepository,
+      currentExecutionRateAuthorityReadPort.rereadApprovedCurrentRate.bind(
+        currentExecutionRateAuthorityReadPort,
       ),
   })
   const authenticatedRuntime =
@@ -369,7 +448,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
 
   return Object.freeze({
     schemaVersion: CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION,
-    runtimeMode: 'cloud_run_gcs_user_triggered_scale_from_zero' as const,
+    runtimeMode:
+      'vertex_a100_cloud_run_l4_gcs_user_triggered_scale_from_zero' as const,
     skillQualificationRegistryReadPort: Object.freeze({
       schemaVersion: skillQualificationRegistry.schemaVersion,
       evidenceClass: skillQualificationRegistry.evidenceClass,

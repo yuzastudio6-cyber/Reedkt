@@ -42,7 +42,8 @@ const launchPort = createCanonicalA100VertexCustomJobLaunchPort({
       const body = request.data as { displayName: string }
       return {
         data: {
-          name: 'projects/reeditpro/locations/us-central1/customJobs/12345',
+          name:
+            'projects/390722338345/locations/us-central1/customJobs/12345',
           displayName: body.displayName,
           state: 'JOB_STATE_PENDING',
         },
@@ -60,7 +61,7 @@ assert.ok(result.customJobExecutionRef)
 assert.ok(persistedExecution)
 assert.equal(
   (persistedExecution as Record<string, unknown>).customJobResourceName,
-  'projects/reeditpro/locations/us-central1/customJobs/12345',
+  'projects/390722338345/locations/us-central1/customJobs/12345',
 )
 assert.equal(result.minimumIdleInstances, 0)
 assert.equal(result.persistentEndpointCreated, false)

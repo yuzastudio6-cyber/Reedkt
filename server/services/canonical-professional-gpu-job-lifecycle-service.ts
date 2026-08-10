@@ -47,6 +47,7 @@ export const canonicalProfessionalGpuRuntimeLaunchTargetSchema = z.object({
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
     'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -66,7 +67,8 @@ export const canonicalProfessionalGpuRuntimeLaunchTargetSchema = z.object({
 }).strict().superRefine((target, context) => {
   const a100 = target.routeId === 'a100_80gb_heavy_primary'
   const exact = a100
-    ? target.executionTarget === 'google_cloud_batch_a2_ultra_job'
+    ? (target.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+      || target.executionTarget === 'google_cloud_batch_a2_ultra_job')
       && target.machineType === 'a2-ultragpu-1g'
       && target.accelerator === 'nvidia_a100_80gb'
     : target.executionTarget === 'google_cloud_run_l4_job'
@@ -312,7 +314,7 @@ const launchWithoutHashSchema = z.object({
   routeId: routeIdSchema,
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   accelerator: z.enum(['nvidia_a100_80gb', 'nvidia_l4']),

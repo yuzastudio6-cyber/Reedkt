@@ -17,6 +17,7 @@ import {
   type CanonicalSam31GpuCompleteSourcePerformanceEvidence,
 } from './canonical-sam3_1-gpu-complete-source-performance-owner'
 import {
+  CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
   buildCanonicalSam31GpuRuntimeQualificationComponentEvidence,
   canonicalSam31GpuRuntimeQualificationComponentRef,
   type CanonicalSam31GpuRuntimeQualificationComponentEvidence,
@@ -325,7 +326,7 @@ export function createCanonicalSam31GpuPerformanceP95QualificationOwner(
       const component =
         buildCanonicalSam31GpuRuntimeQualificationComponentEvidence({
           schemaVersion:
-            'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v1',
+            CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
           source:
             'canonical_sam3_1_gpu_runtime_qualification_component_owner',
           evidenceClass: 'canonical_private_reread',

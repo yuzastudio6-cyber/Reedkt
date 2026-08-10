@@ -56,7 +56,7 @@ const ownerInput = {
       ...canonicalEvidence.route,
       allocatedVcpuCount: 12 as const,
       allocatedMemoryGiB: 170 as const,
-      allocatedLocalScratchGiB: 375 as const,
+      allocatedLocalScratchGiB: 0 as const,
     },
     serviceIdentityRef: canonicalEvidence.serviceIdentityRef,
     immutableImageRef: canonicalEvidence.immutableImageRef,

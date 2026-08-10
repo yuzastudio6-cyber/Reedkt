@@ -9,9 +9,9 @@ import {
   createCanonicalQualityFirstUserTriggeredGpuPolicy,
 } from './canonical-quality-first-user-triggered-gpu-policy'
 import {
-  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
-  type CanonicalCurrentGoogleCloudGpuRateAuthority,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  type CanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
   assertCanonicalProfessionalToolGpuCostEstimate,
   type CanonicalProfessionalToolGpuCostEstimate,
@@ -23,7 +23,7 @@ import {
 import { ALL_PROFESSIONAL_TOOL_CATALOG_IDS } from '../tool-registry'
 
 export const CANONICAL_PROFESSIONAL_TOOL_GPU_RUNTIME_RELEASE_VERSION =
-  'canonical-professional-tool-gpu-runtime-release-observation-v2' as const
+  'canonical-professional-tool-gpu-runtime-release-observation-v3' as const
 export const CANONICAL_PROFESSIONAL_TOOL_GPU_DISPATCH_ADMISSION_VERSION =
   'canonical-professional-tool-gpu-dispatch-admission-v1' as const
 
@@ -71,7 +71,7 @@ const runtimeReleaseWithoutHashSchema = z.object({
   routeId: routeIdSchema,
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -119,12 +119,12 @@ const runtimeReleaseWithoutHashSchema = z.object({
 }).strict().superRefine((release, context) => {
   const a100 = release.routeId === 'a100_80gb_heavy_primary'
   const exactRoute = a100
-    ? release.executionTarget === 'google_cloud_batch_a2_ultra_job'
+    ? release.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
       && release.machineType === 'a2-ultragpu-1g'
       && release.accelerator === 'nvidia_a100_80gb'
       && release.allocatedVcpuCount === 12
       && release.allocatedMemoryGiB === 170
-      && release.allocatedLocalScratchGiB === 375
+      && release.allocatedLocalScratchGiB === 0
     : release.executionTarget === 'google_cloud_run_l4_job'
       && release.machineType === 'cloud_run_nvidia_l4'
       && release.accelerator === 'nvidia_l4'
@@ -214,7 +214,7 @@ const admissionWithoutHashSchema = z.object({
   }).strict(),
   gpuPolicyRef: z.object({
     schemaVersion: z.literal(
-      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
     ),
     policyHash: sha256,
   }).strict(),
@@ -288,7 +288,8 @@ export function admitCanonicalProfessionalToolGpuDispatch(input: {
   readonly admissionId: string
   readonly estimate: CanonicalProfessionalToolGpuCostEstimate
   readonly runtimeRelease: CanonicalProfessionalToolGpuRuntimeRelease
-  readonly currentRateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly currentRateAuthority:
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly scope: z.input<typeof admissionScopeSchema>
   readonly routeId: z.infer<typeof routeIdSchema>
   readonly priorPrimaryTerminalReceiptRef?: z.input<typeof evidenceRefSchema>
@@ -307,7 +308,7 @@ export function admitCanonicalProfessionalToolGpuDispatch(input: {
     || !release.privateInternalQualified) {
     throw new Error('GPU runtime is not privately qualified.')
   }
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     input.currentRateAuthority,
     input.admittedAt,
   )

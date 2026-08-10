@@ -126,12 +126,12 @@ const releaseInput = {
     gpuProfileId:
       'quality_a100_80gb_user_triggered_heavy_job_v1' as const,
     runtimeRegion: 'us-central1' as const,
-    executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
+    executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
     machineType: 'a2-ultragpu-1g' as const,
     accelerator: 'nvidia_a100_80gb' as const,
     allocatedVcpuCount: 12 as const,
     allocatedMemoryGiB: 170 as const,
-    allocatedLocalScratchGiB: 375 as const,
+    allocatedLocalScratchGiB: 0 as const,
   },
   serviceIdentityRef: ref('sam31-a100-service-identity'),
   immutableImageRef: ref('sam31-a100-image'),
@@ -598,7 +598,7 @@ QualificationEvidencePayload {
   const wallTimes = [420_000, 430_000, 440_000, 450_000, 460_000]
   return {
     schemaVersion:
-      'canonical-sam3_1-gpu-runtime-qualification-evidence-v1',
+      'canonical-sam3_1-gpu-runtime-qualification-evidence-v2',
     source: 'canonical_server_sam3_1_gpu_runtime_qualification_owner',
     evidenceClass: 'canonical_private_reread',
     status: 'private_runtime_qualification_evidence_ready',

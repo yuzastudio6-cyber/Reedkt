@@ -11,6 +11,11 @@ import {
   observeCanonicalCurrentGoogleCloudGpuRateAuthority,
   type CanonicalGoogleCloudGpuRateRawObservation,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+import {
+  CANONICAL_VERTEX_A100_RATE_COMPONENT_CLASSES,
+  observeCanonicalCurrentGoogleCloudVertexA100RateAuthority,
+  type CanonicalGoogleCloudVertexA100RateRawObservation,
+} from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-rate-authority'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 const observedAt = '2026-08-02T16:00:00.000Z'
@@ -25,7 +30,7 @@ const ref = (id: string, character: string) => ({
 
 export const a100 = await observe('a100_80gb_heavy_primary')
 export const l4Fallback = await observe('l4_heavy_fallback')
-const l4Standard = await observe('l4_standard_primary')
+export const l4Standard = await observe('l4_standard_primary')
 const l4FallbackOtherBillingAccount = await observe(
   'l4_heavy_fallback',
   '6',
@@ -72,8 +77,8 @@ assert.equal(standardEstimate.modelOrOperationCostProfileId,
   'l4_standard_media_render_and_qa_v1')
 assert.ok(standardEstimate.primary.high.cost.vcpuUsdNanos > 0)
 assert.ok(standardEstimate.primary.high.cost.memoryUsdNanos > 0)
-assert.equal(heavyEstimate.primary.high.cost.vcpuUsdNanos, 0)
-assert.equal(heavyEstimate.primary.high.cost.memoryUsdNanos, 0)
+assert.ok(heavyEstimate.primary.high.cost.vcpuUsdNanos > 0)
+assert.ok(heavyEstimate.primary.high.cost.memoryUsdNanos > 0)
 
 assert.throws(() => createCanonicalProfessionalToolGpuCostEstimate({
   estimateId: 'estimate-control-invalid',
@@ -298,7 +303,7 @@ function usage(
     allocatedGpuCount: 1,
     allocatedVcpuCount: route === 'a100' ? 12 : 8,
     allocatedMemoryGiB: route === 'a100' ? 170 : 32,
-    allocatedLocalScratchGiB: route === 'a100' ? 375 : 0,
+    allocatedLocalScratchGiB: 0,
     privateArtifactBytes: 128 * 1024 * 1024,
     privateArtifactRetentionMilliseconds: 24 * 60 * 60 * 1_000,
     networkEgressBytes: 0,
@@ -336,6 +341,20 @@ async function observe(
   billingAccountCharacter = '8',
   readerCharacter = '7',
 ) {
+  if (routeId === 'a100_80gb_heavy_primary') {
+    return observeCanonicalCurrentGoogleCloudVertexA100RateAuthority({
+      rateAuthorityId: 'current-vertex-a100-rate-v1',
+      rateAuthorityVersion: 1,
+      readPort: {
+        async readCurrentVertexA100Rate() {
+          return vertexA100RawObservation(
+            billingAccountCharacter,
+            readerCharacter,
+          )
+        },
+      },
+    })
+  }
   return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
     rateAuthorityId: `current-rate-${routeId}-v1`,
     rateAuthorityVersion: 1,
@@ -351,6 +370,97 @@ async function observe(
       },
     },
   })
+}
+
+function vertexA100RawObservation(
+  billingAccountCharacter = '8',
+  readerCharacter = '7',
+): CanonicalGoogleCloudVertexA100RateRawObservation {
+  const components = [
+    vertexComponent('vertex_training_a100_80gb_hour', 'gpu_hour',
+      'h', 4_517_292_000, 'a'),
+    vertexComponent('vertex_training_a2_core_hour', 'vcpu_hour',
+      'h', 36_352_650, 'b'),
+    vertexComponent('vertex_training_a2_ram_gib_hour', 'gib_hour',
+      'GiBy.h', 4_872_550, 'c'),
+    vertexComponent('vertex_training_pd_ssd_gib_month', 'gib_month',
+      'GiBy.mo', 195_500_000, 'd'),
+    vertexComponent('private_object_storage_gib_month', 'gib_month',
+      'GiBy.mo', 20_000_000, 'e'),
+    vertexComponent('network_egress_gib', 'gib',
+      'GiBy', 120_000_000, 'f'),
+    vertexComponent('object_class_a_per_1000', 'per_1000_operations',
+      'count', 5_000_000, '1', '1000'),
+    vertexComponent('object_class_b_per_1000', 'per_1000_operations',
+      'count', 400_000, '2', '1000'),
+  ]
+  assert.deepEqual(components.map((value) => value.componentClass),
+    CANONICAL_VERTEX_A100_RATE_COMPONENT_CLASSES)
+  const payload = {
+    sourceClass: 'billing_account_effective_pricing_api' as const,
+    billingAccountPricingScopeRef:
+      ref('billing-account-pricing-scope', billingAccountCharacter),
+    pricingReaderConfigurationRef:
+      ref('gpu-rate-reader-configuration', readerCharacter),
+    routeId: 'a100_80gb_heavy_primary' as const,
+    executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
+    pricingSetMode: 'vertex_training_payg_usage_skus' as const,
+    region: 'us-central1' as const,
+    currency: 'USD' as const,
+    components,
+    priceRecordSetRef: ref('vertex-a100-price-record-set', '9'),
+    pricingReadStartedAt: '2026-08-02T15:59:55.000Z',
+    pricingReadFinishedAt: observedAt,
+  }
+  return {
+    ...payload,
+    pricingReadDigestSha256: sha256AuthorityValue(payload),
+  }
+}
+
+function vertexComponent(
+  componentClass:
+    typeof CANONICAL_VERTEX_A100_RATE_COMPONENT_CLASSES[number],
+  billingUnit:
+    | 'gpu_hour' | 'vcpu_hour' | 'gib_hour' | 'gib_month' | 'gib'
+    | 'per_1000_operations',
+  apiUnit: 'h' | 'GiBy.h' | 'GiBy.mo' | 'GiBy' | 'count',
+  maximumUsdNanosPerBillingUnit: number,
+  character: string,
+  apiUnitQuantity = '1',
+) {
+  const cloudServiceName = componentClass.startsWith('vertex_training')
+    ? 'vertex-ai' : 'cloud-storage'
+  const cloudServiceId = componentClass.startsWith('vertex_training')
+    ? 'services/aiplatform.googleapis.com'
+    : 'services/storage.googleapis.com'
+  const skuId = `sku-${componentClass}`
+  return {
+    componentClass,
+    cloudServiceName,
+    skuRateBindingId: `binding-${componentClass}`,
+    skuPriceTerm: {
+      cloudServiceId,
+      skuId,
+      consumptionModel: 'consumptionModels/default',
+      apiUnit,
+      apiUnitQuantity,
+      contractPriceTiers: [{
+        startAmount: '0',
+        contractPriceUsdNanos: maximumUsdNanosPerBillingUnit,
+      }],
+      maximumContractPriceUsdNanos: maximumUsdNanosPerBillingUnit,
+      skuMetadataRef: ref(`sku-metadata-${componentClass}`, character),
+      billingAccountPriceRef:
+        ref(`account-price-${componentClass}`, character),
+    },
+    skuDescriptionDigestSha256: hash(character),
+    skuRegion: 'us-central1' as const,
+    billingUnit,
+    maximumUsdNanosPerBillingUnit,
+    currentPriceObservedAt: observedAt,
+    skuRecordRef: ref(`sku-record-${componentClass}`, character),
+  }
 }
 
 function rawObservation(

@@ -14,7 +14,7 @@ import {
 } from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 
 export const CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_EVIDENCE_VERSION =
-  'canonical-sam3_1-gpu-runtime-qualification-evidence-v1' as const
+  'canonical-sam3_1-gpu-runtime-qualification-evidence-v2' as const
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -46,7 +46,7 @@ const routeSchema = z.object({
   ]),
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -55,7 +55,7 @@ const routeSchema = z.object({
   const a100 = route.routeId === 'a100_80gb_heavy_primary'
   const exact = a100
     ? route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[0]
-      && route.executionTarget === 'google_cloud_batch_a2_ultra_job'
+      && route.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
       && route.machineType === 'a2-ultragpu-1g'
       && route.accelerator === 'nvidia_a100_80gb'
     : route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[1]

@@ -449,6 +449,7 @@
     "smoke:visual-intelligence-account-price-reader-grant": "tsx server/smoke/visual-intelligence-account-price-reader-grant-smoke.ts",
     "smoke:visual-intelligence-sam31-foundation-provisioning": "tsx server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts",
     "smoke:a100-vertex-custom-job-launch": "tsx server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts",
+    "smoke:a100-vertex-professional-gpu-launch-adapter": "tsx server/smoke/canonical-a100-vertex-professional-gpu-launch-adapter-smoke.ts",
     "smoke:a100-vertex-custom-job-terminal": "tsx server/smoke/canonical-a100-vertex-custom-job-terminal-port-smoke.ts",
     "smoke:a100-vertex-terminal-cost": "tsx server/smoke/canonical-a100-vertex-terminal-cost-evidence-smoke.ts",
     "smoke:vertex-a100-account-effective-rate": "tsx server/smoke/canonical-current-google-cloud-vertex-a100-rate-authority-smoke.ts",

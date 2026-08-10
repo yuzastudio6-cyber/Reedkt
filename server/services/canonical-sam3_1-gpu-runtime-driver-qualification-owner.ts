@@ -16,6 +16,7 @@ import {
   type CanonicalProfessionalGpuJobLaunch,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
   buildCanonicalSam31GpuRuntimeQualificationComponentEvidence,
   canonicalSam31GpuRuntimeQualificationComponentRef,
   type CanonicalSam31GpuRuntimeQualificationComponentEvidence,
@@ -151,7 +152,7 @@ export function createCanonicalSam31GpuRuntimeDriverQualificationOwner(input: {
       const component =
         buildCanonicalSam31GpuRuntimeQualificationComponentEvidence({
           schemaVersion:
-            'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v1',
+            CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
           source:
             'canonical_sam3_1_gpu_runtime_qualification_component_owner',
           evidenceClass: 'canonical_private_reread',
@@ -293,11 +294,11 @@ export function canonicalSam31GpuQualificationRouteForLaunch(
   const expected = primary
     ? {
         runtimeRegion: 'us-central1',
-        executionTarget: 'google_cloud_batch_a2_ultra_job',
+        executionTarget: 'google_cloud_vertex_custom_job_a2_ultra',
         accelerator: 'nvidia_a100_80gb',
       } as const
     : {
-        runtimeRegion: 'europe-west4',
+        runtimeRegion: 'us-central1',
         executionTarget: 'google_cloud_run_l4_job',
         accelerator: 'nvidia_l4',
       } as const

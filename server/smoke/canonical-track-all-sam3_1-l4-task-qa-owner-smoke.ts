@@ -262,7 +262,7 @@ function buildAdmission() {
     },
     gpuPolicyRef: {
       schemaVersion:
-        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2' as const,
+        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3' as const,
       policyHash: digest('gpu-policy'),
     },
     runtimeReleaseRef: ref('track-all-l4-runtime-release-1'),

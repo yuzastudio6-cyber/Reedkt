@@ -11,6 +11,7 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
   assertCanonicalSam31GpuRuntimeQualificationComponentEvidence,
   buildCanonicalSam31GpuRuntimeQualificationComponentEvidence,
   canonicalSam31GpuRuntimeQualificationComponentRef,
@@ -548,7 +549,7 @@ export function createCanonicalSam31GpuTemporalQualityQualificationOwner(
       const component =
         buildCanonicalSam31GpuRuntimeQualificationComponentEvidence({
           schemaVersion:
-            'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v1',
+            CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
           source:
             'canonical_sam3_1_gpu_runtime_qualification_component_owner',
           evidenceClass: 'canonical_private_reread',

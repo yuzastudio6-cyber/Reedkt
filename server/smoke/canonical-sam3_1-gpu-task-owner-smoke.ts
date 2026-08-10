@@ -536,7 +536,7 @@ const launchPayload = {
   operationId: task.runtimeRequest.operationId,
   routeId: 'a100_80gb_heavy_primary' as const,
   runtimeRegion: 'us-central1' as const,
-  executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
+  executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
   accelerator: 'nvidia_a100_80gb' as const,
   immutableImageDigest: a100.target.immutableImageDigest,
   cloudJobCreateRequestRef: ref('sam31-a100-create-request'),
@@ -754,9 +754,9 @@ function fixture(
     toolId: 'sam3_1',
     operationId: 'tool.sam3_1.segment_and_track_subject.v1',
     routeId,
-    runtimeRegion: primary ? 'us-central1' as const : 'europe-west4' as const,
+    runtimeRegion: 'us-central1' as const,
     executionTarget: primary
-      ? 'google_cloud_batch_a2_ultra_job' as const
+      ? 'google_cloud_vertex_custom_job_a2_ultra' as const
       : 'google_cloud_run_l4_job' as const,
     machineType: primary
       ? 'a2-ultragpu-1g' as const
@@ -950,7 +950,7 @@ function buildAdmission(input: {
     },
     gpuPolicyRef: {
       schemaVersion:
-        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2' as const,
+        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3' as const,
       policyHash: sha256AuthorityValue('gpu-policy'),
     },
     runtimeReleaseRef: input.runtimeReleaseRef,
@@ -998,7 +998,7 @@ function buildSpecializedRelease(input: {
     '5138f0e396de40a40ef0168c106e089aacbbf1dc7651be2f81c76f89c2f67f2a'
   const checkpointSha = sha256AuthorityValue('authorized-sam31-checkpoint')
   const payload = {
-    schemaVersion: 'canonical-sam3_1-gpu-runtime-release-v1' as const,
+    schemaVersion: 'canonical-sam3_1-gpu-runtime-release-v2' as const,
     source: 'canonical_sam3_1_gpu_runtime_release_compiler' as const,
     evidenceClass: 'canonical_private_reread' as const,
     status: 'private_internal_qualified' as const,
@@ -1069,7 +1069,7 @@ function buildSpecializedRelease(input: {
       accelerator: input.target.accelerator,
       allocatedVcpuCount: primary ? 12 as const : 8 as const,
       allocatedMemoryGiB: primary ? 170 as const : 32 as const,
-      allocatedLocalScratchGiB: primary ? 375 as const : 0 as const,
+      allocatedLocalScratchGiB: 0 as const,
     },
     serviceIdentityRef: input.target.serviceIdentityRef,
     immutableImageRef: input.target.immutableImageRef,

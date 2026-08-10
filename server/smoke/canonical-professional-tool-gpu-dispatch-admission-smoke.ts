@@ -10,12 +10,12 @@ import {
   type CanonicalProfessionalToolGpuUsage,
 } from '../tool-cost-metering/canonical-professional-tool-gpu-cost-authority'
 import {
-  observeCanonicalCurrentGoogleCloudGpuRateAuthority,
-  type CanonicalGoogleCloudGpuRateRawObservation,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  a100,
+  l4Fallback,
+  l4Standard,
+} from './canonical-professional-tool-gpu-cost-authority-smoke'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
-const observedAt = '2026-08-02T16:00:00.000Z'
 const admittedAt = '2026-08-02T16:10:00.000Z'
 const expiresAt = '2026-08-02T16:15:00.000Z'
 const hash = (character: string) => character.repeat(64)
@@ -25,9 +25,6 @@ const ref = (id: string, character: string) => ({
   contentHash: `sha256:${hash(character)}`,
 })
 
-const a100 = await rate('a100_80gb_heavy_primary')
-const l4Fallback = await rate('l4_heavy_fallback')
-const l4Standard = await rate('l4_standard_primary')
 const heavyEstimate = createCanonicalProfessionalToolGpuCostEstimate({
   estimateId: 'fixture-estimate-sam31',
   scope: estimateScope('sam3_1'),
@@ -252,7 +249,7 @@ function release(input: {
   const imageRef = ref(`fixture-image-${input.routeId}`, 'd')
   const payload = {
     schemaVersion:
-      'canonical-professional-tool-gpu-runtime-release-observation-v2' as const,
+      'canonical-professional-tool-gpu-runtime-release-observation-v3' as const,
     source: 'canonical_server_gpu_runtime_release_registry' as const,
     evidenceClass: input.contractOnly
       ? 'synthetic_contract_fixture' as const
@@ -274,7 +271,7 @@ function release(input: {
     routeId: input.routeId,
     runtimeRegion: 'us-central1' as const,
     executionTarget: a100Route
-      ? 'google_cloud_batch_a2_ultra_job' as const
+      ? 'google_cloud_vertex_custom_job_a2_ultra' as const
       : 'google_cloud_run_l4_job' as const,
     machineType: a100Route
       ? 'a2-ultragpu-1g' as const
@@ -285,7 +282,7 @@ function release(input: {
     allocatedGpuCount: 1 as const,
     allocatedVcpuCount: a100Route ? 12 as const : 8 as const,
     allocatedMemoryGiB: a100Route ? 170 as const : 32 as const,
-    allocatedLocalScratchGiB: a100Route ? 375 as const : 0 as const,
+    allocatedLocalScratchGiB: 0 as const,
     serviceIdentityRef: ref('fixture-service-identity', '1'),
     immutableImageRef: imageRef,
     immutableImageDigest: imageRef.contentHash,
@@ -388,7 +385,7 @@ function usage(
     allocatedGpuCount: 1,
     allocatedVcpuCount: route === 'a100' ? 12 : 8,
     allocatedMemoryGiB: route === 'a100' ? 170 : 32,
-    allocatedLocalScratchGiB: route === 'a100' ? 375 : 0,
+    allocatedLocalScratchGiB: 0,
     privateArtifactBytes: 64 * 1024 * 1024,
     privateArtifactRetentionMilliseconds: 24 * 60 * 60 * 1_000,
     networkEgressBytes: 0,
@@ -407,127 +404,5 @@ function range(
     low: usage(route, low),
     expected: usage(route, expected),
     high: usage(route, high),
-  }
-}
-
-async function rate(routeId:
-  | 'a100_80gb_heavy_primary'
-  | 'l4_heavy_fallback'
-  | 'l4_standard_primary') {
-  return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
-    rateAuthorityId: `fixture-rate-${routeId}`,
-    rateAuthorityVersion: 1,
-    routeId,
-    region: 'us-central1',
-    readPort: {
-      async readCurrentRouteRate() {
-        return rawRate(routeId)
-      },
-    },
-  })
-}
-
-function rawRate(routeId:
-  | 'a100_80gb_heavy_primary'
-  | 'l4_heavy_fallback'
-  | 'l4_standard_primary'): CanonicalGoogleCloudGpuRateRawObservation {
-  const components = routeId === 'a100_80gb_heavy_primary'
-    ? [component('a2_ultragpu_1g_machine_bundle',
-        'machine_hour', 5_068_797_890, 'a'), ...commonComponents()]
-    : [
-        component('cloud_run_l4_gpu_second',
-          'gpu_second', 186_700, 'b'),
-        component('cloud_run_vcpu_second',
-          'vcpu_second', 18_000, 'c'),
-        component('cloud_run_memory_gib_second',
-          'gib_second', 2_000, 'd'),
-        ...commonComponents(),
-      ]
-  const base = {
-    sourceClass: 'billing_account_effective_pricing_api' as const,
-    billingAccountPricingScopeRef:
-      ref('billing-account-pricing-scope', '8'),
-    pricingReaderConfigurationRef:
-      ref('gpu-rate-reader-configuration', '7'),
-    routeId,
-    region: 'us-central1' as const,
-    currency: 'USD' as const,
-    components,
-    priceRecordSetRef: ref(`fixture-price-record-set-${routeId}`, '9'),
-    pricingReadStartedAt: '2026-08-02T15:59:55.000Z',
-    pricingReadFinishedAt: observedAt,
-  }
-  return { ...base, pricingReadDigestSha256: sha256AuthorityValue(base) }
-}
-
-function commonComponents() {
-  return [
-    component('private_object_storage_gib_month',
-      'gib_month', 20_000_000, 'e'),
-    component('network_egress_gib', 'gib', 120_000_000, 'f'),
-    component('object_class_a_per_1000',
-      'per_1000_operations', 5_000_000, '1'),
-    component('object_class_b_per_1000',
-      'per_1000_operations', 400_000, '2'),
-  ]
-}
-
-function component(
-  componentClass:
-    | 'a2_ultragpu_1g_machine_bundle'
-    | 'cloud_run_l4_gpu_second'
-    | 'cloud_run_vcpu_second'
-    | 'cloud_run_memory_gib_second'
-    | 'private_object_storage_gib_month'
-    | 'network_egress_gib'
-    | 'object_class_a_per_1000'
-    | 'object_class_b_per_1000',
-  billingUnit:
-    | 'machine_hour'
-    | 'gpu_second'
-    | 'vcpu_second'
-    | 'gib_second'
-    | 'gib_month'
-    | 'gib'
-    | 'per_1000_operations',
-  usdNanosPerBillingUnit: number,
-  character: string,
-) {
-  const cloudServiceId = componentClass.startsWith('cloud_run')
-    ? 'service-cloud-run'
-    : componentClass.startsWith('a2_')
-      ? 'service-compute-engine'
-      : 'service-cloud-storage'
-  const skuId = `sku-${componentClass}`
-  return {
-    componentClass,
-    cloudServiceName: componentClass.startsWith('cloud_run')
-      ? 'cloud-run'
-      : componentClass.startsWith('a2_')
-        ? 'compute-engine'
-        : 'cloud-storage',
-    skuRateBindingId: `rate-binding-${componentClass}`,
-    skuPriceTerms: [{
-      cloudServiceId,
-      skuId,
-      quantityPerBillingUnit: 1,
-      consumptionModel: 'consumptionModels/default',
-      apiUnit: billingUnit,
-      apiUnitQuantity: '1',
-      contractPriceTiers: [{
-        startAmount: '0',
-        contractPriceUsdNanos: usdNanosPerBillingUnit,
-      }],
-      maximumContractPriceUsdNanos: usdNanosPerBillingUnit,
-      skuMetadataRef: ref(`sku-metadata-${componentClass}`, character),
-      billingAccountPriceRef:
-        ref(`account-price-${componentClass}`, character),
-    }],
-    skuDescriptionDigestSha256: hash(character),
-    skuRegion: 'us-central1' as const,
-    billingUnit,
-    maximumUsdNanosPerBillingUnit: usdNanosPerBillingUnit,
-    currentPriceObservedAt: observedAt,
-    skuRecordRef: ref(`fixture-sku-${componentClass}`, character),
   }
 }

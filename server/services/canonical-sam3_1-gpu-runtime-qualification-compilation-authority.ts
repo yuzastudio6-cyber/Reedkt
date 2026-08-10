@@ -27,13 +27,13 @@ import {
 
 export const
 CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION =
-  'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v1' as const
+  'canonical-sam3_1-gpu-runtime-qualification-component-evidence-v2' as const
 export const
 CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPILATION_AUTHORITY_VERSION =
-  'canonical-sam3_1-gpu-runtime-qualification-compilation-authority-v1' as const
+  'canonical-sam3_1-gpu-runtime-qualification-compilation-authority-v2' as const
 
 const DEFAULT_PREFIX =
-  'private/sam3_1/gpu-runtime-qualification/v1/compilation-authorities'
+  'private/sam3_1/gpu-runtime-qualification/v2/compilation-authorities'
 const MAXIMUM_RECORD_BYTES = 4 * 1024 * 1024
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -57,7 +57,7 @@ const routeSchema = z.object({
   ]),
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
-    'google_cloud_batch_a2_ultra_job',
+    'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),

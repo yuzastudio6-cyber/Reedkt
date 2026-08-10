@@ -349,6 +349,7 @@
     "smoke:sam3_1-a100-qualification-foundation-repository": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-repository-smoke.ts",
     "smoke:sam3_1-a100-runtime-qualification-launch": "tsx server/smoke/canonical-sam3_1-a100-runtime-qualification-launch-smoke.ts",
     "start:sam3_1-a100-runtime-qualification": "tsx server/cli/start-canonical-sam3_1-a100-runtime-qualification.ts",
+    "finalize:sam3_1-a100-runtime-qualification": "tsx server/cli/finalize-canonical-sam3_1-a100-runtime-qualification.ts",
     "publish:sam3_1-a100-foundation-observation": "tsx server/cli/publish-sam3_1-a100-qualification-foundation.ts --execute",
     "publish:sam3_1-authorized-human-terms-intent": "tsx server/cli/publish-sam3_1-authorized-human-terms-intent.ts --execute",
     "provision:sam3_1-a100-qualification-foundation": "bash scripts/gcp/prod/22-provision-sam31-a100-qualification-foundation.sh",

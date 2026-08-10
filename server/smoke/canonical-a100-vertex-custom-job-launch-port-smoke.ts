@@ -99,7 +99,7 @@ assert.equal(
 )
 assert.deepEqual(container.env, [
   {
-    name: 'WEEDITPRO_GPU_INVOCATION_ID',
+    name: 'REEDITPRO_GPU_INVOCATION_ID',
     value: authority.executionEnvelopeRef.id,
   },
   {

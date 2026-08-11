@@ -471,7 +471,8 @@ function successfulBuildResource(
         name: taggedImageUri,
         digest: `sha256:${'b'.repeat(64)}`,
         artifactRegistryPackage:
-          'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu',
+          'projects/reeditpro/locations/us-central1/repositories/reeditpro-workers/packages/reeditpro-sam31-gpu/versions/'
+          + `sha256:${'b'.repeat(64)}`,
       }],
     },
   }

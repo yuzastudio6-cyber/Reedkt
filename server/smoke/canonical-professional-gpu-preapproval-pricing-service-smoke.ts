@@ -11,6 +11,9 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  observeCanonicalVertexA100RateFixture,
+} from './fixtures/canonical-vertex-a100-rate-fixture'
 
 const observedAt = '2026-08-02T16:00:00.000Z'
 const createdAt = '2026-08-02T16:10:00.000Z'
@@ -24,7 +27,7 @@ const ref = (id: string, character: string, version = 1) => ({
 
 const rates = {
   a100_80gb_heavy_primary:
-    await observeRate('a100_80gb_heavy_primary'),
+    await observeCanonicalVertexA100RateFixture({ observedAt }),
   l4_heavy_fallback: await observeRate('l4_heavy_fallback'),
   l4_standard_primary: await observeRate('l4_standard_primary'),
 }
@@ -422,7 +425,7 @@ function usage(route: 'a100' | 'l4', activeGpuMilliseconds: number) {
     allocatedGpuCount: 1 as const,
     allocatedVcpuCount: route === 'a100' ? 12 : 8,
     allocatedMemoryGiB: route === 'a100' ? 170 : 32,
-    allocatedLocalScratchGiB: route === 'a100' ? 375 : 0,
+    allocatedLocalScratchGiB: 0,
     privateArtifactBytes: 128 * 1024 * 1024,
     privateArtifactRetentionMilliseconds: 24 * 60 * 60 * 1_000,
     networkEgressBytes: 0,
@@ -433,7 +436,6 @@ function usage(route: 'a100' | 'l4', activeGpuMilliseconds: number) {
 
 async function observeRate(
   routeId:
-    | 'a100_80gb_heavy_primary'
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
 ) {
@@ -452,25 +454,18 @@ async function observeRate(
 
 function rawRateObservation(
   routeId:
-    | 'a100_80gb_heavy_primary'
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
 ): CanonicalGoogleCloudGpuRateRawObservation {
-  const components = routeId === 'a100_80gb_heavy_primary'
-    ? [
-        rateComponent('a2_ultragpu_1g_machine_bundle',
-          'machine_hour', 5_068_797_890, 'a'),
-        ...commonRateComponents(),
-      ]
-    : [
-        rateComponent('cloud_run_l4_gpu_second',
-          'gpu_second', 186_700, 'b'),
-        rateComponent('cloud_run_vcpu_second',
-          'vcpu_second', 18_000, 'c'),
-        rateComponent('cloud_run_memory_gib_second',
-          'gib_second', 2_000, 'd'),
-        ...commonRateComponents(),
-      ]
+  const components = [
+    rateComponent('cloud_run_l4_gpu_second',
+      'gpu_second', 186_700, 'b'),
+    rateComponent('cloud_run_vcpu_second',
+      'vcpu_second', 18_000, 'c'),
+    rateComponent('cloud_run_memory_gib_second',
+      'gib_second', 2_000, 'd'),
+    ...commonRateComponents(),
+  ]
   const base = {
     sourceClass: 'billing_account_effective_pricing_api' as const,
     billingAccountPricingScopeRef:
@@ -506,7 +501,6 @@ function commonRateComponents() {
 
 function rateComponent(
   componentClass:
-    | 'a2_ultragpu_1g_machine_bundle'
     | 'cloud_run_l4_gpu_second'
     | 'cloud_run_vcpu_second'
     | 'cloud_run_memory_gib_second'
@@ -515,7 +509,6 @@ function rateComponent(
     | 'object_class_a_per_1000'
     | 'object_class_b_per_1000',
   billingUnit:
-    | 'machine_hour'
     | 'gpu_second'
     | 'vcpu_second'
     | 'gib_second'

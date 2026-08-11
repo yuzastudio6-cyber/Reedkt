@@ -601,10 +601,12 @@ export function assertCanonicalSourceTranscriptA100UsageCost(
 
 /**
  * Owns one exact A100 source-transcript attempt. A create-only consumption is
- * persisted before Google Batch is called. A restart reconciles the same
- * deterministic Batch job and never issues a second create after an uncertain
- * outcome. Successful transcript evidence is published only after worker,
- * account-price, attempt-cost, and scale-to-zero rereads all agree.
+ * persisted before the injected cloud invocation is called. A restart
+ * reconciles the same deterministic provider job and never issues a second
+ * create after an uncertain outcome. The active production composition root
+ * admits only its separately qualified Vertex A100 port. Successful transcript
+ * evidence is published only after worker, account-price, attempt-cost, and
+ * scale-to-zero rereads all agree.
  */
 export function createCanonicalSourceTranscriptA100AttemptOwner(input: {
   readonly requestAuthorityReadPort:
@@ -846,6 +848,22 @@ export function createCanonicalSourceTranscriptA100AttemptOwner(input: {
       })
     },
   })
+}
+
+/**
+ * Transitional provider-neutral mount type. The historical implementation of
+ * this shape used Google Batch; the active production composition root must
+ * inject a separately qualified Vertex A100 implementation and never creates
+ * the historical port as a default.
+ */
+export interface CanonicalSourceTranscriptA100InvocationPort
+  extends CanonicalA100BatchJobInvocationPort {
+  readonly schemaVersion:
+    'canonical-source-transcript-vertex-a100-invocation-port-v1'
+  readonly executionTarget: 'google_cloud_vertex_custom_job_a2_ultra'
+  readonly minimumIdleInstances: 0
+  readonly cpuOnlySubstantiveExecutionAllowed: false
+  readonly historicalBatchExecutionAllowed: false
 }
 
 function validateDependencies(input: Parameters<

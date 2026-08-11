@@ -131,6 +131,18 @@ assert.match(
   productionRuntime,
   /visual-intelligence-production-runtime-v18/u,
 )
+assert.doesNotMatch(
+  productionRuntime,
+  /canonical-a100-batch-job-invocation-service|createGoogleBatchA100JobInvocationPort/u,
+)
+assert.match(
+  productionRuntime,
+  /source_transcript_vertex_a100_invocation_port_not_ready/u,
+)
+assert.match(
+  productionRuntime,
+  /google_cloud_vertex_custom_job_a2_ultra/u,
+)
 assert.match(
   productionRuntime,
   /createVisualIntelligenceCanonicalPreparedEvidenceStore/u,

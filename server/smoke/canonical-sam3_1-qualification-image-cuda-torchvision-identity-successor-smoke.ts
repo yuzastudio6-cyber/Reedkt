@@ -102,8 +102,10 @@ assert.ok(
 )
 assert.ok(
   runtimeRelease.includes(
-    'sourceCheckpointQualification.controlledObservation',
-  ) && runtimeRelease.includes('.qualificationRuntime.torchvisionVersion'),
+    'projectCanonicalSam31QualifiedSourceCheckpointAuthority',
+  ) && runtimeRelease.includes(
+    'sourceQualification.runtime.torchvisionVersion',
+  ),
   'SAM 3.1 runtime release stopped consuming qualified runtime identity',
 )
 

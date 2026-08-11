@@ -5,9 +5,9 @@ import {
   createCanonicalQualityFirstProfessionalToolGpuPlacement,
 } from '../edit-architecture/canonical-quality-first-professional-tool-gpu-placement'
 import {
-  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
-  type CanonicalCurrentGoogleCloudGpuRateAuthority,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  type CanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
   canonicalProfessionalToolGpuUsageSchema,
   createCanonicalProfessionalToolGpuCostEstimate,
@@ -309,9 +309,10 @@ export interface CanonicalProfessionalGpuCurrentRateAuthorityReadPort {
 
 export interface CanonicalProfessionalGpuPreapprovalPricing {
   readonly usageQuote: CanonicalProfessionalGpuUsageQuote
-  readonly primaryRateAuthority: CanonicalCurrentGoogleCloudGpuRateAuthority
+  readonly primaryRateAuthority:
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   readonly fallbackRateAuthority:
-    CanonicalCurrentGoogleCloudGpuRateAuthority | null
+    CanonicalProfessionalGoogleCloudGpuRateAuthority | null
   readonly estimate: CanonicalProfessionalToolGpuCostEstimate
   readonly callerUsageDurationRateOrPriceAccepted: false
   readonly customerCreditsMutated: false
@@ -466,14 +467,14 @@ async function readRate(input: {
   readonly routeId: z.infer<typeof routeIdSchema>
   readonly region: 'us-central1' | 'europe-west4'
   readonly at: string
-}): Promise<CanonicalCurrentGoogleCloudGpuRateAuthority> {
+}): Promise<CanonicalProfessionalGoogleCloudGpuRateAuthority> {
   const untrusted = await input.port.rereadCurrentAccountEffectiveRateAuthority({
     routeId: input.routeId,
     region: input.region,
     at: input.at,
   })
   assertClosedPlainSerializedData(untrusted, 'gpu_rate_authority')
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     untrusted,
     input.at,
   )

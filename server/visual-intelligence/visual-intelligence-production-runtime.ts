@@ -19,9 +19,6 @@ import {
   type CanonicalSkillQualificationRegistryReadPort,
 } from '../orchestra/canonical-skill-qualification-registry'
 import {
-  createGoogleBatchA100JobInvocationPort,
-} from '../services/canonical-a100-batch-job-invocation-service'
-import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -126,6 +123,7 @@ import {
 import {
   createCanonicalSourceTranscriptA100AttemptOwner,
   type CanonicalSourceTranscriptA100AttemptOwner,
+  type CanonicalSourceTranscriptA100InvocationPort,
   type CanonicalSourceTranscriptA100ReleaseReadPort,
   type CanonicalSourceTranscriptA100UsageCostReadPort,
   type CanonicalSourceTranscriptA100WorkerResultReadPort,
@@ -335,6 +333,8 @@ export interface VisualIntelligenceProductionRuntimeDependencies {
     CanonicalSourceAnalysisL4VisualEvidenceCurrentRateReadPort
   readonly sourceAnalysisL4VisualEvidenceTerminalObservationPort?:
     CanonicalSourceAnalysisL4VisualEvidenceTerminalObservationPort
+  readonly sourceTranscriptVertexA100InvocationPort?:
+    CanonicalSourceTranscriptA100InvocationPort
   readonly now?: () => Date
 }
 
@@ -577,7 +577,9 @@ export async function createVisualIntelligenceProductionRuntime(
   }) => createCanonicalSourceTranscriptA100AttemptOwner({
     ...input,
     requestAuthorityReadPort: sourceAnalysisRequestAuthorityRepository,
-    invocationPort: createGoogleBatchA100JobInvocationPort(),
+    invocationPort: requireSourceTranscriptVertexA100InvocationPort(
+      dependencies.sourceTranscriptVertexA100InvocationPort,
+    ),
     transcriptRepository: sourceTranscriptOrchestraRepository,
     lifecycleObjectPort: objectPort,
     ...(dependencies.now ? { now: dependencies.now } : {}),
@@ -851,6 +853,23 @@ function createProductionL4VisualEvidenceCurrentRateReadPort(input: {
       })
     },
   })
+}
+
+function requireSourceTranscriptVertexA100InvocationPort(
+  port: CanonicalSourceTranscriptA100InvocationPort | undefined,
+): CanonicalSourceTranscriptA100InvocationPort {
+  if (
+    port?.schemaVersion !==
+      'canonical-source-transcript-vertex-a100-invocation-port-v1'
+    || port.executionTarget !==
+      'google_cloud_vertex_custom_job_a2_ultra'
+    || port.minimumIdleInstances !== 0
+    || port.cpuOnlySubstantiveExecutionAllowed
+    || port.historicalBatchExecutionAllowed
+    || typeof port.runOnce !== 'function'
+    || typeof port.reconcileExisting !== 'function'
+  ) throw notReady('source_transcript_vertex_a100_invocation_port_not_ready')
+  return port
 }
 
 function requireCoordinates(env: RuntimeEnv): {

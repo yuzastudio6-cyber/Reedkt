@@ -23,10 +23,10 @@ import {
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
   sha256AuthorityValue,
-  stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
 import {
   buildCanonicalSam31GpuRuntimeResponse,
+  canonicalSam31GpuWireStringify,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
 import {
   CANONICAL_SAM3_1_GPU_PRIVATE_BINARY_OBJECT_PORT_VERSION,
@@ -514,7 +514,7 @@ const runtimeResponse = buildCanonicalSam31GpuRuntimeResponse({
   productionAuthorityGranted: false,
 })
 const runtimeResponseBytes = Buffer.from(
-  stableAuthorityStringify(runtimeResponse),
+  canonicalSam31GpuWireStringify(runtimeResponse),
   'utf8',
 )
 await objectPort.createOnly({

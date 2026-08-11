@@ -17,6 +17,7 @@ import {
 } from '../../services/private-edit-authority-store'
 import {
   assertCanonicalSam31GpuRuntimeResponse,
+  canonicalSam31GpuWireStringify,
   type CanonicalSam31GpuRuntimeResponse,
 } from './canonical-sam3_1-gpu-runtime-contract'
 import {
@@ -416,7 +417,7 @@ function assertOutputEvidenceMatches(input: {
   const output = response.outputSummary!
   const source = task.runtimeRequest.sourceMedia
   const responseBytesHash = rawBytesSha256(Buffer.from(
-    stableAuthorityStringify(response),
+    canonicalSam31GpuWireStringify(response),
     'utf8',
   ))
   if (

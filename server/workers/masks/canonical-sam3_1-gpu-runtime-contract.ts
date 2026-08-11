@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
 import {
@@ -11,7 +13,6 @@ import {
   canonicalSam31SourceCheckpointQualificationReferenceSchema,
 } from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
-  sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../../services/private-edit-authority-store'
 
@@ -434,7 +435,7 @@ export function buildCanonicalSam31GpuRuntimeRequest(
   const payload = requestWithoutHashSchema.parse(input)
   return canonicalSam31GpuRuntimeRequestSchema.parse({
     ...payload,
-    requestBindingSha256: sha256AuthorityValue(payload),
+    requestBindingSha256: canonicalSam31WireDigest(payload),
   })
 }
 
@@ -443,7 +444,7 @@ export function assertCanonicalSam31GpuRuntimeRequest(
 ): CanonicalSam31GpuRuntimeRequest {
   const parsed = canonicalSam31GpuRuntimeRequestSchema.parse(value)
   const { requestBindingSha256, ...payload } = parsed
-  if (requestBindingSha256 !== sha256AuthorityValue(payload)) {
+  if (requestBindingSha256 !== canonicalSam31WireDigest(payload)) {
     throw new Error('SAM 3.1 GPU runtime request binding is invalid.')
   }
   return parsed
@@ -455,7 +456,7 @@ export function buildCanonicalSam31GpuRuntimeResponse(
   const payload = responseWithoutHashSchema.parse(input)
   return canonicalSam31GpuRuntimeResponseSchema.parse({
     ...payload,
-    responseBindingSha256: sha256AuthorityValue(payload),
+    responseBindingSha256: canonicalSam31WireDigest(payload),
   })
 }
 
@@ -467,7 +468,7 @@ export function assertCanonicalSam31GpuRuntimeResponse(input: {
   const response = canonicalSam31GpuRuntimeResponseSchema.parse(input.response)
   const { responseBindingSha256, ...payload } = response
   if (
-    responseBindingSha256 !== sha256AuthorityValue(payload)
+    responseBindingSha256 !== canonicalSam31WireDigest(payload)
     || response.requestBindingSha256 !== request.requestBindingSha256
     || response.dispatchAdmissionDigestSha256 !==
       request.dispatchAdmissionDigestSha256
@@ -501,5 +502,38 @@ export function assertCanonicalSam31GpuRuntimeResponse(input: {
 export function canonicalSam31GpuRuntimeRequestDigest(
   value: CanonicalSam31GpuRuntimeRequest,
 ): string {
-  return sha256AuthorityValue(JSON.parse(stableAuthorityStringify(value)))
+  return canonicalSam31WireDigest(
+    JSON.parse(stableAuthorityStringify(value)),
+  )
+}
+
+/**
+ * Cross-language SAM 3.1 worker bindings use explicit UTF-16 lexical object
+ * key ordering. This matches the offline Python worker for the bounded ASCII
+ * wire-key set and avoids host-locale drift such as TorchVersion versus
+ * TorchcodecVersion. Arrays retain order and undefined object fields are
+ * omitted exactly as JSON.stringify does.
+ */
+function canonicalSam31WireDigest(value: unknown): string {
+  return createHash('sha256')
+    .update(canonicalSam31GpuWireStringify(value))
+    .digest('hex')
+}
+
+export function canonicalSam31GpuWireStringify(value: unknown): string {
+  return JSON.stringify(canonicalSam31WireValue(value))
+}
+
+function canonicalSam31WireValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalSam31WireValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([, nested]) => nested !== undefined)
+        .sort(([leftKey], [rightKey]) =>
+          leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0)
+        .map(([key, nested]) => [key, canonicalSam31WireValue(nested)]),
+    )
+  }
+  return value
 }

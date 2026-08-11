@@ -5,13 +5,11 @@ import { deflateSync } from 'node:zlib'
 import type { Storage } from '@google-cloud/storage'
 
 import {
-  stableAuthorityStringify,
-} from '../services/private-edit-authority-store'
-import {
   createCanonicalSam31GcsPrivateOutputRereadPort,
 } from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
 import {
   buildCanonicalSam31GpuRuntimeResponse,
+  canonicalSam31GpuWireStringify,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
 import {
   assertCanonicalSam31PrivateOutputRereadEvidence,
@@ -72,7 +70,13 @@ const manifest = {
     sha256: pngHash,
   }],
 }
-const manifestBytes = Buffer.from(stableAuthorityStringify(manifest), 'utf8')
+const manifestJson = canonicalSam31GpuWireStringify(manifest)
+const pythonManifestJson = manifestJson.replace(
+  '"normalizedBoxXywh":[0,0,1,1]',
+  '"normalizedBoxXywh":[0.0,0.0,1.0,1.0]',
+)
+assert.notEqual(pythonManifestJson, manifestJson)
+const manifestBytes = Buffer.from(pythonManifestJson, 'utf8')
 const manifestHash = hash(manifestBytes)
 const responsePayload = withoutResponseBinding(responseFixture)
 const response = buildCanonicalSam31GpuRuntimeResponse({
@@ -94,9 +98,11 @@ const response = buildCanonicalSam31GpuRuntimeResponse({
     normalizedBoxRecordCount: 1,
   },
 })
-const responseBytes = Buffer.from(stableAuthorityStringify(response), 'utf8')
+const responseBytes = Buffer.from(canonicalSam31GpuWireStringify(response),
+  'utf8')
 const objects = new Map<string, Buffer>([
   [`${ROOT}/response.json`, responseBytes],
+  [`${OUTPUT_ROOT}/`, Buffer.alloc(0)],
   [`${OUTPUT_ROOT}/manifest.json`, manifestBytes],
   [`${OUTPUT_ROOT}/${FILE_NAME}`, png],
 ])
@@ -137,7 +143,7 @@ await assert.rejects(() =>
 
 const crossedResponse = new Map(objects)
 crossedResponse.set(`${ROOT}/response.json`, Buffer.from(
-  stableAuthorityStringify({ ...response, qaApproved: true }), 'utf8'))
+  canonicalSam31GpuWireStringify({ ...response, qaApproved: true }), 'utf8'))
 await assert.rejects(() =>
   createCanonicalSam31GcsPrivateOutputRereadPort({
     storage: memoryStorage(crossedResponse),
@@ -150,6 +156,8 @@ console.log(JSON.stringify({
   checks: {
     exactGenerationEtagAndCrcReread: true,
     exactRuntimeResponseBytesReread: true,
+    pythonFloatSpellingBoundByExactRawManifestHash: true,
+    stableEmptyGcsDirectoryMarkerAccepted: true,
     closedManifestAndCompleteFrameInterval: true,
     everyMaskHashAndPngCrcReread: true,
     everyMaskFullyInflatedAndDimensionsVerified: true,

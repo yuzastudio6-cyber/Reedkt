@@ -62,6 +62,15 @@ const executionRef = ref(execution.executionRecordId,
   execution.executionRecordHash)
 const cloudTerminalObservationRef = ref('vertex-terminal', sha('terminal'))
 const worker = buildWorker('executed')
+const workerSpanningProviderPreparation = buildWorker('executed', 190_000)
+assert.equal(
+  workerSpanningProviderPreparation.workerWallTimeMilliseconds,
+  190_000,
+)
+assert.throws(
+  () => buildWorker('executed', 250_000),
+  /Vertex A100 worker evidence exceeds/u,
+)
 const workerUsageEvidenceRef = ref(
   `vertex-a100-worker-usage.${execution.executionRecordHash.slice(0, 32)}`,
   worker.evidenceHash,
@@ -730,7 +739,10 @@ function buildContext() {
   )
 }
 
-function buildWorker(outcome: 'executed' | 'not_executed' | 'unknown') {
+function buildWorker(
+  outcome: 'executed' | 'not_executed' | 'unknown',
+  workerWallTimeMilliseconds = 170_000,
+) {
   const payload = {
     schemaVersion: CANONICAL_A100_VERTEX_WORKER_USAGE_EVIDENCE_VERSION,
     source: 'canonical_a100_vertex_private_worker_usage_owner' as const,
@@ -750,7 +762,7 @@ function buildWorker(outcome: 'executed' | 'not_executed' | 'unknown') {
       : outcome === 'not_executed'
         ? 'not_started' as const
         : 'propagation' as const,
-    workerWallTimeMilliseconds: 170_000,
+    workerWallTimeMilliseconds,
     modelLoadMilliseconds: 60_000,
     promptMilliseconds: 10_000,
     propagationMilliseconds: 80_000,

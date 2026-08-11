@@ -18,6 +18,7 @@ import {
 } from './canonical-sam3_1-gpu-runtime-result-service'
 import {
   assertCanonicalSam31GpuRuntimeResponse,
+  canonicalSam31GpuWireStringify,
 } from './canonical-sam3_1-gpu-runtime-contract'
 import {
   assertCanonicalSam31GpuTaskRecord,
@@ -121,10 +122,10 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
         request: task.runtimeRequest,
         response: decodedResponse,
       })
-      if (stableAuthorityStringify(exactResponse) !==
-        stableAuthorityStringify(response)
+      if (canonicalSam31GpuWireStringify(exactResponse) !==
+        canonicalSam31GpuWireStringify(response)
         || responseObject.body.toString('utf8') !==
-          stableAuthorityStringify(response)) {
+          canonicalSam31GpuWireStringify(response)) {
         throw new Error('SAM 3.1 exact runtime response bytes changed.')
       }
 
@@ -140,9 +141,7 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
       assertManifestLineage({ task, response, manifest })
       const manifestHash = rawSha256(manifestObject.body)
       if (manifestHash !== response.outputSummary!.manifestSha256
-        || manifestObject.body.byteLength < 1
-        || manifestObject.body.toString('utf8') !==
-          stableAuthorityStringify(manifest)) {
+        || manifestObject.body.byteLength < 1) {
         throw new Error('SAM 3.1 exact manifest bytes changed.')
       }
 
@@ -155,7 +154,20 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
         maxResults: MAXIMUM_MASK_FILES + 2,
         autoPaginate: true,
       })
-      const observedNames = files.map((file) => exactRelativeName(
+      const directoryMarkerName = `${outputRoot}/`
+      const directoryMarkers = files.filter((file) =>
+        file.name === directoryMarkerName)
+      if (directoryMarkers.length > 1) {
+        throw new Error('SAM 3.1 private output directory marker changed.')
+      }
+      if (directoryMarkers[0]) await readStableObject({
+        file: directoryMarkers[0],
+        minimumBytes: 0,
+        maximumBytes: 0,
+      })
+      const outputFiles = files.filter((file) =>
+        file.name !== directoryMarkerName)
+      const observedNames = outputFiles.map((file) => exactRelativeName(
         file.name,
         `${outputRoot}/`,
       ))

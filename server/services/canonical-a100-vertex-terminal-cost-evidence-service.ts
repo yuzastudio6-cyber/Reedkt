@@ -145,8 +145,14 @@ const workerUsageWithoutHashSchema = z.object({
   rawMediaPathsUrlsSecretsOrCredentialsIncluded: z.literal(false),
   observedAt: timestamp,
 }).strict().superRefine((usage, context) => {
+  // Vertex's startTime is the account-billed accelerator-allocation boundary,
+  // not a lossless process-start clock. Worker execution can begin during the
+  // provider-managed preparation interval and its monotonic wall measurement
+  // can therefore be slightly longer than endTime - startTime. The worker
+  // evidence must fit inside the exact provider job lifecycle instead; billing
+  // continues to use the independently reread start-to-end allocation below.
   const available = Date.parse(usage.providerTimes.endTime)
-    - Date.parse(usage.providerTimes.startTime)
+    - Date.parse(usage.providerTimes.createTime)
   const measuredPhases = usage.modelLoadMilliseconds
     + usage.promptMilliseconds
     + usage.propagationMilliseconds

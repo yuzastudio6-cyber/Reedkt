@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
 
 import {
@@ -720,6 +721,16 @@ const response = buildCanonicalSam31GpuRuntimeResponse({
 })
 assert.deepEqual(assertCanonicalSam31GpuRuntimeResponse({ request, response }),
   response)
+const responseWirePayload = structuredClone(response) as Record<string, unknown>
+Reflect.deleteProperty(responseWirePayload, 'responseBindingSha256')
+assert.equal(
+  response.responseBindingSha256,
+  utf16LexicalWireDigest(responseWirePayload),
+)
+assert.notEqual(
+  response.responseBindingSha256,
+  sha256AuthorityValue(responseWirePayload),
+)
 
 const doubleCountedResponse = structuredClone(response)
 doubleCountedResponse.runtimeMeasurement!.propagationMilliseconds = 111_000
@@ -732,6 +743,23 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
   request,
   response: doubleCountedResponse,
 }))
+
+function utf16LexicalWireDigest(value: unknown): string {
+  const stable = (nested: unknown): unknown => {
+    if (Array.isArray(nested)) return nested.map(stable)
+    if (nested && typeof nested === 'object') {
+      return Object.fromEntries(
+        Object.entries(nested as Record<string, unknown>)
+          .filter(([, item]) => item !== undefined)
+          .sort(([left], [right]) =>
+            left < right ? -1 : left > right ? 1 : 0)
+          .map(([key, item]) => [key, stable(item)]),
+      )
+    }
+    return nested
+  }
+  return createHash('sha256').update(JSON.stringify(stable(value))).digest('hex')
+}
 
 const { requestBindingSha256: _requestBindingSha256, ...requestPayload } =
   request

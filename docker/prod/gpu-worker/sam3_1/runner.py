@@ -2343,6 +2343,24 @@ def persist_mask(
     }
 
 
+def exclusive_phase_nanoseconds(
+    enclosing_elapsed_nanoseconds: int,
+    nested_elapsed_nanoseconds: int,
+) -> int:
+    """Remove a measured nested phase without double-counting its duration."""
+    if (
+        isinstance(enclosing_elapsed_nanoseconds, bool)
+        or not isinstance(enclosing_elapsed_nanoseconds, int)
+        or isinstance(nested_elapsed_nanoseconds, bool)
+        or not isinstance(nested_elapsed_nanoseconds, int)
+        or enclosing_elapsed_nanoseconds < 0
+        or nested_elapsed_nanoseconds < 0
+        or nested_elapsed_nanoseconds > enclosing_elapsed_nanoseconds
+    ):
+        raise RuntimeError("SAM 3.1 phase timing accounting changed")
+    return enclosing_elapsed_nanoseconds - nested_elapsed_nanoseconds
+
+
 def execute(request: dict[str, Any]) -> dict[str, Any]:
     global stage
     stage = "cuda_admission"
@@ -2524,7 +2542,13 @@ def execute_inside_bfloat16_autocast(
         if prior is not None and prior != frame_payload:
             raise RuntimeError("SAM 3.1 duplicate frame output changed")
         frame_records[frame_index] = frame_payload
-    propagation_ms = (time.monotonic_ns() - propagation_started) // 1_000_000
+    propagation_elapsed_ns = time.monotonic_ns() - propagation_started
+    exclusive_propagation_ns = exclusive_phase_nanoseconds(
+        propagation_elapsed_ns,
+        persistence_ns,
+    )
+    propagation_ms = exclusive_propagation_ns // 1_000_000
+    output_persistence_ms = persistence_ns // 1_000_000
     cuda_end.record()
     torch.cuda.synchronize(0)
     cuda_inference_ms = max(1, round(cuda_start.elapsed_time(cuda_end)))
@@ -2594,6 +2618,14 @@ def execute_inside_bfloat16_autocast(
 
     stage = "completed"
     wall_ms = max(1, (time.monotonic_ns() - started) // 1_000_000)
+    measured_phase_ms = (
+        model_load_ms
+        + prompt_ms
+        + propagation_ms
+        + output_persistence_ms
+    )
+    if measured_phase_ms > wall_ms:
+        raise RuntimeError("SAM 3.1 phase timing accounting changed")
     manifest_id = (
         "sam31-mask-manifest:"
         + request["scope"]["executionAttemptRef"]["id"]
@@ -2613,7 +2645,7 @@ def execute_inside_bfloat16_autocast(
             "modelLoadMilliseconds": int(model_load_ms),
             "promptMilliseconds": int(prompt_ms),
             "propagationMilliseconds": int(propagation_ms),
-            "outputPersistenceMilliseconds": int(persistence_ns // 1_000_000),
+            "outputPersistenceMilliseconds": int(output_persistence_ms),
             "cudaEventInferenceMilliseconds": cuda_inference_ms,
             "peakCudaAllocatedBytes": int(torch.cuda.max_memory_allocated(0)),
             "peakCudaReservedBytes": int(torch.cuda.max_memory_reserved(0)),

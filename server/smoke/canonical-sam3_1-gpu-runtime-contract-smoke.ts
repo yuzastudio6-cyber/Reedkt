@@ -263,6 +263,15 @@ if runner.failure_diagnostic_code(
     raise AssertionError("NVML decoder failure was not safely classified")
 if "pynvml" in Path(runner_path).read_text(encoding="utf-8"):
     raise AssertionError("undeclared pynvml dependency remains in the worker")
+if runner.exclusive_phase_nanoseconds(95_610_000_000, 70_969_000_000) != 24_641_000_000:
+    raise AssertionError("nested persistence time was not removed from propagation")
+for invalid_phase_timing in ((1, 2), (-1, 0), (1, -1), (True, 0)):
+    try:
+        runner.exclusive_phase_nanoseconds(*invalid_phase_timing)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("invalid phase timing was accepted")
 
 class FakeNvmlFunction:
     def __init__(self, implementation):
@@ -711,6 +720,18 @@ const response = buildCanonicalSam31GpuRuntimeResponse({
 })
 assert.deepEqual(assertCanonicalSam31GpuRuntimeResponse({ request, response }),
   response)
+
+const doubleCountedResponse = structuredClone(response)
+doubleCountedResponse.runtimeMeasurement!.propagationMilliseconds = 111_000
+const doubleCountedPayload = { ...doubleCountedResponse }
+Reflect.deleteProperty(doubleCountedPayload, 'responseBindingSha256')
+doubleCountedResponse.responseBindingSha256 = sha256AuthorityValue(
+  doubleCountedPayload,
+)
+assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
+  request,
+  response: doubleCountedResponse,
+}))
 
 const { requestBindingSha256: _requestBindingSha256, ...requestPayload } =
   request

@@ -265,7 +265,20 @@ const runtimeMeasurementSchema = z.object({
   peakCudaReservedBytes: positiveInteger,
   outputFileCount: positiveInteger,
   outputByteLength: positiveInteger,
-}).strict()
+}).strict().superRefine((measurement, context) => {
+  const exclusiveMeasuredPhases = measurement.modelLoadMilliseconds
+    + measurement.promptMilliseconds
+    + measurement.propagationMilliseconds
+    + measurement.outputPersistenceMilliseconds
+  if (
+    exclusiveMeasuredPhases > measurement.wallTimeMilliseconds
+    || measurement.cudaEventInferenceMilliseconds >
+      measurement.wallTimeMilliseconds
+  ) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 phase timings exceed worker wall time.',
+  })
+})
 
 const gpuEvidenceSchema = z.object({
   requestedAccelerator: z.enum(['nvidia_a100_80gb', 'nvidia_l4']),

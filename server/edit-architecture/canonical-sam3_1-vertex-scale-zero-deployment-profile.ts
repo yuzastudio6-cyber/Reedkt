@@ -15,7 +15,7 @@ const safeId = z.string().trim().min(1).max(512)
   .refine((value) => !value.includes('..') && !value.includes('://'))
 const refSchema = z.object({
   id: safeId,
-  version: z.literal(1),
+  version: z.number().int().positive().safe(),
   contentHash: prefixedSha256,
 }).strict()
 const immutableImageUri = z.string().regex(

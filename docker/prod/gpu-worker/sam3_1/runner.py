@@ -99,7 +99,7 @@ MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1"
+    "l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -1385,16 +1385,16 @@ def configure_gpu_memory_profile(
     """Bind the official SAM 3.1 evaluation memory policy to the GPU route.
 
     L4 keeps frames, model state, accessible temporal memories, inference, and
-    outputs on CUDA. It enables the upstream forward-VOS trim that removes
-    heavy non-conditioning outputs after they fall outside the model's exact
-    num_maskmem window. The execution loop also propagates detected object
-    tracks in deterministic object-ID order, one CUDA session at a time, then
-    merges the exact lossless masks. A100 retains the upstream full-state
-    multiplex policy.
+    outputs on CUDA. It preserves full multiplex object propagation while
+    reducing only the upstream postprocess batch from 16 frames to one streamed
+    frame, avoiding the frame-16 transient allocation spike. It also enables
+    the upstream forward-VOS trim that removes heavy non-conditioning outputs
+    after they fall outside the model's exact num_maskmem window. A100 retains
+    the upstream full-state, 16-frame postprocess policy.
     """
     model = getattr(predictor, "model", None)
     tracker = getattr(model, "tracker", None)
-    if tracker is None:
+    if tracker is None or getattr(model, "postprocess_batch_size", None) != 16:
         raise RuntimeError("SAM 3.1 tracker memory policy is unavailable")
     if (
         getattr(tracker, "forward_backbone_per_frame_for_eval", None) is not True
@@ -1408,7 +1408,11 @@ def configure_gpu_memory_profile(
         return A100_GPU_MEMORY_PROFILE, False
     if requested_accelerator == "nvidia_l4":
         tracker.trim_past_non_cond_mem_for_eval = True
-        if tracker.trim_past_non_cond_mem_for_eval is not True:
+        model.postprocess_batch_size = 1
+        if (
+            tracker.trim_past_non_cond_mem_for_eval is not True
+            or model.postprocess_batch_size != 1
+        ):
             raise RuntimeError("SAM 3.1 L4 GPU memory trim was not applied")
         return L4_GPU_MEMORY_PROFILE, True
     raise RuntimeError("SAM 3.1 GPU memory route is invalid")
@@ -2599,11 +2603,7 @@ def execute_inside_bfloat16_autocast(
     ):
         raise RuntimeError("SAM 3.1 prompt object identities are invalid")
     del prompt_outputs, prompt_response
-    serial_object_ids: list[int | None] = (
-        [None]
-        if request["dispatch"]["accelerator"] == "nvidia_a100_80gb"
-        else [int(value) for value in prompt_object_ids]
-    )
+    propagation_passes: list[int | None] = [None]
 
     stage = "output_persistence"
     PRIVATE_OUTPUT_ROOT.mkdir(mode=0o700, parents=False, exist_ok=False)
@@ -2620,7 +2620,7 @@ def execute_inside_bfloat16_autocast(
         max_workers=OUTPUT_PERSISTENCE_WORKERS,
         thread_name_prefix="sam31-mask-persistence",
     ) as persistence_pool:
-        for pass_index, serial_object_id in enumerate(serial_object_ids):
+        for pass_index, serial_object_id in enumerate(propagation_passes):
             if pass_index > 0:
                 session_id, inference_state, current_nvdec = (
                     start_verified_session()

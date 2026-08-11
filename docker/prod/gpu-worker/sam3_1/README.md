@@ -74,12 +74,14 @@ Runtime rules once qualified:
   exception state, exact loaded-frame count, and complete CUDA-resident frame
   store are verified before prompting or propagation;
 - A100 80 GB uses `a100_full_gpu_state_v1`. L4 uses the separately qualified
-  `l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1`,
+  `l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2`,
   which enables Meta's upstream forward-evaluation trim only after
   non-conditioning state falls outside the exact seven-frame temporal-memory
-  window. It propagates each detected object track in canonical object-ID order
-  in a separate GPU-only session, then merges the complete lossless mask set.
-  Frames, active memory, model inference, and outputs remain on CUDA; CPU
+  window. It preserves the same full multiplex object propagation as A100 and
+  streams the upstream postprocessor one frame at a time instead of batching
+  16 frames, removing the L4 frame-16 transient memory spike without changing
+  object identity, resolution, temporal coverage, or mask semantics. Frames,
+  active memory, model inference, and outputs remain on CUDA; CPU
   video/state/output offload, downscaling, quantization, and reduced temporal
   coverage remain forbidden. Release still requires exact mask parity with the
   A100 full-state baseline;

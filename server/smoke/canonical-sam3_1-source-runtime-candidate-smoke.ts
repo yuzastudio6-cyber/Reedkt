@@ -312,9 +312,10 @@ for (const gpuMemoryPolicy of [
   'fixed_gpu_decode_loading_mode=asynchronous_cuda_nvdec_with_bounded_join_before_inference',
   'fixed_gpu_decode_complete_frame_store_required_before_inference=true',
   'fixed_a100_gpu_memory_profile=a100_full_gpu_state_v1',
-  'fixed_l4_gpu_memory_profile=l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1',
+  'fixed_l4_gpu_memory_profile=l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
   'fixed_l4_gpu_memory_profile_uses_upstream_trim_past_non_cond_mem_for_eval=true',
-  'fixed_l4_gpu_memory_profile_serializes_detected_object_tracks_in_canonical_object_id_order=true',
+  'fixed_l4_gpu_memory_profile_preserves_full_multiplex_object_propagation=true',
+  'fixed_l4_gpu_memory_profile_streams_upstream_postprocess_one_frame_at_a_time=true',
   'fixed_l4_gpu_memory_profile_requires_exact_a100_mask_parity=true',
   'fixed_l4_gpu_memory_profile_num_maskmem=7',
   'fixed_l4_gpu_memory_profile_cpu_state_or_output_offload_allowed=false',
@@ -415,14 +416,12 @@ for (const requiredRunnerFragment of [
   'environment value may select a bucket, object, checkpoint, or path.',
   'gpu_accelerated_decode=True',
   'async_loading_frames=True',
-  'await_complete_gpu_frame_store(inference_state)',
+  'await_complete_gpu_frame_store(current_state)',
   'configure_gpu_memory_profile(',
   'a100_full_gpu_state_v1',
-  'l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1',
-  'for pass_index, serial_object_id in enumerate(serial_object_ids):',
-  'replay_object_ids != prompt_object_ids',
-  '"type": "remove_object"',
-  'expected_pass_object_ids',
+  'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
+  'model.postprocess_batch_size = 1',
+  'propagation_passes: list[int | None] = [None]',
   'prompt_object_ids != sorted(prompt_object_ids)',
   'trim_past_non_cond_mem_for_eval = True',
   'pastNonConditioningMemoryTrimmedOnGpu',
@@ -463,7 +462,10 @@ for (const requiredRunnerFragment of [
   '"CPU fallback" in details',
   'SAM 3.1 observed no CUDA/NVDEC video decode',
   'nvdec_utilization_not_observed',
-]) assert(sam31Runner.includes(requiredRunnerFragment))
+]) assert(
+  sam31Runner.includes(requiredRunnerFragment),
+  `SAM 3.1 runner is missing ${requiredRunnerFragment}`,
+)
 assert(!sam31Runner.includes('async_loading_frames=False'))
 assert.equal(
   (sam31Runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)

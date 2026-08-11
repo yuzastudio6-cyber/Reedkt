@@ -380,6 +380,7 @@ class FakeTracker:
 
 class FakeModel:
     tracker = FakeTracker()
+    postprocess_batch_size = 16
 
 class FakePredictor:
     model = FakeModel()
@@ -392,12 +393,16 @@ if a100_profile != (runner.A100_GPU_MEMORY_PROFILE, False):
     raise AssertionError("A100 full GPU-state profile changed")
 if a100_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
     raise AssertionError("A100 unexpectedly enabled temporal-memory trim")
+if a100_predictor.model.postprocess_batch_size != 16:
+    raise AssertionError("A100 postprocess batch changed")
 l4_predictor = FakePredictor()
 l4_profile = runner.configure_gpu_memory_profile(l4_predictor, "nvidia_l4")
 if l4_profile != (runner.L4_GPU_MEMORY_PROFILE, True):
     raise AssertionError("L4 GPU-only bounded-memory profile changed")
 if not l4_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
     raise AssertionError("L4 temporal-memory trim was not enabled")
+if l4_predictor.model.postprocess_batch_size != 1:
+    raise AssertionError("L4 postprocess was not streamed one frame at a time")
 payload = json.load(sys.stdin)
 runner.validate_model_artifacts(payload["v1"])
 runner.validate_model_artifacts(payload["v2"])
@@ -845,7 +850,7 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
   settings: {
     ...request.settings,
     gpuMemoryProfileId:
-      'l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1',
+      'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
   },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')

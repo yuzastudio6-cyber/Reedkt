@@ -53,6 +53,10 @@ import {
   createVisualIntelligenceRequest,
   createVisualIntelligenceSpatialEvidence,
 } from '../visual-intelligence/visual-intelligence-contract'
+import { CAPTIONS_SPECIALIST_MANIFEST } from
+  '../captions-specialist/captions-specialist-manifest'
+import { CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT } from
+  '../captions-specialist/captions-specialist-qualification'
 
 let assertions = 0
 function check(condition: unknown, message: string): void {
@@ -134,10 +138,15 @@ const skillScope: SkillCanonicalScope = {
   authorizedFrameRanges: [captionRange],
 }
 
-const manifestRef = domainRef('captions.manifest', 'skill-capability-manifest-v1')
+const manifestRef = domainRef(
+  CAPTIONS_SPECIALIST_MANIFEST.manifestId,
+  CAPTIONS_SPECIALIST_MANIFEST.manifestSchemaVersion,
+  CAPTIONS_SPECIALIST_MANIFEST.manifestHash,
+)
 const qualificationRef = domainRef(
-  'captions.qualification',
-  'skill-qualification-snapshot-v1',
+  CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotId,
+  CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.schemaVersion,
+  CAPTIONS_SPECIALIST_QUALIFICATION_SNAPSHOT.snapshotDigestSha256,
 )
 
 const callWithoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
@@ -148,14 +157,25 @@ const callWithoutDigest: Omit<OrchestraSkillCall, 'callDigestSha256'> = {
   assigneeSkillKey: 'captions',
   job: {
     jobId: 'caption.job.resolve.subject.occlusion.1',
-    jobType: 'resolve_subject_occluded_typography',
-    requestedMode: 'private_internal',
+    jobType: 'plan_caption_blocking_preview',
+    requestedMode: 'planning',
     scopeLevel: 'scene',
   },
   canonicalScope: skillScope,
   manifestRef,
   qualificationSnapshotRef: qualificationRef,
-  inputArtifactRefs: [],
+  inputArtifactRefs: [
+    'canonical_transcript',
+    'confirmed_output_frame',
+    'master_timing_or_planning_timing',
+  ].map((artifactType) => ({
+    ...domainRef(`caption.input.${artifactType}`, 'canonical-input-v1'),
+    artifactType,
+    producerSkillKey: 'canonical_test_owner',
+    privateArtifact: true as const,
+    byteFreeRef: true as const,
+    sourceSupportRequestRef: null,
+  })),
   injectedSupportArtifactRefs: [],
   resumeOfSupportRequestRef: null,
   resumeOriginCallRef: null,
@@ -611,6 +631,7 @@ async function main(): Promise<void> {
       },
     },
     evidenceRepository,
+    now: () => new Date('2026-08-05T03:01:00.000Z'),
   })
   const bridgeInput = {
     authenticatedOwnerUserId: captionScope.ownerUserId,
@@ -645,6 +666,15 @@ async function main(): Promise<void> {
       && !record.captionEvidencePacket.coverage
         .completeTimePixelInspectionClaimAllowed,
     'Complete requested-range coverage must not become every-frame pixel coverage.',
+  )
+  const outcome = await service.projectAndResumeAuthenticatedEvidence(
+    bridgeInput,
+  )
+  check(
+    outcome.evidenceRecord.recordDigestSha256 === record.recordDigestSha256
+      && outcome.resumeRecord.stepOrdinal === 1
+      && outcome.resumeRecord.resumedResult.disposition === 'completed',
+    'Authenticated Visual Intelligence evidence must resume and complete the exact Caption job.',
   )
   const replay = await service.projectAuthenticatedEvidence(bridgeInput)
   check(
@@ -762,6 +792,8 @@ async function main(): Promise<void> {
     spatialEvidenceRef: record.visualIntelligenceSpatialEvidenceRef,
     packetDigestSha256: record.captionEvidencePacket.packetDigestSha256,
     recordDigestSha256: record.recordDigestSha256,
+    exactSequentialResumeCompleted: true,
+    resumeStepOrdinal: outcome.resumeRecord.stepOrdinal,
     authenticatedPrivateRuntime: true,
     exactRequestedRangeCoverage: true,
     everyTimelineFrameInspectionClaimed: false,

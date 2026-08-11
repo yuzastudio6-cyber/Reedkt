@@ -47,6 +47,14 @@ export type LocalInternalEditPreferenceBaseline = LocalInternalEditPreferenceVal
   provenance: 'saved_edit_preferences' | 'legacy_edit_snapshot'
 }
 
+export type LocalInvalidatedCanonicalPlanPresentation = {
+  planId: string
+  planVersion: number
+  planHash: string
+  invalidatedAtPreferenceRevision: number
+  browserPlanningAuthority: false
+}
+
 export type LocalInternalEditSetupSnapshot = {
   customInstructions?: string
   userInstructionHistory?: string[]
@@ -75,6 +83,7 @@ export type LocalInternalEditSetupSnapshot = {
   preferenceOverrideKeys?: EditPreferenceFieldKey[]
   preferenceRevision?: number
   preferenceUpdatedAt?: string
+  invalidatedCanonicalPlanPresentation?: LocalInvalidatedCanonicalPlanPresentation
   referenceAttached?: boolean
   referenceUrl?: string
   referenceSkipped?: boolean
@@ -1023,6 +1032,14 @@ function parseEditSetup(
   if (typeof record.preferenceUpdatedAt === 'string') {
     setup.preferenceUpdatedAt = record.preferenceUpdatedAt.trim().slice(0, 80)
   }
+  const invalidatedCanonicalPlanPresentation =
+    parseInvalidatedCanonicalPlanPresentation(
+      record.invalidatedCanonicalPlanPresentation,
+    )
+  if (invalidatedCanonicalPlanPresentation) {
+    setup.invalidatedCanonicalPlanPresentation =
+      invalidatedCanonicalPlanPresentation
+  }
   if (typeof record.referenceAttached === 'boolean') setup.referenceAttached = record.referenceAttached
   if (typeof record.referenceUrl === 'string') setup.referenceUrl = record.referenceUrl.trim().slice(0, 1000)
   if (typeof record.referenceSkipped === 'boolean') setup.referenceSkipped = record.referenceSkipped
@@ -1046,6 +1063,34 @@ function parseEditSetup(
   }
 
   return Object.keys(setup).length > 0 ? setup : undefined
+}
+
+function parseInvalidatedCanonicalPlanPresentation(
+  value: unknown,
+): LocalInvalidatedCanonicalPlanPresentation | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const record = value as Partial<LocalInvalidatedCanonicalPlanPresentation>
+  if (
+    typeof record.planId !== 'string' ||
+    !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/.test(record.planId) ||
+    !Number.isInteger(record.planVersion) ||
+    Number(record.planVersion) < 1 ||
+    typeof record.planHash !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(record.planHash) ||
+    !Number.isInteger(record.invalidatedAtPreferenceRevision) ||
+    Number(record.invalidatedAtPreferenceRevision) < 0 ||
+    record.browserPlanningAuthority !== false
+  ) return undefined
+
+  return {
+    planId: record.planId,
+    planVersion: Number(record.planVersion),
+    planHash: record.planHash,
+    invalidatedAtPreferenceRevision: Number(
+      record.invalidatedAtPreferenceRevision,
+    ),
+    browserPlanningAuthority: false,
+  }
 }
 
 function parseSourcePreparationRecovery(

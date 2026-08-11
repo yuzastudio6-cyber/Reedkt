@@ -49,6 +49,18 @@ assert.deepEqual(
   }),
   ['$.containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials'],
 )
+assert.deepEqual(
+  findApprovedSnapshotSecretLikePaths({
+    pathsUrlsOrCredentialsIncluded: false,
+  }),
+  [],
+)
+assert.deepEqual(
+  findApprovedSnapshotSecretLikePaths({
+    pathsUrlsOrCredentialsIncluded: true,
+  }),
+  ['$.pathsUrlsOrCredentialsIncluded'],
+)
 
 await expectToolNotReady(
   () => createApprovedSnapshotService(context).createApprovedSnapshot({
@@ -111,6 +123,8 @@ console.log(JSON.stringify({
     'canonical_authority_is_only_mutation_path',
     'enumerated_motion_tokens_are_not_credentials',
     'caller_selected_or_auth_tokens_remain_rejected',
+    'closed_negative_caption_path_url_credential_flag_is_safe',
+    'truthy_caption_path_url_credential_flag_is_rejected',
   ],
 }))
 

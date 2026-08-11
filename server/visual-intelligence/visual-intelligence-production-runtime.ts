@@ -29,6 +29,19 @@ import {
   type CanonicalCaptionVisualIntelligenceSupportService,
 } from '../services/canonical-caption-visual-intelligence-support-service'
 import {
+  createCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+  createCanonicalCaptionPostrenderVisualIntelligenceOwnerResultRepository,
+} from '../services/canonical-caption-postrender-visual-intelligence-durable-store'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+} from '../services/canonical-caption-postrender-visual-intelligence-evidence-repository'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceOwnerResultRepository,
+} from '../services/canonical-caption-postrender-visual-intelligence-owner-result-port'
+import {
+  createCanonicalCaptionPostrenderVisualIntelligenceOwnerService,
+} from '../services/canonical-caption-postrender-visual-intelligence-owner-service'
+import {
   createCanonicalSpecialistSupportResumeRepository,
   type CanonicalSpecialistSupportResumeRepository,
 } from '../services/canonical-specialist-support-resume-service'
@@ -211,6 +224,13 @@ export interface VisualIntelligenceProductionRuntime {
     CanonicalCaptionVisualIntelligenceEvidenceRepository
   readonly captionSupportService:
     CanonicalCaptionVisualIntelligenceSupportService
+  readonly captionPostrenderOwnerResultRepository:
+    CanonicalCaptionPostrenderVisualIntelligenceOwnerResultRepository
+  readonly captionPostrenderEvidenceRepository:
+    CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+  readonly captionPostrenderOwnerService: ReturnType<
+    typeof createCanonicalCaptionPostrenderVisualIntelligenceOwnerService
+  >
   readonly canonicalPreparedEvidenceStore:
     VisualIntelligenceCanonicalPreparedEvidenceStore
   readonly orchestraDispatchPackageStore:
@@ -417,6 +437,14 @@ export async function createVisualIntelligenceProductionRuntime(
     createCanonicalSpecialistSupportResumeRepository({ objectPort })
   const captionEvidenceRepository =
     createCanonicalCaptionVisualIntelligenceEvidenceRepository({ objectPort })
+  const captionPostrenderOwnerResultRepository =
+    createCanonicalCaptionPostrenderVisualIntelligenceOwnerResultRepository({
+      objectPort,
+    })
+  const captionPostrenderEvidenceRepository =
+    createCanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository({
+      objectPort,
+    })
   const sourceCleanupAuthorityRepository =
     createCanonicalSourceCleanupAuthorityRepository({ objectPort })
   const sourceAnalysisRequestAuthorityRepository =
@@ -475,6 +503,13 @@ export async function createVisualIntelligenceProductionRuntime(
     createVisualIntelligenceCanonicalRequestPackageStore({
       objectPort,
       runtimeRelease,
+    })
+  const captionPostrenderOwnerService =
+    createCanonicalCaptionPostrenderVisualIntelligenceOwnerService({
+      requestPackageStore: canonicalRequestPackageStore,
+      reportRepository: durableStore,
+      spatialEvidenceRepository: durableStore,
+      ownerResultRepository: captionPostrenderOwnerResultRepository,
     })
   const captionSupportService =
     createCanonicalCaptionVisualIntelligenceSupportService({
@@ -735,6 +770,9 @@ export async function createVisualIntelligenceProductionRuntime(
     specialistSupportResumeRepository,
     captionEvidenceRepository,
     captionSupportService,
+    captionPostrenderOwnerResultRepository,
+    captionPostrenderEvidenceRepository,
+    captionPostrenderOwnerService,
     canonicalPreparedEvidenceStore,
     orchestraDispatchPackageStore,
     orchestraJobResultStore,

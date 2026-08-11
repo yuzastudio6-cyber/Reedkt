@@ -99,6 +99,24 @@ export function getServiceContext(request: Request): ServiceContext {
     trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
       runtimeRequest.runtime
         .trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+    canonicalCaptionPostrenderVisualQaEvidenceRepository:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualQaEvidenceRepository,
+    canonicalCaptionPostrenderVisualQaOwnerResultReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+    canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+    canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort,
+    canonicalCaptionSourceLedProfessionalPlanningReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionSourceLedProfessionalPlanningReadPort,
+    canonicalCaptionTranscriptPlanningExpectationOwnerReadPort:
+      runtimeRequest.runtime
+        .canonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
   }
 }
 

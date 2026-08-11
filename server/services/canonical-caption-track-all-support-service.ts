@@ -29,6 +29,7 @@ import {
 } from '../../src/types/caption-track-all-support'
 import type {
   CanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  CanonicalSpecialistSupportResumeRecord,
 } from '../../src/types/canonical-specialist-support-resume'
 import type {
   SkillArtifactRef,
@@ -36,6 +37,10 @@ import type {
   SkillContractRef,
   SkillSupportRequest,
 } from '../../src/types/orchestra-skill-contracts'
+import type { CanonicalCaptionCrossSystemExecutionInputReadPort } from
+  '../../src/types/canonical-caption-cross-system-execution-input'
+import type { CanonicalCaptionIncomingSupportRequestReadPort } from
+  '../../src/types/canonical-caption-specialist-execution'
 import { assertClosedContractTree } from '../../src/lib/closed-contract-validation'
 import {
   calculateSkillContractDigest,
@@ -60,8 +65,17 @@ import type {
 import {
   createCanonicalAuthenticatedSpecialistSupportArtifactProjection,
   parseCanonicalAuthenticatedSpecialistSupportArtifactProjection,
+  resumeCanonicalSpecialistWithAuthenticatedSupport,
   type CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
+import {
+  canonicalCaptionCrossSystemRuntimeInput,
+  resolveCanonicalCaptionCrossSystemExecutionInput,
+} from './canonical-caption-cross-system-execution-input-service'
+import { resolveCanonicalCaptionIncomingSupportRequestForCall } from
+  './canonical-caption-incoming-support-request-service'
+import { runCaptionsSpecialistJob } from
+  '../captions-specialist/captions-specialist-runtime'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -474,6 +488,24 @@ export interface CanonicalCaptionTrackAllSupportService {
     readonly trackAllSceneQaAuthorityRef: CaptionDomainRef
     readonly trackAllSceneEvidenceRef: CaptionDomainRef
   }): Promise<CanonicalCaptionTrackAllAuthenticatedEvidenceRecord>
+  projectAndResumeAuthenticatedEvidence(input: {
+    readonly authenticatedOwnerUserId: string
+    readonly priorCallRef: SkillContractRef
+    readonly selectedSupportRequestRef: SkillContractRef
+    readonly invocationId: string
+    readonly runtimeResultAdmissionRef: CaptionDomainRef
+    readonly trackAllSceneQaAuthorityRef: CaptionDomainRef
+    readonly trackAllSceneEvidenceRef: CaptionDomainRef
+  }): Promise<{
+    readonly evidenceRecord: CanonicalCaptionTrackAllAuthenticatedEvidenceRecord
+    readonly resumeRecord: CanonicalSpecialistSupportResumeRecord
+  }>
+}
+
+export interface CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort {
+  rereadAuthority(input: {
+    readonly authorityRef: CaptionDomainRef
+  }): Promise<CanonicalTrackAllSam31CaptionSceneQaAuthority | null>
 }
 
 export interface CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort {
@@ -855,12 +887,7 @@ export function createCanonicalCaptionTrackAllEvidenceRepository(input: {
 }
 
 export function createCanonicalCaptionTrackAllSupportService(input: {
-  readonly supportResumeRepository: Pick<
-    CanonicalSpecialistSupportResumeRepository,
-    | 'rereadCallResultPair'
-    | 'persistAuthenticatedOwnerProjectionCreateOnly'
-    | 'rereadAuthenticatedOwnerProjection'
-  >
+  readonly supportResumeRepository: CanonicalSpecialistSupportResumeRepository
   readonly taskStore: Pick<CanonicalSam31GpuTaskStore, 'rereadTask'>
   readonly taskContextRepository: Pick<
     CanonicalSam31GpuTaskContextRepository,
@@ -875,6 +902,11 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
   readonly sceneEvidenceRepository:
     CanonicalTrackAllSam31CaptionSceneEvidenceRepository
   readonly evidenceRepository: CanonicalCaptionTrackAllEvidenceRepository
+  readonly crossSystemExecutionInputReadPort?:
+    CanonicalCaptionCrossSystemExecutionInputReadPort
+  readonly incomingSupportRequestReadPort?:
+    CanonicalCaptionIncomingSupportRequestReadPort
+  readonly now?: () => Date
 }): CanonicalCaptionTrackAllSupportService {
   assertPorts(input)
   const service: CanonicalCaptionTrackAllSupportService = {
@@ -1049,6 +1081,55 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
         throw new Error('Caption Track All evidence did not reconcile.')
       }
       return reread
+    },
+    async projectAndResumeAuthenticatedEvidence(value: Parameters<
+      CanonicalCaptionTrackAllSupportService[
+        'projectAndResumeAuthenticatedEvidence'
+      ]
+    >[0]) {
+      const evidenceRecord = await service.projectAuthenticatedEvidence(value)
+      const resumeRecord =
+        await resumeCanonicalSpecialistWithAuthenticatedSupport({
+          priorCallRef: evidenceRecord.originalCallRef,
+          selectedSupportRequestRef: evidenceRecord.supportRequestRef,
+          repository: input.supportResumeRepository,
+          specialistExecutionPort: {
+            execute: async ({ call, resumeSupportRequest }) => {
+              const exactRecord = await input.evidenceRepository
+                .rereadBySupportRequestRef({
+                  supportRequestRef: requestRef(resumeSupportRequest),
+                })
+              if (!exactRecord || exactRecord.recordDigestSha256
+                !== evidenceRecord.recordDigestSha256) {
+                throw new Error(
+                  'Caption Track All resume evidence is unavailable.',
+                )
+              }
+              const crossSystemExecutionInput =
+                await resolveCanonicalCaptionCrossSystemExecutionInput({
+                  call,
+                  readPort: input.crossSystemExecutionInputReadPort,
+                })
+              const incomingSupportRequest =
+                await resolveCanonicalCaptionIncomingSupportRequestForCall({
+                  call,
+                  readPort: input.incomingSupportRequestReadPort,
+                })
+              return runCaptionsSpecialistJob({
+                call,
+                resumeSupportRequest,
+                canonicalTrackAllEvidenceRecord: exactRecord,
+                ...(incomingSupportRequest === null ? {} : {
+                  incomingSupportRequest,
+                }),
+                ...canonicalCaptionCrossSystemRuntimeInput(
+                  crossSystemExecutionInput),
+              })
+            },
+          },
+          now: input.now,
+        })
+      return Object.freeze({ evidenceRecord, resumeRecord })
     },
   }
   return Object.freeze(service)
@@ -1694,12 +1775,7 @@ function assertObjectPort(port: CanonicalCreateOnlyJsonObjectPort): void {
 }
 
 function assertPorts(input: {
-  supportResumeRepository: Pick<
-    CanonicalSpecialistSupportResumeRepository,
-    | 'rereadCallResultPair'
-    | 'persistAuthenticatedOwnerProjectionCreateOnly'
-    | 'rereadAuthenticatedOwnerProjection'
-  >
+  supportResumeRepository: CanonicalSpecialistSupportResumeRepository
   taskStore: Pick<CanonicalSam31GpuTaskStore, 'rereadTask'>
   taskContextRepository: Pick<
     CanonicalSam31GpuTaskContextRepository,
@@ -1720,6 +1796,12 @@ function assertPorts(input: {
       .persistAuthenticatedOwnerProjectionCreateOnly !== 'function'
     || typeof input.supportResumeRepository
       .rereadAuthenticatedOwnerProjection !== 'function'
+    || typeof input.supportResumeRepository
+      .persistCallResultPairCreateOnly !== 'function'
+    || typeof input.supportResumeRepository
+      .persistResumeRecordCreateOnly !== 'function'
+    || typeof input.supportResumeRepository
+      .rereadResumeRecordByResumedCall !== 'function'
     || typeof input.taskStore?.rereadTask !== 'function'
     || typeof input.taskContextRepository?.rereadTaskContext !== 'function'
     || typeof input.resultStore?.rereadResultAdmission !== 'function'

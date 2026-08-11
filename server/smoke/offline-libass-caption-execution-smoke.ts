@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import {
   activatePrivateOfflineLibassCaptionRuntime,
   openPrivateOfflineLibassCaptionRuntime,
+  prepareOfflineLibassDockerRuntime,
   readPersistedOfflineLibassRuntimeAuthority,
   validateOfflineLibassCaptionRequest,
 } from '../tool-execution/libass-caption-execution'
@@ -27,7 +28,9 @@ for (const invalid of [
   { ...request, payload: { ...request.payload, fontPackProfileId: '/tmp/fonts' } },
 ]) assert.throws(() => validateOfflineLibassCaptionRequest(invalid), /unsupported|outside|contains/)
 
+const prepared = await prepareOfflineLibassDockerRuntime()
 const activated = await activatePrivateOfflineLibassCaptionRuntime()
+assert.equal(activated.image.imageIdentityHash, prepared.imageIdentityHash)
 const authority = await readPersistedOfflineLibassRuntimeAuthority()
 assert.ok(authority)
 assert.equal(authority.image.libassVersion, '0.17.5')

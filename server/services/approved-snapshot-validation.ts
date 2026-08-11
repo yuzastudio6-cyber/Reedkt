@@ -84,6 +84,10 @@ function isApprovedSnapshotSafeSemanticToken(key: string, value: unknown): boole
     return true
   }
 
+  if (key === 'pathsUrlsOrCredentialsIncluded' && value === false) {
+    return true
+  }
+
   return key ===
     'containsRawChatTranscriptMediaBytesPathsUrlsOrCredentials'
     && value === false

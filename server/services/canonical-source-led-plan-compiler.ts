@@ -7,6 +7,11 @@ import {
   type CanonicalWorkItemDraft,
 } from '../../src/lib/canonical-planning-draft'
 import { createGuidedEditPlan } from '../../src/lib/guided-edit-planner'
+import { createProfessionalSkillPlan } from
+  '../../src/lib/professional-skills/professional-skill-planner'
+import { parseProfessionalSkillCompositionTrace } from
+  '../../src/lib/professional-skills/professional-skill-composition-trace'
+import type { PlanningContext } from '../../src/types/planning-context'
 import type {
   CaptionVisualCueTimingPlan,
   EditPlan,
@@ -30,6 +35,12 @@ import {
   assertCanonicalSourceCleanupBindingMatchesEvidence,
   type CanonicalSourceCleanupVisualIntelligenceBinding,
 } from './canonical-source-cleanup-visual-intelligence-binding'
+import {
+  verifyCanonicalSourceLedContentAnalysisEvidence,
+} from './canonical-source-led-content-analysis-evidence'
+import {
+  mapCanonicalSourceFrameRangeToMasterTiming,
+} from './canonical-rational-source-frame-mapping'
 
 const SOURCE_LED_FPS = 30 as const
 const ASCII_CAPTION = /^[\x20-\x7e]+$/
@@ -60,6 +71,17 @@ interface CanonicalSourceLedRemovedRange {
   confidenceBasisPoints: number
   evidenceIds: string[]
   instructionIds: string[]
+}
+
+interface CanonicalSourceLedCaptionCue {
+  id: string
+  caption: string
+  startFrame: number
+  endFrame: number
+  transcriptSegmentId?: string
+  source:
+    | 'confirmed_edit_brief_marker'
+    | 'authenticated_source_transcript_segment'
 }
 
 export interface CanonicalSourceLedCleanupAuthorityInput {
@@ -107,6 +129,10 @@ export interface CanonicalSourceLedPlanCompilation {
     totalFrames: number
     fps: typeof SOURCE_LED_FPS
     captionCueCount: number
+    captionCueAuthority:
+      | 'none'
+      | 'confirmed_edit_brief_markers'
+      | 'authenticated_source_transcript_segments'
     publicationProfile:
       | 'bounded_private_composition'
       | 'professional_long_form_object_controller'
@@ -134,6 +160,7 @@ export function compileCanonicalSourceLedPlan(input: {
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   editBrief?: EditBriefRecord
   confirmedCaptionMarkers: EditBriefMarkerRecord[]
+  professionalCaptionSelectionMarkers?: EditBriefMarkerRecord[]
   sourceCleanupAuthority?: CanonicalSourceLedCleanupAuthorityInput
 }): CanonicalSourceLedPlanCompilation {
   assertBoundedSourceLedInput(input)
@@ -159,6 +186,18 @@ export function compileCanonicalSourceLedPlan(input: {
       (range.selectedEndFrameExclusive - range.selectedStartFrame),
     0,
   )
+  const professionalSkillPlan = createProfessionalSkillPlan({
+    plannerInput: input.plannerInput,
+    planningContext: buildSourceLedProfessionalPlanningContext({
+      sourceMediaAssets: input.sourceMediaAssets,
+      editBrief: input.editBrief,
+      confirmedCaptionMarkers:
+        input.professionalCaptionSelectionMarkers ??
+        input.confirmedCaptionMarkers,
+      selectedRanges,
+      totalFrames,
+    }),
+  })
   const sourceCleanupPlan = cleanupAuthority
     ? buildAnalyzedCleanupPlan({
         template: base.sourceCleanupPlan!,
@@ -172,10 +211,18 @@ export function compileCanonicalSourceLedPlan(input: {
         input.plannerInput,
         fullSourceFrames,
       )
-  const captions = buildConfirmedCaptionCues(
+  const confirmedCaptions = buildConfirmedCaptionCues(
     input.confirmedCaptionMarkers,
     totalFrames,
   )
+  const captionDisposition = parseProfessionalSkillCompositionTrace(
+    professionalSkillPlan.compositionTrace,
+  ).entries[0].disposition
+  const captions = confirmedCaptions.length > 0
+    ? confirmedCaptions
+    : captionDisposition === 'selected'
+      ? cleanupAuthority?.transcriptCaptionCues ?? []
+      : []
   const masterTimingPlan = buildSourceLedMasterTimingPlan({
     template: base.masterTimingPlan!,
     plannerInput: input.plannerInput,
@@ -337,11 +384,14 @@ export function compileCanonicalSourceLedPlan(input: {
     audioPipelinePlan,
     colorPipelinePlan,
     segmentEditPlans: [],
+    professionalSkillPlan,
     soundSyncDirection: cleanupAuthority
       ? 'Apply the approved source-bound professional voice recipe only across the exact selected MasterTiming ranges. Do not add music, SFX, beat sync, or ducking.'
       : 'Apply the approved source-bound professional voice recipe. Do not add music, SFX, beat sync, ducking, or inferred transcript edits.',
-    captionDirection:
-      'Render only the exact confirmed Edit Brief caption markers; never infer transcript text.',
+    captionDirection: captions.some((caption) =>
+      caption.source === 'authenticated_source_transcript_segment')
+      ? 'Render the exact authenticated source-transcript segments on their MasterTiming ranges. Preserve wording and source-segment lineage; never infer or rewrite transcript text.'
+      : 'Render only the exact confirmed Edit Brief caption markers; never infer transcript text.',
     creditEstimate,
     compiledIntent: cleanupAuthority && base.compiledIntent
       ? {
@@ -448,10 +498,109 @@ export function compileCanonicalSourceLedPlan(input: {
       totalFrames,
       fps: SOURCE_LED_FPS,
       captionCueCount: captions.length,
+      captionCueAuthority: captions.length === 0
+        ? 'none'
+        : captions.every((caption) =>
+            caption.source === 'authenticated_source_transcript_segment')
+          ? 'authenticated_source_transcript_segments'
+          : 'confirmed_edit_brief_markers',
       publicationProfile: professionalLongFormPublication
         ? 'professional_long_form_object_controller'
         : 'bounded_private_composition',
     },
+  }
+}
+
+function buildSourceLedProfessionalPlanningContext(input: {
+  sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  editBrief?: EditBriefRecord
+  confirmedCaptionMarkers: EditBriefMarkerRecord[]
+  selectedRanges: CanonicalSourceLedSelectedRange[]
+  totalFrames: number
+}): PlanningContext {
+  const stableTime = input.editBrief?.updatedAt ??
+    input.confirmedCaptionMarkers[0]?.updatedAt ??
+    '1970-01-01T00:00:00.000Z'
+  const editBrief = input.editBrief
+    ? {
+        editBriefId: input.editBrief.id,
+        status: input.editBrief.fields.status,
+        goal: input.editBrief.fields.goal,
+        audience: input.editBrief.fields.audience,
+        targetPlatforms: input.editBrief.fields.targetPlatforms ?? [],
+        targetDurationMs: input.editBrief.fields.targetDurationMs,
+        styleKeywords: input.editBrief.fields.styleKeywords ?? [],
+        pacingPreference: input.editBrief.fields.pacingPreference,
+        captionPreference: input.editBrief.fields.captionPreference,
+        musicPreference: input.editBrief.fields.musicPreference,
+        bRollPreference: input.editBrief.fields.bRollPreference,
+        mustUseAssetIds: input.editBrief.fields.mustUseAssetIds ?? [],
+        avoidAssetIds: input.editBrief.fields.avoidAssetIds ?? [],
+        mustIncludeNotes: input.editBrief.fields.mustIncludeNotes,
+        avoidNotes: input.editBrief.fields.avoidNotes,
+        brandNotes: input.editBrief.fields.brandNotes,
+        specialInstructions: input.editBrief.fields.specialInstructions,
+        userProvidedReferenceUrls:
+          input.editBrief.fields.userProvidedReferenceUrls ?? [],
+        ready: input.editBrief.fields.status === 'ready',
+      }
+    : undefined
+  const cueUsages = input.confirmedCaptionMarkers.map((marker) => ({
+    editCueId: marker.id,
+    title: `Confirmed Caption cue: ${marker.title}`,
+    status: 'will_use' as const,
+    role: 'caption_instruction' as const,
+    priority: marker.priority === 'must_follow'
+      ? 'must_follow' as const
+      : marker.priority === 'high'
+        ? 'prefer' as const
+        : 'optional' as const,
+    mappedTimeRange: {
+      startMs: Math.round(marker.startSeconds * 1_000),
+      endMs: Math.round(
+        (marker.endSeconds ?? marker.startSeconds + (1 / SOURCE_LED_FPS)) *
+          1_000,
+      ),
+    },
+    explanation:
+      `Use the confirmed Caption marker exactly as approved: ${marker.note}`,
+    relatedAssetIds: [],
+    blockingIssueIds: [],
+  }))
+  return {
+    id: 'canonical-source-led-professional-selection-context',
+    projectId: 'canonical-source-led-project',
+    status: 'ready',
+    cleanAssembly: {
+      cleanAssemblyId: 'canonical-source-led-clean-assembly',
+      version: 1,
+      durationMs: Math.round((input.totalFrames / SOURCE_LED_FPS) * 1_000),
+      accepted: true,
+      segmentCount: input.selectedRanges.length,
+      sourceTimeMappingCount: input.selectedRanges.length,
+      summary:
+        'Exact finalized uploaded-source ranges selected by the canonical source-led planner.',
+    },
+    sourceAssets: input.sourceMediaAssets.map((asset) => ({
+      mediaAssetId: asset.mediaAssetId,
+      sourceLibraryAssetId: asset.sourceSequenceItemId,
+      label: asset.fileName,
+      role: 'main_footage' as const,
+      status: 'main_footage' as const,
+      priority: 'must_follow' as const,
+      explanation:
+        'Server-verified finalized uploaded source used by the canonical source-led plan.',
+    })),
+    editBrief,
+    cueUsages,
+    readinessIssues: [],
+    unresolvedConflictIds: [],
+    blockingIssueCount: 0,
+    warningIssueCount: 0,
+    summary:
+      `Canonical source-led professional selection uses ${input.sourceMediaAssets.length} source asset(s), ${cueUsages.length} confirmed Caption cue(s), and the exact persisted Edit Brief when present.`,
+    createdAt: stableTime,
+    updatedAt: stableTime,
   }
 }
 
@@ -575,6 +724,7 @@ function assertBoundedSourceLedInput(input: {
   sourceMediaAssets: ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
   editBrief?: EditBriefRecord
   confirmedCaptionMarkers: EditBriefMarkerRecord[]
+  professionalCaptionSelectionMarkers?: EditBriefMarkerRecord[]
   sourceCleanupAuthority?: CanonicalSourceLedCleanupAuthorityInput
 }): void {
   if (
@@ -612,10 +762,17 @@ function assertBoundedSourceLedInput(input: {
   }
   if (
     input.editBrief?.fields.captionPreference === 'none' &&
-    input.confirmedCaptionMarkers.length > 0
+    (input.professionalCaptionSelectionMarkers ??
+      input.confirmedCaptionMarkers).length > 0
   ) {
     throw new Error(
       'A caption-free Edit Brief cannot also contain confirmed caption markers.',
+    )
+  }
+  if ((input.professionalCaptionSelectionMarkers ?? []).some((marker) =>
+    marker.markerType !== 'caption' || marker.status !== 'confirmed')) {
+    throw new Error(
+      'Professional Caption selection markers must be exact confirmed Caption cues.',
     )
   }
   input.sourceMediaAssets.forEach((asset, index) => {
@@ -659,11 +816,15 @@ function resolveAnalyzedSourceCleanupAuthority(input: {
   }
   selectedRanges: CanonicalSourceLedSelectedRange[]
   removedRanges: CanonicalSourceLedRemovedRange[]
+  transcriptCaptionCues: CanonicalSourceLedCaptionCue[]
 } {
   const binding = assertCanonicalSourceCleanupBindingMatchesEvidence({
     binding: input.authority.binding,
     evidence: input.authority.evidence,
   })
+  const evidence = verifyCanonicalSourceLedContentAnalysisEvidence(
+    input.authority.evidence,
+  )
   const repositoryRecordRef = input.authority.repositoryRecordRef
   if (
     repositoryRecordRef !== undefined &&
@@ -801,7 +962,119 @@ function resolveAnalyzedSourceCleanupAuthority(input: {
     ...(repositoryRecordRef ? { repositoryRecordRef } : {}),
     selectedRanges,
     removedRanges,
+    transcriptCaptionCues: buildAuthenticatedTranscriptCaptionCues({
+      evidence,
+      binding,
+    }),
   }
+}
+
+function buildAuthenticatedTranscriptCaptionCues(input: {
+  evidence: ReturnType<typeof verifyCanonicalSourceLedContentAnalysisEvidence>
+  binding: CanonicalSourceCleanupVisualIntelligenceBinding
+}): CanonicalSourceLedCaptionCue[] {
+  const cues = input.evidence.sources.flatMap((source, sourceIndex) => {
+    if (source.transcript.status === 'no_speech') return []
+    const bindingSource = input.binding.sources[sourceIndex]
+    const sourceAuthority = source.sourceFrameAuthority
+    if (!bindingSource || !sourceAuthority
+      || bindingSource.sourceSequenceItemId !== source.sourceSequenceItemId
+      || bindingSource.transcriptDigestSha256 !==
+        source.transcript.transcriptDigestSha256) {
+      throw new Error(
+        'Canonical Caption transcript cues lost exact source-analysis authority.',
+      )
+    }
+    const selected = bindingSource.decisionPartition.filter((decision) =>
+      decision.action === 'keep')
+    if (selected.length !== 1) {
+      throw new Error(
+        'Canonical Caption transcript projection requires one exact retained range per source.',
+      )
+    }
+    const retained = selected[0]!
+    const retainedMaster = mapCanonicalSourceFrameRangeToMasterTiming({
+      sourceStartFrame: retained.sourceStartFrame,
+      sourceEndFrameExclusive: retained.sourceEndFrameExclusive,
+      source: sourceAuthority,
+      master: { fpsNumerator: SOURCE_LED_FPS, fpsDenominator: 1 },
+    })
+    return source.transcript.segments.flatMap((segment, segmentIndex) => {
+      const insideRetained = segment.startFrame >= retained.sourceStartFrame
+        && segment.endFrameExclusive <= retained.sourceEndFrameExclusive
+      const overlapsRetained = segment.startFrame < retained.sourceEndFrameExclusive
+        && segment.endFrameExclusive > retained.sourceStartFrame
+      if (!insideRetained) {
+        if (overlapsRetained) {
+          throw new Error(
+            'A canonical transcript segment crosses an approved source-selection boundary.',
+          )
+        }
+        return []
+      }
+      if (!segment.wordsVerified) {
+        throw new Error(
+          'Canonical Caption transcript cues require verified word timing evidence.',
+        )
+      }
+      const caption = executionSafeAuthenticatedCaption(segment.text)
+      const mapped = mapCanonicalSourceFrameRangeToMasterTiming({
+        sourceStartFrame: segment.startFrame,
+        sourceEndFrameExclusive: segment.endFrameExclusive,
+        source: sourceAuthority,
+        master: { fpsNumerator: SOURCE_LED_FPS, fpsDenominator: 1 },
+      })
+      const startFrame = retained.timelineStartFrame! +
+        mapped.masterBoundaryStartFrame -
+        retainedMaster.masterBoundaryStartFrame
+      const endFrame = retained.timelineStartFrame! +
+        mapped.masterBoundaryEndFrameExclusive -
+        retainedMaster.masterBoundaryStartFrame
+      return [{
+        id: `source-transcript-caption-${sourceIndex + 1}-${segmentIndex + 1}`,
+        caption,
+        startFrame,
+        endFrame,
+        transcriptSegmentId: segment.segmentId,
+        source: 'authenticated_source_transcript_segment' as const,
+      }]
+    })
+  }).sort((left, right) => left.startFrame - right.startFrame
+    || left.endFrame - right.endFrame || left.id.localeCompare(right.id))
+  if (cues.length > 128) {
+    throw new Error(
+      'The bounded source-led Caption route supports at most 128 authenticated transcript cues.',
+    )
+  }
+  let priorEndFrame = 0
+  for (const cue of cues) {
+    if (cue.startFrame < priorEndFrame || cue.endFrame <= cue.startFrame) {
+      throw new Error(
+        'Canonical Caption transcript cues overlap or contain an empty MasterTiming range.',
+      )
+    }
+    priorEndFrame = cue.endFrame
+  }
+  return cues
+}
+
+function executionSafeAuthenticatedCaption(value: string): string {
+  const caption = value.trim()
+  const hasUnsafeControlCharacter = Array.from(caption).some((character) => {
+    const codePoint = character.codePointAt(0)!
+    return codePoint <= 31 || codePoint === 127
+  })
+  if (caption !== value || Array.from(caption).length < 1
+    || Array.from(caption).length > 120
+    || hasUnsafeControlCharacter
+    || /[{}\\[\]]/u.test(caption) || caption.includes('\\')
+    || /(?:https?:\/\/|file:|data:|javascript:|\.\.\/|\$\(|`|&&|\|\||#!)/iu
+      .test(caption)) {
+    throw new Error(
+      'Authenticated transcript text is not safe for the current stable Caption renderer.',
+    )
+  }
+  return caption
 }
 
 function buildPreservingSelectedRanges(input: {
@@ -1052,12 +1325,7 @@ function buildPreservingCleanupPlan(
 function buildConfirmedCaptionCues(
   markers: EditBriefMarkerRecord[],
   totalFrames: number,
-): Array<{
-  id: string
-  caption: string
-  startFrame: number
-  endFrame: number
-}> {
+): CanonicalSourceLedCaptionCue[] {
   const captions = [...markers]
     .filter((marker) => marker.status === 'confirmed' && marker.markerType === 'caption')
     .sort((left, right) =>
@@ -1098,6 +1366,7 @@ function buildConfirmedCaptionCues(
         caption,
         startFrame,
         endFrame,
+        source: 'confirmed_edit_brief_marker' as const,
       }
     })
   if (captions.length > 7) {
@@ -1123,9 +1392,11 @@ function buildSourceLedMasterTimingPlan(input: {
   template: MasterTimingPlan
   plannerInput: PlannerInput
   selectedRanges: CanonicalSourceLedSelectedRange[]
-  captions: Array<{ id: string; caption: string; startFrame: number; endFrame: number }>
+  captions: CanonicalSourceLedCaptionCue[]
   analysisBound: boolean
 }): MasterTimingPlan {
+  const authenticatedTranscriptCaptions = input.captions.some((caption) =>
+    caption.source === 'authenticated_source_transcript_segment')
   const sourceTimingItems = input.selectedRanges.map((range, index) => {
     const clip = input.plannerInput.clips[index]!
     const item = {
@@ -1194,22 +1465,29 @@ function buildSourceLedMasterTimingPlan(input: {
     id: caption.id,
     captionText: caption.caption,
     timeRange: frameRange(caption.startFrame, caption.endFrame),
+    ...(caption.transcriptSegmentId
+      ? { linkedTranscriptLineId: caption.transcriptSegmentId }
+      : {}),
     animationInFrames: 0,
     holdFrames: caption.endFrame - caption.startFrame,
     animationOutFrames: 0,
     readabilityScore: 'high' as const,
-    qaChecks: ['Use only the exact user-confirmed caption text and frame range.'],
+    qaChecks: [caption.source === 'authenticated_source_transcript_segment'
+      ? 'Use only the exact authenticated source-transcript text and MasterTiming range.'
+      : 'Use only the exact user-confirmed caption text and frame range.'],
   }))
   const visualTimingItems = input.captions.map((caption) => ({
     id: `server-caption-visual-${caption.id}`,
-    label: `Confirmed caption ${caption.id}`,
+    label: `Canonical caption ${caption.id}`,
     visualType: 'caption_only' as const,
     timeRange: frameRange(caption.startFrame, caption.endFrame),
     revealFrames: 0,
     holdFrames: caption.endFrame - caption.startFrame,
     exitFrames: 0,
     readTimeFrames: caption.endFrame - caption.startFrame,
-    reason: 'Represent one explicit Edit Brief caption marker.',
+    reason: caption.source === 'authenticated_source_transcript_segment'
+      ? 'Represent one exact authenticated source-transcript segment.'
+      : 'Represent one explicit Edit Brief caption marker.',
     qaChecks: ['Do not infer or rewrite caption content.'],
   }))
   const sourceTotalFrames = input.selectedRanges.reduce(
@@ -1255,9 +1533,13 @@ function buildSourceLedMasterTimingPlan(input: {
       phraseBoundaryCueIds: [],
       emotionalPauseCueIds: [],
       limitations: input.analysisBound
-        ? [
-            'The complete verified transcript informed the upstream Head Intelligence decision but is not exposed as caption text here.',
-          ]
+        ? authenticatedTranscriptCaptions
+          ? [
+              'Caption text is limited to exact verified transcript segments; later word-level creative motion still requires its authenticated postapproval projection.',
+            ]
+          : [
+              'The complete verified transcript informed the upstream Head Intelligence decision but is not exposed as caption text here.',
+            ]
         : ['No transcript was inferred or used.'],
       qaChecks: input.analysisBound
         ? [
@@ -1310,11 +1592,15 @@ function buildSourceLedCaptionTimingPlan(input: {
   masterTimingPlan: MasterTimingPlan
 }): CaptionVisualCueTimingPlan {
   const captions = input.masterTimingPlan.captionTimingItems
+  const authenticatedTranscriptCaptions = captions.some((caption) =>
+    caption.linkedTranscriptLineId !== undefined)
   return {
     ...input.template,
     id: 'server-source-led-caption-timing-plan',
     status: 'synced',
-    summary: 'Every caption is an exact confirmed Edit Brief marker.',
+    summary: authenticatedTranscriptCaptions
+      ? 'Every stable Caption cue is bound to an exact authenticated source-transcript segment and MasterTiming range.'
+      : 'Every caption is an exact confirmed Edit Brief marker.',
     captionPolicy: {
       ...input.template.captionPolicy,
       chunkingMode: 'minimal_caption',
@@ -1322,7 +1608,9 @@ function buildSourceLedCaptionTimingPlan(input: {
       emphasisAllowed: false,
       maxEmphasisWordsPerCaption: 0,
       avoidRules: ['Do not infer text or move captions outside their confirmed ranges.'],
-      qaChecks: ['Caption content and frames must equal the confirmed markers.'],
+      qaChecks: [authenticatedTranscriptCaptions
+        ? 'Caption content and frames must equal the authenticated source transcript and MasterTiming projection.'
+        : 'Caption content and frames must equal the confirmed markers.'],
     },
     captionPhraseTimings: [],
     refinedCaptionTimings: captions.map((caption) => ({
@@ -1336,7 +1624,9 @@ function buildSourceLedCaptionTimingPlan(input: {
       readabilityScore: 'high',
       safeZoneNotes: ['Use the confirmed 4K frame caption-safe zone.'],
       collisionAvoidanceNotes: ['No other overlays are admitted in this route.'],
-      reason: 'Exact user-confirmed caption marker.',
+      reason: caption.linkedTranscriptLineId
+        ? 'Exact authenticated source-transcript segment.'
+        : 'Exact user-confirmed caption marker.',
       qaChecks: ['No text rewriting or inferred transcript content.'],
     })),
     visualCueTimings: input.masterTimingPlan.visualTimingItems.map((visual) => ({

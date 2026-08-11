@@ -1,8 +1,10 @@
 import {
   activatePrivateOfflineLibassCaptionRuntime,
+  prepareOfflineLibassDockerRuntime,
 } from '../../server/tool-execution/libass-caption-execution'
 import {
   activatePrivateOfflineMediaBinaryRuntime,
+  prepareOfflineMediaBinaryDockerRuntime,
 } from '../../server/tool-execution/media-binary-execution'
 import {
   activatePrivateOfflineRemotionRenderRuntime,
@@ -10,11 +12,14 @@ import {
 } from '../../server/tool-execution/remotion-render-execution'
 
 // The professional editor lane proves the real approved private workflow, so
-// activate each reviewed local tool authority before mounting the shared API.
-// These capabilities remain process-local, non-production, and provider-free.
+// prepare and verify every reviewed image before activating any local tool
+// authority or mounting the shared API. These capabilities remain process-local,
+// non-production, and provider-free.
+await prepareOfflineMediaBinaryDockerRuntime()
+await prepareOfflineLibassDockerRuntime()
+await prepareOfflineRemotionDockerRuntime()
 await activatePrivateOfflineMediaBinaryRuntime()
 await activatePrivateOfflineLibassCaptionRuntime()
-await prepareOfflineRemotionDockerRuntime()
 await activatePrivateOfflineRemotionRenderRuntime()
 
 await import('./edit-preferences-atomic-api-server')

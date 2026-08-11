@@ -18,6 +18,12 @@ import type {
   FrameTemplateType,
   PlannerInput,
 } from '../../src/types/reeditpro'
+import type {
+  CanonicalCaptionSpecialistPlanningProjection,
+} from '../../src/types/canonical-caption-specialist-planning'
+import {
+  parseProfessionalSkillCompositionTrace,
+} from '../../src/lib/professional-skills/professional-skill-composition-trace'
 import { createCanonicalPlanPresentationCoordinatorService } from './canonical-plan-presentation-coordinator-service'
 import { createCanonicalPlanningHandoffService } from './canonical-planning-handoff-service'
 import {
@@ -48,6 +54,14 @@ import {
 import { createSourceMediaAuthorityService } from './source-media-authority-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
+import {
+  applyCanonicalCaptionSourceLedProfessionalPlanning,
+  createCanonicalCaptionSourceLedProfessionalPlanningRequest,
+  readCanonicalCaptionSourceLedProfessionalPlanning,
+} from '../captions-specialist/caption-source-led-professional-planning'
+import {
+  createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort,
+} from '../captions-specialist/caption-source-led-professional-planning-owner'
 
 export function createCanonicalSourceLedPlanPresentationService(
   context: ServiceContext,
@@ -296,19 +310,49 @@ export function createCanonicalSourceLedPlanPresentationService(
         )
       }
 
+      const captionMarkers = confirmedMarkers.filter(
+        (marker) => marker.markerType === 'caption',
+      )
+      const confirmedCaptionMarkerSetRef = captionMarkers.length > 0
+        ? (() => {
+            const contentHash = sha256(JSON.stringify(captionMarkers.map(
+              (marker) => ({
+                markerId: marker.id,
+                revision: marker.revision,
+                startFrame: marker.startFrame,
+                endFrame: marker.endFrame,
+                frameRate: marker.frameRate,
+                priority: marker.priority,
+                status: marker.status,
+                timingStatus: marker.timingStatus,
+                titleHash: sha256(marker.title),
+                noteHash: sha256(marker.note),
+              }),
+            )))
+            return {
+              id: `caption-marker-set.${contentHash.slice(0, 32)}`,
+              version: 'canonical-confirmed-caption-marker-set-v1',
+              contentHash,
+            }
+          })()
+        : null
+      const compilePlan = (
+        selectedCaptionMarkers: typeof captionMarkers,
+        professionalCaptionSelectionMarkers: typeof captionMarkers =
+          selectedCaptionMarkers,
+      ) => compileCanonicalSourceLedPlan({
+        plannerInput,
+        sourceMediaAssets,
+        editBrief,
+        confirmedCaptionMarkers: selectedCaptionMarkers,
+        professionalCaptionSelectionMarkers,
+        ...(sourceCleanupAuthorityRead?.status === 'ready'
+          ? { sourceCleanupAuthority: sourceCleanupAuthorityRead.authority }
+          : {}),
+      })
       let compiled: ReturnType<typeof compileCanonicalSourceLedPlan>
       try {
-        compiled = compileCanonicalSourceLedPlan({
-          plannerInput,
-          sourceMediaAssets,
-          editBrief,
-          confirmedCaptionMarkers: confirmedMarkers.filter(
-            (marker) => marker.markerType === 'caption',
-          ),
-          ...(sourceCleanupAuthorityRead?.status === 'ready'
-            ? { sourceCleanupAuthority: sourceCleanupAuthorityRead.authority }
-            : {}),
-        })
+        compiled = compilePlan(captionMarkers)
       } catch (error) {
         throw new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
@@ -320,7 +364,7 @@ export function createCanonicalSourceLedPlanPresentationService(
           { cause: error },
         )
       }
-      const publication =
+      let publication =
         compiled.canonicalDraft.publication ??
         compiled.professionalLongFormPublication
       if (!publication) {
@@ -338,14 +382,201 @@ export function createCanonicalSourceLedPlanPresentationService(
         scope,
         directions: chatDirections,
       })
-      const compiledIntentWithChatAuthority = {
-        ...compiled.canonicalDraft.components.compiledIntent,
-        canonicalSourceLedChatAuthority: { ...chatPlanBinding },
+      const attachChatAuthority = () => {
+        const compiledIntentWithChatAuthority = {
+          ...compiled.canonicalDraft.components.compiledIntent,
+          canonicalSourceLedChatAuthority: { ...chatPlanBinding },
+        }
+        compiled.canonicalDraft.components.compiledIntent =
+          compiledIntentWithChatAuthority
+        publication!.canonicalPlan.components.compiledIntent =
+          structuredClone(compiledIntentWithChatAuthority)
       }
-      compiled.canonicalDraft.components.compiledIntent =
-        compiledIntentWithChatAuthority
-      publication.canonicalPlan.components.compiledIntent =
-        structuredClone(compiledIntentWithChatAuthority)
+      attachChatAuthority()
+
+      let captionProfessionalPlanningProjection:
+        CanonicalCaptionSpecialistPlanningProjection | undefined
+      {
+        let baseComponents = canonicalPlanComponentsSchema.parse(
+          compiled.canonicalDraft.components,
+        )
+        const createCaptionPlanningRequest = () => {
+          const outputIdentitySuffix = sha256(JSON.stringify({
+            workspaceId: access.workspaceId,
+            projectId,
+            editSessionId,
+            planningRequestId: publication!.planningRequestIdSeed,
+            confirmedAspectRatio: body.confirmedAspectRatio,
+          })).slice(0, 32)
+          return createCanonicalCaptionSourceLedProfessionalPlanningRequest({
+            canonicalScope: {
+              ownerUserId: actorUserId,
+              workspaceId: access.workspaceId,
+              projectId,
+              editSessionId,
+              planningRequestId: publication!.planningRequestIdSeed,
+              outputId: `caption-output.${outputIdentitySuffix}`,
+            },
+            components: baseComponents,
+            confirmedCaptionMarkerSetRef,
+          })
+        }
+        const readCaptionPlanning = async () => {
+          const request = createCaptionPlanningRequest()
+          const port =
+            context.canonicalCaptionSourceLedProfessionalPlanningReadPort ??
+            createCanonicalCaptionSourceLedProfessionalPlanningOwnerPort({
+              components: baseComponents,
+              ...(sourceCleanupAuthorityRead?.status === 'ready'
+                ? {
+                    sourceCleanupAuthority:
+                      sourceCleanupAuthorityRead.authority,
+                  }
+                : {}),
+              confirmedCaptionMarkerSetRef,
+            })
+          return {
+            request,
+            read: await readCanonicalCaptionSourceLedProfessionalPlanning({
+              port,
+              request,
+            }),
+          }
+        }
+        let captionPlanningResult = await readCaptionPlanning()
+        let captionPlanningRequest = captionPlanningResult.request
+        let captionPlanningRead = captionPlanningResult.read
+        const captionSelectionDisposition =
+          parseProfessionalSkillCompositionTrace(
+            baseComponents.professionalSkillPlan?.compositionTrace,
+          ).entries[0].disposition
+        if (
+          captionPlanningRead.status === 'not_requested' &&
+          captionSelectionDisposition !== 'unresolved'
+        ) {
+          throw new ApiError(
+            'JOB_DEPENDENCY_NOT_READY',
+            'The Caption planning owner returned not_requested for an exact selected or restrained Caption composition trace.',
+            409,
+            {
+              requiredGate:
+                'canonical_caption_composition_trace_owner_reconciliation',
+            },
+          )
+        }
+        if (captionPlanningRead.status === 'blocked_requested') {
+          throw new ApiError(
+            'JOB_DEPENDENCY_NOT_READY',
+            'Professional Caption planning was requested but its exact canonical owner evidence is not ready.',
+            409,
+            {
+              requiredGate:
+                'canonical_caption_source_led_professional_planning_authority',
+              blockerCodes: captionPlanningRead.blockerCodes,
+            },
+          )
+        }
+        if (captionPlanningRead.status === 'ready') {
+          if (captionMarkers.length > 0) {
+            if (captionPlanningRead.authority.selectionDisposition ===
+              'no_captions') {
+              throw new ApiError(
+                'JOB_DEPENDENCY_NOT_READY',
+                'The professional no_captions restraint conflicts with confirmed Caption markers.',
+                409,
+                {
+                  requiredGate:
+                    'canonical_caption_selection_and_marker_reconciliation',
+                },
+              )
+            }
+            try {
+              compiled = compilePlan([], captionMarkers)
+            } catch (error) {
+              throw new ApiError(
+                'JOB_DEPENDENCY_NOT_READY',
+                error instanceof Error
+                  ? error.message
+                  : 'The professional Caption plan could not retire the legacy marker lane.',
+                409,
+                {
+                  requiredGate:
+                    'canonical_caption_legacy_lane_retirement_recompile',
+                },
+                { cause: error },
+              )
+            }
+            publication = compiled.canonicalDraft.publication ??
+              compiled.professionalLongFormPublication
+            if (!publication) {
+              throw new ApiError(
+                'JOB_DEPENDENCY_NOT_READY',
+                'The Caption-clean source-led plan did not produce a publishable canonical package.',
+                409,
+                {
+                  requiredGate:
+                    'publishable_caption_clean_source_led_plan',
+                },
+              )
+            }
+            attachChatAuthority()
+            baseComponents = canonicalPlanComponentsSchema.parse(
+              compiled.canonicalDraft.components,
+            )
+            captionPlanningResult = await readCaptionPlanning()
+            captionPlanningRequest = captionPlanningResult.request
+            const reread = captionPlanningResult.read
+            if (
+              reread.status !== 'ready' ||
+              reread.authority.selectionDisposition !==
+                captionPlanningRead.authority.selectionDisposition
+            ) {
+              throw new ApiError(
+                'JOB_DEPENDENCY_NOT_READY',
+                'Professional Caption planning changed after the legacy caption lane was removed.',
+                409,
+                {
+                  requiredGate:
+                    'canonical_caption_professional_plan_stable_recompile_reread',
+                },
+              )
+            }
+            captionPlanningRead = reread
+          }
+          const applied =
+            applyCanonicalCaptionSourceLedProfessionalPlanning({
+              request: captionPlanningRequest,
+              authority: captionPlanningRead.authority,
+              components: baseComponents,
+              estimate: publication.canonicalPlan.estimate,
+              workItems: publication.canonicalPlan.workItems,
+            })
+          const sourceLedBaseWorkItems = structuredClone(
+            publication.canonicalPlan.workItems,
+          )
+          const validatedAppliedPlan =
+            publishCanonicalEditPlanSchema.shape.canonicalPlan.parse({
+              ...publication.canonicalPlan,
+              components: applied.components,
+              estimate: applied.estimate,
+              // The source-led owner proves the projection above, but the
+              // canonical edit-planning authority remains the sole writer of
+              // Caption work. Passing preprojected work here would make that
+              // owner project the same assignments a second time.
+              workItems: sourceLedBaseWorkItems,
+            })
+          publication.canonicalPlan = structuredClone(
+            validatedAppliedPlan,
+          ) as unknown as typeof publication.canonicalPlan
+          compiled.canonicalDraft.components = structuredClone(
+            publication.canonicalPlan.components,
+          )
+          compiled.canonicalDraft.estimate = structuredClone(
+            publication.canonicalPlan.estimate,
+          )
+          captionProfessionalPlanningProjection = applied.projection
+        }
+      }
 
       const canonicalPlanComponents = canonicalPlanComponentsSchema.parse(
         compiled.canonicalDraft.components,
@@ -440,6 +671,11 @@ export function createCanonicalSourceLedPlanPresentationService(
         warnings: [
           ...compiled.canonicalDraft.warnings,
           ...presentation.warnings,
+          ...(captionProfessionalPlanningProjection
+            ? [
+                'The canonical source-led plan includes exact Caption specialist selection/restraint, early planning, estimate, and typed work assignments; approval, execution, rendered QA, complete-time visual review, and private review remain downstream.',
+              ]
+            : []),
           compiled.evidence.sourceRangePolicy ===
             'head_intelligence_verified_visual_intelligence_cleanup'
             ? 'This source-led plan uses only exact Head Intelligence keep/remove decisions bound to complete transcript and whole-video Visual Intelligence evidence.'

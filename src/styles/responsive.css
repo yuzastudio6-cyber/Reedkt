@@ -622,12 +622,27 @@
   }
 
   .clean-plan-facts,
-  .clean-plan-credit-note {
+  .clean-plan-credit-note,
+  .caption-specialist-status-facts {
     grid-template-columns: 1fr;
   }
 
   .clean-plan-facts > div:nth-child(even) {
     border-left: 0;
+  }
+
+  .caption-specialist-status-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .caption-specialist-status-badge {
+    align-self: flex-start;
+  }
+
+  .caption-specialist-status-facts > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--rp-border-subtle);
   }
 
   .edit-workspace-planning-inputs {

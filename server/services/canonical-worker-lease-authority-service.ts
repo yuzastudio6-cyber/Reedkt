@@ -36,7 +36,10 @@ import {
 } from '../validation/canonical-execution-readiness-schemas'
 import { createCanonicalExecutionReadinessService } from './canonical-execution-readiness-service'
 import { withCanonicalExecutionDomainLock } from './canonical-execution-domain-lock'
-import { verifyCanonicalInternalAuthorityArtifact } from './canonical-internal-authority-artifact-verifier'
+import {
+  verifyCanonicalCaptionSpecialistPlanningArtifact,
+  verifyCanonicalInternalAuthorityArtifact,
+} from './canonical-internal-authority-artifact-verifier'
 import { verifyCanonicalStructuredSvgArtifact } from './canonical-structured-svg-artifact-verifier'
 import { verifyCanonicalStructuredJsonArtifact } from './canonical-structured-json-artifact-verifier'
 import { verifyCanonicalPrivateMediaArtifact } from './canonical-private-media-artifact-verifier'
@@ -475,9 +478,22 @@ type LeaseIdentity = Pick<
   'workspaceId' | 'projectId' | 'editSessionId' | 'jobId'
 >
 
-interface LeaseEligibility {
+export interface CanonicalWorkerLeaseDependencyAdmission {
   readiness: CanonicalExecutionReadinessEnvelope
   dependencyAuthority: CanonicalWorkerLeaseDependencyAuthority
+}
+
+/**
+ * Rereads and verifies the exact dependency evidence that would be bound into
+ * a canonical private worker lease, without claiming a lease or authorizing
+ * runtime. Internal planning runners use this to avoid treating the immutable
+ * job graph's initial `blocked` label as current dependency readiness.
+ */
+export async function inspectCanonicalWorkerLeaseDependencyAdmission(
+  context: ServiceContext,
+  identity: LeaseIdentity,
+): Promise<CanonicalWorkerLeaseDependencyAdmission> {
+  return structuredClone(await loadLeaseEligibleJobReadiness(context, identity))
 }
 
 async function mutateInternalExecutionFence(
@@ -851,7 +867,7 @@ function assertSafeInternalExecutionIdentity(value: string | undefined, label: s
 async function loadLeaseEligibleJobReadiness(
   context: ServiceContext,
   identity: LeaseIdentity,
-): Promise<LeaseEligibility> {
+): Promise<CanonicalWorkerLeaseDependencyAdmission> {
   const result = await createCanonicalExecutionReadinessService(context).inspectJob({
     workspaceId: identity.workspaceId,
     projectId: identity.projectId,
@@ -1003,6 +1019,12 @@ async function verifySelectedDependencyArtifacts(input: {
             localStorageRoot: input.context.env.localStorageRoot,
             artifact: authority.artifact,
           })
+        : authority.artifact.lineage.artifactType ===
+            'caption_specialist_job_receipt'
+          ? await verifyCanonicalCaptionSpecialistPlanningArtifact({
+              localStorageRoot: input.context.env.localStorageRoot,
+              artifact: authority.artifact,
+            })
         : authority.artifact.actualRunEvidence.state ===
               'actual_provider_attempt_receipt_verified_v1' &&
             authority.artifact.actualRunEvidence.runnerClass ===

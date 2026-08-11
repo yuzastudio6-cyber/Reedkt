@@ -1,12 +1,28 @@
 import type { OfflineLibassCaptionRequest } from './offline-libass-caption-protocol'
 
 export interface OfflineLibassImageEvidence {
-  imageTag: 'reeditpro-offline-libass-caption-execution:private-local-v1'
+  imageTag: `reeditpro-offline-libass-caption-execution:canonical-private-local-v2-${string}`
   imageId: string
   imageIdentityHash: string
   libassVersion: '0.17.5'
   libassSourceSha256: 'caab4b993dd7be6187c55623b789ed75dddefea6e65938af134637c732fe094a'
   sourceHashes: Readonly<Record<string, string>>
+  sourceTreeSha256: string
+  fontPackProfileId: 'reeditpro_reviewed_fonts_v2'
+  fontPackReleaseId: 'reeditpro-reviewed-noto-caption-fonts-2026-08-04-v1'
+  fontToolsVersion: '4.38.0'
+  openTypeSanitizerVersion: '8.2.1'
+  fontToolsSubsetRoundTripPassed: true
+  malformedFontRejectedByOpenTypeSanitizer: true
+  fontSha256: Readonly<{
+    notoSans: '478c558ea716033cd60c03438f628dfa75694dcf6b5f6d505a2f05fd2b4f3823'
+    notoSansArabic: 'bdff3e5659d67e67def05b33f749683b9376ae819d65d3dd62ac4640b3aaef48'
+    notoSansDevanagari: 'da2d2135e978c6f68852cfd8201c3a067df1acf73232fe80c58f89e6302ee6e8'
+    notoSansJp: 'dff723ba59d57d136764a04b9b2d03205544f7cd785a711442d6d2d085ac5073'
+  }>
+  colorEmojiIncluded: false
+  runtimeFontDownloadAllowed: false
+  callerFontPathAllowed: false
   imageUser: '10001:10001'
   imageEntrypoint: readonly ['/opt/reeditpro-caption-runner']
   imageEnvironmentNames: readonly string[]

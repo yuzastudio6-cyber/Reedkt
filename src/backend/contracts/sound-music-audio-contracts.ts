@@ -16,6 +16,14 @@ import type {
 
 export const SOUND_MUSIC_WORKSTREAM_ID: SoundMusicWorkstreamId = 'SOUND_MUSIC_AUDIO'
 
+/**
+ * Legacy compatibility boundary only. Canonical Sound ownership lives under
+ * server/sound; Music remains a separate top-level skill.
+ */
+export const LEGACY_SOUND_MUSIC_AUDIO_PRODUCTION_OWNER = false as const
+export const LEGACY_SOUND_MUSIC_AUDIO_STATUS = 'deprecated_compatibility_fixture_only' as const
+export const LEGACY_SOUND_MUSIC_AUDIO_CANONICAL_SOUND_SKILL_KEY = 'sound' as const
+
 export const SOUND_RELATED_WORKSTREAM_IDS = [
   'AI_TOOLS_CREATIVE_GRAPHICS',
   'TRACK_A_RENDER_EXPORT',

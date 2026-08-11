@@ -417,6 +417,40 @@ function validateByRunnerFamily(
   }
   if (toolId === 'ffmpeg') {
     if (
+      isCanonicalBrollToolWorkItem(
+        workItem,
+        'normalize_b_roll_candidate_with_ffmpeg',
+        operationId,
+      )
+    ) {
+      const payload = validateOfflineFfmpegPlanningPayload(structuredPayload)
+      if (payload.recipeProfileId !== 'approved_trim_transcode_v1') {
+        throw new Error('Canonical B-roll normalization lost its approved FFmpeg profile.')
+      }
+      requireCanonicalBrollToolBinding(workItem, 'video/x-nut')
+      return 'media_ffmpeg'
+    }
+    if (
+      isCanonicalBrollToolWorkItem(
+        workItem,
+        'prepare_b_roll_remotion_preview_proxy_with_ffmpeg',
+        operationId,
+      )
+    ) {
+      const payload = validateOfflineFfmpegPlanningPayload(structuredPayload)
+      if (
+        payload.recipeProfileId !==
+          'approved_b_roll_remotion_preview_proxy_matroska_v1' ||
+        !('technicalProxyOnly' in payload) ||
+        payload.technicalProxyOnly !== true ||
+        payload.creativeColorTransformApplied !== false
+      ) {
+        throw new Error('Canonical B-roll preview proxy lost its exact FFmpeg profile.')
+      }
+      requireCanonicalBrollToolBinding(workItem, 'video/x-matroska')
+      return 'media_ffmpeg'
+    }
+    if (
       workItem.executionInput.operation ===
         CANONICAL_VISUAL_CALIBRATION_OBJECTIVE_QA_EXECUTION_OPERATION
     ) {
@@ -521,6 +555,22 @@ function validateByRunnerFamily(
   }
   if (toolId === 'ffprobe') {
     const payload = validateOfflineFfprobePlanningPayload(structuredPayload)
+    if (
+      isCanonicalBrollToolWorkItem(
+        workItem,
+        'inspect_b_roll_candidate_with_ffprobe',
+        operationId,
+      )
+    ) {
+      if (
+        payload.inspectionProfileId !== 'source_intake_v1' ||
+        payload.countFrames !== true
+      ) {
+        throw new Error('Canonical B-roll inspection lost its exact FFprobe profile.')
+      }
+      requireCanonicalBrollToolBinding(workItem, 'application/json')
+      return 'media_ffprobe'
+    }
     const finalQa = workItem.workItemType === 'run_final_qa' && workItem.workerClass === 'qa_worker' &&
       workItem.sourceSequenceItemIds.length === 0 && workItem.sourceCleanupDecisionIds.length === 0 &&
       workItem.dependencyKeys.length === 1 &&
@@ -530,6 +580,27 @@ function validateByRunnerFamily(
     return 'media_ffprobe'
   }
   if (toolId === 'remotion') {
+    if (
+      isCanonicalBrollToolWorkItem(
+        workItem,
+        'render_b_roll_preview',
+        operationId,
+      )
+    ) {
+      const payload =
+        validateOfflineRemotionFinalCompositionPlanningPayload(structuredPayload)
+      if (
+        payload.compositionProfileId !== 'approved_source_caption_final_v1' ||
+        payload.sourceMediaPolicy !==
+          'approved_b_roll_qa_normalized_preview_proxy_v1' ||
+        payload.captionOverlayPolicy !== 'approved_full_frame_rgba' ||
+        !payload.brollPreviewLayer
+      ) {
+        throw new Error('Canonical B-roll preview lost its exact Remotion profile.')
+      }
+      requireCanonicalBrollToolBinding(workItem, 'video/mp4')
+      return 'remotion_final_composition'
+    }
     const motionStudioProfile = resolveCanonicalMotionStudioRemotionProfile(structuredPayload)
     if (motionStudioProfile) {
       assertCanonicalMotionStudioRemotionWorkItem(workItem, motionStudioProfile)
@@ -854,6 +925,53 @@ function requireBinding(
     workItem.sourceCleanupDecisionIds.length !== expected.cleanup ||
     workItem.dependencyKeys.length !== expected.dependencies
   ) throw new Error('Canonical work-item binding shape is unsupported by its exact runner family.')
+}
+
+function isCanonicalBrollToolWorkItem(
+  workItem: CanonicalToolPayloadWorkItem,
+  expectedOperation: string,
+  expectedToolOperationId: string,
+): boolean {
+  const authority = workItem.executionInput.bRollAtomicAuthority
+  if (!authority || typeof authority !== 'object' || Array.isArray(authority)) {
+    return false
+  }
+  const value = authority as Record<string, unknown>
+  return value.schemaVersion ===
+      'b_roll_canonical_atomic_work_item_authority_v1' &&
+    value.operationId === expectedToolOperationId &&
+    workItem.executionInput.operation === expectedOperation
+}
+
+function requireCanonicalBrollToolBinding(
+  workItem: CanonicalToolPayloadWorkItem,
+  expectedContentType: string,
+): void {
+  const authority = workItem.executionInput.bRollAtomicAuthority as
+    Record<string, unknown>
+  const expectedOutputKeys = workItem.executionInput.expectedOutputKeys
+  if (
+    typeof authority.assignmentId !== 'string' ||
+    typeof authority.assignmentHash !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(authority.assignmentHash) ||
+    typeof authority.workItemHash !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(authority.workItemHash) ||
+    authority.callerSelectedExecutableAllowed !== false ||
+    authority.outsideAuthorizedRangeModified !== false ||
+    workItem.sourceSequenceItemIds.length < 1 ||
+    workItem.sourceCleanupDecisionIds.length !== 0 ||
+    workItem.dependencyKeys.length !== 1 ||
+    !Array.isArray(expectedOutputKeys) ||
+    expectedOutputKeys.length !== 1 ||
+    expectedOutputKeys[0] !== workItem.expectedOutputs[0]?.outputKey ||
+    workItem.expectedOutputs.length !== 1 ||
+    workItem.expectedOutputs[0]?.contentType !== expectedContentType ||
+    workItem.expectedOutputs[0]?.assetRole === 'final'
+  ) {
+    throw new Error(
+      'Canonical B-roll tool work item lost its exact atomic owner binding.',
+    )
+  }
 }
 
 function familyHint(toolId: ProductionToolId): string {

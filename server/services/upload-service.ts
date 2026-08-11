@@ -203,6 +203,8 @@ interface SourceMediaMetadataView {
   durationSeconds?: number
   width?: number
   height?: number
+  frameRateNumerator?: number
+  frameRateDenominator?: number
   videoCodec?: string
   audioCodec?: string
   audioSampleRateHertz?: number
@@ -2533,6 +2535,12 @@ async function probeSourceMediaMetadata(
       durationSeconds: roundOptionalSeconds(probe.durationSeconds),
       width: positiveIntegerOrUndefined(probe.width),
       height: positiveIntegerOrUndefined(probe.height),
+      frameRateNumerator: positiveIntegerOrUndefined(
+        probe.frameRateNumerator,
+      ),
+      frameRateDenominator: positiveIntegerOrUndefined(
+        probe.frameRateDenominator,
+      ),
       videoCodec: probe.videoCodec,
       audioCodec: probe.audioCodec,
       audioSampleRateHertz: positiveIntegerOrUndefined(probe.audioSampleRateHertz),
@@ -2572,6 +2580,12 @@ function sourceMediaMetadataFromUnknown(value: unknown): SourceMediaMetadataView
     durationSeconds: maybeNumber(record.durationSeconds),
     width: maybeNumber(record.width),
     height: maybeNumber(record.height),
+    frameRateNumerator: positiveIntegerOrUndefined(
+      maybeNumber(record.frameRateNumerator),
+    ),
+    frameRateDenominator: positiveIntegerOrUndefined(
+      maybeNumber(record.frameRateDenominator),
+    ),
     videoCodec: maybeString(record.videoCodec),
     audioCodec: maybeString(record.audioCodec),
     audioSampleRateHertz: positiveIntegerOrUndefined(maybeNumber(record.audioSampleRateHertz)),

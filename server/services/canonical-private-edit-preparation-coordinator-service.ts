@@ -11,6 +11,8 @@ import type {
 } from '../validation/canonical-private-work-graph-run-schemas'
 import { createCanonicalEditExecutionPackageService } from './canonical-edit-execution-package-service'
 import { createCanonicalPrivateReviewAssemblyService } from './canonical-private-review-assembly-service'
+import { createCanonicalCaptionPrivateReviewEvidenceService } from
+  './canonical-caption-private-review-evidence-service'
 import { createCanonicalPrivateWorkGraphOrchestratorService } from './canonical-private-work-graph-orchestrator-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { sha256AuthorityValue } from './private-edit-authority-store'
@@ -85,6 +87,22 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
             409,
           )
         }
+        const captionReview = await readCaptionPrivateReviewEvidence({
+          context,
+          workspaceId: body.workspaceId,
+          packageRecordId: input.packageRecordId,
+        })
+        if (captionReview
+          && (!captionReview.privateReviewAssemblyAllowed
+            || captionReview.canonicalPrivateReview.assemblyRef?.id
+              !== existingReview.identity.reviewAssemblyId)) {
+          throw new ApiError(
+            'IDEMPOTENCY_CONFLICT',
+            'Canonical private review was assembled without exact accepted Caption visual evidence.',
+            409,
+            { requiredGate: 'canonical_caption_private_review_evidence' },
+          )
+        }
         return readyResult({
           body,
           executionPackage,
@@ -94,11 +112,29 @@ export function createCanonicalPrivateEditPreparationCoordinatorService(
       }
 
       if (existingCompletion) {
+        const captionReview = await readCaptionPrivateReviewEvidence({
+          context,
+          workspaceId: body.workspaceId,
+          packageRecordId: input.packageRecordId,
+        })
+        if (captionReview && !captionReview.privateReviewAssemblyAllowed) {
+          return blockedCaptionVisualReviewResult({
+            body,
+            executionPackage,
+            workGraph: existingCompletion,
+          })
+        }
         const review = await reviewService.assemble({
           workspaceId: body.workspaceId,
           packageRecordId: input.packageRecordId,
           purpose: 'assemble_canonical_private_review',
           idempotencyKey: stableReviewIdempotencyKey(body, input.packageRecordId),
+        })
+        await assertCaptionPrivateReviewAssemblyReconciled({
+          context,
+          workspaceId: body.workspaceId,
+          packageRecordId: input.packageRecordId,
+          reviewAssemblyId: review.identity.reviewAssemblyId,
         })
         return readyResult({
           body,
@@ -409,7 +445,14 @@ async function advanceBackgroundPreparation(input: {
     })
   if (!workGraphRun.summary.allRequiredJobsCompleted) return
 
-  await reviewService.assemble({
+  const captionReview = await readCaptionPrivateReviewEvidence({
+    context: input.context,
+    workspaceId: input.body.workspaceId,
+    packageRecordId: input.packageRecordId,
+  })
+  if (captionReview && !captionReview.privateReviewAssemblyAllowed) return
+
+  const review = await reviewService.assemble({
     workspaceId: input.body.workspaceId,
     packageRecordId: input.packageRecordId,
     purpose: 'assemble_canonical_private_review',
@@ -417,6 +460,60 @@ async function advanceBackgroundPreparation(input: {
       input.body,
       input.packageRecordId,
     ),
+  })
+  await assertCaptionPrivateReviewAssemblyReconciled({
+    context: input.context,
+    workspaceId: input.body.workspaceId,
+    packageRecordId: input.packageRecordId,
+    reviewAssemblyId: review.identity.reviewAssemblyId,
+  })
+}
+
+async function readCaptionPrivateReviewEvidence(input: {
+  context: ServiceContext
+  workspaceId: string
+  packageRecordId: string
+}) {
+  return createCanonicalCaptionPrivateReviewEvidenceService(input.context)
+    .readForPackage({
+      workspaceId: input.workspaceId,
+      packageRecordId: input.packageRecordId,
+    })
+}
+
+async function assertCaptionPrivateReviewAssemblyReconciled(input: {
+  context: ServiceContext
+  workspaceId: string
+  packageRecordId: string
+  reviewAssemblyId: string
+}): Promise<void> {
+  const projection = await readCaptionPrivateReviewEvidence(input)
+  if (projection
+    && projection.canonicalPrivateReview.assemblyRef?.id
+      !== input.reviewAssemblyId) {
+    throw new ApiError(
+      'IDEMPOTENCY_CONFLICT',
+      'Canonical Caption evidence did not reconcile with private-review assembly.',
+      409,
+      { requiredGate: 'canonical_caption_private_review_assembly_lineage' },
+    )
+  }
+}
+
+function blockedCaptionVisualReviewResult(input: {
+  body: PrepareCanonicalPrivateEditBody
+  executionPackage: ExactExecutionPackage
+  workGraph: CompletedWorkGraphSummary
+}): CanonicalPrivateEditPreparationCoordinatorResult {
+  return blockedResult({
+    body: input.body,
+    executionPackage: input.executionPackage,
+    totalJobCount: input.workGraph.totalJobCount,
+    completedJobCount: Math.max(0, input.workGraph.completedJobCount - 1),
+    blockedJobCount: 1,
+    retryAvailable: false,
+    userReviewRequired: true,
+    completedAt: input.workGraph.completedAt,
   })
 }
 

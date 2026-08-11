@@ -25,8 +25,8 @@ It is not an implementation of skills, a runtime registry, a database schema, a 
 | [motion-design-planning-contract-checklist.md](motion-design-planning-contract-checklist.md) | Provides motion-design-specific checklist items and fail conditions for future motion design prompts. |
 | [three-d-visual-planning-contract.md](three-d-visual-planning-contract.md) | Defines the RP-SKILLS-07 3D-visual-specific planning contract that inherits the universal, transition, overlay/compositing, graphic design, and motion design envelopes where relevant. |
 | [three-d-visual-planning-contract-checklist.md](three-d-visual-planning-contract-checklist.md) | Provides 3D-visual-specific checklist items and fail conditions for future 3D prompts. |
-| [b-roll-planning-contract.md](b-roll-planning-contract.md) | Defines the RP-SKILLS-08 B-roll-specific planning contract that inherits the universal, transition, overlay/compositing, graphic design, motion design, and 3D envelopes where relevant. |
-| [b-roll-planning-contract-checklist.md](b-roll-planning-contract-checklist.md) | Provides B-roll-specific checklist items and fail conditions for future B-roll prompts. |
+| [b-roll-planning-contract.md](b-roll-planning-contract.md) | Historical RP-SKILLS-08 doctrine retained as compatibility vocabulary; canonical runtime authority is `docs/edit-skills/b-roll/architecture.md`. |
+| [b-roll-planning-contract-checklist.md](b-roll-planning-contract-checklist.md) | Historical B-roll checklist retained for compatibility review, not runtime qualification. |
 | [caption-planning-contract.md](caption-planning-contract.md) | Defines the RP-SKILLS-09 caption-specific planning contract that inherits the universal, overlay/compositing, graphic design, motion design, transition, 3D, and B-roll envelopes where relevant. |
 | [caption-planning-contract-checklist.md](caption-planning-contract-checklist.md) | Provides caption-specific checklist items and fail conditions for future caption prompts. |
 | [sound-music-planning-contract.md](sound-music-planning-contract.md) | Defines the RP-SKILLS-10 SoundSync/music/SFX/audio-support-specific planning contract that inherits the universal, transition, overlay/compositing, graphic design, motion design, 3D, B-roll, and caption envelopes where relevant. |
@@ -174,7 +174,9 @@ It remains docs-only. It does not implement TypeScript, schema, migrations, runt
 
 `RP-SKILLS-08` defines the B-roll-specific planning contract. It documents B-roll doctrine, role family, source type/status, proof/context levels, full-frame versus inset/PIP/split-screen behavior, use/avoid rules, density, timing/source/composition/audio pseudo-records, scoring, edit-preference and workflow guidance, relationships to other skills, 3D boundary, browser/app/screen safety, accessibility/trust, repetition, credit/approval behavior, QA, revision behavior, examples, anti-patterns, duplicate/overlap notes, and RP-SKILLS-09 handoff.
 
-It remains docs-only. It does not implement TypeScript, schema, migrations, runtime, capture code, media analysis code, stock/search integrations, generation code, prompts, providers, workers, UI, package changes, Supabase execution, render/export, browser/WebGL/canvas runtime, Playwright execution, design tokens, or app behavior.
+It remains historical doctrine and compatibility vocabulary. It is not runtime
+authority. The manifest-bound canonical implementation is documented in
+[`docs/edit-skills/b-roll/architecture.md`](../edit-skills/b-roll/architecture.md).
 
 ## RP-SKILLS-09 Caption Planning Contract
 

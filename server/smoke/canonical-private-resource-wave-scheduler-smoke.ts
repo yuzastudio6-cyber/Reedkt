@@ -66,6 +66,52 @@ async function main() {
   assert.equal(ffprobe.resourceClassId, 'cpu_analysis_standard_v1')
   assert.equal(ffprobe.workerConcurrencyLimit, 4)
 
+  const controlPlanePlacementAuthority =
+    createCanonicalApprovedWorkGraphResourcePlacementAuthority({
+      workItems: [{
+        workItemKey: 'prepare-b-roll-owner-inputs',
+        workItemType: 'prepare_b_roll_owner_inputs',
+        workerClass: 'control_plane_worker',
+        required: true,
+        approvedToolIds: [],
+        approvedToolOperationIds: [],
+        providerExecutionMode: 'none',
+      }],
+      tools: [],
+    })
+  assert.equal(controlPlanePlacementAuthority.summary.totalWorkItemCount, 1)
+  assert.equal(
+    controlPlanePlacementAuthority.summary.privatelyExecutableWorkItemCount,
+    1,
+  )
+  assert.equal(controlPlanePlacementAuthority.summary.blockedWorkItemCount, 0)
+  assert.equal(controlPlanePlacementAuthority.placements[0]?.workerType, 'api_service')
+  assert.equal(
+    controlPlanePlacementAuthority.placements[0]?.resourceClassId,
+    'control_plane_cpu_v1',
+  )
+  assert.equal(
+    controlPlanePlacementAuthority.placements[0]?.plannedCloudExecutionTarget,
+    'cloud_run_service',
+  )
+  assert.equal(
+    controlPlanePlacementAuthority.placements[0]?.privateExecutionReady,
+    true,
+  )
+  assertCanonicalApprovedWorkGraphResourcePlacementAuthority({
+    value: controlPlanePlacementAuthority,
+    workItems: [{
+      workItemKey: 'prepare-b-roll-owner-inputs',
+      workItemType: 'prepare_b_roll_owner_inputs',
+      workerClass: 'control_plane_worker',
+      required: true,
+      approvedToolIds: [],
+      approvedToolOperationIds: [],
+      providerExecutionMode: 'none',
+    }],
+    tools: [],
+  })
+
   const approvedPlacementAuthority =
     createCanonicalApprovedWorkGraphResourcePlacementAuthority({
       workItems: [

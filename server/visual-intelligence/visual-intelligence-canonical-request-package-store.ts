@@ -54,6 +54,9 @@ extends VisualIntelligenceAdmissionVerificationPort,
   rereadCanonicalRequestByRef(input: {
     readonly requestRef: VisualIntelligenceEvidenceRef
   }): Promise<VisualIntelligenceRequest | null>
+  rereadInspectionRequirementByRequestRef(input: {
+    readonly requestRef: VisualIntelligenceEvidenceRef
+  }): Promise<VisualInspectionRequirement | null>
   persistCreateOnly(input: {
     readonly ownerClass:
       VisualIntelligenceCanonicalRequestPackageOwnerClass
@@ -128,6 +131,23 @@ export function createVisualIntelligenceCanonicalRequestPackageStore(input: {
         throw conflict('visual_intelligence_request_ref_mismatch')
       }
       return parseVisualIntelligenceRequest(record.request)
+    },
+
+    async rereadInspectionRequirementByRequestRef(value) {
+      assertClosedContractTree(
+        value,
+        'Visual Intelligence inspection requirement reread',
+      )
+      const expectedRef = requireRef(value.requestRef)
+      const record = await readByRequestId(expectedRef.id)
+      if (!record) return null
+      const actualRef = requestRef(record.request)
+      if (refKey(actualRef) !== refKey(expectedRef)) {
+        throw conflict('visual_intelligence_requirement_request_ref_mismatch')
+      }
+      return record.inspectionRequirement === null
+        ? null
+        : parseVisualInspectionRequirement(record.inspectionRequirement)
     },
 
     async persistCreateOnly(value) {

@@ -67,11 +67,29 @@ import type {
   CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
 } from './services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
 import type {
+  CanonicalCaptionPostrenderVisualQaEvidenceRepository,
+} from './services/canonical-caption-postrender-visual-qa-evidence-service'
+import type {
+  CanonicalCaptionPostrenderVisualQaOwnerResultReadPort,
+} from './services/canonical-caption-postrender-visual-qa-owner-result-port'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository,
+} from './services/canonical-caption-postrender-visual-intelligence-evidence-repository'
+import type {
+  CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort,
+} from './services/canonical-caption-postrender-visual-intelligence-owner-result-port'
+import type {
   CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
 } from './services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import type {
   CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
+import type {
+  CanonicalCaptionSourceLedProfessionalPlanningReadPort,
+} from '../src/types/canonical-caption-source-led-professional-planning'
+import type {
+  CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort,
+} from './services/canonical-caption-transcript-support-service'
 
 export interface AuthContext {
   userId: string
@@ -172,6 +190,18 @@ export interface RuntimeState {
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
+  canonicalCaptionPostrenderVisualQaEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualQaEvidenceRepository
+  canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
+  canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+  canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
+  canonicalCaptionSourceLedProfessionalPlanningReadPort?:
+    CanonicalCaptionSourceLedProfessionalPlanningReadPort
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
 }
 
 export type RuntimeRequest = Request & {
@@ -246,4 +276,16 @@ export interface ServiceContext {
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
+  canonicalCaptionPostrenderVisualQaEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualQaEvidenceRepository
+  canonicalCaptionPostrenderVisualQaOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualQaOwnerResultReadPort
+  canonicalCaptionPostrenderVisualIntelligenceEvidenceRepository?:
+    CanonicalCaptionPostrenderVisualIntelligenceEvidenceRepository
+  canonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort?:
+    CanonicalCaptionPostrenderVisualIntelligenceOwnerResultReadPort
+  canonicalCaptionSourceLedProfessionalPlanningReadPort?:
+    CanonicalCaptionSourceLedProfessionalPlanningReadPort
+  canonicalCaptionTranscriptPlanningExpectationOwnerReadPort?:
+    CanonicalCaptionTranscriptPlanningExpectationOwnerReadPort
 }

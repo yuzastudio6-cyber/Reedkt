@@ -123,6 +123,37 @@ function exactObject(value, keys, label) {
   return value
 }
 
+function brollPreviewLayer(value) {
+  const layer = exactObject(value, [
+    'displayTreatment', 'position', 'crop', 'xPercent', 'yPercent',
+    'widthPercent', 'heightPercent', 'scale', 'opacity', 'layerOrder',
+  ], 'B-roll preview layer')
+  const fixed = {
+    full_frame_takeover: [0, 0, 100, 100, 1, 10],
+    full_frame_cutaway: [0, 0, 100, 100, 1, 10],
+    inset: [60, 8, 34, 34, 1, 10],
+    picture_in_picture: [65, 6, 30, 30, 1, 10],
+    split_screen: [50, 0, 50, 100, 1, 10],
+    partial_overlay: [55, 45, 40, 45, 1, 10],
+    background_layer: [0, 0, 100, 100, 0.45, 0],
+  }
+  const expected = fixed[layer.displayTreatment]
+  if (
+    !expected || layer.position !== 'absolute' || layer.crop !== 'contain' ||
+    layer.xPercent !== expected[0] || layer.yPercent !== expected[1] ||
+    layer.widthPercent !== expected[2] || layer.heightPercent !== expected[3] ||
+    layer.scale !== 1 || layer.opacity !== expected[4] ||
+    layer.layerOrder !== expected[5]
+  ) throw new Error('B-roll preview layer geometry is unsupported')
+  return {
+    displayTreatment: layer.displayTreatment,
+    position: 'absolute', crop: 'contain',
+    xPercent: expected[0], yPercent: expected[1],
+    widthPercent: expected[2], heightPercent: expected[3],
+    scale: 1, opacity: expected[4], layerOrder: expected[5],
+  }
+}
+
 function safeText(value, maximum, label) {
   if (typeof value !== 'string' || value.length < 1 || value.length > maximum || value !== value.trim()) {
     throw new Error(`${label} is invalid`)
@@ -725,6 +756,929 @@ function validateAudioSignature(bytes, mimeType) {
   if (!id3 && !sync) throw new Error('narration MPEG signature is invalid')
 }
 
+function validateCaptionCreativeSceneGroupPayload(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)
+    || rawPayload.compositionProfileId !== 'caption_direction_creative_scene_group_v1') {
+    return undefined
+  }
+  const payload = exactObject(rawPayload, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+    'storyTimingResolutionDigestSha256', 'confirmedOutputWidth',
+    'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+    'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+    'privateReviewScaleDenominator', 'reducedMotion', 'subjectMaskFixturePolicy',
+    'backgroundStyle', 'layers',
+  ], 'Caption creative scene-group payload')
+  const durationFrames = integer(payload.durationFrames, 24, 36_000, 'durationFrames')
+  if (
+    payload.width !== 640 || payload.height !== 360 || payload.fps !== 30 ||
+    payload.confirmedOutputWidth !== 1920 || payload.confirmedOutputHeight !== 1080 ||
+    payload.confirmedAspectRatioNumerator !== 16 ||
+    payload.confirmedAspectRatioDenominator !== 9 ||
+    payload.privateReviewScaleNumerator !== 1 ||
+    payload.privateReviewScaleDenominator !== 3 ||
+    typeof payload.reducedMotion !== 'boolean' ||
+    !['none', 'deterministic_private_fixture_only_not_track_all_evidence']
+      .includes(payload.subjectMaskFixturePolicy) ||
+    payload.backgroundStyle !== 'editorial_night_sky_v1'
+  ) throw new Error('Caption creative scene-group frame or fixture policy is unsupported')
+  for (const digest of [
+    payload.sceneGroupDigestSha256, payload.motionLockDigestSha256,
+    payload.storyTimingResolutionDigestSha256,
+  ]) {
+    if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) {
+      throw new Error('Caption creative scene-group lineage digest is invalid')
+    }
+  }
+  if (!Array.isArray(payload.layers) || payload.layers.length < 2 || payload.layers.length > 128) {
+    throw new Error('Caption creative scene group requires two to 128 layers')
+  }
+  const parseRange = (value, label) => {
+    const range = exactObject(value, ['startFrame', 'endFrameExclusive'], label)
+    const startFrame = integer(range.startFrame, 0, durationFrames - 1, `${label} startFrame`)
+    const endFrameExclusive = integer(range.endFrameExclusive, 1, durationFrames, `${label} endFrameExclusive`)
+    if (endFrameExclusive <= startFrame) throw new Error(`${label} is empty`)
+    return { startFrame, endFrameExclusive }
+  }
+  const nullableRef = (value, label) => {
+    if (value === null) return null
+    const ref = exactObject(value, ['id', 'version', 'contentHash'], label)
+    if (typeof ref.contentHash !== 'string' || !/^[a-f0-9]{64}$/.test(ref.contentHash)) {
+      throw new Error(`${label} digest is invalid`)
+    }
+    return {
+      id: safeIdentity(ref.id, `${label} id`),
+      version: safeIdentity(ref.version, `${label} version`),
+      contentHash: ref.contentHash,
+    }
+  }
+  const seenLayerIds = new Set()
+  const seenNodeIds = new Set()
+  let previousStartFrame = -1
+  let previousZIndex = -1
+  let previousLayerId = ''
+  const layers = payload.layers.map((candidate, index) => {
+    const layer = exactObject(candidate, [
+      'layerId', 'nodeId', 'trackId', 'phraseId', 'trackRole',
+      'presentationKind', 'text', 'exactSourceWordIds', 'frameRange',
+      'stableReadRange', 'depthPlane', 'zIndex', 'layoutBasisPoints',
+      'typography', 'motion', 'reducedMotion', 'accessibilityCounterpartNodeId',
+      'maskSequenceRef', 'objectAnchorRef', 'trackManifestRef',
+      'dependencyDisposition',
+    ], `Caption creative layer ${index + 1}`)
+    const layerId = safeIdentity(layer.layerId, 'Caption creative layerId')
+    const nodeId = safeIdentity(layer.nodeId, 'Caption creative nodeId')
+    const trackId = safeIdentity(layer.trackId, 'Caption creative trackId')
+    const phraseId = safeIdentity(layer.phraseId, 'Caption creative phraseId')
+    const trackRole = oneOf(layer.trackRole, [
+      'verbatim_speech', 'semantic_phrase', 'active_word', 'hero_typography',
+      'persistent_topic_list', 'quote', 'speaker_attribution', 'caption_to_visual',
+      'accessible_sidecar', 'localized_accessible',
+    ], 'Caption creative trackRole')
+    const presentationKind = oneOf(layer.presentationKind, [
+      'stable_accessible_caption', 'semantic_phrase_card', 'hero_typography',
+      'persistent_topic_list', 'environmental_label', 'object_anchor_label',
+      'caption_to_visual_bridge',
+    ], 'Caption creative presentationKind')
+    if (!Array.isArray(layer.exactSourceWordIds)
+      || layer.exactSourceWordIds.length < 1 || layer.exactSourceWordIds.length > 256) {
+      throw new Error('Caption creative exact source-word lineage is invalid')
+    }
+    const exactSourceWordIds = layer.exactSourceWordIds.map((wordId) =>
+      safeIdentity(wordId, 'Caption creative sourceWordId'))
+    if (new Set(exactSourceWordIds).size !== exactSourceWordIds.length) {
+      throw new Error('Caption creative source-word lineage contains duplicates')
+    }
+    const frameRange = parseRange(layer.frameRange, 'Caption creative frameRange')
+    const stableReadRange = parseRange(layer.stableReadRange, 'Caption creative stableReadRange')
+    if (stableReadRange.startFrame < frameRange.startFrame
+      || stableReadRange.endFrameExclusive > frameRange.endFrameExclusive) {
+      throw new Error('Caption creative stable-read range exceeds cue range')
+    }
+    const depthPlane = oneOf(layer.depthPlane, [
+      'far_background', 'environmental_background', 'behind_subject',
+      'speaker_adjacent', 'object_attached', 'in_front_of_subject',
+      'foreground_hero', 'full_screen', 'safe_accessible',
+    ], 'Caption creative depthPlane')
+    const zIndex = integer(layer.zIndex, 0, 2_000, 'Caption creative zIndex')
+    const layout = exactObject(layer.layoutBasisPoints,
+      ['x', 'y', 'width', 'height'], 'Caption creative layout')
+    const layoutBasisPoints = {
+      x: integer(layout.x, 0, 9_999, 'Caption creative layout x'),
+      y: integer(layout.y, 0, 9_999, 'Caption creative layout y'),
+      width: integer(layout.width, 1, 10_000, 'Caption creative layout width'),
+      height: integer(layout.height, 1, 10_000, 'Caption creative layout height'),
+    }
+    if (layoutBasisPoints.x + layoutBasisPoints.width > 10_000
+      || layoutBasisPoints.y + layoutBasisPoints.height > 10_000) {
+      throw new Error('Caption creative layout exceeds the confirmed frame')
+    }
+    const type = exactObject(layer.typography, [
+      'fontFamilyToken', 'fontWeight', 'fontSizeBasisPointsOfFrameHeight',
+      'lineHeightMilli', 'textColor', 'accentColor', 'plateStyle', 'textAlign',
+    ], 'Caption creative typography')
+    const typography = {
+      fontFamilyToken: oneOf(type.fontFamilyToken,
+        ['approved_caption_sans_fixture_v1'], 'Caption font token'),
+      fontWeight: oneOf(type.fontWeight, [600, 700, 800], 'Caption font weight'),
+      fontSizeBasisPointsOfFrameHeight: integer(type.fontSizeBasisPointsOfFrameHeight,
+        400, 2_000, 'Caption font size'),
+      lineHeightMilli: integer(type.lineHeightMilli, 900, 1_600, 'Caption line height'),
+      textColor: oneOf(normalizedColor(type.textColor, 'Caption text color'),
+        ['#F8FAFC', '#DFF7FF', '#09111F'], 'Caption text color'),
+      accentColor: oneOf(normalizedColor(type.accentColor, 'Caption accent color'),
+        ['#6EE7F9', '#A78BFA', '#FBBF24'], 'Caption accent color'),
+      plateStyle: oneOf(type.plateStyle,
+        ['none', 'soft_dark', 'soft_light', 'outline_dark'], 'Caption plate style'),
+      textAlign: oneOf(type.textAlign, ['left', 'center'], 'Caption text alignment'),
+    }
+    const motionValue = exactObject(layer.motion, [
+      'primitive', 'easing', 'travelBasisPoints', 'startScaleBasisPoints',
+      'endScaleBasisPoints', 'startOpacityBasisPoints', 'endOpacityBasisPoints',
+      'overshootBasisPoints', 'staggerFrames',
+    ], 'Caption creative motion')
+    const travel = exactObject(motionValue.travelBasisPoints,
+      ['x', 'y'], 'Caption creative travel')
+    const motion = {
+      primitive: oneOf(motionValue.primitive, [
+        'reveal', 'fade', 'scale', 'slide', 'wipe', 'tracked_move',
+        'depth_transition', 'emphasis_pulse', 'brush_reveal', 'list_append',
+        'hero_expansion', 'handoff_morph', 'stable_hold', 'cut',
+      ], 'Caption motion primitive'),
+      easing: oneOf(motionValue.easing,
+        ['linear', 'ease_in', 'ease_out', 'ease_in_out', 'spring_restrained'],
+        'Caption motion easing'),
+      travelBasisPoints: {
+        x: integer(travel.x, -2_000, 2_000, 'Caption travel x'),
+        y: integer(travel.y, -2_000, 2_000, 'Caption travel y'),
+      },
+      startScaleBasisPoints: integer(motionValue.startScaleBasisPoints,
+        5_000, 15_000, 'Caption start scale'),
+      endScaleBasisPoints: integer(motionValue.endScaleBasisPoints,
+        5_000, 15_000, 'Caption end scale'),
+      startOpacityBasisPoints: integer(motionValue.startOpacityBasisPoints,
+        0, 10_000, 'Caption start opacity'),
+      endOpacityBasisPoints: integer(motionValue.endOpacityBasisPoints,
+        0, 10_000, 'Caption end opacity'),
+      overshootBasisPoints: integer(motionValue.overshootBasisPoints,
+        0, 2_000, 'Caption overshoot'),
+      staggerFrames: integer(motionValue.staggerFrames, 0, 120, 'Caption stagger'),
+    }
+    const reducedValue = exactObject(layer.reducedMotion,
+      ['primitive', 'frameRange'], 'Caption reduced motion')
+    const reducedFrameRange = parseRange(reducedValue.frameRange,
+      'Caption reduced-motion frameRange')
+    if (reducedFrameRange.startFrame !== frameRange.startFrame
+      || reducedFrameRange.endFrameExclusive !== frameRange.endFrameExclusive) {
+      throw new Error('Caption reduced-motion range diverges from StoryTiming')
+    }
+    const maskSequenceRef = nullableRef(layer.maskSequenceRef, 'Caption mask ref')
+    const objectAnchorRef = nullableRef(layer.objectAnchorRef, 'Caption anchor ref')
+    const trackManifestRef = nullableRef(layer.trackManifestRef, 'Caption track ref')
+    const dependencyDisposition = oneOf(layer.dependencyDisposition, [
+      'not_applicable', 'admitted_exact_private_evidence', 'declared_safe_fallback',
+    ], 'Caption dependency disposition')
+    if (dependencyDisposition === 'admitted_exact_private_evidence'
+      && !(maskSequenceRef || objectAnchorRef || trackManifestRef)) {
+      throw new Error('Caption admitted dependency lacks exact evidence')
+    }
+    if (presentationKind === 'stable_accessible_caption' && zIndex !== 1_000) {
+      throw new Error('Stable Caption layer must remain above all visual layers')
+    }
+    if (seenLayerIds.has(layerId) || seenNodeIds.has(nodeId)
+      || frameRange.startFrame < previousStartFrame
+      || (frameRange.startFrame === previousStartFrame && zIndex < previousZIndex)
+      || (frameRange.startFrame === previousStartFrame && zIndex === previousZIndex
+        && layerId.localeCompare(previousLayerId) <= 0)) {
+      throw new Error('Caption creative layers are duplicated or not deterministically ordered')
+    }
+    seenLayerIds.add(layerId)
+    seenNodeIds.add(nodeId)
+    previousStartFrame = frameRange.startFrame
+    previousZIndex = zIndex
+    previousLayerId = layerId
+    return {
+      layerId, nodeId, trackId, phraseId, trackRole, presentationKind,
+      text: safeText(layer.text, 320, 'Caption creative text'),
+      exactSourceWordIds, frameRange, stableReadRange, depthPlane, zIndex,
+      layoutBasisPoints, typography, motion,
+      reducedMotion: {
+        primitive: oneOf(reducedValue.primitive,
+          ['fade', 'stable_hold', 'cut'], 'Caption reduced-motion primitive'),
+        frameRange: reducedFrameRange,
+      },
+      accessibilityCounterpartNodeId: layer.accessibilityCounterpartNodeId === null
+        ? null : safeIdentity(layer.accessibilityCounterpartNodeId,
+          'Caption accessibility counterpart'),
+      maskSequenceRef, objectAnchorRef, trackManifestRef, dependencyDisposition,
+    }
+  })
+  const events = layers.flatMap((layer) => [
+    { frame: layer.frameRange.startFrame, delta: 1 },
+    { frame: layer.frameRange.endFrameExclusive, delta: -1 },
+  ]).sort((left, right) => left.frame - right.frame || left.delta - right.delta)
+  let active = 0
+  let maximum = 0
+  for (const event of events) {
+    active += event.delta
+    maximum = Math.max(maximum, active)
+  }
+  if (maximum < 2 || maximum > 4
+    || !layers.some((layer) => layer.presentationKind === 'stable_accessible_caption')
+    || !layers.some((layer) => layer.presentationKind !== 'stable_accessible_caption')) {
+    throw new Error('Caption creative scene group violates bounded multi-track policy')
+  }
+  return {
+    compositionProfileId: 'caption_direction_creative_scene_group_v1',
+    width: 640,
+    height: 360,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: safeIdentity(payload.sceneGroupId, 'Caption sceneGroupId'),
+    sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+    motionLockDigestSha256: payload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256: payload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: 1920,
+    confirmedOutputHeight: 1080,
+    confirmedAspectRatioNumerator: 16,
+    confirmedAspectRatioDenominator: 9,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    reducedMotion: payload.reducedMotion,
+    subjectMaskFixturePolicy: payload.subjectMaskFixturePolicy,
+    backgroundStyle: 'editorial_night_sky_v1',
+    layers,
+  }
+}
+
+function validateCaptionRealSourceSceneGroupPayload(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)
+    || rawPayload.compositionProfileId !== 'caption_direction_real_source_scene_group_v2') {
+    return undefined
+  }
+  const payload = exactObject(rawPayload, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+    'storyTimingResolutionDigestSha256', 'confirmedOutputWidth',
+    'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+    'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+    'privateReviewScaleDenominator', 'reducedMotion', 'subjectMaskFixturePolicy',
+    'backgroundStyle', 'safePlacementPolicy', 'sourceMediaPolicy',
+    'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+    'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit', 'audioPolicy',
+    'originalSourceSha256', 'originalSourceStartMilliseconds',
+    'originalSourceEndMilliseconds', 'captionWordingReviewDigestSha256',
+    'captionWordingReviewPolicy', 'wordLockedMotionUsed',
+    'canonicalTranscriptQualificationClaimed', 'inspectionFrameNumbers', 'layers',
+  ], 'Caption real-source scene-group payload')
+  const durationFrames = integer(payload.durationFrames, 24, 900, 'durationFrames')
+  if (
+    payload.width !== 360 || payload.height !== 640 || payload.fps !== 30 ||
+    payload.confirmedOutputWidth !== 1080 || payload.confirmedOutputHeight !== 1920 ||
+    payload.confirmedAspectRatioNumerator !== 9 ||
+    payload.confirmedAspectRatioDenominator !== 16 ||
+    payload.privateReviewScaleNumerator !== 1 ||
+    payload.privateReviewScaleDenominator !== 3 ||
+    typeof payload.reducedMotion !== 'boolean' ||
+    payload.subjectMaskFixturePolicy !== 'none' ||
+    payload.backgroundStyle !== 'real_source_video_v1' ||
+    payload.safePlacementPolicy !== 'speaker_face_and_gesture_avoidance_top_plane_v1' ||
+    payload.sourceMediaPolicy !== 'approved_caption_private_review_proxy_v1' ||
+    payload.sourceMimeType !== 'video/mp4' || payload.sourceStartFrame !== 0 ||
+    payload.sourceEndFrameExclusive !== durationFrames ||
+    payload.sourceFit !== 'contain' || payload.audioPolicy !== 'preserve_source' ||
+    payload.captionWordingReviewPolicy !==
+      'fixture_specific_human_review_phrase_level_only_v1' ||
+    payload.wordLockedMotionUsed !== false ||
+    payload.canonicalTranscriptQualificationClaimed !== false
+  ) throw new Error('Caption real-source frame, source, or review policy is unsupported')
+  const originalSourceStartMilliseconds = integer(
+    payload.originalSourceStartMilliseconds, 0, 3_600_000,
+    'Caption original source start milliseconds',
+  )
+  const originalSourceEndMilliseconds = integer(
+    payload.originalSourceEndMilliseconds, 1, 3_600_000,
+    'Caption original source end milliseconds',
+  )
+  if (originalSourceEndMilliseconds <= originalSourceStartMilliseconds) {
+    throw new Error('Caption original source range is empty')
+  }
+  for (const digest of [
+    payload.originalSourceSha256, payload.captionWordingReviewDigestSha256,
+  ]) {
+    if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) {
+      throw new Error('Caption real-source evidence digest is invalid')
+    }
+  }
+  const source = committedBase64(
+    payload, 'source', 'video/mp4', 1024, 16 * 1024 * 1024,
+  )
+  if (source.subarray(4, 8).toString('ascii') !== 'ftyp') {
+    throw new Error('Caption real-source proxy MP4 signature is invalid')
+  }
+  const creativePayload = validateCaptionCreativeSceneGroupPayload({
+    compositionProfileId: 'caption_direction_creative_scene_group_v1',
+    width: 640,
+    height: 360,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: payload.sceneGroupId,
+    sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+    motionLockDigestSha256: payload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256: payload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: 1920,
+    confirmedOutputHeight: 1080,
+    confirmedAspectRatioNumerator: 16,
+    confirmedAspectRatioDenominator: 9,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    reducedMotion: payload.reducedMotion,
+    subjectMaskFixturePolicy: 'none',
+    backgroundStyle: 'editorial_night_sky_v1',
+    layers: payload.layers,
+  })
+  if (!creativePayload) throw new Error('Caption real-source layers lost their closed contract')
+  if (!Array.isArray(payload.inspectionFrameNumbers)
+    || payload.inspectionFrameNumbers.length < 4
+    || payload.inspectionFrameNumbers.length > 16) {
+    throw new Error('Caption real-source inspection frames are incomplete')
+  }
+  const inspectionFrameNumbers = payload.inspectionFrameNumbers.map((frame) =>
+    integer(frame, 0, durationFrames - 1, 'Caption inspection frame'))
+  const requiredInspectionFrames = new Set([
+    0,
+    ...creativePayload.layers.map((layer) => Math.floor(
+      (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1) / 2,
+    )),
+    durationFrames - 1,
+  ])
+  if (
+    new Set(inspectionFrameNumbers).size !== inspectionFrameNumbers.length ||
+    inspectionFrameNumbers.some((frame, index) =>
+      index > 0 && frame <= inspectionFrameNumbers[index - 1]) ||
+    [...requiredInspectionFrames].some((frame) =>
+      !inspectionFrameNumbers.includes(frame))
+  ) throw new Error('Caption real-source inspection frames do not cover cue timing')
+  return {
+    compositionProfileId: 'caption_direction_real_source_scene_group_v2',
+    width: 360,
+    height: 640,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: creativePayload.sceneGroupId,
+    sceneGroupDigestSha256: creativePayload.sceneGroupDigestSha256,
+    motionLockDigestSha256: creativePayload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256:
+      creativePayload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: 1080,
+    confirmedOutputHeight: 1920,
+    confirmedAspectRatioNumerator: 9,
+    confirmedAspectRatioDenominator: 16,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    reducedMotion: creativePayload.reducedMotion,
+    subjectMaskFixturePolicy: 'none',
+    backgroundStyle: 'real_source_video_v1',
+    safePlacementPolicy: 'speaker_face_and_gesture_avoidance_top_plane_v1',
+    sourceMediaPolicy: 'approved_caption_private_review_proxy_v1',
+    sourceMimeType: 'video/mp4',
+    sourceByteLength: source.byteLength,
+    sourceSha256: payload.sourceSha256,
+    sourceBytesBase64: source.toString('base64'),
+    sourceStartFrame: 0,
+    sourceEndFrameExclusive: durationFrames,
+    sourceFit: 'contain',
+    audioPolicy: 'preserve_source',
+    originalSourceSha256: payload.originalSourceSha256,
+    originalSourceStartMilliseconds,
+    originalSourceEndMilliseconds,
+    captionWordingReviewDigestSha256: payload.captionWordingReviewDigestSha256,
+    captionWordingReviewPolicy:
+      'fixture_specific_human_review_phrase_level_only_v1',
+    wordLockedMotionUsed: false,
+    canonicalTranscriptQualificationClaimed: false,
+    inspectionFrameNumbers,
+    layers: creativePayload.layers,
+  }
+}
+
+function validateCaptionRealSourceMultiOutputSceneGroupPayload(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)
+    || rawPayload.compositionProfileId !==
+      'caption_direction_real_source_multi_output_scene_group_v3') {
+    return undefined
+  }
+  const payload = exactObject(rawPayload, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+    'storyTimingResolutionDigestSha256', 'confirmedOutputWidth',
+    'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+    'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+    'privateReviewScaleDenominator', 'outputFormat', 'reducedMotion',
+    'subjectMaskFixturePolicy', 'backgroundStyle', 'sourcePresentation',
+    'safePlacementPolicy', 'sourceMediaPolicy', 'sourceMimeType',
+    'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+    'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit', 'audioPolicy',
+    'originalSourceSha256', 'originalSourceStartMilliseconds',
+    'originalSourceEndMilliseconds', 'captionWordingReviewDigestSha256',
+    'captionWordingReviewPolicy', 'wordLockedMotionUsed',
+    'canonicalTranscriptQualificationClaimed',
+    'syntheticEngineeringFixtureAcceptedAsProfessionalAppearance',
+    'realSourcePixelsRequiredForProfessionalAppearance',
+    'inspectionFrameNumbers', 'layers',
+  ], 'Caption real-source multi-output scene-group payload')
+  const durationFrames = integer(payload.durationFrames, 24, 900,
+    'durationFrames')
+  const wide = payload.outputFormat === 'widescreen_16_9'
+  const square = payload.outputFormat === 'square_1_1'
+  const frameMatches = wide
+    ? payload.width === 640 && payload.height === 360
+      && payload.confirmedOutputWidth === 1920
+      && payload.confirmedOutputHeight === 1080
+      && payload.confirmedAspectRatioNumerator === 16
+      && payload.confirmedAspectRatioDenominator === 9
+    : square && payload.width === 480 && payload.height === 480
+      && payload.confirmedOutputWidth === 1440
+      && payload.confirmedOutputHeight === 1440
+      && payload.confirmedAspectRatioNumerator === 1
+      && payload.confirmedAspectRatioDenominator === 1
+  if (
+    !frameMatches || payload.fps !== 30
+    || payload.privateReviewScaleNumerator !== 1
+    || payload.privateReviewScaleDenominator !== 3
+    || typeof payload.reducedMotion !== 'boolean'
+    || payload.subjectMaskFixturePolicy !== 'none'
+    || payload.backgroundStyle !== 'real_source_editorial_split_v1'
+    || payload.sourcePresentation !== 'editorial_split_right_v1'
+    || payload.safePlacementPolicy !==
+      'speaker_face_and_gesture_avoidance_editorial_sidecar_v1'
+    || payload.sourceMediaPolicy !==
+      'approved_caption_private_review_proxy_v1'
+    || payload.sourceMimeType !== 'video/mp4'
+    || payload.sourceStartFrame !== 0
+    || payload.sourceEndFrameExclusive !== durationFrames
+    || payload.sourceFit !== 'contain'
+    || payload.audioPolicy !== 'preserve_source'
+    || payload.captionWordingReviewPolicy !==
+      'fixture_specific_human_review_phrase_level_only_v1'
+    || payload.wordLockedMotionUsed !== false
+    || payload.canonicalTranscriptQualificationClaimed !== false
+    || payload.syntheticEngineeringFixtureAcceptedAsProfessionalAppearance
+      !== false
+    || payload.realSourcePixelsRequiredForProfessionalAppearance !== true
+  ) {
+    throw new Error(
+      'Caption real-source multi-output frame or review policy is unsupported')
+  }
+  const originalSourceStartMilliseconds = integer(
+    payload.originalSourceStartMilliseconds, 0, 3_600_000,
+    'Caption original source start milliseconds',
+  )
+  const originalSourceEndMilliseconds = integer(
+    payload.originalSourceEndMilliseconds, 1, 3_600_000,
+    'Caption original source end milliseconds',
+  )
+  if (originalSourceEndMilliseconds <= originalSourceStartMilliseconds) {
+    throw new Error('Caption original source range is empty')
+  }
+  for (const digest of [
+    payload.originalSourceSha256, payload.captionWordingReviewDigestSha256,
+  ]) {
+    if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) {
+      throw new Error(
+        'Caption real-source multi-output evidence digest is invalid')
+    }
+  }
+  const source = committedBase64(
+    payload, 'source', 'video/mp4', 1024, 16 * 1024 * 1024,
+  )
+  if (source.subarray(4, 8).toString('ascii') !== 'ftyp') {
+    throw new Error(
+      'Caption real-source multi-output proxy MP4 signature is invalid')
+  }
+  const creativePayload = validateCaptionCreativeSceneGroupPayload({
+    compositionProfileId: 'caption_direction_creative_scene_group_v1',
+    width: 640,
+    height: 360,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: payload.sceneGroupId,
+    sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+    motionLockDigestSha256: payload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256:
+      payload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: 1920,
+    confirmedOutputHeight: 1080,
+    confirmedAspectRatioNumerator: 16,
+    confirmedAspectRatioDenominator: 9,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    reducedMotion: payload.reducedMotion,
+    subjectMaskFixturePolicy: 'none',
+    backgroundStyle: 'editorial_night_sky_v1',
+    layers: payload.layers,
+  })
+  if (!creativePayload) {
+    throw new Error(
+      'Caption real-source multi-output layers lost their closed contract')
+  }
+  if (!Array.isArray(payload.inspectionFrameNumbers)
+    || payload.inspectionFrameNumbers.length < 4
+    || payload.inspectionFrameNumbers.length > 16) {
+    throw new Error(
+      'Caption real-source multi-output inspection frames are incomplete')
+  }
+  const inspectionFrameNumbers = payload.inspectionFrameNumbers.map((frame) =>
+    integer(frame, 0, durationFrames - 1, 'Caption inspection frame'))
+  const requiredInspectionFrames = new Set([
+    0,
+    ...creativePayload.layers.map((layer) => Math.floor(
+      (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1)
+      / 2,
+    )),
+    durationFrames - 1,
+  ])
+  if (
+    new Set(inspectionFrameNumbers).size !== inspectionFrameNumbers.length
+    || inspectionFrameNumbers.some((frame, index) =>
+      index > 0 && frame <= inspectionFrameNumbers[index - 1])
+    || [...requiredInspectionFrames].some((frame) =>
+      !inspectionFrameNumbers.includes(frame))
+  ) {
+    throw new Error(
+      'Caption real-source multi-output inspection frames miss cue timing')
+  }
+  return {
+    compositionProfileId:
+      'caption_direction_real_source_multi_output_scene_group_v3',
+    width: wide ? 640 : 480,
+    height: wide ? 360 : 480,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: creativePayload.sceneGroupId,
+    sceneGroupDigestSha256: creativePayload.sceneGroupDigestSha256,
+    motionLockDigestSha256: creativePayload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256:
+      creativePayload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: wide ? 1920 : 1440,
+    confirmedOutputHeight: wide ? 1080 : 1440,
+    confirmedAspectRatioNumerator: wide ? 16 : 1,
+    confirmedAspectRatioDenominator: wide ? 9 : 1,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    outputFormat: wide ? 'widescreen_16_9' : 'square_1_1',
+    reducedMotion: creativePayload.reducedMotion,
+    subjectMaskFixturePolicy: 'none',
+    backgroundStyle: 'real_source_editorial_split_v1',
+    sourcePresentation: 'editorial_split_right_v1',
+    safePlacementPolicy:
+      'speaker_face_and_gesture_avoidance_editorial_sidecar_v1',
+    sourceMediaPolicy: 'approved_caption_private_review_proxy_v1',
+    sourceMimeType: 'video/mp4',
+    sourceByteLength: source.byteLength,
+    sourceSha256: payload.sourceSha256,
+    sourceBytesBase64: source.toString('base64'),
+    sourceStartFrame: 0,
+    sourceEndFrameExclusive: durationFrames,
+    sourceFit: 'contain',
+    audioPolicy: 'preserve_source',
+    originalSourceSha256: payload.originalSourceSha256,
+    originalSourceStartMilliseconds,
+    originalSourceEndMilliseconds,
+    captionWordingReviewDigestSha256:
+      payload.captionWordingReviewDigestSha256,
+    captionWordingReviewPolicy:
+      'fixture_specific_human_review_phrase_level_only_v1',
+    wordLockedMotionUsed: false,
+    canonicalTranscriptQualificationClaimed: false,
+    syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
+    realSourcePixelsRequiredForProfessionalAppearance: true,
+    inspectionFrameNumbers,
+    layers: creativePayload.layers,
+  }
+}
+
+function validateCaptionBrollOwnerRealSourceSceneGroupPayload(rawPayload) {
+  if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)
+    || ![
+      'caption_direction_broll_owner_real_source_scene_group_v4',
+      'caption_direction_broll_owner_approved_run_scene_group_v5',
+      'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6',
+    ].includes(rawPayload.compositionProfileId)) {
+    return undefined
+  }
+  const exactFrame = rawPayload.compositionProfileId ===
+    'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+  const approvedRun = exactFrame || rawPayload.compositionProfileId ===
+    'caption_direction_broll_owner_approved_run_scene_group_v5'
+  const payload = exactObject(rawPayload, [
+    'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
+    'sceneGroupId', 'sceneGroupDigestSha256', 'motionLockDigestSha256',
+    'storyTimingResolutionDigestSha256', 'masterTimingDigestSha256',
+    'confirmedOutputWidth',
+    'confirmedOutputHeight', 'confirmedAspectRatioNumerator',
+    'confirmedAspectRatioDenominator', 'privateReviewScaleNumerator',
+    'privateReviewScaleDenominator', 'reducedMotion',
+    'subjectMaskFixturePolicy', 'backgroundStyle', 'sourcePresentation',
+    'safePlacementPolicy', 'sourceMediaPolicy', 'sourceMimeType',
+    'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
+    'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
+    'audioPolicy', 'masterTimelineStartFrame',
+    'masterTimelineEndFrameExclusive', 'ownerRequestDigestSha256',
+    'ownerResultDigestSha256', 'brollResultReceiptDigestSha256',
+    'selectedMediaManifestDigestSha256', 'layoutOccupancyDigestSha256',
+    'cropTimingDigestSha256', 'visibleTextEvidenceDigestSha256',
+    'authenticatedOwnerEvidenceDigestSha256',
+    'ownerCanonicalScopeDigestSha256',
+    'selectedNormalizedSourceSha256',
+    'selectedNormalizedSourceByteLength',
+    'selectedNormalizedSourceFrameCount', 'selectedNormalizedSourceFps',
+    'remotionProxyProfileId', 'remotionProxyDerivedFromSelectedArtifact',
+    'exactOwnerResultRereadVerified', 'sourceSelectionPerformedByCaption',
+    'cropOrTimingPerformedByCaption',
+    'captionWordingReviewDigestSha256', 'captionWordingReviewPolicy',
+    'wordLockedMotionUsed', 'canonicalTranscriptQualificationClaimed',
+    'syntheticEngineeringFixtureAcceptedAsProfessionalAppearance',
+    'realSourcePixelsRequiredForProfessionalAppearance',
+    'inspectionFrameNumbers', 'layers',
+    ...(approvedRun ? [
+      'approvedSnapshotDigestSha256', 'executionPackageDigestSha256',
+      'captionPlanningProjectionDigestSha256',
+      'captionPlanningBindingDigestSha256',
+      'captionRenderedMediaWorkBindingDigestSha256',
+      'exactImmutableApprovedRunRereadVerified',
+      'creativeReviewSupplementsCanonicalFinalCanvas',
+      'creativeReviewReplacesCanonicalFinalCanvas',
+      'canonicalTranscriptDigestSha256',
+      'canonicalTranscriptEvidenceDigestSha256',
+      'exactSourceWordLineageBound', 'completeTimeInspectionRequired',
+    ] : []),
+  ], 'Caption B-roll-owner real-source scene-group payload')
+  const durationFrames = integer(payload.durationFrames, 24, 900,
+    'durationFrames')
+  const masterTimelineStartFrame = integer(
+    payload.masterTimelineStartFrame, 0, 100_000_000,
+    'Caption B-roll master timeline start frame',
+  )
+  const masterTimelineEndFrameExclusive = integer(
+    payload.masterTimelineEndFrameExclusive, 1, 100_000_001,
+    'Caption B-roll master timeline end frame',
+  )
+  const selectedNormalizedSourceByteLength = integer(
+    payload.selectedNormalizedSourceByteLength, 1024, 16 * 1024 * 1024,
+    'Caption B-roll selected normalized source byte length',
+  )
+  const selectedNormalizedSourceFrameCount = integer(
+    payload.selectedNormalizedSourceFrameCount, 24, 900,
+    'Caption B-roll selected normalized source frame count',
+  )
+  const expectedFps = approvedRun ? 30 : 24
+  const expectedOutputWidth = approvedRun ? 3840 : 1920
+  const expectedOutputHeight = approvedRun ? 2160 : 1080
+  const expectedScaleDenominator = exactFrame ? 1 : approvedRun ? 6 : 3
+  const expectedRenderWidth = exactFrame ? 3840 : 640
+  const expectedRenderHeight = exactFrame ? 2160 : 360
+  const expectedWordingPolicy = approvedRun
+    ? 'canonical_approved_run_phrase_lineage_review_v1'
+    : 'fixture_specific_human_review_phrase_level_only_v1'
+  if (
+    payload.width !== expectedRenderWidth
+    || payload.height !== expectedRenderHeight
+    || payload.fps !== expectedFps
+    || payload.confirmedOutputWidth !== expectedOutputWidth
+    || payload.confirmedOutputHeight !== expectedOutputHeight
+    || payload.confirmedAspectRatioNumerator !== 16
+    || payload.confirmedAspectRatioDenominator !== 9
+    || payload.privateReviewScaleNumerator !== 1
+    || payload.privateReviewScaleDenominator !== expectedScaleDenominator
+    || typeof payload.reducedMotion !== 'boolean'
+    || payload.subjectMaskFixturePolicy !== 'none'
+    || payload.backgroundStyle !== 'broll_owner_real_source_full_frame_v1'
+    || payload.sourcePresentation !== 'full_frame_cutaway_v1'
+    || payload.safePlacementPolicy !==
+      'broll_center_safe_caption_lower_band_v1'
+    || payload.sourceMediaPolicy !==
+      'approved_b_roll_qa_normalized_preview_proxy_v1'
+    || payload.sourceMimeType !== 'video/x-matroska'
+    || payload.sourceStartFrame !== 0
+    || payload.sourceEndFrameExclusive !== durationFrames
+    || payload.sourceFit !== 'contain'
+    || payload.audioPolicy !== 'source_audio_absent_owner_normalized'
+    || masterTimelineEndFrameExclusive - masterTimelineStartFrame
+      !== durationFrames
+    || selectedNormalizedSourceFrameCount !== durationFrames
+    || payload.selectedNormalizedSourceFps !== expectedFps
+    || payload.remotionProxyProfileId !==
+      'approved_b_roll_remotion_preview_proxy_matroska_v1'
+    || payload.remotionProxyDerivedFromSelectedArtifact !== true
+    || payload.exactOwnerResultRereadVerified !== true
+    || payload.sourceSelectionPerformedByCaption !== false
+    || payload.cropOrTimingPerformedByCaption !== false
+    || payload.captionWordingReviewPolicy !== expectedWordingPolicy
+    || payload.wordLockedMotionUsed !== false
+    || payload.canonicalTranscriptQualificationClaimed !== false
+    || payload.syntheticEngineeringFixtureAcceptedAsProfessionalAppearance
+      !== false
+    || payload.realSourcePixelsRequiredForProfessionalAppearance !== true
+    || (approvedRun && (
+      payload.exactImmutableApprovedRunRereadVerified !== true
+      || payload.creativeReviewSupplementsCanonicalFinalCanvas !== true
+      || payload.creativeReviewReplacesCanonicalFinalCanvas !== false
+      || payload.exactSourceWordLineageBound !== true
+      || payload.completeTimeInspectionRequired !== true
+    ))
+  ) {
+    throw new Error(
+      'Caption B-roll-owner frame, source, timing, or authority policy is unsupported')
+  }
+  for (const digest of [
+    payload.sceneGroupDigestSha256,
+    payload.motionLockDigestSha256,
+    payload.storyTimingResolutionDigestSha256,
+    payload.masterTimingDigestSha256,
+    payload.ownerRequestDigestSha256,
+    payload.ownerResultDigestSha256,
+    payload.brollResultReceiptDigestSha256,
+    payload.selectedMediaManifestDigestSha256,
+    payload.layoutOccupancyDigestSha256,
+    payload.cropTimingDigestSha256,
+    payload.visibleTextEvidenceDigestSha256,
+    payload.authenticatedOwnerEvidenceDigestSha256,
+    payload.ownerCanonicalScopeDigestSha256,
+    payload.selectedNormalizedSourceSha256,
+    payload.captionWordingReviewDigestSha256,
+    ...(approvedRun ? [
+      payload.approvedSnapshotDigestSha256,
+      payload.executionPackageDigestSha256,
+      payload.captionPlanningProjectionDigestSha256,
+      payload.captionPlanningBindingDigestSha256,
+      payload.captionRenderedMediaWorkBindingDigestSha256,
+      payload.canonicalTranscriptDigestSha256,
+      payload.canonicalTranscriptEvidenceDigestSha256,
+    ] : []),
+  ]) {
+    if (typeof digest !== 'string' || !/^[a-f0-9]{64}$/.test(digest)) {
+      throw new Error('Caption B-roll-owner evidence digest is invalid')
+    }
+  }
+  const source = committedBase64(
+    payload, 'source', 'video/x-matroska', 1024, 16 * 1024 * 1024,
+  )
+  if (!approvedSourceSignature(source, 'video/x-matroska')) {
+    throw new Error('Caption B-roll-owner proxy Matroska signature is invalid')
+  }
+  const creativePayload = validateCaptionCreativeSceneGroupPayload({
+    compositionProfileId: 'caption_direction_creative_scene_group_v1',
+    width: 640,
+    height: 360,
+    fps: 30,
+    durationFrames,
+    sceneGroupId: payload.sceneGroupId,
+    sceneGroupDigestSha256: payload.sceneGroupDigestSha256,
+    motionLockDigestSha256: payload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256:
+      payload.storyTimingResolutionDigestSha256,
+    confirmedOutputWidth: 1920,
+    confirmedOutputHeight: 1080,
+    confirmedAspectRatioNumerator: 16,
+    confirmedAspectRatioDenominator: 9,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: 3,
+    reducedMotion: payload.reducedMotion,
+    subjectMaskFixturePolicy: 'none',
+    backgroundStyle: 'editorial_night_sky_v1',
+    layers: payload.layers,
+  })
+  if (!creativePayload || creativePayload.layers.length !== 4
+    || creativePayload.layers.some((layer) =>
+      layer.layoutBasisPoints.y < 5400
+      || layer.layoutBasisPoints.y + layer.layoutBasisPoints.height > 9300)) {
+    throw new Error('Caption B-roll-owner layers leave the approved lower safe band')
+  }
+  if (!Array.isArray(payload.inspectionFrameNumbers)
+    || payload.inspectionFrameNumbers.length < 4
+    || payload.inspectionFrameNumbers.length > 16) {
+    throw new Error('Caption B-roll-owner inspection frames are incomplete')
+  }
+  const inspectionFrameNumbers = payload.inspectionFrameNumbers.map((frame) =>
+    integer(frame, 0, durationFrames - 1,
+      'Caption B-roll-owner inspection frame'))
+  const requiredInspectionFrames = new Set([
+    0,
+    ...creativePayload.layers.map((layer) => Math.floor(
+      (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1)
+      / 2,
+    )),
+    durationFrames - 1,
+  ])
+  if (
+    new Set(inspectionFrameNumbers).size !== inspectionFrameNumbers.length
+    || inspectionFrameNumbers.some((frame, index) =>
+      index > 0 && frame <= inspectionFrameNumbers[index - 1])
+    || [...requiredInspectionFrames].some((frame) =>
+      !inspectionFrameNumbers.includes(frame))
+  ) {
+    throw new Error('Caption B-roll-owner inspection misses exact cue timing')
+  }
+  return {
+    compositionProfileId: exactFrame
+      ? 'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+      : approvedRun
+        ? 'caption_direction_broll_owner_approved_run_scene_group_v5'
+        : 'caption_direction_broll_owner_real_source_scene_group_v4',
+    width: expectedRenderWidth,
+    height: expectedRenderHeight,
+    fps: expectedFps,
+    durationFrames,
+    sceneGroupId: creativePayload.sceneGroupId,
+    sceneGroupDigestSha256: creativePayload.sceneGroupDigestSha256,
+    motionLockDigestSha256: creativePayload.motionLockDigestSha256,
+    storyTimingResolutionDigestSha256:
+      creativePayload.storyTimingResolutionDigestSha256,
+    masterTimingDigestSha256: payload.masterTimingDigestSha256,
+    confirmedOutputWidth: expectedOutputWidth,
+    confirmedOutputHeight: expectedOutputHeight,
+    confirmedAspectRatioNumerator: 16,
+    confirmedAspectRatioDenominator: 9,
+    privateReviewScaleNumerator: 1,
+    privateReviewScaleDenominator: expectedScaleDenominator,
+    reducedMotion: creativePayload.reducedMotion,
+    subjectMaskFixturePolicy: 'none',
+    backgroundStyle: 'broll_owner_real_source_full_frame_v1',
+    sourcePresentation: 'full_frame_cutaway_v1',
+    safePlacementPolicy: 'broll_center_safe_caption_lower_band_v1',
+    sourceMediaPolicy: 'approved_b_roll_qa_normalized_preview_proxy_v1',
+    sourceMimeType: 'video/x-matroska',
+    sourceByteLength: source.byteLength,
+    sourceSha256: payload.sourceSha256,
+    sourceBytesBase64: source.toString('base64'),
+    sourceStartFrame: 0,
+    sourceEndFrameExclusive: durationFrames,
+    sourceFit: 'contain',
+    audioPolicy: 'source_audio_absent_owner_normalized',
+    masterTimelineStartFrame,
+    masterTimelineEndFrameExclusive,
+    ...(approvedRun ? {
+      approvedSnapshotDigestSha256:
+        payload.approvedSnapshotDigestSha256,
+      executionPackageDigestSha256:
+        payload.executionPackageDigestSha256,
+      captionPlanningProjectionDigestSha256:
+        payload.captionPlanningProjectionDigestSha256,
+      captionPlanningBindingDigestSha256:
+        payload.captionPlanningBindingDigestSha256,
+      captionRenderedMediaWorkBindingDigestSha256:
+        payload.captionRenderedMediaWorkBindingDigestSha256,
+    } : {}),
+    ownerRequestDigestSha256: payload.ownerRequestDigestSha256,
+    ownerResultDigestSha256: payload.ownerResultDigestSha256,
+    brollResultReceiptDigestSha256:
+      payload.brollResultReceiptDigestSha256,
+    selectedMediaManifestDigestSha256:
+      payload.selectedMediaManifestDigestSha256,
+    layoutOccupancyDigestSha256: payload.layoutOccupancyDigestSha256,
+    cropTimingDigestSha256: payload.cropTimingDigestSha256,
+    visibleTextEvidenceDigestSha256: payload.visibleTextEvidenceDigestSha256,
+    authenticatedOwnerEvidenceDigestSha256:
+      payload.authenticatedOwnerEvidenceDigestSha256,
+    ownerCanonicalScopeDigestSha256:
+      payload.ownerCanonicalScopeDigestSha256,
+    selectedNormalizedSourceSha256: payload.selectedNormalizedSourceSha256,
+    selectedNormalizedSourceByteLength,
+    selectedNormalizedSourceFrameCount,
+    selectedNormalizedSourceFps: expectedFps,
+    remotionProxyProfileId:
+      'approved_b_roll_remotion_preview_proxy_matroska_v1',
+    remotionProxyDerivedFromSelectedArtifact: true,
+    exactOwnerResultRereadVerified: true,
+    ...(approvedRun ? {
+      exactImmutableApprovedRunRereadVerified: true,
+      creativeReviewSupplementsCanonicalFinalCanvas: true,
+      creativeReviewReplacesCanonicalFinalCanvas: false,
+    } : {}),
+    sourceSelectionPerformedByCaption: false,
+    cropOrTimingPerformedByCaption: false,
+    captionWordingReviewDigestSha256:
+      payload.captionWordingReviewDigestSha256,
+    captionWordingReviewPolicy: expectedWordingPolicy,
+    ...(approvedRun ? {
+      canonicalTranscriptDigestSha256:
+        payload.canonicalTranscriptDigestSha256,
+      canonicalTranscriptEvidenceDigestSha256:
+        payload.canonicalTranscriptEvidenceDigestSha256,
+      exactSourceWordLineageBound: true,
+    } : {}),
+    wordLockedMotionUsed: false,
+    canonicalTranscriptQualificationClaimed: false,
+    syntheticEngineeringFixtureAcceptedAsProfessionalAppearance: false,
+    realSourcePixelsRequiredForProfessionalAppearance: true,
+    ...(approvedRun ? { completeTimeInspectionRequired: true } : {}),
+    inspectionFrameNumbers,
+    layers: creativePayload.layers,
+  }
+}
+
 function validateMotionStudioPayload(rawPayload) {
   if (!rawPayload || typeof rawPayload !== 'object' || Array.isArray(rawPayload)) return undefined
 
@@ -1006,6 +1960,44 @@ function validateRequest(value) {
     throw new Error('request identity is unsupported')
   }
   const rawPayload = request.payload
+  const captionBrollOwnerPayload =
+    validateCaptionBrollOwnerRealSourceSceneGroupPayload(rawPayload)
+  if (captionBrollOwnerPayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: captionBrollOwnerPayload,
+    }
+  }
+  const captionRealSourceMultiOutputPayload =
+    validateCaptionRealSourceMultiOutputSceneGroupPayload(rawPayload)
+  if (captionRealSourceMultiOutputPayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: captionRealSourceMultiOutputPayload,
+    }
+  }
+  const captionRealSourcePayload = validateCaptionRealSourceSceneGroupPayload(rawPayload)
+  if (captionRealSourcePayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: captionRealSourcePayload,
+    }
+  }
+  const captionCreativePayload = validateCaptionCreativeSceneGroupPayload(rawPayload)
+  if (captionCreativePayload) {
+    return {
+      schemaVersion: PROTOCOL,
+      toolId: 'remotion',
+      operationId: OPERATION,
+      payload: captionCreativePayload,
+    }
+  }
   const motionStudioPayload = validateMotionStudioPayload(rawPayload)
   if (motionStudioPayload) {
     return {
@@ -1155,12 +2147,14 @@ function validateRequest(value) {
     const captionTrack = rawPayload.compositionProfileId === 'approved_source_caption_track_final_v1'
     const replaceVoice = rawPayload.audioPolicy === 'replace_with_approved_voice_tracks'
     const sourceMediaPolicyProvided = Object.hasOwn(rawPayload, 'sourceMediaPolicy')
+    const brollPreviewLayerProvided = Object.hasOwn(rawPayload, 'brollPreviewLayer')
     const deliveryMasterAuthorityProvided = Object.hasOwn(rawPayload, 'renderPurpose')
     const payload = exactObject(rawPayload, [
       'compositionProfileId', 'width', 'height', 'fps', 'durationFrames',
       'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
       'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
       ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+      ...(brollPreviewLayerProvided ? ['brollPreviewLayer'] : []),
       'sourceMimeType', 'sourceByteLength', 'sourceSha256', 'sourceBytesBase64',
       ...(captionTrack
         ? ['captionOverlayCues', 'captionOverlays']
@@ -1173,10 +2167,20 @@ function validateRequest(value) {
     validateDeliveryMasterAuthority(payload, dimensions, deliveryMasterAuthorityProvided)
     const approvedColorIntermediate =
       payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
-    if (sourceMediaPolicyProvided && !approvedColorIntermediate) {
+    const approvedBrollPreviewProxy =
+      payload.sourceMediaPolicy === 'approved_b_roll_qa_normalized_preview_proxy_v1'
+    const approvedMatroskaIntermediate =
+      approvedColorIntermediate || approvedBrollPreviewProxy
+    const approvedBrollPreviewLayer = approvedBrollPreviewProxy
+      ? brollPreviewLayer(payload.brollPreviewLayer)
+      : undefined
+    if (
+      (sourceMediaPolicyProvided && !approvedMatroskaIntermediate) ||
+      brollPreviewLayerProvided !== approvedBrollPreviewProxy
+    ) {
       throw new Error('source media policy is unsupported')
     }
-    const sourceMimeType = approvedColorIntermediate ? 'video/x-matroska' : 'video/mp4'
+    const sourceMimeType = approvedMatroskaIntermediate ? 'video/x-matroska' : 'video/mp4'
     const source = committedBase64(
       payload,
       'source',
@@ -1243,6 +2247,9 @@ function validateRequest(value) {
         ...payload,
         width: integer(payload.width, 360, 3840, 'width'), height: integer(payload.height, 360, 3840, 'height'),
         fps, durationFrames,
+        ...(approvedBrollPreviewLayer
+          ? { brollPreviewLayer: approvedBrollPreviewLayer }
+          : {}),
         sourceStartFrame, sourceEndFrameExclusive,
         panelBackground: color(payload.panelBackground, 'panelBackground'),
         sourceBytesBase64: source.toString('base64'),
@@ -1644,6 +2651,7 @@ function validateStreamingPlanningPayload(value) {
   const captionTrack = isCaptionTrackProfile(value.compositionProfileId)
   const replaceVoice = value.audioPolicy === 'replace_with_approved_voice_tracks'
   const sourceMediaPolicyProvided = Object.hasOwn(value, 'sourceMediaPolicy')
+  const brollPreviewLayerProvided = Object.hasOwn(value, 'brollPreviewLayer')
   const supplementalAudioProvided =
     Object.hasOwn(value, 'supplementalAudioPolicy') ||
     Object.hasOwn(value, 'supplementalAudioTracks')
@@ -1819,6 +2827,7 @@ function validateStreamingPlanningPayload(value) {
     'sourceStartFrame', 'sourceEndFrameExclusive', 'sourceFit',
     'panelBackground', 'audioPolicy', 'captionOverlayPolicy',
     ...(sourceMediaPolicyProvided ? ['sourceMediaPolicy'] : []),
+    ...(brollPreviewLayerProvided ? ['brollPreviewLayer'] : []),
     ...(captionTrack ? ['captionOverlayCues'] : []),
     ...(replaceVoice ? ['voiceTracks'] : []),
     ...(supplementalAudioProvided
@@ -1855,6 +2864,13 @@ function validateStreamingPlanningPayload(value) {
   )
   const approvedColorIntermediate =
     payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+  const approvedBrollPreviewProxy =
+    payload.sourceMediaPolicy === 'approved_b_roll_qa_normalized_preview_proxy_v1'
+  const approvedMatroskaIntermediate =
+    approvedColorIntermediate || approvedBrollPreviewProxy
+  const approvedBrollPreviewLayer = approvedBrollPreviewProxy
+    ? brollPreviewLayer(payload.brollPreviewLayer)
+    : undefined
   if (
     sourceEndFrameExclusive - sourceStartFrame !== durationFrames ||
     payload.sourceFit !== 'contain' ||
@@ -1862,7 +2878,8 @@ function validateStreamingPlanningPayload(value) {
     payload.captionOverlayPolicy !== (
       captionTrack ? 'approved_timed_full_frame_rgba_track' : 'approved_full_frame_rgba'
     ) ||
-    (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
+    (sourceMediaPolicyProvided && !approvedMatroskaIntermediate) ||
+    brollPreviewLayerProvided !== approvedBrollPreviewProxy ||
     (approvedColorIntermediate && (
       payload.audioPolicy !== 'replace_with_approved_voice_tracks'
     ))
@@ -1909,6 +2926,9 @@ function validateStreamingPlanningPayload(value) {
     durationFrames,
     sourceStartFrame,
     sourceEndFrameExclusive,
+    ...(approvedBrollPreviewLayer
+      ? { brollPreviewLayer: approvedBrollPreviewLayer }
+      : {}),
     panelBackground: normalizedColor(payload.panelBackground, 'panelBackground'),
     ...(captionTrack
       ? { captionOverlayCues: validateCaptionOverlayCues(payload.captionOverlayCues, durationFrames) }
@@ -1983,8 +3003,11 @@ function validateStreamingManifest(value) {
   if (inputs.sources.length !== expectedSourceCount) {
     throw new Error('streaming source count does not match approved planning')
   }
-  const sourceMimeType = planning.sourceMediaPolicy ===
-    'approved_professional_color_intermediate_v1'
+  const sourceMimeType = (
+    sourceSequence
+      ? planning.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+      : planning.sourceMediaPolicy !== undefined
+  )
     ? 'video/x-matroska'
     : 'video/mp4'
   const sources = inputs.sources.map((candidate, index) => {
@@ -3033,8 +4056,32 @@ async function execute(request, options = {}) {
   const layered = request.payload.compositionProfileId === 'motion_studio_native_layered_scene_v1'
   const animatic = request.payload.compositionProfileId === 'motion_studio_prepared_script_animatic_v1'
   const routeDraw = request.payload.compositionProfileId === 'motion_studio_deterministic_route_draw_v1'
+  const captionCreative = request.payload.compositionProfileId ===
+    'caption_direction_creative_scene_group_v1'
+  const captionRealSource = request.payload.compositionProfileId ===
+    'caption_direction_real_source_scene_group_v2' ||
+    request.payload.compositionProfileId ===
+      'caption_direction_real_source_multi_output_scene_group_v3' ||
+    request.payload.compositionProfileId ===
+      'caption_direction_broll_owner_real_source_scene_group_v4' ||
+    request.payload.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_scene_group_v5'
+    || request.payload.compositionProfileId ===
+      'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
   const motionStudioComposition = scenePreview || layered || animatic || routeDraw
-  const goldenFrames = routeDraw
+  const visualEvidenceComposition =
+    motionStudioComposition || captionCreative || captionRealSource
+  const goldenFrames = captionRealSource
+    ? request.payload.inspectionFrameNumbers
+    : captionCreative
+    ? [...new Set([
+        0,
+        ...request.payload.layers.map((layer) => Math.floor(
+          (layer.frameRange.startFrame + layer.frameRange.endFrameExclusive - 1) / 2,
+        )),
+        request.payload.durationFrames - 1,
+      ])].sort((left, right) => left - right)
+    : routeDraw
     ? [0, 45, 90, 135, 179]
     : motionStudioComposition
       ? [...new Set([
@@ -3047,6 +4094,10 @@ async function execute(request, options = {}) {
     frame,
     path: `/tmp/reeditpro-remotion-${sha256(requestJson).slice(0, 24)}-frame-${frame}.png`,
   }))
+  const goldenFrameScale = request.payload.compositionProfileId ===
+    'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+    ? 1 / 6
+    : 1
   const browserExecutable = (await readFile('/app/browser-path.txt', 'utf8')).trim()
   if (!browserExecutable.startsWith('/app/node_modules/.remotion/chrome-headless-shell/')) {
     throw new Error('Prepared Remotion browser identity is invalid')
@@ -3060,6 +4111,11 @@ async function execute(request, options = {}) {
     'approved_source_sequence_caption_final_v1',
     'approved_source_caption_track_final_v1',
     'approved_source_sequence_caption_track_final_v1',
+    'caption_direction_real_source_scene_group_v2',
+    'caption_direction_real_source_multi_output_scene_group_v3',
+    'caption_direction_broll_owner_real_source_scene_group_v4',
+    'caption_direction_broll_owner_approved_run_scene_group_v5',
+    'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6',
     LONG_FORM_MERGE_COMPOSITION_PROFILE,
     DELIVERY_H264_CHUNK_COMPOSITION_PROFILE,
   ].includes(request.payload.compositionProfileId)
@@ -3100,7 +4156,7 @@ async function execute(request, options = {}) {
                 request.payload.sourceByteLength,
               ),
             }],
-        longFormMerge || deliveryH264Chunk
+        longFormMerge || deliveryH264Chunk || captionRealSource
           ? []
           : captionTrack
           ? request.payload.captionOverlays.map((overlay) => ({
@@ -3208,7 +4264,7 @@ async function execute(request, options = {}) {
             : {}),
         })
     : null
-  const captionRenderPayload = deliveryH264Chunk
+  const captionRenderPayload = deliveryH264Chunk || captionRealSource
     ? {}
     : captionTrack
     ? {
@@ -3290,7 +4346,63 @@ async function execute(request, options = {}) {
           ),
         }
       : {}
-  const renderPayload = scenePreview
+  const renderPayload = captionRealSource
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sceneGroupId: request.payload.sceneGroupId,
+        sceneGroupDigestSha256: request.payload.sceneGroupDigestSha256,
+        motionLockDigestSha256: request.payload.motionLockDigestSha256,
+        storyTimingResolutionDigestSha256:
+          request.payload.storyTimingResolutionDigestSha256,
+        confirmedOutputWidth: request.payload.confirmedOutputWidth,
+        confirmedOutputHeight: request.payload.confirmedOutputHeight,
+        confirmedAspectRatioNumerator:
+          request.payload.confirmedAspectRatioNumerator,
+        confirmedAspectRatioDenominator:
+          request.payload.confirmedAspectRatioDenominator,
+        privateReviewScaleNumerator: request.payload.privateReviewScaleNumerator,
+        privateReviewScaleDenominator: request.payload.privateReviewScaleDenominator,
+        reducedMotion: request.payload.reducedMotion,
+        subjectMaskFixturePolicy: request.payload.subjectMaskFixturePolicy,
+        backgroundStyle: request.payload.backgroundStyle,
+        sourceStartFrame: request.payload.sourceStartFrame,
+        sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
+        sourceFit: request.payload.sourceFit,
+        audioPolicy: request.payload.audioPolicy,
+        sourceInternalUrl:
+          `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
+        captionCreativeLayers: request.payload.layers,
+      }
+    : captionCreative
+    ? {
+        compositionProfileId: request.payload.compositionProfileId,
+        width: request.payload.width,
+        height: request.payload.height,
+        fps: request.payload.fps,
+        durationFrames: request.payload.durationFrames,
+        sceneGroupId: request.payload.sceneGroupId,
+        sceneGroupDigestSha256: request.payload.sceneGroupDigestSha256,
+        motionLockDigestSha256: request.payload.motionLockDigestSha256,
+        storyTimingResolutionDigestSha256:
+          request.payload.storyTimingResolutionDigestSha256,
+        confirmedOutputWidth: request.payload.confirmedOutputWidth,
+        confirmedOutputHeight: request.payload.confirmedOutputHeight,
+        confirmedAspectRatioNumerator:
+          request.payload.confirmedAspectRatioNumerator,
+        confirmedAspectRatioDenominator:
+          request.payload.confirmedAspectRatioDenominator,
+        privateReviewScaleNumerator: request.payload.privateReviewScaleNumerator,
+        privateReviewScaleDenominator: request.payload.privateReviewScaleDenominator,
+        reducedMotion: request.payload.reducedMotion,
+        subjectMaskFixturePolicy: request.payload.subjectMaskFixturePolicy,
+        backgroundStyle: request.payload.backgroundStyle,
+        captionCreativeLayers: request.payload.layers,
+      }
+    : scenePreview
     ? request.payload
     : layered
     ? {
@@ -3417,6 +4529,12 @@ async function execute(request, options = {}) {
         sourceEndFrameExclusive: request.payload.sourceEndFrameExclusive,
         sourceFit: request.payload.sourceFit, panelBackground: request.payload.panelBackground,
         audioPolicy: request.payload.audioPolicy, captionOverlayPolicy: request.payload.captionOverlayPolicy,
+        ...(request.payload.sourceMediaPolicy === undefined
+          ? {}
+          : { sourceMediaPolicy: request.payload.sourceMediaPolicy }),
+        ...(request.payload.brollPreviewLayer === undefined
+          ? {}
+          : { brollPreviewLayer: request.payload.brollPreviewLayer }),
         sourceInternalUrl: `${mediaServer.origin}/source/0.${sourceExtension(request.payload.sourceMimeType)}`,
         ...livingFrameOverlayRenderPayload,
         ...controlledVisualOverlayRenderPayload,
@@ -3486,6 +4604,7 @@ async function execute(request, options = {}) {
         frame: golden.frame,
         output: golden.path,
         imageFormat: 'png',
+        scale: goldenFrameScale,
         browserExecutable,
         chromeMode: 'headless-shell',
         chromiumOptions: { enableMultiProcessOnLinux: true },
@@ -3539,7 +4658,7 @@ async function execute(request, options = {}) {
       width: composition.width, height: composition.height,
       fps: composition.fps, durationFrames: composition.durationInFrames,
       durationSeconds: Number((composition.durationInFrames / composition.fps).toFixed(6)),
-      ...(motionStudioComposition ? { frameArtifacts } : {}),
+      ...(visualEvidenceComposition ? { frameArtifacts } : {}),
     }
   } finally {
     if (!retainStreamingOutput) await rm(outputPath, { force: true }).catch(() => undefined)
@@ -3993,6 +5112,15 @@ function semanticEvidence(request, streaming) {
           approvedCaptionOverlayBytesVerified: true,
           approvedSourceTrimFramesApplied: true,
           finalCompositionProfileExecuted: true,
+          ...(request.payload.sourceMediaPolicy ===
+            'approved_b_roll_qa_normalized_preview_proxy_v1'
+            ? {
+                approvedBrollQaNormalizedPreviewProxyVerified: true,
+                approvedBrollTreatmentGeometryApplied: true,
+                approvedBrollLayerOrderApplied: true,
+                approvedBrollAudioRemovedUpstream: true,
+              }
+            : {}),
           ...(request.payload.audioPolicy === 'replace_with_approved_voice_tracks'
             ? {
                 approvedVoiceTrackBytesVerified: true,
@@ -4081,6 +5209,115 @@ function semanticEvidence(request, streaming) {
               ? { approvedCaptionTrackTimingApplied: true }
               : {}),
           }
+        : [
+            'caption_direction_real_source_scene_group_v2',
+            'caption_direction_real_source_multi_output_scene_group_v3',
+            'caption_direction_broll_owner_real_source_scene_group_v4',
+            'caption_direction_broll_owner_approved_run_scene_group_v5',
+            'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6',
+          ].includes(request.payload.compositionProfileId)
+          ? {
+              captionRealSourceSceneGroupCompositionExecuted: true,
+              approvedCaptionPrivateReviewProxyBytesVerified: true,
+              ...(request.payload.compositionProfileId ===
+                'caption_direction_broll_owner_real_source_scene_group_v4' ||
+                request.payload.compositionProfileId ===
+                  'caption_direction_broll_owner_approved_run_scene_group_v5' ||
+                request.payload.compositionProfileId ===
+                  'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+                ? {}
+                : { exactOriginalSourceRangeAndDigestConsumed: true }),
+              fixtureSpecificHumanReviewedWordingConsumed: true,
+              phraseLevelOnlyWithoutWordLockedMotionPreserved: true,
+              canonicalTranscriptQualificationNotClaimed: true,
+              exactSceneGroupDigestConsumed: true,
+              exactMotionLockDigestConsumed: true,
+              exactStoryTimingResolutionDigestConsumed: true,
+              confirmedOutputFrameAndReviewProxyRatioPreserved: true,
+              boundedMultiTrackLayerOrderPreserved: true,
+              stableAccessibleCaptionAboveVisualLayersPreserved: true,
+              ...(request.payload.compositionProfileId ===
+                'caption_direction_real_source_multi_output_scene_group_v3'
+                ? {
+                    editorialSidecarFaceAndGestureAvoidanceApplied: true,
+                    realSourceEditorialSplitCompositionApplied: true,
+                    realSourcePixelsRequiredForProfessionalAppearancePreserved:
+                      true,
+                    syntheticEngineeringFixtureProfessionalAppearanceRejected:
+                      true,
+                  }
+                : request.payload.compositionProfileId ===
+                  'caption_direction_broll_owner_real_source_scene_group_v4' ||
+                  request.payload.compositionProfileId ===
+                    'caption_direction_broll_owner_approved_run_scene_group_v5' ||
+                  request.payload.compositionProfileId ===
+                    'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+                  ? {
+                      brollOwnerSelectedMediaLineageConsumed: true,
+                      brollOwnerLayoutOccupancyLineageConsumed: true,
+                      brollOwnerCropTimingLineageConsumed: true,
+                      brollOwnerVisibleTextEvidenceLineageConsumed: true,
+                      exactBrollMasterTimelineRangeConsumed: true,
+                      approvedBrollNormalizedPreviewProxyBytesVerified: true,
+                      brollSourceSelectionRemainedExternalToCaption: true,
+                      brollCropAndTimingRemainedExternalToCaption: true,
+                      brollFullFrameCutawayCompositionApplied: true,
+                      brollLowerSafeCaptionBandApplied: true,
+                      realSourcePixelsRequiredForProfessionalAppearancePreserved:
+                        true,
+                      syntheticEngineeringFixtureProfessionalAppearanceRejected:
+                        true,
+                      sourceAudioAbsenceFromOwnerNormalizationPreserved: true,
+                      ...(request.payload.compositionProfileId ===
+                        'caption_direction_broll_owner_approved_run_scene_group_v5' ||
+                      request.payload.compositionProfileId ===
+                        'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+                        ? {
+                            exactImmutableApprovedRunLineageConsumed: true,
+                            exactCanonicalTranscriptLineageConsumed: true,
+                            completeTimeInspectionRequirementPreserved: true,
+                            creativeReviewDidNotReplaceCanonicalFinalCanvas: true,
+                            ...(request.payload.compositionProfileId ===
+                              'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+                              ? {
+                                  exactConfirmedOutputFrameRendered: true,
+                                  sourceProxyUpscaleDisclosed: true,
+                                  sourceProxyFinalPictureQualityNotClaimed: true,
+                                }
+                              : {}),
+                          }
+                        : {}),
+                    }
+                : { safeTopPlaneFaceAndGestureAvoidanceApplied: true }),
+              requestedMotionVariantApplied: true,
+              ...(request.payload.compositionProfileId ===
+                'caption_direction_broll_owner_real_source_scene_group_v4' ||
+                request.payload.compositionProfileId ===
+                  'caption_direction_broll_owner_approved_run_scene_group_v5' ||
+                request.payload.compositionProfileId ===
+                  'caption_direction_broll_owner_approved_run_exact_frame_scene_group_v6'
+                ? { sourceAudioPreservationNotRequested: true }
+                : { sourceAudioPreservationRequested: true }),
+              trackAllRuntimeEvidenceNotClaimed: true,
+              frameGoldenArtifactsProduced: true,
+            }
+        : request.payload.compositionProfileId ===
+          'caption_direction_creative_scene_group_v1'
+          ? {
+              captionCreativeSceneGroupCompositionExecuted: true,
+              exactSceneGroupDigestConsumed: true,
+              exactMotionLockDigestConsumed: true,
+              exactStoryTimingResolutionDigestConsumed: true,
+              confirmedOutputFrameAndReviewProxyRatioPreserved: true,
+              boundedMultiTrackLayerOrderPreserved: true,
+              stableAccessibleCaptionAboveVisualLayersPreserved: true,
+              requestedMotionVariantApplied: true,
+              trackAllRuntimeEvidenceNotClaimed: true,
+              deterministicFixtureSubjectMaskDisclosed: true,
+              legacyFullFrameRgbaFallbackPreserved: true,
+              remotionRenderStillExecuted: true,
+              frameGoldenArtifactsProduced: true,
+            }
         : request.payload.compositionProfileId === 'motion_studio_scene_preview_v1'
           ? {
               motionStudioScenePreviewCompositionExecuted: true,

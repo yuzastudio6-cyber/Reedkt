@@ -57,15 +57,15 @@ const INVOCATION_PREFIX =
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v1' as const
 const EXPECTED_IMAGE_DIGEST =
-  'sha256:5bbb3b447e3d7e1d89709c5dee49dc8e00fec0e78877afc1b9da50729cb3daaf' as const
+  'sha256:74c4483c7b62fa705748d82eb40d05abfa637db166225bf633b152afd6062d9f' as const
 const EXPECTED_IMAGE =
   `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${EXPECTED_IMAGE_DIGEST}` as const
 const BASELINE_INVOCATION_ID =
-  'sam31-a100-qualification:sam31-production-a100-image-5bbb3b44-20260811.run-01.execution' as const
+  'sam31-a100-qualification:sam31-production-a100-image-74c4483c-20260811.run-01.execution' as const
 const BASELINE_TASK_HASH =
-  '4bf5f63849f32c1b14529b466a015016becc04e728b99b0d492be48094defa93' as const
+  '7463d22c2c23a009ffe5ce9e2fd0a978883270ade80428b77a3f88e4a88066c5' as const
 const BASELINE_RESULT_ADMISSION_HASH =
-  '3de1bb79e1e4cc33c48ea4a76db64fb97e255a4579542077f15832b862dda628' as const
+  'be88c9caf493290f291ff965128997262feb34a7e476375ae688fa65c9f8a07e' as const
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
 const CHECKPOINT_SIZE = 3_502_755_717 as const
@@ -718,7 +718,7 @@ function buildL4QualificationTask(input: {
     settings: {
       ...baseRequest.settings,
       gpuMemoryProfileId:
-        'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+        'l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1',
     },
     byteFreeRequest: true,
     callerCodePathUrlCommandOrEnvironmentAccepted: false,

@@ -99,7 +99,7 @@ MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_trimmed_past_non_conditioning_memory_v1"
+    "l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -1385,9 +1385,12 @@ def configure_gpu_memory_profile(
     """Bind the official SAM 3.1 evaluation memory policy to the GPU route.
 
     L4 keeps frames, model state, accessible temporal memories, inference, and
-    outputs on CUDA. It enables only the upstream forward-VOS trim that removes
+    outputs on CUDA. It enables the upstream forward-VOS trim that removes
     heavy non-conditioning outputs after they fall outside the model's exact
-    num_maskmem window. A100 retains the upstream full-state policy.
+    num_maskmem window. The execution loop also propagates detected object
+    tracks in deterministic object-ID order, one CUDA session at a time, then
+    merges the exact lossless masks. A100 retains the upstream full-state
+    multiplex policy.
     """
     model = getattr(predictor, "model", None)
     tracker = getattr(model, "tracker", None)
@@ -2530,50 +2533,84 @@ def execute_inside_bfloat16_autocast(
         raise RuntimeError("pinned source/checkpoint compatibility changed")
     model_load_ms = (time.monotonic_ns() - model_load_started) // 1_000_000
 
-    stage = "session_start"
-    decoder_sampler = NvdecSampler()
-    decoder_sampler.start()
-    session_response = predictor.handle_request(
-        {
-            "type": "start_session",
-            "resource_path": str(SOURCE_PROXY_PATH),
-            "offload_video_to_cpu": False,
-            "offload_state_to_cpu": False,
-        }
-    )
-    session_id = session_response["session_id"]
-    inference_state = predictor._all_inference_states[session_id]["state"]
-    await_complete_gpu_frame_store(inference_state)
-    maximum_nvdec_utilization = decoder_sampler.stop_and_verify()
-    if (
-        inference_state["num_frames"] != request["sourceMedia"]["decodedFrameCount"]
-        or inference_state["orig_width"] != request["sourceMedia"]["width"]
-        or inference_state["orig_height"] != request["sourceMedia"]["height"]
-    ):
-        raise RuntimeError("GPU-decoded source geometry or frame count changed")
-
-    stage = "prompt"
-    prompt_started = time.monotonic_ns()
     compute_sampler = GpuComputeSampler()
     compute_sampler.start()
     cuda_start.record()
-    predictor.handle_request(
-        {
-            "type": "add_prompt",
-            "session_id": session_id,
-            "frame_index": request["approvedPrompt"]["promptFrameIndex"],
-            "text": request["approvedPrompt"]["approvedSubjectText"],
-            "output_prob_thresh": 0.5,
-        }
+
+    def start_verified_session() -> tuple[str, dict[str, Any], int]:
+        global stage
+        stage = "session_start"
+        decoder_sampler = NvdecSampler()
+        decoder_sampler.start()
+        session_response = predictor.handle_request(
+            {
+                "type": "start_session",
+                "resource_path": str(SOURCE_PROXY_PATH),
+                "offload_video_to_cpu": False,
+                "offload_state_to_cpu": False,
+            }
+        )
+        current_session_id = session_response["session_id"]
+        current_state = predictor._all_inference_states[current_session_id][
+            "state"
+        ]
+        await_complete_gpu_frame_store(current_state)
+        current_nvdec_utilization = decoder_sampler.stop_and_verify()
+        if (
+            current_state["num_frames"]
+            != request["sourceMedia"]["decodedFrameCount"]
+            or current_state["orig_width"] != request["sourceMedia"]["width"]
+            or current_state["orig_height"] != request["sourceMedia"]["height"]
+        ):
+            raise RuntimeError("GPU-decoded source geometry or frame count changed")
+        verify_gpu_frame_store(current_state)
+        return current_session_id, current_state, current_nvdec_utilization
+
+    def add_approved_prompt(current_session_id: str) -> tuple[dict[str, Any], int]:
+        global stage
+        stage = "prompt"
+        prompt_started = time.monotonic_ns()
+        prompt_response = predictor.handle_request(
+            {
+                "type": "add_prompt",
+                "session_id": current_session_id,
+                "frame_index": request["approvedPrompt"]["promptFrameIndex"],
+                "text": request["approvedPrompt"]["approvedSubjectText"],
+                "output_prob_thresh": 0.5,
+            }
+        )
+        prompt_elapsed = time.monotonic_ns() - prompt_started
+        return prompt_response, prompt_elapsed
+
+    session_id, inference_state, maximum_nvdec_utilization = (
+        start_verified_session()
     )
-    prompt_ms = (time.monotonic_ns() - prompt_started) // 1_000_000
+    prompt_response, prompt_ns = add_approved_prompt(session_id)
+    prompt_outputs = prompt_response["outputs"]
+    prompt_object_ids = [
+        exact_int(int(value), 0, 2**31 - 1, "prompt object id")
+        for value in prompt_outputs["out_obj_ids"].tolist()
+    ]
+    if (
+        not prompt_object_ids
+        or len(prompt_object_ids) > MAXIMUM_OBJECTS
+        or len(set(prompt_object_ids)) != len(prompt_object_ids)
+        or prompt_object_ids != sorted(prompt_object_ids)
+    ):
+        raise RuntimeError("SAM 3.1 prompt object identities are invalid")
+    del prompt_outputs, prompt_response
+    serial_object_ids: list[int | None] = (
+        [None]
+        if request["dispatch"]["accelerator"] == "nvidia_a100_80gb"
+        else [int(value) for value in prompt_object_ids]
+    )
 
     stage = "output_persistence"
     PRIVATE_OUTPUT_ROOT.mkdir(mode=0o700, parents=False, exist_ok=False)
     frame_object_records: dict[int, list[dict[str, Any]]] = {}
     mask_records_by_key: dict[tuple[int, int], dict[str, Any]] = {}
     distinct_object_ids: set[int] = set()
-    propagation_started = time.monotonic_ns()
+    propagation_elapsed_ns = 0
     persistence_ns = 0
     stage = "propagation"
     pending: deque[tuple[
@@ -2583,79 +2620,141 @@ def execute_inside_bfloat16_autocast(
         max_workers=OUTPUT_PERSISTENCE_WORKERS,
         thread_name_prefix="sam31-mask-persistence",
     ) as persistence_pool:
-        for response in predictor.handle_stream_request(
-            {
-                "type": "propagate_in_video",
-                "session_id": session_id,
-                "propagation_direction": "forward",
-                "start_frame_index": request["approvedPrompt"]["promptFrameIndex"],
-                "max_frame_num_to_track": request["sourceMedia"]["decodedFrameCount"],
-                "output_prob_thresh": 0.5,
-            }
-        ):
-            frame_index = int(response["frame_index"])
-            if (
-                frame_index < 0
-                or frame_index >= request["sourceMedia"]["decodedFrameCount"]
+        for pass_index, serial_object_id in enumerate(serial_object_ids):
+            if pass_index > 0:
+                session_id, inference_state, current_nvdec = (
+                    start_verified_session()
+                )
+                maximum_nvdec_utilization = max(
+                    maximum_nvdec_utilization,
+                    current_nvdec,
+                )
+                replay_prompt, replay_prompt_ns = add_approved_prompt(session_id)
+                prompt_ns += replay_prompt_ns
+                replay_object_ids = [
+                    exact_int(int(value), 0, 2**31 - 1, "prompt object id")
+                    for value in replay_prompt["outputs"]["out_obj_ids"].tolist()
+                ]
+                if replay_object_ids != prompt_object_ids:
+                    raise RuntimeError(
+                        "SAM 3.1 serial prompt object identities changed"
+                    )
+                del replay_prompt
+            if serial_object_id is not None:
+                for removable_object_id in reversed(prompt_object_ids):
+                    if removable_object_id == serial_object_id:
+                        continue
+                    predictor.handle_request(
+                        {
+                            "type": "remove_object",
+                            "session_id": session_id,
+                            "frame_index": request["approvedPrompt"][
+                                "promptFrameIndex"
+                            ],
+                            "obj_id": removable_object_id,
+                            "is_user_action": False,
+                        }
+                    )
+
+            stage = "propagation"
+            pass_propagation_started = time.monotonic_ns()
+            pass_persistence_started_ns = persistence_ns
+            for response in predictor.handle_stream_request(
+                {
+                    "type": "propagate_in_video",
+                    "session_id": session_id,
+                    "propagation_direction": "forward",
+                    "start_frame_index": request["approvedPrompt"][
+                        "promptFrameIndex"
+                    ],
+                    "max_frame_num_to_track": request["sourceMedia"][
+                        "decodedFrameCount"
+                    ],
+                    "output_prob_thresh": 0.5,
+                }
             ):
-                raise RuntimeError("SAM 3.1 emitted an out-of-scope frame")
-            if frame_index in frame_object_records:
-                raise RuntimeError("SAM 3.1 emitted a duplicate frame")
-            outputs = response["outputs"]
-            object_ids = outputs["out_obj_ids"].tolist()
-            boxes = outputs["out_boxes_xywh"].tolist()
-            masks = outputs["out_binary_masks"]
-            if not (len(object_ids) == len(boxes) == len(masks)):
-                raise RuntimeError("SAM 3.1 output arrays lost alignment")
-            object_records: list[dict[str, Any]] = []
-            persist_started = time.monotonic_ns()
-            for object_id_value, box, mask in zip(object_ids, boxes, masks):
-                object_id = exact_int(
-                    int(object_id_value), 0, 2**31 - 1, "object id"
-                )
-                if len(box) != 4 or any(
-                    isinstance(component, bool)
-                    or not isinstance(component, (int, float))
-                    or not math.isfinite(component)
-                    or component < 0
-                    or component > 1
-                    for component in box
+                frame_index = int(response["frame_index"])
+                if (
+                    frame_index < 0
+                    or frame_index >= request["sourceMedia"]["decodedFrameCount"]
                 ):
-                    raise RuntimeError("SAM 3.1 normalized box is invalid")
-                key = (frame_index, object_id)
-                if key in mask_records_by_key or any(
-                    pending_key == key for pending_key, _future in pending
-                ):
-                    raise RuntimeError("SAM 3.1 emitted a duplicate mask")
-                while len(pending) >= MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS:
-                    completed_key, completed_future = pending.popleft()
-                    mask_records_by_key[completed_key] = completed_future.result()
-                value = copy_mask_for_persistence(mask, torch)
-                future = persistence_pool.submit(
-                    persist_mask,
-                    value,
-                    frame_index,
-                    object_id,
+                    raise RuntimeError("SAM 3.1 emitted an out-of-scope frame")
+                outputs = response["outputs"]
+                object_ids = [
+                    exact_int(int(value), 0, 2**31 - 1, "object id")
+                    for value in outputs["out_obj_ids"].tolist()
+                ]
+                expected_pass_object_ids = (
+                    prompt_object_ids
+                    if serial_object_id is None
+                    else [serial_object_id]
                 )
-                pending.append((key, future))
-                distinct_object_ids.add(object_id)
-                object_records.append({
-                    "objectId": object_id,
-                    "normalizedBoxXywh": [float(component) for component in box],
-                })
-            persistence_ns += time.monotonic_ns() - persist_started
-            frame_object_records[frame_index] = object_records
-        drain_started = time.monotonic_ns()
-        while pending:
-            completed_key, completed_future = pending.popleft()
-            mask_records_by_key[completed_key] = completed_future.result()
-        persistence_ns += time.monotonic_ns() - drain_started
-    propagation_elapsed_ns = time.monotonic_ns() - propagation_started
-    exclusive_propagation_ns = exclusive_phase_nanoseconds(
-        propagation_elapsed_ns,
-        persistence_ns,
-    )
-    propagation_ms = exclusive_propagation_ns // 1_000_000
+                if object_ids != expected_pass_object_ids:
+                    raise RuntimeError(
+                        "SAM 3.1 serial propagation object identities changed"
+                    )
+                boxes = outputs["out_boxes_xywh"].tolist()
+                masks = outputs["out_binary_masks"]
+                if not (len(object_ids) == len(boxes) == len(masks)):
+                    raise RuntimeError("SAM 3.1 output arrays lost alignment")
+                object_records = frame_object_records.setdefault(frame_index, [])
+                persist_started = time.monotonic_ns()
+                for object_id, box, mask in zip(object_ids, boxes, masks):
+                    if len(box) != 4 or any(
+                        isinstance(component, bool)
+                        or not isinstance(component, (int, float))
+                        or not math.isfinite(component)
+                        or component < 0
+                        or component > 1
+                        for component in box
+                    ):
+                        raise RuntimeError("SAM 3.1 normalized box is invalid")
+                    key = (frame_index, object_id)
+                    if key in mask_records_by_key or any(
+                        pending_key == key for pending_key, _future in pending
+                    ):
+                        raise RuntimeError("SAM 3.1 emitted a duplicate mask")
+                    while len(pending) >= MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS:
+                        completed_key, completed_future = pending.popleft()
+                        mask_records_by_key[completed_key] = completed_future.result()
+                    value = copy_mask_for_persistence(mask, torch)
+                    future = persistence_pool.submit(
+                        persist_mask,
+                        value,
+                        frame_index,
+                        object_id,
+                    )
+                    pending.append((key, future))
+                    distinct_object_ids.add(object_id)
+                    object_records.append({
+                        "objectId": object_id,
+                        "normalizedBoxXywh": [
+                            float(component) for component in box
+                        ],
+                    })
+                persistence_ns += time.monotonic_ns() - persist_started
+            drain_started = time.monotonic_ns()
+            while pending:
+                completed_key, completed_future = pending.popleft()
+                mask_records_by_key[completed_key] = completed_future.result()
+            persistence_ns += time.monotonic_ns() - drain_started
+            pass_elapsed_ns = time.monotonic_ns() - pass_propagation_started
+            pass_persistence_ns = persistence_ns - pass_persistence_started_ns
+            propagation_elapsed_ns += exclusive_phase_nanoseconds(
+                pass_elapsed_ns,
+                pass_persistence_ns,
+            )
+            verify_gpu_frame_store(inference_state)
+            if serial_object_id is not None:
+                predictor.handle_request(
+                    {
+                        "type": "close_session",
+                        "session_id": session_id,
+                        "run_gc_collect": True,
+                    }
+                )
+    propagation_ms = propagation_elapsed_ns // 1_000_000
+    prompt_ms = prompt_ns // 1_000_000
     output_persistence_ms = persistence_ns // 1_000_000
     cuda_end.record()
     torch.cuda.synchronize(0)
@@ -2667,7 +2766,6 @@ def execute_inside_bfloat16_autocast(
     gpu_evidence["maximumObservedGpuUtilizationPercent"] = (
         maximum_gpu_utilization
     )
-    verify_gpu_frame_store(inference_state)
     if not GPU_DECODE_BACKEND_OBSERVATIONS:
         raise RuntimeError("SAM 3.1 observed no CUDA/NVDEC video decode")
     gpu_evidence["nvdecHardwareDecodeMeasured"] = True
@@ -2675,7 +2773,15 @@ def execute_inside_bfloat16_autocast(
     gpu_evidence["cudaKernelExecutionMeasured"] = True
 
     expected_frames = set(range(request["sourceMedia"]["decodedFrameCount"]))
-    if set(frame_object_records.keys()) != expected_frames or not mask_records_by_key:
+    if (
+        set(frame_object_records.keys()) != expected_frames
+        or not mask_records_by_key
+        or any(
+            [item["objectId"] for item in frame_object_records[frame_index]]
+            != prompt_object_ids
+            for frame_index in expected_frames
+        )
+    ):
         raise RuntimeError("SAM 3.1 did not produce complete bounded frame coverage")
     if len(distinct_object_ids) > MAXIMUM_OBJECTS:
         raise RuntimeError("SAM 3.1 exceeded the object product cap")
@@ -2721,9 +2827,14 @@ def execute_inside_bfloat16_autocast(
     manifest_length, manifest_hash = file_sha256(MANIFEST_PATH, 64 * 1024 * 1024)
     output_bytes = manifest_length + sum(item["byteLength"] for item in mask_records)
 
-    predictor.handle_request(
-        {"type": "close_session", "session_id": session_id, "run_gc_collect": True}
-    )
+    if request["dispatch"]["accelerator"] == "nvidia_a100_80gb":
+        predictor.handle_request(
+            {
+                "type": "close_session",
+                "session_id": session_id,
+                "run_gc_collect": True,
+            }
+        )
     stage = "artifact_reread"
     checkpoint_length_after, checkpoint_hash_after = file_sha256(
         CHECKPOINT_PATH, MAXIMUM_CHECKPOINT_BYTES

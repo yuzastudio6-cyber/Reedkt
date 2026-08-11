@@ -845,10 +845,24 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
   settings: {
     ...request.settings,
     gpuMemoryProfileId:
-      'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+      'l4_gpu_only_serial_object_propagation_trimmed_past_non_conditioning_memory_v1',
   },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')
+const staleL4MemoryProfile = structuredClone(fallback)
+staleL4MemoryProfile.settings.gpuMemoryProfileId =
+  'l4_gpu_only_trimmed_past_non_conditioning_memory_v1'
+const staleL4MemoryProfilePayload = { ...staleL4MemoryProfile }
+Reflect.deleteProperty(
+  staleL4MemoryProfilePayload,
+  'requestBindingSha256',
+)
+staleL4MemoryProfile.requestBindingSha256 = sha256AuthorityValue(
+  staleL4MemoryProfilePayload,
+)
+assert.throws(() => assertCanonicalSam31GpuRuntimeRequest(
+  staleL4MemoryProfile,
+))
 
 const adversarial: Array<(value: CanonicalSam31GpuRuntimeRequest) => void> = [
   (value) => { value.dispatch.accelerator = 'nvidia_l4' },
@@ -961,7 +975,7 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 63,
+  checks: 64,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

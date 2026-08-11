@@ -49,6 +49,10 @@ assert.match(
   l4Qualifier,
   /qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST/u,
 )
+assert.match(
+  l4Qualifier,
+  /gpuMemoryProfileId:\s*'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4'/u,
+)
 
 const request = buildCanonicalSam31GpuRuntimeRequest({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-request-v1',

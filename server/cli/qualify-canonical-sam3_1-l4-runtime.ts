@@ -726,7 +726,7 @@ function buildL4QualificationTask(input: {
     settings: {
       ...baseRequest.settings,
       gpuMemoryProfileId:
-        'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
+        'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4',
     },
     byteFreeRequest: true,
     callerCodePathUrlCommandOrEnvironmentAccepted: false,

@@ -102,7 +102,6 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
   readonly now?: () => string
 }) {
   assertDependencies(input)
-  const now = input.now ?? (() => new Date().toISOString())
   const prepareAuthority = input.prepareAuthority
     ?? prepareCanonicalSam31VertexCloudImageBuildAuthority
   return Object.freeze({
@@ -196,7 +195,13 @@ export function createCanonicalSam31ProductionImageAuthorityPublisher(input: {
         || manifestReread.manifestHash !== capsule.manifestHash) {
         throw new Error('SAM 3.1 capsule manifest exact reread changed.')
       }
-      const preparedAt = z.string().datetime({ offset: true }).parse(now())
+      // The authority is a deterministic projection of the immutable capsule.
+      // Reusing the capsule's canonical preparation time keeps an exact replay
+      // byte-identical instead of minting a second authority solely because the
+      // publisher was invoked again at a later wall-clock time.
+      const preparedAt = z.string().datetime({ offset: true }).parse(
+        manifestReread.preparedAt,
+      )
       const authority = await prepareAuthority({
         authorityId: `sam31-cloud-image-build-${capsule.manifestHash.slice(0, 24)}`,
         candidate,

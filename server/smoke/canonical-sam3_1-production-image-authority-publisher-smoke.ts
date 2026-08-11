@@ -304,6 +304,10 @@ assert.equal(publication.runtimeReleaseGranted, false)
 assert.equal(publication.customerCreditsMutated, false)
 assert.equal(publication.productionReady, false)
 assert.equal(prepareCalls.length, 1)
+assert.equal(
+  (prepareCalls[0] as { preparedAt: string }).preparedAt,
+  manifest.preparedAt,
+)
 assert.deepEqual(publication.capsuleManifestRef, manifestRef)
 assert.deepEqual(
   publication.artifactBindingRef,
@@ -333,6 +337,14 @@ assert.equal(
 )
 assert.equal(rereadAuthority?.cloudBuildPolicy.machineType, 'E2_HIGHCPU_8')
 
+const replay = await publisher.publish(request)
+assert.deepEqual(replay.authorityRef, publication.authorityRef)
+assert.equal(prepareCalls.length, 2)
+assert.equal(
+  (prepareCalls[1] as { preparedAt: string }).preparedAt,
+  manifest.preparedAt,
+)
+
 await assert.rejects(publisher.publish({ ...request, command: 'docker build' }))
 await assert.rejects(publisher.publish({
   ...request,
@@ -358,12 +370,13 @@ assert.throws(() => createCanonicalSam31ProductionImageAuthorityPublisher({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-production-image-authority-publisher',
-  checks: 25,
+  checks: 28,
   exactQualifiedReleaseReread: true,
   exactPrivateIngestReread: true,
   vertexArtifactBindingExactReread: true,
   capsuleManifestCreateOnlyAndReread: true,
   vertexBuildAuthorityV3CreateOnlyAndReread: true,
+  exactReplayReturnsIdenticalAuthorityRef: true,
   realAuthorityConstructorSeparatesTrustedReadPortFromSerializedEvidence: true,
   accessorReadPortRejectedWithoutInvocation: true,
   multiplexSessionGpuForwardingPatchBound: true,

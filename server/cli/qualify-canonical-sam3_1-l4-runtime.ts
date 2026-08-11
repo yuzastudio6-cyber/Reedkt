@@ -27,6 +27,7 @@ import {
   createCanonicalSam31GcsPrivateOutputRereadPort,
 } from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
 import {
+  assertCanonicalSam31PrivateOutputRereadEvidence,
   assertCanonicalSam31GpuRuntimeResultAdmission,
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
@@ -374,11 +375,13 @@ async function main() {
     bucketName: MASK_BUCKET,
     now: () => new Date().toISOString(),
   })
-  const outputEvidence = await outputPort.rereadExactPrivateOutput({
-    task,
-    response,
-    launch,
-  })
+  const outputEvidence = assertCanonicalSam31PrivateOutputRereadEvidence(
+    await outputPort.rereadExactPrivateOutput({
+      task,
+      response,
+      launch,
+    }),
+  )
   const resultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
     objectPort: privateObjectPort,
   })

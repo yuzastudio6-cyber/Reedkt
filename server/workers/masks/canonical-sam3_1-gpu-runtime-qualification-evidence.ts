@@ -14,7 +14,7 @@ import {
 } from '../../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 
 export const CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_EVIDENCE_VERSION =
-  'canonical-sam3_1-gpu-runtime-qualification-evidence-v2' as const
+  'canonical-sam3_1-gpu-runtime-qualification-evidence-v3' as const
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -168,7 +168,7 @@ export const canonicalSam31GpuRuntimePerformanceEvidenceSchema = z.object({
   sourceFrameCount: positiveInteger,
   fpsNumerator: positiveInteger,
   fpsDenominator: positiveInteger,
-  measurements: z.array(performanceMeasurementSchema).min(5).max(30),
+  measurements: z.array(performanceMeasurementSchema).length(30),
   p95WallTimeMilliseconds: positiveInteger,
   targetWallTimeMilliseconds: z.literal(480_000),
   completeSourceIntervalCovered: z.literal(true),

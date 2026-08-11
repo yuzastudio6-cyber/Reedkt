@@ -312,7 +312,7 @@ const derivedQualification = qualificationReleaseFields(
 assert.equal(derivedQualification.qualificationRunCount, 30)
 assert.equal(
   derivedQualification.eightMinuteSourceP95WallTimeMilliseconds,
-  460_000,
+  448_000,
 )
 assert.equal(derivedQualification.actualCudaModelInferenceMeasured, true)
 assert.equal(derivedQualification.actualNvdecDecodeMeasured, true)
@@ -595,10 +595,11 @@ QualificationEvidencePayload {
   const temporalMaskQualityQualificationRef = ref(
     'sam31-runtime-qualification-a100-mask-quality',
   )
-  const wallTimes = [420_000, 430_000, 440_000, 450_000, 460_000]
+  const wallTimes = Array.from({ length: 30 }, (_, index) =>
+    420_000 + index * 1_000)
   return {
     schemaVersion:
-      'canonical-sam3_1-gpu-runtime-qualification-evidence-v2',
+      'canonical-sam3_1-gpu-runtime-qualification-evidence-v3',
     source: 'canonical_server_sam3_1_gpu_runtime_qualification_owner',
     evidenceClass: 'canonical_private_reread',
     status: 'private_runtime_qualification_evidence_ready',
@@ -718,7 +719,7 @@ QualificationEvidencePayload {
           customerCreditsMutated: false,
         }
       }),
-      p95WallTimeMilliseconds: 460_000,
+      p95WallTimeMilliseconds: 448_000,
       targetWallTimeMilliseconds: 480_000,
       completeSourceIntervalCovered: true,
       automaticQualityReductionAllowed: false,

@@ -24,7 +24,8 @@ import {
 
 type Ref = { id: string; version: 1; contentHash: `sha256:${string}` }
 
-const wallTimes = [410_000, 420_000, 430_000, 440_000, 470_000]
+const wallTimes = Array.from({ length: 30 }, (_, index) =>
+  410_000 + index * 2_000)
 const records = wallTimes.map((wallTime, index) =>
   completeSourceEvidence(index + 1, wallTime))
 const recordMap = new Map(records.map((record) => [
@@ -57,8 +58,8 @@ assert.equal(component.componentKind, 'eight_minute_performance')
 if (component.componentKind !== 'eight_minute_performance') {
   throw new Error('Expected the eight-minute performance component.')
 }
-assert.equal(component.payload.measurements.length, 5)
-assert.equal(component.payload.p95WallTimeMilliseconds, 470_000)
+assert.equal(component.payload.measurements.length, 30)
+assert.equal(component.payload.p95WallTimeMilliseconds, 466_000)
 assert.equal(component.payload.targetWallTimeMilliseconds, 480_000)
 assert.equal(component.payload.completeSourceIntervalCovered, true)
 assert.equal(component.payload.automaticQualityReductionAllowed, false)
@@ -67,7 +68,7 @@ const persistedP95 = await p95Repository.rereadP95Evidence({
     component.payload.eightMinuteSourcePerformanceQualificationRef,
 })
 assert.ok(persistedP95)
-assert.equal(persistedP95.performanceEvidence.p95WallTimeMilliseconds, 470_000)
+assert.equal(persistedP95.performanceEvidence.p95WallTimeMilliseconds, 466_000)
 const replay = await owner
   .compileAndPersistPerformanceQualificationComponent(request)
 assert.deepEqual(replay, component)
@@ -100,13 +101,13 @@ await assert.rejects(() => owner
   .compileAndPersistPerformanceQualificationComponent({
     ...request,
     completeSourcePerformanceEvidenceRefs:
-      request.completeSourcePerformanceEvidenceRefs.slice(0, 4),
+      request.completeSourcePerformanceEvidenceRefs.slice(0, 29),
   }))
 await assert.rejects(() => owner
   .compileAndPersistPerformanceQualificationComponent({
     ...request,
     completeSourcePerformanceEvidenceRefs: [
-      ...request.completeSourcePerformanceEvidenceRefs.slice(0, 4),
+      ...request.completeSourcePerformanceEvidenceRefs.slice(0, 29),
       request.completeSourcePerformanceEvidenceRefs[0],
     ],
   }))
@@ -134,15 +135,10 @@ await rejectChangedRecord(records, 2, {
   exactEightMinuteSourceRef: ref('cross-source'),
 })
 await rejectChangedRecord(records, 2, { runOrdinal: 4 })
-await rejectChangedRecord(records, 5, {
-  phaseTiming: {
-    wallTimeMilliseconds: 490_000,
-    coldStartAndImagePullMilliseconds: 40_000,
-    modelLoadMilliseconds: 60_000,
-    decodePromptPropagationAndStitchMilliseconds: 370_000,
-    outputPersistenceAndExactRereadMilliseconds: 20_000,
-  },
-})
+await rejectChangedRecords(records, new Map([
+  [29, performanceTiming(490_000)],
+  [30, performanceTiming(491_000)],
+]))
 await rejectChangedRecord(records, 2, {
   fullSourceExecutionRef: records[0].fullSourceExecutionRef,
 })
@@ -173,9 +169,9 @@ await assert.rejects(() => owner
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-performance-p95-qualification-owner',
-  checks: 34,
-  completeEightMinuteRunCount: 5,
-  nearestRankP95WallTimeMilliseconds: 470_000,
+  checks: 36,
+  completeEightMinuteRunCount: 30,
+  nearestRankP95WallTimeMilliseconds: 466_000,
   exactCompleteSourceEvidenceReread: true,
   sameRouteImageSourceGeometryAndChunkPlanRequired: true,
   uniqueExecutionResultCostAndStitchLineageRequired: true,
@@ -205,6 +201,39 @@ async function rejectChangedRecord(
   }
   await assert.rejects(() => ownerWith(changed)
     .compileAndPersistPerformanceQualificationComponent(changedRequest))
+}
+
+async function rejectChangedRecords(
+  source: readonly CanonicalSam31GpuCompleteSourcePerformanceEvidence[],
+  phaseTimings: ReadonlyMap<number, ReturnType<typeof performanceTiming>>,
+) {
+  const changed = source.map((record) => {
+    const phaseTiming = phaseTimings.get(record.runOrdinal)
+    return phaseTiming
+      ? completeSourceEvidence(
+        record.runOrdinal,
+        phaseTiming.wallTimeMilliseconds,
+        { phaseTiming },
+      )
+      : record
+  })
+  await assert.rejects(() => ownerWith(changed)
+    .compileAndPersistPerformanceQualificationComponent({
+      ...request,
+      completeSourcePerformanceEvidenceRefs: changed.map((record) =>
+        canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(record)),
+    }))
+}
+
+function performanceTiming(wallTimeMilliseconds: number) {
+  return {
+    wallTimeMilliseconds,
+    coldStartAndImagePullMilliseconds: 40_000,
+    modelLoadMilliseconds: 60_000,
+    decodePromptPropagationAndStitchMilliseconds:
+      wallTimeMilliseconds - 120_000,
+    outputPersistenceAndExactRereadMilliseconds: 20_000,
+  }
 }
 
 function completeSourceEvidence(

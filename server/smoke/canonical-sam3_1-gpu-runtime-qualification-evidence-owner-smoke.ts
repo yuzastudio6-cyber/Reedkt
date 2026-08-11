@@ -107,7 +107,7 @@ assert.deepEqual(
   canonicalSam31GpuRuntimeQualificationEvidenceRef(canonicalEvidence),
 )
 assert.equal(evidence.deterministicRuns.length, 30)
-assert.equal(evidence.performanceEvidence.measurements.length, 5)
+assert.equal(evidence.performanceEvidence.measurements.length, 30)
 assert.equal(evidence.qualityEvidence.qualityRole, 'approved_a100_baseline')
 assert.equal(evidence.authority.privateRuntimeQualificationEvidenceReady, true)
 assert.equal(evidence.authority.gpuJobDispatchAuthorized, false)

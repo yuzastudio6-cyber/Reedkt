@@ -113,8 +113,24 @@ const first = await runtime.finalize({
 assert.equal(first.status, 'ready_for_independent_mask_artifact_qa')
 assert.equal(first.accelerator, 'nvidia_a100_80gb')
 assert.equal(first.qaApproved, false)
+assert.match(
+  first.privateOutputRereadEvidenceRef.id,
+  /^sam31-private-output-reread:/u,
+)
 assert.equal(terminalReads, 1)
 assert.equal(outputReads, 1)
+
+const outputEvidenceObject = [...objects.entries()].find(([path]) =>
+  path.includes('/output-reread-evidence'))
+assert.ok(outputEvidenceObject)
+assert.ok(await resultStore.rereadPrivateOutputRereadEvidence(
+  task.invocationId,
+  {
+    id: outputEvidence.runtimeResponseObjectRef.id,
+    version: 1,
+    contentHash: `sha256:${outputEvidence.evidenceHash}`,
+  },
+))
 
 const second = await runtime.finalize({
   invocationId: task.invocationId,
@@ -123,6 +139,26 @@ const second = await runtime.finalize({
 assert.equal(second.resultAdmissionHash, first.resultAdmissionHash)
 assert.equal(terminalReads, 1)
 assert.equal(outputReads, 1)
+
+const resultAdmissionObject = [...objects.keys()].find((path) =>
+  path.endsWith('/result-admission.json'))
+assert.ok(resultAdmissionObject)
+objects.delete(resultAdmissionObject)
+const recoveredAfterInterruptedAdmission = await runtime.finalize({
+  invocationId: task.invocationId,
+  launchRecordId: launch.launchRecordId,
+})
+assert.equal(
+  recoveredAfterInterruptedAdmission.privateOutputRereadEvidenceRef.contentHash,
+  first.privateOutputRereadEvidenceRef.contentHash,
+)
+assert.equal(outputReads, 2)
+
+objects.delete(outputEvidenceObject[0])
+await assert.rejects(() => runtime.finalize({
+  invocationId: task.invocationId,
+  launchRecordId: launch.launchRecordId,
+}), /private output reread evidence/u)
 
 await assert.rejects(() => runtime.finalize({
   invocationId: 'crossed-invocation',
@@ -136,6 +172,10 @@ console.log(JSON.stringify({
     vertexTerminalRecordedCreateOnly: true,
     exactTaskResponseAndPrivateOutputReread: true,
     resultAdmissionCreatedOnlyAfterTerminalAndOutput: true,
+    outputRereadEvidencePersistedCreateOnlyBeforeResult: true,
+    historicalV1OutputEvidenceRefRemainsRereadable: true,
+    interruptedAdmissionReusesExactPersistedOutputEvidence: true,
+    existingResultWithoutExactOutputEvidenceRejected: true,
     restartSafeIdempotentReread: true,
     crossedInvocationRejected: true,
     exactUnboundRequestValidationFailureSettlesAsNotExecuted: true,

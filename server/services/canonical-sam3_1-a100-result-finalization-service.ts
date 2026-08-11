@@ -11,6 +11,7 @@ import type {
 } from './canonical-professional-gpu-durable-lifecycle-store'
 import {
   admitCanonicalSam31GpuRuntimeResult,
+  assertCanonicalSam31PrivateOutputRereadEvidence,
   assertCanonicalSam31GpuRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
   type CanonicalSam31PrivateOutputRereadPort,
@@ -108,6 +109,28 @@ export function createCanonicalSam31A100ResultFinalizationRuntime(input: {
           || result.terminalRef.id !== terminal.terminalRecordId) {
           throw new Error('SAM 3.1 existing result lineage differs.')
         }
+        const outputEvidenceValue =
+          await input.resultStore.rereadPrivateOutputRereadEvidence(
+            invocationId,
+            result.privateOutputRereadEvidenceRef,
+          )
+        if (!outputEvidenceValue) {
+          throw new Error(
+            'SAM 3.1 existing private output reread evidence is missing.',
+          )
+        }
+        const outputEvidence =
+          assertCanonicalSam31PrivateOutputRereadEvidence(outputEvidenceValue)
+        if (
+          result.privateOutputRereadEvidenceRef.contentHash
+            !== `sha256:${outputEvidence.evidenceHash}`
+          || result.runtimeResponseObjectRef.contentHash
+            !== outputEvidence.runtimeResponseObjectRef.contentHash
+        ) {
+          throw new Error(
+            'SAM 3.1 existing private output reread evidence differs.',
+          )
+        }
         return result
       }
 
@@ -157,6 +180,12 @@ function assertPorts(input: {
     || typeof input.taskStore?.rereadRuntimeResponse !== 'function'
     || typeof input.privateOutputRereadPort
       ?.rereadExactPrivateOutput !== 'function'
+    || typeof input.resultStore
+      ?.persistPrivateOutputRereadEvidenceCreateOnly !== 'function'
+    || typeof input.resultStore
+      ?.rereadPrivateOutputRereadEvidence !== 'function'
+    || typeof input.resultStore
+      ?.rereadPrivateOutputRereadEvidenceForInvocation !== 'function'
     || typeof input.resultStore?.rereadResultAdmission !== 'function'
     || typeof input.resultStore?.persistResultAdmissionCreateOnly !==
       'function') {

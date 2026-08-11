@@ -179,6 +179,17 @@ export interface CanonicalSam31GpuRuntimeResultStore {
   readonly schemaVersion: 'canonical-sam3_1-gpu-runtime-result-store-v1'
   readonly evidenceClass:
     'gcs_generation_create_only_sam3_1_runtime_result_store'
+  persistPrivateOutputRereadEvidenceCreateOnly(
+    invocationId: string,
+    record: CanonicalSam31PrivateOutputRereadEvidence,
+  ): Promise<'created' | 'already_exists'>
+  rereadPrivateOutputRereadEvidence(
+    invocationId: string,
+    evidenceRef: z.infer<typeof evidenceRefSchema>,
+  ): Promise<unknown>
+  rereadPrivateOutputRereadEvidenceForInvocation(
+    invocationId: string,
+  ): Promise<unknown>
   persistResultAdmissionCreateOnly(
     record: CanonicalSam31GpuRuntimeResultAdmission,
   ): Promise<'created' | 'already_exists'>
@@ -201,6 +212,64 @@ export function createCanonicalSam31GpuRuntimeResultStoreFromObjectPort(
     schemaVersion: 'canonical-sam3_1-gpu-runtime-result-store-v1',
     evidenceClass:
       'gcs_generation_create_only_sam3_1_runtime_result_store',
+    async persistPrivateOutputRereadEvidenceCreateOnly(
+      invocationId,
+      record,
+    ) {
+      const evidence = assertCanonicalSam31PrivateOutputRereadEvidence(record)
+      const body = Buffer.from(stableAuthorityStringify(evidence), 'utf8')
+      if (body.byteLength > MAXIMUM_RESULT_BYTES) {
+        throw new Error(
+          'SAM 3.1 private output reread evidence exceeded its byte bound.',
+        )
+      }
+      return input.objectPort.createOnly({
+        objectPath: privateOutputRereadEvidenceObjectPath(
+          prefix,
+          invocationId,
+        ),
+        body,
+        contentSha256: rawBytesSha256(body),
+      })
+    },
+    async rereadPrivateOutputRereadEvidence(invocationId, evidenceRef) {
+      const parsedRef = evidenceRefSchema.parse(evidenceRef)
+      const body = await readPrivateOutputRereadEvidenceBytes({
+        objectPort: input.objectPort,
+        prefix,
+        invocationId,
+        historicalEvidenceRef: parsedRef,
+      })
+      if (!body) return null
+      if (body.byteLength < 2 || body.byteLength > MAXIMUM_RESULT_BYTES) {
+        throw new Error(
+          'SAM 3.1 private output reread evidence byte length is invalid.',
+        )
+      }
+      let decoded: unknown
+      try {
+        decoded = JSON.parse(body.toString('utf8')) as unknown
+      } catch {
+        throw new Error(
+          'SAM 3.1 private output reread evidence JSON is invalid.',
+        )
+      }
+      const evidence = assertCanonicalSam31PrivateOutputRereadEvidence(
+        decoded,
+      )
+      if (!matchesPrivateOutputRereadEvidenceRef(evidence, parsedRef)) {
+        throw new Error(
+          'SAM 3.1 private output reread evidence reference changed.',
+        )
+      }
+      return evidence
+    },
+    async rereadPrivateOutputRereadEvidenceForInvocation(invocationId) {
+      const body = await input.objectPort.readExact(
+        privateOutputRereadEvidenceObjectPath(prefix, invocationId),
+      )
+      return body ? parsePrivateOutputRereadEvidenceBytes(body) : null
+    },
     async persistResultAdmissionCreateOnly(record) {
       const result = assertCanonicalSam31GpuRuntimeResultAdmission(record)
       const body = Buffer.from(stableAuthorityStringify(result), 'utf8')
@@ -255,13 +324,19 @@ export async function admitCanonicalSam31GpuRuntimeResult(input: {
     response: await input.taskStore.rereadRuntimeResponse(invocationId),
   })
   assertSuccessfulTerminalLineage({ task, launch, terminal, response })
-  const outputEvidence = assertCanonicalSam31PrivateOutputRereadEvidence(
-    await input.privateOutputRereadPort.rereadExactPrivateOutput({
-      task,
-      response,
-      launch,
-    }),
-  )
+  const persistedOutputEvidence =
+    await input.resultStore.rereadPrivateOutputRereadEvidenceForInvocation(
+      invocationId,
+    )
+  const outputEvidence = persistedOutputEvidence
+    ? assertCanonicalSam31PrivateOutputRereadEvidence(persistedOutputEvidence)
+    : assertCanonicalSam31PrivateOutputRereadEvidence(
+      await input.privateOutputRereadPort.rereadExactPrivateOutput({
+        task,
+        response,
+        launch,
+      }),
+    )
   assertOutputEvidenceMatches({
     task,
     response,
@@ -270,6 +345,29 @@ export async function admitCanonicalSam31GpuRuntimeResult(input: {
   })
   if (Date.parse(input.admittedAt) < Date.parse(outputEvidence.rereadAt)) {
     throw new Error('SAM 3.1 result was admitted before private reread.')
+  }
+  const outputEvidenceRef = privateOutputRereadEvidenceRef(outputEvidence)
+  if (!persistedOutputEvidence) {
+    if (await input.resultStore.persistPrivateOutputRereadEvidenceCreateOnly(
+      invocationId,
+      outputEvidence,
+    ) !== 'created') {
+      throw new Error(
+        'SAM 3.1 private output reread evidence already exists.',
+      )
+    }
+  }
+  const rereadOutputEvidence = assertCanonicalSam31PrivateOutputRereadEvidence(
+    await input.resultStore.rereadPrivateOutputRereadEvidence(
+      invocationId,
+      outputEvidenceRef,
+    ),
+  )
+  if (stableAuthorityStringify(rereadOutputEvidence)
+    !== stableAuthorityStringify(outputEvidence)) {
+    throw new Error(
+      'SAM 3.1 private output reread evidence exact reread changed.',
+    )
   }
   const gpu = response.gpuEvidence!
   const runtime = response.runtimeMeasurement!
@@ -294,10 +392,7 @@ export async function admitCanonicalSam31GpuRuntimeResult(input: {
     currentAccountPriceAuthorityRef:
       terminal.currentAccountPriceAuthorityRef,
     attemptCostReceiptRef: terminal.attemptCostReceiptRef,
-    privateOutputRereadEvidenceRef: ref(
-      outputEvidence.runtimeResponseObjectRef.id,
-      outputEvidence.evidenceHash,
-    ),
+    privateOutputRereadEvidenceRef: outputEvidenceRef,
     runtimeResponseObjectRef: outputEvidence.runtimeResponseObjectRef,
     runtimeResponseBindingSha256: response.responseBindingSha256,
     manifestRef: output.manifestRef,
@@ -448,6 +543,85 @@ function assertOutputEvidenceMatches(input: {
 
 function resultObjectPath(prefix: string, invocationId: string): string {
   return `${prefix}/${safeId.parse(invocationId)}/result-admission.json`
+}
+
+function privateOutputRereadEvidenceRef(
+  evidence: CanonicalSam31PrivateOutputRereadEvidence,
+): z.infer<typeof evidenceRefSchema> {
+  return ref(
+    `sam31-private-output-reread:${evidence.runtimeResponseObjectRef.id}`,
+    evidence.evidenceHash,
+  )
+}
+
+function matchesPrivateOutputRereadEvidenceRef(
+  evidence: CanonicalSam31PrivateOutputRereadEvidence,
+  evidenceRef: z.infer<typeof evidenceRefSchema>,
+): boolean {
+  return sameRef(privateOutputRereadEvidenceRef(evidence), evidenceRef)
+    || sameRef(ref(
+      evidence.runtimeResponseObjectRef.id,
+      evidence.evidenceHash,
+    ), evidenceRef)
+}
+
+function privateOutputRereadEvidenceObjectPath(
+  prefix: string,
+  invocationId: string,
+): string {
+  const parsedInvocationId = safeId.parse(invocationId)
+  return `${prefix}/${parsedInvocationId}/output-reread-evidence.json`
+}
+
+function historicalPrivateOutputRereadEvidenceObjectPath(
+  prefix: string,
+  invocationId: string,
+  evidenceRef: z.infer<typeof evidenceRefSchema>,
+): string {
+  const parsedInvocationId = safeId.parse(invocationId)
+  const parsedRef = evidenceRefSchema.parse(evidenceRef)
+  return `${prefix}/${parsedInvocationId}/output-reread-evidence/`
+    + `${parsedRef.contentHash.slice(7)}.json`
+}
+
+async function readPrivateOutputRereadEvidenceBytes(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix: string
+  readonly invocationId: string
+  readonly historicalEvidenceRef: z.infer<typeof evidenceRefSchema>
+}): Promise<Buffer | null> {
+  const current = await input.objectPort.readExact(
+    privateOutputRereadEvidenceObjectPath(input.prefix, input.invocationId),
+  )
+  if (current) return current
+  return input.objectPort.readExact(
+    historicalPrivateOutputRereadEvidenceObjectPath(
+      input.prefix,
+      input.invocationId,
+      input.historicalEvidenceRef,
+    ),
+  )
+}
+
+function parsePrivateOutputRereadEvidenceBytes(body: Buffer): unknown {
+  if (body.byteLength < 2 || body.byteLength > MAXIMUM_RESULT_BYTES) {
+    throw new Error(
+      'SAM 3.1 private output reread evidence byte length is invalid.',
+    )
+  }
+  try {
+    return assertCanonicalSam31PrivateOutputRereadEvidence(
+      JSON.parse(body.toString('utf8')) as unknown,
+    )
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(
+        'SAM 3.1 private output reread evidence JSON is invalid.',
+        { cause: error },
+      )
+    }
+    throw error
+  }
 }
 
 function normalizePrefix(value: string): string {

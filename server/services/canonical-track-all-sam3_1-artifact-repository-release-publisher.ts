@@ -37,6 +37,7 @@ import {
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 import {
+  assertCanonicalSam31PrivateOutputRereadEvidence,
   assertCanonicalSam31GpuRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
@@ -172,6 +173,17 @@ export async function publishCanonicalTrackAllSam31ArtifactRepositoryRelease(
   }
   const task = assertCanonicalSam31GpuTaskRecord(rawTask)
   const result = assertCanonicalSam31GpuRuntimeResultAdmission(rawResult)
+  const rawOutputEvidence = await dependencies.runtimeResultStore
+    .rereadPrivateOutputRereadEvidence(
+      sceneEvidence.invocationId,
+      result.privateOutputRereadEvidenceRef,
+    )
+  if (!rawOutputEvidence) {
+    throw blocked('sam3_1_private_output_reread_evidence_missing')
+  }
+  const outputEvidence = assertCanonicalSam31PrivateOutputRereadEvidence(
+    rawOutputEvidence,
+  )
   const rawContext = await dependencies.taskContextRepository
     .rereadTaskContext({ taskContextRef: task.taskContextRef })
   if (!rawContext) throw blocked('sam3_1_task_context_missing')
@@ -185,6 +197,7 @@ export async function publishCanonicalTrackAllSam31ArtifactRepositoryRelease(
     review,
     task,
     result,
+    outputEvidence,
     context,
   })
 
@@ -212,6 +225,11 @@ export async function publishCanonicalTrackAllSam31ArtifactRepositoryRelease(
   if (!sameBackendRef(persistedContextRef, task.taskContextRef)
     || await dependencies.taskStore.persistTaskCreateOnly(task)
       !== 'already_exists'
+    || await dependencies.runtimeResultStore
+      .persistPrivateOutputRereadEvidenceCreateOnly(
+        sceneEvidence.invocationId,
+        outputEvidence,
+      ) !== 'already_exists'
     || await dependencies.runtimeResultStore
       .persistResultAdmissionCreateOnly(result) !== 'already_exists'
     || await dependencies.taskQaRepository.persistMeasurementCreateOnly({
@@ -336,10 +354,13 @@ function assertCanonicalChain(input: {
   readonly result: ReturnType<
     typeof assertCanonicalSam31GpuRuntimeResultAdmission
   >
+  readonly outputEvidence: ReturnType<
+    typeof assertCanonicalSam31PrivateOutputRereadEvidence
+  >
   readonly context: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
 }): void {
   const { record, sceneEvidence, authority, measurement, review, task,
-    result, context } = input
+    result, outputEvidence, context } = input
   if (task.invocationId !== sceneEvidence.invocationId
     || result.executionEnvelopeRef.id !== task.invocationId
     || authority.invocationId !== task.invocationId
@@ -362,6 +383,19 @@ function assertCanonicalChain(input: {
     || !sameNativeRef(authority.captionSceneEvidenceRef,
       sceneEvidence.evidenceId, sceneEvidence.evidenceDigestSha256)
     || !sameNativeRef(result.taskRef, task.taskId, task.taskRecordHash)
+    || !(
+      sameNativeRef(
+        result.privateOutputRereadEvidenceRef,
+        `sam31-private-output-reread:${
+          outputEvidence.runtimeResponseObjectRef.id}`,
+        outputEvidence.evidenceHash,
+      )
+      || sameNativeRef(
+        result.privateOutputRereadEvidenceRef,
+        outputEvidence.runtimeResponseObjectRef.id,
+        outputEvidence.evidenceHash,
+      )
+    )
     || context.outputId !== sceneEvidence.canonicalScope.outputId
     || context.sceneId !== sceneEvidence.canonicalScope.sceneId
     || context.trackAllOrchestraBinding.supportRequestRef === null
@@ -399,6 +433,10 @@ function assertDependencies(dependencies: Parameters<
     [dependencies.taskStore, 'rereadTask'],
     [dependencies.runtimeResultStore, 'persistResultAdmissionCreateOnly'],
     [dependencies.runtimeResultStore, 'rereadResultAdmission'],
+    [dependencies.runtimeResultStore,
+      'persistPrivateOutputRereadEvidenceCreateOnly'],
+    [dependencies.runtimeResultStore,
+      'rereadPrivateOutputRereadEvidence'],
     [dependencies.taskQaRepository, 'persistMeasurementCreateOnly'],
     [dependencies.taskQaRepository, 'rereadMeasurement'],
     [dependencies.captionSceneEvidenceRepository, 'persistCreateOnly'],

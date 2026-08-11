@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import {
@@ -20,6 +21,18 @@ const ref = (id: string) => ({ id, version: 1, contentHash: hash(id) })
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const checkpointSha = sha256AuthorityValue('authorized-checkpoint')
 const immutableImageDigest = hash('sam31-image')
+const l4Qualifier = readFileSync(resolve(
+  process.cwd(),
+  'server/cli/qualify-canonical-sam3_1-l4-runtime.ts',
+), 'utf8')
+assert.match(
+  l4Qualifier,
+  /task\.runtimeRequest\.modelArtifacts\.immutableImageDigest !==\s*EXPECTED_IMAGE_DIGEST/u,
+)
+assert.match(
+  l4Qualifier,
+  /task\.runtimeRequest\.modelArtifacts\.immutableImageReleaseRef\.contentHash !==\s*EXPECTED_IMAGE_DIGEST/u,
+)
 
 const request = buildCanonicalSam31GpuRuntimeRequest({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-request-v1',
@@ -980,7 +993,7 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 64,
+  checks: 66,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

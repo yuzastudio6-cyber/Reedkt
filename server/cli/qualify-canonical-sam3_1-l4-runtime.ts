@@ -57,15 +57,15 @@ const INVOCATION_PREFIX =
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v1' as const
 const EXPECTED_IMAGE_DIGEST =
-  'sha256:e98959033a27681d078f4a93bb9a02e623876d08dde5deb3f2bed448763c41a9' as const
+  'sha256:9f202ab78a780d7dc5ae009814433c4c76ff30a90246c7e01694e45b24f819c3' as const
 const EXPECTED_IMAGE =
   `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${EXPECTED_IMAGE_DIGEST}` as const
 const BASELINE_INVOCATION_ID =
-  'sam31-a100-qualification:sam31-production-a100-image-e9895903-20260811.run-01.execution' as const
+  'sam31-a100-qualification:sam31-production-a100-image-9f202ab7-20260811.run-01.execution' as const
 const BASELINE_TASK_HASH =
-  '97a86afd2c4fece074108ff2d8d9578c25f71260f7c3664bb26ae64cba1ae634' as const
+  '2bb0f3cdbe0106b2f602cfbde4176094db5c339231bd58b349380e30d268d746' as const
 const BASELINE_RESULT_ADMISSION_HASH =
-  '9efece87840275b5563243093a79b15cf40ab599b253648f2ddea33842f23e40' as const
+  'd2cd0fd3e8894bdb906628bc2c4cf981d619d7fef167c5af140e0bb69898c584' as const
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
 const CHECKPOINT_SIZE = 3_502_755_717 as const
@@ -490,7 +490,11 @@ async function rereadBaselineTask(objectPort: ReturnType<
   )
   if (task.taskRecordHash !== BASELINE_TASK_HASH
     || task.runtimeRequest.dispatch.routeRole !==
-      'a100_80gb_heavy_primary') {
+      'a100_80gb_heavy_primary'
+    || task.runtimeRequest.modelArtifacts.immutableImageDigest !==
+      EXPECTED_IMAGE_DIGEST
+    || task.runtimeRequest.modelArtifacts.immutableImageReleaseRef.contentHash !==
+      EXPECTED_IMAGE_DIGEST) {
     throw new Error('approved_a100_baseline_task_changed')
   }
   return task

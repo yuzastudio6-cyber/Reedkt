@@ -222,6 +222,7 @@ const settingsSchema = z.object({
     'a100_full_gpu_state_v1',
     'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
     'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
+    'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
   ]).optional(),
   propagationDirection: z.literal('forward'),
   outputFormat: z.literal('lossless_grayscale_png_mask_sequence_v1'),
@@ -255,7 +256,7 @@ const requestWithoutHashSchema = z.object({
   const expectedMemoryProfile = request.dispatch.accelerator ===
     'nvidia_a100_80gb'
     ? 'a100_full_gpu_state_v1'
-    : 'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2'
+    : 'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3'
   if (
     request.settings.gpuMemoryProfileId !== undefined
     && request.settings.gpuMemoryProfileId !== expectedMemoryProfile
@@ -322,6 +323,7 @@ const gpuEvidenceSchema = z.object({
     'a100_full_gpu_state_v1',
     'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
     'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
+    'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
   ]).optional(),
   pastNonConditioningMemoryTrimmedOnGpu: z.boolean().optional(),
   cudaDriverLibraryMode: z.enum(['cuda_compat_12_8', 'host_driver']),
@@ -354,7 +356,7 @@ const gpuEvidenceSchema = z.object({
     || evidence.pastNonConditioningMemoryTrimmedOnGpu !== undefined
   const expectedProfile = evidence.requestedAccelerator === 'nvidia_a100_80gb'
     ? 'a100_full_gpu_state_v1'
-    : 'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2'
+    : 'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3'
   const expectedTrim = evidence.requestedAccelerator === 'nvidia_l4'
   if (profileFieldsPresent && (
     evidence.gpuMemoryProfileId !== expectedProfile
@@ -520,7 +522,7 @@ export function assertCanonicalSam31GpuRuntimeResponse(input: {
         (primary ? 75 : 20) * 1024 ** 3
     const expectedMemoryProfile = primary
       ? 'a100_full_gpu_state_v1'
-      : 'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2'
+      : 'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3'
     const exactMemoryProfile = request.settings.gpuMemoryProfileId === undefined
       ? gpu?.gpuMemoryProfileId === undefined
         && gpu?.pastNonConditioningMemoryTrimmedOnGpu === undefined

@@ -99,7 +99,7 @@ MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2"
+    "l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -1385,12 +1385,14 @@ def configure_gpu_memory_profile(
     """Bind the official SAM 3.1 evaluation memory policy to the GPU route.
 
     L4 keeps frames, model state, accessible temporal memories, inference, and
-    outputs on CUDA. It preserves full multiplex object propagation while
-    reducing only the upstream postprocess batch from 16 frames to one streamed
-    frame, avoiding the frame-16 transient allocation spike. It also enables
-    the upstream forward-VOS trim that removes heavy non-conditioning outputs
-    after they fall outside the model's exact num_maskmem window. A100 retains
-    the upstream full-state, 16-frame postprocess policy.
+    outputs on CUDA. It propagates each approved object in canonical object-ID
+    order through a fresh CUDA session, while reducing the upstream postprocess
+    batch from 16 frames to one streamed frame. This bounds the official
+    frame-16 reconditioning peak without changing resolution, temporal coverage,
+    or the seven-frame memory policy. It also enables the upstream forward-VOS
+    trim that removes heavy non-conditioning outputs after they fall outside the
+    exact num_maskmem window. A100 retains the upstream full-state multiplex,
+    16-frame postprocess policy.
     """
     model = getattr(predictor, "model", None)
     tracker = getattr(model, "tracker", None)
@@ -2603,7 +2605,11 @@ def execute_inside_bfloat16_autocast(
     ):
         raise RuntimeError("SAM 3.1 prompt object identities are invalid")
     del prompt_outputs, prompt_response
-    propagation_passes: list[int | None] = [None]
+    propagation_passes: list[int | None] = (
+        [None]
+        if request["dispatch"]["accelerator"] == "nvidia_a100_80gb"
+        else [int(value) for value in prompt_object_ids]
+    )
 
     stage = "output_persistence"
     PRIVATE_OUTPUT_ROOT.mkdir(mode=0o700, parents=False, exist_ok=False)

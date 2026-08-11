@@ -863,7 +863,7 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
   settings: {
     ...request.settings,
     gpuMemoryProfileId:
-      'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
+      'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
   },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')

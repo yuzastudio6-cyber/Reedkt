@@ -111,6 +111,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-vertex-prediction-server-boundary-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-profile-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-admission-smoke.ts',
+  'server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-request-compiler-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
   'server/smoke/canonical-quality-first-a100-fast-scale-zero-migration-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',

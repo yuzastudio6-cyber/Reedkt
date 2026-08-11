@@ -40,6 +40,7 @@ const profileWithoutHashSchema = z.object({
   servingQuotaPreferenceRef: refSchema,
   accountEffectiveRateAuthorityRef: refSchema,
   endpoint: z.object({
+    controlPlaneApiVersion: z.literal('v1beta1'),
     projectId: z.literal('reeditpro'),
     projectNumber: z.literal('390722338345'),
     region: z.literal('us-central1'),
@@ -75,6 +76,10 @@ const profileWithoutHashSchema = z.object({
     maximumReplicaCount: z.literal(1),
     minimumScaleUpPeriodSeconds: z.literal(300),
     idleScaleDownPeriodSeconds: z.literal(300),
+    scaleToZeroSpec: z.object({
+      minScaleupPeriod: z.literal('300s'),
+      idleScaledownPeriod: z.literal('300s'),
+    }).strict(),
     spotAllowed: z.literal(false),
     multiHostAllowed: z.literal(false),
     reservationRequired: z.literal(false),
@@ -171,6 +176,7 @@ export function createCanonicalSam31VertexScaleZeroDeploymentProfile(input: {
     routeId: 'a100_80gb_heavy_primary',
     ...input,
     endpoint: {
+      controlPlaneApiVersion: 'v1beta1',
       projectId: 'reeditpro',
       projectNumber: '390722338345',
       region: 'us-central1',
@@ -204,6 +210,10 @@ export function createCanonicalSam31VertexScaleZeroDeploymentProfile(input: {
       maximumReplicaCount: 1,
       minimumScaleUpPeriodSeconds: 300,
       idleScaleDownPeriodSeconds: 300,
+      scaleToZeroSpec: {
+        minScaleupPeriod: '300s',
+        idleScaledownPeriod: '300s',
+      },
       spotAllowed: false,
       multiHostAllowed: false,
       reservationRequired: false,

@@ -31,6 +31,11 @@ assert.deepEqual(
 assert.equal(profile.dedicatedResources.minimumReplicaCount, 0)
 assert.equal(profile.dedicatedResources.initialReplicaCount, 1)
 assert.equal(profile.dedicatedResources.idleScaleDownPeriodSeconds, 300)
+assert.equal(profile.endpoint.controlPlaneApiVersion, 'v1beta1')
+assert.deepEqual(profile.dedicatedResources.scaleToZeroSpec, {
+  minScaleupPeriod: '300s',
+  idleScaledownPeriod: '300s',
+})
 assert.equal(profile.endpoint.dedicatedEndpointEnabled, true)
 assert.equal(profile.readinessAndAttemptPolicy.firstRequestMayBeCustomerChargeableAttempt, false)
 assert.equal(profile.pricingAndSettlement.minimumWarmBillingWindowSeconds, 300)
@@ -64,7 +69,7 @@ assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentProfile({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-deployment-profile',
-  checks: 13,
+  checks: 15,
   dedicatedA100Endpoint: true,
   minimumReplicaCount: 0,
   accountEffectiveSettlementRequired: true,

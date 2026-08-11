@@ -403,6 +403,7 @@ for (const requiredRunnerFragment of [
   'elif accelerator_class == "nvidia_l4":',
   'environment value may select a bucket, object, checkpoint, or path.',
   'gpu_accelerated_decode=True',
+  'async_loading_frames=False',
   'sam3_1_real_rope_cache_from_complex_buffer_v1',
   'install_sam31_multiplex_session_compatibility_guard(predictor)',
   'SAM 3.1 multiplex init_state signature changed',
@@ -439,7 +440,9 @@ for (const requiredRunnerFragment of [
   'core._get_backend_details(decoder._decoder)',
   '"CPU fallback" in details',
   'SAM 3.1 observed no CUDA/NVDEC video decode',
+  'nvdec_utilization_not_observed',
 ]) assert(sam31Runner.includes(requiredRunnerFragment))
+assert(!sam31Runner.includes('async_loading_frames=True'))
 assert.equal(
   (sam31Runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
     ?? []).length,

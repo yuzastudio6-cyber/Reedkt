@@ -1342,7 +1342,14 @@ def build_predictor_with_strict_rope_cache_derivation(torch: Any) -> Any:
             compile=False,
             warm_up=False,
             default_output_prob_thresh=0.5,
-            async_loading_frames=True,
+            # Keep the official TorchCodec CUDA/NVDEC loader synchronous for
+            # this bounded worker.  The L4 can return from start_session before
+            # its background loader has emitted an NVML decoder-utilization
+            # sample, which makes an actually GPU-decoded source look
+            # unqualified.  Synchronous loading keeps the sampler alive for
+            # the complete approved frame interval and makes the subsequent
+            # CUDA-resident frame-store proof deterministic on both routes.
+            async_loading_frames=False,
             gpu_accelerated_decode=True,
             strict_checkpoint_load=True,
             return_cuda_output_tensors=True,
@@ -2812,6 +2819,9 @@ def failure_diagnostic_code(error: Exception) -> str:
         "loaded CUDA driver library does not match its mode": "driver_file_mode_mismatch",
         "runtime FFmpeg NVDEC closure changed": "ffmpeg_nvdec_closure_mismatch",
         "TorchCodec GPU decode guard was installed twice": "decode_guard_duplicate",
+        "NVDEC hardware utilization was not observed": (
+            "nvdec_utilization_not_observed"
+        ),
         "pytorch_cuda_import_failed": "pytorch_cuda_import_failed",
         "cuda_availability_probe_failed": "cuda_availability_probe_failed",
         "cuda_device_name_probe_failed": "cuda_device_name_probe_failed",

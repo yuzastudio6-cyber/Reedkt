@@ -50,7 +50,8 @@ run_gcloud run jobs deploy reeditpro-professional-l4 \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
-  --add-volume="mount-path=/mnt/weeditpro-private/l4-visual-evidence,type=in-memory,size-limit=24Gi" \
+  --add-volume="name=weeditpro-l4-visual-evidence-scratch,type=in-memory,size-limit=24Gi" \
+  --add-volume-mount="volume=weeditpro-l4-visual-evidence-scratch,mount-path=/mnt/weeditpro-private/l4-visual-evidence" \
   --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,GCS_CONTROL_PLANE_STATE_BUCKET=${CONTROL_PLANE_STATE_BUCKET}" \
   --labels="app=weeditpro,route=l4-standard-primary,scale=zero"
 
@@ -67,7 +68,14 @@ run_gcloud run jobs deploy reeditpro-sam31-l4-fallback \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
-  --set-env-vars="REEDITPRO_ENV=${REEDITPRO_ENV},WORKER_GROUP=l4_heavy_fallback" \
+  --task-timeout=3600s \
+  --network=weeditpro-gpu-private \
+  --subnet=weeditpro-gpu-private-us-central1 \
+  --network-tags=weeditpro-gpu-private-no-nat \
+  --vpc-egress=all-traffic \
+  --add-volume="name=reeditpro-private-gpu-objects,type=cloud-storage,bucket=${MASK_BUCKET},readonly=false,mount-options=uid=65532;gid=65532;implicit-dirs=true" \
+  --add-volume-mount="volume=reeditpro-private-gpu-objects,mount-path=/mnt/reeditpro" \
+  --set-env-vars="REEDITPRO_ENV=${REEDITPRO_ENV},WORKER_GROUP=l4_heavy_fallback,WEEDITPRO_GPU_ACCELERATOR_CLASS=nvidia_l4" \
   --labels="app=weeditpro,route=l4-heavy-fallback,scale=zero"
 
 run_gcloud run jobs deploy reeditpro-track-all-mask-qa-l4 \
@@ -83,7 +91,8 @@ run_gcloud run jobs deploy reeditpro-track-all-mask-qa-l4 \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
-  --add-volume="mount-path=/mnt/reeditpro,type=cloud-storage,bucket=${MASK_BUCKET},readonly=false,mount-options=uid=65532;gid=65532;implicit-dirs=true" \
+  --add-volume="name=reeditpro-private-gpu-objects,type=cloud-storage,bucket=${MASK_BUCKET},readonly=false,mount-options=uid=65532;gid=65532;implicit-dirs=true" \
+  --add-volume-mount="volume=reeditpro-private-gpu-objects,mount-path=/mnt/reeditpro" \
   --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,WEEDITPRO_GPU_ACCELERATOR_CLASS=nvidia_l4" \
   --labels="app=weeditpro,operation=track-all-mask-qa,route=l4-standard-primary,scale=zero"
 

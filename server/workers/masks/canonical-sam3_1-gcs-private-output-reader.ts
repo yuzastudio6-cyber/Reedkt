@@ -273,10 +273,13 @@ function assertLaunchAndCompletedResponse(input: {
     || input.launch.cloudJobExecutionRef === null
     || input.launch.toolId !== 'sam3_1'
     || input.launch.operationId !== input.response.operationId
-    || input.launch.routeId !== 'a100_80gb_heavy_primary'
-    || input.launch.accelerator !== 'nvidia_a100_80gb'
+    || input.launch.routeId !== input.task.runtimeRequest.dispatch.routeRole
+    || input.launch.accelerator !==
+      input.task.runtimeRequest.dispatch.accelerator
     || input.launch.executionEnvelopeRef.id !== input.task.invocationId) {
-    throw new Error('SAM 3.1 output reread lacks its completed A100 launch.')
+    throw new Error(
+      'SAM 3.1 output reread lacks its exact completed GPU-route launch.',
+    )
   }
 }
 

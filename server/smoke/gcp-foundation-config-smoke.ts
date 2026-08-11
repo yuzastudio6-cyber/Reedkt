@@ -282,12 +282,30 @@ check(gpuScript.includes('WEEDITPRO_TRACK_ALL_L4_TASK_QA_IMAGE_DIGEST'),
   'Track All mask QA must require its own immutable image digest.')
 check(gpuScript.includes('reeditpro-track-all-l4-task-qa@'),
   'Track All mask QA must use its dedicated immutable image repository.')
-check(gpuScript.includes('mount-path=/mnt/reeditpro,type=cloud-storage'),
-  'Track All mask QA must mount the fixed private object root.')
+check(gpuScript.includes('name=reeditpro-private-gpu-objects,type=cloud-storage'),
+  'SAM 3.1 and Track All must declare the named private object volume.')
 check(gpuScript.includes('bucket=${MASK_BUCKET},readonly=false'),
   'Track All mask QA must use the fixed private mask bucket.')
+check((gpuScript.match(/volume=reeditpro-private-gpu-objects,mount-path=\/mnt\/reeditpro/gu)
+  ?? []).length === 2,
+  'SAM 3.1 L4 inference and Track All mask QA must mount the private object root.')
+check((gpuScript.match(/bucket=\$\{MASK_BUCKET\},readonly=false/gu)
+  ?? []).length === 2,
+  'SAM 3.1 L4 inference and Track All mask QA must use the private mask bucket.')
+check(gpuScript.includes('WORKER_GROUP=l4_heavy_fallback,WEEDITPRO_GPU_ACCELERATOR_CLASS=nvidia_l4'),
+  'SAM 3.1 L4 inference must receive only its fixed route and accelerator class.')
+check(gpuScript.includes('--network=weeditpro-gpu-private')
+  && gpuScript.includes('--subnet=weeditpro-gpu-private-us-central1')
+  && gpuScript.includes('--network-tags=weeditpro-gpu-private-no-nat')
+  && gpuScript.includes('--vpc-egress=all-traffic'),
+  'SAM 3.1 L4 inference must use the no-NAT private GPU network.')
+check(gpuScript.includes('--task-timeout=3600s'),
+  'SAM 3.1 L4 inference must retain the Cloud Run GPU one-hour bound.')
 check(gpuScript.includes('uid=65532;gid=65532;implicit-dirs=true'),
   'Track All mask QA private mount must match its non-root worker identity.')
+check(gpuScript.includes('name=weeditpro-l4-visual-evidence-scratch,type=in-memory,size-limit=24Gi')
+  && gpuScript.includes('volume=weeditpro-l4-visual-evidence-scratch,mount-path=/mnt/weeditpro-private/l4-visual-evidence'),
+  'L4 visual evidence must use current named in-memory volume syntax.')
 check(gpuScript.includes('deploy-weeditpro-qualified-l4-job-definitions-v1'),
   'L4 definition deployment must require a second exact confirmation.')
 check(!gpuScript.includes('artifact_image reeditpro-l4-media-worker'),

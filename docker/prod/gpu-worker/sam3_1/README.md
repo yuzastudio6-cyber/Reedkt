@@ -68,6 +68,9 @@ Runtime rules once qualified:
   propagation through the multiplex loader; OpenCV/Pillow CPU decode cannot
   satisfy the runtime, and actual NVDEC/device-tensor evidence is required on
   both A100 and L4 before either image is admitted;
+- the bounded production runner disables asynchronous frame loading so its
+  NVDEC sampler spans the complete approved frame interval on both A100 and
+  L4; the complete frame store must then be CUDA-resident before inference;
 - the same patch prevents the partial tracker from loading the full checkpoint
   twice, requires the assembled predictor to accept every checkpoint key
   strictly, and preserves full-resolution masks as CUDA tensors through both

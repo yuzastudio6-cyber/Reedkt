@@ -108,6 +108,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-cloud-image-build-operator-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
+  'server/smoke/canonical-quality-first-a100-fast-scale-zero-migration-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-task-context-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-qualification-compilation-authority-smoke.ts',

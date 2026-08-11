@@ -7,6 +7,9 @@ import {
   canonicalProfessionalToolGpuDispatchAdmissionSchema,
   type CanonicalProfessionalToolGpuDispatchAdmission,
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
+import {
+  assertCanonicalFreshA100CustomerDispatchAllowed,
+} from '../edit-architecture/canonical-quality-first-a100-fast-scale-zero-migration'
 import { canonicalWorkItemSchema } from '../validation/edit-planning-authority-schemas'
 import {
   assertCanonicalCurrentGoogleCloudGpuRateAuthority,
@@ -694,6 +697,9 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     untrustedAttempt,
     input.admittedAt,
   )
+  if (attempt.routeId === 'a100_80gb_heavy_primary') {
+    assertCanonicalFreshA100CustomerDispatchAllowed()
+  }
   const basis = bundle.pricingBasis
   const manifest = bundle.preapprovalManifest
   const binding = bundle.publicationBinding

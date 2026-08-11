@@ -3,11 +3,17 @@
 ## Active quality-first GPU topology
 
 The prior L4-first template is historical and cannot authorize a new plan.
-WeEditPro uses exactly two accelerator classes:
+WeEditPro uses exactly two accelerator classes. The accelerator policy and the
+runtime platform are separate decisions:
 
-- A100 80 GB heavy primary: one `a2-ultragpu-1g` Vertex Custom Job with
-  12 vCPU and 170 GiB memory per approved attempt. It has no persistent pool,
-  Batch-local scratch, or caller-selected zone.
+- A100 80 GB heavy primary: one `a2-ultragpu-1g` A100 80 GB accelerator per
+  approved attempt. The historical Vertex Custom Job target is now reference
+  evidence only: its measured cold provisioning was 3,199,367 ms before a
+  96,198 ms worker run, so it fails the 480,000 ms end-to-end product target
+  and cannot admit a new customer attempt. The replacement runtime is blocked
+  until the dedicated Vertex Prediction min-zero route and GKE Autopilot
+  fast-starting A2 route each complete the same immutable-image, eight-minute,
+  full-quality 30-run qualification and one route is canonically selected.
 - L4 standard primary: one Cloud Run Job with 8 vCPU and 32 GiB memory for
   normal substantive media processing, rendering/encoding, deterministic
   inspection, and media QA.
@@ -16,9 +22,17 @@ WeEditPro uses exactly two accelerator classes:
   pre-inference A100 failure and may not reduce model, resolution, or QA. It
   remains in `us-central1` with the primary route and private media.
 
-Every route uses one GPU, one user attempt per instance, no hidden platform
-retry, no prewarming/keepalive, and a minimum idle count of zero. RTX PRO 6000
-is not part of the current placement or fallback policy.
+Every route uses one GPU, one user attempt per instance, no hidden inference
+retry, no permanent prewarming/keepalive, and a minimum idle count of zero.
+Platform readiness handling may not reuse customer spend authority or claim
+inference occurred. RTX PRO 6000 is not part of the current placement or
+fallback policy.
+
+The source of truth for the current A100 route migration and closed admission
+is `canonical-quality-first-a100-fast-scale-zero-migration-v1`. Official cloud
+capability documentation is planning evidence, not runtime qualification. No
+candidate selection, production route, or customer-credit mutation exists
+until the measured release gates pass.
 
 ## Runtime Rules
 

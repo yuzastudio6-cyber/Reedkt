@@ -781,6 +781,7 @@ function normalizeJob(
   const nodeSelector = record(task.nodeSelector)
   const terminal = record(root.terminalCondition)
   const latest = record(root.latestCreatedExecution)
+  const latestExecutionName = normalizeLatestExecutionName(latest.name)
   if (array(container.env).length !== Object.keys(env).length
     || mounts.length !== 1
     || !sameJson(root.labels, {
@@ -807,7 +808,7 @@ function normalizeJob(
     || terminal.state !== 'CONDITION_SUCCEEDED'
     || String(root.observedGeneration ?? '') !== String(root.generation ?? '')
     || Number(root.executionCount) !== executions.executionCount
-    || !executions.terminalExecutionNames.includes(String(latest.name ?? ''))
+    || !executions.terminalExecutionNames.includes(latestExecutionName)
     || latest.completionStatus !== 'EXECUTION_SUCCEEDED') {
     throw new Error('track_all_l4_job_definition_changed')
   }
@@ -838,9 +839,19 @@ function normalizeJob(
     mountPath: record(mounts[0]).mountPath,
     mountOptions: MOUNT_OPTIONS,
     executionCount: executions.executionCount,
-    latestExecutionName: latest.name,
+    latestExecutionName,
     latestExecutionCompletionTime: latest.completionTime,
   })
+}
+
+function normalizeLatestExecutionName(value: unknown): string {
+  const name = String(value ?? '')
+  const prefix = `${JOB_RESOURCE}/executions/`
+  if (name.startsWith(prefix)) return name
+  if (!/^[a-z][a-z0-9-]{0,62}$/u.test(name)) {
+    throw new Error('track_all_l4_latest_execution_name_changed')
+  }
+  return `${prefix}${name}`
 }
 
 function normalizeNetwork(value: unknown) {

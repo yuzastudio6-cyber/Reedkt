@@ -373,7 +373,7 @@ function liveFixtures() {
       terminalCondition: { type: 'Ready', state: 'CONDITION_SUCCEEDED' },
       executionCount: 1,
       latestCreatedExecution: {
-        name: executionName,
+        name: executionName.split('/').at(-1),
         completionTime: '2026-08-06T11:08:48.003619Z',
         completionStatus: 'EXECUTION_SUCCEEDED',
       },

@@ -218,6 +218,10 @@ const settingsSchema = z.object({
   boundedCpuOutputSerializationOnly: z.literal(true),
   offloadVideoToCpu: z.literal(false),
   offloadStateToCpu: z.literal(false),
+  gpuMemoryProfileId: z.enum([
+    'a100_full_gpu_state_v1',
+    'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+  ]).optional(),
   propagationDirection: z.literal('forward'),
   outputFormat: z.literal('lossless_grayscale_png_mask_sequence_v1'),
   sourceResolutionPreserved: z.literal(true),
@@ -246,6 +250,17 @@ const requestWithoutHashSchema = z.object({
   ) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 prompt frame is outside the approved source interval.',
+  })
+  const expectedMemoryProfile = request.dispatch.accelerator ===
+    'nvidia_a100_80gb'
+    ? 'a100_full_gpu_state_v1'
+    : 'l4_gpu_only_trimmed_past_non_conditioning_memory_v1'
+  if (
+    request.settings.gpuMemoryProfileId !== undefined
+    && request.settings.gpuMemoryProfileId !== expectedMemoryProfile
+  ) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 GPU memory profile does not match the admitted route.',
   })
 })
 
@@ -302,6 +317,11 @@ const gpuEvidenceSchema = z.object({
   boundedCpuOutputSerializationUsed: z.literal(true),
   cudaKernelExecutionMeasured: z.literal(true),
   cpuOnlyInferenceUsed: z.literal(false),
+  gpuMemoryProfileId: z.enum([
+    'a100_full_gpu_state_v1',
+    'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+  ]).optional(),
+  pastNonConditioningMemoryTrimmedOnGpu: z.boolean().optional(),
   cudaDriverLibraryMode: z.enum(['cuda_compat_12_8', 'host_driver']),
   observedCudaDriverLibraryPathDigestSha256: sha256,
   cudaForwardCompatibilityPackageSha256: z.literal(
@@ -327,6 +347,19 @@ const gpuEvidenceSchema = z.object({
   if (!exact) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 CUDA driver-library evidence is incompatible.',
+  })
+  const profileFieldsPresent = evidence.gpuMemoryProfileId !== undefined
+    || evidence.pastNonConditioningMemoryTrimmedOnGpu !== undefined
+  const expectedProfile = evidence.requestedAccelerator === 'nvidia_a100_80gb'
+    ? 'a100_full_gpu_state_v1'
+    : 'l4_gpu_only_trimmed_past_non_conditioning_memory_v1'
+  const expectedTrim = evidence.requestedAccelerator === 'nvidia_l4'
+  if (profileFieldsPresent && (
+    evidence.gpuMemoryProfileId !== expectedProfile
+    || evidence.pastNonConditioningMemoryTrimmedOnGpu !== expectedTrim
+  )) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 GPU memory-profile evidence is incompatible.',
   })
 })
 
@@ -483,6 +516,14 @@ export function assertCanonicalSam31GpuRuntimeResponse(input: {
       && gpu.observedComputeCapabilityMinor === (primary ? 0 : 9)
       && gpu.observedTotalDeviceMemoryBytes >=
         (primary ? 75 : 20) * 1024 ** 3
+    const expectedMemoryProfile = primary
+      ? 'a100_full_gpu_state_v1'
+      : 'l4_gpu_only_trimmed_past_non_conditioning_memory_v1'
+    const exactMemoryProfile = request.settings.gpuMemoryProfileId === undefined
+      ? gpu?.gpuMemoryProfileId === undefined
+        && gpu?.pastNonConditioningMemoryTrimmedOnGpu === undefined
+      : gpu?.gpuMemoryProfileId === expectedMemoryProfile
+        && gpu.pastNonConditioningMemoryTrimmedOnGpu === !primary
     const exactOutput = output !== null
       && output.firstFrameIndex ===
         request.sourceMedia.selectedStartFrameInclusive
@@ -490,7 +531,7 @@ export function assertCanonicalSam31GpuRuntimeResponse(input: {
         request.sourceMedia.selectedEndFrameInclusive
       && output.propagatedFrameCount ===
         request.sourceMedia.decodedFrameCount
-    if (!exactGpu || !exactOutput) {
+    if (!exactGpu || !exactMemoryProfile || !exactOutput) {
       throw new Error(
         'SAM 3.1 GPU response does not match the admitted GPU or frame range.',
       )

@@ -68,9 +68,17 @@ Runtime rules once qualified:
   propagation through the multiplex loader; OpenCV/Pillow CPU decode cannot
   satisfy the runtime, and actual NVDEC/device-tensor evidence is required on
   both A100 and L4 before either image is admitted;
-- the bounded production runner disables asynchronous frame loading so its
-  NVDEC sampler spans the complete approved frame interval on both A100 and
-  L4; the complete frame store must then be CUDA-resident before inference;
+- the bounded production runner preserves the admitted asynchronous
+  TorchCodec CUDA/NVDEC loading contract, then joins that loader under a
+  fixed five-minute deadline while the NVDEC sampler remains active; its
+  exception state, exact loaded-frame count, and complete CUDA-resident frame
+  store are verified before prompting or propagation;
+- A100 80 GB uses `a100_full_gpu_state_v1`. L4 uses the separately qualified
+  `l4_gpu_only_trimmed_past_non_conditioning_memory_v1`, which enables Meta's
+  upstream forward-evaluation trim only after non-conditioning state falls
+  outside the exact seven-frame temporal-memory window. Frames, active memory,
+  model inference, and outputs remain on CUDA; CPU video/state/output offload,
+  downscaling, quantization, and reduced temporal coverage remain forbidden;
 - the same patch prevents the partial tracker from loading the full checkpoint
   twice, requires the assembled predictor to accept every checkpoint key
   strictly, and preserves full-resolution masks as CUDA tensors through both

@@ -712,7 +712,11 @@ function buildL4QualificationTask(input: {
       promptApprovalRef: input.refs.promptApprovalRef,
     },
     modelArtifacts: baseRequest.modelArtifacts,
-    settings: baseRequest.settings,
+    settings: {
+      ...baseRequest.settings,
+      gpuMemoryProfileId:
+        'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+    },
     byteFreeRequest: true,
     callerCodePathUrlCommandOrEnvironmentAccepted: false,
   })

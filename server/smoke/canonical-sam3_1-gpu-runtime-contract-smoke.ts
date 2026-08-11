@@ -156,6 +156,7 @@ const request = buildCanonicalSam31GpuRuntimeRequest({
     boundedCpuOutputSerializationOnly: true,
     offloadVideoToCpu: false,
     offloadStateToCpu: false,
+    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
     propagationDirection: 'forward',
     outputFormat: 'lossless_grayscale_png_mask_sequence_v1',
     sourceResolutionPreserved: true,
@@ -363,6 +364,40 @@ if runner.failure_diagnostic_code(
     RuntimeError("private unexpected detail")
 ) != "unclassified_fail_closed":
     raise AssertionError("unknown CUDA failure detail was exposed")
+class OutOfMemoryError(RuntimeError):
+    pass
+if runner.failure_diagnostic_code(
+    OutOfMemoryError("private allocator detail")
+) != "cuda_out_of_memory":
+    raise AssertionError("CUDA OOM was not classified without message exposure")
+
+class FakeTracker:
+    forward_backbone_per_frame_for_eval = True
+    offload_output_to_cpu_for_eval = False
+    trim_past_non_cond_mem_for_eval = False
+    num_maskmem = 7
+    memory_temporal_stride_for_eval = 1
+
+class FakeModel:
+    tracker = FakeTracker()
+
+class FakePredictor:
+    model = FakeModel()
+
+a100_predictor = FakePredictor()
+a100_profile = runner.configure_gpu_memory_profile(
+    a100_predictor, "nvidia_a100_80gb"
+)
+if a100_profile != (runner.A100_GPU_MEMORY_PROFILE, False):
+    raise AssertionError("A100 full GPU-state profile changed")
+if a100_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
+    raise AssertionError("A100 unexpectedly enabled temporal-memory trim")
+l4_predictor = FakePredictor()
+l4_profile = runner.configure_gpu_memory_profile(l4_predictor, "nvidia_l4")
+if l4_profile != (runner.L4_GPU_MEMORY_PROFILE, True):
+    raise AssertionError("L4 GPU-only bounded-memory profile changed")
+if not l4_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
+    raise AssertionError("L4 temporal-memory trim was not enabled")
 payload = json.load(sys.stdin)
 runner.validate_model_artifacts(payload["v1"])
 runner.validate_model_artifacts(payload["v2"])
@@ -612,6 +647,7 @@ print(json.dumps({
     "providerMountAliasesCollapsedByFileIdentity": True,
     "multipleDriverFilesRejected": True,
     "safeCudaDiagnosticTaxonomyVerified": True,
+    "routeBoundGpuMemoryProfilesVerified": True,
 }))
 `, resolve(
     process.cwd(),
@@ -642,6 +678,7 @@ assert.deepEqual(
     providerMountAliasesCollapsedByFileIdentity: true,
     multipleDriverFilesRejected: true,
     safeCudaDiagnosticTaxonomyVerified: true,
+    routeBoundGpuMemoryProfilesVerified: true,
   },
 )
 
@@ -671,6 +708,8 @@ const response = buildCanonicalSam31GpuRuntimeResponse({
     boundedCpuOutputSerializationUsed: true,
     cudaKernelExecutionMeasured: true,
     cpuOnlyInferenceUsed: false,
+    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
+    pastNonConditioningMemoryTrimmedOnGpu: false,
     cudaDriverLibraryMode: 'host_driver',
     observedCudaDriverLibraryPathDigestSha256: sha256AuthorityValue(
       '/usr/local/nvidia/lib64/libcuda.so.570.211.01',
@@ -721,6 +760,34 @@ const response = buildCanonicalSam31GpuRuntimeResponse({
 })
 assert.deepEqual(assertCanonicalSam31GpuRuntimeResponse({ request, response }),
   response)
+const historicalRequestPayload = structuredClone(request)
+Reflect.deleteProperty(historicalRequestPayload, 'requestBindingSha256')
+Reflect.deleteProperty(
+  historicalRequestPayload.settings,
+  'gpuMemoryProfileId',
+)
+const historicalRequest = buildCanonicalSam31GpuRuntimeRequest(
+  historicalRequestPayload,
+)
+const historicalResponsePayload = structuredClone(response)
+Reflect.deleteProperty(historicalResponsePayload, 'responseBindingSha256')
+historicalResponsePayload.requestBindingSha256 =
+  historicalRequest.requestBindingSha256
+Reflect.deleteProperty(
+  historicalResponsePayload.gpuEvidence!,
+  'gpuMemoryProfileId',
+)
+Reflect.deleteProperty(
+  historicalResponsePayload.gpuEvidence!,
+  'pastNonConditioningMemoryTrimmedOnGpu',
+)
+const historicalResponse = buildCanonicalSam31GpuRuntimeResponse(
+  historicalResponsePayload,
+)
+assert.deepEqual(assertCanonicalSam31GpuRuntimeResponse({
+  request: historicalRequest,
+  response: historicalResponse,
+}), historicalResponse)
 const responseWirePayload = structuredClone(response) as Record<string, unknown>
 Reflect.deleteProperty(responseWirePayload, 'responseBindingSha256')
 assert.equal(
@@ -775,6 +842,11 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
     priorAttemptDisposition: 'not_executed_retry_safe',
     priorAttemptDispositionRef: ref('a100-prior-attempt-disposition-1'),
   },
+  settings: {
+    ...request.settings,
+    gpuMemoryProfileId:
+      'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+  },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')
 
@@ -795,6 +867,10 @@ const adversarial: Array<(value: CanonicalSam31GpuRuntimeRequest) => void> = [
   (value) => { value.settings.maximumTrackedObjectsProductCap = 128 as never },
   (value) => { value.settings.offloadVideoToCpu = true as never },
   (value) => { value.settings.cpuOpenCvOrPillowDecodeAllowed = true as never },
+  (value) => {
+    value.settings.gpuMemoryProfileId =
+      'l4_gpu_only_trimmed_past_non_conditioning_memory_v1'
+  },
 ]
 for (const mutate of adversarial) {
   const value = structuredClone(request)
@@ -868,9 +944,24 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
   response: partialFramesResponse,
 }))
 
+const wrongMemoryProfileResponse = structuredClone(response)
+wrongMemoryProfileResponse.gpuEvidence!.gpuMemoryProfileId =
+  'l4_gpu_only_trimmed_past_non_conditioning_memory_v1'
+wrongMemoryProfileResponse.gpuEvidence!
+  .pastNonConditioningMemoryTrimmedOnGpu = true
+const wrongMemoryProfilePayload = { ...wrongMemoryProfileResponse }
+Reflect.deleteProperty(wrongMemoryProfilePayload, 'responseBindingSha256')
+wrongMemoryProfileResponse.responseBindingSha256 = sha256AuthorityValue(
+  wrongMemoryProfilePayload,
+)
+assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
+  request,
+  response: wrongMemoryProfileResponse,
+}))
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 60,
+  checks: 63,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

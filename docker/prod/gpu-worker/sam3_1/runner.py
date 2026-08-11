@@ -96,6 +96,11 @@ MAXIMUM_FRAMES = 240
 MAXIMUM_OBJECTS = 16
 OUTPUT_PERSISTENCE_WORKERS = 8
 MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
+MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
+A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
+L4_GPU_MEMORY_PROFILE = (
+    "l4_gpu_only_trimmed_past_non_conditioning_memory_v1"
+)
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
 EXPECTED_TORCHCODEC_VERSION = "0.10.0+cu128"
@@ -829,7 +834,9 @@ def validate_request(value: Any) -> dict[str, Any]:
     validate_source(request["sourceMedia"])
     validate_prompt(request["approvedPrompt"], request["sourceMedia"])
     validate_model_artifacts(request["modelArtifacts"])
-    validate_settings(request["settings"])
+    validate_settings(
+        request["settings"], request["dispatch"]["accelerator"]
+    )
     return request
 
 
@@ -1155,7 +1162,7 @@ def validate_model_artifacts(value: Any) -> None:
     exact_prefixed_sha(artifacts["immutableImageDigest"], "image digest")
 
 
-def validate_settings(value: Any) -> None:
+def validate_settings(value: Any, requested_accelerator: str) -> None:
     settings = exact_keys(
         value,
         {
@@ -1177,6 +1184,7 @@ def validate_settings(value: Any) -> None:
             "boundedCpuOutputSerializationOnly",
             "offloadVideoToCpu",
             "offloadStateToCpu",
+            "gpuMemoryProfileId",
             "propagationDirection",
             "outputFormat",
             "sourceResolutionPreserved",
@@ -1204,6 +1212,11 @@ def validate_settings(value: Any) -> None:
         "boundedCpuOutputSerializationOnly": True,
         "offloadVideoToCpu": False,
         "offloadStateToCpu": False,
+        "gpuMemoryProfileId": (
+            A100_GPU_MEMORY_PROFILE
+            if requested_accelerator == "nvidia_a100_80gb"
+            else L4_GPU_MEMORY_PROFILE
+        ),
         "propagationDirection": "forward",
         "outputFormat": "lossless_grayscale_png_mask_sequence_v1",
         "sourceResolutionPreserved": True,
@@ -1342,14 +1355,11 @@ def build_predictor_with_strict_rope_cache_derivation(torch: Any) -> Any:
             compile=False,
             warm_up=False,
             default_output_prob_thresh=0.5,
-            # Keep the official TorchCodec CUDA/NVDEC loader synchronous for
-            # this bounded worker.  The L4 can return from start_session before
-            # its background loader has emitted an NVML decoder-utilization
-            # sample, which makes an actually GPU-decoded source look
-            # unqualified.  Synchronous loading keeps the sampler alive for
-            # the complete approved frame interval and makes the subsequent
-            # CUDA-resident frame-store proof deterministic on both routes.
-            async_loading_frames=False,
+            # Preserve the admitted asynchronous frame-loading contract. The
+            # worker explicitly joins and verifies this CUDA/NVDEC loader under
+            # a bounded deadline before inference, so session start cannot race
+            # the decoder evidence sampler or expose a partial frame store.
+            async_loading_frames=True,
             gpu_accelerated_decode=True,
             strict_checkpoint_load=True,
             return_cuda_output_tensors=True,
@@ -1366,6 +1376,39 @@ def build_predictor_with_strict_rope_cache_derivation(torch: Any) -> Any:
     if augmented_keys != model_keys:
         raise RuntimeError("strict checkpoint and model key sets differ")
     return predictor
+
+
+def configure_gpu_memory_profile(
+    predictor: Any,
+    requested_accelerator: str,
+) -> tuple[str, bool]:
+    """Bind the official SAM 3.1 evaluation memory policy to the GPU route.
+
+    L4 keeps frames, model state, accessible temporal memories, inference, and
+    outputs on CUDA. It enables only the upstream forward-VOS trim that removes
+    heavy non-conditioning outputs after they fall outside the model's exact
+    num_maskmem window. A100 retains the upstream full-state policy.
+    """
+    model = getattr(predictor, "model", None)
+    tracker = getattr(model, "tracker", None)
+    if tracker is None:
+        raise RuntimeError("SAM 3.1 tracker memory policy is unavailable")
+    if (
+        getattr(tracker, "forward_backbone_per_frame_for_eval", None) is not True
+        or getattr(tracker, "offload_output_to_cpu_for_eval", None) is not False
+        or getattr(tracker, "trim_past_non_cond_mem_for_eval", None) is not False
+        or getattr(tracker, "num_maskmem", None) != 7
+        or getattr(tracker, "memory_temporal_stride_for_eval", None) != 1
+    ):
+        raise RuntimeError("SAM 3.1 upstream GPU memory policy changed")
+    if requested_accelerator == "nvidia_a100_80gb":
+        return A100_GPU_MEMORY_PROFILE, False
+    if requested_accelerator == "nvidia_l4":
+        tracker.trim_past_non_cond_mem_for_eval = True
+        if tracker.trim_past_non_cond_mem_for_eval is not True:
+            raise RuntimeError("SAM 3.1 L4 GPU memory trim was not applied")
+        return L4_GPU_MEMORY_PROFILE, True
+    raise RuntimeError("SAM 3.1 GPU memory route is invalid")
 
 
 def read_closed_receipt(
@@ -2297,6 +2340,20 @@ def verify_gpu_frame_store(inference_state: dict[str, Any]) -> None:
         raise RuntimeError("SAM 3.1 decoded frame store is not completely CUDA-resident")
 
 
+def await_complete_gpu_frame_store(inference_state: dict[str, Any]) -> None:
+    input_batch = inference_state.get("input_batch")
+    image_batch = getattr(input_batch, "img_batch", None)
+    frame_store = getattr(image_batch, "tensors", None)
+    async_thread = getattr(frame_store, "thread", None)
+    if async_thread is not None:
+        async_thread.join(timeout=MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS)
+        if async_thread.is_alive():
+            raise RuntimeError("SAM 3.1 asynchronous GPU frame loading timed out")
+    if getattr(frame_store, "exception", None) is not None:
+        raise RuntimeError("SAM 3.1 asynchronous GPU frame loading failed")
+    verify_gpu_frame_store(inference_state)
+
+
 def copy_mask_for_persistence(
     mask: Any,
     torch_module: Any,
@@ -2461,8 +2518,13 @@ def execute_inside_bfloat16_autocast(
     ):
         predictor = build_predictor_with_strict_rope_cache_derivation(torch)
         install_sam31_multiplex_session_compatibility_guard(predictor)
+        memory_profile_id, memory_trimmed = configure_gpu_memory_profile(
+            predictor, request["dispatch"]["accelerator"]
+        )
     verify_bfloat16_autocast(torch)
     gpu_evidence["bfloat16AutocastUsed"] = True
+    gpu_evidence["gpuMemoryProfileId"] = memory_profile_id
+    gpu_evidence["pastNonConditioningMemoryTrimmedOnGpu"] = memory_trimmed
     build_log = captured_stdout.getvalue() + captured_stderr.getvalue()
     if "Missing keys" in build_log or "Unexpected keys" in build_log:
         raise RuntimeError("pinned source/checkpoint compatibility changed")
@@ -2479,9 +2541,10 @@ def execute_inside_bfloat16_autocast(
             "offload_state_to_cpu": False,
         }
     )
-    maximum_nvdec_utilization = decoder_sampler.stop_and_verify()
     session_id = session_response["session_id"]
     inference_state = predictor._all_inference_states[session_id]["state"]
+    await_complete_gpu_frame_store(inference_state)
+    maximum_nvdec_utilization = decoder_sampler.stop_and_verify()
     if (
         inference_state["num_frames"] != request["sourceMedia"]["decodedFrameCount"]
         or inference_state["orig_width"] != request["sourceMedia"]["width"]
@@ -2806,6 +2869,8 @@ def failure_response(request: dict[str, Any] | None, error: Exception) -> dict[s
 def failure_diagnostic_code(error: Exception) -> str:
     if stage == "cuda_admission" and isinstance(error, ImportError):
         return "cuda_dependency_import_failed"
+    if type(error).__name__ == "OutOfMemoryError":
+        return "cuda_out_of_memory"
     allowed = {
         "launch accelerator and task accelerator differ": "accelerator_binding_mismatch",
         "CUDA bfloat16 GPU is unavailable": "cuda_bfloat16_unavailable",
@@ -2841,6 +2906,21 @@ def failure_diagnostic_code(error: Exception) -> str:
         "CUDA bfloat16 kernel result is invalid": "cuda_bfloat16_kernel_result_invalid",
         "SAM 3.1 CUDA bfloat16 autocast was not entered": "cuda_autocast_not_entered",
         "SAM 3.1 CUDA autocast dtype changed": "cuda_autocast_dtype_mismatch",
+        "SAM 3.1 asynchronous GPU frame loading timed out": (
+            "gpu_frame_loading_timeout"
+        ),
+        "SAM 3.1 asynchronous GPU frame loading failed": (
+            "gpu_frame_loading_failed"
+        ),
+        "SAM 3.1 tracker memory policy is unavailable": (
+            "gpu_memory_policy_unavailable"
+        ),
+        "SAM 3.1 upstream GPU memory policy changed": (
+            "gpu_memory_policy_mismatch"
+        ),
+        "SAM 3.1 L4 GPU memory trim was not applied": (
+            "l4_gpu_memory_trim_not_applied"
+        ),
     }
     return allowed.get(str(error), "unclassified_fail_closed")
 

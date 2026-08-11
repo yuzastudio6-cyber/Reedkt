@@ -923,6 +923,7 @@ function buildQualificationTask(input: {
       boundedCpuOutputSerializationOnly: true,
       offloadVideoToCpu: false,
       offloadStateToCpu: false,
+      gpuMemoryProfileId: 'a100_full_gpu_state_v1',
       propagationDirection: 'forward',
       outputFormat: 'lossless_grayscale_png_mask_sequence_v1',
       sourceResolutionPreserved: true,

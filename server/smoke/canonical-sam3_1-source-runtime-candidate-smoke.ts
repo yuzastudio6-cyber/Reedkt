@@ -308,6 +308,15 @@ assert(sourceLock.includes('minimum_idle_a100_jobs=0'))
 assert(sourceLock.includes('minimum_idle_l4_jobs=0'))
 assert(sourceLock.includes('runtime_download_allowed=false'))
 assert(sourceLock.includes('cpu_only_heavy_execution_allowed=false'))
+for (const gpuMemoryPolicy of [
+  'fixed_gpu_decode_loading_mode=asynchronous_cuda_nvdec_with_bounded_join_before_inference',
+  'fixed_gpu_decode_complete_frame_store_required_before_inference=true',
+  'fixed_a100_gpu_memory_profile=a100_full_gpu_state_v1',
+  'fixed_l4_gpu_memory_profile=l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+  'fixed_l4_gpu_memory_profile_uses_upstream_trim_past_non_cond_mem_for_eval=true',
+  'fixed_l4_gpu_memory_profile_num_maskmem=7',
+  'fixed_l4_gpu_memory_profile_cpu_state_or_output_offload_allowed=false',
+] as const) assert(sourceLock.includes(gpuMemoryPolicy))
 assert(sourceLock.includes(
   `reeditpro_gpu_decode_patch_sha256=${candidate.runtimeClosure.reeditproGpuDecodePatchSha256}`,
 ))
@@ -403,7 +412,13 @@ for (const requiredRunnerFragment of [
   'elif accelerator_class == "nvidia_l4":',
   'environment value may select a bucket, object, checkpoint, or path.',
   'gpu_accelerated_decode=True',
-  'async_loading_frames=False',
+  'async_loading_frames=True',
+  'await_complete_gpu_frame_store(inference_state)',
+  'configure_gpu_memory_profile(',
+  'a100_full_gpu_state_v1',
+  'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
+  'trim_past_non_cond_mem_for_eval = True',
+  'pastNonConditioningMemoryTrimmedOnGpu',
   'sam3_1_real_rope_cache_from_complex_buffer_v1',
   'install_sam31_multiplex_session_compatibility_guard(predictor)',
   'SAM 3.1 multiplex init_state signature changed',
@@ -442,7 +457,7 @@ for (const requiredRunnerFragment of [
   'SAM 3.1 observed no CUDA/NVDEC video decode',
   'nvdec_utilization_not_observed',
 ]) assert(sam31Runner.includes(requiredRunnerFragment))
-assert(!sam31Runner.includes('async_loading_frames=True'))
+assert(!sam31Runner.includes('async_loading_frames=False'))
 assert.equal(
   (sam31Runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)
     ?? []).length,

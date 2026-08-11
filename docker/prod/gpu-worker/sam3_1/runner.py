@@ -80,6 +80,12 @@ VERTEX_A100_PRIVATE_INVOCATION_PARENT = Path(
     "/gcs/reeditpro-production-reeditpro-masks/"
     "private/canonical-professional-gpu/sam3_1/v1/invocations"
 )
+VERTEX_PREDICTION_CHECKPOINT_PATH = Path(
+    "/var/lib/weeditpro/sam31/vertex-prediction-model/sam3.1_multiplex.pt"
+)
+VERTEX_PREDICTION_PRIVATE_INVOCATION_PARENT = Path(
+    "/var/lib/weeditpro/sam31/vertex-prediction-invocations"
+)
 PRIVATE_INVOCATION_PARENT = LEGACY_MOUNT_PRIVATE_INVOCATION_PARENT
 SOURCE_PROXY_PATH = Path("/nonexistent/sam3_1-mask-proxy.mp4")
 PRIVATE_OUTPUT_ROOT = Path("/nonexistent/sam3_1-mask-sequence")
@@ -404,10 +410,31 @@ def configure_execution_mounts(accelerator_class: str) -> None:
     environment value may select a bucket, object, checkpoint, or path.
     """
     global CHECKPOINT_PATH, PRIVATE_INVOCATION_PARENT
-    if accelerator_class == "nvidia_a100_80gb":
+    execution_platform = os.environ.get("WEEDITPRO_SAM31_EXECUTION_PLATFORM")
+    if execution_platform is None:
+        execution_platform = (
+            "vertex_custom_job_v1"
+            if accelerator_class == "nvidia_a100_80gb"
+            else "cloud_run_job_v1"
+        )
+    if (
+        accelerator_class == "nvidia_a100_80gb"
+        and execution_platform == "vertex_prediction_endpoint_v1"
+    ):
+        CHECKPOINT_PATH = VERTEX_PREDICTION_CHECKPOINT_PATH
+        PRIVATE_INVOCATION_PARENT = (
+            VERTEX_PREDICTION_PRIVATE_INVOCATION_PARENT
+        )
+    elif (
+        accelerator_class == "nvidia_a100_80gb"
+        and execution_platform == "vertex_custom_job_v1"
+    ):
         CHECKPOINT_PATH = VERTEX_A100_CHECKPOINT_PATH
         PRIVATE_INVOCATION_PARENT = VERTEX_A100_PRIVATE_INVOCATION_PARENT
-    elif accelerator_class == "nvidia_l4":
+    elif (
+        accelerator_class == "nvidia_l4"
+        and execution_platform == "cloud_run_job_v1"
+    ):
         CHECKPOINT_PATH = LEGACY_MOUNT_CHECKPOINT_PATH
         PRIVATE_INVOCATION_PARENT = LEGACY_MOUNT_PRIVATE_INVOCATION_PARENT
     else:

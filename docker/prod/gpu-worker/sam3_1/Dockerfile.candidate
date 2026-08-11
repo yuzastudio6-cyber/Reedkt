@@ -221,6 +221,8 @@ COPY docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-fr
   /tmp/0004-weeditpro-forward-propagation-frame-count.patch
 COPY docker/prod/gpu-worker/sam3_1/runner.py \
   /opt/reeditpro/sam3_1/runner.py
+COPY docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py \
+  /opt/reeditpro/sam3_1/vertex_prediction_server.py
 COPY docker/prod/gpu-worker/sam3_1/entrypoint.sh \
   /opt/reeditpro/sam3_1/entrypoint.sh
 COPY docker/prod/gpu-worker/sam3_1/source-provenance.lock \
@@ -477,8 +479,10 @@ RUN test "${SAM31_DEPENDENCY_LOCK_SHA256}" != "" \
     | grep -E '[[:space:]]hevc_cuvid[[:space:]]' \
   && "${WEEDITPRO_PYTHON_VENV}/bin/python" -m py_compile \
     /opt/reeditpro/sam3_1/runner.py \
+    /opt/reeditpro/sam3_1/vertex_prediction_server.py \
   && test -x /bin/sh \
   && chmod 0555 /opt/reeditpro/sam3_1/runner.py \
+  && chmod 0555 /opt/reeditpro/sam3_1/vertex_prediction_server.py \
   && chmod 0555 /opt/reeditpro/sam3_1/entrypoint.sh \
   && chmod 0444 \
     /opt/reeditpro/sam3_1/source-provenance.lock \

@@ -57,9 +57,11 @@ const INVOCATION_PREFIX =
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v1' as const
 const EXPECTED_IMAGE_DIGEST =
-  'sha256:9f202ab78a780d7dc5ae009814433c4c76ff30a90246c7e01694e45b24f819c3' as const
+  'sha256:6f019248887db07aeacf880a2630ffa2096b33aa42796b0dff9466c661848d62' as const
 const EXPECTED_IMAGE =
   `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${EXPECTED_IMAGE_DIGEST}` as const
+const BASELINE_IMAGE_DIGEST =
+  'sha256:9f202ab78a780d7dc5ae009814433c4c76ff30a90246c7e01694e45b24f819c3' as const
 const BASELINE_INVOCATION_ID =
   'sam31-a100-qualification:sam31-production-a100-image-9f202ab7-20260811.run-01.execution' as const
 const BASELINE_TASK_HASH =
@@ -146,6 +148,7 @@ async function main() {
       job: jobProjection,
       checkpoint,
       imageDigest: EXPECTED_IMAGE_DIGEST,
+      qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST,
       qualifiedA100BaselineResultRef: ref(
         baselineResult.resultAdmissionId,
         baselineResult.resultAdmissionHash,
@@ -180,6 +183,7 @@ async function main() {
       baselineResult.resultAdmissionId,
       baselineResult.resultAdmissionHash,
     ),
+    qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST,
     currentA100RateAuthorityRef: baseTask.primaryRateAuthorityRef,
     currentL4FallbackRateAuthorityRef: baseTask.fallbackRateAuthorityRef,
     checkpointPromotionRef: checkpoint.checkpointPromotionRef,
@@ -492,9 +496,9 @@ async function rereadBaselineTask(objectPort: ReturnType<
     || task.runtimeRequest.dispatch.routeRole !==
       'a100_80gb_heavy_primary'
     || task.runtimeRequest.modelArtifacts.immutableImageDigest !==
-      EXPECTED_IMAGE_DIGEST
+      BASELINE_IMAGE_DIGEST
     || task.runtimeRequest.modelArtifacts.immutableImageReleaseRef.contentHash !==
-      EXPECTED_IMAGE_DIGEST) {
+      BASELINE_IMAGE_DIGEST) {
     throw new Error('approved_a100_baseline_task_changed')
   }
   return task

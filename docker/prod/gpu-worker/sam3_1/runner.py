@@ -99,7 +99,7 @@ MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3"
+    "l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -2650,16 +2650,13 @@ def execute_inside_bfloat16_autocast(
                 for removable_object_id in reversed(prompt_object_ids):
                     if removable_object_id == serial_object_id:
                         continue
-                    predictor.handle_request(
-                        {
-                            "type": "remove_object",
-                            "session_id": session_id,
-                            "frame_index": request["approvedPrompt"][
-                                "promptFrameIndex"
-                            ],
-                            "obj_id": removable_object_id,
-                            "is_user_action": False,
-                        }
+                    predictor.remove_object(
+                        session_id=session_id,
+                        frame_idx=request["approvedPrompt"][
+                            "promptFrameIndex"
+                        ],
+                        obj_id=removable_object_id,
+                        is_user_action=False,
                     )
 
             stage = "propagation"

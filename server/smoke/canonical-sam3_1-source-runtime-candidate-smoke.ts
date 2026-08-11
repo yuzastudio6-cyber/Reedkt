@@ -312,9 +312,10 @@ for (const gpuMemoryPolicy of [
   'fixed_gpu_decode_loading_mode=asynchronous_cuda_nvdec_with_bounded_join_before_inference',
   'fixed_gpu_decode_complete_frame_store_required_before_inference=true',
   'fixed_a100_gpu_memory_profile=a100_full_gpu_state_v1',
-  'fixed_l4_gpu_memory_profile=l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
+  'fixed_l4_gpu_memory_profile=l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4',
   'fixed_l4_gpu_memory_profile_uses_upstream_trim_past_non_cond_mem_for_eval=true',
   'fixed_l4_gpu_memory_profile_uses_canonical_serial_object_propagation=true',
+  'fixed_l4_serial_object_removal_preserves_non_user_action_history=true',
   'fixed_l4_gpu_memory_profile_streams_upstream_postprocess_one_frame_at_a_time=true',
   'fixed_l4_gpu_memory_profile_requires_exact_a100_mask_parity=true',
   'fixed_l4_gpu_memory_profile_num_maskmem=7',
@@ -419,9 +420,11 @@ for (const requiredRunnerFragment of [
   'await_complete_gpu_frame_store(current_state)',
   'configure_gpu_memory_profile(',
   'a100_full_gpu_state_v1',
-  'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
+  'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4',
   'model.postprocess_batch_size = 1',
   'else [int(value) for value in prompt_object_ids]',
+  'predictor.remove_object(',
+  'is_user_action=False',
   'prompt_object_ids != sorted(prompt_object_ids)',
   'trim_past_non_cond_mem_for_eval = True',
   'pastNonConditioningMemoryTrimmedOnGpu',
@@ -466,6 +469,7 @@ for (const requiredRunnerFragment of [
   sam31Runner.includes(requiredRunnerFragment),
   `SAM 3.1 runner is missing ${requiredRunnerFragment}`,
 )
+assert.doesNotMatch(sam31Runner, /"type": "remove_object"/u)
 assert(!sam31Runner.includes('async_loading_frames=False'))
 assert.equal(
   (sam31Runner.match(/install_sam31_multiplex_session_compatibility_guard/gmu)

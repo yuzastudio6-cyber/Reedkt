@@ -25,13 +25,29 @@ const l4Qualifier = readFileSync(resolve(
   process.cwd(),
   'server/cli/qualify-canonical-sam3_1-l4-runtime.ts',
 ), 'utf8')
-assert.match(
-  l4Qualifier,
-  /task\.runtimeRequest\.modelArtifacts\.immutableImageDigest !==\s*EXPECTED_IMAGE_DIGEST/u,
+const packageJson = JSON.parse(readFileSync(resolve(
+  process.cwd(),
+  'package.json',
+), 'utf8')) as { scripts?: Record<string, unknown> }
+assert.equal(
+  packageJson.scripts?.['smoke:sam3_1-gpu-runtime-contract'],
+  'tsx server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts',
+)
+assert.equal(
+  packageJson.scripts?.['qualify:sam3_1-l4-runtime'],
+  'tsx server/cli/qualify-canonical-sam3_1-l4-runtime.ts',
 )
 assert.match(
   l4Qualifier,
-  /task\.runtimeRequest\.modelArtifacts\.immutableImageReleaseRef\.contentHash !==\s*EXPECTED_IMAGE_DIGEST/u,
+  /task\.runtimeRequest\.modelArtifacts\.immutableImageDigest !==\s*BASELINE_IMAGE_DIGEST/u,
+)
+assert.match(
+  l4Qualifier,
+  /task\.runtimeRequest\.modelArtifacts\.immutableImageReleaseRef\.contentHash !==\s*BASELINE_IMAGE_DIGEST/u,
+)
+assert.match(
+  l4Qualifier,
+  /qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST/u,
 )
 
 const request = buildCanonicalSam31GpuRuntimeRequest({
@@ -863,7 +879,7 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
   settings: {
     ...request.settings,
     gpuMemoryProfileId:
-      'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
+      'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4',
   },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')

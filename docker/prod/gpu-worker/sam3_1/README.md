@@ -74,7 +74,7 @@ Runtime rules once qualified:
   exception state, exact loaded-frame count, and complete CUDA-resident frame
   store are verified before prompting or propagation;
 - A100 80 GB uses `a100_full_gpu_state_v1`. L4 uses the separately qualified
-  `l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3`,
+  `l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4`,
   which enables Meta's upstream forward-evaluation trim only after
   non-conditioning state falls outside the exact seven-frame temporal-memory
   window. It processes every approved object in canonical object-ID order in a

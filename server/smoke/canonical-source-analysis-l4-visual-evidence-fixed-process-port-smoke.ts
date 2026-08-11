@@ -129,7 +129,11 @@ assert.match(build, /visual_evidence_private_build_input/u)
 assert.doesNotMatch(build, /docker push|gcloud|kubectl/u)
 assert.match(
   deploy,
-  /mount-path=\/mnt\/weeditpro-private\/l4-visual-evidence,type=in-memory,size-limit=24Gi/u,
+  /--add-volume="name=weeditpro-l4-visual-evidence-scratch,type=in-memory,size-limit=24Gi"/u,
+)
+assert.match(
+  deploy,
+  /--add-volume-mount="volume=weeditpro-l4-visual-evidence-scratch,mount-path=\/mnt\/weeditpro-private\/l4-visual-evidence"/u,
 )
 assert.match(deploy, /--max-retries=0/u)
 assert.match(deploy, /--tasks=1/u)

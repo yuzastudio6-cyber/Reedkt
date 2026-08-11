@@ -74,7 +74,11 @@ Runtime rules once qualified:
   the single-frame and default 16-frame batched postprocessors; the batched
   path returns before the upstream pinned-CPU mask buffer, and the only
   admitted mask transfer is the bounded create-only PNG serialization
-  boundary;
+  boundary. That boundary uses eight fixed persistence workers with at most
+  sixteen pending masks, while canonical manifest frame/object ordering and
+  per-PNG byte hashes remain unchanged. This overlaps lossless PNG persistence with
+  later CUDA propagation without downscaling, quantization, lossy encoding,
+  or CPU inference;
 - the candidate PyTorch 2.10/CUDA 12.8 base image has been resolved by immutable
   Linux/amd64 digest, but it remains build-inadmissible until its wheel, native
   library, source, checkpoint, SBOM, scan, signature, and runtime closure are

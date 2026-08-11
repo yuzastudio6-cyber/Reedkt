@@ -12,7 +12,9 @@ It never accepts a request, path, URL, command, model, or route on stdin.
 from __future__ import annotations
 
 import contextlib
+import concurrent.futures
 import ctypes
+from collections import deque
 import hashlib
 import importlib.metadata
 import io
@@ -92,6 +94,8 @@ MAXIMUM_SOURCE_BYTES = 2 * 1024 * 1024 * 1024
 MAXIMUM_CHECKPOINT_BYTES = 8 * 1024 * 1024 * 1024
 MAXIMUM_FRAMES = 240
 MAXIMUM_OBJECTS = 16
+OUTPUT_PERSISTENCE_WORKERS = 8
+MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
 EXPECTED_TORCHCODEC_VERSION = "0.10.0+cu128"
@@ -2286,14 +2290,11 @@ def verify_gpu_frame_store(inference_state: dict[str, Any]) -> None:
         raise RuntimeError("SAM 3.1 decoded frame store is not completely CUDA-resident")
 
 
-def persist_mask(
+def copy_mask_for_persistence(
     mask: Any,
-    frame_index: int,
-    object_id: int,
     torch_module: Any,
-) -> dict[str, Any]:
+) -> Any:
     import numpy as np
-    from PIL import Image
 
     if (
         not torch_module.is_tensor(mask)
@@ -2306,6 +2307,19 @@ def persist_mask(
         device="cpu",
         non_blocking=False,
     ).contiguous().numpy()
+    if value.ndim != 2 or value.dtype != np.bool_:
+        raise RuntimeError("SAM 3.1 bounded output serialization changed")
+    return value
+
+
+def persist_mask(
+    value: Any,
+    frame_index: int,
+    object_id: int,
+) -> dict[str, Any]:
+    import numpy as np
+    from PIL import Image
+
     if value.ndim != 2 or value.dtype != np.bool_:
         raise RuntimeError("SAM 3.1 bounded output serialization changed")
     file_name = f"frame-{frame_index:06d}-object-{object_id:06d}.png"
@@ -2486,62 +2500,86 @@ def execute_inside_bfloat16_autocast(
 
     stage = "output_persistence"
     PRIVATE_OUTPUT_ROOT.mkdir(mode=0o700, parents=False, exist_ok=False)
-    frame_records: dict[int, dict[str, Any]] = {}
-    mask_records: list[dict[str, Any]] = []
+    frame_object_records: dict[int, list[dict[str, Any]]] = {}
+    mask_records_by_key: dict[tuple[int, int], dict[str, Any]] = {}
     distinct_object_ids: set[int] = set()
     propagation_started = time.monotonic_ns()
     persistence_ns = 0
     stage = "propagation"
-    for response in predictor.handle_stream_request(
-        {
-            "type": "propagate_in_video",
-            "session_id": session_id,
-            "propagation_direction": "forward",
-            "start_frame_index": request["approvedPrompt"]["promptFrameIndex"],
-            "max_frame_num_to_track": request["sourceMedia"]["decodedFrameCount"],
-            "output_prob_thresh": 0.5,
-        }
-    ):
-        frame_index = int(response["frame_index"])
-        if frame_index < 0 or frame_index >= request["sourceMedia"]["decodedFrameCount"]:
-            raise RuntimeError("SAM 3.1 emitted an out-of-scope frame")
-        outputs = response["outputs"]
-        object_ids = outputs["out_obj_ids"].tolist()
-        boxes = outputs["out_boxes_xywh"].tolist()
-        masks = outputs["out_binary_masks"]
-        if not (len(object_ids) == len(boxes) == len(masks)):
-            raise RuntimeError("SAM 3.1 output arrays lost alignment")
-        frame_payload = {
-            "frameIndex": frame_index,
-            "objects": [],
-        }
-        persist_started = time.monotonic_ns()
-        for object_id_value, box, mask in zip(object_ids, boxes, masks):
-            object_id = exact_int(int(object_id_value), 0, 2**31 - 1, "object id")
-            if len(box) != 4 or any(
-                isinstance(component, bool)
-                or not isinstance(component, (int, float))
-                or not math.isfinite(component)
-                or component < 0
-                or component > 1
-                for component in box
+    pending: deque[tuple[
+        tuple[int, int], concurrent.futures.Future[dict[str, Any]]
+    ]] = deque()
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=OUTPUT_PERSISTENCE_WORKERS,
+        thread_name_prefix="sam31-mask-persistence",
+    ) as persistence_pool:
+        for response in predictor.handle_stream_request(
+            {
+                "type": "propagate_in_video",
+                "session_id": session_id,
+                "propagation_direction": "forward",
+                "start_frame_index": request["approvedPrompt"]["promptFrameIndex"],
+                "max_frame_num_to_track": request["sourceMedia"]["decodedFrameCount"],
+                "output_prob_thresh": 0.5,
+            }
+        ):
+            frame_index = int(response["frame_index"])
+            if (
+                frame_index < 0
+                or frame_index >= request["sourceMedia"]["decodedFrameCount"]
             ):
-                raise RuntimeError("SAM 3.1 normalized box is invalid")
-            mask_record = persist_mask(mask, frame_index, object_id, torch)
-            mask_records.append(mask_record)
-            distinct_object_ids.add(object_id)
-            frame_payload["objects"].append(
-                {
+                raise RuntimeError("SAM 3.1 emitted an out-of-scope frame")
+            if frame_index in frame_object_records:
+                raise RuntimeError("SAM 3.1 emitted a duplicate frame")
+            outputs = response["outputs"]
+            object_ids = outputs["out_obj_ids"].tolist()
+            boxes = outputs["out_boxes_xywh"].tolist()
+            masks = outputs["out_binary_masks"]
+            if not (len(object_ids) == len(boxes) == len(masks)):
+                raise RuntimeError("SAM 3.1 output arrays lost alignment")
+            object_records: list[dict[str, Any]] = []
+            persist_started = time.monotonic_ns()
+            for object_id_value, box, mask in zip(object_ids, boxes, masks):
+                object_id = exact_int(
+                    int(object_id_value), 0, 2**31 - 1, "object id"
+                )
+                if len(box) != 4 or any(
+                    isinstance(component, bool)
+                    or not isinstance(component, (int, float))
+                    or not math.isfinite(component)
+                    or component < 0
+                    or component > 1
+                    for component in box
+                ):
+                    raise RuntimeError("SAM 3.1 normalized box is invalid")
+                key = (frame_index, object_id)
+                if key in mask_records_by_key or any(
+                    pending_key == key for pending_key, _future in pending
+                ):
+                    raise RuntimeError("SAM 3.1 emitted a duplicate mask")
+                while len(pending) >= MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS:
+                    completed_key, completed_future = pending.popleft()
+                    mask_records_by_key[completed_key] = completed_future.result()
+                value = copy_mask_for_persistence(mask, torch)
+                future = persistence_pool.submit(
+                    persist_mask,
+                    value,
+                    frame_index,
+                    object_id,
+                )
+                pending.append((key, future))
+                distinct_object_ids.add(object_id)
+                object_records.append({
                     "objectId": object_id,
                     "normalizedBoxXywh": [float(component) for component in box],
-                    "maskSha256": mask_record["sha256"],
-                }
-            )
-        persistence_ns += time.monotonic_ns() - persist_started
-        prior = frame_records.get(frame_index)
-        if prior is not None and prior != frame_payload:
-            raise RuntimeError("SAM 3.1 duplicate frame output changed")
-        frame_records[frame_index] = frame_payload
+                })
+            persistence_ns += time.monotonic_ns() - persist_started
+            frame_object_records[frame_index] = object_records
+        drain_started = time.monotonic_ns()
+        while pending:
+            completed_key, completed_future = pending.popleft()
+            mask_records_by_key[completed_key] = completed_future.result()
+        persistence_ns += time.monotonic_ns() - drain_started
     propagation_elapsed_ns = time.monotonic_ns() - propagation_started
     exclusive_propagation_ns = exclusive_phase_nanoseconds(
         propagation_elapsed_ns,
@@ -2567,10 +2605,28 @@ def execute_inside_bfloat16_autocast(
     gpu_evidence["cudaKernelExecutionMeasured"] = True
 
     expected_frames = set(range(request["sourceMedia"]["decodedFrameCount"]))
-    if set(frame_records.keys()) != expected_frames or not mask_records:
+    if set(frame_object_records.keys()) != expected_frames or not mask_records_by_key:
         raise RuntimeError("SAM 3.1 did not produce complete bounded frame coverage")
     if len(distinct_object_ids) > MAXIMUM_OBJECTS:
         raise RuntimeError("SAM 3.1 exceeded the object product cap")
+
+    frame_records: dict[int, dict[str, Any]] = {}
+    for frame_index, objects in frame_object_records.items():
+        frame_payload = {"frameIndex": frame_index, "objects": []}
+        for object_record in objects:
+            object_id = object_record["objectId"]
+            mask_record = mask_records_by_key.get((frame_index, object_id))
+            if mask_record is None:
+                raise RuntimeError("SAM 3.1 persisted mask is missing")
+            frame_payload["objects"].append({
+                **object_record,
+                "maskSha256": mask_record["sha256"],
+            })
+        frame_records[frame_index] = frame_payload
+    mask_records = sorted(
+        mask_records_by_key.values(),
+        key=lambda item: (item["frameIndex"], item["objectId"]),
+    )
 
     stage = "output_persistence"
     manifest = {
@@ -2585,10 +2641,7 @@ def execute_inside_bfloat16_autocast(
         "firstFrameIndex": 0,
         "lastFrameIndex": request["sourceMedia"]["decodedFrameCount"] - 1,
         "frames": [frame_records[index] for index in sorted(frame_records.keys())],
-        "masks": sorted(
-            mask_records,
-            key=lambda item: (item["frameIndex"], item["objectId"]),
-        ),
+        "masks": mask_records,
     }
     manifest_bytes = stable_json_bytes(manifest)
     with MANIFEST_PATH.open("xb") as handle:

@@ -1,5 +1,7 @@
-import { createHash } from 'node:crypto'
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { deflateSync } from 'node:zlib'
 
 import type { Storage } from '@google-cloud/storage'
@@ -123,6 +125,13 @@ assert.equal(evidence.completeApprovedFrameIntervalCoverageVerified, true)
 assert.equal(evidence.noUnexpectedFilesOrCrossInvocationArtifacts, true)
 assert.equal(evidence.qaApproved, false)
 
+const readerSource = readFileSync(resolve(
+  process.cwd(),
+  'server/workers/masks/canonical-sam3_1-gcs-private-output-reader.ts',
+), 'utf8')
+assert.match(readerSource, /MAXIMUM_CONCURRENT_MASK_REREADS = 16/u)
+assert.match(readerSource, /await Promise\.all\(manifest\.masks/u)
+
 const withUnexpected = new Map(objects)
 withUnexpected.set(`${OUTPUT_ROOT}/unexpected.txt`, Buffer.from('unsafe'))
 await assert.rejects(() =>
@@ -161,6 +170,7 @@ console.log(JSON.stringify({
     closedManifestAndCompleteFrameInterval: true,
     everyMaskHashAndPngCrcReread: true,
     everyMaskFullyInflatedAndDimensionsVerified: true,
+    boundedConcurrentMaskRereadVerified: true,
     binaryGrayscalePixelsRequired: true,
     unexpectedAndCrossInvocationFilesRejected: true,
     changedMaskAndResponseRejected: true,

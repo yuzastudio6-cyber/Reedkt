@@ -33,6 +33,7 @@ const MAXIMUM_RESPONSE_BYTES = 64 * 1024
 const MAXIMUM_MANIFEST_BYTES = 64 * 1024 * 1024
 const MAXIMUM_MASK_BYTES = 512 * 1024 * 1024
 const MAXIMUM_MASK_FILES = 240 * 16
+const MAXIMUM_CONCURRENT_MASK_REREADS = 16
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -180,21 +181,29 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
       }
 
       let combinedMaskByteLength = 0
-      for (const mask of manifest.masks) {
-        const object = await readStableObject({
-          file: bucket.file(`${outputRoot}/${mask.relativeFileName}`),
-          minimumBytes: 1,
-          maximumBytes: Math.min(MAXIMUM_MASK_BYTES,
-            maximumLosslessMaskBytes(mask.width, mask.height)),
-        })
-        if (object.body.byteLength !== mask.byteLength
-          || rawSha256(object.body) !== mask.sha256) {
-          throw new Error('SAM 3.1 mask bytes differ from the manifest.')
-        }
-        decodeExactGrayscaleMaskPng(object.body, mask.width, mask.height)
-        combinedMaskByteLength += object.body.byteLength
-        if (!Number.isSafeInteger(combinedMaskByteLength)) {
-          throw new Error('SAM 3.1 combined mask byte length overflowed.')
+      for (let offset = 0; offset < manifest.masks.length;
+        offset += MAXIMUM_CONCURRENT_MASK_REREADS) {
+        const byteLengths = await Promise.all(manifest.masks
+          .slice(offset, offset + MAXIMUM_CONCURRENT_MASK_REREADS)
+          .map(async (mask) => {
+            const object = await readStableObject({
+              file: bucket.file(`${outputRoot}/${mask.relativeFileName}`),
+              minimumBytes: 1,
+              maximumBytes: Math.min(MAXIMUM_MASK_BYTES,
+                maximumLosslessMaskBytes(mask.width, mask.height)),
+            })
+            if (object.body.byteLength !== mask.byteLength
+              || rawSha256(object.body) !== mask.sha256) {
+              throw new Error('SAM 3.1 mask bytes differ from the manifest.')
+            }
+            decodeExactGrayscaleMaskPng(object.body, mask.width, mask.height)
+            return object.body.byteLength
+          }))
+        for (const byteLength of byteLengths) {
+          combinedMaskByteLength += byteLength
+          if (!Number.isSafeInteger(combinedMaskByteLength)) {
+            throw new Error('SAM 3.1 combined mask byte length overflowed.')
+          }
         }
       }
 

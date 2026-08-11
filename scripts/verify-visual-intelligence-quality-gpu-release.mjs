@@ -34,6 +34,7 @@ const smokes = [
   'server/smoke/visual-intelligence-sam31-foundation-provisioning-smoke.ts',
   'server/smoke/canonical-a100-vertex-custom-job-launch-port-smoke.ts',
   'server/smoke/canonical-a100-vertex-custom-job-terminal-port-smoke.ts',
+  'server/smoke/canonical-a100-vertex-terminal-cost-evidence-smoke.ts',
   'server/smoke/sam31-vertex-a100-private-foundation-smoke.ts',
   'server/smoke/gcp-foundation-config-smoke.ts',
   'server/smoke/source-led-visual-intelligence-content-analysis-smoke.ts',

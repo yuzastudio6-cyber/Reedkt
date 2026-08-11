@@ -27,13 +27,15 @@ export function buildGpuRuntimeEnvironmentChecks(): GpuRuntimeEnvironmentCheck[]
 
   checks.push({
     checkName: 'gpu_a100_80gb_heavy_primary',
-    status: a100?.runtimeKind === 'google_cloud_batch_job'
+    status: a100?.runtimeKind === 'google_cloud_vertex_custom_job'
       && a100.machineType === 'a2-ultragpu-1g'
       && a100.accelerator === 'nvidia_a100_80gb'
       && a100.gpuMemoryGiB === 80
+      && a100.localScratchGiB === 0
+      && a100.allowedZones.length === 0
       ? 'passed'
       : 'blocked',
-    message: 'Heavy models and heavy processing must use one A100 80 GB Batch job as the primary route.',
+    message: 'Heavy models and heavy processing must use one scale-zero A100 80 GB Vertex Custom Job as the primary route.',
   })
 
   checks.push({

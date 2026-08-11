@@ -683,7 +683,7 @@ function release() {
   const imageRef = ref('source-probe-l4-image')
   const payload = {
     schemaVersion:
-      'canonical-professional-tool-gpu-runtime-release-observation-v2' as const,
+      'canonical-professional-tool-gpu-runtime-release-observation-v3' as const,
     source: 'canonical_server_gpu_runtime_release_registry' as const,
     evidenceClass: 'canonical_private_reread' as const,
     releaseId: 'source-analysis-l4-probe-runtime-release',

@@ -321,9 +321,15 @@ const l4Fallback = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
 const l4Standard = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
   runtime.routeId === 'l4_standard_primary')
 check(a100?.accelerator === 'nvidia_a100_80gb' && a100.gpuMemoryGiB === 80, 'Heavy primary must use A100 80 GB.')
-check(a100?.runtimeKind === 'google_cloud_batch_job', 'Heavy A100 primary must use a one-shot Batch job.')
+check(
+  a100?.runtimeKind === 'google_cloud_vertex_custom_job',
+  'Heavy A100 primary must use a one-shot Vertex Custom Job.',
+)
 check(l4Fallback?.routeRole === 'heavy_fallback' && l4Fallback.accelerator === 'nvidia_l4', 'Heavy L4 must remain fallback-only.')
-check(l4Fallback?.region === 'europe-west4', 'Heavy L4 fallback must use its independently qualified europe-west4 route.')
+check(
+  l4Fallback?.region === 'us-central1',
+  'Heavy L4 fallback must use its independently qualified data-local route.',
+)
 check(l4Standard?.routeRole === 'standard_primary' && l4Standard.accelerator === 'nvidia_l4', 'Normal media must use L4 as standard primary.')
 check(l4Standard?.region === 'us-central1', 'Normal L4 processing must remain on the us-central1 route.')
 check([l4Fallback, l4Standard].every((runtime) =>

@@ -12,9 +12,9 @@ import {
   getKnownProfessionalToolCatalogProfile,
 } from '../tool-registry'
 import {
-  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
-  type CanonicalCurrentGoogleCloudGpuRateAuthority,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  type CanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
   assertCanonicalProfessionalToolGpuCostEstimate,
   calculateCanonicalProfessionalToolGpuCost,
@@ -936,7 +936,7 @@ export async function createCanonicalProfessionalGpuPlanPreapprovalManifest(
     basis.pricingBasisHash,
   )
   const rateCache = new Map<string, Promise<
-    CanonicalCurrentGoogleCloudGpuRateAuthority
+    CanonicalProfessionalGoogleCloudGpuRateAuthority
   >>()
   const admittedQuoteExpiryByHash = new Map<string, string>()
   const readRate = (routeId: z.infer<typeof routeIdSchema>) => {
@@ -1586,7 +1586,7 @@ async function readCurrentRate(input: {
   readonly routeId: z.infer<typeof routeIdSchema>
   readonly region: 'us-central1' | 'europe-west4'
   readonly at: string
-}): Promise<CanonicalCurrentGoogleCloudGpuRateAuthority> {
+}): Promise<CanonicalProfessionalGoogleCloudGpuRateAuthority> {
   const untrusted = await input.port
     .rereadCurrentAccountEffectiveRateAuthority({
       routeId: input.routeId,
@@ -1594,7 +1594,7 @@ async function readCurrentRate(input: {
       at: input.at,
     })
   assertClosedPlainSerializedData(untrusted, 'gpu_current_rate')
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     untrusted,
     input.at,
   )

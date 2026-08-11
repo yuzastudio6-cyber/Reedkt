@@ -9,7 +9,7 @@ source "${SCRIPT_DIR}/lib/gcloud-common.sh"
 confirm_prod_action
 
 readonly L4_DEFINITION_CONFIRMATION='deploy-weeditpro-qualified-l4-job-definitions-v1'
-readonly SAM31_L4_FALLBACK_REGION='europe-west4'
+readonly SAM31_L4_FALLBACK_REGION='us-central1'
 readonly CONTROL_PLANE_STATE_BUCKET='reeditpro-production-reeditpro-control-plane-state'
 readonly MASK_BUCKET='reeditpro-production-reeditpro-masks'
 if [[ "${WEEDITPRO_DEPLOY_QUALIFIED_L4_JOB_DEFINITIONS:-false}" \
@@ -33,7 +33,7 @@ readonly SAM31_IMAGE="${GCP_ARTIFACT_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${
 readonly TRACK_ALL_L4_TASK_QA_IMAGE="${GCP_ARTIFACT_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REEDITPRO_ARTIFACT_REPOSITORY}/reeditpro-track-all-l4-task-qa@${WEEDITPRO_TRACK_ALL_L4_TASK_QA_IMAGE_DIGEST}"
 
 # Active quality-first L4 routes. Heavy primary work is not deployed here: it
-# is created as a one-shot A100 80 GB Google Cloud Batch job by the canonical
+# is created as a one-shot A100 80 GB Vertex Custom Job by the canonical
 # backend launch owner. Both Cloud Run jobs remain at zero when no execution
 # exists; Cloud Run Job task retries stay zero because the canonical attempt
 # owner classifies and funds every retry.

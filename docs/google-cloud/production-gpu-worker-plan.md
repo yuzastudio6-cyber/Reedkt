@@ -5,14 +5,16 @@
 The prior L4-first template is historical and cannot authorize a new plan.
 WeEditPro uses exactly two accelerator classes:
 
-- A100 80 GB heavy primary: one `a2-ultragpu-1g` Google Cloud Batch job,
-  12 vCPU, 170 GiB memory, and 375 GiB local scratch per approved attempt.
+- A100 80 GB heavy primary: one `a2-ultragpu-1g` Vertex Custom Job with
+  12 vCPU and 170 GiB memory per approved attempt. It has no persistent pool,
+  Batch-local scratch, or caller-selected zone.
 - L4 standard primary: one Cloud Run Job with 8 vCPU and 32 GiB memory for
   normal substantive media processing, rendering/encoding, deterministic
   inspection, and media QA.
 - L4 heavy fallback: the same accelerator envelope but a distinct immutable
   release and job identity. It is eligible only after a server-owned terminal
-  pre-inference A100 failure and may not reduce model, resolution, or QA.
+  pre-inference A100 failure and may not reduce model, resolution, or QA. It
+  remains in `us-central1` with the primary route and private media.
 
 Every route uses one GPU, one user attempt per instance, no hidden platform
 retry, no prewarming/keepalive, and a minimum idle count of zero. RTX PRO 6000

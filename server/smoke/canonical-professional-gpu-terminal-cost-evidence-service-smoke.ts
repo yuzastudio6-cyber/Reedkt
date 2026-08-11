@@ -33,6 +33,9 @@ import {
   observeCanonicalCurrentGoogleCloudGpuRateAuthority,
   type CanonicalGoogleCloudGpuRateRawObservation,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+import {
+  observeCanonicalVertexA100RateFixture,
+} from './fixtures/canonical-vertex-a100-rate-fixture'
 
 const rateObservedAt = '2026-08-02T16:00:00.000Z'
 const admittedAt = '2026-08-02T16:10:00.000Z'
@@ -40,6 +43,7 @@ const launchStartedAt = '2026-08-02T16:11:00.000Z'
 const usageObservedAt = '2026-08-02T16:13:00.000Z'
 const a100Rate = await rate('a100_80gb_heavy_primary')
 const l4FallbackRate = await rate('l4_heavy_fallback')
+const priorPrimaryTerminalReceiptRef = ref('sam31-primary-safe-failure')
 const runtimeRelease = buildRuntimeRelease()
 const estimate = createCanonicalProfessionalToolGpuCostEstimate({
   estimateId: 'sam31-terminal-cost-estimate',
@@ -69,7 +73,7 @@ const admission = admitCanonicalProfessionalToolGpuDispatch({
   admissionId: 'sam31-terminal-cost-admission',
   estimate,
   runtimeRelease,
-  currentRateAuthority: a100Rate,
+  currentRateAuthority: l4FallbackRate,
   scope: {
     ownerUserId: 'owner-1',
     workspaceId: 'workspace-1',
@@ -88,7 +92,11 @@ const admission = admitCanonicalProfessionalToolGpuDispatch({
     executionAttemptRef: ref('sam31-execution-attempt-1'),
     idempotencyKey: 'sam31-execution-attempt-1.idempotency',
   },
-  routeId: 'a100_80gb_heavy_primary',
+  routeId: 'l4_heavy_fallback',
+  priorPrimaryTerminalReceiptRef,
+  priorPrimaryFailureClass:
+    'a100_capacity_unavailable_before_attempt_start',
+  priorPrimaryOutcomeKnownNotExecuted: true,
   admittedAt,
   expiresAt: '2026-08-02T16:15:00.000Z',
 })
@@ -130,9 +138,9 @@ const launchTarget = {
   operationId: admission.operationId,
   routeId: admission.routeId,
   runtimeRegion: 'us-central1' as const,
-  executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
-  machineType: 'a2-ultragpu-1g' as const,
-  accelerator: 'nvidia_a100_80gb' as const,
+  executionTarget: 'google_cloud_run_l4_job' as const,
+  machineType: 'cloud_run_nvidia_l4' as const,
+  accelerator: 'nvidia_l4' as const,
   immutableImageRef: runtimeRelease.immutableImageRef,
   immutableImageDigest: runtimeRelease.immutableImageDigest,
   fixedServerTaskContractRef: ref('sam31-fixed-task-contract'),
@@ -208,7 +216,7 @@ const providerTerminalRef = ref('sam31-provider-terminal-1')
 const completedPort = costPort({
   receiptId: 'sam31-attempt-cost-completed',
   substantiveWorkOutcome: 'executed',
-  actualUsage: usage('a100', 60_000),
+  actualUsage: usage('l4', 60_000),
 })
 const completedEvidence = canonicalProfessionalGpuTerminalCostEvidenceSchema
   .parse(await completedPort.rereadUsagePriceAndCostEvidence({
@@ -226,7 +234,7 @@ assert.equal(completedEvidence.activeGpuResourcesAfterObservation, 0)
 assert.equal(completedEvidence.customerWalletOrLedgerMutated, false)
 assert.equal(
   completedEvidence.currentAccountPriceAuthorityRef.contentHash,
-  `sha256:${a100Rate.rateAuthorityHash}`,
+  `sha256:${l4FallbackRate.rateAuthorityHash}`,
 )
 
 const repeatedCompletedEvidence = canonicalProfessionalGpuTerminalCostEvidenceSchema
@@ -244,7 +252,7 @@ assert.equal(receiptRecords.size, 1)
 const notExecutedPort = costPort({
   receiptId: 'sam31-attempt-cost-not-executed',
   substantiveWorkOutcome: 'not_executed',
-  actualUsage: usage('a100', 0),
+  actualUsage: usage('l4', 0),
 })
 await notExecutedPort.rereadUsagePriceAndCostEvidence({
   launch,
@@ -264,7 +272,7 @@ assert.equal(
 const unknownPort = costPort({
   receiptId: 'sam31-attempt-cost-unknown',
   substantiveWorkOutcome: 'unknown',
-  actualUsage: usage('a100', 20_000),
+  actualUsage: usage('l4', 20_000),
 })
 await unknownPort.rereadUsagePriceAndCostEvidence({
   launch,
@@ -285,7 +293,7 @@ assert.equal(
 const canceledPort = costPort({
   receiptId: 'sam31-attempt-cost-canceled',
   substantiveWorkOutcome: 'not_executed',
-  actualUsage: usage('a100', 0),
+  actualUsage: usage('l4', 0),
 })
 await canceledPort.rereadUsagePriceAndCostEvidence({
   launch,
@@ -385,7 +393,7 @@ const mismatchedUsagePort = createCanonicalProfessionalGpuTerminalCostEvidenceRe
     async rereadPlatformUsageAndCapacity() {
       return buildUsageEvidence({
         substantiveWorkOutcome: 'executed',
-        actualUsage: usage('a100', 60_000),
+        actualUsage: usage('l4', 60_000),
         cloudProviderTerminalRef: ref('another-provider-terminal'),
       })
     },
@@ -415,7 +423,7 @@ const reusedTeardownPort = createCanonicalProfessionalGpuTerminalCostEvidenceRea
     async rereadPlatformUsageAndCapacity() {
       return buildUsageEvidence({
         substantiveWorkOutcome: 'executed',
-        actualUsage: usage('a100', 60_000),
+        actualUsage: usage('l4', 60_000),
         cloudProviderTerminalRef: providerTerminalRef,
         cloudCapacityTeardownObservationRef: providerTerminalRef,
       })
@@ -446,14 +454,14 @@ const staleClockPort = createCanonicalProfessionalGpuTerminalCostEvidenceReadPor
     async rereadPlatformUsageAndCapacity() {
       return buildUsageEvidence({
         substantiveWorkOutcome: 'executed',
-        actualUsage: usage('a100', 60_000),
+        actualUsage: usage('l4', 60_000),
         cloudProviderTerminalRef: providerTerminalRef,
       })
     },
   },
   rateReadPort: {
     async rereadApprovedCurrentAccountRateAuthority() {
-      return structuredClone(a100Rate)
+      return structuredClone(l4FallbackRate)
     },
   },
   receiptStore,
@@ -477,14 +485,14 @@ const wrongRatePort = createCanonicalProfessionalGpuTerminalCostEvidenceReadPort
     async rereadPlatformUsageAndCapacity() {
       return buildUsageEvidence({
         substantiveWorkOutcome: 'executed',
-        actualUsage: usage('a100', 60_000),
+        actualUsage: usage('l4', 60_000),
         cloudProviderTerminalRef: providerTerminalRef,
       })
     },
   },
   rateReadPort: {
     async rereadApprovedCurrentAccountRateAuthority() {
-      return l4FallbackRate
+      return a100Rate
     },
   },
   receiptStore,
@@ -510,12 +518,13 @@ const executionBindingPayload = {
   providerExecutionPersistedBeforeTerminalRead: true as const,
   callerProviderResourceAccepted: false as const,
   browserLocalStateAccepted: false as const,
-  routeId: 'a100_80gb_heavy_primary' as const,
-  executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
-  accelerator: 'nvidia_a100_80gb' as const,
-  providerJobResource:
+  routeId: 'l4_heavy_fallback' as const,
+  executionTarget: 'google_cloud_run_l4_job' as const,
+  accelerator: 'nvidia_l4' as const,
+  providerOperationResource:
+    'projects/reeditpro/locations/us-central1/operations/sam31-composed-op-1',
+  expectedCloudRunJobResource:
     'projects/reeditpro/locations/us-central1/jobs/sam31-composed-job-1',
-  providerJobUid: 'sam31-composed-job-uid-1',
 }
 const executionBinding = {
   ...executionBindingPayload,
@@ -532,14 +541,31 @@ const composedTerminalPort = createGoogleCloudProfessionalGpuTerminalObservation
   auth: {
     async request() {
       composedProviderTerminalReads += 1
+      if (composedProviderTerminalReads === 1) return {
+        data: {
+          name: executionBinding.providerOperationResource,
+          done: true,
+          response: {
+            name: `${executionBinding.expectedCloudRunJobResource}`
+              + '/executions/execution-1',
+          },
+        },
+      } as never
       return {
         data: {
-          name: executionBinding.providerJobResource,
-          uid: executionBinding.providerJobUid,
-          status: {
-            state: 'SUCCEEDED',
-            runDuration: '119.000s',
-          },
+          name: `${executionBinding.expectedCloudRunJobResource}`
+            + '/executions/execution-1',
+          uid: 'sam31-composed-execution-uid-1',
+          completionTime: '2026-08-02T16:13:01.000Z',
+          taskCount: 1,
+          runningCount: 0,
+          succeededCount: 1,
+          failedCount: 0,
+          cancelledCount: 0,
+          conditions: [{
+            type: 'Completed',
+            state: 'CONDITION_SUCCEEDED',
+          }],
         },
       } as never
     },
@@ -552,7 +578,7 @@ const composedTerminalRecord = await recordCanonicalProfessionalGpuJobTerminal({
   terminalObservationPort: composedTerminalPort,
   store: lifecycleStore,
 })
-assert.equal(composedProviderTerminalReads, 1)
+assert.equal(composedProviderTerminalReads, 2)
 assert.equal(composedTerminalRecord.terminalOutcome, 'completed')
 assert.equal(composedTerminalRecord.workerStoppedVerified, true)
 assert.equal(
@@ -611,7 +637,7 @@ function costPort(input: {
     },
     rateReadPort: {
       async rereadApprovedCurrentAccountRateAuthority() {
-        return structuredClone(a100Rate)
+        return structuredClone(l4FallbackRate)
       },
     },
     receiptStore,
@@ -632,13 +658,14 @@ function buildContext(receiptId: string) {
     executionEnvelope,
     estimate,
     approvedCurrentAccountRateAuthorityRef: ref(
-      a100Rate.rateAuthorityId,
-      a100Rate.rateAuthorityHash,
-      a100Rate.rateAuthorityVersion,
+      l4FallbackRate.rateAuthorityId,
+      l4FallbackRate.rateAuthorityHash,
+      l4FallbackRate.rateAuthorityVersion,
     ),
     attemptCostReceiptId: receiptId,
-    priorPrimaryFailureReceiptRef: null,
-    priorPrimaryFailureClass: 'not_applicable' as const,
+    priorPrimaryFailureReceiptRef: priorPrimaryTerminalReceiptRef,
+    priorPrimaryFailureClass:
+      'a100_capacity_unavailable_before_attempt_start' as const,
     exactApprovalEstimateReservationAdmissionEnvelopeAndLaunchReread:
       true as const,
     callerEstimateRateUsageOutcomeOrCostAccepted: false as const,
@@ -702,7 +729,7 @@ function buildRuntimeRelease() {
   const imageRef = ref('sam31-a100-image')
   const payload = {
     schemaVersion:
-      'canonical-professional-tool-gpu-runtime-release-observation-v2' as const,
+      'canonical-professional-tool-gpu-runtime-release-observation-v3' as const,
     source: 'canonical_server_gpu_runtime_release_registry' as const,
     evidenceClass: 'canonical_private_reread' as const,
     releaseId: 'sam31-a100-private-runtime-release',
@@ -716,15 +743,15 @@ function buildRuntimeRelease() {
     toolCostProfileId: 'gpu-tool-sam3_1-v1',
     modelOrOperationCostProfileId:
       'sam3_1_multiplex_video_segmentation_v1' as const,
-    routeId: 'a100_80gb_heavy_primary' as const,
+    routeId: 'l4_heavy_fallback' as const,
     runtimeRegion: 'us-central1' as const,
-    executionTarget: 'google_cloud_batch_a2_ultra_job' as const,
-    machineType: 'a2-ultragpu-1g' as const,
-    accelerator: 'nvidia_a100_80gb' as const,
+    executionTarget: 'google_cloud_run_l4_job' as const,
+    machineType: 'cloud_run_nvidia_l4' as const,
+    accelerator: 'nvidia_l4' as const,
     allocatedGpuCount: 1 as const,
-    allocatedVcpuCount: 12 as const,
-    allocatedMemoryGiB: 170 as const,
-    allocatedLocalScratchGiB: 375 as const,
+    allocatedVcpuCount: 8 as const,
+    allocatedMemoryGiB: 32 as const,
+    allocatedLocalScratchGiB: 0 as const,
     serviceIdentityRef: ref('sam31-gpu-service-identity'),
     immutableImageRef: imageRef,
     immutableImageDigest: imageRef.contentHash,
@@ -787,7 +814,7 @@ function usage(
     allocatedGpuCount: 1,
     allocatedVcpuCount: route === 'a100' ? 12 : 8,
     allocatedMemoryGiB: route === 'a100' ? 170 : 32,
-    allocatedLocalScratchGiB: route === 'a100' ? 375 : 0,
+    allocatedLocalScratchGiB: 0,
     privateArtifactBytes: 64 * 1024 * 1024,
     privateArtifactRetentionMilliseconds: 24 * 60 * 60 * 1_000,
     networkEgressBytes: 0,
@@ -815,6 +842,16 @@ async function rate(
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
 ) {
+  if (routeId === 'a100_80gb_heavy_primary') {
+    return observeCanonicalVertexA100RateFixture({
+      observedAt: rateObservedAt,
+      rateAuthorityId: 'rate-a100_80gb_heavy_primary',
+      billingAccountPricingScopeRef:
+        ref('billing-account-pricing-scope'),
+      pricingReaderConfigurationRef:
+        ref('gpu-rate-reader-configuration'),
+    })
+  }
   return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
     rateAuthorityId: `rate-${routeId}`,
     rateAuthorityVersion: 1,
@@ -830,25 +867,18 @@ async function rate(
 
 function rawRate(
   routeId:
-    | 'a100_80gb_heavy_primary'
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
 ): CanonicalGoogleCloudGpuRateRawObservation {
-  const components = routeId === 'a100_80gb_heavy_primary'
-    ? [
-        component('a2_ultragpu_1g_machine_bundle',
-          'machine_hour', 5_068_797_890, 'a'),
-        ...commonComponents(),
-      ]
-    : [
-        component('cloud_run_l4_gpu_second',
-          'gpu_second', 186_700, 'b'),
-        component('cloud_run_vcpu_second',
-          'vcpu_second', 18_000, 'c'),
-        component('cloud_run_memory_gib_second',
-          'gib_second', 2_000, 'd'),
-        ...commonComponents(),
-      ]
+  const components = [
+    component('cloud_run_l4_gpu_second',
+      'gpu_second', 186_700, 'b'),
+    component('cloud_run_vcpu_second',
+      'vcpu_second', 18_000, 'c'),
+    component('cloud_run_memory_gib_second',
+      'gib_second', 2_000, 'd'),
+    ...commonComponents(),
+  ]
   const payload = {
     sourceClass: 'billing_account_effective_pricing_api' as const,
     billingAccountPricingScopeRef: ref('billing-account-pricing-scope'),
@@ -881,7 +911,6 @@ function commonComponents() {
 
 function component(
   componentClass:
-    | 'a2_ultragpu_1g_machine_bundle'
     | 'cloud_run_l4_gpu_second'
     | 'cloud_run_vcpu_second'
     | 'cloud_run_memory_gib_second'
@@ -890,7 +919,6 @@ function component(
     | 'object_class_a_per_1000'
     | 'object_class_b_per_1000',
   billingUnit:
-    | 'machine_hour'
     | 'gpu_second'
     | 'vcpu_second'
     | 'gib_second'
@@ -902,17 +930,13 @@ function component(
 ) {
   const cloudServiceId = componentClass.startsWith('cloud_run')
     ? 'service-cloud-run'
-    : componentClass.startsWith('a2_')
-      ? 'service-compute-engine'
-      : 'service-cloud-storage'
+    : 'service-cloud-storage'
   const skuId = `sku-${componentClass}`
   return {
     componentClass,
     cloudServiceName: componentClass.startsWith('cloud_run')
       ? 'cloud-run'
-      : componentClass.startsWith('a2_')
-        ? 'compute-engine'
-        : 'cloud-storage',
+      : 'cloud-storage',
     skuRateBindingId: `rate-binding-${componentClass}`,
     skuPriceTerms: [{
       cloudServiceId,

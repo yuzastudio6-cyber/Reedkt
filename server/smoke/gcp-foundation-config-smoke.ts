@@ -164,13 +164,22 @@ const l4Fallback = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
 const l4Standard = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
   runtime.routeId === 'l4_standard_primary')
 check(Boolean(a100 && l4Fallback && l4Standard), 'The complete quality-first GPU topology must exist.')
-check(a100?.runtimeKind === 'google_cloud_batch_job', 'A100 heavy primary must use a Batch job.')
+check(
+  a100?.runtimeKind === 'google_cloud_vertex_custom_job',
+  'A100 heavy primary must use a one-shot Vertex Custom Job.',
+)
 check(a100?.machineType === 'a2-ultragpu-1g', 'A100 heavy primary must use a2-ultragpu-1g.')
 check(a100?.accelerator === 'nvidia_a100_80gb', 'A100 heavy primary must use NVIDIA A100 80 GB.')
 check(a100?.gpuMemoryGiB === 80 && a100.cpu === 12 && a100.memoryGiB === 170, 'A100 route resources are incomplete.')
-check(a100?.localScratchGiB === 375, 'A100 route must preserve its local scratch requirement.')
+check(
+  a100?.localScratchGiB === 0 && a100.allowedZones.length === 0,
+  'A100 Vertex route must not inherit Batch-local scratch or zone selection.',
+)
 check(l4Fallback?.routeRole === 'heavy_fallback', 'The L4 heavy route must remain fallback-only.')
-check(l4Fallback?.region === 'europe-west4', 'The qualified SAM 3.1 L4 fallback must remain isolated in europe-west4.')
+check(
+  l4Fallback?.region === 'us-central1',
+  'The qualified SAM 3.1 L4 fallback must remain data-local in us-central1.',
+)
 check(l4Standard?.routeRole === 'standard_primary', 'The L4 standard route must remain primary for normal GPU work.')
 check(l4Standard?.region === 'us-central1', 'The normal L4 route must remain in us-central1.')
 for (const l4 of [l4Fallback, l4Standard]) {
@@ -255,7 +264,7 @@ for (const scriptPath of scriptPaths) {
 const gpuScript = readRepoFile('scripts/gcp/prod/10-deploy-gpu-worker-job.example.sh')
 check(gpuScript.includes('reeditpro-professional-l4'), 'GPU deploy example must define the L4 standard-primary job.')
 check(gpuScript.includes('reeditpro-sam31-l4-fallback'), 'GPU deploy example must define the separately qualified SAM 3.1 L4 fallback job.')
-check(gpuScript.includes("SAM31_L4_FALLBACK_REGION='europe-west4'"), 'The SAM 3.1 L4 fallback definition must use its separately qualified europe-west4 route.')
+check(gpuScript.includes("SAM31_L4_FALLBACK_REGION='us-central1'"), 'The SAM 3.1 L4 fallback definition must use its data-local us-central1 route.')
 check(gpuScript.includes('reeditpro-track-all-mask-qa-l4'), 'GPU deploy example must define the dedicated Track All L4 mask-QA job.')
 check((gpuScript.match(/--gpu=1/gu) ?? []).length === 3, 'All three L4 jobs must include --gpu=1.')
 check((gpuScript.match(/--gpu-type=nvidia-l4/gu) ?? []).length === 3, 'All three L4 jobs must use nvidia-l4.')

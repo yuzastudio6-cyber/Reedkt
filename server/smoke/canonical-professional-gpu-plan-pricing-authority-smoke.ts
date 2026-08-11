@@ -12,6 +12,9 @@ import {
   type CanonicalGoogleCloudGpuRateRawObservation,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
+  observeCanonicalVertexA100RateFixture,
+} from './fixtures/canonical-vertex-a100-rate-fixture'
+import {
   createCanonicalProfessionalToolGpuAttemptCostReceipt,
 } from '../tool-cost-metering/canonical-professional-tool-gpu-cost-authority'
 import {
@@ -1352,7 +1355,7 @@ function usage(route: 'a100' | 'l4', activeGpuMilliseconds: number) {
     allocatedGpuCount: 1 as const,
     allocatedVcpuCount: route === 'a100' ? 12 : 8,
     allocatedMemoryGiB: route === 'a100' ? 170 : 32,
-    allocatedLocalScratchGiB: route === 'a100' ? 375 : 0,
+    allocatedLocalScratchGiB: 0,
     privateArtifactBytes: 128 * 1024 * 1024,
     privateArtifactRetentionMilliseconds: 24 * 60 * 60 * 1_000,
     networkEgressBytes: 0,
@@ -1367,7 +1370,7 @@ function runtimeRelease() {
   const immutableImageRef = ref('ffmpeg-l4-qualified-image', 'b')
   const payload = {
     schemaVersion:
-      'canonical-professional-tool-gpu-runtime-release-observation-v2' as const,
+      'canonical-professional-tool-gpu-runtime-release-observation-v3' as const,
     source: 'canonical_server_gpu_runtime_release_registry' as const,
     evidenceClass: 'canonical_private_reread' as const,
     releaseId: 'ffmpeg-l4-private-runtime-release',
@@ -1444,6 +1447,16 @@ async function observeRate(
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
 ) {
+  if (routeId === 'a100_80gb_heavy_primary') {
+    return observeCanonicalVertexA100RateFixture({
+      observedAt,
+      rateAuthorityId: 'current-vertex-a100-rate-v1',
+      billingAccountRefId: 'billing-account-scope',
+      billingAccountCharacter: 'b',
+      readerRefId: 'pricing-reader-config',
+      readerCharacter: 'c',
+    })
+  }
   return observeCanonicalCurrentGoogleCloudGpuRateAuthority({
     rateAuthorityId: `current-rate-${routeId}`,
     rateAuthorityVersion: 1,
@@ -1459,25 +1472,18 @@ async function observeRate(
 
 function rawRate(
   routeId:
-    | 'a100_80gb_heavy_primary'
     | 'l4_heavy_fallback'
     | 'l4_standard_primary',
 ): CanonicalGoogleCloudGpuRateRawObservation {
-  const components = routeId === 'a100_80gb_heavy_primary'
-    ? [
-        component('a2_ultragpu_1g_machine_bundle',
-          'machine_hour', 5_068_797_890, '7'),
-        ...commonComponents(),
-      ]
-    : [
-        component('cloud_run_l4_gpu_second',
-          'gpu_second', 186_700, '8'),
-        component('cloud_run_vcpu_second',
-          'vcpu_second', 18_000, '9'),
-        component('cloud_run_memory_gib_second',
-          'gib_second', 2_000, 'a'),
-        ...commonComponents(),
-      ]
+  const components = [
+    component('cloud_run_l4_gpu_second',
+      'gpu_second', 186_700, '8'),
+    component('cloud_run_vcpu_second',
+      'vcpu_second', 18_000, '9'),
+    component('cloud_run_memory_gib_second',
+      'gib_second', 2_000, 'a'),
+    ...commonComponents(),
+  ]
   const payload = {
     sourceClass: 'billing_account_effective_pricing_api' as const,
     billingAccountPricingScopeRef: ref('billing-account-scope', 'b'),

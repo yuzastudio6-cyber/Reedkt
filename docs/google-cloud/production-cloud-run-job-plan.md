@@ -2,7 +2,7 @@
 
 > **Current WeEditPro authority:** the historical CPU/L4-first job list in
 > older milestones cannot authorize new work. Heavy processing uses one-shot
-> A100 80 GB Google Cloud Batch jobs. Normal substantive media work uses the
+> A100 80 GB Vertex Custom Jobs. Normal substantive media work uses the
 > L4 standard-primary Cloud Run Job, and eligible heavy work may use the
 > separately qualified L4 fallback only after an allowed A100 failure. All
 > accelerator routes start from zero and return to zero.
@@ -22,7 +22,7 @@
 
 | Job | Runtime | Service account | GPU | Notes |
 | --- | --- | --- | --- | --- |
-| Per-attempt A100 heavy primary | Google Cloud Batch | `reeditpro-gpu-worker-sa` | A100 80 GB, 1 GPU | `a2-ultragpu-1g`; created only after exact approved/funded admission and deleted at terminal state. |
+| Per-attempt A100 heavy primary | Vertex Custom Job | `reeditpro-gpu-worker-sa` | A100 80 GB, 1 GPU | `a2-ultragpu-1g`; created only after exact approved/funded admission and terminally reconciled with no persistent pool. |
 | `reeditpro-professional-l4` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Standard-primary normal media/render/encode/inspection/QA route; 8 vCPU, 32 GiB. |
 | `reeditpro-sam31-l4-fallback` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Independently qualified SAM 3.1 heavy fallback only; 8 vCPU, 32 GiB. |
 | Legacy CPU/render/QA jobs | Historical Cloud Run Job templates | Legacy identities | None | Readback/migration only; cannot execute fresh substantive media/model work. |

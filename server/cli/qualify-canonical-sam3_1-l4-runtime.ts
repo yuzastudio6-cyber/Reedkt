@@ -27,6 +27,7 @@ import {
   createCanonicalSam31GcsPrivateOutputRereadPort,
 } from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
 import {
+  assertCanonicalSam31GpuRuntimeResultAdmission,
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -55,13 +56,15 @@ const INVOCATION_PREFIX =
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v1' as const
 const EXPECTED_IMAGE_DIGEST =
-  'sha256:42603a73fd5b1f1d60127425b3c88488d6eab0a03822e9ad20cfb24e54df1f29' as const
+  'sha256:5bbb3b447e3d7e1d89709c5dee49dc8e00fec0e78877afc1b9da50729cb3daaf' as const
 const EXPECTED_IMAGE =
   `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${EXPECTED_IMAGE_DIGEST}` as const
 const BASELINE_INVOCATION_ID =
-  'sam31-a100-qualification:sam31-production-a100-image-42603a73-20260811.run-01.execution' as const
+  'sam31-a100-qualification:sam31-production-a100-image-5bbb3b44-20260811.run-01.execution' as const
 const BASELINE_TASK_HASH =
-  'd9a612ce79c3db3fd5a5a252f833892b3cabe6547ed1d6c163989777d5e2df02' as const
+  '4bf5f63849f32c1b14529b466a015016becc04e728b99b0d492be48094defa93' as const
+const BASELINE_RESULT_ADMISSION_HASH =
+  '3de1bb79e1e4cc33c48ea4a76db64fb97e255a4579542077f15832b862dda628' as const
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
 const CHECKPOINT_SIZE = 3_502_755_717 as const
@@ -123,6 +126,10 @@ async function main() {
       objectPort: controlObjectPort,
     })
   const baseTask = await rereadBaselineTask(privateObjectPort)
+  const baselineResult = await rereadBaselineResult(
+    privateObjectPort,
+    baseTask,
+  )
   const l4Rate = await rateRepository.rereadApprovedCurrentRate({
     rateAuthorityRef: baseTask.fallbackRateAuthorityRef,
     routeId: 'l4_heavy_fallback',
@@ -134,7 +141,15 @@ async function main() {
   const jobProjection = exactJobProjection(job)
   const candidateReleaseRef = opaqueRef(
     `sam31-l4-runtime-candidate:${suffix}`,
-    { job: jobProjection, checkpoint, imageDigest: EXPECTED_IMAGE_DIGEST },
+    {
+      job: jobProjection,
+      checkpoint,
+      imageDigest: EXPECTED_IMAGE_DIGEST,
+      qualifiedA100BaselineResultRef: ref(
+        baselineResult.resultAdmissionId,
+        baselineResult.resultAdmissionHash,
+      ),
+    },
   )
   const priorPrimaryQualificationNonExecutionRef = opaqueRef(
     `sam31-l4-qualification-primary-not-executed:${suffix}`,
@@ -160,6 +175,10 @@ async function main() {
     runtimeCandidateReleaseRef: candidateReleaseRef,
     sourceCheckpointQualificationRef:
       baseTask.specializedRuntimeReleaseRef,
+    qualifiedA100BaselineResultRef: ref(
+      baselineResult.resultAdmissionId,
+      baselineResult.resultAdmissionHash,
+    ),
     currentA100RateAuthorityRef: baseTask.primaryRateAuthorityRef,
     currentL4FallbackRateAuthorityRef: baseTask.fallbackRateAuthorityRef,
     checkpointPromotionRef: checkpoint.checkpointPromotionRef,
@@ -398,6 +417,10 @@ async function main() {
     cloudRunOperationName: operation.name,
     cloudRunExecutionResource: execution.name,
     currentL4FallbackRateAuthorityRef: baseTask.fallbackRateAuthorityRef,
+    qualifiedA100BaselineResultRef: ref(
+      baselineResult.resultAdmissionId,
+      baselineResult.resultAdmissionHash,
+    ),
     runtimeCandidateReleaseRef: candidateReleaseRef,
     checkpointPromotionRef: checkpoint.checkpointPromotionRef,
     runtimeResponseRef: opaqueRef(
@@ -468,6 +491,39 @@ async function rereadBaselineTask(objectPort: ReturnType<
     throw new Error('approved_a100_baseline_task_changed')
   }
   return task
+}
+
+async function rereadBaselineResult(
+  objectPort: ReturnType<
+    typeof createCanonicalGcsSourceAnalysisJsonObjectPort
+  >,
+  task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>,
+) {
+  const body = await objectPort.readExact(
+    `${INVOCATION_PREFIX}/${BASELINE_INVOCATION_ID}/result-admission.json`,
+  )
+  if (!body) throw new Error('approved_a100_baseline_result_missing')
+  const result = assertCanonicalSam31GpuRuntimeResultAdmission(
+    JSON.parse(body.toString('utf8')) as unknown,
+  )
+  if (
+    result.resultAdmissionHash !== BASELINE_RESULT_ADMISSION_HASH
+    || result.routeId !== 'a100_80gb_heavy_primary'
+    || result.accelerator !== 'nvidia_a100_80gb'
+    || result.status !== 'ready_for_independent_mask_artifact_qa'
+    || result.taskRef.contentHash !== `sha256:${task.taskRecordHash}`
+    || result.specializedRuntimeReleaseRef.contentHash !==
+      task.specializedRuntimeReleaseRef.contentHash
+    || result.actualNvdecCudaBfloat16ExecutionVerified !== true
+    || result.exactTaskResponseLaunchTerminalAndOutputReread !== true
+    || result.accountEffectiveAttemptCostReceiptPersisted !== true
+    || result.terminalWorkerStoppedAndScaleBackToZeroVerified !== true
+    || result.customerCreditsMutated !== false
+    || result.productionAuthorityGranted !== false
+  ) {
+    throw new Error('approved_a100_baseline_result_changed')
+  }
+  return result
 }
 
 async function rereadRuntimeCheckpoint(storage: Storage) {

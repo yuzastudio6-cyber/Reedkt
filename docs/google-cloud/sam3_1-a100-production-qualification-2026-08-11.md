@@ -1,7 +1,12 @@
 # WeEditPro SAM 3.1 A100 production-image qualification receipt
 
 Date: 2026-08-11
-Status: `a100_probe_qualified_independent_artifact_integrity_ready`
+Status: `historical_superseded_candidate_read_only`
+
+This candidate is superseded by
+`sam3_1-a100-production-qualification-v2-2026-08-11.md`. Its immutable
+records remain readable for audit and cost reconciliation, but this image may
+not satisfy a fresh L4 comparison or runtime release.
 
 This receipt records a private pre-release qualification of the exact
 production SAM 3.1 image. It does not grant a runtime release, QA approval,

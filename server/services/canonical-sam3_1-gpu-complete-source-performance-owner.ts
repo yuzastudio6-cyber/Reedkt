@@ -29,8 +29,10 @@ import {
   type CanonicalSam31GpuRuntimeResponse,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
 import {
+  assertCanonicalSam31PrivateOutputRereadEvidence,
   assertCanonicalSam31GpuRuntimeResultAdmission,
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
+  type CanonicalSam31PrivateOutputRereadEvidence,
   type CanonicalSam31GpuRuntimeResultAdmission,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -304,6 +306,10 @@ export interface CanonicalSam31GpuCompleteSourcePerformanceReadPort {
     readonly invocationId: string
     readonly terminalRef: EvidenceRef
   }): Promise<unknown | null>
+  rereadPrivateOutputEvidence(input: {
+    readonly invocationId: string
+    readonly privateOutputRereadEvidenceRef: EvidenceRef
+  }): Promise<unknown | null>
   rereadRuntimeResponse(input: {
     readonly invocationId: string
     readonly runtimeResponseObjectRef: EvidenceRef
@@ -485,16 +491,32 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwner(input: {
           const terminal = assertCanonicalProfessionalGpuJobTerminal(
             terminalValue,
           )
+          const privateOutputValue =
+            await input.readPort.rereadPrivateOutputEvidence({
+              invocationId: chunk.invocationId,
+              privateOutputRereadEvidenceRef:
+                result.privateOutputRereadEvidenceRef,
+            })
+          if (privateOutputValue === null) {
+            throw conflict(
+              `chunk_${chunk.chunkOrdinal}_private_output_evidence_missing`,
+            )
+          }
+          const privateOutput =
+            assertCanonicalSam31PrivateOutputRereadEvidence(
+              privateOutputValue,
+            )
           assertChunkLineage({
             observation,
             chunk,
             task,
             launch,
             terminal,
+            privateOutput,
             result,
             response,
           })
-          return { task, launch, terminal, result, response }
+          return { task, launch, terminal, privateOutput, result, response }
         },
       ))
       assertStitchLineage({ observation, stitch, chunkRecords })
@@ -504,6 +526,10 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwner(input: {
         resultAdmissionRef: chunk.resultAdmissionRef,
         runtimeResponseObjectRef: chunk.runtimeResponseObjectRef,
         manifestRef: chunkRecords[index].result.manifestRef,
+        privateOutputRereadEvidenceRef:
+          chunkRecords[index].result.privateOutputRereadEvidenceRef,
+        maskSequenceArtifactRef:
+          chunkRecords[index].privateOutput.maskSequenceArtifactRef,
       }))
       const costSetPayload = chunkRecords.map(({ terminal, result }, index) => ({
         chunkOrdinal: index + 1,
@@ -683,6 +709,15 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectP
           terminalRecordId: terminalRef.id,
         })
       },
+      rereadPrivateOutputEvidence({
+        invocationId,
+        privateOutputRereadEvidenceRef,
+      }) {
+        return resultStore.rereadPrivateOutputRereadEvidence(
+          invocationId,
+          privateOutputRereadEvidenceRef,
+        )
+      },
       rereadRuntimeResponse({ invocationId }) {
         return taskStore.rereadRuntimeResponse(invocationId)
       },
@@ -743,10 +778,20 @@ function assertChunkLineage(input: {
   task: CanonicalSam31GpuTaskRecord
   launch: CanonicalProfessionalGpuJobLaunch
   terminal: CanonicalProfessionalGpuJobTerminal
+  privateOutput: CanonicalSam31PrivateOutputRereadEvidence
   result: CanonicalSam31GpuRuntimeResultAdmission
   response: CanonicalSam31GpuRuntimeResponse
 }): void {
-  const { observation, chunk, task, launch, terminal, result, response } = input
+  const {
+    observation,
+    chunk,
+    task,
+    launch,
+    terminal,
+    privateOutput,
+    result,
+    response,
+  } = input
   const source = task.runtimeRequest.sourceMedia
   const exact = chunk.invocationId === task.invocationId
     && sameRef(chunk.taskRef, ref(task.taskId, task.taskRecordHash))
@@ -782,6 +827,33 @@ function assertChunkLineage(input: {
       result.currentAccountPriceAuthorityRef)
     && sameRef(terminal.attemptCostReceiptRef,
       result.attemptCostReceiptRef)
+    && sameRef(result.privateOutputRereadEvidenceRef,
+      ref(
+        `sam31-private-output-reread:${privateOutput.runtimeResponseObjectRef.id}`,
+        privateOutput.evidenceHash,
+      ))
+    && sameRef(privateOutput.taskRef, chunk.taskRef)
+    && sameRef(privateOutput.runtimeResponseObjectRef,
+      chunk.runtimeResponseObjectRef)
+    && privateOutput.runtimeResponseBindingSha256 ===
+      response.responseBindingSha256
+    && sameRef(privateOutput.manifestRef, result.manifestRef)
+    && sameRef(privateOutput.maskSequenceArtifactRef,
+      result.maskSequenceArtifactRef)
+    && privateOutput.width === observation.sourceWidth
+    && privateOutput.height === observation.sourceHeight
+    && privateOutput.firstFrameIndex ===
+      chunk.canonicalStartFrameInclusive
+    && privateOutput.lastFrameIndex ===
+      chunk.canonicalEndFrameInclusive
+    && privateOutput.propagatedFrameCount ===
+      chunk.canonicalEndFrameInclusive -
+        chunk.canonicalStartFrameInclusive + 1
+    && privateOutput.exactManifestBytesRereadAndParsed
+    && privateOutput.everyMaskPngByteHashReread
+    && privateOutput.everyMaskPngDecodedDimensionsMatchSource
+    && privateOutput.completeApprovedFrameIntervalCoverageVerified
+    && privateOutput.noUnexpectedFilesOrCrossInvocationArtifacts
     && sameRef(result.runtimeRequestRef, task.runtimeRequestRef)
     && result.runtimeResponseBindingSha256 === response.responseBindingSha256
     && sameRef(source.finalizedSourceArtifactRef,
@@ -827,6 +899,7 @@ function assertStitchLineage(input: {
   chunkRecords: ReadonlyArray<{
     task: CanonicalSam31GpuTaskRecord
     launch: CanonicalProfessionalGpuJobLaunch
+    privateOutput: CanonicalSam31PrivateOutputRereadEvidence
     result: CanonicalSam31GpuRuntimeResultAdmission
     response: CanonicalSam31GpuRuntimeResponse
   }>

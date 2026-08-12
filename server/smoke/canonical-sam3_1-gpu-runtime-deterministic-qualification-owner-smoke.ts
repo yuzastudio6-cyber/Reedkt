@@ -29,8 +29,10 @@ import {
   type CanonicalSam31GpuRuntimeResponse,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-contract'
 import {
+  assertCanonicalSam31PrivateOutputRereadEvidence,
   assertCanonicalSam31GpuRuntimeResultAdmission,
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
+  type CanonicalSam31PrivateOutputRereadEvidence,
   type CanonicalSam31GpuRuntimeResultAdmission,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -43,6 +45,7 @@ import {
 } from './canonical-sam3_1-source-checkpoint-qualification-release-owner-smoke'
 import {
   canonicalSam31A100LaunchFixture,
+  canonicalSam31A100PrivateOutputEvidenceFixture,
   canonicalSam31A100ResultAdmissionFixture,
   canonicalSam31A100RuntimeResponseFixture,
   canonicalSam31A100TaskFixture,
@@ -66,6 +69,7 @@ export type CanonicalSam31A100RunFixture = {
   task: CanonicalSam31GpuTaskRecord
   launch: CanonicalProfessionalGpuJobLaunch
   terminal: CanonicalProfessionalGpuJobTerminal
+  privateOutput: CanonicalSam31PrivateOutputRereadEvidence
   result: CanonicalSam31GpuRuntimeResultAdmission
   response: CanonicalSam31GpuRuntimeResponse
 }
@@ -501,6 +505,29 @@ export function buildCanonicalSam31A100RunFixture(
     ...terminalPayload,
     terminalHash: sha256AuthorityValue(terminalPayload),
   })
+  const privateOutputPayload = {
+    ...withoutKey(
+      canonicalSam31A100PrivateOutputEvidenceFixture,
+      'evidenceHash',
+    ),
+    taskRef: ref(task.taskId, task.taskRecordHash),
+    runtimeResponseObjectRef,
+    runtimeResponseBindingSha256: response.responseBindingSha256,
+    manifestRef: response.outputSummary!.manifestRef,
+    manifestSha256: response.outputSummary!.manifestSha256,
+    maskSequenceArtifactRef: ref(
+      `sam31-deterministic-mask-sequence-${suffix}`,
+      digest(`sam31-deterministic-mask-sequence-${suffix}`),
+    ),
+    firstFrameIndex: canonicalStartFrameInclusive,
+    lastFrameIndex: canonicalStartFrameInclusive +
+      runtimeRequest.sourceMedia.decodedFrameCount - 1,
+    propagatedFrameCount: runtimeRequest.sourceMedia.decodedFrameCount,
+  }
+  const privateOutput = assertCanonicalSam31PrivateOutputRereadEvidence({
+    ...privateOutputPayload,
+    evidenceHash: sha256AuthorityValue(privateOutputPayload),
+  })
   const resultPayload = {
     ...withoutKey(
       canonicalSam31A100ResultAdmissionFixture,
@@ -520,11 +547,13 @@ export function buildCanonicalSam31A100RunFixture(
       terminal.currentAccountPriceAuthorityRef,
     attemptCostReceiptRef: terminal.attemptCostReceiptRef,
     privateOutputRereadEvidenceRef: ref(
-      `sam31-deterministic-private-output-${suffix}`,
-      digest(`sam31-deterministic-private-output-${suffix}`),
+      `sam31-private-output-reread:${runtimeResponseObjectRef.id}`,
+      privateOutput.evidenceHash,
     ),
     runtimeResponseObjectRef,
     runtimeResponseBindingSha256: response.responseBindingSha256,
+    manifestRef: privateOutput.manifestRef,
+    maskSequenceArtifactRef: privateOutput.maskSequenceArtifactRef,
   }
   const result = assertCanonicalSam31GpuRuntimeResultAdmission({
     ...resultPayload,
@@ -545,6 +574,7 @@ export function buildCanonicalSam31A100RunFixture(
     task,
     launch,
     terminal,
+    privateOutput,
     result,
     response,
   }

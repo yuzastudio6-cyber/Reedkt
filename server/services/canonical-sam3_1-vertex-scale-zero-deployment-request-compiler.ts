@@ -102,9 +102,6 @@ export function createCanonicalSam31VertexScaleZeroFoundationRequests(
           'weeditpro-route': 'a100-heavy-primary',
         },
         dedicatedEndpointEnabled: true,
-        predictRequestResponseLoggingConfig: {
-          enabled: false,
-        },
       }, profile.profileHash),
   ])
 }

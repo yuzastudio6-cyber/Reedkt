@@ -50,9 +50,7 @@ assert.equal(JSON.stringify(upload.body).includes(profile.immutableImageUri), tr
 assert.equal(JSON.stringify(upload.body).includes('/predict'), true)
 assert.equal(JSON.stringify(upload.body).includes('/health'), true)
 assert.equal(endpoint.body.dedicatedEndpointEnabled, true)
-assert.deepEqual(endpoint.body.predictRequestResponseLoggingConfig, {
-  enabled: false,
-})
+assert.equal(endpoint.body.predictRequestResponseLoggingConfig, undefined)
 const deployedModel = deploy.body.deployedModel as Record<string, unknown>
 const dedicatedResources = deployedModel.dedicatedResources as Record<
   string,

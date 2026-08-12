@@ -26,8 +26,12 @@ export const CANONICAL_SAM3_1_VERTEX_SERVING_EXACT_DEPLOYMENT_VERSION =
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
 const MODEL_RESOURCE =
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const
+const NUMERIC_MODEL_RESOURCE =
+  'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const
 const ENDPOINT_RESOURCE =
   'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+const NUMERIC_ENDPOINT_RESOURCE =
+  'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
 const DEPLOYED_MODEL_ID = '3101000001' as const
 const SERVING_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
@@ -369,8 +373,8 @@ export function assertCanonicalSam31VertexServingExactDeployment(
 
 function parseModel(value: unknown,
   profile: CanonicalSam31VertexScaleZeroDeploymentProfile) {
-  return z.object({
-    name: z.literal(MODEL_RESOURCE),
+  const parsed = z.object({
+    name: z.enum([MODEL_RESOURCE, NUMERIC_MODEL_RESOURCE]),
     displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
     containerSpec: z.object({
       imageUri: z.literal(profile.immutableImageUri),
@@ -380,20 +384,21 @@ function parseModel(value: unknown,
       predictRoute: z.literal('/predict'),
     }).passthrough(),
   }).passthrough().parse(value)
+  return { ...parsed, name: MODEL_RESOURCE }
 }
 
 function parseEndpoint(value: unknown,
   profile: CanonicalSam31VertexScaleZeroDeploymentProfile) {
   const parsed = z.object({
-    name: z.literal(ENDPOINT_RESOURCE),
+    name: z.enum([ENDPOINT_RESOURCE, NUMERIC_ENDPOINT_RESOURCE]),
     displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
     dedicatedEndpointEnabled: z.literal(true),
     predictRequestResponseLoggingConfig: z.object({
       enabled: z.literal(false),
-    }).passthrough(),
+    }).passthrough().optional().default({ enabled: false }),
     deployedModels: z.array(z.object({
       id: z.literal(DEPLOYED_MODEL_ID),
-      model: z.literal(MODEL_RESOURCE),
+      model: z.enum([MODEL_RESOURCE, NUMERIC_MODEL_RESOURCE]),
       serviceAccount: z.literal(SERVING_ACCOUNT),
       disableContainerLogging: z.literal(true),
       dedicatedResources: z.object({
@@ -417,7 +422,14 @@ function parseEndpoint(value: unknown,
     Object.keys(parsed.trafficSplit).length !== 1
     || parsed.trafficSplit[DEPLOYED_MODEL_ID] !== 100
   ) throw new Error('Exact Vertex endpoint traffic split changed.')
-  return parsed
+  return {
+    ...parsed,
+    name: ENDPOINT_RESOURCE,
+    deployedModels: parsed.deployedModels.map((model) => ({
+      ...model,
+      model: MODEL_RESOURCE,
+    })) as typeof parsed.deployedModels,
+  }
 }
 
 function assertExactLineage(input: {

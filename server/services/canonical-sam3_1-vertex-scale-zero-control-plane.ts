@@ -24,12 +24,22 @@ const stage = z.enum(['model_upload', 'endpoint_create', 'model_deploy'])
 const operationName = z.string().regex(
   /^projects\/(?:reeditpro|390722338345)\/locations\/us-central1\/(?:(?:models|endpoints)\/[a-z0-9_-]{1,63}\/)?operations\/[A-Za-z0-9_-]{1,160}$/u,
 )
-const modelResourceName = z.string().regex(
-  /^projects\/reeditpro\/locations\/us-central1\/models\/[a-z0-9_-]{1,63}$/u,
-)
-const endpointResourceName = z.literal(
-  'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-)
+const CANONICAL_MODEL_RESOURCE =
+  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const
+const NUMERIC_MODEL_RESOURCE =
+  'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const
+const CANONICAL_ENDPOINT_RESOURCE =
+  'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+const NUMERIC_ENDPOINT_RESOURCE =
+  'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+const modelResourceName = z.literal(CANONICAL_MODEL_RESOURCE)
+const observedModelResourceName = z.enum([
+  CANONICAL_MODEL_RESOURCE, NUMERIC_MODEL_RESOURCE,
+])
+const endpointResourceName = z.literal(CANONICAL_ENDPOINT_RESOURCE)
+const observedEndpointResourceName = z.enum([
+  CANONICAL_ENDPOINT_RESOURCE, NUMERIC_ENDPOINT_RESOURCE,
+])
 const deployedModelId = z.string().regex(/^[0-9]{1,10}$/u)
 const exactDeployedModelId = z.literal('3101000001')
 const modelResourceFromRequest = z.string().regex(
@@ -314,7 +324,7 @@ export function createCanonicalSam31VertexScaleZeroControlPlane(input: {
           candidate.id === expectedModel.id)
         if (
           !found
-          || found.model !== expectedModel.model
+          || canonicalModelResource(found.model) !== expectedModel.model
           || found.serviceAccount !== expectedModel.serviceAccount
           || stableAuthorityStringify(found.dedicatedResources.machineSpec) !==
             stableAuthorityStringify(
@@ -480,20 +490,20 @@ function parseStageResult(
   response: Record<string, unknown> | undefined,
 ) {
   if (value === 'model_upload') {
-    const parsed = z.object({ model: modelResourceName }).passthrough()
+    const parsed = z.object({ model: observedModelResourceName }).passthrough()
       .parse(response)
     return {
-      modelResourceName: parsed.model,
+      modelResourceName: canonicalModelResource(parsed.model),
       endpointResourceName: null,
       deployedModelId: null,
     }
   }
   if (value === 'endpoint_create') {
-    const parsed = z.object({ name: endpointResourceName }).passthrough()
+    const parsed = z.object({ name: observedEndpointResourceName }).passthrough()
       .parse(response)
     return {
       modelResourceName: null,
-      endpointResourceName: parsed.name,
+      endpointResourceName: canonicalEndpointResource(parsed.name),
       deployedModelId: null,
     }
   }
@@ -509,7 +519,7 @@ function parseStageResult(
 
 const deployedModelResourceSchema = z.object({
   id: exactDeployedModelId,
-  model: modelResourceFromRequest,
+  model: observedModelResourceName,
   serviceAccount: z.literal(
     'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
   ),
@@ -531,8 +541,8 @@ const deployedModelResourceSchema = z.object({
 }).passthrough()
 
 function parseExactEndpointResource(value: unknown) {
-  return z.object({
-    name: endpointResourceName,
+  const parsed = z.object({
+    name: observedEndpointResourceName,
     displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
     dedicatedEndpointEnabled: z.literal(true),
     predictRequestResponseLoggingConfig: z.object({
@@ -542,6 +552,7 @@ function parseExactEndpointResource(value: unknown) {
     trafficSplit: z.record(z.string(), z.number().int().nonnegative().safe())
       .default({}),
   }).passthrough().parse(value)
+  return { ...parsed, name: canonicalEndpointResource(parsed.name) }
 }
 
 function parseExactModelResource(
@@ -564,7 +575,7 @@ function parseExactModelResource(
     }).passthrough(),
   }).strict().parse(request.body)
   const observed = z.object({
-    name: modelResourceName,
+    name: observedModelResourceName,
     displayName: z.literal(requested.model.displayName),
     containerSpec: z.object({
       imageUri: z.literal(requested.model.containerSpec.imageUri),
@@ -585,7 +596,26 @@ function parseExactModelResource(
     || environment.get('WEEDITPRO_GPU_ACCELERATOR_CLASS') !==
       'nvidia_a100_80gb'
   ) throw new Error('Reconciled Vertex model environment changed.')
-  return observed
+  return { ...observed, name: canonicalModelResource(observed.name) }
+}
+
+function canonicalModelResource(
+  value: z.infer<typeof observedModelResourceName>,
+): typeof CANONICAL_MODEL_RESOURCE {
+  if (value !== CANONICAL_MODEL_RESOURCE && value !== NUMERIC_MODEL_RESOURCE) {
+    throw new Error('Observed Vertex model resource changed project scope.')
+  }
+  return CANONICAL_MODEL_RESOURCE
+}
+
+function canonicalEndpointResource(
+  value: z.infer<typeof observedEndpointResourceName>,
+): typeof CANONICAL_ENDPOINT_RESOURCE {
+  if (
+    value !== CANONICAL_ENDPOINT_RESOURCE
+    && value !== NUMERIC_ENDPOINT_RESOURCE
+  ) throw new Error('Observed Vertex endpoint changed project scope.')
+  return CANONICAL_ENDPOINT_RESOURCE
 }
 
 function reconciledObservation(

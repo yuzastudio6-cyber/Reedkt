@@ -227,10 +227,27 @@ export function createCanonicalSam31VertexScaleZeroDeploymentOperator(input: {
 
     const started = Date.now()
     while (true) {
-      const observation =
-        assertCanonicalSam31VertexScaleZeroControlPlaneObservation(
-          await input.controlPlane.observeOne({ submission }),
-        )
+      let observation: CanonicalSam31VertexScaleZeroControlPlaneObservation
+      try {
+        observation =
+          assertCanonicalSam31VertexScaleZeroControlPlaneObservation(
+            await input.controlPlane.observeOne({ submission }),
+          )
+      } catch (error) {
+        if (!isTransientObservationReadError(error)) throw error
+        if (Date.now() - started >= maximumWait) return stageResult({
+          stage: context.request.stage,
+          disposition: 'pending',
+          requestRef,
+          consumptionRef,
+          submissionRef,
+          observationRef: null,
+          observation: null,
+          providerPostIssuedThisRun,
+        })
+        await sleep(pollInterval)
+        continue
+      }
       const persisted = await persistStageObservation({
         requestRef,
         consumptionRef,
@@ -270,6 +287,19 @@ export function createCanonicalSam31VertexScaleZeroDeploymentOperator(input: {
       providerPostIssuedThisRun: context.providerPostIssuedThisRun,
     })
   }
+}
+
+function isTransientObservationReadError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false
+  const directCode = 'code' in error ? Number(error.code) : undefined
+  const responseCode = 'response' in error
+    && error.response && typeof error.response === 'object'
+    && 'status' in error.response
+    ? Number(error.response.status)
+    : undefined
+  const code = Number.isInteger(responseCode) ? responseCode : directCode
+  return code === 404 || code === 408 || code === 429
+    || (typeof code === 'number' && code >= 500 && code <= 599)
 }
 
 function stageResult(input: Omit<

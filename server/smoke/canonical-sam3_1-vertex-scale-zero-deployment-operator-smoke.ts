@@ -62,6 +62,7 @@ const repository = createCanonicalSam31VertexScaleZeroControlPlaneRepository({
   prefix: 'private/smoke/sam31-scale-zero-deployment-operator',
 })
 let providerPostCount = 0
+let endpointObservationAttempts = 0
 const auth = {
   async request(value: { readonly url?: string; readonly method?: string }) {
     const url = String(value.url)
@@ -82,14 +83,22 @@ const auth = {
           'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
       },
     } }
-    if (url.endsWith('/operations/endpoint')) return { data: {
+    if (url.endsWith('/operations/endpoint')) {
+      endpointObservationAttempts += 1
+      if (endpointObservationAttempts === 1) {
+        throw Object.assign(new Error('operation is not readable yet'), {
+          code: 404,
+        })
+      }
+      return { data: {
       name: 'projects/reeditpro/locations/us-central1/operations/endpoint',
       done: true,
       response: {
         name:
           'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
       },
-    } }
+      } }
+    }
     if (url.endsWith('/operations/deploy')) return { data: {
       name: 'projects/reeditpro/locations/us-central1/operations/deploy',
       done: true,
@@ -121,6 +130,7 @@ assert.equal(first.stages.every((stage) =>
 assert.equal(first.stages.every((stage) =>
   stage.providerPostIssuedThisRun), true)
 assert.equal(providerPostCount, 3)
+assert.equal(endpointObservationAttempts, 2)
 
 const replay = await operator.deployOne(profile)
 assert.equal(replay.disposition, 'deployed')
@@ -136,6 +146,7 @@ console.log(JSON.stringify({
   exactSequentialStageOrder: true,
   durableConsumptionBeforeEveryProviderPost: true,
   restartReplayIssuedNoDuplicateProviderPost: true,
+  transientOperationReadRetriedWithoutProviderPost: true,
   providerPostCount,
   customerRequestOrGpuInferenceStarted: false,
   productionReady: false,

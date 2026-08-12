@@ -481,6 +481,7 @@
     "smoke:sam3_1-vertex-serving-window-cost-authority": "tsx server/smoke/canonical-sam3_1-vertex-serving-window-cost-authority-smoke.ts",
     "smoke:sam3_1-vertex-serving-multi-replica-cost": "tsx server/smoke/canonical-sam3_1-vertex-serving-multi-replica-window-cost-authority-smoke.ts",
     "smoke:sam3_1-current-a100-customer-dispatch-readiness": "tsx server/smoke/canonical-sam3_1-current-a100-customer-dispatch-readiness-smoke.ts",
+    "smoke:professional-gpu-fair-queue": "tsx server/smoke/canonical-professional-gpu-fair-queue-scheduler-smoke.ts",
     "smoke:sam3_1-vertex-serving-attempt-credit-settlement": "tsx server/smoke/canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts",
     "smoke:sam3_1-vertex-serving-invocation": "tsx server/smoke/canonical-sam3_1-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-readiness": "tsx server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts",

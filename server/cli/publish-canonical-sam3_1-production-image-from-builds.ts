@@ -1,7 +1,3 @@
-import { execFileSync } from 'node:child_process'
-
-import { Storage } from '@google-cloud/storage'
-import { OAuth2Client } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
@@ -13,13 +9,13 @@ import {
 import {
   createCanonicalSam31GcpProductionImageAuthorityPublisher,
 } from '../services/canonical-sam3_1-production-image-authority-publisher'
+import {
+  createWeEditProGcpLocalOperatorAuth,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+} from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =
   'publish-one-qualified-sam31-production-image-from-two-builds-v2' as const
-const LOCAL_OPERATOR_AUTH =
-  'active-gcloud-api-service-account-impersonation-v1' as const
-const API_SERVICE_ACCOUNT =
-  'reeditpro-api-sa@reeditpro.iam.gserviceaccount.com' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -32,7 +28,9 @@ const environment = z.object({
   WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256: rawSha256,
   WEEDITPRO_SAM31_PRODUCTION_CAPSULE_PRIMARY_BUILD_ID: buildId,
   WEEDITPRO_SAM31_PRODUCTION_CAPSULE_CONFIRMATION_BUILD_ID: buildId,
-  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH: z.literal(LOCAL_OPERATOR_AUTH),
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH: z.literal(
+    WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  ),
 }).strict().superRefine((value, context) => {
   if (value.WEEDITPRO_SAM31_PRODUCTION_CAPSULE_PRIMARY_BUILD_ID
     === value.WEEDITPRO_SAM31_PRODUCTION_CAPSULE_CONFIRMATION_BUILD_ID) {
@@ -56,17 +54,8 @@ const environment = z.object({
     process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
 })
 
-const authClient = new OAuth2Client()
-const ephemeralAccessToken = readEphemeralApiAccessToken()
-if (ephemeralAccessToken.length < 20 || ephemeralAccessToken.length > 4_096
-  || /\s/u.test(ephemeralAccessToken)) {
-  throw new Error('Ephemeral API-service authentication is malformed.')
-}
-authClient.setCredentials({ access_token: ephemeralAccessToken })
-const storage = new Storage({
-  projectId: 'reeditpro',
-  authClient,
-  retryOptions: { autoRetry: false, maxRetries: 0 },
+const { storage } = createWeEditProGcpLocalOperatorAuth({
+  confirmation: environment.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
 })
 
 const result = await createCanonicalSam31ProductionImagePublicationCoordinator({
@@ -91,26 +80,3 @@ const result = await createCanonicalSam31ProductionImagePublicationCoordinator({
 })
 
 process.stdout.write(`${JSON.stringify(result)}\n`)
-
-function readEphemeralApiAccessToken(): string {
-  try {
-    return execFileSync(
-      'gcloud',
-      [
-        'auth',
-        'print-access-token',
-        `--impersonate-service-account=${API_SERVICE_ACCOUNT}`,
-        '--project=reeditpro',
-        '--quiet',
-      ],
-      {
-        encoding: 'utf8',
-        maxBuffer: 8 * 1_024,
-        stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 15_000,
-      },
-    ).trim()
-  } catch {
-    throw new Error('Ephemeral API-service authentication is unavailable.')
-  }
-}

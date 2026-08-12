@@ -6,6 +6,10 @@ import {
 import {
   createCanonicalSam31GcpImageSupplyChainBuildRuntime,
 } from '../services/canonical-sam3_1-cloud-image-supply-chain-build-runtime'
+import {
+  createWeEditProGcpLocalOperatorAuth,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+} from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =
   'observe-one-weeditpro-sam31-production-image-supply-chain-build-v1' as const
@@ -20,8 +24,17 @@ const environment = z.object({
   WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_ADMISSION_SHA256: sha,
   WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_SUBMISSION_ID: safeId,
   WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_SUBMISSION_SHA256: sha,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH: z.literal(
+    WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  ),
 }).passthrough().parse(process.env)
-const runtime = createCanonicalSam31GcpImageSupplyChainBuildRuntime()
+const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
+  confirmation: environment.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
+})
+const runtime = createCanonicalSam31GcpImageSupplyChainBuildRuntime({
+  storage,
+  auth: authClient,
+})
 const observation = await runtime.observeOnePersistedSupplyChainBuild({
   admissionRef: ref(
     environment.WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_ADMISSION_ID,

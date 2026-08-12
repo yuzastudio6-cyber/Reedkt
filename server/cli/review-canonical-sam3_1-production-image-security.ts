@@ -10,11 +10,27 @@ import {
   createCanonicalSam31GcpProductionImageSecurityReviewRuntime,
   SAM3_1_PRODUCTION_IMAGE_SECURITY_REVIEW_CONFIRMATION,
 } from '../services/canonical-sam3_1-production-image-security-review-operator'
+import {
+  createCanonicalSam31ImageSupplyChainGoogleReadTransport,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-evidence-read-service'
+import {
+  createWeEditProGcpLocalOperatorAuth,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+} from './weeditpro-gcp-local-operator-auth'
 
 const environment = environmentSchema().parse(process.env)
+const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
+  confirmation: environment.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
+})
 const refs = readRefs(environment)
-const imageRuntime = createCanonicalSam31GcpCloudImageBuildRuntime()
-const supplyRuntime = createCanonicalSam31GcpImageSupplyChainBuildRuntime()
+const imageRuntime = createCanonicalSam31GcpCloudImageBuildRuntime({
+  storage,
+  auth: authClient,
+})
+const supplyRuntime = createCanonicalSam31GcpImageSupplyChainBuildRuntime({
+  storage,
+  auth: authClient,
+})
 const [imageBuildAuthority, imageBuildSubmission, imageBuildTerminal,
   supplyChainAdmission, supplyChainSubmission, supplyChainObservation] =
   await Promise.all([
@@ -42,7 +58,13 @@ if (!imageBuildAuthority || !imageBuildSubmission || !imageBuildTerminal
   || !supplyChainObservation) {
   throw new Error('SAM 3.1 production security review lineage is absent.')
 }
-const result = await createCanonicalSam31GcpProductionImageSecurityReviewRuntime()
+const result = await createCanonicalSam31GcpProductionImageSecurityReviewRuntime({
+  storage,
+  googleReadTransport:
+    createCanonicalSam31ImageSupplyChainGoogleReadTransport({
+      auth: authClient,
+    }),
+})
   .operator.review({
     confirmation: SAM3_1_PRODUCTION_IMAGE_SECURITY_REVIEW_CONFIRMATION,
     imageBuildAuthority,
@@ -73,6 +95,9 @@ function environmentSchema() {
     WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_ADMISSION_SHA256: sha,
     WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_SUBMISSION_ID: safeId,
     WEEDITPRO_SAM31_PRODUCTION_IMAGE_SUPPLY_CHAIN_SUBMISSION_SHA256: sha,
+    WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH: z.literal(
+      WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+    ),
   }).passthrough()
 }
 

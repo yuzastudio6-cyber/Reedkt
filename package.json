@@ -375,6 +375,7 @@
     "prepare:sam3_1-production-capsule-vertex-build-inputs": "tsx server/cli/prepare-canonical-sam3_1-production-capsule-vertex-build-inputs.ts",
     "publish:sam3_1-production-capsule": "tsx server/cli/publish-canonical-sam3_1-production-capsule.ts",
     "smoke:sam3_1-production-image-authority-publisher": "tsx server/smoke/canonical-sam3_1-production-image-authority-publisher-smoke.ts",
+    "smoke:weeditpro-gcp-local-operator-auth": "tsx server/smoke/weeditpro-gcp-local-operator-auth-smoke.ts",
     "publish:sam3_1-production-image-authority": "tsx server/cli/publish-canonical-sam3_1-production-image-authority.ts",
     "smoke:sam3_1-production-image-publication-coordinator": "tsx server/smoke/canonical-sam3_1-production-image-publication-coordinator-smoke.ts",
     "publish:sam3_1-production-image-from-builds": "tsx server/cli/publish-canonical-sam3_1-production-image-from-builds.ts",

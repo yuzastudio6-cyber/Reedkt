@@ -51,6 +51,22 @@ assert.match(
 )
 assert.match(
   l4Qualifier,
+  /createCanonicalQualityFirstA100FastScaleZeroMigration/u,
+)
+assert.match(
+  l4Qualifier,
+  /const EXPECTED_IMAGE_DIGEST = A100_QUALITY_REFERENCE\.immutableImageDigest/u,
+)
+assert.match(
+  l4Qualifier,
+  /const BASELINE_IMAGE_DIGEST = A100_QUALITY_REFERENCE\.immutableImageDigest/u,
+)
+assert.doesNotMatch(
+  l4Qualifier,
+  /sha256:9f202ab78a780d7dc5ae009814433c4c76ff30a90246c7e01694e45b24f819c3/u,
+)
+assert.match(
+  l4Qualifier,
   /gpuMemoryProfileId:\s*'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4'/u,
 )
 

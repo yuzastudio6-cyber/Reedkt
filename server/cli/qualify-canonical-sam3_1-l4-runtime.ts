@@ -17,6 +17,9 @@ import {
   canonicalProfessionalGpuJobLaunchSchema,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
+  createCanonicalQualityFirstA100FastScaleZeroMigration,
+} from '../edit-architecture/canonical-quality-first-a100-fast-scale-zero-migration'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -56,18 +59,17 @@ const INVOCATION_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations' as const
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v1' as const
-const EXPECTED_IMAGE_DIGEST =
-  'sha256:6f019248887db07aeacf880a2630ffa2096b33aa42796b0dff9466c661848d62' as const
+const A100_QUALITY_REFERENCE =
+  createCanonicalQualityFirstA100FastScaleZeroMigration()
+    .historicalVertexCustomJobObservation
+const EXPECTED_IMAGE_DIGEST = A100_QUALITY_REFERENCE.immutableImageDigest
 const EXPECTED_IMAGE =
   `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${EXPECTED_IMAGE_DIGEST}` as const
-const BASELINE_IMAGE_DIGEST =
-  'sha256:9f202ab78a780d7dc5ae009814433c4c76ff30a90246c7e01694e45b24f819c3' as const
-const BASELINE_INVOCATION_ID =
-  'sam31-a100-qualification:sam31-production-a100-image-9f202ab7-20260811.run-01.execution' as const
-const BASELINE_TASK_HASH =
-  '2bb0f3cdbe0106b2f602cfbde4176094db5c339231bd58b349380e30d268d746' as const
+const BASELINE_IMAGE_DIGEST = A100_QUALITY_REFERENCE.immutableImageDigest
+const BASELINE_INVOCATION_ID = A100_QUALITY_REFERENCE.taskRef.id
+const BASELINE_TASK_HASH = A100_QUALITY_REFERENCE.taskRef.contentHash.slice(7)
 const BASELINE_RESULT_ADMISSION_HASH =
-  'd2cd0fd3e8894bdb906628bc2c4cf981d619d7fef167c5af140e0bb69898c584' as const
+  A100_QUALITY_REFERENCE.resultAdmissionRef.contentHash.slice(7)
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
 const CHECKPOINT_SIZE = 3_502_755_717 as const

@@ -1,11 +1,19 @@
 # WeEditPro SAM 3.1 A100 production-image qualification v2
 
 Date: 2026-08-11
-Status: `a100_exact_runtime_result_admitted_l4_comparison_ready`
+Status: `superseded_historical_a100_reference`
+
+This v2 receipt remains immutable historical evidence for the `5bbb...`
+production-image run. It is no longer the L4 comparison authority. The current
+L4 qualifier derives its exact A100 image/task/result reference from
+`canonical-quality-first-a100-fast-scale-zero-migration-v1`, whose later
+`6f019...` A100 run also exposed that Vertex Custom Job cold provisioning took
+3,199,367 ms and therefore cannot serve customer traffic. The rejected route
+remains a quality reference only; it does not authorize new A100 dispatch.
 
 This receipt records the independently built, supply-chain-qualified, and
-privately executed SAM 3.1 image that is the only current A100 baseline for
-the L4 heavy-fallback qualification. It does not grant a runtime release,
+privately executed SAM 3.1 image that served as the earlier A100 baseline.
+It does not grant a runtime release,
 artifact QA approval, renderer admission, customer credit mutation, public
 delivery, or production authority.
 
@@ -104,9 +112,9 @@ interval, both object IDs, and no unexpected or cross-invocation objects.
   `ad7cc9e845e1aa2040d65cd7c1e9cca1c80cbb8c5c1948734a9ebbef786d444c`
 - Reread timestamp: `2026-08-11T07:56:59.602Z`
 
-The L4 qualifier must reread this exact result admission as well as the task.
-It may not compare against the superseded image, a raw task, a caller boolean,
-or a name-matched record.
+The L4 qualifier must reread the exact current migration-bound A100 result
+admission as well as its task. It may not compare against this superseded v2
+image, a raw task, a caller boolean, or a name-matched record.
 
 ## Remaining release gates
 

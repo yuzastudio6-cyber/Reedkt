@@ -1,3 +1,7 @@
+import { execFileSync } from 'node:child_process'
+
+import { Storage } from '@google-cloud/storage'
+import { OAuth2Client } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
@@ -6,6 +10,10 @@ import {
 
 const CONFIRMATION =
   'prepare-one-sam31-production-capsule-two-vertex-build-input-v2' as const
+const LOCAL_OPERATOR_AUTH =
+  'active-gcloud-image-builder-impersonation-v1' as const
+const IMAGE_BUILDER_SERVICE_ACCOUNT =
+  'reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -15,6 +23,7 @@ const environment = z.object({
     z.literal(CONFIRMATION),
   WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID: safeId,
   WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256: rawSha256,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH: z.literal(LOCAL_OPERATOR_AUTH),
 }).strict().parse({
   WEEDITPRO_SAM31_PRODUCTION_CAPSULE_VERTEX_BUILD_INPUT_CONFIRMATION:
     process.env
@@ -23,10 +32,26 @@ const environment = z.object({
     process.env.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID,
   WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256:
     process.env.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH:
+    process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
+})
+
+const authClient = new OAuth2Client()
+const ephemeralAccessToken = readEphemeralImageBuilderAccessToken()
+if (ephemeralAccessToken.length < 20 || ephemeralAccessToken.length > 4_096
+  || /\s/u.test(ephemeralAccessToken)) {
+  throw new Error('Ephemeral image-builder authentication is malformed.')
+}
+authClient.setCredentials({ access_token: ephemeralAccessToken })
+const storage = new Storage({
+  projectId: 'reeditpro',
+  authClient,
 })
 
 const result =
-  await createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner()
+  await createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner({
+    storage,
+  })
     .prepare({
       sourceCheckpointQualificationRef: {
         id: environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID,
@@ -40,3 +65,26 @@ const result =
     })
 
 process.stdout.write(`${JSON.stringify(result)}\n`)
+
+function readEphemeralImageBuilderAccessToken(): string {
+  try {
+    return execFileSync(
+      'gcloud',
+      [
+        'auth',
+        'print-access-token',
+        `--impersonate-service-account=${IMAGE_BUILDER_SERVICE_ACCOUNT}`,
+        '--project=reeditpro',
+        '--quiet',
+      ],
+      {
+        encoding: 'utf8',
+        maxBuffer: 8 * 1_024,
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 15_000,
+      },
+    ).trim()
+  } catch {
+    throw new Error('Ephemeral image-builder authentication is unavailable.')
+  }
+}

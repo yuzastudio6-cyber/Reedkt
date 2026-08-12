@@ -48,6 +48,7 @@ TREE="$(env COPYFILE_DISABLE=1 \
 readonly TREE
 INPUTS="$(
   WEEDITPRO_SAM31_PRODUCTION_CAPSULE_VERTEX_BUILD_INPUT_CONFIRMATION="${INPUT_CONFIRMATION}" \
+    WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH=active-gcloud-image-builder-impersonation-v1 \
     npm run --silent prepare:sam3_1-production-capsule-vertex-build-inputs
 )"
 readonly INPUTS

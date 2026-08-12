@@ -121,6 +121,10 @@ const launcher = readFileSync(
   'scripts/gcp/prod/53-build-sam31-production-capsule-twice.sh',
   'utf8',
 )
+const vertexBuildInputCli = readFileSync(
+  'server/cli/prepare-canonical-sam3_1-production-capsule-vertex-build-inputs.ts',
+  'utf8',
+)
 const gcloudIgnore = readFileSync(
   'docker/prod/gpu-worker/sam3_1/.gcloudignore.production-capsule',
   'utf8',
@@ -213,6 +217,7 @@ for (const expected of [
   'caller arguments are forbidden',
   'source worktree must be clean',
   'prepare:sam3_1-production-capsule-vertex-build-inputs',
+  'active-gcloud-image-builder-impersonation-v1',
   'canonicalVertexReleaseManifestIngestAndBindingReread',
   'ready_for_two_independent_cloud_builds',
   'primaryBuildId',
@@ -230,6 +235,13 @@ for (const expected of [
   '--if-generation-match=0',
   'gcloud builds list',
 ] as const) assert.ok(launcher.includes(expected), `launcher lost ${expected}`)
+for (const expected of [
+  'active-gcloud-image-builder-impersonation-v1',
+  'reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
+  'print-access-token',
+  "stdio: ['ignore', 'pipe', 'ignore']",
+] as const) assert.ok(vertexBuildInputCli.includes(expected),
+  `Vertex build-input CLI lost ${expected}`)
 assert.match(launcher, /automaticRetryAllowed': False/u)
 assert.doesNotMatch(launcher, /automaticRetryAllowed': True/u)
 assert.match(

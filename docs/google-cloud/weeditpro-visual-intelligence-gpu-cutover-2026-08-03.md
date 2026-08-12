@@ -742,6 +742,24 @@ invocation of this operator boundary.
   existing US dataset. Google documents that initial export propagation can
   take hours. No rate authority may be published until the isolated live usage
   window is reconciled from that exact export.
+- The source-bound reconciler is now complete. The guarded operator command
+  `npm run reconcile:visual-intelligence-model-billing-sku` rereads the exact
+  immutable live Gemini receipt, discovers exactly one Detailed Usage Cost
+  export table plus `cloud_pricing_export`, disables query caching, caps each
+  BigQuery query at 100 MB billed, and matches the isolated Standard and long
+  qualification labels to the exact input/output SKU pairs. It also rereads
+  all six SKU metadata rows in canonical order and persists the detailed
+  observation, SKU metadata set, reconciliation report, and final model/SKU
+  qualification create-only. Missing tables, missing labels, unrelated traffic,
+  wrong SKUs, stale export data, or any account/public-price substitution fail
+  closed before rate publication.
+- The canonical API service identity now has only `roles/bigquery.jobUser` on
+  the fixed project and dataset-level `READER` access to the fixed private
+  export dataset. The idempotent guarded grant is
+  `scripts/gcp/prod/54-grant-visual-intelligence-billing-export-reader.sh`.
+  It grants no dataset writes and no authority to enable or configure Cloud
+  Billing exports. A live reconciler invocation now reaches the dataset and
+  fails at the intended missing-table gate rather than at IAM.
 - The guarded operator command
   `npm run provision:visual-intelligence-account-price-reader` adds only that
   read-only predefined role to the canonical API identity after exact project,
@@ -1009,14 +1027,16 @@ real qualified SAM 3.1 Track All result completes that full canonical chain.
 The source cutover and the current L4 task-QA image path are deterministic and
 fail-closed. The L4 task-QA path has passed immutable image supply-chain review
 and live CUDA qualification, but remains rate-blocked. The official private
-SAM 3.1 source and checkpoint have been ingested, the signed qualification
-image is available, and Vertex A100 80 GB capacity plus the restart-safe route
-architecture are ready. What remains is the paid live A100 source/checkpoint
-compatibility and quality qualification, followed by an independently compared
-checkpoint-bearing L4 fallback qualification. Live Gemini and GPU rate
-publication additionally remain blocked by billing-account price-read IAM and
-isolated model/SKU reconciliation; public list prices are not accepted as
-settlement authority.
+SAM 3.1 source and checkpoint have been ingested, the production image has
+passed its signed supply-chain release, and the A100 80 GB primary has passed
+its thirty-run qualification. The separate L4 thirty-run cross-accelerator
+qualification remains in progress, followed by its terminal cost and
+independent temporal-mask quality evidence. Gemini 3.1 Pro High Standard and
+greater-than-200k-token live requests have executed successfully and all six
+account-effective price API reads pass. The remaining model/SKU qualification
+gate is the missing Detailed Usage Cost and Pricing export tables needed for
+the now-implemented exact reconciliation; public list prices are not accepted
+as settlement authority.
 
 The account-effective GPU rate reader is now a versioned multi-region
 configuration. It binds the A100 heavy primary and normal L4 route to

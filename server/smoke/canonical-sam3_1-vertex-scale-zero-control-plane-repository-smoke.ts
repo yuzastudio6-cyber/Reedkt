@@ -81,12 +81,27 @@ const repository = createCanonicalSam31VertexScaleZeroControlPlaneRepository({
   objectPort,
   prefix: 'private/smoke/sam31-scale-zero-control-plane',
 })
+const deploymentProfileRef = await repository.persistDeploymentProfile(profile)
+assert.deepEqual(
+  await repository.rereadDeploymentProfile(deploymentProfileRef),
+  profile,
+)
 const requestRef = await repository.persistRequest(upload)
 assert.deepEqual(await repository.rereadRequest(requestRef), upload)
+const consumption = await repository.consumeRequestCreateOnly({
+  deploymentProfileRef,
+  requestRef,
+  consumedAt: profile.recordedAt,
+})
+assert.equal(consumption.created, true)
 const submissionRef = await repository.persistSubmission({
   requestRef, submission,
 })
 assert.deepEqual(await repository.rereadSubmission(submissionRef), submission)
+assert.deepEqual(
+  await repository.rereadSubmissionForRequest(requestRef),
+  submission,
+)
 const observationRef = await repository.persistObservation({
   submissionRef, observation,
 })
@@ -97,7 +112,12 @@ assert.deepEqual(await repository.persistSubmission({ requestRef, submission }),
 assert.deepEqual(await repository.persistObservation({
   submissionRef, observation,
 }), observationRef)
-assert.equal(objects.size, 3)
+assert.equal((await repository.consumeRequestCreateOnly({
+  deploymentProfileRef,
+  requestRef,
+  consumedAt: profile.recordedAt,
+})).created, false)
+assert.equal(objects.size, 6)
 
 await assert.rejects(() => repository.persistSubmission({
   requestRef: { ...requestRef, contentHash: hash('f') },
@@ -107,15 +127,20 @@ await assert.rejects(() => repository.persistObservation({
   submissionRef: { ...submissionRef, contentHash: hash('f') },
   observation,
 }))
-const firstPath = [...objects.keys()][0]
-if (!firstPath) throw new Error('fixture object path missing')
-objects.set(firstPath, Buffer.from('{}'))
+const requestPath = [...objects.keys()].find((value) =>
+  value.includes('/requests/'))
+if (!requestPath) throw new Error('fixture request path missing')
+objects.set(requestPath, Buffer.from('{}'))
 await assert.rejects(() => repository.rereadRequest(requestRef))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-control-plane-repository',
-  checks: 18,
+  checks: 25,
   createOnlyExactReread: true,
+  deploymentProfilePersisted: true,
+  requestConsumedBeforeProviderCall: true,
+  deterministicConsumptionReplay: true,
+  requestScopedSubmissionReread: true,
   requestSubmissionObservationLineage: true,
   restartSafe: true,
   crossLineageRejected: true,

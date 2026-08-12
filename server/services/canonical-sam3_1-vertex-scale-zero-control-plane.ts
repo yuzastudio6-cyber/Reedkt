@@ -367,6 +367,28 @@ export function assertCanonicalSam31VertexScaleZeroControlPlaneObservation(
   return parsed
 }
 
+/**
+ * Reconstructs the only safe state after a durable consumption exists but no
+ * provider response was committed. It never authorizes another POST; callers
+ * may only reconcile the fixed model/endpoint/deployed-model resource.
+ */
+export function createCanonicalSam31VertexScaleZeroUnknownSubmission(input: {
+  readonly request: CanonicalSam31VertexScaleZeroDeploymentRequest
+  readonly consumedAt: string
+}): CanonicalSam31VertexScaleZeroControlPlaneSubmission {
+  const request = assertCanonicalSam31VertexScaleZeroDeploymentRequest(
+    input.request,
+  )
+  return submission({
+    stage: request.stage,
+    requestDigestSha256: request.requestDigestSha256,
+    disposition: 'outcome_unknown_requires_reconciliation',
+    providerOutcome: 'unknown',
+    operationName: null,
+    submittedAt: timestamp.parse(input.consumedAt),
+  })
+}
+
 function submission(input: {
   readonly stage: z.infer<typeof stage>
   readonly requestDigestSha256: string

@@ -15,6 +15,7 @@ const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com' as const
 const PARENT = 'projects/reeditpro/locations/us-central1' as const
 const MODEL_ID = 'weeditpro-sam31-a100-scale-zero-v1' as const
 const ENDPOINT_ID = 'weeditpro-sam31-a100-scale-zero-v1' as const
+const DEPLOYED_MODEL_ID = '3101000001' as const
 const MODEL_RESOURCE = z.string().regex(
   /^projects\/reeditpro\/locations\/us-central1\/models\/[a-z0-9_-]{1,63}$/u,
 )
@@ -120,6 +121,7 @@ export function createCanonicalSam31VertexScaleZeroModelDeployRequest(input: {
   return request('model_deploy',
     `${API_ORIGIN}/v1beta1/${PARENT}/endpoints/${ENDPOINT_ID}:deployModel`, {
       deployedModel: {
+        id: DEPLOYED_MODEL_ID,
         model,
         displayName: profile.endpoint.displayName,
         serviceAccount: profile.serviceIdentity.email,

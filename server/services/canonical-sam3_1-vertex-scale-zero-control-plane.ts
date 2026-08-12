@@ -7,6 +7,7 @@ import {
 } from './canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
 import {
   sha256AuthorityValue,
+  stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SCALE_ZERO_CONTROL_PLANE_SUBMISSION_VERSION =
@@ -30,6 +31,10 @@ const endpointResourceName = z.literal(
   'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
 )
 const deployedModelId = z.string().regex(/^[0-9]{1,10}$/u)
+const exactDeployedModelId = z.literal('3101000001')
+const modelResourceFromRequest = z.string().regex(
+  /^projects\/reeditpro\/locations\/us-central1\/models\/[a-z0-9_-]{1,63}$/u,
+)
 
 const submissionWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -81,7 +86,7 @@ const observationWithoutHashSchema = z.object({
   stage,
   requestDigestSha256: sha256,
   submissionHash: sha256,
-  operationName,
+  operationName: operationName.nullable(),
   disposition: z.enum(['pending', 'completed', 'terminal_failure']),
   operationDone: z.boolean(),
   modelResourceName: modelResourceName.nullable(),
@@ -91,7 +96,12 @@ const observationWithoutHashSchema = z.object({
     code: z.number().int().nonnegative().safe(),
     messageDigestSha256: sha256,
   }).strict().nullable(),
-  exactOperationReread: z.literal(true),
+  observationMode: z.enum([
+    'exact_operation_reread',
+    'exact_resource_reconciliation',
+  ]),
+  exactOperationReread: z.boolean(),
+  exactResourceReread: z.boolean(),
   automaticRetryAllowed: z.literal(false),
   customerRequestOrGpuInferenceStarted: z.literal(false),
   walletOrCreditMutationAuthorityGranted: z.literal(false),
@@ -121,6 +131,17 @@ const observationWithoutHashSchema = z.object({
       value.modelResourceName !== null
       || value.endpointResourceName !== null
       || value.deployedModelId !== null
+    ))
+    || (value.observationMode === 'exact_operation_reread' && (
+      value.operationName === null
+      || !value.exactOperationReread
+      || value.exactResourceReread
+    ))
+    || (value.observationMode === 'exact_resource_reconciliation' && (
+      value.operationName !== null
+      || value.exactOperationReread
+      || !value.exactResourceReread
+      || !completed
     ))
   ) context.addIssue({
     code: 'custom',
@@ -219,6 +240,108 @@ export function createCanonicalSam31VertexScaleZeroControlPlane(input: {
       }).passthrough().parse(response.data)
       return observation(accepted, operation, timestamp.parse(now()))
     },
+
+    async reconcileUnknown(inputValue: {
+      readonly request: CanonicalSam31VertexScaleZeroDeploymentRequest
+      readonly unknownSubmission:
+        CanonicalSam31VertexScaleZeroControlPlaneSubmission
+    }): Promise<CanonicalSam31VertexScaleZeroControlPlaneObservation | null> {
+      const request =
+        assertCanonicalSam31VertexScaleZeroDeploymentRequest(inputValue.request)
+      const unknown = assertCanonicalSam31VertexScaleZeroControlPlaneSubmission(
+        inputValue.unknownSubmission,
+      )
+      if (
+        unknown.disposition !== 'outcome_unknown_requires_reconciliation'
+        || unknown.providerOutcome !== 'unknown'
+        || unknown.operationName !== null
+        || unknown.stage !== request.stage
+        || unknown.requestDigestSha256 !== request.requestDigestSha256
+      ) throw new Error('Unknown Vertex deployment lineage changed.')
+      const observedAt = timestamp.parse(now())
+      try {
+        if (request.stage === 'model_upload') {
+          const response = await auth.request({
+            url: `${API_ORIGIN}/v1beta1/projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1`,
+            method: 'GET', timeout, retry: false, maxRedirects: 0,
+            responseType: 'json', maxContentLength: 2 * 1024 * 1024,
+          })
+          const model = parseExactModelResource(response.data, request)
+          return reconciledObservation(unknown, request, observedAt, {
+            modelResourceName: model.name,
+            endpointResourceName: null,
+            deployedModelId: null,
+          })
+        }
+        const response = await auth.request({
+          url: `${API_ORIGIN}/v1beta1/projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1`,
+          method: 'GET', timeout, retry: false, maxRedirects: 0,
+          responseType: 'json', maxContentLength: 2 * 1024 * 1024,
+        })
+        const endpoint = parseExactEndpointResource(response.data)
+        if (request.stage === 'endpoint_create') {
+          return reconciledObservation(unknown, request, observedAt, {
+            modelResourceName: null,
+            endpointResourceName: endpoint.name,
+            deployedModelId: null,
+          })
+        }
+        const expectedModel = z.object({
+          deployedModel: z.object({
+            model: modelResourceFromRequest,
+            id: exactDeployedModelId,
+            serviceAccount: z.literal(
+              'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
+            ),
+            dedicatedResources: z.object({
+              machineSpec: z.object({
+                machineType: z.literal('a2-ultragpu-1g'),
+                acceleratorType: z.literal('NVIDIA_A100_80GB'),
+                acceleratorCount: z.literal(1),
+              }).passthrough(),
+              minReplicaCount: z.literal(0),
+              initialReplicaCount: z.literal(1),
+              maxReplicaCount: z.literal(1),
+              scaleToZeroSpec: z.object({
+                minScaleupPeriod: z.literal('300s'),
+                idleScaledownPeriod: z.literal('300s'),
+              }).strict(),
+              spot: z.literal(false),
+            }).passthrough(),
+          }).passthrough(),
+        }).passthrough().parse(request.body).deployedModel
+        const found = endpoint.deployedModels.find((candidate) =>
+          candidate.id === expectedModel.id)
+        if (
+          !found
+          || found.model !== expectedModel.model
+          || found.serviceAccount !== expectedModel.serviceAccount
+          || stableAuthorityStringify(found.dedicatedResources.machineSpec) !==
+            stableAuthorityStringify(
+              expectedModel.dedicatedResources.machineSpec,
+            )
+          || found.dedicatedResources.minReplicaCount !== 0
+          || found.dedicatedResources.initialReplicaCount !== 1
+          || found.dedicatedResources.maxReplicaCount !== 1
+          || stableAuthorityStringify(
+            found.dedicatedResources.scaleToZeroSpec,
+          ) !== stableAuthorityStringify(
+            expectedModel.dedicatedResources.scaleToZeroSpec,
+          )
+          || found.dedicatedResources.spot !== false
+          || endpoint.trafficSplit[expectedModel.id] !== 100
+          || Object.keys(endpoint.trafficSplit).length !== 1
+        ) return null
+        return reconciledObservation(unknown, request, observedAt, {
+          modelResourceName: null,
+          endpointResourceName: null,
+          deployedModelId: found.id,
+        })
+      } catch (error) {
+        if (cloudStatus(error) === 404) return null
+        throw error
+      }
+    },
   })
 }
 
@@ -314,7 +437,9 @@ function observation(
           ),
         }
       : null,
+    observationMode: 'exact_operation_reread',
     exactOperationReread: true,
+    exactResourceReread: false,
     automaticRetryAllowed: false,
     customerRequestOrGpuInferenceStarted: false,
     walletOrCreditMutationAuthorityGranted: false,
@@ -358,4 +483,136 @@ function parseStageResult(
     endpointResourceName: null,
     deployedModelId: parsed.deployedModel.id,
   }
+}
+
+const deployedModelResourceSchema = z.object({
+  id: exactDeployedModelId,
+  model: modelResourceFromRequest,
+  serviceAccount: z.literal(
+    'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
+  ),
+  dedicatedResources: z.object({
+    machineSpec: z.object({
+      machineType: z.literal('a2-ultragpu-1g'),
+      acceleratorType: z.literal('NVIDIA_A100_80GB'),
+      acceleratorCount: z.literal(1),
+    }).passthrough(),
+    minReplicaCount: z.literal(0),
+    initialReplicaCount: z.literal(1),
+    maxReplicaCount: z.literal(1),
+    scaleToZeroSpec: z.object({
+      minScaleupPeriod: z.literal('300s'),
+      idleScaledownPeriod: z.literal('300s'),
+    }).passthrough(),
+    spot: z.literal(false),
+  }).passthrough(),
+}).passthrough()
+
+function parseExactEndpointResource(value: unknown) {
+  return z.object({
+    name: endpointResourceName,
+    displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
+    dedicatedEndpointEnabled: z.literal(true),
+    predictRequestResponseLoggingConfig: z.object({
+      enabled: z.literal(false),
+    }).passthrough().optional(),
+    deployedModels: z.array(deployedModelResourceSchema).max(1).default([]),
+    trafficSplit: z.record(z.string(), z.number().int().nonnegative().safe())
+      .default({}),
+  }).passthrough().parse(value)
+}
+
+function parseExactModelResource(
+  value: unknown,
+  request: CanonicalSam31VertexScaleZeroDeploymentRequest,
+) {
+  const requested = z.object({
+    modelId: z.literal('weeditpro-sam31-a100-scale-zero-v1'),
+    model: z.object({
+      displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
+      containerSpec: z.object({
+        imageUri: z.string().min(1),
+        ports: z.array(z.object({ containerPort: z.literal(8080) }).strict())
+          .length(1),
+        healthRoute: z.literal('/health'),
+        predictRoute: z.literal('/predict'),
+        env: z.array(z.object({ name: z.string(), value: z.string() }).strict())
+          .length(2),
+      }).strict(),
+    }).passthrough(),
+  }).strict().parse(request.body)
+  const observed = z.object({
+    name: modelResourceName,
+    displayName: z.literal(requested.model.displayName),
+    containerSpec: z.object({
+      imageUri: z.literal(requested.model.containerSpec.imageUri),
+      ports: z.array(z.object({ containerPort: z.literal(8080) }).passthrough())
+        .length(1),
+      healthRoute: z.literal('/health'),
+      predictRoute: z.literal('/predict'),
+      env: z.array(z.object({ name: z.string(), value: z.string() }).passthrough())
+        .length(2),
+    }).passthrough(),
+  }).passthrough().parse(value)
+  const environment = new Map(observed.containerSpec.env.map((item) =>
+    [item.name, item.value]))
+  if (
+    environment.size !== 2
+    || environment.get('WEEDITPRO_SAM31_RUNTIME_MODE') !==
+      'vertex_prediction_endpoint_v1'
+    || environment.get('WEEDITPRO_GPU_ACCELERATOR_CLASS') !==
+      'nvidia_a100_80gb'
+  ) throw new Error('Reconciled Vertex model environment changed.')
+  return observed
+}
+
+function reconciledObservation(
+  unknown: CanonicalSam31VertexScaleZeroControlPlaneSubmission,
+  request: CanonicalSam31VertexScaleZeroDeploymentRequest,
+  observedAt: string,
+  stageResult: {
+    readonly modelResourceName: string | null
+    readonly endpointResourceName:
+      | 'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1'
+      | null
+    readonly deployedModelId: string | null
+  },
+): CanonicalSam31VertexScaleZeroControlPlaneObservation {
+  const payload = observationWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_SAM3_1_VERTEX_SCALE_ZERO_CONTROL_PLANE_OBSERVATION_VERSION,
+    source: 'canonical_backend_sam3_1_vertex_scale_zero_control_plane',
+    stage: request.stage,
+    requestDigestSha256: request.requestDigestSha256,
+    submissionHash: unknown.submissionHash,
+    operationName: null,
+    disposition: 'completed',
+    operationDone: true,
+    ...stageResult,
+    providerErrorRef: null,
+    observationMode: 'exact_resource_reconciliation',
+    exactOperationReread: false,
+    exactResourceReread: true,
+    automaticRetryAllowed: false,
+    customerRequestOrGpuInferenceStarted: false,
+    walletOrCreditMutationAuthorityGranted: false,
+    publicDeliveryAuthorityGranted: false,
+    productionAuthorityGranted: false,
+    observedAt,
+  })
+  return observationSchema.parse({
+    ...payload,
+    observationHash: sha256AuthorityValue(payload),
+  })
+}
+
+function cloudStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined
+  const responseStatus = 'response' in error
+    && error.response && typeof error.response === 'object'
+    && 'status' in error.response
+    ? Number(error.response.status)
+    : undefined
+  if (Number.isInteger(responseStatus)) return responseStatus
+  return 'code' in error ? Number(error.code) : undefined
 }

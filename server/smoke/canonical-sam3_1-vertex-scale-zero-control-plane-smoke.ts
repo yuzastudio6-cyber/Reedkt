@@ -101,6 +101,53 @@ await assert.rejects(() => unknownControlPlane.observeOne({
   submission: unknown,
 }))
 
+const reconciledModel = await createCanonicalSam31VertexScaleZeroControlPlane({
+  auth: {
+    async request() {
+      return { data: {
+        name:
+          'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+        displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
+        containerSpec: (upload.body.model as Record<string, unknown>)
+          .containerSpec,
+      } }
+    },
+  } as unknown as Pick<GoogleAuth, 'request'>,
+  now: () => '2026-08-11T19:00:03.000Z',
+}).reconcileUnknown({
+  request: upload,
+  unknownSubmission: await unknownControlPlane.submitOne(upload),
+})
+assert.equal(reconciledModel?.disposition, 'completed')
+assert.equal(reconciledModel?.observationMode,
+  'exact_resource_reconciliation')
+assert.equal(reconciledModel?.operationName, null)
+assert.equal(reconciledModel?.modelResourceName,
+  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1')
+
+const exactDeployed = (deploy.body.deployedModel as Record<string, unknown>)
+const reconciledDeploy = await createCanonicalSam31VertexScaleZeroControlPlane({
+  auth: {
+    async request() {
+      return { data: {
+        name:
+          'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+        displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
+        dedicatedEndpointEnabled: true,
+        predictRequestResponseLoggingConfig: { enabled: false },
+        deployedModels: [exactDeployed],
+        trafficSplit: { '3101000001': 100 },
+      } }
+    },
+  } as unknown as Pick<GoogleAuth, 'request'>,
+  now: () => '2026-08-11T19:00:04.000Z',
+}).reconcileUnknown({
+  request: deploy,
+  unknownSubmission: await unknownControlPlane.submitOne(deploy),
+})
+assert.equal(reconciledDeploy?.deployedModelId, '3101000001')
+assert.equal(reconciledDeploy?.exactResourceReread, true)
+
 let invalidCalls = 0
 const invalidControlPlane = createCanonicalSam31VertexScaleZeroControlPlane({
   auth: {
@@ -126,7 +173,7 @@ assert.throws(() => assertCanonicalSam31VertexScaleZeroControlPlaneObservation({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-control-plane',
-  checks: 22,
+  checks: 29,
   exactCompiledRequestOnly: true,
   redirectsAndRetriesDisabled: true,
   unknownOutcomeRequiresReconciliation: true,

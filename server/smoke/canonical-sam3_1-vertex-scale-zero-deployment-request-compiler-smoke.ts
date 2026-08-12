@@ -56,6 +56,7 @@ const dedicatedResources = deployedModel.dedicatedResources as Record<
 >
 assert.equal(deployedModel.serviceAccount,
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com')
+assert.equal(deployedModel.id, '3101000001')
 assert.equal(dedicatedResources.minReplicaCount, 0)
 assert.equal(dedicatedResources.initialReplicaCount, 1)
 assert.equal(dedicatedResources.maxReplicaCount, 1)
@@ -83,7 +84,7 @@ assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentRequest({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-deployment-request-compiler',
-  checks: 21,
+  checks: 22,
   vertexControlPlaneApiVersion: 'v1beta1',
   dedicatedA100Endpoint: true,
   minimumReplicaCount: 0,

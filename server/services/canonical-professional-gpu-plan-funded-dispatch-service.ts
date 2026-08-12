@@ -7,13 +7,10 @@ import {
   canonicalProfessionalToolGpuDispatchAdmissionSchema,
   type CanonicalProfessionalToolGpuDispatchAdmission,
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
-import {
-  assertCanonicalFreshA100CustomerDispatchAllowed,
-} from '../edit-architecture/canonical-quality-first-a100-fast-scale-zero-migration'
 import { canonicalWorkItemSchema } from '../validation/edit-planning-authority-schemas'
 import {
-  assertCanonicalCurrentGoogleCloudGpuRateAuthority,
-} from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
   assertCanonicalProfessionalGpuPlanDispatchEstimateSet,
   assertCanonicalProfessionalGpuPlanPreapprovalManifest,
@@ -42,6 +39,10 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
+import {
+  assertCanonicalSam31CurrentA100CustomerDispatchAllowed,
+  type CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
+} from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
 
 export const CANONICAL_PROFESSIONAL_GPU_PLAN_PRICING_AUTHORITY_BUNDLE_VERSION =
   'canonical-professional-gpu-plan-pricing-authority-bundle-v1' as const
@@ -658,6 +659,8 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     CanonicalProfessionalGpuAttemptStartAuthorityReadPort
   readonly runtimeContextReadPort:
     CanonicalProfessionalGpuRuntimeDispatchContextReadPort
+  readonly a100CustomerDispatchReadinessReadPort?:
+    CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
   readonly admittedAt: string
   readonly expiresAt: string
 }): Promise<CanonicalProfessionalGpuFundedDispatchAdmission> {
@@ -697,9 +700,6 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     untrustedAttempt,
     input.admittedAt,
   )
-  if (attempt.routeId === 'a100_80gb_heavy_primary') {
-    assertCanonicalFreshA100CustomerDispatchAllowed()
-  }
   const basis = bundle.pricingBasis
   const manifest = bundle.preapprovalManifest
   const binding = bundle.publicationBinding
@@ -796,10 +796,45 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     untrustedRelease,
     input.admittedAt,
   )
-  const rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+  const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     untrustedRate,
     input.admittedAt,
   )
+  if (attempt.routeId === 'a100_80gb_heavy_primary') {
+    if (!input.a100CustomerDispatchReadinessReadPort) {
+      throw new Error(
+        'Current A100 customer-dispatch readiness port is not mounted.',
+      )
+    }
+    const runtimeReleaseRef = ref(
+      release.releaseId,
+      release.releaseHash,
+      release.releaseVersion,
+    )
+    const rateAuthorityRef = ref(
+      rate.rateAuthorityId,
+      rate.rateAuthorityHash,
+      rate.rateAuthorityVersion,
+    )
+    const readiness = await input.a100CustomerDispatchReadinessReadPort
+      .rereadCurrent({
+        toolId: 'sam3_1',
+        operationId: 'tool.sam3_1.track_and_segment_video.v1',
+        runtimeReleaseRef,
+        rateAuthorityRef,
+        at: input.admittedAt,
+      })
+    if (!readiness) throw new Error(
+      'Current A100 customer-dispatch readiness is missing.',
+    )
+    assertCanonicalSam31CurrentA100CustomerDispatchAllowed({
+      readiness,
+      runtimeReleaseRef,
+      rateAuthorityRef,
+      immutableImageDigest: release.immutableImageDigest,
+      at: input.admittedAt,
+    })
+  }
   const toolAdmission = admitCanonicalProfessionalToolGpuDispatch({
     admissionId: `${input.fundedAdmissionId}.tool-admission`,
     estimate: estimateEntry.estimate,

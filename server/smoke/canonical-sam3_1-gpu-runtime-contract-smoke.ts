@@ -27,7 +27,7 @@ import {
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 const hash = (seed: string) => `sha256:${sha256AuthorityValue(seed)}`
-const ref = (id: string) => ({ id, version: 1, contentHash: hash(id) })
+const ref = (id: string) => ({ id, version: 1 as const, contentHash: hash(id) })
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const checkpointSha = sha256AuthorityValue('authorized-checkpoint')
 const immutableImageDigest = hash('sam31-image')
@@ -107,7 +107,11 @@ assert.match(
 )
 assert.match(
   l4Qualifier,
-  /immutableImageReleaseRef:\s*input\.l4ImageReleaseRef/u,
+  /const l4ImmutableImageRef = evidenceRefSchema\.parse\([\s\S]*?l4ImageRelease\.immutableImageRef,[\s\S]*?\)/u,
+)
+assert.match(
+  l4Qualifier,
+  /immutableImageReleaseRef:\s*input\.l4ImmutableImageRef/u,
 )
 assert.equal(
   (l4Qualifier.match(

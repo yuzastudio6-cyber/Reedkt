@@ -97,7 +97,7 @@ const timestamp = z.string().datetime({ offset: true })
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const evidenceRefSchema = z.object({
   id: safeId,
-  version: z.number().int().positive().safe(),
+  version: z.literal(1),
   contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
 }).strict()
 
@@ -166,6 +166,9 @@ async function main() {
     || l4ImageRelease.authority.productionReady) {
     throw new Error('sam31_l4_image_supply_chain_release_changed')
   }
+  const l4ImmutableImageRef = evidenceRefSchema.parse(
+    l4ImageRelease.immutableImageRef,
+  )
   const expectedL4Image =
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/`
     + `reeditpro-sam31-gpu@${l4ImageDigest}`
@@ -339,7 +342,7 @@ async function main() {
     priorPrimaryQualificationNonExecutionRef,
     stagingEvidence,
     l4ImageDigest,
-    l4ImageReleaseRef,
+    l4ImmutableImageRef,
     preparedAt: now,
   })
   await persistCanonicalJsonCreateOnly({
@@ -778,7 +781,7 @@ function buildL4QualificationTask(input: {
     typeof canonicalSam31GpuPrivateInputStagingEvidenceSchema
   >
   l4ImageDigest: `sha256:${string}`
-  l4ImageReleaseRef: z.infer<typeof evidenceRefSchema>
+  l4ImmutableImageRef: z.infer<typeof evidenceRefSchema>
   preparedAt: string
 }) {
   const baseRequest = input.baseTask.runtimeRequest
@@ -824,7 +827,7 @@ function buildL4QualificationTask(input: {
     },
     modelArtifacts: {
       ...baseRequest.modelArtifacts,
-      immutableImageReleaseRef: input.l4ImageReleaseRef,
+      immutableImageReleaseRef: input.l4ImmutableImageRef,
       immutableImageDigest: input.l4ImageDigest,
     },
     settings: {

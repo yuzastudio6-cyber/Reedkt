@@ -11,6 +11,12 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  assertCanonicalSam31GpuCompleteSourcePerformanceEvidence,
+  canonicalSam31GpuCompleteSourcePerformanceEvidenceRef,
+  createCanonicalSam31GpuCompleteSourcePerformanceRepository,
+  type CanonicalSam31GpuCompleteSourcePerformanceEvidence,
+} from './canonical-sam3_1-gpu-complete-source-performance-owner'
+import {
   CANONICAL_SAM3_1_GPU_RUNTIME_QUALIFICATION_COMPONENT_EVIDENCE_VERSION,
   assertCanonicalSam31GpuRuntimeQualificationComponentEvidence,
   buildCanonicalSam31GpuRuntimeQualificationComponentEvidence,
@@ -269,6 +275,7 @@ const qualitySetWithoutHashSchema = z.object({
   immutableImageDigest: prefixedSha256,
   temporalMeasurementSetRef: refSchema,
   completeIntervalReviewRef: refSchema,
+  completeSourcePerformanceEvidenceRef: refSchema,
   exactEightMinuteSourceRef: refSchema,
   stitchedMaskSequenceRef: refSchema,
   qualityRole: z.enum([
@@ -319,6 +326,7 @@ const ownerRequestSchema = z.object({
   qualificationId: safeId,
   temporalMeasurementSetRef: refSchema,
   completeIntervalReviewRef: refSchema,
+  completeSourcePerformanceEvidenceRef: refSchema,
   qualityRole: z.enum([
     'approved_a100_baseline',
     'l4_fallback_compared_to_approved_a100_baseline',
@@ -342,6 +350,9 @@ export interface CanonicalSam31TemporalQualityReadPort {
   }): Promise<unknown | null>
   rereadCompleteIntervalReview(input: {
     readonly reviewRef: EvidenceRef
+  }): Promise<unknown | null>
+  rereadCompleteSourcePerformanceEvidence(input: {
+    readonly performanceEvidenceRef: EvidenceRef
   }): Promise<unknown | null>
   rereadApprovedA100BaselineComponent(input: {
     readonly componentRef: EvidenceRef
@@ -462,29 +473,41 @@ export function createCanonicalSam31GpuTemporalQualityQualificationOwner(
     async compileAndPersistTemporalQualityComponent(untrusted: unknown) {
       assertPlainSerializedData(untrusted, 'sam31_temporal_quality_request')
       const request = ownerRequestSchema.parse(untrusted)
-      const [measurementValue, reviewValue] = await Promise.all([
+      const [measurementValue, reviewValue, performanceValue] =
+        await Promise.all([
         input.readPort.rereadTemporalMeasurementSet({
           measurementSetRef: request.temporalMeasurementSetRef,
         }),
         input.readPort.rereadCompleteIntervalReview({
           reviewRef: request.completeIntervalReviewRef,
         }),
+        input.readPort.rereadCompleteSourcePerformanceEvidence({
+          performanceEvidenceRef:
+            request.completeSourcePerformanceEvidenceRef,
+        }),
       ])
-      if (!measurementValue || !reviewValue) {
-        throw conflict('measurement_or_review_missing')
+      if (!measurementValue || !reviewValue || !performanceValue) {
+        throw conflict('measurement_review_or_performance_missing')
       }
       const measurement = assertCanonicalSam31TemporalMeasurementSet(
         measurementValue,
       )
       const review = assertCanonicalSam31CompleteIntervalReview(reviewValue)
+      const performance =
+        assertCanonicalSam31GpuCompleteSourcePerformanceEvidence(
+          performanceValue,
+        )
       if (!sameRef(
         canonicalSam31TemporalMeasurementSetRef(measurement),
         request.temporalMeasurementSetRef,
       ) || !sameRef(
         canonicalSam31CompleteIntervalReviewRef(review),
         request.completeIntervalReviewRef,
+      ) || !sameRef(
+        canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(performance),
+        request.completeSourcePerformanceEvidenceRef,
       )) throw conflict('request_reference_mismatch')
-      assertCurrentQualityLineage(request, measurement, review)
+      assertCurrentQualityLineage(request, measurement, review, performance)
       const baseline = request.qualityRole === 'approved_a100_baseline'
         ? null
         : await rereadApprovedA100Baseline(input.readPort, request)
@@ -504,6 +527,8 @@ export function createCanonicalSam31GpuTemporalQualityQualificationOwner(
         immutableImageDigest: measurement.immutableImageDigest,
         temporalMeasurementSetRef: request.temporalMeasurementSetRef,
         completeIntervalReviewRef: request.completeIntervalReviewRef,
+        completeSourcePerformanceEvidenceRef:
+          request.completeSourcePerformanceEvidenceRef,
         exactEightMinuteSourceRef: measurement.exactEightMinuteSourceRef,
         stitchedMaskSequenceRef: measurement.stitchedMaskSequenceRef,
         qualityRole: request.qualityRole,
@@ -653,6 +678,10 @@ export function createCanonicalSam31GpuTemporalQualityQualificationOwnerFromObje
     createCanonicalSam31GpuRuntimeQualificationEvidenceRepository({
       objectPort: input.objectPort,
     })
+  const performanceRepository =
+    createCanonicalSam31GpuCompleteSourcePerformanceRepository({
+      objectPort: input.objectPort,
+    })
   return createCanonicalSam31GpuTemporalQualityQualificationOwner({
     readPort: {
       rereadTemporalMeasurementSet({ measurementSetRef }) {
@@ -668,6 +697,11 @@ export function createCanonicalSam31GpuTemporalQualityQualificationOwnerFromObje
           assertCanonicalSam31CompleteIntervalReview,
           reviewRef,
           canonicalSam31CompleteIntervalReviewRef)
+      },
+      rereadCompleteSourcePerformanceEvidence({ performanceEvidenceRef }) {
+        return performanceRepository.rereadPerformanceEvidence({
+          evidenceRef: performanceEvidenceRef,
+        })
       },
       rereadApprovedA100BaselineComponent({ componentRef }) {
         return componentRepository.rereadComponentEvidence({
@@ -733,6 +767,7 @@ function assertCurrentQualityLineage(
   request: z.infer<typeof ownerRequestSchema>,
   measurement: CanonicalSam31TemporalMeasurementSet,
   review: CanonicalSam31CompleteIntervalReview,
+  performance: CanonicalSam31GpuCompleteSourcePerformanceEvidence,
 ): void {
   const sequenceRefs = measurement.sequences.map((sequence) =>
     sequence.deterministicMetricReportRef)
@@ -755,6 +790,26 @@ function assertCurrentQualityLineage(
     && review.reviewedSequenceCount === measurement.sequences.length
     && stableAuthorityStringify(review.reviewedSequenceMeasurementRefs) ===
       stableAuthorityStringify(sequenceRefs)
+    && performance.qualificationId === request.qualificationId
+    && stableAuthorityStringify(performance.route) ===
+      stableAuthorityStringify(measurement.route)
+    && performance.immutableImageDigest === measurement.immutableImageDigest
+    && sameRef(performance.exactEightMinuteSourceRef,
+      measurement.exactEightMinuteSourceRef)
+    && sameRef(performance.stitchedMaskSequenceRef,
+      measurement.stitchedMaskSequenceRef)
+    && performance.stitchedOutputMaskSetDigestSha256 ===
+      measurement.stitchedOutputMaskSetDigestSha256
+    && performance.sourceWidth === measurement.sourceWidth
+    && performance.sourceHeight === measurement.sourceHeight
+    && performance.sourceFrameCount === measurement.sourceFrameCount
+    && performance.sourceDurationMilliseconds === 480_000
+    && performance.sourceResolutionAndCompleteFrameRangePreserved
+    && performance.everyChunkTaskResponseResultAndTerminalCostReread
+    && performance.exactStitchedManifestAndEveryMaskByteReread
+    && performance.allGpuCapacityStoppedAfterTerminal
+    && !performance.automaticQualityReductionAllowed
+    && !performance.callerPerformanceClaimsAccepted
   if (!exact) throw conflict('measurement_review_lineage_mismatch')
 }
 
@@ -947,6 +1002,7 @@ function assertReadPort(port: CanonicalSam31TemporalQualityReadPort): void {
   if (!port
     || typeof port.rereadTemporalMeasurementSet !== 'function'
     || typeof port.rereadCompleteIntervalReview !== 'function'
+    || typeof port.rereadCompleteSourcePerformanceEvidence !== 'function'
     || typeof port.rereadApprovedA100BaselineComponent !== 'function'
     || typeof port.rereadApprovedA100RuntimeQualificationEvidence !==
       'function') throw conflict('read_port_invalid')

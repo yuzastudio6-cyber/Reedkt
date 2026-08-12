@@ -5,9 +5,18 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  assertCanonicalSam31GpuCompleteSourcePerformanceEvidence,
+  canonicalSam31GpuCompleteSourcePerformanceEvidenceRef,
+  createCanonicalSam31GpuCompleteSourcePerformanceRepository,
+  type CanonicalSam31GpuCompleteSourcePerformanceEvidence,
+} from '../services/canonical-sam3_1-gpu-complete-source-performance-owner'
+import {
   canonicalSam31GpuRuntimeQualificationComponentRef,
   type CanonicalSam31GpuRuntimeQualificationComponentEvidence,
 } from '../services/canonical-sam3_1-gpu-runtime-qualification-compilation-authority'
+import {
+  sha256AuthorityValue,
+} from '../services/private-edit-authority-store'
 import {
   createCanonicalSam31GpuRuntimeQualificationComponentEvidenceRepository,
 } from '../services/canonical-sam3_1-gpu-runtime-qualification-component-evidence-repository'
@@ -34,12 +43,17 @@ import {
   type CanonicalSam31GpuRuntimeQualificationEvidence,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-qualification-evidence'
 import {
+  canonicalSam31A100CompleteSourcePerformanceEvidenceFixture,
+} from './canonical-sam3_1-gpu-complete-source-performance-owner-smoke'
+import {
   qualificationEvidence as qualificationEvidenceFixture,
 } from './canonical-sam3_1-gpu-runtime-release-smoke'
 
 type Ref = { id: string; version: 1; contentHash: `sha256:${string}` }
 
-const exactSourceRef = ref('sam31-temporal-quality-eight-minute-source')
+const baseA100Performance =
+  canonicalSam31A100CompleteSourcePerformanceEvidenceFixture
+const exactSourceRef = baseA100Performance.exactEightMinuteSourceRef
 const objectCoverageManifestRef = ref(
   'sam31-temporal-quality-object-coverage-manifest',
 )
@@ -47,12 +61,19 @@ const measurementProfileRef = ref(
   'sam31-motion-compensated-temporal-quality-profile',
 )
 const a100QualificationId = qualificationEvidenceFixture.qualificationId
+const a100Performance = performance({
+  id: 'sam31-a100-temporal-complete-source-performance',
+  qualificationId: a100QualificationId,
+  route: qualificationEvidenceFixture.route,
+  immutableImageDigest: qualificationEvidenceFixture.immutableImageDigest,
+})
 const a100Measurement = measurement({
   id: 'sam31-a100-temporal-measurements',
   qualificationId: a100QualificationId,
   route: qualificationEvidenceFixture.route,
   immutableImageDigest: qualificationEvidenceFixture.immutableImageDigest,
   metricAdjustment: 0,
+  performance: a100Performance,
 })
 const a100Review = review({
   id: 'sam31-a100-complete-interval-review',
@@ -68,6 +89,7 @@ const a100Owner = createCanonicalSam31GpuTemporalQualityQualificationOwner({
   readPort: readPort({
     measurements: [a100Measurement],
     reviews: [a100Review],
+    performances: [a100Performance],
   }),
   qualitySetRepository: createCanonicalSam31TemporalQualitySetRepository({
     objectPort: a100Port,
@@ -83,12 +105,36 @@ const a100Request = {
     canonicalSam31TemporalMeasurementSetRef(a100Measurement),
   completeIntervalReviewRef:
     canonicalSam31CompleteIntervalReviewRef(a100Review),
+  completeSourcePerformanceEvidenceRef:
+    canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(a100Performance),
   qualityRole: 'approved_a100_baseline',
   approvedA100BaselineRuntimeQualificationEvidenceRef: null,
   approvedA100BaselineComponentRef: null,
 } as const
 const a100Component = await a100Owner
   .compileAndPersistTemporalQualityComponent(a100Request)
+await assert.rejects(() => createOwner({
+  measurements: [a100Measurement],
+  reviews: [a100Review],
+  performances: [],
+}).compileAndPersistTemporalQualityComponent(a100Request))
+const crossedPerformance = performance({
+  id: 'sam31-a100-crossed-complete-source-performance',
+  qualificationId: a100QualificationId,
+  route: qualificationEvidenceFixture.route,
+  immutableImageDigest: `sha256:${digest('crossed-a100-image')}`,
+})
+await assert.rejects(() => createOwner({
+  measurements: [a100Measurement],
+  reviews: [a100Review],
+  performances: [crossedPerformance],
+}).compileAndPersistTemporalQualityComponent({
+  ...a100Request,
+  completeSourcePerformanceEvidenceRef:
+    canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(
+      crossedPerformance,
+    ),
+}))
 assert.equal(a100Component.componentKind, 'independent_temporal_quality')
 if (a100Component.componentKind !== 'independent_temporal_quality') {
   throw new Error('Expected A100 temporal quality component.')
@@ -115,12 +161,19 @@ const l4Route = {
   machineType: 'cloud_run_nvidia_l4',
   accelerator: 'nvidia_l4',
 } as const
+const l4Performance = performance({
+  id: 'sam31-l4-complete-source-performance',
+  qualificationId: l4QualificationId,
+  route: l4Route,
+  immutableImageDigest: `sha256:${digest('sam31-l4-image')}`,
+})
 const l4Measurement = measurement({
   id: 'sam31-l4-temporal-measurements',
   qualificationId: l4QualificationId,
   route: l4Route,
   immutableImageDigest: `sha256:${digest('sam31-l4-image')}`,
   metricAdjustment: -0.01,
+  performance: l4Performance,
 })
 const l4Review = review({
   id: 'sam31-l4-complete-interval-review',
@@ -132,6 +185,7 @@ const l4Owner = createCanonicalSam31GpuTemporalQualityQualificationOwner({
   readPort: readPort({
     measurements: [l4Measurement, a100Measurement],
     reviews: [l4Review],
+    performances: [l4Performance, a100Performance],
     baselineComponent: a100Component,
     baselineEvidence: a100Evidence,
   }),
@@ -152,6 +206,8 @@ const l4Request = {
     canonicalSam31TemporalMeasurementSetRef(l4Measurement),
   completeIntervalReviewRef:
     canonicalSam31CompleteIntervalReviewRef(l4Review),
+  completeSourcePerformanceEvidenceRef:
+    canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(l4Performance),
   qualityRole: 'l4_fallback_compared_to_approved_a100_baseline',
   approvedA100BaselineRuntimeQualificationEvidenceRef: a100EvidenceRef,
   approvedA100BaselineComponentRef:
@@ -179,6 +235,16 @@ assert.deepEqual(replay, l4Component)
 
 const wiredStorage = new Map<string, Buffer>()
 const wiredObjectPort = memoryObjectPort(wiredStorage)
+const wiredPerformanceRepository =
+  createCanonicalSam31GpuCompleteSourcePerformanceRepository({
+    objectPort: wiredObjectPort,
+  })
+await wiredPerformanceRepository.persistPerformanceEvidenceCreateOnly({
+  evidence: a100Performance,
+})
+await wiredPerformanceRepository.persistPerformanceEvidenceCreateOnly({
+  evidence: l4Performance,
+})
 const wiredA100Refs = await persistCanonicalSam31TemporalQualityOwnerInput({
   objectPort: wiredObjectPort,
   measurementSet: a100Measurement,
@@ -229,6 +295,7 @@ const worseL4 = measurement({
   route: l4Route,
   immutableImageDigest: l4Measurement.immutableImageDigest,
   metricAdjustment: 0.01,
+  performance: l4Performance,
 })
 const worseReview = review({
   id: 'sam31-l4-worse-complete-interval-review',
@@ -277,6 +344,7 @@ const crossedSource = measurement({
   route: l4Route,
   immutableImageDigest: l4Measurement.immutableImageDigest,
   metricAdjustment: -0.01,
+  performance: l4Performance,
   exactSourceRef: ref('crossed-source'),
 })
 const crossedReview = review({
@@ -330,10 +398,11 @@ await assert.rejects(() => l4Owner
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-temporal-quality-qualification-owner',
-  checks: 46,
+  checks: 50,
   a100ApprovedBaselineComponentProduced: true,
   l4ComparedToExactApprovedA100RuntimeAndComponent: true,
   completeEightMinuteFrameAndObjectIntervalsMeasured: true,
+  exactCompleteSourcePerformanceEvidenceRequired: true,
   fullResolutionCompleteIntervalPlaybackReviewed: true,
   sampledReviewAccepted: false,
   temporalMaskFindingCount: 0,
@@ -346,15 +415,46 @@ console.log(JSON.stringify({
   productionAuthorityGranted: false,
 }, null, 2))
 
+function performance(input: {
+  id: string
+  qualificationId: string
+  route: CanonicalSam31GpuRuntimeQualificationEvidence['route']
+  immutableImageDigest: string
+}): CanonicalSam31GpuCompleteSourcePerformanceEvidence {
+  const stitchedDigest = digest(`${input.id}-stitched-mask-set`)
+  const payload = {
+    ...withoutKey(baseA100Performance, 'evidenceHash'),
+    performanceEvidenceId: input.id,
+    qualificationId: input.qualificationId,
+    route: input.route,
+    immutableImageDigest: input.immutableImageDigest,
+    fullSourceExecutionRef: ref(`${input.id}-execution-group`),
+    completeChunkResultSetRef: ref(`${input.id}-chunk-results`),
+    terminalUsageAndCostReceiptSetRef: ref(`${input.id}-terminal-costs`),
+    stitchedMaskSequenceRef: {
+      id: `${input.id}-stitched-mask-sequence`,
+      version: 1 as const,
+      contentHash: `sha256:${stitchedDigest}` as const,
+    },
+    stitchedOutputMaskSetDigestSha256: stitchedDigest,
+  }
+  return assertCanonicalSam31GpuCompleteSourcePerformanceEvidence({
+    ...payload,
+    evidenceHash: sha256AuthorityValue(payload),
+  })
+}
+
 function measurement(input: {
   id: string
   qualificationId: string
   route: CanonicalSam31GpuRuntimeQualificationEvidence['route']
   immutableImageDigest: string
   metricAdjustment: number
+  performance: CanonicalSam31GpuCompleteSourcePerformanceEvidence
   exactSourceRef?: Ref
 }): CanonicalSam31TemporalMeasurementSet {
-  const stitchedDigest = digest(`${input.id}-stitched-mask-set`)
+  const stitchedDigest =
+    input.performance.stitchedOutputMaskSetDigestSha256
   const baseMetrics = [
     { coverage: 0.2, iou: 0.9, alpha: 0.07, boundary: 0.08 },
     { coverage: 0.18, iou: 0.91, alpha: 0.06, boundary: 0.07 },
@@ -375,11 +475,7 @@ function measurement(input: {
     sourceFrameCount: 11_520,
     firstSourceFrameIndex: 0,
     lastSourceFrameIndex: 11_519,
-    stitchedMaskSequenceRef: {
-      id: `${input.id}-stitched-mask-sequence`,
-      version: 1,
-      contentHash: `sha256:${stitchedDigest}`,
-    },
+    stitchedMaskSequenceRef: input.performance.stitchedMaskSequenceRef,
     stitchedOutputMaskSetDigestSha256: stitchedDigest,
     expectedObjectCoverageManifestRef: objectCoverageManifestRef,
     measurementProfileRef,
@@ -500,6 +596,7 @@ function qualificationEvidenceWithQuality(
 function createOwner(input: {
   measurements: readonly CanonicalSam31TemporalMeasurementSet[]
   reviews: readonly CanonicalSam31CompleteIntervalReview[]
+  performances?: readonly CanonicalSam31GpuCompleteSourcePerformanceEvidence[]
   baselineComponent?: CanonicalSam31GpuRuntimeQualificationComponentEvidence
     | null
   baselineEvidence?: CanonicalSam31GpuRuntimeQualificationEvidence | null
@@ -521,6 +618,7 @@ function createOwner(input: {
 function readPort(input: {
   measurements: readonly CanonicalSam31TemporalMeasurementSet[]
   reviews: readonly CanonicalSam31CompleteIntervalReview[]
+  performances?: readonly CanonicalSam31GpuCompleteSourcePerformanceEvidence[]
   baselineComponent?: CanonicalSam31GpuRuntimeQualificationComponentEvidence
     | null
   baselineEvidence?: CanonicalSam31GpuRuntimeQualificationEvidence | null
@@ -531,6 +629,12 @@ function readPort(input: {
   const reviews = new Map(input.reviews.map((value) => [
     refKey(canonicalSam31CompleteIntervalReviewRef(value)), value,
   ]))
+  const performances = new Map(
+    (input.performances ?? [a100Performance, l4Performance]).map((value) => [
+      refKey(canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(value)),
+      value,
+    ]),
+  )
   return {
     async rereadTemporalMeasurementSet({ measurementSetRef }) {
       const value = measurements.get(refKey(measurementSetRef))
@@ -538,6 +642,12 @@ function readPort(input: {
     },
     async rereadCompleteIntervalReview({ reviewRef }) {
       const value = reviews.get(refKey(reviewRef))
+      return value ? structuredClone(value) : null
+    },
+    async rereadCompleteSourcePerformanceEvidence({
+      performanceEvidenceRef,
+    }) {
+      const value = performances.get(refKey(performanceEvidenceRef))
       return value ? structuredClone(value) : null
     },
     async rereadApprovedA100BaselineComponent({ componentRef }) {

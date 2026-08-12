@@ -187,6 +187,9 @@ assert.equal(evidence.sourceResolutionAndCompleteFrameRangePreserved, true)
 assert.equal(evidence.everyChunkTaskResponseResultAndTerminalCostReread, true)
 assert.equal(evidence.allGpuCapacityStoppedAfterTerminal, true)
 assert.equal(evidence.automaticQualityReductionAllowed, false)
+export {
+  evidence as canonicalSam31A100CompleteSourcePerformanceEvidenceFixture,
+}
 const replay = await owner.compileAndPersistPerformanceEvidence(request)
 assert.deepEqual(replay, evidence)
 

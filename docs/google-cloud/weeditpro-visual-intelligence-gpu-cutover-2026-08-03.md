@@ -726,15 +726,22 @@ invocation of this operator boundary.
   `npm run publish:visual-intelligence-account-effective-rate`. It requires an
   exact immutable private qualification coordinate and server-only billing
   account resource. Those values never enter a browser or worker payload.
-- The current read-only cloud audit reports account-effective Gemini price
-  access as not ready. Application Default Credentials are now authenticated
-  as the verified WeEditPro operator, but an independent read confirms the
-  active operator still lacks `billing.billingAccountPrice.get`. The canonical API
-  identity therefore still needs `roles/billing.viewer` from an authorized
-  billing-account administrator. No rate object exists and no live model/SKU
-  compatibility qualification has been observed. The runtime remains
-  fail-closed even though source simulations cover both context bands and
-  immutable publication/replay behavior.
+- The v21 read-only cloud audit now proves the canonical API identity can read
+  all six billing-account-effective Gemini price SKUs through short-lived
+  service-account impersonation. Public list price is still not settlement
+  authority. Four bounded live execution receipts are observed; the latest
+  exact receipt binds successful Standard and greater-than-200k-token Gemini
+  3.1 Pro High calls, returned model identity, provider usage metadata, and
+  automatic retry disabled.
+- The full model/SKU compatibility and rate-publication gate remains
+  fail-closed because the `weeditpro_billing_export` dataset does not yet have
+  either the detailed usage-cost table or pricing table. The signed-in project
+  operator can read payer-account prices but cannot open or configure the
+  Cloud Billing export page; an account-level Billing Account Costs Manager or
+  Administrator must enable Detailed Usage Cost and Pricing export to the
+  existing US dataset. Google documents that initial export propagation can
+  take hours. No rate authority may be published until the isolated live usage
+  window is reconciled from that exact export.
 - The guarded operator command
   `npm run provision:visual-intelligence-account-price-reader` adds only that
   read-only predefined role to the canonical API identity after exact project,

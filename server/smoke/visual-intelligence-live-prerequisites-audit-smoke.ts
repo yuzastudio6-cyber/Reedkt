@@ -11,7 +11,7 @@ const accountPriceReadinessSource = readFileSync(
 )
 
 assert.match(source, /PROJECT_ID='reeditpro'/u)
-assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v20/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v21/u)
 assert.match(source, /observed_at="\$\(date -u/u)
 assert.match(source, /observedAt: \$observedAt/u)
 assert.match(source, /REGION='us-central1'/u)
@@ -57,7 +57,7 @@ for (const sourceHash of [
   '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464',
   'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
   'f986ae3a1e87559ce9299ee98f78bc9d05a745bb51511ac1f812245634c84c37',
-  '07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25',
+  'ed27af38bc5013fe8d2d8444d1e3546e5c2f9e8531fa81a38d4ba364fe5e3660',
   'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9',
   '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
   '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
@@ -178,8 +178,23 @@ assert.match(source,
   /sourceCheckpointCompatibilityReceiptObserved:\s*\n\s*\$vertexSourceQualification\.ready/u)
 assert.match(source,
   /imageSupplyChainReleaseObserved: \$imageSupplyChainRelease\.ready/u)
-assert.match(source, /liveGeminiQualificationObserved: false/u)
-assert.match(source, /liveGpuQualificationObserved: false/u)
+assert.match(source, /GEMINI_LIVE_EXECUTION_PREFIX/u)
+assert.match(source,
+  /visual-intelligence-model-billing-sku-live-execution-v1/u)
+assert.match(source, /liveGeminiUsageQualification: \$geminiLiveExecution/u)
+assert.match(source,
+  /liveGeminiQualificationObserved: \$geminiLiveExecution\.ready/u)
+assert.match(source, /modelSkuCompatibilityQualificationObserved/u)
+assert.match(source, /SAM31_A100_SERVING_THIRTY_RUN_PREFIX/u)
+assert.match(source,
+  /canonical-sam3_1-vertex-serving-thirty-run-qualification-v2/u)
+assert.match(source, /sam31A100ServingThirtyRunQualification/u)
+assert.match(source, /SAM31_L4_THIRTY_RUN_PREFIX/u)
+assert.match(source,
+  /canonical-sam3_1-l4-runtime-thirty-run-qualification-v2/u)
+assert.match(source, /sam31L4ThirtyRunQualification/u)
+assert.match(source,
+  /liveGpuQualificationObserved:\s*\(\s*\$a100ServingThirtyRun\.ready\s+and\s+\$l4ThirtyRun\.ready/u)
 assert.match(source, /customerCreditsMutated: false/u)
 assert.match(source, /productionReady: false/u)
 

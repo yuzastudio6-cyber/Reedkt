@@ -25,6 +25,9 @@ BILLING_EXPORT_DATASET='weeditpro_billing_export'
 SAM31_PRIVATE_ARTIFACT_INGEST_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/private-artifact-ingest/v3"
 SAM31_VERTEX_QUALIFICATION_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/source-checkpoint-qualification/v2/releases"
 SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/qualification-image-supply-chain-release/v1/qualified-releases"
+SAM31_A100_SERVING_THIRTY_RUN_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/canonical-professional-gpu/v1/sam3_1-vertex-serving-thirty-run-qualifications"
+SAM31_L4_THIRTY_RUN_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/l4-runtime-qualification/v3/thirty-run-qualifications"
+GEMINI_LIVE_EXECUTION_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/visual-intelligence/qualifications/gemini-billing-sku/v1/executions"
 MASK_BUCKET='reeditpro-production-reeditpro-masks'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
@@ -39,7 +42,7 @@ readonly -a VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS=(
   '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port.ts'
   'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-terminal-reconciliation.ts'
   'f986ae3a1e87559ce9299ee98f78bc9d05a745bb51511ac1f812245634c84c37|server/services/canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner.ts'
-  '07b0c317231f2210695e969a2a3612fa8b5f90b43d1ef20ea918c235616a9d25|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
+  'ed27af38bc5013fe8d2d8444d1e3546e5c2f9e8531fa81a38d4ba364fe5e3660|server/tool-cost-metering/canonical-a100-vertex-attempt-cost-authority.ts'
   'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9|server/smoke/canonical-sam3_1-source-checkpoint-qualification-vertex-runtime-smoke.ts'
   '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731|server/cli/canonical-sam3_1-source-checkpoint-qualification-vertex-operator.ts'
   '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6|server/cli/start-canonical-sam3_1-source-checkpoint-qualification-vertex.ts'
@@ -832,6 +835,171 @@ qualification_image_supply_chain_release_observation="$(jq -n \
       ready: (($qualified | length) >= 1)
     }')"
 
+gemini_live_execution_records="$(
+  read_bounded_json_record_set "${GEMINI_LIVE_EXECUTION_PREFIX}" 128
+)"
+gemini_live_execution_observation="$(jq -n \
+  --argjson records "${gemini_live_execution_records}" \
+  'def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  [$records[] | select(
+    .schemaVersion ==
+      "visual-intelligence-model-billing-sku-live-execution-v1"
+    and .evidenceClass ==
+      "live_isolated_vertex_usage_pending_billing_export_reconciliation"
+    and .exactModelId == "gemini-3.1-pro-preview"
+    and .projectId == "reeditpro"
+    and .vertexLocation == "global"
+    and .liveGeminiStandardContextRequestExecuted == true
+    and .liveGeminiLongContextRequestExecuted == true
+    and .exactReturnedModelIdVerified == true
+    and .exactProviderUsageMetadataReread == true
+    and .billingExportReconciliationPending == true
+    and .automaticProviderRetryAllowed == false
+    and .publicListPriceUsedForSettlement == false
+    and .customerCreditsMutated == false
+    and .customerPricingAuthorityGranted == false
+    and .productionReleaseAuthorityGranted == false
+    and (.executionDigestSha256 | type == "string" and prefixed_sha)
+  )] as $executed
+  | ($executed | sort_by(.qualificationWindowFinishedAtIso) | last // null)
+    as $latest
+  | {
+      recordsObserved: ($records | length),
+      completedExecutionReceiptsObserved: ($executed | length),
+      latestExecution: (
+        if $latest == null then null else {
+          qualificationId: $latest.qualificationId,
+          exactModelId: $latest.exactModelId,
+          executionDigestSha256: $latest.executionDigestSha256,
+          qualificationWindowStartedAtIso:
+            $latest.qualificationWindowStartedAtIso,
+          qualificationWindowFinishedAtIso:
+            $latest.qualificationWindowFinishedAtIso,
+          billingExportReconciliationPending:
+            $latest.billingExportReconciliationPending
+        } end
+      ),
+      modelSkuCompatibilityQualificationObserved: false,
+      runtimeReleaseGrantedByThisObservation: false,
+      ready: (($executed | length) >= 1)
+    }')"
+
+a100_serving_thirty_run_records="$(
+  read_bounded_json_record_set "${SAM31_A100_SERVING_THIRTY_RUN_PREFIX}" 32
+)"
+a100_serving_thirty_run_observation="$(jq -n \
+  --argjson records "${a100_serving_thirty_run_records}" \
+  'def raw_sha: test("^[a-f0-9]{64}$");
+  def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  [$records[] | select(
+    .schemaVersion ==
+      "canonical-sam3_1-vertex-serving-thirty-run-qualification-v2"
+    and .source ==
+      "canonical_server_sam3_1_vertex_serving_thirty_run_qualification_owner"
+    and .evidenceClass ==
+      "canonical_private_exact_output_and_prediction_reread"
+    and .status == "qualified_for_l4_quality_and_performance_comparison"
+    and .routeId == "a100_80gb_heavy_primary"
+    and .accelerator == "nvidia_a100_80gb"
+    and (.immutableImageDigest | type == "string" and prefixed_sha)
+    and .deterministicOutputRunCount == 30
+    and .measuredPerformanceRunCount == 30
+    and .propagatedFrameCountPerRun == 200
+    and .maskFileCountPerRun == 400
+    and .nearestRankP95Milliseconds <= .maximumAllowedP95Milliseconds
+    and .allThirtyDeterministicOutputsSemanticallyIdentical == true
+    and .allThirtyPerformanceMeasurementsUseExactPredictionReceipts == true
+    and .exactTaskResponseOutputManifestAndMaskEvidenceReread == true
+    and .l4FallbackQualified == false
+    and .runtimeReleaseGranted == false
+    and .customerInvocationAuthorized == false
+    and .qaApproved == false
+    and .productionAuthorityGranted == false
+    and (.receiptHash | type == "string" and raw_sha)
+  )] as $qualified
+  | ($qualified | sort_by(.compiledAt) | last // null) as $latest
+  | {
+      recordsObserved: ($records | length),
+      qualifiedReceiptsObserved: ($qualified | length),
+      latestQualification: (
+        if $latest == null then null else {
+          qualificationSetId: $latest.qualificationSetId,
+          routeId: $latest.routeId,
+          accelerator: $latest.accelerator,
+          immutableImageDigest: $latest.immutableImageDigest,
+          nearestRankP95Milliseconds:
+            $latest.nearestRankP95Milliseconds,
+          receiptHash: $latest.receiptHash,
+          compiledAt: $latest.compiledAt
+        } end
+      ),
+      runtimeReleaseGrantedByThisObservation: false,
+      ready: (($qualified | length) >= 1)
+    }')"
+
+l4_thirty_run_records="$(
+  read_bounded_json_record_set "${SAM31_L4_THIRTY_RUN_PREFIX}" 32
+)"
+l4_thirty_run_observation="$(jq -n \
+  --argjson records "${l4_thirty_run_records}" \
+  'def raw_sha: test("^[a-f0-9]{64}$");
+  def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  [$records[] | select(
+    .schemaVersion == "canonical-sam3_1-l4-runtime-thirty-run-qualification-v2"
+    and .source ==
+      "canonical_server_sam3_1_l4_runtime_thirty_run_qualification_owner"
+    and .evidenceClass ==
+      "canonical_private_indexed_run_receipt_exact_reread"
+    and .status ==
+      "ready_for_terminal_cost_and_independent_temporal_quality"
+    and .routeId == "l4_heavy_fallback"
+    and .accelerator == "nvidia_l4"
+    and (.immutableImageDigest | type == "string" and prefixed_sha)
+    and .deterministicOutputRunCount == 30
+    and .measuredPerformanceRunCount == 30
+    and .propagatedFrameCountPerRun == 200
+    and .losslessMaskPngCountPerRun == 400
+    and .exactLosslessMaskPngCountAcrossRuns == 12000
+    and .nearestRankP95Milliseconds <= .maximumAllowedP95Milliseconds
+    and .allThirtyL4OutputsByteIdenticalToOneAnother == true
+    and .everyRunCrossAcceleratorPixelComparisonPassed == true
+    and .semanticMaskSetByteIdentityWithA100ServingBaselineClaimed == false
+    and .qualityEqualToOrBetterThanA100BaselinePending == true
+    and .everyRunUsedDistinctLaunchResponseOutputAndManifestLineage == true
+    and .everyRunStartedFromAndReturnedToScaleZero == true
+    and .exactThirtyIndexedRunReceiptsReread == true
+    and .terminalCostReceiptCount == 0
+    and .terminalCostReceiptCountPending == 30
+    and .independentTemporalMaskQualityPending == true
+    and .l4FallbackQualified == false
+    and .runtimeReleaseGranted == false
+    and .customerCreditsMutated == false
+    and .qaApproved == false
+    and .productionAuthorityGranted == false
+    and (.receiptHash | type == "string" and raw_sha)
+  )] as $qualified
+  | ($qualified | sort_by(.compiledAt) | last // null) as $latest
+  | {
+      recordsObserved: ($records | length),
+      thirtyRunReceiptsObserved: ($qualified | length),
+      latestQualification: (
+        if $latest == null then null else {
+          qualificationSetId: $latest.qualificationSetId,
+          qualificationId: $latest.qualificationId,
+          routeId: $latest.routeId,
+          accelerator: $latest.accelerator,
+          immutableImageDigest: $latest.immutableImageDigest,
+          nearestRankP95Milliseconds:
+            $latest.nearestRankP95Milliseconds,
+          receiptHash: $latest.receiptHash,
+          compiledAt: $latest.compiledAt
+        } end
+      ),
+      terminalCostAndIndependentTemporalQualityPending: true,
+      runtimeReleaseGrantedByThisObservation: false,
+      ready: (($qualified | length) >= 1)
+    }')"
+
 missing_services_json="$(
   if ((${#missing_services[@]} == 0)); then
     printf '[]\n'
@@ -1255,7 +1423,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v20' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v21' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
@@ -1279,6 +1447,9 @@ jq -n \
   --argjson privateArtifactIngest "${private_artifact_ingest_observation}" \
   --argjson vertexSourceQualification "${vertex_qualification_release_observation}" \
   --argjson imageSupplyChainRelease "${qualification_image_supply_chain_release_observation}" \
+  --argjson geminiLiveExecution "${gemini_live_execution_observation}" \
+  --argjson a100ServingThirtyRun "${a100_serving_thirty_run_observation}" \
+  --argjson l4ThirtyRun "${l4_thirty_run_observation}" \
   --argjson accountPricing "${account_pricing_json}" \
   --argjson billingExportFoundation "${billing_export_foundation}" \
   --argjson a100QualificationFoundation "${a100_qualification_foundation}" \
@@ -1452,8 +1623,15 @@ jq -n \
       $vertexSourceQualification.ready,
     qualificationImageSupplyChainRelease: $imageSupplyChainRelease,
     imageSupplyChainReleaseObserved: $imageSupplyChainRelease.ready,
-    liveGeminiQualificationObserved: false,
-    liveGpuQualificationObserved: false,
+    liveGeminiUsageQualification: $geminiLiveExecution,
+    liveGeminiQualificationObserved: $geminiLiveExecution.ready,
+    modelSkuCompatibilityQualificationObserved:
+      $geminiLiveExecution.modelSkuCompatibilityQualificationObserved,
+    sam31A100ServingThirtyRunQualification: $a100ServingThirtyRun,
+    sam31L4ThirtyRunQualification: $l4ThirtyRun,
+    liveGpuQualificationObserved: (
+      $a100ServingThirtyRun.ready and $l4ThirtyRun.ready
+    ),
     customerCreditsMutated: false,
     productionReady: false
   }'

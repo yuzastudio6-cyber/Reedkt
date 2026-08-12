@@ -122,7 +122,7 @@ export function runMockSourceUnderstandingReadinessFlow() {
     allSideEffectsFalse: packages.every((routingPackage) =>
       !routingPackage.providerCallMade &&
       !routingPackage.qwen3CallMade &&
-      !routingPackage.qwen25vlCallMade &&
+      !routingPackage.visualIntelligenceCallMade &&
       !routingPackage.mediaProcessingStarted &&
       !routingPackage.workerJobCreated &&
       !routingPackage.renderJobCreated &&

@@ -13,7 +13,7 @@ This map documents how future Edit Level architecture should connect to existing
 | Edit Preference / DNA resolver | Apply safe hints, strong application, or deep DNA application by level. |
 | Source Video Understanding Package | Select metadata-only, key-moment, or scene-level source understanding policy. |
 | Qwen 3.7 runtime | Select standard, deep, or multi-pass reasoning policy. |
-| Qwen2.5-VL runtime | Select targeted, key-moment, or scene-level visual policy. |
+| Visual Intelligence | Select targeted, key-moment, or scene-level provider-neutral visual policy through its capability manifest. |
 | Media extraction / speech / audio / graphic tools | Select transcript, SoundSync, media extraction, and graphic/design depth by level. |
 | QA services | Select Normal, Premium, or Ultra Premium QA profile. |
 | Plan Bridge | Pass profile metadata into edit plan, estimate, approval, and future worker contracts. |

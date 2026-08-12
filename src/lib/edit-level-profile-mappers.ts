@@ -54,7 +54,7 @@ export function createEditLevelProfileDebugModel(level: ReEditProCanonicalEditLe
     displayName: profile.displayName,
     legacyAliases: profile.legacyAliases,
     qwen3ReasoningDepth: profile.toolRouting.qwen3ReasoningDepth,
-    qwen25vlVisualDepth: profile.toolRouting.qwen25vlVisualDepth,
+    visualIntelligenceDepth: profile.toolRouting.visualIntelligenceDepth,
     editBriefPolicy: profile.editBriefPolicy,
     qaProfile: profile.qaProfile.qaProfile,
     estimateOnly: profile.estimateProfile.estimateOnly,

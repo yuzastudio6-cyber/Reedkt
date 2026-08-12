@@ -19,7 +19,7 @@ export type UnsafeEditLevelQwenPlanningProfilePackage =
 const falseFlagKeys: Array<Exclude<keyof EditLevelQwenPlanningSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwenCallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepseekCallMade',
   'plannerExecuted',
   'editPlanCreated',

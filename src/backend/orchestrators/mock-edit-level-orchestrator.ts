@@ -86,7 +86,7 @@ export function runMockEditLevelQwenRoutingFlow() {
   return EDIT_LEVEL_PROFILES.map((profile) => ({
     level: profile.level,
     qwen3ReasoningDepth: profile.toolRouting.qwen3ReasoningDepth,
-    qwen25vlVisualDepth: profile.toolRouting.qwen25vlVisualDepth,
+    visualIntelligenceDepth: profile.toolRouting.visualIntelligenceDepth,
   }))
 }
 

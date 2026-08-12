@@ -94,7 +94,7 @@ export const MOCK_EDIT_LEVEL_TOOL_ROUTER_SCENARIOS: MockEditLevelToolRouterScena
   scenario({ id: 'boundary-no-execution', title: 'Boundary notice mentions no execution.', expectedOk: true }),
   scenario({ id: 'docs-no-execution', title: 'Docs mention no execution.', expectedOk: true }),
   scenario({ id: 'no-qwen-call', title: 'No Qwen call made.', expectedOk: true }),
-  scenario({ id: 'no-qwen25-call', title: 'No Qwen2.5-VL call made.', expectedOk: true }),
+  scenario({ id: 'no-qwen25-call', title: 'No Visual Intelligence call made.', expectedOk: true }),
   scenario({ id: 'no-deepseek-call', title: 'No DeepSeek call made.', expectedOk: true }),
   scenario({ id: 'no-provider-call', title: 'No provider call made.', expectedOk: true }),
   scenario({ id: 'no-media-render-credit', title: 'No media/render/credit side effect.', expectedOk: true }),

@@ -126,7 +126,7 @@ export function runMockEstimateReadinessFlow() {
     allSideEffectsFalse: packages.every((estimatePackage) =>
       !estimatePackage.providerCallMade &&
       !estimatePackage.qwenCallMade &&
-      !estimatePackage.qwen25vlCallMade &&
+      !estimatePackage.visualIntelligenceCallMade &&
       !estimatePackage.deepseekCallMade &&
       !estimatePackage.plannerExecuted &&
       !estimatePackage.editPlanCreated &&

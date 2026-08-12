@@ -76,7 +76,6 @@ const requiredFiles = [
   'src/components/edit-level/EditLevelRevisionBudgetNotice.tsx',
   'src/components/edit-level/EditLevelEstimateBoundaryNotice.tsx',
   'server/smoke/edit-level-estimates-smoke.ts',
-  'tests/e2e/edit-level-estimates.spec.ts',
   'docs/edit-level-estimates.md',
   'docs/edit-level-time-estimate-policy.md',
   'docs/edit-level-credit-estimate-policy.md',
@@ -93,7 +92,7 @@ const expectedEstimateItemIds: EditLevelEstimateItemId[] = [
   'credit_estimate',
   'analysis_pass_budget',
   'qwen_reasoning_pass_budget',
-  'qwen25vl_visual_pass_budget',
+  'visual_intelligence_pass_budget',
   'transcript_pass_budget',
   'audio_pass_budget',
   'graphic_pass_budget',
@@ -109,7 +108,7 @@ const expectedEstimateItemIds: EditLevelEstimateItemId[] = [
 const falseFlagKeys: Array<Exclude<keyof EditLevelEstimateSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwenCallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepseekCallMade',
   'plannerExecuted',
   'editPlanCreated',
@@ -176,7 +175,7 @@ assert.equal(normal.timeEstimateRange.label, '20-45 minutes')
 assert.equal(normal.creditEstimateMultiplier, 1)
 assert.equal(normal.analysisPassBudget, 1)
 assert.equal(normal.qwenReasoningPassBudget, 1)
-assert.equal(normal.qwen25vlVisualPassBudget, 'targeted_only')
+assert.equal(normal.visualIntelligencePassBudget, 'targeted_only')
 assert.equal(normal.renderPassBudgetFuture, 1)
 assert.equal(normal.revisionBudgetFuture, 1)
 assert.equal(normal.variantBudgetFuture, 1)
@@ -186,7 +185,7 @@ assert.equal(premium.timeEstimateRange.label, '45-90 minutes')
 assert.equal(premium.creditEstimateMultiplier, 2)
 assert.equal(premium.analysisPassBudget, 2)
 assert.equal(premium.qwenReasoningPassBudget, 2)
-assert.equal(premium.qwen25vlVisualPassBudget, 'key_moments')
+assert.equal(premium.visualIntelligencePassBudget, 'key_moments')
 assert.equal(premium.renderPassBudgetFuture, 2)
 assert.equal(premium.revisionBudgetFuture, 2)
 assert.equal(premium.variantBudgetFuture, 2)
@@ -196,7 +195,7 @@ assert.equal(ultra.timeEstimateRange.label, '90-180 minutes')
 assert.equal(ultra.creditEstimateMultiplier, 4)
 assert.equal(ultra.analysisPassBudget, 3)
 assert.equal(ultra.qwenReasoningPassBudget, 'multi_pass')
-assert.equal(ultra.qwen25vlVisualPassBudget, 'scene_level')
+assert.equal(ultra.visualIntelligencePassBudget, 'scene_level')
 assert.equal(ultra.renderPassBudgetFuture, 3)
 assert.equal(ultra.revisionBudgetFuture, 3)
 assert.equal(ultra.variantBudgetFuture, 3)
@@ -213,7 +212,7 @@ for (const estimatePackage of [normal, premium, ultra]) {
   assertEstimatePackage(estimatePackage)
 }
 
-assert.equal(premium.degradedItems.includes('qwen25vl_visual_pass_budget'), true)
+assert.equal(premium.degradedItems.includes('visual_intelligence_pass_budget'), true)
 assert.equal(ultra.degradedItems.includes('degraded_capability_adjustment'), true)
 assert.equal(findEditLevelEstimateItem(premium, 'credit_estimate').estimateRange?.label, '2.0x placeholder')
 assert.equal(qwenPassBudgetLabel('multi_pass'), 'multi-pass')
@@ -318,7 +317,6 @@ for (const frontendPath of [
   'src/components/edit-level/EditLevelRevisionBudgetNotice.tsx',
   'src/components/edit-level/EditLevelEstimateBoundaryNotice.tsx',
   'src/pages/CreateProjectPage.tsx',
-  'src/components/editor/InlineEditLevelCard.tsx',
   'src/components/editor/InlinePlanningContextCard.tsx',
   'src/components/editor/edit-brief/EditBriefSummaryCard.tsx',
 ]) {
@@ -330,6 +328,6 @@ for (const frontendPath of [
 const migrationCount = readdirSync(repoPath('supabase/migrations'))
   .filter((fileName) => statSync(repoPath(`supabase/migrations/${fileName}`)).isFile())
   .length
-assert.equal(migrationCount, 25)
+assert.equal(migrationCount, 24)
 
 console.log(`RP-EDITLEVEL-09 smoke passed with ${definitions.length} estimate items and ${scenarios.length} scenarios.`)

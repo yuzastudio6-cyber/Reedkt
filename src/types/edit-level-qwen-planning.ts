@@ -12,7 +12,7 @@ export type EditLevelQwenPlanningDimensionId =
   | 'marker_context_depth'
   | 'edit_brief_marker_priority'
   | 'preference_dna_usage'
-  | 'qwen25vl_visual_summary_usage'
+  | 'visual_intelligence_summary_usage'
   | 'transcript_usage'
   | 'audio_context_usage'
   | 'graphic_text_context_usage'
@@ -60,7 +60,7 @@ export interface EditLevelQwenPlanningSideEffectFlags {
   mockOnly: true
   providerCallMade: false
   qwenCallMade: false
-  qwen25vlCallMade: false
+  visualIntelligenceCallMade: false
   deepseekCallMade: false
   plannerExecuted: false
   editPlanCreated: false
@@ -101,7 +101,7 @@ export interface EditLevelQwenPromptPolicy {
   includeMarkerContext: boolean
   includeEditBriefMarkers: boolean
   includePreferenceDNA: boolean
-  includeQwen25VLVisualSummary: boolean
+  includeVisualIntelligenceSummary: boolean
   includeTranscriptSummary: boolean
   includeAudioSummary: boolean
   includeGraphicTextSummary: boolean

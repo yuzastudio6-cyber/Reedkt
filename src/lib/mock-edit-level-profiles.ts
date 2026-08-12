@@ -41,7 +41,7 @@ export const EDIT_LEVEL_LEGACY_ALIAS_MAPPINGS: EditLevelLegacyAliasMapping[] = [
 
 const normalToolRouting: EditLevelToolRoutingProfile = {
   qwen3ReasoningDepth: 'standard',
-  qwen25vlVisualDepth: 'targeted',
+  visualIntelligenceDepth: 'targeted',
   transcriptPolicy: 'optional_or_targeted',
   audioPolicy: 'basic',
   graphicsPolicy: 'basic_captions',
@@ -56,7 +56,7 @@ const normalToolRouting: EditLevelToolRoutingProfile = {
 
 const premiumToolRouting: EditLevelToolRoutingProfile = {
   qwen3ReasoningDepth: 'deep',
-  qwen25vlVisualDepth: 'key_moments_and_marker_windows',
+  visualIntelligenceDepth: 'key_moments_and_marker_windows',
   transcriptPolicy: 'recommended_when_speech',
   audioPolicy: 'music_sfx_ducking',
   graphicsPolicy: 'styled_captions_cards',
@@ -71,7 +71,7 @@ const premiumToolRouting: EditLevelToolRoutingProfile = {
 
 const ultraPremiumToolRouting: EditLevelToolRoutingProfile = {
   qwen3ReasoningDepth: 'multi_pass',
-  qwen25vlVisualDepth: 'scene_level',
+  visualIntelligenceDepth: 'scene_level',
   transcriptPolicy: 'required_when_speech',
   audioPolicy: 'sound_design',
   graphicsPolicy: 'motion_graphics_direction',
@@ -124,7 +124,7 @@ function fallbackPolicy(level: ReEditProCanonicalEditLevel): EditLevelFallbackPo
 
   return {
     qwenUnavailable: 'Use deterministic reasoning fallback and clearly mark that the planning service did not run.',
-    qwen25vlUnavailable: visualFallback,
+    visualIntelligenceUnavailable: visualFallback,
     transcriptUnavailable: 'Ask user clarification or use available source summary; do not claim transcript analysis ran.',
     audioUnavailable: 'Use basic audio policy fallback and do not claim SoundSync analysis ran.',
     graphicDesignUnavailable: 'Use basic caption/text fallback and avoid overclaiming motion graphics analysis.',
@@ -169,7 +169,7 @@ export const NORMAL_EDIT_LEVEL_PROFILE: EditLevelProfile = {
     timeEstimateMultiplier: 1,
     analysisPassBudget: 1,
     qwenReasoningPassBudget: 1,
-    qwen25vlVisualPassBudget: 'targeted_only',
+    visualIntelligencePassBudget: 'targeted_only',
     renderPassBudgetFuture: 1,
     revisionBudgetFuture: 1,
     variantBudgetFuture: 1,
@@ -212,7 +212,7 @@ export const PREMIUM_EDIT_LEVEL_PROFILE: EditLevelProfile = {
     timeEstimateMultiplier: 1.8,
     analysisPassBudget: 2,
     qwenReasoningPassBudget: 2,
-    qwen25vlVisualPassBudget: 'key_moments',
+    visualIntelligencePassBudget: 'key_moments',
     renderPassBudgetFuture: 2,
     revisionBudgetFuture: 2,
     variantBudgetFuture: 2,
@@ -255,7 +255,7 @@ export const ULTRA_PREMIUM_EDIT_LEVEL_PROFILE: EditLevelProfile = {
     timeEstimateMultiplier: 3,
     analysisPassBudget: 3,
     qwenReasoningPassBudget: 'multi_pass',
-    qwen25vlVisualPassBudget: 'scene_level',
+    visualIntelligencePassBudget: 'scene_level',
     renderPassBudgetFuture: 3,
     revisionBudgetFuture: 3,
     variantBudgetFuture: 3,

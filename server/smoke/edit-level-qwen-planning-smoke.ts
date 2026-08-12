@@ -98,7 +98,7 @@ const expectedDimensionIds: EditLevelQwenPlanningDimensionId[] = [
   'marker_context_depth',
   'edit_brief_marker_priority',
   'preference_dna_usage',
-  'qwen25vl_visual_summary_usage',
+  'visual_intelligence_summary_usage',
   'transcript_usage',
   'audio_context_usage',
   'graphic_text_context_usage',
@@ -112,7 +112,7 @@ const expectedDimensionIds: EditLevelQwenPlanningDimensionId[] = [
 const falseFlagKeys: Array<Exclude<keyof EditLevelQwenPlanningSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwenCallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepseekCallMade',
   'plannerExecuted',
   'editPlanCreated',
@@ -232,9 +232,9 @@ for (const qwenPackage of [normal, premium, ultra]) {
 }
 
 assert.equal(createEditLevelQwenPromptPolicy('normal').promptContextPolicy, 'compact')
-assert.equal(createEditLevelQwenPromptPolicy('normal').includeQwen25VLVisualSummary, false)
+assert.equal(createEditLevelQwenPromptPolicy('normal').includeVisualIntelligenceSummary, false)
 assert.equal(createEditLevelQwenPromptPolicy('premium').promptContextPolicy, 'enhanced')
-assert.equal(createEditLevelQwenPromptPolicy('premium').includeQwen25VLVisualSummary, true)
+assert.equal(createEditLevelQwenPromptPolicy('premium').includeVisualIntelligenceSummary, true)
 assert.equal(createEditLevelQwenPromptPolicy('ultra_premium').promptContextPolicy, 'studio')
 assert.equal(createEditLevelQwenPromptPolicy('ultra_premium').includePlanHistory, true)
 assert.equal(createAllMockEditLevelQwenPromptPolicies().length, 3)
@@ -313,7 +313,7 @@ const docsText = requiredFiles
 for (const term of [
   'Qwen planning profile only',
   'no Qwen call',
-  'no Qwen2.5-VL call',
+  'no Visual Intelligence call',
   'no DeepSeek call',
   'no provider call',
   'no real planner',

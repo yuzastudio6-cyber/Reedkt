@@ -14,12 +14,12 @@ export function createEditLevelReadableSummary(level: ReEditProCanonicalEditLeve
 
 export function createEditLevelToolRoutingSummary(level: ReEditProCanonicalEditLevel): string {
   const routing = requireProfile(level).toolRouting
-  return `Capability routing uses ${routing.qwen3ReasoningDepth} planning depth, ${routing.qwen25vlVisualDepth} visual-understanding depth, ${routing.audioPolicy} audio policy, and ${routing.graphicsPolicy} graphics policy.`
+  return `Capability routing uses ${routing.qwen3ReasoningDepth} planning depth, ${routing.visualIntelligenceDepth} visual-understanding depth, ${routing.audioPolicy} audio policy, and ${routing.graphicsPolicy} graphics policy.`
 }
 
 export function createEditLevelQwenRoutingSummary(level: ReEditProCanonicalEditLevel): string {
   const routing = requireProfile(level).toolRouting
-  return `Main planning: ${routing.qwen3ReasoningDepth}; visual understanding: ${routing.qwen25vlVisualDepth}; technical assembly support: ${routing.deepseekPolicy}.`
+  return `Main planning: ${routing.qwen3ReasoningDepth}; visual understanding: ${routing.visualIntelligenceDepth}; technical assembly support: ${routing.deepseekPolicy}.`
 }
 
 export function createEditLevelEditBriefPolicySummary(level: ReEditProCanonicalEditLevel): string {

@@ -19,7 +19,7 @@ export type UnsafeEditLevelQAGatePackage =
 const falseFlagKeys: Array<Exclude<keyof EditLevelQAGateSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwenCallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepseekCallMade',
   'plannerExecuted',
   'editPlanCreated',

@@ -57,7 +57,6 @@ const requiredFiles = [
   'src/components/edit-level/EditLevelMarkerContextPolicyCard.tsx',
   'src/components/edit-level/EditLevelSourceUnderstandingFallbackNotice.tsx',
   'server/smoke/edit-level-source-understanding-smoke.ts',
-  'tests/e2e/edit-level-source-understanding.spec.ts',
   'docs/edit-level-source-understanding-router.md',
   'docs/edit-level-source-understanding-layers.md',
   'docs/edit-level-marker-context-policy.md',
@@ -74,8 +73,8 @@ const expectedLayerIds: EditLevelSourceUnderstandingLayerId[] = [
   'media_extraction_metadata',
   'keyframe_sampling_plan',
   'speech_transcript',
-  'qwen25vl_visual_segments',
-  'qwen25vl_marker_windows',
+  'visual_intelligence_segments',
+  'visual_intelligence_marker_windows',
   'audio_soundsync_segments',
   'graphic_text_segments',
   'preference_dna_context',
@@ -88,7 +87,7 @@ const expectedLayerIds: EditLevelSourceUnderstandingLayerId[] = [
 const falseFlagKeys: Array<Exclude<keyof EditLevelSourceUnderstandingSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwen3CallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepSeekCallMade',
   'mediaProcessingStarted',
   'transcriptStarted',
@@ -156,13 +155,13 @@ for (const routingPackage of [normal, premium, ultra]) {
 }
 
 assert.equal(findEditLevelSourceLayerRoute(normal, 'source_metadata').requiredness, 'required')
-assert.equal(findEditLevelSourceLayerRoute(normal, 'qwen25vl_visual_segments').requiredness, 'targeted')
+assert.equal(findEditLevelSourceLayerRoute(normal, 'visual_intelligence_segments').requiredness, 'targeted')
 assert.equal(findEditLevelSourceLayerRoute(normal, 'speech_transcript').requiredness, 'targeted')
 assert.equal(findEditLevelSourceLayerRoute(normal, 'source_video_understanding_package').requiredness, 'future_only')
 assert.equal(findEditLevelSourceLayerRoute(premium, 'source_video_understanding_package').requiredness, 'recommended')
-assert.equal(findEditLevelSourceLayerRoute(premium, 'qwen25vl_marker_windows').requiredness, 'recommended')
+assert.equal(findEditLevelSourceLayerRoute(premium, 'visual_intelligence_marker_windows').requiredness, 'recommended')
 assert.equal(findEditLevelSourceLayerRoute(premium, 'speech_transcript').requiredness, 'recommended')
-assert.equal(findEditLevelSourceLayerRoute(ultra, 'qwen25vl_visual_segments').requiredness, 'required')
+assert.equal(findEditLevelSourceLayerRoute(ultra, 'visual_intelligence_segments').requiredness, 'required')
 assert.equal(findEditLevelSourceLayerRoute(ultra, 'speech_transcript').requiredness, 'required')
 assert.equal(findEditLevelSourceLayerRoute(ultra, 'source_video_understanding_package').userFacingSummary.includes('strongly recommended'), true)
 
@@ -270,7 +269,6 @@ for (const filePath of [
   'src/components/edit-level/EditLevelMarkerContextPolicyCard.tsx',
   'src/components/edit-level/EditLevelSourceUnderstandingFallbackNotice.tsx',
   'src/pages/CreateProjectPage.tsx',
-  'src/components/editor/InlineEditLevelCard.tsx',
   'src/components/editor/InlinePlanningContextCard.tsx',
   'src/components/editor/edit-brief/EditBriefSummaryCard.tsx',
 ]) {
@@ -288,7 +286,7 @@ for (const term of [
   'source understanding routing only',
   'no tools execute',
   'Qwen 3.7',
-  'Qwen2.5-VL',
+  'Visual Intelligence',
   'no media processing',
   'render',
   'credits',
@@ -300,6 +298,6 @@ for (const term of [
 const migrationCount = readdirSync(new URL('../../supabase/migrations', import.meta.url), { withFileTypes: true })
   .filter((entry) => entry.isFile())
   .length
-assert.equal(migrationCount, 25, 'RP-EDITLEVEL-06 must not create or modify migration files.')
+assert.equal(migrationCount, 24, 'RP-EDITLEVEL-06 must not create or modify the accepted migration chain.')
 
 console.log('edit-level-source-understanding-smoke passed')

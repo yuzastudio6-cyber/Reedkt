@@ -16,7 +16,7 @@ RP-EDITLEVEL-07 is a mock/local Qwen planning policy layer. It is not a runtime 
 ## Forbidden In This Milestone
 
 - No Qwen call.
-- No Qwen2.5-VL call.
+- No Visual Intelligence call.
 - No DeepSeek call.
 - No provider call.
 - No real planner execution.
@@ -30,7 +30,7 @@ RP-EDITLEVEL-07 is a mock/local Qwen planning policy layer. It is not a runtime 
 - No credit reservation or spend.
 - No `ChatNativeEditor` modification.
 
-Boundary terms for smoke coverage: no Qwen call, no Qwen2.5-VL call, no DeepSeek call, no provider call, no real planner, no edit plan creation, estimate-only policy, and no credit operation.
+Boundary terms for smoke coverage: no Qwen call, no Visual Intelligence call, no DeepSeek call, no provider call, no real planner, no edit plan creation, estimate-only policy, and no credit operation.
 
 ## Missing Legacy Files
 

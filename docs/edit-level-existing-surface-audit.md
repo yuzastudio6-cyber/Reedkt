@@ -2,6 +2,8 @@
 
 RP-EDITLEVEL-00 is a docs/report/smoke-only audit. It creates no runtime implementation, no API route, no repository, no migration, no UI behavior, no provider call, no media worker, no render/export path, and no credit spend.
 
+Current supersession note: historical Qwen2.5-VL visual labels in the RP-EDITLEVEL-00 audit remain evidence of the old surface only. Fresh edit-level routing uses the provider-neutral Visual Intelligence capability; it must not reactivate those historical provider-specific identifiers.
+
 ## Current Finding
 
 The active repo currently uses `basic | pro | premium` for the main runtime `EditLevel`. The beta product contract for this track uses `Normal | Premium | Ultra Premium`. The naming bridge is audit-only for this milestone:

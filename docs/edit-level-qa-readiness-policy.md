@@ -8,4 +8,4 @@ RP08 readiness statuses are mock/local planning indicators:
 
 Normal is `ready_for_mock_planning`, Premium is `ready_with_warnings`, and Ultra Premium is `blocked_by_future_runtime_gate`.
 
-This readiness policy does not block or start production execution. No planner, worker, render, Supabase, provider, Qwen, Qwen2.5-VL, DeepSeek, file-byte, external-fetch, or credit operation runs.
+This readiness policy does not block or start production execution. No planner, worker, render, Supabase, provider, Qwen, Visual Intelligence, DeepSeek, file-byte, external-fetch, or credit operation runs.

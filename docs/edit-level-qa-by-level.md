@@ -12,7 +12,7 @@ Normal remains a clean professional edit, not a low-quality edit.
 
 Premium uses `qaStrictness: premium` and readiness `ready_with_warnings`.
 
-It includes all Normal gates plus caption readability, B-roll timing, pacing, styled graphic/card QA, music/SFX/ducking guidance, Preference DNA match, source-context warnings, Qwen response validation policy, Qwen2.5-VL confidence warnings, and plan completeness.
+It includes all Normal gates plus caption readability, B-roll timing, pacing, styled graphic/card QA, music/SFX/ducking guidance, Preference DNA match, source-context warnings, Qwen response validation policy, Visual Intelligence confidence warnings, and plan completeness.
 
 ## Ultra Premium
 

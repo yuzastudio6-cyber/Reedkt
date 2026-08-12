@@ -123,7 +123,7 @@ export function runMockQwenPlanningReadinessFlow() {
     allSideEffectsFalse: packages.every((qwenPackage) =>
       !qwenPackage.providerCallMade &&
       !qwenPackage.qwenCallMade &&
-      !qwenPackage.qwen25vlCallMade &&
+      !qwenPackage.visualIntelligenceCallMade &&
       !qwenPackage.deepseekCallMade &&
       !qwenPackage.plannerExecuted &&
       !qwenPackage.editPlanCreated &&

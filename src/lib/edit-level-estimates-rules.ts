@@ -39,7 +39,7 @@ export const EDIT_LEVEL_ESTIMATE_ITEM_DEFINITIONS: EditLevelEstimateItemDefiniti
   definition('credit_estimate', 'Credit estimate', 'credits', 'multiplier', 'Multiplier-only credit forecast; not billable credit execution.'),
   definition('analysis_pass_budget', 'Analysis pass budget', 'analysis', 'passes', 'Expected level-aware analysis pass budget.'),
   definition('qwen_reasoning_pass_budget', 'Planning reasoning pass budget', 'model_reasoning', 'passes', 'Future planning reasoning pass budget; no planning service call is made.'),
-  definition('qwen25vl_visual_pass_budget', 'Visual understanding pass budget', 'visual_understanding', 'none', 'Future visual-depth policy; no visual understanding service call is made.'),
+  definition('visual_intelligence_pass_budget', 'Visual understanding pass budget', 'visual_understanding', 'none', 'Future visual-depth policy; no visual understanding service call is made.'),
   definition('transcript_pass_budget', 'Transcript pass budget', 'transcript', 'passes', 'Future transcript-aware planning budget when speech exists.'),
   definition('audio_pass_budget', 'Audio pass budget', 'audio', 'passes', 'Future audio/music/SFX guidance budget.'),
   definition('graphic_pass_budget', 'Graphic pass budget', 'graphics', 'passes', 'Future graphic/card/layout direction budget.'),
@@ -93,7 +93,7 @@ export function createEditLevelEstimateSideEffectFlags(): EditLevelEstimateSideE
     mockOnly: true,
     providerCallMade: false,
     qwenCallMade: false,
-    qwen25vlCallMade: false,
+    visualIntelligenceCallMade: false,
     deepseekCallMade: false,
     plannerExecuted: false,
     editPlanCreated: false,
@@ -173,7 +173,7 @@ export function createEditLevelEstimatePackage(
     creditEstimateMultiplier: profileEstimate.creditEstimateMultiplier,
     analysisPassBudget: profileEstimate.analysisPassBudget,
     qwenReasoningPassBudget: profileEstimate.qwenReasoningPassBudget,
-    qwen25vlVisualPassBudget: profileEstimate.qwen25vlVisualPassBudget,
+    visualIntelligencePassBudget: profileEstimate.visualIntelligencePassBudget,
     transcriptPassBudget,
     audioPassBudget,
     graphicPassBudget,
@@ -192,7 +192,7 @@ export function createEditLevelEstimatePackage(
     creditEstimateMultiplier: profileEstimate.creditEstimateMultiplier,
     analysisPassBudget: profileEstimate.analysisPassBudget,
     qwenReasoningPassBudget: profileEstimate.qwenReasoningPassBudget,
-    qwen25vlVisualPassBudget: profileEstimate.qwen25vlVisualPassBudget,
+    visualIntelligencePassBudget: profileEstimate.visualIntelligencePassBudget,
     transcriptPassBudget,
     audioPassBudget,
     graphicPassBudget,
@@ -264,7 +264,7 @@ function createEstimateItems(input: {
   creditEstimateMultiplier: number
   analysisPassBudget: number
   qwenReasoningPassBudget: number | 'multi_pass'
-  qwen25vlVisualPassBudget: 'targeted_only' | 'key_moments' | 'scene_level'
+  visualIntelligencePassBudget: 'targeted_only' | 'key_moments' | 'scene_level'
   transcriptPassBudget: number
   audioPassBudget: number
   graphicPassBudget: number
@@ -283,7 +283,7 @@ function createEstimateItems(input: {
     item(input.level, 'credit_estimate', 'estimate_needs_product_value', `${input.creditEstimateMultiplier.toFixed(1)}x`, input.creditEstimateRange, 'medium', levelCopy.creditReason, 'Keep estimate-only copy and do not reserve or spend credits.', levelCopy.creditSummary, true),
     item(input.level, 'analysis_pass_budget', estimateStatusByLevel[input.level], input.analysisPassBudget, undefined, 'high', levelCopy.analysisReason, 'Use the selected level default analysis budget.', levelCopy.analysisSummary),
     item(input.level, 'qwen_reasoning_pass_budget', estimateStatusByLevel[input.level], input.qwenReasoningPassBudget, undefined, 'high', levelCopy.qwenReason, 'Use deterministic local planning hints; do not call the planning service.', levelCopy.qwenSummary),
-    item(input.level, 'qwen25vl_visual_pass_budget', input.level === 'normal' ? 'estimate_ready_mock' : degradedStatus, input.qwen25vlVisualPassBudget, undefined, 'medium', levelCopy.visualReason, 'Use source summary fallback; do not call the visual understanding service.', levelCopy.visualSummary),
+    item(input.level, 'visual_intelligence_pass_budget', input.level === 'normal' ? 'estimate_ready_mock' : degradedStatus, input.visualIntelligencePassBudget, undefined, 'medium', levelCopy.visualReason, 'Use source summary fallback; do not call the visual understanding service.', levelCopy.visualSummary),
     item(input.level, 'transcript_pass_budget', input.level === 'normal' ? 'estimate_ready_mock' : degradedStatus, input.transcriptPassBudget, undefined, 'medium', levelCopy.transcriptReason, 'Use source summary and ask for clarification when speech meaning is unclear.', levelCopy.transcriptSummary),
     item(input.level, 'audio_pass_budget', input.level === 'normal' ? 'estimate_ready_mock' : degradedStatus, input.audioPassBudget, undefined, 'medium', levelCopy.audioReason, 'Use basic audio policy fallback; do not run audio workers.', levelCopy.audioSummary),
     item(input.level, 'graphic_pass_budget', estimateStatusByLevel[input.level], input.graphicPassBudget, undefined, 'medium', levelCopy.graphicReason, 'Use text-safe graphic defaults until design workers exist.', levelCopy.graphicSummary),

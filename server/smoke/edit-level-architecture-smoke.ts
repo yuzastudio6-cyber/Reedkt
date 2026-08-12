@@ -50,7 +50,7 @@ const requiredTerms = [
   'premium',
   'professional edit',
   'Qwen 3.7',
-  'Qwen2.5-VL',
+  'Visual Intelligence',
   'Edit Brief optional',
   'Edit Brief recommended',
   'Edit Brief strongly recommended',

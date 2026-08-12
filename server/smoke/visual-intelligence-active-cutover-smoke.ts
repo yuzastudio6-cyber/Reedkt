@@ -112,6 +112,31 @@ const currentGpuFixtureSources = [
   source('server/smoke/private-worker-resource-usage-cost-evidence-smoke.ts'),
   source('server/smoke/production-readiness-validation-smoke.ts'),
 ]
+const activeEditLevelVisualPolicySources = [
+  source('src/types/edit-level.ts'),
+  source('src/types/edit-level-tool-router.ts'),
+  source('src/types/edit-level-source-understanding.ts'),
+  source('src/types/edit-level-qwen-planning.ts'),
+  source('src/types/edit-level-qa-gates.ts'),
+  source('src/types/edit-level-estimates.ts'),
+  source('src/lib/edit-level-tool-router-rules.ts'),
+  source('src/lib/edit-level-source-understanding-rules.ts'),
+  source('src/lib/edit-level-qwen-planning-rules.ts'),
+  source('src/lib/edit-level-qa-gates-rules.ts'),
+  source('src/lib/edit-level-estimates-rules.ts'),
+  source('src/lib/mock-edit-level-profiles.ts'),
+]
+
+for (const activeEditLevelSource of activeEditLevelVisualPolicySources) {
+  assert.doesNotMatch(
+    activeEditLevelSource,
+    /qwen25vl|Qwen25VL|Qwen2\.5-VL/u,
+  )
+  assert.match(
+    activeEditLevelSource,
+    /visual_intelligence|Visual Intelligence|visualIntelligence/u,
+  )
+}
 
 assert.match(app, /createVisualIntelligenceOrchestraRoutes/u)
 assert.match(app, /createVisualIntelligenceRoutes/u)

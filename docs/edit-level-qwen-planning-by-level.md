@@ -23,4 +23,4 @@ Current runtime values remain `basic | pro | premium`. Public canonical values r
 
 ## Boundary
 
-No Qwen 3.7, Qwen2.5-VL, DeepSeek, provider, planner, edit-plan, worker, render, progress, Supabase, upload, file-byte, external-fetch, or credit operation runs.
+No Qwen 3.7, Visual Intelligence, DeepSeek, provider, planner, edit-plan, worker, render, progress, Supabase, upload, file-byte, external-fetch, or credit operation runs.

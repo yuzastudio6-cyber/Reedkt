@@ -22,7 +22,7 @@ export type EditLevelQAGateId =
   | 'edit_brief_priority_consistency'
   | 'preference_dna_match'
   | 'qwen_response_validation'
-  | 'qwen25vl_visual_confidence'
+  | 'visual_intelligence_confidence'
   | 'transcript_coverage'
   | 'source_context_coverage'
   | 'broll_timing'
@@ -86,7 +86,7 @@ export interface EditLevelQAGateSideEffectFlags {
   mockOnly: true
   providerCallMade: false
   qwenCallMade: false
-  qwen25vlCallMade: false
+  visualIntelligenceCallMade: false
   deepseekCallMade: false
   plannerExecuted: false
   editPlanCreated: false
@@ -205,4 +205,4 @@ export const REEDITPRO_EDIT_LEVEL_QA_GATE_RULE =
   'Edit Level QA Gates define level-aware QA policy only; they do not execute QA tools or inspect media.'
 
 export const REEDITPRO_EDIT_LEVEL_QA_GATE_NO_EXECUTION_RULE =
-  'RP-EDITLEVEL-08 resolves mock/local QA gate policy only; it must not call Qwen, Qwen2.5-VL, DeepSeek, providers, planners, media workers, render, Supabase, external fetch, file-byte reads, or credits.'
+  'RP-EDITLEVEL-08 resolves mock/local QA gate policy only; it must not call Qwen, Visual Intelligence, DeepSeek, providers, planners, media workers, render, Supabase, external fetch, file-byte reads, or credits.'

@@ -20,7 +20,7 @@ The RP08 registry contains exactly 30 deterministic QA gate IDs:
 - `edit_brief_priority_consistency`
 - `preference_dna_match`
 - `qwen_response_validation`
-- `qwen25vl_visual_confidence`
+- `visual_intelligence_confidence`
 - `transcript_coverage`
 - `source_context_coverage`
 - `broll_timing`

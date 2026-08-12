@@ -8,7 +8,7 @@ The router resolves policy only:
 - Premium: key moments + marker windows.
 - Ultra Premium: scene-level context.
 
-It does not execute source understanding tools, call Qwen 3.7, call Qwen2.5-VL, call DeepSeek, call providers, run media processing, run transcript/Whisper, run audio workers, run graphic workers, render/export, start progress, reserve credits, spend credits, read uploaded file bytes, fetch external URLs, or run Supabase.
+It does not execute source understanding tools, call Qwen 3.7, call Visual Intelligence, call DeepSeek, call providers, run media processing, run transcript/Whisper, run audio workers, run graphic workers, render/export, start progress, reserve credits, spend credits, read uploaded file bytes, fetch external URLs, or run Supabase.
 
 The output is an `EditLevelSourceUnderstandingPolicyPackage` with source layers, marker context policy, Qwen context policy, fallbacks, warnings, summaries, and all side-effect flags false.
 

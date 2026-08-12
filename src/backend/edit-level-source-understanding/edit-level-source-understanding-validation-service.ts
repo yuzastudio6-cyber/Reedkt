@@ -19,7 +19,7 @@ export type UnsafeEditLevelSourceUnderstandingPolicyPackage =
 const falseFlagKeys: Array<Exclude<keyof EditLevelSourceUnderstandingSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwen3CallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepSeekCallMade',
   'mediaProcessingStarted',
   'transcriptStarted',

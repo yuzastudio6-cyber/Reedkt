@@ -60,7 +60,7 @@ const baseScenarios: MockEditLevelQwenPlanningScenario[] = [
   scenario({ id: 'validation-ultra-pass', title: 'Validation passes ultra package.', level: 'ultra_premium' }),
   scenario({ id: 'validation-blocks-provider', title: 'Validation blocks providerCallMade true.', level: 'premium' }),
   scenario({ id: 'validation-blocks-qwen', title: 'Validation blocks qwenCallMade true.', level: 'premium' }),
-  scenario({ id: 'validation-blocks-qwen25vl', title: 'Validation blocks qwen25vlCallMade true.', level: 'premium' }),
+  scenario({ id: 'validation-blocks-visual-intelligence', title: 'Validation blocks visualIntelligenceCallMade true.', level: 'premium' }),
   scenario({ id: 'validation-blocks-deepseek', title: 'Validation blocks deepseekCallMade true.', level: 'premium' }),
   scenario({ id: 'validation-blocks-planner', title: 'Validation blocks plannerExecuted true.', level: 'premium' }),
   scenario({ id: 'validation-blocks-edit-plan', title: 'Validation blocks editPlanCreated true.', level: 'premium' }),

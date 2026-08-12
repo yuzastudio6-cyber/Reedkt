@@ -49,7 +49,7 @@ export function createEditLevelToolRouterSideEffectFlags(): EditLevelToolRouterS
     mockOnly: true,
     providerCallMade: false,
     qwen3CallMade: false,
-    qwen25vlCallMade: false,
+    visualIntelligenceCallMade: false,
     deepSeekCallMade: false,
     mediaProcessingStarted: false,
     transcriptStarted: false,

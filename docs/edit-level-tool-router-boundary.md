@@ -6,7 +6,7 @@ The router resolves capability plans only; it does not execute tools, has no med
 
 It does not:
 
-- call Qwen 3.7, Qwen2.5-VL, DeepSeek, providers, ffmpeg, ffprobe, Whisper, SoundSync, or media workers;
+- call Qwen 3.7, Visual Intelligence, DeepSeek, providers, ffmpeg, ffprobe, Whisper, SoundSync, or media workers;
 - process uploaded media or read uploaded/media file bytes;
 - create production HTTP routes;
 - run or modify Supabase migrations;

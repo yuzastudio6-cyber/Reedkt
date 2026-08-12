@@ -71,7 +71,7 @@ const requiredFiles = [
 const falseFlagKeys: Array<Exclude<keyof EditLevelToolRouterSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwen3CallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepSeekCallMade',
   'mediaProcessingStarted',
   'transcriptStarted',
@@ -349,7 +349,7 @@ for (const term of [
   'router resolves capability plans only',
   'does not execute',
   'Qwen 3.7',
-  'Qwen2.5-VL',
+  'Visual Intelligence',
   'DeepSeek',
   'no media processing',
   'no render',

@@ -8,7 +8,7 @@ export type EditLevelEstimateItemId =
   | 'credit_estimate'
   | 'analysis_pass_budget'
   | 'qwen_reasoning_pass_budget'
-  | 'qwen25vl_visual_pass_budget'
+  | 'visual_intelligence_pass_budget'
   | 'transcript_pass_budget'
   | 'audio_pass_budget'
   | 'graphic_pass_budget'
@@ -60,7 +60,7 @@ export interface EditLevelEstimateSideEffectFlags {
   mockOnly: true
   providerCallMade: false
   qwenCallMade: false
-  qwen25vlCallMade: false
+  visualIntelligenceCallMade: false
   deepseekCallMade: false
   plannerExecuted: false
   editPlanCreated: false
@@ -120,7 +120,7 @@ export interface EditLevelEstimatePackage extends EditLevelEstimateSideEffectFla
   creditEstimateMultiplier: number
   analysisPassBudget: number
   qwenReasoningPassBudget: number | 'multi_pass'
-  qwen25vlVisualPassBudget: 'targeted_only' | 'key_moments' | 'scene_level'
+  visualIntelligencePassBudget: 'targeted_only' | 'key_moments' | 'scene_level'
   transcriptPassBudget: number
   audioPassBudget: number
   graphicPassBudget: number

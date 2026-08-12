@@ -9,6 +9,7 @@ import {
   assertCanonicalSam31L4QualificationTerminalObservation,
   createCanonicalSam31L4QualificationAttemptCostReceipt,
   createCanonicalSam31L4QualificationAttemptCostRepository,
+  parseCanonicalSam31L4QualificationCloudRunTerminalExecution,
   sealCanonicalSam31L4QualificationTerminalObservation,
 } from '../tool-cost-metering/canonical-sam3_1-l4-qualification-attempt-cost'
 import {
@@ -152,6 +153,41 @@ assert.equal(assertCanonicalSam31L4QualificationTerminalObservation(
   terminal,
 ).observationHash, terminal.observationHash)
 
+const omittedZeroTerminal =
+  parseCanonicalSam31L4QualificationCloudRunTerminalExecution({
+    name: run.cloudRunExecutionResource,
+    job: 'reeditpro-sam31-l4-fallback',
+    createTime: '2026-08-12T10:01:00.000Z',
+    startTime: '2026-08-12T10:01:10.000Z',
+    completionTime: '2026-08-12T10:03:30.000Z',
+    taskCount: 1,
+    succeededCount: 1,
+    conditions: [{
+      type: 'Completed',
+      state: 'CONDITION_SUCCEEDED',
+    }],
+  })
+assert.equal(omittedZeroTerminal.reconciling, false)
+assert.equal(omittedZeroTerminal.runningCount, 0)
+assert.equal(omittedZeroTerminal.failedCount, 0)
+assert.equal(omittedZeroTerminal.cancelledCount, 0)
+assert.equal(omittedZeroTerminal.retriedCount, 0)
+assert.throws(() =>
+  parseCanonicalSam31L4QualificationCloudRunTerminalExecution({
+    name: run.cloudRunExecutionResource,
+    job: 'reeditpro-sam31-l4-fallback',
+    createTime: '2026-08-12T10:01:00.000Z',
+    startTime: '2026-08-12T10:01:10.000Z',
+    completionTime: '2026-08-12T10:03:30.000Z',
+    taskCount: 1,
+    succeededCount: 1,
+    failedCount: 1,
+    conditions: [{
+      type: 'Completed',
+      state: 'CONDITION_SUCCEEDED',
+    }],
+  }))
+
 const tamperedReceipt = structuredClone(receipt)
 tamperedReceipt.actualUsage.totalBillableMilliseconds += 1
 assert.throws(() => assertCanonicalSam31L4QualificationAttemptCostReceipt(
@@ -209,7 +245,7 @@ assert.equal((await repository.reread({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-l4-qualification-attempt-cost',
-  checks: 23,
+  checks: 29,
   totalBillableMilliseconds: receipt.actualUsage.totalBillableMilliseconds,
   totalInfrastructureCostUsdNanos:
     receipt.actualInfrastructureCost.totalInfrastructureCostUsdNanos,

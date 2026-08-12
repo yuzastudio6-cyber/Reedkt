@@ -16,6 +16,7 @@ import {
 import {
   createCanonicalSam31L4QualificationAttemptCostReceipt,
   createCanonicalSam31L4QualificationAttemptCostRepository,
+  parseCanonicalSam31L4QualificationCloudRunTerminalExecution,
   sealCanonicalSam31L4QualificationTerminalObservation,
 } from '../tool-cost-metering/canonical-sam3_1-l4-qualification-attempt-cost'
 import {
@@ -31,30 +32,12 @@ const RUN_ORIGIN = 'https://run.googleapis.com' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
-const timestamp = z.string().datetime({ offset: true })
 const operationResource = z.string().regex(
   /^projects\/reeditpro\/locations\/us-central1\/operations\/[A-Za-z0-9._-]+$/u,
 )
 const executionResource = z.string().regex(
   /^projects\/reeditpro\/locations\/us-central1\/jobs\/reeditpro-sam31-l4-fallback\/executions\/[a-z0-9-]+$/u,
 )
-const terminalExecutionSchema = z.object({
-  name: executionResource,
-  job: z.literal(
-    'projects/reeditpro/locations/us-central1/jobs/reeditpro-sam31-l4-fallback',
-  ),
-  createTime: timestamp,
-  startTime: timestamp,
-  completionTime: timestamp,
-  taskCount: z.union([z.literal(1), z.literal('1')]),
-  reconciling: z.literal(false),
-  runningCount: z.union([z.literal(0), z.literal('0')]),
-  succeededCount: z.union([z.literal(1), z.literal('1')]),
-  failedCount: z.union([z.literal(0), z.literal('0')]),
-  cancelledCount: z.union([z.literal(0), z.literal('0')]),
-  retriedCount: z.union([z.literal(0), z.literal('0')]).optional()
-    .default(0),
-}).passthrough()
 type AuthRequest = Pick<OAuth2Client, 'request'>
 
 const environment = z.object({
@@ -172,7 +155,10 @@ async function rereadTerminal(input: {
     retry: false,
     maxRedirects: 0,
   })
-  const execution = terminalExecutionSchema.parse(executionResponse.data)
+  const execution =
+    parseCanonicalSam31L4QualificationCloudRunTerminalExecution(
+      executionResponse.data,
+    )
   if (execution.name !== input.run.cloudRunExecutionResource) {
     throw new Error('sam31_l4_terminal_execution_lineage_changed')
   }

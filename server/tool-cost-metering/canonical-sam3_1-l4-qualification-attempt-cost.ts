@@ -64,6 +64,45 @@ const operationResource = z.string().regex(
 const executionResource = z.string().regex(
   /^projects\/reeditpro\/locations\/us-central1\/jobs\/reeditpro-sam31-l4-fallback\/executions\/[a-z0-9-]+$/u,
 )
+const cloudRunTerminalExecutionApiSchema = z.object({
+  name: executionResource,
+  job: z.enum([
+    'reeditpro-sam31-l4-fallback',
+    'projects/reeditpro/locations/us-central1/jobs/reeditpro-sam31-l4-fallback',
+  ]),
+  createTime: timestamp,
+  startTime: timestamp,
+  completionTime: timestamp,
+  taskCount: z.union([z.literal(1), z.literal('1')]),
+  reconciling: z.literal(false).optional().default(false),
+  runningCount: z.union([z.literal(0), z.literal('0')])
+    .optional().default(0),
+  succeededCount: z.union([z.literal(1), z.literal('1')]),
+  failedCount: z.union([z.literal(0), z.literal('0')])
+    .optional().default(0),
+  cancelledCount: z.union([z.literal(0), z.literal('0')])
+    .optional().default(0),
+  retriedCount: z.union([z.literal(0), z.literal('0')])
+    .optional().default(0),
+  conditions: z.array(z.object({
+    type: z.string().trim().min(1).max(80),
+    state: z.string().trim().min(1).max(80),
+  }).passthrough()).min(1).max(20),
+}).passthrough().superRefine((value, context) => {
+  const completed = value.conditions.find((condition) =>
+    condition.type === 'Completed')
+  if (!completed || (completed.state !== 'CONDITION_SUCCEEDED'
+      && completed.state !== 'True')) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Cloud Run execution lacks a successful terminal condition.',
+    })
+  }
+})
+export type CanonicalSam31L4QualificationCloudRunTerminalExecution =
+  ReturnType<
+    typeof parseCanonicalSam31L4QualificationCloudRunTerminalExecution
+  >
 
 const terminalObservationWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -191,6 +230,33 @@ export function sealCanonicalSam31L4QualificationTerminalObservation(
   return assertCanonicalSam31L4QualificationTerminalObservation({
     ...payload,
     observationHash: sha256AuthorityValue(payload),
+  })
+}
+
+/**
+ * Cloud Run v2 omits zero-valued counters and false booleans in JSON. This
+ * normalizer accepts only those documented omissions and still rejects any
+ * active, failed, cancelled, retried, or reconciling execution.
+ */
+export function parseCanonicalSam31L4QualificationCloudRunTerminalExecution(
+  value: unknown,
+) {
+  assertPlainSerializedData(value, 'sam31_l4_cloud_run_terminal_execution')
+  const parsed = cloudRunTerminalExecutionApiSchema.parse(value)
+  return Object.freeze({
+    name: parsed.name,
+    createTime: parsed.createTime,
+    startTime: parsed.startTime,
+    completionTime: parsed.completionTime,
+    taskCount: Number(parsed.taskCount) as 1,
+    reconciling: parsed.reconciling,
+    runningCount: Number(parsed.runningCount) as 0,
+    succeededCount: Number(parsed.succeededCount) as 1,
+    failedCount: Number(parsed.failedCount) as 0,
+    cancelledCount: Number(parsed.cancelledCount) as 0,
+    retriedCount: Number(parsed.retriedCount) as 0,
+    successfulTerminalConditionReread: true as const,
+    omittedZeroFieldsNormalizedByCanonicalServer: true as const,
   })
 }
 

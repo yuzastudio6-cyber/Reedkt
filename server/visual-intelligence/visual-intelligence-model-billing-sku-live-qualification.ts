@@ -1,13 +1,5 @@
 import { createHash } from 'node:crypto'
 
-import {
-  FinishReason,
-  GoogleGenAI,
-  MediaResolution,
-  ThinkingLevel,
-  type Content,
-  type GenerateContentConfig,
-} from '@google/genai'
 import { z } from 'zod'
 
 import {
@@ -29,6 +21,18 @@ import {
 import {
   VISUAL_INTELLIGENCE_STANDARD_CONTEXT_MAX_INPUT_TOKENS,
 } from './visual-intelligence-model-billing-sku-qualification'
+import {
+  createGoogleVertexModelBillingSkuLiveGeneratePort,
+  VISUAL_INTELLIGENCE_GEMINI_FINISH_REASON_STOP,
+  VISUAL_INTELLIGENCE_GEMINI_MEDIA_RESOLUTION_HIGH,
+  VISUAL_INTELLIGENCE_GEMINI_THINKING_LEVEL_HIGH,
+  type VisualIntelligenceGeminiBillingGenerateResult,
+  type VisualIntelligenceGeminiBillingGeneratePort,
+  type VisualIntelligenceGeminiContent,
+  type VisualIntelligenceGeminiGenerateContentConfig,
+} from './vertex-gemini-pro-visual-intelligence-adapter'
+
+export { createGoogleVertexModelBillingSkuLiveGeneratePort }
 
 export const VISUAL_INTELLIGENCE_MODEL_BILLING_SKU_LIVE_EXECUTION_VERSION =
   'visual-intelligence-model-billing-sku-live-execution-v1' as const
@@ -66,7 +70,7 @@ const usageWithoutDigestSchema = z.object({
   exactModelId: z.literal(VISUAL_INTELLIGENCE_MODEL_ID),
   responseId: safeId,
   returnedModelVersion: z.literal(VISUAL_INTELLIGENCE_MODEL_ID),
-  finishReason: z.literal(FinishReason.STOP),
+  finishReason: z.literal(VISUAL_INTELLIGENCE_GEMINI_FINISH_REASON_STOP),
   candidateCount: z.literal(1),
   promptTokenCount: positiveInteger,
   candidateTokenCount: nonnegativeInteger,
@@ -165,29 +169,8 @@ export type VisualIntelligenceModelBillingSkuLiveExecutionReceipt = z.infer<
   typeof receiptSchema
 >
 
-export interface VisualIntelligenceModelBillingSkuLiveGenerateResult {
-  readonly responseId: string
-  readonly modelVersion: string
-  readonly finishReason: string
-  readonly candidateCount: number
-  readonly promptTokenCount: number
-  readonly candidateTokenCount: number
-  readonly thinkingTokenCount: number
-  readonly cachedTokenCount: number
-  readonly totalTokenCount: number
-}
-
-export interface VisualIntelligenceModelBillingSkuLiveGeneratePort {
-  countTokens(input: {
-    readonly model: typeof VISUAL_INTELLIGENCE_MODEL_ID
-    readonly contents: Content[]
-  }): Promise<number>
-  generate(input: {
-    readonly model: typeof VISUAL_INTELLIGENCE_MODEL_ID
-    readonly contents: Content[]
-    readonly config: GenerateContentConfig
-  }): Promise<VisualIntelligenceModelBillingSkuLiveGenerateResult>
-}
+export type VisualIntelligenceModelBillingSkuLiveGeneratePort =
+  VisualIntelligenceGeminiBillingGeneratePort
 
 export async function executeVisualIntelligenceModelBillingSkuLiveQualification(
   untrusted: {
@@ -311,62 +294,6 @@ export async function executeVisualIntelligenceModelBillingSkuLiveQualification(
   return Object.freeze(receipt)
 }
 
-export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
-  readonly projectId: 'reeditpro'
-  readonly location: 'global'
-  readonly timeoutMs?: number
-}): VisualIntelligenceModelBillingSkuLiveGeneratePort {
-  const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS
-  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1
-    || timeoutMs > DEFAULT_TIMEOUT_MS) {
-    throw new Error('Visual Intelligence live provider timeout is invalid.')
-  }
-  const client = new GoogleGenAI({
-    // Gemini 3.1 Pro is exposed through the Gemini Enterprise Agent Platform
-    // global v1 surface. The legacy Vertex v1alpha route returns 404 for this
-    // model even though the exact model ID is valid.
-    enterprise: true,
-    project: input.projectId,
-    location: input.location,
-    httpOptions: {
-      apiVersion: API_VERSION,
-      timeout: timeoutMs,
-      retryOptions: { attempts: 1 },
-    },
-  })
-  return Object.freeze({
-    async countTokens(
-      request: Parameters<
-        VisualIntelligenceModelBillingSkuLiveGeneratePort['countTokens']
-      >[0],
-    ) {
-      const response = await client.models.countTokens(request)
-      return response.totalTokens ?? -1
-    },
-    async generate(
-      request: Parameters<
-        VisualIntelligenceModelBillingSkuLiveGeneratePort['generate']
-      >[0],
-    ) {
-      const response = await client.models.generateContent(request)
-      const candidates = response.candidates ?? []
-      const first = candidates[0]
-      const usage = response.usageMetadata
-      return {
-        responseId: response.responseId ?? '',
-        modelVersion: response.modelVersion ?? '',
-        finishReason: first?.finishReason ?? '',
-        candidateCount: candidates.length,
-        promptTokenCount: usage?.promptTokenCount ?? -1,
-        candidateTokenCount: usage?.candidatesTokenCount ?? -1,
-        thinkingTokenCount: usage?.thoughtsTokenCount ?? 0,
-        cachedTokenCount: usage?.cachedContentTokenCount ?? 0,
-        totalTokenCount: usage?.totalTokenCount ?? -1,
-      }
-    },
-  })
-}
-
 export function parseVisualIntelligenceModelBillingSkuLiveExecutionReceipt(
   value: unknown,
 ): VisualIntelligenceModelBillingSkuLiveExecutionReceipt {
@@ -383,7 +310,7 @@ async function executeOne(input: {
   qualificationId: string
   contextClass: 'standard_le_200k' | 'long_gt_200k'
   countedPromptTokenCount: number
-  contents: Content[]
+  contents: VisualIntelligenceGeminiContent[]
   objectPort: CanonicalCreateOnlyJsonObjectPort
   pathPrefix: string
   generatePort: VisualIntelligenceModelBillingSkuLiveGeneratePort
@@ -392,7 +319,7 @@ async function executeOne(input: {
   const labelContext = input.contextClass === 'standard_le_200k'
     ? 'standard'
     : 'long'
-  const config: GenerateContentConfig = {
+  const config: VisualIntelligenceGeminiGenerateContentConfig = {
     systemInstruction:
       'This is an isolated WeEditPro billing-path qualification. Return '
       + 'only a JSON object with acknowledgement set to qualified.',
@@ -410,8 +337,10 @@ async function executeOne(input: {
         acknowledgement: { type: 'string', enum: ['qualified'] },
       },
     },
-    mediaResolution: MediaResolution.MEDIA_RESOLUTION_HIGH,
-    thinkingConfig: { thinkingLevel: ThinkingLevel.HIGH },
+    mediaResolution: VISUAL_INTELLIGENCE_GEMINI_MEDIA_RESOLUTION_HIGH,
+    thinkingConfig: {
+      thinkingLevel: VISUAL_INTELLIGENCE_GEMINI_THINKING_LEVEL_HIGH,
+    },
     labels: {
       capability: 'visual-intelligence',
       operation: 'billing-sku-qualification',
@@ -448,7 +377,7 @@ async function executeOne(input: {
     requestIdentity,
   )
   const providerRequestStartedAtIso = timestamp.parse(input.now())
-  let generated: VisualIntelligenceModelBillingSkuLiveGenerateResult
+  let generated: VisualIntelligenceGeminiBillingGenerateResult
   try {
     generated = await input.generatePort.generate({
       model: VISUAL_INTELLIGENCE_MODEL_ID,
@@ -553,7 +482,7 @@ async function executeOne(input: {
 
 async function compileLongContextContents(
   port: VisualIntelligenceModelBillingSkuLiveGeneratePort,
-): Promise<Content[]> {
+): Promise<VisualIntelligenceGeminiContent[]> {
   let markerCount = INITIAL_LONG_TOKEN_MARKER_COUNT
   for (let pass = 0; pass < MAX_TOKEN_CALIBRATION_PASSES; pass += 1) {
     const contents = contentsFor(`${'x '.repeat(markerCount)}\nReturn the bounded JSON acknowledgement.`)
@@ -576,7 +505,7 @@ async function compileLongContextContents(
 
 async function countExact(
   port: VisualIntelligenceModelBillingSkuLiveGeneratePort,
-  contents: Content[],
+  contents: VisualIntelligenceGeminiContent[],
 ): Promise<number> {
   const count = await port.countTokens({
     model: VISUAL_INTELLIGENCE_MODEL_ID,
@@ -585,11 +514,11 @@ async function countExact(
   return positiveInteger.parse(count)
 }
 
-function contentsFor(text: string): Content[] {
+function contentsFor(text: string): VisualIntelligenceGeminiContent[] {
   return [{ role: 'user', parts: [{ text }] }]
 }
 
-function providerContentIdentity(contents: Content[]) {
+function providerContentIdentity(contents: VisualIntelligenceGeminiContent[]) {
   if (
     contents.length !== 1
     || contents[0]?.role !== 'user'

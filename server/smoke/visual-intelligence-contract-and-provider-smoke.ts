@@ -863,11 +863,9 @@ async function main() {
   const providerIsolation = await auditProductionGeminiProviderIsolation()
   assert.deepEqual(providerIsolation.sdkImportFiles, [
     'server/visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter.ts',
-    'server/visual-intelligence/visual-intelligence-model-billing-sku-live-qualification.ts',
   ])
   assert.deepEqual(providerIsolation.directInvocationFiles, [
     'server/visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter.ts',
-    'server/visual-intelligence/visual-intelligence-model-billing-sku-live-qualification.ts',
   ])
   const isolatedBillingQualificationSource = await readFile(resolve(
     'server/visual-intelligence/'

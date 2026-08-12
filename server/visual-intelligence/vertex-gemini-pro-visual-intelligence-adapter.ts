@@ -40,6 +40,16 @@ export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION =
   'vertex-gemini-pro-visual-intelligence-adapter-v5' as const
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
   'v1' as const
+export const VISUAL_INTELLIGENCE_GEMINI_FINISH_REASON_STOP =
+  FinishReason.STOP
+export const VISUAL_INTELLIGENCE_GEMINI_MEDIA_RESOLUTION_HIGH =
+  MediaResolution.MEDIA_RESOLUTION_HIGH
+export const VISUAL_INTELLIGENCE_GEMINI_THINKING_LEVEL_HIGH =
+  ThinkingLevel.HIGH
+
+export type VisualIntelligenceGeminiContent = Content
+export type VisualIntelligenceGeminiGenerateContentConfig =
+  GenerateContentConfig
 
 const DEFAULT_TIMEOUT_MS = 600_000
 const MAX_TIMEOUT_MS = 900_000
@@ -74,6 +84,30 @@ export interface VisualIntelligenceGeminiGeneratePort {
   generate(
     input: VisualIntelligenceGeminiGenerateInput,
   ): Promise<VisualIntelligenceGeminiGenerateResult>
+}
+
+export interface VisualIntelligenceGeminiBillingGenerateResult {
+  readonly responseId: string
+  readonly modelVersion: string
+  readonly finishReason: string
+  readonly candidateCount: number
+  readonly promptTokenCount: number
+  readonly candidateTokenCount: number
+  readonly thinkingTokenCount: number
+  readonly cachedTokenCount: number
+  readonly totalTokenCount: number
+}
+
+export interface VisualIntelligenceGeminiBillingGeneratePort {
+  countTokens(input: {
+    readonly model: typeof VISUAL_INTELLIGENCE_MODEL_ID
+    readonly contents: VisualIntelligenceGeminiContent[]
+  }): Promise<number>
+  generate(input: {
+    readonly model: typeof VISUAL_INTELLIGENCE_MODEL_ID
+    readonly contents: VisualIntelligenceGeminiContent[]
+    readonly config: VisualIntelligenceGeminiGenerateContentConfig
+  }): Promise<VisualIntelligenceGeminiBillingGenerateResult>
 }
 
 export interface VisualIntelligenceProviderCostSettlementPort {
@@ -642,6 +676,54 @@ function createGoogleGenAiVertexGeneratePort(input: {
         urlContextMetadataPresent: Boolean(first?.urlContextMetadata),
         functionCallPresent: Boolean(response.functionCalls?.length),
         executableCodePresent: Boolean(response.executableCode),
+      }
+    },
+  })
+}
+
+export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
+  readonly projectId: 'reeditpro'
+  readonly location: 'global'
+  readonly timeoutMs?: number
+}): VisualIntelligenceGeminiBillingGeneratePort {
+  const timeoutMs = input.timeoutMs ?? MAX_TIMEOUT_MS
+  if (!validProviderTimeoutMs(timeoutMs)) {
+    throw new Error('Visual Intelligence live provider timeout is invalid.')
+  }
+  const client = new GoogleGenAI({
+    enterprise: true,
+    project: input.projectId,
+    location: input.location,
+    httpOptions: {
+      apiVersion: VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
+      timeout: timeoutMs,
+      retryOptions: { attempts: 1 },
+    },
+  })
+  return Object.freeze({
+    async countTokens(request: Parameters<
+      VisualIntelligenceGeminiBillingGeneratePort['countTokens']
+    >[0]) {
+      const response = await client.models.countTokens(request)
+      return response.totalTokens ?? -1
+    },
+    async generate(request: Parameters<
+      VisualIntelligenceGeminiBillingGeneratePort['generate']
+    >[0]) {
+      const response = await client.models.generateContent(request)
+      const candidates = response.candidates ?? []
+      const first = candidates[0]
+      const usage = response.usageMetadata
+      return {
+        responseId: response.responseId ?? '',
+        modelVersion: response.modelVersion ?? '',
+        finishReason: first?.finishReason ?? '',
+        candidateCount: candidates.length,
+        promptTokenCount: usage?.promptTokenCount ?? -1,
+        candidateTokenCount: usage?.candidatesTokenCount ?? -1,
+        thinkingTokenCount: usage?.thoughtsTokenCount ?? 0,
+        cachedTokenCount: usage?.cachedContentTokenCount ?? 0,
+        totalTokenCount: usage?.totalTokenCount ?? -1,
       }
     },
   })

@@ -20,7 +20,11 @@ import {
 
 const rawHash = (character: string) => character.repeat(64)
 const hash = (character: string) => `sha256:${rawHash(character)}` as const
-const ref = (id: string, character: string, version: number) => ({
+const ref = <const Version extends number>(
+  id: string,
+  character: string,
+  version: Version,
+) => ({
   id, version, contentHash: hash(character),
 })
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({

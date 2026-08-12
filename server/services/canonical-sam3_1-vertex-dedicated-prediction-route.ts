@@ -20,7 +20,7 @@ const DEPLOYED_MODEL_ID = '3101000001' as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const dedicatedDns = z.string().regex(
-  /^https:\/\/weeditpro-sam31-a100-scale-zero-v1\.us-central1-[a-z0-9-]+\.prediction\.vertexai\.goog$/u,
+  /^weeditpro-sam31-a100-scale-zero-v1\.us-central1-[a-z0-9-]+\.prediction\.vertexai\.goog$/u,
 )
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 
@@ -43,7 +43,7 @@ const routeWithoutHashSchema = z.object({
   callerPredictionUrlAccepted: z.literal(false),
 }).strict().superRefine((route, context) => {
   if (route.predictUrl !==
-    `${route.dedicatedEndpointDns}/v1/${ENDPOINT_RESOURCE}:predict`) {
+    `https://${route.dedicatedEndpointDns}/v1/${ENDPOINT_RESOURCE}:predict`) {
     context.addIssue({
       code: 'custom',
       message: 'Dedicated Vertex prediction route changed.',
@@ -105,7 +105,7 @@ export async function rereadCanonicalSam31VertexDedicatedPredictionRoute(
     deployedModelId: DEPLOYED_MODEL_ID,
     dedicatedEndpointDns: endpoint.dedicatedEndpointDns,
     predictUrl:
-      `${endpoint.dedicatedEndpointDns}/v1/${ENDPOINT_RESOURCE}:predict`,
+      `https://${endpoint.dedicatedEndpointDns}/v1/${ENDPOINT_RESOURCE}:predict`,
     dedicatedEndpointEnabled: true,
     oneExactDeployedModel: true,
     exactTrafficSplitPercent: 100,

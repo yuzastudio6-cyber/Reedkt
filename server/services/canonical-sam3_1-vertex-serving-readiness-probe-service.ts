@@ -333,6 +333,12 @@ export function assertCanonicalSam31VertexServingReadinessProbe(
 
 function parseReadinessResponse(value: unknown, readinessProbeId: string) {
   return z.object({
+    deployedModelId: z.literal('3101000001'),
+    model: z.literal(
+      'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+    ),
+    modelDisplayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
+    modelVersionId: z.literal('1'),
     predictions: z.array(z.object({
       schemaVersion: z.literal(
         'canonical-sam3_1-vertex-readiness-result-v1',
@@ -423,7 +429,14 @@ function isExactSafe429(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false
   const response = (error as { readonly response?: unknown }).response
   if (typeof response !== 'object' || response === null) return false
-  const exact = z.object({
+  const exactText = z.object({
+    status: z.literal(429),
+    data: z.literal(
+      'Model is not yet ready for inference. Please wait while model completes scale-up from zero, then try your request again.',
+    ),
+  }).passthrough().safeParse(response)
+  if (exactText.success) return true
+  const exactJson = z.object({
     status: z.literal(429),
     data: z.object({
       error: z.object({
@@ -435,5 +448,5 @@ function isExactSafe429(error: unknown): boolean {
       }).passthrough(),
     }).passthrough(),
   }).passthrough().safeParse(response)
-  return exact.success
+  return exactJson.success
 }

@@ -33,7 +33,7 @@ import {
 const at = '2026-08-11T20:00:00.000Z'
 const endpointDeploymentRef = ref('sam31-a100-serving-deployment')
 const dedicatedEndpointDns =
-  'https://weeditpro-sam31-a100-scale-zero-v1.us-central1-123456.prediction.vertexai.goog'
+  'weeditpro-sam31-a100-scale-zero-v1.us-central1-123456.prediction.vertexai.goog'
 const readinessPayload = {
   schemaVersion: 'canonical-sam3_1-vertex-serving-deployment-ready-v1' as const,
   source:
@@ -108,7 +108,7 @@ const success = await service({
   request: async (request) => {
     successCalls += 1
     assert.equal(request.url,
-      `${dedicatedEndpointDns}/v1/${readiness.endpointResourceName}:predict`)
+      `https://${dedicatedEndpointDns}/v1/${readiness.endpointResourceName}:predict`)
     assert.equal(request.retry, false)
     assert.equal(request.maxRedirects, 0)
     assert.deepEqual(request.data, {

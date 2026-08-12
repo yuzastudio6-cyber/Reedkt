@@ -128,7 +128,7 @@ function memoryObjectPort(
       const existing = objects.get(objectPath)
       if (existing && !existing.equals(body)) throw new Error('conflict')
       if (!existing) objects.set(objectPath, Buffer.from(body))
-      return existing ? 'identical_replay' : 'created'
+      return existing ? 'already_exists' : 'created'
     },
     async readExact(objectPath) {
       const value = objects.get(objectPath)

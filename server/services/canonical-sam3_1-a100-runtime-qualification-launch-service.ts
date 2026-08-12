@@ -743,8 +743,9 @@ function buildAdmission(input: {
 }
 
 function buildLifecycleConsumption(input: {
-  admission: CanonicalSam31A100RuntimeQualificationAdmission
-  release: ReturnType<typeof assertCanonicalA100VertexCustomJobRelease>
+  admission: Pick<CanonicalSam31A100RuntimeQualificationAdmission,
+    'admissionId' | 'admissionHash'>
+  release: Readonly<{ releaseRef: z.infer<typeof evidenceRefSchema> }>
   refs: ReturnType<typeof buildQualificationRefs>
   consumedAt: string
 }): CanonicalProfessionalGpuAdmissionConsumption {
@@ -776,8 +777,12 @@ function buildLifecycleConsumption(input: {
 }
 
 function buildExecutionEnvelope(input: {
-  admission: CanonicalSam31A100RuntimeQualificationAdmission
-  release: ReturnType<typeof assertCanonicalA100VertexCustomJobRelease>
+  admission: Pick<CanonicalSam31A100RuntimeQualificationAdmission,
+    'admissionId' | 'admissionHash'>
+  release: Readonly<{
+    releaseRef: z.infer<typeof evidenceRefSchema>
+    immutableImageDigest: string
+  }>
   refs: ReturnType<typeof buildQualificationRefs>
   consumptionRef: z.infer<typeof evidenceRefSchema>
 }): CanonicalProfessionalGpuExecutionEnvelope {
@@ -818,8 +823,10 @@ function buildExecutionEnvelope(input: {
 }
 
 function buildQualificationTask(input: {
-  admission: CanonicalSam31A100RuntimeQualificationAdmission
-  release: ReturnType<typeof assertCanonicalA100VertexCustomJobRelease>
+  admission: Pick<CanonicalSam31A100RuntimeQualificationAdmission,
+    'admissionId' | 'admissionHash' | 'sourceCheckpointQualificationRef'
+    | 'currentA100RateAuthorityRef' | 'currentL4FallbackRateAuthorityRef'>
+  release: Readonly<{ releaseRef: z.infer<typeof evidenceRefSchema> }>
   source: ReturnType<typeof projectCanonicalSam31QualifiedSourceCheckpointRelease>
   image: CanonicalSam31CloudImageSupplyChainRelease
   refs: ReturnType<typeof buildQualificationRefs>
@@ -1196,6 +1203,9 @@ function buildProbeSourceMedia(refs: ReturnType<typeof buildQualificationRefs>) 
   })
 }
 
+export const buildCanonicalSam31A100QualificationProbeSourceMedia =
+  buildProbeSourceMedia
+
 function buildProbeRefs() {
   const fixture = CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE
   const deterministicProbeFixtureRef = ref(
@@ -1223,6 +1233,8 @@ function buildProbeRefs() {
     ),
   })
 }
+
+export const createCanonicalSam31A100QualificationProbeRefs = buildProbeRefs
 
 function buildIdentifiers(request: StartRequest) {
   const suffix = `${request.qualificationId}.run-${
@@ -1298,6 +1310,18 @@ function buildQualificationRefs(input: {
     }),
   })
 }
+
+export const createCanonicalSam31A100QualificationRefs =
+  buildQualificationRefs
+
+export const buildCanonicalSam31A100QualificationTask =
+  buildQualificationTask
+
+export const buildCanonicalSam31A100QualificationExecutionEnvelope =
+  buildExecutionEnvelope
+
+export const buildCanonicalSam31A100QualificationLifecycleConsumption =
+  buildLifecycleConsumption
 
 function assertPrerequisites(input: {
   request: StartRequest

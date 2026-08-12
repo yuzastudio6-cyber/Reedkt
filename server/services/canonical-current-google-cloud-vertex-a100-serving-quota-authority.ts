@@ -264,7 +264,10 @@ export function createCanonicalCurrentGoogleCloudVertexA100ServingQuotaRepositor
   return Object.freeze({
     schemaVersion:
       CANONICAL_CURRENT_GOOGLE_CLOUD_VERTEX_A100_SERVING_QUOTA_REPOSITORY_VERSION,
-    async persistCreateOnly({ authority: untrusted }) {
+    async persistCreateOnly({ authority: untrusted }: {
+      readonly authority:
+        CanonicalCurrentGoogleCloudVertexA100ServingQuotaAuthority
+    }) {
       const authority =
         assertCanonicalCurrentGoogleCloudVertexA100ServingQuotaAuthority(
           untrusted,
@@ -287,7 +290,10 @@ export function createCanonicalCurrentGoogleCloudVertexA100ServingQuotaRepositor
       }
       return Object.freeze({ quotaAuthorityRef: reference })
     },
-    reread({ quotaAuthorityRef, at }) {
+    reread({ quotaAuthorityRef, at }: {
+      readonly quotaAuthorityRef: z.infer<typeof refSchema>
+      readonly at: string
+    }) {
       return read(input.objectPort, prefix, refSchema.parse(quotaAuthorityRef),
         timestamp.parse(at))
     },

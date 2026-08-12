@@ -41,7 +41,7 @@ const repository = createCanonicalSam31VertexServingReadinessProbeRepository({
 let time = 0
 let probeRequests = 0
 const dedicatedEndpointDns =
-  'https://weeditpro-sam31-a100-scale-zero-v1.us-central1-123456.prediction.vertexai.goog'
+  'weeditpro-sam31-a100-scale-zero-v1.us-central1-123456.prediction.vertexai.goog'
 const dedicatedEndpointResponse = {
   name:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
@@ -56,6 +56,11 @@ const readyResponse = (requestBody: unknown) => {
     instances: [{ readinessProbeId: string }]
   }
   return {
+    deployedModelId: '3101000001',
+    model:
+      'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+    modelDisplayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
+    modelVersionId: '1',
     predictions: [{
       schemaVersion: 'canonical-sam3_1-vertex-readiness-result-v1',
       readinessProbeId: body.instances[0].readinessProbeId,
@@ -367,7 +372,7 @@ const extraMetadataProbe = await createCanonicalSam31VertexServingReadinessProbe
       }
       if (!('retried' in extraMetadataProbeState)) {
         extraMetadataProbeState.retried = true
-        const response = safeScaleFromZero429()
+        const response = safeScaleFromZeroJson429()
         Object.assign(response.response, { headers: { 'retry-after': '5' } })
         Object.assign(response.response.data.error, {
           details: [{ reason: 'MODEL_SCALE_UP' }],
@@ -406,6 +411,16 @@ function safeScaleFromZero429() {
   return {
     response: {
       status: 429,
+      data:
+        'Model is not yet ready for inference. Please wait while model completes scale-up from zero, then try your request again.',
+    },
+  }
+}
+
+function safeScaleFromZeroJson429() {
+  return {
+    response: {
+      status: 429,
       data: { error: {
         code: 429,
         status: 'RESOURCE_EXHAUSTED',
@@ -439,7 +454,11 @@ function hash(seed: string): `sha256:${string}` {
   return `sha256:${sha256AuthorityValue(seed)}`
 }
 
-function ref(id: string, raw = sha256AuthorityValue(id), version = 1) {
+function ref<const Version extends number = 1>(
+  id: string,
+  raw = sha256AuthorityValue(id),
+  version: Version = 1 as Version,
+) {
   return {
     id,
     version,

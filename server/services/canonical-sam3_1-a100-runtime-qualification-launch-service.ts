@@ -1349,9 +1349,8 @@ function assertPrerequisites(input: {
       input.request.imageSupplyChainReleaseRef.contentHash
     || input.a100Rate.routeId !== 'a100_80gb_heavy_primary'
     || input.l4Rate.routeId !== 'l4_heavy_fallback'
-    || input.quota.preferredValue !== 1
-    || input.quota.grantedValue !== 1
-    || input.quota.reconciling
+    || input.quota.preferredValue < 1
+    || input.quota.grantedValue < 1
   ) throw conflict('exact_prerequisite_lineage_mismatch')
 }
 

@@ -351,6 +351,7 @@
     "smoke:sam3_1-a100-qualification-foundation-owner": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-owner-smoke.ts",
     "smoke:sam3_1-a100-qualification-foundation-repository": "tsx server/smoke/canonical-sam3_1-a100-qualification-foundation-repository-smoke.ts",
     "smoke:sam3_1-a100-runtime-qualification-launch": "tsx server/smoke/canonical-sam3_1-a100-runtime-qualification-launch-smoke.ts",
+    "smoke:sam3_1-complete-source-capacity": "tsx server/smoke/canonical-sam3_1-complete-source-capacity-owner-smoke.ts",
     "smoke:sam3_1-gpu-runtime-contract": "tsx server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts",
     "smoke:sam3_1-cross-accelerator-mask-comparison": "tsx server/smoke/canonical-sam3_1-cross-accelerator-mask-comparison-smoke.ts",
     "start:sam3_1-a100-runtime-qualification": "tsx server/cli/start-canonical-sam3_1-a100-runtime-qualification.ts",

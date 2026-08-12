@@ -127,7 +127,10 @@ const reconcilingQuotaReadPort =
     },
     now: () => '2026-08-06T16:09:00.000Z',
   })
-await assert.rejects(reconcilingQuotaReadPort.rereadCurrent())
+const reconcilingQuota = await reconcilingQuotaReadPort.rereadCurrent()
+assert.equal(reconcilingQuota.preferredValue, 1)
+assert.equal(reconcilingQuota.grantedValue, 1)
+assert.equal(reconcilingQuota.reconciling, true)
 let providerCalls = 0
 const launchPort = createCanonicalSam31VertexQualificationLaunchPort({
   admissionRepository: runtimeRepository.admissions,
@@ -297,7 +300,7 @@ console.log(JSON.stringify({
   immutableImageQuotaAndAccountRateRereadBeforeLaunch: true,
   exactCloudQuotaPreferenceAndRegionalLimitReread: true,
   omittedFalseReconcilingFieldAccepted: true,
-  explicitTrueReconcilingFieldRejected: true,
+  explicitTrueReconcilingFieldPreservesCurrentGrantedCapacity: true,
   canonicalProjectNumberQuotaInfoAccepted: true,
   sparseUnrelatedDimensionsIgnored: true,
   exactRegionalQuotaScopeRequired: true,

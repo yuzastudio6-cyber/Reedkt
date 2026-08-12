@@ -294,8 +294,8 @@ export function createCanonicalA100VertexPlatformUsageReadPort(input: {
         await input.quotaReadPort.rereadCurrent(),
         timestamp.parse(now()),
       )
-      if (quota.grantedValue !== 1 || quota.reconciling) {
-        throw new Error('Vertex A100 quota is unavailable or reconciling.')
+      if (quota.grantedValue < 1) {
+        throw new Error('Vertex A100 quota is unavailable.')
       }
       const observedAt = timestamp.parse(now())
       const rereadRef = opaqueRef('vertex-a100-platform-reread', {

@@ -37,6 +37,7 @@ const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
 const positiveInteger = z.number().int().positive().safe()
 const timestamp = z.string().datetime({ offset: true })
+const quotaCapacity = z.number().int().min(1).max(64)
 const evidenceRefSchema = z.object({
   id: safeId,
   version: positiveInteger,
@@ -87,9 +88,9 @@ const releaseWithoutHashSchema = z.object({
   quotaPreferenceObservationRef: evidenceRefSchema,
   quotaPreferenceId: z.literal(QUOTA_PREFERENCE_ID),
   quotaId: z.literal(QUOTA_ID),
-  quotaPreferredValue: z.literal(1),
-  quotaGrantedValue: z.literal(1),
-  quotaReconciling: z.literal(false),
+  quotaPreferredValue: quotaCapacity,
+  quotaGrantedValue: quotaCapacity,
+  quotaReconciling: z.boolean(),
   machineType: z.literal('a2-ultragpu-1g'),
   acceleratorType: z.literal('NVIDIA_A100_80GB'),
   acceleratorCount: z.literal(1),

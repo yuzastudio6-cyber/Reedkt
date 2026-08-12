@@ -397,8 +397,8 @@ export function createCanonicalSam31VertexQualificationQuotaReadPort(input: {
       ])
       const preference = parseQuotaPreference(preferenceResponse.data)
       const quotaInfo = parseQuotaInfo(infoResponse.data)
-      if (quotaInfo.regionalLimit < 1) {
-        throw new Error('Vertex A100 regional quota is below one.')
+      if (quotaInfo.regionalLimit !== preference.grantedValue) {
+        throw new Error('Vertex A100 granted quota differs from quota info.')
       }
       const observedAt = timestamp.parse(now())
       return sealCanonicalSam31VertexQualificationQuotaObservation({
@@ -575,8 +575,8 @@ export function createCanonicalSam31VertexQualificationPlatformStopReadPort(
         await input.quotaReadPort.rereadCurrent(),
         timestamp.parse(now()),
       )
-      if (quota.grantedValue !== 1 || quota.reconciling) {
-        throw new Error('Vertex quota changed during terminal observation.')
+      if (quota.grantedValue < 1) {
+        throw new Error('Vertex quota is unavailable during terminal observation.')
       }
       const observedAt = timestamp.parse(now())
       const payload = {
@@ -640,14 +640,20 @@ function parseQuotaPreference(value: unknown) {
   const preferredValue = Number(parsed.quotaConfig.preferredValue)
   const grantedValue = Number(parsed.quotaConfig.grantedValue)
   if (
-    preferredValue !== 1
-    || grantedValue !== 1
-    || parsed.reconciling === true
+    !Number.isSafeInteger(preferredValue)
+    || !Number.isSafeInteger(grantedValue)
+    || preferredValue < 1
+    || preferredValue > 64
+    || grantedValue < 1
+    || grantedValue > 64
   ) {
-    throw new Error('Vertex A100 quota preference is not granted.')
+    throw new Error('Vertex A100 quota preference is invalid.')
   }
-  return { preferredValue: 1 as const, grantedValue: 1 as const,
-    reconciling: false as const }
+  return {
+    preferredValue,
+    grantedValue,
+    reconciling: parsed.reconciling === true,
+  }
 }
 
 function parseQuotaInfo(value: unknown) {

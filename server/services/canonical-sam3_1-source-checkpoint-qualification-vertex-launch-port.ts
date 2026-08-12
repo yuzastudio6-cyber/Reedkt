@@ -53,6 +53,7 @@ const safeId = z.string().trim().min(1).max(240)
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
+const quotaCapacity = z.number().int().min(1).max(64)
 const evidenceRefSchema = z.object({
   id: safeId,
   version: z.number().int().positive().safe(),
@@ -78,9 +79,9 @@ const quotaWithoutHashSchema = z.object({
   region: z.literal(REGION),
   quotaPreferenceId: z.literal(QUOTA_PREFERENCE),
   quotaId: z.literal(QUOTA_ID),
-  preferredValue: z.literal(1),
-  grantedValue: z.literal(1),
-  reconciling: z.literal(false),
+  preferredValue: quotaCapacity,
+  grantedValue: quotaCapacity,
+  reconciling: z.boolean(),
   exactCloudQuotaPreferenceAndQuotaInfoReread: z.literal(true),
   batchOrComputeA100QuotaUsedAsVertexAuthority: z.literal(false),
   gpuJobStarted: z.literal(false),

@@ -14,6 +14,10 @@ import {
   createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
 } from '../services/canonical-current-google-cloud-gpu-rate-authority-repository'
 import {
+  createCanonicalSam31L4RuntimePrivateRunReceiptRepository,
+  sealCanonicalSam31L4RuntimePrivateRunReceipt,
+} from '../services/canonical-sam3_1-l4-runtime-qualification-run-receipt-service'
+import {
   canonicalProfessionalGpuJobLaunchSchema,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
@@ -488,6 +492,11 @@ async function main() {
     wallTimeMilliseconds: response.runtimeMeasurement?.wallTimeMilliseconds,
     cudaEventInferenceMilliseconds:
       response.runtimeMeasurement?.cudaEventInferenceMilliseconds,
+    privateInputByteLength: task.privateInputStagingEvidence.byteLength,
+    workerOutputByteLength:
+      response.runtimeMeasurement?.outputByteLength,
+    manifestByteLength: outputEvidence.manifestByteLength,
+    combinedMaskByteLength: outputEvidence.combinedMaskByteLength,
     propagatedFrameCount: response.outputSummary?.propagatedFrameCount,
     losslessMaskPngCount: response.outputSummary?.losslessMaskPngCount,
     scaleFromZeroObserved: activeExecutions(beforeExecutions).length === 0,
@@ -504,14 +513,17 @@ async function main() {
     productionAuthorityGranted: false,
     completedAt: new Date().toISOString(),
   } as const
-  const receiptHash = sha256AuthorityValue(receiptPayload)
-  const receipt = Object.freeze({ ...receiptPayload, receiptHash })
+  const receipt = sealCanonicalSam31L4RuntimePrivateRunReceipt(receiptPayload)
+  const receiptHash = receipt.receiptHash
   await persistCanonicalJsonCreateOnly({
     file: storage.bucket(CONTROL_PLANE_BUCKET).file(
       `${QUALIFICATION_PREFIX}/run-receipts/${receiptHash}.json`,
     ),
     value: receipt,
   })
+  await createCanonicalSam31L4RuntimePrivateRunReceiptRepository({
+    objectPort: controlObjectPort,
+  }).persistCreateOnly({ receipt })
   process.stdout.write(`${stableAuthorityStringify({
     ok: true,
     qualificationId,

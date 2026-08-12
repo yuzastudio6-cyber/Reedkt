@@ -18,6 +18,26 @@ import {
   parseVisualIntelligenceModelBillingSkuLiveExecutionReceipt,
   type VisualIntelligenceModelBillingSkuLiveGeneratePort,
 } from '../visual-intelligence/visual-intelligence-model-billing-sku-live-qualification'
+import {
+  createGoogleGenAiAuthClientAdapter,
+} from '../visual-intelligence/vertex-gemini-pro-visual-intelligence-adapter'
+
+const bridgedAuth = createGoogleGenAiAuthClientAdapter({
+  async getRequestHeaders() {
+    return { Authorization: 'Bearer bounded-test-token' } as never
+  },
+})
+const bridgedHeaders = await bridgedAuth.getRequestHeaders()
+assert.equal(bridgedHeaders instanceof Headers, true)
+assert.equal(bridgedHeaders.get('authorization'), 'Bearer bounded-test-token')
+await assert.rejects(
+  createGoogleGenAiAuthClientAdapter({
+    async getRequestHeaders() {
+      return {} as never
+    },
+  }).getRequestHeaders(),
+  /auth header is missing/u,
+)
 
 let tick = Date.parse('2026-08-09T05:00:00.000Z')
 const now = () => {
@@ -108,6 +128,7 @@ process.stdout.write(`${JSON.stringify({
   professionalHighExplicit: true,
   exactModelRequired: true,
   automaticRetryBlockedOnUnknownOutcome: true,
+  impersonatedAuthHeadersBridgedToSdkV10: true,
   billingExportReconciliationPending: true,
   customerCreditsMutated: false,
 })}\n`)

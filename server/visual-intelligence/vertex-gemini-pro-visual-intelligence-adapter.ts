@@ -39,7 +39,7 @@ import {
 } from './visual-intelligence-profile-registry'
 
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_ADAPTER_VERSION =
-  'vertex-gemini-pro-visual-intelligence-adapter-v5' as const
+  'vertex-gemini-pro-visual-intelligence-adapter-v6' as const
 export const VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION =
   'v1' as const
 export const VISUAL_INTELLIGENCE_GEMINI_FINISH_REASON_STOP =
@@ -693,18 +693,16 @@ export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
   if (!validProviderTimeoutMs(timeoutMs)) {
     throw new Error('Visual Intelligence live provider timeout is invalid.')
   }
+  const sdkAuthClient = input.authClient
+    ? createGoogleGenAiAuthClientAdapter(input.authClient)
+    : undefined
   const client = new GoogleGenAI({
     enterprise: true,
     project: input.projectId,
     location: input.location,
-    ...(input.authClient ? {
+    ...(sdkAuthClient ? {
       googleAuthOptions: {
-        // @google/genai currently bundles a newer google-auth-library copy.
-        // Both clients implement the same AuthClient runtime contract; the
-        // cast is isolated here so callers never supply credentials or tokens.
-        authClient: input.authClient as unknown as NonNullable<
-          GoogleGenAIOptions['googleAuthOptions']
-        >['authClient'],
+        authClient: sdkAuthClient,
       },
     } : {}),
     httpOptions: {
@@ -740,6 +738,70 @@ export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
       }
     },
   })
+}
+
+/**
+ * @google/genai 2.15 bundles google-auth-library 10, whose auth header
+ * contract is the web Headers interface. The storage client intentionally
+ * remains on google-auth-library 9 and returns a plain header record. Keep the
+ * short-lived impersonated credential in its original owner and bridge only
+ * the header representation; never copy or persist the access token.
+ */
+export function createGoogleGenAiAuthClientAdapter(
+  authClient: Pick<AuthClient, 'getRequestHeaders'>,
+): NonNullable<NonNullable<
+  GoogleGenAIOptions['googleAuthOptions']
+>['authClient']> {
+  if (!authClient || typeof authClient.getRequestHeaders !== 'function') {
+    throw new Error('Visual Intelligence Google auth client is invalid.')
+  }
+  return {
+    async getRequestHeaders(url?: string | URL) {
+      const untrustedHeaders = await authClient.getRequestHeaders(
+        typeof url === 'string' ? url : url?.toString(),
+      ) as unknown
+      const headers = new Headers()
+      if (
+        untrustedHeaders instanceof Headers
+        || (
+          typeof untrustedHeaders === 'object'
+          && untrustedHeaders !== null
+          && typeof (untrustedHeaders as {
+            [Symbol.iterator]?: unknown
+          })[Symbol.iterator] === 'function'
+        )
+      ) {
+        for (const entry of untrustedHeaders as Iterable<unknown>) {
+          if (
+            !Array.isArray(entry)
+            || entry.length !== 2
+            || typeof entry[0] !== 'string'
+            || typeof entry[1] !== 'string'
+          ) throw new Error('Visual Intelligence Google auth header is invalid.')
+          headers.append(entry[0], entry[1])
+        }
+      } else if (
+        typeof untrustedHeaders === 'object'
+        && untrustedHeaders !== null
+        && Object.getPrototypeOf(untrustedHeaders) === Object.prototype
+      ) {
+        for (const [key, value] of Object.entries(untrustedHeaders)) {
+          if (typeof value !== 'string') {
+            throw new Error('Visual Intelligence Google auth header is invalid.')
+          }
+          headers.append(key, value)
+        }
+      } else {
+        throw new Error('Visual Intelligence Google auth headers are invalid.')
+      }
+      if (headers.get('authorization') === null) {
+        throw new Error('Visual Intelligence Google auth header is missing.')
+      }
+      return headers
+    },
+  } as NonNullable<NonNullable<
+    GoogleGenAIOptions['googleAuthOptions']
+  >['authClient']>
 }
 
 function validateProviderRequest(

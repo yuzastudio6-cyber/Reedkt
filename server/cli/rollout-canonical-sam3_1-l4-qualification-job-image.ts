@@ -128,9 +128,8 @@ async function main() {
     immutableImageUri,
   })
   const submittedOperation = operationSchema.parse((await auth.request({
-    url: `${RUN_ORIGIN}/v2/${JOB_RESOURCE}`,
+    url: `${RUN_ORIGIN}/v2/${JOB_RESOURCE}?updateMask=${UPDATE_MASK}`,
     method: 'PATCH',
-    params: { updateMask: UPDATE_MASK },
     data: patch,
     timeout: 30_000,
     retry: false,

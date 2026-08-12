@@ -65,6 +65,11 @@ assert.match(
 assert.match(l4ImageRollout, /template\.template\.containers/u)
 assert.match(
   l4ImageRollout,
+  /\?updateMask=\$\{UPDATE_MASK\}/u,
+)
+assert.doesNotMatch(l4ImageRollout, /params:\s*\{ updateMask/u)
+assert.match(
+  l4ImageRollout,
   /rereadQualifiedRelease\(\{ releaseRef: imageSupplyChainReleaseRef \}\)/u,
 )
 assert.match(

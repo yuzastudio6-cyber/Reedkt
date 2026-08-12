@@ -20,6 +20,10 @@ import {
   buildCanonicalSam31L4QualificationJobImagePatch,
   canonicalSam31L4QualificationJobProjection,
 } from '../services/canonical-sam3_1-l4-qualification-job-service'
+import {
+  assertCanonicalSam31L4QualificationJobRolloutReceipt,
+  createCanonicalSam31L4QualificationJobRolloutReceipt,
+} from '../services/canonical-sam3_1-l4-qualification-job-rollout-service'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 const hash = (seed: string) => `sha256:${sha256AuthorityValue(seed)}`
@@ -34,6 +38,10 @@ const l4Qualifier = readFileSync(resolve(
   process.cwd(),
   'server/cli/qualify-canonical-sam3_1-l4-runtime.ts',
 ), 'utf8')
+const l4ImageRollout = readFileSync(resolve(
+  process.cwd(),
+  'server/cli/rollout-canonical-sam3_1-l4-qualification-job-image.ts',
+), 'utf8')
 const packageJson = JSON.parse(readFileSync(resolve(
   process.cwd(),
   'package.json',
@@ -46,6 +54,29 @@ assert.equal(
   packageJson.scripts?.['qualify:sam3_1-l4-runtime'],
   'tsx server/cli/qualify-canonical-sam3_1-l4-runtime.ts',
 )
+assert.equal(
+  packageJson.scripts?.['rollout:sam3_1-l4-qualification-job-image'],
+  'tsx server/cli/rollout-canonical-sam3_1-l4-qualification-job-image.ts',
+)
+assert.match(
+  l4ImageRollout,
+  /rollout-one-qualified-sam31-image-to-l4-qualification-job-v1/u,
+)
+assert.match(l4ImageRollout, /template\.template\.containers/u)
+assert.match(
+  l4ImageRollout,
+  /rereadQualifiedRelease\(\{ releaseRef: imageSupplyChainReleaseRef \}\)/u,
+)
+assert.match(
+  l4ImageRollout,
+  /buildCanonicalSam31L4QualificationJobImagePatch/u,
+)
+assert.match(
+  l4ImageRollout,
+  /createCanonicalSam31L4QualificationJobRolloutReceipt/u,
+)
+assert.match(l4ImageRollout, /ifGenerationMatch: 0/u)
+assert.doesNotMatch(l4ImageRollout, /JOB_RESOURCE\}:run/u)
 assert.match(
   l4Qualifier,
   /task\.runtimeRequest\.modelArtifacts\.immutableImageDigest !==\s*qualification\.immutableImageDigest/u,
@@ -181,16 +212,34 @@ assert.equal(
   replacementImageUri,
 )
 assert.equal(imagePatch.etag, 'exact-l4-job-etag')
+const rolledOutL4Job = assertCanonicalSam31L4QualificationJob({
+  ...exactL4Job,
+  generation: '9',
+  observedGeneration: '9',
+  etag: 'replacement-l4-job-etag',
+  template: imagePatch.template,
+}, replacementImageUri)
 assertCanonicalSam31L4QualificationJobOnlyImageChanged({
   before: exactL4Job,
-  after: assertCanonicalSam31L4QualificationJob({
-    ...exactL4Job,
-    generation: '9',
-    observedGeneration: '9',
-    etag: 'replacement-l4-job-etag',
-    template: imagePatch.template,
-  }, replacementImageUri),
+  after: rolledOutL4Job,
 })
+const rolloutReceipt = createCanonicalSam31L4QualificationJobRolloutReceipt({
+  rolloutId: 'sam31-l4-qualification-image-rollout-smoke-v1',
+  before: exactL4Job,
+  after: rolledOutL4Job,
+  imageSupplyChainReleaseRef: ref('sam31-l4-image-supply-chain-release'),
+  cloudRunPatchOperationRef: ref('sam31-l4-job-patch-operation'),
+  rolledOutAt: '2026-08-12T16:00:00.000Z',
+})
+assert.equal(
+  assertCanonicalSam31L4QualificationJobRolloutReceipt(rolloutReceipt)
+    .authority.runtimeReleaseGranted,
+  false,
+)
+assert.throws(() => assertCanonicalSam31L4QualificationJobRolloutReceipt({
+  ...rolloutReceipt,
+  rolloutHash: hash('tampered-rollout'),
+}))
 assert.throws(() => assertCanonicalSam31L4QualificationJob({
   ...exactL4Job,
   template: {

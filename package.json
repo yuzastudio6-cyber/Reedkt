@@ -351,6 +351,7 @@
     "smoke:sam3_1-gpu-runtime-contract": "tsx server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts",
     "start:sam3_1-a100-runtime-qualification": "tsx server/cli/start-canonical-sam3_1-a100-runtime-qualification.ts",
     "finalize:sam3_1-a100-runtime-qualification": "tsx server/cli/finalize-canonical-sam3_1-a100-runtime-qualification.ts",
+    "rollout:sam3_1-l4-qualification-job-image": "tsx server/cli/rollout-canonical-sam3_1-l4-qualification-job-image.ts",
     "qualify:sam3_1-l4-runtime": "tsx server/cli/qualify-canonical-sam3_1-l4-runtime.ts",
     "compile:sam3_1-l4-runtime-thirty-run-qualification": "tsx server/cli/compile-canonical-sam3_1-l4-runtime-thirty-run-qualification.ts",
     "compile:sam3_1-gpu-runtime-driver-qualification": "tsx server/cli/compile-canonical-sam3_1-gpu-runtime-driver-qualification.ts",

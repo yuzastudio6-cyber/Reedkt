@@ -10,22 +10,18 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
-  type CanonicalSam31VertexQualificationQuotaReadPort,
-} from './canonical-sam3_1-source-checkpoint-qualification-vertex-runtime'
-import {
-  assertCanonicalSam31VertexQualificationQuotaObservation,
-} from './canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port'
-import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 
+export const CANONICAL_SAM3_1_A100_SERVING_COMPLETE_SOURCE_CAPACITY_VERSION =
+  'canonical-sam3_1-a100-serving-complete-source-capacity-observation-v1' as const
 export const CANONICAL_SAM3_1_L4_COMPLETE_SOURCE_CAPACITY_VERSION =
   'canonical-sam3_1-l4-complete-source-capacity-observation-v1' as const
 export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CAPACITY_VERSION =
-  'canonical-sam3_1-complete-source-capacity-observation-v1' as const
+  'canonical-sam3_1-complete-source-capacity-observation-v2' as const
 export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CAPACITY_OWNER_VERSION =
-  'canonical-sam3_1-complete-source-capacity-owner-v1' as const
+  'canonical-sam3_1-complete-source-capacity-owner-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const PROJECT_NUMBER = '390722338345' as const
@@ -33,6 +29,16 @@ const REGION = 'us-central1' as const
 const CLOUD_QUOTAS_ORIGIN = 'https://cloudquotas.googleapis.com' as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
+const A100_SERVING_QUOTA_PREFERENCE_ID =
+  'weeditpro-vertex-serving-a100-80gb-us-central1-1' as const
+const A100_SERVING_QUOTA_ID =
+  'CustomModelServingA10080GBGPUsPerProjectPerRegion' as const
+const A100_SERVING_QUOTA_PREFERENCE_NAME =
+  `projects/${PROJECT_ID}/locations/global/quotaPreferences/`
+  + A100_SERVING_QUOTA_PREFERENCE_ID
+const A100_SERVING_QUOTA_INFO_NAME =
+  `projects/${PROJECT_NUMBER}/locations/global/services/`
+  + `aiplatform.googleapis.com/quotaInfos/${A100_SERVING_QUOTA_ID}`
 const L4_QUOTA_PREFERENCE_ID =
   'weeditpro-l4-scale-zero-quality-capacity-us-central1-v1' as const
 const L4_QUOTA_ID =
@@ -62,6 +68,43 @@ const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
 const quotaCapacity = z.number().int().min(1).max(64)
 type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
+
+const a100ServingWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_A100_SERVING_COMPLETE_SOURCE_CAPACITY_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_vertex_a100_serving_quota_observation_owner',
+  ),
+  evidenceClass: z.literal('canonical_private_reread'),
+  projectId: z.literal(PROJECT_ID),
+  region: z.literal(REGION),
+  quotaPreferenceId: z.literal(A100_SERVING_QUOTA_PREFERENCE_ID),
+  quotaId: z.literal(A100_SERVING_QUOTA_ID),
+  preferredValue: quotaCapacity,
+  grantedValue: quotaCapacity,
+  reconciling: z.boolean(),
+  exactCloudQuotaPreferenceAndQuotaInfoReread: z.literal(true),
+  vertexCustomJobTrainingQuotaAcceptedAsServingCapacity: z.literal(false),
+  minimumReplicaCount: z.literal(0),
+  maximumRequestConcurrencyPerReplica: z.literal(1),
+  endpointOrGpuJobStarted: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  observedAt: timestamp,
+  expiresAt: timestamp,
+}).strict().superRefine((value, context) => {
+  const life = Date.parse(value.expiresAt) - Date.parse(value.observedAt)
+  if (life <= 0 || life > 15 * 60_000) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 A100 serving capacity observation is stale.',
+  })
+})
+export const canonicalSam31A100ServingCompleteSourceCapacityObservationSchema =
+  a100ServingWithoutHashSchema.extend({ observationHash: sha256 }).strict()
+export type CanonicalSam31A100ServingCompleteSourceCapacityObservation =
+  z.infer<
+    typeof canonicalSam31A100ServingCompleteSourceCapacityObservationSchema
+  >
 
 const l4WithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -173,6 +216,12 @@ export interface CanonicalSam31L4CompleteSourceCapacityReadPort {
   rereadCurrent(): Promise<CanonicalSam31L4CompleteSourceCapacityObservation>
 }
 
+export interface CanonicalSam31A100ServingCompleteSourceCapacityReadPort {
+  rereadCurrent(): Promise<
+    CanonicalSam31A100ServingCompleteSourceCapacityObservation
+  >
+}
+
 export interface CanonicalSam31CompleteSourceCapacityRepository {
   persistCreateOnly(input: {
     readonly observation: CanonicalSam31CompleteSourceCapacityObservation
@@ -191,6 +240,35 @@ export function sealCanonicalSam31L4CompleteSourceCapacityObservation(
     ...payload,
     observationHash: sha256AuthorityValue(payload),
   })
+}
+
+export function sealCanonicalSam31A100ServingCompleteSourceCapacityObservation(
+  value: unknown,
+): CanonicalSam31A100ServingCompleteSourceCapacityObservation {
+  assertPlainSerializedData(value, 'sam31_a100_serving_capacity_build')
+  const payload = a100ServingWithoutHashSchema.parse(value)
+  return assertCanonicalSam31A100ServingCompleteSourceCapacityObservation({
+    ...payload,
+    observationHash: sha256AuthorityValue(payload),
+  })
+}
+
+export function assertCanonicalSam31A100ServingCompleteSourceCapacityObservation(
+  value: unknown,
+  at?: string,
+): CanonicalSam31A100ServingCompleteSourceCapacityObservation {
+  assertPlainSerializedData(value, 'sam31_a100_serving_capacity_observation')
+  const parsed =
+    canonicalSam31A100ServingCompleteSourceCapacityObservationSchema.parse(
+      value,
+    )
+  const { observationHash, ...payload } = parsed
+  if (observationHash !== sha256AuthorityValue(payload)
+    || (at && (Date.parse(at) < Date.parse(parsed.observedAt)
+      || Date.parse(at) >= Date.parse(parsed.expiresAt)))) {
+    throw new Error('SAM 3.1 A100 serving capacity observation is invalid.')
+  }
+  return parsed
 }
 
 export function assertCanonicalSam31L4CompleteSourceCapacityObservation(
@@ -267,7 +345,8 @@ export function createCanonicalSam31CompleteSourceCapacityRepository(input: {
 }
 
 export function createCanonicalSam31CompleteSourceCapacityOwner(input: {
-  readonly a100QuotaReadPort: CanonicalSam31VertexQualificationQuotaReadPort
+  readonly a100QuotaReadPort:
+    CanonicalSam31A100ServingCompleteSourceCapacityReadPort
   readonly l4QuotaReadPort: CanonicalSam31L4CompleteSourceCapacityReadPort
   readonly repository: CanonicalSam31CompleteSourceCapacityRepository
   readonly now?: () => string
@@ -279,12 +358,16 @@ export function createCanonicalSam31CompleteSourceCapacityOwner(input: {
       assertPlainSerializedData(untrusted, 'sam31_complete_source_capacity_run')
       const request = z.object({ observationId: safeId }).strict()
         .parse(untrusted)
-      const observedAt = timestamp.parse(now())
       const [a100Value, l4Value] = await Promise.all([
         input.a100QuotaReadPort.rereadCurrent(),
         input.l4QuotaReadPort.rereadCurrent(),
       ])
-      const a100 = assertCanonicalSam31VertexQualificationQuotaObservation(
+      // The aggregate observation must be no earlier than either live child
+      // reread. Capturing this before the asynchronous reads makes an honest
+      // real-clock observation appear to come from the future and fail closed.
+      const observedAt = timestamp.parse(now())
+      const a100 =
+        assertCanonicalSam31A100ServingCompleteSourceCapacityObservation(
         a100Value,
         observedAt,
       )
@@ -353,6 +436,81 @@ export function createCanonicalSam31CompleteSourceCapacityOwner(input: {
   })
 }
 
+export function createCanonicalSam31GcpA100ServingCompleteSourceCapacityReadPort(
+  input: {
+    readonly auth?: GoogleAuthRequest
+    readonly now?: () => string
+    readonly requestTimeoutMilliseconds?: number
+  } = {},
+): CanonicalSam31A100ServingCompleteSourceCapacityReadPort {
+  const auth = input.auth ?? new GoogleAuth({ scopes: [CLOUD_PLATFORM_SCOPE] })
+  const now = input.now ?? (() => new Date().toISOString())
+  const timeout = input.requestTimeoutMilliseconds ?? 15_000
+  if (!Number.isInteger(timeout) || timeout < 1_000 || timeout > 30_000) {
+    throw new Error('SAM 3.1 A100 serving capacity timeout is invalid.')
+  }
+  return Object.freeze({
+    async rereadCurrent() {
+      const [preferenceResponse, infoResponse] = await Promise.all([
+        auth.request({
+          url: `${CLOUD_QUOTAS_ORIGIN}/v1/`
+            + A100_SERVING_QUOTA_PREFERENCE_NAME,
+          method: 'GET', timeout, retry: false, maxRedirects: 0,
+          responseType: 'json', maxContentLength: 2 * 1024 * 1024,
+        }),
+        auth.request({
+          url: `${CLOUD_QUOTAS_ORIGIN}/v1/${A100_SERVING_QUOTA_INFO_NAME}`,
+          method: 'GET', timeout, retry: false, maxRedirects: 0,
+          responseType: 'json', maxContentLength: 2 * 1024 * 1024,
+        }),
+      ])
+      const preference = parseQuotaPreference({
+        value: preferenceResponse.data,
+        label: 'sam31_a100_serving_quota_preference',
+        expectedName: A100_SERVING_QUOTA_PREFERENCE_NAME,
+        expectedService: 'aiplatform.googleapis.com',
+        expectedQuotaId: A100_SERVING_QUOTA_ID,
+      })
+      const grantedValue = parseRegionalQuotaInfo({
+        value: infoResponse.data,
+        label: 'sam31_a100_serving_quota_info',
+        expectedName: A100_SERVING_QUOTA_INFO_NAME,
+        expectedService: 'aiplatform.googleapis.com',
+        expectedQuotaId: A100_SERVING_QUOTA_ID,
+      })
+      if (grantedValue !== preference.grantedValue) {
+        throw new Error(
+          'Vertex A100 serving granted quota differs from quota info.',
+        )
+      }
+      const observedAt = timestamp.parse(now())
+      return sealCanonicalSam31A100ServingCompleteSourceCapacityObservation({
+        schemaVersion:
+          CANONICAL_SAM3_1_A100_SERVING_COMPLETE_SOURCE_CAPACITY_VERSION,
+        source:
+          'canonical_server_vertex_a100_serving_quota_observation_owner',
+        evidenceClass: 'canonical_private_reread',
+        projectId: PROJECT_ID,
+        region: REGION,
+        quotaPreferenceId: A100_SERVING_QUOTA_PREFERENCE_ID,
+        quotaId: A100_SERVING_QUOTA_ID,
+        preferredValue: preference.preferredValue,
+        grantedValue,
+        reconciling: preference.reconciling,
+        exactCloudQuotaPreferenceAndQuotaInfoReread: true,
+        vertexCustomJobTrainingQuotaAcceptedAsServingCapacity: false,
+        minimumReplicaCount: 0,
+        maximumRequestConcurrencyPerReplica: 1,
+        endpointOrGpuJobStarted: false,
+        customerCreditsMutated: false,
+        observedAt,
+        expiresAt: new Date(Date.parse(observedAt) + 15 * 60_000)
+          .toISOString(),
+      })
+    },
+  })
+}
+
 export function createCanonicalSam31GcpL4CompleteSourceCapacityReadPort(input: {
   readonly auth?: GoogleAuthRequest
   readonly now?: () => string
@@ -408,18 +566,34 @@ export function createCanonicalSam31GcpL4CompleteSourceCapacityReadPort(input: {
 }
 
 function parseL4Preference(value: unknown) {
-  assertPlainSerializedData(value, 'sam31_l4_quota_preference')
+  return parseQuotaPreference({
+    value,
+    label: 'sam31_l4_quota_preference',
+    expectedName: L4_QUOTA_PREFERENCE_NAME,
+    expectedService: 'run.googleapis.com',
+    expectedQuotaId: L4_QUOTA_ID,
+  })
+}
+
+function parseQuotaPreference(input: {
+  readonly value: unknown
+  readonly label: string
+  readonly expectedName: string
+  readonly expectedService: string
+  readonly expectedQuotaId: string
+}) {
+  assertPlainSerializedData(input.value, input.label)
   const parsed = z.object({
-    name: z.literal(L4_QUOTA_PREFERENCE_NAME),
-    service: z.literal('run.googleapis.com'),
-    quotaId: z.literal(L4_QUOTA_ID),
+    name: z.literal(input.expectedName),
+    service: z.literal(input.expectedService),
+    quotaId: z.literal(input.expectedQuotaId),
     dimensions: z.object({ region: z.literal(REGION) }).strict(),
     quotaConfig: z.object({
       preferredValue: z.union([z.string(), z.number()]),
       grantedValue: z.union([z.string(), z.number()]),
     }).passthrough(),
     reconciling: z.boolean().optional(),
-  }).passthrough().parse(value)
+  }).passthrough().parse(input.value)
   return {
     preferredValue: quotaCapacity.parse(
       Number(parsed.quotaConfig.preferredValue),
@@ -432,11 +606,27 @@ function parseL4Preference(value: unknown) {
 }
 
 function parseL4QuotaInfo(value: unknown): number {
-  assertPlainSerializedData(value, 'sam31_l4_quota_info')
+  return parseRegionalQuotaInfo({
+    value,
+    label: 'sam31_l4_quota_info',
+    expectedName: L4_QUOTA_INFO_NAME,
+    expectedService: 'run.googleapis.com',
+    expectedQuotaId: L4_QUOTA_ID,
+  })
+}
+
+function parseRegionalQuotaInfo(input: {
+  readonly value: unknown
+  readonly label: string
+  readonly expectedName: string
+  readonly expectedService: string
+  readonly expectedQuotaId: string
+}): number {
+  assertPlainSerializedData(input.value, input.label)
   const parsed = z.object({
-    name: z.literal(L4_QUOTA_INFO_NAME),
-    service: z.literal('run.googleapis.com'),
-    quotaId: z.literal(L4_QUOTA_ID),
+    name: z.literal(input.expectedName),
+    service: z.literal(input.expectedService),
+    quotaId: z.literal(input.expectedQuotaId),
     dimensionsInfos: z.array(z.object({
       dimensions: z.record(z.string(), z.string()).optional(),
       details: z.object({
@@ -444,13 +634,13 @@ function parseL4QuotaInfo(value: unknown): number {
       }).passthrough(),
       applicableLocations: z.array(z.string()).min(1),
     }).passthrough()).min(1),
-  }).passthrough().parse(value)
+  }).passthrough().parse(input.value)
   const regional = parsed.dimensionsInfos.filter((item) =>
     item.dimensions?.region === REGION)
   if (regional.length !== 1
     || stableAuthorityStringify(regional[0].applicableLocations) !==
       stableAuthorityStringify([REGION])) {
-    throw new Error('Cloud Run L4 quota region is invalid.')
+    throw new Error(`${input.label} region is invalid.`)
   }
   return quotaCapacity.parse(Number(regional[0].details.value))
 }

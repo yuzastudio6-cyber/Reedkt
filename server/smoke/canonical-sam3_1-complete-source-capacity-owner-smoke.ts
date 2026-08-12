@@ -5,15 +5,14 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  createCanonicalSam31GcpA100ServingCompleteSourceCapacityReadPort,
   assertCanonicalSam31CompleteSourceCapacityObservation,
   createCanonicalSam31CompleteSourceCapacityOwner,
   createCanonicalSam31CompleteSourceCapacityRepository,
   createCanonicalSam31GcpL4CompleteSourceCapacityReadPort,
+  sealCanonicalSam31A100ServingCompleteSourceCapacityObservation,
   sealCanonicalSam31L4CompleteSourceCapacityObservation,
 } from '../services/canonical-sam3_1-complete-source-capacity-owner'
-import {
-  sealCanonicalSam31VertexQualificationQuotaObservation,
-} from '../services/canonical-sam3_1-source-checkpoint-qualification-vertex-launch-port'
 
 const observedAt = '2026-08-12T21:15:00.000Z'
 const expiresAt = '2026-08-12T21:30:00.000Z'
@@ -84,6 +83,34 @@ assert.equal(pending.status, 'pending_quota_reconciliation')
 assert.equal(pending.completeSourceExecutionCapacityReady, false)
 assert.equal(pending.gpuJobStarted, false)
 
+const childObservedAt = '2026-08-12T21:15:00.010Z'
+const aggregateObservedAt = '2026-08-12T21:15:00.020Z'
+const asynchronousClockOrder = await createCanonicalSam31CompleteSourceCapacityOwner({
+  a100QuotaReadPort: {
+    async rereadCurrent() {
+      return sealCanonicalSam31A100ServingCompleteSourceCapacityObservation({
+        ...withoutKey(readyA100, 'observationHash'),
+        observedAt: childObservedAt,
+      })
+    },
+  },
+  l4QuotaReadPort: {
+    async rereadCurrent() {
+      return sealCanonicalSam31L4CompleteSourceCapacityObservation({
+        ...withoutKey(readyL4, 'observationHash'),
+        observedAt: childObservedAt,
+      })
+    },
+  },
+  repository: createCanonicalSam31CompleteSourceCapacityRepository({
+    objectPort: memoryObjectPort(new Map()),
+  }),
+  now: () => aggregateObservedAt,
+}).observeAndPersist({
+  observationId: 'sam31-complete-source-capacity-real-clock-order',
+})
+assert.equal(asynchronousClockOrder.observedAt, aggregateObservedAt)
+
 const fakeAuth = {
   async request(input: { readonly url?: string }) {
     if (input.url?.includes('/quotaPreferences/')) return {
@@ -121,6 +148,47 @@ assert.equal(liveShape.preferredValue, 16)
 assert.equal(liveShape.grantedValue, 3)
 assert.equal(liveShape.reconciling, true)
 
+const liveA100Shape =
+  await createCanonicalSam31GcpA100ServingCompleteSourceCapacityReadPort({
+    auth: {
+      async request(input: { readonly url?: string }) {
+        if (input.url?.includes('/quotaPreferences/')) return {
+          data: {
+            name: 'projects/reeditpro/locations/global/quotaPreferences/'
+              + 'weeditpro-vertex-serving-a100-80gb-us-central1-1',
+            service: 'aiplatform.googleapis.com',
+            quotaId: 'CustomModelServingA10080GBGPUsPerProjectPerRegion',
+            dimensions: { region: 'us-central1' },
+            quotaConfig: { preferredValue: '16', grantedValue: '1' },
+            reconciling: true,
+          },
+        }
+        return {
+          data: {
+            name: 'projects/390722338345/locations/global/services/'
+              + 'aiplatform.googleapis.com/quotaInfos/'
+              + 'CustomModelServingA10080GBGPUsPerProjectPerRegion',
+            service: 'aiplatform.googleapis.com',
+            quotaId: 'CustomModelServingA10080GBGPUsPerProjectPerRegion',
+            dimensionsInfos: [{
+              dimensions: { region: 'us-central1' },
+              applicableLocations: ['us-central1'],
+              details: { value: '1' },
+            }],
+          },
+        }
+      },
+    },
+    now: () => observedAt,
+  }).rereadCurrent()
+assert.equal(liveA100Shape.preferredValue, 16)
+assert.equal(liveA100Shape.grantedValue, 1)
+assert.equal(liveA100Shape.reconciling, true)
+assert.equal(
+  liveA100Shape.vertexCustomJobTrainingQuotaAcceptedAsServingCapacity,
+  false,
+)
+
 assert.throws(() => assertCanonicalSam31CompleteSourceCapacityObservation({
   ...ready,
   a100GrantedValue: 15,
@@ -132,7 +200,7 @@ assert.throws(() => sealCanonicalSam31L4CompleteSourceCapacityObservation({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-complete-source-capacity-owner',
-  checks: 22,
+  checks: 23,
   exactEightMinuteSourceFrameCount: ready.sourceFrameCount,
   exactChunkCount: ready.exactChunkCount,
   requiredConcurrentA10080GbWorkers:
@@ -152,19 +220,21 @@ function a100Observation(input: {
   readonly grantedValue: number
   readonly reconciling: boolean
 }) {
-  return sealCanonicalSam31VertexQualificationQuotaObservation({
+  return sealCanonicalSam31A100ServingCompleteSourceCapacityObservation({
     schemaVersion:
-      'canonical-sam3_1-vertex-a100-qualification-quota-observation-v1',
-    source: 'canonical_server_vertex_quota_observation_owner',
+      'canonical-sam3_1-a100-serving-complete-source-capacity-observation-v1',
+    source: 'canonical_server_vertex_a100_serving_quota_observation_owner',
     evidenceClass: 'canonical_private_reread',
     projectId: 'reeditpro',
     region: 'us-central1',
-    quotaPreferenceId: 'weeditpro-vertex-a100-80gb-us-central1-1',
-    quotaId: 'CustomModelTrainingA10080GBGPUsPerProjectPerRegion',
+    quotaPreferenceId: 'weeditpro-vertex-serving-a100-80gb-us-central1-1',
+    quotaId: 'CustomModelServingA10080GBGPUsPerProjectPerRegion',
     ...input,
     exactCloudQuotaPreferenceAndQuotaInfoReread: true,
-    batchOrComputeA100QuotaUsedAsVertexAuthority: false,
-    gpuJobStarted: false,
+    vertexCustomJobTrainingQuotaAcceptedAsServingCapacity: false,
+    minimumReplicaCount: 0,
+    maximumRequestConcurrencyPerReplica: 1,
+    endpointOrGpuJobStarted: false,
     customerCreditsMutated: false,
     observedAt,
     expiresAt,

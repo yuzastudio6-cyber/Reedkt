@@ -36,9 +36,6 @@ import {
   createCanonicalA100VertexCustomJobDurableStore,
 } from './canonical-a100-vertex-custom-job-durable-store'
 import {
-  createCanonicalA100VertexCustomJobLaunchPort,
-} from './canonical-a100-vertex-custom-job-launch-port'
-import {
   createCanonicalA100VertexCustomJobTerminalPort,
 } from './canonical-a100-vertex-custom-job-terminal-port'
 import {
@@ -52,9 +49,6 @@ import {
   createCanonicalA100VertexProviderAllocationCostReceiptStore,
   createCanonicalSam31A100VertexWorkerUsageReadPort,
 } from './canonical-a100-vertex-production-terminal-adapters'
-import {
-  createCanonicalA100VertexProfessionalGpuLaunchAdapter,
-} from './canonical-a100-vertex-professional-gpu-launch-adapter'
 import {
   createCanonicalSam31VertexQualificationQuotaReadPort,
 } from './canonical-sam3_1-source-checkpoint-qualification-vertex-runtime'
@@ -136,7 +130,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v14' as const
+  'canonical-track-all-sam3_1-production-runtime-v15' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -188,6 +182,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     true
   readonly separateSam31InputAndL4TaskQaInvocationRootsRequired: true
   readonly rawCloudLaunchPortExposed: false
+  readonly historicalVertexCustomJobCustomerDispatchAllowed: false
 }
 
 /**
@@ -240,7 +235,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository({
       objectPort: controlPlaneObjectPort,
     })
-  const currentVertexA100RateAuthorityRepository =
+  const historicalVertexA100RateAuthorityRepository =
     createCanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository({
       objectPort: controlPlaneObjectPort,
     })
@@ -257,12 +252,13 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
         | 'l4_standard_primary'
       readonly at: string
     }) {
-      return request.routeId === 'a100_80gb_heavy_primary'
-        ? currentVertexA100RateAuthorityRepository.reread({
-          rateAuthorityRef: request.rateAuthorityRef,
-          at: request.at,
-        })
-        : currentRateAuthorityRepository.rereadApprovedCurrentRate(request)
+      if (request.routeId === 'a100_80gb_heavy_primary') {
+        throw new Error(
+          'A100 customer admission is blocked until the dedicated Vertex '
+          + 'serving-rate and endpoint runtime are mounted.',
+        )
+      }
+      return currentRateAuthorityRepository.rereadApprovedCurrentRate(request)
     },
   })
   const runtimeConfigurationRepository =
@@ -388,18 +384,6 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     })
   const vertexA100QuotaReadPort =
     createCanonicalSam31VertexQualificationQuotaReadPort()
-  const vertexA100LaunchPort = createCanonicalA100VertexCustomJobLaunchPort({
-    launchContextRepository: vertexA100DurableStore,
-    consumptionPort: vertexA100DurableStore,
-    executionRepository: vertexA100DurableStore,
-  })
-  const vertexA100ProfessionalLaunchPort =
-    createCanonicalA100VertexProfessionalGpuLaunchAdapter({
-      releasePairReadPort: releasePairRegistry,
-      rateAuthorityReadPort: currentVertexA100RateAuthorityRepository,
-      quotaReadPort: vertexA100QuotaReadPort,
-      vertexLaunchPort: vertexA100LaunchPort,
-    })
   const vertexA100TerminalCostEvidenceReadPort =
     createCanonicalA100VertexTerminalCostEvidenceReadPort({
       contextReadPort: vertexA100DurableStore,
@@ -414,7 +398,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
         quotaReadPort: vertexA100QuotaReadPort,
         objectPort: controlPlaneObjectPort,
       }),
-      rateAuthorityReadPort: currentVertexA100RateAuthorityRepository,
+      rateAuthorityReadPort: historicalVertexA100RateAuthorityRepository,
       receiptStore:
         createCanonicalA100VertexProviderAllocationCostReceiptStore({
           objectPort: controlPlaneObjectPort,
@@ -449,13 +433,11 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
         CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
       >[0]) {
         if (request.admission.routeId === 'a100_80gb_heavy_primary') {
-          if (request.target.executionTarget !==
-            'google_cloud_vertex_custom_job_a2_ultra') {
-            throw new Error(
-              'Current A100 work may launch only through Vertex Custom Jobs.',
-            )
-          }
-          return vertexA100ProfessionalLaunchPort.startOneShotJob(request)
+          throw new Error(
+            'Fresh A100 customer dispatch is blocked: the historical Vertex '
+            + 'Custom Job route is read-only and the dedicated prediction '
+            + 'endpoint runtime is not mounted yet.',
+          )
         }
         if ((request.admission.routeId !== 'l4_standard_primary'
             && request.admission.routeId !== 'l4_heavy_fallback')
@@ -560,6 +542,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       true as const,
     separateSam31InputAndL4TaskQaInvocationRootsRequired: true as const,
     rawCloudLaunchPortExposed: false as const,
+    historicalVertexCustomJobCustomerDispatchAllowed: false as const,
   })
 }
 

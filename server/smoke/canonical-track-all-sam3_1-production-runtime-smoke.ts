@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v14')
+  'canonical-track-all-sam3_1-production-runtime-v15')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -52,6 +52,7 @@ assert.equal(
 assert.equal(runtime.minimumIdleGpuInstances, 0)
 assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
+assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
 assert.equal(
   runtime.skillQualificationRegistryReadPort.schemaVersion,
   'canonical-skill-qualification-registry-v1',
@@ -177,9 +178,9 @@ const productionRuntimeSource = readFileSync(
   'server/services/canonical-track-all-sam3_1-production-runtime.ts',
   'utf8',
 )
-assert.match(productionRuntimeSource,
+assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobLaunchPort/u)
-assert.match(productionRuntimeSource,
+assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexProfessionalGpuLaunchAdapter/u)
 assert.match(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobDurableStore/u)
@@ -195,8 +196,10 @@ assert.match(productionRuntimeSource,
   /createCanonicalA100VertexProviderAllocationCostReceiptStore/u)
 assert.match(productionRuntimeSource,
   /createCanonicalSam31VertexQualificationQuotaReadPort/u)
-assert.match(productionRuntimeSource,
+assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
+assert.match(productionRuntimeSource,
+  /historical Vertex .*Custom Job route is read-only/us)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_batch_a2_ultra_job/u)
 assert.match(entrypoint, /createCanonicalTrackAllSam31ProductionRuntime/u)
@@ -223,7 +226,9 @@ console.log(JSON.stringify({
   checks: 69,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
-  vertexA100DurableLaunchAndLiveQuotaRereadMounted: true,
+  historicalVertexA100DurableRereadMounted: true,
+  historicalVertexCustomJobCustomerDispatchAllowed:
+    runtime.historicalVertexCustomJobCustomerDispatchAllowed,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,
   exactPrivateGcsMaskRereadMounted: true,
   historicalBatchA100LaunchMounted: false,

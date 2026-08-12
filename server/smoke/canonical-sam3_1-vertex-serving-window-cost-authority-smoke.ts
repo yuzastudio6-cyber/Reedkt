@@ -124,6 +124,11 @@ const rateAuthority = canonicalCurrentGoogleCloudVertexA100ServingRateAuthorityS
   })
 
 const completedAttempt = {
+  workspaceId: 'workspace-a',
+  projectId: 'project-a',
+  editSessionId: 'session-a',
+  editPlanId: 'plan-a',
+  editPlanVersion: 1,
   executionAttemptRef: ref('attempt-a', '3'),
   approvedSnapshotRef: ref('snapshot-a', '4'),
   approvedWorkItemRef: ref('work-a', '5'),
@@ -143,6 +148,10 @@ const completedAttempt = {
 }
 const failedAttempt = {
   ...completedAttempt,
+  workspaceId: 'workspace-b',
+  projectId: 'project-b',
+  editSessionId: 'session-b',
+  editPlanId: 'plan-b',
   executionAttemptRef: ref('attempt-b', 'b'),
   approvedSnapshotRef: ref('snapshot-b', 'c'),
   approvedWorkItemRef: ref('work-b', 'd'),

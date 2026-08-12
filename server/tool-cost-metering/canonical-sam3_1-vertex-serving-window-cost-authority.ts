@@ -40,6 +40,11 @@ const evidenceRefSchema = z.object({
 type EvidenceRef = z.infer<typeof evidenceRefSchema>
 
 const attemptSchema = z.object({
+  workspaceId: safeId,
+  projectId: safeId,
+  editSessionId: safeId,
+  editPlanId: safeId,
+  editPlanVersion: positiveInteger,
   executionAttemptRef: evidenceRefSchema,
   approvedSnapshotRef: evidenceRefSchema,
   approvedWorkItemRef: evidenceRefSchema,

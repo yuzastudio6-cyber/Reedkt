@@ -168,7 +168,7 @@ export const canonicalSam31GpuRuntimePerformanceEvidenceSchema = z.object({
   sourceFrameCount: positiveInteger,
   fpsNumerator: positiveInteger,
   fpsDenominator: positiveInteger,
-  measurements: z.array(performanceMeasurementSchema).length(30),
+  measurements: z.array(performanceMeasurementSchema).min(5).max(30),
   p95WallTimeMilliseconds: positiveInteger,
   targetWallTimeMilliseconds: z.literal(480_000),
   completeSourceIntervalCovered: z.literal(true),

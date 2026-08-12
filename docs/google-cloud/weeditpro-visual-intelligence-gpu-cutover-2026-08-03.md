@@ -418,7 +418,7 @@ idempotent rerun then observed all five disabled and emitted
   separate five-to-thirty-run p95 owner and live canonical cloud evidence.
 - The five-to-thirty-run p95 gate now also has a canonical owner and separate
   create-only evidence record. It rereads every complete-source performance
-  record, requires ordered distinct runs over the same eight-minute source,
+  record, requires 5–30 ordered distinct runs over the same eight-minute source,
   route, immutable image, geometry, frame rate, and chunk plan, and rejects
   crossed execution/result/cost/stitch lineage. The owner recomputes nearest-
   rank p95 and refuses the component when it exceeds 480,000 ms. Only after the

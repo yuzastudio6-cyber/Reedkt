@@ -24,8 +24,7 @@ import {
 
 type Ref = { id: string; version: 1; contentHash: `sha256:${string}` }
 
-const wallTimes = Array.from({ length: 30 }, (_, index) =>
-  410_000 + index * 2_000)
+const wallTimes = [410_000, 424_000, 438_000, 452_000, 466_000]
 const records = wallTimes.map((wallTime, index) =>
   completeSourceEvidence(index + 1, wallTime))
 const recordMap = new Map(records.map((record) => [
@@ -58,7 +57,7 @@ assert.equal(component.componentKind, 'eight_minute_performance')
 if (component.componentKind !== 'eight_minute_performance') {
   throw new Error('Expected the eight-minute performance component.')
 }
-assert.equal(component.payload.measurements.length, 30)
+assert.equal(component.payload.measurements.length, 5)
 assert.equal(component.payload.p95WallTimeMilliseconds, 466_000)
 assert.equal(component.payload.targetWallTimeMilliseconds, 480_000)
 assert.equal(component.payload.completeSourceIntervalCovered, true)
@@ -72,6 +71,24 @@ assert.equal(persistedP95.performanceEvidence.p95WallTimeMilliseconds, 466_000)
 const replay = await owner
   .compileAndPersistPerformanceQualificationComponent(request)
 assert.deepEqual(replay, component)
+
+const maximumRecords = Array.from({ length: 30 }, (_, index) =>
+  completeSourceEvidence(index + 1, 400_000 + index * 1_000))
+const maximumComponent = await ownerWith(maximumRecords)
+  .compileAndPersistPerformanceQualificationComponent({
+    componentId: 'sam31-a100-eight-minute-performance-maximum-set',
+    performanceQualificationId:
+      'sam31-a100-eight-minute-p95-maximum-set',
+    qualificationId: 'sam31-a100-runtime-qualification',
+    completeSourcePerformanceEvidenceRefs: maximumRecords.map((record) =>
+      canonicalSam31GpuCompleteSourcePerformanceEvidenceRef(record)),
+  })
+assert.equal(maximumComponent.componentKind, 'eight_minute_performance')
+if (maximumComponent.componentKind !== 'eight_minute_performance') {
+  throw new Error('Expected the maximum-set performance component.')
+}
+assert.equal(maximumComponent.payload.measurements.length, 30)
+assert.equal(maximumComponent.payload.p95WallTimeMilliseconds, 428_000)
 
 const wiredStorage = new Map<string, Buffer>()
 const wiredObjectPort = memoryObjectPort(wiredStorage)
@@ -101,13 +118,13 @@ await assert.rejects(() => owner
   .compileAndPersistPerformanceQualificationComponent({
     ...request,
     completeSourcePerformanceEvidenceRefs:
-      request.completeSourcePerformanceEvidenceRefs.slice(0, 29),
+      request.completeSourcePerformanceEvidenceRefs.slice(0, 4),
   }))
 await assert.rejects(() => owner
   .compileAndPersistPerformanceQualificationComponent({
     ...request,
     completeSourcePerformanceEvidenceRefs: [
-      ...request.completeSourcePerformanceEvidenceRefs.slice(0, 29),
+      ...request.completeSourcePerformanceEvidenceRefs.slice(0, 4),
       request.completeSourcePerformanceEvidenceRefs[0],
     ],
   }))
@@ -136,8 +153,7 @@ await rejectChangedRecord(records, 2, {
 })
 await rejectChangedRecord(records, 2, { runOrdinal: 4 })
 await rejectChangedRecords(records, new Map([
-  [29, performanceTiming(490_000)],
-  [30, performanceTiming(491_000)],
+  [5, performanceTiming(490_000)],
 ]))
 await rejectChangedRecord(records, 2, {
   fullSourceExecutionRef: records[0].fullSourceExecutionRef,
@@ -169,8 +185,10 @@ await assert.rejects(() => owner
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-performance-p95-qualification-owner',
-  checks: 36,
-  completeEightMinuteRunCount: 30,
+  checks: 40,
+  minimumCompleteEightMinuteRunCount: 5,
+  maximumCompleteEightMinuteRunCount: 30,
+  testedCompleteEightMinuteRunCount: 5,
   nearestRankP95WallTimeMilliseconds: 466_000,
   exactCompleteSourceEvidenceReread: true,
   sameRouteImageSourceGeometryAndChunkPlanRequired: true,

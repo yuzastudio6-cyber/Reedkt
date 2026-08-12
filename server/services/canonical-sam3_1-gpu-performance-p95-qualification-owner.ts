@@ -31,13 +31,15 @@ import {
   stableAuthorityStringify,
 } from './private-edit-authority-store'
 export const CANONICAL_SAM3_1_GPU_PERFORMANCE_P95_EVIDENCE_VERSION =
-  'canonical-sam3_1-gpu-performance-p95-evidence-v2' as const
+  'canonical-sam3_1-gpu-performance-p95-evidence-v3' as const
 export const CANONICAL_SAM3_1_GPU_PERFORMANCE_P95_OWNER_VERSION =
-  'canonical-sam3_1-gpu-performance-p95-owner-v2' as const
+  'canonical-sam3_1-gpu-performance-p95-owner-v3' as const
 
 const DEFAULT_PREFIX =
   'private/sam3_1/gpu-runtime-qualification/v1/performance-p95'
 const MAXIMUM_RECORD_BYTES = 4 * 1024 * 1024
+const MINIMUM_COMPLETE_SOURCE_RUNS = 5
+const MAXIMUM_COMPLETE_SOURCE_RUNS = 30
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
   .refine((value) => !value.includes('..'))
@@ -98,7 +100,9 @@ const performancePayloadSchema = z.object({
   sourceFrameCount: positiveInteger,
   fpsNumerator: positiveInteger,
   fpsDenominator: positiveInteger,
-  measurements: z.array(performanceMeasurementSchema).length(30),
+  measurements: z.array(performanceMeasurementSchema)
+    .min(MINIMUM_COMPLETE_SOURCE_RUNS)
+    .max(MAXIMUM_COMPLETE_SOURCE_RUNS),
   p95WallTimeMilliseconds: positiveInteger,
   targetWallTimeMilliseconds: z.literal(480_000),
   completeSourceIntervalCovered: z.literal(true),
@@ -143,9 +147,14 @@ const p95WithoutHashSchema = z.object({
   exactEightMinuteSourceRef: refSchema,
   chunkPlanRef: refSchema,
   completeSourcePerformanceEvidenceRefs:
-    z.array(refSchema).length(30),
+    z.array(refSchema)
+      .min(MINIMUM_COMPLETE_SOURCE_RUNS)
+      .max(MAXIMUM_COMPLETE_SOURCE_RUNS),
   performanceEvidence: performancePayloadSchema,
-  exactThirtyCompleteSourceEvidenceRecordsReread: z.literal(true),
+  exactCompleteSourceEvidenceRecordCount: z.number().int()
+    .min(MINIMUM_COMPLETE_SOURCE_RUNS)
+    .max(MAXIMUM_COMPLETE_SOURCE_RUNS),
+  everyCompleteSourceEvidenceRecordReread: z.literal(true),
   nearestRankP95Recomputed: z.literal(true),
   p95AtOrBelowEightMinutes: z.literal(true),
   routeImageSourceGeometryAndChunkPlanMatched: z.literal(true),
@@ -167,6 +176,12 @@ const p95WithoutHashSchema = z.object({
     code: 'custom',
     message: 'SAM 3.1 p95 evidence lineage is inconsistent.',
   })
+  if (value.exactCompleteSourceEvidenceRecordCount !== refs.length) {
+    context.addIssue({
+      code: 'custom',
+      message: 'SAM 3.1 p95 evidence count is inconsistent.',
+    })
+  }
 })
 export const canonicalSam31GpuPerformanceP95EvidenceSchema =
   p95WithoutHashSchema.extend({ evidenceHash: sha256 }).strict()
@@ -179,7 +194,9 @@ const ownerRequestSchema = z.object({
   performanceQualificationId: safeId,
   qualificationId: safeId,
   completeSourcePerformanceEvidenceRefs:
-    z.array(refSchema).length(30),
+    z.array(refSchema)
+      .min(MINIMUM_COMPLETE_SOURCE_RUNS)
+      .max(MAXIMUM_COMPLETE_SOURCE_RUNS),
 }).strict().superRefine((value, context) => {
   const refs = value.completeSourcePerformanceEvidenceRefs
   if (new Set(refs.map(refKey)).size !== refs.length) context.addIssue({
@@ -207,7 +224,7 @@ export interface CanonicalSam31GpuPerformanceP95QualificationOwner {
   readonly schemaVersion:
     typeof CANONICAL_SAM3_1_GPU_PERFORMANCE_P95_OWNER_VERSION
   readonly evidenceClass:
-    'canonical_exact_thirty_complete_source_reread'
+    'canonical_bounded_complete_source_set_reread'
   compileAndPersistPerformanceQualificationComponent(input: unknown): Promise<
     CanonicalSam31GpuRuntimeQualificationComponentEvidence
   >
@@ -249,7 +266,7 @@ export function createCanonicalSam31GpuPerformanceP95QualificationOwner(
   return Object.freeze({
     schemaVersion: CANONICAL_SAM3_1_GPU_PERFORMANCE_P95_OWNER_VERSION,
     evidenceClass:
-      'canonical_exact_thirty_complete_source_reread' as const,
+      'canonical_bounded_complete_source_set_reread' as const,
 
     async compileAndPersistPerformanceQualificationComponent(
       untrusted: unknown,
@@ -292,7 +309,8 @@ export function createCanonicalSam31GpuPerformanceP95QualificationOwner(
         completeSourcePerformanceEvidenceRefs:
           request.completeSourcePerformanceEvidenceRefs,
         performanceEvidence,
-        exactThirtyCompleteSourceEvidenceRecordsReread: true,
+        exactCompleteSourceEvidenceRecordCount: records.length,
+        everyCompleteSourceEvidenceRecordReread: true,
         nearestRankP95Recomputed: true,
         p95AtOrBelowEightMinutes: true,
         routeImageSourceGeometryAndChunkPlanMatched: true,

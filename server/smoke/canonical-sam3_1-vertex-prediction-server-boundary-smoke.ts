@@ -20,6 +20,8 @@ const dockerfile = readFileSync(
 
 assert.match(server, /canonical-sam3_1-vertex-prediction-server-v1/u)
 assert.match(server, /canonical-sam3_1-vertex-prediction-request-v1/u)
+assert.match(server, /canonical-sam3_1-vertex-readiness-request-v1/u)
+assert.match(server, /canonical-sam3_1-vertex-readiness-result-v1/u)
 assert.match(server, /tool\.sam3_1\.segment_and_track_subject\.v1/u)
 assert.match(server, /reeditpro-production-reeditpro-masks/u)
 assert.match(server, /reeditpro-production-reeditpro-model-artifacts/u)
@@ -30,6 +32,16 @@ assert.match(server, /len\(instances\) != 1/u)
 assert.match(server, /dispatchAdmissionDigestSha256/u)
 assert.match(server, /caller.*bucket|caller.*object|caller.*URL|caller.*path/isu)
 assert.match(server, /metadata\.google\.internal/u)
+assert.match(server, /nonCustomerReadinessTrigger/u)
+assert.match(server, /modelInferenceExecuted.*False/su)
+assert.match(server, /EXACT_CHECKPOINT_BYTE_LENGTH = 3_502_755_717/u)
+assert.match(server,
+  /0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6/u)
+assert.match(server, /exactCheckpointBytesRereadAndHashed.*True/su)
+assert.match(server, /privateCheckpointDownloadPerformedAtReplicaStartup/su)
+assert.match(server, /_checkpoint_ready = True[\s\S]*ThreadingHTTPServer/u)
+assert.match(server, /storageWritePerformed.*False/su)
+assert.match(server, /\/dev\/nvidia0/u)
 assert.match(server, /response commit marker is absent/u)
 assert.match(server, /uploaded\.append\(upload\(response_path\)\)/u)
 assert.match(server, /canonical invocation already has a terminal response/u)
@@ -59,13 +71,15 @@ assert.match(dockerfile, /chmod 0555 .*vertex_prediction_server\.py/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-prediction-server-boundary',
-  checks: 37,
+  checks: 48,
   requestIsByteFree: true,
   callerStorageOrModelControlAccepted: false,
   oneConcurrentA100Attempt: true,
   createOnlyPrivatePersistence: true,
   responseUploadedLastAsCommitMarker: true,
   exactCheckpointBindingVerifiedBeforeExecution: true,
+  nonCustomerGpuReadinessProbeIsByteFree: true,
+  exactCheckpointReadyBeforeHealthServerStarts: true,
   completedAndFailedTerminalResultsPersisted: true,
   customerCreditsMutated: false,
   productionReady: false,

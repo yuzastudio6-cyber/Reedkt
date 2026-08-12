@@ -14,6 +14,7 @@ const ref = (id: string, character: string) => ({
 const imageDigest = hash('b')
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef: ref('sam31-supply-release', 'a'),
+  runtimeReleaseRef: ref('sam31-a100-runtime-release', 'f'),
   immutableImageRef: ref('sam31-image', 'b'),
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${imageDigest}`,

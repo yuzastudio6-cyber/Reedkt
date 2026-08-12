@@ -117,6 +117,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-vertex-serving-window-cost-authority-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-serving-invocation-smoke.ts',
+  'server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
   'server/smoke/canonical-quality-first-a100-fast-scale-zero-migration-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',

@@ -33,6 +33,7 @@ const profileWithoutHashSchema = z.object({
   operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
   routeId: z.literal('a100_80gb_heavy_primary'),
   imageSupplyChainReleaseRef: refSchema,
+  runtimeReleaseRef: refSchema,
   immutableImageRef: refSchema,
   immutableImageUri,
   immutableImageDigest: prefixedSha256,
@@ -159,6 +160,7 @@ export type CanonicalSam31VertexScaleZeroDeploymentProfile = z.infer<
 
 export function createCanonicalSam31VertexScaleZeroDeploymentProfile(input: {
   readonly imageSupplyChainReleaseRef: z.infer<typeof refSchema>
+  readonly runtimeReleaseRef: z.infer<typeof refSchema>
   readonly immutableImageRef: z.infer<typeof refSchema>
   readonly immutableImageUri: string
   readonly immutableImageDigest: string

@@ -27,6 +27,8 @@ from urllib import error, parse, request
 SERVER_VERSION = "canonical-sam3_1-vertex-prediction-server-v1"
 REQUEST_VERSION = "canonical-sam3_1-vertex-prediction-request-v1"
 RESULT_VERSION = "canonical-sam3_1-vertex-prediction-result-v1"
+READINESS_REQUEST_VERSION = "canonical-sam3_1-vertex-readiness-request-v1"
+READINESS_RESULT_VERSION = "canonical-sam3_1-vertex-readiness-result-v1"
 TASK_VERSION = "canonical-sam3_1-gpu-task-record-v1"
 RUNTIME_REQUEST_VERSION = "canonical-sam3_1-gpu-runtime-request-v1"
 RUNTIME_RESPONSE_VERSION = "canonical-sam3_1-gpu-runtime-response-v1"
@@ -62,9 +64,15 @@ MAXIMUM_RESULT_SET_BYTES = 4 * 1024 * 1024 * 1024
 MAXIMUM_RESULT_FILE_COUNT = 4_000
 MAXIMUM_RUN_SECONDS = 420
 MAXIMUM_UPLOAD_WORKERS = 8
+EXACT_CHECKPOINT_BYTE_LENGTH = 3_502_755_717
+EXACT_CHECKPOINT_SHA256 = (
+    "0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6"
+)
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
 RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
 _execution_lock = threading.Lock()
+_checkpoint_ready = False
+_checkpoint_download_performed_at_startup = False
 
 
 def stable_json_bytes(value: Any) -> bytes:
@@ -98,28 +106,80 @@ def exact_sha(value: Any, label: str) -> str:
     return value
 
 
-def parse_vertex_request(value: Any) -> tuple[str, str]:
+def parse_vertex_request(value: Any) -> tuple[str, str, str | None]:
     body = exact_keys(value, {"instances", "parameters"}, "request")
     parameters = exact_keys(
         body["parameters"], {"schemaVersion", "byteFree"}, "parameters"
     )
-    if parameters != {"schemaVersion": REQUEST_VERSION, "byteFree": True}:
+    schema_version = parameters.get("schemaVersion")
+    if parameters.get("byteFree") is not True or schema_version not in {
+        REQUEST_VERSION,
+        READINESS_REQUEST_VERSION,
+    }:
         raise ValueError("request parameters changed")
     instances = body["instances"]
     if not isinstance(instances, list) or len(instances) != 1:
         raise ValueError("exactly one invocation is required")
+    if schema_version == READINESS_REQUEST_VERSION:
+        instance = exact_keys(
+            instances[0],
+            {"readinessProbeId", "nonCustomerReadinessTrigger"},
+            "readiness instance",
+        )
+        if instance["nonCustomerReadinessTrigger"] is not True:
+            raise ValueError("readiness trigger authority changed")
+        return (
+            "readiness",
+            exact_id(instance["readinessProbeId"], "readiness probe identity"),
+            None,
+        )
     instance = exact_keys(
         instances[0],
         {"invocationId", "dispatchAdmissionDigestSha256"},
         "instance",
     )
     return (
+        "customer_invocation",
         exact_id(instance["invocationId"], "invocation identity"),
         exact_sha(
             instance["dispatchAdmissionDigestSha256"],
             "dispatch admission digest",
         ),
     )
+
+
+def readiness_result(readiness_probe_id: str) -> dict[str, Any]:
+    if _execution_lock.locked():
+        raise RuntimeError("the one-attempt endpoint is busy")
+    if os.environ.get("WEEDITPRO_GPU_ACCELERATOR_CLASS") != "nvidia_a100_80gb":
+        raise RuntimeError("the readiness probe is not on the A100 route")
+    if not Path("/dev/nvidia0").exists() or not Path("/dev/nvidiactl").exists():
+        raise RuntimeError("the readiness probe cannot observe NVIDIA devices")
+    if not _checkpoint_ready:
+        raise RuntimeError("the exact checkpoint is not ready")
+    return {
+        "schemaVersion": READINESS_RESULT_VERSION,
+        "readinessProbeId": readiness_probe_id,
+        "serverVersion": SERVER_VERSION,
+        "acceleratorClass": "nvidia_a100_80gb",
+        "nvidiaDeviceNodesPresent": True,
+        "checkpointByteLength": EXACT_CHECKPOINT_BYTE_LENGTH,
+        "checkpointSha256": EXACT_CHECKPOINT_SHA256,
+        "exactCheckpointBytesRereadAndHashed": True,
+        "privateCheckpointDownloadPerformedAtReplicaStartup": (
+            _checkpoint_download_performed_at_startup
+        ),
+        "readyForCustomerInvocation": True,
+        "customerInvocationStarted": False,
+        "modelInferenceExecuted": False,
+        "storageReadPerformedAtReplicaStartup": (
+            _checkpoint_download_performed_at_startup
+        ),
+        "storageWritePerformed": False,
+        "customerCreditsMutated": False,
+        "qaApproved": False,
+        "productionAuthorityGranted": False,
+    }
 
 
 def metadata_access_token() -> str:
@@ -254,7 +314,7 @@ def ensure_checkpoint(
     token: str,
     expected_size: int,
     expected_hash: str,
-) -> None:
+) -> bool:
     if (
         isinstance(expected_size, bool)
         or not isinstance(expected_size, int)
@@ -267,7 +327,7 @@ def ensure_checkpoint(
     if CHECKPOINT_PATH.is_file():
         size, digest = hash_file(CHECKPOINT_PATH, MAXIMUM_CHECKPOINT_BYTES)
         if size == expected_size and digest == expected_hash:
-            return
+            return False
         CHECKPOINT_PATH.unlink()
     MODEL_ROOT.mkdir(mode=0o700, parents=True, exist_ok=True)
     size, digest = download_object(
@@ -280,6 +340,7 @@ def ensure_checkpoint(
     if size != expected_size or digest != expected_hash:
         CHECKPOINT_PATH.unlink(missing_ok=True)
         raise ValueError("private checkpoint bytes changed")
+    return True
 
 
 def stage_invocation(
@@ -502,8 +563,13 @@ class Handler(BaseHTTPRequestHandler):
             if self.headers.get_content_type() != "application/json":
                 raise ValueError("request content type is invalid")
             value = json.loads(self.rfile.read(length))
-            invocation_id, dispatch_digest = parse_vertex_request(value)
-            result = execute_invocation(invocation_id, dispatch_digest)
+            request_kind, invocation_id, dispatch_digest = parse_vertex_request(value)
+            if request_kind == "readiness":
+                result = readiness_result(invocation_id)
+            else:
+                if dispatch_digest is None:
+                    raise ValueError("dispatch admission digest is absent")
+                result = execute_invocation(invocation_id, dispatch_digest)
             self.send_json(HTTPStatus.OK, {"predictions": [result]})
         except ValueError:
             self.send_json(
@@ -518,6 +584,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
+    global _checkpoint_ready, _checkpoint_download_performed_at_startup
     if os.environ.get("WEEDITPRO_SAM31_RUNTIME_MODE") != (
         "vertex_prediction_endpoint_v1"
     ):
@@ -531,6 +598,14 @@ def main() -> int:
     for directory in (MODEL_ROOT, INVOCATION_ROOT):
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
         os.chmod(directory, 0o700)
+    if not Path("/dev/nvidia0").exists() or not Path("/dev/nvidiactl").exists():
+        raise RuntimeError("Vertex prediction startup cannot observe NVIDIA devices")
+    _checkpoint_download_performed_at_startup = ensure_checkpoint(
+        metadata_access_token(),
+        EXACT_CHECKPOINT_BYTE_LENGTH,
+        EXACT_CHECKPOINT_SHA256,
+    )
+    _checkpoint_ready = True
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     server.daemon_threads = True
     server.serve_forever(poll_interval=0.5)

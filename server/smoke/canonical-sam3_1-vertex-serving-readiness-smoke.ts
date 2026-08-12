@@ -40,6 +40,17 @@ const repository = createCanonicalSam31VertexServingReadinessProbeRepository({
 })
 let time = 0
 let probeRequests = 0
+const dedicatedEndpointDns =
+  'https://weeditpro-sam31-a100-scale-zero-v1.us-central1-123456.prediction.vertexai.goog'
+const dedicatedEndpointResponse = {
+  name:
+    'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+  displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
+  dedicatedEndpointEnabled: true,
+  dedicatedEndpointDns,
+  deployedModels: [{ id: '3101000001' }],
+  trafficSplit: { '3101000001': 100 },
+}
 const readyResponse = (requestBody: unknown) => {
   const body = requestBody as {
     instances: [{ readinessProbeId: string }]
@@ -71,6 +82,9 @@ const probeService = createCanonicalSam31VertexServingReadinessProbeService({
   repository,
   auth: {
     async request(request: Record<string, unknown>) {
+      if (request.method === 'GET') {
+        return { data: dedicatedEndpointResponse }
+      }
       probeRequests += 1
       assert.equal(request.retry, false)
       assert.equal(request.maxRedirects, 0)
@@ -119,7 +133,10 @@ await assert.rejects(() =>
       prefix: 'private/test/wrong-429',
     }),
     auth: {
-      async request() {
+      async request(request: Record<string, unknown>) {
+        if (request.method === 'GET') {
+          return { data: dedicatedEndpointResponse }
+        }
         throw {
           response: {
             status: 429,
@@ -146,7 +163,12 @@ await assert.rejects(() =>
       prefix: 'private/test/unknown',
     }),
     auth: {
-      async request() { throw new Error('connection reset') },
+      async request(request: Record<string, unknown>) {
+        if (request.method === 'GET') {
+          return { data: dedicatedEndpointResponse }
+        }
+        throw new Error('connection reset')
+      },
     } as unknown as Pick<GoogleAuth, 'request'>,
   }).warmAndObserve({
     endpointDeploymentRef,
@@ -205,6 +227,7 @@ const exactReadPort = createGoogleCloudSam31VertexServingExactDeploymentReadPort
           'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
         displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
         dedicatedEndpointEnabled: true,
+        dedicatedEndpointDns,
         predictRequestResponseLoggingConfig: { enabled: false },
         deployedModels: [{
           id: '3101000001',
@@ -339,6 +362,9 @@ const extraMetadataProbe = await createCanonicalSam31VertexServingReadinessProbe
   }),
   auth: {
     async request(request: Record<string, unknown>) {
+      if (request.method === 'GET') {
+        return { data: dedicatedEndpointResponse }
+      }
       if (!('retried' in extraMetadataProbeState)) {
         extraMetadataProbeState.retried = true
         const response = safeScaleFromZero429()

@@ -32,6 +32,8 @@ import {
 
 const at = '2026-08-11T20:00:00.000Z'
 const endpointDeploymentRef = ref('sam31-a100-serving-deployment')
+const dedicatedEndpointDns =
+  'https://weeditpro-sam31-a100-scale-zero-v1.us-central1-123456.prediction.vertexai.goog'
 const readinessPayload = {
   schemaVersion: 'canonical-sam3_1-vertex-serving-deployment-ready-v1' as const,
   source:
@@ -106,8 +108,7 @@ const success = await service({
   request: async (request) => {
     successCalls += 1
     assert.equal(request.url,
-      `${readiness.endpointResourceName.replace('projects/',
-        'https://us-central1-aiplatform.googleapis.com/v1/projects/')}:predict`)
+      `${dedicatedEndpointDns}/v1/${readiness.endpointResourceName}:predict`)
     assert.equal(request.retry, false)
     assert.equal(request.maxRedirects, 0)
     assert.deepEqual(request.data, {
@@ -326,7 +327,19 @@ function service(input: {
       },
     },
     repository: input.repository,
-    auth: { request: input.request } as unknown as Pick<GoogleAuth, 'request'>,
+    auth: {
+      async request(request: Record<string, unknown>) {
+        if (request.method === 'GET') return { data: {
+          name: readiness.endpointResourceName,
+          displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
+          dedicatedEndpointEnabled: true,
+          dedicatedEndpointDns,
+          deployedModels: [{ id: readiness.deployedModelId }],
+          trafficSplit: { [readiness.deployedModelId]: 100 },
+        } }
+        return input.request(request)
+      },
+    } as unknown as Pick<GoogleAuth, 'request'>,
     now: () => input.now ?? at,
   })
 }

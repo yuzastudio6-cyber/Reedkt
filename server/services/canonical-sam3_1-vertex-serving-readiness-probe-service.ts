@@ -17,14 +17,15 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
+import {
+  rereadCanonicalSam31VertexDedicatedPredictionRoute,
+} from './canonical-sam3_1-vertex-dedicated-prediction-route'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_READINESS_PROBE_VERSION =
   'canonical-sam3_1-vertex-serving-readiness-probe-v2' as const
 
-const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
 const ENDPOINT =
   'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
-const PREDICT_URL = `${API_ORIGIN}/v1/${ENDPOINT}:predict` as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const MAXIMUM_SAFE_429_RESPONSES = 96
@@ -191,13 +192,18 @@ export function createCanonicalSam31VertexServingReadinessProbeService(
           byteFree: true,
         },
       }
+      const predictionRoute =
+        await rereadCanonicalSam31VertexDedicatedPredictionRoute({
+          auth,
+          timeoutMilliseconds: requestTimeout,
+        })
       const startedAt = timestamp.parse(now())
       const deadlineAt = clock() + deadline
       let dropped429Count = 0
       while (clock() <= deadlineAt) {
         try {
           const response = await auth.request({
-            url: PREDICT_URL,
+            url: predictionRoute.predictUrl,
             method: 'POST',
             data: body,
             timeout: requestTimeout,
@@ -217,6 +223,7 @@ export function createCanonicalSam31VertexServingReadinessProbeService(
             dropped429Count,
             startedAt,
             readyObservedAt: timestamp.parse(now()),
+            predictUrl: predictionRoute.predictUrl,
           })
           const persisted = await input.repository.persistCreateOnly({ probe })
           const reread = assertCanonicalSam31VertexServingReadinessProbe(
@@ -362,6 +369,7 @@ function buildProbe(input: {
   dropped429Count: number
   startedAt: string
   readyObservedAt: string
+  predictUrl: string
 }): CanonicalSam31VertexServingReadinessProbe {
   const payload = probeWithoutHashSchema.parse({
     schemaVersion: CANONICAL_SAM3_1_VERTEX_SERVING_READINESS_PROBE_VERSION,
@@ -373,7 +381,7 @@ function buildProbe(input: {
     immutableImageDigest: input.request.immutableImageDigest,
     endpointResourceName: ENDPOINT,
     requestBodyDigestSha256: sha256AuthorityValue(input.body),
-    predictUrlDigestSha256: sha256AuthorityValue({ url: PREDICT_URL }),
+    predictUrlDigestSha256: sha256AuthorityValue({ url: input.predictUrl }),
     disposition: 'ready_for_private_qualification_invocation',
     safeDropped429ResponseCount: input.dropped429Count,
     totalProbeRequestCount: input.dropped429Count + 1,

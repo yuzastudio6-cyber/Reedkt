@@ -14,6 +14,9 @@ import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
+  rereadCanonicalSam31VertexDedicatedPredictionRoute,
+} from './canonical-sam3_1-vertex-dedicated-prediction-route'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
@@ -35,10 +38,8 @@ export const CANONICAL_SAM3_1_VERTEX_SERVING_CALL_START_VERSION =
 export const CANONICAL_SAM3_1_VERTEX_SERVING_INVOCATION_RESULT_VERSION =
   'canonical-sam3_1-vertex-serving-invocation-result-v1' as const
 
-const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
 const ENDPOINT =
   'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
-const PREDICT_URL = `${API_ORIGIN}/v1/${ENDPOINT}:predict` as const
 const PROJECT_ID = 'reeditpro' as const
 const STATE_BUCKET = 'reeditpro-production-reeditpro-control-plane-state'
 const DEFAULT_PREFIX =
@@ -307,6 +308,11 @@ export function createCanonicalSam31VertexServingInvocationService(input: {
       ) {
         throw new Error('Vertex invocation deployment reference changed.')
       }
+      const predictionRoute =
+        await rereadCanonicalSam31VertexDedicatedPredictionRoute({
+          auth,
+          timeoutMilliseconds: Math.min(timeout, 60_000),
+        })
       const body = {
         instances: [{
           invocationId: request.invocationId,
@@ -323,6 +329,7 @@ export function createCanonicalSam31VertexServingInvocationService(input: {
         task,
         ready,
         body,
+        predictUrl: predictionRoute.predictUrl,
         consumedAt: invokedAt,
       })
       const persisted = await input.repository.persistAttemptCreateOnly({
@@ -383,7 +390,7 @@ export function createCanonicalSam31VertexServingInvocationService(input: {
       }
       try {
         const response = await auth.request({
-          url: PREDICT_URL,
+          url: predictionRoute.predictUrl,
           method: 'POST',
           data: body,
           timeout,
@@ -595,6 +602,7 @@ function buildAttempt(input: {
   task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
   ready: CanonicalSam31VertexServingDeploymentReady
   body: unknown
+  predictUrl: string
   consumedAt: string
 }): CanonicalSam31VertexServingInvocationAttempt {
   const payload = attemptWithoutHashSchema.parse({
@@ -616,7 +624,7 @@ function buildAttempt(input: {
     dispatchAdmissionDigestSha256:
       input.request.dispatchAdmissionDigestSha256,
     requestBodyDigestSha256: sha256AuthorityValue(input.body),
-    predictUrlDigestSha256: sha256AuthorityValue({ url: PREDICT_URL }),
+    predictUrlDigestSha256: sha256AuthorityValue({ url: input.predictUrl }),
     attemptState: 'dispatch_admission_consumed',
     createOnlySingleUseConsumption: true,
     automaticRetryAllowed: false,

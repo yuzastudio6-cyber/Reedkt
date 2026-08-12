@@ -22,7 +22,7 @@ const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
 const stage = z.enum(['model_upload', 'endpoint_create', 'model_deploy'])
 const operationName = z.string().regex(
-  /^projects\/(?:reeditpro|390722338345)\/locations\/us-central1\/operations\/[A-Za-z0-9_-]{1,160}$/u,
+  /^projects\/(?:reeditpro|390722338345)\/locations\/us-central1\/(?:(?:models|endpoints)\/[a-z0-9_-]{1,63}\/)?operations\/[A-Za-z0-9_-]{1,160}$/u,
 )
 const modelResourceName = z.string().regex(
   /^projects\/reeditpro\/locations\/us-central1\/models\/[a-z0-9_-]{1,63}$/u,

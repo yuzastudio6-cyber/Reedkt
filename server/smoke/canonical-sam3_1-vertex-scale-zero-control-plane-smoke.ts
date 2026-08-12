@@ -43,11 +43,13 @@ const deploy = createCanonicalSam31VertexScaleZeroModelDeployRequest({
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
 })
 const requests: unknown[] = []
+const nestedUploadOperation =
+  'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1/operations/798627693854720'
 const responses: unknown[] = [
-  { name: 'projects/reeditpro/locations/us-central1/operations/upload-1' },
-  { name: 'projects/reeditpro/locations/us-central1/operations/upload-1' },
+  { name: nestedUploadOperation },
+  { name: nestedUploadOperation },
   {
-    name: 'projects/reeditpro/locations/us-central1/operations/upload-1',
+    name: nestedUploadOperation,
     done: true,
     response: {
       model:
@@ -179,6 +181,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-control-plane',
   checks: 29,
   exactCompiledRequestOnly: true,
+  nestedVertexResourceOperationAccepted: true,
   redirectsAndRetriesDisabled: true,
   unknownOutcomeRequiresReconciliation: true,
   invalidRequestProviderCalls: invalidCalls,

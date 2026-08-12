@@ -13,6 +13,9 @@ import {
   type CanonicalProfessionalGpuPlanPricingAuthorityReadPort,
   type CanonicalProfessionalGpuRuntimeDispatchContextReadPort,
 } from './canonical-professional-gpu-plan-funded-dispatch-service'
+import type {
+  CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
+} from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import {
   assertPlainSerializedData,
   assertCanonicalProfessionalGpuJobLaunch,
@@ -289,6 +292,8 @@ export async function startCanonicalProfessionalGpuPlanFundedJob(input: {
     CanonicalProfessionalGpuAttemptStartAuthorityReadPort
   readonly runtimeContextReadPort:
     CanonicalProfessionalGpuRuntimeDispatchContextReadPort
+  readonly a100CustomerDispatchReadinessReadPort?:
+    CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
   readonly releaseReadPort: CanonicalProfessionalGpuRuntimeReleaseReadPort
   readonly launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
   readonly lifecycleStore: CanonicalProfessionalGpuJobLifecycleStore
@@ -308,6 +313,8 @@ export async function startCanonicalProfessionalGpuPlanFundedJob(input: {
       approvedFundingReadPort: input.approvedFundingReadPort,
       attemptStartReadPort: input.attemptStartReadPort,
       runtimeContextReadPort: input.runtimeContextReadPort,
+      a100CustomerDispatchReadinessReadPort:
+        input.a100CustomerDispatchReadinessReadPort,
       admittedAt: input.admittedAt,
       expiresAt: input.admissionExpiresAt,
     })

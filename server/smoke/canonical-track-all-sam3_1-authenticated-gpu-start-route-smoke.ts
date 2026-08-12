@@ -92,8 +92,9 @@ const app = createReeditProApiApp(loadRuntimeEnv({
 }), {
   trackAllSam31AuthenticatedGpuStartRuntimePort: Object.freeze({
     schemaVersion:
-      'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v1',
+      'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2',
     routeOwnsGpuPlacementOrPricing: false,
+    currentA100CustomerDispatchReadinessRereadRequired: true,
     rawCloudLaunchPortExposed: false,
     async startApprovedTrackAllWork(input: {
       authenticatedOwnerUserId: string

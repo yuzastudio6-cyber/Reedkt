@@ -32,9 +32,12 @@ import {
 import {
   sha256AuthorityValue,
 } from './private-edit-authority-store'
+import type {
+  CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
+} from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v1' as const
+  'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -59,6 +62,7 @@ export interface CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort {
   readonly schemaVersion:
     typeof CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_RUNTIME_VERSION
   readonly routeOwnsGpuPlacementOrPricing: false
+  readonly currentA100CustomerDispatchReadinessRereadRequired: true
   readonly rawCloudLaunchPortExposed: false
   startApprovedTrackAllWork(input: {
     readonly authenticatedOwnerUserId: string
@@ -137,6 +141,8 @@ export function createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime(
       CanonicalProfessionalGpuAttemptStartAuthorityReadPort
     readonly runtimeContextReadPort:
       CanonicalProfessionalGpuRuntimeDispatchContextReadPort
+    readonly a100CustomerDispatchReadinessReadPort:
+      CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
     readonly releaseReadPort: CanonicalProfessionalGpuRuntimeReleaseReadPort
     readonly runtimeComposition: CanonicalSam31FundedGpuRuntimeComposition
     readonly lifecycleStore: CanonicalProfessionalGpuJobLifecycleStore
@@ -150,6 +156,7 @@ export function createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime(
     schemaVersion:
       CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_RUNTIME_VERSION,
     routeOwnsGpuPlacementOrPricing: false as const,
+    currentA100CustomerDispatchReadinessRereadRequired: true as const,
     rawCloudLaunchPortExposed: false as const,
     async startApprovedTrackAllWork(untrusted: AuthenticatedStartInput) {
       assertPlainSerializedData(untrusted,
@@ -249,6 +256,8 @@ export function createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime(
         approvedFundingReadPort: exactFundingReadPort,
         attemptStartReadPort: exactAttemptReadPort,
         runtimeContextReadPort: input.runtimeContextReadPort,
+        a100CustomerDispatchReadinessReadPort:
+          input.a100CustomerDispatchReadinessReadPort,
         releaseReadPort: input.releaseReadPort,
         runtimeComposition: input.runtimeComposition,
         lifecycleStore: input.lifecycleStore,

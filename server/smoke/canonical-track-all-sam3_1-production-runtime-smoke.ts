@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v16')
+  'canonical-track-all-sam3_1-production-runtime-v17')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -98,7 +98,20 @@ assert.equal(
 assert.equal(runtime.captionTrackAllEvidenceRequiresPrivateVisualReview, true)
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort.schemaVersion,
-  'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v1',
+  'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2',
+)
+assert.equal(
+  runtime.trackAllSam31AuthenticatedGpuStartRuntimePort
+    .currentA100CustomerDispatchReadinessRereadRequired,
+  true,
+)
+assert.equal(
+  runtime.a100CustomerDispatchReadinessRepository.schemaVersion,
+  'canonical-sam3_1-current-a100-customer-dispatch-readiness-repository-v1',
+)
+assert.equal(
+  typeof runtime.a100CustomerDispatchReadinessRepository.rereadCurrent,
+  'function',
 )
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort
@@ -187,6 +200,10 @@ assert.doesNotMatch(productionRuntimeSource,
 assert.match(productionRuntimeSource,
   /createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository/u)
 assert.match(productionRuntimeSource,
+  /createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalGcsAtomicCurrentJsonPointerPort/u)
+assert.match(productionRuntimeSource,
   /historicalVertexA100CustomJobRateAuthorityRepository/u)
 assert.match(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobDurableStore/u)
@@ -237,6 +254,7 @@ console.log(JSON.stringify({
     runtime.historicalVertexCustomJobCustomerDispatchAllowed,
   freshA100PricingUsesVertexServingRateAuthority:
     runtime.freshA100PricingUsesVertexServingRateAuthority,
+  currentA100CustomerDispatchReadinessRereadMounted: true,
   historicalA100CustomJobPricingRemainsReadOnly:
     runtime.historicalA100CustomJobPricingRemainsReadOnly,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,

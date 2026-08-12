@@ -18,6 +18,11 @@ import {
   createCanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository,
 } from './canonical-current-google-cloud-vertex-a100-rate-authority-repository'
 import {
+  createCanonicalGcsAtomicCurrentJsonPointerPort,
+  createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository,
+  type CanonicalSam31CurrentA100CustomerDispatchReadinessRepository,
+} from './canonical-sam3_1-current-a100-customer-dispatch-readiness-repository'
+import {
   createCanonicalProfessionalGpuDurableLifecycleStore,
 } from './canonical-professional-gpu-durable-lifecycle-store'
 import {
@@ -133,7 +138,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v16' as const
+  'canonical-track-all-sam3_1-production-runtime-v17' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -146,6 +151,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSkillQualificationRegistryReadPort
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly a100CustomerDispatchReadinessRepository:
+    CanonicalSam31CurrentA100CustomerDispatchReadinessRepository
   readonly a100VertexCustomJobTerminalReadPort: ReturnType<
     typeof createCanonicalA100VertexCustomJobTerminalPort
   >
@@ -280,6 +287,14 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
   const releasePairRegistry =
     createCanonicalSam31GpuRuntimeReleaseRegistry({
       objectPort: controlPlaneObjectPort,
+    })
+  const currentA100CustomerDispatchReadinessRepository =
+    createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository({
+      objectPort: controlPlaneObjectPort,
+      currentPointerPort: createCanonicalGcsAtomicCurrentJsonPointerPort({
+        storage,
+        bucketName: controlPlaneBucketName,
+      }),
     })
   const taskContextRepository =
     createCanonicalSam31GpuTaskContextRepository({
@@ -489,6 +504,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       approvedFundingReadPort: fundedStartAuthorityStore,
       attemptStartReadPort: fundedStartAuthorityStore,
       runtimeContextReadPort,
+      a100CustomerDispatchReadinessReadPort:
+        currentA100CustomerDispatchReadinessRepository,
       releaseReadPort: runtimeConfigurationRepository,
       runtimeComposition,
       lifecycleStore,
@@ -524,6 +541,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       ),
     }),
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    a100CustomerDispatchReadinessRepository:
+      currentA100CustomerDispatchReadinessRepository,
     a100VertexCustomJobTerminalReadPort,
     sam31A100ResultFinalizationRuntimePort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:

@@ -47,7 +47,7 @@ assert.equal(configuration.components.some((component) =>
 
 let clockIndex = 0
 const requests: string[] = []
-const authority = await observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority({
+export const authority = await observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority({
   rateAuthorityId: 'vertex-a100-serving-rate:smoke-20260811',
   rateAuthorityVersion: 1,
   readPort: createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort({

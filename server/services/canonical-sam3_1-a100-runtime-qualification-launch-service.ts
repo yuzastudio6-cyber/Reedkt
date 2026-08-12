@@ -1247,6 +1247,9 @@ function buildIdentifiers(request: StartRequest) {
   })
 }
 
+export const createCanonicalSam31A100QualificationIdentifiers =
+  buildIdentifiers
+
 function buildQualificationRefs(input: {
   request: StartRequest
   identifiers: ReturnType<typeof buildIdentifiers>

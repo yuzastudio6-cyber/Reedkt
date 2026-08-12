@@ -165,7 +165,7 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         || probe.imageSupplyChainReleaseRef.contentHash !==
           profile.imageSupplyChainReleaseRef.contentHash
         || probe.immutableImageDigest !== profile.immutableImageDigest
-        || probe.readyObservedAt !== refs.observedAt
+        || Date.parse(probe.readyObservedAt) > Date.parse(refs.observedAt)
       ) throw new Error('Vertex qualification readiness lineage changed.')
       const exact = assertCanonicalSam31VertexServingExactDeployment(
         await input.exactDeploymentReadPort.rereadExactDeployment({
@@ -184,7 +184,11 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         contentHash: `sha256:${exact.observationHash}`,
       })
       const candidateId = safeId.parse(
-        `sam31-a100-serving-candidate-${probe.probeHash.slice(0, 32)}`,
+        `sam31-a100-serving-candidate-${sha256AuthorityValue({
+          probeHash: probe.probeHash,
+          observedAt: refs.observedAt,
+          expiresAt: refs.expiresAt,
+        }).slice(0, 32)}`,
       )
       const payload = candidateWithoutHashSchema.parse({
         schemaVersion:

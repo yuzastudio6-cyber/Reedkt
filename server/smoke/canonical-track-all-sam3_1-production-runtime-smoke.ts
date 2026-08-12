@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v15')
+  'canonical-track-all-sam3_1-production-runtime-v16')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -53,6 +53,8 @@ assert.equal(runtime.minimumIdleGpuInstances, 0)
 assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
 assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
+assert.equal(runtime.freshA100PricingUsesVertexServingRateAuthority, true)
+assert.equal(runtime.historicalA100CustomJobPricingRemainsReadOnly, true)
 assert.equal(
   runtime.skillQualificationRegistryReadPort.schemaVersion,
   'canonical-skill-qualification-registry-v1',
@@ -183,6 +185,10 @@ assert.doesNotMatch(productionRuntimeSource,
 assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexProfessionalGpuLaunchAdapter/u)
 assert.match(productionRuntimeSource,
+  /createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository/u)
+assert.match(productionRuntimeSource,
+  /historicalVertexA100CustomJobRateAuthorityRepository/u)
+assert.match(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobDurableStore/u)
 assert.match(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobTerminalPort/u)
@@ -223,12 +229,16 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 69,
+  checks: 73,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
   historicalVertexCustomJobCustomerDispatchAllowed:
     runtime.historicalVertexCustomJobCustomerDispatchAllowed,
+  freshA100PricingUsesVertexServingRateAuthority:
+    runtime.freshA100PricingUsesVertexServingRateAuthority,
+  historicalA100CustomJobPricingRemainsReadOnly:
+    runtime.historicalA100CustomJobPricingRemainsReadOnly,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,
   exactPrivateGcsMaskRereadMounted: true,
   historicalBatchA100LaunchMounted: false,

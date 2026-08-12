@@ -289,13 +289,18 @@ export function assertCanonicalSam31L4CompleteSourceCapacityObservation(
 
 export function assertCanonicalSam31CompleteSourceCapacityObservation(
   value: unknown,
+  at?: string,
 ): CanonicalSam31CompleteSourceCapacityObservation {
   assertPlainSerializedData(value, 'sam31_complete_source_capacity')
   const parsed = canonicalSam31CompleteSourceCapacityObservationSchema
     .parse(value)
   const { observationHash, ...payload } = parsed
-  if (observationHash !== sha256AuthorityValue(payload)) {
-    throw new Error('SAM 3.1 complete-source capacity hash changed.')
+  const observationAge = at === undefined
+    ? 0
+    : Date.parse(at) - Date.parse(parsed.observedAt)
+  if (observationHash !== sha256AuthorityValue(payload)
+    || observationAge < 0 || observationAge >= 15 * 60_000) {
+    throw new Error('SAM 3.1 complete-source capacity is invalid or stale.')
   }
   return parsed
 }

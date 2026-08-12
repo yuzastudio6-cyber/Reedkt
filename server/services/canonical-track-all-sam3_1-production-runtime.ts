@@ -12,6 +12,9 @@ import {
   createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
 } from './canonical-current-google-cloud-gpu-rate-authority-repository'
 import {
+  createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository,
+} from './canonical-current-google-cloud-vertex-a100-serving-rate-authority-repository'
+import {
   createCanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository,
 } from './canonical-current-google-cloud-vertex-a100-rate-authority-repository'
 import {
@@ -130,7 +133,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v15' as const
+  'canonical-track-all-sam3_1-production-runtime-v16' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -183,6 +186,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly separateSam31InputAndL4TaskQaInvocationRootsRequired: true
   readonly rawCloudLaunchPortExposed: false
   readonly historicalVertexCustomJobCustomerDispatchAllowed: false
+  readonly freshA100PricingUsesVertexServingRateAuthority: true
+  readonly historicalA100CustomJobPricingRemainsReadOnly: true
 }
 
 /**
@@ -235,7 +240,11 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository({
       objectPort: controlPlaneObjectPort,
     })
-  const historicalVertexA100RateAuthorityRepository =
+  const currentVertexA100ServingRateAuthorityRepository =
+    createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const historicalVertexA100CustomJobRateAuthorityRepository =
     createCanonicalCurrentGoogleCloudVertexA100RateAuthorityRepository({
       objectPort: controlPlaneObjectPort,
     })
@@ -253,10 +262,10 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       readonly at: string
     }) {
       if (request.routeId === 'a100_80gb_heavy_primary') {
-        throw new Error(
-          'A100 customer admission is blocked until the dedicated Vertex '
-          + 'serving-rate and endpoint runtime are mounted.',
-        )
+        return currentVertexA100ServingRateAuthorityRepository.reread({
+          rateAuthorityRef: request.rateAuthorityRef,
+          at: request.at,
+        })
       }
       return currentRateAuthorityRepository.rereadApprovedCurrentRate(request)
     },
@@ -398,7 +407,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
         quotaReadPort: vertexA100QuotaReadPort,
         objectPort: controlPlaneObjectPort,
       }),
-      rateAuthorityReadPort: historicalVertexA100RateAuthorityRepository,
+      rateAuthorityReadPort:
+        historicalVertexA100CustomJobRateAuthorityRepository,
       receiptStore:
         createCanonicalA100VertexProviderAllocationCostReceiptStore({
           objectPort: controlPlaneObjectPort,
@@ -543,6 +553,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     separateSam31InputAndL4TaskQaInvocationRootsRequired: true as const,
     rawCloudLaunchPortExposed: false as const,
     historicalVertexCustomJobCustomerDispatchAllowed: false as const,
+    freshA100PricingUsesVertexServingRateAuthority: true as const,
+    historicalA100CustomJobPricingRemainsReadOnly: true as const,
   })
 }
 

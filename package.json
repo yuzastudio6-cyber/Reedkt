@@ -463,6 +463,7 @@
     "smoke:vertex-a100-serving-account-effective-rate": "tsx server/smoke/canonical-current-google-cloud-vertex-a100-serving-rate-authority-smoke.ts",
     "smoke:sam3_1-vertex-scale-zero-deployment-admission": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-admission-smoke.ts",
     "smoke:sam3_1-vertex-scale-zero-deployment-request-compiler": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-request-compiler-smoke.ts",
+    "smoke:sam3_1-vertex-scale-zero-control-plane": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-control-plane-smoke.ts",
     "publish:vertex-a100-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-rate-authority.ts",
     "publish:vertex-a100-serving-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-serving-rate-authority.ts",
     "smoke:vertex-a100-account-effective-rate-cloud-publisher": "tsx server/smoke/canonical-vertex-a100-rate-cloud-publisher-smoke.ts",

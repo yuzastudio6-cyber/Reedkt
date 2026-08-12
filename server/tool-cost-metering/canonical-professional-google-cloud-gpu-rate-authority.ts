@@ -8,7 +8,9 @@ import {
 } from './canonical-current-google-cloud-vertex-a100-rate-authority'
 import {
   assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
   type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from './canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   assertPlainSerializedData,
@@ -23,6 +25,7 @@ import {
  */
 export type CanonicalProfessionalGoogleCloudGpuRateAuthority =
   | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   | CanonicalCurrentGoogleCloudVertexA100RateAuthority
   | CanonicalCurrentGoogleCloudGpuRateAuthority
 
@@ -37,6 +40,13 @@ export function assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
   const target = Reflect.get(value, 'executionTarget')
   if (target ===
     'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra') {
+    if (Reflect.get(value, 'schemaVersion') ===
+      'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2') {
+      return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+        value,
+        at,
+      )
+    }
     return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
       value,
       at,
@@ -57,7 +67,8 @@ export function assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
 
 export function isCanonicalVertexA100ServingRateAuthority(
   value: CanonicalProfessionalGoogleCloudGpuRateAuthority,
-): value is CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority {
+): value is CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2 {
   return value.executionTarget ===
     'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
 }

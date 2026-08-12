@@ -67,7 +67,17 @@ const safePrefix = z.string().trim().min(1).max(512)
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
 const quotaCapacity = z.number().int().min(1).max(64)
-type GoogleAuthRequest = Pick<GoogleAuth, 'request'>
+interface GoogleAuthRequest {
+  request(input: {
+    readonly url: string
+    readonly method: 'GET'
+    readonly timeout: number
+    readonly retry: false
+    readonly maxRedirects: 0
+    readonly responseType: 'json'
+    readonly maxContentLength: number
+  }): Promise<{ readonly data: unknown }>
+}
 
 const a100ServingWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -327,8 +337,10 @@ export function createCanonicalSam31CompleteSourceCapacityRepository(input: {
     }
     return structuredClone(value)
   }
-  return Object.freeze({
-    async persistCreateOnly({ observation: untrusted }) {
+  const repository: CanonicalSam31CompleteSourceCapacityRepository = {
+    async persistCreateOnly({ observation: untrusted }: {
+      readonly observation: CanonicalSam31CompleteSourceCapacityObservation
+    }) {
       const observation =
         assertCanonicalSam31CompleteSourceCapacityObservation(untrusted)
       const body = Buffer.from(stableAuthorityStringify(observation), 'utf8')
@@ -343,10 +355,11 @@ export function createCanonicalSam31CompleteSourceCapacityRepository(input: {
       }
       return disposition
     },
-    reread({ observationId }) {
+    reread({ observationId }: { readonly observationId: string }) {
       return reread(observationId)
     },
-  })
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalSam31CompleteSourceCapacityOwner(input: {

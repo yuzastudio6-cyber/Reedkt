@@ -3,13 +3,18 @@ import { createHash } from 'node:crypto'
 
 import {
   assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
   CANONICAL_VERTEX_A100_SERVING_RATE_COMPONENT_CLASSES,
   observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort,
   createWeEditProVertexA100ServingRateReaderConfiguration,
 } from '../tool-cost-metering/google-cloud-account-effective-vertex-a100-serving-rate-read-port'
+import {
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+} from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -20,6 +25,9 @@ import {
   assertCanonicalCurrentGoogleCloudVertexA100ServingRatePublicationReceipt,
   publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
 } from '../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-publisher'
+import {
+  sealCanonicalSam31VertexServingCapacityObservation,
+} from '../services/canonical-sam3_1-vertex-serving-capacity-mutation'
 
 const BILLING_ACCOUNT = 'billingAccounts/012345-ABCDEF-987654'
 const STARTED_AT = '2026-08-11T12:00:00.000Z'
@@ -97,6 +105,80 @@ assert.throws(() =>
   ))
 
 clockIndex = 0
+const capacity = sealCanonicalSam31VertexServingCapacityObservation({
+  schemaVersion: 'canonical-sam3_1-vertex-serving-capacity-observation-v1',
+  source: 'canonical_server_vertex_current_serving_capacity_reader',
+  evidenceClass: 'canonical_private_reread',
+  endpointResourceName:
+    'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+  deployedModelId: '3101000004',
+  modelVersionId: '2',
+  routeId: 'a100_80gb_heavy_primary',
+  accelerator: 'nvidia_a100_80gb',
+  acceleratorCount: 1,
+  minimumReplicaCount: 0,
+  initialReplicaCount: 1,
+  maximumReplicaCount: 16,
+  requiredMaximumReplicaCount: 16,
+  minimumScaleUpPeriodSeconds: 300,
+  idleScaleDownPeriodSeconds: 300,
+  dedicatedEndpointEnabled: true,
+  oneExactDeployedModel: true,
+  exactTrafficSplitPercent: 100,
+  requestResponseLoggingEnabled: false,
+  containerLoggingEnabled: false,
+  exactCurrentEndpointModelVersionTrafficAndCapacityReread: true,
+  currentEndpointMeetsCompleteSourceCapacity: true,
+  endpointOrGpuJobStarted: false,
+  customerCreditsMutated: false,
+  productionAuthorityGranted: false,
+  observedAt: '2026-08-11T11:59:00.000Z',
+  expiresAt: '2026-08-11T12:14:00.000Z',
+})
+const capacityAwareRequests: string[] = []
+const capacityAwareAuthority =
+  await observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2({
+    rateAuthorityId: 'vertex-a100-serving-rate:capacity-aware-smoke',
+    rateAuthorityVersion: 2,
+    readPort: createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort({
+      configuration,
+      auth: fakeAuth(capacityAwareRequests),
+      now: () => new Date(clockIndex++ === 0 ? STARTED_AT : FINISHED_AT),
+    }),
+    capacityObservation: capacity,
+  })
+assert.deepEqual(
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+    capacityAwareAuthority,
+    '2026-08-11T12:01:00.000Z',
+  ),
+  capacityAwareAuthority,
+)
+assert.equal(capacityAwareAuthority.maximumReplicaCount, 16)
+assert.equal(capacityAwareAuthority.maximumConcurrentInvocations, 16)
+assert.equal(
+  capacityAwareAuthority.endpointCapacityObservationRef.contentHash,
+  `sha256:${capacity.observationHash}`,
+)
+assert.equal(
+  capacityAwareAuthority.perReplicaPricingNotMultipliedByConfiguredMaximum,
+  true,
+)
+assert.deepEqual(
+  assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
+    capacityAwareAuthority,
+    '2026-08-11T12:01:00.000Z',
+  ),
+  capacityAwareAuthority,
+)
+const crossedCapacityAuthority = structuredClone(capacityAwareAuthority)
+crossedCapacityAuthority.maximumConcurrentInvocations = 15 as 16
+assert.throws(() =>
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+    crossedCapacityAuthority,
+  ))
+
+clockIndex = 0
 const objects = new Map<string, Buffer>()
 const repository =
   createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository({
@@ -136,12 +218,13 @@ assert.equal(reread.rateAuthorityHash,
 
 console.log(JSON.stringify({
   smoke: 'canonical-current-google-cloud-vertex-a100-serving-rate-authority',
-  checks: 39,
+  checks: 47,
   exactOnlinePredictionUsageSkus: true,
   exactVertexManagementFeeSkus: true,
   trainingAndComputeSkuReuseRejected: true,
   billingAccountEffectivePricesOnly: true,
   scaleZeroWarmWindowBound: true,
+  configuredCapacitySeparatedFromPerReplicaRate: true,
   customerPriceWalletEndpointAndProductionAuthority: false,
 }, null, 2))
 

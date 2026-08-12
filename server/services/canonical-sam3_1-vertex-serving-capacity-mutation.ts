@@ -37,6 +37,18 @@ const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const MAXIMUM_OBSERVATION_AGE_MILLISECONDS = 15 * 60_000
 
+interface VertexServingCapacityAuthPort {
+  request(input: {
+    readonly url: string
+    readonly method: 'GET'
+    readonly timeout: number
+    readonly retry: false
+    readonly maxRedirects: 0
+    readonly responseType: 'json'
+    readonly maxContentLength: number
+  }): Promise<{ readonly data: unknown }>
+}
+
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
 const refSchema = z.object({
@@ -151,7 +163,7 @@ export type CanonicalSam31VertexServingCapacityMutationRequest = z.infer<
 >
 
 export async function rereadCanonicalSam31VertexServingCapacity(input: {
-  readonly auth?: Pick<GoogleAuth, 'request'>
+  readonly auth?: VertexServingCapacityAuthPort
   readonly now?: () => string
   readonly timeoutMilliseconds?: number
 } = {}): Promise<CanonicalSam31VertexServingCapacityObservation> {

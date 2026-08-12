@@ -483,7 +483,7 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwner(input: {
           })
           const terminalValue = await input.readPort.rereadTerminal({
             invocationId: chunk.invocationId,
-            terminalRef: result.terminalRef,
+            terminalRef: refSchema.parse(result.terminalRef),
           })
           if (terminalValue === null) {
             throw conflict(`chunk_${chunk.chunkOrdinal}_terminal_missing`)
@@ -495,7 +495,7 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwner(input: {
             await input.readPort.rereadPrivateOutputEvidence({
               invocationId: chunk.invocationId,
               privateOutputRereadEvidenceRef:
-                result.privateOutputRereadEvidenceRef,
+                refSchema.parse(result.privateOutputRereadEvidenceRef),
             })
           if (privateOutputValue === null) {
             throw conflict(
@@ -806,8 +806,9 @@ function assertChunkLineage(input: {
       ref(terminal.terminalRecordId, terminal.terminalHash))
     && sameRef(terminal.launchRef, chunk.launchRef)
     && sameRef(terminal.admissionRef, launch.admissionRef)
-    && sameRef(terminal.cloudJobExecutionRef,
-      launch.cloudJobExecutionRef)
+    && terminal.cloudJobExecutionRef !== null
+    && launch.cloudJobExecutionRef !== null
+    && sameRef(terminal.cloudJobExecutionRef, launch.cloudJobExecutionRef)
     && terminal.terminalOutcome === 'completed'
     && terminal.providerInferenceOrSubstantiveWorkOutcome === 'executed'
     && terminal.cloudJobTerminalStateReread

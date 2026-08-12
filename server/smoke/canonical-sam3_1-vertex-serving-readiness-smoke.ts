@@ -6,6 +6,9 @@ import type { GoogleAuth } from 'google-auth-library'
 import {
   createCanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
+import {
+  createCanonicalSam31VertexScaleZeroModelDeployRequest,
+} from '../services/canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -203,6 +206,11 @@ const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   accountEffectiveRateAuthorityRef: ref('sam31-a100-serving-rate'),
   recordedAt: '2026-08-11T21:55:00.000Z',
 })
+const modelDeployRequest = createCanonicalSam31VertexScaleZeroModelDeployRequest({
+  profile,
+  modelResourceName:
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+})
 const deploymentProfileRef = ref('sam31-scale-zero-profile', profile.profileHash)
 const modelUploadObservationRef = ref('sam31-model-upload-observation')
 const endpointCreateObservationRef = ref('sam31-endpoint-observation')
@@ -245,11 +253,11 @@ const exactReadPort = createGoogleCloudSam31VertexServingExactDeploymentReadPort
             machineSpec: {
               machineType: 'a2-ultragpu-1g',
               acceleratorType: 'NVIDIA_A100_80GB',
-              acceleratorCount: 1,
+              acceleratorCount: '1',
             },
-            minReplicaCount: 0,
-            initialReplicaCount: 1,
-            maxReplicaCount: 1,
+            minReplicaCount: '0',
+            initialReplicaCount: '1',
+            maxReplicaCount: '1',
             scaleToZeroSpec: {
               minScaleupPeriod: '300s',
               idleScaledownPeriod: '300s',
@@ -286,6 +294,7 @@ const ready = await createCanonicalSam31VertexServingDeploymentReadyService({
   modelUploadObservationRef,
   endpointCreateObservationRef,
   modelDeployObservationRef,
+  modelDeployRequest,
   readinessProbeRef: ref('sam31-readiness-probe', probe.probeHash),
   readinessProbe: probe,
   runtimeReleaseRef,
@@ -328,6 +337,7 @@ await assert.rejects(() =>
     modelUploadObservationRef,
     endpointCreateObservationRef,
     modelDeployObservationRef,
+    modelDeployRequest,
     readinessProbeRef: ref('wrong-probe', '0'.repeat(64)),
     readinessProbe: probe,
     runtimeReleaseRef,
@@ -351,6 +361,7 @@ await assert.rejects(() =>
     modelUploadObservationRef,
     endpointCreateObservationRef,
     modelDeployObservationRef,
+    modelDeployRequest,
     readinessProbeRef: ref('sam31-readiness-probe', probe.probeHash),
     readinessProbe: probe,
     runtimeReleaseRef,

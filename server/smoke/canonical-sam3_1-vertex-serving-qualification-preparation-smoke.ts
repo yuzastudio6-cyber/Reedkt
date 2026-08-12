@@ -106,9 +106,6 @@ const service =
       },
     },
     servingQuotaRepository: {
-      schemaVersion:
-        'canonical-current-google-cloud-vertex-a100-serving-quota-repository-v1',
-      async persistCreateOnly() { return { quotaAuthorityRef: quotaRef } },
       async reread({ quotaAuthorityRef }) {
         return sameRef(quotaAuthorityRef, quotaRef)
           ? structuredClone(quota) : null
@@ -210,6 +207,8 @@ function buildCandidate() {
       'canonical_server_vertex_serving_pre_release_qualification_owner' as const,
     candidateId: 'sam31-a100-serving-candidate-smoke',
     deploymentProfileRef: ref('deployment-profile'),
+    modelDeployRequestRef: ref('model-deploy-request'),
+    modelDeployObservationRef: ref('model-deploy-observation'),
     endpointDeploymentRef: ref('endpoint-deployment'),
     exactDeploymentObservationRef: ref('exact-deployment'),
     readinessProbeRef: ref('readiness-probe'),
@@ -230,6 +229,7 @@ function buildCandidate() {
     minimumReplicaCount: 0 as const,
     maximumReplicaCount: 1 as const,
     exactDeploymentAndDedicatedRouteReread: true as const,
+    exactModelDeployRequestAndCompletedObservationReread: true as const,
     exactNonCustomerReadinessProbeReread: true as const,
     readyForPrivateQualificationInvocation: true as const,
     readyForCustomerInvocation: false as const,

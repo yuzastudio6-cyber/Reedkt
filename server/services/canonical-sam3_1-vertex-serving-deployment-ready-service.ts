@@ -6,6 +6,9 @@ import {
   type CanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
 import {
+  assertCanonicalSam31VertexScaleZeroDeploymentRequest,
+} from './canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
+import {
   canonicalSam31VertexServingDeploymentReadySchema,
   type CanonicalSam31VertexServingDeploymentReady,
 } from './canonical-sam3_1-vertex-serving-invocation-service'
@@ -123,6 +126,7 @@ export interface CanonicalSam31VertexServingExactDeploymentReadPort {
     readonly modelUploadObservationRef: Ref
     readonly endpointCreateObservationRef: Ref
     readonly modelDeployObservationRef: Ref
+    readonly modelDeployRequest: unknown
     readonly at: string
   }): Promise<unknown>
 }
@@ -149,6 +153,7 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
       readonly modelUploadObservationRef: Ref
       readonly endpointCreateObservationRef: Ref
       readonly modelDeployObservationRef: Ref
+      readonly modelDeployRequest: unknown
       readonly readinessProbeRef: Ref
       readonly readinessProbe: unknown
       readonly runtimeReleaseRef: Ref
@@ -198,6 +203,7 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
       const exact = assertCanonicalSam31VertexServingExactDeployment(
         await input.exactDeploymentReadPort.rereadExactDeployment({
           profile,
+          modelDeployRequest: untrusted.modelDeployRequest,
           ...references,
           at: references.observedAt,
         }),
@@ -288,11 +294,20 @@ export function createGoogleCloudSam31VertexServingExactDeploymentReadPort(
       readonly modelUploadObservationRef: Ref
       readonly endpointCreateObservationRef: Ref
       readonly modelDeployObservationRef: Ref
+      readonly modelDeployRequest: unknown
       readonly at: string
     }) {
       const profile = assertCanonicalSam31VertexScaleZeroDeploymentProfile(
         request.profile,
       )
+      const modelDeployRequest =
+        assertCanonicalSam31VertexScaleZeroDeploymentRequest(
+          request.modelDeployRequest,
+        )
+      if (
+        modelDeployRequest.stage !== 'model_deploy'
+        || modelDeployRequest.profileHash !== profile.profileHash
+      ) throw new Error('Exact Vertex model-deploy request changed.')
       const [modelResponse, endpointResponse] = await Promise.all([
         auth.request({
           url: `${API_ORIGIN}/v1beta1/${MODEL_RESOURCE}`,
@@ -306,7 +321,11 @@ export function createGoogleCloudSam31VertexServingExactDeploymentReadPort(
         }),
       ])
       const model = parseModel(modelResponse.data, profile)
-      const endpoint = parseEndpoint(endpointResponse.data, profile)
+      const endpoint = parseEndpoint(
+        endpointResponse.data,
+        profile,
+        modelDeployRequest,
+      )
       const payload = exactWithoutHashSchema.parse({
         schemaVersion: CANONICAL_SAM3_1_VERTEX_SERVING_EXACT_DEPLOYMENT_VERSION,
         source: 'canonical_server_vertex_exact_deployment_resource_reader',
@@ -388,7 +407,33 @@ function parseModel(value: unknown,
 }
 
 function parseEndpoint(value: unknown,
-  profile: CanonicalSam31VertexScaleZeroDeploymentProfile) {
+  profile: CanonicalSam31VertexScaleZeroDeploymentProfile,
+  modelDeployRequest: ReturnType<
+    typeof assertCanonicalSam31VertexScaleZeroDeploymentRequest
+  >,
+) {
+  const expected = z.object({
+    deployedModel: z.object({
+      dedicatedResources: z.object({
+        machineSpec: z.object({
+          machineType: z.literal(profile.dedicatedResources.machineType),
+          acceleratorType: z.literal('NVIDIA_A100_80GB'),
+          acceleratorCount: z.literal(1),
+        }).strict(),
+        minReplicaCount: z.literal(0),
+        initialReplicaCount: z.literal(1),
+        maxReplicaCount: z.literal(1),
+        scaleToZeroSpec: z.object({
+          minScaleupPeriod: z.literal('300s'),
+          idleScaledownPeriod: z.literal('300s'),
+        }).strict(),
+        spot: z.literal(false),
+      }).strict(),
+    }).passthrough(),
+  }).passthrough().parse(modelDeployRequest.body).deployedModel
+  const exactInt64 = <const Value extends number>(expected: Value) =>
+    z.union([z.literal(expected), z.literal(String(expected))])
+      .transform(() => expected)
   const parsed = z.object({
     name: z.enum([ENDPOINT_RESOURCE, NUMERIC_ENDPOINT_RESOURCE]),
     displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
@@ -405,15 +450,18 @@ function parseEndpoint(value: unknown,
         machineSpec: z.object({
           machineType: z.literal(profile.dedicatedResources.machineType),
           acceleratorType: z.literal('NVIDIA_A100_80GB'),
-          acceleratorCount: z.literal(1),
+          acceleratorCount: exactInt64(1),
         }).passthrough(),
-        minReplicaCount: z.literal(0),
-        initialReplicaCount: z.literal(1),
-        maxReplicaCount: z.literal(1),
+        minReplicaCount: exactInt64(0).optional().default(0),
+        initialReplicaCount: exactInt64(1).optional().default(1),
+        maxReplicaCount: exactInt64(1),
         scaleToZeroSpec: z.object({
           minScaleupPeriod: z.literal('300s'),
           idleScaledownPeriod: z.literal('300s'),
-        }).passthrough(),
+        }).passthrough().optional().default(
+          expected.dedicatedResources.scaleToZeroSpec,
+        ),
+        spot: z.literal(false).optional().default(false),
       }).passthrough(),
     }).passthrough()).length(1),
     trafficSplit: z.record(z.string(), z.number().int().nonnegative().safe()),

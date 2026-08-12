@@ -28,10 +28,21 @@ export interface CanonicalCreateOnlyJsonObjectPort {
 export function createCanonicalGcsSourceAnalysisJsonObjectPort(input: {
   readonly storage: Storage
   readonly bucketName: string
+  readonly acceptedReadContentTypes?: readonly (
+    'application/json' | 'application/octet-stream'
+  )[]
 }): CanonicalCreateOnlyJsonObjectPort {
   if (!input.storage || !validBucketName(input.bucketName)) {
     throw notReady('canonical_gcs_json_object_port_configuration_invalid')
   }
+  const acceptedReadContentTypes = new Set(
+    input.acceptedReadContentTypes ?? ['application/json'],
+  )
+  if (
+    acceptedReadContentTypes.size < 1
+    || acceptedReadContentTypes.size > 2
+    || !acceptedReadContentTypes.has('application/json')
+  ) throw notReady('canonical_gcs_json_read_content_types_invalid')
   const bucket = input.storage.bucket(input.bucketName)
   return Object.freeze({
     async createOnly(value: {
@@ -53,6 +64,7 @@ export function createCanonicalGcsSourceAnalysisJsonObjectPort(input: {
           storage: input.storage,
           bucketName: input.bucketName,
           objectPath: value.objectPath,
+          acceptedReadContentTypes,
         })
         if (!reread || sha256(reread) !== value.contentSha256) {
           throw conflict('canonical_gcs_create_only_reread_mismatch')
@@ -64,6 +76,7 @@ export function createCanonicalGcsSourceAnalysisJsonObjectPort(input: {
           storage: input.storage,
           bucketName: input.bucketName,
           objectPath: value.objectPath,
+          acceptedReadContentTypes,
         })
         if (!existing || sha256(existing) !== value.contentSha256) {
           throw conflict('canonical_gcs_create_only_collision')
@@ -77,6 +90,7 @@ export function createCanonicalGcsSourceAnalysisJsonObjectPort(input: {
         storage: input.storage,
         bucketName: input.bucketName,
         objectPath,
+        acceptedReadContentTypes,
       })
     },
   })
@@ -86,6 +100,7 @@ async function readExactGcsObject(input: {
   readonly storage: Storage
   readonly bucketName: string
   readonly objectPath: string
+  readonly acceptedReadContentTypes: ReadonlySet<string>
 }): Promise<Buffer | null> {
   assertObjectPath(input.objectPath)
   const liveFile = input.storage.bucket(input.bucketName).file(input.objectPath)
@@ -106,7 +121,7 @@ async function readExactGcsObject(input: {
     || !Number.isSafeInteger(size)
     || size < 2
     || size > MAXIMUM_RECORD_BYTES
-    || metadata.contentType !== 'application/json'
+    || !input.acceptedReadContentTypes.has(String(metadata.contentType ?? ''))
   ) throw conflict('canonical_gcs_json_object_metadata_invalid')
   const exactFile = input.storage.bucket(input.bucketName).file(
     input.objectPath,

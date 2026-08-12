@@ -7,6 +7,12 @@ import {
   assertCanonicalSam31VertexScaleZeroDeploymentProfile,
   type CanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
+import {
+  assertCanonicalSam31VertexScaleZeroDeploymentRequest,
+} from './canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
+import {
+  assertCanonicalSam31VertexScaleZeroControlPlaneObservation,
+} from './canonical-sam3_1-vertex-scale-zero-control-plane'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -56,6 +62,8 @@ const candidateWithoutHashSchema = z.object({
   ),
   candidateId: safeId,
   deploymentProfileRef: refSchema,
+  modelDeployRequestRef: refSchema,
+  modelDeployObservationRef: refSchema,
   endpointDeploymentRef: refSchema,
   exactDeploymentObservationRef: refSchema,
   readinessProbeRef: refSchema,
@@ -72,6 +80,7 @@ const candidateWithoutHashSchema = z.object({
   minimumReplicaCount: z.literal(0),
   maximumReplicaCount: z.literal(1),
   exactDeploymentAndDedicatedRouteReread: z.literal(true),
+  exactModelDeployRequestAndCompletedObservationReread: z.literal(true),
   exactNonCustomerReadinessProbeReread: z.literal(true),
   readyForPrivateQualificationInvocation: z.literal(true),
   readyForCustomerInvocation: z.literal(false),
@@ -122,6 +131,9 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
       readonly modelUploadObservationRef: Ref
       readonly endpointCreateObservationRef: Ref
       readonly modelDeployObservationRef: Ref
+      readonly modelDeployRequestRef: Ref
+      readonly modelDeployRequest: unknown
+      readonly modelDeployObservation: unknown
       readonly endpointDeploymentRef: Ref
       readonly readinessProbeRef: Ref
       readonly readinessProbe: unknown
@@ -137,6 +149,7 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         modelUploadObservationRef: refSchema,
         endpointCreateObservationRef: refSchema,
         modelDeployObservationRef: refSchema,
+        modelDeployRequestRef: refSchema,
         endpointDeploymentRef: refSchema,
         readinessProbeRef: refSchema,
         observedAt: timestamp,
@@ -146,6 +159,7 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         modelUploadObservationRef: untrusted.modelUploadObservationRef,
         endpointCreateObservationRef: untrusted.endpointCreateObservationRef,
         modelDeployObservationRef: untrusted.modelDeployObservationRef,
+        modelDeployRequestRef: untrusted.modelDeployRequestRef,
         endpointDeploymentRef: untrusted.endpointDeploymentRef,
         readinessProbeRef: untrusted.readinessProbeRef,
         observedAt: untrusted.observedAt,
@@ -155,6 +169,34 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         `sha256:${profile.profileHash}`) {
         throw new Error('Vertex qualification profile reference changed.')
       }
+      const modelDeployRequest =
+        assertCanonicalSam31VertexScaleZeroDeploymentRequest(
+          untrusted.modelDeployRequest,
+        )
+      const modelDeployObservation =
+        assertCanonicalSam31VertexScaleZeroControlPlaneObservation(
+          untrusted.modelDeployObservation,
+        )
+      if (
+        modelDeployRequest.stage !== 'model_deploy'
+        || modelDeployRequest.profileHash !== profile.profileHash
+        || refs.modelDeployRequestRef.id !==
+          `sam31-vertex-model_deploy-request-${
+            modelDeployRequest.requestDigestSha256.slice(0, 32)}`
+        || refs.modelDeployRequestRef.contentHash !==
+          `sha256:${modelDeployRequest.requestDigestSha256}`
+        || refs.modelDeployObservationRef.contentHash !==
+          `sha256:${modelDeployObservation.observationHash}`
+        || modelDeployObservation.stage !== 'model_deploy'
+        || modelDeployObservation.disposition !== 'completed'
+        || !modelDeployObservation.operationDone
+        || modelDeployObservation.requestDigestSha256 !==
+          modelDeployRequest.requestDigestSha256
+        || modelDeployObservation.deployedModelId !== '3101000001'
+        || modelDeployObservation.customerRequestOrGpuInferenceStarted
+        || modelDeployObservation.walletOrCreditMutationAuthorityGranted
+        || modelDeployObservation.productionAuthorityGranted
+      ) throw new Error('Vertex qualification deploy evidence changed.')
       const probe = assertCanonicalSam31VertexServingReadinessProbe(
         untrusted.readinessProbe,
       )
@@ -174,6 +216,7 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
           modelUploadObservationRef: refs.modelUploadObservationRef,
           endpointCreateObservationRef: refs.endpointCreateObservationRef,
           modelDeployObservationRef: refs.modelDeployObservationRef,
+          modelDeployRequest,
           at: refs.observedAt,
         }),
       )
@@ -197,6 +240,8 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
           'canonical_server_vertex_serving_pre_release_qualification_owner',
         candidateId,
         deploymentProfileRef: refs.deploymentProfileRef,
+        modelDeployRequestRef: refs.modelDeployRequestRef,
+        modelDeployObservationRef: refs.modelDeployObservationRef,
         endpointDeploymentRef: refs.endpointDeploymentRef,
         exactDeploymentObservationRef,
         readinessProbeRef: refs.readinessProbeRef,
@@ -212,6 +257,7 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         minimumReplicaCount: 0,
         maximumReplicaCount: 1,
         exactDeploymentAndDedicatedRouteReread: true,
+        exactModelDeployRequestAndCompletedObservationReread: true,
         exactNonCustomerReadinessProbeReread: true,
         readyForPrivateQualificationInvocation: true,
         readyForCustomerInvocation: false,

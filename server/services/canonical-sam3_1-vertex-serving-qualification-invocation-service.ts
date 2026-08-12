@@ -15,6 +15,9 @@ import {
   rereadCanonicalSam31VertexDedicatedPredictionRoute,
 } from './canonical-sam3_1-vertex-dedicated-prediction-route'
 import {
+  isCanonicalSam31VertexScaleZeroDroppedBeforeInference429,
+} from './canonical-sam3_1-vertex-serving-readiness-probe-service'
+import {
   assertCanonicalSam31VertexServingQualificationPreparation,
   createCanonicalSam31VertexServingQualificationPreparationRef,
   createCanonicalSam31VertexServingQualificationPreparationRepository,
@@ -146,6 +149,7 @@ const resultWithoutHashSchema = z.object({
   disposition: z.enum([
     'completed',
     'failed',
+    'not_executed_scale_from_zero_trigger',
     'outcome_unknown_requires_reconciliation',
   ]),
   runtimeStatus: z.enum(['completed', 'failed']).nullable(),
@@ -155,10 +159,11 @@ const resultWithoutHashSchema = z.object({
   terminalEvidenceMode: z.enum([
     'provider_prediction_and_private_response',
     'private_response_reconciliation',
+    'vertex_scale_zero_429_before_inference',
     'none_unknown',
   ]),
   providerCallStarted: z.literal(true),
-  providerOutcome: z.enum(['executed', 'unknown']),
+  providerOutcome: z.enum(['executed', 'not_executed', 'unknown']),
   providerRoundTripDurationMilliseconds:
     z.number().int().nonnegative().safe().nullable(),
   exactPrivateRuntimeResponseReread: z.boolean(),
@@ -175,23 +180,30 @@ const resultWithoutHashSchema = z.object({
 }).strict().superRefine((result, context) => {
   const unknown = result.disposition ===
     'outcome_unknown_requires_reconciliation'
-  const terminal = !unknown
+  const notExecuted = result.disposition ===
+    'not_executed_scale_from_zero_trigger'
+  const executedTerminal = !unknown && !notExecuted
   const prediction = result.terminalEvidenceMode ===
     'provider_prediction_and_private_response'
   const reconciliation = result.terminalEvidenceMode ===
     'private_response_reconciliation'
+  const scaleZero = result.terminalEvidenceMode ===
+    'vertex_scale_zero_429_before_inference'
   if (unknown !== (result.providerOutcome === 'unknown')
+    || notExecuted !== (result.providerOutcome === 'not_executed')
     || unknown !== result.unresolvedOutcomeBlocksRetry
     || unknown !== (result.terminalEvidenceMode === 'none_unknown')
-    || terminal !== result.exactPrivateRuntimeResponseReread
+    || notExecuted !== scaleZero
+    || executedTerminal !== result.exactPrivateRuntimeResponseReread
     || prediction !== result.exactVertexPredictionWrapperReread
-    || terminal !== (result.runtimeStatus !== null)
-    || terminal !== (result.runtimeResponseRef !== null)
+    || executedTerminal !== (result.runtimeStatus !== null)
+    || executedTerminal !== (result.runtimeResponseRef !== null)
     || prediction !== (result.uploadedObjectCount !== null)
     || prediction !== (result.uploadedByteLength !== null)
-    || prediction !== (result.providerRoundTripDurationMilliseconds !== null)
-    || (terminal && !prediction && !reconciliation)
-    || (terminal && result.disposition !== result.runtimeStatus)) {
+    || (prediction || scaleZero) !==
+      (result.providerRoundTripDurationMilliseconds !== null)
+    || (executedTerminal && !prediction && !reconciliation)
+    || (executedTerminal && result.disposition !== result.runtimeStatus)) {
     context.addIssue({
       code: 'custom',
       message: 'Vertex serving qualification result lost terminal truth.',
@@ -286,16 +298,27 @@ export function createCanonicalSam31VertexServingQualificationInvocationService(
           byteFree: true,
         },
       }
+      const priorAttemptRaw = await input.repository.rereadAttempt({
+        invocationId: request.invocationId,
+      })
+      const priorAttempt = priorAttemptRaw === null ? null
+        : assertCanonicalSam31VertexServingQualificationAttempt(
+          priorAttemptRaw,
+        )
       const candidateAttempt = buildAttempt({ request, preparation, task,
-        body, predictUrl: predictionRoute.predictUrl, consumedAt: invokedAt })
-      const attemptDisposition = await input.repository.persistAttemptCreateOnly(
-        { attempt: candidateAttempt },
-      )
-      const attempt = assertCanonicalSam31VertexServingQualificationAttempt(
-        await input.repository.rereadAttempt({
-          invocationId: request.invocationId,
-        }),
-      )
+        body, predictUrl: predictionRoute.predictUrl,
+        consumedAt: priorAttempt?.consumedAt ?? invokedAt })
+      const attemptDisposition = priorAttempt === null
+        ? await input.repository.persistAttemptCreateOnly({
+          attempt: candidateAttempt,
+        })
+        : 'already_exists' as const
+      const attempt = priorAttempt ??
+        assertCanonicalSam31VertexServingQualificationAttempt(
+          await input.repository.rereadAttempt({
+            invocationId: request.invocationId,
+          }),
+        )
       if (attemptDisposition === 'created'
         ? attempt.attemptHash !== candidateAttempt.attemptHash
         : !sameAttemptLineage(attempt, candidateAttempt)) {
@@ -345,16 +368,28 @@ export function createCanonicalSam31VertexServingQualificationInvocationService(
           preparation, task, taskStore: input.taskStore,
           repository: input.repository, providerRoundTripDurationMilliseconds:
             elapsed, observedAt: timestamp.parse(now()) })
-      } catch {
+      } catch (error) {
+        const elapsed = elapsedMilliseconds(startedClock, clock())
+        const observedAt = timestamp.parse(now())
         const runtime = await input.taskStore.rereadRuntimeResponse(
           request.invocationId,
         )
         if (runtime !== null) return persistTerminalFromRuntimeResponse({
           runtimeResponse: runtime, attempt, callStart, preparation, task,
-          repository: input.repository, observedAt: timestamp.parse(now()),
+          repository: input.repository, observedAt,
         })
+        if (isCanonicalSam31VertexScaleZeroDroppedBeforeInference429(error)) {
+          return persistScaleZeroNotExecuted({
+            attempt,
+            callStart,
+            preparation,
+            repository: input.repository,
+            providerRoundTripDurationMilliseconds: elapsed,
+            observedAt,
+          })
+        }
         return persistUnknown({ attempt, callStart, preparation,
-          repository: input.repository, observedAt: timestamp.parse(now()) })
+          repository: input.repository, observedAt })
       }
     },
   })
@@ -398,7 +433,7 @@ export function createCanonicalSam31VertexServingQualificationInvocationReposito
     }
     return structuredClone(parsed)
   }
-  return Object.freeze({
+  const repository: CanonicalSam31VertexServingQualificationInvocationRepository = {
     persistAttemptCreateOnly: ({ attempt }) => persist('attempt',
       assertCanonicalSam31VertexServingQualificationAttempt(attempt)),
     rereadAttempt: ({ invocationId }) => read('attempt', invocationId),
@@ -427,7 +462,8 @@ export function createCanonicalSam31VertexServingQualificationInvocationReposito
       return persist('terminal', accepted)
     },
     rereadTerminal: ({ invocationId }) => read('terminal', invocationId),
-  })
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalGcpSam31VertexServingQualificationInvocationService(
@@ -439,7 +475,12 @@ export function createCanonicalGcpSam31VertexServingQualificationInvocationServi
   const state = createCanonicalGcsSourceAnalysisJsonObjectPort({ storage,
     bucketName: STATE_BUCKET })
   const privateGpu = createCanonicalGcsSourceAnalysisJsonObjectPort({ storage,
-    bucketName: PRIVATE_GPU_BUCKET })
+    bucketName: PRIVATE_GPU_BUCKET,
+    acceptedReadContentTypes: [
+      'application/json',
+      'application/octet-stream',
+    ],
+  })
   return createCanonicalSam31VertexServingQualificationInvocationService({
     preparationRepository:
       createCanonicalSam31VertexServingQualificationPreparationRepository({
@@ -782,6 +823,33 @@ async function persistUnknown(input: {
   }))
 }
 
+async function persistScaleZeroNotExecuted(input: {
+  attempt: CanonicalSam31VertexServingQualificationAttempt
+  callStart: CanonicalSam31VertexServingQualificationCallStart
+  preparation: ReturnType<
+    typeof assertCanonicalSam31VertexServingQualificationPreparation
+  >
+  repository: CanonicalSam31VertexServingQualificationInvocationRepository
+  providerRoundTripDurationMilliseconds: number
+  observedAt: string
+}) {
+  const result = buildResult({ ...input,
+    disposition: 'not_executed_scale_from_zero_trigger',
+    runtimeStatus: null,
+    runtimeResponseRef: null,
+    uploadedObjectCount: null,
+    uploadedByteLength: null,
+    terminalEvidenceMode: 'vertex_scale_zero_429_before_inference',
+    providerOutcome: 'not_executed',
+    exactPrivateRuntimeResponseReread: false,
+    exactVertexPredictionWrapperReread: false,
+    unresolvedOutcomeBlocksRetry: false })
+  await input.repository.persistTerminalCreateOnly({ result })
+  return exactResult(result, await input.repository.rereadTerminal({
+    invocationId: input.attempt.invocationId,
+  }))
+}
+
 function buildResult(input: {
   attempt: CanonicalSam31VertexServingQualificationAttempt
   callStart: CanonicalSam31VertexServingQualificationCallStart
@@ -789,14 +857,16 @@ function buildResult(input: {
     typeof assertCanonicalSam31VertexServingQualificationPreparation
   >
   disposition: 'completed' | 'failed'
+    | 'not_executed_scale_from_zero_trigger'
     | 'outcome_unknown_requires_reconciliation'
   runtimeStatus: 'completed' | 'failed' | null
   runtimeResponseRef: Ref | null
   uploadedObjectCount: number | null
   uploadedByteLength: number | null
   terminalEvidenceMode: 'provider_prediction_and_private_response'
-    | 'private_response_reconciliation' | 'none_unknown'
-  providerOutcome: 'executed' | 'unknown'
+    | 'private_response_reconciliation'
+    | 'vertex_scale_zero_429_before_inference' | 'none_unknown'
+  providerOutcome: 'executed' | 'not_executed' | 'unknown'
   providerRoundTripDurationMilliseconds: number | null
   exactPrivateRuntimeResponseReread: boolean
   exactVertexPredictionWrapperReread: boolean

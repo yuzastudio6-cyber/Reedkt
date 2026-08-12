@@ -474,6 +474,7 @@
     "smoke:sam3_1-vertex-serving-qualification-candidate": "tsx server/smoke/canonical-sam3_1-vertex-serving-qualification-candidate-smoke.ts",
     "smoke:sam3_1-vertex-serving-qualification-preparation": "tsx server/smoke/canonical-sam3_1-vertex-serving-qualification-preparation-smoke.ts",
     "smoke:sam3_1-vertex-serving-qualification-invocation": "tsx server/smoke/canonical-sam3_1-vertex-serving-qualification-invocation-smoke.ts",
+    "qualify:one-sam3_1-vertex-serving": "tsx server/cli/qualify-one-canonical-sam3_1-vertex-serving.ts",
     "publish:vertex-a100-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-rate-authority.ts",
     "publish:vertex-a100-serving-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-serving-rate-authority.ts",
     "publish:vertex-a100-serving-quota-authority": "tsx server/cli/publish-current-google-cloud-vertex-a100-serving-quota-authority.ts",

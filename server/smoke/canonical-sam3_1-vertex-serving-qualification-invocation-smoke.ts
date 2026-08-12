@@ -109,6 +109,7 @@ checks += 11
 const replay = await service({
   repository: successRepository,
   runtimeResponse: response,
+  now: '2026-08-11T12:03:00.000Z',
   request: async () => {
     throw new Error('Terminal replay may not call Vertex.')
   },
@@ -129,6 +130,43 @@ assert.equal(reconciled.terminalEvidenceMode,
 assert.equal(reconciled.exactVertexPredictionWrapperReread, false)
 assert.equal(reconciled.providerRoundTripDurationMilliseconds, null)
 checks += 4
+
+const coldStartRepository = repository()
+let coldStartCalls = 0
+const coldStart = await service({
+  repository: coldStartRepository,
+  runtimeResponse: null,
+  request: async () => {
+    coldStartCalls += 1
+    throw {
+      response: {
+        status: 429,
+        data:
+          'Model is not yet ready for inference. Please wait while model completes scale-up from zero, then try your request again.',
+      },
+    }
+  },
+}).invokeOne(request)
+assert.equal(coldStart.disposition,
+  'not_executed_scale_from_zero_trigger')
+assert.equal(coldStart.terminalEvidenceMode,
+  'vertex_scale_zero_429_before_inference')
+assert.equal(coldStart.providerOutcome, 'not_executed')
+assert.equal(coldStart.providerRoundTripDurationMilliseconds, 250)
+assert.equal(coldStart.runtimeResponseRef, null)
+assert.equal(coldStart.unresolvedOutcomeBlocksRetry, false)
+assert.equal(coldStart.automaticRetryAllowed, false)
+const coldStartReplay = await service({
+  repository: coldStartRepository,
+  runtimeResponse: null,
+  request: async () => {
+    coldStartCalls += 1
+    throw new Error('A cold-start terminal replay may not call Vertex.')
+  },
+}).invokeOne(request)
+assert.equal(coldStartReplay.resultHash, coldStart.resultHash)
+assert.equal(coldStartCalls, 1)
+checks += 9
 
 const unknownRepository = repository()
 let unknownCalls = 0
@@ -210,7 +248,7 @@ assert.equal(wrongWrapper.disposition,
 assert.equal(wrongWrapper.exactVertexPredictionWrapperReread, false)
 checks += 2
 
-assert.equal(checks, 33)
+assert.equal(checks, 42)
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-qualification-invocation',
   status: 'passed',
@@ -219,6 +257,7 @@ console.log(JSON.stringify({
   exactPrivateRuntimeResponseReread: true,
   singleUseAttemptAndCallStart: true,
   unknownOutcomeBlocksRetry: true,
+  scaleFromZeroTriggerClassifiedNotExecuted: true,
   providerRoundTripMeasured: true,
   customerInvocationAuthorized: false,
   customerCreditsMutated: false,
@@ -230,6 +269,7 @@ function service(input: {
   repository: CanonicalSam31VertexServingQualificationInvocationRepository
   runtimeResponse: unknown
   request: (request: Record<string, unknown>) => Promise<unknown>
+  now?: string
 }) {
   let clock = 1_000
   return createCanonicalSam31VertexServingQualificationInvocationService({
@@ -257,7 +297,7 @@ function service(input: {
         return input.request(providerRequest)
       },
     } as unknown as Pick<GoogleAuth, 'request'>,
-    now: () => NOW,
+    now: () => input.now ?? NOW,
     clockMilliseconds: () => { const value = clock; clock += 250; return value },
   })
 }

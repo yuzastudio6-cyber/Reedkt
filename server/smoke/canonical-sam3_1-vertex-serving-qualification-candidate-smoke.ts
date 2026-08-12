@@ -4,6 +4,12 @@ import { createHash } from 'node:crypto'
 import {
   createCanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
+import {
+  assertCanonicalSam31VertexScaleZeroControlPlaneObservation,
+} from '../services/canonical-sam3_1-vertex-scale-zero-control-plane'
+import {
+  createCanonicalSam31VertexScaleZeroModelDeployRequest,
+} from '../services/canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -44,7 +50,51 @@ const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
 const deploymentProfileRef = ref('deployment-profile', profile.profileHash)
 const modelUploadObservationRef = ref('model-upload')
 const endpointCreateObservationRef = ref('endpoint-create')
-const modelDeployObservationRef = ref('model-deploy')
+const modelDeployRequest = createCanonicalSam31VertexScaleZeroModelDeployRequest({
+  profile,
+  modelResourceName:
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+})
+const modelDeployRequestRef = ref(
+  `sam31-vertex-model_deploy-request-${
+    modelDeployRequest.requestDigestSha256.slice(0, 32)}`,
+  modelDeployRequest.requestDigestSha256,
+)
+const deployObservationPayload = {
+  schemaVersion:
+    'canonical-sam3_1-vertex-scale-zero-control-plane-observation-v1' as const,
+  source:
+    'canonical_backend_sam3_1_vertex_scale_zero_control_plane' as const,
+  stage: 'model_deploy' as const,
+  requestDigestSha256: modelDeployRequest.requestDigestSha256,
+  submissionHash: sha256AuthorityValue('model-deploy-submission'),
+  operationName:
+    'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/model-deploy-operation',
+  disposition: 'completed' as const,
+  operationDone: true,
+  modelResourceName: null,
+  endpointResourceName: null,
+  deployedModelId: '3101000001',
+  providerErrorRef: null,
+  observationMode: 'exact_operation_reread' as const,
+  exactOperationReread: true,
+  exactResourceReread: false,
+  automaticRetryAllowed: false as const,
+  customerRequestOrGpuInferenceStarted: false as const,
+  walletOrCreditMutationAuthorityGranted: false as const,
+  publicDeliveryAuthorityGranted: false as const,
+  productionAuthorityGranted: false as const,
+  observedAt,
+}
+const modelDeployObservation =
+  assertCanonicalSam31VertexScaleZeroControlPlaneObservation({
+    ...deployObservationPayload,
+    observationHash: sha256AuthorityValue(deployObservationPayload),
+  })
+const modelDeployObservationRef = ref(
+  'model-deploy',
+  modelDeployObservation.observationHash,
+)
 const endpointDeploymentRef = ref('endpoint-deployment')
 
 const exactPayload = {
@@ -150,6 +200,9 @@ const request = {
   modelUploadObservationRef,
   endpointCreateObservationRef,
   modelDeployObservationRef,
+  modelDeployRequestRef,
+  modelDeployRequest,
+  modelDeployObservation,
   endpointDeploymentRef,
   readinessProbeRef: ref('readiness-probe-ref', probe.probeHash),
   readinessProbe: probe,
@@ -176,6 +229,17 @@ await assert.rejects(() => service.produceOne({
   ...request,
   endpointDeploymentRef: ref('wrong-endpoint'),
 }))
+await assert.rejects(() => service.produceOne({
+  ...request,
+  modelDeployRequestRef: ref('wrong-model-deploy-request'),
+}))
+await assert.rejects(() => service.produceOne({
+  ...request,
+  modelDeployObservation: {
+    ...modelDeployObservation,
+    observationHash: '0'.repeat(64),
+  },
+}))
 assert.throws(() => assertCanonicalSam31VertexServingQualificationCandidate({
   ...candidate,
   readyForCustomerInvocation: true,
@@ -188,7 +252,7 @@ assert.throws(() => assertCanonicalSam31VertexServingQualificationCandidate(
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-qualification-candidate',
   status: 'passed',
-  checks: 12,
+  checks: 14,
   candidateId: candidate.candidateId,
   readyForPrivateQualificationInvocation:
     candidate.readyForPrivateQualificationInvocation,

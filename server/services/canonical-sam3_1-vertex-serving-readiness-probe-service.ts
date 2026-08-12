@@ -237,7 +237,9 @@ export function createCanonicalSam31VertexServingReadinessProbeService(
           ) throw new Error('Vertex readiness-probe exact reread changed.')
           return reread
         } catch (error) {
-          if (!isExactSafe429(error)) {
+          if (!isCanonicalSam31VertexScaleZeroDroppedBeforeInference429(
+            error,
+          )) {
             throw new Error(
               'Vertex readiness outcome is unknown; automatic retry is blocked.',
               { cause: error },
@@ -425,7 +427,9 @@ function probePath(prefix: string, readinessProbeId: string): string {
   return `${prefix}/${safeId.parse(readinessProbeId)}/probe.json`
 }
 
-function isExactSafe429(error: unknown): boolean {
+export function isCanonicalSam31VertexScaleZeroDroppedBeforeInference429(
+  error: unknown,
+): boolean {
   if (typeof error !== 'object' || error === null) return false
   const response = (error as { readonly response?: unknown }).response
   if (typeof response !== 'object' || response === null) return false

@@ -496,7 +496,7 @@ export function createCanonicalSam31VertexServingQualificationPreparationReposit
   if (!prefix || prefix.includes('..') || prefix.includes('\\')) {
     throw new Error('Vertex serving qualification preparation prefix changed.')
   }
-  return Object.freeze({
+  const repository: CanonicalSam31VertexServingQualificationPreparationRepository = {
     async persistCreateOnly({ admission, consumption, envelope, preparation }) {
       const acceptedAdmission =
         assertCanonicalSam31VertexServingQualificationAdmission(admission)
@@ -534,7 +534,8 @@ export function createCanonicalSam31VertexServingQualificationPreparationReposit
       }
       return structuredClone(record.preparation)
     },
-  })
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalGcpSam31VertexServingQualificationPreparationService(

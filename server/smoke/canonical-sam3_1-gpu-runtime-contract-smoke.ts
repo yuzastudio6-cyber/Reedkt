@@ -109,6 +109,16 @@ assert.match(
   l4Qualifier,
   /immutableImageReleaseRef:\s*input\.l4ImageReleaseRef/u,
 )
+assert.equal(
+  (l4Qualifier.match(
+    /l4ImageSupplyChainReleaseRef:\s*l4ImageReleaseRef/gu,
+  ) ?? []).length,
+  2,
+)
+assert.doesNotMatch(
+  l4Qualifier,
+  /^\s*l4ImageSupplyChainReleaseRef,\s*$/mu,
+)
 assert.match(
   l4Qualifier,
   /immutableImageDigest:\s*input\.l4ImageDigest/u,

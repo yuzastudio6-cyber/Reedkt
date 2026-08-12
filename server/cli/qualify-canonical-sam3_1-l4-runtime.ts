@@ -201,7 +201,7 @@ async function main() {
       job: jobProjection,
       checkpoint,
       imageDigest: l4ImageDigest,
-      l4ImageSupplyChainReleaseRef,
+      l4ImageSupplyChainReleaseRef: l4ImageReleaseRef,
       qualifiedA100ServingImageDigest: a100ImageDigest,
       qualifiedA100ServingQualificationRef:
         a100ServingQualificationRef(a100ServingQualification),
@@ -228,7 +228,7 @@ async function main() {
     operationId: 'tool.sam3_1.segment_and_track_subject.v1',
     routeId: 'l4_heavy_fallback',
     immutableImageDigest: l4ImageDigest,
-    l4ImageSupplyChainReleaseRef,
+    l4ImageSupplyChainReleaseRef: l4ImageReleaseRef,
     runtimeCandidateReleaseRef: candidateReleaseRef,
     sourceCheckpointQualificationRef:
       baseTask.specializedRuntimeReleaseRef,

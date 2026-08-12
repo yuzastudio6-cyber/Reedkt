@@ -10,6 +10,7 @@ import {
 } from './canonical-quality-first-user-triggered-gpu-policy'
 import {
   assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  isCanonicalVertexA100ServingRateAuthority,
   type CanonicalProfessionalGoogleCloudGpuRateAuthority,
 } from '../tool-cost-metering/canonical-professional-google-cloud-gpu-rate-authority'
 import {
@@ -71,6 +72,7 @@ const runtimeReleaseWithoutHashSchema = z.object({
   routeId: routeIdSchema,
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
     'google_cloud_vertex_custom_job_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
@@ -108,7 +110,13 @@ const runtimeReleaseWithoutHashSchema = z.object({
   maximumConcurrentAttemptsPerInstance: z.literal(1),
   prewarmingKeepaliveOrAlwaysOnPoolAllowed: z.literal(false),
   startsOnlyFromCreateOnlyApprovedUserAttempt: z.literal(true),
-  stopsAtTerminalAttempt: z.literal(true),
+  stopsAtTerminalAttempt: z.boolean(),
+  lifecycleMode: z.enum([
+    'idle_scaledown_to_zero',
+    'terminal_attempt_teardown',
+  ]).optional(),
+  returnsToZeroAfterIdle: z.literal(true).optional(),
+  idleScaleDownSeconds: z.union([z.literal(300), z.literal(0)]).optional(),
   qualificationRunCount: positiveInteger,
   qualifiedAt: timestamp,
   expiresAt: timestamp,
@@ -119,7 +127,9 @@ const runtimeReleaseWithoutHashSchema = z.object({
 }).strict().superRefine((release, context) => {
   const a100 = release.routeId === 'a100_80gb_heavy_primary'
   const exactRoute = a100
-    ? release.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+    ? (release.executionTarget ===
+        'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+      || release.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra')
       && release.machineType === 'a2-ultragpu-1g'
       && release.accelerator === 'nvidia_a100_80gb'
       && release.allocatedVcpuCount === 12
@@ -131,6 +141,19 @@ const runtimeReleaseWithoutHashSchema = z.object({
       && release.allocatedVcpuCount === 8
       && release.allocatedMemoryGiB === 32
       && release.allocatedLocalScratchGiB === 0
+  const lifecycleExact = release.executionTarget ===
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+    ? release.lifecycleMode === 'idle_scaledown_to_zero'
+      && !release.stopsAtTerminalAttempt
+      && release.returnsToZeroAfterIdle === true
+      && release.idleScaleDownSeconds === 300
+    : release.stopsAtTerminalAttempt
+      && (release.lifecycleMode === undefined
+        || release.lifecycleMode === 'terminal_attempt_teardown')
+      && (release.returnsToZeroAfterIdle === undefined
+        || release.returnsToZeroAfterIdle)
+      && (release.idleScaleDownSeconds === undefined
+        || release.idleScaleDownSeconds === 0)
   const evidenceExact = release.evidenceClass === 'canonical_private_reread'
     ? release.status === 'private_internal_qualified'
       && release.privateInternalQualified
@@ -148,6 +171,7 @@ const runtimeReleaseWithoutHashSchema = z.object({
     ? release.gpuExecutionOwnerToolId === release.toolId
     : release.gpuExecutionOwnerToolId !== release.toolId
   if (!exactRoute
+    || !lifecycleExact
     || !evidenceExact
     || !executionOwnerExact
     || Date.parse(release.expiresAt) <= Date.parse(release.qualifiedAt)
@@ -213,9 +237,10 @@ const admissionWithoutHashSchema = z.object({
     entryHash: sha256,
   }).strict(),
   gpuPolicyRef: z.object({
-    schemaVersion: z.literal(
+    schemaVersion: z.enum([
       'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
-    ),
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v4',
+    ]),
     policyHash: sha256,
   }).strict(),
   runtimeReleaseRef: evidenceRefSchema,
@@ -235,7 +260,13 @@ const admissionWithoutHashSchema = z.object({
   userTriggeredScaleFromZero: z.literal(true),
   noApprovedAttemptMeansZeroGpuInstances: z.literal(true),
   minimumIdleInstances: z.literal(0),
-  stopAtTerminalAttempt: z.literal(true),
+  scaleToZeroDisposition: z.enum([
+    'endpoint_idle_scaledown',
+    'job_terminal_teardown',
+  ]).optional(),
+  stopAtTerminalAttempt: z.boolean(),
+  returnToZeroAfterIdle: z.literal(true).optional(),
+  idleScaleDownSeconds: z.union([z.literal(300), z.literal(0)]).optional(),
   workDispatched: z.literal(false),
   customerCreditsMutated: z.literal(false),
   qaApproved: z.literal(false),
@@ -311,6 +342,14 @@ export function admitCanonicalProfessionalToolGpuDispatch(input: {
   const rate = assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     input.currentRateAuthority,
     input.admittedAt,
+  )
+  const endpointA100 = input.routeId === 'a100_80gb_heavy_primary'
+  if (endpointA100 && (
+    release.executionTarget !==
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+    || !isCanonicalVertexA100ServingRateAuthority(rate)
+  )) throw new Error(
+    'Fresh A100 dispatch requires the scale-zero endpoint release and rate.',
   )
   const placementPolicy =
     assertCanonicalQualityFirstProfessionalToolGpuPlacement(
@@ -411,7 +450,12 @@ export function admitCanonicalProfessionalToolGpuDispatch(input: {
     userTriggeredScaleFromZero: true,
     noApprovedAttemptMeansZeroGpuInstances: true,
     minimumIdleInstances: 0,
-    stopAtTerminalAttempt: true,
+    scaleToZeroDisposition: endpointA100
+      ? 'endpoint_idle_scaledown'
+      : 'job_terminal_teardown',
+    stopAtTerminalAttempt: !endpointA100,
+    returnToZeroAfterIdle: true,
+    idleScaleDownSeconds: endpointA100 ? 300 : 0,
     workDispatched: false,
     customerCreditsMutated: false,
     qaApproved: false,

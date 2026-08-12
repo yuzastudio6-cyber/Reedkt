@@ -153,7 +153,7 @@ assert.equal(gpuPolicy.migration.l4IsClassifiedFallbackForHeavyProcessing, true)
 assert.equal(gpuPolicy.migration.l4IsPrimaryForNormalMediaRenderAndQa, true)
 assert.equal(gpuPolicy.migration.cpuOnlyHeavyExecutionAllowed, false)
 assert.equal(
-  gpuPolicy.userTriggeredScaleToZeroLifecycle.minimumIdleA100JobCount,
+  gpuPolicy.userTriggeredScaleToZeroLifecycle.minimumIdleA100ReplicaCount,
   0,
 )
 assert.equal(
@@ -173,26 +173,44 @@ assert.equal(
   480,
 )
 assert.equal(gpuPolicy.target.qualityGatesMayBeSkippedForSpeed, false)
+assert.equal(
+  gpuPolicy.acceleratorProfiles[0].executionTarget,
+  'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+)
+assert.equal(
+  gpuPolicy.acceleratorProfiles[0].runtimeKind,
+  'dedicated_prediction_endpoint',
+)
+assert.equal(
+  gpuPolicy.acceleratorProfiles[0].lifecycleMode,
+  'idle_scaledown_to_zero',
+)
+assert.equal(gpuPolicy.acceleratorProfiles[0].idleScaleDownSeconds, 300)
+assert.equal(gpuPolicy.acceleratorProfiles[0].stopsAfterTerminalAttempt, false)
 
 assert.deepEqual(
   GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.map((runtime) => ({
     routeId: runtime.routeId,
+    runtimeKind: runtime.runtimeKind,
     accelerator: runtime.accelerator,
     minimumIdleInstances: runtime.minimumIdleInstances,
   })),
   [
     {
       routeId: 'a100_80gb_heavy_primary',
+      runtimeKind: 'google_cloud_vertex_dedicated_prediction_endpoint',
       accelerator: 'nvidia_a100_80gb',
       minimumIdleInstances: 0,
     },
     {
       routeId: 'l4_heavy_fallback',
+      runtimeKind: 'google_cloud_run_job',
       accelerator: 'nvidia_l4',
       minimumIdleInstances: 0,
     },
     {
       routeId: 'l4_standard_primary',
+      runtimeKind: 'google_cloud_run_job',
       accelerator: 'nvidia_l4',
       minimumIdleInstances: 0,
     },

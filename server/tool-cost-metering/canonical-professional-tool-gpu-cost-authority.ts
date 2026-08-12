@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import {
   assertCanonicalProfessionalGoogleCloudGpuRateAuthority,
+  isCanonicalVertexA100ServingRateAuthority,
   isCanonicalVertexA100RateAuthority,
   type CanonicalProfessionalGoogleCloudGpuRateAuthority,
 } from './canonical-professional-google-cloud-gpu-rate-authority'
@@ -176,7 +177,7 @@ const estimateWithoutHashSchema = z.object({
   }).strict(),
   gpuPolicyRef: z.object({
     schemaVersion: z.literal(
-      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v4',
     ),
     policyHash: sha256,
   }).strict(),
@@ -403,7 +404,7 @@ const costCalculationSchema = z.object({
   }).strict(),
   gpuPolicyRef: z.object({
     schemaVersion: z.literal(
-      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v4',
     ),
     policyHash: sha256,
   }).strict(),
@@ -885,11 +886,21 @@ function costFor(
     if (!found) throw new Error(`GPU rate component is missing: ${name}`)
     return found.maximumUsdNanosPerBillingUnit
   }
-  const a100 = isCanonicalVertexA100RateAuthority(rate)
-  const vertexBillableMilliseconds = a100
-    ? Math.ceil(usage.totalBillableMilliseconds / 30_000) * 30_000
+  const servingA100 = isCanonicalVertexA100ServingRateAuthority(rate)
+  const customJobA100 = isCanonicalVertexA100RateAuthority(rate)
+  const vertexBillableMilliseconds = servingA100
+    ? Math.max(300_000, usage.totalBillableMilliseconds)
+    : customJobA100
+      ? Math.ceil(usage.totalBillableMilliseconds / 30_000) * 30_000
     : usage.totalBillableMilliseconds
-  const acceleratorOrMachineUsdNanos = a100
+  const acceleratorOrMachineUsdNanos = servingA100
+    ? ceilProductDivision(
+        component('vertex_prediction_a100_80gb_hour'),
+        vertexBillableMilliseconds,
+        usage.allocatedGpuCount,
+        60 * 60 * 1_000,
+      )
+    : customJobA100
     ? ceilProductDivision(
         component('vertex_training_a100_80gb_hour'),
         vertexBillableMilliseconds,
@@ -907,22 +918,42 @@ function costFor(
         usage.allocatedGpuCount,
         1_000,
       )
-  const vcpuUsdNanos = ceilProductDivision(
-    component(a100
-      ? 'vertex_training_a2_core_hour'
-      : 'cloud_run_vcpu_second'),
-    a100 ? vertexBillableMilliseconds : usage.totalBillableMilliseconds,
-    usage.allocatedVcpuCount,
-    a100 ? 60 * 60 * 1_000 : 1_000,
-  )
-  const memoryUsdNanos = ceilProductDivision(
-    component(a100
-      ? 'vertex_training_a2_ram_gib_hour'
-      : 'cloud_run_memory_gib_second'),
-    a100 ? vertexBillableMilliseconds : usage.totalBillableMilliseconds,
-    usage.allocatedMemoryGiB,
-    a100 ? 60 * 60 * 1_000 : 1_000,
-  )
+  const vcpuUsdNanos = servingA100
+    ? ceilProductDivision(
+        component('vertex_prediction_a2_core_hour')
+          + component('vertex_prediction_management_a2_core_hour'),
+        vertexBillableMilliseconds,
+        usage.allocatedVcpuCount,
+        60 * 60 * 1_000,
+      )
+    : ceilProductDivision(
+        component(customJobA100
+          ? 'vertex_training_a2_core_hour'
+          : 'cloud_run_vcpu_second'),
+        customJobA100
+          ? vertexBillableMilliseconds
+          : usage.totalBillableMilliseconds,
+        usage.allocatedVcpuCount,
+        customJobA100 ? 60 * 60 * 1_000 : 1_000,
+      )
+  const memoryUsdNanos = servingA100
+    ? ceilProductDivision(
+        component('vertex_prediction_a2_ram_gib_hour')
+          + component('vertex_prediction_management_a2_ram_gib_hour'),
+        vertexBillableMilliseconds,
+        usage.allocatedMemoryGiB,
+        60 * 60 * 1_000,
+      )
+    : ceilProductDivision(
+        component(customJobA100
+          ? 'vertex_training_a2_ram_gib_hour'
+          : 'cloud_run_memory_gib_second'),
+        customJobA100
+          ? vertexBillableMilliseconds
+          : usage.totalBillableMilliseconds,
+        usage.allocatedMemoryGiB,
+        customJobA100 ? 60 * 60 * 1_000 : 1_000,
+      )
   const privateStorageUsdNanos = ceilProductDivision(
     component('private_object_storage_gib_month'),
     usage.privateArtifactBytes,
@@ -994,6 +1025,10 @@ function assertRateForRoute(
   )
   if (rate.routeId !== routeId) throw new Error(
     'Current cloud rate does not match the required GPU route.',
+  )
+  if (routeId === 'a100_80gb_heavy_primary'
+    && !isCanonicalVertexA100ServingRateAuthority(rate)) throw new Error(
+    'Fresh A100 estimates require the scale-zero serving rate authority.',
   )
   return rate
 }

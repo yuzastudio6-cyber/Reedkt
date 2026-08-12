@@ -322,8 +322,9 @@ const l4Standard = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
   runtime.routeId === 'l4_standard_primary')
 check(a100?.accelerator === 'nvidia_a100_80gb' && a100.gpuMemoryGiB === 80, 'Heavy primary must use A100 80 GB.')
 check(
-  a100?.runtimeKind === 'google_cloud_vertex_custom_job',
-  'Heavy A100 primary must use a one-shot Vertex Custom Job.',
+  a100?.runtimeKind ===
+    'google_cloud_vertex_dedicated_prediction_endpoint',
+  'Heavy A100 primary must use the private scale-zero Vertex endpoint.',
 )
 check(l4Fallback?.routeRole === 'heavy_fallback' && l4Fallback.accelerator === 'nvidia_l4', 'Heavy L4 must remain fallback-only.')
 check(

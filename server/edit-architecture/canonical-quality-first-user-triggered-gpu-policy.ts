@@ -6,7 +6,7 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_QUALITY_FIRST_USER_TRIGGERED_GPU_POLICY_VERSION =
-  'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3' as const
+  'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v4' as const
 export const WEEDITPRO_QUALITY_FIRST_SHORT_EDIT_TARGET_VERSION =
   'weeditpro-quality-first-short-edit-target-v2' as const
 
@@ -76,7 +76,7 @@ const acceleratorProfileSchema = z.object({
     'standard_primary',
   ]),
   executionTarget: z.enum([
-    'google_cloud_vertex_custom_job_a2_ultra',
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -86,11 +86,17 @@ const acceleratorProfileSchema = z.object({
   minimumVcpu: z.union([z.literal(12), z.literal(8)]),
   minimumMemoryGiB: z.union([z.literal(170), z.literal(32)]),
   localScratchGiB: z.union([z.literal(375), z.literal(0)]),
-  runtimeKind: z.literal('job'),
+  runtimeKind: z.enum(['dedicated_prediction_endpoint', 'job']),
   minimumIdleInstances: z.literal(0),
   maximumRequestConcurrencyPerInstance: z.literal(1),
   startsOnlyForApprovedWork: z.literal(true),
-  stopsAfterTerminalAttempt: z.literal(true),
+  lifecycleMode: z.enum([
+    'idle_scaledown_to_zero',
+    'terminal_attempt_teardown',
+  ]),
+  stopsAfterTerminalAttempt: z.boolean(),
+  returnsToZeroAfterIdle: z.literal(true),
+  idleScaleDownSeconds: z.union([z.literal(300), z.literal(0)]),
   immutableImageDigestRequired: z.literal(true),
   exactCudaRuntimeRequired: z.literal(true),
   exactModelOrBinaryManifestRequired: z.literal(true),
@@ -101,7 +107,8 @@ const acceleratorProfileSchema = z.object({
 }).strict().superRefine((profile, context) => {
   const a100 = profile.profileId === PROFILE_IDS[0]
   const exact = a100
-    ? profile.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+    ? profile.executionTarget ===
+        'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
       && profile.routeRole === 'heavy_primary'
       && profile.machineType === 'a2-ultragpu-1g'
       && profile.accelerator === 'nvidia_a100_80gb'
@@ -109,6 +116,10 @@ const acceleratorProfileSchema = z.object({
       && profile.minimumVcpu === 12
       && profile.minimumMemoryGiB === 170
       && profile.localScratchGiB === 0
+      && profile.runtimeKind === 'dedicated_prediction_endpoint'
+      && profile.lifecycleMode === 'idle_scaledown_to_zero'
+      && !profile.stopsAfterTerminalAttempt
+      && profile.idleScaleDownSeconds === 300
     : profile.executionTarget === 'google_cloud_run_l4_job'
       && profile.routeRole === (
         profile.profileId === PROFILE_IDS[1]
@@ -121,6 +132,10 @@ const acceleratorProfileSchema = z.object({
       && profile.minimumVcpu === 8
       && profile.minimumMemoryGiB === 32
       && profile.localScratchGiB === 0
+      && profile.runtimeKind === 'job'
+      && profile.lifecycleMode === 'terminal_attempt_teardown'
+      && profile.stopsAfterTerminalAttempt
+      && profile.idleScaleDownSeconds === 0
   if (!exact) {
     context.addIssue({
       code: 'custom',
@@ -205,8 +220,10 @@ const policyWithoutHashSchema = z.object({
   serviceClass: z.literal('quality_first_user_triggered_scale_to_zero_gpu'),
   migration: z.object({
     supersedesPolicyVersion: z.literal(
-      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+      'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
     ),
+    priorVertexCustomJobPolicyRemainsHistoricalReadable: z.literal(true),
+    priorVertexCustomJobPolicyMayAuthorizeNewPlan: z.literal(false),
     priorBatchA100PolicyRemainsHistoricalReadable: z.literal(true),
     priorBatchA100PolicyMayAuthorizeNewPlan: z.literal(false),
     priorL4PrimaryPolicyRemainsHistoricalReadable: z.literal(true),
@@ -250,20 +267,23 @@ const policyWithoutHashSchema = z.object({
     approvedPlanAndWorkTriggerRequired: z.literal(true),
     fundedCreditReservationRequiredBeforeStart: z.literal(true),
     noApprovedWorkMeansNoGpuInstance: z.literal(true),
-    newApprovedUserWorkCreatesBoundedJobAttempt: z.literal(true),
+    newApprovedUserWorkCreatesBoundedGpuAttempt: z.literal(true),
     speculativeBackgroundGpuStartupAllowed: z.literal(false),
     scheduledPrewarmingAllowed: z.literal(false),
     periodicKeepaliveAllowed: z.literal(false),
-    multipleUserAttemptsMayShareGpuInstance: z.literal(false),
-    minimumIdleA100JobCount: z.literal(0),
+    concurrentUserAttemptsMayShareGpuInstance: z.literal(false),
+    sequentialWarmReuseRequiresStatelessIsolation: z.literal(true),
+    minimumIdleA100ReplicaCount: z.literal(0),
     minimumIdleL4JobCount: z.literal(0),
     warmAlwaysOnGpuPoolAllowed: z.literal(false),
     coldStartExpected: z.literal(true),
     coldStartIsMeasuredBillableAttemptTime: z.literal(true),
     modelLoadIsMeasuredBillableAttemptTime: z.literal(true),
-    terminalAttemptStopsWorker: z.literal(true),
+    endpointReturnsToZeroAfterBoundedIdleOrJobStopsAtTerminal:
+      z.literal(true),
     idleGpuBillingAllowed: z.literal(false),
-    maximumPostTerminalShutdownGraceSeconds: z.literal(0),
+    maximumEndpointIdleScaleDownSeconds: z.literal(300),
+    maximumJobPostTerminalShutdownGraceSeconds: z.literal(0),
     jobTimeModelDownloadAllowed: z.literal(false),
     exactPrebuiltImageAndPrivateModelArtifactRequired: z.literal(true),
   }).strict(),
@@ -288,7 +308,7 @@ const policyWithoutHashSchema = z.object({
       z.literal('europe-west4'),
     ]),
     vertexA100Region: z.literal('us-central1'),
-    vertexCustomJobParent: z.literal(
+    vertexDedicatedEndpointParent: z.literal(
       'projects/reeditpro/locations/us-central1',
     ),
     directComputeOrBatchA100MayAuthorizeNewWork: z.literal(false),
@@ -359,7 +379,7 @@ const policyWithoutHashSchema = z.object({
       'authenticated_account_effective_cloud_price_live_reread_and_credit_estimate_bridge',
     ),
     z.literal(
-      'a100_80gb_vertex_custom_job_identity_quota_image_and_runtime_qualification',
+      'a100_80gb_vertex_dedicated_endpoint_identity_quota_image_and_runtime_qualification',
     ),
     z.literal('l4_cloud_run_fallback_identity_quota_image_and_runtime_qualification'),
     z.literal('l4_standard_media_render_qa_identity_image_and_gpu_kernel_qualification'),
@@ -430,7 +450,9 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
     serviceClass: 'quality_first_user_triggered_scale_to_zero_gpu',
     migration: {
       supersedesPolicyVersion:
-        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v2',
+        'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
+      priorVertexCustomJobPolicyRemainsHistoricalReadable: true,
+      priorVertexCustomJobPolicyMayAuthorizeNewPlan: false,
       priorBatchA100PolicyRemainsHistoricalReadable: true,
       priorBatchA100PolicyMayAuthorizeNewPlan: false,
       priorL4PrimaryPolicyRemainsHistoricalReadable: true,
@@ -470,20 +492,22 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
       approvedPlanAndWorkTriggerRequired: true,
       fundedCreditReservationRequiredBeforeStart: true,
       noApprovedWorkMeansNoGpuInstance: true,
-      newApprovedUserWorkCreatesBoundedJobAttempt: true,
+      newApprovedUserWorkCreatesBoundedGpuAttempt: true,
       speculativeBackgroundGpuStartupAllowed: false,
       scheduledPrewarmingAllowed: false,
       periodicKeepaliveAllowed: false,
-      multipleUserAttemptsMayShareGpuInstance: false,
-      minimumIdleA100JobCount: 0,
+      concurrentUserAttemptsMayShareGpuInstance: false,
+      sequentialWarmReuseRequiresStatelessIsolation: true,
+      minimumIdleA100ReplicaCount: 0,
       minimumIdleL4JobCount: 0,
       warmAlwaysOnGpuPoolAllowed: false,
       coldStartExpected: true,
       coldStartIsMeasuredBillableAttemptTime: true,
       modelLoadIsMeasuredBillableAttemptTime: true,
-      terminalAttemptStopsWorker: true,
+      endpointReturnsToZeroAfterBoundedIdleOrJobStopsAtTerminal: true,
       idleGpuBillingAllowed: false,
-      maximumPostTerminalShutdownGraceSeconds: 0,
+      maximumEndpointIdleScaleDownSeconds: 300,
+      maximumJobPostTerminalShutdownGraceSeconds: 0,
       jobTimeModelDownloadAllowed: false,
       exactPrebuiltImageAndPrivateModelArtifactRequired: true,
     },
@@ -504,7 +528,8 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
       approvedPrivateDataLocalRuntimeRegions:
         CANONICAL_QUALITY_FIRST_GPU_REGIONS,
       vertexA100Region: 'us-central1',
-      vertexCustomJobParent: 'projects/reeditpro/locations/us-central1',
+      vertexDedicatedEndpointParent:
+        'projects/reeditpro/locations/us-central1',
       directComputeOrBatchA100MayAuthorizeNewWork: false,
       l4FallbackUsesSameRegionAsPrimary: true,
       l4StandardUsesPrivateDataLocalRegion: true,
@@ -517,7 +542,8 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
       acceleratorProfile({
         profileId: PROFILE_IDS[0],
         routeRole: 'heavy_primary',
-        executionTarget: 'google_cloud_vertex_custom_job_a2_ultra',
+        executionTarget:
+          'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
         machineType: 'a2-ultragpu-1g',
         accelerator: 'nvidia_a100_80gb',
         gpuMemoryGiB: 80,
@@ -648,7 +674,7 @@ CanonicalQualityFirstUserTriggeredGpuPolicy {
     },
     remainingGates: [
       'authenticated_account_effective_cloud_price_live_reread_and_credit_estimate_bridge',
-      'a100_80gb_vertex_custom_job_identity_quota_image_and_runtime_qualification',
+      'a100_80gb_vertex_dedicated_endpoint_identity_quota_image_and_runtime_qualification',
       'l4_cloud_run_fallback_identity_quota_image_and_runtime_qualification',
       'l4_standard_media_render_qa_identity_image_and_gpu_kernel_qualification',
       'same_region_private_object_transport_for_both_gpu_routes',
@@ -705,7 +731,7 @@ function acceleratorProfile(input: {
   profileId: (typeof PROFILE_IDS)[number]
   routeRole: 'heavy_primary' | 'heavy_fallback' | 'standard_primary'
   executionTarget:
-    | 'google_cloud_vertex_custom_job_a2_ultra'
+    | 'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
     | 'google_cloud_run_l4_job'
   machineType: 'a2-ultragpu-1g' | 'cloud_run_nvidia_l4'
   accelerator: 'nvidia_a100_80gb' | 'nvidia_l4'
@@ -714,14 +740,23 @@ function acceleratorProfile(input: {
   minimumMemoryGiB: 170 | 32
   localScratchGiB: 0
 }) {
+  const endpoint = input.executionTarget ===
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
   return {
     ...input,
     gpuCount: 1 as const,
-    runtimeKind: 'job' as const,
+    runtimeKind: endpoint
+      ? 'dedicated_prediction_endpoint' as const
+      : 'job' as const,
     minimumIdleInstances: 0 as const,
     maximumRequestConcurrencyPerInstance: 1 as const,
     startsOnlyForApprovedWork: true as const,
-    stopsAfterTerminalAttempt: true as const,
+    lifecycleMode: endpoint
+      ? 'idle_scaledown_to_zero' as const
+      : 'terminal_attempt_teardown' as const,
+    stopsAfterTerminalAttempt: !endpoint,
+    returnsToZeroAfterIdle: true as const,
+    idleScaleDownSeconds: endpoint ? 300 as const : 0 as const,
     immutableImageDigestRequired: true as const,
     exactCudaRuntimeRequired: true as const,
     exactModelOrBinaryManifestRequired: true as const,
@@ -747,7 +782,7 @@ export function qualityFirstGpuPolicySummary(
     standardGpuStageCount: verified.standardGpuStages.length,
     modelCostProfileCount: verified.modelCostProfiles.length,
     minimumIdleGpuCount:
-      verified.userTriggeredScaleToZeroLifecycle.minimumIdleA100JobCount
+      verified.userTriggeredScaleToZeroLifecycle.minimumIdleA100ReplicaCount
       + verified.userTriggeredScaleToZeroLifecycle.minimumIdleL4JobCount,
     cpuOnlyHeavyExecutionAllowed:
       verified.migration.cpuOnlyHeavyExecutionAllowed,
@@ -756,5 +791,5 @@ export function qualityFirstGpuPolicySummary(
 }
 
 export const CANONICAL_QUALITY_FIRST_GPU_POLICY_SOURCE_NOTE = safeText.parse(
-  'Approved heavy work starts a bounded A100 80 GB job with an independently qualified L4 fallback; normal media, rendering, encoding, and deterministic QA start bounded L4 jobs; zero approved work means zero GPU instances; non-GPU hosts remain control-plane only.',
+  'Approved heavy work activates a private A100 80 GB endpoint from zero with a non-customer readiness trigger and an independently qualified L4 fallback; normal media, rendering, encoding, and deterministic QA start bounded L4 jobs; idle GPU capacity returns to zero; non-GPU hosts remain control-plane only.',
 )

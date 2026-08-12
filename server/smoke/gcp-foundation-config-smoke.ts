@@ -165,8 +165,9 @@ const l4Standard = GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES.find((runtime) =>
   runtime.routeId === 'l4_standard_primary')
 check(Boolean(a100 && l4Fallback && l4Standard), 'The complete quality-first GPU topology must exist.')
 check(
-  a100?.runtimeKind === 'google_cloud_vertex_custom_job',
-  'A100 heavy primary must use a one-shot Vertex Custom Job.',
+  a100?.runtimeKind ===
+    'google_cloud_vertex_dedicated_prediction_endpoint',
+  'A100 heavy primary must use the private scale-zero Vertex endpoint.',
 )
 check(a100?.machineType === 'a2-ultragpu-1g', 'A100 heavy primary must use a2-ultragpu-1g.')
 check(a100?.accelerator === 'nvidia_a100_80gb', 'A100 heavy primary must use NVIDIA A100 80 GB.')
@@ -192,7 +193,17 @@ for (const runtime of GCP_PRODUCTION_QUALITY_FIRST_GPU_RUNTIMES) {
   check(runtime.maximumConcurrentAttemptsPerInstance === 1, `${runtime.routeId} must isolate attempts.`)
   check(runtime.maximumTaskRetries === 0, `${runtime.routeId} must leave retry authority to the canonical owner.`)
   check(runtime.startsOnlyFromConsumedApprovedUserAttempt, `${runtime.routeId} must require approved user work.`)
-  check(runtime.stopsAtTerminalAttempt, `${runtime.routeId} must stop at terminal state.`)
+  check(runtime.returnsToZeroAfterIdle, `${runtime.routeId} must return to zero.`)
+  check(
+    runtime.routeId === 'a100_80gb_heavy_primary'
+      ? runtime.lifecycleMode === 'idle_scaledown_to_zero'
+        && !runtime.stopsAtTerminalAttempt
+        && runtime.idleScaleDownSeconds === 300
+      : runtime.lifecycleMode === 'terminal_attempt_teardown'
+        && runtime.stopsAtTerminalAttempt
+        && runtime.idleScaleDownSeconds === 0,
+    `${runtime.routeId} has the wrong scale-to-zero lifecycle.`,
+  )
   check(!runtime.cpuOnlySubstantiveExecutionAllowed, `${runtime.routeId} must not admit substantive CPU fallback.`)
   check(!runtime.qualityReducingFallbackAllowed, `${runtime.routeId} must not reduce quality.`)
   check(!runtime.runtimeNetworkDownloadAllowed, `${runtime.routeId} must not download models at runtime.`)

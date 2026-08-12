@@ -1,11 +1,14 @@
 # Production Cloud Run Service And Job Plan
 
 > **Current WeEditPro authority:** the historical CPU/L4-first job list in
-> older milestones cannot authorize new work. Heavy processing uses one-shot
-> A100 80 GB Vertex Custom Jobs. Normal substantive media work uses the
+> older milestones cannot authorize new work. Heavy processing targets one
+> private A100 80 GB Vertex dedicated prediction endpoint whose minimum
+> replica count is zero. Normal substantive media work uses the
 > L4 standard-primary Cloud Run Job, and eligible heavy work may use the
 > separately qualified L4 fallback only after an allowed A100 failure. All
-> accelerator routes start from zero and return to zero.
+> accelerator routes start from zero and return to zero. The historical A100
+> Vertex Custom Job remains quality evidence only because its measured cold
+> provisioning exceeded the complete eight-minute target.
 
 ## Backend API Service
 
@@ -22,7 +25,8 @@
 
 | Job | Runtime | Service account | GPU | Notes |
 | --- | --- | --- | --- | --- |
-| Per-attempt A100 heavy primary | Vertex Custom Job | `reeditpro-gpu-worker-sa` | A100 80 GB, 1 GPU | `a2-ultragpu-1g`; created only after exact approved/funded admission and terminally reconciled with no persistent pool. |
+| A100 heavy primary | Vertex dedicated prediction endpoint | `weeditpro-sam31-serving-sa` | A100 80 GB, 1 GPU | `a2-ultragpu-1g`; `minimumReplicaCount=0`, one inference at a time, non-customer readiness trigger, and 300-second idle scale-down. Customer inference remains blocked until 30-run p95 and quality qualification passes. |
+| Historical A100 quality route | Vertex Custom Job | `reeditpro-gpu-worker-sa` | A100 80 GB, 1 GPU | Readback/quality reference only; its measured 3,199,367 ms cold provisioning cannot authorize customer work. |
 | `reeditpro-professional-l4` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Standard-primary normal media/render/encode/inspection/QA route; 8 vCPU, 32 GiB. |
 | `reeditpro-sam31-l4-fallback` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Independently qualified SAM 3.1 heavy fallback only; 8 vCPU, 32 GiB. |
 | Legacy CPU/render/QA jobs | Historical Cloud Run Job templates | Legacy identities | None | Readback/migration only; cannot execute fresh substantive media/model work. |
@@ -47,9 +51,10 @@ The frozen future flow is:
 approved package queue entry
   -> regional Cloud Tasks queue
   -> private authenticated dispatch controller
-  -> Cloud Run Jobs run API
-  -> one exact lightweight-control, A100-heavy, L4-standard,
-     L4-heavy-fallback, or readiness job execution
+  -> exact route owner
+  -> A100 endpoint readiness/invocation or Cloud Run Jobs run API
+  -> one exact A100-heavy, L4-standard, L4-heavy-fallback,
+     lightweight-control, or readiness execution
 ```
 
 Cloud Tasks carries only an opaque dispatch-intent ID, package/job identity,

@@ -27,7 +27,8 @@ export function buildGpuRuntimeEnvironmentChecks(): GpuRuntimeEnvironmentCheck[]
 
   checks.push({
     checkName: 'gpu_a100_80gb_heavy_primary',
-    status: a100?.runtimeKind === 'google_cloud_vertex_custom_job'
+    status: a100?.runtimeKind ===
+      'google_cloud_vertex_dedicated_prediction_endpoint'
       && a100.machineType === 'a2-ultragpu-1g'
       && a100.accelerator === 'nvidia_a100_80gb'
       && a100.gpuMemoryGiB === 80
@@ -35,7 +36,7 @@ export function buildGpuRuntimeEnvironmentChecks(): GpuRuntimeEnvironmentCheck[]
       && a100.allowedZones.length === 0
       ? 'passed'
       : 'blocked',
-    message: 'Heavy models and heavy processing must use one scale-zero A100 80 GB Vertex Custom Job as the primary route.',
+    message: 'Heavy models and heavy processing must use the private scale-zero A100 80 GB Vertex endpoint as the primary route.',
   })
 
   checks.push({
@@ -58,10 +59,15 @@ export function buildGpuRuntimeEnvironmentChecks(): GpuRuntimeEnvironmentCheck[]
       && runtime.maximumConcurrentAttemptsPerInstance === 1
       && runtime.maximumTaskRetries === 0
       && runtime.startsOnlyFromConsumedApprovedUserAttempt
-      && runtime.stopsAtTerminalAttempt)
+      && runtime.returnsToZeroAfterIdle
+      && (runtime.routeId === 'a100_80gb_heavy_primary'
+        ? runtime.lifecycleMode === 'idle_scaledown_to_zero'
+          && runtime.idleScaleDownSeconds === 300
+        : runtime.lifecycleMode === 'terminal_attempt_teardown'
+          && runtime.stopsAtTerminalAttempt))
       ? 'passed'
       : 'blocked',
-    message: 'Every A100/L4 attempt must start from approved user work, run in isolation, and return to zero at terminal state.',
+    message: 'Every A100/L4 attempt must start from approved user work, run in isolation, and return to zero through its exact endpoint-idle or terminal-job lifecycle.',
   })
 
   checks.push({

@@ -6,7 +6,7 @@ Status: `superseded_historical_a100_reference`
 This v2 receipt remains immutable historical evidence for the `5bbb...`
 production-image run. It is no longer the L4 comparison authority. The current
 L4 qualifier derives its exact A100 image/task/result reference from
-`canonical-quality-first-a100-fast-scale-zero-migration-v1`, whose later
+`canonical-quality-first-a100-fast-scale-zero-migration-v2`, whose later
 `6f019...` A100 run also exposed that Vertex Custom Job cold provisioning took
 3,199,367 ms and therefore cannot serve customer traffic. The rejected route
 remains a quality reference only; it does not authorize new A100 dispatch.

@@ -95,6 +95,10 @@ const primaryAdmission = admitCanonicalProfessionalToolGpuDispatch({
 })
 assert.equal(primaryAdmission.admittedAttemptOrdinal, 1)
 assert.equal(primaryAdmission.minimumIdleInstances, 0)
+assert.equal(primaryAdmission.stopAtTerminalAttempt, false)
+assert.equal(primaryAdmission.scaleToZeroDisposition,
+  'endpoint_idle_scaledown')
+assert.equal(primaryAdmission.idleScaleDownSeconds, 300)
 assert.equal(primaryAdmission.workDispatched, false)
 assert.equal(primaryAdmission.gpuHostCpuOnlyExecutionMaySatisfyAdmission, false)
 
@@ -271,7 +275,7 @@ function release(input: {
     routeId: input.routeId,
     runtimeRegion: 'us-central1' as const,
     executionTarget: a100Route
-      ? 'google_cloud_vertex_custom_job_a2_ultra' as const
+      ? 'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const
       : 'google_cloud_run_l4_job' as const,
     machineType: a100Route
       ? 'a2-ultragpu-1g' as const
@@ -311,7 +315,12 @@ function release(input: {
     maximumConcurrentAttemptsPerInstance: 1 as const,
     prewarmingKeepaliveOrAlwaysOnPoolAllowed: false as const,
     startsOnlyFromCreateOnlyApprovedUserAttempt: true as const,
-    stopsAtTerminalAttempt: true as const,
+    stopsAtTerminalAttempt: !a100Route,
+    lifecycleMode: a100Route
+      ? 'idle_scaledown_to_zero' as const
+      : 'terminal_attempt_teardown' as const,
+    returnsToZeroAfterIdle: true as const,
+    idleScaleDownSeconds: a100Route ? 300 as const : 0 as const,
     qualificationRunCount: input.contractOnly ? 1 : 30,
     qualifiedAt: '2026-08-02T16:05:00.000Z',
     expiresAt: '2026-09-01T16:05:00.000Z',

@@ -7,16 +7,22 @@ import {
   type CanonicalCurrentGoogleCloudVertexA100RateAuthority,
 } from './canonical-current-google-cloud-vertex-a100-rate-authority'
 import {
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+} from './canonical-current-google-cloud-vertex-a100-serving-rate-authority'
+import {
   assertPlainSerializedData,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 
 /**
  * Current execution pricing is an additive union: the A100 primary consumes
- * the exact Vertex AI training SKU authority, while L4 routes consume the
- * existing Cloud Run GPU authority. Historical Compute/Batch A100 rates stay
- * readable by their original parser but cannot authorize a current plan.
+ * the exact Vertex online-prediction plus management SKU authority, while L4
+ * routes consume the existing Cloud Run GPU authority. The prior Vertex
+ * Custom Job authority remains readable for historical attempt settlement but
+ * cannot authorize a new plan.
  */
 export type CanonicalProfessionalGoogleCloudGpuRateAuthority =
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
   | CanonicalCurrentGoogleCloudVertexA100RateAuthority
   | CanonicalCurrentGoogleCloudGpuRateAuthority
 
@@ -29,6 +35,13 @@ export function assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     throw new Error('Professional Google Cloud GPU rate is invalid.')
   }
   const target = Reflect.get(value, 'executionTarget')
+  if (target ===
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra') {
+    return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
+      value,
+      at,
+    )
+  }
   if (target === 'google_cloud_vertex_custom_job_a2_ultra') {
     return assertCanonicalCurrentGoogleCloudVertexA100RateAuthority(value, at)
   }
@@ -40,6 +53,13 @@ export function assertCanonicalProfessionalGoogleCloudGpuRateAuthority(
     'Historical Compute/Batch A100 pricing cannot authorize current work.',
   )
   return rate
+}
+
+export function isCanonicalVertexA100ServingRateAuthority(
+  value: CanonicalProfessionalGoogleCloudGpuRateAuthority,
+): value is CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority {
+  return value.executionTarget ===
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
 }
 
 export function isCanonicalVertexA100RateAuthority(

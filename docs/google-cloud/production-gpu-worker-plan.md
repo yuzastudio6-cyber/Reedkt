@@ -29,7 +29,7 @@ inference occurred. RTX PRO 6000 is not part of the current placement or
 fallback policy.
 
 The source of truth for the current A100 route migration and closed admission
-is `canonical-quality-first-a100-fast-scale-zero-migration-v1`. Official cloud
+is `canonical-quality-first-a100-fast-scale-zero-migration-v2`. Official cloud
 capability documentation is planning evidence, not runtime qualification. No
 candidate selection, production route, or customer-credit mutation exists
 until the measured release gates pass.

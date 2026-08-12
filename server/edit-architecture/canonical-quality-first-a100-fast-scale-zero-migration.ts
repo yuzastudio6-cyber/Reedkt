@@ -6,7 +6,7 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_QUALITY_FIRST_A100_FAST_SCALE_ZERO_MIGRATION_VERSION =
-  'canonical-quality-first-a100-fast-scale-zero-migration-v1' as const
+  'canonical-quality-first-a100-fast-scale-zero-migration-v2' as const
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
@@ -28,7 +28,7 @@ const vertexEndpointCandidateSchema = z.object({
     'google_cloud_vertex_prediction_scale_to_zero_min_replica_zero_2026_06',
   ),
   executionTarget: z.literal(
-    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra_min_zero',
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
   ),
   machineType: z.literal('a2-ultragpu-1g'),
   accelerator: z.literal('nvidia_a100_80gb'),
@@ -242,7 +242,7 @@ CanonicalQualityFirstA100FastScaleZeroMigration {
         officialCapabilityObservationId:
           'google_cloud_vertex_prediction_scale_to_zero_min_replica_zero_2026_06',
         executionTarget:
-          'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra_min_zero',
+          'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
         machineType: 'a2-ultragpu-1g',
         accelerator: 'nvidia_a100_80gb',
         gpuCount: 1,

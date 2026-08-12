@@ -12,10 +12,10 @@ import {
   type CanonicalGoogleCloudGpuRateRawObservation,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
-  CANONICAL_VERTEX_A100_RATE_COMPONENT_CLASSES,
-  observeCanonicalCurrentGoogleCloudVertexA100RateAuthority,
-  type CanonicalGoogleCloudVertexA100RateRawObservation,
-} from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-rate-authority'
+  CANONICAL_VERTEX_A100_SERVING_RATE_COMPONENT_CLASSES,
+  observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  type CanonicalGoogleCloudVertexA100ServingRateRawObservation,
+} from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 const observedAt = '2026-08-02T16:00:00.000Z'
@@ -342,12 +342,12 @@ async function observe(
   readerCharacter = '7',
 ) {
   if (routeId === 'a100_80gb_heavy_primary') {
-    return observeCanonicalCurrentGoogleCloudVertexA100RateAuthority({
-      rateAuthorityId: 'current-vertex-a100-rate-v1',
+    return observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority({
+      rateAuthorityId: 'current-vertex-a100-serving-rate-v1',
       rateAuthorityVersion: 1,
       readPort: {
-        async readCurrentVertexA100Rate() {
-          return vertexA100RawObservation(
+        async readCurrentVertexA100ServingRate() {
+          return vertexA100ServingRawObservation(
             billingAccountCharacter,
             readerCharacter,
           )
@@ -372,19 +372,21 @@ async function observe(
   })
 }
 
-function vertexA100RawObservation(
+function vertexA100ServingRawObservation(
   billingAccountCharacter = '8',
   readerCharacter = '7',
-): CanonicalGoogleCloudVertexA100RateRawObservation {
+): CanonicalGoogleCloudVertexA100ServingRateRawObservation {
   const components = [
-    vertexComponent('vertex_training_a100_80gb_hour', 'gpu_hour',
+    vertexComponent('vertex_prediction_a100_80gb_hour', 'gpu_hour',
       'h', 4_517_292_000, 'a'),
-    vertexComponent('vertex_training_a2_core_hour', 'vcpu_hour',
+    vertexComponent('vertex_prediction_a2_core_hour', 'vcpu_hour',
       'h', 36_352_650, 'b'),
-    vertexComponent('vertex_training_a2_ram_gib_hour', 'gib_hour',
+    vertexComponent('vertex_prediction_a2_ram_gib_hour', 'gib_hour',
       'GiBy.h', 4_872_550, 'c'),
-    vertexComponent('vertex_training_pd_ssd_gib_month', 'gib_month',
-      'GiBy.mo', 195_500_000, 'd'),
+    vertexComponent('vertex_prediction_management_a2_core_hour',
+      'vcpu_hour', 'h', 3_635_265, 'd'),
+    vertexComponent('vertex_prediction_management_a2_ram_gib_hour',
+      'gib_hour', 'GiBy.h', 487_255, '3'),
     vertexComponent('private_object_storage_gib_month', 'gib_month',
       'GiBy.mo', 20_000_000, 'e'),
     vertexComponent('network_egress_gib', 'gib',
@@ -395,7 +397,7 @@ function vertexA100RawObservation(
       'count', 400_000, '2', '1000'),
   ]
   assert.deepEqual(components.map((value) => value.componentClass),
-    CANONICAL_VERTEX_A100_RATE_COMPONENT_CLASSES)
+    CANONICAL_VERTEX_A100_SERVING_RATE_COMPONENT_CLASSES)
   const payload = {
     sourceClass: 'billing_account_effective_pricing_api' as const,
     billingAccountPricingScopeRef:
@@ -403,12 +405,14 @@ function vertexA100RawObservation(
     pricingReaderConfigurationRef:
       ref('gpu-rate-reader-configuration', readerCharacter),
     routeId: 'a100_80gb_heavy_primary' as const,
-    executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
-    pricingSetMode: 'vertex_training_payg_usage_skus' as const,
+    executionTarget:
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,
+    pricingSetMode:
+      'vertex_online_prediction_usage_plus_management_skus' as const,
     region: 'us-central1' as const,
     currency: 'USD' as const,
     components,
-    priceRecordSetRef: ref('vertex-a100-price-record-set', '9'),
+    priceRecordSetRef: ref('vertex-a100-serving-price-record-set', '9'),
     pricingReadStartedAt: '2026-08-02T15:59:55.000Z',
     pricingReadFinishedAt: observedAt,
   }
@@ -420,7 +424,7 @@ function vertexA100RawObservation(
 
 function vertexComponent(
   componentClass:
-    typeof CANONICAL_VERTEX_A100_RATE_COMPONENT_CLASSES[number],
+    typeof CANONICAL_VERTEX_A100_SERVING_RATE_COMPONENT_CLASSES[number],
   billingUnit:
     | 'gpu_hour' | 'vcpu_hour' | 'gib_hour' | 'gib_month' | 'gib'
     | 'per_1000_operations',
@@ -429,9 +433,9 @@ function vertexComponent(
   character: string,
   apiUnitQuantity = '1',
 ) {
-  const cloudServiceName = componentClass.startsWith('vertex_training')
+  const cloudServiceName = componentClass.startsWith('vertex_prediction')
     ? 'vertex-ai' : 'cloud-storage'
-  const cloudServiceId = componentClass.startsWith('vertex_training')
+  const cloudServiceId = componentClass.startsWith('vertex_prediction')
     ? 'services/aiplatform.googleapis.com'
     : 'services/storage.googleapis.com'
   const skuId = `sku-${componentClass}`

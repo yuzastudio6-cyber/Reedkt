@@ -49,6 +49,7 @@ export interface GcpQualityFirstGpuRuntimeTemplate {
   runtimeKind:
     | 'google_cloud_batch_job'
     | 'google_cloud_vertex_custom_job'
+    | 'google_cloud_vertex_dedicated_prediction_endpoint'
     | 'google_cloud_run_job'
   routeRole: 'heavy_primary' | 'heavy_fallback' | 'standard_primary'
   serviceAccountKey: Extract<GcpProductionServiceAccountKey, 'gpu_ai_worker'>
@@ -66,7 +67,10 @@ export interface GcpQualityFirstGpuRuntimeTemplate {
   maximumConcurrentAttemptsPerInstance: 1
   maximumTaskRetries: 0
   startsOnlyFromConsumedApprovedUserAttempt: true
-  stopsAtTerminalAttempt: true
+  lifecycleMode: 'idle_scaledown_to_zero' | 'terminal_attempt_teardown'
+  stopsAtTerminalAttempt: boolean
+  returnsToZeroAfterIdle: true
+  idleScaleDownSeconds: 0 | 300
   runtimeNetworkDownloadAllowed: false
   cpuOnlySubstantiveExecutionAllowed: false
   qualityReducingFallbackAllowed: false
@@ -159,7 +163,7 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
   {
     routeId: 'a100_80gb_heavy_primary',
     name: 'reeditpro-sam31-a100-primary',
-    runtimeKind: 'google_cloud_vertex_custom_job',
+    runtimeKind: 'google_cloud_vertex_dedicated_prediction_endpoint',
     routeRole: 'heavy_primary',
     serviceAccountKey: 'gpu_ai_worker',
     imageName: 'reeditpro-sam31-gpu',
@@ -176,7 +180,10 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     maximumConcurrentAttemptsPerInstance: 1,
     maximumTaskRetries: 0,
     startsOnlyFromConsumedApprovedUserAttempt: true,
-    stopsAtTerminalAttempt: true,
+    lifecycleMode: 'idle_scaledown_to_zero',
+    stopsAtTerminalAttempt: false,
+    returnsToZeroAfterIdle: true,
+    idleScaleDownSeconds: 300,
     runtimeNetworkDownloadAllowed: false,
     cpuOnlySubstantiveExecutionAllowed: false,
     qualityReducingFallbackAllowed: false,
@@ -184,7 +191,8 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     productionQualified: false,
     notes: [
       'Primary route for SAM 3.1 and every other approved heavy model or heavy processing profile.',
-      'Each approved attempt creates one bounded Vertex AI Custom Job; no persistent resource, idle A100 pool, or prewarming is allowed.',
+      'The dedicated Vertex AI endpoint keeps minimumReplicaCount zero, uses a non-customer readiness trigger, admits one inference at a time, and scales back to zero after 300 idle seconds.',
+      'The historical one-shot Vertex Custom Job route is quality evidence only because its measured provisioning latency exceeded the complete eight-minute target.',
     ],
   },
   {
@@ -207,7 +215,10 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     maximumConcurrentAttemptsPerInstance: 1,
     maximumTaskRetries: 0,
     startsOnlyFromConsumedApprovedUserAttempt: true,
+    lifecycleMode: 'terminal_attempt_teardown',
     stopsAtTerminalAttempt: true,
+    returnsToZeroAfterIdle: true,
+    idleScaleDownSeconds: 0,
     runtimeNetworkDownloadAllowed: false,
     cpuOnlySubstantiveExecutionAllowed: false,
     qualityReducingFallbackAllowed: false,
@@ -238,7 +249,10 @@ readonly GcpQualityFirstGpuRuntimeTemplate[] = Object.freeze([
     maximumConcurrentAttemptsPerInstance: 1,
     maximumTaskRetries: 0,
     startsOnlyFromConsumedApprovedUserAttempt: true,
+    lifecycleMode: 'terminal_attempt_teardown',
     stopsAtTerminalAttempt: true,
+    returnsToZeroAfterIdle: true,
+    idleScaleDownSeconds: 0,
     runtimeNetworkDownloadAllowed: false,
     cpuOnlySubstantiveExecutionAllowed: false,
     qualityReducingFallbackAllowed: false,
@@ -255,7 +269,7 @@ export const GCP_PRODUCTION_LEGACY_CLOUD_RUN_JOB_TEMPLATES = Object.freeze({
   historicalReadbackOnly: true,
   mayAuthorizeNewWork: false,
   replacementTopology:
-    'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v3',
+    'canonical-quality-first-user-triggered-scale-to-zero-gpu-policy-v4',
 })
 
 export const GCP_PRODUCTION_BUCKETS: GcpProductionBucketTemplate[] = [

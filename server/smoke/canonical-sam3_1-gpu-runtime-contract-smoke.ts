@@ -39,27 +39,27 @@ assert.equal(
 )
 assert.match(
   l4Qualifier,
-  /task\.runtimeRequest\.modelArtifacts\.immutableImageDigest !==\s*BASELINE_IMAGE_DIGEST/u,
+  /task\.runtimeRequest\.modelArtifacts\.immutableImageDigest !==\s*qualification\.immutableImageDigest/u,
 )
 assert.match(
   l4Qualifier,
-  /task\.runtimeRequest\.modelArtifacts\.immutableImageReleaseRef\.contentHash !==\s*BASELINE_IMAGE_DIGEST/u,
+  /task\.runtimeRequest\.modelArtifacts\.immutableImageReleaseRef\.contentHash !==\s*qualification\.immutableImageDigest/u,
 )
 assert.match(
   l4Qualifier,
-  /qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST/u,
+  /qualifiedA100ServingImageDigest:\s*expectedImageDigest/u,
 )
 assert.match(
   l4Qualifier,
-  /createCanonicalQualityFirstA100FastScaleZeroMigration/u,
+  /createCanonicalSam31VertexServingThirtyRunQualificationRepository/u,
 )
 assert.match(
   l4Qualifier,
-  /const EXPECTED_IMAGE_DIGEST = A100_QUALITY_REFERENCE\.immutableImageDigest/u,
+  /const expectedImageDigest = a100ServingQualification\.immutableImageDigest/u,
 )
 assert.match(
   l4Qualifier,
-  /const BASELINE_IMAGE_DIGEST = A100_QUALITY_REFERENCE\.immutableImageDigest/u,
+  /const A100_SERVING_QUALIFICATION_RECEIPT_HASH =/u,
 )
 assert.doesNotMatch(
   l4Qualifier,
@@ -67,7 +67,7 @@ assert.doesNotMatch(
 )
 assert.match(
   l4Qualifier,
-  /gpuMemoryProfileId:\s*'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4'/u,
+  /gpuMemoryProfileId:\s*'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5'/u,
 )
 
 const request = buildCanonicalSam31GpuRuntimeRequest({
@@ -429,6 +429,8 @@ class FakeTracker:
 
 class FakeModel:
     tracker = FakeTracker()
+    use_batched_grounding = True
+    batched_grounding_batch_size = 16
     postprocess_batch_size = 16
 
 class FakePredictor:
@@ -444,6 +446,8 @@ if a100_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
     raise AssertionError("A100 unexpectedly enabled temporal-memory trim")
 if a100_predictor.model.postprocess_batch_size != 16:
     raise AssertionError("A100 postprocess batch changed")
+if a100_predictor.model.batched_grounding_batch_size != 16:
+    raise AssertionError("A100 grounding batch changed")
 l4_predictor = FakePredictor()
 l4_profile = runner.configure_gpu_memory_profile(l4_predictor, "nvidia_l4")
 if l4_profile != (runner.L4_GPU_MEMORY_PROFILE, True):
@@ -452,6 +456,8 @@ if not l4_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
     raise AssertionError("L4 temporal-memory trim was not enabled")
 if l4_predictor.model.postprocess_batch_size != 1:
     raise AssertionError("L4 postprocess was not streamed one frame at a time")
+if l4_predictor.model.batched_grounding_batch_size != 1:
+    raise AssertionError("L4 grounding was not streamed one frame at a time")
 payload = json.load(sys.stdin)
 runner.validate_model_artifacts(payload["v1"])
 runner.validate_model_artifacts(payload["v2"])
@@ -899,7 +905,7 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
   settings: {
     ...request.settings,
     gpuMemoryProfileId:
-      'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4',
+      'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5',
   },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')

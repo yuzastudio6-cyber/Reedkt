@@ -105,7 +105,7 @@ MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4"
+    "l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -1413,17 +1413,23 @@ def configure_gpu_memory_profile(
 
     L4 keeps frames, model state, accessible temporal memories, inference, and
     outputs on CUDA. It propagates each approved object in canonical object-ID
-    order through a fresh CUDA session, while reducing the upstream postprocess
-    batch from 16 frames to one streamed frame. This bounds the official
+    order through a fresh CUDA session, while reducing both upstream frame
+    batches that otherwise retain 16 full-resolution frames: grounding and
+    postprocessing each stream one frame at a time. This bounds the official
     frame-16 reconditioning peak without changing resolution, temporal coverage,
-    or the seven-frame memory policy. It also enables the upstream forward-VOS
-    trim that removes heavy non-conditioning outputs after they fall outside the
-    exact num_maskmem window. A100 retains the upstream full-state multiplex,
-    16-frame postprocess policy.
+    model precision, or the seven-frame memory policy. It also enables the
+    upstream forward-VOS trim that removes heavy non-conditioning outputs after
+    they fall outside the exact num_maskmem window. A100 retains the upstream
+    full-state multiplex, 16-frame grounding and postprocess policy.
     """
     model = getattr(predictor, "model", None)
     tracker = getattr(model, "tracker", None)
-    if tracker is None or getattr(model, "postprocess_batch_size", None) != 16:
+    if (
+        tracker is None
+        or getattr(model, "postprocess_batch_size", None) != 16
+        or getattr(model, "batched_grounding_batch_size", None) != 16
+        or getattr(model, "use_batched_grounding", None) is not True
+    ):
         raise RuntimeError("SAM 3.1 tracker memory policy is unavailable")
     if (
         getattr(tracker, "forward_backbone_per_frame_for_eval", None) is not True
@@ -1437,9 +1443,11 @@ def configure_gpu_memory_profile(
         return A100_GPU_MEMORY_PROFILE, False
     if requested_accelerator == "nvidia_l4":
         tracker.trim_past_non_cond_mem_for_eval = True
+        model.batched_grounding_batch_size = 1
         model.postprocess_batch_size = 1
         if (
             tracker.trim_past_non_cond_mem_for_eval is not True
+            or model.batched_grounding_batch_size != 1
             or model.postprocess_batch_size != 1
         ):
             raise RuntimeError("SAM 3.1 L4 GPU memory trim was not applied")

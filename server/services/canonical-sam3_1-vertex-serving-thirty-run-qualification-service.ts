@@ -491,7 +491,6 @@ export function createCanonicalGcpSam31VertexServingThirtyRunQualificationServic
           await semanticPort.rereadExactServingSemanticManifest({
             task,
             response,
-            servingResult: acceptedResult,
             outputEvidence,
           })
         return { result: acceptedResult, output: acceptedOutput, task,

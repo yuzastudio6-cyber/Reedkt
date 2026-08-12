@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 
 import { Storage, type File } from '@google-cloud/storage'
-import { GoogleAuth } from 'google-auth-library'
+import type { OAuth2Client } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
@@ -17,8 +17,10 @@ import {
   canonicalProfessionalGpuJobLaunchSchema,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
-  createCanonicalQualityFirstA100FastScaleZeroMigration,
-} from '../edit-architecture/canonical-quality-first-a100-fast-scale-zero-migration'
+  assertCanonicalSam31VertexServingThirtyRunQualification,
+  createCanonicalSam31VertexServingThirtyRunQualificationRepository,
+  type CanonicalSam31VertexServingThirtyRunQualification,
+} from '../services/canonical-sam3_1-vertex-serving-thirty-run-qualification-service'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -30,8 +32,10 @@ import {
   createCanonicalSam31GcsPrivateOutputRereadPort,
 } from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
 import {
+  createCanonicalSam31GcsServingSemanticManifestRereadPort,
+} from '../workers/masks/canonical-sam3_1-gcs-serving-semantic-manifest-reader'
+import {
   assertCanonicalSam31PrivateOutputRereadEvidence,
-  assertCanonicalSam31GpuRuntimeResultAdmission,
   createCanonicalSam31GpuRuntimeResultStoreFromObjectPort,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -42,6 +46,10 @@ import {
   assertCanonicalSam31GpuTaskRecord,
   canonicalSam31GpuTaskRecordSchema,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import {
+  createWeEditProGcpLocalOperatorAuth,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+} from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =
   'qualify-weeditpro-sam31-l4-heavy-fallback-private-v1' as const
@@ -51,25 +59,18 @@ const JOB_NAME = 'reeditpro-sam31-l4-fallback' as const
 const JOB_RESOURCE =
   `projects/${PROJECT_ID}/locations/${REGION}/jobs/${JOB_NAME}` as const
 const RUN_ORIGIN = 'https://run.googleapis.com' as const
-const RUN_SCOPE = 'https://www.googleapis.com/auth/cloud-platform' as const
 const MASK_BUCKET = 'reeditpro-production-reeditpro-masks' as const
 const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const INVOCATION_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations' as const
 const QUALIFICATION_PREFIX =
-  'private/sam3_1/l4-runtime-qualification/v1' as const
-const A100_QUALITY_REFERENCE =
-  createCanonicalQualityFirstA100FastScaleZeroMigration()
-    .historicalVertexCustomJobObservation
-const EXPECTED_IMAGE_DIGEST = A100_QUALITY_REFERENCE.immutableImageDigest
-const EXPECTED_IMAGE =
-  `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${EXPECTED_IMAGE_DIGEST}` as const
-const BASELINE_IMAGE_DIGEST = A100_QUALITY_REFERENCE.immutableImageDigest
-const BASELINE_INVOCATION_ID = A100_QUALITY_REFERENCE.taskRef.id
-const BASELINE_TASK_HASH = A100_QUALITY_REFERENCE.taskRef.contentHash.slice(7)
-const BASELINE_RESULT_ADMISSION_HASH =
-  A100_QUALITY_REFERENCE.resultAdmissionRef.contentHash.slice(7)
+  'private/sam3_1/l4-runtime-qualification/v2' as const
+const A100_SERVING_QUALIFICATION_SET_ID =
+  'sam31-a100-serving-thirty-run-release-candidate-20260812-v1' as const
+const A100_SERVING_QUALIFICATION_RECEIPT_HASH = (
+  '4e373c6f3c41dc0fc9dc680fbb013942d855fb71761d5c0216ef1d5abe5532b3'
+) as const
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
 const CHECKPOINT_SIZE = 3_502_755_717 as const
@@ -89,12 +90,16 @@ const evidenceRefSchema = z.object({
   contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
 }).strict()
 
-type AuthRequest = Pick<GoogleAuth, 'request'>
+type AuthRequest = Pick<OAuth2Client, 'request'>
 
 async function main() {
   if (process.env.WEEDITPRO_CONFIRM_SAM31_L4_PRIVATE_QUALIFICATION !==
     CONFIRMATION) {
     throw new Error('exact_sam31_l4_qualification_confirmation_missing')
+  }
+  if (process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH !==
+    WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE) {
+    throw new Error('exact_gcp_local_operator_auth_confirmation_missing')
   }
   const qualificationId = safeId.parse(
     process.env.WEEDITPRO_SAM31_L4_QUALIFICATION_ID,
@@ -102,22 +107,14 @@ async function main() {
   const runOrdinal = runOrdinalSchema.parse(
     process.env.WEEDITPRO_SAM31_L4_RUN_ORDINAL,
   )
-  const storage = new Storage({ projectId: PROJECT_ID })
-  const auth = new GoogleAuth({ scopes: [RUN_SCOPE] })
+  const { authClient: auth, storage } = createWeEditProGcpLocalOperatorAuth({
+    confirmation: process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
+  })
   const now = new Date().toISOString()
   const suffix = `${qualificationId}.run-${String(runOrdinal).padStart(2, '0')}`
   const admissionId = `sam31-l4-qualification:${suffix}`
   const invocationId = `${admissionId}.execution`
 
-  const job = assertExactJob(await getJson(
-    auth,
-    `${RUN_ORIGIN}/v2/${JOB_RESOURCE}`,
-  ))
-  const beforeExecutions = await listExecutions(auth)
-  if (activeExecutions(beforeExecutions).length !== 0) {
-    throw new Error('sam31_l4_job_not_scaled_to_zero_before_start')
-  }
-  const checkpoint = await rereadRuntimeCheckpoint(storage)
   const controlObjectPort = createCanonicalGcsSourceAnalysisJsonObjectPort({
     storage,
     bucketName: CONTROL_PLANE_BUCKET,
@@ -126,14 +123,36 @@ async function main() {
     storage,
     bucketName: MASK_BUCKET,
   })
+  const a100ReceiptRepository =
+    createCanonicalSam31VertexServingThirtyRunQualificationRepository({
+      objectPort: controlObjectPort,
+    })
+  const a100ServingQualification =
+    assertExactA100ServingQualification(
+      await a100ReceiptRepository.reread({
+        qualificationSetId: A100_SERVING_QUALIFICATION_SET_ID,
+      }),
+    )
+  const expectedImageDigest = a100ServingQualification.immutableImageDigest
+  const expectedImage =
+    `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/`
+    + `reeditpro-sam31-gpu@${expectedImageDigest}`
+  const job = assertExactJob(await getJson(
+    auth,
+    `${RUN_ORIGIN}/v2/${JOB_RESOURCE}`,
+  ), expectedImage)
+  const beforeExecutions = await listExecutions(auth)
+  if (activeExecutions(beforeExecutions).length !== 0) {
+    throw new Error('sam31_l4_job_not_scaled_to_zero_before_start')
+  }
+  const checkpoint = await rereadRuntimeCheckpoint(storage)
   const rateRepository =
     createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository({
       objectPort: controlObjectPort,
     })
-  const baseTask = await rereadBaselineTask(privateObjectPort)
-  const baselineResult = await rereadBaselineResult(
+  const baseTask = await rereadBaselineTask(
     privateObjectPort,
-    baseTask,
+    a100ServingQualification,
   )
   const l4Rate = await rateRepository.rereadApprovedCurrentRate({
     rateAuthorityRef: baseTask.fallbackRateAuthorityRef,
@@ -149,12 +168,10 @@ async function main() {
     {
       job: jobProjection,
       checkpoint,
-      imageDigest: EXPECTED_IMAGE_DIGEST,
-      qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST,
-      qualifiedA100BaselineResultRef: ref(
-        baselineResult.resultAdmissionId,
-        baselineResult.resultAdmissionHash,
-      ),
+      imageDigest: expectedImageDigest,
+      qualifiedA100ServingImageDigest: expectedImageDigest,
+      qualifiedA100ServingQualificationRef:
+        a100ServingQualificationRef(a100ServingQualification),
     },
   )
   const priorPrimaryQualificationNonExecutionRef = opaqueRef(
@@ -169,7 +186,7 @@ async function main() {
     },
   )
   const admissionPayload = {
-    schemaVersion: 'canonical-sam3_1-l4-runtime-qualification-admission-v1',
+    schemaVersion: 'canonical-sam3_1-l4-runtime-qualification-admission-v2',
     source: 'canonical_server_sam3_1_l4_runtime_qualification_owner',
     evidenceClass: 'canonical_private_reread',
     admissionId,
@@ -177,15 +194,13 @@ async function main() {
     runOrdinal,
     operationId: 'tool.sam3_1.segment_and_track_subject.v1',
     routeId: 'l4_heavy_fallback',
-    immutableImageDigest: EXPECTED_IMAGE_DIGEST,
+    immutableImageDigest: expectedImageDigest,
     runtimeCandidateReleaseRef: candidateReleaseRef,
     sourceCheckpointQualificationRef:
       baseTask.specializedRuntimeReleaseRef,
-    qualifiedA100BaselineResultRef: ref(
-      baselineResult.resultAdmissionId,
-      baselineResult.resultAdmissionHash,
-    ),
-    qualifiedA100BaselineImageDigest: BASELINE_IMAGE_DIGEST,
+    qualifiedA100ServingQualificationRef:
+      a100ServingQualificationRef(a100ServingQualification),
+    qualifiedA100ServingImageDigest: expectedImageDigest,
     currentA100RateAuthorityRef: baseTask.primaryRateAuthorityRef,
     currentL4FallbackRateAuthorityRef: baseTask.fallbackRateAuthorityRef,
     checkpointPromotionRef: checkpoint.checkpointPromotionRef,
@@ -329,7 +344,7 @@ async function main() {
     runtimeRegion: REGION,
     executionTarget: 'google_cloud_run_l4_job',
     accelerator: 'nvidia_l4',
-    immutableImageDigest: EXPECTED_IMAGE_DIGEST,
+    immutableImageDigest: expectedImageDigest,
     cloudJobCreateRequestRef: opaqueRef(
       `sam31-l4-cloud-run-request:${suffix}`,
       { operationName: operation.name, invocationId },
@@ -410,9 +425,36 @@ async function main() {
     stableAuthorityStringify(outputEvidence)) {
     throw new Error('sam31_l4_output_evidence_reread_changed')
   }
+  const gpuEvidence = response.gpuEvidence
+  if (!gpuEvidence
+    || gpuEvidence.requestedAccelerator !== 'nvidia_l4'
+    || !gpuEvidence.cudaKernelExecutionMeasured
+    || !gpuEvidence.nvdecHardwareDecodeMeasured
+    || !gpuEvidence.bfloat16AutocastUsed
+    || gpuEvidence.cpuOnlyInferenceUsed) {
+    throw new Error('sam31_l4_exact_gpu_execution_evidence_missing')
+  }
+  const semanticManifest =
+    await createCanonicalSam31GcsServingSemanticManifestRereadPort({
+      storage,
+      projectId: PROJECT_ID,
+      bucketName: MASK_BUCKET,
+    }).rereadExactServingSemanticManifest({
+      task,
+      response,
+      outputEvidence,
+    })
+  if (semanticManifest.semanticMaskSetDigestSha256 !==
+    a100ServingQualification.semanticMaskSetDigestSha256
+    || semanticManifest.propagatedFrameCount !==
+      a100ServingQualification.propagatedFrameCountPerRun
+    || semanticManifest.maskFileCount !==
+      a100ServingQualification.maskFileCountPerRun) {
+    throw new Error('sam31_l4_mask_set_differs_from_a100_serving_baseline')
+  }
 
   const receiptPayload = {
-    schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v1',
+    schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v2',
     source: 'canonical_server_sam3_1_l4_runtime_qualification_owner',
     evidenceClass: 'canonical_private_l4_cuda_execution_exact_reread',
     status: 'ready_for_terminal_cost_and_independent_mask_quality',
@@ -426,10 +468,8 @@ async function main() {
     cloudRunOperationName: operation.name,
     cloudRunExecutionResource: execution.name,
     currentL4FallbackRateAuthorityRef: baseTask.fallbackRateAuthorityRef,
-    qualifiedA100BaselineResultRef: ref(
-      baselineResult.resultAdmissionId,
-      baselineResult.resultAdmissionHash,
-    ),
+    qualifiedA100ServingQualificationRef:
+      a100ServingQualificationRef(a100ServingQualification),
     runtimeCandidateReleaseRef: candidateReleaseRef,
     checkpointPromotionRef: checkpoint.checkpointPromotionRef,
     runtimeResponseRef: opaqueRef(
@@ -437,7 +477,10 @@ async function main() {
       response,
     ),
     privateOutputRereadEvidenceRef: outputEvidenceRef,
-    immutableImageDigest: EXPECTED_IMAGE_DIGEST,
+    semanticManifestRef: semanticManifest.manifestRef,
+    semanticMaskSetDigestSha256:
+      semanticManifest.semanticMaskSetDigestSha256,
+    immutableImageDigest: expectedImageDigest,
     observedAccelerator: response.gpuEvidence?.requestedAccelerator,
     observedDriverVersion: response.gpuEvidence?.observedNvidiaDriverVersion,
     observedCudaRuntimeVersion:
@@ -450,6 +493,7 @@ async function main() {
     scaleFromZeroObserved: activeExecutions(beforeExecutions).length === 0,
     terminalWorkerStoppedAndScaleBackToZeroVerified: true,
     exactTaskResponseAndEveryOutputMaskReread: true,
+    exactDeterministicProbeMaskSetMatchesA100ServingQualification: true,
     accountEffectiveRateRereadBeforeDispatch: true,
     terminalPlatformUsageAndCostReceiptPending: true,
     independentTemporalMaskQualityPending: true,
@@ -486,57 +530,56 @@ async function main() {
 
 async function rereadBaselineTask(objectPort: ReturnType<
   typeof createCanonicalGcsSourceAnalysisJsonObjectPort
->) {
+>, qualification: CanonicalSam31VertexServingThirtyRunQualification) {
+  const baseline = qualification.deterministicRuns[1]
+  if (!baseline || baseline.runOrdinal !== 2
+    || baseline.terminalEvidenceMode !==
+      'provider_prediction_and_private_response') {
+    throw new Error('approved_a100_serving_baseline_run_missing')
+  }
   const body = await objectPort.readExact(
-    `${INVOCATION_PREFIX}/${BASELINE_INVOCATION_ID}/task.json`,
+    `${INVOCATION_PREFIX}/${baseline.invocationId}/task.json`,
   )
   if (!body) throw new Error('approved_a100_baseline_task_missing')
   const task = assertCanonicalSam31GpuTaskRecord(
     JSON.parse(body.toString('utf8')) as unknown,
   )
-  if (task.taskRecordHash !== BASELINE_TASK_HASH
+  if (task.taskRecordHash !== baseline.taskRef.contentHash.slice(7)
+    || task.invocationId !== baseline.invocationId
     || task.runtimeRequest.dispatch.routeRole !==
       'a100_80gb_heavy_primary'
     || task.runtimeRequest.modelArtifacts.immutableImageDigest !==
-      BASELINE_IMAGE_DIGEST
+      qualification.immutableImageDigest
     || task.runtimeRequest.modelArtifacts.immutableImageReleaseRef.contentHash !==
-      BASELINE_IMAGE_DIGEST) {
+      qualification.immutableImageDigest) {
     throw new Error('approved_a100_baseline_task_changed')
   }
   return task
 }
 
-async function rereadBaselineResult(
-  objectPort: ReturnType<
-    typeof createCanonicalGcsSourceAnalysisJsonObjectPort
-  >,
-  task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>,
-) {
-  const body = await objectPort.readExact(
-    `${INVOCATION_PREFIX}/${BASELINE_INVOCATION_ID}/result-admission.json`,
-  )
-  if (!body) throw new Error('approved_a100_baseline_result_missing')
-  const result = assertCanonicalSam31GpuRuntimeResultAdmission(
-    JSON.parse(body.toString('utf8')) as unknown,
-  )
-  if (
-    result.resultAdmissionHash !== BASELINE_RESULT_ADMISSION_HASH
-    || result.routeId !== 'a100_80gb_heavy_primary'
-    || result.accelerator !== 'nvidia_a100_80gb'
-    || result.status !== 'ready_for_independent_mask_artifact_qa'
-    || result.taskRef.contentHash !== `sha256:${task.taskRecordHash}`
-    || result.specializedRuntimeReleaseRef.contentHash !==
-      task.specializedRuntimeReleaseRef.contentHash
-    || result.actualNvdecCudaBfloat16ExecutionVerified !== true
-    || result.exactTaskResponseLaunchTerminalAndOutputReread !== true
-    || result.accountEffectiveAttemptCostReceiptPersisted !== true
-    || result.terminalWorkerStoppedAndScaleBackToZeroVerified !== true
-    || result.customerCreditsMutated !== false
-    || result.productionAuthorityGranted !== false
-  ) {
-    throw new Error('approved_a100_baseline_result_changed')
+function assertExactA100ServingQualification(value: unknown) {
+  const receipt =
+    assertCanonicalSam31VertexServingThirtyRunQualification(value)
+  if (receipt.qualificationSetId !== A100_SERVING_QUALIFICATION_SET_ID
+    || receipt.receiptHash !== A100_SERVING_QUALIFICATION_RECEIPT_HASH
+    || receipt.status !==
+      'qualified_for_l4_quality_and_performance_comparison'
+    || receipt.deterministicOutputRunCount !== 30
+    || receipt.measuredPerformanceRunCount !== 30
+    || !receipt.allThirtyDeterministicOutputsSemanticallyIdentical
+    || !receipt.allThirtyPerformanceMeasurementsUseExactPredictionReceipts
+    || !receipt.exactTaskResponseOutputManifestAndMaskEvidenceReread
+    || receipt.l4FallbackQualified
+    || receipt.productionAuthorityGranted) {
+    throw new Error('approved_a100_serving_qualification_changed')
   }
-  return result
+  return receipt
+}
+
+function a100ServingQualificationRef(
+  receipt: CanonicalSam31VertexServingThirtyRunQualification,
+) {
+  return ref(receipt.qualificationSetId, receipt.receiptHash)
 }
 
 async function rereadRuntimeCheckpoint(storage: Storage) {
@@ -728,7 +771,7 @@ function buildL4QualificationTask(input: {
     settings: {
       ...baseRequest.settings,
       gpuMemoryProfileId:
-        'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v4',
+        'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5',
     },
     byteFreeRequest: true,
     callerCodePathUrlCommandOrEnvironmentAccepted: false,
@@ -935,7 +978,7 @@ function activeExecutions(executions: readonly ReturnType<
   return executions.filter((execution) => !execution.completionTime)
 }
 
-function assertExactJob(value: unknown) {
+function assertExactJob(value: unknown, expectedImage: string) {
   const job = z.object({
     name: z.literal(JOB_RESOURCE),
     uid: z.string().uuid(),
@@ -945,7 +988,7 @@ function assertExactJob(value: unknown) {
       taskCount: z.literal(1),
       template: z.object({
         containers: z.array(z.object({
-          image: z.literal(EXPECTED_IMAGE),
+          image: z.string().min(1),
           env: z.array(z.object({ name: z.string(), value: z.string() })
             .strict()),
           resources: z.object({
@@ -993,7 +1036,8 @@ function assertExactJob(value: unknown) {
       item.value,
     ]),
   )
-  if (stableAuthorityStringify(env) !== stableAuthorityStringify({
+  if (job.template.template.containers[0]!.image !== expectedImage
+    || stableAuthorityStringify(env) !== stableAuthorityStringify({
     REEDITPRO_ENV: 'production',
     WEEDITPRO_GPU_ACCELERATOR_CLASS: 'nvidia_l4',
     WORKER_GROUP: 'l4_heavy_fallback',

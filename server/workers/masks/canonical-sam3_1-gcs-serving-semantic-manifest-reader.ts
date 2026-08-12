@@ -4,10 +4,6 @@ import { Storage, type File, type FileMetadata } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
-  assertCanonicalSam31VertexServingQualificationResult,
-  type CanonicalSam31VertexServingQualificationResult,
-} from '../../services/canonical-sam3_1-vertex-serving-qualification-invocation-service'
-import {
   stableAuthorityStringify,
 } from '../../services/private-edit-authority-store'
 import {
@@ -95,7 +91,6 @@ export interface CanonicalSam31ServingSemanticManifestRereadPort {
   rereadExactServingSemanticManifest(input: {
     readonly task: CanonicalSam31GpuTaskRecord
     readonly response: CanonicalSam31GpuRuntimeResponse
-    readonly servingResult: CanonicalSam31VertexServingQualificationResult
     readonly outputEvidence: CanonicalSam31PrivateOutputRereadEvidence
   }): Promise<CanonicalSam31ServingSemanticManifestEvidence>
 }
@@ -119,7 +114,6 @@ export function createCanonicalSam31GcsServingSemanticManifestRereadPort(
     async rereadExactServingSemanticManifest(untrusted: {
       readonly task: CanonicalSam31GpuTaskRecord
       readonly response: CanonicalSam31GpuRuntimeResponse
-      readonly servingResult: CanonicalSam31VertexServingQualificationResult
       readonly outputEvidence: CanonicalSam31PrivateOutputRereadEvidence
     }) {
       const task = assertCanonicalSam31GpuTaskRecord(untrusted.task)
@@ -127,10 +121,6 @@ export function createCanonicalSam31GcsServingSemanticManifestRereadPort(
         request: task.runtimeRequest,
         response: untrusted.response,
       })
-      const servingResult =
-        assertCanonicalSam31VertexServingQualificationResult(
-          untrusted.servingResult,
-        )
       const outputEvidence = assertCanonicalSam31PrivateOutputRereadEvidence(
         untrusted.outputEvidence,
       )
@@ -142,9 +132,7 @@ export function createCanonicalSam31GcsServingSemanticManifestRereadPort(
       })
       const manifest = manifestSchema.parse(parseJson(manifestObject))
       const manifestSha256 = rawSha256(manifestObject)
-      if (servingResult.invocationId !== task.invocationId
-        || servingResult.disposition !== 'completed'
-        || response.status !== 'completed'
+      if (response.status !== 'completed'
         || !response.outputSummary
         || response.outputSummary.exactPrivateRereadPending !== true
         || manifest.operationId !== task.runtimeRequest.operationId

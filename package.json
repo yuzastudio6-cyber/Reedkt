@@ -358,6 +358,8 @@
     "rollout:sam3_1-l4-qualification-job-image": "tsx server/cli/rollout-canonical-sam3_1-l4-qualification-job-image.ts",
     "qualify:sam3_1-l4-runtime": "tsx server/cli/qualify-canonical-sam3_1-l4-runtime.ts",
     "compile:sam3_1-l4-runtime-thirty-run-qualification": "tsx server/cli/compile-canonical-sam3_1-l4-runtime-thirty-run-qualification.ts",
+    "reconcile:sam3_1-l4-qualification-attempt-costs": "tsx server/cli/reconcile-canonical-sam3_1-l4-qualification-attempt-costs.ts",
+    "smoke:sam3_1-l4-qualification-attempt-cost": "tsx server/smoke/canonical-sam3_1-l4-qualification-attempt-cost-smoke.ts",
     "compile:sam3_1-gpu-runtime-driver-qualification": "tsx server/cli/compile-canonical-sam3_1-gpu-runtime-driver-qualification.ts",
     "compile:sam3_1-gpu-runtime-deterministic-qualification": "tsx server/cli/compile-canonical-sam3_1-gpu-runtime-deterministic-qualification.ts",
     "publish:sam3_1-a100-foundation-observation": "tsx server/cli/publish-sam3_1-a100-qualification-foundation.ts --execute",

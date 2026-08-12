@@ -452,6 +452,10 @@ for (const requiredRunnerFragment of [
   'getattr(os, "O_NOFOLLOW", 0)',
   'prompt["promptFrameIndex"] != 0',
   'NvdecSampler()',
+  'NVDEC_UTILIZATION_OBSERVATION_GRACE_SECONDS = 2.0',
+  'self._ready = threading.Event()',
+  'if not self._ready.wait(timeout=5):',
+  'time.monotonic() < deadline',
   'GpuComputeSampler()',
   'strict_checkpoint_load=True',
   'return_cuda_output_tensors=True',
@@ -468,6 +472,7 @@ for (const requiredRunnerFragment of [
   '"CPU fallback" in details',
   'SAM 3.1 observed no CUDA/NVDEC video decode',
   'nvdec_utilization_not_observed',
+  'nvdec_sampler_initialization_timeout',
 ]) assert(
   sam31Runner.includes(requiredRunnerFragment),
   `SAM 3.1 runner is missing ${requiredRunnerFragment}`,
@@ -718,7 +723,7 @@ assert.throws(() => assertCanonicalSam31SourceRuntimeCandidate(wrongHash))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-source-runtime-candidate',
-  checks: 149,
+  checks: 154,
   operationId: candidate.operationId,
   sourceRevision: candidate.officialSource.sourceRevision,
   checkpointRevision: candidate.officialCheckpoint.repositoryRevision,

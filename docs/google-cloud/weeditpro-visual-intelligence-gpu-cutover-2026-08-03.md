@@ -1054,3 +1054,31 @@ Legacy visual and CPU processing runtimes are now absent and their five live
 identities are retired; the private-search control plane is independently
 isolated. The implementation must not weaken or silently bypass the remaining
 gates.
+
+## 2026-08-12 L4 qualification-set restart correction
+
+- The first L4 cross-accelerator qualification set stopped at execution 16.
+  Executions 1 through 15 completed, but execution resource
+  `reeditpro-sam31-l4-fallback-xbj7s` failed closed during session start with
+  `nvdec_utilization_not_observed`. TorchCodec had loaded all 200 source frames
+  on CUDA, but the asynchronously started NVML decoder sampler observed only
+  zero-percent samples during the sub-second decode window.
+- That partial set is diagnostic only. None of its 15 successful executions
+  may be combined with a successor set or counted toward a release. The next
+  L4 qualification must use a distinct qualification ID, a newly qualified
+  immutable image, and executions 1 through 30 from that one image.
+- The source correction now blocks decode until the NVML sampler has
+  initialized against the exact accelerator handle and retains a bounded
+  two-second post-decode observation window for the provider-controlled NVML
+  sampling period. It still requires positive NVDEC utilization, CUDA-resident
+  decoded frames, the pinned TorchCodec GPU backend, and the existing no-CPU-
+  fallback guard. It does not replay decode, reduce input quality, or accept a
+  caller assertion.
+- The terminal-cost owner derives each qualification attempt from the exact
+  Cloud Run operation/execution terminal reread, the exact worker run receipt,
+  and the current billing-account-effective L4 rate. It records the full
+  create-to-completion billable window, fixed allocation, bounded private
+  storage operations, account-effective infrastructure cost, required invoice
+  reconciliation, and zero customer credits for platform-funded
+  qualification. It grants no runtime, QA, billing-ledger, public-delivery, or
+  production authority.

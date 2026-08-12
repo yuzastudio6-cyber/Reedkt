@@ -126,6 +126,7 @@ FORBIDDEN_TEXT = re.compile(
     re.IGNORECASE,
 )
 GPU_DECODE_BACKEND_OBSERVATIONS: list[str] = []
+NVDEC_UTILIZATION_OBSERVATION_GRACE_SECONDS = 2.0
 
 
 def verify_ffmpeg_nvdec_runtime() -> None:
@@ -2091,6 +2092,7 @@ def load_fixed_nvml_binding() -> FixedNvmlBinding:
 class NvdecSampler:
     def __init__(self) -> None:
         self._stop = threading.Event()
+        self._ready = threading.Event()
         self._samples: list[int] = []
         self._error: Exception | None = None
         self._thread: threading.Thread | None = None
@@ -2102,6 +2104,9 @@ class NvdecSampler:
                 nvml.initialize()
                 try:
                     handle = nvml.device_handle()
+                    # The decode must not begin until NVML is initialized and
+                    # the exact accelerator handle is ready to be sampled.
+                    self._ready.set()
                     while not self._stop.is_set():
                         self._samples.append(
                             nvml.decoder_utilization_percent(handle)
@@ -2111,11 +2116,39 @@ class NvdecSampler:
                     nvml.shutdown()
             except Exception as error:  # evidence failure blocks the attempt
                 self._error = error
+            finally:
+                # Unblock start on initialization failure as well. The caller
+                # rereads _error below and fails closed before any decode.
+                self._ready.set()
 
         self._thread = threading.Thread(target=sample, daemon=True)
         self._thread.start()
+        if not self._ready.wait(timeout=5):
+            self._stop.set()
+            self._thread.join(timeout=5)
+            raise RuntimeError("NVDEC sampler initialization timed out")
+        if self._error is not None:
+            self._stop.set()
+            self._thread.join(timeout=5)
+            raise self._error
 
     def stop_and_verify(self) -> int:
+        # NVML reports decoder utilization over a provider-controlled sampling
+        # period. The 200-frame CUDA decode can complete in well under that
+        # period, so stopping the sampler immediately can produce a false zero
+        # even though TorchCodec returned CUDA-resident frames. Keep the sampler
+        # alive for one short, bounded post-decode observation window; this does
+        # not decode again, change model input, or weaken the positive NVDEC
+        # utilization requirement.
+        deadline = (
+            time.monotonic() + NVDEC_UTILIZATION_OBSERVATION_GRACE_SECONDS
+        )
+        while (
+            self._error is None
+            and (not self._samples or max(self._samples) <= 0)
+            and time.monotonic() < deadline
+        ):
+            time.sleep(0.02)
         self._stop.set()
         if self._thread is not None:
             self._thread.join(timeout=5)
@@ -2987,6 +3020,9 @@ def failure_diagnostic_code(error: Exception) -> str:
         "TorchCodec GPU decode guard was installed twice": "decode_guard_duplicate",
         "NVDEC hardware utilization was not observed": (
             "nvdec_utilization_not_observed"
+        ),
+        "NVDEC sampler initialization timed out": (
+            "nvdec_sampler_initialization_timeout"
         ),
         "pytorch_cuda_import_failed": "pytorch_cuda_import_failed",
         "cuda_availability_probe_failed": "cuda_availability_probe_failed",

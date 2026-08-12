@@ -28,6 +28,7 @@ SAM31_IMAGE_SUPPLY_CHAIN_RELEASE_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/priv
 SAM31_A100_SERVING_THIRTY_RUN_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/canonical-professional-gpu/v1/sam3_1-vertex-serving-thirty-run-qualifications"
 SAM31_L4_THIRTY_RUN_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/sam3_1/l4-runtime-qualification/v3/thirty-run-qualifications"
 GEMINI_LIVE_EXECUTION_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/visual-intelligence/qualifications/gemini-billing-sku/v1/executions"
+GEMINI_MODEL_SKU_QUALIFICATION_PREFIX="gs://${CONTROL_PLANE_STATE_BUCKET}/private/visual-intelligence/qualifications/gemini-billing-sku/v1/reconciliations"
 MASK_BUCKET='reeditpro-production-reeditpro-masks'
 PRIVATE_SEARCH_SERVICE='reeditpro-staging-private-searxng'
 PRIVATE_SEARCH_IDENTITY='reeditpro-private-search-sa@reeditpro.iam.gserviceaccount.com'
@@ -879,9 +880,70 @@ gemini_live_execution_observation="$(jq -n \
             $latest.billingExportReconciliationPending
         } end
       ),
-      modelSkuCompatibilityQualificationObserved: false,
       runtimeReleaseGrantedByThisObservation: false,
       ready: (($executed | length) >= 1)
+    }')"
+
+gemini_model_sku_qualification_records="$(
+  read_bounded_json_record_set "${GEMINI_MODEL_SKU_QUALIFICATION_PREFIX}" 128
+)"
+gemini_model_sku_qualification_observation="$(jq -n \
+  --argjson records "${gemini_model_sku_qualification_records}" \
+  'def prefixed_sha: test("^sha256:[a-f0-9]{64}$");
+  def exact_skus:
+    ["EAC4-305F-1249", "8308-9CED-8950", "2737-2D33-D986",
+     "E0A5-FB5D-79F4", "8A47-3936-DC92", "3CE8-93F8-3C8F"];
+  def exact_rates:
+    ["standard_uncached_input", "standard_cached_input",
+     "standard_output_and_thinking", "long_uncached_input",
+     "long_cached_input", "long_output_and_thinking"];
+  [$records[] | select(
+    .schemaVersion == "visual-intelligence-model-billing-sku-qualification-v1"
+    and .evidenceClass ==
+      "live_isolated_vertex_usage_and_billing_export_reconciliation"
+    and .exactModelId == "gemini-3.1-pro-preview"
+    and .vertexLocation == "global"
+    and .throughputClass == "standard"
+    and .providerServiceId == "services/C7E2-9256-1C43"
+    and .billingSkuFamily == "gemini_3_0_pro_shared_billing_family"
+    and .billingSkuCatalogVersion ==
+      "weeditpro-gemini-3_1-pro-standard-global-sku-catalog-v1"
+    and .contextThresholdInputTokens == 200000
+    and .wholeRequestLongContextRatesRequired == true
+    and .qualifiedRateClasses == exact_rates
+    and .exactSkuIds == exact_skus
+    and .liveGeminiStandardContextRequestExecuted == true
+    and .liveGeminiLongContextRequestExecuted == true
+    and .exactReturnedModelIdVerified == true
+    and .exactProviderUsageMetadataReread == true
+    and .isolatedBillingWindowVerified == true
+    and .noOtherModelOrSkuTrafficInObservationWindow == true
+    and .detailedBillingExportExactReread == true
+    and .exactStandardAndLongSkuMappingVerified == true
+    and .publicListPriceUsed == false
+    and .providerDispatchAuthorityGranted == false
+    and .customerPricingOrServiceFeeAuthorityGranted == false
+    and .walletOrCreditMutationAuthorityGranted == false
+    and .productionReleaseAuthorityGranted == false
+    and (.qualificationDigestSha256 | type == "string" and prefixed_sha)
+  )] as $qualified
+  | ($qualified | sort_by(.billingExportFreshThroughIso) | last // null)
+    as $latest
+  | {
+      recordsObserved: ($records | length),
+      qualifiedRecordsObserved: ($qualified | length),
+      latestQualification: (
+        if $latest == null then null else {
+          qualificationId: $latest.qualificationId,
+          exactModelId: $latest.exactModelId,
+          qualificationDigestSha256: $latest.qualificationDigestSha256,
+          billingExportFreshThroughIso: $latest.billingExportFreshThroughIso
+        } end
+      ),
+      publicListPriceUsed: false,
+      customerCreditsMutated: false,
+      runtimeReleaseGrantedByThisObservation: false,
+      ready: (($qualified | length) >= 1)
     }')"
 
 a100_serving_thirty_run_records="$(
@@ -1028,6 +1090,22 @@ repository_policy="$(read_json_or_empty gcloud artifacts repositories get-iam-po
 
 project_policy="$(read_json_or_empty gcloud projects get-iam-policy \
   "${PROJECT_ID}" --format=json)"
+billing_export_job_user_bound="$(policy_has_member_role \
+  "${project_policy}" 'roles/bigquery.jobUser' \
+  "serviceAccount:${API_SERVICE_ACCOUNT}")"
+billing_export_dataset_reader_bound="$(jq -r \
+  --arg email "${API_SERVICE_ACCOUNT}" \
+  'any(.access[]?; .role == "READER" and .userByEmail == $email)' \
+  <<<"${billing_export_dataset_metadata}")"
+billing_export_foundation="$(jq -c \
+  --argjson jobUserBound "${billing_export_job_user_bound}" \
+  --argjson datasetReaderBound "${billing_export_dataset_reader_bound}" \
+  '. + {
+    canonicalApiBigQueryJobUserBound: $jobUserBound,
+    canonicalApiDatasetReaderBound: $datasetReaderBound,
+    reconcilerIamReady: ($jobUserBound and $datasetReaderBound),
+    ready: (.ready and $jobUserBound and $datasetReaderBound)
+  }' <<<"${billing_export_foundation}")"
 a100_qualification_identity="$(service_account_observation \
   "${A100_QUALIFICATION_SERVICE_ACCOUNT}")"
 a100_qualification_identity_policy="$(read_json_or_empty \
@@ -1423,7 +1501,7 @@ signing_key="$(jq -n \
   }')"
 
 jq -n \
-  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v21' \
+  --arg audit 'weeditpro-visual-intelligence-live-prerequisites-v22' \
   --arg observedAt "${observed_at}" \
   --arg projectId "${PROJECT_ID}" \
   --arg region "${REGION}" \
@@ -1448,6 +1526,7 @@ jq -n \
   --argjson vertexSourceQualification "${vertex_qualification_release_observation}" \
   --argjson imageSupplyChainRelease "${qualification_image_supply_chain_release_observation}" \
   --argjson geminiLiveExecution "${gemini_live_execution_observation}" \
+  --argjson geminiModelSkuQualification "${gemini_model_sku_qualification_observation}" \
   --argjson a100ServingThirtyRun "${a100_serving_thirty_run_observation}" \
   --argjson l4ThirtyRun "${l4_thirty_run_observation}" \
   --argjson accountPricing "${account_pricing_json}" \
@@ -1625,8 +1704,9 @@ jq -n \
     imageSupplyChainReleaseObserved: $imageSupplyChainRelease.ready,
     liveGeminiUsageQualification: $geminiLiveExecution,
     liveGeminiQualificationObserved: $geminiLiveExecution.ready,
+    geminiModelSkuCompatibilityQualification: $geminiModelSkuQualification,
     modelSkuCompatibilityQualificationObserved:
-      $geminiLiveExecution.modelSkuCompatibilityQualificationObserved,
+      $geminiModelSkuQualification.ready,
     sam31A100ServingThirtyRunQualification: $a100ServingThirtyRun,
     sam31L4ThirtyRunQualification: $l4ThirtyRun,
     liveGpuQualificationObserved: (

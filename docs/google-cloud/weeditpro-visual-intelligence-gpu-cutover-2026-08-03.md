@@ -726,7 +726,7 @@ invocation of this operator boundary.
   `npm run publish:visual-intelligence-account-effective-rate`. It requires an
   exact immutable private qualification coordinate and server-only billing
   account resource. Those values never enter a browser or worker payload.
-- The v21 read-only cloud audit now proves the canonical API identity can read
+- The v22 read-only cloud audit now proves the canonical API identity can read
   all six billing-account-effective Gemini price SKUs through short-lived
   service-account impersonation. Public list price is still not settlement
   authority. Four bounded live execution receipts are observed; the latest
@@ -1038,17 +1038,17 @@ gate is the missing Detailed Usage Cost and Pricing export tables needed for
 the now-implemented exact reconciliation; public list prices are not accepted
 as settlement authority.
 
-The account-effective GPU rate reader is now a versioned multi-region
-configuration. It binds the A100 heavy primary and normal L4 route to
-`us-central1`, while the independently qualified SAM 3.1 L4 heavy fallback is
-bound to `europe-west4`. Cloud Run L4 GPU, Jobs CPU, Jobs memory, and regional
-storage SKU identities are distinct for those two regions; the publisher
-observes all three routes under one exact billing-account scope before any
-create-only rate authority is persisted. The L4 deployment template uses the
-same fixed `europe-west4` fallback coordinate. This source alignment does not
-substitute public list prices for account-effective prices and starts no paid
-GPU job; live publication still requires the authenticated billing-account
-price reread.
+The account-effective GPU rate reader is versioned and currently binds A100
+heavy primary, L4 normal primary, and independently qualified SAM 3.1 L4 heavy
+fallback to the existing `us-central1` runtime foundation. Cloud Run L4 GPU,
+Jobs CPU, Jobs memory, and regional storage SKU identities remain distinct;
+the publisher observes all three routes under one exact billing-account scope
+before any create-only rate authority is persisted. The L4 deployment and
+qualification owners use that same fixed `us-central1` coordinate. A future
+regional move requires new versioned route/rate/qualification evidence; it
+cannot relabel this release. This source alignment does not substitute public
+list prices for account-effective prices and starts no paid GPU job; live
+publication still requires the authenticated billing-account price reread.
 
 Legacy visual and CPU processing runtimes are now absent and their five live
 identities are retired; the private-search control plane is independently

@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   assertPlainSerializedData,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
@@ -13,9 +16,9 @@ import {
 } from './canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_WINDOW_USAGE_VERSION =
-  'canonical-sam3_1-vertex-serving-window-usage-v1' as const
+  'canonical-sam3_1-vertex-serving-window-usage-v2' as const
 export const CANONICAL_SAM3_1_VERTEX_SERVING_WINDOW_COST_RECEIPT_VERSION =
-  'canonical-sam3_1-vertex-serving-window-cost-receipt-v1' as const
+  'canonical-sam3_1-vertex-serving-window-cost-receipt-v2' as const
 export const WEEDITPRO_USD_NANOS_PER_CREDIT = 100_000_000 as const
 export const SAM3_1_VERTEX_MINIMUM_WARM_WINDOW_MILLISECONDS = 300_000 as const
 
@@ -98,7 +101,9 @@ const usageWithoutHashSchema = z.object({
   endpointResourceName: z.literal(
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
   ),
-  deployedModelId: z.literal('3101000001'),
+  deployedModelId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  ),
   routeId: z.literal('a100_80gb_heavy_primary'),
   machineType: z.literal('a2-ultragpu-1g'),
   accelerator: z.literal('nvidia_a100_80gb'),
@@ -351,7 +356,7 @@ export function createCanonicalSam31VertexServingWindowUsage(input: {
     endpointDeploymentRef: input.endpointDeploymentRef,
     endpointResourceName:
       'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-    deployedModelId: '3101000001',
+    deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
     routeId: 'a100_80gb_heavy_primary',
     machineType: 'a2-ultragpu-1g',
     accelerator: 'nvidia_a100_80gb',

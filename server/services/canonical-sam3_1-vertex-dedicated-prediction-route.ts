@@ -2,6 +2,15 @@ import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+
+import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
@@ -9,14 +18,13 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_DEDICATED_PREDICTION_ROUTE_VERSION =
-  'canonical-sam3_1-vertex-dedicated-prediction-route-v1' as const
+  'canonical-sam3_1-vertex-dedicated-prediction-route-v2' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
-const ENDPOINT_RESOURCE =
-  'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+const ENDPOINT_RESOURCE = CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE
 const NUMERIC_ENDPOINT_RESOURCE =
-  'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
-const DEPLOYED_MODEL_ID = '3101000001' as const
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_ENDPOINT_RESOURCE
+const DEPLOYED_MODEL_ID = CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const dedicatedDns = z.string().regex(
@@ -90,6 +98,13 @@ export async function rereadCanonicalSam31VertexDedicatedPredictionRoute(
     dedicatedEndpointDns: dedicatedDns,
     deployedModels: z.array(z.object({
       id: z.literal(DEPLOYED_MODEL_ID),
+      model: z.enum([
+        CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+        CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
+      ]),
+      modelVersionId: z.literal(
+        CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+      ).optional().default(CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID),
     }).passthrough()).length(1),
     trafficSplit: z.record(z.string(), z.number().int().nonnegative().safe()),
   }).passthrough().parse(response.data)

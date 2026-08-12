@@ -40,6 +40,8 @@ import {
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_VERSION =
   'canonical-sam3_1-vertex-serving-thirty-run-qualification-v1' as const
+export const CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_V2_VERSION =
+  'canonical-sam3_1-vertex-serving-thirty-run-qualification-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_BUCKET =
@@ -119,7 +121,7 @@ interface AuthorityRef {
   readonly contentHash: string
 }
 
-interface CanonicalSam31VertexServingThirtyRunQualificationWithoutHash {
+interface CanonicalSam31VertexServingThirtyRunQualificationV1WithoutHash {
   readonly schemaVersion:
     typeof CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_VERSION
   readonly source:
@@ -161,12 +163,64 @@ interface CanonicalSam31VertexServingThirtyRunQualificationWithoutHash {
   readonly compiledAt: string
 }
 
-export interface CanonicalSam31VertexServingThirtyRunQualification
-  extends CanonicalSam31VertexServingThirtyRunQualificationWithoutHash {
+export interface CanonicalSam31VertexServingThirtyRunQualificationV1
+  extends CanonicalSam31VertexServingThirtyRunQualificationV1WithoutHash {
   readonly receiptHash: string
 }
 
-const receiptWithoutHashBaseSchema = z.object({
+interface CanonicalSam31VertexServingThirtyRunQualificationV2WithoutHash {
+  readonly schemaVersion:
+    typeof CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_V2_VERSION
+  readonly source:
+    'canonical_server_sam3_1_vertex_serving_thirty_run_qualification_owner'
+  readonly evidenceClass: 'canonical_private_exact_output_and_prediction_reread'
+  readonly status: 'qualified_for_l4_quality_and_performance_comparison'
+  readonly qualificationSetId: string
+  readonly deterministicQualificationId: string
+  readonly latencyReplacementQualificationId: null
+  readonly routeId: 'a100_80gb_heavy_primary'
+  readonly accelerator: 'nvidia_a100_80gb'
+  readonly immutableImageDigest: string
+  readonly deterministicRuns:
+    readonly CanonicalSam31VertexServingThirtyRunDeterministicRun[]
+  readonly performanceRuns:
+    readonly CanonicalSam31VertexServingThirtyRunPerformanceRun[]
+  readonly semanticMaskSetDigestSha256: string
+  readonly deterministicOutputRunCount: 30
+  readonly measuredPerformanceRunCount: 30
+  readonly recoveredOutputRunCount: 0
+  readonly propagatedFrameCountPerRun: 200
+  readonly maskFileCountPerRun: 400
+  readonly exactMaskFileCountRereadAcrossDeterministicRuns: 12_000
+  readonly nearestRankP95Milliseconds: number
+  readonly minimumMeasuredMilliseconds: number
+  readonly maximumMeasuredMilliseconds: number
+  readonly maximumAllowedP95Milliseconds: typeof MAXIMUM_P95_MILLISECONDS
+  readonly allThirtyDeterministicOutputsSemanticallyIdentical: true
+  readonly allThirtyPerformanceMeasurementsUseExactPredictionReceipts: true
+  readonly everyPerformanceRunUsesItsOwnPredictionReceipt: true
+  readonly recoveredRunExcludedFromLatencyAndReplacedExplicitly: false
+  readonly exactTaskResponseOutputManifestAndMaskEvidenceReread: true
+  readonly customerInvocationAuthorized: false
+  readonly customerCreditsMutated: false
+  readonly qaApproved: false
+  readonly l4FallbackQualified: false
+  readonly runtimeReleaseGranted: false
+  readonly publicDeliveryAuthorized: false
+  readonly productionAuthorityGranted: false
+  readonly compiledAt: string
+}
+
+export interface CanonicalSam31VertexServingThirtyRunQualificationV2
+  extends CanonicalSam31VertexServingThirtyRunQualificationV2WithoutHash {
+  readonly receiptHash: string
+}
+
+export type CanonicalSam31VertexServingThirtyRunQualification =
+  | CanonicalSam31VertexServingThirtyRunQualificationV1
+  | CanonicalSam31VertexServingThirtyRunQualificationV2
+
+const receiptV1WithoutHashBaseSchema = z.object({
   schemaVersion: z.literal(
     CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_VERSION,
   ),
@@ -208,9 +262,9 @@ const receiptWithoutHashBaseSchema = z.object({
   productionAuthorityGranted: z.literal(false),
   compiledAt: timestamp,
 }).strict()
-const receiptWithoutHashSchema = (
-  receiptWithoutHashBaseSchema as unknown as z.ZodType<
-    CanonicalSam31VertexServingThirtyRunQualificationWithoutHash
+const receiptV1WithoutHashSchema = (
+  receiptV1WithoutHashBaseSchema as unknown as z.ZodType<
+    CanonicalSam31VertexServingThirtyRunQualificationV1WithoutHash
   >
 ).superRefine((value, context) => {
   const deterministicOrder = value.deterministicRuns.every((run, index) =>
@@ -273,6 +327,99 @@ const receiptWithoutHashSchema = (
     })
   }
 })
+const receiptV2WithoutHashBaseSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_V2_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_sam3_1_vertex_serving_thirty_run_qualification_owner',
+  ),
+  evidenceClass: z.literal(
+    'canonical_private_exact_output_and_prediction_reread',
+  ),
+  status: z.literal('qualified_for_l4_quality_and_performance_comparison'),
+  qualificationSetId: safeId,
+  deterministicQualificationId: safeId,
+  latencyReplacementQualificationId: z.null(),
+  routeId: z.literal('a100_80gb_heavy_primary'),
+  accelerator: z.literal('nvidia_a100_80gb'),
+  immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+  deterministicRuns: z.array(deterministicRunSchema).length(30),
+  performanceRuns: z.array(performanceRunSchema).length(30),
+  semanticMaskSetDigestSha256: sha256,
+  deterministicOutputRunCount: z.literal(30),
+  measuredPerformanceRunCount: z.literal(30),
+  recoveredOutputRunCount: z.literal(0),
+  propagatedFrameCountPerRun: z.literal(200),
+  maskFileCountPerRun: z.literal(400),
+  exactMaskFileCountRereadAcrossDeterministicRuns: z.literal(12_000),
+  nearestRankP95Milliseconds: z.number().int().positive().safe()
+    .max(MAXIMUM_P95_MILLISECONDS),
+  minimumMeasuredMilliseconds: z.number().int().positive().safe(),
+  maximumMeasuredMilliseconds: z.number().int().positive().safe(),
+  maximumAllowedP95Milliseconds: z.literal(MAXIMUM_P95_MILLISECONDS),
+  allThirtyDeterministicOutputsSemanticallyIdentical: z.literal(true),
+  allThirtyPerformanceMeasurementsUseExactPredictionReceipts: z.literal(true),
+  everyPerformanceRunUsesItsOwnPredictionReceipt: z.literal(true),
+  recoveredRunExcludedFromLatencyAndReplacedExplicitly: z.literal(false),
+  exactTaskResponseOutputManifestAndMaskEvidenceReread: z.literal(true),
+  customerInvocationAuthorized: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  l4FallbackQualified: z.literal(false),
+  runtimeReleaseGranted: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  compiledAt: timestamp,
+}).strict()
+const receiptV2WithoutHashSchema = (
+  receiptV2WithoutHashBaseSchema as unknown as z.ZodType<
+    CanonicalSam31VertexServingThirtyRunQualificationV2WithoutHash
+  >
+).superRefine((value, context) => {
+  const exactDeterministicRuns = value.deterministicRuns.every(
+    (run, index) => run.runOrdinal === index + 1
+      && run.invocationId ===
+        `sam31-a100-qualification:${value.deterministicQualificationId}`
+        + `.run-${String(index + 1).padStart(2, '0')}.execution`
+      && run.terminalEvidenceMode ===
+        'provider_prediction_and_private_response'
+      && run.providerRoundTripDurationMilliseconds !== null,
+  )
+  const exactPerformanceRuns = value.performanceRuns.every((run, index) => {
+    const source = value.deterministicRuns[index]
+    return source !== undefined
+      && run.measurementOrdinal === index + 1
+      && run.sourceRunOrdinal === index + 1
+      && !run.replacementForRecoveredRun
+      && run.invocationId === source.invocationId
+      && run.durationMilliseconds ===
+        source.providerRoundTripDurationMilliseconds
+      && stableAuthorityStringify(run.qualificationResultRef) ===
+        stableAuthorityStringify(source.qualificationResultRef)
+      && stableAuthorityStringify(run.qualificationOutputRef) ===
+        stableAuthorityStringify(source.qualificationOutputRef)
+  })
+  const durations = value.performanceRuns.map((run) =>
+    run.durationMilliseconds).sort((left, right) => left - right)
+  const exactStatistics = value.nearestRankP95Milliseconds ===
+      durations[Math.ceil(durations.length * 0.95) - 1]
+    && value.minimumMeasuredMilliseconds === durations[0]
+    && value.maximumMeasuredMilliseconds === durations.at(-1)
+  const exactSemanticSet = value.deterministicRuns.every((run) =>
+    run.semanticMaskSetDigestSha256 === value.semanticMaskSetDigestSha256)
+  if (!exactDeterministicRuns || !exactPerformanceRuns || !exactStatistics
+    || !exactSemanticSet
+    || new Set(value.deterministicRuns.map((run) => run.invocationId)).size
+      !== 30
+    || new Set(value.performanceRuns.map((run) => run.invocationId)).size
+      !== 30) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Vertex v2 thirty-run qualification set lost exact membership.',
+    })
+  }
+})
 const receiptHashEnvelopeSchema = z.object({
   receiptHash: sha256,
 }).passthrough()
@@ -282,7 +429,12 @@ export const canonicalSam31VertexServingThirtyRunQualificationSchema =
       const envelope = receiptHashEnvelopeSchema.parse(value)
       const payloadRecord = { ...envelope }
       delete (payloadRecord as { receiptHash?: string }).receiptHash
-      const payload = receiptWithoutHashSchema.parse(payloadRecord)
+      const version = z.object({ schemaVersion: z.string() }).passthrough()
+        .parse(payloadRecord).schemaVersion
+      const payload = version ===
+        CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_VERSION
+        ? receiptV1WithoutHashSchema.parse(payloadRecord)
+        : receiptV2WithoutHashSchema.parse(payloadRecord)
       return { ...payload, receiptHash: envelope.receiptHash }
     },
   })
@@ -327,7 +479,7 @@ export function createCanonicalSam31VertexServingThirtyRunQualificationService(
       const request = z.object({
         qualificationSetId: safeId,
         deterministicQualificationId: safeId,
-        latencyReplacementQualificationId: safeId,
+        latencyReplacementQualificationId: safeId.optional(),
       }).strict().parse(untrusted)
       const existing = await input.repository.reread({
         qualificationSetId: request.qualificationSetId,
@@ -343,17 +495,27 @@ export function createCanonicalSam31VertexServingThirtyRunQualificationService(
           runOrdinal: ordinal,
         }))
       }
-      const replacement = await readAndCompileRun({
-        readPort: input.readPort,
-        qualificationId: request.latencyReplacementQualificationId,
-        runOrdinal: 1,
-      })
-      assertDeterministicSet(deterministicRuns, replacement)
-      const performanceSources = [replacement, ...deterministicRuns.slice(1)]
+      const replacement = request.latencyReplacementQualificationId ===
+        undefined
+        ? null
+        : await readAndCompileRun({
+          readPort: input.readPort,
+          qualificationId: request.latencyReplacementQualificationId,
+          runOrdinal: 1,
+        })
+      if (replacement === null) {
+        assertDirectDeterministicSet(deterministicRuns)
+      } else {
+        assertDeterministicSet(deterministicRuns, replacement)
+      }
+      const performanceSources = replacement === null
+        ? deterministicRuns
+        : [replacement, ...deterministicRuns.slice(1)]
       const performanceRuns = performanceSources.map((run, index) => ({
         measurementOrdinal: index + 1,
-        sourceRunOrdinal: index === 0 ? 1 : run.runOrdinal,
-        replacementForRecoveredRun: index === 0,
+        sourceRunOrdinal: replacement === null ? run.runOrdinal
+          : index === 0 ? 1 : run.runOrdinal,
+        replacementForRecoveredRun: replacement !== null && index === 0,
         invocationId: run.invocationId,
         qualificationResultRef: run.qualificationResultRef,
         qualificationOutputRef: run.qualificationOutputRef,
@@ -365,17 +527,12 @@ export function createCanonicalSam31VertexServingThirtyRunQualificationService(
       if (p95 > MAXIMUM_P95_MILLISECONDS) {
         throw new Error('Vertex A100 serving p95 exceeded release policy.')
       }
-      const payload = receiptWithoutHashSchema.parse({
-        schemaVersion:
-          CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_VERSION,
+      const commonPayload = {
         source:
-          'canonical_server_sam3_1_vertex_serving_thirty_run_qualification_owner',
-        evidenceClass: 'canonical_private_exact_reread',
+          'canonical_server_sam3_1_vertex_serving_thirty_run_qualification_owner' as const,
         status: 'qualified_for_l4_quality_and_performance_comparison',
         qualificationSetId: request.qualificationSetId,
         deterministicQualificationId: request.deterministicQualificationId,
-        latencyReplacementQualificationId:
-          request.latencyReplacementQualificationId,
         routeId: 'a100_80gb_heavy_primary',
         accelerator: 'nvidia_a100_80gb',
         immutableImageDigest: deterministicRuns[0]!.immutableImageDigest,
@@ -385,7 +542,6 @@ export function createCanonicalSam31VertexServingThirtyRunQualificationService(
           deterministicRuns[0]!.semanticMaskSetDigestSha256,
         deterministicOutputRunCount: 30,
         measuredPerformanceRunCount: 30,
-        recoveredOutputRunCount: 1,
         propagatedFrameCountPerRun: 200,
         maskFileCountPerRun: 400,
         exactMaskFileCountRereadAcrossDeterministicRuns: 12_000,
@@ -395,7 +551,6 @@ export function createCanonicalSam31VertexServingThirtyRunQualificationService(
         maximumAllowedP95Milliseconds: MAXIMUM_P95_MILLISECONDS,
         allThirtyDeterministicOutputsSemanticallyIdentical: true,
         allThirtyPerformanceMeasurementsUseExactPredictionReceipts: true,
-        recoveredRunExcludedFromLatencyAndReplacedExplicitly: true,
         exactTaskResponseOutputManifestAndMaskEvidenceReread: true,
         customerInvocationAuthorized: false,
         customerCreditsMutated: false,
@@ -405,7 +560,29 @@ export function createCanonicalSam31VertexServingThirtyRunQualificationService(
         publicDeliveryAuthorized: false,
         productionAuthorityGranted: false,
         compiledAt: timestamp.parse(now()),
-      })
+      } as const
+      const payload = replacement === null
+        ? receiptV2WithoutHashSchema.parse({
+          ...commonPayload,
+          schemaVersion:
+            CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_V2_VERSION,
+          evidenceClass:
+            'canonical_private_exact_output_and_prediction_reread',
+          latencyReplacementQualificationId: null,
+          recoveredOutputRunCount: 0,
+          everyPerformanceRunUsesItsOwnPredictionReceipt: true,
+          recoveredRunExcludedFromLatencyAndReplacedExplicitly: false,
+        })
+        : receiptV1WithoutHashSchema.parse({
+          ...commonPayload,
+          schemaVersion:
+            CANONICAL_SAM3_1_VERTEX_SERVING_THIRTY_RUN_QUALIFICATION_VERSION,
+          evidenceClass: 'canonical_private_exact_reread',
+          latencyReplacementQualificationId:
+            request.latencyReplacementQualificationId,
+          recoveredOutputRunCount: 1,
+          recoveredRunExcludedFromLatencyAndReplacedExplicitly: true,
+        })
       const receipt =
         assertCanonicalSam31VertexServingThirtyRunQualification({
           ...payload,
@@ -666,6 +843,22 @@ function assertDeterministicSet(
       'provider_prediction_and_private_response'
     || replacement.providerRoundTripDurationMilliseconds === null) {
     throw new Error('Vertex serving deterministic or replacement set changed.')
+  }
+}
+
+function assertDirectDeterministicSet(
+  runs: ReadonlyArray<Awaited<ReturnType<typeof readAndCompileRun>>>,
+): void {
+  const first = runs[0]!
+  if (runs.length !== 30
+    || runs.some((run, index) => run.runOrdinal !== index + 1
+      || run.semanticMaskSetDigestSha256 !==
+        first.semanticMaskSetDigestSha256
+      || run.immutableImageDigest !== first.immutableImageDigest
+      || run.terminalEvidenceMode !==
+        'provider_prediction_and_private_response'
+      || run.providerRoundTripDurationMilliseconds === null)) {
+    throw new Error('Vertex direct deterministic set changed.')
   }
 }
 

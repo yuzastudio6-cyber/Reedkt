@@ -1,4 +1,3 @@
-import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
@@ -8,6 +7,10 @@ import {
   createGoogleVertexModelBillingSkuLiveGeneratePort,
   executeVisualIntelligenceModelBillingSkuLiveQualification,
 } from '../visual-intelligence/visual-intelligence-model-billing-sku-live-qualification'
+import {
+  createWeEditProGcpLocalOperatorAuth,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+} from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =
   'execute-one-weeditpro-gemini-model-billing-sku-live-qualification-v1' as const
@@ -21,17 +24,18 @@ const safeId = z.string().trim().min(1).max(240)
 
 const environment = z.object({
   confirmation: z.literal(CONFIRMATION),
+  localOperatorAuth: z.literal(WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE),
   qualificationId: safeId,
 }).strict().parse({
   confirmation:
     process.env.WEEDITPRO_VISUAL_INTELLIGENCE_MODEL_SKU_LIVE_CONFIRMATION,
+  localOperatorAuth: process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
   qualificationId:
     process.env.WEEDITPRO_VISUAL_INTELLIGENCE_MODEL_SKU_QUALIFICATION_ID,
 })
 
-const storage = new Storage({
-  projectId: PROJECT_ID,
-  retryOptions: { autoRetry: false, maxRetries: 0 },
+const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
+  confirmation: environment.localOperatorAuth,
 })
 const result =
   await executeVisualIntelligenceModelBillingSkuLiveQualification({
@@ -45,6 +49,7 @@ const result =
     generatePort: createGoogleVertexModelBillingSkuLiveGeneratePort({
       projectId: PROJECT_ID,
       location: LOCATION,
+      authClient,
     }),
   })
 

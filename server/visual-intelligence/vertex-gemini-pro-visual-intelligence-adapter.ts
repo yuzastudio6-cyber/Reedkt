@@ -6,7 +6,9 @@ import {
   ThinkingLevel,
   type Content,
   type GenerateContentConfig,
+  type GoogleGenAIOptions,
 } from '@google/genai'
+import type { AuthClient } from 'google-auth-library'
 
 import {
   VISUAL_INTELLIGENCE_MEDIA_RESOLUTION,
@@ -685,6 +687,7 @@ export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
   readonly projectId: 'reeditpro'
   readonly location: 'global'
   readonly timeoutMs?: number
+  readonly authClient?: AuthClient
 }): VisualIntelligenceGeminiBillingGeneratePort {
   const timeoutMs = input.timeoutMs ?? MAX_TIMEOUT_MS
   if (!validProviderTimeoutMs(timeoutMs)) {
@@ -694,6 +697,16 @@ export function createGoogleVertexModelBillingSkuLiveGeneratePort(input: {
     enterprise: true,
     project: input.projectId,
     location: input.location,
+    ...(input.authClient ? {
+      googleAuthOptions: {
+        // @google/genai currently bundles a newer google-auth-library copy.
+        // Both clients implement the same AuthClient runtime contract; the
+        // cast is isolated here so callers never supply credentials or tokens.
+        authClient: input.authClient as unknown as NonNullable<
+          GoogleGenAIOptions['googleAuthOptions']
+        >['authClient'],
+      },
+    } : {}),
     httpOptions: {
       apiVersion: VERTEX_GEMINI_PRO_VISUAL_INTELLIGENCE_API_VERSION,
       timeout: timeoutMs,

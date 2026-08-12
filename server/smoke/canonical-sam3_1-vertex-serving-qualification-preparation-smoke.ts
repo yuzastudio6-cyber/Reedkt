@@ -202,13 +202,12 @@ console.log(JSON.stringify({
 function buildCandidate() {
   const payload = {
     schemaVersion:
-      'canonical-sam3_1-vertex-serving-qualification-candidate-v1' as const,
+      'canonical-sam3_1-vertex-serving-qualification-candidate-v2' as const,
     source:
       'canonical_server_vertex_serving_pre_release_qualification_owner' as const,
     candidateId: 'sam31-a100-serving-candidate-smoke',
     deploymentProfileRef: ref('deployment-profile'),
-    modelDeployRequestRef: ref('model-deploy-request'),
-    modelDeployObservationRef: ref('model-deploy-observation'),
+    modelVersionRolloutRef: ref('model-version-rollout'),
     endpointDeploymentRef: ref('endpoint-deployment'),
     exactDeploymentObservationRef: ref('exact-deployment'),
     readinessProbeRef: ref('readiness-probe'),
@@ -220,7 +219,8 @@ function buildCandidate() {
     immutableImageDigest: qualifiedSupplyChain.immutableImageDigest,
     endpointResourceName:
       'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-    deployedModelId: '3101000001' as const,
+    deployedModelId: '3101000004' as const,
+    modelVersionId: '2' as const,
     routeId: 'a100_80gb_heavy_primary' as const,
     executionTarget:
       'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,
@@ -229,7 +229,7 @@ function buildCandidate() {
     minimumReplicaCount: 0 as const,
     maximumReplicaCount: 1 as const,
     exactDeploymentAndDedicatedRouteReread: true as const,
-    exactModelDeployRequestAndCompletedObservationReread: true as const,
+    exactModelVersionRolloutReread: true as const,
     exactNonCustomerReadinessProbeReread: true as const,
     readyForPrivateQualificationInvocation: true as const,
     readyForCustomerInvocation: false as const,

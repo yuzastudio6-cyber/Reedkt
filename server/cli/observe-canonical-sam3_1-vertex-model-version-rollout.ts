@@ -1,6 +1,10 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_URI,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   createCanonicalSam31QualifiedSourceCheckpointReleaseObjectReadPort,
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
@@ -19,65 +23,34 @@ import {
   createCanonicalSam31GcpImageSupplyChainReleaseRepository,
 } from '../services/canonical-sam3_1-cloud-image-supply-chain-release-runtime'
 import {
-  createCanonicalSam31VertexScaleZeroControlPlane,
-} from '../services/canonical-sam3_1-vertex-scale-zero-control-plane'
-import {
   createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository,
 } from '../services/canonical-sam3_1-vertex-scale-zero-control-plane-repository'
 import {
   admitCanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../services/canonical-sam3_1-vertex-scale-zero-deployment-admission-service'
 import {
-  createCanonicalSam31VertexScaleZeroDeploymentOperator,
-} from '../services/canonical-sam3_1-vertex-scale-zero-deployment-operator'
+  createCanonicalGcsSam31VertexModelVersionRolloutRepository,
+  createCanonicalSam31VertexModelVersionRolloutService,
+} from '../services/canonical-sam3_1-vertex-model-version-rollout-service'
 import {
   createWeEditProGcpLocalOperatorAuth,
   WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
 } from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =
-  'deploy-one-weeditpro-sam31-a100-scale-zero-v1' as const
+  'observe-weeditpro-sam31-a100-model-version-2-rollout-v1' as const
 const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
-const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
-const rawSha256 = z.string().regex(/^[a-f0-9]{64}$/u)
-const safeId = z.string().trim().min(1).max(512)
-  .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
-  .refine((value) => !value.includes('..') && !value.includes('://'))
 const environment = z.object({
-  WEEDITPRO_SAM31_VERTEX_SCALE_ZERO_DEPLOYMENT_CONFIRMATION:
+  WEEDITPRO_SAM31_VERTEX_MODEL_VERSION_ROLLOUT_CONFIRMATION:
     z.literal(CONFIRMATION),
   WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH:
     z.literal(WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE),
-  WEEDITPRO_SAM31_VERTEX_DEPLOYMENT_RECORDED_AT:
-    z.string().datetime({ offset: true }),
-  WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_ID: safeId,
-  WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_VERSION:
-    z.coerce.number().int().positive().safe(),
-  WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_SHA256: rawSha256,
-  WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_ID: safeId,
-  WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_VERSION:
-    z.coerce.number().int().positive().safe(),
-  WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_SHA256: rawSha256,
 }).strict().parse({
-  WEEDITPRO_SAM31_VERTEX_SCALE_ZERO_DEPLOYMENT_CONFIRMATION:
-    process.env.WEEDITPRO_SAM31_VERTEX_SCALE_ZERO_DEPLOYMENT_CONFIRMATION,
+  WEEDITPRO_SAM31_VERTEX_MODEL_VERSION_ROLLOUT_CONFIRMATION:
+    process.env.WEEDITPRO_SAM31_VERTEX_MODEL_VERSION_ROLLOUT_CONFIRMATION,
   WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH:
     process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
-  WEEDITPRO_SAM31_VERTEX_DEPLOYMENT_RECORDED_AT:
-    process.env.WEEDITPRO_SAM31_VERTEX_DEPLOYMENT_RECORDED_AT,
-  WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_ID:
-    process.env.WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_ID,
-  WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_VERSION:
-    process.env.WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_VERSION,
-  WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_SHA256:
-    process.env.WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_SHA256,
-  WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_ID:
-    process.env.WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_ID,
-  WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_VERSION:
-    process.env.WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_VERSION,
-  WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_SHA256:
-    process.env.WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_SHA256,
 })
 
 const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
@@ -87,6 +60,7 @@ const objectPort = createCanonicalGcsSourceAnalysisJsonObjectPort({
   storage,
   bucketName: CONTROL_PLANE_BUCKET,
 })
+const recordedAt = new Date().toISOString()
 const imageBuildRuntime = createCanonicalSam31GcpCloudImageBuildRuntime({
   storage,
   auth: authClient,
@@ -102,13 +76,10 @@ const profile = await admitCanonicalSam31VertexScaleZeroDeploymentProfile({
     immutableImageRef: {
       id: 'sam31-image-2f758d4c1be7e483fe8aa1c8',
       version: 1,
-      contentHash:
-        'sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
+      contentHash: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
     },
-    immutableImageUri:
-      'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
-    immutableImageDigest:
-      'sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
+    immutableImageUri: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_URI,
+    immutableImageDigest: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
     sourceCheckpointQualificationRef: {
       schemaVersion:
         'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
@@ -118,24 +89,18 @@ const profile = await admitCanonicalSam31VertexScaleZeroDeploymentProfile({
         'sha256:ba8708871ddace51ca8ed0602beeaa8a406c66494848a07ef6f58d377e7085d9',
     },
     servingQuotaPreferenceRef: {
-      id: environment.WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_ID,
-      version:
-        environment.WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_VERSION,
-      contentHash: prefixedSha256.parse(
-        `sha256:${environment
-          .WEEDITPRO_VERTEX_A100_SERVING_QUOTA_AUTHORITY_SHA256}`,
-      ),
+      id: 'vertex-a100-serving-quota:sam31-a100-serving-us-central1-20260812-v2',
+      version: 1,
+      contentHash:
+        'sha256:5e0d29f150920c2fc9ce2607dce543325470e07d97e5aa527576b9385f976461',
     },
     accountEffectiveRateAuthorityRef: {
-      id: environment.WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_ID,
-      version:
-        environment.WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_VERSION,
-      contentHash: prefixedSha256.parse(
-        `sha256:${environment
-          .WEEDITPRO_VERTEX_A100_SERVING_RATE_AUTHORITY_SHA256}`,
-      ),
+      id: 'vertex-a100-serving-rate:sam31-a100-serving-20260812-v2',
+      version: 1,
+      contentHash:
+        'sha256:d6856690b8099356c6ce7871e99d84d16f4a0b764e7ad1b7bd349d7a02a70b1c',
     },
-    recordedAt: environment.WEEDITPRO_SAM31_VERTEX_DEPLOYMENT_RECORDED_AT,
+    recordedAt,
   },
   rateAuthorityRepository:
     createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository({
@@ -153,17 +118,20 @@ const profile = await admitCanonicalSam31VertexScaleZeroDeploymentProfile({
       objectPort,
     }),
 })
-const receipt = await createCanonicalSam31VertexScaleZeroDeploymentOperator({
-  controlPlane: createCanonicalSam31VertexScaleZeroControlPlane({
-    auth: authClient,
-  }),
+const deploymentProfileRef =
+  await createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository({ storage })
+    .persistDeploymentProfile(profile)
+const rollout = await createCanonicalSam31VertexModelVersionRolloutService({
+  auth: authClient,
   repository:
-    createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository({ storage }),
-}).deployOne(profile)
+    createCanonicalGcsSam31VertexModelVersionRolloutRepository({ storage }),
+}).observeCurrent()
 
 process.stdout.write(`${JSON.stringify({
-  ...receipt,
-  modelOrCheckpointInferenceStarted: false,
+  deploymentProfileRef,
+  rollout,
+  customerInvocationStarted: false,
+  modelInferenceExecuted: false,
   customerCreditsMutated: false,
   runtimeQualified: false,
   productionReady: false,

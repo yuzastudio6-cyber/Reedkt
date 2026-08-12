@@ -4,18 +4,15 @@ import { createHash } from 'node:crypto'
 import {
   createCanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
-import {
-  assertCanonicalSam31VertexScaleZeroControlPlaneObservation,
-} from '../services/canonical-sam3_1-vertex-scale-zero-control-plane'
-import {
-  createCanonicalSam31VertexScaleZeroModelDeployRequest,
-} from '../services/canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
-  canonicalSam31VertexServingExactDeploymentSchema,
-} from '../services/canonical-sam3_1-vertex-serving-deployment-ready-service'
+  canonicalSam31VertexDedicatedPredictionRouteSchema,
+} from '../services/canonical-sam3_1-vertex-dedicated-prediction-route'
+import {
+  canonicalSam31VertexModelVersionRolloutSchema,
+} from '../services/canonical-sam3_1-vertex-model-version-rollout-service'
 import {
   canonicalSam31VertexServingReadinessProbeSchema,
 } from '../services/canonical-sam3_1-vertex-serving-readiness-probe-service'
@@ -28,12 +25,22 @@ import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 
-const observedAt = '2026-08-12T07:00:00.000Z'
-const imageDigest = hash('serving-image')
-const imageSupplyChainReleaseRef = ref('image-supply-chain-release')
+const observedAt = '2026-08-12T14:00:00.000Z'
+const imageDigest =
+  'sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8'
+const imageSupplyChainReleaseRef = {
+  id: 'sam31-production-image-supply-chain-release-a14e4ac5e5067a37c38d4db7',
+  version: 1 as const,
+  contentHash:
+    'sha256:69344ac8adbe2775ad50ab919f1a117d2f628e805dce8f331bd4b8082752ad6f' as const,
+}
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef,
-  immutableImageRef: ref('immutable-image', imageDigest.slice(7)),
+  immutableImageRef: {
+    id: 'sam31-image-2f758d4c1be7e483fe8aa1c8',
+    version: 1,
+    contentHash: imageDigest,
+  },
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${imageDigest}`,
   immutableImageDigest: imageDigest,
@@ -45,112 +52,98 @@ const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   },
   servingQuotaPreferenceRef: ref('serving-quota'),
   accountEffectiveRateAuthorityRef: ref('serving-rate'),
-  recordedAt: '2026-08-12T06:30:00.000Z',
+  recordedAt: '2026-08-12T13:30:00.000Z',
 })
 const deploymentProfileRef = ref('deployment-profile', profile.profileHash)
-const modelUploadObservationRef = ref('model-upload')
-const endpointCreateObservationRef = ref('endpoint-create')
-const modelDeployRequest = createCanonicalSam31VertexScaleZeroModelDeployRequest({
-  profile,
-  modelResourceName:
-    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
-})
-const modelDeployRequestRef = ref(
-  `sam31-vertex-model_deploy-request-${
-    modelDeployRequest.requestDigestSha256.slice(0, 32)}`,
-  modelDeployRequest.requestDigestSha256,
-)
-const deployObservationPayload = {
-  schemaVersion:
-    'canonical-sam3_1-vertex-scale-zero-control-plane-observation-v1' as const,
+const rolloutPayload = {
+  schemaVersion: 'canonical-sam3_1-vertex-model-version-rollout-v1' as const,
   source:
-    'canonical_backend_sam3_1_vertex_scale_zero_control_plane' as const,
-  stage: 'model_deploy' as const,
-  requestDigestSha256: modelDeployRequest.requestDigestSha256,
-  submissionHash: sha256AuthorityValue('model-deploy-submission'),
-  operationName:
-    'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/model-deploy-operation',
-  disposition: 'completed' as const,
-  operationDone: true,
-  modelResourceName: null,
-  endpointResourceName: null,
-  deployedModelId: '3101000001',
-  providerErrorRef: null,
-  observationMode: 'exact_operation_reread' as const,
-  exactOperationReread: true,
-  exactResourceReread: false,
-  automaticRetryAllowed: false as const,
-  customerRequestOrGpuInferenceStarted: false as const,
-  walletOrCreditMutationAuthorityGranted: false as const,
-  publicDeliveryAuthorityGranted: false as const,
-  productionAuthorityGranted: false as const,
-  observedAt,
-}
-const modelDeployObservation =
-  assertCanonicalSam31VertexScaleZeroControlPlaneObservation({
-    ...deployObservationPayload,
-    observationHash: sha256AuthorityValue(deployObservationPayload),
-  })
-const modelDeployObservationRef = ref(
-  'model-deploy',
-  modelDeployObservation.observationHash,
-)
-const endpointDeploymentRef = ref('endpoint-deployment')
-
-const exactPayload = {
-  schemaVersion:
-    'canonical-sam3_1-vertex-serving-exact-deployment-v2' as const,
-  source: 'canonical_server_vertex_exact_deployment_resource_reader' as const,
-  deploymentProfileRef,
-  modelUploadObservationRef,
-  endpointCreateObservationRef,
-  modelDeployObservationRef,
+    'canonical_server_sam3_1_vertex_model_version_rollout_owner' as const,
+  rolloutId:
+    'sam31-vertex-model-version-rollout-5a1a8b4ecf22a0b7c7aca8aef530d680',
   imageSupplyChainReleaseRef,
   immutableImageUri: profile.immutableImageUri,
   immutableImageDigest: imageDigest,
+  deployOperationName:
+    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/7837944887155621888' as const,
+  deployOperationDone: true as const,
   modelResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
+  modelVersionResourceName:
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@2' as const,
+  modelVersionId: '2' as const,
+  modelVersionAlias: 'l4-streaming-fix-candidate' as const,
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-  deployedModelId: '3101000001' as const,
-  serviceAccount:
-    'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const,
+  deployedModelId: '3101000004' as const,
+  previousModelVersionId: '1' as const,
+  previousDeployedModelId: '3101000001' as const,
+  previousModelVersionRetainedForRollback: true as const,
+  previousDeployedModelRemovedFromTraffic: true as const,
+  exactModelVersionReread: true as const,
+  exactDeployOperationReread: true as const,
+  exactEndpointAndTrafficReread: true as const,
+  routeId: 'a100_80gb_heavy_primary' as const,
   machineType: 'a2-ultragpu-1g' as const,
   accelerator: 'nvidia_a100_80gb' as const,
   acceleratorCount: 1 as const,
   minimumReplicaCount: 0 as const,
   initialReplicaCount: 1 as const,
   maximumReplicaCount: 1 as const,
-  minScaleupPeriod: '300s' as const,
-  idleScaledownPeriod: '300s' as const,
-  dedicatedEndpointEnabled: true as const,
-  oneExactDeployedModel: true as const,
-  exactTrafficSplitPercent: 100 as const,
-  requestResponseLoggingEnabled: false as const,
+  minimumScaleUpPeriodSeconds: 300 as const,
+  idleScaleDownPeriodSeconds: 300 as const,
+  trafficPercentage: 100 as const,
+  onlyCurrentModelVersionReceivesTraffic: true as const,
+  serviceAccount:
+    'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const,
+  accessLoggingEnabled: false as const,
   containerLoggingEnabled: false as const,
-  exactModelEndpointDeploymentAndTrafficReread: true as const,
+  modelInferenceExecuted: false as const,
   customerInvocationStarted: false as const,
-  walletOrCreditMutationAuthorityGranted: false as const,
+  customerCreditsMutated: false as const,
+  runtimeQualified: false as const,
   qaApproved: false as const,
   publicDeliveryAuthorized: false as const,
   productionAuthorityGranted: false as const,
-  observedAt,
+  observedAt: '2026-08-12T13:50:00.000Z',
 }
-const exact = canonicalSam31VertexServingExactDeploymentSchema.parse({
-  ...exactPayload,
-  observationHash: sha256AuthorityValue(exactPayload),
+const rollout = canonicalSam31VertexModelVersionRolloutSchema.parse({
+  ...rolloutPayload,
+  rolloutHash: sha256AuthorityValue(rolloutPayload),
+})
+const rolloutRef = ref(rollout.rolloutId, rollout.rolloutHash)
+const routePayload = {
+  schemaVersion:
+    'canonical-sam3_1-vertex-dedicated-prediction-route-v2' as const,
+  source: 'canonical_server_vertex_dedicated_prediction_route_reader' as const,
+  endpointResourceName: rollout.endpointResourceName,
+  deployedModelId: rollout.deployedModelId,
+  dedicatedEndpointDns:
+    'weeditpro-sam31-a100-scale-zero-v1.us-central1-390722338345.prediction.vertexai.goog',
+  predictUrl:
+    'https://weeditpro-sam31-a100-scale-zero-v1.us-central1-390722338345.prediction.vertexai.goog/v1/projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1:predict',
+  dedicatedEndpointEnabled: true as const,
+  oneExactDeployedModel: true as const,
+  exactTrafficSplitPercent: 100 as const,
+  callerPredictionUrlAccepted: false as const,
+}
+const route = canonicalSam31VertexDedicatedPredictionRouteSchema.parse({
+  ...routePayload,
+  routeHash: sha256AuthorityValue(routePayload),
 })
 const probePayload = {
   schemaVersion:
-    'canonical-sam3_1-vertex-serving-readiness-probe-v2' as const,
+    'canonical-sam3_1-vertex-serving-readiness-probe-v3' as const,
   source:
     'canonical_server_sam3_1_vertex_scale_zero_readiness_owner' as const,
   readinessProbeId: 'readiness-probe',
   readinessTriggerRef: ref('readiness-trigger'),
-  endpointDeploymentRef,
+  endpointDeploymentRef: rolloutRef,
   imageSupplyChainReleaseRef,
   immutableImageDigest: imageDigest,
-  endpointResourceName: exact.endpointResourceName,
+  endpointResourceName: rollout.endpointResourceName,
+  deployedModelId: rollout.deployedModelId,
+  modelVersionId: rollout.modelVersionId,
   requestBodyDigestSha256: sha256AuthorityValue('readiness-body'),
   predictUrlDigestSha256: sha256AuthorityValue('dedicated-predict-url'),
   disposition: 'ready_for_private_qualification_invocation' as const,
@@ -175,7 +168,7 @@ const probePayload = {
   qaApproved: false as const,
   publicDeliveryAuthorized: false as const,
   productionAuthorityGranted: false as const,
-  startedAt: '2026-08-12T06:55:00.000Z',
+  startedAt: '2026-08-12T13:55:00.000Z',
   readyObservedAt: observedAt,
 }
 const probe = canonicalSam31VertexServingReadinessProbeSchema.parse({
@@ -187,35 +180,30 @@ const repository =
     objectPort: memoryObjectPort(),
     prefix: 'private/test/sam31-serving-candidates',
   })
-const service =
-  createCanonicalSam31VertexServingQualificationCandidateService({
-    exactDeploymentReadPort: {
-      async rereadExactDeployment() { return structuredClone(exact) },
-    },
-    repository,
-  })
+const service = createCanonicalSam31VertexServingQualificationCandidateService({
+  currentRouteReadPort: {
+    async rereadCurrentRoute() { return structuredClone(route) },
+  },
+  repository,
+})
 const request = {
   profile,
   deploymentProfileRef,
-  modelUploadObservationRef,
-  endpointCreateObservationRef,
-  modelDeployObservationRef,
-  modelDeployRequestRef,
-  modelDeployRequest,
-  modelDeployObservation,
-  endpointDeploymentRef,
+  modelVersionRolloutRef: rolloutRef,
+  modelVersionRollout: rollout,
+  endpointDeploymentRef: rolloutRef,
   readinessProbeRef: ref('readiness-probe-ref', probe.probeHash),
   readinessProbe: probe,
   observedAt,
-  expiresAt: '2026-08-12T07:10:00.000Z',
+  expiresAt: '2026-08-12T14:10:00.000Z',
 }
 const candidate = await service.produceOne(request)
 assert.equal(candidate.readyForPrivateQualificationInvocation, true)
 assert.equal(candidate.readyForCustomerInvocation, false)
 assert.equal(candidate.runtimeReleaseGranted, false)
 assert.equal(candidate.customerInvocationStarted, false)
-assert.equal(candidate.executionTarget,
-  'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra')
+assert.equal(candidate.deployedModelId, '3101000004')
+assert.equal(candidate.modelVersionId, '2')
 assert.deepEqual(
   assertCanonicalSam31VertexServingQualificationCandidate(
     candidate,
@@ -231,14 +219,11 @@ await assert.rejects(() => service.produceOne({
 }))
 await assert.rejects(() => service.produceOne({
   ...request,
-  modelDeployRequestRef: ref('wrong-model-deploy-request'),
+  modelVersionRolloutRef: ref('wrong-rollout'),
 }))
 await assert.rejects(() => service.produceOne({
   ...request,
-  modelDeployObservation: {
-    ...modelDeployObservation,
-    observationHash: '0'.repeat(64),
-  },
+  modelVersionRollout: { ...rollout, rolloutHash: '0'.repeat(64) },
 }))
 assert.throws(() => assertCanonicalSam31VertexServingQualificationCandidate({
   ...candidate,
@@ -252,8 +237,10 @@ assert.throws(() => assertCanonicalSam31VertexServingQualificationCandidate(
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-qualification-candidate',
   status: 'passed',
-  checks: 14,
+  checks: 16,
   candidateId: candidate.candidateId,
+  modelVersionId: candidate.modelVersionId,
+  deployedModelId: candidate.deployedModelId,
   readyForPrivateQualificationInvocation:
     candidate.readyForPrivateQualificationInvocation,
   readyForCustomerInvocation: candidate.readyForCustomerInvocation,
@@ -279,18 +266,6 @@ function memoryObjectPort(): CanonicalCreateOnlyJsonObjectPort {
   }
 }
 
-function hash(seed: string): `sha256:${string}` {
-  return `sha256:${sha256AuthorityValue(seed)}`
-}
-
-function ref<const Version extends number = 1>(
-  id: string,
-  raw = sha256AuthorityValue(id),
-  version: Version = 1 as Version,
-) {
-  return {
-    id,
-    version,
-    contentHash: `sha256:${raw}` as const,
-  }
+function ref(id: string, digest = sha256AuthorityValue(id)) {
+  return { id, version: 1 as const, contentHash: `sha256:${digest}` as const }
 }

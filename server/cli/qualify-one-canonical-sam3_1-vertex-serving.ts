@@ -4,8 +4,11 @@ import {
   createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository,
 } from '../services/canonical-sam3_1-vertex-scale-zero-control-plane-repository'
 import {
-  createGoogleCloudSam31VertexServingExactDeploymentReadPort,
-} from '../services/canonical-sam3_1-vertex-serving-deployment-ready-service'
+  rereadCanonicalSam31VertexDedicatedPredictionRoute,
+} from '../services/canonical-sam3_1-vertex-dedicated-prediction-route'
+import {
+  createCanonicalGcsSam31VertexModelVersionRolloutRepository,
+} from '../services/canonical-sam3_1-vertex-model-version-rollout-service'
 import {
   createCanonicalGcsSam31VertexServingQualificationCandidateRepository,
   createCanonicalSam31VertexServingQualificationCandidateService,
@@ -48,11 +51,7 @@ const requestSchema = z.object({
   qualificationId: safeId,
   runOrdinal: z.number().int().min(1).max(30).safe(),
   deploymentProfileRef: refSchema.extend({ version: z.literal(1) }).strict(),
-  modelUploadObservationRef: refSchema.extend({ version: z.literal(1) })
-    .strict(),
-  endpointCreateObservationRef: refSchema.extend({ version: z.literal(1) })
-    .strict(),
-  modelDeployObservationRef: refSchema.extend({ version: z.literal(1) })
+  modelVersionRolloutRef: refSchema.extend({ version: z.literal(1) })
     .strict(),
   bootstrapReadinessProbeId: safeId,
   sourceCheckpointQualificationRef: refSchema.extend({
@@ -100,30 +99,21 @@ const controlPlane =
   createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository({ storage })
 const readinessRepository =
   createCanonicalGcsSam31VertexServingReadinessProbeRepository({ storage })
-const [profile, readinessRaw, modelDeployObservation] = await Promise.all([
+const rolloutRepository =
+  createCanonicalGcsSam31VertexModelVersionRolloutRepository({ storage })
+const [profile, readinessRaw, modelVersionRollout] = await Promise.all([
   controlPlane.rereadDeploymentProfile(request.deploymentProfileRef),
   readinessRepository.reread({
     readinessProbeId: request.bootstrapReadinessProbeId,
   }),
-  controlPlane.rereadObservation(request.modelDeployObservationRef),
+  rolloutRepository.reread({
+    rolloutId: request.modelVersionRolloutRef.id,
+  }),
 ])
-if (!profile || !readinessRaw || !modelDeployObservation) {
+if (!profile || !readinessRaw || !modelVersionRollout) {
   throw new Error(
-    'SAM 3.1 deployed profile, observation, or readiness probe is absent.',
+    'SAM 3.1 profile, rollout, or readiness probe is absent.',
   )
-}
-const modelDeployRequestRef = {
-  id: `sam31-vertex-model_deploy-request-${
-    modelDeployObservation.requestDigestSha256.slice(0, 32)}`,
-  version: 1 as const,
-  contentHash:
-    `sha256:${modelDeployObservation.requestDigestSha256}` as const,
-}
-const modelDeployRequest = await controlPlane.rereadRequest(
-  modelDeployRequestRef,
-)
-if (!modelDeployRequest) {
-  throw new Error('SAM 3.1 model-deploy request is absent.')
 }
 const bootstrapReadinessProbe =
   assertCanonicalSam31VertexServingReadinessProbe(readinessRaw)
@@ -175,10 +165,12 @@ const readinessProbeRef = {
 }
 const candidate =
   await createCanonicalSam31VertexServingQualificationCandidateService({
-    exactDeploymentReadPort:
-      createGoogleCloudSam31VertexServingExactDeploymentReadPort({
-        auth: authClient,
-      }),
+    currentRouteReadPort: {
+      rereadCurrentRoute: () =>
+        rereadCanonicalSam31VertexDedicatedPredictionRoute({
+          auth: authClient,
+        }),
+    },
     repository:
       createCanonicalGcsSam31VertexServingQualificationCandidateRepository({
         storage,
@@ -186,12 +178,8 @@ const candidate =
   }).produceOne({
     profile,
     deploymentProfileRef: request.deploymentProfileRef,
-    modelUploadObservationRef: request.modelUploadObservationRef,
-    endpointCreateObservationRef: request.endpointCreateObservationRef,
-    modelDeployObservationRef: request.modelDeployObservationRef,
-    modelDeployRequestRef,
-    modelDeployRequest,
-    modelDeployObservation,
+    modelVersionRolloutRef: request.modelVersionRolloutRef,
+    modelVersionRollout,
     endpointDeploymentRef: readinessProbe.endpointDeploymentRef,
     readinessProbeRef,
     readinessProbe,

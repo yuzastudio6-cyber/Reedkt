@@ -120,6 +120,55 @@ assert.deepEqual(
   receipt,
 )
 
+const directRuns = deterministicRuns.map((run, index) => ({
+  ...run,
+  providerRoundTripDurationMilliseconds: 91_000 + index,
+  terminalEvidenceMode:
+    'provider_prediction_and_private_response' as const,
+}))
+const directPerformanceRuns = directRuns.map((run, index) => ({
+  measurementOrdinal: index + 1,
+  sourceRunOrdinal: index + 1,
+  replacementForRecoveredRun: false,
+  invocationId: run.invocationId,
+  qualificationResultRef: run.qualificationResultRef,
+  qualificationOutputRef: run.qualificationOutputRef,
+  durationMilliseconds: run.providerRoundTripDurationMilliseconds,
+}))
+const directPayload = {
+  ...payload,
+  schemaVersion:
+    'canonical-sam3_1-vertex-serving-thirty-run-qualification-v2' as const,
+  evidenceClass:
+    'canonical_private_exact_output_and_prediction_reread' as const,
+  qualificationSetId: 'sam31-a100-serving-thirty-run-direct-smoke',
+  latencyReplacementQualificationId: null,
+  deterministicRuns: directRuns,
+  performanceRuns: directPerformanceRuns,
+  recoveredOutputRunCount: 0,
+  nearestRankP95Milliseconds: 91_028,
+  minimumMeasuredMilliseconds: 91_000,
+  maximumMeasuredMilliseconds: 91_029,
+  everyPerformanceRunUsesItsOwnPredictionReceipt: true,
+  recoveredRunExcludedFromLatencyAndReplacedExplicitly: false,
+}
+const directReceipt = {
+  ...directPayload,
+  receiptHash: sha256AuthorityValue(directPayload),
+}
+assert.deepEqual(
+  assertCanonicalSam31VertexServingThirtyRunQualification(directReceipt),
+  directReceipt,
+)
+assert.throws(() =>
+  assertCanonicalSam31VertexServingThirtyRunQualification(rehash({
+    ...directReceipt,
+    performanceRuns: directPerformanceRuns.map((run, index) => index === 0
+      ? { ...run, replacementForRecoveredRun: true }
+      : run),
+  })),
+)
+
 for (const tampered of [
   rehash({ ...receipt, nearestRankP95Milliseconds: 90_029 }),
   rehash({
@@ -149,11 +198,13 @@ for (const tampered of [
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-thirty-run-qualification',
   status: 'passed',
-  checks: 20,
+  checks: 22,
   deterministicOutputRuns: 30,
   exactMaskFilesReread: 12_000,
   recoveredRunExcludedFromLatency: true,
   replacementPredictionRequired: true,
+  allDirectPredictionReceiptSetAccepted: true,
+  fabricatedV2ReplacementRejected: true,
   nearestRankP95Recomputed: true,
   semanticSubstitutionRejected: true,
   l4FallbackQualified: false,

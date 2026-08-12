@@ -54,10 +54,10 @@ const readinessTriggerPayload = {
   source:
     'canonical_backend_private_sam3_1_serving_qualification_owner' as const,
   deploymentProfileRef: {
-    id: 'sam31-vertex-deployment-profile-6eeb22d9a8286c44a14fb97232a3c74f',
+    id: 'sam31-vertex-deployment-profile-ad6717d119fd554e2ce1a52bb3314880',
     version: 1,
     contentHash:
-      'sha256:6eeb22d9a8286c44a14fb97232a3c74f85e45d0f15fdd1351c8452d5e0c8657d',
+      'sha256:ad6717d119fd554e2ce1a52bb33148807aff53b364fe4540dacbd24a75582305',
   },
   endpointDeploymentRef,
   qualificationFixtureId:
@@ -82,13 +82,13 @@ const probe = await createCanonicalSam31VertexServingReadinessProbeService({
   endpointDeploymentRef,
   readinessTriggerRef,
   imageSupplyChainReleaseRef: {
-    id: 'sam31-production-image-supply-chain-release-a9f7b7a33ce0b25d8fa6dde1',
+    id: 'sam31-production-image-supply-chain-release-a14e4ac5e5067a37c38d4db7',
     version: 1,
     contentHash:
-      'sha256:dcd4c3a0bf2ffa75e4a7dae6df14b8329f33525c7564de856a7f33ffaaa379fd',
+      'sha256:69344ac8adbe2775ad50ab919f1a117d2f628e805dce8f331bd4b8082752ad6f',
   },
   immutableImageDigest:
-    'sha256:1ad0cdcf646333e1422dae075d3af1305452a19a86faa51ab82256d3b1b0e62b',
+    'sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
 })
 
 process.stdout.write(`${JSON.stringify({

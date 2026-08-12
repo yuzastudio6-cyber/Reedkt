@@ -4,6 +4,12 @@ import { Storage } from '@google-cloud/storage'
 import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -22,7 +28,7 @@ import {
 } from './canonical-sam3_1-vertex-dedicated-prediction-route'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_READINESS_PROBE_VERSION =
-  'canonical-sam3_1-vertex-serving-readiness-probe-v2' as const
+  'canonical-sam3_1-vertex-serving-readiness-probe-v3' as const
 
 const ENDPOINT =
   'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
@@ -61,6 +67,12 @@ const probeWithoutHashSchema = z.object({
   imageSupplyChainReleaseRef: refSchema,
   immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
   endpointResourceName: z.literal(ENDPOINT),
+  deployedModelId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  ),
+  modelVersionId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  ),
   requestBodyDigestSha256: sha256,
   predictUrlDigestSha256: sha256,
   disposition: z.literal('ready_for_private_qualification_invocation'),
@@ -335,12 +347,16 @@ export function assertCanonicalSam31VertexServingReadinessProbe(
 
 function parseReadinessResponse(value: unknown, readinessProbeId: string) {
   return z.object({
-    deployedModelId: z.literal('3101000001'),
+    deployedModelId: z.literal(
+      CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+    ),
     model: z.literal(
-      'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+      CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
     ),
     modelDisplayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
-    modelVersionId: z.literal('1'),
+    modelVersionId: z.literal(
+      CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+    ),
     predictions: z.array(z.object({
       schemaVersion: z.literal(
         'canonical-sam3_1-vertex-readiness-result-v1',
@@ -388,6 +404,8 @@ function buildProbe(input: {
     imageSupplyChainReleaseRef: input.request.imageSupplyChainReleaseRef,
     immutableImageDigest: input.request.immutableImageDigest,
     endpointResourceName: ENDPOINT,
+    deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+    modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
     requestBodyDigestSha256: sha256AuthorityValue(input.body),
     predictUrlDigestSha256: sha256AuthorityValue({ url: input.predictUrl }),
     disposition: 'ready_for_private_qualification_invocation',

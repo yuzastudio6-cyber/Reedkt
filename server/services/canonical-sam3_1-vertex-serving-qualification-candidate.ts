@@ -4,15 +4,14 @@ import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   assertCanonicalSam31VertexScaleZeroDeploymentProfile,
   type CanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
-import {
-  assertCanonicalSam31VertexScaleZeroDeploymentRequest,
-} from './canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
-import {
-  assertCanonicalSam31VertexScaleZeroControlPlaneObservation,
-} from './canonical-sam3_1-vertex-scale-zero-control-plane'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -20,9 +19,12 @@ import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
 import {
-  assertCanonicalSam31VertexServingExactDeployment,
-  type CanonicalSam31VertexServingExactDeploymentReadPort,
-} from './canonical-sam3_1-vertex-serving-deployment-ready-service'
+  assertCanonicalSam31VertexDedicatedPredictionRoute,
+  type CanonicalSam31VertexDedicatedPredictionRoute,
+} from './canonical-sam3_1-vertex-dedicated-prediction-route'
+import {
+  assertCanonicalSam31VertexModelVersionRollout,
+} from './canonical-sam3_1-vertex-model-version-rollout-service'
 import {
   assertCanonicalSam31VertexServingReadinessProbe,
 } from './canonical-sam3_1-vertex-serving-readiness-probe-service'
@@ -35,10 +37,9 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_VERSION =
-  'canonical-sam3_1-vertex-serving-qualification-candidate-v1' as const
+  'canonical-sam3_1-vertex-serving-qualification-candidate-v2' as const
 
-const ENDPOINT_RESOURCE =
-  'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+const ENDPOINT_RESOURCE = CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/v1/sam3_1-vertex-serving-qualification-candidates'
 const safeId = z.string().trim().min(1).max(240)
@@ -62,15 +63,19 @@ const candidateWithoutHashSchema = z.object({
   ),
   candidateId: safeId,
   deploymentProfileRef: refSchema,
-  modelDeployRequestRef: refSchema,
-  modelDeployObservationRef: refSchema,
+  modelVersionRolloutRef: refSchema,
   endpointDeploymentRef: refSchema,
   exactDeploymentObservationRef: refSchema,
   readinessProbeRef: refSchema,
   imageSupplyChainReleaseRef: refSchema,
   immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
   endpointResourceName: z.literal(ENDPOINT_RESOURCE),
-  deployedModelId: z.literal('3101000001'),
+  deployedModelId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  ),
+  modelVersionId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  ),
   routeId: z.literal('a100_80gb_heavy_primary'),
   executionTarget: z.literal(
     'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
@@ -80,7 +85,7 @@ const candidateWithoutHashSchema = z.object({
   minimumReplicaCount: z.literal(0),
   maximumReplicaCount: z.literal(1),
   exactDeploymentAndDedicatedRouteReread: z.literal(true),
-  exactModelDeployRequestAndCompletedObservationReread: z.literal(true),
+  exactModelVersionRolloutReread: z.literal(true),
   exactNonCustomerReadinessProbeReread: z.literal(true),
   readyForPrivateQualificationInvocation: z.literal(true),
   readyForCustomerInvocation: z.literal(false),
@@ -116,10 +121,13 @@ export interface CanonicalSam31VertexServingQualificationCandidateRepository {
   reread(input: { readonly candidateId: string }): Promise<unknown>
 }
 
+export interface CanonicalSam31VertexCurrentRouteReadPort {
+  rereadCurrentRoute(): Promise<unknown>
+}
+
 export function createCanonicalSam31VertexServingQualificationCandidateService(
   input: {
-    readonly exactDeploymentReadPort:
-      CanonicalSam31VertexServingExactDeploymentReadPort
+    readonly currentRouteReadPort: CanonicalSam31VertexCurrentRouteReadPort
     readonly repository:
       CanonicalSam31VertexServingQualificationCandidateRepository
   },
@@ -128,12 +136,8 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
     async produceOne(untrusted: {
       readonly profile: unknown
       readonly deploymentProfileRef: Ref
-      readonly modelUploadObservationRef: Ref
-      readonly endpointCreateObservationRef: Ref
-      readonly modelDeployObservationRef: Ref
-      readonly modelDeployRequestRef: Ref
-      readonly modelDeployRequest: unknown
-      readonly modelDeployObservation: unknown
+      readonly modelVersionRolloutRef: Ref
+      readonly modelVersionRollout: unknown
       readonly endpointDeploymentRef: Ref
       readonly readinessProbeRef: Ref
       readonly readinessProbe: unknown
@@ -146,20 +150,14 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
       )
       const refs = z.object({
         deploymentProfileRef: refSchema,
-        modelUploadObservationRef: refSchema,
-        endpointCreateObservationRef: refSchema,
-        modelDeployObservationRef: refSchema,
-        modelDeployRequestRef: refSchema,
+        modelVersionRolloutRef: refSchema,
         endpointDeploymentRef: refSchema,
         readinessProbeRef: refSchema,
         observedAt: timestamp,
         expiresAt: timestamp,
       }).strict().parse({
         deploymentProfileRef: untrusted.deploymentProfileRef,
-        modelUploadObservationRef: untrusted.modelUploadObservationRef,
-        endpointCreateObservationRef: untrusted.endpointCreateObservationRef,
-        modelDeployObservationRef: untrusted.modelDeployObservationRef,
-        modelDeployRequestRef: untrusted.modelDeployRequestRef,
+        modelVersionRolloutRef: untrusted.modelVersionRolloutRef,
         endpointDeploymentRef: untrusted.endpointDeploymentRef,
         readinessProbeRef: untrusted.readinessProbeRef,
         observedAt: untrusted.observedAt,
@@ -169,34 +167,24 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         `sha256:${profile.profileHash}`) {
         throw new Error('Vertex qualification profile reference changed.')
       }
-      const modelDeployRequest =
-        assertCanonicalSam31VertexScaleZeroDeploymentRequest(
-          untrusted.modelDeployRequest,
-        )
-      const modelDeployObservation =
-        assertCanonicalSam31VertexScaleZeroControlPlaneObservation(
-          untrusted.modelDeployObservation,
-        )
+      const rollout = assertCanonicalSam31VertexModelVersionRollout(
+        untrusted.modelVersionRollout,
+      )
       if (
-        modelDeployRequest.stage !== 'model_deploy'
-        || modelDeployRequest.profileHash !== profile.profileHash
-        || refs.modelDeployRequestRef.id !==
-          `sam31-vertex-model_deploy-request-${
-            modelDeployRequest.requestDigestSha256.slice(0, 32)}`
-        || refs.modelDeployRequestRef.contentHash !==
-          `sha256:${modelDeployRequest.requestDigestSha256}`
-        || refs.modelDeployObservationRef.contentHash !==
-          `sha256:${modelDeployObservation.observationHash}`
-        || modelDeployObservation.stage !== 'model_deploy'
-        || modelDeployObservation.disposition !== 'completed'
-        || !modelDeployObservation.operationDone
-        || modelDeployObservation.requestDigestSha256 !==
-          modelDeployRequest.requestDigestSha256
-        || modelDeployObservation.deployedModelId !== '3101000001'
-        || modelDeployObservation.customerRequestOrGpuInferenceStarted
-        || modelDeployObservation.walletOrCreditMutationAuthorityGranted
-        || modelDeployObservation.productionAuthorityGranted
-      ) throw new Error('Vertex qualification deploy evidence changed.')
+        refs.modelVersionRolloutRef.id !== rollout.rolloutId
+        || refs.modelVersionRolloutRef.contentHash !==
+          `sha256:${rollout.rolloutHash}`
+        || refs.endpointDeploymentRef.contentHash !==
+          refs.modelVersionRolloutRef.contentHash
+        || rollout.imageSupplyChainReleaseRef.contentHash !==
+          profile.imageSupplyChainReleaseRef.contentHash
+        || rollout.immutableImageDigest !== profile.immutableImageDigest
+        || rollout.modelVersionId !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID
+        || rollout.deployedModelId !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID
+        || Date.parse(rollout.observedAt) > Date.parse(refs.observedAt)
+      ) throw new Error('Vertex qualification rollout evidence changed.')
       const probe = assertCanonicalSam31VertexServingReadinessProbe(
         untrusted.readinessProbe,
       )
@@ -207,25 +195,14 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         || probe.imageSupplyChainReleaseRef.contentHash !==
           profile.imageSupplyChainReleaseRef.contentHash
         || probe.immutableImageDigest !== profile.immutableImageDigest
+        || probe.deployedModelId !== rollout.deployedModelId
+        || probe.modelVersionId !== rollout.modelVersionId
         || Date.parse(probe.readyObservedAt) > Date.parse(refs.observedAt)
       ) throw new Error('Vertex qualification readiness lineage changed.')
-      const exact = assertCanonicalSam31VertexServingExactDeployment(
-        await input.exactDeploymentReadPort.rereadExactDeployment({
-          profile,
-          deploymentProfileRef: refs.deploymentProfileRef,
-          modelUploadObservationRef: refs.modelUploadObservationRef,
-          endpointCreateObservationRef: refs.endpointCreateObservationRef,
-          modelDeployObservationRef: refs.modelDeployObservationRef,
-          modelDeployRequest,
-          at: refs.observedAt,
-        }),
+      const route = assertCanonicalSam31VertexDedicatedPredictionRoute(
+        await input.currentRouteReadPort.rereadCurrentRoute(),
       )
-      assertExactScope({ profile, refs, exact })
-      const exactDeploymentObservationRef = refSchema.parse({
-        id: `sam31-a100-exact-deployment-${exact.observationHash.slice(0, 32)}`,
-        version: 1,
-        contentHash: `sha256:${exact.observationHash}`,
-      })
+      assertExactScope({ profile, rollout, route })
       const candidateId = safeId.parse(
         `sam31-a100-serving-candidate-${sha256AuthorityValue({
           probeHash: probe.probeHash,
@@ -240,15 +217,15 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
           'canonical_server_vertex_serving_pre_release_qualification_owner',
         candidateId,
         deploymentProfileRef: refs.deploymentProfileRef,
-        modelDeployRequestRef: refs.modelDeployRequestRef,
-        modelDeployObservationRef: refs.modelDeployObservationRef,
+        modelVersionRolloutRef: refs.modelVersionRolloutRef,
         endpointDeploymentRef: refs.endpointDeploymentRef,
-        exactDeploymentObservationRef,
+        exactDeploymentObservationRef: refs.modelVersionRolloutRef,
         readinessProbeRef: refs.readinessProbeRef,
         imageSupplyChainReleaseRef: profile.imageSupplyChainReleaseRef,
         immutableImageDigest: profile.immutableImageDigest,
         endpointResourceName: ENDPOINT_RESOURCE,
-        deployedModelId: '3101000001',
+        deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+        modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
         routeId: 'a100_80gb_heavy_primary',
         executionTarget:
           'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
@@ -257,7 +234,7 @@ export function createCanonicalSam31VertexServingQualificationCandidateService(
         minimumReplicaCount: 0,
         maximumReplicaCount: 1,
         exactDeploymentAndDedicatedRouteReread: true,
-        exactModelDeployRequestAndCompletedObservationReread: true,
+        exactModelVersionRolloutReread: true,
         exactNonCustomerReadinessProbeReread: true,
         readyForPrivateQualificationInvocation: true,
         readyForCustomerInvocation: false,
@@ -362,19 +339,13 @@ export function assertCanonicalSam31VertexServingQualificationCandidate(
 
 function assertExactScope(input: {
   profile: CanonicalSam31VertexScaleZeroDeploymentProfile
-  refs: { deploymentProfileRef: Ref; modelUploadObservationRef: Ref;
-    endpointCreateObservationRef: Ref; modelDeployObservationRef: Ref }
-  exact: ReturnType<typeof assertCanonicalSam31VertexServingExactDeployment>
+  rollout: ReturnType<typeof assertCanonicalSam31VertexModelVersionRollout>
+  route: CanonicalSam31VertexDedicatedPredictionRoute
 }): void {
   if (
-    input.exact.immutableImageDigest !== input.profile.immutableImageDigest
-    || input.exact.deploymentProfileRef.contentHash !==
-      input.refs.deploymentProfileRef.contentHash
-    || input.exact.modelUploadObservationRef.contentHash !==
-      input.refs.modelUploadObservationRef.contentHash
-    || input.exact.endpointCreateObservationRef.contentHash !==
-      input.refs.endpointCreateObservationRef.contentHash
-    || input.exact.modelDeployObservationRef.contentHash !==
-      input.refs.modelDeployObservationRef.contentHash
+    input.rollout.immutableImageDigest !== input.profile.immutableImageDigest
+    || input.route.endpointResourceName !== input.rollout.endpointResourceName
+    || input.route.deployedModelId !== input.rollout.deployedModelId
+    || input.route.exactTrafficSplitPercent !== 100
   ) throw new Error('Vertex qualification exact deployment scope changed.')
 }

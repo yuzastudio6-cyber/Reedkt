@@ -5,6 +5,12 @@ import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -627,12 +633,16 @@ function buildCallStart(input: {
 
 function parsePrediction(value: unknown, invocationId: string) {
   return z.object({
-    deployedModelId: z.literal('3101000001'),
+    deployedModelId: z.literal(
+      CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+    ),
     model: z.literal(
-      'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+      CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
     ),
     modelDisplayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
-    modelVersionId: z.literal('1'),
+    modelVersionId: z.literal(
+      CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+    ),
     predictions: z.array(z.object({
       schemaVersion: z.literal(
         'canonical-sam3_1-vertex-prediction-result-v1',

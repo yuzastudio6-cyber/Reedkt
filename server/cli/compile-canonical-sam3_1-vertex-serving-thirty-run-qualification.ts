@@ -21,7 +21,7 @@ const environment = z.object({
   WEEDITPRO_SAM31_VERTEX_SERVING_QUALIFICATION_SET_ID: safeId,
   WEEDITPRO_SAM31_VERTEX_SERVING_DETERMINISTIC_QUALIFICATION_ID: safeId,
   WEEDITPRO_SAM31_VERTEX_SERVING_LATENCY_REPLACEMENT_QUALIFICATION_ID:
-    safeId,
+    safeId.optional(),
 }).strict().parse({
   WEEDITPRO_SAM31_VERTEX_SERVING_THIRTY_RUN_CONFIRMATION:
     process.env.WEEDITPRO_SAM31_VERTEX_SERVING_THIRTY_RUN_CONFIRMATION,
@@ -56,7 +56,9 @@ const receipt =
 
 process.stdout.write(`${JSON.stringify({
   schemaVersion:
-    'weeditpro-sam3_1-a100-serving-thirty-run-qualification-receipt-v1',
+    receipt.schemaVersion.endsWith('-v2')
+      ? 'weeditpro-sam3_1-a100-serving-thirty-run-qualification-receipt-v2'
+      : 'weeditpro-sam3_1-a100-serving-thirty-run-qualification-receipt-v1',
   receipt,
   customerInvocationAuthorized: false,
   customerCreditsMutated: false,

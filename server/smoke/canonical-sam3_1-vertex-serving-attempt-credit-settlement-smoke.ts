@@ -204,7 +204,7 @@ const allocation = {
 }
 const receiptPayload = {
   schemaVersion:
-    'canonical-sam3_1-vertex-serving-window-cost-receipt-v1' as const,
+    'canonical-sam3_1-vertex-serving-window-cost-receipt-v2' as const,
   source:
     'canonical_server_sam3_1_vertex_serving_window_cost_owner' as const,
   evidenceClass: 'canonical_private_reread' as const,

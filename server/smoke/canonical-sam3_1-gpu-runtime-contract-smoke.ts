@@ -14,6 +14,12 @@ import {
 import {
   createCanonicalSam31SourceRuntimeCandidate,
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
+import {
+  assertCanonicalSam31L4QualificationJob,
+  assertCanonicalSam31L4QualificationJobOnlyImageChanged,
+  buildCanonicalSam31L4QualificationJobImagePatch,
+  canonicalSam31L4QualificationJobProjection,
+} from '../services/canonical-sam3_1-l4-qualification-job-service'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
 const hash = (seed: string) => `sha256:${sha256AuthorityValue(seed)}`
@@ -21,6 +27,9 @@ const ref = (id: string) => ({ id, version: 1, contentHash: hash(id) })
 const candidate = createCanonicalSam31SourceRuntimeCandidate()
 const checkpointSha = sha256AuthorityValue('authorized-checkpoint')
 const immutableImageDigest = hash('sam31-image')
+const immutableImageUri =
+  `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/`
+  + `reeditpro-sam31-gpu@${immutableImageDigest}`
 const l4Qualifier = readFileSync(resolve(
   process.cwd(),
   'server/cli/qualify-canonical-sam3_1-l4-runtime.ts',
@@ -89,6 +98,109 @@ assert.match(
   l4Qualifier,
   /gpuMemoryProfileId:\s*'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'/u,
 )
+
+const exactL4Job = assertCanonicalSam31L4QualificationJob({
+  name: 'projects/reeditpro/locations/us-central1/jobs/reeditpro-sam31-l4-fallback',
+  uid: 'fbca104e-8c43-4f50-b023-c7e2a67657d7',
+  generation: '8',
+  observedGeneration: '8',
+  etag: 'exact-l4-job-etag',
+  reconciling: false,
+  labels: {
+    app: 'weeditpro',
+    release: 'qualification-candidate',
+    route: 'l4-heavy-fallback',
+    scale: 'zero',
+  },
+  template: {
+    parallelism: 1,
+    taskCount: 1,
+    template: {
+      containers: [{
+        image: immutableImageUri,
+        env: [
+          { name: 'REEDITPRO_ENV', value: 'production' },
+          { name: 'WEEDITPRO_GPU_ACCELERATOR_CLASS', value: 'nvidia_l4' },
+          { name: 'WORKER_GROUP', value: 'l4_heavy_fallback' },
+        ],
+        resources: {
+          limits: {
+            cpu: '8',
+            memory: '32Gi',
+            'nvidia.com/gpu': '1',
+          },
+        },
+        volumeMounts: [{
+          name: 'reeditpro-private-gpu-objects',
+          mountPath: '/mnt/reeditpro',
+        }],
+      }],
+      volumes: [{
+        name: 'reeditpro-private-gpu-objects',
+        gcs: {
+          bucket: 'reeditpro-production-reeditpro-masks',
+          mountOptions: ['uid=65532', 'gid=65532', 'implicit-dirs=true'],
+        },
+      }],
+      maxRetries: 0,
+      timeout: '3600s',
+      serviceAccount:
+        'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
+      executionEnvironment: 'EXECUTION_ENVIRONMENT_GEN2',
+      vpcAccess: {
+        egress: 'ALL_TRAFFIC',
+        networkInterfaces: [{
+          network: 'weeditpro-gpu-private',
+          subnetwork: 'weeditpro-gpu-private-us-central1',
+          tags: ['weeditpro-gpu-private-no-nat'],
+        }],
+      },
+      nodeSelector: { accelerator: 'nvidia-l4' },
+      gpuZonalRedundancyDisabled: true,
+    },
+  },
+  terminalCondition: {
+    type: 'Ready',
+    state: 'CONDITION_SUCCEEDED',
+  },
+}, immutableImageUri)
+assert.equal(
+  canonicalSam31L4QualificationJobProjection(exactL4Job).generation,
+  '8',
+)
+const replacementImageUri = immutableImageUri.replace(
+  immutableImageDigest,
+  hash('replacement-sam31-image'),
+)
+const imagePatch = buildCanonicalSam31L4QualificationJobImagePatch({
+  current: exactL4Job,
+  immutableImageUri: replacementImageUri,
+})
+assert.equal(
+  imagePatch.template.template.containers[0]?.image,
+  replacementImageUri,
+)
+assert.equal(imagePatch.etag, 'exact-l4-job-etag')
+assertCanonicalSam31L4QualificationJobOnlyImageChanged({
+  before: exactL4Job,
+  after: assertCanonicalSam31L4QualificationJob({
+    ...exactL4Job,
+    generation: '9',
+    observedGeneration: '9',
+    etag: 'replacement-l4-job-etag',
+    template: imagePatch.template,
+  }, replacementImageUri),
+})
+assert.throws(() => assertCanonicalSam31L4QualificationJob({
+  ...exactL4Job,
+  template: {
+    ...exactL4Job.template,
+    template: {
+      ...exactL4Job.template.template,
+      nodeSelector: { accelerator: 'nvidia-a100-80gb' },
+    },
+  },
+}, immutableImageUri))
 
 const request = buildCanonicalSam31GpuRuntimeRequest({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-request-v1',

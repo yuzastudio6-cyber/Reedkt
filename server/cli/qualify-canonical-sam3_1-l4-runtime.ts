@@ -18,6 +18,10 @@ import {
   sealCanonicalSam31L4RuntimePrivateRunReceipt,
 } from '../services/canonical-sam3_1-l4-runtime-qualification-run-receipt-service'
 import {
+  assertCanonicalSam31L4QualificationJob,
+  canonicalSam31L4QualificationJobProjection,
+} from '../services/canonical-sam3_1-l4-qualification-job-service'
+import {
   canonicalProfessionalGpuJobLaunchSchema,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
@@ -165,7 +169,7 @@ async function main() {
   const expectedL4Image =
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/`
     + `reeditpro-sam31-gpu@${l4ImageDigest}`
-  const job = assertExactJob(await getJson(
+  const job = assertCanonicalSam31L4QualificationJob(await getJson(
     auth,
     `${RUN_ORIGIN}/v2/${JOB_RESOURCE}`,
   ), expectedL4Image)
@@ -190,7 +194,7 @@ async function main() {
   if (!l4Rate) throw new Error('current_l4_rate_authority_missing')
 
   const refs = qualificationRefs({ qualificationId, runOrdinal, invocationId })
-  const jobProjection = exactJobProjection(job)
+  const jobProjection = canonicalSam31L4QualificationJobProjection(job)
   const candidateReleaseRef = opaqueRef(
     `sam31-l4-runtime-candidate:${suffix}`,
     {
@@ -1031,90 +1035,6 @@ function activeExecutions(executions: readonly ReturnType<
   typeof parseExecution
 >[]) {
   return executions.filter((execution) => !execution.completionTime)
-}
-
-function assertExactJob(value: unknown, expectedImage: string) {
-  const job = z.object({
-    name: z.literal(JOB_RESOURCE),
-    uid: z.string().uuid(),
-    labels: z.record(z.string(), z.string()),
-    template: z.object({
-      parallelism: z.literal(1),
-      taskCount: z.literal(1),
-      template: z.object({
-        containers: z.array(z.object({
-          image: z.string().min(1),
-          env: z.array(z.object({ name: z.string(), value: z.string() })
-            .strict()),
-          resources: z.object({
-            limits: z.object({
-              cpu: z.literal('8'),
-              memory: z.literal('32Gi'),
-              'nvidia.com/gpu': z.literal('1'),
-            }).strict(),
-          }).passthrough(),
-          volumeMounts: z.array(z.object({
-            name: z.literal('reeditpro-private-gpu-objects'),
-            mountPath: z.literal('/mnt/reeditpro'),
-          }).strict()).length(1),
-        }).passthrough()).length(1),
-        volumes: z.array(z.object({
-          name: z.literal('reeditpro-private-gpu-objects'),
-          gcs: z.object({
-            bucket: z.literal(MASK_BUCKET),
-            mountOptions: z.array(z.string()).length(3),
-          }).strict(),
-        }).strict()).length(1),
-        maxRetries: z.literal(0),
-        timeout: z.literal('3600s'),
-        serviceAccount: z.literal(
-          'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
-        ),
-        executionEnvironment: z.literal('EXECUTION_ENVIRONMENT_GEN2'),
-        vpcAccess: z.object({
-          egress: z.literal('ALL_TRAFFIC'),
-          networkInterfaces: z.array(z.object({
-            network: z.literal('weeditpro-gpu-private'),
-            subnetwork: z.literal('weeditpro-gpu-private-us-central1'),
-            tags: z.array(z.literal('weeditpro-gpu-private-no-nat')).length(1),
-          }).strict()).length(1),
-        }).strict(),
-        nodeSelector: z.object({ accelerator: z.literal('nvidia-l4') })
-          .strict(),
-        gpuZonalRedundancyDisabled: z.literal(true),
-      }).passthrough(),
-    }).passthrough(),
-  }).passthrough().parse(value)
-  const env = Object.fromEntries(
-    job.template.template.containers[0]!.env.map((item) => [
-      item.name,
-      item.value,
-    ]),
-  )
-  if (job.template.template.containers[0]!.image !== expectedImage
-    || stableAuthorityStringify(env) !== stableAuthorityStringify({
-    REEDITPRO_ENV: 'production',
-    WEEDITPRO_GPU_ACCELERATOR_CLASS: 'nvidia_l4',
-    WORKER_GROUP: 'l4_heavy_fallback',
-  }) || job.labels.app !== 'weeditpro'
-    || job.labels.release !== 'qualification-candidate'
-    || job.labels.route !== 'l4-heavy-fallback'
-    || job.labels.scale !== 'zero'
-    || stableAuthorityStringify(
-      job.template.template.volumes[0]!.gcs.mountOptions,
-    ) !== stableAuthorityStringify([
-      'uid=65532', 'gid=65532', 'implicit-dirs=true',
-    ])) throw new Error('sam31_l4_cloud_run_job_exact_reread_changed')
-  return job
-}
-
-function exactJobProjection(job: ReturnType<typeof assertExactJob>) {
-  return Object.freeze({
-    name: job.name,
-    uid: job.uid,
-    labels: job.labels,
-    template: job.template,
-  })
 }
 
 async function persistCanonicalJsonCreateOnly(input: {

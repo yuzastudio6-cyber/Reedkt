@@ -179,7 +179,7 @@ const accepted = await preparingPort.startOneShotJob(a100Input)
 assert.equal(accepted.disposition, 'accepted')
 assert.equal(delegateCalls, 1)
 assert.equal(materialPreparationCalls, 1)
-const task = assertCanonicalSam31GpuTaskRecord(
+export const task = assertCanonicalSam31GpuTaskRecord(
   await store.rereadTask('a100-execution-envelope'),
 )
 assert.equal(task.runtimeRequest.dispatch.accelerator, 'nvidia_a100_80gb')
@@ -440,7 +440,7 @@ assert.equal(wrongContract.disposition, 'rejected_before_creation')
 assert.equal(delegateCalls, 2)
 
 const manifestSha256 = sha256AuthorityValue('sam31-mask-manifest')
-const runtimeResponse = buildCanonicalSam31GpuRuntimeResponse({
+export const runtimeResponse = buildCanonicalSam31GpuRuntimeResponse({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-response-v1',
   operationId: task.runtimeRequest.operationId,
   requestBindingSha256: task.runtimeRequest.requestBindingSha256,

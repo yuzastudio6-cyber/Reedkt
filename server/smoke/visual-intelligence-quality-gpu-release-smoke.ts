@@ -79,6 +79,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-vertex-scale-zero-control-plane-repository-smoke.ts',
   'canonical-sam3_1-vertex-serving-window-cost-authority-smoke.ts',
   'canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts',
+  'canonical-sam3_1-vertex-serving-invocation-smoke.ts',
   'canonical-professional-gpu-funded-start-authority-store-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-publisher-smoke.ts',

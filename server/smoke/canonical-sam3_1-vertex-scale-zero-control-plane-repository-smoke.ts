@@ -23,12 +23,16 @@ const ref = (id: string, character: string, version: number) => ({
   id, version, contentHash: hash(character),
 })
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
-  imageSupplyChainReleaseRef: ref('sam31-supply-release', 'a', 5),
-  immutableImageRef: ref('sam31-image', 'b', 3),
+  imageSupplyChainReleaseRef: ref('sam31-supply-release', 'a', 1),
+  immutableImageRef: ref('sam31-image', 'b', 1),
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${hash('b')}`,
   immutableImageDigest: hash('b'),
-  sourceCheckpointQualificationRef: ref('sam31-source-checkpoint', 'c', 8),
+  sourceCheckpointQualificationRef: {
+    ...ref('sam31-source-checkpoint', 'c', 2),
+    schemaVersion:
+      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2' as const,
+  },
   servingQuotaPreferenceRef: ref('vertex-serving-a100-quota', 'd', 2),
   accountEffectiveRateAuthorityRef: ref('vertex-a100-rate', 'e', 7),
   recordedAt: '2026-08-11T20:00:00.000Z',

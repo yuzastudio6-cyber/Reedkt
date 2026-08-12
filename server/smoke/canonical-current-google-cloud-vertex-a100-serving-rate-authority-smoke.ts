@@ -34,11 +34,11 @@ assert.deepEqual(configuration.components.map((component) =>
 CANONICAL_VERTEX_A100_SERVING_RATE_COMPONENT_CLASSES)
 assert.deepEqual(configuration.components.slice(0, 5).map((component) =>
   component.priceTerm.skuId), [
-  '75F9-5E53-217A',
-  'E0F6-0F18-499A',
-  '7126-0622-91E4',
-  '23A9-5F69-14F0',
-  '678F-BF63-DA0A',
+  '72B6-EE31-7A41',
+  'F86F-168E-2FB6',
+  '2DBC-2378-4503',
+  'F559-0525-B823',
+  '8714-C1C7-9ABD',
 ])
 assert.equal(configuration.components.some((component) =>
   component.priceTerm.skuId === '8FFC-6CDE-24D7'), false)

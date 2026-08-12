@@ -472,6 +472,8 @@
     "smoke:sam3_1-vertex-serving-readiness": "tsx server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts",
     "publish:vertex-a100-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-rate-authority.ts",
     "publish:vertex-a100-serving-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-serving-rate-authority.ts",
+    "publish:vertex-a100-serving-quota-authority": "tsx server/cli/publish-current-google-cloud-vertex-a100-serving-quota-authority.ts",
+    "smoke:vertex-a100-serving-quota-authority": "tsx server/smoke/canonical-current-google-cloud-vertex-a100-serving-quota-authority-smoke.ts",
     "smoke:vertex-a100-account-effective-rate-cloud-publisher": "tsx server/smoke/canonical-vertex-a100-rate-cloud-publisher-smoke.ts",
     "build:vertex-a100-rate-publisher-bundle": "npm run typecheck:server && vite build --config vite.vertex-a100-rate-publisher.config.ts",
     "build:vertex-a100-rate-publisher-image": "bash scripts/gcp/prod/44-build-vertex-a100-rate-publisher-image.sh",

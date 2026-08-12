@@ -1,6 +1,9 @@
 import { z } from 'zod'
 
 import {
+  canonicalSam31SourceCheckpointQualificationReferenceSchema,
+} from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
+import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 
@@ -18,6 +21,9 @@ const refSchema = z.object({
   version: z.number().int().positive().safe(),
   contentHash: prefixedSha256,
 }).strict()
+const versionOneRefSchema = refSchema.extend({
+  version: z.literal(1),
+}).strict()
 const immutableImageUri = z.string().regex(
   /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-gpu@sha256:[a-f0-9]{64}$/u,
 )
@@ -32,11 +38,12 @@ const profileWithoutHashSchema = z.object({
   status: z.literal('ready_for_private_endpoint_deployment'),
   operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
   routeId: z.literal('a100_80gb_heavy_primary'),
-  imageSupplyChainReleaseRef: refSchema,
-  immutableImageRef: refSchema,
+  imageSupplyChainReleaseRef: versionOneRefSchema,
+  immutableImageRef: versionOneRefSchema,
   immutableImageUri,
   immutableImageDigest: prefixedSha256,
-  sourceCheckpointQualificationRef: refSchema,
+  sourceCheckpointQualificationRef:
+    canonicalSam31SourceCheckpointQualificationReferenceSchema,
   servingQuotaPreferenceRef: refSchema,
   accountEffectiveRateAuthorityRef: refSchema,
   endpoint: z.object({
@@ -163,11 +170,13 @@ export type CanonicalSam31VertexScaleZeroDeploymentProfile = z.infer<
 >
 
 export function createCanonicalSam31VertexScaleZeroDeploymentProfile(input: {
-  readonly imageSupplyChainReleaseRef: z.infer<typeof refSchema>
-  readonly immutableImageRef: z.infer<typeof refSchema>
+  readonly imageSupplyChainReleaseRef: z.infer<typeof versionOneRefSchema>
+  readonly immutableImageRef: z.infer<typeof versionOneRefSchema>
   readonly immutableImageUri: string
   readonly immutableImageDigest: string
-  readonly sourceCheckpointQualificationRef: z.infer<typeof refSchema>
+  readonly sourceCheckpointQualificationRef: z.infer<
+    typeof canonicalSam31SourceCheckpointQualificationReferenceSchema
+  >
   readonly servingQuotaPreferenceRef: z.infer<typeof refSchema>
   readonly accountEffectiveRateAuthorityRef: z.infer<typeof refSchema>
   readonly recordedAt: string

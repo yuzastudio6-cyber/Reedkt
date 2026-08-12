@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import {
   createWeEditProGcpLocalOperatorAuth,
@@ -35,10 +36,41 @@ assert.throws(() => createWeEditProGcpLocalOperatorAuth({
   readAccessToken: () => 'fixture token contains whitespace',
 }))
 
+const productionImageOperatorSource = readFileSync(
+  new URL('../cli/canonical-sam3_1-cloud-image-build.ts', import.meta.url),
+  'utf8',
+)
+assert.match(
+  productionImageOperatorSource,
+  /createWeEditProGcpLocalOperatorAuth/u,
+)
+assert.match(
+  productionImageOperatorSource,
+  /createCanonicalSam31GcpCloudImageBuildRuntime\(\{[\s\S]*storage,[\s\S]*auth: authClient/u,
+)
+const servingRatePublisherSource = readFileSync(
+  new URL(
+    '../cli/publish-current-google-cloud-vertex-a100-serving-rate-authority.ts',
+    import.meta.url,
+  ),
+  'utf8',
+)
+assert.match(servingRatePublisherSource, /WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH/u)
+assert.match(
+  servingRatePublisherSource,
+  /createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort\(\{[\s\S]*auth: authClient/u,
+)
+assert.match(
+  servingRatePublisherSource,
+  /createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository\(\{[\s\S]*storage/u,
+)
+
 console.log(JSON.stringify({
   smoke: 'weeditpro-gcp-local-operator-auth',
-  checks: 8,
+  checks: 13,
   shortLivedImpersonatedTokenOnly: true,
+  productionImageObservationUsesQualifiedImpersonation: true,
+  accountEffectiveServingRateUsesQualifiedImpersonation: true,
   tokenPersistedOrLogged: false,
   storageAutomaticRetryEnabled: false,
   customerCreditsMutated: false,

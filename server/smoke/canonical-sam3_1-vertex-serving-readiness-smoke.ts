@@ -166,7 +166,12 @@ const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${imageDigest}`,
   immutableImageDigest: imageDigest,
-  sourceCheckpointQualificationRef: ref('sam31-source-checkpoint'),
+  sourceCheckpointQualificationRef: {
+    ...ref('sam31-source-checkpoint'),
+    version: 2,
+    schemaVersion:
+      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
+  },
   servingQuotaPreferenceRef: ref('sam31-serving-quota'),
   accountEffectiveRateAuthorityRef: ref('sam31-a100-serving-rate'),
   recordedAt: '2026-08-11T21:55:00.000Z',

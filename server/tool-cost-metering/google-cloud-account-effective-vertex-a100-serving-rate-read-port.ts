@@ -19,16 +19,16 @@ import {
 export const GOOGLE_CLOUD_ACCOUNT_EFFECTIVE_VERTEX_A100_SERVING_RATE_READER_CONFIGURATION_VERSION =
   'google-cloud-account-effective-vertex-a100-serving-rate-reader-configuration-v1' as const
 export const WEEDITPRO_VERTEX_A100_SERVING_RATE_CATALOG_VERSION =
-  'weeditpro-vertex-a100-serving-rate-catalog-us-central1-v1' as const
+  'weeditpro-vertex-a100-serving-rate-catalog-us-central1-v2' as const
 
 export const WEEDITPRO_VERTEX_A100_SERVING_RATE_CATALOG = {
   vertexAi: {
     serviceId: 'services/C7E2-9256-1C43',
-    predictionA10080GbColumbusSkuId: '75F9-5E53-217A',
-    predictionA2CoreColumbusSkuId: 'E0F6-0F18-499A',
-    predictionA2RamColumbusSkuId: '7126-0622-91E4',
-    predictionManagementA2CoreColumbusSkuId: '23A9-5F69-14F0',
-    predictionManagementA2RamColumbusSkuId: '678F-BF63-DA0A',
+    predictionA10080GbIowaSkuId: '72B6-EE31-7A41',
+    predictionA2CoreAmericasSkuId: 'F86F-168E-2FB6',
+    predictionA2RamAmericasSkuId: '2DBC-2378-4503',
+    predictionManagementA2CoreIowaSkuId: 'F559-0525-B823',
+    predictionManagementA2RamIowaSkuId: '8714-C1C7-9ABD',
   },
   cloudStorage: WEEDITPRO_GOOGLE_CLOUD_GPU_RATE_CATALOG.cloudStorage,
   defaultConsumptionModel:
@@ -184,33 +184,33 @@ export function createWeEditProVertexA100ServingRateReaderConfiguration(input: {
   const components = [
     component('vertex_prediction_a100_80gb_hour', 'vertex-ai',
       'vertex-prediction-a100-80gb-columbus-hour', 'gpu_hour', term(
-        catalog.vertexAi.predictionA10080GbColumbusSkuId,
-        'Vertex AI: Online/Batch Prediction Nvidia A100 80gb GPU running in Columbus',
+        catalog.vertexAi.predictionA10080GbIowaSkuId,
+        'Vertex AI: Online/Batch Prediction Nvidia A100 80gb GPU running in Iowa',
         'h', '1', 'route_region')),
     component('vertex_prediction_a2_core_hour', 'vertex-ai',
       'vertex-prediction-a2-core-columbus-hour', 'vcpu_hour', term(
-        catalog.vertexAi.predictionA2CoreColumbusSkuId,
-        'Vertex AI: Online/Batch Prediction A2 Predefined Instance Core running in Columbus',
-        'h', '1', 'route_region')),
+        catalog.vertexAi.predictionA2CoreAmericasSkuId,
+        'Vertex AI: Online/Batch Prediction A2 Instance Core running in Americas',
+        'h', '1', 'multi_region_including_route_region')),
     component('vertex_prediction_a2_ram_gib_hour', 'vertex-ai',
       'vertex-prediction-a2-ram-columbus-gib-hour', 'gib_hour', term(
-        catalog.vertexAi.predictionA2RamColumbusSkuId,
-        'Vertex AI: Online/Batch Prediction A2 Predefined Instance Ram running in Columbus',
-        'GiBy.h', '1', 'route_region')),
+        catalog.vertexAi.predictionA2RamAmericasSkuId,
+        'Vertex AI: Online/Batch Prediction A2 Instance Ram running in Americas',
+        'GiBy.h', '1', 'multi_region_including_route_region')),
     component('vertex_prediction_management_a2_core_hour', 'vertex-ai',
       'vertex-prediction-management-a2-core-columbus-hour', 'vcpu_hour', term(
-        catalog.vertexAi.predictionManagementA2CoreColumbusSkuId,
-        'Vertex AI: Online/Batch Prediction Management fee on A2 Instance Core in Columbus',
+        catalog.vertexAi.predictionManagementA2CoreIowaSkuId,
+        'Vertex AI: Online/Batch Prediction management fee on A2 Instance Core in Iowa',
         'h', '1', 'route_region')),
     component('vertex_prediction_management_a2_ram_gib_hour', 'vertex-ai',
       'vertex-prediction-management-a2-ram-columbus-gib-hour', 'gib_hour', term(
-        catalog.vertexAi.predictionManagementA2RamColumbusSkuId,
-        'Vertex AI: Online/Batch Prediction Management fee on A2 Instance RAM in Columbus',
+        catalog.vertexAi.predictionManagementA2RamIowaSkuId,
+        'Vertex AI: Online/Batch Prediction management fee on A2 Instance RAM in Iowa',
         'GiBy.h', '1', 'route_region')),
     component('private_object_storage_gib_month', 'cloud-storage',
       'gcs-standard-us-regional-gib-month', 'gib_month', term(
         storage.standardUsRegionalSkuId,
-        'Standard Storage US Multi-region', 'GiBy.mo', '1',
+        'Standard Storage US Regional', 'GiBy.mo', '1',
         'multi_region_including_route_region', storage.serviceId)),
     component('network_egress_gib', 'cloud-storage',
       'gcs-download-worldwide-excluding-asia-australia-gib', 'gib', term(
@@ -220,12 +220,12 @@ export function createWeEditProVertexA100ServingRateReaderConfiguration(input: {
     component('object_class_a_per_1000', 'cloud-storage',
       'gcs-regional-standard-class-a-per-1000', 'per_1000_operations', term(
         storage.regionalStandardClassAOperationsSkuId,
-        'Standard Storage Class A Operations', 'count', '1000', 'global',
+        'Regional Standard Class A Operations', 'count', '1000', 'global',
         storage.serviceId)),
     component('object_class_b_per_1000', 'cloud-storage',
       'gcs-regional-standard-class-b-per-1000', 'per_1000_operations', term(
         storage.regionalStandardClassBOperationsSkuId,
-        'Standard Storage Class B Operations', 'count', '1000', 'global',
+        'Regional Standard Class B Operations', 'count', '1000', 'global',
         storage.serviceId)),
   ]
   const raw = configurationWithoutRefSchema.parse({
@@ -444,7 +444,9 @@ function parseSkuMetadata(raw: unknown, term: z.infer<typeof termSchema>) {
     || sku.displayName !== term.expectedDisplayName
     || sku.service !== term.cloudServiceId
     || !geoMatches(sku.geoTaxonomy, term.expectedGeoTaxonomy)) {
-    throw new Error('Vertex A100 serving billing SKU metadata changed.')
+    throw new Error(
+      `Vertex A100 serving billing SKU metadata changed for ${term.skuId}.`,
+    )
   }
   return sku
 }

@@ -10,6 +10,10 @@ import {
   createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort,
   createWeEditProVertexA100ServingRateReaderConfiguration,
 } from '../tool-cost-metering/google-cloud-account-effective-vertex-a100-serving-rate-read-port'
+import {
+  createWeEditProGcpLocalOperatorAuth,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+} from './weeditpro-gcp-local-operator-auth'
 
 const environment = z.object({
   GOOGLE_CLOUD_PROJECT_ID: z.literal('reeditpro'),
@@ -23,6 +27,9 @@ const environment = z.object({
       .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u),
   WEEDITPRO_VERTEX_A100_SERVING_RATE_PUBLICATION_VERSION:
     z.coerce.number().int().positive().safe(),
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH: z.literal(
+    WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  ),
 }).strict().parse({
   GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
   GCS_CONTROL_PLANE_STATE_BUCKET:
@@ -33,6 +40,12 @@ const environment = z.object({
     process.env.WEEDITPRO_VERTEX_A100_SERVING_RATE_PUBLICATION_ID,
   WEEDITPRO_VERTEX_A100_SERVING_RATE_PUBLICATION_VERSION:
     process.env.WEEDITPRO_VERTEX_A100_SERVING_RATE_PUBLICATION_VERSION,
+  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH:
+    process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
+})
+
+const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
+  confirmation: environment.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
 })
 
 const configuration =
@@ -49,9 +62,11 @@ const receipt =
     readPort:
       createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort({
         configuration,
+        auth: authClient,
       }),
     repository:
       createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository({
+        storage,
         projectId: environment.GOOGLE_CLOUD_PROJECT_ID,
         bucketName: environment.GCS_CONTROL_PLANE_STATE_BUCKET,
       }),

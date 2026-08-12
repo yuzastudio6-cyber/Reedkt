@@ -125,6 +125,10 @@ assert.doesNotMatch(
 )
 assert.match(
   l4Qualifier,
+  /firstL4Run\.semanticMaskSetDigestSha256 !==\s*semanticManifest\.semanticMaskSetDigestSha256/u,
+)
+assert.match(
+  l4Qualifier,
   /immutableImageDigest:\s*input\.l4ImageDigest/u,
 )
 assert.match(
@@ -1246,7 +1250,7 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 69,
+  checks: 70,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,

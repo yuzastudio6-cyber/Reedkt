@@ -153,6 +153,10 @@ async function main() {
     createCanonicalSam31VertexServingThirtyRunQualificationRepository({
       objectPort: controlObjectPort,
     })
+  const l4RunReceiptRepository =
+    createCanonicalSam31L4RuntimePrivateRunReceiptRepository({
+      objectPort: controlObjectPort,
+    })
   const a100ServingQualification =
     assertExactA100ServingQualification(
       await a100ReceiptRepository.reread({
@@ -495,6 +499,18 @@ async function main() {
       a100ServingQualification.maskFileCountPerRun) {
     throw new Error('sam31_l4_mask_set_scope_differs_from_a100_baseline')
   }
+  if (runOrdinal > 1) {
+    const firstL4Run = await l4RunReceiptRepository.reread({
+      qualificationId,
+      runOrdinal: 1,
+    })
+    if (!firstL4Run
+      || firstL4Run.immutableImageDigest !== l4ImageDigest
+      || firstL4Run.semanticMaskSetDigestSha256 !==
+        semanticManifest.semanticMaskSetDigestSha256) {
+      throw new Error('sam31_l4_mask_set_not_deterministic_against_run_one')
+    }
+  }
   const a100Baseline = a100ServingQualification.deterministicRuns[1]!
   const [a100DecodedMaskSet, l4DecodedMaskSet] = await Promise.all([
     rereadCanonicalSam31DecodedSemanticMaskSet({
@@ -601,9 +617,7 @@ async function main() {
     ),
     value: receipt,
   })
-  await createCanonicalSam31L4RuntimePrivateRunReceiptRepository({
-    objectPort: controlObjectPort,
-  }).persistCreateOnly({ receipt })
+  await l4RunReceiptRepository.persistCreateOnly({ receipt })
   process.stdout.write(`${stableAuthorityStringify({
     ok: true,
     qualificationId,

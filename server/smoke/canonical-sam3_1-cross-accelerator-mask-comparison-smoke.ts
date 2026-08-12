@@ -30,7 +30,15 @@ l4Masks[0]!.pixels[0] = 0
 const geometryProjection = {
   width: 40,
   height: 25,
-  frames: Array.from({ length: 200 }, (_, frameIndex) => ({ frameIndex })),
+  firstFrameIndex: 0,
+  lastFrameIndex: 199,
+  frames: Array.from({ length: 200 }, (_, frameIndex) => ({
+    frameIndex,
+    objects: [0, 1].map((objectId) => ({
+      objectId,
+      normalizedBoxXywh: [0.1, 0.2, 0.3, 0.4] as const,
+    })),
+  })),
   masks: a100Masks.map(({ frameIndex, objectId, width, height }) => ({
     frameIndex, objectId, width, height,
   })),

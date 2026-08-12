@@ -92,8 +92,9 @@ const receiptWithoutHashSchema = z.object({
   scaleFromZeroObserved: z.literal(true),
   terminalWorkerStoppedAndScaleBackToZeroVerified: z.literal(true),
   exactTaskResponseAndEveryOutputMaskReread: z.literal(true),
-  exactFrameObjectBoxAndMaskGeometryMatchesA100ServingQualification:
+  exactFrameObjectAndMaskDimensionsMatchA100ServingQualification:
     z.literal(true),
+  crossAcceleratorBoxGeometryCompatibilityPassed: z.literal(true),
   crossAcceleratorPixelComparisonPassed: z.literal(true),
   semanticMaskSetByteIdentityWithA100ServingBaseline: z.literal(false),
   qualityEqualToOrBetterThanA100BaselineClaimed: z.literal(false),

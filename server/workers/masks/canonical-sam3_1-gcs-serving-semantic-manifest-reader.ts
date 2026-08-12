@@ -102,7 +102,7 @@ export interface CanonicalSam31DecodedSemanticMaskSet {
   readonly invocationId: string
   readonly manifestRef: AuthorityRef
   readonly semanticMaskSetDigestSha256: string
-  readonly geometryProjection: unknown
+  readonly geometryProjection: CanonicalSam31SemanticGeometryProjection
   readonly masks: readonly {
     readonly frameIndex: number
     readonly objectId: number
@@ -110,6 +110,26 @@ export interface CanonicalSam31DecodedSemanticMaskSet {
     readonly height: number
     readonly sha256: string
     readonly pixels: Buffer
+  }[]
+}
+
+export interface CanonicalSam31SemanticGeometryProjection {
+  readonly width: number
+  readonly height: number
+  readonly firstFrameIndex: number
+  readonly lastFrameIndex: number
+  readonly frames: readonly {
+    readonly frameIndex: number
+    readonly objects: readonly {
+      readonly objectId: number
+      readonly normalizedBoxXywh: readonly [number, number, number, number]
+    }[]
+  }[]
+  readonly masks: readonly {
+    readonly frameIndex: number
+    readonly objectId: number
+    readonly width: number
+    readonly height: number
   }[]
 }
 

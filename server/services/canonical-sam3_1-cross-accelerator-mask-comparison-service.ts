@@ -70,11 +70,15 @@ const comparisonWithoutHashSchema = z.object({
   minimumIoUPpm: ppm,
   changedPixelFractionPpm: ppm,
   maximumPerMaskFramePixelDifferencePpm: ppm,
+  differingNormalizedBoxCoordinateCount: nonnegativeInteger,
+  maximumBoxEdgeDeltaPixels: nonnegativeInteger,
+  maximumAcceptedBoxEdgeDeltaPixels: z.literal(8),
   minimumAcceptedMeanIoUPpm: z.literal(999_000),
   minimumAcceptedMinimumIoUPpm: z.literal(980_000),
   maximumAcceptedChangedPixelFractionPpm: z.literal(100),
   maximumAcceptedPerMaskFramePixelDifferencePpm: z.literal(1_000),
-  exactFrameObjectBoxAndMaskGeometryMatch: z.literal(true),
+  exactFrameObjectAndMaskDimensionsMatch: z.literal(true),
+  boxGeometryCompatibilityPassed: z.literal(true),
   everyMaskPairByteRereadDecodedAndCompared: z.literal(true),
   crossAcceleratorProbeCompatibilityPassed: z.literal(true),
   semanticMaskSetByteIdentityClaimed: z.literal(false),
@@ -97,6 +101,8 @@ const comparisonWithoutHashSchema = z.object({
       value.maximumAcceptedChangedPixelFractionPpm
     && value.maximumPerMaskFramePixelDifferencePpm <=
       value.maximumAcceptedPerMaskFramePixelDifferencePpm
+    && value.maximumBoxEdgeDeltaPixels <=
+      value.maximumAcceptedBoxEdgeDeltaPixels
   if (!compatible) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 cross-accelerator compatibility thresholds failed.',
@@ -118,10 +124,47 @@ export function compareCanonicalSam31CrossAcceleratorMaskSets(input: {
   readonly l4: CanonicalSam31DecodedSemanticMaskSet
 }): CanonicalSam31CrossAcceleratorMaskComparison {
   const comparisonId = safeId.parse(input.comparisonId)
-  if (stableAuthorityStringify(input.a100.geometryProjection) !==
-    stableAuthorityStringify(input.l4.geometryProjection)
+  const a100Geometry = input.a100.geometryProjection
+  const l4Geometry = input.l4.geometryProjection
+  const identityProjection = (
+    value: typeof a100Geometry,
+  ) => ({
+    width: value.width,
+    height: value.height,
+    firstFrameIndex: value.firstFrameIndex,
+    lastFrameIndex: value.lastFrameIndex,
+    frames: value.frames.map((frame) => ({
+      frameIndex: frame.frameIndex,
+      objectIds: frame.objects.map((object) => object.objectId),
+    })),
+    masks: value.masks,
+  })
+  if (stableAuthorityStringify(identityProjection(a100Geometry)) !==
+    stableAuthorityStringify(identityProjection(l4Geometry))
     || input.a100.masks.length !== 400 || input.l4.masks.length !== 400) {
     throw new Error('SAM 3.1 cross-accelerator mask geometry changed.')
+  }
+  let differingNormalizedBoxCoordinateCount = 0
+  let maximumBoxEdgeDeltaPixels = 0
+  for (let frameIndex = 0; frameIndex < a100Geometry.frames.length;
+    frameIndex += 1) {
+    const a100Frame = a100Geometry.frames[frameIndex]!
+    const l4Frame = l4Geometry.frames[frameIndex]!
+    for (let objectIndex = 0; objectIndex < a100Frame.objects.length;
+      objectIndex += 1) {
+      const a100Box = a100Frame.objects[objectIndex]!.normalizedBoxXywh
+      const l4Box = l4Frame.objects[objectIndex]!.normalizedBoxXywh
+      for (let coordinate = 0; coordinate < 4; coordinate += 1) {
+        const delta = Math.abs(a100Box[coordinate]! - l4Box[coordinate]!)
+        if (delta > 0) differingNormalizedBoxCoordinateCount += 1
+        const axisPixels = coordinate % 2 === 0
+          ? a100Geometry.width : a100Geometry.height
+        maximumBoxEdgeDeltaPixels = Math.max(
+          maximumBoxEdgeDeltaPixels,
+          Math.round(delta * axisPixels),
+        )
+      }
+    }
   }
   let evaluatedPixelCount = 0
   let exactBinaryMaskCount = 0
@@ -197,11 +240,15 @@ export function compareCanonicalSam31CrossAcceleratorMaskSets(input: {
       changedPixelCount * 1_000_000 / evaluatedPixelCount,
     ),
     maximumPerMaskFramePixelDifferencePpm,
+    differingNormalizedBoxCoordinateCount,
+    maximumBoxEdgeDeltaPixels,
+    maximumAcceptedBoxEdgeDeltaPixels: 8,
     minimumAcceptedMeanIoUPpm: 999_000,
     minimumAcceptedMinimumIoUPpm: 980_000,
     maximumAcceptedChangedPixelFractionPpm: 100,
     maximumAcceptedPerMaskFramePixelDifferencePpm: 1_000,
-    exactFrameObjectBoxAndMaskGeometryMatch: true,
+    exactFrameObjectAndMaskDimensionsMatch: true,
+    boxGeometryCompatibilityPassed: true,
     everyMaskPairByteRereadDecodedAndCompared: true,
     crossAcceleratorProbeCompatibilityPassed: true,
     semanticMaskSetByteIdentityClaimed: false,

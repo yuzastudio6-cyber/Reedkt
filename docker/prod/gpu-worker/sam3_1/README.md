@@ -74,13 +74,14 @@ Runtime rules once qualified:
   exception state, exact loaded-frame count, and complete CUDA-resident frame
   store are verified before prompting or propagation;
 - A100 80 GB uses `a100_full_gpu_state_v1`. L4 uses the separately qualified
-  `l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5`,
-  which enables Meta's upstream forward-evaluation trim only after
-  non-conditioning state falls outside the exact seven-frame temporal-memory
-  window. It processes every approved object in canonical object-ID order in a
-  fresh CUDA session and streams both upstream grounding and postprocessing one
-  frame at a time instead of batching 16 full-resolution frames. This bounds the
-  L4 frame-16 reconditioning peak without changing source resolution, temporal
+  `l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6`,
+  which preserves the complete prompt-selected semantic object set in one
+  upstream propagation session and enables Meta's forward-evaluation trim only
+  after non-conditioning state falls outside the exact seven-frame temporal-
+  memory window. It streams both upstream grounding and postprocessing one frame
+  at a time instead of batching 16 full-resolution frames, but never removes a
+  detector-created object from Multiplex action history. This bounds the L4
+  frame-16 reconditioning peak without changing source resolution, temporal
   coverage, model precision, or the required object set. Frames, active memory,
   model inference, and outputs remain on CUDA; CPU
   video/state/output offload, downscaling, quantization, and reduced temporal

@@ -105,7 +105,7 @@ MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5"
+    "l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -1412,15 +1412,18 @@ def configure_gpu_memory_profile(
     """Bind the official SAM 3.1 evaluation memory policy to the GPU route.
 
     L4 keeps frames, model state, accessible temporal memories, inference, and
-    outputs on CUDA. It propagates each approved object in canonical object-ID
-    order through a fresh CUDA session, while reducing both upstream frame
-    batches that otherwise retain 16 full-resolution frames: grounding and
-    postprocessing each stream one frame at a time. This bounds the official
-    frame-16 reconditioning peak without changing resolution, temporal coverage,
-    model precision, or the seven-frame memory policy. It also enables the
-    upstream forward-VOS trim that removes heavy non-conditioning outputs after
-    they fall outside the exact num_maskmem window. A100 retains the upstream
-    full-state multiplex, 16-frame grounding and postprocess policy.
+    outputs on CUDA. It preserves the complete prompt-selected semantic object
+    set in one upstream propagation session. This is required because removing
+    detector-created objects before the first propagation mutates Multiplex
+    action history and is not an admissible memory optimization. L4 instead
+    reduces both upstream frame batches that otherwise retain 16 full-resolution
+    frames: grounding and postprocessing each stream one frame at a time. This
+    bounds the frame-16 reconditioning peak without changing resolution,
+    temporal coverage, model precision, object identity, or the seven-frame
+    memory policy. It also enables the upstream forward-VOS trim that removes
+    heavy non-conditioning outputs only after they fall outside the exact
+    num_maskmem window. A100 retains the upstream full-state multiplex,
+    16-frame grounding and postprocess policy.
     """
     model = getattr(predictor, "model", None)
     tracker = getattr(model, "tracker", None)
@@ -2640,12 +2643,6 @@ def execute_inside_bfloat16_autocast(
     ):
         raise RuntimeError("SAM 3.1 prompt object identities are invalid")
     del prompt_outputs, prompt_response
-    propagation_passes: list[int | None] = (
-        [None]
-        if request["dispatch"]["accelerator"] == "nvidia_a100_80gb"
-        else [int(value) for value in prompt_object_ids]
-    )
-
     stage = "output_persistence"
     PRIVATE_OUTPUT_ROOT.mkdir(mode=0o700, parents=False, exist_ok=False)
     frame_object_records: dict[int, list[dict[str, Any]]] = {}
@@ -2661,39 +2658,7 @@ def execute_inside_bfloat16_autocast(
         max_workers=OUTPUT_PERSISTENCE_WORKERS,
         thread_name_prefix="sam31-mask-persistence",
     ) as persistence_pool:
-        for pass_index, serial_object_id in enumerate(propagation_passes):
-            if pass_index > 0:
-                session_id, inference_state, current_nvdec = (
-                    start_verified_session()
-                )
-                maximum_nvdec_utilization = max(
-                    maximum_nvdec_utilization,
-                    current_nvdec,
-                )
-                replay_prompt, replay_prompt_ns = add_approved_prompt(session_id)
-                prompt_ns += replay_prompt_ns
-                replay_object_ids = [
-                    exact_int(int(value), 0, 2**31 - 1, "prompt object id")
-                    for value in replay_prompt["outputs"]["out_obj_ids"].tolist()
-                ]
-                if replay_object_ids != prompt_object_ids:
-                    raise RuntimeError(
-                        "SAM 3.1 serial prompt object identities changed"
-                    )
-                del replay_prompt
-            if serial_object_id is not None:
-                for removable_object_id in reversed(prompt_object_ids):
-                    if removable_object_id == serial_object_id:
-                        continue
-                    predictor.remove_object(
-                        session_id=session_id,
-                        frame_idx=request["approvedPrompt"][
-                            "promptFrameIndex"
-                        ],
-                        obj_id=removable_object_id,
-                        is_user_action=False,
-                    )
-
+        for _propagation_pass in range(1):
             stage = "propagation"
             pass_propagation_started = time.monotonic_ns()
             pass_persistence_started_ns = persistence_ns
@@ -2722,14 +2687,9 @@ def execute_inside_bfloat16_autocast(
                     exact_int(int(value), 0, 2**31 - 1, "object id")
                     for value in outputs["out_obj_ids"].tolist()
                 ]
-                expected_pass_object_ids = (
-                    prompt_object_ids
-                    if serial_object_id is None
-                    else [serial_object_id]
-                )
-                if object_ids != expected_pass_object_ids:
+                if object_ids != prompt_object_ids:
                     raise RuntimeError(
-                        "SAM 3.1 serial propagation object identities changed"
+                        "SAM 3.1 propagation object identities changed"
                     )
                 boxes = outputs["out_boxes_xywh"].tolist()
                 masks = outputs["out_binary_masks"]
@@ -2783,14 +2743,6 @@ def execute_inside_bfloat16_autocast(
                 pass_persistence_ns,
             )
             verify_gpu_frame_store(inference_state)
-            if serial_object_id is not None:
-                predictor.handle_request(
-                    {
-                        "type": "close_session",
-                        "session_id": session_id,
-                        "run_gc_collect": True,
-                    }
-                )
     propagation_ms = propagation_elapsed_ns // 1_000_000
     prompt_ms = prompt_ns // 1_000_000
     output_persistence_ms = persistence_ns // 1_000_000
@@ -3069,6 +3021,12 @@ def failure_diagnostic_code(error: Exception) -> str:
         ),
         "SAM 3.1 L4 GPU memory trim was not applied": (
             "l4_gpu_memory_trim_not_applied"
+        ),
+        "SAM 3.1 propagation object identities changed": (
+            "semantic_object_identity_mismatch"
+        ),
+        "SAM 3.1 decoded frame store is not completely CUDA-resident": (
+            "gpu_frame_store_residency_mismatch"
         ),
     }
     return allowed.get(str(error), "unclassified_fail_closed")

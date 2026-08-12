@@ -47,7 +47,7 @@ assert.match(
 )
 assert.match(
   l4Qualifier,
-  /qualifiedA100ServingImageDigest:\s*expectedImageDigest/u,
+  /qualifiedA100ServingImageDigest:\s*a100ImageDigest/u,
 )
 assert.match(
   l4Qualifier,
@@ -55,7 +55,27 @@ assert.match(
 )
 assert.match(
   l4Qualifier,
-  /const expectedImageDigest = a100ServingQualification\.immutableImageDigest/u,
+  /const a100ImageDigest = a100ServingQualification\.immutableImageDigest/u,
+)
+assert.match(
+  l4Qualifier,
+  /createCanonicalSam31GcpImageSupplyChainReleaseRepository\(\{ storage \}\)/u,
+)
+assert.match(
+  l4Qualifier,
+  /immutableImageReleaseRef:\s*input\.l4ImageReleaseRef/u,
+)
+assert.match(
+  l4Qualifier,
+  /immutableImageDigest:\s*input\.l4ImageDigest/u,
+)
+assert.match(
+  l4Qualifier,
+  /WEEDITPRO_SAM31_L4_IMAGE_SUPPLY_CHAIN_RELEASE_ID/u,
+)
+assert.match(
+  l4Qualifier,
+  /WEEDITPRO_SAM31_L4_IMMUTABLE_IMAGE_SHA256/u,
 )
 assert.match(
   l4Qualifier,
@@ -67,7 +87,7 @@ assert.doesNotMatch(
 )
 assert.match(
   l4Qualifier,
-  /gpuMemoryProfileId:\s*'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5'/u,
+  /gpuMemoryProfileId:\s*'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'/u,
 )
 
 const request = buildCanonicalSam31GpuRuntimeRequest({
@@ -905,7 +925,7 @@ const fallback = buildCanonicalSam31GpuRuntimeRequest({
   settings: {
     ...request.settings,
     gpuMemoryProfileId:
-      'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5',
+      'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
   },
 })
 assert.equal(fallback.dispatch.accelerator, 'nvidia_l4')

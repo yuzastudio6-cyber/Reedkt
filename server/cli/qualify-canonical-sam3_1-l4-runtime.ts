@@ -26,6 +26,9 @@ import {
   type CanonicalSam31VertexServingThirtyRunQualification,
 } from '../services/canonical-sam3_1-vertex-serving-thirty-run-qualification-service'
 import {
+  createCanonicalSam31GcpImageSupplyChainReleaseRepository,
+} from '../services/canonical-sam3_1-cloud-image-supply-chain-release-runtime'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../services/private-edit-authority-store'
@@ -111,6 +114,16 @@ async function main() {
   const runOrdinal = runOrdinalSchema.parse(
     process.env.WEEDITPRO_SAM31_L4_RUN_ORDINAL,
   )
+  const l4ImageReleaseRef = evidenceRefSchema.parse({
+    id: process.env.WEEDITPRO_SAM31_L4_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
+    version: 1,
+    contentHash: `sha256:${sha256.parse(
+      process.env.WEEDITPRO_SAM31_L4_IMAGE_SUPPLY_CHAIN_RELEASE_SHA256,
+    )}`,
+  })
+  const l4ImageDigest = `sha256:${sha256.parse(
+    process.env.WEEDITPRO_SAM31_L4_IMMUTABLE_IMAGE_SHA256,
+  )}` as const
   const { authClient: auth, storage } = createWeEditProGcpLocalOperatorAuth({
     confirmation: process.env.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
   })
@@ -137,14 +150,25 @@ async function main() {
         qualificationSetId: A100_SERVING_QUALIFICATION_SET_ID,
       }),
     )
-  const expectedImageDigest = a100ServingQualification.immutableImageDigest
-  const expectedImage =
+  const a100ImageDigest = a100ServingQualification.immutableImageDigest
+  const l4ImageRelease =
+    await createCanonicalSam31GcpImageSupplyChainReleaseRepository({ storage })
+      .rereadQualifiedRelease({ releaseRef: l4ImageReleaseRef })
+  if (!l4ImageRelease
+    || l4ImageRelease.immutableImageDigest !== l4ImageDigest
+    || l4ImageRelease.immutableImageRef.contentHash !== l4ImageDigest
+    || l4ImageRelease.authority.l4RuntimeQualified
+    || l4ImageRelease.authority.runtimeReleaseGranted
+    || l4ImageRelease.authority.productionReady) {
+    throw new Error('sam31_l4_image_supply_chain_release_changed')
+  }
+  const expectedL4Image =
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/`
-    + `reeditpro-sam31-gpu@${expectedImageDigest}`
+    + `reeditpro-sam31-gpu@${l4ImageDigest}`
   const job = assertExactJob(await getJson(
     auth,
     `${RUN_ORIGIN}/v2/${JOB_RESOURCE}`,
-  ), expectedImage)
+  ), expectedL4Image)
   const beforeExecutions = await listExecutions(auth)
   if (activeExecutions(beforeExecutions).length !== 0) {
     throw new Error('sam31_l4_job_not_scaled_to_zero_before_start')
@@ -172,8 +196,9 @@ async function main() {
     {
       job: jobProjection,
       checkpoint,
-      imageDigest: expectedImageDigest,
-      qualifiedA100ServingImageDigest: expectedImageDigest,
+      imageDigest: l4ImageDigest,
+      l4ImageSupplyChainReleaseRef,
+      qualifiedA100ServingImageDigest: a100ImageDigest,
       qualifiedA100ServingQualificationRef:
         a100ServingQualificationRef(a100ServingQualification),
     },
@@ -198,13 +223,14 @@ async function main() {
     runOrdinal,
     operationId: 'tool.sam3_1.segment_and_track_subject.v1',
     routeId: 'l4_heavy_fallback',
-    immutableImageDigest: expectedImageDigest,
+    immutableImageDigest: l4ImageDigest,
+    l4ImageSupplyChainReleaseRef,
     runtimeCandidateReleaseRef: candidateReleaseRef,
     sourceCheckpointQualificationRef:
       baseTask.specializedRuntimeReleaseRef,
     qualifiedA100ServingQualificationRef:
       a100ServingQualificationRef(a100ServingQualification),
-    qualifiedA100ServingImageDigest: expectedImageDigest,
+    qualifiedA100ServingImageDigest: a100ImageDigest,
     currentA100RateAuthorityRef: baseTask.primaryRateAuthorityRef,
     currentL4FallbackRateAuthorityRef: baseTask.fallbackRateAuthorityRef,
     checkpointPromotionRef: checkpoint.checkpointPromotionRef,
@@ -308,6 +334,8 @@ async function main() {
     candidateReleaseRef,
     priorPrimaryQualificationNonExecutionRef,
     stagingEvidence,
+    l4ImageDigest,
+    l4ImageReleaseRef,
     preparedAt: now,
   })
   await persistCanonicalJsonCreateOnly({
@@ -348,7 +376,7 @@ async function main() {
     runtimeRegion: REGION,
     executionTarget: 'google_cloud_run_l4_job',
     accelerator: 'nvidia_l4',
-    immutableImageDigest: expectedImageDigest,
+    immutableImageDigest: l4ImageDigest,
     cloudJobCreateRequestRef: opaqueRef(
       `sam31-l4-cloud-run-request:${suffix}`,
       { operationName: operation.name, invocationId },
@@ -484,7 +512,7 @@ async function main() {
     semanticManifestRef: semanticManifest.manifestRef,
     semanticMaskSetDigestSha256:
       semanticManifest.semanticMaskSetDigestSha256,
-    immutableImageDigest: expectedImageDigest,
+    immutableImageDigest: l4ImageDigest,
     observedAccelerator: response.gpuEvidence?.requestedAccelerator,
     observedDriverVersion: response.gpuEvidence?.observedNvidiaDriverVersion,
     observedCudaRuntimeVersion:
@@ -745,6 +773,8 @@ function buildL4QualificationTask(input: {
   stagingEvidence: z.infer<
     typeof canonicalSam31GpuPrivateInputStagingEvidenceSchema
   >
+  l4ImageDigest: `sha256:${string}`
+  l4ImageReleaseRef: z.infer<typeof evidenceRefSchema>
   preparedAt: string
 }) {
   const baseRequest = input.baseTask.runtimeRequest
@@ -788,11 +818,15 @@ function buildL4QualificationTask(input: {
       compiledIntentRef: input.refs.compiledIntentRef,
       promptApprovalRef: input.refs.promptApprovalRef,
     },
-    modelArtifacts: baseRequest.modelArtifacts,
+    modelArtifacts: {
+      ...baseRequest.modelArtifacts,
+      immutableImageReleaseRef: input.l4ImageReleaseRef,
+      immutableImageDigest: input.l4ImageDigest,
+    },
     settings: {
       ...baseRequest.settings,
       gpuMemoryProfileId:
-        'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5',
+        'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
     },
     byteFreeRequest: true,
     callerCodePathUrlCommandOrEnvironmentAccepted: false,

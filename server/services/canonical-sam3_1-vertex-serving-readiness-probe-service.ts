@@ -19,7 +19,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_READINESS_PROBE_VERSION =
-  'canonical-sam3_1-vertex-serving-readiness-probe-v1' as const
+  'canonical-sam3_1-vertex-serving-readiness-probe-v2' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
 const ENDPOINT =
@@ -57,12 +57,12 @@ const probeWithoutHashSchema = z.object({
   readinessProbeId: safeId,
   readinessTriggerRef: refSchema,
   endpointDeploymentRef: refSchema,
-  runtimeReleaseRef: refSchema,
+  imageSupplyChainReleaseRef: refSchema,
   immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
   endpointResourceName: z.literal(ENDPOINT),
   requestBodyDigestSha256: sha256,
   predictUrlDigestSha256: sha256,
-  disposition: z.literal('ready_for_private_customer_invocation'),
+  disposition: z.literal('ready_for_private_qualification_invocation'),
   safeDropped429ResponseCount: z.number().int().nonnegative()
     .max(MAXIMUM_SAFE_429_RESPONSES),
   totalProbeRequestCount: z.number().int().positive()
@@ -151,14 +151,14 @@ export function createCanonicalSam31VertexServingReadinessProbeService(
     async warmAndObserve(untrusted: {
       readonly endpointDeploymentRef: Ref
       readonly readinessTriggerRef: Ref
-      readonly runtimeReleaseRef: Ref
+      readonly imageSupplyChainReleaseRef: Ref
       readonly immutableImageDigest: string
     }): Promise<CanonicalSam31VertexServingReadinessProbe> {
       assertPlainSerializedData(untrusted, 'sam31_vertex_readiness_probe')
       const request = z.object({
         endpointDeploymentRef: refSchema,
         readinessTriggerRef: refSchema,
-        runtimeReleaseRef: refSchema,
+        imageSupplyChainReleaseRef: refSchema,
         immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
       }).strict().parse(untrusted)
       const readinessProbeId = safeId.parse(
@@ -175,8 +175,8 @@ export function createCanonicalSam31VertexServingReadinessProbeService(
             request.readinessTriggerRef.contentHash
           || accepted.endpointDeploymentRef.contentHash !==
             request.endpointDeploymentRef.contentHash
-          || accepted.runtimeReleaseRef.contentHash !==
-            request.runtimeReleaseRef.contentHash
+          || accepted.imageSupplyChainReleaseRef.contentHash !==
+            request.imageSupplyChainReleaseRef.contentHash
           || accepted.immutableImageDigest !== request.immutableImageDigest
         ) throw new Error('Vertex readiness-probe replay lineage changed.')
         return accepted
@@ -355,7 +355,7 @@ function parseReadinessResponse(value: unknown, readinessProbeId: string) {
 }
 
 function buildProbe(input: {
-  request: { endpointDeploymentRef: Ref; runtimeReleaseRef: Ref;
+  request: { endpointDeploymentRef: Ref; imageSupplyChainReleaseRef: Ref;
     readinessTriggerRef: Ref; immutableImageDigest: string }
   body: unknown
   result: ReturnType<typeof parseReadinessResponse>
@@ -369,12 +369,12 @@ function buildProbe(input: {
     readinessProbeId: input.result.readinessProbeId,
     readinessTriggerRef: input.request.readinessTriggerRef,
     endpointDeploymentRef: input.request.endpointDeploymentRef,
-    runtimeReleaseRef: input.request.runtimeReleaseRef,
+    imageSupplyChainReleaseRef: input.request.imageSupplyChainReleaseRef,
     immutableImageDigest: input.request.immutableImageDigest,
     endpointResourceName: ENDPOINT,
     requestBodyDigestSha256: sha256AuthorityValue(input.body),
     predictUrlDigestSha256: sha256AuthorityValue({ url: PREDICT_URL }),
-    disposition: 'ready_for_private_customer_invocation',
+    disposition: 'ready_for_private_qualification_invocation',
     safeDropped429ResponseCount: input.dropped429Count,
     totalProbeRequestCount: input.dropped429Count + 1,
     serverVersion: input.result.serverVersion,

@@ -5,6 +5,9 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
+  assertCanonicalProfessionalGpuRuntimeLaunchTarget,
+} from '../services/canonical-professional-gpu-job-lifecycle-service'
+import {
   assertCanonicalSam31GpuRuntimeReleaseRegistryRecord,
   type CanonicalSam31GpuRuntimeReleaseRegistryRecord,
 } from '../services/canonical-sam3_1-gpu-runtime-release-registry'
@@ -60,7 +63,7 @@ const admission = reissueAdmission({
   runtimeReleaseRef,
   currentRateAuthorityRef: primaryRateRef,
 })
-const target = {
+const target = assertCanonicalProfessionalGpuRuntimeLaunchTarget({
   ...baseTaskFixture.target,
   releaseRef: runtimeReleaseRef,
   releaseEvidenceClass: 'canonical_private_reread' as const,
@@ -74,7 +77,7 @@ const target = {
   serviceIdentityRef: released.runtimeRelease.serviceIdentityRef,
   privateNetworkAndArtifactTransportRef:
     released.runtimeRelease.privateNetworkAndArtifactTransportRef,
-}
+})
 const trackAllOrchestraBinding =
   createCanonicalTrackAllSam31OrchestraBinding({
     bindingId: 'canonical-task-context-owner-track-all-binding',

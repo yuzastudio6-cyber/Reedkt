@@ -5,7 +5,7 @@ import {
 } from '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SCALE_ZERO_DEPLOYMENT_PROFILE_VERSION =
-  'canonical-sam3_1-vertex-scale-zero-deployment-profile-v1' as const
+  'canonical-sam3_1-vertex-scale-zero-deployment-profile-v2' as const
 
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
@@ -33,7 +33,6 @@ const profileWithoutHashSchema = z.object({
   operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
   routeId: z.literal('a100_80gb_heavy_primary'),
   imageSupplyChainReleaseRef: refSchema,
-  runtimeReleaseRef: refSchema,
   immutableImageRef: refSchema,
   immutableImageUri,
   immutableImageDigest: prefixedSha256,
@@ -116,6 +115,11 @@ const profileWithoutHashSchema = z.object({
       z.literal(false),
     unapprovedOverageAbsorbedByWeEditPro: z.literal(true),
   }).strict(),
+  runtimeReleaseSequence: z.object({
+    runtimeReleaseRequiredBeforeDeployment: z.literal(false),
+    runtimeReleaseMayBePublishedOnlyAfterQualification: z.literal(true),
+    deploymentProfileMayClaimRuntimeQualified: z.literal(false),
+  }).strict(),
   qualificationGate: z.object({
     exactEightMinuteQualityFixtureRequired: z.literal(true),
     minimumRepresentativeRuns: z.literal(30),
@@ -160,7 +164,6 @@ export type CanonicalSam31VertexScaleZeroDeploymentProfile = z.infer<
 
 export function createCanonicalSam31VertexScaleZeroDeploymentProfile(input: {
   readonly imageSupplyChainReleaseRef: z.infer<typeof refSchema>
-  readonly runtimeReleaseRef: z.infer<typeof refSchema>
   readonly immutableImageRef: z.infer<typeof refSchema>
   readonly immutableImageUri: string
   readonly immutableImageDigest: string
@@ -246,6 +249,11 @@ export function createCanonicalSam31VertexScaleZeroDeploymentProfile(input: {
       toolOwnerCostExcludesWeEditProServiceFee: true,
       failedOrUnknownUnsettledAttemptMayChargeCustomerCredits: false,
       unapprovedOverageAbsorbedByWeEditPro: true,
+    },
+    runtimeReleaseSequence: {
+      runtimeReleaseRequiredBeforeDeployment: false,
+      runtimeReleaseMayBePublishedOnlyAfterQualification: true,
+      deploymentProfileMayClaimRuntimeQualified: false,
     },
     qualificationGate: {
       exactEightMinuteQualityFixtureRequired: true,

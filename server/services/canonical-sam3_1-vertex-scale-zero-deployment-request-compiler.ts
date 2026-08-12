@@ -9,7 +9,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SCALE_ZERO_DEPLOYMENT_REQUEST_VERSION =
-  'canonical-sam3_1-vertex-scale-zero-deployment-request-v1' as const
+  'canonical-sam3_1-vertex-scale-zero-deployment-request-v2' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com' as const
 const PARENT = 'projects/reeditpro/locations/us-central1' as const

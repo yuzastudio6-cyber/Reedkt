@@ -14,7 +14,6 @@ const ref = (id: string, character: string) => ({
 const imageDigest = hash('b')
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef: ref('sam31-supply-release', 'a'),
-  runtimeReleaseRef: ref('sam31-a100-runtime-release', 'f'),
   immutableImageRef: ref('sam31-image', 'b'),
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${imageDigest}`,
@@ -40,6 +39,14 @@ assert.deepEqual(profile.dedicatedResources.scaleToZeroSpec, {
 assert.equal(profile.endpoint.dedicatedEndpointEnabled, true)
 assert.equal(profile.readinessAndAttemptPolicy.firstRequestMayBeCustomerChargeableAttempt, false)
 assert.equal(profile.pricingAndSettlement.minimumWarmBillingWindowSeconds, 300)
+assert.equal(
+  profile.runtimeReleaseSequence.runtimeReleaseRequiredBeforeDeployment,
+  false,
+)
+assert.equal(
+  profile.runtimeReleaseSequence.runtimeReleaseMayBePublishedOnlyAfterQualification,
+  true,
+)
 assert.equal(profile.qualificationGate.minimumRepresentativeRuns, 30)
 assert.equal(profile.qualificationGate.customerDispatchAllowed, false)
 assert.equal(profile.authority.productionReady, false)
@@ -60,6 +67,13 @@ assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentProfile({
 }))
 assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentProfile({
   ...profile,
+  runtimeReleaseSequence: {
+    ...profile.runtimeReleaseSequence,
+    runtimeReleaseRequiredBeforeDeployment: true,
+  },
+}))
+assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentProfile({
+  ...profile,
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${hash('f')}`,
 }))
@@ -70,10 +84,11 @@ assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentProfile({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-deployment-profile',
-  checks: 15,
+  checks: 18,
   dedicatedA100Endpoint: true,
   minimumReplicaCount: 0,
   accountEffectiveSettlementRequired: true,
+  circularRuntimeReleaseDependencyRemoved: true,
   firstScaledDownRequestCustomerChargeable: false,
   customerDispatchAllowed: false,
   productionReady: false,

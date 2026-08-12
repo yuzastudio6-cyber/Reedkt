@@ -431,7 +431,7 @@ function vertexComponent(
   apiUnit: 'h' | 'GiBy.h' | 'GiBy.mo' | 'GiBy' | 'count',
   maximumUsdNanosPerBillingUnit: number,
   character: string,
-  apiUnitQuantity = '1',
+  apiUnitQuantity: '1' | '1000' = '1',
 ) {
   const cloudServiceName = componentClass.startsWith('vertex_prediction')
     ? 'vertex-ai' : 'cloud-storage'

@@ -118,7 +118,7 @@ function component(
   maximumUsdNanosPerBillingUnit: number,
   character: string,
   observedAt: string,
-  apiUnitQuantity = '1',
+  apiUnitQuantity: '1' | '1000' = '1',
 ) {
   const vertexComponent = componentClass.startsWith('vertex_prediction')
   return {

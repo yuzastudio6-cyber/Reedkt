@@ -30,6 +30,7 @@ import {
 
 const imageDigest = hash('serving-image')
 const runtimeReleaseRef = ref('sam31-a100-runtime-release')
+const imageSupplyChainReleaseRef = ref('sam31-supply-chain-release')
 const readinessTriggerRef = ref('user-trigger-readiness-1')
 const endpointDeploymentRef = ref('endpoint-deployment-candidate')
 const values = new Map<string, Buffer>()
@@ -87,7 +88,7 @@ const probeService = createCanonicalSam31VertexServingReadinessProbeService({
 const probe = await probeService.warmAndObserve({
   endpointDeploymentRef,
   readinessTriggerRef,
-  runtimeReleaseRef,
+  imageSupplyChainReleaseRef,
   immutableImageDigest: imageDigest,
 })
 assert.equal(probe.safeDropped429ResponseCount, 1)
@@ -106,7 +107,7 @@ assert.deepEqual(
 assert.deepEqual(await probeService.warmAndObserve({
   endpointDeploymentRef,
   readinessTriggerRef,
-  runtimeReleaseRef,
+  imageSupplyChainReleaseRef,
   immutableImageDigest: imageDigest,
 }), probe)
 assert.equal(probeRequests, 2)
@@ -134,7 +135,7 @@ await assert.rejects(() =>
   }).warmAndObserve({
     endpointDeploymentRef,
     readinessTriggerRef: ref('wrong-429-trigger'),
-    runtimeReleaseRef,
+    imageSupplyChainReleaseRef,
     immutableImageDigest: imageDigest,
   }),
 )
@@ -150,7 +151,7 @@ await assert.rejects(() =>
   }).warmAndObserve({
     endpointDeploymentRef,
     readinessTriggerRef: ref('unknown-trigger'),
-    runtimeReleaseRef,
+    imageSupplyChainReleaseRef,
     immutableImageDigest: imageDigest,
   }),
 )
@@ -160,8 +161,7 @@ assert.throws(() => assertCanonicalSam31VertexServingReadinessProbe({
 }))
 
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
-  imageSupplyChainReleaseRef: ref('sam31-supply-chain-release'),
-  runtimeReleaseRef,
+  imageSupplyChainReleaseRef,
   immutableImageRef: ref('sam31-serving-image', imageDigest.slice(7)),
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${imageDigest}`,
@@ -228,8 +228,25 @@ const exactReadPort = createGoogleCloudSam31VertexServingExactDeploymentReadPort
     },
   } as unknown as Pick<GoogleAuth, 'request'>,
 })
+const runtimeReleaseReadPort = {
+  async rereadQualifiedRuntimeRelease() {
+    return {
+      runtimeReleaseRef,
+      toolId: 'sam3_1',
+      operationId: 'tool.sam3_1.segment_and_track_subject.v1',
+      routeId: 'a100_80gb_heavy_primary',
+      executionTarget:
+        'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+      immutableImageDigest: imageDigest,
+      qualificationRunCount: 30,
+      privateInternalQualified: true,
+      exactRuntimeReleaseRegistryReread: true,
+    }
+  },
+}
 const ready = await createCanonicalSam31VertexServingDeploymentReadyService({
   exactDeploymentReadPort: exactReadPort,
+  runtimeReleaseReadPort,
 }).produceOne({
   profile,
   deploymentProfileRef,
@@ -238,6 +255,7 @@ const ready = await createCanonicalSam31VertexServingDeploymentReadyService({
   modelDeployObservationRef,
   readinessProbeRef: ref('sam31-readiness-probe', probe.probeHash),
   readinessProbe: probe,
+  runtimeReleaseRef,
   observedAt: probe.readyObservedAt,
   expiresAt: '2026-08-11T22:02:05.000Z',
 })
@@ -270,6 +288,7 @@ await assert.rejects(() => readyRepository.rereadReadyDeployment({
 await assert.rejects(() =>
   createCanonicalSam31VertexServingDeploymentReadyService({
     exactDeploymentReadPort: exactReadPort,
+    runtimeReleaseReadPort,
   }).produceOne({
     profile,
     deploymentProfileRef,
@@ -278,6 +297,7 @@ await assert.rejects(() =>
     modelDeployObservationRef,
     readinessProbeRef: ref('wrong-probe', '0'.repeat(64)),
     readinessProbe: probe,
+    runtimeReleaseRef,
     observedAt: probe.readyObservedAt,
     expiresAt: '2026-08-11T22:02:05.000Z',
   }),
@@ -291,6 +311,7 @@ await assert.rejects(() =>
           maximumReplicaCount: 2 }
       },
     },
+    runtimeReleaseReadPort,
   }).produceOne({
     profile,
     deploymentProfileRef,
@@ -299,6 +320,7 @@ await assert.rejects(() =>
     modelDeployObservationRef,
     readinessProbeRef: ref('sam31-readiness-probe', probe.probeHash),
     readinessProbe: probe,
+    runtimeReleaseRef,
     observedAt: probe.readyObservedAt,
     expiresAt: '2026-08-11T22:02:05.000Z',
   }),
@@ -330,7 +352,7 @@ const extraMetadataProbe = await createCanonicalSam31VertexServingReadinessProbe
 }).warmAndObserve({
   endpointDeploymentRef,
   readinessTriggerRef: ref('google-429-metadata-trigger'),
-  runtimeReleaseRef,
+  imageSupplyChainReleaseRef,
   immutableImageDigest: imageDigest,
 })
 assert.equal(extraMetadataProbe.safeDropped429ResponseCount, 1)

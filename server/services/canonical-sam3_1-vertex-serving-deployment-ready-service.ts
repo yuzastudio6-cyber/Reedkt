@@ -21,7 +21,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_EXACT_DEPLOYMENT_VERSION =
-  'canonical-sam3_1-vertex-serving-exact-deployment-v1' as const
+  'canonical-sam3_1-vertex-serving-exact-deployment-v2' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
 const MODEL_RESOURCE =
@@ -44,6 +44,19 @@ const refSchema = z.object({
   contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
 }).strict()
 type Ref = z.infer<typeof refSchema>
+const qualifiedRuntimeReleaseReadSchema = z.object({
+  runtimeReleaseRef: refSchema,
+  toolId: z.literal('sam3_1'),
+  operationId: z.literal('tool.sam3_1.segment_and_track_subject.v1'),
+  routeId: z.literal('a100_80gb_heavy_primary'),
+  executionTarget: z.literal(
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+  ),
+  immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+  qualificationRunCount: z.number().int().min(30).safe(),
+  privateInternalQualified: z.literal(true),
+  exactRuntimeReleaseRegistryReread: z.literal(true),
+}).strict()
 
 const exactWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -56,7 +69,7 @@ const exactWithoutHashSchema = z.object({
   modelUploadObservationRef: refSchema,
   endpointCreateObservationRef: refSchema,
   modelDeployObservationRef: refSchema,
-  runtimeReleaseRef: refSchema,
+  imageSupplyChainReleaseRef: refSchema,
   immutableImageUri: z.string().regex(
     /^us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/reeditpro-sam31-gpu@sha256:[a-f0-9]{64}$/u,
   ),
@@ -110,10 +123,19 @@ export interface CanonicalSam31VertexServingExactDeploymentReadPort {
   }): Promise<unknown>
 }
 
+export interface CanonicalSam31VertexServingRuntimeReleaseReadPort {
+  rereadQualifiedRuntimeRelease(input: {
+    readonly runtimeReleaseRef: Ref
+    readonly at: string
+  }): Promise<unknown>
+}
+
 export function createCanonicalSam31VertexServingDeploymentReadyService(
   input: {
     readonly exactDeploymentReadPort:
       CanonicalSam31VertexServingExactDeploymentReadPort
+    readonly runtimeReleaseReadPort:
+      CanonicalSam31VertexServingRuntimeReleaseReadPort
   },
 ) {
   return Object.freeze({
@@ -125,6 +147,7 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
       readonly modelDeployObservationRef: Ref
       readonly readinessProbeRef: Ref
       readonly readinessProbe: unknown
+      readonly runtimeReleaseRef: Ref
       readonly observedAt: string
       readonly expiresAt: string
     }): Promise<CanonicalSam31VertexServingDeploymentReady> {
@@ -138,6 +161,7 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
         endpointCreateObservationRef: refSchema,
         modelDeployObservationRef: refSchema,
         readinessProbeRef: refSchema,
+        runtimeReleaseRef: refSchema,
         observedAt: timestamp,
         expiresAt: timestamp,
       }).strict().parse({
@@ -146,6 +170,7 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
         endpointCreateObservationRef: untrusted.endpointCreateObservationRef,
         modelDeployObservationRef: untrusted.modelDeployObservationRef,
         readinessProbeRef: untrusted.readinessProbeRef,
+        runtimeReleaseRef: untrusted.runtimeReleaseRef,
         observedAt: untrusted.observedAt,
         expiresAt: untrusted.expiresAt,
       })
@@ -161,8 +186,8 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
       if (
         references.readinessProbeRef.contentHash !==
           `sha256:${probe.probeHash}`
-        || probe.runtimeReleaseRef.contentHash !==
-          profile.runtimeReleaseRef.contentHash
+        || probe.imageSupplyChainReleaseRef.contentHash !==
+          profile.imageSupplyChainReleaseRef.contentHash
         || probe.immutableImageDigest !== profile.immutableImageDigest
         || probe.readyObservedAt !== references.observedAt
       ) throw new Error('Vertex readiness probe crossed deployment scope.')
@@ -174,6 +199,17 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
         }),
       )
       assertExactLineage({ profile, references, exact })
+      const runtimeRelease = qualifiedRuntimeReleaseReadSchema.parse(
+        await input.runtimeReleaseReadPort.rereadQualifiedRuntimeRelease({
+          runtimeReleaseRef: references.runtimeReleaseRef,
+          at: references.observedAt,
+        }),
+      )
+      if (
+        stableAuthorityStringify(runtimeRelease.runtimeReleaseRef) !==
+          stableAuthorityStringify(references.runtimeReleaseRef)
+        || runtimeRelease.immutableImageDigest !== profile.immutableImageDigest
+      ) throw new Error('Vertex runtime release is not serving-qualified.')
       const exactDeploymentObservationRef = refSchema.parse({
         id: `sam31-a100-exact-deployment-${exact.observationHash.slice(0, 32)}`,
         version: 1,
@@ -195,7 +231,7 @@ export function createCanonicalSam31VertexServingDeploymentReadyService(
         deploymentProfileRef: references.deploymentProfileRef,
         endpointDeploymentRef,
         exactDeploymentObservationRef,
-        runtimeReleaseRef: profile.runtimeReleaseRef,
+        runtimeReleaseRef: references.runtimeReleaseRef,
         readinessProbeRef: references.readinessProbeRef,
         modelUploadObservationRef: references.modelUploadObservationRef,
         endpointCreateObservationRef: references.endpointCreateObservationRef,
@@ -274,7 +310,7 @@ export function createGoogleCloudSam31VertexServingExactDeploymentReadPort(
         modelUploadObservationRef: request.modelUploadObservationRef,
         endpointCreateObservationRef: request.endpointCreateObservationRef,
         modelDeployObservationRef: request.modelDeployObservationRef,
-        runtimeReleaseRef: profile.runtimeReleaseRef,
+        imageSupplyChainReleaseRef: profile.imageSupplyChainReleaseRef,
         immutableImageUri: model.containerSpec.imageUri,
         immutableImageDigest: profile.immutableImageDigest,
         modelResourceName: model.name,
@@ -392,8 +428,8 @@ function assertExactLineage(input: {
 }): void {
   if (
     input.exact.immutableImageDigest !== input.profile.immutableImageDigest
-    || input.exact.runtimeReleaseRef.contentHash !==
-      input.profile.runtimeReleaseRef.contentHash
+    || input.exact.imageSupplyChainReleaseRef.contentHash !==
+      input.profile.imageSupplyChainReleaseRef.contentHash
     || stableAuthorityStringify(input.exact.deploymentProfileRef) !==
       stableAuthorityStringify(input.references.deploymentProfileRef)
     || stableAuthorityStringify(input.exact.modelUploadObservationRef) !==

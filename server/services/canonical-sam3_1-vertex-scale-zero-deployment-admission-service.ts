@@ -30,7 +30,6 @@ const immutableImageUri = z.string().regex(
 
 const requestSchema = z.object({
   imageSupplyChainReleaseRef: refSchema,
-  runtimeReleaseRef: refSchema,
   immutableImageRef: refSchema,
   immutableImageUri,
   immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),

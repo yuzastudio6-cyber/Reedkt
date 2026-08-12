@@ -185,6 +185,8 @@ export async function prepareCanonicalSam31VertexCloudImageBuildAuthority(
       dockerfilePath: capsule.repositorySource.dockerfilePath,
       dockerfileSha256: capsule.repositorySource.dockerfileSha256,
       runnerSha256: capsule.repositorySource.runnerSha256,
+      vertexPredictionServerSha256:
+        capsule.repositorySource.vertexPredictionServerSha256,
       entrypointSha256: capsule.repositorySource.entrypointSha256,
       sourceProvenanceLockSha256:
         capsule.repositorySource.sourceProvenanceLockSha256,

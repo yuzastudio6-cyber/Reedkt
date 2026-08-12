@@ -109,7 +109,6 @@ const accountEffectiveRateAuthorityRef = {
 }
 const request = {
   imageSupplyChainReleaseRef: ref('sam31-supply-release', 'a', 5),
-  runtimeReleaseRef: ref('sam31-a100-runtime-release', 'f', 4),
   immutableImageRef: ref('sam31-image', 'b', 3),
   immutableImageUri:
     `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${hash('b')}`,
@@ -135,6 +134,10 @@ const profile = await admitCanonicalSam31VertexScaleZeroDeploymentProfile({
 assert.equal(profile.accountEffectiveRateAuthorityRef.version, 7)
 assert.equal(profile.sourceCheckpointQualificationRef.version, 8)
 assert.equal(profile.dedicatedResources.minimumReplicaCount, 0)
+assert.equal(
+  profile.runtimeReleaseSequence.runtimeReleaseRequiredBeforeDeployment,
+  false,
+)
 assert.equal(profile.qualificationGate.customerDispatchAllowed, false)
 
 await assert.rejects(() => admitCanonicalSam31VertexScaleZeroDeploymentProfile({
@@ -155,13 +158,21 @@ await assert.rejects(() => admitCanonicalSam31VertexScaleZeroDeploymentProfile({
   request: { ...request, extra: true },
   rateAuthorityRepository: repository(authority),
 } as never))
+await assert.rejects(() => admitCanonicalSam31VertexScaleZeroDeploymentProfile({
+  request: {
+    ...request,
+    runtimeReleaseRef: ref('premature-runtime-release', 'f', 1),
+  },
+  rateAuthorityRepository: repository(authority),
+} as never))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-deployment-admission',
-  checks: 10,
+  checks: 12,
   accountEffectiveServingRateReread: true,
   callerSuppliedRateRefAloneAccepted: false,
   currentEvidenceVersionsAccepted: true,
+  prematureRuntimeReleaseRejected: true,
   endpointOrGpuJobStarted: false,
   customerDispatchAllowed: false,
   productionReady: false,

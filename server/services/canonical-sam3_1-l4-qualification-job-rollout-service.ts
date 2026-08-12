@@ -55,7 +55,9 @@ const receiptWithoutHashSchema = z.object({
   authority: z.object({
     exactImageSupplyChainReleaseReread: z.literal(true),
     noActiveExecutionsBeforePatch: z.literal(true),
-    etagPreconditionApplied: z.literal(true),
+    beforeJobEtagReread: z.literal(true),
+    officialGcloudImageOnlyUpdateUsed: z.literal(true),
+    etagPreconditionApplied: z.literal(false),
     onlyImmutableImageDigestChanged: z.literal(true),
     exactReadyJobRereadAfterPatch: z.literal(true),
     noExecutionStartedByRollout: z.literal(true),
@@ -136,7 +138,9 @@ export function createCanonicalSam31L4QualificationJobRolloutReceipt(input: {
     authority: {
       exactImageSupplyChainReleaseReread: true,
       noActiveExecutionsBeforePatch: true,
-      etagPreconditionApplied: true,
+      beforeJobEtagReread: true,
+      officialGcloudImageOnlyUpdateUsed: true,
+      etagPreconditionApplied: false,
       onlyImmutableImageDigestChanged: true,
       exactReadyJobRereadAfterPatch: true,
       noExecutionStartedByRollout: true,

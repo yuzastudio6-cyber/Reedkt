@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 
 import { type File } from '@google-cloud/storage'
@@ -33,9 +34,6 @@ const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const RECEIPT_PREFIX =
   'private/sam3_1/l4-qualification-job-rollouts/v1' as const
-const UPDATE_MASK = 'template.template.containers' as const
-const MAXIMUM_WAIT_MS = 5 * 60 * 1_000
-const POLL_INTERVAL_MS = 2_000
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -47,16 +45,6 @@ const evidenceRefSchema = z.object({
   version: z.literal(1),
   contentHash: prefixedSha256,
 }).strict()
-const operationSchema = z.object({
-  name: z.string().regex(
-    /^projects\/reeditpro\/locations\/us-central1\/operations\/[A-Za-z0-9-]+$/u,
-  ),
-  done: z.boolean().optional(),
-  error: z.object({
-    code: z.number().int(),
-    message: z.string(),
-  }).passthrough().optional(),
-}).passthrough()
 const executionPageSchema = z.object({
   executions: z.array(z.object({
     name: z.string(),
@@ -123,22 +111,11 @@ async function main() {
   if (await countActiveExecutions(auth) !== 0) {
     throw new Error('sam31_l4_job_not_scaled_to_zero_before_rollout')
   }
-  const patch = buildCanonicalSam31L4QualificationJobImagePatch({
+  buildCanonicalSam31L4QualificationJobImagePatch({
     current: before,
     immutableImageUri,
   })
-  const submittedOperation = operationSchema.parse((await auth.request({
-    url: `${RUN_ORIGIN}/v2/${JOB_RESOURCE}?updateMask=${UPDATE_MASK}`,
-    method: 'PATCH',
-    data: patch,
-    timeout: 30_000,
-    retry: false,
-    maxRedirects: 0,
-  })).data)
-  const terminalOperation = await waitForOperation(auth, submittedOperation)
-  if (terminalOperation.error) {
-    throw new Error('sam31_l4_job_image_patch_operation_failed')
-  }
+  const updateObservation = runOfficialImageOnlyUpdate(immutableImageUri)
   const after = assertCanonicalSam31L4QualificationJob(
     await getJson(auth, `${RUN_ORIGIN}/v2/${JOB_RESOURCE}`),
     immutableImageUri,
@@ -147,9 +124,9 @@ async function main() {
     throw new Error('sam31_l4_job_not_scaled_to_zero_after_rollout')
   }
   const cloudRunPatchOperationRef = evidenceRefSchema.parse({
-    id: `sam31-l4-job-patch:${terminalOperation.name}`,
+    id: `sam31-l4-job-image-update:generation-${after.generation}`,
     version: 1,
-    contentHash: `sha256:${sha256AuthorityValue(terminalOperation)}`,
+    contentHash: `sha256:${sha256AuthorityValue(updateObservation)}`,
   })
   const receipt = createCanonicalSam31L4QualificationJobRolloutReceipt({
     rolloutId,
@@ -178,25 +155,6 @@ async function main() {
     runtimeReleaseGranted: false,
     productionReady: false,
   })}\n`)
-}
-
-async function waitForOperation(
-  auth: AuthRequest,
-  submitted: z.infer<typeof operationSchema>,
-) {
-  const deadline = Date.now() + MAXIMUM_WAIT_MS
-  let current = submitted
-  while (!current.done) {
-    if (Date.now() >= deadline) {
-      throw new Error('sam31_l4_job_image_patch_operation_timed_out')
-    }
-    await pause(POLL_INTERVAL_MS)
-    current = operationSchema.parse(await getJson(
-      auth,
-      `${RUN_ORIGIN}/v2/${submitted.name}`,
-    ))
-  }
-  return current
 }
 
 async function countActiveExecutions(auth: AuthRequest) {
@@ -262,8 +220,48 @@ function imageUri(digest: string) {
     + `reeditpro-sam31-gpu@${prefixedSha256.parse(digest)}`
 }
 
-function pause(milliseconds: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, milliseconds))
+function runOfficialImageOnlyUpdate(immutableImageUri: string) {
+  try {
+    const value = JSON.parse(execFileSync(
+      'gcloud',
+      [
+        'run', 'jobs', 'update', 'reeditpro-sam31-l4-fallback',
+        `--image=${immutableImageUri}`,
+        '--project=reeditpro',
+        '--region=us-central1',
+        '--format=json',
+        '--quiet',
+      ],
+      {
+        encoding: 'utf8',
+        maxBuffer: 4 * 1_024 * 1_024,
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 5 * 60 * 1_000,
+      },
+    )) as unknown
+    const parsed = z.object({
+      metadata: z.object({
+        name: z.literal('reeditpro-sam31-l4-fallback'),
+        generation: z.number().int().positive(),
+      }).passthrough(),
+      status: z.object({
+        conditions: z.array(z.object({
+          type: z.literal('Ready'),
+          status: z.literal('True'),
+        }).passthrough()).min(1),
+      }).passthrough(),
+    }).passthrough().parse(value)
+    return Object.freeze({
+      tool: 'gcloud_run_jobs_update_image_only_v1' as const,
+      jobName: parsed.metadata.name,
+      generation: parsed.metadata.generation,
+      ready: true as const,
+      executeNow: false as const,
+      image: immutableImageUri,
+    })
+  } catch {
+    throw new Error('sam31_l4_official_image_only_update_failed')
+  }
 }
 
 main().catch((error: unknown) => {

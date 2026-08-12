@@ -62,12 +62,11 @@ assert.match(
   l4ImageRollout,
   /rollout-one-qualified-sam31-image-to-l4-qualification-job-v1/u,
 )
-assert.match(l4ImageRollout, /template\.template\.containers/u)
-assert.match(
-  l4ImageRollout,
-  /\?updateMask=\$\{UPDATE_MASK\}/u,
-)
-assert.doesNotMatch(l4ImageRollout, /params:\s*\{ updateMask/u)
+assert.match(l4ImageRollout, /gcloud_run_jobs_update_image_only_v1/u)
+assert.match(l4ImageRollout, /'run', 'jobs', 'update'/u)
+assert.match(l4ImageRollout, /`--image=\$\{immutableImageUri\}`/u)
+assert.match(l4ImageRollout, /executeNow:\s*false/u)
+assert.doesNotMatch(l4ImageRollout, /'--execute-now'/u)
 assert.match(
   l4ImageRollout,
   /rereadQualifiedRelease\(\{ releaseRef: imageSupplyChainReleaseRef \}\)/u,

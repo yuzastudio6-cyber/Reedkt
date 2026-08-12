@@ -12,8 +12,10 @@ import {
 } from './canonical-professional-gpu-durable-lifecycle-store'
 import {
   assertCanonicalProfessionalGpuJobLaunch,
+  assertCanonicalProfessionalGpuJobTerminal,
   assertPlainSerializedData,
   type CanonicalProfessionalGpuJobLaunch,
+  type CanonicalProfessionalGpuJobTerminal,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   canonicalSam31GpuQualificationRouteForLaunch,
@@ -298,6 +300,10 @@ export interface CanonicalSam31GpuCompleteSourcePerformanceReadPort {
     readonly invocationId: string
     readonly resultAdmissionRef: EvidenceRef
   }): Promise<unknown | null>
+  rereadTerminal(input: {
+    readonly invocationId: string
+    readonly terminalRef: EvidenceRef
+  }): Promise<unknown | null>
   rereadRuntimeResponse(input: {
     readonly invocationId: string
     readonly runtimeResponseObjectRef: EvidenceRef
@@ -469,8 +475,26 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwner(input: {
             request: task.runtimeRequest,
             response: values[3],
           })
-          assertChunkLineage({ observation, chunk, task, launch, result, response })
-          return { task, launch, result, response }
+          const terminalValue = await input.readPort.rereadTerminal({
+            invocationId: chunk.invocationId,
+            terminalRef: result.terminalRef,
+          })
+          if (terminalValue === null) {
+            throw conflict(`chunk_${chunk.chunkOrdinal}_terminal_missing`)
+          }
+          const terminal = assertCanonicalProfessionalGpuJobTerminal(
+            terminalValue,
+          )
+          assertChunkLineage({
+            observation,
+            chunk,
+            task,
+            launch,
+            terminal,
+            result,
+            response,
+          })
+          return { task, launch, terminal, result, response }
         },
       ))
       assertStitchLineage({ observation, stitch, chunkRecords })
@@ -481,12 +505,14 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwner(input: {
         runtimeResponseObjectRef: chunk.runtimeResponseObjectRef,
         manifestRef: chunkRecords[index].result.manifestRef,
       }))
-      const costSetPayload = chunkRecords.map(({ result }, index) => ({
+      const costSetPayload = chunkRecords.map(({ terminal, result }, index) => ({
         chunkOrdinal: index + 1,
+        terminalRef: result.terminalRef,
         workerUsageEvidenceRef: result.workerUsageEvidenceRef,
         currentAccountPriceAuthorityRef:
           result.currentAccountPriceAuthorityRef,
         attemptCostReceiptRef: result.attemptCostReceiptRef,
+        terminalObservedAt: terminal.observedAt,
       }))
       const payload = performanceEvidenceWithoutHashSchema.parse({
         schemaVersion:
@@ -652,6 +678,11 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectP
       rereadResultAdmission({ invocationId }) {
         return resultStore.rereadResultAdmission(invocationId)
       },
+      rereadTerminal({ terminalRef }) {
+        return lifecycleStore.rereadTerminalRecord({
+          terminalRecordId: terminalRef.id,
+        })
+      },
       rereadRuntimeResponse({ invocationId }) {
         return taskStore.rereadRuntimeResponse(invocationId)
       },
@@ -711,10 +742,11 @@ function assertChunkLineage(input: {
   chunk: z.infer<typeof chunkObservationSchema>
   task: CanonicalSam31GpuTaskRecord
   launch: CanonicalProfessionalGpuJobLaunch
+  terminal: CanonicalProfessionalGpuJobTerminal
   result: CanonicalSam31GpuRuntimeResultAdmission
   response: CanonicalSam31GpuRuntimeResponse
 }): void {
-  const { observation, chunk, task, launch, result, response } = input
+  const { observation, chunk, task, launch, terminal, result, response } = input
   const source = task.runtimeRequest.sourceMedia
   const exact = chunk.invocationId === task.invocationId
     && sameRef(chunk.taskRef, ref(task.taskId, task.taskRecordHash))
@@ -725,6 +757,31 @@ function assertChunkLineage(input: {
       result.runtimeResponseObjectRef)
     && sameRef(result.taskRef, chunk.taskRef)
     && sameRef(result.launchRef, chunk.launchRef)
+    && sameRef(result.terminalRef,
+      ref(terminal.terminalRecordId, terminal.terminalHash))
+    && sameRef(terminal.launchRef, chunk.launchRef)
+    && sameRef(terminal.admissionRef, launch.admissionRef)
+    && sameRef(terminal.cloudJobExecutionRef,
+      launch.cloudJobExecutionRef)
+    && terminal.terminalOutcome === 'completed'
+    && terminal.providerInferenceOrSubstantiveWorkOutcome === 'executed'
+    && terminal.cloudJobTerminalStateReread
+    && terminal.workerStoppedVerified
+    && terminal.activeGpuInstancesAfterTerminalObservation === 0
+    && terminal.minimumIdleInstances === 0
+    && !terminal.retryAllowedWithoutCanonicalReconciliation
+    && !terminal.unknownOutcomeBlocksRetry
+    && terminal.exactPlatformUsageAndAccountPriceReread
+    && terminal.costReceiptPersistedBeforeSettlement
+    && !terminal.systemFailureOrUnknownCostChargedToCustomer
+    && !terminal.unapprovedOverageChargedToCustomer
+    && !terminal.customerWalletOrLedgerMutated
+    && sameRef(terminal.workerUsageEvidenceRef,
+      result.workerUsageEvidenceRef)
+    && sameRef(terminal.currentAccountPriceAuthorityRef,
+      result.currentAccountPriceAuthorityRef)
+    && sameRef(terminal.attemptCostReceiptRef,
+      result.attemptCostReceiptRef)
     && sameRef(result.runtimeRequestRef, task.runtimeRequestRef)
     && result.runtimeResponseBindingSha256 === response.responseBindingSha256
     && sameRef(source.finalizedSourceArtifactRef,

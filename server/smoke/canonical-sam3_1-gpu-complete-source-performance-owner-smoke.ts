@@ -209,6 +209,9 @@ const wiredRefs = await persistCanonicalSam31GpuCompleteSourceOwnerInput({
 for (const fixture of fixtures) {
   await wiredTaskStore.persistTaskCreateOnly(fixture.task)
   await wiredLifecycleStore.createLaunchRecordOnly({ record: fixture.launch })
+  await wiredLifecycleStore.createTerminalRecordOnly({
+    record: fixture.terminal,
+  })
   await wiredResultStore.persistResultAdmissionCreateOnly(fixture.result)
   const responseBody = Buffer.from(
     stableAuthorityStringify(fixture.response),
@@ -252,6 +255,9 @@ const splitRefs = await persistCanonicalSam31GpuCompleteSourceOwnerInput({
 for (const fixture of fixtures) {
   await splitTaskStore.persistTaskCreateOnly(fixture.task)
   await splitLifecycleStore.createLaunchRecordOnly({ record: fixture.launch })
+  await splitLifecycleStore.createTerminalRecordOnly({
+    record: fixture.terminal,
+  })
   await splitResultStore.persistResultAdmissionCreateOnly(fixture.result)
   const responseBody = Buffer.from(
     stableAuthorityStringify(fixture.response),
@@ -278,6 +284,30 @@ assert.equal(splitEvidence.phaseTiming.wallTimeMilliseconds, 420_000)
 
 await assert.rejects(() => ownerWith({ missingChunk: 17 })
   .compileAndPersistPerformanceEvidence(request))
+await assert.rejects(() => ownerWith({ missingTerminalChunk: 17 })
+  .compileAndPersistPerformanceEvidence(request))
+const crossedTerminal = structuredClone(fixtures[1].terminal)
+crossedTerminal.workerUsageEvidenceRef =
+  fixtures[0].terminal.workerUsageEvidenceRef
+crossedTerminal.terminalHash = terminalHash(crossedTerminal)
+const exactReadPort = fixtureReadPort(fixtures)
+await assert.rejects(() => createCanonicalSam31GpuCompleteSourcePerformanceOwner({
+  readPort: {
+    ...exactReadPort,
+    async rereadTerminal(input) {
+      return input.invocationId === fixtures[1].request.invocationId
+        ? structuredClone(crossedTerminal)
+        : exactReadPort.rereadTerminal(input)
+    },
+  },
+  repository: createCanonicalSam31GpuCompleteSourcePerformanceRepository({
+    objectPort: memoryObjectPort(new Map()),
+  }),
+  now: () => '2026-08-04T19:08:00.000Z',
+}).compileAndPersistPerformanceEvidence({
+  ...request,
+  executionGroupObservationRef,
+}))
 await assert.rejects(() => owner.compileAndPersistPerformanceEvidence({
   ...request,
   callerPerformanceQualified: true,
@@ -334,7 +364,7 @@ await assert.rejects(() => owner.compileAndPersistPerformanceEvidence(cyclic))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-complete-source-performance-owner',
-  checks: 39,
+  checks: 43,
   exactEightMinuteSourceCovered: true,
   orderedChunkCount: 48,
   exactChunkTaskLaunchResponseResultAndCostReread: true,
@@ -355,6 +385,7 @@ function fixtureReadPort(
     readonly observation?: unknown
     readonly stitch?: unknown
     readonly missingChunk?: number
+    readonly missingTerminalChunk?: number
   } = {},
 ): CanonicalSam31GpuCompleteSourcePerformanceReadPort {
   const byInvocation = new Map(source.map((fixture) => [
@@ -390,6 +421,18 @@ function fixtureReadPort(
       return value && sameRef(value.request.resultAdmissionRef,
         resultAdmissionRef) ? structuredClone(value.result) : null
     },
+    async rereadTerminal({ invocationId, terminalRef }) {
+      if (overrides.missingTerminalChunk !== undefined
+        && invocationId.endsWith(
+          String(overrides.missingTerminalChunk).padStart(2, '0'),
+        )) return null
+      const value = lookup(invocationId)
+      return value && sameRef({
+        id: value.terminal.terminalRecordId,
+        version: 1,
+        contentHash: `sha256:${value.terminal.terminalHash}`,
+      }, terminalRef) ? structuredClone(value.terminal) : null
+    },
     async rereadRuntimeResponse({ invocationId, runtimeResponseObjectRef }) {
       const value = lookup(invocationId)
       return value && sameRef(value.request.runtimeResponseObjectRef,
@@ -402,6 +445,7 @@ function ownerWith(overrides: {
   readonly observation?: unknown
   readonly stitch?: unknown
   readonly missingChunk?: number
+  readonly missingTerminalChunk?: number
 }) {
   return createCanonicalSam31GpuCompleteSourcePerformanceOwner({
     readPort: fixtureReadPort(fixtures, overrides),
@@ -457,4 +501,12 @@ function memoryObjectPort(
 
 function digest(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex')
+}
+
+function terminalHash(
+  terminal: CanonicalSam31A100RunFixture['terminal'],
+): string {
+  return digest(stableAuthorityStringify(
+    withoutKey(terminal, 'terminalHash'),
+  ))
 }

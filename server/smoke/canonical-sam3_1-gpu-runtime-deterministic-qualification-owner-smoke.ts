@@ -6,7 +6,9 @@ import {
 } from '../services/canonical-professional-gpu-durable-lifecycle-store'
 import {
   canonicalProfessionalGpuJobLaunchSchema,
+  canonicalProfessionalGpuJobTerminalSchema,
   type CanonicalProfessionalGpuJobLaunch,
+  type CanonicalProfessionalGpuJobTerminal,
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 import {
   createCanonicalSam31GpuRuntimeDeterministicQualificationOwner,
@@ -44,6 +46,7 @@ import {
   canonicalSam31A100ResultAdmissionFixture,
   canonicalSam31A100RuntimeResponseFixture,
   canonicalSam31A100TaskFixture,
+  canonicalSam31A100TerminalFixture,
 } from './canonical-sam3_1-gpu-task-owner-smoke'
 
 export type CanonicalSam31A100RunFixtureRef = {
@@ -62,6 +65,7 @@ export type CanonicalSam31A100RunFixture = {
   }
   task: CanonicalSam31GpuTaskRecord
   launch: CanonicalProfessionalGpuJobLaunch
+  terminal: CanonicalProfessionalGpuJobTerminal
   result: CanonicalSam31GpuRuntimeResultAdmission
   response: CanonicalSam31GpuRuntimeResponse
 }
@@ -470,6 +474,33 @@ export function buildCanonicalSam31A100RunFixture(
     `sam31-deterministic-runtime-response-${suffix}`,
     digest(stableAuthorityStringify(response)),
   )
+  const terminalPayload = {
+    ...withoutKey(canonicalSam31A100TerminalFixture, 'terminalHash'),
+    terminalRecordId: `sam31-deterministic-terminal-${suffix}`,
+    launchRef: ref(launch.launchRecordId, launch.launchHash),
+    admissionRef: launch.admissionRef,
+    cloudJobExecutionRef: launch.cloudJobExecutionRef,
+    cloudTerminalObservationRef: ref(
+      `sam31-deterministic-cloud-terminal-${suffix}`,
+      digest(`sam31-deterministic-cloud-terminal-${suffix}`),
+    ),
+    cloudCapacityTeardownObservationRef: ref(
+      `sam31-deterministic-scale-zero-${suffix}`,
+      digest(`sam31-deterministic-scale-zero-${suffix}`),
+    ),
+    workerUsageEvidenceRef: ref(
+      `sam31-deterministic-worker-usage-${suffix}`,
+      digest(`sam31-deterministic-worker-usage-${suffix}`),
+    ),
+    attemptCostReceiptRef: ref(
+      `sam31-deterministic-attempt-cost-${suffix}`,
+      digest(`sam31-deterministic-attempt-cost-${suffix}`),
+    ),
+  }
+  const terminal = canonicalProfessionalGpuJobTerminalSchema.parse({
+    ...terminalPayload,
+    terminalHash: sha256AuthorityValue(terminalPayload),
+  })
   const resultPayload = {
     ...withoutKey(
       canonicalSam31A100ResultAdmissionFixture,
@@ -482,15 +513,12 @@ export function buildCanonicalSam31A100RunFixture(
     admissionConsumptionRef: task.admissionConsumptionRef,
     executionEnvelopeRef,
     launchRef: ref(launch.launchRecordId, launch.launchHash),
+    terminalRef: ref(terminal.terminalRecordId, terminal.terminalHash),
     cloudJobExecutionRef: launch.cloudJobExecutionRef!,
-    workerUsageEvidenceRef: ref(
-      `sam31-deterministic-worker-usage-${suffix}`,
-      digest(`sam31-deterministic-worker-usage-${suffix}`),
-    ),
-    attemptCostReceiptRef: ref(
-      `sam31-deterministic-attempt-cost-${suffix}`,
-      digest(`sam31-deterministic-attempt-cost-${suffix}`),
-    ),
+    workerUsageEvidenceRef: terminal.workerUsageEvidenceRef,
+    currentAccountPriceAuthorityRef:
+      terminal.currentAccountPriceAuthorityRef,
+    attemptCostReceiptRef: terminal.attemptCostReceiptRef,
     privateOutputRereadEvidenceRef: ref(
       `sam31-deterministic-private-output-${suffix}`,
       digest(`sam31-deterministic-private-output-${suffix}`),
@@ -516,6 +544,7 @@ export function buildCanonicalSam31A100RunFixture(
     },
     task,
     launch,
+    terminal,
     result,
     response,
   }

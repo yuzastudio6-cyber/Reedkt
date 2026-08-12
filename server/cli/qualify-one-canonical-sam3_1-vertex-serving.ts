@@ -18,6 +18,9 @@ import {
   createCanonicalSam31VertexServingQualificationPreparationRef,
 } from '../services/canonical-sam3_1-vertex-serving-qualification-preparation-service'
 import {
+  createCanonicalGcpSam31VertexServingQualificationOutputService,
+} from '../services/canonical-sam3_1-vertex-serving-qualification-output-service'
+import {
   assertCanonicalSam31VertexServingReadinessProbe,
   createCanonicalGcsSam31VertexServingReadinessProbeRepository,
   createCanonicalSam31VertexServingReadinessProbeService,
@@ -229,6 +232,11 @@ const result =
     dispatchAdmissionDigestSha256:
       preparation.dispatchAdmissionDigestSha256,
   })
+const exactOutput = result.disposition === 'completed'
+  ? await createCanonicalGcpSam31VertexServingQualificationOutputService({
+    storage,
+  }).verifyOne({ invocationId: preparation.invocationId })
+  : null
 
 process.stdout.write(`${JSON.stringify({
   schemaVersion:
@@ -236,6 +244,7 @@ process.stdout.write(`${JSON.stringify({
   qualificationCandidateRef,
   qualificationPreparationRef,
   result,
+  exactOutput,
   customerInvocationAuthorized: false,
   customerCreditsMutated: false,
   runtimeReleaseGranted: false,

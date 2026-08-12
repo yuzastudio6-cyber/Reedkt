@@ -8,12 +8,17 @@ import {
   assertCanonicalProfessionalGpuJobLaunch,
 } from '../../services/canonical-professional-gpu-job-lifecycle-service'
 import {
+  assertCanonicalSam31VertexServingQualificationResult,
+  type CanonicalSam31VertexServingQualificationResult,
+} from '../../services/canonical-sam3_1-vertex-serving-qualification-invocation-service'
+import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from '../../services/private-edit-authority-store'
 import {
   CANONICAL_SAM3_1_PRIVATE_OUTPUT_REREAD_EVIDENCE_VERSION,
   canonicalSam31PrivateOutputRereadEvidenceSchema,
+  type CanonicalSam31PrivateOutputRereadEvidence,
   type CanonicalSam31PrivateOutputRereadPort,
 } from './canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -26,6 +31,18 @@ import {
 
 export const CANONICAL_SAM3_1_GCS_PRIVATE_OUTPUT_READER_VERSION =
   'canonical-sam3_1-gcs-private-output-reader-v1' as const
+
+export interface CanonicalSam31ServingPrivateOutputRereadPort {
+  rereadExactServingPrivateOutput(input: {
+    readonly task: Parameters<
+      CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
+    >[0]['task']
+    readonly response: Parameters<
+      CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
+    >[0]['response']
+    readonly servingResult: CanonicalSam31VertexServingQualificationResult
+  }): Promise<CanonicalSam31PrivateOutputRereadEvidence>
+}
 
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations'
@@ -88,7 +105,8 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
   readonly bucketName: string
   readonly prefix?: string
   readonly now?: () => string
-}): CanonicalSam31PrivateOutputRereadPort {
+}): CanonicalSam31PrivateOutputRereadPort &
+  CanonicalSam31ServingPrivateOutputRereadPort {
   const projectId = safeId.parse(input.projectId)
   const bucketName = z.string().regex(
     /^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$/u,
@@ -98,17 +116,10 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
   const bucket = storage.bucket(bucketName)
   const now = input.now ?? (() => new Date().toISOString())
 
-  return Object.freeze({
-    async rereadExactPrivateOutput(untrusted: Parameters<
-      CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
-    >[0]) {
-      const task = assertCanonicalSam31GpuTaskRecord(untrusted.task)
-      const response = assertCanonicalSam31GpuRuntimeResponse({
-        request: task.runtimeRequest,
-        response: untrusted.response,
-      })
-      const launch = assertCanonicalProfessionalGpuJobLaunch(untrusted.launch)
-      assertLaunchAndCompletedResponse({ task, response, launch })
+  const rereadObjects = async (
+    task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>,
+    response: ReturnType<typeof assertCanonicalSam31GpuRuntimeResponse>,
+  ) => {
       const invocationRoot = `${prefix}/${task.invocationId}`
       const outputRoot = `${invocationRoot}/sam3_1-mask-sequence`
 
@@ -253,11 +264,45 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
         productionAuthorityGranted: false as const,
         rereadAt,
       }
-      return Object.freeze(canonicalSam31PrivateOutputRereadEvidenceSchema
+    return Object.freeze(canonicalSam31PrivateOutputRereadEvidenceSchema
         .parse({
           ...payload,
           evidenceHash: sha256AuthorityValue(payload),
         }))
+  }
+  return Object.freeze({
+    async rereadExactPrivateOutput(untrusted: Parameters<
+      CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
+    >[0]) {
+      const task = assertCanonicalSam31GpuTaskRecord(untrusted.task)
+      const response = assertCanonicalSam31GpuRuntimeResponse({
+        request: task.runtimeRequest,
+        response: untrusted.response,
+      })
+      const launch = assertCanonicalProfessionalGpuJobLaunch(untrusted.launch)
+      assertLaunchAndCompletedResponse({ task, response, launch })
+      return rereadObjects(task, response)
+    },
+    async rereadExactServingPrivateOutput(untrusted: Parameters<
+      CanonicalSam31ServingPrivateOutputRereadPort[
+        'rereadExactServingPrivateOutput'
+      ]
+    >[0]) {
+      const task = assertCanonicalSam31GpuTaskRecord(untrusted.task)
+      const response = assertCanonicalSam31GpuRuntimeResponse({
+        request: task.runtimeRequest,
+        response: untrusted.response,
+      })
+      const servingResult =
+        assertCanonicalSam31VertexServingQualificationResult(
+          untrusted.servingResult,
+        )
+      assertServingResultAndCompletedResponse({
+        task,
+        response,
+        servingResult,
+      })
+      return rereadObjects(task, response)
     },
   })
 }
@@ -281,6 +326,33 @@ function assertLaunchAndCompletedResponse(input: {
       'SAM 3.1 output reread lacks its exact completed GPU-route launch.',
     )
   }
+}
+
+function assertServingResultAndCompletedResponse(input: {
+  task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
+  response: ReturnType<typeof assertCanonicalSam31GpuRuntimeResponse>
+  servingResult: CanonicalSam31VertexServingQualificationResult
+}): void {
+  const responseHash = rawSha256(Buffer.from(
+    canonicalSam31GpuWireStringify(input.response),
+    'utf8',
+  ))
+  if (
+    input.response.status !== 'completed'
+    || input.response.outputSummary === null
+    || input.servingResult.invocationId !== input.task.invocationId
+    || input.servingResult.disposition !== 'completed'
+    || input.servingResult.runtimeStatus !== 'completed'
+    || input.servingResult.providerOutcome !== 'executed'
+    || !input.servingResult.exactPrivateRuntimeResponseReread
+    || input.servingResult.runtimeResponseRef?.contentHash !==
+      `sha256:${responseHash}`
+    || stableAuthorityStringify(
+      input.servingResult.qualificationCandidateRef,
+    ) !== stableAuthorityStringify(input.task.runtimeReleaseRef)
+  ) throw new Error(
+    'SAM 3.1 output reread lacks its exact completed Vertex serving result.',
+  )
 }
 
 function assertManifestLineage(input: {

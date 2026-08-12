@@ -7,6 +7,12 @@ import { deflateSync } from 'node:zlib'
 import type { Storage } from '@google-cloud/storage'
 
 import {
+  assertCanonicalSam31VertexServingQualificationResult,
+} from '../services/canonical-sam3_1-vertex-serving-qualification-invocation-service'
+import {
+  sha256AuthorityValue,
+} from '../services/private-edit-authority-store'
+import {
   createCanonicalSam31GcsPrivateOutputRereadPort,
 } from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
 import {
@@ -125,6 +131,31 @@ assert.equal(evidence.completeApprovedFrameIntervalCoverageVerified, true)
 assert.equal(evidence.noUnexpectedFilesOrCrossInvocationArtifacts, true)
 assert.equal(evidence.qaApproved, false)
 
+const servingResult = buildServingResult(task.runtimeReleaseRef)
+const servingEvidence = assertCanonicalSam31PrivateOutputRereadEvidence(await
+createCanonicalSam31GcsPrivateOutputRereadPort({
+  storage: memoryStorage(objects),
+  projectId: 'reeditpro',
+  bucketName: 'reeditpro-production-reeditpro-masks',
+  now: () => '2026-08-02T18:06:00.000Z',
+}).rereadExactServingPrivateOutput({ task, response, servingResult }))
+assert.equal(servingEvidence.evidenceHash, evidence.evidenceHash)
+
+const wrongCandidateRef = {
+  ...task.runtimeReleaseRef,
+  id: `${task.runtimeReleaseRef.id}-wrong`,
+}
+await assert.rejects(() =>
+  createCanonicalSam31GcsPrivateOutputRereadPort({
+    storage: memoryStorage(objects),
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-masks',
+  }).rereadExactServingPrivateOutput({
+    task,
+    response,
+    servingResult: buildServingResult(wrongCandidateRef),
+  }), /exact completed Vertex serving result/u)
+
 const readerSource = readFileSync(resolve(
   process.cwd(),
   'server/workers/masks/canonical-sam3_1-gcs-private-output-reader.ts',
@@ -165,6 +196,7 @@ console.log(JSON.stringify({
   checks: {
     exactGenerationEtagAndCrcReread: true,
     exactRuntimeResponseBytesReread: true,
+    exactVertexServingResultLineageRequired: true,
     pythonFloatSpellingBoundByExactRawManifestHash: true,
     stableEmptyGcsDirectoryMarkerAccepted: true,
     closedManifestAndCompleteFrameInterval: true,
@@ -268,4 +300,64 @@ function withoutResponseBinding(value: typeof responseFixture) {
   const { responseBindingSha256, ...payload } = value
   assert.match(responseBindingSha256, /^[a-f0-9]{64}$/u)
   return payload
+}
+
+function buildServingResult(
+  qualificationCandidateRef: typeof task.runtimeReleaseRef,
+) {
+  const payload = {
+    schemaVersion:
+      'canonical-sam3_1-vertex-serving-qualification-result-v1' as const,
+    source: (
+      'canonical_server_sam3_1_vertex_serving_qualification_invocation_owner'
+    ) as const,
+    invocationPurpose: 'private_pre_release_qualification' as const,
+    qualificationId: 'sam31-serving-output-reader-smoke',
+    runOrdinal: 1,
+    invocationId: task.invocationId,
+    qualificationPreparationRef: {
+      id: `sam31-qualification-preparation:${task.invocationId}`,
+      version: 1,
+      contentHash: `sha256:${'1'.repeat(64)}`,
+    },
+    qualificationCandidateRef,
+    attemptRef: {
+      id: `sam31-vertex-qualification-attempt:${task.invocationId}`,
+      version: 1,
+      contentHash: `sha256:${'2'.repeat(64)}`,
+    },
+    callStartRef: {
+      id: `sam31-vertex-qualification-call-start:${task.invocationId}`,
+      version: 1,
+      contentHash: `sha256:${'3'.repeat(64)}`,
+    },
+    disposition: 'completed' as const,
+    runtimeStatus: 'completed' as const,
+    runtimeResponseRef: {
+      id: `sam31-gpu-response:${task.invocationId}`,
+      version: 1,
+      contentHash: `sha256:${hash(responseBytes)}`,
+    },
+    uploadedObjectCount: null,
+    uploadedByteLength: null,
+    terminalEvidenceMode: 'private_response_reconciliation' as const,
+    providerCallStarted: true as const,
+    providerOutcome: 'executed' as const,
+    providerRoundTripDurationMilliseconds: null,
+    exactPrivateRuntimeResponseReread: true,
+    exactVertexPredictionWrapperReread: false,
+    automaticRetryAllowed: false as const,
+    unresolvedOutcomeBlocksRetry: false,
+    customerInvocationAuthorized: false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    runtimeReleaseGranted: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+    observedAt: '2026-08-02T18:06:00.000Z',
+  }
+  return assertCanonicalSam31VertexServingQualificationResult({
+    ...payload,
+    resultHash: sha256AuthorityValue(payload),
+  })
 }

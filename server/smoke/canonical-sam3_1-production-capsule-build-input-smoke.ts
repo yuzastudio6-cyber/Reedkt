@@ -240,6 +240,7 @@ for (const expected of [
   'reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com',
   'print-access-token',
   "stdio: ['ignore', 'pipe', 'ignore']",
+  'Canonical SAM 3.1 production-capsule build-input preparation failed.',
 ] as const) assert.ok(vertexBuildInputCli.includes(expected),
   `Vertex build-input CLI lost ${expected}`)
 assert.match(launcher, /automaticRetryAllowed': False/u)

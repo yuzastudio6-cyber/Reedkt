@@ -48,11 +48,15 @@ const storage = new Storage({
   authClient,
 })
 
-const result =
-  await createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner({
-    storage,
-  })
-    .prepare({
+const result = await prepareBuildInputs()
+
+process.stdout.write(`${JSON.stringify(result)}\n`)
+
+async function prepareBuildInputs() {
+  try {
+    return await createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner({
+      storage,
+    }).prepare({
       sourceCheckpointQualificationRef: {
         id: environment.WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_ID,
         version: 2,
@@ -63,8 +67,12 @@ const result =
             .WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256}`,
       },
     })
-
-process.stdout.write(`${JSON.stringify(result)}\n`)
+  } catch {
+    throw new Error(
+      'Canonical SAM 3.1 production-capsule build-input preparation failed.',
+    )
+  }
+}
 
 function readEphemeralImageBuilderAccessToken(): string {
   try {

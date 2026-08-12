@@ -479,6 +479,7 @@
     "smoke:sam3_1-vertex-scale-zero-control-plane-repository": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-control-plane-repository-smoke.ts",
     "smoke:sam3_1-vertex-scale-zero-deployment-operator": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-operator-smoke.ts",
     "smoke:sam3_1-vertex-serving-window-cost-authority": "tsx server/smoke/canonical-sam3_1-vertex-serving-window-cost-authority-smoke.ts",
+    "smoke:sam3_1-vertex-serving-multi-replica-cost": "tsx server/smoke/canonical-sam3_1-vertex-serving-multi-replica-window-cost-authority-smoke.ts",
     "smoke:sam3_1-vertex-serving-attempt-credit-settlement": "tsx server/smoke/canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts",
     "smoke:sam3_1-vertex-serving-invocation": "tsx server/smoke/canonical-sam3_1-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-readiness": "tsx server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts",

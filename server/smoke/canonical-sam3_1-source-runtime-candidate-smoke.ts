@@ -264,7 +264,7 @@ assert(sourceLock.includes(
   'source_checkpoint_qualification_schema=canonical-sam3_1-source-checkpoint-compatibility-qualification-v1',
 ))
 assert(sourceLock.includes(
-  'cloud_image_build_authority_schema=canonical-sam3_1-cloud-image-build-authority-v2',
+  'cloud_image_build_authority_schema=canonical-sam3_1-cloud-image-build-authority-v4',
 ))
 assert(sourceLock.includes(
   'cloud_image_supply_chain_release_schema=canonical-sam3_1-cloud-image-supply-chain-release-v1',

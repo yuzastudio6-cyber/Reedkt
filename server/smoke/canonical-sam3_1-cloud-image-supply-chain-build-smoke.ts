@@ -610,7 +610,7 @@ assert.equal(unknownCalls, 1)
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-cloud-image-supply-chain-build',
   checks: 112,
-  exactVertexV3ImageBuildAuthorityAccepted: true,
+  exactVertexV4ImageBuildAuthorityAccepted: true,
   historicalV2ImageBuildAuthorityStillReadable: true,
   historicalBatchQualificationCastOrRelabelUsed: false,
   exactImmutableImageDigestBound: true,
@@ -701,6 +701,7 @@ function createLegacyAuthority() {
         'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate' as const,
       dockerfileSha256: '6'.repeat(64),
       runnerSha256: '7'.repeat(64),
+      vertexPredictionServerSha256: '1'.repeat(64),
       entrypointSha256: '8'.repeat(64),
       sourceProvenanceLockSha256: '9'.repeat(64),
       dependencyLockSha256: 'a'.repeat(64),

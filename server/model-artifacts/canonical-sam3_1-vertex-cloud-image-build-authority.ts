@@ -30,7 +30,7 @@ import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION =
-  'canonical-sam3_1-cloud-image-build-authority-v3' as const
+  'canonical-sam3_1-cloud-image-build-authority-v4' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)

@@ -26,7 +26,7 @@ import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 export const CANONICAL_SAM3_1_IMAGE_BUILD_ARTIFACT_BINDING_VERSION =
   'canonical-sam3_1-image-build-artifact-binding-v2' as const
 export const CANONICAL_SAM3_1_PRIVATE_IMAGE_BUILD_CAPSULE_MANIFEST_VERSION =
-  'canonical-sam3_1-private-image-build-capsule-manifest-v2' as const
+  'canonical-sam3_1-private-image-build-capsule-manifest-v3' as const
 export const CANONICAL_SAM3_1_CLOUD_IMAGE_BUILD_AUTHORITY_VERSION =
   'canonical-sam3_1-cloud-image-build-authority-v2' as const
 
@@ -231,6 +231,7 @@ const capsuleManifestWithoutHashSchema = z.object({
     dockerfilePath: z.literal(DOCKERFILE_PATH),
     dockerfileSha256: sha256,
     runnerSha256: sha256,
+    vertexPredictionServerSha256: sha256,
     entrypointSha256: sha256,
     sourceProvenanceLockSha256: sha256,
     gpuDecodePatchSha256: z.literal(
@@ -378,6 +379,7 @@ export const canonicalSam31CloudImageBuildAuthorityBaseSchema = z.object({
     dockerfilePath: z.literal(DOCKERFILE_PATH),
     dockerfileSha256: sha256,
     runnerSha256: sha256,
+    vertexPredictionServerSha256: sha256,
     entrypointSha256: sha256,
     sourceProvenanceLockSha256: sha256,
     dependencyLockSha256: sha256,
@@ -690,6 +692,8 @@ export async function prepareCanonicalSam31CloudImageBuildAuthority(input: {
       dockerfilePath: capsule.repositorySource.dockerfilePath,
       dockerfileSha256: capsule.repositorySource.dockerfileSha256,
       runnerSha256: capsule.repositorySource.runnerSha256,
+      vertexPredictionServerSha256:
+        capsule.repositorySource.vertexPredictionServerSha256,
       entrypointSha256: capsule.repositorySource.entrypointSha256,
       sourceProvenanceLockSha256:
         capsule.repositorySource.sourceProvenanceLockSha256,
@@ -917,6 +921,10 @@ function assertCapsuleManifestEntries(
     value.repositorySource.runnerSha256,
   )
   required(
+    'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
+    value.repositorySource.vertexPredictionServerSha256,
+  )
+  required(
     'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
     value.repositorySource.entrypointSha256,
   )
@@ -1109,6 +1117,7 @@ function isAllowedCapsuleEntryPath(path: string): boolean {
   return [
     'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate',
     'docker/prod/gpu-worker/sam3_1/runner.py',
+    'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
     'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
     'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
     'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',

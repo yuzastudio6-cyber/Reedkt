@@ -382,6 +382,7 @@ function createAuthority() {
         'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate' as const,
       dockerfileSha256: '6'.repeat(64),
       runnerSha256: '7'.repeat(64),
+      vertexPredictionServerSha256: '0'.repeat(64),
       entrypointSha256: '8'.repeat(64),
       sourceProvenanceLockSha256: '9'.repeat(64),
       dependencyLockSha256: 'a'.repeat(64),

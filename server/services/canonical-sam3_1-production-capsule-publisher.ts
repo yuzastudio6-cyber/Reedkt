@@ -540,6 +540,8 @@ function createManifest(input: {
         'docker/prod/gpu-worker/sam3_1/Dockerfile.candidate',
       dockerfileSha256: builder.dockerfileSha256,
       runnerSha256: builder.runnerSha256,
+      vertexPredictionServerSha256:
+        builder.vertexPredictionServerSha256,
       entrypointSha256: builder.entrypointSha256,
       sourceProvenanceLockSha256: builder.sourceProvenanceLockSha256,
       gpuDecodePatchSha256: builder.gpuDecodePatchSha256,

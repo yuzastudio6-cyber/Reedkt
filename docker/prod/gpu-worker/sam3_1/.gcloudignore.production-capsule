@@ -7,6 +7,7 @@
 !cloudbuild.production-capsule.yaml
 !entrypoint.sh
 !runner.py
+!vertex_prediction_server.py
 !source-provenance.lock
 !patches/
 !patches/0001-reeditpro-gpu-decode.patch

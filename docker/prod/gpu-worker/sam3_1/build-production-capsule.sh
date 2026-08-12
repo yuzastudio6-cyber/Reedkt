@@ -275,6 +275,8 @@ cp "${ROOT}/source/Dockerfile.candidate" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/Dockerfile.candidate"
 cp "${ROOT}/source/runner.py" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/runner.py"
+cp "${ROOT}/source/vertex_prediction_server.py" \
+  "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py"
 cp "${ROOT}/source/entrypoint.sh" \
   "${BUILD_SOURCE}/docker/prod/gpu-worker/sam3_1/entrypoint.sh"
 cp "${ROOT}/source/source-provenance.lock" \
@@ -342,6 +344,7 @@ repository_paths = [
     "docker/prod/gpu-worker/sam3_1/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch",
     "docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch",
     "docker/prod/gpu-worker/sam3_1/runner.py",
+    "docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py",
     "docker/prod/gpu-worker/sam3_1/source-provenance.lock",
     "docker/prod/gpu-worker/sam3_1/patches/0002-weeditpro-importlib-resources.patch",
 ]
@@ -352,7 +355,7 @@ source_bundle = {
 }
 capsule_body = capsule.read_bytes()
 payload = {
-    "schemaVersion": "weeditpro-sam3_1-production-capsule-builder-result-v2",
+    "schemaVersion": "weeditpro-sam3_1-production-capsule-builder-result-v3",
     "source": "weeditpro_sam3_1_production_capsule_builder",
     "evidenceClass": "canonical_private_cloud_build",
     "buildId": build_id,
@@ -371,8 +374,9 @@ payload = {
     "sourceQualificationCapsuleExactlyReread": True,
     "dockerfileSha256": by_path[repository_paths[0]]["sha256"],
     "runnerSha256": by_path[repository_paths[5]]["sha256"],
+    "vertexPredictionServerSha256": by_path[repository_paths[6]]["sha256"],
     "entrypointSha256": by_path[repository_paths[1]]["sha256"],
-    "sourceProvenanceLockSha256": by_path[repository_paths[6]]["sha256"],
+    "sourceProvenanceLockSha256": by_path[repository_paths[7]]["sha256"],
     "gpuDecodePatchSha256": by_path[repository_paths[2]]["sha256"],
     "multiplexSessionGpuForwardingPatchSha256": by_path[
         repository_paths[3]

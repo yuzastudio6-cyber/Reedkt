@@ -19,6 +19,7 @@ WORKDIR /opt/weeditpro-production-capsule-builder
 
 COPY Dockerfile.candidate source/Dockerfile.candidate
 COPY runner.py source/runner.py
+COPY vertex_prediction_server.py source/vertex_prediction_server.py
 COPY entrypoint.sh source/entrypoint.sh
 COPY source-provenance.lock source/source-provenance.lock
 COPY patches/0001-reeditpro-gpu-decode.patch source/patches/0001-reeditpro-gpu-decode.patch

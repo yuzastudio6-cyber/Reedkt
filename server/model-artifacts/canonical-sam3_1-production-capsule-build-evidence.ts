@@ -10,7 +10,7 @@ import {
 } from '../services/canonical-professional-gpu-job-lifecycle-service'
 
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_BUILDER_RESULT_VERSION =
-  'weeditpro-sam3_1-production-capsule-builder-result-v2' as const
+  'weeditpro-sam3_1-production-capsule-builder-result-v3' as const
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_SECURITY_REVIEW_VERSION =
   'weeditpro-sam3_1-production-capsule-security-review-v2' as const
 export const CANONICAL_SAM3_1_PRODUCTION_CAPSULE_REPRODUCIBILITY_VERSION =
@@ -87,6 +87,7 @@ const builderWithoutHashSchema = z.object({
   sourceQualificationCapsuleExactlyReread: z.literal(true),
   dockerfileSha256: sha256,
   runnerSha256: sha256,
+  vertexPredictionServerSha256: sha256,
   entrypointSha256: sha256,
   sourceProvenanceLockSha256: sha256,
   gpuDecodePatchSha256: z.literal(

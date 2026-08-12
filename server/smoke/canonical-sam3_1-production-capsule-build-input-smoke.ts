@@ -145,7 +145,7 @@ for (const expected of [
   '--format=ustar',
   "--mtime='@0'",
   'gzip --no-name --best',
-  'weeditpro-sam3_1-production-capsule-builder-result-v2',
+  'weeditpro-sam3_1-production-capsule-builder-result-v3',
   'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
   'canonical-sam3_1-image-build-artifact-binding-v3',
   'historicalBatchQualificationCastOrRelabelUsed',
@@ -158,9 +158,11 @@ for (const expected of [
   'multiplexSessionGpuForwardingPatchSha256',
   '0004-weeditpro-forward-propagation-frame-count.patch',
   'forwardPropagationFrameCountPatchSha256',
+  'vertex_prediction_server.py',
+  'vertexPredictionServerSha256',
   '0002-weeditpro-importlib-resources.patch',
   '"runnerSha256": by_path[repository_paths[5]]["sha256"]',
-  '"sourceProvenanceLockSha256": by_path[repository_paths[6]]["sha256"]',
+  '"sourceProvenanceLockSha256": by_path[repository_paths[7]]["sha256"]',
 ] as const) assert.ok(builder.includes(expected), `builder lost ${expected}`)
 assert.doesNotMatch(
   builder,
@@ -169,6 +171,7 @@ assert.doesNotMatch(
 for (const expected of [
   'Dockerfile.candidate',
   'runner.py',
+  'vertex_prediction_server.py',
   'entrypoint.sh',
   'source-provenance.lock',
   '0001-reeditpro-gpu-decode.patch',
@@ -256,6 +259,7 @@ for (const expected of [
   '!cloudbuild.production-capsule.yaml',
   '!entrypoint.sh',
   '!runner.py',
+  '!vertex_prediction_server.py',
   '!patches/0002-weeditpro-importlib-resources.patch',
   '!patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch',
   '!patches/0004-weeditpro-forward-propagation-frame-count.patch',

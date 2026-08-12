@@ -313,7 +313,7 @@ function createBuild(
   } = {},
 ) {
   const builderResult = sealCanonicalSam31ProductionCapsuleBuilderResult({
-    schemaVersion: 'weeditpro-sam3_1-production-capsule-builder-result-v2',
+    schemaVersion: 'weeditpro-sam3_1-production-capsule-builder-result-v3',
     source: 'weeditpro_sam3_1_production_capsule_builder',
     evidenceClass: 'canonical_private_cloud_build',
     buildId: id,
@@ -334,6 +334,9 @@ function createBuild(
     ),
     runnerSha256: entryHash(
       'docker/prod/gpu-worker/sam3_1/runner.py',
+    ),
+    vertexPredictionServerSha256: entryHash(
+      'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
     ),
     entrypointSha256: entryHash(
       'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
@@ -462,6 +465,9 @@ function createEntries() {
       'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     ),
     repositoryFile('docker/prod/gpu-worker/sam3_1/runner.py'),
+    repositoryFile(
+      'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
+    ),
     repositoryFile('docker/prod/gpu-worker/sam3_1/source-provenance.lock'),
     fixture(
       'sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb',

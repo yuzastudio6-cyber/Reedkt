@@ -133,6 +133,10 @@ const capsuleManifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
       capsuleArchiveEntries,
       'docker/prod/gpu-worker/sam3_1/runner.py',
     ),
+    vertexPredictionServerSha256: entrySha(
+      capsuleArchiveEntries,
+      'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
+    ),
     entrypointSha256: entrySha(
       capsuleArchiveEntries,
       'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
@@ -1315,6 +1319,9 @@ function createCapsuleFiles(
       'docker/prod/gpu-worker/sam3_1/patches/0001-reeditpro-gpu-decode.patch',
     ),
     repositoryFile('docker/prod/gpu-worker/sam3_1/runner.py'),
+    repositoryFile(
+      'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
+    ),
     repositoryFile(
       'docker/prod/gpu-worker/sam3_1/source-provenance.lock',
     ),

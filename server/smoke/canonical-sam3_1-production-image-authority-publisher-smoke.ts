@@ -90,6 +90,10 @@ const manifest = createCanonicalSam31PrivateImageBuildCapsuleManifest({
       entries,
       'docker/prod/gpu-worker/sam3_1/runner.py',
     ),
+    vertexPredictionServerSha256: entryHash(
+      entries,
+      'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
+    ),
     entrypointSha256: entryHash(
       entries,
       'docker/prod/gpu-worker/sam3_1/entrypoint.sh',
@@ -375,7 +379,7 @@ console.log(JSON.stringify({
   exactPrivateIngestReread: true,
   vertexArtifactBindingExactReread: true,
   capsuleManifestCreateOnlyAndReread: true,
-  vertexBuildAuthorityV3CreateOnlyAndReread: true,
+  vertexBuildAuthorityV4CreateOnlyAndReread: true,
   exactReplayReturnsIdenticalAuthorityRef: true,
   realAuthorityConstructorSeparatesTrustedReadPortFromSerializedEvidence: true,
   accessorReadPortRejectedWithoutInvocation: true,
@@ -426,6 +430,8 @@ function createAuthority(preparedAt: string) {
       dockerfilePath: manifest.repositorySource.dockerfilePath,
       dockerfileSha256: manifest.repositorySource.dockerfileSha256,
       runnerSha256: manifest.repositorySource.runnerSha256,
+      vertexPredictionServerSha256:
+        manifest.repositorySource.vertexPredictionServerSha256,
       entrypointSha256: manifest.repositorySource.entrypointSha256,
       sourceProvenanceLockSha256:
         manifest.repositorySource.sourceProvenanceLockSha256,
@@ -526,6 +532,9 @@ function createEntries(input: {
       'docker/prod/gpu-worker/sam3_1/patches/0004-weeditpro-forward-propagation-frame-count.patch',
     ),
     fileEntry('docker/prod/gpu-worker/sam3_1/runner.py'),
+    fileEntry(
+      'docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py',
+    ),
     fileEntry('docker/prod/gpu-worker/sam3_1/source-provenance.lock'),
     fixture(
       'sam31_private_build_input/dependency-closure/cuda-forward-compat/cuda-compat-12-8_570.211.01-0ubuntu1_amd64.deb',

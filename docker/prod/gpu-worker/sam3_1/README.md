@@ -393,16 +393,21 @@ canonicalizes all archive directories to mode `0555` and files to `0444`,
 independent of the source worktree filesystem, and rejects
 links/devices/sockets/traversal and data
 after the terminator, and compares the exact ordered file path/length/SHA-256
-set with the closed manifest. Only the listed repository files, the two source
-archives, the fixed receipts, the pinned CUDA package, and flat `.whl` files
+set with the closed manifest. Only the listed repository files, including the
+fixed Vertex prediction server, the two source archives, the fixed receipts,
+the pinned CUDA package, and flat `.whl` files
 under the wheelhouse are admissible. A checkpoint-shaped extra entry, nested
 wheelhouse payload, reordering, corruption, or compressed/uncompressed bound
 violation fails closed. The artifact binding's semantic record digest and its
 serialized file-byte digest are separate and both remain bound through the
-build closure.
+build closure. Builder result v3, capsule manifest v3, and the Vertex build
+authority v4 bind `vertex_prediction_server.py` by SHA-256 and require that
+exact entry in the archive. The older production capsule that omitted this
+server is not endpoint-deployable and cannot satisfy the current publisher.
 
-The one-writer build authority is
-`canonical-sam3_1-cloud-image-build-authority-v2`. It binds the exact capsule
+The current one-writer Vertex production build authority is
+`canonical-sam3_1-cloud-image-build-authority-v4`; the earlier v2 contract is
+historical readback only. The current authority binds the exact capsule
 bucket/object/generation/ETag/length/SHA-256, source commit/tree and closure
 hashes, fixed regional Cloud Build endpoint, pinned Docker builder digest,
 user-specified least-privilege image-builder identity, network-none build,

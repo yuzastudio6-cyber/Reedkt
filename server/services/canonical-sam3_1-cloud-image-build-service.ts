@@ -703,7 +703,7 @@ function assertQualificationReleaseForAuthority(
   release: unknown,
 ): CanonicalSam31AnyQualificationRelease {
   const parsed = authority.schemaVersion ===
-    'canonical-sam3_1-cloud-image-build-authority-v3'
+    'canonical-sam3_1-cloud-image-build-authority-v4'
     ? assertCanonicalSam31VertexQualificationRelease(release)
     : assertCanonicalSam31QualificationRelease(release)
   assertQualificationRelease(authority, parsed)
@@ -1066,7 +1066,7 @@ export function assertCanonicalSam31AnyCloudImageBuildAuthority(
 ): CanonicalSam31AnyCloudImageBuildAuthority {
   if (hasOwnDataSchemaVersion(
     value,
-    'canonical-sam3_1-cloud-image-build-authority-v3',
+    'canonical-sam3_1-cloud-image-build-authority-v4',
   )) return assertCanonicalSam31VertexCloudImageBuildAuthority(value)
   return assertCanonicalSam31CloudImageBuildAuthority(value)
 }

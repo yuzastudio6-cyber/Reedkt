@@ -4,6 +4,10 @@ import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_OPERATION_ID,
+} from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
+
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -56,7 +60,7 @@ const pointerWithoutHashSchema = z.object({
     'canonical_server_sam31_current_a100_customer_dispatch_readiness_repository',
   ),
   toolId: z.literal('sam3_1'),
-  operationId: z.literal('tool.sam3_1.track_and_segment_video.v1'),
+  operationId: z.literal(CANONICAL_SAM3_1_OPERATION_ID),
   runtimeReleaseRef: refSchema,
   rateAuthorityRef: refSchema,
   readinessRef: refSchema,
@@ -203,7 +207,7 @@ export function createCanonicalSam31CurrentA100CustomerDispatchReadinessReposito
         'sam31_current_a100_readiness_lookup')
       const request = z.object({
         toolId: z.literal('sam3_1'),
-        operationId: z.literal('tool.sam3_1.track_and_segment_video.v1'),
+        operationId: z.literal(CANONICAL_SAM3_1_OPERATION_ID),
         runtimeReleaseRef: refSchema,
         rateAuthorityRef: refSchema,
         at: timestamp,

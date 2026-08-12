@@ -21,7 +21,7 @@ const base = {
   readinessId: 'sam31-a100-current-dispatch-readiness-smoke',
   routeId: 'a100_80gb_heavy_primary' as const,
   toolId: 'sam3_1' as const,
-  operationId: 'tool.sam3_1.track_and_segment_video.v1' as const,
+  operationId: 'tool.sam3_1.segment_and_track_subject.v1' as const,
   executionTarget:
     'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,
   endpointResourceName:

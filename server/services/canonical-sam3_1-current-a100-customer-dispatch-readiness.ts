@@ -6,6 +6,9 @@ import {
   CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
 } from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 import {
+  CANONICAL_SAM3_1_OPERATION_ID,
+} from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
+import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
@@ -47,7 +50,7 @@ const readinessWithoutHashSchema = z.object({
   readinessId: safeId,
   routeId: z.literal('a100_80gb_heavy_primary'),
   toolId: z.literal('sam3_1'),
-  operationId: z.literal('tool.sam3_1.track_and_segment_video.v1'),
+  operationId: z.literal(CANONICAL_SAM3_1_OPERATION_ID),
   executionTarget: z.literal(
     'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
   ),
@@ -119,7 +122,7 @@ export type CanonicalSam31CurrentA100CustomerDispatchReadiness = z.infer<
 export interface CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort {
   rereadCurrent(input: {
     readonly toolId: 'sam3_1'
-    readonly operationId: 'tool.sam3_1.track_and_segment_video.v1'
+    readonly operationId: typeof CANONICAL_SAM3_1_OPERATION_ID
     readonly runtimeReleaseRef: EvidenceRef
     readonly rateAuthorityRef: EvidenceRef
     readonly at: string

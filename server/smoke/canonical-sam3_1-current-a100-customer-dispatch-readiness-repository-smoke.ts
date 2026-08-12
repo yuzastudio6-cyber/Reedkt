@@ -29,7 +29,7 @@ const readiness = sealCanonicalSam31CurrentA100CustomerDispatchReadiness({
   readinessId: 'sam31-a100-current-readiness-repository-smoke',
   routeId: 'a100_80gb_heavy_primary',
   toolId: 'sam3_1',
-  operationId: 'tool.sam3_1.track_and_segment_video.v1',
+  operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   executionTarget:
     'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
   endpointResourceName:
@@ -84,14 +84,14 @@ assert.deepEqual(await repository.rereadExact({
 }), readiness)
 assert.deepEqual(await repository.rereadCurrent({
   toolId: 'sam3_1',
-  operationId: 'tool.sam3_1.track_and_segment_video.v1',
+  operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   runtimeReleaseRef,
   rateAuthorityRef,
   at: '2026-08-13T00:00:00.000Z',
 }), readiness)
 assert.equal(await repository.rereadCurrent({
   toolId: 'sam3_1',
-  operationId: 'tool.sam3_1.track_and_segment_video.v1',
+  operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   runtimeReleaseRef: ref('crossed-release', 'crossed-release'),
   rateAuthorityRef,
   at: '2026-08-13T00:00:00.000Z',
@@ -113,7 +113,7 @@ const refreshedReadiness = sealCanonicalSam31CurrentA100CustomerDispatchReadines
 await repository.persistCurrentCreateOnly({ readiness: refreshedReadiness })
 assert.deepEqual(await repository.rereadCurrent({
   toolId: 'sam3_1',
-  operationId: 'tool.sam3_1.track_and_segment_video.v1',
+  operationId: 'tool.sam3_1.segment_and_track_subject.v1',
   runtimeReleaseRef,
   rateAuthorityRef,
   at: '2026-08-13T00:00:00.000Z',

@@ -43,6 +43,9 @@ import {
   assertCanonicalSam31CurrentA100CustomerDispatchAllowed,
   type CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
 } from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
+import {
+  CANONICAL_SAM3_1_OPERATION_ID,
+} from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 
 export const CANONICAL_PROFESSIONAL_GPU_PLAN_PRICING_AUTHORITY_BUNDLE_VERSION =
   'canonical-professional-gpu-plan-pricing-authority-bundle-v1' as const
@@ -819,7 +822,7 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     const readiness = await input.a100CustomerDispatchReadinessReadPort
       .rereadCurrent({
         toolId: 'sam3_1',
-        operationId: 'tool.sam3_1.track_and_segment_video.v1',
+        operationId: CANONICAL_SAM3_1_OPERATION_ID,
         runtimeReleaseRef,
         rateAuthorityRef,
         at: input.admittedAt,

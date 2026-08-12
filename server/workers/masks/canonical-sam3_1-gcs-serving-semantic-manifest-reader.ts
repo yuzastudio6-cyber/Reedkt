@@ -18,6 +18,9 @@ import {
   assertCanonicalSam31GpuTaskRecord,
   type CanonicalSam31GpuTaskRecord,
 } from './canonical-sam3_1-gpu-task-owner-service'
+import {
+  decodeCanonicalSam31ExactGrayscaleMaskPng,
+} from './canonical-sam3_1-gcs-private-output-reader'
 
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations'
@@ -93,6 +96,121 @@ export interface CanonicalSam31ServingSemanticManifestRereadPort {
     readonly response: CanonicalSam31GpuRuntimeResponse
     readonly outputEvidence: CanonicalSam31PrivateOutputRereadEvidence
   }): Promise<CanonicalSam31ServingSemanticManifestEvidence>
+}
+
+export interface CanonicalSam31DecodedSemanticMaskSet {
+  readonly invocationId: string
+  readonly manifestRef: AuthorityRef
+  readonly semanticMaskSetDigestSha256: string
+  readonly geometryProjection: unknown
+  readonly masks: readonly {
+    readonly frameIndex: number
+    readonly objectId: number
+    readonly width: number
+    readonly height: number
+    readonly sha256: string
+    readonly pixels: Buffer
+  }[]
+}
+
+export async function rereadCanonicalSam31DecodedSemanticMaskSet(input: {
+  readonly storage: Storage
+  readonly bucketName: string
+  readonly invocationId: string
+  readonly expectedManifestRef: AuthorityRef
+  readonly expectedSemanticMaskSetDigestSha256: string
+  readonly prefix?: string
+}): Promise<CanonicalSam31DecodedSemanticMaskSet> {
+  const invocationId = safeId.parse(input.invocationId)
+  const manifestRef = refSchema.parse(input.expectedManifestRef)
+  const expectedSemanticDigest = sha256.parse(
+    input.expectedSemanticMaskSetDigestSha256,
+  )
+  const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
+  const bucket = input.storage.bucket(input.bucketName)
+  const outputRoot = `${prefix}/${invocationId}/sam3_1-mask-sequence`
+  const manifestBytes = await readStableObject({
+    file: bucket.file(`${outputRoot}/manifest.json`),
+    minimumBytes: 2,
+    maximumBytes: MAXIMUM_MANIFEST_BYTES,
+  })
+  const manifest = manifestSchema.parse(parseJson(manifestBytes))
+  const manifestSha256 = rawSha256(manifestBytes)
+  const semanticProjection = {
+    width: manifest.width,
+    height: manifest.height,
+    firstFrameIndex: manifest.firstFrameIndex,
+    lastFrameIndex: manifest.lastFrameIndex,
+    frames: manifest.frames,
+    masks: manifest.masks.map((mask) => ({
+      frameIndex: mask.frameIndex,
+      objectId: mask.objectId,
+      width: mask.width,
+      height: mask.height,
+      sha256: mask.sha256,
+    })),
+  }
+  const semanticDigest = rawSha256(Buffer.from(
+    stableAuthorityStringify(semanticProjection),
+    'utf8',
+  ))
+  if (manifestRef.contentHash !== `sha256:${manifestSha256}`
+    || semanticDigest !== expectedSemanticDigest) {
+    throw new Error('SAM 3.1 decoded mask-set authority changed.')
+  }
+  const decoded: CanonicalSam31DecodedSemanticMaskSet['masks'][number][] = []
+  for (let offset = 0; offset < manifest.masks.length; offset += 16) {
+    decoded.push(...await Promise.all(manifest.masks
+      .slice(offset, offset + 16)
+      .map(async (mask) => {
+        const bytes = await readStableObject({
+          file: bucket.file(`${outputRoot}/${mask.relativeFileName}`),
+          minimumBytes: 1,
+          maximumBytes: 512 * 1024 * 1024,
+        })
+        if (bytes.byteLength !== mask.byteLength
+          || rawSha256(bytes) !== mask.sha256) {
+          throw new Error('SAM 3.1 decoded mask bytes changed.')
+        }
+        return {
+          frameIndex: mask.frameIndex,
+          objectId: mask.objectId,
+          width: mask.width,
+          height: mask.height,
+          sha256: mask.sha256,
+          pixels: decodeCanonicalSam31ExactGrayscaleMaskPng(
+            bytes,
+            mask.width,
+            mask.height,
+          ),
+        }
+      })))
+  }
+  return Object.freeze({
+    invocationId,
+    manifestRef,
+    semanticMaskSetDigestSha256: semanticDigest,
+    geometryProjection: {
+      width: manifest.width,
+      height: manifest.height,
+      firstFrameIndex: manifest.firstFrameIndex,
+      lastFrameIndex: manifest.lastFrameIndex,
+      frames: manifest.frames.map((frame) => ({
+        frameIndex: frame.frameIndex,
+        objects: frame.objects.map((object) => ({
+          objectId: object.objectId,
+          normalizedBoxXywh: object.normalizedBoxXywh,
+        })),
+      })),
+      masks: manifest.masks.map((mask) => ({
+        frameIndex: mask.frameIndex,
+        objectId: mask.objectId,
+        width: mask.width,
+        height: mask.height,
+      })),
+    },
+    masks: decoded,
+  })
 }
 
 export function createCanonicalSam31GcsServingSemanticManifestRereadPort(

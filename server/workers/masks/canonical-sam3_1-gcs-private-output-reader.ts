@@ -207,7 +207,11 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
               || rawSha256(object.body) !== mask.sha256) {
               throw new Error('SAM 3.1 mask bytes differ from the manifest.')
             }
-            decodeExactGrayscaleMaskPng(object.body, mask.width, mask.height)
+            decodeCanonicalSam31ExactGrayscaleMaskPng(
+              object.body,
+              mask.width,
+              mask.height,
+            )
             return object.body.byteLength
           }))
         for (const byteLength of byteLengths) {
@@ -418,11 +422,11 @@ function assertManifestLineage(input: {
   }
 }
 
-function decodeExactGrayscaleMaskPng(
+export function decodeCanonicalSam31ExactGrayscaleMaskPng(
   bytes: Buffer,
   expectedWidth: number,
   expectedHeight: number,
-): void {
+): Buffer {
   const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
   if (bytes.byteLength < 8 || !bytes.subarray(0, 8).equals(signature)) {
     throw new Error('SAM 3.1 mask is not a PNG.')
@@ -480,6 +484,7 @@ function decodeExactGrayscaleMaskPng(
   if (decoded.byteLength !== maximum) throw new Error('PNG pixels are partial.')
   const prior = Buffer.alloc(width)
   const row = Buffer.alloc(width)
+  const pixels = Buffer.alloc(width * height)
   for (let y = 0; y < height; y += 1) {
     const start = y * scanlineBytes
     const filter = decoded[start]!
@@ -499,8 +504,10 @@ function decodeExactGrayscaleMaskPng(
         throw new Error('SAM 3.1 mask PNG contains a non-binary pixel.')
       }
     }
+    row.copy(pixels, y * width)
     row.copy(prior)
   }
+  return pixels
 }
 
 async function readStableObject(input: {

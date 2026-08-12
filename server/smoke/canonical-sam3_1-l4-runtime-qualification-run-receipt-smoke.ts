@@ -22,7 +22,7 @@ const repository = createCanonicalSam31L4RuntimePrivateRunReceiptRepository({
 })
 
 const receipt = sealCanonicalSam31L4RuntimePrivateRunReceipt({
-  schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v2',
+  schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v3',
   source: 'canonical_server_sam3_1_l4_runtime_qualification_owner',
   evidenceClass: 'canonical_private_l4_cuda_execution_exact_reread',
   status: 'ready_for_terminal_cost_and_independent_mask_quality',
@@ -45,6 +45,7 @@ const receipt = sealCanonicalSam31L4RuntimePrivateRunReceipt({
   runtimeResponseRef: ref('response'),
   privateOutputRereadEvidenceRef: ref('output'),
   semanticManifestRef: ref('semantic-manifest'),
+  crossAcceleratorMaskComparisonRef: ref('cross-accelerator-comparison'),
   semanticMaskSetDigestSha256: digest('semantic-mask-set'),
   immutableImageDigest: `sha256:${digest('immutable-image')}`,
   observedAccelerator: 'nvidia_l4',
@@ -61,7 +62,10 @@ const receipt = sealCanonicalSam31L4RuntimePrivateRunReceipt({
   scaleFromZeroObserved: true,
   terminalWorkerStoppedAndScaleBackToZeroVerified: true,
   exactTaskResponseAndEveryOutputMaskReread: true,
-  exactDeterministicProbeMaskSetMatchesA100ServingQualification: true,
+  exactFrameObjectBoxAndMaskGeometryMatchesA100ServingQualification: true,
+  crossAcceleratorPixelComparisonPassed: true,
+  semanticMaskSetByteIdentityWithA100ServingBaseline: false,
+  qualityEqualToOrBetterThanA100BaselineClaimed: false,
   accountEffectiveRateRereadBeforeDispatch: true,
   terminalPlatformUsageAndCostReceiptPending: true,
   independentTemporalMaskQualityPending: true,

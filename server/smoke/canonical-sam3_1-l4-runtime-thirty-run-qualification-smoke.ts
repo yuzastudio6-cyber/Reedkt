@@ -34,7 +34,7 @@ const qualificationRepository =
 
 for (let ordinal = 1; ordinal <= 30; ordinal += 1) {
   const receipt = sealCanonicalSam31L4RuntimePrivateRunReceipt({
-    schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v2',
+    schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v3',
     source: 'canonical_server_sam3_1_l4_runtime_qualification_owner',
     evidenceClass: 'canonical_private_l4_cuda_execution_exact_reread',
     status: 'ready_for_terminal_cost_and_independent_mask_quality',
@@ -58,6 +58,8 @@ for (let ordinal = 1; ordinal <= 30; ordinal += 1) {
     runtimeResponseRef: ref(`response-${ordinal}`),
     privateOutputRereadEvidenceRef: ref(`output-${ordinal}`),
     semanticManifestRef: ref(`semantic-manifest-${ordinal}`),
+    crossAcceleratorMaskComparisonRef:
+      ref(`cross-accelerator-comparison-${ordinal}`),
     semanticMaskSetDigestSha256: digest('semantic-mask-set'),
     immutableImageDigest: `sha256:${digest('immutable-image')}`,
     observedAccelerator: 'nvidia_l4',
@@ -74,7 +76,10 @@ for (let ordinal = 1; ordinal <= 30; ordinal += 1) {
     scaleFromZeroObserved: true,
     terminalWorkerStoppedAndScaleBackToZeroVerified: true,
     exactTaskResponseAndEveryOutputMaskReread: true,
-    exactDeterministicProbeMaskSetMatchesA100ServingQualification: true,
+    exactFrameObjectBoxAndMaskGeometryMatchesA100ServingQualification: true,
+    crossAcceleratorPixelComparisonPassed: true,
+    semanticMaskSetByteIdentityWithA100ServingBaseline: false,
+    qualityEqualToOrBetterThanA100BaselineClaimed: false,
     accountEffectiveRateRereadBeforeDispatch: true,
     terminalPlatformUsageAndCostReceiptPending: true,
     independentTemporalMaskQualityPending: true,
@@ -129,8 +134,10 @@ process.stdout.write(`${JSON.stringify({
   receiptHash: receipt.receiptHash,
   runCount: receipt.runs.length,
   nearestRankP95Milliseconds: receipt.nearestRankP95Milliseconds,
-  allThirtyOutputsSemanticallyIdenticalToA100ServingBaseline:
-    receipt.allThirtyOutputsSemanticallyIdenticalToA100ServingBaseline,
+  allThirtyL4OutputsByteIdenticalToOneAnother:
+    receipt.allThirtyL4OutputsByteIdenticalToOneAnother,
+  everyRunCrossAcceleratorPixelComparisonPassed:
+    receipt.everyRunCrossAcceleratorPixelComparisonPassed,
   terminalCostReceiptCountPending: receipt.terminalCostReceiptCountPending,
   independentTemporalMaskQualityPending:
     receipt.independentTemporalMaskQualityPending,

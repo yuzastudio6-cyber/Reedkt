@@ -19,12 +19,12 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_L4_RUNTIME_THIRTY_RUN_QUALIFICATION_VERSION =
-  'canonical-sam3_1-l4-runtime-thirty-run-qualification-v1' as const
+  'canonical-sam3_1-l4-runtime-thirty-run-qualification-v2' as const
 export const CANONICAL_SAM3_1_L4_RUNTIME_THIRTY_RUN_REPOSITORY_VERSION =
   'canonical-sam3_1-l4-runtime-thirty-run-qualification-repository-v1' as const
 
 const DEFAULT_PREFIX =
-  'private/sam3_1/l4-runtime-qualification/v2/thirty-run-qualifications'
+  'private/sam3_1/l4-runtime-qualification/v3/thirty-run-qualifications'
 const MAXIMUM_RECORD_BYTES = 8 * 1024 * 1024
 const MAXIMUM_P95_MILLISECONDS = 480_000
 const safeId = z.string().trim().min(1).max(240)
@@ -50,6 +50,7 @@ const runSchema = z.object({
   runtimeResponseRef: evidenceRefSchema,
   privateOutputRereadEvidenceRef: evidenceRefSchema,
   semanticManifestRef: evidenceRefSchema,
+  crossAcceleratorMaskComparisonRef: evidenceRefSchema,
   wallTimeMilliseconds: positiveInteger,
   cudaEventInferenceMilliseconds: positiveInteger,
   semanticMaskSetDigestSha256: sha256,
@@ -88,8 +89,11 @@ const qualificationWithoutHashSchema = z.object({
   minimumMeasuredMilliseconds: positiveInteger,
   maximumMeasuredMilliseconds: positiveInteger,
   maximumAllowedP95Milliseconds: z.literal(MAXIMUM_P95_MILLISECONDS),
-  allThirtyOutputsSemanticallyIdenticalToA100ServingBaseline:
-    z.literal(true),
+  allThirtyL4OutputsByteIdenticalToOneAnother: z.literal(true),
+  everyRunCrossAcceleratorPixelComparisonPassed: z.literal(true),
+  semanticMaskSetByteIdentityWithA100ServingBaselineClaimed:
+    z.literal(false),
+  qualityEqualToOrBetterThanA100BaselinePending: z.literal(true),
   everyRunUsedDistinctLaunchResponseOutputAndManifestLineage: z.literal(true),
   everyRunStartedFromAndReturnedToScaleZero: z.literal(true),
   exactThirtyIndexedRunReceiptsReread: z.literal(true),
@@ -112,7 +116,8 @@ const qualificationWithoutHashSchema = z.object({
     refKey(run.runtimeResponseRef),
     refKey(run.privateOutputRereadEvidenceRef),
     refKey(run.semanticManifestRef),
-  ])).size === value.runs.length * 5
+    refKey(run.crossAcceleratorMaskComparisonRef),
+  ])).size === value.runs.length * 6
   const oneMaskSet = value.runs.every((run) =>
     run.semanticMaskSetDigestSha256 === value.semanticMaskSetDigestSha256)
   const durations = value.runs.map((run) => run.wallTimeMilliseconds)
@@ -251,6 +256,8 @@ export function createCanonicalSam31L4RuntimeThirtyRunQualificationService(
         privateOutputRereadEvidenceRef:
           receipt.privateOutputRereadEvidenceRef,
         semanticManifestRef: receipt.semanticManifestRef,
+        crossAcceleratorMaskComparisonRef:
+          receipt.crossAcceleratorMaskComparisonRef,
         wallTimeMilliseconds: receipt.wallTimeMilliseconds,
         cudaEventInferenceMilliseconds:
           receipt.cudaEventInferenceMilliseconds,
@@ -287,7 +294,10 @@ export function createCanonicalSam31L4RuntimeThirtyRunQualificationService(
         minimumMeasuredMilliseconds: Math.min(...durations),
         maximumMeasuredMilliseconds: Math.max(...durations),
         maximumAllowedP95Milliseconds: MAXIMUM_P95_MILLISECONDS,
-        allThirtyOutputsSemanticallyIdenticalToA100ServingBaseline: true,
+        allThirtyL4OutputsByteIdenticalToOneAnother: true,
+        everyRunCrossAcceleratorPixelComparisonPassed: true,
+        semanticMaskSetByteIdentityWithA100ServingBaselineClaimed: false,
+        qualityEqualToOrBetterThanA100BaselinePending: true,
         everyRunUsedDistinctLaunchResponseOutputAndManifestLineage: true,
         everyRunStartedFromAndReturnedToScaleZero: true,
         exactThirtyIndexedRunReceiptsReread: true,
@@ -334,6 +344,8 @@ function assertExactSet(
     && unique(receipts.map((receipt) =>
       refKey(receipt.privateOutputRereadEvidenceRef)))
     && unique(receipts.map((receipt) => refKey(receipt.semanticManifestRef)))
+    && unique(receipts.map((receipt) =>
+      refKey(receipt.crossAcceleratorMaskComparisonRef)))
   if (!exact) throw new Error('SAM 3.1 L4 thirty-run set is not exact.')
 }
 

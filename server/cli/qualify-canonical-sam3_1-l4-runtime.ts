@@ -14,6 +14,10 @@ import {
   createCanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
 } from '../services/canonical-current-google-cloud-gpu-rate-authority-repository'
 import {
+  compareCanonicalSam31CrossAcceleratorMaskSets,
+  createCanonicalSam31CrossAcceleratorMaskComparisonRepository,
+} from '../services/canonical-sam3_1-cross-accelerator-mask-comparison-service'
+import {
   createCanonicalSam31L4RuntimePrivateRunReceiptRepository,
   sealCanonicalSam31L4RuntimePrivateRunReceipt,
 } from '../services/canonical-sam3_1-l4-runtime-qualification-run-receipt-service'
@@ -44,6 +48,7 @@ import {
 } from '../workers/masks/canonical-sam3_1-gcs-private-output-reader'
 import {
   createCanonicalSam31GcsServingSemanticManifestRereadPort,
+  rereadCanonicalSam31DecodedSemanticMaskSet,
 } from '../workers/masks/canonical-sam3_1-gcs-serving-semantic-manifest-reader'
 import {
   assertCanonicalSam31PrivateOutputRereadEvidence,
@@ -76,7 +81,7 @@ const CONTROL_PLANE_BUCKET =
 const INVOCATION_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations' as const
 const QUALIFICATION_PREFIX =
-  'private/sam3_1/l4-runtime-qualification/v2' as const
+  'private/sam3_1/l4-runtime-qualification/v3' as const
 const A100_SERVING_QUALIFICATION_SET_ID =
   'sam31-a100-serving-memory-safe-thirty-run-release-candidate-20260812-v1' as const
 const A100_SERVING_QUALIFICATION_RECEIPT_HASH = (
@@ -154,7 +159,8 @@ async function main() {
         qualificationSetId: A100_SERVING_QUALIFICATION_SET_ID,
       }),
     )
-  const a100ImageDigest = a100ServingQualification.immutableImageDigest
+  const a100ImageDigest =
+    a100ServingQualification.immutableImageDigest as `sha256:${string}`
   const l4ImageRelease =
     await createCanonicalSam31GcpImageSupplyChainReleaseRepository({ storage })
       .rereadQualifiedRelease({ releaseRef: l4ImageReleaseRef })
@@ -483,17 +489,51 @@ async function main() {
       response,
       outputEvidence,
     })
-  if (semanticManifest.semanticMaskSetDigestSha256 !==
-    a100ServingQualification.semanticMaskSetDigestSha256
-    || semanticManifest.propagatedFrameCount !==
+  if (semanticManifest.propagatedFrameCount !==
       a100ServingQualification.propagatedFrameCountPerRun
     || semanticManifest.maskFileCount !==
       a100ServingQualification.maskFileCountPerRun) {
-    throw new Error('sam31_l4_mask_set_differs_from_a100_serving_baseline')
+    throw new Error('sam31_l4_mask_set_scope_differs_from_a100_baseline')
   }
+  const a100Baseline = a100ServingQualification.deterministicRuns[1]!
+  const [a100DecodedMaskSet, l4DecodedMaskSet] = await Promise.all([
+    rereadCanonicalSam31DecodedSemanticMaskSet({
+      storage,
+      bucketName: MASK_BUCKET,
+      invocationId: a100Baseline.invocationId,
+      expectedManifestRef: a100Baseline.manifestRef,
+      expectedSemanticMaskSetDigestSha256:
+        a100Baseline.semanticMaskSetDigestSha256,
+    }),
+    rereadCanonicalSam31DecodedSemanticMaskSet({
+      storage,
+      bucketName: MASK_BUCKET,
+      invocationId,
+      expectedManifestRef: semanticManifest.manifestRef,
+      expectedSemanticMaskSetDigestSha256:
+        semanticManifest.semanticMaskSetDigestSha256,
+    }),
+  ])
+  const crossAcceleratorComparison =
+    compareCanonicalSam31CrossAcceleratorMaskSets({
+      comparisonId: `sam31-cross-accelerator-comparison:${suffix}`,
+      a100ServingQualificationRef:
+        a100ServingQualificationRef(a100ServingQualification),
+      a100ImmutableImageDigest: a100ImageDigest,
+      l4ImmutableImageDigest: l4ImageDigest,
+      a100: a100DecodedMaskSet,
+      l4: l4DecodedMaskSet,
+    })
+  await createCanonicalSam31CrossAcceleratorMaskComparisonRepository({
+    objectPort: controlObjectPort,
+  }).persistCreateOnly({ comparison: crossAcceleratorComparison })
+  const crossAcceleratorMaskComparisonRef = ref(
+    crossAcceleratorComparison.comparisonId,
+    crossAcceleratorComparison.comparisonHash,
+  )
 
   const receiptPayload = {
-    schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v2',
+    schemaVersion: 'canonical-sam3_1-l4-runtime-private-run-receipt-v3',
     source: 'canonical_server_sam3_1_l4_runtime_qualification_owner',
     evidenceClass: 'canonical_private_l4_cuda_execution_exact_reread',
     status: 'ready_for_terminal_cost_and_independent_mask_quality',
@@ -517,6 +557,7 @@ async function main() {
     ),
     privateOutputRereadEvidenceRef: outputEvidenceRef,
     semanticManifestRef: semanticManifest.manifestRef,
+    crossAcceleratorMaskComparisonRef,
     semanticMaskSetDigestSha256:
       semanticManifest.semanticMaskSetDigestSha256,
     immutableImageDigest: l4ImageDigest,
@@ -537,7 +578,10 @@ async function main() {
     scaleFromZeroObserved: activeExecutions(beforeExecutions).length === 0,
     terminalWorkerStoppedAndScaleBackToZeroVerified: true,
     exactTaskResponseAndEveryOutputMaskReread: true,
-    exactDeterministicProbeMaskSetMatchesA100ServingQualification: true,
+    exactFrameObjectBoxAndMaskGeometryMatchesA100ServingQualification: true,
+    crossAcceleratorPixelComparisonPassed: true,
+    semanticMaskSetByteIdentityWithA100ServingBaseline: false,
+    qualityEqualToOrBetterThanA100BaselineClaimed: false,
     accountEffectiveRateRereadBeforeDispatch: true,
     terminalPlatformUsageAndCostReceiptPending: true,
     independentTemporalMaskQualityPending: true,

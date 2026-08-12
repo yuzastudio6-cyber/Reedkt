@@ -14,12 +14,12 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_L4_RUNTIME_PRIVATE_RUN_RECEIPT_VERSION =
-  'canonical-sam3_1-l4-runtime-private-run-receipt-v2' as const
+  'canonical-sam3_1-l4-runtime-private-run-receipt-v3' as const
 export const CANONICAL_SAM3_1_L4_RUNTIME_PRIVATE_RUN_RECEIPT_REPOSITORY_VERSION =
   'canonical-sam3_1-l4-runtime-private-run-receipt-repository-v1' as const
 
 const DEFAULT_PREFIX =
-  'private/sam3_1/l4-runtime-qualification/v2/indexed-run-receipts'
+  'private/sam3_1/l4-runtime-qualification/v3/indexed-run-receipts'
 const MAXIMUM_RECORD_BYTES = 2 * 1024 * 1024
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -75,6 +75,7 @@ const receiptWithoutHashSchema = z.object({
   runtimeResponseRef: evidenceRefSchema,
   privateOutputRereadEvidenceRef: evidenceRefSchema,
   semanticManifestRef: evidenceRefSchema,
+  crossAcceleratorMaskComparisonRef: evidenceRefSchema,
   semanticMaskSetDigestSha256: sha256,
   immutableImageDigest: prefixedSha256,
   observedAccelerator: z.literal('nvidia_l4'),
@@ -91,8 +92,11 @@ const receiptWithoutHashSchema = z.object({
   scaleFromZeroObserved: z.literal(true),
   terminalWorkerStoppedAndScaleBackToZeroVerified: z.literal(true),
   exactTaskResponseAndEveryOutputMaskReread: z.literal(true),
-  exactDeterministicProbeMaskSetMatchesA100ServingQualification:
+  exactFrameObjectBoxAndMaskGeometryMatchesA100ServingQualification:
     z.literal(true),
+  crossAcceleratorPixelComparisonPassed: z.literal(true),
+  semanticMaskSetByteIdentityWithA100ServingBaseline: z.literal(false),
+  qualityEqualToOrBetterThanA100BaselineClaimed: z.literal(false),
   accountEffectiveRateRereadBeforeDispatch: z.literal(true),
   terminalPlatformUsageAndCostReceiptPending: z.literal(true),
   independentTemporalMaskQualityPending: z.literal(true),

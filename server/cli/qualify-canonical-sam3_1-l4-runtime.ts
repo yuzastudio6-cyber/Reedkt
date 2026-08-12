@@ -71,9 +71,9 @@ const INVOCATION_PREFIX =
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v2' as const
 const A100_SERVING_QUALIFICATION_SET_ID =
-  'sam31-a100-serving-thirty-run-release-candidate-20260812-v1' as const
+  'sam31-a100-serving-memory-safe-thirty-run-release-candidate-20260812-v1' as const
 const A100_SERVING_QUALIFICATION_RECEIPT_HASH = (
-  '4e373c6f3c41dc0fc9dc680fbb013942d855fb71761d5c0216ef1d5abe5532b3'
+  '19c341f5cd536d6851e2f2d87a5f1c610ecca846bf449a3576e65f01ae1e882c'
 ) as const
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
@@ -574,14 +574,23 @@ function assertExactA100ServingQualification(value: unknown) {
     assertCanonicalSam31VertexServingThirtyRunQualification(value)
   if (receipt.qualificationSetId !== A100_SERVING_QUALIFICATION_SET_ID
     || receipt.receiptHash !== A100_SERVING_QUALIFICATION_RECEIPT_HASH
+    || receipt.schemaVersion !==
+      'canonical-sam3_1-vertex-serving-thirty-run-qualification-v2'
+    || receipt.evidenceClass !==
+      'canonical_private_exact_output_and_prediction_reread'
     || receipt.status !==
       'qualified_for_l4_quality_and_performance_comparison'
+    || receipt.latencyReplacementQualificationId !== null
     || receipt.deterministicOutputRunCount !== 30
     || receipt.measuredPerformanceRunCount !== 30
+    || receipt.recoveredOutputRunCount !== 0
     || !receipt.allThirtyDeterministicOutputsSemanticallyIdentical
     || !receipt.allThirtyPerformanceMeasurementsUseExactPredictionReceipts
+    || !receipt.everyPerformanceRunUsesItsOwnPredictionReceipt
+    || receipt.recoveredRunExcludedFromLatencyAndReplacedExplicitly
     || !receipt.exactTaskResponseOutputManifestAndMaskEvidenceReread
     || receipt.l4FallbackQualified
+    || receipt.runtimeReleaseGranted
     || receipt.productionAuthorityGranted) {
     throw new Error('approved_a100_serving_qualification_changed')
   }

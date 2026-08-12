@@ -168,7 +168,9 @@ export function createCanonicalSam31L4RuntimePrivateRunReceiptRepository(
   return Object.freeze({
     schemaVersion:
       CANONICAL_SAM3_1_L4_RUNTIME_PRIVATE_RUN_RECEIPT_REPOSITORY_VERSION,
-    async persistCreateOnly({ receipt: untrusted }) {
+    async persistCreateOnly({ receipt: untrusted }: {
+      readonly receipt: CanonicalSam31L4RuntimePrivateRunReceipt
+    }) {
       const receipt = assertCanonicalSam31L4RuntimePrivateRunReceipt(
         untrusted,
       )
@@ -191,7 +193,10 @@ export function createCanonicalSam31L4RuntimePrivateRunReceiptRepository(
       }
       return disposition
     },
-    async reread({ qualificationId, runOrdinal: ordinal }) {
+    async reread({ qualificationId, runOrdinal: ordinal }: {
+      readonly qualificationId: string
+      readonly runOrdinal: number
+    }) {
       const id = safeId.parse(qualificationId)
       const run = runOrdinal.parse(ordinal)
       const body = await input.objectPort.readExact(

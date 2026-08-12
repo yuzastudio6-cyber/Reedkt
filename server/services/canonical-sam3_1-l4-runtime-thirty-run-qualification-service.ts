@@ -182,7 +182,9 @@ export function createCanonicalSam31L4RuntimeThirtyRunQualificationRepository(
   }
   return Object.freeze({
     schemaVersion: CANONICAL_SAM3_1_L4_RUNTIME_THIRTY_RUN_REPOSITORY_VERSION,
-    async persistCreateOnly({ receipt: untrusted }) {
+    async persistCreateOnly({ receipt: untrusted }: {
+      readonly receipt: CanonicalSam31L4RuntimeThirtyRunQualification
+    }) {
       const receipt = assertCanonicalSam31L4RuntimeThirtyRunQualification(
         untrusted,
       )
@@ -198,7 +200,7 @@ export function createCanonicalSam31L4RuntimeThirtyRunQualificationRepository(
       }
       return disposition
     },
-    reread({ qualificationSetId }) {
+    reread({ qualificationSetId }: { readonly qualificationSetId: string }) {
       return reread(qualificationSetId)
     },
   })

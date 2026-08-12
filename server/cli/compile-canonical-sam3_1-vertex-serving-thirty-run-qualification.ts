@@ -49,9 +49,15 @@ const receipt =
     deterministicQualificationId:
       environment
         .WEEDITPRO_SAM31_VERTEX_SERVING_DETERMINISTIC_QUALIFICATION_ID,
-    latencyReplacementQualificationId:
-      environment
-        .WEEDITPRO_SAM31_VERTEX_SERVING_LATENCY_REPLACEMENT_QUALIFICATION_ID,
+    ...(environment
+      .WEEDITPRO_SAM31_VERTEX_SERVING_LATENCY_REPLACEMENT_QUALIFICATION_ID ===
+        undefined
+      ? {}
+      : {
+          latencyReplacementQualificationId:
+            environment
+              .WEEDITPRO_SAM31_VERTEX_SERVING_LATENCY_REPLACEMENT_QUALIFICATION_ID,
+        }),
   })
 
 process.stdout.write(`${JSON.stringify({

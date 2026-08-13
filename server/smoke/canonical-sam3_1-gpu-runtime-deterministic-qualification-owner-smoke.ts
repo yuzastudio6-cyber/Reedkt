@@ -322,7 +322,10 @@ export function buildCanonicalSam31A100RunFixture(
     readonly exactSourceRef?: CanonicalSam31A100RunFixtureRef
     readonly maskProxyRef?: CanonicalSam31A100RunFixtureRef
     readonly canonicalStartFrameInclusive?: number
+    readonly decodedFrameCount?: number
     readonly fpsNumerator?: number
+    readonly uniqueChunkIdentity?: boolean
+    readonly chunkPlanRef?: CanonicalSam31A100RunFixtureRef
   } = {},
 ): CanonicalSam31A100RunFixture {
   const suffix = String(runOrdinal).padStart(2, '0')
@@ -330,6 +333,14 @@ export function buildCanonicalSam31A100RunFixture(
   const invocationId = `${namespace}-${suffix}`
   const canonicalStartFrameInclusive =
     options.canonicalStartFrameInclusive ?? 0
+  const decodedFrameCount = options.decodedFrameCount
+    ?? canonicalSam31A100TaskFixture.runtimeRequest.sourceMedia
+      .decodedFrameCount
+  if (!Number.isInteger(decodedFrameCount)
+    || decodedFrameCount < 2
+    || decodedFrameCount > 240) {
+    throw new TypeError('SAM 3.1 fixture frame count is outside its chunk bound.')
+  }
   const exactSourceRef = options.exactSourceRef
     ?? canonicalSam31A100TaskFixture.runtimeRequest.sourceMedia
       .finalizedSourceArtifactRef
@@ -365,11 +376,20 @@ export function buildCanonicalSam31A100RunFixture(
       ...baseRequest.sourceMedia,
       finalizedSourceArtifactRef: exactSourceRef,
       gpuPreparedMaskProxyArtifactRef: maskProxyRef,
+      sourceFrameRangeMappingRef: options.uniqueChunkIdentity
+        ? ref(
+          `sam31-deterministic-frame-map-${suffix}`,
+          digest(`sam31-deterministic-frame-map-${suffix}`),
+        )
+        : baseRequest.sourceMedia.sourceFrameRangeMappingRef,
+      decodedFrameCount,
       fpsNumerator: options.fpsNumerator ?? baseRequest.sourceMedia.fpsNumerator,
+      selectedEndFrameInclusive: decodedFrameCount - 1,
       canonicalSourceStartFrameInclusive: canonicalStartFrameInclusive,
       canonicalSourceEndFrameInclusive:
-        canonicalStartFrameInclusive +
-          baseRequest.sourceMedia.decodedFrameCount - 1,
+        canonicalStartFrameInclusive + decodedFrameCount - 1,
+      boundedChunkOverlapAndStitchPlanRef: options.chunkPlanRef
+        ?? baseRequest.sourceMedia.boundedChunkOverlapAndStitchPlanRef,
     },
     modelArtifacts: {
       ...baseRequest.modelArtifacts,
@@ -468,11 +488,32 @@ export function buildCanonicalSam31A100RunFixture(
     canonicalSam31A100RuntimeResponseFixture,
     'responseBindingSha256',
   )
+  const manifestSha256 = options.uniqueChunkIdentity
+    ? digest(`sam31-deterministic-mask-manifest-${suffix}`)
+    : baseResponse.outputSummary!.manifestSha256
   const response = buildCanonicalSam31GpuRuntimeResponse({
     ...baseResponse,
     requestBindingSha256: runtimeRequest.requestBindingSha256,
     dispatchAdmissionDigestSha256:
       runtimeRequest.dispatchAdmissionDigestSha256,
+    runtimeMeasurement: {
+      ...baseResponse.runtimeMeasurement!,
+      outputFileCount: decodedFrameCount + 1,
+    },
+    outputSummary: {
+      ...baseResponse.outputSummary!,
+      manifestRef: options.uniqueChunkIdentity
+        ? ref(
+          `sam31-deterministic-mask-manifest-${suffix}`,
+          manifestSha256,
+        )
+        : baseResponse.outputSummary!.manifestRef,
+      manifestSha256,
+      firstFrameIndex: 0,
+      lastFrameIndex: decodedFrameCount - 1,
+      propagatedFrameCount: decodedFrameCount,
+      losslessMaskPngCount: decodedFrameCount,
+    },
   })
   const runtimeResponseObjectRef = ref(
     `sam31-deterministic-runtime-response-${suffix}`,
@@ -519,9 +560,8 @@ export function buildCanonicalSam31A100RunFixture(
       `sam31-deterministic-mask-sequence-${suffix}`,
       digest(`sam31-deterministic-mask-sequence-${suffix}`),
     ),
-    firstFrameIndex: canonicalStartFrameInclusive,
-    lastFrameIndex: canonicalStartFrameInclusive +
-      runtimeRequest.sourceMedia.decodedFrameCount - 1,
+    firstFrameIndex: runtimeRequest.sourceMedia.selectedStartFrameInclusive,
+    lastFrameIndex: runtimeRequest.sourceMedia.selectedEndFrameInclusive,
     propagatedFrameCount: runtimeRequest.sourceMedia.decodedFrameCount,
   }
   const privateOutput = assertCanonicalSam31PrivateOutputRereadEvidence({

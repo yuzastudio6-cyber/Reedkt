@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v24')
+  'canonical-track-all-sam3_1-production-runtime-v25')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -58,6 +58,25 @@ assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
 assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
 assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
+assert.equal(runtime.completeSourceSequentialChunkCoordinatorMounted, true)
+assert.equal(runtime.exactPrivateOutputRereadBeforeNextChunkMounted, true)
+assert.equal(
+  runtime.sam31CompleteSourceChunkRepository.schemaVersion,
+  'canonical-sam3_1-complete-source-chunk-repository-v1',
+)
+assert.equal(
+  runtime.sam31CompleteSourceChunkCoordinator.schemaVersion,
+  'canonical-sam3_1-complete-source-chunk-coordinator-v1',
+)
+assert.equal(
+  runtime.sam31CompleteSourceChunkCoordinator.oneChunkAdvancedPerCall,
+  true,
+)
+assert.equal(
+  runtime.sam31CompleteSourceChunkCoordinator
+    .restartSafeCreateOnlyReplay,
+  true,
+)
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
 assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
@@ -350,7 +369,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 107,
+  checks: 115,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -359,6 +378,10 @@ console.log(JSON.stringify({
   freshA100PricingUsesVertexServingRateAuthority:
     runtime.freshA100PricingUsesVertexServingRateAuthority,
   currentA100CustomerDispatchReadinessRereadMounted: true,
+  completeSourceSequentialChunkCoordinatorMounted:
+    runtime.completeSourceSequentialChunkCoordinatorMounted,
+  exactPrivateOutputRereadBeforeNextChunkMounted:
+    runtime.exactPrivateOutputRereadBeforeNextChunkMounted,
   historicalA100CustomJobPricingRemainsReadOnly:
     runtime.historicalA100CustomJobPricingRemainsReadOnly,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,

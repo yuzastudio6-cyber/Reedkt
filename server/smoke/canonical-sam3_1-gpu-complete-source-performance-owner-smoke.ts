@@ -42,17 +42,32 @@ const chunkPlanRef = ref(
   'sam31-eight-minute-chunk-plan',
   digest('sam31-eight-minute-chunk-plan'),
 )
-const fixtures = Array.from({ length: 48 }, (_, index) =>
-  buildCanonicalSam31A100RunFixture(index + 1, {
+const sourceFrameCount = 11_520
+const chunkFrameCount = 240
+const chunkOverlapFrameCount = 1
+const chunkStrideFrameCount = chunkFrameCount - chunkOverlapFrameCount
+const exactChunkCount = Math.ceil(
+  (sourceFrameCount - chunkFrameCount) / chunkStrideFrameCount,
+) + 1
+const fixtures = Array.from({ length: exactChunkCount }, (_, index) => {
+  const canonicalStartFrameInclusive = index * chunkStrideFrameCount
+  const decodedFrameCount = Math.min(
+    chunkFrameCount,
+    sourceFrameCount - canonicalStartFrameInclusive,
+  )
+  return buildCanonicalSam31A100RunFixture(index + 1, {
     invocationPrefix: 'sam31-eight-minute-run-01-chunk',
     exactSourceRef: exactEightMinuteSourceRef,
     maskProxyRef: ref(
       `sam31-eight-minute-run-01-mask-proxy-${index + 1}`,
       digest(`sam31-eight-minute-run-01-mask-proxy-${index + 1}`),
     ),
-    canonicalStartFrameInclusive: index * 240,
+    canonicalStartFrameInclusive,
+    decodedFrameCount,
     fpsNumerator: 24,
-  }))
+    uniqueChunkIdentity: true,
+  })
+})
 const observation = sealCanonicalSam31GpuCompleteSourceExecutionObservation({
   schemaVersion:
     'canonical-sam3_1-gpu-complete-source-execution-observation-v1',
@@ -67,7 +82,7 @@ const observation = sealCanonicalSam31GpuCompleteSourceExecutionObservation({
   sourceDurationMilliseconds: 480_000,
   sourceWidth: 2_160,
   sourceHeight: 3_840,
-  sourceFrameCount: 11_520,
+  sourceFrameCount,
   fpsNumerator: 24,
   fpsDenominator: 1,
   chunkPlanRef,
@@ -83,9 +98,11 @@ const observation = sealCanonicalSam31GpuCompleteSourceExecutionObservation({
   chunks: fixtures.map((fixture, index) => ({
     chunkOrdinal: index + 1,
     invocationId: fixture.request.invocationId,
-    canonicalStartFrameInclusive: index * 240,
-    canonicalEndFrameInclusive: index * 240 + 239,
-    overlapWithPreviousFrames: 0,
+    canonicalStartFrameInclusive:
+      fixture.task.runtimeRequest.sourceMedia.canonicalSourceStartFrameInclusive,
+    canonicalEndFrameInclusive:
+      fixture.task.runtimeRequest.sourceMedia.canonicalSourceEndFrameInclusive,
+    overlapWithPreviousFrames: index === 0 ? 0 : chunkOverlapFrameCount,
     taskRef: fixture.request.taskRef,
     launchRef: fixture.request.launchRef,
     resultAdmissionRef: fixture.request.resultAdmissionRef,
@@ -180,7 +197,7 @@ const owner = createCanonicalSam31GpuCompleteSourcePerformanceOwner({
 const evidence = await owner.compileAndPersistPerformanceEvidence(request)
 assert.equal(evidence.sourceDurationMilliseconds, 480_000)
 assert.equal(evidence.sourceFrameCount, 11_520)
-assert.equal(evidence.chunkCount, 48)
+assert.equal(evidence.chunkCount, 49)
 assert.equal(evidence.phaseTiming.wallTimeMilliseconds, 420_000)
 assert.equal(evidence.route.accelerator, 'nvidia_a100_80gb')
 assert.equal(evidence.sourceResolutionAndCompleteFrameRangePreserved, true)
@@ -240,7 +257,7 @@ const wiredEvidence = await wiredOwner.compileAndPersistPerformanceEvidence({
   performanceEvidenceId: 'sam31-eight-minute-performance-evidence-wired',
   ...wiredRefs,
 })
-assert.equal(wiredEvidence.chunkCount, 48)
+assert.equal(wiredEvidence.chunkCount, 49)
 assert.equal(wiredEvidence.phaseTiming.wallTimeMilliseconds, 420_000)
 
 const splitControlObjectPort = memoryObjectPort(new Map())
@@ -290,7 +307,7 @@ createCanonicalSam31GpuCompleteSourcePerformanceOwnerFromObjectPorts({
   performanceEvidenceId: 'sam31-eight-minute-performance-evidence-split-store',
   ...splitRefs,
 })
-assert.equal(splitEvidence.chunkCount, 48)
+assert.equal(splitEvidence.chunkCount, 49)
 assert.equal(splitEvidence.phaseTiming.wallTimeMilliseconds, 420_000)
 
 await assert.rejects(() => ownerWith({ missingChunk: 17 })
@@ -350,7 +367,7 @@ await assert.rejects(() => ownerWith({ observation: tamperedObservation })
 const incompleteStitch = sealCanonicalSam31GpuCompleteSourceStitchEvidence({
   ...withoutKey(stitch, 'stitchEvidenceHash'),
   stitchEvidenceId: 'sam31-eight-minute-incomplete-stitch',
-  orderedChunkResultRefs: stitch.orderedChunkResultRefs.slice(0, 47),
+  orderedChunkResultRefs: stitch.orderedChunkResultRefs.slice(0, 48),
 })
 const incompleteStitchRef =
   canonicalSam31GpuCompleteSourceStitchEvidenceRef(incompleteStitch)
@@ -395,9 +412,11 @@ await assert.rejects(() => owner.compileAndPersistPerformanceEvidence(cyclic))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-complete-source-performance-owner',
-  checks: 47,
+  checks: 50,
   exactEightMinuteSourceCovered: true,
-  orderedChunkCount: 48,
+  orderedChunkCount: 49,
+  oneFrameCrossChunkOverlapRequired: true,
+  finalPartialChunkFrameCount: 48,
   exactChunkTaskLaunchResponseResultAndCostReread: true,
   deterministicNoGapStitchRequired: true,
   wallClockPhaseTelemetryReread: true,

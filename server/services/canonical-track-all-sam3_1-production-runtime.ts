@@ -219,9 +219,15 @@ import {
 import {
   createCanonicalTrackAllSam31L4TaskQaTerminalReconciler,
 } from './canonical-track-all-sam3_1-l4-task-qa-terminal-reconciliation-service'
+import {
+  createCanonicalSam31CompleteSourceChunkCoordinator,
+  createCanonicalSam31CompleteSourceChunkRepository,
+  type CanonicalSam31CompleteSourceChunkCoordinator,
+  type CanonicalSam31CompleteSourceChunkRepository,
+} from './canonical-sam3_1-complete-source-chunk-coordinator'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v24' as const
+  'canonical-track-all-sam3_1-production-runtime-v25' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -251,6 +257,10 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   >
   readonly sam31A100ResultFinalizationRuntimePort:
     CanonicalSam31A100ResultFinalizationRuntimePort
+  readonly sam31CompleteSourceChunkRepository:
+    CanonicalSam31CompleteSourceChunkRepository
+  readonly sam31CompleteSourceChunkCoordinator:
+    CanonicalSam31CompleteSourceChunkCoordinator
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly trackAllSam31L4TaskQaQueuedStartRuntimePort:
@@ -289,6 +299,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly rawCloudLaunchPortExposed: false
   readonly historicalVertexCustomJobCustomerDispatchAllowed: false
   readonly currentA100DedicatedEndpointInvocationMounted: true
+  readonly completeSourceSequentialChunkCoordinatorMounted: true
+  readonly exactPrivateOutputRereadBeforeNextChunkMounted: true
   readonly durablePostgresQueueMountedBeforeGpuInvocation: true
   readonly userTriggeredCloudTaskSchedulingMounted: true
   readonly authenticatedCloudTaskConsumerMounted: true
@@ -518,6 +530,16 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
       objectPort: privateGpuJsonObjectPort,
     })
+  const sam31CompleteSourceChunkRepository =
+    createCanonicalSam31CompleteSourceChunkRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const sam31PrivateOutputRereadPort =
+    createCanonicalSam31GcsPrivateOutputRereadPort({
+      storage,
+      projectId,
+      bucketName: privateGpuObjectBucketName,
+    })
   const lifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
     objectPort: controlPlaneObjectPort,
   })
@@ -633,12 +655,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       terminalObservationPort:
         a100VertexProfessionalGpuTerminalObservationPort,
       taskStore,
-      privateOutputRereadPort:
-        createCanonicalSam31GcsPrivateOutputRereadPort({
-          storage,
-          projectId,
-          bucketName: privateGpuObjectBucketName,
-        }),
+      privateOutputRereadPort: sam31PrivateOutputRereadPort,
       resultStore: sam31RuntimeResultStore,
     })
   const rawCloudLaunchPort: CanonicalProfessionalGpuCloudJobLaunchPort =
@@ -751,6 +768,14 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       attemptStartReadPort: fundedStartAuthorityStore,
       currentVertexInvocationPort,
     })
+  const sam31CompleteSourceChunkCoordinator =
+    createCanonicalSam31CompleteSourceChunkCoordinator({
+      repository: sam31CompleteSourceChunkRepository,
+      invocationRuntime: authenticatedInvocationRuntime,
+      taskStore,
+      resultStore: sam31RuntimeResultStore,
+      privateOutputRereadPort: sam31PrivateOutputRereadPort,
+    })
   const professionalGpuCloudTaskConsumer =
     (() => {
       const terminalAttemptOwner =
@@ -848,6 +873,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     }),
     a100VertexCustomJobTerminalReadPort,
     sam31A100ResultFinalizationRuntimePort,
+    sam31CompleteSourceChunkRepository,
+    sam31CompleteSourceChunkCoordinator,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,
     trackAllSam31L4TaskQaQueuedStartRuntimePort:
@@ -878,6 +905,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     rawCloudLaunchPortExposed: false as const,
     historicalVertexCustomJobCustomerDispatchAllowed: false as const,
     currentA100DedicatedEndpointInvocationMounted: true as const,
+    completeSourceSequentialChunkCoordinatorMounted: true as const,
+    exactPrivateOutputRereadBeforeNextChunkMounted: true as const,
     durablePostgresQueueMountedBeforeGpuInvocation: true as const,
     userTriggeredCloudTaskSchedulingMounted: true as const,
     authenticatedCloudTaskConsumerMounted: true as const,

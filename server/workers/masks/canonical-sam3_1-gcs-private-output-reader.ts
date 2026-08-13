@@ -8,9 +8,15 @@ import {
   assertCanonicalProfessionalGpuJobLaunch,
 } from '../../services/canonical-professional-gpu-job-lifecycle-service'
 import {
+  parseTrackAllSam31AuthenticatedGpuInvocationResult,
+} from '../../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
   assertCanonicalSam31VertexServingQualificationResult,
   type CanonicalSam31VertexServingQualificationResult,
 } from '../../services/canonical-sam3_1-vertex-serving-qualification-invocation-service'
+import type {
+  TrackAllSam31AuthenticatedGpuInvocationResult,
+} from '../../../src/types/track-all-sam3_1-gpu-invocation'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -41,6 +47,18 @@ export interface CanonicalSam31ServingPrivateOutputRereadPort {
       CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
     >[0]['response']
     readonly servingResult: CanonicalSam31VertexServingQualificationResult
+  }): Promise<CanonicalSam31PrivateOutputRereadEvidence>
+}
+
+export interface CanonicalSam31CurrentServingPrivateOutputRereadPort {
+  rereadExactCurrentServingPrivateOutput(input: {
+    readonly task: Parameters<
+      CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
+    >[0]['task']
+    readonly response: Parameters<
+      CanonicalSam31PrivateOutputRereadPort['rereadExactPrivateOutput']
+    >[0]['response']
+    readonly invocationResult: TrackAllSam31AuthenticatedGpuInvocationResult
   }): Promise<CanonicalSam31PrivateOutputRereadEvidence>
 }
 
@@ -106,7 +124,8 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
   readonly prefix?: string
   readonly now?: () => string
 }): CanonicalSam31PrivateOutputRereadPort &
-  CanonicalSam31ServingPrivateOutputRereadPort {
+  CanonicalSam31ServingPrivateOutputRereadPort &
+  CanonicalSam31CurrentServingPrivateOutputRereadPort {
   const projectId = safeId.parse(input.projectId)
   const bucketName = z.string().regex(
     /^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$/u,
@@ -308,6 +327,27 @@ export function createCanonicalSam31GcsPrivateOutputRereadPort(input: {
       })
       return rereadObjects(task, response)
     },
+    async rereadExactCurrentServingPrivateOutput(untrusted: Parameters<
+      CanonicalSam31CurrentServingPrivateOutputRereadPort[
+        'rereadExactCurrentServingPrivateOutput'
+      ]
+    >[0]) {
+      const task = assertCanonicalSam31GpuTaskRecord(untrusted.task)
+      const response = assertCanonicalSam31GpuRuntimeResponse({
+        request: task.runtimeRequest,
+        response: untrusted.response,
+      })
+      const invocationResult =
+        parseTrackAllSam31AuthenticatedGpuInvocationResult(
+          untrusted.invocationResult,
+        )
+      assertCurrentServingResultAndCompletedResponse({
+        task,
+        response,
+        invocationResult,
+      })
+      return rereadObjects(task, response)
+    },
   })
 }
 
@@ -356,6 +396,47 @@ function assertServingResultAndCompletedResponse(input: {
     ) !== stableAuthorityStringify(input.task.runtimeReleaseRef)
   ) throw new Error(
     'SAM 3.1 output reread lacks its exact completed Vertex serving result.',
+  )
+}
+
+function assertCurrentServingResultAndCompletedResponse(input: {
+  task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
+  response: ReturnType<typeof assertCanonicalSam31GpuRuntimeResponse>
+  invocationResult: TrackAllSam31AuthenticatedGpuInvocationResult
+}): void {
+  const responseHash = rawSha256(Buffer.from(
+    canonicalSam31GpuWireStringify(input.response),
+    'utf8',
+  ))
+  const runtime = input.task.runtimeRequest
+  const result = input.invocationResult
+  if (
+    input.response.status !== 'completed'
+    || input.response.outputSummary === null
+    || result.endpointInvocationResultRef.id !== input.task.invocationId
+    || result.invocationDisposition !== 'completed'
+    || result.runtimeStatus !== 'completed'
+    || result.providerOutcome !== 'executed'
+    || result.runtimeResponseRef?.contentHash !== `sha256:${responseHash}`
+    || stableAuthorityStringify(result.executionAttemptRef) !==
+      stableAuthorityStringify(runtime.scope.executionAttemptRef)
+    || result.workspaceId !== runtime.scope.workspaceId
+    || result.approvedSnapshotId !== runtime.scope.approvedPlanSnapshotId
+    || result.routeId !== 'a100_80gb_heavy_primary'
+    || result.accelerator !== 'nvidia_a100_80gb'
+    || !result.currentDedicatedEndpointInvocation
+    || result.historicalCloudJobCustomerDispatchUsed
+    || !result.currentEndpointReadinessRereadBeforeInvocation
+    || !result.approvedSourceMaterialRereadByCanonicalServer
+    || !result.fundedPricingReservationAndAttemptRereadBeforeInvocation
+    || !result.accountEffectiveServingRateRereadBeforeInvocation
+    || result.automaticRetryAllowed
+    || result.customerCreditsMutated
+    || result.qaApproved
+    || result.publicDeliveryAuthorized
+    || result.productionAuthorityGranted
+  ) throw new Error(
+    'SAM 3.1 output reread lacks its exact current A100 invocation result.',
   )
 }
 

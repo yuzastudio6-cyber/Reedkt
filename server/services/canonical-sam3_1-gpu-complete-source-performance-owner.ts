@@ -896,10 +896,8 @@ function assertChunkLineage(input: {
       result.maskSequenceArtifactRef)
     && privateOutput.width === observation.sourceWidth
     && privateOutput.height === observation.sourceHeight
-    && privateOutput.firstFrameIndex ===
-      chunk.canonicalStartFrameInclusive
-    && privateOutput.lastFrameIndex ===
-      chunk.canonicalEndFrameInclusive
+    && privateOutput.firstFrameIndex === source.selectedStartFrameInclusive
+    && privateOutput.lastFrameIndex === source.selectedEndFrameInclusive
     && privateOutput.propagatedFrameCount ===
       chunk.canonicalEndFrameInclusive -
         chunk.canonicalStartFrameInclusive + 1

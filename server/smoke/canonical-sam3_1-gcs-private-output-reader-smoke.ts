@@ -141,6 +141,34 @@ createCanonicalSam31GcsPrivateOutputRereadPort({
 }).rereadExactServingPrivateOutput({ task, response, servingResult }))
 assert.equal(servingEvidence.evidenceHash, evidence.evidenceHash)
 
+const currentInvocationResult = buildCurrentInvocationResult()
+const currentServingEvidence =
+  assertCanonicalSam31PrivateOutputRereadEvidence(await
+    createCanonicalSam31GcsPrivateOutputRereadPort({
+      storage: memoryStorage(objects),
+      projectId: 'reeditpro',
+      bucketName: 'reeditpro-production-reeditpro-masks',
+      now: () => '2026-08-02T18:06:00.000Z',
+    }).rereadExactCurrentServingPrivateOutput({
+      task,
+      response,
+      invocationResult: currentInvocationResult,
+    }))
+assert.equal(currentServingEvidence.evidenceHash, evidence.evidenceHash)
+
+await assert.rejects(() =>
+  createCanonicalSam31GcsPrivateOutputRereadPort({
+    storage: memoryStorage(objects),
+    projectId: 'reeditpro',
+    bucketName: 'reeditpro-production-reeditpro-masks',
+  }).rereadExactCurrentServingPrivateOutput({
+    task,
+    response,
+    invocationResult: buildCurrentInvocationResult({
+      workspaceId: 'crossed-workspace',
+    }),
+  }), /exact current A100 invocation result/u)
+
 const wrongCandidateRef = {
   ...task.runtimeReleaseRef,
   id: `${task.runtimeReleaseRef.id}-wrong`,
@@ -197,6 +225,7 @@ console.log(JSON.stringify({
     exactGenerationEtagAndCrcReread: true,
     exactRuntimeResponseBytesReread: true,
     exactVertexServingResultLineageRequired: true,
+    exactCurrentA100InvocationResultLineageRequired: true,
     pythonFloatSpellingBoundByExactRawManifestHash: true,
     stableEmptyGcsDirectoryMarkerAccepted: true,
     closedManifestAndCompleteFrameInterval: true,
@@ -359,5 +388,68 @@ function buildServingResult(
   return assertCanonicalSam31VertexServingQualificationResult({
     ...payload,
     resultHash: sha256AuthorityValue(payload),
+  })
+}
+
+function buildCurrentInvocationResult(
+  override: { readonly workspaceId?: string } = {},
+) {
+  const payload = {
+    schemaVersion:
+      'track-all-sam3_1-authenticated-gpu-invocation-result-v2' as const,
+    requestRef: fixtureRef('sam31-current-request', '4'),
+    workspaceId: override.workspaceId ?? task.runtimeRequest.scope.workspaceId,
+    approvedSnapshotId:
+      task.runtimeRequest.scope.approvedPlanSnapshotId,
+    workItemKey: task.runtimeRequest.scope.approvedWorkItemRef.id,
+    fundedDispatchAdmissionRef: fixtureRef('sam31-funded-admission', '5'),
+    prelaunchAuthorizationRef: fixtureRef('sam31-prelaunch', '6'),
+    fixedTaskPreparationBridgeRef: fixtureRef('sam31-task-bridge', '7'),
+    endpointInvocationAttemptRef: fixtureRef('sam31-endpoint-attempt', '8'),
+    endpointCallStartRef: fixtureRef('sam31-endpoint-call-start', '9'),
+    endpointInvocationResultRef: {
+      id: task.invocationId,
+      version: 1,
+      contentHash: `sha256:${'a'.repeat(64)}`,
+    },
+    executionAttemptRef: task.runtimeRequest.scope.executionAttemptRef,
+    runtimeResponseRef: {
+      id: `sam31-gpu-response:${task.invocationId}`,
+      version: 1,
+      contentHash: `sha256:${hash(responseBytes)}`,
+    },
+    invocationDisposition: 'completed' as const,
+    providerOutcome: 'executed' as const,
+    runtimeStatus: 'completed' as const,
+    routeId: 'a100_80gb_heavy_primary' as const,
+    accelerator: 'nvidia_a100_80gb' as const,
+    userTriggeredScaleFromZero: true as const,
+    currentDedicatedEndpointInvocation: true as const,
+    historicalCloudJobCustomerDispatchUsed: false as const,
+    currentEndpointReadinessRereadBeforeInvocation: true as const,
+    approvedSourceMaterialRereadByCanonicalServer: true as const,
+    fundedPricingReservationAndAttemptRereadBeforeInvocation: true as const,
+    accountEffectiveServingRateRereadBeforeInvocation: true as const,
+    automaticRetryAllowed: false as const,
+    unresolvedOutcomeBlocksRetry: false,
+    canonicalServingWindowUsageCostAndCreditSettlementPending: true as const,
+    callerSuppliedMediaPromptEndpointModelRouteImageCommandOrPriceAccepted:
+      false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  return Object.freeze({
+    ...payload,
+    resultDigestSha256: sha256AuthorityValue(payload),
+  })
+}
+
+function fixtureRef(id: string, digit: string) {
+  return Object.freeze({
+    id,
+    version: 1,
+    contentHash: `sha256:${digit.repeat(64)}`,
   })
 }

@@ -486,6 +486,7 @@
     "smoke:professional-gpu-fair-queue": "tsx server/smoke/canonical-professional-gpu-fair-queue-scheduler-smoke.ts",
     "smoke:professional-gpu-fair-queue-coordinator": "tsx server/smoke/canonical-professional-gpu-fair-queue-coordinator-smoke.ts",
     "smoke:professional-gpu-fair-queue-local-postgres": "tsx server/smoke/canonical-professional-gpu-fair-queue-local-postgres-smoke.ts",
+    "smoke:professional-gpu-cloud-task-dispatch": "tsx server/smoke/canonical-professional-gpu-cloud-task-dispatch-smoke.ts",
     "smoke:sam3_1-vertex-serving-attempt-credit-settlement": "tsx server/smoke/canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts",
     "smoke:sam3_1-vertex-serving-invocation": "tsx server/smoke/canonical-sam3_1-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-readiness": "tsx server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts",

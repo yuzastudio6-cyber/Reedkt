@@ -986,15 +986,16 @@ async function readExactL4Device(invocationId: string) {
     throw notReady('sam31_source_preparation_exact_l4_missing')
   }
   const gpuEntries = entries.filter((entry) => entry.isDirectory()
-    && /^[A-Fa-f0-9]{8}:[A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}\.[A-Fa-f0-9]$/u
+    && /^[A-Fa-f0-9]{4}(?:[A-Fa-f0-9]{4})?:[A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}\.[A-Fa-f0-9]$/u
       .test(entry.name))
   if (gpuEntries.length !== 1) {
     throw notReady('sam31_source_preparation_exact_l4_missing')
   }
-  const pciBusId = gpuEntries[0].name
+  const procPciBusId = gpuEntries[0].name
+  const pciBusId = normalizePciBusId(procPciBusId)
   const [information, version] = await Promise.all([
     readBoundedProcText(
-      `${NVIDIA_PROC_ROOT}/gpus/${pciBusId}/information`,
+      `${NVIDIA_PROC_ROOT}/gpus/${procPciBusId}/information`,
     ),
     readBoundedProcText(`${NVIDIA_PROC_ROOT}/version`),
   ])
@@ -1004,10 +1005,11 @@ async function readExactL4Device(invocationId: string) {
     /^Bus Location:\s*([A-Fa-f0-9:.]+)$/mu,
   )?.[1]
   const driverVersion = version.match(
-    /Kernel Module\s+([0-9]+(?:\.[0-9]+)+)/u,
+    /^NVRM version:[^\r\n]*?\s([0-9]+(?:\.[0-9]+)+)\s/mu,
   )?.[1]
   if (model !== 'NVIDIA L4' || !deviceUuid
-    || reportedBus?.toLowerCase() !== pciBusId.toLowerCase()
+    || !reportedBus
+    || normalizePciBusId(reportedBus) !== pciBusId
     || !driverVersion) {
     throw notReady('sam31_source_preparation_exact_l4_missing')
   }
@@ -1019,6 +1021,16 @@ async function readExactL4Device(invocationId: string) {
     pciBusId,
     allocatedGpuCount: 1,
   })
+}
+
+function normalizePciBusId(value: string): string {
+  const match = value.match(
+    /^([A-Fa-f0-9]{4}|[A-Fa-f0-9]{8}):([A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}\.[A-Fa-f0-9])$/u,
+  )
+  if (!match) {
+    throw notReady('sam31_source_preparation_exact_l4_missing')
+  }
+  return `${match[1].toLowerCase().padStart(8, '0')}:${match[2].toLowerCase()}`
 }
 
 async function readBoundedProcText(path: string): Promise<string> {

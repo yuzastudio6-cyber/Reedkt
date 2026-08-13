@@ -29,6 +29,9 @@ assert.match(port, /const NVIDIA_PROC_ROOT = '\/proc\/driver\/nvidia'/u)
 assert.match(port, /readdir\(`\$\{NVIDIA_PROC_ROOT\}\/gpus`/u)
 assert.match(port, /readBoundedProcText/u)
 assert.match(port, /model !== 'NVIDIA L4'/u)
+assert.match(port, /normalizePciBusId/u)
+assert.match(port, /padStart\(8, '0'\)/u)
+assert.match(port, /NVRM version:/u)
 assert.doesNotMatch(port, /nvidia-smi/u)
 assert.match(port, /'-hwaccel', 'cuda'/u)
 assert.match(port, /'-c:v', 'h264_cuvid'/u)
@@ -151,7 +154,7 @@ assert.throws(() => parseCanonicalSam31EightMinuteSourceGpuOutput({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-fixed-process-port',
-  checks: 55,
+  checks: 58,
   exactSourceGenerationReread: true,
   l4NvdecNvencFixedProcess: true,
   gpuDecodedFrameCountVerified: true,

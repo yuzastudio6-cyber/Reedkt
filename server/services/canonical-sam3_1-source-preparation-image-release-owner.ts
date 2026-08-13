@@ -16,6 +16,11 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
+import {
+  assertCanonicalSam31SourcePreparationPrivateQualificationRun,
+  getCanonicalSam31SourcePreparationPrivateQualificationRunRef,
+  type CanonicalSam31SourcePreparationPrivateQualificationRun,
+} from './canonical-sam3_1-source-preparation-private-qualification-run'
 
 export const CANONICAL_SAM3_1_SOURCE_PREPARATION_IMAGE_BUILD_RECEIPT_VERSION =
   'canonical-sam3_1-source-preparation-image-build-receipt-v1' as const
@@ -278,7 +283,8 @@ export function createCanonicalSam31SourcePreparationImageReleaseOwner(input: {
         CanonicalSam31SourcePreparationImageBuildReceipt
       readonly supplyChain:
         CanonicalSam31SourcePreparationImageSupplyChain
-      readonly fourKPreparationQualificationRunRef: EvidenceRef
+      readonly fourKPreparationQualificationRun:
+        CanonicalSam31SourcePreparationPrivateQualificationRun
       readonly qualifiedAt: string
     }) {
       const build = assertCanonicalSam31SourcePreparationImageBuildReceipt(
@@ -293,9 +299,21 @@ export function createCanonicalSam31SourcePreparationImageReleaseOwner(input: {
         || supply.immutableImageDigest !== build.immutableImageDigest) {
         throw conflict('sam31_source_preparation_supply_chain_crossed_image')
       }
-      const fourKRunRef = evidenceRefSchema.parse(
-        inputValue.fourKPreparationQualificationRunRef,
-      )
+      const run =
+        assertCanonicalSam31SourcePreparationPrivateQualificationRun(
+          inputValue.fourKPreparationQualificationRun,
+        )
+      const supplyRef = imageSupplyChainRef(supply)
+      if (!sameRef(run.immutableImageRef, build.imageBuildRef)
+        || run.immutableImageDigest !== build.immutableImageDigest
+        || !sameRef(run.imageBuildReceiptRef, buildRef)
+        || !sameRef(run.imageSupplyChainRef, supplyRef)) {
+        throw conflict('sam31_source_preparation_l4_run_crossed_image')
+      }
+      const fourKRunRef =
+        getCanonicalSam31SourcePreparationPrivateQualificationRunRef(
+          run,
+        )
       const qualification =
         createCanonicalSam31EightMinuteSourcePreparationQualification({
           qualificationId: safeId.parse(inputValue.qualificationId),

@@ -13,6 +13,11 @@ const operator = readFileSync(
   'scripts/gcp/prod/56-build-sam31-source-preparation-l4-image.sh',
   'utf8',
 )
+const qualificationOperator = readFileSync(
+  'scripts/gcp/prod/58-qualify-sam31-source-preparation-l4-image.sh',
+  'utf8',
+)
+const serverBuild = readFileSync('vite.server.config.ts', 'utf8')
 
 assert.match(cloudBuild, /gcr\.io\/cloud-builders\/docker@sha256:[a-f0-9]{64}/u)
 assert.match(cloudBuild, /--platform=linux\/amd64/u)
@@ -42,6 +47,14 @@ assert.match(
 assert.match(dockerfile, /sha256sum --check --strict/u)
 assert.match(dockerfile, /stat --format='%s'/u)
 assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=6144/u)
+assert.match(
+  dockerfile,
+  /weeditpro-sam3_1-source-preparation-private-qualification-worker\.js/u,
+)
+assert.match(
+  serverBuild,
+  /run-weeditpro-sam3_1-source-preparation-private-qualification-worker\.ts/u,
+)
 
 assert.match(operator, /git status --porcelain --untracked-files=all/u)
 assert.match(operator, /git merge-base --is-ancestor/u)
@@ -55,6 +68,21 @@ assert.match(operator, /customer_credits_mutated=false/u)
 assert.match(operator, /production_ready=false/u)
 assert.doesNotMatch(operator, /docker run|jobs execute|endpoints predict/u)
 
+assert.match(qualificationOperator,
+  /run-weeditpro-sam31-source-preparation-private-l4-qualification-v1/u)
+assert.match(qualificationOperator, /weeditpro-sam31-source-prep-l4-private-qualification/u)
+assert.match(qualificationOperator, /--gpu-type=nvidia-l4/u)
+assert.match(qualificationOperator, /--max-retries=0/u)
+assert.match(qualificationOperator, /--tasks=1/u)
+assert.match(qualificationOperator, /--parallelism=1/u)
+assert.match(qualificationOperator, /run jobs execute/u)
+assert.match(qualificationOperator, /--wait/u)
+assert.match(qualificationOperator, /minimum_idle_instances=0/u)
+assert.match(qualificationOperator, /customer_credits_mutated=false/u)
+assert.match(qualificationOperator, /production_authority_granted=false/u)
+assert.doesNotMatch(qualificationOperator,
+  /WEEDITPRO_.*(?:SOURCE_PATH|SOURCE_URL|MODEL_PATH|CHECKPOINT_PATH)|--update-env/u)
+
 assert.match(dockerfile, /io\.weeditpro\.runtime\.qualification="candidate-only"/u)
 assert.match(
   dockerfile,
@@ -64,7 +92,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 32,
+  checks: 46,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

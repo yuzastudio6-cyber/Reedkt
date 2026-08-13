@@ -18,6 +18,8 @@ export default defineConfig({
           'server/cli/run-weeditpro-source-analysis-l4-visual-evidence-worker.ts',
         'weeditpro-sam3_1-eight-minute-source-preparation-worker':
           'server/cli/run-weeditpro-sam3_1-eight-minute-source-preparation-worker.ts',
+        'weeditpro-sam3_1-source-preparation-private-qualification-worker':
+          'server/cli/run-weeditpro-sam3_1-source-preparation-private-qualification-worker.ts',
       },
       output: {
         entryFileNames: '[name].js',

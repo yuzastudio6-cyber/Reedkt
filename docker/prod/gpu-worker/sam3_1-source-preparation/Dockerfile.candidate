@@ -113,7 +113,9 @@ COPY . .
 RUN npm run build:server \
   && npm prune --omit=dev \
   && test -f \
-    dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js
+    dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js \
+  && test -f \
+    dist-server/weeditpro-sam3_1-source-preparation-private-qualification-worker.js
 
 FROM node:24.13.1-bookworm-slim@sha256:85a395c77b811fa7f5b5e4aa69cd6eb4c3b80c7f1a8e34704dc0ce061e5b404e
 
@@ -169,6 +171,8 @@ RUN groupadd --gid 65532 weeditpro \
   && test -x /opt/weeditpro/ffmpeg/bin/ffprobe \
   && test -f \
     /app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js \
+  && test -f \
+    /app/dist-server/weeditpro-sam3_1-source-preparation-private-qualification-worker.js \
   && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders 2>&1 \
     | grep -E '[[:space:]]h264_cuvid[[:space:]]' \
   && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -encoders 2>&1 \

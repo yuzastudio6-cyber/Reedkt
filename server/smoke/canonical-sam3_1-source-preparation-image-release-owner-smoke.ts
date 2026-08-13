@@ -8,12 +8,20 @@ import type {
   CanonicalSam31EightMinuteSourcePreparationRelease,
 } from '../services/canonical-sam3_1-eight-minute-source-preparation-admission-owner'
 import {
+  buildCanonicalSam31EightMinuteQualificationSourcePlan,
+  buildCanonicalSam31EightMinuteQualificationSourcePreparation,
+} from '../services/canonical-sam3_1-eight-minute-qualification-source-owner'
+import {
   assertCanonicalSam31SourcePreparationImageBuildReceipt,
   createCanonicalSam31SourcePreparationImageBuildReceipt,
   createCanonicalSam31SourcePreparationImageReleaseOwner,
   createCanonicalSam31SourcePreparationImageSupplyChain,
   imageBuildReceiptRef,
+  imageSupplyChainRef,
 } from '../services/canonical-sam3_1-source-preparation-image-release-owner'
+import {
+  createCanonicalSam31SourcePreparationPrivateQualificationRun,
+} from '../services/canonical-sam3_1-source-preparation-private-qualification-run'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -75,6 +83,65 @@ const supply = createCanonicalSam31SourcePreparationImageSupplyChain({
   slsaProvenanceRef: ref('sam31-source-preparation-slsa', 'slsa'),
   reviewedAt: '2026-08-13T21:40:00.000Z',
 })
+const plan = buildCanonicalSam31EightMinuteQualificationSourcePlan({
+  qualificationSourceId: 'sam31-source-preparation-release-smoke-source',
+  exactSourceObjectRef: {
+    id: 'sam31-source-preparation-release-smoke-source-object',
+    version: 1,
+    contentHash:
+      'sha256:c13eda5816aba31ed60f5dce838d178ed8307f825972eec7aacf9fb29d8c47cb',
+  },
+  exactSourceReadAuthorityRef: ref('sam31-source-exact-reread', 'source-read'),
+  plannedAt: '2026-08-13T21:41:00.000Z',
+})
+const preparation = buildCanonicalSam31EightMinuteQualificationSourcePreparation({
+  preparationId: 'sam31-source-preparation-release-smoke-preparation',
+  plan,
+  disposition: 'ready',
+  preparedChunks: Array.from({ length: 49 }, (_, index) => {
+    const start = index * 239
+    const end = Math.min(11_519, start + 239)
+    const hash = sha(`source-preparation-chunk-${index + 1}`)
+    return {
+      chunkOrdinal: index + 1,
+      canonicalStartFrameInclusive: start,
+      canonicalEndFrameInclusive: end,
+      overlapWithPreviousFrames: index === 0 ? 0 as const : 1 as const,
+      preparedChunkArtifactRef: exactRef(`chunk-${index + 1}`, hash),
+      exactSourceRangeMappingRef: ref(`chunk-map-${index + 1}`,
+        `chunk-map-${index + 1}`),
+      ffprobeEvidenceRef: ref(`chunk-probe-${index + 1}`,
+        `chunk-probe-${index + 1}`),
+      gpuPreparationEvidenceRef: ref(`chunk-gpu-${index + 1}`,
+        `chunk-gpu-${index + 1}`),
+      privateCoordinate: {
+        bucketName: 'reeditpro-production-reeditpro-masks' as const,
+        objectName:
+          `private/canonical-professional-gpu/sam3_1/v1/release-smoke/chunk-${String(index + 1).padStart(3, '0')}.mp4`,
+        generation: String(1_800_000_000_000_001 + index),
+        etagSha256: sha(`chunk-etag-${index + 1}`),
+      },
+      byteLength: 1_000_000 + index,
+      sha256: hash,
+      decodedFrameCount: end - start + 1,
+    }
+  }),
+  preparedAt: '2026-08-13T21:44:00.000Z',
+})
+const qualificationRun =
+  createCanonicalSam31SourcePreparationPrivateQualificationRun({
+    qualificationRunId: 'sam31-source-preparation-exact-4k-run',
+    immutableImageRef: build.imageBuildRef,
+    immutableImageDigest: build.immutableImageDigest,
+    imageBuildReceiptRef: buildRef,
+    imageSupplyChainRef: imageSupplyChainRef(supply),
+    plan,
+    preparation,
+    workerOutputRef: ref('sam31-source-preparation-worker-output',
+      'worker-output'),
+    startedAt: '2026-08-13T21:42:00.000Z',
+    completedAt: '2026-08-13T21:44:00.000Z',
+  })
 
 const qualifications = new Map<
   string,
@@ -126,10 +193,7 @@ const published = await owner.publishPrivateQualification({
   releaseId: 'sam31-source-preparation-l4-release-1',
   imageBuildReceipt: build,
   supplyChain: supply,
-  fourKPreparationQualificationRunRef: ref(
-    'sam31-source-preparation-exact-4k-run',
-    'exact-4k-run',
-  ),
+  fourKPreparationQualificationRun: qualificationRun,
   qualifiedAt: '2026-08-13T21:45:00.000Z',
 })
 
@@ -155,10 +219,7 @@ const replay = await owner.publishPrivateQualification({
   releaseId: published.release.releaseId,
   imageBuildReceipt: build,
   supplyChain: supply,
-  fourKPreparationQualificationRunRef: ref(
-    'sam31-source-preparation-exact-4k-run',
-    'exact-4k-run',
-  ),
+  fourKPreparationQualificationRun: qualificationRun,
   qualifiedAt: published.qualification.qualifiedAt,
 })
 assert.equal(replay.qualificationDisposition, 'identical_replay')
@@ -176,7 +237,7 @@ await assert.rejects(() => owner.publishPrivateQualification({
     ...supply,
     immutableImageDigest: `sha256:${sha('other-image')}`,
   },
-  fourKPreparationQualificationRunRef: ref('run', 'run'),
+  fourKPreparationQualificationRun: qualificationRun,
   qualifiedAt: '2026-08-13T21:45:00.000Z',
 }))
 
@@ -205,5 +266,13 @@ function ref(id: string, content: string) {
     id,
     version: 1 as const,
     contentHash: `sha256:${sha(content)}` as const,
+  }
+}
+
+function exactRef(id: string, hash: string) {
+  return {
+    id,
+    version: 1 as const,
+    contentHash: `sha256:${hash}` as const,
   }
 }

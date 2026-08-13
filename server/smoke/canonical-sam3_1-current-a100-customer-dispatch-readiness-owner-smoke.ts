@@ -4,6 +4,7 @@ import {
   assertCanonicalSam31VertexServingCostSettlementReadiness,
   canonicalSam31VertexServingCostSettlementReadinessRef,
   createCanonicalSam31CurrentA100CustomerDispatchReadinessOwner,
+  isCanonicalSam31CurrentA100CustomerExecutionTarget,
   sealCanonicalSam31VertexServingCostSettlementReadiness,
 } from '../services/canonical-sam3_1-current-a100-customer-dispatch-readiness-owner'
 import type {
@@ -197,10 +198,20 @@ assert.throws(() =>
   }),
 )
 
+assert.equal(isCanonicalSam31CurrentA100CustomerExecutionTarget(
+  'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+), true)
+assert.equal(isCanonicalSam31CurrentA100CustomerExecutionTarget(
+  'google_cloud_vertex_custom_job_a2_ultra',
+), false)
+assert.equal(isCanonicalSam31CurrentA100CustomerExecutionTarget(
+  'google_cloud_run_l4_job',
+), false)
+
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-current-a100-customer-dispatch-readiness-owner',
-  checks: 24,
+  checks: 27,
   callerBooleansAccepted: false,
   allNineDependenciesRereadBeforePublication: true,
   missingDependencyFailsClosed: true,
@@ -210,6 +221,8 @@ console.log(JSON.stringify({
   actualAllocatedReplicasPricedInsteadOfConfiguredMaximum: true,
   billingExportRequiredForFinalCost: true,
   scaleFromZeroAndReturnToZeroRequired: true,
+  historicalCustomJobPerformanceCannotUnlockEndpointDispatch: true,
+  historicalCustomJobQualityCannotUnlockEndpointDispatch: true,
   customerCreditsMutated: false,
   publicBillingAuthorityGranted: false,
   productionAuthorityGranted: false,

@@ -64,6 +64,8 @@ export const CANONICAL_SAM3_1_VERTEX_SERVING_COST_SETTLEMENT_READINESS_VERSION =
   'canonical-sam3_1-vertex-serving-cost-settlement-readiness-v1' as const
 
 const MAXIMUM_REPLICA_COUNT = 16 as const
+const CURRENT_A100_CUSTOMER_EXECUTION_TARGET =
+  'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const
 const MAXIMUM_READINESS_AGE_MILLISECONDS = 15 * 60_000
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -486,10 +488,16 @@ function assertExactA100Lineage(input: {
     && input.thirty.deterministicOutputRunCount === 30
     && input.thirty.measuredPerformanceRunCount === 30
     && input.performance.route.routeId === 'a100_80gb_heavy_primary'
+    && isCanonicalSam31CurrentA100CustomerExecutionTarget(
+      input.performance.route.executionTarget,
+    )
     && input.performance.immutableImageDigest === image
     && input.performance.p95AtOrBelowEightMinutes
     && input.performance.exactCompleteSourceEvidenceRecordCount >= 5
     && input.quality.route.routeId === 'a100_80gb_heavy_primary'
+    && isCanonicalSam31CurrentA100CustomerExecutionTarget(
+      input.quality.route.executionTarget,
+    )
     && input.quality.qualityRole === 'approved_a100_baseline'
     && input.quality.immutableImageDigest === image
     && input.quality.thresholdsPassed
@@ -499,6 +507,12 @@ function assertExactA100Lineage(input: {
     && input.cost.scaleFromZeroAndReturnToZeroObserved
     && input.cost.maximumReplicaCount === MAXIMUM_REPLICA_COUNT
   if (!exact) throw conflict('dependency_lineage_or_gate_mismatch')
+}
+
+export function isCanonicalSam31CurrentA100CustomerExecutionTarget(
+  executionTarget: unknown,
+): executionTarget is typeof CURRENT_A100_CUSTOMER_EXECUTION_TARGET {
+  return executionTarget === CURRENT_A100_CUSTOMER_EXECUTION_TARGET
 }
 
 function endpointCapacityRef(

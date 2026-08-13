@@ -96,6 +96,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-eight-minute-source-preparation-admission-owner-smoke.ts',
   'canonical-sam3_1-eight-minute-source-preparation-worker-entrypoint-smoke.ts',
   'canonical-sam3_1-eight-minute-source-preparation-cloud-run-definition-smoke.ts',
+  'canonical-sam3_1-eight-minute-source-preparation-launch-owner-smoke.ts',
   'canonical-professional-gpu-funded-start-authority-store-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-publisher-smoke.ts',

@@ -389,6 +389,9 @@ export interface CanonicalSam31EightMinuteSourcePreparationAuthorityRepository {
   consumeAdmissionCreateOnly(input: {
     readonly consumption: CanonicalSam31EightMinuteSourcePreparationConsumption
   }): Promise<'created' | 'identical_replay'>
+  rereadConsumption(input: {
+    readonly invocationId: string
+  }): Promise<CanonicalSam31EightMinuteSourcePreparationConsumption | null>
   rereadConsumedAdmission(input: {
     readonly invocationId: string
   }): Promise<Readonly<{
@@ -710,14 +713,18 @@ export function createCanonicalSam31EightMinuteSourcePreparationAuthorityReposit
       value: assertConsumption(consumption),
       identicalReplayAllowed: false,
     }),
+    rereadConsumption: ({ invocationId }) => read({
+      port: input.objectPort,
+      path:
+        `${prefix}/consumptions/${safeId.parse(invocationId)}.json`,
+      kind: 'consumption',
+      parser: assertConsumption,
+    }),
     async rereadConsumedAdmission({ invocationId }) {
       const id = safeId.parse(invocationId)
       const admission = await repository.rereadAdmission({ invocationId: id })
-      const consumption = await read({
-        port: input.objectPort,
-        path: `${prefix}/consumptions/${id}.json`,
-        kind: 'consumption',
-        parser: assertConsumption,
+      const consumption = await repository.rereadConsumption({
+        invocationId: id,
       })
       if (!admission || !consumption) return null
       const release = await repository.rereadRelease({

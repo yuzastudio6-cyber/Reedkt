@@ -45,6 +45,9 @@ const app = createReeditProApiApp(env, {
         trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
           trackAllSam31Runtime
             .trackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+        trackAllSam31L4TaskQaQueuedStartRuntimePort:
+          trackAllSam31Runtime
+            .trackAllSam31L4TaskQaQueuedStartRuntimePort,
         trackAllSam31CaptionEvidenceFinalizationRuntimePort:
           trackAllSam31Runtime
             .trackAllSam31CaptionEvidenceFinalizationRuntimePort,

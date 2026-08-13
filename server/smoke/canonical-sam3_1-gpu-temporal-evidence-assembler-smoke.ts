@@ -19,12 +19,13 @@ import {
   sealCanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3,
 } from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import {
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
   buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
   buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import { sha256AuthorityValue } from '../services/private-edit-authority-store'
 
-type NumericRef = { id: string; version: 1; contentHash: `sha256:${string}` }
+type NumericRef = { id: string; version: number; contentHash: string }
 type DomainRef = { id: string; version: string; contentHash: string }
 type Bundle = {
   measurement: ReturnType<
@@ -201,12 +202,17 @@ await assert.rejects(() => assembler.assembleAndPersist({
     : chunk),
 }))
 const crossedWorker = structuredClone(bundles[20].workerResult)
-crossedWorker.workerResponse.outputSummary
+const crossedWorkerResponse =
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3(
+    crossedWorker.workerResponse,
+  )
+crossedWorkerResponse.outputSummary!
   .crossChunkBoundaryMeasurements[0].currentSubjectEvidenceId =
     'crossed-subject-evidence'
-crossedWorker.workerResponse.responseBindingSha256 = responseDigest(
-  crossedWorker.workerResponse,
+crossedWorkerResponse.responseBindingSha256 = responseDigest(
+  crossedWorkerResponse,
 )
+crossedWorker.workerResponse = crossedWorkerResponse
 crossedWorker.workerResultDigestSha256 = recordDigest(crossedWorker,
   'workerResultDigestSha256')
 const crossedRef = workerResultRef(crossedWorker)

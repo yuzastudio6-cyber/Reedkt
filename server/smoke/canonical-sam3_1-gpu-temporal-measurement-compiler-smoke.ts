@@ -35,7 +35,7 @@ import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 
-type NumericRef = { id: string; version: 1; contentHash: `sha256:${string}` }
+type NumericRef = { id: string; version: number; contentHash: string }
 type DomainRef = { id: string; version: string; contentHash: string }
 
 const route = {
@@ -403,8 +403,8 @@ assert.equal(result.sequences[0].p05MotionCompensatedBinaryIntersectionOverUnion
   0.92)
 assert.equal(result.sequences[0].p95MeanAbsoluteAlphaDelta, 0.05)
 assert.equal(result.sequences[0].identitySwitchCount, 0)
-assert.equal(result.callerMeasurementsReviewOrComparisonClaimsAccepted,
-  undefined)
+assert.equal('callerMeasurementsReviewOrComparisonClaimsAccepted' in result,
+  false)
 assert.deepEqual(await compiler.compileAndPersistMeasurementSet(request), result)
 
 await assert.rejects(() => compiler.compileAndPersistMeasurementSet({

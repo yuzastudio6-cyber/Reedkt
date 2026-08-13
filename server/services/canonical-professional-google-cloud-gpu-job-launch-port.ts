@@ -13,6 +13,10 @@ import {
 import {
   sha256AuthorityValue,
 } from './private-edit-authority-store'
+import {
+  assertCanonicalProfessionalL4CloudRunExecutionAuthority,
+  type CanonicalProfessionalL4CloudRunExecutionAuthorityPort,
+} from './canonical-professional-l4-cloud-run-execution-authority-repository'
 
 export const CANONICAL_PROFESSIONAL_GOOGLE_CLOUD_GPU_RELEASE_VERSION =
   'canonical-professional-google-cloud-gpu-release-v2' as const
@@ -319,6 +323,8 @@ export function createGoogleCloudProfessionalGpuJobLaunchPort(input: {
     CanonicalProfessionalGoogleCloudGpuReleaseReadPort
   readonly privateObjectTransportReadPort?:
     CanonicalProfessionalGoogleCloudGpuPrivateObjectTransportReadPort
+  readonly l4ExecutionAuthorityPort?:
+    CanonicalProfessionalL4CloudRunExecutionAuthorityPort
   readonly auth?: GoogleAuthRequest
   readonly now?: () => string
   readonly requestTimeoutMilliseconds?: number
@@ -387,6 +393,13 @@ export function createGoogleCloudProfessionalGpuJobLaunchPort(input: {
             transport: privateObjectTransport!,
           })
         }
+        if (release.executionTarget === 'google_cloud_run_l4_job'
+          && input.l4ExecutionAuthorityPort?.schemaVersion !==
+            'canonical-professional-l4-cloud-run-execution-authority-port-v1') {
+          throw new Error(
+            'L4 Cloud Run launch requires durable operation authority.',
+          )
+        }
         prepared = prepareCloudLaunch({
           admission,
           target: request.target,
@@ -409,13 +422,62 @@ export function createGoogleCloudProfessionalGpuJobLaunchPort(input: {
           untrusted: response.data,
           prepared,
         })
+        const acceptedAt = now()
+        if (execution.kind === 'l4_cloud_run') {
+          if (admission.routeId !== 'l4_standard_primary'
+            && admission.routeId !== 'l4_heavy_fallback') {
+            throw new Error(
+              'L4 Cloud Run execution cannot use an A100 route identity.',
+            )
+          }
+          const persisted =
+            assertCanonicalProfessionalL4CloudRunExecutionAuthority(
+              await input.l4ExecutionAuthorityPort!
+                .persistAcceptedExecutionCreateOnly({
+                  executionEnvelopeRef: request.executionEnvelopeRef,
+                  admissionRef: evidenceRefSchema.parse({
+                    id: admission.admissionId,
+                    version: 1,
+                    contentHash: `sha256:${admission.admissionHash}`,
+                  }),
+                  admissionConsumptionRef:
+                    request.admissionConsumptionRef,
+                  runtimeReleaseRef: request.target.releaseRef,
+                  cloudJobCreateRequestRef: prepared.createRequestRef,
+                  cloudJobExecutionRef: execution.cloudJobExecutionRef,
+                  toolId: admission.toolId,
+                  operationId: admission.operationId,
+                  routeId: admission.routeId,
+                  runtimeRegion: request.target.runtimeRegion,
+                  immutableImageDigest: request.target.immutableImageDigest,
+                  expectedCloudRunJobResource:
+                    execution.expectedCloudRunJobResource,
+                  providerOperationResource:
+                    execution.providerOperationResource,
+                  acceptedAt,
+                }),
+            )
+          if (!sameRef(
+            persisted.executionEnvelopeRef,
+            request.executionEnvelopeRef,
+          ) || !sameRef(
+            persisted.cloudJobExecutionRef,
+            execution.cloudJobExecutionRef,
+          ) || persisted.providerOperationResource !==
+            execution.providerOperationResource
+          || persisted.expectedCloudRunJobResource !==
+            execution.expectedCloudRunJobResource
+          || persisted.acceptedAt !== acceptedAt) {
+            throw new Error('L4 Cloud Run operation exact reread changed.')
+          }
+        }
         return cloudLaunchResult({
           disposition: 'accepted',
-          cloudJobExecutionRef: execution,
+          cloudJobExecutionRef: execution.cloudJobExecutionRef,
           cloudJobCreateRequestRef: prepared.createRequestRef,
           providerRequestIdDigestSha256:
             prepared.providerRequestIdDigestSha256,
-          observedAt: now(),
+          observedAt: acceptedAt,
           providerInferenceOrSubstantiveWorkKnownExecuted: 'not_executed',
         })
       } catch {
@@ -698,7 +760,7 @@ function createA100BatchBody(input: {
 function parseCreateResponse(input: {
   untrusted: unknown
   prepared: ReturnType<typeof prepareCloudLaunch>
-}): z.infer<typeof evidenceRefSchema> {
+}) {
   assertPlainSerializedData(input.untrusted, 'gpu_cloud_create_response')
   if (input.prepared.kind === 'a100_batch') {
     const parsed = z.object({
@@ -710,10 +772,15 @@ function parseCreateResponse(input: {
     if (parsed.name !== input.prepared.expectedResource) {
       throw new Error('A100 Batch response returned another job.')
     }
-    return opaqueExecutionRef('google-batch-job', {
-      name: parsed.name,
-      uid: parsed.uid,
-      createRequestRef: input.prepared.createRequestRef,
+    return Object.freeze({
+      kind: 'a100_batch' as const,
+      cloudJobExecutionRef: opaqueExecutionRef('google-batch-job', {
+        name: parsed.name,
+        uid: parsed.uid,
+        createRequestRef: input.prepared.createRequestRef,
+      }),
+      providerJobResource: parsed.name,
+      providerJobUid: parsed.uid,
     })
   }
   const parsed = z.object({
@@ -722,10 +789,15 @@ function parseCreateResponse(input: {
     ),
     done: z.boolean().optional(),
   }).passthrough().parse(input.untrusted)
-  return opaqueExecutionRef('google-cloud-run-operation', {
-    name: parsed.name,
-    expectedJobResource: input.prepared.expectedResource,
-    createRequestRef: input.prepared.createRequestRef,
+  return Object.freeze({
+    kind: 'l4_cloud_run' as const,
+    cloudJobExecutionRef: opaqueExecutionRef('google-cloud-run-operation', {
+      name: parsed.name,
+      expectedJobResource: input.prepared.expectedResource,
+      createRequestRef: input.prepared.createRequestRef,
+    }),
+    providerOperationResource: parsed.name,
+    expectedCloudRunJobResource: input.prepared.expectedResource,
   })
 }
 

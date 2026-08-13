@@ -567,8 +567,8 @@ function domainToNumericRef(value: CaptionDomainRef) {
 }
 
 function sameNumericRef(
-  left: z.infer<typeof numericRefSchema>,
-  right: z.infer<typeof numericRefSchema>,
+  left: Readonly<{ id: string; version: number; contentHash: string }>,
+  right: Readonly<{ id: string; version: number; contentHash: string }>,
 ): boolean {
   return left.id === right.id && left.version === right.version
     && left.contentHash === right.contentHash
@@ -580,7 +580,7 @@ function sameDomainRef(left: CaptionDomainRef, right: CaptionDomainRef) {
 
 function sameDomainToNumericRef(
   domain: CaptionDomainRef,
-  numeric: z.infer<typeof numericRefSchema>,
+  numeric: Readonly<{ id: string; version: number; contentHash: string }>,
 ) {
   return domain.id === numeric.id
     && domain.contentHash === numeric.contentHash.slice(7)

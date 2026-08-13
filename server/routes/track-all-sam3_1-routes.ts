@@ -13,6 +13,9 @@ import {
   TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE,
 } from '../../src/types/track-all-sam3_1-l4-task-qa-gpu-start'
 import {
+  TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_QUEUED_START_ROUTE,
+} from '../../src/types/track-all-sam3_1-l4-task-qa-gpu-queued-start'
+import {
   TRACK_ALL_SAM3_1_CAPTION_EVIDENCE_FINALIZATION_ROUTE,
 } from '../../src/types/track-all-sam3_1-caption-evidence-finalization'
 import {
@@ -34,6 +37,9 @@ import {
 import {
   parseTrackAllSam31L4TaskQaGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
+import {
+  parseTrackAllSam31L4TaskQaGpuQueuedStartRequest,
+} from '../services/canonical-track-all-sam3_1-l4-task-qa-queued-start-service'
 import {
   parseTrackAllSam31CaptionEvidenceFinalizationRequest,
 } from '../services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
@@ -202,6 +208,51 @@ export function createTrackAllSam31Routes(): Router {
     }),
   )
   router.post(
+    TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_QUEUED_START_ROUTE,
+    requireAuth,
+    requireStrictInternalServiceAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = parseL4TaskQaQueuedStartRequestBody(request.body)
+      const context = getServiceContext(request)
+      const runtime = context.trackAllSam31L4TaskQaQueuedStartRuntimePort
+      if (!runtime) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The durable Track All L4 task-QA GPU queue is not released.',
+        503,
+        { requiredGate: 'track_all_sam3_1_l4_task_qa_gpu_queue_release' },
+      )
+      if (!context.auth?.userId) throw new ApiError(
+        'AUTH_REQUIRED',
+        'Authenticated user context is required.',
+        401,
+      )
+      const idempotencyKey = getIdempotencyKey(request)
+      if (body.requestId !== idempotencyKey) throw new ApiError(
+        'IDEMPOTENCY_KEY_MISMATCH',
+        'The Track All L4 queued start must use its exact request ID.',
+        409,
+      )
+      const result = await runtime.enqueueApprovedTaskQaWork({
+        authenticatedOwnerUserId: context.auth.userId,
+        workspaceId: getRouteParam(request, 'workspaceId'),
+        idempotencyKey,
+        request: body,
+      })
+      const scheduler = context.professionalGpuCloudTaskScheduler
+      if (!scheduler) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The user-triggered professional GPU Cloud Task scheduler is not released.',
+        503,
+        { requiredGate: 'professional_gpu_cloud_task_scheduler_release' },
+      )
+      const schedule = await scheduler.runOneCycle()
+      sendOk(response, { queueStart: result, schedule }, [
+        'The canonical backend prepared and durably queued one funded L4 verification attempt, reread exact L4 quota and active-count capacity, and ran one user-triggered Cloud Task scheduling cycle. Queue admission is not GPU completion or QA approval.',
+      ], 202)
+    }),
+  )
+  router.post(
     TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE,
     requireAuth,
     requireStrictInternalServiceAuth,
@@ -235,7 +286,7 @@ export function createTrackAllSam31Routes(): Router {
         request: body,
       })
       sendOk(response, { start: result }, [
-        'The canonical backend reread the approved L4 QA work, funding, account-effective price, admitted SAM result, and exact private mask manifest before persisting one fixed task and starting one scale-from-zero L4 job. No mask bytes, path, command, image, GPU route, environment, or price was accepted from the caller.',
+        'This compatibility boundary only prepares and rereads the fixed L4 task under a known-not-executed bridge. New work must use the durable L4 queued-start route; this response does not claim a Cloud Run job, GPU completion, or QA approval.',
       ], 202)
     }),
   )
@@ -361,6 +412,18 @@ function parseL4TaskQaStartRequestBody(value: unknown) {
     throw new ApiError(
       'VALIDATION_FAILED',
       'The Track All SAM 3.1 L4 task-QA start request is invalid.',
+      400,
+    )
+  }
+}
+
+function parseL4TaskQaQueuedStartRequestBody(value: unknown) {
+  try {
+    return parseTrackAllSam31L4TaskQaGpuQueuedStartRequest(value)
+  } catch {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'The Track All SAM 3.1 L4 task-QA queued-start request is invalid.',
       400,
     )
   }

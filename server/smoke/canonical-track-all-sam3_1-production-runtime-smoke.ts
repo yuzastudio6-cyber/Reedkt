@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v21')
+  'canonical-track-all-sam3_1-production-runtime-v22')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -191,6 +191,23 @@ assert.equal(
   false,
 )
 assert.equal(
+  runtime.trackAllSam31L4TaskQaQueuedStartRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-l4-task-qa-queued-start-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaQueuedStartRuntimePort
+    .durablePostgresQueueRequired,
+  true,
+)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaQueuedStartRuntimePort
+    .directGpuInvocationAllowed,
+  false,
+)
+assert.equal(runtime.l4QuotaAndActiveCountCapacityMounted, true)
+assert.equal(runtime.l4FixedTaskPreparedBeforeDurableQueueAdmission, true)
+assert.equal(runtime.directL4GpuInvocationHttpRouteMounted, false)
+assert.equal(
   runtime.trackAllSam31CaptionEvidenceFinalizationRuntimePort.schemaVersion,
   'canonical-track-all-sam3_1-caption-evidence-finalization-runtime-v1',
 )
@@ -272,6 +289,10 @@ assert.match(productionRuntimeSource,
   /createCanonicalA100VertexProviderAllocationCostReceiptStore/u)
 assert.match(productionRuntimeSource,
   /createCanonicalSam31VertexQualificationQuotaReadPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository/u)
+assert.match(productionRuntimeSource,
+  /dispatchableRouteIds:\s*\['a100_80gb_heavy_primary'\]/u)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -296,6 +317,10 @@ assert.match(
 )
 assert.match(
   entrypoint,
+  /trackAllSam31L4TaskQaQueuedStartRuntimePort/u,
+)
+assert.match(
+  entrypoint,
   /trackAllSam31CaptionEvidenceFinalizationRuntimePort/u,
 )
 assert.match(
@@ -306,7 +331,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 89,
+  checks: 98,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -330,6 +355,9 @@ console.log(JSON.stringify({
   captionTrackAllRequiresCanonicalSam31TaskResultReread: true,
   captionTrackAllRequiresTaskLevelIndependentMaskQa: true,
   authenticatedL4TaskQaStartMounted: true,
+  l4DurableQueuedStartMounted: true,
+  l4CloudRunOperationAuthorityMounted: true,
+  l4CloudTaskDispatchFailClosedUntilRouteAwareConsumer: true,
   l4TaskMaterialPersistedAndRereadBeforeCloudLaunch: true,
   captionTrackAllTaskLevelQaOwnerMounted: true,
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,

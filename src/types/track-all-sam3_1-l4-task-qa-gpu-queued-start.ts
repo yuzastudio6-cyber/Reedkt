@@ -7,6 +7,10 @@ export const TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_QUEUED_START_REQUEST_VERSION =
   'track-all-sam3_1-l4-task-qa-gpu-queued-start-request-v1' as const
 export const TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_QUEUED_START_RESULT_VERSION =
   'track-all-sam3_1-l4-task-qa-gpu-queued-start-result-v1' as const
+export const TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_QUEUED_START_ROUTE_ID =
+  'trackAll.sam31.l4TaskQa.approvedGpuQueue.enqueue' as const
+export const TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_QUEUED_START_ROUTE =
+  '/internal/v1/workspaces/:workspaceId/track-all/sam3_1/l4-task-qa/gpu-queue/start' as const
 
 /**
  * Identifier-only admission for one independently approved L4 verification

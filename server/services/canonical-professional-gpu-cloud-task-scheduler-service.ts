@@ -150,10 +150,22 @@ export function createCanonicalProfessionalGpuCloudTaskScheduler(input: {
   readonly capacityReadPort:
     CanonicalProfessionalGpuFairQueueCapacityReadPort
   readonly dispatcherInstanceId: string
+  readonly dispatchableRouteIds?: readonly CanonicalProfessionalGpuFairQueueCapacity[
+    'routeId'
+  ][]
   readonly now?: () => string
 }): CanonicalProfessionalGpuCloudTaskScheduler {
   requireProductionDurability(input)
   const dispatcherInstanceId = safeId.parse(input.dispatcherInstanceId)
+  const dispatchableRouteIds = new Set(z.array(z.enum([
+    'a100_80gb_heavy_primary',
+    'l4_heavy_fallback',
+    'l4_standard_primary',
+  ])).min(1).max(3).parse(input.dispatchableRouteIds ?? [
+    'a100_80gb_heavy_primary',
+    'l4_heavy_fallback',
+    'l4_standard_primary',
+  ]))
   const now = input.now ?? (() => new Date().toISOString())
   return Object.freeze({
     schemaVersion: CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SCHEDULER_VERSION,
@@ -188,13 +200,20 @@ export function createCanonicalProfessionalGpuCloudTaskScheduler(input: {
         || recovery.disposition !== 'recovery_completed') {
         throw new TypeError('GPU scheduler recovery lineage changed.')
       }
-      const capacities = z.array(z.unknown()).min(1).max(3).parse(
+      const observedCapacities = z.array(z.unknown()).min(1).max(3).parse(
         await input.capacityReadPort.rereadCurrent({
           queueId: 'weeditpro-professional-gpu-production-v1',
           runtimeRegion: 'us-central1',
           observedAt: startedAt,
         }),
       ).map(assertCanonicalProfessionalGpuFairQueueCapacity)
+      const capacities = observedCapacities.filter((capacity) =>
+        dispatchableRouteIds.has(capacity.routeId))
+      if (capacities.length === 0) {
+        throw new TypeError(
+          'GPU scheduler has no capacity for a mounted task consumer route.',
+        )
+      }
       const capacityRefs = capacities.map((capacity) =>
         capacity.capacityObservationRef)
       const scheduleId = `gpu-schedule-${sha256AuthorityValue({

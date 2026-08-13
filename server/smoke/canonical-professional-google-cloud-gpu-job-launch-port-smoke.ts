@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 
 import {
   canonicalProfessionalToolGpuDispatchAdmissionSchema,
@@ -11,11 +12,38 @@ import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import {
+  createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository,
+} from '../services/canonical-professional-l4-cloud-run-execution-authority-repository'
+import {
   canonicalSam31GpuFixedTaskContractRef,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
 import {
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
+
+const l4ExecutionObjects = new Map<string, Buffer>()
+const l4ExecutionAuthorityPort =
+  createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository({
+    objectPort: {
+      async createOnly({ objectPath, body, contentSha256 }) {
+        assert.equal(
+          createHash('sha256').update(body).digest('hex'),
+          contentSha256,
+        )
+        const existing = l4ExecutionObjects.get(objectPath)
+        if (existing) {
+          assert.deepEqual(existing, body)
+          return 'already_exists' as const
+        }
+        l4ExecutionObjects.set(objectPath, Buffer.from(body))
+        return 'created' as const
+      },
+      async readExact(objectPath) {
+        const body = l4ExecutionObjects.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+  })
 
 const a100ImageRaw = sha('sam31-a100-image')
 const a100ImageRef = evidenceRef('sam31-a100-private-image', a100ImageRaw)
@@ -198,6 +226,7 @@ const sam31L4Port = createGoogleCloudProfessionalGpuJobLaunchPort({
       return structuredClone(sam31L4PrivateTransport)
     },
   },
+  l4ExecutionAuthorityPort,
   auth: {
     async request(input) {
       sam31L4Request = structuredClone(input as Record<string, unknown>)
@@ -274,6 +303,7 @@ const l4Port = createGoogleCloudProfessionalGpuJobLaunchPort({
       return structuredClone(l4Release)
     },
   },
+  l4ExecutionAuthorityPort,
   auth: {
     async request(input) {
       l4Request = structuredClone(input as Record<string, unknown>)
@@ -308,6 +338,32 @@ assert.equal(l4Serialized.includes('REEDITPRO_GPU_INVOCATION_ID'), true)
 assert.equal(l4Serialized.includes('WEEDITPRO_GPU_ACCELERATOR_CLASS'), true)
 assert.equal(l4Serialized.includes('nvidia_l4'), true)
 assert.equal(l4Serialized.includes('workspace-1'), false)
+
+let missingL4AuthorityProviderCalls = 0
+const missingL4AuthorityPort = createGoogleCloudProfessionalGpuJobLaunchPort({
+  releaseReadPort: {
+    async rereadPrivateRelease() {
+      return structuredClone(l4Release)
+    },
+  },
+  auth: {
+    async request() {
+      missingL4AuthorityProviderCalls += 1
+      throw new Error('L4 without durable operation authority must not start.')
+    },
+  },
+  now: () => '2026-08-02T17:01:15.000Z',
+})
+const missingL4AuthorityResult =
+  await missingL4AuthorityPort.startOneShotJob({
+    admission: l4Admission,
+    target: l4Target,
+    admissionConsumptionRef: ref('ffmpeg-l4-no-authority-consumption'),
+    executionEnvelopeRef: ref('ffmpeg-l4-no-authority-envelope'),
+  })
+assert.equal(missingL4AuthorityResult.disposition,
+  'rejected_before_creation')
+assert.equal(missingL4AuthorityProviderCalls, 0)
 
 const maskQaImageRaw = sha('track-all-mask-qa-l4-image')
 const maskQaImageRef = evidenceRef(
@@ -352,6 +408,7 @@ const maskQaPort = createGoogleCloudProfessionalGpuJobLaunchPort({
       return structuredClone(maskQaPrivateTransport)
     },
   },
+  l4ExecutionAuthorityPort,
   auth: {
     async request(input) {
       maskQaRequest = structuredClone(input as Record<string, unknown>)
@@ -547,7 +604,7 @@ assert.equal(hostileResponseResult.disposition, 'outcome_unknown')
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-google-cloud-gpu-job-launch-port',
-  checks: 72,
+  checks: 74,
   a100BatchRequestAccepted: true,
   sam31L4FallbackPreconfiguredPrivateMountAccepted: true,
   l4CloudRunRequestAccepted: true,
@@ -559,6 +616,7 @@ console.log(JSON.stringify({
   mismatchedReleaseProviderCalls: rejectedRequestCount,
   missingPrivateTransportProviderCalls: missingTransportProviderCalls,
   missingMaskQaTransportProviderCalls,
+  missingL4AuthorityProviderCalls,
   cpuOnlySubstantiveExecutionAllowed: false,
   liveCloudJobCreated: false,
   productionAuthorityGranted: false,

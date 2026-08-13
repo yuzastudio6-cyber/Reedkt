@@ -385,6 +385,35 @@ export interface CanonicalSam31TemporalMetricSeriesSetRepository {
   }): Promise<CanonicalSam31TemporalMetricSeriesSet | null>
 }
 
+type PersistBoundarySetInput = Parameters<
+  CanonicalSam31CrossChunkBoundaryMeasurementSetRepository[
+    'persistBoundaryMeasurementSetCreateOnly'
+  ]
+>[0]
+type RereadBoundarySetInput = Parameters<
+  CanonicalSam31CrossChunkBoundaryMeasurementSetRepository[
+    'rereadBoundaryMeasurementSet'
+  ]
+>[0]
+type PersistMetricSeriesSetInput = Parameters<
+  CanonicalSam31TemporalMetricSeriesSetRepository[
+    'persistMetricSeriesSetCreateOnly'
+  ]
+>[0]
+type RereadMetricSeriesSetInput = Parameters<
+  CanonicalSam31TemporalMetricSeriesSetRepository[
+    'rereadMetricSeriesSet'
+  ]
+>[0]
+type PersistManifestInput = Parameters<
+  CanonicalSam31TemporalCoverageManifestRepository[
+    'persistManifestCreateOnly'
+  ]
+>[0]
+type RereadManifestInput = Parameters<
+  CanonicalSam31TemporalCoverageManifestRepository['rereadManifest']
+>[0]
+
 export function createCanonicalSam31CrossChunkBoundaryMeasurementSetRepository(
   input: {
     readonly objectPort: CanonicalCreateOnlyJsonObjectPort
@@ -394,7 +423,9 @@ export function createCanonicalSam31CrossChunkBoundaryMeasurementSetRepository(
   assertObjectPort(input.objectPort)
   const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
   return Object.freeze({
-    async persistBoundaryMeasurementSetCreateOnly({ boundarySet }) {
+    async persistBoundaryMeasurementSetCreateOnly({
+      boundarySet,
+    }: PersistBoundarySetInput) {
       const parsed =
         assertCanonicalSam31CrossChunkBoundaryMeasurementSet(boundarySet)
       const boundarySetRef =
@@ -403,7 +434,9 @@ export function createCanonicalSam31CrossChunkBoundaryMeasurementSetRepository(
         boundarySetPath(prefix, boundarySetRef), parsed)
       return boundarySetRef
     },
-    async rereadBoundaryMeasurementSet({ boundarySetRef }) {
+    async rereadBoundaryMeasurementSet({
+      boundarySetRef,
+    }: RereadBoundarySetInput) {
       const parsedRef = refSchema.parse(boundarySetRef)
       const value = await readExact(input.objectPort,
         boundarySetPath(prefix, parsedRef),
@@ -424,7 +457,9 @@ export function createCanonicalSam31TemporalMetricSeriesSetRepository(input: {
   assertObjectPort(input.objectPort)
   const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
   return Object.freeze({
-    async persistMetricSeriesSetCreateOnly({ metricSeriesSet }) {
+    async persistMetricSeriesSetCreateOnly({
+      metricSeriesSet,
+    }: PersistMetricSeriesSetInput) {
       const parsed = assertCanonicalSam31TemporalMetricSeriesSet(
         metricSeriesSet,
       )
@@ -433,7 +468,9 @@ export function createCanonicalSam31TemporalMetricSeriesSetRepository(input: {
         metricSeriesSetPath(prefix, metricSeriesSetRef), parsed)
       return metricSeriesSetRef
     },
-    async rereadMetricSeriesSet({ metricSeriesSetRef }) {
+    async rereadMetricSeriesSet({
+      metricSeriesSetRef,
+    }: RereadMetricSeriesSetInput) {
       const parsedRef = refSchema.parse(metricSeriesSetRef)
       const value = await readExact(input.objectPort,
         metricSeriesSetPath(prefix, parsedRef),
@@ -546,14 +583,14 @@ export function createCanonicalSam31TemporalCoverageManifestRepository(input: {
   assertObjectPort(input.objectPort)
   const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
   return Object.freeze({
-    async persistManifestCreateOnly({ manifest }) {
+    async persistManifestCreateOnly({ manifest }: PersistManifestInput) {
       const parsed = assertCanonicalSam31TemporalCoverageManifest(manifest)
       const manifestRef = canonicalSam31TemporalCoverageManifestRef(parsed)
       await persistExact(input.objectPort,
         manifestPath(prefix, manifestRef), parsed)
       return manifestRef
     },
-    async rereadManifest({ manifestRef }) {
+    async rereadManifest({ manifestRef }: RereadManifestInput) {
       const parsedRef = refSchema.parse(manifestRef)
       const value = await readExact(input.objectPort,
         manifestPath(prefix, parsedRef),

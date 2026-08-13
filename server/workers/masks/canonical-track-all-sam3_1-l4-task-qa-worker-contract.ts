@@ -252,9 +252,9 @@ const requestV2WithoutHashSchema = requestV1BaseSchema.omit({
   sam31InvocationId: safeId,
 }).strict()
 
-function requestV2ScopeIsExact(request: z.infer<
+function requestV2ScopeIsExact(request: Omit<z.infer<
   typeof requestV2WithoutHashSchema
->): boolean {
+>, 'schemaVersion'>): boolean {
   const frameCount = request.maskFrameRange.endFrameExclusive
     - request.maskFrameRange.startFrame
   const subjectKeys = request.subjects.map((subject) =>

@@ -444,6 +444,7 @@
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
     "smoke:track-all-sam3_1-queued-gpu-start": "tsx server/smoke/canonical-track-all-sam3_1-queued-gpu-start-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-queued-start": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-queued-start-smoke.ts",
+    "smoke:professional-l4-cloud-run-execution-authority": "tsx server/smoke/canonical-professional-l4-cloud-run-execution-authority-repository-smoke.ts",
     "smoke:professional-gpu-cloud-task-scheduler": "tsx server/smoke/canonical-professional-gpu-cloud-task-scheduler-smoke.ts",
     "smoke:professional-gpu-queue-runtime-read": "tsx server/smoke/canonical-professional-gpu-queue-runtime-read-smoke.ts",
     "smoke:track-all-sam3_1-production-runtime": "tsx server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",

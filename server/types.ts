@@ -77,6 +77,9 @@ import type {
   CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 import type {
+  CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-l4-task-qa-queued-start-service'
+import type {
   CanonicalProfessionalGpuCloudTaskScheduler,
 } from './services/canonical-professional-gpu-cloud-task-scheduler-service'
 import type {
@@ -186,6 +189,8 @@ export interface RuntimeState {
     CanonicalProfessionalGpuCloudTaskConsumer
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+  trackAllSam31L4TaskQaQueuedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
@@ -268,6 +273,8 @@ export interface ServiceContext {
     CanonicalProfessionalGpuCloudTaskConsumer
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+  trackAllSam31L4TaskQaQueuedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:

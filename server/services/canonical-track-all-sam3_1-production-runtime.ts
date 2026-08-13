@@ -39,6 +39,9 @@ import {
 import {
   createGoogleCloudProfessionalGpuJobLaunchPort,
 } from './canonical-professional-google-cloud-gpu-job-launch-port'
+import {
+  createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository,
+} from './canonical-professional-l4-cloud-run-execution-authority-repository'
 import type {
   CanonicalProfessionalGpuCloudJobLaunchPort,
 } from './canonical-professional-gpu-job-lifecycle-service'
@@ -375,6 +378,10 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
           l4QuotaReadPort:
             createCanonicalSam31GcpL4CompleteSourceCapacityReadPort(),
         }),
+      // The current Cloud Task consumer executes the dedicated A100 serving
+      // route only. L4 entries stay durably queued until the asynchronous
+      // Cloud Run launch/terminal consumer is mounted.
+      dispatchableRouteIds: ['a100_80gb_heavy_primary'],
       dispatcherInstanceId: env.workerInstanceId,
     })
   const controlPlaneObjectPort =
@@ -389,6 +396,10 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     })
   const skillQualificationRegistry =
     createCanonicalSkillQualificationRegistry({
+      objectPort: controlPlaneObjectPort,
+    })
+  const l4CloudRunExecutionAuthorityRepository =
+    createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository({
       objectPort: controlPlaneObjectPort,
     })
 
@@ -560,6 +571,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
   const l4CloudLaunchPort = createGoogleCloudProfessionalGpuJobLaunchPort({
     releaseReadPort: runtimeConfigurationRepository,
     privateObjectTransportReadPort: runtimeConfigurationRepository,
+    l4ExecutionAuthorityPort: l4CloudRunExecutionAuthorityRepository,
   })
   const vertexA100DurableStore =
     createCanonicalA100VertexCustomJobDurableStore({
@@ -643,7 +655,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
   })
   const l4QueuePreparationOnlyLaunchPort:
     CanonicalProfessionalGpuCloudJobLaunchPort = Object.freeze({
-      async startOneShotJob(request) {
+      async startOneShotJob(request: Parameters<
+        CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
+      >[0]) {
         if (request.admission.routeId !== 'l4_standard_primary'
           || request.target.executionTarget !== 'google_cloud_run_l4_job'
           || request.target.accelerator !== 'nvidia_l4') {

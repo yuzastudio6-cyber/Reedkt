@@ -102,6 +102,8 @@ export function getServiceContext(request: Request): ServiceContext {
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       runtimeRequest.runtime
         .trackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+    trackAllSam31L4TaskQaQueuedStartRuntimePort:
+      runtimeRequest.runtime.trackAllSam31L4TaskQaQueuedStartRuntimePort,
     trackAllSam31CaptionEvidenceFinalizationRuntimePort:
       runtimeRequest.runtime
         .trackAllSam31CaptionEvidenceFinalizationRuntimePort,

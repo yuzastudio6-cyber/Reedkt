@@ -55,7 +55,7 @@ run_gcloud run jobs deploy "${JOB}" \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
-  --task-timeout=7200s \
+  --task-timeout=3600s \
   --add-volume="name=weeditpro-sam31-source-prep-qualification-scratch,type=in-memory,size-limit=24Gi" \
   --add-volume-mount="volume=weeditpro-sam31-source-prep-qualification-scratch,mount-path=/mnt/weeditpro-private/l4-visual-evidence" \
   --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,GCS_CONTROL_PLANE_STATE_BUCKET=${CONTROL_PLANE_BUCKET},WEEDITPRO_SAM31_SOURCE_PREPARATION_QUALIFICATION_RUN_ID=${RUN_ID},WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_DIGEST=${DIGEST},WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_BUILD_RECEIPT_ID=${WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_BUILD_RECEIPT_ID},WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_BUILD_RECEIPT_HASH=${BUILD_HASH},WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_SUPPLY_CHAIN_ID=${WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_SUPPLY_CHAIN_ID},WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_SUPPLY_CHAIN_HASH=${SUPPLY_HASH}" \

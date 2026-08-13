@@ -85,6 +85,8 @@ assert.match(qualificationOperator,
 assert.match(qualificationOperator, /weeditpro-sam31-source-prep-l4-private-qualification/u)
 assert.match(qualificationOperator, /--gpu-type=nvidia-l4/u)
 assert.match(qualificationOperator, /--max-retries=0/u)
+assert.match(qualificationOperator, /--task-timeout=3600s/u)
+assert.doesNotMatch(qualificationOperator, /--task-timeout=7200s/u)
 assert.match(qualificationOperator, /--tasks=1/u)
 assert.match(qualificationOperator, /--parallelism=1/u)
 assert.match(qualificationOperator, /run jobs execute/u)
@@ -104,7 +106,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 53,
+  checks: 55,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

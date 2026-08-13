@@ -17,14 +17,14 @@ ENV SOURCE_DATE_EPOCH=0 \
   LC_ALL=C
 WORKDIR /build
 
-ADD --checksum=sha256:5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121 \
-  https://ffmpeg.org/releases/ffmpeg-8.0.3.tar.gz \
+# The pinned classic Cloud Build Docker frontend does not parse ADD
+# --checksum. Each downloaded source is therefore verified immediately below
+# by both an exact SHA-256 and an exact byte length before extraction.
+ADD https://ffmpeg.org/releases/ffmpeg-8.0.3.tar.gz \
   /build/ffmpeg-8.0.3.tar.gz
-ADD --checksum=sha256:67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829 \
-  https://distfiles.ariadne.space/pkgconf/pkgconf-3.0.4.tar.gz \
+ADD https://distfiles.ariadne.space/pkgconf/pkgconf-3.0.4.tar.gz \
   /build/pkgconf-3.0.4.tar.gz
-ADD --checksum=sha256:dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563 \
-  https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/n12.2.72.0.tar.gz \
+ADD https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/n12.2.72.0.tar.gz \
   /build/nv-codec-headers-n12.2.72.0.tar.gz
 
 RUN test "$(uname -m)" = x86_64 \

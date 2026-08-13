@@ -26,6 +26,21 @@ assert.match(cloudBuild, /reeditpro-image-builder-sa@reeditpro/u)
 assert.match(cloudBuild, /source-preparation-l4/u)
 assert.doesNotMatch(cloudBuild, /secret|availableSecrets|sam3_1\.pt/u)
 
+assert.match(
+  dockerfile,
+  /5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121/u,
+)
+assert.match(
+  dockerfile,
+  /67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829/u,
+)
+assert.match(
+  dockerfile,
+  /dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563/u,
+)
+assert.match(dockerfile, /sha256sum --check --strict/u)
+assert.match(dockerfile, /stat --format='%s'/u)
+
 assert.match(operator, /git status --porcelain --untracked-files=all/u)
 assert.match(operator, /git merge-base --is-ancestor/u)
 assert.match(operator, /git archive --format=tar\.gz/u)
@@ -47,7 +62,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 25,
+  checks: 30,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

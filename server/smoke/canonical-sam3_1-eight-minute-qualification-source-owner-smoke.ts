@@ -42,6 +42,11 @@ assert.equal(plan.preparationRouteId, 'l4_standard_primary')
 assert.equal(plan.preparationAccelerator, 'nvidia_l4')
 assert.equal(plan.substantiveCpuMediaProcessingAllowed, false)
 assert.equal(plan.sourceResolutionReductionAllowed, false)
+assert.equal(plan.sourcePixelExactnessClaimAllowed, false)
+assert.equal(plan.losslessEncodingClaimAllowed, false)
+assert.equal(plan.fullSourceResolutionPreserved, true)
+assert.equal(plan.sourceAudioRemovedForSamPreparation, true)
+assert.equal(plan.exactSourceCoordinate.generation, '1779933335766660')
 assert.equal(plan.privatePerformanceQualificationOnly, true)
 assert.equal(plan.representativeContentDiversityClaimAllowed, false)
 assert.equal(plan.temporalQualityQualificationClaimAllowed, false)
@@ -83,6 +88,13 @@ const chunks = Array.from({ length: 49 }, (_, index) => {
       `sam31-eight-minute-chunk-l4-gpu-${index + 1}`,
       digest(`sam31-eight-minute-chunk-l4-gpu-${index + 1}`),
     ),
+    privateCoordinate: {
+      bucketName: 'reeditpro-production-reeditpro-masks' as const,
+      objectName:
+        `private/canonical-professional-gpu/sam3_1/v1/qualification-source/chunk-${String(index + 1).padStart(3, '0')}.mp4`,
+      generation: String(1_800_000_000_000_001 + index),
+      etagSha256: digest(`sam31-eight-minute-chunk-etag-${index + 1}`),
+    },
     byteLength: 1_000_000 + index,
     sha256: sha,
     decodedFrameCount: end - start + 1,
@@ -96,6 +108,9 @@ const ready = buildCanonicalSam31EightMinuteQualificationSourcePreparation({
   preparedAt: '2026-08-13T16:02:00.000Z',
 })
 assert.equal(ready.disposition, 'ready')
+assert.equal(ready.sourcePixelExactnessClaimed, false)
+assert.equal(ready.losslessEncodingClaimed, false)
+assert.equal(ready.privateStorageCoordinatesExposedToCaller, false)
 assert.equal(ready.preparedChunks[48]?.decodedFrameCount, 48)
 assert.deepEqual(
   parseCanonicalSam31EightMinuteQualificationSourcePreparation(ready),
@@ -178,7 +193,7 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-qualification-source-owner',
-  checks: 43,
+  checks: 52,
   exactDurationMilliseconds: plan.sourceDurationMilliseconds,
   exactFrameCount: plan.sourceFrameCount,
   exactChunkCount: ready.exactChunkCount,

@@ -52,6 +52,27 @@ const refSchema = z.object({
 }).strict()
 type EvidenceRef = z.infer<typeof refSchema>
 
+const exactSourceCoordinateSchema = z.object({
+  bucketName: z.literal('reeditpro-staging-reeditpro-source-media'),
+  objectName: z.literal(
+    'activation-real-video/phase28/phase28-20260528T01552/source-video.mov',
+  ),
+  generation: z.literal('1779933335766660'),
+  etag: z.literal('CISNz7Hw2pQDEAE='),
+  crc32c: z.literal('NalDEA=='),
+  md5Hash: z.literal('Nw67Ab2dYskL+EvoUyDrLg=='),
+  contentType: z.literal('video/quicktime'),
+}).strict()
+
+const privateChunkCoordinateSchema = z.object({
+  bucketName: z.literal('reeditpro-production-reeditpro-masks'),
+  objectName: z.string().trim().min(1).max(1_024)
+    .regex(/^private\/canonical-professional-gpu\/sam3_1\/v1\/[A-Za-z0-9._/-]+\.mp4$/u)
+    .refine((value) => !value.includes('..') && !value.includes('//')),
+  generation: z.string().regex(/^[1-9][0-9]{0,30}$/u),
+  etagSha256: sha256,
+}).strict()
+
 const sourceSliceSchema = z.object({
   sequenceOrdinal: z.number().int().min(1).max(REPETITION_COUNT),
   canonicalStartFrameInclusive: z.number().int().nonnegative().safe(),
@@ -72,6 +93,7 @@ const chunkSchema = z.object({
   exactSourceRangeMappingRef: refSchema,
   ffprobeEvidenceRef: refSchema,
   gpuPreparationEvidenceRef: refSchema,
+  privateCoordinate: privateChunkCoordinateSchema,
   byteLength: z.number().int().positive().safe(),
   sha256,
   decodedFrameCount: z.number().int().min(1).max(CHUNK_FRAME_COUNT).safe(),
@@ -89,6 +111,7 @@ const planWithoutHashSchema = z.object({
   exactEightMinuteSourceRef: refSchema,
   exactSourceObjectRef: refSchema,
   exactSourceReadAuthorityRef: refSchema,
+  exactSourceCoordinate: exactSourceCoordinateSchema,
   sourceObjectSha256: z.literal(
     'c13eda5816aba31ed60f5dce838d178ed8307f825972eec7aacf9fb29d8c47cb',
   ),
@@ -121,6 +144,12 @@ const planWithoutHashSchema = z.object({
   fixedServerOwnedNvdecNvencProfileRequired: z.literal(true),
   substantiveCpuMediaProcessingAllowed: z.literal(false),
   sourceResolutionReductionAllowed: z.literal(false),
+  preparedMediaRole: z.literal('sam3_1_segmentation_video_only'),
+  sourceAudioRemovedForSamPreparation: z.literal(true),
+  fullSourceResolutionPreserved: z.literal(true),
+  hardwareEncodedQualificationProxy: z.literal(true),
+  sourcePixelExactnessClaimAllowed: z.literal(false),
+  losslessEncodingClaimAllowed: z.literal(false),
   callerPathUrlBytesCommandOrEnvironmentAccepted: z.literal(false),
   privatePerformanceQualificationOnly: z.literal(true),
   representativeContentDiversityClaimAllowed: z.literal(false),
@@ -179,6 +208,13 @@ const preparationWithoutHashSchema = z.object({
   deterministicOneFrameOverlapVerified: z.boolean(),
   substantiveCpuMediaProcessingUsed: z.literal(false),
   sourceResolutionReductionUsed: z.literal(false),
+  preparedMediaRole: z.literal('sam3_1_segmentation_video_only'),
+  sourceAudioRemovedForSamPreparation: z.literal(true),
+  fullSourceResolutionPreserved: z.literal(true),
+  hardwareEncodedQualificationProxy: z.literal(true),
+  sourcePixelExactnessClaimed: z.literal(false),
+  losslessEncodingClaimed: z.literal(false),
+  privateStorageCoordinatesExposedToCaller: z.literal(false),
   callerPathUrlBytesCommandOrEnvironmentAccepted: z.literal(false),
   customerCreditsMutated: z.literal(false),
   qaApproved: z.literal(false),
@@ -272,6 +308,16 @@ export function buildCanonicalSam31EightMinuteQualificationSourcePlan(input: {
     exactEightMinuteSourceRef,
     exactSourceObjectRef,
     exactSourceReadAuthorityRef,
+    exactSourceCoordinate: {
+      bucketName: 'reeditpro-staging-reeditpro-source-media',
+      objectName:
+        'activation-real-video/phase28/phase28-20260528T01552/source-video.mov',
+      generation: '1779933335766660',
+      etag: 'CISNz7Hw2pQDEAE=',
+      crc32c: 'NalDEA==',
+      md5Hash: 'Nw67Ab2dYskL+EvoUyDrLg==',
+      contentType: 'video/quicktime',
+    },
     sourceObjectSha256:
       'c13eda5816aba31ed60f5dce838d178ed8307f825972eec7aacf9fb29d8c47cb',
     sourceObjectByteLength: 90_971_927,
@@ -302,6 +348,12 @@ export function buildCanonicalSam31EightMinuteQualificationSourcePlan(input: {
     fixedServerOwnedNvdecNvencProfileRequired: true,
     substantiveCpuMediaProcessingAllowed: false,
     sourceResolutionReductionAllowed: false,
+    preparedMediaRole: 'sam3_1_segmentation_video_only',
+    sourceAudioRemovedForSamPreparation: true,
+    fullSourceResolutionPreserved: true,
+    hardwareEncodedQualificationProxy: true,
+    sourcePixelExactnessClaimAllowed: false,
+    losslessEncodingClaimAllowed: false,
     callerPathUrlBytesCommandOrEnvironmentAccepted: false,
     privatePerformanceQualificationOnly: true,
     representativeContentDiversityClaimAllowed: false,
@@ -374,6 +426,13 @@ export function buildCanonicalSam31EightMinuteQualificationSourcePreparation(
     deterministicOneFrameOverlapVerified: ready,
     substantiveCpuMediaProcessingUsed: false,
     sourceResolutionReductionUsed: false,
+    preparedMediaRole: 'sam3_1_segmentation_video_only',
+    sourceAudioRemovedForSamPreparation: true,
+    fullSourceResolutionPreserved: true,
+    hardwareEncodedQualificationProxy: true,
+    sourcePixelExactnessClaimed: false,
+    losslessEncodingClaimed: false,
+    privateStorageCoordinatesExposedToCaller: false,
     callerPathUrlBytesCommandOrEnvironmentAccepted: false,
     customerCreditsMutated: false,
     qaApproved: false,
@@ -423,7 +482,7 @@ export function createCanonicalSam31EightMinuteQualificationSourceRepository(
     throw new TypeError('Eight-minute source repository port is unavailable.')
   }
   const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
-  return Object.freeze({
+  const repository: CanonicalSam31EightMinuteQualificationSourceRepository = {
     schemaVersion:
       'canonical-sam3_1-eight-minute-qualification-source-repository-v1' as const,
     persistPlanCreateOnly: ({ plan }) => persistExact({
@@ -455,7 +514,8 @@ export function createCanonicalSam31EightMinuteQualificationSourceRepository(
         parser: parseCanonicalSam31EightMinuteQualificationSourcePreparation,
       })
     },
-  })
+  }
+  return Object.freeze(repository)
 }
 
 function exactSequence(

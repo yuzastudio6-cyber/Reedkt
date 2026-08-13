@@ -68,7 +68,8 @@ EXPECTED_ENTRYPOINT="${ENTRYPOINT}" EXPECTED_RUN_ID="${RUN_ID}" \
 EXPECTED_BUILD_HASH="${BUILD_HASH}" EXPECTED_SUPPLY_HASH="${SUPPLY_HASH}" \
 node <<'NODE'
 const job = JSON.parse(process.env.DESCRIPTION || '{}')
-const task = job.spec?.template?.spec?.template?.spec
+const execution = job.spec?.template?.spec
+const task = execution?.template?.spec
 const container = task?.containers?.[0]
 const env = Object.fromEntries((container?.env || []).map((item) => [
   item.name,
@@ -81,8 +82,8 @@ const exact = container?.image === process.env.EXPECTED_IMAGE
   ])
   && task?.nodeSelector?.['run.googleapis.com/accelerator'] === 'nvidia-l4'
   && Number(task?.maxRetries) === 0
-  && Number(task?.taskCount) === 1
-  && Number(task?.parallelism) === 1
+  && Number(execution?.taskCount) === 1
+  && Number(execution?.parallelism) === 1
   && env.WEEDITPRO_SAM31_SOURCE_PREPARATION_QUALIFICATION_RUN_ID ===
     process.env.EXPECTED_RUN_ID
   && env.WEEDITPRO_SAM31_SOURCE_PREPARATION_IMAGE_BUILD_RECEIPT_HASH ===

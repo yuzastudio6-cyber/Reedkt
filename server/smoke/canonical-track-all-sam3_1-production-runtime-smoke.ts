@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v28')
+  'canonical-track-all-sam3_1-production-runtime-v29')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -90,6 +90,21 @@ assert.equal(
     .currentServingAdmissionIsNotHistoricalCloudJobAdmission,
   true,
 )
+assert.equal(
+  runtime.sam31VertexServingReconciledWindowCostRepository.schemaVersion,
+  'canonical-sam3_1-vertex-serving-reconciled-window-cost-repository-v1',
+)
+assert.equal(
+  runtime.sam31CompleteSourceServingReleaseRepository.schemaVersion,
+  'canonical-sam3_1-complete-source-serving-release-repository-v1',
+)
+assert.equal(
+  runtime.sam31CompleteSourceServingReleaseOwner.schemaVersion,
+  'canonical-sam3_1-complete-source-serving-release-owner-v1',
+)
+assert.equal(runtime.completeSourceCostSettlementAndScaleZeroReleaseMounted,
+  true)
+assert.equal(runtime.perChunkResultMaySelfClaimServingWindowScaleZero, false)
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
 assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
@@ -387,7 +402,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 119,
+  checks: 124,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -400,6 +415,10 @@ console.log(JSON.stringify({
     runtime.completeSourceSequentialChunkCoordinatorMounted,
   exactPrivateOutputRereadBeforeNextChunkMounted:
     runtime.exactPrivateOutputRereadBeforeNextChunkMounted,
+  completeSourceCostSettlementAndScaleZeroReleaseMounted:
+    runtime.completeSourceCostSettlementAndScaleZeroReleaseMounted,
+  perChunkResultMaySelfClaimServingWindowScaleZero:
+    runtime.perChunkResultMaySelfClaimServingWindowScaleZero,
   historicalA100CustomJobPricingRemainsReadOnly:
     runtime.historicalA100CustomJobPricingRemainsReadOnly,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,

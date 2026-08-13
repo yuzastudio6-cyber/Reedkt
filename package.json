@@ -504,6 +504,7 @@
     "smoke:track-all-sam3_1-l4-terminal-reconciliation": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-terminal-reconciliation-smoke.ts",
     "smoke:professional-gpu-cloud-task-outbox-local-postgres": "tsx server/smoke/canonical-professional-gpu-cloud-task-outbox-local-postgres-smoke.ts",
     "smoke:sam3_1-vertex-serving-attempt-credit-settlement": "tsx server/smoke/canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts",
+    "smoke:sam3_1-complete-source-serving-release": "tsx server/smoke/canonical-sam3_1-complete-source-serving-release-smoke.ts",
     "smoke:sam3_1-vertex-serving-invocation": "tsx server/smoke/canonical-sam3_1-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-readiness": "tsx server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts",
     "smoke:sam3_1-vertex-model-version-rollout": "tsx server/smoke/canonical-sam3_1-vertex-model-version-rollout-smoke.ts",

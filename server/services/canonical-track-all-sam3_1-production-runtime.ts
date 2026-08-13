@@ -230,9 +230,22 @@ import {
   createCanonicalSam31CurrentServingResultFinalizationRuntime,
   type CanonicalSam31CurrentServingResultFinalizationRuntimePort,
 } from './canonical-sam3_1-current-serving-result-finalization-service'
+import {
+  createCanonicalSam31VertexServingReconciledWindowCostRepository,
+  type CanonicalSam31VertexServingReconciledWindowCostRepository,
+} from './canonical-sam3_1-vertex-serving-reconciled-window-cost-repository'
+import {
+  createCanonicalSam31CompleteSourceServingReleaseOwner,
+  createCanonicalSam31CompleteSourceServingReleaseRepository,
+  type CanonicalSam31CompleteSourceServingReleaseOwner,
+  type CanonicalSam31CompleteSourceServingReleaseRepository,
+} from './canonical-sam3_1-complete-source-serving-release'
+import {
+  readPrivateEditAuthorityAggregate,
+} from './private-edit-authority-store'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v28' as const
+  'canonical-track-all-sam3_1-production-runtime-v29' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -268,6 +281,12 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSam31CompleteSourceChunkCoordinator
   readonly sam31CurrentServingResultFinalizationRuntimePort:
     CanonicalSam31CurrentServingResultFinalizationRuntimePort
+  readonly sam31VertexServingReconciledWindowCostRepository:
+    CanonicalSam31VertexServingReconciledWindowCostRepository
+  readonly sam31CompleteSourceServingReleaseRepository:
+    CanonicalSam31CompleteSourceServingReleaseRepository
+  readonly sam31CompleteSourceServingReleaseOwner:
+    CanonicalSam31CompleteSourceServingReleaseOwner
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly trackAllSam31L4TaskQaQueuedStartRuntimePort:
@@ -315,6 +334,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly l4TerminalUsageCostAndZeroActiveGpuReconciliationMounted: true
   readonly l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed: false
   readonly terminalServingAttemptOwnerMountedBeforeQueueFinalization: true
+  readonly completeSourceCostSettlementAndScaleZeroReleaseMounted: true
+  readonly perChunkResultMaySelfClaimServingWindowScaleZero: false
   readonly l4QuotaAndActiveCountCapacityMounted: true
   readonly l4FixedTaskPreparedBeforeDurableQueueAdmission: true
   readonly directL4GpuInvocationHttpRouteMounted: false
@@ -539,6 +560,14 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     })
   const sam31CompleteSourceChunkRepository =
     createCanonicalSam31CompleteSourceChunkRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const sam31VertexServingReconciledWindowCostRepository =
+    createCanonicalSam31VertexServingReconciledWindowCostRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const sam31CompleteSourceServingReleaseRepository =
+    createCanonicalSam31CompleteSourceServingReleaseRepository({
       objectPort: controlPlaneObjectPort,
     })
   const sam31PrivateOutputRereadPort =
@@ -842,6 +871,42 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       taskStore,
       resultStore: sam31RuntimeResultStore,
     })
+  const sam31CompleteSourceServingReleaseOwner =
+    createCanonicalSam31CompleteSourceServingReleaseOwner({
+      chunkRepository: sam31CompleteSourceChunkRepository,
+      resultStore: sam31RuntimeResultStore,
+      terminalAttemptOwner:
+        professionalGpuCloudTaskConsumer.terminalAttemptOwner,
+      costRepository: sam31VertexServingReconciledWindowCostRepository,
+      settlementReadPort: Object.freeze({
+        async rereadAttemptCreditSettlement(request: {
+          readonly ownerUserId: string
+          readonly workspaceId: string
+          readonly executionAttemptRef: {
+            readonly id: string
+            readonly version: number
+            readonly contentHash: string
+          }
+        }) {
+          const aggregate = await readPrivateEditAuthorityAggregate({
+            localStorageRoot: env.localStorageRoot,
+            ownerUserId: request.ownerUserId,
+            workspaceId: request.workspaceId,
+          })
+          const matches = aggregate?.gpuAttemptCreditSettlements.filter(
+            (record) => record.schemaVersion ===
+                'canonical-sam3_1-vertex-serving-attempt-credit-settlement-v2'
+              && record.executionAttemptId ===
+                request.executionAttemptRef.id,
+          ) ?? []
+          if (matches.length > 1) throw new Error(
+            'SAM 3.1 serving attempt has duplicate credit settlements.',
+          )
+          return matches[0] ? structuredClone(matches[0]) : null
+        },
+      }),
+      releaseRepository: sam31CompleteSourceServingReleaseRepository,
+    })
   const l4TaskQaAuthenticatedRuntime =
     createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime({
       pricingAuthorityReadPort: pricingAuthorityStore,
@@ -900,6 +965,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     sam31CompleteSourceChunkRepository,
     sam31CompleteSourceChunkCoordinator,
     sam31CurrentServingResultFinalizationRuntimePort,
+    sam31VertexServingReconciledWindowCostRepository,
+    sam31CompleteSourceServingReleaseRepository,
+    sam31CompleteSourceServingReleaseOwner,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,
     trackAllSam31L4TaskQaQueuedStartRuntimePort:
@@ -940,6 +1008,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed:
       false as const,
     terminalServingAttemptOwnerMountedBeforeQueueFinalization: true as const,
+    completeSourceCostSettlementAndScaleZeroReleaseMounted: true as const,
+    perChunkResultMaySelfClaimServingWindowScaleZero: false as const,
     l4QuotaAndActiveCountCapacityMounted: true as const,
     l4FixedTaskPreparedBeforeDurableQueueAdmission: true as const,
     directL4GpuInvocationHttpRouteMounted: false as const,

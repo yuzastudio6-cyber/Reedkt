@@ -12,6 +12,9 @@ import {
 } from '../tool-cost-metering/canonical-sam3_1-vertex-serving-window-cost-authority'
 import type { ServiceContext } from '../types'
 import {
+  assertPlainSerializedData,
+} from './canonical-professional-gpu-job-lifecycle-service'
+import {
   type AuthoritySam31VertexServingAttemptCreditSettlementRecordV2,
   mutatePrivateEditAuthorityAggregate,
   readPrivateEditAuthorityAggregate,
@@ -28,6 +31,7 @@ const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const evidenceRefSchema = z.object({
   id: safeId,
   version: z.number().int().positive().safe(),
@@ -37,6 +41,72 @@ const requestSchema = z.object({
   receiptId: safeId,
   executionAttemptRef: evidenceRefSchema,
   settledAt: z.string().datetime({ offset: true }),
+}).strict()
+const nonnegativeInteger = z.number().int().nonnegative().safe()
+const settlementRecordWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_VERTEX_SERVING_ATTEMPT_CREDIT_SETTLEMENT_VERSION,
+  ),
+  id: safeId,
+  servingWindowCostReceiptId: safeId,
+  servingWindowCostReceiptHash: sha256,
+  servingWindowUsageHash: sha256,
+  detailedBillingExportObservationId: safeId,
+  detailedBillingExportObservationHash: sha256,
+  attemptCostReceiptId: safeId,
+  attemptCostReceiptHash: sha256,
+  allocationWindowId: safeId,
+  endpointDeploymentId: safeId,
+  endpointDeploymentHash: sha256,
+  executionAttemptId: safeId,
+  snapshotId: safeId,
+  approvalId: safeId,
+  reservationId: safeId,
+  approvedWorkItemId: safeId,
+  terminalOutcome: z.enum(['completed', 'reeditpro_failed']),
+  settlementDisposition: z.enum([
+    'charged_eligible_cost_to_shared_plan_reservation',
+    'no_charge_weeditpro_absorbed_failure',
+  ]),
+  approvedToolCeilingCredits: nonnegativeInteger,
+  customerChargedCredits: nonnegativeInteger,
+  weeditproAbsorbedInfrastructureCostUsdNanos: nonnegativeInteger,
+  unusedToolCeilingCreditsRetainedInSharedPlanReservation:
+    nonnegativeInteger,
+  creditsHeldPendingReconciliation: z.literal(0),
+  creditsReleasedOrRefundedAtAttemptSettlement: z.literal(0),
+  reservationSpendApplied: z.boolean(),
+  exactTerminalAndAttemptCostReceiptReread: z.literal(true),
+  exactDetailedUsageCostExportReconciled: z.literal(true),
+  finalInvoiceMonthTaxOrAdjustmentClaimed: z.literal(false),
+  serviceFeeSettledHere: z.literal(false),
+  finalPlanSettlementStillRequired: z.literal(true),
+  publicBillingAuthorityGranted: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  idempotencyKey: safeId,
+  createdAt: z.string().datetime({ offset: true }),
+}).strict().superRefine((record, context) => {
+  const completed = record.terminalOutcome === 'completed'
+  const charged = record.customerChargedCredits > 0
+  if (
+    record.approvedToolCeilingCredits <= 0
+    || record.customerChargedCredits
+      + record.unusedToolCeilingCreditsRetainedInSharedPlanReservation
+        !== record.approvedToolCeilingCredits
+    || record.reservationSpendApplied !== charged
+    || (completed
+      ? record.settlementDisposition !==
+        'charged_eligible_cost_to_shared_plan_reservation'
+      : record.settlementDisposition !==
+          'no_charge_weeditpro_absorbed_failure'
+        || charged)
+  ) context.addIssue({
+    code: 'custom',
+    message: 'SAM 3.1 serving attempt settlement is inconsistent.',
+  })
+})
+const settlementRecordSchema = settlementRecordWithoutHashSchema.extend({
+  settlementHash: sha256,
 }).strict()
 
 export interface CanonicalSam31VertexServingWindowCostReceiptReadPort {
@@ -56,6 +126,18 @@ export interface CanonicalSam31VertexServingAttemptCreditSettlementResult {
   readonly externalCustomerWalletMutated: false
   readonly publicBillingAuthorityGranted: false
   readonly productionAuthorityGranted: false
+}
+
+export function assertCanonicalSam31VertexServingAttemptCreditSettlementRecord(
+  value: unknown,
+): AuthoritySam31VertexServingAttemptCreditSettlementRecordV2 {
+  assertPlainSerializedData(value, 'sam31_serving_attempt_credit_settlement')
+  const parsed = settlementRecordSchema.parse(value)
+  const { settlementHash, ...payload } = parsed
+  if (settlementHash !== sha256AuthorityValue(payload)) {
+    throw conflict('serving_settlement_digest_changed')
+  }
+  return structuredClone(parsed)
 }
 
 /**

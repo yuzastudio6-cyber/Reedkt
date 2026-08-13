@@ -1,10 +1,16 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from './canonical-gcs-source-analysis-lifecycle-store'
 import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   sha256AuthorityValue,
+  stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_EIGHT_MINUTE_QUALIFICATION_SOURCE_PLAN_VERSION =
@@ -25,6 +31,9 @@ const CHUNK_FRAME_COUNT = 240
 const CHUNK_OVERLAP_FRAME_COUNT = 1
 const CHUNK_STRIDE_FRAME_COUNT = 239
 const CHUNK_COUNT = 49
+const DEFAULT_PREFIX =
+  'private/canonical-professional-gpu/v1/sam3_1-eight-minute-qualification-sources'
+const MAXIMUM_RECORD_BYTES = 8 * 1024 * 1024
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/+:-]*$/u)
@@ -32,6 +41,10 @@ const safeId = z.string().trim().min(1).max(240)
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
+const safePrefix = z.string().trim().min(1).max(512)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/u)
+  .refine((value) => !value.includes('..')
+    && !value.includes('//') && !value.endsWith('/'))
 const refSchema = z.object({
   id: safeId,
   version: z.number().int().positive().safe(),
@@ -191,6 +204,24 @@ export const canonicalSam31EightMinuteQualificationSourcePreparationSchema =
 export type CanonicalSam31EightMinuteQualificationSourcePreparation = z.infer<
   typeof canonicalSam31EightMinuteQualificationSourcePreparationSchema
 >
+
+export interface CanonicalSam31EightMinuteQualificationSourceRepository {
+  readonly schemaVersion:
+    'canonical-sam3_1-eight-minute-qualification-source-repository-v1'
+  persistPlanCreateOnly(input: {
+    readonly plan: CanonicalSam31EightMinuteQualificationSourcePlan
+  }): Promise<'created' | 'identical_replay'>
+  rereadPlan(input: {
+    readonly qualificationSourceId: string
+  }): Promise<CanonicalSam31EightMinuteQualificationSourcePlan | null>
+  persistPreparationCreateOnly(input: {
+    readonly preparation:
+      CanonicalSam31EightMinuteQualificationSourcePreparation
+  }): Promise<'created' | 'identical_replay'>
+  rereadPreparation(input: {
+    readonly preparationId: string
+  }): Promise<CanonicalSam31EightMinuteQualificationSourcePreparation | null>
+}
 
 export function buildCanonicalSam31EightMinuteQualificationSourcePlan(input: {
   readonly qualificationSourceId: string
@@ -381,6 +412,52 @@ export function parseCanonicalSam31EightMinuteQualificationSourcePreparation(
   return freeze(parsed)
 }
 
+export function createCanonicalSam31EightMinuteQualificationSourceRepository(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly prefix?: string
+  },
+): CanonicalSam31EightMinuteQualificationSourceRepository {
+  if (typeof input.objectPort?.createOnly !== 'function'
+    || typeof input.objectPort?.readExact !== 'function') {
+    throw new TypeError('Eight-minute source repository port is unavailable.')
+  }
+  const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
+  return Object.freeze({
+    schemaVersion:
+      'canonical-sam3_1-eight-minute-qualification-source-repository-v1' as const,
+    persistPlanCreateOnly: ({ plan }) => persistExact({
+      objectPort: input.objectPort,
+      objectPath: `${prefix}/plans/${plan.qualificationSourceId}.json`,
+      value: parseCanonicalSam31EightMinuteQualificationSourcePlan(plan),
+      parser: parseCanonicalSam31EightMinuteQualificationSourcePlan,
+    }),
+    async rereadPlan({ qualificationSourceId }) {
+      return readExact({
+        objectPort: input.objectPort,
+        objectPath: `${prefix}/plans/${safeId.parse(qualificationSourceId)}.json`,
+        parser: parseCanonicalSam31EightMinuteQualificationSourcePlan,
+      })
+    },
+    persistPreparationCreateOnly: ({ preparation }) => persistExact({
+      objectPort: input.objectPort,
+      objectPath: `${prefix}/preparations/${preparation.preparationId}.json`,
+      value: parseCanonicalSam31EightMinuteQualificationSourcePreparation(
+        preparation,
+      ),
+      parser: parseCanonicalSam31EightMinuteQualificationSourcePreparation,
+    }),
+    async rereadPreparation({ preparationId }) {
+      return readExact({
+        objectPort: input.objectPort,
+        objectPath:
+          `${prefix}/preparations/${safeId.parse(preparationId)}.json`,
+        parser: parseCanonicalSam31EightMinuteQualificationSourcePreparation,
+      })
+    },
+  })
+}
+
 function exactSequence(
   sequence: ReadonlyArray<z.infer<typeof sourceSliceSchema>>,
   exactSourceObjectRef: EvidenceRef,
@@ -447,6 +524,49 @@ function ref(id: string, hash: string): EvidenceRef {
 function sameRef(left: EvidenceRef, right: EvidenceRef): boolean {
   return left.id === right.id && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+async function persistExact<T>(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly objectPath: string
+  readonly value: T
+  readonly parser: (value: unknown) => T
+}): Promise<'created' | 'identical_replay'> {
+  const body = Buffer.from(stableAuthorityStringify(input.value), 'utf8')
+  if (body.byteLength < 2 || body.byteLength > MAXIMUM_RECORD_BYTES) {
+    throw new TypeError('Eight-minute source record size is invalid.')
+  }
+  const disposition = await input.objectPort.createOnly({
+    objectPath: input.objectPath,
+    body,
+    contentSha256: createHash('sha256').update(body).digest('hex'),
+  })
+  const reread = await input.objectPort.readExact(input.objectPath)
+  if (!reread || !Buffer.isBuffer(reread)
+    || stableAuthorityStringify(input.parser(JSON.parse(
+      reread.toString('utf8'),
+    ) as unknown)) !== body.toString('utf8')) {
+    throw new TypeError('Eight-minute source record exact reread changed.')
+  }
+  return disposition === 'created' ? 'created' : 'identical_replay'
+}
+
+async function readExact<T>(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly objectPath: string
+  readonly parser: (value: unknown) => T
+}): Promise<T | null> {
+  const body = await input.objectPort.readExact(input.objectPath)
+  if (!body) return null
+  if (!Buffer.isBuffer(body) || body.byteLength < 2
+    || body.byteLength > MAXIMUM_RECORD_BYTES) {
+    throw new TypeError('Eight-minute source record bytes are invalid.')
+  }
+  const parsed = input.parser(JSON.parse(body.toString('utf8')) as unknown)
+  if (stableAuthorityStringify(parsed) !== body.toString('utf8')) {
+    throw new TypeError('Eight-minute source record serialization changed.')
+  }
+  return parsed
 }
 
 function freeze<T>(value: T): T {

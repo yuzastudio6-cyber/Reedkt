@@ -4,10 +4,14 @@ import { createHash } from 'node:crypto'
 import {
   buildCanonicalSam31EightMinuteQualificationSourcePlan,
   buildCanonicalSam31EightMinuteQualificationSourcePreparation,
+  createCanonicalSam31EightMinuteQualificationSourceRepository,
   parseCanonicalSam31EightMinuteQualificationSourcePlan,
   parseCanonicalSam31EightMinuteQualificationSourcePreparation,
   sealCanonicalSam31EightMinuteQualificationSourcePreparation,
 } from '../services/canonical-sam3_1-eight-minute-qualification-source-owner'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
 
 const exactSourceObjectRef = ref(
   'sam31-private-real-source-object-generation-1779933335766660',
@@ -98,6 +102,46 @@ assert.deepEqual(
   ready,
 )
 
+const objects = new Map<string, Buffer>()
+const objectPort: CanonicalCreateOnlyJsonObjectPort = {
+  async createOnly(input) {
+    const existing = objects.get(input.objectPath)
+    if (existing) {
+      assert.equal(digestBuffer(existing), input.contentSha256)
+      return 'already_exists'
+    }
+    assert.equal(digestBuffer(input.body), input.contentSha256)
+    objects.set(input.objectPath, Buffer.from(input.body))
+    return 'created'
+  },
+  async readExact(objectPath) {
+    const value = objects.get(objectPath)
+    return value ? Buffer.from(value) : null
+  },
+}
+const repository = createCanonicalSam31EightMinuteQualificationSourceRepository({
+  objectPort,
+  prefix: 'private/weeditpro/sam3_1-eight-minute-source-test',
+})
+assert.equal(await repository.persistPlanCreateOnly({ plan }), 'created')
+assert.equal(await repository.persistPlanCreateOnly({ plan }),
+  'identical_replay')
+assert.deepEqual(await repository.rereadPlan({
+  qualificationSourceId: plan.qualificationSourceId,
+}), plan)
+assert.equal(await repository.persistPreparationCreateOnly({
+  preparation: ready,
+}), 'created')
+assert.equal(await repository.persistPreparationCreateOnly({
+  preparation: ready,
+}), 'identical_replay')
+assert.deepEqual(await repository.rereadPreparation({
+  preparationId: ready.preparationId,
+}), ready)
+assert.equal(await repository.rereadPreparation({
+  preparationId: 'sam31-eight-minute-preparation-not-found',
+}), null)
+
 assert.throws(() =>
   buildCanonicalSam31EightMinuteQualificationSourcePlan({
     qualificationSourceId: 'sam31-eight-minute-wrong-source',
@@ -134,7 +178,7 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-qualification-source-owner',
-  checks: 34,
+  checks: 43,
   exactDurationMilliseconds: plan.sourceDurationMilliseconds,
   exactFrameCount: plan.sourceFrameCount,
   exactChunkCount: ready.exactChunkCount,
@@ -147,6 +191,10 @@ console.log(JSON.stringify({
 }))
 
 function digest(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
+}
+
+function digestBuffer(value: Buffer): string {
   return createHash('sha256').update(value).digest('hex')
 }
 

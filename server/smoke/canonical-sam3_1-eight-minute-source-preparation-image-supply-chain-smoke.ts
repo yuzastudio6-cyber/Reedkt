@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
+import { assertCanonicalSam31ImageSupplyChainGoogleReadUrl } from
+  '../services/canonical-sam3_1-cloud-image-supply-chain-evidence-read-service'
+
 const build = readFileSync(
   'docker/prod/gpu-worker/sam3_1-source-preparation/cloudbuild.supply-chain.yaml',
   'utf8',
@@ -36,9 +39,39 @@ assert.match(operator, /customer_credits_mutated=false/u)
 assert.match(operator, /production_ready=false/u)
 assert.doesNotMatch(operator, /docker run|run jobs execute|endpoints predict/u)
 
+const sourcePreparationImageDigest = `sha256:${'a'.repeat(64)}`
+const sourcePreparationResource =
+  'https://us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/'
+  + 'reeditpro-sam31-source-preparation-l4@'
+  + sourcePreparationImageDigest
+for (const kind of ['DISCOVERY', 'VULNERABILITY', 'BUILD'] as const) {
+  const parameters = new URLSearchParams({
+    filter: `kind="${kind}" AND resourceUrl="${sourcePreparationResource}"`,
+    pageSize: '1000',
+  })
+  assert.doesNotThrow(() =>
+    assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+      `https://containeranalysis.googleapis.com/v1/projects/reeditpro/occurrences?${parameters.toString()}`,
+    ))
+}
+assert.doesNotThrow(() =>
+  assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+    'https://artifactregistry.googleapis.com/v1/projects/reeditpro/'
+    + 'locations/us-central1/repositories/reeditpro-workers/dockerImages/'
+    + encodeURIComponent(
+      `reeditpro-sam31-source-preparation-l4@${sourcePreparationImageDigest}`,
+    ),
+  ))
+assert.throws(() => assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
+  'https://containeranalysis.googleapis.com/v1/projects/reeditpro/occurrences'
+  + '?filter=kind%3D%22BUILD%22%20AND%20resourceUrl%3D%22https%3A%2F%2F'
+  + 'us-central1-docker.pkg.dev%2Freeditpro%2Freeditpro-workers%2F'
+  + 'reeditpro-sam31-source-preparation-l4%3Alatest%22&pageSize=1000',
+))
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-supply-chain',
-  checks: 25,
+  checks: 30,
   immutableDigestRereadRequired: true,
   spdx23SbomPinned: true,
   kmsCosignSignatureAndVerificationPinned: true,

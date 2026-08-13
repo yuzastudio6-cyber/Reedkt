@@ -2067,14 +2067,14 @@ export function assertCanonicalSam31ImageSupplyChainGoogleReadUrl(
   const decodedPath = safelyDecodePath(url.pathname)
   const artifactRegistry =
     url.origin === 'https://artifactregistry.googleapis.com'
-    && /^\/v1\/projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/dockerImages\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}$/u
+    && /^\/v1\/projects\/reeditpro\/locations\/us-central1\/repositories\/reeditpro-workers\/dockerImages\/(?:reeditpro-sam31-(?:gpu|qualification|source-preparation-l4)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}$/u
       .test(decodedPath)
     && !url.search
   const filter = url.searchParams.get('filter') ?? ''
   const occurrenceFilterAllowed = [
-    /^kind="DISCOVERY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
-    /^kind="VULNERABILITY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
-    /^kind="BUILD" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="DISCOVERY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification|source-preparation-l4)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="VULNERABILITY" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification|source-preparation-l4)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
+    /^kind="BUILD" AND resourceUrl="https:\/\/us-central1-docker\.pkg\.dev\/reeditpro\/reeditpro-workers\/(?:reeditpro-sam31-(?:gpu|qualification|source-preparation-l4)|reeditpro-track-all-l4-task-qa)@sha256:[a-f0-9]{64}"$/u,
   ].some((pattern) => pattern.test(filter))
   const occurrenceKeys = [...url.searchParams.keys()]
   const occurrences =

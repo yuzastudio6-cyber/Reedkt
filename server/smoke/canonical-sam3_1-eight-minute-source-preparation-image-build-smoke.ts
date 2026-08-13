@@ -17,6 +17,10 @@ const qualificationOperator = readFileSync(
   'scripts/gcp/prod/58-qualify-sam31-source-preparation-l4-image.sh',
   'utf8',
 )
+const qualificationStorageGrant = readFileSync(
+  'scripts/gcp/prod/59-grant-sam31-source-preparation-private-qualification-storage.sh',
+  'utf8',
+)
 const serverBuild = readFileSync('vite.server.config.ts', 'utf8')
 
 assert.match(cloudBuild, /gcr\.io\/cloud-builders\/docker@sha256:[a-f0-9]{64}/u)
@@ -101,6 +105,18 @@ assert.match(qualificationOperator, /customer_credits_mutated=false/u)
 assert.match(qualificationOperator, /production_authority_granted=false/u)
 assert.doesNotMatch(qualificationOperator,
   /WEEDITPRO_.*(?:SOURCE_PATH|SOURCE_URL|MODEL_PATH|CHECKPOINT_PATH)|--update-env/u)
+assert.match(qualificationStorageGrant,
+  /grant-weeditpro-sam31-source-preparation-private-qualification-storage-v1/u)
+assert.match(qualificationStorageGrant,
+  /roles\/storage\.objectCreator roles\/storage\.objectViewer/u)
+assert.match(qualificationStorageGrant,
+  /resource\.name == '\$\{SOURCE_OBJECT_RESOURCE\}'/u)
+assert.match(qualificationStorageGrant,
+  /sam3_1-eight-minute-qualification-sources\//u)
+assert.match(qualificationStorageGrant,
+  /sam3_1-source-preparation-private-qualification-runs\//u)
+assert.doesNotMatch(qualificationStorageGrant,
+  /roles\/storage\.(?:admin|objectAdmin)|objects delete|gpu-type|run jobs execute/u)
 
 assert.match(dockerfile, /io\.weeditpro\.runtime\.qualification="candidate-only"/u)
 assert.match(
@@ -111,7 +127,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 60,
+  checks: 66,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

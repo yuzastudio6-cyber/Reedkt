@@ -31,7 +31,7 @@ import {
 
 export const
 CANONICAL_SAM3_1_EIGHT_MINUTE_SOURCE_PREPARATION_QUALIFICATION_VERSION =
-  'canonical-sam3_1-eight-minute-source-preparation-qualification-v1' as const
+  'canonical-sam3_1-eight-minute-source-preparation-qualification-v2' as const
 export const
 CANONICAL_SAM3_1_EIGHT_MINUTE_SOURCE_PREPARATION_RELEASE_VERSION =
   'canonical-sam3_1-eight-minute-source-preparation-release-v1' as const
@@ -109,7 +109,7 @@ const qualificationWithoutHashSchema = z.object({
   sourceCommitSha: z.string().regex(/^[a-f0-9]{40}$/u),
   sourceTreeSha: z.string().regex(/^[a-f0-9]{40}$/u),
   dockerfileSha256: sha256,
-  fixedRunnerSha256: sha256,
+  sourceProvenanceLockSha256: sha256,
   fixedProcessPortSha256: sha256,
   fixedWorkerEntrypointSha256: sha256,
   imageBuildRef: evidenceRefSchema,

@@ -350,7 +350,7 @@ function createQualification() {
     sourceCommitSha: 'a'.repeat(40),
     sourceTreeSha: 'b'.repeat(40),
     dockerfileSha256: hash('dockerfile'),
-    fixedRunnerSha256: hash('runner'),
+    sourceProvenanceLockSha256: hash('source-provenance-lock'),
     fixedProcessPortSha256: hash('port'),
     fixedWorkerEntrypointSha256: hash('entrypoint'),
     imageBuildRef: ref('image-build', hash('image-build')),

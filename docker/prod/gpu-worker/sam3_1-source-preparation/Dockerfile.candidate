@@ -105,7 +105,8 @@ RUN test "$(uname -m)" = x86_64 \
 
 FROM node:24.13.1-bookworm-slim@sha256:85a395c77b811fa7f5b5e4aa69cd6eb4c3b80c7f1a8e34704dc0ce061e5b404e AS server_builder
 WORKDIR /app
-ENV NODE_ENV=development
+ENV NODE_ENV=development \
+  NODE_OPTIONS=--max-old-space-size=12288
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .

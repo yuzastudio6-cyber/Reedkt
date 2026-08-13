@@ -24,11 +24,13 @@ const cloud = loadRuntimeEnv({
     'reeditpro-production-reeditpro-proxy-media',
   SUPABASE_URL: 'https://fixture.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: 'eyJfixture.header.signature',
+  WEEDITPRO_PROFESSIONAL_GPU_TASK_TARGET_ORIGIN:
+    'https://reeditpro-api-4wkjiqvdqa-uc.a.run.app',
 })
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v19')
+  'canonical-track-all-sam3_1-production-runtime-v20')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -57,6 +59,17 @@ assert.equal(runtime.rawCloudLaunchPortExposed, false)
 assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
 assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
+assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
+assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
+assert.equal(runtime.directA100InvocationHttpRouteMounted, false)
+assert.equal(
+  runtime.professionalGpuCloudTaskScheduler.schemaVersion,
+  'canonical-professional-gpu-cloud-task-scheduler-v1',
+)
+assert.equal(
+  runtime.professionalGpuCloudTaskConsumer.schemaVersion,
+  'canonical-professional-gpu-cloud-task-consumer-v1',
+)
 assert.equal(runtime.freshA100PricingUsesVertexServingRateAuthority, true)
 assert.equal(runtime.historicalA100CustomJobPricingRemainsReadOnly, true)
 assert.equal(
@@ -263,11 +276,13 @@ assert.match(
   entrypoint,
   /trackAllSam31AuthenticatedGpuStartRuntimePort/u,
 )
-assert.match(
+assert.doesNotMatch(
   entrypoint,
   /trackAllSam31AuthenticatedGpuInvocationRuntimePort/u,
 )
 assert.match(entrypoint, /trackAllSam31QueuedGpuStartRuntimePort/u)
+assert.match(entrypoint, /professionalGpuCloudTaskScheduler/u)
+assert.match(entrypoint, /professionalGpuCloudTaskConsumer/u)
 assert.match(
   entrypoint,
   /trackAllSam31L4TaskQaAuthenticatedStartRuntimePort/u,
@@ -284,7 +299,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 82,
+  checks: 89,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -299,6 +314,9 @@ console.log(JSON.stringify({
   exactPrivateGcsMaskRereadMounted: true,
   historicalBatchA100LaunchMounted: false,
   authenticatedRouteUsesDurableProductionRuntime: true,
+  directA100InvocationHttpRouteMounted: false,
+  userTriggeredCloudTaskSchedulerMounted: true,
+  authenticatedGoogleOidcTaskConsumerMounted: true,
   pricingFundingRateReleaseSourceProxyTaskAndLifecyclePortsComposed: true,
   privateGpuTaskAndProxyShareServerConfiguredBucket: true,
   captionTrackAllSupportResumeAndEvidenceRepositoriesMounted: true,

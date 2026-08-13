@@ -162,7 +162,7 @@ assert.equal(route?.method, 'POST')
 assert.equal(route?.securityLevel, 'backend_service_role')
 assert.equal(route?.requiresSupabase, true)
 assert.equal(route?.requiresServiceRole, true)
-assert.match(route?.notes.join(' ') ?? '', /no GPU invocation/u)
+assert.match(route?.notes.join(' ') ?? '', /no direct GPU invocation/u)
 
 const queuedServiceSource = readFileSync(
   'server/services/canonical-track-all-sam3_1-queued-gpu-start-service.ts',

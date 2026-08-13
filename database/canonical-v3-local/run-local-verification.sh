@@ -103,6 +103,8 @@ npx --no-install tsx \
   -f "${SCRIPT_DIR}/tests/020_professional_gpu_cloud_task_outbox_postconditions.sql"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/021_professional_gpu_queue_runtime_read_postconditions.sql"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/022_professional_gpu_delivery_consumption_postconditions.sql"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts"
 npx --no-install tsx \

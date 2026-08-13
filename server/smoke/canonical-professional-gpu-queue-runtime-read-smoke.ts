@@ -10,6 +10,7 @@ import type {
 } from '../services/canonical-professional-gpu-cloud-task-outbox-port'
 import {
   assertCanonicalProfessionalGpuQueueConsumptionBootstrap,
+  assertCanonicalProfessionalGpuQueueDeliveryConsumption,
   assertCanonicalProfessionalGpuQueueRuntimeState,
   createCanonicalProfessionalGpuQueueRuntimeReadPort,
   createCanonicalSam31ProductionGpuQueueCapacityReadPort,
@@ -24,6 +25,14 @@ import type {
 import {
   sealCanonicalSam31A100ServingCompleteSourceCapacityObservation,
 } from '../services/canonical-sam3_1-complete-source-capacity-owner'
+import {
+  sealCanonicalSam31VertexServingCapacityObservation,
+} from '../services/canonical-sam3_1-vertex-serving-capacity-mutation'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
@@ -109,13 +118,80 @@ assert.throws(() => assertCanonicalProfessionalGpuQueueConsumptionBootstrap({
   },
 }))
 
+const deliveryPayload = {
+  schemaVersion:
+    'canonical-professional-gpu-queue-delivery-consumption-v2' as const,
+  source: 'canonical_postgres_professional_gpu_queue_read_owner' as const,
+  queueId: 'weeditpro-professional-gpu-production-v1' as const,
+  runtimeRegion: 'us-central1' as const,
+  queueEntryStatus: 'dispatched' as const,
+  claim,
+  outboxRecord,
+  terminal: null,
+  exactClaimCreatedTaskAndTerminalReread: true as const,
+  browserOrCallerExecutionMaterialAccepted: false as const,
+  customerCreditsMutated: false as const,
+  productionAuthorityGranted: false as const,
+  observedAt,
+}
+const delivery = assertCanonicalProfessionalGpuQueueDeliveryConsumption({
+  ...deliveryPayload,
+  consumptionHash: sha256AuthorityValue(deliveryPayload),
+})
+assert.equal(delivery.queueEntryStatus, 'dispatched')
+assert.equal(delivery.terminal, null)
+
+const terminalPayload = {
+  schemaVersion:
+    'canonical-professional-gpu-fair-queue-durable-terminal-v1' as const,
+  source: 'canonical_postgres_professional_gpu_fair_queue_owner' as const,
+  queueId: 'weeditpro-professional-gpu-production-v1',
+  runtimeRegion: 'us-central1' as const,
+  queueEntryRef: ref(claim.queueEntry.queueEntryId),
+  executionAttemptRef: claim.queueEntry.executionAttemptRef,
+  claimRef: {
+    id: claim.claimId,
+    version: 1,
+    contentHash: `sha256:${claim.claimHash}` as const,
+  },
+  terminalEvidenceRef: ref('runtime-read-terminal-evidence'),
+  disposition: 'completed' as const,
+  terminalAt: '2026-08-13T05:01:00.000Z',
+  automaticRetryStarted: false as const,
+  customerCreditsMutated: false as const,
+  qaApproved: false as const,
+  publicDeliveryAuthorized: false as const,
+  productionAuthorityGranted: false as const,
+}
+const terminal = {
+  ...terminalPayload,
+  terminalHash: sha256AuthorityValue(terminalPayload),
+}
+const terminalDeliveryPayload = {
+  ...deliveryPayload,
+  queueEntryStatus: 'completed' as const,
+  terminal,
+}
+const terminalDelivery =
+  assertCanonicalProfessionalGpuQueueDeliveryConsumption({
+    ...terminalDeliveryPayload,
+    consumptionHash: sha256AuthorityValue(terminalDeliveryPayload),
+  })
+assert.equal(terminalDelivery.terminal?.disposition, 'completed')
+assert.throws(() => assertCanonicalProfessionalGpuQueueDeliveryConsumption({
+  ...terminalDelivery,
+  queueEntryStatus: 'failed_reconciled',
+}))
+
 const calls: string[] = []
 const client: CanonicalProfessionalGpuQueueRuntimeReadRpcClient = {
   async rpc(functionName) {
     calls.push(functionName)
     return functionName.endsWith('_runtime_state_v1')
       ? { data: state, error: null }
-      : { data: consumption, error: null }
+      : functionName.endsWith('_delivery_consumption_v2')
+        ? { data: delivery, error: null }
+        : { data: consumption, error: null }
   },
 }
 const readPort = createCanonicalProfessionalGpuQueueRuntimeReadPort({ client })
@@ -128,9 +204,15 @@ assert.equal((await readPort.readConsumption({
   runtimeRegion: 'us-central1',
   claimId: claim.claimId,
 }))?.consumptionHash, consumption.consumptionHash)
+assert.equal((await readPort.readDeliveryConsumption({
+  queueId: 'weeditpro-professional-gpu-production-v1',
+  runtimeRegion: 'us-central1',
+  claimId: claim.claimId,
+}))?.consumptionHash, delivery.consumptionHash)
 assert.deepEqual(calls, [
   'weeditpro_read_professional_gpu_queue_runtime_state_v1',
   'weeditpro_read_professional_gpu_queue_consumption_v1',
+  'weeditpro_read_professional_gpu_queue_delivery_consumption_v2',
 ])
 
 const quota = sealCanonicalSam31A100ServingCompleteSourceCapacityObservation({
@@ -154,9 +236,44 @@ const quota = sealCanonicalSam31A100ServingCompleteSourceCapacityObservation({
   observedAt: '2026-08-13T05:00:00.100Z',
   expiresAt: '2026-08-13T05:15:00.100Z',
 })
+const endpointCapacity =
+  sealCanonicalSam31VertexServingCapacityObservation({
+    schemaVersion:
+      'canonical-sam3_1-vertex-serving-capacity-observation-v1',
+    source: 'canonical_server_vertex_current_serving_capacity_reader',
+    evidenceClass: 'canonical_private_reread',
+    endpointResourceName:
+      CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+    deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+    modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+    routeId: 'a100_80gb_heavy_primary',
+    accelerator: 'nvidia_a100_80gb',
+    acceleratorCount: 1,
+    minimumReplicaCount: 0,
+    initialReplicaCount: 1,
+    maximumReplicaCount: 1,
+    requiredMaximumReplicaCount: 16,
+    minimumScaleUpPeriodSeconds: 300,
+    idleScaleDownPeriodSeconds: 300,
+    dedicatedEndpointEnabled: true,
+    oneExactDeployedModel: true,
+    exactTrafficSplitPercent: 100,
+    requestResponseLoggingEnabled: false,
+    containerLoggingEnabled: false,
+    exactCurrentEndpointModelVersionTrafficAndCapacityReread: true,
+    currentEndpointMeetsCompleteSourceCapacity: false,
+    endpointOrGpuJobStarted: false,
+    customerCreditsMutated: false,
+    productionAuthorityGranted: false,
+    observedAt,
+    expiresAt: '2026-08-13T05:15:00.000Z',
+  })
 const capacityPort = createCanonicalSam31ProductionGpuQueueCapacityReadPort({
   queueRuntimeReadPort: { async readState() { return state } },
   a100QuotaReadPort: { async rereadCurrent() { return quota } },
+  a100EndpointCapacityReadPort: {
+    async rereadCurrent() { return endpointCapacity },
+  },
 })
 const capacities = await capacityPort.rereadCurrent({
   queueId: 'weeditpro-professional-gpu-production-v1',
@@ -165,7 +282,7 @@ const capacities = await capacityPort.rereadCurrent({
 })
 assert.equal(capacities.length, 1)
 assert.equal(capacities[0]?.routeId, 'a100_80gb_heavy_primary')
-assert.equal(capacities[0]?.maximumConcurrentAttempts, 2)
+assert.equal(capacities[0]?.maximumConcurrentAttempts, 1)
 assert.equal(capacities[0]?.minimumIdleGpuInstances, 0)
 await assert.rejects(() => capacityPort.rereadCurrent({
   queueId: 'weeditpro-professional-gpu-production-v1',
@@ -191,11 +308,12 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-queue-runtime-read',
-  checks: 32,
+  checks: 41,
   exactSharedPostgresStateReread: true,
   exactDispatchedClaimAndCreatedTaskReread: true,
+  exactDispatchedOrTerminalDeliveryReread: true,
   callerCapacityAccepted: false,
-  serverOwnedA100QuotaAndActiveCountCombined: true,
+  serverOwnedA100QuotaEndpointCapacityAndActiveCountCombined: true,
   minimumIdleGpuInstances: 0,
   customerCreditsMutated: false,
   productionAuthority: false,

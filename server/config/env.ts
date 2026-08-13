@@ -35,6 +35,7 @@ export interface RuntimeEnv {
   googleCloudProjectId?: string
   googleCloudRegion?: string
   googleCloudBillingAccountResourceName?: string
+  professionalGpuTaskTargetOrigin?: string
   gcsDefaultRegion: string
   gcsSourceMediaBucket?: string
   gcsGeneratedAssetsBucket?: string
@@ -100,6 +101,7 @@ const envSchema = z.object({
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_REGION: z.string().optional(),
   WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME: z.string().optional(),
+  WEEDITPRO_PROFESSIONAL_GPU_TASK_TARGET_ORIGIN: z.string().optional(),
   GCS_DEFAULT_REGION: z.string().default('us-east1'),
   GCS_SOURCE_MEDIA_BUCKET: z.string().optional(),
   GCS_GENERATED_ASSETS_BUCKET: z.string().optional(),
@@ -233,6 +235,8 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
     googleCloudRegion: clean(parsed.GOOGLE_CLOUD_REGION),
     googleCloudBillingAccountResourceName:
       clean(parsed.WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME),
+    professionalGpuTaskTargetOrigin:
+      clean(parsed.WEEDITPRO_PROFESSIONAL_GPU_TASK_TARGET_ORIGIN),
     gcsDefaultRegion: clean(parsed.GCS_DEFAULT_REGION) ?? 'us-east1',
     gcsSourceMediaBucket: clean(parsed.GCS_SOURCE_MEDIA_BUCKET),
     gcsGeneratedAssetsBucket: clean(parsed.GCS_GENERATED_ASSETS_BUCKET),
@@ -450,6 +454,8 @@ export function createSafeRuntimeSummary(env: RuntimeEnv): Record<string, unknow
     supabaseServiceRoleConfigured: env.hasSupabaseAdmin,
     googleCloudProjectConfigured: Boolean(env.googleCloudProjectId),
     googleCloudRegionConfigured: Boolean(env.googleCloudRegion),
+    professionalGpuTaskTargetOriginConfigured:
+      Boolean(env.professionalGpuTaskTargetOrigin),
     gcsBucketsConfigured: {
       sourceMedia: Boolean(env.gcsSourceMediaBucket),
       generatedAssets: Boolean(env.gcsGeneratedAssetsBucket),

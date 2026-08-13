@@ -7,6 +7,7 @@ import {
 } from './canonical-professional-gpu-cloud-task-outbox-port'
 import {
   canonicalProfessionalGpuFairQueueDurableClaimSchema,
+  canonicalProfessionalGpuFairQueueDurableTerminalSchema,
 } from './canonical-professional-gpu-fair-queue-transaction-port'
 import {
   assertCanonicalProfessionalGpuFairQueueCapacity,
@@ -15,6 +16,10 @@ import {
   assertCanonicalSam31A100ServingCompleteSourceCapacityObservation,
   type CanonicalSam31A100ServingCompleteSourceCapacityReadPort,
 } from './canonical-sam3_1-complete-source-capacity-owner'
+import {
+  assertCanonicalSam31VertexServingCapacityObservation,
+  type CanonicalSam31VertexServingCapacityObservation,
+} from './canonical-sam3_1-vertex-serving-capacity-mutation'
 import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
@@ -29,10 +34,14 @@ export const CANONICAL_PROFESSIONAL_GPU_QUEUE_RUNTIME_STATE_VERSION =
   'canonical-professional-gpu-queue-runtime-state-v1' as const
 export const CANONICAL_PROFESSIONAL_GPU_QUEUE_CONSUMPTION_VERSION =
   'canonical-professional-gpu-queue-consumption-bootstrap-v1' as const
+export const CANONICAL_PROFESSIONAL_GPU_QUEUE_DELIVERY_CONSUMPTION_VERSION =
+  'canonical-professional-gpu-queue-delivery-consumption-v2' as const
 export const CANONICAL_PROFESSIONAL_GPU_QUEUE_RUNTIME_READ_RPC_REGISTRY =
   Object.freeze({
     state: 'weeditpro_read_professional_gpu_queue_runtime_state_v1',
     consumption: 'weeditpro_read_professional_gpu_queue_consumption_v1',
+    deliveryConsumption:
+      'weeditpro_read_professional_gpu_queue_delivery_consumption_v2',
   } as const)
 
 const safeId = z.string().trim().min(1).max(240)
@@ -133,6 +142,59 @@ export type CanonicalProfessionalGpuQueueConsumptionBootstrap = z.infer<
   typeof consumptionSchema
 >
 
+const deliveryConsumptionWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_PROFESSIONAL_GPU_QUEUE_DELIVERY_CONSUMPTION_VERSION,
+  ),
+  source: z.literal('canonical_postgres_professional_gpu_queue_read_owner'),
+  queueId: z.literal('weeditpro-professional-gpu-production-v1'),
+  runtimeRegion: z.literal('us-central1'),
+  queueEntryStatus: z.enum([
+    'dispatched',
+    'completed',
+    'failed_reconciled',
+  ]),
+  claim: canonicalProfessionalGpuFairQueueDurableClaimSchema,
+  outboxRecord: canonicalProfessionalGpuCloudTaskOutboxRecordSchema,
+  terminal: canonicalProfessionalGpuFairQueueDurableTerminalSchema.nullable(),
+  exactClaimCreatedTaskAndTerminalReread: z.literal(true),
+  browserOrCallerExecutionMaterialAccepted: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  observedAt: timestamp,
+}).strict().superRefine((value, context) => {
+  const terminal = value.queueEntryStatus !== 'dispatched'
+  const claimRef = value.outboxRecord.claimRef
+  if (terminal !== (value.terminal !== null)
+    || value.outboxRecord.status !== 'created'
+    || value.outboxRecord.queueEntryId !==
+      value.claim.queueEntry.queueEntryId
+    || claimRef.id !== value.claim.claimId
+    || claimRef.contentHash !== `sha256:${value.claim.claimHash}`
+    || value.outboxRecord.cloudTaskSpec.body.executionAttemptRef.id !==
+      value.claim.queueEntry.executionAttemptRef.id
+    || value.outboxRecord.dispatchResult?.providerOutcome !== 'created'
+    || (value.terminal !== null && (
+      value.terminal.disposition !== value.queueEntryStatus
+      || value.terminal.claimRef.id !== value.claim.claimId
+      || value.terminal.claimRef.contentHash !==
+        `sha256:${value.claim.claimHash}`
+      || value.terminal.executionAttemptRef.id !==
+        value.claim.queueEntry.executionAttemptRef.id
+    ))) {
+    context.addIssue({
+      code: 'custom',
+      message: 'GPU queue delivery consumption lineage changed.',
+    })
+  }
+})
+const deliveryConsumptionSchema = deliveryConsumptionWithoutHashSchema.extend({
+  consumptionHash: sha256,
+}).strict()
+export type CanonicalProfessionalGpuQueueDeliveryConsumption = z.infer<
+  typeof deliveryConsumptionSchema
+>
+
 export interface CanonicalProfessionalGpuQueueRuntimeReadRpcClientResult {
   readonly data: unknown
   readonly error: unknown
@@ -161,6 +223,11 @@ export interface CanonicalProfessionalGpuQueueRuntimeReadPort {
     readonly runtimeRegion: 'us-central1'
     readonly claimId: string
   }): Promise<CanonicalProfessionalGpuQueueConsumptionBootstrap | null>
+  readDeliveryConsumption(input: {
+    readonly queueId: 'weeditpro-professional-gpu-production-v1'
+    readonly runtimeRegion: 'us-central1'
+    readonly claimId: string
+  }): Promise<CanonicalProfessionalGpuQueueDeliveryConsumption | null>
 }
 
 export function createCanonicalProfessionalGpuQueueRuntimeReadPort(input: {
@@ -204,6 +271,23 @@ export function createCanonicalProfessionalGpuQueueRuntimeReadPort(input: {
         ? null
         : assertCanonicalProfessionalGpuQueueConsumptionBootstrap(data)
     },
+    async readDeliveryConsumption(query: {
+      readonly queueId: 'weeditpro-professional-gpu-production-v1'
+      readonly runtimeRegion: 'us-central1'
+      readonly claimId: string
+    }) {
+      const claimId = safeId.parse(query.claimId)
+      const data = await invoke(input.client, 'deliveryConsumption', {
+        p_contract_version:
+          CANONICAL_PROFESSIONAL_GPU_QUEUE_RUNTIME_READ_VERSION,
+        p_queue_id: query.queueId,
+        p_runtime_region: query.runtimeRegion,
+        p_claim_id: claimId,
+      })
+      return data === null
+        ? null
+        : assertCanonicalProfessionalGpuQueueDeliveryConsumption(data)
+    },
   })
 }
 
@@ -212,6 +296,9 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
     Pick<CanonicalProfessionalGpuQueueRuntimeReadPort, 'readState'>
   readonly a100QuotaReadPort:
     CanonicalSam31A100ServingCompleteSourceCapacityReadPort
+  readonly a100EndpointCapacityReadPort: {
+    rereadCurrent(): Promise<CanonicalSam31VertexServingCapacityObservation>
+  }
 }): CanonicalProfessionalGpuFairQueueCapacityReadPort {
   return Object.freeze({
     schemaVersion:
@@ -224,25 +311,36 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
       readonly runtimeRegion: 'us-central1'
       readonly observedAt: string
     }) {
-      const [state, rawQuota] = await Promise.all([
+      const [state, rawQuota, rawEndpoint] = await Promise.all([
         input.queueRuntimeReadPort.readState({
           queueId: query.queueId,
           runtimeRegion: query.runtimeRegion,
         }),
         input.a100QuotaReadPort.rereadCurrent(),
+        input.a100EndpointCapacityReadPort.rereadCurrent(),
       ])
       const quota =
         assertCanonicalSam31A100ServingCompleteSourceCapacityObservation(
           rawQuota,
         )
+      const endpoint = assertCanonicalSam31VertexServingCapacityObservation(
+        rawEndpoint,
+        query.observedAt,
+      )
       if (Date.parse(query.observedAt) >= Date.parse(quota.expiresAt)
         || quota.reconciling
         || !quota.exactCloudQuotaPreferenceAndQuotaInfoReread
-        || quota.endpointOrGpuJobStarted) {
+        || quota.endpointOrGpuJobStarted
+        || !endpoint.exactCurrentEndpointModelVersionTrafficAndCapacityReread
+        || endpoint.endpointOrGpuJobStarted) {
         throw new TypeError('SAM 3.1 A100 queue capacity is stale or pending.')
       }
       const a100 = state.routeStates[0]
-      const maximum = Math.min(quota.grantedValue, 16)
+      const maximum = Math.min(
+        quota.grantedValue,
+        endpoint.maximumReplicaCount,
+        16,
+      )
       if (maximum < 1 || a100.activeCount > maximum) {
         throw new TypeError('SAM 3.1 A100 queue capacity is unavailable.')
       }
@@ -254,6 +352,7 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
           contentHash: `sha256:${sha256AuthorityValue({
             stateHash: state.stateHash,
             quotaObservationHash: quota.observationHash,
+            endpointCapacityObservationHash: endpoint.observationHash,
             maximumConcurrentAttempts: maximum,
             currentActiveAttempts: a100.activeCount,
           })}`,
@@ -293,6 +392,29 @@ export function assertCanonicalProfessionalGpuQueueConsumptionBootstrap(
     throw new TypeError('Professional GPU queue claim changed.')
   }
   assertCanonicalProfessionalGpuCloudTaskOutboxRecord(parsed.outboxRecord)
+  return structuredClone(parsed)
+}
+
+export function assertCanonicalProfessionalGpuQueueDeliveryConsumption(
+  value: unknown,
+): CanonicalProfessionalGpuQueueDeliveryConsumption {
+  assertPlainSerializedData(value, 'professional_gpu_queue_delivery')
+  const parsed = deliveryConsumptionSchema.parse(value)
+  const { consumptionHash, ...payload } = parsed
+  if (consumptionHash !== sha256AuthorityValue(payload)) {
+    throw new TypeError('Professional GPU queue delivery changed.')
+  }
+  const { claimHash, ...claimPayload } = parsed.claim
+  if (claimHash !== sha256AuthorityValue(claimPayload)) {
+    throw new TypeError('Professional GPU queue delivery claim changed.')
+  }
+  assertCanonicalProfessionalGpuCloudTaskOutboxRecord(parsed.outboxRecord)
+  if (parsed.terminal) {
+    const { terminalHash, ...terminalPayload } = parsed.terminal
+    if (terminalHash !== sha256AuthorityValue(terminalPayload)) {
+      throw new TypeError('Professional GPU queue terminal changed.')
+    }
+  }
   return structuredClone(parsed)
 }
 

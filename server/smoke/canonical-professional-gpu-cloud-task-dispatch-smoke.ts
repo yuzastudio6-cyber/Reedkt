@@ -35,12 +35,12 @@ assert.equal(spec.specDigestSha256, replay.specDigestSha256)
 assert.equal(spec.cloudTaskName, replay.cloudTaskName)
 assert.equal(spec.cloudTaskId.length, 'weeditpro-gpu-'.length + 48)
 assert.equal(spec.targetUrl,
-  'https://reeditpro-api-4wkjiqvdqa-uc.a.run.app/internal/v1/professional-gpu-queue/claims/consume')
+  'https://reeditpro-api-4wkjiqvdqa-uc.a.run.app/internal/v2/professional-gpu-queue/claims/consume')
 assert.equal(spec.oidcAudience,
   'https://reeditpro-api-4wkjiqvdqa-uc.a.run.app')
 assert.equal(spec.oidcServiceAccountEmail,
   'reeditpro-api-sa@reeditpro.iam.gserviceaccount.com')
-assert.equal(spec.dispatchDeadline, '60s')
+assert.equal(spec.dispatchDeadline, '900s')
 assert.equal(spec.cloudGpuDispatchStarted, false)
 assert.equal(spec.customerCreditsMutated, false)
 assert.equal(spec.automaticNewExecutionAttemptAllowed, false)

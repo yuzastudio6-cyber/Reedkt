@@ -57,7 +57,16 @@ export const CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_RUNTIME_VER
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
   .refine((value) => !value.includes('..'))
+const evidenceId = z.string().trim().min(1).max(240)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u)
+  .refine((value) => !value.includes('..'))
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const evidenceRefSchema = z.object({
+  id: evidenceId,
+  version: z.number().int().positive().safe(),
+  contentHash: prefixedSha256,
+}).strict()
 const requestWithoutDigestSchema = z.object({
   schemaVersion: z.literal(
     TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_REQUEST_VERSION,
@@ -87,6 +96,69 @@ const invocationRequestWithoutDigestSchema = z.object({
 const invocationRequestSchema = invocationRequestWithoutDigestSchema.extend({
   requestDigestSha256: sha256,
 }).strict()
+const invocationResultSchema = z.object({
+  schemaVersion: z.literal(
+    TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_RESULT_VERSION,
+  ),
+  requestRef: evidenceRefSchema,
+  workspaceId: safeId,
+  approvedSnapshotId: safeId,
+  workItemKey: safeId,
+  fundedDispatchAdmissionRef: evidenceRefSchema,
+  prelaunchAuthorizationRef: evidenceRefSchema,
+  fixedTaskPreparationBridgeRef: evidenceRefSchema,
+  endpointInvocationAttemptRef: evidenceRefSchema,
+  endpointCallStartRef: evidenceRefSchema,
+  endpointInvocationResultRef: evidenceRefSchema,
+  executionAttemptRef: evidenceRefSchema,
+  runtimeResponseRef: evidenceRefSchema.nullable(),
+  invocationDisposition: z.enum([
+    'completed',
+    'failed',
+    'not_executed_scale_from_zero_trigger',
+    'outcome_unknown_requires_reconciliation',
+  ]),
+  providerOutcome: z.enum(['executed', 'not_executed', 'unknown']),
+  runtimeStatus: z.enum(['completed', 'failed']).nullable(),
+  routeId: z.literal('a100_80gb_heavy_primary'),
+  accelerator: z.literal('nvidia_a100_80gb'),
+  userTriggeredScaleFromZero: z.literal(true),
+  currentDedicatedEndpointInvocation: z.literal(true),
+  historicalCloudJobCustomerDispatchUsed: z.literal(false),
+  currentEndpointReadinessRereadBeforeInvocation: z.literal(true),
+  approvedSourceMaterialRereadByCanonicalServer: z.literal(true),
+  fundedPricingReservationAndAttemptRereadBeforeInvocation: z.literal(true),
+  accountEffectiveServingRateRereadBeforeInvocation: z.literal(true),
+  automaticRetryAllowed: z.literal(false),
+  unresolvedOutcomeBlocksRetry: z.boolean(),
+  canonicalServingWindowUsageCostAndCreditSettlementPending: z.literal(true),
+  callerSuppliedMediaPromptEndpointModelRouteImageCommandOrPriceAccepted:
+    z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  resultDigestSha256: sha256,
+}).strict().superRefine((result, context) => {
+  const executed = result.providerOutcome === 'executed'
+  const notExecuted = result.providerOutcome === 'not_executed'
+  const unknown = result.providerOutcome === 'unknown'
+  if (
+    executed !== (result.invocationDisposition === 'completed'
+      || result.invocationDisposition === 'failed')
+    || notExecuted !== (result.invocationDisposition ===
+      'not_executed_scale_from_zero_trigger')
+    || unknown !== (result.invocationDisposition ===
+      'outcome_unknown_requires_reconciliation')
+    || executed !== (result.runtimeResponseRef !== null)
+    || executed !== (result.runtimeStatus !== null)
+    || unknown !== result.unresolvedOutcomeBlocksRetry
+    || (executed && result.runtimeStatus !== result.invocationDisposition)
+  ) context.addIssue({
+    code: 'custom',
+    message: 'Track All SAM 3.1 invocation result lost terminal truth.',
+  })
+})
 
 export interface CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort {
   readonly schemaVersion:
@@ -212,6 +284,20 @@ export function parseTrackAllSam31AuthenticatedGpuInvocationRequest(
     )
   }
   return structuredClone(request)
+}
+
+export function parseTrackAllSam31AuthenticatedGpuInvocationResult(
+  value: unknown,
+): TrackAllSam31AuthenticatedGpuInvocationResult {
+  assertPlainSerializedData(value, 'track_all_sam31_gpu_invocation_result')
+  const result = invocationResultSchema.parse(value)
+  const { resultDigestSha256, ...payload } = result
+  if (resultDigestSha256 !== sha256AuthorityValue(payload)) {
+    throw new TypeError(
+      'Track All SAM 3.1 endpoint invocation result digest is invalid.',
+    )
+  }
+  return structuredClone(result)
 }
 
 /**

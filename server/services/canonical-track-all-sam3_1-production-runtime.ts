@@ -93,6 +93,42 @@ import {
   createCanonicalProfessionalGpuFairQueueServerHttpClient,
 } from './canonical-professional-gpu-fair-queue-server-http-client'
 import {
+  createCanonicalProfessionalGpuCloudTaskOutboxProductionAdapter,
+  createCanonicalProfessionalGpuCloudTaskOutboxProductionCapability,
+} from './canonical-professional-gpu-cloud-task-outbox-postgres-rpc-adapter'
+import {
+  createCanonicalProfessionalGpuCloudTaskOutboxServerHttpClient,
+} from './canonical-professional-gpu-cloud-task-outbox-server-http-client'
+import {
+  createCanonicalProfessionalGpuQueueRuntimeReadPort,
+  createCanonicalSam31ProductionGpuQueueCapacityReadPort,
+} from './canonical-professional-gpu-queue-runtime-read-port'
+import {
+  createCanonicalProfessionalGpuQueueRuntimeReadServerHttpClient,
+} from './canonical-professional-gpu-queue-runtime-read-server-http-client'
+import {
+  createCanonicalProfessionalGpuCloudTaskRuntimeConfig,
+  createGoogleCloudProfessionalGpuCloudTaskDispatchPort,
+  CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SERVICE_ACCOUNT,
+} from './canonical-professional-gpu-cloud-task-dispatch'
+import {
+  createCanonicalProfessionalGpuCloudTaskScheduler,
+  type CanonicalProfessionalGpuCloudTaskScheduler,
+} from './canonical-professional-gpu-cloud-task-scheduler-service'
+import {
+  createCanonicalProfessionalGpuCloudTaskConsumer,
+  type CanonicalProfessionalGpuCloudTaskConsumer,
+} from './canonical-professional-gpu-cloud-task-consumer-service'
+import {
+  createCanonicalLiveGoogleServiceIdentityVerifier,
+} from '../security/canonical-service-identity-verifier'
+import {
+  createCanonicalSam31GcpA100ServingCompleteSourceCapacityReadPort,
+} from './canonical-sam3_1-complete-source-capacity-owner'
+import {
+  rereadCanonicalSam31VertexServingCapacity,
+} from './canonical-sam3_1-vertex-serving-capacity-mutation'
+import {
   createCanonicalSam31CurrentVertexCustomerInvocationRepository,
   createCanonicalSam31CurrentVertexCustomerInvocationService,
 } from './canonical-sam3_1-current-vertex-serving-invocation-service'
@@ -155,7 +191,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v19' as const
+  'canonical-track-all-sam3_1-production-runtime-v20' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -172,6 +208,10 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
   readonly trackAllSam31QueuedGpuStartRuntimePort:
     CanonicalTrackAllSam31QueuedGpuStartRuntimePort
+  readonly professionalGpuCloudTaskScheduler:
+    CanonicalProfessionalGpuCloudTaskScheduler
+  readonly professionalGpuCloudTaskConsumer:
+    CanonicalProfessionalGpuCloudTaskConsumer
   readonly a100CustomerDispatchReadinessRepository:
     CanonicalSam31CurrentA100CustomerDispatchReadinessRepository
   readonly a100VertexCustomJobTerminalReadPort: ReturnType<
@@ -216,6 +256,9 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly historicalVertexCustomJobCustomerDispatchAllowed: false
   readonly currentA100DedicatedEndpointInvocationMounted: true
   readonly durablePostgresQueueMountedBeforeGpuInvocation: true
+  readonly userTriggeredCloudTaskSchedulingMounted: true
+  readonly authenticatedCloudTaskConsumerMounted: true
+  readonly directA100InvocationHttpRouteMounted: false
   readonly freshA100PricingUsesVertexServingRateAuthority: true
   readonly historicalA100CustomJobPricingRemainsReadOnly: true
 }
@@ -262,6 +305,55 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
           endpointOrigin: supabaseUrl,
           client: gpuQueueRpcClient,
         }),
+    })
+  const gpuOutboxRpcClient =
+    createCanonicalProfessionalGpuCloudTaskOutboxServerHttpClient({
+      endpointOrigin: supabaseUrl,
+      serviceRoleKey: supabaseServiceRoleKey,
+    })
+  const gpuCloudTaskOutboxAdapter =
+    createCanonicalProfessionalGpuCloudTaskOutboxProductionAdapter({
+      client: gpuOutboxRpcClient,
+      capability:
+        createCanonicalProfessionalGpuCloudTaskOutboxProductionCapability({
+          endpointOrigin: supabaseUrl,
+          client: gpuOutboxRpcClient,
+        }),
+    })
+  const gpuQueueRuntimeReadPort =
+    createCanonicalProfessionalGpuQueueRuntimeReadPort({
+      client: createCanonicalProfessionalGpuQueueRuntimeReadServerHttpClient({
+        endpointOrigin: supabaseUrl,
+        serviceRoleKey: supabaseServiceRoleKey,
+      }),
+    })
+  const gpuCloudTaskTargetOrigin = requiredServerSetting(
+    env.professionalGpuTaskTargetOrigin,
+    'professional GPU Cloud Task target origin',
+  )
+  const gpuCloudTaskRuntimeConfig =
+    createCanonicalProfessionalGpuCloudTaskRuntimeConfig({
+      targetOrigin: gpuCloudTaskTargetOrigin,
+    })
+  const professionalGpuCloudTaskScheduler =
+    createCanonicalProfessionalGpuCloudTaskScheduler({
+      queueAdapter: gpuQueueTransactionAdapter,
+      outboxAdapter: gpuCloudTaskOutboxAdapter,
+      dispatchPort: createGoogleCloudProfessionalGpuCloudTaskDispatchPort({
+        runtimeConfig: gpuCloudTaskRuntimeConfig,
+      }),
+      runtimeConfig: gpuCloudTaskRuntimeConfig,
+      capacityReadPort:
+        createCanonicalSam31ProductionGpuQueueCapacityReadPort({
+          queueRuntimeReadPort: gpuQueueRuntimeReadPort,
+          a100QuotaReadPort:
+            createCanonicalSam31GcpA100ServingCompleteSourceCapacityReadPort(),
+          a100EndpointCapacityReadPort: {
+            rereadCurrent: () =>
+              rereadCanonicalSam31VertexServingCapacity(),
+          },
+        }),
+      dispatcherInstanceId: env.workerInstanceId,
     })
   const controlPlaneObjectPort =
     createCanonicalGcsSourceAnalysisJsonObjectPort({
@@ -573,6 +665,20 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       attemptStartReadPort: fundedStartAuthorityStore,
       currentVertexInvocationPort,
     })
+  const professionalGpuCloudTaskConsumer =
+    createCanonicalProfessionalGpuCloudTaskConsumer({
+      identityVerifier: createCanonicalLiveGoogleServiceIdentityVerifier({
+        authenticationMechanism: 'google_oidc_id_token',
+        expectedPrincipalEmail:
+          CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SERVICE_ACCOUNT,
+        expectedAudience: gpuCloudTaskTargetOrigin,
+      }),
+      expectedAudience: gpuCloudTaskTargetOrigin,
+      queueRuntimeReadPort: gpuQueueRuntimeReadPort,
+      fundedStartAuthorityStore,
+      invocationRuntime: authenticatedInvocationRuntime,
+      queueTransactionAdapter: gpuQueueTransactionAdapter,
+    })
   const queuedGpuStartRuntime =
     createCanonicalTrackAllSam31QueuedGpuStartRuntime({
       fundedPreparationRuntime: authenticatedRuntime,
@@ -613,6 +719,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     trackAllSam31AuthenticatedGpuInvocationRuntimePort:
       authenticatedInvocationRuntime,
     trackAllSam31QueuedGpuStartRuntimePort: queuedGpuStartRuntime,
+    professionalGpuCloudTaskScheduler,
+    professionalGpuCloudTaskConsumer,
     a100CustomerDispatchReadinessRepository:
       currentA100CustomerDispatchReadinessRepository,
     a100VertexCustomJobTerminalReadPort,
@@ -646,6 +754,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     historicalVertexCustomJobCustomerDispatchAllowed: false as const,
     currentA100DedicatedEndpointInvocationMounted: true as const,
     durablePostgresQueueMountedBeforeGpuInvocation: true as const,
+    userTriggeredCloudTaskSchedulingMounted: true as const,
+    authenticatedCloudTaskConsumerMounted: true as const,
+    directA100InvocationHttpRouteMounted: false as const,
     freshA100PricingUsesVertexServingRateAuthority: true as const,
     historicalA100CustomJobPricingRemainsReadOnly: true as const,
   })

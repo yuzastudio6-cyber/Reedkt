@@ -38,7 +38,8 @@ assert.equal(primary.disposition, 'created')
 assert.equal(primary.attemptOrdinal, 1)
 assert.equal(primary.cloudJobCreated, false)
 assert.equal(primary.customerCreditsMutated, false)
-assert.equal(objects.size, 1)
+assert.match(primary.executionIndexHash, /^[a-f0-9]{64}$/u)
+assert.equal(objects.size, 2)
 
 const replay = await store.persistFundedAttemptStartCreateOnly({
   approvedFunding: funding,
@@ -47,7 +48,7 @@ const replay = await store.persistFundedAttemptStartCreateOnly({
 })
 assert.equal(replay.disposition, 'identical_replay')
 assert.equal(replay.recordHash, primary.recordHash)
-assert.equal(objects.size, 1)
+assert.equal(objects.size, 2)
 
 const rereadFunding = await store.rereadApprovedFunding(lookup)
 const rereadPrimary = await store.rereadCreateOnlyAttemptStart(lookup)
@@ -55,6 +56,14 @@ assert.deepEqual(rereadFunding, funding)
 assert.deepEqual(rereadPrimary, primaryAttempt)
 assert.notEqual(rereadFunding, funding)
 assert.notEqual(rereadPrimary, primaryAttempt)
+const primaryByExecution = await store
+  .rereadFundedAttemptByExecutionAttemptRef({
+    executionAttemptRef: primaryAttempt.executionAttemptRef,
+    at: readAt,
+  })
+assert.deepEqual(primaryByExecution?.approvedFunding, funding)
+assert.deepEqual(primaryByExecution?.attemptStart, primaryAttempt)
+assert.notEqual(primaryByExecution?.approvedFunding, funding)
 
 const fallbackAttempt = createCanonicalProfessionalGpuAttemptStartAuthority({
   attemptAuthorityId: 'track-all-attempt-authority-2',
@@ -80,12 +89,19 @@ const fallback = await store.persistFundedAttemptStartCreateOnly({
 })
 assert.equal(fallback.disposition, 'created')
 assert.equal(fallback.attemptOrdinal, 2)
-assert.equal(objects.size, 2)
+assert.equal(objects.size, 4)
 assert.deepEqual(
   await store.rereadCreateOnlyAttemptStart(lookup),
   fallbackAttempt,
 )
 assert.deepEqual(await store.rereadApprovedFunding(lookup), funding)
+assert.deepEqual(
+  (await store.rereadFundedAttemptByExecutionAttemptRef({
+    executionAttemptRef: fallbackAttempt.executionAttemptRef,
+    at: readAt,
+  }))?.attemptStart,
+  fallbackAttempt,
+)
 
 const fallbackWithoutPrimaryObjects = new Map<string, Buffer>()
 const fallbackWithoutPrimary =
@@ -118,6 +134,10 @@ const crossedLookup = {
 }
 assert.equal(await store.rereadApprovedFunding(crossedLookup), null)
 assert.equal(await store.rereadCreateOnlyAttemptStart(crossedLookup), null)
+assert.equal(await store.rereadFundedAttemptByExecutionAttemptRef({
+  executionAttemptRef: ref('missing-execution-attempt'),
+  at: readAt,
+}), null)
 
 let getterInvoked = false
 const hostile = Object.defineProperty({}, 'workspaceId', {
@@ -146,12 +166,13 @@ await assert.rejects(conflictingStore.persistFundedAttemptStartCreateOnly({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-funded-start-authority-store',
-  checks: 31,
+  checks: 38,
   primaryCreateOnlyExactReread: true,
   identicalReplayAccepted: true,
   fallbackRequiresPersistedPrimary: true,
   fallbackRequiresDistinctLeaseAttemptTriggerAndIdempotency: true,
   currentReadSelectsFallbackAfterSafePrimaryDisposition: true,
+  executionAttemptIndexCreateOnlyExactReread: true,
   crossSnapshotReadReturnsNoAuthority: true,
   hostileAccessorRejectedWithoutInvocation: true,
   callerRoutePriceRuntimeAccepted: false,

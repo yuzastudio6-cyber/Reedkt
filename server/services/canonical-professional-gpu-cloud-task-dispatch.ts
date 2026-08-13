@@ -11,22 +11,22 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_BODY_VERSION =
-  'canonical-professional-gpu-cloud-task-body-v1' as const
+  'canonical-professional-gpu-cloud-task-body-v2' as const
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SPEC_VERSION =
-  'canonical-professional-gpu-cloud-task-spec-v1' as const
+  'canonical-professional-gpu-cloud-task-spec-v2' as const
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_DISPATCH_RESULT_VERSION =
   'canonical-professional-gpu-cloud-task-dispatch-result-v1' as const
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_QUEUE =
   'weeditpro-professional-gpu-dispatch-v1' as const
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_PATH =
-  '/internal/v1/professional-gpu-queue/claims/consume' as const
+  '/internal/v2/professional-gpu-queue/claims/consume' as const
 
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const CLOUD_TASKS_API_ROOT = 'https://cloudtasks.googleapis.com/v2' as const
 const PROJECT_ID = 'reeditpro' as const
 const LOCATION = 'us-central1' as const
-const API_SERVICE_ACCOUNT =
+export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SERVICE_ACCOUNT =
   'reeditpro-api-sa@reeditpro.iam.gserviceaccount.com' as const
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u)
@@ -55,9 +55,11 @@ const runtimeConfigSchema = z.object({
       && !value.endsWith('/')
       && url.hostname.endsWith('.run.app')
   }),
-  oidcServiceAccountEmail: z.literal(API_SERVICE_ACCOUNT),
+  oidcServiceAccountEmail: z.literal(
+    CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SERVICE_ACCOUNT,
+  ),
   oidcAudience: z.string().url().max(512),
-  dispatchDeadlineSeconds: z.literal(60),
+  dispatchDeadlineSeconds: z.literal(900),
   callerSelectedQueueTargetServiceAccountOrDeadlineAccepted: z.literal(false),
 }).strict().superRefine((config, context) => {
   if (config.oidcAudience !== config.targetOrigin) {
@@ -100,11 +102,13 @@ const taskSpecWithoutHashSchema = z.object({
     'projects/reeditpro/locations/us-central1/queues/weeditpro-professional-gpu-dispatch-v1',
   ),
   targetUrl: z.string().url().max(700),
-  oidcServiceAccountEmail: z.literal(API_SERVICE_ACCOUNT),
+  oidcServiceAccountEmail: z.literal(
+    CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SERVICE_ACCOUNT,
+  ),
   oidcAudience: z.string().url().max(512),
   httpMethod: z.literal('POST'),
   contentType: z.literal('application/json'),
-  dispatchDeadline: z.literal('60s'),
+  dispatchDeadline: z.literal('900s'),
   body: bodySchema,
   bodyBase64: z.string().min(4).max(16_384),
   claimRef: evidenceRefSchema,
@@ -201,9 +205,10 @@ export function createCanonicalProfessionalGpuCloudTaskRuntimeConfig(input: {
     location: LOCATION,
     queueName: CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_QUEUE,
     targetOrigin: input.targetOrigin,
-    oidcServiceAccountEmail: API_SERVICE_ACCOUNT,
+    oidcServiceAccountEmail:
+      CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_SERVICE_ACCOUNT,
     oidcAudience: input.targetOrigin,
-    dispatchDeadlineSeconds: 60,
+    dispatchDeadlineSeconds: 900,
     callerSelectedQueueTargetServiceAccountOrDeadlineAccepted: false,
   }))
 }
@@ -235,7 +240,7 @@ export function compileCanonicalProfessionalGpuCloudTaskSpec(input: {
     bodyDigestSha256: sha256AuthorityValue(bodyPayload),
   })
   const taskSeed = sha256AuthorityValue({
-    domain: 'canonical_professional_gpu_cloud_task_name_v1',
+    domain: 'canonical_professional_gpu_cloud_task_name_v2',
     queueId: claim.queueId,
     runtimeRegion: claim.runtimeRegion,
     queueEntryId: claim.queueEntry.queueEntryId,
@@ -294,7 +299,7 @@ export function assertCanonicalProfessionalGpuCloudTaskSpec(
   }
   const expected = compileExpectedBody(parsed)
   const expectedTaskSeed = sha256AuthorityValue({
-    domain: 'canonical_professional_gpu_cloud_task_name_v1',
+    domain: 'canonical_professional_gpu_cloud_task_name_v2',
     queueId: parsed.body.queueId,
     runtimeRegion: parsed.body.runtimeRegion,
     queueEntryId: parsed.body.queueEntryId,
@@ -309,6 +314,17 @@ export function assertCanonicalProfessionalGpuCloudTaskSpec(
     || parsed.cloudTaskName !==
       `${parsed.queueResourceName}/tasks/${expectedTaskId}`) {
     throw new TypeError('Professional GPU Cloud Task body or name changed.')
+  }
+  return parsed
+}
+
+export function parseCanonicalProfessionalGpuCloudTaskBody(
+  value: unknown,
+): CanonicalProfessionalGpuCloudTaskBody {
+  const parsed = bodySchema.parse(clonePlain(value))
+  const { bodyDigestSha256, ...payload } = parsed
+  if (bodyDigestSha256 !== sha256AuthorityValue(payload)) {
+    throw new TypeError('Professional GPU Cloud Task body digest changed.')
   }
   return parsed
 }

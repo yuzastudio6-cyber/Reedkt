@@ -41,6 +41,9 @@ import {
   parseTrackAllSam31TaskQaEvidenceFinalizationRequest,
 } from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import {
+  CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_PATH,
+} from '../services/canonical-professional-gpu-cloud-task-dispatch'
+import {
   asyncRoute,
   getIdempotencyKey,
   getRouteParam,
@@ -56,6 +59,28 @@ import {
  */
 export function createTrackAllSam31Routes(): Router {
   const router = Router()
+  router.post(
+    CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_PATH,
+    asyncRoute(async (request, response) => {
+      const context = getServiceContext(request)
+      const consumer = context.professionalGpuCloudTaskConsumer
+      if (!consumer) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The authenticated professional GPU task consumer is not released.',
+        503,
+        { requiredGate: 'professional_gpu_cloud_task_consumer_release' },
+      )
+      const result = await consumer.consumeOne({
+        authorizationHeader: request.headers.authorization,
+        body: request.body,
+      })
+      sendOk(response, { consumption: result }, [
+        result.disposition === 'unknown_outcome_requires_reconciliation'
+          ? 'The exact paid attempt has an uncertain endpoint outcome. The queue remains blocked for canonical reconciliation and no automatic retry or second inference was started.'
+          : 'The canonical backend reread the exact durable task, queue claim, funded attempt, and endpoint result. Duplicate delivery cannot start a second paid inference.',
+      ], 200)
+    }),
+  )
   router.post(
     TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_ROUTE,
     requireAuth,
@@ -88,8 +113,16 @@ export function createTrackAllSam31Routes(): Router {
         idempotencyKey,
         request: body,
       })
-      sendOk(response, { queueStart: result }, [
-        'The canonical backend prepared and durably queued one funded SAM 3.1 A100 attempt. This request did not invoke a GPU or create a Cloud Task; the separate scheduler and authenticated task consumer must reread exact funding, task, runtime, and capacity authorities before execution.',
+      const scheduler = context.professionalGpuCloudTaskScheduler
+      if (!scheduler) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The user-triggered professional GPU Cloud Task scheduler is not released.',
+        503,
+        { requiredGate: 'professional_gpu_cloud_task_scheduler_release' },
+      )
+      const schedule = await scheduler.runOneCycle()
+      sendOk(response, { queueStart: result, schedule }, [
+        'The canonical backend prepared and durably queued one funded SAM 3.1 A100 attempt, reread exact live endpoint/quota capacity, and ran one user-triggered Cloud Task scheduling cycle. Only the authenticated task consumer may invoke the paid GPU attempt.',
       ], 202)
     }),
   )

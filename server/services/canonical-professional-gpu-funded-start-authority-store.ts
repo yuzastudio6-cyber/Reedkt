@@ -27,6 +27,8 @@ export const CANONICAL_PROFESSIONAL_GPU_FUNDED_START_AUTHORITY_STORE_VERSION =
   'canonical-professional-gpu-funded-start-authority-store-v1' as const
 export const CANONICAL_PROFESSIONAL_GPU_FUNDED_START_RECORD_VERSION =
   'canonical-professional-gpu-funded-start-record-v1' as const
+export const CANONICAL_PROFESSIONAL_GPU_FUNDED_START_EXECUTION_INDEX_VERSION =
+  'canonical-professional-gpu-funded-start-execution-index-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_STATE_BUCKET =
@@ -71,6 +73,35 @@ const recordWithoutHashSchema = z.object({
 const recordSchema = recordWithoutHashSchema.extend({
   recordHash: sha256,
 }).strict()
+const evidenceRefSchema = z.object({
+  id: safeId,
+  version: z.number().int().positive().safe(),
+  contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+}).strict()
+const executionIndexWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_PROFESSIONAL_GPU_FUNDED_START_EXECUTION_INDEX_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_professional_gpu_funded_start_authority_store',
+  ),
+  evidenceClass: z.literal('gcs_create_only_execution_attempt_lookup'),
+  executionAttemptRef: evidenceRefSchema,
+  workspaceId: safeId,
+  snapshotId: safeId,
+  workItemKey: safeId,
+  attemptOrdinal: z.union([z.literal(1), z.literal(2)]),
+  fundedStartRecordHash: sha256,
+  exactExecutionAttemptToFundedPairBinding: z.literal(true),
+  callerLookupOrExecutionMaterialAccepted: z.literal(false),
+  cloudJobCreated: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  persistedAt: timestamp,
+}).strict()
+const executionIndexSchema = executionIndexWithoutHashSchema.extend({
+  indexHash: sha256,
+}).strict()
 
 export interface CanonicalProfessionalGpuFundedStartAuthorityStore
   extends CanonicalProfessionalGpuApprovedFundingReadPort,
@@ -86,11 +117,26 @@ export interface CanonicalProfessionalGpuFundedStartAuthorityStore
   }): Promise<{
     readonly disposition: 'created' | 'identical_replay'
     readonly recordHash: string
+    readonly executionIndexHash: string
     readonly attemptOrdinal: 1 | 2
     readonly exactCreateOnlyRereadVerified: true
     readonly cloudJobCreated: false
     readonly customerCreditsMutated: false
   }>
+  rereadFundedAttemptByExecutionAttemptRef(input: {
+    readonly executionAttemptRef: {
+      readonly id: string
+      readonly version: number
+      readonly contentHash: string
+    }
+    readonly at: string
+  }): Promise<{
+    readonly approvedFunding:
+      CanonicalProfessionalGpuApprovedFundingObservation
+    readonly attemptStart: CanonicalProfessionalGpuAttemptStartAuthority
+    readonly fundedStartRecordHash: string
+    readonly executionIndexHash: string
+  } | null>
 }
 
 type PersistFundedStartInput = Parameters<
@@ -104,6 +150,11 @@ type FundingReadInput = Parameters<
 type AttemptReadInput = Parameters<
   CanonicalProfessionalGpuAttemptStartAuthorityReadPort[
     'rereadCreateOnlyAttemptStart'
+  ]
+>[0]
+type ExecutionAttemptReadInput = Parameters<
+  CanonicalProfessionalGpuFundedStartAuthorityStore[
+    'rereadFundedAttemptByExecutionAttemptRef'
   ]
 >[0]
 
@@ -233,6 +284,14 @@ export function createCanonicalProfessionalGpuFundedStartAuthorityStore(
       if (!reread || reread.recordHash !== record.recordHash) {
         throw conflict('funded_start_create_only_reread_mismatch')
       }
+      const executionIndex = await persistExecutionIndex({
+        objectPort: input.objectPort,
+        prefix,
+        lookup,
+        attempt,
+        recordHash: record.recordHash,
+        persistedAt: request.persistedAt,
+      })
       return Object.freeze({
         disposition: disposition === 'created'
           ? 'created' as const
@@ -240,6 +299,7 @@ export function createCanonicalProfessionalGpuFundedStartAuthorityStore(
         recordHash: record.recordHash,
         attemptOrdinal: attempt.attemptOrdinal,
         exactCreateOnlyRereadVerified: true as const,
+        executionIndexHash: executionIndex.indexHash,
         cloudJobCreated: false as const,
         customerCreditsMutated: false as const,
       })
@@ -251,6 +311,40 @@ export function createCanonicalProfessionalGpuFundedStartAuthorityStore(
     async rereadCreateOnlyAttemptStart(untrusted: AttemptReadInput) {
       const record = await readCurrent(untrusted)
       return record ? structuredClone(record.attemptStart) : null
+    },
+    async rereadFundedAttemptByExecutionAttemptRef(
+      untrusted: ExecutionAttemptReadInput,
+    ) {
+      assertPlainSerializedData(untrusted, 'gpu_funded_start_execution_lookup')
+      const query = z.object({
+        executionAttemptRef: evidenceRefSchema,
+        at: timestamp,
+      }).strict().parse(untrusted)
+      const index = await readExecutionIndex({
+        objectPort: input.objectPort,
+        prefix,
+        executionAttemptRef: query.executionAttemptRef,
+        at: query.at,
+      })
+      if (!index) return null
+      const lookup = lookupSchema.parse({
+        workspaceId: index.workspaceId,
+        snapshotId: index.snapshotId,
+        workItemKey: index.workItemKey,
+      })
+      const record = await readOrdinal(lookup, index.attemptOrdinal, query.at)
+      if (!record
+        || record.recordHash !== index.fundedStartRecordHash
+        || !sameRef(
+          record.attemptStart.executionAttemptRef,
+          query.executionAttemptRef,
+        )) throw conflict('execution_index_record_lineage_invalid')
+      return Object.freeze({
+        approvedFunding: structuredClone(record.approvedFunding),
+        attemptStart: structuredClone(record.attemptStart),
+        fundedStartRecordHash: record.recordHash,
+        executionIndexHash: index.indexHash,
+      })
     },
   })
 }
@@ -373,6 +467,97 @@ function recordPath(
 ): string {
   const key = hashBytes(Buffer.from(stableAuthorityStringify(lookup), 'utf8'))
   return `${prefix}/${key}/attempt-${ordinal}.json`
+}
+
+async function persistExecutionIndex(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix: string
+  readonly lookup: z.infer<typeof lookupSchema>
+  readonly attempt: CanonicalProfessionalGpuAttemptStartAuthority
+  readonly recordHash: string
+  readonly persistedAt: string
+}): Promise<z.infer<typeof executionIndexSchema>> {
+  const payload = executionIndexWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_PROFESSIONAL_GPU_FUNDED_START_EXECUTION_INDEX_VERSION,
+    source: 'canonical_server_professional_gpu_funded_start_authority_store',
+    evidenceClass: 'gcs_create_only_execution_attempt_lookup',
+    executionAttemptRef: input.attempt.executionAttemptRef,
+    workspaceId: input.lookup.workspaceId,
+    snapshotId: input.lookup.snapshotId,
+    workItemKey: input.lookup.workItemKey,
+    attemptOrdinal: input.attempt.attemptOrdinal,
+    fundedStartRecordHash: input.recordHash,
+    exactExecutionAttemptToFundedPairBinding: true,
+    callerLookupOrExecutionMaterialAccepted: false,
+    cloudJobCreated: false,
+    customerCreditsMutated: false,
+    productionAuthorityGranted: false,
+    persistedAt: input.persistedAt,
+  })
+  const index = executionIndexSchema.parse({
+    ...payload,
+    indexHash: sha256AuthorityValue(payload),
+  })
+  const body = serialize(index)
+  await input.objectPort.createOnly({
+    objectPath: executionIndexPath(input.prefix, index.executionAttemptRef),
+    body,
+    contentSha256: hashBytes(body),
+  })
+  const reread = await readExecutionIndex({
+    objectPort: input.objectPort,
+    prefix: input.prefix,
+    executionAttemptRef: index.executionAttemptRef,
+    at: input.persistedAt,
+  })
+  if (!reread || reread.indexHash !== index.indexHash) {
+    throw conflict('execution_index_create_only_reread_mismatch')
+  }
+  return reread
+}
+
+async function readExecutionIndex(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix: string
+  readonly executionAttemptRef: z.infer<typeof evidenceRefSchema>
+  readonly at: string
+}): Promise<z.infer<typeof executionIndexSchema> | null> {
+  const bytes = await input.objectPort.readExact(executionIndexPath(
+    input.prefix,
+    input.executionAttemptRef,
+  ))
+  if (!bytes) return null
+  if (!Buffer.isBuffer(bytes) || bytes.byteLength < 2
+    || bytes.byteLength > MAXIMUM_RECORD_BYTES) {
+    throw conflict('execution_index_bytes_invalid')
+  }
+  let decoded: unknown
+  try {
+    decoded = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    throw conflict('execution_index_json_invalid')
+  }
+  const index = executionIndexSchema.parse(decoded)
+  const { indexHash, ...payload } = index
+  if (indexHash !== sha256AuthorityValue(payload)
+    || stableAuthorityStringify(index) !== bytes.toString('utf8')
+    || Date.parse(index.persistedAt) > Date.parse(input.at)
+    || !sameRef(index.executionAttemptRef, input.executionAttemptRef)) {
+    throw conflict('execution_index_digest_scope_or_time_invalid')
+  }
+  return index
+}
+
+function executionIndexPath(
+  prefix: string,
+  executionAttemptRef: z.infer<typeof evidenceRefSchema>,
+): string {
+  const key = sha256AuthorityValue({
+    domain: 'canonical_professional_gpu_funded_start_execution_index_v1',
+    executionAttemptRef,
+  })
+  return `${prefix}/by-execution-attempt/${key}.json`
 }
 
 function serialize(value: unknown): Buffer {

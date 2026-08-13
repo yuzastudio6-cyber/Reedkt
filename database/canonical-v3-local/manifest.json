@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "089bd04e6359cd7c8c677f2e5a3ca0ff377bc3cdcff4e5ffb4a5e9bd336bd6ff"
+      "sha256": "66fe929d9cb0b73d9b73a483f930ec86eb361e2a7efc07b0e362aaf0477535fc"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -146,6 +146,10 @@
       "sha256": "5822dfc41bd246fd0899dd35b7b06f4b0ce985e7c736db160d046c00be91307d"
     },
     {
+      "path": "supabase/migrations/202607210028_professional_gpu_delivery_consumption.sql",
+      "sha256": "7137ac575396aaf2bc7bbc8b1a0e79533cf830c7461c328ceb0d08289c7522e7"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -230,6 +234,10 @@
       "sha256": "1406b57d7cd9fb52bba47c309ddd784432b799dfc3728128a641f1bcf7571336"
     },
     {
+      "path": "tests/022_professional_gpu_delivery_consumption_postconditions.sql",
+      "sha256": "5019f50f684fc42698cc23dbce64b6be567ca12e70f1299bb727e61c9dd37f35"
+    },
+    {
       "path": "tests/_fixture.sql",
       "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
     },
@@ -243,7 +251,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "32f41a87d804924e2bcffad1a4b18808982d5c73a301efe5551522dc6146abe3"
+      "sha256": "f93397d254cf9128c6a172cbbe805d203f93c614ad82400d7ff1087dd83b8ac0"
     }
   ],
   "repositoryFiles": [
@@ -337,7 +345,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "b5ff93c48e608b8dcd7ca13171f47aed5c3179ea262c7fa5a9ac9e9e5edf342c"
+      "sha256": "1b70501dc25e71889cced055e24fa8812648c0e5f999144151abf2d048a8bd4d"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
@@ -345,7 +353,11 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "93f90fbd44c6caa9cc26b000a3e58d2d58a5d0822b8d7926ff3594b90db73bd8"
+      "sha256": "33b7343068462fb0c3d89a7faff8b3cac5cacf6cc48db9d12038a19d8be8495a"
+    },
+    {
+      "path": "server/config/env.ts",
+      "sha256": "2d3708582ed7e77f6d8d20a5e9ed781d952ae2bc3338d24dfb9c4793c612ce19"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -476,6 +488,10 @@
       "sha256": "dcb05cb6781a99ff1bebcdc9ab81b4be7a0ad36275983945091407bfbee4f141"
     },
     {
+      "path": "server/index.ts",
+      "sha256": "987c86f0281dce96e38846204c810332c2bd3333a98960d6a8f89fb549d5789e"
+    },
+    {
       "path": "server/middleware/idempotency.ts",
       "sha256": "5ffdbd691639217f982c4ecfee4a74e51f69fb370f8c2c26057c5e8b8063954d"
     },
@@ -521,19 +537,31 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "ce71ebf7562acab0bad39474b74bac4ca6ea5339f0aa1479290e74ce04595f0b"
+      "sha256": "8e288ee6702acc9d104b2bacbb232797af6dd9f1a315c13f4a914919094ff623"
+    },
+    {
+      "path": "server/routes/track-all-sam3_1-routes.ts",
+      "sha256": "32aa982a5dbacf959caf351722d38eb39ee3860c5bc05c5e6c8f1a263d53c8ba"
     },
     {
       "path": "server/routes/upload-routes.ts",
       "sha256": "e164a57b841b2220c6abf1112d137961a4e0ed43f1b6e62d8f3c776d246a4f2b"
     },
     {
+      "path": "server/security/canonical-service-identity-verifier.ts",
+      "sha256": "4f9a13bea60d359e039e8ff02e95bc0fd858a8b737a9b4190e22fce08ed93474"
+    },
+    {
       "path": "server/services/canonical-planning-handoff-service.ts",
       "sha256": "98f47bb6019af9aa7363ced8bf8036a1adfce88c5b00114b79ad30c6b7456073"
     },
     {
+      "path": "server/services/canonical-professional-gpu-cloud-task-consumer-service.ts",
+      "sha256": "baf809e4baf41ede41a4e91c13c88bd413c373495a60d1695d7ed7be3b4560d1"
+    },
+    {
       "path": "server/services/canonical-professional-gpu-cloud-task-dispatch.ts",
-      "sha256": "df908155cdcbfd31c9382b95fd42510d311882c36546d9de4b582243fa4b2ac5"
+      "sha256": "a2ba04df794bac2814d6fd827828427e4a8afd6c39a442083973b3aace228472"
     },
     {
       "path": "server/services/canonical-professional-gpu-cloud-task-outbox-local-http-client.ts",
@@ -546,6 +574,14 @@
     {
       "path": "server/services/canonical-professional-gpu-cloud-task-outbox-postgres-rpc-adapter.ts",
       "sha256": "a4b554f6a460710af1f9ef34eb60d6f820af6b6e8f644f1e4e14b3577cd852a5"
+    },
+    {
+      "path": "server/services/canonical-professional-gpu-cloud-task-outbox-server-http-client.ts",
+      "sha256": "bbba427c2730fb7c5e3f6dfcd1c0b6e706e79af0847f74553c521f5b726ef0e1"
+    },
+    {
+      "path": "server/services/canonical-professional-gpu-cloud-task-scheduler-service.ts",
+      "sha256": "84f71e6cfbc7caa7ef6607e682cdea7d8822b6cabaf27cdbf67c6711e10aeca1"
     },
     {
       "path": "server/services/canonical-professional-gpu-fair-queue-coordinator.ts",
@@ -566,6 +602,34 @@
     {
       "path": "server/services/canonical-professional-gpu-fair-queue-transaction-port.ts",
       "sha256": "9b86c185e38028092abddd8a13158e64410ed75c96cde9a2c03d691a0a25fd34"
+    },
+    {
+      "path": "server/services/canonical-professional-gpu-funded-start-authority-store.ts",
+      "sha256": "bf7cee2b0de0bd13b77d0af37b18c6042dad366f471225a9b9fb33c15b79213d"
+    },
+    {
+      "path": "server/services/canonical-professional-gpu-queue-runtime-read-port.ts",
+      "sha256": "7de9c51278621f421ad2a8730474623f2dd85987c8e45808f6a889742d93e77e"
+    },
+    {
+      "path": "server/services/canonical-professional-gpu-queue-runtime-read-server-http-client.ts",
+      "sha256": "e9807b3e6dd7410fa3aafa2a7b40508a768a041e787cc175297d20bf262c0575"
+    },
+    {
+      "path": "server/services/canonical-sam3_1-complete-source-capacity-owner.ts",
+      "sha256": "0c676e543bf7d77d777868e7a66bf3793d5dd1d20fea04e18e0807ab2f863e0b"
+    },
+    {
+      "path": "server/services/canonical-sam3_1-vertex-serving-capacity-mutation.ts",
+      "sha256": "e0bc073acc3d16e6301d7195bcb5481cc667c7e2a2cbb7038a33d116fcf3bf7f"
+    },
+    {
+      "path": "server/services/canonical-track-all-sam3_1-authenticated-gpu-start-service.ts",
+      "sha256": "4e34bd48a2fbbafa1f545d2fd13f7fe2784514171f1b405a5d0a039a51b96797"
+    },
+    {
+      "path": "server/services/canonical-track-all-sam3_1-production-runtime.ts",
+      "sha256": "21c70891597d77b8957b58145f99d8912b3b400986cf6cf7b2af8aa49330eeca"
     },
     {
       "path": "server/services/edit-reference-application-preparation-runtime-port.ts",
@@ -688,8 +752,12 @@
       "sha256": "e9a33c746e34b77a45373c3043b1eed9d3da38b0d3a6962ce642a75e28fbdefb"
     },
     {
+      "path": "server/smoke/canonical-professional-gpu-cloud-task-consumer-smoke.ts",
+      "sha256": "27d9ec0ca2af856020a62457e7f78bb2015ef93f716b75a551eba5683380e2a6"
+    },
+    {
       "path": "server/smoke/canonical-professional-gpu-cloud-task-dispatch-smoke.ts",
-      "sha256": "555215c830db5274fd19d76f07acb00f86d9a1306eaf6fa595427a6ca5722ac2"
+      "sha256": "2494675a3246eef24f5c2d999433149e422de23f6d71271795fc8d9d92c517c3"
     },
     {
       "path": "server/smoke/canonical-professional-gpu-cloud-task-outbox-local-postgres-smoke.ts",
@@ -708,12 +776,28 @@
       "sha256": "c0d1608cb3ec9dc097266c7365362b4f5a94bf519f9d641842ff5111ae8799c0"
     },
     {
+      "path": "server/smoke/canonical-professional-gpu-funded-start-authority-store-smoke.ts",
+      "sha256": "59c37aeda1a47434ae05eeca8f9bb38dc52a39c6a04bf6f94778601967834a45"
+    },
+    {
+      "path": "server/smoke/canonical-professional-gpu-queue-runtime-read-smoke.ts",
+      "sha256": "f4e232035932a9bd991dd3d0c7b94a5b0f9c151502aa214aa634e8d185d8d497"
+    },
+    {
       "path": "server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts",
       "sha256": "1a85a2bc77a18c5105d6c38dca3ca807617df4ab74a2fae28e0169e2f74cb8e7"
     },
     {
       "path": "server/smoke/canonical-professional-long-form-post-approval-smoke.ts",
       "sha256": "f449d7edc162327107ad1aa2871414b2ee2ad744992458069fe4feb3eac38c92"
+    },
+    {
+      "path": "server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
+      "sha256": "1bb4343074be50307fc169af62fcd1cda8e8e6069764c6a969cbbd3694387e3b"
+    },
+    {
+      "path": "server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",
+      "sha256": "52d14a11174ae7cce1a02c0f00efa4c51eb246b34702f66e08fca038fe0c3e79"
     },
     {
       "path": "server/smoke/edit-planning-authority-smoke.ts",
@@ -805,7 +889,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "ef50230c71c6032a0bcb813904f39582b9f3fe705da5b39c7697228f1cff0ad0"
+      "sha256": "7c6831b387342c75e8091c5e1360928f91449aadd3cbb4c303c11f0c3a8630ae"
     },
     {
       "path": "server/upload-target-authority/canonical-durable-upload-target-authority.ts",
@@ -858,6 +942,10 @@
     {
       "path": "src/backend/api/routes/edit-planning-api-routes.ts",
       "sha256": "c3af3c657ac6c7f5fe56ac22a3a99053dc4388c2f974c0b8b527f1d26151d6fe"
+    },
+    {
+      "path": "src/backend/api/routes/job-api-routes.ts",
+      "sha256": "bea391eb75815753ce09ee6460446572a18ef40c3701e83b24ac052e033984ca"
     },
     {
       "path": "src/backend/api/routes/media-upload-api-routes.ts",

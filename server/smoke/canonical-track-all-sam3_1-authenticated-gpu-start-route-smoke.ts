@@ -53,6 +53,15 @@ import {
 } from '../services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
+import type {
+  CanonicalProfessionalGpuCloudTaskSchedulerResult,
+} from '../services/canonical-professional-gpu-cloud-task-scheduler-service'
+import {
+  CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_PATH,
+} from '../services/canonical-professional-gpu-cloud-task-dispatch'
+import type {
+  CanonicalProfessionalGpuCloudTaskConsumerResult,
+} from '../services/canonical-professional-gpu-cloud-task-consumer-service'
 
 const internalToken = 'track-all-sam31-route-smoke-token'
 const workspaceId = 'workspace-track-all-sam31-route'
@@ -108,6 +117,8 @@ const taskQaFinalizationRequest =
 let runtimeCalls = 0
 let invocationRuntimeCalls = 0
 let queuedStartRuntimeCalls = 0
+let schedulerCalls = 0
+let consumerCalls = 0
 let l4TaskQaRuntimeCalls = 0
 let finalizationRuntimeCalls = 0
 let taskQaFinalizationRuntimeCalls = 0
@@ -162,6 +173,37 @@ const app = createReeditProApiApp(loadRuntimeEnv({
       assert.equal(input.idempotencyKey, queuedStartRequest.requestId)
       assert.deepEqual(input.request, queuedStartRequest)
       return queuedStartResultFor(queuedStartRequest)
+    },
+  }),
+  professionalGpuCloudTaskScheduler: Object.freeze({
+    schemaVersion: 'canonical-professional-gpu-cloud-task-scheduler-v1',
+    queueId: 'weeditpro-professional-gpu-production-v1',
+    runtimeRegion: 'us-central1',
+    directGpuInvocationAllowed: false,
+    callerCapacityAccepted: false,
+    automaticExternalCreateRetryAllowed: false,
+    productionAuthority: false,
+    async runOneCycle() {
+      schedulerCalls += 1
+      return schedulerResultFor()
+    },
+  }),
+  professionalGpuCloudTaskConsumer: Object.freeze({
+    schemaVersion: 'canonical-professional-gpu-cloud-task-consumer-v1',
+    privateGoogleOidcReceiver: true,
+    exactCanonicalRereadBeforeGpuInvocation: true,
+    duplicateDeliveryMayStartNewInference: false,
+    automaticNewExecutionAttemptAllowed: false,
+    customerCreditsMutatedByConsumer: false,
+    productionAuthority: false,
+    async consumeOne(input: {
+      authorizationHeader: unknown
+      body: unknown
+    }) {
+      consumerCalls += 1
+      assert.equal(input.authorizationHeader, 'Bearer fixture-google-oidc')
+      assert.deepEqual(input.body, { delivery: 'fixture' })
+      return consumerResultFor()
     },
   }),
   trackAllSam31AuthenticatedGpuStartRuntimePort: Object.freeze({
@@ -260,6 +302,22 @@ try {
     Record<string, unknown>
   assert.equal(validQueuedStartJson.ok, true)
   assert.equal(queuedStartRuntimeCalls, 1)
+  assert.equal(schedulerCalls, 1)
+
+  const consumed = await fetch(
+    `${url}${CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_PATH}`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: 'Bearer fixture-google-oidc',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ delivery: 'fixture' }),
+    },
+  )
+  assert.equal(consumed.status, 200)
+  assert.equal((await consumed.json() as Record<string, unknown>).ok, true)
+  assert.equal(consumerCalls, 1)
 
   const queuedStartInjectedPriority = await postQueuedStart({
     ...buildTrackAllSam31AuthenticatedGpuQueuedStartRequest({
@@ -271,6 +329,7 @@ try {
   }, 'track-all-sam31-injected-queue-priority', internalToken)
   assert.equal(queuedStartInjectedPriority.status, 400)
   assert.equal(queuedStartRuntimeCalls, 1)
+  assert.equal(schedulerCalls, 1)
 
   const queuedStartIdempotencyMismatch = await postQueuedStart(
     queuedStartRequest,
@@ -279,6 +338,7 @@ try {
   )
   assert.equal(queuedStartIdempotencyMismatch.status, 409)
   assert.equal(queuedStartRuntimeCalls, 1)
+  assert.equal(schedulerCalls, 1)
 
   const queuedStartInvalidToken = await postQueuedStart(
     queuedStartRequest,
@@ -287,6 +347,7 @@ try {
   )
   assert.equal(queuedStartInvalidToken.status, 403)
   assert.equal(queuedStartRuntimeCalls, 1)
+  assert.equal(schedulerCalls, 1)
 
   const queuedRoute = getApiRouteById(
     TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_ROUTE_ID,
@@ -295,8 +356,9 @@ try {
   assert.equal(queuedRoute?.runtimeMode, 'backend_required')
   assert.equal(queuedRoute?.requiresSupabase, true)
   assert.equal(queuedRoute?.requiresServiceRole, true)
-  assert.match(queuedRoute?.notes.join(' ') ?? '', /no GPU invocation/u)
+  assert.match(queuedRoute?.notes.join(' ') ?? '', /no direct GPU invocation/u)
   assert.match(queuedRoute?.notes.join(' ') ?? '', /durable Postgres/u)
+  assert.match(queuedRoute?.notes.join(' ') ?? '', /Cloud Task/u)
 
   const validInvocation = await postInvocation(
     invocationRequest,
@@ -341,6 +403,7 @@ try {
   )
   assert.equal(invocationRoute?.securityLevel, 'backend_service_role')
   assert.equal(invocationRoute?.runtimeMode, 'backend_required')
+  assert.equal(invocationRoute?.status, 'disabled')
   assert.equal(invocationRoute?.requiresServiceRole, true)
   assert.match(invocationRoute?.notes.join(' ') ?? '', /endpoint-shaped v2/u)
   assert.match(invocationRoute?.notes.join(' ') ?? '', /automatic retry/u)
@@ -578,7 +641,7 @@ try {
 
   console.log(JSON.stringify({
     smoke: 'canonical-track-all-sam3_1-authenticated-gpu-start-route',
-    checks: 110,
+    checks: 119,
     authenticatedOwnerScopeRequired: true,
     strictInternalServiceAuthRequired: true,
     exactIdempotencyRequired: true,
@@ -589,6 +652,8 @@ try {
     runtimeCalls,
     invocationRuntimeCalls,
     queuedStartRuntimeCalls,
+    schedulerCalls,
+    consumerCalls,
     durablePostgresQueueStartMounted: true,
     queuedStartDirectGpuInvocationPerformed: false,
     l4TaskQaRuntimeCalls,
@@ -811,6 +876,79 @@ function queuedStartResultFor(
     productionAuthorityGranted: false as const,
   }
   return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
+}
+
+function schedulerResultFor():
+CanonicalProfessionalGpuCloudTaskSchedulerResult {
+  const payload = {
+    schemaVersion:
+      'canonical-professional-gpu-cloud-task-scheduler-result-v1' as const,
+    source: 'canonical_server_professional_gpu_cloud_task_scheduler' as const,
+    schedulerCycleId: 'gpu-scheduler-route-smoke-1',
+    queueId: 'weeditpro-professional-gpu-production-v1' as const,
+    runtimeRegion: 'us-central1' as const,
+    recoveryDisposition: 'recovery_completed' as const,
+    recoveredBeforeExternalDispatchCount: 0,
+    reconciliationRequiredCount: 0,
+    claimDisposition: 'no_capacity_available' as const,
+    claimedCount: 0,
+    dispatchRecords: [],
+    createdTaskCount: 0,
+    knownNotCreatedCount: 0,
+    unknownOrReconciliationCount: 0,
+    capacityRereadByServerOwner: true as const,
+    durableClaimBeforeExternalDispatch: true as const,
+    durableOutboxBeforeCloudTaskCreate: true as const,
+    cloudTaskConsumerMustRereadExactAuthorities: true as const,
+    directGpuInvocationStartedByScheduler: false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+    startedAt: '2026-08-13T05:00:00.000Z',
+    completedAt: '2026-08-13T05:00:00.001Z',
+  }
+  return {
+    ...payload,
+    resultDigestSha256: sha256AuthorityValue(payload),
+  }
+}
+
+function consumerResultFor():
+CanonicalProfessionalGpuCloudTaskConsumerResult {
+  const gpuRef = (id: string) => ({
+    id,
+    version: 1,
+    contentHash: `sha256:${sha256AuthorityValue(id)}` as const,
+  })
+  const payload = {
+    schemaVersion:
+      'canonical-professional-gpu-cloud-task-consumer-result-v1' as const,
+    source: 'canonical_server_professional_gpu_cloud_task_consumer' as const,
+    disposition: 'completed_and_queue_finalized' as const,
+    queueEntryRef: gpuRef('route-smoke-queue-entry'),
+    claimRef: gpuRef('route-smoke-claim'),
+    executionAttemptRef: gpuRef('route-smoke-attempt'),
+    serviceIdentityEvidenceRef: gpuRef('route-smoke-identity'),
+    endpointInvocationResultRef: gpuRef('route-smoke-invocation'),
+    queueTerminalRef: gpuRef('route-smoke-terminal'),
+    invocationDisposition: 'completed' as const,
+    queueFinalized: true,
+    exactTaskOutboxClaimFundingAttemptAndInvocationReread: true as const,
+    duplicateDeliveryStartedNewInference: false as const,
+    automaticNewExecutionAttemptAllowed: false as const,
+    unresolvedOutcomeBlocksRetry: false,
+    canonicalUsageCostAndCreditSettlementPending: true as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+    observedAt: '2026-08-13T05:00:00.002Z',
+  }
+  return {
+    ...payload,
+    resultDigestSha256: sha256AuthorityValue(payload),
+  }
 }
 
 function invocationResultFor(

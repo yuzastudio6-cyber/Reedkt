@@ -307,8 +307,7 @@ export function createCanonicalSam31SourcePreparationImageReleaseOwner(input: {
             'tool.ffmpeg.prepare_sam3_1_qualification_source_chunks.v1',
           cloudRunJobName: 'weeditpro-sam31-source-prep-l4',
           cloudRunJobResource:
-            'projects/reeditpro/locations/us-central1/jobs/'
-            + 'weeditpro-sam31-source-prep-l4',
+            'projects/reeditpro/locations/us-central1/jobs/weeditpro-sam31-source-prep-l4',
           immutableImageRef: build.imageBuildRef,
           immutableImageDigest: build.immutableImageDigest,
           sourceCommitSha: build.sourceCommitSha,

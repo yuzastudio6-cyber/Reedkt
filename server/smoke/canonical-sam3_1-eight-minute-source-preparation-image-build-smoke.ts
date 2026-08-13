@@ -24,7 +24,7 @@ assert.match(cloudBuild, /requestedVerifyOption: VERIFIED/u)
 assert.match(cloudBuild, /sourceProvenanceHash:\n {4}- SHA256/u)
 assert.match(cloudBuild, /reeditpro-image-builder-sa@reeditpro/u)
 assert.match(cloudBuild, /source-preparation-l4/u)
-assert.match(cloudBuild, /machineType: E2_HIGHCPU_32/u)
+assert.match(cloudBuild, /machineType: E2_HIGHCPU_8/u)
 assert.doesNotMatch(cloudBuild, /secret|availableSecrets|sam3_1\.pt/u)
 
 assert.match(
@@ -41,7 +41,7 @@ assert.match(
 )
 assert.match(dockerfile, /sha256sum --check --strict/u)
 assert.match(dockerfile, /stat --format='%s'/u)
-assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=12288/u)
+assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=6144/u)
 
 assert.match(operator, /git status --porcelain --untracked-files=all/u)
 assert.match(operator, /git merge-base --is-ancestor/u)

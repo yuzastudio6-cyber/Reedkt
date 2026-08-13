@@ -57,8 +57,8 @@ import {
 import {
   buildCanonicalTrackAllSam31L4TaskQaWorkerRequest,
   buildCanonicalTrackAllSam31L4TaskQaWorkerResponse,
-  buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
-  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -657,8 +657,8 @@ await assert.rejects(() =>
   }), /Historical Track All worker measurement v1 is read-only/u)
 assertions += 1
 
-const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
-  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v2',
+const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v3',
   operationId: 'tool.kornia.refine_mask.v1',
   sam31InvocationId: captionTask.invocationId,
   l4InvocationId: l4Envelope.envelopeId,
@@ -692,6 +692,10 @@ const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
   expectedMaskManifestByteLength: outputEvidence.manifestByteLength,
   expectedMaskManifestSha256: outputEvidence.manifestSha256,
   expectedMaskPngCount: captionResult.maskFileCount,
+  chunkOrdinal: 1,
+  canonicalStartFrameInclusive: payload.requestedRange.startFrame,
+  canonicalEndFrameInclusive: payload.requestedRange.endFrameExclusive - 1,
+  previousChunkBoundaryInput: null,
   subjects: [{
     subjectRequestId: subjectEvidence.subjectRequestId,
     subjectEvidenceId: subjectEvidence.subjectEvidenceId,
@@ -734,11 +738,12 @@ const fixedWorkerRequest = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2({
   browserOrCallerMeasurementAccepted: false,
 })
 const fixedWorkerResponse =
-  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2({
-    schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v2',
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV3({
+    schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v3',
     operationId: 'tool.kornia.refine_mask.v1',
     sam31InvocationId: fixedWorkerRequest.sam31InvocationId,
     l4InvocationId: fixedWorkerRequest.l4InvocationId,
+    chunkOrdinal: 1,
     requestBindingSha256: fixedWorkerRequest.requestBindingSha256,
     status: 'completed',
     terminalStage: 'completed',
@@ -779,6 +784,7 @@ const fixedWorkerResponse =
       everyMaskIsBinaryGrayscalePng: true,
       unrequestedManifestObjectOrFrameAccepted: false,
     },
+    previousBoundaryInputEvidence: null,
     runtimeMeasurement: {
       wallTimeMilliseconds: 1_200,
       decodeAndUploadMilliseconds: 120,
@@ -820,12 +826,38 @@ const fixedWorkerResponse =
         orderedMaskSetDigestSha256: hash('caption-track-all-mask-set'),
         completeRequestedRangeCoverage: true,
       }],
+      temporalMetricSeries: [{
+        subjectRequestId: subjectEvidence.subjectRequestId,
+        subjectEvidenceId: subjectEvidence.subjectEvidenceId,
+        maskObjectId: outputEvidence.distinctObjectIds[0]!,
+        expectedFrameCount: subjectEvidence.temporalQa.expectedFrameCount,
+        expectedFramePairCount:
+          subjectEvidence.temporalQa.expectedFrameCount - 1,
+        centroidTranslationCompensatedBinaryIntersectionOverUnionBasisPoints:
+          Array.from({
+            length: subjectEvidence.temporalQa.expectedFrameCount - 1,
+          }, () => subjectEvidence.temporalQa
+            .minimumBinaryIntersectionOverUnionBasisPoints),
+        meanAbsoluteAlphaDeltaBasisPoints: Array.from({
+          length: subjectEvidence.temporalQa.expectedFrameCount - 1,
+        }, () => subjectEvidence.temporalQa.maximumAlphaFlickerBasisPoints),
+        boundaryDisagreementBasisPoints: Array.from({
+          length: subjectEvidence.temporalQa.expectedFrameCount,
+        }, () => subjectEvidence.temporalQa
+          .maximumBoundaryDisagreementBasisPoints),
+        exactOrderedPerFramePairMetricsFromKorniaCuda: true,
+        exactOrderedPerFrameMetricsFromKorniaCuda: true,
+        opencvCudaEveryMaskCrosschecked: true,
+      }],
+      crossChunkBoundaryMeasurements: [],
       korniaCudaExecutionDigestSha256: korniaExecutionRef.contentHash,
       opencvCudaCrosscheckExecutionDigestSha256:
         opencvExecutionRef.contentHash,
       completeRequestedFrameAndSubjectCoverage: true,
       sampledOrRepresentativeOnlyMeasurementAccepted: false,
       exactMaskManifestAndEveryMaskPngReread: true,
+      exactOrderedTemporalMetricSeriesIncluded: true,
+      previousChunkBoundaryComparedWhenRequired: true,
     },
     failureCode: 'none',
     privateCreateOnlyWorkerOutput: true,
@@ -972,12 +1004,20 @@ const {
   schemaVersion: discardedV2RequestVersion,
   l4InvocationId: discardedV2L4InvocationId,
   sam31InvocationId: discardedV2Sam31InvocationId,
+  chunkOrdinal: discardedV3ChunkOrdinal,
+  canonicalStartFrameInclusive: discardedV3CanonicalStart,
+  canonicalEndFrameInclusive: discardedV3CanonicalEnd,
+  previousChunkBoundaryInput: discardedV3PreviousBoundary,
   requestBindingSha256: discardedV2RequestDigest,
   ...historicalV1WorkerRequestPayload
 } = structuredClone(fixedWorkerRequest)
 assert.equal(typeof discardedV2RequestVersion, 'string')
 assert.equal(discardedV2L4InvocationId, l4Envelope.envelopeId)
 assert.equal(discardedV2Sam31InvocationId, captionTask.invocationId)
+assert.equal(discardedV3ChunkOrdinal, 1)
+assert.equal(typeof discardedV3CanonicalStart, 'number')
+assert.equal(typeof discardedV3CanonicalEnd, 'number')
+assert.equal(discardedV3PreviousBoundary, null)
 assert.equal(typeof discardedV2RequestDigest, 'string')
 const historicalV1WorkerRequest =
   buildCanonicalTrackAllSam31L4TaskQaWorkerRequest({
@@ -989,6 +1029,8 @@ const {
   schemaVersion: discardedV2ResponseVersion,
   l4InvocationId: discardedResponseL4InvocationId,
   sam31InvocationId: discardedResponseSam31InvocationId,
+  chunkOrdinal: discardedV3ResponseChunkOrdinal,
+  previousBoundaryInputEvidence: discardedV3BoundaryEvidence,
   requestBindingSha256: discardedV2ResponseRequestDigest,
   responseBindingSha256: discardedV2ResponseDigest,
   ...historicalV1WorkerResponsePayload
@@ -996,11 +1038,23 @@ const {
 assert.equal(typeof discardedV2ResponseVersion, 'string')
 assert.equal(discardedResponseL4InvocationId, l4Envelope.envelopeId)
 assert.equal(discardedResponseSam31InvocationId, captionTask.invocationId)
+assert.equal(discardedV3ResponseChunkOrdinal, 1)
+assert.equal(discardedV3BoundaryEvidence, null)
 assert.equal(typeof discardedV2ResponseRequestDigest, 'string')
 assert.equal(typeof discardedV2ResponseDigest, 'string')
 const historicalV1WorkerResponse =
   buildCanonicalTrackAllSam31L4TaskQaWorkerResponse({
     ...historicalV1WorkerResponsePayload,
+    outputSummary: (() => {
+      const {
+        temporalMetricSeries: _discardedSeries,
+        crossChunkBoundaryMeasurements: _discardedBoundaries,
+        exactOrderedTemporalMetricSeriesIncluded: _discardedSeriesFlag,
+        previousChunkBoundaryComparedWhenRequired: _discardedBoundaryFlag,
+        ...historicalSummary
+      } = historicalV1WorkerResponsePayload.outputSummary!
+      return historicalSummary
+    })(),
     schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1',
     requestBindingSha256: historicalV1WorkerRequest.requestBindingSha256,
   })

@@ -40,8 +40,12 @@ import {
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
   assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
   CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION,
   CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V3_VERSION,
+  CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V3_VERSION,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import type {
   CanonicalSam31GpuTaskContextRepository,
@@ -351,18 +355,38 @@ export function sealCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerEvidence(
   const responseVersion = z.object({ schemaVersion: z.string() }).passthrough()
     .parse(input.workerResponse).schemaVersion
   const request = requestVersion ===
-    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION
-    ? assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(input.workerRequest)
-    : assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(input.workerRequest)
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V3_VERSION
+    ? assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3(input.workerRequest)
+    : requestVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION
+      ? assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(input.workerRequest)
+      : assertCanonicalTrackAllSam31L4TaskQaWorkerRequest(input.workerRequest)
   const response = responseVersion ===
-    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION
-    ? assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(input.workerResponse)
-    : assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(input.workerResponse)
+    CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V3_VERSION
+    ? assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3(input.workerResponse)
+    : responseVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION
+      ? assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(input.workerResponse)
+      : assertCanonicalTrackAllSam31L4TaskQaWorkerResponse(input.workerResponse)
+  const v3Pair = requestVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V3_VERSION
+    && responseVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V3_VERSION
+  const v2Pair = requestVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION
+    && responseVersion ===
+      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION
   if (
-    (requestVersion ===
-      CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION)
-      !== (responseVersion ===
-        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION)
+    !(v3Pair || v2Pair || (
+      requestVersion !==
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V3_VERSION
+      && requestVersion !==
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_REQUEST_V2_VERSION
+      && responseVersion !==
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V3_VERSION
+      && responseVersion !==
+        CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_WORKER_RESPONSE_V2_VERSION
+    ))
     || response.status !== 'completed'
     || response.outputSummary === null
     || response.inputEvidence === null

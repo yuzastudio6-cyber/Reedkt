@@ -5,8 +5,12 @@ import { readFileSync } from 'node:fs'
 import {
   assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
   buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
   buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
+  buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -103,7 +107,7 @@ assert.equal(
 )
 assert.equal(
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef().id,
-  'canonical-track-all-sam3_1-l4-task-qa-fixed-task-v2',
+  'canonical-track-all-sam3_1-l4-task-qa-fixed-task-v3',
 )
 
 const measurement = (
@@ -215,6 +219,169 @@ assert.equal(
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(response).status,
   'completed',
 )
+const { requestBindingSha256: _v2RequestDigest, ...requestV2Payload } =
+  structuredClone(request)
+assert.equal(_v2RequestDigest, request.requestBindingSha256)
+const previousManifestHash = sha256AuthorityValue({
+  manifest: 'previous-exact-sam-output',
+})
+const requestV3 = buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3({
+  ...requestV2Payload,
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-request-v3',
+  chunkOrdinal: 2,
+  canonicalStartFrameInclusive: 120,
+  canonicalEndFrameInclusive: 123,
+  previousChunkBoundaryInput: {
+    previousChunkOrdinal: 1,
+    previousSam31InvocationId: 'sam31-runtime-invocation-previous',
+    previousSam31RuntimeRequestBindingSha256: sha256AuthorityValue({
+      sam31: 'previous-runtime-request',
+    }),
+    previousSam31RuntimeResultAdmissionRef:
+      ref('sam31-result-admission-previous'),
+    previousSam31MaskManifestRef: {
+      id: 'sam31-mask-manifest-previous',
+      version: 1,
+      contentHash: `sha256:${previousManifestHash}`,
+    },
+    previousSourceFrameMappingRef: ref('source-frame-mapping-previous'),
+    previousConfirmedOutputFrameRef: confirmedOutputFrameRef,
+    expectedPreviousMaskManifestByteLength: 8192,
+    expectedPreviousMaskManifestSha256: previousManifestHash,
+    previousCanonicalStartFrameInclusive: 117,
+    previousCanonicalEndFrameInclusive: 120,
+    previousMaskFrameIndex: 3,
+    currentMaskFrameIndex: 0,
+    overlapFrameCount: 1,
+    subjects: request.subjects.map((subject) => ({
+      subjectRequestId: subject.subjectRequestId,
+      previousSubjectEvidenceId: `${subject.subjectEvidenceId}-previous`,
+      currentSubjectEvidenceId: subject.subjectEvidenceId,
+      previousMaskObjectId: subject.maskObjectId,
+      currentMaskObjectId: subject.maskObjectId,
+    })),
+  },
+})
+assert.equal(
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3(requestV3).chunkOrdinal,
+  2,
+)
+const temporalSeries = (
+  subjectRequestId: string,
+  subjectEvidenceId: string,
+  maskObjectId: number,
+) => ({
+  subjectRequestId,
+  subjectEvidenceId,
+  maskObjectId,
+  expectedFrameCount: 4,
+  expectedFramePairCount: 3,
+  centroidTranslationCompensatedBinaryIntersectionOverUnionBasisPoints:
+    [9_200, 9_100, 9_300],
+  meanAbsoluteAlphaDeltaBasisPoints: [220, 210, 200],
+  boundaryDisagreementBasisPoints: [250, 240, 230, 220],
+  exactOrderedPerFramePairMetricsFromKorniaCuda: true as const,
+  exactOrderedPerFrameMetricsFromKorniaCuda: true as const,
+  opencvCudaEveryMaskCrosschecked: true as const,
+})
+const boundaryMeasurement = (
+  subjectRequestId: string,
+  subjectEvidenceId: string,
+  maskObjectId: number,
+) => ({
+  subjectRequestId,
+  previousSubjectEvidenceId: `${subjectEvidenceId}-previous`,
+  currentSubjectEvidenceId: subjectEvidenceId,
+  previousMaskObjectId: maskObjectId,
+  currentMaskObjectId: maskObjectId,
+  previousMaskFrameIndex: 3,
+  currentMaskFrameIndex: 0 as const,
+  previousMaskSha256: sha256AuthorityValue({
+    subjectRequestId, role: 'previous-mask',
+  }),
+  currentMaskSha256: sha256AuthorityValue({
+    subjectRequestId, role: 'current-mask',
+  }),
+  centroidTranslationCompensatedBinaryIntersectionOverUnionBasisPoints: 9_250,
+  meanAbsoluteAlphaDeltaBasisPoints: 205,
+  boundaryDisagreementBasisPoints: 225,
+  identitySwitchCount: 0,
+  objectDropoutCount: 0,
+  exactSharedCanonicalFrameCompared: true as const,
+  actualKorniaCudaBoundaryMeasurementObserved: true as const,
+  actualOpenCvCudaPreviousAndCurrentMasksCrosschecked: true as const,
+})
+const { responseBindingSha256: _v2ResponseDigest, ...responseV2Payload } =
+  structuredClone(response)
+assert.equal(_v2ResponseDigest, response.responseBindingSha256)
+const responseV3 = buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV3({
+  ...responseV2Payload,
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v3',
+  chunkOrdinal: 2,
+  requestBindingSha256: requestV3.requestBindingSha256,
+  previousBoundaryInputEvidence: {
+    manifestByteLength: 8192,
+    manifestSha256: previousManifestHash,
+    manifestRefExactMatch: true,
+    sourceFrameMappingExactMatch: true,
+    confirmedOutputFrameExactMatch: true,
+    sharedCanonicalFrameExactMatch: true,
+    previousMaskPngCount: 2,
+    previousMaskPngByteLength: 8192,
+    everyRequiredPreviousBoundaryMaskRereadAndHashed: true,
+  },
+  outputSummary: {
+    ...structuredClone(response.outputSummary!),
+    temporalMetricSeries: [
+      temporalSeries(
+        'subject-request-primary', 'subject-evidence-primary', 1,
+      ),
+      temporalSeries(
+        'subject-request-product', 'subject-evidence-product', 2,
+      ),
+    ],
+    crossChunkBoundaryMeasurements: [
+      boundaryMeasurement(
+        'subject-request-primary', 'subject-evidence-primary', 1,
+      ),
+      boundaryMeasurement(
+        'subject-request-product', 'subject-evidence-product', 2,
+      ),
+    ],
+    exactOrderedTemporalMetricSeriesIncluded: true,
+    previousChunkBoundaryComparedWhenRequired: true,
+  },
+})
+assert.equal(
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3(responseV3)
+    .outputSummary?.temporalMetricSeries.length,
+  2,
+)
+const { requestBindingSha256: _v3RequestDigest, ...requestV3Payload } =
+  structuredClone(requestV3)
+assert.equal(_v3RequestDigest, requestV3.requestBindingSha256)
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3({
+  ...requestV3Payload,
+  previousChunkBoundaryInput: null,
+}))
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerRequestV3({
+  ...requestV3Payload,
+  previousChunkBoundaryInput: {
+    ...structuredClone(requestV3.previousChunkBoundaryInput!),
+    previousConfirmedOutputFrameRef: ref('crossed-output-frame'),
+  },
+}))
+const { responseBindingSha256: _v3ResponseDigest, ...responseV3Payload } =
+  structuredClone(responseV3)
+assert.equal(_v3ResponseDigest, responseV3.responseBindingSha256)
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaWorkerResponseV3({
+  ...responseV3Payload,
+  outputSummary: {
+    ...structuredClone(responseV3.outputSummary!),
+    temporalMetricSeries:
+      responseV3.outputSummary!.temporalMetricSeries.slice(0, 1),
+  },
+}))
 const rawRef = (id: string, contentHash = sha256AuthorityValue({ id })) => ({
   id,
   version: '1',
@@ -266,11 +433,11 @@ const canonicalMeasurement =
       attemptCostReceiptRef: rawRef('l4-attempt-cost'),
       korniaCudaExecutionEvidenceRef: rawRef(
         'l4-kornia-execution',
-        response.outputSummary!.korniaCudaExecutionDigestSha256,
+        responseV3.outputSummary!.korniaCudaExecutionDigestSha256,
       ),
       opencvCrosscheckExecutionEvidenceRef: rawRef(
         'l4-opencv-execution',
-        response.outputSummary!.opencvCudaCrosscheckExecutionDigestSha256,
+        responseV3.outputSummary!.opencvCudaCrosscheckExecutionDigestSha256,
       ),
       actualL4GpuExecutionObserved: true,
       actualKorniaCudaKernelExecutionObserved: true,
@@ -280,8 +447,8 @@ const canonicalMeasurement =
       terminalWorkerStoppedAndScaleBackToZeroVerified: true,
       exactAccountEffectiveAttemptCostPersisted: true,
     },
-    workerRequest: request,
-    workerResponse: response,
+    workerRequest: requestV3,
+    workerResponse: responseV3,
     measuredAt: '2026-08-05T20:00:00.000Z',
   })
 assert.equal(canonicalMeasurement.subjectEvidence.length, 2)
@@ -468,6 +635,10 @@ assert.match(runner, /cv2\.cuda\.countNonZero/u)
 assert.match(runner, /requested_keys != set\(mask_by_key\.keys\(\)\)/u)
 assert.match(runner, /configure_l4_paths\(l4_invocation_id\)/u)
 assert.match(runner, /configure_sam31_input_paths\(request\["sam31InvocationId"\]\)/u)
+assert.match(runner, /configure_previous_sam31_input_paths/u)
+assert.match(runner, /translate_binary_mask/u)
+assert.match(runner, /centroidTranslationCompensatedBinaryIntersectionOverUnionBasisPoints/u)
+assert.match(runner, /previousChunkBoundaryComparedWhenRequired/u)
 assert.match(runner, /L4_INVOCATION_ROOT = base \/ l4_invocation_id/u)
 assert.match(runner, /SAM31_INVOCATION_ROOT = base \/ sam31_invocation_id/u)
 assert.match(runner, /canonical-track-all-sam3_1-l4-task-qa-worker-exit-v3/u)
@@ -558,6 +729,8 @@ console.log(JSON.stringify({
   workerResponseCompiledIntoCanonicalMeasurement: true,
   separateSam31InputAndL4JobInvocationRootsRequired: true,
   everyRequestedMaskRequired: true,
+  exactOrderedCudaTemporalMetricSeriesRequired: true,
+  previousChunkSharedMaskCompared: true,
   korniaCudaSubstantiveMeasurementRequired: true,
   opencvCudaEveryMaskCrosscheckRequired: true,
   pinnedCudaRuntimeLibrariesRetainedAfterDriverSelection: true,

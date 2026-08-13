@@ -24,8 +24,8 @@ from pathlib import Path
 from typing import Any
 
 
-REQUEST_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-request-v2"
-RESPONSE_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-response-v2"
+REQUEST_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-request-v3"
+RESPONSE_VERSION = "canonical-track-all-sam3_1-l4-task-qa-worker-response-v3"
 OPERATION_ID = "tool.kornia.refine_mask.v1"
 EXPECTED_UID = 65532
 EXPECTED_GID = 65532
@@ -46,6 +46,9 @@ TASK_PATH: Path
 MANIFEST_PATH: Path
 MASK_ROOT: Path
 RESPONSE_PATH: Path
+PREVIOUS_SAM31_INVOCATION_ROOT: Path | None = None
+PREVIOUS_MANIFEST_PATH: Path | None = None
+PREVIOUS_MASK_ROOT: Path | None = None
 stage = "request_validation"
 
 
@@ -160,6 +163,157 @@ def validate_subject(value: Any, source_mapping_ref: dict[str, Any]) -> dict[str
     return subject
 
 
+def validate_previous_boundary(
+    value: Any,
+    request: dict[str, Any],
+    subjects: list[dict[str, Any]],
+    chunk_ordinal: int,
+    canonical_start: int,
+) -> dict[str, Any] | None:
+    if value is None:
+        if chunk_ordinal != 1:
+            raise ValueError("noninitial task QA chunk lacks boundary input")
+        return None
+    if chunk_ordinal == 1:
+        raise ValueError("initial task QA chunk cannot have boundary input")
+    boundary = exact_object(
+        value,
+        {
+            "previousChunkOrdinal", "previousSam31InvocationId",
+            "previousSam31RuntimeRequestBindingSha256",
+            "previousSam31RuntimeResultAdmissionRef",
+            "previousSam31MaskManifestRef",
+            "previousSourceFrameMappingRef", "previousConfirmedOutputFrameRef",
+            "expectedPreviousMaskManifestByteLength",
+            "expectedPreviousMaskManifestSha256",
+            "previousCanonicalStartFrameInclusive",
+            "previousCanonicalEndFrameInclusive", "previousMaskFrameIndex",
+            "currentMaskFrameIndex", "overlapFrameCount", "subjects",
+        },
+        "previous chunk boundary input",
+    )
+    if exact_int(
+        boundary["previousChunkOrdinal"], 1, 255,
+        "previous chunk ordinal",
+    ) != chunk_ordinal - 1:
+        raise ValueError("previous chunk ordinal is not adjacent")
+    previous_invocation_id = exact_id(
+        boundary["previousSam31InvocationId"],
+        "previous SAM 3.1 invocation id",
+    )
+    if previous_invocation_id in {
+        request["sam31InvocationId"], request["l4InvocationId"],
+    }:
+        raise ValueError("previous and current invocation identities crossed")
+    exact_sha(
+        boundary["previousSam31RuntimeRequestBindingSha256"],
+        "previous SAM 3.1 runtime-request binding",
+    )
+    exact_ref(
+        boundary["previousSam31RuntimeResultAdmissionRef"],
+        "previous SAM 3.1 result admission ref",
+    )
+    previous_manifest_ref = exact_ref(
+        boundary["previousSam31MaskManifestRef"],
+        "previous SAM 3.1 mask manifest ref",
+    )
+    previous_source_mapping_ref = exact_ref(
+        boundary["previousSourceFrameMappingRef"],
+        "previous source-frame mapping ref",
+    )
+    del previous_source_mapping_ref
+    previous_output_frame_ref = exact_ref(
+        boundary["previousConfirmedOutputFrameRef"],
+        "previous confirmed output-frame ref",
+    )
+    if previous_output_frame_ref != request["confirmedOutputFrameRef"]:
+        raise ValueError("boundary confirmed output-frame authority changed")
+    exact_int(
+        boundary["expectedPreviousMaskManifestByteLength"], 1,
+        MAXIMUM_MANIFEST_BYTES, "previous mask manifest byte length",
+    )
+    previous_manifest_hash = exact_sha(
+        boundary["expectedPreviousMaskManifestSha256"],
+        "previous mask manifest hash",
+    )
+    if previous_manifest_ref["contentHash"] != f"sha256:{previous_manifest_hash}":
+        raise ValueError("previous mask manifest ref and hash differ")
+    previous_start = exact_int(
+        boundary["previousCanonicalStartFrameInclusive"], 0, 2**53 - 1,
+        "previous canonical start frame",
+    )
+    previous_end = exact_int(
+        boundary["previousCanonicalEndFrameInclusive"], previous_start,
+        2**53 - 1, "previous canonical end frame",
+    )
+    if previous_end != canonical_start:
+        raise ValueError("previous and current chunks lack one shared frame")
+    if exact_int(
+        boundary["previousMaskFrameIndex"], 0, MAXIMUM_FRAMES - 1,
+        "previous mask frame index",
+    ) != previous_end - previous_start:
+        raise ValueError("previous proxy and canonical ranges differ")
+    if exact_int(
+        boundary["currentMaskFrameIndex"], 0, 0,
+        "current boundary mask frame",
+    ) != 0 or exact_int(
+        boundary["overlapFrameCount"], 1, 1, "boundary overlap frame count",
+    ) != 1:
+        raise ValueError("boundary overlap must be exactly one frame")
+    boundary_subjects = boundary["subjects"]
+    if not isinstance(boundary_subjects, list) or not 1 <= len(boundary_subjects) <= MAXIMUM_SUBJECTS:
+        raise ValueError("boundary subject set is invalid")
+    current_by_request = {subject["subjectRequestId"]: subject for subject in subjects}
+    seen_subject_request_ids: set[str] = set()
+    seen_previous_objects: set[int] = set()
+    seen_current_objects: set[int] = set()
+    for subject_value in boundary_subjects:
+        subject = exact_object(
+            subject_value,
+            {
+                "subjectRequestId", "previousSubjectEvidenceId",
+                "currentSubjectEvidenceId", "previousMaskObjectId",
+                "currentMaskObjectId",
+            },
+            "boundary subject",
+        )
+        subject_request_id = exact_id(
+            subject["subjectRequestId"], "boundary subject request id",
+        )
+        previous_object_id = exact_int(
+            subject["previousMaskObjectId"], 0, 2**31 - 1,
+            "previous boundary object id",
+        )
+        current_object_id = exact_int(
+            subject["currentMaskObjectId"], 0, 2**31 - 1,
+            "current boundary object id",
+        )
+        exact_id(
+            subject["previousSubjectEvidenceId"],
+            "previous boundary subject evidence id",
+        )
+        exact_id(
+            subject["currentSubjectEvidenceId"],
+            "current boundary subject evidence id",
+        )
+        current = current_by_request.get(subject_request_id)
+        if current is None or (
+            current["subjectEvidenceId"] != subject["currentSubjectEvidenceId"]
+            or current["maskObjectId"] != current_object_id
+        ):
+            raise ValueError("boundary subject differs from current request")
+        if (
+            subject_request_id in seen_subject_request_ids
+            or previous_object_id in seen_previous_objects
+            or current_object_id in seen_current_objects
+        ):
+            raise ValueError("boundary subject mapping is duplicated")
+        seen_subject_request_ids.add(subject_request_id)
+        seen_previous_objects.add(previous_object_id)
+        seen_current_objects.add(current_object_id)
+    return boundary
+
+
 def validate_request(value: Any, l4_invocation_id: str) -> dict[str, Any]:
     request = exact_object(
         value,
@@ -173,6 +327,8 @@ def validate_request(value: Any, l4_invocation_id: str) -> dict[str, Any]:
             "confirmedOutputFrameRef", "sourceWidth", "sourceHeight",
             "maskFrameRange", "expectedMaskManifestByteLength",
             "expectedMaskManifestSha256", "expectedMaskPngCount", "subjects",
+            "chunkOrdinal", "canonicalStartFrameInclusive",
+            "canonicalEndFrameInclusive", "previousChunkBoundaryInput",
             "executionPolicy", "byteFreeRequest",
             "callerPathUrlCommandCodeOrEnvironmentAccepted",
             "browserOrCallerMeasurementAccepted", "requestBindingSha256",
@@ -205,6 +361,20 @@ def validate_request(value: Any, l4_invocation_id: str) -> dict[str, Any]:
     if width * height > 67_108_864:
         raise ValueError("source pixel count exceeds its bound")
     frame_range = exact_frame_range(request["maskFrameRange"], "mask frame range")
+    frame_count = frame_range["endFrameExclusive"] - frame_range["startFrame"]
+    if frame_count < 2:
+        raise ValueError("task QA v3 requires at least two mask frames")
+    chunk_ordinal = exact_int(request["chunkOrdinal"], 1, 256, "chunk ordinal")
+    canonical_start = exact_int(
+        request["canonicalStartFrameInclusive"], 0, 2**53 - 1,
+        "canonical start frame",
+    )
+    canonical_end = exact_int(
+        request["canonicalEndFrameInclusive"], canonical_start, 2**53 - 1,
+        "canonical end frame",
+    )
+    if canonical_end - canonical_start + 1 != frame_count:
+        raise ValueError("canonical and proxy chunk frame counts differ")
     manifest_length = exact_int(
         request["expectedMaskManifestByteLength"], 1,
         MAXIMUM_MANIFEST_BYTES, "mask manifest length",
@@ -237,6 +407,11 @@ def validate_request(value: Any, l4_invocation_id: str) -> dict[str, Any]:
             != request["confirmedOutputFrameRef"]["contentHash"][7:]
         ):
             raise ValueError("subject output-frame authority changed")
+    previous_boundary = validate_previous_boundary(
+        request["previousChunkBoundaryInput"], request, subjects,
+        chunk_ordinal, canonical_start,
+    )
+    request["previousChunkBoundaryInput"] = previous_boundary
     if frame_range["startFrame"] != 0 or frame_range["endFrameExclusive"] > MAXIMUM_FRAMES:
         raise ValueError("mask frame range is not canonical proxy-relative time")
     expected_count = (frame_range["endFrameExclusive"] - frame_range["startFrame"]) * len(subjects)
@@ -311,6 +486,22 @@ def configure_sam31_input_paths(sam31_invocation_id: str) -> None:
     for path in (SAM31_INVOCATION_ROOT, MASK_ROOT):
         if path.is_symlink() or not path.is_dir():
             raise RuntimeError("fixed SAM 3.1 private output layout is unavailable")
+
+
+def configure_previous_sam31_input_paths(
+    previous_sam31_invocation_id: str,
+) -> None:
+    global PREVIOUS_SAM31_INVOCATION_ROOT
+    global PREVIOUS_MANIFEST_PATH, PREVIOUS_MASK_ROOT
+    base = Path("/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations")
+    PREVIOUS_SAM31_INVOCATION_ROOT = base / previous_sam31_invocation_id
+    PREVIOUS_MASK_ROOT = PREVIOUS_SAM31_INVOCATION_ROOT / "output"
+    PREVIOUS_MANIFEST_PATH = PREVIOUS_MASK_ROOT / "mask-manifest.json"
+    for path in (PREVIOUS_SAM31_INVOCATION_ROOT, PREVIOUS_MASK_ROOT):
+        if path.is_symlink() or not path.is_dir():
+            raise RuntimeError(
+                "fixed previous SAM 3.1 private output layout is unavailable"
+            )
 
 
 def read_bounded(path: Path, maximum: int) -> bytes:
@@ -394,6 +585,48 @@ def load_manifest(request: dict[str, Any]) -> tuple[dict[str, Any], bytes]:
     ):
         raise RuntimeError("SAM mask manifest bytes changed")
     return validate_manifest(json.loads(encoded.decode("utf-8")), request), encoded
+
+
+def load_previous_boundary_manifest(
+    request: dict[str, Any],
+) -> tuple[dict[str, Any], bytes] | None:
+    boundary = request["previousChunkBoundaryInput"]
+    if boundary is None:
+        return None
+    if PREVIOUS_MANIFEST_PATH is None or PREVIOUS_MASK_ROOT is None:
+        raise RuntimeError("previous SAM 3.1 paths were not configured")
+    encoded = read_bounded(PREVIOUS_MANIFEST_PATH, MAXIMUM_MANIFEST_BYTES)
+    if (
+        len(encoded) != boundary["expectedPreviousMaskManifestByteLength"]
+        or sha256_bytes(encoded) != boundary["expectedPreviousMaskManifestSha256"]
+    ):
+        raise RuntimeError("previous SAM mask manifest bytes changed")
+    manifest = exact_object(
+        json.loads(encoded.decode("utf-8")),
+        {
+            "schemaVersion", "operationId", "requestBindingSha256",
+            "sourceFrameRangeMappingRef", "width", "height",
+            "firstFrameIndex", "lastFrameIndex", "frames", "masks",
+        },
+        "previous SAM mask manifest",
+    )
+    if (
+        manifest["schemaVersion"]
+        != "canonical-sam3_1-mask-sequence-manifest-v1"
+        or manifest["operationId"]
+        != "tool.sam3_1.segment_and_track_subject.v1"
+        or manifest["requestBindingSha256"]
+        != boundary["previousSam31RuntimeRequestBindingSha256"]
+        or manifest["sourceFrameRangeMappingRef"]
+        != boundary["previousSourceFrameMappingRef"]
+        or manifest["width"] != request["sourceWidth"]
+        or manifest["height"] != request["sourceHeight"]
+        or manifest["lastFrameIndex"] != boundary["previousMaskFrameIndex"]
+        or not isinstance(manifest["frames"], list)
+        or not isinstance(manifest["masks"], list)
+    ):
+        raise RuntimeError("previous SAM mask manifest lineage changed")
+    return manifest, encoded
 
 
 def validate_cuda_driver_library() -> dict[str, str]:
@@ -514,7 +747,12 @@ def admit_l4(torch: Any, cv2: Any, kornia: Any) -> dict[str, Any]:
     }
 
 
-def decode_mask(record: dict[str, Any], request: dict[str, Any], np: Any) -> tuple[Any, bytes]:
+def decode_mask(
+    record: dict[str, Any],
+    request: dict[str, Any],
+    np: Any,
+    mask_root: Path | None = None,
+) -> tuple[Any, bytes]:
     record = exact_object(
         record,
         {"frameIndex", "objectId", "relativeFileName", "width", "height", "byteLength", "sha256"},
@@ -529,7 +767,8 @@ def decode_mask(record: dict[str, Any], request: dict[str, Any], np: Any) -> tup
         raise RuntimeError("SAM mask geometry changed")
     expected_length = exact_int(record["byteLength"], 1, MAXIMUM_MASK_BYTES, "mask byte length")
     expected_hash = exact_sha(record["sha256"], "mask hash")
-    encoded = read_bounded(MASK_ROOT / expected_name, MAXIMUM_MASK_BYTES)
+    root = MASK_ROOT if mask_root is None else mask_root
+    encoded = read_bounded(root / expected_name, MAXIMUM_MASK_BYTES)
     if len(encoded) != expected_length or sha256_bytes(encoded) != expected_hash:
         raise RuntimeError("SAM mask PNG bytes changed")
     from PIL import Image, ImageFile
@@ -561,6 +800,45 @@ def basis(value: Any, torch: Any) -> int:
     return max(0, min(10_000, round(scalar * 10_000)))
 
 
+def translate_binary_mask(
+    mask: Any,
+    shift_x: int,
+    shift_y: int,
+    torch: Any,
+) -> Any:
+    translated = torch.zeros_like(mask)
+    height = mask.shape[-2]
+    width = mask.shape[-1]
+    source_x_start = max(0, -shift_x)
+    source_x_end = min(width, width - shift_x)
+    source_y_start = max(0, -shift_y)
+    source_y_end = min(height, height - shift_y)
+    destination_x_start = max(0, shift_x)
+    destination_x_end = destination_x_start + max(
+        0, source_x_end - source_x_start
+    )
+    destination_y_start = max(0, shift_y)
+    destination_y_end = destination_y_start + max(
+        0, source_y_end - source_y_start
+    )
+    if source_x_end > source_x_start and source_y_end > source_y_start:
+        translated[
+            ..., destination_y_start:destination_y_end,
+            destination_x_start:destination_x_end,
+        ] = mask[
+            ..., source_y_start:source_y_end, source_x_start:source_x_end
+        ]
+    return translated
+
+
+def mask_center(mask: Any, x: Any, y: Any, torch: Any) -> tuple[Any, Any, Any]:
+    area = mask.sum(dtype=torch.float64)
+    safe_area = area.clamp_min(1)
+    center_x = (mask.to(torch.float64) * x).sum() / safe_area
+    center_y = (mask.to(torch.float64) * y).sum() / safe_area
+    return area, center_x, center_y
+
+
 def execute(request: dict[str, Any]) -> dict[str, Any]:
     global stage
     started = time.monotonic_ns()
@@ -569,6 +847,7 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
 
     stage = "manifest_reread"
     manifest, manifest_bytes = load_manifest(request)
+    previous_manifest_value = load_previous_boundary_manifest(request)
     manifest_masks = manifest["masks"]
     manifest_frames = manifest["frames"]
     if len(manifest_masks) != request["expectedMaskPngCount"]:
@@ -625,8 +904,59 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             if mask is None or mask[2]["sha256"] != item["maskSha256"]:
                 raise RuntimeError("SAM frame and mask records differ")
 
+    previous_mask_records: dict[tuple[int, int], dict[str, Any]] = {}
+    previous_frame_hashes: dict[tuple[int, int], str] = {}
+    if previous_manifest_value is not None:
+        previous_manifest, _previous_manifest_bytes = previous_manifest_value
+        for record_value in previous_manifest["masks"]:
+            record = exact_object(
+                record_value,
+                {
+                    "frameIndex", "objectId", "relativeFileName", "width",
+                    "height", "byteLength", "sha256",
+                },
+                "previous SAM mask record",
+            )
+            key = (record["frameIndex"], record["objectId"])
+            if key in previous_mask_records:
+                raise RuntimeError("previous SAM mask manifest has a duplicate")
+            previous_mask_records[key] = record
+        for frame_value in previous_manifest["frames"]:
+            frame = exact_object(
+                frame_value, {"frameIndex", "objects"},
+                "previous SAM frame record",
+            )
+            frame_index = exact_int(
+                frame["frameIndex"], 0, MAXIMUM_FRAMES - 1,
+                "previous frame index",
+            )
+            if not isinstance(frame["objects"], list):
+                raise RuntimeError("previous SAM frame objects are invalid")
+            for object_value in frame["objects"]:
+                item = exact_object(
+                    object_value,
+                    {"objectId", "normalizedBoxXywh", "maskSha256"},
+                    "previous SAM object record",
+                )
+                object_id = exact_int(
+                    item["objectId"], 0, 2**31 - 1,
+                    "previous object id",
+                )
+                mask_hash = exact_sha(
+                    item["maskSha256"], "previous frame mask hash",
+                )
+                key = (frame_index, object_id)
+                if key in previous_frame_hashes:
+                    raise RuntimeError(
+                        "previous SAM frame has a duplicate object"
+                    )
+                previous_frame_hashes[key] = mask_hash
+
     requested_keys: set[tuple[int, int]] = set()
     measurements: list[dict[str, Any]] = []
+    temporal_metric_series: list[dict[str, Any]] = []
+    boundary_measurements: list[dict[str, Any]] = []
+    previous_boundary_png_bytes = 0
     torch_kernel_count = 0
     opencv_kernel_count = 0
     stage = "kornia_cuda_measurement"
@@ -690,10 +1020,36 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         boundary = dilated ^ eroded
         closed_boundary = closed_dilated ^ closed_eroded
         boundary_disagreement = (boundary ^ closed_boundary).sum(dim=(1, 2, 3), dtype=torch.float64) / (boundary | closed_boundary).sum(dim=(1, 2, 3), dtype=torch.float64).clamp_min(1)
+        mean_absolute_alpha_delta = (
+            tensor[1:] - tensor[:-1]
+        ).abs().mean(dim=(1, 2, 3), dtype=torch.float64)
+        compensated_iou_basis_points: list[int] = []
+        for pair_index in range(len(arrays) - 1):
+            shift_x = round(float(
+                centers_x[pair_index + 1].item()
+                - centers_x[pair_index].item()
+            ))
+            shift_y = round(float(
+                centers_y[pair_index + 1].item()
+                - centers_y[pair_index].item()
+            ))
+            translated_previous = translate_binary_mask(
+                binary[pair_index:pair_index + 1], shift_x, shift_y, torch
+            )
+            current_binary = binary[pair_index + 1:pair_index + 2]
+            compensated_intersection = (
+                translated_previous & current_binary
+            ).sum(dtype=torch.float64)
+            compensated_union = (
+                translated_previous | current_binary
+            ).sum(dtype=torch.float64).clamp_min(1)
+            compensated_iou_basis_points.append(
+                basis(compensated_intersection / compensated_union, torch)
+            )
         cuda_end.record()
         torch.cuda.synchronize(0)
         kornia_cuda_ms = max(1, round(cuda_start.elapsed_time(cuda_end)))
-        torch_kernel_count += 5
+        torch_kernel_count += 5 + 4 * (len(arrays) - 1)
 
         coverage_values: list[float] = []
         identity_swaps = 0
@@ -731,6 +1087,156 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
             })
         opencv_elapsed_ns += time.monotonic_ns() - opencv_started
 
+        temporal_metric_series.append({
+            "subjectRequestId": subject["subjectRequestId"],
+            "subjectEvidenceId": subject["subjectEvidenceId"],
+            "maskObjectId": object_id,
+            "expectedFrameCount": len(arrays),
+            "expectedFramePairCount": len(arrays) - 1,
+            "centroidTranslationCompensatedBinaryIntersectionOverUnionBasisPoints":
+                compensated_iou_basis_points,
+            "meanAbsoluteAlphaDeltaBasisPoints": [
+                basis(value, torch) for value in mean_absolute_alpha_delta
+            ],
+            "boundaryDisagreementBasisPoints": [
+                basis(value, torch) for value in boundary_disagreement
+            ],
+            "exactOrderedPerFramePairMetricsFromKorniaCuda": True,
+            "exactOrderedPerFrameMetricsFromKorniaCuda": True,
+            "opencvCudaEveryMaskCrosschecked": True,
+        })
+
+        boundary_input = request["previousChunkBoundaryInput"]
+        boundary_subject = None if boundary_input is None else next(
+            (
+                candidate for candidate in boundary_input["subjects"]
+                if candidate["subjectRequestId"] == subject["subjectRequestId"]
+            ),
+            None,
+        )
+        if boundary_subject is not None:
+            if PREVIOUS_MASK_ROOT is None:
+                raise RuntimeError("previous boundary mask root is unavailable")
+            previous_key = (
+                boundary_input["previousMaskFrameIndex"],
+                boundary_subject["previousMaskObjectId"],
+            )
+            previous_record = previous_mask_records.get(previous_key)
+            if (
+                previous_record is None
+                or previous_frame_hashes.get(previous_key)
+                != previous_record["sha256"]
+            ):
+                raise RuntimeError("previous boundary mask lineage changed")
+            previous_image, previous_encoded = decode_mask(
+                previous_record, request, np, PREVIOUS_MASK_ROOT
+            )
+            previous_boundary_png_bytes += len(previous_encoded)
+            previous_tensor = torch.from_numpy(previous_image).to(
+                device="cuda", dtype=torch.float32
+            ).view(1, 1, request["sourceHeight"], request["sourceWidth"]) / 255.0
+            previous_binary = previous_tensor > 0.5
+            current_binary = binary[0:1]
+            previous_area, previous_center_x, previous_center_y = mask_center(
+                previous_binary, x, y, torch
+            )
+            current_area, current_center_x, current_center_y = mask_center(
+                current_binary, x, y, torch
+            )
+            boundary_shift_x = round(float(
+                current_center_x.item() - previous_center_x.item()
+            ))
+            boundary_shift_y = round(float(
+                current_center_y.item() - previous_center_y.item()
+            ))
+            translated_previous = translate_binary_mask(
+                previous_binary, boundary_shift_x, boundary_shift_y, torch
+            )
+            boundary_intersection = (
+                translated_previous & current_binary
+            ).sum(dtype=torch.float64)
+            boundary_union = (
+                translated_previous | current_binary
+            ).sum(dtype=torch.float64).clamp_min(1)
+            boundary_iou = boundary_intersection / boundary_union
+            boundary_alpha_delta = (
+                translated_previous.to(torch.float32)
+                - current_binary.to(torch.float32)
+            ).abs().mean(dtype=torch.float64)
+            translated_eroded = kornia.morphology.erosion(
+                translated_previous.float(), kernel
+            ) > 0.5
+            translated_dilated = kornia.morphology.dilation(
+                translated_previous.float(), kernel
+            ) > 0.5
+            current_eroded = kornia.morphology.erosion(
+                current_binary.float(), kernel
+            ) > 0.5
+            current_dilated = kornia.morphology.dilation(
+                current_binary.float(), kernel
+            ) > 0.5
+            previous_boundary = translated_dilated ^ translated_eroded
+            current_boundary = current_dilated ^ current_eroded
+            temporal_boundary_disagreement = (
+                previous_boundary ^ current_boundary
+            ).sum(dtype=torch.float64) / (
+                previous_boundary | current_boundary
+            ).sum(dtype=torch.float64).clamp_min(1)
+            previous_gpu_mat = cv2.cuda_GpuMat()
+            previous_gpu_mat.upload(previous_image)
+            threshold_result = cv2.cuda.threshold(
+                previous_gpu_mat, 127, 255, cv2.THRESH_BINARY
+            )
+            previous_binary_gpu = (
+                threshold_result[1]
+                if isinstance(threshold_result, tuple) else threshold_result
+            )
+            if int(cv2.cuda.countNonZero(previous_binary_gpu)) != int(
+                previous_area.item()
+            ):
+                raise RuntimeError(
+                    "previous OpenCV CUDA and Kornia CUDA counts differ"
+                )
+            opencv_kernel_count += 2
+            torch_kernel_count += 12
+            opencv_evidence.append({
+                "frameIndex": boundary_input["previousMaskFrameIndex"],
+                "objectId": boundary_subject["previousMaskObjectId"],
+                "activePixelCount": int(previous_area.item()),
+                "evidenceRole": "previous_chunk_shared_boundary_mask",
+            })
+            boundary_iou_basis_points = basis(boundary_iou, torch)
+            dropout_count = int(
+                previous_area.item() == 0 or current_area.item() == 0
+            )
+            boundary_measurements.append({
+                "subjectRequestId": subject["subjectRequestId"],
+                "previousSubjectEvidenceId":
+                    boundary_subject["previousSubjectEvidenceId"],
+                "currentSubjectEvidenceId": subject["subjectEvidenceId"],
+                "previousMaskObjectId":
+                    boundary_subject["previousMaskObjectId"],
+                "currentMaskObjectId": object_id,
+                "previousMaskFrameIndex":
+                    boundary_input["previousMaskFrameIndex"],
+                "currentMaskFrameIndex": 0,
+                "previousMaskSha256": previous_record["sha256"],
+                "currentMaskSha256": ordered_records[0]["sha256"],
+                "centroidTranslationCompensatedBinaryIntersectionOverUnionBasisPoints":
+                    boundary_iou_basis_points,
+                "meanAbsoluteAlphaDeltaBasisPoints":
+                    basis(boundary_alpha_delta, torch),
+                "boundaryDisagreementBasisPoints":
+                    basis(temporal_boundary_disagreement, torch),
+                "identitySwitchCount": int(
+                    dropout_count == 0 and boundary_iou_basis_points < 5_000
+                ),
+                "objectDropoutCount": dropout_count,
+                "exactSharedCanonicalFrameCompared": True,
+                "actualKorniaCudaBoundaryMeasurementObserved": True,
+                "actualOpenCvCudaPreviousAndCurrentMasksCrosschecked": True,
+            })
+
         measurement = {
             "subjectRequestId": subject["subjectRequestId"],
             "subjectEvidenceId": subject["subjectEvidenceId"],
@@ -765,11 +1271,24 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
 
     if requested_keys != set(mask_by_key.keys()):
         raise RuntimeError("manifest contains an unrequested frame or object")
+    boundary_input = request["previousChunkBoundaryInput"]
+    if (
+        (boundary_input is None and boundary_measurements)
+        or (
+            boundary_input is not None
+            and len(boundary_measurements) != len(boundary_input["subjects"])
+        )
+    ):
+        raise RuntimeError("cross-chunk boundary coverage is incomplete")
     maximum_utilization = sampler.finish()
     gpu["maximumObservedGpuUtilizationPercent"] = maximum_utilization
     gpu["torchCudaKernelCount"] = torch_kernel_count
     gpu["opencvCudaKernelCount"] = opencv_kernel_count
-    if torch_kernel_count <= 0 or opencv_kernel_count != request["expectedMaskPngCount"] * 2:
+    expected_opencv_kernel_count = (
+        request["expectedMaskPngCount"] * 2
+        + len(boundary_measurements) * 2
+    )
+    if torch_kernel_count <= 0 or opencv_kernel_count != expected_opencv_kernel_count:
         raise RuntimeError("CUDA kernel accounting is incomplete")
 
     stage = "output_persistence"
@@ -786,17 +1305,33 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         "everyMaskIsBinaryGrayscalePng": True,
         "unrequestedManifestObjectOrFrameAccepted": False,
     }
+    previous_boundary_input_evidence = None
+    if previous_manifest_value is not None:
+        _previous_manifest, previous_manifest_bytes = previous_manifest_value
+        previous_boundary_input_evidence = {
+            "manifestByteLength": len(previous_manifest_bytes),
+            "manifestSha256": sha256_bytes(previous_manifest_bytes),
+            "manifestRefExactMatch": True,
+            "sourceFrameMappingExactMatch": True,
+            "confirmedOutputFrameExactMatch": True,
+            "sharedCanonicalFrameExactMatch": True,
+            "previousMaskPngCount": len(boundary_measurements),
+            "previousMaskPngByteLength": previous_boundary_png_bytes,
+            "everyRequiredPreviousBoundaryMaskRereadAndHashed": True,
+        }
     stage = "completed"
     return {
         "schemaVersion": RESPONSE_VERSION,
         "operationId": OPERATION_ID,
         "l4InvocationId": request["l4InvocationId"],
         "sam31InvocationId": request["sam31InvocationId"],
+        "chunkOrdinal": request["chunkOrdinal"],
         "requestBindingSha256": request["requestBindingSha256"],
         "status": "completed",
         "terminalStage": "completed",
         "gpuEvidence": gpu,
         "inputEvidence": input_evidence,
+        "previousBoundaryInputEvidence": previous_boundary_input_evidence,
         "runtimeMeasurement": {
             "wallTimeMilliseconds": max(1, (time.monotonic_ns() - started) // 1_000_000),
             "decodeAndUploadMilliseconds": int(decode_upload_ms),
@@ -807,11 +1342,19 @@ def execute(request: dict[str, Any]) -> dict[str, Any]:
         },
         "outputSummary": {
             "subjectMeasurements": measurements,
-            "korniaCudaExecutionDigestSha256": sha256_bytes(stable_json_bytes(kornia_evidence)),
+            "korniaCudaExecutionDigestSha256": sha256_bytes(stable_json_bytes({
+                "summaryEvidence": kornia_evidence,
+                "temporalMetricSeries": temporal_metric_series,
+                "crossChunkBoundaryMeasurements": boundary_measurements,
+            })),
             "opencvCudaCrosscheckExecutionDigestSha256": sha256_bytes(stable_json_bytes(opencv_evidence)),
             "completeRequestedFrameAndSubjectCoverage": True,
             "sampledOrRepresentativeOnlyMeasurementAccepted": False,
             "exactMaskManifestAndEveryMaskPngReread": True,
+            "temporalMetricSeries": temporal_metric_series,
+            "crossChunkBoundaryMeasurements": boundary_measurements,
+            "exactOrderedTemporalMetricSeriesIncluded": True,
+            "previousChunkBoundaryComparedWhenRequired": True,
         },
         "failureCode": "none",
         "privateCreateOnlyWorkerOutput": True,
@@ -850,6 +1393,9 @@ def failure_response(
             request["sam31InvocationId"] if request is not None
             else "unknown-sam31-invocation"
         ),
+        "chunkOrdinal": (
+            request["chunkOrdinal"] if request is not None else 1
+        ),
         "requestBindingSha256": request["requestBindingSha256"] if request is not None else "0" * 64,
         "status": "failed",
         "terminalStage": stage if stage in {
@@ -859,6 +1405,7 @@ def failure_response(
         } else "request_validation",
         "gpuEvidence": None,
         "inputEvidence": None,
+        "previousBoundaryInputEvidence": None,
         "runtimeMeasurement": None,
         "outputSummary": None,
         "failureCode": failure_code,
@@ -934,6 +1481,12 @@ def main() -> int:
         configure_l4_paths(l4_invocation_id)
         request = read_task(l4_invocation_id)
         configure_sam31_input_paths(request["sam31InvocationId"])
+        if request["previousChunkBoundaryInput"] is not None:
+            configure_previous_sam31_input_paths(
+                request["previousChunkBoundaryInput"][
+                    "previousSam31InvocationId"
+                ]
+            )
         response = execute(request)
         exit_code = 0
     except Exception as error:

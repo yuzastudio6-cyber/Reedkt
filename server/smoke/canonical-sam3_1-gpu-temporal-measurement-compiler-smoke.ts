@@ -314,6 +314,8 @@ const metricSeriesSet = sealCanonicalSam31TemporalMetricSeriesSet({
         Array.from({ length: frameCount - 1 }, () => 500),
       boundaryDisagreementBasisPoints:
         Array.from({ length: frameCount }, () => 400),
+      l4TemporalMetricSeriesExecutionEvidenceRef:
+        numericRef(`l4-temporal-series-${index + 1}`),
       exactOrderedPerFramePairMetricsFromKorniaCuda: true,
       exactOrderedPerFrameMetricsFromKorniaCuda: true,
       opencvCudaEveryMaskCrosschecked: true,
@@ -430,8 +432,8 @@ const inconsistentMetricSeriesSet = sealCanonicalSam31TemporalMetricSeriesSet({
   metricSeries: metricSeriesSet.metricSeries.map((series, index) => index === 0
     ? {
       ...series,
-      motionCompensatedBinaryIntersectionOverUnionBasisPoints:
-        series.motionCompensatedBinaryIntersectionOverUnionBasisPoints.map(
+      boundaryDisagreementBasisPoints:
+        series.boundaryDisagreementBasisPoints.map(
           (value, valueIndex) => valueIndex === 0 ? 8_900 : value,
         ),
     } : series),

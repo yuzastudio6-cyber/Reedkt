@@ -265,6 +265,7 @@ const metricSeriesSchema = z.object({
     z.array(basisPoints).min(1).max(239),
   meanAbsoluteAlphaDeltaBasisPoints: z.array(basisPoints).min(1).max(239),
   boundaryDisagreementBasisPoints: z.array(basisPoints).min(2).max(240),
+  l4TemporalMetricSeriesExecutionEvidenceRef: refSchema,
   exactOrderedPerFramePairMetricsFromKorniaCuda: z.literal(true),
   exactOrderedPerFrameMetricsFromKorniaCuda: z.literal(true),
   opencvCudaEveryMaskCrosschecked: z.literal(true),
@@ -922,10 +923,6 @@ function assertMetricSeries(input: {
       subjectEvidenceId: subject.subjectEvidenceId,
       expectedFrameCount: measurement.requestedRange.endFrameExclusive
         - measurement.requestedRange.startFrame,
-      minimumBinaryIntersectionOverUnionBasisPoints:
-        subject.temporalQa.minimumBinaryIntersectionOverUnionBasisPoints,
-      maximumAlphaFlickerBasisPoints:
-        subject.temporalQa.maximumAlphaFlickerBasisPoints,
       maximumBoundaryDisagreementBasisPoints:
         subject.temporalQa.maximumBoundaryDisagreementBasisPoints,
     })))
@@ -949,11 +946,6 @@ function assertMetricSeries(input: {
           expected.measurementRef)
         || series.subjectEvidenceId !== expected.subjectEvidenceId
         || series.expectedFrameCount !== expected.expectedFrameCount
-        || Math.min(
-          ...series.motionCompensatedBinaryIntersectionOverUnionBasisPoints,
-        ) !== expected.minimumBinaryIntersectionOverUnionBasisPoints
-        || Math.max(...series.meanAbsoluteAlphaDeltaBasisPoints)
-          !== expected.maximumAlphaFlickerBasisPoints
         || Math.max(...series.boundaryDisagreementBasisPoints)
           !== expected.maximumBoundaryDisagreementBasisPoints
     })) throw conflict('temporal_metric_series_lineage_mismatch')

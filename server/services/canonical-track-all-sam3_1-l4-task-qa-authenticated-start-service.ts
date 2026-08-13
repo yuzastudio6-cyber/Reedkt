@@ -41,7 +41,7 @@ import {
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
-  buildCanonicalTrackAllSam31L4TaskQaMaterial,
+  buildCanonicalTrackAllSam31L4TaskQaMaterialV2,
   type CanonicalTrackAllSam31L4TaskQaMaterialRepository,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-owner-service'
 import {
@@ -452,9 +452,9 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         payload,
       })
       const subject = payload.subjectRequests[0]!
-      const material = buildCanonicalTrackAllSam31L4TaskQaMaterial({
+      const material = buildCanonicalTrackAllSam31L4TaskQaMaterialV2({
         schemaVersion:
-          'canonical-track-all-sam3_1-l4-task-qa-material-v1',
+          'canonical-track-all-sam3_1-l4-task-qa-material-v2',
         source:
           'canonical_server_track_all_sam3_1_l4_task_qa_material_owner',
         evidenceClass: 'canonical_private_reread',
@@ -486,6 +486,10 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         expectedMaskManifestByteLength: output.manifestByteLength,
         expectedMaskManifestSha256: output.manifestSha256,
         expectedMaskPngCount: output.maskPngCount,
+        chunkOrdinal: 1,
+        canonicalStartFrameInclusive: payload.requestedRange.startFrame,
+        canonicalEndFrameInclusive: payload.requestedRange.endFrameExclusive - 1,
+        previousChunkBoundaryInput: null,
         subjects: [{
           subjectRequestId: subject.subjectRequestId,
           subjectEvidenceId: `track-all-l4-evidence:${subject.subjectRequestId}`,
@@ -688,7 +692,7 @@ function freezeAttemptPort(
 function buildResult(input: {
   request: TrackAllSam31L4TaskQaGpuStartRequest
   workspaceId: string
-  material: ReturnType<typeof buildCanonicalTrackAllSam31L4TaskQaMaterial>
+  material: ReturnType<typeof buildCanonicalTrackAllSam31L4TaskQaMaterialV2>
   result: CanonicalSam31GpuRuntimeResultAdmission
   started: Awaited<ReturnType<
     typeof startCanonicalTrackAllSam31L4TaskQaPlanFundedGpuJob

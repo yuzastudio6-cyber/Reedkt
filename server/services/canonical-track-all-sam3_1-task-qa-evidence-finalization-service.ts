@@ -47,8 +47,8 @@ import type {
 import {
   assertCanonicalTrackAllSam31L4TaskQaWorkerRequest,
   assertCanonicalTrackAllSam31L4TaskQaWorkerResponse,
-  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
-  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -603,7 +603,7 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
   })
 }
 
-function parseWorkerResult(
+export function parseCanonicalTrackAllSam31L4MaskQaWorkerResult(
   value: unknown,
 ): CanonicalTrackAllSam31L4MaskQaWorkerResult {
   assertPlainSerializedData(value, 'track_all_l4_mask_qa_worker_result')
@@ -637,6 +637,8 @@ function parseWorkerResult(
   return structuredClone(result)
 }
 
+const parseWorkerResult = parseCanonicalTrackAllSam31L4MaskQaWorkerResult
+
 function assertFixedWorkerEvidenceResult(value: {
   readonly invocationId: string
   readonly l4ExecutionEnvelopeRef: TrackAllSam31CaptionEvidenceRef
@@ -669,10 +671,10 @@ function assertFixedWorkerEvidenceResultV3(value: {
   readonly workerRequest: unknown
   readonly workerResponse: unknown
 }): void {
-  const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+  const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3(
     value.workerRequest,
   )
-  const response = assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(
+  const response = assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3(
     value.workerResponse,
   )
   if (
@@ -682,6 +684,7 @@ function assertFixedWorkerEvidenceResultV3(value: {
     || response.l4InvocationId !== value.l4InvocationId
     || response.status !== 'completed'
     || response.requestBindingSha256 !== request.requestBindingSha256
+    || response.chunkOrdinal !== request.chunkOrdinal
     || request.l4ExecutionEnvelopeRef.id !== value.l4InvocationId
     || request.l4ExecutionEnvelopeRef.id !==
       value.l4ExecutionEnvelopeRef.id
@@ -742,10 +745,10 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
     input.envelope,
   )
   const terminal = assertCanonicalProfessionalGpuJobTerminal(input.terminal)
-  const workerRequest = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+  const workerRequest = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3(
     workerResult.workerRequest,
   )
-  const workerResponse = assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV2(
+  const workerResponse = assertCanonicalTrackAllSam31L4TaskQaWorkerResponseV3(
     workerResult.workerResponse,
   )
   const source = task.runtimeRequest.sourceMedia
@@ -788,6 +791,10 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
       context.confirmedOutputFrameRef)
     && workerRequest.sourceWidth === source.width
     && workerRequest.sourceHeight === source.height
+    && workerRequest.canonicalStartFrameInclusive ===
+      source.canonicalSourceStartFrameInclusive
+    && workerRequest.canonicalEndFrameInclusive ===
+      source.canonicalSourceEndFrameInclusive
     && workerRequest.maskFrameRange.startFrame === 0
     && workerRequest.maskFrameRange.endFrameExclusive ===
       source.decodedFrameCount

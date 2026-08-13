@@ -5,13 +5,13 @@ import {
   canonicalProfessionalToolGpuDispatchAdmissionSchema,
 } from '../edit-architecture/canonical-professional-tool-gpu-dispatch-admission'
 import {
-  buildCanonicalTrackAllSam31L4TaskQaMaterial,
+  buildCanonicalTrackAllSam31L4TaskQaMaterialV2,
   createCanonicalTrackAllSam31L4TaskQaMaterialRepository,
   createCanonicalTrackAllSam31L4TaskQaPreparingLaunchPort,
   createCanonicalTrackAllSam31L4TaskQaTaskStore,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-owner-service'
 import {
-  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2,
+  assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3,
   canonicalTrackAllSam31L4TaskQaFixedTaskContractRef,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-worker-contract'
 import {
@@ -69,8 +69,8 @@ const target = {
   startsOnlyFromConsumedApprovedAdmission: true as const,
   stopsAtTerminalAttempt: true as const,
 }
-const material = buildCanonicalTrackAllSam31L4TaskQaMaterial({
-  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-material-v1',
+const material = buildCanonicalTrackAllSam31L4TaskQaMaterialV2({
+  schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-material-v2',
   source: 'canonical_server_track_all_sam3_1_l4_task_qa_material_owner',
   evidenceClass: 'canonical_private_reread',
   materialId: 'track-all-l4-task-qa-material-1',
@@ -94,6 +94,10 @@ const material = buildCanonicalTrackAllSam31L4TaskQaMaterial({
   expectedMaskManifestByteLength: 4_096,
   expectedMaskManifestSha256: digest('sam31-mask-manifest'),
   expectedMaskPngCount: 24,
+  chunkOrdinal: 1,
+  canonicalStartFrameInclusive: 120,
+  canonicalEndFrameInclusive: 143,
+  previousChunkBoundaryInput: null,
   subjects: [{
     subjectRequestId: 'subject-request-1',
     subjectEvidenceId: 'subject-evidence-1',
@@ -164,7 +168,7 @@ assert.equal(launch.disposition, 'accepted')
 assert.equal(delegateCalls, 1)
 const persisted = await taskStore.rereadWorkerTask(executionEnvelopeRef.id)
 assert.ok(persisted && typeof persisted === 'object')
-const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV2(
+const request = assertCanonicalTrackAllSam31L4TaskQaWorkerRequestV3(
   (persisted as { runtimeRequest: unknown }).runtimeRequest,
 )
 assert.equal(request.l4InvocationId, executionEnvelopeRef.id)
@@ -207,7 +211,7 @@ const collapsed = await collapsedPort.startOneShotJob({
 })
 assert.equal(collapsed.disposition, 'rejected_before_creation')
 
-assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaMaterial({
+assert.throws(() => buildCanonicalTrackAllSam31L4TaskQaMaterialV2({
   ...structuredClone(material),
   expectedMaskPngCount: 23,
   materialHash: undefined,

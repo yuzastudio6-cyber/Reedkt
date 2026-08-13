@@ -23,7 +23,7 @@
     },
     {
       "path": "run-local-verification.sh",
-      "sha256": "ad30389bec602d66aeaae0b59752a236e4e92a2e25dc6f9983161c2f9264b353"
+      "sha256": "089bd04e6359cd7c8c677f2e5a3ca0ff377bc3cdcff4e5ffb4a5e9bd336bd6ff"
     },
     {
       "path": "setup-local-auth-users.ts",
@@ -142,6 +142,10 @@
       "sha256": "d643b345d469bd647e6fefe5727ea31b9739c895d98550a79e10017664dcf5d2"
     },
     {
+      "path": "supabase/migrations/202607210027_professional_gpu_queue_runtime_reads.sql",
+      "sha256": "5822dfc41bd246fd0899dd35b7b06f4b0ce985e7c736db160d046c00be91307d"
+    },
+    {
       "path": "tests/001_two_user_two_workspace_rls.sql",
       "sha256": "4229abef3613004a7ce75467e6e030bfe6c1baa5237d7a55a7d8580d6822a816"
     },
@@ -222,6 +226,10 @@
       "sha256": "f63a54b3db7cbabbcd20f7d4fefa0042705952924c1fa83beac5a39260d83672"
     },
     {
+      "path": "tests/021_professional_gpu_queue_runtime_read_postconditions.sql",
+      "sha256": "1406b57d7cd9fb52bba47c309ddd784432b799dfc3728128a641f1bcf7571336"
+    },
+    {
       "path": "tests/_fixture.sql",
       "sha256": "293b582bf3f5539fed0f0673fe48c70e464e4570f58cdd34d6ad29fd14e24816"
     },
@@ -235,7 +243,7 @@
     },
     {
       "path": "verify.mjs",
-      "sha256": "004fd076687a1b888e18f41322c92890b6df94951fa8dcfc0a7f3da959ab4098"
+      "sha256": "32f41a87d804924e2bcffad1a4b18808982d5c73a301efe5551522dc6146abe3"
     }
   ],
   "repositoryFiles": [
@@ -329,7 +337,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "9e36a7579f9f626ca6004b8f2ef1441971fee050fee587da2a5d405899623ef3"
+      "sha256": "b5ff93c48e608b8dcd7ca13171f47aed5c3179ea262c7fa5a9ac9e9e5edf342c"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
@@ -537,7 +545,7 @@
     },
     {
       "path": "server/services/canonical-professional-gpu-cloud-task-outbox-postgres-rpc-adapter.ts",
-      "sha256": "81cd3a1e1ff76de489cd30bddf14c2c8329a0f059a49ef05d53a8f8cb330640d"
+      "sha256": "a4b554f6a460710af1f9ef34eb60d6f820af6b6e8f644f1e4e14b3577cd852a5"
     },
     {
       "path": "server/services/canonical-professional-gpu-fair-queue-coordinator.ts",

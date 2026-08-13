@@ -238,6 +238,7 @@ const expectedMigrations = [
   '202607210024_canonical_local_resumable_upload_protocol.sql',
   '202607210025_professional_gpu_fair_queue.sql',
   '202607210026_professional_gpu_cloud_task_outbox.sql',
+  '202607210027_professional_gpu_queue_runtime_reads.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -391,6 +392,8 @@ for (const requiredToken of [
   'professional_gpu_cloud_task_outbox',
   'weeditpro_begin_professional_gpu_cloud_task_create_v1',
   'weeditpro_record_professional_gpu_cloud_task_outcome_v1',
+  'weeditpro_read_professional_gpu_queue_runtime_state_v1',
+  'weeditpro_read_professional_gpu_queue_consumption_v1',
   'canonicalLifecycleAuthority',
   'customerCreditsMutated',
   'serviceFeeIncluded',

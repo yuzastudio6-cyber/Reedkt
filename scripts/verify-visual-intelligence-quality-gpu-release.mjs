@@ -127,6 +127,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-vertex-serving-qualification-invocation-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-serving-qualification-output-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-serving-thirty-run-qualification-smoke.ts',
+  'server/smoke/canonical-sam3_1-private-qualification-capacity-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
   'server/smoke/canonical-quality-first-a100-fast-scale-zero-migration-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',

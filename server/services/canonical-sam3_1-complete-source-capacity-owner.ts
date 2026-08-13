@@ -70,7 +70,9 @@ const safePrefix = z.string().trim().min(1).max(512)
     && !value.includes('//') && !value.endsWith('/'))
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
-const quotaCapacity = z.number().int().min(1).max(64)
+// A granted value of zero is a valid live quota observation. It must be
+// represented as unavailable capacity rather than rejected as malformed data.
+const quotaCapacity = z.number().int().min(0).max(64)
 interface GoogleAuthRequest {
   request(input: {
     readonly url: string

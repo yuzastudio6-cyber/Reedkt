@@ -197,10 +197,11 @@ assert.throws(() => assertCanonicalSam31CompleteSourceCapacityObservation({
   ...ready,
   a100GrantedValue: 15,
 }))
-assert.throws(() => sealCanonicalSam31L4CompleteSourceCapacityObservation({
+const zeroL4Capacity = sealCanonicalSam31L4CompleteSourceCapacityObservation({
   ...withoutKey(readyL4, 'observationHash'),
   grantedValue: 0,
-}))
+})
+assert.equal(zeroL4Capacity.grantedValue, 0)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-complete-source-capacity-owner',

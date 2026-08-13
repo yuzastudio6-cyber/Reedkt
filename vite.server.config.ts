@@ -16,6 +16,8 @@ export default defineConfig({
           'server/cli/production-container-qualification-receipt.ts',
         'weeditpro-source-analysis-l4-visual-evidence-worker':
           'server/cli/run-weeditpro-source-analysis-l4-visual-evidence-worker.ts',
+        'weeditpro-sam3_1-eight-minute-source-preparation-worker':
+          'server/cli/run-weeditpro-sam3_1-eight-minute-source-preparation-worker.ts',
       },
       output: {
         entryFileNames: '[name].js',

@@ -15,7 +15,9 @@ COPY . .
 RUN npm run build:server \
   && npm prune --omit=dev \
   && test -f \
-    dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js
+    dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js \
+  && test -f \
+    dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js
 
 FROM ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlex/paddlex:paddlex3.0.1-paddlepaddle3.0.0-gpu-cuda12.6-cudnn9.5-trt10.5@sha256:555a291984bb03850d4887ca621165f82b150d2b51d78bdcc4050909fef725db
 

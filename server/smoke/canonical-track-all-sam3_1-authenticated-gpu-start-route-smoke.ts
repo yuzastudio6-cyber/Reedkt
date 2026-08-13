@@ -189,9 +189,10 @@ const app = createReeditProApiApp(loadRuntimeEnv({
     },
   }),
   professionalGpuCloudTaskConsumer: Object.freeze({
-    schemaVersion: 'canonical-professional-gpu-cloud-task-consumer-v1',
+    schemaVersion: 'canonical-professional-gpu-cloud-task-consumer-v2',
     privateGoogleOidcReceiver: true,
     exactCanonicalRereadBeforeGpuInvocation: true,
+    exactTerminalUsageAttemptPersistedBeforeQueueFinalization: true,
     duplicateDeliveryMayStartNewInference: false,
     automaticNewExecutionAttemptAllowed: false,
     customerCreditsMutatedByConsumer: false,
@@ -923,7 +924,7 @@ CanonicalProfessionalGpuCloudTaskConsumerResult {
   })
   const payload = {
     schemaVersion:
-      'canonical-professional-gpu-cloud-task-consumer-result-v1' as const,
+      'canonical-professional-gpu-cloud-task-consumer-result-v2' as const,
     source: 'canonical_server_professional_gpu_cloud_task_consumer' as const,
     disposition: 'completed_and_queue_finalized' as const,
     queueEntryRef: gpuRef('route-smoke-queue-entry'),
@@ -931,9 +932,11 @@ CanonicalProfessionalGpuCloudTaskConsumerResult {
     executionAttemptRef: gpuRef('route-smoke-attempt'),
     serviceIdentityEvidenceRef: gpuRef('route-smoke-identity'),
     endpointInvocationResultRef: gpuRef('route-smoke-invocation'),
+    terminalUsageAttemptRef: gpuRef('route-smoke-terminal-usage'),
     queueTerminalRef: gpuRef('route-smoke-terminal'),
     invocationDisposition: 'completed' as const,
     queueFinalized: true,
+    terminalUsageAttemptPersistedBeforeQueueFinalization: true,
     exactTaskOutboxClaimFundingAttemptAndInvocationReread: true as const,
     duplicateDeliveryStartedNewInference: false as const,
     automaticNewExecutionAttemptAllowed: false as const,

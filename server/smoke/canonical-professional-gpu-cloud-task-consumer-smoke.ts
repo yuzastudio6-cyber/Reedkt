@@ -74,7 +74,13 @@ assert.equal(completed.queueFinalized, true)
 assert.equal(completed.invocationDisposition, 'completed')
 assert.equal(completed.unresolvedOutcomeBlocksRetry, false)
 assert.equal(completedHarness.counts.invocations, 1)
+assert.equal(completedHarness.counts.terminalAttempts, 1)
 assert.equal(completedHarness.counts.finalizations, 1)
+assert.notEqual(completed.terminalUsageAttemptRef, null)
+assert.equal(
+  completed.terminalUsageAttemptPersistedBeforeQueueFinalization,
+  true,
+)
 assert.equal(completed.customerCreditsMutated, false)
 assert.equal(completed.productionAuthorityGranted, false)
 
@@ -86,6 +92,7 @@ assert.equal(replay.disposition, 'terminal_replay')
 assert.equal(replay.queueFinalized, true)
 assert.equal(replay.invocationDisposition, null)
 assert.equal(completedHarness.counts.invocations, 1)
+assert.equal(completedHarness.counts.terminalAttempts, 1)
 assert.equal(completedHarness.counts.finalizations, 1)
 assert.equal(replay.duplicateDeliveryStartedNewInference, false)
 
@@ -121,6 +128,7 @@ assert.equal(unknown.queueFinalized, false)
 assert.equal(unknown.queueTerminalRef, null)
 assert.equal(unknown.unresolvedOutcomeBlocksRetry, true)
 assert.equal(unknownHarness.counts.invocations, 1)
+assert.equal(unknownHarness.counts.terminalAttempts, 0)
 assert.equal(unknownHarness.counts.finalizations, 0)
 
 const wrongIdentity = createCanonicalPrivateServiceIdentityFixture({
@@ -173,9 +181,10 @@ assert.throws(() => assertCanonicalProfessionalGpuCloudTaskConsumerResult({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-cloud-task-consumer',
-  checks: 46,
+  checks: 52,
   privateOidcIdentityRequired: true,
   exactTaskOutboxClaimFundingAttemptAndInvocationReread: true,
+  terminalUsageAttemptPersistedBeforeQueueFinalization: true,
   completedAndFailedQueueTerminalReconciliation: true,
   scaleZeroKnownNotExecutedFailsCurrentAttemptClosed: true,
   unknownOutcomeBlocksRetryAndTerminal: true,
@@ -197,8 +206,9 @@ function harness(
   identityVerifier: CanonicalLiveGoogleServiceIdentityVerifier = verifier,
   deliveryBody: typeof spec.body = spec.body,
 ) {
-  const counts = { invocations: 0, finalizations: 0 }
+  const counts = { invocations: 0, terminalAttempts: 0, finalizations: 0 }
   let terminal: CanonicalProfessionalGpuFairQueueDurableTerminal | null = null
+  let terminalAttempt: ReturnType<typeof terminalUsageRecord> | null = null
   const queueAdapter = queueTransactionAdapter(counts, (value) => {
     terminal = value
   })
@@ -240,6 +250,18 @@ function harness(
       },
     },
     invocationRuntime,
+    terminalAttemptOwner: {
+      async recordTerminalAttempt(input) {
+        counts.terminalAttempts += 1
+        assert.equal(input.invocationId, attempt.idempotencyKey)
+        assert.deepEqual(input.executionAttemptRef, attempt.executionAttemptRef)
+        terminalAttempt = terminalUsageRecord(disposition)
+        return terminalAttempt as never
+      },
+      async rereadTerminalAttempt() {
+        return terminalAttempt as never
+      },
+    },
     queueTransactionAdapter: queueAdapter,
     now: () => observedAt,
   })
@@ -247,6 +269,18 @@ function harness(
     consumer,
     counts,
     get terminal() { return terminal },
+  }
+}
+
+function terminalUsageRecord(disposition: InvocationDisposition) {
+  return {
+    executionAttemptRef: attempt.executionAttemptRef,
+    endpointInvocationResultRef:
+      ref(`consumer-endpoint-result-${disposition}`),
+    recordHash: sha256AuthorityValue({
+      domain: 'consumer_terminal_usage_attempt',
+      disposition,
+    }),
   }
 }
 
@@ -287,7 +321,7 @@ function delivery(
 }
 
 function queueTransactionAdapter(
-  counts: { finalizations: number },
+  counts: { terminalAttempts: number; finalizations: number },
   setTerminal: (terminal: CanonicalProfessionalGpuFairQueueDurableTerminal) => void,
 ): CanonicalProfessionalGpuFairQueueTransactionAdapter {
   const unsupported = async () => { throw new Error('unsupported operation') }
@@ -305,6 +339,11 @@ function queueTransactionAdapter(
     markDispatched: unsupported,
     recoverExpiredDispatchLeases: unsupported,
     async finalize(untrusted) {
+      assert.equal(
+        counts.terminalAttempts,
+        1,
+        'terminal usage attempt must exist before queue finalization',
+      )
       counts.finalizations += 1
       const request = assertCanonicalProfessionalGpuFairQueueTransactionRequest(
         untrusted,

@@ -11,6 +11,10 @@ import {
 import type {
   CanonicalProfessionalGpuFundedStartAuthorityStore,
 } from './canonical-professional-gpu-funded-start-authority-store'
+import type {
+  CanonicalSam31VertexServingTerminalAttemptOwner,
+  CanonicalSam31VertexServingTerminalAttemptRecord,
+} from './canonical-sam3_1-vertex-serving-terminal-attempt-owner'
 import {
   assertCanonicalProfessionalGpuFairQueueTransactionResult,
   sealCanonicalProfessionalGpuFairQueueTransactionRequest,
@@ -33,9 +37,9 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_VERSION =
-  'canonical-professional-gpu-cloud-task-consumer-v1' as const
+  'canonical-professional-gpu-cloud-task-consumer-v2' as const
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_RESULT_VERSION =
-  'canonical-professional-gpu-cloud-task-consumer-result-v1' as const
+  'canonical-professional-gpu-cloud-task-consumer-result-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/-]*$/u)
@@ -65,6 +69,7 @@ const resultPayloadSchema = z.object({
   executionAttemptRef: evidenceRefSchema,
   serviceIdentityEvidenceRef: evidenceRefSchema,
   endpointInvocationResultRef: evidenceRefSchema,
+  terminalUsageAttemptRef: evidenceRefSchema.nullable(),
   queueTerminalRef: evidenceRefSchema.nullable(),
   invocationDisposition: z.enum([
     'completed',
@@ -73,6 +78,7 @@ const resultPayloadSchema = z.object({
     'outcome_unknown_requires_reconciliation',
   ]).nullable(),
   queueFinalized: z.boolean(),
+  terminalUsageAttemptPersistedBeforeQueueFinalization: z.boolean(),
   exactTaskOutboxClaimFundingAttemptAndInvocationReread: z.literal(true),
   duplicateDeliveryStartedNewInference: z.literal(false),
   automaticNewExecutionAttemptAllowed: z.literal(false),
@@ -94,6 +100,8 @@ function refineResult(
   if (
     result.queueFinalized !== !unknown
     || (result.queueTerminalRef !== null) !== !unknown
+    || (result.terminalUsageAttemptRef !== null) !== !unknown
+    || result.terminalUsageAttemptPersistedBeforeQueueFinalization !== !unknown
     || result.unresolvedOutcomeBlocksRetry !== unknown
     || replay !== (result.invocationDisposition === null)
   ) context.addIssue({
@@ -115,6 +123,7 @@ export interface CanonicalProfessionalGpuCloudTaskConsumer {
     typeof CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_VERSION
   readonly privateGoogleOidcReceiver: true
   readonly exactCanonicalRereadBeforeGpuInvocation: true
+  readonly exactTerminalUsageAttemptPersistedBeforeQueueFinalization: true
   readonly duplicateDeliveryMayStartNewInference: false
   readonly automaticNewExecutionAttemptAllowed: false
   readonly customerCreditsMutatedByConsumer: false
@@ -138,6 +147,10 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
   >
   readonly invocationRuntime:
     CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  readonly terminalAttemptOwner: Pick<
+    CanonicalSam31VertexServingTerminalAttemptOwner,
+    'recordTerminalAttempt' | 'rereadTerminalAttempt'
+  >
   readonly queueTransactionAdapter:
     CanonicalProfessionalGpuFairQueueTransactionAdapter
   readonly now?: () => string
@@ -157,6 +170,7 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
     schemaVersion: CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_VERSION,
     privateGoogleOidcReceiver: true as const,
     exactCanonicalRereadBeforeGpuInvocation: true as const,
+    exactTerminalUsageAttemptPersistedBeforeQueueFinalization: true as const,
     duplicateDeliveryMayStartNewInference: false as const,
     automaticNewExecutionAttemptAllowed: false as const,
     customerCreditsMutatedByConsumer: false as const,
@@ -215,17 +229,30 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
         ),
       }
       if (delivery.terminal) {
+        const terminalAttempt = await input.terminalAttemptOwner
+          .rereadTerminalAttempt({
+            executionAttemptRef: body.executionAttemptRef,
+          })
+        if (!terminalAttempt
+          || !sameRef(
+            terminalAttempt.endpointInvocationResultRef,
+            delivery.terminal.terminalEvidenceRef,
+          )) throw new TypeError(
+          'Professional GPU terminal replay lacks exact usage evidence.',
+        )
         return buildResult({
           ...common,
           disposition: 'terminal_replay',
           endpointInvocationResultRef:
             delivery.terminal.terminalEvidenceRef,
+          terminalUsageAttemptRef: terminalAttemptRef(terminalAttempt),
           queueTerminalRef: ref(
             `${body.queueEntryId}:terminal`,
             delivery.terminal.terminalHash,
           ),
           invocationDisposition: null,
           queueFinalized: true,
+          terminalUsageAttemptPersistedBeforeQueueFinalization: true,
           unresolvedOutcomeBlocksRetry: false,
           observedAt,
         })
@@ -301,13 +328,27 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
           ...common,
           disposition: 'unknown_outcome_requires_reconciliation',
           endpointInvocationResultRef: invocation.endpointInvocationResultRef,
+          terminalUsageAttemptRef: null,
           queueTerminalRef: null,
           invocationDisposition: invocation.invocationDisposition,
           queueFinalized: false,
+          terminalUsageAttemptPersistedBeforeQueueFinalization: false,
           unresolvedOutcomeBlocksRetry: true,
           observedAt,
         })
       }
+      const terminalAttempt = await input.terminalAttemptOwner
+        .recordTerminalAttempt({
+          invocationId: attempt.idempotencyKey,
+          executionAttemptRef: body.executionAttemptRef,
+          recordedAt: observedAt,
+        })
+      if (!sameRef(
+        terminalAttempt.endpointInvocationResultRef,
+        invocation.endpointInvocationResultRef,
+      )) throw new TypeError(
+        'Professional GPU terminal usage differs from invocation result.',
+      )
       const queueDisposition = invocation.invocationDisposition === 'completed'
         ? 'completed' as const
         : 'failed_reconciled' as const
@@ -317,7 +358,7 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
             'canonical-professional-gpu-fair-queue-transaction-port-v1',
           operation: 'finalize',
           requestId: `gpu-consume-${sha256AuthorityValue({
-            domain: 'canonical_professional_gpu_cloud_task_consumer_v1',
+            domain: 'canonical_professional_gpu_cloud_task_consumer_v2',
             claimRef: common.claimRef,
             endpointInvocationResultRef:
               invocation.endpointInvocationResultRef,
@@ -361,12 +402,14 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
         ...common,
         disposition,
         endpointInvocationResultRef: invocation.endpointInvocationResultRef,
+        terminalUsageAttemptRef: terminalAttemptRef(terminalAttempt),
         queueTerminalRef: ref(
           `${body.queueEntryId}:terminal`,
           finalized.terminal.terminalHash,
         ),
         invocationDisposition: invocation.invocationDisposition,
         queueFinalized: true,
+        terminalUsageAttemptPersistedBeforeQueueFinalization: true,
         unresolvedOutcomeBlocksRetry: false,
         observedAt,
       })
@@ -447,4 +490,13 @@ function ref(id: string, hash: string) {
     version: 1,
     contentHash: hash.startsWith('sha256:') ? hash : `sha256:${hash}`,
   })
+}
+
+function terminalAttemptRef(
+  record: CanonicalSam31VertexServingTerminalAttemptRecord,
+) {
+  return ref(
+    `sam31-serving-terminal-attempt:${record.executionAttemptRef.id}`,
+    record.recordHash,
+  )
 }

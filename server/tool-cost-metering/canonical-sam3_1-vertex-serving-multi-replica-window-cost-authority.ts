@@ -73,9 +73,13 @@ const attemptSchema = z.object({
 }).strict().superRefine((attempt, context) => {
   const duration = Date.parse(attempt.responseCompletedAt)
     - Date.parse(attempt.requestStartedAt)
+  const terminalOutcomeIsExact = attempt.terminalOutcome === 'completed'
+    ? attempt.providerInferenceOrSubstantiveWorkOutcome === 'executed'
+    : attempt.terminalOutcome === 'canceled'
+      ? attempt.providerInferenceOrSubstantiveWorkOutcome === 'not_executed'
+      : true
   if (duration <= 0 || attempt.activeRequestMilliseconds !== duration
-    || (attempt.terminalOutcome === 'completed') !==
-      (attempt.providerInferenceOrSubstantiveWorkOutcome === 'executed')) {
+    || !terminalOutcomeIsExact) {
     context.addIssue({
       code: 'custom',
       message: 'Vertex multi-replica attempt outcome or duration changed.',
@@ -85,6 +89,13 @@ const attemptSchema = z.object({
 export type CanonicalSam31VertexServingMultiReplicaWindowAttempt = z.infer<
   typeof attemptSchema
 >
+
+export function assertCanonicalSam31VertexServingMultiReplicaWindowAttempt(
+  value: unknown,
+): CanonicalSam31VertexServingMultiReplicaWindowAttempt {
+  assertPlainSerializedData(value, 'sam31_vertex_multi_replica_attempt')
+  return structuredClone(attemptSchema.parse(value))
+}
 
 const replicaSliceSchema = z.object({
   sliceOrdinal: positiveInteger,

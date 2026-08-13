@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v20')
+  'canonical-track-all-sam3_1-production-runtime-v21')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -61,6 +61,10 @@ assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
 assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
+assert.equal(
+  runtime.terminalServingAttemptOwnerMountedBeforeQueueFinalization,
+  true,
+)
 assert.equal(runtime.directA100InvocationHttpRouteMounted, false)
 assert.equal(
   runtime.professionalGpuCloudTaskScheduler.schemaVersion,
@@ -68,7 +72,7 @@ assert.equal(
 )
 assert.equal(
   runtime.professionalGpuCloudTaskConsumer.schemaVersion,
-  'canonical-professional-gpu-cloud-task-consumer-v1',
+  'canonical-professional-gpu-cloud-task-consumer-v2',
 )
 assert.equal(runtime.freshA100PricingUsesVertexServingRateAuthority, true)
 assert.equal(runtime.historicalA100CustomJobPricingRemainsReadOnly, true)

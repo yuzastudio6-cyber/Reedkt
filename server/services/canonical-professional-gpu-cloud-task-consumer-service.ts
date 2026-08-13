@@ -39,6 +39,9 @@ import type {
   CanonicalTrackAllSam31L4TaskQaCloudTaskConsumer,
   CanonicalTrackAllSam31L4TaskQaCloudTaskConsumerResult,
 } from './canonical-track-all-sam3_1-l4-task-qa-cloud-task-consumer-service'
+import type {
+  CanonicalTrackAllSam31L4TaskQaTerminalReconciliationResult,
+} from './canonical-track-all-sam3_1-l4-task-qa-terminal-reconciliation-service'
 
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_VERSION =
   'canonical-professional-gpu-cloud-task-consumer-v2' as const
@@ -138,6 +141,7 @@ export interface CanonicalProfessionalGpuCloudTaskConsumer {
   }): Promise<
     CanonicalProfessionalGpuCloudTaskConsumerResult
     | CanonicalTrackAllSam31L4TaskQaCloudTaskConsumerResult
+    | CanonicalTrackAllSam31L4TaskQaTerminalReconciliationResult
   >
 }
 

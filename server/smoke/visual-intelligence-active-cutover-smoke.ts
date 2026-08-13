@@ -488,7 +488,11 @@ assert.match(
 )
 assert.match(
   trackAllSam31L4TaskQaAuthenticatedStartService,
-  /startCanonicalTrackAllSam31L4TaskQaPlanFundedGpuJob/u,
+  /prepareCanonicalProfessionalGpuPlanFundedJob/u,
+)
+assert.match(
+  trackAllSam31L4TaskQaAuthenticatedStartService,
+  /launchCanonicalProfessionalGpuPreparedPlanFundedJob/u,
 )
 assert.match(
   trackAllSam31L4TaskQaAuthenticatedStartService,

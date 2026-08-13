@@ -41,7 +41,14 @@ import {
 } from './canonical-professional-google-cloud-gpu-job-launch-port'
 import {
   createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository,
+  createCanonicalProfessionalL4CloudRunExecutionReadPort,
 } from './canonical-professional-l4-cloud-run-execution-authority-repository'
+import {
+  createCanonicalProfessionalGpuTerminalCostEvidenceReadPort,
+} from './canonical-professional-gpu-terminal-cost-evidence-service'
+import {
+  createGoogleCloudProfessionalGpuTerminalObservationPort,
+} from './canonical-professional-google-cloud-gpu-terminal-observation-port'
 import type {
   CanonicalProfessionalGpuCloudJobLaunchPort,
 } from './canonical-professional-gpu-job-lifecycle-service'
@@ -206,9 +213,15 @@ import {
 import {
   createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer,
 } from './canonical-track-all-sam3_1-l4-task-qa-cloud-task-consumer-service'
+import {
+  createCanonicalTrackAllSam31L4TaskQaTerminalCostAdapters,
+} from './canonical-track-all-sam3_1-l4-task-qa-terminal-cost-adapters'
+import {
+  createCanonicalTrackAllSam31L4TaskQaTerminalReconciler,
+} from './canonical-track-all-sam3_1-l4-task-qa-terminal-reconciliation-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v23' as const
+  'canonical-track-all-sam3_1-production-runtime-v24' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -280,6 +293,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly userTriggeredCloudTaskSchedulingMounted: true
   readonly authenticatedCloudTaskConsumerMounted: true
   readonly l4RouteAwareCloudTaskConsumerMounted: true
+  readonly l4TerminalUsageCostAndZeroActiveGpuReconciliationMounted: true
+  readonly l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed: false
   readonly terminalServingAttemptOwnerMountedBeforeQueueFinalization: true
   readonly l4QuotaAndActiveCountCapacityMounted: true
   readonly l4FixedTaskPreparedBeforeDurableQueueAdmission: true
@@ -672,6 +687,39 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
         currentExecutionRateAuthorityReadPort,
       ),
   })
+  const l4CloudRunExecutionReadPort =
+    createCanonicalProfessionalL4CloudRunExecutionReadPort({
+      repository: l4CloudRunExecutionAuthorityRepository,
+    })
+  const l4TaskQaTerminalCostAdapters =
+    createCanonicalTrackAllSam31L4TaskQaTerminalCostAdapters({
+      objectPort: controlPlaneObjectPort,
+      lifecycleStore,
+      pricingAuthorityReadPort: pricingAuthorityStore,
+      runtimeContextReadPort,
+      executionReadPort: l4CloudRunExecutionReadPort,
+      taskStore: trackAllSam31L4TaskQaTaskStore,
+    })
+  const l4TaskQaTerminalCostEvidenceReadPort =
+    createCanonicalProfessionalGpuTerminalCostEvidenceReadPort({
+      contextReadPort: l4TaskQaTerminalCostAdapters.contextReadPort,
+      usageReadPort: l4TaskQaTerminalCostAdapters.usageReadPort,
+      rateReadPort: l4TaskQaTerminalCostAdapters.rateReadPort,
+      receiptStore: l4TaskQaTerminalCostAdapters.receiptStore,
+    })
+  const l4TaskQaTerminalObservationPort =
+    createGoogleCloudProfessionalGpuTerminalObservationPort({
+      executionReadPort: l4CloudRunExecutionReadPort,
+      costEvidenceReadPort: l4TaskQaTerminalCostEvidenceReadPort,
+    })
+  const l4TaskQaTerminalReconciler =
+    createCanonicalTrackAllSam31L4TaskQaTerminalReconciler({
+      fundedStartAuthorityStore,
+      lifecycleStore,
+      terminalCostAdapters: l4TaskQaTerminalCostAdapters,
+      terminalObservationPort: l4TaskQaTerminalObservationPort,
+      queueTransactionAdapter: gpuQueueTransactionAdapter,
+    })
   const authenticatedRuntime =
     createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime({
       pricingAuthorityReadPort: pricingAuthorityStore,
@@ -734,6 +782,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
               runtimeComposition: l4TaskQaPreparationRuntimeComposition,
               materialRepository:
                 trackAllSam31L4TaskQaMaterialRepository,
+              terminalReconciler: l4TaskQaTerminalReconciler,
             }),
         }),
       })
@@ -833,6 +882,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     userTriggeredCloudTaskSchedulingMounted: true as const,
     authenticatedCloudTaskConsumerMounted: true as const,
     l4RouteAwareCloudTaskConsumerMounted: true as const,
+    l4TerminalUsageCostAndZeroActiveGpuReconciliationMounted: true as const,
+    l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed:
+      false as const,
     terminalServingAttemptOwnerMountedBeforeQueueFinalization: true as const,
     l4QuotaAndActiveCountCapacityMounted: true as const,
     l4FixedTaskPreparedBeforeDurableQueueAdmission: true as const,

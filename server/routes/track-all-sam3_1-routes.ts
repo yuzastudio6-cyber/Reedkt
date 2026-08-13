@@ -80,6 +80,18 @@ export function createTrackAllSam31Routes(): Router {
         authorizationHeader: request.headers.authorization,
         body: request.body,
       })
+      if (result.disposition === 'pending_cloud_terminal') {
+        throw new ApiError(
+          'TOOL_NOT_READY',
+          'The exact L4 job is still running. The same durable Cloud Task may '
+            + 'reread terminal state again; it cannot start another GPU job.',
+          503,
+          {
+            requiredGate:
+              'l4_terminal_usage_cost_and_zero_active_gpu_reconciliation',
+          },
+        )
+      }
       sendOk(response, { consumption: result }, [
         result.disposition.includes('unknown')
           ? 'The exact funded GPU attempt has an uncertain provider outcome. The queue remains blocked for canonical reconciliation and no automatic retry or second execution was started.'

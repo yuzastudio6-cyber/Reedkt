@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v23')
+  'canonical-track-all-sam3_1-production-runtime-v24')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -62,6 +62,14 @@ assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
 assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
 assert.equal(runtime.l4RouteAwareCloudTaskConsumerMounted, true)
+assert.equal(
+  runtime.l4TerminalUsageCostAndZeroActiveGpuReconciliationMounted,
+  true,
+)
+assert.equal(
+  runtime.l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed,
+  false,
+)
 assert.equal(
   runtime.terminalServingAttemptOwnerMountedBeforeQueueFinalization,
   true,
@@ -296,6 +304,14 @@ assert.match(productionRuntimeSource,
   /dispatchableRouteIds:\s*\[\s*'a100_80gb_heavy_primary',\s*'l4_standard_primary'/u)
 assert.match(productionRuntimeSource,
   /createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalTrackAllSam31L4TaskQaTerminalCostAdapters/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalProfessionalGpuTerminalCostEvidenceReadPort/u)
+assert.match(productionRuntimeSource,
+  /createGoogleCloudProfessionalGpuTerminalObservationPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalTrackAllSam31L4TaskQaTerminalReconciler/u)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -334,7 +350,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 101,
+  checks: 107,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -361,6 +377,10 @@ console.log(JSON.stringify({
   l4DurableQueuedStartMounted: true,
   l4CloudRunOperationAuthorityMounted: true,
   l4RouteAwareCloudTaskConsumerMounted: true,
+  l4TerminalUsageCostAndZeroActiveGpuReconciliationMounted:
+    runtime.l4TerminalUsageCostAndZeroActiveGpuReconciliationMounted,
+  l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed:
+    runtime.l4QueueFinalizationBeforeTerminalCostAndZeroActiveGpuAllowed,
   l4TaskMaterialPersistedAndRereadBeforeCloudLaunch: true,
   captionTrackAllTaskLevelQaOwnerMounted: true,
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,

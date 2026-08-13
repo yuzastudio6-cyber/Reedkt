@@ -78,10 +78,12 @@ const verifier: CanonicalLiveGoogleServiceIdentityVerifier = {
 }
 
 const completedHarness = harness('completed')
-const completed = await completedHarness.consumer.consumeOne({
-  authorizationHeader: 'Bearer private-fixture-token',
-  body: spec.body,
-})
+const completed = assertCanonicalProfessionalGpuCloudTaskConsumerResult(
+  await completedHarness.consumer.consumeOne({
+    authorizationHeader: 'Bearer private-fixture-token',
+    body: spec.body,
+  }),
+)
 assert.equal(completed.disposition, 'completed_and_queue_finalized')
 assert.equal(completed.queueFinalized, true)
 assert.equal(completed.invocationDisposition, 'completed')
@@ -97,10 +99,12 @@ assert.equal(
 assert.equal(completed.customerCreditsMutated, false)
 assert.equal(completed.productionAuthorityGranted, false)
 
-const replay = await completedHarness.consumer.consumeOne({
-  authorizationHeader: 'Bearer private-fixture-token',
-  body: structuredClone(spec.body),
-})
+const replay = assertCanonicalProfessionalGpuCloudTaskConsumerResult(
+  await completedHarness.consumer.consumeOne({
+    authorizationHeader: 'Bearer private-fixture-token',
+    body: structuredClone(spec.body),
+  }),
+)
 assert.equal(replay.disposition, 'terminal_replay')
 assert.equal(replay.queueFinalized, true)
 assert.equal(replay.invocationDisposition, null)
@@ -110,19 +114,23 @@ assert.equal(completedHarness.counts.finalizations, 1)
 assert.equal(replay.duplicateDeliveryStartedNewInference, false)
 
 const failedHarness = harness('failed')
-const failed = await failedHarness.consumer.consumeOne({
-  authorizationHeader: 'Bearer private-fixture-token',
-  body: spec.body,
-})
+const failed = assertCanonicalProfessionalGpuCloudTaskConsumerResult(
+  await failedHarness.consumer.consumeOne({
+    authorizationHeader: 'Bearer private-fixture-token',
+    body: spec.body,
+  }),
+)
 assert.equal(failed.disposition, 'failed_and_queue_finalized')
 assert.equal(failed.queueFinalized, true)
 assert.equal(failedHarness.terminal?.disposition, 'failed_reconciled')
 
 const scaleZeroHarness = harness('not_executed_scale_from_zero_trigger')
-const scaleZero = await scaleZeroHarness.consumer.consumeOne({
-  authorizationHeader: 'Bearer private-fixture-token',
-  body: spec.body,
-})
+const scaleZero = assertCanonicalProfessionalGpuCloudTaskConsumerResult(
+  await scaleZeroHarness.consumer.consumeOne({
+    authorizationHeader: 'Bearer private-fixture-token',
+    body: spec.body,
+  }),
+)
 assert.equal(
   scaleZero.disposition,
   'known_not_executed_and_queue_finalized',

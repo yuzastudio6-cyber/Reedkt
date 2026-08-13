@@ -23,6 +23,10 @@ import type {
 import type {
   CanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition,
 } from './canonical-track-all-sam3_1-l4-task-qa-funded-gpu-runtime-composition'
+import type {
+  CanonicalTrackAllSam31L4TaskQaTerminalReconciler,
+  CanonicalTrackAllSam31L4TaskQaTerminalReconciliationResult,
+} from './canonical-track-all-sam3_1-l4-task-qa-terminal-reconciliation-service'
 import {
   assertCanonicalTrackAllSam31L4TaskQaMaterialV2,
   type CanonicalTrackAllSam31L4TaskQaMaterialRepository,
@@ -117,7 +121,10 @@ export interface CanonicalTrackAllSam31L4TaskQaCloudTaskConsumer {
     readonly delivery: CanonicalProfessionalGpuQueueDeliveryConsumption
     readonly serviceIdentityEvidenceRef: z.infer<typeof evidenceRefSchema>
     readonly observedAt: string
-  }): Promise<CanonicalTrackAllSam31L4TaskQaCloudTaskConsumerResult>
+  }): Promise<
+    CanonicalTrackAllSam31L4TaskQaCloudTaskConsumerResult
+    | CanonicalTrackAllSam31L4TaskQaTerminalReconciliationResult
+  >
 }
 
 export function createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer(input: {
@@ -133,6 +140,8 @@ export function createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer(input: {
     CanonicalTrackAllSam31L4TaskQaMaterialRepository,
     'rereadMaterial'
   >
+  readonly terminalReconciler:
+    CanonicalTrackAllSam31L4TaskQaTerminalReconciler
 }): CanonicalTrackAllSam31L4TaskQaCloudTaskConsumer {
   return Object.freeze({
     schemaVersion:
@@ -222,6 +231,15 @@ export function createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer(input: {
       const existing = await input.lifecycleStore.rereadLaunchBinding({
         launchBindingId: identity.launchBindingId,
       })
+      if (existing || delivery.terminal) {
+        return input.terminalReconciler.reconcileVerifiedDelivery({
+          body,
+          delivery,
+          serviceIdentityEvidenceRef:
+            evidenceRefSchema.parse(untrusted.serviceIdentityEvidenceRef),
+          observedAt,
+        })
+      }
       const started = await launchCanonicalProfessionalGpuPreparedPlanFundedJob({
         launchRecordId: identity.launchRecordId,
         launchBindingId: identity.launchBindingId,
@@ -241,12 +259,19 @@ export function createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer(input: {
           prelaunch.prelaunchAuthorizationHash,
         ))) throw new TypeError('L4 launch result changed route or lineage.')
       const disposition = launch.launchDisposition === 'job_created'
-        ? existing === null
-          ? 'job_created_pending_terminal' as const
-          : 'launch_replay_pending_terminal' as const
+        ? 'job_created_pending_terminal' as const
         : launch.launchDisposition === 'job_rejected_before_creation'
           ? 'job_rejected_before_creation_pending_reconciliation' as const
           : 'job_creation_unknown_requires_reconciliation' as const
+      if (launch.launchDisposition === 'job_created') {
+        return input.terminalReconciler.reconcileVerifiedDelivery({
+          body,
+          delivery,
+          serviceIdentityEvidenceRef:
+            evidenceRefSchema.parse(untrusted.serviceIdentityEvidenceRef),
+          observedAt,
+        })
+      }
       return buildResult({
         disposition,
         queueEntryRef: ref(

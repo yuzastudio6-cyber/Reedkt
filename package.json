@@ -556,6 +556,7 @@
     "smoke:sam3_1-eight-minute-source-preparation-worker": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-worker-entrypoint-smoke.ts",
     "smoke:sam3_1-eight-minute-source-preparation-cloud-run": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-cloud-run-definition-smoke.ts",
     "smoke:sam3_1-eight-minute-source-preparation-image-build": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-image-build-smoke.ts",
+    "smoke:sam3_1-eight-minute-source-preparation-image-supply-chain": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-image-supply-chain-smoke.ts",
     "smoke:sam3_1-eight-minute-source-preparation-fixed-process": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-fixed-process-port-smoke.ts",
     "smoke:sam3_1-eight-minute-source-preparation-launch": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-launch-owner-smoke.ts",
     "smoke:sam3_1-eight-minute-source-preparation-terminal": "tsx server/smoke/canonical-sam3_1-eight-minute-source-preparation-terminal-owner-smoke.ts",

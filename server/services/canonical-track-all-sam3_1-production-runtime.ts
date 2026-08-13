@@ -226,9 +226,13 @@ import {
   type CanonicalSam31CompleteSourceChunkCoordinator,
   type CanonicalSam31CompleteSourceChunkRepository,
 } from './canonical-sam3_1-complete-source-chunk-coordinator'
+import {
+  createCanonicalSam31CurrentServingResultFinalizationRuntime,
+  type CanonicalSam31CurrentServingResultFinalizationRuntimePort,
+} from './canonical-sam3_1-current-serving-result-finalization-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v26' as const
+  'canonical-track-all-sam3_1-production-runtime-v27' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -262,6 +266,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSam31CompleteSourceChunkRepository
   readonly sam31CompleteSourceChunkCoordinator:
     CanonicalSam31CompleteSourceChunkCoordinator
+  readonly sam31CurrentServingResultFinalizationRuntimePort:
+    CanonicalSam31CurrentServingResultFinalizationRuntimePort
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly trackAllSam31L4TaskQaQueuedStartRuntimePort:
@@ -827,6 +833,15 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       resultStore: sam31RuntimeResultStore,
       privateOutputRereadPort: sam31PrivateOutputRereadPort,
     })
+  const sam31CurrentServingResultFinalizationRuntimePort =
+    createCanonicalSam31CurrentServingResultFinalizationRuntime({
+      chunkRepository: sam31CompleteSourceChunkRepository,
+      invocationResultReadPort: authenticatedInvocationResultReadPort,
+      terminalAttemptOwner:
+        professionalGpuCloudTaskConsumer.terminalAttemptOwner,
+      taskStore,
+      resultStore: sam31RuntimeResultStore,
+    })
   const l4TaskQaAuthenticatedRuntime =
     createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime({
       pricingAuthorityReadPort: pricingAuthorityStore,
@@ -883,6 +898,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     sam31A100ResultFinalizationRuntimePort,
     sam31CompleteSourceChunkRepository,
     sam31CompleteSourceChunkCoordinator,
+    sam31CurrentServingResultFinalizationRuntimePort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,
     trackAllSam31L4TaskQaQueuedStartRuntimePort:

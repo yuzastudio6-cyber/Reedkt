@@ -13,6 +13,12 @@ import {
   type CanonicalSam31CurrentServingPrivateOutputRereadPort,
 } from '../services/canonical-sam3_1-complete-source-chunk-coordinator'
 import {
+  createCanonicalSam31CurrentServingResultFinalizationRuntime,
+} from '../services/canonical-sam3_1-current-serving-result-finalization-service'
+import type {
+  CanonicalSam31VertexServingTerminalAttemptRecord,
+} from '../services/canonical-sam3_1-vertex-serving-terminal-attempt-owner'
+import {
   parseTrackAllSam31AuthenticatedGpuInvocationRequest,
   type CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
@@ -191,6 +197,49 @@ assert.equal(final.latestChunkReceiptRef?.id,
 assert.equal([...queueCounts.values()].reduce((sum, value) =>
   sum + value, 0), 49)
 
+const currentServingFinalizer =
+  createCanonicalSam31CurrentServingResultFinalizationRuntime({
+    chunkRepository: repository,
+    invocationResultReadPort: queuedPorts.invocationResultReadPort,
+    terminalAttemptOwner: {
+      async rereadTerminalAttempt({ executionAttemptRef }) {
+        const fixture = fixtures.find((candidate) =>
+          candidate.task.runtimeRequest.scope.executionAttemptRef.id ===
+            executionAttemptRef.id)
+        return fixture ? terminalAttemptFor({
+          fixture,
+          requestId: plan.chunks[fixtures.indexOf(fixture)]!.requestId,
+        }) : null
+      },
+    },
+    taskStore,
+    resultStore,
+    now: () => '2026-08-13T15:00:00.000Z',
+  })
+const currentAdmission = await currentServingFinalizer.finalize({
+  authenticatedOwnerUserId: plan.ownerUserId,
+  workspaceId: plan.workspaceId,
+  executionGroupRef: planRef,
+  chunkOrdinal: 1,
+})
+assert.equal(currentAdmission.schemaVersion,
+  'canonical-sam3_1-current-serving-result-admission-v2')
+assert.equal(currentAdmission.chunkOrdinal, 1)
+assert.equal(currentAdmission.completeSourceChunkReceiptRef.id,
+  'sam31-complete-source-group-01:chunk:001')
+assert.equal(currentAdmission.servingWindowUsageCostAndCreditSettlementPending,
+  true)
+assert.equal(currentAdmission.terminalScaleToZeroClaimedByPerChunkResult,
+  false)
+const currentAdmissionReplay = await currentServingFinalizer.finalize({
+  authenticatedOwnerUserId: plan.ownerUserId,
+  workspaceId: plan.workspaceId,
+  executionGroupRef: planRef,
+  chunkOrdinal: 1,
+})
+assert.equal(currentAdmissionReplay.resultAdmissionHash,
+  currentAdmission.resultAdmissionHash)
+
 const replay = await coordinator.advance({
   authenticatedOwnerUserId: plan.ownerUserId,
   workspaceId: plan.workspaceId,
@@ -308,7 +357,11 @@ function fakeQueuedCoordinatorPorts(input: {
       cloudTaskDispatchOwnedByScheduler: true as const,
       routeOwnsGpuPlacementOrPricing: false as const,
       productionAuthority: false as const,
-      async enqueueApprovedTrackAllWork(runtimeInput) {
+      async enqueueApprovedTrackAllWork(runtimeInput: Parameters<
+        CanonicalTrackAllSam31QueuedGpuStartRuntimePort[
+          'enqueueApprovedTrackAllWork'
+        ]
+      >[0]) {
         const request = parseTrackAllSam31AuthenticatedGpuQueuedStartRequest(
           runtimeInput.request,
         )
@@ -367,10 +420,14 @@ function fakeQueuedCoordinatorPorts(input: {
       canonicalRepositoryRereadOnly: true as const,
       directGpuInvocationAllowed: false as const,
       automaticRetryAllowed: false as const,
-      async rereadApprovedTrackAllWorkResult(runtimeInput) {
-      const request = parseTrackAllSam31AuthenticatedGpuInvocationRequest(
-        runtimeInput.request,
-      )
+      async rereadApprovedTrackAllWorkResult(runtimeInput: Parameters<
+        CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort[
+          'rereadApprovedTrackAllWorkResult'
+        ]
+      >[0]) {
+        const request = parseTrackAllSam31AuthenticatedGpuInvocationRequest(
+          runtimeInput.request,
+        )
       const queueCount = input.queueCounts.get(request.requestId) ?? 0
       if (queueCount < (input.resultAfterQueueCall ?? 1)) return null
       const fixture = input.fixtureByWork.get(request.workItemKey)
@@ -459,6 +516,72 @@ function fakeTaskStore(
       return structuredClone(byInvocation.get(invocationId)?.response ?? null)
     },
   })
+}
+
+function terminalAttemptFor(input: {
+  fixture: ReturnType<typeof buildCanonicalSam31A100RunFixture>
+  requestId: string
+}): CanonicalSam31VertexServingTerminalAttemptRecord {
+  const scope = input.fixture.task.runtimeRequest.scope
+  const recordedAt = '2026-08-13T14:00:00.000Z'
+  const attempt = {
+    workspaceId: scope.workspaceId,
+    projectId: scope.projectId,
+    editSessionId: scope.editSessionId,
+    editPlanId: scope.editPlanId,
+    editPlanVersion: 1,
+    executionAttemptRef: scope.executionAttemptRef,
+    approvedSnapshotRef: ref(
+      scope.approvedPlanSnapshotId,
+      scope.approvedPlanSnapshotHash,
+    ),
+    approvedWorkItemRef: scope.approvedWorkItemRef,
+    workerLeaseRef: scope.workerLeaseRef,
+    fundedReservationRef: scope.fundedCreditReservationRef,
+    approvedEstimateRef: ref(`estimate:${input.requestId}`),
+    userApprovalRecordRef: ref(`approval:${input.requestId}`),
+    userTriggerRecordRef: ref(`trigger:${input.requestId}`),
+    requestStartedAt: '2026-08-13T13:59:59.000Z',
+    responseCompletedAt: recordedAt,
+    activeRequestMilliseconds: 1_000,
+    terminalOutcome: 'completed' as const,
+    providerInferenceOrSubstantiveWorkOutcome: 'executed' as const,
+    approvedReservedToolCostCredits: 5,
+    exactApprovedPlanReservationLeaseTriggerAndAttemptReread: true as const,
+    callerSuppliedOutcomeUsageOrPricingAccepted: false as const,
+  }
+  const payload: Omit<
+    CanonicalSam31VertexServingTerminalAttemptRecord,
+    'recordHash'
+  > = {
+    schemaVersion: 'canonical-sam3_1-vertex-serving-terminal-attempt-record-v1',
+    source: 'canonical_server_sam31_vertex_serving_terminal_attempt_owner',
+    evidenceClass: 'canonical_private_exact_reread',
+    invocationId: input.fixture.task.invocationId,
+    executionAttemptRef: scope.executionAttemptRef,
+    endpointInvocationAttemptRef: ref(`attempt:${input.requestId}`),
+    endpointCallStartRef: ref(`call-start:${input.requestId}`),
+    endpointInvocationResultRef: ref(
+      input.fixture.task.invocationId,
+      digest(`endpoint-result:${input.requestId}`),
+    ),
+    fundedStartRecordHash: digest(`funding:${input.requestId}`),
+    fundedStartExecutionIndexHash: digest(`funding-index:${input.requestId}`),
+    attempt,
+    exactFundingInvocationStartResultAndTerminalReread: true,
+    workerSuppliedBillableDurationReplicaCountOrPriceAccepted: false,
+    unresolvedProviderOutcomeAccepted: false,
+    servingWindowCostReceiptPending: true,
+    customerCreditsMutated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    recordedAt,
+  }
+  return {
+    ...payload,
+    recordHash: sha256AuthorityValue(payload),
+  }
 }
 
 function planInput() {

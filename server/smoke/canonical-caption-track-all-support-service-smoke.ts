@@ -1053,6 +1053,10 @@ const historicalV1WorkerResponse =
         previousChunkBoundaryComparedWhenRequired: _discardedBoundaryFlag,
         ...historicalSummary
       } = historicalV1WorkerResponsePayload.outputSummary!
+      void _discardedSeries
+      void _discardedBoundaries
+      void _discardedSeriesFlag
+      void _discardedBoundaryFlag
       return historicalSummary
     })(),
     schemaVersion: 'canonical-track-all-sam3_1-l4-task-qa-worker-response-v1',

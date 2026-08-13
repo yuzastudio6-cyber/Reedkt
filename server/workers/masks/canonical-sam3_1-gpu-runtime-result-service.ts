@@ -30,6 +30,8 @@ export const CANONICAL_SAM3_1_PRIVATE_OUTPUT_REREAD_EVIDENCE_VERSION =
   'canonical-sam3_1-private-output-reread-evidence-v1' as const
 export const CANONICAL_SAM3_1_GPU_RUNTIME_RESULT_ADMISSION_VERSION =
   'canonical-sam3_1-gpu-runtime-result-admission-v1' as const
+export const CANONICAL_SAM3_1_CURRENT_SERVING_RESULT_ADMISSION_VERSION =
+  'canonical-sam3_1-current-serving-result-admission-v2' as const
 
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations'
@@ -167,6 +169,90 @@ export type CanonicalSam31GpuRuntimeResultAdmission = z.infer<
   typeof canonicalSam31GpuRuntimeResultAdmissionSchema
 >
 
+const currentServingResultPayloadSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_CURRENT_SERVING_RESULT_ADMISSION_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_sam3_1_current_serving_result_owner',
+  ),
+  evidenceClass: z.literal('canonical_private_exact_response_reread'),
+  status: z.literal('ready_for_independent_mask_artifact_qa'),
+  resultAdmissionId: safeId,
+  taskRef: evidenceRefSchema,
+  runtimeRequestRef: evidenceRefSchema,
+  dispatchAdmissionRef: evidenceRefSchema,
+  admissionConsumptionRef: evidenceRefSchema,
+  executionEnvelopeRef: evidenceRefSchema,
+  runtimeReleaseRef: evidenceRefSchema,
+  specializedRuntimeReleaseRef: evidenceRefSchema,
+  endpointInvocationResultRef: evidenceRefSchema,
+  executionAttemptRef: evidenceRefSchema,
+  terminalServingAttemptRef: evidenceRefSchema,
+  completeSourceChunkPlanRef: evidenceRefSchema,
+  completeSourceChunkReceiptRef: evidenceRefSchema,
+  previousChunkReceiptRef: evidenceRefSchema.nullable(),
+  privateOutputRereadEvidenceRef: evidenceRefSchema,
+  runtimeResponseObjectRef: evidenceRefSchema,
+  runtimeResponseBindingSha256: sha256,
+  manifestRef: evidenceRefSchema,
+  maskSequenceArtifactRef: evidenceRefSchema,
+  routeId: z.literal('a100_80gb_heavy_primary'),
+  accelerator: z.literal('nvidia_a100_80gb'),
+  chunkOrdinal: z.number().int().min(1).max(256),
+  canonicalStartFrameInclusive: nonnegativeInteger,
+  canonicalEndFrameInclusive: nonnegativeInteger,
+  wallTimeMilliseconds: positiveInteger,
+  cudaEventInferenceMilliseconds: positiveInteger,
+  peakCudaAllocatedBytes: positiveInteger,
+  propagatedFrameCount: positiveInteger.max(240),
+  maskFileCount: positiveInteger,
+  exactTaskResponseEndpointTerminalChunkAndOutputReread: z.literal(true),
+  exactGpuAndApprovedFrameRangeVerified: z.literal(true),
+  actualNvdecCudaBfloat16ExecutionVerified: z.literal(true),
+  durableQueueConsumerRecordedTerminalAttempt: z.literal(true),
+  accountEffectiveServingRateRereadBeforeInvocation: z.literal(true),
+  servingWindowUsageCostAndCreditSettlementPending: z.literal(true),
+  terminalScaleToZeroClaimedByPerChunkResult: z.literal(false),
+  independentMaskArtifactQaPending: z.literal(true),
+  assetManifestReconciliationPending: z.literal(true),
+  rendererLayerAdmissionPending: z.literal(true),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  assetManifestMutated: z.literal(false),
+  renderAuthorized: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  admittedAt: timestamp,
+}).strict()
+function refineCurrentServingResult(
+  result: z.infer<typeof currentServingResultPayloadSchema>,
+  context: z.RefinementCtx,
+): void {
+  const frameCount = result.canonicalEndFrameInclusive
+    - result.canonicalStartFrameInclusive + 1
+  if (result.canonicalEndFrameInclusive <
+      result.canonicalStartFrameInclusive
+    || result.propagatedFrameCount !== frameCount
+    || (result.chunkOrdinal === 1) !==
+      (result.previousChunkReceiptRef === null)) context.addIssue({
+    code: 'custom',
+    message: 'Current SAM 3.1 serving result lost chunk lineage.',
+  })
+}
+const currentServingResultWithoutHashSchema =
+  currentServingResultPayloadSchema.superRefine(refineCurrentServingResult)
+export const canonicalSam31CurrentServingResultAdmissionSchema =
+  currentServingResultPayloadSchema.extend({
+    resultAdmissionHash: sha256,
+  }).strict().superRefine(refineCurrentServingResult)
+export type CanonicalSam31CurrentServingResultAdmission = z.infer<
+  typeof canonicalSam31CurrentServingResultAdmissionSchema
+>
+export type CanonicalSam31AnyRuntimeResultAdmission =
+  | CanonicalSam31GpuRuntimeResultAdmission
+  | CanonicalSam31CurrentServingResultAdmission
+
 export interface CanonicalSam31PrivateOutputRereadPort {
   rereadExactPrivateOutput(input: {
     readonly task: CanonicalSam31GpuTaskRecord
@@ -191,7 +277,7 @@ export interface CanonicalSam31GpuRuntimeResultStore {
     invocationId: string,
   ): Promise<unknown>
   persistResultAdmissionCreateOnly(
-    record: CanonicalSam31GpuRuntimeResultAdmission,
+    record: CanonicalSam31AnyRuntimeResultAdmission,
   ): Promise<'created' | 'already_exists'>
   rereadResultAdmission(invocationId: string): Promise<unknown>
 }
@@ -271,7 +357,7 @@ export function createCanonicalSam31GpuRuntimeResultStoreFromObjectPort(
       return body ? parsePrivateOutputRereadEvidenceBytes(body) : null
     },
     async persistResultAdmissionCreateOnly(record) {
-      const result = assertCanonicalSam31GpuRuntimeResultAdmission(record)
+      const result = assertCanonicalSam31AnyRuntimeResultAdmission(record)
       const body = Buffer.from(stableAuthorityStringify(result), 'utf8')
       if (body.byteLength > MAXIMUM_RESULT_BYTES) {
         throw new Error('SAM 3.1 runtime result exceeded its byte bound.')
@@ -459,6 +545,40 @@ export function assertCanonicalSam31GpuRuntimeResultAdmission(
     throw new Error('SAM 3.1 runtime result admission hash is invalid.')
   }
   return result
+}
+
+export function buildCanonicalSam31CurrentServingResultAdmission(
+  input: z.input<typeof currentServingResultWithoutHashSchema>,
+): CanonicalSam31CurrentServingResultAdmission {
+  assertPlainSerializedData(input, 'sam3_1_current_serving_result_input')
+  const payload = currentServingResultWithoutHashSchema.parse(input)
+  return canonicalSam31CurrentServingResultAdmissionSchema.parse({
+    ...payload,
+    resultAdmissionHash: sha256AuthorityValue(payload),
+  })
+}
+
+export function assertCanonicalSam31CurrentServingResultAdmission(
+  value: unknown,
+): CanonicalSam31CurrentServingResultAdmission {
+  assertPlainSerializedData(value, 'sam3_1_current_serving_result_admission')
+  const result = canonicalSam31CurrentServingResultAdmissionSchema.parse(value)
+  const { resultAdmissionHash, ...payload } = result
+  if (resultAdmissionHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Current SAM 3.1 serving result admission changed.')
+  }
+  return result
+}
+
+export function assertCanonicalSam31AnyRuntimeResultAdmission(
+  value: unknown,
+): CanonicalSam31AnyRuntimeResultAdmission {
+  assertPlainSerializedData(value, 'sam3_1_any_runtime_result_admission')
+  const version = z.object({ schemaVersion: z.string() }).passthrough()
+    .parse(value).schemaVersion
+  return version === CANONICAL_SAM3_1_CURRENT_SERVING_RESULT_ADMISSION_VERSION
+    ? assertCanonicalSam31CurrentServingResultAdmission(value)
+    : assertCanonicalSam31GpuRuntimeResultAdmission(value)
 }
 
 function assertSuccessfulTerminalLineage(input: {

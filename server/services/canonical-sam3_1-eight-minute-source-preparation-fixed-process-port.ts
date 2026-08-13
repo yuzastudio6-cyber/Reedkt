@@ -45,9 +45,9 @@ const TASK_VERSION =
 const OUTPUT_VERSION =
   'canonical-sam3_1-eight-minute-source-gpu-output-v1' as const
 const SCRATCH_ROOT = '/mnt/weeditpro-private/l4-visual-evidence' as const
-const PYTHON = '/opt/weeditpro/visual-evidence/venv/bin/python' as const
-const RUNNER =
-  '/opt/weeditpro/visual-evidence/sam3_1-source-preparation-runner.py' as const
+const FFMPEG = '/opt/weeditpro/ffmpeg/bin/ffmpeg' as const
+const FFPROBE = '/opt/weeditpro/ffmpeg/bin/ffprobe' as const
+const NVIDIA_SMI = '/usr/bin/nvidia-smi' as const
 const DEFAULT_OBJECT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/qualification-sources'
 const MAXIMUM_SOURCE_BYTES = 10 * 1024 * 1024 * 1024
@@ -224,7 +224,7 @@ export interface CanonicalSam31EightMinuteSourcePreparationFixedProcessPort {
   readonly accelerator: 'nvidia_l4'
   readonly fixedServerOwnedNvdecNvencProcess: true
   readonly substantiveCpuMediaProcessingAllowed: false
-  readonly runnerPathFixedByImage: true
+  readonly nativeExecutionSourceFixedByImage: true
   readonly callerPathUrlBytesCommandOrEnvironmentAccepted: false
   readonly privateScratchRemovedAfterAttempt: true
   executeExact(input: {
@@ -264,7 +264,7 @@ export function createCanonicalSam31EightMinuteSourcePreparationFixedProcessPort
     accelerator: 'nvidia_l4' as const,
     fixedServerOwnedNvdecNvencProcess: true as const,
     substantiveCpuMediaProcessingAllowed: false as const,
-    runnerPathFixedByImage: true as const,
+    nativeExecutionSourceFixedByImage: true as const,
     callerPathUrlBytesCommandOrEnvironmentAccepted: false as const,
     privateScratchRemovedAfterAttempt: true as const,
     async executeExact(untrusted) {
@@ -300,7 +300,15 @@ export function createCanonicalSam31EightMinuteSourcePreparationFixedProcessPort
           immutableImageRef,
           toolchainQualificationRef,
         })
-        const output = parseOutput(await runFixedProcess(invocationId), {
+        const output = parseOutput(await runFixedNativeProcess({
+          invocationRoot,
+          invocationId,
+          plan,
+          task,
+          dispatchAdmissionRef,
+          immutableImageRef,
+          toolchainQualificationRef,
+        }), {
           invocationId,
           plan,
           taskDigestSha256: task.taskDigestSha256,
@@ -692,16 +700,338 @@ async function writeTaskCreateOnly(input: {
   return task
 }
 
-async function runFixedProcess(invocationId: string): Promise<unknown> {
+async function runFixedNativeProcess(input: {
+  invocationRoot: string
+  invocationId: string
+  plan: CanonicalSam31EightMinuteQualificationSourcePlan
+  task: Awaited<ReturnType<typeof writeTaskCreateOnly>>
+  dispatchAdmissionRef: EvidenceRef
+  immutableImageRef: EvidenceRef
+  toolchainQualificationRef: EvidenceRef
+}): Promise<unknown> {
+  if (process.getuid?.() !== 65_532 || process.getgid?.() !== 65_532) {
+    throw notReady('sam31_source_preparation_nonroot_identity_missing')
+  }
+  const startedAt = new Date().toISOString()
+  const started = process.hrtime.bigint()
+  const sourcePath = join(input.invocationRoot, 'source.mov')
+  const outputRoot = join(input.invocationRoot, 'outputs')
+  await mkdir(outputRoot, { recursive: false, mode: 0o700 })
+  const device = await readExactL4Device(input.invocationId)
+  const sourceProbe = await probeExactVideo({
+    invocationId: input.invocationId,
+    path: sourcePath,
+    expectedFrameCount: input.plan.sourceObjectFrameCount,
+  })
+  const basePath = join(input.invocationRoot, 'base-384.mp4')
+  await runNativeCommand({
+    invocationId: input.invocationId,
+    command: FFMPEG,
+    arguments: fixedEncodeArguments({
+      inputArguments: ['-i', sourcePath],
+      outputPath: basePath,
+      frameCount: SOURCE_SLICE_FRAME_COUNT,
+    }),
+    timeoutMilliseconds: 900_000,
+    stdoutBound: 64 * 1024,
+  })
+  const baseProbe = await probeExactVideo({
+    invocationId: input.invocationId,
+    path: basePath,
+    expectedFrameCount: SOURCE_SLICE_FRAME_COUNT,
+  })
+  const baseIdentity = await readExactLocalFile(
+    basePath,
+    MAXIMUM_CHUNK_BYTES,
+  )
+  const concatPath = join(input.invocationRoot, 'base-repeat-two.ffconcat')
+  const concatHandle = await open(concatPath, 'wx', 0o600)
+  try {
+    await concatHandle.writeFile(
+      `file 'base-384.mp4'\nfile 'base-384.mp4'\n`,
+      'utf8',
+    )
+    await concatHandle.sync()
+  } finally {
+    await concatHandle.close()
+  }
+  const chunks = []
+  for (const geometry of deriveChunks()) {
+    const frameCount = geometry.canonicalEndFrameInclusive
+      - geometry.canonicalStartFrameInclusive + 1
+    const fileName =
+      `chunk-${String(geometry.chunkOrdinal).padStart(3, '0')}.mp4`
+    const outputPath = join(outputRoot, fileName)
+    await runNativeCommand({
+      invocationId: input.invocationId,
+      command: FFMPEG,
+      arguments: fixedEncodeArguments({
+        inputArguments: [
+          '-ss',
+          (geometry.canonicalStartFrameInclusive
+            % SOURCE_SLICE_FRAME_COUNT / 24).toFixed(9),
+          '-f',
+          'concat',
+          '-safe',
+          '1',
+          '-i',
+          concatPath,
+        ],
+        outputPath,
+        frameCount,
+      }),
+      timeoutMilliseconds: 900_000,
+      stdoutBound: 64 * 1024,
+    })
+    const ffprobe = await probeExactVideo({
+      invocationId: input.invocationId,
+      path: outputPath,
+      expectedFrameCount: frameCount,
+    })
+    const identity = await readExactLocalFile(
+      outputPath,
+      MAXIMUM_CHUNK_BYTES,
+    )
+    chunks.push({
+      ...geometry,
+      fileName,
+      byteLength: identity.byteLength,
+      sha256: identity.sha256,
+      decodedFrameCount: frameCount,
+      sourceModuloStartFrameInclusive:
+        geometry.canonicalStartFrameInclusive % SOURCE_SLICE_FRAME_COUNT,
+      sourceModuloEndFrameInclusive:
+        geometry.canonicalEndFrameInclusive % SOURCE_SLICE_FRAME_COUNT,
+      wrapsSourceSliceBoundary:
+        Math.floor(geometry.canonicalStartFrameInclusive
+          / SOURCE_SLICE_FRAME_COUNT) !==
+        Math.floor(geometry.canonicalEndFrameInclusive
+          / SOURCE_SLICE_FRAME_COUNT),
+      ffprobe,
+    })
+  }
+  const completedAt = new Date().toISOString()
+  const payload = outputWithoutHashSchema.parse({
+    schemaVersion: OUTPUT_VERSION,
+    source: 'fixed_weeditpro_l4_sam3_1_source_preparation_runner',
+    invocationId: input.invocationId,
+    qualificationSourceId: input.plan.qualificationSourceId,
+    qualificationSourcePlanRef: ref(
+      input.plan.qualificationSourceId,
+      input.plan.planHash,
+    ),
+    dispatchAdmissionRef: input.dispatchAdmissionRef,
+    immutableImageRef: input.immutableImageRef,
+    toolchainQualificationRef: input.toolchainQualificationRef,
+    taskDigestSha256: input.task.taskDigestSha256,
+    sourceObjectSha256: input.plan.sourceObjectSha256,
+    sourceObjectByteLength: input.plan.sourceObjectByteLength,
+    sourceProbe,
+    baseSlice: {
+      ...baseIdentity,
+      decodedFrameCount: SOURCE_SLICE_FRAME_COUNT,
+      ffprobe: baseProbe,
+    },
+    device,
+    chunks,
+    preparedChunkCount: CHUNK_COUNT,
+    exactChunkCount: CHUNK_COUNT,
+    sourceFrameCount: SOURCE_FRAME_COUNT,
+    sourceDurationMilliseconds: 480_000,
+    gpuDecodeProfile: 'ffmpeg_cuda_nvdec_fixed_v1',
+    gpuEncodeProfile: 'h264_nvenc_p7_hq_constqp20_bt709_fixed_v1',
+    sourceAudioRemoved: true,
+    fullSourceResolutionPreserved: true,
+    sourcePixelExactnessClaimed: false,
+    losslessEncodingClaimed: false,
+    substantiveCpuMediaProcessingUsed: false,
+    ffprobeMetadataOnly: true,
+    runtimeModelOrToolDownloadPerformed: false,
+    callerPathUrlBytesCommandOrEnvironmentAccepted: false,
+    terminalCloudRunExecutionClaimed: false,
+    scaleBackToZeroClaimedByWorker: false,
+    accountEffectiveCostClaimedByWorker: false,
+    customerCreditsMutated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    startedAt,
+    completedAt,
+    workerWallDurationMilliseconds: Number(
+      (process.hrtime.bigint() - started + 999_999n) / 1_000_000n,
+    ),
+  })
+  return {
+    ...payload,
+    resultDigestSha256: sha256AuthorityValue(payload),
+  }
+}
+
+function fixedEncodeArguments(input: {
+  inputArguments: readonly string[]
+  outputPath: string
+  frameCount: number
+}): string[] {
+  return [
+    '-nostdin', '-hide_banner', '-loglevel', 'error', '-n',
+    '-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda',
+    '-c:v', 'h264_cuvid',
+    ...input.inputArguments,
+    '-map', '0:v:0', '-an', '-sn', '-dn',
+    '-frames:v', String(input.frameCount),
+    '-c:v', 'h264_nvenc', '-preset', 'p7', '-tune', 'hq',
+    '-rc', 'constqp', '-qp', '20', '-g', '24', '-bf', '0',
+    '-fps_mode', 'passthrough', '-pix_fmt', 'yuv420p',
+    '-color_range', 'tv', '-colorspace', 'bt709',
+    '-color_trc', 'bt709', '-color_primaries', 'bt709',
+    '-movflags', '+faststart', input.outputPath,
+  ]
+}
+
+async function probeExactVideo(input: {
+  invocationId: string
+  path: string
+  expectedFrameCount: number
+}) {
+  const metadata = await runNativeCommand({
+    invocationId: input.invocationId,
+    command: FFPROBE,
+    arguments: [
+      '-v', 'error', '-select_streams', 'v:0',
+      '-show_entries',
+      'stream=codec_name,width,height,pix_fmt,avg_frame_rate,color_range,color_space,color_transfer,color_primaries',
+      '-of', 'json', input.path,
+    ],
+    timeoutMilliseconds: 120_000,
+    stdoutBound: 128 * 1024,
+  })
+  let root: unknown
+  try {
+    root = JSON.parse(metadata.stdout.toString('utf8')) as unknown
+  } catch {
+    throw conflict('sam31_source_preparation_ffprobe_json_invalid')
+  }
+  assertPlainSerializedData(root, 'sam31_source_preparation_ffprobe')
+  const stream = z.object({
+    codec_name: z.literal('h264'),
+    width: z.literal(3_840),
+    height: z.literal(2_160),
+    pix_fmt: z.literal('yuv420p'),
+    avg_frame_rate: z.literal('24/1'),
+    color_range: z.union([z.literal('tv'), z.literal('unknown')]).nullable()
+      .optional(),
+    color_space: z.literal('bt709'),
+    color_transfer: z.literal('bt709'),
+    color_primaries: z.literal('bt709'),
+  }).strict().parse(z.object({ streams: z.array(z.unknown()).length(1) })
+    .strict().parse(root).streams[0])
+  const decodedFrameCount = await countExactGpuDecodedFrames(input)
+  if (decodedFrameCount !== input.expectedFrameCount) {
+    throw conflict('sam31_source_preparation_gpu_frame_count_changed')
+  }
+  return ffprobeSchema.parse({
+    codecName: stream.codec_name,
+    width: stream.width,
+    height: stream.height,
+    pixelFormat: stream.pix_fmt,
+    averageFrameRate: stream.avg_frame_rate,
+    decodedFrameCount,
+    colorRange: stream.color_range ?? null,
+    colorSpace: stream.color_space,
+    colorTransfer: stream.color_transfer,
+    colorPrimaries: stream.color_primaries,
+    metadataOnly: true,
+  })
+}
+
+async function countExactGpuDecodedFrames(input: {
+  invocationId: string
+  path: string
+  expectedFrameCount: number
+}): Promise<number> {
+  const result = await runNativeCommand({
+    invocationId: input.invocationId,
+    command: FFMPEG,
+    arguments: [
+      '-nostdin', '-hide_banner', '-loglevel', 'error',
+      '-hwaccel', 'cuda', '-hwaccel_output_format', 'cuda',
+      '-c:v', 'h264_cuvid', '-i', input.path,
+      '-map', '0:v:0', '-an', '-sn', '-dn',
+      '-progress', 'pipe:1', '-nostats', '-f', 'null', '-',
+    ],
+    timeoutMilliseconds: 240_000,
+    stdoutBound: 256 * 1024,
+  })
+  const counts = Array.from(
+    result.stdout.toString('utf8').matchAll(/^frame=([0-9]+)$/gmu),
+    (match) => Number(match[1]),
+  )
+  const count = counts.at(-1)
+  if (!Number.isSafeInteger(count) || count !== input.expectedFrameCount) {
+    throw conflict('sam31_source_preparation_gpu_decode_count_missing')
+  }
+  return count
+}
+
+async function readExactL4Device(invocationId: string) {
+  const result = await runNativeCommand({
+    invocationId,
+    command: NVIDIA_SMI,
+    arguments: [
+      '--query-gpu=name,uuid,driver_version,pci.bus_id',
+      '--format=csv,noheader,nounits',
+    ],
+    timeoutMilliseconds: 30_000,
+    stdoutBound: 64 * 1024,
+  })
+  const rows = result.stdout.toString('utf8').trim().split(/\r?\n/u)
+    .filter(Boolean)
+  if (rows.length !== 1) {
+    throw notReady('sam31_source_preparation_exact_l4_missing')
+  }
+  const values = rows[0]?.split(',').map((value) => value.trim()) ?? []
+  return deviceSchema.parse({
+    acceleratorClass: 'nvidia_l4',
+    deviceName: values[0],
+    deviceUuid: values[1],
+    driverVersion: values[2],
+    pciBusId: values[3],
+    allocatedGpuCount: 1,
+  })
+}
+
+async function readExactLocalFile(path: string, bound: number) {
+  const before = await lstat(path)
+  if (!before.isFile() || before.isSymbolicLink()
+    || before.size < 1 || before.size > bound) {
+    throw conflict('sam31_source_preparation_local_artifact_invalid')
+  }
+  const reread = await hashReadable(createReadStream(path), bound)
+  const after = await lstat(path)
+  if (reread.byteLength !== before.size || after.dev !== before.dev
+    || after.ino !== before.ino || after.size !== before.size
+    || after.mtimeMs !== before.mtimeMs) {
+    throw conflict('sam31_source_preparation_local_artifact_changed')
+  }
+  return reread
+}
+
+async function runNativeCommand(input: {
+  invocationId: string
+  command: typeof FFMPEG | typeof FFPROBE | typeof NVIDIA_SMI
+  arguments: readonly string[]
+  timeoutMilliseconds: number
+  stdoutBound: number
+}): Promise<{ readonly stdout: Buffer }> {
   const result = await new Promise<{
     exitCode: number
     stdout: Buffer
     timedOut: boolean
     overflow: boolean
   }>((resolve, reject) => {
-    const child = spawn(PYTHON, ['-I', '-B', RUNNER], {
+    const child = spawn(input.command, input.arguments, {
       cwd: '/nonexistent',
-      env: fixedEnvironment(invocationId),
+      env: fixedEnvironment(input.invocationId),
       shell: false,
       stdio: ['ignore', 'pipe', 'pipe'],
     })
@@ -714,11 +1044,12 @@ async function runFixedProcess(invocationId: string): Promise<unknown> {
     const timer = setTimeout(() => {
       timedOut = true
       child.kill('SIGKILL')
-    }, 7_200_000)
+    }, input.timeoutMilliseconds)
     timer.unref()
     child.stdout.on('data', (chunk: Buffer) => {
       stdoutBytes += chunk.byteLength
-      if (stdoutBytes > MAXIMUM_STDOUT_BYTES) {
+      if (stdoutBytes > input.stdoutBound
+        || stdoutBytes > MAXIMUM_STDOUT_BYTES) {
         overflow = true
         child.kill('SIGKILL')
       } else stdout.push(Buffer.from(chunk))
@@ -751,14 +1082,7 @@ async function runFixedProcess(invocationId: string): Promise<unknown> {
   if (result.exitCode !== 0 || result.timedOut || result.overflow) {
     throw notReady('sam31_source_preparation_fixed_process_failed')
   }
-  if (result.stdout.byteLength < 2) {
-    throw conflict('sam31_source_preparation_result_missing')
-  }
-  try {
-    return JSON.parse(result.stdout.toString('utf8')) as unknown
-  } catch {
-    throw conflict('sam31_source_preparation_result_json_invalid')
-  }
+  return { stdout: result.stdout }
 }
 
 function fixedEnvironment(invocationId: string): NodeJS.ProcessEnv {
@@ -770,19 +1094,13 @@ function fixedEnvironment(invocationId: string): NodeJS.ProcessEnv {
     XDG_CACHE_HOME: `${root}/cache`,
     LANG: 'C.UTF-8',
     LC_ALL: 'C.UTF-8',
-    PYTHONHASHSEED: '0',
-    PYTHONDONTWRITEBYTECODE: '1',
-    PYTHONUNBUFFERED: '1',
-    PIP_NO_INDEX: '1',
-    HF_HUB_OFFLINE: '1',
-    TRANSFORMERS_OFFLINE: '1',
     CUDA_VISIBLE_DEVICES: '0',
     NVIDIA_VISIBLE_DEVICES: '0',
     NVIDIA_DRIVER_CAPABILITIES: 'compute,utility,video',
     LD_LIBRARY_PATH:
-      '/usr/local/cuda/lib64:/usr/local/cuda/compat:'
-      + '/usr/local/nvidia/lib64:/usr/local/nvidia/lib',
-    WEEDITPRO_SAM31_SOURCE_PREPARATION_INVOCATION_ID: invocationId,
+      '/opt/weeditpro/ffmpeg/lib:/usr/local/cuda/lib64:'
+      + '/usr/local/cuda/compat:/usr/local/nvidia/lib64:'
+      + '/usr/local/nvidia/lib',
   }
 }
 

@@ -407,7 +407,7 @@ function createJobDefinition(
       template: {
         containers: [{
           image:
-            `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-l4-media-worker@${imageDigest}`,
+            `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-source-preparation-l4@${imageDigest}`,
           command: ['/usr/local/bin/node'],
           args: [
             '/app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js',

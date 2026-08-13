@@ -7,38 +7,13 @@ import {
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
 
-const runner = readFileSync(
-  'docker/prod/gpu-worker/visual-evidence/sam3_1-source-preparation-runner.py',
-  'utf8',
-)
 const port = readFileSync(
   'server/services/canonical-sam3_1-eight-minute-source-preparation-fixed-process-port.ts',
   'utf8',
 )
 const docker = readFileSync(
-  'docker/prod/gpu-worker/visual-evidence/Dockerfile.candidate',
+  'docker/prod/gpu-worker/sam3_1-source-preparation/Dockerfile.candidate',
   'utf8',
-)
-
-assert.match(runner, /FFMPEG = "\/usr\/local\/bin\/ffmpeg"/u)
-assert.match(runner, /FFPROBE = "\/usr\/local\/bin\/ffprobe"/u)
-assert.match(runner, /NVIDIA_SMI = "\/usr\/bin\/nvidia-smi"/u)
-assert.match(runner, /"-hwaccel",\s+"cuda"/u)
-assert.match(runner, /"h264_nvenc"/u)
-assert.match(runner, /scale_cuda=/u)
-assert.match(runner, /"-an"/u)
-assert.match(runner, /CHUNK_COUNT = 49/u)
-assert.match(runner, /CHUNK_STRIDE = 239/u)
-assert.match(runner, /SOURCE_FRAMES = 11_520/u)
-assert.match(runner, /sourcePixelExactnessClaimed/u)
-assert.match(runner, /losslessEncodingClaimed/u)
-assert.match(runner, /substantiveCpuMediaProcessingUsed/u)
-assert.match(runner, /terminalCloudRunExecutionClaimed/u)
-assert.match(runner, /scaleBackToZeroClaimedByWorker/u)
-assert.match(runner, /accountEffectiveCostClaimedByWorker/u)
-assert.doesNotMatch(
-  runner,
-  /cv2\.|torch\.|requests\.|urllib\.|socket\.|os\.system|shell=True|sys\.argv/u,
 )
 
 assert.match(port, /\{ generation: coordinate\.generation \}/u)
@@ -48,17 +23,36 @@ assert.match(port, /open\(input\.targetPath, 'wx', 0o600\)/u)
 assert.match(port, /preconditionOpts: \{ ifGenerationMatch: 0 \}/u)
 assert.match(port, /exactFile\.createReadStream/u)
 assert.match(port, /await rm\(invocationRoot, \{ recursive: true, force: true \}\)/u)
-assert.match(port, /const PYTHON = '\/opt\/weeditpro\/visual-evidence\/venv\/bin\/python'/u)
-assert.match(port, /sam3_1-source-preparation-runner\.py/u)
+assert.match(port, /const FFMPEG = '\/opt\/weeditpro\/ffmpeg\/bin\/ffmpeg'/u)
+assert.match(port, /const FFPROBE = '\/opt\/weeditpro\/ffmpeg\/bin\/ffprobe'/u)
+assert.match(port, /const NVIDIA_SMI = '\/usr\/bin\/nvidia-smi'/u)
+assert.match(port, /'-hwaccel', 'cuda'/u)
+assert.match(port, /'-c:v', 'h264_cuvid'/u)
+assert.match(port, /'-c:v', 'h264_nvenc'/u)
+assert.match(port, /'-progress', 'pipe:1'/u)
+assert.match(port, /'-an', '-sn', '-dn'/u)
+assert.doesNotMatch(port, /scale_cuda|sam3_1-source-preparation-runner\.py/u)
 assert.match(port, /shell: false/u)
 assert.match(port, /NVIDIA_DRIVER_CAPABILITIES: 'compute,utility,video'/u)
-assert.doesNotMatch(port, /signedUrl|execFile|shell: true|process\.argv/u)
+assert.doesNotMatch(
+  port,
+  /signedUrl|execFile|shell: true|process\.argv|child_process\.exec/u,
+)
 
-assert.match(docker, /sam3_1-source-preparation-runner\.py/u)
-assert.match(docker, /python -m py_compile[\s\S]*sam3_1-source-preparation-runner\.py/u)
-assert.match(docker, /chmod 0555[\s\\]+\/opt\/weeditpro\/visual-evidence\/sam3_1-source-preparation-runner\.py/u)
+assert.match(docker, /ffmpeg-8\.0\.3/u)
+assert.match(docker, /--enable-nvdec/u)
+assert.match(docker, /--enable-cuvid/u)
+assert.match(docker, /--enable-nvenc/u)
+assert.match(docker, /CONFIG_GPL 0/u)
+assert.match(docker, /CONFIG_NONFREE 0/u)
+assert.match(docker, /h264_cuvid/u)
 assert.match(docker, /h264_nvenc/u)
+assert.match(docker, /node:24\.13\.1-bookworm-slim@sha256:/u)
 assert.match(docker, /USER 65532:65532/u)
+assert.doesNotMatch(
+  docker,
+  /FROM python|pip install|paddle|opencv|\/model-weights\//u,
+)
 
 const outputWithoutHash = {
   schemaVersion: 'canonical-sam3_1-eight-minute-source-gpu-output-v1' as const,
@@ -153,9 +147,11 @@ assert.throws(() => parseCanonicalSam31EightMinuteSourceGpuOutput({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-fixed-process-port',
-  checks: 47,
+  checks: 51,
   exactSourceGenerationReread: true,
   l4NvdecNvencFixedProcess: true,
+  gpuDecodedFrameCountVerified: true,
+  pythonRunnerRetired: true,
   exactOverlapping4kChunkCount: output.chunks.length,
   exactEightMinuteFrameCount: output.sourceFrameCount,
   sourceAudioRemovedForSamOnly: true,

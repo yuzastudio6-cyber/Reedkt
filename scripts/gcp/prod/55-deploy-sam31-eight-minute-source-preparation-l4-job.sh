@@ -18,13 +18,13 @@ if [[ "${WEEDITPRO_DEPLOY_SAM31_SOURCE_PREPARATION_L4_DEFINITION:-false}" \
   echo 'ERROR: refusing SAM 3.1 source-preparation deployment without the exact second confirmation.' >&2
   exit 1
 fi
-require_env WEEDITPRO_L4_MEDIA_IMAGE_DIGEST
-if [[ ! "${WEEDITPRO_L4_MEDIA_IMAGE_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-  echo 'ERROR: WEEDITPRO_L4_MEDIA_IMAGE_DIGEST must be an exact sha256 digest.' >&2
+require_env WEEDITPRO_SAM31_SOURCE_PREPARATION_L4_IMAGE_DIGEST
+if [[ ! "${WEEDITPRO_SAM31_SOURCE_PREPARATION_L4_IMAGE_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+  echo 'ERROR: WEEDITPRO_SAM31_SOURCE_PREPARATION_L4_IMAGE_DIGEST must be an exact sha256 digest.' >&2
   exit 1
 fi
 
-readonly IMAGE="${GCP_ARTIFACT_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REEDITPRO_ARTIFACT_REPOSITORY}/reeditpro-l4-media-worker@${WEEDITPRO_L4_MEDIA_IMAGE_DIGEST}"
+readonly IMAGE="${GCP_ARTIFACT_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REEDITPRO_ARTIFACT_REPOSITORY}/reeditpro-sam31-source-preparation-l4@${WEEDITPRO_SAM31_SOURCE_PREPARATION_L4_IMAGE_DIGEST}"
 
 # Definition only. The canonical launch owner must persist and consume one
 # exact admission before it asks Cloud Run to execute this job. No deployment

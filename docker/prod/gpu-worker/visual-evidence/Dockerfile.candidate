@@ -75,8 +75,6 @@ COPY visual_evidence_private_build_input/ \
   /tmp/visual-evidence-private-build-input/
 COPY docker/prod/gpu-worker/visual-evidence/runner.py \
   /opt/weeditpro/visual-evidence/runner.py
-COPY docker/prod/gpu-worker/visual-evidence/sam3_1-source-preparation-runner.py \
-  /opt/weeditpro/visual-evidence/sam3_1-source-preparation-runner.py
 COPY docker/prod/gpu-worker/visual-evidence/verify-private-build-input.py \
   /opt/weeditpro/visual-evidence/verify-private-build-input.py
 COPY docker/prod/gpu-worker/visual-evidence/source-provenance.lock \
@@ -126,10 +124,7 @@ RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
     "import cv2,importlib.metadata as m,paddle; assert cv2.cuda.getCudaEnabledDeviceCount is not None; assert hasattr(cv2,'cudacodec'); assert paddle.is_compiled_with_cuda(); assert m.version('paddlepaddle-gpu') == '3.0.0'; assert m.version('paddlex') == '3.7.0'; assert m.version('scenedetect') == '0.7.1'; assert m.version('paddleocr') == '3.7.0'" \
   && /opt/weeditpro/visual-evidence/venv/bin/python -m py_compile \
     /opt/weeditpro/visual-evidence/runner.py \
-    /opt/weeditpro/visual-evidence/sam3_1-source-preparation-runner.py \
   && chmod 0555 /opt/weeditpro/visual-evidence/runner.py \
-  && chmod 0555 \
-    /opt/weeditpro/visual-evidence/sam3_1-source-preparation-runner.py \
   && chmod 0555 \
     /opt/weeditpro/visual-evidence/verify-private-build-input.py \
   && chmod 0444 \

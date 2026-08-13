@@ -45,7 +45,7 @@ const CLOUD_PLATFORM_SCOPE =
 const INVOCATION_ENVIRONMENT_NAME =
   'WEEDITPRO_SAM31_SOURCE_PREPARATION_INVOCATION_ID' as const
 const EXPECTED_IMAGE_PREFIX =
-  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-l4-media-worker@' as const
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-source-preparation-l4@' as const
 const EXPECTED_COMMAND = '/usr/local/bin/node' as const
 const EXPECTED_ENTRYPOINT =
   '/app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js' as const

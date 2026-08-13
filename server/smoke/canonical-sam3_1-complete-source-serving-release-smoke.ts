@@ -41,6 +41,9 @@ import type {
 import {
   buildCanonicalSam31CurrentServingResultAdmission,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
+import {
+  assertCanonicalCaptionTrackAllCurrentServingGroupRelease,
+} from '../services/canonical-caption-track-all-support-service'
 
 const objectPort = memoryObjectPort(new Map())
 const chunkRepository = createCanonicalSam31CompleteSourceChunkRepository({
@@ -186,6 +189,19 @@ assert.deepEqual(
   canonicalSam31CompleteSourceServingReleaseRef(release),
 )
 assert.equal((await owner.release(request)).releaseHash, release.releaseHash)
+await assertCanonicalCaptionTrackAllCurrentServingGroupRelease({
+  result: results[0]!,
+  releaseRepository: {
+    async rereadByExecutionGroup() { return structuredClone(release) },
+  },
+})
+await assert.rejects(() =>
+  assertCanonicalCaptionTrackAllCurrentServingGroupRelease({
+    result: results[0]!,
+    releaseRepository: {
+      async rereadByExecutionGroup() { return null },
+    },
+  }), /release is unavailable/u)
 
 const missingSettlement = settlementByAttempt.get(attempts[1]!
   .executionAttemptRef.id)!
@@ -233,7 +249,7 @@ assert.notDeepEqual(wrongCostOrder.usage.attempts, cost.usage.attempts)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-complete-source-serving-release',
-  checks: 43,
+  checks: 45,
   completeSourceChunksRereadExactly: release.exactChunkCount,
   currentPerChunkCostPendingRetained: results.every((value) =>
     value.servingWindowUsageCostAndCreditSettlementPending),

@@ -245,7 +245,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v29' as const
+  'canonical-track-all-sam3_1-production-runtime-v30' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -336,6 +336,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly terminalServingAttemptOwnerMountedBeforeQueueFinalization: true
   readonly completeSourceCostSettlementAndScaleZeroReleaseMounted: true
   readonly perChunkResultMaySelfClaimServingWindowScaleZero: false
+  readonly captionTrackAllCurrentServingGroupReleaseRereadMounted: true
   readonly l4QuotaAndActiveCountCapacityMounted: true
   readonly l4FixedTaskPreparedBeforeDurableQueueAdmission: true
   readonly directL4GpuInvocationHttpRouteMounted: false
@@ -613,6 +614,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       taskStore,
       taskContextRepository,
       resultStore: sam31RuntimeResultStore,
+      completeSourceServingReleaseRepository:
+        sam31CompleteSourceServingReleaseRepository,
       qaRepository: captionTrackAllTaskQaRepository,
       sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
     })
@@ -635,6 +638,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       taskStore,
       taskContextRepository,
       resultStore: sam31RuntimeResultStore,
+      completeSourceServingReleaseRepository:
+        sam31CompleteSourceServingReleaseRepository,
       sceneQaAuthorityReadPort: captionTrackAllTaskQaRepository,
       sceneEvidenceRepository: captionTrackAllSceneEvidenceRepository,
       evidenceRepository: captionTrackAllEvidenceRepository,
@@ -1011,6 +1016,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     terminalServingAttemptOwnerMountedBeforeQueueFinalization: true as const,
     completeSourceCostSettlementAndScaleZeroReleaseMounted: true as const,
     perChunkResultMaySelfClaimServingWindowScaleZero: false as const,
+    captionTrackAllCurrentServingGroupReleaseRereadMounted: true as const,
     l4QuotaAndActiveCountCapacityMounted: true as const,
     l4FixedTaskPreparedBeforeDurableQueueAdmission: true as const,
     directL4GpuInvocationHttpRouteMounted: false as const,

@@ -51,12 +51,19 @@ import {
   type CanonicalSam31GpuTaskStore,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
 import {
-  assertCanonicalSam31GpuRuntimeResultAdmission,
+  assertCanonicalSam31AnyRuntimeResultAdmission,
+  assertCanonicalSam31CurrentServingResultAdmission,
+  type CanonicalSam31AnyRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import type {
   CanonicalSam31GpuTaskContextRepository,
 } from './canonical-sam3_1-gpu-task-context-owner'
+import {
+  canonicalSam31CompleteSourceServingReleaseRef,
+  parseCanonicalSam31CompleteSourceServingRelease,
+  type CanonicalSam31CompleteSourceServingReleaseRepository,
+} from './canonical-sam3_1-complete-source-serving-release'
 import {
   createCanonicalAuthenticatedSpecialistSupportArtifactProjection,
   parseCanonicalAuthenticatedSpecialistSupportArtifactProjection,
@@ -870,6 +877,10 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
     CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'
   >
+  readonly completeSourceServingReleaseRepository: Pick<
+    CanonicalSam31CompleteSourceServingReleaseRepository,
+    'rereadByExecutionGroup'
+  >
   readonly sceneQaAuthorityReadPort:
     CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort
   readonly sceneEvidenceRepository:
@@ -927,9 +938,13 @@ export function createCanonicalCaptionTrackAllSupportService(input: {
           taskContextRef: task.taskContextRef,
         }),
       )
-      const result = assertCanonicalSam31GpuRuntimeResultAdmission(
+      const result = assertCanonicalSam31AnyRuntimeResultAdmission(
         await input.resultStore.rereadResultAdmission(invocationId),
       )
+      await assertCanonicalCaptionTrackAllCurrentServingGroupRelease({
+        result,
+        releaseRepository: input.completeSourceServingReleaseRepository,
+      })
       const resultRef = backendResultRef(result)
       if (!sameDomainRef(resultRef, expectedResultRef)) {
         throw new Error('SAM 3.1 result admission reference mismatch.')
@@ -1060,7 +1075,7 @@ function assertRuntimeMatchesCaption(input: {
   invocationId: string
   task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
   context: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
-  result: ReturnType<typeof assertCanonicalSam31GpuRuntimeResultAdmission>
+  result: CanonicalSam31AnyRuntimeResultAdmission
   sceneEvidence: CanonicalTrackAllSam31CaptionSceneEvidence
 }): void {
   const { payload, task, context, result, sceneEvidence } = input
@@ -1092,7 +1107,8 @@ function assertRuntimeMatchesCaption(input: {
       task.executionEnvelopeRef)
     || result.status !== 'ready_for_independent_mask_artifact_qa'
     || !result.actualNvdecCudaBfloat16ExecutionVerified
-    || !result.terminalWorkerStoppedAndScaleBackToZeroVerified
+    || (isHistoricalRuntimeResult(result)
+      && !result.terminalWorkerStoppedAndScaleBackToZeroVerified)
     || result.routeId !== request.dispatch.routeRole
     || result.accelerator !== request.dispatch.accelerator
     || request.operationId !== 'tool.sam3_1.segment_and_track_subject.v1'
@@ -1474,10 +1490,70 @@ function taskDomainRef(
 }
 
 function backendResultRef(
-  result: ReturnType<typeof assertCanonicalSam31GpuRuntimeResultAdmission>,
+  result: CanonicalSam31AnyRuntimeResultAdmission,
 ): CaptionDomainRef {
   return { id: result.resultAdmissionId, version: result.schemaVersion,
     contentHash: result.resultAdmissionHash }
+}
+
+export async function assertCanonicalCaptionTrackAllCurrentServingGroupRelease(
+  input: {
+  result: CanonicalSam31AnyRuntimeResultAdmission
+  releaseRepository: Pick<
+    CanonicalSam31CompleteSourceServingReleaseRepository,
+    'rereadByExecutionGroup'
+  >
+  },
+): Promise<void> {
+  if (!isCurrentServingRuntimeResult(input.result)) return
+  const result = assertCanonicalSam31CurrentServingResultAdmission(
+    input.result,
+  )
+  const raw = await input.releaseRepository.rereadByExecutionGroup({
+    executionGroupRef: result.completeSourceChunkPlanRef,
+  })
+  if (!raw) throw new Error(
+    'Caption Track All complete-source serving release is unavailable.',
+  )
+  const release = parseCanonicalSam31CompleteSourceServingRelease(raw)
+  const resultRef = {
+    id: result.resultAdmissionId,
+    version: 2,
+    contentHash: `sha256:${result.resultAdmissionHash}`,
+  }
+  if (!sameBackendRef(release.executionGroupRef,
+    result.completeSourceChunkPlanRef)
+    || !release.currentServingResultAdmissionRefs.some((ref) =>
+      sameBackendRef(ref, resultRef))
+    || !release.chunkReceiptRefs.some((ref) => sameBackendRef(
+      ref,
+      result.completeSourceChunkReceiptRef,
+    ))
+    || !release.endpointScaleToZeroObservedAfterServingWindow
+    || !release.exactDetailedBillingExportAndAccountEffectiveRateReconciled
+    || !release.everyExecutionAttemptAllocatedAndCreditSettledExactlyOnce
+    || canonicalSam31CompleteSourceServingReleaseRef(release).contentHash !==
+      `sha256:${release.releaseHash}`) {
+    throw new Error('Caption Track All complete-source release changed.')
+  }
+}
+
+function isHistoricalRuntimeResult(
+  result: CanonicalSam31AnyRuntimeResultAdmission,
+): result is Extract<CanonicalSam31AnyRuntimeResultAdmission, {
+  schemaVersion: 'canonical-sam3_1-gpu-runtime-result-admission-v1'
+}> {
+  return result.schemaVersion ===
+    'canonical-sam3_1-gpu-runtime-result-admission-v1'
+}
+
+function isCurrentServingRuntimeResult(
+  result: CanonicalSam31AnyRuntimeResultAdmission,
+): result is Extract<CanonicalSam31AnyRuntimeResultAdmission, {
+  schemaVersion: 'canonical-sam3_1-current-serving-result-admission-v2'
+}> {
+  return result.schemaVersion ===
+    'canonical-sam3_1-current-serving-result-admission-v2'
 }
 
 function sceneEvidenceRef(
@@ -1709,6 +1785,10 @@ function assertPorts(input: {
     CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'
   >
+  completeSourceServingReleaseRepository: Pick<
+    CanonicalSam31CompleteSourceServingReleaseRepository,
+    'rereadByExecutionGroup'
+  >
   sceneQaAuthorityReadPort:
     CanonicalTrackAllSam31CaptionSceneQaAuthorityReadPort
   sceneEvidenceRepository: CanonicalTrackAllSam31CaptionSceneEvidenceRepository
@@ -1723,6 +1803,8 @@ function assertPorts(input: {
     || typeof input.taskStore?.rereadTask !== 'function'
     || typeof input.taskContextRepository?.rereadTaskContext !== 'function'
     || typeof input.resultStore?.rereadResultAdmission !== 'function'
+    || typeof input.completeSourceServingReleaseRepository
+      ?.rereadByExecutionGroup !== 'function'
     || typeof input.sceneQaAuthorityReadPort?.rereadAuthority !== 'function'
     || typeof input.sceneEvidenceRepository?.rereadByRef !== 'function'
     || typeof input.evidenceRepository?.persistCreateOnly !== 'function'

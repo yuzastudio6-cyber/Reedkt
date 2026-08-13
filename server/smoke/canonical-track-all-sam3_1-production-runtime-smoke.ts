@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v29')
+  'canonical-track-all-sam3_1-production-runtime-v30')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -105,6 +105,10 @@ assert.equal(
 assert.equal(runtime.completeSourceCostSettlementAndScaleZeroReleaseMounted,
   true)
 assert.equal(runtime.perChunkResultMaySelfClaimServingWindowScaleZero, false)
+assert.equal(
+  runtime.captionTrackAllCurrentServingGroupReleaseRereadMounted,
+  true,
+)
 assert.equal(
   runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
     .currentServingGroupSettlementAndScaleZeroRereadBeforeL4Admission,
@@ -407,7 +411,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 125,
+  checks: 126,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -427,6 +431,8 @@ console.log(JSON.stringify({
   currentServingGroupReleaseRereadBeforeL4Admission:
     runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
       .currentServingGroupSettlementAndScaleZeroRereadBeforeL4Admission,
+  captionTrackAllCurrentServingGroupReleaseRereadMounted:
+    runtime.captionTrackAllCurrentServingGroupReleaseRereadMounted,
   historicalA100CustomJobPricingRemainsReadOnly:
     runtime.historicalA100CustomJobPricingRemainsReadOnly,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,

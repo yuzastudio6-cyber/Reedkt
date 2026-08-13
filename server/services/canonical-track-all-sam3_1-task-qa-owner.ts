@@ -51,11 +51,15 @@ import type {
   CanonicalSam31GpuTaskContextRepository,
 } from './canonical-sam3_1-gpu-task-context-owner'
 import {
+  assertCanonicalCaptionTrackAllCurrentServingGroupRelease,
   parseCaptionTrackAllSupportPayload,
   parseCaptionTrackAllSupportRequest,
   sealCanonicalTrackAllSam31CaptionSceneEvidence,
   type CanonicalTrackAllSam31CaptionSceneEvidenceRepository,
 } from './canonical-caption-track-all-support-service'
+import type {
+  CanonicalSam31CompleteSourceServingReleaseRepository,
+} from './canonical-sam3_1-complete-source-serving-release'
 import type {
   CanonicalSpecialistSupportResumeRepository,
 } from './canonical-specialist-support-resume-service'
@@ -694,6 +698,10 @@ export function createCanonicalTrackAllSam31TaskQaOwner(input: {
     CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'
   >
+  readonly completeSourceServingReleaseRepository: Pick<
+    CanonicalSam31CompleteSourceServingReleaseRepository,
+    'rereadByExecutionGroup'
+  >
   readonly qaRepository: CanonicalTrackAllSam31TaskQaRepository
   readonly sceneEvidenceRepository:
     CanonicalTrackAllSam31CaptionSceneEvidenceRepository
@@ -743,6 +751,10 @@ export function createCanonicalTrackAllSam31TaskQaOwner(input: {
       const result = assertCanonicalSam31AnyRuntimeResultAdmission(
         await input.resultStore.rereadResultAdmission(invocationId),
       )
+      await assertCanonicalCaptionTrackAllCurrentServingGroupRelease({
+        result,
+        releaseRepository: input.completeSourceServingReleaseRepository,
+      })
       const measurement = await input.qaRepository.rereadMeasurement({
         measurementRef: expectedMeasurementRef,
       })
@@ -1158,6 +1170,10 @@ function assertOwnerPorts(input: {
     'rereadTaskContext'>
   resultStore: Pick<CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'>
+  completeSourceServingReleaseRepository: Pick<
+    CanonicalSam31CompleteSourceServingReleaseRepository,
+    'rereadByExecutionGroup'
+  >
   qaRepository: CanonicalTrackAllSam31TaskQaRepository
   sceneEvidenceRepository:
     CanonicalTrackAllSam31CaptionSceneEvidenceRepository
@@ -1166,6 +1182,8 @@ function assertOwnerPorts(input: {
     || typeof input.taskStore?.rereadTask !== 'function'
     || typeof input.taskContextRepository?.rereadTaskContext !== 'function'
     || typeof input.resultStore?.rereadResultAdmission !== 'function'
+    || typeof input.completeSourceServingReleaseRepository
+      ?.rereadByExecutionGroup !== 'function'
     || typeof input.qaRepository?.rereadMeasurement !== 'function'
     || typeof input.qaRepository?.rereadReview !== 'function'
     || typeof input.qaRepository?.persistAuthorityCreateOnly !== 'function'

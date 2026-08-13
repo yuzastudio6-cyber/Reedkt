@@ -1205,6 +1205,9 @@ const taskQaOwner = createCanonicalTrackAllSam31TaskQaOwner({
   taskStore,
   taskContextRepository,
   resultStore,
+  completeSourceServingReleaseRepository: {
+    async rereadByExecutionGroup() { return null },
+  },
   qaRepository: taskQaRepository,
   sceneEvidenceRepository,
 })
@@ -1282,6 +1285,9 @@ const service = createCanonicalCaptionTrackAllSupportService({
   taskStore,
   taskContextRepository,
   resultStore,
+  completeSourceServingReleaseRepository: {
+    async rereadByExecutionGroup() { return null },
+  },
   sceneQaAuthorityReadPort: taskQaRepository,
   sceneEvidenceRepository,
   evidenceRepository,

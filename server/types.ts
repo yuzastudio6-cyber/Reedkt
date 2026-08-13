@@ -65,6 +65,9 @@ import type {
   CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import type {
+  CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-queued-gpu-start-service'
+import type {
   CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
 } from './services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
 import type {
@@ -169,6 +172,8 @@ export interface RuntimeState {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  trackAllSam31QueuedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
@@ -245,6 +250,8 @@ export interface ServiceContext {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  trackAllSam31QueuedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:

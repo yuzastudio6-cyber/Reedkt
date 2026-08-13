@@ -68,6 +68,28 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     notes: ['Checks local mock records only.'],
   },
   {
+    id: 'trackAll.sam31.approvedGpuQueue.enqueue',
+    domain: 'jobs',
+    method: 'POST',
+    path: '/internal/v3/workspaces/:workspaceId/track-all/sam3_1/gpu-queue/start',
+    description:
+      'Prepare and durably enqueue one funded Track All SAM 3.1 A100 attempt.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: true,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'enqueueApprovedTrackAllSam31GpuAttempt',
+    notes: [
+      'Requires authenticated user scope, strict internal-service authentication, exact idempotency, approved snapshot/work/funding rereads, an exact fixed SAM 3.1 task, and the shared durable Postgres queue owner.',
+      'The request performs no GPU invocation and creates no Cloud Task. A separate scheduler and authenticated consumer own capacity admission, dispatch, terminal reconciliation, and credit settlement.',
+      'The caller cannot select queue priority, capacity, route, media, prompt, model, image, command, price, reservation, lease, or attempt.',
+      'The deterministic queue identity makes queued, active, and terminal retries safe across API replicas and restarts.',
+    ],
+  },
+  {
     id: 'trackAll.sam31.approvedGpuInvocation.start',
     domain: 'jobs',
     method: 'POST',

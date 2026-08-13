@@ -82,6 +82,17 @@ import {
   type CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
 } from './canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import {
+  createCanonicalTrackAllSam31QueuedGpuStartRuntime,
+  type CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
+} from './canonical-track-all-sam3_1-queued-gpu-start-service'
+import {
+  createCanonicalProfessionalGpuFairQueueProductionPostgresAdapter,
+  createCanonicalProfessionalGpuFairQueueProductionPostgresCapability,
+} from './canonical-professional-gpu-fair-queue-postgres-rpc-adapter'
+import {
+  createCanonicalProfessionalGpuFairQueueServerHttpClient,
+} from './canonical-professional-gpu-fair-queue-server-http-client'
+import {
   createCanonicalSam31CurrentVertexCustomerInvocationRepository,
   createCanonicalSam31CurrentVertexCustomerInvocationService,
 } from './canonical-sam3_1-current-vertex-serving-invocation-service'
@@ -144,7 +155,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v18' as const
+  'canonical-track-all-sam3_1-production-runtime-v19' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -159,6 +170,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
   readonly trackAllSam31AuthenticatedGpuInvocationRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  readonly trackAllSam31QueuedGpuStartRuntimePort:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
   readonly a100CustomerDispatchReadinessRepository:
     CanonicalSam31CurrentA100CustomerDispatchReadinessRepository
   readonly a100VertexCustomJobTerminalReadPort: ReturnType<
@@ -202,6 +215,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly rawCloudLaunchPortExposed: false
   readonly historicalVertexCustomJobCustomerDispatchAllowed: false
   readonly currentA100DedicatedEndpointInvocationMounted: true
+  readonly durablePostgresQueueMountedBeforeGpuInvocation: true
   readonly freshA100PricingUsesVertexServingRateAuthority: true
   readonly historicalA100CustomJobPricingRemainsReadOnly: true
 }
@@ -227,6 +241,28 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     'processed-media private GPU object',
   )
   const storage = input.storage ?? new Storage({ projectId })
+  const supabaseUrl = requiredServerSetting(
+    env.supabaseUrl,
+    'Supabase Postgres origin',
+  )
+  const supabaseServiceRoleKey = requiredServerSetting(
+    env.supabaseServiceRoleKey,
+    'Supabase service-role credential',
+  )
+  const gpuQueueRpcClient =
+    createCanonicalProfessionalGpuFairQueueServerHttpClient({
+      endpointOrigin: supabaseUrl,
+      serviceRoleKey: supabaseServiceRoleKey,
+    })
+  const gpuQueueTransactionAdapter =
+    createCanonicalProfessionalGpuFairQueueProductionPostgresAdapter({
+      client: gpuQueueRpcClient,
+      capability:
+        createCanonicalProfessionalGpuFairQueueProductionPostgresCapability({
+          endpointOrigin: supabaseUrl,
+          client: gpuQueueRpcClient,
+        }),
+    })
   const controlPlaneObjectPort =
     createCanonicalGcsSourceAnalysisJsonObjectPort({
       storage,
@@ -537,6 +573,13 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       attemptStartReadPort: fundedStartAuthorityStore,
       currentVertexInvocationPort,
     })
+  const queuedGpuStartRuntime =
+    createCanonicalTrackAllSam31QueuedGpuStartRuntime({
+      fundedPreparationRuntime: authenticatedRuntime,
+      fundedLifecycleReadPort: lifecycleStore,
+      attemptStartReadPort: fundedStartAuthorityStore,
+      queueTransactionAdapter: gpuQueueTransactionAdapter,
+    })
   const l4TaskQaAuthenticatedRuntime =
     createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime({
       pricingAuthorityReadPort: pricingAuthorityStore,
@@ -569,6 +612,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
     trackAllSam31AuthenticatedGpuInvocationRuntimePort:
       authenticatedInvocationRuntime,
+    trackAllSam31QueuedGpuStartRuntimePort: queuedGpuStartRuntime,
     a100CustomerDispatchReadinessRepository:
       currentA100CustomerDispatchReadinessRepository,
     a100VertexCustomJobTerminalReadPort,
@@ -601,6 +645,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     rawCloudLaunchPortExposed: false as const,
     historicalVertexCustomJobCustomerDispatchAllowed: false as const,
     currentA100DedicatedEndpointInvocationMounted: true as const,
+    durablePostgresQueueMountedBeforeGpuInvocation: true as const,
     freshA100PricingUsesVertexServingRateAuthority: true as const,
     historicalA100CustomJobPricingRemainsReadOnly: true as const,
   })
@@ -621,4 +666,14 @@ function requiredBucket(
     throw new Error(`Track All SAM 3.1 ${label} bucket is unavailable.`)
   }
   return value
+}
+
+function requiredServerSetting(
+  value: string | undefined,
+  label: string,
+): string {
+  if (!value || value.trim().length === 0) {
+    throw new Error(`Track All SAM 3.1 ${label} is unavailable.`)
+  }
+  return value.trim()
 }

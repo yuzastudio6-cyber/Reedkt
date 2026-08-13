@@ -115,6 +115,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
   trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
     RuntimeState['trackAllSam31AuthenticatedGpuInvocationRuntimePort']
+  trackAllSam31QueuedGpuStartRuntimePort?:
+    RuntimeState['trackAllSam31QueuedGpuStartRuntimePort']
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     RuntimeState['trackAllSam31L4TaskQaAuthenticatedStartRuntimePort']
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
@@ -314,6 +316,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           trackAllSam31AuthenticatedGpuInvocationRuntimePort:
             options.trackAllSam31AuthenticatedGpuInvocationRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31QueuedGpuStartRuntimePort
+      ? {
+          trackAllSam31QueuedGpuStartRuntimePort:
+            options.trackAllSam31QueuedGpuStartRuntimePort,
         }
       : {}),
     ...(options.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort

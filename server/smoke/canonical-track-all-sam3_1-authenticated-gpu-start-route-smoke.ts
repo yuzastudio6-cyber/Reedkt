@@ -13,6 +13,11 @@ import {
   type TrackAllSam31AuthenticatedGpuInvocationResult,
 } from '../../src/types/track-all-sam3_1-gpu-invocation'
 import {
+  TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_ROUTE_ID,
+  type TrackAllSam31AuthenticatedGpuQueuedStartRequest,
+  type TrackAllSam31AuthenticatedGpuQueuedStartResult,
+} from '../../src/types/track-all-sam3_1-gpu-queued-start'
+import {
   TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE_ID,
   type TrackAllSam31L4TaskQaGpuStartRequest,
   type TrackAllSam31L4TaskQaGpuStartResult,
@@ -35,6 +40,9 @@ import {
   buildTrackAllSam31AuthenticatedGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import {
+  buildTrackAllSam31AuthenticatedGpuQueuedStartRequest,
+} from '../services/canonical-track-all-sam3_1-queued-gpu-start-service'
+import {
   buildTrackAllSam31L4TaskQaGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 import {
@@ -56,6 +64,12 @@ const request = buildTrackAllSam31AuthenticatedGpuStartRequest({
 const invocationRequest =
   buildTrackAllSam31AuthenticatedGpuInvocationRequest({
     requestId: 'track-all-sam31-user-invocation-1',
+    approvedSnapshotId: 'approved-snapshot-track-all-1',
+    workItemKey: 'approved-track-all-work-1',
+  })
+const queuedStartRequest =
+  buildTrackAllSam31AuthenticatedGpuQueuedStartRequest({
+    requestId: 'track-all-sam31-user-queued-start-1',
     approvedSnapshotId: 'approved-snapshot-track-all-1',
     workItemKey: 'approved-track-all-work-1',
   })
@@ -93,6 +107,7 @@ const taskQaFinalizationRequest =
   })
 let runtimeCalls = 0
 let invocationRuntimeCalls = 0
+let queuedStartRuntimeCalls = 0
 let l4TaskQaRuntimeCalls = 0
 let finalizationRuntimeCalls = 0
 let taskQaFinalizationRuntimeCalls = 0
@@ -123,6 +138,30 @@ const app = createReeditProApiApp(loadRuntimeEnv({
       assert.equal(input.idempotencyKey, invocationRequest.requestId)
       assert.deepEqual(input.request, invocationRequest)
       return invocationResultFor(invocationRequest)
+    },
+  }),
+  trackAllSam31QueuedGpuStartRuntimePort: Object.freeze({
+    schemaVersion:
+      'canonical-track-all-sam3_1-queued-gpu-start-runtime-v1',
+    queueId: 'weeditpro-professional-gpu-production-v1',
+    runtimeRegion: 'us-central1',
+    durablePostgresQueueRequired: true,
+    directGpuInvocationAllowed: false,
+    cloudTaskDispatchOwnedByScheduler: true,
+    routeOwnsGpuPlacementOrPricing: false,
+    productionAuthority: false,
+    async enqueueApprovedTrackAllWork(input: {
+      authenticatedOwnerUserId: string
+      workspaceId: string
+      idempotencyKey: string
+      request: unknown
+    }) {
+      queuedStartRuntimeCalls += 1
+      assert.equal(input.authenticatedOwnerUserId, 'mock-user-runtime')
+      assert.equal(input.workspaceId, workspaceId)
+      assert.equal(input.idempotencyKey, queuedStartRequest.requestId)
+      assert.deepEqual(input.request, queuedStartRequest)
+      return queuedStartResultFor(queuedStartRequest)
     },
   }),
   trackAllSam31AuthenticatedGpuStartRuntimePort: Object.freeze({
@@ -211,6 +250,54 @@ assert.ok(address && typeof address === 'object')
 const url = `http://127.0.0.1:${address.port}`
 
 try {
+  const validQueuedStart = await postQueuedStart(
+    queuedStartRequest,
+    queuedStartRequest.requestId,
+    internalToken,
+  )
+  assert.equal(validQueuedStart.status, 202)
+  const validQueuedStartJson = await validQueuedStart.json() as
+    Record<string, unknown>
+  assert.equal(validQueuedStartJson.ok, true)
+  assert.equal(queuedStartRuntimeCalls, 1)
+
+  const queuedStartInjectedPriority = await postQueuedStart({
+    ...buildTrackAllSam31AuthenticatedGpuQueuedStartRequest({
+      requestId: 'track-all-sam31-injected-queue-priority',
+      approvedSnapshotId: queuedStartRequest.approvedSnapshotId,
+      workItemKey: queuedStartRequest.workItemKey,
+    }),
+    queuePriority: 'highest',
+  }, 'track-all-sam31-injected-queue-priority', internalToken)
+  assert.equal(queuedStartInjectedPriority.status, 400)
+  assert.equal(queuedStartRuntimeCalls, 1)
+
+  const queuedStartIdempotencyMismatch = await postQueuedStart(
+    queuedStartRequest,
+    'different-queued-start-idempotency',
+    internalToken,
+  )
+  assert.equal(queuedStartIdempotencyMismatch.status, 409)
+  assert.equal(queuedStartRuntimeCalls, 1)
+
+  const queuedStartInvalidToken = await postQueuedStart(
+    queuedStartRequest,
+    queuedStartRequest.requestId,
+    'invalid-internal-token',
+  )
+  assert.equal(queuedStartInvalidToken.status, 403)
+  assert.equal(queuedStartRuntimeCalls, 1)
+
+  const queuedRoute = getApiRouteById(
+    TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_ROUTE_ID,
+  )
+  assert.equal(queuedRoute?.securityLevel, 'backend_service_role')
+  assert.equal(queuedRoute?.runtimeMode, 'backend_required')
+  assert.equal(queuedRoute?.requiresSupabase, true)
+  assert.equal(queuedRoute?.requiresServiceRole, true)
+  assert.match(queuedRoute?.notes.join(' ') ?? '', /no GPU invocation/u)
+  assert.match(queuedRoute?.notes.join(' ') ?? '', /durable Postgres/u)
+
   const validInvocation = await postInvocation(
     invocationRequest,
     invocationRequest.requestId,
@@ -491,7 +578,7 @@ try {
 
   console.log(JSON.stringify({
     smoke: 'canonical-track-all-sam3_1-authenticated-gpu-start-route',
-    checks: 94,
+    checks: 110,
     authenticatedOwnerScopeRequired: true,
     strictInternalServiceAuthRequired: true,
     exactIdempotencyRequired: true,
@@ -501,6 +588,9 @@ try {
     accountEffectivePriceAcceptedFromRequest: false,
     runtimeCalls,
     invocationRuntimeCalls,
+    queuedStartRuntimeCalls,
+    durablePostgresQueueStartMounted: true,
+    queuedStartDirectGpuInvocationPerformed: false,
     l4TaskQaRuntimeCalls,
     finalizationRuntimeCalls,
     taskQaFinalizationRuntimeCalls,
@@ -544,6 +634,25 @@ async function postInvocation(
 ) {
   return fetch(
     `${url}/internal/v2/workspaces/${workspaceId}/track-all/sam3_1/gpu-invocations/start`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': idempotencyKey,
+        'x-reeditpro-internal-token': token,
+      },
+      body: JSON.stringify(body),
+    },
+  )
+}
+
+async function postQueuedStart(
+  body: unknown,
+  idempotencyKey: string,
+  token: string,
+) {
+  return fetch(
+    `${url}/internal/v3/workspaces/${workspaceId}/track-all/sam3_1/gpu-queue/start`,
     {
       method: 'POST',
       headers: {
@@ -645,6 +754,56 @@ function resultFor(
     fundedPricingAndReservationRereadBeforeLaunch: true as const,
     rawCloudLaunchPortExposed: false as const,
     callerSuppliedMediaPromptModelRouteImageCommandOrPriceAccepted:
+      false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
+}
+
+function queuedStartResultFor(
+  source: TrackAllSam31AuthenticatedGpuQueuedStartRequest,
+): TrackAllSam31AuthenticatedGpuQueuedStartResult {
+  const ref = (id: string) => ({
+    id,
+    version: 1,
+    contentHash: `sha256:${sha256AuthorityValue(id)}`,
+  })
+  const payload = {
+    schemaVersion:
+      'track-all-sam3_1-authenticated-gpu-queued-start-result-v3' as const,
+    requestRef: {
+      id: source.requestId,
+      version: 1,
+      contentHash: `sha256:${source.requestDigestSha256}`,
+    },
+    workspaceId,
+    projectId: 'project-track-all-sam31-route',
+    approvedSnapshotId: source.approvedSnapshotId,
+    workItemKey: source.workItemKey,
+    fundedDispatchAdmissionRef: ref('funded-admission'),
+    prelaunchAuthorizationRef: ref('funded-prelaunch'),
+    fixedTaskPreparationBridgeRef: ref('fixed-task-preparation'),
+    executionAttemptRef: ref('execution-attempt'),
+    userTriggerRecordRef: ref('user-trigger'),
+    queueEntryRef: ref('queue-entry'),
+    queueTransactionRef: ref('queue-transaction'),
+    queueDisposition: 'queued' as const,
+    routeId: 'a100_80gb_heavy_primary' as const,
+    accelerator: 'nvidia_a100_80gb' as const,
+    queueId: 'weeditpro-professional-gpu-production-v1' as const,
+    runtimeRegion: 'us-central1' as const,
+    minimumIdleGpuInstances: 0 as const,
+    userTriggeredScaleFromZero: true as const,
+    a100HeavyPrimaryAndSeparatelyQualifiedL4Fallback: true as const,
+    durablePostgresQueueAdmissionCommitted: true as const,
+    schedulerOwnsCloudTaskDispatch: true as const,
+    taskConsumerMustRereadFundingTaskAndRuntimeAuthorities: true as const,
+    directGpuInvocationStartedByRequest: false as const,
+    cloudTaskCreationStartedByRequest: false as const,
+    callerSuppliedMediaPromptQueuePriorityCapacityRouteModelImageCommandOrPriceAccepted:
       false as const,
     customerCreditsMutated: false as const,
     qaApproved: false as const,

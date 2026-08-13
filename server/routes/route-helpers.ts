@@ -93,6 +93,8 @@ export function getServiceContext(request: Request): ServiceContext {
     trackAllSam31AuthenticatedGpuInvocationRuntimePort:
       runtimeRequest.runtime
         .trackAllSam31AuthenticatedGpuInvocationRuntimePort,
+    trackAllSam31QueuedGpuStartRuntimePort:
+      runtimeRequest.runtime.trackAllSam31QueuedGpuStartRuntimePort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       runtimeRequest.runtime
         .trackAllSam31L4TaskQaAuthenticatedStartRuntimePort,

@@ -7,6 +7,9 @@ import {
   TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_ROUTE,
 } from '../../src/types/track-all-sam3_1-gpu-invocation'
 import {
+  TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_ROUTE,
+} from '../../src/types/track-all-sam3_1-gpu-queued-start'
+import {
   TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE,
 } from '../../src/types/track-all-sam3_1-l4-task-qa-gpu-start'
 import {
@@ -25,6 +28,9 @@ import {
   parseTrackAllSam31AuthenticatedGpuInvocationRequest,
   parseTrackAllSam31AuthenticatedGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  parseTrackAllSam31AuthenticatedGpuQueuedStartRequest,
+} from '../services/canonical-track-all-sam3_1-queued-gpu-start-service'
 import {
   parseTrackAllSam31L4TaskQaGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
@@ -50,6 +56,43 @@ import {
  */
 export function createTrackAllSam31Routes(): Router {
   const router = Router()
+  router.post(
+    TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_ROUTE,
+    requireAuth,
+    requireStrictInternalServiceAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = parseQueuedStartRequestBody(request.body)
+      const context = getServiceContext(request)
+      const runtime = context.trackAllSam31QueuedGpuStartRuntimePort
+      if (!runtime) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The durable Track All SAM 3.1 GPU queue is not released.',
+        503,
+        { requiredGate: 'track_all_sam3_1_durable_gpu_queue_release' },
+      )
+      if (!context.auth?.userId) throw new ApiError(
+        'AUTH_REQUIRED',
+        'Authenticated user context is required.',
+        401,
+      )
+      const idempotencyKey = getIdempotencyKey(request)
+      if (body.requestId !== idempotencyKey) throw new ApiError(
+        'IDEMPOTENCY_KEY_MISMATCH',
+        'The Track All SAM 3.1 queued start must use its exact request ID.',
+        409,
+      )
+      const result = await runtime.enqueueApprovedTrackAllWork({
+        authenticatedOwnerUserId: context.auth.userId,
+        workspaceId: getRouteParam(request, 'workspaceId'),
+        idempotencyKey,
+        request: body,
+      })
+      sendOk(response, { queueStart: result }, [
+        'The canonical backend prepared and durably queued one funded SAM 3.1 A100 attempt. This request did not invoke a GPU or create a Cloud Task; the separate scheduler and authenticated task consumer must reread exact funding, task, runtime, and capacity authorities before execution.',
+      ], 202)
+    }),
+  )
   router.post(
     TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_ROUTE,
     requireAuth,
@@ -249,6 +292,18 @@ function parseInvocationRequestBody(value: unknown) {
     throw new ApiError(
       'VALIDATION_FAILED',
       'The Track All SAM 3.1 endpoint invocation request is invalid.',
+      400,
+    )
+  }
+}
+
+function parseQueuedStartRequestBody(value: unknown) {
+  try {
+    return parseTrackAllSam31AuthenticatedGpuQueuedStartRequest(value)
+  } catch {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'The Track All SAM 3.1 queued-start request is invalid.',
       400,
     )
   }

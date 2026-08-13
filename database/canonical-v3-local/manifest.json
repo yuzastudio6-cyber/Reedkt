@@ -329,7 +329,7 @@
     },
     {
       "path": "package.json",
-      "sha256": "faa256f332ce9f26926f5cfb0d16a20d7a55309ab56317a65865ddfdb34c6fae"
+      "sha256": "9e36a7579f9f626ca6004b8f2ef1441971fee050fee587da2a5d405899623ef3"
     },
     {
       "path": "scripts/dev/internal-testing-local-upload-e2e.mjs",
@@ -337,7 +337,7 @@
     },
     {
       "path": "server/app.ts",
-      "sha256": "ca7a4cfeb7d40f1fa9c62524400d2891e8e944c2a5f79dec0b594ae7b552fdf4"
+      "sha256": "93f90fbd44c6caa9cc26b000a3e58d2d58a5d0822b8d7926ff3594b90db73bd8"
     },
     {
       "path": "server/distributed-media-ingest/canonical-distributed-media-ingest-local-supabase-http-rpc-client.ts",
@@ -513,7 +513,7 @@
     },
     {
       "path": "server/routes/route-helpers.ts",
-      "sha256": "b0be0649101152e93ec33eb2725a6a5176315f03335f07be94bd81a57b6b90e5"
+      "sha256": "ce71ebf7562acab0bad39474b74bac4ca6ea5339f0aa1479290e74ce04595f0b"
     },
     {
       "path": "server/routes/upload-routes.ts",
@@ -549,7 +549,7 @@
     },
     {
       "path": "server/services/canonical-professional-gpu-fair-queue-postgres-rpc-adapter.ts",
-      "sha256": "e0dde8dbf3983120336455421fb0ea2b43b91cc24e90c1ac74491463c2b611ed"
+      "sha256": "c8b163cdba9b74e2e390f9cb428062656185ef8f968a6232c653caa57ef189b0"
     },
     {
       "path": "server/services/canonical-professional-gpu-fair-queue-scheduler.ts",
@@ -797,7 +797,7 @@
     },
     {
       "path": "server/types.ts",
-      "sha256": "efbec19666e58c664d1e325d9e8420b236186760ef0057c37b405fed4362ba9b"
+      "sha256": "ef50230c71c6032a0bcb813904f39582b9f3fe705da5b39c7697228f1cff0ad0"
     },
     {
       "path": "server/upload-target-authority/canonical-durable-upload-target-authority.ts",

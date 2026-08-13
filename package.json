@@ -440,6 +440,7 @@
     "smoke:track-all-sam3_1-l4-task-qa-worker": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-worker-smoke.ts",
     "smoke:track-all-sam3_1-l4-task-qa-owner": "tsx server/smoke/canonical-track-all-sam3_1-l4-task-qa-owner-smoke.ts",
     "smoke:track-all-sam3_1-authenticated-start-route": "tsx server/smoke/canonical-track-all-sam3_1-authenticated-gpu-start-route-smoke.ts",
+    "smoke:track-all-sam3_1-queued-gpu-start": "tsx server/smoke/canonical-track-all-sam3_1-queued-gpu-start-smoke.ts",
     "smoke:track-all-sam3_1-production-runtime": "tsx server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",
     "smoke:track-all-sam3_1-orchestra-manifest": "tsx server/smoke/track-all-sam3_1-orchestra-capability-manifest-smoke.ts",
     "smoke:canonical-skill-qualification-registry": "tsx server/smoke/canonical-skill-qualification-registry-smoke.ts",

@@ -133,6 +133,7 @@ LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   io.weeditpro.runtime.scale="user-triggered-scale-from-zero" \
   io.weeditpro.runtime.cpu.substantive="forbidden" \
   io.weeditpro.runtime.network-download="forbidden" \
+  io.weeditpro.runtime.model-or-checkpoint-included="false" \
   io.weeditpro.runtime.qualification="candidate-only" \
   io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
   io.weeditpro.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \

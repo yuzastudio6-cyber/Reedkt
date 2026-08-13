@@ -14,7 +14,9 @@ import {
 } from './canonical-professional-gpu-fair-queue-scheduler'
 import {
   assertCanonicalSam31A100ServingCompleteSourceCapacityObservation,
+  assertCanonicalSam31L4CompleteSourceCapacityObservation,
   type CanonicalSam31A100ServingCompleteSourceCapacityReadPort,
+  type CanonicalSam31L4CompleteSourceCapacityReadPort,
 } from './canonical-sam3_1-complete-source-capacity-owner'
 import {
   assertCanonicalSam31VertexServingCapacityObservation,
@@ -299,6 +301,8 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
   readonly a100EndpointCapacityReadPort: {
     rereadCurrent(): Promise<CanonicalSam31VertexServingCapacityObservation>
   }
+  readonly l4QuotaReadPort:
+    CanonicalSam31L4CompleteSourceCapacityReadPort
 }): CanonicalProfessionalGpuFairQueueCapacityReadPort {
   return Object.freeze({
     schemaVersion:
@@ -311,13 +315,14 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
       readonly runtimeRegion: 'us-central1'
       readonly observedAt: string
     }) {
-      const [state, rawQuota, rawEndpoint] = await Promise.all([
+      const [state, rawQuota, rawEndpoint, rawL4Quota] = await Promise.all([
         input.queueRuntimeReadPort.readState({
           queueId: query.queueId,
           runtimeRegion: query.runtimeRegion,
         }),
         input.a100QuotaReadPort.rereadCurrent(),
         input.a100EndpointCapacityReadPort.rereadCurrent(),
+        input.l4QuotaReadPort.rereadCurrent(),
       ])
       const quota =
         assertCanonicalSam31A100ServingCompleteSourceCapacityObservation(
@@ -327,15 +332,22 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
         rawEndpoint,
         query.observedAt,
       )
+      const l4Quota =
+        assertCanonicalSam31L4CompleteSourceCapacityObservation(rawL4Quota)
       if (Date.parse(query.observedAt) >= Date.parse(quota.expiresAt)
         || quota.reconciling
         || !quota.exactCloudQuotaPreferenceAndQuotaInfoReread
         || quota.endpointOrGpuJobStarted
         || !endpoint.exactCurrentEndpointModelVersionTrafficAndCapacityReread
-        || endpoint.endpointOrGpuJobStarted) {
-        throw new TypeError('SAM 3.1 A100 queue capacity is stale or pending.')
+        || endpoint.endpointOrGpuJobStarted
+        || Date.parse(query.observedAt) >= Date.parse(l4Quota.expiresAt)
+        || l4Quota.reconciling
+        || !l4Quota.exactCloudQuotaPreferenceAndQuotaInfoReread
+        || l4Quota.gpuJobStarted) {
+        throw new TypeError('SAM 3.1 GPU queue capacity is stale or pending.')
       }
       const a100 = state.routeStates[0]
+      const l4Standard = state.routeStates[2]
       const maximum = Math.min(
         quota.grantedValue,
         endpoint.maximumReplicaCount,
@@ -343,6 +355,10 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
       )
       if (maximum < 1 || a100.activeCount > maximum) {
         throw new TypeError('SAM 3.1 A100 queue capacity is unavailable.')
+      }
+      const maximumL4 = Math.min(l4Quota.grantedValue, 16)
+      if (maximumL4 < 1 || l4Standard.activeCount > maximumL4) {
+        throw new TypeError('SAM 3.1 L4 queue capacity is unavailable.')
       }
       return [assertCanonicalProfessionalGpuFairQueueCapacity({
         routeId: 'a100_80gb_heavy_primary',
@@ -359,6 +375,22 @@ export function createCanonicalSam31ProductionGpuQueueCapacityReadPort(input: {
         },
         maximumConcurrentAttempts: maximum,
         currentActiveAttempts: a100.activeCount,
+        minimumIdleGpuInstances: 0,
+        exactCurrentQuotaAndRuntimeCapacityReread: true,
+      }), assertCanonicalProfessionalGpuFairQueueCapacity({
+        routeId: 'l4_standard_primary',
+        capacityObservationRef: {
+          id: `sam31-l4-queue-capacity:${state.controlRevision}`,
+          version: 1,
+          contentHash: `sha256:${sha256AuthorityValue({
+            stateHash: state.stateHash,
+            quotaObservationHash: l4Quota.observationHash,
+            maximumConcurrentAttempts: maximumL4,
+            currentActiveAttempts: l4Standard.activeCount,
+          })}`,
+        },
+        maximumConcurrentAttempts: maximumL4,
+        currentActiveAttempts: l4Standard.activeCount,
         minimumIdleGpuInstances: 0,
         exactCurrentQuotaAndRuntimeCapacityReread: true,
       })]

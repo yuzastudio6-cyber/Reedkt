@@ -125,6 +125,7 @@ import {
   createCanonicalLiveGoogleServiceIdentityVerifier,
 } from '../security/canonical-service-identity-verifier'
 import {
+  createCanonicalSam31GcpL4CompleteSourceCapacityReadPort,
   createCanonicalSam31GcpA100ServingCompleteSourceCapacityReadPort,
 } from './canonical-sam3_1-complete-source-capacity-owner'
 import {
@@ -195,9 +196,14 @@ import {
   createCanonicalTrackAllSam31L4TaskQaSamOutputReadPort,
   type CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
+import {
+  createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime,
+  type CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort,
+} from './canonical-track-all-sam3_1-l4-task-qa-queued-start-service'
+import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v21' as const
+  'canonical-track-all-sam3_1-production-runtime-v22' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -229,6 +235,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSam31A100ResultFinalizationRuntimePort
   readonly trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+  readonly trackAllSam31L4TaskQaQueuedStartRuntimePort:
+    CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort
   readonly trackAllSam31CaptionEvidenceFinalizationRuntimePort:
     CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
   readonly trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
@@ -267,6 +275,9 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly userTriggeredCloudTaskSchedulingMounted: true
   readonly authenticatedCloudTaskConsumerMounted: true
   readonly terminalServingAttemptOwnerMountedBeforeQueueFinalization: true
+  readonly l4QuotaAndActiveCountCapacityMounted: true
+  readonly l4FixedTaskPreparedBeforeDurableQueueAdmission: true
+  readonly directL4GpuInvocationHttpRouteMounted: false
   readonly directA100InvocationHttpRouteMounted: false
   readonly freshA100PricingUsesVertexServingRateAuthority: true
   readonly historicalA100CustomJobPricingRemainsReadOnly: true
@@ -361,6 +372,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
             rereadCurrent: () =>
               rereadCanonicalSam31VertexServingCapacity(),
           },
+          l4QuotaReadPort:
+            createCanonicalSam31GcpL4CompleteSourceCapacityReadPort(),
         }),
       dispatcherInstanceId: env.workerInstanceId,
     })
@@ -628,11 +641,38 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     taskStore,
     rawCloudLaunchPort,
   })
-  const l4TaskQaRuntimeComposition =
+  const l4QueuePreparationOnlyLaunchPort:
+    CanonicalProfessionalGpuCloudJobLaunchPort = Object.freeze({
+      async startOneShotJob(request) {
+        if (request.admission.routeId !== 'l4_standard_primary'
+          || request.target.executionTarget !== 'google_cloud_run_l4_job'
+          || request.target.accelerator !== 'nvidia_l4') {
+          throw new Error('L4 queue preparation received another GPU route.')
+        }
+        return {
+          disposition: 'rejected_before_creation' as const,
+          cloudJobExecutionRef: null,
+          cloudJobCreateRequestRef: {
+            id: `${request.admission.admissionId}.l4-queue-preparation`,
+            version: 1,
+            contentHash: `sha256:${sha256AuthorityValue({
+              domain: 'track_all_l4_queue_preparation_bridge_v1',
+              admissionHash: request.admission.admissionHash,
+              executionEnvelopeRef: request.executionEnvelopeRef,
+            })}`,
+          },
+          providerRequestIdDigestSha256: null,
+          observedAt: new Date().toISOString(),
+          providerInferenceOrSubstantiveWorkKnownExecuted:
+            'not_executed' as const,
+        }
+      },
+    })
+  const l4TaskQaPreparationRuntimeComposition =
     createCanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition({
       materialRepository: trackAllSam31L4TaskQaMaterialRepository,
       taskStore: trackAllSam31L4TaskQaTaskStore,
-      rawCloudLaunchPort,
+      rawCloudLaunchPort: l4QueuePreparationOnlyLaunchPort,
     })
   const runtimeContextReadPort = Object.freeze({
     rereadQualifiedRuntimeRelease:
@@ -715,7 +755,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       attemptStartReadPort: fundedStartAuthorityStore,
       runtimeContextReadPort,
       releaseReadPort: runtimeConfigurationRepository,
-      runtimeComposition: l4TaskQaRuntimeComposition,
+      runtimeComposition: l4TaskQaPreparationRuntimeComposition,
       materialRepository: trackAllSam31L4TaskQaMaterialRepository,
       sam31TaskStore: taskStore,
       sam31TaskContextRepository: taskContextRepository,
@@ -724,6 +764,14 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       supportResumeRepository: specialistSupportResumeRepository,
       lifecycleStore,
       fundedLifecycleStore: lifecycleStore,
+    })
+  const l4TaskQaQueuedStartRuntime =
+    createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime({
+      fundedPreparationRuntime: l4TaskQaAuthenticatedRuntime,
+      fundedLifecycleReadPort: lifecycleStore,
+      materialRepository: trackAllSam31L4TaskQaMaterialRepository,
+      attemptStartReadPort: fundedStartAuthorityStore,
+      queueTransactionAdapter: gpuQueueTransactionAdapter,
     })
 
   return Object.freeze({
@@ -756,6 +804,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     sam31A100ResultFinalizationRuntimePort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
       l4TaskQaAuthenticatedRuntime,
+    trackAllSam31L4TaskQaQueuedStartRuntimePort:
+      l4TaskQaQueuedStartRuntime,
     trackAllSam31CaptionEvidenceFinalizationRuntimePort,
     trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
     trackAllSam31TaskQaCandidateRepository,
@@ -786,6 +836,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     userTriggeredCloudTaskSchedulingMounted: true as const,
     authenticatedCloudTaskConsumerMounted: true as const,
     terminalServingAttemptOwnerMountedBeforeQueueFinalization: true as const,
+    l4QuotaAndActiveCountCapacityMounted: true as const,
+    l4FixedTaskPreparedBeforeDurableQueueAdmission: true as const,
+    directL4GpuInvocationHttpRouteMounted: false as const,
     directA100InvocationHttpRouteMounted: false as const,
     freshA100PricingUsesVertexServingRateAuthority: true as const,
     historicalA100CustomJobPricingRemainsReadOnly: true as const,

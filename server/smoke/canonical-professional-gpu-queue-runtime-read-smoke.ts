@@ -24,6 +24,7 @@ import type {
 } from '../services/canonical-professional-gpu-fair-queue-transaction-port'
 import {
   sealCanonicalSam31A100ServingCompleteSourceCapacityObservation,
+  sealCanonicalSam31L4CompleteSourceCapacityObservation,
 } from '../services/canonical-sam3_1-complete-source-capacity-owner'
 import {
   sealCanonicalSam31VertexServingCapacityObservation,
@@ -268,22 +269,46 @@ const endpointCapacity =
     observedAt,
     expiresAt: '2026-08-13T05:15:00.000Z',
   })
+const l4Quota = sealCanonicalSam31L4CompleteSourceCapacityObservation({
+  schemaVersion:
+    'canonical-sam3_1-l4-complete-source-capacity-observation-v1',
+  source: 'canonical_server_cloud_run_l4_quota_observation_owner',
+  evidenceClass: 'canonical_private_reread',
+  projectId: 'reeditpro',
+  region: 'us-central1',
+  quotaPreferenceId: 'weeditpro-l4-scale-zero-quality-capacity-us-central1-v1',
+  quotaId: 'NvidiaL4GpuAllocNoZonalRedundancyPerProjectRegion',
+  preferredValue: 3,
+  grantedValue: 3,
+  reconciling: false,
+  exactCloudQuotaPreferenceAndQuotaInfoReread: true,
+  noZonalRedundancyFallbackCapacityExplicitlyAccepted: true,
+  gpuJobStarted: false,
+  customerCreditsMutated: false,
+  observedAt: '2026-08-13T05:00:00.100Z',
+  expiresAt: '2026-08-13T05:15:00.100Z',
+})
 const capacityPort = createCanonicalSam31ProductionGpuQueueCapacityReadPort({
   queueRuntimeReadPort: { async readState() { return state } },
   a100QuotaReadPort: { async rereadCurrent() { return quota } },
   a100EndpointCapacityReadPort: {
     async rereadCurrent() { return endpointCapacity },
   },
+  l4QuotaReadPort: { async rereadCurrent() { return l4Quota } },
 })
 const capacities = await capacityPort.rereadCurrent({
   queueId: 'weeditpro-professional-gpu-production-v1',
   runtimeRegion: 'us-central1',
   observedAt,
 })
-assert.equal(capacities.length, 1)
+assert.equal(capacities.length, 2)
 assert.equal(capacities[0]?.routeId, 'a100_80gb_heavy_primary')
 assert.equal(capacities[0]?.maximumConcurrentAttempts, 1)
 assert.equal(capacities[0]?.minimumIdleGpuInstances, 0)
+assert.equal(capacities[1]?.routeId, 'l4_standard_primary')
+assert.equal(capacities[1]?.maximumConcurrentAttempts, 3)
+assert.equal(capacities[1]?.currentActiveAttempts, 1)
+assert.equal(capacities[1]?.minimumIdleGpuInstances, 0)
 await assert.rejects(() => capacityPort.rereadCurrent({
   queueId: 'weeditpro-professional-gpu-production-v1',
   runtimeRegion: 'us-central1',
@@ -308,12 +333,12 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-queue-runtime-read',
-  checks: 41,
+  checks: 46,
   exactSharedPostgresStateReread: true,
   exactDispatchedClaimAndCreatedTaskReread: true,
   exactDispatchedOrTerminalDeliveryReread: true,
   callerCapacityAccepted: false,
-  serverOwnedA100QuotaEndpointCapacityAndActiveCountCombined: true,
+  serverOwnedA100AndL4QuotaRuntimeCapacityAndActiveCountsCombined: true,
   minimumIdleGpuInstances: 0,
   customerCreditsMutated: false,
   productionAuthority: false,

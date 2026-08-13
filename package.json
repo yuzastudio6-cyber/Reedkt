@@ -484,6 +484,7 @@
     "smoke:sam3_1-vertex-serving-window-cost-authority": "tsx server/smoke/canonical-sam3_1-vertex-serving-window-cost-authority-smoke.ts",
     "smoke:sam3_1-vertex-serving-multi-replica-cost": "tsx server/smoke/canonical-sam3_1-vertex-serving-multi-replica-window-cost-authority-smoke.ts",
     "smoke:sam3_1-current-a100-customer-dispatch-readiness": "tsx server/smoke/canonical-sam3_1-current-a100-customer-dispatch-readiness-smoke.ts",
+    "smoke:sam3_1-current-a100-customer-dispatch-readiness-owner": "tsx server/smoke/canonical-sam3_1-current-a100-customer-dispatch-readiness-owner-smoke.ts",
     "smoke:sam3_1-current-a100-customer-dispatch-readiness-repository": "tsx server/smoke/canonical-sam3_1-current-a100-customer-dispatch-readiness-repository-smoke.ts",
     "smoke:sam3_1-current-vertex-customer-invocation": "tsx server/smoke/canonical-sam3_1-current-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-terminal-attempt-owner": "tsx server/smoke/canonical-sam3_1-vertex-serving-terminal-attempt-owner-smoke.ts",

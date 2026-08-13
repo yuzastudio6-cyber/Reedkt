@@ -156,12 +156,15 @@ assert.equal(
   true,
 )
 assert.equal(
-  runtime.a100CustomerDispatchReadinessRepository.schemaVersion,
-  'canonical-sam3_1-current-a100-customer-dispatch-readiness-repository-v1',
+  typeof runtime.a100CustomerDispatchReadinessReadPort.rereadCurrent,
+  'function',
 )
 assert.equal(
-  typeof runtime.a100CustomerDispatchReadinessRepository.rereadCurrent,
-  'function',
+  Reflect.has(
+    runtime.a100CustomerDispatchReadinessReadPort as object,
+    'persistCurrentCreateOnly',
+  ),
+  false,
 )
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort

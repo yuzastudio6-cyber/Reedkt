@@ -20,8 +20,10 @@ import {
 import {
   createCanonicalGcsAtomicCurrentJsonPointerPort,
   createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository,
-  type CanonicalSam31CurrentA100CustomerDispatchReadinessRepository,
 } from './canonical-sam3_1-current-a100-customer-dispatch-readiness-repository'
+import type {
+  CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
+} from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import {
   createCanonicalProfessionalGpuDurableLifecycleStore,
 } from './canonical-professional-gpu-durable-lifecycle-store'
@@ -218,8 +220,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalProfessionalGpuCloudTaskConsumer
   readonly sam31VertexServingTerminalAttemptOwner:
     CanonicalSam31VertexServingTerminalAttemptOwner
-  readonly a100CustomerDispatchReadinessRepository:
-    CanonicalSam31CurrentA100CustomerDispatchReadinessRepository
+  readonly a100CustomerDispatchReadinessReadPort:
+    CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
   readonly a100VertexCustomJobTerminalReadPort: ReturnType<
     typeof createCanonicalA100VertexCustomJobTerminalPort
   >
@@ -744,8 +746,12 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       professionalGpuCloudTaskConsumer.consumer,
     sam31VertexServingTerminalAttemptOwner:
       professionalGpuCloudTaskConsumer.terminalAttemptOwner,
-    a100CustomerDispatchReadinessRepository:
-      currentA100CustomerDispatchReadinessRepository,
+    a100CustomerDispatchReadinessReadPort: Object.freeze({
+      rereadCurrent:
+        currentA100CustomerDispatchReadinessRepository.rereadCurrent.bind(
+          currentA100CustomerDispatchReadinessRepository,
+        ),
+    }),
     a100VertexCustomJobTerminalReadPort,
     sam31A100ResultFinalizationRuntimePort,
     trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:

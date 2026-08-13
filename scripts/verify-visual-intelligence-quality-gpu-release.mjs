@@ -183,9 +183,10 @@ console.log(JSON.stringify({
   qualification: 'weeditpro-visual-intelligence-quality-gpu-release-v1',
   sourceSmokeCount: smokes.length,
   sourceQualificationPassed: true,
-  liveGeminiProviderCalled: false,
-  liveGpuJobStarted: false,
-  modelCheckpointDownloaded: false,
+  liveGeminiProviderCalledBySourceQualification: false,
+  liveGpuJobStartedBySourceQualification: false,
+  modelCheckpointDownloadedBySourceQualification: false,
+  liveCloudQualificationAuditedSeparately: true,
   customerCreditsMutated: false,
   productionReady: false,
 }, null, 2))

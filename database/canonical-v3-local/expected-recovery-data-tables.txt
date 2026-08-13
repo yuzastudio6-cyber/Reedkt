@@ -56,6 +56,11 @@ public.preference_study_reasoning_run_receipts
 public.preference_study_reasoning_runs
 public.preference_study_sessions
 public.preference_usage_events
+public.professional_gpu_cloud_task_outbox
+public.professional_gpu_cloud_task_outbox_receipts
+public.professional_gpu_fair_queue_controls
+public.professional_gpu_fair_queue_entries
+public.professional_gpu_fair_queue_receipts
 public.profiles
 public.projects
 public.workspace_members

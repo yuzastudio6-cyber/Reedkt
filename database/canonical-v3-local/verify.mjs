@@ -89,6 +89,15 @@ const expectedRepositoryFiles = [
   'server/routes/route-helpers.ts',
   'server/routes/upload-routes.ts',
   'server/services/canonical-planning-handoff-service.ts',
+  'server/services/canonical-professional-gpu-cloud-task-dispatch.ts',
+  'server/services/canonical-professional-gpu-cloud-task-outbox-local-http-client.ts',
+  'server/services/canonical-professional-gpu-cloud-task-outbox-port.ts',
+  'server/services/canonical-professional-gpu-cloud-task-outbox-postgres-rpc-adapter.ts',
+  'server/services/canonical-professional-gpu-fair-queue-coordinator.ts',
+  'server/services/canonical-professional-gpu-fair-queue-local-http-client.ts',
+  'server/services/canonical-professional-gpu-fair-queue-postgres-rpc-adapter.ts',
+  'server/services/canonical-professional-gpu-fair-queue-scheduler.ts',
+  'server/services/canonical-professional-gpu-fair-queue-transaction-port.ts',
   'server/services/edit-reference-application-preparation-runtime-port.ts',
   'server/services/edit-reference-application-preparation-service.ts',
   'server/services/edit-reference-canonical-v3-local-exact-edit-brief-runtime-port-factory.ts',
@@ -119,6 +128,11 @@ const expectedRepositoryFiles = [
   'server/smoke/canonical-planning-publication-frontend-client-smoke.ts',
   'server/smoke/canonical-private-project-authority-local-postgres-smoke.ts',
   'server/smoke/canonical-private-tool-dispatch-authority-smoke.ts',
+  'server/smoke/canonical-professional-gpu-cloud-task-dispatch-smoke.ts',
+  'server/smoke/canonical-professional-gpu-cloud-task-outbox-local-postgres-smoke.ts',
+  'server/smoke/canonical-professional-gpu-fair-queue-coordinator-smoke.ts',
+  'server/smoke/canonical-professional-gpu-fair-queue-local-postgres-smoke.ts',
+  'server/smoke/canonical-professional-gpu-fair-queue-scheduler-smoke.ts',
   'server/smoke/canonical-professional-long-form-cross-chunk-color-smoke.ts',
   'server/smoke/canonical-professional-long-form-post-approval-smoke.ts',
   'server/smoke/edit-planning-authority-smoke.ts',
@@ -222,6 +236,8 @@ const expectedMigrations = [
   '202607210022_canonical_upload_target_credential_escrow_rpc.sql',
   '202607210023_canonical_private_project_authority_rpc.sql',
   '202607210024_canonical_local_resumable_upload_protocol.sql',
+  '202607210025_professional_gpu_fair_queue.sql',
+  '202607210026_professional_gpu_cloud_task_outbox.sql',
 ]
 const actualMigrations = readdirSync(join(directory, 'supabase', 'migrations'))
   .filter((name) => name.endsWith('.sql'))
@@ -232,7 +248,7 @@ const expectedRecoveryDataTables = readFileSync(
   join(directory, 'expected-recovery-data-tables.txt'),
   'utf8',
 ).trim().split('\n')
-assert(expectedRecoveryDataTables.length === 62, 'recovery_table_count_invalid')
+assert(expectedRecoveryDataTables.length === 67, 'recovery_table_count_invalid')
 assert(
   equalArrays(expectedRecoveryDataTables, [...expectedRecoveryDataTables].sort()),
   'recovery_table_order_invalid',
@@ -370,6 +386,11 @@ for (const requiredToken of [
   'reeditpro_save_target_understanding_package_v1',
   'reeditpro_read_latest_target_understanding_package_v1',
   'canonical-v3-local-target-understanding-package-persistence-v1',
+  'professional_gpu_fair_queue_entries',
+  'weeditpro_claim_professional_gpu_fair_queue_v1',
+  'professional_gpu_cloud_task_outbox',
+  'weeditpro_begin_professional_gpu_cloud_task_create_v1',
+  'weeditpro_record_professional_gpu_cloud_task_outcome_v1',
   'canonicalLifecycleAuthority',
   'customerCreditsMutated',
   'serviceFeeIncluded',

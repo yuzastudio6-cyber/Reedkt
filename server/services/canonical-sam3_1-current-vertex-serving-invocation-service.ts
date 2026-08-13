@@ -248,6 +248,13 @@ export interface CanonicalSam31CurrentVertexCustomerInvocationRepository {
   rereadTerminal(input: { readonly invocationId: string }): Promise<unknown>
 }
 
+export interface CanonicalSam31CurrentVertexCustomerInvocationPort {
+  invokeOne(input: {
+    readonly invocationId: string
+    readonly dispatchAdmissionDigestSha256: string
+  }): Promise<CanonicalSam31CurrentVertexCustomerInvocationResult>
+}
+
 export function createCanonicalSam31CurrentVertexCustomerInvocationService(
   input: {
     readonly taskStore: CanonicalSam31GpuTaskStore
@@ -260,7 +267,7 @@ export function createCanonicalSam31CurrentVertexCustomerInvocationService(
     readonly clockMilliseconds?: () => number
     readonly timeoutMilliseconds?: number
   },
-) {
+): CanonicalSam31CurrentVertexCustomerInvocationPort {
   const auth = input.auth ?? new GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/cloud-platform'],
   })

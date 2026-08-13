@@ -113,6 +113,8 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
+    RuntimeState['trackAllSam31AuthenticatedGpuInvocationRuntimePort']
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     RuntimeState['trackAllSam31L4TaskQaAuthenticatedStartRuntimePort']
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
@@ -306,6 +308,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
       ? {
           trackAllSam31AuthenticatedGpuStartRuntimePort:
             options.trackAllSam31AuthenticatedGpuStartRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31AuthenticatedGpuInvocationRuntimePort
+      ? {
+          trackAllSam31AuthenticatedGpuInvocationRuntimePort:
+            options.trackAllSam31AuthenticatedGpuInvocationRuntimePort,
         }
       : {}),
     ...(options.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort

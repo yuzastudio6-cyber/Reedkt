@@ -8,6 +8,11 @@ import {
   type TrackAllSam31AuthenticatedGpuStartResult,
 } from '../../src/types/track-all-sam3_1-gpu-start'
 import {
+  TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_ROUTE_ID,
+  type TrackAllSam31AuthenticatedGpuInvocationRequest,
+  type TrackAllSam31AuthenticatedGpuInvocationResult,
+} from '../../src/types/track-all-sam3_1-gpu-invocation'
+import {
   TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE_ID,
   type TrackAllSam31L4TaskQaGpuStartRequest,
   type TrackAllSam31L4TaskQaGpuStartResult,
@@ -26,6 +31,7 @@ import { getApiRouteById } from '../../src/backend/api/api-route-registry'
 import { createReeditProApiApp } from '../app'
 import { loadRuntimeEnv } from '../config/env'
 import {
+  buildTrackAllSam31AuthenticatedGpuInvocationRequest,
   buildTrackAllSam31AuthenticatedGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import {
@@ -47,6 +53,12 @@ const request = buildTrackAllSam31AuthenticatedGpuStartRequest({
   approvedSnapshotId: 'approved-snapshot-track-all-1',
   workItemKey: 'approved-track-all-work-1',
 })
+const invocationRequest =
+  buildTrackAllSam31AuthenticatedGpuInvocationRequest({
+    requestId: 'track-all-sam31-user-invocation-1',
+    approvedSnapshotId: 'approved-snapshot-track-all-1',
+    workItemKey: 'approved-track-all-work-1',
+  })
 const evidenceRef = (id: string) => ({
   id,
   version: 'fixture-v1',
@@ -80,6 +92,7 @@ const taskQaFinalizationRequest =
       evidenceRef('independent-private-review-result'),
   })
 let runtimeCalls = 0
+let invocationRuntimeCalls = 0
 let l4TaskQaRuntimeCalls = 0
 let finalizationRuntimeCalls = 0
 let taskQaFinalizationRuntimeCalls = 0
@@ -90,6 +103,28 @@ const app = createReeditProApiApp(loadRuntimeEnv({
   STORAGE_MODE: 'local',
   REEDITPRO_INTERNAL_SERVICE_TOKEN: internalToken,
 }), {
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort: Object.freeze({
+    schemaVersion:
+      'canonical-track-all-sam3_1-authenticated-gpu-invocation-runtime-v1',
+    currentDedicatedEndpointInvocation: true,
+    historicalCloudJobCustomerDispatchUsed: false,
+    routeOwnsGpuPlacementOrPricing: false,
+    currentA100CustomerDispatchReadinessRereadRequired: true,
+    rawProviderInvocationPortExposed: false,
+    async invokeApprovedTrackAllWork(input: {
+      authenticatedOwnerUserId: string
+      workspaceId: string
+      idempotencyKey: string
+      request: unknown
+    }) {
+      invocationRuntimeCalls += 1
+      assert.equal(input.authenticatedOwnerUserId, 'mock-user-runtime')
+      assert.equal(input.workspaceId, workspaceId)
+      assert.equal(input.idempotencyKey, invocationRequest.requestId)
+      assert.deepEqual(input.request, invocationRequest)
+      return invocationResultFor(invocationRequest)
+    },
+  }),
   trackAllSam31AuthenticatedGpuStartRuntimePort: Object.freeze({
     schemaVersion:
       'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2',
@@ -176,6 +211,53 @@ assert.ok(address && typeof address === 'object')
 const url = `http://127.0.0.1:${address.port}`
 
 try {
+  const validInvocation = await postInvocation(
+    invocationRequest,
+    invocationRequest.requestId,
+    internalToken,
+  )
+  assert.equal(validInvocation.status, 202)
+  const validInvocationJson = await validInvocation.json() as
+    Record<string, unknown>
+  assert.equal(validInvocationJson.ok, true)
+  assert.equal(invocationRuntimeCalls, 1)
+
+  const invocationInjectedEndpoint = await postInvocation({
+    ...buildTrackAllSam31AuthenticatedGpuInvocationRequest({
+      requestId: 'track-all-sam31-injected-endpoint',
+      approvedSnapshotId: invocationRequest.approvedSnapshotId,
+      workItemKey: invocationRequest.workItemKey,
+    }),
+    endpoint: 'https://caller.example.invalid/predict',
+  }, 'track-all-sam31-injected-endpoint', internalToken)
+  assert.equal(invocationInjectedEndpoint.status, 400)
+  assert.equal(invocationRuntimeCalls, 1)
+
+  const invocationIdempotencyMismatch = await postInvocation(
+    invocationRequest,
+    'different-invocation-idempotency',
+    internalToken,
+  )
+  assert.equal(invocationIdempotencyMismatch.status, 409)
+  assert.equal(invocationRuntimeCalls, 1)
+
+  const invocationInvalidToken = await postInvocation(
+    invocationRequest,
+    invocationRequest.requestId,
+    'invalid-internal-token',
+  )
+  assert.equal(invocationInvalidToken.status, 403)
+  assert.equal(invocationRuntimeCalls, 1)
+
+  const invocationRoute = getApiRouteById(
+    TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_ROUTE_ID,
+  )
+  assert.equal(invocationRoute?.securityLevel, 'backend_service_role')
+  assert.equal(invocationRoute?.runtimeMode, 'backend_required')
+  assert.equal(invocationRoute?.requiresServiceRole, true)
+  assert.match(invocationRoute?.notes.join(' ') ?? '', /endpoint-shaped v2/u)
+  assert.match(invocationRoute?.notes.join(' ') ?? '', /automatic retry/u)
+
   const valid = await post(request, request.requestId, internalToken)
   assert.equal(valid.status, 202)
   const validJson = await valid.json() as Record<string, unknown>
@@ -409,7 +491,7 @@ try {
 
   console.log(JSON.stringify({
     smoke: 'canonical-track-all-sam3_1-authenticated-gpu-start-route',
-    checks: 80,
+    checks: 94,
     authenticatedOwnerScopeRequired: true,
     strictInternalServiceAuthRequired: true,
     exactIdempotencyRequired: true,
@@ -418,6 +500,7 @@ try {
     rawCloudLaunchPortAcceptedFromRequest: false,
     accountEffectivePriceAcceptedFromRequest: false,
     runtimeCalls,
+    invocationRuntimeCalls,
     l4TaskQaRuntimeCalls,
     finalizationRuntimeCalls,
     taskQaFinalizationRuntimeCalls,
@@ -425,6 +508,7 @@ try {
     taskQaCloudUsagePriceOrCostClaimAcceptedFromRequest: false,
     authenticatedTaskQaEvidenceFinalizerMounted: true,
     authenticatedL4TaskQaStartMounted: true,
+    authenticatedCurrentA100EndpointInvocationMounted: true,
     callerMaskPathOrGpuRuntimeConfigurationAccepted: false,
     authenticatedSpecialistResumeProjectionCreated: true,
     productionReady: false,
@@ -441,6 +525,25 @@ async function postTaskQaFinalization(
 ) {
   return fetch(
     `${url}/internal/v1/workspaces/${workspaceId}/track-all/sam3_1/task-qa-evidence/finalize`,
+    {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'idempotency-key': idempotencyKey,
+        'x-reeditpro-internal-token': token,
+      },
+      body: JSON.stringify(body),
+    },
+  )
+}
+
+async function postInvocation(
+  body: unknown,
+  idempotencyKey: string,
+  token: string,
+) {
+  return fetch(
+    `${url}/internal/v2/workspaces/${workspaceId}/track-all/sam3_1/gpu-invocations/start`,
     {
       method: 'POST',
       headers: {
@@ -542,6 +645,58 @@ function resultFor(
     fundedPricingAndReservationRereadBeforeLaunch: true as const,
     rawCloudLaunchPortExposed: false as const,
     callerSuppliedMediaPromptModelRouteImageCommandOrPriceAccepted:
+      false as const,
+    customerCreditsMutated: false as const,
+    qaApproved: false as const,
+    publicDeliveryAuthorized: false as const,
+    productionAuthorityGranted: false as const,
+  }
+  return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
+}
+
+function invocationResultFor(
+  source: TrackAllSam31AuthenticatedGpuInvocationRequest,
+): TrackAllSam31AuthenticatedGpuInvocationResult {
+  const ref = (id: string) => ({
+    id,
+    version: 1,
+    contentHash: `sha256:${sha256AuthorityValue(id)}`,
+  })
+  const payload = {
+    schemaVersion:
+      'track-all-sam3_1-authenticated-gpu-invocation-result-v2' as const,
+    requestRef: {
+      id: source.requestId,
+      version: 1,
+      contentHash: `sha256:${source.requestDigestSha256}`,
+    },
+    workspaceId,
+    approvedSnapshotId: source.approvedSnapshotId,
+    workItemKey: source.workItemKey,
+    fundedDispatchAdmissionRef: ref('funded-admission'),
+    prelaunchAuthorizationRef: ref('funded-prelaunch'),
+    fixedTaskPreparationBridgeRef: ref('fixed-task-preparation'),
+    endpointInvocationAttemptRef: ref('endpoint-attempt'),
+    endpointCallStartRef: ref('endpoint-call-start'),
+    endpointInvocationResultRef: ref('endpoint-result'),
+    executionAttemptRef: ref('execution-attempt'),
+    runtimeResponseRef: ref('runtime-response'),
+    invocationDisposition: 'completed' as const,
+    providerOutcome: 'executed' as const,
+    runtimeStatus: 'completed' as const,
+    routeId: 'a100_80gb_heavy_primary' as const,
+    accelerator: 'nvidia_a100_80gb' as const,
+    userTriggeredScaleFromZero: true as const,
+    currentDedicatedEndpointInvocation: true as const,
+    historicalCloudJobCustomerDispatchUsed: false as const,
+    currentEndpointReadinessRereadBeforeInvocation: true as const,
+    approvedSourceMaterialRereadByCanonicalServer: true as const,
+    fundedPricingReservationAndAttemptRereadBeforeInvocation: true as const,
+    accountEffectiveServingRateRereadBeforeInvocation: true as const,
+    automaticRetryAllowed: false as const,
+    unresolvedOutcomeBlocksRetry: false,
+    canonicalServingWindowUsageCostAndCreditSettlementPending: true as const,
+    callerSuppliedMediaPromptEndpointModelRouteImageCommandOrPriceAccepted:
       false as const,
     customerCreditsMutated: false as const,
     qaApproved: false as const,

@@ -61,6 +61,7 @@ import type {
   CanonicalSourceLedOrchestraPlanningReconciliationPort,
 } from './services/canonical-source-led-orchestra-planning-reconciliation'
 import type {
+  CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
   CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
 } from './services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import type {
@@ -166,6 +167,8 @@ export interface RuntimeState {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
@@ -240,6 +243,8 @@ export interface ServiceContext {
     CanonicalSourceLedOrchestraPlanningReconciliationPort
   trackAllSam31AuthenticatedGpuStartRuntimePort?:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
   trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   trackAllSam31CaptionEvidenceFinalizationRuntimePort?:

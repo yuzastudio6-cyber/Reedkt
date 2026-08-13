@@ -4,6 +4,9 @@ import {
   TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_ROUTE,
 } from '../../src/types/track-all-sam3_1-gpu-start'
 import {
+  TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_ROUTE,
+} from '../../src/types/track-all-sam3_1-gpu-invocation'
+import {
   TRACK_ALL_SAM3_1_L4_TASK_QA_GPU_START_ROUTE,
 } from '../../src/types/track-all-sam3_1-l4-task-qa-gpu-start'
 import {
@@ -19,6 +22,7 @@ import {
   requireStrictInternalServiceAuth,
 } from '../middleware/internal-service-auth'
 import {
+  parseTrackAllSam31AuthenticatedGpuInvocationRequest,
   parseTrackAllSam31AuthenticatedGpuStartRequest,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import {
@@ -46,6 +50,44 @@ import {
  */
 export function createTrackAllSam31Routes(): Router {
   const router = Router()
+  router.post(
+    TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_ROUTE,
+    requireAuth,
+    requireStrictInternalServiceAuth,
+    requireIdempotency,
+    asyncRoute(async (request, response) => {
+      const body = parseInvocationRequestBody(request.body)
+      const context = getServiceContext(request)
+      const runtime =
+        context.trackAllSam31AuthenticatedGpuInvocationRuntimePort
+      if (!runtime) throw new ApiError(
+        'TOOL_NOT_READY',
+        'The current Track All SAM 3.1 A100 endpoint runtime is not released.',
+        503,
+        { requiredGate: 'track_all_sam3_1_current_a100_endpoint_release' },
+      )
+      if (!context.auth?.userId) throw new ApiError(
+        'AUTH_REQUIRED',
+        'Authenticated user context is required.',
+        401,
+      )
+      const idempotencyKey = getIdempotencyKey(request)
+      if (body.requestId !== idempotencyKey) throw new ApiError(
+        'IDEMPOTENCY_KEY_MISMATCH',
+        'The Track All SAM 3.1 invocation must use its exact request ID.',
+        409,
+      )
+      const result = await runtime.invokeApprovedTrackAllWork({
+        authenticatedOwnerUserId: context.auth.userId,
+        workspaceId: getRouteParam(request, 'workspaceId'),
+        idempotencyKey,
+        request: body,
+      })
+      sendOk(response, { invocation: result }, [
+        'The canonical backend reread the approved Track All work, funding, account-effective A100 serving price, qualified SAM 3.1 release, current endpoint readiness, and fixed server task before one user-triggered dedicated-endpoint invocation. It did not create a historical A100 Cloud Job or accept caller-selected media, model, endpoint, GPU, image, command, or price.',
+      ], 202)
+    }),
+  )
   router.post(
     TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_ROUTE,
     requireAuth,
@@ -198,6 +240,18 @@ export function createTrackAllSam31Routes(): Router {
     }),
   )
   return router
+}
+
+function parseInvocationRequestBody(value: unknown) {
+  try {
+    return parseTrackAllSam31AuthenticatedGpuInvocationRequest(value)
+  } catch {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'The Track All SAM 3.1 endpoint invocation request is invalid.',
+      400,
+    )
+  }
 }
 
 function parseRequestBody(value: unknown) {

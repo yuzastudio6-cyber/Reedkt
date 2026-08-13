@@ -26,7 +26,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v17')
+  'canonical-track-all-sam3_1-production-runtime-v18')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -53,6 +53,7 @@ assert.equal(runtime.minimumIdleGpuInstances, 0)
 assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
 assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
+assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
 assert.equal(runtime.freshA100PricingUsesVertexServingRateAuthority, true)
 assert.equal(runtime.historicalA100CustomJobPricingRemainsReadOnly, true)
 assert.equal(
@@ -99,6 +100,25 @@ assert.equal(runtime.captionTrackAllEvidenceRequiresPrivateVisualReview, true)
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort.schemaVersion,
   'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2',
+)
+assert.equal(
+  runtime.trackAllSam31AuthenticatedGpuInvocationRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-authenticated-gpu-invocation-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31AuthenticatedGpuInvocationRuntimePort
+    .currentDedicatedEndpointInvocation,
+  true,
+)
+assert.equal(
+  runtime.trackAllSam31AuthenticatedGpuInvocationRuntimePort
+    .historicalCloudJobCustomerDispatchUsed,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31AuthenticatedGpuInvocationRuntimePort
+    .rawProviderInvocationPortExposed,
+  false,
 )
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort
@@ -232,6 +252,10 @@ assert.match(
 )
 assert.match(
   entrypoint,
+  /trackAllSam31AuthenticatedGpuInvocationRuntimePort/u,
+)
+assert.match(
+  entrypoint,
   /trackAllSam31L4TaskQaAuthenticatedStartRuntimePort/u,
 )
 assert.match(
@@ -246,7 +270,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 73,
+  checks: 79,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,

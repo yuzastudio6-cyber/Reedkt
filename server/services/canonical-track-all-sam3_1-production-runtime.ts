@@ -76,9 +76,15 @@ import {
   createCanonicalGcsSam31PreparedMaskProxyRepository,
 } from './canonical-sam3_1-prepared-mask-proxy-repository'
 import {
+  createCanonicalTrackAllSam31AuthenticatedGpuInvocationRuntime,
   createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime,
+  type CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
   type CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
 } from './canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  createCanonicalSam31CurrentVertexCustomerInvocationRepository,
+  createCanonicalSam31CurrentVertexCustomerInvocationService,
+} from './canonical-sam3_1-current-vertex-serving-invocation-service'
 import {
   createCanonicalSam31GcsPrivateBinaryObjectPort,
   createCanonicalSam31GpuPrivateInputStagingPort,
@@ -138,7 +144,7 @@ import {
 } from './canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v17' as const
+  'canonical-track-all-sam3_1-production-runtime-v18' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -151,6 +157,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSkillQualificationRegistryReadPort
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly trackAllSam31AuthenticatedGpuInvocationRuntimePort:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
   readonly a100CustomerDispatchReadinessRepository:
     CanonicalSam31CurrentA100CustomerDispatchReadinessRepository
   readonly a100VertexCustomJobTerminalReadPort: ReturnType<
@@ -193,6 +201,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly separateSam31InputAndL4TaskQaInvocationRootsRequired: true
   readonly rawCloudLaunchPortExposed: false
   readonly historicalVertexCustomJobCustomerDispatchAllowed: false
+  readonly currentA100DedicatedEndpointInvocationMounted: true
   readonly freshA100PricingUsesVertexServingRateAuthority: true
   readonly historicalA100CustomJobPricingRemainsReadOnly: true
 }
@@ -511,6 +520,23 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       lifecycleStore,
       fundedLifecycleStore: lifecycleStore,
     })
+  const currentVertexInvocationPort =
+    createCanonicalSam31CurrentVertexCustomerInvocationService({
+      taskStore,
+      currentReadinessReadPort:
+        currentA100CustomerDispatchReadinessRepository,
+      repository:
+        createCanonicalSam31CurrentVertexCustomerInvocationRepository({
+          objectPort: controlPlaneObjectPort,
+        }),
+    })
+  const authenticatedInvocationRuntime =
+    createCanonicalTrackAllSam31AuthenticatedGpuInvocationRuntime({
+      fundedPreparationRuntime: authenticatedRuntime,
+      fundedLifecycleReadPort: lifecycleStore,
+      attemptStartReadPort: fundedStartAuthorityStore,
+      currentVertexInvocationPort,
+    })
   const l4TaskQaAuthenticatedRuntime =
     createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime({
       pricingAuthorityReadPort: pricingAuthorityStore,
@@ -541,6 +567,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       ),
     }),
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    trackAllSam31AuthenticatedGpuInvocationRuntimePort:
+      authenticatedInvocationRuntime,
     a100CustomerDispatchReadinessRepository:
       currentA100CustomerDispatchReadinessRepository,
     a100VertexCustomJobTerminalReadPort,
@@ -572,6 +600,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     separateSam31InputAndL4TaskQaInvocationRootsRequired: true as const,
     rawCloudLaunchPortExposed: false as const,
     historicalVertexCustomJobCustomerDispatchAllowed: false as const,
+    currentA100DedicatedEndpointInvocationMounted: true as const,
     freshA100PricingUsesVertexServingRateAuthority: true as const,
     historicalA100CustomJobPricingRemainsReadOnly: true as const,
   })

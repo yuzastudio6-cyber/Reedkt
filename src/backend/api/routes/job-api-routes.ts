@@ -68,6 +68,28 @@ const RAW_JOB_API_ROUTES: ApiRouteDefinition[] = [
     notes: ['Checks local mock records only.'],
   },
   {
+    id: 'trackAll.sam31.approvedGpuInvocation.start',
+    domain: 'jobs',
+    method: 'POST',
+    path: '/internal/v2/workspaces/:workspaceId/track-all/sam3_1/gpu-invocations/start',
+    description:
+      'Invoke one approved Track All SAM 3.1 task on the current dedicated A100 endpoint.',
+    securityLevel: 'backend_service_role',
+    runtimeMode: 'backend_required',
+    status: 'backend_required',
+    requiresSupabase: false,
+    requiresServiceRole: true,
+    requiresProviderSecret: false,
+    requiresStripeSecret: false,
+    futureHandlerName: 'invokeApprovedTrackAllSam31GpuEndpoint',
+    notes: [
+      'Requires authenticated user scope, strict internal-service authentication, exact idempotency, approved snapshot/work/funding rereads, an account-effective A100 serving price, current endpoint readiness, and an exact persisted fixed task.',
+      'This is endpoint-shaped v2 and never casts the prediction endpoint as a Cloud Job. Historical A100 Custom Job dispatch remains disabled.',
+      'The request cannot carry media, prompts, endpoint, model, image, command, GPU route, price, lease, reservation, or raw provider material.',
+      'Scale-from-zero 429 and uncertain outcomes are recorded without automatic retry; usage-cost reconciliation and credit settlement remain separate terminal owner work.',
+    ],
+  },
+  {
     id: 'trackAll.sam31.approvedGpuJob.start',
     domain: 'jobs',
     method: 'POST',

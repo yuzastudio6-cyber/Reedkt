@@ -33,7 +33,7 @@ import {
   type CanonicalTrackAllSam31TaskQaRepository,
 } from './canonical-track-all-sam3_1-task-qa-owner'
 import {
-  assertCanonicalSam31GpuRuntimeResultAdmission,
+  assertCanonicalSam31AnyRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -462,7 +462,7 @@ export function createCanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntime(
           'Track All task-QA finalization differs from its idempotency key.',
         )
       }
-      const samResult = assertCanonicalSam31GpuRuntimeResultAdmission(
+      const samResult = assertCanonicalSam31AnyRuntimeResultAdmission(
         await input.sam31ResultStore.rereadResultAdmission(
           request.invocationId,
         ),
@@ -720,7 +720,7 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
       typeof assertCanonicalSam31GpuTaskContext
     >
     readonly samResult: ReturnType<
-      typeof assertCanonicalSam31GpuRuntimeResultAdmission
+      typeof assertCanonicalSam31AnyRuntimeResultAdmission
     >
     readonly workerResult: CanonicalTrackAllSam31L4MaskQaWorkerEvidenceResultV3
     readonly launch: CanonicalProfessionalGpuJobLaunch
@@ -732,7 +732,7 @@ export function compileCanonicalTrackAllSam31L4MaskQaMeasurementFromWorkerResult
     'track_all_l4_measurement_compilation_input')
   const task = assertCanonicalSam31GpuTaskRecord(input.samTask)
   const context = assertCanonicalSam31GpuTaskContext(input.samTaskContext)
-  const samResult = assertCanonicalSam31GpuRuntimeResultAdmission(
+  const samResult = assertCanonicalSam31AnyRuntimeResultAdmission(
     input.samResult,
   )
   const workerResult = parseWorkerResult(input.workerResult)
@@ -971,7 +971,7 @@ function assertExactLineage(input: {
   request: TrackAllSam31TaskQaEvidenceFinalizationRequest
   samTask: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
   samTaskContext: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
-  samResult: ReturnType<typeof assertCanonicalSam31GpuRuntimeResultAdmission>
+  samResult: ReturnType<typeof assertCanonicalSam31AnyRuntimeResultAdmission>
   workerResult: CanonicalTrackAllSam31L4MaskQaWorkerResult
   reviewResult: CanonicalTrackAllSam31PrivateReviewResult
   measurement: ReturnType<

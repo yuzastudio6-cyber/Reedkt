@@ -32,7 +32,7 @@ import {
   type CanonicalSam31GpuTaskStore,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
 import {
-  assertCanonicalSam31GpuRuntimeResultAdmission,
+  assertCanonicalSam31AnyRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
@@ -740,7 +740,7 @@ export function createCanonicalTrackAllSam31TaskQaOwner(input: {
           taskContextRef: task.taskContextRef,
         }),
       )
-      const result = assertCanonicalSam31GpuRuntimeResultAdmission(
+      const result = assertCanonicalSam31AnyRuntimeResultAdmission(
         await input.resultStore.rereadResultAdmission(invocationId),
       )
       const measurement = await input.qaRepository.rereadMeasurement({
@@ -885,7 +885,7 @@ function assertExactLineage(input: {
   invocationId: string
   task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
   context: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
-  result: ReturnType<typeof assertCanonicalSam31GpuRuntimeResultAdmission>
+  result: ReturnType<typeof assertCanonicalSam31AnyRuntimeResultAdmission>
   measurement: CanonicalTrackAllSam31L4MaskQaMeasurement
   review: CanonicalTrackAllSam31PrivateSceneReview
 }): void {
@@ -1002,7 +1002,7 @@ CaptionDomainRef {
     contentHash: value.taskRecordHash }
 }
 function resultRef(
-  value: ReturnType<typeof assertCanonicalSam31GpuRuntimeResultAdmission>,
+  value: ReturnType<typeof assertCanonicalSam31AnyRuntimeResultAdmission>,
 ): CaptionDomainRef {
   return { id: value.resultAdmissionId, version: value.schemaVersion,
     contentHash: value.resultAdmissionHash }

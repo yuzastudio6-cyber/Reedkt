@@ -25,7 +25,11 @@ assert.match(port, /exactFile\.createReadStream/u)
 assert.match(port, /await rm\(invocationRoot, \{ recursive: true, force: true \}\)/u)
 assert.match(port, /const FFMPEG = '\/opt\/weeditpro\/ffmpeg\/bin\/ffmpeg'/u)
 assert.match(port, /const FFPROBE = '\/opt\/weeditpro\/ffmpeg\/bin\/ffprobe'/u)
-assert.match(port, /const NVIDIA_SMI = '\/usr\/bin\/nvidia-smi'/u)
+assert.match(port, /const NVIDIA_PROC_ROOT = '\/proc\/driver\/nvidia'/u)
+assert.match(port, /readdir\(`\$\{NVIDIA_PROC_ROOT\}\/gpus`/u)
+assert.match(port, /readBoundedProcText/u)
+assert.match(port, /model !== 'NVIDIA L4'/u)
+assert.doesNotMatch(port, /nvidia-smi/u)
 assert.match(port, /'-hwaccel', 'cuda'/u)
 assert.match(port, /'-c:v', 'h264_cuvid'/u)
 assert.match(port, /'-c:v', 'h264_nvenc'/u)
@@ -147,7 +151,7 @@ assert.throws(() => parseCanonicalSam31EightMinuteSourceGpuOutput({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-fixed-process-port',
-  checks: 51,
+  checks: 55,
   exactSourceGenerationReread: true,
   l4NvdecNvencFixedProcess: true,
   gpuDecodedFrameCountVerified: true,

@@ -5,6 +5,8 @@ import {
   lstat,
   mkdir,
   open,
+  readdir,
+  readFile,
   realpath,
   rm,
 } from 'node:fs/promises'
@@ -47,7 +49,7 @@ const OUTPUT_VERSION =
 const SCRATCH_ROOT = '/mnt/weeditpro-private/l4-visual-evidence' as const
 const FFMPEG = '/opt/weeditpro/ffmpeg/bin/ffmpeg' as const
 const FFPROBE = '/opt/weeditpro/ffmpeg/bin/ffprobe' as const
-const NVIDIA_SMI = '/usr/bin/nvidia-smi' as const
+const NVIDIA_PROC_ROOT = '/proc/driver/nvidia' as const
 const DEFAULT_OBJECT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/qualification-sources'
 const MAXIMUM_SOURCE_BYTES = 10 * 1024 * 1024 * 1024
@@ -974,30 +976,63 @@ async function countExactGpuDecodedFrames(input: {
 }
 
 async function readExactL4Device(invocationId: string) {
-  const result = await runNativeCommand({
-    invocationId,
-    command: NVIDIA_SMI,
-    arguments: [
-      '--query-gpu=name,uuid,driver_version,pci.bus_id',
-      '--format=csv,noheader,nounits',
-    ],
-    timeoutMilliseconds: 30_000,
-    stdoutBound: 64 * 1024,
-  })
-  const rows = result.stdout.toString('utf8').trim().split(/\r?\n/u)
-    .filter(Boolean)
-  if (rows.length !== 1) {
+  void safeId.parse(invocationId)
+  let entries
+  try {
+    entries = await readdir(`${NVIDIA_PROC_ROOT}/gpus`, {
+      withFileTypes: true,
+    })
+  } catch {
     throw notReady('sam31_source_preparation_exact_l4_missing')
   }
-  const values = rows[0]?.split(',').map((value) => value.trim()) ?? []
+  const gpuEntries = entries.filter((entry) => entry.isDirectory()
+    && /^[A-Fa-f0-9]{8}:[A-Fa-f0-9]{2}:[A-Fa-f0-9]{2}\.[A-Fa-f0-9]$/u
+      .test(entry.name))
+  if (gpuEntries.length !== 1) {
+    throw notReady('sam31_source_preparation_exact_l4_missing')
+  }
+  const pciBusId = gpuEntries[0].name
+  const [information, version] = await Promise.all([
+    readBoundedProcText(
+      `${NVIDIA_PROC_ROOT}/gpus/${pciBusId}/information`,
+    ),
+    readBoundedProcText(`${NVIDIA_PROC_ROOT}/version`),
+  ])
+  const model = information.match(/^Model:\s*(.+)$/mu)?.[1]?.trim()
+  const deviceUuid = information.match(/^GPU UUID:\s*(.+)$/mu)?.[1]?.trim()
+  const reportedBus = information.match(
+    /^Bus Location:\s*([A-Fa-f0-9:.]+)$/mu,
+  )?.[1]
+  const driverVersion = version.match(
+    /Kernel Module\s+([0-9]+(?:\.[0-9]+)+)/u,
+  )?.[1]
+  if (model !== 'NVIDIA L4' || !deviceUuid
+    || reportedBus?.toLowerCase() !== pciBusId.toLowerCase()
+    || !driverVersion) {
+    throw notReady('sam31_source_preparation_exact_l4_missing')
+  }
   return deviceSchema.parse({
     acceleratorClass: 'nvidia_l4',
-    deviceName: values[0],
-    deviceUuid: values[1],
-    driverVersion: values[2],
-    pciBusId: values[3],
+    deviceName: model,
+    deviceUuid,
+    driverVersion,
+    pciBusId,
     allocatedGpuCount: 1,
   })
+}
+
+async function readBoundedProcText(path: string): Promise<string> {
+  let bytes: Buffer
+  try {
+    bytes = await readFile(path)
+  } catch {
+    throw notReady('sam31_source_preparation_exact_l4_missing')
+  }
+  if (bytes.byteLength < 1 || bytes.byteLength > 64 * 1024
+    || bytes.includes(0)) {
+    throw notReady('sam31_source_preparation_exact_l4_missing')
+  }
+  return bytes.toString('utf8')
 }
 
 async function readExactLocalFile(path: string, bound: number) {
@@ -1018,7 +1053,7 @@ async function readExactLocalFile(path: string, bound: number) {
 
 async function runNativeCommand(input: {
   invocationId: string
-  command: typeof FFMPEG | typeof FFPROBE | typeof NVIDIA_SMI
+  command: typeof FFMPEG | typeof FFPROBE
   arguments: readonly string[]
   timeoutMilliseconds: number
   stdoutBound: number

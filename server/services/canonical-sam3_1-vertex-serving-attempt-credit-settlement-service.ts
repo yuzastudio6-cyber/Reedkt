@@ -4,12 +4,15 @@ import { z } from 'zod'
 
 import { ApiError } from '../errors/api-error'
 import {
+  assertCanonicalSam31VertexServingReconciledWindowCostReceipt,
+  type CanonicalSam31VertexServingReconciledWindowCostReceipt,
+} from '../tool-cost-metering/canonical-sam3_1-vertex-serving-reconciled-window-cost'
+import {
   assertCanonicalSam31VertexServingWindowCostReceipt,
-  type CanonicalSam31VertexServingWindowCostReceipt,
 } from '../tool-cost-metering/canonical-sam3_1-vertex-serving-window-cost-authority'
 import type { ServiceContext } from '../types'
 import {
-  type AuthoritySam31VertexServingAttemptCreditSettlementRecord,
+  type AuthoritySam31VertexServingAttemptCreditSettlementRecordV2,
   mutatePrivateEditAuthorityAggregate,
   readPrivateEditAuthorityAggregate,
   sha256AuthorityValue,
@@ -19,7 +22,7 @@ import {
 import { authorizeWorkspaceAccess } from './workspace-access-service'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_ATTEMPT_CREDIT_SETTLEMENT_VERSION =
-  'canonical-sam3_1-vertex-serving-attempt-credit-settlement-v1' as const
+  'canonical-sam3_1-vertex-serving-attempt-credit-settlement-v2' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -44,7 +47,7 @@ export interface CanonicalSam31VertexServingWindowCostReceiptReadPort {
 
 export interface CanonicalSam31VertexServingAttemptCreditSettlementResult {
   readonly settlement:
-    AuthoritySam31VertexServingAttemptCreditSettlementRecord
+    AuthoritySam31VertexServingAttemptCreditSettlementRecordV2
   readonly idempotentReplay: boolean
   readonly exactWindowReceiptAllocationAndReservationReread: true
   readonly sharedPlanReservationRetainedForRemainingApprovedWork: true
@@ -75,7 +78,7 @@ export async function settleCanonicalSam31VertexServingAttemptCredits(input: {
     settledAt: input.settledAt,
   })
   if (!request.success) throw conflict('settlement_request_malformed', 400)
-  const receipt = assertCanonicalSam31VertexServingWindowCostReceipt(
+  const receipt = readReconciledReceipt(
     await input.receiptReadPort.rereadServingWindowCostReceipt({
       receiptId: request.data.receiptId,
     }),
@@ -255,6 +258,10 @@ export async function settleCanonicalSam31VertexServingAttemptCredits(input: {
         servingWindowCostReceiptId: receipt.receiptId,
         servingWindowCostReceiptHash: receipt.receiptHash,
         servingWindowUsageHash: receipt.usage.usageHash,
+        detailedBillingExportObservationId:
+          receipt.detailedBillingExportObservationRef.id,
+        detailedBillingExportObservationHash:
+          receipt.detailedBillingExportObservationRef.contentHash.slice(7),
         attemptCostReceiptId,
         attemptCostReceiptHash,
         allocationWindowId: receipt.usage.allocationWindowId,
@@ -283,6 +290,8 @@ export async function settleCanonicalSam31VertexServingAttemptCredits(input: {
         creditsReleasedOrRefundedAtAttemptSettlement: 0 as const,
         reservationSpendApplied: charge > 0,
         exactTerminalAndAttemptCostReceiptReread: true as const,
+        exactDetailedUsageCostExportReconciled: true as const,
+        finalInvoiceMonthTaxOrAdjustmentClaimed: false as const,
         serviceFeeSettledHere: false as const,
         finalPlanSettlementStillRequired: true as const,
         publicBillingAuthorityGranted: false as const,
@@ -290,7 +299,8 @@ export async function settleCanonicalSam31VertexServingAttemptCredits(input: {
         idempotencyKey,
         createdAt: request.data.settledAt,
       }
-      const record: AuthoritySam31VertexServingAttemptCreditSettlementRecord = {
+      const record:
+        AuthoritySam31VertexServingAttemptCreditSettlementRecordV2 = {
         ...payload,
         settlementHash: sha256AuthorityValue(payload),
       }
@@ -340,8 +350,8 @@ export async function settleCanonicalSam31VertexServingAttemptCredits(input: {
 }
 
 function sameExisting(
-  settlement: AuthoritySam31VertexServingAttemptCreditSettlementRecord,
-  receipt: CanonicalSam31VertexServingWindowCostReceipt,
+  settlement: AuthoritySam31VertexServingAttemptCreditSettlementRecordV2,
+  receipt: CanonicalSam31VertexServingReconciledWindowCostReceipt,
   attemptCostReceiptId: string,
   attemptCostReceiptHash: string,
   executionAttemptId: string,
@@ -349,9 +359,33 @@ function sameExisting(
   return settlement.servingWindowCostReceiptId === receipt.receiptId
     && settlement.servingWindowCostReceiptHash === receipt.receiptHash
     && settlement.servingWindowUsageHash === receipt.usage.usageHash
+    && settlement.detailedBillingExportObservationId ===
+      receipt.detailedBillingExportObservationRef.id
+    && settlement.detailedBillingExportObservationHash ===
+      receipt.detailedBillingExportObservationRef.contentHash.slice(7)
     && settlement.attemptCostReceiptId === attemptCostReceiptId
     && settlement.attemptCostReceiptHash === attemptCostReceiptHash
     && settlement.executionAttemptId === executionAttemptId
+}
+
+function readReconciledReceipt(
+  value: unknown,
+): CanonicalSam31VertexServingReconciledWindowCostReceipt {
+  try {
+    return assertCanonicalSam31VertexServingReconciledWindowCostReceipt(value)
+  } catch (reconciledError) {
+    try {
+      const historical = assertCanonicalSam31VertexServingWindowCostReceipt(
+        value,
+      )
+      if (!historical.usage.billingExportFinalInvoiceReconciled) {
+        throw conflict('serving_window_invoice_not_reconciled')
+      }
+    } catch (historicalError) {
+      if (historicalError instanceof ApiError) throw historicalError
+    }
+    throw reconciledError
+  }
 }
 
 function sameRef(

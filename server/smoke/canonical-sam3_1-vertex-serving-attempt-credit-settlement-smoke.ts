@@ -7,6 +7,10 @@ import {
   settleCanonicalSam31VertexServingAttemptCredits,
 } from '../services/canonical-sam3_1-vertex-serving-attempt-credit-settlement-service'
 import {
+  allocationWindow,
+  observation,
+} from './canonical-sam3_1-vertex-serving-billing-export-smoke'
+import {
   mutatePrivateEditAuthorityAggregate,
   readPrivateEditAuthorityAggregate,
   sha256AuthorityValue,
@@ -16,6 +20,9 @@ import {
   canonicalSam31VertexServingWindowCostReceiptSchema,
   createCanonicalSam31VertexServingWindowUsage,
 } from '../tool-cost-metering/canonical-sam3_1-vertex-serving-window-cost-authority'
+import {
+  createCanonicalSam31VertexServingReconciledWindowCostReceipt,
+} from '../tool-cost-metering/canonical-sam3_1-vertex-serving-reconciled-window-cost'
 import type { ServiceContext } from '../types'
 
 const createdAt = '2026-08-11T11:40:00.000Z'
@@ -166,8 +173,8 @@ const attempt = {
   approvedEstimateRef: ref(estimate.id, estimate.estimateHash),
   userApprovalRecordRef: ref(approval.id, sha256AuthorityValue(approval)),
   userTriggerRecordRef: ref('trigger-1', sha('trigger-1')),
-  requestStartedAt: '2026-08-11T12:02:10.000Z',
-  responseCompletedAt: '2026-08-11T12:02:11.000Z',
+  requestStartedAt: '2026-08-11T12:01:10.000Z',
+  responseCompletedAt: '2026-08-11T12:01:11.000Z',
   activeRequestMilliseconds: 1_000,
   terminalOutcome: 'completed' as const,
   providerInferenceOrSubstantiveWorkOutcome: 'executed' as const,
@@ -180,7 +187,7 @@ const usage = createCanonicalSam31VertexServingWindowUsage({
   endpointDeploymentRef: ref('sam31-serving-deployment', sha('deployment')),
   scaleUpTriggeredAt: '2026-08-11T12:00:00.000Z',
   billableAllocationStartedAt: '2026-08-11T12:00:00.000Z',
-  endpointReadyAt: '2026-08-11T12:02:00.000Z',
+  endpointReadyAt: '2026-08-11T12:01:00.000Z',
   billableAllocationEndedAt: '2026-08-11T12:05:00.000Z',
   attempts: [attempt],
   privateArtifactBytes: 0,
@@ -250,6 +257,16 @@ const receipt = canonicalSam31VertexServingWindowCostReceiptSchema.parse({
   ...receiptPayload,
   receiptHash: sha256AuthorityValue(receiptPayload),
 })
+const reconciledReceipt =
+  createCanonicalSam31VertexServingReconciledWindowCostReceipt({
+    receiptId: 'sam31-serving-reconciled-cost-settlement-smoke',
+    endpointDeploymentRef: usage.endpointDeploymentRef,
+    endpointCapacityObservationRef: ref('capacity', sha('capacity')),
+    allocationWindow,
+    billingExportObservation: observation,
+    attempts: [attempt],
+    recordedAt: '2026-08-11T12:12:00.000Z',
+  })
 
 const root = await mkdtemp(join(tmpdir(), 'weeditpro-sam31-settlement-'))
 try {
@@ -275,29 +292,54 @@ try {
     },
     settledAt: '2026-08-11T12:06:01.000Z',
   }
-  const settled = await settleCanonicalSam31VertexServingAttemptCredits(
-    settlementInput,
+  await assert.rejects(
+    () => settleCanonicalSam31VertexServingAttemptCredits(settlementInput),
+    /serving_window_invoice_not_reconciled/u,
   )
-  assert.equal(settled.idempotentReplay, false)
-  assert.equal(settled.settlement.customerChargedCredits, 100)
-  assert.equal(settled.settlement.serviceFeeSettledHere, false)
-  const replay = await settleCanonicalSam31VertexServingAttemptCredits(
-    settlementInput,
-  )
-  assert.equal(replay.idempotentReplay, true)
-  assert.equal(replay.settlement.settlementHash,
-    settled.settlement.settlementHash)
   const aggregate = await readPrivateEditAuthorityAggregate({
     localStorageRoot: root,
     workspaceId: snapshot.workspaceId,
     ownerUserId,
   })
-  assert.equal(aggregate?.wallet.reservedCredits, 400)
-  assert.equal(aggregate?.wallet.spentCredits, 100)
-  assert.equal(aggregate?.gpuAttemptCreditSettlements.length, 1)
+  assert.equal(aggregate?.wallet.reservedCredits, 500)
+  assert.equal(aggregate?.wallet.spentCredits, 0)
+  assert.equal(aggregate?.gpuAttemptCreditSettlements.length, 0)
+  const reconciledInput = {
+    ...settlementInput,
+    receiptId: reconciledReceipt.receiptId,
+    receiptReadPort: {
+      async rereadServingWindowCostReceipt() {
+        return structuredClone(reconciledReceipt)
+      },
+    },
+    settledAt: '2026-08-11T12:12:01.000Z',
+  }
+  const settled = await settleCanonicalSam31VertexServingAttemptCredits(
+    reconciledInput,
+  )
+  assert.equal(settled.idempotentReplay, false)
+  assert.equal(settled.settlement.customerChargedCredits, 5)
+  assert.equal(settled.settlement.exactDetailedUsageCostExportReconciled,
+    true)
+  assert.equal(settled.settlement.finalInvoiceMonthTaxOrAdjustmentClaimed,
+    false)
+  const replay = await settleCanonicalSam31VertexServingAttemptCredits(
+    reconciledInput,
+  )
+  assert.equal(replay.idempotentReplay, true)
+  assert.equal(replay.settlement.settlementHash,
+    settled.settlement.settlementHash)
+  const afterSettlement = await readPrivateEditAuthorityAggregate({
+    localStorageRoot: root,
+    workspaceId: snapshot.workspaceId,
+    ownerUserId,
+  })
+  assert.equal(afterSettlement?.wallet.reservedCredits, 495)
+  assert.equal(afterSettlement?.wallet.spentCredits, 5)
+  assert.equal(afterSettlement?.gpuAttemptCreditSettlements.length, 1)
   await assert.rejects(() =>
     settleCanonicalSam31VertexServingAttemptCredits({
-      ...settlementInput,
+      ...reconciledInput,
       executionAttemptRef: ref('wrong-attempt', sha('wrong-attempt')),
     }))
 } finally {
@@ -306,9 +348,12 @@ try {
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-attempt-credit-settlement',
-  checks: 24,
+  checks: 32,
   exactWindowAllocationReread: true,
-  approvedReservationSpentExactlyOnce: true,
+  unreconciledInvoiceAcceptedForSettlement: false,
+  approvedReservationHeldWithoutSpend: true,
+  reconciledServingCostChargedExactlyOnce: true,
+  failedOrUnapprovedCostChargedToCustomer: false,
   idempotentReplay: true,
   serviceFeeSettledSeparately: true,
   externalWalletProviderCalled: false,

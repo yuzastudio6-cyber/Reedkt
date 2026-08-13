@@ -6,6 +6,15 @@ import {
   type CanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   assertCanonicalSam31VertexScaleZeroDeploymentRequest,
 } from './canonical-sam3_1-vertex-scale-zero-deployment-request-compiler'
 import {
@@ -27,15 +36,13 @@ export const CANONICAL_SAM3_1_VERTEX_SERVING_EXACT_DEPLOYMENT_VERSION =
   'canonical-sam3_1-vertex-serving-exact-deployment-v2' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com'
-const MODEL_RESOURCE =
-  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const
+const MODEL_RESOURCE = CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_RESOURCE
 const NUMERIC_MODEL_RESOURCE =
-  'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const
-const ENDPOINT_RESOURCE =
-  'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE
+const ENDPOINT_RESOURCE = CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE
 const NUMERIC_ENDPOINT_RESOURCE =
-  'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
-const DEPLOYED_MODEL_ID = '3101000001' as const
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_ENDPOINT_RESOURCE
+const DEPLOYED_MODEL_ID = CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID
 const SERVING_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
 const CLOUD_PLATFORM_SCOPE =
@@ -443,7 +450,12 @@ function parseEndpoint(value: unknown,
     }).passthrough().optional().default({ enabled: false }),
     deployedModels: z.array(z.object({
       id: z.literal(DEPLOYED_MODEL_ID),
-      model: z.enum([MODEL_RESOURCE, NUMERIC_MODEL_RESOURCE]),
+      model: z.enum([
+        MODEL_RESOURCE,
+        NUMERIC_MODEL_RESOURCE,
+        CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_RESOURCE,
+        CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+      ]),
       serviceAccount: z.literal(SERVING_ACCOUNT),
       disableContainerLogging: z.literal(true),
       dedicatedResources: z.object({

@@ -28,6 +28,10 @@ import {
   assertCanonicalSam31GpuTaskRecord,
   type CanonicalSam31GpuTaskStore,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_DEPLOYMENT_READY_VERSION =
   'canonical-sam3_1-vertex-serving-deployment-ready-v1' as const
@@ -38,8 +42,7 @@ export const CANONICAL_SAM3_1_VERTEX_SERVING_CALL_START_VERSION =
 export const CANONICAL_SAM3_1_VERTEX_SERVING_INVOCATION_RESULT_VERSION =
   'canonical-sam3_1-vertex-serving-invocation-result-v1' as const
 
-const ENDPOINT =
-  'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const
+const ENDPOINT = CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE
 const PROJECT_ID = 'reeditpro' as const
 const STATE_BUCKET = 'reeditpro-production-reeditpro-control-plane-state'
 const DEFAULT_PREFIX =
@@ -74,7 +77,9 @@ const readyWithoutHashSchema = z.object({
   endpointCreateObservationRef: refSchema,
   modelDeployObservationRef: refSchema,
   endpointResourceName: z.literal(ENDPOINT),
-  deployedModelId: z.literal('3101000001'),
+  deployedModelId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  ),
   immutableImageDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
   routeId: z.literal('a100_80gb_heavy_primary'),
   machineType: z.literal('a2-ultragpu-1g'),

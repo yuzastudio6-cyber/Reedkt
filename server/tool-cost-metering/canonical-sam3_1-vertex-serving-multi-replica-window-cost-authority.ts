@@ -86,6 +86,8 @@ const attemptSchema = z.object({
     })
   }
 })
+export const canonicalSam31VertexServingMultiReplicaWindowAttemptSchema =
+  attemptSchema
 export type CanonicalSam31VertexServingMultiReplicaWindowAttempt = z.infer<
   typeof attemptSchema
 >

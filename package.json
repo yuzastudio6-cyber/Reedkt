@@ -488,6 +488,8 @@
     "smoke:sam3_1-current-vertex-customer-invocation": "tsx server/smoke/canonical-sam3_1-current-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-terminal-attempt-owner": "tsx server/smoke/canonical-sam3_1-vertex-serving-terminal-attempt-owner-smoke.ts",
     "smoke:sam3_1-vertex-replica-telemetry": "tsx server/smoke/canonical-sam3_1-vertex-replica-telemetry-smoke.ts",
+    "smoke:sam3_1-vertex-serving-billing-export": "tsx server/smoke/canonical-sam3_1-vertex-serving-billing-export-smoke.ts",
+    "smoke:sam3_1-vertex-serving-reconciled-cost": "tsx server/smoke/canonical-sam3_1-vertex-serving-reconciled-window-cost-smoke.ts",
     "smoke:professional-gpu-fair-queue": "tsx server/smoke/canonical-professional-gpu-fair-queue-scheduler-smoke.ts",
     "smoke:professional-gpu-fair-queue-coordinator": "tsx server/smoke/canonical-professional-gpu-fair-queue-coordinator-smoke.ts",
     "smoke:professional-gpu-fair-queue-local-postgres": "tsx server/smoke/canonical-professional-gpu-fair-queue-local-postgres-smoke.ts",

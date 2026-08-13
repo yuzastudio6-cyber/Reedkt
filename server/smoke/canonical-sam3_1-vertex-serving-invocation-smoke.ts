@@ -29,6 +29,12 @@ import {
   runtimeResponse,
   task,
 } from './canonical-sam3_1-gpu-task-owner-smoke'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 
 const at = '2026-08-11T20:00:00.000Z'
 const endpointDeploymentRef = ref('sam31-a100-serving-deployment')
@@ -46,9 +52,8 @@ const readinessPayload = {
   modelUploadObservationRef: ref('sam31-model-upload-observation'),
   endpointCreateObservationRef: ref('sam31-endpoint-create-observation'),
   modelDeployObservationRef: ref('sam31-model-deploy-observation'),
-  endpointResourceName:
-    'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-  deployedModelId: '3101000001' as const,
+  endpointResourceName: CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
   immutableImageDigest: task.runtimeRequest.modelArtifacts.immutableImageDigest,
   routeId: 'a100_80gb_heavy_primary' as const,
   machineType: 'a2-ultragpu-1g' as const,
@@ -334,7 +339,11 @@ function service(input: {
           displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
           dedicatedEndpointEnabled: true,
           dedicatedEndpointDns,
-          deployedModels: [{ id: readiness.deployedModelId }],
+          deployedModels: [{
+            id: readiness.deployedModelId,
+            model: CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+            modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+          }],
           trafficSplit: { [readiness.deployedModelId]: 100 },
         } }
         return input.request(request)

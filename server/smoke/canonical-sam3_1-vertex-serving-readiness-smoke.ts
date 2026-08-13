@@ -30,6 +30,10 @@ import {
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 
 const imageDigest = hash('serving-image')
 const runtimeReleaseRef = ref('sam31-a100-runtime-release')
@@ -248,9 +252,8 @@ const exactReadPort = createGoogleCloudSam31VertexServingExactDeploymentReadPort
         dedicatedEndpointDns,
         predictRequestResponseLoggingConfig: { enabled: false },
         deployedModels: [{
-          id: '3101000001',
-          model:
-            'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+          id: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+          model: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_RESOURCE,
           serviceAccount:
             'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
           disableContainerLogging: true,
@@ -269,7 +272,9 @@ const exactReadPort = createGoogleCloudSam31VertexServingExactDeploymentReadPort
             },
           },
         }],
-        trafficSplit: { '3101000001': 100 },
+        trafficSplit: {
+          [CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID]: 100,
+        },
       } }
     },
   } as unknown as Pick<GoogleAuth, 'request'>,

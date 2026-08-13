@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 
 const source = readFileSync(
@@ -52,18 +53,35 @@ assert.match(source, /routeArchitectureSourceBindingCount: \$routeArchitectureSo
 assert.match(source, /and \$routeArchitectureQualified/u)
 for (const sourceHash of [
   '00c962fb1baf39dd9e3b88fc0254a69673cf2ef3da1bb977a8de7e21837cc2d2',
-  '77b076c2eb20e848ea6b63fa94a6eaa1452931e21f383c7d08113eacbeef62e4',
+  '3f1170ca5049d673a55dddb2a6a0d45435efd614ba112483650e32e68101f3dd',
   '5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596',
-  '9d7bc68def1b157887abeccfce236e6e9946b87252f1efd326abcdbe947ff464',
+  'f01a834c0d67a6c64eda9251f6db14b2db135628ddb12929b46d7b36d4a30b89',
   'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
   'f986ae3a1e87559ce9299ee98f78bc9d05a745bb51511ac1f812245634c84c37',
   'ed27af38bc5013fe8d2d8444d1e3546e5c2f9e8531fa81a38d4ba364fe5e3660',
-  'e120d655921d6a65bae67a4c31dee1c89ce5b1201b18ffda691e3be8b9ae65b9',
+  '01594033a52078d7c959802387ceb195fd52bcb83271dcf16065cfe02c3192d6',
   '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
   '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
   '6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e',
   '2f0829a64706fae863af428a306f370b496b46e6a272434b3a6d0415e41b787a',
 ] as const) assert.match(source, new RegExp(sourceHash, 'u'))
+
+const vertexRouteSourceBindings = [...source.matchAll(
+  /'([a-f0-9]{64})\|([^']+)'/gu,
+)].map((match) => ({
+  expectedSha256: match[1],
+  repositoryPath: match[2],
+}))
+assert.equal(vertexRouteSourceBindings.length, 12)
+for (const binding of vertexRouteSourceBindings) {
+  assert.equal(
+    createHash('sha256')
+      .update(readFileSync(binding.repositoryPath))
+      .digest('hex'),
+    binding.expectedSha256,
+    `Stale Vertex A100 route source binding: ${binding.repositoryPath}`,
+  )
+}
 assert.match(source, /disposition/u)
 assert.match(source, /capacityGranted/u)
 assert.match(source, /a100QualificationFoundation/u)
@@ -251,5 +269,6 @@ console.log(JSON.stringify({
   gpuJobStarted: false,
   modelDownloaded: false,
   customerCreditsMutated: false,
+  vertexA100RouteSourceBindingsVerified: vertexRouteSourceBindings.length,
   productionReady: false,
 }, null, 2))

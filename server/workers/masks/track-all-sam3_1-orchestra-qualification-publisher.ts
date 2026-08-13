@@ -27,12 +27,19 @@ import {
 import type {
   CanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
 } from '../../services/canonical-current-google-cloud-gpu-rate-authority-repository'
+import type {
+  CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository,
+} from '../../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-repository'
 import {
   assertPlainSerializedData,
 } from '../../services/canonical-professional-gpu-job-lifecycle-service'
 import type {
   CanonicalSam31GpuRuntimeReleaseRegistry,
 } from '../../services/canonical-sam3_1-gpu-runtime-release-registry'
+import {
+  assertCanonicalSam31CurrentA100CustomerDispatchAllowed,
+  type CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
+} from '../../services/canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import {
   assertCanonicalSam31GpuRuntimeReleaseRegistryRecord,
   canonicalSam31GpuRuntimeReleaseRef,
@@ -58,6 +65,9 @@ import {
   assertCanonicalCurrentGoogleCloudGpuRateAuthority,
 } from '../../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
+} from '../../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
+import {
   CANONICAL_TRACK_ALL_SAM3_1_JOB_TYPE,
 } from './canonical-track-all-sam3_1-orchestra-binding'
 import {
@@ -70,9 +80,9 @@ import {
 } from './track-all-sam3_1-orchestra-capability-manifest'
 
 export const TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLISHER_VERSION =
-  'track-all-sam3_1-orchestra-qualification-publisher-v1' as const
+  'track-all-sam3_1-orchestra-qualification-publisher-v2' as const
 export const TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLICATION_RECEIPT_VERSION =
-  'track-all-sam3_1-orchestra-qualification-publication-receipt-v1' as const
+  'track-all-sam3_1-orchestra-qualification-publication-receipt-v2' as const
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -87,6 +97,7 @@ const refSchema = z.object({
 }).strict()
 const publicationInputSchema = z.object({
   a100RuntimeReleaseRef: refSchema,
+  currentA100CustomerDispatchReadinessRef: refSchema,
   l4FallbackRuntimeReleaseRef: refSchema,
   a100RateAuthorityRef: refSchema,
   l4FallbackRateAuthorityRef: refSchema,
@@ -107,13 +118,14 @@ const receiptWithoutHashSchema = z.object({
     'canonical_server_track_all_sam3_1_orchestra_qualification_publisher',
   ),
   evidenceClass: z.literal(
-    'canonical_release_rate_repository_exact_reread_create_only',
+    'canonical_release_rate_endpoint_readiness_repository_exact_reread_create_only',
   ),
   manifestRef: refSchema,
   qualificationSnapshotRef: refSchema,
   observedReleaseRef: refSchema,
   registryRecordRef: refSchema,
   a100RuntimeReleaseRef: refSchema,
+  currentA100CustomerDispatchReadinessRef: refSchema,
   l4FallbackRuntimeReleaseRef: refSchema,
   l4TaskQaImageQualificationRef: refSchema,
   l4TaskQaRuntimeReleaseRef: refSchema,
@@ -123,6 +135,7 @@ const receiptWithoutHashSchema = z.object({
   artifactRepositoryReleaseRef: refSchema,
   disposition: z.enum(['created', 'identical_replay']),
   exactA100AndIndependentL4Sam31ReleaseReread: z.literal(true),
+  exactCurrentA100EndpointReadinessAndCapacityReread: z.literal(true),
   exactL4TaskQaImageDeploymentAndScaleZeroReread: z.literal(true),
   exactBillingAccountEffectiveA100AndL4RateReread: z.literal(true),
   exactTrackAllResultAndArtifactRepositoryReleaseReread: z.literal(true),
@@ -157,11 +170,27 @@ type RateAuthorityReadPort = Pick<
   CanonicalCurrentGoogleCloudGpuRateAuthorityRepository,
   'schemaVersion' | 'evidenceClass' | 'rereadApprovedCurrentRate'
 >
+type A100ServingRateAuthorityReadPort = Pick<
+  CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository,
+  'reread'
+>
+type CurrentA100ReadinessReadPort = Pick<
+  CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
+  'rereadCurrent'
+> & {
+  rereadExact(input: {
+    readonly readinessRef: z.infer<typeof refSchema>
+    readonly at: string
+  }): Promise<unknown | null>
+}
 
 export interface TrackAllSam31OrchestraQualificationPublisherDependencies {
   readonly runtimeReleaseRegistry: RuntimeReleaseReadPort
   readonly l4TaskQaReleaseRepository: L4TaskQaReleaseReadPort
   readonly rateAuthorityRepository: RateAuthorityReadPort
+  readonly a100ServingRateAuthorityRepository:
+    A100ServingRateAuthorityReadPort
+  readonly currentA100ReadinessRepository: CurrentA100ReadinessReadPort
   readonly artifactRepositoryReleaseReadPort:
     CanonicalTrackAllSam31ArtifactRepositoryReleaseReadPort
   readonly qualificationRegistry: CanonicalSkillQualificationRegistry
@@ -224,14 +253,32 @@ export async function publishTrackAllSam31OrchestraQualification(
     at: request.observedAt,
   })
 
-  const a100Rate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
-    await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
+  const a100Rate =
+    assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+      await dependencies.a100ServingRateAuthorityRepository.reread({
       rateAuthorityRef: request.a100RateAuthorityRef,
-      routeId: 'a100_80gb_heavy_primary',
       at: request.observedAt,
-    }),
-    request.observedAt,
-  )
+      }),
+      request.observedAt,
+    )
+  const currentA100Readiness =
+    assertCanonicalSam31CurrentA100CustomerDispatchAllowed({
+      readiness: await dependencies.currentA100ReadinessRepository
+        .rereadExact({
+          readinessRef: request.currentA100CustomerDispatchReadinessRef,
+          at: request.observedAt,
+        }),
+      runtimeReleaseRef: request.a100RuntimeReleaseRef,
+      rateAuthorityRef: request.a100RateAuthorityRef,
+      immutableImageDigest: a100.immutableImageDigest,
+      at: request.observedAt,
+    })
+  assertExactCurrentA100ServingQualification({
+    rate: a100Rate,
+    rateRef: request.a100RateAuthorityRef,
+    readiness: currentA100Readiness,
+    readinessRef: request.currentA100CustomerDispatchReadinessRef,
+  })
   const l4FallbackRate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
     await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
       rateAuthorityRef: request.l4FallbackRateAuthorityRef,
@@ -251,9 +298,7 @@ export async function publishTrackAllSam31OrchestraQualification(
     }),
     request.observedAt,
   )
-  assertExactRates({
-    a100Rate,
-    a100Ref: request.a100RateAuthorityRef,
+  assertExactL4Rates({
     l4FallbackRate,
     l4FallbackRef: request.l4FallbackRateAuthorityRef,
     l4TaskQaRate,
@@ -276,6 +321,7 @@ export async function publishTrackAllSam31OrchestraQualification(
 
   const qualificationEvidenceRefs = sortRefs([
     request.a100RuntimeReleaseRef,
+    request.currentA100CustomerDispatchReadinessRef,
     request.l4FallbackRuntimeReleaseRef,
     request.l4TaskQaImageQualificationRef,
     request.l4TaskQaRuntimeReleaseRef,
@@ -285,14 +331,15 @@ export async function publishTrackAllSam31OrchestraQualification(
     request.artifactRepositoryReleaseRef,
   ])
   const observedReleaseRef = orchestraEvidenceRef(
-    'track-all-sam3_1-qualified-release-set-v1',
+    'track-all-sam3_1-qualified-release-set-v2',
     orchestraDigest({
       qualificationEvidenceRefs,
       exactA100AndIndependentL4Sam31ReleaseReread: true,
+      exactCurrentA100EndpointReadinessAndCapacityReread: true,
       exactBillingAccountEffectiveA100AndL4RateReread: true,
       exactL4TaskQaImageDeploymentAndScaleZeroReread: true,
       exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
-      releaseSetVersion: 'track-all-sam3_1-qualified-release-set-v1',
+      releaseSetVersion: 'track-all-sam3_1-qualified-release-set-v2',
     }),
   )
   const qualificationSnapshot = buildQualifiedSnapshot({
@@ -389,12 +436,14 @@ function createReceipt(input: {
     source:
       'canonical_server_track_all_sam3_1_orchestra_qualification_publisher',
     evidenceClass:
-      'canonical_release_rate_repository_exact_reread_create_only',
+      'canonical_release_rate_endpoint_readiness_repository_exact_reread_create_only',
     manifestRef: input.persisted.manifestRef,
     qualificationSnapshotRef: input.persisted.qualificationSnapshotRef,
     observedReleaseRef: input.persisted.observedReleaseRef,
     registryRecordRef: input.persisted.registryRecordRef,
     a100RuntimeReleaseRef: input.request.a100RuntimeReleaseRef,
+    currentA100CustomerDispatchReadinessRef:
+      input.request.currentA100CustomerDispatchReadinessRef,
     l4FallbackRuntimeReleaseRef: input.request.l4FallbackRuntimeReleaseRef,
     l4TaskQaImageQualificationRef:
       input.request.l4TaskQaImageQualificationRef,
@@ -406,6 +455,7 @@ function createReceipt(input: {
       input.request.artifactRepositoryReleaseRef,
     disposition: input.persisted.disposition,
     exactA100AndIndependentL4Sam31ReleaseReread: true,
+    exactCurrentA100EndpointReadinessAndCapacityReread: true,
     exactL4TaskQaImageDeploymentAndScaleZeroReread: true,
     exactBillingAccountEffectiveA100AndL4RateReread: true,
     exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
@@ -503,40 +553,72 @@ function assertExactL4TaskQaRelease(input: {
   ) throw new Error('Track All L4 task-QA release is not exact or current.')
 }
 
-function assertExactRates(input: {
-  a100Rate: ReturnType<
-    typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
+function assertExactCurrentA100ServingQualification(input: {
+  rate: ReturnType<
+    typeof assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   >
+  rateRef: z.infer<typeof refSchema>
+  readiness: ReturnType<
+    typeof assertCanonicalSam31CurrentA100CustomerDispatchAllowed
+  >
+  readinessRef: z.infer<typeof refSchema>
+}): void {
+  const readinessRef = {
+    id: input.readiness.readinessId,
+    version: 1,
+    contentHash: `sha256:${input.readiness.readinessHash}` as const,
+  }
+  if (
+    input.rate.executionTarget !==
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+    || input.rate.maximumReplicaCount !== 16
+    || input.rate.maximumConcurrentInvocations !== 16
+    || input.rate.minimumReplicaCount !== 0
+    || !input.rate.exactCurrentEndpointCapacityReread
+    || !input.rate.perReplicaPricingNotMultipliedByConfiguredMaximum
+    || !sameRateRef(input.rate, input.rateRef)
+    || !sameRef(readinessRef, input.readinessRef)
+    || !sameRef(
+      input.rate.endpointCapacityObservationRef,
+      input.readiness.endpointCapacityObservationRef,
+    )
+    || input.readiness.maximumReplicaCount !== 16
+    || input.readiness.maximumConcurrentInvocations !== 16
+    || input.rate.customerPricingOrServiceFeeAuthorityGranted
+    || input.rate.walletOrCreditMutationAuthorityGranted
+  ) throw new Error(
+    'Track All current A100 endpoint readiness or serving rate is invalid.',
+  )
+}
+
+function assertExactL4Rates(input: {
   l4FallbackRate: ReturnType<
     typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
   >
   l4TaskQaRate: ReturnType<
     typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
   >
-  a100Ref: z.infer<typeof refSchema>
   l4FallbackRef: z.infer<typeof refSchema>
   l4TaskQaRef: z.infer<typeof refSchema>
 }): void {
   if (
-    input.a100Rate.routeId !== 'a100_80gb_heavy_primary'
-    || input.l4FallbackRate.routeId !== 'l4_heavy_fallback'
+    input.l4FallbackRate.routeId !== 'l4_heavy_fallback'
     || input.l4TaskQaRate.routeId !== 'l4_standard_primary'
-    || !sameRateRef(input.a100Rate, input.a100Ref)
     || !sameRateRef(input.l4FallbackRate, input.l4FallbackRef)
     || !sameRateRef(input.l4TaskQaRate, input.l4TaskQaRef)
-    || input.a100Rate.customerPricingOrServiceFeeAuthorityGranted
     || input.l4FallbackRate.customerPricingOrServiceFeeAuthorityGranted
     || input.l4TaskQaRate.customerPricingOrServiceFeeAuthorityGranted
-    || input.a100Rate.walletOrCreditMutationAuthorityGranted
     || input.l4FallbackRate.walletOrCreditMutationAuthorityGranted
     || input.l4TaskQaRate.walletOrCreditMutationAuthorityGranted
   ) throw new Error('Track All account-effective GPU rate set is invalid.')
 }
 
 function sameRateRef(
-  authority: ReturnType<
-    typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
-  >,
+  authority: {
+    readonly rateAuthorityId: string
+    readonly rateAuthorityVersion: number
+    readonly rateAuthorityHash: string
+  },
   ref: z.infer<typeof refSchema>,
 ): boolean {
   return sameRef({
@@ -585,6 +667,12 @@ function assertDependencies(
       'gcs_create_only_exact_reread_account_effective_gpu_rates'
     || typeof dependencies.rateAuthorityRepository
       .rereadApprovedCurrentRate !== 'function'
+    || typeof dependencies.a100ServingRateAuthorityRepository?.reread !==
+      'function'
+    || typeof dependencies.currentA100ReadinessRepository?.rereadExact !==
+      'function'
+    || typeof dependencies.currentA100ReadinessRepository.rereadCurrent !==
+      'function'
     || dependencies.artifactRepositoryReleaseReadPort?.schemaVersion !==
       'canonical-track-all-sam3_1-artifact-repository-release-repository-v1'
     || dependencies.artifactRepositoryReleaseReadPort.evidenceClass !==

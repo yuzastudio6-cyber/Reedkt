@@ -4,8 +4,11 @@ import {
   createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository,
 } from '../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-repository'
 import {
-  publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-publisher'
+import {
+  rereadCanonicalSam31VertexServingCapacity,
+} from '../services/canonical-sam3_1-vertex-serving-capacity-mutation'
 import {
   createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort,
   createWeEditProVertexA100ServingRateReaderConfiguration,
@@ -54,7 +57,7 @@ const configuration =
       environment.WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME,
   })
 const receipt =
-  await publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority({
+  await publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2({
     publicationId:
       environment.WEEDITPRO_VERTEX_A100_SERVING_RATE_PUBLICATION_ID,
     publicationVersion:
@@ -62,6 +65,10 @@ const receipt =
     readPort:
       createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort({
         configuration,
+        auth: authClient,
+      }),
+    capacityObservation:
+      await rereadCanonicalSam31VertexServingCapacity({
         auth: authClient,
       }),
     repository:

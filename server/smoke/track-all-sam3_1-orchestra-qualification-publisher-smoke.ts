@@ -49,6 +49,9 @@ import {
   assertCanonicalSam31GpuRuntimeReleaseObservation,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-release'
 import {
+  sealCanonicalSam31CurrentA100CustomerDispatchReadiness,
+} from '../services/canonical-sam3_1-current-a100-customer-dispatch-readiness'
+import {
   createTrackAllSam31OrchestraQualificationSnapshot,
   TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
 } from '../workers/masks/track-all-sam3_1-orchestra-capability-manifest'
@@ -64,6 +67,10 @@ import {
   observation as baseL4TaskQaObservation,
 } from
   './canonical-track-all-sam3_1-l4-task-qa-runtime-release-publisher-smoke'
+import {
+  capacityAwareAuthority as currentA100ServingRate,
+} from
+  './canonical-current-google-cloud-vertex-a100-serving-rate-authority-smoke'
 
 let checks = 0
 function check(condition: unknown, message?: string): void {
@@ -71,7 +78,7 @@ function check(condition: unknown, message?: string): void {
   checks += 1
 }
 
-const observedAt = '2026-08-05T12:15:00.000Z'
+const observedAt = '2026-08-11T12:02:00.000Z'
 const l4RuntimeRecord = createL4RuntimeRecord(a100Record)
 const a100RuntimeReleaseRef = canonicalSam31GpuRuntimeReleaseRef(
   a100Record.runtimeRelease,
@@ -80,10 +87,9 @@ const l4FallbackRuntimeReleaseRef = canonicalSam31GpuRuntimeReleaseRef(
   l4RuntimeRecord.runtimeRelease,
 )
 
-const a100Rate = await createRate('a100_80gb_heavy_primary')
 const l4FallbackRate = await createRate('l4_heavy_fallback')
 const l4TaskQaRate = await createRate('l4_standard_primary')
-const a100RateAuthorityRef = rateRef(a100Rate)
+const a100RateAuthorityRef = rateRef(currentA100ServingRate)
 const l4FallbackRateAuthorityRef = rateRef(l4FallbackRate)
 const l4TaskQaRateAuthorityRef = rateRef(l4TaskQaRate)
 
@@ -103,6 +109,64 @@ const l4TaskQaObservation =
     imageQualificationRef: l4TaskQaImageQualificationRef,
   })
 const l4TaskQaRuntimeReleaseRef = l4TaskQaObservation.release.releaseRef
+const currentA100Readiness =
+  sealCanonicalSam31CurrentA100CustomerDispatchReadiness({
+    schemaVersion:
+      'canonical-sam3_1-current-a100-customer-dispatch-readiness-v1',
+    source:
+      'canonical_server_sam31_current_a100_customer_dispatch_readiness_owner',
+    evidenceClass: 'canonical_private_reread',
+    status: 'ready_for_private_customer_dispatch',
+    readinessId: 'track-all-current-a100-dispatch-readiness-smoke',
+    routeId: 'a100_80gb_heavy_primary',
+    toolId: 'sam3_1',
+    operationId: 'tool.sam3_1.segment_and_track_subject.v1',
+    executionTarget:
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+    endpointResourceName:
+      'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+    deployedModelId: '3101000004',
+    modelVersionId: '2',
+    immutableImageDigest: a100Record.runtimeRelease.immutableImageDigest,
+    runtimeReleaseRef: a100RuntimeReleaseRef,
+    rateAuthorityRef: a100RateAuthorityRef,
+    endpointRouteRef: ref('track-all-current-a100-endpoint-route'),
+    endpointCapacityObservationRef:
+      currentA100ServingRate.endpointCapacityObservationRef,
+    a100ServingQuotaObservationRef: ref('track-all-current-a100-quota'),
+    thirtyRunQualificationRef: ref('track-all-current-a100-thirty-runs'),
+    completeSourceP95QualificationRef:
+      ref('track-all-current-a100-complete-source-p95'),
+    independentMaskQualityQualificationRef:
+      ref('track-all-current-a100-mask-quality'),
+    multiReplicaCostAuthorityRef:
+      ref('track-all-current-a100-multi-replica-cost'),
+    maximumReplicaCount: 16,
+    maximumConcurrentInvocations: 16,
+    minimumReplicaCount: 0,
+    thirtyRunQualificationCount: 30,
+    completeEightMinuteSourceRunCount: 5,
+    exactCurrentEndpointModelVersionTrafficAndCapacityReread: true,
+    exactRuntimeReleaseRateQuotaAndQualificationReread: true,
+    completeSourceP95AtOrBelowEightMinutes: true,
+    independentMaskQualityAccepted: true,
+    scaleFromZeroAndReturnToZeroVerified: true,
+    accountEffectiveMultiReplicaCostSettlementReady: true,
+    privateCustomerDispatchAllowed: true,
+    publicProductionDispatchAllowed: false,
+    callerOrPlanSelfAttestedReadinessAccepted: false,
+    customerCreditsMutated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    observedAt: '2026-08-11T12:01:00.000Z',
+    expiresAt: '2026-08-11T12:16:00.000Z',
+  })
+const currentA100CustomerDispatchReadinessRef = {
+  id: currentA100Readiness.readinessId,
+  version: 1,
+  contentHash: `sha256:${currentA100Readiness.readinessHash}` as const,
+}
 
 const repositoryObjectPort = memoryObjectPort()
 const artifactRepository =
@@ -185,7 +249,6 @@ const runtimeRecords = new Map<string, CanonicalSam31GpuRuntimeReleaseRegistryRe
   [refKey(l4FallbackRuntimeReleaseRef), l4RuntimeRecord],
 ])
 const rateAuthorities = new Map<string, CanonicalCurrentGoogleCloudGpuRateAuthority>([
-  [refKey(a100RateAuthorityRef), a100Rate],
   [refKey(l4FallbackRateAuthorityRef), l4FallbackRate],
   [refKey(l4TaskQaRateAuthorityRef), l4TaskQaRate],
 ])
@@ -232,11 +295,40 @@ const dependencies = {
       return value?.routeId === input.routeId ? structuredClone(value) : null
     },
   },
+  a100ServingRateAuthorityRepository: {
+    async reread(input: {
+      rateAuthorityRef: OrchestraEvidenceRef
+      at: string
+    }) {
+      return sameRef(input.rateAuthorityRef, a100RateAuthorityRef)
+        ? structuredClone(currentA100ServingRate) : null
+    },
+  },
+  currentA100ReadinessRepository: {
+    async rereadExact(input: {
+      readinessRef: OrchestraEvidenceRef
+      at: string
+    }) {
+      return sameRef(input.readinessRef,
+        currentA100CustomerDispatchReadinessRef)
+        ? structuredClone(currentA100Readiness) : null
+    },
+    async rereadCurrent(input: {
+      runtimeReleaseRef: OrchestraEvidenceRef
+      rateAuthorityRef: OrchestraEvidenceRef
+      at: string
+    }) {
+      return sameRef(input.runtimeReleaseRef, a100RuntimeReleaseRef)
+        && sameRef(input.rateAuthorityRef, a100RateAuthorityRef)
+        ? structuredClone(currentA100Readiness) : null
+    },
+  },
   artifactRepositoryReleaseReadPort: artifactRepository,
   qualificationRegistry,
 }
 const publicationInput = {
   a100RuntimeReleaseRef,
+  currentA100CustomerDispatchReadinessRef,
   l4FallbackRuntimeReleaseRef,
   a100RateAuthorityRef,
   l4FallbackRateAuthorityRef,
@@ -252,6 +344,7 @@ const receipt = await publishTrackAllSam31OrchestraQualification(
 )
 check(receipt.disposition === 'created')
 check(receipt.exactA100AndIndependentL4Sam31ReleaseReread)
+check(receipt.exactCurrentA100EndpointReadinessAndCapacityReread)
 check(receipt.exactL4TaskQaImageDeploymentAndScaleZeroReread)
 check(receipt.exactBillingAccountEffectiveA100AndL4RateReread)
 check(receipt.exactTrackAllResultAndArtifactRepositoryReleaseReread)
@@ -284,7 +377,7 @@ check(stableAuthorityStringify(
   TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
 ).sort(compareUtf16)))
 check(published.qualificationSnapshot.jobQualifications[0]
-  ?.qualificationEvidenceRefs.length === 8)
+  ?.qualificationEvidenceRefs.length === 9)
 check(createTrackAllSam31OrchestraQualificationSnapshot().overall === 'blocked')
 
 const replay = await publishTrackAllSam31OrchestraQualification(
@@ -297,6 +390,12 @@ check(sameRef(replay.registryRecordRef, receipt.registryRecordRef))
 await assert.rejects(publishTrackAllSam31OrchestraQualification({
   ...publicationInput,
   a100RuntimeReleaseRef: ref('missing-a100-runtime-release'),
+}, dependencies))
+checks += 1
+await assert.rejects(publishTrackAllSam31OrchestraQualification({
+  ...publicationInput,
+  currentA100CustomerDispatchReadinessRef:
+    ref('missing-current-a100-readiness'),
 }, dependencies))
 checks += 1
 await assert.rejects(publishTrackAllSam31OrchestraQualification({
@@ -355,7 +454,10 @@ const packageJson = JSON.parse(readFileSync(
 )) as { scripts?: Record<string, string> }
 check(cliSource.includes('createCanonicalSam31GcpGpuRuntimeReleaseRegistry'))
 check(cliSource.includes(
-  'createCanonicalGcsCurrentGoogleCloudGpuRateAuthorityRepository',
+  'createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository',
+))
+check(cliSource.includes(
+  'createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository',
 ))
 check(cliSource.includes(
   'createCanonicalGcsTrackAllSam31ArtifactRepositoryReleaseRepository',
@@ -373,6 +475,7 @@ console.log(JSON.stringify({
   smoke: 'track-all-sam3_1-orchestra-qualification-publisher',
   checks,
   exactA100AndIndependentL4Sam31ReleaseReread: true,
+  exactCurrentA100EndpointReadinessCapacityAndRateReread: true,
   exactL4TaskQaImageDeploymentScaleZeroAndRateReread: true,
   exactBillingAccountEffectiveA100L4AndTaskQaRateReread: true,
   exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
@@ -493,7 +596,7 @@ function rawRate(
     currency: 'USD' as const,
     components,
     priceRecordSetRef: ref(`price-record-set-${routeId}`),
-    pricingReadStartedAt: '2026-08-05T12:14:50.000Z',
+    pricingReadStartedAt: '2026-08-11T12:01:50.000Z',
     pricingReadFinishedAt: observedAt,
   }
   return {
@@ -556,7 +659,11 @@ function rateComponent(
   }
 }
 
-function rateRef(authority: CanonicalCurrentGoogleCloudGpuRateAuthority) {
+function rateRef(authority: {
+  readonly rateAuthorityId: string
+  readonly rateAuthorityVersion: number
+  readonly rateAuthorityHash: string
+}) {
   return {
     id: authority.rateAuthorityId,
     version: authority.rateAuthorityVersion,

@@ -23,7 +23,9 @@ import {
 } from '../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-repository'
 import {
   assertCanonicalCurrentGoogleCloudVertexA100ServingRatePublicationReceipt,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRatePublicationReceiptV2,
   publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-publisher'
 import {
   sealCanonicalSam31VertexServingCapacityObservation,
@@ -136,7 +138,7 @@ const capacity = sealCanonicalSam31VertexServingCapacityObservation({
   expiresAt: '2026-08-11T12:14:00.000Z',
 })
 const capacityAwareRequests: string[] = []
-const capacityAwareAuthority =
+export const capacityAwareAuthority =
   await observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2({
     rateAuthorityId: 'vertex-a100-serving-rate:capacity-aware-smoke',
     rateAuthorityVersion: 2,
@@ -215,10 +217,46 @@ const reread = await repository.reread({
 assert.ok(reread)
 assert.equal(reread.rateAuthorityHash,
   receipt.rateAuthorityRef.contentHash.slice('sha256:'.length))
+const capacityAwarePublished = await repository.persistCreateOnly({
+  authority: capacityAwareAuthority,
+  publishedAt: '2026-08-11T12:00:02.000Z',
+})
+assert.equal(capacityAwarePublished.disposition, 'created')
+const capacityAwareReread = await repository.reread({
+  rateAuthorityRef: capacityAwarePublished.rateAuthorityRef,
+  at: '2026-08-11T12:01:00.000Z',
+})
+assert.equal(capacityAwareReread?.schemaVersion,
+  'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2')
+assert.equal(capacityAwareReread?.maximumReplicaCount, 16)
+clockIndex = 0
+const capacityAwareReceipt =
+  await publishCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2({
+    publicationId: 'vertex-a100-serving-capacity-aware-20260811T120000Z',
+    publicationVersion: 2,
+    readPort:
+      createGoogleCloudAccountEffectiveVertexA100ServingRateReadPort({
+        configuration,
+        auth: fakeAuth([]),
+        now: () => new Date(clockIndex++ === 0 ? STARTED_AT : FINISHED_AT),
+      }),
+    capacityObservation: capacity,
+    repository,
+    now: () => new Date('2026-08-11T12:00:02.000Z'),
+  })
+assert.deepEqual(
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRatePublicationReceiptV2(
+    capacityAwareReceipt,
+  ),
+  capacityAwareReceipt,
+)
+assert.equal(capacityAwareReceipt.maximumReplicaCount, 16)
+assert.equal(capacityAwareReceipt.maximumConcurrentInvocations, 16)
+assert.equal(capacityAwareReceipt.exactCurrentEndpointCapacityReread, true)
 
 console.log(JSON.stringify({
   smoke: 'canonical-current-google-cloud-vertex-a100-serving-rate-authority',
-  checks: 47,
+  checks: 55,
   exactOnlinePredictionUsageSkus: true,
   exactVertexManagementFeeSkus: true,
   trainingAndComputeSkuReuseRejected: true,

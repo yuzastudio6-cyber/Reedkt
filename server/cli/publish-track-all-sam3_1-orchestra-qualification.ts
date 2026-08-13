@@ -11,6 +11,13 @@ import {
   createCanonicalGcsCurrentGoogleCloudGpuRateAuthorityRepository,
 } from '../services/canonical-current-google-cloud-gpu-rate-authority-repository'
 import {
+  createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository,
+} from '../services/canonical-current-google-cloud-vertex-a100-serving-rate-authority-repository'
+import {
+  createCanonicalGcsAtomicCurrentJsonPointerPort,
+  createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository,
+} from '../services/canonical-sam3_1-current-a100-customer-dispatch-readiness-repository'
+import {
   createCanonicalSam31GcpGpuRuntimeReleaseRegistry,
 } from '../services/canonical-sam3_1-gpu-runtime-release-registry'
 import {
@@ -36,6 +43,7 @@ const configuration = z.object({
   GOOGLE_CLOUD_PROJECT_ID: z.literal(PROJECT_ID),
   GCS_CONTROL_PLANE_STATE_BUCKET: z.literal(CONTROL_PLANE_STATE_BUCKET),
   WEEDITPRO_TRACK_ALL_A100_RUNTIME_RELEASE_REF: refText,
+  WEEDITPRO_TRACK_ALL_CURRENT_A100_DISPATCH_READINESS_REF: refText,
   WEEDITPRO_TRACK_ALL_L4_FALLBACK_RUNTIME_RELEASE_REF: refText,
   WEEDITPRO_TRACK_ALL_A100_RATE_AUTHORITY_REF: refText,
   WEEDITPRO_TRACK_ALL_L4_FALLBACK_RATE_AUTHORITY_REF: refText,
@@ -48,6 +56,8 @@ const configuration = z.object({
     process.env.GCS_CONTROL_PLANE_STATE_BUCKET,
   WEEDITPRO_TRACK_ALL_A100_RUNTIME_RELEASE_REF:
     process.env.WEEDITPRO_TRACK_ALL_A100_RUNTIME_RELEASE_REF,
+  WEEDITPRO_TRACK_ALL_CURRENT_A100_DISPATCH_READINESS_REF:
+    process.env.WEEDITPRO_TRACK_ALL_CURRENT_A100_DISPATCH_READINESS_REF,
   WEEDITPRO_TRACK_ALL_L4_FALLBACK_RUNTIME_RELEASE_REF:
     process.env.WEEDITPRO_TRACK_ALL_L4_FALLBACK_RUNTIME_RELEASE_REF,
   WEEDITPRO_TRACK_ALL_A100_RATE_AUTHORITY_REF:
@@ -71,6 +81,9 @@ const controlPlaneObjectPort = createCanonicalGcsSourceAnalysisJsonObjectPort({
 const receipt = await publishTrackAllSam31OrchestraQualification({
   a100RuntimeReleaseRef: parseRef(
     configuration.WEEDITPRO_TRACK_ALL_A100_RUNTIME_RELEASE_REF,
+  ),
+  currentA100CustomerDispatchReadinessRef: parseRef(
+    configuration.WEEDITPRO_TRACK_ALL_CURRENT_A100_DISPATCH_READINESS_REF,
   ),
   l4FallbackRuntimeReleaseRef: parseRef(
     configuration.WEEDITPRO_TRACK_ALL_L4_FALLBACK_RUNTIME_RELEASE_REF,
@@ -104,6 +117,20 @@ const receipt = await publishTrackAllSam31OrchestraQualification({
       storage,
       projectId: configuration.GOOGLE_CLOUD_PROJECT_ID,
       bucketName: configuration.GCS_CONTROL_PLANE_STATE_BUCKET,
+    }),
+  a100ServingRateAuthorityRepository:
+    createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository({
+      storage,
+      projectId: configuration.GOOGLE_CLOUD_PROJECT_ID,
+      bucketName: configuration.GCS_CONTROL_PLANE_STATE_BUCKET,
+    }),
+  currentA100ReadinessRepository:
+    createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository({
+      objectPort: controlPlaneObjectPort,
+      currentPointerPort: createCanonicalGcsAtomicCurrentJsonPointerPort({
+        storage,
+        bucketName: configuration.GCS_CONTROL_PLANE_STATE_BUCKET,
+      }),
     }),
   artifactRepositoryReleaseReadPort:
     createCanonicalGcsTrackAllSam31ArtifactRepositoryReleaseRepository({

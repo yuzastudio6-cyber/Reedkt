@@ -5,8 +5,11 @@ import { z } from 'zod'
 
 import {
   assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
   canonicalCurrentGoogleCloudVertexA100ServingRateAuthoritySchema,
+  canonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2Schema,
   type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
@@ -24,6 +27,8 @@ export const CANONICAL_CURRENT_GOOGLE_CLOUD_VERTEX_A100_SERVING_RATE_AUTHORITY_R
   'canonical-current-google-cloud-vertex-a100-serving-rate-authority-repository-v1' as const
 const RECORD_VERSION =
   'canonical-current-google-cloud-vertex-a100-serving-rate-authority-record-v1' as const
+const RECORD_V2_VERSION =
+  'canonical-current-google-cloud-vertex-a100-serving-rate-authority-record-v2' as const
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_STATE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
@@ -44,6 +49,9 @@ const refSchema = z.object({
   version: z.number().int().positive().safe(),
   contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
 }).strict()
+type ServingRateAuthority =
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
 const recordWithoutHashSchema = z.object({
   schemaVersion: z.literal(RECORD_VERSION),
   source: z.literal(
@@ -60,14 +68,20 @@ const recordWithoutHashSchema = z.object({
   productionAuthorityGranted: z.literal(false),
   publishedAt: timestamp,
 }).strict()
+const recordV2WithoutHashSchema = recordWithoutHashSchema.extend({
+  schemaVersion: z.literal(RECORD_V2_VERSION),
+  authority: canonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2Schema,
+}).strict()
 const recordSchema = recordWithoutHashSchema.extend({ recordHash: sha256 })
   .strict()
-type RecordValue = z.infer<typeof recordSchema>
+const recordV2Schema = recordV2WithoutHashSchema.extend({ recordHash: sha256 })
+  .strict()
+const anyRecordSchema = z.union([recordV2Schema, recordSchema])
+type RecordValue = z.infer<typeof anyRecordSchema>
 
 export interface CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository {
   persistCreateOnly(input: {
-    readonly authority:
-      CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+    readonly authority: ServingRateAuthority
     readonly publishedAt: string
   }): Promise<{
     readonly disposition: 'created' | 'identical_replay'
@@ -76,7 +90,7 @@ export interface CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityReposi
   reread(input: {
     readonly rateAuthorityRef: z.infer<typeof refSchema>
     readonly at: string
-  }): Promise<CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority | null>
+  }): Promise<ServingRateAuthority | null>
 }
 
 export function createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository(
@@ -97,13 +111,16 @@ export function createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityR
         authority: z.unknown(),
         publishedAt: timestamp,
       }).strict().parse(untrusted)
-      const authority =
-        assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
-          request.authority,
-          request.publishedAt,
-        )
-      const payload = recordWithoutHashSchema.parse({
-        schemaVersion: RECORD_VERSION,
+      const authority = assertServingRateAuthority(
+        request.authority,
+        request.publishedAt,
+      )
+      const v2 = authority.schemaVersion ===
+        'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2'
+      const payload = (v2
+        ? recordV2WithoutHashSchema
+        : recordWithoutHashSchema).parse({
+        schemaVersion: v2 ? RECORD_V2_VERSION : RECORD_VERSION,
         source:
           'canonical_server_vertex_a100_serving_account_effective_rate_repository',
         evidenceClass: 'gcs_create_only_exact_reread',
@@ -117,7 +134,7 @@ export function createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityR
         productionAuthorityGranted: false,
         publishedAt: request.publishedAt,
       })
-      const record = recordSchema.parse({
+      const record = (v2 ? recordV2Schema : recordSchema).parse({
         ...payload,
         recordHash: sha256AuthorityValue(payload),
       })
@@ -154,11 +171,10 @@ export function createCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityR
       const record = await readRecord(input.objectPort, prefix,
         request.rateAuthorityRef)
       if (!record) return null
-      const authority =
-        assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
-          record.authority,
-          request.at,
-        )
+      const authority = assertServingRateAuthority(
+        record.authority,
+        request.at,
+      )
       if (stableAuthorityStringify(authorityRef(authority)) !==
         stableAuthorityStringify(request.rateAuthorityRef)) {
         throw new Error('Vertex A100 serving rate reference changed.')
@@ -190,13 +206,31 @@ export function createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthori
 }
 
 function authorityRef(
-  authority: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  authority: ServingRateAuthority,
 ) {
   return refSchema.parse({
     id: authority.rateAuthorityId,
     version: authority.rateAuthorityVersion,
     contentHash: `sha256:${authority.rateAuthorityHash}`,
   })
+}
+
+function assertServingRateAuthority(
+  value: unknown,
+  at: string,
+): ServingRateAuthority {
+  if (value && typeof value === 'object'
+    && Reflect.get(value, 'schemaVersion') ===
+      'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2') {
+    return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+      value,
+      at,
+    )
+  }
+  return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
+    value,
+    at,
+  )
 }
 
 async function readRecord(
@@ -218,7 +252,7 @@ async function readRecord(
     throw new Error('Vertex A100 serving rate record JSON is invalid.')
   }
   assertPlainSerializedData(decoded, 'vertex_a100_serving_rate_record')
-  const record = recordSchema.parse(decoded)
+  const record = anyRecordSchema.parse(decoded)
   const { recordHash, ...payload } = record
   if (recordHash !== sha256AuthorityValue(payload)
     || stableAuthorityStringify(record) !== raw

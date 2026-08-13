@@ -46,7 +46,13 @@ import type {
 } from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import type {
   CanonicalSam31CurrentVertexCustomerInvocationPort,
-  CanonicalSam31CurrentVertexCustomerInvocationResult,
+} from './canonical-sam3_1-current-vertex-serving-invocation-service'
+import {
+  assertCanonicalSam31CurrentVertexCustomerCallStart,
+  assertCanonicalSam31CurrentVertexCustomerInvocationAttempt,
+  assertCanonicalSam31CurrentVertexCustomerInvocationResult,
+  type CanonicalSam31CurrentVertexCustomerInvocationRepository,
+  type CanonicalSam31CurrentVertexCustomerInvocationResult,
 } from './canonical-sam3_1-current-vertex-serving-invocation-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_RUNTIME_VERSION =
@@ -188,6 +194,20 @@ export interface CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort {
     readonly idempotencyKey: string
     readonly request: unknown
   }): Promise<TrackAllSam31AuthenticatedGpuInvocationResult>
+}
+
+export interface CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort {
+  readonly schemaVersion:
+    'canonical-track-all-sam3_1-authenticated-gpu-invocation-result-read-v1'
+  readonly canonicalRepositoryRereadOnly: true
+  readonly directGpuInvocationAllowed: false
+  readonly automaticRetryAllowed: false
+  rereadApprovedTrackAllWorkResult(input: {
+    readonly authenticatedOwnerUserId: string
+    readonly workspaceId: string
+    readonly idempotencyKey: string
+    readonly request: unknown
+  }): Promise<TrackAllSam31AuthenticatedGpuInvocationResult | null>
 }
 
 type AuthenticatedStartInput = Parameters<
@@ -568,6 +588,165 @@ export function createCanonicalTrackAllSam31AuthenticatedGpuInvocationRuntime(
         invocationId,
         dispatchAdmissionDigestSha256: toolAdmission.admissionHash,
       })
+      return buildInvocationResult({
+        request,
+        workspaceId: trusted.workspaceId,
+        prelaunch,
+        launchBinding,
+        invoked,
+      })
+    },
+  })
+}
+
+/**
+ * Read-only projection of the current dedicated-endpoint outcome. This never
+ * starts or retries inference; the durable Cloud Task consumer remains the
+ * sole caller of the invocation runtime.
+ */
+export function createCanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort(
+  input: {
+    readonly fundedLifecycleReadPort:
+      Pick<CanonicalProfessionalGpuFundedJobLifecycleStore,
+        'rereadPrelaunchAuthorization' | 'rereadLaunchBinding'>
+    readonly attemptStartReadPort:
+      CanonicalProfessionalGpuAttemptStartAuthorityReadPort
+    readonly invocationRepository: Pick<
+      CanonicalSam31CurrentVertexCustomerInvocationRepository,
+      'rereadAttempt' | 'rereadCallStart' | 'rereadUnknown' | 'rereadTerminal'
+    >
+    readonly now?: () => string
+  },
+): CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort {
+  const now = input.now ?? (() => new Date().toISOString())
+  return Object.freeze({
+    schemaVersion:
+      'canonical-track-all-sam3_1-authenticated-gpu-invocation-result-read-v1' as const,
+    canonicalRepositoryRereadOnly: true as const,
+    directGpuInvocationAllowed: false as const,
+    automaticRetryAllowed: false as const,
+    async rereadApprovedTrackAllWorkResult(
+      untrusted: AuthenticatedInvocationInput,
+    ) {
+      assertPlainSerializedData(untrusted,
+        'track_all_sam31_authenticated_invocation_result_read')
+      const trusted = authenticatedStartInputSchema.parse(untrusted)
+      const request = parseTrackAllSam31AuthenticatedGpuInvocationRequest(
+        trusted.request,
+      )
+      if (request.requestId !== trusted.idempotencyKey) {
+        throw new TypeError(
+          'Track All SAM 3.1 result read differs from its idempotency key.',
+        )
+      }
+      const at = z.string().datetime({ offset: true }).parse(now())
+      const attempt = assertCanonicalProfessionalGpuAttemptStartAuthority(
+        await input.attemptStartReadPort.rereadCreateOnlyAttemptStart({
+          workspaceId: trusted.workspaceId,
+          snapshotId: request.approvedSnapshotId,
+          workItemKey: request.workItemKey,
+          at,
+        }),
+        at,
+      )
+      if (attempt.scope.ownerUserId !== trusted.authenticatedOwnerUserId
+        || attempt.scope.workspaceId !== trusted.workspaceId
+        || attempt.approvedSnapshotRef.id !== request.approvedSnapshotId
+        || attempt.idempotencyKey !== trusted.idempotencyKey
+        || attempt.routeId !== 'a100_80gb_heavy_primary'
+        || attempt.attemptOrdinal !== 1) {
+        throw new TypeError(
+          'Track All SAM 3.1 result read is not the authenticated A100 attempt.',
+        )
+      }
+      const identity = createCanonicalProfessionalGpuFundedLifecycleIdentity({
+        attemptStartAuthority: attempt,
+      })
+      const [rawPrelaunch, rawLaunchBinding] = await Promise.all([
+        input.fundedLifecycleReadPort.rereadPrelaunchAuthorization({
+          prelaunchAuthorizationId: identity.prelaunchAuthorizationId,
+        }),
+        input.fundedLifecycleReadPort.rereadLaunchBinding({
+          launchBindingId: identity.launchBindingId,
+        }),
+      ])
+      if (rawPrelaunch === null || rawLaunchBinding === null) return null
+      const prelaunch = assertCanonicalProfessionalGpuFundedPrelaunch(
+        rawPrelaunch,
+      )
+      const launchBinding = assertCanonicalProfessionalGpuFundedLaunchBinding(
+        rawLaunchBinding,
+      )
+      const toolAdmission = prelaunch.fundedDispatchAdmission
+        .toolDispatchAdmission
+      if (prelaunch.attemptStartAuthorityRef.id !==
+        attempt.attemptAuthorityId
+        || prelaunch.attemptStartAuthorityRef.contentHash !==
+          `sha256:${attempt.attemptAuthorityHash}`
+        || launchBinding.prelaunchAuthorizationRef.id !==
+          prelaunch.prelaunchAuthorizationId
+        || launchBinding.prelaunchAuthorizationRef.contentHash !==
+          `sha256:${prelaunch.prelaunchAuthorizationHash}`
+        || launchBinding.routeId !== 'a100_80gb_heavy_primary'
+        || launchBinding.accelerator !== 'nvidia_a100_80gb'
+        || launchBinding.launchDisposition !==
+          'job_rejected_before_creation'
+        || launchBinding.providerInferenceOrSubstantiveWorkKnownExecuted !==
+          'not_executed'
+        || toolAdmission.scope.ownerUserId !== trusted.authenticatedOwnerUserId
+        || toolAdmission.scope.workspaceId !== trusted.workspaceId
+        || toolAdmission.scope.executionAttemptRef.id !==
+          attempt.executionAttemptRef.id
+        || toolAdmission.scope.executionAttemptRef.contentHash !==
+          attempt.executionAttemptRef.contentHash) {
+        throw new TypeError(
+          'Track All SAM 3.1 invocation result authority lineage changed.',
+        )
+      }
+      const invocationId = `${toolAdmission.admissionId}.execution-envelope`
+      const [rawAttempt, rawCallStart, rawTerminal, rawUnknown] =
+        await Promise.all([
+          input.invocationRepository.rereadAttempt({ invocationId }),
+          input.invocationRepository.rereadCallStart({ invocationId }),
+          input.invocationRepository.rereadTerminal({ invocationId }),
+          input.invocationRepository.rereadUnknown({ invocationId }),
+        ])
+      if (rawTerminal !== null && rawUnknown !== null) {
+        throw new TypeError(
+          'Track All SAM 3.1 invocation has conflicting terminal records.',
+        )
+      }
+      const rawResult = rawTerminal ?? rawUnknown
+      if (rawResult === null) return null
+      if (rawAttempt === null || rawCallStart === null) {
+        throw new TypeError(
+          'Track All SAM 3.1 invocation result lost attempt lineage.',
+        )
+      }
+      const endpointAttempt =
+        assertCanonicalSam31CurrentVertexCustomerInvocationAttempt(rawAttempt)
+      const callStart =
+        assertCanonicalSam31CurrentVertexCustomerCallStart(rawCallStart)
+      const invoked =
+        assertCanonicalSam31CurrentVertexCustomerInvocationResult(rawResult)
+      if (endpointAttempt.invocationId !== invocationId
+        || callStart.invocationId !== invocationId
+        || invoked.invocationId !== invocationId
+        || endpointAttempt.dispatchAdmissionDigestSha256 !==
+          toolAdmission.admissionHash
+        || invoked.attemptRef.id !== endpointAttempt.invocationId
+        || invoked.attemptRef.contentHash !==
+          `sha256:${endpointAttempt.attemptHash}`
+        || invoked.callStartRef.id !== callStart.invocationId
+        || invoked.callStartRef.contentHash !==
+          `sha256:${callStart.callStartHash}`
+        || invoked.executionAttemptRef.id !== attempt.executionAttemptRef.id
+        || invoked.executionAttemptRef.contentHash !==
+          attempt.executionAttemptRef.contentHash) {
+        throw new TypeError(
+          'Track All SAM 3.1 invocation result repository lineage changed.',
+        )
+      }
       return buildInvocationResult({
         request,
         workspaceId: trusted.workspaceId,

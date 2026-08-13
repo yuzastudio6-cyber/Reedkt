@@ -14,8 +14,13 @@ import {
 import {
   buildTrackAllSam31AuthenticatedGpuInvocationRequest,
   parseTrackAllSam31AuthenticatedGpuInvocationResult,
-  type CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
+  type CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort,
 } from './canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  buildTrackAllSam31AuthenticatedGpuQueuedStartRequest,
+  parseTrackAllSam31AuthenticatedGpuQueuedStartResult,
+  type CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
+} from './canonical-track-all-sam3_1-queued-gpu-start-service'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -41,7 +46,7 @@ export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CHUNK_PLAN_VERSION =
 export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CHUNK_RECEIPT_VERSION =
   'canonical-sam3_1-complete-source-chunk-receipt-v1' as const
 export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CHUNK_COORDINATOR_VERSION =
-  'canonical-sam3_1-complete-source-chunk-coordinator-v1' as const
+  'canonical-sam3_1-complete-source-chunk-coordinator-v2' as const
 
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/complete-source-groups'
@@ -214,10 +219,11 @@ export interface CanonicalSam31CurrentServingPrivateOutputRereadPort {
 
 export interface CanonicalSam31CompleteSourceChunkAdvanceResult {
   readonly schemaVersion:
-    'canonical-sam3_1-complete-source-chunk-advance-result-v1'
+    'canonical-sam3_1-complete-source-chunk-advance-result-v2'
   readonly executionGroupRef: EvidenceRef
   readonly disposition:
     | 'chunk_completed_more_pending'
+    | 'chunk_queued_waiting_for_terminal'
     | 'complete_source_execution_ready'
     | 'blocked_attempt_failed'
     | 'blocked_not_executed_scale_from_zero'
@@ -226,7 +232,8 @@ export interface CanonicalSam31CompleteSourceChunkAdvanceResult {
   readonly exactChunkCount: number
   readonly nextChunkOrdinal: number | null
   readonly latestChunkReceiptRef: EvidenceRef | null
-  readonly invocationRuntimeCalledByCoordinator: boolean
+  readonly durableQueueAdmissionRequestedByCoordinator: boolean
+  readonly directGpuInvocationStartedByCoordinator: false
   readonly automaticProviderRetryStarted: false
   readonly customerCreditsMutated: false
   readonly qaApproved: false
@@ -439,8 +446,10 @@ export function createCanonicalSam31CompleteSourceChunkRepository(input: {
 
 export function createCanonicalSam31CompleteSourceChunkCoordinator(input: {
   readonly repository: CanonicalSam31CompleteSourceChunkRepository
-  readonly invocationRuntime:
-    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  readonly queuedStartRuntime:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
+  readonly invocationResultReadPort:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort
   readonly taskStore: Pick<
     CanonicalSam31GpuTaskStore, 'rereadTask' | 'rereadRuntimeResponse'
   >
@@ -491,19 +500,40 @@ export function createCanonicalSam31CompleteSourceChunkCoordinator(input: {
           approvedSnapshotId: plan.approvedSnapshotRef.id,
           workItemKey: chunk.workItemKey,
         })
-      const invocationResult =
-        parseTrackAllSam31AuthenticatedGpuInvocationResult(
-          await input.invocationRuntime.invokeApprovedTrackAllWork({
+      const rawInvocationResult = await input.invocationResultReadPort
+        .rereadApprovedTrackAllWorkResult({
+          authenticatedOwnerUserId: plan.ownerUserId,
+          workspaceId: plan.workspaceId,
+          idempotencyKey: chunk.requestId,
+          request: invocationRequest,
+        })
+      if (rawInvocationResult === null) {
+        const queueRequest =
+          buildTrackAllSam31AuthenticatedGpuQueuedStartRequest({
+            requestId: chunk.requestId,
+            approvedSnapshotId: plan.approvedSnapshotRef.id,
+            workItemKey: chunk.workItemKey,
+          })
+        const queued = parseTrackAllSam31AuthenticatedGpuQueuedStartResult(
+          await input.queuedStartRuntime.enqueueApprovedTrackAllWork({
             authenticatedOwnerUserId: plan.ownerUserId,
             workspaceId: plan.workspaceId,
             idempotencyKey: chunk.requestId,
-            request: invocationRequest,
+            request: queueRequest,
           }),
+        )
+        assertQueueScope(plan, chunk, queueRequest, queued)
+        return advanceResult(plan, receipts,
+          'chunk_queued_waiting_for_terminal', true)
+      }
+      const invocationResult =
+        parseTrackAllSam31AuthenticatedGpuInvocationResult(
+          rawInvocationResult,
         )
       assertInvocationScope(plan, chunk, invocationRequest, invocationResult)
       if (invocationResult.invocationDisposition !== 'completed') {
         return advanceResult(plan, receipts,
-          blockedDisposition(invocationResult), true)
+          blockedDisposition(invocationResult), false)
       }
       const invocationId = invocationResult.endpointInvocationResultRef.id
       const task = assertCanonicalSam31GpuTaskRecord(
@@ -562,7 +592,7 @@ export function createCanonicalSam31CompleteSourceChunkCoordinator(input: {
         nextReceipts.length === plan.exactChunkCount
           ? 'complete_source_execution_ready'
           : 'chunk_completed_more_pending',
-        true,
+        false,
       )
     },
   }
@@ -675,6 +705,38 @@ function assertPriorBoundary(
   if (!exact) throw new Error('SAM 3.1 prior chunk boundary is incomplete.')
 }
 
+function assertQueueScope(
+  plan: CanonicalSam31CompleteSourceChunkPlan,
+  chunk: z.infer<typeof chunkSchema>,
+  request: ReturnType<
+    typeof buildTrackAllSam31AuthenticatedGpuQueuedStartRequest
+  >,
+  result: ReturnType<
+    typeof parseTrackAllSam31AuthenticatedGpuQueuedStartResult
+  >,
+): void {
+  const exact = result.workspaceId === plan.workspaceId
+    && result.approvedSnapshotId === plan.approvedSnapshotRef.id
+    && result.workItemKey === chunk.workItemKey
+    && sameRef(result.requestRef,
+      ref(request.requestId, request.requestDigestSha256))
+    && result.routeId === 'a100_80gb_heavy_primary'
+    && result.accelerator === 'nvidia_a100_80gb'
+    && result.queueId === 'weeditpro-professional-gpu-production-v1'
+    && result.runtimeRegion === 'us-central1'
+    && result.minimumIdleGpuInstances === 0
+    && result.userTriggeredScaleFromZero
+    && result.durablePostgresQueueAdmissionCommitted
+    && result.schedulerOwnsCloudTaskDispatch
+    && result.taskConsumerMustRereadFundingTaskAndRuntimeAuthorities
+    && !result.directGpuInvocationStartedByRequest
+    && !result.cloudTaskCreationStartedByRequest
+    && !result.customerCreditsMutated
+    && !result.qaApproved
+    && !result.productionAuthorityGranted
+  if (!exact) throw new Error('SAM 3.1 chunk queue scope changed.')
+}
+
 function assertInvocationScope(
   plan: CanonicalSam31CompleteSourceChunkPlan,
   chunk: z.infer<typeof chunkSchema>,
@@ -785,12 +847,12 @@ function advanceResult(
   plan: CanonicalSam31CompleteSourceChunkPlan,
   receipts: readonly CanonicalSam31CompleteSourceChunkReceipt[],
   disposition: CanonicalSam31CompleteSourceChunkAdvanceResult['disposition'],
-  invocationRuntimeCalledByCoordinator: boolean,
+  durableQueueAdmissionRequestedByCoordinator: boolean,
 ): CanonicalSam31CompleteSourceChunkAdvanceResult {
   const complete = receipts.length === plan.exactChunkCount
   return Object.freeze({
     schemaVersion:
-      'canonical-sam3_1-complete-source-chunk-advance-result-v1' as const,
+      'canonical-sam3_1-complete-source-chunk-advance-result-v2' as const,
     executionGroupRef: canonicalSam31CompleteSourceChunkPlanRef(plan),
     disposition,
     completedChunkCount: receipts.length,
@@ -798,7 +860,8 @@ function advanceResult(
     nextChunkOrdinal: complete ? null : receipts.length + 1,
     latestChunkReceiptRef: receipts.length === 0 ? null
       : canonicalSam31CompleteSourceChunkReceiptRef(receipts.at(-1)!),
-    invocationRuntimeCalledByCoordinator,
+    durableQueueAdmissionRequestedByCoordinator,
+    directGpuInvocationStartedByCoordinator: false as const,
     automaticProviderRetryStarted: false as const,
     customerCreditsMutated: false as const,
     qaApproved: false as const,
@@ -902,8 +965,10 @@ async function readExact<T>(input: {
 
 function assertCoordinatorPorts(input: {
   repository: CanonicalSam31CompleteSourceChunkRepository
-  invocationRuntime:
-    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  queuedStartRuntime:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
+  invocationResultReadPort:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort
   taskStore: Pick<
     CanonicalSam31GpuTaskStore, 'rereadTask' | 'rereadRuntimeResponse'
   >
@@ -918,7 +983,10 @@ function assertCoordinatorPorts(input: {
   if (typeof input.repository?.rereadPlan !== 'function'
     || typeof input.repository?.rereadChunkReceipt !== 'function'
     || typeof input.repository?.persistChunkReceiptCreateOnly !== 'function'
-    || typeof input.invocationRuntime?.invokeApprovedTrackAllWork !== 'function'
+    || typeof input.queuedStartRuntime
+      ?.enqueueApprovedTrackAllWork !== 'function'
+    || typeof input.invocationResultReadPort
+      ?.rereadApprovedTrackAllWorkResult !== 'function'
     || typeof input.taskStore?.rereadTask !== 'function'
     || typeof input.taskStore?.rereadRuntimeResponse !== 'function'
     || typeof input.resultStore

@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v25')
+  'canonical-track-all-sam3_1-production-runtime-v26')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -66,7 +66,7 @@ assert.equal(
 )
 assert.equal(
   runtime.sam31CompleteSourceChunkCoordinator.schemaVersion,
-  'canonical-sam3_1-complete-source-chunk-coordinator-v1',
+  'canonical-sam3_1-complete-source-chunk-coordinator-v2',
 )
 assert.equal(
   runtime.sam31CompleteSourceChunkCoordinator.oneChunkAdvancedPerCall,
@@ -76,6 +76,10 @@ assert.equal(
   runtime.sam31CompleteSourceChunkCoordinator
     .restartSafeCreateOnlyReplay,
   true,
+)
+assert.equal(
+  runtime.sam31CompleteSourceChunkCoordinator.directGpuOrProviderPortExposed,
+  false,
 )
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
@@ -369,7 +373,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 115,
+  checks: 116,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,

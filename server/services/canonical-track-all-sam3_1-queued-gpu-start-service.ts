@@ -55,6 +55,54 @@ const requestWithoutDigestSchema = z.object({
 const requestSchema = requestWithoutDigestSchema.extend({
   requestDigestSha256: sha256,
 }).strict()
+const evidenceRefSchema = z.object({
+  id: safeId,
+  version: z.number().int().positive().safe(),
+  contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+}).strict()
+const resultWithoutDigestSchema = z.object({
+  schemaVersion: z.literal(
+    TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_QUEUED_START_RESULT_VERSION,
+  ),
+  requestRef: evidenceRefSchema,
+  workspaceId: safeId,
+  projectId: safeId,
+  approvedSnapshotId: safeId,
+  workItemKey: safeId,
+  fundedDispatchAdmissionRef: evidenceRefSchema,
+  prelaunchAuthorizationRef: evidenceRefSchema,
+  fixedTaskPreparationBridgeRef: evidenceRefSchema,
+  executionAttemptRef: evidenceRefSchema,
+  userTriggerRecordRef: evidenceRefSchema,
+  queueEntryRef: evidenceRefSchema,
+  queueTransactionRef: evidenceRefSchema,
+  queueDisposition: z.enum([
+    'queued', 'queued_replay', 'active_replay', 'terminal_replay',
+  ]),
+  routeId: z.literal('a100_80gb_heavy_primary'),
+  accelerator: z.literal('nvidia_a100_80gb'),
+  queueId: z.literal(CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_GPU_QUEUE_ID),
+  runtimeRegion: z.literal(
+    CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_GPU_QUEUE_REGION,
+  ),
+  minimumIdleGpuInstances: z.literal(0),
+  userTriggeredScaleFromZero: z.literal(true),
+  a100HeavyPrimaryAndSeparatelyQualifiedL4Fallback: z.literal(true),
+  durablePostgresQueueAdmissionCommitted: z.literal(true),
+  schedulerOwnsCloudTaskDispatch: z.literal(true),
+  taskConsumerMustRereadFundingTaskAndRuntimeAuthorities: z.literal(true),
+  directGpuInvocationStartedByRequest: z.literal(false),
+  cloudTaskCreationStartedByRequest: z.literal(false),
+  callerSuppliedMediaPromptQueuePriorityCapacityRouteModelImageCommandOrPriceAccepted:
+    z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+}).strict()
+const resultSchema = resultWithoutDigestSchema.extend({
+  resultDigestSha256: sha256,
+}).strict()
 const runtimeInputSchema = z.object({
   authenticatedOwnerUserId: safeId,
   workspaceId: safeId,
@@ -118,6 +166,18 @@ export function parseTrackAllSam31AuthenticatedGpuQueuedStartRequest(
     throw new TypeError('Track All SAM 3.1 queued-start digest is invalid.')
   }
   return structuredClone(request)
+}
+
+export function parseTrackAllSam31AuthenticatedGpuQueuedStartResult(
+  value: unknown,
+): TrackAllSam31AuthenticatedGpuQueuedStartResult {
+  assertPlainSerializedData(value, 'track_all_sam31_gpu_queued_start_result')
+  const result = resultSchema.parse(value)
+  const { resultDigestSha256, ...payload } = result
+  if (resultDigestSha256 !== sha256AuthorityValue(payload)) {
+    throw new TypeError('Track All SAM 3.1 queued-start result changed.')
+  }
+  return structuredClone(result)
 }
 
 /**

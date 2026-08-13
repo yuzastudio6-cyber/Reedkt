@@ -89,6 +89,7 @@ import {
 } from './canonical-sam3_1-prepared-mask-proxy-repository'
 import {
   createCanonicalTrackAllSam31AuthenticatedGpuInvocationRuntime,
+  createCanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort,
   createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime,
   type CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
   type CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
@@ -227,7 +228,7 @@ import {
 } from './canonical-sam3_1-complete-source-chunk-coordinator'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v25' as const
+  'canonical-track-all-sam3_1-production-runtime-v26' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -768,14 +769,6 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       attemptStartReadPort: fundedStartAuthorityStore,
       currentVertexInvocationPort,
     })
-  const sam31CompleteSourceChunkCoordinator =
-    createCanonicalSam31CompleteSourceChunkCoordinator({
-      repository: sam31CompleteSourceChunkRepository,
-      invocationRuntime: authenticatedInvocationRuntime,
-      taskStore,
-      resultStore: sam31RuntimeResultStore,
-      privateOutputRereadPort: sam31PrivateOutputRereadPort,
-    })
   const professionalGpuCloudTaskConsumer =
     (() => {
       const terminalAttemptOwner =
@@ -818,6 +811,21 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       fundedLifecycleReadPort: lifecycleStore,
       attemptStartReadPort: fundedStartAuthorityStore,
       queueTransactionAdapter: gpuQueueTransactionAdapter,
+    })
+  const authenticatedInvocationResultReadPort =
+    createCanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort({
+      fundedLifecycleReadPort: lifecycleStore,
+      attemptStartReadPort: fundedStartAuthorityStore,
+      invocationRepository: currentVertexInvocationRepository,
+    })
+  const sam31CompleteSourceChunkCoordinator =
+    createCanonicalSam31CompleteSourceChunkCoordinator({
+      repository: sam31CompleteSourceChunkRepository,
+      queuedStartRuntime: queuedGpuStartRuntime,
+      invocationResultReadPort: authenticatedInvocationResultReadPort,
+      taskStore,
+      resultStore: sam31RuntimeResultStore,
+      privateOutputRereadPort: sam31PrivateOutputRereadPort,
     })
   const l4TaskQaAuthenticatedRuntime =
     createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime({

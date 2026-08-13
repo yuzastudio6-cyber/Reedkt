@@ -14,8 +14,12 @@ import {
 } from '../services/canonical-sam3_1-complete-source-chunk-coordinator'
 import {
   parseTrackAllSam31AuthenticatedGpuInvocationRequest,
-  type CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
+  type CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  parseTrackAllSam31AuthenticatedGpuQueuedStartRequest,
+  type CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
+} from '../services/canonical-track-all-sam3_1-queued-gpu-start-service'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -107,10 +111,10 @@ assert.equal(await repository.persistPlanCreateOnly({ plan }),
 const resultStore = createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
   objectPort,
 })
-const invocationCounts = new Map<string, number>()
-const invocationRuntime = fakeInvocationRuntime({
+const queueCounts = new Map<string, number>()
+const queuedPorts = fakeQueuedCoordinatorPorts({
   fixtureByWork,
-  invocationCounts,
+  queueCounts,
 })
 const taskStore = fakeTaskStore(fixtures)
 const privateOutputRereadPort: CanonicalSam31CurrentServingPrivateOutputRereadPort =
@@ -129,7 +133,7 @@ const privateOutputRereadPort: CanonicalSam31CurrentServingPrivateOutputRereadPo
 let nowOrdinal = 0
 const coordinatorInput = {
   repository,
-  invocationRuntime,
+  ...queuedPorts,
   taskStore,
   resultStore,
   privateOutputRereadPort,
@@ -140,42 +144,51 @@ let coordinator = createCanonicalSam31CompleteSourceChunkCoordinator(
   coordinatorInput,
 )
 const planRef = canonicalSam31CompleteSourceChunkPlanRef(plan)
-for (let expected = 1; expected <= 10; expected += 1) {
+const advanceOneChunk = async (expected: number) => {
+  const waiting = await coordinator.advance({
+    authenticatedOwnerUserId: plan.ownerUserId,
+    workspaceId: plan.workspaceId,
+    executionGroupRef: planRef,
+  })
+  assert.equal(waiting.disposition, 'chunk_queued_waiting_for_terminal')
+  assert.equal(waiting.completedChunkCount, expected - 1)
+  assert.equal(waiting.directGpuInvocationStartedByCoordinator, false)
   const progress = await coordinator.advance({
     authenticatedOwnerUserId: plan.ownerUserId,
     workspaceId: plan.workspaceId,
     executionGroupRef: planRef,
   })
   assert.equal(progress.completedChunkCount, expected)
-  assert.equal(progress.nextChunkOrdinal, expected + 1)
-  assert.equal(progress.disposition, 'chunk_completed_more_pending')
+  assert.equal(progress.nextChunkOrdinal,
+    expected === plan.exactChunkCount ? null : expected + 1)
+  assert.equal(progress.disposition,
+    expected === plan.exactChunkCount
+      ? 'complete_source_execution_ready'
+      : 'chunk_completed_more_pending')
+  assert.equal(progress.directGpuInvocationStartedByCoordinator, false)
+  return progress
+}
+for (let expected = 1; expected <= 10; expected += 1) {
+  await advanceOneChunk(expected)
 }
 
 coordinator = createCanonicalSam31CompleteSourceChunkCoordinator(
   coordinatorInput,
 )
-const afterRestart = await coordinator.advance({
-  authenticatedOwnerUserId: plan.ownerUserId,
-  workspaceId: plan.workspaceId,
-  executionGroupRef: planRef,
-})
+const afterRestart = await advanceOneChunk(11)
 assert.equal(afterRestart.completedChunkCount, 11)
-assert.equal(invocationCounts.get(plan.chunks[0]!.requestId), 1)
-assert.equal(invocationCounts.get(plan.chunks[9]!.requestId), 1)
+assert.equal(queueCounts.get(plan.chunks[0]!.requestId), 1)
+assert.equal(queueCounts.get(plan.chunks[9]!.requestId), 1)
 
 let final = afterRestart
-while (final.disposition !== 'complete_source_execution_ready') {
-  final = await coordinator.advance({
-    authenticatedOwnerUserId: plan.ownerUserId,
-    workspaceId: plan.workspaceId,
-    executionGroupRef: planRef,
-  })
+for (let expected = 12; expected <= 49; expected += 1) {
+  final = await advanceOneChunk(expected)
 }
 assert.equal(final.completedChunkCount, 49)
 assert.equal(final.nextChunkOrdinal, null)
 assert.equal(final.latestChunkReceiptRef?.id,
   'sam31-complete-source-group-01:chunk:049')
-assert.equal([...invocationCounts.values()].reduce((sum, value) =>
+assert.equal([...queueCounts.values()].reduce((sum, value) =>
   sum + value, 0), 49)
 
 const replay = await coordinator.advance({
@@ -184,8 +197,9 @@ const replay = await coordinator.advance({
   executionGroupRef: planRef,
 })
 assert.equal(replay.disposition, 'complete_source_execution_ready')
-assert.equal(replay.invocationRuntimeCalledByCoordinator, false)
-assert.equal([...invocationCounts.values()].reduce((sum, value) =>
+assert.equal(replay.directGpuInvocationStartedByCoordinator, false)
+assert.equal(replay.durableQueueAdmissionRequestedByCoordinator, false)
+assert.equal([...queueCounts.values()].reduce((sum, value) =>
   sum + value, 0), 49)
 
 assert.throws(() => buildCanonicalSam31CompleteSourceChunkPlan({
@@ -214,21 +228,30 @@ const blockedRepository = createCanonicalSam31CompleteSourceChunkRepository({
 })
 await blockedRepository.persistPlanCreateOnly({ plan })
 let blockedCalls = 0
+const blockedPorts = fakeQueuedCoordinatorPorts({
+  fixtureByWork,
+  queueCounts: new Map(),
+  resultAfterQueueCall: 1,
+  disposition() {
+    blockedCalls += 1
+    return 'outcome_unknown_requires_reconciliation'
+  },
+})
 const blocked = createCanonicalSam31CompleteSourceChunkCoordinator({
   ...coordinatorInput,
+  ...blockedPorts,
   repository: blockedRepository,
   resultStore: createCanonicalSam31GpuRuntimeResultStoreFromObjectPort({
     objectPort: blockedObjectPort,
   }),
-  invocationRuntime: fakeInvocationRuntime({
-    fixtureByWork,
-    invocationCounts: new Map(),
-    disposition() {
-      blockedCalls += 1
-      return 'outcome_unknown_requires_reconciliation'
-    },
-  }),
 })
+const unknownWaiting = await blocked.advance({
+  authenticatedOwnerUserId: plan.ownerUserId,
+  workspaceId: plan.workspaceId,
+  executionGroupRef: planRef,
+})
+assert.equal(unknownWaiting.disposition,
+  'chunk_queued_waiting_for_terminal')
 const unknown = await blocked.advance({
   authenticatedOwnerUserId: plan.ownerUserId,
   workspaceId: plan.workspaceId,
@@ -249,42 +272,107 @@ console.log(JSON.stringify({
   exactOverlapFrameCount: 1,
   finalPartialChunkFrameCount: 48,
   sequentialPrivateOutputRereadBeforeNextChunk: true,
-  restartSafeReplayWithoutDuplicateInvocation: true,
+  durableQueueBeforeGpuInvocation: true,
+  coordinatorDirectGpuInvocationAllowed: false,
+  restartSafeReplayWithoutDuplicateInference: true,
   unknownOutcomeBlocksWithoutAutomaticRetry: true,
   cpuSubstantiveFallbackAllowed: false,
   customerCreditsMutated: false,
   productionAuthorityGranted: false,
 }, null, 2))
 
-function fakeInvocationRuntime(input: {
+function fakeQueuedCoordinatorPorts(input: {
   fixtureByWork: ReadonlyMap<string, ReturnType<
     typeof buildCanonicalSam31A100RunFixture
   >>
-  invocationCounts: Map<string, number>
+  queueCounts: Map<string, number>
+  resultAfterQueueCall?: number
   disposition?():
     | 'completed'
     | 'failed'
     | 'not_executed_scale_from_zero_trigger'
     | 'outcome_unknown_requires_reconciliation'
-}): CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort {
-  return Object.freeze({
-    schemaVersion:
-      'canonical-track-all-sam3_1-authenticated-gpu-invocation-runtime-v1',
-    currentDedicatedEndpointInvocation: true as const,
-    historicalCloudJobCustomerDispatchUsed: false as const,
-    routeOwnsGpuPlacementOrPricing: false as const,
-    currentA100CustomerDispatchReadinessRereadRequired: true as const,
-    rawProviderInvocationPortExposed: false as const,
-    async invokeApprovedTrackAllWork(runtimeInput: Parameters<
-      CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort[
-        'invokeApprovedTrackAllWork'
-      ]
-    >[0]) {
+}): {
+  readonly queuedStartRuntime: CanonicalTrackAllSam31QueuedGpuStartRuntimePort
+  readonly invocationResultReadPort:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort
+} {
+  const queuedStartRuntime: CanonicalTrackAllSam31QueuedGpuStartRuntimePort =
+    Object.freeze({
+      schemaVersion:
+        'canonical-track-all-sam3_1-queued-gpu-start-runtime-v1',
+      queueId: 'weeditpro-professional-gpu-production-v1',
+      runtimeRegion: 'us-central1',
+      durablePostgresQueueRequired: true as const,
+      directGpuInvocationAllowed: false as const,
+      cloudTaskDispatchOwnedByScheduler: true as const,
+      routeOwnsGpuPlacementOrPricing: false as const,
+      productionAuthority: false as const,
+      async enqueueApprovedTrackAllWork(runtimeInput) {
+        const request = parseTrackAllSam31AuthenticatedGpuQueuedStartRequest(
+          runtimeInput.request,
+        )
+        const count = (input.queueCounts.get(request.requestId) ?? 0) + 1
+        input.queueCounts.set(request.requestId, count)
+        const payload = {
+          schemaVersion:
+            'track-all-sam3_1-authenticated-gpu-queued-start-result-v3' as const,
+          requestRef: ref(request.requestId, request.requestDigestSha256),
+          workspaceId: runtimeInput.workspaceId,
+          projectId: 'sam31-complete-source-project',
+          approvedSnapshotId: request.approvedSnapshotId,
+          workItemKey: request.workItemKey,
+          fundedDispatchAdmissionRef: ref(`funding:${request.requestId}`),
+          prelaunchAuthorizationRef: ref(`prelaunch:${request.requestId}`),
+          fixedTaskPreparationBridgeRef:
+            ref(`preparation:${request.requestId}`),
+          executionAttemptRef:
+            input.fixtureByWork.get(request.workItemKey)!.task.runtimeRequest
+              .scope.executionAttemptRef,
+          userTriggerRecordRef: ref(`trigger:${request.requestId}`),
+          queueEntryRef: ref(`queue:${request.requestId}`),
+          queueTransactionRef: ref(`queue-transaction:${request.requestId}`),
+          queueDisposition: count === 1
+            ? 'queued' as const : 'active_replay' as const,
+          routeId: 'a100_80gb_heavy_primary' as const,
+          accelerator: 'nvidia_a100_80gb' as const,
+          queueId: 'weeditpro-professional-gpu-production-v1' as const,
+          runtimeRegion: 'us-central1' as const,
+          minimumIdleGpuInstances: 0 as const,
+          userTriggeredScaleFromZero: true as const,
+          a100HeavyPrimaryAndSeparatelyQualifiedL4Fallback: true as const,
+          durablePostgresQueueAdmissionCommitted: true as const,
+          schedulerOwnsCloudTaskDispatch: true as const,
+          taskConsumerMustRereadFundingTaskAndRuntimeAuthorities: true as const,
+          directGpuInvocationStartedByRequest: false as const,
+          cloudTaskCreationStartedByRequest: false as const,
+          callerSuppliedMediaPromptQueuePriorityCapacityRouteModelImageCommandOrPriceAccepted:
+            false as const,
+          customerCreditsMutated: false as const,
+          qaApproved: false as const,
+          publicDeliveryAuthorized: false as const,
+          productionAuthorityGranted: false as const,
+        }
+        return Object.freeze({
+          ...payload,
+          resultDigestSha256: sha256AuthorityValue(payload),
+        })
+      },
+    })
+  const invocationResultReadPort:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort =
+    Object.freeze({
+      schemaVersion:
+        'canonical-track-all-sam3_1-authenticated-gpu-invocation-result-read-v1',
+      canonicalRepositoryRereadOnly: true as const,
+      directGpuInvocationAllowed: false as const,
+      automaticRetryAllowed: false as const,
+      async rereadApprovedTrackAllWorkResult(runtimeInput) {
       const request = parseTrackAllSam31AuthenticatedGpuInvocationRequest(
         runtimeInput.request,
       )
-      input.invocationCounts.set(request.requestId,
-        (input.invocationCounts.get(request.requestId) ?? 0) + 1)
+      const queueCount = input.queueCounts.get(request.requestId) ?? 0
+      if (queueCount < (input.resultAfterQueueCall ?? 1)) return null
       const fixture = input.fixtureByWork.get(request.workItemKey)
       if (!fixture) throw new Error('Invocation fixture is missing.')
       const disposition = input.disposition?.() ?? 'completed'
@@ -348,8 +436,9 @@ function fakeInvocationRuntime(input: {
         ...payload,
         resultDigestSha256: sha256AuthorityValue(payload),
       })
-    },
-  })
+      },
+    })
+  return Object.freeze({ queuedStartRuntime, invocationResultReadPort })
 }
 
 function fakeTaskStore(

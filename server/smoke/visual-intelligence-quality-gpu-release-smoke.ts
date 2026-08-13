@@ -91,6 +91,7 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-vertex-serving-qualification-output-smoke.ts',
   'canonical-sam3_1-vertex-serving-thirty-run-qualification-smoke.ts',
   'canonical-sam3_1-private-qualification-capacity-owner-smoke.ts',
+  'canonical-sam3_1-eight-minute-qualification-source-owner-smoke.ts',
   'canonical-professional-gpu-funded-start-authority-store-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-repository-smoke.ts',
   'canonical-current-google-cloud-gpu-rate-authority-publisher-smoke.ts',

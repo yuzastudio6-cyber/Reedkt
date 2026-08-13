@@ -334,6 +334,137 @@ assert.deepEqual(
   released.runtimeRelease.substantiveGpuExecutionQualificationRef,
   canonicalAuthorityRef,
 )
+
+export const endpointCanonicalEvidence =
+  createCanonicalQualificationEvidence({
+    qualificationId:
+      'sam31-canonical-a100-endpoint-runtime-qualification',
+    executionTarget:
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+  })
+const endpointCanonicalEvidenceRef =
+  canonicalSam31GpuRuntimeQualificationEvidenceRef(
+    endpointCanonicalEvidence,
+  )
+export const endpointCanonicalDriver = component(
+  'sam31-canonical-a100-endpoint-driver-component',
+  'driver_and_cuda',
+  endpointCanonicalEvidence.driverEvidence,
+  endpointCanonicalEvidence,
+)
+export const endpointCanonicalDeterministic = component(
+  'sam31-canonical-a100-endpoint-deterministic-run-set',
+  'deterministic_run_set',
+  endpointCanonicalEvidence.deterministicRuns,
+  endpointCanonicalEvidence,
+)
+export const endpointCanonicalPerformance = component(
+  'sam31-canonical-a100-endpoint-eight-minute-performance',
+  'eight_minute_performance',
+  endpointCanonicalEvidence.performanceEvidence,
+  endpointCanonicalEvidence,
+)
+export const endpointCanonicalQuality = component(
+  'sam31-canonical-a100-endpoint-independent-temporal-quality',
+  'independent_temporal_quality',
+  endpointCanonicalEvidence.qualityEvidence,
+  endpointCanonicalEvidence,
+)
+const endpointCanonicalComponents = new Map([
+  entry(endpointCanonicalDriver),
+  entry(endpointCanonicalDeterministic),
+  entry(endpointCanonicalPerformance),
+  entry(endpointCanonicalQuality),
+])
+const endpointCanonicalAuthorityStore = objectPort()
+export const endpointCanonicalOwner = createOwner(
+  {},
+  endpointCanonicalAuthorityStore.port,
+  endpointCanonicalEvidence,
+  endpointCanonicalComponents,
+)
+export const endpointCanonicalAuthority =
+  await endpointCanonicalOwner.compileAndPersist({
+    authorityId:
+      'sam31-canonical-a100-endpoint-runtime-qualification-compilation',
+    qualificationEvidenceRef: endpointCanonicalEvidenceRef,
+    componentEvidenceRefs: {
+      driverAndCudaRef:
+        canonicalSam31GpuRuntimeQualificationComponentRef(
+          endpointCanonicalDriver,
+        ),
+      deterministicRunSetRef:
+        canonicalSam31GpuRuntimeQualificationComponentRef(
+          endpointCanonicalDeterministic,
+        ),
+      eightMinutePerformanceRef:
+        canonicalSam31GpuRuntimeQualificationComponentRef(
+          endpointCanonicalPerformance,
+        ),
+      independentTemporalQualityRef:
+        canonicalSam31GpuRuntimeQualificationComponentRef(
+          endpointCanonicalQuality,
+        ),
+    },
+  })
+export const endpointCanonicalAuthorityRef =
+  canonicalSam31GpuRuntimeQualificationCompilationAuthorityRef(
+    endpointCanonicalAuthority,
+  )
+const endpointQualificationStore = objectPort()
+export const endpointQualificationRepository =
+  createCanonicalSam31GpuRuntimeQualificationEvidenceRepository({
+    objectPort: endpointQualificationStore.port,
+    prefix:
+      'private/smoke/sam3_1/compiled-endpoint-runtime-qualification/v1',
+  })
+await endpointQualificationRepository.persistQualifiedEvidenceCreateOnly({
+  evidence: endpointCanonicalEvidence,
+})
+export const endpointReleased =
+  await prepareCanonicalSam31GpuRuntimeRelease({
+    candidate: canonicalCandidate,
+    ingestReceipt: canonicalIngest,
+    sourceCheckpointQualification: canonicalQualification,
+    imageSupplyChainRelease: qualifiedSupplyChain,
+    release: {
+      evidenceClass: 'canonical_private_reread',
+      releaseId: 'sam31-compiled-a100-endpoint-runtime-release',
+      releaseVersion: 1,
+      route: {
+        ...endpointCanonicalEvidence.route,
+        allocatedVcpuCount: 12,
+        allocatedMemoryGiB: 170,
+        allocatedLocalScratchGiB: 0,
+      },
+      serviceIdentityRef: endpointCanonicalEvidence.serviceIdentityRef,
+      immutableImageRef: endpointCanonicalEvidence.immutableImageRef,
+      immutableImageDigest: endpointCanonicalEvidence.immutableImageDigest,
+      sourceAndDependencyClosureRef:
+        qualifiedSupplyChain.sourceAndDependencyClosureRef,
+      sbomRef: qualifiedSupplyChain.sbom.artifactRef,
+      imageScanAndSignatureRef: imageSupplyChainReleaseRef,
+      scaleToZeroConfigurationRef:
+        endpointCanonicalEvidence.scaleToZeroConfigurationRef,
+      privateNetworkAndArtifactTransportRef:
+        endpointCanonicalEvidence.privateNetworkAndArtifactTransportRef,
+      qualifiedAt: endpointCanonicalEvidence.qualifiedAt,
+      expiresAt: '2026-09-04T18:22:00.000Z',
+    },
+    qualificationEvidenceRef: endpointCanonicalEvidenceRef,
+    qualificationEvidenceReadPort: endpointQualificationRepository,
+    qualificationCompilationAuthorityRef: endpointCanonicalAuthorityRef,
+    qualificationCompilationAuthorityReadPort: endpointCanonicalOwner,
+  })
+assert.equal(
+  endpointReleased.runtimeRelease.executionTarget,
+  'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+)
+assert.equal(endpointReleased.runtimeRelease.stopsAtTerminalAttempt, false)
+assert.equal(
+  endpointReleased.runtimeRelease.lifecycleMode,
+  'idle_scaledown_to_zero',
+)
 await assert.rejects(prepareCanonicalSam31GpuRuntimeRelease({
   candidate: canonicalCandidate,
   ingestReceipt: canonicalIngest,
@@ -472,13 +603,19 @@ function entry(
     value] as const
 }
 
-function createCanonicalQualificationEvidence() {
+function createCanonicalQualificationEvidence(input: {
+  qualificationId?: string
+  executionTarget?:
+    | 'google_cloud_vertex_custom_job_a2_ultra'
+    | 'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+} = {}) {
   const clone = structuredClone(qualificationEvidence)
   const payload = clone as Omit<typeof qualificationEvidence, 'evidenceHash'> & {
     evidenceHash?: string
   }
   delete payload.evidenceHash
-  payload.qualificationId = 'sam31-canonical-a100-runtime-qualification'
+  payload.qualificationId = input.qualificationId
+    ?? 'sam31-canonical-a100-runtime-qualification'
   payload.candidateRef = {
     schemaVersion: canonicalCandidate.schemaVersion,
     candidateHash: canonicalCandidate.candidateHash,
@@ -501,6 +638,11 @@ function createCanonicalQualificationEvidence() {
     ref('sam31-canonical-a100-scale-to-zero')
   payload.privateNetworkAndArtifactTransportRef =
     ref('sam31-canonical-a100-private-network')
+  payload.route = {
+    ...payload.route,
+    executionTarget: input.executionTarget
+      ?? 'google_cloud_vertex_custom_job_a2_ultra',
+  }
   payload.deterministicRuns = payload.deterministicRuns.map((run) => ({
     ...run,
     immutableImageDigest: payload.immutableImageDigest,

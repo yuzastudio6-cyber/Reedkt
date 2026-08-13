@@ -25,11 +25,18 @@ import { authority as currentVertexRate } from
   './canonical-current-google-cloud-vertex-a100-rate-authority-smoke'
 import { record as releasePair } from
   './canonical-sam3_1-gpu-runtime-release-registry-smoke'
+import { endpointReleased } from
+  './canonical-sam3_1-gpu-runtime-qualification-compilation-authority-smoke'
 
 assert.ok(currentVertexRate)
 const currentVertexRateAuthority = currentVertexRate
 
 const NOW = '2026-08-06T16:10:00.000Z'
+assert.throws(() => createCanonicalProfessionalGpuRuntimeLaunchTarget({
+  runtimeRelease: endpointReleased.runtimeRelease,
+  fixedServerTaskContractRef: canonicalSam31GpuFixedTaskContractRef(),
+  at: NOW,
+}))
 const target = createCanonicalProfessionalGpuRuntimeLaunchTarget({
   runtimeRelease: releasePair.runtimeRelease,
   fixedServerTaskContractRef: canonicalSam31GpuFixedTaskContractRef(),
@@ -159,7 +166,9 @@ assert.equal(providerRequests.length, 1)
 const expiredQuotaAdapter =
   createCanonicalA100VertexProfessionalGpuLaunchAdapter({
     releasePairReadPort: {
-      async rereadReleasePair() { return structuredClone(releasePair) },
+      async rereadReleasePair() {
+        return structuredClone(releasePair)
+      },
     },
     rateAuthorityReadPort: {
       async reread() { return structuredClone(currentVertexRateAuthority) },
@@ -194,6 +203,8 @@ console.log(JSON.stringify({
     immutableSuccessorImageCompiledServerSide: true,
     callerRouteImageCommandModelPriceOrRetryNotAccepted: true,
     historicalBatchA100RejectedBeforeProvider: true,
+    currentEndpointReleaseRejectedByHistoricalJobLifecycle: true,
+    historicalCustomJobReleaseStillReadable: true,
     expiredQuotaRejectedBeforeProvider: true,
     scaleFromZeroAndTerminalReconciliationRequired: true,
   },

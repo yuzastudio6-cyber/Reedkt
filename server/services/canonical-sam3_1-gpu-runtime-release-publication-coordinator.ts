@@ -473,7 +473,8 @@ function releaseRoute(routeId: z.infer<typeof routeIdSchema>) {
         gpuProfileId:
           'quality_a100_80gb_user_triggered_heavy_job_v1' as const,
         runtimeRegion: 'us-central1' as const,
-        executionTarget: 'google_cloud_vertex_custom_job_a2_ultra' as const,
+        executionTarget:
+          'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,
         machineType: 'a2-ultragpu-1g' as const,
         accelerator: 'nvidia_a100_80gb' as const,
         allocatedVcpuCount: 12 as const,

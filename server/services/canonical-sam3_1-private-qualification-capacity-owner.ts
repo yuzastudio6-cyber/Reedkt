@@ -209,7 +209,10 @@ export function createCanonicalSam31PrivateQualificationCapacityRepository(
     return observation
   }
   return Object.freeze({
-    async persistCreateOnly({ observation: value }) {
+    async persistCreateOnly({ observation: value }: {
+      readonly observation:
+        CanonicalSam31PrivateQualificationCapacityObservation
+    }) {
       const observation =
         assertCanonicalSam31PrivateQualificationCapacityObservation(value)
       const body = Buffer.from(stableAuthorityStringify(observation), 'utf8')
@@ -225,7 +228,7 @@ export function createCanonicalSam31PrivateQualificationCapacityRepository(
       }
       return disposition
     },
-    reread({ observationId }) {
+    reread({ observationId }: { readonly observationId: string }) {
       return reread(observationId)
     },
   })

@@ -76,6 +76,7 @@ const routeSchema = z.object({
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
     'google_cloud_vertex_custom_job_a2_ultra',
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),

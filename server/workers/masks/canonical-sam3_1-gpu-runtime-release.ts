@@ -75,6 +75,7 @@ const routeSchema = z.object({
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
     'google_cloud_vertex_custom_job_a2_ultra',
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -86,7 +87,9 @@ const routeSchema = z.object({
   const a100 = route.routeId === 'a100_80gb_heavy_primary'
   const exact = a100
     ? route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[0]
-      && route.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+      && (route.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+        || route.executionTarget ===
+          'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra')
       && route.machineType === 'a2-ultragpu-1g'
       && route.accelerator === 'nvidia_a100_80gb'
       && route.allocatedVcpuCount === 12
@@ -278,7 +281,16 @@ const releaseObservationWithoutHashSchema = z.object({
     maximumConcurrentAttemptsPerInstance: z.literal(1),
     prewarmingKeepaliveOrAlwaysOnPoolAllowed: z.literal(false),
     startsOnlyFromCreateOnlyApprovedUserAttempt: z.literal(true),
-    stopsAtTerminalAttempt: z.literal(true),
+    stopsAtTerminalAttempt: z.boolean(),
+    lifecycleMode: z.enum([
+      'idle_scaledown_to_zero',
+      'terminal_attempt_teardown',
+    ]).optional(),
+    returnsToZeroAfterIdle: z.literal(true).optional(),
+    idleScaleDownSeconds: z.union([
+      z.literal(300),
+      z.literal(0),
+    ]).optional(),
   }).strict(),
   qualifiedAt: timestamp,
   expiresAt: timestamp,
@@ -294,6 +306,19 @@ const releaseObservationWithoutHashSchema = z.object({
 }).strict().superRefine((release, context) => {
   const canonical = release.evidenceClass === 'canonical_private_reread'
   const qualification = release.qualification
+  const endpoint = release.route.executionTarget ===
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+  const exactScaleToZero = endpoint
+    ? !release.scaleToZero.stopsAtTerminalAttempt
+      && release.scaleToZero.lifecycleMode === 'idle_scaledown_to_zero'
+      && release.scaleToZero.idleScaleDownSeconds === 300
+    : release.scaleToZero.stopsAtTerminalAttempt
+      && (release.scaleToZero.lifecycleMode === undefined
+        || release.scaleToZero.lifecycleMode === 'terminal_attempt_teardown')
+      && (release.scaleToZero.returnsToZeroAfterIdle === undefined
+        || release.scaleToZero.returnsToZeroAfterIdle)
+      && (release.scaleToZero.idleScaleDownSeconds === undefined
+        || release.scaleToZero.idleScaleDownSeconds === 0)
   const exactEvidence = canonical
     ? release.status === 'private_internal_qualified'
       && release.ingestStatus ===
@@ -344,6 +369,7 @@ const releaseObservationWithoutHashSchema = z.object({
       && !qualification.qualityEqualToOrBetterThanApprovedA100Baseline
   if (
     !exactEvidence
+    || !exactScaleToZero
     || release.immutableImageRef.contentHash !== release.immutableImageDigest
     || Date.parse(release.expiresAt) <= Date.parse(release.qualifiedAt)
   ) context.addIssue({
@@ -763,7 +789,17 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
       maximumConcurrentAttemptsPerInstance: 1,
       prewarmingKeepaliveOrAlwaysOnPoolAllowed: false,
       startsOnlyFromCreateOnlyApprovedUserAttempt: true,
-      stopsAtTerminalAttempt: true,
+      stopsAtTerminalAttempt: release.route.executionTarget !==
+        'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+      lifecycleMode: release.route.executionTarget ===
+        'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+        ? 'idle_scaledown_to_zero' as const
+        : 'terminal_attempt_teardown' as const,
+      returnsToZeroAfterIdle: true,
+      idleScaleDownSeconds: release.route.executionTarget ===
+        'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+        ? 300 as const
+        : 0 as const,
     },
     qualifiedAt: release.qualifiedAt,
     expiresAt: release.expiresAt,
@@ -844,7 +880,17 @@ function compileCanonicalSam31GpuRuntimeReleaseInternal(input: {
     maximumConcurrentAttemptsPerInstance: 1 as const,
     prewarmingKeepaliveOrAlwaysOnPoolAllowed: false as const,
     startsOnlyFromCreateOnlyApprovedUserAttempt: true as const,
-    stopsAtTerminalAttempt: true as const,
+    stopsAtTerminalAttempt: release.route.executionTarget !==
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+    lifecycleMode: release.route.executionTarget ===
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+      ? 'idle_scaledown_to_zero' as const
+      : 'terminal_attempt_teardown' as const,
+    returnsToZeroAfterIdle: true as const,
+    idleScaleDownSeconds: release.route.executionTarget ===
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+      ? 300 as const
+      : 0 as const,
     qualificationRunCount: release.qualification.qualificationRunCount,
     qualifiedAt: release.qualifiedAt,
     expiresAt: release.expiresAt,

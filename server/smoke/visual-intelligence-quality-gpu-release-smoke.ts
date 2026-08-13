@@ -104,6 +104,9 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-prepared-mask-proxy-repository-smoke.ts',
   'canonical-sam3_1-gpu-runtime-qualification-operator-entrypoints-smoke.ts',
   'canonical-sam3_1-gpu-runtime-release-readiness-observer-smoke.ts',
+  'canonical-sam3_1-gpu-runtime-release-publication-coordinator-smoke.ts',
+  'canonical-sam3_1-current-a100-customer-dispatch-readiness-owner-smoke.ts',
+  'canonical-sam3_1-complete-source-capacity-owner-smoke.ts',
   'production-tool-cost-smoke.ts',
 ] as const
 

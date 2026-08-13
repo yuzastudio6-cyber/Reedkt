@@ -33,15 +33,15 @@ import {
 import { qualifiedSupplyChain } from
   './canonical-sam3_1-cloud-image-supply-chain-build-smoke'
 import {
-  canonicalAuthority,
-  canonicalAuthorityRef,
-  canonicalDeterministic,
-  canonicalDriver,
-  canonicalEvidence,
-  canonicalOwner,
-  canonicalPerformance,
-  canonicalQuality,
-  qualificationRepository,
+  endpointCanonicalAuthority as canonicalAuthority,
+  endpointCanonicalAuthorityRef as canonicalAuthorityRef,
+  endpointCanonicalDeterministic as canonicalDeterministic,
+  endpointCanonicalDriver as canonicalDriver,
+  endpointCanonicalEvidence as canonicalEvidence,
+  endpointCanonicalOwner as canonicalOwner,
+  endpointCanonicalPerformance as canonicalPerformance,
+  endpointCanonicalQuality as canonicalQuality,
+  endpointQualificationRepository as qualificationRepository,
 } from
   './canonical-sam3_1-gpu-runtime-qualification-compilation-authority-smoke'
 import { release as sourceReleaseFixture } from
@@ -68,6 +68,14 @@ assert.equal(
   published.record.runtimeRelease.routeId,
   'a100_80gb_heavy_primary',
 )
+assert.equal(
+  published.record.runtimeRelease.executionTarget,
+  'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
+)
+assert.equal(published.record.runtimeRelease.lifecycleMode,
+  'idle_scaledown_to_zero')
+assert.equal(published.record.runtimeRelease.idleScaleDownSeconds, 300)
+assert.equal(published.record.runtimeRelease.stopsAtTerminalAttempt, false)
 assert.equal(
   published.record.runtimeRelease.immutableImageDigest,
   qualifiedSupplyChain.immutableImageDigest,
@@ -155,7 +163,7 @@ assert.equal(getterInvoked, false)
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-gpu-runtime-release-publication-coordinator',
-  checks: 31,
+  checks: 36,
   exactSourceIngestImageAndComponentLineage: true,
   evidenceThenCompilationAuthorityFinalized: true,
   routeSpecificReleasePairCreateOnly: true,

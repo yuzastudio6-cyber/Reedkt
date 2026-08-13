@@ -47,6 +47,7 @@ const routeSchema = z.object({
   runtimeRegion: z.enum(['us-central1', 'europe-west4']),
   executionTarget: z.enum([
     'google_cloud_vertex_custom_job_a2_ultra',
+    'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
     'google_cloud_run_l4_job',
   ]),
   machineType: z.enum(['a2-ultragpu-1g', 'cloud_run_nvidia_l4']),
@@ -55,7 +56,9 @@ const routeSchema = z.object({
   const a100 = route.routeId === 'a100_80gb_heavy_primary'
   const exact = a100
     ? route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[0]
-      && route.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+      && (route.executionTarget === 'google_cloud_vertex_custom_job_a2_ultra'
+        || route.executionTarget ===
+          'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra')
       && route.machineType === 'a2-ultragpu-1g'
       && route.accelerator === 'nvidia_a100_80gb'
     : route.gpuProfileId === CANONICAL_QUALITY_FIRST_GPU_PROFILE_IDS[1]

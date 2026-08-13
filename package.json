@@ -374,6 +374,8 @@
     "compile:sam3_1-gpu-temporal-measurement": "tsx server/cli/compile-canonical-sam3_1-gpu-temporal-measurement.ts",
     "compile:sam3_1-gpu-temporal-quality-qualification": "tsx server/cli/compile-canonical-sam3_1-gpu-temporal-quality-qualification.ts",
     "smoke:sam3_1-gpu-runtime-qualification-operator-entrypoints": "tsx server/smoke/canonical-sam3_1-gpu-runtime-qualification-operator-entrypoints-smoke.ts",
+    "observe:sam3_1-gpu-runtime-release-readiness": "tsx server/cli/observe-canonical-sam3_1-gpu-runtime-release-readiness.ts",
+    "smoke:sam3_1-gpu-runtime-release-readiness-observer": "tsx server/smoke/canonical-sam3_1-gpu-runtime-release-readiness-observer-smoke.ts",
     "publish:sam3_1-a100-foundation-observation": "tsx server/cli/publish-sam3_1-a100-qualification-foundation.ts --execute",
     "publish:sam3_1-authorized-human-terms-intent": "tsx server/cli/publish-sam3_1-authorized-human-terms-intent.ts --execute",
     "provision:sam3_1-a100-qualification-foundation": "bash scripts/gcp/prod/22-provision-sam31-a100-qualification-foundation.sh",

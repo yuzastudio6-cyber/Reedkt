@@ -454,6 +454,13 @@ idempotent rerun then observed all five disabled and emitted
   temporal-quality command requires the independently persisted full-resolution
   complete-interval private-review ref; it does not create or self-attest that
   review. The final runtime-release publisher remains a separate gate.
+- Before publication, `npm run observe:sam3_1-gpu-runtime-release-readiness`
+  performs a read-only bounded index of the canonical component-evidence
+  prefix. It validates every JSON body, digest, content-addressed object path,
+  route, qualification, and immutable-image binding; then reports each of the
+  four component kinds as ready, missing, or ambiguous. The release publisher
+  is admissible only when exactly one matching component of every kind exists.
+  The observer does not launch work, settle credits, or publish a release.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

@@ -142,6 +142,25 @@ export function createCanonicalSam31GcpGpuRuntimeQualificationComponentEvidenceR
   })
 }
 
+export function canonicalSam31GpuRuntimeQualificationComponentEvidenceObjectPath(
+  input: {
+    readonly componentEvidence:
+      CanonicalSam31GpuRuntimeQualificationComponentEvidence
+    readonly prefix?: string
+  },
+): string {
+  const component =
+    assertCanonicalSam31GpuRuntimeQualificationComponentEvidence(
+      input.componentEvidence,
+    )
+  const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
+  return componentPath(
+    prefix,
+    component.componentKind,
+    canonicalSam31GpuRuntimeQualificationComponentRef(component),
+  )
+}
+
 export function createCanonicalSam31GcpGpuRuntimeQualificationCompilationOwner(
   input: { readonly storage?: Storage } = {},
 ) {

@@ -31,6 +31,11 @@ const dedicatedDns = z.string().regex(
   /^weeditpro-sam31-a100-scale-zero-v1\.us-central1-[a-z0-9-]+\.prediction\.vertexai\.goog$/u,
 )
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
+const evidenceRefSchema = z.object({
+  id: z.literal('sam31-current-vertex-dedicated-prediction-route'),
+  version: z.literal(2),
+  contentHash: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
+}).strict()
 
 const routeWithoutHashSchema = z.object({
   schemaVersion: z.literal(
@@ -63,6 +68,9 @@ export const canonicalSam31VertexDedicatedPredictionRouteSchema =
   routeWithoutHashSchema.extend({ routeHash: sha256 }).strict()
 export type CanonicalSam31VertexDedicatedPredictionRoute = z.infer<
   typeof canonicalSam31VertexDedicatedPredictionRouteSchema
+>
+export type CanonicalSam31VertexDedicatedPredictionRouteRef = z.infer<
+  typeof evidenceRefSchema
 >
 
 export async function rereadCanonicalSam31VertexDedicatedPredictionRoute(
@@ -144,4 +152,15 @@ export function assertCanonicalSam31VertexDedicatedPredictionRoute(
     throw new Error('Dedicated Vertex prediction route digest changed.')
   }
   return parsed
+}
+
+export function canonicalSam31VertexDedicatedPredictionRouteRef(
+  value: unknown,
+): CanonicalSam31VertexDedicatedPredictionRouteRef {
+  const route = assertCanonicalSam31VertexDedicatedPredictionRoute(value)
+  return evidenceRefSchema.parse({
+    id: 'sam31-current-vertex-dedicated-prediction-route',
+    version: 2,
+    contentHash: `sha256:${route.routeHash}`,
+  })
 }

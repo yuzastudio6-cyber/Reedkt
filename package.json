@@ -484,6 +484,7 @@
     "smoke:sam3_1-current-a100-customer-dispatch-readiness-repository": "tsx server/smoke/canonical-sam3_1-current-a100-customer-dispatch-readiness-repository-smoke.ts",
     "smoke:sam3_1-current-vertex-customer-invocation": "tsx server/smoke/canonical-sam3_1-current-vertex-serving-invocation-smoke.ts",
     "smoke:professional-gpu-fair-queue": "tsx server/smoke/canonical-professional-gpu-fair-queue-scheduler-smoke.ts",
+    "smoke:professional-gpu-fair-queue-coordinator": "tsx server/smoke/canonical-professional-gpu-fair-queue-coordinator-smoke.ts",
     "smoke:sam3_1-vertex-serving-attempt-credit-settlement": "tsx server/smoke/canonical-sam3_1-vertex-serving-attempt-credit-settlement-smoke.ts",
     "smoke:sam3_1-vertex-serving-invocation": "tsx server/smoke/canonical-sam3_1-vertex-serving-invocation-smoke.ts",
     "smoke:sam3_1-vertex-serving-readiness": "tsx server/smoke/canonical-sam3_1-vertex-serving-readiness-smoke.ts",

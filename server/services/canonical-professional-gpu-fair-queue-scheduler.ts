@@ -45,6 +45,7 @@ const queueEntrySchema = z.object({
   userTriggeredAfterApprovalAndFunding: z.literal(true),
   callerSelectedPriorityCapacityOrRoute: z.literal(false),
 }).strict()
+export const canonicalProfessionalGpuFairQueueEntrySchema = queueEntrySchema
 export type CanonicalProfessionalGpuFairQueueEntry = z.infer<
   typeof queueEntrySchema
 >
@@ -56,6 +57,8 @@ const activeAttemptSchema = z.object({
   executionAttemptRef: refSchema,
   startedAt: timestamp,
 }).strict()
+export const canonicalProfessionalGpuFairQueueActiveAttemptSchema =
+  activeAttemptSchema
 export type CanonicalProfessionalGpuFairQueueActiveAttempt = z.infer<
   typeof activeAttemptSchema
 >
@@ -75,9 +78,37 @@ const capacitySchema = z.object({
     })
   }
 })
+export const canonicalProfessionalGpuFairQueueCapacitySchema = capacitySchema
 export type CanonicalProfessionalGpuFairQueueCapacity = z.infer<
   typeof capacitySchema
 >
+
+export function assertCanonicalProfessionalGpuFairQueueEntry(
+  value: unknown,
+): CanonicalProfessionalGpuFairQueueEntry {
+  return queueEntrySchema.parse(cloneBoundedPlainSerializedData(
+    value,
+    'professional_gpu_fair_queue_entry',
+  ))
+}
+
+export function assertCanonicalProfessionalGpuFairQueueActiveAttempt(
+  value: unknown,
+): CanonicalProfessionalGpuFairQueueActiveAttempt {
+  return activeAttemptSchema.parse(cloneBoundedPlainSerializedData(
+    value,
+    'professional_gpu_fair_queue_active_attempt',
+  ))
+}
+
+export function assertCanonicalProfessionalGpuFairQueueCapacity(
+  value: unknown,
+): CanonicalProfessionalGpuFairQueueCapacity {
+  return capacitySchema.parse(cloneBoundedPlainSerializedData(
+    value,
+    'professional_gpu_fair_queue_capacity',
+  ))
+}
 
 const scheduledRefSchema = z.object({
   queueEntryId: safeId,

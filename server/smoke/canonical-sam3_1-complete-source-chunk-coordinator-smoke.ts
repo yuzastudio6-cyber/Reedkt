@@ -23,6 +23,9 @@ import {
   type CanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort,
 } from '../services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
 import {
+  resolveCurrentServingChunkLineage,
+} from '../services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
+import {
   parseTrackAllSam31AuthenticatedGpuQueuedStartRequest,
   type CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
 } from '../services/canonical-track-all-sam3_1-queued-gpu-start-service'
@@ -44,6 +47,7 @@ import {
 } from './canonical-sam3_1-gpu-runtime-deterministic-qualification-owner-smoke'
 import {
   canonicalSam31A100TaskFixture,
+  a100,
 } from './canonical-sam3_1-gpu-task-owner-smoke'
 
 const base = canonicalSam31A100TaskFixture.runtimeRequest
@@ -239,6 +243,58 @@ const currentAdmissionReplay = await currentServingFinalizer.finalize({
 })
 assert.equal(currentAdmissionReplay.resultAdmissionHash,
   currentAdmission.resultAdmissionHash)
+const secondAdmission = await currentServingFinalizer.finalize({
+  authenticatedOwnerUserId: plan.ownerUserId,
+  workspaceId: plan.workspaceId,
+  executionGroupRef: planRef,
+  chunkOrdinal: 2,
+})
+const outputObservationFor = (fixture: (typeof fixtures)[number]) => ({
+  manifestByteLength: 8_192,
+  manifestSha256: fixture.privateOutput.manifestRef.contentHash.slice(7),
+  maskPngCount: fixture.privateOutput.maskFileCount,
+  distinctObjectIds: [1],
+  exactPrivateManifestBytesReread: true as const,
+  manifestTaskResultGeometryAndRangeVerified: true as const,
+  callerPathUrlOrBytesAccepted: false as const,
+})
+const secondChunkLineage = await resolveCurrentServingChunkLineage({
+  result: secondAdmission,
+  task: fixtures[1]!.task,
+  context: a100.context,
+  output: outputObservationFor(fixtures[1]!),
+  subjectRequestId: 'track-all-complete-source-subject',
+  currentSubjectEvidenceId: 'track-all-current-chunk-02-evidence',
+  currentMaskObjectId: 1,
+  chunkRepository: repository,
+  taskStore,
+  taskContextRepository: {
+    async rereadTaskContext() {
+      return structuredClone(a100.context)
+    },
+  },
+  resultStore,
+  outputReadPort: {
+    async rereadExactSam31MaskManifest({ task }) {
+      const fixture = fixtures.find((candidate) =>
+        candidate.task.invocationId === task.invocationId)
+      if (!fixture) throw new Error('Prior output fixture is unavailable.')
+      return outputObservationFor(fixture)
+    },
+  },
+})
+assert.equal(secondChunkLineage.chunkOrdinal, 2)
+assert.equal(secondChunkLineage.canonicalStartFrameInclusive, 239)
+assert.equal(secondChunkLineage.previousChunkBoundaryInput
+  ?.previousChunkOrdinal, 1)
+assert.equal(secondChunkLineage.previousChunkBoundaryInput
+  ?.previousCanonicalEndFrameInclusive, 239)
+assert.equal(secondChunkLineage.previousChunkBoundaryInput
+  ?.previousMaskFrameIndex, 239)
+assert.equal(secondChunkLineage.previousChunkBoundaryInput
+  ?.currentMaskFrameIndex, 0)
+assert.equal(secondChunkLineage.previousChunkBoundaryInput
+  ?.overlapFrameCount, 1)
 
 const replay = await coordinator.advance({
   authenticatedOwnerUserId: plan.ownerUserId,
@@ -314,7 +370,7 @@ assert.equal(blockedCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-complete-source-chunk-coordinator',
-  checks: 44,
+  checks: 51,
   exactEightMinuteFrameCount: 11_520,
   exactChunkCount: 49,
   exactChunkFrameCount: 240,
@@ -324,6 +380,7 @@ console.log(JSON.stringify({
   durableQueueBeforeGpuInvocation: true,
   coordinatorDirectGpuInvocationAllowed: false,
   restartSafeReplayWithoutDuplicateInference: true,
+  currentA100ResultAdmittedToL4WithExactPriorChunkBoundary: true,
   unknownOutcomeBlocksWithoutAutomaticRetry: true,
   cpuSubstantiveFallbackAllowed: false,
   customerCreditsMutated: false,

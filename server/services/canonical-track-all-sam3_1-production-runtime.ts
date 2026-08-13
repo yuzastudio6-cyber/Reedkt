@@ -232,7 +232,7 @@ import {
 } from './canonical-sam3_1-current-serving-result-finalization-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v27' as const
+  'canonical-track-all-sam3_1-production-runtime-v28' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -854,6 +854,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       sam31TaskStore: taskStore,
       sam31TaskContextRepository: taskContextRepository,
       sam31ResultStore: sam31RuntimeResultStore,
+      sam31CompleteSourceChunkRepository,
       sam31OutputReadPort: trackAllSam31L4TaskQaSamOutputReadPort,
       supportResumeRepository: specialistSupportResumeRepository,
       lifecycleStore,

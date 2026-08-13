@@ -38,10 +38,17 @@ import {
   type CanonicalSam31GpuTaskStore,
 } from '../workers/masks/canonical-sam3_1-gpu-task-owner-service'
 import {
-  assertCanonicalSam31GpuRuntimeResultAdmission,
-  type CanonicalSam31GpuRuntimeResultAdmission,
+  assertCanonicalSam31AnyRuntimeResultAdmission,
+  type CanonicalSam31AnyRuntimeResultAdmission,
   type CanonicalSam31GpuRuntimeResultStore,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
+import {
+  canonicalSam31CompleteSourceChunkPlanRef,
+  canonicalSam31CompleteSourceChunkReceiptRef,
+  parseCanonicalSam31CompleteSourceChunkPlan,
+  parseCanonicalSam31CompleteSourceChunkReceipt,
+  type CanonicalSam31CompleteSourceChunkRepository,
+} from './canonical-sam3_1-complete-source-chunk-coordinator'
 import {
   buildCanonicalTrackAllSam31L4TaskQaMaterialV2,
   type CanonicalTrackAllSam31L4TaskQaMaterialRepository,
@@ -170,7 +177,7 @@ export type CanonicalTrackAllSam31L4TaskQaSamOutputObservation = z.infer<
 export interface CanonicalTrackAllSam31L4TaskQaSamOutputReadPort {
   rereadExactSam31MaskManifest(input: {
     readonly task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
-    readonly result: CanonicalSam31GpuRuntimeResultAdmission
+    readonly result: CanonicalSam31AnyRuntimeResultAdmission
   }): Promise<unknown>
 }
 
@@ -179,6 +186,7 @@ export interface CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort {
     typeof CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_AUTHENTICATED_START_VERSION
   readonly routeOwnsGpuPlacementOrPricing: false
   readonly rawCloudLaunchPortExposed: false
+  readonly currentServingChunkLineageRereadBeforeL4Admission: true
   prepareApprovedTaskQaWork(input: z.input<typeof authenticatedInputSchema>):
     Promise<CanonicalTrackAllSam31L4TaskQaPreparedWork>
   startApprovedTaskQaWork(input: z.input<typeof authenticatedInputSchema>):
@@ -191,7 +199,7 @@ export interface CanonicalTrackAllSam31L4TaskQaPreparedWork {
   readonly material: ReturnType<
     typeof buildCanonicalTrackAllSam31L4TaskQaMaterialV2
   >
-  readonly sam31Result: CanonicalSam31GpuRuntimeResultAdmission
+  readonly sam31Result: CanonicalSam31AnyRuntimeResultAdmission
   readonly prelaunchAuthorization: Awaited<ReturnType<
     typeof prepareCanonicalProfessionalGpuPlanFundedJob
   >>
@@ -364,6 +372,10 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
     readonly sam31ResultStore: Pick<
       CanonicalSam31GpuRuntimeResultStore, 'rereadResultAdmission'
     >
+    readonly sam31CompleteSourceChunkRepository: Pick<
+      CanonicalSam31CompleteSourceChunkRepository,
+      'rereadPlan' | 'rereadChunkReceipt'
+    >
     readonly sam31OutputReadPort:
       CanonicalTrackAllSam31L4TaskQaSamOutputReadPort
     readonly supportResumeRepository: Pick<
@@ -384,6 +396,7 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
       CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_AUTHENTICATED_START_VERSION,
     routeOwnsGpuPlacementOrPricing: false as const,
     rawCloudLaunchPortExposed: false as const,
+    currentServingChunkLineageRereadBeforeL4Admission: true as const,
     async prepareApprovedTaskQaWork(untrusted) {
       assertPlainSerializedData(untrusted,
         'track_all_l4_task_qa_authenticated_start_input')
@@ -432,7 +445,7 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
           taskContextRef: task.taskContextRef,
         }),
       )
-      const result = assertCanonicalSam31GpuRuntimeResultAdmission(
+      const result = assertCanonicalSam31AnyRuntimeResultAdmission(
         await input.sam31ResultStore.rereadResultAdmission(
           request.sam31InvocationId,
         ),
@@ -476,6 +489,24 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         payload,
       })
       const subject = payload.subjectRequests[0]!
+      const currentSubjectEvidenceId = subjectEvidenceId({
+        subjectRequestId: subject.subjectRequestId,
+        invocationId: task.invocationId,
+      })
+      const chunkLineage = await resolveCurrentServingChunkLineage({
+        result,
+        task,
+        context,
+        output,
+        subjectRequestId: subject.subjectRequestId,
+        currentSubjectEvidenceId,
+        currentMaskObjectId: output.distinctObjectIds[0]!,
+        chunkRepository: input.sam31CompleteSourceChunkRepository,
+        taskStore: input.sam31TaskStore,
+        taskContextRepository: input.sam31TaskContextRepository,
+        resultStore: input.sam31ResultStore,
+        outputReadPort: input.sam31OutputReadPort,
+      })
       const material = buildCanonicalTrackAllSam31L4TaskQaMaterialV2({
         schemaVersion:
           'canonical-track-all-sam3_1-l4-task-qa-material-v2',
@@ -510,13 +541,16 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         expectedMaskManifestByteLength: output.manifestByteLength,
         expectedMaskManifestSha256: output.manifestSha256,
         expectedMaskPngCount: output.maskPngCount,
-        chunkOrdinal: 1,
-        canonicalStartFrameInclusive: payload.requestedRange.startFrame,
-        canonicalEndFrameInclusive: payload.requestedRange.endFrameExclusive - 1,
-        previousChunkBoundaryInput: null,
+        chunkOrdinal: chunkLineage.chunkOrdinal,
+        canonicalStartFrameInclusive:
+          chunkLineage.canonicalStartFrameInclusive,
+        canonicalEndFrameInclusive:
+          chunkLineage.canonicalEndFrameInclusive,
+        previousChunkBoundaryInput:
+          chunkLineage.previousChunkBoundaryInput,
         subjects: [{
           subjectRequestId: subject.subjectRequestId,
-          subjectEvidenceId: `track-all-l4-evidence:${subject.subjectRequestId}`,
+          subjectEvidenceId: currentSubjectEvidenceId,
           subjectRole: subject.subjectRole,
           maskObjectId: output.distinctObjectIds[0]!,
           canonicalFrameRange: payload.requestedRange,
@@ -621,6 +655,202 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
   return Object.freeze(runtime)
 }
 
+type L4TaskQaMaterialV2Input = Parameters<
+  typeof buildCanonicalTrackAllSam31L4TaskQaMaterialV2
+>[0]
+
+export async function resolveCurrentServingChunkLineage(input: {
+  result: CanonicalSam31AnyRuntimeResultAdmission
+  task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
+  context: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
+  output: CanonicalTrackAllSam31L4TaskQaSamOutputObservation
+  subjectRequestId: string
+  currentSubjectEvidenceId: string
+  currentMaskObjectId: number
+  chunkRepository: Pick<CanonicalSam31CompleteSourceChunkRepository,
+    'rereadPlan' | 'rereadChunkReceipt'>
+  taskStore: Pick<CanonicalSam31GpuTaskStore, 'rereadTask'>
+  taskContextRepository: Pick<CanonicalSam31GpuTaskContextRepository,
+    'rereadTaskContext'>
+  resultStore: Pick<CanonicalSam31GpuRuntimeResultStore,
+    'rereadResultAdmission'>
+  outputReadPort: CanonicalTrackAllSam31L4TaskQaSamOutputReadPort
+}): Promise<{
+  chunkOrdinal: number
+  canonicalStartFrameInclusive: number
+  canonicalEndFrameInclusive: number
+  previousChunkBoundaryInput:
+    L4TaskQaMaterialV2Input['previousChunkBoundaryInput']
+}> {
+  const currentSource = input.task.runtimeRequest.sourceMedia
+  if (!isCurrentServingResult(input.result)) return {
+    chunkOrdinal: 1,
+    canonicalStartFrameInclusive:
+      currentSource.canonicalSourceStartFrameInclusive,
+    canonicalEndFrameInclusive:
+      currentSource.canonicalSourceEndFrameInclusive,
+    previousChunkBoundaryInput: null,
+  }
+  const plan = parseCanonicalSam31CompleteSourceChunkPlan(
+    await input.chunkRepository.rereadPlan({
+      executionGroupRef: input.result.completeSourceChunkPlanRef,
+    }),
+  )
+  const currentChunk = plan.chunks[input.result.chunkOrdinal - 1]
+  const currentReceipt = parseCanonicalSam31CompleteSourceChunkReceipt(
+    await input.chunkRepository.rereadChunkReceipt({
+      executionGroupId: plan.executionGroupId,
+      chunkOrdinal: input.result.chunkOrdinal,
+    }),
+  )
+  if (!currentChunk
+    || !sameRef(input.result.completeSourceChunkPlanRef,
+      canonicalSam31CompleteSourceChunkPlanRef(plan))
+    || !sameRef(input.result.completeSourceChunkReceiptRef,
+      canonicalSam31CompleteSourceChunkReceiptRef(currentReceipt))
+    || currentReceipt.chunkOrdinal !== currentChunk.chunkOrdinal
+    || !sameRef(currentReceipt.taskRef,
+      numericRef(input.task.taskId, input.task.taskRecordHash))
+    || !sameRef(currentReceipt.endpointInvocationResultRef,
+      input.result.endpointInvocationResultRef)
+    || !sameRef(currentReceipt.manifestRef, input.result.manifestRef)
+    || !sameRef(currentReceipt.maskSequenceArtifactRef,
+      input.result.maskSequenceArtifactRef)
+    || currentChunk.canonicalStartFrameInclusive !==
+      input.result.canonicalStartFrameInclusive
+    || currentChunk.canonicalEndFrameInclusive !==
+      input.result.canonicalEndFrameInclusive
+    || plan.ownerUserId !== input.task.runtimeRequest.scope.ownerUserId
+    || plan.workspaceId !== input.task.runtimeRequest.scope.workspaceId
+    || plan.approvedSnapshotRef.id !==
+      input.task.runtimeRequest.scope.approvedPlanSnapshotId
+    || plan.approvedSnapshotRef.contentHash !== `sha256:${
+      input.task.runtimeRequest.scope.approvedPlanSnapshotHash
+    }`) throw new TypeError(
+    'Track All L4 current SAM 3.1 chunk lineage differs.',
+  )
+  if (input.result.chunkOrdinal === 1) return {
+    chunkOrdinal: 1,
+    canonicalStartFrameInclusive: currentChunk.canonicalStartFrameInclusive,
+    canonicalEndFrameInclusive: currentChunk.canonicalEndFrameInclusive,
+    previousChunkBoundaryInput: null,
+  }
+  const previousOrdinal = input.result.chunkOrdinal - 1
+  const previousChunk = plan.chunks[previousOrdinal - 1]!
+  const previousReceipt = parseCanonicalSam31CompleteSourceChunkReceipt(
+    await input.chunkRepository.rereadChunkReceipt({
+      executionGroupId: plan.executionGroupId,
+      chunkOrdinal: previousOrdinal,
+    }),
+  )
+  if (!input.result.previousChunkReceiptRef
+    || !currentReceipt.previousChunkReceiptRef
+    || !sameRef(input.result.previousChunkReceiptRef,
+      canonicalSam31CompleteSourceChunkReceiptRef(previousReceipt))
+    || !sameRef(currentReceipt.previousChunkReceiptRef,
+      canonicalSam31CompleteSourceChunkReceiptRef(previousReceipt))) {
+    throw new TypeError('Track All L4 previous chunk receipt differs.')
+  }
+  const previousInvocationId =
+    previousReceipt.endpointInvocationResultRef.id
+  const previousTask = assertCanonicalSam31GpuTaskRecord(
+    await input.taskStore.rereadTask(previousInvocationId),
+  )
+  const previousContext = assertCanonicalSam31GpuTaskContext(
+    await input.taskContextRepository.rereadTaskContext({
+      taskContextRef: previousTask.taskContextRef,
+    }),
+  )
+  const previousResult = assertCanonicalSam31AnyRuntimeResultAdmission(
+    await input.resultStore.rereadResultAdmission(previousInvocationId),
+  )
+  if (!isCurrentServingResult(previousResult)) throw new TypeError(
+    'Track All L4 previous chunk uses a non-current result contract.',
+  )
+  const previousOutput = outputObservationSchema.parse(
+    await input.outputReadPort.rereadExactSam31MaskManifest({
+      task: previousTask,
+      result: previousResult,
+    }),
+  )
+  const previousSource = previousTask.runtimeRequest.sourceMedia
+  if (previousResult.chunkOrdinal !== previousOrdinal
+    || !sameRef(previousResult.completeSourceChunkPlanRef,
+      input.result.completeSourceChunkPlanRef)
+    || !sameRef(previousResult.completeSourceChunkReceiptRef,
+      canonicalSam31CompleteSourceChunkReceiptRef(previousReceipt))
+    || !sameRef(previousReceipt.taskRef,
+      numericRef(previousTask.taskId, previousTask.taskRecordHash))
+    || !sameRef(previousReceipt.manifestRef, previousResult.manifestRef)
+    || previousSource.canonicalSourceStartFrameInclusive !==
+      previousChunk.canonicalStartFrameInclusive
+    || previousSource.canonicalSourceEndFrameInclusive !==
+      previousChunk.canonicalEndFrameInclusive
+    || previousChunk.canonicalEndFrameInclusive !==
+      currentChunk.canonicalStartFrameInclusive
+    || previousOutput.distinctObjectIds.length !== 1
+    || !sameRef(previousContext.confirmedOutputFrameRef,
+      input.context.confirmedOutputFrameRef)) throw new TypeError(
+    'Track All L4 previous SAM 3.1 task or output lineage differs.',
+  )
+  return {
+    chunkOrdinal: currentChunk.chunkOrdinal,
+    canonicalStartFrameInclusive: currentChunk.canonicalStartFrameInclusive,
+    canonicalEndFrameInclusive: currentChunk.canonicalEndFrameInclusive,
+    previousChunkBoundaryInput: {
+      previousChunkOrdinal: previousOrdinal,
+      previousSam31InvocationId: previousTask.invocationId,
+      previousSam31RuntimeRequestBindingSha256:
+        previousTask.runtimeRequest.requestBindingSha256,
+      previousSam31RuntimeResultAdmissionRef: numericRef(
+        previousResult.resultAdmissionId,
+        previousResult.resultAdmissionHash,
+      ),
+      previousSam31MaskManifestRef: previousResult.manifestRef,
+      previousSourceFrameMappingRef:
+        previousSource.sourceFrameRangeMappingRef,
+      previousConfirmedOutputFrameRef:
+        previousContext.confirmedOutputFrameRef,
+      expectedPreviousMaskManifestByteLength:
+        previousOutput.manifestByteLength,
+      expectedPreviousMaskManifestSha256: previousOutput.manifestSha256,
+      previousCanonicalStartFrameInclusive:
+        previousChunk.canonicalStartFrameInclusive,
+      previousCanonicalEndFrameInclusive:
+        previousChunk.canonicalEndFrameInclusive,
+      previousMaskFrameIndex: previousSource.decodedFrameCount - 1,
+      currentMaskFrameIndex: 0,
+      overlapFrameCount: 1,
+      subjects: [{
+        subjectRequestId: input.subjectRequestId,
+        previousSubjectEvidenceId: subjectEvidenceId({
+          subjectRequestId: input.subjectRequestId,
+          invocationId: previousTask.invocationId,
+        }),
+        currentSubjectEvidenceId: input.currentSubjectEvidenceId,
+        previousMaskObjectId: previousOutput.distinctObjectIds[0]!,
+        currentMaskObjectId: input.currentMaskObjectId,
+      }],
+    },
+  }
+}
+
+function isCurrentServingResult(
+  result: CanonicalSam31AnyRuntimeResultAdmission,
+): result is Extract<CanonicalSam31AnyRuntimeResultAdmission, {
+  schemaVersion: 'canonical-sam3_1-current-serving-result-admission-v2'
+}> {
+  return result.schemaVersion ===
+    'canonical-sam3_1-current-serving-result-admission-v2'
+}
+
+function subjectEvidenceId(input: {
+  subjectRequestId: string
+  invocationId: string
+}): string {
+  return `track-all-l4-evidence:${sha256AuthorityValue(input).slice(0, 40)}`
+}
+
 function assertAuthenticatedL4Scope(input: {
   authenticatedOwnerUserId: string
   workspaceId: string
@@ -656,7 +886,7 @@ function assertSamAndCaptionScope(input: {
   >
   task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
   context: ReturnType<typeof assertCanonicalSam31GpuTaskContext>
-  result: CanonicalSam31GpuRuntimeResultAdmission
+  result: CanonicalSam31AnyRuntimeResultAdmission
   output: CanonicalTrackAllSam31L4TaskQaSamOutputObservation
   payload: ReturnType<typeof parseCaptionTrackAllSupportPayload>
 }): void {
@@ -664,6 +894,8 @@ function assertSamAndCaptionScope(input: {
   const source = task.runtimeRequest.sourceMedia
   if (
     task.invocationId !== input.request.sam31InvocationId
+    || !sameRef(result.taskRef,
+      numericRef(task.taskId, task.taskRecordHash))
     || result.executionEnvelopeRef.id !== task.invocationId
     || result.status !== 'ready_for_independent_mask_artifact_qa'
     || task.taskContextRef.id !== context.taskContextRef.id
@@ -691,6 +923,14 @@ function assertSamAndCaptionScope(input: {
       source.canonicalSourceStartFrameInclusive
     || payload.requestedRange.endFrameExclusive !==
       source.canonicalSourceEndFrameInclusive + 1
+    || (isCurrentServingResult(result) && (
+      result.chunkOrdinal < 1
+      || result.canonicalStartFrameInclusive !==
+        source.canonicalSourceStartFrameInclusive
+      || result.canonicalEndFrameInclusive !==
+        source.canonicalSourceEndFrameInclusive
+      || result.propagatedFrameCount !== source.decodedFrameCount
+    ))
     || output.manifestSha256 !== stripSha(result.manifestRef.contentHash)
   ) throw new TypeError(
     'Track All L4 task-QA SAM, Caption, frame, or output scope differs.',
@@ -741,7 +981,7 @@ function buildResult(input: {
   request: TrackAllSam31L4TaskQaGpuStartRequest
   workspaceId: string
   material: ReturnType<typeof buildCanonicalTrackAllSam31L4TaskQaMaterialV2>
-  result: CanonicalSam31GpuRuntimeResultAdmission
+  result: CanonicalSam31AnyRuntimeResultAdmission
   started: Awaited<ReturnType<
     typeof launchCanonicalProfessionalGpuPreparedPlanFundedJob
   >>

@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v27')
+  'canonical-track-all-sam3_1-production-runtime-v28')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -232,6 +232,11 @@ assert.equal(
   false,
 )
 assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+    .currentServingChunkLineageRereadBeforeL4Admission,
+  true,
+)
+assert.equal(
   runtime.trackAllSam31L4TaskQaQueuedStartRuntimePort.schemaVersion,
   'canonical-track-all-sam3_1-l4-task-qa-queued-start-runtime-v1',
 )
@@ -382,7 +387,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 118,
+  checks: 119,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -410,6 +415,7 @@ console.log(JSON.stringify({
   captionTrackAllRequiresCanonicalSam31TaskResultReread: true,
   captionTrackAllRequiresTaskLevelIndependentMaskQa: true,
   authenticatedL4TaskQaStartMounted: true,
+  currentA100ChunkResultsFeedExactL4Boundary: true,
   l4DurableQueuedStartMounted: true,
   l4CloudRunOperationAuthorityMounted: true,
   l4RouteAwareCloudTaskConsumerMounted: true,

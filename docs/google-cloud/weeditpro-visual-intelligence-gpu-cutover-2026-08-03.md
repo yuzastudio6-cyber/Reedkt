@@ -440,6 +440,20 @@ idempotent rerun then observed all five disabled and emitted
   measurement ref, and requires every L4 sequence metric to equal or improve
   on the A100 baseline. Caller comparison booleans, crossed source/object
   scope, stale reviews, digest mutation, or any L4 regression fail closed.
+- The runtime-qualification evidence chain now has bounded one-writer operator
+  entrypoints for every server-owned compilation step. They reread canonical
+  GCS evidence and persist content-addressed records; none launches a GPU job,
+  mutates customer credits, grants QA approval, or publishes a runtime release:
+  `npm run compile:sam3_1-gpu-complete-source-performance`,
+  `npm run compile:sam3_1-gpu-performance-p95-qualification`,
+  `npm run assemble:sam3_1-gpu-temporal-evidence`,
+  `npm run compile:sam3_1-gpu-temporal-measurement`, and
+  `npm run compile:sam3_1-gpu-temporal-quality-qualification`. Each command
+  accepts only its named `WEEDITPRO_*_REQUEST_JSON` environment variable and
+  fails closed on missing, crossed, stale, or non-canonical evidence. The
+  temporal-quality command requires the independently persisted full-resolution
+  complete-interval private-review ref; it does not create or self-attest that
+  review. The final runtime-release publisher remains a separate gate.
 - Every fresh fixed SAM 3.1 task context now requires an exact, digest-bound
   `track_all` Orchestra call for one complete approved scene interval. The
   binding cross-checks the approved snapshot, output, scene, source artifact,

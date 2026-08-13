@@ -1,25 +1,35 @@
+import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import type { CaptionDomainRef } from '../../src/types/caption-domain-contracts'
 import {
+  createCanonicalGcsSourceAnalysisJsonObjectPort,
+  type CanonicalCreateOnlyJsonObjectPort,
+} from './canonical-gcs-source-analysis-lifecycle-store'
+import {
   assertCanonicalSam31GpuCompleteSourceExecutionObservation,
   canonicalSam31GpuCompleteSourceExecutionObservationRef,
+  createCanonicalSam31GpuCompleteSourceEvidenceReadPort,
   type CanonicalSam31GpuCompleteSourceEvidenceReadPort,
 } from './canonical-sam3_1-gpu-complete-source-performance-owner'
 import {
   canonicalSam31CrossChunkBoundaryMeasurementSetRef,
   canonicalSam31TemporalMetricSeriesSetRef,
+  createCanonicalSam31CrossChunkBoundaryMeasurementSetRepository,
+  createCanonicalSam31TemporalMetricSeriesSetRepository,
   sealCanonicalSam31CrossChunkBoundaryMeasurementSet,
   sealCanonicalSam31TemporalMetricSeriesSet,
   type CanonicalSam31CrossChunkBoundaryMeasurementSetRepository,
   type CanonicalSam31TemporalMetricSeriesSetRepository,
 } from './canonical-sam3_1-gpu-temporal-measurement-compiler'
 import {
+  createCanonicalTrackAllSam31TaskQaRepository,
   parseCanonicalTrackAllSam31L4MaskQaMeasurement,
   type CanonicalTrackAllSam31TaskQaRepository,
 } from './canonical-track-all-sam3_1-task-qa-owner'
 import {
   CANONICAL_TRACK_ALL_SAM3_1_L4_MASK_QA_WORKER_EVIDENCE_RESULT_V3_VERSION,
+  createCanonicalTrackAllSam31TaskQaCandidateRepository,
   parseCanonicalTrackAllSam31L4MaskQaWorkerResult,
   type CanonicalTrackAllSam31TaskQaCandidateRepository,
 } from './canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
@@ -379,6 +389,49 @@ export function createCanonicalSam31GpuTemporalEvidenceAssembler(input: {
         callerMetricsOrCompletionClaimsAccepted: false as const,
       })
     },
+  })
+}
+
+export function createCanonicalSam31GpuTemporalEvidenceAssemblerFromObjectPort(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly now?: () => string
+  },
+) {
+  return createCanonicalSam31GpuTemporalEvidenceAssembler({
+    completeSourceReadPort:
+      createCanonicalSam31GpuCompleteSourceEvidenceReadPort({
+        objectPort: input.objectPort,
+      }),
+    taskQaRepository: createCanonicalTrackAllSam31TaskQaRepository({
+      objectPort: input.objectPort,
+    }),
+    taskQaCandidateRepository:
+      createCanonicalTrackAllSam31TaskQaCandidateRepository({
+        objectPort: input.objectPort,
+      }),
+    boundaryMeasurementSetRepository:
+      createCanonicalSam31CrossChunkBoundaryMeasurementSetRepository({
+        objectPort: input.objectPort,
+      }),
+    temporalMetricSeriesSetRepository:
+      createCanonicalSam31TemporalMetricSeriesSetRepository({
+        objectPort: input.objectPort,
+      }),
+    now: input.now,
+  })
+}
+
+export function createCanonicalSam31GcpGpuTemporalEvidenceAssembler(input: {
+  readonly storage?: Storage
+  readonly now?: () => string
+} = {}) {
+  return createCanonicalSam31GpuTemporalEvidenceAssemblerFromObjectPort({
+    objectPort: createCanonicalGcsSourceAnalysisJsonObjectPort({
+      storage: input.storage ?? new Storage({ projectId: 'reeditpro' }),
+      bucketName: 'reeditpro-production-reeditpro-control-plane-state',
+    }),
+    now: input.now,
   })
 }
 

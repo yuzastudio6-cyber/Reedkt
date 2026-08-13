@@ -91,6 +91,8 @@ assert.match(qualificationOperator, /--tasks=1/u)
 assert.match(qualificationOperator, /--parallelism=1/u)
 assert.match(qualificationOperator, /run jobs execute/u)
 assert.match(qualificationOperator, /--wait/u)
+assert.match(qualificationOperator, /readonly JOB_DESCRIPTION=/u)
+assert.doesNotMatch(qualificationOperator, /readonly DESCRIPTION=/u)
 assert.match(qualificationOperator, /minimum_idle_instances=0/u)
 assert.match(qualificationOperator, /customer_credits_mutated=false/u)
 assert.match(qualificationOperator, /production_authority_granted=false/u)
@@ -106,7 +108,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 55,
+  checks: 57,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

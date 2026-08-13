@@ -5,13 +5,19 @@ const path =
   'scripts/gcp/prod/55-deploy-sam31-eight-minute-source-preparation-l4-job.sh'
 const [script, dockerfile] = await Promise.all([
   readFile(path, 'utf8'),
-  readFile('docker/prod/gpu-worker/visual-evidence/Dockerfile.candidate', 'utf8'),
+  readFile(
+    'docker/prod/gpu-worker/sam3_1-source-preparation/Dockerfile.candidate',
+    'utf8',
+  ),
 ])
 
 assert.match(script, /weeditpro-sam31-source-prep-l4/u)
-assert.match(script, /WEEDITPRO_L4_MEDIA_IMAGE_DIGEST/u)
-assert.match(script, /@\$\{WEEDITPRO_L4_MEDIA_IMAGE_DIGEST\}/u)
-assert.match(script, /--command=\/usr\/local\/bin\/node/u)
+assert.match(script, /WEEDITPRO_SAM31_SOURCE_PREPARATION_L4_IMAGE_DIGEST/u)
+assert.match(
+  script,
+  /@\$\{WEEDITPRO_SAM31_SOURCE_PREPARATION_L4_IMAGE_DIGEST\}/u,
+)
+assert.match(script, /--command=\/nodejs\/bin\/node/u)
 assert.match(script,
   /weeditpro-sam3_1-eight-minute-source-preparation-worker\.js/u)
 assert.match(script, /--gpu-type=nvidia-l4/u)
@@ -29,10 +35,11 @@ assert.doesNotMatch(script, /--execute-now|gcloud run jobs execute/u)
 assert.doesNotMatch(script, /--set-secrets/u)
 assert.match(dockerfile,
   /weeditpro-sam3_1-eight-minute-source-preparation-worker\.js/u)
+assert.match(dockerfile, /gcr\.io\/distroless\/nodejs24-debian13:nonroot@sha256:/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-cloud-run-definition',
-  checks: 20,
+  checks: 21,
   exactImageDigestRequired: true,
   accelerator: 'nvidia_l4',
   taskCount: 1,

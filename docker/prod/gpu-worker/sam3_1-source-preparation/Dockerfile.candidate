@@ -107,6 +107,14 @@ FROM node:24.13.1-bookworm-slim@sha256:85a395c77b811fa7f5b5e4aa69cd6eb4c3b80c7f1
 WORKDIR /app
 ENV NODE_ENV=development \
   NODE_OPTIONS=--max-old-space-size=6144
+ARG WEEDITPRO_SOURCE_COMMIT_SHA
+ARG WEEDITPRO_SOURCE_TREE_HASH
+ARG WEEDITPRO_SOURCE_CLEAN
+RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${WEEDITPRO_SOURCE_CLEAN}" = true
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
@@ -117,16 +125,11 @@ RUN npm run build:server \
   && test -f \
     dist-server/weeditpro-sam3_1-source-preparation-private-qualification-worker.js
 
-FROM node:24.13.1-bookworm-slim@sha256:85a395c77b811fa7f5b5e4aa69cd6eb4c3b80c7f1a8e34704dc0ce061e5b404e
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:fbbdda866ea71aef98c4abece17e3d61fbf820cc2ef3961522caa2478716171a
 
 ARG WEEDITPRO_SOURCE_COMMIT_SHA
 ARG WEEDITPRO_SOURCE_TREE_HASH
 ARG WEEDITPRO_SOURCE_CLEAN
-RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
-    | grep -Eq '^[a-f0-9]{40}$' \
-  && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
-    | grep -Eq '^[a-f0-9]{40}$' \
-  && test "${WEEDITPRO_SOURCE_CLEAN}" = true
 
 LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
   io.weeditpro.product="WeEditPro" \
@@ -151,34 +154,19 @@ ENV NODE_ENV=production \
   HF_HUB_OFFLINE=1 \
   TRANSFORMERS_OFFLINE=1
 
-COPY --from=ffmpeg_builder /opt/weeditpro/ffmpeg/ /opt/weeditpro/ffmpeg/
-COPY --from=server_builder /app/dist-server /app/dist-server
-COPY --from=server_builder /app/node_modules /app/node_modules
-COPY --from=server_builder /app/package.json /app/package.json
-COPY docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
+COPY --from=ffmpeg_builder --chown=65532:65532 \
+  /opt/weeditpro/ffmpeg/ /opt/weeditpro/ffmpeg/
+COPY --from=server_builder --chown=65532:65532 \
+  /app/dist-server /app/dist-server
+COPY --from=server_builder --chown=65532:65532 \
+  /app/node_modules /app/node_modules
+COPY --from=server_builder --chown=65532:65532 \
+  /app/package.json /app/package.json
+COPY --chown=65532:65532 --chmod=0444 \
+  docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
   /opt/weeditpro/sam3_1-source-preparation/source-provenance.lock
-
-RUN groupadd --gid 65532 weeditpro \
-  && useradd --uid 65532 --gid 65532 --no-create-home \
-    --home-dir /nonexistent --shell /usr/sbin/nologin weeditpro \
-  && mkdir --parents --mode=0700 \
-    /mnt/weeditpro-private/l4-visual-evidence \
-  && chown --recursive 65532:65532 /mnt/weeditpro-private \
-  && chmod 0444 \
-    /opt/weeditpro/sam3_1-source-preparation/source-provenance.lock \
-  && test -x /usr/local/bin/node \
-  && test -x /opt/weeditpro/ffmpeg/bin/ffmpeg \
-  && test -x /opt/weeditpro/ffmpeg/bin/ffprobe \
-  && test -f \
-    /app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js \
-  && test -f \
-    /app/dist-server/weeditpro-sam3_1-source-preparation-private-qualification-worker.js \
-  && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders 2>&1 \
-    | grep -E '[[:space:]]h264_cuvid[[:space:]]' \
-  && /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -encoders 2>&1 \
-    | grep -E '[[:space:]]h264_nvenc[[:space:]]'
 
 USER 65532:65532
 WORKDIR /nonexistent
 ENTRYPOINT []
-CMD ["/usr/local/bin/node", "/app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js"]
+CMD ["/nodejs/bin/node", "/app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js"]

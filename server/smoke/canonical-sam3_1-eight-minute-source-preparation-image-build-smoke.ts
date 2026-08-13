@@ -49,6 +49,16 @@ assert.match(dockerfile, /stat --format='%s'/u)
 assert.match(dockerfile, /NODE_OPTIONS=--max-old-space-size=6144/u)
 assert.match(
   dockerfile,
+  /gcr\.io\/distroless\/nodejs24-debian13:nonroot@sha256:fbbdda866ea71aef98c4abece17e3d61fbf820cc2ef3961522caa2478716171a/u,
+)
+assert.match(dockerfile, /CMD \["\/nodejs\/bin\/node"/u)
+assert.match(dockerfile, /COPY --from=server_builder --chown=65532:65532/u)
+assert.doesNotMatch(
+  dockerfile.slice(dockerfile.lastIndexOf('FROM gcr.io/distroless')),
+  /^RUN /mu,
+)
+assert.match(
+  dockerfile,
   /weeditpro-sam3_1-source-preparation-private-qualification-worker\.js/u,
 )
 assert.match(
@@ -92,7 +102,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 46,
+  checks: 51,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

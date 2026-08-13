@@ -44,7 +44,7 @@ run_gcloud run jobs deploy "${JOB}" \
   --project="${GCP_PROJECT_ID}" \
   --region="${REGION}" \
   --image="${IMAGE}" \
-  --command=/usr/local/bin/node \
+  --command=/nodejs/bin/node \
   --args="${ENTRYPOINT}" \
   --service-account="$(service_account_email "${REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT}")" \
   --cpu=8 \
@@ -75,7 +75,7 @@ const env = Object.fromEntries((container?.env || []).map((item) => [
   item.value,
 ]))
 const exact = container?.image === process.env.EXPECTED_IMAGE
-  && JSON.stringify(container?.command) === JSON.stringify(['/usr/local/bin/node'])
+  && JSON.stringify(container?.command) === JSON.stringify(['/nodejs/bin/node'])
   && JSON.stringify(container?.args) === JSON.stringify([
     process.env.EXPECTED_ENTRYPOINT,
   ])

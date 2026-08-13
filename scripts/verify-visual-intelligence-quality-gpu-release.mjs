@@ -134,6 +134,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-worker-entrypoint-smoke.ts',
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-cloud-run-definition-smoke.ts',
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-launch-owner-smoke.ts',
+  'server/smoke/canonical-sam3_1-eight-minute-source-preparation-terminal-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
   'server/smoke/canonical-quality-first-a100-fast-scale-zero-migration-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',

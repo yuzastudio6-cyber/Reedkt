@@ -318,10 +318,11 @@ export function createGoogleCloudRunSam31EightMinuteSourcePreparationPort(
           retry: false,
           maxRedirects: 0,
         })
-        cloudRunJobDefinitionRef = assertExactCloudRunJobDefinition({
+        cloudRunJobDefinitionRef =
+          getCanonicalSam31EightMinuteSourcePreparationCloudRunJobDefinitionRef({
           untrusted: definitionResponse.data,
           release,
-        })
+          })
         cloudJobCreateRequestRef = requestRef(
           invocationId,
           release,
@@ -681,10 +682,12 @@ function requestRef(
   }))
 }
 
-function assertExactCloudRunJobDefinition(input: {
+export function getCanonicalSam31EightMinuteSourcePreparationCloudRunJobDefinitionRef(
+  input: {
   readonly untrusted: unknown
   readonly release: CanonicalSam31EightMinuteSourcePreparationRelease
-}): EvidenceRef {
+  },
+): EvidenceRef {
   assertPlainSerializedData(input.untrusted,
     'sam31_source_prep_cloud_run_job_definition')
   const definition = z.object({
@@ -760,8 +763,41 @@ function assertExactCloudRunJobDefinition(input: {
   if (!exact) throw conflict(
     'sam31_source_preparation_live_cloud_run_definition_changed',
   )
+  const normalizedConfiguration = {
+    name: definition.name,
+    uid: definition.uid,
+    generation: String(definition.generation),
+    updateTime: definition.updateTime,
+    labels: {
+      app: definition.labels.app,
+      operation: definition.labels.operation,
+      route: definition.labels.route,
+      scale: definition.labels.scale,
+    },
+    image: container.image,
+    command: container.command,
+    args: container.args,
+    environment: Object.fromEntries([...environment.entries()].sort(
+      ([left], [right]) => left < right ? -1 : left > right ? 1 : 0,
+    )),
+    resources: {
+      cpu: container.resources.limits.cpu,
+      memory: container.resources.limits.memory,
+      gpu: container.resources.limits['nvidia.com/gpu'],
+    },
+    volumeMounts: mounts,
+    volumes,
+    parallelism: definition.template.parallelism,
+    taskCount: definition.template.taskCount,
+    maxRetries: definition.template.template.maxRetries,
+    timeout: definition.template.template.timeout,
+    serviceAccount: definition.template.template.serviceAccount,
+    nodeSelector: definition.template.template.nodeSelector,
+    gpuZonalRedundancyDisabled:
+      definition.template.template.gpuZonalRedundancyDisabled,
+  }
   return ref(`${definition.uid}:cloud-run-job-definition`,
-    sha256AuthorityValue(definition))
+    sha256AuthorityValue(normalizedConfiguration))
 }
 
 function assertDependencies(input: Parameters<

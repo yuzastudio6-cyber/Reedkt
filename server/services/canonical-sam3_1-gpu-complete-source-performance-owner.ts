@@ -325,6 +325,15 @@ export interface CanonicalSam31GpuCompleteSourcePerformanceRepository {
   }): Promise<CanonicalSam31GpuCompleteSourcePerformanceEvidence | null>
 }
 
+export interface CanonicalSam31GpuCompleteSourceEvidenceReadPort {
+  rereadExecutionGroupObservation(input: {
+    readonly executionGroupObservationRef: EvidenceRef
+  }): Promise<CanonicalSam31GpuCompleteSourceExecutionObservation | null>
+  rereadStitchEvidence(input: {
+    readonly stitchEvidenceRef: EvidenceRef
+  }): Promise<CanonicalSam31GpuCompleteSourceStitchEvidence | null>
+}
+
 export function sealCanonicalSam31GpuCompleteSourceExecutionObservation(
   value: unknown,
 ): CanonicalSam31GpuCompleteSourceExecutionObservation {
@@ -647,6 +656,50 @@ export function createCanonicalSam31GpuCompleteSourcePerformanceRepository(
         parsedRef,
       )) throw conflict('performance_repository_reference_mismatch')
       return parsed
+    },
+  })
+}
+
+export function createCanonicalSam31GpuCompleteSourceEvidenceReadPort(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix?: string
+}): CanonicalSam31GpuCompleteSourceEvidenceReadPort {
+  assertObjectPort(input.objectPort)
+  const prefix = normalizePrefix(input.prefix ?? DEFAULT_PREFIX)
+  return Object.freeze({
+    rereadExecutionGroupObservation({ executionGroupObservationRef }: {
+      readonly executionGroupObservationRef: EvidenceRef
+    }) {
+      const parsedRef = refSchema.parse(executionGroupObservationRef)
+      return readTypedObject(input.objectPort,
+        recordPath(prefix, 'execution-groups', parsedRef),
+        (value) => {
+          const parsed = assertCanonicalSam31GpuCompleteSourceExecutionObservation(
+            value,
+          )
+          if (!sameRef(
+            canonicalSam31GpuCompleteSourceExecutionObservationRef(parsed),
+            parsedRef,
+          )) throw conflict('execution_group_repository_reference_mismatch')
+          return parsed
+        })
+    },
+    rereadStitchEvidence({ stitchEvidenceRef }: {
+      readonly stitchEvidenceRef: EvidenceRef
+    }) {
+      const parsedRef = refSchema.parse(stitchEvidenceRef)
+      return readTypedObject(input.objectPort,
+        recordPath(prefix, 'stitches', parsedRef),
+        (value) => {
+          const parsed = assertCanonicalSam31GpuCompleteSourceStitchEvidence(
+            value,
+          )
+          if (!sameRef(
+            canonicalSam31GpuCompleteSourceStitchEvidenceRef(parsed),
+            parsedRef,
+          )) throw conflict('stitch_repository_reference_mismatch')
+          return parsed
+        })
     },
   })
 }

@@ -371,6 +371,15 @@ export interface CanonicalSam31TemporalQualitySetRepository {
   }): Promise<CanonicalSam31TemporalQualityQualificationSet | null>
 }
 
+export interface CanonicalSam31TemporalMeasurementSetRepository {
+  persistMeasurementSetCreateOnly(input: {
+    readonly measurementSet: CanonicalSam31TemporalMeasurementSet
+  }): Promise<EvidenceRef>
+  rereadMeasurementSet(input: {
+    readonly measurementSetRef: EvidenceRef
+  }): Promise<CanonicalSam31TemporalMeasurementSet | null>
+}
+
 export function sealCanonicalSam31TemporalMeasurementSet(
   value: unknown,
 ): CanonicalSam31TemporalMeasurementSet {
@@ -660,6 +669,35 @@ export function createCanonicalSam31TemporalQualitySetRepository(input: {
         assertCanonicalSam31TemporalQualityQualificationSet,
         parsedRef,
         canonicalSam31TemporalQualityQualificationSetRef)
+    },
+  })
+}
+
+export function createCanonicalSam31TemporalMeasurementSetRepository(input: {
+  readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+  readonly prefix?: string
+}): CanonicalSam31TemporalMeasurementSetRepository {
+  assertObjectPort(input.objectPort)
+  const prefix = normalizePrefix(input.prefix ?? INPUT_PREFIX)
+  return Object.freeze({
+    async persistMeasurementSetCreateOnly({ measurementSet }: {
+      readonly measurementSet: CanonicalSam31TemporalMeasurementSet
+    }) {
+      const parsed = assertCanonicalSam31TemporalMeasurementSet(measurementSet)
+      const measurementSetRef = canonicalSam31TemporalMeasurementSetRef(parsed)
+      await persistExact(input.objectPort,
+        recordPath(prefix, 'measurements', measurementSetRef), parsed)
+      return measurementSetRef
+    },
+    async rereadMeasurementSet({ measurementSetRef }: {
+      readonly measurementSetRef: EvidenceRef
+    }) {
+      const parsedRef = refSchema.parse(measurementSetRef)
+      return readTypedObject(input.objectPort,
+        recordPath(prefix, 'measurements', parsedRef),
+        assertCanonicalSam31TemporalMeasurementSet,
+        parsedRef,
+        canonicalSam31TemporalMeasurementSetRef)
     },
   })
 }

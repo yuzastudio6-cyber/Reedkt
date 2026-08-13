@@ -120,6 +120,8 @@ RUN npm ci
 COPY . .
 RUN npm run build:server \
   && npm prune --omit=dev \
+  && chmod 0444 \
+    /app/docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
   && test -f \
     dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js \
   && test -f \
@@ -162,8 +164,8 @@ COPY --from=server_builder --chown=65532:65532 \
   /app/node_modules /app/node_modules
 COPY --from=server_builder --chown=65532:65532 \
   /app/package.json /app/package.json
-COPY --chown=65532:65532 --chmod=0444 \
-  docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
+COPY --from=server_builder --chown=65532:65532 \
+  /app/docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
   /opt/weeditpro/sam3_1-source-preparation/source-provenance.lock
 
 USER 65532:65532

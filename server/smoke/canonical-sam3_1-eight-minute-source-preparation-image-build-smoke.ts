@@ -53,6 +53,8 @@ assert.match(
 )
 assert.match(dockerfile, /CMD \["\/nodejs\/bin\/node"/u)
 assert.match(dockerfile, /COPY --from=server_builder --chown=65532:65532/u)
+assert.match(dockerfile, /chmod 0444[\s\S]*source-provenance\.lock/u)
+assert.doesNotMatch(dockerfile, /COPY[^\n]*--chmod/u)
 assert.doesNotMatch(
   dockerfile.slice(dockerfile.lastIndexOf('FROM gcr.io/distroless')),
   /^RUN /mu,
@@ -102,7 +104,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 51,
+  checks: 53,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

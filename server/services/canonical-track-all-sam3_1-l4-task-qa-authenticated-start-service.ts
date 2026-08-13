@@ -50,6 +50,11 @@ import {
   type CanonicalSam31CompleteSourceChunkRepository,
 } from './canonical-sam3_1-complete-source-chunk-coordinator'
 import {
+  canonicalSam31CompleteSourceServingReleaseRef,
+  parseCanonicalSam31CompleteSourceServingRelease,
+  type CanonicalSam31CompleteSourceServingReleaseRepository,
+} from './canonical-sam3_1-complete-source-serving-release'
+import {
   buildCanonicalTrackAllSam31L4TaskQaMaterialV2,
   type CanonicalTrackAllSam31L4TaskQaMaterialRepository,
 } from '../workers/masks/canonical-track-all-sam3_1-l4-task-qa-owner-service'
@@ -187,6 +192,8 @@ export interface CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort {
   readonly routeOwnsGpuPlacementOrPricing: false
   readonly rawCloudLaunchPortExposed: false
   readonly currentServingChunkLineageRereadBeforeL4Admission: true
+  readonly currentServingGroupSettlementAndScaleZeroRereadBeforeL4Admission:
+    true
   prepareApprovedTaskQaWork(input: z.input<typeof authenticatedInputSchema>):
     Promise<CanonicalTrackAllSam31L4TaskQaPreparedWork>
   startApprovedTaskQaWork(input: z.input<typeof authenticatedInputSchema>):
@@ -376,6 +383,10 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
       CanonicalSam31CompleteSourceChunkRepository,
       'rereadPlan' | 'rereadChunkReceipt'
     >
+    readonly sam31CompleteSourceServingReleaseRepository: Pick<
+      CanonicalSam31CompleteSourceServingReleaseRepository,
+      'rereadByExecutionGroup'
+    >
     readonly sam31OutputReadPort:
       CanonicalTrackAllSam31L4TaskQaSamOutputReadPort
     readonly supportResumeRepository: Pick<
@@ -397,6 +408,8 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
     routeOwnsGpuPlacementOrPricing: false as const,
     rawCloudLaunchPortExposed: false as const,
     currentServingChunkLineageRereadBeforeL4Admission: true as const,
+    currentServingGroupSettlementAndScaleZeroRereadBeforeL4Admission:
+      true as const,
     async prepareApprovedTaskQaWork(untrusted) {
       assertPlainSerializedData(untrusted,
         'track_all_l4_task_qa_authenticated_start_input')
@@ -502,10 +515,13 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         currentSubjectEvidenceId,
         currentMaskObjectId: output.distinctObjectIds[0]!,
         chunkRepository: input.sam31CompleteSourceChunkRepository,
+        servingReleaseRepository:
+          input.sam31CompleteSourceServingReleaseRepository,
         taskStore: input.sam31TaskStore,
         taskContextRepository: input.sam31TaskContextRepository,
         resultStore: input.sam31ResultStore,
         outputReadPort: input.sam31OutputReadPort,
+        l4AdmissionAt: startedAt,
       })
       const material = buildCanonicalTrackAllSam31L4TaskQaMaterialV2({
         schemaVersion:
@@ -669,12 +685,17 @@ export async function resolveCurrentServingChunkLineage(input: {
   currentMaskObjectId: number
   chunkRepository: Pick<CanonicalSam31CompleteSourceChunkRepository,
     'rereadPlan' | 'rereadChunkReceipt'>
+  servingReleaseRepository: Pick<
+    CanonicalSam31CompleteSourceServingReleaseRepository,
+    'rereadByExecutionGroup'
+  >
   taskStore: Pick<CanonicalSam31GpuTaskStore, 'rereadTask'>
   taskContextRepository: Pick<CanonicalSam31GpuTaskContextRepository,
     'rereadTaskContext'>
   resultStore: Pick<CanonicalSam31GpuRuntimeResultStore,
     'rereadResultAdmission'>
   outputReadPort: CanonicalTrackAllSam31L4TaskQaSamOutputReadPort
+  l4AdmissionAt: string
 }): Promise<{
   chunkOrdinal: number
   canonicalStartFrameInclusive: number
@@ -703,6 +724,21 @@ export async function resolveCurrentServingChunkLineage(input: {
       chunkOrdinal: input.result.chunkOrdinal,
     }),
   )
+  const rawServingRelease =
+    await input.servingReleaseRepository.rereadByExecutionGroup({
+      executionGroupRef: input.result.completeSourceChunkPlanRef,
+    })
+  if (!rawServingRelease) throw new TypeError(
+    'Track All L4 complete-source release is unavailable.',
+  )
+  const servingRelease = parseCanonicalSam31CompleteSourceServingRelease(
+    rawServingRelease,
+  )
+  const currentResultRef = evidenceRefSchema.parse({
+    id: input.result.resultAdmissionId,
+    version: 2,
+    contentHash: `sha256:${input.result.resultAdmissionHash}`,
+  })
   if (!currentChunk
     || !sameRef(input.result.completeSourceChunkPlanRef,
       canonicalSam31CompleteSourceChunkPlanRef(plan))
@@ -726,7 +762,27 @@ export async function resolveCurrentServingChunkLineage(input: {
       input.task.runtimeRequest.scope.approvedPlanSnapshotId
     || plan.approvedSnapshotRef.contentHash !== `sha256:${
       input.task.runtimeRequest.scope.approvedPlanSnapshotHash
-    }`) throw new TypeError(
+    }`
+    || !sameRef(servingRelease.executionGroupRef,
+      canonicalSam31CompleteSourceChunkPlanRef(plan))
+    || servingRelease.exactChunkCount !== plan.exactChunkCount
+    || servingRelease.currentServingResultAdmissionRefs.length !==
+      plan.exactChunkCount
+    || servingRelease.chunkReceiptRefs.length !== plan.exactChunkCount
+    || !servingRelease.currentServingResultAdmissionRefs.some((ref) =>
+      sameRef(ref, currentResultRef))
+    || !servingRelease.chunkReceiptRefs.some((ref) => sameRef(
+      ref,
+      canonicalSam31CompleteSourceChunkReceiptRef(currentReceipt),
+    ))
+    || !servingRelease.endpointScaleToZeroObservedAfterServingWindow
+    || !servingRelease
+      .exactDetailedBillingExportAndAccountEffectiveRateReconciled
+    || !servingRelease
+      .everyExecutionAttemptAllocatedAndCreditSettledExactlyOnce
+    || Date.parse(input.l4AdmissionAt) < Date.parse(servingRelease.releasedAt)
+    || canonicalSam31CompleteSourceServingReleaseRef(servingRelease)
+      .contentHash !== `sha256:${servingRelease.releaseHash}`) throw new TypeError(
     'Track All L4 current SAM 3.1 chunk lineage differs.',
   )
   if (input.result.chunkOrdinal === 1) return {

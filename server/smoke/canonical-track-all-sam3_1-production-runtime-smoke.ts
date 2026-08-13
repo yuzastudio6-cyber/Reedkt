@@ -105,6 +105,11 @@ assert.equal(
 assert.equal(runtime.completeSourceCostSettlementAndScaleZeroReleaseMounted,
   true)
 assert.equal(runtime.perChunkResultMaySelfClaimServingWindowScaleZero, false)
+assert.equal(
+  runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+    .currentServingGroupSettlementAndScaleZeroRereadBeforeL4Admission,
+  true,
+)
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
 assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
@@ -402,7 +407,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 124,
+  checks: 125,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -419,6 +424,9 @@ console.log(JSON.stringify({
     runtime.completeSourceCostSettlementAndScaleZeroReleaseMounted,
   perChunkResultMaySelfClaimServingWindowScaleZero:
     runtime.perChunkResultMaySelfClaimServingWindowScaleZero,
+  currentServingGroupReleaseRereadBeforeL4Admission:
+    runtime.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+      .currentServingGroupSettlementAndScaleZeroRereadBeforeL4Admission,
   historicalA100CustomJobPricingRemainsReadOnly:
     runtime.historicalA100CustomJobPricingRemainsReadOnly,
   vertexA100TerminalToCanonicalResultBridgeMounted: true,

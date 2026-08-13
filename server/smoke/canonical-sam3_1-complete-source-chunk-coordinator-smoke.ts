@@ -7,11 +7,15 @@ import type {
 import {
   buildCanonicalSam31CompleteSourceChunkPlan,
   canonicalSam31CompleteSourceChunkPlanRef,
+  canonicalSam31CompleteSourceChunkReceiptRef,
   createCanonicalSam31CompleteSourceChunkCoordinator,
   createCanonicalSam31CompleteSourceChunkRepository,
   parseCanonicalSam31CompleteSourceChunkPlan,
   type CanonicalSam31CurrentServingPrivateOutputRereadPort,
 } from '../services/canonical-sam3_1-complete-source-chunk-coordinator'
+import {
+  parseCanonicalSam31CompleteSourceServingRelease,
+} from '../services/canonical-sam3_1-complete-source-serving-release'
 import {
   createCanonicalSam31CurrentServingResultFinalizationRuntime,
 } from '../services/canonical-sam3_1-current-serving-result-finalization-service'
@@ -258,6 +262,105 @@ const outputObservationFor = (fixture: (typeof fixtures)[number]) => ({
   manifestTaskResultGeometryAndRangeVerified: true as const,
   callerPathUrlOrBytesAccepted: false as const,
 })
+const completeReceiptRefs = await Promise.all(plan.chunks.map(async (chunk) =>
+  canonicalSam31CompleteSourceChunkReceiptRef(
+    (await repository.rereadChunkReceipt({
+      executionGroupId: plan.executionGroupId,
+      chunkOrdinal: chunk.chunkOrdinal,
+    }))!,
+  )))
+const currentResultRefs = plan.chunks.map((chunk) => {
+  const current = chunk.chunkOrdinal === 1
+    ? currentAdmission
+    : chunk.chunkOrdinal === 2 ? secondAdmission : null
+  return current
+    ? versionedRef(current.resultAdmissionId, current.resultAdmissionHash, 2)
+    : versionedRef(`current-result-${chunk.chunkOrdinal}`,
+      digest(`current-result-${chunk.chunkOrdinal}`), 2)
+})
+const servingReleasePayload = {
+  schemaVersion: 'canonical-sam3_1-complete-source-serving-release-v1' as const,
+  source:
+    'canonical_server_sam3_1_complete_source_serving_release_owner' as const,
+  evidenceClass: 'canonical_private_exact_group_reread_and_settlement' as const,
+  status:
+    'complete_source_serving_settled_scale_zero_ready_for_l4_qa' as const,
+  releaseId: 'complete-source-serving-release-1',
+  releaseVersion: 1 as const,
+  executionGroupRef: planRef,
+  approvedSnapshotRef: plan.approvedSnapshotRef,
+  exactSourceRef: plan.exactSourceRef,
+  sourceBindingRef: plan.sourceBindingRef,
+  masterTimingRef: plan.masterTimingRef,
+  compiledSubjectIntentRef: plan.compiledSubjectIntentRef,
+  sourceFrameCount: plan.sourceFrameCount,
+  fpsNumerator: plan.fpsNumerator,
+  fpsDenominator: plan.fpsDenominator,
+  exactChunkCount: plan.exactChunkCount,
+  chunkReceiptRefs: completeReceiptRefs,
+  currentServingResultAdmissionRefs: currentResultRefs,
+  terminalServingAttemptRefs: plan.chunks.map((chunk) =>
+    ref(`terminal-${chunk.chunkOrdinal}`)),
+  executionAttemptRefs: plan.chunks.map((chunk) =>
+    ref(`execution-attempt-${chunk.chunkOrdinal}`)),
+  servingWindowCostReceiptRef: ref('serving-cost-receipt'),
+  attemptCreditSettlementRefs: plan.chunks.map((chunk) =>
+    versionedRef(`settlement-${chunk.chunkOrdinal}`,
+      digest(`settlement-${chunk.chunkOrdinal}`), 2)),
+  totalCustomerChargedCredits: 49,
+  totalWeEditProAbsorbedInfrastructureCostUsdNanos: 0,
+  everyPlannedChunkReceiptResultAndTerminalAttemptReread: true as const,
+  exactSequentialChunkAndCompleteSourceFrameCoverageVerified: true as const,
+  exactDetailedBillingExportAndAccountEffectiveRateReconciled: true as const,
+  everyExecutionAttemptAllocatedAndCreditSettledExactlyOnce: true as const,
+  failedOrCanceledAttemptCostChargedToCustomer: false as const,
+  unapprovedOverageAbsorbedByWeEditPro: true as const,
+  endpointScaleToZeroObservedAfterServingWindow: true as const,
+  perChunkPendingCostAndScaleZeroClaimsResolvedOnlyByGroupRelease: true as const,
+  downstreamL4MaskQaRequiredForEveryAdmittedSceneRange: true as const,
+  independentPrivateReviewRequiredBeforeSpecialistEvidence: true as const,
+  serviceFeeAndFinalUnusedReservationSettlementRemainSeparate: true as const,
+  callerResultCostPriceScaleZeroOrSettlementClaimAccepted: false as const,
+  cpuOnlySubstantiveExecutionAllowed: false as const,
+  browserLocalStateUsed: false as const,
+  assetManifestMutated: false as const,
+  qaApproved: false as const,
+  renderAuthorized: false as const,
+  publicDeliveryAuthorized: false as const,
+  productionAuthorityGranted: false as const,
+  releasedAt: '2026-08-13T15:01:00.000Z',
+}
+const servingRelease = parseCanonicalSam31CompleteSourceServingRelease({
+  ...servingReleasePayload,
+  releaseHash: sha256AuthorityValue(servingReleasePayload),
+})
+await assert.rejects(() => resolveCurrentServingChunkLineage({
+  result: secondAdmission,
+  task: fixtures[1]!.task,
+  context: a100.context,
+  output: outputObservationFor(fixtures[1]!),
+  subjectRequestId: 'track-all-complete-source-subject',
+  currentSubjectEvidenceId: 'track-all-current-chunk-02-evidence',
+  currentMaskObjectId: 1,
+  chunkRepository: repository,
+  servingReleaseRepository: {
+    async rereadByExecutionGroup() { return null },
+  },
+  taskStore,
+  taskContextRepository: {
+    async rereadTaskContext() { return structuredClone(a100.context) },
+  },
+  resultStore,
+  outputReadPort: {
+    async rereadExactSam31MaskManifest({ task }) {
+      const fixture = fixtures.find((candidate) =>
+        candidate.task.invocationId === task.invocationId)
+      if (!fixture) throw new Error('Prior output fixture is unavailable.')
+      return outputObservationFor(fixture)
+    },
+  },
+  l4AdmissionAt: '2026-08-13T15:02:00.000Z',
+}), /complete.source release/u)
 const secondChunkLineage = await resolveCurrentServingChunkLineage({
   result: secondAdmission,
   task: fixtures[1]!.task,
@@ -267,6 +370,11 @@ const secondChunkLineage = await resolveCurrentServingChunkLineage({
   currentSubjectEvidenceId: 'track-all-current-chunk-02-evidence',
   currentMaskObjectId: 1,
   chunkRepository: repository,
+  servingReleaseRepository: {
+    async rereadByExecutionGroup() {
+      return structuredClone(servingRelease)
+    },
+  },
   taskStore,
   taskContextRepository: {
     async rereadTaskContext() {
@@ -282,6 +390,7 @@ const secondChunkLineage = await resolveCurrentServingChunkLineage({
       return outputObservationFor(fixture)
     },
   },
+  l4AdmissionAt: '2026-08-13T15:02:00.000Z',
 })
 assert.equal(secondChunkLineage.chunkOrdinal, 2)
 assert.equal(secondChunkLineage.canonicalStartFrameInclusive, 239)
@@ -370,7 +479,7 @@ assert.equal(blockedCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-complete-source-chunk-coordinator',
-  checks: 51,
+    checks: 52,
   exactEightMinuteFrameCount: 11_520,
   exactChunkCount: 49,
   exactChunkFrameCount: 240,
@@ -380,7 +489,8 @@ console.log(JSON.stringify({
   durableQueueBeforeGpuInvocation: true,
   coordinatorDirectGpuInvocationAllowed: false,
   restartSafeReplayWithoutDuplicateInference: true,
-  currentA100ResultAdmittedToL4WithExactPriorChunkBoundary: true,
+    currentA100ResultAdmittedToL4WithExactPriorChunkBoundary: true,
+    currentA100GroupSettlementAndScaleZeroReleaseRequiredBeforeL4: true,
   unknownOutcomeBlocksWithoutAutomaticRetry: true,
   cpuSubstantiveFallbackAllowed: false,
   customerCreditsMutated: false,
@@ -688,6 +798,14 @@ function ref(id: string, hash = digest(id)) {
   return {
     id,
     version: 1 as const,
+    contentHash: `sha256:${hash}` as const,
+  }
+}
+
+function versionedRef(id: string, hash: string, version: number) {
+  return {
+    id,
+    version,
     contentHash: `sha256:${hash}` as const,
   }
 }

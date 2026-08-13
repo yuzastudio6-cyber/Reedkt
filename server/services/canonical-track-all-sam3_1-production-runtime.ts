@@ -920,6 +920,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       sam31TaskContextRepository: taskContextRepository,
       sam31ResultStore: sam31RuntimeResultStore,
       sam31CompleteSourceChunkRepository,
+      sam31CompleteSourceServingReleaseRepository,
       sam31OutputReadPort: trackAllSam31L4TaskQaSamOutputReadPort,
       supportResumeRepository: specialistSupportResumeRepository,
       lifecycleStore,
